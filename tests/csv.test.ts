@@ -20,6 +20,14 @@ describe("csv parser", () => {
     await expect(extractCatalogNumbers(csv, "Catalog Number")).resolves.toEqual(["SCE-12H2406LP", "SCE-12H2408LP"]);
   });
 
+  it("accepts semicolon-delimited Excel CSV exports", async () => {
+    const csv = Buffer.from("Opis;Kataloski broj\nPrekidac;1SDA126387R1\nKutija;SCE-20EL2010LP\n");
+    const preview = await previewCsv(csv);
+    expect(preview.columns).toEqual(["Opis", "Kataloski broj"]);
+    expect(preview.detectedColumn).toBe("Kataloski broj");
+    await expect(extractCatalogNumbers(csv, "Kataloski broj")).resolves.toEqual(["1SDA126387R1", "SCE-20EL2010LP"]);
+  });
+
   it("accepts an Excel workbook even when uploaded as a csv-named file", async () => {
     const workbook = new ExcelJS.Workbook();
     const sheet = workbook.addWorksheet("Sheet1");

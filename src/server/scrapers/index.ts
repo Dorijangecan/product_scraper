@@ -6,7 +6,9 @@ import { EatonConnector } from "./eaton.js";
 import { SCEConnector } from "./sce.js";
 import { SchneiderConnector } from "./schneider.js";
 import { SiemensConnector } from "./siemens.js";
+import { SpelsbergConnector } from "./spelsberg.js";
 import { emptyResult } from "./normalizer.js";
+import { templateContainsCatalogPlaceholder } from "./catalog-number.js";
 
 const connectors: Record<string, ManufacturerConnector> = {
   abb: new ABBConnector(),
@@ -14,7 +16,8 @@ const connectors: Record<string, ManufacturerConnector> = {
   eaton: new EatonConnector(),
   sce: new SCEConnector(),
   schneider: new SchneiderConnector(),
-  siemens: new SiemensConnector()
+  siemens: new SiemensConnector(),
+  spelsberg: new SpelsbergConnector()
 };
 
 export function getConnector(manufacturerId: ManufacturerId): ManufacturerConnector {
@@ -26,7 +29,7 @@ class ConfiguredManufacturerConnector implements ManufacturerConnector {
 
   async scrape(catalogNumber: string, context: ScrapeContext) {
     const officialTemplates = context.manufacturer.officialBaseUrls
-      .filter((url) => /{part(?:Upper|Lower|Compact|Snake|Dash|AfterColon|AfterColonLower|AfterColonCompact)?}/.test(url))
+      .filter(templateContainsCatalogPlaceholder)
       .map((url, index) => ({
         id: `${context.manufacturer.id}-official-${index + 1}`,
         label: `${context.manufacturer.shortName} official template`,
@@ -34,7 +37,20 @@ class ConfiguredManufacturerConnector implements ManufacturerConnector {
         sourceType: "official-fallback" as const,
         directUrlTemplates: [url]
       }));
-    const result = await context.fallback.scrape(catalogNumber, [...officialTemplates, ...context.manufacturer.fallbackSources]);
+    const searchTemplates = (context.manufacturer.scrapeRecipe?.searchUrlTemplates ?? [])
+      .filter(templateContainsCatalogPlaceholder)
+      .map((url, index) => ({
+        id: `${context.manufacturer.id}-official-search-${index + 1}`,
+        label: `${context.manufacturer.shortName} official search`,
+        enabled: true,
+        sourceType: "official-fallback" as const,
+        directUrlTemplates: [url]
+      }));
+    const result = await context.fallback.scrape(catalogNumber, [
+      ...officialTemplates,
+      ...searchTemplates,
+      ...context.manufacturer.fallbackSources
+    ]);
     if (result) return result;
 
     return emptyResult(

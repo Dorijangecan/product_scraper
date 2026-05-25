@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { extractDocumentTextAttributes } from "../src/server/scrapers/document-enrichment.js";
+import type { ProductResult } from "../src/shared/types.js";
+import { enrichResultFromDownloadedDocuments, extractDocumentTextAttributes } from "../src/server/scrapers/document-enrichment.js";
 import { normalizeFields } from "../src/server/scrapers/normalizer.js";
 
 describe("document enrichment", () => {
@@ -27,7 +28,7 @@ Cable length L \t0.30 m
     });
     const normalized = normalizeFields(attributes, []);
     expect(attributes.some((attr) => attr.name === "Operating voltage Ub" && attr.value === "250 VDC / 250 VAC")).toBe(true);
-    expect(normalized.voltage).toBe("250 VDC / 250 VAC");
+    expect(normalized.voltage).toBe("250 V DC / 250 V AC");
     expect(normalized.current).toBe("4.0 A");
     expect(normalized.material).toBe("PUR");
   });
@@ -66,4 +67,37 @@ W
     expect(normalized.material).toBe("Valve body Spheroidal cast iron GJS-400-15");
     expect(normalized.certificates).toContain("CE");
   });
+
+  it("records PDF parse failures without adding them as product attributes", async () => {
+    const result = await enrichResultFromDownloadedDocuments(product({
+      documents: [
+        {
+          type: "datasheet",
+          label: "Broken datasheet",
+          url: "https://example.test/broken.pdf",
+          localPath: "D:/does-not-exist/broken.pdf",
+          downloadStatus: "downloaded"
+        }
+      ]
+    }));
+
+    expect(result.documents[0].parseStatus).toBe("failed");
+    expect(result.diagnostics?.documentParseFailures?.[0]).toContain("Broken datasheet");
+    expect(result.attributes).toEqual([]);
+  });
 });
+
+function product(overrides: Partial<ProductResult>): ProductResult {
+  return {
+    manufacturerId: "test",
+    catalogNumber: "ABC-123",
+    status: "found",
+    confidence: 0.9,
+    productUrl: "https://example.test/products/ABC-123",
+    normalized: {},
+    attributes: [],
+    documents: [],
+    sources: [],
+    ...overrides
+  };
+}

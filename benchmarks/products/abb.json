@@ -1,0 +1,7 @@
+{
+  "manufacturerId": "abb",
+  "catalogNumber": "1SDA126190R1",
+  "expectedOfficialUrlPatterns": ["new\\.abb\\.com", "ProductId=1SDA126190R1"],
+  "requiredDocuments": ["image"],
+  "expectedNormalizedFields": ["weight"]
+}

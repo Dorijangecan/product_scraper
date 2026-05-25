@@ -1,0 +1,7 @@
+{
+  "manufacturerId": "siemens",
+  "catalogNumber": "BPZ:VSG519K15-5",
+  "expectedOfficialUrlPatterns": ["mall\\.industry\\.siemens\\.com/.*/Catalog/Product"],
+  "requiredDocuments": ["datasheet"],
+  "expectedNormalizedFields": ["dimensions", "weight", "material"]
+}

@@ -1,0 +1,7 @@
+{
+  "manufacturerId": "schneider",
+  "catalogNumber": "NSYS3D3215",
+  "expectedOfficialUrlPatterns": ["se\\.com/.*/product/NSYS3D3215"],
+  "requiredDocuments": ["image"],
+  "expectedNormalizedFields": ["dimensions", "material"]
+}

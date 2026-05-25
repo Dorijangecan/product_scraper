@@ -10,6 +10,62 @@ export interface ManufacturerConfig {
   rateLimitMs: number;
   officialBaseUrls: string[];
   fallbackSources: FallbackSourceConfig[];
+  localizedUrlTemplates?: LocalizedUrlTemplate[];
+  match?: MatchPolicyConfig;
+  fetchPolicy?: FetchPolicyConfig;
+  markerRules?: MarkerExtractionRule[];
+  scrapeRecipe?: ScrapeRecipeConfig;
+  origin?: "built-in" | "custom" | "override";
+  isBuiltIn?: boolean;
+  hasOverride?: boolean;
+}
+
+export interface ManufacturerInspectRequest {
+  canonicalName?: string;
+  shortName?: string;
+  websiteUrl: string;
+  sampleCatalogNumbers: string[];
+  allowDistributorFallback?: boolean;
+}
+
+export interface ManufacturerInspectResult {
+  suggested: ManufacturerConfig;
+  attemptedUrls: string[];
+  discoveredProductUrls: string[];
+  directUrlTemplates: string[];
+  searchUrlTemplates: string[];
+  sitemapUrls: string[];
+  reasons: string[];
+  warnings: string[];
+}
+
+export interface ManufacturerTestRequest {
+  manufacturer: ManufacturerConfig;
+  sampleCatalogNumbers: string[];
+}
+
+export interface ManufacturerTestSampleResult {
+  catalogNumber: string;
+  status: ProductResult["status"] | "error";
+  passed: boolean;
+  identityConfirmed: boolean;
+  productUrl?: string;
+  title?: string;
+  confidence: number;
+  attributes: number;
+  documents: number;
+  evidence: number;
+  missing: string[];
+  attemptedUrls: string[];
+  reason: string;
+}
+
+export interface ManufacturerTestResult {
+  passed: boolean;
+  foundCount: number;
+  sampleCount: number;
+  samples: ManufacturerTestSampleResult[];
+  warnings: string[];
 }
 
 export interface FallbackSourceConfig {
@@ -18,6 +74,234 @@ export interface FallbackSourceConfig {
   enabled: boolean;
   sourceType: "official-fallback" | "distributor";
   directUrlTemplates: string[];
+  match?: MatchPolicyConfig;
+  fetchPolicy?: FetchPolicyConfig;
+  confidence?: number;
+  markerRules?: MarkerExtractionRule[];
+}
+
+export interface LocalizedUrlTemplate {
+  locale: "en" | "de";
+  urlTemplate: string;
+}
+
+export interface MatchPolicyConfig {
+  aliases?: string[];
+  ignoreCase?: boolean;
+  compact?: boolean;
+  afterColon?: boolean;
+  requireCatalogNumber?: boolean;
+}
+
+export interface FetchPolicyConfig {
+  timeoutMs?: number;
+  cacheTtlMs?: number;
+  maxAttempts?: number;
+  retryBackoffMs?: number;
+  userAgent?: string;
+  acceptLanguage?: string;
+  referer?: string;
+  fallbackUserAgents?: string[];
+  minContentLength?: number;
+}
+
+export interface MarkerExtractionRule {
+  name: string;
+  start: string;
+  end?: string;
+  group?: string;
+  documentType?: DocumentRecord["type"];
+  urlPrefix?: string;
+  urlSuffix?: string;
+  caseSensitive?: boolean;
+}
+
+export type DynamicFramework =
+  | "generic"
+  | "json-ld"
+  | "embedded-json"
+  | "next"
+  | "nuxt"
+  | "astro"
+  | "livewire"
+  | "api";
+
+export interface ScrapeRecipeConfig {
+  searchUrlTemplates?: string[];
+  canonicalParamDenylist?: string[];
+  requiredSections?: string[];
+  requiredAttributes?: string[];
+  requiredDocuments?: Array<DocumentRecord["type"] | string>;
+  minAttributes?: number;
+  minDocuments?: number;
+  expandSelectors?: string[];
+  dynamicFramework?: DynamicFramework | DynamicFramework[];
+  discoveryPolicy?: DiscoveryPolicyConfig;
+  interactionPolicy?: InteractionPolicyConfig;
+  extractionPolicy?: ExtractionPolicyConfig;
+  qualityPolicy?: QualityPolicyConfig;
+  fallbackPolicy?: FallbackPolicyConfig;
+  confidenceRules?: ConfidenceRulesConfig;
+}
+
+export interface DiscoveryPolicyConfig {
+  searchUrlTemplates?: string[];
+  sitemapUrls?: string[];
+  enableRobotsSitemaps?: boolean;
+  urlVariants?: Array<"part" | "partUpper" | "partLower" | "partCompact" | "partSnake" | "partDash" | "partAfterColon" | "partAfterColonCompact">;
+  allowedOfficialDomains?: string[];
+  maxCandidates?: number;
+}
+
+export interface InteractionPolicyConfig {
+  closeOverlaySelectors?: string[];
+  expandSelectors?: string[];
+  localeSelectors?: string[];
+  tabSelectors?: string[];
+  paginationSelectors?: string[];
+  downloadSectionSelectors?: string[];
+  waitForSelectors?: string[];
+  maxClicks?: number;
+  scrollPasses?: number;
+  networkIdleTimeoutMs?: number;
+}
+
+export interface ExtractionPolicyConfig {
+  labelAliases?: Record<string, string>;
+  requiredSections?: string[];
+  documentUrlPatterns?: string[];
+  ignoredDocumentUrlPatterns?: string[];
+  ignoredImageUrlPatterns?: string[];
+  maxRawAttributes?: number;
+  maxDocuments?: number;
+}
+
+export interface QualityPolicyConfig {
+  requiredNormalizedFields?: Array<keyof NormalizedProductFields>;
+  minRawAttributes?: number;
+  requiredDocumentTypes?: DocumentRecord["type"][];
+  officialSourceConfidenceFloor?: number;
+  partialConfidenceCap?: number;
+  distributorConfidenceCap?: number;
+}
+
+export interface FallbackPolicyConfig {
+  officialFirst?: boolean;
+  readerOnQualityFailure?: boolean;
+  browserOnQualityFailure?: boolean;
+  distributorFallback?: boolean;
+  distributorConfidenceCap?: number;
+  maxReaderAttempts?: number;
+  maxBrowserAttempts?: number;
+}
+
+export interface ConfidenceRulesConfig {
+  foundMinScore?: number;
+  partialMaxConfidence?: number;
+  distributorMaxConfidence?: number;
+  officialDocumentBonus?: number;
+  browserPenalty?: number;
+  readerPenalty?: number;
+}
+
+export interface ScrapeAttemptRecord {
+  stage: string;
+  url?: string;
+  status: "passed" | "partial" | "failed" | "skipped";
+  score?: number;
+  missing?: string[];
+  reason?: string;
+  sourceType?: SourceRecord["sourceType"];
+  parser?: string;
+  statusCode?: number;
+  attributeCount?: number;
+  documentCount?: number;
+  sectionAttributeCounts?: Record<string, number>;
+  error?: string;
+}
+
+export interface QualityGateResult {
+  passed: boolean;
+  identityConfirmed: boolean;
+  score: number;
+  missing: string[];
+  reason: string;
+  attempts: ScrapeAttemptRecord[];
+}
+
+export interface ScrapeDiagnostics {
+  attemptedUrls?: string[];
+  chosenUrl?: string;
+  discoveredCandidates?: Array<{ url: string; score: number; reason: string; stage?: string; sourceType?: SourceRecord["sourceType"] }>;
+  rejectedLinks?: Array<{ url: string; score?: number; reason: string }>;
+  fallbackStages?: string[];
+  finalCompleteness?: FinalCompletenessDiagnostics;
+  browserNetwork?: BrowserNetworkRecord[];
+  suggestedApiEndpoints?: string[];
+  documentParseFailures?: string[];
+  sectionAttributeCounts?: Record<string, number>;
+  notes?: string[];
+}
+
+export interface FinalCompletenessDiagnostics {
+  checkedAt: string;
+  beforeMissing: string[];
+  retryMissing: string[];
+  afterMissing: string[];
+  notApplicable: string[];
+  repairedFields?: string[];
+  networkRetry?: {
+    attempted: boolean;
+    fields: string[];
+    reason?: string;
+    triedStages?: string[];
+    untriedStages?: string[];
+  };
+  records?: FinalCompletenessRecord[];
+}
+
+export interface FinalCompletenessRecord {
+  field: string;
+  status: "present" | "found-after-repair" | "found-after-retry" | "missing" | "not-published" | "not-applicable";
+  requirement: "required" | "preferred" | "not-applicable";
+  beforeValue?: string;
+  afterValue?: string;
+  action?: string;
+  reason?: string;
+}
+
+export interface BrowserNetworkRecord {
+  url: string;
+  statusCode?: number;
+  contentType?: string;
+  category: "product-api" | "search-api" | "document-api" | "asset-api" | "html" | "text" | "other";
+}
+
+export interface LearnedEndpointRecord {
+  id?: number;
+  manufacturerId: ManufacturerId;
+  host: string;
+  method: "GET" | "POST";
+  urlTemplate: string;
+  bodyTemplate?: string;
+  headers?: Record<string, string>;
+  discoveredFromUrl: string;
+  parserKind: string;
+  successCount: number;
+  lastSuccessAt: string;
+}
+
+export interface EvidenceRecord {
+  kind: "attribute" | "document" | "source" | "normalized";
+  name: string;
+  value?: string;
+  url?: string;
+  sourceUrl?: string;
+  sourceType?: SourceRecord["sourceType"];
+  parser?: string;
+  stage?: string;
+  confidence?: number;
+  reason?: string;
 }
 
 export interface AttributeRecord {
@@ -26,20 +310,36 @@ export interface AttributeRecord {
   value: string;
   unit?: string;
   sourceUrl?: string;
+  sourceType?: SourceRecord["sourceType"];
+  parser?: string;
+  stage?: string;
+  confidence?: number;
 }
 
 export interface DocumentRecord {
   type: "datasheet" | "certificate" | "manual" | "cad" | "image" | "other";
   label: string;
   url: string;
+  candidateUrls?: string[];
   localPath?: string;
+  downloadStatus?: "downloaded" | "failed" | "skipped";
+  downloadError?: string;
+  parseStatus?: "parsed" | "failed" | "skipped";
+  parseError?: string;
   sourceUrl?: string;
+  sourceType?: SourceRecord["sourceType"];
+  parser?: string;
+  stage?: string;
+  confidence?: number;
 }
 
 export interface SourceRecord {
   url: string;
   sourceType: "official" | "official-fallback" | "distributor" | "cache" | "generated";
   parser: string;
+  parserVersion?: string;
+  stage?: string;
+  reason?: string;
   fetchedAt: string;
   statusCode?: number;
 }
@@ -48,6 +348,9 @@ export interface NormalizedProductFields {
   weight?: string;
   dimensions?: string;
   material?: string;
+  wallThickness?: string;
+  finish?: string;
+  color?: string;
   voltage?: string;
   current?: string;
   protection?: string;
@@ -72,6 +375,9 @@ export interface ProductResult {
   attributes: AttributeRecord[];
   documents: DocumentRecord[];
   sources: SourceRecord[];
+  qualityGate?: QualityGateResult;
+  diagnostics?: ScrapeDiagnostics;
+  evidence?: EvidenceRecord[];
   error?: string;
 }
 
@@ -88,7 +394,37 @@ export interface RunRecord {
   partial: number;
   failed: number;
   outputPath?: string;
+  options?: RunOptions;
   error?: string;
+}
+
+export interface RunOptions {
+  downloadDocuments?: boolean;
+}
+
+export type RunCoverageField =
+  | "enUrl"
+  | "deUrl"
+  | "image"
+  | "weight"
+  | "certificates"
+  | "dimensions"
+  | "material"
+  | "voltage"
+  | "current";
+
+export type RunCoverageState = "present" | "missing" | "not-applicable";
+
+export interface RunItemCoverageSummary {
+  fields: Partial<Record<RunCoverageField, RunCoverageState>>;
+  criticalMissing: RunCoverageField[];
+  reason?: string;
+  qualityPassed?: boolean;
+  qualityMissing?: string[];
+  finalCompletenessAfterMissing?: string[];
+  attributeCount?: number;
+  documentCount?: number;
+  evidenceCount?: number;
 }
 
 export interface RunItemRecord {
@@ -97,11 +433,15 @@ export interface RunItemRecord {
   rowIndex: number;
   catalogNumber: string;
   status: ItemStatus;
+  stage?: string;
+  stageMessage?: string;
+  stageStartedAt?: string;
   title?: string;
   productUrl?: string;
   confidence?: number;
   error?: string;
   result?: ProductResult;
+  coverage?: RunItemCoverageSummary;
   updatedAt: string;
 }
 

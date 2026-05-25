@@ -1,5 +1,13 @@
 import Database from "better-sqlite3";
-import type { ItemStatus, ManufacturerId, ProductResult, RunItemRecord, RunRecord, RunStatus } from "../shared/types.js";
+import type {
+  ItemStatus,
+  LearnedEndpointRecord,
+  ManufacturerId,
+  ProductResult,
+  RunItemRecord,
+  RunRecord,
+  RunStatus
+} from "../shared/types.js";
 import type { AppPaths } from "./paths.js";
 
 interface RunRow {
@@ -15,6 +23,7 @@ interface RunRow {
   partial: number;
   failed: number;
   output_path?: string;
+  options_json?: string;
   error?: string;
 }
 
@@ -24,11 +33,14 @@ interface ItemRow {
   row_index: number;
   catalog_number: string;
   status: ItemStatus;
-  title?: string;
-  product_url?: string;
-  confidence?: number;
-  error?: string;
-  raw_json?: string;
+  stage?: string | null;
+  stage_message?: string | null;
+  stage_started_at?: string | null;
+  title?: string | null;
+  product_url?: string | null;
+  confidence?: number | null;
+  error?: string | null;
+  raw_json?: string | null;
   updated_at: string;
 }
 
@@ -42,6 +54,20 @@ interface PageCacheRow {
   content_type?: string;
   effective_url?: string;
   fetched_at: string;
+}
+
+interface LearnedEndpointRow {
+  id: number;
+  manufacturer_id: ManufacturerId;
+  host: string;
+  method: "GET" | "POST";
+  url_template: string;
+  body_template?: string;
+  headers_json?: string;
+  discovered_from_url: string;
+  parser_kind: string;
+  success_count: number;
+  last_success_at: string;
 }
 
 export class ScraperDb {
@@ -82,6 +108,9 @@ export class ScraperDb {
         row_index INTEGER NOT NULL,
         catalog_number TEXT NOT NULL,
         status TEXT NOT NULL,
+        stage TEXT,
+        stage_message TEXT,
+        stage_started_at TEXT,
         title TEXT,
         product_url TEXT,
         confidence REAL,
@@ -103,10 +132,46 @@ export class ScraperDb {
         fetched_at TEXT NOT NULL
       );
 
+      CREATE TABLE IF NOT EXISTS learned_endpoints (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        manufacturer_id TEXT NOT NULL,
+        host TEXT NOT NULL,
+        method TEXT NOT NULL DEFAULT 'GET',
+        url_template TEXT NOT NULL,
+        body_template TEXT,
+        headers_json TEXT,
+        discovered_from_url TEXT NOT NULL,
+        parser_kind TEXT NOT NULL,
+        success_count INTEGER NOT NULL DEFAULT 1,
+        last_success_at TEXT NOT NULL,
+        UNIQUE(manufacturer_id, method, url_template)
+      );
+
       CREATE INDEX IF NOT EXISTS idx_runs_created_at ON runs(created_at DESC);
       CREATE INDEX IF NOT EXISTS idx_run_items_run_id ON run_items(run_id, row_index);
       CREATE INDEX IF NOT EXISTS idx_page_cache_url ON page_cache(url);
+      CREATE INDEX IF NOT EXISTS idx_learned_endpoints_manufacturer ON learned_endpoints(manufacturer_id, success_count DESC, last_success_at DESC);
     `);
+    this.addColumnIfMissing("runs", "options_json", "TEXT");
+    this.addColumnIfMissing("runs", "output_path", "TEXT");
+    this.addColumnIfMissing("runs", "error", "TEXT");
+    this.addColumnIfMissing("run_items", "stage", "TEXT");
+    this.addColumnIfMissing("run_items", "stage_message", "TEXT");
+    this.addColumnIfMissing("run_items", "stage_started_at", "TEXT");
+    this.addColumnIfMissing("run_items", "title", "TEXT");
+    this.addColumnIfMissing("run_items", "product_url", "TEXT");
+    this.addColumnIfMissing("run_items", "confidence", "REAL");
+    this.addColumnIfMissing("run_items", "error", "TEXT");
+    this.addColumnIfMissing("run_items", "raw_json", "TEXT");
+    this.addColumnIfMissing("page_cache", "status_code", "INTEGER");
+    this.addColumnIfMissing("page_cache", "content_type", "TEXT");
+    this.addColumnIfMissing("page_cache", "effective_url", "TEXT");
+  }
+
+  private addColumnIfMissing(table: string, column: string, definition: string) {
+    const rows = this.db.prepare(`PRAGMA table_info(${table})`).all() as Array<{ name: string }>;
+    if (rows.some((row) => row.name === column)) return;
+    this.db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`);
   }
 
   createRun(input: {
@@ -114,15 +179,16 @@ export class ScraperDb {
     manufacturerId: ManufacturerId;
     inputFileName?: string;
     catalogNumbers: string[];
+    options?: RunRecord["options"];
   }): RunRecord {
     const now = new Date().toISOString();
     const insertRun = this.db.prepare(`
-      INSERT INTO runs (id, manufacturer_id, created_at, updated_at, status, input_file_name, total)
-      VALUES (@id, @manufacturerId, @now, @now, 'queued', @inputFileName, @total)
+      INSERT INTO runs (id, manufacturer_id, created_at, updated_at, status, input_file_name, total, options_json)
+      VALUES (@id, @manufacturerId, @now, @now, 'queued', @inputFileName, @total, @optionsJson)
     `);
     const insertItem = this.db.prepare(`
-      INSERT INTO run_items (run_id, row_index, catalog_number, status, updated_at)
-      VALUES (@runId, @rowIndex, @catalogNumber, 'pending', @now)
+      INSERT INTO run_items (run_id, row_index, catalog_number, status, stage, stage_message, stage_started_at, updated_at)
+      VALUES (@runId, @rowIndex, @catalogNumber, 'pending', 'pending', 'Waiting to start', @now, @now)
     `);
     const tx = this.db.transaction(() => {
       insertRun.run({
@@ -130,6 +196,7 @@ export class ScraperDb {
         manufacturerId: input.manufacturerId,
         inputFileName: input.inputFileName,
         total: input.catalogNumbers.length,
+        optionsJson: input.options ? JSON.stringify(input.options) : undefined,
         now
       });
       input.catalogNumbers.forEach((catalogNumber, index) => {
@@ -189,6 +256,11 @@ export class ScraperDb {
     return rows.map(mapItem);
   }
 
+  getRunItem(runId: string, itemId: number): RunItemRecord | undefined {
+    const row = this.db.prepare("SELECT * FROM run_items WHERE run_id = ? AND id = ?").get(runId, itemId) as ItemRow | undefined;
+    return row ? mapItem(row) : undefined;
+  }
+
   getPendingRunItems(runId: string): RunItemRecord[] {
     const rows = this.db
       .prepare("SELECT * FROM run_items WHERE run_id = ? AND status IN ('pending', 'processing') ORDER BY row_index")
@@ -200,18 +272,18 @@ export class ScraperDb {
     const now = new Date().toISOString();
     this.db
       .prepare(
-        "UPDATE run_items SET status = 'cancelled', error = 'Cancelled by user.', updated_at = ? WHERE run_id = ? AND status = 'pending'"
+        "UPDATE run_items SET status = 'cancelled', stage = 'cancelled', stage_message = 'Cancelled by user.', stage_started_at = ?, error = 'Cancelled by user.', updated_at = ? WHERE run_id = ? AND status = 'pending'"
       )
-      .run(now, runId);
+      .run(now, now, runId);
   }
 
   cancelActiveRunItems(runId: string) {
     const now = new Date().toISOString();
     this.db
       .prepare(
-        "UPDATE run_items SET status = 'cancelled', error = 'Cancelled by user.', updated_at = ? WHERE run_id = ? AND status IN ('pending', 'processing')"
+        "UPDATE run_items SET status = 'cancelled', stage = 'cancelled', stage_message = 'Cancelled by user.', stage_started_at = ?, error = 'Cancelled by user.', updated_at = ? WHERE run_id = ? AND status IN ('pending', 'processing')"
       )
-      .run(now, runId);
+      .run(now, now, runId);
   }
 
   isCancellationRequested(runId: string): boolean {
@@ -219,12 +291,26 @@ export class ScraperDb {
     return row?.status === "cancelling" || row?.status === "cancelled";
   }
 
-  updateRunItem(id: number, patch: Partial<Pick<RunItemRecord, "status" | "title" | "productUrl" | "confidence" | "error" | "result">>) {
+  updateRunItem(
+    id: number,
+    patch: Partial<
+      Pick<
+        RunItemRecord,
+        "status" | "stage" | "stageMessage" | "stageStartedAt" | "title" | "productUrl" | "confidence" | "error" | "result"
+      >
+    >
+  ) {
+    const current = this.db.prepare("SELECT * FROM run_items WHERE id = ?").get(id) as ItemRow | undefined;
+    if (!current) return;
+    const hasPatch = (key: keyof typeof patch) => Object.prototype.hasOwnProperty.call(patch, key);
     const updatedAt = new Date().toISOString();
     this.db
       .prepare(`
         UPDATE run_items
-        SET status = COALESCE(@status, status),
+        SET status = @status,
+            stage = @stage,
+            stage_message = @stageMessage,
+            stage_started_at = @stageStartedAt,
             title = @title,
             product_url = @productUrl,
             confidence = @confidence,
@@ -235,12 +321,15 @@ export class ScraperDb {
       `)
       .run({
         id,
-        status: patch.status,
-        title: patch.title,
-        productUrl: patch.productUrl,
-        confidence: patch.confidence,
-        error: patch.error,
-        rawJson: patch.result ? JSON.stringify(patch.result) : undefined,
+        status: hasPatch("status") && patch.status ? patch.status : current.status,
+        stage: hasPatch("stage") ? patch.stage ?? null : current.stage ?? null,
+        stageMessage: hasPatch("stageMessage") ? patch.stageMessage ?? null : current.stage_message ?? null,
+        stageStartedAt: hasPatch("stageStartedAt") ? patch.stageStartedAt ?? null : current.stage_started_at ?? null,
+        title: hasPatch("title") ? patch.title ?? null : current.title ?? null,
+        productUrl: hasPatch("productUrl") ? patch.productUrl ?? null : current.product_url ?? null,
+        confidence: hasPatch("confidence") ? patch.confidence ?? null : current.confidence ?? null,
+        error: hasPatch("error") ? patch.error ?? null : current.error ?? null,
+        rawJson: hasPatch("result") ? (patch.result ? JSON.stringify(patch.result) : null) : current.raw_json ?? null,
         updatedAt
       });
   }
@@ -283,6 +372,67 @@ export class ScraperDb {
       `)
       .run(row);
   }
+
+  listLearnedEndpoints(manufacturerId: ManufacturerId, limit = 20): LearnedEndpointRecord[] {
+    const rows = this.db
+      .prepare(
+        `
+          SELECT *
+          FROM learned_endpoints
+          WHERE manufacturer_id = ?
+          ORDER BY success_count DESC, last_success_at DESC
+          LIMIT ?
+        `
+      )
+      .all(manufacturerId, limit) as LearnedEndpointRow[];
+    return rows.map(mapLearnedEndpoint);
+  }
+
+  upsertLearnedEndpoint(endpoint: Omit<LearnedEndpointRecord, "id" | "successCount" | "lastSuccessAt">) {
+    const now = new Date().toISOString();
+    this.db
+      .prepare(
+        `
+          INSERT INTO learned_endpoints (
+            manufacturer_id,
+            host,
+            method,
+            url_template,
+            body_template,
+            headers_json,
+            discovered_from_url,
+            parser_kind,
+            success_count,
+            last_success_at
+          )
+          VALUES (
+            @manufacturerId,
+            @host,
+            @method,
+            @urlTemplate,
+            @bodyTemplate,
+            @headersJson,
+            @discoveredFromUrl,
+            @parserKind,
+            1,
+            @now
+          )
+          ON CONFLICT(manufacturer_id, method, url_template) DO UPDATE SET
+            host = excluded.host,
+            body_template = excluded.body_template,
+            headers_json = excluded.headers_json,
+            discovered_from_url = excluded.discovered_from_url,
+            parser_kind = excluded.parser_kind,
+            success_count = learned_endpoints.success_count + 1,
+            last_success_at = excluded.last_success_at
+        `
+      )
+      .run({
+        ...endpoint,
+        headersJson: endpoint.headers ? JSON.stringify(endpoint.headers) : undefined,
+        now
+      });
+  }
 }
 
 function mapRun(row: RunRow): RunRecord {
@@ -299,8 +449,19 @@ function mapRun(row: RunRow): RunRecord {
     partial: row.partial,
     failed: row.failed,
     outputPath: row.output_path,
+    options: parseRunOptions(row.options_json),
     error: row.error
   };
+}
+
+function parseRunOptions(value: string | undefined): RunRecord["options"] | undefined {
+  if (!value) return undefined;
+  try {
+    const parsed = JSON.parse(value) as RunRecord["options"];
+    return parsed && typeof parsed === "object" ? parsed : undefined;
+  } catch {
+    return undefined;
+  }
 }
 
 function mapItem(row: ItemRow): RunItemRecord {
@@ -318,11 +479,44 @@ function mapItem(row: ItemRow): RunItemRecord {
     rowIndex: row.row_index,
     catalogNumber: row.catalog_number,
     status: row.status,
-    title: row.title,
-    productUrl: row.product_url,
-    confidence: row.confidence,
-    error: row.error,
+    stage: row.stage ?? undefined,
+    stageMessage: row.stage_message ?? undefined,
+    stageStartedAt: row.stage_started_at ?? undefined,
+    title: row.title ?? undefined,
+    productUrl: row.product_url ?? undefined,
+    confidence: row.confidence ?? undefined,
+    error: row.error ?? undefined,
     result,
     updatedAt: row.updated_at
   };
+}
+
+function mapLearnedEndpoint(row: LearnedEndpointRow): LearnedEndpointRecord {
+  return {
+    id: row.id,
+    manufacturerId: row.manufacturer_id,
+    host: row.host,
+    method: row.method,
+    urlTemplate: row.url_template,
+    bodyTemplate: row.body_template,
+    headers: parseHeaders(row.headers_json),
+    discoveredFromUrl: row.discovered_from_url,
+    parserKind: row.parser_kind,
+    successCount: row.success_count,
+    lastSuccessAt: row.last_success_at
+  };
+}
+
+function parseHeaders(value: string | undefined): Record<string, string> | undefined {
+  if (!value) return undefined;
+  try {
+    const parsed = JSON.parse(value) as unknown;
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return undefined;
+    return Object.fromEntries(
+      Object.entries(parsed as Record<string, unknown>)
+        .filter((entry): entry is [string, string] => typeof entry[1] === "string")
+    );
+  } catch {
+    return undefined;
+  }
 }

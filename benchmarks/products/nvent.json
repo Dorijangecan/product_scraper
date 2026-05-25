@@ -1,0 +1,7 @@
+{
+  "manufacturerId": "nvent",
+  "catalogNumber": "A12126T1PP",
+  "expectedOfficialUrlPatterns": ["nvent\\.com|hoffman\\.nvent\\.com"],
+  "requiredDocuments": ["image"],
+  "expectedNormalizedFields": ["dimensions", "material"]
+}

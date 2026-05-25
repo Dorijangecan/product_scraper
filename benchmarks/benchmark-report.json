@@ -1,0 +1,146 @@
+{
+  "generatedAt": "2026-05-24T22:48:38.795Z",
+  "outputDir": "D:\\Projekti\\product_scraper\\benchmarks\\output\\20260524224557",
+  "summary": {
+    "foundRate": 90,
+    "officialUrlRate": 100,
+    "documentRate": 90,
+    "wrongProducts": 0,
+    "partialWithoutMissing": 0,
+    "accepted": true
+  },
+  "reports": [
+    {
+      "manufacturerId": "abb",
+      "catalogNumber": "1SDA126190R1",
+      "status": "found",
+      "confidence": 0.9,
+      "productUrl": "http://new.abb.com/products/1SDA126190R1/rrd-motor-110-220vac-dc-e1-3",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": false,
+      "qualityMissing": []
+    },
+    {
+      "manufacturerId": "balluff",
+      "catalogNumber": "BCC039H",
+      "status": "found",
+      "confidence": 0.92,
+      "productUrl": "https://www.balluff.com/en-us/products/BCC039H",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "qualityMissing": []
+    },
+    {
+      "manufacturerId": "eaton",
+      "catalogNumber": "P1-25/I2/SVB",
+      "status": "found",
+      "confidence": 0.82,
+      "productUrl": "https://www.eaton.com/us/en-us/skuPage.P1-25%7B%7DI2%7B%7DSVB.html",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": false,
+      "qualityMissing": []
+    },
+    {
+      "manufacturerId": "nvent",
+      "catalogNumber": "A12126T1PP",
+      "status": "found",
+      "confidence": 0.55,
+      "productUrl": "https://www.nvent.com/en-bs/hoffman/products/enca12126t1pp",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "qualityMissing": []
+    },
+    {
+      "manufacturerId": "rockwell",
+      "catalogNumber": "800F-X10",
+      "status": "found",
+      "confidence": 0.55,
+      "productUrl": "https://configurator.rockwellautomation.com/api/Product/800F-X10/cutsheet",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "qualityMissing": []
+    },
+    {
+      "manufacturerId": "sce",
+      "catalogNumber": "SCE-12EL1206LP",
+      "status": "found",
+      "confidence": 0.9,
+      "productUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-12EL1206LP",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "qualityMissing": []
+    },
+    {
+      "manufacturerId": "schmersal",
+      "catalogNumber": "AZM300B-ST-1P2P-A",
+      "status": "found",
+      "confidence": 0.55,
+      "productUrl": "https://products.schmersal.com/en_US/azm300b-st-1p2p-a-103001423",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "qualityMissing": []
+    },
+    {
+      "manufacturerId": "schneider",
+      "catalogNumber": "NSYS3D3215",
+      "status": "found",
+      "confidence": 0.86,
+      "productUrl": "https://www.se.com/us/en/product/NSYS3D3215/wall-mounted-steel-enclosure-panelset-s3d-plain-door-without-mounting-plate-300x200x150mm-ip66-ik10/",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "qualityMissing": []
+    },
+    {
+      "manufacturerId": "siemens",
+      "catalogNumber": "BPZ:VSG519K15-5",
+      "status": "partial",
+      "confidence": 0.63,
+      "productUrl": "https://r.jina.ai/http://mall.industry.siemens.com/mall/en/WW/Catalog/Product?mlfb=BPZ%3AVSG519K15-5",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": false,
+      "normalizedFieldsMatched": false,
+      "qualityMissing": [
+        "minDocuments:1"
+      ]
+    },
+    {
+      "manufacturerId": "spelsberg",
+      "catalogNumber": "TK PS 2518-11-m",
+      "status": "found",
+      "confidence": 0.82,
+      "productUrl": "https://www.spelsberg.com/industrial-housing/with-/-without-metric-knock-outs/10590801/",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "qualityMissing": []
+    }
+  ]
+}

@@ -2,6 +2,7 @@ node_modules/
 dist/
 data/
 outputs/
+benchmarks/output/
 .verify-*/
 .vite/
 *.log

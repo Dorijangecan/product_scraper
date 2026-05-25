@@ -42,6 +42,7 @@ function parseTextRows(buffer: Buffer): { columns: string[]; rows: Record<string
   const text = buffer.toString("utf8");
   const records = parse(text, {
     bom: true,
+    delimiter: [",", ";", "\t"],
     skip_empty_lines: true,
     relax_column_count: true,
     trim: true

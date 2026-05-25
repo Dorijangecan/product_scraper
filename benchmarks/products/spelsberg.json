@@ -1,0 +1,7 @@
+{
+  "manufacturerId": "spelsberg",
+  "catalogNumber": "TK PS 2518-11-m",
+  "expectedOfficialUrlPatterns": ["spelsberg\\.(de|com)/p/"],
+  "requiredDocuments": ["datasheet"],
+  "expectedNormalizedFields": ["dimensions", "material"]
+}

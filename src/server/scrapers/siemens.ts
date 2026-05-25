@@ -3,6 +3,7 @@ import type { FetchedText } from "./http-client.js";
 import { buildLocalizedProductUrls } from "./localized-urls.js";
 import { cleanText, emptyResult, mergeResults, normalizeFields } from "./normalizer.js";
 import type { ManufacturerConnector, ScrapeContext } from "./types.js";
+import { sameCatalogNumber } from "./catalog-number.js";
 
 const SIEMENS_BASE = "https://sieportal.siemens.com";
 const SIEMENS_PRODUCT_API = `${SIEMENS_BASE}/api/mall/SearchApi/GetProductsDetails`;
@@ -197,10 +198,6 @@ function labelFromKey(key: string): string {
     .replace(/[_-]+/g, " ")
     .replace(/\b\w/g, (letter) => letter.toUpperCase())
     .trim();
-}
-
-function sameCatalogNumber(left: unknown, right: string): boolean {
-  return typeof left === "string" && left.toLowerCase() === right.toLowerCase();
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

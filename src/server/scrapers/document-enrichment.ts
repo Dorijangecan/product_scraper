@@ -3,6 +3,7 @@ import path from "node:path";
 import { PDFParse } from "pdf-parse";
 import type { AttributeRecord, DocumentRecord, ProductResult, SourceRecord } from "../../shared/types.js";
 import { cleanText, normalizeFields, splitNameValue } from "./normalizer.js";
+import { catalogTextMatches } from "./catalog-number.js";
 
 const MAX_PDF_PAGES = 30;
 const MAX_PDF_TEXT_CHARS = 250_000;
@@ -17,11 +18,16 @@ const KNOWN_LABELS = [
   "Current ratings",
   "Degree of protection",
   "Dimensions (HxWxD), approx.",
+  "Dimensions HxWxD",
   "Dimensions/Weight",
   "Enclosure material",
   "Enclosure type rating",
+  "External dimensions",
+  "Gross weight",
+  "Height",
   "Housing material",
   "IP rating",
+  "Length",
   "Mass",
   "Material",
   "Material contact carrier",
@@ -30,22 +36,33 @@ const KNOWN_LABELS = [
   "Material grip",
   "Net weight",
   "Operating voltage Ub",
+  "Overall dimensions",
   "Product Weight",
+  "Product net weight",
   "Rated current (40 °C)",
   "Rated current (40 Â°C)",
   "Rated voltage",
+  "Shipping weight",
+  "Size",
   "Standards, directives and approvals",
+  "Unit weight",
   "Voltage rating",
   "Weight",
-  "Weight, approx."
+  "Weight, approx.",
+  "Width"
 ].sort((left, right) => right.length - left.length);
 
 export async function enrichResultFromDownloadedDocuments(result: ProductResult): Promise<ProductResult> {
   const documentAttributes: AttributeRecord[] = [];
   const documentSources: SourceRecord[] = [];
+  const documentParseFailures: string[] = [];
+  const documents: DocumentRecord[] = [];
 
   for (const doc of result.documents) {
-    if (!shouldParsePdfDocument(doc)) continue;
+    if (!shouldParsePdfDocument(doc)) {
+      documents.push({ ...doc, parseStatus: doc.localPath ? "skipped" : doc.parseStatus });
+      continue;
+    }
     try {
       const text = await readPdfText(doc.localPath!);
       const attributes = extractDocumentTextAttributes({
@@ -54,38 +71,60 @@ export async function enrichResultFromDownloadedDocuments(result: ProductResult)
         text
       });
       if (attributes.length > 0) {
-        documentAttributes.push(...attributes);
+        documentAttributes.push(...stampDocumentAttributes(attributes));
         documentSources.push({
           url: doc.url,
           sourceType: "generated",
-          parser: "pdf-text-extraction",
+          parser: "pdf-table-extractor",
+          stage: "enrich-documents",
+          reason: doc.type,
           fetchedAt: new Date().toISOString()
         });
       }
+      documents.push({ ...doc, parseStatus: attributes.length > 1 ? "parsed" : "skipped", parseError: undefined });
     } catch (error) {
-      documentAttributes.push({
-        group: "Document Parse Errors",
-        name: doc.label || "PDF parse error",
-        value: error instanceof Error ? error.message : "PDF parse failed",
-        sourceUrl: doc.url
-      });
+      const parseError = error instanceof Error ? error.message : "PDF parse failed";
+      documentParseFailures.push(`${doc.label || doc.url}: ${parseError}`);
+      documents.push({ ...doc, parseStatus: "failed", parseError });
     }
   }
 
-  if (!documentAttributes.length) return result;
+  if (!documentAttributes.length) {
+    return {
+      ...result,
+      diagnostics: withDocumentParseFailures(result, documentParseFailures),
+      documents
+    };
+  }
 
   const attributes = dedupeAttributes([...result.attributes, ...documentAttributes]);
   const normalized = {
-    ...normalizeFields(attributes, result.documents),
+    ...normalizeFields(attributes, documents),
     ...nonEmptyNormalized(result.normalized)
   };
 
   return {
     ...result,
     status: result.status === "failed" ? result.status : "found",
+    diagnostics: withDocumentParseFailures(result, documentParseFailures),
     normalized,
     attributes,
+    documents,
     sources: dedupeSources([...result.sources, ...documentSources])
+  };
+}
+
+function withDocumentParseFailures(
+  result: ProductResult,
+  documentParseFailures: string[]
+): ProductResult["diagnostics"] {
+  if (!documentParseFailures.length) return result.diagnostics;
+  return {
+    ...result.diagnostics,
+    documentParseFailures: [
+      ...(result.diagnostics?.documentParseFailures ?? []),
+      ...documentParseFailures
+    ].slice(0, 50)
   };
 }
 
@@ -117,6 +156,12 @@ export function extractDocumentTextAttributes(input: {
     const tabPair = parseTabbedPair(rawLine);
     if (tabPair) {
       attributes.push({ group: `${documentGroup}${section ? ` - ${section}` : ""}`, ...tabPair, sourceUrl });
+      continue;
+    }
+
+    const spacedPair = parseSpacedTablePair(rawLine);
+    if (spacedPair) {
+      attributes.push({ group: `${documentGroup}${section ? ` - ${section}` : ""}`, ...spacedPair, sourceUrl });
       continue;
     }
 
@@ -166,9 +211,20 @@ async function readPdfText(filePath: string): Promise<string> {
 }
 
 function shouldParsePdfDocument(doc: DocumentRecord): boolean {
-  if (!doc.localPath || doc.localPath.startsWith("DOWNLOAD_FAILED") || doc.localPath.startsWith("SKIPPED_")) return false;
+  if (doc.downloadStatus && doc.downloadStatus !== "downloaded") return false;
+  if (!doc.localPath) return false;
   if (!/\.pdf$/i.test(doc.localPath)) return false;
   return ["datasheet", "certificate", "manual", "other"].includes(doc.type);
+}
+
+function stampDocumentAttributes(attributes: AttributeRecord[]): AttributeRecord[] {
+  return attributes.map((attr) => ({
+    ...attr,
+    sourceType: "generated",
+    parser: "pdf-table-extractor",
+    stage: "enrich-documents",
+    confidence: attr.group?.includes("Matched Rows") ? 0.66 : 0.78
+  }));
 }
 
 function normalizePdfLines(text: string): string[] {
@@ -206,6 +262,19 @@ function parseTabbedPair(rawLine: string): { name: string; value: string } | und
   return { name, value };
 }
 
+function parseSpacedTablePair(rawLine: string): { name: string; value: string } | undefined {
+  const cells = rawLine
+    .split(/\s{2,}/)
+    .map(cleanText)
+    .filter(Boolean);
+  if (cells.length < 2) return undefined;
+  const [name, ...values] = cells;
+  const value = values.join(" | ");
+  if (!isLikelyAttributeName(name) || !value || /^[-–—]+$/.test(value)) return undefined;
+  if (!/[a-z]/i.test(name) || value.length > 300) return undefined;
+  return { name, value };
+}
+
 function parseKnownInlinePair(line: string): { name: string; value: string } | undefined {
   for (const label of KNOWN_LABELS) {
     const pattern = new RegExp(`^${escapeRegExp(label)}\\s+(.+)$`, "i");
@@ -236,7 +305,7 @@ function nextMeaningfulLine(lines: string[], start: number): string | undefined 
 }
 
 function isUsefulFeatureLine(line: string, catalogNumber: string): boolean {
-  if (line.toLowerCase().includes(catalogNumber.toLowerCase())) return true;
+  if (catalogTextMatches(line, catalogNumber)) return true;
   return /\b(ce|ul|csa|vde|rohs|reach|weee|nema|ip\s*\d+|stainless|steel|cast iron|brass|copper|aluminium|aluminum|polycarbonate|polyester|pvc|pur|epdm|voltage|current|pressure|temperature|rating)\b/i.test(
     line
   );

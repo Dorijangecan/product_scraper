@@ -1,0 +1,7 @@
+{
+  "manufacturerId": "sce",
+  "catalogNumber": "SCE-12EL1206LP",
+  "expectedOfficialUrlPatterns": ["saginawcontrol\\.com/partnumber_info"],
+  "requiredDocuments": ["image"],
+  "expectedNormalizedFields": ["dimensions", "weight"]
+}

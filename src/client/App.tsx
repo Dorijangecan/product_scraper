@@ -3,6 +3,11 @@ import {
   Activity,
   AlertCircle,
   ArrowUpRight,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
   CheckCircle2,
   Clock3,
   Database,
@@ -25,8 +30,33 @@ import {
   Upload,
   XCircle
 } from "lucide-react";
-import type { CsvPreview, FallbackSourceConfig, ManufacturerConfig, RunItemRecord, RunRecord } from "../shared/types.js";
-import { cancelRun, getManufacturers, getRun, listRuns, previewCsv, saveManufacturer, startRun } from "./api.js";
+import type {
+  CsvPreview,
+  FallbackSourceConfig,
+  ManufacturerConfig,
+  ManufacturerInspectResult,
+  ManufacturerTestResult,
+  MarkerExtractionRule,
+  ItemStatus,
+  RunItemRecord,
+  RunRecord,
+  ScrapeRecipeConfig
+} from "../shared/types.js";
+import { requiredElectricalFields } from "../shared/product-requirements.js";
+import {
+  cancelRun,
+  getManufacturers,
+  getRun,
+  getRunItem,
+  inspectManufacturer,
+  listRuns,
+  openRunWorkbook,
+  previewCsv,
+  resetManufacturerOverride,
+  saveManufacturer,
+  startRun,
+  testManufacturer
+} from "./api.js";
 
 interface SourceDraft {
   id: string;
@@ -34,6 +64,18 @@ interface SourceDraft {
   enabled: boolean;
   sourceType: FallbackSourceConfig["sourceType"];
   directUrlTemplatesText: string;
+  aliasesText: string;
+  markerRulesText: string;
+  confidence: string;
+  fetchTimeoutMs: string;
+  cacheTtlMs: string;
+  maxAttempts: string;
+  retryBackoffMs: string;
+  minContentLength: string;
+  userAgent: string;
+  acceptLanguage: string;
+  referer: string;
+  fallbackUserAgentsText: string;
 }
 
 interface ManufacturerDraft {
@@ -42,19 +84,50 @@ interface ManufacturerDraft {
   shortName: string;
   rateLimitMs: string;
   officialBaseUrlsText: string;
+  localizedUrlTemplatesText: string;
+  aliasesText: string;
+  markerRulesText: string;
+  fetchTimeoutMs: string;
+  cacheTtlMs: string;
+  maxAttempts: string;
+  retryBackoffMs: string;
+  minContentLength: string;
+  userAgent: string;
+  acceptLanguage: string;
+  referer: string;
+  fallbackUserAgentsText: string;
+  scrapeRecipeJson: string;
   fallbackSources: SourceDraft[];
 }
 
 const REQUIRED_COVERAGE_FIELDS = [
   { key: "enUrl", label: "EN link" },
   { key: "deUrl", label: "DE link" },
+  { key: "image", label: "Images" },
   { key: "weight", label: "Weight" },
   { key: "certificates", label: "Certificates" },
   { key: "dimensions", label: "Dimensions" },
-  { key: "material", label: "Material" }
+  { key: "material", label: "Material" },
+  { key: "voltage", label: "Voltage" },
+  { key: "current", label: "Current" }
 ] as const;
 
 type CoverageKey = (typeof REQUIRED_COVERAGE_FIELDS)[number]["key"];
+type RunItemFilter = "all" | "needs-check" | ItemStatus;
+
+const RUN_ITEM_FILTERS: Array<{ key: RunItemFilter; label: string }> = [
+  { key: "all", label: "All" },
+  { key: "needs-check", label: "Needs check" },
+  { key: "found", label: "Found" },
+  { key: "partial", label: "Partial" },
+  { key: "failed", label: "Failed" },
+  { key: "pending", label: "Pending" },
+  { key: "processing", label: "Running" },
+  { key: "cancelled", label: "Cancelled" }
+];
+
+const RUN_ITEM_PAGE_SIZES = [25, 50, 100, 250, "all"] as const;
+type RunItemPageSize = (typeof RUN_ITEM_PAGE_SIZES)[number];
 
 export function App() {
   const [manufacturers, setManufacturers] = useState<ManufacturerConfig[]>([]);
@@ -68,10 +141,27 @@ export function App() {
   const [items, setItems] = useState<RunItemRecord[]>([]);
   const [busy, setBusy] = useState(false);
   const [cancelBusy, setCancelBusy] = useState(false);
+  const [openWorkbookBusy, setOpenWorkbookBusy] = useState(false);
   const [manufacturerEditorOpen, setManufacturerEditorOpen] = useState(false);
   const [manufacturerDraft, setManufacturerDraft] = useState<ManufacturerDraft>(() => emptyManufacturerDraft());
   const [manufacturerSaveBusy, setManufacturerSaveBusy] = useState(false);
+  const [editorMode, setEditorMode] = useState<"simple" | "advanced">("simple");
+  const [wizardWebsiteUrl, setWizardWebsiteUrl] = useState("");
+  const [wizardSamplesText, setWizardSamplesText] = useState("");
+  const [wizardAllowDistributor, setWizardAllowDistributor] = useState(false);
+  const [wizardInspectResult, setWizardInspectResult] = useState<ManufacturerInspectResult | null>(null);
+  const [wizardTestResult, setWizardTestResult] = useState<ManufacturerTestResult | null>(null);
+  const [wizardBusy, setWizardBusy] = useState<"inspect" | "test" | "reset" | null>(null);
+  const [selectedItemId, setSelectedItemId] = useState<number | null>(null);
+  const [selectedItemDetail, setSelectedItemDetail] = useState<RunItemRecord | null>(null);
+  const [runItemQuery, setRunItemQuery] = useState("");
+  const [runItemFilter, setRunItemFilter] = useState<RunItemFilter>("all");
+  const [runItemPageSize, setRunItemPageSize] = useState<RunItemPageSize>(50);
+  const [runItemPage, setRunItemPage] = useState(1);
+  const [historyExpanded, setHistoryExpanded] = useState(false);
+  const [downloadDocuments, setDownloadDocuments] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [nowMs, setNowMs] = useState(() => Date.now());
 
   const selectedManufacturer = useMemo(
     () => manufacturers.find((manufacturer) => manufacturer.id === manufacturerId),
@@ -88,12 +178,49 @@ export function App() {
   }, [selectedRunId]);
 
   useEffect(() => {
+    setRunItemQuery("");
+    setRunItemFilter("all");
+    setRunItemPage(1);
+    setSelectedItemId(null);
+    setSelectedItemDetail(null);
+  }, [selectedRunId]);
+
+  useEffect(() => {
+    if (!selectedRunId || !selectedItemId) {
+      setSelectedItemDetail(null);
+      return;
+    }
+    let ignore = false;
+    getRunItem(selectedRunId, selectedItemId)
+      .then((item) => {
+        if (ignore) return;
+        if (item.result) {
+          setSelectedItemDetail(item);
+          return;
+        }
+        setSelectedItemDetail(null);
+        setSelectedItemId(null);
+      })
+      .catch((err) => {
+        if (!ignore) setError(errorMessage(err));
+      });
+    return () => {
+      ignore = true;
+    };
+  }, [selectedItemId, selectedRunId]);
+
+  useEffect(() => {
     const timer = window.setInterval(() => {
       void refreshRuns();
       if (selectedRunId) void refreshSelectedRun(selectedRunId);
     }, selectedRun?.status === "running" || selectedRun?.status === "queued" || selectedRun?.status === "cancelling" ? 1200 : 4000);
     return () => window.clearInterval(timer);
   }, [selectedRunId, selectedRun?.status]);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setNowMs(Date.now()), 1000);
+    return () => window.clearInterval(timer);
+  }, []);
 
   async function refreshBootstrap() {
     try {
@@ -116,7 +243,7 @@ export function App() {
 
   async function refreshSelectedRun(id: string) {
     try {
-      const data = await getRun(id);
+      const data = await getRun(id, { summary: true });
       setSelectedRun(data.run);
       setItems(data.items);
     } catch (err) {
@@ -147,7 +274,7 @@ export function App() {
     setBusy(true);
     setError(null);
     try {
-      const run = await startRun({ file, manufacturerId, columnName });
+      const run = await startRun({ file, manufacturerId, columnName, downloadDocuments });
       setSelectedRunId(run.id);
       await refreshRuns();
       await refreshSelectedRun(run.id);
@@ -174,19 +301,46 @@ export function App() {
     }
   }
 
+  async function handleOpenWorkbook() {
+    if (!selectedRun) return;
+    setOpenWorkbookBusy(true);
+    setError(null);
+    try {
+      await openRunWorkbook(selectedRun.id);
+    } catch (err) {
+      setError(errorMessage(err));
+      window.location.href = `/api/runs/${selectedRun.id}/files/result`;
+    } finally {
+      setOpenWorkbookBusy(false);
+    }
+  }
+
   function openEditManufacturer() {
     if (!selectedManufacturer) return;
     setManufacturerDraft(toManufacturerDraft(selectedManufacturer));
+    setEditorMode("simple");
+    setWizardWebsiteUrl(selectedManufacturer.officialBaseUrls[0] ?? "");
+    setWizardSamplesText("");
+    setWizardAllowDistributor(selectedManufacturer.scrapeRecipe?.fallbackPolicy?.distributorFallback === true);
+    setWizardInspectResult(null);
+    setWizardTestResult(null);
     setManufacturerEditorOpen(true);
   }
 
   function openNewManufacturer() {
     setManufacturerDraft(emptyManufacturerDraft());
+    setEditorMode("simple");
+    setWizardWebsiteUrl("");
+    setWizardSamplesText("");
+    setWizardAllowDistributor(false);
+    setWizardInspectResult(null);
+    setWizardTestResult(null);
     setManufacturerEditorOpen(true);
   }
 
   function updateManufacturerDraft(patch: Partial<ManufacturerDraft>) {
     setManufacturerDraft((current) => ({ ...current, ...patch }));
+    setWizardTestResult(null);
   }
 
   function updateSourceDraft(index: number, patch: Partial<SourceDraft>) {
@@ -194,6 +348,83 @@ export function App() {
       ...current,
       fallbackSources: current.fallbackSources.map((source, sourceIndex) => (sourceIndex === index ? { ...source, ...patch } : source))
     }));
+    setWizardTestResult(null);
+  }
+
+  function updateRecipeDraft(patch: ScrapeRecipeConfig) {
+    setManufacturerDraft((current) => {
+      const existing = parseRecipeJsonLoose(current.scrapeRecipeJson);
+      return {
+        ...current,
+        scrapeRecipeJson: formatJson(mergeRecipeConfig(existing, patch))
+      };
+    });
+    setWizardTestResult(null);
+  }
+
+  function handleSimpleNameChange(value: string) {
+    const oldAutoShort = shortNameFromName(manufacturerDraft.canonicalName);
+    const oldAutoId = slugify(manufacturerDraft.canonicalName);
+    const patch: Partial<ManufacturerDraft> = { canonicalName: value };
+    if (!manufacturerDraft.shortName.trim() || manufacturerDraft.shortName === oldAutoShort) patch.shortName = shortNameFromName(value);
+    if (!manufacturerDraft.id.trim() || manufacturerDraft.id === oldAutoId) patch.id = slugify(value);
+    updateManufacturerDraft(patch);
+  }
+
+  function handleSimpleWebsiteChange(value: string) {
+    setWizardWebsiteUrl(value);
+    setManufacturerDraft((current) => ({
+      ...current,
+      officialBaseUrlsText: value.trim()
+    }));
+    setWizardInspectResult(null);
+    setWizardTestResult(null);
+  }
+
+  function handleSimpleSamplesChange(value: string) {
+    setWizardSamplesText(value);
+    setWizardInspectResult(null);
+    setWizardTestResult(null);
+  }
+
+  function handleRunItemQueryChange(value: string) {
+    setRunItemQuery(value);
+    setRunItemPage(1);
+  }
+
+  function handleRunItemFilterChange(value: RunItemFilter) {
+    setRunItemFilter(value);
+    setRunItemPage(1);
+  }
+
+  function handleRunItemPageSizeChange(value: string) {
+    if (value === "all") {
+      setRunItemPageSize("all");
+      setRunItemPage(1);
+      return;
+    }
+    const nextSize = Number(value);
+    if (!RUN_ITEM_PAGE_SIZES.includes(nextSize as RunItemPageSize)) return;
+    setRunItemPageSize(nextSize as RunItemPageSize);
+    setRunItemPage(1);
+  }
+
+  function handleDistributorFallbackToggle(checked: boolean) {
+    setWizardAllowDistributor(checked);
+    setWizardTestResult(null);
+    setManufacturerDraft((current) => {
+      const existing = parseRecipeJsonLoose(current.scrapeRecipeJson);
+      return {
+        ...current,
+        scrapeRecipeJson: formatJson(mergeRecipeConfig(existing, {
+          fallbackPolicy: {
+            ...(existing.fallbackPolicy ?? {}),
+            distributorFallback: checked,
+            distributorConfidenceCap: 0.45
+          }
+        }))
+      };
+    });
   }
 
   function addSourceDraft() {
@@ -211,6 +442,10 @@ export function App() {
   }
 
   async function handleSaveManufacturer() {
+    if (!wizardTestResult?.passed) {
+      setError("Run Test samples first. At least one sample must find an official product before saving.");
+      return;
+    }
     setManufacturerSaveBusy(true);
     setError(null);
     try {
@@ -226,6 +461,67 @@ export function App() {
     }
   }
 
+  async function handleInspectManufacturer() {
+    setWizardBusy("inspect");
+    setError(null);
+    setWizardTestResult(null);
+    try {
+      const result = await inspectManufacturer({
+        canonicalName: manufacturerDraft.canonicalName,
+        shortName: manufacturerDraft.shortName,
+        websiteUrl: wizardWebsiteUrl,
+        sampleCatalogNumbers: splitFlexibleList(wizardSamplesText),
+        allowDistributorFallback: wizardAllowDistributor
+      });
+      setWizardInspectResult(result);
+      setManufacturerDraft(toManufacturerDraft(result.suggested));
+      setWizardWebsiteUrl(result.suggested.officialBaseUrls[0] ?? wizardWebsiteUrl);
+    } catch (err) {
+      setError(errorMessage(err));
+    } finally {
+      setWizardBusy(null);
+    }
+  }
+
+  async function handleTestManufacturer() {
+    setWizardBusy("test");
+    setError(null);
+    try {
+      const manufacturer = manufacturerDraftToConfig(manufacturerDraft);
+      const result = await testManufacturer({
+        manufacturer,
+        sampleCatalogNumbers: splitFlexibleList(wizardSamplesText)
+      });
+      setWizardTestResult(result);
+      if (!result.passed) setError(result.warnings[0] ?? "No sample found an official product yet.");
+    } catch (err) {
+      setError(errorMessage(err));
+      setWizardTestResult(null);
+    } finally {
+      setWizardBusy(null);
+    }
+  }
+
+  async function handleResetOverride() {
+    const targetId = manufacturerDraft.id || selectedManufacturer?.id;
+    if (!targetId) return;
+    setWizardBusy("reset");
+    setError(null);
+    try {
+      const data = await resetManufacturerOverride(targetId);
+      setManufacturers(data.manufacturers);
+      setManufacturerId(data.manufacturer.id);
+      setManufacturerDraft(toManufacturerDraft(data.manufacturer));
+      setWizardWebsiteUrl(data.manufacturer.officialBaseUrls[0] ?? "");
+      setWizardInspectResult(null);
+      setWizardTestResult(null);
+    } catch (err) {
+      setError(errorMessage(err));
+    } finally {
+      setWizardBusy(null);
+    }
+  }
+
   const progress = selectedRun && selectedRun.total > 0 ? Math.round((selectedRun.processed / selectedRun.total) * 100) : 0;
   const readyToRun = Boolean(file && preview && columnName && selectedManufacturer);
   const canCancel = selectedRun?.status === "queued" || selectedRun?.status === "running" || selectedRun?.status === "cancelling";
@@ -234,7 +530,35 @@ export function App() {
   const activeRunCount = runs.filter((run) => ["queued", "running", "cancelling"].includes(run.status)).length;
   const manufacturerSourceCount = selectedManufacturer?.fallbackSources.filter((source) => source.enabled).length ?? 0;
   const coverage = useMemo(() => buildCoverage(items), [items]);
-  const coverageTotal = items.filter((item) => item.result).length;
+  const coverageTotal = items.filter((item) => item.result || item.coverage).length;
+  const runTiming = useMemo(() => buildRunTiming(selectedRun, items, nowMs), [items, nowMs, selectedRun]);
+  const runItemFilterCounts = useMemo(() => buildRunItemFilterCounts(items), [items]);
+  const filteredItems = useMemo(() => filterRunItems(items, runItemQuery, runItemFilter), [items, runItemQuery, runItemFilter]);
+  const effectiveRunItemPageSize = runItemPageSize === "all" ? Math.max(filteredItems.length, 1) : runItemPageSize;
+  const runItemPageCount = runItemPageSize === "all" ? 1 : Math.max(1, Math.ceil(filteredItems.length / effectiveRunItemPageSize));
+  const safeRunItemPage = Math.min(runItemPage, runItemPageCount);
+  const runItemStartIndex = filteredItems.length ? (safeRunItemPage - 1) * effectiveRunItemPageSize : 0;
+  const runItemPageItems = useMemo(
+    () => filteredItems.slice(runItemStartIndex, runItemStartIndex + effectiveRunItemPageSize),
+    [effectiveRunItemPageSize, filteredItems, runItemStartIndex]
+  );
+  const runItemEndIndex = Math.min(runItemStartIndex + runItemPageItems.length, filteredItems.length);
+  const selectedHistoryRun = selectedRun ?? runs[0] ?? null;
+  const selectedItem = selectedItemDetail?.result ? selectedItemDetail : null;
+  const recipeDraft = useMemo(() => parseRecipeJsonLoose(manufacturerDraft.scrapeRecipeJson), [manufacturerDraft.scrapeRecipeJson]);
+  const editorManufacturer = useMemo(
+    () => manufacturers.find((manufacturer) => manufacturer.id === manufacturerDraft.id) ?? null,
+    [manufacturers, manufacturerDraft.id]
+  );
+  const sampleCatalogNumbers = splitFlexibleList(wizardSamplesText);
+  const canInspectManufacturer = Boolean(wizardWebsiteUrl.trim() && sampleCatalogNumbers.length > 0 && manufacturerDraft.canonicalName.trim());
+  const canTestManufacturer = Boolean(sampleCatalogNumbers.length > 0 && manufacturerDraft.officialBaseUrlsText.trim());
+  const canSaveManufacturer = Boolean(wizardTestResult?.passed);
+  const overrideActive = editorManufacturer?.origin === "override" || editorManufacturer?.hasOverride;
+
+  useEffect(() => {
+    setRunItemPage((current) => Math.min(Math.max(current, 1), runItemPageCount));
+  }, [runItemPageCount]);
 
   return (
     <main className="app-shell">
@@ -350,6 +674,18 @@ export function App() {
             </>
           )}
 
+          <label className="run-option-card">
+            <input
+              type="checkbox"
+              checked={downloadDocuments}
+              onChange={(event) => setDownloadDocuments(event.target.checked)}
+            />
+            <span>
+              <strong>Download PDFs/CAD/manuals</strong>
+              <small>Off keeps Excel and product images only.</small>
+            </span>
+          </label>
+
           <button className="primary-action" disabled={!readyToRun || busy} onClick={() => void handleStart()}>
             {busy ? <Loader2 className="spin" size={18} /> : <Play size={18} />}
             {busy ? "Preparing run" : "Start scrape"}
@@ -374,10 +710,10 @@ export function App() {
                 </button>
               )}
               {hasWorkbook && (
-                <a className="download-button" href={`/api/runs/${selectedRun.id}/files/result`}>
-                  <Download size={16} />
-                  Excel
-                </a>
+                <button type="button" className="download-button" onClick={() => void handleOpenWorkbook()} disabled={openWorkbookBusy}>
+                  {openWorkbookBusy ? <Loader2 className="spin" size={16} /> : <Download size={16} />}
+                  {openWorkbookBusy ? "Opening" : "Excel"}
+                </button>
               )}
               {selectedRun && !["queued", "running", "cancelling"].includes(selectedRun.status) && (
                 <a className="download-button secondary" href={`/api/runs/${selectedRun.id}/files/log`}>
@@ -413,6 +749,23 @@ export function App() {
                   <span>{selectedRun.processed} / {selectedRun.total} processed</span>
                   <span>100%</span>
                 </div>
+                <div className="eta-grid">
+                  <Metric label="Elapsed" value={runTiming.elapsed} />
+                  <Metric label="ETA" value={runTiming.eta} />
+                  <Metric label="Remaining" value={runTiming.remaining} />
+                  <Metric label="Avg/item" value={runTiming.avgPerItem} />
+                </div>
+                <div className="activity-panel">
+                  <div className="activity-copy">
+                    <span className="section-label">Current activity</span>
+                    <strong>{runTiming.activityTitle}</strong>
+                    <p>{runTiming.activityDetail}</p>
+                  </div>
+                  <div className="activity-meta">
+                    <span className="stage-pill">{runTiming.stage}</span>
+                    <span>{runTiming.stageElapsed}</span>
+                  </div>
+                </div>
                 <div className="stat-row">
                   <Metric label="Processed" value={`${selectedRun.processed}/${selectedRun.total}`} />
                   <Metric label="Found" value={selectedRun.found} />
@@ -431,9 +784,19 @@ export function App() {
                 </div>
                 <div className="coverage-grid">
                   {coverage.map((row) => (
-                    <div className="coverage-item" key={row.key}>
+                    <div
+                      className={`coverage-item${row.missing ? " coverage-item--missing" : ""}${row.notApplicable && !row.total ? " coverage-item--na" : ""}`}
+                      key={row.key}
+                    >
                       <span>{row.label}</span>
-                      <strong>{row.total ? `${row.count}/${row.total}` : "0/0"}</strong>
+                      <strong>{row.total ? `${row.count}/${row.total}` : row.notApplicable ? "N/A OK" : "0/0"}</strong>
+                      <small>
+                        {row.missing
+                          ? `${row.missing} missing`
+                          : row.notApplicable
+                            ? `${row.notApplicable} not applicable`
+                            : "Complete"}
+                      </small>
                       <div className="mini-track" aria-hidden="true">
                         <i style={{ width: `${row.percent}%` }} />
                       </div>
@@ -442,27 +805,114 @@ export function App() {
                 </div>
               </div>
 
-              <div className="table-wrap">
+              <div className="run-items-panel">
+                <div className="run-items-toolbar">
+                  <label className="run-search-field">
+                    <Search size={16} />
+                    <input
+                      value={runItemQuery}
+                      placeholder="Search catalog, title, reason..."
+                      onChange={(event) => handleRunItemQueryChange(event.target.value)}
+                    />
+                  </label>
+                  <label className="page-size-field">
+                    <span>Rows</span>
+                    <select value={runItemPageSize} onChange={(event) => handleRunItemPageSizeChange(event.target.value)}>
+                      {RUN_ITEM_PAGE_SIZES.map((size) => (
+                        <option key={size} value={size}>
+                          {size === "all" ? "All" : size}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                </div>
+
+                <div className="run-filter-strip" aria-label="Filter run items">
+                  {RUN_ITEM_FILTERS.map((filter) => (
+                    <button
+                      key={filter.key}
+                      type="button"
+                      className={runItemFilter === filter.key ? "filter-chip active" : "filter-chip"}
+                      onClick={() => handleRunItemFilterChange(filter.key)}
+                    >
+                      <span>{filter.label}</span>
+                      <strong>{runItemFilterCounts[filter.key] ?? 0}</strong>
+                    </button>
+                  ))}
+                </div>
+
+                <div className="table-nav">
+                  <span>
+                    {filteredItems.length
+                      ? `${runItemStartIndex + 1}-${runItemEndIndex} of ${filteredItems.length}`
+                      : "0 results"}
+                    {filteredItems.length !== items.length ? ` filtered from ${items.length}` : ""}
+                  </span>
+                  <div className="pager" aria-label="Run item pages">
+                    <button type="button" className="pager-button" onClick={() => setRunItemPage(1)} disabled={safeRunItemPage <= 1}>
+                      <ChevronsLeft size={15} />
+                    </button>
+                    <button type="button" className="pager-button" onClick={() => setRunItemPage((page) => Math.max(1, page - 1))} disabled={safeRunItemPage <= 1}>
+                      <ChevronLeft size={15} />
+                    </button>
+                    <label className="page-jump">
+                      <span>Page</span>
+                      <input
+                        type="number"
+                        min={1}
+                        max={runItemPageCount}
+                        value={safeRunItemPage}
+                        onChange={(event) => setRunItemPage(clampPage(Number(event.target.value), runItemPageCount))}
+                      />
+                      <strong>/ {runItemPageCount}</strong>
+                    </label>
+                    <button
+                      type="button"
+                      className="pager-button"
+                      onClick={() => setRunItemPage((page) => Math.min(runItemPageCount, page + 1))}
+                      disabled={safeRunItemPage >= runItemPageCount}
+                    >
+                      <ChevronRight size={15} />
+                    </button>
+                    <button
+                      type="button"
+                      className="pager-button"
+                      onClick={() => setRunItemPage(runItemPageCount)}
+                      disabled={safeRunItemPage >= runItemPageCount}
+                    >
+                      <ChevronsRight size={15} />
+                    </button>
+                  </div>
+                </div>
+
+                <div className="table-wrap run-items-table-wrap">
                 <table className="run-table">
                   <thead>
                     <tr>
                       <th>#</th>
                       <th>Catalog number</th>
                       <th>Status</th>
+                      <th>Activity</th>
                       <th>Title</th>
+                      <th>Reason</th>
                       <th>Confidence</th>
                       <th>Link</th>
+                      <th>Debug</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {items.map((item) => (
-                      <tr key={item.id}>
+                    {runItemPageItems.map((item) => (
+                      <tr key={item.id} className={selectedItemId === item.id ? "active-row" : ""}>
                         <td>{item.rowIndex}</td>
                         <td className="mono">{item.catalogNumber}</td>
                         <td>
                           <ItemBadge status={item.status} />
                         </td>
+                        <td>
+                          <StageCell item={item} />
+                        </td>
                         <td>{item.title ?? item.error ?? ""}</td>
+                        <td>{itemReason(item)}</td>
                         <td>{item.confidence ? `${Math.round(item.confidence * 100)}%` : ""}</td>
                         <td>
                           {item.productUrl ? (
@@ -472,10 +922,24 @@ export function App() {
                             </a>
                           ) : null}
                         </td>
+                        <td>
+                          {item.result || item.coverage ? (
+                            <button type="button" className="icon-button" title="Open run item diagnostics" onClick={() => setSelectedItemId(item.id)}>
+                              <FileText size={14} />
+                            </button>
+                          ) : null}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
+                  {runItemPageItems.length === 0 && (
+                    <div className="table-empty">
+                      <Search size={17} />
+                      <span>No matching catalog rows.</span>
+                    </div>
+                  )}
+                </div>
               </div>
             </>
           ) : (
@@ -483,49 +947,61 @@ export function App() {
           )}
         </section>
 
-        <aside className="history-panel">
-          <PanelTitle icon={<History size={18} />} title="Run history" meta={`${runs.length} total`} />
+        <aside className={historyExpanded ? "history-panel expanded" : "history-panel collapsed"}>
+          <div className="history-title-row">
+            <PanelTitle icon={<History size={18} />} title="Run history" meta={`${runs.length} total`} />
+            <button
+              type="button"
+              className="history-toggle"
+              aria-expanded={historyExpanded}
+              onClick={() => setHistoryExpanded((expanded) => !expanded)}
+            >
+              {historyExpanded ? <ChevronDown size={15} /> : <ChevronRight size={15} />}
+              {historyExpanded ? "Hide" : "Show"}
+            </button>
+          </div>
+
           <div className="history-overview">
             <Metric label="Complete" value={runs.filter((run) => run.status === "completed").length} />
             <Metric label="Needs check" value={runs.filter((run) => run.status === "failed" || run.partial > 0).length} />
           </div>
-          <div className="history-list">
-            {runs.map((run) => {
-              const runProgress = run.total > 0 ? Math.round((run.processed / run.total) * 100) : 0;
-              const runManufacturer = manufacturers.find((manufacturer) => manufacturer.id === run.manufacturerId);
-              const runShortName = runManufacturer?.shortName ?? run.manufacturerId.toUpperCase();
 
-              return (
-                <button
+          {!historyExpanded && selectedHistoryRun && (
+            <div className="history-current">
+              <span>Selected run</span>
+              <HistoryRunButton
+                run={selectedHistoryRun}
+                runShortName={manufacturers.find((manufacturer) => manufacturer.id === selectedHistoryRun.manufacturerId)?.shortName ?? selectedHistoryRun.manufacturerId.toUpperCase()}
+                active
+                compact
+                onSelect={() => setSelectedRunId(selectedHistoryRun.id)}
+              />
+            </div>
+          )}
+
+          {historyExpanded && (
+            <div className="history-list">
+              {runs.map((run) => (
+                <HistoryRunButton
                   key={run.id}
-                  className={run.id === selectedRunId ? "history-item active" : "history-item"}
-                  onClick={() => setSelectedRunId(run.id)}
-                >
-                  <span className="history-line">
-                    <span className="history-main">
-                      <strong>{runShortName}</strong>
-                      <span>{new Date(run.createdAt).toLocaleString()}</span>
-                    </span>
-                    <span className="history-tail">
-                      <StatusBadge status={run.status} />
-                      <span>{run.processed}/{run.total}</span>
-                    </span>
-                  </span>
-                  <span className="history-progress">
-                    <span style={{ width: `${runProgress}%` }} />
-                  </span>
-                </button>
-              );
-            })}
-            {runs.length === 0 && <p className="muted">No runs yet.</p>}
-          </div>
+                  run={run}
+                  runShortName={manufacturers.find((manufacturer) => manufacturer.id === run.manufacturerId)?.shortName ?? run.manufacturerId.toUpperCase()}
+                  active={run.id === selectedRunId}
+                  onSelect={() => setSelectedRunId(run.id)}
+                />
+              ))}
+              {runs.length === 0 && <p className="muted">No runs yet.</p>}
+            </div>
+          )}
 
           {hasWorkbook && (
             <div className="output-box">
               <FolderOpen size={18} />
               <div>
                 <strong>{selectedRun.status === "cancelled" ? "Partial workbook ready" : "Workbook ready"}</strong>
-                <a href={`/api/runs/${selectedRun.id}/files/result`}>Download result XLSX</a>
+                <button type="button" className="text-link-button" onClick={() => void handleOpenWorkbook()} disabled={openWorkbookBusy}>
+                  Open result XLSX
+                </button>
                 <a href={`/api/runs/${selectedRun.id}/files/log`}>Download run log</a>
               </div>
             </div>
@@ -533,22 +1009,132 @@ export function App() {
         </aside>
       </section>
 
+      {selectedItem && <RunItemDrawer item={selectedItem} onClose={() => setSelectedItemId(null)} />}
+
       {manufacturerEditorOpen && (
         <section className="manufacturer-panel">
           <div className="config-header">
-            <PanelTitle icon={<Settings2 size={18} />} title="Manufacturer config" meta={manufacturerDraft.shortName || "Draft"} />
-            <div className="run-actions">
+            <div>
+              <PanelTitle icon={<Settings2 size={18} />} title={manufacturerDraft.id ? "Edit manufacturer" : "Add manufacturer"} meta={manufacturerDraft.shortName || "Draft"} />
+              <div className="origin-row">
+                <span className={overrideActive ? "origin-pill active" : "origin-pill"}>
+                  {overrideActive ? "Local override active" : editorManufacturer?.isBuiltIn ? "Built-in safe edit" : "Custom draft"}
+                </span>
+                <span>Simple wizard first. Advanced stays available for power tuning.</span>
+              </div>
+            </div>
+            <div className="run-actions manufacturer-editor-actions">
+              {overrideActive && (
+                <button type="button" className="secondary-action" onClick={() => void handleResetOverride()} disabled={wizardBusy === "reset"}>
+                  {wizardBusy === "reset" ? <Loader2 className="spin" size={16} /> : <History size={16} />}
+                  Reset override
+                </button>
+              )}
+              <div className="mode-switch" role="tablist" aria-label="Manufacturer editor mode">
+                <button type="button" className={editorMode === "simple" ? "active" : ""} onClick={() => setEditorMode("simple")}>
+                  Simple
+                </button>
+                <button type="button" className={editorMode === "advanced" ? "active" : ""} onClick={() => setEditorMode("advanced")}>
+                  Advanced
+                </button>
+              </div>
               <button type="button" className="cancel-button" onClick={() => setManufacturerEditorOpen(false)}>
                 <XCircle size={16} />
                 Close
               </button>
-              <button type="button" className="primary-action compact-action" onClick={() => void handleSaveManufacturer()} disabled={manufacturerSaveBusy}>
+              <button type="button" className="primary-action compact-action" onClick={() => void handleSaveManufacturer()} disabled={manufacturerSaveBusy || !canSaveManufacturer}>
                 {manufacturerSaveBusy ? <Loader2 className="spin" size={16} /> : <Save size={16} />}
-                Save manufacturer
+                {canSaveManufacturer ? "Save manufacturer" : "Test required"}
               </button>
             </div>
           </div>
 
+          <section className="wizard-panel" aria-label="Simple manufacturer wizard">
+            <div className="wizard-topline">
+              <div>
+                <span className="section-label">Paste URL wizard</span>
+                <h3>Add a manufacturer without JSON</h3>
+                <p>Paste the official website, add two or three catalog numbers, auto-detect, then test. Saving unlocks only after one official product is confirmed.</p>
+              </div>
+              <span className={canSaveManufacturer ? "save-guard ok" : "save-guard"}>
+                {canSaveManufacturer ? "Ready to save" : "Sample test required"}
+              </span>
+            </div>
+
+            <div className="wizard-progress">
+              <span className={manufacturerDraft.canonicalName.trim() ? "done" : ""}>1 Name</span>
+              <span className={wizardWebsiteUrl.trim() ? "done" : ""}>2 Website</span>
+              <span className={sampleCatalogNumbers.length ? "done" : ""}>3 Samples</span>
+              <span className={wizardInspectResult ? "done" : ""}>4 Auto-detect</span>
+              <span className={wizardTestResult?.passed ? "done" : ""}>5 Save</span>
+            </div>
+
+            <div className="wizard-grid">
+              <label className="field">
+                <span>Manufacturer name</span>
+                <input
+                  value={manufacturerDraft.canonicalName}
+                  placeholder="example: nVent Hoffman"
+                  onChange={(event) => handleSimpleNameChange(event.target.value)}
+                />
+              </label>
+              <label className="field">
+                <span>Short name</span>
+                <input
+                  value={manufacturerDraft.shortName}
+                  placeholder="Auto"
+                  onChange={(event) => updateManufacturerDraft({ shortName: event.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 8) })}
+                />
+              </label>
+              <label className="field wide-field">
+                <span>Official website or product URL</span>
+                <input
+                  value={wizardWebsiteUrl}
+                  placeholder="https://www.company.com/products"
+                  onChange={(event) => handleSimpleWebsiteChange(event.target.value)}
+                />
+              </label>
+              <label className="field wide-field">
+                <span>Sample catalog numbers</span>
+                <textarea
+                  rows={3}
+                  value={wizardSamplesText}
+                  placeholder={`One per line, for example:
+A1B2C3
+X-100-24V
+ABC:12345`}
+                  onChange={(event) => handleSimpleSamplesChange(event.target.value)}
+                />
+              </label>
+              <label className="wizard-check wide-field">
+                <input
+                  type="checkbox"
+                  checked={wizardAllowDistributor}
+                  onChange={(event) => handleDistributorFallbackToggle(event.target.checked)}
+                />
+                <span>
+                  Allow distributor fallback
+                  <small>Off by default. Distributor data can fill gaps, but it cannot overwrite official data.</small>
+                </span>
+              </label>
+            </div>
+
+            <div className="wizard-actions">
+              <button type="button" className="secondary-action" onClick={() => void handleInspectManufacturer()} disabled={!canInspectManufacturer || wizardBusy !== null}>
+                {wizardBusy === "inspect" ? <Loader2 className="spin" size={16} /> : <Search size={16} />}
+                Auto-detect
+              </button>
+              <button type="button" className="primary-action compact-action" onClick={() => void handleTestManufacturer()} disabled={!canTestManufacturer || wizardBusy !== null}>
+                {wizardBusy === "test" ? <Loader2 className="spin" size={16} /> : <ListChecks size={16} />}
+                Test samples
+              </button>
+            </div>
+
+            <ManufacturerWizardPreview inspectResult={wizardInspectResult} testResult={wizardTestResult} />
+          </section>
+
+          {editorMode === "advanced" && (
+          <div className="advanced-config">
           <div className="config-grid">
             <label className="field">
               <span>ID</span>
@@ -585,12 +1171,259 @@ export function App() {
               />
             </label>
             <label className="field wide-field">
-              <span>Official base URLs</span>
+              <span>Official URL templates</span>
               <textarea
                 rows={3}
                 value={manufacturerDraft.officialBaseUrlsText}
-                placeholder="https://www.company.com/products"
+                placeholder="https://www.company.com/products/{part}"
                 onChange={(event) => updateManufacturerDraft({ officialBaseUrlsText: event.target.value })}
+              />
+            </label>
+            <label className="field wide-field">
+              <span>Localized URL templates</span>
+              <textarea
+                rows={3}
+                value={manufacturerDraft.localizedUrlTemplatesText}
+                placeholder={`en https://www.company.com/en/product/{part}
+de https://www.company.com/de/product/{part}`}
+                onChange={(event) => updateManufacturerDraft({ localizedUrlTemplatesText: event.target.value })}
+              />
+            </label>
+            <label className="field wide-field">
+              <span>Catalog aliases</span>
+              <textarea
+                rows={3}
+                value={manufacturerDraft.aliasesText}
+                placeholder="Optional alternate catalog tokens, one per line"
+                onChange={(event) => updateManufacturerDraft({ aliasesText: event.target.value })}
+              />
+            </label>
+            <label className="field wide-field">
+              <span>Marker extraction rules</span>
+              <textarea
+                rows={3}
+                value={manufacturerDraft.markerRulesText}
+                placeholder="Field name|||start marker|||end marker"
+                onChange={(event) => updateManufacturerDraft({ markerRulesText: event.target.value })}
+              />
+            </label>
+            <label className="field">
+              <span>Fetch timeout ms</span>
+              <input
+                type="number"
+                min="1000"
+                max="180000"
+                value={manufacturerDraft.fetchTimeoutMs}
+                placeholder="15000"
+                onChange={(event) => updateManufacturerDraft({ fetchTimeoutMs: event.target.value })}
+              />
+            </label>
+            <label className="field">
+              <span>Cache TTL ms</span>
+              <input
+                type="number"
+                min="0"
+                max="2592000000"
+                value={manufacturerDraft.cacheTtlMs}
+                placeholder="86400000"
+                onChange={(event) => updateManufacturerDraft({ cacheTtlMs: event.target.value })}
+              />
+            </label>
+            <label className="field">
+              <span>Max attempts</span>
+              <input
+                type="number"
+                min="1"
+                max="5"
+                value={manufacturerDraft.maxAttempts}
+                placeholder="2"
+                onChange={(event) => updateManufacturerDraft({ maxAttempts: event.target.value })}
+              />
+            </label>
+            <label className="field">
+              <span>Retry backoff ms</span>
+              <input
+                type="number"
+                min="100"
+                max="10000"
+                value={manufacturerDraft.retryBackoffMs}
+                placeholder="750"
+                onChange={(event) => updateManufacturerDraft({ retryBackoffMs: event.target.value })}
+              />
+            </label>
+            <label className="field">
+              <span>Min content length</span>
+              <input
+                type="number"
+                min="0"
+                max="250000"
+                value={manufacturerDraft.minContentLength}
+                placeholder="1000"
+                onChange={(event) => updateManufacturerDraft({ minContentLength: event.target.value })}
+              />
+            </label>
+            <label className="field wide-field">
+              <span>User agent</span>
+              <input
+                value={manufacturerDraft.userAgent}
+                placeholder="Optional primary user agent"
+                onChange={(event) => updateManufacturerDraft({ userAgent: event.target.value })}
+              />
+            </label>
+            <label className="field wide-field">
+              <span>Accept language</span>
+              <input
+                value={manufacturerDraft.acceptLanguage}
+                placeholder="en-GB,en;q=0.9,en-US;q=0.8"
+                onChange={(event) => updateManufacturerDraft({ acceptLanguage: event.target.value })}
+              />
+            </label>
+            <label className="field wide-field">
+              <span>Referer</span>
+              <input
+                value={manufacturerDraft.referer}
+                placeholder="https://www.company.com/products"
+                onChange={(event) => updateManufacturerDraft({ referer: event.target.value })}
+              />
+            </label>
+            <label className="field wide-field">
+              <span>Fallback user agents</span>
+              <textarea
+                rows={2}
+                value={manufacturerDraft.fallbackUserAgentsText}
+                placeholder="One user agent per line"
+                onChange={(event) => updateManufacturerDraft({ fallbackUserAgentsText: event.target.value })}
+              />
+            </label>
+            <div className="recipe-wizard wide-field">
+              <div className="sources-header compact-header">
+                <div>
+                  <strong>Recipe builder</strong>
+                  <span>Promote the common discovery, interaction, and quality rules into the JSON recipe.</span>
+                </div>
+              </div>
+              <div className="config-grid source-grid">
+                <label className="field wide-field">
+                  <span>Search templates</span>
+                  <textarea
+                    rows={3}
+                    value={(recipeDraft.discoveryPolicy?.searchUrlTemplates ?? recipeDraft.searchUrlTemplates ?? []).join("\n")}
+                    placeholder="https://example.com/search?q={part}"
+                    onChange={(event) =>
+                      updateRecipeDraft({
+                        discoveryPolicy: {
+                          ...recipeDraft.discoveryPolicy,
+                          searchUrlTemplates: splitLines(event.target.value)
+                        }
+                      })
+                    }
+                  />
+                </label>
+                <label className="field wide-field">
+                  <span>Expand selectors</span>
+                  <textarea
+                    rows={3}
+                    value={(recipeDraft.interactionPolicy?.expandSelectors ?? recipeDraft.expandSelectors ?? []).join("\n")}
+                    placeholder="button[aria-expanded='false']"
+                    onChange={(event) =>
+                      updateRecipeDraft({
+                        interactionPolicy: {
+                          ...recipeDraft.interactionPolicy,
+                          expandSelectors: splitLines(event.target.value)
+                        }
+                      })
+                    }
+                  />
+                </label>
+                <label className="field wide-field">
+                  <span>Wait selectors</span>
+                  <textarea
+                    rows={2}
+                    value={(recipeDraft.interactionPolicy?.waitForSelectors ?? []).join("\n")}
+                    placeholder=".product-detail, [data-product]"
+                    onChange={(event) =>
+                      updateRecipeDraft({
+                        interactionPolicy: {
+                          ...recipeDraft.interactionPolicy,
+                          waitForSelectors: splitLines(event.target.value)
+                        }
+                      })
+                    }
+                  />
+                </label>
+                <label className="field wide-field">
+                  <span>Document URL patterns</span>
+                  <textarea
+                    rows={2}
+                    value={(recipeDraft.extractionPolicy?.documentUrlPatterns ?? []).join("\n")}
+                    placeholder="datasheet|technical|certificate"
+                    onChange={(event) =>
+                      updateRecipeDraft({
+                        extractionPolicy: {
+                          ...recipeDraft.extractionPolicy,
+                          documentUrlPatterns: splitLines(event.target.value)
+                        }
+                      })
+                    }
+                  />
+                </label>
+                <div className="field wide-field">
+                  <span>Required normalized fields</span>
+                  <div className="toggle-grid">
+                    {(["weight", "dimensions", "material", "voltage", "current", "protection", "certificates"] as const).map((field) => (
+                      <label className="check-field" key={field}>
+                        <input
+                          type="checkbox"
+                          checked={(recipeDraft.qualityPolicy?.requiredNormalizedFields ?? []).includes(field)}
+                          onChange={(event) =>
+                            updateRecipeDraft({
+                              qualityPolicy: {
+                                ...recipeDraft.qualityPolicy,
+                                requiredNormalizedFields: toggleList(recipeDraft.qualityPolicy?.requiredNormalizedFields ?? [], field, event.target.checked)
+                              }
+                            })
+                          }
+                        />
+                        {field}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+                <div className="field wide-field">
+                  <span>Required documents</span>
+                  <div className="toggle-grid">
+                    {(["datasheet", "certificate", "manual", "cad", "image"] as const).map((type) => (
+                      <label className="check-field" key={type}>
+                        <input
+                          type="checkbox"
+                          checked={(recipeDraft.qualityPolicy?.requiredDocumentTypes ?? []).includes(type)}
+                          onChange={(event) =>
+                            updateRecipeDraft({
+                              qualityPolicy: {
+                                ...recipeDraft.qualityPolicy,
+                                requiredDocumentTypes: toggleList(recipeDraft.qualityPolicy?.requiredDocumentTypes ?? [], type, event.target.checked)
+                              }
+                            })
+                          }
+                        />
+                        {type}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+            <label className="field wide-field">
+              <span>Advanced scrape recipe JSON</span>
+              <textarea
+                rows={7}
+                value={manufacturerDraft.scrapeRecipeJson}
+                placeholder={`{
+  "discoveryPolicy": { "enableRobotsSitemaps": true, "maxCandidates": 12 },
+  "interactionPolicy": { "maxClicks": 50 },
+  "qualityPolicy": { "requiredNormalizedFields": ["weight", "dimensions"] }
+}`}
+                onChange={(event) => updateManufacturerDraft({ scrapeRecipeJson: event.target.value })}
               />
             </label>
           </div>
@@ -649,6 +1482,124 @@ export function App() {
                       onChange={(event) => updateSourceDraft(index, { directUrlTemplatesText: event.target.value })}
                     />
                   </label>
+                  <label className="field wide-field">
+                    <span>Source aliases</span>
+                    <textarea
+                      rows={2}
+                      value={source.aliasesText}
+                      placeholder="Optional alternate catalog tokens for this source"
+                      onChange={(event) => updateSourceDraft(index, { aliasesText: event.target.value })}
+                    />
+                  </label>
+                  <label className="field wide-field">
+                    <span>Source marker rules</span>
+                    <textarea
+                      rows={2}
+                      value={source.markerRulesText}
+                      placeholder="Field name|||start marker|||end marker"
+                      onChange={(event) => updateSourceDraft(index, { markerRulesText: event.target.value })}
+                    />
+                  </label>
+                  <label className="field">
+                    <span>Confidence</span>
+                    <input
+                      type="number"
+                      min="0.05"
+                      max="0.95"
+                      step="0.05"
+                      value={source.confidence}
+                      placeholder="0.55"
+                      onChange={(event) => updateSourceDraft(index, { confidence: event.target.value })}
+                    />
+                  </label>
+                  <label className="field">
+                    <span>Timeout ms</span>
+                    <input
+                      type="number"
+                      min="1000"
+                      max="180000"
+                      value={source.fetchTimeoutMs}
+                      placeholder="15000"
+                      onChange={(event) => updateSourceDraft(index, { fetchTimeoutMs: event.target.value })}
+                    />
+                  </label>
+                  <label className="field">
+                    <span>Cache TTL ms</span>
+                    <input
+                      type="number"
+                      min="0"
+                      max="2592000000"
+                      value={source.cacheTtlMs}
+                      placeholder="86400000"
+                      onChange={(event) => updateSourceDraft(index, { cacheTtlMs: event.target.value })}
+                    />
+                  </label>
+                  <label className="field">
+                    <span>Max attempts</span>
+                    <input
+                      type="number"
+                      min="1"
+                      max="5"
+                      value={source.maxAttempts}
+                      placeholder="2"
+                      onChange={(event) => updateSourceDraft(index, { maxAttempts: event.target.value })}
+                    />
+                  </label>
+                  <label className="field">
+                    <span>Retry backoff ms</span>
+                    <input
+                      type="number"
+                      min="100"
+                      max="10000"
+                      value={source.retryBackoffMs}
+                      placeholder="750"
+                      onChange={(event) => updateSourceDraft(index, { retryBackoffMs: event.target.value })}
+                    />
+                  </label>
+                  <label className="field">
+                    <span>Min content length</span>
+                    <input
+                      type="number"
+                      min="0"
+                      max="250000"
+                      value={source.minContentLength}
+                      placeholder="1000"
+                      onChange={(event) => updateSourceDraft(index, { minContentLength: event.target.value })}
+                    />
+                  </label>
+                  <label className="field wide-field">
+                    <span>User agent</span>
+                    <input
+                      value={source.userAgent}
+                      placeholder="Optional primary user agent"
+                      onChange={(event) => updateSourceDraft(index, { userAgent: event.target.value })}
+                    />
+                  </label>
+                  <label className="field wide-field">
+                    <span>Accept language</span>
+                    <input
+                      value={source.acceptLanguage}
+                      placeholder="en-GB,en;q=0.9,en-US;q=0.8"
+                      onChange={(event) => updateSourceDraft(index, { acceptLanguage: event.target.value })}
+                    />
+                  </label>
+                  <label className="field wide-field">
+                    <span>Referer</span>
+                    <input
+                      value={source.referer}
+                      placeholder="https://www.company.com/products"
+                      onChange={(event) => updateSourceDraft(index, { referer: event.target.value })}
+                    />
+                  </label>
+                  <label className="field wide-field">
+                    <span>Fallback user agents</span>
+                    <textarea
+                      rows={2}
+                      value={source.fallbackUserAgentsText}
+                      placeholder="One user agent per line"
+                      onChange={(event) => updateSourceDraft(index, { fallbackUserAgentsText: event.target.value })}
+                    />
+                  </label>
                 </div>
               </div>
             ))}
@@ -658,6 +1609,8 @@ export function App() {
               </div>
             )}
           </div>
+          </div>
+          )}
         </section>
       )}
 
@@ -734,9 +1687,56 @@ function StatusBadge({ status }: { status: RunRecord["status"] }) {
   return <span className={`badge run-${status}`}>{status}</span>;
 }
 
+function HistoryRunButton({
+  run,
+  runShortName,
+  active,
+  compact = false,
+  onSelect
+}: {
+  run: RunRecord;
+  runShortName: string;
+  active: boolean;
+  compact?: boolean;
+  onSelect: () => void;
+}) {
+  const runProgress = run.total > 0 ? Math.round((run.processed / run.total) * 100) : 0;
+  return (
+    <button
+      type="button"
+      className={`${active ? "history-item active" : "history-item"}${compact ? " compact-history-item" : ""}`}
+      onClick={onSelect}
+    >
+      <span className="history-line">
+        <span className="history-main">
+          <strong>{runShortName}</strong>
+          <span>{new Date(run.createdAt).toLocaleString()}</span>
+        </span>
+        <span className="history-tail">
+          <StatusBadge status={run.status} />
+          <span>{run.processed}/{run.total}</span>
+        </span>
+      </span>
+      <span className="history-progress">
+        <span style={{ width: `${runProgress}%` }} />
+      </span>
+    </button>
+  );
+}
+
 function ItemBadge({ status }: { status: RunItemRecord["status"] }) {
   const icon = status === "found" ? <CheckCircle2 size={14} /> : status === "processing" ? <Loader2 className="spin" size={14} /> : null;
   return <span className={`item-badge item-${status}`}>{icon}{status}</span>;
+}
+
+function StageCell({ item }: { item: RunItemRecord }) {
+  const detail = item.stageMessage ?? itemReason(item) ?? "";
+  return (
+    <span className="activity-cell">
+      <span className="stage-pill">{stageLabel(item.stage, item.status)}</span>
+      {detail ? <small>{detail}</small> : null}
+    </span>
+  );
 }
 
 function EmptyState() {
@@ -749,28 +1749,457 @@ function EmptyState() {
   );
 }
 
+interface RunTimingSummary {
+  elapsed: string;
+  eta: string;
+  remaining: string;
+  avgPerItem: string;
+  activityTitle: string;
+  activityDetail: string;
+  stage: string;
+  stageElapsed: string;
+}
+
+function buildRunTiming(run: RunRecord | null, items: RunItemRecord[], nowMs: number): RunTimingSummary {
+  if (!run) {
+    return {
+      elapsed: "--",
+      eta: "--",
+      remaining: "--",
+      avgPerItem: "--",
+      activityTitle: "No active run",
+      activityDetail: "Select or start a run to see live activity.",
+      stage: "Idle",
+      stageElapsed: "--"
+    };
+  }
+
+  const active = ["queued", "running", "cancelling"].includes(run.status);
+  const startMs = safeTime(run.createdAt) ?? nowMs;
+  const endMs = active ? nowMs : safeTime(run.updatedAt) ?? nowMs;
+  const elapsedMs = Math.max(0, endMs - startMs);
+  const currentItem = items.find((item) => item.status === "processing");
+  const nextItem = items.find((item) => item.status === "pending");
+  const stageStartMs = currentItem ? safeTime(currentItem.stageStartedAt) : undefined;
+  const processed = Math.max(0, run.processed);
+  const remainingCount = Math.max(0, run.total - processed);
+  const avgMs = processed > 0 ? elapsedMs / processed : undefined;
+  let eta = "--";
+  let remaining = "--";
+
+  if (run.status === "completed") {
+    eta = "Done";
+    remaining = "0s";
+  } else if (run.status === "failed") {
+    eta = "Failed";
+    remaining = "--";
+  } else if (run.status === "cancelled") {
+    eta = "Cancelled";
+    remaining = "--";
+  } else if (remainingCount === 0) {
+    eta = "Finalizing";
+    remaining = "<1m";
+  } else if (avgMs) {
+    const remainingMs = avgMs * remainingCount;
+    eta = `${formatClock(nowMs + remainingMs)} (${formatDuration(remainingMs)})`;
+    remaining = formatDuration(remainingMs);
+  } else {
+    eta = "After first row";
+    remaining = "Measuring";
+  }
+
+  if (currentItem) {
+    return {
+      elapsed: formatDuration(elapsedMs),
+      eta,
+      remaining,
+      avgPerItem: avgMs ? formatDuration(avgMs) : "--",
+      activityTitle: `${currentItem.catalogNumber} (${currentItem.rowIndex}/${run.total})`,
+      activityDetail: currentItem.stageMessage ?? "Processing catalog row",
+      stage: stageLabel(currentItem.stage, currentItem.status),
+      stageElapsed: stageStartMs ? `${formatDuration(nowMs - stageStartMs)} in stage` : "Live"
+    };
+  }
+
+  if (run.status === "queued") {
+    return {
+      elapsed: formatDuration(elapsedMs),
+      eta,
+      remaining,
+      avgPerItem: avgMs ? formatDuration(avgMs) : "--",
+      activityTitle: "Queued",
+      activityDetail: "Waiting for the run worker to start.",
+      stage: "Queued",
+      stageElapsed: active ? "Live" : "--"
+    };
+  }
+
+  if (run.status === "cancelling") {
+    return {
+      elapsed: formatDuration(elapsedMs),
+      eta,
+      remaining,
+      avgPerItem: avgMs ? formatDuration(avgMs) : "--",
+      activityTitle: "Cancelling run",
+      activityDetail: "Stopping active work and marking pending rows as cancelled.",
+      stage: "Cancelling",
+      stageElapsed: "Live"
+    };
+  }
+
+  if (active && nextItem) {
+    return {
+      elapsed: formatDuration(elapsedMs),
+      eta,
+      remaining,
+      avgPerItem: avgMs ? formatDuration(avgMs) : "--",
+      activityTitle: `${nextItem.catalogNumber} (${nextItem.rowIndex}/${run.total})`,
+      activityDetail: "Waiting for the next row to start.",
+      stage: "Waiting",
+      stageElapsed: "Live"
+    };
+  }
+
+  const terminalItemStatus: RunItemRecord["status"] =
+    run.status === "failed" ? "failed" : run.status === "cancelled" ? "cancelled" : "pending";
+  return {
+    elapsed: formatDuration(elapsedMs),
+    eta,
+    remaining,
+    avgPerItem: avgMs ? formatDuration(avgMs) : "--",
+    activityTitle: run.status === "running" ? "Finalizing output" : `Run ${run.status}`,
+    activityDetail: run.error ?? (run.outputPath ? "Workbook and debug output are ready." : "No active item."),
+    stage: run.status === "completed" ? "Complete" : stageLabel(undefined, terminalItemStatus),
+    stageElapsed: active ? "Live" : formatClock(endMs)
+  };
+}
+
+function stageLabel(stage: string | undefined, status: RunItemRecord["status"]): string {
+  if (stage && STAGE_LABELS[stage]) return STAGE_LABELS[stage];
+  if (status === "processing") return "Processing";
+  if (status === "pending") return "Pending";
+  if (status === "cancelled") return "Cancelled";
+  if (status === "failed") return "Failed";
+  if (status === "found" || status === "partial") return "Complete";
+  return stage ?? status;
+}
+
+const STAGE_LABELS: Record<string, string> = {
+  pending: "Pending",
+  "official-source": "Official source",
+  "quality-gate": "Quality check",
+  downloads: "Downloads",
+  "document-enrichment": "Document parse",
+  "quality-fallback": "Fallback",
+  "final-audit": "Final audit",
+  "final-field-repair": "Field repair",
+  "final-network-retry": "Final retry",
+  evidence: "Evidence",
+  complete: "Complete",
+  failed: "Failed",
+  cancelled: "Cancelled"
+};
+
+function safeTime(value: string | undefined): number | undefined {
+  if (!value) return undefined;
+  const ms = Date.parse(value);
+  return Number.isFinite(ms) ? ms : undefined;
+}
+
+function formatDuration(ms: number): string {
+  if (!Number.isFinite(ms) || ms < 0) return "--";
+  if (ms < 1000) return "<1s";
+  const totalSeconds = Math.max(1, Math.round(ms / 1000));
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  if (hours > 0) return `${hours}h ${minutes}m`;
+  if (minutes > 0) return `${minutes}m ${seconds}s`;
+  return `${seconds}s`;
+}
+
+function formatClock(ms: number): string {
+  return new Date(ms).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+}
+
+function ManufacturerWizardPreview({ inspectResult, testResult }: { inspectResult: ManufacturerInspectResult | null; testResult: ManufacturerTestResult | null }) {
+  if (!inspectResult && !testResult) {
+    return (
+      <div className="wizard-empty">
+        <Search size={22} />
+        <div>
+          <strong>No test yet</strong>
+          <span>Auto-detect will inspect the official site, robots/sitemaps, search forms, and possible product URL templates.</span>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="wizard-preview">
+      {inspectResult && (
+        <section className="wizard-card">
+          <div className="wizard-card-head">
+            <div>
+              <span className="section-label">Auto-detect preview</span>
+              <h4>{inspectResult.suggested.canonicalName}</h4>
+            </div>
+            <span className="origin-pill">{inspectResult.suggested.shortName}</span>
+          </div>
+          <div className="wizard-metrics">
+            <Metric label="Direct templates" value={inspectResult.directUrlTemplates.length} />
+            <Metric label="Search templates" value={inspectResult.searchUrlTemplates.length} />
+            <Metric label="Sitemaps" value={inspectResult.sitemapUrls.length} />
+            <Metric label="Product URLs" value={inspectResult.discoveredProductUrls.length} />
+          </div>
+          <WizardList title="Why I trust it" items={inspectResult.reasons} />
+          <WizardList title="Warnings" items={inspectResult.warnings} tone="warn" />
+          <WizardList title="Direct URL templates" items={inspectResult.directUrlTemplates} monospace />
+          <WizardList title="Search templates" items={inspectResult.searchUrlTemplates} monospace />
+          <WizardLinkList title="Discovered product URLs" items={inspectResult.discoveredProductUrls} />
+        </section>
+      )}
+
+      {testResult && (
+        <section className={testResult.passed ? "wizard-card pass" : "wizard-card fail"}>
+          <div className="wizard-card-head">
+            <div>
+              <span className="section-label">Sample test</span>
+              <h4>{testResult.passed ? "Ready to save" : "Needs one official match"}</h4>
+            </div>
+            <span className={testResult.passed ? "test-pill pass" : "test-pill fail"}>
+              {testResult.foundCount}/{testResult.sampleCount} passed
+            </span>
+          </div>
+          <WizardList title="Test warnings" items={testResult.warnings} tone="warn" />
+          <div className="sample-results">
+            {testResult.samples.map((sample) => (
+              <div className={sample.passed ? "sample-result good" : "sample-result bad"} key={sample.catalogNumber}>
+                <div className="sample-result-head">
+                  <strong>{sample.catalogNumber}</strong>
+                  <span>{sample.passed ? "Found official product" : sample.status}</span>
+                </div>
+                {sample.productUrl && (
+                  <a href={sample.productUrl} target="_blank" rel="noreferrer">
+                    {sample.productUrl}
+                  </a>
+                )}
+                <div className="sample-stats">
+                  <span>{sample.attributes} attributes</span>
+                  <span>{sample.documents} documents</span>
+                  <span>{sample.evidence} evidence</span>
+                  <span>{sample.identityConfirmed ? "identity ok" : "identity missing"}</span>
+                </div>
+                <p>{sample.reason}</p>
+                {sample.missing.length > 0 && <code>Missing: {sample.missing.slice(0, 8).join("; ")}</code>}
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+    </div>
+  );
+}
+
+function WizardList({ title, items, tone, monospace = false }: { title: string; items: string[]; tone?: "warn"; monospace?: boolean }) {
+  if (!items.length) return null;
+  return (
+    <div className={tone === "warn" ? "wizard-list warn" : "wizard-list"}>
+      <strong>{title}</strong>
+      <div>
+        {items.slice(0, 8).map((item, index) => (
+          <code className={monospace ? "mono" : ""} key={`${item}-${index}`}>{item}</code>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function WizardLinkList({ title, items }: { title: string; items: string[] }) {
+  if (!items.length) return null;
+  return (
+    <div className="wizard-list">
+      <strong>{title}</strong>
+      <div>
+        {items.slice(0, 8).map((item) => (
+          <a href={item} target="_blank" rel="noreferrer" key={item}>
+            {item}
+          </a>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function RunItemDrawer({ item, onClose }: { item: RunItemRecord; onClose: () => void }) {
+  const result = item.result;
+  if (!result) return null;
+  const diagnostics = result.diagnostics;
+  return (
+    <section className="drawer-shell" aria-label="Run item diagnostics">
+      <div className="drawer-backdrop" onClick={onClose} />
+      <aside className="drawer-panel">
+        <div className="drawer-header">
+          <div>
+            <span className="section-label">Run item</span>
+            <h2>{item.catalogNumber}</h2>
+            <p>{itemReason(item)}</p>
+          </div>
+          <button type="button" className="icon-danger" onClick={onClose} title="Close diagnostics">
+            <XCircle size={16} />
+          </button>
+        </div>
+
+        <div className="drawer-metrics">
+          <Metric label="Status" value={result.status} />
+          <Metric label="Stage" value={stageLabel(item.stage, item.status)} />
+          <Metric label="Quality" value={result.qualityGate?.score ?? 0} />
+          <Metric label="Attributes" value={result.attributes.length} />
+          <Metric label="Documents" value={result.documents.length} />
+        </div>
+
+        <DebugSection title="Quality missing" items={result.qualityGate?.missing ?? []} />
+        <DebugSection title="Final missing after audit" items={diagnostics?.finalCompleteness?.afterMissing ?? []} />
+        <DebugSection title="Final repaired fields" items={diagnostics?.finalCompleteness?.repairedFields ?? []} />
+        <DebugObjectSection title="Final audit" items={diagnostics?.finalCompleteness?.records ?? []} defaultOpen />
+        <DebugSection title="Attempted URLs" items={diagnostics?.attemptedUrls ?? []} />
+        <DebugObjectSection title="Discovered candidates" items={diagnostics?.discoveredCandidates ?? []} />
+        <DebugObjectSection title="Rejected links" items={diagnostics?.rejectedLinks ?? []} />
+        <DebugObjectSection title="Browser network" items={diagnostics?.browserNetwork ?? []} />
+        <DebugObjectSection title="Downloaded documents" items={result.documents.slice(0, 40)} />
+        <DebugObjectSection title="Evidence" items={(result.evidence ?? []).slice(0, 80)} />
+      </aside>
+    </section>
+  );
+}
+
+function DebugSection({ title, items }: { title: string; items: string[] }) {
+  return (
+    <details className="debug-section" open={items.length > 0}>
+      <summary>{title}<span>{items.length}</span></summary>
+      <div className="debug-list">
+        {items.length ? items.slice(0, 80).map((item, index) => <code key={`${item}-${index}`}>{item}</code>) : <span className="muted">No records.</span>}
+      </div>
+    </details>
+  );
+}
+
+function DebugObjectSection({ title, items, defaultOpen = false }: { title: string; items: unknown[]; defaultOpen?: boolean }) {
+  return (
+    <details className="debug-section" open={items.length > 0 && (defaultOpen || title === "Evidence")}>
+      <summary>{title}<span>{items.length}</span></summary>
+      <div className="debug-object-list">
+        {items.length ? (
+          items.slice(0, 80).map((item, index) => (
+            <pre key={index}>{JSON.stringify(item, null, 2)}</pre>
+          ))
+        ) : (
+          <span className="muted">No records.</span>
+        )}
+      </div>
+    </details>
+  );
+}
+
 function buildCoverage(items: RunItemRecord[]) {
-  const parsedItems = items.filter((item) => item.result);
-  const total = parsedItems.length;
+  const parsedItems = items.filter((item) => item.result || item.coverage);
   return REQUIRED_COVERAGE_FIELDS.map((field) => {
-    const count = parsedItems.filter((item) => hasCoverageValue(item, field.key)).length;
+    let count = 0;
+    let missing = 0;
+    let notApplicable = 0;
+    for (const item of parsedItems) {
+      const state = coverageState(item, field.key);
+      if (state === "present") count += 1;
+      if (state === "missing") missing += 1;
+      if (state === "not-applicable") notApplicable += 1;
+    }
+    const total = count + missing;
     return {
       ...field,
       count,
+      missing,
+      notApplicable,
       total,
-      percent: total ? Math.round((count / total) * 100) : 0
+      percent: total ? Math.round((count / total) * 100) : notApplicable ? 100 : 0
     };
   });
 }
 
+function buildRunItemFilterCounts(items: RunItemRecord[]): Record<RunItemFilter, number> {
+  const counts: Record<RunItemFilter, number> = {
+    all: items.length,
+    "needs-check": 0,
+    found: 0,
+    partial: 0,
+    failed: 0,
+    pending: 0,
+    processing: 0,
+    cancelled: 0
+  };
+  for (const item of items) {
+    counts[item.status] += 1;
+    if (runItemNeedsCheck(item)) counts["needs-check"] += 1;
+  }
+  return counts;
+}
+
+function filterRunItems(items: RunItemRecord[], query: string, filter: RunItemFilter): RunItemRecord[] {
+  const normalizedQuery = query.trim().toLowerCase();
+  if (!normalizedQuery && filter === "all") return items;
+  return items.filter((item) => runItemMatchesFilter(item, filter) && runItemMatchesQuery(item, normalizedQuery));
+}
+
+function runItemMatchesFilter(item: RunItemRecord, filter: RunItemFilter): boolean {
+  if (filter === "all") return true;
+  if (filter === "needs-check") return runItemNeedsCheck(item);
+  return item.status === filter;
+}
+
+function runItemNeedsCheck(item: RunItemRecord): boolean {
+  return (
+    item.status === "failed" ||
+    item.status === "partial" ||
+    item.coverage?.qualityPassed === false ||
+    item.result?.qualityGate?.passed === false ||
+    criticalMissingCoverage(item).length > 0
+  );
+}
+
+function runItemMatchesQuery(item: RunItemRecord, query: string): boolean {
+  if (!query) return true;
+  return [
+    item.rowIndex,
+    item.catalogNumber,
+    item.status,
+    item.stage,
+    item.stageMessage,
+    item.title,
+    item.error,
+    item.productUrl,
+    itemReason(item)
+  ]
+    .join(" ")
+    .toLowerCase()
+    .includes(query);
+}
+
+function clampPage(value: number, pageCount: number): number {
+  if (!Number.isFinite(value)) return 1;
+  return Math.min(Math.max(Math.round(value), 1), pageCount);
+}
+
 function hasCoverageValue(item: RunItemRecord, key: CoverageKey): boolean {
+  if (item.coverage?.fields[key] === "present") return true;
+  if (item.coverage?.fields[key] === "missing" || item.coverage?.fields[key] === "not-applicable") return false;
   const result = item.result;
   if (!result) return false;
   switch (key) {
     case "enUrl":
       return Boolean(result.localizedUrls?.en || result.productUrl);
     case "deUrl":
-      return Boolean(result.localizedUrls?.de);
+      return hasDistinctGermanUrl(result);
+    case "image":
+      return hasDownloadedImage(result);
     case "weight":
       return Boolean(result.normalized.weight);
     case "certificates":
@@ -779,7 +2208,87 @@ function hasCoverageValue(item: RunItemRecord, key: CoverageKey): boolean {
       return Boolean(result.normalized.dimensions);
     case "material":
       return Boolean(result.normalized.material);
+    case "voltage":
+      return Boolean(result.normalized.voltage);
+    case "current":
+      return Boolean(result.normalized.current);
   }
+}
+
+function coverageState(item: RunItemRecord, key: CoverageKey): "present" | "missing" | "not-applicable" {
+  const summaryState = item.coverage?.fields[key];
+  if (summaryState) return summaryState;
+  if (hasCoverageValue(item, key)) return "present";
+  const result = item.result;
+  if (!result) return "missing";
+  if (key === "deUrl" && !hasDistinctGermanUrl(result) && isGermanUrlNotApplicable(result)) return "not-applicable";
+  if ((key === "voltage" || key === "current") && !requiredElectricalFields(result).includes(key)) return "not-applicable";
+  return "missing";
+}
+
+function criticalMissingCoverage(item: RunItemRecord): string[] {
+  if (item.coverage?.criticalMissing) return item.coverage.criticalMissing.map(coverageLabel);
+  if (!item.result) return [];
+  return (["image", "weight", "dimensions", "material", "voltage", "current"] as const)
+    .filter((key) => coverageState(item, key) === "missing")
+    .map(coverageLabel);
+}
+
+function coverageLabel(key: CoverageKey): string {
+  return REQUIRED_COVERAGE_FIELDS.find((field) => field.key === key)?.label ?? key;
+}
+
+function hasDownloadedImage(result: NonNullable<RunItemRecord["result"]>): boolean {
+  const images = result.documents.filter((doc) => doc.type === "image");
+  if (!images.length) return false;
+  return images.some((doc) => doc.localPath || doc.downloadStatus === "downloaded" || doc.downloadStatus === undefined);
+}
+
+function hasDistinctGermanUrl(result: NonNullable<RunItemRecord["result"]>): boolean {
+  const germanUrl = result.localizedUrls?.de;
+  if (!germanUrl) return false;
+  return ![result.localizedUrls?.en, result.productUrl]
+    .filter((url): url is string => Boolean(url))
+    .some((url) => sameUrl(url, germanUrl));
+}
+
+function isGermanUrlNotApplicable(result: NonNullable<RunItemRecord["result"]>): boolean {
+  if (result.manufacturerId === "sce") return true;
+  const germanUrl = result.localizedUrls?.de;
+  return Boolean(
+    germanUrl &&
+      [result.localizedUrls?.en, result.productUrl]
+        .filter((url): url is string => Boolean(url))
+        .some((url) => sameUrl(url, germanUrl))
+  );
+}
+
+function sameUrl(left: string, right: string): boolean {
+  try {
+    const leftUrl = new URL(left);
+    const rightUrl = new URL(right);
+    return (
+      leftUrl.origin.toLowerCase() === rightUrl.origin.toLowerCase() &&
+      leftUrl.pathname.replace(/\/+$/, "").toLowerCase() === rightUrl.pathname.replace(/\/+$/, "").toLowerCase() &&
+      leftUrl.searchParams.toString() === rightUrl.searchParams.toString()
+    );
+  } catch {
+    return left.replace(/\/+$/, "").toLowerCase() === right.replace(/\/+$/, "").toLowerCase();
+  }
+}
+
+function itemReason(item: RunItemRecord): string {
+  const result = item.result;
+  if (!result) {
+    if (item.coverage?.reason) return item.coverage.reason;
+    if (item.coverage?.qualityMissing?.length) return item.coverage.qualityMissing.slice(0, 4).join("; ");
+    return item.stageMessage ?? item.error ?? "";
+  }
+  const missingCoverage = criticalMissingCoverage(item);
+  if (missingCoverage.length) return `Missing ${missingCoverage.join(", ")}`;
+  if (result.qualityGate?.passed) return "quality ok";
+  if (result.qualityGate?.missing.length) return result.qualityGate.missing.slice(0, 4).join("; ");
+  return result.error ?? item.error ?? result.qualityGate?.reason ?? "";
 }
 
 function emptyManufacturerDraft(): ManufacturerDraft {
@@ -789,6 +2298,19 @@ function emptyManufacturerDraft(): ManufacturerDraft {
     shortName: "",
     rateLimitMs: "1500",
     officialBaseUrlsText: "",
+    localizedUrlTemplatesText: "",
+    aliasesText: "",
+    markerRulesText: "",
+    fetchTimeoutMs: "",
+    cacheTtlMs: "",
+    maxAttempts: "",
+    retryBackoffMs: "",
+    minContentLength: "",
+    userAgent: "",
+    acceptLanguage: "",
+    referer: "",
+    fallbackUserAgentsText: "",
+    scrapeRecipeJson: "",
     fallbackSources: [emptySourceDraft(1)]
   };
 }
@@ -798,8 +2320,20 @@ function emptySourceDraft(index: number): SourceDraft {
     id: `source-${index}`,
     label: `Source ${index}`,
     enabled: true,
-    sourceType: "official-fallback",
-    directUrlTemplatesText: ""
+    sourceType: "distributor",
+    directUrlTemplatesText: "",
+    aliasesText: "",
+    markerRulesText: "",
+    confidence: "",
+    fetchTimeoutMs: "",
+    cacheTtlMs: "",
+    maxAttempts: "",
+    retryBackoffMs: "",
+    minContentLength: "",
+    userAgent: "",
+    acceptLanguage: "",
+    referer: "",
+    fallbackUserAgentsText: ""
   };
 }
 
@@ -810,13 +2344,38 @@ function toManufacturerDraft(config: ManufacturerConfig): ManufacturerDraft {
     shortName: config.shortName,
     rateLimitMs: String(config.rateLimitMs),
     officialBaseUrlsText: config.officialBaseUrls.join("\n"),
+    localizedUrlTemplatesText: formatLocalizedUrlTemplates(config.localizedUrlTemplates),
+    aliasesText: (config.match?.aliases ?? []).join("\n"),
+    markerRulesText: formatMarkerRules(config.markerRules),
+    fetchTimeoutMs: config.fetchPolicy?.timeoutMs !== undefined ? String(config.fetchPolicy.timeoutMs) : "",
+    cacheTtlMs: config.fetchPolicy?.cacheTtlMs !== undefined ? String(config.fetchPolicy.cacheTtlMs) : "",
+    maxAttempts: config.fetchPolicy?.maxAttempts !== undefined ? String(config.fetchPolicy.maxAttempts) : "",
+    retryBackoffMs: config.fetchPolicy?.retryBackoffMs !== undefined ? String(config.fetchPolicy.retryBackoffMs) : "",
+    minContentLength: config.fetchPolicy?.minContentLength !== undefined ? String(config.fetchPolicy.minContentLength) : "",
+    userAgent: config.fetchPolicy?.userAgent ?? "",
+    acceptLanguage: config.fetchPolicy?.acceptLanguage ?? "",
+    referer: config.fetchPolicy?.referer ?? "",
+    fallbackUserAgentsText: (config.fetchPolicy?.fallbackUserAgents ?? []).join("\n"),
+    scrapeRecipeJson: formatJson(config.scrapeRecipe),
     fallbackSources: config.fallbackSources.length
       ? config.fallbackSources.map((source) => ({
           id: source.id,
           label: source.label,
           enabled: source.enabled,
           sourceType: source.sourceType,
-          directUrlTemplatesText: source.directUrlTemplates.join("\n")
+          directUrlTemplatesText: source.directUrlTemplates.join("\n"),
+          aliasesText: (source.match?.aliases ?? []).join("\n"),
+          markerRulesText: formatMarkerRules(source.markerRules),
+          confidence: source.confidence ? String(source.confidence) : "",
+          fetchTimeoutMs: source.fetchPolicy?.timeoutMs !== undefined ? String(source.fetchPolicy.timeoutMs) : "",
+          cacheTtlMs: source.fetchPolicy?.cacheTtlMs !== undefined ? String(source.fetchPolicy.cacheTtlMs) : "",
+          maxAttempts: source.fetchPolicy?.maxAttempts !== undefined ? String(source.fetchPolicy.maxAttempts) : "",
+          retryBackoffMs: source.fetchPolicy?.retryBackoffMs !== undefined ? String(source.fetchPolicy.retryBackoffMs) : "",
+          minContentLength: source.fetchPolicy?.minContentLength !== undefined ? String(source.fetchPolicy.minContentLength) : "",
+          userAgent: source.fetchPolicy?.userAgent ?? "",
+          acceptLanguage: source.fetchPolicy?.acceptLanguage ?? "",
+          referer: source.fetchPolicy?.referer ?? "",
+          fallbackUserAgentsText: (source.fetchPolicy?.fallbackUserAgents ?? []).join("\n")
         }))
       : []
   };
@@ -830,26 +2389,210 @@ function manufacturerDraftToConfig(draft: ManufacturerDraft): ManufacturerConfig
     throw new Error("Manufacturer needs ID, short name, and company name.");
   }
 
+  const aliases = splitFlexibleList(draft.aliasesText);
+  const markerRules = parseMarkerRules(draft.markerRulesText);
+  const localizedUrlTemplates = parseLocalizedUrlTemplates(draft.localizedUrlTemplatesText);
+  const scrapeRecipe = parseOptionalJson(draft.scrapeRecipeJson, "Advanced scrape recipe JSON");
+  const fetchPolicy = compactObject({
+    timeoutMs: optionalNumber(draft.fetchTimeoutMs),
+    cacheTtlMs: optionalNumber(draft.cacheTtlMs),
+    maxAttempts: optionalNumber(draft.maxAttempts),
+    retryBackoffMs: optionalNumber(draft.retryBackoffMs),
+    minContentLength: optionalNumber(draft.minContentLength),
+    userAgent: optionalText(draft.userAgent),
+    acceptLanguage: optionalText(draft.acceptLanguage),
+    referer: optionalText(draft.referer),
+    fallbackUserAgents: splitLines(draft.fallbackUserAgentsText)
+  });
+
   return {
     id,
     canonicalName,
     shortName,
     rateLimitMs: Number(draft.rateLimitMs || 1500),
     officialBaseUrls: splitLines(draft.officialBaseUrlsText),
+    ...(localizedUrlTemplates.length ? { localizedUrlTemplates } : {}),
+    ...(aliases.length ? { match: { aliases } } : {}),
+    ...(markerRules.length ? { markerRules } : {}),
+    ...(fetchPolicy ? { fetchPolicy } : {}),
+    ...(scrapeRecipe ? { scrapeRecipe } : {}),
     fallbackSources: draft.fallbackSources
-      .map((source, index) => ({
-        id: slugify(source.id || source.label || `source-${index + 1}`),
-        label: source.label.trim() || `Source ${index + 1}`,
-        enabled: source.enabled,
-        sourceType: source.sourceType,
-        directUrlTemplates: splitLines(source.directUrlTemplatesText)
-      }))
+      .map((source, index) => {
+        const sourceAliases = splitFlexibleList(source.aliasesText);
+        const sourceMarkerRules = parseMarkerRules(source.markerRulesText);
+        const sourceFetchPolicy = compactObject({
+          timeoutMs: optionalNumber(source.fetchTimeoutMs),
+          cacheTtlMs: optionalNumber(source.cacheTtlMs),
+          maxAttempts: optionalNumber(source.maxAttempts),
+          retryBackoffMs: optionalNumber(source.retryBackoffMs),
+          minContentLength: optionalNumber(source.minContentLength),
+          userAgent: optionalText(source.userAgent),
+          acceptLanguage: optionalText(source.acceptLanguage),
+          referer: optionalText(source.referer),
+          fallbackUserAgents: splitLines(source.fallbackUserAgentsText)
+        });
+        return {
+          id: slugify(source.id || source.label || `source-${index + 1}`),
+          label: source.label.trim() || `Source ${index + 1}`,
+          enabled: source.enabled,
+          sourceType: source.sourceType,
+          directUrlTemplates: splitLines(source.directUrlTemplatesText),
+          ...(sourceAliases.length ? { match: { aliases: sourceAliases } } : {}),
+          ...(sourceMarkerRules.length ? { markerRules: sourceMarkerRules } : {}),
+          ...(sourceFetchPolicy ? { fetchPolicy: sourceFetchPolicy } : {}),
+          ...(optionalNumber(source.confidence) !== undefined ? { confidence: optionalNumber(source.confidence) } : {})
+        };
+      })
       .filter((source) => source.id && source.label && source.directUrlTemplates.length > 0)
   };
 }
 
 function splitLines(value: string): string[] {
   return [...new Set(value.split(/\r?\n/).map((line) => line.trim()).filter(Boolean))];
+}
+
+function splitFlexibleList(value: string): string[] {
+  return [...new Set(value.split(/[\r\n,;]+/).map((line) => line.trim()).filter(Boolean))];
+}
+
+function parseLocalizedUrlTemplates(value: string) {
+  return splitLines(value)
+    .map((line) => {
+      const match = line.match(/^(en|de)\s*[:=,\s]\s*(.+)$/i);
+      if (!match) return undefined;
+      return {
+        locale: match[1].toLowerCase() as "en" | "de",
+        urlTemplate: match[2].trim()
+      };
+    })
+    .filter((template): template is { locale: "en" | "de"; urlTemplate: string } => Boolean(template?.urlTemplate));
+}
+
+function formatLocalizedUrlTemplates(templates: ManufacturerConfig["localizedUrlTemplates"]): string {
+  return (templates ?? []).map((template) => `${template.locale} ${template.urlTemplate}`).join("\n");
+}
+
+function parseMarkerRules(value: string): MarkerExtractionRule[] {
+  return splitLines(value)
+    .map((line) => {
+      const parts = line.split("|||").map((part) => part.trim());
+      const [name, start, end, ...options] = parts;
+      if (!name || !start) return undefined;
+      const rule: MarkerExtractionRule = {
+        name,
+        start,
+        ...(end ? { end } : {})
+      };
+      if (/image\s*url|imageurldownload|product image/i.test(name)) rule.documentType = "image";
+      for (const option of options.join(";").split(/[;,]+/).map((item) => item.trim()).filter(Boolean)) {
+        const [rawKey, ...rawValue] = option.split("=");
+        const key = rawKey.trim().toLowerCase();
+        const optionValue = rawValue.join("=").trim();
+        if (key === "group" && optionValue) rule.group = optionValue;
+        if (key === "type" && isDocumentType(optionValue)) rule.documentType = optionValue;
+        if (key === "prefix" && optionValue) rule.urlPrefix = optionValue;
+        if (key === "suffix" && optionValue) rule.urlSuffix = optionValue;
+        if (key === "case" && optionValue) rule.caseSensitive = optionValue.toLowerCase() === "sensitive";
+      }
+      return rule;
+    })
+    .filter((rule): rule is MarkerExtractionRule => Boolean(rule));
+}
+
+function formatMarkerRules(rules: ManufacturerConfig["markerRules"]): string {
+  return (rules ?? [])
+    .map((rule) => {
+      const options = [
+        rule.group ? `group=${rule.group}` : "",
+        rule.documentType ? `type=${rule.documentType}` : "",
+        rule.urlPrefix ? `prefix=${rule.urlPrefix}` : "",
+        rule.urlSuffix ? `suffix=${rule.urlSuffix}` : "",
+        rule.caseSensitive ? "case=sensitive" : ""
+      ].filter(Boolean);
+      return [rule.name, rule.start, rule.end ?? "", options.join("; ")].filter((part, index) => index < 3 || part).join("|||");
+    })
+    .join("\n");
+}
+
+function isDocumentType(value: string): value is NonNullable<MarkerExtractionRule["documentType"]> {
+  return ["datasheet", "certificate", "manual", "cad", "image", "other"].includes(value);
+}
+
+function optionalNumber(value: string): number | undefined {
+  const trimmed = value.trim();
+  if (!trimmed) return undefined;
+  const numberValue = Number(trimmed);
+  return Number.isFinite(numberValue) ? numberValue : undefined;
+}
+
+function optionalText(value: string): string | undefined {
+  const trimmed = value.trim();
+  return trimmed || undefined;
+}
+
+function formatJson(value: unknown): string {
+  return value ? JSON.stringify(value, null, 2) : "";
+}
+
+function parseOptionalJson(value: string, label: string): ScrapeRecipeConfig | undefined {
+  const trimmed = value.trim();
+  if (!trimmed) return undefined;
+  try {
+    const parsed = JSON.parse(trimmed) as unknown;
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+      throw new Error(`${label} must be a JSON object.`);
+    }
+    return parsed as ScrapeRecipeConfig;
+  } catch (error) {
+    if (error instanceof Error && error.message.includes("must be")) throw error;
+    throw new Error(`${label} is not valid JSON.`);
+  }
+}
+
+function parseRecipeJsonLoose(value: string): ScrapeRecipeConfig {
+  const trimmed = value.trim();
+  if (!trimmed) return {};
+  try {
+    const parsed = JSON.parse(trimmed) as unknown;
+    return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed as ScrapeRecipeConfig : {};
+  } catch {
+    return {};
+  }
+}
+
+function mergeRecipeConfig(existing: ScrapeRecipeConfig, patch: ScrapeRecipeConfig): ScrapeRecipeConfig {
+  return {
+    ...existing,
+    ...patch,
+    discoveryPolicy: patch.discoveryPolicy ? { ...existing.discoveryPolicy, ...patch.discoveryPolicy } : existing.discoveryPolicy,
+    interactionPolicy: patch.interactionPolicy ? { ...existing.interactionPolicy, ...patch.interactionPolicy } : existing.interactionPolicy,
+    extractionPolicy: patch.extractionPolicy ? { ...existing.extractionPolicy, ...patch.extractionPolicy } : existing.extractionPolicy,
+    qualityPolicy: patch.qualityPolicy ? { ...existing.qualityPolicy, ...patch.qualityPolicy } : existing.qualityPolicy,
+    fallbackPolicy: patch.fallbackPolicy ? { ...existing.fallbackPolicy, ...patch.fallbackPolicy } : existing.fallbackPolicy,
+    confidenceRules: patch.confidenceRules ? { ...existing.confidenceRules, ...patch.confidenceRules } : existing.confidenceRules
+  };
+}
+
+function toggleList<T extends string>(items: readonly T[], item: T, checked: boolean): T[] {
+  const set = new Set(items);
+  if (checked) set.add(item);
+  else set.delete(item);
+  return [...set];
+}
+
+function compactObject<T extends Record<string, unknown>>(value: T): Partial<T> | undefined {
+  const entries = Object.entries(value).filter(([, entryValue]) => {
+    if (Array.isArray(entryValue)) return entryValue.length > 0;
+    return entryValue !== undefined && entryValue !== "";
+  });
+  return entries.length ? Object.fromEntries(entries) as Partial<T> : undefined;
+}
+
+function shortNameFromName(value: string): string {
+  const words = value.split(/[^a-z0-9]+/i).filter(Boolean);
+  if (!words.length) return "";
+  if (words.length === 1) return words[0].slice(0, 4).toUpperCase();
+  return words.map((word) => word[0]).join("").slice(0, 6).toUpperCase();
 }
 
 function slugify(value: string): string {

@@ -1,0 +1,7 @@
+{
+  "manufacturerId": "rockwell",
+  "catalogNumber": "800F-X10",
+  "expectedOfficialUrlPatterns": ["rockwellautomation\\.com/.*/products/details\\.800F-X10\\.html"],
+  "requiredDocuments": ["datasheet"],
+  "expectedNormalizedFields": ["certificates"]
+}

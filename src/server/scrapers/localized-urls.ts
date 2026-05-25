@@ -1,10 +1,15 @@
-import type { LocalizedProductUrls, ManufacturerId } from "../../shared/types.js";
+import type { LocalizedProductUrls, LocalizedUrlTemplate, ManufacturerId } from "../../shared/types.js";
+import { buildConfiguredLocalizedUrls, encodeSlashBraceCatalogPart } from "./catalog-number.js";
 
 export function buildLocalizedProductUrls(
   manufacturerId: ManufacturerId,
   catalogNumber: string,
-  productUrl?: string
+  productUrl?: string,
+  localizedUrlTemplates?: LocalizedUrlTemplate[]
 ): LocalizedProductUrls {
+  const configured = buildConfiguredLocalizedUrls(localizedUrlTemplates, catalogNumber);
+  if (configured.en || configured.de) return configured;
+
   switch (manufacturerId) {
     case "abb":
       return {
@@ -18,12 +23,11 @@ export function buildLocalizedProductUrls(
       };
     case "sce":
       return {
-        en: productUrl || `https://www.saginawcontrol.com/partnumber_info?n=${encodeURIComponent(catalogNumber)}`,
-        de: productUrl || `https://www.saginawcontrol.com/partnumber_info?n=${encodeURIComponent(catalogNumber)}`
+        en: productUrl || `https://www.saginawcontrol.com/partnumber_info?n=${encodeURIComponent(catalogNumber)}`
       };
     case "schneider":
       return {
-        en: `https://www.se.com/ww/en/product/${encodeURIComponent(catalogNumber)}/`,
+        en: productUrl || `https://www.se.com/ww/en/product/${encodeURIComponent(catalogNumber)}/`,
         de: `https://www.se.com/de/de/product/${encodeURIComponent(catalogNumber)}/`
       };
     case "siemens": {
@@ -34,8 +38,8 @@ export function buildLocalizedProductUrls(
     }
     case "eaton":
       return {
-        en: `https://www.eaton.com/us/en-us/skuPage.${encodeURIComponent(catalogNumber)}.html`,
-        de: `https://www.eaton.com/de/de-de/skuPage.${encodeURIComponent(catalogNumber)}.html`
+        en: `https://www.eaton.com/us/en-us/skuPage.${encodeSlashBraceCatalogPart(catalogNumber)}.html`,
+        de: `https://www.eaton.com/de/de-de/skuPage.${encodeSlashBraceCatalogPart(catalogNumber)}.html`
       };
     case "rockwell":
       return {
@@ -54,8 +58,7 @@ export function buildLocalizedProductUrls(
       };
     default:
       return {
-        en: productUrl,
-        de: productUrl
+        en: productUrl
       };
   }
 }

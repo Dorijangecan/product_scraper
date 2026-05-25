@@ -1,0 +1,7 @@
+{
+  "manufacturerId": "balluff",
+  "catalogNumber": "BCC039H",
+  "expectedOfficialUrlPatterns": ["balluff\\.com/.*/products/BCC039H"],
+  "requiredDocuments": ["datasheet"],
+  "expectedNormalizedFields": ["voltage", "current", "material"]
+}
