@@ -113,20 +113,25 @@ export class RunManager {
       this.db.updateRun(run.id, { status: "running", error: undefined });
 
       const http = new CachedHttpClient(this.db, this.paths.cacheDir);
+      // Per-host throttle keeps us polite even with N parallel workers hitting the same domain.
+      // Manufacturer.rateLimitMs is now treated as the minimum interval between requests to the same host.
+      http.setHostMinIntervalMs(Math.max(100, Math.floor(manufacturer.rateLimitMs / Math.max(1, manufacturer.concurrency ?? 3))));
       const fallback = new GenericFallbackScraper(run.manufacturerId, http, manufacturer);
       const browserRenderer = new BrowserRenderSession();
       const pending = this.db.getPendingRunItems(run.id);
-      try {
-        for (const item of pending) {
-        if (this.db.isCancellationRequested(run.id) || controller.signal.aborted) break;
+
+      const layoutRef = layout!;
+      const processItem = async (item: typeof pending[number]): Promise<void> => {
+        if (this.db.isCancellationRequested(run.id) || controller.signal.aborted) return;
         this.updateItemStage(item.id, "official-source", "Scraping official source", { status: "processing", error: undefined });
-        await this.appendRunLog(layout, "ITEM_START", { rowIndex: item.rowIndex, catalogNumber: item.catalogNumber });
+        await this.appendRunLog(layoutRef, "ITEM_START", { rowIndex: item.rowIndex, catalogNumber: item.catalogNumber });
+        // layoutRef is captured via closure (declared above); avoid touching outer `layout` inside this hot path
         try {
           const result = await connector.scrape(item.catalogNumber, {
             http,
             manufacturer,
-            runDir: layout.runDir,
-            documentsDir: layout.documentsDir,
+            runDir: layoutRef.runDir,
+            documentsDir: layoutRef.documentsDir,
             signal: controller.signal,
             browserRenderer,
             learnedEndpoints: {
@@ -150,16 +155,16 @@ export class RunManager {
           });
           if (this.db.isCancellationRequested(run.id) || controller.signal.aborted) {
             this.updateItemStage(item.id, "cancelled", "Cancelled by user.", { status: "cancelled", error: "Cancelled by user." });
-            await this.appendRunLog(layout, "ITEM_CANCELLED", { catalogNumber: item.catalogNumber });
-            break;
+            await this.appendRunLog(layoutRef, "ITEM_CANCELLED", { catalogNumber: item.catalogNumber });
+            return;
           }
           this.updateItemStage(item.id, "quality-gate", "Checking required fields from official result");
           const initiallyGated = finalizeQualityGate(result, manufacturer);
           this.updateItemStage(item.id, "downloads", "Downloading product images and documents");
           const withInitialDownloads = await this.downloadDocuments(
             http,
-            layout.documentsDir,
-            layout.imagesDir,
+            layoutRef.documentsDir,
+            layoutRef.imagesDir,
             manufacturer.shortName,
             initiallyGated,
             downloadDocumentsEnabled,
@@ -173,8 +178,8 @@ export class RunManager {
             const withSmartFallbacks = await runDeterministicScrapePipeline(enriched, item.catalogNumber, {
               http,
               manufacturer,
-              runDir: layout.runDir,
-              documentsDir: layout.documentsDir,
+              runDir: layoutRef.runDir,
+              documentsDir: layoutRef.documentsDir,
               signal: controller.signal,
               browserRenderer,
               learnedEndpoints: {
@@ -187,8 +192,8 @@ export class RunManager {
               downloadDocument: (doc) =>
                 this.downloadDocument(
                   http,
-                  layout!.documentsDir,
-                  layout!.imagesDir,
+                  layoutRef.documentsDir,
+                  layoutRef.imagesDir,
                   manufacturer.shortName,
                   item.catalogNumber,
                   doc,
@@ -199,8 +204,8 @@ export class RunManager {
             this.updateItemStage(item.id, "downloads", "Downloading fallback images and documents");
             const withFallbackDownloads = await this.downloadDocuments(
               http,
-              layout.documentsDir,
-              layout.imagesDir,
+              layoutRef.documentsDir,
+              layoutRef.imagesDir,
               manufacturer.shortName,
               withSmartFallbacks,
               downloadDocumentsEnabled,
@@ -218,19 +223,24 @@ export class RunManager {
             this.updateItemStage(item.id, "final-field-repair", `Repairing ${repairedFinalFields.join(", ")} from existing evidence`);
             enriched = finalizeQualityGate(finalRepair.result, manufacturer);
             fallbackStages = enriched.diagnostics?.fallbackStages;
-            await this.appendRunLog(layout, "FINAL_FIELD_REPAIR", {
+            await this.appendRunLog(layoutRef, "FINAL_FIELD_REPAIR", {
               catalogNumber: item.catalogNumber,
               repairedFields: repairedFinalFields,
               repairs: finalRepair.records
             });
           }
           let afterRepairFinalCompleteness = evaluateFinalCompleteness(enriched, manufacturer);
+          const exhaustedFields = this.db.listExhaustedFields(manufacturer.id, item.catalogNumber);
+          const forceFinalRetry = run.options?.forceFinalRetry === true;
           let networkRetry = {
-            ...finalNetworkRetryDecision(enriched, manufacturer, afterRepairFinalCompleteness),
+            ...finalNetworkRetryDecision(enriched, manufacturer, afterRepairFinalCompleteness, {
+              exhaustedFields,
+              force: forceFinalRetry
+            }),
             attempted: false
           };
           if (networkRetry.shouldRetry) {
-            await this.appendRunLog(layout, "FINAL_COMPLETENESS_START", {
+            await this.appendRunLog(layoutRef, "FINAL_COMPLETENESS_START", {
               catalogNumber: item.catalogNumber,
               missing: afterRepairFinalCompleteness.missing,
               retryMissing: afterRepairFinalCompleteness.retryMissing,
@@ -244,8 +254,8 @@ export class RunManager {
             const withFinalCompletenessFallbacks = await runDeterministicScrapePipeline(enriched, item.catalogNumber, {
               http,
               manufacturer: finalCompletenessManufacturer,
-              runDir: layout.runDir,
-              documentsDir: layout.documentsDir,
+              runDir: layoutRef.runDir,
+              documentsDir: layoutRef.documentsDir,
               signal: controller.signal,
               browserRenderer,
               learnedEndpoints: {
@@ -258,8 +268,8 @@ export class RunManager {
               downloadDocument: (doc) =>
                 this.downloadDocument(
                   http,
-                  layout!.documentsDir,
-                  layout!.imagesDir,
+                  layoutRef.documentsDir,
+                  layoutRef.imagesDir,
                   manufacturer.shortName,
                   item.catalogNumber,
                   doc,
@@ -270,8 +280,8 @@ export class RunManager {
             this.updateItemStage(item.id, "downloads", "Downloading final retry images and documents");
             const withFinalCompletenessDownloads = await this.downloadDocuments(
               http,
-              layout.documentsDir,
-              layout.imagesDir,
+              layoutRef.documentsDir,
+              layoutRef.imagesDir,
               manufacturer.shortName,
               withFinalCompletenessFallbacks,
               downloadDocumentsEnabled,
@@ -284,7 +294,7 @@ export class RunManager {
               this.updateItemStage(item.id, "final-field-repair", `Repairing ${postNetworkRepair.repairedFields.join(", ")} from final retry evidence`);
               enriched = finalizeQualityGate(postNetworkRepair.result, manufacturer);
               repairedFinalFields = [...new Set([...repairedFinalFields, ...postNetworkRepair.repairedFields])];
-              await this.appendRunLog(layout, "FINAL_FIELD_REPAIR", {
+              await this.appendRunLog(layoutRef, "FINAL_FIELD_REPAIR", {
                 catalogNumber: item.catalogNumber,
                 repairedFields: postNetworkRepair.repairedFields,
                 repairs: postNetworkRepair.records
@@ -292,7 +302,7 @@ export class RunManager {
             }
             fallbackStages = enriched.diagnostics?.fallbackStages;
           } else if (afterRepairFinalCompleteness.retryMissing.length) {
-            await this.appendRunLog(layout, "FINAL_COMPLETENESS_SKIPPED", {
+            await this.appendRunLog(layoutRef, "FINAL_COMPLETENESS_SKIPPED", {
               catalogNumber: item.catalogNumber,
               missing: afterRepairFinalCompleteness.missing,
               retryMissing: afterRepairFinalCompleteness.retryMissing,
@@ -301,19 +311,43 @@ export class RunManager {
             });
           }
           const afterFinalCompleteness = evaluateFinalCompleteness(enriched, manufacturer);
+          // If retry actually ran AND nothing new was found AND there are no untried stages left,
+          // we can now be confident the manufacturer simply doesn't publish those preferred values
+          // for this catalog number. Persist that finding so future runs skip the retry instantly.
+          if (networkRetry.attempted && networkRetry.untriedStages.length === 0) {
+            const stillMissingAfterRetry = afterFinalCompleteness.missing.filter(
+              (field) => afterFinalCompleteness.requirements[field] !== "not-applicable"
+            );
+            for (const field of stillMissingAfterRetry) {
+              this.db.markFieldExhausted(
+                manufacturer.id,
+                item.catalogNumber,
+                field,
+                `Exhausted stages ${networkRetry.triedStages.join(", ") || "(none)"} on ${new Date().toISOString()}`
+              );
+            }
+            if (stillMissingAfterRetry.length) {
+              await this.appendRunLog(layoutRef, "FIELDS_MARKED_EXHAUSTED", {
+                catalogNumber: item.catalogNumber,
+                fields: stillMissingAfterRetry,
+                reason: "Final retry exhausted all stages without finding these fields; future runs will skip the retry unless forceFinalRetry is set."
+              });
+            }
+          }
           if (beforeFinalCompleteness.missing.length || afterFinalCompleteness.missing.length) {
             enriched = withFinalCompletenessDiagnostics(enriched, beforeFinalCompleteness, afterFinalCompleteness, {
               repairedFields: repairedFinalFields,
               networkRetry
             });
-            await this.appendRunLog(layout, "FINAL_COMPLETENESS_DONE", {
+            await this.appendRunLog(layoutRef, "FINAL_COMPLETENESS_DONE", {
               catalogNumber: item.catalogNumber,
               beforeMissing: beforeFinalCompleteness.missing,
               retryMissing: beforeFinalCompleteness.retryMissing,
               repairedFields: repairedFinalFields,
               afterMissing: afterFinalCompleteness.missing,
               notApplicable: afterFinalCompleteness.notApplicable,
-              networkRetry
+              networkRetry,
+              exhaustedFromCache: forceFinalRetry ? [] : [...exhaustedFields]
             });
           }
           enriched = applyFinalCompletenessStatus(enriched, afterFinalCompleteness, manufacturer);
@@ -321,8 +355,8 @@ export class RunManager {
           enriched = attachEvidence(enriched);
           if (this.db.isCancellationRequested(run.id) || controller.signal.aborted) {
             this.updateItemStage(item.id, "cancelled", "Cancelled by user.", { status: "cancelled", error: "Cancelled by user." });
-            await this.appendRunLog(layout, "ITEM_CANCELLED", { catalogNumber: item.catalogNumber });
-            break;
+            await this.appendRunLog(layoutRef, "ITEM_CANCELLED", { catalogNumber: item.catalogNumber });
+            return;
           }
           this.updateItemStage(item.id, "complete", `Completed as ${enriched.status}`, {
             status: enriched.status,
@@ -332,7 +366,7 @@ export class RunManager {
             error: enriched.error,
             result: enriched
           });
-          await this.appendRunLog(layout, "ITEM_DONE", {
+          await this.appendRunLog(layoutRef, "ITEM_DONE", {
             catalogNumber: item.catalogNumber,
             status: enriched.status,
             confidence: enriched.confidence,
@@ -353,22 +387,24 @@ export class RunManager {
               status: "cancelled",
               error: "Cancelled by user."
             });
-            await this.appendRunLog(layout, "ITEM_CANCELLED", { catalogNumber: item.catalogNumber });
-            break;
+            await this.appendRunLog(layoutRef, "ITEM_CANCELLED", { catalogNumber: item.catalogNumber });
+            return;
           }
           this.updateItemStage(item.id, "failed", error instanceof Error ? error.message : "Unexpected scrape error", {
             status: "failed",
             error: error instanceof Error ? error.message : "Unexpected scrape error"
           });
-          await this.appendRunLog(layout, "ITEM_FAILED", {
+          await this.appendRunLog(layoutRef, "ITEM_FAILED", {
             catalogNumber: item.catalogNumber,
             error: formatError(error)
           });
         }
         this.db.recountRun(run.id);
-        if (this.db.isCancellationRequested(run.id) || controller.signal.aborted) break;
-        await delay(manufacturer.rateLimitMs, controller.signal);
-      }
+      };
+
+      try {
+        const concurrency = Math.max(1, Math.min(manufacturer.concurrency ?? 3, 8));
+        await runWithConcurrency(pending, concurrency, processItem, () => this.db.isCancellationRequested(run.id) || controller.signal.aborted);
       } finally {
         await browserRenderer.close();
       }
@@ -441,6 +477,7 @@ export class RunManager {
     const maxDownloads = 25;
     const rankedDocuments = coalesceImageDocuments(result.documents).sort((left, right) => documentDownloadRank(left) - documentDownloadRank(right));
     let downloadCount = 0;
+    let imageIndex = 0;
     for (const doc of rankedDocuments) {
       if (signal?.aborted) throw new Error("Cancelled by user.");
       if (doc.type !== "image" && !downloadDocumentsEnabled) {
@@ -459,7 +496,9 @@ export class RunManager {
         });
         continue;
       }
-      documents.push(await this.downloadDocument(http, documentsDir, imagesDir, manufacturerShortName, result.catalogNumber, doc, downloadDocumentsEnabled, signal));
+      const indexForDoc = doc.type === "image" ? imageIndex : undefined;
+      documents.push(await this.downloadDocument(http, documentsDir, imagesDir, manufacturerShortName, result.catalogNumber, doc, downloadDocumentsEnabled, signal, indexForDoc));
+      if (doc.type === "image") imageIndex += 1;
       downloadCount += 1;
     }
     return { ...result, documents };
@@ -473,7 +512,8 @@ export class RunManager {
     catalogNumber: string,
     doc: DocumentRecord,
     downloadDocumentsEnabled: boolean,
-    signal?: AbortSignal
+    signal?: AbortSignal,
+    imageIndex?: number
   ): Promise<DocumentRecord> {
     if (doc.localPath) return doc;
     if (doc.type !== "image" && !downloadDocumentsEnabled) {
@@ -485,7 +525,7 @@ export class RunManager {
     }
     try {
       if (doc.type === "image") {
-        const localPath = await uniquePath(path.join(imagesDir, imageFileName(manufacturerShortName, catalogNumber)));
+        const localPath = await uniquePath(path.join(imagesDir, imageFileName(manufacturerShortName, catalogNumber, imageIndex)));
         await http.downloadImageAsPng([doc.url, ...(doc.candidateUrls ?? [])], localPath, signal);
         return { ...doc, localPath, downloadStatus: "downloaded", downloadError: undefined };
       }
@@ -623,8 +663,9 @@ async function exists(filePath: string): Promise<boolean> {
   }
 }
 
-function imageFileName(manufacturerShortName: string, catalogNumber: string): string {
-  return `${safeImagePart(manufacturerShortName)}.${safeImagePart(catalogNumber)}.png`;
+function imageFileName(manufacturerShortName: string, catalogNumber: string, index?: number): string {
+  const suffix = index && index > 0 ? `_${index + 1}` : "";
+  return `${safeImagePart(manufacturerShortName)}.${safeImagePart(catalogNumber)}${suffix}.png`;
 }
 
 function safeImagePart(value: string): string {
@@ -655,24 +696,54 @@ function documentDownloadRank(doc: DocumentRecord): number {
   return rank;
 }
 
+const MAX_GALLERY_IMAGES = 5;
+
 export function coalesceImageDocuments(documents: DocumentRecord[]): DocumentRecord[] {
   const images = documents.filter((doc) => doc.type === "image");
   if (images.length <= 1) return documents;
 
-  const rankedImages = [...images].sort((left, right) => imageDocumentRank(left) - imageDocumentRank(right));
-  const primary = rankedImages[0];
-  const candidateUrls = uniqueStrings([
-    ...(primary.candidateUrls ?? []),
-    ...rankedImages.slice(1).flatMap((doc) => [doc.url, ...(doc.candidateUrls ?? [])])
-  ]).filter((url) => url !== primary.url);
+  // Group by image identity (same product image at different sizes/qualities collapses into one;
+  // distinct gallery images keep their own groups).
+  const groups = new Map<string, DocumentRecord[]>();
+  for (const image of images) {
+    const identity = imageIdentity(image.url);
+    const existing = groups.get(identity);
+    if (existing) existing.push(image);
+    else groups.set(identity, [image]);
+  }
 
-  return [
-    {
+  const coalescedGroups: DocumentRecord[] = [];
+  for (const group of groups.values()) {
+    const ranked = [...group].sort((left, right) => imageDocumentRank(left) - imageDocumentRank(right));
+    const primary = ranked[0];
+    const candidateUrls = uniqueStrings([
+      ...(primary.candidateUrls ?? []),
+      ...ranked.slice(1).flatMap((doc) => [doc.url, ...(doc.candidateUrls ?? [])])
+    ]).filter((url) => url !== primary.url);
+    coalescedGroups.push({
       ...primary,
       candidateUrls: candidateUrls.length ? candidateUrls : primary.candidateUrls
-    },
-    ...documents.filter((doc) => doc.type !== "image")
-  ];
+    });
+  }
+
+  // Rank distinct gallery images and cap how many we'll keep / download.
+  const rankedGroups = coalescedGroups.sort((left, right) => imageDocumentRank(left) - imageDocumentRank(right));
+  const kept = rankedGroups.slice(0, MAX_GALLERY_IMAGES);
+
+  return [...kept, ...documents.filter((doc) => doc.type !== "image")];
+}
+
+function imageIdentity(url: string): string {
+  try {
+    const parsed = new URL(url);
+    const filename = parsed.pathname.split("/").pop() ?? parsed.pathname;
+    const stem = filename.replace(/\.(?:png|jpe?g|webp|gif|avif|svg)$/i, "");
+    return stem
+      .replace(/[-_](?:\d{2,4}x\d{2,4}|master|thumb(?:nail)?|small|medium|large|hd|original|main|crop(?:ped)?)$/i, "")
+      .toLowerCase();
+  } catch {
+    return url.toLowerCase();
+  }
 }
 
 function imageDocumentRank(doc: DocumentRecord): number {
@@ -687,4 +758,33 @@ function imageDocumentRank(doc: DocumentRecord): number {
 
 function uniqueStrings(values: Array<string | undefined>): string[] {
   return [...new Set(values.filter((value): value is string => Boolean(value)))];
+}
+
+/**
+ * Runs an async worker over an iterable of items with a fixed concurrency limit.
+ * Workers pull from a shared queue, so faster items don't wait behind slower ones.
+ * Per-item errors are swallowed by `worker` (it logs them itself); a thrown error here
+ * cancels the whole pool. `shouldStop` is polled before pulling each new item so
+ * cancellations are observed promptly.
+ */
+async function runWithConcurrency<T>(
+  items: T[],
+  concurrency: number,
+  worker: (item: T) => Promise<void>,
+  shouldStop: () => boolean
+): Promise<void> {
+  if (!items.length) return;
+  const queue = [...items];
+  let cursor = 0;
+  const workerCount = Math.max(1, Math.min(concurrency, items.length));
+  const runOne = async (): Promise<void> => {
+    while (true) {
+      if (shouldStop()) return;
+      const index = cursor;
+      if (index >= queue.length) return;
+      cursor = index + 1;
+      await worker(queue[index]);
+    }
+  };
+  await Promise.all(Array.from({ length: workerCount }, () => runOne()));
 }

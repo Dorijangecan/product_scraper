@@ -10,7 +10,7 @@ import { createAppPaths } from "./paths.js";
 import { RunManager } from "./run-manager.js";
 import { getManufacturerConfig, initializeManufacturerConfig, listManufacturerConfigs, resetManufacturerOverride, saveManufacturerConfig } from "./config/manufacturers.js";
 import type { ManufacturerId } from "../shared/types.js";
-import { findRunLogPath, getAllowedRunOutputRoots, isPathInsideAny } from "./run-output.js";
+import { findRunLogPath, getAllowedRunOutputRoots, isPathInsideAny, runRootFromOutputPath } from "./run-output.js";
 import { CachedHttpClient } from "./scrapers/http-client.js";
 import { inspectManufacturerDraft, testManufacturerDraft } from "./manufacturer-wizard.js";
 import { summarizeRunItem } from "./run-item-summary.js";
@@ -91,6 +91,7 @@ app.post("/api/runs", upload.single("file"), async (req, res) => {
   const manufacturerId = String(req.body.manufacturerId ?? "") as ManufacturerId;
   const columnName = String(req.body.columnName ?? "");
   const downloadDocuments = String(req.body.downloadDocuments ?? "true") === "true";
+  const forceFinalRetry = String(req.body.forceFinalRetry ?? "false") === "true";
   const manufacturer = getManufacturerConfig(manufacturerId);
   if (!manufacturer) {
     res.status(400).json({ error: "Unknown manufacturer." });
@@ -110,7 +111,7 @@ app.post("/api/runs", upload.single("file"), async (req, res) => {
       manufacturerId,
       inputFileName: req.file.originalname,
       catalogNumbers,
-      options: { downloadDocuments }
+      options: { downloadDocuments, forceFinalRetry }
     });
     res.status(201).json(run);
   } catch (error) {
@@ -182,6 +183,25 @@ app.post("/api/runs/:id/files/result/open", (req, res) => {
   }
 });
 
+app.post("/api/runs/:id/files/folder/open", (req, res) => {
+  const run = db.getRun(req.params.id);
+  if (!run?.outputPath || !fs.existsSync(run.outputPath)) {
+    res.status(404).json({ error: "Result workbook is not ready." });
+    return;
+  }
+  const outputFolder = runRootFromOutputPath(run.outputPath) ?? path.dirname(run.outputPath);
+  if (!fs.existsSync(outputFolder)) {
+    res.status(404).json({ error: "Output folder is not available." });
+    return;
+  }
+  try {
+    openLocalFile(outputFolder);
+    res.json({ ok: true, path: outputFolder });
+  } catch (error) {
+    res.status(500).json({ error: error instanceof Error ? error.message : "Could not open output folder." });
+  }
+});
+
 app.get("/api/runs/:id/files/log", (req, res) => {
   const run = db.getRun(req.params.id);
   if (!run) {
@@ -245,8 +265,15 @@ app.listen(port, "127.0.0.1", () => {
 
 function openLocalFile(filePath: string) {
   const resolved = path.resolve(filePath);
+  const isDirectory = fs.existsSync(resolved) && fs.statSync(resolved).isDirectory();
   let child;
-  if (process.platform === "win32") {
+  if (process.platform === "win32" && isDirectory) {
+    child = spawn("explorer.exe", [resolved], {
+      detached: true,
+      stdio: "ignore",
+      windowsHide: true
+    });
+  } else if (process.platform === "win32") {
     child = spawn("rundll32.exe", ["url.dll,FileProtocolHandler", resolved], {
       detached: true,
       stdio: "ignore",

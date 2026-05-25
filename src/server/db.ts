@@ -147,6 +147,15 @@ export class ScraperDb {
         UNIQUE(manufacturer_id, method, url_template)
       );
 
+      CREATE TABLE IF NOT EXISTS exhausted_fields (
+        manufacturer_id TEXT NOT NULL,
+        catalog_number TEXT NOT NULL,
+        field TEXT NOT NULL,
+        reason TEXT,
+        marked_at TEXT NOT NULL,
+        PRIMARY KEY (manufacturer_id, catalog_number, field)
+      );
+
       CREATE INDEX IF NOT EXISTS idx_runs_created_at ON runs(created_at DESC);
       CREATE INDEX IF NOT EXISTS idx_run_items_run_id ON run_items(run_id, row_index);
       CREATE INDEX IF NOT EXISTS idx_page_cache_url ON page_cache(url);
@@ -432,6 +441,39 @@ export class ScraperDb {
         headersJson: endpoint.headers ? JSON.stringify(endpoint.headers) : undefined,
         now
       });
+  }
+
+  /**
+   * Returns the set of fields marked as definitively-unpublished for this catalog number,
+   * based on prior runs that exhausted all available stages without finding them.
+   */
+  listExhaustedFields(manufacturerId: ManufacturerId, catalogNumber: string): Set<string> {
+    const rows = this.db
+      .prepare(`SELECT field FROM exhausted_fields WHERE manufacturer_id = ? AND catalog_number = ?`)
+      .all(manufacturerId, catalogNumber) as Array<{ field: string }>;
+    return new Set(rows.map((row) => row.field));
+  }
+
+  markFieldExhausted(manufacturerId: ManufacturerId, catalogNumber: string, field: string, reason?: string) {
+    this.db
+      .prepare(
+        `
+          INSERT INTO exhausted_fields (manufacturer_id, catalog_number, field, reason, marked_at)
+          VALUES (?, ?, ?, ?, ?)
+          ON CONFLICT(manufacturer_id, catalog_number, field) DO UPDATE SET
+            reason = excluded.reason,
+            marked_at = excluded.marked_at
+        `
+      )
+      .run(manufacturerId, catalogNumber, field, reason ?? null, new Date().toISOString());
+  }
+
+  clearExhaustedFields(manufacturerId: ManufacturerId, catalogNumber?: string) {
+    if (catalogNumber) {
+      this.db.prepare(`DELETE FROM exhausted_fields WHERE manufacturer_id = ? AND catalog_number = ?`).run(manufacturerId, catalogNumber);
+    } else {
+      this.db.prepare(`DELETE FROM exhausted_fields WHERE manufacturer_id = ?`).run(manufacturerId);
+    }
   }
 }
 

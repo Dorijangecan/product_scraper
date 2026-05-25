@@ -47,12 +47,19 @@ export async function previewCsv(file: File): Promise<CsvPreview> {
   return request("/api/csv/preview", { method: "POST", body: form });
 }
 
-export async function startRun(input: { file: File; manufacturerId: string; columnName: string; downloadDocuments: boolean }): Promise<RunRecord> {
+export async function startRun(input: {
+  file: File;
+  manufacturerId: string;
+  columnName: string;
+  downloadDocuments: boolean;
+  forceFinalRetry?: boolean;
+}): Promise<RunRecord> {
   const form = new FormData();
   form.append("file", input.file);
   form.append("manufacturerId", input.manufacturerId);
   form.append("columnName", input.columnName);
   form.append("downloadDocuments", String(input.downloadDocuments));
+  form.append("forceFinalRetry", String(input.forceFinalRetry ?? false));
   return request("/api/runs", { method: "POST", body: form });
 }
 
@@ -74,6 +81,10 @@ export async function cancelRun(id: string): Promise<RunRecord> {
 
 export async function openRunWorkbook(id: string): Promise<{ ok: true; path: string }> {
   return request(`/api/runs/${id}/files/result/open`, { method: "POST" });
+}
+
+export async function openRunOutputFolder(id: string): Promise<{ ok: true; path: string }> {
+  return request(`/api/runs/${id}/files/folder/open`, { method: "POST" });
 }
 
 async function request<T>(url: string, init?: RequestInit): Promise<T> {

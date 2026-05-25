@@ -72,7 +72,23 @@ export async function exportRunWorkbook(input: {
     { header: "Finish", key: "finish", width: 46 },
     { header: "Color", key: "color", width: 28 },
     { header: "Voltage", key: "voltage", width: 20 },
+    { header: "Voltage AC", key: "voltageAc", width: 18 },
+    { header: "Voltage DC", key: "voltageDc", width: 18 },
+    { header: "Voltage Range", key: "voltageRange", width: 22 },
+    { header: "Operating Voltage Ub / Ur", key: "operatingVoltageUb", width: 26 },
     { header: "Current", key: "current", width: 20 },
+    { header: "Current AC", key: "currentAc", width: 18 },
+    { header: "Current DC", key: "currentDc", width: 18 },
+    { header: "Current Type", key: "currentType", width: 14 },
+    { header: "Rated Current", key: "ratedCurrent", width: 18 },
+    { header: "Current Sum US (sensor)", key: "currentSumUs", width: 24 },
+    { header: "Current Sum UA (actuator)", key: "currentSumUa", width: 26 },
+    { header: "Standards", key: "standards", width: 28 },
+    { header: "Product Family / Class", key: "productFamily", width: 36 },
+    { header: "Suitable For", key: "suitableFor", width: 36 },
+    { header: "Replaced Product ID", key: "replacedProductId", width: 24 },
+    { header: "Tariff Code (HS)", key: "tariffCode", width: 18 },
+    { header: "Country of Origin", key: "countryOfOrigin", width: 18 },
     { header: "Protection", key: "protection", width: 28 },
     { header: "IP Rating", key: "ipRating", width: 18 },
     { header: "NEMA / Type Rating", key: "nemaRating", width: 24 },
@@ -301,6 +317,7 @@ function productRow(manufacturer: ManufacturerConfig, item: RunItemRecord, resul
   const documents = documentsForExport(result);
   const summary = specificationSummaryForExport(result, normalized);
   const technical = technicalHighlightsForExport(result?.attributes ?? [], normalized);
+  const electrical = electricalSplitForExport(result?.attributes ?? [], normalized);
   const row = {
     manufacturer,
     result,
@@ -358,8 +375,24 @@ function productRow(manufacturer: ManufacturerConfig, item: RunItemRecord, resul
     wallThicknessMm: row.wallThicknessMm,
     finish: row.finish,
     color: row.color,
-    voltage: normalized.voltage,
-    current: normalized.current,
+    voltage: dedupePipeJoinedSpec(normalized.voltage),
+    voltageAc: electrical.voltageAc,
+    voltageDc: electrical.voltageDc,
+    voltageRange: electrical.voltageRange,
+    operatingVoltageUb: electrical.operatingVoltageUb,
+    current: dedupePipeJoinedSpec(normalized.current),
+    currentAc: electrical.currentAc,
+    currentDc: electrical.currentDc,
+    currentType: electrical.currentType,
+    ratedCurrent: electrical.ratedCurrent,
+    currentSumUs: electrical.currentSumUs,
+    currentSumUa: electrical.currentSumUa,
+    standards: electrical.standards,
+    productFamily: electrical.productFamily,
+    suitableFor: electrical.suitableFor,
+    replacedProductId: electrical.replacedProductId,
+    tariffCode: electrical.tariffCode,
+    countryOfOrigin: electrical.countryOfOrigin,
     protection: normalized.protection,
     ipRating: technical.ipRating,
     nemaRating: technical.nemaRating,
@@ -1627,6 +1660,233 @@ function attributeSpecLines(
 
 function joinedAttributeSpecs(attributes: ProductResult["attributes"], namePatterns: RegExp[], maxLines: number): string | undefined {
   return joinSpecLines(attributeSpecLines(attributes, namePatterns, maxLines));
+}
+
+interface ElectricalSplit {
+  voltageAc?: string;
+  voltageDc?: string;
+  voltageRange?: string;
+  operatingVoltageUb?: string;
+  currentAc?: string;
+  currentDc?: string;
+  currentType?: string;
+  ratedCurrent?: string;
+  currentSumUs?: string;
+  currentSumUa?: string;
+  standards?: string;
+  productFamily?: string;
+  suitableFor?: string;
+  replacedProductId?: string;
+  tariffCode?: string;
+  countryOfOrigin?: string;
+}
+
+function electricalSplitForExport(attributes: ProductResult["attributes"], normalized: ProductResult["normalized"]): ElectricalSplit {
+  const voltageValues = collectElectricalValues(attributes, normalized.voltage, /voltage|spannung|tension/i, /\bV\b|VAC|VDC|\bV AC\b|\bV DC\b/i);
+  const currentValues = collectElectricalValues(attributes, normalized.current, /current|strom|courant/i, /\bA\b|mA\b/i);
+
+  return {
+    voltageAc: pickElectricalSubset(voltageValues, /AC\b|alternating|wechsel/i).join("; ") || undefined,
+    voltageDc: pickElectricalSubset(voltageValues, /DC\b|direct|gleich/i).join("; ") || undefined,
+    voltageRange: pickElectricalSubset(voltageValues, /\.\.\.|to\b|-|–|—|min|max|range/i).join("; ") || undefined,
+    operatingVoltageUb: dedupePipeJoinedSpec(
+      joinedAttributeSpecs(
+        attributes,
+        [
+          /^operating voltage(?:\s+ub)?$/i,
+          /^betriebsspannung(?:\s+ub)?$/i,
+          /^rated operating voltage(?:\s+ue)?$/i,
+          /^supply voltage range$/i,
+          /^rated voltage(?:\s*\(\s*u\s*r\s*\))?$/i,
+          /^bemessungsspannung(?:\s*\(\s*u\s*r\s*\))?$/i,
+          /^nominal voltage$/i
+        ],
+        3
+      )
+    ),
+    currentAc: pickElectricalSubset(currentValues, /AC\b|alternating/i).join("; ") || undefined,
+    currentDc: pickElectricalSubset(currentValues, /DC\b|direct/i).join("; ") || undefined,
+    currentType: extractCurrentType(attributes, normalized),
+    ratedCurrent: dedupePipeJoinedSpec(
+      joinedAttributeSpecs(
+        attributes,
+        [/^rated current(?:\s*\(40\s*°?c\))?$/i, /^nennstrom(?:\s*\(40\s*°?c\))?$/i, /^\[in\]\s*rated current/i, /^continuous current$/i, /^current rating$/i],
+        4
+      )
+    ),
+    currentSumUs: dedupePipeJoinedSpec(
+      joinedAttributeSpecs(
+        attributes,
+        [/^current sum us(?:,\s*sensor)?$/i, /^current sum us sensor$/i, /^summenstrom us(?:,\s*sensor)?$/i],
+        2
+      )
+    ),
+    currentSumUa: dedupePipeJoinedSpec(
+      joinedAttributeSpecs(
+        attributes,
+        [/^current sum ua(?:,\s*actuator)?$/i, /^current sum ua actuator$/i, /^summenstrom ua(?:,\s*aktor)?$/i],
+        2
+      )
+    ),
+    standards: extractStandards(attributes),
+    productFamily: dedupePipeJoinedSpec(
+      joinedAttributeSpecs(
+        attributes,
+        [
+          /^product main type$/i,
+          /^product family$/i,
+          /^suitable for product class$/i,
+          /^product class$/i,
+          /^product line$/i,
+          /^series$/i,
+          /^produktfamilie$/i
+        ],
+        3
+      )
+    ),
+    suitableFor: dedupePipeJoinedSpec(
+      joinedAttributeSpecs(attributes, [/^suitable for$/i, /^compatible with$/i, /^geeignet f[uü]r$/i, /^application$/i], 4)
+    ),
+    replacedProductId: dedupePipeJoinedSpec(
+      joinedAttributeSpecs(
+        attributes,
+        [
+          /^replaced product id(?:\s*\(old\))?$/i,
+          /^replaces\b/i,
+          /^superseded by$/i,
+          /^old product id$/i,
+          /^vorg[aä]ngerprodukt$/i,
+          /^recommended alternative$/i
+        ],
+        3
+      )
+    ),
+    tariffCode: dedupePipeJoinedSpec(
+      joinedAttributeSpecs(
+        attributes,
+        [
+          /^customs tariff number$/i,
+          /^tariff code$/i,
+          /^taric code$/i,
+          /^taric-code$/i,
+          /^hs code$/i,
+          /^zolltarifnummer$/i,
+          /^commodity code$/i
+        ],
+        2
+      )
+    ),
+    countryOfOrigin: dedupePipeJoinedSpec(
+      joinedAttributeSpecs(
+        attributes,
+        [/^country of origin$/i, /^herkunftsland$/i, /^origine$/i, /^made in$/i],
+        2
+      )
+    )
+  };
+}
+
+function extractCurrentType(attributes: ProductResult["attributes"], normalized: ProductResult["normalized"]): string | undefined {
+  // 1) Explicit attribute (ABB "Current Type", Eaton "Current type", etc.)
+  const direct = attributes.find((attr) => /^(?:current type|stromart|type de courant)$/i.test(attr.name));
+  if (direct?.value) {
+    const cleaned = cleanText(direct.value).toUpperCase().replace(/\s*\/\s*/g, "/");
+    return /AC|DC/.test(cleaned) ? cleaned : cleanText(direct.value);
+  }
+  // 2) Infer from existing voltage/current strings (e.g. "110-220 V AC/DC", "250 V DC", "4 A AC").
+  const haystacks = [normalized.voltage, normalized.current, ...attributes.filter((attr) => /voltage|current/i.test(attr.name)).map((attr) => attr.value)]
+    .filter((value): value is string => Boolean(value))
+    .map((value) => cleanText(value).toUpperCase());
+  let hasAc = false;
+  let hasDc = false;
+  for (const value of haystacks) {
+    if (/\bAC\/DC\b|\bAC-DC\b|\bVAC\/DC\b|\bV\s*AC\/DC\b/.test(value)) return "AC/DC";
+    if (/\bAC\b|\bVAC\b|\bV\s*AC\b/.test(value)) hasAc = true;
+    if (/\bDC\b|\bVDC\b|\bV\s*DC\b/.test(value)) hasDc = true;
+  }
+  if (hasAc && hasDc) return "AC/DC";
+  if (hasAc) return "AC";
+  if (hasDc) return "DC";
+  return undefined;
+}
+
+function extractStandards(attributes: ProductResult["attributes"]): string | undefined {
+  // Prefer explicit "Standards" attribute (ABB: "IEC/UL", Schneider: "EN 60947-2", etc.)
+  const direct = attributes.filter((attr) => /^(standards?|applicable standards?|conforms to|normen|normes?)$/i.test(attr.name));
+  const tokens = new Set<string>();
+  for (const attr of direct) {
+    for (const piece of cleanText(attr.value).split(/[;,\/\|]+/)) {
+      const value = cleanText(piece);
+      if (value && value.length < 60) tokens.add(value);
+    }
+  }
+  // Also scan all attribute values for IEC/UL/EN/IEEE/DIN/ANSI standard codes.
+  if (tokens.size === 0) {
+    for (const attr of attributes) {
+      const value = cleanText(attr.value);
+      const matches = value.match(/\b(?:IEC|UL|EN|IEEE|DIN|ANSI|CSA|VDE|JIS)\s*\d+[A-Z0-9.\-/:]*\b/g);
+      if (!matches) continue;
+      for (const match of matches) tokens.add(cleanText(match));
+      if (tokens.size >= 10) break;
+    }
+  }
+  return tokens.size ? [...tokens].slice(0, 10).join("; ") : undefined;
+}
+
+function collectElectricalValues(
+  attributes: ProductResult["attributes"],
+  normalizedFallback: string | undefined,
+  labelPattern: RegExp,
+  unitPattern: RegExp
+): string[] {
+  const candidates: string[] = [];
+  for (const attr of attributes) {
+    const label = `${attr.group ?? ""} ${attr.name}`;
+    if (!labelPattern.test(label)) continue;
+    for (const piece of splitElectricalValue(attr.value)) {
+      if (unitPattern.test(piece)) candidates.push(piece);
+    }
+  }
+  if (normalizedFallback) {
+    for (const piece of splitElectricalValue(normalizedFallback)) {
+      if (unitPattern.test(piece)) candidates.push(piece);
+    }
+  }
+  const seen = new Set<string>();
+  return candidates.filter((value) => {
+    const key = value.toLowerCase().replace(/\s+/g, " ").trim();
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+function splitElectricalValue(value: string | undefined): string[] {
+  if (!value) return [];
+  return cleanText(value)
+    .split(/\s*(?:\||;|,| or )\s*/)
+    .map((piece) => cleanText(piece))
+    .filter(Boolean);
+}
+
+function pickElectricalSubset(values: string[], pattern: RegExp): string[] {
+  return values.filter((value) => pattern.test(value));
+}
+
+function dedupePipeJoinedSpec(value: string | undefined): string | undefined {
+  if (!value) return undefined;
+  if (!value.includes("|")) return value;
+  const seen = new Set<string>();
+  const parts: string[] = [];
+  for (const piece of value.split(/\s*\|\s*/)) {
+    const trimmed = cleanText(piece);
+    if (!trimmed) continue;
+    const key = trimmed.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    parts.push(trimmed);
+  }
+  return parts.join(" | ") || undefined;
 }
 
 function ipRatingForExport(attributes: ProductResult["attributes"], protection: string | undefined): string | undefined {

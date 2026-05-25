@@ -252,10 +252,20 @@ export function parseGenericProductPage(
       .filter(Boolean);
     if (cells.length && cells.every((cell) => /^header\s+\d+$/i.test(cell))) return;
     if (cells.length >= 2) {
+      const seen = new Set<string>();
+      const unique: string[] = [];
+      for (const cell of cells.slice(1)) {
+        const trimmed = cleanText(cell);
+        if (!trimmed) continue;
+        const key = trimmed.toLowerCase();
+        if (seen.has(key)) continue;
+        seen.add(key);
+        unique.push(trimmed);
+      }
       attributes.push({
         group: "Table",
         name: cells[0],
-        value: cells.slice(1).join(" | "),
+        value: unique.join(" | "),
         sourceUrl: fetched.effectiveUrl
       });
     }

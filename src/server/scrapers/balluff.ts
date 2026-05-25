@@ -8,50 +8,202 @@ import { buildLocalizedProductUrls } from "./localized-urls.js";
 import { catalogTextMatches, sameCatalogNumber } from "./catalog-number.js";
 import { dedupeAttributes, dedupeDocuments, dedupeSources } from "./dedupe.js";
 import { findBestProductLink } from "./link-discovery.js";
-import { renderProductPage } from "./browser-renderer.js";
+import { renderProductPage, type ModalSection } from "./browser-renderer.js";
 
-const BALLUFF_PRODUCT_LOCALES = ["en-us", "en-gb", "de-de", "en-de", "en-ca", "en-au", "en-in", "en-xi"];
+const BALLUFF_PRODUCT_LOCALES = ["en-gb", "en-us", "de-de", "en-de", "en-ca", "en-au", "en-in", "en-xi"];
 const BALLUFF_ACCEPT_LANGUAGE = "en-GB,en;q=0.9,en-US;q=0.8,de;q=0.6";
 const BALLUFF_REFERER = "https://www.balluff.com/en-gb/products";
 const BALLUFF_BOT_USER_AGENT = "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)";
 const BALLUFF_PARSER_VERSION = "balluff-v3";
+const BALLUFF_KNOWN_PRODUCT_CODE_ALIASES: Record<string, string[]> = {
+  BTL4W6A: ["BTL4E6W"]
+};
 const BALLUFF_EXPANDED_SECTIONS_RECIPE: ScrapeRecipeConfig = {
   interactionPolicy: {
     closeOverlaySelectors: [
       "button:has-text('Accept all')",
       "button:has-text('Accept All')",
       "button:has-text('Alle akzeptieren')",
-      "button[aria-label='Close']"
+      "button:has-text('Agree')",
+      "button:has-text('I agree')",
+      "button[aria-label='Close']",
+      "#onetrust-accept-btn-handler",
+      "[data-cy='cookie-accept']",
+      ".cookie-banner button"
     ],
-    waitForSelectors: ["text=\"Key features\"", "text=\"Downloads\"", "text=\"Classifications\""],
+    waitForSelectors: [
+      "text=\"Key features\"",
+      "text=\"Downloads\"",
+      "text=\"Classifications\"",
+      "text=\"Digital Product Passport\""
+    ],
     expandSelectors: [
+      "button[aria-expanded='false']",
+      "[role='button'][aria-expanded='false']",
+      "summary",
+      "details:not([open]) > summary",
+      "[wire\\:click*='toggle']",
+      "[x-on\\:click*='toggle']",
+      "[\\@click*='toggle']",
+      "[\\@click*='open']",
       "text=\"Show all main features\"",
+      "text=\"Show more\"",
+      "text=\"Mehr anzeigen\"",
       "text=\"Key features\"",
       "text=\"Downloads\"",
       "text=\"Classifications\"",
       "text=\"Digital Product Passport\"",
       "text=\"Knowledge Base articles\"",
       "text=\"Hauptmerkmale\"",
-      "text=\"Downloads\"",
       "text=\"Klassifizierungen\"",
       "text=\"Digitaler Produktpass\"",
       "button:has-text('Show all main features')",
+      "button:has-text('Show more')",
       "button:has-text('Key features')",
       "button:has-text('Downloads')",
       "button:has-text('Classifications')",
       "button:has-text('Digital Product Passport')",
       "button:has-text('Knowledge Base articles')",
+      "button:has-text('Hauptmerkmale')",
+      "button:has-text('Klassifizierungen')",
+      "button:has-text('Digitaler Produktpass')",
       "[role='button']:has-text('Key features')",
       "[role='button']:has-text('Downloads')",
       "[role='button']:has-text('Classifications')",
       "[role='button']:has-text('Digital Product Passport')",
-      "[role='button']:has-text('Knowledge Base articles')"
+      "[role='button']:has-text('Knowledge Base articles')",
+      "h2:has-text('Key features')",
+      "h2:has-text('Downloads')",
+      "h2:has-text('Classifications')",
+      "h2:has-text('Digital Product Passport')",
+      "h3:has-text('Key features')",
+      "h3:has-text('Downloads')",
+      "h3:has-text('Classifications')",
+      "h3:has-text('Digital Product Passport')"
     ],
-    scrollPasses: 3,
-    maxClicks: 35,
-    networkIdleTimeoutMs: 15000
+    scrollPasses: 5,
+    maxClicks: 60,
+    networkIdleTimeoutMs: 20000
   }
 };
+
+// Sections appear on Balluff product pages as buttons with a → arrow that open MODAL dialogs
+// (not inline accordions). Each modal must be opened, scraped, and closed before opening the next.
+// Downloads has a second level: inside its modal there are sub-categories (Product documentation,
+// Software, Info material, Technical drawing, CAD/CAE Files) that must each be clicked to expand.
+// IMPORTANT: Balluff renders these sections as <button class="...py-5"> wrappers containing a
+// <div class="font-medium text-base">Label</div>. The `button.py-5:has(div:text-is(...))` selector
+// added by the renderer's `expandSectionSelectors` helper is what actually hits the right element
+// (plain `button:has-text('Key features')` also matches navigation/footer references). We keep
+// generic fallbacks here for safety, but the precise wrapper match is appended automatically.
+const BALLUFF_MODAL_SECTIONS: ModalSection[] = [
+  {
+    label: "Key features",
+    openSelectors: [
+      "button.py-5:has(div:text-is('Key features'))",
+      "button.py-5:has(div:text-is('Hauptmerkmale'))",
+      "button:has-text('Key features')",
+      "[role='button']:has-text('Key features')",
+      "a:has-text('Key features')",
+      "button:has-text('Hauptmerkmale')",
+      "[role='button']:has-text('Hauptmerkmale')"
+    ],
+    contentMarkerSelectors: [
+      "text=Operating voltage Ub",
+      "text=Housing material",
+      "text=IP rating",
+      "text=Ambient temperature",
+      "text=Material",
+      "text=Range",
+      "text=Measuring range",
+      "text=Interface",
+      "text=Betriebsspannung"
+    ]
+  },
+  {
+    label: "Downloads",
+    openSelectors: [
+      "button.py-5:has(div:text-is('Downloads'))",
+      "button:has-text('Downloads')",
+      "[role='button']:has-text('Downloads')",
+      "a:has-text('Downloads')"
+    ],
+    subOpenSelectors: [
+      "button:has-text('Product documentation')",
+      "button:has-text('Software')",
+      "button:has-text('Info material')",
+      "button:has-text('Technical drawing')",
+      "button:has-text('CAD/CAE Files')",
+      "button:has-text('CAD')",
+      "button:has-text('Produktdokumentation')",
+      "button:has-text('Technische Zeichnung')",
+      "[role='button']:has-text('Product documentation')",
+      "[role='button']:has-text('Software')",
+      "[role='button']:has-text('CAD/CAE Files')",
+      "h2:has-text('Product documentation')",
+      "h3:has-text('Product documentation')",
+      "h2:has-text('CAD/CAE Files')"
+    ],
+    contentMarkerSelectors: [
+      "text=Product documentation",
+      "text=CAD/CAE",
+      "text=Technical drawing",
+      "text=Datasheet",
+      "text=Produktdokumentation"
+    ]
+  },
+  {
+    label: "Classifications",
+    openSelectors: [
+      "button.py-5:has(div:text-is('Classifications'))",
+      "button.py-5:has(div:text-is('Klassifizierungen'))",
+      "button:has-text('Classifications')",
+      "[role='button']:has-text('Classifications')",
+      "a:has-text('Classifications')",
+      "button:has-text('Klassifizierungen')",
+      "[role='button']:has-text('Klassifizierungen')"
+    ],
+    contentMarkerSelectors: ["text=ECLASS", "text=ETIM", "text=UNSPSC"]
+  },
+  {
+    label: "Digital Product Passport",
+    openSelectors: [
+      "button.py-5:has(div:text-is('Digital Product Passport'))",
+      "button.py-5:has(div:text-is('Digitaler Produktpass'))",
+      "button:has-text('Digital Product Passport')",
+      "[role='button']:has-text('Digital Product Passport')",
+      "a:has-text('Digital Product Passport')",
+      "button:has-text('Digitaler Produktpass')",
+      "[role='button']:has-text('Digitaler Produktpass')"
+    ],
+    contentMarkerSelectors: [
+      "text=Weight",
+      "text=Tariff Code",
+      "text=Country of origin",
+      "text=Manufacturer",
+      "text=Gewicht",
+      "text=Herkunftsland"
+    ]
+  },
+  {
+    label: "Knowledge Base articles",
+    openSelectors: [
+      "button.py-5:has(div:text-is('Knowledge Base articles'))",
+      "button:has-text('Knowledge Base articles')",
+      "[role='button']:has-text('Knowledge Base articles')",
+      "a:has-text('Knowledge Base articles')",
+      "button:has-text('Knowledge Base')"
+    ],
+    // Many products genuinely have no KB articles; we don't fail the section if this never matches,
+    // but having markers lets us skip the retry path when content IS present.
+    contentMarkerSelectors: [
+      "text=Knowledge Base",
+      "text=No articles",
+      "text=Article",
+      "text=Read more"
+    ]
+  }
+];
 
 interface BalluffParseOptions {
   parser?: string;
@@ -74,31 +226,45 @@ export class BalluffConnector implements ManufacturerConnector {
           localizedUrlTemplates: context.manufacturer.localizedUrlTemplates
         });
         partialResults.push(primaryResult);
+        let current = primaryResult;
+        const htmlParts = [primary.text];
 
-        const bot = await fetchBalluffText(url, context, BALLUFF_BOT_USER_AGENT);
-        const botResult = parseBalluffProductPage(catalogNumber, bot, {
-          parser: "balluff-readable-product-page",
-          localizedUrlTemplates: context.manufacturer.localizedUrlTemplates
-        });
-        const merged = mergeBalluffResults(primaryResult, botResult);
-        partialResults.push(merged);
+        try {
+          const bot = await fetchBalluffText(url, context, BALLUFF_BOT_USER_AGENT);
+          htmlParts.push(bot.text);
+          const botResult = parseBalluffProductPage(catalogNumber, bot, {
+            parser: "balluff-readable-product-page",
+            localizedUrlTemplates: context.manufacturer.localizedUrlTemplates
+          });
+          current = mergeBalluffResults(current, botResult);
+          partialResults.push(current);
+        } catch (error) {
+          lastError = error;
+        }
 
-        const reader = await fetchBalluffText(balluffReaderUrl(url), context);
-        const readerResult = parseBalluffProductPage(catalogNumber, reader, {
-          parser: "balluff-reader-product-page",
-          localizedUrlTemplates: context.manufacturer.localizedUrlTemplates
-        });
-        const readerMerged = mergeBalluffResults(merged, readerResult);
-        partialResults.push(readerMerged);
+        try {
+          const reader = await fetchBalluffText(balluffReaderUrl(url), context);
+          htmlParts.push(reader.text);
+          const readerResult = parseBalluffProductPage(catalogNumber, reader, {
+            parser: "balluff-reader-product-page",
+            localizedUrlTemplates: context.manufacturer.localizedUrlTemplates
+          });
+          current = mergeBalluffResults(current, readerResult);
+          partialResults.push(current);
+        } catch (error) {
+          lastError = error;
+        }
 
         const expanded = await scrapeBalluffExpandedSections(catalogNumber, url, context);
         if (expanded) {
-          const expandedMerged = mergeBalluffResults(readerMerged, expanded);
+          const expandedMerged = mergeBalluffResults(current, expanded);
           partialResults.push(expandedMerged);
-          if (isCompleteBalluffResult(expandedMerged, `${primary.text}\n${bot.text}\n${reader.text}`)) return expandedMerged;
+          if (isCompleteBalluffResult(expandedMerged, htmlParts.join("\n"))) return expandedMerged;
+          if (isCompleteBalluffResult(current, htmlParts.join("\n"))) return expandedMerged;
+          if (expandedMerged.status !== "failed" && (expandedMerged.attributes.length || expandedMerged.documents.length)) return expandedMerged;
         }
 
-        if (isCompleteBalluffResult(readerMerged, `${primary.text}\n${bot.text}\n${reader.text}`)) return readerMerged;
+        if (isCompleteBalluffResult(current, htmlParts.join("\n"))) return current;
       } catch (error) {
         lastError = error;
       }
@@ -212,6 +378,7 @@ export function parseBalluffProductPage(catalogNumber: string, fetched: FetchedT
   attributes.push(...extractBalluffDomAttributes($, sourceUrl));
   attributes.push(...extractBalluffSectionAttributes(fetched.text, sourceUrl));
   attributes.push(...extractBalluffLifecycleAttributes(fetched.text, catalogNumber, sourceUrl));
+  attributes.push(...extractBalluffDigitalProductPassportFallback(fetched.text, sourceUrl));
   const livewireData = extractBalluffLivewireData(fetched.text, sourceUrl);
   attributes.push(...livewireData.attributes);
   documents.push(...livewireData.documents);
@@ -257,7 +424,9 @@ export function parseBalluffProductPage(catalogNumber: string, fetched: FetchedT
   const productUrl = sourceUrl;
   const matched =
     catalogTextMatches(fetched.text, catalogNumber) ||
+    balluffCatalogAliases(catalogNumber).some((alias) => catalogTextMatches(fetched.text, alias)) ||
     sameCatalogNumber(String(product?.sku ?? product?.mpn ?? ""), catalogNumber) ||
+    balluffCatalogAliases(catalogNumber).some((alias) => sameCatalogNumber(String(product?.sku ?? product?.mpn ?? ""), alias)) ||
     sameCatalogNumber(String(product?.alternateName ?? ""), catalogNumber, { compact: true });
 
   if (!matched) {
@@ -386,9 +555,35 @@ async function scrapeBalluffSearch(catalogNumber: string, context: ScrapeContext
 
 async function scrapeBalluffExpandedSections(catalogNumber: string, url: string, context: ScrapeContext): Promise<ProductResult | undefined> {
   try {
-    const rendered = context.browserRenderer
-      ? await context.browserRenderer.renderProductPage(url, BALLUFF_EXPANDED_SECTIONS_RECIPE, context.signal)
-      : await renderProductPage(url, BALLUFF_EXPANDED_SECTIONS_RECIPE, context.signal);
+    // Prefer the modal-sequence renderer (opens each Balluff section in turn, captures HTML).
+    // Falls back to the generic renderProductPage if the renderer doesn't expose the new method.
+    const renderOnce = async () => {
+      if (context.browserRenderer?.renderProductPageWithModalSequence) {
+        return context.browserRenderer.renderProductPageWithModalSequence(
+          url,
+          BALLUFF_EXPANDED_SECTIONS_RECIPE,
+          BALLUFF_MODAL_SECTIONS,
+          context.signal
+        );
+      }
+      return context.browserRenderer
+        ? await context.browserRenderer.renderProductPage(url, BALLUFF_EXPANDED_SECTIONS_RECIPE, context.signal)
+        : await renderProductPage(url, BALLUFF_EXPANDED_SECTIONS_RECIPE, context.signal);
+    };
+    let rendered = await renderOnce();
+    if (rendered.error) {
+      console.error(`[balluff] browser render failed for ${catalogNumber} @ ${url}: ${rendered.error}`);
+    } else if (rendered.fetched) {
+      const firstCount = balluffExpandedSectionCount(rendered.fetched.text);
+      const hasAnyNetworkPayload = rendered.networkTexts.some((networkText) => isLikelyBalluffExpandedPayload(networkText.text));
+      if (firstCount === 0 && !hasAnyNetworkPayload) {
+        console.warn(`[balluff] first render produced no expanded sections for ${catalogNumber}, retrying once...`);
+        const retry = await renderOnce();
+        if (retry.fetched && balluffExpandedSectionCount(retry.fetched.text) > firstCount) {
+          rendered = retry;
+        }
+      }
+    }
     const results: ProductResult[] = [];
 
     if (rendered.fetched) {
@@ -432,7 +627,8 @@ async function scrapeBalluffExpandedSections(catalogNumber: string, url: string,
         }
       ])
     };
-  } catch {
+  } catch (error) {
+    console.error(`[balluff] expanded-sections exception for ${catalogNumber} @ ${url}: ${error instanceof Error ? error.message : String(error)}`);
     return undefined;
   }
 }
@@ -491,8 +687,11 @@ function extractBalluffNetworkHtmlFragments(text: string): string[] {
 
 function mergeBalluffResults(primary: ProductResult, fallback: ProductResult): ProductResult {
   const merged = mergeResults(primary, fallback);
+  const documents = dedupeBalluffDocuments(merged.documents);
   return {
     ...merged,
+    documents,
+    normalized: normalizeFields(merged.attributes, documents),
     sources: dedupeSources(merged.sources),
     status: merged.attributes.length || merged.documents.length
       ? primary.status === "found" || fallback.status === "found"
@@ -555,7 +754,13 @@ function cleanBalluffCode(value: string): string {
 function balluffDirectProductCodes(catalogNumber: string): string[] {
   const fromUrl = balluffProductCodeFromUrl(catalogNumber);
   const cleaned = cleanBalluffCode(catalogNumber);
-  return [...new Set([fromUrl, cleaned].filter((code): code is string => Boolean(code && isBalluffProductPageCode(code))))];
+  return [
+    ...new Set(
+      [fromUrl, cleaned, ...balluffCatalogAliases(catalogNumber)].filter((code): code is string =>
+        Boolean(code && isBalluffProductPageCode(code))
+      )
+    )
+  ];
 }
 
 function balluffSearchTerms(catalogNumber: string): string[] {
@@ -569,6 +774,13 @@ function balluffSearchTerms(catalogNumber: string): string[] {
   ]
     .filter((term): term is string => Boolean(term && term.length >= 3))
     .filter((term, index, terms) => terms.findIndex((candidate) => candidate.toLowerCase() === term.toLowerCase()) === index);
+}
+
+function balluffCatalogAliases(catalogNumber: string): string[] {
+  const cleaned = cleanText(catalogNumber).toUpperCase();
+  const aliases = [...(BALLUFF_KNOWN_PRODUCT_CODE_ALIASES[cleaned] ?? [])];
+  if (/^BDG\s+FB058-[A-Z0-9]+-DSR[BG]\d-/i.test(catalogNumber)) aliases.push("MP11418306");
+  return [...new Set(aliases)];
 }
 
 function isBalluffProductPageCode(value: string): boolean {
@@ -612,6 +824,22 @@ function hasExpandedBalluffSections(html: string): boolean {
     /\b(classifications|klassifizierungen|classificazioni|clasificaciones)\b/i.test(text) &&
     /\b(eclass|etim|unspsc)\b/i.test(text)
   );
+}
+
+const BALLUFF_EXPANDED_SECTION_MARKERS: Array<{ name: string; pattern: RegExp }> = [
+  { name: "key-features", pattern: /\b(?:operating voltage ub|housing material|ip rating|range|measuring range|connection 1|cable|interface)\b/i },
+  { name: "downloads", pattern: /\b(?:datasheet|cad|3d-modell|3-d model|operating manual|certificate|user manual|user's guide)\b/i },
+  { name: "classifications", pattern: /\beclass\s*\d|\betim\s*\d|\bunspsc\b/i },
+  { name: "digital-product-passport", pattern: /\b(?:weight|tariff code|country of origin|product carbon footprint|battery regulation|substances of concern)\b/i }
+];
+
+function balluffExpandedSectionCount(html: string): number {
+  const text = cleanText(html);
+  return BALLUFF_EXPANDED_SECTION_MARKERS.reduce((count, marker) => (marker.pattern.test(text) ? count + 1 : count), 0);
+}
+
+function hasAllBalluffExpandedSections(html: string): boolean {
+  return balluffExpandedSectionCount(html) === BALLUFF_EXPANDED_SECTION_MARKERS.length;
 }
 
 function isCompleteBalluffResult(result: ProductResult, html: string): boolean {
@@ -737,7 +965,7 @@ function dedupeBalluffDocuments(documents: DocumentRecord[]): DocumentRecord[] {
       });
     }
   }
-  return [...merged.values()];
+  return coalesceBalluffImageDocuments([...merged.values()]);
 }
 
 function balluffImageIdentity(url: string): string {
@@ -748,6 +976,45 @@ function balluffImageIdentity(url: string): string {
   } catch {
     return url.toLowerCase();
   }
+}
+
+function coalesceBalluffImageDocuments(documents: DocumentRecord[]): DocumentRecord[] {
+  const productImages = documents.filter(isBalluffProductImageDocument);
+  if (productImages.length <= 1) return documents;
+
+  const ranked = [...productImages].sort((left, right) => balluffImageDocumentRank(left) - balluffImageDocumentRank(right));
+  const primary = ranked[0];
+  const candidateUrls = uniqueUrls([
+    ...(primary.candidateUrls ?? []),
+    ...ranked.flatMap((doc) => [doc.url, ...(doc.candidateUrls ?? [])])
+  ]).filter((url) => url !== primary.url);
+
+  return [
+    {
+      ...primary,
+      label: primary.label || "Product image",
+      candidateUrls: candidateUrls.length ? candidateUrls : primary.candidateUrls
+    },
+    ...documents.filter((doc) => !isBalluffProductImageDocument(doc))
+  ];
+}
+
+function isBalluffProductImageDocument(doc: DocumentRecord): boolean {
+  if (doc.type !== "image") return false;
+  return [doc.url, ...(doc.candidateUrls ?? [])].some((url) => /assets\.balluff\.com/i.test(url));
+}
+
+function balluffImageDocumentRank(doc: DocumentRecord): number {
+  const text = `${doc.label} ${doc.url} ${(doc.candidateUrls ?? []).join(" ")}`.toLowerCase();
+  let rank = 100;
+  if (/product image/.test(text)) rank -= 10;
+  if (/\/product_view_cropped\//.test(text)) rank -= 60;
+  if (/\/png_1000x1000\//.test(text)) rank -= 50;
+  if (/\/webp_1000x1000\//.test(text)) rank -= 45;
+  if (/\/jpg_1000x1000\//.test(text)) rank -= 40;
+  if (/\/thumbnails\//.test(text)) rank += 30;
+  if (/[\/_-]01[\/_.-]|_p_01|_01_p/i.test(text)) rank -= 8;
+  return rank;
 }
 
 function uniqueUrls(urls: string[]): string[] {
@@ -799,6 +1066,9 @@ function splitBalluffMetaSpecs(description: string): Array<{ label: string; valu
 const BALLUFF_SPEC_LABELS = [
   "Weight",
   "Tariff Code",
+  "Country of origin",
+  "Product carbon footprint",
+  "Battery regulation",
   "Substances of concern",
   "Disposal instructions",
   "Energy consumption labeling",
@@ -1105,7 +1375,17 @@ const BALLUFF_RAW_LABEL_ALIASES: Record<string, string> = {
   ausgangsspannung: "Output voltage",
   nennausgangsstrom: "Rated output current",
   "cable note": "Cable, note",
-  kabelhinweis: "Cable, note"
+  kabelhinweis: "Cable, note",
+  "country of origin": "Country of origin",
+  herkunftsland: "Country of origin",
+  "product carbon footprint": "Product carbon footprint",
+  "co2 fussabdruck": "Product carbon footprint",
+  "battery regulation": "Battery regulation",
+  batterieverordnung: "Battery regulation",
+  "substances of concern": "Substances of concern",
+  "besorgniserregende stoffe": "Substances of concern",
+  "disposal instructions": "Disposal instructions",
+  entsorgungshinweise: "Disposal instructions"
 };
 
 const BALLUFF_LABEL_ALIASES = Object.fromEntries(
@@ -1232,8 +1512,13 @@ function addBalluffDomAttribute(
 
 function cleanBalluffNodeText($: cheerio.CheerioAPI, element: AnyNode): string {
   const html = $(element).html() ?? "";
+  // Strip <script>/<style> blocks first to keep inline JS / CSS out of attribute values.
   return cleanText(
     html
+      .replace(/<script[\s\S]*?<\/script>/gi, " ")
+      .replace(/<style[\s\S]*?<\/style>/gi, " ")
+      .replace(/<noscript[\s\S]*?<\/noscript>/gi, " ")
+      .replace(/<!--[\s\S]*?-->/g, " ")
       .replace(/<\s*br\s*\/?>/gi, "; ")
       .replace(/<\/(?:div|p|li|span)>/gi, "; ")
       .replace(/<[^>]+>/g, " ")
@@ -1253,7 +1538,9 @@ function isLikelyBalluffDomLabel(label: string): boolean {
   if (!/[A-Za-z]/.test(cleaned)) return false;
   if (cleaned.includes(";")) return false;
   if (/^(?:show all|add to|image|contact request|quantity scale|availability|retrieve data)$/i.test(cleaned)) return false;
-  return !/[{}]|var\(--|@media|display\s*:|calc\(/i.test(cleaned);
+  if (/[{}]|var\(--|@media|display\s*:|calc\(/i.test(cleaned)) return false;
+  if (looksLikeBalluffScriptContent(cleaned)) return false;
+  return true;
 }
 
 function extractBalluffSectionAttributes(html: string, sourceUrl: string): AttributeRecord[] {
@@ -1262,10 +1549,12 @@ function extractBalluffSectionAttributes(html: string, sourceUrl: string): Attri
   const sections = balluffDetailSections(tokens);
 
   for (const section of sections) {
-    if (section.name !== "Key features" && section.name !== "Classifications") continue;
-    const sectionAttributes = extractBalluffAttributesFromTokens(section.tokens, sourceUrl, `Balluff ${section.name}`).filter((attr) =>
-      section.name === "Classifications" ? isBalluffClassificationAttribute(attr.name) : !isBalluffClassificationAttribute(attr.name)
-    );
+    if (section.name !== "Key features" && section.name !== "Classifications" && section.name !== "Digital Product Passport") continue;
+    const sectionAttributes = extractBalluffAttributesFromTokens(section.tokens, sourceUrl, `Balluff ${section.name}`).filter((attr) => {
+      if (section.name === "Classifications") return isBalluffClassificationAttribute(attr.name);
+      if (section.name === "Digital Product Passport") return !isBalluffClassificationAttribute(attr.name);
+      return !isBalluffClassificationAttribute(attr.name);
+    });
     attributes.push(...sectionAttributes);
   }
 
@@ -1273,6 +1562,43 @@ function extractBalluffSectionAttributes(html: string, sourceUrl: string): Attri
     attributes.push(...extractBalluffAttributesFromTokens(tokens, sourceUrl, "Balluff Detail Sections"));
   }
 
+  return dedupeAttributes(attributes);
+}
+
+const BALLUFF_DPP_LABEL_PATTERNS: Array<{ label: string; pattern: RegExp }> = [
+  { label: "Weight", pattern: /(?:^|[>\s;, ])(?:Weight|Gewicht|Peso|Te[zž]ina)[\s:>]*([\d.,]+\s*(?:kg|g|lb|lbs|oz))(?=$|[<\s;,])/i },
+  { label: "Tariff Code", pattern: /(?:^|[>\s;, ])(?:Tariff Code|Taric Code|Taric-Code|HS Code|Zolltarifnummer)[\s:>]*([\d. ]{6,15})(?=$|[<\s;,])/i },
+  { label: "Country of origin", pattern: /(?:^|[>\s;, ])(?:Country of origin|Herkunftsland)[\s:>]*([A-Za-z][A-Za-z .]{1,40})(?=$|[<;,])/i },
+  { label: "Manufacturer", pattern: /(?:^|[>\s;, ])(?:Manufacturer|Hersteller)[\s:>]*(Balluff[^<;]{0,80})(?=$|[<;,])/i },
+  { label: "Product carbon footprint", pattern: /(?:^|[>\s;, ])(?:Product carbon footprint|PCF|CO2[- ]Fu[ßs]abdruck)[\s:>]*([^<;]{2,80})(?=$|[<;,])/i },
+  { label: "Battery regulation", pattern: /(?:^|[>\s;, ])(?:Battery regulation|Batterieverordnung)[\s:>]*([^<;]{2,80})(?=$|[<;,])/i },
+  { label: "Substances of concern", pattern: /(?:^|[>\s;, ])(?:Substances of concern|Besorgniserregende Stoffe)[\s:>]*([^<;]{2,200})(?=$|[<;,])/i },
+  { label: "Disposal instructions", pattern: /(?:^|[>\s;, ])(?:Disposal instructions|Entsorgungshinweise)[\s:>]*([^<;]{2,200})(?=$|[<;,])/i }
+];
+
+function extractBalluffDigitalProductPassportFallback(html: string, sourceUrl: string): AttributeRecord[] {
+  const attributes: AttributeRecord[] = [];
+  const stripped = html
+    .replace(/<script[\s\S]*?<\/script>/gi, " ")
+    .replace(/<style[\s\S]*?<\/style>/gi, " ")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&quot;/gi, '"')
+    .replace(/&#(?:039|x27);/gi, "'")
+    .replace(/\s+/g, " ");
+  for (const { label, pattern } of BALLUFF_DPP_LABEL_PATTERNS) {
+    const match = stripped.match(pattern);
+    if (!match) continue;
+    const value = cleanText(match[1]);
+    if (!value) continue;
+    attributes.push({
+      group: "Balluff Digital Product Passport",
+      name: label,
+      value,
+      sourceUrl
+    });
+  }
   return dedupeAttributes(attributes);
 }
 
@@ -1389,7 +1715,13 @@ function isBalluffClassificationAttribute(name: string): boolean {
 }
 
 function balluffTextTokens(html: string): string[] {
+  // Strip <script> and <style> blocks first — otherwise inline JS leaks into the token stream
+  // and the spec extractor picks up garbage like "Function: dispatchEvent(...)" as DPP fields.
   const decoded = html
+    .replace(/<script[\s\S]*?<\/script>/gi, " ")
+    .replace(/<style[\s\S]*?<\/style>/gi, " ")
+    .replace(/<noscript[\s\S]*?<\/noscript>/gi, " ")
+    .replace(/<!--[\s\S]*?-->/g, " ")
     .replace(/\\u002f/gi, "/")
     .replace(/\\u0026/gi, "&")
     .replace(/\\\//g, "/")
@@ -1405,7 +1737,21 @@ function balluffTextTokens(html: string): string[] {
     .split("|")
     .map((token) => cleanText(token))
     .filter((token) => token && token.length < 500)
-    .filter((token) => !/^(show more|show less|download|add to cart|login|search|home|play)$/i.test(token));
+    .filter((token) => !/^(show more|show less|download|add to cart|login|search|home|play)$/i.test(token))
+    .filter((token) => !looksLikeBalluffScriptContent(token));
+}
+
+function looksLikeBalluffScriptContent(token: string): boolean {
+  if (token.length < 12) return false;
+  // Common signatures of inline JS / Alpine handlers / tracker snippets that occasionally
+  // survive token splitting (anonymous functions, Alpine.js x-data init, Matomo/HubSpot, etc).
+  return (
+    /\b(?:function|var|const|let|return|new (?:Event|UET|CustomEvent)|dispatchEvent|document\.|window\.|setTimeout|setInterval|addEventListener|parentNode|getElementsByTagName|createElement|readyState)\b/.test(token) ||
+    /[{};]\s*(?:var|function|const|let)\b/.test(token) ||
+    /=>\s*[{(]/.test(token) ||
+    /\bx-(?:on|bind|data|show|transition|init|model):/.test(token) ||
+    /\$dispatch\(/.test(token)
+  );
 }
 
 function splitBalluffLabelToken(token: string): { label: string; value?: string } | undefined {
@@ -1504,9 +1850,15 @@ function stripBalluffInlineNestedLabels(label: string, value: string): string {
   let earliestNestedLabel = -1;
   for (const knownLabel of [...BALLUFF_SPEC_LABELS].sort((left, right) => right.length - left.length)) {
     if (balluffLabelKey(knownLabel) === labelKey) continue;
-    const match = new RegExp(`(?:^|[,;]\\s*)${escapeRegExp(knownLabel)}\\s*:`, "i").exec(value);
-    if (!match || match.index === 0) continue;
-    earliestNestedLabel = earliestNestedLabel < 0 ? match.index : Math.min(earliestNestedLabel, match.index);
+    // Match either "; Label:" (colon-delimited inline value) or "; Label;" (concatenated rows
+    // from a parent grid being read as one DOM node). Both patterns mean the value has crossed
+    // into a different row's territory and should be truncated.
+    const matchColon = new RegExp(`(?:[,;]\\s*)${escapeRegExp(knownLabel)}\\s*:`, "i").exec(value);
+    const matchSemi = new RegExp(`(?:[,;]\\s*)${escapeRegExp(knownLabel)}\\s*[;,]`, "i").exec(value);
+    const matches = [matchColon, matchSemi].filter((m): m is RegExpExecArray => Boolean(m && m.index > 0));
+    for (const match of matches) {
+      earliestNestedLabel = earliestNestedLabel < 0 ? match.index : Math.min(earliestNestedLabel, match.index);
+    }
   }
   return earliestNestedLabel > 0 ? cleanText(value.slice(0, earliestNestedLabel).replace(/[;,]\s*$/g, "")) : value;
 }
@@ -1522,6 +1874,8 @@ function isBadBalluffValue(label: string, value: string): boolean {
   if (balluffLabelKey(cleaned) === balluffLabelKey(label)) return true;
   if (/^(show more|show less|downloads?|classifications?|knowledge base articles?|videos?|play)$/i.test(cleaned)) return true;
   if (/[{}]|var\(--|@media|display\s*:|calc\(/i.test(cleaned)) return true;
+  // Reject obvious JavaScript / Alpine.js / tracker snippets that occasionally survive token splits.
+  if (looksLikeBalluffScriptContent(cleaned)) return true;
   return false;
 }
 
@@ -1680,8 +2034,12 @@ function absoluteBalluffUrl(value: string | undefined, baseUrl: string): string 
     .replace(/\\\//g, "/")
     .trim();
   if (!cleaned || /^(?:null|undefined)$/i.test(cleaned)) return undefined;
+  // Reject JS template literal markers and pipes. Spaces are valid in some Balluff CAD
+  // part query values, so encode them instead of dropping the document.
+  if (/[|{}$`]|Unknown/.test(cleaned)) return undefined;
+  const encodedWhitespace = cleaned.replace(/\s+/g, "%20");
   try {
-    return new URL(cleaned, baseUrl).toString();
+    return new URL(encodedWhitespace, baseUrl).toString();
   } catch {
     return undefined;
   }
@@ -1720,7 +2078,13 @@ function decodeHtmlAttribute(value: string): string {
 }
 
 function isBalluffDocumentUrl(url: string): boolean {
-  return /publications\.balluff\.com\/pdfengine\/pdf/i.test(url) || /partcommunity\.com/i.test(url) || /eprel\.ec\.europa\.eu/i.test(url);
+  return (
+    /publications\.balluff\.com/i.test(url) ||
+    /partcommunity\.com/i.test(url) ||
+    /eprel\.ec\.europa\.eu/i.test(url) ||
+    /assets\.balluff\.com.*\.(?:pdf|zip|stp|step|dwg|dxf|igs|iges)\b/i.test(url) ||
+    /balluff\.com.*\/(?:download|documents?|media)\//i.test(url)
+  );
 }
 
 function documentFromUrl(url: string, label: string, sourceUrl: string): DocumentRecord {
@@ -1803,7 +2167,13 @@ function isBalluffKnowledgeBaseUrl(url: string): boolean {
   try {
     const parsed = new URL(url);
     if (!/balluff\.com(?:\.cn)?$/i.test(parsed.hostname)) return false;
-    return /\/(?:knowledge-base|knowledge|news|stories|blog|service\/knowledge|support\/knowledge|articles?)\b/i.test(parsed.pathname);
+    // Match specific article-like paths (FAQ/document IDs, /news/, /stories/, etc.) — NOT generic
+    // marketing landing pages (e.g. /application-examples-and-solutions, /company-profile).
+    return (
+      /\/document\/(?:faq|kb|article)-?\d+/i.test(parsed.pathname) ||
+      /\/(?:knowledge-base|knowledge|stories|blog|service\/knowledge|support\/knowledge|insights)\/[^/]+/i.test(parsed.pathname) ||
+      /\/news\/[^/]+/i.test(parsed.pathname)
+    );
   } catch {
     return false;
   }
@@ -1843,11 +2213,22 @@ function extractEmbeddedDocumentUrls(html: string, baseUrl: string): string[] {
     /"(?:datasheet|measurementUrl|eolaUrl|mttfCertificateUrl|materialComplianceDeclarationUrl|weeePdfUrl|cadLink|caeLink|multiCaeLink|onlineManualUrl|bupUrl|multidownloadUrl)"\s*:\s*"([^"]+)"/gi
   );
   for (const match of keyedUrls) {
-    if (match[1] && isBalluffDocumentUrl(match[1])) urls.add(match[1]);
+    // Drop anything that contains JS template literal junk, pipes, or whitespace —
+    // Reject template junk in absoluteBalluffUrl, but encode spaces in Balluff CAD part query values.
+    const url = absoluteBalluffUrl(match[1], baseUrl);
+    if (url && isBalluffDocumentUrl(url)) urls.add(url);
   }
-  const inlineUrls = decoded.match(/https?:\/\/(?:publications\.balluff\.com\/pdfengine\/pdf)[^"'<\s]+/gi) ?? [];
+  const inlineUrls = decoded.match(/https?:\/\/(?:publications\.balluff\.com\/pdfengine\/pdf)[^"'<>\s|{}$`]+/gi) ?? [];
   for (const url of inlineUrls) urls.add(url);
-  return [...urls].map((url) => new URL(url, baseUrl).toString());
+  // Also pick up partcommunity CAD viewer URLs and any direct PDF/CAD asset hosted on Balluff's own CDN.
+  const cadUrls = decoded.match(/https?:\/\/(?:webapi\.partcommunity\.com|b2b\.partcommunity\.com|www\.partcommunity\.com)[^"'<>\s|{}$`]+/gi) ?? [];
+  for (const url of cadUrls) urls.add(url);
+  const assetUrls = decoded.match(/https?:\/\/assets\.balluff\.com[^"'<>\s|{}$`]+\.(?:pdf|zip|stp|step|dwg|dxf|igs|iges)/gi) ?? [];
+  for (const url of assetUrls) urls.add(url);
+  // Sanitize: strip trailing punctuation that doesn't belong in a URL.
+  return [...urls]
+    .map((url) => url.replace(/[)\]}>,;:.!?]+$/, ""))
+    .map((url) => new URL(url, baseUrl).toString());
 }
 
 function escapeRegExp(value: string): string {

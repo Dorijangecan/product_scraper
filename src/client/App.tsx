@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import type { DragEvent } from "react";
 import {
   Activity,
   AlertCircle,
@@ -50,6 +51,7 @@ import {
   getRunItem,
   inspectManufacturer,
   listRuns,
+  openRunOutputFolder,
   openRunWorkbook,
   previewCsv,
   resetManufacturerOverride,
@@ -135,6 +137,7 @@ export function App() {
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<CsvPreview | null>(null);
   const [columnName, setColumnName] = useState("");
+  const [uploadDragActive, setUploadDragActive] = useState(false);
   const [runs, setRuns] = useState<RunRecord[]>([]);
   const [selectedRunId, setSelectedRunId] = useState<string | null>(null);
   const [selectedRun, setSelectedRun] = useState<RunRecord | null>(null);
@@ -142,6 +145,7 @@ export function App() {
   const [busy, setBusy] = useState(false);
   const [cancelBusy, setCancelBusy] = useState(false);
   const [openWorkbookBusy, setOpenWorkbookBusy] = useState(false);
+  const [openOutputFolderBusy, setOpenOutputFolderBusy] = useState(false);
   const [manufacturerEditorOpen, setManufacturerEditorOpen] = useState(false);
   const [manufacturerDraft, setManufacturerDraft] = useState<ManufacturerDraft>(() => emptyManufacturerDraft());
   const [manufacturerSaveBusy, setManufacturerSaveBusy] = useState(false);
@@ -160,6 +164,7 @@ export function App() {
   const [runItemPage, setRunItemPage] = useState(1);
   const [historyExpanded, setHistoryExpanded] = useState(false);
   const [downloadDocuments, setDownloadDocuments] = useState(false);
+  const [forceFinalRetry, setForceFinalRetry] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [nowMs, setNowMs] = useState(() => Date.now());
 
@@ -269,12 +274,43 @@ export function App() {
     }
   }
 
+  function hasDraggedFiles(event: DragEvent<HTMLElement>) {
+    return Array.from(event.dataTransfer.types).includes("Files");
+  }
+
+  function handleUploadDragEnter(event: DragEvent<HTMLLabelElement>) {
+    if (!hasDraggedFiles(event)) return;
+    event.preventDefault();
+    event.dataTransfer.dropEffect = "copy";
+    setUploadDragActive(true);
+  }
+
+  function handleUploadDragOver(event: DragEvent<HTMLLabelElement>) {
+    if (!hasDraggedFiles(event)) return;
+    event.preventDefault();
+    event.dataTransfer.dropEffect = "copy";
+    setUploadDragActive(true);
+  }
+
+  function handleUploadDragLeave(event: DragEvent<HTMLLabelElement>) {
+    const nextTarget = event.relatedTarget;
+    if (nextTarget instanceof Node && event.currentTarget.contains(nextTarget)) return;
+    setUploadDragActive(false);
+  }
+
+  function handleUploadDrop(event: DragEvent<HTMLLabelElement>) {
+    if (!hasDraggedFiles(event)) return;
+    event.preventDefault();
+    setUploadDragActive(false);
+    void handleFile(event.dataTransfer.files?.[0] ?? null);
+  }
+
   async function handleStart() {
     if (!file || !columnName) return;
     setBusy(true);
     setError(null);
     try {
-      const run = await startRun({ file, manufacturerId, columnName, downloadDocuments });
+      const run = await startRun({ file, manufacturerId, columnName, downloadDocuments, forceFinalRetry });
       setSelectedRunId(run.id);
       await refreshRuns();
       await refreshSelectedRun(run.id);
@@ -312,6 +348,19 @@ export function App() {
       window.location.href = `/api/runs/${selectedRun.id}/files/result`;
     } finally {
       setOpenWorkbookBusy(false);
+    }
+  }
+
+  async function handleOpenOutputFolder() {
+    if (!selectedRun) return;
+    setOpenOutputFolderBusy(true);
+    setError(null);
+    try {
+      await openRunOutputFolder(selectedRun.id);
+    } catch (err) {
+      setError(errorMessage(err));
+    } finally {
+      setOpenOutputFolderBusy(false);
     }
   }
 
@@ -631,7 +680,13 @@ export function App() {
             </button>
           </div>
 
-          <label className="upload-zone">
+          <label
+            className={`upload-zone${uploadDragActive ? " is-dragging" : ""}`}
+            onDragEnter={handleUploadDragEnter}
+            onDragOver={handleUploadDragOver}
+            onDragLeave={handleUploadDragLeave}
+            onDrop={handleUploadDrop}
+          >
             <span className="upload-icon">
               <Upload size={25} />
             </span>
@@ -686,6 +741,22 @@ export function App() {
             </span>
           </label>
 
+          <label className="run-option-card">
+            <input
+              type="checkbox"
+              checked={forceFinalRetry}
+              onChange={(event) => setForceFinalRetry(event.target.checked)}
+            />
+            <span>
+              <strong>Force final retry</strong>
+              <small>
+                Re-attempts the final network retry for catalog numbers that were previously
+                confirmed as having no published value (weight, dimensions, material). Slower —
+                use only when you suspect the source has been updated.
+              </small>
+            </span>
+          </label>
+
           <button className="primary-action" disabled={!readyToRun || busy} onClick={() => void handleStart()}>
             {busy ? <Loader2 className="spin" size={18} /> : <Play size={18} />}
             {busy ? "Preparing run" : "Start scrape"}
@@ -713,6 +784,12 @@ export function App() {
                 <button type="button" className="download-button" onClick={() => void handleOpenWorkbook()} disabled={openWorkbookBusy}>
                   {openWorkbookBusy ? <Loader2 className="spin" size={16} /> : <Download size={16} />}
                   {openWorkbookBusy ? "Opening" : "Excel"}
+                </button>
+              )}
+              {hasWorkbook && (
+                <button type="button" className="download-button secondary" onClick={() => void handleOpenOutputFolder()} disabled={openOutputFolderBusy}>
+                  {openOutputFolderBusy ? <Loader2 className="spin" size={16} /> : <FolderOpen size={16} />}
+                  {openOutputFolderBusy ? "Opening" : "Folder"}
                 </button>
               )}
               {selectedRun && !["queued", "running", "cancelling"].includes(selectedRun.status) && (
@@ -1001,6 +1078,9 @@ export function App() {
                 <strong>{selectedRun.status === "cancelled" ? "Partial workbook ready" : "Workbook ready"}</strong>
                 <button type="button" className="text-link-button" onClick={() => void handleOpenWorkbook()} disabled={openWorkbookBusy}>
                   Open result XLSX
+                </button>
+                <button type="button" className="text-link-button" onClick={() => void handleOpenOutputFolder()} disabled={openOutputFolderBusy}>
+                  Open output folder
                 </button>
                 <a href={`/api/runs/${selectedRun.id}/files/log`}>Download run log</a>
               </div>

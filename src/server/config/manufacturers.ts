@@ -22,6 +22,7 @@ const builtInManufacturerConfigs: Record<string, ManufacturerConfig> = {
     canonicalName: "ABB",
     shortName: "ABB",
     rateLimitMs: 1500,
+    concurrency: 4,
     officialBaseUrls: ["https://new.abb.com/products", "https://new.abb.com/smartlinks"],
     localizedUrlTemplates: [
       { locale: "en", urlTemplate: "https://new.abb.com/smartlinks/en?ProductId={part}&Language=en&PrintPreview=False&pid={part}" },
@@ -101,6 +102,8 @@ const builtInManufacturerConfigs: Record<string, ManufacturerConfig> = {
     canonicalName: "Balluff",
     shortName: "BAL",
     rateLimitMs: 1200,
+    // Balluff uses Playwright for expanded sections which is RAM/CPU heavy; keep concurrency modest.
+    concurrency: 2,
     officialBaseUrls: ["https://www.balluff.com/en-gb/products"],
     localizedUrlTemplates: [
       { locale: "en", urlTemplate: "https://www.balluff.com/en-gb/products/{part}" },
@@ -756,6 +759,7 @@ function sanitizeManufacturerConfig(input: unknown): ManufacturerConfig | undefi
   const canonicalName = clean(String(record.canonicalName ?? ""));
   const shortName = clean(String(record.shortName ?? "")).toUpperCase();
   const rateLimitMs = clampInteger(Number(record.rateLimitMs ?? 1500), 250, 10000);
+  const concurrency = record.concurrency !== undefined ? clampInteger(Number(record.concurrency), 1, 8) : undefined;
   const officialBaseUrls = sanitizeStringList(record.officialBaseUrls);
   const localizedUrlTemplates = sanitizeLocalizedUrlTemplates(record.localizedUrlTemplates);
   const fallbackSources = sanitizeFallbackSources(record.fallbackSources, id);
@@ -770,6 +774,7 @@ function sanitizeManufacturerConfig(input: unknown): ManufacturerConfig | undefi
     canonicalName,
     shortName,
     rateLimitMs,
+    ...(concurrency !== undefined ? { concurrency } : {}),
     officialBaseUrls,
     fallbackSources,
     ...(localizedUrlTemplates.length ? { localizedUrlTemplates } : {}),

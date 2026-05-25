@@ -82,6 +82,12 @@ export function findRunLogPath(outputRoot: string, manufacturer: ManufacturerCon
   return candidates.find((candidate) => isPathInsideAny(candidate, getAllowedRunOutputRoots(outputRoot, manufacturer, run)));
 }
 
+export function runRootFromOutputPath(outputPath: string | undefined): string | undefined {
+  if (!outputPath) return undefined;
+  const parent = path.dirname(outputPath);
+  return path.basename(parent).toLowerCase() === "excel" ? path.dirname(parent) : parent;
+}
+
 function isPathInsideRoot(candidatePath: string, rootPath: string): boolean {
   const relative = path.relative(path.resolve(rootPath), path.resolve(candidatePath));
   return relative === "" || Boolean(relative && !relative.startsWith("..") && !path.isAbsolute(relative));
@@ -114,12 +120,6 @@ function datePart(value: string): string {
     return `${runIdStamp[0]}-${runIdStamp[1]}-${runIdStamp[2]}_${runIdStamp[3]}-${runIdStamp[4]}-${runIdStamp[5]}`;
   }
   return "undated";
-}
-
-function runRootFromOutputPath(outputPath: string | undefined): string | undefined {
-  if (!outputPath) return undefined;
-  const parent = path.dirname(outputPath);
-  return path.basename(parent).toLowerCase() === "excel" ? path.dirname(parent) : parent;
 }
 
 function safeOutputPart(value: string, fallback = "unknown", maxLength = 80): string {

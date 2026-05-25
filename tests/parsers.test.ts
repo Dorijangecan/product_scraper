@@ -713,6 +713,52 @@ describe("manufacturer parsers", () => {
     expect(result.documents.some((doc) => doc.type === "image" && doc.url.includes("assets.balluff.com"))).toBe(true);
   });
 
+  it("keeps one Balluff product image with fallback candidates", () => {
+    const html = `
+      <html><head>
+        <link rel="canonical" href="https://www.balluff.com/en-us/products/BCC039H" />
+        <meta property="og:image" content="https://assets.balluff.com/thumbnails/50644_01_P_01_bk_bk_bk.png" />
+        <script type="application/ld+json">
+          {"@context":"https://schema.org","@type":"Product","name":"BCC039H","sku":"BCC039H","mpn":"BCC039H","image":"https://assets.balluff.com/webp_1000x1000/50644_01_P_01_bk_bk_bk.webp"}
+        </script>
+      </head><body>
+        <h1>BCC039H</h1>
+        <img src="https://assets.balluff.com/png_1000x1000/50644_02_P_01_bk_bk_bk.png" />
+        <img src="https://assets.balluff.com/thumbnails/50644_03_P_01_bk_bk_bk.png" />
+      </body></html>
+    `;
+    const result = parseBalluffProductPage("BCC039H", fetched(html, "https://www.balluff.com/en-us/products/BCC039H"));
+    const images = result.documents.filter((doc) => doc.type === "image");
+    expect(images).toHaveLength(1);
+    expect(images[0].url).toContain("/product_view_cropped/");
+    expect(images[0].candidateUrls?.length).toBeGreaterThan(1);
+  });
+
+  it("accepts known Balluff product-code aliases and configured BDG family pages", () => {
+    const btlHtml = `
+      <html><head>
+        <link rel="canonical" href="https://www.balluff.com/en-gb/products/BTL4E6W" />
+        <script type="application/ld+json">
+          {"@context":"https://schema.org","@type":"Product","name":"BTL4E6W","sku":"BTL4E6W","mpn":"BTL4E6W"}
+        </script>
+      </head><body><h1>BTL4E6W</h1><div>BTL5-H114-M0229-J-DEXC-TA12</div></body></html>
+    `;
+    expect(parseBalluffProductPage("BTL4W6A", fetched(btlHtml, "https://www.balluff.com/en-gb/products/BTL4E6W")).status).toBe("found");
+
+    const bdgHtml = `
+      <html><head>
+        <link rel="canonical" href="https://www.balluff.com/en-gb/products/MP11418306" />
+        <script type="application/ld+json">
+          {"@context":"https://schema.org","@type":"Product","name":"BDG - FXX58-BC Series - SSI","sku":"MP11418306","mpn":"MP11418306"}
+        </script>
+      </head><body>
+        <h1>BDG - FXX58-BC Series - SSI</h1>
+        <div>BDG04LM BDG FB058-BCR6-DSRB2-1417-0000-S8R1</div>
+      </body></html>
+    `;
+    expect(parseBalluffProductPage("BDG FB058-BCR6-DSRB2-1417-0000-S8R1", fetched(bdgHtml, "https://www.balluff.com/en-gb/products/MP11418306")).status).toBe("found");
+  });
+
   it("canonicalizes ugly Balluff configurator URLs", () => {
     const html = `
       <html><head>

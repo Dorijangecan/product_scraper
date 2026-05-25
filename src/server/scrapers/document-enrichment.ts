@@ -257,7 +257,7 @@ function parseTabbedPair(rawLine: string): { name: string; value: string } | und
     .filter(Boolean);
   if (cells.length < 2) return undefined;
   const name = cells[0];
-  const value = cells.slice(1).join(" | ");
+  const value = joinUniquePipeCells(cells.slice(1));
   if (!isLikelyAttributeName(name) || !value) return undefined;
   return { name, value };
 }
@@ -269,10 +269,24 @@ function parseSpacedTablePair(rawLine: string): { name: string; value: string } 
     .filter(Boolean);
   if (cells.length < 2) return undefined;
   const [name, ...values] = cells;
-  const value = values.join(" | ");
+  const value = joinUniquePipeCells(values);
   if (!isLikelyAttributeName(name) || !value || /^[-–—]+$/.test(value)) return undefined;
   if (!/[a-z]/i.test(name) || value.length > 300) return undefined;
   return { name, value };
+}
+
+function joinUniquePipeCells(cells: string[]): string {
+  const seen = new Set<string>();
+  const unique: string[] = [];
+  for (const cell of cells) {
+    const trimmed = cleanText(cell);
+    if (!trimmed) continue;
+    const key = trimmed.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    unique.push(trimmed);
+  }
+  return unique.join(" | ");
 }
 
 function parseKnownInlinePair(line: string): { name: string; value: string } | undefined {

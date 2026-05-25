@@ -8,6 +8,8 @@ export interface ManufacturerConfig {
   canonicalName: string;
   shortName: string;
   rateLimitMs: number;
+  /** Concurrent items to process from this manufacturer. Defaults to 3. Set to 1 for strict-throttled sites. */
+  concurrency?: number;
   officialBaseUrls: string[];
   fallbackSources: FallbackSourceConfig[];
   localizedUrlTemplates?: LocalizedUrlTemplate[];
@@ -400,6 +402,12 @@ export interface RunRecord {
 
 export interface RunOptions {
   downloadDocuments?: boolean;
+  /**
+   * When true, ignore the persisted "exhausted fields" cache and re-attempt the final
+   * network retry for every item even if a prior run determined the field is unpublished.
+   * Default false: skip retry for catalog numbers previously confirmed empty.
+   */
+  forceFinalRetry?: boolean;
 }
 
 export type RunCoverageField =

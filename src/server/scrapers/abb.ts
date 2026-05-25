@@ -18,39 +18,355 @@ export class ABBConnector implements ManufacturerConnector {
     const officialResults: ProductResult[] = [];
     let lastError: unknown;
 
+    let lastAemFetch: FetchedText | undefined;
     for (const url of urls) {
       try {
         const fetched = await fetchAbbPage(url, context);
-        officialResults.push(parseAbbProductPage(catalogNumber, fetched, context.manufacturer.markerRules));
+        const parsed = parseAbbProductPage(catalogNumber, fetched, context.manufacturer.markerRules);
+        officialResults.push(parsed);
+        // Remember the page body that looked like an AEM-CMS product page so we can enrich it
+        // afterwards by hitting the ds.library.abb.com widget API the page would call client-side.
+        if (isAemAbbPage(fetched.text) && !lastAemFetch) lastAemFetch = fetched;
       } catch (error) {
         lastError = error;
       }
     }
 
     const directPrimary = bestAbbResult(officialResults);
-    if (directPrimary && isRichAbbResult(directPrimary)) return directPrimary;
-
+    // For AEM-style pages (PLCs, drives, robotics), the English /products/{id} URL serves a thin
+    // AEM page and the full PIS data is only available under /products/{locale}/{id}/{slug}.
+    // Always run the search resolution so we pick up that PIS data, even when directPrimary parses ok.
     const searchPrimary = bestAbbResult(await fetchAbbSearchResults(catalogNumber, context));
-    if (searchPrimary) return directPrimary && directPrimary.status !== "failed" ? mergeResults(searchPrimary, directPrimary) : searchPrimary;
+
+    // AEM enrichment via ABB Library widget API — always runs when we detected an AEM page so the
+    // English document list is captured even if PIS data was found in a non-English locale.
+    let aemEnriched: ProductResult | undefined;
+    if (lastAemFetch) {
+      aemEnriched = await enrichFromAbbLibraryApi(catalogNumber, lastAemFetch, context);
+    }
+
+    const merged = mergeAbbResults(directPrimary, searchPrimary, aemEnriched);
+    if (merged && isRichAbbResult(merged)) return merged;
+    if (merged && merged.status !== "failed") return merged;
 
     const primary =
+      merged ??
       directPrimary ??
       officialResults.find((result) => result.status === "partial") ??
       officialResults[0] ??
       emptyResult("abb", catalogNumber, lastError instanceof Error ? lastError.message : "ABB fetch failed.");
 
-    if (primary.status === "found") return primary;
+    if (primary.status === "found" && primary.documents.length > 0) return primary;
+    const enriched = primary;
 
     try {
       const fallback = await context.fallback.scrape(catalogNumber, context.manufacturer.fallbackSources);
-      return mergeResults(primary, fallback);
+      return mergeResults(enriched, fallback);
     } catch (error) {
       return {
-        ...primary,
-        error: primary.error ?? (error instanceof Error ? error.message : "ABB fallback failed.")
+        ...enriched,
+        error: enriched.error ?? (error instanceof Error ? error.message : "ABB fallback failed.")
       };
     }
   }
+}
+
+function mergeAbbResults(...candidates: Array<ProductResult | undefined>): ProductResult | undefined {
+  const usable = candidates.filter((c): c is ProductResult => Boolean(c) && c!.status !== "failed");
+  if (!usable.length) return undefined;
+  // Pick the most informative as the base, then merge the rest on top.
+  usable.sort((a, b) => abbResultScore(b) - abbResultScore(a));
+  let merged = usable[0];
+  for (const next of usable.slice(1)) merged = mergeResults(merged, next);
+  return merged;
+}
+
+function isAemAbbPage(html: string): boolean {
+  // AEM-CMS ABB product pages don't ship `var model =` but DO load the abbDownloadSection widget
+  // pointing at ds.library.abb.com. They also contain the `pisproductdetails` placeholder div
+  // that's populated client-side.
+  return !/\bvar\s+model\s*=/.test(html) && /abbDownloadSection\s*\(/i.test(html);
+}
+
+async function enrichFromAbbLibraryApi(
+  catalogNumber: string,
+  fetched: FetchedText,
+  context: ScrapeContext
+): Promise<ProductResult | undefined> {
+  const widgetConfig = parseAbbWidgetConfig(fetched.text);
+  if (!widgetConfig?.cid || !widgetConfig.productId) return undefined;
+  const params = new URLSearchParams({
+    categoryIds: widgetConfig.cid,
+    languageCode: widgetConfig.languageCode || "en",
+    countryCode: widgetConfig.countryCode || "*",
+    clientCode: widgetConfig.clientCode || "aotaem",
+    includeDocumentsFromSubcategories: "true",
+    source: widgetConfig.applicationCode || "sf",
+    productIds: widgetConfig.productId,
+    productIdDomains: widgetConfig.productIdDomain || "*",
+    pageNumber: "1",
+    pageSize: "200"
+  });
+  const listUrl = `https://ds.library.abb.com/api/downloadsection/documents/public/list/${encodeURIComponent(widgetConfig.countryCode || "*")}/${encodeURIComponent(widgetConfig.languageCode || "en")}/c?${params.toString()}`;
+  const synopsisUrl = `https://ds.library.abb.com/api/downloadsection/documents/public/synopsis/${encodeURIComponent(widgetConfig.countryCode || "*")}/${encodeURIComponent(widgetConfig.languageCode || "en")}/c?${params.toString()}`;
+
+  let documentList: AbbLibraryDocGroup[] = [];
+  let synopsis: AbbLibrarySynopsis | undefined;
+  try {
+    const listFetched = await context.http.fetchText(listUrl, {
+      timeoutMs: 25000,
+      signal: context.signal,
+      maxAttempts: 2,
+      headers: { accept: "application/json", referer: fetched.effectiveUrl, origin: "https://new.abb.com" }
+    });
+    if (listFetched.statusCode < 400) {
+      documentList = JSON.parse(listFetched.text) as AbbLibraryDocGroup[];
+    }
+  } catch {
+    // Fall through with empty doc list — synopsis may still work.
+  }
+  try {
+    const synopsisFetched = await context.http.fetchText(synopsisUrl, {
+      timeoutMs: 25000,
+      signal: context.signal,
+      maxAttempts: 2,
+      headers: { accept: "application/json", referer: fetched.effectiveUrl, origin: "https://new.abb.com" }
+    });
+    if (synopsisFetched.statusCode < 400) {
+      synopsis = JSON.parse(synopsisFetched.text) as AbbLibrarySynopsis;
+    }
+  } catch {
+    // No synopsis — that's fine, we'll still have docs.
+  }
+
+  const attributes = [...buildAbbLibraryAttributes(synopsis, fetched.effectiveUrl)];
+  const documents = [...buildAbbLibraryDocuments(documentList, fetched.effectiveUrl)];
+  if (!attributes.length && !documents.length) return undefined;
+
+  return {
+    manufacturerId: "abb",
+    catalogNumber,
+    status: "found",
+    confidence: 0.86,
+    productUrl: fetched.effectiveUrl,
+    localizedUrls: buildLocalizedProductUrls("abb", catalogNumber, fetched.effectiveUrl),
+    title: "",
+    description: "",
+    normalized: normalizeFields(attributes, documents),
+    attributes,
+    documents,
+    sources: [
+      {
+        url: listUrl,
+        sourceType: "official",
+        parser: "abb-aem-library-api",
+        parserVersion: "abb-v2",
+        fetchedAt: new Date().toISOString(),
+        statusCode: 200
+      }
+    ]
+  };
+}
+
+interface AbbWidgetConfig {
+  cid?: string;
+  productId?: string;
+  productIdDomain?: string;
+  clientCode?: string;
+  languageCode?: string;
+  countryCode?: string;
+  applicationCode?: string;
+}
+
+function parseAbbWidgetConfig(html: string): AbbWidgetConfig | undefined {
+  const block = html.match(/abbDownloadSection\(\s*(\{[\s\S]*?\})\s*\)/);
+  if (!block) return undefined;
+  const config: AbbWidgetConfig = {};
+  for (const [key, prop] of [
+    ["cid", "cid"],
+    ["productId", "productId"],
+    ["productIdDomain", "productIdDomain"],
+    ["clientCode", "clientCode"],
+    ["languageCode", "languageCode"],
+    ["countryCode", "countryCode"],
+    ["applicationCode", "applicationCode"]
+  ] as const) {
+    const match = new RegExp(`["']${prop}["']\\s*:\\s*["']([^"']*)["']`, "i").exec(block[1]);
+    if (match && match[1]) config[key] = match[1];
+  }
+  // The widget initializes countryCode dynamically via window.aot. Default to "*" so the API
+  // returns documents for all regions.
+  if (!config.countryCode || config.countryCode === "global") config.countryCode = "*";
+  return config;
+}
+
+interface AbbLibraryDocument {
+  DocumentID?: string;
+  RevisionID?: string;
+  DocumentPartID?: string;
+  Title?: string;
+  DocumentLanguageTitle?: string;
+  Summary?: string;
+  TranslatedDocumentKind?: string;
+  RepresentationFileNameSuffix?: string;
+  LanguageCode?: string[];
+  Language?: string[];
+  NormalizedSecurityLevels?: string[];
+  Level0Names?: string[];
+}
+
+interface AbbLibraryDocGroup {
+  Key?: string;
+  Value?: AbbLibraryDocument[];
+}
+
+interface AbbLibrarySynopsisCategory {
+  Title?: string;
+  ID?: string;
+  HitCount?: number;
+  SubCategories?: AbbLibrarySynopsisCategory[];
+}
+
+interface AbbLibrarySynopsis {
+  Countries?: Array<{ Code?: string; Name?: string; HitCount?: number }>;
+  Languages?: Array<{ Code?: string; Name?: string; HitCount?: number }>;
+  DocumentKinds?: Array<{ Key?: string; Value?: Array<{ Title?: string; HitCount?: number }> }>;
+  CategoriesProductsAndIndustries?: AbbLibrarySynopsisCategory[];
+  CurrentCategory?: { Title?: string; ID?: string };
+  NumberOfHitsInCurrentAllCategories?: number;
+}
+
+function buildAbbLibraryDocuments(groups: AbbLibraryDocGroup[], sourceUrl: string): DocumentRecord[] {
+  if (!Array.isArray(groups)) return [];
+  const documents: DocumentRecord[] = [];
+  const seen = new Set<string>();
+  for (const group of groups) {
+    const kind = cleanText(group.Key ?? "");
+    for (const doc of group.Value ?? []) {
+      const id = cleanText(doc.DocumentID ?? "");
+      if (!id) continue;
+      const title = cleanText(doc.Title ?? doc.DocumentLanguageTitle ?? "");
+      const language = doc.LanguageCode?.[0] ?? "en";
+      const url = abbLibraryDownloadUrlWithLang(id, language, doc.DocumentPartID ?? "");
+      const key = `${url}|${kind}`.toLowerCase();
+      if (seen.has(key)) continue;
+      seen.add(key);
+      documents.push({
+        type: classifyAbbLibraryDocument(kind, title, doc.RepresentationFileNameSuffix),
+        label: `${kind ? `${kind}: ` : ""}${title || id}`,
+        url,
+        sourceUrl,
+        sourceType: "official",
+        parser: "abb-aem-library-api",
+        confidence: 0.92,
+        meta: {
+          documentId: id,
+          revision: doc.RevisionID,
+          languages: doc.Language?.join(", "),
+          summary: doc.Summary?.slice(0, 500)
+        }
+      } as unknown as DocumentRecord);
+    }
+  }
+  return documents;
+}
+
+function abbLibraryDownloadUrlWithLang(documentId: string, languageCode: string, documentPartId: string): string {
+  const params = new URLSearchParams({
+    DocumentID: documentId,
+    LanguageCode: languageCode || "en",
+    DocumentPartId: documentPartId || "",
+    Action: "Launch"
+  });
+  return `https://search.abb.com/library/Download.aspx?${params.toString()}`;
+}
+
+function classifyAbbLibraryDocument(
+  kind: string,
+  title: string,
+  suffix: string | undefined
+): DocumentRecord["type"] {
+  const text = `${kind} ${title}`.toLowerCase();
+  if (/manual|instruction|hardware manual|software manual|operating|user guide/i.test(text)) return "manual";
+  if (/data sheet|datasheet|technical (?:data|information|note)|catalog|catalogue|brochure/i.test(text)) return "datasheet";
+  if (/certificate|declaration|conformity|rohs|reach|atex|csa|ul|vde|cmrt|tsca|weee|epd/i.test(text)) return "certificate";
+  if (/cad|drawing|dimension|3d model|step|dxf|dwg/i.test(text)) return "cad";
+  if (/software|firmware|driver|installer|setup/i.test(text)) return "other";
+  if (suffix && /^(?:stp|step|dxf|dwg|igs|iges)$/i.test(suffix)) return "cad";
+  if (suffix && /^(?:pdf|txt|html)$/i.test(suffix)) return "other";
+  return "other";
+}
+
+function buildAbbLibraryAttributes(synopsis: AbbLibrarySynopsis | undefined, sourceUrl: string): AttributeRecord[] {
+  if (!synopsis) return [];
+  const attributes: AttributeRecord[] = [];
+  // Category breadcrumb path (e.g. ABB Products > PLC Automation > AC500 > Accessories).
+  const path = collectAbbLibraryCategoryPath(synopsis.CategoriesProductsAndIndustries ?? []);
+  if (path.length > 0) {
+    attributes.push({
+      group: "ABB Product Classification",
+      name: "Library Category Path",
+      value: path.join(" > "),
+      sourceUrl,
+      sourceType: "official",
+      parser: "abb-aem-library-api",
+      confidence: 0.86
+    });
+  }
+  if (synopsis.CurrentCategory?.Title) {
+    attributes.push({
+      group: "ABB Product Classification",
+      name: "Library Category",
+      value: cleanText(synopsis.CurrentCategory.Title),
+      sourceUrl,
+      sourceType: "official",
+      parser: "abb-aem-library-api",
+      confidence: 0.86
+    });
+  }
+  // Available document kinds — a quick "what kinds of docs exist for this product".
+  for (const kindBucket of synopsis.DocumentKinds ?? []) {
+    for (const kind of kindBucket.Value ?? []) {
+      if (!kind.Title) continue;
+      attributes.push({
+        group: "ABB Library Documents",
+        name: `${cleanText(kindBucket.Key ?? "Kind")}: ${cleanText(kind.Title)}`,
+        value: `${kind.HitCount ?? 0} document(s)`,
+        sourceUrl,
+        sourceType: "official",
+        parser: "abb-aem-library-api",
+        confidence: 0.8
+      });
+    }
+  }
+  for (const lang of (synopsis.Languages ?? []).slice(0, 12)) {
+    if (!lang.Name) continue;
+    attributes.push({
+      group: "ABB Library Documents",
+      name: `Language available: ${cleanText(lang.Name)}`,
+      value: `${lang.HitCount ?? 0} document(s)`,
+      sourceUrl,
+      sourceType: "official",
+      parser: "abb-aem-library-api",
+      confidence: 0.7
+    });
+  }
+  return attributes;
+}
+
+function collectAbbLibraryCategoryPath(categories: AbbLibrarySynopsisCategory[]): string[] {
+  // The synopsis returns a deeply-nested tree of categories. Walk down the most-hit branch
+  // until we hit a leaf to produce a human-readable breadcrumb.
+  let current = categories;
+  const path: string[] = [];
+  while (current && current.length > 0) {
+    const best = current.reduce((winner, item) =>
+      !winner || (item.HitCount ?? 0) > (winner.HitCount ?? 0) ? item : winner
+    );
+    if (best.Title) path.push(cleanText(best.Title));
+    current = best.SubCategories ?? [];
+  }
+  return path;
 }
 
 function bestAbbResult(results: ProductResult[]): ProductResult | undefined {
@@ -71,20 +387,36 @@ function abbResultScore(result: ProductResult): number {
 }
 
 async function fetchAbbPage(url: string, context: ScrapeContext) {
-  try {
-    const fetched = await context.http.fetchText(url, {
-      timeoutMs: 25000,
-      signal: context.signal,
-      headers: { "user-agent": ABB_USER_AGENT }
-    });
-    if (fetched.statusCode < 400 && fetched.text.trim()) return fetched;
-  } catch {
-    // Fall through to PowerShell on Windows for sites that reject fetch.
+  // Try plain HTTP first (with retries — ABB occasionally returns HTTP/2 protocol errors
+  // or empty bodies under load, and a quick retry typically succeeds).
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    try {
+      const fetched = await context.http.fetchText(url, {
+        timeoutMs: 25000,
+        signal: context.signal,
+        headers: {
+          "user-agent": ABB_USER_AGENT,
+          accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+          "accept-language": "en-US,en;q=0.9"
+        },
+        maxAttempts: 1
+      });
+      if (fetched.statusCode < 400 && fetched.text.trim().length > 500) return fetched;
+    } catch {
+      // Fall through to PowerShell on Windows for sites that reject fetch.
+    }
+    if (attempt < 2) {
+      await sleep(800 * (attempt + 1));
+    }
   }
   if (process.platform === "win32") {
     return context.http.fetchTextViaPowerShell(url, { timeoutMs: 30000, signal: context.signal });
   }
   return context.http.fetchText(url, { timeoutMs: 25000, signal: context.signal });
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 function buildAbbOfficialUrls(catalogNumber: string): string[] {
@@ -134,12 +466,16 @@ async function buildAbbSearchProductUrls(catalogNumber: string, context: ScrapeC
   const urls: string[] = [];
   for (const item of parseAbbSearchItems(fetched.text, catalogNumber)) {
     const slug = abbProductSlug(item.alias ?? catalogNumber);
+    // Order matters: try the English-redirect locales first, then non-English locales as
+    // fallbacks. For AEM-style products, `/en/...` redirects to global/en (AEM page) but
+    // /pl/, /de/, /it/ still serve PIS data — so they're our richest source.
     urls.push(
-      `https://new.abb.com/products/pl/${encodeURIComponent(item.productId)}/${slug}`,
-      `https://new.abb.com/products/de/${encodeURIComponent(item.productId)}/${slug}`,
       `https://new.abb.com/products/${encodeURIComponent(item.productId)}/${slug}`,
       `https://new.abb.com/products/${encodeURIComponent(item.productId)}`,
-      `https://www.abb.com/global/en/products/${encodeURIComponent(item.productId.toLowerCase())}`
+      `https://www.abb.com/global/en/products/${encodeURIComponent(item.productId.toLowerCase())}`,
+      `https://new.abb.com/products/pl/${encodeURIComponent(item.productId)}/${slug}`,
+      `https://new.abb.com/products/de/${encodeURIComponent(item.productId)}/${slug}`,
+      `https://new.abb.com/products/it/${encodeURIComponent(item.productId)}/${slug}`
     );
   }
   return [...new Set(urls)].slice(0, 24);
@@ -234,6 +570,12 @@ export function parseAbbProductPage(catalogNumber: string, fetched: FetchedText,
   attributes.push(...embeddedAttributes);
   attributes.push(...extractAbbRelationshipAttributes(fetched.text, fetched.effectiveUrl));
   attributes.push(...extractAbbClassificationAttributes(fetched.text, fetched.effectiveUrl));
+  // AEM-style ABB pages (e.g. AC500 PLC, drives, robotics) don't ship the embedded `var model =` blob
+  // and instead load product data via JS widgets. We still scrape whatever IS in the static HTML:
+  // category/classification breadcrumbs from window.aot, "Next steps" links, dataLayer fields.
+  if (embeddedAttributes.length === 0) {
+    attributes.push(...extractAbbAemAttributes(fetched.text, fetched.effectiveUrl));
+  }
   documents.push(...extractAbbDocumentReferences(embeddedAttributes, fetched.effectiveUrl));
   const markerData = extractMarkerData(fetched.text, markerRules, fetched.effectiveUrl);
   attributes.push(...markerData.attributes);
@@ -284,7 +626,7 @@ export function parseAbbProductPage(catalogNumber: string, fetched: FetchedText,
       attributes.push({
         group: "Table",
         name: cells[0],
-        value: cells.slice(1).join(" | "),
+        value: dedupePipeJoinedCells(cells.slice(1)),
         sourceUrl: fetched.effectiveUrl
       });
     }
@@ -393,6 +735,95 @@ function extractAbbEmbeddedAttributes(html: string, sourceUrl: string): Attribut
   const modelAttributes = extractAbbModelAttributes(html, sourceUrl);
   if (modelAttributes.length) return modelAttributes;
   return extractAbbRegexAttributes(html, sourceUrl);
+}
+
+/**
+ * Extract attributes from ABB's AEM-CMS product pages (PLC, drives, etc.) that don't ship
+ * the PIS `var model = {...}` blob. We pull what's available in static HTML:
+ *   - JSON-LD product fields (already covered by parser)
+ *   - `nextStepsDynamicObj` URLs (Configure, Where to buy, Contact)
+ *   - window.dataLayer fields (cid, productId, category breadcrumbs)
+ *   - the cid for the abbDownloadSection widget so we can link to library search
+ */
+function extractAbbAemAttributes(html: string, sourceUrl: string): AttributeRecord[] {
+  const attributes: AttributeRecord[] = [];
+  const seen = new Set<string>();
+  const push = (name: string, value: string, group = "ABB AEM Page") => {
+    const cleaned = cleanText(value);
+    if (!cleaned) return;
+    const key = `${group}|${name}|${cleaned}`.toLowerCase();
+    if (seen.has(key)) return;
+    seen.add(key);
+    attributes.push({
+      group,
+      name,
+      value: cleaned,
+      sourceUrl,
+      sourceType: "official",
+      parser: "abb-aem-static",
+      confidence: 0.6
+    });
+  };
+
+  const nextStepsMatch = html.match(/nextStepsDynamicObj\s*=\s*(\{[\s\S]*?\});\s*if\s*\(nextStepsDynamicObj/);
+  if (nextStepsMatch) {
+    try {
+      const obj = JSON.parse(nextStepsMatch[1]) as Record<string, unknown>;
+      const items = arrayAt(recordAt(recordAt(recordAt(obj, "root"), ":items"), "nextsteps"), "items");
+      for (const entry of items) {
+        if (!isRecord(entry)) continue;
+        const label = firstStringOrNumber(entry.label) ?? "";
+        const url = firstStringOrNumber(entry.url) ?? "";
+        if (label && url) push(`Next step: ${label}`, url, "ABB AEM Next Steps");
+      }
+    } catch {
+      // Ignore malformed JSON.
+    }
+  }
+
+  // dataLayer entries (Adobe Analytics): contains category hierarchy, brand, productGroup, etc.
+  const dataLayerMatches = html.matchAll(/dataLayer\.push\(\s*(\{[\s\S]*?\})\s*\)/g);
+  for (const match of dataLayerMatches) {
+    try {
+      const obj = JSON.parse(match[1]) as Record<string, unknown>;
+      const flattenAem = (value: unknown, path: string[]): void => {
+        if (value === null || value === undefined) return;
+        if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
+          const name = path[path.length - 1];
+          if (!name) return;
+          const text = String(value).trim();
+          if (!text || text.length > 300) return;
+          // Skip noise (Tealium guids, technical flags).
+          if (/^(?:event|eventSource|enablePubSub|pubsub|empty|true|false)$/i.test(name)) return;
+          push(humanizeAbbAttributeCode(name), text, "ABB AEM Data Layer");
+          return;
+        }
+        if (Array.isArray(value)) {
+          value.forEach((item, i) => flattenAem(item, [...path, String(i + 1)]));
+          return;
+        }
+        if (!isRecord(value)) return;
+        for (const [k, v] of Object.entries(value)) flattenAem(v, [...path, k]);
+      };
+      flattenAem(obj, []);
+    } catch {
+      // Ignore non-JSON pushes.
+    }
+  }
+
+  // The abbDownloadSection widget configuration contains the `cid` we can use to build a library URL.
+  const cid = html.match(/\babbDownloadSection\([\s\S]{0,800}?["']cid["']\s*:\s*["']([^"']+)["']/i)?.[1];
+  const widgetProductId = html.match(/abbDownloadSection\([\s\S]{0,800}?["']productId["']\s*:\s*["']([^"']+)["']/i)?.[1];
+  if (cid) {
+    push("Product Category ID (cid)", cid, "ABB AEM Page");
+    push(
+      "ABB Library Search URL",
+      `https://library.abb.com/r?cid=${encodeURIComponent(cid)}&productid=${encodeURIComponent(widgetProductId ?? "")}&languagecode=en`,
+      "ABB AEM Page"
+    );
+  }
+
+  return attributes;
 }
 
 function extractAbbRegexAttributes(html: string, sourceUrl: string): AttributeRecord[] {
@@ -1028,4 +1459,18 @@ function cleanAbbJsonValue(value: string): string {
       .replace(/<br\s*\/?>/gi, "; ")
       .replace(/<\/?[^>]+>/g, " ")
   );
+}
+
+function dedupePipeJoinedCells(cells: string[]): string {
+  const seen = new Set<string>();
+  const unique: string[] = [];
+  for (const cell of cells) {
+    const trimmed = cleanText(cell);
+    if (!trimmed) continue;
+    const key = trimmed.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    unique.push(trimmed);
+  }
+  return unique.join(" | ");
 }

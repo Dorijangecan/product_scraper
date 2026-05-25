@@ -21,10 +21,39 @@ export interface FetchedText {
 }
 
 export class CachedHttpClient {
+  private readonly hostQueues = new Map<string, Promise<void>>();
+  private readonly hostNextAvailable = new Map<string, number>();
+  private hostMinIntervalMs = 350;
+
   constructor(
     private readonly db: ScraperDb,
     private readonly cacheDir: string
   ) {}
+
+  setHostMinIntervalMs(ms: number) {
+    this.hostMinIntervalMs = Math.max(0, ms);
+  }
+
+  private async acquireHostSlot(url: string): Promise<void> {
+    if (this.hostMinIntervalMs <= 0) return;
+    let host: string;
+    try {
+      host = new URL(url).hostname.toLowerCase();
+    } catch {
+      return;
+    }
+    const interval = this.hostMinIntervalMs;
+    const previous = this.hostQueues.get(host) ?? Promise.resolve();
+    const next = previous.then(async () => {
+      const earliest = this.hostNextAvailable.get(host) ?? 0;
+      const now = Date.now();
+      const waitMs = earliest - now;
+      if (waitMs > 0) await new Promise<void>((resolve) => setTimeout(resolve, waitMs));
+      this.hostNextAvailable.set(host, Date.now() + interval);
+    });
+    this.hostQueues.set(host, next.catch(() => undefined));
+    await next;
+  }
 
   async fetchText(
     url: string,
@@ -70,6 +99,7 @@ export class CachedHttpClient {
       }
     }
 
+    await this.acquireHostSlot(url);
     const { response, text } = await this.fetchTextWithRetry(url, {
       method,
       body: options.body,
@@ -150,6 +180,7 @@ export class CachedHttpClient {
     }
 
     await fs.mkdir(this.cacheDir, { recursive: true });
+    await this.acquireHostSlot(url);
     const cachePath = path.join(this.cacheDir, `${cacheKey}.html`);
     const timeoutSec = Math.max(5, Math.ceil((options.timeoutMs ?? 30000) / 1000));
     const command = `
@@ -278,6 +309,7 @@ $contentType = if ($response.Headers['Content-Type']) { [string]$response.Header
     }
 
     try {
+      await this.acquireHostSlot(url);
       const { response, buffer } = await this.fetchBufferWithRetry(url, {
         method: "GET",
         headers: {
@@ -317,6 +349,7 @@ $contentType = if ($response.Headers['Content-Type']) { [string]$response.Header
     throwIfAborted(signal);
     let buffer: Buffer;
     try {
+      await this.acquireHostSlot(url);
       const result = await this.fetchBufferWithRetry(url, {
         method: "GET",
         headers: {
@@ -342,16 +375,21 @@ $contentType = if ($response.Headers['Content-Type']) { [string]$response.Header
 
   private async downloadFileViaCurl(url: string, outputPath: string, signal?: AbortSignal, cause?: unknown): Promise<void> {
     const curl = process.platform === "win32" ? "curl.exe" : "curl";
+    // On Windows, schannel often returns CRYPT_E_NO_REVOCATION_CHECK (0x80092012) when the OCSP
+    // responder or CRL endpoint is unreachable (corp proxy, restricted firewall, slow DNS).
+    // That error completely blocks legitimate downloads from cdn.productimages.abb.com,
+    // assets.balluff.com, and other large CDNs. `--ssl-no-revoke` tells curl to skip the
+    // revocation-status check (without weakening cert chain validation) which is the
+    // documented workaround for this exact error code.
+    const args = ["-L", "--fail", "--retry", "2", "--retry-delay", "2", "--max-time", "120", "-A", DEFAULT_USER_AGENT];
+    if (process.platform === "win32") args.push("--ssl-no-revoke");
+    args.push("-o", outputPath, url);
     try {
-      await execFileAsync(
-        curl,
-        ["-L", "--fail", "--retry", "2", "--retry-delay", "2", "--max-time", "120", "-A", DEFAULT_USER_AGENT, "-o", outputPath, url],
-        {
-          timeout: 130000,
-          maxBuffer: 1024 * 1024,
-          signal
-        }
-      );
+      await execFileAsync(curl, args, {
+        timeout: 130000,
+        maxBuffer: 1024 * 1024,
+        signal
+      });
       const stat = await fs.stat(outputPath);
       if (stat.size === 0) throw new Error("Downloaded file is empty");
     } catch (error) {

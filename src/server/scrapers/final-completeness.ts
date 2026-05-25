@@ -154,11 +154,47 @@ export function repairFinalCompletenessFromEvidence(
 export function finalNetworkRetryDecision(
   result: ProductResult,
   manufacturer: ManufacturerConfig,
-  audit: FinalCompletenessAudit
+  audit: FinalCompletenessAudit,
+  options: { exhaustedFields?: Set<string>; force?: boolean } = {}
 ): FinalNetworkRetryDecision {
-  const fields = audit.retryMissing;
+  let fields = audit.retryMissing;
+  const exhausted = options.exhaustedFields;
+  const force = options.force ?? false;
+
+  // Honor the persisted "exhausted" cache: if a prior run already proved this catalog
+  // number doesn't publish this field, don't burn time looking again. The user can
+  // override with the forceFinalRetry run option.
+  if (!force && exhausted && exhausted.size) {
+    const filtered = fields.filter((field) => !exhausted.has(field));
+    if (filtered.length === 0) {
+      return {
+        shouldRetry: false,
+        fields,
+        reason: `Skipped network retry: every missing field (${fields.join(", ")}) was previously marked as not published for this catalog number. Toggle "Force final retry" to override.`,
+        triedStages: triedFinalStages(result),
+        untriedStages: []
+      };
+    }
+    fields = filtered;
+  }
+
   if (!fields.length) {
     return { shouldRetry: false, fields: [], reason: "No retryable final completeness fields are missing.", triedStages: triedFinalStages(result), untriedStages: [] };
+  }
+
+  // Performance: skip expensive network retry when quality gate already passed and only
+  // preferred (not required) fields are missing. These retries cost ~5-10s per item but
+  // rarely find values that weren't already published on the primary page.
+  const allPreferred = fields.every((field) => audit.requirements[field] === "preferred");
+  if (allPreferred && result.qualityGate?.passed && !force) {
+    const triedStages = triedFinalStages(result);
+    return {
+      shouldRetry: false,
+      fields,
+      reason: `Skipped network retry for preferred-only missing fields (${fields.join(", ")}) because quality gate already passed.`,
+      triedStages,
+      untriedStages: []
+    };
   }
 
   const possibleStages = possibleFinalNetworkStages(result, manufacturer);
