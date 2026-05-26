@@ -107,8 +107,8 @@ const builtInManufacturerConfigs: Record<string, ManufacturerConfig> = {
     canonicalName: "Balluff",
     shortName: "BAL",
     rateLimitMs: 1200,
-    // Balluff uses Playwright for expanded sections; three workers is the fastest stable setting seen locally.
-    concurrency: 3,
+    // Balluff uses heavy Playwright/Livewire drawers. Keep it single-worker so local runs stay responsive.
+    concurrency: 1,
     officialBaseUrls: ["https://www.balluff.com/en-gb/products"],
     localizedUrlTemplates: [
       { locale: "en", urlTemplate: "https://www.balluff.com/en-gb/products/{part}" },

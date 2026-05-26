@@ -21,6 +21,9 @@ export interface ScrapeContext {
   // documents (PDFs, CAD, manuals). The run-manager already skips the actual download; this
   // lets scrapers avoid the upstream browser/network cost too.
   downloadDocuments?: boolean;
+  // True only when the user asked to save the full document set. Some runs still download one
+  // datasheet for Excel enrichment; scrapers can use this to skip expensive document discovery.
+  saveDocuments?: boolean;
   /**
    * When true, the scraper should take the fastest possible path to a single product image:
    * skip lazy-loaded modal renders, skip supplemental enrichment fetches, and return as soon
