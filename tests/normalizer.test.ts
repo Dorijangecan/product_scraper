@@ -376,6 +376,20 @@ describe("normalizer", () => {
     expect(normalized.current).toBeUndefined();
   });
 
+  it("normalizes Balluff datasheet US/UA supply voltage labels", () => {
+    const normalized = normalizeFields(
+      [
+        { group: "PDF datasheet - Electrical data", name: "US, sensor", value: "18...30 VDC", sourceType: "generated", parser: "pdf-table-extractor" },
+        { group: "PDF datasheet - Electrical data", name: "UA, actuator", value: "18...30 VDC", sourceType: "generated", parser: "pdf-table-extractor" },
+        { group: "PDF datasheet - Electrical data", name: "Current sum US, sensor", value: "1.2 A", sourceType: "generated", parser: "pdf-table-extractor" }
+      ],
+      []
+    );
+
+    expect(normalized.voltage).toBe("18...30 V DC");
+    expect(normalized.current).toBe("1.2 A");
+  });
+
   it("normalizes Balluff cable length and keeps CE with material compliance documents", () => {
     const normalized = normalizeFields(
       [
@@ -397,6 +411,13 @@ describe("normalizer", () => {
     const normalized = normalizeFields([{ group: "Meta Specs", name: "Material", value: "PA" }], []);
 
     expect(normalized.material).toBe("PA");
+  });
+
+  it("recognizes PBTP and other engineering polymer codes from Balluff datasheets", () => {
+    for (const code of ["PBTP", "PETP", "PEEK", "PPS", "TPU", "ASA"]) {
+      const normalized = normalizeFields([{ group: "PDF datasheet", name: "Housing material", value: code }], []);
+      expect(normalized.material).toBe(code);
+    }
   });
 
   it("uses explicit Balluff lens dimensions instead of focal length as a product dimension", () => {

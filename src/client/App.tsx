@@ -674,7 +674,7 @@ export function App() {
   const hasWorkbook = runFinished && Boolean(selectedRun?.outputPath);
   const hasOutputFolder = runFinished;
   const historyCount = runs.length;
-  const activeRunCount = runs.filter((run) => ["queued", "running", "cancelling"].includes(run.status)).length;
+  const activeRunCount = runs.filter((run) => ["queued", "running"].includes(run.status)).length;
   const manufacturerSourceCount = selectedManufacturer?.fallbackSources.filter((source) => source.enabled).length ?? 0;
   const activeManufacturer = useMemo(
     () =>

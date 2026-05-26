@@ -11,7 +11,7 @@ import {
 import { parseGenericProductPage } from "../src/server/scrapers/generic.js";
 import { parseSchneiderDatasheetReaderPage, parseSchneiderProductPage, parseTelemecaniqueProductPage } from "../src/server/scrapers/schneider.js";
 import { parseSiemensProductApiResponse } from "../src/server/scrapers/siemens.js";
-import { parseSceProductPage } from "../src/server/scrapers/sce.js";
+import { SCEConnector, parseSceProductPage } from "../src/server/scrapers/sce.js";
 import type { FetchedText } from "../src/server/scrapers/http-client.js";
 import type { ScrapeContext } from "../src/server/scrapers/types.js";
 
@@ -308,6 +308,99 @@ describe("manufacturer parsers", () => {
     expect(result.normalized.protection).toBe("IP21");
     expect(result.documents.some((doc) => doc.type === "datasheet" && doc.url.includes("DocumentID=3AXD10000497691"))).toBe(true);
     expect(requestedUrls).toContain("https://new.abb.com/api/PisSearchApi?query=ACS580-01-039A-4&pageNumber=1&pageSize=8&lang=en");
+    expect(requestedUrls).toContain("https://new.abb.com/products/pl/3AXD50000038962/acs580-01-039a-4");
+    expect(requestedUrls).not.toContain("https://new.abb.com/products/de/3AXD50000038962/acs580-01-039a-4");
+  });
+
+  it("uses ABB PIS search before direct official product pages", async () => {
+    const connector = new ABBConnector();
+    const requestedUrls: string[] = [];
+    const catalogNumber = "1SCA022871R9780";
+    const searchJson = JSON.stringify({
+      Items: [{ ProductId: catalogNumber, CatalogDescription: `Switch-disconnector (${catalogNumber})` }],
+      TotalResultsCount: 1
+    });
+    const context = {
+      manufacturer: {
+        id: "abb",
+        canonicalName: "ABB",
+        shortName: "ABB",
+        rateLimitMs: 0,
+        officialBaseUrls: ["https://new.abb.com/products"],
+        localizedUrlTemplates: [],
+        fallbackSources: [],
+        markerRules: []
+      },
+      http: {
+        fetchText: async (url: string) => {
+          requestedUrls.push(url);
+          if (url.includes("/api/PisSearchApi?")) return fetched(searchJson, url, "application/json");
+          return fetched(richAbbProductHtml(catalogNumber), url);
+        },
+        fetchTextViaPowerShell: async (url: string) => fetched(richAbbProductHtml(catalogNumber), url)
+      },
+      runDir: "",
+      documentsDir: "",
+      downloadDocument: async (doc: Parameters<ScrapeContext["downloadDocument"]>[0]) => doc,
+      fallback: {
+        scrape: async () => undefined
+      }
+    } as unknown as ScrapeContext;
+
+    const result = await connector.scrape(catalogNumber, context);
+
+    expect(result.status).toBe("found");
+    expect(result.attributes.length).toBeGreaterThanOrEqual(25);
+    expect(result.normalized.weight).toBe("0.8 kg");
+    expect(requestedUrls[0]).toBe(`https://new.abb.com/api/PisSearchApi?query=${catalogNumber}&pageNumber=1&pageSize=8&lang=en`);
+    expect(requestedUrls).toContain(`https://new.abb.com/products/pl/${catalogNumber}/${catalogNumber.toLowerCase()}`);
+    expect(requestedUrls).not.toContain(`https://new.abb.com/products/${catalogNumber}`);
+  });
+
+  it("does not spend ABB fallback retries on definite missing product pages", async () => {
+    const connector = new ABBConnector();
+    const requestedUrls: string[] = [];
+    const powerShellUrls: string[] = [];
+    const catalogNumber = "1SDA124715R1";
+    const notFoundHtml = "<html><head><title>Not found | ABB</title></head><body>Product not found</body></html>";
+    const context = {
+      manufacturer: {
+        id: "abb",
+        canonicalName: "ABB",
+        shortName: "ABB",
+        rateLimitMs: 0,
+        officialBaseUrls: ["https://new.abb.com/products"],
+        localizedUrlTemplates: [],
+        fallbackSources: [],
+        markerRules: []
+      },
+      http: {
+        fetchText: async (url: string) => {
+          requestedUrls.push(url);
+          if (url.includes("/api/PisSearchApi?")) return fetched(JSON.stringify({ Items: [], TotalResultsCount: 0 }), url, "application/json");
+          return { ...fetched(notFoundHtml, url), statusCode: 404 };
+        },
+        fetchTextViaPowerShell: async (url: string) => {
+          powerShellUrls.push(url);
+          return { ...fetched(notFoundHtml, url), statusCode: 404 };
+        }
+      },
+      runDir: "",
+      documentsDir: "",
+      downloadDocument: async (doc: Parameters<ScrapeContext["downloadDocument"]>[0]) => doc,
+      fallback: {
+        scrape: async () => undefined
+      }
+    } as unknown as ScrapeContext;
+
+    const result = await connector.scrape(catalogNumber, context);
+
+    expect(result.status).toBe("failed");
+    expect(powerShellUrls).toHaveLength(0);
+    expect(requestedUrls).toEqual([`https://new.abb.com/api/PisSearchApi?query=${catalogNumber}&pageNumber=1&pageSize=8&lang=en`]);
+    expect(requestedUrls.filter((url) => url.includes(`/products/de/${catalogNumber}/product`))).toHaveLength(0);
+    expect(requestedUrls.filter((url) => url.includes(`/products/pl/${catalogNumber}/product`))).toHaveLength(0);
+    expect(requestedUrls.filter((url) => url.includes(`/products/it/${catalogNumber}/product`))).toHaveLength(0);
   });
 
   it("parses SCE detail and CAD download links", () => {
@@ -341,6 +434,62 @@ describe("manufacturer parsers", () => {
     expect(result.documents.some((doc) => doc.type === "cad" && doc.url.includes("download-doc"))).toBe(true);
     expect(result.documents.some((doc) => doc.type === "cad" && doc.url.includes("sce-20el2010lp.zip"))).toBe(true);
     expect(result.documents.some((doc) => doc.type === "image" && doc.url.includes("sce-20el2010lp.png"))).toBe(true);
+  });
+
+  it("scrapes SCE direct product pages when advanced search or fetch fails", async () => {
+    const seenUrls: string[] = [];
+    const detailHtml = `
+      <html><head><title>SCE-60EL4812LPPL - Saginaw Control and Engineering</title></head>
+      <body>
+        <h1>SCE-60EL4812LPPL</h1>
+        <img src="/images/sce-60el4812lppl.png" alt="SCE-60EL4812LPPL" />
+        <div class="prod-specs">
+          <p class="prod-info-body"><strong>Part Number</strong>: SCE-60EL4812LPPL</p>
+          <p class="prod-info-body"><strong>Description</strong>: 2DR EL LPPL Enclosure</p>
+          <p class="prod-info-body"><strong>Height</strong>: 60.00"</p>
+          <p class="prod-info-body"><strong>Width</strong>: 48.00"</p>
+          <p class="prod-info-body"><strong>Depth</strong>: 12.00"</p>
+          <p class="prod-info-body"><strong>Est. Ship Weight</strong>: 509.00 lbs</p>
+        </div>
+      </body></html>
+    `;
+    const context = {
+      manufacturer: {
+        id: "sce",
+        canonicalName: "Saginaw Control and Engineering",
+        shortName: "SCE",
+        rateLimitMs: 0,
+        officialBaseUrls: ["https://www.saginawcontrol.com"],
+        localizedUrlTemplates: [],
+        fallbackSources: []
+      },
+      http: {
+        fetchText: async (url: string) => {
+          seenUrls.push(`fetch:${url}`);
+          throw new Error("fetch failed");
+        },
+        fetchTextViaPowerShell: async (url: string) => {
+          seenUrls.push(`powershell:${url}`);
+          if (url.includes("/download-doc/")) return fetched("<html><body></body></html>", url);
+          return fetched(detailHtml, url);
+        }
+      },
+      runDir: "",
+      documentsDir: "",
+      downloadDocument: async (doc: Parameters<ScrapeContext["downloadDocument"]>[0]) => doc,
+      fallback: {
+        scrape: async () => undefined
+      }
+    } as unknown as ScrapeContext;
+
+    const result = await new SCEConnector().scrape("SCE-60EL4812LPPL", context);
+
+    expect(result.status).toBe("found");
+    expect(result.productUrl).toBe("https://www.saginawcontrol.com/partnumber_info/?n=SCE-60EL4812LPPL");
+    expect(result.normalized.dimensions).toContain("60.00 x 48.00 x 12.00 in");
+    expect(seenUrls).toContain("fetch:https://www.saginawcontrol.com/advanced-part-search/");
+    expect(seenUrls).toContain("fetch:https://www.saginawcontrol.com/partnumber_info/?n=SCE-60EL4812LPPL");
+    expect(seenUrls).toContain("powershell:https://www.saginawcontrol.com/partnumber_info/?n=SCE-60EL4812LPPL");
   });
 
   it("parses SCE product specs, sections, accessories, and manuals", () => {
@@ -1482,6 +1631,87 @@ describe("manufacturer parsers", () => {
     expect(result.documents.some((doc) => doc.type === "other" && doc.label === "How to connect BCC039H")).toBe(true);
     expect(result.documents.some((doc) => doc.type === "datasheet")).toBe(true);
     expect(result.normalized.certificates).toContain("CE");
+  });
+
+  it("skips Balluff Downloads modal during datasheet-only enrichment", async () => {
+    const staticHtml = `
+      <html><head>
+        <link rel="canonical" href="https://www.balluff.com/en-gb/products/BCC039H" />
+        <meta name="description" content="BCC039H - Double-ended cordsets - Cable: PUR black, 0.3 m, Operating voltage Ub: 250 VDC / 250 VAC" />
+        <script type="application/ld+json">
+          {"@context":"https://schema.org","@type":"Product","name":"BCC039H","sku":"BCC039H","mpn":"BCC039H"}
+        </script>
+      </head><body>
+        <h1>BCC039H</h1>
+        <h2>Key features</h2>
+        <div>Connection 1</div><div>M12x1-Female, straight, 5-pin, A-coded</div>
+        <div>Cable</div><div>PUR black, 0.3 m</div>
+        <h2>Classifications</h2>
+        <div>ECLASS 14.0</div><div>27-44-01-02</div>
+        <div>ETIM 9.0</div><div>EC001855</div>
+        <div>UNSPSC 11</div><div>39121413</div>
+        <a href="https://publications.balluff.com/pdfengine/pdf?type=pdb&id=113299&con=en">Datasheet</a>
+      </body></html>
+    `;
+    const expandedHtml = `
+      <html><head>
+        <link rel="canonical" href="https://www.balluff.com/en-gb/products/BCC039H" />
+        <script type="application/ld+json">
+          {"@context":"https://schema.org","@type":"Product","name":"BCC039H","sku":"BCC039H","mpn":"BCC039H"}
+        </script>
+      </head><body>
+        <h1>BCC039H</h1>
+        <h2>Key features</h2>
+        <div>IP rating</div><div>IP67</div>
+        <div>Operating voltage Ub</div><div>250 VDC / 250 VAC</div>
+        <h2>Classifications</h2>
+        <div>ECLASS 14.0</div><div>27-44-01-02</div>
+        <div>ETIM 9.0</div><div>EC001855</div>
+        <div>UNSPSC 11</div><div>39121413</div>
+        <h2>Digital Product Passport</h2>
+        <div>Weight</div><div>17 g</div>
+      </body></html>
+    `;
+    let openedSections: string[] = [];
+    const connector = new BalluffConnector();
+    const context = {
+      manufacturer: {
+        id: "balluff",
+        canonicalName: "Balluff",
+        shortName: "BAL",
+        rateLimitMs: 0,
+        officialBaseUrls: ["https://www.balluff.com/en-gb/products"],
+        fallbackSources: [],
+        fetchPolicy: { minContentLength: 0 }
+      },
+      http: {
+        fetchText: async (url: string) => fetched(staticHtml, url),
+        fetchTextViaPowerShell: async (url: string) => fetched(staticHtml, url)
+      },
+      runDir: "",
+      documentsDir: "",
+      downloadDocuments: true,
+      saveDocuments: false,
+      browserRenderer: {
+        renderProductPageWithModalSequence: async (url: string, _recipe: unknown, sections: Array<{ label: string }>) => {
+          openedSections = sections.map((section) => section.label);
+          return {
+            fetched: fetched(expandedHtml, url),
+            networkTexts: [],
+            networkDiagnostics: [],
+            sectionFragments: sections.map((section) => ({ label: section.label, html: `<section>${section.label}</section>` }))
+          };
+        }
+      },
+      learnedEndpoints: { list: () => [], upsert: () => undefined },
+      downloadDocument: async (doc: unknown) => doc,
+      fallback: { scrape: async () => undefined }
+    } as unknown as ScrapeContext;
+
+    const result = await connector.scrape("BCC039H", context);
+
+    expect(openedSections).toEqual(["Key features", "Classifications", "Digital Product Passport"]);
+    expect(result.documents.some((doc) => doc.type === "datasheet" && doc.url.includes("id=113299"))).toBe(true);
   });
 
   it("rejects Balluff HTTP error pages even when the URL contains the catalog number", () => {
@@ -3397,6 +3627,32 @@ function abbAttribute(attributeCode: string, attributeName: string, text: string
     internal: false,
     highlight: false
   };
+}
+
+function richAbbProductHtml(catalogNumber: string): string {
+  const attributes: Record<string, ReturnType<typeof abbAttribute>> = {
+    ProductId: abbAttribute("ProductId", "Product ID", catalogNumber),
+    ExtendedProductType: abbAttribute("ExtendedProductType", "Extended Product Type", "OT200U03"),
+    CatalogDescription: abbAttribute("CatalogDescription", "Catalog Description", "Switch-disconnector"),
+    ProductNetWidth: abbAttribute("ProductNetWidth", "Product Net Width", "80 mm"),
+    ProductNetHeight: abbAttribute("ProductNetHeight", "Product Net Height", "158.5 mm"),
+    ProductNetDepth: abbAttribute("ProductNetDepth", "Product Net Depth / Length", "167 mm"),
+    ProductNetWeight: abbAttribute("ProductNetWeight", "Product Net Weight", "0.8 kg"),
+    RatOpeVol: abbAttribute("RatOpeVol", "Rated Operational Voltage", "Main Circuit 1000 V"),
+    RatOpeCurAc23: abbAttribute("RatOpeCurAc23", "Rated Operational Current AC-23A", "(400 V) 200 A"),
+    RoHSStatus: abbAttribute("RoHSStatus", "RoHS Information", "RoHS")
+  };
+  for (let index = 0; index < 20; index += 1) {
+    attributes[`Extra${index}`] = abbAttribute(`Extra${index}`, `Extra Attribute ${index}`, `Value ${index}`);
+  }
+  return `
+    <html><head>
+      <title>${catalogNumber} | ABB</title>
+      <link rel="canonical" href="https://new.abb.com/products/${catalogNumber}/product" />
+    </head><body>
+      <script>window.__ABB_PRODUCT__ = ${JSON.stringify({ productId: catalogNumber, attributes })};</script>
+    </body></html>
+  `;
 }
 
 function htmlAttributeJson(value: unknown): string {

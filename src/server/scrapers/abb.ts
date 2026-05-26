@@ -22,7 +22,12 @@ export class ABBConnector implements ManufacturerConnector {
   id = "abb";
 
   async scrape(catalogNumber: string, context: ScrapeContext): Promise<ProductResult> {
-    const urls = buildAbbOfficialUrls(catalogNumber);
+    const searchLookup = await buildAbbSearchProductUrlLookup(catalogNumber, context, 2500);
+    if (searchLookup.definitiveEmpty) {
+      return abbOfficialMissingResult(catalogNumber, searchLookup);
+    }
+
+    const urls = searchLookup.urls.length ? searchLookup.urls : buildAbbOfficialUrls(catalogNumber);
     const officialResults: ProductResult[] = [];
     let lastError: unknown;
 
@@ -34,7 +39,11 @@ export class ABBConnector implements ManufacturerConnector {
         officialResults.push(parsed);
         // Remember the page body that looked like an AEM-CMS product page so we can enrich it
         // afterwards by hitting the ds.library.abb.com widget API the page would call client-side.
-        if (isAemAbbPage(fetched.text) && !lastAemFetch) lastAemFetch = fetched;
+        const isAemPage = isAemAbbPage(fetched.text);
+        if (isAemPage && !lastAemFetch) lastAemFetch = fetched;
+        if (isAemPage) break;
+        if (isUsefulAbbSearchResult(parsed)) break;
+        if (isRichAbbResult(parsed)) break;
       } catch (error) {
         lastError = error;
       }
@@ -43,8 +52,24 @@ export class ABBConnector implements ManufacturerConnector {
     const directPrimary = bestAbbResult(officialResults);
     // For AEM-style pages (PLCs, drives, robotics), the English /products/{id} URL serves a thin
     // AEM page and the full PIS data is only available under /products/{locale}/{id}/{slug}.
-    // Always run the search resolution so we pick up that PIS data, even when directPrimary parses ok.
-    const searchPrimary = bestAbbResult(await fetchAbbSearchResults(catalogNumber, context));
+    // Only run search resolution when direct URLs did not already provide rich PIS data. This
+    // keeps ordinary ABB product IDs fast while preserving the AEM/alias rescue path.
+    const searchUrls = isRichAbbResult(directPrimary) || searchLookup.urls.length
+      ? []
+      : (await buildAbbSearchProductUrlLookup(catalogNumber, context, 8000)).urls;
+    const searchPrimary = searchUrls.length
+      ? bestAbbResult(await fetchAbbSearchResults(catalogNumber, context, searchUrls))
+      : undefined;
+
+    // Explicit locale fallback for AEM products. The English /products/{id} URL serves the thin
+    // AEM CMS page; the same catalog number under /products/{de,pl,it}/{id} consistently serves
+    // the rich PIS page with the `var model = {...}` blob that contains ProductNetWeight,
+    // ProductNetDepth/Height/Width, etc. We only pay this cost when EN + PIS search both failed
+    // to surface PIS data, so non-AEM products are not slowed down.
+    let localeFallbackPrimary: ProductResult | undefined;
+    if (!hasAbbPisData(directPrimary) && !hasAbbPisData(searchPrimary) && (lastAemFetch || searchLookup.urls.length > 0 || searchUrls.length > 0)) {
+      localeFallbackPrimary = bestAbbResult(await fetchAbbLocaleFallbackResults(catalogNumber, context));
+    }
 
     // AEM enrichment via ABB Library widget API — always runs when we detected an AEM page so the
     // English document list is captured even if PIS data was found in a non-English locale.
@@ -53,11 +78,20 @@ export class ABBConnector implements ManufacturerConnector {
       aemEnriched = await enrichFromAbbLibraryApi(catalogNumber, lastAemFetch, context);
     }
 
-    const initialMerged = mergeAbbResults(directPrimary, searchPrimary, aemEnriched);
+    // Browser render last resort: if no PIS data anywhere yet AND we have an AEM page available,
+    // render it via Playwright so the client-side widgets populate the DOM with the technical data
+    // table, then re-parse. Only fires for AEM products where every static-HTML path has failed.
+    let browserPrimary: ProductResult | undefined;
+    const haveAnyPisData = [directPrimary, searchPrimary, localeFallbackPrimary, aemEnriched].some(hasAbbPisData);
+    if (!haveAnyPisData && lastAemFetch && context.browserRenderer && !context.imageOnly) {
+      browserPrimary = await renderAbbAemPageInBrowser(catalogNumber, lastAemFetch.effectiveUrl, context);
+    }
+
+    const initialMerged = mergeAbbResults(directPrimary, searchPrimary, localeFallbackPrimary, aemEnriched, browserPrimary);
     const cadCatalogResult = !initialMerged || initialMerged.status === "failed" || !isRichAbbResult(initialMerged)
       ? await fetchAbbPartcommunityCadCatalogResult(catalogNumber, context)
       : undefined;
-    const merged = mergeAbbResults(directPrimary, searchPrimary, aemEnriched, cadCatalogResult);
+    const merged = mergeAbbResults(directPrimary, searchPrimary, localeFallbackPrimary, aemEnriched, browserPrimary, cadCatalogResult);
     if (merged && isRichAbbResult(merged)) return merged;
     if (merged && merged.status !== "failed") return merged;
 
@@ -114,11 +148,10 @@ async function fetchAbbPartcommunityCadCatalogResult(
 async function fetchAbbPartcommunityOptional(url: string, context: ScrapeContext): Promise<FetchedText | undefined> {
   try {
     const fetched = await context.http.fetchText(url, {
-      timeoutMs: 25000,
+      timeoutMs: 10000,
       cacheTtlMs: 1000 * 60 * 60 * 24 * 7,
       signal: context.signal,
-      maxAttempts: 2,
-      retryBackoffMs: 1500,
+      maxAttempts: 1,
       headers: {
         "user-agent": ABB_USER_AGENT,
         accept: "text/html,application/xhtml+xml,application/xml;q=0.9,text/plain,application/octet-stream,*/*;q=0.8"
@@ -770,8 +803,8 @@ function bestAbbResult(results: ProductResult[]): ProductResult | undefined {
   return useful.sort((left, right) => abbResultScore(right) - abbResultScore(left))[0];
 }
 
-function isRichAbbResult(result: ProductResult): boolean {
-  return result.status === "found" && result.attributes.some((attr) => attr.group === "ABB Product Data") && result.attributes.length >= 25;
+function isRichAbbResult(result: ProductResult | undefined): boolean {
+  return Boolean(result && result.status === "found" && result.attributes.some((attr) => attr.group === "ABB Product Data") && result.attributes.length >= 25);
 }
 
 function abbResultScore(result: ProductResult): number {
@@ -785,10 +818,10 @@ function abbResultScore(result: ProductResult): number {
 async function fetchAbbPage(url: string, context: ScrapeContext) {
   // Try plain HTTP first (with retries — ABB occasionally returns HTTP/2 protocol errors
   // or empty bodies under load, and a quick retry typically succeeds).
-  for (let attempt = 0; attempt < 3; attempt += 1) {
+  for (let attempt = 0; attempt < 1; attempt += 1) {
     try {
       const fetched = await context.http.fetchText(url, {
-        timeoutMs: 25000,
+        timeoutMs: 8000,
         signal: context.signal,
         headers: {
           "user-agent": ABB_USER_AGENT,
@@ -797,22 +830,20 @@ async function fetchAbbPage(url: string, context: ScrapeContext) {
         },
         maxAttempts: 1
       });
+      if (isFinalAbbNotFoundStatus(fetched.statusCode)) return fetched;
       if (fetched.statusCode < 400 && fetched.text.trim().length > 500) return fetched;
     } catch {
       // Fall through to PowerShell on Windows for sites that reject fetch.
     }
-    if (attempt < 2 && context.manufacturer.rateLimitMs !== 0) {
-      await sleep(800 * (attempt + 1));
-    }
   }
   if (process.platform === "win32") {
-    return context.http.fetchTextViaPowerShell(url, { timeoutMs: 30000, signal: context.signal });
+    return context.http.fetchTextViaPowerShell(url, { timeoutMs: 8000, signal: context.signal });
   }
-  return context.http.fetchText(url, { timeoutMs: 25000, signal: context.signal });
+  return context.http.fetchText(url, { timeoutMs: 8000, signal: context.signal });
 }
 
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+function isFinalAbbNotFoundStatus(statusCode: number): boolean {
+  return statusCode === 404 || statusCode === 410;
 }
 
 function buildAbbOfficialUrls(catalogNumber: string): string[] {
@@ -831,13 +862,151 @@ function buildAbbOfficialUrls(catalogNumber: string): string[] {
   ];
 }
 
-async function fetchAbbSearchResults(catalogNumber: string, context: ScrapeContext): Promise<ProductResult[]> {
+type AbbSearchProductUrlLookup = {
+  searchUrl: string;
+  fetched?: FetchedText;
+  urls: string[];
+  definitiveEmpty: boolean;
+};
+
+function abbOfficialMissingResult(catalogNumber: string, lookup: AbbSearchProductUrlLookup): ProductResult {
+  return {
+    ...emptyResult("abb", catalogNumber, `ABB official search did not return ${catalogNumber}; product is not listed on the ABB official site.`),
+    sources: lookup.fetched
+      ? [
+          {
+            url: lookup.fetched.effectiveUrl || lookup.searchUrl,
+            sourceType: "official",
+            parser: "abb-pis-search",
+            parserVersion: "abb-v2",
+            stage: "official-search",
+            reason: "ABB official PIS search returned no matching product candidates.",
+            fetchedAt: lookup.fetched.fetchedAt,
+            statusCode: lookup.fetched.statusCode
+          }
+        ]
+      : []
+  };
+}
+
+/**
+ * AEM-page rescue: try the catalog number under non-English locales that consistently serve
+ * the rich PIS page (with `var model = {...}` containing ProductNetWeight, ProductNetDepth,
+ * etc.) even when the EN URL redirects to a static AEM CMS page. The server adds the canonical
+ * slug itself, so a placeholder is enough — no PisSearchApi call needed. Only invoked when
+ * neither the EN URLs nor the PIS search yielded PIS data, so non-AEM products aren't slowed.
+ */
+async function fetchAbbLocaleFallbackResults(catalogNumber: string, context: ScrapeContext): Promise<ProductResult[]> {
+  const encoded = encodeURIComponent(catalogNumber);
+  const urls = [
+    `https://new.abb.com/products/de/${encoded}/product`,
+    `https://new.abb.com/products/pl/${encoded}/product`,
+    `https://new.abb.com/products/it/${encoded}/product`
+  ];
   const results: ProductResult[] = [];
-  for (const url of await buildAbbSearchProductUrls(catalogNumber, context)) {
+  for (const url of urls) {
+    try {
+      const fetched = await fetchAbbPage(url, context);
+      const parsed = parseAbbProductPage(catalogNumber, fetched, context.manufacturer.markerRules);
+      if (parsed.status !== "failed") results.push(parsed);
+      // Stop after first PIS hit — subsequent locales would just duplicate.
+      if (hasAbbPisData(parsed)) break;
+    } catch {
+      // Try the next locale.
+    }
+  }
+  return results;
+}
+
+/**
+ * Returns true if the parsed page produced any attributes from the embedded PIS `var model`
+ * blob (group === "ABB Product Data"). This is what distinguishes a rich PIS product page
+ * from a thin AEM CMS page that only ships JSON-LD + breadcrumbs.
+ */
+function hasAbbPisData(result: ProductResult | undefined): boolean {
+  if (!result || result.status === "failed") return false;
+  return result.attributes.some((attr) => attr.group === "ABB Product Data");
+}
+
+/**
+ * Last-resort AEM rescue: render the AEM CMS product page in Playwright so the client-side
+ * abbDownloadSection / pisproductdetails widgets execute and inject the technical data table
+ * into the DOM. We then re-parse the rendered HTML with the same parseAbbProductPage so any
+ * data the widgets revealed becomes regular attributes/documents. Skipped when imageOnly is
+ * set (the run-mode that only wants an image) or no browserRenderer is wired in.
+ */
+async function renderAbbAemPageInBrowser(
+  catalogNumber: string,
+  url: string,
+  context: ScrapeContext
+): Promise<ProductResult | undefined> {
+  if (!context.browserRenderer) return undefined;
+  try {
+    const rendered = await context.browserRenderer.renderProductPage(
+      url,
+      ABB_AEM_BROWSER_RECIPE,
+      context.signal
+    );
+    if (rendered.error || !rendered.fetched) {
+      if (rendered.error) console.warn(`[abb] AEM browser render failed for ${catalogNumber} @ ${url}: ${rendered.error}`);
+      return undefined;
+    }
+    const parsed = parseAbbProductPage(catalogNumber, rendered.fetched, context.manufacturer.markerRules);
+    if (parsed.status === "failed") return undefined;
+    parsed.sources = parsed.sources.map((source) => ({
+      ...source,
+      parser: source.parser ?? "abb-aem-browser-render",
+      stage: source.stage ?? "abb-aem-browser-render"
+    }));
+    return parsed;
+  } catch (error) {
+    console.warn(`[abb] AEM browser render exception for ${catalogNumber} @ ${url}: ${error instanceof Error ? error.message : String(error)}`);
+    return undefined;
+  }
+}
+
+// Minimal Playwright recipe for ABB AEM pages: click cookie banners, expand any "Technical data"
+// / "Klassifizierungen" / "Downloads" buttons, and give the widget JS a moment to inject the
+// PIS table. The defaults in browser-renderer already cover the most common patterns.
+const ABB_AEM_BROWSER_RECIPE = {
+  interactionPolicy: {
+    networkIdleTimeoutMs: 15000,
+    scrollPasses: 2,
+    maxClicks: 30,
+    closeOverlaySelectors: [
+      "#onetrust-accept-btn-handler",
+      "button:has-text('Accept all cookies')",
+      "button:has-text('Accept all')",
+      "button:has-text('I accept')"
+    ],
+    expandSelectors: [
+      "button:has-text('Technical data')",
+      "button:has-text('Technische Daten')",
+      "button:has-text('Specifications')",
+      "button:has-text('Downloads')",
+      "button:has-text('Documents')",
+      "button:has-text('Classifications')",
+      "button:has-text('Klassifizierungen')",
+      "button:has-text('Show more')",
+      "button:has-text('Mehr anzeigen')"
+    ],
+    waitForSelectors: [
+      "#pisproductdetails",
+      ".pis-attribute-group",
+      "[data-attribute-code]",
+      "table"
+    ]
+  }
+} as unknown as Parameters<NonNullable<ScrapeContext["browserRenderer"]>["renderProductPage"]>[1];
+
+async function fetchAbbSearchResults(catalogNumber: string, context: ScrapeContext, urls: string[]): Promise<ProductResult[]> {
+  const results: ProductResult[] = [];
+  for (const url of urls) {
     try {
       const fetched = await fetchAbbPage(url, context);
       const result = parseAbbProductPage(catalogNumber, fetched, context.manufacturer.markerRules);
       if (result.status !== "failed") results.push(result);
+      if (isUsefulAbbSearchResult(result)) break;
     } catch {
       // Keep trying the other official product-id candidates.
     }
@@ -845,36 +1014,61 @@ async function fetchAbbSearchResults(catalogNumber: string, context: ScrapeConte
   return results;
 }
 
-async function buildAbbSearchProductUrls(catalogNumber: string, context: ScrapeContext): Promise<string[]> {
+function isUsefulAbbSearchResult(result: ProductResult): boolean {
+  if (isRichAbbResult(result)) return true;
+  if (result.status !== "found" || !hasAbbPisData(result)) return false;
+  const hasUsefulNormalizedData = Boolean(
+    result.normalized.voltage ||
+    result.normalized.current ||
+    result.normalized.dimensions ||
+    result.normalized.weight ||
+    result.normalized.protection
+  );
+  return result.attributes.length >= 8 && hasUsefulNormalizedData;
+}
+
+async function buildAbbSearchProductUrlLookup(catalogNumber: string, context: ScrapeContext, timeoutMs = 8000): Promise<AbbSearchProductUrlLookup> {
   const searchUrl = `https://new.abb.com/api/PisSearchApi?query=${encodeURIComponent(catalogNumber)}&pageNumber=1&pageSize=8&lang=en`;
   let fetched: FetchedText;
   try {
     fetched = await context.http.fetchText(searchUrl, {
-      timeoutMs: 15000,
+      timeoutMs,
       cacheTtlMs: 1000 * 60 * 60 * 24,
       signal: context.signal,
       headers: { accept: "application/json,text/plain,*/*", "user-agent": ABB_USER_AGENT }
     });
   } catch {
-    return [];
+    return { searchUrl, urls: [], definitiveEmpty: false };
   }
 
   const urls: string[] = [];
-  for (const item of parseAbbSearchItems(fetched.text, catalogNumber)) {
+  const items = parseAbbSearchItems(fetched.text, catalogNumber);
+  for (const item of items) {
     const slug = abbProductSlug(item.alias ?? catalogNumber);
-    // Order matters: try the English-redirect locales first, then non-English locales as
-    // fallbacks. For AEM-style products, `/en/...` redirects to global/en (AEM page) but
-    // /pl/, /de/, /it/ still serve PIS data — so they're our richest source.
+    // Order matters: non-English locales most consistently serve the embedded PIS model. Try
+    // them before English/AEM redirects so aliases resolve to rich data with fewer requests.
     urls.push(
+      `https://new.abb.com/products/pl/${encodeURIComponent(item.productId)}/${slug}`,
+      `https://new.abb.com/products/de/${encodeURIComponent(item.productId)}/${slug}`,
+      `https://new.abb.com/products/it/${encodeURIComponent(item.productId)}/${slug}`,
       `https://new.abb.com/products/${encodeURIComponent(item.productId)}/${slug}`,
       `https://new.abb.com/products/${encodeURIComponent(item.productId)}`,
       `https://www.abb.com/global/en/products/${encodeURIComponent(item.productId.toLowerCase())}`,
-      `https://new.abb.com/products/pl/${encodeURIComponent(item.productId)}/${slug}`,
-      `https://new.abb.com/products/de/${encodeURIComponent(item.productId)}/${slug}`,
-      `https://new.abb.com/products/it/${encodeURIComponent(item.productId)}/${slug}`
     );
   }
-  return [...new Set(urls)].slice(0, 24);
+  const definitiveEmpty = isDefinitiveEmptyAbbSearch(fetched.text, items.length);
+  return { searchUrl, fetched, urls: [...new Set(urls)].slice(0, 24), definitiveEmpty };
+}
+
+function isDefinitiveEmptyAbbSearch(text: string, matchingItems: number): boolean {
+  if (matchingItems > 0) return false;
+  try {
+    const parsed = JSON.parse(text) as { Items?: unknown[]; TotalResultsCount?: unknown };
+    const total = typeof parsed.TotalResultsCount === "number" ? parsed.TotalResultsCount : undefined;
+    return Array.isArray(parsed.Items) && parsed.Items.length === 0 && total === 0;
+  } catch {
+    return false;
+  }
 }
 
 function parseAbbSearchItems(text: string, catalogNumber: string): Array<{ productId: string; alias?: string; score: number }> {

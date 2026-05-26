@@ -56,6 +56,7 @@ describe("excel export", () => {
             { group: "ABB Product Data", name: "Rated Operational Voltage", value: "24 V DC", sourceType: "official" },
             { group: "ABB Product Data", name: "Rated Current", value: "2 A", sourceType: "official" },
             { group: "ABB Product Data", name: "Standards", value: "IEC/UL", sourceType: "official" },
+            { group: "ABB Product Classification", name: "ECLASS 14.0", value: "27-14-23-90", sourceType: "official" },
             { group: "ABB Product Data", name: "Product Sales Status", value: "Active", sourceType: "official" },
             { group: "ABB Product Data", name: "Country of Origin", value: "Italy", sourceType: "official" },
             { group: "ABB Accessories", name: "Accessory", value: "1SBN010015R1001 - Auxiliary Contact Block (Qty: 1 piece)", sourceType: "official" },
@@ -112,6 +113,7 @@ describe("excel export", () => {
     expect(headers).toContain("Image Count");
     expect(headers).toContain("All Image URLs");
     expect(headers).toContain("Product Type");
+    expect(headers).toContain("Copy Summary");
     expect(headers).toContain("EAN / GTIN");
     expect(headers).toContain("All Specifications");
     expect(headers).toContain("Key Specifications");
@@ -122,11 +124,14 @@ describe("excel export", () => {
     expect(headers).toContain("All Resources");
     expect(headers).toContain("Weight (lb)");
     expect(headers).toContain("Weight (kg)");
+    expect(headers).toContain("Weight");
+    expect(headers).toContain("Dimensions");
     expect(headers).toContain("Height (in)");
     expect(headers).toContain("Height (mm)");
     expect(headers).toContain("Length (in)");
     expect(headers).toContain("Length (mm)");
     expect(headers).toContain("Material");
+    expect(headers).toContain("ECLASS");
     expect(headers).toContain("IP Rating");
     expect(headers).toContain("NEMA / Type Rating");
     expect(headers).toContain("IK Rating");
@@ -148,9 +153,14 @@ describe("excel export", () => {
     expect(products.getRow(2).getCell(headers.indexOf("Height (mm)") + 1).value).toBe(10);
     expect(products.getRow(2).getCell(headers.indexOf("Height (in)") + 1).value).toBeCloseTo(0.393700787, 9);
     expect(products.getRow(2).getCell(headers.indexOf("Material") + 1).value).toBe("Steel");
+    expect(products.getRow(2).getCell(headers.indexOf("Dimensions") + 1).value).toBe("10 x 20 x 30 mm");
+    expect(products.getRow(2).getCell(headers.indexOf("ECLASS") + 1).value).toBe("ECLASS 14.0: 27-14-23-90");
     expect(products.getRow(2).getCell(headers.indexOf("Product Type") + 1).value).toBe("KLP-D");
     expect(products.getRow(2).getCell(headers.indexOf("EAN / GTIN") + 1).value).toBe("8056221267000");
     expect(String(products.getRow(2).getCell(headers.indexOf("All Specifications") + 1).value)).toContain("[ABB Product Data]");
+    expect(String(products.getRow(2).getCell(headers.indexOf("Copy Summary") + 1).value)).toContain("Voltage: 24 V DC");
+    expect(String(products.getRow(2).getCell(headers.indexOf("Copy Summary") + 1).value)).toContain("Material: Steel");
+    expect(String(products.getRow(2).getCell(headers.indexOf("Copy Summary") + 1).value)).toContain("ECLASS: 27-14-23-90");
     expect(String(products.getRow(2).getCell(headers.indexOf("All Specifications") + 1).value)).toContain("Rated Operational Voltage: 24 V DC");
     expect(String(products.getRow(2).getCell(headers.indexOf("Key Specifications") + 1).value)).toContain("Catalog Description: ABB padlock device");
     expect(String(products.getRow(2).getCell(headers.indexOf("Electrical Ratings") + 1).value)).toContain("Rated Current: 2 A");
