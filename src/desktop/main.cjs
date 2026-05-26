@@ -69,11 +69,16 @@ async function startServer(port) {
   fs.mkdirSync(dataDir, { recursive: true });
   fs.appendFileSync(serverLogPath, `\n[${new Date().toISOString()}] Starting desktop server on ${port}\n`);
 
-  const nodeExecutable = process.env.npm_node_execpath || "node";
-  serverProcess = spawn(nodeExecutable, ["--import", "tsx", "src/server/index.ts"], {
+  const runtime = getServerRuntime();
+  const bundledPlaywright = path.join(rootDir, "runtime", "ms-playwright");
+  const playwrightEnv = fs.existsSync(bundledPlaywright) ? { PLAYWRIGHT_BROWSERS_PATH: bundledPlaywright } : {};
+  appendLog(`Using server runtime: ${runtime.command} ${runtime.args.join(" ")}\n`);
+  serverProcess = spawn(runtime.command, [...runtime.args, "--import", "tsx", "src/server/index.ts"], {
     cwd: rootDir,
     env: {
       ...process.env,
+      ...runtime.env,
+      ...playwrightEnv,
       PORT: String(port),
       PRODUCT_SCRAPER_DESKTOP: "1"
     },
@@ -88,6 +93,25 @@ async function startServer(port) {
   });
 
   await waitForHealth(port, 30000);
+}
+
+function getServerRuntime() {
+  const bundledNode = path.join(rootDir, "runtime", "node", "node.exe");
+  if (fs.existsSync(bundledNode)) {
+    return { command: bundledNode, args: [], env: {} };
+  }
+
+  if (process.env.npm_node_execpath) {
+    return { command: process.env.npm_node_execpath, args: [], env: {} };
+  }
+
+  // Portable builds are launched through Electron directly. Electron can run as
+  // a Node runtime when this flag is set, so users do not need Node/npm installed.
+  return {
+    command: process.execPath,
+    args: [],
+    env: { ELECTRON_RUN_AS_NODE: "1" }
+  };
 }
 
 function stopServer() {
