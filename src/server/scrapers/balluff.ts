@@ -188,6 +188,8 @@ export class BalluffConnector implements ManufacturerConnector {
     const candidates = buildBalluffProductUrls(catalogNumber);
     const partialResults: ProductResult[] = [];
     let lastError: unknown;
+    const docsEnabled = context.downloadDocuments !== false;
+    const imageOnly = context.imageOnly === true;
 
     for (const url of candidates) {
       try {
@@ -197,6 +199,15 @@ export class BalluffConnector implements ManufacturerConnector {
           localizedUrlTemplates: context.manufacturer.localizedUrlTemplates
         });
         partialResults.push(primaryResult);
+        // Images-only fast path: as soon as the primary page yields a product image, return.
+        // Skips ~5-10s of supplemental fetches + Playwright modal sequence per item.
+        if (
+          imageOnly &&
+          primaryResult.status !== "failed" &&
+          primaryResult.documents.some((doc) => doc.type === "image")
+        ) {
+          return primaryResult;
+        }
         let current = primaryResult;
         const htmlParts = [primary.text];
 
@@ -214,16 +225,24 @@ export class BalluffConnector implements ManufacturerConnector {
           partialResults.push(current);
         }
 
+        // When document downloads are disabled, the Excel only needs HTML-sourced data,
+        // so we can skip the expensive browser render whenever the static HTML already
+        // satisfies the (docs-off) completeness check. When docs are enabled we still
+        // want the render — it surfaces lazy-loaded sections like Digital Product Passport.
+        if (!docsEnabled && isCompleteBalluffResult(current, htmlParts.join("\n"), { requireDatasheet: false })) {
+          return current;
+        }
+
         const expanded = await scrapeBalluffExpandedSections(catalogNumber, url, context);
         if (expanded) {
           const expandedMerged = mergeBalluffResults(current, expanded);
           partialResults.push(expandedMerged);
-          if (isCompleteBalluffResult(expandedMerged, htmlParts.join("\n"))) return expandedMerged;
-          if (isCompleteBalluffResult(current, htmlParts.join("\n"))) return expandedMerged;
+          if (isCompleteBalluffResult(expandedMerged, htmlParts.join("\n"), { requireDatasheet: docsEnabled })) return expandedMerged;
+          if (isCompleteBalluffResult(current, htmlParts.join("\n"), { requireDatasheet: docsEnabled })) return expandedMerged;
           if (expandedMerged.status !== "failed" && (expandedMerged.attributes.length || expandedMerged.documents.length)) return expandedMerged;
         }
 
-        if (isCompleteBalluffResult(current, htmlParts.join("\n"))) return current;
+        if (isCompleteBalluffResult(current, htmlParts.join("\n"), { requireDatasheet: docsEnabled })) return current;
       } catch (error) {
         lastError = error;
       }
@@ -535,6 +554,14 @@ async function scrapeBalluffSearch(catalogNumber: string, context: ScrapeContext
 
 async function scrapeBalluffExpandedSections(catalogNumber: string, url: string, context: ScrapeContext): Promise<ProductResult | undefined> {
   try {
+    // The "Downloads" modal is purely a vehicle for discovering datasheet/manual/CAD URLs.
+    // When the user disabled document downloads we never fetch those files, so opening this
+    // modal (which also drills into a sub-section "Product documentation") is pure overhead.
+    const docsEnabled = context.downloadDocuments !== false;
+    const modalSections = docsEnabled
+      ? BALLUFF_MODAL_SECTIONS
+      : BALLUFF_MODAL_SECTIONS.filter((section) => section.label !== "Downloads");
+
     // Prefer the modal-sequence renderer (opens each Balluff section in turn, captures HTML).
     // Falls back to the generic renderProductPage if the renderer doesn't expose the new method.
     const renderOnce = async () => {
@@ -542,7 +569,7 @@ async function scrapeBalluffExpandedSections(catalogNumber: string, url: string,
         return context.browserRenderer.renderProductPageWithModalSequence(
           url,
           BALLUFF_EXPANDED_SECTIONS_RECIPE,
-          BALLUFF_MODAL_SECTIONS,
+          modalSections,
           context.signal
         );
       }
@@ -823,7 +850,11 @@ function hasAllBalluffExpandedSections(html: string): boolean {
   return balluffExpandedSectionCount(html) === BALLUFF_EXPANDED_SECTION_MARKERS.length;
 }
 
-function isCompleteBalluffResult(result: ProductResult, html: string): boolean {
+function isCompleteBalluffResult(
+  result: ProductResult,
+  html: string,
+  options: { requireDatasheet?: boolean } = {}
+): boolean {
   if (result.status !== "found") return false;
   if (!hasExpandedBalluffSections(html)) return false;
   const names = new Set(result.attributes.map((attr) => balluffLabelKey(attr.name)));
@@ -845,7 +876,8 @@ function isCompleteBalluffResult(result: ProductResult, html: string): boolean {
     result.attributes.some((attr) => /^eclass/i.test(attr.name)) &&
     result.attributes.some((attr) => /^etim/i.test(attr.name)) &&
     result.attributes.some((attr) => /^unspsc/i.test(attr.name));
-  const hasDatasheet = result.documents.some((doc) => doc.type === "datasheet");
+  const requireDatasheet = options.requireDatasheet !== false;
+  const hasDatasheet = !requireDatasheet || result.documents.some((doc) => doc.type === "datasheet");
   return hasUsefulDetail && hasClassifications && hasDatasheet;
 }
 
@@ -920,11 +952,25 @@ function extractBalluffAssetUrls(html: string, baseUrl: string): string[] {
 }
 
 function balluffAssetPriority(url: string): number {
-  if (/\/thumbnails\//i.test(url)) return 50;
-  if (/\/product_view_cropped\//i.test(url)) return 40;
-  if (/\/png_1000x1000\//i.test(url)) return 30;
-  if (/\/webp_1000x1000\//i.test(url)) return 20;
-  return 10;
+  // Dimensional drawings (VIU_… prefix or _DRW_/_SHG_/dimension/sketch markers in the filename)
+  // are line-art with measurement annotations — push them to the bottom regardless of folder.
+  const filename = (() => {
+    try {
+      return new URL(url).pathname.split("/").pop() ?? "";
+    } catch {
+      return url;
+    }
+  })();
+  if (/^viu[_-]/i.test(filename)) return 1;
+  if (/[_-](?:drw|shg|dim|tech|drawing|schematic|sketch)[_.-]/i.test(filename)) return 2;
+  let priority = 10;
+  if (/\/thumbnails\//i.test(url)) priority = 50;
+  else if (/\/product_view_cropped\//i.test(url)) priority = 40;
+  else if (/\/png_1000x1000\//i.test(url)) priority = 30;
+  else if (/\/webp_1000x1000\//i.test(url)) priority = 20;
+  // Boost the actual product-photo marker ("_P_" channel in Balluff filenames).
+  if (/_p_\d/i.test(filename)) priority += 5;
+  return priority;
 }
 
 function dedupeBalluffDocuments(documents: DocumentRecord[]): DocumentRecord[] {
@@ -987,6 +1033,15 @@ function isBalluffProductImageDocument(doc: DocumentRecord): boolean {
 
 function balluffImageDocumentRank(doc: DocumentRecord): number {
   const text = `${doc.label} ${doc.url} ${(doc.candidateUrls ?? []).join(" ")}`.toLowerCase();
+  // Look at just the primary URL filename for the "is this a drawing?" heuristic; the candidate
+  // list often mixes photo + drawing variants and would mask the signal otherwise.
+  const primaryFilename = (() => {
+    try {
+      return new URL(doc.url).pathname.split("/").pop()?.toLowerCase() ?? "";
+    } catch {
+      return doc.url.toLowerCase();
+    }
+  })();
   let rank = 100;
   if (/product image/.test(text)) rank -= 10;
   if (/\/product_view_cropped\//.test(text)) rank -= 60;
@@ -994,7 +1049,14 @@ function balluffImageDocumentRank(doc: DocumentRecord): number {
   if (/\/webp_1000x1000\//.test(text)) rank -= 45;
   if (/\/jpg_1000x1000\//.test(text)) rank -= 40;
   if (/\/thumbnails\//.test(text)) rank += 30;
-  if (/[\/_-]01[\/_.-]|_p_01|_01_p/i.test(text)) rank -= 8;
+  // Strong penalty for Balluff "dimensional view" / drawing assets. Filenames that start with
+  // VIU_ (visualisation), or contain _DRW_/_SHG_/dimension/drawing/schematic markers, are
+  // line-art with measurement annotations — never what a buyer expects to see in Excel.
+  if (/^viu[_-]/i.test(primaryFilename)) rank += 80;
+  if (/[_-](?:drw|shg|dim|tech|drawing|schematic|sketch)[_.-]/i.test(primaryFilename)) rank += 70;
+  // Boost Balluff "real product photo" marker: filenames like 56281_00_P_00_00_00.png use
+  // "_P_" as the photo channel. Prefer those over alternate views.
+  if (/_p_\d/i.test(primaryFilename)) rank -= 12;
   return rank;
 }
 

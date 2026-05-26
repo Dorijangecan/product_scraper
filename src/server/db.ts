@@ -260,6 +260,19 @@ export class ScraperDb {
       .run({ ...next, id });
   }
 
+  /**
+   * Merge-update the run's `options` JSON column. Used by the dashboard editor to tweak
+   * coverage tiles after a run has started without disturbing other status fields.
+   */
+  updateRunOptions(id: string, optionsPatch: NonNullable<RunRecord["options"]>) {
+    const current = this.getRun(id);
+    if (!current) return;
+    const nextOptions = { ...(current.options ?? {}), ...optionsPatch };
+    this.db
+      .prepare("UPDATE runs SET options_json = @optionsJson, updated_at = @updatedAt WHERE id = @id")
+      .run({ id, optionsJson: JSON.stringify(nextOptions), updatedAt: new Date().toISOString() });
+  }
+
   getRunItems(runId: string): RunItemRecord[] {
     const rows = this.db.prepare("SELECT * FROM run_items WHERE run_id = ? ORDER BY row_index").all(runId) as ItemRow[];
     return rows.map(mapItem);

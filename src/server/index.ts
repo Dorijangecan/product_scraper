@@ -10,7 +10,7 @@ import { createAppPaths } from "./paths.js";
 import { RunManager } from "./run-manager.js";
 import { getManufacturerConfig, initializeManufacturerConfig, listManufacturerConfigs, resetManufacturerOverride, saveManufacturerConfig } from "./config/manufacturers.js";
 import type { ManufacturerId } from "../shared/types.js";
-import { findRunLogPath, getAllowedRunOutputRoots, isPathInsideAny, runRootFromOutputPath } from "./run-output.js";
+import { buildRunOutputLayout, findRunLogPath, getAllowedRunOutputRoots, isPathInsideAny, runRootFromOutputPath } from "./run-output.js";
 import { CachedHttpClient } from "./scrapers/http-client.js";
 import { inspectManufacturerDraft, testManufacturerDraft } from "./manufacturer-wizard.js";
 import { summarizeRunItem } from "./run-item-summary.js";
@@ -91,7 +91,30 @@ app.post("/api/runs", upload.single("file"), async (req, res) => {
   const manufacturerId = String(req.body.manufacturerId ?? "") as ManufacturerId;
   const columnName = String(req.body.columnName ?? "");
   const downloadDocuments = String(req.body.downloadDocuments ?? "true") === "true";
+  const downloadImages = String(req.body.downloadImages ?? "true") === "true";
+  const generateExcel = String(req.body.generateExcel ?? "true") === "true";
   const forceFinalRetry = String(req.body.forceFinalRetry ?? "false") === "true";
+  // Per-run override of the manufacturer's custom coverage tiles. The client sends a JSON
+  // string when the user touched the editor; `undefined` (missing field) means "fall back
+  // to whatever the manufacturer has configured".
+  const customCoverageFieldsRaw = req.body.customCoverageFields;
+  const customCoverageFields = parseCustomCoverageFieldsFromRequest(customCoverageFieldsRaw);
+  // `hiddenCoverageFields` arrives as a JSON-encoded string from FormData (or may be missing).
+  // Treat anything malformed as "no list provided".
+  let hiddenCoverageFields: string[] | undefined;
+  if (typeof req.body.hiddenCoverageFields === "string" && req.body.hiddenCoverageFields.length > 0) {
+    try {
+      const parsedHidden = JSON.parse(req.body.hiddenCoverageFields) as unknown;
+      if (Array.isArray(parsedHidden)) {
+        hiddenCoverageFields = parsedHidden
+          .map((entry) => String(entry ?? "").trim())
+          .filter((entry) => entry.length > 0)
+          .slice(0, 64);
+      }
+    } catch {
+      // Ignore malformed JSON.
+    }
+  }
   const manufacturer = getManufacturerConfig(manufacturerId);
   if (!manufacturer) {
     res.status(400).json({ error: "Unknown manufacturer." });
@@ -111,7 +134,14 @@ app.post("/api/runs", upload.single("file"), async (req, res) => {
       manufacturerId,
       inputFileName: req.file.originalname,
       catalogNumbers,
-      options: { downloadDocuments, forceFinalRetry }
+      options: {
+        downloadDocuments,
+        downloadImages,
+        generateExcel,
+        forceFinalRetry,
+        ...(customCoverageFields !== undefined ? { customCoverageFields } : {}),
+        ...(hiddenCoverageFields !== undefined ? { hiddenCoverageFields } : {})
+      }
     });
     res.status(201).json(run);
   } catch (error) {
@@ -123,6 +153,34 @@ app.get("/api/runs", (_req, res) => {
   res.json(db.listRuns());
 });
 
+/**
+ * Live-update the coverage tiles for an in-progress or finished run. Only the
+ * `customCoverageFields` part of options is editable through this endpoint — everything
+ * else (downloadDocuments, generateExcel, …) is fixed at run start because changing it
+ * mid-flight would require re-scraping.
+ */
+app.patch("/api/runs/:id/coverage-fields", express.json(), (req, res) => {
+  const run = db.getRun(req.params.id);
+  if (!run) {
+    res.status(404).json({ error: "Run not found." });
+    return;
+  }
+  const parsed = parseCustomCoverageFieldsFromRequest(req.body?.customCoverageFields);
+  // Allow optional `hiddenCoverageFields` patching alongside the custom tiles. Sending
+  // `null` or omitting the key leaves the existing value alone, while an array overwrites.
+  const patch: { customCoverageFields: import("../shared/types.js").CustomCoverageField[]; hiddenCoverageFields?: string[] } = {
+    customCoverageFields: parsed ?? []
+  };
+  if (Array.isArray(req.body?.hiddenCoverageFields)) {
+    patch.hiddenCoverageFields = (req.body.hiddenCoverageFields as unknown[])
+      .map((entry) => String(entry ?? "").trim())
+      .filter((entry) => entry.length > 0)
+      .slice(0, 64);
+  }
+  db.updateRunOptions(run.id, patch);
+  res.json(db.getRun(req.params.id));
+});
+
 app.get("/api/runs/:id", (req, res) => {
   const run = db.getRun(req.params.id);
   if (!run) {
@@ -130,7 +188,17 @@ app.get("/api/runs/:id", (req, res) => {
     return;
   }
   const items = db.getRunItems(run.id);
-  res.json({ run, items: req.query.summary === "1" ? items.map(summarizeRunItem) : items });
+  if (req.query.summary === "1") {
+    // Run-level override wins over manufacturer defaults. `undefined` (not set) falls back
+    // to the manufacturer's configured tiles; an explicit `[]` means "this run wants no
+    // custom tiles", and that intent is preserved.
+    const manufacturer = getManufacturerConfig(run.manufacturerId);
+    const customCoverageFields =
+      run.options?.customCoverageFields ?? manufacturer?.customCoverageFields ?? [];
+    res.json({ run, items: items.map((item) => summarizeRunItem(item, { customCoverageFields })) });
+    return;
+  }
+  res.json({ run, items });
 });
 
 app.get("/api/runs/:id/items/:itemId", (req, res) => {
@@ -185,13 +253,23 @@ app.post("/api/runs/:id/files/result/open", (req, res) => {
 
 app.post("/api/runs/:id/files/folder/open", (req, res) => {
   const run = db.getRun(req.params.id);
-  if (!run?.outputPath || !fs.existsSync(run.outputPath)) {
-    res.status(404).json({ error: "Result workbook is not ready." });
+  if (!run) {
+    res.status(404).json({ error: "Run not found." });
     return;
   }
-  const outputFolder = runRootFromOutputPath(run.outputPath) ?? path.dirname(run.outputPath);
-  if (!fs.existsSync(outputFolder)) {
-    res.status(404).json({ error: "Output folder is not available." });
+  // Prefer the workbook's parent when present, otherwise derive the run directory from the
+  // manufacturer/layout — "Images only" runs have no outputPath but still write to a run dir.
+  let outputFolder: string | undefined;
+  if (run.outputPath && fs.existsSync(run.outputPath)) {
+    outputFolder = runRootFromOutputPath(run.outputPath) ?? path.dirname(run.outputPath);
+  } else {
+    const manufacturer = getManufacturerConfig(run.manufacturerId);
+    if (manufacturer) {
+      outputFolder = buildRunOutputLayout(appPaths.outputDir, manufacturer, run).runDir;
+    }
+  }
+  if (!outputFolder || !fs.existsSync(outputFolder)) {
+    res.status(404).json({ error: "Output folder is not available yet." });
     return;
   }
   try {
@@ -263,18 +341,55 @@ app.listen(port, "127.0.0.1", () => {
   runManager.resumeInterruptedRuns();
 });
 
+function parseCustomCoverageFieldsFromRequest(raw: unknown): import("../shared/types.js").CustomCoverageField[] | undefined {
+  if (raw === undefined || raw === null || raw === "") return undefined;
+  let parsed: unknown;
+  try {
+    parsed = typeof raw === "string" ? JSON.parse(raw) : raw;
+  } catch {
+    // Malformed JSON — treat as "no override" rather than aborting the whole run start.
+    return undefined;
+  }
+  if (!Array.isArray(parsed)) return undefined;
+  const seen = new Set<string>();
+  const cleaned: import("../shared/types.js").CustomCoverageField[] = [];
+  for (const entry of parsed) {
+    if (!entry || typeof entry !== "object") continue;
+    const record = entry as { id?: unknown; label?: unknown; pattern?: unknown };
+    const label = String(record.label ?? "").trim();
+    const pattern = String(record.pattern ?? "").trim();
+    const id = String(record.id ?? label)
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+    if (!id || !label || !pattern) continue;
+    if (seen.has(id)) continue;
+    try {
+      new RegExp(pattern, "i");
+    } catch {
+      continue;
+    }
+    seen.add(id);
+    cleaned.push({ id, label, pattern });
+    if (cleaned.length >= 32) break;
+  }
+  return cleaned;
+}
+
 function openLocalFile(filePath: string) {
   const resolved = path.resolve(filePath);
-  const isDirectory = fs.existsSync(resolved) && fs.statSync(resolved).isDirectory();
+  if (!fs.existsSync(resolved)) {
+    throw new Error(`Path does not exist: ${resolved}`);
+  }
   let child;
-  if (process.platform === "win32" && isDirectory) {
-    child = spawn("explorer.exe", [resolved], {
-      detached: true,
-      stdio: "ignore",
-      windowsHide: true
-    });
-  } else if (process.platform === "win32") {
-    child = spawn("rundll32.exe", ["url.dll,FileProtocolHandler", resolved], {
+  if (process.platform === "win32") {
+    // `cmd /c start "" "<path>"` is the most reliable Windows launcher for both files and
+    // directories. The empty "" is start's optional window-title argument; without it a
+    // quoted path gets parsed as the title and start opens nothing. The previous code used
+    // explorer.exe directly for directories, which silently no-ops when Explorer is already
+    // running with the same folder, hence the "Folder" button appearing dead in the UI.
+    child = spawn(process.env.ComSpec || "cmd.exe", ["/c", "start", "", resolved], {
       detached: true,
       stdio: "ignore",
       windowsHide: true
@@ -284,5 +399,10 @@ function openLocalFile(filePath: string) {
   } else {
     child = spawn("xdg-open", [resolved], { detached: true, stdio: "ignore" });
   }
+  // Spawn failures (e.g. command not found) surface async via the "error" event. Without a
+  // listener they become silent in production — log them so the next regression is visible.
+  child.on("error", (error) => {
+    console.error(`[openLocalFile] failed to open ${resolved}: ${error.message}`);
+  });
   child.unref();
 }

@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import type {
+  CustomCoverageField,
   FallbackSourceConfig,
   FetchPolicyConfig,
   LocalizedUrlTemplate,
@@ -774,6 +775,7 @@ function sanitizeManufacturerConfig(input: unknown): ManufacturerConfig | undefi
   const fetchPolicy = sanitizeFetchPolicy(record.fetchPolicy);
   const markerRules = sanitizeMarkerRules(record.markerRules);
   const scrapeRecipe = sanitizeScrapeRecipe(record.scrapeRecipe);
+  const customCoverageFields = sanitizeCustomCoverageFields(record.customCoverageFields);
 
   if (!id || !canonicalName || !shortName) return undefined;
   return {
@@ -788,8 +790,35 @@ function sanitizeManufacturerConfig(input: unknown): ManufacturerConfig | undefi
     ...(match ? { match } : {}),
     ...(fetchPolicy ? { fetchPolicy } : {}),
     ...(markerRules.length ? { markerRules } : {}),
-    ...(scrapeRecipe ? { scrapeRecipe } : {})
+    ...(scrapeRecipe ? { scrapeRecipe } : {}),
+    ...(customCoverageFields.length ? { customCoverageFields } : {})
   };
+}
+
+function sanitizeCustomCoverageFields(input: unknown): CustomCoverageField[] {
+  if (!Array.isArray(input)) return [];
+  const seenIds = new Set<string>();
+  const cleaned: CustomCoverageField[] = [];
+  for (const entry of input) {
+    if (!entry || typeof entry !== "object") continue;
+    const raw = entry as { id?: unknown; label?: unknown; pattern?: unknown };
+    const label = clean(String(raw.label ?? ""));
+    const pattern = clean(String(raw.pattern ?? ""));
+    const id = slugify(String(raw.id ?? label));
+    if (!id || !label || !pattern) continue;
+    if (seenIds.has(id)) continue;
+    // Reject patterns the regex engine cannot compile — we surface the failure here
+    // rather than letting it become a silent "always missing" tile at run-time.
+    try {
+      new RegExp(pattern, "i");
+    } catch {
+      continue;
+    }
+    seenIds.add(id);
+    cleaned.push({ id, label, pattern });
+    if (cleaned.length >= 32) break;
+  }
+  return cleaned;
 }
 
 function sanitizeFallbackSources(input: unknown, manufacturerId: string): FallbackSourceConfig[] {

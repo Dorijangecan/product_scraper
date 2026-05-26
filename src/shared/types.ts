@@ -17,9 +17,28 @@ export interface ManufacturerConfig {
   fetchPolicy?: FetchPolicyConfig;
   markerRules?: MarkerExtractionRule[];
   scrapeRecipe?: ScrapeRecipeConfig;
+  /**
+   * User-defined coverage tiles shown next to the built-in ones (Weight/Material/…)
+   * in the run dashboard. Each entry is reported as present/missing per item based on
+   * whether any attribute name on the parsed product matches the pattern.
+   */
+  customCoverageFields?: CustomCoverageField[];
   origin?: "built-in" | "custom" | "override";
   isBuiltIn?: boolean;
   hasOverride?: boolean;
+}
+
+export interface CustomCoverageField {
+  /** Url-safe slug, unique within the manufacturer (e.g. "ip-rating"). */
+  id: string;
+  /** Display label shown on the coverage tile (e.g. "IP Rating"). */
+  label: string;
+  /**
+   * Case-insensitive regular expression matched against attribute names on the parsed
+   * product. The field is "present" when any attribute name matches. Plain words work
+   * too — they are treated as substring patterns by the regex engine.
+   */
+  pattern: string;
 }
 
 export interface ManufacturerInspectRequest {
@@ -403,6 +422,27 @@ export interface RunRecord {
 export interface RunOptions {
   downloadDocuments?: boolean;
   /**
+   * When false, skip saving product images to disk. URLs are still discovered and kept
+   * in the workbook. Default true.
+   */
+  downloadImages?: boolean;
+  /**
+   * When false, skip generating the Excel workbook entirely. Used for the "Images only"
+   * mode where the user just wants the PNG files. Default true.
+   */
+  generateExcel?: boolean;
+  /**
+   * Per-run override for the manufacturer's custom coverage tiles. When set (even to an
+   * empty array, meaning "no custom tiles"), this replaces the manufacturer default for
+   * this one run. When undefined, the manufacturer's `customCoverageFields` is used.
+   */
+  customCoverageFields?: CustomCoverageField[];
+  /**
+   * Built-in coverage tile keys the user has chosen to hide for this run (e.g. "weight",
+   * "material"). Custom tiles use their own id when listed here. Default empty.
+   */
+  hiddenCoverageFields?: string[];
+  /**
    * When true, ignore the persisted "exhausted fields" cache and re-attempt the final
    * network retry for every item even if a prior run determined the field is unpublished.
    * Default false: skip retry for catalog numbers previously confirmed empty.
@@ -425,6 +465,11 @@ export type RunCoverageState = "present" | "missing" | "not-applicable";
 
 export interface RunItemCoverageSummary {
   fields: Partial<Record<RunCoverageField, RunCoverageState>>;
+  /**
+   * User-defined coverage results, in the same order as the manufacturer's
+   * `customCoverageFields`. Empty when no custom fields are configured.
+   */
+  customFields?: RunItemCustomCoverageResult[];
   criticalMissing: RunCoverageField[];
   reason?: string;
   qualityPassed?: boolean;
@@ -433,6 +478,14 @@ export interface RunItemCoverageSummary {
   attributeCount?: number;
   documentCount?: number;
   evidenceCount?: number;
+}
+
+export interface RunItemCustomCoverageResult {
+  id: string;
+  label: string;
+  state: RunCoverageState;
+  /** First matching attribute value, useful for tooltips. */
+  matchedValue?: string;
 }
 
 export interface RunItemRecord {

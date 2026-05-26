@@ -52,6 +52,7 @@ import {
   inspectManufacturer,
   listRuns,
   openRunOutputFolder,
+  updateRunCoverageFields,
   openRunWorkbook,
   previewCsv,
   resetManufacturerOverride,
@@ -100,6 +101,13 @@ interface ManufacturerDraft {
   fallbackUserAgentsText: string;
   scrapeRecipeJson: string;
   fallbackSources: SourceDraft[];
+  customCoverageFields: CustomCoverageFieldDraft[];
+}
+
+interface CustomCoverageFieldDraft {
+  id: string;
+  label: string;
+  pattern: string;
 }
 
 const REQUIRED_COVERAGE_FIELDS = [
@@ -164,7 +172,21 @@ export function App() {
   const [runItemPage, setRunItemPage] = useState(1);
   const [historyExpanded, setHistoryExpanded] = useState(false);
   const [downloadDocuments, setDownloadDocuments] = useState(false);
+  const [downloadImages, setDownloadImages] = useState(true);
+  const [generateExcel, setGenerateExcel] = useState(true);
   const [forceFinalRetry, setForceFinalRetry] = useState(false);
+  // Per-run coverage tiles. `null` means "use the manufacturer default verbatim" — the moment
+  // the user types into the editor we copy the manufacturer's list and switch to a concrete
+  // array so subsequent edits persist for that run.
+  const [runCoverageFields, setRunCoverageFields] = useState<CustomCoverageFieldDraft[] | null>(null);
+  const [runHiddenCoverageFields, setRunHiddenCoverageFields] = useState<string[]>([]);
+  const [runCoverageExpanded, setRunCoverageExpanded] = useState(false);
+  // Dashboard editor state — toggled by the "Edit" button on the coverage panel header.
+  // Stays separate from the sidebar editor because it patches the live run's options.
+  const [dashboardCoverageEditOpen, setDashboardCoverageEditOpen] = useState(false);
+  const [dashboardCoverageDraft, setDashboardCoverageDraft] = useState<CustomCoverageFieldDraft[]>([]);
+  const [dashboardHiddenDraft, setDashboardHiddenDraft] = useState<string[]>([]);
+  const [dashboardCoverageBusy, setDashboardCoverageBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [nowMs, setNowMs] = useState(() => Date.now());
 
@@ -172,6 +194,20 @@ export function App() {
     () => manufacturers.find((manufacturer) => manufacturer.id === manufacturerId),
     [manufacturers, manufacturerId]
   );
+
+  const customCoverageDefaults = selectedManufacturer?.customCoverageFields ?? [];
+  // What the per-run editor renders. Falls back to a fresh copy of the manufacturer default
+  // when the user hasn't overridden anything yet — so they always see what's about to run.
+  const effectiveRunCoverageFields: CustomCoverageFieldDraft[] =
+    runCoverageFields ??
+    customCoverageDefaults.map((field) => ({ id: field.id, label: field.label, pattern: field.pattern }));
+
+  // Switching the manufacturer must clear any per-run override; otherwise the user picks
+  // ABB and silently keeps Balluff's IP-rating tile from the previous edit.
+  useEffect(() => {
+    setRunCoverageFields(null);
+    setRunHiddenCoverageFields([]);
+  }, [manufacturerId]);
 
   useEffect(() => {
     void refreshBootstrap();
@@ -310,8 +346,30 @@ export function App() {
     setBusy(true);
     setError(null);
     try {
-      const run = await startRun({ file, manufacturerId, columnName, downloadDocuments, forceFinalRetry });
+      // Only send the override when the user touched it; `null` keeps the manufacturer
+      // default (the server falls back to manufacturer.customCoverageFields in that case).
+      const customCoverageFields =
+        runCoverageFields === null
+          ? undefined
+          : runCoverageFields
+              .map((field) => ({ id: field.id, label: field.label.trim(), pattern: field.pattern.trim() }))
+              .filter((field) => field.label && field.pattern);
+      const run = await startRun({
+        file,
+        manufacturerId,
+        columnName,
+        downloadDocuments,
+        downloadImages,
+        generateExcel,
+        customCoverageFields,
+        hiddenCoverageFields: runHiddenCoverageFields.length > 0 ? runHiddenCoverageFields : undefined,
+        forceFinalRetry
+      });
       setSelectedRunId(run.id);
+      // Reset the override after each run so the next one re-inherits the (possibly updated)
+      // manufacturer default.
+      setRunCoverageFields(null);
+      setRunHiddenCoverageFields([]);
       await refreshRuns();
       await refreshSelectedRun(run.id);
     } catch (err) {
@@ -362,6 +420,42 @@ export function App() {
     } finally {
       setOpenOutputFolderBusy(false);
     }
+  }
+
+  function openDashboardCoverageEditor() {
+    setDashboardCoverageDraft(
+      activeCustomCoverageFields.map((field) => ({ id: field.id, label: field.label, pattern: field.pattern }))
+    );
+    setDashboardHiddenDraft([...activeHiddenCoverageFields]);
+    setDashboardCoverageEditOpen(true);
+  }
+
+  async function saveDashboardCoverageEditor() {
+    if (!selectedRun) return;
+    setDashboardCoverageBusy(true);
+    setError(null);
+    try {
+      const fields = dashboardCoverageDraft
+        .map((field) => ({
+          id: field.id,
+          label: field.label.trim(),
+          pattern: field.pattern.trim()
+        }))
+        .filter((field) => field.label && field.pattern);
+      await updateRunCoverageFields(selectedRun.id, fields, dashboardHiddenDraft);
+      setDashboardCoverageEditOpen(false);
+      await refreshSelectedRun(selectedRun.id);
+    } catch (err) {
+      setError(errorMessage(err));
+    } finally {
+      setDashboardCoverageBusy(false);
+    }
+  }
+
+  function toggleHiddenBuiltIn(key: string) {
+    setDashboardHiddenDraft((current) =>
+      current.includes(key) ? current.filter((entry) => entry !== key) : [...current, key]
+    );
   }
 
   function openEditManufacturer() {
@@ -574,11 +668,38 @@ export function App() {
   const progress = selectedRun && selectedRun.total > 0 ? Math.round((selectedRun.processed / selectedRun.total) * 100) : 0;
   const readyToRun = Boolean(file && preview && columnName && selectedManufacturer);
   const canCancel = selectedRun?.status === "queued" || selectedRun?.status === "running" || selectedRun?.status === "cancelling";
-  const hasWorkbook = selectedRun?.status === "completed" || selectedRun?.status === "cancelled";
+  const runFinished = selectedRun?.status === "completed" || selectedRun?.status === "cancelled";
+  // "Images only" runs never produce an .xlsx, so the Excel button must hide; the run's
+  // outputPath is the cleanest signal that a workbook actually exists on disk.
+  const hasWorkbook = runFinished && Boolean(selectedRun?.outputPath);
+  const hasOutputFolder = runFinished;
   const historyCount = runs.length;
   const activeRunCount = runs.filter((run) => ["queued", "running", "cancelling"].includes(run.status)).length;
   const manufacturerSourceCount = selectedManufacturer?.fallbackSources.filter((source) => source.enabled).length ?? 0;
-  const coverage = useMemo(() => buildCoverage(items), [items]);
+  const activeManufacturer = useMemo(
+    () =>
+      selectedRun
+        ? manufacturers.find((manufacturer) => manufacturer.id === selectedRun.manufacturerId)
+        : selectedManufacturer,
+    [manufacturers, selectedManufacturer, selectedRun]
+  );
+  // Custom tiles come from the run override when set, otherwise from the manufacturer default
+  // — same fallback chain the server uses. Lets the dashboard editor edit per-run state
+  // without losing the manufacturer-level defaults.
+  const activeCustomCoverageFields =
+    selectedRun?.options?.customCoverageFields ?? activeManufacturer?.customCoverageFields ?? [];
+  const activeHiddenCoverageFields = selectedRun?.options?.hiddenCoverageFields ?? [];
+  const coverage = useMemo(
+    () => {
+      const rows = buildCoverage(items, activeCustomCoverageFields);
+      if (!activeHiddenCoverageFields.length) return rows;
+      const hidden = new Set(activeHiddenCoverageFields);
+      // Custom rows are keyed `custom:<id>` in buildCoverage. Match both forms so the user
+      // can hide either a built-in (key === "weight") or a custom tile by its id.
+      return rows.filter((row) => !hidden.has(row.key) && !hidden.has(row.key.replace(/^custom:/, "")));
+    },
+    [items, activeCustomCoverageFields, activeHiddenCoverageFields]
+  );
   const coverageTotal = items.filter((item) => item.result || item.coverage).length;
   const runTiming = useMemo(() => buildRunTiming(selectedRun, items, nowMs), [items, nowMs, selectedRun]);
   const runItemFilterCounts = useMemo(() => buildRunItemFilterCounts(items), [items]);
@@ -729,17 +850,181 @@ export function App() {
             </>
           )}
 
-          <label className="run-option-card">
-            <input
-              type="checkbox"
-              checked={downloadDocuments}
-              onChange={(event) => setDownloadDocuments(event.target.checked)}
-            />
-            <span>
-              <strong>Download PDFs/CAD/manuals</strong>
-              <small>Off keeps Excel and product images only.</small>
-            </span>
-          </label>
+          <fieldset className="run-option-group">
+            <legend>Download mode</legend>
+            {(
+              [
+                {
+                  id: "excel-images",
+                  title: "Excel + images",
+                  hint: "Default. Workbook with product data and downloaded images.",
+                  docs: false,
+                  images: true,
+                  excel: true
+                },
+                {
+                  id: "excel-only",
+                  title: "Excel only",
+                  hint: "Workbook only. Image URLs stay in cells but no PNGs are saved.",
+                  docs: false,
+                  images: false,
+                  excel: true
+                },
+                {
+                  id: "images-only",
+                  title: "Images only",
+                  hint: "Just the PNG files on disk — no Excel workbook is created.",
+                  docs: false,
+                  images: true,
+                  excel: false
+                },
+                {
+                  id: "full",
+                  title: "Excel + images + PDFs/CAD",
+                  hint: "Everything: workbook, images, datasheets, manuals and CAD models.",
+                  docs: true,
+                  images: true,
+                  excel: true
+                }
+              ] as const
+            ).map((preset) => {
+              const checked =
+                downloadDocuments === preset.docs &&
+                downloadImages === preset.images &&
+                generateExcel === preset.excel;
+              return (
+                <label key={preset.id} className={`run-option-card${checked ? " is-selected" : ""}`}>
+                  <input
+                    type="radio"
+                    name="download-mode"
+                    checked={checked}
+                    onChange={() => {
+                      setDownloadDocuments(preset.docs);
+                      setDownloadImages(preset.images);
+                      setGenerateExcel(preset.excel);
+                    }}
+                  />
+                  <span>
+                    <strong>{preset.title}</strong>
+                    <small>{preset.hint}</small>
+                  </span>
+                </label>
+              );
+            })}
+          </fieldset>
+
+          <details
+            className="run-coverage-editor"
+            open={runCoverageExpanded}
+            onToggle={(event) => setRunCoverageExpanded((event.target as HTMLDetailsElement).open)}
+          >
+            <summary>
+              <span>
+                <strong>Coverage tiles for this run</strong>
+                <small>
+                  {effectiveRunCoverageFields.length === 0
+                    ? "Built-in only (Weight, Material, …)"
+                    : `Built-in + ${effectiveRunCoverageFields.length} custom`}
+                  {runCoverageFields !== null && customCoverageDefaults.length !== effectiveRunCoverageFields.length
+                    ? " · overridden for this run"
+                    : ""}
+                </small>
+              </span>
+              <ChevronDown size={16} />
+            </summary>
+            <div className="run-coverage-editor-body">
+              <p className="muted-note">
+                Click a built-in tile to hide it. Add custom tiles below — each matches by attribute
+                name (regex, case-insensitive). Manufacturer default loaded; edits apply to this run only.
+              </p>
+              <div className="coverage-builtin-toggles" role="group" aria-label="Built-in coverage tiles">
+                {REQUIRED_COVERAGE_FIELDS.map((field) => {
+                  const hidden = runHiddenCoverageFields.includes(field.key);
+                  return (
+                    <button
+                      key={field.key}
+                      type="button"
+                      className={`coverage-toggle-chip${hidden ? " is-off" : ""}`}
+                      onClick={() =>
+                        setRunHiddenCoverageFields((current) =>
+                          current.includes(field.key)
+                            ? current.filter((entry) => entry !== field.key)
+                            : [...current, field.key]
+                        )
+                      }
+                      aria-pressed={!hidden}
+                    >
+                      {hidden ? "✕ " : "✓ "}
+                      {field.label}
+                    </button>
+                  );
+                })}
+              </div>
+              <p className="muted-note">Custom tiles</p>
+              {effectiveRunCoverageFields.map((field, index) => (
+                <div key={index} className="coverage-editor-row">
+                  <label className="field">
+                    <span>Label</span>
+                    <input
+                      value={field.label}
+                      placeholder="IP Rating"
+                      onChange={(event) => {
+                        const next = effectiveRunCoverageFields.map((current, idx) =>
+                          idx === index ? { ...current, label: event.target.value } : current
+                        );
+                        setRunCoverageFields(next);
+                      }}
+                    />
+                  </label>
+                  <label className="field">
+                    <span>Match pattern (regex)</span>
+                    <input
+                      value={field.pattern}
+                      placeholder="ip rating|ingress"
+                      onChange={(event) => {
+                        const next = effectiveRunCoverageFields.map((current, idx) =>
+                          idx === index ? { ...current, pattern: event.target.value } : current
+                        );
+                        setRunCoverageFields(next);
+                      }}
+                    />
+                  </label>
+                  <button
+                    type="button"
+                    className="cancel-button compact-action"
+                    onClick={() => setRunCoverageFields(effectiveRunCoverageFields.filter((_, idx) => idx !== index))}
+                    aria-label={`Remove ${field.label || "custom field"}`}
+                  >
+                    <XCircle size={16} />
+                  </button>
+                </div>
+              ))}
+              <div className="run-coverage-editor-actions">
+                <button
+                  type="button"
+                  className="secondary-action compact-action"
+                  onClick={() =>
+                    setRunCoverageFields([
+                      ...effectiveRunCoverageFields,
+                      { id: "", label: "", pattern: "" }
+                    ])
+                  }
+                >
+                  <Plus size={16} />
+                  Add field
+                </button>
+                {runCoverageFields !== null && (
+                  <button
+                    type="button"
+                    className="text-link-button"
+                    onClick={() => setRunCoverageFields(null)}
+                  >
+                    Reset to manufacturer default
+                  </button>
+                )}
+              </div>
+            </div>
+          </details>
 
           <label className="run-option-card">
             <input
@@ -786,7 +1071,7 @@ export function App() {
                   {openWorkbookBusy ? "Opening" : "Excel"}
                 </button>
               )}
-              {hasWorkbook && (
+              {hasOutputFolder && (
                 <button type="button" className="download-button secondary" onClick={() => void handleOpenOutputFolder()} disabled={openOutputFolderBusy}>
                   {openOutputFolderBusy ? <Loader2 className="spin" size={16} /> : <FolderOpen size={16} />}
                   {openOutputFolderBusy ? "Opening" : "Folder"}
@@ -857,12 +1142,24 @@ export function App() {
                     <ListChecks size={17} />
                     <strong>Required data coverage</strong>
                   </div>
-                  <span>{coverageTotal} parsed products</span>
+                  <div className="coverage-head-actions">
+                    <span>{coverageTotal} parsed products</span>
+                    {selectedRun && (
+                      <button
+                        type="button"
+                        className="text-link-button"
+                        onClick={() => (dashboardCoverageEditOpen ? setDashboardCoverageEditOpen(false) : openDashboardCoverageEditor())}
+                      >
+                        <Pencil size={14} />
+                        {dashboardCoverageEditOpen ? "Close editor" : "Edit tiles"}
+                      </button>
+                    )}
+                  </div>
                 </div>
                 <div className="coverage-grid">
                   {coverage.map((row) => (
                     <div
-                      className={`coverage-item${row.missing ? " coverage-item--missing" : ""}${row.notApplicable && !row.total ? " coverage-item--na" : ""}`}
+                      className={`coverage-item${row.missing ? " coverage-item--missing" : ""}${row.notApplicable && !row.total ? " coverage-item--na" : ""}${row.isCustom ? " coverage-item--custom" : ""}`}
                       key={row.key}
                     >
                       <span>{row.label}</span>
@@ -880,6 +1177,99 @@ export function App() {
                     </div>
                   ))}
                 </div>
+                {dashboardCoverageEditOpen && (
+                  <div className="coverage-dashboard-editor">
+                    <p className="muted-note">
+                      Click a built-in tile below to hide it on this dashboard. Add custom tiles
+                      with regex patterns matched against attribute names. Saving re-evaluates
+                      existing attributes — no re-scrape needed.
+                    </p>
+                    <div className="coverage-builtin-toggles" role="group" aria-label="Built-in coverage tiles">
+                      {REQUIRED_COVERAGE_FIELDS.map((field) => {
+                        const hidden = dashboardHiddenDraft.includes(field.key);
+                        return (
+                          <button
+                            key={field.key}
+                            type="button"
+                            className={`coverage-toggle-chip${hidden ? " is-off" : ""}`}
+                            onClick={() => toggleHiddenBuiltIn(field.key)}
+                            aria-pressed={!hidden}
+                          >
+                            {hidden ? "✕ " : "✓ "}
+                            {field.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <p className="muted-note">Custom tiles</p>
+                    {dashboardCoverageDraft.length === 0 && (
+                      <p className="muted-note">No custom tiles yet.</p>
+                    )}
+                    {dashboardCoverageDraft.map((field, index) => (
+                      <div key={index} className="coverage-editor-row">
+                        <label className="field">
+                          <span>Label</span>
+                          <input
+                            value={field.label}
+                            placeholder="IP Rating"
+                            onChange={(event) => {
+                              setDashboardCoverageDraft((current) =>
+                                current.map((existing, idx) =>
+                                  idx === index ? { ...existing, label: event.target.value } : existing
+                                )
+                              );
+                            }}
+                          />
+                        </label>
+                        <label className="field">
+                          <span>Match pattern (regex)</span>
+                          <input
+                            value={field.pattern}
+                            placeholder="ip rating|ingress"
+                            onChange={(event) => {
+                              setDashboardCoverageDraft((current) =>
+                                current.map((existing, idx) =>
+                                  idx === index ? { ...existing, pattern: event.target.value } : existing
+                                )
+                              );
+                            }}
+                          />
+                        </label>
+                        <button
+                          type="button"
+                          className="cancel-button compact-action"
+                          onClick={() =>
+                            setDashboardCoverageDraft((current) => current.filter((_, idx) => idx !== index))
+                          }
+                          aria-label={`Remove ${field.label || "custom tile"}`}
+                        >
+                          <XCircle size={16} />
+                        </button>
+                      </div>
+                    ))}
+                    <div className="coverage-dashboard-editor-actions">
+                      <button
+                        type="button"
+                        className="secondary-action compact-action"
+                        onClick={() =>
+                          setDashboardCoverageDraft((current) => [...current, { id: "", label: "", pattern: "" }])
+                        }
+                      >
+                        <Plus size={16} />
+                        Add tile
+                      </button>
+                      <button
+                        type="button"
+                        className="primary-action compact-action"
+                        onClick={() => void saveDashboardCoverageEditor()}
+                        disabled={dashboardCoverageBusy}
+                      >
+                        {dashboardCoverageBusy ? <Loader2 className="spin" size={14} /> : <Save size={14} />}
+                        Save tiles
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="run-items-panel">
@@ -1071,14 +1461,22 @@ export function App() {
             </div>
           )}
 
-          {hasWorkbook && (
+          {hasOutputFolder && (
             <div className="output-box">
               <FolderOpen size={18} />
               <div>
-                <strong>{selectedRun.status === "cancelled" ? "Partial workbook ready" : "Workbook ready"}</strong>
-                <button type="button" className="text-link-button" onClick={() => void handleOpenWorkbook()} disabled={openWorkbookBusy}>
-                  Open result XLSX
-                </button>
+                <strong>
+                  {hasWorkbook
+                    ? selectedRun.status === "cancelled"
+                      ? "Partial workbook ready"
+                      : "Workbook ready"
+                    : "Files ready"}
+                </strong>
+                {hasWorkbook && (
+                  <button type="button" className="text-link-button" onClick={() => void handleOpenWorkbook()} disabled={openWorkbookBusy}>
+                    Open result XLSX
+                  </button>
+                )}
                 <button type="button" className="text-link-button" onClick={() => void handleOpenOutputFolder()} disabled={openOutputFolderBusy}>
                   Open output folder
                 </button>
@@ -1211,6 +1609,84 @@ ABC:12345`}
             </div>
 
             <ManufacturerWizardPreview inspectResult={wizardInspectResult} testResult={wizardTestResult} />
+          </section>
+
+          <section className="coverage-editor" aria-label="Custom coverage tiles">
+            <div className="coverage-editor-head">
+              <div>
+                <span className="section-label">Custom coverage</span>
+                <h3>Extra fields to track on the dashboard</h3>
+                <p>
+                  Built-in tiles (Weight, Material, Dimensions, …) always run. Add your own —
+                  each row matches by attribute name (regex, case-insensitive). Plain words work
+                  too. Examples: <code>ip rating</code>, <code>operating temperature</code>,
+                  <code>thread|connection</code>.
+                </p>
+              </div>
+              <button
+                type="button"
+                className="secondary-action compact-action"
+                onClick={() =>
+                  updateManufacturerDraft({
+                    customCoverageFields: [
+                      ...manufacturerDraft.customCoverageFields,
+                      { id: "", label: "", pattern: "" }
+                    ]
+                  })
+                }
+              >
+                <Plus size={16} />
+                Add field
+              </button>
+            </div>
+            {manufacturerDraft.customCoverageFields.length === 0 ? (
+              <p className="muted-note">No custom fields yet. Built-in tiles only.</p>
+            ) : (
+              <div className="coverage-editor-rows">
+                {manufacturerDraft.customCoverageFields.map((field, index) => (
+                  <div key={index} className="coverage-editor-row">
+                    <label className="field">
+                      <span>Label</span>
+                      <input
+                        value={field.label}
+                        placeholder="IP Rating"
+                        onChange={(event) => {
+                          const next = manufacturerDraft.customCoverageFields.map((current, idx) =>
+                            idx === index ? { ...current, label: event.target.value } : current
+                          );
+                          updateManufacturerDraft({ customCoverageFields: next });
+                        }}
+                      />
+                    </label>
+                    <label className="field">
+                      <span>Match pattern (regex)</span>
+                      <input
+                        value={field.pattern}
+                        placeholder="ip rating|ingress"
+                        onChange={(event) => {
+                          const next = manufacturerDraft.customCoverageFields.map((current, idx) =>
+                            idx === index ? { ...current, pattern: event.target.value } : current
+                          );
+                          updateManufacturerDraft({ customCoverageFields: next });
+                        }}
+                      />
+                    </label>
+                    <button
+                      type="button"
+                      className="cancel-button compact-action"
+                      onClick={() =>
+                        updateManufacturerDraft({
+                          customCoverageFields: manufacturerDraft.customCoverageFields.filter((_, idx) => idx !== index)
+                        })
+                      }
+                      aria-label={`Remove ${field.label || "custom field"}`}
+                    >
+                      <XCircle size={16} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </section>
 
           {editorMode === "advanced" && (
@@ -2181,9 +2657,12 @@ function DebugObjectSection({ title, items, defaultOpen = false }: { title: stri
   );
 }
 
-function buildCoverage(items: RunItemRecord[]) {
+function buildCoverage(
+  items: RunItemRecord[],
+  customFields: ReadonlyArray<{ id: string; label: string; pattern: string }>
+) {
   const parsedItems = items.filter((item) => item.result || item.coverage);
-  return REQUIRED_COVERAGE_FIELDS.map((field) => {
+  const builtIn = REQUIRED_COVERAGE_FIELDS.map((field) => {
     let count = 0;
     let missing = 0;
     let notApplicable = 0;
@@ -2196,6 +2675,8 @@ function buildCoverage(items: RunItemRecord[]) {
     const total = count + missing;
     return {
       ...field,
+      key: field.key as string,
+      isCustom: false as const,
       count,
       missing,
       notApplicable,
@@ -2203,6 +2684,33 @@ function buildCoverage(items: RunItemRecord[]) {
       percent: total ? Math.round((count / total) * 100) : notApplicable ? 100 : 0
     };
   });
+
+  const custom = customFields.map((field) => {
+    let count = 0;
+    let missing = 0;
+    for (const item of parsedItems) {
+      // Custom fields are evaluated server-side and arrive on `item.coverage.customFields`.
+      // Items processed before the field was added simply won't have an entry; we exclude
+      // them from the denominator so the bar reflects only items that knew about the field.
+      const entry = item.coverage?.customFields?.find((custom) => custom.id === field.id);
+      if (!entry) continue;
+      if (entry.state === "present") count += 1;
+      if (entry.state === "missing") missing += 1;
+    }
+    const total = count + missing;
+    return {
+      key: `custom:${field.id}`,
+      label: field.label,
+      isCustom: true as const,
+      count,
+      missing,
+      notApplicable: 0,
+      total,
+      percent: total ? Math.round((count / total) * 100) : 0
+    };
+  });
+
+  return [...builtIn, ...custom];
 }
 
 function buildRunItemFilterCounts(items: RunItemRecord[]): Record<RunItemFilter, number> {
@@ -2391,7 +2899,8 @@ function emptyManufacturerDraft(): ManufacturerDraft {
     referer: "",
     fallbackUserAgentsText: "",
     scrapeRecipeJson: "",
-    fallbackSources: [emptySourceDraft(1)]
+    fallbackSources: [emptySourceDraft(1)],
+    customCoverageFields: []
   };
 }
 
@@ -2437,6 +2946,11 @@ function toManufacturerDraft(config: ManufacturerConfig): ManufacturerDraft {
     referer: config.fetchPolicy?.referer ?? "",
     fallbackUserAgentsText: (config.fetchPolicy?.fallbackUserAgents ?? []).join("\n"),
     scrapeRecipeJson: formatJson(config.scrapeRecipe),
+    customCoverageFields: (config.customCoverageFields ?? []).map((field) => ({
+      id: field.id,
+      label: field.label,
+      pattern: field.pattern
+    })),
     fallbackSources: config.fallbackSources.length
       ? config.fallbackSources.map((source) => ({
           id: source.id,
@@ -2523,7 +3037,19 @@ function manufacturerDraftToConfig(draft: ManufacturerDraft): ManufacturerConfig
           ...(optionalNumber(source.confidence) !== undefined ? { confidence: optionalNumber(source.confidence) } : {})
         };
       })
-      .filter((source) => source.id && source.label && source.directUrlTemplates.length > 0)
+      .filter((source) => source.id && source.label && source.directUrlTemplates.length > 0),
+    ...(draft.customCoverageFields.length
+      ? {
+          customCoverageFields: draft.customCoverageFields
+            .map((field, index) => {
+              const label = field.label.trim();
+              const pattern = field.pattern.trim();
+              const slug = slugify(field.id || label || `coverage-${index + 1}`);
+              return { id: slug, label, pattern };
+            })
+            .filter((field) => field.id && field.label && field.pattern)
+        }
+      : {})
   };
 }
 

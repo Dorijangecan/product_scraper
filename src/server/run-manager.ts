@@ -1,7 +1,7 @@
 import crypto from "node:crypto";
 import fs from "node:fs/promises";
 import path from "node:path";
-import type { DocumentRecord, ManufacturerId, ProductResult, RunItemRecord, RunRecord } from "../shared/types.js";
+import type { DocumentRecord, ManufacturerConfig, ManufacturerId, ProductResult, RunItemRecord, RunRecord } from "../shared/types.js";
 import { getManufacturerConfig } from "./config/manufacturers.js";
 import type { ScraperDb } from "./db.js";
 import { exportRunWorkbook } from "./excel.js";
@@ -93,10 +93,22 @@ export class RunManager {
     try {
       const run = this.db.getRun(runId);
       if (!run) return;
-      const manufacturer = getManufacturerConfig(run.manufacturerId);
-      if (!manufacturer) throw new Error(`Unknown manufacturer ${run.manufacturerId}`);
+      const rawManufacturer = getManufacturerConfig(run.manufacturerId);
+      if (!rawManufacturer) throw new Error(`Unknown manufacturer ${run.manufacturerId}`);
       const connector = getConnector(run.manufacturerId);
       const downloadDocumentsEnabled = run.options?.downloadDocuments !== false;
+      const downloadImagesEnabled = run.options?.downloadImages !== false;
+      const generateExcelEnabled = run.options?.generateExcel !== false;
+      // "Images only" mode: no Excel, no documents, just the PNGs. Treat the whole pipeline
+      // as a fast path — skip Playwright modal renders, fallback retries, and PDF
+      // enrichment, since none of those affect the saved images.
+      const imageOnlyMode = !generateExcelEnabled && !downloadDocumentsEnabled && downloadImagesEnabled;
+      // When the user disables document downloads, the quality gate must not demand non-image
+      // documents (datasheet/manual/etc.) — otherwise it always "fails", spawning fallback work
+      // that re-fetches and re-renders pages to look for a PDF we never intend to download.
+      const manufacturer = downloadDocumentsEnabled
+        ? rawManufacturer
+        : withoutNonImageRequiredDocuments(rawManufacturer);
       layout = buildRunOutputLayout(this.paths.outputDir, manufacturer, run);
       await ensureRunOutputLayout(layout);
       await this.appendRunLog(layout, "RUN_START", {
@@ -105,6 +117,7 @@ export class RunManager {
         inputFileName: run.inputFileName,
         total: run.total,
         downloadDocuments: downloadDocumentsEnabled,
+        downloadImages: downloadImagesEnabled,
         outputFolder: layout.runDir
       });
       if (this.db.isCancellationRequested(run.id)) {
@@ -136,6 +149,8 @@ export class RunManager {
             documentsDir: layoutRef.documentsDir,
             signal: controller.signal,
             browserRenderer,
+            downloadDocuments: downloadDocumentsEnabled,
+            imageOnly: imageOnlyMode,
             learnedEndpoints: {
               list: (manufacturerId, limit) => this.db.listLearnedEndpoints(manufacturerId, limit),
               upsert: (endpoint) => this.db.upsertLearnedEndpoint(endpoint)
@@ -152,7 +167,9 @@ export class RunManager {
                 item.catalogNumber,
                 doc,
                 downloadDocumentsEnabled,
-                controller.signal
+                controller.signal,
+                undefined,
+                downloadImagesEnabled
               )
           });
           if (this.db.isCancellationRequested(run.id) || controller.signal.aborted) {
@@ -171,11 +188,22 @@ export class RunManager {
             initiallyGated,
             downloadDocumentsEnabled,
             controller.signal,
-            documentDownloadProfile(manufacturer, initiallyGated)
+            documentDownloadProfile(manufacturer, initiallyGated),
+            downloadImagesEnabled
           );
+          // In "Images only" mode the saved deliverable is just the PNG. Everything below this
+          // line (PDF enrichment, fallback discovery, final completeness retry) exists only to
+          // populate Excel columns we never write — so skip it all and treat the initial parse
+          // as final. Cuts per-item time roughly in half on Balluff.
+          let enriched: typeof withInitialDownloads;
+          let fallbackStages: string[] | undefined;
+          if (imageOnlyMode) {
+            enriched = withInitialDownloads;
+            fallbackStages = enriched.diagnostics?.fallbackStages;
+          } else {
           this.updateItemStage(item.id, "document-enrichment", "Reading downloaded documents for missing values");
-          let enriched = finalizeQualityGate(await enrichFromDownloadedDocumentsIfPresent(withInitialDownloads), manufacturer);
-          let fallbackStages = enriched.diagnostics?.fallbackStages;
+          enriched = finalizeQualityGate(await enrichFromDownloadedDocumentsIfPresent(withInitialDownloads), manufacturer);
+          fallbackStages = enriched.diagnostics?.fallbackStages;
           if (!enriched.qualityGate?.passed) {
             this.updateItemStage(item.id, "quality-fallback", "Running fallback because required fields are missing");
             const withSmartFallbacks = await runDeterministicScrapePipeline(enriched, item.catalogNumber, {
@@ -185,6 +213,8 @@ export class RunManager {
               documentsDir: layoutRef.documentsDir,
               signal: controller.signal,
               browserRenderer,
+              downloadDocuments: downloadDocumentsEnabled,
+              imageOnly: imageOnlyMode,
               learnedEndpoints: {
                 list: (manufacturerId, limit) => this.db.listLearnedEndpoints(manufacturerId, limit),
                 upsert: (endpoint) => this.db.upsertLearnedEndpoint(endpoint)
@@ -201,7 +231,9 @@ export class RunManager {
                   item.catalogNumber,
                   doc,
                   downloadDocumentsEnabled,
-                  controller.signal
+                  controller.signal,
+                  undefined,
+                  downloadImagesEnabled
                 )
             });
             this.updateItemStage(item.id, "downloads", "Downloading fallback images and documents");
@@ -213,7 +245,8 @@ export class RunManager {
               withSmartFallbacks,
               downloadDocumentsEnabled,
               controller.signal,
-              documentDownloadProfile(manufacturer, withSmartFallbacks)
+              documentDownloadProfile(manufacturer, withSmartFallbacks),
+              downloadImagesEnabled
             );
             this.updateItemStage(item.id, "document-enrichment", "Reading fallback documents for missing values");
             enriched = finalizeQualityGate(await enrichFromDownloadedDocumentsIfPresent(withFallbackDownloads), manufacturer);
@@ -262,6 +295,8 @@ export class RunManager {
               documentsDir: layoutRef.documentsDir,
               signal: controller.signal,
               browserRenderer,
+              downloadDocuments: downloadDocumentsEnabled,
+              imageOnly: imageOnlyMode,
               learnedEndpoints: {
                 list: (manufacturerId, limit) => this.db.listLearnedEndpoints(manufacturerId, limit),
                 upsert: (endpoint) => this.db.upsertLearnedEndpoint(endpoint)
@@ -278,7 +313,9 @@ export class RunManager {
                   item.catalogNumber,
                   doc,
                   downloadDocumentsEnabled,
-                  controller.signal
+                  controller.signal,
+                  undefined,
+                  downloadImagesEnabled
                 )
             });
             this.updateItemStage(item.id, "downloads", "Downloading final retry images and documents");
@@ -290,7 +327,8 @@ export class RunManager {
               withFinalCompletenessFallbacks,
               downloadDocumentsEnabled,
               controller.signal,
-              documentDownloadProfile(manufacturer, withFinalCompletenessFallbacks)
+              documentDownloadProfile(manufacturer, withFinalCompletenessFallbacks),
+              downloadImagesEnabled
             );
             this.updateItemStage(item.id, "document-enrichment", "Reading final retry documents for missing values");
             enriched = finalizeQualityGate(await enrichFromDownloadedDocumentsIfPresent(withFinalCompletenessDownloads), manufacturer);
@@ -356,6 +394,7 @@ export class RunManager {
             });
           }
           enriched = applyFinalCompletenessStatus(enriched, afterFinalCompleteness, manufacturer);
+          } // end of if (!imageOnlyMode)
           this.updateItemStage(item.id, "evidence", "Attaching source evidence");
           enriched = attachEvidence(enriched);
           if (this.db.isCancellationRequested(run.id) || controller.signal.aborted) {
@@ -444,15 +483,19 @@ export class RunManager {
     this.db.recountRun(runId);
     const layout = buildRunOutputLayout(this.paths.outputDir, manufacturer, finalRun);
     await ensureRunOutputLayout(layout);
-    const outputPath = await exportRunWorkbook({
-      run: this.db.getRun(runId)!,
-      manufacturer,
-      items: this.db.getRunItems(runId),
-      outputDir: layout.excelDir
-    });
+    // "Images only" mode skips workbook generation; everything else still produces one.
+    const shouldGenerateExcel = finalRun.options?.generateExcel !== false;
+    const outputPath = shouldGenerateExcel
+      ? await exportRunWorkbook({
+          run: this.db.getRun(runId)!,
+          manufacturer,
+          items: this.db.getRunItems(runId),
+          outputDir: layout.excelDir
+        })
+      : undefined;
     this.db.updateRun(runId, {
       status,
-      outputPath,
+      ...(outputPath ? { outputPath } : {}),
       error: status === "cancelled" ? "Cancelled by user." : undefined
     });
     const updatedRun = this.db.getRun(runId);
@@ -477,7 +520,8 @@ export class RunManager {
     result: ProductResult,
     downloadDocumentsEnabled: boolean,
     signal?: AbortSignal,
-    profile: DocumentDownloadProfile = "full"
+    profile: DocumentDownloadProfile = "full",
+    downloadImagesEnabled: boolean = true
   ): Promise<ProductResult> {
     const documents: DocumentRecord[] = [];
     const maxDownloads = profile === "full" ? 25 : 8;
@@ -488,6 +532,14 @@ export class RunManager {
     const profileTypeCounts = new Map<DocumentRecord["type"], number>();
     for (const doc of rankedDocuments) {
       if (signal?.aborted) throw new Error("Cancelled by user.");
+      if (doc.type === "image" && !downloadImagesEnabled) {
+        documents.push({
+          ...doc,
+          downloadStatus: "skipped",
+          downloadError: "Image downloads disabled for this run."
+        });
+        continue;
+      }
       if (doc.type !== "image" && !downloadDocumentsEnabled) {
         documents.push({
           ...doc,
@@ -525,7 +577,7 @@ export class RunManager {
         nonImageDownloadCount += 1;
         profileTypeCounts.set(doc.type, (profileTypeCounts.get(doc.type) ?? 0) + 1);
       }
-      documents.push(await this.downloadDocument(http, documentsDir, imagesDir, manufacturerShortName, result.catalogNumber, doc, downloadDocumentsEnabled, signal, indexForDoc));
+      documents.push(await this.downloadDocument(http, documentsDir, imagesDir, manufacturerShortName, result.catalogNumber, doc, downloadDocumentsEnabled, signal, indexForDoc, downloadImagesEnabled));
       if (doc.type === "image") imageIndex += 1;
       downloadCount += 1;
     }
@@ -541,9 +593,17 @@ export class RunManager {
     doc: DocumentRecord,
     downloadDocumentsEnabled: boolean,
     signal?: AbortSignal,
-    imageIndex?: number
+    imageIndex?: number,
+    downloadImagesEnabled: boolean = true
   ): Promise<DocumentRecord> {
     if (doc.localPath) return doc;
+    if (doc.type === "image" && !downloadImagesEnabled) {
+      return {
+        ...doc,
+        downloadStatus: "skipped",
+        downloadError: "Image downloads disabled for this run."
+      };
+    }
     if (doc.type !== "image" && !downloadDocumentsEnabled) {
       return {
         ...doc,
@@ -757,6 +817,25 @@ function safeImagePart(value: string): string {
 function formatError(error: unknown): string {
   if (error instanceof Error) return error.stack ?? error.message;
   return String(error);
+}
+
+// When the user disables document downloads, the quality gate must not require non-image
+// documents — otherwise gate failures cascade into fallback retries that try to fetch
+// a PDF we never intend to keep. We leave the "image" requirement intact (images are
+// still downloaded) and drop everything else.
+function withoutNonImageRequiredDocuments(manufacturer: ManufacturerConfig): ManufacturerConfig {
+  const recipe = manufacturer.scrapeRecipe;
+  if (!recipe?.requiredDocuments?.length) return manufacturer;
+  const isImageRequirement = (pattern: string) => /(^|\|)\s*image\s*($|\|)/i.test(pattern);
+  const filtered = recipe.requiredDocuments.filter((pattern) => isImageRequirement(String(pattern)));
+  if (filtered.length === recipe.requiredDocuments.length) return manufacturer;
+  return {
+    ...manufacturer,
+    scrapeRecipe: {
+      ...recipe,
+      requiredDocuments: filtered
+    }
+  };
 }
 
 function documentDownloadRank(doc: DocumentRecord): number {

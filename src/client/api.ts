@@ -52,6 +52,14 @@ export async function startRun(input: {
   manufacturerId: string;
   columnName: string;
   downloadDocuments: boolean;
+  downloadImages: boolean;
+  generateExcel: boolean;
+  /**
+   * Per-run override of the coverage tiles. Pass `undefined` to use the manufacturer
+   * defaults; pass an array (including empty `[]`) to override for this single run.
+   */
+  customCoverageFields?: Array<{ id: string; label: string; pattern: string }>;
+  hiddenCoverageFields?: string[];
   forceFinalRetry?: boolean;
 }): Promise<RunRecord> {
   const form = new FormData();
@@ -59,6 +67,14 @@ export async function startRun(input: {
   form.append("manufacturerId", input.manufacturerId);
   form.append("columnName", input.columnName);
   form.append("downloadDocuments", String(input.downloadDocuments));
+  form.append("downloadImages", String(input.downloadImages));
+  form.append("generateExcel", String(input.generateExcel));
+  if (input.customCoverageFields !== undefined) {
+    form.append("customCoverageFields", JSON.stringify(input.customCoverageFields));
+  }
+  if (input.hiddenCoverageFields !== undefined) {
+    form.append("hiddenCoverageFields", JSON.stringify(input.hiddenCoverageFields));
+  }
   form.append("forceFinalRetry", String(input.forceFinalRetry ?? false));
   return request("/api/runs", { method: "POST", body: form });
 }
@@ -85,6 +101,22 @@ export async function openRunWorkbook(id: string): Promise<{ ok: true; path: str
 
 export async function openRunOutputFolder(id: string): Promise<{ ok: true; path: string }> {
   return request(`/api/runs/${id}/files/folder/open`, { method: "POST" });
+}
+
+export async function updateRunCoverageFields(
+  id: string,
+  customCoverageFields: Array<{ id: string; label: string; pattern: string }>,
+  hiddenCoverageFields?: string[]
+): Promise<RunRecord> {
+  const payload: { customCoverageFields: typeof customCoverageFields; hiddenCoverageFields?: string[] } = {
+    customCoverageFields
+  };
+  if (hiddenCoverageFields !== undefined) payload.hiddenCoverageFields = hiddenCoverageFields;
+  return request(`/api/runs/${id}/coverage-fields`, {
+    method: "PATCH",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(payload)
+  });
 }
 
 async function request<T>(url: string, init?: RequestInit): Promise<T> {

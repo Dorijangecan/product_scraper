@@ -17,6 +17,16 @@ export interface ScrapeContext {
   fallback: {
     scrape: (catalogNumber: string, sources: FallbackSourceConfig[]) => Promise<ProductResult | undefined>;
   };
+  // When false, the scraper should skip work that exists only to discover or fetch non-image
+  // documents (PDFs, CAD, manuals). The run-manager already skips the actual download; this
+  // lets scrapers avoid the upstream browser/network cost too.
+  downloadDocuments?: boolean;
+  /**
+   * When true, the scraper should take the fastest possible path to a single product image:
+   * skip lazy-loaded modal renders, skip supplemental enrichment fetches, and return as soon
+   * as a usable image URL is in hand. Used by the "Images only" run mode.
+   */
+  imageOnly?: boolean;
 }
 
 export interface ManufacturerConnector {

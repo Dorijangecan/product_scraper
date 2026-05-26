@@ -1,18 +1,29 @@
-import type { ProductResult, RunCoverageField, RunCoverageState, RunItemCoverageSummary, RunItemRecord } from "../shared/types.js";
+import type {
+  CustomCoverageField,
+  ProductResult,
+  RunCoverageField,
+  RunCoverageState,
+  RunItemCoverageSummary,
+  RunItemCustomCoverageResult,
+  RunItemRecord
+} from "../shared/types.js";
 import { requiredElectricalFields } from "../shared/product-requirements.js";
 
 const CRITICAL_FIELDS: RunCoverageField[] = ["image", "weight", "dimensions", "material", "voltage", "current"];
 
-export function summarizeRunItem(item: RunItemRecord): RunItemRecord {
+export function summarizeRunItem(
+  item: RunItemRecord,
+  options: { customCoverageFields?: CustomCoverageField[] } = {}
+): RunItemRecord {
   if (!item.result) return item;
   return {
     ...item,
-    coverage: buildCoverageSummary(item),
+    coverage: buildCoverageSummary(item, options.customCoverageFields ?? []),
     result: undefined
   };
 }
 
-function buildCoverageSummary(item: RunItemRecord): RunItemCoverageSummary {
+function buildCoverageSummary(item: RunItemRecord, customFieldDefs: CustomCoverageField[]): RunItemCoverageSummary {
   const result = item.result!;
   const fields: Partial<Record<RunCoverageField, RunCoverageState>> = {
     enUrl: coverageState(result, "enUrl"),
@@ -26,10 +37,12 @@ function buildCoverageSummary(item: RunItemRecord): RunItemCoverageSummary {
     current: coverageState(result, "current")
   };
   const criticalMissing = CRITICAL_FIELDS.filter((field) => fields[field] === "missing");
+  const customFields = evaluateCustomFields(result, customFieldDefs);
   return {
     fields,
+    ...(customFields.length ? { customFields } : {}),
     criticalMissing,
-    reason: itemReason(item, criticalMissing),
+    reason: itemReason(item, criticalMissing, customFields),
     qualityPassed: result.qualityGate?.passed,
     qualityMissing: result.qualityGate?.missing ?? [],
     finalCompletenessAfterMissing: result.diagnostics?.finalCompleteness?.afterMissing,
@@ -37,6 +50,37 @@ function buildCoverageSummary(item: RunItemRecord): RunItemCoverageSummary {
     documentCount: result.documents.length,
     evidenceCount: result.evidence?.length ?? 0
   };
+}
+
+function evaluateCustomFields(
+  result: ProductResult,
+  defs: CustomCoverageField[]
+): RunItemCustomCoverageResult[] {
+  if (!defs.length) return [];
+  return defs
+    .filter((def) => def.id && def.label && def.pattern)
+    .map((def) => {
+      const regex = compileCustomFieldRegex(def.pattern);
+      // A `null` regex means the user typed an invalid pattern — we surface the field as
+      // "missing" rather than silently dropping it, so they notice and fix the recipe.
+      const match = regex
+        ? result.attributes.find((attr) => regex.test(attr.name) && attr.value && attr.value.trim().length > 0)
+        : undefined;
+      return {
+        id: def.id,
+        label: def.label,
+        state: (match ? "present" : "missing") as RunCoverageState,
+        ...(match ? { matchedValue: match.value } : {})
+      };
+    });
+}
+
+function compileCustomFieldRegex(pattern: string): RegExp | undefined {
+  try {
+    return new RegExp(pattern, "i");
+  } catch {
+    return undefined;
+  }
 }
 
 function coverageState(result: ProductResult, field: RunCoverageField): RunCoverageState {
@@ -71,10 +115,18 @@ function hasCoverageValue(result: ProductResult, field: RunCoverageField): boole
   }
 }
 
-function itemReason(item: RunItemRecord, criticalMissing: RunCoverageField[]): string {
+function itemReason(
+  item: RunItemRecord,
+  criticalMissing: RunCoverageField[],
+  customFields: RunItemCustomCoverageResult[]
+): string {
   const result = item.result;
   if (!result) return item.stageMessage ?? item.error ?? "";
-  if (criticalMissing.length) return `Missing ${criticalMissing.map(coverageLabel).join(", ")}`;
+  const missingCustom = customFields.filter((field) => field.state === "missing").map((field) => field.label);
+  if (criticalMissing.length || missingCustom.length) {
+    const all = [...criticalMissing.map(coverageLabel), ...missingCustom];
+    return `Missing ${all.join(", ")}`;
+  }
   if (result.qualityGate?.passed) return "quality ok";
   if (result.qualityGate?.missing.length) return result.qualityGate.missing.slice(0, 4).join("; ");
   return result.error ?? item.error ?? result.qualityGate?.reason ?? "";
