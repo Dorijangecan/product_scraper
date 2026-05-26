@@ -1,6 +1,6 @@
 import type { ProductResult, ScrapeAttemptRecord } from "../../shared/types.js";
 import { discoverOfficialProductCandidates } from "./discovery.js";
-import { parseGenericProductPage } from "./generic.js";
+import { isUnresolvedSearchResultPage, parseGenericProductPage } from "./generic.js";
 import type { FetchedText } from "./http-client.js";
 import { mergeResults } from "./normalizer.js";
 import { applyQualityGate, evaluateQualityGate } from "./quality-gate.js";
@@ -32,6 +32,21 @@ export async function runDeterministicScrapePipeline(
         extractionPolicy: context.manufacturer.scrapeRecipe?.extractionPolicy
       });
       const staged = stampResult(parsed, candidate.stage, candidate.reason);
+      if (isUnresolvedSearchResultPage(fetched.effectiveUrl, staged.title, false)) {
+        attempts.push({
+          stage: candidate.stage,
+          url: fetched.effectiveUrl,
+          status: "failed",
+          score: candidate.score,
+          reason: "Search results page did not resolve to a catalog-confirmed product page.",
+          sourceType: candidate.sourceType,
+          parser: `discovery-${candidate.stage}`,
+          statusCode: fetched.statusCode,
+          attributeCount: 0,
+          documentCount: 0
+        });
+        continue;
+      }
       attempts.push(attemptFromFetched(candidate.stage, fetched, staged, candidate.reason, candidate.score));
       const merged = mergeResults(current, staged);
       current = applyQualityGate(

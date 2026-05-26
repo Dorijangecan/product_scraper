@@ -54,6 +54,7 @@ export class GenericFallbackScraper {
           });
           const discovery = discoverProductLinksWithDiagnostics(fetched.text, fetched.effectiveUrl, catalogNumber);
           const detailUrl = discovery.candidates[0]?.url;
+          let detailResolved = false;
           if (detailUrl) {
             try {
               const detail = await this.fetchTextWithFallback(detailUrl, source, signal);
@@ -65,13 +66,15 @@ export class GenericFallbackScraper {
                   markerRules: [...(this.manufacturer?.markerRules ?? []), ...(source.markerRules ?? [])],
                   extractionPolicy: this.manufacturer?.scrapeRecipe?.extractionPolicy
                 });
-                if (detailParsed.status !== "failed") return withLinkDiagnostics(mergeResults(detailParsed, parsed), discovery);
+                detailResolved = !isUnresolvedSearchResultPage(detail.effectiveUrl, detailParsed.title, false);
+                if (detailResolved && detailParsed.status !== "failed") return withLinkDiagnostics(mergeResults(detailParsed, parsed), discovery);
               }
             } catch (error) {
               if (isCancellationError(error, signal)) throw error;
               // Keep the original parsed page when detail navigation fails.
             }
           }
+          if (isUnresolvedSearchResultPage(fetched.effectiveUrl, parsed.title, detailResolved)) continue;
           if (parsed.status !== "failed") return withLinkDiagnostics(parsed, discovery);
         } catch (error) {
           if (isCancellationError(error, signal)) throw error;
@@ -162,6 +165,25 @@ function compareFallbackSources(left: FallbackSourceConfig, right: FallbackSourc
 
 function sourceRank(source: FallbackSourceConfig): number {
   return source.sourceType === "official-fallback" ? 0 : 10;
+}
+
+export function isUnresolvedSearchResultPage(url: string, title: string | undefined, detailResolved: boolean): boolean {
+  if (detailResolved) return false;
+  const normalizedTitle = cleanText(title).toLowerCase();
+  if (/\b(search results?|søkeresultater|sokeresultater|suchergebnisse|résultats de recherche)\b/i.test(normalizedTitle)) return true;
+  try {
+    const parsed = new URL(url);
+    if (
+      parsed.hostname.replace(/^www\./, "").toLowerCase() === "abb-control-products.partcommunity.com" &&
+      /\/3d-cad-models(?:\/|$)/i.test(parsed.pathname) &&
+      parsed.searchParams.has("part")
+    ) {
+      return true;
+    }
+    return /\/search(?:\/|$)/i.test(parsed.pathname) || [...parsed.searchParams.keys()].some((key) => /^(?:s|q|query|search|term)$/i.test(key));
+  } catch {
+    return /\b(?:search|query)=|\/search\//i.test(url);
+  }
 }
 
 export function parseGenericProductPage(

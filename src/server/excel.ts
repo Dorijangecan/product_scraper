@@ -21,6 +21,7 @@ export async function exportRunWorkbook(input: {
   workbook.created = new Date();
   workbook.modified = new Date();
 
+  const lookup = workbook.addWorksheet("XLOOKUP", { views: [{ state: "frozen", xSplit: 1, ySplit: 1 }] });
   const products = workbook.addWorksheet("Products", { views: [{ state: "frozen", ySplit: 1 }] });
   const attributes = workbook.addWorksheet("Attributes", { views: [{ state: "frozen", ySplit: 1 }] });
   const documents = workbook.addWorksheet("Documents", { views: [{ state: "frozen", ySplit: 1 }] });
@@ -28,6 +29,74 @@ export async function exportRunWorkbook(input: {
   const evidence = workbook.addWorksheet("Evidence", { views: [{ state: "frozen", ySplit: 1 }] });
   const finalAudit = workbook.addWorksheet("Final Audit", { views: [{ state: "frozen", ySplit: 1 }] });
   const failures = workbook.addWorksheet("Failures", { views: [{ state: "frozen", ySplit: 1 }] });
+
+  lookup.columns = [
+    { header: "Catalog Number", key: "catalogNumber", width: 24 },
+    { header: "Manufacturer", key: "manufacturer", width: 18 },
+    { header: "Short Name", key: "shortName", width: 12 },
+    { header: "Status", key: "status", width: 12 },
+    { header: "Confidence", key: "confidence", width: 12 },
+    { header: "Title", key: "title", width: 42 },
+    { header: "Description", key: "description", width: 70 },
+    { header: "Product Type", key: "productType", width: 30 },
+    { header: "EAN / GTIN", key: "ean", width: 20 },
+    { header: "Product URL Source", key: "productUrl", width: 60 },
+    { header: "Product URL EN", key: "productUrlEn", width: 60 },
+    { header: "Product URL DE", key: "productUrlDe", width: 60 },
+    { header: "Image Local Path", key: "imageLocalPath", width: 64 },
+    { header: "Image URL", key: "imageUrl", width: 64 },
+    { header: "Datasheet URLs", key: "datasheetUrls", width: 76 },
+    { header: "Manual URLs", key: "manualUrls", width: 76 },
+    { header: "CAD URLs", key: "cadUrls", width: 76 },
+    { header: "Certificate URLs", key: "certificateUrls", width: 76 },
+    { header: "Other URLs", key: "otherUrls", width: 76 },
+    { header: "All Document URLs", key: "allDocumentUrls", width: 100 },
+    { header: "Weight (lb)", key: "weightLb", width: 14, style: { numFmt: "0.#########" } },
+    { header: "Weight (kg)", key: "weightKg", width: 14, style: { numFmt: "0.#########" } },
+    { header: "Height (mm)", key: "heightMm", width: 14, style: { numFmt: "0.#########" } },
+    { header: "Width (mm)", key: "widthMm", width: 14, style: { numFmt: "0.#########" } },
+    { header: "Depth (mm)", key: "depthMm", width: 14, style: { numFmt: "0.#########" } },
+    { header: "Length (mm)", key: "lengthMm", width: 14, style: { numFmt: "0.#########" } },
+    { header: "Height (in)", key: "heightIn", width: 14, style: { numFmt: "0.#########" } },
+    { header: "Width (in)", key: "widthIn", width: 14, style: { numFmt: "0.#########" } },
+    { header: "Depth (in)", key: "depthIn", width: 14, style: { numFmt: "0.#########" } },
+    { header: "Length (in)", key: "lengthIn", width: 14, style: { numFmt: "0.#########" } },
+    { header: "Material", key: "material", width: 28 },
+    { header: "Finish", key: "finish", width: 42 },
+    { header: "Color", key: "color", width: 24 },
+    { header: "Voltage", key: "voltage", width: 24 },
+    { header: "Current", key: "current", width: 24 },
+    { header: "Rated Current", key: "ratedCurrent", width: 18 },
+    { header: "Poles", key: "poles", width: 18 },
+    { header: "Frequency", key: "frequency", width: 24 },
+    { header: "IP Rating", key: "ipRating", width: 18 },
+    { header: "Protection", key: "protection", width: 28 },
+    { header: "Mounting", key: "mounting", width: 36 },
+    { header: "Terminals / Connection", key: "terminalsConnection", width: 44 },
+    { header: "Standards", key: "standards", width: 36 },
+    { header: "Product Family / Class", key: "productFamily", width: 40 },
+    { header: "Suitable For", key: "suitableFor", width: 36 },
+    { header: "Tariff Code (HS)", key: "tariffCode", width: 18 },
+    { header: "Country of Origin", key: "countryOfOrigin", width: 18 },
+    { header: "Certificates", key: "certificates", width: 42 },
+    { header: "Key Specifications", key: "keySpecifications", width: 90 },
+    { header: "Electrical Ratings", key: "electricalRatings", width: 90 },
+    { header: "Mechanical / Installation", key: "mechanicalInstallation", width: 84 },
+    { header: "Compliance / Standards", key: "complianceStandards", width: 84 },
+    { header: "Lifecycle / Commercial", key: "lifecycleCommercial", width: 80 },
+    { header: "Downloads", key: "downloads", width: 84 },
+    { header: "All Resources", key: "allResources", width: 100 },
+    { header: "All Specifications", key: "allSpecifications", width: 120 },
+    { header: "Attribute Count", key: "attributeCount", width: 16 },
+    { header: "Document Count", key: "documentCount", width: 16 },
+    { header: "Image Count", key: "imageCount", width: 12 },
+    { header: "Quality Gate Passed", key: "qualityPassed", width: 18 },
+    { header: "Quality Score", key: "qualityScore", width: 14 },
+    { header: "Quality Missing", key: "qualityMissing", width: 56 },
+    { header: "Final Completeness Check", key: "finalCompletenessCheck", width: 64 },
+    { header: "Missing Required Fields", key: "missingRequiredFields", width: 48 },
+    { header: "Error", key: "error", width: 56 }
+  ];
 
   products.columns = [
     { header: "Manufacturer", key: "manufacturer", width: 18 },
@@ -196,7 +265,9 @@ export async function exportRunWorkbook(input: {
 
   for (const item of input.items) {
     const result = item.result;
-    const productExcelRow = products.addRow(productRow(input.manufacturer, item, result));
+    const rowData = productRow(input.manufacturer, item, result);
+    lookup.addRow(lookupRow(rowData, result));
+    const productExcelRow = products.addRow(rowData);
     await addProductThumbnail(workbook, products, productExcelRow, result);
     if (!result || result.status === "failed") {
       failures.addRow({
@@ -291,7 +362,7 @@ export async function exportRunWorkbook(input: {
     }
   }
 
-  for (const sheet of [products, attributes, documents, sources, evidence, finalAudit, failures]) {
+  for (const sheet of [lookup, products, attributes, documents, sources, evidence, finalAudit, failures]) {
     styleSheet(sheet);
   }
 
@@ -304,6 +375,44 @@ export async function exportRunWorkbook(input: {
   const outputPath = path.join(input.outputDir, `${outputName}.xlsx`);
   await workbook.xlsx.writeFile(outputPath);
   return outputPath;
+}
+
+function lookupRow(row: ReturnType<typeof productRow>, result?: ProductResult) {
+  const documents = documentsForExport(result);
+  return {
+    ...row,
+    description: singleLineForLookup(row.description),
+    keySpecifications: singleLineForLookup(row.keySpecifications),
+    electricalRatings: singleLineForLookup(row.electricalRatings),
+    mechanicalInstallation: singleLineForLookup(row.mechanicalInstallation),
+    complianceStandards: singleLineForLookup(row.complianceStandards),
+    lifecycleCommercial: singleLineForLookup(row.lifecycleCommercial),
+    downloads: singleLineForLookup(row.downloads),
+    allResources: singleLineForLookup(row.allResources),
+    allSpecifications: singleLineForLookup(row.allSpecifications),
+    datasheetUrls: documentUrlsForLookup(documents, "datasheet"),
+    manualUrls: documentUrlsForLookup(documents, "manual"),
+    cadUrls: documentUrlsForLookup(documents, "cad"),
+    certificateUrls: documentUrlsForLookup(documents, "certificate"),
+    otherUrls: documentUrlsForLookup(documents, "other"),
+    allDocumentUrls: documentUrlsForLookup(documents)
+  };
+}
+
+function documentUrlsForLookup(documents: ProductResult["documents"], type?: ProductResult["documents"][number]["type"]): string | undefined {
+  const urls = documents
+    .filter((doc) => !type || doc.type === type)
+    .map((doc) => doc.url)
+    .filter(Boolean);
+  return singleLineForLookup([...new Set(urls)].join("; "));
+}
+
+function singleLineForLookup(value: unknown): string | undefined {
+  const cleaned = cleanText(String(value ?? ""))
+    .replace(/\s*\n+\s*/g, " | ")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+  return cleaned || undefined;
 }
 
 function productRow(manufacturer: ManufacturerConfig, item: RunItemRecord, result?: ProductResult) {

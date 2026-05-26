@@ -215,8 +215,8 @@ export class BrowserRenderSession {
 
   /**
    * Renders a product page and then sequentially opens each modal-style section
-   * (e.g. Balluff "Key features", "Downloads", "Classifications", "Digital Product Passport",
-   * "Knowledge Base articles"). For each section it:
+   * (e.g. Balluff "Key features", "Downloads", "Classifications", "Digital Product Passport").
+   * For each section it:
    *   1. clicks the section opener
    *   2. waits for a modal/dialog to appear with real content
    *   3. clicks any sub-openers inside the modal (Downloads sub-categories)
@@ -252,10 +252,10 @@ export class BrowserRenderSession {
         responseCaptures.push(captureResponse(response, captured, networkDiagnostics, signal));
       });
       const response = await page.goto(url, { waitUntil: "domcontentloaded", timeout: 45000 });
-      await page.waitForLoadState("networkidle", { timeout: recipe?.interactionPolicy?.networkIdleTimeoutMs ?? 12000 }).catch(() => undefined);
+      await page.waitForLoadState("networkidle", { timeout: Math.min(recipe?.interactionPolicy?.networkIdleTimeoutMs ?? 3000, 3000) }).catch(() => undefined);
       await clickSafeSelectors(page, [...(recipe?.interactionPolicy?.closeOverlaySelectors ?? []), ...OVERLAY_CLOSE_SELECTORS], 6, signal);
       await scrollToBottom(page, recipe?.interactionPolicy?.scrollPasses ?? 2, signal);
-      await page.waitForLoadState("networkidle", { timeout: 8000 }).catch(() => undefined);
+      await page.waitForLoadState("networkidle", { timeout: 1500 }).catch(() => undefined);
 
       // Snapshot the main page BEFORE opening any modal so we keep the unmodified product header/specs.
       const mainHtml = await page.content();
@@ -264,7 +264,7 @@ export class BrowserRenderSession {
         if (signal?.aborted) throw new Error("Cancelled by user.");
         // Make sure no prior drawer is still open (Balluff drawers intercept clicks).
         await dispatchBalluffCloseSidebar(page);
-        await page.waitForTimeout(200);
+        await page.waitForTimeout(75);
 
         const opened = await openModalSection(page, section, signal);
         if (!opened) {
@@ -273,35 +273,41 @@ export class BrowserRenderSession {
         }
 
         // Wait for the drawer's Livewire content to actually load (Balluff streams it in via AJAX).
-        await waitForBalluffDrawerContent(page, section, 4000);
+        await waitForBalluffDrawerContent(page, section, balluffDrawerInitialWaitMs(section));
 
-        // Click sub-openers (Downloads -> Product documentation / Software / Info material /
-        // Technical drawing / CAD/CAE Files). These are nested py-5 buttons INSIDE the open drawer.
+        // Click configured sub-openers inside the open drawer. Balluff Downloads currently keeps
+        // this to Product documentation so we avoid large non-parseable CAD/software assets.
         if (section.subOpenSelectors?.length) {
           await expandAllBalluffSubSections(page, section.subOpenSelectors, signal);
-          await page.waitForLoadState("networkidle", { timeout: 4000 }).catch(() => undefined);
-          await page.waitForTimeout(500);
+          await page.waitForLoadState("networkidle", { timeout: 2000 }).catch(() => undefined);
+          await page.waitForTimeout(250);
         }
 
-        let fragment = await captureModalFragment(page, section.label);
+        let fragment = await captureModalFragment(page, section);
         // Validate fragment actually contains expected content; if not, retry the section once.
         if (fragment && section.contentMarkerSelectors?.length) {
-          const hasMarker = section.contentMarkerSelectors.some((marker) =>
-            new RegExp(marker.replace(/^text=/i, "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i").test(fragment!)
-          );
+          let hasMarker = fragmentHasSectionMarker(fragment, section);
           if (!hasMarker) {
+            await waitForBalluffDrawerContent(page, section, balluffDrawerGraceWaitMs(section));
+            const delayedFragment = await captureModalFragment(page, section);
+            if (delayedFragment && delayedFragment.length >= fragment.length) {
+              fragment = delayedFragment;
+              hasMarker = fragmentHasSectionMarker(fragment, section);
+            }
+          }
+          if (!hasMarker && shouldReopenBalluffSection(section)) {
             console.warn(`[balluff] modal "${section.label}" opened but content markers missing at ${url}, retrying...`);
             await dispatchBalluffCloseSidebar(page);
             await closeOpenModal(page, signal);
-            await page.waitForTimeout(500);
+            await page.waitForTimeout(250);
             const reopened = await openModalSection(page, section, signal);
             if (reopened) {
-              await waitForBalluffDrawerContent(page, section, 5000);
+              await waitForBalluffDrawerContent(page, section, balluffDrawerRetryWaitMs(section));
               if (section.subOpenSelectors?.length) {
                 await expandAllBalluffSubSections(page, section.subOpenSelectors, signal);
-                await page.waitForTimeout(500);
+                await page.waitForTimeout(250);
               }
-              fragment = (await captureModalFragment(page, section.label)) ?? fragment;
+              fragment = (await captureModalFragment(page, section)) ?? fragment;
             }
           }
         }
@@ -310,7 +316,7 @@ export class BrowserRenderSession {
         // Close the drawer cleanly via Alpine event before moving to the next section.
         await dispatchBalluffCloseSidebar(page);
         await closeOpenModal(page, signal);
-        await page.waitForTimeout(300);
+        await page.waitForTimeout(150);
       }
 
       // DPP-specific safety net: weight, tariff code, and country of origin almost always live
@@ -330,7 +336,7 @@ export class BrowserRenderSession {
             const reopened = await openModalSection(page, dppSection, signal);
             if (reopened) {
               await page.waitForTimeout(1200);
-              const fragment = await captureModalFragment(page, "Digital Product Passport (retry)");
+              const fragment = await captureModalFragment(page, { ...dppSection, label: "Digital Product Passport (retry)" });
               if (fragment) sectionFragments.push({ label: "Digital Product Passport (retry)", html: fragment });
               await closeOpenModal(page, signal);
             } else {
@@ -432,7 +438,7 @@ export class BrowserRenderSession {
       const friendlyHint =
         "Playwright Chromium browser nije instaliran ili je blokiran. Pokreni: npx playwright install chromium " +
         "(ili pokreni Start-ProductScraper.bat koji to radi automatski). Bez Chromium-a Balluff prosirene sekcije " +
-        "(Key features, Downloads, Classifications, Digital Product Passport, Weight) ne mogu se skinuti.";
+        "(Key features, Downloads, Classifications, Digital Product Passport) ne mogu se skinuti.";
       // Only mark permanently unavailable after several consecutive failures — protects against
       // a first-product race where the cache is mid-install or AV scan momentarily locks the binary.
       if (this.launchFailureCount >= BrowserRenderSession.MAX_LAUNCH_FAILURES) {
@@ -591,13 +597,14 @@ async function captureResponse(
     const headers = await response.headers();
     const contentType = headers["content-type"] ?? "";
     const url = response.url();
+    const category = categorizeNetworkResponse(url, contentType);
     diagnostics.push({
       url,
       statusCode: response.status(),
       contentType,
-      category: categorizeNetworkResponse(url, contentType)
+      category
     });
-    if (!/(json|text|html|javascript)/i.test(contentType)) return;
+    if (!shouldCaptureNetworkBody(url, contentType, category)) return;
     const text = await response.text();
     if (!text.trim() || text.length > 750_000) return;
     captured.push({
@@ -612,6 +619,13 @@ async function captureResponse(
   } catch {
     // Browser response bodies are best-effort enrichment only.
   }
+}
+
+function shouldCaptureNetworkBody(url: string, contentType: string, category: BrowserNetworkRecord["category"]): boolean {
+  if (category === "asset-api" || category === "other") return false;
+  if (!/(json|text|html|javascript)/i.test(contentType)) return false;
+  if (/javascript/i.test(contentType) && !/livewire|product|sku|catalog|pim|graphql|api/i.test(url)) return false;
+  return true;
 }
 
 function categorizeNetworkResponse(url: string, contentType: string): BrowserNetworkRecord["category"] {
@@ -794,20 +808,88 @@ async function isModalOpen(page: PageLike, section: ModalSection): Promise<boole
   return false;
 }
 
-async function captureModalFragment(page: PageLike, label: string): Promise<string | undefined> {
+async function captureModalFragment(page: PageLike, section: ModalSection): Promise<string | undefined> {
+  const markerTexts = (section.contentMarkerSelectors ?? [])
+    .map((marker) => marker.replace(/^text=/i, "").replace(/^["']|["']$/g, ""))
+    .filter(Boolean);
+  const terms = uniqueStrings([section.label, ...markerTexts]).filter((term) => term.length >= 3);
+  try {
+    const html = await page.evaluate(
+      `(() => {
+        const terms = ${JSON.stringify(terms.map((term) => term.toLowerCase()))};
+        const norm = (value) => String(value || '').replace(/\\s+/g, ' ').trim().toLowerCase();
+        const hasTerm = (text) => {
+          const cleaned = norm(text);
+          return terms.some((term) => cleaned.includes(term));
+        };
+        const visible = (el) => {
+          const style = window.getComputedStyle(el);
+          const rect = el.getBoundingClientRect();
+          return style.display !== 'none' && style.visibility !== 'hidden' && rect.width > 0 && rect.height > 0;
+        };
+        const candidates = [];
+        const selectors = [
+          "[role='dialog']",
+          "[aria-modal='true']",
+          "dialog",
+          "aside",
+          "[class*='sidebar']",
+          "[class*='Sidebar']",
+          "[class*='drawer']",
+          "[class*='Drawer']",
+          "div[class*='fixed']"
+        ];
+        for (const selector of selectors) {
+          for (const el of Array.from(document.querySelectorAll(selector))) {
+            if (!visible(el)) continue;
+            const text = norm(el.textContent);
+            if (text.length < 40 || !hasTerm(text)) continue;
+            const className = String(el.getAttribute('class') || '');
+            const score =
+              terms.reduce((sum, term) => sum + (text.includes(term) ? 10 : 0), 0) +
+              (/fixed|sidebar|drawer|modal|dialog/i.test(className) ? 12 : 0) -
+              Math.min(text.length / 25000, 8);
+            candidates.push({ el, score });
+          }
+        }
+        const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+        let node;
+        while ((node = walker.nextNode())) {
+          if (!hasTerm(node.textContent)) continue;
+          let el = node.parentElement;
+          for (let depth = 0; el && depth < 8; depth += 1, el = el.parentElement) {
+            if (el.tagName === 'BODY' || el.tagName === 'HTML') break;
+            if (!visible(el)) continue;
+            const text = norm(el.textContent);
+            if (text.length >= 80 && text.length <= 250000) {
+              candidates.push({ el, score: 20 - depth - Math.min(text.length / 30000, 6) });
+              break;
+            }
+          }
+        }
+        candidates.sort((left, right) => right.score - left.score);
+        return candidates[0]?.el?.outerHTML || "";
+      })()`
+    ) as string;
+    if (html && html.length > 500) {
+      return `<section data-balluff-modal="${section.label}">${html}</section>`;
+    }
+  } catch {
+    // Fall through to full body snapshot.
+  }
   // Balluff renders modal panels as Alpine.js side-drawers that don't sit in a predictable
   // container. Take a snapshot of the body innerHTML after the click — the section panel will
   // be in there along with everything else, and Balluff parsers extract from anywhere.
   try {
     const html = await page.evaluate(`document.body.innerHTML`) as string;
     if (html && html.length > 500) {
-      return `<section data-balluff-modal="${label}">${html}</section>`;
+      return `<section data-balluff-modal="${section.label}">${html}</section>`;
     }
   } catch {
     // Fall through to full content.
   }
   try {
-    return `<section data-balluff-modal="${label}">${await page.content()}</section>`;
+    return `<section data-balluff-modal="${section.label}">${await page.content()}</section>`;
   } catch {
     return undefined;
   }
@@ -823,7 +905,7 @@ async function closeOpenModal(page: PageLike, signal?: AbortSignal): Promise<voi
     } catch {
       break;
     }
-    await page.waitForTimeout(300);
+    await page.waitForTimeout(150);
     if (!(await anyModalStillOpen(page))) return;
   }
 
@@ -833,7 +915,7 @@ async function closeOpenModal(page: PageLike, signal?: AbortSignal): Promise<voi
       const locator = page.locator(selector);
       if ((await locator.count()) > 0) {
         await locator.nth(0).click({ timeout: 1500, force: false });
-        await page.waitForTimeout(300);
+        await page.waitForTimeout(150);
         if (!(await anyModalStillOpen(page))) return;
       }
     } catch {
@@ -907,15 +989,43 @@ async function waitForBalluffDrawerContent(page: PageLike, section: ModalSection
   }
 }
 
+function fragmentHasSectionMarker(fragment: string | undefined, section: ModalSection): boolean {
+  if (!fragment || !section.contentMarkerSelectors?.length) return false;
+  return section.contentMarkerSelectors.some((marker) =>
+    new RegExp(marker.replace(/^text=/i, "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i").test(fragment)
+  );
+}
+
+function balluffDrawerInitialWaitMs(section: ModalSection): number {
+  if (/knowledge base/i.test(section.label)) return 400;
+  if (/classifications|digital product passport/i.test(section.label)) return 600;
+  if (/downloads/i.test(section.label)) return 900;
+  return 700;
+}
+
+function balluffDrawerGraceWaitMs(section: ModalSection): number {
+  if (/knowledge base/i.test(section.label)) return 0;
+  if (/classifications|digital product passport/i.test(section.label)) return 1200;
+  return 800;
+}
+
+function balluffDrawerRetryWaitMs(section: ModalSection): number {
+  if (/downloads/i.test(section.label)) return 1800;
+  return 2200;
+}
+
+function shouldReopenBalluffSection(section: ModalSection): boolean {
+  return /key features|downloads/i.test(section.label);
+}
+
 /**
- * Click EVERY matching nested py-5 button inside the currently-open Balluff drawer so we
- * surface all download categories (Product documentation, Software, Info material,
- * Technical drawing, CAD/CAE Files). Some products show only a subset, so we tolerate misses.
+ * Click configured nested py-5 buttons inside the currently-open Balluff drawer. Some products
+ * show only a subset, so we tolerate misses.
  * Each sub-section may dynamically reveal more links, so we re-query after each click.
  */
 async function expandAllBalluffSubSections(page: PageLike, selectors: string[], signal?: AbortSignal): Promise<void> {
   const seenLabels = new Set<string>();
-  for (let pass = 0; pass < 2; pass += 1) {
+  for (let pass = 0; pass < 1; pass += 1) {
     for (const selector of uniqueStrings(selectors)) {
       if (signal?.aborted) throw new Error("Cancelled by user.");
       let count = 0;
@@ -937,7 +1047,7 @@ async function expandAllBalluffSubSections(page: PageLike, selectors: string[], 
               })()`
             )
             .catch(() => "");
-          const labelKey = `${selector}::${text}`;
+          const labelKey = String(text).toLowerCase() || selector;
           if (seenLabels.has(labelKey)) continue;
           if (handle.scrollIntoViewIfNeeded) {
             await handle.scrollIntoViewIfNeeded({ timeout: 1500 }).catch(() => undefined);

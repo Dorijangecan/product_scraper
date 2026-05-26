@@ -200,7 +200,7 @@ function officialProductUrl(result: ProductResult, manufacturer: ManufacturerCon
       .filter((source) => source.sourceType === "official" || source.sourceType === "official-fallback")
       .map((source) => source.url)
   ].filter((url): url is string => Boolean(url));
-  return candidates.find((url) => isOfficialUrl(url, manufacturer));
+  return candidates.find((url) => isOfficialUrl(url, manufacturer) && !isAbbPartcommunityCadUrl(url, manufacturer));
 }
 
 function isOfficialUrl(url: string, manufacturer: ManufacturerConfig): boolean {
@@ -214,6 +214,16 @@ function isOfficialUrl(url: string, manufacturer: ManufacturerConfig): boolean {
         return false;
       }
     }) || (hostname === "r.jina.ai" && manufacturer.officialBaseUrls.some((baseUrl) => url.includes(new URL(baseUrl).hostname.replace(/^www\./, ""))));
+  } catch {
+    return false;
+  }
+}
+
+function isAbbPartcommunityCadUrl(url: string, manufacturer: ManufacturerConfig): boolean {
+  if (manufacturer.id !== "abb") return false;
+  try {
+    const parsed = new URL(url);
+    return parsed.hostname.replace(/^www\./, "").toLowerCase() === "abb-control-products.partcommunity.com";
   } catch {
     return false;
   }

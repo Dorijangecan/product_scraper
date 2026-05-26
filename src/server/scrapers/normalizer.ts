@@ -829,7 +829,7 @@ function isElectricalTextCandidate(attr: AttributeRecord): boolean {
     return false;
   }
   if (/\b(structured data|meta)\b/i.test(label) && /\b(name|title|description|og:description|twitter:description)\b/i.test(label)) {
-    return /(?:\bi2n\b|\bip\s*\d{2}[a-z]?\b|\bik\s*\d{2}\b|\bvac\b|\bvdc\b|\bv\s*(?:ac|dc)\b|\bkw\b|\bka\b|\bma\b|\b\d+(?:[.,]\d+)?\s*v(?:\s*(?:ac|dc)|ac|dc)?\b|\b\d+(?:[.,]\d+)?\s*a\b)/i.test(attr.value);
+    return /(?:\bi2n\b|\bip\s*\d{2}[a-z]?\b|\bik\s*\d{2}\b|\bvac\b|\bvdc\b|\bv\s*(?:ac|dc)\b|\bkw\b|\bka\b|\bma\b|\b(?:operating|rated|supply|input|output|operational|utilization|current|voltage)\b.{0,80}\b\d+(?:[.,]\d+)?\s*v(?:\s*(?:ac|dc)|ac|dc)?\b|\b\d+(?:[.,]\d+)?\s*v(?:\s*(?:ac|dc)|ac|dc)\b|\b\d+(?:[.,]\d+)?\s*a\b)/i.test(attr.value);
   }
   if (/\bschneider\b/i.test(label) && /\b(product info|description|title|name|product type|long description)\b/i.test(label)) {
     return /(?:\bvac\b|\bvdc\b|\bv\s*(?:ac|dc)?\b|\bkw\b|\bka\b|\bma\b|\b\d+(?:[.,]\d+)?\s*v(?:\s*(?:ac|dc)|ac|dc)?\b|\b\d+(?:[.,]\d+)?\s*a\b)/i.test(attr.value);
@@ -904,8 +904,8 @@ function isPlausibleCurrentValue(value: string, context: string): boolean {
 function isPlausibleVoltageValue(value: string, context: string): boolean {
   const firstNumber = Number(value.match(/\d+(?:[.,]\d+)?/)?.[0]?.replace(",", "."));
   if (!Number.isFinite(firstNumber)) return false;
-  if (firstNumber >= 5) return true;
-  return /\b(voltage|supply|power|input|output|v\s*(?:ac|dc)|vac|vdc|ac\/dc|ac-dc)\b/i.test(context);
+  if (/(?:v\s*(?:ac|dc)|vac|vdc|ac\/dc|ac-dc|\bvolts?\b)/i.test(value)) return true;
+  return /\b(voltage|supply|power|input|output|operating|rated|operational|utilization|control circuit|u[eirn])\b/i.test(context);
 }
 
 function formatCurrentUnit(unit: string): string {
@@ -1021,8 +1021,10 @@ function deriveColorFromMaterial(value: string | undefined): string | undefined 
 function deriveWallThicknessFromAttributes(attributes: AttributeRecord[]): string | undefined {
   const candidates = attributes
     .filter((attr) => {
-      const haystack = `${attr.group ?? ""} ${attr.name} ${attr.value}`;
+      const label = `${attr.group ?? ""} ${attr.name}`;
+      const haystack = `${label} ${attr.value}`;
       if (/\brelated product\b/i.test(`${attr.group ?? ""} ${attr.name}`)) return false;
+      if (!/\b(thick(?:ness)?|gauge|wall|sheet|body|door)\b/i.test(label) && !isDescriptionLikelyWallThickness(attr.value)) return false;
       if (/description/i.test(attr.name) && !/\b(thick(?:ness)?|gauge|sheet|body|wall|door)\b/i.test(haystack)) return false;
       if (/description/i.test(attr.name) && !isDescriptionLikelyWallThickness(attr.value)) return false;
       return /(construction|material|enclosure|body|sheet|wall|thickness|gauge)/i.test(haystack) && !/(height|width|depth|dimension)/i.test(attr.name);
@@ -1181,6 +1183,7 @@ function materialValueFromText(value: string): string | undefined {
   if (/\bstainless\s+steel\s+type\s+304\b/i.test(cleaned)) return "stainless steel Type 304";
   if (/\baluzinc\s+coated\s+steel\b/i.test(cleaned)) return "aluzinc coated steel";
   if (/\bS\.?\s*S\.?\b/i.test(cleaned)) return "stainless steel";
+  if (/^(?:PA|PC|POM|PBT|PE|PP|PTFE|PUR|PVC|ABS)(?:\s*\d{1,2})?$/u.test(cleaned)) return cleaned;
   const match = cleaned.match(
     /\b(techpolymer|feraloy iron alloy|iron alloy|spheroidal cast iron|malleable cast iron|cast iron|stainless steel|carbon steel|mild steel|galvannealed steel|galvanized steel|steel|aluminum|aluminium|die-cast zinc|zinc|nickel[-\s]?plated brass|brass|nickel[-\s]?plated copper|copper braid|copper|fluoropolymer|polyolefin|polycarbonate|polyamide|polypropylene|polyethylene|polyester|fiberglass|plastic|silicone|nylon|rubber|pvc|pur|epdm|abs)\b/i
   );

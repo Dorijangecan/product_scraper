@@ -9,6 +9,14 @@ import { extractMarkerData } from "./marker-extractor.js";
 import { dedupeAttributes, dedupeDocuments } from "./dedupe.js";
 
 const ABB_USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0 Safari/537.36";
+const ABB_PARTCOMMUNITY_BASE_URL = "https://abb-control-products.partcommunity.com/3d-cad-models/";
+const ABB_PARTCOMMUNITY_CATALOG = "abb_ww";
+const ABB_PARTCOMMUNITY_PROJECTS = [
+  {
+    path: "abb_ww/low_voltage/breakers/demo/emax2/emax2_asmtab.prj",
+    title: "E1.3 - ABB Low Voltage & Systems"
+  }
+];
 
 export class ABBConnector implements ManufacturerConnector {
   id = "abb";
@@ -45,7 +53,11 @@ export class ABBConnector implements ManufacturerConnector {
       aemEnriched = await enrichFromAbbLibraryApi(catalogNumber, lastAemFetch, context);
     }
 
-    const merged = mergeAbbResults(directPrimary, searchPrimary, aemEnriched);
+    const initialMerged = mergeAbbResults(directPrimary, searchPrimary, aemEnriched);
+    const cadCatalogResult = !initialMerged || initialMerged.status === "failed" || !isRichAbbResult(initialMerged)
+      ? await fetchAbbPartcommunityCadCatalogResult(catalogNumber, context)
+      : undefined;
+    const merged = mergeAbbResults(directPrimary, searchPrimary, aemEnriched, cadCatalogResult);
     if (merged && isRichAbbResult(merged)) return merged;
     if (merged && merged.status !== "failed") return merged;
 
@@ -54,7 +66,7 @@ export class ABBConnector implements ManufacturerConnector {
       directPrimary ??
       officialResults.find((result) => result.status === "partial") ??
       officialResults[0] ??
-      emptyResult("abb", catalogNumber, lastError instanceof Error ? lastError.message : "ABB fetch failed.");
+      emptyResult("abb", catalogNumber, abbFetchFailureMessage(lastError));
 
     if (primary.status === "found" && primary.documents.length > 0) return primary;
     const enriched = primary;
@@ -69,6 +81,390 @@ export class ABBConnector implements ManufacturerConnector {
       };
     }
   }
+}
+
+function abbFetchFailureMessage(_error: unknown): string {
+  return "ABB official product pages and PIS search did not return exact product data.";
+}
+
+async function fetchAbbPartcommunityCadCatalogResult(
+  catalogNumber: string,
+  context: ScrapeContext
+): Promise<ProductResult | undefined> {
+  const directUrl = abbPartcommunityPartUrl(catalogNumber);
+  const directFetched = await fetchAbbPartcommunityOptional(directUrl, context);
+  if (directFetched) {
+    const direct = parseAbbPartcommunityDetailPage(catalogNumber, directFetched);
+    if (direct) return direct;
+  }
+
+  for (const project of ABB_PARTCOMMUNITY_PROJECTS) {
+    const projectUrl = abbPartcommunityProjectFileUrl(project.path);
+    const projectFetched = await fetchAbbPartcommunityOptional(projectUrl, context);
+    if (!projectFetched || !abbPartcommunityProjectMentionsCatalog(projectFetched.text, catalogNumber)) continue;
+
+    const familyUrl = abbPartcommunityFamilyUrl(project.path);
+    const familyFetched = await fetchAbbPartcommunityOptional(familyUrl, context);
+    return buildAbbPartcommunityProjectResult(catalogNumber, project, projectFetched, familyFetched, directFetched);
+  }
+
+  return undefined;
+}
+
+async function fetchAbbPartcommunityOptional(url: string, context: ScrapeContext): Promise<FetchedText | undefined> {
+  try {
+    const fetched = await context.http.fetchText(url, {
+      timeoutMs: 25000,
+      cacheTtlMs: 1000 * 60 * 60 * 24 * 7,
+      signal: context.signal,
+      maxAttempts: 2,
+      retryBackoffMs: 1500,
+      headers: {
+        "user-agent": ABB_USER_AGENT,
+        accept: "text/html,application/xhtml+xml,application/xml;q=0.9,text/plain,application/octet-stream,*/*;q=0.8"
+      }
+    });
+    return fetched.statusCode < 500 ? fetched : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function parseAbbPartcommunityDetailPage(catalogNumber: string, fetched: FetchedText): ProductResult | undefined {
+  const $ = cheerio.load(fetched.text);
+  const partNumber = cleanText($("h1.part-nb").first().text());
+  if (!sameCatalogNumber(partNumber, catalogNumber)) return undefined;
+
+  const sourceUrl = fetched.effectiveUrl;
+  const partId = cleanText($("#PCOM_CURRENT_PARTID").text());
+  const partIdValues = parsePartcommunityPartId(partId);
+  const attributes: AttributeRecord[] = [];
+  const documents: DocumentRecord[] = [];
+
+  const addAttr = (name: string, value: string | undefined, confidence = 0.9) => {
+    const cleaned = cleanText(value);
+    if (!cleaned) return;
+    attributes.push({
+      group: "ABB CAD Catalog",
+      name,
+      value: cleaned,
+      sourceUrl,
+      sourceType: "official",
+      parser: "abb-partcommunity-cad-catalog",
+      confidence
+    });
+  };
+
+  $(".editable-part-table tbody tr, .catalog-info-unit-table tbody tr, tr").each((_, row) => {
+    const cells = $(row)
+      .find("th,td")
+      .map((__, cell) => cleanText($(cell).text()))
+      .get()
+      .filter(Boolean);
+    if (cells.length < 2) return;
+    const name = cells[0].replace(/:\s*$/, "");
+    const value = cells[1];
+    if (!name || !value || name === value) return;
+    addAttr(name, value, 0.88);
+  });
+
+  addAttr("Product ID", catalogNumber, 0.98);
+  addAttr("Bill of material", partIdValues.NB ?? partIdValues.PN_BMECAT_HELP, 0.94);
+  addAttr("Product Number", partIdValues.PN, 0.94);
+  addAttr("Extended Product Type", partIdValues.DESCSHORT, 0.9);
+  addAttr("Catalog Description", partIdValues.DESCSHORT, 0.9);
+  addAttr("Long Description", partIdValues.DESCLONG, 0.9);
+  addAttr("EAN / GTIN", partIdValues.INTNO, 0.86);
+  addAttr("Customs Tariff Number", partIdValues.CTN, 0.84);
+  addAttr("Manufacturer Name", partIdValues.MANUNAME, 0.84);
+  addAttr("PARTcommunity Current Part ID", partId, 0.8);
+
+  const imageUrl = abbPartcommunityImageUrl(partIdValues.PATH ? `${ABB_PARTCOMMUNITY_CATALOG}/${partIdValues.PATH}.png` : ABB_PARTCOMMUNITY_PROJECTS[0].path.replace(/\.prj$/i, ".png"));
+  documents.push({
+    type: "image",
+    label: "ABB CAD catalog product image",
+    url: imageUrl,
+    sourceUrl,
+    sourceType: "official",
+    parser: "abb-partcommunity-cad-catalog",
+    confidence: 0.82
+  });
+
+  if (partIdValues.AAQ326) {
+    documents.push({
+      type: "other",
+      label: "ABB product detail page",
+      url: partIdValues.AAQ326,
+      sourceUrl,
+      sourceType: "official",
+      parser: "abb-partcommunity-cad-catalog",
+      confidence: 0.75
+    });
+  }
+
+  const title = cleanText(partIdValues.DESCSHORT) || partNumber;
+  const description = cleanText(partIdValues.DESCLONG) || cleanText($("meta[name='description']").attr("content"));
+  const cleanAttributes = dedupeAttributes(attributes);
+  const cleanDocuments = dedupeDocuments(documents);
+
+  return {
+    manufacturerId: "abb",
+    catalogNumber,
+    status: cleanAttributes.length || cleanDocuments.length ? "found" : "partial",
+    confidence: 0.86,
+    productUrl: sourceUrl,
+    localizedUrls: buildLocalizedProductUrls("abb", catalogNumber, sourceUrl),
+    title,
+    description,
+    normalized: normalizeFields(cleanAttributes, cleanDocuments),
+    attributes: cleanAttributes,
+    documents: cleanDocuments,
+    sources: [
+      {
+        url: sourceUrl,
+        sourceType: "official",
+        parser: "abb-partcommunity-cad-catalog",
+        parserVersion: "abb-v2",
+        stage: "partcommunity-order-number",
+        reason: "ABB CAD Download Center returned an exact order-number page.",
+        fetchedAt: fetched.fetchedAt,
+        statusCode: fetched.statusCode
+      }
+    ]
+  };
+}
+
+function buildAbbPartcommunityProjectResult(
+  catalogNumber: string,
+  project: { path: string; title: string },
+  projectFetched: FetchedText,
+  familyFetched?: FetchedText,
+  directFetched?: FetchedText
+): ProductResult {
+  const metadata = familyFetched ? parseAbbPartcommunityFamilyMetadata(familyFetched.text) : {};
+  const projectMetadata = parseAbbPartcommunityProjectMetadata(projectFetched.text);
+  const sourceUrl = projectFetched.effectiveUrl;
+  const exactPartUrl = abbPartcommunityPartUrl(catalogNumber);
+  const detailStatus = directFetched ? parsePartcommunityTopMessage(directFetched.text) : undefined;
+  const title = metadata.title || project.title;
+  const description = metadata.description || metadata.breadcrumbs?.join(" > ") || project.title;
+  const imageUrl = abbPartcommunityImageUrl(project.path.replace(/\.prj$/i, ".png"));
+  const attributes: AttributeRecord[] = [
+    {
+      group: "ABB CAD Catalog",
+      name: "Product ID",
+      value: catalogNumber,
+      sourceUrl,
+      sourceType: "official",
+      parser: "abb-partcommunity-cad-project",
+      confidence: 0.98
+    },
+    {
+      group: "ABB CAD Catalog",
+      name: "Catalog Match Evidence",
+      value: `PN_BMECAT_HELP.EQ.'${catalogNumber}'`,
+      sourceUrl,
+      sourceType: "official",
+      parser: "abb-partcommunity-cad-project",
+      confidence: 0.96
+    },
+    {
+      group: "ABB CAD Catalog",
+      name: "CAD Catalog Project",
+      value: project.path,
+      sourceUrl,
+      sourceType: "official",
+      parser: "abb-partcommunity-cad-project",
+      confidence: 0.92
+    },
+    {
+      group: "ABB CAD Catalog",
+      name: "Catalog Description",
+      value: title,
+      sourceUrl: familyFetched?.effectiveUrl ?? sourceUrl,
+      sourceType: "official",
+      parser: "abb-partcommunity-cad-project",
+      confidence: 0.82
+    },
+    {
+      group: "ABB CAD Catalog",
+      name: "Long Description",
+      value: description,
+      sourceUrl: familyFetched?.effectiveUrl ?? sourceUrl,
+      sourceType: "official",
+      parser: "abb-partcommunity-cad-project",
+      confidence: 0.82
+    },
+    ...optionalPartcommunityProjectAttribute("Catalog File Date", projectMetadata.date, sourceUrl),
+    ...optionalPartcommunityProjectAttribute("Geometry Date", projectMetadata.geometryDate, sourceUrl),
+    ...optionalPartcommunityProjectAttribute("QA State", projectMetadata.qaState, sourceUrl),
+    ...optionalPartcommunityProjectAttribute("Published State", projectMetadata.published, sourceUrl),
+    ...optionalPartcommunityProjectAttribute("Catalog Breadcrumb", metadata.breadcrumbs?.join(" > "), familyFetched?.effectiveUrl ?? sourceUrl),
+    ...optionalPartcommunityProjectAttribute("Exact Part Page Status", detailStatus, directFetched?.effectiveUrl ?? exactPartUrl)
+  ];
+  const documents: DocumentRecord[] = [
+    {
+      type: "image",
+      label: "ABB CAD catalog family image",
+      url: imageUrl,
+      sourceUrl: familyFetched?.effectiveUrl ?? sourceUrl,
+      sourceType: "official",
+      parser: "abb-partcommunity-cad-project",
+      confidence: 0.78
+    },
+    {
+      type: "cad",
+      label: "ABB CAD catalog family page",
+      url: abbPartcommunityFamilyUrl(project.path),
+      sourceUrl,
+      sourceType: "official",
+      parser: "abb-partcommunity-cad-project",
+      confidence: 0.72
+    }
+  ];
+  const cleanAttributes = dedupeAttributes(attributes);
+  const cleanDocuments = dedupeDocuments(documents);
+
+  return {
+    manufacturerId: "abb",
+    catalogNumber,
+    status: "found",
+    confidence: 0.78,
+    productUrl: exactPartUrl,
+    localizedUrls: buildLocalizedProductUrls("abb", catalogNumber, exactPartUrl),
+    title,
+    description,
+    normalized: normalizeFields(cleanAttributes, cleanDocuments),
+    attributes: cleanAttributes,
+    documents: cleanDocuments,
+    sources: [
+      {
+        url: sourceUrl,
+        sourceType: "official",
+        parser: "abb-partcommunity-cad-project",
+        parserVersion: "abb-v2",
+        stage: "partcommunity-cad-project",
+        reason: "ABB CADENAS project file contains the exact catalog number in its published classification restriction.",
+        fetchedAt: projectFetched.fetchedAt,
+        statusCode: projectFetched.statusCode
+      },
+      ...(familyFetched
+        ? [{
+            url: familyFetched.effectiveUrl,
+            sourceType: "official" as const,
+            parser: "abb-partcommunity-cad-project",
+            parserVersion: "abb-v2",
+            stage: "partcommunity-cad-family",
+            reason: "ABB CAD Download Center family page supplied catalog metadata and image.",
+            fetchedAt: familyFetched.fetchedAt,
+            statusCode: familyFetched.statusCode
+          }]
+        : []),
+      ...(directFetched
+        ? [{
+            url: directFetched.effectiveUrl,
+            sourceType: "official" as const,
+            parser: "abb-partcommunity-cad-project",
+            parserVersion: "abb-v2",
+            stage: "partcommunity-order-number",
+            reason: detailStatus || "Checked ABB CAD Download Center exact order-number page.",
+            fetchedAt: directFetched.fetchedAt,
+            statusCode: directFetched.statusCode
+          }]
+        : [])
+    ],
+    diagnostics: {
+      notes: detailStatus
+        ? [`ABB CAD catalog file lists ${catalogNumber}; exact Partcommunity order-number page reported: ${detailStatus}`]
+        : [`ABB CAD catalog file lists ${catalogNumber}.`]
+    }
+  };
+}
+
+function optionalPartcommunityProjectAttribute(name: string, value: string | undefined, sourceUrl: string): AttributeRecord[] {
+  const cleaned = cleanText(value);
+  if (!cleaned) return [];
+  return [{
+    group: "ABB CAD Catalog",
+    name,
+    value: cleaned,
+    sourceUrl,
+    sourceType: "official",
+    parser: "abb-partcommunity-cad-project",
+    confidence: 0.78
+  }];
+}
+
+function parseAbbPartcommunityFamilyMetadata(html: string): { title?: string; description?: string; breadcrumbs?: string[] } {
+  const $ = cheerio.load(html);
+  const title = cleanText($("title").first().text());
+  const description = cleanText($("meta[name='description']").attr("content") ?? $("meta[property='description']").attr("content"));
+  const breadcrumbs = $("ol.breadcrumb [property='name']")
+    .map((_, element) => cleanText($(element).text()))
+    .get()
+    .filter(Boolean);
+  return { title, description, breadcrumbs: breadcrumbs.length ? breadcrumbs : undefined };
+}
+
+function parseAbbPartcommunityProjectMetadata(text: string): { date?: string; geometryDate?: string; qaState?: string; published?: string } {
+  return {
+    date: firstPartcommunityProjectField(text, "DATE"),
+    geometryDate: firstPartcommunityProjectField(text, "GEOMDATE"),
+    qaState: firstPartcommunityProjectField(text, "QASTATE"),
+    published: firstPartcommunityProjectField(text, "PUBLISHED")
+  };
+}
+
+function firstPartcommunityProjectField(text: string, key: string): string | undefined {
+  const match = new RegExp(`(?:^|\\s)${escapeRegExp(key)}=([^\\r\\n\\s]+(?:\\s+[^\\r\\n\\s]+)?)`, "i").exec(text);
+  return cleanText(match?.[1]);
+}
+
+function parsePartcommunityTopMessage(html: string): string | undefined {
+  const match = html.match(/showTopMessage\(\s*['"]error['"]\s*,\s*['"]([^'"]+)['"]/i);
+  return cleanText(match?.[1]);
+}
+
+function parsePartcommunityPartId(value: string): Record<string, string> {
+  const result: Record<string, string> = {};
+  for (const match of value.matchAll(/\{([^={}]+)=([^}]*)\}/g)) {
+    result[cleanText(match[1])] = cleanText(match[2]);
+  }
+  return result;
+}
+
+function abbPartcommunityProjectMentionsCatalog(text: string, catalogNumber: string): boolean {
+  const escaped = escapeRegExp(catalogNumber);
+  return new RegExp(`PN_BMECAT_HELP\\.EQ\\.'${escaped}'`, "i").test(text);
+}
+
+function abbPartcommunityPartUrl(catalogNumber: string): string {
+  const params = new URLSearchParams({
+    catalog: ABB_PARTCOMMUNITY_CATALOG,
+    part: catalogNumber
+  });
+  return `${ABB_PARTCOMMUNITY_BASE_URL}?${params.toString()}`;
+}
+
+function abbPartcommunityFamilyUrl(projectPath: string): string {
+  const params = new URLSearchParams({ info: projectPath });
+  return `${ABB_PARTCOMMUNITY_BASE_URL}?${params.toString()}`;
+}
+
+function abbPartcommunityProjectFileUrl(projectPath: string): string {
+  const encodedPath = projectPath.split("/").map(encodeURIComponent).join("/");
+  return `${ABB_PARTCOMMUNITY_BASE_URL}FileService/CatalogFile/${encodedPath}`;
+}
+
+function abbPartcommunityImageUrl(previewPath: string): string {
+  const params = new URLSearchParams({
+    previewPath,
+    width: "512",
+    height: "512",
+    color: "transparent",
+    depth: "32"
+  });
+  return `https://abb-control-products.partcommunity.com/FileService/CatalogImage/?${params.toString()}`;
 }
 
 function mergeAbbResults(...candidates: Array<ProductResult | undefined>): ProductResult | undefined {
@@ -405,7 +801,7 @@ async function fetchAbbPage(url: string, context: ScrapeContext) {
     } catch {
       // Fall through to PowerShell on Windows for sites that reject fetch.
     }
-    if (attempt < 2) {
+    if (attempt < 2 && context.manufacturer.rateLimitMs !== 0) {
       await sleep(800 * (attempt + 1));
     }
   }

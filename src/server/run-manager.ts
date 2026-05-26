@@ -24,6 +24,8 @@ import { BrowserRenderSession } from "./scrapers/browser-renderer.js";
 import type { AppPaths } from "./paths.js";
 import { buildRunOutputLayout, ensureRunOutputLayout, type RunOutputLayout } from "./run-output.js";
 
+type DocumentDownloadProfile = "full" | "quality" | "images-only";
+
 export class RunManager {
   private activeRuns = new Map<string, AbortController>();
 
@@ -168,10 +170,11 @@ export class RunManager {
             manufacturer.shortName,
             initiallyGated,
             downloadDocumentsEnabled,
-            controller.signal
+            controller.signal,
+            documentDownloadProfile(manufacturer, initiallyGated)
           );
           this.updateItemStage(item.id, "document-enrichment", "Reading downloaded documents for missing values");
-          let enriched = finalizeQualityGate(await enrichResultFromDownloadedDocuments(withInitialDownloads), manufacturer);
+          let enriched = finalizeQualityGate(await enrichFromDownloadedDocumentsIfPresent(withInitialDownloads), manufacturer);
           let fallbackStages = enriched.diagnostics?.fallbackStages;
           if (!enriched.qualityGate?.passed) {
             this.updateItemStage(item.id, "quality-fallback", "Running fallback because required fields are missing");
@@ -209,10 +212,11 @@ export class RunManager {
               manufacturer.shortName,
               withSmartFallbacks,
               downloadDocumentsEnabled,
-              controller.signal
+              controller.signal,
+              documentDownloadProfile(manufacturer, withSmartFallbacks)
             );
             this.updateItemStage(item.id, "document-enrichment", "Reading fallback documents for missing values");
-            enriched = finalizeQualityGate(await enrichResultFromDownloadedDocuments(withFallbackDownloads), manufacturer);
+            enriched = finalizeQualityGate(await enrichFromDownloadedDocumentsIfPresent(withFallbackDownloads), manufacturer);
             fallbackStages = enriched.diagnostics?.fallbackStages;
           }
           this.updateItemStage(item.id, "final-audit", "Checking final missing fields");
@@ -285,10 +289,11 @@ export class RunManager {
               manufacturer.shortName,
               withFinalCompletenessFallbacks,
               downloadDocumentsEnabled,
-              controller.signal
+              controller.signal,
+              documentDownloadProfile(manufacturer, withFinalCompletenessFallbacks)
             );
             this.updateItemStage(item.id, "document-enrichment", "Reading final retry documents for missing values");
-            enriched = finalizeQualityGate(await enrichResultFromDownloadedDocuments(withFinalCompletenessDownloads), manufacturer);
+            enriched = finalizeQualityGate(await enrichFromDownloadedDocumentsIfPresent(withFinalCompletenessDownloads), manufacturer);
             const postNetworkRepair = repairFinalCompletenessFromEvidence(enriched, manufacturer);
             if (postNetworkRepair.repairedFields.length) {
               this.updateItemStage(item.id, "final-field-repair", `Repairing ${postNetworkRepair.repairedFields.join(", ")} from final retry evidence`);
@@ -471,13 +476,16 @@ export class RunManager {
     manufacturerShortName: string,
     result: ProductResult,
     downloadDocumentsEnabled: boolean,
-    signal?: AbortSignal
+    signal?: AbortSignal,
+    profile: DocumentDownloadProfile = "full"
   ): Promise<ProductResult> {
     const documents: DocumentRecord[] = [];
-    const maxDownloads = 25;
+    const maxDownloads = profile === "full" ? 25 : 8;
     const rankedDocuments = coalesceImageDocuments(result.documents).sort((left, right) => documentDownloadRank(left) - documentDownloadRank(right));
     let downloadCount = 0;
     let imageIndex = 0;
+    let nonImageDownloadCount = 0;
+    const profileTypeCounts = new Map<DocumentRecord["type"], number>();
     for (const doc of rankedDocuments) {
       if (signal?.aborted) throw new Error("Cancelled by user.");
       if (doc.type !== "image" && !downloadDocumentsEnabled) {
@@ -485,6 +493,22 @@ export class RunManager {
           ...doc,
           downloadStatus: "skipped",
           downloadError: "Document downloads disabled for this run."
+        });
+        continue;
+      }
+      if (doc.type !== "image" && !shouldDownloadForProfile(doc, profile, profileTypeCounts, nonImageDownloadCount)) {
+        documents.push({
+          ...doc,
+          downloadStatus: "skipped",
+          downloadError: "Skipped non-essential local download; URL retained in workbook."
+        });
+        continue;
+      }
+      if (doc.type !== "image" && !shouldDownloadLocalDocument(doc)) {
+        documents.push({
+          ...doc,
+          downloadStatus: "skipped",
+          downloadError: "Skipped non-parseable binary document; URL retained in workbook."
         });
         continue;
       }
@@ -497,6 +521,10 @@ export class RunManager {
         continue;
       }
       const indexForDoc = doc.type === "image" ? imageIndex : undefined;
+      if (doc.type !== "image") {
+        nonImageDownloadCount += 1;
+        profileTypeCounts.set(doc.type, (profileTypeCounts.get(doc.type) ?? 0) + 1);
+      }
       documents.push(await this.downloadDocument(http, documentsDir, imagesDir, manufacturerShortName, result.catalogNumber, doc, downloadDocumentsEnabled, signal, indexForDoc));
       if (doc.type === "image") imageIndex += 1;
       downloadCount += 1;
@@ -521,6 +549,13 @@ export class RunManager {
         ...doc,
         downloadStatus: "skipped",
         downloadError: "Document downloads disabled for this run."
+      };
+    }
+    if (doc.type !== "image" && !shouldDownloadLocalDocument(doc)) {
+      return {
+        ...doc,
+        downloadStatus: "skipped",
+        downloadError: "Skipped non-parseable binary document; URL retained in workbook."
       };
     }
     try {
@@ -641,6 +676,49 @@ function documentExtension(url: string, type: DocumentRecord["type"]): string {
   if (/pdfengine\/pdf/i.test(url) || type === "datasheet" || type === "certificate" || type === "manual") return ".pdf";
   if (type === "cad") return ".bin";
   return ".bin";
+}
+
+function documentDownloadProfile(manufacturer: { id: string }, result: ProductResult): DocumentDownloadProfile {
+  if (manufacturer.id === "balluff") return result.qualityGate?.passed ? "images-only" : "quality";
+  return "full";
+}
+
+function shouldDownloadForProfile(
+  doc: DocumentRecord,
+  profile: DocumentDownloadProfile,
+  typeCounts: Map<DocumentRecord["type"], number>,
+  nonImageDownloadCount: number
+): boolean {
+  if (doc.type === "image") return true;
+  if (profile === "full") return true;
+  if (profile === "images-only") return false;
+  if (nonImageDownloadCount >= 3) return false;
+  const countForType = typeCounts.get(doc.type) ?? 0;
+  if (doc.type === "datasheet") return countForType < 1;
+  if (doc.type === "certificate") return countForType < 1;
+  if (doc.type === "manual") return countForType < 1;
+  if (doc.type === "other" && countForType < 1) {
+    return /\.pdf(?:[?#]|$)/i.test(doc.url) || /pdfengine\/pdf/i.test(doc.url);
+  }
+  return false;
+}
+
+function shouldDownloadLocalDocument(doc: DocumentRecord): boolean {
+  if (doc.type === "image") return true;
+  const extension = documentExtension(doc.url, doc.type).toLowerCase();
+  if (extension === ".pdf") return true;
+  return false;
+}
+
+async function enrichFromDownloadedDocumentsIfPresent(result: ProductResult): Promise<ProductResult> {
+  if (!result.documents.some((doc) => shouldParseDownloadedDocument(doc))) return result;
+  return enrichResultFromDownloadedDocuments(result);
+}
+
+function shouldParseDownloadedDocument(doc: DocumentRecord): boolean {
+  if (doc.downloadStatus && doc.downloadStatus !== "downloaded") return false;
+  if (!doc.localPath || !/\.pdf$/i.test(doc.localPath)) return false;
+  return ["datasheet", "certificate", "manual", "other"].includes(doc.type);
 }
 
 async function uniquePath(filePath: string): Promise<string> {

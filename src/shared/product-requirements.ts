@@ -18,6 +18,9 @@ const BALLUFF_CURRENT_RATING_PRESENT_PATTERN =
 const BALLUFF_PASSIVE_RFID_DEVICE_PATTERN =
   /\b(?:read\/write\s+heads?|antennas?)\b/i;
 
+const BALLUFF_PASSIVE_ACCESSORY_PATTERN =
+  /\b(?:cylindrical\s+glass\s+fibers?|glass\s+fibers?|field\s+attachables?)\b/i;
+
 const VOLTAGE_ONLY_DEVICE_PATTERN =
   /\b(rrd\s+motor|remote\s+racking|geared\s+motor|motor\s+operator|motorized?|closing\s+coil|shunt\s+(?:opening|trip)|undervoltage|under\s+voltage|supply\s+module|power\s+supply\s+module|communication\s+module)\b/i;
 
@@ -47,6 +50,7 @@ export function requiredElectricalFields(result: ProductResult): Array<"voltage"
   if (result.manufacturerId === "balluff" && BALLUFF_CURRENT_ONLY_DEVICE_PATTERN.test(text)) {
     return BALLUFF_CURRENT_RATING_PRESENT_PATTERN.test(text) ? ["current"] : [];
   }
+  if (result.manufacturerId === "balluff" && BALLUFF_PASSIVE_ACCESSORY_PATTERN.test(primaryText)) return [];
   if (VOLTAGE_ONLY_DEVICE_PATTERN.test(text)) return ["voltage"];
   if (result.manufacturerId === "balluff" && BALLUFF_PASSIVE_RFID_DEVICE_PATTERN.test(primaryText) && !BALLUFF_CURRENT_RATING_PRESENT_PATTERN.test(text)) return [];
   if (result.manufacturerId === "balluff" && BALLUFF_VOLTAGE_ONLY_DEVICE_PATTERN.test(text)) {

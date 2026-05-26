@@ -23,7 +23,11 @@ const builtInManufacturerConfigs: Record<string, ManufacturerConfig> = {
     shortName: "ABB",
     rateLimitMs: 1500,
     concurrency: 4,
-    officialBaseUrls: ["https://new.abb.com/products", "https://new.abb.com/smartlinks"],
+    officialBaseUrls: [
+      "https://new.abb.com/products",
+      "https://new.abb.com/smartlinks",
+      "https://abb-control-products.partcommunity.com/3d-cad-models/?part={part}"
+    ],
     localizedUrlTemplates: [
       { locale: "en", urlTemplate: "https://new.abb.com/smartlinks/en?ProductId={part}&Language=en&PrintPreview=False&pid={part}" },
       { locale: "de", urlTemplate: "https://new.abb.com/smartlinks/de?ProductId={part}&Language=de&PrintPreview=False&pid={part}" }
@@ -102,8 +106,8 @@ const builtInManufacturerConfigs: Record<string, ManufacturerConfig> = {
     canonicalName: "Balluff",
     shortName: "BAL",
     rateLimitMs: 1200,
-    // Balluff uses Playwright for expanded sections which is RAM/CPU heavy; keep concurrency modest.
-    concurrency: 2,
+    // Balluff uses Playwright for expanded sections; three workers is the fastest stable setting seen locally.
+    concurrency: 3,
     officialBaseUrls: ["https://www.balluff.com/en-gb/products"],
     localizedUrlTemplates: [
       { locale: "en", urlTemplate: "https://www.balluff.com/en-gb/products/{part}" },
@@ -390,7 +394,10 @@ function attachBuiltInScrapeRecipes() {
       "https://www.balluff.com/de-de/search?query={part}"
     ],
     canonicalParamDenylist: ["pm", "pf", "attrs"],
-    requiredSections: ["summary features|key features|hauptmerkmale", "classifications|klassifizierungen"],
+    requiredSections: [
+      "summary features|key features|hauptmerkmale|component data|meta specs",
+      "classifications|klassifizierungen|approval|conformity|zulassung|konformitat|protection class"
+    ],
     requiredAttributes: [
       "sku|mpn|product id|product label|product variant|alternateName|artikelnummer",
       "product group|product family|series|style|principle|function|interface|dimension|measuring range|measuring length|range|connection|operating voltage|material",

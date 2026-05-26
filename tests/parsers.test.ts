@@ -759,6 +759,72 @@ describe("manufacturer parsers", () => {
     expect(parseBalluffProductPage("BDG FB058-BCR6-DSRB2-1417-0000-S8R1", fetched(bdgHtml, "https://www.balluff.com/en-gb/products/MP11418306")).status).toBe("found");
   });
 
+  it("tries known Balluff aliases before stale direct product codes", async () => {
+    const seenUrls: string[] = [];
+    const aliasHtml = `
+      <html><head>
+        <link rel="canonical" href="https://www.balluff.com/en-gb/products/BTL4E6W" />
+        <meta name="description" content="BTL4E6W - Magnetostrictive linear position sensors - Product group: Linear position sensors, Measuring range: 229 mm, Operating voltage Ub: 20...28 VDC, Material: Aluminum, Approval/Conformity: CE, WEEE" />
+        <script type="application/ld+json">
+          {"@context":"https://schema.org","@type":"Product","name":"BTL4E6W","sku":"BTL4E6W","mpn":"BTL4E6W","image":"https://assets.balluff.com/product_view_cropped/test.png"}
+        </script>
+      </head><body>
+        <h1>BTL4E6W</h1>
+        <h2>Key features</h2>
+        <div>Product group</div><div>Linear position sensors</div>
+        <div>Measuring range</div><div>229 mm</div>
+        <div>Operating voltage Ub</div><div>20...28 VDC</div>
+        <div>Material</div><div>Aluminum</div>
+        <div>Approval/Conformity</div><div>CE; WEEE</div>
+        <h2>Downloads</h2>
+        <a href="https://publications.balluff.com/pdfengine/pdf?type=pdb&id=BTL4E6W&con=en">Datasheet</a>
+        <h2>Classifications</h2>
+        <div>ECLASS 14.0</div><div>27-27-07-02</div>
+        <div>ETIM 9.0</div><div>EC002544</div>
+      </body></html>
+    `;
+    const context = {
+      manufacturer: {
+        id: "balluff",
+        canonicalName: "Balluff",
+        shortName: "BAL",
+        rateLimitMs: 0,
+        officialBaseUrls: ["https://www.balluff.com/en-gb/products"],
+        fallbackSources: [],
+        fetchPolicy: { minContentLength: 0 },
+        localizedUrlTemplates: []
+      },
+      http: {
+        fetchText: async (url: string) => {
+          seenUrls.push(url);
+          return fetched(aliasHtml, url);
+        },
+        fetchTextViaPowerShell: async (url: string) => {
+          seenUrls.push(url);
+          return fetched(aliasHtml, url);
+        }
+      },
+      runDir: "",
+      documentsDir: "",
+      browserRenderer: {
+        renderProductPageWithModalSequence: async (url: string) => ({
+          fetched: fetched(aliasHtml, url),
+          networkTexts: [],
+          networkDiagnostics: []
+        })
+      },
+      learnedEndpoints: { list: () => [], upsert: () => undefined },
+      downloadDocument: async (doc: unknown) => doc,
+      fallback: { scrape: async () => undefined }
+    } as unknown as ScrapeContext;
+
+    const result = await new BalluffConnector().scrape("BTL4W6A", context);
+
+    expect(seenUrls[0]).toContain("/products/BTL4E6W");
+    expect(result.status).toBe("found");
+    expect(result.productUrl).toContain("/products/BTL4E6W");
+  });
+
   it("canonicalizes ugly Balluff configurator URLs", () => {
     const html = `
       <html><head>
@@ -1178,6 +1244,41 @@ describe("manufacturer parsers", () => {
     expect(result.normalized.dimensions).toBe("68 x 32.4 x 181.5 mm");
     expect(result.normalized.current).toBe("4.8 A");
     expect(result.normalized.protection).toBe("IP67");
+  });
+
+  it("does not derive Balluff voltage or wall thickness from product codes and dimensions", () => {
+    const html = `
+      <html><head>
+        <meta name="description" content="BFO0041 (BFO 18V-LCC-MZG-23-2,0) - Fiber optic sensors - List price United Kingdom: 377.98 GBP - Version: Ø 6, standard, Reference base unit: BFB M18M-011-P-S4, Fiber type material: Glass, Cable length L: 2 m, Material jacket: Stainless steel, Range: 200 mm, Ambient temperature: -20...250 °C, Active surface, fibers: Bundle Ø 2.1 mm, Active surface, fiber arrangement: Homogeneous bundle, IP rating: IP50 - BALLUFF United Kingdom" />
+        <script type="application/ld+json">
+          {"@context":"https://schema.org","@type":"Product","name":"BFO0041","sku":"BFO0041","mpn":"BFO0041"}
+        </script>
+      </head><body>
+        <h1>BFO0041</h1>
+        <section>
+          <h2>Key features</h2>
+          <div>Version</div><div>Ø 6, standard</div>
+          <div>Reference base unit</div><div>BFB M18M-011-P-S4</div>
+          <div>Fiber type material</div><div>Glass</div>
+          <div>Cable length L</div><div>2 m</div>
+          <div>Material jacket</div><div>Stainless steel</div>
+          <div>Range</div><div>200 mm</div>
+          <div>IP rating</div><div>IP50</div>
+        </section>
+        <section>
+          <h2>Digital Product Passport</h2>
+          <div>Dimension</div><div>Ø 8 x 25 mm</div>
+          <div>Weight</div><div>516 g</div>
+        </section>
+      </body></html>
+    `;
+    const result = parseBalluffProductPage("BFO0041", fetched(html, "https://www.balluff.com/en-gb/products/BFO0041"));
+
+    expect(result.normalized.voltage).toBeUndefined();
+    expect(result.normalized.current).toBeUndefined();
+    expect(result.normalized.wallThickness).toBeUndefined();
+    expect(result.normalized.dimensions).toBe("Ø 8 x 25 mm");
+    expect(result.normalized.weight).toBe("516 g (0.52 kg)");
   });
 
   it("parses Balluff lens meta specs without treating focal length as product length", () => {

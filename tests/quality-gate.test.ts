@@ -582,6 +582,58 @@ describe("quality gate", () => {
     }
   });
 
+  it("does not require electrical current for passive Balluff fiber optics and field attachables", () => {
+    const balluff = getManufacturerConfig("balluff");
+    expect(balluff).toBeDefined();
+
+    for (const fixture of [
+      {
+        catalogNumber: "BFO0041",
+        title: "BFO0041 Cylindrical glass fibers with straight and angled optics",
+        normalized: {
+          dimensions: "Ø 8 x 25 mm",
+          material: "Stainless steel",
+          protection: "IP50"
+        }
+      },
+      {
+        catalogNumber: "BCC00T8",
+        title: "BCC00T8 Field attachables",
+        normalized: {
+          voltage: "30 V DC",
+          protection: "IP67"
+        }
+      }
+    ]) {
+      const result = finalizeQualityGate(
+        product({
+          manufacturerId: "balluff",
+          catalogNumber: fixture.catalogNumber,
+          title: fixture.title,
+          productUrl: `https://www.balluff.com/en-gb/products/${fixture.catalogNumber}`,
+          normalized: fixture.normalized,
+          attributes: [
+            { group: "Structured Data", name: "sku", value: fixture.catalogNumber },
+            { group: "Balluff Summary Features", name: "Product group", value: fixture.title },
+            { group: "Balluff Key features", name: "IP rating", value: fixture.normalized.protection ?? "IP67" },
+            { group: "Balluff Key features", name: "Connection", value: "M12x1" },
+            { group: "Balluff Key features", name: "Ambient temperature", value: "-20...80 °C" },
+            { group: "Balluff Key features", name: "Version", value: "standard" },
+            { group: "Balluff Key features", name: "Material", value: fixture.normalized.material ?? "not published" },
+            { group: "Balluff Classifications", name: "ECLASS 14.0", value: "27-44-01-14" },
+            { group: "Balluff Key features", name: "Approval/Conformity", value: "WEEE" }
+          ],
+          documents: [{ type: "datasheet", label: `${fixture.catalogNumber} datasheet`, url: `https://publications.balluff.com/pdfengine/pdf?type=pdb&id=${fixture.catalogNumber}&con=en` }]
+        }),
+        balluff!
+      );
+
+      expect(result.status).toBe("found");
+      expect(result.qualityGate?.missing).not.toContain("normalized:current");
+      expect(result.qualityGate?.missing).not.toContain("normalized:voltage");
+    }
+  });
+
   it("requires only current for Balluff mechanical single position limit switches", () => {
     const balluff = getManufacturerConfig("balluff");
     expect(balluff).toBeDefined();

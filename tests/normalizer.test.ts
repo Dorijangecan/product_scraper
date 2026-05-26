@@ -393,6 +393,12 @@ describe("normalizer", () => {
     expect(normalized.certificates).toContain("Material compliance declaration");
   });
 
+  it("keeps explicit Balluff polymer material codes", () => {
+    const normalized = normalizeFields([{ group: "Meta Specs", name: "Material", value: "PA" }], []);
+
+    expect(normalized.material).toBe("PA");
+  });
+
   it("uses explicit Balluff lens dimensions instead of focal length as a product dimension", () => {
     const normalized = normalizeFields(
       [

@@ -53,7 +53,6 @@ const BALLUFF_EXPANDED_SECTIONS_RECIPE: ScrapeRecipeConfig = {
       "text=\"Downloads\"",
       "text=\"Classifications\"",
       "text=\"Digital Product Passport\"",
-      "text=\"Knowledge Base articles\"",
       "text=\"Hauptmerkmale\"",
       "text=\"Klassifizierungen\"",
       "text=\"Digitaler Produktpass\"",
@@ -63,7 +62,6 @@ const BALLUFF_EXPANDED_SECTIONS_RECIPE: ScrapeRecipeConfig = {
       "button:has-text('Downloads')",
       "button:has-text('Classifications')",
       "button:has-text('Digital Product Passport')",
-      "button:has-text('Knowledge Base articles')",
       "button:has-text('Hauptmerkmale')",
       "button:has-text('Klassifizierungen')",
       "button:has-text('Digitaler Produktpass')",
@@ -71,7 +69,6 @@ const BALLUFF_EXPANDED_SECTIONS_RECIPE: ScrapeRecipeConfig = {
       "[role='button']:has-text('Downloads')",
       "[role='button']:has-text('Classifications')",
       "[role='button']:has-text('Digital Product Passport')",
-      "[role='button']:has-text('Knowledge Base articles')",
       "h2:has-text('Key features')",
       "h2:has-text('Downloads')",
       "h2:has-text('Classifications')",
@@ -81,16 +78,16 @@ const BALLUFF_EXPANDED_SECTIONS_RECIPE: ScrapeRecipeConfig = {
       "h3:has-text('Classifications')",
       "h3:has-text('Digital Product Passport')"
     ],
-    scrollPasses: 5,
-    maxClicks: 60,
+    scrollPasses: 3,
+    maxClicks: 36,
     networkIdleTimeoutMs: 20000
   }
 };
 
 // Sections appear on Balluff product pages as buttons with a → arrow that open MODAL dialogs
 // (not inline accordions). Each modal must be opened, scraped, and closed before opening the next.
-// Downloads has a second level: inside its modal there are sub-categories (Product documentation,
-// Software, Info material, Technical drawing, CAD/CAE Files) that must each be clicked to expand.
+// Downloads has a second level. We only expand Product documentation: software, drawings, and
+// CAD/CAE files are large non-parseable downloads and do not improve product data quality.
 // IMPORTANT: Balluff renders these sections as <button class="...py-5"> wrappers containing a
 // <div class="font-medium text-base">Label</div>. The `button.py-5:has(div:text-is(...))` selector
 // added by the renderer's `expandSectionSelectors` helper is what actually hits the right element
@@ -130,25 +127,17 @@ const BALLUFF_MODAL_SECTIONS: ModalSection[] = [
     ],
     subOpenSelectors: [
       "button:has-text('Product documentation')",
-      "button:has-text('Software')",
-      "button:has-text('Info material')",
-      "button:has-text('Technical drawing')",
-      "button:has-text('CAD/CAE Files')",
-      "button:has-text('CAD')",
       "button:has-text('Produktdokumentation')",
-      "button:has-text('Technische Zeichnung')",
       "[role='button']:has-text('Product documentation')",
-      "[role='button']:has-text('Software')",
-      "[role='button']:has-text('CAD/CAE Files')",
       "h2:has-text('Product documentation')",
-      "h3:has-text('Product documentation')",
-      "h2:has-text('CAD/CAE Files')"
+      "h3:has-text('Product documentation')"
     ],
     contentMarkerSelectors: [
       "text=Product documentation",
-      "text=CAD/CAE",
-      "text=Technical drawing",
       "text=Datasheet",
+      "text=Product data sheet",
+      "text=Operating manual",
+      "text=Certificate",
       "text=Produktdokumentation"
     ]
   },
@@ -184,24 +173,6 @@ const BALLUFF_MODAL_SECTIONS: ModalSection[] = [
       "text=Gewicht",
       "text=Herkunftsland"
     ]
-  },
-  {
-    label: "Knowledge Base articles",
-    openSelectors: [
-      "button.py-5:has(div:text-is('Knowledge Base articles'))",
-      "button:has-text('Knowledge Base articles')",
-      "[role='button']:has-text('Knowledge Base articles')",
-      "a:has-text('Knowledge Base articles')",
-      "button:has-text('Knowledge Base')"
-    ],
-    // Many products genuinely have no KB articles; we don't fail the section if this never matches,
-    // but having markers lets us skip the retry path when content IS present.
-    contentMarkerSelectors: [
-      "text=Knowledge Base",
-      "text=No articles",
-      "text=Article",
-      "text=Read more"
-    ]
   }
 ];
 
@@ -229,30 +200,18 @@ export class BalluffConnector implements ManufacturerConnector {
         let current = primaryResult;
         const htmlParts = [primary.text];
 
-        try {
-          const bot = await fetchBalluffText(url, context, BALLUFF_BOT_USER_AGENT);
-          htmlParts.push(bot.text);
-          const botResult = parseBalluffProductPage(catalogNumber, bot, {
-            parser: "balluff-readable-product-page",
-            localizedUrlTemplates: context.manufacturer.localizedUrlTemplates
-          });
-          current = mergeBalluffResults(current, botResult);
+        const supplementalFetches = await Promise.all([
+          fetchBalluffSupplemental(catalogNumber, url, "balluff-readable-product-page", context, BALLUFF_BOT_USER_AGENT),
+          fetchBalluffSupplemental(catalogNumber, balluffReaderUrl(url), "balluff-reader-product-page", context)
+        ]);
+        for (const supplemental of supplementalFetches) {
+          if (!("fetched" in supplemental)) {
+            lastError = supplemental.error;
+            continue;
+          }
+          htmlParts.push(supplemental.fetched.text);
+          current = mergeBalluffResults(current, supplemental.result);
           partialResults.push(current);
-        } catch (error) {
-          lastError = error;
-        }
-
-        try {
-          const reader = await fetchBalluffText(balluffReaderUrl(url), context);
-          htmlParts.push(reader.text);
-          const readerResult = parseBalluffProductPage(catalogNumber, reader, {
-            parser: "balluff-reader-product-page",
-            localizedUrlTemplates: context.manufacturer.localizedUrlTemplates
-          });
-          current = mergeBalluffResults(current, readerResult);
-          partialResults.push(current);
-        } catch (error) {
-          lastError = error;
         }
 
         const expanded = await scrapeBalluffExpandedSections(catalogNumber, url, context);
@@ -519,6 +478,27 @@ async function fetchBalluffText(url: string, context: ScrapeContext, userAgent?:
   });
 }
 
+async function fetchBalluffSupplemental(
+  catalogNumber: string,
+  url: string,
+  parser: string,
+  context: ScrapeContext,
+  userAgent?: string
+): Promise<{ fetched: FetchedText; result: ProductResult; error?: undefined } | { error: unknown }> {
+  try {
+    const fetched = await fetchBalluffText(url, context, userAgent);
+    return {
+      fetched,
+      result: parseBalluffProductPage(catalogNumber, fetched, {
+        parser,
+        localizedUrlTemplates: context.manufacturer.localizedUrlTemplates
+      })
+    };
+  } catch (error) {
+    return { error };
+  }
+}
+
 async function scrapeBalluffSearch(catalogNumber: string, context: ScrapeContext): Promise<ProductResult> {
   const params = ["query", "q", "search", "searchTerm", "term"];
   let lastError: unknown;
@@ -649,7 +629,7 @@ function balluffNetworkPayloadsForParsing(fetched: FetchedText, productUrl: stri
 }
 
 function isLikelyBalluffExpandedPayload(text: string): boolean {
-  return /\b(?:product::downloads|product::digital-product-pass|product::news-section|pia::product\.documents|Key features|Downloads|Classifications|Digital Product Passport|Knowledge Base articles)\b/i.test(
+  return /\b(?:product::downloads|product::digital-product-pass|pia::product\.documents|Key features|Downloads|Classifications|Digital Product Passport)\b/i.test(
     text
   );
 }
@@ -754,9 +734,10 @@ function cleanBalluffCode(value: string): string {
 function balluffDirectProductCodes(catalogNumber: string): string[] {
   const fromUrl = balluffProductCodeFromUrl(catalogNumber);
   const cleaned = cleanBalluffCode(catalogNumber);
+  const aliases = balluffCatalogAliases(catalogNumber);
   return [
     ...new Set(
-      [fromUrl, cleaned, ...balluffCatalogAliases(catalogNumber)].filter((code): code is string =>
+      [fromUrl, ...aliases, cleaned].filter((code): code is string =>
         Boolean(code && isBalluffProductPageCode(code))
       )
     )
@@ -828,7 +809,7 @@ function hasExpandedBalluffSections(html: string): boolean {
 
 const BALLUFF_EXPANDED_SECTION_MARKERS: Array<{ name: string; pattern: RegExp }> = [
   { name: "key-features", pattern: /\b(?:operating voltage ub|housing material|ip rating|range|measuring range|connection 1|cable|interface)\b/i },
-  { name: "downloads", pattern: /\b(?:datasheet|cad|3d-modell|3-d model|operating manual|certificate|user manual|user's guide)\b/i },
+  { name: "downloads", pattern: /\b(?:datasheet|product data sheet|operating manual|certificate|user manual|user's guide)\b/i },
   { name: "classifications", pattern: /\beclass\s*\d|\betim\s*\d|\bunspsc\b/i },
   { name: "digital-product-passport", pattern: /\b(?:weight|tariff code|country of origin|product carbon footprint|battery regulation|substances of concern)\b/i }
 ];
