@@ -23,6 +23,7 @@ interface RunRow {
   partial: number;
   failed: number;
   output_path?: string;
+  pdt_path?: string;
   options_json?: string;
   error?: string;
 }
@@ -163,6 +164,7 @@ export class ScraperDb {
     `);
     this.addColumnIfMissing("runs", "options_json", "TEXT");
     this.addColumnIfMissing("runs", "output_path", "TEXT");
+    this.addColumnIfMissing("runs", "pdt_path", "TEXT");
     this.addColumnIfMissing("runs", "error", "TEXT");
     this.addColumnIfMissing("run_items", "stage", "TEXT");
     this.addColumnIfMissing("run_items", "stage_message", "TEXT");
@@ -240,7 +242,7 @@ export class ScraperDb {
     return row ? mapRun(row) : undefined;
   }
 
-  updateRun(id: string, patch: Partial<Pick<RunRecord, "status" | "processed" | "found" | "partial" | "failed" | "outputPath" | "error">>) {
+  updateRun(id: string, patch: Partial<Pick<RunRecord, "status" | "processed" | "found" | "partial" | "failed" | "outputPath" | "pdtPath" | "error">>) {
     const current = this.getRun(id);
     if (!current) return;
     const next = { ...current, ...patch, updatedAt: new Date().toISOString() };
@@ -253,11 +255,12 @@ export class ScraperDb {
             partial = @partial,
             failed = @failed,
             output_path = @outputPath,
+            pdt_path = @pdtPath,
             error = @error,
             updated_at = @updatedAt
         WHERE id = @id
       `)
-      .run({ ...next, id });
+      .run({ ...next, pdtPath: next.pdtPath ?? null, id });
   }
 
   /**
@@ -504,6 +507,7 @@ function mapRun(row: RunRow): RunRecord {
     partial: row.partial,
     failed: row.failed,
     outputPath: row.output_path,
+    pdtPath: row.pdt_path ?? undefined,
     options: parseRunOptions(row.options_json),
     error: row.error
   };

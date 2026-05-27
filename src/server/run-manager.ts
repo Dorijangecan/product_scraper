@@ -4,13 +4,9 @@ import path from "node:path";
 import type { DocumentRecord, ManufacturerConfig, ManufacturerId, ProductResult, RunItemRecord, RunRecord } from "../shared/types.js";
 import { getManufacturerConfig } from "./config/manufacturers.js";
 import type { ScraperDb } from "./db.js";
-import { exportRunWorkbook } from "./excel.js";
 import { CachedHttpClient, delay } from "./scrapers/http-client.js";
 import { getConnector } from "./scrapers/index.js";
-import { GenericFallbackScraper } from "./scrapers/generic.js";
-import { enrichResultFromDownloadedDocuments } from "./scrapers/document-enrichment.js";
 import { finalizeQualityGate } from "./scrapers/quality-gate.js";
-import { runDeterministicScrapePipeline } from "./scrapers/deterministic-pipeline.js";
 import {
   applyFinalCompletenessStatus,
   evaluateFinalCompleteness,
@@ -150,9 +146,11 @@ export class RunManager {
       // Per-host throttle keeps us polite even with N parallel workers hitting the same domain.
       // Manufacturer.rateLimitMs is now treated as the minimum interval between requests to the same host.
       http.setHostMinIntervalMs(Math.max(100, Math.floor(manufacturer.rateLimitMs / Math.max(1, manufacturer.concurrency ?? 3))));
-      const fallback = new GenericFallbackScraper(run.manufacturerId, http, manufacturer);
       const browserRenderer = new BrowserRenderSession();
       const pending = this.db.getPendingRunItems(run.id);
+      const { GenericFallbackScraper } = await import("./scrapers/generic.js");
+      const { runDeterministicScrapePipeline } = await import("./scrapers/deterministic-pipeline.js");
+      const fallback = new GenericFallbackScraper(run.manufacturerId, http, manufacturer);
 
       const layoutRef = layout!;
       const processItem = async (item: typeof pending[number]): Promise<void> => {
@@ -209,7 +207,8 @@ export class RunManager {
             documentDownloadsForEnrichmentEnabled,
             controller.signal,
             documentDownloadProfile(manufacturer, initiallyGated),
-            downloadImagesEnabled
+            downloadImagesEnabled,
+            item.catalogNumber
           );
           // In "Images only" mode the saved deliverable is just the PNG. Everything below this
           // line (PDF enrichment, fallback discovery, final completeness retry) exists only to
@@ -267,7 +266,8 @@ export class RunManager {
               documentDownloadsForEnrichmentEnabled,
               controller.signal,
               documentDownloadProfile(manufacturer, withSmartFallbacks),
-              downloadImagesEnabled
+              downloadImagesEnabled,
+              item.catalogNumber
             );
             this.updateItemStage(item.id, "document-enrichment", "Reading fallback documents for missing values");
             enriched = finalizeQualityGate(await enrichFromDownloadedDocumentsIfPresent(withFallbackDownloads), manufacturer);
@@ -350,7 +350,8 @@ export class RunManager {
               documentDownloadsForEnrichmentEnabled,
               controller.signal,
               documentDownloadProfile(manufacturer, withFinalCompletenessFallbacks),
-              downloadImagesEnabled
+              downloadImagesEnabled,
+              item.catalogNumber
             );
             this.updateItemStage(item.id, "document-enrichment", "Reading final retry documents for missing values");
             enriched = finalizeQualityGate(await enrichFromDownloadedDocumentsIfPresent(withFinalCompletenessDownloads), manufacturer);
@@ -516,12 +517,15 @@ export class RunManager {
     // "Images only" mode skips workbook generation; everything else still produces one.
     const shouldGenerateExcel = finalRun.options?.generateExcel !== false;
     const outputPath = shouldGenerateExcel
-      ? await exportRunWorkbook({
-          run: this.db.getRun(runId)!,
-          manufacturer,
-          items: this.db.getRunItems(runId),
-          outputDir: layout.excelDir
-        })
+      ? await (async () => {
+          const { exportRunWorkbook } = await import("./excel.js");
+          return exportRunWorkbook({
+            run: this.db.getRun(runId)!,
+            manufacturer,
+            items: this.db.getRunItems(runId),
+            outputDir: layout.excelDir
+          });
+        })()
       : undefined;
     this.db.updateRun(runId, {
       status,
@@ -551,7 +555,8 @@ export class RunManager {
     downloadDocumentsEnabled: boolean,
     signal?: AbortSignal,
     profile: DocumentDownloadProfile = "full",
-    downloadImagesEnabled: boolean = true
+    downloadImagesEnabled: boolean = true,
+    catalogNumberForFiles: string = result.catalogNumber
   ): Promise<ProductResult> {
     const documents: DocumentRecord[] = [];
     const maxDownloads = profile === "full" ? 25 : 8;
@@ -607,7 +612,7 @@ export class RunManager {
         nonImageDownloadCount += 1;
         profileTypeCounts.set(doc.type, (profileTypeCounts.get(doc.type) ?? 0) + 1);
       }
-      documents.push(await this.downloadDocument(http, documentsDir, imagesDir, manufacturerShortName, result.catalogNumber, doc, downloadDocumentsEnabled, signal, indexForDoc, downloadImagesEnabled));
+      documents.push(await this.downloadDocument(http, documentsDir, imagesDir, manufacturerShortName, catalogNumberForFiles, doc, downloadDocumentsEnabled, signal, indexForDoc, downloadImagesEnabled));
       if (doc.type === "image") imageIndex += 1;
       downloadCount += 1;
     }
@@ -813,6 +818,7 @@ function shouldDownloadLocalDocument(doc: DocumentRecord): boolean {
 
 async function enrichFromDownloadedDocumentsIfPresent(result: ProductResult): Promise<ProductResult> {
   if (!result.documents.some((doc) => shouldParseDownloadedDocument(doc))) return result;
+  const { enrichResultFromDownloadedDocuments } = await import("./scrapers/document-enrichment.js");
   return enrichResultFromDownloadedDocuments(result);
 }
 
@@ -842,9 +848,12 @@ async function exists(filePath: string): Promise<boolean> {
   }
 }
 
-function imageFileName(manufacturerShortName: string, catalogNumber: string, index?: number): string {
+export function imageFileName(manufacturerShortName: string, catalogNumber: string, index?: number): string {
   const suffix = index && index > 0 ? `_${index + 1}` : "";
-  return `${safeImagePart(manufacturerShortName)}.${safeImagePart(catalogNumber)}${suffix}.png`;
+  const manufacturer = safeImagePart(manufacturerShortName);
+  const catalog = safeImagePart(catalogNumber);
+  if (manufacturer.toUpperCase() === "SCE") return `${manufacturer}.${catalog}_preview${suffix}.png`;
+  return `${manufacturer}.${catalog}${suffix}.png`;
 }
 
 function safeImagePart(value: string): string {

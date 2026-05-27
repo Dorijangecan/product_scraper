@@ -12,7 +12,6 @@ import { getManufacturerConfig, initializeManufacturerConfig, listManufacturerCo
 import type { ManufacturerId } from "../shared/types.js";
 import { buildRunOutputLayout, findRunLogPath, getAllowedRunOutputRoots, isPathInsideAny, runRootFromOutputPath } from "./run-output.js";
 import { CachedHttpClient } from "./scrapers/http-client.js";
-import { inspectManufacturerDraft, testManufacturerDraft } from "./manufacturer-wizard.js";
 import { summarizeRunItem } from "./run-item-summary.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -46,6 +45,7 @@ app.post("/api/manufacturers", async (req, res) => {
 
 app.post("/api/manufacturers/inspect", async (req, res) => {
   try {
+    const { inspectManufacturerDraft } = await import("./manufacturer-wizard.js");
     const http = new CachedHttpClient(db, appPaths.cacheDir);
     res.json(await inspectManufacturerDraft(req.body, http));
   } catch (error) {
@@ -55,6 +55,7 @@ app.post("/api/manufacturers/inspect", async (req, res) => {
 
 app.post("/api/manufacturers/test", async (req, res) => {
   try {
+    const { testManufacturerDraft } = await import("./manufacturer-wizard.js");
     const http = new CachedHttpClient(db, appPaths.cacheDir);
     res.json(await testManufacturerDraft(req.body, { db, http, paths: appPaths }));
   } catch (error) {
@@ -278,6 +279,77 @@ app.post("/api/runs/:id/files/folder/open", (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error instanceof Error ? error.message : "Could not open output folder." });
   }
+});
+
+app.post("/api/runs/:id/pdt", async (req, res) => {
+  const run = db.getRun(req.params.id);
+  if (!run) {
+    res.status(404).json({ error: "Run not found." });
+    return;
+  }
+  const manufacturer = getManufacturerConfig(run.manufacturerId);
+  if (!manufacturer) {
+    res.status(404).json({ error: "Manufacturer not found." });
+    return;
+  }
+  try {
+    const [{ exportRunPdt }, { resolveTemplatePath }] = await Promise.all([
+      import("./pdt/exporter.js"),
+      import("./pdt/template.js")
+    ]);
+    const templatePath = resolveTemplatePath(typeof req.body?.templatePath === "string" ? req.body.templatePath : undefined);
+    // Place the PDT next to the products workbook when available, otherwise in the run's excel dir.
+    let baseDir: string;
+    if (run.outputPath && fs.existsSync(run.outputPath)) {
+      baseDir = path.dirname(run.outputPath);
+    } else {
+      baseDir = buildRunOutputLayout(appPaths.outputDir, manufacturer, run).excelDir;
+      fs.mkdirSync(baseDir, { recursive: true });
+    }
+    const outputPath = path.join(baseDir, `${run.id}_PDT.xlsx`);
+    const result = await exportRunPdt({
+      manufacturer,
+      items: db.getRunItems(run.id),
+      templatePath,
+      outputPath
+    });
+    if (result.productCount === 0) {
+      res.status(400).json({ error: "No found or partial products to import into the PDT." });
+      return;
+    }
+    db.updateRun(run.id, { pdtPath: result.outputPath });
+    res.json({ ok: true, path: result.outputPath, stats: result });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Could not generate PDT.";
+    if (/EBUSY|EPERM|resource busy or locked/i.test(message)) {
+      res.status(409).json({ error: "Could not write the PDT — close it in Excel and try again." });
+      return;
+    }
+    res.status(500).json({ error: message });
+  }
+});
+
+app.post("/api/runs/:id/files/pdt/open", (req, res) => {
+  const run = db.getRun(req.params.id);
+  if (!run?.pdtPath || !fs.existsSync(run.pdtPath)) {
+    res.status(404).json({ error: "PDT workbook is not ready." });
+    return;
+  }
+  try {
+    openLocalFile(run.pdtPath);
+    res.json({ ok: true, path: run.pdtPath });
+  } catch (error) {
+    res.status(500).json({ error: error instanceof Error ? error.message : "Could not open PDT." });
+  }
+});
+
+app.get("/api/runs/:id/files/pdt", (req, res) => {
+  const run = db.getRun(req.params.id);
+  if (!run?.pdtPath || !fs.existsSync(run.pdtPath)) {
+    res.status(404).json({ error: "PDT workbook is not ready." });
+    return;
+  }
+  res.download(run.pdtPath);
 });
 
 app.get("/api/runs/:id/files/log", (req, res) => {

@@ -113,6 +113,9 @@ describe("excel export", () => {
     expect(headers).toContain("Image Count");
     expect(headers).toContain("All Image URLs");
     expect(headers).toContain("Product Type");
+    expect(headers).toContain("Device Type");
+    expect(headers).toContain("Device Type Confidence");
+    expect(headers).toContain("Device Type Evidence");
     expect(headers).toContain("Copy Summary");
     expect(headers).toContain("EAN / GTIN");
     expect(headers).toContain("All Specifications");
@@ -156,6 +159,9 @@ describe("excel export", () => {
     expect(products.getRow(2).getCell(headers.indexOf("Dimensions") + 1).value).toBe("10 x 20 x 30 mm");
     expect(products.getRow(2).getCell(headers.indexOf("ECLASS") + 1).value).toBe("ECLASS 14.0: 27-14-23-90");
     expect(products.getRow(2).getCell(headers.indexOf("Product Type") + 1).value).toBe("KLP-D");
+    expect(products.getRow(2).getCell(headers.indexOf("Device Type") + 1).value).toBe("Lock / Interlock");
+    expect(products.getRow(2).getCell(headers.indexOf("Device Type Confidence") + 1).value).toBeGreaterThanOrEqual(0.8);
+    expect(String(products.getRow(2).getCell(headers.indexOf("Device Type Evidence") + 1).value)).toContain("Catalog Description");
     expect(products.getRow(2).getCell(headers.indexOf("EAN / GTIN") + 1).value).toBe("8056221267000");
     expect(String(products.getRow(2).getCell(headers.indexOf("All Specifications") + 1).value)).toContain("[ABB Product Data]");
     expect(String(products.getRow(2).getCell(headers.indexOf("Copy Summary") + 1).value)).toContain("Voltage: 24 V DC");
@@ -378,6 +384,7 @@ describe("excel export", () => {
     expect(headers).toContain("Accessories / Related Parts");
     expect(headers).toContain("Downloads");
     expect(row.getCell(headers.indexOf("Product Type") + 1).value).toBe("EL Enclosure");
+    expect(row.getCell(headers.indexOf("Device Type") + 1).value).toBe("Enclosure");
     expect(String(row.getCell(headers.indexOf("Key Specifications") + 1).value)).toContain("Note: Special sizes are available.");
     expect(String(row.getCell(headers.indexOf("Key Specifications") + 1).value)).toContain("Model No.: SL-400100FC-SG");
     expect(String(row.getCell(headers.indexOf("Key Specifications") + 1).value)).toContain("Lumens: 400");
@@ -500,6 +507,7 @@ describe("excel export", () => {
     const row = products.getRow(2);
 
     expect(row.getCell(headers.indexOf("Product Type") + 1).value).toBe("BOS 18M-PA-IE21-S4");
+    expect(row.getCell(headers.indexOf("Device Type") + 1).value).toBe("Photoelectric Sensor");
     expect(String(row.getCell(headers.indexOf("Key Specifications") + 1).value)).toContain("Principle of operation: Photoelectric sensor");
     expect(String(row.getCell(headers.indexOf("Key Specifications") + 1).value)).toContain("Segments, number max.: 3");
     expect(String(row.getCell(headers.indexOf("Key Specifications") + 1).value)).toContain("Light intensity: 746 lm");
@@ -1516,6 +1524,7 @@ describe("excel export", () => {
     const row = products.getRow(2);
 
     expect(row.getCell(headers.indexOf("Product Type") + 1).value).toBe("UPS");
+    expect(row.getCell(headers.indexOf("Device Type") + 1).value).toBe("UPS");
     expect(String(row.getCell(headers.indexOf("Key Specifications") + 1).value)).toContain("Battery type: Sealed, lead-acid");
     expect(String(row.getCell(headers.indexOf("Electrical Ratings") + 1).value)).toContain("VA rating: 1500 VA");
     expect(String(row.getCell(headers.indexOf("Electrical Ratings") + 1).value)).toContain("Wattage: 900 W");
@@ -1596,6 +1605,7 @@ describe("excel export", () => {
     expect(row.getCell(headers.indexOf("Length (in)") + 1).value).toBe(72);
     expect(row.getCell(headers.indexOf("Length (mm)") + 1).value).toBe(1828.8);
     expect(row.getCell(headers.indexOf("Product Type") + 1).value).toBe("Cable");
+    expect(row.getCell(headers.indexOf("Device Type") + 1).value).toBe("Cable");
     expect(row.getCell(headers.indexOf("Image") + 1).value).toBe("Linked");
     expect(row.getCell(headers.indexOf("Image Count") + 1).value).toBe(2);
     expect(String(row.getCell(headers.indexOf("Image URL") + 1).value)).toContain("P569_FRONT");

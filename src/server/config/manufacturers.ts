@@ -29,6 +29,7 @@ const builtInManufacturerConfigs: Record<string, ManufacturerConfig> = {
       "https://new.abb.com/smartlinks",
       "https://abb-control-products.partcommunity.com/3d-cad-models/?part={part}"
     ],
+    homepageUrl: "https://global.abb.com/group/en",
     localizedUrlTemplates: [
       { locale: "en", urlTemplate: "https://new.abb.com/smartlinks/en?ProductId={part}&Language=en&PrintPreview=False&pid={part}" },
       { locale: "de", urlTemplate: "https://new.abb.com/smartlinks/de?ProductId={part}&Language=de&PrintPreview=False&pid={part}" }
@@ -107,8 +108,8 @@ const builtInManufacturerConfigs: Record<string, ManufacturerConfig> = {
     canonicalName: "Balluff",
     shortName: "BAL",
     rateLimitMs: 1200,
-    // Balluff uses heavy Playwright/Livewire drawers. Keep it single-worker so local runs stay responsive.
-    concurrency: 1,
+    // Balluff uses heavy Playwright/Livewire drawers; two workers is a practical throughput/responsiveness balance.
+    concurrency: 2,
     officialBaseUrls: ["https://www.balluff.com/en-gb/products"],
     localizedUrlTemplates: [
       { locale: "en", urlTemplate: "https://www.balluff.com/en-gb/products/{part}" },

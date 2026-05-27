@@ -14,6 +14,7 @@ import {
   Database,
   Download,
   FileCheck2,
+  FileOutput,
   FileSpreadsheet,
   FileText,
   FolderOpen,
@@ -54,6 +55,8 @@ import {
   openRunOutputFolder,
   updateRunCoverageFields,
   openRunWorkbook,
+  importRunPdt,
+  openRunPdt,
   previewCsv,
   resetManufacturerOverride,
   saveManufacturer,
@@ -154,6 +157,7 @@ export function App() {
   const [cancelBusy, setCancelBusy] = useState(false);
   const [openWorkbookBusy, setOpenWorkbookBusy] = useState(false);
   const [openOutputFolderBusy, setOpenOutputFolderBusy] = useState(false);
+  const [pdtBusy, setPdtBusy] = useState(false);
   const [manufacturerEditorOpen, setManufacturerEditorOpen] = useState(false);
   const [manufacturerDraft, setManufacturerDraft] = useState<ManufacturerDraft>(() => emptyManufacturerDraft());
   const [manufacturerSaveBusy, setManufacturerSaveBusy] = useState(false);
@@ -254,12 +258,12 @@ export function App() {
     const timer = window.setInterval(() => {
       void refreshRuns();
       if (selectedRunId) void refreshSelectedRun(selectedRunId);
-    }, selectedRun?.status === "running" || selectedRun?.status === "queued" || selectedRun?.status === "cancelling" ? 1200 : 4000);
+    }, selectedRun?.status === "running" || selectedRun?.status === "queued" || selectedRun?.status === "cancelling" ? 750 : 4000);
     return () => window.clearInterval(timer);
   }, [selectedRunId, selectedRun?.status]);
 
   useEffect(() => {
-    const timer = window.setInterval(() => setNowMs(Date.now()), 1000);
+    const timer = window.setInterval(() => setNowMs(Date.now()), 500);
     return () => window.clearInterval(timer);
   }, []);
 
@@ -419,6 +423,37 @@ export function App() {
       setError(errorMessage(err));
     } finally {
       setOpenOutputFolderBusy(false);
+    }
+  }
+
+  async function handleImportPdt() {
+    if (!selectedRun) return;
+    setPdtBusy(true);
+    setError(null);
+    try {
+      const result = await importRunPdt(selectedRun.id);
+      await refreshSelectedRun(selectedRun.id);
+      if (result.stats.cleanup && !["qwen_applied", "qwen_reviewed"].includes(result.stats.cleanup.status)) {
+        setError(`PDT AI cleanup: ${result.stats.cleanup.message}`);
+      }
+    } catch (err) {
+      setError(errorMessage(err));
+    } finally {
+      setPdtBusy(false);
+    }
+  }
+
+  async function handleOpenPdt() {
+    if (!selectedRun) return;
+    setPdtBusy(true);
+    setError(null);
+    try {
+      await openRunPdt(selectedRun.id);
+    } catch (err) {
+      setError(errorMessage(err));
+      window.location.href = `/api/runs/${selectedRun.id}/files/pdt`;
+    } finally {
+      setPdtBusy(false);
     }
   }
 
@@ -665,13 +700,13 @@ export function App() {
     }
   }
 
-  const progress = selectedRun && selectedRun.total > 0 ? Math.round((selectedRun.processed / selectedRun.total) * 100) : 0;
   const readyToRun = Boolean(file && preview && columnName && selectedManufacturer);
   const canCancel = selectedRun?.status === "queued" || selectedRun?.status === "running" || selectedRun?.status === "cancelling";
   const runFinished = selectedRun?.status === "completed" || selectedRun?.status === "cancelled";
   // "Images only" runs never produce an .xlsx, so the Excel button must hide; the run's
   // outputPath is the cleanest signal that a workbook actually exists on disk.
   const hasWorkbook = runFinished && Boolean(selectedRun?.outputPath);
+  const hasPdt = runFinished && Boolean(selectedRun?.pdtPath);
   const hasOutputFolder = runFinished;
   const historyCount = runs.length;
   const activeRunCount = runs.filter((run) => ["queued", "running"].includes(run.status)).length;
@@ -702,6 +737,7 @@ export function App() {
   );
   const coverageTotal = items.filter((item) => item.result || item.coverage).length;
   const runTiming = useMemo(() => buildRunTiming(selectedRun, items, nowMs), [items, nowMs, selectedRun]);
+  const progress = runTiming.progressPercent;
   const runItemFilterCounts = useMemo(() => buildRunItemFilterCounts(items), [items]);
   const filteredItems = useMemo(() => filterRunItems(items, runItemQuery, runItemFilter), [items, runItemQuery, runItemFilter]);
   const effectiveRunItemPageSize = runItemPageSize === "all" ? Math.max(filteredItems.length, 1) : runItemPageSize;
@@ -1069,6 +1105,18 @@ export function App() {
                 <button type="button" className="download-button" onClick={() => void handleOpenWorkbook()} disabled={openWorkbookBusy}>
                   {openWorkbookBusy ? <Loader2 className="spin" size={16} /> : <Download size={16} />}
                   {openWorkbookBusy ? "Opening" : "Excel"}
+                </button>
+              )}
+              {hasWorkbook && (
+                <button type="button" className="download-button secondary" onClick={() => void handleImportPdt()} disabled={pdtBusy}>
+                  {pdtBusy ? <Loader2 className="spin" size={16} /> : <FileOutput size={16} />}
+                  {pdtBusy ? "Importing" : "Import to PDT"}
+                </button>
+              )}
+              {hasPdt && (
+                <button type="button" className="download-button secondary" onClick={() => void handleOpenPdt()} disabled={pdtBusy}>
+                  {pdtBusy ? <Loader2 className="spin" size={16} /> : <Download size={16} />}
+                  PDT
                 </button>
               )}
               {hasOutputFolder && (
@@ -2306,6 +2354,7 @@ function EmptyState() {
 }
 
 interface RunTimingSummary {
+  progressPercent: number;
   elapsed: string;
   eta: string;
   remaining: string;
@@ -2316,10 +2365,22 @@ interface RunTimingSummary {
   stageElapsed: string;
 }
 
+interface RunProgressEstimate {
+  avgMs?: number;
+  effectiveProcessed: number;
+  estimatedRemainingMs?: number;
+}
+
+const FINISHED_ITEM_STATUSES = new Set<ItemStatus>(["found", "partial", "failed", "cancelled"]);
+const RECENT_ITEM_SAMPLE_SIZE = 8;
+const MIN_ITEM_AVG_MS = 1000;
+const MAX_REASONABLE_ITEM_MS = 30 * 60 * 1000;
+
 function buildRunTiming(run: RunRecord | null, items: RunItemRecord[], nowMs: number): RunTimingSummary {
   if (!run) {
     return {
       elapsed: "--",
+      progressPercent: 0,
       eta: "--",
       remaining: "--",
       avgPerItem: "--",
@@ -2338,8 +2399,10 @@ function buildRunTiming(run: RunRecord | null, items: RunItemRecord[], nowMs: nu
   const nextItem = items.find((item) => item.status === "pending");
   const stageStartMs = currentItem ? safeTime(currentItem.stageStartedAt) : undefined;
   const processed = Math.max(0, run.processed);
-  const remainingCount = Math.max(0, run.total - processed);
-  const avgMs = processed > 0 ? elapsedMs / processed : undefined;
+  const progress = estimateRunProgress(run, items, nowMs, startMs, elapsedMs, currentItem);
+  const rawRemainingCount = Math.max(0, run.total - processed);
+  const avgMs = progress.avgMs;
+  const progressPercent = run.total > 0 ? clampPercent((progress.effectiveProcessed / run.total) * 100) : 0;
   let eta = "--";
   let remaining = "--";
 
@@ -2352,11 +2415,11 @@ function buildRunTiming(run: RunRecord | null, items: RunItemRecord[], nowMs: nu
   } else if (run.status === "cancelled") {
     eta = "Cancelled";
     remaining = "--";
-  } else if (remainingCount === 0) {
+  } else if (rawRemainingCount === 0) {
     eta = "Finalizing";
     remaining = "<1m";
-  } else if (avgMs) {
-    const remainingMs = avgMs * remainingCount;
+  } else if (avgMs && progress.estimatedRemainingMs !== undefined) {
+    const remainingMs = Math.max(0, progress.estimatedRemainingMs);
     eta = `${formatClock(nowMs + remainingMs)} (${formatDuration(remainingMs)})`;
     remaining = formatDuration(remainingMs);
   } else {
@@ -2367,6 +2430,7 @@ function buildRunTiming(run: RunRecord | null, items: RunItemRecord[], nowMs: nu
   if (currentItem) {
     return {
       elapsed: formatDuration(elapsedMs),
+      progressPercent,
       eta,
       remaining,
       avgPerItem: avgMs ? formatDuration(avgMs) : "--",
@@ -2380,6 +2444,7 @@ function buildRunTiming(run: RunRecord | null, items: RunItemRecord[], nowMs: nu
   if (run.status === "queued") {
     return {
       elapsed: formatDuration(elapsedMs),
+      progressPercent,
       eta,
       remaining,
       avgPerItem: avgMs ? formatDuration(avgMs) : "--",
@@ -2393,6 +2458,7 @@ function buildRunTiming(run: RunRecord | null, items: RunItemRecord[], nowMs: nu
   if (run.status === "cancelling") {
     return {
       elapsed: formatDuration(elapsedMs),
+      progressPercent,
       eta,
       remaining,
       avgPerItem: avgMs ? formatDuration(avgMs) : "--",
@@ -2406,6 +2472,7 @@ function buildRunTiming(run: RunRecord | null, items: RunItemRecord[], nowMs: nu
   if (active && nextItem) {
     return {
       elapsed: formatDuration(elapsedMs),
+      progressPercent,
       eta,
       remaining,
       avgPerItem: avgMs ? formatDuration(avgMs) : "--",
@@ -2420,6 +2487,7 @@ function buildRunTiming(run: RunRecord | null, items: RunItemRecord[], nowMs: nu
     run.status === "failed" ? "failed" : run.status === "cancelled" ? "cancelled" : "pending";
   return {
     elapsed: formatDuration(elapsedMs),
+    progressPercent,
     eta,
     remaining,
     avgPerItem: avgMs ? formatDuration(avgMs) : "--",
@@ -2428,6 +2496,93 @@ function buildRunTiming(run: RunRecord | null, items: RunItemRecord[], nowMs: nu
     stage: run.status === "completed" ? "Complete" : stageLabel(undefined, terminalItemStatus),
     stageElapsed: active ? "Live" : formatClock(endMs)
   };
+}
+
+function estimateRunProgress(
+  run: RunRecord,
+  items: RunItemRecord[],
+  nowMs: number,
+  startMs: number,
+  elapsedMs: number,
+  currentItem: RunItemRecord | undefined
+): RunProgressEstimate {
+  const processed = Math.max(0, Math.min(run.total, run.processed));
+  const completedItems = items
+    .filter((item) => FINISHED_ITEM_STATUSES.has(item.status))
+    .slice()
+    .sort((a, b) => a.rowIndex - b.rowIndex);
+  const completedTimes = completedItems
+    .map((item) => safeTime(item.updatedAt))
+    .filter((time): time is number => time !== undefined && time >= startMs && time <= nowMs + 60_000);
+  const durations: number[] = [];
+  let previousMs = startMs;
+
+  for (const completedAtMs of completedTimes) {
+    const durationMs = completedAtMs - previousMs;
+    if (durationMs >= MIN_ITEM_AVG_MS / 4 && durationMs <= MAX_REASONABLE_ITEM_MS) {
+      durations.push(durationMs);
+    }
+    if (completedAtMs > previousMs) {
+      previousMs = completedAtMs;
+    }
+  }
+
+  const recentAvgMs = averageMs(durations.slice(-RECENT_ITEM_SAMPLE_SIZE));
+  const completedSpanMs = completedTimes.length > 0 ? Math.max(0, completedTimes[completedTimes.length - 1] - startMs) : 0;
+  const completedCountForSpan = Math.max(1, Math.min(processed, completedTimes.length || processed));
+  const overallAvgMs =
+    processed > 0 && completedSpanMs > 0
+      ? completedSpanMs / completedCountForSpan
+      : processed > 0
+        ? elapsedMs / processed
+        : undefined;
+  const avgMs = normalizeAvgMs(
+    recentAvgMs !== undefined && overallAvgMs !== undefined
+      ? recentAvgMs * 0.65 + overallAvgMs * 0.35
+      : recentAvgMs ?? overallAvgMs
+  );
+
+  if (!avgMs) {
+    return { avgMs, effectiveProcessed: processed };
+  }
+
+  const currentElapsedMs = currentItem ? estimateCurrentItemElapsedMs(currentItem, completedItems, startMs, nowMs) : 0;
+  const currentRemainingMs = currentItem ? Math.max(0, avgMs - currentElapsedMs) : 0;
+  const untouchedCount = Math.max(0, run.total - processed - (currentItem ? 1 : 0));
+  const estimatedRemainingMs = currentRemainingMs + avgMs * untouchedCount;
+  const effectiveProcessed = Math.max(0, Math.min(run.total, run.total - estimatedRemainingMs / avgMs));
+
+  return { avgMs, effectiveProcessed, estimatedRemainingMs };
+}
+
+function estimateCurrentItemElapsedMs(
+  currentItem: RunItemRecord,
+  completedItems: RunItemRecord[],
+  startMs: number,
+  nowMs: number
+): number {
+  const previousCompletedAtMs = completedItems
+    .filter((item) => item.rowIndex < currentItem.rowIndex)
+    .map((item) => safeTime(item.updatedAt))
+    .filter((time): time is number => time !== undefined)
+    .at(-1);
+  const itemStartMs = previousCompletedAtMs ?? safeTime(currentItem.stageStartedAt) ?? startMs;
+  return Math.max(0, nowMs - itemStartMs);
+}
+
+function averageMs(values: number[]): number | undefined {
+  if (values.length === 0) return undefined;
+  return values.reduce((sum, value) => sum + value, 0) / values.length;
+}
+
+function normalizeAvgMs(value: number | undefined): number | undefined {
+  if (value === undefined || !Number.isFinite(value) || value <= 0) return undefined;
+  return Math.max(MIN_ITEM_AVG_MS, value);
+}
+
+function clampPercent(value: number): number {
+  if (!Number.isFinite(value)) return 0;
+  return Math.max(0, Math.min(100, Math.round(value)));
 }
 
 function stageLabel(stage: string | undefined, status: RunItemRecord["status"]): string {

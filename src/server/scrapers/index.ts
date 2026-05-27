@@ -1,27 +1,39 @@
 import type { ManufacturerId } from "../../shared/types.js";
 import type { ManufacturerConnector, ScrapeContext } from "./types.js";
-import { ABBConnector } from "./abb.js";
-import { BalluffConnector } from "./balluff.js";
-import { EatonConnector } from "./eaton.js";
-import { SCEConnector } from "./sce.js";
-import { SchneiderConnector } from "./schneider.js";
-import { SiemensConnector } from "./siemens.js";
-import { SpelsbergConnector } from "./spelsberg.js";
 import { emptyResult } from "./normalizer.js";
 import { templateContainsCatalogPlaceholder } from "./catalog-number.js";
 
-const connectors: Record<string, ManufacturerConnector> = {
-  abb: new ABBConnector(),
-  balluff: new BalluffConnector(),
-  eaton: new EatonConnector(),
-  sce: new SCEConnector(),
-  schneider: new SchneiderConnector(),
-  siemens: new SiemensConnector(),
-  spelsberg: new SpelsbergConnector()
+const connectorLoaders: Record<string, () => Promise<ManufacturerConnector>> = {
+  abb: async () => new (await import("./abb.js")).ABBConnector(),
+  balluff: async () => new (await import("./balluff.js")).BalluffConnector(),
+  eaton: async () => new (await import("./eaton.js")).EatonConnector(),
+  sce: async () => new (await import("./sce.js")).SCEConnector(),
+  schneider: async () => new (await import("./schneider.js")).SchneiderConnector(),
+  siemens: async () => new (await import("./siemens.js")).SiemensConnector(),
+  spelsberg: async () => new (await import("./spelsberg.js")).SpelsbergConnector()
 };
+const connectorPromises = new Map<string, Promise<ManufacturerConnector>>();
 
 export function getConnector(manufacturerId: ManufacturerId): ManufacturerConnector {
-  return connectors[manufacturerId] ?? new ConfiguredManufacturerConnector(manufacturerId);
+  const load = connectorLoaders[manufacturerId];
+  return load ? new LazyManufacturerConnector(manufacturerId, load) : new ConfiguredManufacturerConnector(manufacturerId);
+}
+
+class LazyManufacturerConnector implements ManufacturerConnector {
+  constructor(
+    readonly id: ManufacturerId,
+    private readonly load: () => Promise<ManufacturerConnector>
+  ) {}
+
+  async scrape(catalogNumber: string, context: ScrapeContext) {
+    let connectorPromise = connectorPromises.get(this.id);
+    if (!connectorPromise) {
+      connectorPromise = this.load();
+      connectorPromises.set(this.id, connectorPromise);
+    }
+    const connector = await connectorPromise;
+    return connector.scrape(catalogNumber, context);
+  }
 }
 
 class ConfiguredManufacturerConnector implements ManufacturerConnector {

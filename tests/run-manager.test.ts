@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { coalesceImageDocuments, documentDownloadProfile, shouldDownloadDocumentsForRun } from "../src/server/run-manager.js";
+import { coalesceImageDocuments, documentDownloadProfile, imageFileName, shouldDownloadDocumentsForRun } from "../src/server/run-manager.js";
 import type { DocumentRecord, ProductResult } from "../src/shared/types.js";
 
 describe("run manager document downloads", () => {
@@ -45,6 +45,12 @@ describe("run manager document downloads", () => {
     expect(shouldDownloadDocumentsForRun({ id: "balluff" }, { downloadDocuments: false, generateExcel: true })).toBe(true);
     expect(shouldDownloadDocumentsForRun({ id: "abb" }, { downloadDocuments: false, generateExcel: true })).toBe(false);
     expect(shouldDownloadDocumentsForRun({ id: "balluff" }, { downloadDocuments: false, generateExcel: false })).toBe(false);
+  });
+
+  it("names SCE images from the requested catalog number with the preview suffix", () => {
+    expect(imageFileName("SCE", "SCE-12P10GALV")).toBe("SCE.SCE-12P10GALV_preview.png");
+    expect(imageFileName("SCE", "SCE-12P10GALV", 1)).toBe("SCE.SCE-12P10GALV_preview_2.png");
+    expect(imageFileName("BAL", "BCC039H")).toBe("BAL.BCC039H.png");
   });
 });
 

@@ -4,6 +4,7 @@ import path from "node:path";
 import sharp from "sharp";
 import type { FinalCompletenessRecord, ManufacturerConfig, ProductResult, RunItemRecord, RunRecord } from "../shared/types.js";
 import { requiredElectricalFields } from "../shared/product-requirements.js";
+import { classifyDeviceType } from "./scrapers/device-type.js";
 import { buildLocalizedProductUrls } from "./scrapers/localized-urls.js";
 import { cleanText, normalizeFields } from "./scrapers/normalizer.js";
 
@@ -38,6 +39,9 @@ export async function exportRunWorkbook(input: {
     { header: "Confidence", key: "confidence", width: 12 },
     { header: "Title", key: "title", width: 42 },
     { header: "Product Type", key: "productType", width: 30 },
+    { header: "Device Type", key: "deviceType", width: 30 },
+    { header: "Device Type Confidence", key: "deviceTypeConfidence", width: 20, style: { numFmt: "0%" } },
+    { header: "Device Type Evidence", key: "deviceTypeEvidence", width: 54 },
     { header: "Copy Summary", key: "copySummary", width: 110 },
     { header: "Voltage", key: "voltage", width: 24 },
     { header: "Current", key: "current", width: 24 },
@@ -111,6 +115,9 @@ export async function exportRunWorkbook(input: {
     { header: "Confidence", key: "confidence", width: 12 },
     { header: "Title", key: "title", width: 42 },
     { header: "Product Type", key: "productType", width: 30 },
+    { header: "Device Type", key: "deviceType", width: 30 },
+    { header: "Device Type Confidence", key: "deviceTypeConfidence", width: 20, style: { numFmt: "0%" } },
+    { header: "Device Type Evidence", key: "deviceTypeEvidence", width: 54 },
     { header: "Copy Summary", key: "copySummary", width: 110 },
     { header: "Voltage", key: "voltage", width: 22 },
     { header: "Current", key: "current", width: 22 },
@@ -435,6 +442,7 @@ function productRow(manufacturer: ManufacturerConfig, item: RunItemRecord, resul
   const measurements = measurementsForExport(result, normalized);
   const documents = documentsForExport(result);
   const summary = specificationSummaryForExport(result, normalized);
+  const deviceType = classifyDeviceType(result);
   const technical = technicalHighlightsForExport(result?.attributes ?? [], normalized);
   const electrical = electricalSplitForExport(result?.attributes ?? [], normalized);
   const voltage = dedupePipeJoinedSpec(normalized.voltage);
@@ -464,10 +472,14 @@ function productRow(manufacturer: ManufacturerConfig, item: RunItemRecord, resul
     title: result?.title ?? item.title,
     description: result?.description ?? descriptionFromAttributes(result),
     productType: summary.productType,
+    deviceType: deviceType.type,
+    deviceTypeConfidence: deviceType.confidence,
+    deviceTypeEvidence: deviceType.evidence,
     copySummary: copySummaryForExport({
       catalogNumber: item.catalogNumber,
       title: result?.title ?? item.title,
       productType: summary.productType,
+      deviceType: deviceType.type,
       voltage,
       current,
       currentType: electrical.currentType,
@@ -1784,6 +1796,7 @@ function copySummaryForExport(input: {
   catalogNumber: string;
   title?: string;
   productType?: string;
+  deviceType?: string;
   voltage?: string;
   current?: string;
   currentType?: string;
@@ -1800,6 +1813,7 @@ function copySummaryForExport(input: {
     specLine("Catalog Number", input.catalogNumber),
     specLine("Title", input.title),
     specLine("Product Type", input.productType),
+    specLine("Device Type", input.deviceType),
     specLine("Voltage", input.voltage),
     specLine("Current", input.current),
     specLine("Current Type", input.currentType),

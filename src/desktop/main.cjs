@@ -1,4 +1,4 @@
-const { app, BrowserWindow, Menu, shell } = require("electron");
+const { app, BrowserWindow, Menu, shell, dialog } = require("electron");
 const fs = require("node:fs");
 const http = require("node:http");
 const net = require("node:net");
@@ -27,10 +27,19 @@ app.on("second-instance", () => {
 });
 
 app.whenReady().then(async () => {
+  console.log("Electron ready.");
   Menu.setApplicationMenu(null);
   const port = await findFreePort(3001);
+  console.log(`Starting local server on port ${port}...`);
   await startServer(port);
+  console.log("Local server ready. Opening window...");
   createWindow(port);
+}).catch((error) => {
+  const message = error instanceof Error ? error.message : String(error);
+  console.error(`Product Scraper failed to start: ${message}`);
+  appendLog(`Product Scraper failed to start: ${message}\n`);
+  dialog.showErrorBox("Product Scraper failed to start", message);
+  app.quit();
 });
 
 app.on("before-quit", () => {
@@ -88,6 +97,9 @@ async function startServer(port) {
 
   serverProcess.stdout.on("data", (chunk) => appendLog(chunk));
   serverProcess.stderr.on("data", (chunk) => appendLog(chunk));
+  serverProcess.on("error", (error) => {
+    appendLog(`Desktop server spawn failed: ${error.message}\n`);
+  });
   serverProcess.on("exit", (code, signal) => {
     appendLog(`Desktop server exited with code=${code ?? ""} signal=${signal ?? ""}\n`);
   });
