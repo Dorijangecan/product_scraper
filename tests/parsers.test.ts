@@ -32,6 +32,27 @@ describe("manufacturer parsers", () => {
     expect(result.normalized.weight).toBe("0.028 kg");
   });
 
+  it("parses ABB JSON-LD products nested in @graph", () => {
+    const html = `
+      <html><head>
+        <title>ABB Graph Product</title>
+        <script type="application/ld+json">
+          {
+            "@context": "https://schema.org",
+            "@graph": [
+              {"@type": "BreadcrumbList", "name": "Products"},
+              {"@type": ["Product", "Thing"], "sku": "1SDA126387R1", "name": "ABB Graph Padlock", "description": "Graph product", "weight": "0.031 kg"}
+            ]
+          }
+        </script>
+      </head><body>1SDA126387R1</body></html>
+    `;
+    const result = parseAbbProductPage("1SDA126387R1", fetched(html, "https://new.abb.com/products/1SDA126387R1/graph"));
+    expect(result.status).toBe("found");
+    expect(result.title).toBe("ABB Graph Padlock");
+    expect(result.normalized.weight).toBe("0.031 kg");
+  });
+
   it("parses ABB embedded PIS attributes by stable attribute codes", () => {
     const html = `
       <html><head>
@@ -264,9 +285,10 @@ describe("manufacturer parsers", () => {
     const searchJson = JSON.stringify({
       Items: [
         { ProductId: "3ABD50000038962", CatalogDescription: "LV AC general purpose wall-mounted drive, IEC: Pn 18.5 kW, 38 A (ACS580-01-039A-4)" },
-        { ProductId: "3AXD50000038962", CatalogDescription: "LV AC general purpose wall-mounted drive, IEC: Pn 18.5 kW, 38 A, 400 V (ACS580-01-039A-4)" }
+        { ProductId: "3AXD50000038962", CatalogDescription: "LV AC general purpose wall-mounted drive, IEC: Pn 18.5 kW, 38 A, 400 V (ACS580-01-039A-4)" },
+        { ProductId: "3AXD50009999999", CatalogDescription: "Later ABB candidate for ACS580-01-039A-4" }
       ],
-      TotalResultsCount: 2
+      TotalResultsCount: 3
     });
     const context = {
       manufacturer: {
@@ -308,6 +330,119 @@ describe("manufacturer parsers", () => {
     expect(result.normalized.protection).toBe("IP21");
     expect(result.documents.some((doc) => doc.type === "datasheet" && doc.url.includes("DocumentID=3AXD10000497691"))).toBe(true);
     expect(requestedUrls).toContain("https://new.abb.com/api/PisSearchApi?query=ACS580-01-039A-4&pageNumber=1&pageSize=8&lang=en");
+    const requestCounts = requestedUrls.reduce((counts, url) => counts.set(url, (counts.get(url) ?? 0) + 1), new Map<string, number>());
+    expect([...requestCounts.values()].every((count) => count === 1)).toBe(true);
+    expect(requestedUrls).toContain("https://new.abb.com/products/pl/3ABD50000038962/acs580-01-039a-4");
+    expect(requestedUrls).not.toContain("https://new.abb.com/products/3ABD50000038962");
+    expect(requestedUrls).not.toContain("https://www.abb.com/global/en/products/3abd50000038962");
+  });
+
+  it("skips ABB search resolution when the first official page is already rich", async () => {
+    const connector = new ABBConnector();
+    const requestedUrls: string[] = [];
+    const attributes: Record<string, ReturnType<typeof abbAttribute>> = {
+      ProductId: abbAttribute("ProductId", "Product ID", "1SDA126387R1"),
+      ExtendedProductType: abbAttribute("ExtendedProductType", "Extended Product Type", "KLP-D"),
+      CatalogDescription: abbAttribute("CatalogDescription", "Catalog Description", "ABB padlock device"),
+      RatedCurrent: abbAttribute("RatedCurrent", "Rated Current", "2 A"),
+      OperationalVoltage: abbAttribute("OperationalVoltage", "Rated Operational Voltage", "24 V DC")
+    };
+    for (let index = 0; index < 25; index += 1) {
+      attributes[`Extra${index}`] = abbAttribute(`Extra${index}`, `Product Field ${index}`, `Value ${index}`);
+    }
+    const model = {
+      ProductViewModel: {
+        Product: {
+          productDetails: {
+            item: {
+              attributes
+            }
+          }
+        }
+      }
+    };
+    const html = `
+      <html><head><title>KLP-D | ABB</title></head>
+      <body>
+        1SDA126387R1
+        <script>var model = ${JSON.stringify(model)};</script>
+      </body></html>
+    `;
+    const context = {
+      manufacturer: {
+        id: "abb",
+        canonicalName: "ABB",
+        shortName: "ABB",
+        rateLimitMs: 0,
+        officialBaseUrls: ["https://new.abb.com/products"],
+        localizedUrlTemplates: [],
+        fallbackSources: []
+      },
+      http: {
+        fetchText: async (url: string) => {
+          requestedUrls.push(url);
+          return fetched(html, url);
+        },
+        fetchTextViaPowerShell: async (url: string) => fetched(html, url)
+      },
+      runDir: "",
+      documentsDir: "",
+      downloadDocument: async (doc: Parameters<ScrapeContext["downloadDocument"]>[0]) => doc,
+      fallback: {
+        scrape: async () => undefined
+      }
+    } as unknown as ScrapeContext;
+
+    const result = await connector.scrape("1SDA126387R1", context);
+
+    expect(result.status).toBe("found");
+    expect(result.attributes.length).toBeGreaterThanOrEqual(25);
+    expect(requestedUrls).toEqual(["https://new.abb.com/products/1SDA126387R1"]);
+    expect(requestedUrls.some((url) => url.includes("/api/PisSearchApi?"))).toBe(false);
+  });
+
+  it("short-circuits ABB image-only runs once an official image is found", async () => {
+    const connector = new ABBConnector();
+    const requestedUrls: string[] = [];
+    const html = `
+      <html><head><title>ABB image product</title></head>
+      <body>
+        1SDA126387R1
+        <img src="https://cdn.productimages.abb.com/9PAA00000348460_400x400.png" alt="1SDA126387R1" />
+      </body></html>
+    `;
+    const context = {
+      imageOnly: true,
+      downloadDocuments: false,
+      manufacturer: {
+        id: "abb",
+        canonicalName: "ABB",
+        shortName: "ABB",
+        rateLimitMs: 0,
+        officialBaseUrls: ["https://new.abb.com/products"],
+        localizedUrlTemplates: [],
+        fallbackSources: []
+      },
+      http: {
+        fetchText: async (url: string) => {
+          requestedUrls.push(url);
+          return fetched(html, url);
+        },
+        fetchTextViaPowerShell: async (url: string) => fetched(html, url)
+      },
+      runDir: "",
+      documentsDir: "",
+      downloadDocument: async (doc: Parameters<ScrapeContext["downloadDocument"]>[0]) => doc,
+      fallback: {
+        scrape: async () => undefined
+      }
+    } as unknown as ScrapeContext;
+
+    const result = await connector.scrape("1SDA126387R1", context);
+
+    expect(result.status).toBe("found");
+    expect(result.documents.some((doc) => doc.type === "image")).toBe(true);
+    expect(requestedUrls).toEqual(["https://new.abb.com/products/1SDA126387R1"]);
   });
 
   it("parses SCE detail and CAD download links", () => {
@@ -713,6 +848,31 @@ describe("manufacturer parsers", () => {
     expect(result.documents.some((doc) => doc.type === "image" && doc.url.includes("assets.balluff.com"))).toBe(true);
   });
 
+  it("filters Balluff section labels, CTA text, and image URLs out of attributes", () => {
+    const html = `
+      <html><head>
+        <link rel="canonical" href="https://www.balluff.com/en-us/products/BCC039H" />
+        <meta property="og:image" content="https://assets.balluff.com/thumbnails/50644_01_P_01_bk_bk_bk.png" />
+        <script type="application/ld+json">
+          {"@context":"https://schema.org","@type":"Product","name":"BCC039H","sku":"BCC039H","mpn":"BCC039H","image":"https://assets.balluff.com/webp_1000x1000/50644_01_P_01_bk_bk_bk.webp"}
+        </script>
+      </head><body>
+        <h1>BCC039H</h1>
+        <div><div class="col-span-2">Interface</div><div class="col-span-3">PNP normally open</div></div>
+        <div><div class="col-span-2">Downloads</div><div class="col-span-3">Product documentation</div></div>
+        <div><div class="col-span-2">Function</div><div class="col-span-3">Contact request</div></div>
+      </body></html>
+    `;
+
+    const result = parseBalluffProductPage("BCC039H", fetched(html, "https://www.balluff.com/en-us/products/BCC039H"));
+    const attributes = result.attributes.map((attr) => `${attr.name}: ${attr.value}`);
+
+    expect(attributes).toContain("Interface: PNP normally open");
+    expect(result.attributes.some((attr) => /^downloads?$/i.test(attr.name))).toBe(false);
+    expect(result.attributes.some((attr) => /^@type$|^image$|^og:image$/i.test(attr.name))).toBe(false);
+    expect(result.attributes.some((attr) => /contact request|product documentation/i.test(attr.value))).toBe(false);
+  });
+
   it("keeps one Balluff product image with fallback candidates", () => {
     const html = `
       <html><head>
@@ -823,6 +983,121 @@ describe("manufacturer parsers", () => {
     expect(seenUrls[0]).toContain("/products/BTL4E6W");
     expect(result.status).toBe("found");
     expect(result.productUrl).toContain("/products/BTL4E6W");
+  });
+
+  it("does not spend fallback fetches or browser renders on terminal Balluff product 404s", async () => {
+    let powershellCalls = 0;
+    let renderCalls = 0;
+    const notFound = { ...fetched("<html><body>Not found</body></html>", "https://www.balluff.com/en-gb/products/BCC039H"), statusCode: 404 };
+    const context = {
+      manufacturer: {
+        id: "balluff",
+        canonicalName: "Balluff",
+        shortName: "BAL",
+        rateLimitMs: 0,
+        officialBaseUrls: ["https://www.balluff.com/en-gb/products"],
+        fallbackSources: [],
+        fetchPolicy: { minContentLength: 1000 },
+        localizedUrlTemplates: []
+      },
+      http: {
+        fetchText: async (url: string) => ({ ...notFound, requestedUrl: url, effectiveUrl: url }),
+        fetchTextViaPowerShell: async (url: string) => {
+          powershellCalls += 1;
+          return { ...notFound, requestedUrl: url, effectiveUrl: url };
+        }
+      },
+      runDir: "",
+      documentsDir: "",
+      browserRenderer: {
+        renderProductPageWithModalSequence: async () => {
+          renderCalls += 1;
+          return { networkTexts: [], networkDiagnostics: [] };
+        }
+      },
+      learnedEndpoints: { list: () => [], upsert: () => undefined },
+      downloadDocument: async (doc: unknown) => doc,
+      fallback: { scrape: async () => undefined }
+    } as unknown as ScrapeContext;
+
+    const result = await new BalluffConnector().scrape("BCC039H", context);
+
+    expect(result.status).toBe("failed");
+    expect(powershellCalls).toBe(0);
+    expect(renderCalls).toBe(0);
+  });
+
+  it("returns complete static Balluff pages without supplemental fetches or browser renders", async () => {
+    let fetchCalls = 0;
+    let powershellCalls = 0;
+    let renderCalls = 0;
+    const html = `
+      <html><head>
+        <link rel="canonical" href="https://www.balluff.com/en-gb/products/BCC039H" />
+        <meta name="description" content="BCC039H - Double-ended cordsets - Connection 1: M12x1-Female, Cable: PUR black, 0.3 m, Operating voltage Ub: 250 VDC / 250 VAC, Rated current (40 Â°C): 4.0 A, IP rating: IP67, Approval/Conformity: CE, cULus, WEEE" />
+        <script type="application/ld+json">
+          {"@context":"https://schema.org","@type":"Product","name":"BCC039H","sku":"BCC039H","mpn":"BCC039H","image":"https://assets.balluff.com/product_view_cropped/50644_01_P_01_bk_bk_bk.png"}
+        </script>
+      </head><body>
+        <h1>BCC039H</h1>
+        <h2>Key features</h2>
+        <table>
+          <tr><th>Connection 1</th><td>M12x1-Female, straight, 5-pin, A-coded</td></tr>
+          <tr><th>Cable</th><td>PUR black, 0.3 m</td></tr>
+          <tr><th>Operating voltage Ub</th><td>250 VDC / 250 VAC</td></tr>
+          <tr><th>Rated current (40 Â°C)</th><td>4.0 A</td></tr>
+          <tr><th>IP rating</th><td>IP67</td></tr>
+        </table>
+        <h2>Downloads</h2>
+        <a href="https://publications.balluff.com/pdfengine/pdf?type=pdb&id=289970&con=en">Datasheet</a>
+        <h2>Classifications</h2>
+        <table>
+          <tr><th>ECLASS 14.0</th><td>27-44-01-02</td></tr>
+          <tr><th>ETIM 9.0</th><td>EC001855</td></tr>
+          <tr><th>UNSPSC 11</th><td>39121413</td></tr>
+        </table>
+      </body></html>
+    `;
+    const context = {
+      manufacturer: {
+        id: "balluff",
+        canonicalName: "Balluff",
+        shortName: "BAL",
+        rateLimitMs: 0,
+        officialBaseUrls: ["https://www.balluff.com/en-gb/products"],
+        fallbackSources: [],
+        fetchPolicy: { minContentLength: 0 },
+        localizedUrlTemplates: []
+      },
+      http: {
+        fetchText: async (url: string) => {
+          fetchCalls += 1;
+          return fetched(html, url);
+        },
+        fetchTextViaPowerShell: async (url: string) => {
+          powershellCalls += 1;
+          return fetched(html, url);
+        }
+      },
+      runDir: "",
+      documentsDir: "",
+      browserRenderer: {
+        renderProductPageWithModalSequence: async () => {
+          renderCalls += 1;
+          return { networkTexts: [], networkDiagnostics: [] };
+        }
+      },
+      learnedEndpoints: { list: () => [], upsert: () => undefined },
+      downloadDocument: async (doc: unknown) => doc,
+      fallback: { scrape: async () => undefined }
+    } as unknown as ScrapeContext;
+
+    const result = await new BalluffConnector().scrape("BCC039H", context);
+
+    expect(result.status).toBe("found");
+    expect(fetchCalls).toBe(1);
+    expect(powershellCalls).toBe(0);
+    expect(renderCalls).toBe(0);
   });
 
   it("canonicalizes ugly Balluff configurator URLs", () => {
@@ -1482,6 +1757,80 @@ describe("manufacturer parsers", () => {
     expect(result.documents.some((doc) => doc.type === "other" && doc.label === "How to connect BCC039H")).toBe(true);
     expect(result.documents.some((doc) => doc.type === "datasheet")).toBe(true);
     expect(result.normalized.certificates).toContain("CE");
+  });
+
+  it("opens only missing Balluff modal sections when static HTML is already complete", async () => {
+    const staticHtml = `
+      <html><head>
+        <link rel="canonical" href="https://www.balluff.com/en-gb/products/BCC039H" />
+        <meta name="description" content="BCC039H - Double-ended cordsets - Cable: PUR black, 0.3 m, Operating voltage Ub: 250 VDC / 250 VAC, Rated current (40 Â°C): 4.0 A, IP rating: IP67, Approval/Conformity: CE, cULus, WEEE" />
+        <script type="application/ld+json">
+          {"@context":"https://schema.org","@type":"Product","name":"BCC039H","sku":"BCC039H","mpn":"BCC039H"}
+        </script>
+      </head><body>
+        <h1>BCC039H</h1>
+        <h2>Key features</h2>
+        <div>Connection 1</div><div>M12x1-Female, straight, 5-pin, A-coded</div>
+        <div>Cable</div><div>PUR black, 0.3 m</div>
+        <h2>Downloads</h2>
+        <a href="https://publications.balluff.com/pdfengine/pdf?type=pdb&id=289970&con=en">Datasheet</a>
+        <h2>Classifications</h2>
+        <div>ECLASS 14.0</div><div>27-44-01-02</div>
+        <div>ETIM 9.0</div><div>EC001855</div>
+        <div>UNSPSC 11</div><div>39121413</div>
+        <h2>Digital Product Passport</h2>
+      </body></html>
+    `;
+    const passportHtml = `
+      <html><head>
+        <link rel="canonical" href="https://www.balluff.com/en-gb/products/BCC039H" />
+        <script type="application/ld+json">
+          {"@context":"https://schema.org","@type":"Product","name":"BCC039H","sku":"BCC039H","mpn":"BCC039H"}
+        </script>
+      </head><body>
+        <h1>BCC039H</h1>
+        <section><h2>Digital Product Passport</h2>
+          <div><div class="col-span-2">Country of origin</div><div class="col-span-3">Hungary</div></div>
+        </section>
+      </body></html>
+    `;
+    let requestedLabels: string[] = [];
+    const context = {
+      manufacturer: {
+        id: "balluff",
+        canonicalName: "Balluff",
+        shortName: "BAL",
+        rateLimitMs: 0,
+        officialBaseUrls: ["https://www.balluff.com/en-gb/products"],
+        fallbackSources: [],
+        fetchPolicy: { minContentLength: 0 },
+        localizedUrlTemplates: []
+      },
+      http: {
+        fetchText: async (url: string) => fetched(staticHtml, url),
+        fetchTextViaPowerShell: async (url: string) => fetched(staticHtml, url)
+      },
+      runDir: "",
+      documentsDir: "",
+      browserRenderer: {
+        renderProductPageWithModalSequence: async (url: string, _recipe: unknown, sections: Array<{ label: string }>) => {
+          requestedLabels = sections.map((section) => section.label);
+          return {
+            fetched: fetched(passportHtml, url),
+            networkTexts: [],
+            networkDiagnostics: []
+          };
+        }
+      },
+      learnedEndpoints: { list: () => [], upsert: () => undefined },
+      downloadDocument: async (doc: unknown) => doc,
+      fallback: { scrape: async () => undefined }
+    } as unknown as ScrapeContext;
+
+    const result = await new BalluffConnector().scrape("BCC039H", context);
+
+    expect(requestedLabels).toEqual(["Digital Product Passport"]);
+    expect(result.attributes.some((attr) => attr.group === "Digital Product Passport" && attr.name === "Country of origin" && attr.value === "Hungary")).toBe(true);
   });
 
   it("rejects Balluff HTTP error pages even when the URL contains the catalog number", () => {

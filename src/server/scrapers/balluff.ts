@@ -208,6 +208,15 @@ export class BalluffConnector implements ManufacturerConnector {
         ) {
           return primaryResult;
         }
+        if (isTerminalBalluffHttpStatus(primary.statusCode)) {
+          continue;
+        }
+        if (
+          balluffModalSectionsFor(primaryResult, primary.text, docsEnabled).length === 0 &&
+          isCompleteBalluffResult(primaryResult, primary.text, { requireDatasheet: docsEnabled })
+        ) {
+          return primaryResult;
+        }
         let current = primaryResult;
         const htmlParts = [primary.text];
 
@@ -229,20 +238,26 @@ export class BalluffConnector implements ManufacturerConnector {
         // so we can skip the expensive browser render whenever the static HTML already
         // satisfies the (docs-off) completeness check. When docs are enabled we still
         // want the render — it surfaces lazy-loaded sections like Digital Product Passport.
-        if (!docsEnabled && isCompleteBalluffResult(current, htmlParts.join("\n"), { requireDatasheet: false })) {
+        const currentHtml = htmlParts.join("\n");
+        if (!docsEnabled && isCompleteBalluffResult(current, currentHtml, { requireDatasheet: false })) {
           return current;
         }
 
-        const expanded = await scrapeBalluffExpandedSections(catalogNumber, url, context);
+        const modalSections = balluffModalSectionsFor(current, currentHtml, docsEnabled);
+        if (modalSections.length === 0) {
+          return current;
+        }
+
+        const expanded = await scrapeBalluffExpandedSections(catalogNumber, url, context, modalSections);
         if (expanded) {
           const expandedMerged = mergeBalluffResults(current, expanded);
           partialResults.push(expandedMerged);
-          if (isCompleteBalluffResult(expandedMerged, htmlParts.join("\n"), { requireDatasheet: docsEnabled })) return expandedMerged;
-          if (isCompleteBalluffResult(current, htmlParts.join("\n"), { requireDatasheet: docsEnabled })) return expandedMerged;
+          if (isCompleteBalluffResult(expandedMerged, currentHtml, { requireDatasheet: docsEnabled })) return expandedMerged;
+          if (isCompleteBalluffResult(current, currentHtml, { requireDatasheet: docsEnabled })) return expandedMerged;
           if (expandedMerged.status !== "failed" && (expandedMerged.attributes.length || expandedMerged.documents.length)) return expandedMerged;
         }
 
-        if (isCompleteBalluffResult(current, htmlParts.join("\n"), { requireDatasheet: docsEnabled })) return current;
+        if (isCompleteBalluffResult(current, currentHtml, { requireDatasheet: docsEnabled })) return current;
       } catch (error) {
         lastError = error;
       }
@@ -423,7 +438,7 @@ export function parseBalluffProductPage(catalogNumber: string, fetched: FetchedT
     };
   }
 
-  const cleanAttributes = dedupeAttributes(attributes);
+  const cleanAttributes = dedupeAttributes(attributes.filter(isUsefulBalluffAttribute));
   const cleanDocuments = dedupeBalluffDocuments(documents);
 
   return {
@@ -485,6 +500,7 @@ async function fetchBalluffText(url: string, context: ScrapeContext, userAgent?:
       headers,
       signal: context.signal
     });
+    if (isTerminalBalluffHttpStatus(fetched.statusCode)) return fetched;
     if (fetched.text.trim().length >= (policy.minContentLength ?? 1000)) return fetched;
   } catch {
     // Fall through to PowerShell, which handles a few Windows-only TLS/proxy cases better.
@@ -552,15 +568,21 @@ async function scrapeBalluffSearch(catalogNumber: string, context: ScrapeContext
   return emptyResult("balluff", catalogNumber, lastError instanceof Error ? lastError.message : "Balluff search fallback failed.");
 }
 
-async function scrapeBalluffExpandedSections(catalogNumber: string, url: string, context: ScrapeContext): Promise<ProductResult | undefined> {
+async function scrapeBalluffExpandedSections(
+  catalogNumber: string,
+  url: string,
+  context: ScrapeContext,
+  requestedModalSections?: ModalSection[]
+): Promise<ProductResult | undefined> {
   try {
     // The "Downloads" modal is purely a vehicle for discovering datasheet/manual/CAD URLs.
     // When the user disabled document downloads we never fetch those files, so opening this
     // modal (which also drills into a sub-section "Product documentation") is pure overhead.
     const docsEnabled = context.downloadDocuments !== false;
-    const modalSections = docsEnabled
-      ? BALLUFF_MODAL_SECTIONS
-      : BALLUFF_MODAL_SECTIONS.filter((section) => section.label !== "Downloads");
+    const modalSections = requestedModalSections ??
+      (docsEnabled
+        ? BALLUFF_MODAL_SECTIONS
+        : BALLUFF_MODAL_SECTIONS.filter((section) => section.label !== "Downloads"));
 
     // Prefer the modal-sequence renderer (opens each Balluff section in turn, captures HTML).
     // Falls back to the generic renderProductPage if the renderer doesn't expose the new method.
@@ -850,13 +872,14 @@ function hasAllBalluffExpandedSections(html: string): boolean {
   return balluffExpandedSectionCount(html) === BALLUFF_EXPANDED_SECTION_MARKERS.length;
 }
 
-function isCompleteBalluffResult(
-  result: ProductResult,
-  html: string,
-  options: { requireDatasheet?: boolean } = {}
-): boolean {
-  if (result.status !== "found") return false;
-  if (!hasExpandedBalluffSections(html)) return false;
+interface BalluffCompletenessSignals {
+  hasUsefulDetail: boolean;
+  hasClassifications: boolean;
+  hasDatasheet: boolean;
+  hasDigitalProductPassport: boolean;
+}
+
+function balluffCompletenessSignals(result: ProductResult): BalluffCompletenessSignals {
   const names = new Set(result.attributes.map((attr) => balluffLabelKey(attr.name)));
   const detailAttributeCount = result.attributes.filter((attr) => /balluff (?:summary features|key features)/i.test(attr.group ?? "")).length;
   const hasUsefulDetail =
@@ -876,9 +899,54 @@ function isCompleteBalluffResult(
     result.attributes.some((attr) => /^eclass/i.test(attr.name)) &&
     result.attributes.some((attr) => /^etim/i.test(attr.name)) &&
     result.attributes.some((attr) => /^unspsc/i.test(attr.name));
+  const hasDigitalProductPassport = result.attributes.some(
+    (attr) => /digital product passport/i.test(attr.group ?? "") && Boolean(cleanText(attr.value))
+  );
+
+  return {
+    hasUsefulDetail,
+    hasClassifications,
+    hasDatasheet: result.documents.some((doc) => doc.type === "datasheet"),
+    hasDigitalProductPassport
+  };
+}
+
+function balluffModalSectionsFor(result: ProductResult, html: string, docsEnabled: boolean): ModalSection[] {
+  const availableSections = docsEnabled
+    ? BALLUFF_MODAL_SECTIONS
+    : BALLUFF_MODAL_SECTIONS.filter((section) => section.label !== "Downloads");
+  if (result.status === "failed") return availableSections;
+
+  const signals = balluffCompletenessSignals(result);
+  const labels = new Set<string>();
+  if (!signals.hasUsefulDetail) labels.add("Key features");
+  if (docsEnabled && !signals.hasDatasheet) labels.add("Downloads");
+  if (!signals.hasClassifications) labels.add("Classifications");
+  const pageMentionsPassport = /\b(?:digital product passport|digitaler produktpass)\b/i.test(cleanText(html));
+  if (!signals.hasDigitalProductPassport && pageMentionsPassport) {
+    labels.add("Digital Product Passport");
+  }
+
+  if (!labels.size) {
+    return isCompleteBalluffResult(result, html, { requireDatasheet: docsEnabled }) ? [] : availableSections;
+  }
+  return availableSections.filter((section) => labels.has(section.label));
+}
+
+function isTerminalBalluffHttpStatus(statusCode: number): boolean {
+  return statusCode === 404 || statusCode === 410;
+}
+
+function isCompleteBalluffResult(
+  result: ProductResult,
+  html: string,
+  options: { requireDatasheet?: boolean } = {}
+): boolean {
+  if (result.status !== "found") return false;
+  if (!hasExpandedBalluffSections(html)) return false;
+  const signals = balluffCompletenessSignals(result);
   const requireDatasheet = options.requireDatasheet !== false;
-  const hasDatasheet = !requireDatasheet || result.documents.some((doc) => doc.type === "datasheet");
-  return hasUsefulDetail && hasClassifications && hasDatasheet;
+  return signals.hasUsefulDetail && signals.hasClassifications && (!requireDatasheet || signals.hasDatasheet);
 }
 
 function readJsonLdProducts($: cheerio.CheerioAPI): Record<string, unknown>[] {
@@ -1580,7 +1648,9 @@ function isLikelyBalluffDomLabel(label: string): boolean {
   if (!cleaned || cleaned.length > 140) return false;
   if (!/[A-Za-z]/.test(cleaned)) return false;
   if (cleaned.includes(";")) return false;
-  if (/^(?:show all|add to|image|contact request|quantity scale|availability|retrieve data)$/i.test(cleaned)) return false;
+  if (/^(?:show all|show more|show less|add to|image|contact request|quantity scale|availability|retrieve data|downloads?|product documentation|classifications?|key features|digital product passport|knowledge base articles?|videos?)$/i.test(cleaned)) {
+    return false;
+  }
   if (/[{}]|var\(--|@media|display\s*:|calc\(/i.test(cleaned)) return false;
   if (looksLikeBalluffScriptContent(cleaned)) return false;
   return true;
@@ -1915,11 +1985,31 @@ function isBadBalluffValue(label: string, value: string): boolean {
   const cleaned = cleanText(value);
   if (!cleaned) return true;
   if (balluffLabelKey(cleaned) === balluffLabelKey(label)) return true;
-  if (/^(show more|show less|downloads?|classifications?|knowledge base articles?|videos?|play)$/i.test(cleaned)) return true;
+  if (/^(show more|show less|downloads?|product documentation|classifications?|key features|digital product passport|knowledge base articles?|videos?|play|contact request|retrieve data|compare products?|alternative products?)$/i.test(cleaned)) {
+    return true;
+  }
+  if (/^(?:cad\/cae data|software|drawings?|product view|product image|recommended accessories)$/i.test(cleaned)) return true;
+  if (/\b(?:contact request|do you have any questions|how does|compare products|retrieve data|login to|add to cart|product configurator)\b/i.test(cleaned)) {
+    return true;
+  }
   if (/[{}]|var\(--|@media|display\s*:|calc\(/i.test(cleaned)) return true;
   // Reject obvious JavaScript / Alpine.js / tracker snippets that occasionally survive token splits.
   if (looksLikeBalluffScriptContent(cleaned)) return true;
   return false;
+}
+
+function isUsefulBalluffAttribute(attr: AttributeRecord): boolean {
+  const name = cleanText(attr.name);
+  const value = cleanText(attr.value);
+  if (!name || !value) return false;
+  if (isBadBalluffValue(name, value)) return false;
+  const key = balluffLabelKey(name);
+  if (BALLUFF_SECTION_TOKENS.has(key)) return false;
+  if (/^(?:@context|@type|url|image|images)$/i.test(name)) return false;
+  if (/^(?:og:|twitter:)/i.test(name) && /\b(?:image|url|site_name|locale)\b/i.test(name)) return false;
+  if (/^meta$/i.test(cleanText(attr.group)) && /\b(?:image|url|site_name|locale)\b/i.test(name)) return false;
+  if (/^https?:\/\/\S+$/i.test(value) && /\b(?:image|url|href|link)\b/i.test(name)) return false;
+  return true;
 }
 
 function extractBalluffLivewireData(html: string, sourceUrl: string): { attributes: AttributeRecord[]; documents: DocumentRecord[] } {

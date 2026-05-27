@@ -6,6 +6,10 @@ import ExcelJS from "exceljs";
 import { exportRunWorkbook } from "../src/server/excel.js";
 import type { ManufacturerConfig, RunItemRecord, RunRecord } from "../src/shared/types.js";
 
+function cellText(cell: ExcelJS.Cell): string {
+  return cell.text || String(cell.value ?? "");
+}
+
 describe("excel export", () => {
   it("writes a workbook for run results", async () => {
     const outputDir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-xlsx-"));
@@ -140,9 +144,22 @@ describe("excel export", () => {
     expect(headers).toContain("Thread Size");
     expect(headers).toContain("Final Completeness Check");
     expect(headers).toContain("Missing Required Fields");
+    expect(workbook.getWorksheet("Run Summary")).toBeTruthy();
+    expect(workbook.getWorksheet("Clean Export")).toBeTruthy();
+    expect(workbook.getWorksheet("Import Ready")).toBeTruthy();
+    expect(workbook.getWorksheet("Needs Review")).toBeTruthy();
+    expect(workbook.getWorksheet("Issue Summary")).toBeTruthy();
+    expect(workbook.getWorksheet("Column Guide")).toBeTruthy();
+    expect(workbook.getWorksheet("Clean Attributes")).toBeTruthy();
+    expect(workbook.getWorksheet("Clean Documents")).toBeTruthy();
+    expect(workbook.getWorksheet("Field Coverage")).toBeTruthy();
+    expect(workbook.getWorksheet("Spec Matrix")).toBeTruthy();
+    expect(workbook.getWorksheet("Checks")).toBeTruthy();
     expect(workbook.getWorksheet("Evidence")).toBeTruthy();
     expect(workbook.getWorksheet("Final Audit")).toBeTruthy();
-    expect(products.getRow(2).getCell(headers.indexOf("Product URL DE") + 1).value).toBe("https://new.abb.com/smartlinks/de?ProductId=1SDA126387R1");
+    const productUrlDeCell = products.getRow(2).getCell(headers.indexOf("Product URL DE") + 1);
+    expect(cellText(productUrlDeCell)).toBe("https://new.abb.com/smartlinks/de?ProductId=1SDA126387R1");
+    expect(productUrlDeCell.hyperlink).toBe("https://new.abb.com/smartlinks/de?ProductId=1SDA126387R1");
     expect(products.getRow(2).getCell(headers.indexOf("Weight (kg)") + 1).value).toBe(0.028);
     expect(products.getRow(2).getCell(headers.indexOf("Weight (lb)") + 1).value).toBeCloseTo(0.061729433, 9);
     expect(products.getRow(2).getCell(headers.indexOf("Height (mm)") + 1).value).toBe(10);
@@ -171,6 +188,188 @@ describe("excel export", () => {
     expect(documentHeaders).toContain("Source Type");
     expect(documentHeaders).toContain("Parser");
     expect(documentHeaders).toContain("Confidence");
+
+    const cleanDocuments = workbook.getWorksheet("Clean Documents")!;
+    const cleanDocumentHeaders = (cleanDocuments.getRow(1).values as unknown[]).slice(1);
+    expect(cleanDocumentHeaders).toContain("Document Ready");
+    expect(cleanDocumentHeaders).toContain("Clean Export");
+    expect(cleanDocumentHeaders).toContain("Priority");
+    expect(cleanDocumentHeaders).toContain("Primary");
+    expect(cleanDocumentHeaders).toContain("Type");
+    expect(cleanDocumentHeaders).toContain("URL");
+    expect(cleanDocuments.rowCount).toBe(4);
+    expect(cleanDocuments.getRow(2).getCell(cleanDocumentHeaders.indexOf("Priority") + 1).value).toBe(10);
+    expect(cleanDocuments.getRow(2).getCell(cleanDocumentHeaders.indexOf("Document Ready") + 1).value).toBe("Yes");
+    expect(cleanDocuments.getRow(2).getCell(cleanDocumentHeaders.indexOf("Clean Export") + 1).hyperlink).toBe("#'Clean Export'!A2");
+    expect(cleanDocuments.getRow(2).getCell(cleanDocumentHeaders.indexOf("Primary") + 1).value).toBe("Yes");
+    expect(cleanDocuments.getRow(2).getCell(cleanDocumentHeaders.indexOf("Type") + 1).value).toBe("Datasheet");
+    expect(cellText(cleanDocuments.getRow(2).getCell(cleanDocumentHeaders.indexOf("URL") + 1))).toContain("DocumentID=1SBC100214C0202");
+
+    const cleanExport = workbook.getWorksheet("Clean Export")!;
+    const cleanHeaders = (cleanExport.getRow(1).values as unknown[]).slice(1);
+    expect(cleanHeaders).toContain("Datasheet URLs");
+    expect(cleanHeaders).toContain("Primary Datasheet URL");
+    expect(cleanHeaders).toContain("Export Decision");
+    expect(cleanHeaders).toContain("Import Ready");
+    expect(cleanHeaders).toContain("Review Link");
+    expect(cleanHeaders).toContain("Action Needed");
+    expect(cleanHeaders).toContain("Coverage Score");
+    expect(cleanHeaders).toContain("Confidence");
+    expect(cleanHeaders).toContain("Quality Tier");
+    expect(cleanHeaders).toContain("Missing Key Fields");
+    expect(cleanHeaders).not.toContain("All Specifications");
+    expect(cellText(cleanExport.getRow(2).getCell(cleanHeaders.indexOf("Product URL DE") + 1))).toBe("https://new.abb.com/smartlinks/de?ProductId=1SDA126387R1");
+    expect(cleanExport.getRow(2).getCell(cleanHeaders.indexOf("Export Decision") + 1).value).toBe("Review");
+    expect(cleanExport.getRow(2).getCell(cleanHeaders.indexOf("Import Ready") + 1).value).toBe("No");
+    expect(cleanExport.getRow(2).getCell(cleanHeaders.indexOf("Confidence") + 1).value).toBe(0.9);
+    expect(cleanExport.getRow(2).getCell(cleanHeaders.indexOf("Quality Tier") + 1).value).toBe("Good");
+    const cleanReviewLinkCell = cleanExport.getRow(2).getCell(cleanHeaders.indexOf("Review Link") + 1);
+    expect(cellText(cleanReviewLinkCell)).toBe("Review");
+    expect(cleanReviewLinkCell.hyperlink).toBe("#'Needs Review'!A2");
+    expect(cleanExport.getRow(2).getCell(cleanHeaders.indexOf("Action Needed") + 1).value).toBe("Add a product image URL/file or confirm image is not required.");
+    const primaryDatasheetCell = cleanExport.getRow(2).getCell(cleanHeaders.indexOf("Primary Datasheet URL") + 1);
+    expect(cellText(primaryDatasheetCell)).toContain("DocumentID=1SBC100214C0202");
+    expect(primaryDatasheetCell.hyperlink).toContain("DocumentID=1SBC100214C0202");
+
+    const importReady = workbook.getWorksheet("Import Ready")!;
+    const importReadyHeaders = (importReady.getRow(1).values as unknown[]).slice(1);
+    expect(importReadyHeaders).toContain("Export Decision");
+    expect(importReadyHeaders).toContain("Action Needed");
+    expect(importReadyHeaders).toContain("Quality Tier");
+    expect(importReady.rowCount).toBe(1);
+
+    const issueSummary = workbook.getWorksheet("Issue Summary")!;
+    const issueHeaders = (issueSummary.getRow(1).values as unknown[]).slice(1);
+    expect(issueHeaders).toContain("Issue Type");
+    expect(issueHeaders).toContain("Severity");
+    expect(issueHeaders).toContain("Affected Catalog Numbers");
+    expect(issueHeaders).toContain("Suggested Action");
+    const issueValues = issueSummary.getSheetValues().flat().map((value) => String(value ?? ""));
+    expect(issueValues).toContain("Missing image");
+    expect(issueValues).toContain("1SDA126387R1");
+
+    const columnGuide = workbook.getWorksheet("Column Guide")!;
+    const guideHeaders = (columnGuide.getRow(1).values as unknown[]).slice(1);
+    expect(guideHeaders).toEqual(["Sheet", "Column / Area", "Purpose", "Use For", "Notes"]);
+    const guideValues = columnGuide.getSheetValues().flat().map((value) => String(value ?? ""));
+    expect(cellText(columnGuide.getRow(2).getCell(1))).toBe("Import Ready");
+    expect(guideValues).toContain("Export Decision");
+    expect(guideValues).toContain("Review Status");
+    expect(guideValues).toContain("Start here when you only want rows without review blockers.");
+    expect(columnGuide.getRow(2).getCell(1).hyperlink).toBe("#'Import Ready'!A1");
+
+    const fieldCoverage = workbook.getWorksheet("Field Coverage")!;
+    const coverageHeaders = (fieldCoverage.getRow(1).values as unknown[]).slice(1);
+    expect(coverageHeaders).toContain("Primary Datasheet URL");
+    expect(coverageHeaders).toContain("Datasheet Count");
+    expect(coverageHeaders).toContain("Manual Count");
+    expect(coverageHeaders).toContain("Certificate Count");
+    expect(fieldCoverage.getRow(2).getCell(coverageHeaders.indexOf("Product URL") + 1).value).toBe("OK");
+    expect(fieldCoverage.getRow(2).getCell(coverageHeaders.indexOf("Image") + 1).value).toBe("Missing");
+    expect(fieldCoverage.getRow(2).getCell(coverageHeaders.indexOf("Datasheet Count") + 1).value).toBe(1);
+    expect(fieldCoverage.getRow(2).getCell(coverageHeaders.indexOf("Manual Count") + 1).value).toBe(1);
+    expect(fieldCoverage.getRow(2).getCell(coverageHeaders.indexOf("Certificate Count") + 1).value).toBe(1);
+    expect(cellText(fieldCoverage.getRow(2).getCell(coverageHeaders.indexOf("Primary Datasheet URL") + 1))).toContain("DocumentID=1SBC100214C0202");
+    expect(Number(fieldCoverage.getRow(2).getCell(coverageHeaders.indexOf("Coverage Score") + 1).value)).toBeGreaterThan(0.6);
+
+    const specMatrix = workbook.getWorksheet("Spec Matrix")!;
+    const matrixHeaders = (specMatrix.getRow(1).values as unknown[]).slice(1);
+    expect(matrixHeaders).toContain("Product URL");
+    expect(matrixHeaders).toContain("Datasheet URL");
+    expect(matrixHeaders).toContain("Operating Voltage Ub");
+    expect(specMatrix.getRow(2).getCell(matrixHeaders.indexOf("Product Type") + 1).value).toBe("KLP-D");
+    expect(cellText(specMatrix.getRow(2).getCell(matrixHeaders.indexOf("Datasheet URL") + 1))).toContain("DocumentID=1SBC100214C0202");
+
+    const checks = workbook.getWorksheet("Checks")!;
+    const checkValues = checks.getSheetValues().flat().map((value) => String(value ?? ""));
+    expect(checkValues).toContain("Missing image");
+  });
+
+  it("writes a dedicated Import Ready sheet with only direct-import rows", async () => {
+    const outputDir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-import-ready-xlsx-"));
+    const run: RunRecord = {
+      id: "import-ready-run",
+      manufacturerId: "abb",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      status: "completed",
+      total: 1,
+      processed: 1,
+      found: 1,
+      partial: 0,
+      failed: 0
+    };
+    const manufacturer: ManufacturerConfig = {
+      id: "abb",
+      canonicalName: "ABB",
+      shortName: "ABB",
+      rateLimitMs: 100,
+      officialBaseUrls: [],
+      fallbackSources: []
+    };
+    const items: RunItemRecord[] = [
+      {
+        id: 1,
+        runId: run.id,
+        rowIndex: 1,
+        catalogNumber: "READY-1",
+        status: "found",
+        updatedAt: run.updatedAt,
+        result: {
+          manufacturerId: "abb",
+          catalogNumber: "READY-1",
+          status: "found",
+          confidence: 0.95,
+          title: "Ready relay",
+          productUrl: "https://example.com/products/READY-1",
+          localizedUrls: {
+            en: "https://example.com/en/products/READY-1",
+            de: "https://example.com/de/products/READY-1"
+          },
+          normalized: {
+            weight: "1 kg",
+            dimensions: "10 x 20 x 30 mm",
+            material: "Steel",
+            voltage: "24 V DC",
+            current: "2 A",
+            protection: "IP20",
+            certificates: "CE"
+          },
+          attributes: [
+            { group: "Product Data", name: "Product or Component Type", value: "Relay", sourceType: "official" },
+            { group: "Product Data", name: "Material", value: "Steel", sourceType: "official" },
+            { group: "Product Data", name: "Rated Operational Voltage", value: "24 V DC", sourceType: "official" },
+            { group: "Product Data", name: "Rated Current", value: "2 A", sourceType: "official" },
+            { group: "Product Data", name: "Certificates", value: "CE", sourceType: "official" }
+          ],
+          documents: [
+            { type: "datasheet", label: "Product datasheet", url: "https://example.com/READY-1-datasheet.pdf", sourceType: "official" },
+            { type: "image", label: "Product image", url: "https://example.com/READY-1.png", sourceType: "official" }
+          ],
+          sources: []
+        }
+      }
+    ];
+
+    const filePath = await exportRunWorkbook({ run, manufacturer, items, outputDir });
+    const workbook = new ExcelJS.Workbook();
+    await workbook.xlsx.readFile(filePath);
+
+    const importReady = workbook.getWorksheet("Import Ready")!;
+    const headers = (importReady.getRow(1).values as unknown[]).slice(1);
+    expect(importReady.rowCount).toBe(2);
+    expect(importReady.getRow(2).getCell(headers.indexOf("Catalog Number") + 1).value).toBe("READY-1");
+    expect(importReady.getRow(2).getCell(headers.indexOf("Export Decision") + 1).value).toBe("Import");
+    expect(importReady.getRow(2).getCell(headers.indexOf("Import Ready") + 1).value).toBe("Yes");
+    expect(importReady.getRow(2).getCell(headers.indexOf("Action Needed") + 1).value).toBe("Ready");
+    expect(importReady.getRow(2).getCell(headers.indexOf("Quality Tier") + 1).value).toBe("Complete");
+    expect(cellText(importReady.getRow(2).getCell(headers.indexOf("Primary Datasheet URL") + 1))).toBe("https://example.com/READY-1-datasheet.pdf");
+
+    const needsReview = workbook.getWorksheet("Needs Review")!;
+    expect(needsReview.rowCount).toBe(1);
+    const summaryValues = workbook.getWorksheet("Run Summary")!.getSheetValues().flat().map((value) => String(value ?? ""));
+    expect(summaryValues).toContain("Ready for import");
+    expect(summaryValues).toContain("Ready-only export tab");
   });
 
   it("writes final audit records to a dedicated worksheet", async () => {
@@ -263,6 +462,60 @@ describe("excel export", () => {
     expect(finalAudit.getRow(2).getCell(auditHeaders.indexOf("Field") + 1).value).toBe("weight");
     expect(finalAudit.getRow(2).getCell(auditHeaders.indexOf("Status") + 1).value).toBe("not-published");
     expect(finalAudit.getRow(2).getCell(auditHeaders.indexOf("Network Retry") + 1).value).toBe("skipped");
+
+    const needsReview = workbook.getWorksheet("Needs Review")!;
+    const reviewHeaders = (needsReview.getRow(1).values as unknown[]).slice(1);
+    expect(reviewHeaders).toContain("Review Priority");
+    expect(reviewHeaders).toContain("Review Status");
+    expect(reviewHeaders).toContain("Fix Needed");
+    expect(reviewHeaders).toContain("Reviewed By");
+    expect(reviewHeaders).toContain("Review Notes");
+    expect(reviewHeaders).toContain("Issue Type");
+    expect(reviewHeaders).toContain("Suggested Action");
+    expect(reviewHeaders).toContain("Clean Export");
+    expect(reviewHeaders).toContain("Products");
+    expect(reviewHeaders).toContain("Coverage Score");
+    expect(reviewHeaders).toContain("Confidence");
+    expect(reviewHeaders).toContain("Primary Datasheet URL");
+    expect(needsReview.rowCount).toBe(2);
+    expect((needsReview.views[0] as ExcelJS.WorksheetView & { xSplit?: number } | undefined)?.xSplit).toBe(10);
+    expect(needsReview.getRow(2).getCell(reviewHeaders.indexOf("Catalog Number") + 1).value).toBe("ABC-123");
+    expect(["High", "Medium", "Low"]).toContain(needsReview.getRow(2).getCell(reviewHeaders.indexOf("Review Priority") + 1).value);
+    const reviewStatusCell = needsReview.getRow(2).getCell(reviewHeaders.indexOf("Review Status") + 1);
+    expect(reviewStatusCell.value).toBe("Open");
+    expect(reviewStatusCell.dataValidation?.type).toBe("list");
+    expect(needsReview.getRow(2).getCell(reviewHeaders.indexOf("Fix Needed") + 1).value).toBe("Yes");
+    expect(needsReview.getRow(2).getCell(reviewHeaders.indexOf("Confidence") + 1).value).toBe(0.8);
+    const cleanExportLinkCell = needsReview.getRow(2).getCell(reviewHeaders.indexOf("Clean Export") + 1);
+    expect(cellText(cleanExportLinkCell)).toBe("Open");
+    expect(cleanExportLinkCell.hyperlink).toBe("#'Clean Export'!A2");
+    expect(needsReview.getRow(2).getCell(reviewHeaders.indexOf("Products") + 1).hyperlink).toBe("#'Products'!A2");
+    expect(String(needsReview.getRow(2).getCell(reviewHeaders.indexOf("Review Reason") + 1).value)).toContain("Missing: Weight");
+    expect(String(needsReview.getRow(2).getCell(reviewHeaders.indexOf("Issue Type") + 1).value)).toContain("Missing required fields");
+    const suggestedAction = String(needsReview.getRow(2).getCell(reviewHeaders.indexOf("Suggested Action") + 1).value);
+    expect(suggestedAction).toContain("Fill or confirm required fields:");
+    expect(suggestedAction).toContain("Weight");
+
+    const issueSummary = workbook.getWorksheet("Issue Summary")!;
+    const issueValues = issueSummary.getSheetValues().flat().map((value) => String(value ?? ""));
+    expect(issueValues).toContain("Missing required fields");
+    expect(issueValues).toContain("ABC-123");
+
+    const summary = workbook.getWorksheet("Run Summary")!;
+    const summaryValues = summary.getSheetValues().flat().map((value) => String(value ?? ""));
+    expect(summaryValues).toContain("Readiness");
+    expect(summaryValues).toContain("Decision legend");
+    expect(summaryValues).toContain("Workbook status");
+    expect(summaryValues).toContain("Recommended next step");
+    expect(summaryValues).toContain("Primary product export with import decisions, clean fields, and core URLs.");
+    expect(summaryValues).toContain("Ready-only product export containing rows marked Import.");
+    expect(summaryValues).toContain("Top issue types");
+    expect(summaryValues).toContain("Aggregated QA view of review blockers and affected catalog numbers.");
+    expect(summaryValues).toContain("Data dictionary for key workbook sheets and workflow columns.");
+    expect(summaryValues).toContain("High priority review");
+    expect(summaryValues).toContain("Import ready");
+    expect(summaryValues).toContain("Top review queue");
+    expect(summaryValues).toContain("ABC-123");
   });
 
   it("writes SCE commercial fields, related parts, and downloads into product summaries", async () => {
@@ -397,7 +650,7 @@ describe("excel export", () => {
     expect(String(row.getCell(headers.indexOf("Accessories / Related Parts") + 1).value)).toContain("Optional Accessory: SCE-12DLP12");
     expect(String(row.getCell(headers.indexOf("Accessories / Related Parts") + 1).value)).toContain("Related Purchase: SCE-ELMFK4");
     expect(String(row.getCell(headers.indexOf("Downloads") + 1).value)).toContain("CAD: SCE-12EL1206LP CAD package");
-    expect(row.getCell(headers.indexOf("Image URL") + 1).value).toBe("https://www.saginawcontrol.com/wp-content/uploads/2017/05/SCE-1412PCW.png");
+    expect(cellText(row.getCell(headers.indexOf("Image URL") + 1))).toBe("https://www.saginawcontrol.com/wp-content/uploads/2017/05/SCE-1412PCW.png");
   });
 
   it("writes Balluff key feature summaries and raw attributes to Excel", async () => {
@@ -470,7 +723,9 @@ describe("excel export", () => {
             { group: "Balluff Classifications", name: "UNSPSC 11", value: "39121528" },
             { group: "Digital Product Passport", name: "Manufacturer", value: "Balluff GmbH" },
             { group: "Digital Product Passport", name: "Tariff Code", value: "85444290" },
-            { group: "Balluff Key features", name: "Approval/Conformity", value: "cULus; CE; UKCA; WEEE" }
+            { group: "Balluff Key features", name: "Approval/Conformity", value: "cULus; CE; UKCA; WEEE" },
+            { group: "Meta", name: "og:image", value: "https://assets.balluff.com/noisy-image.png" },
+            { group: "Balluff Key features", name: "Downloads", value: "Product documentation" }
           ],
           documents: [
             { type: "datasheet", label: "Datasheet", url: "https://publications.balluff.com/pdfengine/pdf?type=pdb&id=123&con=en" },
@@ -510,6 +765,25 @@ describe("excel export", () => {
     expect(attrValues).toContain("Through-beam sensor (receiver)");
     expect(attrValues).toContain("Digital Product Passport");
     expect(attrValues).toContain("Balluff GmbH");
+
+    const cleanAttributes = workbook.getWorksheet("Clean Attributes")!;
+    const cleanAttrValues = cleanAttributes.getSheetValues().flat().map((value) => String(value ?? ""));
+    expect(cleanAttrValues).toContain("Operating voltage Ub");
+    expect(cleanAttrValues).toContain("10...30 VDC");
+    expect(cleanAttrValues).not.toContain("og:image");
+    expect(cleanAttrValues).not.toContain("Product documentation");
+
+    const specMatrix = workbook.getWorksheet("Spec Matrix")!;
+    const matrixHeaders = (specMatrix.getRow(1).values as unknown[]).slice(1);
+    const matrixRow = specMatrix.getRow(2);
+    expect(matrixHeaders).toContain("Connection 1");
+    expect(matrixHeaders).toContain("Operating Voltage Ub");
+    expect(matrixHeaders).toContain("ECLASS");
+    expect(matrixHeaders).toContain("Tariff Code (HS)");
+    expect(matrixRow.getCell(matrixHeaders.indexOf("Operating Voltage Ub") + 1).value).toBe("10...30 VDC");
+    expect(matrixRow.getCell(matrixHeaders.indexOf("ECLASS") + 1).value).toBe("27-27-09-01");
+    expect(matrixRow.getCell(matrixHeaders.indexOf("Tariff Code (HS)") + 1).value).toBe("85444290");
+    expect(String(matrixRow.getCell(matrixHeaders.indexOf("Approval/Conformity") + 1).value)).toContain("cULus");
   });
 
   it("writes Balluff cable length, lens measurements, certificates, and image URL to Excel", async () => {
@@ -616,7 +890,7 @@ describe("excel export", () => {
     expect(String(row.getCell(headers.indexOf("Material") + 1).value)).toContain("PUR black");
     expect(String(row.getCell(headers.indexOf("Color") + 1).value)).toContain("black");
     expect(String(row.getCell(headers.indexOf("Certificates") + 1).value)).toContain("CE");
-    expect(String(row.getCell(headers.indexOf("Image URL") + 1).value)).toContain("product_view_cropped");
+    expect(cellText(row.getCell(headers.indexOf("Image URL") + 1))).toContain("product_view_cropped");
     expect(String(lens.getCell(headers.indexOf("Mechanical / Installation") + 1).value)).toContain("Dimensions: Ø 58 x 79.5 mm");
     expect(lens.getCell(headers.indexOf("Weight (kg)") + 1).value).toBe(0.235);
     expect(lens.getCell(headers.indexOf("Length (mm)") + 1).value).toBeNull();
@@ -1140,8 +1414,8 @@ describe("excel export", () => {
     const headers = (products.getRow(1).values as unknown[]).slice(1);
     const row = products.getRow(2);
 
-    expect(row.getCell(headers.indexOf("Product URL EN") + 1).value).toBe("https://www.eaton.com/us/en-us/skuPage.P1-25%7B%7DI2%7B%7DSVB.html");
-    expect(row.getCell(headers.indexOf("Product URL DE") + 1).value).toBe("https://www.eaton.com/de/de-de/skuPage.P1-25%7B%7DI2%7B%7DSVB.html");
+    expect(cellText(row.getCell(headers.indexOf("Product URL EN") + 1))).toBe("https://www.eaton.com/us/en-us/skuPage.P1-25%7B%7DI2%7B%7DSVB.html");
+    expect(cellText(row.getCell(headers.indexOf("Product URL DE") + 1))).toBe("https://www.eaton.com/de/de-de/skuPage.P1-25%7B%7DI2%7B%7DSVB.html");
     expect(row.getCell(headers.indexOf("Product Type") + 1).value).toBe("Rotary disconnect switch");
     expect(row.getCell(headers.indexOf("EAN / GTIN") + 1).value).toBe("4015082072933");
     expect(String(row.getCell(headers.indexOf("Key Specifications") + 1).value)).toContain("Product Category: Disconnect switch");
@@ -1588,7 +1862,7 @@ describe("excel export", () => {
     expect(row.getCell(headers.indexOf("Product Type") + 1).value).toBe("Cable");
     expect(row.getCell(headers.indexOf("Image") + 1).value).toBe("Linked");
     expect(row.getCell(headers.indexOf("Image Count") + 1).value).toBe(2);
-    expect(String(row.getCell(headers.indexOf("Image URL") + 1).value)).toContain("P569_FRONT");
+    expect(cellText(row.getCell(headers.indexOf("Image URL") + 1))).toContain("P569_FRONT");
     expect(String(row.getCell(headers.indexOf("All Image URLs") + 1).value)).toContain("Cable front: https://dynamicmedia.eaton.com/is/image/eaton/P569_FRONT");
     expect(String(row.getCell(headers.indexOf("All Image URLs") + 1).value)).toContain("Cable connector: https://dynamicmedia.eaton.com/is/image/eaton/P569_CONN");
     expect(String(row.getCell(headers.indexOf("Downloads") + 1).value)).toContain("Datasheet: Eaton Specification Sheet - P569-006-2B-MF");

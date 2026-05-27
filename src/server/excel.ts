@@ -1,6 +1,7 @@
 import ExcelJS from "exceljs";
 import fs from "node:fs";
 import path from "node:path";
+import { pathToFileURL } from "node:url";
 import sharp from "sharp";
 import type { FinalCompletenessRecord, ManufacturerConfig, ProductResult, RunItemRecord, RunRecord } from "../shared/types.js";
 import { requiredElectricalFields } from "../shared/product-requirements.js";
@@ -20,15 +21,27 @@ export async function exportRunWorkbook(input: {
   workbook.creator = "Product Scraper";
   workbook.created = new Date();
   workbook.modified = new Date();
+  workbook.views = [{ x: 0, y: 0, width: 12000, height: 24000, firstSheet: 0, activeTab: 0, visibility: "visible" }];
 
+  const summary = workbook.addWorksheet("Run Summary", { views: [{ showGridLines: false }] });
+  const cleanExport = workbook.addWorksheet("Clean Export", { views: [{ state: "frozen", xSplit: 7, ySplit: 1 }] });
+  const importReady = workbook.addWorksheet("Import Ready", { views: [{ state: "frozen", xSplit: 7, ySplit: 1 }] });
+  const needsReview = workbook.addWorksheet("Needs Review", { views: [{ state: "frozen", xSplit: 10, ySplit: 1 }] });
+  const issueSummary = workbook.addWorksheet("Issue Summary", { views: [{ state: "frozen", xSplit: 2, ySplit: 1 }] });
+  const columnGuide = workbook.addWorksheet("Column Guide", { views: [{ state: "frozen", xSplit: 2, ySplit: 1 }] });
+  const cleanAttributes = workbook.addWorksheet("Clean Attributes", { views: [{ state: "frozen", xSplit: 2, ySplit: 1 }] });
+  const cleanDocuments = workbook.addWorksheet("Clean Documents", { views: [{ state: "frozen", xSplit: 2, ySplit: 1 }] });
+  const fieldCoverage = workbook.addWorksheet("Field Coverage", { views: [{ state: "frozen", xSplit: 1, ySplit: 1 }] });
+  const specMatrix = workbook.addWorksheet("Spec Matrix", { views: [{ state: "frozen", xSplit: 2, ySplit: 1 }] });
+  const checks = workbook.addWorksheet("Checks", { views: [{ state: "frozen", xSplit: 3, ySplit: 1 }] });
   const lookup = workbook.addWorksheet("XLOOKUP", { views: [{ state: "frozen", xSplit: 1, ySplit: 1 }] });
-  const products = workbook.addWorksheet("Products", { views: [{ state: "frozen", ySplit: 1 }] });
-  const attributes = workbook.addWorksheet("Attributes", { views: [{ state: "frozen", ySplit: 1 }] });
-  const documents = workbook.addWorksheet("Documents", { views: [{ state: "frozen", ySplit: 1 }] });
-  const sources = workbook.addWorksheet("Sources", { views: [{ state: "frozen", ySplit: 1 }] });
-  const evidence = workbook.addWorksheet("Evidence", { views: [{ state: "frozen", ySplit: 1 }] });
-  const finalAudit = workbook.addWorksheet("Final Audit", { views: [{ state: "frozen", ySplit: 1 }] });
-  const failures = workbook.addWorksheet("Failures", { views: [{ state: "frozen", ySplit: 1 }] });
+  const products = workbook.addWorksheet("Products", { views: [{ state: "frozen", xSplit: 3, ySplit: 1 }] });
+  const attributes = workbook.addWorksheet("Attributes", { views: [{ state: "frozen", xSplit: 2, ySplit: 1 }] });
+  const documents = workbook.addWorksheet("Documents", { views: [{ state: "frozen", xSplit: 2, ySplit: 1 }] });
+  const sources = workbook.addWorksheet("Sources", { views: [{ state: "frozen", xSplit: 2, ySplit: 1 }] });
+  const evidence = workbook.addWorksheet("Evidence", { views: [{ state: "frozen", xSplit: 2, ySplit: 1 }] });
+  const finalAudit = workbook.addWorksheet("Final Audit", { views: [{ state: "frozen", xSplit: 2, ySplit: 1 }] });
+  const failures = workbook.addWorksheet("Failures", { views: [{ state: "frozen", xSplit: 2, ySplit: 1 }] });
 
   lookup.columns = [
     { header: "Catalog Number", key: "catalogNumber", width: 24 },
@@ -263,9 +276,12 @@ export async function exportRunWorkbook(input: {
     { header: "Error", key: "error", width: 80 }
   ];
 
+  const productRows: ProductExportRow[] = [];
+
   for (const item of input.items) {
     const result = item.result;
     const rowData = productRow(input.manufacturer, item, result);
+    productRows.push(rowData);
     lookup.addRow(lookupRow(rowData, result));
     const productExcelRow = products.addRow(rowData);
     await addProductThumbnail(workbook, products, productExcelRow, result);
@@ -362,9 +378,44 @@ export async function exportRunWorkbook(input: {
     }
   }
 
-  for (const sheet of [lookup, products, attributes, documents, sources, evidence, finalAudit, failures]) {
+  populateRunSummarySheet(summary, input, productRows);
+  styleRunSummarySheet(summary);
+  populateCleanExportSheet(cleanExport, input.items, productRows);
+  populateCleanExportSheet(importReady, input.items, productRows, { decisions: ["Import"] });
+  populateNeedsReviewSheet(needsReview, input.items, productRows);
+  populateIssueSummarySheet(issueSummary, productRows);
+  populateColumnGuideSheet(columnGuide);
+  populateCleanAttributesSheet(cleanAttributes, input);
+  populateCleanDocumentsSheet(cleanDocuments, input);
+  populateFieldCoverageSheet(fieldCoverage, input.items, productRows);
+  populateSpecMatrixSheet(specMatrix, input.items, productRows);
+  populateChecksSheet(checks, productRows);
+
+  const dataSheets = [
+    cleanExport,
+    importReady,
+    needsReview,
+    issueSummary,
+    columnGuide,
+    cleanAttributes,
+    cleanDocuments,
+    fieldCoverage,
+    specMatrix,
+    checks,
+    lookup,
+    products,
+    attributes,
+    documents,
+    sources,
+    evidence,
+    finalAudit,
+    failures
+  ];
+  for (const sheet of dataSheets) {
     styleSheet(sheet);
+    applyUsabilityFormatting(sheet);
   }
+  applyWorkbookUsability(workbook);
 
   const inputNamePart = input.run.inputFileName ? safeWorkbookPart(path.parse(input.run.inputFileName).name) : "";
   const outputName = [
@@ -375,6 +426,1316 @@ export async function exportRunWorkbook(input: {
   const outputPath = path.join(input.outputDir, `${outputName}.xlsx`);
   await workbook.xlsx.writeFile(outputPath);
   return outputPath;
+}
+
+type ProductExportRow = ReturnType<typeof productRow>;
+
+function populateRunSummarySheet(
+  sheet: ExcelJS.Worksheet,
+  input: {
+    run: RunRecord;
+    manufacturer: ManufacturerConfig;
+    items: RunItemRecord[];
+    outputDir: string;
+  },
+  productRows: ProductExportRow[]
+) {
+  sheet.columns = [
+    { key: "metric", width: 30 },
+    { key: "value", width: 26 },
+    { key: "detail", width: 44 },
+    { key: "link", width: 26 }
+  ];
+  sheet.mergeCells("A1:D1");
+  sheet.getCell("A1").value = `${input.manufacturer.canonicalName} scrape summary`;
+  sheet.getCell("A2").value = "Generated workbook overview";
+  sheet.getCell("B2").value = new Date().toISOString();
+
+  let row = 4;
+  row = addSummarySection(sheet, row, "Run");
+  row = addSummaryMetric(sheet, row, "Run ID", input.run.id);
+  row = addSummaryMetric(sheet, row, "Input file", input.run.inputFileName ?? "Manual input");
+  row = addSummaryMetric(sheet, row, "Created", input.run.createdAt);
+  row = addSummaryMetric(sheet, row, "Updated", input.run.updatedAt);
+  row = addSummaryMetric(sheet, row, "Output folder", input.outputDir);
+
+  const statusCounts = countValues(productRows.map((item) => String(item.status ?? "unknown")));
+  const documents = input.items.flatMap((item) => documentsForExport(item.result));
+  const documentCounts = countValues(documents.map((doc) => doc.type));
+  const missingCounts = countValues(productRows.flatMap((item) => splitSummaryList(item.missingRequiredFields)));
+  const coverage = productRows.map(fieldCoverageForRow);
+  const reviewQueue = reviewQueueItems(productRows);
+  const reviewCount = reviewQueue.length;
+  const reviewPriorityCounts = countValues(reviewQueue.map((item) => item.priorityLabel));
+  const averageCoverage = coverage.length ? coverage.reduce((sum, item) => sum + item.score, 0) / coverage.length : 0;
+  const readiness = workbookReadiness(productRows, reviewQueue);
+
+  row = addSummarySection(sheet, row, "Readiness");
+  row = addSummaryMetric(sheet, row, "Workbook status", readiness.status, readiness.detail);
+  row = addSummaryMetric(sheet, row, "Recommended next step", readiness.nextStep);
+  row = addSummaryMetric(sheet, row, "Import ready rows", readiness.importReadyCount, `${readiness.totalRows} total rows`, internalSheetHyperlink("Import Ready"));
+  row = addSummaryMetric(sheet, row, "Review rows", reviewCount, readiness.reviewDetail, reviewCount ? internalSheetHyperlink("Needs Review") : internalSheetHyperlink("Clean Export"));
+  row = addSummaryMetric(sheet, row, "Ready-only export tab", "Import Ready", "Use this sheet when importing only rows with no review blockers.", internalSheetHyperlink("Import Ready"));
+  row = addSummaryMetric(sheet, row, "Full clean export tab", "Clean Export", "Use this sheet when you need all rows with import/review/exclude decisions.", internalSheetHyperlink("Clean Export"));
+
+  row += 1;
+  row = addSummarySection(sheet, row, "Decision legend");
+  row = addSummaryMetric(sheet, row, "Import", "Ready", "Row has no blocking review reason; use it from Clean Export.");
+  row = addSummaryMetric(sheet, row, "Review", "Check first", "Row has usable data, but one or more fields should be verified.");
+  row = addSummaryMetric(sheet, row, "Exclude", "Do not import", "Row failed or was cancelled; rerun or fix manually before import.");
+
+  row += 1;
+  row = addSummarySection(sheet, row, "Results");
+  row = addSummaryMetric(sheet, row, "Total rows", input.run.total || productRows.length);
+  row = addSummaryMetric(sheet, row, "Found", statusCounts.get("found") ?? input.run.found ?? 0);
+  row = addSummaryMetric(sheet, row, "Partial", statusCounts.get("partial") ?? input.run.partial ?? 0);
+  row = addSummaryMetric(sheet, row, "Failed", statusCounts.get("failed") ?? input.run.failed ?? 0);
+  row = addSummaryMetric(sheet, row, "Quality passed", productRows.filter((item) => item.qualityPassed === true).length);
+  row = addSummaryMetric(sheet, row, "Quality failed", productRows.filter((item) => item.qualityPassed === false).length);
+  row = addSummaryMetric(sheet, row, "Import ready", productRows.filter((item) => !reviewReason(item)).length);
+  row = addSummaryMetric(sheet, row, "Needs review", reviewCount);
+  row = addSummaryMetric(sheet, row, "High priority review", reviewPriorityCounts.get("High") ?? 0);
+  row = addSummaryMetric(sheet, row, "Medium priority review", reviewPriorityCounts.get("Medium") ?? 0);
+  row = addSummaryMetric(sheet, row, "Low priority review", reviewPriorityCounts.get("Low") ?? 0);
+  row = addSummaryMetric(sheet, row, "Average coverage", `${Math.round(averageCoverage * 100)}%`);
+  row = addSummaryMetric(sheet, row, "Rows with missing fields", productRows.filter((item) => item.missingRequiredFields).length);
+  row = addSummaryMetric(sheet, row, "Attributes", productRows.reduce((sum, item) => sum + Number(item.attributeCount ?? 0), 0));
+  row = addSummaryMetric(sheet, row, "Documents", documents.length);
+  row = addSummaryMetric(sheet, row, "Images", documents.filter((doc) => doc.type === "image").length);
+
+  row += 1;
+  row = addSummarySection(sheet, row, "Document mix");
+  for (const [type, count] of sortedCountEntries(documentCounts)) {
+    row = addSummaryMetric(sheet, row, documentTypeLabel(type as ProductResult["documents"][number]["type"]), count);
+  }
+  if (documentCounts.size === 0) row = addSummaryMetric(sheet, row, "None", 0);
+
+  row += 1;
+  row = addSummarySection(sheet, row, "Most common missing fields");
+  for (const [field, count] of sortedCountEntries(missingCounts).slice(0, 12)) {
+    row = addSummaryMetric(sheet, row, field, count);
+  }
+  if (missingCounts.size === 0) row = addSummaryMetric(sheet, row, "None", 0);
+
+  row += 1;
+  row = addSummarySection(sheet, row, "Top review queue");
+  for (const [index, item] of reviewQueue.slice(0, 10).entries()) {
+    row = addSummaryMetric(sheet, row, item.row.catalogNumber, item.priorityLabel, item.reason, internalSheetHyperlink("Needs Review", index + 2));
+  }
+  if (reviewQueue.length === 0) row = addSummaryMetric(sheet, row, "None", 0);
+
+  row += 1;
+  row = addSummarySection(sheet, row, "Top issue types");
+  for (const issue of issueSummaryRows(productRows).slice(0, 8)) {
+    row = addSummaryMetric(sheet, row, issue.issueType, issue.rows, `${issue.severity} priority`, internalSheetHyperlink("Issue Summary", issue.sheetRow));
+  }
+  if (issueSummaryRows(productRows).length === 0) row = addSummaryMetric(sheet, row, "None", 0);
+
+  row += 1;
+  row = addSummarySection(sheet, row, "Sheets");
+  for (const sheetName of [
+    "Clean Export",
+    "Import Ready",
+    "Needs Review",
+    "Issue Summary",
+    "Column Guide",
+    "Clean Attributes",
+    "Clean Documents",
+    "Field Coverage",
+    "Spec Matrix",
+    "Checks",
+    "XLOOKUP",
+    "Products",
+    "Attributes",
+    "Documents",
+    "Sources",
+    "Evidence",
+    "Final Audit",
+    "Failures"
+  ]) {
+    row = addSummaryMetric(sheet, row, sheetName, "Open", sheetPurpose(sheetName), `#'${sheetName.replace(/'/g, "''")}'!A1`);
+  }
+}
+
+function sheetPurpose(sheetName: string): string {
+  const purposes: Record<string, string> = {
+    "Clean Export": "Primary product export with import decisions, clean fields, and core URLs.",
+    "Import Ready": "Ready-only product export containing rows marked Import.",
+    "Needs Review": "Prioritized queue for rows that should be checked before import.",
+    "Issue Summary": "Aggregated QA view of review blockers and affected catalog numbers.",
+    "Column Guide": "Data dictionary for key workbook sheets and workflow columns.",
+    "Clean Attributes": "User-facing attribute list without noisy metadata fields.",
+    "Clean Documents": "Document URLs, local paths, document readiness, and primary document markers.",
+    "Field Coverage": "Per-row field completeness and missing-field diagnostics.",
+    "Spec Matrix": "Wide comparison matrix for technical product specs.",
+    "Checks": "Workbook-level warnings such as duplicates, failed rows, and missing key assets.",
+    "XLOOKUP": "Single-line lookup-friendly row set for formulas and external matching.",
+    "Products": "Raw rich product rows with summaries, images, measurements, and diagnostics.",
+    "Attributes": "Raw extracted attributes with source metadata.",
+    "Documents": "Raw document records with download and parse metadata.",
+    "Sources": "Fetched source URLs and scrape stages.",
+    "Evidence": "Normalized field evidence used to support exported values.",
+    "Final Audit": "Final completeness check records and retry decisions.",
+    "Failures": "Rows that failed or did not produce a usable product result."
+  };
+  return purposes[sheetName] ?? "Supporting workbook data.";
+}
+
+function populateCleanExportSheet(
+  sheet: ExcelJS.Worksheet,
+  items: RunItemRecord[],
+  productRows: ProductExportRow[],
+  options: { decisions?: Array<ReturnType<typeof exportDecision>> } = {}
+) {
+  const reviewRows = reviewRowByProductIndex(productRows);
+  sheet.columns = [
+    { header: "Catalog Number", key: "catalogNumber", width: 24 },
+    { header: "Status", key: "status", width: 12 },
+    { header: "Export Decision", key: "exportDecision", width: 16 },
+    { header: "Import Ready", key: "importReady", width: 14 },
+    { header: "Review Link", key: "reviewLink", width: 14 },
+    { header: "Action Needed", key: "actionNeeded", width: 46 },
+    { header: "Coverage Score", key: "coverageScore", width: 16, style: { numFmt: "0%" } },
+    { header: "Confidence", key: "confidence", width: 12, style: { numFmt: "0%" } },
+    { header: "Quality Tier", key: "qualityTier", width: 14 },
+    { header: "Missing Key Fields", key: "missingKeyFields", width: 42 },
+    { header: "Manufacturer", key: "manufacturer", width: 18 },
+    { header: "Product Type", key: "productType", width: 32 },
+    { header: "Title", key: "title", width: 46 },
+    { header: "Product URL EN", key: "productUrlEn", width: 60 },
+    { header: "Product URL DE", key: "productUrlDe", width: 60 },
+    { header: "Image URL", key: "imageUrl", width: 60 },
+    { header: "Primary Datasheet URL", key: "primaryDatasheetUrl", width: 64 },
+    { header: "Primary Manual URL", key: "primaryManualUrl", width: 64 },
+    { header: "Primary CAD URL", key: "primaryCadUrl", width: 64 },
+    { header: "Primary Certificate URL", key: "primaryCertificateUrl", width: 64 },
+    { header: "Datasheet URLs", key: "datasheetUrls", width: 76 },
+    { header: "Manual URLs", key: "manualUrls", width: 76 },
+    { header: "CAD URLs", key: "cadUrls", width: 76 },
+    { header: "Certificate URLs", key: "certificateUrls", width: 76 },
+    { header: "Weight (kg)", key: "weightKg", width: 14, style: { numFmt: "0.#########" } },
+    { header: "Height (mm)", key: "heightMm", width: 14, style: { numFmt: "0.#########" } },
+    { header: "Width (mm)", key: "widthMm", width: 14, style: { numFmt: "0.#########" } },
+    { header: "Depth (mm)", key: "depthMm", width: 14, style: { numFmt: "0.#########" } },
+    { header: "Length (mm)", key: "lengthMm", width: 14, style: { numFmt: "0.#########" } },
+    { header: "Material", key: "material", width: 30 },
+    { header: "Finish", key: "finish", width: 34 },
+    { header: "Color", key: "color", width: 22 },
+    { header: "Voltage", key: "voltage", width: 24 },
+    { header: "Current", key: "current", width: 24 },
+    { header: "Rated Current", key: "ratedCurrent", width: 20 },
+    { header: "IP Rating", key: "ipRating", width: 16 },
+    { header: "Protection", key: "protection", width: 24 },
+    { header: "Terminals / Connection", key: "terminalsConnection", width: 44 },
+    { header: "Mounting", key: "mounting", width: 36 },
+    { header: "Operating Temperature", key: "operatingTemperature", width: 36 },
+    { header: "Certificates", key: "certificates", width: 36 },
+    { header: "Tariff Code (HS)", key: "tariffCode", width: 18 },
+    { header: "Country of Origin", key: "countryOfOrigin", width: 18 },
+    { header: "Missing Required Fields", key: "missingRequiredFields", width: 42 },
+    { header: "Review Reason", key: "reviewReason", width: 44 },
+    { header: "Error", key: "error", width: 42 }
+  ];
+
+  for (const [index, row] of productRows.entries()) {
+    const lookup = lookupRow(row, items[index]?.result);
+    const coverage = fieldCoverageForRow(row);
+    const reviewRowNumber = reviewRows.get(index);
+    const reason = reviewReason(row);
+    const decision = exportDecision(row);
+    if (options.decisions && !options.decisions.includes(decision)) continue;
+    sheet.addRow({
+      catalogNumber: row.catalogNumber,
+      status: row.status,
+      exportDecision: decision,
+      importReady: reason ? "No" : "Yes",
+      reviewLink: reviewRowNumber ? { text: "Review", hyperlink: internalSheetHyperlink("Needs Review", reviewRowNumber), tooltip: "Open Needs Review row" } : undefined,
+      actionNeeded: reviewSuggestedAction(row) ?? "Ready",
+      coverageScore: coverage.score,
+      confidence: row.confidence,
+      qualityTier: qualityTier(coverage.score),
+      missingKeyFields: coverage.missing.join("; ") || undefined,
+      manufacturer: row.manufacturer,
+      productType: row.productType,
+      title: row.title,
+      productUrlEn: row.productUrlEn,
+      productUrlDe: row.productUrlDe,
+      imageUrl: row.imageUrl,
+      primaryDatasheetUrl: lookup.primaryDatasheetUrl,
+      primaryManualUrl: lookup.primaryManualUrl,
+      primaryCadUrl: lookup.primaryCadUrl,
+      primaryCertificateUrl: lookup.primaryCertificateUrl,
+      datasheetUrls: lookup.datasheetUrls,
+      manualUrls: lookup.manualUrls,
+      cadUrls: lookup.cadUrls,
+      certificateUrls: lookup.certificateUrls,
+      weightKg: row.weightKg,
+      heightMm: row.heightMm,
+      widthMm: row.widthMm,
+      depthMm: row.depthMm,
+      lengthMm: row.lengthMm,
+      material: row.material,
+      finish: row.finish,
+      color: row.color,
+      voltage: row.voltage,
+      current: row.current,
+      ratedCurrent: row.ratedCurrent,
+      ipRating: row.ipRating,
+      protection: row.protection,
+      terminalsConnection: row.terminalsConnection,
+      mounting: row.mounting,
+      operatingTemperature: row.operatingTemperature,
+      certificates: row.certificates,
+      tariffCode: row.tariffCode,
+      countryOfOrigin: row.countryOfOrigin,
+      missingRequiredFields: row.missingRequiredFields,
+      reviewReason: reviewReason(row),
+      error: row.error
+    });
+  }
+}
+
+function populateNeedsReviewSheet(sheet: ExcelJS.Worksheet, items: RunItemRecord[], productRows: ProductExportRow[]) {
+  sheet.columns = [
+    { header: "Review Priority", key: "reviewPriority", width: 16 },
+    { header: "Priority Score", key: "priorityScore", width: 14 },
+    { header: "Review Status", key: "reviewStatus", width: 20 },
+    { header: "Fix Needed", key: "fixNeeded", width: 14 },
+    { header: "Reviewed By", key: "reviewedBy", width: 20 },
+    { header: "Review Notes", key: "reviewNotes", width: 54 },
+    { header: "Review Reason", key: "reviewReason", width: 46 },
+    { header: "Issue Type", key: "issueType", width: 30 },
+    { header: "Suggested Action", key: "suggestedAction", width: 54 },
+    { header: "Clean Export", key: "cleanExportLink", width: 14 },
+    { header: "Products", key: "productsLink", width: 12 },
+    { header: "Catalog Number", key: "catalogNumber", width: 24 },
+    { header: "Status", key: "status", width: 12 },
+    { header: "Coverage Score", key: "coverageScore", width: 16, style: { numFmt: "0%" } },
+    { header: "Confidence", key: "confidence", width: 12, style: { numFmt: "0%" } },
+    { header: "Product Type", key: "productType", width: 32 },
+    { header: "Missing Required Fields", key: "missingRequiredFields", width: 48 },
+    { header: "Quality Missing", key: "qualityMissing", width: 48 },
+    { header: "Final Completeness Check", key: "finalCompletenessCheck", width: 56 },
+    { header: "Product URL EN", key: "productUrlEn", width: 60 },
+    { header: "Primary Datasheet URL", key: "primaryDatasheetUrl", width: 64 },
+    { header: "Datasheet URLs", key: "datasheetUrls", width: 76 },
+    { header: "Error", key: "error", width: 56 }
+  ];
+
+  for (const { row, index, reason, coverage, priorityScore, priorityLabel } of reviewQueueItems(productRows)) {
+    const lookup = lookupRow(row, items[index]?.result);
+    sheet.addRow({
+      reviewPriority: priorityLabel,
+      priorityScore,
+      reviewStatus: "Open",
+      fixNeeded: priorityScore >= 30 ? "Yes" : "Maybe",
+      reviewReason: reason,
+      issueType: reviewIssueType(row),
+      suggestedAction: reviewSuggestedAction(row),
+      cleanExportLink: { text: "Open", hyperlink: internalSheetHyperlink("Clean Export", index + 2), tooltip: "Open matching Clean Export row" },
+      productsLink: { text: "Open", hyperlink: internalSheetHyperlink("Products", index + 2), tooltip: "Open matching Products row" },
+      catalogNumber: row.catalogNumber,
+      status: row.status,
+      coverageScore: coverage.score,
+      confidence: row.confidence,
+      productType: row.productType,
+      missingRequiredFields: row.missingRequiredFields,
+      qualityMissing: row.qualityMissing,
+      finalCompletenessCheck: row.finalCompletenessCheck,
+      productUrlEn: row.productUrlEn,
+      primaryDatasheetUrl: lookup.primaryDatasheetUrl,
+      datasheetUrls: lookup.datasheetUrls,
+      error: row.error
+    });
+  }
+}
+
+function populateIssueSummarySheet(sheet: ExcelJS.Worksheet, productRows: ProductExportRow[]) {
+  sheet.columns = [
+    { header: "Issue Type", key: "issueType", width: 32 },
+    { header: "Severity", key: "severity", width: 12 },
+    { header: "Rows", key: "rows", width: 10 },
+    { header: "High Priority Rows", key: "highPriorityRows", width: 18 },
+    { header: "Medium Priority Rows", key: "mediumPriorityRows", width: 20 },
+    { header: "Low Priority Rows", key: "lowPriorityRows", width: 16 },
+    { header: "Affected Catalog Numbers", key: "catalogNumbers", width: 72 },
+    { header: "Suggested Action", key: "suggestedAction", width: 56 },
+    { header: "Needs Review", key: "needsReviewLink", width: 14 }
+  ];
+
+  const issues = issueSummaryRows(productRows);
+  for (const issue of issues) {
+    sheet.addRow({
+      issueType: issue.issueType,
+      severity: issue.severity,
+      rows: issue.rows,
+      highPriorityRows: issue.highPriorityRows || undefined,
+      mediumPriorityRows: issue.mediumPriorityRows || undefined,
+      lowPriorityRows: issue.lowPriorityRows || undefined,
+      catalogNumbers: issue.catalogNumbers,
+      suggestedAction: issue.suggestedAction,
+      needsReviewLink: { text: "Open", hyperlink: internalSheetHyperlink("Needs Review", issue.firstReviewRow), tooltip: "Open first matching review row" }
+    });
+  }
+
+  if (!issues.length) {
+    sheet.addRow({
+      issueType: "No issues",
+      severity: "Info",
+      rows: 0,
+      suggestedAction: "Use Import Ready as the direct-import product export.",
+      needsReviewLink: { text: "Open", hyperlink: internalSheetHyperlink("Import Ready"), tooltip: "Open Import Ready" }
+    });
+  }
+}
+
+function populateColumnGuideSheet(sheet: ExcelJS.Worksheet) {
+  sheet.columns = [
+    { header: "Sheet", key: "sheet", width: 20 },
+    { header: "Column / Area", key: "column", width: 28 },
+    { header: "Purpose", key: "purpose", width: 62 },
+    { header: "Use For", key: "useFor", width: 36 },
+    { header: "Notes", key: "notes", width: 66 }
+  ];
+
+  const rows = [
+    {
+      sheet: "Import Ready",
+      column: "All rows",
+      purpose: "Ready-only product export containing rows marked Import.",
+      useFor: "Direct import",
+      notes: "Start here when you only want rows without review blockers."
+    },
+    {
+      sheet: "Clean Export",
+      column: "All rows",
+      purpose: "Clean product export with every row and an explicit export decision.",
+      useFor: "Full export / QA handoff",
+      notes: "Use this sheet when you need to see Import, Review, and Exclude rows together."
+    },
+    {
+      sheet: "Clean Export",
+      column: "Export Decision",
+      purpose: "Classifies each row as Import, Review, or Exclude.",
+      useFor: "Filtering",
+      notes: "Import means no blocking review reason; Review means check first; Exclude means failed or cancelled."
+    },
+    {
+      sheet: "Clean Export",
+      column: "Action Needed",
+      purpose: "One-line recommended next step for a row.",
+      useFor: "Manual cleanup",
+      notes: "Rows marked Ready do not require a manual action before import."
+    },
+    {
+      sheet: "Clean Export",
+      column: "Quality Tier",
+      purpose: "Readable tier derived from coverage score.",
+      useFor: "Sorting by quality",
+      notes: "Complete and Good are strongest; Sparse and No data should be reviewed."
+    },
+    {
+      sheet: "Clean Export",
+      column: "Confidence",
+      purpose: "Source match confidence as a percentage.",
+      useFor: "Catalog match QA",
+      notes: "Low confidence rows should be checked against the official product page."
+    },
+    {
+      sheet: "Needs Review",
+      column: "Review Priority",
+      purpose: "High, Medium, or Low review priority.",
+      useFor: "Review ordering",
+      notes: "Work High rows first because they usually block import."
+    },
+    {
+      sheet: "Needs Review",
+      column: "Review Status",
+      purpose: "Editable workflow status for manual review.",
+      useFor: "Team tracking",
+      notes: "Allowed values are Open, Checked, Needs manual lookup, and Ignore."
+    },
+    {
+      sheet: "Needs Review",
+      column: "Fix Needed",
+      purpose: "Editable flag for whether a row needs changes.",
+      useFor: "Manual cleanup",
+      notes: "Allowed values are Yes, No, and Maybe."
+    },
+    {
+      sheet: "Issue Summary",
+      column: "Issue Type",
+      purpose: "Aggregated reason rows entered Needs Review.",
+      useFor: "Batch cleanup planning",
+      notes: "Use this to find the biggest source of blocked rows."
+    },
+    {
+      sheet: "Issue Summary",
+      column: "Affected Catalog Numbers",
+      purpose: "Catalog numbers grouped by issue type.",
+      useFor: "Batch investigation",
+      notes: "Open the linked Needs Review row to jump into the detailed queue."
+    },
+    {
+      sheet: "Field Coverage",
+      column: "Coverage Score",
+      purpose: "Share of core fields present for each product row.",
+      useFor: "Completeness QA",
+      notes: "Use Missing Key Fields beside it to see what drove the score."
+    },
+    {
+      sheet: "Clean Documents",
+      column: "Primary",
+      purpose: "Marks the first exported document of each type per product.",
+      useFor: "Document selection",
+      notes: "Primary datasheet/manual/CAD/certificate URLs are also surfaced in Clean Export."
+    },
+    {
+      sheet: "Spec Matrix",
+      column: "Technical spec columns",
+      purpose: "Wide comparison view for common technical attributes.",
+      useFor: "Product comparison",
+      notes: "Use this when checking specs across many catalog numbers."
+    },
+    {
+      sheet: "XLOOKUP",
+      column: "All rows",
+      purpose: "Single-line version of product data for formulas and matching.",
+      useFor: "External lookup formulas",
+      notes: "Long multiline summaries are flattened for lookup-friendly use."
+    },
+    {
+      sheet: "Products / Attributes / Documents",
+      column: "Raw fields",
+      purpose: "Detailed extracted data and source metadata.",
+      useFor: "Audit / troubleshooting",
+      notes: "Use these tabs to trace why a clean export value was produced."
+    }
+  ];
+
+  for (const row of rows) {
+    sheet.addRow({
+      sheet: { text: row.sheet, hyperlink: internalSheetHyperlink(row.sheet.split(" / ")[0]), tooltip: `Open ${row.sheet}` },
+      column: row.column,
+      purpose: row.purpose,
+      useFor: row.useFor,
+      notes: row.notes
+    });
+  }
+}
+
+function populateCleanAttributesSheet(
+  sheet: ExcelJS.Worksheet,
+  input: {
+    manufacturer: ManufacturerConfig;
+    items: RunItemRecord[];
+  }
+) {
+  sheet.columns = [
+    { header: "Manufacturer", key: "manufacturer", width: 18 },
+    { header: "Catalog Number", key: "catalogNumber", width: 24 },
+    { header: "Category", key: "category", width: 18 },
+    { header: "Group", key: "group", width: 28 },
+    { header: "Attribute", key: "name", width: 34 },
+    { header: "Value", key: "value", width: 72 },
+    { header: "Unit", key: "unit", width: 12 },
+    { header: "Source Type", key: "sourceType", width: 18 },
+    { header: "Source URL", key: "sourceUrl", width: 60 }
+  ];
+
+  for (const item of input.items) {
+    const result = item.result;
+    if (!result) continue;
+    for (const attr of cleanAttributesForExport(result.attributes)) {
+      sheet.addRow({
+        manufacturer: input.manufacturer.canonicalName,
+        catalogNumber: result.catalogNumber,
+        category: cleanAttributeCategory(attr),
+        group: attr.group,
+        name: attr.name,
+        value: attr.value,
+        unit: attr.unit,
+        sourceType: attr.sourceType,
+        sourceUrl: attr.sourceUrl
+      });
+    }
+  }
+}
+
+function populateCleanDocumentsSheet(
+  sheet: ExcelJS.Worksheet,
+  input: {
+    manufacturer: ManufacturerConfig;
+    items: RunItemRecord[];
+  }
+) {
+  sheet.columns = [
+    { header: "Manufacturer", key: "manufacturer", width: 18 },
+    { header: "Catalog Number", key: "catalogNumber", width: 24 },
+    { header: "Document Ready", key: "documentReady", width: 16 },
+    { header: "Clean Export", key: "cleanExportLink", width: 14 },
+    { header: "Priority", key: "priority", width: 10 },
+    { header: "Primary", key: "primary", width: 10 },
+    { header: "Type", key: "type", width: 14 },
+    { header: "Label", key: "label", width: 46 },
+    { header: "URL", key: "url", width: 72 },
+    { header: "Local Path", key: "localPath", width: 62 },
+    { header: "Download Status", key: "downloadStatus", width: 18 },
+    { header: "Parse Status", key: "parseStatus", width: 16 },
+    { header: "Source Type", key: "sourceType", width: 18 },
+    { header: "Source URL", key: "sourceUrl", width: 62 }
+  ];
+
+  for (const [itemIndex, item] of input.items.entries()) {
+    const result = item.result;
+    if (!result) continue;
+    const primaryTypes = new Set<ProductResult["documents"][number]["type"]>();
+    const documents = [...documentsForExport(result)]
+      .filter((doc) => Boolean(cleanText(doc.url) || cleanText(doc.localPath)))
+      .sort(
+        (left, right) =>
+          documentSummaryRank(left) - documentSummaryRank(right) ||
+          cleanText(left.label || left.url).localeCompare(cleanText(right.label || right.url), undefined, { sensitivity: "base" })
+      );
+    for (const doc of documents) {
+      const primary = !primaryTypes.has(doc.type);
+      primaryTypes.add(doc.type);
+      sheet.addRow({
+        manufacturer: input.manufacturer.canonicalName,
+        catalogNumber: result.catalogNumber,
+        documentReady: documentReadyStatus(doc),
+        cleanExportLink: { text: "Open", hyperlink: internalSheetHyperlink("Clean Export", itemIndex + 2), tooltip: "Open matching Clean Export row" },
+        priority: documentSummaryRank(doc),
+        primary: primary ? "Yes" : "No",
+        type: documentTypeLabel(doc.type),
+        label: cleanText(doc.label) || doc.url || doc.localPath,
+        url: doc.url,
+        localPath: doc.localPath,
+        downloadStatus: doc.downloadStatus,
+        parseStatus: doc.parseStatus,
+        sourceType: doc.sourceType,
+        sourceUrl: doc.sourceUrl
+      });
+    }
+  }
+}
+
+function populateFieldCoverageSheet(sheet: ExcelJS.Worksheet, items: RunItemRecord[], productRows: ProductExportRow[]) {
+  sheet.columns = [
+    { header: "Catalog Number", key: "catalogNumber", width: 24 },
+    { header: "Status", key: "status", width: 12 },
+    { header: "Coverage Score", key: "coverageScore", width: 16, style: { numFmt: "0%" } },
+    { header: "Present Fields", key: "presentFields", width: 16 },
+    { header: "Total Fields", key: "totalFields", width: 14 },
+    { header: "Missing Key Fields", key: "missingKeyFields", width: 54 },
+    { header: "Primary Datasheet URL", key: "primaryDatasheetUrl", width: 64 },
+    { header: "Image Count", key: "imageCount", width: 12 },
+    { header: "Datasheet Count", key: "datasheetCount", width: 16 },
+    { header: "Manual Count", key: "manualCount", width: 14 },
+    { header: "CAD Count", key: "cadCount", width: 12 },
+    { header: "Certificate Count", key: "certificateCount", width: 18 },
+    { header: "Product URL", key: "productUrl", width: 14 },
+    { header: "Image", key: "image", width: 12 },
+    { header: "Datasheet", key: "datasheet", width: 12 },
+    { header: "Product Type", key: "productType", width: 14 },
+    { header: "Weight", key: "weight", width: 12 },
+    { header: "Dimensions", key: "dimensions", width: 14 },
+    { header: "Material", key: "material", width: 12 },
+    { header: "Voltage", key: "voltage", width: 12 },
+    { header: "Current", key: "current", width: 12 },
+    { header: "Protection / IP", key: "protection", width: 16 },
+    { header: "Certificates", key: "certificates", width: 14 },
+    { header: "Review Reason", key: "reviewReason", width: 54 }
+  ];
+
+  for (const [index, row] of productRows.entries()) {
+    const result = items[index]?.result;
+    const documents = documentsForExport(result);
+    const documentCounts = documentCountsByType(documents);
+    const lookup = lookupRow(row, result);
+    const coverage = fieldCoverageForRow(row);
+    sheet.addRow({
+      catalogNumber: row.catalogNumber,
+      status: row.status,
+      coverageScore: coverage.score,
+      presentFields: coverage.presentCount,
+      totalFields: coverage.totalCount,
+      missingKeyFields: coverage.missing.join("; ") || undefined,
+      primaryDatasheetUrl: lookup.primaryDatasheetUrl,
+      imageCount: documentCounts.get("image") || undefined,
+      datasheetCount: documentCounts.get("datasheet") || undefined,
+      manualCount: documentCounts.get("manual") || undefined,
+      cadCount: documentCounts.get("cad") || undefined,
+      certificateCount: documentCounts.get("certificate") || undefined,
+      productUrl: coverage.statusByField.get("Product URL"),
+      image: coverage.statusByField.get("Image"),
+      datasheet: coverage.statusByField.get("Datasheet"),
+      productType: coverage.statusByField.get("Product Type"),
+      weight: coverage.statusByField.get("Weight"),
+      dimensions: coverage.statusByField.get("Dimensions"),
+      material: coverage.statusByField.get("Material"),
+      voltage: coverage.statusByField.get("Voltage"),
+      current: coverage.statusByField.get("Current"),
+      protection: coverage.statusByField.get("Protection / IP"),
+      certificates: coverage.statusByField.get("Certificates"),
+      reviewReason: reviewReason(row)
+    });
+  }
+}
+
+function populateSpecMatrixSheet(sheet: ExcelJS.Worksheet, items: RunItemRecord[], productRows: ProductExportRow[]) {
+  sheet.columns = [
+    { header: "Manufacturer", key: "manufacturer", width: 18 },
+    { header: "Catalog Number", key: "catalogNumber", width: 24 },
+    { header: "Status", key: "status", width: 12 },
+    { header: "Review Priority", key: "reviewPriority", width: 16 },
+    { header: "Coverage Score", key: "coverageScore", width: 16, style: { numFmt: "0%" } },
+    { header: "Product Type", key: "productType", width: 34 },
+    { header: "Title", key: "title", width: 46 },
+    { header: "Product URL", key: "productUrl", width: 60 },
+    { header: "Datasheet URL", key: "datasheetUrl", width: 64 },
+    { header: "Image URL", key: "imageUrl", width: 60 },
+    { header: "Connection 1", key: "connection1", width: 38 },
+    { header: "Connection 2", key: "connection2", width: 38 },
+    { header: "Connection", key: "connection", width: 38 },
+    { header: "Cable", key: "cable", width: 42 },
+    { header: "Cable Length", key: "cableLength", width: 18 },
+    { header: "Operating Voltage Ub", key: "operatingVoltageUb", width: 26 },
+    { header: "Voltage", key: "voltage", width: 22 },
+    { header: "Rated Current", key: "ratedCurrent", width: 20 },
+    { header: "Current", key: "current", width: 22 },
+    { header: "Current Sum US", key: "currentSumUs", width: 20 },
+    { header: "Current Sum UA", key: "currentSumUa", width: 20 },
+    { header: "Interface", key: "interface", width: 32 },
+    { header: "Output Function", key: "outputFunction", width: 30 },
+    { header: "Output Characteristic", key: "outputCharacteristic", width: 30 },
+    { header: "IP Rating", key: "ipRating", width: 16 },
+    { header: "Protection", key: "protection", width: 24 },
+    { header: "Material", key: "material", width: 30 },
+    { header: "Housing Material", key: "housingMaterial", width: 30 },
+    { header: "Dimensions", key: "dimensions", width: 28 },
+    { header: "Weight (kg)", key: "weightKg", width: 14, style: { numFmt: "0.#########" } },
+    { header: "Ambient Temperature", key: "ambientTemperature", width: 28 },
+    { header: "Approval/Conformity", key: "approvalConformity", width: 34 },
+    { header: "Certificates", key: "certificates", width: 34 },
+    { header: "ECLASS", key: "eclass", width: 18 },
+    { header: "ETIM", key: "etim", width: 18 },
+    { header: "UNSPSC", key: "unspsc", width: 18 },
+    { header: "Tariff Code (HS)", key: "tariffCode", width: 18 },
+    { header: "Country of Origin", key: "countryOfOrigin", width: 22 },
+    { header: "Product Status", key: "productStatus", width: 22 },
+    { header: "Recommended Alternative", key: "recommendedAlternative", width: 34 },
+    { header: "Missing Key Fields", key: "missingKeyFields", width: 48 }
+  ];
+
+  for (const [index, row] of productRows.entries()) {
+    const result = items[index]?.result;
+    const attributes = result?.attributes ?? [];
+    const lookup = lookupRow(row, result);
+    const coverage = fieldCoverageForRow(row);
+    const priorityScore = reviewPriorityScore(row);
+    sheet.addRow({
+      manufacturer: row.manufacturer,
+      catalogNumber: row.catalogNumber,
+      status: row.status,
+      reviewPriority: reviewReason(row) ? reviewPriorityLabel(priorityScore) : undefined,
+      coverageScore: coverage.score,
+      productType: row.productType,
+      title: row.title,
+      productUrl: row.productUrlEn ?? row.productUrl,
+      datasheetUrl: lookup.primaryDatasheetUrl,
+      imageUrl: row.imageUrl,
+      connection1: matrixAttribute(attributes, [/^connection 1$/i]),
+      connection2: matrixAttribute(attributes, [/^connection 2$/i]),
+      connection: matrixAttribute(attributes, [/^connection$/i, /^electrical connection$/i, /^connector(?: type| design)?$/i]),
+      cable: matrixAttribute(attributes, [/^cable$/i, /^cable type$/i]),
+      cableLength: matrixAttribute(attributes, [/^cable length(?: l)?$/i], row.lengthMm !== undefined ? `${row.lengthMm} mm` : undefined),
+      operatingVoltageUb: matrixAttribute(attributes, [/^operating voltage(?: ub| ur)?$/i, /^supply voltage/i], row.operatingVoltageUb),
+      voltage: row.voltage,
+      ratedCurrent: matrixAttribute(attributes, [/^rated current/i, /^rated operating current/i], row.ratedCurrent),
+      current: row.current,
+      currentSumUs: matrixAttribute(attributes, [/^current sum us/i], row.currentSumUs),
+      currentSumUa: matrixAttribute(attributes, [/^current sum ua/i], row.currentSumUa),
+      interface: matrixAttribute(attributes, [/^interface$/i, /^auxiliary interfaces$/i]),
+      outputFunction: matrixAttribute(attributes, [/^output function$/i, /^switching output$/i]),
+      outputCharacteristic: matrixAttribute(attributes, [/^output characteristic$/i, /^discrete output function$/i]),
+      ipRating: row.ipRating,
+      protection: row.protection,
+      material: row.material,
+      housingMaterial: matrixAttribute(attributes, [/^housing material$/i, /^material housing$/i]),
+      dimensions: matrixAttribute(attributes, [/^dimension$/i, /^dimensions?$/i], row.heightMm !== undefined && row.widthMm !== undefined ? `${row.heightMm} x ${row.widthMm}${row.depthMm !== undefined ? ` x ${row.depthMm}` : ""} mm` : undefined),
+      weightKg: row.weightKg,
+      ambientTemperature: matrixAttribute(attributes, [/^ambient temperature$/i, /^operating temperature$/i, /^temperature range$/i], row.operatingTemperature),
+      approvalConformity: matrixAttribute(attributes, [/^approval\/conformity$/i, /^approvals?$/i, /^certifications?$/i]),
+      certificates: row.certificates,
+      eclass: matrixAttribute(attributes, [/^eclass/i]),
+      etim: matrixAttribute(attributes, [/^etim/i]),
+      unspsc: matrixAttribute(attributes, [/^unspsc/i]),
+      tariffCode: matrixAttribute(attributes, [/^tariff code/i, /^hs code$/i], row.tariffCode),
+      countryOfOrigin: matrixAttribute(attributes, [/^country of origin$/i], row.countryOfOrigin),
+      productStatus: matrixAttribute(attributes, [/^product status$/i, /^product sales status$/i, /^lifecycle status$/i]),
+      recommendedAlternative: matrixAttribute(attributes, [/^recommended alternative$/i, /^replacement product$/i]),
+      missingKeyFields: coverage.missing.join("; ") || undefined
+    });
+  }
+}
+
+function populateChecksSheet(sheet: ExcelJS.Worksheet, productRows: ProductExportRow[]) {
+  sheet.columns = [
+    { header: "Severity", key: "severity", width: 12 },
+    { header: "Check", key: "check", width: 28 },
+    { header: "Catalog Number", key: "catalogNumber", width: 24 },
+    { header: "Status", key: "status", width: 12 },
+    { header: "Details", key: "details", width: 68 },
+    { header: "Suggested Action", key: "suggestedAction", width: 46 },
+    { header: "Product URL", key: "productUrl", width: 60 }
+  ];
+
+  for (const [catalogNumber, rows] of duplicateCatalogRows(productRows)) {
+    for (const row of rows) {
+      sheet.addRow({
+        severity: "High",
+        check: "Duplicate catalog number",
+        catalogNumber,
+        status: row.status,
+        details: `${rows.length} rows use this catalog number.`,
+        suggestedAction: "Confirm whether this is intended before importing/exporting.",
+        productUrl: row.productUrlEn ?? row.productUrl
+      });
+    }
+  }
+
+  for (const row of productRows) {
+    const coverage = fieldCoverageForRow(row);
+    addCheckRow(sheet, row, row.status === "failed", "High", "Failed scrape", row.error ?? "No usable product result.", "Open source URL or rerun with final retry enabled.");
+    addCheckRow(sheet, row, row.status === "partial", "Medium", "Partial scrape", row.error ?? "Product result is incomplete.", "Review product page, documents, and missing fields.");
+    addCheckRow(sheet, row, Boolean(row.error), "High", "Scrape error", row.error, "Inspect run log and source page.");
+    addCheckRow(sheet, row, coverage.score < 0.6, "Medium", "Low coverage", `${Math.round(coverage.score * 100)}% coverage. Missing: ${coverage.missing.join("; ")}`, "Review missing fields or confirm not published.");
+    addCheckRow(sheet, row, Boolean(row.missingRequiredFields), "Medium", "Missing required fields", row.missingRequiredFields, "Fill manually or confirm not applicable.");
+    addCheckRow(sheet, row, row.qualityPassed === false, "Medium", "Quality gate failed", row.qualityMissing, "Review quality missing fields.");
+    addCheckRow(sheet, row, !row.productUrlEn && !row.productUrl, "High", "Missing product URL", "No source product URL exported.", "Check source discovery and localized URL mapping.");
+    addCheckRow(sheet, row, !hasDocumentSummaryType(row.downloads, "Datasheet"), "Medium", "Missing datasheet", "No datasheet document found.", "Check Downloads or manufacturer document portal.");
+    addCheckRow(sheet, row, !row.imageUrl, "Low", "Missing image", "No product image URL found.", "Check image-only run or source page media.");
+  }
+
+  if (sheet.rowCount === 1) {
+    sheet.addRow({
+      severity: "Info",
+      check: "No issues",
+      details: "No duplicate catalog numbers, failed rows, low coverage rows, missing datasheets, or missing images were detected."
+    });
+  }
+}
+
+function matrixAttribute(attributes: ProductResult["attributes"], namePatterns: RegExp[], fallback?: string): string | undefined {
+  return firstAttributeValue(attributes, namePatterns, 500) ?? compactSpecValue(fallback, 500);
+}
+
+function duplicateCatalogRows(productRows: ProductExportRow[]): Map<string, ProductExportRow[]> {
+  const byCatalog = new Map<string, ProductExportRow[]>();
+  for (const row of productRows) {
+    const key = cleanText(row.catalogNumber).toUpperCase();
+    if (!key) continue;
+    byCatalog.set(key, [...(byCatalog.get(key) ?? []), row]);
+  }
+  return new Map([...byCatalog.entries()].filter(([, rows]) => rows.length > 1));
+}
+
+function addCheckRow(
+  sheet: ExcelJS.Worksheet,
+  row: ProductExportRow,
+  condition: boolean,
+  severity: "High" | "Medium" | "Low",
+  check: string,
+  details: string | undefined,
+  suggestedAction: string
+) {
+  if (!condition) return;
+  sheet.addRow({
+    severity,
+    check,
+    catalogNumber: row.catalogNumber,
+    status: row.status,
+    details,
+    suggestedAction,
+    productUrl: row.productUrlEn ?? row.productUrl
+  });
+}
+
+function reviewReason(row: ProductExportRow): string | undefined {
+  const confidence = Number(row.confidence ?? 0);
+  const coverage = fieldCoverageForRow(row);
+  const reasons = [
+    row.status === "failed" ? "Failed scrape" : undefined,
+    row.status === "partial" ? "Partial scrape" : undefined,
+    confidence > 0 && confidence < 0.65 ? `Low confidence: ${confidence}` : undefined,
+    coverage.score < 0.6 ? `Low coverage: ${Math.round(coverage.score * 100)}%` : undefined,
+    row.qualityPassed === false ? "Quality gate failed" : undefined,
+    row.attributeCount === 0 ? "No attributes" : undefined,
+    row.documentCount === 0 ? "No documents" : undefined,
+    !row.productUrlEn ? "Missing product URL" : undefined,
+    !row.imageUrl ? "Missing image" : undefined,
+    !hasDocumentSummaryType(row.downloads, "Datasheet") ? "Missing datasheet" : undefined,
+    row.missingRequiredFields ? `Missing: ${row.missingRequiredFields}` : undefined,
+    row.error ? "Has error" : undefined
+  ].filter((value): value is string => Boolean(value));
+  return reasons.join("; ") || undefined;
+}
+
+function reviewPriorityScore(row: ProductExportRow): number {
+  const confidence = Number(row.confidence ?? 0);
+  const coverage = fieldCoverageForRow(row);
+  let score = 0;
+  if (row.status === "failed") score += 100;
+  if (row.status === "partial") score += 70;
+  if (row.error) score += 60;
+  if (row.qualityPassed === false) score += 45;
+  if (row.missingRequiredFields) score += 35;
+  if (coverage.score < 0.6) score += 30;
+  if (confidence > 0 && confidence < 0.65) score += 20;
+  if (row.attributeCount === 0) score += 15;
+  if (row.documentCount === 0) score += 12;
+  if (!row.productUrlEn) score += 10;
+  if (!hasDocumentSummaryType(row.downloads, "Datasheet")) score += 8;
+  if (!row.imageUrl) score += 5;
+  return score;
+}
+
+function reviewPriorityLabel(score: number): "High" | "Medium" | "Low" {
+  if (score >= 70) return "High";
+  if (score >= 30) return "Medium";
+  return "Low";
+}
+
+function exportDecision(row: ProductExportRow): "Import" | "Review" | "Exclude" {
+  const status = cleanText(String(row.status ?? "")).toLowerCase();
+  if (status === "failed" || status === "cancelled") return "Exclude";
+  return reviewReason(row) ? "Review" : "Import";
+}
+
+function qualityTier(score: number): "Complete" | "Good" | "Usable" | "Sparse" | "No data" {
+  if (score >= 0.9) return "Complete";
+  if (score >= 0.75) return "Good";
+  if (score >= 0.6) return "Usable";
+  if (score > 0) return "Sparse";
+  return "No data";
+}
+
+interface IssueSummaryRow {
+  issueType: string;
+  severity: "High" | "Medium" | "Low" | "Info";
+  rows: number;
+  highPriorityRows: number;
+  mediumPriorityRows: number;
+  lowPriorityRows: number;
+  catalogNumbers: string;
+  suggestedAction: string;
+  firstReviewRow: number;
+  sheetRow: number;
+}
+
+function issueSummaryRows(productRows: ProductExportRow[]): IssueSummaryRow[] {
+  const reviewRows = reviewRowByProductIndex(productRows);
+  const byIssue = new Map<
+    string,
+    {
+      catalogs: string[];
+      highPriorityRows: number;
+      mediumPriorityRows: number;
+      lowPriorityRows: number;
+      firstReviewRow: number;
+    }
+  >();
+
+  for (const [index, row] of productRows.entries()) {
+    const issues = splitReviewIssueTypes(reviewIssueType(row));
+    if (!issues.length) continue;
+    const priority = reviewPriorityLabel(reviewPriorityScore(row));
+    const reviewRow = reviewRows.get(index) ?? 2;
+    for (const issue of issues) {
+      const entry = byIssue.get(issue) ?? {
+        catalogs: [],
+        highPriorityRows: 0,
+        mediumPriorityRows: 0,
+        lowPriorityRows: 0,
+        firstReviewRow: reviewRow
+      };
+      entry.catalogs.push(row.catalogNumber);
+      if (priority === "High") entry.highPriorityRows += 1;
+      if (priority === "Medium") entry.mediumPriorityRows += 1;
+      if (priority === "Low") entry.lowPriorityRows += 1;
+      entry.firstReviewRow = Math.min(entry.firstReviewRow, reviewRow);
+      byIssue.set(issue, entry);
+    }
+  }
+
+  return [...byIssue.entries()]
+    .map(([issueType, entry]) => {
+      const severity: IssueSummaryRow["severity"] = entry.highPriorityRows ? "High" : entry.mediumPriorityRows ? "Medium" : entry.lowPriorityRows ? "Low" : "Info";
+      return {
+        issueType,
+        severity,
+        rows: entry.catalogs.length,
+        highPriorityRows: entry.highPriorityRows,
+        mediumPriorityRows: entry.mediumPriorityRows,
+        lowPriorityRows: entry.lowPriorityRows,
+        catalogNumbers: compactCatalogList(uniqueStrings(entry.catalogs), 25),
+        suggestedAction: suggestedActionForIssueType(issueType),
+        firstReviewRow: entry.firstReviewRow,
+        sheetRow: 0
+      };
+    })
+    .sort((left, right) => severityRank(left.severity) - severityRank(right.severity) || right.rows - left.rows || left.issueType.localeCompare(right.issueType, undefined, { sensitivity: "base" }))
+    .map((issue, index) => ({ ...issue, sheetRow: index + 2 }));
+}
+
+function splitReviewIssueTypes(value: string | undefined): string[] {
+  return uniqueStrings(
+    cleanText(value)
+      .split(/\s*;\s*/)
+      .map((issue) => cleanText(issue))
+      .filter(Boolean)
+  );
+}
+
+function severityRank(value: "High" | "Medium" | "Low" | "Info"): number {
+  return value === "High" ? 1 : value === "Medium" ? 2 : value === "Low" ? 3 : 4;
+}
+
+function compactCatalogList(values: string[], maxItems: number): string {
+  if (values.length <= maxItems) return values.join("; ");
+  return `${values.slice(0, maxItems).join("; ")}; +${values.length - maxItems} more`;
+}
+
+function suggestedActionForIssueType(issueType: string): string {
+  const normalized = issueType.toLowerCase();
+  if (normalized === "failed scrape") return "Rerun failed rows or inspect source URLs and run logs.";
+  if (normalized === "partial scrape") return "Review source pages and fill missing product fields before import.";
+  if (normalized === "scrape error") return "Inspect run logs, source pages, and connector parsing for affected rows.";
+  if (normalized === "missing required fields") return "Fill required fields manually or confirm they are not applicable.";
+  if (normalized === "low coverage") return "Open Field Coverage and prioritize high-value missing fields.";
+  if (normalized === "quality gate") return "Review quality missing fields and source evidence.";
+  if (normalized === "low confidence") return "Verify catalog/product match against the official product page.";
+  if (normalized === "no attributes") return "Check extraction rules and source page structure for missing specs.";
+  if (normalized === "no documents") return "Search manufacturer document portals and add relevant URLs.";
+  if (normalized === "missing product url") return "Find and confirm official product URLs.";
+  if (normalized === "missing datasheet") return "Add a datasheet URL or confirm no datasheet is published.";
+  if (normalized === "missing image") return "Add a product image URL/file or confirm image is not required.";
+  return "Open Needs Review and resolve affected rows before import.";
+}
+
+interface ReviewQueueItem {
+  row: ProductExportRow;
+  index: number;
+  reason: string;
+  coverage: FieldCoverage;
+  priorityScore: number;
+  priorityLabel: "High" | "Medium" | "Low";
+}
+
+function reviewQueueItems(productRows: ProductExportRow[]): ReviewQueueItem[] {
+  return productRows
+    .map((row, index) => {
+      const reason = reviewReason(row);
+      const priorityScore = reviewPriorityScore(row);
+      return {
+        row,
+        index,
+        reason,
+        coverage: fieldCoverageForRow(row),
+        priorityScore,
+        priorityLabel: reviewPriorityLabel(priorityScore)
+      };
+    })
+    .filter((item): item is ReviewQueueItem => Boolean(item.reason))
+    .sort((left, right) => right.priorityScore - left.priorityScore || left.row.catalogNumber.localeCompare(right.row.catalogNumber, undefined, { sensitivity: "base" }));
+}
+
+interface WorkbookReadiness {
+  status: string;
+  detail: string;
+  nextStep: string;
+  importReadyCount: number;
+  totalRows: number;
+  reviewDetail: string;
+}
+
+function workbookReadiness(productRows: ProductExportRow[], reviewQueue: ReviewQueueItem[]): WorkbookReadiness {
+  const totalRows = productRows.length;
+  const importReadyCount = totalRows - reviewQueue.length;
+  const priorityCounts = countValues(reviewQueue.map((item) => item.priorityLabel));
+  const high = priorityCounts.get("High") ?? 0;
+  const medium = priorityCounts.get("Medium") ?? 0;
+  const low = priorityCounts.get("Low") ?? 0;
+  const reviewDetail = reviewQueue.length ? `High: ${high}; Medium: ${medium}; Low: ${low}` : "No review rows";
+
+  if (!totalRows) {
+    return {
+      status: "No rows exported",
+      detail: "The workbook structure is ready, but this run did not contain product rows.",
+      nextStep: "Run the scraper with at least one catalog number.",
+      importReadyCount,
+      totalRows,
+      reviewDetail
+    };
+  }
+
+  if (high > 0) {
+    return {
+      status: "Needs review before import",
+      detail: `${importReadyCount}/${totalRows} rows are import-ready. ${reviewDetail}.`,
+      nextStep: "Open Needs Review and resolve high-priority rows first.",
+      importReadyCount,
+      totalRows,
+      reviewDetail
+    };
+  }
+
+  if (medium > 0) {
+    return {
+      status: "Review recommended",
+      detail: `${importReadyCount}/${totalRows} rows are import-ready. ${reviewDetail}.`,
+      nextStep: "Open Needs Review, clear medium-priority issues, then use Import Ready.",
+      importReadyCount,
+      totalRows,
+      reviewDetail
+    };
+  }
+
+  if (low > 0) {
+    return {
+      status: "Ready with minor notes",
+      detail: `${importReadyCount}/${totalRows} rows are import-ready. ${reviewDetail}.`,
+      nextStep: "Use Import Ready; optionally review low-priority notes.",
+      importReadyCount,
+      totalRows,
+      reviewDetail
+    };
+  }
+
+  return {
+    status: "Ready for import",
+    detail: `${importReadyCount}/${totalRows} rows are import-ready.`,
+    nextStep: "Use Import Ready as the direct-import product export.",
+    importReadyCount,
+    totalRows,
+    reviewDetail
+  };
+}
+
+function reviewIssueType(row: ProductExportRow): string | undefined {
+  const confidence = Number(row.confidence ?? 0);
+  const coverage = fieldCoverageForRow(row);
+  const issues = [
+    row.status === "failed" ? "Failed scrape" : undefined,
+    row.status === "partial" ? "Partial scrape" : undefined,
+    row.error ? "Scrape error" : undefined,
+    row.missingRequiredFields ? "Missing required fields" : undefined,
+    coverage.score < 0.6 ? "Low coverage" : undefined,
+    row.qualityPassed === false ? "Quality gate" : undefined,
+    confidence > 0 && confidence < 0.65 ? "Low confidence" : undefined,
+    row.attributeCount === 0 ? "No attributes" : undefined,
+    row.documentCount === 0 ? "No documents" : undefined,
+    !row.productUrlEn && !row.productUrl ? "Missing product URL" : undefined,
+    !hasDocumentSummaryType(row.downloads, "Datasheet") ? "Missing datasheet" : undefined,
+    !row.imageUrl ? "Missing image" : undefined
+  ].filter((value): value is string => Boolean(value));
+  return uniqueStrings(issues).slice(0, 5).join("; ") || undefined;
+}
+
+function reviewSuggestedAction(row: ProductExportRow): string | undefined {
+  const confidence = Number(row.confidence ?? 0);
+  const coverage = fieldCoverageForRow(row);
+  if (row.status === "failed") return "Rerun this item or inspect the source URL and run log.";
+  if (row.error) return "Inspect the run log and source page, then rerun or correct the row manually.";
+  if (!row.productUrlEn && !row.productUrl) return "Find and confirm the official product URL.";
+  if (row.missingRequiredFields) return `Fill or confirm required fields: ${row.missingRequiredFields}.`;
+  if (row.qualityPassed === false) return "Review quality missing fields and source evidence.";
+  if (coverage.score < 0.6) return "Open Field Coverage and fill the highest-value missing fields.";
+  if (!hasDocumentSummaryType(row.downloads, "Datasheet")) return "Add a datasheet URL or confirm the manufacturer does not publish one.";
+  if (!row.imageUrl) return "Add a product image URL/file or confirm image is not required.";
+  if (row.documentCount === 0) return "Check the manufacturer document portal and add relevant document URLs.";
+  if (row.attributeCount === 0) return "Check extraction and source page structure for missing specifications.";
+  if (confidence > 0 && confidence < 0.65) return "Open the product page and verify the catalog match.";
+  return undefined;
+}
+
+function reviewRowByProductIndex(productRows: ProductExportRow[]): Map<number, number> {
+  const rows = new Map<number, number>();
+  for (const [queueIndex, item] of reviewQueueItems(productRows).entries()) {
+    rows.set(item.index, queueIndex + 2);
+  }
+  return rows;
+}
+
+function documentReadyStatus(doc: ProductResult["documents"][number]): "Yes" | "No" {
+  if (doc.downloadStatus === "failed" || doc.parseStatus === "failed") return "No";
+  return doc.url || doc.localPath || doc.candidateUrls?.length ? "Yes" : "No";
+}
+
+function documentCountsByType(documents: ProductResult["documents"]): Map<ProductResult["documents"][number]["type"], number> {
+  const counts = new Map<ProductResult["documents"][number]["type"], number>();
+  for (const doc of documents) {
+    counts.set(doc.type, (counts.get(doc.type) ?? 0) + 1);
+  }
+  return counts;
+}
+
+function hasDocumentSummaryType(value: string | undefined, label: string): boolean {
+  return new RegExp(`(?:^|\\n)${escapeRegExp(label)}:`, "i").test(value ?? "");
+}
+
+interface FieldCoverage {
+  score: number;
+  presentCount: number;
+  totalCount: number;
+  missing: string[];
+  statusByField: Map<string, "OK" | "Missing">;
+}
+
+function fieldCoverageForRow(row: ProductExportRow): FieldCoverage {
+  const checks: Array<[string, boolean]> = [
+    ["Product URL", Boolean(row.productUrlEn || row.productUrl)],
+    ["Image", Boolean(row.imageUrl)],
+    ["Datasheet", hasDocumentSummaryType(row.downloads, "Datasheet")],
+    ["Product Type", Boolean(row.productType)],
+    ["Weight", row.weightKg !== undefined || row.weightLb !== undefined],
+    ["Dimensions", [row.heightMm, row.widthMm, row.depthMm, row.lengthMm, row.heightIn, row.widthIn, row.depthIn, row.lengthIn].some((value) => value !== undefined)],
+    ["Material", Boolean(row.material)],
+    ["Voltage", Boolean(row.voltage)],
+    ["Current", Boolean(row.current || row.ratedCurrent)],
+    ["Protection / IP", Boolean(row.ipRating || row.protection)],
+    ["Certificates", Boolean(row.certificates)]
+  ];
+  const missing = checks.filter(([, present]) => !present).map(([label]) => label);
+  const presentCount = checks.length - missing.length;
+  return {
+    score: checks.length ? Number((presentCount / checks.length).toFixed(4)) : 0,
+    presentCount,
+    totalCount: checks.length,
+    missing,
+    statusByField: new Map(checks.map(([label, present]) => [label, present ? "OK" : "Missing"]))
+  };
+}
+
+function cleanAttributesForExport(attributes: ProductResult["attributes"]): ProductResult["attributes"] {
+  return sortAttributes(attributes).filter(isUserFacingAttribute);
+}
+
+function isUserFacingAttribute(attr: ProductResult["attributes"][number]): boolean {
+  const name = cleanText(attr.name);
+  const value = cleanText(attr.value);
+  const group = cleanText(attr.group);
+  if (!name || !value) return false;
+  if (!usefulSummaryValue(value)) return false;
+  if (name.length > 120 || value.length > 1000) return false;
+  if (/^(?:@context|@type|url|image|images|thumbnail|thumbnail url|canonical url)$/i.test(name)) return false;
+  if (/^(?:og:|twitter:)/i.test(name) && /\b(?:image|url|site_name|locale|type)\b/i.test(name)) return false;
+  if (/^meta$/i.test(group) && /\b(?:image|url|site_name|locale|type)\b/i.test(name)) return false;
+  if (/^(?:show more|show less|downloads?|classifications?|key features|digital product passport|contact request|retrieve data)$/i.test(name)) return false;
+  if (/^https?:\/\/\S+$/i.test(value) && /\b(?:image|url|href|link)\b/i.test(name)) return false;
+  if (/[{}]|var\(--|@media|display\s*:|calc\(/i.test(`${name} ${value}`)) return false;
+  return true;
+}
+
+function cleanAttributeCategory(attr: ProductResult["attributes"][number]): string {
+  const label = `${attr.group ?? ""} ${attr.name}`.toLowerCase();
+  if (/eclass|etim|unspsc|classification/.test(label)) return "Classification";
+  if (/approval|conform|cert|standard|rohs|reach|weee|ul\b|csa\b|ce\b|ukca|compliance/.test(label)) return "Compliance";
+  if (/voltage|current|power|frequency|interface|output|input|switching|io-link|port|supply/.test(label)) return "Electrical";
+  if (/dimension|height|width|depth|length|weight|material|housing|mount|connection|cable|thread|temperature|ip rating|protection/.test(label)) return "Mechanical";
+  if (/status|availability|replacement|alternative|price|tariff|country of origin|commercial|lifecycle|ean|gtin|upc/.test(label)) return "Commercial";
+  if (/sku|mpn|catalog|part number|product id|alternate|product label|product variant|type|series|range|family|description/.test(label)) return "Identity";
+  return "Other";
+}
+
+
+function addSummarySection(sheet: ExcelJS.Worksheet, row: number, title: string): number {
+  sheet.mergeCells(row, 1, row, 4);
+  const cell = sheet.getCell(row, 1);
+  cell.value = title;
+  cell.font = { bold: true, color: { argb: "FFFFFFFF" } };
+  cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF334155" } };
+  cell.alignment = { vertical: "middle", horizontal: "left" };
+  sheet.getRow(row).height = 22;
+  return row + 1;
+}
+
+function addSummaryMetric(
+  sheet: ExcelJS.Worksheet,
+  row: number,
+  metric: string,
+  value: string | number | boolean | undefined,
+  detail?: string,
+  hyperlink?: string
+): number {
+  sheet.getCell(row, 1).value = metric;
+  const valueCell = sheet.getCell(row, 2);
+  const displayValue = value === undefined || value === "" ? "n/a" : value;
+  valueCell.value = hyperlink ? { text: String(displayValue), hyperlink, tooltip: `Open ${metric}` } : displayValue;
+  if (hyperlink) valueCell.font = { color: { argb: "FF2563EB" }, underline: true };
+  sheet.getCell(row, 3).value = detail;
+  return row + 1;
+}
+
+function internalSheetHyperlink(sheetName: string, row = 1, column = "A"): string {
+  return `#'${sheetName.replace(/'/g, "''")}'!${column}${row}`;
+}
+
+function styleRunSummarySheet(sheet: ExcelJS.Worksheet) {
+  sheet.getCell("A1").font = { bold: true, size: 16, color: { argb: "FFFFFFFF" } };
+  sheet.getCell("A1").fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF0F172A" } };
+  sheet.getCell("A1").alignment = { vertical: "middle", horizontal: "left" };
+  sheet.getRow(1).height = 28;
+  sheet.getRow(2).font = { italic: true, color: { argb: "FF475569" } };
+  sheet.eachRow((row, rowNumber) => {
+    row.alignment = { vertical: "top", wrapText: rowNumber !== 1 };
+    if (rowNumber > 2 && rowNumber % 2 === 0 && !row.getCell(1).isMerged) {
+      row.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF8FAFC" } };
+    }
+  });
+  sheet.getColumn(2).numFmt = "#,##0";
+  styleRunSummaryReadiness(sheet);
+}
+
+function styleRunSummaryReadiness(sheet: ExcelJS.Worksheet) {
+  for (let rowNumber = 1; rowNumber <= sheet.rowCount; rowNumber += 1) {
+    if (cleanText(String(sheet.getRow(rowNumber).getCell(1).value ?? "")) !== "Workbook status") continue;
+    const cell = sheet.getRow(rowNumber).getCell(2);
+    const value = cleanText(cell.text || String(cell.value ?? ""));
+    const fill =
+      value === "Ready for import"
+        ? "FFDCFCE7"
+        : value === "Ready with minor notes"
+          ? "FFE0F2FE"
+          : value === "Review recommended"
+            ? "FFFEF3C7"
+            : value === "Needs review before import"
+              ? "FFFEE2E2"
+              : "FFE2E8F0";
+    cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: fill } };
+    cell.font = { ...(cell.font ?? {}), bold: true, color: { argb: "FF111827" } };
+    cell.alignment = { vertical: "middle", horizontal: "center" };
+  }
+}
+
+function countValues(values: string[]): Map<string, number> {
+  const counts = new Map<string, number>();
+  for (const value of values.map((item) => cleanText(item)).filter(Boolean)) {
+    counts.set(value, (counts.get(value) ?? 0) + 1);
+  }
+  return counts;
+}
+
+function sortedCountEntries(counts: Map<string, number>): Array<[string, number]> {
+  return [...counts.entries()].sort((left, right) => right[1] - left[1] || left[0].localeCompare(right[0], undefined, { sensitivity: "base" }));
+}
+
+function splitSummaryList(value: string | undefined): string[] {
+  return cleanText(value)
+    .split(/\s*;\s*/)
+    .map((item) => cleanText(item))
+    .filter(Boolean);
 }
 
 function lookupRow(row: ReturnType<typeof productRow>, result?: ProductResult) {
@@ -390,6 +1751,11 @@ function lookupRow(row: ReturnType<typeof productRow>, result?: ProductResult) {
     downloads: singleLineForLookup(row.downloads),
     allResources: singleLineForLookup(row.allResources),
     allSpecifications: singleLineForLookup(row.allSpecifications),
+    primaryDatasheetUrl: primaryDocumentUrlForLookup(documents, "datasheet"),
+    primaryManualUrl: primaryDocumentUrlForLookup(documents, "manual"),
+    primaryCadUrl: primaryDocumentUrlForLookup(documents, "cad"),
+    primaryCertificateUrl: primaryDocumentUrlForLookup(documents, "certificate"),
+    primaryOtherUrl: primaryDocumentUrlForLookup(documents, "other"),
     datasheetUrls: documentUrlsForLookup(documents, "datasheet"),
     manualUrls: documentUrlsForLookup(documents, "manual"),
     cadUrls: documentUrlsForLookup(documents, "cad"),
@@ -397,6 +1763,13 @@ function lookupRow(row: ReturnType<typeof productRow>, result?: ProductResult) {
     otherUrls: documentUrlsForLookup(documents, "other"),
     allDocumentUrls: documentUrlsForLookup(documents)
   };
+}
+
+function primaryDocumentUrlForLookup(documents: ProductResult["documents"], type: ProductResult["documents"][number]["type"]): string | undefined {
+  return documents
+    .filter((doc) => doc.type === type && Boolean(doc.url))
+    .sort((left, right) => documentSummaryRank(left) - documentSummaryRank(right) || cleanText(left.label).localeCompare(cleanText(right.label), undefined, { sensitivity: "base" }))[0]
+    ?.url;
 }
 
 function documentUrlsForLookup(documents: ProductResult["documents"], type?: ProductResult["documents"][number]["type"]): string | undefined {
@@ -2327,6 +3700,298 @@ function styleSheet(sheet: ExcelJS.Worksheet) {
   });
 }
 
+function applyUsabilityFormatting(sheet: ExcelJS.Worksheet) {
+  linkifyWorksheet(sheet);
+  styleHyperlinkObjects(sheet);
+  styleStatusColumn(sheet);
+  styleExportDecisionColumn(sheet);
+  styleReviewPriorityColumn(sheet);
+  styleSeverityColumn(sheet);
+  styleActionColumn(sheet, "Action Needed");
+  styleActionColumn(sheet, "Suggested Action");
+  applyReviewWorkflowFormatting(sheet);
+  styleYesNoColumn(sheet, "Import Ready");
+  styleYesNoColumn(sheet, "Document Ready");
+  styleYesNoColumn(sheet, "Fix Needed");
+  styleYesNoColumn(sheet, "Primary");
+  styleBooleanColumn(sheet, "Quality Gate Passed");
+  styleCoverageScoreColumn(sheet);
+  styleConfidenceColumn(sheet);
+  styleQualityTierColumn(sheet);
+  styleOkMissingCells(sheet);
+}
+
+function applyWorkbookUsability(workbook: ExcelJS.Workbook) {
+  workbook.eachSheet((sheet) => {
+    const color = sheetTabColor(sheet.name);
+    if (color) sheet.properties.tabColor = { argb: color };
+  });
+}
+
+function sheetTabColor(sheetName: string): string | undefined {
+  if (sheetName === "Run Summary") return "FF0F172A";
+  if (sheetName === "Clean Export") return "FF166534";
+  if (sheetName === "Import Ready") return "FF15803D";
+  if (sheetName === "Needs Review") return "FFB45309";
+  if (sheetName === "Issue Summary") return "FFE11D48";
+  if (sheetName === "Column Guide") return "FF0891B2";
+  if (sheetName === "Checks" || sheetName === "Final Audit") return "FFB91C1C";
+  if (sheetName.startsWith("Clean ")) return "FF2563EB";
+  if (["Products", "Attributes", "Documents", "Sources", "Evidence", "Failures"].includes(sheetName)) return "FF64748B";
+  if (sheetName === "XLOOKUP" || sheetName === "Field Coverage" || sheetName === "Spec Matrix") return "FF7C3AED";
+  return undefined;
+}
+
+function styleHyperlinkObjects(sheet: ExcelJS.Worksheet) {
+  sheet.eachRow((row) => {
+    row.eachCell((cell) => {
+      if (!cell.hyperlink) return;
+      cell.font = { ...(cell.font ?? {}), color: { argb: "FF2563EB" }, underline: true };
+    });
+  });
+}
+
+function linkifyWorksheet(sheet: ExcelJS.Worksheet) {
+  for (let columnNumber = 1; columnNumber <= sheet.columnCount; columnNumber += 1) {
+    const header = cleanText(String(sheet.getRow(1).getCell(columnNumber).value ?? ""));
+    if (!/\burl\b/i.test(header) && !/\blocal path\b/i.test(header)) continue;
+    for (let rowNumber = 2; rowNumber <= sheet.rowCount; rowNumber += 1) {
+      const cell = sheet.getRow(rowNumber).getCell(columnNumber);
+      if (typeof cell.value !== "string") continue;
+      const target = singleCellHyperlinkTarget(cell.value);
+      if (!target) continue;
+      const text = cell.value;
+      cell.value = { text, hyperlink: target, tooltip: text };
+      cell.font = { ...(cell.font ?? {}), color: { argb: "FF2563EB" }, underline: true };
+    }
+  }
+}
+
+function singleCellHyperlinkTarget(value: string): string | undefined {
+  const text = value.trim();
+  if (!text || /[\r\n;]/.test(text)) return undefined;
+  if (/^https?:\/\/\S+$/i.test(text)) return text;
+  if (/^[a-z]:[\\/]/i.test(text)) {
+    try {
+      return pathToFileURL(path.resolve(text)).toString();
+    } catch {
+      return undefined;
+    }
+  }
+  return undefined;
+}
+
+function styleStatusColumn(sheet: ExcelJS.Worksheet) {
+  const statusColumn = headerColumnNumber(sheet, "Status");
+  if (!statusColumn) return;
+  for (let rowNumber = 2; rowNumber <= sheet.rowCount; rowNumber += 1) {
+    const cell = sheet.getRow(rowNumber).getCell(statusColumn);
+    const status = cleanText(cell.text || String(cell.value ?? "")).toLowerCase();
+    if (!status) continue;
+    const color =
+      status === "found" || status === "completed"
+        ? "FFDCFCE7"
+        : status === "partial" || status === "running"
+          ? "FFFEF3C7"
+          : status === "failed" || status === "cancelled"
+            ? "FFFEE2E2"
+            : undefined;
+    if (!color) continue;
+    cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: color } };
+    cell.font = { ...(cell.font ?? {}), bold: true, color: { argb: "FF111827" } };
+    cell.alignment = { vertical: "middle", horizontal: "center" };
+  }
+}
+
+function styleExportDecisionColumn(sheet: ExcelJS.Worksheet) {
+  const columnNumber = headerColumnNumber(sheet, "Export Decision");
+  if (!columnNumber) return;
+  for (let rowNumber = 2; rowNumber <= sheet.rowCount; rowNumber += 1) {
+    const cell = sheet.getRow(rowNumber).getCell(columnNumber);
+    const value = cleanText(cell.text || String(cell.value ?? ""));
+    const color = value === "Import" ? "FFDCFCE7" : value === "Review" ? "FFFEF3C7" : value === "Exclude" ? "FFFEE2E2" : undefined;
+    if (!color) continue;
+    cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: color } };
+    cell.font = { ...(cell.font ?? {}), bold: true, color: { argb: "FF111827" } };
+    cell.alignment = { vertical: "middle", horizontal: "center" };
+  }
+}
+
+function styleBooleanColumn(sheet: ExcelJS.Worksheet, headerName: string) {
+  const columnNumber = headerColumnNumber(sheet, headerName);
+  if (!columnNumber) return;
+  for (let rowNumber = 2; rowNumber <= sheet.rowCount; rowNumber += 1) {
+    const cell = sheet.getRow(rowNumber).getCell(columnNumber);
+    if (cell.value !== true && cell.value !== false) continue;
+    cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: cell.value ? "FFDCFCE7" : "FFFEE2E2" } };
+    cell.font = { ...(cell.font ?? {}), bold: true, color: { argb: "FF111827" } };
+    cell.alignment = { vertical: "middle", horizontal: "center" };
+  }
+}
+
+function styleReviewPriorityColumn(sheet: ExcelJS.Worksheet) {
+  const columnNumber = headerColumnNumber(sheet, "Review Priority");
+  if (!columnNumber) return;
+  for (let rowNumber = 2; rowNumber <= sheet.rowCount; rowNumber += 1) {
+    const cell = sheet.getRow(rowNumber).getCell(columnNumber);
+    const value = cleanText(cell.text || String(cell.value ?? ""));
+    const color = value === "High" ? "FFFEE2E2" : value === "Medium" ? "FFFEF3C7" : value === "Low" ? "FFDCFCE7" : undefined;
+    if (!color) continue;
+    cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: color } };
+    cell.font = { ...(cell.font ?? {}), bold: true, color: { argb: "FF111827" } };
+    cell.alignment = { vertical: "middle", horizontal: "center" };
+  }
+}
+
+function styleYesNoColumn(sheet: ExcelJS.Worksheet, headerName: string) {
+  const columnNumber = headerColumnNumber(sheet, headerName);
+  if (!columnNumber) return;
+  for (let rowNumber = 2; rowNumber <= sheet.rowCount; rowNumber += 1) {
+    const cell = sheet.getRow(rowNumber).getCell(columnNumber);
+    const value = cleanText(cell.text || String(cell.value ?? ""));
+    if (value !== "Yes" && value !== "No") continue;
+    cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: value === "Yes" ? "FFDCFCE7" : "FFFEE2E2" } };
+    cell.font = { ...(cell.font ?? {}), bold: true, color: { argb: "FF111827" } };
+    cell.alignment = { vertical: "middle", horizontal: "center" };
+  }
+}
+
+function styleSeverityColumn(sheet: ExcelJS.Worksheet) {
+  const columnNumber = headerColumnNumber(sheet, "Severity");
+  if (!columnNumber) return;
+  for (let rowNumber = 2; rowNumber <= sheet.rowCount; rowNumber += 1) {
+    const cell = sheet.getRow(rowNumber).getCell(columnNumber);
+    const value = cleanText(cell.text || String(cell.value ?? ""));
+    const color = value === "High" ? "FFFEE2E2" : value === "Medium" ? "FFFEF3C7" : value === "Low" ? "FFE0F2FE" : value === "Info" ? "FFE2E8F0" : undefined;
+    if (!color) continue;
+    cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: color } };
+    cell.font = { ...(cell.font ?? {}), bold: true, color: { argb: "FF111827" } };
+    cell.alignment = { vertical: "middle", horizontal: "center" };
+  }
+}
+
+function styleActionColumn(sheet: ExcelJS.Worksheet, headerName: string) {
+  const columnNumber = headerColumnNumber(sheet, headerName);
+  if (!columnNumber) return;
+  for (let rowNumber = 2; rowNumber <= sheet.rowCount; rowNumber += 1) {
+    const cell = sheet.getRow(rowNumber).getCell(columnNumber);
+    const value = cleanText(cell.text || String(cell.value ?? ""));
+    if (!value) continue;
+    const ready = value === "Ready";
+    cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: ready ? "FFDCFCE7" : "FFFFF7ED" } };
+    cell.font = { ...(cell.font ?? {}), color: { argb: "FF111827" }, bold: ready };
+  }
+}
+
+function applyReviewWorkflowFormatting(sheet: ExcelJS.Worksheet) {
+  const statusColumn = headerColumnNumber(sheet, "Review Status");
+  const fixColumn = headerColumnNumber(sheet, "Fix Needed");
+  const reviewerColumn = headerColumnNumber(sheet, "Reviewed By");
+  const notesColumn = headerColumnNumber(sheet, "Review Notes");
+  if (!statusColumn && !fixColumn && !reviewerColumn && !notesColumn) return;
+
+  const lastRow = sheet.rowCount;
+  for (let rowNumber = 2; rowNumber <= lastRow; rowNumber += 1) {
+    if (statusColumn) {
+      const cell = sheet.getRow(rowNumber).getCell(statusColumn);
+      cell.dataValidation = {
+        type: "list",
+        allowBlank: true,
+        formulae: ['"Open,Checked,Needs manual lookup,Ignore"']
+      };
+      cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF8FAFC" } };
+    }
+    if (fixColumn) {
+      const cell = sheet.getRow(rowNumber).getCell(fixColumn);
+      cell.dataValidation = {
+        type: "list",
+        allowBlank: true,
+        formulae: ['"Yes,No,Maybe"']
+      };
+      cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF8FAFC" } };
+    }
+    for (const columnNumber of [reviewerColumn, notesColumn].filter((value): value is number => Boolean(value))) {
+      sheet.getRow(rowNumber).getCell(columnNumber).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF8FAFC" } };
+    }
+  }
+}
+
+function styleOkMissingCells(sheet: ExcelJS.Worksheet) {
+  sheet.eachRow((row, rowNumber) => {
+    if (rowNumber === 1) return;
+    row.eachCell((cell) => {
+      const value = cleanText(cell.text || String(cell.value ?? ""));
+      if (value !== "OK" && value !== "Missing") return;
+      cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: value === "OK" ? "FFDCFCE7" : "FFFEE2E2" } };
+      cell.font = { ...(cell.font ?? {}), bold: true, color: { argb: "FF111827" } };
+      cell.alignment = { vertical: "middle", horizontal: "center" };
+    });
+  });
+}
+
+function styleCoverageScoreColumn(sheet: ExcelJS.Worksheet) {
+  const columnNumber = headerColumnNumber(sheet, "Coverage Score");
+  if (!columnNumber) return;
+  for (let rowNumber = 2; rowNumber <= sheet.rowCount; rowNumber += 1) {
+    const cell = sheet.getRow(rowNumber).getCell(columnNumber);
+    const value = typeof cell.value === "number" ? cell.value : Number(cell.value);
+    if (!Number.isFinite(value)) continue;
+    const color = value >= 0.8 ? "FFDCFCE7" : value >= 0.6 ? "FFFEF3C7" : "FFFEE2E2";
+    cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: color } };
+    cell.font = { ...(cell.font ?? {}), bold: true, color: { argb: "FF111827" } };
+    cell.alignment = { vertical: "middle", horizontal: "center" };
+    cell.numFmt = "0%";
+  }
+}
+
+function styleConfidenceColumn(sheet: ExcelJS.Worksheet) {
+  const columnNumber = headerColumnNumber(sheet, "Confidence");
+  if (!columnNumber) return;
+  for (let rowNumber = 2; rowNumber <= sheet.rowCount; rowNumber += 1) {
+    const cell = sheet.getRow(rowNumber).getCell(columnNumber);
+    const value = typeof cell.value === "number" ? cell.value : Number(cell.value);
+    if (!Number.isFinite(value)) continue;
+    const color = value >= 0.85 ? "FFDCFCE7" : value >= 0.65 ? "FFFEF3C7" : "FFFEE2E2";
+    cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: color } };
+    cell.font = { ...(cell.font ?? {}), bold: true, color: { argb: "FF111827" } };
+    cell.alignment = { vertical: "middle", horizontal: "center" };
+    cell.numFmt = "0%";
+  }
+}
+
+function styleQualityTierColumn(sheet: ExcelJS.Worksheet) {
+  const columnNumber = headerColumnNumber(sheet, "Quality Tier");
+  if (!columnNumber) return;
+  for (let rowNumber = 2; rowNumber <= sheet.rowCount; rowNumber += 1) {
+    const cell = sheet.getRow(rowNumber).getCell(columnNumber);
+    const value = cleanText(cell.text || String(cell.value ?? ""));
+    const color =
+      value === "Complete" || value === "Good"
+        ? "FFDCFCE7"
+        : value === "Usable"
+          ? "FFFEF3C7"
+          : value === "Sparse"
+            ? "FFFFEDD5"
+            : value === "No data"
+              ? "FFFEE2E2"
+              : undefined;
+    if (!color) continue;
+    cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: color } };
+    cell.font = { ...(cell.font ?? {}), bold: true, color: { argb: "FF111827" } };
+    cell.alignment = { vertical: "middle", horizontal: "center" };
+  }
+}
+
+function headerColumnNumber(sheet: ExcelJS.Worksheet, headerName: string): number | undefined {
+  const header = sheet.getRow(1);
+  for (let columnNumber = 1; columnNumber <= sheet.columnCount; columnNumber += 1) {
+    if (cleanText(String(header.getCell(columnNumber).value ?? "")).toLowerCase() === headerName.toLowerCase()) {
+      return columnNumber;
+    }
+  }
+  return undefined;
+}
+
 function safeWorkbookPart(value: string): string {
   return (
     value
@@ -2335,4 +4000,8 @@ function safeWorkbookPart(value: string): string {
       .replace(/\s+/g, "-")
       .replace(/^-+|-+$/g, "") || "product"
   );
+}
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }

@@ -1,7 +1,7 @@
 import * as cheerio from "cheerio";
 import type { AttributeRecord, DocumentRecord, MarkerExtractionRule, ProductResult } from "../../shared/types.js";
 import type { ManufacturerConnector, ScrapeContext } from "./types.js";
-import type { FetchedText } from "./http-client.js";
+import { delay, type FetchedText } from "./http-client.js";
 import { classifyDocument, cleanText, emptyResult, mergeResults, normalizeFields, splitNameValue } from "./normalizer.js";
 import { buildLocalizedProductUrls } from "./localized-urls.js";
 import { catalogTextMatches, sameCatalogNumber } from "./catalog-number.js";
@@ -35,6 +35,8 @@ export class ABBConnector implements ManufacturerConnector {
         // Remember the page body that looked like an AEM-CMS product page so we can enrich it
         // afterwards by hitting the ds.library.abb.com widget API the page would call client-side.
         if (isAemAbbPage(fetched.text) && !lastAemFetch) lastAemFetch = fetched;
+        if (isRichAbbResult(parsed) && !lastAemFetch) break;
+        if (context.imageOnly && hasProductImage(parsed)) break;
       } catch (error) {
         lastError = error;
       }
@@ -43,18 +45,21 @@ export class ABBConnector implements ManufacturerConnector {
     const directPrimary = bestAbbResult(officialResults);
     // For AEM-style pages (PLCs, drives, robotics), the English /products/{id} URL serves a thin
     // AEM page and the full PIS data is only available under /products/{locale}/{id}/{slug}.
-    // Always run the search resolution so we pick up that PIS data, even when directPrimary parses ok.
-    const searchPrimary = bestAbbResult(await fetchAbbSearchResults(catalogNumber, context));
+    // Run search only when the direct page is sparse or AEM-style; rich PIS pages already have it all.
+    const shouldSearch = context.imageOnly && hasProductImage(directPrimary)
+      ? false
+      : !directPrimary || directPrimary.status === "failed" || !isRichAbbResult(directPrimary) || Boolean(lastAemFetch);
+    const searchPrimary = shouldSearch ? bestAbbResult(await fetchAbbSearchResults(catalogNumber, context)) : undefined;
 
-    // AEM enrichment via ABB Library widget API — always runs when we detected an AEM page so the
-    // English document list is captured even if PIS data was found in a non-English locale.
+    // AEM enrichment via ABB Library widget API, when document discovery is enabled.
     let aemEnriched: ProductResult | undefined;
-    if (lastAemFetch) {
+    if (lastAemFetch && context.downloadDocuments !== false && !context.imageOnly) {
       aemEnriched = await enrichFromAbbLibraryApi(catalogNumber, lastAemFetch, context);
     }
 
     const initialMerged = mergeAbbResults(directPrimary, searchPrimary, aemEnriched);
-    const cadCatalogResult = !initialMerged || initialMerged.status === "failed" || !isRichAbbResult(initialMerged)
+    const needsCadCatalog = !initialMerged || initialMerged.status === "failed" || (!isRichAbbResult(initialMerged) && (!context.imageOnly || !hasProductImage(initialMerged)));
+    const cadCatalogResult = needsCadCatalog
       ? await fetchAbbPartcommunityCadCatalogResult(catalogNumber, context)
       : undefined;
     const merged = mergeAbbResults(directPrimary, searchPrimary, aemEnriched, cadCatalogResult);
@@ -68,6 +73,7 @@ export class ABBConnector implements ManufacturerConnector {
       officialResults[0] ??
       emptyResult("abb", catalogNumber, abbFetchFailureMessage(lastError));
 
+    if (context.imageOnly) return primary;
     if (primary.status === "found" && primary.documents.length > 0) return primary;
     const enriched = primary;
 
@@ -774,6 +780,19 @@ function isRichAbbResult(result: ProductResult): boolean {
   return result.status === "found" && result.attributes.some((attr) => attr.group === "ABB Product Data") && result.attributes.length >= 25;
 }
 
+function isUsefulAbbSearchResult(result: ProductResult): boolean {
+  const abbProductDataCount = result.attributes.filter((attr) => attr.group === "ABB Product Data").length;
+  return (
+    result.status === "found" &&
+    abbProductDataCount >= 8 &&
+    Boolean(result.normalized.voltage || result.normalized.current || result.normalized.dimensions || result.normalized.weight || result.documents.some((doc) => doc.type === "datasheet"))
+  );
+}
+
+function hasProductImage(result: ProductResult | undefined): boolean {
+  return Boolean(result?.documents.some((doc) => doc.type === "image" && Boolean(doc.url || doc.localPath || doc.candidateUrls?.length)));
+}
+
 function abbResultScore(result: ProductResult): number {
   if (result.status === "failed") return -1000;
   const abbProductDataCount = result.attributes.filter((attr) => attr.group === "ABB Product Data").length;
@@ -783,6 +802,8 @@ function abbResultScore(result: ProductResult): number {
 }
 
 async function fetchAbbPage(url: string, context: ScrapeContext) {
+  let lastFetched: FetchedText | undefined;
+  let lastError: unknown;
   // Try plain HTTP first (with retries — ABB occasionally returns HTTP/2 protocol errors
   // or empty bodies under load, and a quick retry typically succeeds).
   for (let attempt = 0; attempt < 3; attempt += 1) {
@@ -797,22 +818,39 @@ async function fetchAbbPage(url: string, context: ScrapeContext) {
         },
         maxAttempts: 1
       });
-      if (fetched.statusCode < 400 && fetched.text.trim().length > 500) return fetched;
-    } catch {
-      // Fall through to PowerShell on Windows for sites that reject fetch.
+      lastFetched = fetched;
+      if (shouldRetryAbbFetch(fetched)) {
+        if (attempt < 2 && context.manufacturer.rateLimitMs !== 0) await delay(800 * (attempt + 1), context.signal);
+        continue;
+      }
+      if (!shouldUsePowerShellForAbbFetch(fetched)) return fetched;
+      break;
+    } catch (error) {
+      lastError = error;
     }
     if (attempt < 2 && context.manufacturer.rateLimitMs !== 0) {
-      await sleep(800 * (attempt + 1));
+      await delay(800 * (attempt + 1), context.signal);
     }
   }
   if (process.platform === "win32") {
-    return context.http.fetchTextViaPowerShell(url, { timeoutMs: 30000, signal: context.signal });
+    try {
+      return await context.http.fetchTextViaPowerShell(url, { timeoutMs: 30000, signal: context.signal });
+    } catch (error) {
+      lastError = error;
+    }
   }
+  if (lastFetched) return lastFetched;
+  if (lastError instanceof Error) throw lastError;
   return context.http.fetchText(url, { timeoutMs: 25000, signal: context.signal });
 }
 
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+function shouldRetryAbbFetch(fetched: FetchedText): boolean {
+  const bodyLength = fetched.text.trim().length;
+  return fetched.statusCode >= 500 || (fetched.statusCode >= 200 && fetched.statusCode < 400 && bodyLength < 32);
+}
+
+function shouldUsePowerShellForAbbFetch(fetched: FetchedText): boolean {
+  return [401, 403, 406, 408, 429].includes(fetched.statusCode);
 }
 
 function buildAbbOfficialUrls(catalogNumber: string): string[] {
@@ -832,17 +870,28 @@ function buildAbbOfficialUrls(catalogNumber: string): string[] {
 }
 
 async function fetchAbbSearchResults(catalogNumber: string, context: ScrapeContext): Promise<ProductResult[]> {
+  const urls = await buildAbbSearchProductUrls(catalogNumber, context);
   const results: ProductResult[] = [];
-  for (const url of await buildAbbSearchProductUrls(catalogNumber, context)) {
-    try {
-      const fetched = await fetchAbbPage(url, context);
-      const result = parseAbbProductPage(catalogNumber, fetched, context.manufacturer.markerRules);
-      if (result.status !== "failed") results.push(result);
-    } catch {
-      // Keep trying the other official product-id candidates.
-    }
+  const batchSize = Math.min(3, Math.max(1, context.manufacturer.concurrency ?? 3));
+  for (let index = 0; index < urls.length; index += batchSize) {
+    const batch = urls.slice(index, index + batchSize);
+    const batchResults = await Promise.all(batch.map((url) => fetchAbbSearchResult(url, catalogNumber, context)));
+    const usable = batchResults.filter((result): result is ProductResult => Boolean(result));
+    results.push(...usable);
+    if (usable.some(isUsefulAbbSearchResult)) break;
   }
   return results;
+}
+
+async function fetchAbbSearchResult(url: string, catalogNumber: string, context: ScrapeContext): Promise<ProductResult | undefined> {
+  try {
+    const fetched = await fetchAbbPage(url, context);
+    const result = parseAbbProductPage(catalogNumber, fetched, context.manufacturer.markerRules);
+    return result.status !== "failed" ? result : undefined;
+  } catch {
+    // Keep trying the other official product-id candidates.
+    return undefined;
+  }
 }
 
 async function buildAbbSearchProductUrls(catalogNumber: string, context: ScrapeContext): Promise<string[]> {
@@ -859,22 +908,31 @@ async function buildAbbSearchProductUrls(catalogNumber: string, context: ScrapeC
     return [];
   }
 
+  const searchItems = parseAbbSearchItems(fetched.text, catalogNumber);
+  const urlGroups = searchItems.map((item) => abbSearchItemProductUrls(item.productId, item.alias ?? catalogNumber));
   const urls: string[] = [];
-  for (const item of parseAbbSearchItems(fetched.text, catalogNumber)) {
-    const slug = abbProductSlug(item.alias ?? catalogNumber);
-    // Order matters: try the English-redirect locales first, then non-English locales as
-    // fallbacks. For AEM-style products, `/en/...` redirects to global/en (AEM page) but
-    // /pl/, /de/, /it/ still serve PIS data — so they're our richest source.
-    urls.push(
-      `https://new.abb.com/products/${encodeURIComponent(item.productId)}/${slug}`,
-      `https://new.abb.com/products/${encodeURIComponent(item.productId)}`,
-      `https://www.abb.com/global/en/products/${encodeURIComponent(item.productId.toLowerCase())}`,
-      `https://new.abb.com/products/pl/${encodeURIComponent(item.productId)}/${slug}`,
-      `https://new.abb.com/products/de/${encodeURIComponent(item.productId)}/${slug}`,
-      `https://new.abb.com/products/it/${encodeURIComponent(item.productId)}/${slug}`
-    );
+  for (let priority = 0; priority < 6; priority += 1) {
+    for (const group of urlGroups) {
+      if (group[priority]) urls.push(group[priority]);
+    }
   }
   return [...new Set(urls)].slice(0, 24);
+}
+
+function abbSearchItemProductUrls(productId: string, alias: string): string[] {
+  const encodedId = encodeURIComponent(productId);
+  const slug = abbProductSlug(alias);
+    // Order matters: try the slug URL, then localized PIS URLs before generic fallbacks.
+    // For AEM-style products, `/en/...` redirects to global/en (AEM page) but
+    // /pl/, /de/, /it/ still serve PIS data — so they're our richest source.
+  return [
+    `https://new.abb.com/products/${encodedId}/${slug}`,
+    `https://new.abb.com/products/pl/${encodedId}/${slug}`,
+    `https://new.abb.com/products/de/${encodedId}/${slug}`,
+    `https://new.abb.com/products/it/${encodedId}/${slug}`,
+    `https://new.abb.com/products/${encodedId}`,
+    `https://www.abb.com/global/en/products/${encodeURIComponent(productId.toLowerCase())}`
+  ];
 }
 
 function parseAbbSearchItems(text: string, catalogNumber: string): Array<{ productId: string; alias?: string; score: number }> {
@@ -949,6 +1007,7 @@ export function parseAbbProductPage(catalogNumber: string, fetched: FetchedText,
     const sku = String(item.sku ?? item.productID ?? "");
     return sameCatalogNumber(sku, catalogNumber);
   }) ?? products[0];
+  const productPayloads = extractAbbProductPayloads(fetched.text);
 
   if (product) {
     for (const [name, value] of Object.entries(product)) {
@@ -962,10 +1021,10 @@ export function parseAbbProductPage(catalogNumber: string, fetched: FetchedText,
     }
   }
 
-  const embeddedAttributes = extractAbbEmbeddedAttributes(fetched.text, fetched.effectiveUrl);
+  const embeddedAttributes = extractAbbEmbeddedAttributes(fetched.text, fetched.effectiveUrl, productPayloads);
   attributes.push(...embeddedAttributes);
-  attributes.push(...extractAbbRelationshipAttributes(fetched.text, fetched.effectiveUrl));
-  attributes.push(...extractAbbClassificationAttributes(fetched.text, fetched.effectiveUrl));
+  attributes.push(...extractAbbRelationshipAttributes(fetched.text, fetched.effectiveUrl, productPayloads));
+  attributes.push(...extractAbbClassificationAttributes(fetched.text, fetched.effectiveUrl, productPayloads));
   // AEM-style ABB pages (e.g. AC500 PLC, drives, robotics) don't ship the embedded `var model =` blob
   // and instead load product data via JS widgets. We still scrape whatever IS in the static HTML:
   // category/classification breadcrumbs from window.aot, "Next steps" links, dataLayer fields.
@@ -976,7 +1035,7 @@ export function parseAbbProductPage(catalogNumber: string, fetched: FetchedText,
   const markerData = extractMarkerData(fetched.text, markerRules, fetched.effectiveUrl);
   attributes.push(...markerData.attributes);
   documents.push(...markerData.documents);
-  documents.push(...extractAbbEmbeddedImages(fetched.text, fetched.effectiveUrl));
+  documents.push(...extractAbbEmbeddedImages(fetched.text, fetched.effectiveUrl, productPayloads));
 
   $("meta").each((_, element) => {
     const name = $(element).attr("name") || $(element).attr("property");
@@ -1109,16 +1168,24 @@ function readJsonLdProducts($: cheerio.CheerioAPI): Record<string, unknown>[] {
   $("script[type='application/ld+json']").each((_, element) => {
     const raw = $(element).text();
     try {
-      const parsed = JSON.parse(raw) as Record<string, unknown> | Record<string, unknown>[];
-      const entries = Array.isArray(parsed) ? parsed : [parsed];
-      for (const entry of entries) {
-        if (entry["@type"] === "Product") products.push(entry);
-      }
+      collectJsonLdProducts(JSON.parse(raw) as unknown, products);
     } catch {
       // Ignore malformed structured data.
     }
   });
   return products;
+}
+
+function collectJsonLdProducts(value: unknown, target: Record<string, unknown>[]) {
+  if (Array.isArray(value)) {
+    for (const item of value) collectJsonLdProducts(item, target);
+    return;
+  }
+  if (!isRecord(value)) return;
+  const type = value["@type"];
+  const types = Array.isArray(type) ? type.map((item) => String(item)) : [String(type ?? "")];
+  if (types.some((item) => item.toLowerCase() === "product")) target.push(value);
+  collectJsonLdProducts(value["@graph"], target);
 }
 
 function firstImageUrl(value: unknown): string | undefined {
@@ -1127,8 +1194,8 @@ function firstImageUrl(value: unknown): string | undefined {
   return undefined;
 }
 
-function extractAbbEmbeddedAttributes(html: string, sourceUrl: string): AttributeRecord[] {
-  const modelAttributes = extractAbbModelAttributes(html, sourceUrl);
+function extractAbbEmbeddedAttributes(html: string, sourceUrl: string, productPayloads = extractAbbProductPayloads(html)): AttributeRecord[] {
+  const modelAttributes = extractAbbModelAttributes(html, sourceUrl, productPayloads);
   if (modelAttributes.length) return modelAttributes;
   return extractAbbRegexAttributes(html, sourceUrl);
 }
@@ -1243,10 +1310,10 @@ function extractAbbRegexAttributes(html: string, sourceUrl: string): AttributeRe
   return attributes;
 }
 
-function extractAbbModelAttributes(html: string, sourceUrl: string): AttributeRecord[] {
+function extractAbbModelAttributes(html: string, sourceUrl: string, productPayloads = extractAbbProductPayloads(html)): AttributeRecord[] {
   const attributes: AttributeRecord[] = [];
   const seen = new Set<string>();
-  for (const product of extractAbbProductPayloads(html)) {
+  for (const product of productPayloads) {
     const productDetails = recordAt(product, "productDetails");
     const item = recordAt(productDetails, "item");
     pushUniqueAbbAttributes(attributes, attributesFromAbbMap(recordAt(item, "attributes"), "ABB Product Data", sourceUrl), seen);
@@ -1261,10 +1328,10 @@ function extractAbbModelAttributes(html: string, sourceUrl: string): AttributeRe
   return attributes;
 }
 
-function extractAbbRelationshipAttributes(html: string, sourceUrl: string): AttributeRecord[] {
+function extractAbbRelationshipAttributes(html: string, sourceUrl: string, productPayloads = extractAbbProductPayloads(html)): AttributeRecord[] {
   const attributes: AttributeRecord[] = [];
   const seen = new Set<string>();
-  for (const product of extractAbbProductPayloads(html)) {
+  for (const product of productPayloads) {
     for (const relationship of arrayAt(recordAt(product, "productRelationships"), "items")) {
       if (!isRecord(relationship)) continue;
       const relationshipLabel = cleanText(firstStringOrNumber(relationship.description, relationship.type, relationship.code) ?? "Related Products");
@@ -1305,10 +1372,10 @@ function extractAbbRelationshipAttributes(html: string, sourceUrl: string): Attr
   return attributes;
 }
 
-function extractAbbClassificationAttributes(html: string, sourceUrl: string): AttributeRecord[] {
+function extractAbbClassificationAttributes(html: string, sourceUrl: string, productPayloads = extractAbbProductPayloads(html)): AttributeRecord[] {
   const attributes: AttributeRecord[] = [];
   const seen = new Set<string>();
-  for (const product of extractAbbProductPayloads(html)) {
+  for (const product of productPayloads) {
     const items = recordAt(recordAt(product, "productClassifications"), "items");
     if (!items) continue;
     for (const [classification, rawPaths] of Object.entries(items)) {
@@ -1500,8 +1567,8 @@ function extractAbbDocumentReferences(attributes: AttributeRecord[], sourceUrl: 
   return documents;
 }
 
-function extractAbbEmbeddedImages(html: string, sourceUrl: string): DocumentRecord[] {
-  const modelImages = extractAbbModelImages(html, sourceUrl);
+function extractAbbEmbeddedImages(html: string, sourceUrl: string, productPayloads = extractAbbProductPayloads(html)): DocumentRecord[] {
+  const modelImages = extractAbbModelImages(html, sourceUrl, productPayloads);
   if (modelImages.length) return modelImages;
 
   const imageUrlsByPath = new Map<string, string>();
@@ -1523,9 +1590,9 @@ function extractAbbEmbeddedImages(html: string, sourceUrl: string): DocumentReco
   }));
 }
 
-function extractAbbModelImages(html: string, sourceUrl: string): DocumentRecord[] {
+function extractAbbModelImages(html: string, sourceUrl: string, productPayloads = extractAbbProductPayloads(html)): DocumentRecord[] {
   const documents: DocumentRecord[] = [];
-  for (const product of extractAbbProductPayloads(html)) {
+  for (const product of productPayloads) {
     for (const image of arrayAt(recordAt(product, "productDetails", "item"), "images")) {
       if (!isRecord(image)) continue;
       const candidates = uniqueStrings(
