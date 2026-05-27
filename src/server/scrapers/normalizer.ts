@@ -112,7 +112,7 @@ const FIELD_LABEL_PATTERNS: Record<keyof NormalizedProductFields, RegExp[]> = {
     /\bmaximum operating voltage\b/,
     /\bvoltage protection level\b/,
     /napon/,
-    /\b(?:u[eirn]|uimp)\b/
+    /\b(?:u[eirn]|u[abs]|uimp)\b/
   ],
   current: [
     /\brated.*current\b/,
@@ -382,6 +382,7 @@ function normalizedFieldLabelScore(attr: AttributeRecord, field?: keyof Normaliz
     if (/rated operational voltage|operational voltage/.test(label)) return 140;
     if (/supply voltage.*(?:max|min)/.test(label)) return 90;
     if (/\[(?:us|ue|uc)\]\s+rated|rated supply voltage|supply voltage/.test(label)) return 135;
+    if (/\b(?:us|ua|ub)\b.*(?:sensor|actuator|supply|voltage)|(?:sensor|actuator|supply|voltage).*\b(?:us|ua|ub)\b/.test(label)) return 134;
     if (/rated input voltage|input voltage/.test(label)) return 130;
     if (/input power|power input/.test(label)) return 126;
     if (/\bvolts?\b/.test(label)) return 145;
@@ -1183,7 +1184,7 @@ function materialValueFromText(value: string): string | undefined {
   if (/\bstainless\s+steel\s+type\s+304\b/i.test(cleaned)) return "stainless steel Type 304";
   if (/\baluzinc\s+coated\s+steel\b/i.test(cleaned)) return "aluzinc coated steel";
   if (/\bS\.?\s*S\.?\b/i.test(cleaned)) return "stainless steel";
-  if (/^(?:PA|PC|POM|PBT|PE|PP|PTFE|PUR|PVC|ABS)(?:\s*\d{1,2})?$/u.test(cleaned)) return cleaned;
+  if (/^(?:PA|PC|POM|PBTP?|PETP?|PE|PP|PPS|PTFE|PUR|PVC|ABS|ASA|SAN|PMMA|PEEK|PEI|TPE|TPU|HDPE|LDPE)(?:\s*\d{1,2})?$/u.test(cleaned)) return cleaned;
   const match = cleaned.match(
     /\b(techpolymer|feraloy iron alloy|iron alloy|spheroidal cast iron|malleable cast iron|cast iron|stainless steel|carbon steel|mild steel|galvannealed steel|galvanized steel|steel|aluminum|aluminium|die-cast zinc|zinc|nickel[-\s]?plated brass|brass|nickel[-\s]?plated copper|copper braid|copper|fluoropolymer|polyolefin|polycarbonate|polyamide|polypropylene|polyethylene|polyester|fiberglass|plastic|silicone|nylon|rubber|pvc|pur|epdm|abs)\b/i
   );

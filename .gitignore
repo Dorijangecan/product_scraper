@@ -7,3 +7,5 @@ benchmarks/output/
 .vite/
 *.log
 *.tsbuildinfo
+.claude/
+.codex-tools/

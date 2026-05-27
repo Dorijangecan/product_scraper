@@ -11,6 +11,8 @@ export interface ManufacturerConfig {
   /** Concurrent items to process from this manufacturer. Defaults to 3. Set to 1 for strict-throttled sites. */
   concurrency?: number;
   officialBaseUrls: string[];
+  /** Vendor's main product webpage, used for the PDT MANUFACTURER_URL field. */
+  homepageUrl?: string;
   fallbackSources: FallbackSourceConfig[];
   localizedUrlTemplates?: LocalizedUrlTemplate[];
   match?: MatchPolicyConfig;
@@ -415,6 +417,8 @@ export interface RunRecord {
   partial: number;
   failed: number;
   outputPath?: string;
+  /** Path to the generated PDT workbook, set on demand by the "Import to PDT" action. */
+  pdtPath?: string;
   options?: RunOptions;
   error?: string;
 }

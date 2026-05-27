@@ -10,6 +10,7 @@ describe("manufacturer configuration", () => {
       expect.arrayContaining(["abb", "balluff", "sce", "nvent", "rockwell", "eaton", "eta", "schmersal", "schneider", "siemens", "spelsberg"])
     );
     expect(byId.get("balluff")?.shortName).toBe("BAL");
+    expect(byId.get("balluff")?.concurrency).toBe(2);
     expect(byId.get("sce")?.shortName).toBe("SCE");
     expect(byId.get("schneider")?.shortName).toBe("SE");
     expect(byId.get("siemens")?.shortName).toBe("SIE");

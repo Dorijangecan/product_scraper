@@ -1,4 +1,4 @@
-const { app, BrowserWindow, Menu, shell } = require("electron");
+const { app, BrowserWindow, Menu, shell, dialog } = require("electron");
 const fs = require("node:fs");
 const http = require("node:http");
 const net = require("node:net");
@@ -27,10 +27,19 @@ app.on("second-instance", () => {
 });
 
 app.whenReady().then(async () => {
+  console.log("Electron ready.");
   Menu.setApplicationMenu(null);
   const port = await findFreePort(3001);
+  console.log(`Starting local server on port ${port}...`);
   await startServer(port);
+  console.log("Local server ready. Opening window...");
   createWindow(port);
+}).catch((error) => {
+  const message = error instanceof Error ? error.message : String(error);
+  console.error(`Product Scraper failed to start: ${message}`);
+  appendLog(`Product Scraper failed to start: ${message}\n`);
+  dialog.showErrorBox("Product Scraper failed to start", message);
+  app.quit();
 });
 
 app.on("before-quit", () => {
@@ -69,11 +78,16 @@ async function startServer(port) {
   fs.mkdirSync(dataDir, { recursive: true });
   fs.appendFileSync(serverLogPath, `\n[${new Date().toISOString()}] Starting desktop server on ${port}\n`);
 
-  const nodeExecutable = process.env.npm_node_execpath || "node";
-  serverProcess = spawn(nodeExecutable, ["--import", "tsx", "src/server/index.ts"], {
+  const runtime = getServerRuntime();
+  const bundledPlaywright = path.join(rootDir, "runtime", "ms-playwright");
+  const playwrightEnv = fs.existsSync(bundledPlaywright) ? { PLAYWRIGHT_BROWSERS_PATH: bundledPlaywright } : {};
+  appendLog(`Using server runtime: ${runtime.command} ${runtime.args.join(" ")}\n`);
+  serverProcess = spawn(runtime.command, [...runtime.args, "--import", "tsx", "src/server/index.ts"], {
     cwd: rootDir,
     env: {
       ...process.env,
+      ...runtime.env,
+      ...playwrightEnv,
       PORT: String(port),
       PRODUCT_SCRAPER_DESKTOP: "1"
     },
@@ -83,11 +97,33 @@ async function startServer(port) {
 
   serverProcess.stdout.on("data", (chunk) => appendLog(chunk));
   serverProcess.stderr.on("data", (chunk) => appendLog(chunk));
+  serverProcess.on("error", (error) => {
+    appendLog(`Desktop server spawn failed: ${error.message}\n`);
+  });
   serverProcess.on("exit", (code, signal) => {
     appendLog(`Desktop server exited with code=${code ?? ""} signal=${signal ?? ""}\n`);
   });
 
   await waitForHealth(port, 30000);
+}
+
+function getServerRuntime() {
+  const bundledNode = path.join(rootDir, "runtime", "node", "node.exe");
+  if (fs.existsSync(bundledNode)) {
+    return { command: bundledNode, args: [], env: {} };
+  }
+
+  if (process.env.npm_node_execpath) {
+    return { command: process.env.npm_node_execpath, args: [], env: {} };
+  }
+
+  // Portable builds are launched through Electron directly. Electron can run as
+  // a Node runtime when this flag is set, so users do not need Node/npm installed.
+  return {
+    command: process.execPath,
+    args: [],
+    env: { ELECTRON_RUN_AS_NODE: "1" }
+  };
 }
 
 function stopServer() {

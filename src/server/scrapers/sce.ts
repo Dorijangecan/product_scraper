@@ -15,29 +15,35 @@ export class SCEConnector implements ManufacturerConnector {
   id = "sce";
 
   async scrape(catalogNumber: string, context: ScrapeContext): Promise<ProductResult> {
+    let search: FetchedText | undefined;
     try {
       const searchBody = new URLSearchParams({
         PartNumberSearchString: catalogNumber,
         radio: "Exact",
         PartNumberSubmit: "Search"
       });
-      const search = await context.http.fetchText(`${SCE_BASE}/advanced-part-search/`, {
+      search = await context.http.fetchText(`${SCE_BASE}/advanced-part-search/`, {
         method: "POST",
         body: searchBody,
         headers: { "content-type": "application/x-www-form-urlencoded" },
         signal: context.signal
       });
-      const detailUrl = findExactDetailUrl(catalogNumber, search.text) ?? `${SCE_BASE}/partnumber_info?n=${encodeURIComponent(catalogNumber)}`;
-      const detail = await context.http.fetchText(detailUrl, { signal: context.signal });
-      const cad = await context.http.fetchText(`${SCE_BASE}/download-doc/?PartNumber=${encodeURIComponent(catalogNumber)}`, {
-        signal: context.signal
-      });
+    } catch {
+      // SCE's search endpoint is useful but non-essential. Some Windows/proxy setups reject
+      // the POST, while the direct product URL still works.
+    }
+
+    try {
+      const detailUrl = findExactDetailUrl(catalogNumber, search?.text ?? "") ?? buildSceProductUrl(catalogNumber);
+      const detail = await fetchSceGet(context, detailUrl);
+      const cad = context.downloadDocuments === false || context.imageOnly
+        ? undefined
+        : await fetchSceGet(context, `${SCE_BASE}/download-doc/?PartNumber=${encodeURIComponent(catalogNumber)}`).catch(() => undefined);
       const primary = parseSceProductPage(catalogNumber, detail, search, cad, context.manufacturer.markerRules);
-      if (primary.status === "failed" || primary.status === "partial") {
-        const fallback = await context.fallback.scrape(catalogNumber, context.manufacturer.fallbackSources);
-        return mergeResults(primary, fallback);
-      }
-      return primary;
+      if (primary.status !== "failed" && primary.status !== "partial") return primary;
+
+      const fallback = await context.fallback.scrape(catalogNumber, context.manufacturer.fallbackSources);
+      return mergeResults(primary, fallback);
     } catch (error) {
       const primary = emptyResult("sce", catalogNumber, error instanceof Error ? error.message : "SCE fetch failed.");
       const fallback = await context.fallback.scrape(catalogNumber, context.manufacturer.fallbackSources);
@@ -45,6 +51,19 @@ export class SCEConnector implements ManufacturerConnector {
     }
   }
 }
+
+function buildSceProductUrl(catalogNumber: string): string {
+  return `${SCE_BASE}/partnumber_info/?n=${encodeURIComponent(catalogNumber)}`;
+}
+
+async function fetchSceGet(context: ScrapeContext, url: string): Promise<FetchedText> {
+  try {
+    return await context.http.fetchText(url, { signal: context.signal });
+  } catch {
+    return context.http.fetchTextViaPowerShell(url, { timeoutMs: 30000, signal: context.signal });
+  }
+}
+
 export function parseSceProductPage(
   catalogNumber: string,
   detail: FetchedText,

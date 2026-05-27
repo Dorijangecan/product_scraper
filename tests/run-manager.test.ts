@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { coalesceImageDocuments } from "../src/server/run-manager.js";
-import type { DocumentRecord } from "../src/shared/types.js";
+import { coalesceImageDocuments, documentDownloadProfile, imageFileName, shouldDownloadDocumentsForRun } from "../src/server/run-manager.js";
+import type { DocumentRecord, ProductResult } from "../src/shared/types.js";
 
 describe("run manager document downloads", () => {
   it("coalesces multiple image candidates into one primary image with fallbacks", () => {
@@ -20,6 +20,37 @@ describe("run manager document downloads", () => {
       "https://cdn.productimages.abb.com/9PAA00000348460_100x100.png"
     ]);
     expect(result.some((doc) => doc.type === "other")).toBe(true);
+  });
+
+  it("keeps Balluff datasheets in the download/enrichment path after quality passes", () => {
+    const result = {
+      manufacturerId: "balluff",
+      catalogNumber: "BNI00JF",
+      status: "found",
+      confidence: 0.92,
+      normalized: {},
+      attributes: [],
+      documents: [
+        { type: "image", label: "Product image", url: "https://assets.balluff.com/product.png" },
+        { type: "datasheet", label: "Datasheet", url: "https://publications.balluff.com/pdfengine/pdf?type=pdb&id=BNI00JF&con=en" }
+      ],
+      sources: [],
+      qualityGate: { passed: true, identityConfirmed: true, score: 100, missing: [], reason: "Complete", attempts: [] }
+    } as ProductResult;
+
+    expect(documentDownloadProfile({ id: "balluff" }, result)).toBe("quality");
+  });
+
+  it("downloads Balluff datasheets for Excel enrichment even when document saving is off", () => {
+    expect(shouldDownloadDocumentsForRun({ id: "balluff" }, { downloadDocuments: false, generateExcel: true })).toBe(true);
+    expect(shouldDownloadDocumentsForRun({ id: "abb" }, { downloadDocuments: false, generateExcel: true })).toBe(false);
+    expect(shouldDownloadDocumentsForRun({ id: "balluff" }, { downloadDocuments: false, generateExcel: false })).toBe(false);
+  });
+
+  it("names SCE images from the requested catalog number with the preview suffix", () => {
+    expect(imageFileName("SCE", "SCE-12P10GALV")).toBe("SCE.SCE-12P10GALV_preview.png");
+    expect(imageFileName("SCE", "SCE-12P10GALV", 1)).toBe("SCE.SCE-12P10GALV_preview_2.png");
+    expect(imageFileName("BAL", "BCC039H")).toBe("BAL.BCC039H.png");
   });
 });
 

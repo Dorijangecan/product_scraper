@@ -5,6 +5,7 @@ import { pathToFileURL } from "node:url";
 import sharp from "sharp";
 import type { FinalCompletenessRecord, ManufacturerConfig, ProductResult, RunItemRecord, RunRecord } from "../shared/types.js";
 import { requiredElectricalFields } from "../shared/product-requirements.js";
+import { classifyDeviceType } from "./scrapers/device-type.js";
 import { buildLocalizedProductUrls } from "./scrapers/localized-urls.js";
 import { cleanText, normalizeFields } from "./scrapers/normalizer.js";
 
@@ -50,8 +51,29 @@ export async function exportRunWorkbook(input: {
     { header: "Status", key: "status", width: 12 },
     { header: "Confidence", key: "confidence", width: 12 },
     { header: "Title", key: "title", width: 42 },
-    { header: "Description", key: "description", width: 70 },
     { header: "Product Type", key: "productType", width: 30 },
+    { header: "Device Type", key: "deviceType", width: 30 },
+    { header: "Device Type Confidence", key: "deviceTypeConfidence", width: 20, style: { numFmt: "0%" } },
+    { header: "Device Type Evidence", key: "deviceTypeEvidence", width: 54 },
+    { header: "Copy Summary", key: "copySummary", width: 110 },
+    { header: "Voltage", key: "voltage", width: 24 },
+    { header: "Current", key: "current", width: 24 },
+    { header: "Current Type", key: "currentType", width: 14 },
+    { header: "Rated Current", key: "ratedCurrent", width: 18 },
+    { header: "Material", key: "material", width: 28 },
+    { header: "Certificates", key: "certificates", width: 42 },
+    { header: "ECLASS", key: "eclass", width: 24 },
+    { header: "Weight", key: "weight", width: 20 },
+    { header: "Weight (kg)", key: "weightKg", width: 14, style: { numFmt: "0.#########" } },
+    { header: "Weight (lb)", key: "weightLb", width: 14, style: { numFmt: "0.#########" } },
+    { header: "Dimensions", key: "dimensions", width: 34 },
+    { header: "Height (mm)", key: "heightMm", width: 14, style: { numFmt: "0.#########" } },
+    { header: "Width (mm)", key: "widthMm", width: 14, style: { numFmt: "0.#########" } },
+    { header: "Depth (mm)", key: "depthMm", width: 14, style: { numFmt: "0.#########" } },
+    { header: "Length (mm)", key: "lengthMm", width: 14, style: { numFmt: "0.#########" } },
+    { header: "IP Rating", key: "ipRating", width: 18 },
+    { header: "Protection", key: "protection", width: 28 },
+    { header: "Description", key: "description", width: 70 },
     { header: "EAN / GTIN", key: "ean", width: 20 },
     { header: "Product URL Source", key: "productUrl", width: 60 },
     { header: "Product URL EN", key: "productUrlEn", width: 60 },
@@ -64,26 +86,14 @@ export async function exportRunWorkbook(input: {
     { header: "Certificate URLs", key: "certificateUrls", width: 76 },
     { header: "Other URLs", key: "otherUrls", width: 76 },
     { header: "All Document URLs", key: "allDocumentUrls", width: 100 },
-    { header: "Weight (lb)", key: "weightLb", width: 14, style: { numFmt: "0.#########" } },
-    { header: "Weight (kg)", key: "weightKg", width: 14, style: { numFmt: "0.#########" } },
-    { header: "Height (mm)", key: "heightMm", width: 14, style: { numFmt: "0.#########" } },
-    { header: "Width (mm)", key: "widthMm", width: 14, style: { numFmt: "0.#########" } },
-    { header: "Depth (mm)", key: "depthMm", width: 14, style: { numFmt: "0.#########" } },
-    { header: "Length (mm)", key: "lengthMm", width: 14, style: { numFmt: "0.#########" } },
     { header: "Height (in)", key: "heightIn", width: 14, style: { numFmt: "0.#########" } },
     { header: "Width (in)", key: "widthIn", width: 14, style: { numFmt: "0.#########" } },
     { header: "Depth (in)", key: "depthIn", width: 14, style: { numFmt: "0.#########" } },
     { header: "Length (in)", key: "lengthIn", width: 14, style: { numFmt: "0.#########" } },
-    { header: "Material", key: "material", width: 28 },
     { header: "Finish", key: "finish", width: 42 },
     { header: "Color", key: "color", width: 24 },
-    { header: "Voltage", key: "voltage", width: 24 },
-    { header: "Current", key: "current", width: 24 },
-    { header: "Rated Current", key: "ratedCurrent", width: 18 },
     { header: "Poles", key: "poles", width: 18 },
     { header: "Frequency", key: "frequency", width: 24 },
-    { header: "IP Rating", key: "ipRating", width: 18 },
-    { header: "Protection", key: "protection", width: 28 },
     { header: "Mounting", key: "mounting", width: 36 },
     { header: "Terminals / Connection", key: "terminalsConnection", width: 44 },
     { header: "Standards", key: "standards", width: 36 },
@@ -91,7 +101,6 @@ export async function exportRunWorkbook(input: {
     { header: "Suitable For", key: "suitableFor", width: 36 },
     { header: "Tariff Code (HS)", key: "tariffCode", width: 18 },
     { header: "Country of Origin", key: "countryOfOrigin", width: 18 },
-    { header: "Certificates", key: "certificates", width: 42 },
     { header: "Key Specifications", key: "keySpecifications", width: 90 },
     { header: "Electrical Ratings", key: "electricalRatings", width: 90 },
     { header: "Mechanical / Installation", key: "mechanicalInstallation", width: 84 },
@@ -112,16 +121,36 @@ export async function exportRunWorkbook(input: {
   ];
 
   products.columns = [
+    { header: "Catalog Number", key: "catalogNumber", width: 24 },
     { header: "Manufacturer", key: "manufacturer", width: 18 },
     { header: "Short Name", key: "shortName", width: 12 },
-    { header: "Catalog Number", key: "catalogNumber", width: 24 },
     { header: "Status", key: "status", width: 12 },
     { header: "Confidence", key: "confidence", width: 12 },
     { header: "Title", key: "title", width: 42 },
-    { header: "Description", key: "description", width: 56 },
     { header: "Product Type", key: "productType", width: 30 },
+    { header: "Device Type", key: "deviceType", width: 30 },
+    { header: "Device Type Confidence", key: "deviceTypeConfidence", width: 20, style: { numFmt: "0%" } },
+    { header: "Device Type Evidence", key: "deviceTypeEvidence", width: 54 },
+    { header: "Copy Summary", key: "copySummary", width: 110 },
+    { header: "Voltage", key: "voltage", width: 22 },
+    { header: "Current", key: "current", width: 22 },
+    { header: "Current Type", key: "currentType", width: 14 },
+    { header: "Rated Current", key: "ratedCurrent", width: 18 },
+    { header: "Material", key: "material", width: 30 },
+    { header: "Certificates", key: "certificates", width: 38 },
+    { header: "ECLASS", key: "eclass", width: 24 },
+    { header: "Weight", key: "weight", width: 20 },
+    { header: "Weight (kg)", key: "weightKg", width: 14, style: { numFmt: "0.#########" } },
+    { header: "Weight (lb)", key: "weightLb", width: 14, style: { numFmt: "0.#########" } },
+    { header: "Dimensions", key: "dimensions", width: 34 },
+    { header: "Height (mm)", key: "heightMm", width: 14, style: { numFmt: "0.#########" } },
+    { header: "Width (mm)", key: "widthMm", width: 14, style: { numFmt: "0.#########" } },
+    { header: "Depth (mm)", key: "depthMm", width: 14, style: { numFmt: "0.#########" } },
+    { header: "Length (mm)", key: "lengthMm", width: 14, style: { numFmt: "0.#########" } },
+    { header: "Protection", key: "protection", width: 28 },
+    { header: "IP Rating", key: "ipRating", width: 18 },
+    { header: "Description", key: "description", width: 56 },
     { header: "EAN / GTIN", key: "ean", width: 20 },
-    { header: "All Specifications", key: "allSpecifications", width: 100 },
     { header: "Key Specifications", key: "keySpecifications", width: 82 },
     { header: "Electrical Ratings", key: "electricalRatings", width: 82 },
     { header: "Mechanical / Installation", key: "mechanicalInstallation", width: 76 },
@@ -138,31 +167,20 @@ export async function exportRunWorkbook(input: {
     { header: "Product URL EN", key: "productUrlEn", width: 60 },
     { header: "Product URL DE", key: "productUrlDe", width: 60 },
     { header: "Product URL Source", key: "productUrl", width: 60 },
-    { header: "Weight (lb)", key: "weightLb", width: 14, style: { numFmt: "0.#########" } },
-    { header: "Weight (kg)", key: "weightKg", width: 14, style: { numFmt: "0.#########" } },
     { header: "Height (in)", key: "heightIn", width: 14, style: { numFmt: "0.#########" } },
     { header: "Width (in)", key: "widthIn", width: 14, style: { numFmt: "0.#########" } },
     { header: "Depth (in)", key: "depthIn", width: 14, style: { numFmt: "0.#########" } },
     { header: "Length (in)", key: "lengthIn", width: 14, style: { numFmt: "0.#########" } },
-    { header: "Height (mm)", key: "heightMm", width: 14, style: { numFmt: "0.#########" } },
-    { header: "Width (mm)", key: "widthMm", width: 14, style: { numFmt: "0.#########" } },
-    { header: "Depth (mm)", key: "depthMm", width: 14, style: { numFmt: "0.#########" } },
-    { header: "Length (mm)", key: "lengthMm", width: 14, style: { numFmt: "0.#########" } },
-    { header: "Material", key: "material", width: 28 },
     { header: "Wall Thickness (in)", key: "wallThicknessIn", width: 20, style: { numFmt: "0.#########" } },
     { header: "Wall Thickness (mm)", key: "wallThicknessMm", width: 20, style: { numFmt: "0.#########" } },
     { header: "Finish", key: "finish", width: 46 },
     { header: "Color", key: "color", width: 28 },
-    { header: "Voltage", key: "voltage", width: 20 },
     { header: "Voltage AC", key: "voltageAc", width: 18 },
     { header: "Voltage DC", key: "voltageDc", width: 18 },
     { header: "Voltage Range", key: "voltageRange", width: 22 },
     { header: "Operating Voltage Ub / Ur", key: "operatingVoltageUb", width: 26 },
-    { header: "Current", key: "current", width: 20 },
     { header: "Current AC", key: "currentAc", width: 18 },
     { header: "Current DC", key: "currentDc", width: 18 },
-    { header: "Current Type", key: "currentType", width: 14 },
-    { header: "Rated Current", key: "ratedCurrent", width: 18 },
     { header: "Current Sum US (sensor)", key: "currentSumUs", width: 24 },
     { header: "Current Sum UA (actuator)", key: "currentSumUa", width: 26 },
     { header: "Standards", key: "standards", width: 28 },
@@ -171,8 +189,6 @@ export async function exportRunWorkbook(input: {
     { header: "Replaced Product ID", key: "replacedProductId", width: 24 },
     { header: "Tariff Code (HS)", key: "tariffCode", width: 18 },
     { header: "Country of Origin", key: "countryOfOrigin", width: 18 },
-    { header: "Protection", key: "protection", width: 28 },
-    { header: "IP Rating", key: "ipRating", width: 18 },
     { header: "NEMA / Type Rating", key: "nemaRating", width: 24 },
     { header: "IK Rating", key: "ikRating", width: 16 },
     { header: "Frequency", key: "frequency", width: 34 },
@@ -183,7 +199,7 @@ export async function exportRunWorkbook(input: {
     { header: "Operating Temperature", key: "operatingTemperature", width: 44 },
     { header: "Wire / Cable Size", key: "wireCableSize", width: 44 },
     { header: "Thread Size", key: "threadSize", width: 28 },
-    { header: "Certificates", key: "certificates", width: 36 },
+    { header: "All Specifications", key: "allSpecifications", width: 100 },
     { header: "Page Attribute Count", key: "attributeCount", width: 18 },
     { header: "Document Count", key: "documentCount", width: 14 },
     { header: "Quality Gate Passed", key: "qualityPassed", width: 18 },
@@ -1743,6 +1759,7 @@ function lookupRow(row: ReturnType<typeof productRow>, result?: ProductResult) {
   return {
     ...row,
     description: singleLineForLookup(row.description),
+    copySummary: singleLineForLookup(row.copySummary),
     keySpecifications: singleLineForLookup(row.keySpecifications),
     electricalRatings: singleLineForLookup(row.electricalRatings),
     mechanicalInstallation: singleLineForLookup(row.mechanicalInstallation),
@@ -1798,8 +1815,12 @@ function productRow(manufacturer: ManufacturerConfig, item: RunItemRecord, resul
   const measurements = measurementsForExport(result, normalized);
   const documents = documentsForExport(result);
   const summary = specificationSummaryForExport(result, normalized);
+  const deviceType = classifyDeviceType(result);
   const technical = technicalHighlightsForExport(result?.attributes ?? [], normalized);
   const electrical = electricalSplitForExport(result?.attributes ?? [], normalized);
+  const voltage = dedupePipeJoinedSpec(normalized.voltage);
+  const current = dedupePipeJoinedSpec(normalized.current);
+  const eclass = eclassForExport(result?.attributes ?? []);
   const row = {
     manufacturer,
     result,
@@ -1810,8 +1831,8 @@ function productRow(manufacturer: ManufacturerConfig, item: RunItemRecord, resul
     finish: normalized.finish,
     color: normalized.color,
     certificates: normalized.certificates,
-    voltage: normalized.voltage,
-    current: normalized.current,
+    voltage,
+    current,
     primaryImage: primaryImageDocument(result)
   };
 
@@ -1824,6 +1845,26 @@ function productRow(manufacturer: ManufacturerConfig, item: RunItemRecord, resul
     title: result?.title ?? item.title,
     description: result?.description ?? descriptionFromAttributes(result),
     productType: summary.productType,
+    deviceType: deviceType.type,
+    deviceTypeConfidence: deviceType.confidence,
+    deviceTypeEvidence: deviceType.evidence,
+    copySummary: copySummaryForExport({
+      catalogNumber: item.catalogNumber,
+      title: result?.title ?? item.title,
+      productType: summary.productType,
+      deviceType: deviceType.type,
+      voltage,
+      current,
+      currentType: electrical.currentType,
+      ratedCurrent: electrical.ratedCurrent,
+      material: row.material,
+      certificates: row.certificates,
+      eclass,
+      weight: normalized.weight,
+      dimensions: normalized.dimensions,
+      protection: normalized.protection,
+      ipRating: technical.ipRating
+    }),
     ean: summary.ean,
     allSpecifications: summary.allSpecifications,
     keySpecifications: summary.keySpecifications,
@@ -1842,8 +1883,10 @@ function productRow(manufacturer: ManufacturerConfig, item: RunItemRecord, resul
     productUrlEn: row.productUrlEn,
     productUrlDe: row.productUrlDe,
     productUrl: result?.productUrl ?? item.productUrl,
+    weight: normalized.weight,
     weightLb: row.weightLb,
     weightKg: row.weightKg,
+    dimensions: normalized.dimensions,
     heightIn: row.heightIn,
     widthIn: row.widthIn,
     depthIn: row.depthIn,
@@ -1857,12 +1900,12 @@ function productRow(manufacturer: ManufacturerConfig, item: RunItemRecord, resul
     wallThicknessMm: row.wallThicknessMm,
     finish: row.finish,
     color: row.color,
-    voltage: dedupePipeJoinedSpec(normalized.voltage),
+    voltage,
     voltageAc: electrical.voltageAc,
     voltageDc: electrical.voltageDc,
     voltageRange: electrical.voltageRange,
     operatingVoltageUb: electrical.operatingVoltageUb,
-    current: dedupePipeJoinedSpec(normalized.current),
+    current,
     currentAc: electrical.currentAc,
     currentDc: electrical.currentDc,
     currentType: electrical.currentType,
@@ -1888,6 +1931,7 @@ function productRow(manufacturer: ManufacturerConfig, item: RunItemRecord, resul
     wireCableSize: technical.wireCableSize,
     threadSize: technical.threadSize,
     certificates: row.certificates,
+    eclass,
     attributeCount: result?.attributes.length ?? 0,
     documentCount: documents.length,
     qualityPassed: result?.qualityGate?.passed,
@@ -3121,6 +3165,46 @@ function specLine(label: string, value: string | undefined): string | undefined 
   return cleaned ? `${label}: ${cleaned}` : undefined;
 }
 
+function copySummaryForExport(input: {
+  catalogNumber: string;
+  title?: string;
+  productType?: string;
+  deviceType?: string;
+  voltage?: string;
+  current?: string;
+  currentType?: string;
+  ratedCurrent?: string;
+  material?: string;
+  certificates?: string;
+  eclass?: string;
+  weight?: string;
+  dimensions?: string;
+  protection?: string;
+  ipRating?: string;
+}): string | undefined {
+  return joinSpecLines([
+    specLine("Catalog Number", input.catalogNumber),
+    specLine("Title", input.title),
+    specLine("Product Type", input.productType),
+    specLine("Device Type", input.deviceType),
+    specLine("Voltage", input.voltage),
+    specLine("Current", input.current),
+    specLine("Current Type", input.currentType),
+    specLine("Rated Current", input.ratedCurrent),
+    specLine("Material", input.material),
+    specLine("Certificates", input.certificates),
+    specLine("ECLASS", eclassValueForCopy(input.eclass)),
+    specLine("Weight", input.weight),
+    specLine("Dimensions", input.dimensions),
+    specLine("IP Rating", input.ipRating),
+    specLine("Protection", input.protection)
+  ]);
+}
+
+function eclassValueForCopy(value: string | undefined): string | undefined {
+  return value?.replace(/^ECLASS(?:\s+\d+(?:\.\d+)*)?:\s*/i, "");
+}
+
 function joinSpecLines(lines: Array<string | undefined>): string | undefined {
   const joined = uniqueStrings(lines.filter((line): line is string => Boolean(line))).join("\n");
   return joined || undefined;
@@ -3142,6 +3226,27 @@ function attributeSpecLines(
 
 function joinedAttributeSpecs(attributes: ProductResult["attributes"], namePatterns: RegExp[], maxLines: number): string | undefined {
   return joinSpecLines(attributeSpecLines(attributes, namePatterns, maxLines));
+}
+
+function eclassForExport(attributes: ProductResult["attributes"]): string | undefined {
+  const candidates = attributes
+    .filter((attr) => /^eclass(?:\s+\d+(?:\.\d+)*)?$/i.test(cleanText(attr.name)) && usefulSummaryValue(attr.value))
+    .map((attr) => ({
+      label: cleanText(attr.name).toUpperCase(),
+      value: compactSpecValue(attr.value, 80),
+      score: eclassVersionScore(attr.name) + summaryAttributeScore(attr)
+    }))
+    .filter((candidate): candidate is { label: string; value: string; score: number } => Boolean(candidate.value))
+    .sort((left, right) => right.score - left.score);
+  const best = candidates[0];
+  return best ? `${best.label}: ${best.value}` : undefined;
+}
+
+function eclassVersionScore(value: string): number {
+  const version = cleanText(value).match(/\b(\d+(?:\.\d+)*)\b/)?.[1];
+  if (!version) return 0;
+  const [major = 0, minor = 0] = version.split(".").map((part) => Number(part));
+  return (Number.isFinite(major) ? major : 0) * 100 + (Number.isFinite(minor) ? minor : 0);
 }
 
 interface ElectricalSplit {

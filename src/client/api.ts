@@ -103,6 +103,39 @@ export async function openRunOutputFolder(id: string): Promise<{ ok: true; path:
   return request(`/api/runs/${id}/files/folder/open`, { method: "POST" });
 }
 
+export interface PdtImportStats {
+  outputPath: string;
+  productCount: number;
+  documentRows: number;
+  filledSheets: Record<string, number>;
+  missingSheets: string[];
+  unmappedDeviceTypes: string[];
+  cleanedInputPath?: string;
+  cleanup?: {
+    status: "disabled" | "qwen_unavailable" | "qwen_no_valid_output" | "qwen_reviewed" | "qwen_applied";
+    host: string;
+    model: string;
+    itemCount: number;
+    qwenPatchCount: number;
+    acceptedFieldCount: number;
+    rejectedFieldCount: number;
+    message: string;
+    productRows: number;
+  };
+}
+
+export async function importRunPdt(id: string, options: { templatePath?: string } = {}): Promise<{ ok: true; path: string; stats: PdtImportStats }> {
+  return request(`/api/runs/${id}/pdt`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ templatePath: options.templatePath })
+  });
+}
+
+export async function openRunPdt(id: string): Promise<{ ok: true; path: string }> {
+  return request(`/api/runs/${id}/files/pdt/open`, { method: "POST" });
+}
+
 export async function updateRunCoverageFields(
   id: string,
   customCoverageFields: Array<{ id: string; label: string; pattern: string }>,

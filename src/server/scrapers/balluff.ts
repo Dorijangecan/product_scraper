@@ -7,6 +7,7 @@ import { classifyDocument, cleanText, emptyResult, mergeResults, normalizeFields
 import { buildLocalizedProductUrls } from "./localized-urls.js";
 import { catalogTextMatches, sameCatalogNumber } from "./catalog-number.js";
 import { dedupeAttributes, dedupeDocuments, dedupeSources } from "./dedupe.js";
+import { enrichResultFromDownloadedDocuments } from "./document-enrichment.js";
 import { findBestProductLink } from "./link-discovery.js";
 import { renderProductPage, type ModalSection } from "./browser-renderer.js";
 
@@ -234,6 +235,15 @@ export class BalluffConnector implements ManufacturerConnector {
           partialResults.push(current);
         }
 
+        if (docsEnabled && context.saveDocuments === false) {
+          const enrichedFromDatasheet = await enrichBalluffDatasheetForFastPath(current, context);
+          if (enrichedFromDatasheet) {
+            current = enrichedFromDatasheet;
+            partialResults.push(current);
+            if (isBalluffDatasheetEnrichedEnough(current)) return current;
+          }
+        }
+
         // When document downloads are disabled, the Excel only needs HTML-sourced data,
         // so we can skip the expensive browser render whenever the static HTML already
         // satisfies the (docs-off) completeness check. When docs are enabled we still
@@ -243,14 +253,25 @@ export class BalluffConnector implements ManufacturerConnector {
           return current;
         }
 
+        // Skip the expensive Playwright modal sequence when this URL doesn't actually host
+        // the product (404 / wrong locale / different catalog on the page).
+        if (current.status === "failed" || primary.statusCode >= 400) continue;
+
         const modalSections = balluffModalSectionsFor(current, currentHtml, docsEnabled);
         if (modalSections.length === 0) {
           return current;
         }
 
-        const expanded = await scrapeBalluffExpandedSections(catalogNumber, url, context, modalSections);
+        const expanded = await scrapeBalluffExpandedSections(catalogNumber, url, context, { sections: modalSections });
         if (expanded) {
-          const expandedMerged = mergeBalluffResults(current, expanded);
+          let expandedMerged = mergeBalluffResults(current, expanded);
+          if (docsEnabled && context.saveDocuments === false && !hasBalluffDatasheet(expandedMerged)) {
+            const downloadsOnly = await scrapeBalluffExpandedSections(catalogNumber, url, context, {
+              forceDownloads: true,
+              onlyDownloads: true
+            });
+            if (downloadsOnly) expandedMerged = mergeBalluffResults(expandedMerged, downloadsOnly);
+          }
           partialResults.push(expandedMerged);
           if (isCompleteBalluffResult(expandedMerged, currentHtml, { requireDatasheet: docsEnabled })) return expandedMerged;
           if (isCompleteBalluffResult(current, currentHtml, { requireDatasheet: docsEnabled })) return expandedMerged;
@@ -572,15 +593,16 @@ async function scrapeBalluffExpandedSections(
   catalogNumber: string,
   url: string,
   context: ScrapeContext,
-  requestedModalSections?: ModalSection[]
+  options: { forceDownloads?: boolean; onlyDownloads?: boolean; sections?: ModalSection[] } = {}
 ): Promise<ProductResult | undefined> {
   try {
     // The "Downloads" modal is purely a vehicle for discovering datasheet/manual/CAD URLs.
     // When the user disabled document downloads we never fetch those files, so opening this
     // modal (which also drills into a sub-section "Product documentation") is pure overhead.
-    const docsEnabled = context.downloadDocuments !== false;
-    const modalSections = requestedModalSections ??
-      (docsEnabled
+    const shouldDiscoverFullDocuments = options.forceDownloads || (context.saveDocuments !== false && context.downloadDocuments !== false);
+    const modalSections = options.sections ?? (options.onlyDownloads
+      ? BALLUFF_MODAL_SECTIONS.filter((section) => section.label === "Downloads")
+      : shouldDiscoverFullDocuments
         ? BALLUFF_MODAL_SECTIONS
         : BALLUFF_MODAL_SECTIONS.filter((section) => section.label !== "Downloads"));
 
@@ -866,6 +888,52 @@ const BALLUFF_EXPANDED_SECTION_MARKERS: Array<{ name: string; pattern: RegExp }>
 function balluffExpandedSectionCount(html: string): number {
   const text = cleanText(html);
   return BALLUFF_EXPANDED_SECTION_MARKERS.reduce((count, marker) => (marker.pattern.test(text) ? count + 1 : count), 0);
+}
+
+function hasBalluffDatasheet(result: ProductResult): boolean {
+  return result.documents.some((doc) => doc.type === "datasheet");
+}
+
+async function enrichBalluffDatasheetForFastPath(
+  result: ProductResult,
+  context: ScrapeContext
+): Promise<ProductResult | undefined> {
+  if (result.status === "failed" || context.signal?.aborted) return undefined;
+  const datasheet = result.documents.find((doc) => doc.type === "datasheet");
+  if (!datasheet) return undefined;
+
+  try {
+    const downloaded = datasheet.localPath ? datasheet : await context.downloadDocument(datasheet);
+    const documents = result.documents.map((doc) => (doc === datasheet || doc.url === datasheet.url ? downloaded : doc));
+    return await enrichResultFromDownloadedDocuments({ ...result, documents });
+  } catch (error) {
+    if (context.signal?.aborted) throw new Error("Cancelled by user.");
+    return {
+      ...result,
+      diagnostics: {
+        ...result.diagnostics,
+        fallbackStages: [...(result.diagnostics?.fallbackStages ?? []), `balluff-fast-datasheet-failed:${error instanceof Error ? error.message : String(error)}`]
+      }
+    };
+  }
+}
+
+function isBalluffDatasheetEnrichedEnough(result: ProductResult): boolean {
+  if (result.status === "failed") return false;
+  const parsedDatasheet = result.documents.some((doc) => doc.type === "datasheet" && doc.parseStatus === "parsed");
+  if (!parsedDatasheet) return false;
+  const normalizedPresent = [
+    result.normalized.weight,
+    result.normalized.dimensions,
+    result.normalized.material,
+    result.normalized.voltage,
+    result.normalized.current,
+    result.normalized.protection,
+    result.normalized.certificates
+  ].filter((value) => Boolean(value)).length;
+  const hasIdentity = result.documents.some((doc) => doc.type === "image") && hasBalluffDatasheet(result);
+  const hasPdfDepth = result.attributes.filter((attr) => /^PDF /i.test(attr.group ?? "")).length >= 25;
+  return hasIdentity && hasPdfDepth && normalizedPresent >= 3;
 }
 
 function hasAllBalluffExpandedSections(html: string): boolean {

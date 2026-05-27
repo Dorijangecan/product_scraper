@@ -1,5 +1,5 @@
 import { parse } from "csv-parse/sync";
-import ExcelJS from "exceljs";
+import type ExcelJS from "exceljs";
 import type { CsvPreview } from "../shared/types.js";
 
 export async function previewCsv(buffer: Buffer): Promise<CsvPreview> {
@@ -68,6 +68,7 @@ function parseTextRows(buffer: Buffer): { columns: string[]; rows: Record<string
 }
 
 async function parseWorkbookRows(buffer: Buffer): Promise<{ columns: string[]; rows: Record<string, string>[] }> {
+  const { default: ExcelJS } = await import("exceljs");
   const workbook = new ExcelJS.Workbook();
   await workbook.xlsx.load(buffer as unknown as ArrayBuffer);
   const sheet = workbook.worksheets[0];

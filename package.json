@@ -5,7 +5,9 @@
   "main": "src/server/index.ts",
   "scripts": {
     "dev": "concurrently -k -n api,ui -c blue,green \"tsx watch src/server/index.ts\" \"vite --host 127.0.0.1\"",
-    "desktop": "npm run build && electron src/desktop/main.cjs",
+    "desktop": "node scripts/start-desktop.cjs",
+    "desktop:rebuild": "npm run build && electron src/desktop/main.cjs",
+    "build:frontend": "vite build",
     "server": "tsx src/server/index.ts",
     "build": "tsc --noEmit && vite build",
     "test": "vitest run",

@@ -4,13 +4,9 @@ import path from "node:path";
 import type { DocumentRecord, ManufacturerConfig, ManufacturerId, ProductResult, RunItemRecord, RunRecord } from "../shared/types.js";
 import { getManufacturerConfig } from "./config/manufacturers.js";
 import type { ScraperDb } from "./db.js";
-import { exportRunWorkbook } from "./excel.js";
 import { CachedHttpClient, delay } from "./scrapers/http-client.js";
 import { getConnector } from "./scrapers/index.js";
-import { GenericFallbackScraper } from "./scrapers/generic.js";
-import { enrichResultFromDownloadedDocuments } from "./scrapers/document-enrichment.js";
 import { finalizeQualityGate } from "./scrapers/quality-gate.js";
-import { runDeterministicScrapePipeline } from "./scrapers/deterministic-pipeline.js";
 import {
   applyFinalCompletenessStatus,
   evaluateFinalCompleteness,
@@ -24,10 +20,13 @@ import { BrowserRenderSession } from "./scrapers/browser-renderer.js";
 import type { AppPaths } from "./paths.js";
 import { buildRunOutputLayout, ensureRunOutputLayout, type RunOutputLayout } from "./run-output.js";
 
-type DocumentDownloadProfile = "full" | "quality" | "images-only";
+export type DocumentDownloadProfile = "full" | "quality" | "images-only";
+
+const INTERRUPTED_RUN_RESUME_WINDOW_MS = 5 * 60 * 1000;
 
 export class RunManager {
   private activeRuns = new Map<string, AbortController>();
+  private instantlyCancelledRuns = new Set<string>();
 
   constructor(
     private readonly db: ScraperDb,
@@ -49,8 +48,20 @@ export class RunManager {
   resumeInterruptedRuns() {
     const resumable = this.db.listRunsByStatus(["queued", "running", "cancelling"]);
     for (const run of resumable) {
+      if (this.isStaleInterruptedRun(run)) {
+        this.db.cancelActiveRunItems(run.id);
+        this.db.recountRun(run.id);
+        this.db.updateRun(run.id, { status: "cancelled", error: "Interrupted while app was closed." });
+        continue;
+      }
       void this.processRun(run.id);
     }
+  }
+
+  private isStaleInterruptedRun(run: RunRecord): boolean {
+    const updatedAt = Date.parse(run.updatedAt);
+    if (!Number.isFinite(updatedAt)) return false;
+    return Date.now() - updatedAt > INTERRUPTED_RUN_RESUME_WINDOW_MS;
   }
 
   async cancelRun(runId: string): Promise<RunRecord | undefined> {
@@ -58,14 +69,11 @@ export class RunManager {
     if (!run) return undefined;
     if (run.status === "completed" || run.status === "failed" || run.status === "cancelled") return run;
 
-    this.db.updateRun(run.id, { status: "cancelling", error: "Cancelled by user." });
-    this.db.cancelPendingRunItems(run.id);
+    this.instantlyCancelledRuns.add(run.id);
+    this.db.updateRun(run.id, { status: "cancelled", error: "Cancelled by user." });
+    this.db.cancelActiveRunItems(run.id);
     this.db.recountRun(run.id);
     this.activeRuns.get(run.id)?.abort();
-
-    if (!this.activeRuns.has(run.id)) {
-      await this.finalizeRun(run.id, "cancelled");
-    }
     return this.db.getRun(run.id);
   }
 
@@ -99,6 +107,10 @@ export class RunManager {
       const downloadDocumentsEnabled = run.options?.downloadDocuments !== false;
       const downloadImagesEnabled = run.options?.downloadImages !== false;
       const generateExcelEnabled = run.options?.generateExcel !== false;
+      const documentDownloadsForEnrichmentEnabled = shouldDownloadDocumentsForRun(rawManufacturer, {
+        downloadDocuments: downloadDocumentsEnabled,
+        generateExcel: generateExcelEnabled
+      });
       // "Images only" mode: no Excel, no documents, just the PNGs. Treat the whole pipeline
       // as a fast path — skip Playwright modal renders, fallback retries, and PDF
       // enrichment, since none of those affect the saved images.
@@ -106,7 +118,7 @@ export class RunManager {
       // When the user disables document downloads, the quality gate must not demand non-image
       // documents (datasheet/manual/etc.) — otherwise it always "fails", spawning fallback work
       // that re-fetches and re-renders pages to look for a PDF we never intend to download.
-      const manufacturer = downloadDocumentsEnabled
+      const manufacturer = documentDownloadsForEnrichmentEnabled
         ? rawManufacturer
         : withoutNonImageRequiredDocuments(rawManufacturer);
       layout = buildRunOutputLayout(this.paths.outputDir, manufacturer, run);
@@ -117,12 +129,15 @@ export class RunManager {
         inputFileName: run.inputFileName,
         total: run.total,
         downloadDocuments: downloadDocumentsEnabled,
+        documentDownloadsForEnrichment: documentDownloadsForEnrichmentEnabled,
         downloadImages: downloadImagesEnabled,
         outputFolder: layout.runDir
       });
       if (this.db.isCancellationRequested(run.id)) {
         this.db.cancelActiveRunItems(run.id);
-        await this.finalizeRun(run.id, "cancelled");
+        if (!this.wasInstantlyCancelled(run.id)) {
+          await this.finalizeRun(run.id, "cancelled");
+        }
         return;
       }
       this.db.updateRun(run.id, { status: "running", error: undefined });
@@ -131,9 +146,11 @@ export class RunManager {
       // Per-host throttle keeps us polite even with N parallel workers hitting the same domain.
       // Manufacturer.rateLimitMs is now treated as the minimum interval between requests to the same host.
       http.setHostMinIntervalMs(Math.max(100, Math.floor(manufacturer.rateLimitMs / Math.max(1, manufacturer.concurrency ?? 3))));
-      const fallback = new GenericFallbackScraper(run.manufacturerId, http, manufacturer);
       const browserRenderer = new BrowserRenderSession();
       const pending = this.db.getPendingRunItems(run.id);
+      const { GenericFallbackScraper } = await import("./scrapers/generic.js");
+      const { runDeterministicScrapePipeline } = await import("./scrapers/deterministic-pipeline.js");
+      const fallback = new GenericFallbackScraper(run.manufacturerId, http, manufacturer);
 
       const layoutRef = layout!;
       const processItem = async (item: typeof pending[number]): Promise<void> => {
@@ -149,7 +166,8 @@ export class RunManager {
             documentsDir: layoutRef.documentsDir,
             signal: controller.signal,
             browserRenderer,
-            downloadDocuments: downloadDocumentsEnabled,
+            downloadDocuments: documentDownloadsForEnrichmentEnabled,
+            saveDocuments: downloadDocumentsEnabled,
             imageOnly: imageOnlyMode,
             learnedEndpoints: {
               list: (manufacturerId, limit) => this.db.listLearnedEndpoints(manufacturerId, limit),
@@ -166,7 +184,7 @@ export class RunManager {
                 manufacturer.shortName,
                 item.catalogNumber,
                 doc,
-                downloadDocumentsEnabled,
+                documentDownloadsForEnrichmentEnabled,
                 controller.signal,
                 undefined,
                 downloadImagesEnabled
@@ -186,10 +204,11 @@ export class RunManager {
             layoutRef.imagesDir,
             manufacturer.shortName,
             initiallyGated,
-            downloadDocumentsEnabled,
+            documentDownloadsForEnrichmentEnabled,
             controller.signal,
             documentDownloadProfile(manufacturer, initiallyGated),
-            downloadImagesEnabled
+            downloadImagesEnabled,
+            item.catalogNumber
           );
           // In "Images only" mode the saved deliverable is just the PNG. Everything below this
           // line (PDF enrichment, fallback discovery, final completeness retry) exists only to
@@ -213,7 +232,8 @@ export class RunManager {
               documentsDir: layoutRef.documentsDir,
               signal: controller.signal,
               browserRenderer,
-              downloadDocuments: downloadDocumentsEnabled,
+              downloadDocuments: documentDownloadsForEnrichmentEnabled,
+              saveDocuments: downloadDocumentsEnabled,
               imageOnly: imageOnlyMode,
               learnedEndpoints: {
                 list: (manufacturerId, limit) => this.db.listLearnedEndpoints(manufacturerId, limit),
@@ -230,7 +250,7 @@ export class RunManager {
                   manufacturer.shortName,
                   item.catalogNumber,
                   doc,
-                  downloadDocumentsEnabled,
+                  documentDownloadsForEnrichmentEnabled,
                   controller.signal,
                   undefined,
                   downloadImagesEnabled
@@ -243,10 +263,11 @@ export class RunManager {
               layoutRef.imagesDir,
               manufacturer.shortName,
               withSmartFallbacks,
-              downloadDocumentsEnabled,
+              documentDownloadsForEnrichmentEnabled,
               controller.signal,
               documentDownloadProfile(manufacturer, withSmartFallbacks),
-              downloadImagesEnabled
+              downloadImagesEnabled,
+              item.catalogNumber
             );
             this.updateItemStage(item.id, "document-enrichment", "Reading fallback documents for missing values");
             enriched = finalizeQualityGate(await enrichFromDownloadedDocumentsIfPresent(withFallbackDownloads), manufacturer);
@@ -295,7 +316,8 @@ export class RunManager {
               documentsDir: layoutRef.documentsDir,
               signal: controller.signal,
               browserRenderer,
-              downloadDocuments: downloadDocumentsEnabled,
+              downloadDocuments: documentDownloadsForEnrichmentEnabled,
+              saveDocuments: downloadDocumentsEnabled,
               imageOnly: imageOnlyMode,
               learnedEndpoints: {
                 list: (manufacturerId, limit) => this.db.listLearnedEndpoints(manufacturerId, limit),
@@ -312,7 +334,7 @@ export class RunManager {
                   manufacturer.shortName,
                   item.catalogNumber,
                   doc,
-                  downloadDocumentsEnabled,
+                  documentDownloadsForEnrichmentEnabled,
                   controller.signal,
                   undefined,
                   downloadImagesEnabled
@@ -325,10 +347,11 @@ export class RunManager {
               layoutRef.imagesDir,
               manufacturer.shortName,
               withFinalCompletenessFallbacks,
-              downloadDocumentsEnabled,
+              documentDownloadsForEnrichmentEnabled,
               controller.signal,
               documentDownloadProfile(manufacturer, withFinalCompletenessFallbacks),
-              downloadImagesEnabled
+              downloadImagesEnabled,
+              item.catalogNumber
             );
             this.updateItemStage(item.id, "document-enrichment", "Reading final retry documents for missing values");
             enriched = finalizeQualityGate(await enrichFromDownloadedDocumentsIfPresent(withFinalCompletenessDownloads), manufacturer);
@@ -455,11 +478,14 @@ export class RunManager {
 
       const status = this.db.isCancellationRequested(run.id) || controller.signal.aborted ? "cancelled" : "completed";
       if (status === "cancelled") this.db.cancelActiveRunItems(run.id);
+      if (status === "cancelled" && this.wasInstantlyCancelled(run.id)) return;
       await this.finalizeRun(run.id, status);
     } catch (error) {
       if (controller.signal.aborted || this.db.isCancellationRequested(runId)) {
         this.db.cancelActiveRunItems(runId);
-        await this.finalizeRun(runId, "cancelled");
+        if (!this.wasInstantlyCancelled(runId)) {
+          await this.finalizeRun(runId, "cancelled");
+        }
         return;
       }
       this.db.updateRun(runId, {
@@ -472,7 +498,12 @@ export class RunManager {
       }
     } finally {
       this.activeRuns.delete(runId);
+      this.instantlyCancelledRuns.delete(runId);
     }
+  }
+
+  private wasInstantlyCancelled(runId: string): boolean {
+    return this.instantlyCancelledRuns.has(runId) || this.db.getRun(runId)?.status === "cancelled";
   }
 
   private async finalizeRun(runId: string, status: "completed" | "cancelled") {
@@ -486,12 +517,15 @@ export class RunManager {
     // "Images only" mode skips workbook generation; everything else still produces one.
     const shouldGenerateExcel = finalRun.options?.generateExcel !== false;
     const outputPath = shouldGenerateExcel
-      ? await exportRunWorkbook({
-          run: this.db.getRun(runId)!,
-          manufacturer,
-          items: this.db.getRunItems(runId),
-          outputDir: layout.excelDir
-        })
+      ? await (async () => {
+          const { exportRunWorkbook } = await import("./excel.js");
+          return exportRunWorkbook({
+            run: this.db.getRun(runId)!,
+            manufacturer,
+            items: this.db.getRunItems(runId),
+            outputDir: layout.excelDir
+          });
+        })()
       : undefined;
     this.db.updateRun(runId, {
       status,
@@ -521,7 +555,8 @@ export class RunManager {
     downloadDocumentsEnabled: boolean,
     signal?: AbortSignal,
     profile: DocumentDownloadProfile = "full",
-    downloadImagesEnabled: boolean = true
+    downloadImagesEnabled: boolean = true,
+    catalogNumberForFiles: string = result.catalogNumber
   ): Promise<ProductResult> {
     const documents: DocumentRecord[] = [];
     const maxDownloads = profile === "full" ? 25 : 8;
@@ -577,7 +612,7 @@ export class RunManager {
         nonImageDownloadCount += 1;
         profileTypeCounts.set(doc.type, (profileTypeCounts.get(doc.type) ?? 0) + 1);
       }
-      documents.push(await this.downloadDocument(http, documentsDir, imagesDir, manufacturerShortName, result.catalogNumber, doc, downloadDocumentsEnabled, signal, indexForDoc, downloadImagesEnabled));
+      documents.push(await this.downloadDocument(http, documentsDir, imagesDir, manufacturerShortName, catalogNumberForFiles, doc, downloadDocumentsEnabled, signal, indexForDoc, downloadImagesEnabled));
       if (doc.type === "image") imageIndex += 1;
       downloadCount += 1;
     }
@@ -738,9 +773,20 @@ function documentExtension(url: string, type: DocumentRecord["type"]): string {
   return ".bin";
 }
 
-function documentDownloadProfile(manufacturer: { id: string }, result: ProductResult): DocumentDownloadProfile {
-  if (manufacturer.id === "balluff") return result.qualityGate?.passed ? "images-only" : "quality";
+export function documentDownloadProfile(manufacturer: { id: string }, result: ProductResult): DocumentDownloadProfile {
+  if (manufacturer.id === "balluff") return "quality";
   return "full";
+}
+
+export function shouldDownloadDocumentsForRun(
+  manufacturer: { id: string },
+  options: { downloadDocuments: boolean; generateExcel: boolean }
+): boolean {
+  if (options.downloadDocuments) return true;
+  // Balluff often publishes required electrical and dimensional data only in the datasheet
+  // modal/PDF. If an Excel workbook is being generated, keep the first datasheet in the
+  // enrichment path even when the broad "save documents" option is off.
+  return options.generateExcel && manufacturer.id === "balluff";
 }
 
 function shouldDownloadForProfile(
@@ -772,6 +818,7 @@ function shouldDownloadLocalDocument(doc: DocumentRecord): boolean {
 
 async function enrichFromDownloadedDocumentsIfPresent(result: ProductResult): Promise<ProductResult> {
   if (!result.documents.some((doc) => shouldParseDownloadedDocument(doc))) return result;
+  const { enrichResultFromDownloadedDocuments } = await import("./scrapers/document-enrichment.js");
   return enrichResultFromDownloadedDocuments(result);
 }
 
@@ -801,9 +848,12 @@ async function exists(filePath: string): Promise<boolean> {
   }
 }
 
-function imageFileName(manufacturerShortName: string, catalogNumber: string, index?: number): string {
+export function imageFileName(manufacturerShortName: string, catalogNumber: string, index?: number): string {
   const suffix = index && index > 0 ? `_${index + 1}` : "";
-  return `${safeImagePart(manufacturerShortName)}.${safeImagePart(catalogNumber)}${suffix}.png`;
+  const manufacturer = safeImagePart(manufacturerShortName);
+  const catalog = safeImagePart(catalogNumber);
+  if (manufacturer.toUpperCase() === "SCE") return `${manufacturer}.${catalog}_preview${suffix}.png`;
+  return `${manufacturer}.${catalog}${suffix}.png`;
 }
 
 function safeImagePart(value: string): string {
