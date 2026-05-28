@@ -124,11 +124,14 @@ export interface PdtImportStats {
   };
 }
 
-export async function importRunPdt(id: string, options: { templatePath?: string } = {}): Promise<{ ok: true; path: string; stats: PdtImportStats }> {
+export async function importRunPdt(
+  id: string,
+  options: { templatePath?: string; aiCleanup?: boolean } = {}
+): Promise<{ ok: true; path: string; stats: PdtImportStats }> {
   return request(`/api/runs/${id}/pdt`, {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({ templatePath: options.templatePath })
+    body: JSON.stringify({ templatePath: options.templatePath, aiCleanup: options.aiCleanup ?? false })
   });
 }
 

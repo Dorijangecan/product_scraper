@@ -311,7 +311,8 @@ app.post("/api/runs/:id/pdt", async (req, res) => {
       manufacturer,
       items: db.getRunItems(run.id),
       templatePath,
-      outputPath
+      outputPath,
+      aiCleanup: req.body?.aiCleanup === true
     });
     if (result.productCount === 0) {
       res.status(400).json({ error: "No found or partial products to import into the PDT." });

@@ -7,46 +7,67 @@ export const CONSTANT_SHEETS = ["Material Master Data", "Additional Documents"] 
 
 /**
  * Device type (as produced by `classifyDeviceType`) → device-specific PDT tab name(s). Tabs are
- * the exact sheet names in the Master PDT workbook. Entries marked best-effort are reasonable
- * matches that may need confirmation against the real catalog taxonomy.
+ * the exact sheet names in the Master PDT workbook (case-insensitive lookup on the exporter
+ * side, so casing here matches the template for readability).
+ *
+ * Mapping rationale:
+ * - Each entry targets the most semantically precise tab that the Master PDT actually exposes.
+ * - When the template has no tab matching the device's domain, the device falls through to just
+ *   the constant tabs (Material Master Data + Additional Documents) rather than being shoehorned
+ *   into a misleading sheet — wrong tab is worse than no tab.
  */
 const DEVICE_SHEET_MAP: Record<string, string[]> = {
-  // Enclosures & mounting
+  // --- Enclosures & mounting ---
   Enclosure: ["cabinet", "cabinet.mechanical"],
   Subpanel: ["cabinet.mechanical"],
+  "Rack Cabinet": ["cabinet.rack"],
+  "Module Carrier": ["module carrier frame"],
   Loadcenter: ["energy distribution system"],
   Wireway: ["cable ducts mounting rails"],
   "Mounting Accessory": ["cable ducts mounting rails"],
 
-  // Protection & control
+  // --- Protection & control ---
+  // Contactors, fuses, and the various breaker types share the "contactor a. fuses" tab in the
+  // Master PDT — it covers all switching/protective devices in the contactor family.
   Contactor: ["contactor a. fuses"],
   Fuse: ["contactor a. fuses"],
-  Relay: ["contactor a. fuses"], // best-effort
-  "Circuit Breaker": ["contactor a. fuses"], // best-effort
-  "Molded Case Circuit Breaker": ["contactor a. fuses"], // best-effort
-  "Miniature Circuit Breaker": ["contactor a. fuses"], // best-effort
+  Relay: ["contactor a. fuses"],
+  "Safety Relay": ["safety sensor"],
+  "Circuit Breaker": ["contactor a. fuses"],
+  "Molded Case Circuit Breaker": ["contactor a. fuses"],
+  "Miniature Circuit Breaker": ["contactor a. fuses"],
+  "Residual Current Device": ["contactor a. fuses"],
   "Motor Circuit Breaker": ["motor protection"],
   "Motor Starter": ["motor protection"],
   "Disconnect Switch": ["Switch"],
   Switch: ["Switch"],
   "Surge Protective Device": ["int. ext. lightning protection"],
 
-  // Power / electrical
+  // --- Power / electrical ---
   "Power Supply": ["power supply devices"],
   UPS: ["power supply devices"],
-  Transformer: ["power supply devices"], // best-effort
-  "Variable Speed Drive": ["servo controller"], // best-effort
-  "Soft Starter": ["servo controller"], // best-effort
+  Transformer: ["power supply devices"],
+  Generator: ["generator"],
+  Motor: ["motors"],
+  "Variable Speed Drive": ["servo controller"],
+  "Soft Starter": ["servo controller"],
+  "Motion Controller": ["Motion Controller"],
   "Current Sensor": ["el. mesurement devices"],
+  Filter: ["filters"],
 
-  // Wiring & connectors
+  // --- Wiring & connectors ---
   Cable: ["cable"],
   "Cable Gland": ["cable gland"],
   Connector: ["connector"],
+  "Optical Connector": ["connector.optical"],
+  "PCB Connector": ["PCB connection system"],
+  "PCB Terminal Block": ["PCB connection technology"],
   Busbar: ["Busbar"],
   "Terminal Block": ["terminal"],
+  "Terminal Accessory": ["terminal endbracket"],
+  "Wire Marker": ["Wire ID Information"],
 
-  // Sensors
+  // --- Sensors ---
   "Photoelectric Sensor": ["optical sensor"],
   "Vision Sensor": ["optical sensor"],
   "Inductive Proximity Sensor": ["electronic sensor"],
@@ -54,23 +75,35 @@ const DEVICE_SHEET_MAP: Record<string, string[]> = {
   "Ultrasonic Sensor": ["electronic sensor"],
   "Magnetic Field Sensor": ["electronic sensor"],
   "RFID Device": ["electronic sensor"],
+  Encoder: ["electronic sensor"],
+  "Safety Sensor": ["safety sensor"],
   Sensor: ["electronic sensor"],
-  "Pressure Sensor": ["sensor - fluid"], // best-effort
-  "Temperature Sensor": ["sensor - fluid"], // best-effort
+  "Pressure Sensor": ["sensor - fluid"],
+  "Temperature Sensor": ["sensor - fluid"],
+  "Flow Sensor": ["sensor - fluid"],
+  "Level Sensor": ["sensor - fluid"],
 
-  // Automation
+  // --- Automation ---
   "Programmable Logic Controller": ["PLC"],
   "I/O Module": ["PLC"],
   HMI: ["panel (HMI)"],
+  "Communication Gateway": ["RS232 interfaces"],
 
-  // Signaling
+  // --- Signaling ---
   "Pushbutton / Operator": ["command and alarm device"],
   "Pilot Light": ["command and alarm device"],
   "Stack Light / Beacon": ["command and alarm device"],
-  "Machine Light": ["command and alarm device"],
+  Luminaire: ["Luminaire"],
 
-  // Cooling
-  "Thermal Management": ["cabinet.airconditioning"]
+  // --- Cooling / climate ---
+  "Thermal Management": ["cabinet.airconditioning"],
+
+  // --- Pneumatic / fluid power ---
+  Pump: ["pump"],
+  "Directional Control Valve": ["directional control valve"],
+  Valve: ["ventil"],
+  "Hydraulic Actuator": ["fluid power"],
+  "Pneumatic Device": ["pneumatic handling"]
 };
 
 /** Device-specific tab(s) for a device type, or [] when the type has no clear tab. */

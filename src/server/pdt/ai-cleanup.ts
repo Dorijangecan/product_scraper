@@ -1,4 +1,7 @@
 import type { ManufacturerConfig, RunItemRecord } from "../../shared/types.js";
+import { classifyDeviceType } from "../scrapers/device-type.js";
+import { deviceSheetsFor } from "./device-sheet-map.js";
+import { maxUnitNumber, splitTemperatureRange } from "./unit-cleanup.js";
 
 export interface PdtRepair {
   catalogNumber: string;
@@ -25,6 +28,20 @@ export interface PdtCleanupProductAudit {
   rejectedFields: string[];
   notes: string[];
   finalValues: Partial<Omit<PdtRepair, "catalogNumber">>;
+  /** Classified device type for the product (undefined when classifier has no confident match). */
+  deviceType?: string;
+  /** Classifier confidence (0..1) — values below 0.78 indicate the row needs human review. */
+  deviceTypeConfidence?: number;
+  /** Short text describing what evidence drove the classification ("Title: …", "Product Type: …"). */
+  deviceTypeEvidence?: string;
+  /** Device-specific PDT tab(s) the product will be written to (empty when nothing fit). */
+  deviceTabs: string[];
+  /** Next-best candidate device types (up to 2), with score and channels that voted for them. */
+  deviceTypeAlternatives?: Array<{ type: string; score: number; channels: string[] }>;
+  /** Difference in score between winner and runner-up — small margin means classifier was unsure. */
+  deviceTypeScoreMargin?: number;
+  /** Sanity-check warnings ("classified Contactor but no pole number found"). */
+  deviceTypeWarnings?: string[];
 }
 
 export interface PdtCleanupSourceValues {
@@ -62,9 +79,19 @@ export interface PdtRepairResult {
 export interface PdtRepairOptions {
   /** Run local Ollama/Qwen cleanup and include accepted suggestions in the returned repair map. */
   aiCleanup?: boolean;
+  onProgress?: (progress: PdtCleanupProgress) => void | Promise<void>;
 }
 
 type PdtRepairPatch = Partial<PdtRepair> & { catalogNumber?: string };
+
+export interface PdtCleanupProgress {
+  stage: "disabled" | "health-check" | "unavailable" | "qwen-batch" | "reviewing" | "done";
+  message: string;
+  batchIndex?: number;
+  batchCount?: number;
+  itemCount: number;
+  model?: string;
+}
 
 const DEFAULT_OLLAMA_HOST = "http://127.0.0.1:11434";
 const DEFAULT_OLLAMA_MODEL = "qwen3:4b";
@@ -104,6 +131,8 @@ export async function buildPdtRepairResult(
   for (const item of items) {
     const repair = heuristicRepair(item, manufacturer);
     repairs.set(item.id, repair);
+    const classification = classifyDeviceType(item.result);
+    const deviceTabs = deviceSheetsFor(classification.type);
     auditProducts.set(item.id, {
       catalogNumber: item.catalogNumber,
       sourceValues: sourceValues(item),
@@ -111,8 +140,15 @@ export async function buildPdtRepairResult(
       qwenFields: [],
       acceptedFields: [],
       rejectedFields: [],
-      notes: repairNotes(item, repair),
-      finalValues: repairValues(repair)
+      notes: repairNotes(item, repair, classification, deviceTabs),
+      finalValues: repairValues(repair),
+      deviceType: classification.type,
+      deviceTypeConfidence: classification.confidence,
+      deviceTypeEvidence: classification.evidence,
+      deviceTabs,
+      deviceTypeAlternatives: classification.alternatives,
+      deviceTypeScoreMargin: classification.scoreMargin,
+      deviceTypeWarnings: classification.warnings
     });
   }
 
@@ -125,6 +161,12 @@ export async function buildPdtRepairResult(
     options.aiCleanup !== false &&
     !((process.env.VITEST && process.env.PDT_AI_CLEANUP !== "1") || process.env.PDT_AI_CLEANUP === "0");
   if (!aiCleanupEnabled) {
+    await options.onProgress?.({
+      stage: "disabled",
+      message: "AI cleanup disabled; using deterministic scraped-data cleanup.",
+      itemCount: items.length,
+      model
+    });
     return {
       repairs,
       audit: cleanupAudit(
@@ -139,8 +181,20 @@ export async function buildPdtRepairResult(
     };
   }
 
+  await options.onProgress?.({
+    stage: "health-check",
+    message: `Checking local Qwen model ${model}.`,
+    itemCount: items.length,
+    model
+  });
   const modelCheck = await hasOllamaModel(host, model, healthTimeoutMs);
   if (!modelCheck.available) {
+    await options.onProgress?.({
+      stage: "unavailable",
+      message: modelCheck.message ?? "Qwen/Ollama was not reachable; using deterministic scraped-data cleanup.",
+      itemCount: items.length,
+      model
+    });
     return {
       repairs,
       audit: cleanupAudit(
@@ -157,7 +211,16 @@ export async function buildPdtRepairResult(
 
   let patchCount = 0;
   const errors: string[] = [];
-  for (const chunk of chunks(items, batchSize)) {
+  const batches = chunks(items, batchSize);
+  for (const [index, chunk] of batches.entries()) {
+    await options.onProgress?.({
+      stage: "qwen-batch",
+      message: `Qwen cleanup batch ${index + 1}/${batches.length} (${chunk.length} products).`,
+      batchIndex: index + 1,
+      batchCount: batches.length,
+      itemCount: items.length,
+      model
+    });
     const { patches, error } = await qwenRepairBatch(host, model, manufacturer, chunk, generateTimeoutMs);
     if (error) errors.push(error);
     patchCount += patches.length;
@@ -170,14 +233,38 @@ export async function buildPdtRepairResult(
       const productAudit = auditProducts.get(item.id);
       if (productAudit) {
         recordPatchAudit(productAudit, before, merged, patch);
-        productAudit.notes = repairNotes(item, merged);
+        productAudit.notes = repairNotes(
+          item,
+          merged,
+          { type: productAudit.deviceType, confidence: productAudit.deviceTypeConfidence, evidence: productAudit.deviceTypeEvidence },
+          productAudit.deviceTabs
+        );
         productAudit.finalValues = repairValues(merged);
       }
     }
   }
 
+  await options.onProgress?.({
+    stage: "reviewing",
+    message: "Reviewing Qwen suggestions against scraped evidence.",
+    batchCount: batches.length,
+    itemCount: items.length,
+    model
+  });
   const acceptedCount = [...auditProducts.values()].reduce((sum, entry) => sum + entry.acceptedFields.length, 0);
   const status = acceptedCount > 0 ? "qwen_applied" : patchCount === 0 && errors.length === 0 ? "qwen_reviewed" : "qwen_no_valid_output";
+  await options.onProgress?.({
+    stage: "done",
+    message:
+      status === "qwen_applied"
+        ? "Qwen cleanup complete; accepted source-backed fields."
+        : status === "qwen_reviewed"
+          ? "Qwen review complete; deterministic values kept."
+          : "Qwen cleanup complete; no evidence-backed changes accepted.",
+    batchCount: batches.length,
+    itemCount: items.length,
+    model
+  });
   return {
     repairs,
     audit: cleanupAudit(
@@ -318,12 +405,17 @@ function sourceValues(item: RunItemRecord): PdtCleanupSourceValues {
     ratedOperationalCurrentAc1: attr(item, /\brated operational current AC-1\b/i),
     powerLoss: attr(item, /\bpower loss\b/i),
     operatingTemperature: attr(item, /\boperating temperature\b/i),
-    ambientTemperature: attr(item, /\bambient temperature\b/i),
+    ambientTemperature: attr(item, /\bambient temperature\b/i) ?? attr(item, /\bamb(?:ient)?\s+air\s+tem(?:p(?:erature)?)?\b/i),
     temperatureRange: attr(item, /\btemperature range\b/i)
   };
 }
 
-function repairNotes(item: RunItemRecord, repair: PdtRepair): string[] {
+function repairNotes(
+  item: RunItemRecord,
+  repair: PdtRepair,
+  classification?: { type?: string; confidence?: number; evidence?: string },
+  deviceTabs?: string[]
+): string[] {
   const notes: string[] = [];
   if (!repair.operatingTemperatureMin && !repair.operatingTemperatureMax) {
     const currentDerating = attr(item, /\brated operational current AC-1\b/i);
@@ -333,6 +425,20 @@ function repairNotes(item: RunItemRecord, repair: PdtRepair): string[] {
   }
   if (repair.shortDescription) notes.push("Short description normalized from catalog/title evidence.");
   if (repair.longDescription) notes.push("Long description normalized from vendor evidence.");
+  if (classification) {
+    if (!classification.type) {
+      notes.push("Device type could not be classified \u2014 only Material Master Data + Additional Documents will be filled.");
+    } else if ((classification.confidence ?? 0) < 0.78) {
+      notes.push(
+        `Device type "${classification.type}" classified with low confidence (${((classification.confidence ?? 0) * 100).toFixed(0)}%) \u2014 please verify.`
+      );
+    }
+    if (classification.type && (!deviceTabs || deviceTabs.length === 0)) {
+      notes.push(
+        `Device type "${classification.type}" has no Master PDT device tab mapping \u2014 only the constant tabs will be filled.`
+      );
+    }
+  }
   return notes;
 }
 
@@ -557,9 +663,10 @@ function voltageMaxValue(item: RunItemRecord): string | undefined {
 function controlVoltageType(item: RunItemRecord): PdtRepair["voltageType"] {
   const value = attr(item, /\brated control circuit voltage\b/i) ?? attr(item, /\bcontrol voltage\b/i);
   if (!value) return undefined;
+  if (/\bAC\s*(?:\/|-|\s)\s*DC\b/i.test(value)) return "AC/DC";
   const hasAc = /\b(?:50|60)\s*hz\b|\bAC\b/i.test(value);
   const hasDc = /\bDC\b/i.test(value);
-  if (hasAc && hasDc) return "AC/DC";
+  if (hasAc && hasDc) return undefined;
   if (hasAc) return "AC";
   if (hasDc) return "DC";
   return undefined;
@@ -590,17 +697,29 @@ function normalizeElectricalDescription(value: string): string {
 
 function explicitTemperatureRange(item: RunItemRecord): { min?: string; max?: string } {
   const values = [
-    attr(item, /\boperating temperature\b/i),
-    attr(item, /\bambient temperature\b/i),
+    attr(item, /\boperating\b.*\btemperature\b/i),
+    attr(item, /\bambient\b.*\btemperature\b/i),
+    attr(item, /\bsurrounding\b.*\btemperature\b/i),
+    attr(item, /\bamb(?:ient)?\s+air\s+tem(?:p(?:erature)?)?\b/i),
     attr(item, /\btemperature range\b/i),
     attr(item, /\bservice temperature\b/i),
     attr(item, /\bstorage temperature\b/i, /\btemporary\b/i)
   ];
   for (const value of values) {
-    const range = temperatureRangeFromText(value);
+    const range = splitTemperatureRange(preferOperatingTemperatureSegment(value));
     if (range.min !== undefined || range.max !== undefined) return range;
   }
   return {};
+}
+
+function preferOperatingTemperatureSegment(value: string | undefined): string | undefined {
+  if (!value) return undefined;
+  const segments = value.split(";").map((segment) => segment.trim()).filter(Boolean);
+  return (
+    segments.find((segment) => /-?\d/.test(segment) && /\b(?:operat|ambient|amb\s+air|close to contactor|without thermal|fitted with thermal)\b/i.test(segment) && !/\bstorage\b/i.test(segment)) ??
+    segments.find((segment) => /-?\d/.test(segment) && !/\bstorage\b/i.test(segment)) ??
+    value
+  );
 }
 
 function temperatureRangeFromText(value: string | undefined): { min?: string; max?: string } {
@@ -616,7 +735,7 @@ function temperatureRangeFromText(value: string | undefined): { min?: string; ma
 }
 
 function firstAmpereValue(value: string | undefined): string | undefined {
-  return cleanNumber(value?.match(/(\d+(?:\.\d+)?)\s*A\b/i)?.[1]);
+  return cleanNumber(maxUnitNumber(value, "A"));
 }
 
 function currentMaxValue(item: RunItemRecord): string | undefined {
@@ -721,28 +840,23 @@ function voltageRangeCandidates(value: string): string[] {
 
 function voltageNumberCandidates(value: string): string[] {
   if (/(?:\d\s*A\b)|[\u00b0\u00c2]/i.test(value)) return [];
-  const normalized = value.replace(",", ".").replace(/\b(\d+(?:\.\d+)?)RT-(\d+(?:\.\d+)?)\s*V/gi, "$1-$2 V");
-  const rangeNumbers = [...normalized.matchAll(/(\d+(?:\.\d+)?)\s*(?:\.\.\.|\.{2}|-|to)\s*(\d+(?:\.\d+)?)\s*V(?:AC|DC)?\b/gi)]
-    .flatMap((match) => [String(Number(match[1])), String(Number(match[2]))]);
-  const singleNumbers = [...normalized.matchAll(/(\d+(?:\.\d+)?)\s*V(?:AC|DC)?\b/gi)].map((match) => String(Number(match[1])));
-  return [...rangeNumbers, ...singleNumbers];
+  const normalized = value.replace(/\b(\d+(?:\.\d+)?)RT-(\d+(?:\.\d+)?)\s*V/gi, "$1-$2 V");
+  const maxVoltage = maxUnitNumber(normalized, "V");
+  return maxVoltage ? [maxVoltage] : [];
 }
 
 function ampereCandidates(value: string): string[] {
-  return numberUnitCandidates(value, "A");
+  const maxCurrent = maxUnitNumber(value, "A");
+  return maxCurrent ? [maxCurrent] : [];
 }
 
 function currentNumberCandidates(value: string): string[] {
-  const normalized = value.replace(",", ".");
-  const rangeNumbers = [...normalized.matchAll(/(\d+(?:\.\d+)?)\s*(?:\.\.\.|\.{2}|-|to)\s*(\d+(?:\.\d+)?)\s*A\b/gi)]
-    .flatMap((match) => [String(Number(match[1])), String(Number(match[2]))]);
-  return [...rangeNumbers, ...ampereCandidates(normalized)];
+  return ampereCandidates(value);
 }
 
 function numberUnitCandidates(value: string, unit: string): string[] {
-  return [...value.replace(",", ".").matchAll(new RegExp(`(-?\\d+(?:\\.\\d+)?)\\s*${unit}\\b`, "gi"))].map((match) =>
-    String(Number(match[1]))
-  );
+  const normalized = maxUnitNumber(value, unit);
+  return normalized ? [normalized] : [];
 }
 
 function normalizeText(value: string): string {

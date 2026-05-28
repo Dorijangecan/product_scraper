@@ -9,6 +9,8 @@ export interface PdtColumn {
   propName: string;
   /** English description of the column, including any enum legend ("1 - AC 2 - DC"). */
   description: string;
+  /** Value from the Unit row, when the PDT sheet declares a target unit. */
+  unit: string;
 }
 
 export interface SheetDescriptor {
@@ -89,7 +91,8 @@ export function describeSheet(ws: ExcelJS.Worksheet): SheetDescriptor | undefine
     const propName = cellText(ws.getCell(propertyNameRow, c).value);
     if (!code && !propName) continue;
     const description = descriptionRow ? cellText(ws.getCell(descriptionRow, c).value) : "";
-    columns.push({ col: c, code, propName, description });
+    const unit = unitRow ? cellText(ws.getCell(unitRow, c).value) : "";
+    columns.push({ col: c, code, propName, description, unit });
   }
   return { propertyRow, propertyNameRow, firstBodyRow, columns };
 }

@@ -392,16 +392,22 @@ describe("excel export", () => {
 
       const aiSheet = workbook.getWorksheet("AI Cleaned Input")!;
       expect(aiSheet.getCell("B3").value).toBe("qwen_applied");
-      const aiHeaders = (aiSheet.getRow(11).values as unknown[]).slice(1);
-      expect(String(aiSheet.getRow(12).getCell(aiHeaders.indexOf("Qwen fields") + 1).value)).toContain("voltageMax");
-      expect(String(aiSheet.getRow(12).getCell(aiHeaders.indexOf("Accepted fields") + 1).value)).toContain("currentMax");
-      expect(aiSheet.getRow(12).getCell(aiHeaders.indexOf("Control voltage") + 1).value).toBe("20-60");
-      expect(aiSheet.getRow(12).getCell(aiHeaders.indexOf("Voltage max") + 1).value).toBe("80");
-      expect(aiSheet.getRow(12).getCell(aiHeaders.indexOf("Current max") + 1).value).toBe("70");
-      expect(aiSheet.getRow(12).getCell(aiHeaders.indexOf("Temp min") + 1).value).toBe("40");
-      expect(aiSheet.getRow(12).getCell(aiHeaders.indexOf("Temp max") + 1).value).toBe("120");
-      expect(aiSheet.getRow(12).getCell(aiHeaders.indexOf("Short description") + 1).value).toBe("AF40B contactor");
-      expect(aiSheet.getRow(12).getCell(aiHeaders.indexOf("Long description") + 1).value).toBe("Vendor description");
+      expect(aiSheet.getCell("B7").value).toBe(1);
+      const headerRow = 13;
+      const dataRow = 14;
+      const aiHeaders = (aiSheet.getRow(headerRow).values as unknown[]).slice(1);
+      expect(aiSheet.getRow(dataRow).getCell(aiHeaders.indexOf("Cleanup status") + 1).value).toBe("Ready");
+      expect(aiSheet.getRow(dataRow).getCell(aiHeaders.indexOf("Review reason") + 1).value).toBe("OK");
+      expect(String(aiSheet.getRow(dataRow).getCell(aiHeaders.indexOf("PDT unit values") + 1).value)).toContain("voltageMax=80 V");
+      expect(String(aiSheet.getRow(dataRow).getCell(aiHeaders.indexOf("Qwen fields") + 1).value)).toContain("voltageMax");
+      expect(String(aiSheet.getRow(dataRow).getCell(aiHeaders.indexOf("Accepted fields") + 1).value)).toContain("currentMax");
+      expect(aiSheet.getRow(dataRow).getCell(aiHeaders.indexOf("Control voltage") + 1).value).toBe("20-60");
+      expect(aiSheet.getRow(dataRow).getCell(aiHeaders.indexOf("Voltage max") + 1).value).toBe("80");
+      expect(aiSheet.getRow(dataRow).getCell(aiHeaders.indexOf("Current max") + 1).value).toBe("70");
+      expect(aiSheet.getRow(dataRow).getCell(aiHeaders.indexOf("Temp min") + 1).value).toBe("40");
+      expect(aiSheet.getRow(dataRow).getCell(aiHeaders.indexOf("Temp max") + 1).value).toBe("120");
+      expect(aiSheet.getRow(dataRow).getCell(aiHeaders.indexOf("Short description") + 1).value).toBe("AF40B contactor");
+      expect(aiSheet.getRow(dataRow).getCell(aiHeaders.indexOf("Long description") + 1).value).toBe("Vendor description");
 
       const cleanExport = workbook.getWorksheet("Clean Export")!;
       const cleanHeaders = (cleanExport.getRow(1).values as unknown[]).slice(1);

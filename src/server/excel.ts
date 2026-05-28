@@ -19,7 +19,9 @@ export async function exportRunWorkbook(input: {
   manufacturer: ManufacturerConfig;
   items: RunItemRecord[];
   outputDir: string;
+  onActivity?: (activity: { stage: string; message: string }) => void | Promise<void>;
 }): Promise<string> {
+  await input.onActivity?.({ stage: "workbook-build", message: "Preparing workbook sheets." });
   const workbook = new ExcelJS.Workbook();
   workbook.creator = "Product Scraper";
   workbook.created = new Date();
@@ -397,10 +399,20 @@ export async function exportRunWorkbook(input: {
     }
   }
 
+  await input.onActivity?.({ stage: "cleaned-input", message: "Preparing cleaned PDT input sheet." });
   const aiCleanup = await buildPdtRepairResult(
     input.items.filter((item) => item.result && (item.status === "found" || item.status === "partial")),
-    input.manufacturer
+    input.manufacturer,
+    {
+      aiCleanup: process.env.PDT_AI_CLEANUP === "1",
+      onProgress: (progress) =>
+        input.onActivity?.({
+          stage: progress.stage === "qwen-batch" ? "qwen-cleanup" : progress.stage,
+          message: progress.message
+        })
+    }
   );
+  await input.onActivity?.({ stage: "cleaned-input-review", message: "Writing cleaned PDT input sheet." });
   writeAiCleanedInputSheet(aiCleanedInput, aiCleanup.audit);
 
   populateRunSummarySheet(summary, input, productRows);
@@ -436,6 +448,7 @@ export async function exportRunWorkbook(input: {
     finalAudit,
     failures
   ];
+  await input.onActivity?.({ stage: "workbook-style", message: "Styling workbook sheets." });
   for (const sheet of dataSheets) {
     styleSheet(sheet);
     applyUsabilityFormatting(sheet);
@@ -449,6 +462,7 @@ export async function exportRunWorkbook(input: {
     `product-scrape-${input.run.id}`
   ].filter(Boolean).join(".");
   const outputPath = path.join(input.outputDir, `${outputName}.xlsx`);
+  await input.onActivity?.({ stage: "workbook-write", message: "Writing Excel workbook to disk." });
   await workbook.xlsx.writeFile(outputPath);
   return outputPath;
 }

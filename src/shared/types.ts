@@ -419,6 +419,9 @@ export interface RunRecord {
   outputPath?: string;
   /** Path to the generated PDT workbook, set on demand by the "Import to PDT" action. */
   pdtPath?: string;
+  activityStage?: string;
+  activityMessage?: string;
+  activityStartedAt?: string;
   options?: RunOptions;
   error?: string;
 }

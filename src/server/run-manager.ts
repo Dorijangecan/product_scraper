@@ -93,6 +93,14 @@ export class RunManager {
     });
   }
 
+  private updateRunActivity(runId: string, stage: string | undefined, message: string | undefined) {
+    this.db.updateRun(runId, {
+      activityStage: stage,
+      activityMessage: message,
+      activityStartedAt: stage ? new Date().toISOString() : undefined
+    });
+  }
+
   async processRun(runId: string) {
     if (this.activeRuns.has(runId)) return;
     const controller = new AbortController();
@@ -519,17 +527,22 @@ export class RunManager {
     const outputPath = shouldGenerateExcel
       ? await (async () => {
           const { exportRunWorkbook } = await import("./excel.js");
+          this.updateRunActivity(runId, "workbook-build", "Preparing final Excel workbook.");
           return exportRunWorkbook({
             run: this.db.getRun(runId)!,
             manufacturer,
             items: this.db.getRunItems(runId),
-            outputDir: layout.excelDir
+            outputDir: layout.excelDir,
+            onActivity: (activity) => this.updateRunActivity(runId, activity.stage, activity.message)
           });
         })()
       : undefined;
     this.db.updateRun(runId, {
       status,
       ...(outputPath ? { outputPath } : {}),
+      activityStage: undefined,
+      activityMessage: undefined,
+      activityStartedAt: undefined,
       error: status === "cancelled" ? "Cancelled by user." : undefined
     });
     const updatedRun = this.db.getRun(runId);

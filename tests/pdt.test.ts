@@ -5,12 +5,13 @@ import os from "node:os";
 import path from "node:path";
 import type { ManufacturerConfig, ProductResult, RunItemRecord } from "../src/shared/types.js";
 import { targetSheets, deviceSheetsFor } from "../src/server/pdt/device-sheet-map.js";
-import { resolveProperty, type ResolveContext } from "../src/server/pdt/eclass-resolvers.js";
+import { hasPropertyResolver, resolveProperty, type ResolveContext } from "../src/server/pdt/eclass-resolvers.js";
 import { describeSheet } from "../src/server/pdt/sheet-descriptor.js";
 import { encodeEnum, isEnumColumn } from "../src/server/pdt/enum-encode.js";
 import { writeDocumentsSheet } from "../src/server/pdt/documents-sheet.js";
 import { buildPdtRepairMap, buildPdtRepairResult } from "../src/server/pdt/ai-cleanup.js";
 import { exportRunPdt } from "../src/server/pdt/exporter.js";
+import { normalizePdtCellNumber } from "../src/server/pdt/unit-cleanup.js";
 
 const manufacturer = {
   id: "test",
@@ -64,6 +65,112 @@ describe("device sheet map", () => {
     expect(deviceSheetsFor("Battery")).toEqual([]);
     expect(targetSheets("Battery")).toEqual(["Material Master Data", "Additional Documents"]);
     expect(targetSheets(undefined)).toEqual(["Material Master Data", "Additional Documents"]);
+  });
+
+  it("maps every device type to a tab that exists in the Master PDT template", async () => {
+    const wb = new ExcelJS.Workbook();
+    await wb.xlsx.readFile(path.resolve("templates", "master_pdt.xlsx"));
+    const available = new Set(wb.worksheets.map((ws) => ws.name.trim().toLowerCase()));
+
+    const sampleTypes = [
+      "Enclosure",
+      "Subpanel",
+      "Rack Cabinet",
+      "Module Carrier",
+      "Loadcenter",
+      "Wireway",
+      "Mounting Accessory",
+      "Contactor",
+      "Fuse",
+      "Relay",
+      "Safety Relay",
+      "Circuit Breaker",
+      "Molded Case Circuit Breaker",
+      "Miniature Circuit Breaker",
+      "Residual Current Device",
+      "Motor Circuit Breaker",
+      "Motor Starter",
+      "Disconnect Switch",
+      "Switch",
+      "Surge Protective Device",
+      "Power Supply",
+      "UPS",
+      "Transformer",
+      "Generator",
+      "Motor",
+      "Variable Speed Drive",
+      "Soft Starter",
+      "Motion Controller",
+      "Current Sensor",
+      "Filter",
+      "Cable",
+      "Cable Gland",
+      "Connector",
+      "Optical Connector",
+      "Busbar",
+      "Terminal Block",
+      "Photoelectric Sensor",
+      "Vision Sensor",
+      "Inductive Proximity Sensor",
+      "Capacitive Sensor",
+      "Ultrasonic Sensor",
+      "Magnetic Field Sensor",
+      "RFID Device",
+      "Encoder",
+      "Safety Sensor",
+      "Sensor",
+      "Pressure Sensor",
+      "Temperature Sensor",
+      "Flow Sensor",
+      "Level Sensor",
+      "Programmable Logic Controller",
+      "I/O Module",
+      "HMI",
+      "Pushbutton / Operator",
+      "Pilot Light",
+      "Stack Light / Beacon",
+      "Luminaire",
+      "Thermal Management",
+      "Communication Gateway",
+      "PCB Connector",
+      "PCB Terminal Block",
+      "Terminal Accessory",
+      "Wire Marker",
+      "Pump",
+      "Directional Control Valve",
+      "Valve",
+      "Hydraulic Actuator",
+      "Pneumatic Device"
+    ];
+
+    for (const deviceType of sampleTypes) {
+      const sheets = deviceSheetsFor(deviceType);
+      expect(sheets.length).toBeGreaterThan(0);
+      for (const sheet of sheets) {
+        expect(available.has(sheet.trim().toLowerCase())).toBe(true);
+      }
+    }
+  });
+});
+
+describe("Master PDT mapping coverage", () => {
+  it("has resolver coverage for the priority PDT tabs", async () => {
+    const wb = new ExcelJS.Workbook();
+    await wb.xlsx.readFile(path.resolve("templates", "master_pdt.xlsx"));
+
+    for (const sheetName of ["Material Master Data", "Additional Documents", "contactor a. fuses"]) {
+      if (sheetName === "Additional Documents") {
+        expect(wb.getWorksheet(sheetName)).toBeTruthy();
+        continue;
+      }
+      const descriptor = describeSheet(wb.getWorksheet(sheetName)!);
+      expect(descriptor).toBeTruthy();
+      const unmapped = descriptor!.columns
+        .filter((column) => column.code !== "ECLASS property")
+        .filter((column) => !hasPropertyResolver(column.code, column.propName))
+        .map((column) => `${column.code} / ${column.propName}`);
+      expect(unmapped).toEqual([]);
+    }
   });
 });
 
@@ -188,8 +295,16 @@ describe("eclass resolvers", () => {
     expect(resolveProperty("AAQ326", "AAQ326", c)).toBe("https://new.abb.com/products/ABB1SBL347060R1100");
     expect(resolveProperty("BAH005", "BAH005", c)).toBe("24-60");
     expect(resolveProperty("AAF726", "AAF726", c)).toBe("70");
+    expect(resolveProperty("BAD915", "BAD915", c)).toBeUndefined();
+    expect(resolveProperty("AAT080", "AAT080", c)).toBe("3");
+  });
+
+  it("writes AC/DC voltage type only when it is explicitly written in the source", () => {
+    const c = ctx({
+      attributes: [{ name: "Rated Control Circuit Voltage", value: "24 V AC/DC" }]
+    });
+    c.sheetName = "contactor a. fuses";
     expect(resolveProperty("BAD915", "BAD915", c)).toBe("AC/DC");
-    expect(resolveProperty("AAT080", "AAT080", c)).toBeUndefined();
   });
 
   it("uses PDT repair values for descriptions and clean temperature fields", () => {
@@ -219,6 +334,67 @@ describe("eclass resolvers", () => {
     expect(resolveProperty("AAC821", "AAC821", c)).toBe("60");
   });
 
+  it("splits temperature ranges written with celsius next to both numbers", () => {
+    const c = ctx({ attributes: [{ name: "Operating temperature", value: "-40C do 80C" }] });
+    expect(resolveProperty("AAC820", "AAC820", c)).toBe("-40");
+    expect(resolveProperty("AAC821", "AAC821", c)).toBe("80");
+  });
+
+  it("uses ABB Amb Air Tem operating range before storage range", () => {
+    const c = ctx({
+      attributes: [
+        {
+          group: "ABB Environmental",
+          name: "Amb Air Tem",
+          value:
+            "Close to Contactor Fitted with Thermal O/L Relay -40 ... 70 °C; Close to Contactor without Thermal O/L Relay -40 ... 70 °C; Close to Contactor for Storage -60 ... +80 °C",
+          sourceType: "official"
+        }
+      ]
+    });
+    expect(resolveProperty("AAC820", "AAC820", c)).toBe("-40");
+    expect(resolveProperty("AAC821", "AAC821", c)).toBe("70");
+  });
+
+  it("resolves broader ABB contactor/fuses properties when source data exists", () => {
+    const c = ctx({
+      attributes: [
+        { group: "ABB Technical", name: "Rated Operational Voltage", value: "Main Circuit 690 V", sourceType: "official" },
+        { group: "ABB Technical", name: "Rated Operational Current AC-1", value: "(690 V) 40 °C 70 A; (690 V) 60 °C 60 A", sourceType: "official" },
+        { group: "ABB Technical", name: "Rated Operational Current AC-3", value: "(380 / 400 V) 60 °C 40 A; (220 / 230 / 240 V) 60 °C 40 A", sourceType: "official" },
+        { group: "ABB Technical", name: "Rated Operational Power AC-3 (P e )", value: "(400 V) 18.5 kW; (220 / 230 / 240 V) 11 kW", sourceType: "official" },
+        { group: "ABB Technical UL/CSA", name: "Horse Power Rating Nema", value: "(460 V AC) Three Phase 25 Hp; (575 V AC) Three Phase 25 Hp", sourceType: "official" },
+        { group: "ABB Technical", name: "Degree of Protection", value: "Coil Terminals IP20; Main Terminals IP10", sourceType: "official" },
+        { group: "ABB Technical", name: "Mounting on DIN Rail", value: "TH35-7.5 (35 x 7.5 mm Mounting Rail)", sourceType: "official" },
+        { group: "ABB Technical", name: "Terminal Type", value: "Ring-Tongue Terminals", sourceType: "official" },
+        { group: "ABB Technical", name: "Coil Consumption", value: "Average Holding Value 50 / 60 Hz 4 V·A; Average Holding Value DC 2 W", sourceType: "official" },
+        { group: "ABB Technical", name: "Rated Control Circuit Voltage", value: "50 Hz 48 ... 130 V; 60 Hz 48 ... 130 V; DC Operation 48 ... 130 V", sourceType: "official" },
+        { group: "ABB Material Compliance", name: "RoHS Declaration", value: "2CMT2021-006277", sourceType: "official" },
+        { group: "ABB Technical", name: "Standards", value: "IEC/EN 60947-1, IEC/EN 60947-4-1", sourceType: "official" }
+      ]
+    });
+    c.sheetName = "contactor a. fuses";
+
+    expect(resolveProperty("AAB821", "AAB821", c)).toBe("70");
+    expect(resolveProperty("AAC824", "AAC824", c)).toBe("70");
+    expect(resolveProperty("AAF583", "AAF583", c)).toBe("690");
+    expect(resolveProperty("BAG975", "BAG975", c)).toBe("IP20");
+    expect(resolveProperty("AAB456", "AAB456", c)).toBe("18.5");
+    expect(resolveProperty("AAB460", "AAB460", c)).toBe("70");
+    expect(resolveProperty("AAB667", "AAB667", c)).toBe("Yes");
+    expect(resolveProperty("BAC378", "BAC378", c)).toBe("Ring cable connection");
+    expect(resolveProperty("BAA303", "BAA303", c)).toBe("2");
+    expect(resolveProperty("AAB958", "AAB958", c)).toBe("48");
+    expect(resolveProperty("AAB959", "AAB959", c)).toBe("48");
+    expect(resolveProperty("BAC050", "BAC050", c)).toBe("AC/DC");
+    expect(resolveProperty("AAN354", "AAN354", c)).toBe("Yes");
+    expect(resolveProperty("AAB476", "AAB476", c)).toBe("40");
+    expect(resolveProperty("AAS566", "AAS566", c)).toBe("18.64");
+    expect(resolveProperty("AAS567", "AAS567", c)).toBe("18.64");
+    expect(resolveProperty("AAB455", "AAB455", c)).toBe("11");
+    expect(resolveProperty("AAP798", "AAP798", c)).toContain("IEC/EN 60947-1");
+  });
+
   it("fills safe numeric device fields (power loss, poles, standards)", () => {
     const c = ctx({
       attributes: [
@@ -236,17 +412,37 @@ describe("eclass resolvers", () => {
     const c = ctx({
       attributes: [
         { name: "Rated Short-time Withstand Current", value: "for 1 s 50 kA", sourceType: "official" },
-        { name: "Rated Operational Voltage", value: "Main Circuit 1000 V", sourceType: "official" }
+        { name: "Rated Operational Voltage", value: "Main Circuit 60-80 V", sourceType: "official" }
       ]
     });
     expect(resolveProperty("AAB492", "AAB492", c)).toBe("50");
-    expect(resolveProperty("AAB815", "AAB815", c)).toBe("1000");
+    expect(resolveProperty("AAB815", "AAB815", c)).toBe("80");
+  });
+
+  it("normalizes mixed current units to amperes", () => {
+    const c = ctx({
+      attributes: [{ name: "Rated Current", value: "Control output 500 mA; Main output 2 A; peak 0.003 kA", sourceType: "official" }]
+    });
+    expect(resolveProperty("AAF726", "AAF726", c)).toBe("3");
   });
 
   it("splits an operating temperature range into min and max", () => {
     const c = ctx({ attributes: [{ name: "Operating temperature", value: "-25...+60 °C" }] });
     expect(resolveProperty("AAC820", "AAC820", c)).toBe("-25");
     expect(resolveProperty("AAC821", "AAC821", c)).toBe("60");
+  });
+});
+
+describe("PDT unit cleanup", () => {
+  it("converts derived electrical units into the target PDT unit", () => {
+    expect(normalizePdtCellNumber("0.08 kV", "V")).toBe("80");
+    expect(normalizePdtCellNumber("500 mA; 2 A; 0.003 kA", "A")).toBe("3");
+    expect(normalizePdtCellNumber("0.05 kA", "A")).toBe("50");
+  });
+
+  it("converts length and mass units into the target PDT unit", () => {
+    expect(normalizePdtCellNumber("1.2 m", "mm")).toBe("1200");
+    expect(normalizePdtCellNumber("2.5 kg", "g")).toBe("2500");
   });
 });
 
@@ -584,7 +780,7 @@ describe("PDT exporter", () => {
         { name: "Customs tariff number", value: "85364900", sourceType: "official" }
       ]
     }, "1SBL347060R1100").item;
-    await exportRunPdt({ manufacturer, items: [item], templatePath, outputPath });
+    const result = await exportRunPdt({ manufacturer, items: [item], templatePath, outputPath });
 
     const out = new ExcelJS.Workbook();
     await out.xlsx.readFile(outputPath);
@@ -593,6 +789,335 @@ describe("PDT exporter", () => {
     expect(ws.getCell(10, 4).value).toBe("3471523024755");
     expect(ws.getCell(10, 5).value).toBe("3471523024755");
     expect(ws.getCell(10, 6).value).toBe("85364900");
+    expect(result.cleanedInputPath).toBe(path.join(dir, "out_cleaned-input.xlsx"));
+    await expect(fs.stat(result.cleanedInputPath!)).resolves.toBeTruthy();
+    const cleaned = new ExcelJS.Workbook();
+    await cleaned.xlsx.readFile(result.cleanedInputPath!);
+    expect(cleaned.getWorksheet("Cleaned PDT Input")).toBeTruthy();
+  });
+
+  it("surfaces device type, confidence, tabs and evidence in the Cleaned PDT Input audit sheet", async () => {
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-pdt-audit-classification-"));
+    const templatePath = path.join(dir, "template.xlsx");
+    const outputPath = path.join(dir, "out.xlsx");
+    const wb = new ExcelJS.Workbook();
+    const material = wb.addWorksheet("Material Master Data");
+    material.getCell(6, 1).value = "ECLASS property";
+    material.getCell(7, 1).value = "Variable name (CNS internal)";
+    material.getCell(8, 1).value = "English variable description";
+    material.getCell(9, 1).value = "Units";
+    material.getCell(6, 2).value = "AAO676";
+    material.getCell(7, 2).value = "CNSORDERNO";
+    material.getCell(8, 2).value = "Articlenumber";
+    wb.addWorksheet("Additional Documents");
+    await wb.xlsx.writeFile(templatePath);
+
+    const item = ctx(
+      {
+        title: "AF40B Contactor",
+        attributes: [{ group: "General", name: "Product Type", value: "Contactor", sourceType: "official" }]
+      },
+      "1SBL347060R1100"
+    ).item;
+    const result = await exportRunPdt({ manufacturer, items: [item], templatePath, outputPath });
+
+    const cleaned = new ExcelJS.Workbook();
+    await cleaned.xlsx.readFile(result.cleanedInputPath!);
+    const auditSheet = cleaned.getWorksheet("Cleaned PDT Input")!;
+
+    // Find the header row (skip the meta block) and locate the new columns.
+    let headerRow = -1;
+    for (let r = 1; r <= 30; r += 1) {
+      if (String(auditSheet.getCell(r, 1).value ?? "").trim() === "Catalog number") {
+        headerRow = r;
+        break;
+      }
+    }
+    expect(headerRow).toBeGreaterThan(0);
+    const headers = (auditSheet.getRow(headerRow).values as unknown[]).map((value) => String(value ?? ""));
+    const deviceCol = headers.indexOf("Device type");
+    const confCol = headers.indexOf("Device type confidence");
+    const tabsCol = headers.indexOf("Device tab(s)");
+    const evidenceCol = headers.indexOf("Device type evidence");
+    expect(deviceCol).toBeGreaterThan(0);
+    expect(confCol).toBeGreaterThan(0);
+    expect(tabsCol).toBeGreaterThan(0);
+    expect(evidenceCol).toBeGreaterThan(0);
+
+    const dataRow = auditSheet.getRow(headerRow + 1);
+    expect(dataRow.getCell(deviceCol).value).toBe("Contactor");
+    expect(Number(dataRow.getCell(confCol).value)).toBeGreaterThanOrEqual(0.78);
+    expect(String(dataRow.getCell(tabsCol).value)).toContain("contactor a. fuses");
+    expect(String(dataRow.getCell(evidenceCol).value)).toMatch(/Product Type:/);
+  });
+
+  it("writes numeric PDT cells in the sheet unit and leaves the unit in the header row", async () => {
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-pdt-units-"));
+    const templatePath = path.join(dir, "template.xlsx");
+    const outputPath = path.join(dir, "out.xlsx");
+    const wb = new ExcelJS.Workbook();
+    const material = wb.addWorksheet("Material Master Data");
+    material.getCell(6, 1).value = "ECLASS property";
+    material.getCell(7, 1).value = "Variable name (CNS internal)";
+    material.getCell(8, 1).value = "English variable description";
+    material.getCell(9, 1).value = "Units";
+    material.getCell(9, 1).value = "Units";
+    material.getCell(6, 2).value = "AAO676";
+    material.getCell(7, 2).value = "CNSORDERNO";
+    material.getCell(6, 3).value = "AAB815";
+    material.getCell(7, 3).value = "AAB815";
+    material.getCell(9, 3).value = "V";
+    material.getCell(6, 4).value = "AAF726";
+    material.getCell(7, 4).value = "AAF726";
+    material.getCell(9, 4).value = "A";
+    material.getCell(6, 5).value = "AAC820";
+    material.getCell(7, 5).value = "AAC820";
+    material.getCell(9, 5).value = "C";
+    material.getCell(6, 6).value = "AAC821";
+    material.getCell(7, 6).value = "AAC821";
+    material.getCell(9, 6).value = "C";
+    wb.addWorksheet("Additional Documents");
+    await wb.xlsx.writeFile(templatePath);
+
+    const item = ctx(
+      {
+        attributes: [
+          { name: "Rated Operational Voltage", value: "60-80 V", sourceType: "official" },
+          { name: "Rated Current", value: "500 mA; 2 A; 0.003 kA", sourceType: "official" },
+          { name: "Operating temperature", value: "-40C do 80C", sourceType: "official" }
+        ]
+      },
+      "UNIT-1"
+    ).item;
+    await exportRunPdt({ manufacturer, items: [item], templatePath, outputPath });
+
+    const out = new ExcelJS.Workbook();
+    await out.xlsx.readFile(outputPath);
+    const ws = out.getWorksheet("Material Master Data")!;
+    expect(ws.getCell(9, 3).value).toBe("V");
+    expect(ws.getCell(10, 3).value).toBe(80);
+    expect(ws.getCell(10, 4).value).toBe(3);
+    expect(ws.getCell(10, 5).value).toBe(-40);
+    expect(ws.getCell(10, 6).value).toBe(80);
+  });
+
+  it("writes German descriptions without relying on Excel TRANSLATE formulas", async () => {
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-pdt-translate-"));
+    const templatePath = path.join(dir, "template.xlsx");
+    const outputPath = path.join(dir, "out.xlsx");
+    const wb = new ExcelJS.Workbook();
+    const material = wb.addWorksheet("Material Master Data");
+    material.getCell(2, 2).value = "Description DE";
+    material.getCell(2, 3).value = "Description DE";
+    material.getCell(2, 4).value = "Description EN";
+    material.getCell(2, 5).value = "Description EN";
+    material.getCell(6, 1).value = "ECLASS property";
+    material.getCell(7, 1).value = "Variable name (CNS internal)";
+    material.getCell(8, 1).value = "English variable description";
+    material.getCell(9, 1).value = "Units";
+    material.getCell(6, 2).value = "CNS_DESCRIPTION_LONG / AAU734";
+    material.getCell(7, 2).value = "CNS_DESCRIPTION_LONG";
+    material.getCell(8, 2).value = "Product description long";
+    material.getCell(6, 3).value = "CNS_DESCRIPTION_SHORT";
+    material.getCell(7, 3).value = "CNS_DESCRIPTION_SHORT";
+    material.getCell(8, 3).value = "Product description short";
+    material.getCell(6, 4).value = "CNS_DESCRIPTION_LONG / AAU734";
+    material.getCell(7, 4).value = "CNS_DESCRIPTION_LONG";
+    material.getCell(8, 4).value = "Product description long";
+    material.getCell(6, 5).value = "CNS_DESCRIPTION_SHORT";
+    material.getCell(7, 5).value = "CNS_DESCRIPTION_SHORT";
+    material.getCell(8, 5).value = "Product description short";
+    wb.addWorksheet("Additional Documents");
+    await wb.xlsx.writeFile(templatePath);
+
+    const item = ctx(
+      {
+        title: "Enclosure",
+        description: "Wall mounted enclosure"
+      },
+      "DESC-1"
+    ).item;
+    await exportRunPdt({ manufacturer, items: [item], templatePath, outputPath });
+
+    const out = new ExcelJS.Workbook();
+    await out.xlsx.readFile(outputPath);
+    const ws = out.getWorksheet("Material Master Data")!;
+    expect(ws.getCell(10, 2).value).toBe("Wandmontiertes Gehäuse");
+    expect(ws.getCell(10, 3).value).toBe("Gehäuse");
+    expect(ws.getCell(10, 4).value).toBe("Wall mounted enclosure");
+    expect(ws.getCell(10, 5).value).toBe("Enclosure");
+  });
+
+  it("translates ABB AF contactor descriptions as full German technical text", async () => {
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-pdt-abb-de-"));
+    const templatePath = path.join(dir, "template.xlsx");
+    const outputPath = path.join(dir, "out.xlsx");
+    const wb = new ExcelJS.Workbook();
+    const material = wb.addWorksheet("Material Master Data");
+    material.getCell(2, 2).value = "Description DE";
+    material.getCell(2, 3).value = "Description EN";
+    material.getCell(6, 1).value = "ECLASS property";
+    material.getCell(7, 1).value = "Variable name (CNS internal)";
+    material.getCell(8, 1).value = "English variable description";
+    material.getCell(9, 1).value = "Units";
+    material.getCell(6, 2).value = "CNS_DESCRIPTION_LONG / AAU734";
+    material.getCell(7, 2).value = "CNS_DESCRIPTION_LONG";
+    material.getCell(8, 2).value = "Product description long";
+    material.getCell(6, 3).value = "CNS_DESCRIPTION_LONG / AAU734";
+    material.getCell(7, 3).value = "CNS_DESCRIPTION_LONG";
+    material.getCell(8, 3).value = "Product description long";
+    wb.addWorksheet("Additional Documents");
+    await wb.xlsx.writeFile(templatePath);
+
+    const description =
+      "The AF40B-30-00RT-12 is a 3 pole - 690 V IEC or 600 UL contactor with RT terminals, controlling motors up to 18.5 kW / 400 V AC (AC-3) or 30 hp / 480 V UL and switching power circuits up to 70 A (AC-1) or 60 A UL general use. Thanks to the AF technology, the contactor has a wide control voltage range (48-130 V 50/60 Hz and DC), managing large control voltage variations, reducing panel energy consumptions and ensuring distinct operations in unstable networks. Furthermore, surge protection is built-in, offering a compact solution. AF contactors have a block type design, can be easily extended with add-on auxiliary contact blocks and an additional wide range of accessories.";
+    const item = ctx({ description }, "AF40B-30-00RT-12").item;
+    await exportRunPdt({ manufacturer, items: [item], templatePath, outputPath });
+
+    const out = new ExcelJS.Workbook();
+    await out.xlsx.readFile(outputPath);
+    const ws = out.getWorksheet("Material Master Data")!;
+    const german = String(ws.getCell(10, 2).value);
+    expect(german).toContain("Der AF40B-30-00RT-12 ist ein 3-poliger Schütz");
+    expect(german).toContain("RT-Anschlüssen");
+    expect(german).toContain("Dank AF-Technologie");
+    expect(german).toContain("AF-Schütze sind in Blockbauweise ausgeführt");
+    expect(german).not.toMatch(/\b(controlling motors|with RT terminals|Thanks to|switching power circuits|wide control voltage range)\b/i);
+    expect(ws.getCell(10, 3).value).toBe(description);
+  });
+
+  it("fills contactor voltage type and operating temperature columns found by description", async () => {
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-pdt-desc-fallback-"));
+    const templatePath = path.join(dir, "template.xlsx");
+    const outputPath = path.join(dir, "out.xlsx");
+    const wb = new ExcelJS.Workbook();
+    const contactor = wb.addWorksheet("contactor a. fuses");
+    for (const [row, label] of ["ClassId", "Priority", "Type", "PropertyId", "PropertyName", "Description", "Unit", "Body"].entries()) {
+      contactor.getCell(row + 1, 1).value = label;
+    }
+    contactor.getCell(4, 2).value = "UNKNOWN_VOLTAGE_TYPE";
+    contactor.getCell(5, 2).value = "UNKNOWN_VOLTAGE_TYPE";
+    contactor.getCell(6, 2).value = "Voltage type 1 - AC 2 - AC, alternating current 3 - AC/DC 4 - DC";
+    contactor.getCell(4, 3).value = "UNKNOWN_TEMP_MIN";
+    contactor.getCell(5, 3).value = "UNKNOWN_TEMP_MIN";
+    contactor.getCell(6, 3).value = "Min operating temperature";
+    contactor.getCell(7, 3).value = "C";
+    contactor.getCell(4, 4).value = "UNKNOWN_TEMP_MAX";
+    contactor.getCell(5, 4).value = "UNKNOWN_TEMP_MAX";
+    contactor.getCell(6, 4).value = "Max operating temperature";
+    contactor.getCell(7, 4).value = "C";
+    wb.addWorksheet("Additional Documents");
+    await wb.xlsx.writeFile(templatePath);
+
+    const item = ctx(
+      {
+        manufacturerId: "abb",
+        title: "AF40B Contactor",
+        attributes: [
+          { name: "Rated Control Circuit Voltage", value: "AC/DC 24-60 V", sourceType: "official" },
+          {
+            group: "ABB Environmental",
+            name: "Amb Air Tem",
+            value:
+              "Close to Contactor Fitted with Thermal O/L Relay -40 ... 70 °C; Close to Contactor without Thermal O/L Relay -40 ... 70 °C; Close to Contactor for Storage -60 ... +80 °C",
+            sourceType: "official"
+          }
+        ]
+      },
+      "1SBL347060R1100"
+    ).item;
+    await exportRunPdt({ manufacturer: { ...manufacturer, id: "abb" } as ManufacturerConfig, items: [item], templatePath, outputPath });
+
+    const out = new ExcelJS.Workbook();
+    await out.xlsx.readFile(outputPath);
+    const ws = out.getWorksheet("contactor a. fuses")!;
+    expect(ws.getCell(8, 1).value).toBe("AC/DC");
+    expect(ws.getCell(8, 2).value).toBe(-40);
+    expect(ws.getCell(8, 3).value).toBe(70);
+  });
+
+  it("writes broader contactor/fuses fields when ABB source data is available", async () => {
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-pdt-contactor-wide-"));
+    const templatePath = path.join(dir, "template.xlsx");
+    const outputPath = path.join(dir, "out.xlsx");
+    const wb = new ExcelJS.Workbook();
+    const contactor = wb.addWorksheet("contactor a. fuses");
+    for (const [row, label] of ["ClassId", "Priority", "Type", "PropertyId", "PropertyName", "Description", "Unit", "Body"].entries()) {
+      contactor.getCell(row + 1, 1).value = label;
+    }
+    const columns = [
+      ["AAB821", "Max. rated operating current", "A"],
+      ["AAC824", "Nominal current", "-"],
+      ["AAF583", "Nominal voltage", "-"],
+      ["BAG975", "degree of protection 1 - IP10 2 - IP20", "-"],
+      ["AAB456", "Rated operating power with AC-3, 400V", "kW"],
+      ["AAT080", "Pole number", "-"],
+      ["AAB667", "suitable for mounting onto standard rails 1 - No 2 - Yes", "-"],
+      ["BAC378", "Connection type 12 - Ring cable connection 13 - Screw connection", "-"],
+      ["BAA303", "Power loss, static, current-independent [Pls]", "W"],
+      ["AAB958", "min. rated control voltage Us with AC 50 Hz", "V"],
+      ["BAC050", "Type of actuation 1 - AC 2 - AC/DC 3 - DC", "-"],
+      ["AAN354", "material declaration 1 - No 2 - Yes", "-"],
+      ["AAB476", "Rated operating current Ie with AC-3, 400 V", "A"],
+      ["AAS566", "Rated power, 460 V, 60 Hz, 3-phase", "kW"],
+      ["AAS567", "Rated power, 575 V, 60 Hz, 3-phase", "kW"],
+      ["AAB455", "Rated operating power with AC-3, 230 V", "kW"]
+    ] as const;
+    for (const [index, [code, description, unit]] of columns.entries()) {
+      const col = index + 2;
+      contactor.getCell(4, col).value = code;
+      contactor.getCell(5, col).value = code;
+      contactor.getCell(6, col).value = description;
+      contactor.getCell(7, col).value = unit;
+    }
+    wb.addWorksheet("Additional Documents");
+    await wb.xlsx.writeFile(templatePath);
+
+    const item = ctx(
+      {
+        manufacturerId: "abb",
+        title: "AF40B Contactor",
+        attributes: [
+          { group: "ABB Technical", name: "Rated Operational Voltage", value: "Main Circuit 690 V", sourceType: "official" },
+          { group: "ABB Technical", name: "Rated Operational Current AC-1", value: "(690 V) 40 °C 70 A; (690 V) 60 °C 60 A", sourceType: "official" },
+          { group: "ABB Technical", name: "Rated Operational Current AC-3", value: "(380 / 400 V) 60 °C 40 A; (220 / 230 / 240 V) 60 °C 40 A", sourceType: "official" },
+          { group: "ABB Technical", name: "Rated Operational Power AC-3 (P e )", value: "(400 V) 18.5 kW; (220 / 230 / 240 V) 11 kW", sourceType: "official" },
+          { group: "ABB Technical UL/CSA", name: "Horse Power Rating Nema", value: "(460 V AC) Three Phase 25 Hp; (575 V AC) Three Phase 25 Hp", sourceType: "official" },
+          { group: "ABB Technical", name: "Number of Poles", value: "3P", sourceType: "official" },
+          { group: "ABB Technical", name: "Degree of Protection", value: "Coil Terminals IP20; Main Terminals IP10", sourceType: "official" },
+          { group: "ABB Technical", name: "Mounting on DIN Rail", value: "TH35-7.5 (35 x 7.5 mm Mounting Rail)", sourceType: "official" },
+          { group: "ABB Technical", name: "Terminal Type", value: "Ring-Tongue Terminals", sourceType: "official" },
+          { group: "ABB Technical", name: "Coil Consumption", value: "Average Holding Value 50 / 60 Hz 4 V·A; Average Holding Value DC 2 W", sourceType: "official" },
+          { group: "ABB Technical", name: "Rated Control Circuit Voltage", value: "50 Hz 48 ... 130 V; 60 Hz 48 ... 130 V; DC Operation 48 ... 130 V", sourceType: "official" },
+          { group: "ABB Material Compliance", name: "RoHS Declaration", value: "2CMT2021-006277", sourceType: "official" }
+        ]
+      },
+      "1SBL347060R1200"
+    ).item;
+    await exportRunPdt({ manufacturer: { ...manufacturer, id: "abb" } as ManufacturerConfig, items: [item], templatePath, outputPath });
+
+    const out = new ExcelJS.Workbook();
+    await out.xlsx.readFile(outputPath);
+    const ws = out.getWorksheet("contactor a. fuses")!;
+    expect(ws.getRow(8).values).toEqual([
+      ,
+      70,
+      70,
+      690,
+      "IP20",
+      18.5,
+      3,
+      "Yes",
+      "Ring cable connection",
+      2,
+      48,
+      "AC/DC",
+      "Yes",
+      40,
+      18.64,
+      18.64,
+      11
+    ]);
   });
 
   it("keeps Qwen suggestions out of the final PDT workbook", async () => {
@@ -669,6 +1194,193 @@ describe("PDT exporter", () => {
       if (originalOllamaHost === undefined) delete process.env.OLLAMA_HOST;
       else process.env.OLLAMA_HOST = originalOllamaHost;
     }
+  });
+});
+
+describe("PDT exporter sheet lookup", () => {
+  it("resolves the device tab case-insensitively (template 'switch' matches mapping 'Switch')", async () => {
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-pdt-case-"));
+    const templatePath = path.join(dir, "template.xlsx");
+    const outputPath = path.join(dir, "out.xlsx");
+    const wb = new ExcelJS.Workbook();
+    const material = wb.addWorksheet("Material Master Data");
+    material.getCell(6, 1).value = "ECLASS property";
+    material.getCell(7, 1).value = "Variable name (CNS internal)";
+    material.getCell(8, 1).value = "English variable description";
+    material.getCell(9, 1).value = "Units";
+    material.getCell(6, 2).value = "AAO676";
+    material.getCell(7, 2).value = "CNSORDERNO";
+    material.getCell(8, 2).value = "Articlenumber";
+
+    // Intentionally use lowercase casing different from the device-sheet map's "Switch".
+    const sw = wb.addWorksheet("switch");
+    for (const [row, label] of ["ClassId", "Priority", "Type", "PropertyId", "PropertyName", "Description", "Unit", "Body"].entries()) {
+      sw.getCell(row + 1, 1).value = label;
+    }
+    sw.getCell(4, 2).value = "AAO676";
+    sw.getCell(5, 2).value = "CNSORDERNO";
+    sw.getCell(6, 2).value = "Articlenumber";
+    wb.addWorksheet("Additional Documents");
+    await wb.xlsx.writeFile(templatePath);
+
+    const item = ctx(
+      {
+        title: "Selector switch 2-position",
+        attributes: [{ name: "Product Type", value: "Selector switch", sourceType: "official" }]
+      },
+      "SW-001"
+    ).item;
+    const result = await exportRunPdt({ manufacturer, items: [item], templatePath, outputPath });
+
+    expect(result.filledSheets["switch"]).toBe(1);
+    expect(result.missingSheets).not.toContain("Switch");
+    const out = new ExcelJS.Workbook();
+    await out.xlsx.readFile(outputPath);
+    // The exporter strips the leading label column after writing, so the body value lands in
+    // column 1 of the written sheet.
+    expect(out.getWorksheet("switch")!.getCell(8, 1).value).toBe("SW-001");
+  });
+
+  it("routes a mixed batch of devices to the correct combination of tabs", async () => {
+    // Simulate a typical real run: one Contactor, one Enclosure and one sensor in the same batch.
+    // Expected behaviour:
+    //   - Material Master Data + Additional Documents include ALL three products (constant tabs).
+    //   - contactor a. fuses contains ONLY the contactor.
+    //   - cabinet + cabinet.mechanical contain ONLY the enclosure.
+    //   - electronic sensor contains ONLY the sensor.
+    //   - No product is leaked into an unrelated tab.
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-pdt-multi-"));
+    const templatePath = path.join(dir, "template.xlsx");
+    const outputPath = path.join(dir, "out.xlsx");
+    const wb = new ExcelJS.Workbook();
+
+    const labelHeader = (sheet: ExcelJS.Worksheet) => {
+      for (const [row, label] of ["ClassId", "Priority", "Type", "PropertyId", "PropertyName", "Description", "Unit", "Body"].entries()) {
+        sheet.getCell(row + 1, 1).value = label;
+      }
+    };
+    const articleColumn = (sheet: ExcelJS.Worksheet) => {
+      sheet.getCell(4, 2).value = "AAO676";
+      sheet.getCell(5, 2).value = "CNSORDERNO";
+      sheet.getCell(6, 2).value = "Articlenumber";
+    };
+
+    // Material Master Data layout (different from device tabs — body row follows the units row).
+    const material = wb.addWorksheet("Material Master Data");
+    material.getCell(6, 1).value = "ECLASS property";
+    material.getCell(7, 1).value = "Variable name (CNS internal)";
+    material.getCell(8, 1).value = "English variable description";
+    material.getCell(9, 1).value = "Units";
+    material.getCell(6, 2).value = "AAO676";
+    material.getCell(7, 2).value = "CNSORDERNO";
+    material.getCell(8, 2).value = "Articlenumber";
+    wb.addWorksheet("Additional Documents");
+
+    const contactor = wb.addWorksheet("contactor a. fuses");
+    labelHeader(contactor);
+    articleColumn(contactor);
+
+    const cabinet = wb.addWorksheet("cabinet");
+    labelHeader(cabinet);
+    articleColumn(cabinet);
+
+    const cabinetMech = wb.addWorksheet("cabinet.mechanical");
+    labelHeader(cabinetMech);
+    articleColumn(cabinetMech);
+
+    const electronicSensor = wb.addWorksheet("electronic sensor");
+    labelHeader(electronicSensor);
+    articleColumn(electronicSensor);
+
+    await wb.xlsx.writeFile(templatePath);
+
+    const items: RunItemRecord[] = [
+      ctx(
+        {
+          title: "AF40B Contactor",
+          attributes: [
+            { group: "General", name: "Product Type", value: "Contactor", sourceType: "official" },
+            { group: "Technical", name: "Number of poles", value: "3P", sourceType: "official" },
+            { group: "Technical", name: "Rated operational current AC-1", value: "70 A", sourceType: "official" }
+          ]
+        },
+        "CTR-001"
+      ).item,
+      ctx(
+        {
+          title: "Wall-mounted steel enclosure 600x400x250",
+          attributes: [
+            { group: "General", name: "Product Type", value: "Enclosure", sourceType: "official" },
+            { group: "Mechanical", name: "Width", value: "600 mm", sourceType: "official" },
+            { group: "Mechanical", name: "Material", value: "Steel", sourceType: "official" },
+            { group: "Protection", name: "Degree of protection", value: "IP66", sourceType: "official" }
+          ]
+        },
+        "ENC-001"
+      ).item,
+      ctx(
+        {
+          title: "Inductive proximity sensor M12 PNP",
+          attributes: [
+            { group: "General", name: "Product Type", value: "Inductive proximity sensor", sourceType: "official" },
+            { group: "Sensing", name: "Switching distance", value: "4 mm", sourceType: "official" },
+            { group: "Output", name: "Output type", value: "PNP NO", sourceType: "official" }
+          ]
+        },
+        "SNS-001"
+      ).item
+    ];
+
+    const result = await exportRunPdt({ manufacturer, items, templatePath, outputPath });
+    expect(result.missingSheets).toEqual([]);
+
+    // Per-tab item counts in the result summary.
+    expect(result.filledSheets["Material Master Data"]).toBe(3);
+    expect(result.filledSheets["contactor a. fuses"]).toBe(1);
+    expect(result.filledSheets["cabinet"]).toBe(1);
+    expect(result.filledSheets["cabinet.mechanical"]).toBe(1);
+    expect(result.filledSheets["electronic sensor"]).toBe(1);
+
+    const out = new ExcelJS.Workbook();
+    await out.xlsx.readFile(outputPath);
+
+    // Material Master Data lists all three article numbers (body starts at row 10 in this layout).
+    const materialOut = out.getWorksheet("Material Master Data")!;
+    expect([
+      materialOut.getCell(10, 2).value,
+      materialOut.getCell(11, 2).value,
+      materialOut.getCell(12, 2).value
+    ]).toEqual(["CTR-001", "ENC-001", "SNS-001"]);
+
+    // Each device-specific tab has exactly its own product, in the first body row (row 8 in the
+    // tab layout, column 1 after the helper label column is stripped).
+    expect(out.getWorksheet("contactor a. fuses")!.getCell(8, 1).value).toBe("CTR-001");
+    expect(out.getWorksheet("contactor a. fuses")!.getCell(9, 1).value ?? null).toBeNull();
+
+    expect(out.getWorksheet("cabinet")!.getCell(8, 1).value).toBe("ENC-001");
+    expect(out.getWorksheet("cabinet")!.getCell(9, 1).value ?? null).toBeNull();
+
+    expect(out.getWorksheet("cabinet.mechanical")!.getCell(8, 1).value).toBe("ENC-001");
+    expect(out.getWorksheet("cabinet.mechanical")!.getCell(9, 1).value ?? null).toBeNull();
+
+    expect(out.getWorksheet("electronic sensor")!.getCell(8, 1).value).toBe("SNS-001");
+    expect(out.getWorksheet("electronic sensor")!.getCell(9, 1).value ?? null).toBeNull();
+
+    // No cross-contamination: the contactor tab does not contain the sensor or enclosure, etc.
+    const contactorRow1Values = [
+      out.getWorksheet("contactor a. fuses")!.getCell(8, 1).value,
+      out.getWorksheet("contactor a. fuses")!.getCell(9, 1).value
+    ];
+    expect(contactorRow1Values).not.toContain("ENC-001");
+    expect(contactorRow1Values).not.toContain("SNS-001");
+
+    // Sanity-check the result.keptSheets list — every used tab is still there.
+    expect(result.keptSheets).toContain("Material Master Data");
+    expect(result.keptSheets).toContain("Additional Documents");
+    expect(result.keptSheets).toContain("contactor a. fuses");
+    expect(result.keptSheets).toContain("cabinet");
+    expect(result.keptSheets).toContain("cabinet.mechanical");
+    expect(result.keptSheets).toContain("electronic sensor");
   });
 });
 

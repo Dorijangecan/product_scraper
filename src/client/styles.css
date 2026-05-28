@@ -345,6 +345,155 @@ textarea {
   outline: none;
 }
 
+select option {
+  background: #111820;
+  color: var(--text);
+}
+
+/* --- Themed custom Dropdown component (src/client/Dropdown.tsx) ---
+   Native <select> popups on Windows/Chromium ignore CSS background rules, so we render our own
+   listbox and style it here. The trigger is intentionally borderless so the component blends into
+   any container (e.g. the .page-size-field "Rows" pill). */
+.dropdown {
+  position: relative;
+  display: inline-flex;
+  width: 100%;
+  min-width: 0;
+}
+
+.dropdown-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  width: 100%;
+  height: 40px;
+  min-width: 64px;
+  padding: 0 10px;
+  border: 1px solid var(--border-strong);
+  border-radius: 7px;
+  background: #111820;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  text-align: left;
+  transition: background 120ms ease, color 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
+}
+
+.dropdown-trigger:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+
+.dropdown-trigger:focus-visible,
+.dropdown.open .dropdown-trigger {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(100, 217, 133, 0.12);
+  outline: none;
+}
+
+.dropdown-trigger:disabled,
+.dropdown.disabled .dropdown-trigger {
+  color: var(--muted);
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.dropdown-value {
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dropdown-chevron {
+  flex-shrink: 0;
+  color: var(--muted);
+  transition: transform 140ms ease, color 140ms ease;
+}
+
+.dropdown.open .dropdown-chevron {
+  transform: rotate(180deg);
+  color: var(--accent);
+}
+
+.dropdown-panel {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  min-width: 100%;
+  max-height: 280px;
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  box-shadow: 0 18px 32px -10px rgba(0, 0, 0, 0.65);
+  z-index: 1000;
+  overflow-y: auto;
+  outline: none;
+  animation: dropdown-pop 120ms ease-out;
+}
+
+@keyframes dropdown-pop {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dropdown-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  height: 30px;
+  padding: 0 10px;
+  border-radius: 5px;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.dropdown-option:hover,
+.dropdown-option.highlighted {
+  background: var(--surface-hover);
+}
+
+.dropdown-option.selected {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.dropdown-option.selected.highlighted {
+  background: rgba(100, 217, 133, 0.22);
+}
+
+.dropdown-option.disabled {
+  color: var(--muted);
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.dropdown-option-label {
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dropdown-option-check {
+  flex-shrink: 0;
+  color: var(--accent);
+}
+
 textarea {
   min-height: 86px;
   padding: 10px;
@@ -682,6 +831,27 @@ textarea:focus {
   gap: 8px;
   align-items: center;
   justify-content: flex-end;
+}
+
+.inline-toggle {
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 10px;
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  border-radius: 8px;
+  background: rgba(15, 23, 42, 0.45);
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.inline-toggle input {
+  width: 15px;
+  height: 15px;
+  accent-color: var(--cyan);
 }
 
 .download-button {
@@ -1100,6 +1270,26 @@ textarea:focus {
   border: 0;
   padding: 0 6px;
   background: transparent;
+  box-shadow: none;
+}
+
+/* Inline (borderless) dropdown variant inside the "Rows" pill — keeps the parent's border. */
+.page-size-field .dropdown {
+  width: 70px;
+}
+
+.page-size-field .dropdown-trigger {
+  height: 30px;
+  padding: 0 4px 0 8px;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.page-size-field .dropdown-trigger:hover:not(:disabled),
+.page-size-field .dropdown-trigger:focus-visible,
+.page-size-field .dropdown.open .dropdown-trigger {
+  border: 0;
   box-shadow: none;
 }
 

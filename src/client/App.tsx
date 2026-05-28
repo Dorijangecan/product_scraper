@@ -44,6 +44,7 @@ import type {
   RunRecord,
   ScrapeRecipeConfig
 } from "../shared/types.js";
+import { Dropdown } from "./Dropdown.js";
 import { requiredElectricalFields } from "../shared/product-requirements.js";
 import {
   cancelRun,
@@ -179,6 +180,7 @@ export function App() {
   const [downloadImages, setDownloadImages] = useState(true);
   const [generateExcel, setGenerateExcel] = useState(true);
   const [forceFinalRetry, setForceFinalRetry] = useState(false);
+  const [pdtAiCleanup, setPdtAiCleanup] = useState(false);
   // Per-run coverage tiles. `null` means "use the manufacturer default verbatim" — the moment
   // the user types into the editor we copy the manufacturer's list and switch to a concrete
   // array so subsequent edits persist for that run.
@@ -431,7 +433,7 @@ export function App() {
     setPdtBusy(true);
     setError(null);
     try {
-      const result = await importRunPdt(selectedRun.id);
+      const result = await importRunPdt(selectedRun.id, { aiCleanup: pdtAiCleanup });
       await refreshSelectedRun(selectedRun.id);
       if (result.stats.cleanup && ["qwen_unavailable", "qwen_no_valid_output"].includes(result.stats.cleanup.status)) {
         setError(`PDT AI cleanup: ${result.stats.cleanup.message}`);
@@ -807,13 +809,15 @@ export function App() {
 
           <label className="field tight-field">
             <span>Manufacturer</span>
-            <select value={manufacturerId} onChange={(event) => setManufacturerId(event.target.value)}>
-              {manufacturers.map((manufacturer) => (
-                <option key={manufacturer.id} value={manufacturer.id}>
-                  {manufacturer.shortName} - {manufacturer.canonicalName}
-                </option>
-              ))}
-            </select>
+            <Dropdown
+              ariaLabel="Manufacturer"
+              value={manufacturerId}
+              onChange={(next) => setManufacturerId(next)}
+              options={manufacturers.map((manufacturer) => ({
+                value: manufacturer.id,
+                label: `${manufacturer.shortName} - ${manufacturer.canonicalName}`
+              }))}
+            />
           </label>
           {selectedManufacturer && (
             <div className="manufacturer-card">
@@ -860,13 +864,12 @@ export function App() {
             <>
               <label className="field">
                 <span>Catalog column</span>
-                <select value={columnName} onChange={(event) => setColumnName(event.target.value)}>
-                  {preview.columns.map((column) => (
-                    <option key={column} value={column}>
-                      {column}
-                    </option>
-                  ))}
-                </select>
+                <Dropdown
+                  ariaLabel="Catalog column"
+                  value={columnName}
+                  onChange={(next) => setColumnName(next)}
+                  options={preview.columns.map((column) => ({ value: column, label: column }))}
+                />
               </label>
               <div className="mini-summary">
                 <div>
@@ -1108,6 +1111,17 @@ export function App() {
                 </button>
               )}
               {hasWorkbook && (
+                <label className="inline-toggle">
+                  <input
+                    type="checkbox"
+                    checked={pdtAiCleanup}
+                    onChange={(event) => setPdtAiCleanup(event.target.checked)}
+                    disabled={pdtBusy}
+                  />
+                  AI clean
+                </label>
+              )}
+              {hasWorkbook && (
                 <button type="button" className="download-button secondary" onClick={() => void handleImportPdt()} disabled={pdtBusy}>
                   {pdtBusy ? <Loader2 className="spin" size={16} /> : <FileOutput size={16} />}
                   {pdtBusy ? "Importing" : "Import to PDT"}
@@ -1161,7 +1175,7 @@ export function App() {
                 </div>
                 <div className="eta-grid">
                   <Metric label="Elapsed" value={runTiming.elapsed} />
-                  <Metric label="ETA" value={runTiming.eta} />
+                  <Metric label="Finish" value={runTiming.eta} />
                   <Metric label="Remaining" value={runTiming.remaining} />
                   <Metric label="Avg/item" value={runTiming.avgPerItem} />
                 </div>
@@ -1332,13 +1346,15 @@ export function App() {
                   </label>
                   <label className="page-size-field">
                     <span>Rows</span>
-                    <select value={runItemPageSize} onChange={(event) => handleRunItemPageSizeChange(event.target.value)}>
-                      {RUN_ITEM_PAGE_SIZES.map((size) => (
-                        <option key={size} value={size}>
-                          {size === "all" ? "All" : size}
-                        </option>
-                      ))}
-                    </select>
+                    <Dropdown
+                      ariaLabel="Rows per page"
+                      value={String(runItemPageSize)}
+                      onChange={(next) => handleRunItemPageSizeChange(next)}
+                      options={RUN_ITEM_PAGE_SIZES.map((size) => ({
+                        value: String(size),
+                        label: size === "all" ? "All" : String(size)
+                      }))}
+                    />
                   </label>
                 </div>
 
@@ -2068,10 +2084,15 @@ de https://www.company.com/de/product/{part}`}
                   </label>
                   <label className="field">
                     <span>Source type</span>
-                    <select value={source.sourceType} onChange={(event) => updateSourceDraft(index, { sourceType: event.target.value as SourceDraft["sourceType"] })}>
-                      <option value="official-fallback">Official / fallback</option>
-                      <option value="distributor">Distributor</option>
-                    </select>
+                    <Dropdown<SourceDraft["sourceType"]>
+                      ariaLabel="Source type"
+                      value={source.sourceType}
+                      onChange={(next) => updateSourceDraft(index, { sourceType: next })}
+                      options={[
+                        { value: "official-fallback", label: "Official / fallback" },
+                        { value: "distributor", label: "Distributor" }
+                      ]}
+                    />
                   </label>
                   <label className="field wide-field">
                     <span>Label</span>
@@ -2398,6 +2419,7 @@ function buildRunTiming(run: RunRecord | null, items: RunItemRecord[], nowMs: nu
   const currentItem = items.find((item) => item.status === "processing");
   const nextItem = items.find((item) => item.status === "pending");
   const stageStartMs = currentItem ? safeTime(currentItem.stageStartedAt) : undefined;
+  const runActivityStartMs = run.activityStartedAt ? safeTime(run.activityStartedAt) : undefined;
   const processed = Math.max(0, run.processed);
   const progress = estimateRunProgress(run, items, nowMs, startMs, elapsedMs, currentItem);
   const rawRemainingCount = Math.max(0, run.total - processed);
@@ -2420,7 +2442,7 @@ function buildRunTiming(run: RunRecord | null, items: RunItemRecord[], nowMs: nu
     remaining = "<1m";
   } else if (avgMs && progress.estimatedRemainingMs !== undefined) {
     const remainingMs = Math.max(0, progress.estimatedRemainingMs);
-    eta = `${formatClock(nowMs + remainingMs)} (${formatDuration(remainingMs)})`;
+    eta = formatClock(nowMs + remainingMs);
     remaining = formatDuration(remainingMs);
   } else {
     eta = "After first row";
@@ -2483,6 +2505,20 @@ function buildRunTiming(run: RunRecord | null, items: RunItemRecord[], nowMs: nu
     };
   }
 
+  if (run.status === "running" && run.activityStage) {
+    return {
+      elapsed: formatDuration(elapsedMs),
+      progressPercent,
+      eta,
+      remaining,
+      avgPerItem: avgMs ? formatDuration(avgMs) : "--",
+      activityTitle: runActivityTitle(run.activityStage),
+      activityDetail: run.activityMessage ?? "Finalizing output.",
+      stage: runActivityTitle(run.activityStage),
+      stageElapsed: runActivityStartMs ? `${formatDuration(nowMs - runActivityStartMs)} in stage` : "Live"
+    };
+  }
+
   const terminalItemStatus: RunItemRecord["status"] =
     run.status === "failed" ? "failed" : run.status === "cancelled" ? "cancelled" : "pending";
   return {
@@ -2496,6 +2532,37 @@ function buildRunTiming(run: RunRecord | null, items: RunItemRecord[], nowMs: nu
     stage: run.status === "completed" ? "Complete" : stageLabel(undefined, terminalItemStatus),
     stageElapsed: active ? "Live" : formatClock(endMs)
   };
+}
+
+function runActivityTitle(stage: string): string {
+  switch (stage) {
+    case "workbook-build":
+      return "Building workbook";
+    case "cleaned-input":
+      return "Preparing cleaned input";
+    case "ai-cleanup":
+    case "health-check":
+      return "Preparing AI cleanup";
+    case "qwen-cleanup":
+      return "Running Qwen cleanup";
+    case "reviewing":
+    case "ai-cleanup-review":
+      return "Reviewing AI cleanup";
+    case "cleaned-input-review":
+      return "Writing cleaned input";
+    case "workbook-style":
+      return "Styling workbook";
+    case "workbook-write":
+      return "Writing workbook";
+    case "disabled":
+      return "AI cleanup disabled";
+    case "unavailable":
+      return "AI unavailable";
+    case "done":
+      return "AI cleanup complete";
+    default:
+      return "Finalizing output";
+  }
 }
 
 function estimateRunProgress(

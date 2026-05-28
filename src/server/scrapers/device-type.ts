@@ -1,10 +1,27 @@
 import type { AttributeRecord, ProductResult, SourceRecord } from "../../shared/types.js";
 import { cleanText } from "./normalizer.js";
+import { familyTypeFor } from "./device-type-families.js";
+import { urlTypeFor } from "./device-type-urls.js";
+
+export interface DeviceTypeAlternative {
+  type: string;
+  score: number;
+  /** Channels (text/family/url) that voted for this type. */
+  channels: string[];
+}
 
 export interface DeviceTypeClassification {
   type?: string;
+  /** Confidence in [0, 1]. ≥0.78 is considered "safe to use without review". */
   confidence?: number;
+  /** Short string describing the strongest evidence behind the pick. */
   evidence?: string;
+  /** Up to two next-best candidate types, useful for surfacing in the audit sheet. */
+  alternatives?: DeviceTypeAlternative[];
+  /** Difference in score between the winner and the runner-up (0 if no alternative). */
+  scoreMargin?: number;
+  /** Sanity-check warnings (e.g. "Contactor classified but no pole number found"). */
+  warnings?: string[];
 }
 
 interface DeviceTypeRule {
@@ -22,86 +39,347 @@ interface DeviceTypeCandidate {
   parser?: string;
 }
 
+// Higher rule priority = more specific device type. Specificity is the dominant signal in the
+// classifier: a narrow rule (e.g. "Inductive Proximity Sensor", 875) always wins over a catch-all
+// (e.g. "Sensor", 620) whenever both match the same product. Within a single tier, evidence
+// quality (where the text came from + which source it came from) decides confidence.
 const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
-  rule("Programmable Logic Controller", /\b(?:plc|programmable logic controller|logic controller|controller cpu|cpu module|simatic\s+s7|modicon\s+(?:m\d+|m340|m580)|compactlogix|controllogix)\b/i, 720),
-  rule("I/O Module", /\b(?:i\/o|io|input\/output)\s+(?:module|expansion|system|block)|(?:analog|digital)\s+(?:input|output)s?\s+(?:module|expansion)|remote\s+i\/o|io-link\s+(?:master|hub|module)\b/i, 700),
-  rule("HMI", /\b(?:hmi|human machine interface|operator panel|touch panel|display terminal|graphic terminal)\b/i, 690),
-  rule("Photoelectric Sensor", /\b(?:photoelectric|photo\s*electric|through-?beam|retroreflective|diffuse\s+(?:reflective|sensor)|fork\s+(?:sensor|light barrier)|light barrier)\b/i, 680),
-  rule("Inductive Proximity Sensor", /\b(?:inductive\s+(?:proximity\s+)?sensor|inductive proximity|proximity switch)\b/i, 675),
-  rule("Capacitive Sensor", /\bcapacitive\s+(?:proximity\s+)?sensor\b/i, 670),
-  rule("Pressure Sensor", /\bpressure\s+(?:sensor|switch|transmitter)\b/i, 668),
-  rule("Temperature Sensor", /\b(?:temperature|thermocouple|rtd)\s+(?:sensor|probe|transmitter)\b/i, 666),
-  rule("Ultrasonic Sensor", /\bultrasonic\s+(?:sensor|distance sensor)\b/i, 664),
-  rule("Magnetic Field Sensor", /\bmagnetic\s+field\s+sensor\b/i, 662),
-  rule("Vision Sensor", /\b(?:vision\s+sensor|smartcamera|smart camera|industrial camera|machine vision)\b/i, 660),
-  rule("RFID Device", /\b(?:rfid|read\/write\s+head|antenna)\b/i, 650),
+  // --- Automation (very specific names — these win over generic "controller"/"module") ---
+  rule("Programmable Logic Controller", /\b(?:\bplc\b|programmable logic controller|logic controller|controller cpu|cpu module|simatic\s+s7|modicon\s+(?:m\d+|m340|m580)|compactlogix|controllogix|micro8\d{2,3})\b/i, 920),
+  rule("Communication Gateway", /\b(?:fieldbus gateway|fieldbus coupler|bus coupler|protocol converter|protocol gateway|serial gateway|modbus gateway|profibus gateway|profinet gateway|ethernet gateway|rs[-\s]?232(?:\s+(?:to|converter|interface|module))?|rs[-\s]?485(?:\s+(?:to|converter|interface|module))?|rs[-\s]?422|serial[-\s]?to[-\s]?ethernet|communication module|communication interface|industrial gateway|iiot gateway|edge gateway)\b/i, 905),
+  rule("I/O Module", /\b(?:i\/o|io|input\/output)\s+(?:module|expansion|system|block|card|interface)|(?:analog|digital)\s+(?:input|output)s?\s+(?:module|card|expansion)|remote\s+i\/o|io-link\s+(?:master|hub|module)\b/i, 900),
+  rule("HMI", /\b(?:hmi|human[\s-]?machine[\s-]?interface|operator panel|touch panel|touchscreen panel|display terminal|graphic terminal)\b/i, 890),
+  rule("Motion Controller", /\b(?:motion controller|motion control(?:ler)? module|cnc controller|servo controller)\b/i, 885),
+
+  // --- Sensors (specific kinds first; generic "Sensor" is a fallback) ---
+  rule("Photoelectric Sensor", /\b(?:photoelectric|photo\s*electric|through-?beam|retro[-\s]?reflective|diffuse\s+(?:reflective|sensor)|fork\s+(?:sensor|light barrier)|light barrier|light grid)\b/i, 880),
+  rule("Inductive Proximity Sensor", /\b(?:inductive\s+(?:proximity\s+)?sensor|inductive proximity|inductive switch|proximity switch)\b/i, 875),
+  rule("Capacitive Sensor", /\bcapacitive\s+(?:proximity\s+)?(?:sensor|switch)\b/i, 870),
+  rule("Pressure Sensor", /\bpressure\s+(?:sensor|switch|transmitter|transducer)\b/i, 868),
+  rule("Temperature Sensor", /\b(?:temperature|thermocouple|\brtd\b|pt100|pt1000)\s+(?:sensor|probe|transmitter|transducer)?\b/i, 866),
+  rule("Ultrasonic Sensor", /\bultrasonic\s+(?:sensor|distance sensor|transducer)\b/i, 864),
+  rule("Magnetic Field Sensor", /\bmagnetic\s+field\s+sensor|hall[-\s]?effect\s+sensor\b/i, 862),
+  rule("Vision Sensor", /\b(?:vision\s+sensor|smart\s*camera|industrial camera|machine vision)\b/i, 860),
+  rule("RFID Device", /\b(?:rfid|read\/write\s+head|rfid\s+(?:reader|antenna|transponder))\b/i, 850),
+  rule("Flow Sensor", /\bflow\s+(?:sensor|meter|switch|transmitter)\b/i, 845),
+  rule("Level Sensor", /\b(?:level\s+(?:sensor|switch|transmitter)|float switch)\b/i, 843),
+  rule("Encoder", /\b(?:rotary encoder|absolute encoder|incremental encoder|encoder)\b/i, 840),
+  rule("Safety Sensor", /\b(?:safety light curtain|light curtain|safety mat|safety scanner|laser scanner|safety edge|two[-\s]?hand control)\b/i, 838),
   rule("Sensor", /\b(?:sensor|sensing|detector|limit switch|position switch|measuring range|measuring principle)\b/i, 620),
 
-  rule("Motor Circuit Breaker", /\bmotor\s+(?:protective\s+)?circuit breaker\b/i, 710),
-  rule("Molded Case Circuit Breaker", /\b(?:molded|moulded)\s+case\s+circuit breaker|\bmccb\b/i, 705),
-  rule("Miniature Circuit Breaker", /\bminiature\s+circuit breaker|\bmcb\b/i, 704),
-  rule("Circuit Breaker", /\b(?:circuit breaker|breaker)\b/i, 690),
-  rule("Contactor", /\b(?:contactor|kontaktor)\b/i, 690),
-  rule("Relay", /\b(?:relay|relais|relej|safety relay|interface relay)\b/i, 670),
-  rule("Motor Starter", /\bmotor starter|starter combination|manual starter\b/i, 670),
-  rule("Soft Starter", /\bsoft starter\b/i, 665),
-  rule("Variable Speed Drive", /\b(?:variable speed drive|variable frequency drive|\bvfd\b|drive|inverter|servo drive)\b/i, 660),
-  rule("Disconnect Switch", /\b(?:switch[-\s]?disconnector|disconnect(?:or)? switch|safety switch|rotary disconnect|main switch)\b/i, 655),
-  rule("Switch", /\b(?:switch|selector switch|pushbutton switch|cam switch)\b/i, 600),
-  rule("Surge Protective Device", /\b(?:surge protective device|\bspd\b|surge arrester|surge protection)\b/i, 650),
-  rule("Fuse", /\b(?:fuse holder|fuse disconnect|fuse switch|fuse)\b/i, 630),
-  rule("Power Supply", /\b(?:power supply|psu|switched mode power supply|regulated power supply)\b/i, 650),
-  rule("Transformer", /\b(?:transformer|current transformer|control transformer|toroid)\b/i, 640),
-  rule("Current Sensor", /\b(?:current sensor|current transducer|external neutral|homopolar toroid)\b/i, 635),
+  // --- Protection & control (specific breakers/starters first) ---
+  rule("Motor Circuit Breaker", /\bmotor\s+(?:protective\s+)?circuit[-\s]?breaker|manual motor (?:starter|protector)\b/i, 820),
+  rule("Molded Case Circuit Breaker", /\b(?:molded|moulded)\s+case\s+circuit[-\s]?breaker|\bmccb\b/i, 815),
+  rule("Miniature Circuit Breaker", /\bminiature\s+circuit[-\s]?breaker|\bmcb\b/i, 814),
+  rule("Residual Current Device", /\b(?:residual current device|residual current circuit[-\s]?breaker|\brcd\b|\brccb\b|\brcbo\b|ground[-\s]?fault circuit[-\s]?interrupter|\bgfci\b|earth leakage)\b/i, 813),
+  rule("Circuit Breaker", /\b(?:circuit[-\s]?breaker|\bacb\b)\b/i, 805),
+  rule("Safety Relay", /\b(?:safety relay|safety controller|safety module|emergency stop relay|e[-\s]?stop relay)\b/i, 803),
+  rule("Contactor", /\b(?:contactor|contactor relay|kontaktor)\b/i, 800),
+  rule("Relay", /\b(?:interface relay|coupling relay|plug-?in relay|timer relay|monitoring relay|relais|relej|\brelay\b)\b/i, 790),
+  rule("Soft Starter", /\bsoft[-\s]?starter\b/i, 785),
+  rule("Variable Speed Drive", /\b(?:variable speed drive|variable frequency drive|\bvfd\b|frequency (?:converter|inverter)|\bvsd\b|servo drive|ac drive|motor drive|inverter drive)\b/i, 780),
+  rule("Motor Starter", /\b(?:motor starter|starter combination|reversing starter|direct[-\s]?on[-\s]?line starter|\bdol starter\b)\b/i, 775),
+  rule("Disconnect Switch", /\b(?:switch[-\s]?disconnector|disconnect(?:or)?\s+switch|isolator switch|safety switch|rotary disconnect|main switch|load break switch)\b/i, 770),
+  rule("Surge Protective Device", /\b(?:surge protective device|\bspd\b|surge arrester|surge protection|lightning arrester)\b/i, 765),
+  rule("Fuse", /\b(?:fuse holder|fuse base|fuse disconnect(?:or)?|fuse switch|fuse link|fuse carrier|nh fuse|d fuse|\bfuse\b)\b/i, 760),
+  rule("Switch", /\b(?:selector switch|cam switch|pushbutton switch|rotary switch|toggle switch|key[-\s]?operated switch)\b/i, 700),
 
-  rule("Enclosure", /\b(?:enclosure|cabinet|junction box|control box|wall mounted steel enclosure|floor standing enclosure|terminal box)\b/i, 700),
-  rule("Loadcenter", /\b(?:loadcenter|load center|panelboard|distribution board|consumer unit)\b/i, 690),
-  rule("Wireway", /\b(?:wireway|wire duct|cable duct)\b/i, 640),
-  rule("Subpanel", /\b(?:subpanel|sub-panel|back panel|mounting panel)\b/i, 630),
+  // --- Power / electrical ---
+  rule("UPS", /\b(?:\bups\b|uninterruptible power supply)\b/i, 760),
+  rule("Power Supply", /\b(?:power supply|switched[-\s]?mode power supply|smps|regulated power supply|dc power supply|\bpsu\b)\b/i, 755),
+  rule("Transformer", /\b(?:control transformer|isolation transformer|step[-\s]?down transformer|step[-\s]?up transformer|toroidal transformer|\btransformer\b)\b/i, 750),
+  rule("Current Sensor", /\b(?:current sensor|current transducer|current transformer|external neutral|homopolar toroid)\b/i, 745),
+  rule("Generator", /\b(?:generator set|diesel generator|gas generator|standby generator|backup generator)\b/i, 743),
+  rule("Motor", /\b(?:servo motor|stepper motor|asynchronous motor|synchronous motor|three[-\s]?phase motor|ac motor|dc motor|induction motor|gear motor|gearmotor)\b/i, 740),
+  rule("Battery", /\b(?:battery pack|lithium battery|lead[-\s]?acid battery|\bnimh battery\b|\bnicd battery\b)\b/i, 720),
 
-  rule("Terminal Block", /\b(?:terminal block|power terminal|terminal strip|terminal)\b/i, 620),
-  rule("Connector", /\b(?:connector|plug|socket|receptacle|cordset)\b/i, 610),
-  rule("Cable", /\b(?:cable assembly|cable|cord|patch cord|lead wire)\b/i, 600),
-  rule("Cable Gland", /\b(?:cable gland|gland|cord grip)\b/i, 630),
-  rule("Busbar", /\b(?:busbar|bus bar)\b/i, 620),
+  // --- Enclosures & mounting ---
+  rule("Loadcenter", /\b(?:loadcenter|load center|panelboard|distribution board|consumer unit|switchgear assembly)\b/i, 770),
+  rule("Rack Cabinet", /\b(?:server rack|19[-\s]?inch rack|network rack|\brack cabinet\b)\b/i, 765),
+  rule("Wireway", /\b(?:wireway|wire duct|cable duct|cable tray|cable channel|cable trunking)\b/i, 760),
+  rule("Subpanel", /\b(?:subpanel|sub-panel|back[-\s]?panel|mounting panel|mounting plate)\b/i, 755),
+  rule("Module Carrier", /\b(?:module carrier|carrier frame|backplane|module rack|subrack)\b/i, 753),
+  rule("Enclosure", /\b(?:enclosure|wall[-\s]?mount(?:ed)? enclosure|floor[-\s]?stand(?:ing)? enclosure|junction box|control box|terminal box|\bcabinet\b)\b/i, 750),
 
-  rule("Pushbutton / Operator", /\b(?:pushbutton|push-button|operator|emergency stop|selector head|pilot device)\b/i, 650),
-  rule("Pilot Light", /\b(?:pilot light|indicator light|signal lamp)\b/i, 640),
-  rule("Stack Light / Beacon", /\b(?:stack light|signal tower|beacon|horn|buzzer)\b/i, 640),
-  rule("Machine Light", /\b(?:machine light|led light fixture|fixture,\s*led light|light fixture)\b/i, 625),
+  // --- Wiring & connectors ---
+  rule("Terminal Accessory", /\b(?:end bracket|end[-\s]?stop|end[-\s]?clamp|end[-\s]?plate|partition plate|terminal end\b|terminal cover|terminal\s+(?:end\s+)?bracket|separator plate|end section)\b/i, 770),
+  rule("PCB Terminal Block", /\b(?:pcb terminal block|board[-\s]?mount terminal|printed[-\s]?circuit terminal|pluggable pcb terminal|pcb screw terminal)\b/i, 765),
+  rule("PCB Connector", /\b(?:pin header|board[-\s]?to[-\s]?board connector|pcb connector|pcb header|board[-\s]?mount connector|edge connector|smt connector|socket strip|pcb plug|wire[-\s]?to[-\s]?board connector)\b/i, 760),
+  rule("Wire Marker", /\b(?:wire marker|cable marker|wire label|cable label|cable tag|wire ferrule|terminal marker|terminal label|marking tag)\b/i, 750),
+  rule("Terminal Block", /\b(?:terminal block|power terminal|terminal strip|pluggable terminal|push[-\s]?in terminal|spring[-\s]?clamp terminal|screw terminal block)\b/i, 740),
+  rule("Cable Gland", /\b(?:cable gland|\bgland\b|cord grip)\b/i, 735),
+  rule("Optical Connector", /\b(?:optical connector|fiber[-\s]?optic connector|fibre[-\s]?optic connector|\blc connector\b|\bsc connector\b|\bst connector\b|\bmpo connector\b|fc connector)\b/i, 732),
+  rule("Connector", /\b(?:industrial connector|circular connector|m\d+ connector|connector\b|plug-?in\s+(?:plug|socket)|cordset|patch cord)\b/i, 720),
+  rule("Cable", /\b(?:cable assembly|control cable|power cable|signal cable|servo cable|motor cable|lead wire|patch cable|\bcable\b|\bcord\b)\b/i, 710),
+  rule("Busbar", /\b(?:busbar|bus[-\s]?bar|busway|busbar system)\b/i, 720),
 
-  rule("UPS", /\b(?:ups|uninterruptible power supply)\b/i, 660),
-  rule("Battery", /\b(?:battery|battery pack)\b/i, 620),
-  rule("Thermal Management", /\b(?:filter fan|fan package|blower|heater|thermostat|air conditioner|heat exchanger|dehumidifier|cooling unit)\b/i, 650),
+  // --- Signaling ---
+  rule("Stack Light / Beacon", /\b(?:stack light|signal tower|signal beacon|\bbeacon\b|warning light|horn|buzzer|sounder)\b/i, 760),
+  rule("Pushbutton / Operator", /\b(?:pushbutton|push[-\s]?button|emergency stop|e[-\s]?stop|selector head|pilot device|control station)\b/i, 755),
+  rule("Pilot Light", /\b(?:pilot light|indicator light|signal lamp|indicator lamp|led indicator)\b/i, 750),
+  rule("Luminaire", /\b(?:machine light|led light fixture|fixture,\s*led light|light fixture|luminaire|interior lamp|cabinet light)\b/i, 745),
 
-  rule("Lock / Interlock", /\b(?:padlock|key lock|interlock|locking device|lock)\b/i, 620),
-  rule("Mounting Accessory", /\b(?:mounting kit|mounting bracket|mounting foot|mounting plate|adapter plate|rail|bracket)\b/i, 610),
+  // --- Cooling / climate ---
+  rule("Thermal Management", /\b(?:filter fan|fan package|enclosure fan|cabinet fan|cabinet heater|enclosure heater|thermostat|hygrostat|air conditioner|heat exchanger|dehumidifier|cooling unit|chiller)\b/i, 760),
+  rule("Filter", /\b(?:line filter|emc filter|emi filter|mains filter|harmonic filter|sine filter|du\/dt filter|output filter|input filter)\b/i, 740),
+
+  // --- Pneumatic / fluid (rare but available in template) ---
+  rule("Hydraulic Actuator", /\b(?:hydraulic cylinder|hydraulic actuator|hydraulic ram|hydraulic power unit|hydraulic pump unit|hydraulic unit)\b/i, 738),
+  rule("Pump", /\b(?:centrifugal pump|gear pump|piston pump|hydraulic pump|metering pump|vacuum pump|\bpump\b)\b/i, 730),
+  rule("Directional Control Valve", /\b(?:directional control valve|\b\d\/\d-?way valve\b|solenoid valve|pneumatic valve|spool valve)\b/i, 728),
+  rule("Valve", /\b(?:ball valve|check valve|gate valve|globe valve|butterfly valve|relief valve|pressure (?:relief|reducing|regulator) valve|needle valve|safety valve|shut[-\s]?off valve|non[-\s]?return valve|stop valve|\bvalve\b)\b/i, 724),
+  rule("Pneumatic Device", /\b(?:pneumatic cylinder|air cylinder|pneumatic actuator|pneumatic gripper|fitting,\s*pneumatic|pneumatic fitting)\b/i, 720),
+
+  // --- Lower-specificity catch-alls (priority < 700 so they only win when nothing else matches) ---
+  rule("Lock / Interlock", /\b(?:padlock|key[-\s]?lock|interlock|locking device|key switch)\b/i, 620),
+  rule("Mounting Accessory", /\b(?:mounting kit|mounting bracket|mounting foot|mounting plate|adapter plate|din rail|\brail\b|\bbracket\b)\b/i, 610),
   rule("Cover / Door Accessory", /\b(?:cover|door|hinge|latch|handle|gasket|window kit)\b/i, 600),
-  rule("Accessory", /\b(?:accessory|spare part|kit|replacement part)\b/i, 560)
+  rule("Accessory", /\b(?:accessory|spare part|replacement part|\bkit\b)\b/i, 560)
 ];
+
+interface DeviceTypeMatch {
+  type: string;
+  candidate: DeviceTypeCandidate;
+  score: number;
+  definitionPriority: number;
+}
+
+interface DeviceTypeSignal {
+  type: string;
+  /** Channel-specific score (text, family, url, …). */
+  score: number;
+  /** Logical channel — used for diagnostics and to require multi-channel agreement. */
+  channel: "text" | "family" | "url";
+  /** Short human-readable explanation of where this vote came from. */
+  evidence: string;
+}
+
+interface AggregatedType {
+  type: string;
+  score: number;
+  channels: Set<string>;
+  /** Best evidence string seen for this type, used in the audit. */
+  evidence: string;
+}
+
+/**
+ * Score weights per channel. Channels with reliable, manufacturer-controlled vocabularies
+ * (family / URL path) carry as much weight as the strongest text-attribute match. Text matches
+ * still dominate by sheer breadth (multiple rules × multiple sources), but a strong family or
+ * URL hit can stop a marginal text false-positive from winning.
+ */
+const CHANNEL_WEIGHTS = { text: 1.0, family: 1.2, url: 1.0 } as const;
+/** Score added to the winner per additional channel that agreed with it. */
+const MULTI_CHANNEL_BONUS = 250;
 
 export function classifyDeviceType(result: ProductResult | undefined): DeviceTypeClassification {
   if (!result) return {};
+
+  const signals: DeviceTypeSignal[] = [];
+
+  // --- Channel 1: text rules (title, attributes, description) ---
   const candidates = deviceTypeCandidates(result);
-  const matches = candidates.flatMap((candidate) => {
-    return DEVICE_TYPE_RULES.filter((definition) => definition.pattern.test(candidate.text)).map((definition) => ({
+  const textMatches: DeviceTypeMatch[] = candidates.flatMap((candidate) =>
+    DEVICE_TYPE_RULES.filter((definition) => definition.pattern.test(candidate.text)).map((definition) => ({
       type: definition.type,
       candidate,
       score: candidate.priority + definition.priority + sourceTypeScore(candidate.sourceType),
       definitionPriority: definition.priority
-    }));
-  });
-  const best = matches.sort((left, right) => {
-    const scoreDelta = right.score - left.score;
-    if (scoreDelta !== 0) return scoreDelta;
-    return right.definitionPriority - left.definitionPriority;
-  })[0];
-  if (!best) return {};
+    }))
+  );
+  // Within the text channel, group by type and keep the best evidence per type. Specificity wins
+  // over generic rules (e.g. "Inductive Proximity Sensor" beats "Sensor") within this channel.
+  if (textMatches.length > 0) {
+    const byType = new Map<string, DeviceTypeMatch>();
+    for (const match of textMatches) {
+      const current = byType.get(match.type);
+      if (!current || match.score > current.score) byType.set(match.type, match);
+    }
+    const ranked = [...byType.values()].sort((left, right) => {
+      const specificityDelta = right.definitionPriority - left.definitionPriority;
+      if (specificityDelta !== 0) return specificityDelta;
+      return right.score - left.score;
+    });
+    // Emit ALL ranked types as signals — aggregating across channels will pick the winner.
+    for (const match of ranked) {
+      signals.push({
+        type: match.type,
+        score: match.score * CHANNEL_WEIGHTS.text,
+        channel: "text",
+        evidence: `${match.candidate.label}: ${match.candidate.value}`
+      });
+    }
+  }
+
+  // --- Channel 2: family / series prefix (manufacturer-specific catalog patterns) ---
+  const familyMatch = familyTypeFor(result.manufacturerId, [
+    result.catalogNumber,
+    result.title,
+    typeCodeAttribute(result),
+    productFamilyAttribute(result)
+  ]);
+  if (familyMatch) {
+    signals.push({
+      type: familyMatch.type,
+      // Family signals are anchored at a high score so they consistently outrank a single weak
+      // text candidate but still lose to multi-source text agreement.
+      score: 1400 * CHANNEL_WEIGHTS.family,
+      channel: "family",
+      evidence: `Family ${familyMatch.pattern}${familyMatch.notes ? ` (${familyMatch.notes})` : ""}`
+    });
+  }
+
+  // --- Channel 3: URL path patterns ---
+  const productUrl = result.productUrl ?? result.localizedUrls?.en;
+  const urlMatch = urlTypeFor(productUrl);
+  if (urlMatch) {
+    signals.push({
+      type: urlMatch.type,
+      score: 1300 * CHANNEL_WEIGHTS.url,
+      channel: "url",
+      evidence: urlMatch.evidence
+    });
+  }
+
+  if (signals.length === 0) return {};
+
+  // --- Aggregate across channels ---
+  const byType = new Map<string, AggregatedType>();
+  for (const signal of signals) {
+    const current = byType.get(signal.type);
+    if (current) {
+      current.score += signal.score;
+      current.channels.add(signal.channel);
+      // Keep the highest-scoring evidence string for display.
+      if (signal.score > 0 && current.evidence.length < signal.evidence.length) {
+        current.evidence = signal.evidence;
+      }
+    } else {
+      byType.set(signal.type, {
+        type: signal.type,
+        score: signal.score,
+        channels: new Set([signal.channel]),
+        evidence: signal.evidence
+      });
+    }
+  }
+  // Multi-channel agreement bonus — once per extra agreeing channel.
+  for (const entry of byType.values()) {
+    if (entry.channels.size > 1) entry.score += MULTI_CHANNEL_BONUS * (entry.channels.size - 1);
+  }
+
+  const ranked = [...byType.values()].sort((left, right) => right.score - left.score);
+  const best = ranked[0];
+  const runnerUp = ranked[1];
+  const margin = runnerUp ? best.score - runnerUp.score : best.score;
+  const warnings = sanityWarnings(best.type, result);
+
+  // Map score → confidence. Multi-channel agreement and a clean win over the runner-up boost
+  // confidence; sanity warnings drag it back down.
+  let confidence = deviceTypeConfidence(best.score);
+  if (best.channels.size >= 2) confidence = Math.min(0.99, confidence + 0.05);
+  if (runnerUp && margin < 200) confidence = Math.max(0.5, confidence - 0.12);
+  if (warnings.length > 0) confidence = Math.max(0.5, confidence - 0.08 * warnings.length);
+
+  const alternatives = ranked.slice(1, 3).map((entry) => ({
+    type: entry.type,
+    score: Math.round(entry.score),
+    channels: [...entry.channels]
+  }));
+
   return {
     type: best.type,
-    confidence: deviceTypeConfidence(best.score),
-    evidence: `${best.candidate.label}: ${best.candidate.value}`
+    confidence: Number(confidence.toFixed(2)),
+    evidence: best.evidence,
+    alternatives: alternatives.length > 0 ? alternatives : undefined,
+    scoreMargin: Math.round(margin),
+    warnings: warnings.length > 0 ? warnings : undefined
   };
+}
+
+/** Pull the manufacturer's type code (a.k.a. extended product type) from product attributes. */
+function typeCodeAttribute(result: ProductResult): string | undefined {
+  const match = (result.attributes ?? []).find((a) =>
+    /\b(type code|typecode|extended product type|type designation|product main type|main type|catalog(?:ue)? type|order type)\b/i.test(
+      a.name ?? ""
+    )
+  );
+  return match?.value;
+}
+
+/** Pull a product family / series attribute (used as a hint for the family table). */
+function productFamilyAttribute(result: ProductResult): string | undefined {
+  const match = (result.attributes ?? []).find((a) =>
+    /\b(product family|product range|series|family)\b/i.test(`${a.group ?? ""} ${a.name ?? ""}`)
+  );
+  return match?.value;
+}
+
+/**
+ * Per-device-type sanity checks that compare the chosen type against the scraped attributes.
+ * Each function returns one warning string when the device looks suspicious for that type.
+ */
+function sanityWarnings(type: string, result: ProductResult): string[] {
+  const attrs = result.attributes ?? [];
+  const hasAttr = (regex: RegExp): boolean =>
+    attrs.some((a) => regex.test(`${a.group ?? ""} ${a.name ?? ""}`) && a.value?.trim());
+  const warnings: string[] = [];
+  switch (type) {
+    case "Contactor":
+      if (!hasAttr(/\b(pole|number of poles)\b/i) && !hasAttr(/\b(rated operational current|AC-1|AC-3|coil voltage|control circuit voltage)\b/i)) {
+        warnings.push("No contactor signature attributes (poles / AC current / coil voltage) found.");
+      }
+      break;
+    case "Motor":
+      if (!hasAttr(/\b(rated power|frame size|speed|rpm|stator|rotor)\b/i) && !hasAttr(/\b(kW|HP)\b/)) {
+        warnings.push("No motor signature attributes (rated power / RPM / frame size) found.");
+      }
+      break;
+    case "Variable Speed Drive":
+    case "Soft Starter":
+      if (!hasAttr(/\b(output power|rated power|motor power)\b/i) && !hasAttr(/\b(kW|HP)\b/)) {
+        warnings.push(`No ${type} signature attributes (motor power) found.`);
+      }
+      break;
+    case "Cable":
+      if (hasAttr(/\b(pole number|number of poles)\b/i) && hasAttr(/\b(AC-3|rated operational power)\b/i)) {
+        warnings.push("Classified as Cable but has switching-device signature attributes — verify.");
+      }
+      break;
+    case "Photoelectric Sensor":
+    case "Inductive Proximity Sensor":
+    case "Capacitive Sensor":
+    case "Ultrasonic Sensor":
+    case "Magnetic Field Sensor":
+    case "Vision Sensor":
+    case "Sensor":
+      if (!hasAttr(/\b(sensing|operating distance|switching distance|range|output type|pnp|npn)\b/i)) {
+        warnings.push("No sensor signature attributes (sensing distance / output) found.");
+      }
+      break;
+    case "Power Supply":
+    case "UPS":
+      if (!hasAttr(/\b(output voltage|output current|output power|nominal voltage)\b/i)) {
+        warnings.push(`No ${type} signature attributes (output voltage / current) found.`);
+      }
+      break;
+    case "Enclosure":
+    case "Rack Cabinet":
+    case "Subpanel":
+      if (!hasAttr(/\b(width|height|depth|dimensions|material|degree of protection|ip[\s-]?\d{2})\b/i)) {
+        warnings.push("No enclosure signature attributes (dimensions / IP / material) found.");
+      }
+      break;
+    case "Programmable Logic Controller":
+    case "I/O Module":
+      if (!hasAttr(/\b(input|output|module|i\/o|cpu|memory)\b/i)) {
+        warnings.push(`No ${type} signature attributes (I/O / CPU / memory) found.`);
+      }
+      break;
+    default:
+      break;
+  }
+  return warnings;
 }
 
 function rule(type: string, pattern: RegExp, priority: number): DeviceTypeRule {

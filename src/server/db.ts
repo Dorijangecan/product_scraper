@@ -24,6 +24,9 @@ interface RunRow {
   failed: number;
   output_path?: string;
   pdt_path?: string;
+  activity_stage?: string | null;
+  activity_message?: string | null;
+  activity_started_at?: string | null;
   options_json?: string;
   error?: string;
 }
@@ -100,6 +103,9 @@ export class ScraperDb {
         partial INTEGER NOT NULL DEFAULT 0,
         failed INTEGER NOT NULL DEFAULT 0,
         output_path TEXT,
+        activity_stage TEXT,
+        activity_message TEXT,
+        activity_started_at TEXT,
         error TEXT
       );
 
@@ -165,6 +171,9 @@ export class ScraperDb {
     this.addColumnIfMissing("runs", "options_json", "TEXT");
     this.addColumnIfMissing("runs", "output_path", "TEXT");
     this.addColumnIfMissing("runs", "pdt_path", "TEXT");
+    this.addColumnIfMissing("runs", "activity_stage", "TEXT");
+    this.addColumnIfMissing("runs", "activity_message", "TEXT");
+    this.addColumnIfMissing("runs", "activity_started_at", "TEXT");
     this.addColumnIfMissing("runs", "error", "TEXT");
     this.addColumnIfMissing("run_items", "stage", "TEXT");
     this.addColumnIfMissing("run_items", "stage_message", "TEXT");
@@ -242,7 +251,25 @@ export class ScraperDb {
     return row ? mapRun(row) : undefined;
   }
 
-  updateRun(id: string, patch: Partial<Pick<RunRecord, "status" | "processed" | "found" | "partial" | "failed" | "outputPath" | "pdtPath" | "error">>) {
+  updateRun(
+    id: string,
+    patch: Partial<
+      Pick<
+        RunRecord,
+        | "status"
+        | "processed"
+        | "found"
+        | "partial"
+        | "failed"
+        | "outputPath"
+        | "pdtPath"
+        | "activityStage"
+        | "activityMessage"
+        | "activityStartedAt"
+        | "error"
+      >
+    >
+  ) {
     const current = this.getRun(id);
     if (!current) return;
     const next = { ...current, ...patch, updatedAt: new Date().toISOString() };
@@ -256,11 +283,21 @@ export class ScraperDb {
             failed = @failed,
             output_path = @outputPath,
             pdt_path = @pdtPath,
+            activity_stage = @activityStage,
+            activity_message = @activityMessage,
+            activity_started_at = @activityStartedAt,
             error = @error,
             updated_at = @updatedAt
         WHERE id = @id
       `)
-      .run({ ...next, pdtPath: next.pdtPath ?? null, id });
+      .run({
+        ...next,
+        pdtPath: next.pdtPath ?? null,
+        activityStage: next.activityStage ?? null,
+        activityMessage: next.activityMessage ?? null,
+        activityStartedAt: next.activityStartedAt ?? null,
+        id
+      });
   }
 
   /**
@@ -508,6 +545,9 @@ function mapRun(row: RunRow): RunRecord {
     failed: row.failed,
     outputPath: row.output_path,
     pdtPath: row.pdt_path ?? undefined,
+    activityStage: row.activity_stage ?? undefined,
+    activityMessage: row.activity_message ?? undefined,
+    activityStartedAt: row.activity_started_at ?? undefined,
     options: parseRunOptions(row.options_json),
     error: row.error
   };
