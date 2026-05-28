@@ -33,6 +33,14 @@ npm run benchmark
 
 The benchmark reads `benchmarks/products/*.json`, runs the same scrape/download/PDF/quality/evidence flow used by the app, writes `benchmarks/benchmark-report.json`, and exits non-zero when the acceptance thresholds are missed.
 
+PDT mapping and resolver audit:
+
+```powershell
+npm run audit:pdt
+```
+
+The PDT audit checks the real `templates/master_pdt.xlsx`: every device-product tab must be mapped from at least one known classified device type, every known type must target an existing device tab, and every mapped device-tab property must have a resolver or an explicit template-placeholder exception. It also performs a real export with one representative item per known device type and verifies the common tabs plus mapped device tabs in the output workbook. The audit exits non-zero on gaps.
+
 ## Data folders
 
 - `data/` - local SQLite database and cached HTML pages

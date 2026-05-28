@@ -12,9 +12,8 @@ export const CONSTANT_SHEETS = ["Material Master Data", "Additional Documents"] 
  *
  * Mapping rationale:
  * - Each entry targets the most semantically precise tab that the Master PDT actually exposes.
- * - When the template has no tab matching the device's domain, the device falls through to just
- *   the constant tabs (Material Master Data + Additional Documents) rather than being shoehorned
- *   into a misleading sheet — wrong tab is worse than no tab.
+ * - When the template has no exact tab, lower-confidence catch-all types target the closest
+ *   available mechanical/accessory tab so the final PDT still has a device-specific review row.
  */
 const DEVICE_SHEET_MAP: Record<string, string[]> = {
   // --- Enclosures & mounting ---
@@ -25,6 +24,9 @@ const DEVICE_SHEET_MAP: Record<string, string[]> = {
   Loadcenter: ["energy distribution system"],
   Wireway: ["cable ducts mounting rails"],
   "Mounting Accessory": ["cable ducts mounting rails"],
+  "Cover / Door Accessory": ["cabinet.mechanical"],
+  "Lock / Interlock": ["Switch"],
+  Accessory: ["cabinet.mechanical"],
 
   // --- Protection & control ---
   // Contactors, fuses, and the various breaker types share the "contactor a. fuses" tab in the
@@ -47,6 +49,7 @@ const DEVICE_SHEET_MAP: Record<string, string[]> = {
   "Power Supply": ["power supply devices"],
   UPS: ["power supply devices"],
   Transformer: ["power supply devices"],
+  Battery: ["power supply devices"],
   Generator: ["generator"],
   Motor: ["motors"],
   "Variable Speed Drive": ["servo controller"],
@@ -59,7 +62,9 @@ const DEVICE_SHEET_MAP: Record<string, string[]> = {
   Cable: ["cable"],
   "Cable Gland": ["cable gland"],
   Connector: ["connector"],
-  "Optical Connector": ["connector.optical"],
+  // The template contains an empty "connector.optical" placeholder tab, so optical connectors
+  // route to the fillable connector tab until a real optical connector layout exists.
+  "Optical Connector": ["connector"],
   "PCB Connector": ["PCB connection system"],
   "PCB Terminal Block": ["PCB connection technology"],
   Busbar: ["Busbar"],

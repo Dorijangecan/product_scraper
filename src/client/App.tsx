@@ -62,7 +62,8 @@ import {
   resetManufacturerOverride,
   saveManufacturer,
   startRun,
-  testManufacturer
+  testManufacturer,
+  type PdtImportStats
 } from "./api.js";
 
 interface SourceDraft {
@@ -142,6 +143,26 @@ const RUN_ITEM_FILTERS: Array<{ key: RunItemFilter; label: string }> = [
 
 const RUN_ITEM_PAGE_SIZES = [25, 50, 100, 250, "all"] as const;
 type RunItemPageSize = (typeof RUN_ITEM_PAGE_SIZES)[number];
+
+function pdtImportWarning(stats: PdtImportStats): string | null {
+  const warnings: string[] = [];
+  if (stats.missingSheets.length > 0) warnings.push(`missing sheets: ${formatShortList(stats.missingSheets)}`);
+  if (stats.unmappedDeviceTypes.length > 0) warnings.push(`unmapped device types: ${formatShortList(stats.unmappedDeviceTypes)}`);
+  if (stats.unclassifiedCatalogNumbers.length > 0) {
+    warnings.push(`unclassified catalogs: ${formatShortList(stats.unclassifiedCatalogNumbers)}`);
+  }
+  if (stats.writeIssues.length > 0) {
+    const examples = stats.writeIssues.map((issue) => `${issue.catalogNumber}/${issue.sheetName}/${issue.code}`);
+    warnings.push(`enum write issues: ${stats.writeIssues.length} (${formatShortList(examples, 3)})`);
+  }
+  return warnings.length ? `PDT generated with warnings: ${warnings.join("; ")}.` : null;
+}
+
+function formatShortList(values: string[], max = 8): string {
+  const shown = values.slice(0, max).join(", ");
+  const remaining = values.length - max;
+  return remaining > 0 ? `${shown}, +${remaining} more` : shown;
+}
 
 export function App() {
   const [manufacturers, setManufacturers] = useState<ManufacturerConfig[]>([]);
@@ -435,9 +456,11 @@ export function App() {
     try {
       const result = await importRunPdt(selectedRun.id, { aiCleanup: pdtAiCleanup });
       await refreshSelectedRun(selectedRun.id);
+      const warnings = [pdtImportWarning(result.stats)].filter(Boolean) as string[];
       if (result.stats.cleanup && ["qwen_unavailable", "qwen_no_valid_output"].includes(result.stats.cleanup.status)) {
-        setError(`PDT AI cleanup: ${result.stats.cleanup.message}`);
+        warnings.push(`PDT AI cleanup: ${result.stats.cleanup.message}`);
       }
+      if (warnings.length > 0) setError(warnings.join(" "));
     } catch (err) {
       setError(errorMessage(err));
     } finally {

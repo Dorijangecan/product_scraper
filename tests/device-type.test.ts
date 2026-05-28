@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { classifyDeviceType } from "../src/server/scrapers/device-type.js";
+import { classifyDeviceType, knownDeviceTypes } from "../src/server/scrapers/device-type.js";
+import { deviceSheetsFor } from "../src/server/pdt/device-sheet-map.js";
 import type { ProductResult } from "../src/shared/types.js";
 
 function product(
@@ -22,6 +23,19 @@ function product(
 }
 
 describe("device type classifier", () => {
+  it("recognizes every known device type when the vendor provides the exact category label", () => {
+    const missed = knownDeviceTypes()
+      .map((type) => ({
+        type,
+        classified: classifyDeviceType(
+          product([{ group: "General", name: "Product Type", value: type, sourceType: "official" }], type)
+        ).type
+      }))
+      .filter((entry) => entry.classified !== entry.type);
+
+    expect(missed).toEqual([]);
+  });
+
   it("uses explicit manufacturer product type before weaker text", () => {
     const result = product(
       [
@@ -55,6 +69,221 @@ describe("device type classifier", () => {
     expect(
       classifyDeviceType(product([{ group: "Structured Data", name: "alternateName", value: "BOS 18M-PA-IE21-S4", sourceType: "official" }])).type
     ).toBeUndefined();
+  });
+
+  it("uses ECLASS as an authoritative device-type signal when text is generic", () => {
+    const result = product(
+      [
+        { group: "Classification", name: "ECLASS 14.0", value: "27-37-10-03", sourceType: "official" },
+        { group: "General", name: "Product Type", value: "Switching device", sourceType: "official" }
+      ],
+      "ABB AF contact device"
+    );
+    const classification = classifyDeviceType(result);
+    expect(classification.type).toBe("Contactor");
+    expect(classification.evidence).toContain("ECLASS");
+  });
+
+  it("uses ECLASS classes for passive or terse Balluff products", () => {
+    expect(
+      classifyDeviceType(
+        product([{ group: "Balluff Classifications", name: "ECLASS 14.0", value: "27-28-04-02", sourceType: "official" }], "HF read/write head")
+      ).type
+    ).toBe("RFID Device");
+
+    expect(
+      classifyDeviceType(
+        product([{ group: "Balluff Classifications", name: "ECLASS 14.0", value: "27-44-01-14", sourceType: "official" }], "Cylindrical glass fibers")
+      ).type
+    ).toBe("Optical Connector");
+  });
+
+  it("maps locally observed ECLASS codes to PDT-backed device types without product-type text", () => {
+    const samples = [
+      ["27-27-09-01", "Photoelectric Sensor"],
+      ["27-27-09-04", "Photoelectric Sensor"],
+      ["27-27-07-02", "Encoder"],
+      ["27-27-43-04", "Encoder"],
+      ["27-27-11-01", "Sensor"],
+      ["27-27-42-01", "Sensor"],
+      ["27-27-26-03", "Safety Sensor"],
+      ["27-28-04-02", "RFID Device"],
+      ["27-11-03-50", "Luminaire"],
+      ["27-06-03-11", "Cable"],
+      ["27-44-01-02", "Connector"],
+      ["27-44-01-14", "Optical Connector"],
+      ["27-14-23-90", "Lock / Interlock"],
+      ["27-37-10-03", "Contactor"],
+      ["27-37-13-07", "Lock / Interlock"],
+      ["27-37-13-92", "Accessory"],
+      ["27-27-06-91", "Sensor"],
+      ["27-27-06-02", "Sensor"]
+    ] as const;
+
+    for (const [code, expectedType] of samples) {
+      const classification = classifyDeviceType(
+        product([{ group: "Classifications", name: "ECLASS 14.0", value: code, sourceType: "official" }], "Product")
+      );
+      expect(classification.type, code).toBe(expectedType);
+      expect(deviceSheetsFor(classification.type), code).not.toEqual([]);
+    }
+  });
+
+  it("maps unambiguous locally observed ETIM codes to PDT-backed device types without product-type text", () => {
+    const samples = [
+      ["EC002716", "Photoelectric Sensor"],
+      ["EC001825", "Photoelectric Sensor"],
+      ["EC002544", "Encoder"],
+      ["EC001852", "Sensor"],
+      ["EC002593", "Safety Sensor"],
+      ["EC000232", "Luminaire"],
+      ["EC000030", "Sensor"],
+      ["EC001829", "Sensor"],
+      ["EC002998", "RFID Device"],
+      ["EC002051", "Lock / Interlock"],
+      ["EC002498", "Accessory"]
+    ] as const;
+
+    for (const [code, expectedType] of samples) {
+      const classification = classifyDeviceType(
+        product([{ group: "Classifications", name: "ETIM 9.0", value: code, sourceType: "official" }], "Product")
+      );
+      expect(classification.type, code).toBe(expectedType);
+      expect(deviceSheetsFor(classification.type), code).not.toEqual([]);
+    }
+  });
+
+  it("does not classify locally ambiguous ETIM codes by themselves", () => {
+    for (const code of ["EC001855", "EC002715"]) {
+      expect(
+        classifyDeviceType(product([{ group: "Classifications", name: "ETIM 9.0", value: code, sourceType: "official" }], "Product")).type,
+        code
+      ).toBeUndefined();
+    }
+  });
+
+  it("maps unambiguous locally observed UNSPSC codes to PDT-backed device types without product-type text", () => {
+    const samples = [
+      ["26121604", "Cable"],
+      ["39100000", "Luminaire"],
+      ["39121413", "Connector"],
+      ["39121528", "Photoelectric Sensor"],
+      ["39122205", "Safety Sensor"],
+      ["46171501", "Lock / Interlock"],
+      ["41111938", "Sensor"],
+      ["41111945", "Encoder"]
+    ] as const;
+
+    for (const [code, expectedType] of samples) {
+      const classification = classifyDeviceType(
+        product([{ group: "Classifications", name: "UNSPSC 11", value: code, sourceType: "official" }], "Product")
+      );
+      expect(classification.type, code).toBe(expectedType);
+      expect(deviceSheetsFor(classification.type), code).not.toEqual([]);
+    }
+  });
+
+  it("does not classify locally ambiguous UNSPSC accessory codes by themselves", () => {
+    expect(
+      classifyDeviceType(product([{ group: "Classifications", name: "UNSPSC", value: "39122221", sourceType: "official" }], "Product")).type
+    ).toBeUndefined();
+  });
+
+  it("covers local DB regression cases from terse vendor labels", () => {
+    expect(
+      classifyDeviceType(
+        product([], "BDG FB058-BCR6-DSRB2-1417-0000-S8R1 (BDG - FXX58-BC Series - SSI) Absolute encoders", {
+          manufacturerId: "balluff",
+          catalogNumber: "BDG FB058-BCR6-DSRB2-1417-0000-S8R1"
+        })
+      ).type
+    ).toBe("Encoder");
+
+    expect(
+      classifyDeviceType(
+        product(
+          [
+            { group: "ABB Product Data", name: "Extended Product Type", value: "1st PLC E2.3..E6.3 Padlocks o.p. left", sourceType: "official" },
+            { group: "ABB Product Data", name: "Product Name", value: "Accessory", sourceType: "official" },
+            { group: "ABB Product Data", name: "ETIM 10", value: "EC002051 - Padlock barrier for switch", sourceType: "official" },
+            { group: "ABB Product Data", name: "eClass", value: "V13.0 : 27371307", sourceType: "official" },
+            { group: "ABB Product Data", name: "UNSPSC", value: "46171501", sourceType: "official" }
+          ],
+          "1st PLC E2.3..E6.3 Padlocks o.p. left",
+          { manufacturerId: "abb", catalogNumber: "1SDA126387R1" }
+        )
+      ).type
+    ).toBe("Lock / Interlock");
+
+    expect(
+      classifyDeviceType(product([], "CompactLogix DC 4A/2A Power Supply", { manufacturerId: "rockwell", catalogNumber: "1769-PB4" })).type
+    ).toBe("Power Supply");
+
+    expect(
+      classifyDeviceType(
+        product([{ group: "SCE Product Data", name: "Product Type", value: "Conditioner, Air - 3400 BTU/Hr. 120 Volt", sourceType: "official" }], "SCE-AC3400B120V", {
+          manufacturerId: "sce",
+          catalogNumber: "SCE-AC3400B120V"
+        })
+      ).type
+    ).toBe("Thermal Management");
+
+    expect(
+      classifyDeviceType(
+        product([{ group: "SCE Product Data", name: "Product Type", value: "Assembly, Fan Housing (6in.)", sourceType: "official" }], "SCE-FA66", {
+          manufacturerId: "sce",
+          catalogNumber: "SCE-FA66"
+        })
+      ).type
+    ).toBe("Thermal Management");
+
+    expect(
+      classifyDeviceType(
+        product([{ group: "SCE Product Data", name: "Product Type", value: "Port, Programming", sourceType: "official" }], "P-P11R2-K3RF0-U450", {
+          manufacturerId: "sce",
+          catalogNumber: "P-P11R2-K3RF0-U450"
+        })
+      ).type
+    ).toBe("Connector");
+
+    expect(
+      classifyDeviceType(
+        product([{ group: "SCE Product Data", name: "Product Type", value: "Stainless Steel Cleaner", sourceType: "official" }], "SCE-SSCLEAN", {
+          manufacturerId: "sce",
+          catalogNumber: "SCE-SSCLEAN"
+        })
+      ).type
+    ).toBe("Accessory");
+
+    expect(
+      classifyDeviceType(
+        product([], "E1.3 - ABB Low Voltage & Systems", {
+          manufacturerId: "abb",
+          catalogNumber: "1SDA124715R1",
+          description: "ABB Low Voltage & Systems > Low Voltage Products & Systems > Circuit Breakers > Air Circuit Breakers > Emax 3 > E1.3 3D CAD models"
+        })
+      ).type
+    ).toBe("Circuit Breaker");
+
+    expect(
+      classifyDeviceType(
+        product([], "Type 1140-E", {
+          manufacturerId: "eta",
+          catalogNumber: "1140-E",
+          description: "Thermal Overcurrent Circuit Breakers engineered for resettable protection against overloads and short circuits."
+        })
+      ).type
+    ).toBe("Circuit Breaker");
+
+    expect(
+      classifyDeviceType(
+        product([], "VSG519K15-5 - Siemens Field Control Equipment", {
+          manufacturerId: "siemens",
+          catalogNumber: "BPZ:VSG519K15-5",
+          description: "SIEMENS branded, VSG519K15-5 diff.press.regulator, VSG519K15-5"
+        })
+      ).type
+    ).toBe("Valve");
   });
 
   it("prefers a specific sensor kind over the generic Sensor fallback even when generic wins on source weight", () => {
@@ -136,6 +365,14 @@ describe("device type classifier", () => {
     const result = product(
       [{ group: "General", name: "Product Type", value: "Safety light curtain", sourceType: "official" }],
       "Orion3 safety light curtain"
+    );
+    expect(classifyDeviceType(result).type).toBe("Safety Sensor");
+  });
+
+  it("classifies safety switches and guard locking devices as safety sensors", () => {
+    const result = product(
+      [{ group: "General", name: "Product Type", value: "Guard locking safety switch", sourceType: "official" }],
+      "RFID safety interlock"
     );
     expect(classifyDeviceType(result).type).toBe("Safety Sensor");
   });
@@ -334,6 +571,16 @@ describe("device type classifier — family / series signals", () => {
 
   it("classifies a Siemens 3RT contactor via family", () => {
     const result = product([], "3RT2026-1AP00", { manufacturerId: "siemens", catalogNumber: "3RT2026-1AP00" });
+    expect(classifyDeviceType(result).type).toBe("Contactor");
+  });
+
+  it("classifies SCE filter kits via family even with bare catalog input", () => {
+    const result = product([], "SCE-FK0618", { manufacturerId: "sce", catalogNumber: "SCE-FK0618" });
+    expect(classifyDeviceType(result).type).toBe("Thermal Management");
+  });
+
+  it("classifies Rockwell 100-series contactors via family", () => {
+    const result = product([], "100-C09D10", { manufacturerId: "rockwell", catalogNumber: "100-C09D10" });
     expect(classifyDeviceType(result).type).toBe("Contactor");
   });
 

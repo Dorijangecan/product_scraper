@@ -1,5 +1,5 @@
 import ExcelJS from "exceljs";
-import type { ManufacturerConfig, RunItemRecord } from "../../shared/types.js";
+import type { AttributeRecord, ManufacturerConfig, RunItemRecord } from "../../shared/types.js";
 import { classifyDeviceType } from "../scrapers/device-type.js";
 import { loadTemplateWorkbook } from "./template.js";
 import { cellText, clearBody, describeSheet, type PdtColumn } from "./sheet-descriptor.js";
@@ -22,11 +22,23 @@ export interface PdtExportResult {
   filledSheets: Record<string, number>;
   missingSheets: string[];
   unmappedDeviceTypes: string[];
+  unclassifiedCatalogNumbers: string[];
+  writeIssues: PdtWriteIssue[];
   /** Tabs retained in the final workbook (unused template tabs are removed). */
   keptSheets: string[];
   removedSheetCount: number;
   cleanup: PdtCleanupSummary;
   cleanedInputPath?: string;
+}
+
+export interface PdtWriteIssue {
+  sheetName: string;
+  catalogNumber: string;
+  code: string;
+  propName: string;
+  description: string;
+  value: string;
+  reason: "enum-unmatched";
 }
 
 export type PdtCleanupSummary = Omit<PdtCleanupAudit, "products"> & { productRows: number };
@@ -56,9 +68,12 @@ export async function exportRunPdt(input: {
   const sheetItems = new Map<string, RunItemRecord[]>();
   const missingSheets = new Set<string>();
   const unmappedDeviceTypes = new Set<string>();
+  const unclassifiedCatalogNumbers = new Set<string>();
+  const writeIssues: PdtWriteIssue[] = [];
 
   for (const item of included) {
     const deviceType = classifyDeviceType(item.result).type;
+    if (!deviceType) unclassifiedCatalogNumbers.add(item.catalogNumber);
     const sheets = targetSheets(deviceType);
     // Only constant tabs were chosen and no device tab matched → note for diagnostics.
     if (deviceType && sheets.length === CONSTANT_SHEETS.length) unmappedDeviceTypes.add(deviceType);
@@ -81,7 +96,7 @@ export async function exportRunPdt(input: {
       missingSheets.add(sheetName);
       continue;
     }
-    filledSheets[sheetName] = writeUniformSheet(ws, sheetMembers, manufacturer, repairs);
+    filledSheets[sheetName] = writeUniformSheet(ws, sheetMembers, manufacturer, repairs, writeIssues);
   }
 
   const documentsWs = workbook.getWorksheet(resolveSheetName(DOCUMENTS_SHEET) ?? DOCUMENTS_SHEET);
@@ -115,6 +130,8 @@ export async function exportRunPdt(input: {
     filledSheets,
     missingSheets: [...missingSheets],
     unmappedDeviceTypes: [...unmappedDeviceTypes],
+    unclassifiedCatalogNumbers: [...unclassifiedCatalogNumbers],
+    writeIssues,
     keptSheets: workbook.worksheets.map((ws) => ws.name),
     removedSheetCount: removedSheets.length,
     cleanup: cleanupSummary(cleanup.audit),
@@ -146,7 +163,8 @@ function writeUniformSheet(
   ws: ExcelJS.Worksheet,
   items: RunItemRecord[],
   manufacturer: ManufacturerConfig,
-  repairs: Map<number, PdtRepair>
+  repairs: Map<number, PdtRepair>,
+  writeIssues: PdtWriteIssue[]
 ): number {
   const descriptor = describeSheet(ws);
   if (!descriptor) return 0;
@@ -164,7 +182,6 @@ function writeUniformSheet(
     };
     let wroteCell = false;
     for (const column of descriptor.columns) {
-      if (!shouldWriteColumn(ws.name, column)) continue;
       const value = resolvePdtColumnValue(ws, descriptor, column, ctx);
       if (value === undefined || value === "") continue;
       // Enum-coded columns: write the legend's canonical label (e.g. "Ring cable connection")
@@ -172,7 +189,18 @@ function writeUniformSheet(
       // Leave the cell blank when the value doesn't strictly match any legend option.
       if (shouldEncodeEnum(ws.name, column, value) && isEnumColumn(column.description)) {
         const label = encodeEnumLabel(column.description, value);
-        if (label === undefined) continue;
+        if (label === undefined) {
+          writeIssues.push({
+            sheetName: ws.name,
+            catalogNumber: item.catalogNumber,
+            code: column.code,
+            propName: column.propName,
+            description: column.description,
+            value,
+            reason: "enum-unmatched"
+          });
+          continue;
+        }
         ws.getCell(row, column.col).value = label;
       } else {
         ws.getCell(row, column.col).value = cellValueFor(column, value);
@@ -251,80 +279,16 @@ function shouldEncodeEnum(sheetName: string, column: { code: string; propName: s
   return true;
 }
 
-function shouldWriteColumn(sheetName: string, column: { code: string; propName: string; description: string }): boolean {
-  if (sheetName !== "contactor a. fuses") return true;
-  const keys = [column.code, column.propName].flatMap((key) => key.trim().toUpperCase().split("/"));
-  return isSupportedDescriptionColumn(column) || keys.some((key) =>
-    [
-      "REFERENCE_FEATURE_GROUP_ID",
-      "REFERENCE_FEATURE_SYSTEM_NAME",
-      "AAO676",
-      "AAN521",
-      "BAH005",
-      "AAS575",
-      "AAF726",
-      "AAB821",
-      "BAD915",
-      "AAC820",
-      "AAC821",
-      "AAT080",
-      "AAC824",
-      "AAF583",
-      "BAG975",
-      "BAC140",
-      "BAB392",
-      "AAB456",
-      "AAC828",
-      "AAB447",
-      "AAB460",
-      "AAB542",
-      "AAB667",
-      "BAC426",
-      "BAC378",
-      "AAS568",
-      "BAA303",
-      "AAB958",
-      "AAB959",
-      "AAC148",
-      "BAA297",
-      "BAC050",
-      "AAN354",
-      "AAH656",
-      "AAS573",
-      "BAD304",
-      "AAS574",
-      "AAB438",
-      "AAB476",
-      "AAS566",
-      "AAS569",
-      "AAM479",
-      "AAH655",
-      "AAS565",
-      "AAB416",
-      "AAS567",
-      "AAB455",
-      "AAS570",
-      "AAP406",
-      "BAD346",
-      "BAD706",
-      "AAZ487",
-      "AAP697",
-      "AAP798",
-      "AAB414",
-      "AAN384",
-      "AAN375",
-      "BAC915"
-    ].includes(key.trim())
-  );
-}
-
 function resolvePdtColumnValue(
   ws: ExcelJS.Worksheet,
   descriptor: { firstBodyRow: number },
   column: PdtColumn,
   ctx: ResolveContext
 ): string | undefined {
-  const direct = resolveProperty(column.code, column.propName, ctx) ?? resolvePropertyByDescription(column, ctx);
+  const direct =
+    resolveProperty(column.code, column.propName, ctx) ??
+    resolvePropertyByDescription(column, ctx) ??
+    resolvePropertyByColumnMetadata(column, ctx);
   if (!direct) return undefined;
   if (isGermanDescriptionColumn(ws, descriptor, column)) return translateEnglishDescriptionToGerman(direct);
   return direct;
@@ -342,8 +306,92 @@ function resolvePropertyByDescription(column: PdtColumn, ctx: ResolveContext): s
   return undefined;
 }
 
-function isSupportedDescriptionColumn(column: { description: string }): boolean {
-  return Boolean(resolvePropertyDescriptionKey(column.description));
+function resolvePropertyByColumnMetadata(column: PdtColumn, ctx: ResolveContext): string | undefined {
+  const labels = metadataLabels(column);
+  if (labels.length === 0) return undefined;
+
+  const candidates = (ctx.result?.attributes ?? [])
+    .map((attribute) => ({
+      attribute,
+      name: normalizedMetadataLabel(attribute.name),
+      groupedName: normalizedMetadataLabel(`${attribute.group ?? ""} ${attribute.name}`)
+    }))
+    .filter(({ attribute }) => Boolean(cleanString(attribute.value)))
+    .filter(({ name, groupedName }) => labels.includes(name) || labels.includes(groupedName));
+  if (candidates.length === 0) return undefined;
+
+  candidates.sort((left, right) => sourceRank(right.attribute.sourceType) - sourceRank(left.attribute.sourceType));
+  return cleanString(candidates[0].attribute.value);
+}
+
+function metadataLabels(column: PdtColumn): string[] {
+  const labels = new Set<string>();
+  for (const label of [column.code, column.propName, descriptionWithoutEnumLegend(column.description)]) {
+    const normalized = normalizedMetadataLabel(label);
+    if (isUsableMetadataLabel(normalized)) labels.add(normalized);
+  }
+  return [...labels];
+}
+
+function descriptionWithoutEnumLegend(description: string): string {
+  return description.split(/\s+\d+\s*[-–]\s*/u)[0] ?? description;
+}
+
+function normalizedMetadataLabel(value: string): string {
+  return value
+    .replace(/\[[^\]]*\]/g, " ")
+    .replace(/\([^)]*\)/g, " ")
+    .replace(/\bmax\./gi, "maximum")
+    .replace(/\bmin\./gi, "minimum")
+    .replace(/\bcolou?r\b/gi, "color")
+    .replace(/[^a-z0-9]+/gi, " ")
+    .replace(/\bthe\b/gi, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase();
+}
+
+function isUsableMetadataLabel(value: string): boolean {
+  return (
+    value.length >= 4 &&
+    ![
+      "body",
+      "category",
+      "classid",
+      "coding",
+      "connection type",
+      "construction",
+      "description",
+      "design",
+      "degree of protection",
+      "degree of protection nema",
+      "eclass property",
+      "finish",
+      "light source",
+      "priority",
+      "protection type nema",
+      "propertyid",
+      "propertyname",
+      "surface",
+      "type",
+      "type of connector",
+      "unit",
+      "units"
+    ].includes(value)
+  );
+}
+
+function cleanString(value: string | undefined): string | undefined {
+  const trimmed = value?.replace(/\s+/g, " ").trim();
+  return trimmed ? trimmed : undefined;
+}
+
+function sourceRank(sourceType: AttributeRecord["sourceType"]): number {
+  if (sourceType === "official") return 3;
+  if (sourceType === "official-fallback") return 2;
+  if (sourceType === "cache") return 1;
+  if (sourceType === "distributor") return -1;
+  return 0;
 }
 
 function resolvePropertyDescriptionKey(description: string): string | undefined {

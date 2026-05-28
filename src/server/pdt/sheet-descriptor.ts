@@ -71,7 +71,7 @@ export function describeSheet(ws: ExcelJS.Worksheet): SheetDescriptor | undefine
   let unitRow = 0;
   let bodyRow = 0;
   for (let r = 1; r <= scanRows; r++) {
-    const label = cellText(ws.getCell(r, 1).value).toLowerCase();
+    const label = normalizeLabel(cellText(ws.getCell(r, 1).value));
     if (!label) continue;
     if (!propertyRow && PROPERTY_ID_LABELS.includes(label)) propertyRow = r;
     else if (!propertyNameRow && PROPERTY_NAME_LABELS.includes(label)) propertyNameRow = r;
@@ -92,7 +92,22 @@ export function describeSheet(ws: ExcelJS.Worksheet): SheetDescriptor | undefine
     if (!code && !propName) continue;
     const description = descriptionRow ? cellText(ws.getCell(descriptionRow, c).value) : "";
     const unit = unitRow ? cellText(ws.getCell(unitRow, c).value) : "";
+    if (isHeaderEchoColumn(code, propName, description, unit)) continue;
     columns.push({ col: c, code, propName, description, unit });
   }
   return { propertyRow, propertyNameRow, firstBodyRow, columns };
+}
+
+function normalizeLabel(value: string): string {
+  return value.replace(/\s+/g, " ").trim().toLowerCase();
+}
+
+function isHeaderEchoColumn(code: string, propName: string, description: string, unit: string): boolean {
+  const labels = [code, propName, description, unit].map(normalizeLabel);
+  return (
+    PROPERTY_ID_LABELS.includes(labels[0]) &&
+    PROPERTY_NAME_LABELS.includes(labels[1]) &&
+    (DESCRIPTION_LABELS.includes(labels[2]) || !labels[2]) &&
+    (UNIT_LABELS.includes(labels[3]) || !labels[3])
+  );
 }

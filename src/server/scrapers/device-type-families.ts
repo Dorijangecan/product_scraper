@@ -97,7 +97,11 @@ export const DEVICE_TYPE_FAMILIES: Record<string, readonly FamilyEntry[]> = {
     { patterns: ["BMF", "BMP"], type: "Magnetic Field Sensor" },
     { patterns: ["BVS"], type: "Vision Sensor" },
     { patterns: ["BNI"], type: "I/O Module", notes: "BNI IO-Link" },
-    { patterns: ["BTL"], type: "Encoder", notes: "Magnetostrictive linear encoder" }
+    { patterns: ["BTL"], type: "Encoder", notes: "Magnetostrictive linear encoder" },
+    { patterns: ["BDG"], type: "Encoder", notes: "Absolute encoder" }
+  ],
+  sce: [
+    { patterns: ["SCE-FK"], type: "Thermal Management", notes: "SCE filter kits" }
   ],
   phoenix: [
     { patterns: ["QUINT", "TRIO", "STEP", "MINI-PS", "MINI-DC", "UNO-PS"], type: "Power Supply" },
@@ -121,6 +125,32 @@ export const DEVICE_TYPE_FAMILIES: Record<string, readonly FamilyEntry[]> = {
     { patterns: ["VX", "VX25"], type: "Enclosure", notes: "VX25 baying enclosure" },
     { patterns: ["DK"], type: "Rack Cabinet" },
     { patterns: ["SK"], type: "Thermal Management", notes: "Climate control / filter fans" }
+  ],
+  spelsberg: [
+    { patterns: ["ABOX", "AK", "TK", "WKE", "GTI"], type: "Enclosure", notes: "Spelsberg junction boxes / enclosures" }
+  ],
+  schmersal: [
+    { patterns: ["AZM", "AZ", "BNS", "RSS", "SLC", "SLB", "EX-AZ"], type: "Safety Sensor" },
+    { patterns: ["SRB", "PROTECT-"], type: "Safety Relay" }
+  ],
+  rockwell: [
+    { patterns: ["100-"], type: "Contactor", notes: "Allen-Bradley IEC contactors" },
+    { patterns: ["140M"], type: "Motor Circuit Breaker" },
+    { patterns: ["140G"], type: "Circuit Breaker" },
+    { patterns: ["193"], type: "Motor Starter", notes: "E1 Plus / overload relays" },
+    { patterns: ["20F", "20G", "22B", "25B", "25A"], type: "Variable Speed Drive", notes: "PowerFlex drives" },
+    { patterns: ["42EF", "42JS", "45CRM", "45DMS", "45LMS"], type: "Photoelectric Sensor" },
+    { patterns: ["871", "872"], type: "Inductive Proximity Sensor" },
+    { patterns: ["1769-PA", "1769-PB"], type: "Power Supply", notes: "CompactLogix power supply" },
+    { patterns: ["1734", "1756", "1769", "1794", "5069"], type: "I/O Module" },
+    { patterns: ["2711"], type: "HMI", notes: "PanelView HMI" },
+    { patterns: ["800F", "800T"], type: "Pushbutton / Operator" },
+    { patterns: ["440R"], type: "Safety Relay" },
+    { patterns: ["440N", "440G"], type: "Safety Sensor" },
+    { patterns: ["1492"], type: "Terminal Block" }
+  ],
+  eta: [
+    { patterns: ["REX", "3120", "2210", "ESS"], type: "Circuit Breaker" }
   ],
   pilz: [
     { patterns: ["PNOZ"], type: "Safety Relay" },

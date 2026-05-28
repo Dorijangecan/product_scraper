@@ -6,7 +6,7 @@ import { urlTypeFor } from "./device-type-urls.js";
 export interface DeviceTypeAlternative {
   type: string;
   score: number;
-  /** Channels (text/family/url) that voted for this type. */
+  /** Channels (text/family/url/eclass/etim/unspsc) that voted for this type. */
   channels: string[];
 }
 
@@ -45,8 +45,8 @@ interface DeviceTypeCandidate {
 // quality (where the text came from + which source it came from) decides confidence.
 const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
   // --- Automation (very specific names — these win over generic "controller"/"module") ---
-  rule("Programmable Logic Controller", /\b(?:\bplc\b|programmable logic controller|logic controller|controller cpu|cpu module|simatic\s+s7|modicon\s+(?:m\d+|m340|m580)|compactlogix|controllogix|micro8\d{2,3})\b/i, 920),
-  rule("Communication Gateway", /\b(?:fieldbus gateway|fieldbus coupler|bus coupler|protocol converter|protocol gateway|serial gateway|modbus gateway|profibus gateway|profinet gateway|ethernet gateway|rs[-\s]?232(?:\s+(?:to|converter|interface|module))?|rs[-\s]?485(?:\s+(?:to|converter|interface|module))?|rs[-\s]?422|serial[-\s]?to[-\s]?ethernet|communication module|communication interface|industrial gateway|iiot gateway|edge gateway)\b/i, 905),
+  rule("Programmable Logic Controller", /\b(?:programmable logic controller|logic controller|controller cpu|cpu module|plc\s+(?:controller|module|processor|cpu|system)|(?:controller|module|processor|cpu|system)\s+plc|simatic\s+s7|modicon\s+(?:m\d+|m340|m580)|compactlogix|controllogix|micro8\d{2,3})\b/i, 920),
+  rule("Communication Gateway", /\b(?:communication gateway|fieldbus gateway|fieldbus coupler|bus coupler|protocol converter|protocol gateway|serial gateway|modbus gateway|profibus gateway|profinet gateway|ethernet gateway|rs[-\s]?232(?:\s+(?:to|converter|interface|module))?|rs[-\s]?485(?:\s+(?:to|converter|interface|module))?|rs[-\s]?422|serial[-\s]?to[-\s]?ethernet|communication module|communication interface|industrial gateway|iiot gateway|edge gateway)\b/i, 905),
   rule("I/O Module", /\b(?:i\/o|io|input\/output)\s+(?:module|expansion|system|block|card|interface)|(?:analog|digital)\s+(?:input|output)s?\s+(?:module|card|expansion)|remote\s+i\/o|io-link\s+(?:master|hub|module)\b/i, 900),
   rule("HMI", /\b(?:hmi|human[\s-]?machine[\s-]?interface|operator panel|touch panel|touchscreen panel|display terminal|graphic terminal)\b/i, 890),
   rule("Motion Controller", /\b(?:motion controller|motion control(?:ler)? module|cnc controller|servo controller)\b/i, 885),
@@ -60,21 +60,21 @@ const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
   rule("Ultrasonic Sensor", /\bultrasonic\s+(?:sensor|distance sensor|transducer)\b/i, 864),
   rule("Magnetic Field Sensor", /\bmagnetic\s+field\s+sensor|hall[-\s]?effect\s+sensor\b/i, 862),
   rule("Vision Sensor", /\b(?:vision\s+sensor|smart\s*camera|industrial camera|machine vision)\b/i, 860),
-  rule("RFID Device", /\b(?:rfid|read\/write\s+head|rfid\s+(?:reader|antenna|transponder))\b/i, 850),
+  rule("RFID Device", /\b(?:rfid|read\/write\s+head|read[-\s]?write\s+head|(?:hf|uhf)\s+(?:reader|antenna|read\/write)|13\.56\s*mhz|rfid\s+(?:reader|antenna|transponder))\b/i, 850),
   rule("Flow Sensor", /\bflow\s+(?:sensor|meter|switch|transmitter)\b/i, 845),
   rule("Level Sensor", /\b(?:level\s+(?:sensor|switch|transmitter)|float switch)\b/i, 843),
-  rule("Encoder", /\b(?:rotary encoder|absolute encoder|incremental encoder|encoder)\b/i, 840),
-  rule("Safety Sensor", /\b(?:safety light curtain|light curtain|safety mat|safety scanner|laser scanner|safety edge|two[-\s]?hand control)\b/i, 838),
+  rule("Encoder", /\b(?:rotary encoders?|absolute encoders?|incremental encoders?|encoders?)\b/i, 840),
+  rule("Safety Sensor", /\b(?:safety sensor|safety light curtain|light curtain|safety mat|safety scanner|laser scanner|safety edge|two[-\s]?hand control|safety switch|safety interlock|guard locking|guard[-\s]?lock(?:ing)? switch|safety door switch|door interlock)\b/i, 838),
   rule("Sensor", /\b(?:sensor|sensing|detector|limit switch|position switch|measuring range|measuring principle)\b/i, 620),
 
   // --- Protection & control (specific breakers/starters first) ---
-  rule("Motor Circuit Breaker", /\bmotor\s+(?:protective\s+)?circuit[-\s]?breaker|manual motor (?:starter|protector)\b/i, 820),
-  rule("Molded Case Circuit Breaker", /\b(?:molded|moulded)\s+case\s+circuit[-\s]?breaker|\bmccb\b/i, 815),
-  rule("Miniature Circuit Breaker", /\bminiature\s+circuit[-\s]?breaker|\bmcb\b/i, 814),
-  rule("Residual Current Device", /\b(?:residual current device|residual current circuit[-\s]?breaker|\brcd\b|\brccb\b|\brcbo\b|ground[-\s]?fault circuit[-\s]?interrupter|\bgfci\b|earth leakage)\b/i, 813),
-  rule("Circuit Breaker", /\b(?:circuit[-\s]?breaker|\bacb\b)\b/i, 805),
+  rule("Motor Circuit Breaker", /\bmotor\s+(?:protective\s+)?circuit[-\s]?breakers?|motor protection device|motor protection|manual motor (?:starter|protector)\b/i, 820),
+  rule("Molded Case Circuit Breaker", /\b(?:molded|moulded)\s+case\s+circuit[-\s]?breakers?|\bmccbs?\b/i, 815),
+  rule("Miniature Circuit Breaker", /\bminiature\s+circuit[-\s]?breakers?|\bmcbs?\b/i, 814),
+  rule("Residual Current Device", /\b(?:residual current device|residual current circuit[-\s]?breakers?|\brcd\b|\brccb\b|\brcbo\b|ground[-\s]?fault circuit[-\s]?interrupter|\bgfci\b|earth leakage)\b/i, 813),
+  rule("Circuit Breaker", /\b(?:air\s+circuit[-\s]?breakers?|thermal overcurrent circuit[-\s]?breakers?|overcurrent circuit[-\s]?breakers?|circuit[-\s]?breakers?|\bacbs?\b)\b/i, 805),
   rule("Safety Relay", /\b(?:safety relay|safety controller|safety module|emergency stop relay|e[-\s]?stop relay)\b/i, 803),
-  rule("Contactor", /\b(?:contactor|contactor relay|kontaktor)\b/i, 800),
+  rule("Contactor", /\b(?:contactor|contactor relay|kontaktor|contact kit|contact tip kit|main contact kit|replacement contacts?)\b/i, 800),
   rule("Relay", /\b(?:interface relay|coupling relay|plug-?in relay|timer relay|monitoring relay|relais|relej|\brelay\b)\b/i, 790),
   rule("Soft Starter", /\bsoft[-\s]?starter\b/i, 785),
   rule("Variable Speed Drive", /\b(?:variable speed drive|variable frequency drive|\bvfd\b|frequency (?:converter|inverter)|\bvsd\b|servo drive|ac drive|motor drive|inverter drive)\b/i, 780),
@@ -82,16 +82,16 @@ const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
   rule("Disconnect Switch", /\b(?:switch[-\s]?disconnector|disconnect(?:or)?\s+switch|isolator switch|safety switch|rotary disconnect|main switch|load break switch)\b/i, 770),
   rule("Surge Protective Device", /\b(?:surge protective device|\bspd\b|surge arrester|surge protection|lightning arrester)\b/i, 765),
   rule("Fuse", /\b(?:fuse holder|fuse base|fuse disconnect(?:or)?|fuse switch|fuse link|fuse carrier|nh fuse|d fuse|\bfuse\b)\b/i, 760),
-  rule("Switch", /\b(?:selector switch|cam switch|pushbutton switch|rotary switch|toggle switch|key[-\s]?operated switch)\b/i, 700),
+  rule("Switch", /\b(?:selector switch|cam switch|pushbutton switch|rotary switch|toggle switch|key[-\s]?operated switch|\bswitch\b)\b/i, 700),
 
   // --- Power / electrical ---
   rule("UPS", /\b(?:\bups\b|uninterruptible power supply)\b/i, 760),
-  rule("Power Supply", /\b(?:power supply|switched[-\s]?mode power supply|smps|regulated power supply|dc power supply|\bpsu\b)\b/i, 755),
+  rule("Power Supply", /\b(?:power supply|power supply module|switched[-\s]?mode power supply|smps|regulated power supply|dc power supply|\bpsu\b)\b/i, 755),
   rule("Transformer", /\b(?:control transformer|isolation transformer|step[-\s]?down transformer|step[-\s]?up transformer|toroidal transformer|\btransformer\b)\b/i, 750),
   rule("Current Sensor", /\b(?:current sensor|current transducer|current transformer|external neutral|homopolar toroid)\b/i, 745),
-  rule("Generator", /\b(?:generator set|diesel generator|gas generator|standby generator|backup generator)\b/i, 743),
-  rule("Motor", /\b(?:servo motor|stepper motor|asynchronous motor|synchronous motor|three[-\s]?phase motor|ac motor|dc motor|induction motor|gear motor|gearmotor)\b/i, 740),
-  rule("Battery", /\b(?:battery pack|lithium battery|lead[-\s]?acid battery|\bnimh battery\b|\bnicd battery\b)\b/i, 720),
+  rule("Generator", /\b(?:generator set|diesel generator|gas generator|standby generator|backup generator|\bgenerator\b)\b/i, 743),
+  rule("Motor", /\b(?:servo motor|stepper motor|asynchronous motor|synchronous motor|three[-\s]?phase motor|ac motor|dc motor|induction motor|gear motor|gearmotor|\bmotor\b)\b/i, 740),
+  rule("Battery", /\b(?:battery pack|lithium battery|lead[-\s]?acid battery|\bnimh battery\b|\bnicd battery\b|energy storage module|traction battery|\bbattery\b)\b/i, 720),
 
   // --- Enclosures & mounting ---
   rule("Loadcenter", /\b(?:loadcenter|load center|panelboard|distribution board|consumer unit|switchgear assembly)\b/i, 770),
@@ -102,14 +102,14 @@ const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
   rule("Enclosure", /\b(?:enclosure|wall[-\s]?mount(?:ed)? enclosure|floor[-\s]?stand(?:ing)? enclosure|junction box|control box|terminal box|\bcabinet\b)\b/i, 750),
 
   // --- Wiring & connectors ---
-  rule("Terminal Accessory", /\b(?:end bracket|end[-\s]?stop|end[-\s]?clamp|end[-\s]?plate|partition plate|terminal end\b|terminal cover|terminal\s+(?:end\s+)?bracket|separator plate|end section)\b/i, 770),
+  rule("Terminal Accessory", /\b(?:terminal accessory|end bracket|end[-\s]?stop|end[-\s]?clamp|end[-\s]?plate|partition plate|terminal end\b|terminal cover|terminal\s+(?:end\s+)?bracket|separator plate|end section)\b/i, 770),
   rule("PCB Terminal Block", /\b(?:pcb terminal block|board[-\s]?mount terminal|printed[-\s]?circuit terminal|pluggable pcb terminal|pcb screw terminal)\b/i, 765),
   rule("PCB Connector", /\b(?:pin header|board[-\s]?to[-\s]?board connector|pcb connector|pcb header|board[-\s]?mount connector|edge connector|smt connector|socket strip|pcb plug|wire[-\s]?to[-\s]?board connector)\b/i, 760),
   rule("Wire Marker", /\b(?:wire marker|cable marker|wire label|cable label|cable tag|wire ferrule|terminal marker|terminal label|marking tag)\b/i, 750),
   rule("Terminal Block", /\b(?:terminal block|power terminal|terminal strip|pluggable terminal|push[-\s]?in terminal|spring[-\s]?clamp terminal|screw terminal block)\b/i, 740),
   rule("Cable Gland", /\b(?:cable gland|\bgland\b|cord grip)\b/i, 735),
-  rule("Optical Connector", /\b(?:optical connector|fiber[-\s]?optic connector|fibre[-\s]?optic connector|\blc connector\b|\bsc connector\b|\bst connector\b|\bmpo connector\b|fc connector)\b/i, 732),
-  rule("Connector", /\b(?:industrial connector|circular connector|m\d+ connector|connector\b|plug-?in\s+(?:plug|socket)|cordset|patch cord)\b/i, 720),
+  rule("Optical Connector", /\b(?:optical connector|fiber[-\s]?optic connector|fibre[-\s]?optic connector|fiber optics?|fibre optics?|glass fibers?|plastic fibers?|\blc connector\b|\bsc connector\b|\bst connector\b|\bmpo connector\b|fc connector)\b/i, 732),
+  rule("Connector", /\b(?:industrial connector|circular connector|m\d+ connector|connector\b|plug-?in\s+(?:plug|socket)|cordset|patch cord|programming port|port,\s*programming)\b/i, 720),
   rule("Cable", /\b(?:cable assembly|control cable|power cable|signal cable|servo cable|motor cable|lead wire|patch cable|\bcable\b|\bcord\b)\b/i, 710),
   rule("Busbar", /\b(?:busbar|bus[-\s]?bar|busway|busbar system)\b/i, 720),
 
@@ -120,21 +120,21 @@ const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
   rule("Luminaire", /\b(?:machine light|led light fixture|fixture,\s*led light|light fixture|luminaire|interior lamp|cabinet light)\b/i, 745),
 
   // --- Cooling / climate ---
-  rule("Thermal Management", /\b(?:filter fan|fan package|enclosure fan|cabinet fan|cabinet heater|enclosure heater|thermostat|hygrostat|air conditioner|heat exchanger|dehumidifier|cooling unit|chiller)\b/i, 760),
-  rule("Filter", /\b(?:line filter|emc filter|emi filter|mains filter|harmonic filter|sine filter|du\/dt filter|output filter|input filter)\b/i, 740),
+  rule("Thermal Management", /\b(?:thermal management|filter fan|fan package|fan housing|filter kit|fan filter|exhaust filter|filter grille|enclosure fan|cabinet fan|cabinet heater|enclosure heater|thermostat|hygrostat|air conditioner|conditioner,\s*(?:ng\s+)?air|heat exchanger|dehumidifier|cooling unit|chiller)\b/i, 760),
+  rule("Filter", /\b(?:line filter|emc filter|emi filter|mains filter|harmonic filter|sine filter|du\/dt filter|output filter|input filter|\bfilter\b)\b/i, 740),
 
   // --- Pneumatic / fluid (rare but available in template) ---
   rule("Hydraulic Actuator", /\b(?:hydraulic cylinder|hydraulic actuator|hydraulic ram|hydraulic power unit|hydraulic pump unit|hydraulic unit)\b/i, 738),
   rule("Pump", /\b(?:centrifugal pump|gear pump|piston pump|hydraulic pump|metering pump|vacuum pump|\bpump\b)\b/i, 730),
   rule("Directional Control Valve", /\b(?:directional control valve|\b\d\/\d-?way valve\b|solenoid valve|pneumatic valve|spool valve)\b/i, 728),
-  rule("Valve", /\b(?:ball valve|check valve|gate valve|globe valve|butterfly valve|relief valve|pressure (?:relief|reducing|regulator) valve|needle valve|safety valve|shut[-\s]?off valve|non[-\s]?return valve|stop valve|\bvalve\b)\b/i, 724),
-  rule("Pneumatic Device", /\b(?:pneumatic cylinder|air cylinder|pneumatic actuator|pneumatic gripper|fitting,\s*pneumatic|pneumatic fitting)\b/i, 720),
+  rule("Valve", /\b(?:ball valve|check valve|gate valve|globe valve|butterfly valve|relief valve|pressure (?:relief|reducing|regulator) valve|differential pressure regulators?|diff\.?\s*press\.?\s*regulators?|pressure regulators?|needle valve|safety valve|shut[-\s]?off valve|non[-\s]?return valve|stop valve|\bvalve\b)\b/i, 724),
+  rule("Pneumatic Device", /\b(?:pneumatic device|pneumatic cylinder|air cylinder|pneumatic actuator|pneumatic gripper|fitting,\s*pneumatic|pneumatic fitting)\b/i, 720),
 
   // --- Lower-specificity catch-alls (priority < 700 so they only win when nothing else matches) ---
   rule("Lock / Interlock", /\b(?:padlock|key[-\s]?lock|interlock|locking device|key switch)\b/i, 620),
-  rule("Mounting Accessory", /\b(?:mounting kit|mounting bracket|mounting foot|mounting plate|adapter plate|din rail|\brail\b|\bbracket\b)\b/i, 610),
+  rule("Mounting Accessory", /\b(?:mounting accessory|mounting kit|mounting bracket|mounting foot|mounting plate|adapter plate|din rail|\brail\b|\bbracket\b)\b/i, 610),
   rule("Cover / Door Accessory", /\b(?:cover|door|hinge|latch|handle|gasket|window kit)\b/i, 600),
-  rule("Accessory", /\b(?:accessory|spare part|replacement part|\bkit\b)\b/i, 560)
+  rule("Accessory", /\b(?:accessory|spare part|replacement part|cleaner|\bkit\b)\b/i, 560)
 ];
 
 interface DeviceTypeMatch {
@@ -149,7 +149,7 @@ interface DeviceTypeSignal {
   /** Channel-specific score (text, family, url, …). */
   score: number;
   /** Logical channel — used for diagnostics and to require multi-channel agreement. */
-  channel: "text" | "family" | "url";
+  channel: "text" | "family" | "url" | "eclass" | "etim" | "unspsc";
   /** Short human-readable explanation of where this vote came from. */
   evidence: string;
 }
@@ -168,9 +168,72 @@ interface AggregatedType {
  * still dominate by sheer breadth (multiple rules × multiple sources), but a strong family or
  * URL hit can stop a marginal text false-positive from winning.
  */
-const CHANNEL_WEIGHTS = { text: 1.0, family: 1.2, url: 1.0 } as const;
+const CHANNEL_WEIGHTS = { text: 1.0, family: 1.2, url: 1.0, eclass: 1.25, etim: 1.1, unspsc: 0.95 } as const;
 /** Score added to the winner per additional channel that agreed with it. */
 const MULTI_CHANNEL_BONUS = 250;
+
+interface EclassTypeEntry {
+  code: string;
+  type: string;
+  match: "exact" | "prefix";
+  notes?: string;
+}
+
+const ECLASS_TYPE_ENTRIES: EclassTypeEntry[] = [
+  { code: "27371003", type: "Contactor", match: "exact", notes: "Contactor" },
+  { code: "27371307", type: "Lock / Interlock", match: "exact", notes: "Padlock barrier / locking accessory" },
+  { code: "27371392", type: "Accessory", match: "exact", notes: "Switching-device accessory / spare part" },
+  { code: "27142390", type: "Lock / Interlock", match: "exact", notes: "Locking or padlock accessory" },
+  { code: "272709", type: "Photoelectric Sensor", match: "prefix", notes: "Optical/photoelectric sensors" },
+  { code: "27270702", type: "Encoder", match: "exact", notes: "Linear position sensor" },
+  { code: "27274304", type: "Encoder", match: "exact", notes: "Linear encoder" },
+  { code: "27271101", type: "Sensor", match: "exact", notes: "Inclination sensor" },
+  { code: "27274201", type: "Sensor", match: "exact", notes: "Generic sensor class" },
+  { code: "27272603", type: "Safety Sensor", match: "exact", notes: "Safety switch/interlock" },
+  { code: "27110350", type: "Luminaire", match: "exact", notes: "Machine light/luminaire" },
+  { code: "27280402", type: "RFID Device", match: "exact", notes: "RFID read/write head or antenna" },
+  { code: "272706", type: "Sensor", match: "prefix", notes: "Limit/position switch" },
+  { code: "27060311", type: "Cable", match: "exact", notes: "Cordset/cable assembly" },
+  { code: "27440114", type: "Optical Connector", match: "exact", notes: "Passive fiber optic" },
+  { code: "27440102", type: "Connector", match: "exact", notes: "Field attachable connector" }
+];
+
+interface EtimTypeEntry {
+  code: string;
+  type: string;
+  notes?: string;
+}
+
+const ETIM_TYPE_ENTRIES: EtimTypeEntry[] = [
+  { code: "EC000030", type: "Sensor", notes: "Mechanical position / limit switch" },
+  { code: "EC000232", type: "Luminaire", notes: "Machine light / smart light" },
+  { code: "EC001825", type: "Photoelectric Sensor", notes: "Photoelectric distance sensor" },
+  { code: "EC001829", type: "Sensor", notes: "Mechanical position / limit switch" },
+  { code: "EC001852", type: "Sensor", notes: "Inclination sensor" },
+  { code: "EC002544", type: "Encoder", notes: "Linear position measuring system" },
+  { code: "EC002593", type: "Safety Sensor", notes: "Safety switch / interlock" },
+  { code: "EC002716", type: "Photoelectric Sensor", notes: "Photoelectric sensor" },
+  { code: "EC002998", type: "RFID Device", notes: "RFID read/write head or antenna" },
+  { code: "EC002051", type: "Lock / Interlock", notes: "Padlock barrier for switch" },
+  { code: "EC002498", type: "Accessory", notes: "Low-voltage switchgear accessory / spare part" }
+];
+
+interface UnspscTypeEntry {
+  code: string;
+  type: string;
+  notes?: string;
+}
+
+const UNSPSC_TYPE_ENTRIES: UnspscTypeEntry[] = [
+  { code: "26121604", type: "Cable", notes: "Cable / cordset" },
+  { code: "39100000", type: "Luminaire", notes: "Lighting products" },
+  { code: "39121413", type: "Connector", notes: "Electrical connector / field attachable" },
+  { code: "39121528", type: "Photoelectric Sensor", notes: "Photoelectric sensor" },
+  { code: "39122205", type: "Safety Sensor", notes: "Safety switch / interlock" },
+  { code: "46171501", type: "Lock / Interlock", notes: "Padlock" },
+  { code: "41111938", type: "Sensor", notes: "Inclination sensor" },
+  { code: "41111945", type: "Encoder", notes: "Linear encoder / position measuring" }
+];
 
 export function classifyDeviceType(result: ProductResult | undefined): DeviceTypeClassification {
   if (!result) return {};
@@ -238,6 +301,39 @@ export function classifyDeviceType(result: ProductResult | undefined): DeviceTyp
       score: 1300 * CHANNEL_WEIGHTS.url,
       channel: "url",
       evidence: urlMatch.evidence
+    });
+  }
+
+  // --- Channel 4: ECLASS class code ---
+  const eclassMatch = eclassTypeFor(result);
+  if (eclassMatch) {
+    signals.push({
+      type: eclassMatch.type,
+      score: (eclassMatch.match === "exact" ? 1450 : 1375) * CHANNEL_WEIGHTS.eclass,
+      channel: "eclass",
+      evidence: `ECLASS ${eclassMatch.code}${eclassMatch.notes ? ` (${eclassMatch.notes})` : ""}`
+    });
+  }
+
+  // --- Channel 5: ETIM class code ---
+  const etimMatch = etimTypeFor(result);
+  if (etimMatch) {
+    signals.push({
+      type: etimMatch.type,
+      score: 1275 * CHANNEL_WEIGHTS.etim,
+      channel: "etim",
+      evidence: `ETIM ${etimMatch.code}${etimMatch.notes ? ` (${etimMatch.notes})` : ""}`
+    });
+  }
+
+  // --- Channel 6: UNSPSC commodity code ---
+  const unspscMatch = unspscTypeFor(result);
+  if (unspscMatch) {
+    signals.push({
+      type: unspscMatch.type,
+      score: 1225 * CHANNEL_WEIGHTS.unspsc,
+      channel: "unspsc",
+      evidence: `UNSPSC ${unspscMatch.code}${unspscMatch.notes ? ` (${unspscMatch.notes})` : ""}`
     });
   }
 
@@ -386,6 +482,10 @@ function rule(type: string, pattern: RegExp, priority: number): DeviceTypeRule {
   return { type, pattern, priority };
 }
 
+export function knownDeviceTypes(): string[] {
+  return [...new Set(DEVICE_TYPE_RULES.map((entry) => entry.type))];
+}
+
 function deviceTypeCandidates(result: ProductResult): DeviceTypeCandidate[] {
   const attributes = result.attributes ?? [];
   const candidates: DeviceTypeCandidate[] = [];
@@ -437,6 +537,87 @@ function sourceTypeScore(sourceType?: SourceRecord["sourceType"]): number {
   if (sourceType === "cache") return 30;
   if (sourceType === "distributor") return -40;
   return 0;
+}
+
+function eclassTypeFor(result: ProductResult): (EclassTypeEntry & { code: string }) | undefined {
+  const matches = (result.attributes ?? [])
+    .filter((attribute) => /^(?:eclass|ecl@ss)\b/i.test(attribute.name.trim()) && attribute.value?.trim())
+    .map((attribute) => ({
+      code: normalizeEclassCode(attribute.value),
+      rank: sourceRankForEclass(attribute.sourceType) + eclassVersion(attribute.name)
+    }))
+    .filter((entry): entry is { code: string; rank: number } => Boolean(entry.code));
+  matches.sort((left, right) => right.rank - left.rank);
+  for (const match of matches) {
+    const entry = ECLASS_TYPE_ENTRIES.find((candidate) =>
+      candidate.match === "exact" ? match.code === candidate.code : match.code.startsWith(candidate.code)
+    );
+    if (entry) return { ...entry, code: formatEclassCode(match.code) };
+  }
+  return undefined;
+}
+
+function normalizeEclassCode(value: string | undefined): string | undefined {
+  const raw = value?.match(/\d{2}(?:[-.]?\d{2}){1,3}|\d{6,8}/)?.[0];
+  if (!raw) return undefined;
+  const digits = raw.replace(/\D/g, "");
+  return digits.length >= 6 ? digits : undefined;
+}
+
+function formatEclassCode(value: string): string {
+  return value.length === 8 ? value.replace(/(\d{2})(\d{2})(\d{2})(\d{2})/, "$1-$2-$3-$4") : value;
+}
+
+function eclassVersion(name: string): number {
+  return Number(name.match(/\d+(?:\.\d+)?/)?.[0] ?? 0) / 100;
+}
+
+function sourceRankForEclass(sourceType: SourceRecord["sourceType"] | undefined): number {
+  if (sourceType === "official") return 3;
+  if (sourceType === "official-fallback") return 2;
+  if (sourceType === "cache") return 1;
+  if (sourceType === "distributor") return -1;
+  return 0;
+}
+
+function etimTypeFor(result: ProductResult): EtimTypeEntry | undefined {
+  const matches = (result.attributes ?? [])
+    .filter((attribute) => /^(?:etim)\b/i.test(attribute.name.trim()) && attribute.value?.trim())
+    .map((attribute) => ({
+      code: normalizeEtimCode(attribute.value),
+      rank: sourceRankForEclass(attribute.sourceType) + eclassVersion(attribute.name)
+    }))
+    .filter((entry): entry is { code: string; rank: number } => Boolean(entry.code));
+  matches.sort((left, right) => right.rank - left.rank);
+  for (const match of matches) {
+    const entry = ETIM_TYPE_ENTRIES.find((candidate) => match.code === candidate.code);
+    if (entry) return entry;
+  }
+  return undefined;
+}
+
+function normalizeEtimCode(value: string | undefined): string | undefined {
+  return value?.match(/\bEC\d{6}\b/i)?.[0]?.toUpperCase();
+}
+
+function unspscTypeFor(result: ProductResult): UnspscTypeEntry | undefined {
+  const matches = (result.attributes ?? [])
+    .filter((attribute) => /^(?:unspsc)\b/i.test(attribute.name.trim()) && attribute.value?.trim())
+    .map((attribute) => ({
+      code: normalizeUnspscCode(attribute.value),
+      rank: sourceRankForEclass(attribute.sourceType) + eclassVersion(attribute.name)
+    }))
+    .filter((entry): entry is { code: string; rank: number } => Boolean(entry.code));
+  matches.sort((left, right) => right.rank - left.rank);
+  for (const match of matches) {
+    const entry = UNSPSC_TYPE_ENTRIES.find((candidate) => match.code === candidate.code);
+    if (entry) return entry;
+  }
+  return undefined;
+}
+
+function normalizeUnspscCode(value: string | undefined): string | undefined {
+  return value?.match(/\b\d{8}\b/)?.[0];
 }
 
 function deviceTypeConfidence(score: number): number {

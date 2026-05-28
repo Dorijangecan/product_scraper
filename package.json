@@ -11,6 +11,7 @@
     "server": "tsx src/server/index.ts",
     "build": "tsc --noEmit && vite build",
     "test": "vitest run",
+    "audit:pdt": "tsx scripts/audit-tab-coverage.ts && tsx scripts/audit-resolvers.ts && tsx scripts/audit-pdt-export.ts",
     "benchmark": "tsx scripts/benchmark.ts",
     "clean:pdt-input": "tsx scripts/clean-pdt-input.ts",
     "preview": "npm run build && node --import tsx src/server/index.ts"

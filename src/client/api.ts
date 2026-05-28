@@ -110,6 +110,10 @@ export interface PdtImportStats {
   filledSheets: Record<string, number>;
   missingSheets: string[];
   unmappedDeviceTypes: string[];
+  unclassifiedCatalogNumbers: string[];
+  writeIssues: PdtWriteIssue[];
+  keptSheets: string[];
+  removedSheetCount: number;
   cleanedInputPath?: string;
   cleanup?: {
     status: "disabled" | "qwen_unavailable" | "qwen_no_valid_output" | "qwen_reviewed" | "qwen_applied";
@@ -122,6 +126,16 @@ export interface PdtImportStats {
     message: string;
     productRows: number;
   };
+}
+
+export interface PdtWriteIssue {
+  sheetName: string;
+  catalogNumber: string;
+  code: string;
+  propName: string;
+  description: string;
+  value: string;
+  reason: "enum-unmatched";
 }
 
 export async function importRunPdt(

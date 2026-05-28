@@ -179,7 +179,7 @@ describe("excel export", () => {
     expect(products.getRow(2).getCell(headers.indexOf("Product Type") + 1).value).toBe("KLP-D");
     expect(products.getRow(2).getCell(headers.indexOf("Device Type") + 1).value).toBe("Lock / Interlock");
     expect(products.getRow(2).getCell(headers.indexOf("Device Type Confidence") + 1).value).toBeGreaterThanOrEqual(0.8);
-    expect(String(products.getRow(2).getCell(headers.indexOf("Device Type Evidence") + 1).value)).toContain("Catalog Description");
+    expect(String(products.getRow(2).getCell(headers.indexOf("Device Type Evidence") + 1).value)).toContain("ECLASS 27-14-23-90");
     expect(products.getRow(2).getCell(headers.indexOf("EAN / GTIN") + 1).value).toBe("8056221267000");
     expect(String(products.getRow(2).getCell(headers.indexOf("All Specifications") + 1).value)).toContain("[ABB Product Data]");
     expect(String(products.getRow(2).getCell(headers.indexOf("Copy Summary") + 1).value)).toContain("Voltage: 24 V DC");

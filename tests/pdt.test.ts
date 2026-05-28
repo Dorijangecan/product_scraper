@@ -5,9 +5,10 @@ import os from "node:os";
 import path from "node:path";
 import type { ManufacturerConfig, ProductResult, RunItemRecord } from "../src/shared/types.js";
 import { targetSheets, deviceSheetsFor } from "../src/server/pdt/device-sheet-map.js";
+import { knownDeviceTypes } from "../src/server/scrapers/device-type.js";
 import { hasPropertyResolver, resolveProperty, type ResolveContext } from "../src/server/pdt/eclass-resolvers.js";
-import { describeSheet } from "../src/server/pdt/sheet-descriptor.js";
-import { encodeEnum, isEnumColumn } from "../src/server/pdt/enum-encode.js";
+import { cellText, describeSheet } from "../src/server/pdt/sheet-descriptor.js";
+import { encodeEnum, encodeEnumLabel, isEnumColumn } from "../src/server/pdt/enum-encode.js";
 import { writeDocumentsSheet } from "../src/server/pdt/documents-sheet.js";
 import { buildPdtRepairMap, buildPdtRepairResult } from "../src/server/pdt/ai-cleanup.js";
 import { exportRunPdt } from "../src/server/pdt/exporter.js";
@@ -21,6 +22,28 @@ const manufacturer = {
   officialBaseUrls: ["https://acme.test"],
   fallbackSources: []
 } as unknown as ManufacturerConfig;
+
+const NON_DEVICE_MASTER_TABS = new Set([
+  "Material Master Data",
+  "Additional Documents",
+  "Connection Point Information",
+  "Carbon Footprint (V2)",
+  "Product Carbon Footprint PCF",
+  "Carbon Footprint Transport TCF",
+  "Critical environ. ingredient",
+  "EMC electromag. compatibility",
+  "connector.optical",
+  "Product Accessory",
+  "Help",
+  "Sheet11",
+  "Tabelle1",
+  "Tabelle2",
+  "subcircuit",
+  "symbol",
+  "symbol library",
+  "symbol example",
+  "PCB Footprint"
+]);
 
 function ctx(overrides: Partial<ProductResult>, catalogNumber = "CAT-1", deviceType?: string): ResolveContext {
   const result: ProductResult = {
@@ -61,9 +84,11 @@ describe("device sheet map", () => {
     expect(deviceSheetsFor("Cable")).toEqual(["cable"]);
   });
 
-  it("returns only constant tabs for unmapped device types", () => {
-    expect(deviceSheetsFor("Battery")).toEqual([]);
-    expect(targetSheets("Battery")).toEqual(["Material Master Data", "Additional Documents"]);
+  it("maps lower-confidence catch-all types to reviewable PDT tabs", () => {
+    expect(deviceSheetsFor("Battery")).toEqual(["power supply devices"]);
+    expect(deviceSheetsFor("Accessory")).toEqual(["cabinet.mechanical"]);
+    expect(deviceSheetsFor("Cover / Door Accessory")).toEqual(["cabinet.mechanical"]);
+    expect(deviceSheetsFor("Lock / Interlock")).toEqual(["Switch"]);
     expect(targetSheets(undefined)).toEqual(["Material Master Data", "Additional Documents"]);
   });
 
@@ -72,84 +97,26 @@ describe("device sheet map", () => {
     await wb.xlsx.readFile(path.resolve("templates", "master_pdt.xlsx"));
     const available = new Set(wb.worksheets.map((ws) => ws.name.trim().toLowerCase()));
 
-    const sampleTypes = [
-      "Enclosure",
-      "Subpanel",
-      "Rack Cabinet",
-      "Module Carrier",
-      "Loadcenter",
-      "Wireway",
-      "Mounting Accessory",
-      "Contactor",
-      "Fuse",
-      "Relay",
-      "Safety Relay",
-      "Circuit Breaker",
-      "Molded Case Circuit Breaker",
-      "Miniature Circuit Breaker",
-      "Residual Current Device",
-      "Motor Circuit Breaker",
-      "Motor Starter",
-      "Disconnect Switch",
-      "Switch",
-      "Surge Protective Device",
-      "Power Supply",
-      "UPS",
-      "Transformer",
-      "Generator",
-      "Motor",
-      "Variable Speed Drive",
-      "Soft Starter",
-      "Motion Controller",
-      "Current Sensor",
-      "Filter",
-      "Cable",
-      "Cable Gland",
-      "Connector",
-      "Optical Connector",
-      "Busbar",
-      "Terminal Block",
-      "Photoelectric Sensor",
-      "Vision Sensor",
-      "Inductive Proximity Sensor",
-      "Capacitive Sensor",
-      "Ultrasonic Sensor",
-      "Magnetic Field Sensor",
-      "RFID Device",
-      "Encoder",
-      "Safety Sensor",
-      "Sensor",
-      "Pressure Sensor",
-      "Temperature Sensor",
-      "Flow Sensor",
-      "Level Sensor",
-      "Programmable Logic Controller",
-      "I/O Module",
-      "HMI",
-      "Pushbutton / Operator",
-      "Pilot Light",
-      "Stack Light / Beacon",
-      "Luminaire",
-      "Thermal Management",
-      "Communication Gateway",
-      "PCB Connector",
-      "PCB Terminal Block",
-      "Terminal Accessory",
-      "Wire Marker",
-      "Pump",
-      "Directional Control Valve",
-      "Valve",
-      "Hydraulic Actuator",
-      "Pneumatic Device"
-    ];
-
-    for (const deviceType of sampleTypes) {
+    for (const deviceType of knownDeviceTypes()) {
       const sheets = deviceSheetsFor(deviceType);
       expect(sheets.length).toBeGreaterThan(0);
       for (const sheet of sheets) {
         expect(available.has(sheet.trim().toLowerCase())).toBe(true);
       }
     }
+  });
+
+  it("maps every device-product tab in the Master PDT template from at least one known device type", async () => {
+    const wb = new ExcelJS.Workbook();
+    await wb.xlsx.readFile(path.resolve("templates", "master_pdt.xlsx"));
+    const mappedTabs = new Set(knownDeviceTypes().flatMap((deviceType) => deviceSheetsFor(deviceType)));
+
+    const uncovered = wb.worksheets
+      .map((ws) => ws.name)
+      .filter((tab) => !NON_DEVICE_MASTER_TABS.has(tab))
+      .filter((tab) => !mappedTabs.has(tab));
+
+    expect(uncovered).toEqual([]);
   });
 });
 
@@ -172,7 +139,33 @@ describe("Master PDT mapping coverage", () => {
       expect(unmapped).toEqual([]);
     }
   });
+
+  it("has resolver coverage for every mapped device-product PDT tab", async () => {
+    const wb = new ExcelJS.Workbook();
+    await wb.xlsx.readFile(path.resolve("templates", "master_pdt.xlsx"));
+    const mappedTabs = new Set(knownDeviceTypes().flatMap((deviceType) => deviceSheetsFor(deviceType)));
+    const unresolved: Record<string, string[]> = {};
+
+    for (const sheetName of mappedTabs) {
+      const ws = wb.getWorksheet(sheetName);
+      expect(ws, `Missing mapped sheet ${sheetName}`).toBeTruthy();
+      const descriptor = describeSheet(ws!);
+      expect(descriptor, `Sheet ${sheetName} is not a PDT property sheet`).toBeTruthy();
+      const unmapped = descriptor!.columns
+        .filter((column) => column.code !== "ECLASS property")
+        .filter((column) => !isIgnoredDeviceTabColumn(column.code, column.propName))
+        .filter((column) => !hasPropertyResolver(column.code, column.propName))
+        .map((column) => `${column.code} / ${column.propName}`);
+      if (unmapped.length > 0) unresolved[sheetName] = unmapped;
+    }
+
+    expect(unresolved).toEqual({});
+  });
 });
+
+function isIgnoredDeviceTabColumn(code: string, propName: string): boolean {
+  return code.trim() === "-" && propName.trim() === "-";
+}
 
 describe("eclass resolvers", () => {
   it("resolves manufacturer, article number and product url", () => {
@@ -408,6 +401,276 @@ describe("eclass resolvers", () => {
     expect(resolveProperty("AAP798", "AAP798", c)).toBe("IEC 60947-3");
   });
 
+  it("resolves common master fields shared outside the contactor/fuses tab", () => {
+    const c = ctx({
+      normalized: { color: "RAL 7035", material: "polycarbonate", protection: "IP66" },
+      attributes: [
+        { name: "REACH Registration", value: "Yes", sourceType: "official" },
+        { name: "SVHC Weight Percentage", value: "0.1 %", sourceType: "official" },
+        { name: "RoHS Declaration", value: "https://acme.test/rohs.pdf", sourceType: "official" },
+        { name: "Rated Operational Voltage", value: "230 V AC; 24 V DC", sourceType: "official" },
+        { name: "Operating ambient temperature", value: "-25...+70 C", sourceType: "official" },
+        { name: "Storage temperature", value: "-40...+85 C", sourceType: "official" },
+        { name: "Protection Class", value: "II", sourceType: "official" },
+        { name: "Material of housing", value: "PA66", sourceType: "official" },
+        { name: "Design", value: "compact", sourceType: "official" },
+        { name: "Country of Origin", value: "Germany", sourceType: "official" },
+        { name: "Reference test standard", value: "IEC 61000-6-2", sourceType: "official" },
+        { name: "Test severity level", value: "Level 3", sourceType: "official" },
+        { name: "Special Characteristics", value: "short-circuit protected", sourceType: "official" },
+        { name: "Explosion protection gases", value: "No", sourceType: "official" },
+        { name: "Design of control output", value: "PNP", sourceType: "official" },
+        { name: "Switching element function", value: "normally open", sourceType: "official" },
+        { name: "Thread Size", value: "M12", sourceType: "official" },
+        { name: "Connector Type", value: "M12 connector", sourceType: "official" },
+        { name: "Coding", value: "A-coded", sourceType: "official" },
+        { name: "Operating Pressure", value: "0.6 MPa", sourceType: "official" }
+      ],
+      documents: [{ type: "certificate", label: "REACH Declaration", url: "https://acme.test/reach.pdf" }]
+    });
+
+    expect(resolveProperty("AAF507", "AAF507", c)).toBe("Yes");
+    expect(resolveProperty("AAO188", "AAO188", c)).toBe("0.1");
+    expect(resolveProperty("AAO189", "AAO189", c)).toBe("https://acme.test/reach.pdf");
+    expect(resolveProperty("AAO191", "AAO191", c)).toBe("Yes");
+    expect(resolveProperty("AAB459", "AAB459", c)).toBe("230");
+    expect(resolveProperty("AAB840", "AAB840", c)).toBe("24");
+    expect(resolveProperty("AAZ952", "AAZ952", c)).toBe("-25");
+    expect(resolveProperty("AAQ341", "AAQ341", c)).toBe("85");
+    expect(resolveProperty("AAQ342", "AAQ342", c)).toBe("-40");
+    expect(resolveProperty("AAC108", "AAC108", c)).toBe("IP66");
+    expect(resolveProperty("BAA205", "BAA205", c)).toBe("Protection class 2");
+    expect(resolveProperty("AAT099", "AAT099", c)).toBe("7035");
+    expect(resolveProperty("BAD947", "BAD947", c)).toBe("PA66");
+    expect(resolveProperty("BAB888", "BAB888", c)).toBe("compact");
+    expect(resolveProperty("BAB894", "BAB894", c)).toBe("compact");
+    expect(resolveProperty("AAO263", "AAO263", c)).toBe("Germany");
+    expect(resolveProperty("AAZ088", "AAZ088", c)).toBe("IEC 61000-6-2");
+    expect(resolveProperty("AAZ135", "AAZ135", c)).toBe("Level 3");
+    expect(resolveProperty("BAD816", "BAD816", c)).toBe("short-circuit protected");
+    expect(resolveProperty("BAD833", "BAD833", c)).toBe("No");
+    expect(resolveProperty("BAD898", "BAD898", c)).toBe("PNP");
+    expect(resolveProperty("BAD899", "BAD899", c)).toBe("Normally open contact");
+    expect(resolveProperty("ABC265", "ABC265", c)).toBe("M12");
+    expect(resolveProperty("ABC266", "ABC266", c)).toBe("Circular connector");
+    expect(resolveProperty("ABC338", "ABC338", c)).toBe("A-coded");
+    expect(resolveProperty("AAZ943", "AAZ943", c)).toBe("6");
+  });
+
+  it("normalizes only review-safe enum-oriented source values", () => {
+    expect(
+      resolveProperty(
+        "AAO336",
+        "CNS_MOUNTING_ORIENTATION",
+        ctx({ attributes: [{ name: "Mounting Position", value: "1 ... 5", sourceType: "official" }] })
+      )
+    ).toBeUndefined();
+    expect(
+      resolveProperty(
+        "AAO336",
+        "CNS_MOUNTING_ORIENTATION",
+        ctx({ attributes: [{ name: "Mounting Orientation", value: "Vertical up", sourceType: "official" }] })
+      )
+    ).toBe("vertical up");
+
+    expect(
+      resolveProperty("BAC000", "BAC000", ctx({ attributes: [{ name: "Construction", value: "0.075 In. carbon steel.", sourceType: "official" }] }))
+    ).toBeUndefined();
+    expect(resolveProperty("BAC000", "BAC000", ctx({ attributes: [{ name: "Construction form", value: "Wall assembly", sourceType: "official" }] }))).toBe(
+      "Wall assembly"
+    );
+
+    expect(resolveProperty("BAF785", "BAF785", ctx({ attributes: [{ name: "Finish", value: "Finish", sourceType: "official" }] }))).toBeUndefined();
+    expect(resolveProperty("BAF785", "BAF785", ctx({ attributes: [{ name: "Surface finish", value: "#4 brushed finish", sourceType: "official" }] }))).toBe(
+      "brushed"
+    );
+
+    const multiNema = ctx({ attributes: [{ name: "NEMA Rating", value: "NEMA Type 3R, 4, 12 and Type 13", sourceType: "official" }] });
+    expect(resolveProperty("AAW361", "AAW361", multiNema)).toBeUndefined();
+    expect(resolveProperty("AAZ486", "AAZ486", multiNema)).toBe("NEMA Type 3R, 4, 12 and Type 13");
+    expect(
+      resolveProperty("AAW361", "AAW361", ctx({ attributes: [{ name: "NEMA Rating", value: "NEMA Type 4X", sourceType: "official" }] }))
+    ).toBe("NEMA 4X");
+
+    const materialComplianceDoc = ctx({
+      attributes: [{ group: "ABB Material Compliance", name: "Conflict Minerals Reporting Template (CMRT)", value: "9AKK108467A5658", sourceType: "official" }]
+    });
+    expect(resolveProperty("BAB664", "BAB664", materialComplianceDoc)).toBeUndefined();
+    expect(resolveProperty("BAF634", "BAF634", materialComplianceDoc)).toBeUndefined();
+    expect(resolveProperty("BAB664", "BAB664", ctx({ normalized: { material: "9AKK108467A5658" } }))).toBeUndefined();
+    expect(resolveProperty("BAB664", "BAB664", ctx({ normalized: { material: "carbon steel" } }))).toBe("carbon steel");
+
+    expect(
+      resolveProperty(
+        "AAO263",
+        "AAO263",
+        ctx({ attributes: [{ group: "Plain Text", name: 'var desired = country === "SA"', value: "originalText;", sourceType: "official" }] })
+      )
+    ).toBeUndefined();
+    expect(resolveProperty("AAO263", "AAO263", ctx({ attributes: [{ name: "Country of Origin", value: "Germany", sourceType: "official" }] }))).toBe(
+      "Germany"
+    );
+    expect(resolveProperty("BAA097", "BAA097", ctx({ normalized: { color: "#262626;\">' + k + ' '" } }))).toBeUndefined();
+
+    expect(resolveProperty("AAQ323", "AAQ323", ctx({ normalized: { certificates: "CE; cULus; WEEE" } }))).toBeUndefined();
+    expect(resolveProperty("BAB392", "BAB392", ctx({ normalized: { certificates: "CE; cULus; WEEE" } }))).toBeUndefined();
+    expect(resolveProperty("BAB392", "BAB392", ctx({ normalized: { certificates: "Blue Angel (RAL-UZ 14)" } }))).toBe("Blue Angel (RAL-UZ 14)");
+    expect(resolveProperty("BAA558", "BAA558", ctx({ attributes: [{ name: "cULus Certificate", value: "cULus61010-1_E174460" }] }))).toBeUndefined();
+    expect(resolveProperty("BAA558", "BAA558", ctx({ attributes: [{ name: "Test certificate", value: "2.2 Test certificate" }] }))).toBe(
+      "2.2, Test certificate"
+    );
+
+    expect(resolveProperty("ABC264", "ABC264", ctx({ attributes: [{ name: "Connection type", value: "1. Switch position: Screw terminal" }] }))).toBeUndefined();
+    expect(resolveProperty("ABC264", "ABC264", ctx({ attributes: [{ name: "Connection", value: "Connector, M12x1-Male, 4-pin" }] }))).toBe(
+      "Plug-in connection"
+    );
+    expect(resolveProperty("ABC265", "ABC265", ctx({ attributes: [{ name: "Thread Size", value: "M12x1" }] }))).toBe("M12");
+    expect(resolveProperty("ABC266", "ABC266", ctx({ attributes: [{ name: "Connection type", value: "1. Switch position: Screw terminal" }] }))).toBeUndefined();
+    expect(resolveProperty("AAQ824", "AAQ824", ctx({ attributes: [{ name: "Switching output", value: "PNP normally closed (NC)" }] }))).toBe(
+      "Binary electronic output"
+    );
+    expect(resolveProperty("BAD830", "BAD830", ctx({ attributes: [{ name: "Setting", value: "Sensitivity (Sn)" }] }))).toBeUndefined();
+    expect(resolveProperty("BAD830", "BAD830", ctx({ attributes: [{ name: "Setting", value: "Teach-In" }] }))).toBe("Teach-In");
+    expect(resolveProperty("BAD859", "BAD859", ctx({ attributes: [{ name: "Light type", value: "Red light" }] }))).toBeUndefined();
+    expect(resolveProperty("BAD859", "BAD859", ctx({ attributes: [{ name: "Light type", value: "Infrared" }] }))).toBe("Infrared light");
+    expect(resolveProperty("BAD899", "BAD899", ctx({ attributes: [{ name: "Switching function, optical", value: "Light-on" }] }))).toBeUndefined();
+    expect(resolveProperty("BAD899", "BAD899", ctx({ attributes: [{ name: "Switching element function", value: "normally closed" }] }))).toBe(
+      "Normally close contact"
+    );
+    expect(resolveProperty("AAK286", "AAK286", ctx({ attributes: [{ name: "Principle of operation", value: "Photoelectric sensor" }] }))).toBeUndefined();
+    expect(resolveProperty("ABC338", "ABC338", ctx({ attributes: [{ name: "Coding", value: "Write cycles" }] }))).toBeUndefined();
+    expect(resolveProperty("AAB396", "AAB396", ctx({ attributes: [{ name: "Housing surface", value: "PBTP" }] }))).toBeUndefined();
+    expect(resolveProperty("AAB396", "AAB396", ctx({ attributes: [{ name: "Housing surface", value: "nickel-plated" }] }))).toBe("nickel-plated");
+    expect(resolveProperty("AAK395", "AAK395", ctx({ attributes: [{ name: "Screen", value: "Aluminum foil and copper braid" }] }))).toBe("Film + fabric");
+    expect(resolveProperty("AAZ485", "AAZ485", ctx({ attributes: [{ name: "Suitable for", value: "E1.3, E2.3, E4.3" }] }))).toBeUndefined();
+    expect(resolveProperty("ABD914", "ABD914", ctx({ attributes: [{ name: "IO-Link Revision", value: "1.1" }] }))).toBe("V1.1");
+    expect(resolveProperty("BAD866", "BAD866", ctx({ attributes: [{ name: "Mechanical installation conditions", value: "– Flush mount" }] }))).toBe("flush");
+    expect(resolveProperty("AAC073", "AAC073", ctx({ attributes: [{ name: "EN ISO 13849-1", value: "2023 and SN29500, T = 40 C" }] }))).toBeUndefined();
+    expect(resolveProperty("AAC073", "AAC073", ctx({ attributes: [{ name: "Performance level", value: "PL d" }] }))).toBe("PL d");
+    expect(resolveProperty("BAA205", "BAA205", ctx({ attributes: [{ name: "Protection type", value: "IP 67" }] }))).toBeUndefined();
+    expect(resolveProperty("AAO382", "AAO382", ctx({ attributes: [{ name: "Safety integrity level (SIL)", value: "None" }] }))).toBe("without");
+    expect(resolveProperty("AAF607", "AAF607", ctx({ attributes: [{ name: "Design", value: "built-in-device" }] }))).toBe("built-in-device");
+    expect(resolveProperty("AAF607", "AAF607", ctx({ attributes: [{ name: "Design", value: "Design of electrical connection: Screw connection" }] }))).toBeUndefined();
+    expect(resolveProperty("AAB400", "AAB400", ctx({ attributes: [{ name: "Interface design", value: "0.2 A" }] }))).toBeUndefined();
+    expect(resolveProperty("AAB400", "AAB400", ctx({ attributes: [{ name: "Interface design", value: "EtherNet/IP" }] }))).toBe("EtherNet/IP");
+    expect(resolveProperty("AAK359", "AAK359", ctx({ attributes: [{ name: "Measurement principle", value: "MEMS" }] }))).toBeUndefined();
+    expect(resolveProperty("ABD888", "ABD888", ctx({ attributes: [{ name: "Light source", value: "infrared 640 nm" }] }))).toBeUndefined();
+    expect(resolveProperty("BAC461", "BAC461", ctx({ attributes: [{ name: "Housing material", value: "PA 12" }] }))).toBeUndefined();
+    expect(resolveProperty("BAC461", "BAC461", ctx({ attributes: [{ name: "Housing material", value: "PBTP" }] }))).toBe("Plastic (PBT)");
+    expect(resolveProperty("BAA136", "BAA136", ctx({ attributes: [{ name: "Medium", value: "text-accent transition-colors\"" }] }))).toBeUndefined();
+  });
+
+  it("resolves deeper power-supply, sensor, PCB and fluid fields", () => {
+    const c = ctx({
+      attributes: [
+        { name: "Output voltage adjustable", value: "Yes", sourceType: "official" },
+        { name: "Max 1. output voltage", value: "24 V", sourceType: "official" },
+        { name: "Nominal value output current 1", value: "5 A", sourceType: "official" },
+        { name: "Max. rated supply voltage with AC 50 Hz", value: "264 V AC", sourceType: "official" },
+        { name: "Supply voltage", value: "18...30 V DC", sourceType: "official" },
+        { name: "Ethernet communication interface", value: "EtherNet/IP", sourceType: "official" },
+        { name: "Width of sensor", value: "12 mm", sourceType: "official" },
+        { name: "IO-Link transmission rate", value: "COM3", sourceType: "official" },
+        { name: "Grid dimension of the connections", value: "5.08 mm", sourceType: "official" },
+        { name: "Rated surge voltage", value: "4 kV", sourceType: "official" },
+        { name: "Pressure medium temperature", value: "-10...+60 C", sourceType: "official" },
+        { name: "Number of pneumatic output connections", value: "2", sourceType: "official" },
+        { name: "Integrated protective circuitry", value: "Yes", sourceType: "official" },
+        { name: "Max. ambient temperature during operation", value: "-25...+70 C", sourceType: "official" },
+        { name: "Material thickness", value: "1.5 mm", sourceType: "official" },
+        { name: "Suitability for application", value: "Control", sourceType: "official" },
+        { name: "Color of housing", value: "black", sourceType: "official" },
+        { name: "Supply voltage type", value: "AC/DC", sourceType: "official" },
+        { name: "Max. core cross section", value: "1.5 mm", sourceType: "official" },
+        { name: "Suitable for cable guide chain", value: "Yes", sourceType: "official" },
+        { name: "Type of actuation", value: "DC", sourceType: "official" },
+        { name: "Design of interface for security oriented communications", value: "PROFIsafe", sourceType: "official" },
+        { name: "Cascadable", value: "Yes", sourceType: "official" },
+        { name: "Number of HW interfaces USB", value: "2", sourceType: "official" },
+        { name: "Touch screen present", value: "Yes", sourceType: "official" },
+        { name: "Frequency measurement possible", value: "Yes", sourceType: "official" },
+        { name: "Max. voltage measuring range", value: "600 V", sourceType: "official" },
+        { name: "VDE tested", value: "Yes", sourceType: "official" },
+        { name: "Filter present", value: "Yes", sourceType: "official" },
+        { name: "Useful cooling capacity", value: "500 W", sourceType: "official" },
+        { name: "Busbar width", value: "12 mm", sourceType: "official" }
+      ]
+    });
+
+    expect(resolveProperty("AAB429", "AAB429", c)).toBe("Yes");
+    expect(resolveProperty("AAB773", "AAB773", c)).toBe("24");
+    expect(resolveProperty("AAS343", "AAS343", c)).toBe("5");
+    expect(resolveProperty("AAB832", "AAB832", c)).toBe("264");
+    expect(resolveProperty("AAC962", "AAC962", c)).toBe("18");
+    expect(resolveProperty("AAC965", "AAC965", c)).toBe("264");
+    expect(resolveProperty("AAB745", "AAB745", c)).toBe("Yes");
+    expect(resolveProperty("BAD823", "BAD823", c)).toBe("12");
+    expect(resolveProperty("ABD912", "ABD912", c)).toBe("COM3");
+    expect(resolveProperty("AAC082", "AAC082", c)).toBe("5.08");
+    expect(resolveProperty("AAB499", "AAB499", c)).toBe("4000");
+    expect(resolveProperty("AAZ941", "AAZ941", c)).toBe("60");
+    expect(resolveProperty("AAZ951", "AAZ951", c)).toBe("-10");
+    expect(resolveProperty("AAZ898", "AAZ898", c)).toBe("2");
+    expect(resolveProperty("BAD371", "BAD371", c)).toBe("Yes");
+    expect(resolveProperty("AAB906", "AAB906", c)).toBe("70");
+    expect(resolveProperty("AAG011", "AAG011", c)).toBe("1.5");
+    expect(resolveProperty("AAZ485", "AAZ485", c)).toBe("Control");
+    expect(resolveProperty("BAA097", "BAA097", c)).toBe("black");
+    expect(resolveProperty("BAC078", "BAC078", c)).toBe("AC/DC");
+    expect(resolveProperty("AAJ003", "AAJ003", c)).toBe("1.5");
+    expect(resolveProperty("AAM076", "AAM076", c)).toBe("Yes");
+    expect(resolveProperty("BAD803", "BAD803", c)).toBe("DC");
+    expect(resolveProperty("BAD804", "BAD804", c)).toBe("PROFIsafe");
+    expect(resolveProperty("BAD853", "BAD853", c)).toBe("Yes");
+    expect(resolveProperty("AAO504", "AAO504", c)).toBe("2");
+    expect(resolveProperty("BAD443", "BAD443", c)).toBe("Yes");
+    expect(resolveProperty("AAB604", "AAB604", c)).toBe("Yes");
+    expect(resolveProperty("AAB898", "AAB898", c)).toBe("600");
+    expect(resolveProperty("AAG615", "AAG615", c)).toBe("Yes");
+    expect(resolveProperty("AAC042", "AAC042", c)).toBe("Yes");
+    expect(resolveProperty("AAC066", "AAC066", c)).toBe("500");
+    expect(resolveProperty("AAC100", "AAC100", c)).toBe("12");
+  });
+
+  it("resolves late-pass device-tab fields across cable, safety, busbar and terminal families", () => {
+    const c = ctx({
+      normalized: { color: "black", material: "PVC" },
+      attributes: [
+        { name: "Cable outer diameter", value: "7.3 mm", sourceType: "official" },
+        { name: "Number of wires", value: "4", sourceType: "official" },
+        { name: "Cable length", value: "2 m", sourceType: "official" },
+        { name: "Halogen free", value: "Yes", sourceType: "official" },
+        { name: "Current input", value: "20 mA", sourceType: "official" },
+        { name: "Seal present", value: "Yes", sourceType: "official" },
+        { name: "Max. line cross section, rigid", value: "2.5 mm2", sourceType: "official" },
+        { name: "Rated operating current AC-15", value: "(125 V) 2 A; (230 V) 1 A; (24 V) 3 A", sourceType: "official" },
+        { name: "Max. operating pressure", value: "0.6 MPa", sourceType: "official" },
+        { name: "Number of phases", value: "3", sourceType: "official" },
+        { name: "Cross section", value: "10 mm2", sourceType: "official" },
+        { name: "Terminal width", value: "6.2 mm", sourceType: "official" },
+        { name: "Wire material", value: "Copper", sourceType: "official" },
+        { name: "Front door present", value: "Yes", sourceType: "official" },
+        { name: "Rated output voltage", value: "230 V", sourceType: "official" }
+      ]
+    });
+
+    expect(resolveProperty("BAD974", "00003D001", c)).toBe("7.3");
+    expect(resolveProperty("AAP775", "\"00003E001\"", c)).toBe("4");
+    expect(resolveProperty("BAI969", "BAI969", c)).toBe("2");
+    expect(resolveProperty("AAL680", "AAL680", c)).toBe("Yes");
+    expect(resolveProperty("AAC134", "AAC134", c)).toBe("0.02");
+    expect(resolveProperty("AAB515", "AAB515", c)).toBe("Yes");
+    expect(resolveProperty("BAC677", "BAC677", c)).toBe("2.5");
+    expect(resolveProperty("AAB465", "AAB465", c)).toBe("1");
+    expect(resolveProperty("AAA900", "AAA900", c)).toBe("6");
+    expect(resolveProperty("AAP621", "AAP621", c)).toBe("3");
+    expect(resolveProperty("BAC892", "BAC892", c)).toBe("10");
+    expect(resolveProperty("AAB507", "AAB507", c)).toBe("6.2");
+    expect(resolveProperty("AAN530", "CNS_CORE_MATERIAL", c)).toBe("Copper");
+    expect(resolveProperty("AAC268", "AAC268", c)).toBe("Yes");
+    expect(resolveProperty("BAE107", "BAE107", c)).toBe("230");
+  });
+
   it("maps short-time withstand current (Icw) and rated operational voltage", () => {
     const c = ctx({
       attributes: [
@@ -443,6 +706,10 @@ describe("PDT unit cleanup", () => {
   it("converts length and mass units into the target PDT unit", () => {
     expect(normalizePdtCellNumber("1.2 m", "mm")).toBe("1200");
     expect(normalizePdtCellNumber("2.5 kg", "g")).toBe("2500");
+  });
+
+  it("normalizes torque values used by PDT mechanical columns", () => {
+    expect(normalizePdtCellNumber("2.5 Nm", "Nm")).toBe("2.5");
   });
 });
 
@@ -695,6 +962,119 @@ describe("enum encoding", () => {
     expect(encodeEnum(ip, "Front IP00")).toBeUndefined();
   });
 
+  it("parses multiline legends whose last visible option is followed by an ellipsis", () => {
+    const ip = [
+      "degree of protection",
+      "1 - IP65/IP67",
+      "2 - IP00",
+      "3 - IP20",
+      "..."
+    ].join("\n");
+
+    expect(encodeEnum(ip, "IP20")).toBe("3");
+  });
+
+  it("allows standard IP labels when the Master PDT enum legend is truncated", () => {
+    const ip = "degree of protection 1 - without 2 - IPX8 3 - IPX6 4 - IPX4D 5 - IPX2 6 - IP68/IPX9K ...";
+    const mountedIp = "Degree of protection (IP), mounted 1 - NEMA 2 - IP00 3 - IP20 ...";
+
+    expect(encodeEnum(ip, "IP20")).toBeUndefined();
+    expect(encodeEnumLabel(ip, "IP20")).toBe("IP20");
+    expect(encodeEnumLabel(mountedIp, "IP67")).toBe("IP67");
+    expect(encodeEnumLabel(ip, "as per IEC 60529")).toBeUndefined();
+  });
+
+  it("allows standard material labels when the Master PDT enum legend is truncated", () => {
+    const material = "material 1 - Real glas 2 - Thermoplast 3 - Polyvinylalkohol (PVA) ...";
+
+    expect(encodeEnum(material, "carbon steel")).toBeUndefined();
+    expect(encodeEnumLabel(material, "carbon steel")).toBe("steel");
+    expect(encodeEnumLabel(material, "stainless steel")).toBe("stainless steel");
+    expect(encodeEnumLabel("material of housing 1 - Plastic (PBT) 2 - Plastic (ABS) ...", "PBTP")).toBe("Plastic (PBT)");
+    expect(encodeEnumLabel("material of housing 1 - Plastic (PBT) 2 - Plastic (ABS) 3 - Plastic ...", "ABS")).toBe("Plastic (ABS)");
+    expect(encodeEnumLabel("material 1 - Real glas 2 - Thermoplast 3 - Polyvinylalkohol (PVA) ...", "Thermoplast, GF")).toBe("Thermoplast");
+    expect(encodeEnumLabel("material 1 - Real glas 2 - Thermoplast 3 - Polyvinylalkohol (PVA) ...", "Polycarbonate")).toBe("Thermoplast");
+    expect(encodeEnumLabel(material, "9AKK108466A1425")).toBeUndefined();
+  });
+
+  it("allows standard color labels when the Master PDT enum legend is truncated", () => {
+    const color = "color 1 - Other 2 - cream white/electro white 3 - Stainless steel ...";
+
+    expect(encodeEnum(color, "ANSI-61 gray (optional sub-panels white)")).toBeUndefined();
+    expect(encodeEnumLabel(color, "ANSI-61 gray (optional sub-panels white)")).toBe("gray");
+    expect(encodeEnumLabel(color, "white")).toBe("white");
+  });
+
+  it("maps source enum codes to labels when the value is already coded", () => {
+    const protectionClass = "Protection class 1 - I 2 - II 3 - III";
+
+    expect(encodeEnum(protectionClass, "3")).toBe("3");
+    expect(encodeEnumLabel(protectionClass, "3")).toBe("III");
+  });
+
+  it("maps standard protection-class and switching labels when legends use ECLASS wording", () => {
+    const protectionClass = "Operating resource protection class 1 - B 2 - C 3 - Protection class 1 4 - Protection class 2";
+    const switching = "switching element function 1 - antivalent 2 - Automatic opener 3 - monostable ...";
+
+    expect(encodeEnumLabel(protectionClass, "II")).toBe("Protection class 2");
+    expect(encodeEnumLabel(protectionClass, "Protection class 1")).toBe("Protection class 1");
+    expect(encodeEnumLabel(switching, "normally open")).toBe("Normally open contact");
+    expect(encodeEnumLabel(switching, "Light-on")).toBeUndefined();
+  });
+
+  it("maps standard IK impact strength labels when the PDT legend is truncated", () => {
+    const impact = "impact strength 1 - >IK10 2 - Miscellaneous 3 - IK00 4 - IK01 ...";
+
+    expect(encodeEnumLabel(impact, "IK10 IEC 62262")).toBe("IK10");
+  });
+
+  it("maps standard metric thread labels when the PDT legend is truncated", () => {
+    const thread = "Size of connection thread 1 - M63 2 - M54 3 - M32 4 - M25 5 - M8 ...";
+
+    expect(encodeEnumLabel(thread, "M18")).toBe("M18");
+    expect(encodeEnumLabel(thread, "M12x1")).toBe("M12");
+  });
+
+  it("maps combined NEMA ratings to the closest Master PDT combined legend", () => {
+    const combinedNema = [
+      "Degree of protection (NEMA)",
+      "1 - NEMA 3, 4, 7, 9",
+      "2 - NEMA 3, 4, 12",
+      "3 - NEMA 7, 9",
+      "4 - NEMA 1, 2, 3R, 12, 13",
+      "5 - NEMA 1, 4X, 12K, Indoor use only, 13",
+      "6 - NEMA 1, 2, 3, 3R, 4, 4X, 12K, 13",
+      "7 - NEMA 1, 2, 3, 3R, 4, 4X, 12, 13"
+    ].join("\n");
+    const singleNema = "protection type (NEMA) 1 - NEMA 1 2 - NEMA 2 3 - NEMA 3 4 - NEMA 3R 5 - NEMA 3S 6 - NEMA 3X";
+
+    expect(encodeEnumLabel(combinedNema, "NEMA Type 3R, 4, 12 and Type 13")).toBe("NEMA 1, 2, 3, 3R, 4, 4X, 12, 13");
+    expect(encodeEnumLabel(singleNema, "NEMA Type 3R, 4, 12 and Type 13")).toBeUndefined();
+  });
+
+  it("maps standard display and approval labels only when the legend supports them", () => {
+    const display = "Design of the display* 1 - Bar display 2 - Digital 3 - LED";
+    const cableApproval = "Certificate approval 1 - BG-PRUFZERT 2 - CE 3 - CSA 4 - VDE mark of conformity";
+    const sensorApproval = "Approval 1 - measuring instruments directive 2 - domestic 3 - DIN EN 1373";
+
+    expect(encodeEnumLabel(display, "Output function- LED yellow")).toBe("LED");
+    expect(encodeEnumLabel(cableApproval, "CE; cULus; WEEE; UKCA")).toBe("CE");
+    expect(encodeEnumLabel(sensorApproval, "CE; cULus; WEEE; UKCA")).toBeUndefined();
+    expect(encodeEnumLabel(cableApproval, "cULus61010-1_E174460")).toBeUndefined();
+  });
+
+  it("matches voltage enum ranges when the source gives a numeric voltage", () => {
+    const voltage = "Supply voltage 1 - <220 V 2 - 230 V 3 - 400 V alternating current 4 - 440 V up to 480 V alternating current";
+
+    expect(encodeEnum(voltage, "24 V DC")).toBe("1");
+    expect(encodeEnum(voltage, "230 V AC")).toBe("2");
+    expect(encodeEnum(voltage, "460 V AC")).toBe("4");
+
+    const motorVoltage = "Rated voltage (reduced) 1 - 100-310 V 2 - 400/420 V 3 - 460/470 V 4 - up to 100 V";
+    expect(encodeEnum(motorVoltage, "24")).toBe("4");
+    expect(encodeEnum(motorVoltage, "420")).toBe("2");
+  });
+
   it("treats free-text columns (insert number or name) as non-enum", () => {
     const material = "Material (insert number or the name of the material) 1 - Plastic 2 - GRP 3 - PVC";
     expect(isEnumColumn(material)).toBe(false);
@@ -715,9 +1095,15 @@ describe("sheet descriptor", () => {
     ws.getCell(5, 1).value = "PropertyName";
     ws.getCell(5, 2).value = "AAO676";
     ws.getCell(5, 3).value = "BAH005";
-    ws.getCell(6, 1).value = "Description";
+    ws.getCell(6, 1).value = "English variable  description";
+    ws.getCell(6, 2).value = "Article number";
+    ws.getCell(6, 3).value = "Rated voltage";
     ws.getCell(7, 1).value = "Unit";
     ws.getCell(8, 1).value = "Body";
+    ws.getCell(4, 4).value = "PropertyId";
+    ws.getCell(5, 4).value = "PropertyName";
+    ws.getCell(6, 4).value = "Description";
+    ws.getCell(7, 4).value = "Unit";
 
     const descriptor = describeSheet(ws);
     expect(descriptor).toBeDefined();
@@ -725,6 +1111,7 @@ describe("sheet descriptor", () => {
     expect(descriptor!.propertyNameRow).toBe(5);
     expect(descriptor!.firstBodyRow).toBe(8);
     expect(descriptor!.columns.map((col) => col.code)).toEqual(["AAO676", "BAH005"]);
+    expect(descriptor!.columns.map((col) => col.description)).toEqual(["Article number", "Rated voltage"]);
   });
 
   it("detects Material Master Data layout where body follows the units row", () => {
@@ -794,6 +1181,58 @@ describe("PDT exporter", () => {
     const cleaned = new ExcelJS.Workbook();
     await cleaned.xlsx.readFile(result.cleanedInputPath!);
     expect(cleaned.getWorksheet("Cleaned PDT Input")).toBeTruthy();
+  });
+
+  it("reports unclassified catalog numbers while still writing common PDT tabs", async () => {
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-pdt-unclassified-"));
+    const templatePath = path.join(dir, "template.xlsx");
+    const outputPath = path.join(dir, "out.xlsx");
+    const wb = new ExcelJS.Workbook();
+
+    const material = wb.addWorksheet("Material Master Data");
+    material.getCell(6, 1).value = "ECLASS property";
+    material.getCell(7, 1).value = "Variable name (CNS internal)";
+    material.getCell(8, 1).value = "English variable description";
+    material.getCell(9, 1).value = "Units";
+    material.getCell(6, 2).value = "AAO676";
+    material.getCell(7, 2).value = "CNSORDERNO";
+    material.getCell(8, 2).value = "Articlenumber";
+
+    const docs = wb.addWorksheet("Additional Documents");
+    for (const [row, label] of ["ClassId", "Priority", "Type", "PropertyId", "PropertyName", "Description", "Body"].entries()) {
+      docs.getCell(row + 1, 1).value = label;
+    }
+    docs.getCell(4, 2).value = "Articlenumber";
+    docs.getCell(4, 3).value = "Document ID";
+    docs.getCell(4, 4).value = "Document path";
+
+    wb.addWorksheet("Connection Point Information");
+    await wb.xlsx.writeFile(templatePath);
+
+    const item = ctx(
+      {
+        title: "ZZZ unexplained catalog record",
+        productUrl: "https://acme.test/products/UNK-001"
+      },
+      "UNK-001"
+    ).item;
+
+    const result = await exportRunPdt({ manufacturer, items: [item], templatePath, outputPath });
+
+    expect(result.missingSheets).toEqual([]);
+    expect(result.unmappedDeviceTypes).toEqual([]);
+    expect(result.unclassifiedCatalogNumbers).toEqual(["UNK-001"]);
+    expect(result.filledSheets["Material Master Data"]).toBe(1);
+    expect(result.filledSheets["Additional Documents"]).toBe(1);
+    expect(new Set(result.keptSheets)).toEqual(
+      new Set(["Material Master Data", "Additional Documents", "Connection Point Information"])
+    );
+
+    const out = new ExcelJS.Workbook();
+    await out.xlsx.readFile(outputPath);
+    expect(out.getWorksheet("Material Master Data")!.getRow(10).values).toContain("UNK-001");
+    expect(valuesInWorksheet(out.getWorksheet("Additional Documents")!)).toContain("UNK-001");
+    expect(out.getWorksheet("Connection Point Information")).toBeTruthy();
   });
 
   it("surfaces device type, confidence, tabs and evidence in the Cleaned PDT Input audit sheet", async () => {
@@ -1120,6 +1559,153 @@ describe("PDT exporter", () => {
     ]);
   });
 
+  it("reports enum values that cannot be matched to the PDT legend", async () => {
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-pdt-enum-issue-"));
+    const templatePath = path.join(dir, "template.xlsx");
+    const outputPath = path.join(dir, "out.xlsx");
+    const wb = new ExcelJS.Workbook();
+    const cabinet = wb.addWorksheet("cabinet");
+    for (const [row, label] of ["ClassId", "Priority", "Type", "PropertyId", "PropertyName", "Description", "Unit", "Body"].entries()) {
+      cabinet.getCell(row + 1, 1).value = label;
+    }
+    cabinet.getCell(4, 2).value = "AAO676";
+    cabinet.getCell(5, 2).value = "CNSORDERNO";
+    cabinet.getCell(6, 2).value = "Articlenumber";
+    cabinet.getCell(4, 3).value = "AAB451";
+    cabinet.getCell(5, 3).value = "AAB451";
+    cabinet.getCell(6, 3).value = "Type of mounting 1 - Wall mounting 2 - Floor standing";
+    wb.addWorksheet("Additional Documents");
+    await wb.xlsx.writeFile(templatePath);
+
+    const item = ctx(
+      {
+        title: "Wall enclosure",
+        attributes: [
+          { name: "Product Type", value: "Enclosure", sourceType: "official" },
+          { name: "Type of mounting", value: "Ceiling", sourceType: "official" }
+        ]
+      },
+      "CAB-ENUM-1"
+    ).item;
+
+    const result = await exportRunPdt({ manufacturer, items: [item], templatePath, outputPath });
+
+    expect(result.writeIssues).toEqual([
+      expect.objectContaining({
+        sheetName: "cabinet",
+        catalogNumber: "CAB-ENUM-1",
+        code: "AAB451",
+        propName: "AAB451",
+        value: "Ceiling",
+        reason: "enum-unmatched"
+      })
+    ]);
+
+    const out = new ExcelJS.Workbook();
+    await out.xlsx.readFile(outputPath);
+    const ws = out.getWorksheet("cabinet")!;
+    expect(ws.getCell(8, 1).value).toBe("CAB-ENUM-1");
+    expect(ws.getCell(8, 2).value).toBeNull();
+  });
+
+  it("does not use generic metadata fallback for enum labels covered by resolvers", async () => {
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-pdt-enum-metadata-"));
+    const templatePath = path.join(dir, "template.xlsx");
+    const outputPath = path.join(dir, "out.xlsx");
+    const wb = new ExcelJS.Workbook();
+    const material = wb.addWorksheet("Material Master Data");
+    material.getCell(6, 1).value = "ECLASS property";
+    material.getCell(7, 1).value = "Variable name (CNS internal)";
+    material.getCell(8, 1).value = "English variable description";
+    material.getCell(9, 1).value = "Units";
+    material.getCell(6, 2).value = "AAO676";
+    material.getCell(7, 2).value = "CNSORDERNO";
+    material.getCell(8, 2).value = "Articlenumber";
+
+    const sensor = wb.addWorksheet("electronic sensor");
+    for (const [row, label] of ["ClassId", "Priority", "Type", "PropertyId", "PropertyName", "Description", "Unit", "Body"].entries()) {
+      sensor.getCell(row + 1, 1).value = label;
+    }
+    sensor.getCell(4, 2).value = "AAO676";
+    sensor.getCell(5, 2).value = "CNSORDERNO";
+    sensor.getCell(6, 2).value = "Articlenumber";
+    sensor.getCell(4, 3).value = "BAG975";
+    sensor.getCell(5, 3).value = "BAG975";
+    sensor.getCell(6, 3).value = "degree of protection 1 - without 2 - IP20";
+    wb.addWorksheet("Additional Documents");
+    await wb.xlsx.writeFile(templatePath);
+
+    const item = ctx(
+      {
+        title: "Inductive proximity sensor",
+        attributes: [
+          { name: "Product Type", value: "Inductive Proximity Sensor", sourceType: "official" },
+          { name: "Degree of protection", value: "as per IEC 60529", sourceType: "official" }
+        ]
+      },
+      "SENSOR-NO-IP"
+    ).item;
+
+    const result = await exportRunPdt({ manufacturer, items: [item], templatePath, outputPath });
+
+    expect(result.writeIssues).toEqual([]);
+    const out = new ExcelJS.Workbook();
+    await out.xlsx.readFile(outputPath);
+    const ws = out.getWorksheet("electronic sensor")!;
+    expect(ws.getCell(8, 1).value).toBe("SENSOR-NO-IP");
+    expect(ws.getCell(8, 2).value).toBeNull();
+  });
+
+  it("uses exact PDT column metadata as a fallback when no specific resolver exists", async () => {
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-pdt-column-metadata-fallback-"));
+    const templatePath = path.join(dir, "template.xlsx");
+    const outputPath = path.join(dir, "out.xlsx");
+    const wb = new ExcelJS.Workbook();
+    const material = wb.addWorksheet("Material Master Data");
+    material.getCell(6, 1).value = "ECLASS property";
+    material.getCell(7, 1).value = "Variable name (CNS internal)";
+    material.getCell(8, 1).value = "English variable description";
+    material.getCell(9, 1).value = "Units";
+    material.getCell(6, 2).value = "AAO676";
+    material.getCell(7, 2).value = "CNSORDERNO";
+    material.getCell(8, 2).value = "Articlenumber";
+
+    const switchSheet = wb.addWorksheet("Switch");
+    for (const [row, label] of ["ClassId", "Priority", "Type", "PropertyId", "PropertyName", "Description", "Unit", "Body"].entries()) {
+      switchSheet.getCell(row + 1, 1).value = label;
+    }
+    switchSheet.getCell(4, 2).value = "AAO676";
+    switchSheet.getCell(5, 2).value = "CNSORDERNO";
+    switchSheet.getCell(6, 2).value = "Articlenumber";
+    switchSheet.getCell(4, 3).value = "CUSTOM_TORQUE";
+    switchSheet.getCell(5, 3).value = "CUSTOM_TORQUE";
+    switchSheet.getCell(6, 3).value = "Maximum tightening torque [Nm]";
+    switchSheet.getCell(7, 3).value = "Nm";
+    wb.addWorksheet("Additional Documents");
+    await wb.xlsx.writeFile(templatePath);
+
+    const item = ctx(
+      {
+        title: "Selector switch",
+        attributes: [
+          { name: "Product Type", value: "Switch", sourceType: "official" },
+          { name: "Max. tightening torque", value: "2.5 Nm", sourceType: "official" }
+        ]
+      },
+      "SW-META-1"
+    ).item;
+
+    const result = await exportRunPdt({ manufacturer, items: [item], templatePath, outputPath });
+
+    expect(result.missingSheets).toEqual([]);
+    expect(result.writeIssues).toEqual([]);
+    const out = new ExcelJS.Workbook();
+    await out.xlsx.readFile(outputPath);
+    const ws = out.getWorksheet("Switch")!;
+    expect(ws.getCell(8, 1).value).toBe("SW-META-1");
+    expect(ws.getCell(8, 2).value).toBe(2.5);
+  });
+
   it("keeps Qwen suggestions out of the final PDT workbook", async () => {
     const dir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-pdt-no-ai-"));
     const templatePath = path.join(dir, "template.xlsx");
@@ -1195,6 +1781,7 @@ describe("PDT exporter", () => {
       else process.env.OLLAMA_HOST = originalOllamaHost;
     }
   });
+
 });
 
 describe("PDT exporter sheet lookup", () => {
@@ -1382,7 +1969,510 @@ describe("PDT exporter sheet lookup", () => {
     expect(result.keptSheets).toContain("cabinet.mechanical");
     expect(result.keptSheets).toContain("electronic sensor");
   });
+
+  it("routes every known device type through common tabs and its mapped device tab", async () => {
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-pdt-all-types-"));
+    const templatePath = path.join(dir, "template.xlsx");
+    const outputPath = path.join(dir, "out.xlsx");
+    const wb = new ExcelJS.Workbook();
+
+    const material = wb.addWorksheet("Material Master Data");
+    material.getCell(6, 1).value = "ECLASS property";
+    material.getCell(7, 1).value = "Variable name (CNS internal)";
+    material.getCell(8, 1).value = "English variable description";
+    material.getCell(9, 1).value = "Units";
+    material.getCell(6, 2).value = "AAO676";
+    material.getCell(7, 2).value = "CNSORDERNO";
+    material.getCell(8, 2).value = "Articlenumber";
+
+    const docs = wb.addWorksheet("Additional Documents");
+    for (const [row, label] of ["ClassId", "Priority", "Type", "PropertyId", "PropertyName", "Description", "Body"].entries()) {
+      docs.getCell(row + 1, 1).value = label;
+    }
+    docs.getCell(4, 2).value = "Articlenumber";
+    docs.getCell(4, 3).value = "Document ID";
+    docs.getCell(4, 4).value = "Document path";
+
+    const addDeviceSheet = (sheetName: string) => {
+      const sheet = wb.addWorksheet(sheetName);
+      for (const [row, label] of ["ClassId", "Priority", "Type", "PropertyId", "PropertyName", "Description", "Unit", "Body"].entries()) {
+        sheet.getCell(row + 1, 1).value = label;
+      }
+      sheet.getCell(4, 2).value = "AAO676";
+      sheet.getCell(5, 2).value = "CNSORDERNO";
+      sheet.getCell(6, 2).value = "Articlenumber";
+    };
+
+    const expectedCounts = new Map<string, number>();
+    for (const sheetName of new Set(knownDeviceTypes().flatMap((deviceType) => deviceSheetsFor(deviceType)))) {
+      addDeviceSheet(sheetName);
+    }
+
+    const items = knownDeviceTypes().map((deviceType, index) => {
+      for (const sheetName of deviceSheetsFor(deviceType)) {
+        expectedCounts.set(sheetName, (expectedCounts.get(sheetName) ?? 0) + 1);
+      }
+      const catalogNumber = `TYPE-${String(index + 1).padStart(3, "0")}`;
+      return ctx(
+        {
+          title: deviceType,
+          productUrl: `https://acme.test/products/${catalogNumber}`,
+          attributes: [{ group: "General", name: "Product Type", value: deviceType, sourceType: "official" }]
+        },
+        catalogNumber
+      ).item;
+    });
+
+    await wb.xlsx.writeFile(templatePath);
+    const result = await exportRunPdt({ manufacturer, items, templatePath, outputPath });
+
+    expect(result.missingSheets).toEqual([]);
+    expect(result.unmappedDeviceTypes).toEqual([]);
+    expect(result.unclassifiedCatalogNumbers).toEqual([]);
+    expect(result.filledSheets["Material Master Data"]).toBe(items.length);
+    expect(result.filledSheets["Additional Documents"]).toBeGreaterThanOrEqual(items.length);
+    for (const [sheetName, count] of expectedCounts) {
+      expect(result.filledSheets[sheetName]).toBe(count);
+    }
+
+    const out = new ExcelJS.Workbook();
+    await out.xlsx.readFile(outputPath);
+    expect(out.getWorksheet("Material Master Data")!.getCell(10, 2).value).toBe("TYPE-001");
+    expect(out.getWorksheet("Material Master Data")!.getCell(9 + items.length, 2).value).toBe(
+      `TYPE-${String(items.length).padStart(3, "0")}`
+    );
+  });
+
+  it("exports every known device type against the real Master PDT template", async () => {
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-pdt-real-master-all-types-"));
+    const templatePath = path.resolve("templates", "master_pdt.xlsx");
+    const outputPath = path.join(dir, "out.xlsx");
+    const expectedCounts = new Map<string, number>();
+    const expectedCatalogsBySheet = new Map<string, string[]>();
+
+    const items = knownDeviceTypes().map((deviceType, index) => {
+      const catalogNumber = `REAL-${String(index + 1).padStart(3, "0")}`;
+      for (const sheetName of deviceSheetsFor(deviceType)) {
+        expectedCounts.set(sheetName, (expectedCounts.get(sheetName) ?? 0) + 1);
+        const catalogs = expectedCatalogsBySheet.get(sheetName) ?? [];
+        catalogs.push(catalogNumber);
+        expectedCatalogsBySheet.set(sheetName, catalogs);
+      }
+      return ctx(
+        {
+          title: deviceType,
+          productUrl: `https://acme.test/products/${catalogNumber}`,
+          attributes: [{ group: "General", name: "Product Type", value: deviceType, sourceType: "official" }]
+        },
+        catalogNumber
+      ).item;
+    });
+
+    const result = await exportRunPdt({ manufacturer, items, templatePath, outputPath });
+
+    expect(result.missingSheets).toEqual([]);
+    expect(result.unmappedDeviceTypes).toEqual([]);
+    expect(result.unclassifiedCatalogNumbers).toEqual([]);
+    expect(result.filledSheets["Material Master Data"]).toBe(items.length);
+    expect(result.filledSheets["Additional Documents"]).toBeGreaterThanOrEqual(items.length);
+    for (const [sheetName, count] of expectedCounts) {
+      expect(result.filledSheets[sheetName]).toBe(count);
+    }
+
+    const expectedKeptSheets = new Set([
+      "Material Master Data",
+      "Additional Documents",
+      "Connection Point Information",
+      ...expectedCounts.keys()
+    ]);
+    expect(new Set(result.keptSheets)).toEqual(expectedKeptSheets);
+    expect(result.keptSheets).not.toContain("connector.optical");
+
+    const out = new ExcelJS.Workbook();
+    await out.xlsx.readFile(outputPath);
+    const materialOut = out.getWorksheet("Material Master Data")!;
+    expect(materialOut.getRow(10).values).toContain("REAL-001");
+    expect(materialOut.getRow(9 + items.length).values).toContain(`REAL-${String(items.length).padStart(3, "0")}`);
+
+    const allCatalogs = items.map((item) => item.catalogNumber);
+    for (const [sheetName, expectedCatalogs] of expectedCatalogsBySheet) {
+      const ws = out.getWorksheet(sheetName)!;
+      const actualCatalogs = [...new Set(valuesInWorksheet(ws).filter((value) => allCatalogs.includes(value)))];
+      expect(actualCatalogs.sort(), sheetName).toEqual([...expectedCatalogs].sort());
+    }
+  });
+
+  it("exports locally observed mixed-device regressions into their real Master PDT tabs", async () => {
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-pdt-real-observed-mixed-"));
+    const templatePath = path.resolve("templates", "master_pdt.xlsx");
+    const outputPath = path.join(dir, "out.xlsx");
+
+    const itemFor = (overrides: Partial<ProductResult>, catalogNumber: string) =>
+      ctx(
+        {
+          productUrl: `https://example.test/products/${encodeURIComponent(catalogNumber)}`,
+          ...overrides
+        },
+        catalogNumber
+      ).item;
+
+    const items = [
+      itemFor(
+        {
+          manufacturerId: "balluff",
+          title: "BDG FB058-BCR6-DSRB2-1417-0000-S8R1 (BDG - FXX58-BC Series - SSI) Absolute encoders"
+        },
+        "BDG FB058-BCR6-DSRB2-1417-0000-S8R1"
+      ),
+      itemFor(
+        {
+          manufacturerId: "abb",
+          title: "1st PLC E2.3..E6.3 Padlocks o.p. left",
+          attributes: [
+            { group: "ABB Product Data", name: "Extended Product Type", value: "1st PLC E2.3..E6.3 Padlocks o.p. left", sourceType: "official" },
+            { group: "ABB Product Data", name: "Product Name", value: "Accessory", sourceType: "official" },
+            { group: "ABB Product Data", name: "ETIM 10", value: "EC002051 - Padlock barrier for switch", sourceType: "official" },
+            { group: "ABB Product Data", name: "eClass", value: "V13.0 : 27371307", sourceType: "official" },
+            { group: "ABB Product Data", name: "UNSPSC", value: "46171501", sourceType: "official" }
+          ]
+        },
+        "1SDA126387R1"
+      ),
+      itemFor(
+        {
+          manufacturerId: "rockwell",
+          title: "CompactLogix DC 4A/2A Power Supply"
+        },
+        "1769-PB4"
+      ),
+      itemFor(
+        {
+          manufacturerId: "sce",
+          title: "SCE-AC3400B120V",
+          attributes: [{ group: "SCE Product Data", name: "Product Type", value: "Conditioner, Air - 3400 BTU/Hr. 120 Volt", sourceType: "official" }]
+        },
+        "SCE-AC3400B120V"
+      ),
+      itemFor(
+        {
+          manufacturerId: "sce",
+          title: "P-P11R2-K3RF0-U450",
+          attributes: [{ group: "SCE Product Data", name: "Product Type", value: "Port, Programming", sourceType: "official" }]
+        },
+        "P-P11R2-K3RF0-U450"
+      ),
+      itemFor(
+        {
+          manufacturerId: "sce",
+          title: "SCE-SSCLEAN",
+          attributes: [{ group: "SCE Product Data", name: "Product Type", value: "Stainless Steel Cleaner", sourceType: "official" }]
+        },
+        "SCE-SSCLEAN"
+      ),
+      itemFor(
+        {
+          manufacturerId: "abb",
+          title: "E1.3 - ABB Low Voltage & Systems",
+          description: "ABB Low Voltage & Systems > Low Voltage Products & Systems > Circuit Breakers > Air Circuit Breakers > Emax 3 > E1.3 3D CAD models"
+        },
+        "1SDA124715R1"
+      ),
+      itemFor(
+        {
+          manufacturerId: "eta",
+          title: "Type 1140-E",
+          description: "Thermal Overcurrent Circuit Breakers engineered for resettable protection against overloads and short circuits."
+        },
+        "1140-E"
+      ),
+      itemFor(
+        {
+          manufacturerId: "siemens",
+          title: "VSG519K15-5 - Siemens Field Control Equipment",
+          description: "SIEMENS branded, VSG519K15-5 diff.press.regulator, VSG519K15-5"
+        },
+        "BPZ:VSG519K15-5"
+      )
+    ];
+
+    const expectedCatalogsBySheet = new Map<string, string[]>([
+      ["electronic sensor", ["BDG FB058-BCR6-DSRB2-1417-0000-S8R1"]],
+      ["Switch", ["1SDA126387R1"]],
+      ["power supply devices", ["1769-PB4"]],
+      ["cabinet.airconditioning", ["SCE-AC3400B120V"]],
+      ["connector", ["P-P11R2-K3RF0-U450"]],
+      ["cabinet.mechanical", ["SCE-SSCLEAN"]],
+      ["contactor a. fuses", ["1SDA124715R1", "1140-E"]],
+      ["ventil", ["BPZ:VSG519K15-5"]]
+    ]);
+
+    const result = await exportRunPdt({ manufacturer, items, templatePath, outputPath });
+
+    expect(result.missingSheets).toEqual([]);
+    expect(result.unmappedDeviceTypes).toEqual([]);
+    expect(result.unclassifiedCatalogNumbers).toEqual([]);
+    expect(result.filledSheets["Material Master Data"]).toBe(items.length);
+    expect(result.filledSheets["Additional Documents"]).toBeGreaterThanOrEqual(items.length);
+    for (const [sheetName, catalogs] of expectedCatalogsBySheet) {
+      expect(result.filledSheets[sheetName]).toBe(catalogs.length);
+    }
+    expect(result.keptSheets).not.toContain("PLC");
+
+    const out = new ExcelJS.Workbook();
+    await out.xlsx.readFile(outputPath);
+    const allCatalogs = items.map((item) => item.catalogNumber);
+    const materialCatalogs = [...new Set(valuesInWorksheet(out.getWorksheet("Material Master Data")!).filter((value) => allCatalogs.includes(value)))];
+    expect(materialCatalogs.sort()).toEqual([...allCatalogs].sort());
+    const documentCatalogs = [...new Set(valuesInWorksheet(out.getWorksheet("Additional Documents")!).filter((value) => allCatalogs.includes(value)))];
+    expect(documentCatalogs.sort()).toEqual([...allCatalogs].sort());
+
+    for (const [sheetName, expectedCatalogs] of expectedCatalogsBySheet) {
+      const ws = out.getWorksheet(sheetName)!;
+      const actualCatalogs = [...new Set(valuesInWorksheet(ws).filter((value) => allCatalogs.includes(value)))];
+      expect(actualCatalogs.sort(), sheetName).toEqual([...expectedCatalogs].sort());
+    }
+  });
+
+  it("fills focused lower-coverage device tabs from matching source attributes", async () => {
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-pdt-focused-low-coverage-"));
+    const templatePath = path.resolve("templates", "master_pdt.xlsx");
+    const outputPath = path.join(dir, "out.xlsx");
+    const attribute = (name: string, value: string, group = "Technical") => ({
+      group,
+      name,
+      value,
+      sourceType: "official" as const
+    });
+    const itemFor = (
+      catalogNumber: string,
+      title: string,
+      attributes: ProductResult["attributes"],
+      normalized: ProductResult["normalized"] = {}
+    ) =>
+      ctx(
+        {
+          title,
+          productUrl: `https://acme.test/products/${encodeURIComponent(catalogNumber)}`,
+          normalized,
+          attributes
+        },
+        catalogNumber
+      ).item;
+
+    const cases = [
+      {
+        sheet: "cable ducts mounting rails",
+        catalog: "LOW-WIREWAY",
+        minValues: 9,
+        expectedValues: ["LOW-WIREWAY", "DIN EN 60715", "25", "galvanized", "Yes", "1.5", "50"],
+        item: itemFor(
+          "LOW-WIREWAY",
+          "Steel wireway cable duct mounting rail",
+          [
+            attribute("Product Type", "Wireway"),
+            attribute("Rail version according to standard", "DIN EN 60715"),
+            attribute("Bore holes distance", "25 mm"),
+            attribute("Surface treatment", "galvanized"),
+            attribute("Suitable for circuit integrity", "Yes"),
+            attribute("Thickness of material", "1.5 mm"),
+            attribute("Width of the tray", "50 mm"),
+            attribute("Material", "Steel")
+          ],
+          { material: "Steel" }
+        )
+      },
+      {
+        sheet: "el. mesurement devices",
+        catalog: "LOW-MEAS",
+        minValues: 8,
+        expectedValues: ["LOW-MEAS", "Yes", "600", "10", "2"],
+        item: itemFor("LOW-MEAS", "Digital current sensor electrical measurement device", [
+          attribute("Product Type", "Current Sensor"),
+          attribute("Frequency measurement possible", "Yes"),
+          attribute("Max voltage measuring range", "600 V"),
+          attribute("Max current measurement value at DC", "10 A"),
+          attribute("Number of voltage input channels", "2"),
+          attribute("VDE tested", "Yes"),
+          attribute("Degree of protection", "IP20")
+        ])
+      },
+      {
+        sheet: "module carrier frame",
+        catalog: "LOW-CARRIER",
+        minValues: 6,
+        expectedValues: ["LOW-CARRIER", "6 modules", "6", "500", "IEC 60603"],
+        item: itemFor(
+          "LOW-CARRIER",
+          "Contact module carrier frame",
+          [
+            attribute("Product Type", "Module Carrier"),
+            attribute("Material of the contact carrier frame", "Polycarbonate"),
+            attribute("Size", "6 modules"),
+            attribute("Number of module positions", "6"),
+            attribute("Insertion cycles min", "500"),
+            attribute("Application standards", "IEC 60603")
+          ],
+          { material: "Polycarbonate" }
+        )
+      },
+      {
+        sheet: "Wire ID Information",
+        catalog: "LOW-MARKER",
+        minValues: 12,
+        expectedValues: [
+          "LOW-MARKER",
+          "W1",
+          "2.5",
+          "14",
+          "roundly",
+          "conductor",
+          "fine wire",
+          "Copper",
+          "screw terminal",
+          "electrical connection",
+          "3.2",
+          "blue"
+        ],
+        item: itemFor(
+          "LOW-MARKER",
+          "Wire marker cable element identifier",
+          [
+            attribute("Product Type", "Wire Marker"),
+            attribute("Wire ID", "W1"),
+            attribute("Cross section", "2.5 mm2"),
+            attribute("AWG", "14"),
+            attribute("Design of wire", "roundly"),
+            attribute("Function of wire", "conductor"),
+            attribute("Construction of wire", "fine wire"),
+            attribute("Material of wire", "Copper"),
+            attribute("Connection description", "screw terminal"),
+            attribute("Type of connection", "electrical connection"),
+            attribute("Outer diameter of wire", "3.2 mm"),
+            attribute("Colour of wire", "blue")
+          ],
+          { material: "Copper", color: "blue" }
+        )
+      },
+      {
+        sheet: "filters",
+        catalog: "LOW-FILTER",
+        minValues: 7,
+        expectedValues: ["LOW-FILTER", "5", "2.5", "3", "10", "50"],
+        item: itemFor("LOW-FILTER", "EMI line filter choke", [
+          attribute("Product Type", "Filter"),
+          attribute("Choking factor", "5 %"),
+          attribute("Cross section multi wire", "2.5 mm2"),
+          attribute("Power dissipation", "3 W"),
+          attribute("Number of poles primary side", "3"),
+          attribute("Filterbank capacity", "10 var"),
+          attribute("Rated operating frequency", "50 Hz")
+        ])
+      },
+      {
+        sheet: "panel (HMI)",
+        catalog: "LOW-HMI",
+        minValues: 10,
+        expectedValues: ["LOW-HMI", "Yes", "230", "4", "7", "800", "2"],
+        item: itemFor("LOW-HMI", "HMI operator panel touch screen", [
+          attribute("Product Type", "HMI"),
+          attribute("IO-Link master", "Yes"),
+          attribute("Supply voltage AC", "230 V"),
+          attribute("Number of buttons with LED", "4"),
+          attribute("Monitor diagonal", "7 inch"),
+          attribute("Horizontal pixels", "800"),
+          attribute("USB interfaces", "2"),
+          attribute("Touch screen", "Yes"),
+          attribute("Degree of protection", "IP65")
+        ])
+      },
+      {
+        sheet: "servo controller",
+        catalog: "LOW-SERVO",
+        minValues: 10,
+        expectedValues: ["LOW-SERVO", "encoder", "12", "560", "1500", "230", "3", "400"],
+        item: itemFor("LOW-SERVO", "Variable speed drive inverter servo drive", [
+          attribute("Product Type", "Variable Speed Drive"),
+          attribute("Design of the connectable sensor", "encoder"),
+          attribute("Overload current", "12 A"),
+          attribute("DC link voltage", "560 V"),
+          attribute("Rated power", "1.5 kW"),
+          attribute("Rated output voltage", "230 V"),
+          attribute("Rated output current", "3 A"),
+          attribute("Output phases", "3"),
+          attribute("Output frequency", "400 Hz")
+        ])
+      },
+      {
+        sheet: "terminal endbracket",
+        catalog: "LOW-END",
+        minValues: 6,
+        expectedValues: ["LOW-END", "screwable", "5", "gray", "10"],
+        item: itemFor(
+          "LOW-END",
+          "Terminal end bracket accessory",
+          [
+            attribute("Product Type", "Terminal Accessory"),
+            attribute("Type of locking", "screwable"),
+            attribute("Width of spacing", "5 mm"),
+            attribute("Height at lowest possible mounting", "10 mm"),
+            attribute("Material", "Polyamide"),
+            attribute("Color", "gray"),
+            attribute("Mounting type", "DIN rail")
+          ],
+          { material: "Polyamide", color: "gray" }
+        )
+      }
+    ];
+
+    const result = await exportRunPdt({
+      manufacturer,
+      items: cases.map((testCase) => testCase.item),
+      templatePath,
+      outputPath
+    });
+
+    expect(result.missingSheets).toEqual([]);
+    expect(result.unmappedDeviceTypes).toEqual([]);
+    expect(result.unclassifiedCatalogNumbers).toEqual([]);
+    for (const testCase of cases) {
+      expect(result.filledSheets[testCase.sheet], testCase.sheet).toBe(1);
+    }
+
+    const out = new ExcelJS.Workbook();
+    await out.xlsx.readFile(outputPath);
+    for (const testCase of cases) {
+      const row = rowValuesContaining(out.getWorksheet(testCase.sheet)!, testCase.catalog);
+      expect(row.length, `${testCase.sheet} row ${testCase.catalog}`).toBeGreaterThanOrEqual(testCase.minValues);
+      for (const expectedValue of testCase.expectedValues) {
+        expect(row, `${testCase.sheet} row ${testCase.catalog}`).toContain(expectedValue);
+      }
+    }
+  });
 });
+
+function valuesInWorksheet(ws: ExcelJS.Worksheet): string[] {
+  const values: string[] = [];
+  ws.eachRow((row) => {
+    row.eachCell((cell) => {
+      const value = cellText(cell.value);
+      if (value) values.push(value);
+    });
+  });
+  return values;
+}
+
+function rowValuesContaining(ws: ExcelJS.Worksheet, value: string): string[] {
+  let values: string[] = [];
+  ws.eachRow((row) => {
+    const rowValues: string[] = [];
+    row.eachCell((cell) => {
+      const text = cellText(cell.value);
+      if (text) rowValues.push(text);
+    });
+    if (rowValues.includes(value)) values = rowValues;
+  });
+  return values;
+}
 
 describe("Additional Documents PDT sheet", () => {
   function addDocumentsWorksheet(): ExcelJS.Worksheet {
