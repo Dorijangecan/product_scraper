@@ -272,6 +272,78 @@ describe("PDT Qwen cleanup guardrails", () => {
     expect(result.audit.products[0].notes.join(" ")).toContain("Temperature left blank");
   });
 
+  it("prepares max voltage, max current, and temperature bounds for the scraped Excel sheet", async () => {
+    const c = ctx(
+      {
+        manufacturerId: "abb",
+        title: "AF40B contactor",
+        description: "Vendor long description",
+        normalized: { voltage: "60-80V", current: "6-10 A" },
+        attributes: [
+          { name: "Operating temperature", value: "40 to 120 C", sourceType: "official" },
+          { name: "Rated current", value: "6-10 A", sourceType: "official" },
+          { name: "Catalog Description", value: "AF40B contactor 60-80V", sourceType: "official" }
+        ]
+      },
+      "CAT-1"
+    );
+
+    const result = await buildPdtRepairResult([c.item], { ...manufacturer, id: "abb" } as ManufacturerConfig);
+    const repair = result.repairs.get(c.item.id);
+    expect(repair?.voltageMax).toBe("80");
+    expect(repair?.currentMax).toBe("10");
+    expect(repair?.operatingTemperatureMin).toBe("40");
+    expect(repair?.operatingTemperatureMax).toBe("120");
+    expect(repair?.shortDescription).toBe("AF40B contactor 60-80V");
+    expect(repair?.longDescription).toBe("Vendor long description");
+  });
+
+  it("does not treat duration text as a temperature maximum", async () => {
+    const c = ctx(
+      {
+        manufacturerId: "balluff",
+        title: "LF RFID tag",
+        description: "Storage temperature temporary: 120 °C 1x700 h; Ambient temperature: -30...70 °C",
+        attributes: [
+          { name: "Storage temperature temporary", value: "120 °C 1x700 h", sourceType: "official" },
+          { name: "Ambient temperature", value: "-30...70 °C", sourceType: "official" }
+        ]
+      },
+      "BIS0004"
+    );
+
+    const result = await buildPdtRepairResult([c.item], manufacturer);
+    const repair = result.repairs.get(c.item.id);
+    expect(repair?.operatingTemperatureMin).toBe("-30");
+    expect(repair?.operatingTemperatureMax).toBe("70");
+  });
+
+  it("does not accept generated lifetime values as current max", async () => {
+    const c = ctx(
+      {
+        manufacturerId: "balluff",
+        title: "Absolute encoder",
+        normalized: { current: "1000 A" },
+        attributes: [
+          {
+            group: "Final Field Repair",
+            name: "Current",
+            value: "1000 a",
+            sourceType: "generated",
+            parser: "final-field-repair"
+          },
+          { group: "PDF datasheet - Electrical data", name: "Operating voltage Ub", value: "4,75 ... 32 VDC", sourceType: "generated" }
+        ]
+      },
+      "BDG FB058-BCR6-DSRB2-1417-0000-S8R1"
+    );
+
+    const result = await buildPdtRepairResult([c.item], manufacturer);
+    const repair = result.repairs.get(c.item.id);
+    expect(repair?.currentMax).toBeUndefined();
+    expect(repair?.voltageMax).toBe("32");
+  });
+
   it("rejects plausible-looking AI values that are not supported by the scraped evidence", async () => {
     const originalFetch = globalThis.fetch;
     const originalAiCleanup = process.env.PDT_AI_CLEANUP;
@@ -521,6 +593,82 @@ describe("PDT exporter", () => {
     expect(ws.getCell(10, 4).value).toBe("3471523024755");
     expect(ws.getCell(10, 5).value).toBe("3471523024755");
     expect(ws.getCell(10, 6).value).toBe("85364900");
+  });
+
+  it("keeps Qwen suggestions out of the final PDT workbook", async () => {
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-pdt-no-ai-"));
+    const templatePath = path.join(dir, "template.xlsx");
+    const outputPath = path.join(dir, "out.xlsx");
+    const wb = new ExcelJS.Workbook();
+    const material = wb.addWorksheet("Material Master Data");
+    material.getCell(6, 1).value = "ECLASS property";
+    material.getCell(7, 1).value = "Variable name (CNS internal)";
+    material.getCell(8, 1).value = "English variable description";
+    material.getCell(9, 1).value = "Units";
+    material.getCell(6, 2).value = "AAO676";
+    material.getCell(7, 2).value = "CNSORDERNO";
+    material.getCell(8, 2).value = "Articlenumber";
+
+    const contactor = wb.addWorksheet("contactor a. fuses");
+    for (const [row, label] of ["ClassId", "Priority", "Type", "PropertyId", "PropertyName", "Description", "Unit", "Body"].entries()) {
+      contactor.getCell(row + 1, 1).value = label;
+    }
+    contactor.getCell(4, 2).value = "BAH005";
+    contactor.getCell(5, 2).value = "BAH005";
+    contactor.getCell(6, 2).value = "Rated control circuit voltage";
+
+    const docs = wb.addWorksheet("Additional Documents");
+    for (const [row, label] of ["ClassId", "Priority", "Type", "PropertyId", "PropertyName", "Description", "Body"].entries()) {
+      docs.getCell(row + 1, 1).value = label;
+    }
+    docs.getCell(4, 2).value = "Articlenumber";
+    docs.getCell(4, 3).value = "Document ID";
+    docs.getCell(4, 4).value = "Document path";
+    await wb.xlsx.writeFile(templatePath);
+
+    const originalFetch = globalThis.fetch;
+    const originalAiCleanup = process.env.PDT_AI_CLEANUP;
+    const originalOllamaHost = process.env.OLLAMA_HOST;
+    let fetchCalls = 0;
+    process.env.PDT_AI_CLEANUP = "1";
+    process.env.OLLAMA_HOST = "http://ollama.test";
+    globalThis.fetch = (async () => {
+      fetchCalls += 1;
+      return new Response(
+        JSON.stringify({
+          response: JSON.stringify({ products: [{ catalogNumber: "1SBL347060R1100", controlVoltage: "20-60" }] })
+        }),
+        { status: 200 }
+      );
+    }) as typeof fetch;
+
+    try {
+      const item = ctx(
+        {
+          manufacturerId: "abb",
+          title: "AF40B Contactor",
+          attributes: [
+            { name: "Catalog Description", value: "AF40B-30-00RT-11 24-60V50/60HZ 20-60VDC Contactor", sourceType: "official" },
+            { name: "Rated Control Circuit Voltage", value: "50 Hz 24 ... 60 V; DC Operation 20 ... 60 V", sourceType: "official" }
+          ]
+        },
+        "1SBL347060R1100"
+      ).item;
+
+      await exportRunPdt({ manufacturer: { ...manufacturer, id: "abb" } as ManufacturerConfig, items: [item], templatePath, outputPath });
+
+      const out = new ExcelJS.Workbook();
+      await out.xlsx.readFile(outputPath);
+      const outContactor = out.getWorksheet("contactor a. fuses")!;
+      expect(fetchCalls).toBe(0);
+      expect(outContactor.getCell(8, 1).value).toBe("24-60");
+    } finally {
+      globalThis.fetch = originalFetch;
+      if (originalAiCleanup === undefined) delete process.env.PDT_AI_CLEANUP;
+      else process.env.PDT_AI_CLEANUP = originalAiCleanup;
+      if (originalOllamaHost === undefined) delete process.env.OLLAMA_HOST;
+      else process.env.OLLAMA_HOST = originalOllamaHost;
+    }
   });
 });
 

@@ -155,6 +155,7 @@ describe("excel export", () => {
     expect(workbook.getWorksheet("Run Summary")).toBeTruthy();
     expect(workbook.getWorksheet("Clean Export")).toBeTruthy();
     expect(workbook.getWorksheet("Import Ready")).toBeTruthy();
+    expect(workbook.getWorksheet("AI Cleaned Input")).toBeTruthy();
     expect(workbook.getWorksheet("Needs Review")).toBeTruthy();
     expect(workbook.getWorksheet("Issue Summary")).toBeTruthy();
     expect(workbook.getWorksheet("Column Guide")).toBeTruthy();
@@ -299,6 +300,119 @@ describe("excel export", () => {
     const checks = workbook.getWorksheet("Checks")!;
     const checkValues = checks.getSheetValues().flat().map((value) => String(value ?? ""));
     expect(checkValues).toContain("Missing image");
+  });
+
+  it("writes Qwen-prepared values to the scraped workbook AI sheet only", async () => {
+    const outputDir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-ai-input-xlsx-"));
+    const run: RunRecord = {
+      id: "ai-input-run",
+      manufacturerId: "abb",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      status: "completed",
+      total: 1,
+      processed: 1,
+      found: 1,
+      partial: 0,
+      failed: 0
+    };
+    const manufacturer: ManufacturerConfig = {
+      id: "abb",
+      canonicalName: "ABB",
+      shortName: "ABB",
+      rateLimitMs: 0,
+      officialBaseUrls: [],
+      fallbackSources: []
+    };
+    const item: RunItemRecord = {
+      id: 1,
+      runId: run.id,
+      rowIndex: 1,
+      catalogNumber: "1SBL347060R1100",
+      status: "found",
+      updatedAt: run.updatedAt,
+      result: {
+        manufacturerId: "abb",
+        catalogNumber: "1SBL347060R1100",
+        status: "found",
+        confidence: 0.92,
+        title: "AF40B contactor",
+        description: "Vendor description",
+        normalized: { voltage: "60-80V", current: "6-10 A" },
+        attributes: [
+          { name: "Catalog Description", value: "AF40B-30-00RT-11 24-60V50/60HZ 20-60VDC Contactor", sourceType: "official" },
+          { name: "Rated Control Circuit Voltage", value: "50 Hz 24 ... 60 V; DC Operation 20 ... 60 V", sourceType: "official" },
+          { name: "Rated Operational Current AC-1", value: "(690 V) 40 C 70 A; (690 V) 60 C 60 A", sourceType: "official" },
+          { name: "Operating temperature", value: "40 to 120 C", sourceType: "official" },
+          { name: "Power Loss", value: "at Rated Operating Conditions AC-1 per Pole 3 W", sourceType: "official" },
+          { name: "eClass", value: "V11.0 : 27371003", sourceType: "official" }
+        ],
+        documents: [],
+        sources: []
+      }
+    };
+    const originalFetch = globalThis.fetch;
+    const originalAiCleanup = process.env.PDT_AI_CLEANUP;
+    const originalOllamaHost = process.env.OLLAMA_HOST;
+    process.env.PDT_AI_CLEANUP = "1";
+    process.env.OLLAMA_HOST = "http://ollama.test";
+    globalThis.fetch = (async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.endsWith("/api/tags")) {
+        return new Response(JSON.stringify({ models: [{ name: "qwen3:4b" }] }), { status: 200 });
+      }
+      if (url.endsWith("/api/generate")) {
+        return new Response(
+          JSON.stringify({
+            response: JSON.stringify({
+              products: [
+                {
+                  catalogNumber: "1SBL347060R1100",
+                  controlVoltage: "20-60",
+                  voltageMax: "80",
+                  currentMax: "70",
+                  operatingTemperatureMin: "40",
+                  operatingTemperatureMax: "120",
+                  shortDescription: "AF40B contactor",
+                  longDescription: "Vendor description"
+                }
+              ]
+            })
+          }),
+          { status: 200 }
+        );
+      }
+      return new Response("{}", { status: 404 });
+    }) as typeof fetch;
+
+    try {
+      const filePath = await exportRunWorkbook({ run, manufacturer, items: [item], outputDir });
+      const workbook = new ExcelJS.Workbook();
+      await workbook.xlsx.readFile(filePath);
+
+      const aiSheet = workbook.getWorksheet("AI Cleaned Input")!;
+      expect(aiSheet.getCell("B3").value).toBe("qwen_applied");
+      const aiHeaders = (aiSheet.getRow(11).values as unknown[]).slice(1);
+      expect(String(aiSheet.getRow(12).getCell(aiHeaders.indexOf("Qwen fields") + 1).value)).toContain("voltageMax");
+      expect(String(aiSheet.getRow(12).getCell(aiHeaders.indexOf("Accepted fields") + 1).value)).toContain("currentMax");
+      expect(aiSheet.getRow(12).getCell(aiHeaders.indexOf("Control voltage") + 1).value).toBe("20-60");
+      expect(aiSheet.getRow(12).getCell(aiHeaders.indexOf("Voltage max") + 1).value).toBe("80");
+      expect(aiSheet.getRow(12).getCell(aiHeaders.indexOf("Current max") + 1).value).toBe("70");
+      expect(aiSheet.getRow(12).getCell(aiHeaders.indexOf("Temp min") + 1).value).toBe("40");
+      expect(aiSheet.getRow(12).getCell(aiHeaders.indexOf("Temp max") + 1).value).toBe("120");
+      expect(aiSheet.getRow(12).getCell(aiHeaders.indexOf("Short description") + 1).value).toBe("AF40B contactor");
+      expect(aiSheet.getRow(12).getCell(aiHeaders.indexOf("Long description") + 1).value).toBe("Vendor description");
+
+      const cleanExport = workbook.getWorksheet("Clean Export")!;
+      const cleanHeaders = (cleanExport.getRow(1).values as unknown[]).slice(1);
+      expect(cleanExport.getRow(2).getCell(cleanHeaders.indexOf("Voltage") + 1).value).toBe("60-80V");
+    } finally {
+      globalThis.fetch = originalFetch;
+      if (originalAiCleanup === undefined) delete process.env.PDT_AI_CLEANUP;
+      else process.env.PDT_AI_CLEANUP = originalAiCleanup;
+      if (originalOllamaHost === undefined) delete process.env.OLLAMA_HOST;
+      else process.env.OLLAMA_HOST = originalOllamaHost;
+    }
   });
 
   it("writes a dedicated Import Ready sheet with only direct-import rows", async () => {

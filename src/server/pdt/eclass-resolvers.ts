@@ -9,7 +9,7 @@ export interface ResolveContext {
   deviceType?: string;
   /** PDT sheet currently being written, used for sheet-specific import conventions. */
   sheetName?: string;
-  /** Optional local Qwen/Ollama cleanup output for import-ready PDT values. */
+  /** Optional deterministic cleanup output for import-ready PDT values. */
   repair?: PdtRepair;
 }
 

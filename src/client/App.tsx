@@ -433,7 +433,7 @@ export function App() {
     try {
       const result = await importRunPdt(selectedRun.id);
       await refreshSelectedRun(selectedRun.id);
-      if (result.stats.cleanup && !["qwen_applied", "qwen_reviewed"].includes(result.stats.cleanup.status)) {
+      if (result.stats.cleanup && ["qwen_unavailable", "qwen_no_valid_output"].includes(result.stats.cleanup.status)) {
         setError(`PDT AI cleanup: ${result.stats.cleanup.message}`);
       }
     } catch (err) {

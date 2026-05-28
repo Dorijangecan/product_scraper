@@ -5,7 +5,9 @@ export interface PdtRepair {
   eclassCode?: string;
   eclassSystemVersion?: string;
   controlVoltage?: string;
+  voltageMax?: string;
   ratedCurrent?: string;
+  currentMax?: string;
   powerLossPerPole?: string;
   voltageType?: "AC" | "AC/DC" | "DC";
   operatingTemperatureMin?: string;
@@ -29,6 +31,8 @@ export interface PdtCleanupSourceValues {
   title?: string;
   catalogDescription?: string;
   longDescription?: string;
+  normalizedVoltage?: string;
+  normalizedCurrent?: string;
   eclass?: string;
   ratedControlCircuitVoltage?: string;
   ratedOperationalCurrentAc1?: string;
@@ -55,6 +59,11 @@ export interface PdtRepairResult {
   audit: PdtCleanupAudit;
 }
 
+export interface PdtRepairOptions {
+  /** Run local Ollama/Qwen cleanup and include accepted suggestions in the returned repair map. */
+  aiCleanup?: boolean;
+}
+
 type PdtRepairPatch = Partial<PdtRepair> & { catalogNumber?: string };
 
 const DEFAULT_OLLAMA_HOST = "http://127.0.0.1:11434";
@@ -66,7 +75,9 @@ const REPAIR_FIELDS = [
   "eclassCode",
   "eclassSystemVersion",
   "controlVoltage",
+  "voltageMax",
   "ratedCurrent",
+  "currentMax",
   "powerLossPerPole",
   "voltageType",
   "operatingTemperatureMin",
@@ -75,11 +86,19 @@ const REPAIR_FIELDS = [
   "longDescription"
 ] as const satisfies ReadonlyArray<keyof Omit<PdtRepair, "catalogNumber">>;
 
-export async function buildPdtRepairMap(items: RunItemRecord[], manufacturer: ManufacturerConfig): Promise<Map<number, PdtRepair>> {
-  return (await buildPdtRepairResult(items, manufacturer)).repairs;
+export async function buildPdtRepairMap(
+  items: RunItemRecord[],
+  manufacturer: ManufacturerConfig,
+  options: PdtRepairOptions = {}
+): Promise<Map<number, PdtRepair>> {
+  return (await buildPdtRepairResult(items, manufacturer, options)).repairs;
 }
 
-export async function buildPdtRepairResult(items: RunItemRecord[], manufacturer: ManufacturerConfig): Promise<PdtRepairResult> {
+export async function buildPdtRepairResult(
+  items: RunItemRecord[],
+  manufacturer: ManufacturerConfig,
+  options: PdtRepairOptions = {}
+): Promise<PdtRepairResult> {
   const repairs = new Map<number, PdtRepair>();
   const auditProducts = new Map<number, PdtCleanupProductAudit>();
   for (const item of items) {
@@ -102,10 +121,21 @@ export async function buildPdtRepairResult(items: RunItemRecord[], manufacturer:
   const healthTimeoutMs = envTimeoutMs("PDT_AI_HEALTH_TIMEOUT_MS", DEFAULT_OLLAMA_HEALTH_TIMEOUT_MS);
   const generateTimeoutMs = envTimeoutMs("PDT_AI_GENERATE_TIMEOUT_MS", DEFAULT_OLLAMA_GENERATE_TIMEOUT_MS);
   const batchSize = envNumber("PDT_AI_BATCH_SIZE", DEFAULT_QWEN_BATCH_SIZE, 1, 8);
-  if ((process.env.VITEST && process.env.PDT_AI_CLEANUP !== "1") || process.env.PDT_AI_CLEANUP === "0") {
+  const aiCleanupEnabled =
+    options.aiCleanup !== false &&
+    !((process.env.VITEST && process.env.PDT_AI_CLEANUP !== "1") || process.env.PDT_AI_CLEANUP === "0");
+  if (!aiCleanupEnabled) {
     return {
       repairs,
-      audit: cleanupAudit("disabled", host, model, items.length, 0, auditProducts, "Qwen cleanup disabled; deterministic PDT cleanup was used.")
+      audit: cleanupAudit(
+        "disabled",
+        host,
+        model,
+        items.length,
+        0,
+        auditProducts,
+        "Qwen cleanup disabled; deterministic scraped-data cleanup was used."
+      )
     };
   }
 
@@ -120,7 +150,7 @@ export async function buildPdtRepairResult(items: RunItemRecord[], manufacturer:
         items.length,
         0,
         auditProducts,
-        modelCheck.message ?? "Qwen/Ollama was not reachable; deterministic PDT cleanup was used."
+        modelCheck.message ?? "Qwen/Ollama was not reachable; deterministic scraped-data cleanup was used."
       )
     };
   }
@@ -158,10 +188,10 @@ export async function buildPdtRepairResult(items: RunItemRecord[], manufacturer:
       patchCount,
       auditProducts,
       status === "qwen_applied"
-        ? "Qwen cleanup ran; only evidence-backed fields were accepted into the PDT."
+        ? "Qwen prepared the scraped Excel sheet; only source-backed fields were accepted."
         : status === "qwen_reviewed"
-          ? "Qwen cleanup reviewed the scraped input; no evidence-backed corrections were needed."
-          : `Qwen responded but no evidence-backed changes were accepted; deterministic PDT cleanup was used.${errors.length ? ` Errors: ${errors.join("; ")}` : ""}`
+          ? "Qwen reviewed the scraped input; deterministic prepared values were kept."
+          : `Qwen responded but no evidence-backed changes were accepted; deterministic scraped-data cleanup was used.${errors.length ? ` Errors: ${errors.join("; ")}` : ""}`
     )
   };
 }
@@ -173,7 +203,9 @@ function heuristicRepair(item: RunItemRecord, manufacturer: ManufacturerConfig):
     eclassCode: eclassCode(item),
     eclassSystemVersion: manufacturer.id === "abb" || result?.manufacturerId === "abb" ? "14" : undefined,
     controlVoltage: controlVoltageRange(item),
+    voltageMax: voltageMaxValue(item),
     ratedCurrent: firstAmpereValue(attr(item, /\brated operational current AC-1\b/i)),
+    currentMax: currentMaxValue(item),
     powerLossPerPole: numberWithUnit(attr(item, /\bpower loss\b/i), "W"),
     voltageType: controlVoltageType(item),
     operatingTemperatureMin: explicitTemperatureRange(item).min,
@@ -201,14 +233,15 @@ async function qwenRepairBatch(
           stream: false,
           format: "json",
           think: false,
-          options: { temperature: 0, num_predict: Math.max(256, Math.min(1024, items.length * 160)) },
+          options: { temperature: 0, num_predict: Math.max(768, Math.min(2048, items.length * 512)) },
           prompt: repairPrompt(manufacturer, items)
         })
       },
       timeoutMs
     )) as { response?: string };
     const parsed = JSON.parse(extractJson(data.response ?? "{}")) as { products?: PdtRepairPatch[] };
-    return { patches: Array.isArray(parsed.products) ? parsed.products : [] };
+    const patches = Array.isArray(parsed.products) ? parsed.products.filter(isUsableRepairPatch) : [];
+    return { patches };
   } catch (error) {
     return { patches: [], error: error instanceof Error ? error.message : "Qwen batch failed." };
   }
@@ -261,7 +294,9 @@ function repairValues(repair: PdtRepair): Partial<Omit<PdtRepair, "catalogNumber
     eclassCode: repair.eclassCode,
     eclassSystemVersion: repair.eclassSystemVersion,
     controlVoltage: repair.controlVoltage,
+    voltageMax: repair.voltageMax,
     ratedCurrent: repair.ratedCurrent,
+    currentMax: repair.currentMax,
     powerLossPerPole: repair.powerLossPerPole,
     voltageType: repair.voltageType,
     operatingTemperatureMin: repair.operatingTemperatureMin,
@@ -276,6 +311,8 @@ function sourceValues(item: RunItemRecord): PdtCleanupSourceValues {
     title: item.result?.title,
     catalogDescription: attr(item, /\bcatalog description\b/i),
     longDescription: attr(item, /\blong description\b/i) ?? item.result?.description,
+    normalizedVoltage: item.result?.normalized.voltage,
+    normalizedCurrent: item.result?.normalized.current,
     eclass: attr(item, /\beclass\b/i),
     ratedControlCircuitVoltage: attr(item, /\brated control circuit voltage\b/i),
     ratedOperationalCurrentAc1: attr(item, /\brated operational current AC-1\b/i),
@@ -323,20 +360,25 @@ function pushUnique(values: string[], value: string): void {
 
 function repairPrompt(manufacturer: ManufacturerConfig, items: RunItemRecord[]): string {
   return [
-    "You normalize scraped electrical product data for an ECLASS PDT Excel import.",
+    "You prepare scraped electrical product data for a human-reviewed Excel cleanup sheet.",
     "Return JSON only: {\"products\":[...]}",
-    "Return only corrections to deterministicCleanup. If deterministicCleanup is already correct, omit that product.",
-    "For each correction return only fields that are explicit in the scraped input.",
-    "Fields: catalogNumber, eclassCode, eclassSystemVersion, controlVoltage, ratedCurrent, powerLossPerPole, voltageType, operatingTemperatureMin, operatingTemperatureMax.",
+    "Return one product object per input product.",
+    "For each product return only fields that are explicit in the scraped input or directly cleaned from scraped text.",
+    "Fields: catalogNumber, eclassCode, eclassSystemVersion, controlVoltage, voltageMax, ratedCurrent, currentMax, powerLossPerPole, voltageType, operatingTemperatureMin, operatingTemperatureMax, shortDescription, longDescription.",
+    "Do not include scraped, deterministicCleanup, notes, explanations, markdown, or nested objects in the output.",
     "Rules:",
-    "- controlVoltage must be a voltage range like 24-60 from Rated Control Circuit Voltage or catalog description. Never use values from current derating text such as 40 C 70 A.",
+    "- controlVoltage must be a cleaned voltage range like 24-60 from Rated Control Circuit Voltage or catalog description. Never use values from current derating text such as 40 C 70 A.",
+    "- voltageMax is the highest voltage value from an explicit voltage/range, as a plain number. Example: 60-80 V -> 80.",
     "- ratedCurrent is the first ampere value from Rated Operational Current AC-1, as a plain number.",
+    "- currentMax is the highest ampere value from an explicit current/range, as a plain number. Example: 6-10 A -> 10.",
     "- powerLossPerPole is the AC-1 per pole W value, as a plain number.",
     "- voltageType is AC, DC, or AC/DC.",
     "- operating temperatures are only from explicit operating/ambient temperature range fields. Do not use temperatures embedded in rated-current rows.",
+    "- operatingTemperatureMin and operatingTemperatureMax are plain numbers. Example: 40 to 120 C -> 40 and 120.",
     "- eclassSystemVersion for ABB PDT device tabs is usually 14 when the ECLASS code is present.",
-    "- Do not return shortDescription or longDescription; descriptions are normalized deterministically from vendor text.",
-    "- Never repeat deterministicCleanup values just to confirm them.",
+    "- shortDescription is a concise cleaned product description from title/catalog description.",
+    "- longDescription is the best cleaned vendor description; if no longer text exists, use the cleaned catalog description.",
+    "- Use deterministicCleanup values when they are already correct.",
     `Manufacturer: ${manufacturer.canonicalName}`,
     JSON.stringify({
       products: items.map((item) => ({
@@ -348,16 +390,24 @@ function repairPrompt(manufacturer: ManufacturerConfig, items: RunItemRecord[]):
   ].join("\n");
 }
 
-function qwenBaselineValues(repair: PdtRepair): Partial<Omit<PdtRepair, "catalogNumber" | "shortDescription" | "longDescription">> {
+function isUsableRepairPatch(patch: PdtRepairPatch): boolean {
+  return typeof patch.catalogNumber === "string" && REPAIR_FIELDS.some((field) => patch[field] !== undefined && patch[field] !== "");
+}
+
+function qwenBaselineValues(repair: PdtRepair): Partial<Omit<PdtRepair, "catalogNumber">> {
   return {
     eclassCode: repair.eclassCode,
     eclassSystemVersion: repair.eclassSystemVersion,
     controlVoltage: repair.controlVoltage,
+    voltageMax: repair.voltageMax,
     ratedCurrent: repair.ratedCurrent,
+    currentMax: repair.currentMax,
     powerLossPerPole: repair.powerLossPerPole,
     voltageType: repair.voltageType,
     operatingTemperatureMin: repair.operatingTemperatureMin,
-    operatingTemperatureMax: repair.operatingTemperatureMax
+    operatingTemperatureMax: repair.operatingTemperatureMax,
+    shortDescription: repair.shortDescription,
+    longDescription: repair.longDescription
   };
 }
 
@@ -366,7 +416,9 @@ function compactSourceValues(item: RunItemRecord): PdtCleanupSourceValues {
   return {
     title: limitText(source.title, 140),
     catalogDescription: limitText(source.catalogDescription, 260),
-    longDescription: undefined,
+    longDescription: limitText(source.longDescription, 500),
+    normalizedVoltage: limitText(source.normalizedVoltage, 220),
+    normalizedCurrent: limitText(source.normalizedCurrent, 220),
     eclass: limitText(source.eclass, 80),
     ratedControlCircuitVoltage: limitText(source.ratedControlCircuitVoltage, 220),
     ratedOperationalCurrentAc1: limitText(source.ratedOperationalCurrentAc1, 220),
@@ -391,7 +443,9 @@ function mergeRepair(base: PdtRepair, patch: PdtRepairPatch, item: RunItemRecord
       ? candidate.eclassSystemVersion
       : base.eclassSystemVersion,
     controlVoltage: acceptsControlVoltage(item, candidate.controlVoltage) ? candidate.controlVoltage : base.controlVoltage,
+    voltageMax: acceptsVoltageMax(item, candidate.voltageMax) ? candidate.voltageMax : base.voltageMax,
     ratedCurrent: acceptsRatedCurrent(item, candidate.ratedCurrent) ? candidate.ratedCurrent : base.ratedCurrent,
+    currentMax: acceptsCurrentMax(item, candidate.currentMax) ? candidate.currentMax : base.currentMax,
     powerLossPerPole: acceptsPowerLoss(item, candidate.powerLossPerPole) ? candidate.powerLossPerPole : base.powerLossPerPole,
     voltageType: acceptsVoltageType(item, candidate.voltageType) ? candidate.voltageType : base.voltageType,
     operatingTemperatureMin: acceptsTemperature(item, candidate.operatingTemperatureMin, "min")
@@ -410,7 +464,9 @@ function sanitizeRepair(input: PdtRepairPatch & { catalogNumber: string }): PdtR
   repair.eclassCode = cleanCode(input.eclassCode);
   repair.eclassSystemVersion = cleanNumber(input.eclassSystemVersion);
   repair.controlVoltage = cleanVoltageRange(input.controlVoltage);
+  repair.voltageMax = cleanNumber(input.voltageMax);
   repair.ratedCurrent = cleanNumber(input.ratedCurrent);
+  repair.currentMax = cleanNumber(input.currentMax);
   repair.powerLossPerPole = cleanNumber(input.powerLossPerPole);
   repair.voltageType = cleanVoltageType(input.voltageType);
   repair.operatingTemperatureMin = cleanNumber(input.operatingTemperatureMin);
@@ -456,9 +512,11 @@ function cleanVoltageType(value: unknown): PdtRepair["voltageType"] {
   return undefined;
 }
 
-function attr(item: RunItemRecord, pattern: RegExp): string | undefined {
+function attr(item: RunItemRecord, pattern: RegExp, rejectPattern?: RegExp): string | undefined {
   const matches = (item.result?.attributes ?? []).filter((attribute) =>
-    pattern.test([attribute.group ?? "", attribute.name].join(" ")) && attribute.value?.trim()
+    pattern.test([attribute.group ?? "", attribute.name].join(" ")) &&
+    (!rejectPattern || !rejectPattern.test([attribute.group ?? "", attribute.name, attribute.value].join(" "))) &&
+    attribute.value?.trim()
   );
   matches.sort((left, right) => sourceRank(right.sourceType) - sourceRank(left.sourceType));
   return matches[0]?.value.replace(/\s+/g, " ").trim();
@@ -480,6 +538,20 @@ function controlVoltageRange(item: RunItemRecord): string | undefined {
   const value = attr(item, /\brated control circuit voltage\b/i) ?? attr(item, /\bcontrol voltage\b/i);
   const acPart = value?.split(";").find((part) => /\b(?:50|60)\s*hz\b/i.test(part)) ?? value;
   return cleanVoltageRange(acPart);
+}
+
+function voltageMaxValue(item: RunItemRecord): string | undefined {
+  const candidates = [
+    attr(item, /\brated control circuit voltage\b/i),
+    attr(item, /\bcontrol voltage\b/i),
+    attr(item, /\brated operational voltage\b/i),
+    attr(item, /\boperating voltage\b/i),
+    attr(item, /\brated voltage\b/i),
+    item.result?.normalized.voltage,
+    attr(item, /\bcatalog description\b/i),
+    item.result?.title
+  ].flatMap((value) => (value ? voltageNumberCandidates(value) : []));
+  return maxNumericString(candidates);
 }
 
 function controlVoltageType(item: RunItemRecord): PdtRepair["voltageType"] {
@@ -517,20 +589,53 @@ function normalizeElectricalDescription(value: string): string {
 }
 
 function explicitTemperatureRange(item: RunItemRecord): { min?: string; max?: string } {
-  const value =
-    attr(item, /\b(operating|ambient|service|storage) temperature\b/i) ?? attr(item, /\btemperature range\b/i);
+  const values = [
+    attr(item, /\boperating temperature\b/i),
+    attr(item, /\bambient temperature\b/i),
+    attr(item, /\btemperature range\b/i),
+    attr(item, /\bservice temperature\b/i),
+    attr(item, /\bstorage temperature\b/i, /\btemporary\b/i)
+  ];
+  for (const value of values) {
+    const range = temperatureRangeFromText(value);
+    if (range.min !== undefined || range.max !== undefined) return range;
+  }
+  return {};
+}
+
+function temperatureRangeFromText(value: string | undefined): { min?: string; max?: string } {
   if (!value || /\brated operational current\b/i.test(value)) return {};
-  const nums = value.match(/-?\d+(?:\.\d+)?/g);
-  if (!nums || nums.length < 2) return {};
-  return { min: String(Number(nums[0])), max: String(Number(nums[nums.length - 1])) };
+  const normalized = value.replace(",", ".");
+  const range = normalized.match(
+    /(-?\d+(?:\.\d+)?)\s*(?:\.\.\.|\.{2}|-|to)\s*\+?(-?\d+(?:\.\d+)?)\s*(?:°?\s*C|℃|degrees?\s*C?)?\b/i
+  );
+  if (range) return { min: String(Number(range[1])), max: String(Number(range[2])) };
+  const celsiusValues = [...normalized.matchAll(/(-?\d+(?:\.\d+)?)\s*(?:°\s*)?C\b/gi)].map((match) => String(Number(match[1])));
+  if (celsiusValues.length >= 2) return { min: celsiusValues[0], max: celsiusValues[celsiusValues.length - 1] };
+  return {};
 }
 
 function firstAmpereValue(value: string | undefined): string | undefined {
   return cleanNumber(value?.match(/(\d+(?:\.\d+)?)\s*A\b/i)?.[1]);
 }
 
+function currentMaxValue(item: RunItemRecord): string | undefined {
+  const candidates = [
+    attr(item, /\brated operational current AC-1\b/i),
+    attr(item, /\brated current\b/i),
+    attr(item, /\boperating current\b/i)
+  ].flatMap((value) => (value ? currentNumberCandidates(value) : []));
+  return maxNumericString(candidates);
+}
+
 function numberWithUnit(value: string | undefined, unit: string): string | undefined {
   return cleanNumber(value?.match(new RegExp(`(-?\\d+(?:\\.\\d+)?)\\s*${unit}\\b`, "i"))?.[1]);
+}
+
+function maxNumericString(values: string[]): string | undefined {
+  const numbers = values.map((value) => Number(value)).filter(Number.isFinite);
+  if (!numbers.length) return undefined;
+  return String(Math.max(...numbers));
 }
 
 function acceptsEclassCode(item: RunItemRecord, value: string | undefined): boolean {
@@ -556,9 +661,17 @@ function acceptsControlVoltage(item: RunItemRecord, value: string | undefined): 
   return evidence.some((entry) => entry && voltageRangeCandidates(entry).includes(value));
 }
 
+function acceptsVoltageMax(item: RunItemRecord, value: string | undefined): boolean {
+  return Boolean(value && voltageMaxValue(item) === value);
+}
+
 function acceptsRatedCurrent(item: RunItemRecord, value: string | undefined): boolean {
   const evidence = attr(item, /\brated operational current AC-1\b/i);
   return Boolean(value && evidence && ampereCandidates(evidence).includes(value));
+}
+
+function acceptsCurrentMax(item: RunItemRecord, value: string | undefined): boolean {
+  return Boolean(value && currentMaxValue(item) === value);
 }
 
 function acceptsPowerLoss(item: RunItemRecord, value: string | undefined): boolean {
@@ -588,7 +701,7 @@ function acceptsDescription(item: RunItemRecord, value: string | undefined): boo
   const normalizedValue = normalizeText(value);
   if (!normalizedValue) return false;
   return evidence.some((entry) => {
-    const normalizedEntry = normalizeText(entry);
+    const normalizedEntry = normalizeText(`${entry} ${normalizeElectricalDescription(entry)}`);
     if (!normalizedEntry) return false;
     if (normalizedEntry.includes(normalizedValue)) return true;
     const valueTokens = meaningfulTokens(normalizedValue);
@@ -606,8 +719,24 @@ function voltageRangeCandidates(value: string): string[] {
   );
 }
 
+function voltageNumberCandidates(value: string): string[] {
+  if (/(?:\d\s*A\b)|[\u00b0\u00c2]/i.test(value)) return [];
+  const normalized = value.replace(",", ".").replace(/\b(\d+(?:\.\d+)?)RT-(\d+(?:\.\d+)?)\s*V/gi, "$1-$2 V");
+  const rangeNumbers = [...normalized.matchAll(/(\d+(?:\.\d+)?)\s*(?:\.\.\.|\.{2}|-|to)\s*(\d+(?:\.\d+)?)\s*V(?:AC|DC)?\b/gi)]
+    .flatMap((match) => [String(Number(match[1])), String(Number(match[2]))]);
+  const singleNumbers = [...normalized.matchAll(/(\d+(?:\.\d+)?)\s*V(?:AC|DC)?\b/gi)].map((match) => String(Number(match[1])));
+  return [...rangeNumbers, ...singleNumbers];
+}
+
 function ampereCandidates(value: string): string[] {
   return numberUnitCandidates(value, "A");
+}
+
+function currentNumberCandidates(value: string): string[] {
+  const normalized = value.replace(",", ".");
+  const rangeNumbers = [...normalized.matchAll(/(\d+(?:\.\d+)?)\s*(?:\.\.\.|\.{2}|-|to)\s*(\d+(?:\.\d+)?)\s*A\b/gi)]
+    .flatMap((match) => [String(Number(match[1])), String(Number(match[2]))]);
+  return [...rangeNumbers, ...ampereCandidates(normalized)];
 }
 
 function numberUnitCandidates(value: string, unit: string): string[] {

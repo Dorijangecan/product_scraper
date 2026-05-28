@@ -24,7 +24,7 @@ export interface PdtExportResult {
   keptSheets: string[];
   removedSheetCount: number;
   cleanup: PdtCleanupSummary;
-  cleanedInputPath: string;
+  cleanedInputPath?: string;
 }
 
 export type PdtCleanupSummary = Omit<PdtCleanupAudit, "products"> & { productRows: number };
@@ -39,7 +39,7 @@ export async function exportRunPdt(input: {
   const workbook = await loadTemplateWorkbook(templatePath);
 
   const included = items.filter((item) => item.result && (item.status === "found" || item.status === "partial"));
-  const cleanup = await buildPdtRepairResult(included, manufacturer);
+  const cleanup = await buildPdtRepairResult(included, manufacturer, { aiCleanup: false });
   const repairs = cleanup.repairs;
 
   // Uniform (property-per-column) tabs map to the ordered products written into each tab.
@@ -89,8 +89,6 @@ export async function exportRunPdt(input: {
       workbook.removeWorksheet(ws.id);
     }
   }
-  const cleanedInputPath = await writeAiCleanedInputWorkbook(cleanup.audit, outputPath);
-
   await workbook.xlsx.writeFile(outputPath);
 
   return {
@@ -102,126 +100,13 @@ export async function exportRunPdt(input: {
     unmappedDeviceTypes: [...unmappedDeviceTypes],
     keptSheets: workbook.worksheets.map((ws) => ws.name),
     removedSheetCount: removedSheets.length,
-    cleanup: cleanupSummary(cleanup.audit),
-    cleanedInputPath
+    cleanup: cleanupSummary(cleanup.audit)
   };
 }
 
 function cleanupSummary(audit: PdtCleanupAudit): PdtCleanupSummary {
   const { products, ...summary } = audit;
   return { ...summary, productRows: products.length };
-}
-
-async function writeAiCleanedInputWorkbook(audit: PdtCleanupAudit, pdtOutputPath: string): Promise<string> {
-  const workbook = new ExcelJS.Workbook();
-  workbook.creator = "Product Scraper";
-  workbook.created = new Date();
-  workbook.modified = new Date();
-  const ws = workbook.addWorksheet("AI Cleaned Input", { views: [{ state: "frozen", ySplit: 11 }] });
-  ws.columns = [
-    { header: "Catalog number", key: "catalogNumber", width: 24 },
-    { header: "Scraped title", key: "sourceTitle", width: 44 },
-    { header: "Scraped catalog description", key: "sourceCatalogDescription", width: 56 },
-    { header: "Scraped long description", key: "sourceLongDescription", width: 90 },
-    { header: "Scraped ECLASS", key: "sourceEclass", width: 26 },
-    { header: "Scraped control voltage", key: "sourceControlVoltage", width: 46 },
-    { header: "Scraped AC-1 current", key: "sourceRatedCurrent", width: 46 },
-    { header: "Scraped power loss", key: "sourcePowerLoss", width: 46 },
-    { header: "Scraped operating temp", key: "sourceOperatingTemp", width: 32 },
-    { header: "Scraped ambient temp", key: "sourceAmbientTemp", width: 32 },
-    { header: "Scraped temp range", key: "sourceTempRange", width: 32 },
-    { header: "Heuristic fields", key: "heuristicFields", width: 42 },
-    { header: "Qwen fields", key: "qwenFields", width: 42 },
-    { header: "Accepted fields", key: "acceptedFields", width: 42 },
-    { header: "Rejected fields", key: "rejectedFields", width: 42 },
-    { header: "ECLASS code", key: "eclassCode", width: 16 },
-    { header: "ECLASS version", key: "eclassSystemVersion", width: 16 },
-    { header: "Control voltage", key: "controlVoltage", width: 18 },
-    { header: "Rated current", key: "ratedCurrent", width: 16 },
-    { header: "Power loss/pole", key: "powerLossPerPole", width: 18 },
-    { header: "Voltage type", key: "voltageType", width: 14 },
-    { header: "Temp min", key: "operatingTemperatureMin", width: 12 },
-    { header: "Temp max", key: "operatingTemperatureMax", width: 12 },
-    { header: "Short description", key: "shortDescription", width: 48 },
-    { header: "Long description", key: "longDescription", width: 90 },
-    { header: "Notes", key: "notes", width: 72 }
-  ];
-  ws.spliceRows(1, 0, ["PDT AI Cleaned Input"]);
-  ws.spliceRows(2, 0, ["Status", audit.status]);
-  ws.spliceRows(3, 0, ["Model", audit.model]);
-  ws.spliceRows(4, 0, ["Host", audit.host]);
-  ws.spliceRows(5, 0, ["Items", audit.itemCount]);
-  ws.spliceRows(6, 0, ["Qwen patches", audit.qwenPatchCount]);
-  ws.spliceRows(7, 0, ["Accepted fields", audit.acceptedFieldCount]);
-  ws.spliceRows(8, 0, ["Rejected fields", audit.rejectedFieldCount]);
-  ws.spliceRows(9, 0, ["Message", audit.message]);
-  ws.spliceRows(10, 0, []);
-  ws.getRow(11).values = [
-    "Catalog number",
-    "Scraped title",
-    "Scraped catalog description",
-    "Scraped long description",
-    "Scraped ECLASS",
-    "Scraped control voltage",
-    "Scraped AC-1 current",
-    "Scraped power loss",
-    "Scraped operating temp",
-    "Scraped ambient temp",
-    "Scraped temp range",
-    "Heuristic fields",
-    "Qwen fields",
-    "Accepted fields",
-    "Rejected fields",
-    "ECLASS code",
-    "ECLASS version",
-    "Control voltage",
-    "Rated current",
-    "Power loss/pole",
-    "Voltage type",
-    "Temp min",
-    "Temp max",
-    "Short description",
-    "Long description",
-    "Notes"
-  ];
-  ws.getRow(1).font = { bold: true, size: 14 };
-  for (let row = 2; row <= 9; row++) ws.getCell(row, 1).font = { bold: true };
-  ws.getRow(11).font = { bold: true };
-  ws.views = [{ state: "frozen", ySplit: 11 }];
-  let row = 12;
-  for (const product of audit.products) {
-    ws.getCell(row, 1).value = product.catalogNumber;
-    ws.getCell(row, 2).value = product.sourceValues.title ?? null;
-    ws.getCell(row, 3).value = product.sourceValues.catalogDescription ?? null;
-    ws.getCell(row, 4).value = product.sourceValues.longDescription ?? null;
-    ws.getCell(row, 5).value = product.sourceValues.eclass ?? null;
-    ws.getCell(row, 6).value = product.sourceValues.ratedControlCircuitVoltage ?? null;
-    ws.getCell(row, 7).value = product.sourceValues.ratedOperationalCurrentAc1 ?? null;
-    ws.getCell(row, 8).value = product.sourceValues.powerLoss ?? null;
-    ws.getCell(row, 9).value = product.sourceValues.operatingTemperature ?? null;
-    ws.getCell(row, 10).value = product.sourceValues.ambientTemperature ?? null;
-    ws.getCell(row, 11).value = product.sourceValues.temperatureRange ?? null;
-    ws.getCell(row, 12).value = product.heuristicFields.join(", ");
-    ws.getCell(row, 13).value = product.qwenFields.join(", ");
-    ws.getCell(row, 14).value = product.acceptedFields.join(", ");
-    ws.getCell(row, 15).value = product.rejectedFields.join(", ");
-    ws.getCell(row, 16).value = product.finalValues.eclassCode ?? null;
-    ws.getCell(row, 17).value = product.finalValues.eclassSystemVersion ?? null;
-    ws.getCell(row, 18).value = product.finalValues.controlVoltage ?? null;
-    ws.getCell(row, 19).value = product.finalValues.ratedCurrent ?? null;
-    ws.getCell(row, 20).value = product.finalValues.powerLossPerPole ?? null;
-    ws.getCell(row, 21).value = product.finalValues.voltageType ?? null;
-    ws.getCell(row, 22).value = product.finalValues.operatingTemperatureMin ?? null;
-    ws.getCell(row, 23).value = product.finalValues.operatingTemperatureMax ?? null;
-    ws.getCell(row, 24).value = product.finalValues.shortDescription ?? null;
-    ws.getCell(row, 25).value = product.finalValues.longDescription ?? null;
-    ws.getCell(row, 26).value = product.notes.join(" ");
-    row++;
-  }
-  for (const column of [3, 4, 6, 7, 8, 24, 25, 26]) ws.getColumn(column).alignment = { wrapText: true, vertical: "top" };
-  const outputPath = pdtOutputPath.replace(/_PDT(?:_[^\\/]+)?\.xlsx$/i, "_AI_cleaned_input.xlsx");
-  await workbook.xlsx.writeFile(outputPath);
-  return outputPath;
 }
 
 /** Write one body row per product, placing each resolvable value in its property column. */

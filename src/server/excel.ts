@@ -5,6 +5,8 @@ import { pathToFileURL } from "node:url";
 import sharp from "sharp";
 import type { FinalCompletenessRecord, ManufacturerConfig, ProductResult, RunItemRecord, RunRecord } from "../shared/types.js";
 import { requiredElectricalFields } from "../shared/product-requirements.js";
+import { AI_CLEANED_INPUT_SHEET, writeAiCleanedInputSheet } from "./pdt/ai-cleaned-input-sheet.js";
+import { buildPdtRepairResult } from "./pdt/ai-cleanup.js";
 import { classifyDeviceType } from "./scrapers/device-type.js";
 import { buildLocalizedProductUrls } from "./scrapers/localized-urls.js";
 import { cleanText, normalizeFields } from "./scrapers/normalizer.js";
@@ -27,6 +29,7 @@ export async function exportRunWorkbook(input: {
   const summary = workbook.addWorksheet("Run Summary", { views: [{ showGridLines: false }] });
   const cleanExport = workbook.addWorksheet("Clean Export", { views: [{ state: "frozen", xSplit: 7, ySplit: 1 }] });
   const importReady = workbook.addWorksheet("Import Ready", { views: [{ state: "frozen", xSplit: 7, ySplit: 1 }] });
+  const aiCleanedInput = workbook.addWorksheet(AI_CLEANED_INPUT_SHEET, { views: [{ state: "frozen", ySplit: 11 }] });
   const needsReview = workbook.addWorksheet("Needs Review", { views: [{ state: "frozen", xSplit: 10, ySplit: 1 }] });
   const issueSummary = workbook.addWorksheet("Issue Summary", { views: [{ state: "frozen", xSplit: 2, ySplit: 1 }] });
   const columnGuide = workbook.addWorksheet("Column Guide", { views: [{ state: "frozen", xSplit: 2, ySplit: 1 }] });
@@ -394,6 +397,12 @@ export async function exportRunWorkbook(input: {
     }
   }
 
+  const aiCleanup = await buildPdtRepairResult(
+    input.items.filter((item) => item.result && (item.status === "found" || item.status === "partial")),
+    input.manufacturer
+  );
+  writeAiCleanedInputSheet(aiCleanedInput, aiCleanup.audit);
+
   populateRunSummarySheet(summary, input, productRows);
   styleRunSummarySheet(summary);
   populateCleanExportSheet(cleanExport, input.items, productRows);
@@ -552,6 +561,7 @@ function populateRunSummarySheet(
   for (const sheetName of [
     "Clean Export",
     "Import Ready",
+    AI_CLEANED_INPUT_SHEET,
     "Needs Review",
     "Issue Summary",
     "Column Guide",
@@ -577,6 +587,7 @@ function sheetPurpose(sheetName: string): string {
   const purposes: Record<string, string> = {
     "Clean Export": "Primary product export with import decisions, clean fields, and core URLs.",
     "Import Ready": "Ready-only product export containing rows marked Import.",
+    [AI_CLEANED_INPUT_SHEET]: "Qwen-prepared scraped-data sheet for human review; final PDT generation does not consume these suggestions.",
     "Needs Review": "Prioritized queue for rows that should be checked before import.",
     "Issue Summary": "Aggregated QA view of review blockers and affected catalog numbers.",
     "Column Guide": "Data dictionary for key workbook sheets and workflow columns.",
@@ -849,6 +860,13 @@ function populateColumnGuideSheet(sheet: ExcelJS.Worksheet) {
       purpose: "Readable tier derived from coverage score.",
       useFor: "Sorting by quality",
       notes: "Complete and Good are strongest; Sparse and No data should be reviewed."
+    },
+    {
+      sheet: AI_CLEANED_INPUT_SHEET,
+      column: "Accepted / Rejected fields",
+      purpose: "Shows Qwen suggestions beside scraped source evidence and deterministic cleanup.",
+      useFor: "AI-assisted cleanup",
+      notes: "This sheet is for review and preparation only; final PDT export does not read these AI values."
     },
     {
       sheet: "Clean Export",
@@ -3837,6 +3855,7 @@ function sheetTabColor(sheetName: string): string | undefined {
   if (sheetName === "Run Summary") return "FF0F172A";
   if (sheetName === "Clean Export") return "FF166534";
   if (sheetName === "Import Ready") return "FF15803D";
+  if (sheetName === AI_CLEANED_INPUT_SHEET) return "FF0EA5E9";
   if (sheetName === "Needs Review") return "FFB45309";
   if (sheetName === "Issue Summary") return "FFE11D48";
   if (sheetName === "Column Guide") return "FF0891B2";
