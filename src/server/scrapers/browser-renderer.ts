@@ -34,6 +34,13 @@ interface PageLike {
   content(): Promise<string>;
   close(): Promise<void>;
   keyboard: KeyboardLike;
+  route(url: string | RegExp | ((url: URL) => boolean), handler: (route: RouteLike) => unknown): Promise<void>;
+}
+
+interface RouteLike {
+  request(): { resourceType(): string };
+  abort(): Promise<void>;
+  continue(): Promise<void>;
 }
 
 interface ResponseLike {
@@ -151,7 +158,21 @@ export class BrowserRenderSession {
       page.on("response", (response) => {
         responseCaptures.push(captureResponse(response, captured, networkDiagnostics, signal));
       });
-      const response = await page.goto(url, { waitUntil: "domcontentloaded", timeout: 45000 });
+      const blockedResourceTypes = new Set(recipe?.interactionPolicy?.blockResourceTypes ?? []);
+      if (blockedResourceTypes.size > 0) {
+        await page.route("**/*", (route) => {
+          if (blockedResourceTypes.has(route.request().resourceType() as never)) return route.abort();
+          return route.continue();
+        }).catch(() => undefined);
+      }
+      const gotoWaitUntil = recipe?.interactionPolicy?.gotoWaitUntil ?? "domcontentloaded";
+      const gotoTimeoutMs = recipe?.interactionPolicy?.gotoTimeoutMs ?? 45000;
+      const response = await page.goto(url, { waitUntil: gotoWaitUntil, timeout: gotoTimeoutMs });
+      // Ensure the DOM is parsed even when the caller asked for the early "commit" event
+      // (commit returns as soon as response headers arrive — selectors won't exist yet).
+      if (gotoWaitUntil === "commit") {
+        await page.waitForLoadState("domcontentloaded", { timeout: gotoTimeoutMs }).catch(() => undefined);
+      }
       await page.waitForLoadState("networkidle", { timeout: recipe?.interactionPolicy?.networkIdleTimeoutMs ?? 12000 }).catch(() => undefined);
       await clickSafeSelectors(page, [...(recipe?.interactionPolicy?.closeOverlaySelectors ?? []), ...OVERLAY_CLOSE_SELECTORS], 5, signal);
       await clickSafeSelectors(page, recipe?.interactionPolicy?.localeSelectors ?? [], 4, signal);
@@ -408,8 +429,11 @@ export class BrowserRenderSession {
     // Attempt #1: let Playwright resolve the executable normally.
     let launched: BrowserLike | undefined;
     let firstError: Error | undefined;
+    // Disable HTTP/2 because some manufacturer sites (eaton.com) violate the spec and Chromium
+    // aborts the navigation with ERR_HTTP2_PROTOCOL_ERROR. HTTP/1.1 fallback is universally safe.
+    const chromiumArgs = ["--disable-http2"];
     try {
-      launched = await chromium.launch({ headless: true });
+      launched = await chromium.launch({ headless: true, args: chromiumArgs });
     } catch (error) {
       firstError = error instanceof Error ? error : new Error(String(error));
       const fullMessage = firstError.message;
@@ -424,7 +448,7 @@ export class BrowserRenderSession {
         this.discoveredExecutablePath = fallbackPath;
         try {
           console.warn(`[browser-renderer] retrying chromium.launch with executablePath=${fallbackPath}`);
-          launched = await chromium.launch({ headless: true, executablePath: fallbackPath });
+          launched = await chromium.launch({ headless: true, executablePath: fallbackPath, args: chromiumArgs });
         } catch (retryError) {
           const retryMessage = retryError instanceof Error ? retryError.message : String(retryError);
           console.error(`[browser-renderer] executablePath fallback failed: ${retryMessage}`);

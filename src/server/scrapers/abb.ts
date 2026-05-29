@@ -1100,13 +1100,15 @@ function isDefinitiveEmptyAbbSearch(text: string, matchingItems: number): boolea
 function abbSearchItemProductUrls(productId: string, alias: string): string[] {
   const encodedId = encodeURIComponent(productId);
   const slug = abbProductSlug(alias);
-    // Order matters: try the slug URL, then localized PIS URLs before generic fallbacks.
-    // For AEM-style products, `/en/...` redirects to global/en (AEM page) but
-    // /pl/, /de/, /it/ still serve PIS data — so they're our richest source.
+  // Order matters: try localized PIS URLs first because /en redirects to the AEM shell that
+  // strips technical data. DE comes before IT/PL because German group labels canonicalise
+  // cleanly to English ("Materialkonformität" → "Material compliance"), while Polish/Italian
+  // labels leak into the output ("Zgodność materiału", "Conformità del materiale") and confuse
+  // downstream consumers.
   return [
-    `https://new.abb.com/products/pl/${encodedId}/${slug}`,
     `https://new.abb.com/products/de/${encodedId}/${slug}`,
     `https://new.abb.com/products/it/${encodedId}/${slug}`,
+    `https://new.abb.com/products/pl/${encodedId}/${slug}`,
     `https://new.abb.com/products/${encodedId}/${slug}`,
     `https://new.abb.com/products/${encodedId}`,
     `https://www.abb.com/global/en/products/${encodeURIComponent(productId.toLowerCase())}`
@@ -1190,6 +1192,7 @@ export function parseAbbProductPage(catalogNumber: string, fetched: FetchedText,
   if (product) {
     for (const [name, value] of Object.entries(product)) {
       if (value === undefined || value === null || typeof value === "object") continue;
+      if (isNoiseJsonLdField(name)) continue;
       attributes.push({
         group: "Structured Data",
         name,
@@ -1339,6 +1342,30 @@ export function parseAbbProductPage(catalogNumber: string, fetched: FetchedText,
       }
     ]
   };
+}
+
+// JSON-LD fields we drop on the floor:
+//   - schema.org metadata that adds no product info (@type, @context, logo, url)
+//   - identity fields that are always duplicated by PIS data (sku, productID)
+//   - display fields that PIS provides under a clearer name (name → Display Name,
+//     alternateName → Extended Product Type, description → Long Description)
+// Image is kept because the document extractor consumes it.
+const JSON_LD_NOISE_FIELDS = new Set([
+  "@type",
+  "@context",
+  "logo",
+  "url",
+  "sku",
+  "productid",
+  "mpn",
+  "name",
+  "alternatename",
+  "description",
+  "category"
+]);
+
+function isNoiseJsonLdField(name: string): boolean {
+  return JSON_LD_NOISE_FIELDS.has(name.toLowerCase());
 }
 
 function readJsonLdProducts($: cheerio.CheerioAPI): Record<string, unknown>[] {
@@ -1617,9 +1644,91 @@ function pushUniqueAbbAttributes(target: AttributeRecord[], incoming: AttributeR
   }
 }
 
+// PIS responses come back in the request locale, so the same group ships as
+// "Zgodność materiału" (PL), "Materialkonformität" (DE), "Conformità del materiale" (IT) or
+// "Material compliance" (EN). Map every locale variant to one canonical English label so
+// downstream consumers see consistent group names regardless of which PIS locale answered.
+const ABB_GROUP_LABEL_CANONICAL: Record<string, string> = {
+  "zgodność materiału": "Material compliance",
+  "zgodnosc materialu": "Material compliance",
+  "materialkonformität": "Material compliance",
+  "materialkonformitat": "Material compliance",
+  "conformità del materiale": "Material compliance",
+  "conformita del materiale": "Material compliance",
+  "zamawianie": "Ordering",
+  "bestellinformationen": "Ordering",
+  "bestelldaten": "Ordering",
+  "bestellung": "Ordering",
+  "informazioni di ordinazione": "Ordering",
+  "ordering information": "Ordering",
+  "ordering": "Ordering",
+  "informacje o pakowaniu": "Packaging information",
+  "verpackungsinformationen": "Packaging information",
+  "informazioni sull'imballaggio": "Packaging information",
+  "packaging information": "Packaging information",
+  "dodatkowe informacje": "Additional information",
+  "zusätzliche informationen": "Additional information",
+  "zusatzliche informationen": "Additional information",
+  "weitere informationen": "Additional information",
+  "informazioni aggiuntive": "Additional information",
+  "additional information": "Additional information",
+  "zewnętrzne klasyfikacje i normy": "External classifications and standards",
+  "zewnetrzne klasyfikacje i normy": "External classifications and standards",
+  "externe klassifizierungen und normen": "External classifications and standards",
+  "classificazioni esterne e standard": "External classifications and standards",
+  "external classifications and standards": "External classifications and standards",
+  "certyfikaty i deklaracje": "Certificates and declarations",
+  "zertifikate und deklarationen": "Certificates and declarations",
+  "certificati e dichiarazioni": "Certificates and declarations",
+  "certificates and declarations": "Certificates and declarations",
+  "klasyfikacja produktu": "Product classification",
+  "produktklassifizierung": "Product classification",
+  "classificazione del prodotto": "Product classification",
+  "product classification": "Product classification",
+  "dane produktu": "Product Data",
+  "produktdaten": "Product Data",
+  "dati di prodotto": "Product Data",
+  "dati prodotto": "Product Data",
+  "product data": "Product Data",
+  "transport i magazynowanie": "Shipping and storage",
+  "versand und lagerung": "Shipping and storage",
+  "spedizione e stoccaggio": "Shipping and storage",
+  "shipping and storage": "Shipping and storage",
+  "specyfikacja techniczna": "Technical specification",
+  "technische daten": "Technical specification",
+  "technische spezifikation": "Technical specification",
+  "specifiche tecniche": "Technical specification",
+  "technical specification": "Technical specification",
+  "wymiary": "Dimensions",
+  "abmessungen": "Dimensions",
+  "dimensioni": "Dimensions",
+  "dimensions": "Dimensions",
+  "środowisko pracy": "Operating environment",
+  "srodowisko pracy": "Operating environment",
+  "betriebsumgebung": "Operating environment",
+  "condizioni operative": "Operating environment",
+  "operating environment": "Operating environment",
+  "kategoria": "Category",
+  "kategorie": "Category",
+  "categoria": "Category",
+  "category": "Category",
+  "klasyfikacje": "Classifications",
+  "klassifizierungen": "Classifications",
+  "classificazioni": "Classifications",
+  "classifications": "Classifications"
+};
+
+function canonicaliseAbbGroupLabel(label: string): string {
+  const trimmed = label.trim();
+  if (!trimmed) return trimmed;
+  const canonical = ABB_GROUP_LABEL_CANONICAL[trimmed.toLowerCase()];
+  return canonical ?? trimmed;
+}
+
 function abbModelGroupName(group: Record<string, unknown>): string {
   const raw = cleanText(firstStringOrNumber(group.description, group.code) ?? "Product Data");
-  return raw ? `ABB ${raw}` : "ABB Product Data";
+  if (!raw) return "ABB Product Data";
+  return `ABB ${canonicaliseAbbGroupLabel(raw)}`;
 }
 
 function abbRelationshipAttributeName(label: string): string {

@@ -3,5 +3,5 @@
   "catalogNumber": "P1-25/I2/SVB",
   "expectedOfficialUrlPatterns": ["eaton\\.com/.*/skuPage"],
   "requiredDocuments": ["datasheet"],
-  "expectedNormalizedFields": ["voltage", "current"]
+  "expectedNormalizedFields": ["current", "dimensions", "weight"]
 }

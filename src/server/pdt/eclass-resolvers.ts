@@ -94,6 +94,12 @@ function tempRange(ctx: ResolveContext): { min?: string; max?: string } {
     attr(ctx, /\btemperature\b.*\b(operating|ambient|service|surrounding)\b/i),
     attr(ctx, /\bamb(?:ient)?\s+air\s+tem(?:p(?:erature)?)?\b/i),
     attr(ctx, /\btemperature range\b/i),
+    // Balluff datasheets publish operating temperature under "Cable temperature, fixed routing"
+    // (and "..., flexible routing"). Prefer fixed routing — it's the broader range cable users
+    // actually need for ambient/operating columns.
+    attr(ctx, /\bcable temperature,?\s+fixed\s+(?:routing|laid)\b/i),
+    attr(ctx, /\bcable temperature,?\s+flexible\s+routing\b/i),
+    attr(ctx, /\bcable temperature\b/i),
     attr(ctx, /\bstorage temperature\b/i)
   ];
   for (const value of values) {
@@ -316,17 +322,32 @@ function maxVoltageOnPolarity(ctx: ResolveContext, polarity: "ac" | "dc"): strin
 }
 
 /**
- * Extract the lowest numeric voltage from any attribute matching `pattern`, considering both
- * single values and ranges (e.g. "24-60 V" → 24).
+ * Extract the lowest numeric voltage from any attribute matching `pattern`. Scans ALL matching
+ * attributes (not just the highest-ranked one) so a Balluff range like "Operating voltage Ub:
+ * 10...30 VDC" wins over a sibling nominal "Rated operating voltage Ue DC: 24 V" — the answer
+ * for "min operating voltage" must be 10 V, not 24 V. Also supports "...","..", "-", "to", "do".
  */
 function minVoltageOf(ctx: ResolveContext, pattern: RegExp): string | undefined {
-  const value = attr(ctx, pattern);
-  if (!value) return undefined;
-  const numbers = [...value.replace(/,/g, ".").matchAll(/(-?\d+(?:\.\d+)?)\s*V\b/gi)]
-    .map((match) => Number(match[1]))
-    .filter(Number.isFinite);
-  if (numbers.length === 0) return undefined;
-  return String(Math.min(...numbers));
+  const matches = (ctx.result?.attributes ?? []).filter(
+    (a) => pattern.test(`${a.group ?? ""} ${a.name}`) && a.value?.trim()
+  );
+  if (matches.length === 0) return undefined;
+  const numbers: number[] = [];
+  for (const m of matches) {
+    const text = m.value.replace(/,/g, ".");
+    // Range first: "10...30 VDC", "24-60 V", "100-240 V AC"
+    const range = text.match(/(-?\d+(?:\.\d+)?)\s*(?:\.\.\.|\.{2}|-|to|do)\s*\+?(-?\d+(?:\.\d+)?)\s*V/i);
+    if (range) {
+      numbers.push(Number(range[1]), Number(range[2]));
+      continue;
+    }
+    for (const match of text.matchAll(/(-?\d+(?:\.\d+)?)\s*V\b/gi)) {
+      const n = Number(match[1]);
+      if (Number.isFinite(n)) numbers.push(n);
+    }
+  }
+  if (!numbers.length) return undefined;
+  return String(Math.min(...numbers.filter(Number.isFinite)));
 }
 
 function degreeOfProtection(ctx: ResolveContext): string | undefined {
@@ -1050,8 +1071,10 @@ function minVoltageValue(value: string | undefined): string | undefined {
 
 function minSupplyVoltage(ctx: ResolveContext): string | undefined {
   return (
-    minVoltageOf(ctx, /\b(min(?:imum)? supply voltage|min(?:imum)? input voltage)\b/i) ??
-    minVoltageValue(attrExcept(ctx, /\b(supply voltage|input voltage)\b/i, /\bmax(?:imum)?|rated supply voltage with AC\b/i))
+    minVoltageOf(ctx, /\b(min(?:imum)? supply voltage|min(?:imum)? input voltage|min(?:imum)? operating voltage)\b/i) ??
+    // Balluff publishes the sensor supply rating as "Operating voltage Ub: 10...30 VDC" — treat
+    // that as the supply range too. Excludes "max" qualifier and AC-only nominals.
+    minVoltageValue(attrExcept(ctx, /\b(supply voltage|input voltage|operating voltage(?:\s+Ub)?|rated operating voltage)\b/i, /\bmax(?:imum)?|rated supply voltage with AC\b/i))
   );
 }
 
@@ -1068,6 +1091,108 @@ function powerValue(ctx: ResolveContext, pattern: RegExp): string | undefined {
 function percentageValue(ctx: ResolveContext, pattern: RegExp): string | undefined {
   const value = attr(ctx, pattern);
   return numberOf(value);
+}
+
+// ---------------------------------------------------------------------------
+// Cable-specific helpers
+// ---------------------------------------------------------------------------
+
+/** Extract the cable's outer diameter in mm (used by bend-radius and conductor-diameter math). */
+function cableOuterDiameterMm(ctx: ResolveContext): number | undefined {
+  const value = attr(
+    ctx,
+    /\b(cable outer diameter|outer diameter|outside diameter|cable diameter d|cable diameter|nominal diameter of cable|nominal diameter)\b/i
+  );
+  if (!value) return undefined;
+  const m = value.replace(",", ".").match(/(\d+(?:\.\d+)?)\s*mm/i);
+  return m ? Number(m[1]) : undefined;
+}
+
+/**
+ * Bend radius resolver. Balluff datasheets publish bend radius as a multiplier of cable
+ * diameter ("Bending radius min., fixed cable: 5 x D"). The naive resolver returned just "5",
+ * which the PDT then wrote as "5 mm" — far below the realistic value. Compute the actual mm
+ * value when the source is a multiplier, otherwise pass through any direct "N mm" value.
+ */
+function bendRadiusMm(ctx: ResolveContext, pattern: RegExp): string | undefined {
+  const value = attr(ctx, pattern);
+  if (!value) return undefined;
+  const cleaned = value.replace(",", ".");
+  const direct = cleaned.match(/(\d+(?:\.\d+)?)\s*mm\b/i);
+  if (direct) return direct[1];
+  const mult = cleaned.match(/(\d+(?:\.\d+)?)\s*[x×*]\s*(?:D\b|d\b|cable\s*diameter|outer\s*diameter)/i);
+  if (mult) {
+    const factor = Number(mult[1]);
+    const D = cableOuterDiameterMm(ctx);
+    if (Number.isFinite(factor) && D !== undefined) {
+      return String(Number((factor * D).toFixed(2)));
+    }
+    // The value is a multiplier but we couldn't recover D — better empty than a bogus "5 mm".
+    return undefined;
+  }
+  return numberOf(value);
+}
+
+/** American Wire Gauge → mm² (IEC 60228 approx.). */
+function awgToCrossSectionMm2(awg: number): number {
+  return 0.012668 * Math.pow(92, (36 - awg) / 19.5);
+}
+
+/**
+ * Conductor cross-section in mm². Balluff Ethernet cables publish "Conductor cross-section:
+ * 26 AWG"; we must convert AWG → mm² before writing into the mm² PDT column. Plain "X mm²"
+ * passes through unchanged.
+ */
+function conductorCrossSectionMm2(ctx: ResolveContext): string | undefined {
+  const value = attr(ctx, /\b(conductor cross[- ]section|cross[- ]section|wire size|conductor size)\b/i);
+  if (!value) return undefined;
+  const cleaned = value.replace(",", ".");
+  const mm2 = cleaned.match(/(\d+(?:\.\d+)?)\s*mm²|(\d+(?:\.\d+)?)\s*mm2\b/i);
+  if (mm2) return mm2[1] ?? mm2[2];
+  const awgMatch = cleaned.match(/(\d+)\s*AWG/i);
+  if (awgMatch) {
+    const awgNum = Number(awgMatch[1]);
+    if (Number.isFinite(awgNum) && awgNum > 0 && awgNum < 50) {
+      return Number(awgToCrossSectionMm2(awgNum).toFixed(3)).toString();
+    }
+  }
+  return undefined;
+}
+
+/**
+ * Single-conductor diameter in mm. Without this dedicated resolver the BAD979 column was
+ * filled with the cable's outer diameter (because the previous regex fell through to a generic
+ * `|diameter`). Prefer a labeled value; otherwise derive geometrically from the conductor's
+ * cross-section: d = 2 × √(A/π).
+ */
+function conductorDiameterMm(ctx: ResolveContext): string | undefined {
+  const direct = attr(ctx, /\b(diameter of conductor|conductor diameter|single wire diameter|wire diameter)\b/i);
+  if (direct) {
+    const m = direct.replace(",", ".").match(/(\d+(?:\.\d+)?)\s*mm/i);
+    if (m) return m[1];
+  }
+  const xsec = conductorCrossSectionMm2(ctx);
+  if (xsec) {
+    const A = Number(xsec);
+    if (Number.isFinite(A) && A > 0) {
+      const d = 2 * Math.sqrt(A / Math.PI);
+      return Number(d.toFixed(2)).toString();
+    }
+  }
+  return undefined;
+}
+
+/**
+ * Cable jacket / sheath / mantle material. We have to actively reject "..., note" attributes
+ * here — Balluff publishes "Cable jacket material, note: Shielded" alongside the true
+ * "Cable jacket, material: PUR", and a permissive regex would pick the wrong one first.
+ */
+function cableJacketMaterial(ctx: ResolveContext): string | undefined {
+  return attrExcept(
+    ctx,
+    /\b(?:cable\s+jacket|jacket|sheath|mantle)[ ,]+material\b|\bjacket\s*material\b|\bsheath\s*material\b|\bmantle\s*material\b|\bcable\s+jacket\s+material\b/i,
+    /\b(note|shield(?:ed|ing)?)\b/i
+  );
 }
 
 /**
@@ -1230,9 +1355,12 @@ const RESOLVERS: Record<string, Resolver> = {
   BAD831: electricalConnectionDesign,
   // Rated breaking capacity at AC-3 / similar — reuse rated operational current for now
   AAB400: interfaceDesign,
-  // Application standards (cross-tab variants)
-  AAB838: (ctx) => attr(ctx, /\b(application standards|standards?)\b/i),
-  AAB839: (ctx) => attr(ctx, /\b(application standards|standards?)\b/i),
+  // AAB838/AAB839 are ECLASS "Maximum operating voltage at 50 Hz / 60 Hz AC" — NOT application
+  // standards. The previous mapping to /standards?/ accidentally pulled the IEC standard number
+  // (e.g. "IEC 60947-5-2") into a voltage column as "60947". Use the AC polarity scoping helper;
+  // returns undefined when the product publishes only DC voltages (better than a wrong value).
+  AAB838: (ctx) => maxVoltageOnPolarity(ctx, "ac"),
+  AAB839: (ctx) => maxVoltageOnPolarity(ctx, "ac"),
   // Connection cross-section (mm²)
   AAB733: (ctx) => numberWithUnit(attr(ctx, /\b(connectable conductor cross[-\s]?section|conductor cross[-\s]?section|connection cross[-\s]?section)\b/i), "mm"),
   // min. operating voltage with AC 50/60 Hz — alternate ECLASS codes for the same property family.
@@ -1268,7 +1396,11 @@ const RESOLVERS: Record<string, Resolver> = {
   // Cross-tab electrical ratings and operating conditions.
   AAB459: (ctx) => maxVoltageOnPolarity(ctx, "ac"),
   AAB840: (ctx) => maxVoltageOnPolarity(ctx, "dc"),
-  AAB973: (ctx) => minVoltageOf(ctx, /\b(min(?:imum)? .*voltage.*DC|min(?:imum)? operating voltage.*DC|operating voltage.*DC|supply voltage.*DC)\b/i),
+  // Balluff publishes the operating-voltage range in the value ("Operating voltage Ub: 10...30
+  // VDC"), not the name — the old regex insisted on "DC" in the name and so missed it. Accept
+  // any "operating voltage" / "supply voltage" attribute; minVoltageOf scans values and picks
+  // the smallest number (=10 V), which is the real "min operating voltage with DC" answer.
+  AAB973: (ctx) => minVoltageOf(ctx, /\b(min(?:imum)? .*voltage.*DC|min(?:imum)? operating voltage.*DC|operating voltage.*DC|supply voltage.*DC|operating voltage(?:\s+Ub)?|supply voltage|input voltage|rated operating voltage)\b/i),
   AAB960: (ctx) => minVoltageOf(ctx, /\b(min(?:imum)? .*control voltage.*DC|control voltage.*DC)\b/i),
   ABC268: (ctx) => maxVoltageOnPolarity(ctx, "dc"),
   BAC064: voltageType,
@@ -1358,7 +1490,9 @@ const RESOLVERS: Record<string, Resolver> = {
   AAB967: (ctx) => minVoltageOf(ctx, /\b(min(?:imum)? rated supply voltage.*AC|min(?:imum)? supply voltage.*AC|supply voltage.*AC|input voltage.*AC)\b/i),
   AAB968: (ctx) => minVoltageOf(ctx, /\b(min(?:imum)? rated supply voltage.*DC|min(?:imum)? supply voltage.*DC|supply voltage.*DC|input voltage.*DC)\b/i),
   AAC962: minSupplyVoltage,
-  AAC965: (ctx) => voltageValue(ctx, /\b(max(?:imum)? supply voltage|supply voltage|input voltage)\b/i),
+  // Accept Balluff "Operating voltage Ub: 10...30 VDC" too — for sensors the operating voltage
+  // IS the supply voltage. voltageValue extracts the max numeric V from the range string.
+  AAC965: (ctx) => voltageValue(ctx, /\b(max(?:imum)? supply voltage|supply voltage|input voltage|operating voltage(?:\s+Ub)?|rated operating voltage)\b/i),
   AAF727: (ctx) => voltageValue(ctx, /\b(max(?:imum)? rated operating voltage|max(?:imum)? operating voltage|rated operating voltage)\b/i),
   AAF728: (ctx) => minVoltageOf(ctx, /\b(min(?:imum)? rated operating voltage|min(?:imum)? operating voltage|rated operating voltage)\b/i),
   AAC823: (ctx) => currentValue(ctx, /\b(rated value of current|rated current|nominal current)\b/i),
@@ -1985,7 +2119,11 @@ const RESOLVERS: Record<string, Resolver> = {
   AAM985: attrValue(/\b(firmware version|firmware)\b/i),
   AAO737: attrValue(/\b(delivery scope of disposable system|delivery scope)\b/i),
   AAQ824: outputCategory,
-  AAR412: (ctx) => materialAttribute(ctx, /\b(material in contact with the medium|medium contact material)\b/i) ?? normalizedMaterial(ctx),
+  // AAR412 is "Material in contact with the medium" — only meaningful for fluid/pressure sensors
+  // and other wetted-parts equipment. Do NOT fall back to general housing material: for
+  // photoelectric/inductive/optical sensors the housing is brass/steel but they have no medium,
+  // so writing "brass" implies a fluid contact that does not exist.
+  AAR412: (ctx) => materialAttribute(ctx, /\b(material in contact with the medium|medium contact material|wetted parts? material|process[- ]wetted material)\b/i),
   AAT832: attrValue(/\b(signal channel)\b/i),
   AAV535: attrNumber(/\b(response time|reaction time)\b/i),
   AAV538: attrValue(/\b(field of application|application field)\b/i),
@@ -2014,7 +2152,7 @@ const RESOLVERS: Record<string, Resolver> = {
   BAD807: attrNumber(/\b(output rate)\b/i),
   BAD812: attrYesNo(/\b(disable function)\b/i),
   BAD813: attrValue(/\b(prerequisite evaluation unit|evaluation unit)\b/i),
-  BAD821: (ctx) => lengthValue(ctx, /\b(min(?:imum)? bending radius|bending radius)\b/i),
+  BAD821: (ctx) => bendRadiusMm(ctx, /\b(min(?:imum)? bending radius|bending radius|bend radius|bending radius min\.?,\s*fixed cable)\b/i),
   BAD824: attrValue(/\b(detection ability|test bodies)\b/i),
   BAD830: settingOption,
   BAD832: attrValue(/\b(reception spectrum|spectrum)\b/i),
@@ -2132,9 +2270,14 @@ const RESOLVERS: Record<string, Resolver> = {
   AAC804: attrNumber(/\b(crest factor)\b/i),
   AAE783: (ctx) => dimensionValue(ctx, ["width"], /\b(min(?:imum)? width of the niche|niche width)\b/i),
   BAA279: attrValue(/\b(cable\/conduit entry|conduit entry|cable entry)\b/i),
-  BAA451: attrNumber(/\b(volume capacity|capacity)\b/i),
+  // Volume capacity is in m³ — must NOT fall back to a generic "capacity" match (the BAE00M3
+  // power supply's "Nominal capacity: 720 W" was leaking into this cell as 720 m³).
+  BAA451: attrNumber(/\b(volume capacity|capacity\s*\(volume\)|volume\s*\(capacity\))\b/i),
   BAA558: qualityCharacteristicRecord,
-  BAA564: attrNumber(/\b(battery capacity|capacity)\b/i),
+  // Battery capacity (A·h) — only meaningful for batteries / UPS / battery-backed devices.
+  // Removed the generic `|capacity` fallback that was filling this column with the rated power
+  // (720 W) of a non-battery industrial power supply.
+  BAA564: attrNumber(/\b(battery capacity|nominal battery capacity|rated battery capacity)\b/i),
   BAB271: attrNumber(/\b(transit time)\b/i),
   BAB272: attrNumber(/\b(bridging time|backup time)\b/i),
   BAB304: connectionType,
@@ -2156,7 +2299,10 @@ const RESOLVERS: Record<string, Resolver> = {
   BAB373: attrValue(/\b(construction type of battery|battery construction|battery type)\b/i),
   BAB485: attrValue(/\b(interference resistance to bursts|burst immunity)\b/i),
   BAB492: attrValue(/\b(EMC radiation|radiation)\b/i),
-  BAB500: (ctx) => round(weight(ctx).kg, 3) ?? attrNumber(/\b(mass of the battery|battery mass)\b/i)(ctx),
+  // Mass of the battery — explicit only. The previous resolver fell back to the product's net
+  // weight, so non-battery products (industrial PSUs etc.) were getting their full weight stamped
+  // into a battery-mass column.
+  BAB500: attrNumber(/\b(mass of (?:the )?battery|battery mass|battery weight)\b/i),
   BAB975: (ctx) => currentValue(ctx, /\b(output current)\b/i),
   BAC178: (ctx) => dimensionValue(ctx, ["installation width", "width"], /\b(installation width|width)\b/i),
   BAC180: (ctx) => dimensionValue(ctx, ["installation height", "height"], /\b(installation height|height)\b/i),
@@ -2280,7 +2426,9 @@ const RESOLVERS: Record<string, Resolver> = {
   BAB934: connectionType,
   BAC678: attrNumber(/\b(max(?:imum)? nominal frequency|nominal frequency)\b/i),
   BAC741: attrNumber(/\b(min(?:imum)? nominal frequency|nominal frequency)\b/i),
-  BAD979: (ctx) => lengthValue(ctx, /\b(diameter of conductor|conductor diameter|diameter)\b/i),
+  // Conductor diameter must NOT fall back to the generic `|diameter` regex — that would match
+  // the cable's *outer* diameter ("Cable diameter D") and write it into the conductor column.
+  BAD979: conductorDiameterMm,
 
   // Cable, connector, busbar, command-device, safety/fluid sensor, and drive details.
   BAD974: (ctx) => lengthValue(ctx, /\b(cable outer diameter|outer diameter|outside diameter|diameter)\b/i),
@@ -2295,11 +2443,11 @@ const RESOLVERS: Record<string, Resolver> = {
   BAD995: attrYesNo(/\b(cold resistant|cold resistance|EN\s*60811-1-4)\b/i),
   AAK395: screenOverStrandingElement,
   AAI690: (ctx) => dimensionValue(ctx, ["height"], /\b(height of cable|cable height|height)\b/i),
-  AAC028: (ctx) => temperatureBound(ctx, "min", /\b(cable outside temperature|fixed laid|permissible cable temperature|ambient temperature|operating temperature)\b/i),
+  AAC028: (ctx) => temperatureBound(ctx, "min", /\b(cable outside temperature|fixed laid|permissible cable temperature|ambient temperature|operating temperature|cable temperature,?\s*fixed\s*(?:routing|laid))\b/i),
   AAL680: attrYesNo(/\b(halogen free|halogen-free|EN\s*50267)\b/i),
   BAE021: attrValue(/\b(material of wire insulation|wire insulation material|insulation material)\b/i),
-  AAF526: (ctx) => temperatureBound(ctx, "min", /\b(ambient temperature.*operating|operating temperature|ambient temperature)\b/i),
-  AAF525: (ctx) => temperatureBound(ctx, "max", /\b(ambient temperature.*operating|operating temperature|ambient temperature)\b/i),
+  AAF526: (ctx) => temperatureBound(ctx, "min", /\b(ambient temperature.*operating|operating temperature|ambient temperature|cable temperature,?\s*fixed\s*(?:routing|laid))\b/i),
+  AAF525: (ctx) => temperatureBound(ctx, "max", /\b(ambient temperature.*operating|operating temperature|ambient temperature|cable temperature,?\s*fixed\s*(?:routing|laid))\b/i),
   BAD971: attrValue(/\b(construction of cabled element|cabled element construction|cable construction)\b/i),
   BAE005: attrValue(/\b(class of conductor|conductor class)\b/i),
   BAH000: attrYesNo(/\b(waterproof transversally|transversal water|water blocking|water-blocking)\b/i),
@@ -2308,13 +2456,14 @@ const RESOLVERS: Record<string, Resolver> = {
   BAE039: attrValue(/\b(design of shield over cabling|shield over cabling|screen over cabling|shield design)\b/i),
   BAB378: (ctx) => colorValue(ctx, /\b(colou?r of coat|coat colou?r|jacket colou?r|mantle colou?r)\b/i),
   AAK402: attrValue(/\b(protective sheath|protective jacket|protective mantle)\b/i),
-  AAK718: attrValue(/\b(material of the sheath|sheath material|jacket material|cable jacket material)\b/i),
+  AAK718: cableJacketMaterial,
   AAK528: attrValue(/\b(material of the core insulation|core insulation material|wire insulation material)\b/i),
-  BAE029: attrValue(/\b(material of the mantle|mantle material|jacket material|cable jacket material)\b/i),
+  BAE029: cableJacketMaterial,
   BAE040: attrValue(/\b(material of the protective mantle|protective mantle material|protective sheath material)\b/i),
   AAD244: attrValue(/\b(cable category|category)\b/i),
   BAD983: attrValue(/\b(function retention|circuit integrity|E30|E60|E90)\b/i),
-  BAB267: attrUnitNumber(/\b(conductor cross[- ]section|cross[- ]section|wire size)\b/i, "mm"),
+  // Cross-section needs AWG→mm² conversion (Balluff Ethernet cables publish "26 AWG").
+  BAB267: conductorCrossSectionMm2,
   BAE020: attrNumber(/\b(surge impedance|impedance)\b/i),
   AAF515: attrNumber(/\binductance\b/i),
   AAF511: attrNumber(/\b(max(?:imum)? traction stress|traction stress|tensile strength|pulling force)\b/i),

@@ -246,6 +246,28 @@ const builtInManufacturerConfigs: Record<string, ManufacturerConfig> = {
       }
     ]
   },
+  fath: {
+    id: "fath",
+    canonicalName: "FATH GmbH",
+    shortName: "FATH",
+    rateLimitMs: 1500,
+    officialBaseUrls: ["https://www.fath24.com"],
+    localizedUrlTemplates: [
+      { locale: "en", urlTemplate: "https://www.fath24.com/en/search?search={part}" },
+      { locale: "de", urlTemplate: "https://www.fath24.com/de/search?search={part}" }
+    ],
+    fallbackSources: [
+      {
+        id: "fath-search",
+        label: "FATH24 shop search",
+        enabled: true,
+        sourceType: "official-fallback",
+        directUrlTemplates: ["https://www.fath24.com/en/search?search={part}"],
+        confidence: 0.72,
+        fetchPolicy: { timeoutMs: 25000, minContentLength: 500 }
+      }
+    ]
+  },
   eaton: {
     id: "eaton",
     canonicalName: "Eaton",

@@ -2,7 +2,7 @@ import * as cheerio from "cheerio";
 import type { AttributeRecord, DocumentRecord, LocalizedUrlTemplate, ProductResult, ScrapeDiagnostics, SourceRecord } from "../../shared/types.js";
 import type { FetchedText } from "./http-client.js";
 import { buildLocalizedProductUrls } from "./localized-urls.js";
-import { classifyDocument, cleanText, emptyResult, normalizeFields } from "./normalizer.js";
+import { classifyDocument, cleanText, emptyResult, mergeResults, normalizeFields } from "./normalizer.js";
 import type { ManufacturerConnector, ScrapeContext } from "./types.js";
 import { catalogTextMatches, compactCatalogNumber, encodeSlashBraceCatalogPart, fillCatalogTemplate, templateContainsCatalogPlaceholder } from "./catalog-number.js";
 
@@ -184,6 +184,23 @@ const KNOWN_FIELDS = [
   "Unlocking method"
 ].sort((left, right) => right.length - left.length);
 
+// Session-scoped breaker: once Eaton's bot-mitigation makes the first browser render time out,
+// we treat the host as render-blocked for the rest of the process and stop spending ~45s on each
+// subsequent attempt. This is reset on process exit (per-module), so no caching issue across runs.
+const EATON_BROWSER_BLOCKED_COOLDOWN_MS = 1000 * 60 * 30; // 30 minutes
+let eatonBrowserBlockedUntil = 0;
+
+function isEatonBrowserBlocked(): boolean {
+  return Date.now() < eatonBrowserBlockedUntil;
+}
+
+function markEatonBrowserBlocked(reason: string): void {
+  eatonBrowserBlockedUntil = Date.now() + EATON_BROWSER_BLOCKED_COOLDOWN_MS;
+  if (typeof process !== "undefined" && process.env?.DEBUG_EATON) {
+    console.warn(`[eaton] disabling browser render for ${EATON_BROWSER_BLOCKED_COOLDOWN_MS / 60000}min: ${reason}`);
+  }
+}
+
 export class EatonConnector implements ManufacturerConnector {
   readonly id = "eaton";
 
@@ -203,56 +220,173 @@ export class EatonConnector implements ManufacturerConnector {
       } catch {
         // Try the next Eaton locale before falling back to the public reader.
       }
-      if (result && result.status !== "failed") return withEatonDiagnostics(result, diagnostics);
+      if (result && result.status !== "failed" && isRichEatonResult(result)) return withEatonDiagnostics(result, diagnostics);
     }
 
-    const searchCandidates = await discoverEatonSearchCandidates(catalogNumber, context, diagnostics);
-    for (const candidate of searchCandidates.slice(0, 6)) {
-      try {
-        const fetched = await context.http.fetchText(candidate.url, { timeoutMs: 7000, maxAttempts: 1, signal: context.signal });
-        result = parseEatonProductPage(catalogNumber, fetched, candidate.url, context.manufacturer.localizedUrlTemplates);
-      } catch {
-        // Try the next official Eaton search result.
+    if (context.browserRenderer && !context.browserRenderer.isUnavailable?.() && !isEatonBrowserBlocked()) {
+      for (const officialUrl of candidates.slice(0, 2)) {
+        const rendered = await renderEatonProductInBrowser(catalogNumber, officialUrl, context, diagnostics);
+        if (!rendered) {
+          // Render returned nothing — either page.goto timed out or the renderer errored.
+          // Eaton's bot-mitigation makes retries pointless, so break out and tell the rest of
+          // the session to skip browser render entirely.
+          if (isEatonBrowserBlocked()) break;
+          markEatonBrowserBlocked(`first browser attempt failed for ${officialUrl}`);
+          break;
+        }
+        if (rendered.status !== "failed") {
+          if (!result || result.status === "failed" || (rendered.attributes.length > result.attributes.length)) {
+            result = rendered;
+          }
+          if (isRichEatonResult(rendered)) return withEatonDiagnostics(rendered, diagnostics);
+        }
       }
-      if (result && result.status !== "failed") return withEatonDiagnostics(result, diagnostics);
     }
 
+    // Single attempt to ask Jina for a browser-rendered snapshot (waits for the spec table to
+    // hydrate). Jina's free tier currently ignores these headers, but if an API key is added later
+    // this is where we'd start seeing Voltage rating / Number of poles etc. in the markdown.
+    if (candidates[0]) {
+      const richReader = await fetchEatonReader(candidates[0], context, { timeoutMs: 25000, waitForSelector: true });
+      if (richReader) {
+        const parsed = parseEatonProductPage(catalogNumber, richReader, candidates[0], context.manufacturer.localizedUrlTemplates);
+        if (parsed.status !== "failed") result = mergeEatonResults(result, parsed);
+      }
+    }
+
+    // Iterate ALL locales via Jina without-wait and MERGE results — different Eaton locales
+    // (de/it/no) sometimes surface fields the US page omits (e.g. Rated voltage, Frequency rating).
+    // This is analogous to ABB's locale fallback path that rescues PIS data hidden behind AEM
+    // shells. We cap the number of locales fetched once the result is clearly rich.
+    let localeFetchCount = 0;
     for (const officialUrl of candidates) {
-      try {
-        const fetched = await context.http.fetchText(buildEatonReaderUrl(officialUrl), {
-          timeoutMs: 12000,
-          maxAttempts: 1,
-          signal: context.signal,
-          headers: {
-            accept: "text/markdown,text/plain,*/*"
-          }
-        });
-        result = parseEatonProductPage(catalogNumber, fetched, officialUrl, context.manufacturer.localizedUrlTemplates);
-      } catch {
-        // Fall through to the next reader locale.
-      }
-      if (result && result.status !== "failed") return withEatonDiagnostics(result, diagnostics);
+      if (result && isRichEatonResult(result) && localeFetchCount >= 2) break;
+      const fetched = await fetchEatonReader(officialUrl, context, { timeoutMs: 12000, waitForSelector: false });
+      if (!fetched) continue;
+      localeFetchCount += 1;
+      const parsed = parseEatonProductPage(catalogNumber, fetched, officialUrl, context.manufacturer.localizedUrlTemplates);
+      if (parsed.status === "failed") continue;
+      result = mergeEatonResults(result, parsed);
     }
 
-    for (const candidate of searchCandidates.slice(0, 4)) {
-      try {
-        const fetched = await context.http.fetchText(buildEatonReaderUrl(candidate.url), {
-          timeoutMs: 12000,
-          maxAttempts: 1,
-          signal: context.signal,
-          headers: {
-            accept: "text/markdown,text/plain,*/*"
-          }
-        });
-        result = parseEatonProductPage(catalogNumber, fetched, candidate.url, context.manufacturer.localizedUrlTemplates);
-      } catch {
-        // Fall through to the next discovered reader page.
+    // Search discovery is expensive (~15s/locale via Jina) and only useful when direct skuPage
+    // URLs failed to surface a product page. Run it as a LAST resort, not eagerly.
+    if (!result || result.status === "failed" || !isRichEatonResult(result)) {
+      const searchCandidates = await discoverEatonSearchCandidates(catalogNumber, context, diagnostics);
+      for (const candidate of searchCandidates.slice(0, 4)) {
+        if (result && isRichEatonResult(result)) break;
+        const fetched = await fetchEatonReader(candidate.url, context, { timeoutMs: 12000, waitForSelector: false });
+        if (!fetched) continue;
+        const parsed = parseEatonProductPage(catalogNumber, fetched, candidate.url, context.manufacturer.localizedUrlTemplates);
+        if (parsed.status === "failed") continue;
+        result = mergeEatonResults(result, parsed);
       }
-      if (result && result.status !== "failed") return withEatonDiagnostics(result, diagnostics);
     }
+
+    if (result && result.status !== "failed") return withEatonDiagnostics(result, diagnostics);
 
     const fallback = await context.fallback.scrape(catalogNumber, context.manufacturer.fallbackSources);
     return fallback ? withEatonDiagnostics(fallback, diagnostics) : withEatonDiagnostics(result ?? emptyResult("eaton", catalogNumber, "No Eaton product page could be fetched."), diagnostics);
+  }
+}
+
+const EATON_TECH_DATA_FIELDS = ["voltage rating", "rated voltage", "voltage rating - max", "rated operational voltage", "amperage rating", "number of poles", "frame size", "frame", "frequency rating", "trip type", "interrupt rating", "utilization category", "rated impulse withstand voltage", "rated operation current"];
+const EATON_RICH_TECH_FIELD_THRESHOLD = 3;
+const EATON_RICH_TOTAL_ATTRIBUTE_THRESHOLD = 10;
+const EATON_RICH_DOCUMENT_THRESHOLD = 2;
+
+function mergeEatonResults(primary: ProductResult | undefined, incoming: ProductResult): ProductResult {
+  if (!primary || primary.status === "failed") return incoming;
+  // Prefer attribute-richer result as the "primary" side of the merge so its title/description win.
+  const [base, addition] = incoming.attributes.length > primary.attributes.length ? [incoming, primary] : [primary, incoming];
+  return mergeResults(base, addition);
+}
+
+function isRichEatonResult(result: ProductResult): boolean {
+  const haystack = result.attributes.map((attr) => `${attr.name}`.toLowerCase()).join("|");
+  const techMatches = EATON_TECH_DATA_FIELDS.filter((field) => haystack.includes(field)).length;
+  // Need a meaningful number of tech-data hits AND a respectable attribute count, OR a thick
+  // attribute set with at least one tech field, OR document coverage. This stops the pipeline
+  // bailing out early on a result that only mentions e.g. "Amperage Rating" with nothing else.
+  if (techMatches >= EATON_RICH_TECH_FIELD_THRESHOLD) return true;
+  if (techMatches >= 1 && result.attributes.length >= EATON_RICH_TOTAL_ATTRIBUTE_THRESHOLD) return true;
+  if (result.documents.filter((doc) => doc.type === "datasheet" || doc.type === "cad" || doc.type === "manual").length >= EATON_RICH_DOCUMENT_THRESHOLD && result.attributes.length >= EATON_RICH_TOTAL_ATTRIBUTE_THRESHOLD) return true;
+  return false;
+}
+
+const EATON_BROWSER_RECIPE = {
+  interactionPolicy: {
+    networkIdleTimeoutMs: 12000,
+    // "domcontentloaded" waits past TLS+initial HTML so cookie banners / spec tables can mount,
+    // unlike "commit" which gives up before Eaton's bot-mitigation completes the response.
+    gotoWaitUntil: "domcontentloaded" as const,
+    gotoTimeoutMs: 45000,
+    blockResourceTypes: ["image", "media", "font"] as const,
+    scrollPasses: 3,
+    maxClicks: 40,
+    closeOverlaySelectors: [
+      "#onetrust-accept-btn-handler",
+      "button#onetrust-accept-btn-handler",
+      "button:has-text('Accept all cookies')",
+      "button:has-text('Accept All Cookies')",
+      "button:has-text('Accept all')",
+      "button:has-text('I accept')",
+      "button:has-text('Akzeptieren')",
+      "button:has-text('Alle Cookies akzeptieren')"
+    ],
+    expandSelectors: [
+      "button:has-text('Technical data')",
+      "button:has-text('Technische Daten')",
+      "button:has-text('Specifications')",
+      "button:has-text('Spezifikationen')",
+      "button:has-text('Caractéristiques')",
+      "button:has-text('General specifications')",
+      "button:has-text('Performance Ratings')",
+      "button:has-text('Physical Attributes')",
+      "button:has-text('Show more')",
+      "button:has-text('Show all')",
+      "button:has-text('Mehr anzeigen')",
+      ".product-specification-item__title button",
+      ".product-specification-item__title[aria-expanded='false']",
+      "[aria-controls*='specification']",
+      "button[data-toggle][aria-expanded='false']"
+    ],
+    waitForSelectors: [
+      ".product-specification-item",
+      ".specification-row",
+      ".specification-title",
+      ".module-product-detail-card-v2__title"
+    ]
+  }
+} as unknown as Parameters<NonNullable<ScrapeContext["browserRenderer"]>["renderProductPage"]>[1];
+
+async function renderEatonProductInBrowser(
+  catalogNumber: string,
+  officialUrl: string,
+  context: ScrapeContext,
+  diagnostics: Pick<ScrapeDiagnostics, "attemptedUrls" | "discoveredCandidates" | "notes">
+): Promise<ProductResult | undefined> {
+  if (!context.browserRenderer) return undefined;
+  diagnostics.attemptedUrls?.push(`browser:${officialUrl}`);
+  try {
+    const rendered = await context.browserRenderer.renderProductPage(officialUrl, EATON_BROWSER_RECIPE, context.signal);
+    if (rendered.error || !rendered.fetched) {
+      if (rendered.error) diagnostics.notes?.push(`Eaton browser render failed for ${officialUrl}: ${rendered.error}`);
+      return undefined;
+    }
+    const parsed = parseEatonProductPage(catalogNumber, rendered.fetched, officialUrl, context.manufacturer.localizedUrlTemplates);
+    if (parsed.status === "failed") return undefined;
+    parsed.sources = parsed.sources.map((source) => ({
+      ...source,
+      parser: source.parser ?? "eaton-browser-render",
+      stage: source.stage ?? "browser-render"
+    }));
+    parsed.attributes = parsed.attributes.map((attr) => ({ ...attr, stage: attr.stage ?? "browser-render" }));
+    parsed.documents = parsed.documents.map((doc) => ({ ...doc, stage: doc.stage ?? "browser-render" }));
+    return parsed;
+  } catch (error) {
+    diagnostics.notes?.push(`Eaton browser render exception for ${officialUrl}: ${error instanceof Error ? error.message : String(error)}`);
+    return undefined;
   }
 }
 
@@ -332,6 +466,40 @@ function buildEatonReaderUrl(officialUrl: string): string {
   return `https://r.jina.ai/http://${officialUrl.replace(/^https?:\/\//i, "")}`;
 }
 
+function stripJinaTextPreamble(text: string): string {
+  // Jina prepends "Title: …\n\nURL Source: …\n\nMarkdown Content:\n" before the proxied body.
+  // For JSON endpoints we want the raw body so JSON.parse can succeed.
+  const marker = text.indexOf("Markdown Content:");
+  if (marker < 0) return text;
+  return text.slice(marker + "Markdown Content:".length).trimStart();
+}
+
+async function fetchEatonReader(
+  officialUrl: string,
+  context: ScrapeContext,
+  options: { timeoutMs: number; waitForSelector: boolean }
+): Promise<FetchedText | undefined> {
+  // The "x-engine: browser" + "x-wait-for-selector" combo asks Jina's headless reader
+  // to wait until Eaton's client-side spec table has rendered before snapshotting.
+  // Without this, Jina returns the SPA shell and we miss Voltage rating, Number of poles, etc.
+  const headers: Record<string, string> = { accept: "text/markdown,text/plain,*/*" };
+  if (options.waitForSelector) {
+    headers["x-engine"] = "browser";
+    headers["x-wait-for-selector"] = ".specification-row, .product-specification-item, .specification-title";
+    headers["x-timeout"] = "30";
+  }
+  try {
+    return await context.http.fetchText(buildEatonReaderUrl(officialUrl), {
+      timeoutMs: options.timeoutMs,
+      maxAttempts: 1,
+      signal: context.signal,
+      headers
+    });
+  } catch {
+    return undefined;
+  }
+}
+
 async function discoverEatonSearchCandidates(
   catalogNumber: string,
   context: ScrapeContext,
@@ -344,11 +512,12 @@ async function discoverEatonSearchCandidates(
   const searchUrls = buildEatonSearchApiUrlCandidates(catalogNumber, configuredTemplates);
   const byUrl = new Map<string, EatonSearchCandidate>();
 
-  for (const searchUrl of searchUrls.slice(0, 8)) {
+  for (const searchUrl of searchUrls.slice(0, 4)) {
     diagnostics.attemptedUrls?.push(searchUrl);
+    let succeeded = false;
     try {
       const fetched = await context.http.fetchText(searchUrl, {
-        timeoutMs: 10000,
+        timeoutMs: 8000,
         maxAttempts: 1,
         signal: context.signal,
         headers: {
@@ -360,8 +529,31 @@ async function discoverEatonSearchCandidates(
         const existing = byUrl.get(candidate.url.toLowerCase());
         if (!existing || candidate.score > existing.score) byUrl.set(candidate.url.toLowerCase(), candidate);
       }
+      succeeded = true;
     } catch (error) {
       diagnostics.notes?.push(`Eaton search discovery failed for ${searchUrl}: ${error instanceof Error ? error.message : String(error)}`);
+    }
+
+    // Direct fetch to eaton.com from this host typically times out; Jina's headless reader can
+    // reach the same JCR search endpoint. Fall back to it when direct discovery failed.
+    if (!succeeded) {
+      const jinaUrl = buildEatonReaderUrl(searchUrl);
+      try {
+        const fetched = await context.http.fetchText(jinaUrl, {
+          timeoutMs: 22000,
+          maxAttempts: 1,
+          signal: context.signal,
+          headers: { accept: "text/plain,application/json,*/*" }
+        });
+        // Jina prefixes the response with "Title: …\n\nURL Source: …\n\nMarkdown Content:\n" then the JSON body.
+        // The existing extractor JSON.parses the text and falls back to a regex scan, so it tolerates the prefix.
+        for (const candidate of extractEatonSearchCandidates(stripJinaTextPreamble(fetched.text), fetched.effectiveUrl, catalogNumber)) {
+          const existing = byUrl.get(candidate.url.toLowerCase());
+          if (!existing || candidate.score > existing.score) byUrl.set(candidate.url.toLowerCase(), candidate);
+        }
+      } catch (error) {
+        diagnostics.notes?.push(`Eaton reader search discovery failed for ${jinaUrl}: ${error instanceof Error ? error.message : String(error)}`);
+      }
     }
   }
 
@@ -810,26 +1002,49 @@ function extractHtmlBreadcrumbAttributes($: cheerio.CheerioAPI, sourceUrl: strin
   return crumbs.length >= 2 ? [{ group: "Product hierarchy", name: "Breadcrumb", value: crumbs.join(" > "), sourceUrl }] : [];
 }
 
+const MARKDOWN_ATTRIBUTE_VALUE_MAX_LENGTH = 500;
+const MARKDOWN_ATTRIBUTE_NAME_DROP = /^(?:title|url\s+source|markdown\s+content|date|sku|description\s*label|descriptionlabel|product\s+pickup|distributor)$/i;
+
 function extractMarkdownAttributes(lines: string[], sourceUrl: string): AttributeRecord[] {
   const attributes: AttributeRecord[] = [];
   const knownFields = knownMarkdownFields(lines);
   let group = "Eaton Page";
   let pending: AttributeRecord | undefined;
+  let pendingAccumulatedLines = 0;
 
   const flushPending = () => {
     if (!pending) return;
-    if (!isIgnoredAttributeSection(pending.group) && pending.value && !/^date$/i.test(pending.name)) {
-      attributes.push({ ...pending, value: cleanText(pending.value.replace(/^[*\s-]+/, "")) });
+    const value = cleanText(pending.value.replace(/^[*\s-]+/, ""));
+    if (
+      !isIgnoredAttributeSection(pending.group) &&
+      !isIgnoredAttributeSection(pending.name) &&
+      !MARKDOWN_ATTRIBUTE_NAME_DROP.test(pending.name) &&
+      value &&
+      !isJunkAttributeValue(value)
+    ) {
+      attributes.push({ ...pending, value: truncateAttributeValue(value) });
     }
     pending = undefined;
+    pendingAccumulatedLines = 0;
   };
 
   for (let index = 0; index < lines.length; index += 1) {
     const line = lines[index];
+
+    if (isJinaMetadataLine(line)) {
+      flushPending();
+      continue;
+    }
+
     const heading = line.match(/^#+\s*(.+)$/);
     if (heading) {
       flushPending();
       group = cleanText(heading[1].replace(/\s+\|\s+Eaton$/i, ""));
+      continue;
+    }
+
+    if (isLikelyNavLine(line)) {
+      flushPending();
       continue;
     }
 
@@ -849,7 +1064,17 @@ function extractMarkdownAttributes(lines: string[], sourceUrl: string): Attribut
     const pipePair = line.match(/^\|?\s*([^|]{2,140})\s+\|\s+(.+?)\s*\|?$/);
     if (pipePair) {
       flushPending();
-      attributes.push({ group, name: cleanText(pipePair[1]), value: cleanText(pipePair[2]), sourceUrl });
+      const name = cleanText(pipePair[1]);
+      const value = cleanText(pipePair[2]);
+      if (
+        !isIgnoredAttributeSection(group) &&
+        !isIgnoredAttributeSection(name) &&
+        !MARKDOWN_ATTRIBUTE_NAME_DROP.test(name) &&
+        value &&
+        !isJunkAttributeValue(value)
+      ) {
+        attributes.push({ group, name, value: truncateAttributeValue(value), sourceUrl });
+      }
       continue;
     }
 
@@ -878,12 +1103,56 @@ function extractMarkdownAttributes(lines: string[], sourceUrl: string): Attribut
       continue;
     }
 
-    if (pending && !isSectionBoundary(line)) {
-      pending.value = cleanText(`${pending.value} ${line.replace(/^[-*]\s+/, "")}`);
+    if (pending && !isSectionBoundary(line) && pendingAccumulatedLines < 2 && !isLikelyNavLine(line)) {
+      const append = cleanText(line.replace(/^[-*]\s+/, ""));
+      const combined = cleanText(`${pending.value} ${append}`);
+      if (combined.length <= MARKDOWN_ATTRIBUTE_VALUE_MAX_LENGTH * 1.5) {
+        pending.value = combined;
+        pendingAccumulatedLines += 1;
+      } else {
+        flushPending();
+      }
     }
   }
   flushPending();
   return attributes;
+}
+
+function isJinaMetadataLine(line: string): boolean {
+  return /^(?:title|url\s+source|markdown\s+content|published\s+time)\s*:/i.test(line);
+}
+
+function isLikelyNavLine(line: string): boolean {
+  if (!line) return false;
+  // Bulleted nav/menu items: "*   [Foo](http...)" or "- [x] checkbox"
+  if (/^\s*[-*]\s*\[/.test(line)) return true;
+  if (/^\s*-\s*\[\s*x\s*\]/.test(line)) return true;
+  // Lines that are mostly markdown image embeds or markdown link soup (3+ links)
+  const linkCount = (line.match(/\]\(http/g) ?? []).length;
+  if (linkCount >= 3) return true;
+  // Common nav phrases anywhere in the line
+  if (/\b(?:sign\s*in\s*\/\s*register|myeaton account|select your location|locate me|locate a (?:distributor|channel)|please sign in|keep me signed in|employee login|submit form in new tab|back to top|all rights reserved)\b/i.test(line)) {
+    return true;
+  }
+  return false;
+}
+
+function isJunkAttributeValue(value: string): boolean {
+  if (!value) return true;
+  if (value.length > MARKDOWN_ATTRIBUTE_VALUE_MAX_LENGTH * 2) return true;
+  if (/^[-*\s|]+$/.test(value)) return true; // table separator row
+  if (/^\s*\[\s*x\s*\]/i.test(value)) return true;
+  const imageCount = (value.match(/!\[/g) ?? []).length;
+  if (imageCount >= 2) return true;
+  const linkCount = (value.match(/\]\(http/g) ?? []).length;
+  if (linkCount >= 4) return true;
+  if (/^\s*(?:available qty\.|location type)/i.test(value)) return true;
+  return false;
+}
+
+function truncateAttributeValue(value: string): string {
+  if (value.length <= MARKDOWN_ATTRIBUTE_VALUE_MAX_LENGTH) return value;
+  return `${value.slice(0, MARKDOWN_ATTRIBUTE_VALUE_MAX_LENGTH - 1).trimEnd()}…`;
 }
 
 function knownMarkdownFields(lines: string[]): string[] {
@@ -896,10 +1165,17 @@ function knownMarkdownFields(lines: string[]): string[] {
 }
 
 function splitKnownFieldLine(line: string, knownFields: string[]): { name: string; value: string } | undefined {
+  // Two shapes show up in Jina-rendered Eaton markdown:
+  //   "Field: value"         — typical, whitespace + optional colon separator
+  //   "Field(Uimp)value"     — label and value rendered without separator (common when the label
+  //                            ends with a parenthetical or other markup; Jina drops the styling)
+  // We try the spaced form first, then accept a no-separator match when the captured value starts
+  // with a digit / sign / quote so we don't accidentally chain into a longer field name.
   for (const field of knownFields) {
-    const match = line.match(new RegExp(`^${escapeRegExp(field)}\\s+(.+)$`, "i"));
-    if (!match) continue;
-    return { name: field, value: cleanText(match[1]) };
+    const spaced = line.match(new RegExp(`^${escapeRegExp(field)}\\s*:?\\s+(.+)$`, "i"));
+    if (spaced) return { name: field, value: cleanText(spaced[1]) };
+    const glued = line.match(new RegExp(`^${escapeRegExp(field)}([<>±]?\\s*\\d[^\\n]*)$`, "i"));
+    if (glued) return { name: field, value: cleanText(glued[1]) };
   }
   return undefined;
 }
@@ -946,15 +1222,35 @@ function isSectionBoundary(line: string): boolean {
 }
 
 function isIgnoredAttributeSection(value: string | undefined): boolean {
+  const text = value ?? "";
+  if (!text) return false;
+  // Eaton-internal material/SAP numbers (6-7 digits) sometimes appear as the page-level # heading
+  // (e.g. "# 276550") because the platform alias-redirects ordered catalog numbers like
+  // DILM7-10(230V50HZ,240V60HZ) onto their internal SKU. The group is meaningless for attributes.
+  if (/^\d{5,8}$/.test(text)) return true;
+  // Eaton Jina markdown often emits error modals, login prompts, and the page-level title
+  // heading as group names. Treat all of these as junk so we don't emit attributes under them.
+  if (
+    /\b(serial number is (?:invalid|known suspect|unrecognised|unrecognized)|unexpected error|are you sure|sign\s*in|sign\s*out|myeaton|welcome back|please sign|enter your city|download document|locate me|let.?s talk big ideas|back to top|all rights reserved|eaton page)\b/i.test(
+      text
+    )
+  ) {
+    return true;
+  }
+  // The page-level # heading is often "{catalog} | Eaton {productType}" — ignore it because the
+  // real spec groups (General specifications, Performance Ratings, …) come later.
+  if (/\|\s*Eaton\b/i.test(text) && /\b(switch|breaker|relay|disconnect|contactor|drive|sensor|enclosure|capacitor|transformer|fuse|controller|module|panel|terminal)\b/i.test(text)) {
+    return true;
+  }
   if (
     /\b(manuals and user guides|declarations of conformity|certification reports|warranty guides|time\/current curves|white papers|ecad model|mcad model|installation videos|installation instructions)\b/i.test(
-      value ?? ""
+      text
     )
   ) {
     return true;
   }
   return /\b(export product specification|authenticate product|contact|how to buy|support|resources|specifications and datasheets|brochures|catalogs|drawings|manuals|application notes|multimedia|cross references|technical service bulletins|company|quick links|date)\b/i.test(
-    value ?? ""
+    text
   );
 }
 
@@ -1168,11 +1464,24 @@ function extractMarkdownLinks(text: string, catalogNumber: string, sourceUrl: st
 }
 
 function readDescription(lines: string[], catalogNumber: string): string | undefined {
-  const descriptionLabel = lines.find((line) => /^descriptionLabel/i.test(line));
-  if (descriptionLabel) return cleanText(descriptionLabel.replace(/^descriptionLabel/i, ""));
-  const headingIndex = lines.findIndex((line) => line.replace(/^#+\s*/, "").toLowerCase() === catalogNumber.toLowerCase());
+  const descriptionLabel = lines.find((line) => /^\*?\*?descriptionLabel\*?\*?/i.test(line));
+  if (descriptionLabel) {
+    const text = cleanText(descriptionLabel.replace(/^\*?\*?descriptionLabel\*?\*?/i, ""));
+    if (text && !isIgnoredAttributeSection(text)) return text;
+  }
+  const headingIndex = lines.findIndex((line) => line.replace(/^#+\s*/, "").toLowerCase().startsWith(catalogNumber.toLowerCase()));
   if (headingIndex >= 0) {
-    return lines.slice(headingIndex + 1).find((line) => line.length > 20 && !/^(specifications|resources|sku|serial number)/i.test(line));
+    return lines.slice(headingIndex + 1).find((line) => {
+      const cleaned = cleanText(line);
+      if (cleaned.length <= 20) return false;
+      if (/^#+\s/.test(line)) return false;
+      if (/^(?:specifications|resources|sku|serial number|unexpected error|please|welcome|enter your|×|x$|are you sure)/i.test(cleaned)) return false;
+      if (isIgnoredAttributeSection(cleaned)) return false;
+      if (isLikelyNavLine(line)) return false;
+      if (/^\[/.test(cleaned)) return false; // markdown link line
+      if (/^!?\[/.test(cleaned)) return false; // markdown image line
+      return true;
+    });
   }
   return undefined;
 }
@@ -1210,17 +1519,51 @@ function dedupeDocuments(documents: DocumentRecord[]): DocumentRecord[] {
   const order: string[] = [];
   const byUrl = new Map<string, DocumentRecord>();
   for (const doc of documents) {
-    const key = doc.url.toLowerCase();
     if (!doc.url) continue;
+    // For dynamicmedia.eaton.com images, fold _C / _L / _R / _T / _B camera-angle variants into
+    // a single bucket so we don't emit 3 near-identical photos per product. The "center" view
+    // (suffix _C) is preferred; we score by view rank in dynamicMediaViewRank.
+    const key = dynamicMediaImageBucketKey(doc) ?? doc.url.toLowerCase();
     const existing = byUrl.get(key);
     if (!existing) {
       order.push(key);
       byUrl.set(key, doc);
       continue;
     }
-    if (documentLabelScore(doc) > documentLabelScore(existing)) byUrl.set(key, doc);
+    if (compareEatonDocumentCandidates(doc, existing) > 0) byUrl.set(key, doc);
   }
   return order.map((key) => byUrl.get(key)).filter((doc): doc is DocumentRecord => Boolean(doc));
+}
+
+const EATON_DYNAMIC_MEDIA_IMAGE_PATTERN = /\/is\/image\/eaton\/([^?#/]+?)(?:_(C|L|R|T|B|F))(?=[?#]|$)/i;
+
+function dynamicMediaImageBucketKey(doc: DocumentRecord): string | undefined {
+  if (doc.type !== "image") return undefined;
+  const match = doc.url.match(EATON_DYNAMIC_MEDIA_IMAGE_PATTERN);
+  if (!match) return undefined;
+  return `image:dm:${match[1].toLowerCase()}`;
+}
+
+function dynamicMediaViewRank(url: string): number {
+  const match = url.match(EATON_DYNAMIC_MEDIA_IMAGE_PATTERN);
+  if (!match) return 50;
+  switch (match[2].toUpperCase()) {
+    case "C": return 100; // center view — preferred primary
+    case "F": return 90; // front
+    case "T": return 70; // top
+    case "R": return 60;
+    case "L": return 60;
+    case "B": return 40; // back/bottom
+    default: return 50;
+  }
+}
+
+function compareEatonDocumentCandidates(a: DocumentRecord, b: DocumentRecord): number {
+  if (a.type === "image" && b.type === "image") {
+    const rankDiff = dynamicMediaViewRank(a.url) - dynamicMediaViewRank(b.url);
+    if (rankDiff !== 0) return rankDiff;
+  }
+  return documentLabelScore(a) - documentLabelScore(b);
 }
 
 function documentLabelScore(doc: DocumentRecord): number {

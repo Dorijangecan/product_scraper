@@ -187,6 +187,9 @@ export interface InteractionPolicyConfig {
   maxClicks?: number;
   scrollPasses?: number;
   networkIdleTimeoutMs?: number;
+  gotoTimeoutMs?: number;
+  gotoWaitUntil?: "load" | "domcontentloaded" | "networkidle" | "commit";
+  blockResourceTypes?: Array<"image" | "media" | "font" | "stylesheet" | "websocket" | "script">;
 }
 
 export interface ExtractionPolicyConfig {

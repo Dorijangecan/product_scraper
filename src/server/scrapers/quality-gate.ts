@@ -309,7 +309,7 @@ function urlContainsIdentitySignal(url: string, catalogNumber: string): boolean 
 }
 
 function isIdentityAttributeLabel(label: string): boolean {
-  return /\b(sku|mpn|mlfb|catalog(?:ue)? number|catalog no|product id|productid|article number|item number|part number|order number|type designation|product type|extended product type)\b/i.test(label);
+  return /\b(sku|mpn|mlfb|catalog(?:ue)? number|catalog no|product id|productid|model code|article number|item number|part number|order number|type designation|product type|extended product type|global catalog|catalog notes)\b/i.test(label);
 }
 
 function isSearchLikeText(value: string): boolean {

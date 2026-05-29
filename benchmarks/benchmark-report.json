@@ -1,13 +1,13 @@
 {
-  "generatedAt": "2026-05-24T22:48:38.795Z",
-  "outputDir": "D:\\Projekti\\product_scraper\\benchmarks\\output\\20260524224557",
+  "generatedAt": "2026-05-29T12:46:37.569Z",
+  "outputDir": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260529123817",
   "summary": {
-    "foundRate": 90,
+    "foundRate": 81.8,
     "officialUrlRate": 100,
-    "documentRate": 90,
+    "documentRate": 81.8,
     "wrongProducts": 0,
     "partialWithoutMissing": 0,
-    "accepted": true
+    "accepted": false
   },
   "reports": [
     {
@@ -15,7 +15,7 @@
       "catalogNumber": "1SDA126190R1",
       "status": "found",
       "confidence": 0.9,
-      "productUrl": "http://new.abb.com/products/1SDA126190R1/rrd-motor-110-220vac-dc-e1-3",
+      "productUrl": "http://new.abb.com/products/de/1SDA126190R1/rrd-motor-110-220vac-dc-e1-3",
       "identityConfirmed": true,
       "wrongProduct": false,
       "officialUrlMatched": true,
@@ -28,7 +28,7 @@
       "catalogNumber": "BCC039H",
       "status": "found",
       "confidence": 0.92,
-      "productUrl": "https://www.balluff.com/en-us/products/BCC039H",
+      "productUrl": "https://www.balluff.com/en-gb/products/BCC039H",
       "identityConfirmed": true,
       "wrongProduct": false,
       "officialUrlMatched": true,
@@ -46,7 +46,20 @@
       "wrongProduct": false,
       "officialUrlMatched": true,
       "requiredDocumentsMatched": true,
-      "normalizedFieldsMatched": false,
+      "normalizedFieldsMatched": true,
+      "qualityMissing": []
+    },
+    {
+      "manufacturerId": "fath",
+      "catalogNumber": "098ABG045",
+      "status": "found",
+      "confidence": 0.78,
+      "productUrl": "https://www.fath24.com/en/Anti-slip-Plate-for-Bell-Feet/098ABG045",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
       "qualityMissing": []
     },
     {
@@ -104,15 +117,17 @@
     {
       "manufacturerId": "schneider",
       "catalogNumber": "NSYS3D3215",
-      "status": "found",
-      "confidence": 0.86,
-      "productUrl": "https://www.se.com/us/en/product/NSYS3D3215/wall-mounted-steel-enclosure-panelset-s3d-plain-door-without-mounting-plate-300x200x150mm-ip66-ik10/",
+      "status": "partial",
+      "confidence": 0.74,
+      "productUrl": "https://www.se.com/us/en/product/NSYS3D3215/",
       "identityConfirmed": true,
       "wrongProduct": false,
       "officialUrlMatched": true,
-      "requiredDocumentsMatched": true,
-      "normalizedFieldsMatched": true,
-      "qualityMissing": []
+      "requiredDocumentsMatched": false,
+      "normalizedFieldsMatched": false,
+      "qualityMissing": [
+        "document:image"
+      ]
     },
     {
       "manufacturerId": "siemens",
@@ -126,6 +141,8 @@
       "requiredDocumentsMatched": false,
       "normalizedFieldsMatched": false,
       "qualityMissing": [
+        "normalized:voltage",
+        "normalized:current",
         "minDocuments:1"
       ]
     },

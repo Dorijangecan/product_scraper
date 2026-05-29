@@ -12,6 +12,20 @@ const BALLUFF_CURRENT_ONLY_DEVICE_PATTERN =
 const EATON_CURRENT_ONLY_DEVICE_PATTERN =
   /\b(?:rotary\s+disconnect|main\s+switch|switch[-\s]?disconnectors?)\b/i;
 
+// Eaton sells many non-electrical product lines (aerospace, vehicle, filtration, golf grips, …).
+// These have no voltage/current data on their catalog pages and never will, so the quality gate
+// must not flag them as "missing electrical fields". The pattern lists product-type tokens that
+// only ever appear in Eaton's mechanical / hydraulic / aerospace / consumer catalogs.
+const EATON_NON_ELECTRICAL_PATTERN =
+  /\b(?:golf\s+grip|grip,\s+(?:putter|swing|wrap)|putter\s+grip|swing\s+grip|engine\s+valve|valvetrain|valve\s+actuation|differential|differentials|aftermarket\s+differential|original\s+equipment\s+differential|transmission\s+(?:parts?|fluid|service)?|clutch(?:\s+disc)?|brake(?:\s+disc|\s+pad)?|filter\s+(?:media|element|cartridge|bag|disc|housing|strainer)|strainer|coupling|quick\s+disconnect\s+(?:coupling|fitting|hose)|hose\s+(?:assembly|assemblies)|hydraulic\s+(?:hose|cylinder|valve|cartridge|pump|motor|fitting|tube)|aerospace\s+(?:tube|hose|fitting|seal|valve|pump|coupling|connector|fuel|hydraulic|nozzle)|fuel\s+(?:nozzle|connector|coupling|inerting|pump)|emissions\s+control|ducting|plastic\s+extrusion|extrusion|zipmate|fastener|fixing\s+system|pipe\s+hanger|strut\s+system|seismic\s+brac|cable\s+tray|ladder\s+system|ground[ie]ng\s+(?:clamp|electrode|conductor|kit)|grommet|seal\s+(?:ring|kit)|o-ring|fitting|gland(?:\s+kit)?|adaptor|adapter\s+(?:plate|kit)|conduit\s+bod(?:y|ies)|conduit\s+fitting|outlet\s+box|junction\s+box|wireway\s+(?:fitting|cover|tee|elbow))\b/i;
+
+// M22 / RMQ-Titan pushbutton ACTUATORS (front-panel button heads) are sold separately from the
+// contact blocks that carry the actual switching voltage/current. The actuator itself has no
+// electrical rating on Eaton's catalog page — voltage/current come from the paired contact block.
+// Same for non-illuminated selector heads, mushroom heads, knurled buttons, etc.
+const EATON_PASSIVE_ACTUATOR_PATTERN =
+  /\b(?:modular\s+pushbutton|m22(?:[-\s]d)?|rmq[-\s]?titan|non[-\s]?illuminated\s+(?:pushbutton|push\s+button|actuator|selector|button\s+head)|pushbutton\s+(?:head|actuator)|selector\s+(?:switch\s+head|head)|mushroom\s+(?:head|button)|knurled\s+button|enclosure\s+lens|button\s+lens|legend\s+plate|nameplate\s+holder|contact\s+block\s+holder|fixing\s+adapter)\b/i;
+
 const BALLUFF_CURRENT_RATING_PRESENT_PATTERN =
   /\b(?:continuous current|rated current|switching current|rated operating current|rated operating voltage|operating voltage)\b/i;
 
@@ -44,6 +58,8 @@ export function requiredElectricalFields(result: ProductResult): Array<"voltage"
   const text = productRequirementText(result);
   if (!text) return [];
   if (NON_ELECTRICAL_ACCESSORY_PATTERN.test(primaryText)) return [];
+  if (result.manufacturerId === "eaton" && EATON_NON_ELECTRICAL_PATTERN.test(primaryText)) return [];
+  if (result.manufacturerId === "eaton" && EATON_PASSIVE_ACTUATOR_PATTERN.test(primaryText)) return [];
   if (result.manufacturerId === "sce") return requiredSceElectricalFields(primaryText);
   if (CURRENT_ONLY_DEVICE_PATTERN.test(text)) return ["current"];
   if (result.manufacturerId === "eaton" && EATON_CURRENT_ONLY_DEVICE_PATTERN.test(text)) return ["current"];

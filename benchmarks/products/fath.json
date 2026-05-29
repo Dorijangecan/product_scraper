@@ -1,0 +1,7 @@
+{
+  "manufacturerId": "fath",
+  "catalogNumber": "098ABG045",
+  "expectedOfficialUrlPatterns": ["fath24\\.com/.*/098ABG045"],
+  "requiredDocuments": ["image"],
+  "expectedNormalizedFields": []
+}

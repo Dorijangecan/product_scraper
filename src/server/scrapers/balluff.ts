@@ -3,7 +3,7 @@ import type { AnyNode } from "domhandler";
 import type { AttributeRecord, DocumentRecord, LocalizedUrlTemplate, ProductResult, ScrapeRecipeConfig } from "../../shared/types.js";
 import type { FetchedText } from "./http-client.js";
 import type { ManufacturerConnector, ScrapeContext } from "./types.js";
-import { classifyDocument, cleanText, emptyResult, mergeResults, normalizeFields } from "./normalizer.js";
+import { bestDimensionAxisValue, classifyDocument, cleanText, emptyResult, mergeResults, normalizeFields } from "./normalizer.js";
 import { buildLocalizedProductUrls } from "./localized-urls.js";
 import { catalogTextMatches, sameCatalogNumber } from "./catalog-number.js";
 import { dedupeAttributes, dedupeDocuments, dedupeSources } from "./dedupe.js";
@@ -235,7 +235,10 @@ export class BalluffConnector implements ManufacturerConnector {
           partialResults.push(current);
         }
 
-        if (docsEnabled && context.saveDocuments === false) {
+        // Always parse the Balluff datasheet PDF if one was discovered — weight, dimensions,
+        // and certifications often live only there. The PDF may or may not be kept on disk
+        // depending on saveDocuments, but the attributes are merged into the result either way.
+        if (docsEnabled) {
           const enrichedFromDatasheet = await enrichBalluffDatasheetForFastPath(current, context);
           if (enrichedFromDatasheet) {
             current = enrichedFromDatasheet;
@@ -265,7 +268,10 @@ export class BalluffConnector implements ManufacturerConnector {
         const expanded = await scrapeBalluffExpandedSections(catalogNumber, url, context, { sections: modalSections });
         if (expanded) {
           let expandedMerged = mergeBalluffResults(current, expanded);
-          if (docsEnabled && context.saveDocuments === false && !hasBalluffDatasheet(expandedMerged)) {
+          // Whenever the datasheet is still missing after the main modal sweep, force a
+          // Downloads-only re-run. Datasheet URL discovery is critical for Balluff because
+          // the PDF holds weight/dimensions/certifications we can't get from the page HTML.
+          if (docsEnabled && !hasBalluffDatasheet(expandedMerged)) {
             const downloadsOnly = await scrapeBalluffExpandedSections(catalogNumber, url, context, {
               forceDownloads: true,
               onlyDownloads: true
@@ -461,18 +467,19 @@ export function parseBalluffProductPage(catalogNumber: string, fetched: FetchedT
 
   const cleanAttributes = dedupeAttributes(attributes.filter(isUsefulBalluffAttribute));
   const cleanDocuments = dedupeBalluffDocuments(documents);
+  const pdtAttributes = withBalluffPdtDerivations(cleanAttributes, productUrl);
 
   return {
     manufacturerId: "balluff",
     catalogNumber,
-    status: cleanAttributes.length || cleanDocuments.length ? "found" : "partial",
+    status: pdtAttributes.length || cleanDocuments.length ? "found" : "partial",
     confidence: product ? 0.92 : 0.75,
     productUrl,
     localizedUrls: buildLocalizedProductUrls("balluff", canonicalCatalogNumber, productUrl, options.localizedUrlTemplates),
     title,
     description,
-    normalized: normalizeFields(cleanAttributes, cleanDocuments),
-    attributes: cleanAttributes,
+    normalized: normalizeFields(pdtAttributes, cleanDocuments),
+    attributes: pdtAttributes,
     documents: cleanDocuments,
     sources: [
       {
@@ -739,17 +746,120 @@ function extractBalluffNetworkHtmlFragments(text: string): string[] {
 function mergeBalluffResults(primary: ProductResult, fallback: ProductResult): ProductResult {
   const merged = mergeResults(primary, fallback);
   const documents = dedupeBalluffDocuments(merged.documents);
+  const attributes = withBalluffPdtDerivations(merged.attributes, merged.productUrl);
   return {
     ...merged,
+    attributes,
     documents,
-    normalized: normalizeFields(merged.attributes, documents),
+    normalized: normalizeFields(attributes, documents),
     sources: dedupeSources(merged.sources),
-    status: merged.attributes.length || merged.documents.length
+    status: attributes.length || merged.documents.length
       ? primary.status === "found" || fallback.status === "found"
         ? "found"
         : "partial"
       : "failed"
   };
+}
+
+/**
+ * Inject PDT-friendly derived attributes so the eCLASS resolvers (Material Master Data sheet)
+ * can pick up Balluff data as cleanly as the ABB scraper does.
+ *
+ * Balluff publishes dimensional data spread across many idiosyncratic labels ("Foot width",
+ * "Switching surface, length (L)", a combined "Dimension" string, datasheet PDF lines, etc.)
+ * and rarely names them "Net width / Height / Depth" the way ABB does. The PDT resolver picks
+ * any attribute whose name contains the axis keyword, so we additionally surface the
+ * normalizer's best pick under the canonical "Net width / Net height / Net depth / Net length"
+ * names. The "net" prefix wins the resolver's tie-break sort so the cleaned value is preferred
+ * over noisier siblings.
+ *
+ * Same treatment for weight (canonical "Net weight"), EAN/GTIN (scan for 13-digit barcode in
+ * existing attribute values) and customs tariff (canonical "Customs tariff number" from the
+ * already-extracted Balluff "Tariff Code").
+ */
+function withBalluffPdtDerivations(attributes: AttributeRecord[], productUrl?: string): AttributeRecord[] {
+  const derived: AttributeRecord[] = [];
+  const sourceUrl = productUrl ?? attributes.find((attr) => attr.sourceUrl)?.sourceUrl;
+
+  const ensureAxis = (axis: "width" | "height" | "depth" | "length", outName: string) => {
+    // Skip if a clean "Net <axis>" / similar net-prefixed attribute is already present —
+    // we only want to BACKFILL Balluff's noisy data, not duplicate ABB-style names.
+    if (attributes.some((attr) => new RegExp(`^net\\s+${axis}`, "i").test(attr.name) || new RegExp(`product\\s+net\\s+${axis}`, "i").test(attr.name))) {
+      return;
+    }
+    const value = bestDimensionAxisValue(attributes, axis);
+    if (!value) return;
+    const numeric = cleanText(value).match(/-?\d+(?:[.,]\d+)?\s*(?:mm|cm|m|in|inch|inches|")?/i)?.[0];
+    if (!numeric) return;
+    derived.push({
+      group: "Balluff PDT Derived",
+      name: outName,
+      value: numeric.replace(",", "."),
+      sourceUrl,
+      sourceType: "generated",
+      parser: "balluff-pdt-derivation",
+      confidence: 0.7
+    });
+  };
+
+  ensureAxis("width", "Net width");
+  ensureAxis("height", "Net height");
+  ensureAxis("depth", "Net depth");
+  ensureAxis("length", "Net length");
+
+  // Surface a canonical "Net weight" alongside Balluff's DPP "Weight" so the PDT resolver
+  // picks it deterministically and so the BAD875/Net-weight column always fills.
+  const weightAttr = attributes.find((attr) => /^weight$/i.test(attr.name) && /\d/.test(attr.value));
+  if (weightAttr && !attributes.some((attr) => /^(?:net\s+weight|product\s+net\s+weight)$/i.test(attr.name))) {
+    derived.push({
+      group: weightAttr.group ?? "Balluff PDT Derived",
+      name: "Net weight",
+      value: weightAttr.value,
+      sourceUrl: weightAttr.sourceUrl ?? sourceUrl,
+      sourceType: "generated",
+      parser: "balluff-pdt-derivation",
+      confidence: 0.75
+    });
+  }
+
+  // Customs tariff: Balluff already emits "Tariff Code" but the PDT resolver also accepts
+  // "customs tariff" / "Cn8" / "commodity code". Expose a synonym so external consumers that
+  // search for "Customs tariff number" hit it too.
+  const tariffAttr = attributes.find((attr) => /^tariff\s+code$/i.test(attr.name) && attr.value);
+  if (tariffAttr && !attributes.some((attr) => /customs\s+tariff/i.test(attr.name))) {
+    derived.push({
+      group: tariffAttr.group ?? "Balluff PDT Derived",
+      name: "Customs tariff number",
+      value: tariffAttr.value,
+      sourceUrl: tariffAttr.sourceUrl ?? sourceUrl,
+      sourceType: "generated",
+      parser: "balluff-pdt-derivation",
+      confidence: 0.75
+    });
+  }
+
+  // EAN/GTIN: Balluff doesn't expose a clean attribute, but datasheet PDFs and DPP modal
+  // sometimes mention a 13-digit barcode immediately after "GTIN" / "EAN" / "Barcode".
+  if (!attributes.some((attr) => /\b(?:ean|gtin)\b/i.test(attr.name))) {
+    for (const attr of attributes) {
+      const text = `${attr.name} ${attr.value}`;
+      const match = text.match(/\b(?:GTIN(?:-13)?|EAN(?:-13)?|Barcode)[^0-9]{0,12}(\d{13})\b/i);
+      if (!match) continue;
+      derived.push({
+        group: attr.group ?? "Balluff PDT Derived",
+        name: "EAN / GTIN",
+        value: match[1],
+        sourceUrl: attr.sourceUrl ?? sourceUrl,
+        sourceType: "generated",
+        parser: "balluff-pdt-derivation",
+        confidence: 0.7
+      });
+      break;
+    }
+  }
+
+  if (!derived.length) return attributes;
+  return dedupeAttributes([...attributes, ...derived]);
 }
 
 function bestBalluffResult(results: ProductResult[]): ProductResult | undefined {
@@ -905,7 +1015,13 @@ async function enrichBalluffDatasheetForFastPath(
   try {
     const downloaded = datasheet.localPath ? datasheet : await context.downloadDocument(datasheet);
     const documents = result.documents.map((doc) => (doc === datasheet || doc.url === datasheet.url ? downloaded : doc));
-    return await enrichResultFromDownloadedDocuments({ ...result, documents });
+    const enriched = await enrichResultFromDownloadedDocuments({ ...result, documents });
+    // Re-apply Balluff PDT derivations: the PDF enrichment adds raw "Width"/"Height"/"Length"
+    // attributes from the datasheet text. Without re-running the derivation step the canonical
+    // "Net width / Net height / Net depth" attributes wouldn't see them, so the PDT resolver
+    // would keep falling back to the noisier page-level dimensions.
+    const attributes = withBalluffPdtDerivations(enriched.attributes, enriched.productUrl);
+    return { ...enriched, attributes, normalized: normalizeFields(attributes, enriched.documents) };
   } catch (error) {
     if (context.signal?.aborted) throw new Error("Cancelled by user.");
     return {
@@ -990,8 +1106,11 @@ function balluffModalSectionsFor(result: ProductResult, html: string, docsEnable
   if (!signals.hasUsefulDetail) labels.add("Key features");
   if (docsEnabled && !signals.hasDatasheet) labels.add("Downloads");
   if (!signals.hasClassifications) labels.add("Classifications");
+  // Digital Product Passport must ALWAYS be opened when the page exposes it. Static HTML often
+  // surfaces some DPP fields (Country of origin, Tariff Code) but hides Weight behind the modal,
+  // so the partial-data signal would otherwise mark DPP as "done" and silently drop weights.
   const pageMentionsPassport = /\b(?:digital product passport|digitaler produktpass)\b/i.test(cleanText(html));
-  if (!signals.hasDigitalProductPassport && pageMentionsPassport) {
+  if (pageMentionsPassport) {
     labels.add("Digital Product Passport");
   }
 
