@@ -421,8 +421,10 @@ function repairFieldFromAttributes(
   const candidates = result.attributes
     .map((attr) => {
       const label = `${attr.group ?? ""} ${attr.name}`;
+      const matchedFieldEvidence = fieldLabelMatches(field, `${label} ${attr.value}`);
+      if (!matchedFieldEvidence && requiresFieldEvidenceForRepair(field)) return undefined;
       const text = `${attr.name}: ${attr.value}`;
-      const value = extractor(fieldLabelMatches(field, label) ? attr.value : text, label);
+      const value = extractor(matchedFieldEvidence ? attr.value : text, label);
       return value ? { attr, value, score: repairAttributeScore(field, attr) } : undefined;
     })
     .filter((candidate): candidate is { attr: AttributeRecord; value: string; score: number } => Boolean(candidate))
@@ -441,6 +443,10 @@ function repairFieldFromAttributes(
       confidence: Math.min(candidate.attr.confidence ?? 0.72, 0.78)
     }
   };
+}
+
+function requiresFieldEvidenceForRepair(field: FinalCompletenessField): boolean {
+  return field === "dimensions" || field === "voltage" || field === "current";
 }
 
 function valueExtractor(field: FinalCompletenessField): (value: string, label: string) => string | undefined {
@@ -538,6 +544,7 @@ function extractWeight(value: string): string | undefined {
 function extractDimensions(value: string): string | undefined {
   const cleaned = cleanText(value);
   if (!/\d/.test(cleaned)) return undefined;
+  if (/\b\d+(?:[.,]\d+)?\s*(?:x|X|\*)\s*\d+(?:[.,]\d+)?(?:\s*(?:x|X|\*)\s*\d+(?:[.,]\d+)?)?\s*(?:mm|cm|m)\s*(?:²|2)/i.test(cleaned)) return undefined;
   const labeled = cleaned.match(/\b(?:H|Height)\s*[:=]?\s*\d+(?:[.,]\d+)?\s*(?:mm|cm|m|in|inch|inches|")?.{0,80}\b(?:W|Width)\s*[:=]?\s*\d+(?:[.,]\d+)?/i);
   if (labeled) return compactRepairValue(labeled[0]);
   const sequence = cleaned.match(/\b\d+(?:[.,]\d+)?\s*(?:x|X|\*)\s*\d+(?:[.,]\d+)?(?:\s*(?:x|X|\*)\s*\d+(?:[.,]\d+)?)?\s*(?:mm|cm|m|in|inch|inches|")\b/i);

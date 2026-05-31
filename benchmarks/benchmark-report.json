@@ -1,13 +1,13 @@
 {
-  "generatedAt": "2026-05-29T12:46:37.569Z",
-  "outputDir": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260529123817",
+  "generatedAt": "2026-05-31T11:20:23.030Z",
+  "outputDir": "D:\\Projekti\\product_scraper\\benchmarks\\output\\20260531111857",
   "summary": {
-    "foundRate": 81.8,
+    "foundRate": 90.9,
     "officialUrlRate": 100,
     "documentRate": 81.8,
     "wrongProducts": 0,
     "partialWithoutMissing": 0,
-    "accepted": false
+    "accepted": true
   },
   "reports": [
     {
@@ -15,7 +15,7 @@
       "catalogNumber": "1SDA126190R1",
       "status": "found",
       "confidence": 0.9,
-      "productUrl": "http://new.abb.com/products/de/1SDA126190R1/rrd-motor-110-220vac-dc-e1-3",
+      "productUrl": "http://new.abb.com/products/pl/1SDA126190R1/rrd-motor-110-220vac-dc-e1-3",
       "identityConfirmed": true,
       "wrongProduct": false,
       "officialUrlMatched": true,
@@ -58,7 +58,7 @@
       "identityConfirmed": true,
       "wrongProduct": false,
       "officialUrlMatched": true,
-      "requiredDocumentsMatched": true,
+      "requiredDocumentsMatched": false,
       "normalizedFieldsMatched": true,
       "qualityMissing": []
     },
@@ -79,8 +79,8 @@
       "manufacturerId": "rockwell",
       "catalogNumber": "800F-X10",
       "status": "found",
-      "confidence": 0.55,
-      "productUrl": "https://configurator.rockwellautomation.com/api/Product/800F-X10/cutsheet",
+      "confidence": 0.86,
+      "productUrl": "https://www.rockwellautomation.com/en-us/products/details.800F-X10.html",
       "identityConfirmed": true,
       "wrongProduct": false,
       "officialUrlMatched": true,
@@ -117,17 +117,15 @@
     {
       "manufacturerId": "schneider",
       "catalogNumber": "NSYS3D3215",
-      "status": "partial",
-      "confidence": 0.74,
-      "productUrl": "https://www.se.com/us/en/product/NSYS3D3215/",
+      "status": "found",
+      "confidence": 0.86,
+      "productUrl": "https://www.se.com/us/en/product/NSYS3D3215/wall-mounted-steel-enclosure-panelset-s3d-plain-door-without-mounting-plate-300x200x150mm-ip66-ik10/",
       "identityConfirmed": true,
       "wrongProduct": false,
       "officialUrlMatched": true,
-      "requiredDocumentsMatched": false,
-      "normalizedFieldsMatched": false,
-      "qualityMissing": [
-        "document:image"
-      ]
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "qualityMissing": []
     },
     {
       "manufacturerId": "siemens",

@@ -41,7 +41,7 @@ const DEVICE_SHEET_MAP: Record<string, string[]> = {
   "Residual Current Device": ["contactor a. fuses"],
   "Motor Circuit Breaker": ["motor protection"],
   "Motor Starter": ["motor protection"],
-  "Disconnect Switch": ["Switch"],
+  "Disconnect Switch": ["contactor a. fuses", "Switch"],
   Switch: ["Switch"],
   "Surge Protective Device": ["int. ext. lightning protection"],
 
@@ -52,7 +52,7 @@ const DEVICE_SHEET_MAP: Record<string, string[]> = {
   Battery: ["power supply devices"],
   Generator: ["generator"],
   Motor: ["motors"],
-  "Variable Speed Drive": ["servo controller"],
+  "Variable Speed Drive": ["power supply devices", "servo controller", "motors"],
   "Soft Starter": ["servo controller"],
   "Motion Controller": ["Motion Controller"],
   "Current Sensor": ["el. mesurement devices"],
@@ -91,8 +91,8 @@ const DEVICE_SHEET_MAP: Record<string, string[]> = {
   // --- Automation ---
   "Programmable Logic Controller": ["PLC"],
   "I/O Module": ["PLC"],
-  HMI: ["panel (HMI)"],
-  "Communication Gateway": ["RS232 interfaces"],
+  HMI: ["PLC", "panel (HMI)"],
+  "Communication Gateway": ["PLC", "RS232 interfaces"],
 
   // --- Signaling ---
   "Pushbutton / Operator": ["command and alarm device"],

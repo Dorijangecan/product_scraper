@@ -9,6 +9,12 @@ const electronCli = process.platform === "win32"
   : path.join(rootDir, "node_modules", ".bin", "electron");
 const mainScript = path.join(rootDir, "src", "desktop", "main.cjs");
 
+// Keep local AI cleanup opt-in. The app works without Ollama/Qwen, and shared
+// installs should not pause on local model checks unless the user asks for AI.
+if (!Object.prototype.hasOwnProperty.call(process.env, "PDT_AI_CLEANUP")) {
+  process.env.PDT_AI_CLEANUP = "0";
+}
+
 const build = spawnSync(process.execPath, [path.join(rootDir, "scripts", "ensure-desktop-build.cjs")], {
   cwd: rootDir,
   stdio: "inherit"

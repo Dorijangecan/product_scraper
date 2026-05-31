@@ -3,6 +3,10 @@ setlocal enabledelayedexpansion
 cd /d "%~dp0"
 title Product Scraper
 
+:: Kolegama AI/Ollama nije potreban za normalan rad. Tko zeli AI cleanup,
+:: moze prije pokretanja postaviti PDT_AI_CLEANUP=1.
+if not defined PDT_AI_CLEANUP set "PDT_AI_CLEANUP=0"
+
 :: Provjeri je li Node.js instaliran. NAJPRIJE pogledamo PATH (najlaksi slucaj).
 :: Ako PATH ne radi (npr. user instalirao Node ali nije se relogovao, ili je PATH
 :: nekako "ocistio"), rucno trazimo node.exe na uobicajenim mjestima i dodajemo
@@ -79,18 +83,27 @@ if errorlevel 1 (
     exit /b 1
 )
 
-:: Instaliraj node_modules ako ne postoje
-if not exist "node_modules\" (
+:: Instaliraj ili osvjezi node_modules ako ne postoje ili ako je package-lock.json noviji.
+set "NPM_STAMP=node_modules\.product-scraper-install-ok"
+set "NPM_INSTALL_NEEDED=0"
+if not exist "node_modules\" set "NPM_INSTALL_NEEDED=1"
+if not exist "!NPM_STAMP!" set "NPM_INSTALL_NEEDED=1"
+if exist "package-lock.json" if exist "!NPM_STAMP!" (
+    powershell -NoProfile -ExecutionPolicy Bypass -Command "$lock=^(Get-Item -LiteralPath 'package-lock.json'^).LastWriteTimeUtc; $stamp=^(Get-Item -LiteralPath 'node_modules\.product-scraper-install-ok'^).LastWriteTimeUtc; if ^($lock -gt $stamp^) { exit 1 }"
+    if errorlevel 1 set "NPM_INSTALL_NEEDED=1"
+)
+if "!NPM_INSTALL_NEEDED!"=="1" (
     echo.
-    echo  Prva pokretanje - instaliram pakete, pricekaj malo...
+    echo  Prvo pokretanje ili nova verzija - instaliram pakete, pricekaj malo...
     echo.
-    npm install
+    call npm install
     if errorlevel 1 (
         echo.
         echo  GRESKA pri instalaciji paketa!
         pause
         exit /b 1
     )
+    type nul > "!NPM_STAMP!"
 )
 
 :: Provjeri je li Electron binary raspakiran (path.txt mora sadrzavati samo "electron.exe")
@@ -141,7 +154,7 @@ if "%PW_NEEDED%"=="1" (
 echo.
 echo  Pokrecem Product Scraper...
 echo.
-npm run desktop
+call npm run desktop
 exit /b %errorlevel%
 
 :: --- helper: provjeri sadrzi li dato dir node.exe i postavi NODE_DIR ako da ---

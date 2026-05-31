@@ -66,6 +66,7 @@ export const DEVICE_TYPE_FAMILIES: Record<string, readonly FamilyEntry[]> = {
     { patterns: ["DG1", "DC1", "DA1", "DM1", "DE1"], type: "Variable Speed Drive", notes: "PowerXL" },
     { patterns: ["FAZ", "WMZ"], type: "Miniature Circuit Breaker" },
     { patterns: ["NZM"], type: "Molded Case Circuit Breaker" },
+    { patterns: ["PSN"], type: "Enclosure", notes: "xEnergy ProfiSNAP enclosure panels/accessories" },
     // Rotary switch-disconnectors use Eaton's P1-/P3-/T0-/T3-/T5-/T6- pattern (always followed by
     // a hyphen). Short alphanumeric prefixes like "P5" without a hyphen would clash with Tripp
     // Lite cables (e.g. P569-…) that share the eaton.com domain, so require the hyphen here.
@@ -139,11 +140,14 @@ export const DEVICE_TYPE_FAMILIES: Record<string, readonly FamilyEntry[]> = {
     { patterns: ["140G"], type: "Circuit Breaker" },
     { patterns: ["193"], type: "Motor Starter", notes: "E1 Plus / overload relays" },
     { patterns: ["20F", "20G", "22B", "25B", "25A"], type: "Variable Speed Drive", notes: "PowerFlex drives" },
+    { patterns: ["2198"], type: "Variable Speed Drive", notes: "Kinetix servo drives" },
     { patterns: ["42EF", "42JS", "45CRM", "45DMS", "45LMS"], type: "Photoelectric Sensor" },
     { patterns: ["871", "872"], type: "Inductive Proximity Sensor" },
     { patterns: ["1769-PA", "1769-PB"], type: "Power Supply", notes: "CompactLogix power supply" },
     { patterns: ["1734", "1756", "1769", "1794", "5069"], type: "I/O Module" },
-    { patterns: ["2711"], type: "HMI", notes: "PanelView HMI" },
+    { patterns: ["2080"], type: "Programmable Logic Controller", notes: "Micro800 / Micro820 PLC" },
+    { patterns: ["1783"], type: "Communication Gateway", notes: "Stratix industrial Ethernet switch" },
+    { patterns: ["2711P", "2711", "2715P", "2715"], type: "HMI", notes: "PanelView HMI" },
     { patterns: ["800F", "800T"], type: "Pushbutton / Operator" },
     { patterns: ["440R"], type: "Safety Relay" },
     { patterns: ["440N", "440G"], type: "Safety Sensor" },

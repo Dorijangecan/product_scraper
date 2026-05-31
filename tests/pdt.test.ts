@@ -1970,6 +1970,65 @@ describe("PDT exporter sheet lookup", () => {
     expect(result.keptSheets).toContain("electronic sensor");
   });
 
+  it("fills connection point rows from electrical channel and mounting evidence", async () => {
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-pdt-connection-points-"));
+    const templatePath = path.resolve("templates", "master_pdt.xlsx");
+    const outputPath = path.join(dir, "out.xlsx");
+    const item = ctx(
+      {
+        title: "Micro PLC controller",
+        attributes: [
+          { group: "General", name: "Product Type", value: "Programmable Logic Controller", sourceType: "official" },
+          { group: "Electrical", name: "Supply voltage", value: "24 V DC", sourceType: "official" },
+          { group: "I/O", name: "Digital inputs", value: "4", sourceType: "official" },
+          { group: "I/O", name: "Digital outputs", value: "2", sourceType: "official" },
+          { group: "Mechanical", name: "Mounting type", value: "DIN rail", sourceType: "official" }
+        ]
+      },
+      "PLC-CP-001"
+    ).item;
+
+    const result = await exportRunPdt({ manufacturer, items: [item], templatePath, outputPath });
+
+    expect(result.filledSheets["Connection Point Information"]).toBeGreaterThanOrEqual(9);
+    const out = new ExcelJS.Workbook();
+    await out.xlsx.readFile(outputPath);
+    const values = valuesInWorksheet(out.getWorksheet("Connection Point Information")!);
+    expect(values).toContain("PLC-CP-001");
+    expect(values).toContain("+DC24");
+    expect(values).toContain("I-00");
+    expect(values).toContain("O-00");
+    expect(values).toContain("DIN Rail mounting");
+  });
+
+  it("fills product accessory rows from Rockwell signaling accessory evidence", async () => {
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-pdt-product-accessory-"));
+    const templatePath = path.resolve("templates", "master_pdt.xlsx");
+    const outputPath = path.join(dir, "out.xlsx");
+    const item = ctx(
+      {
+        manufacturerId: "rockwell",
+        title: "3 Color 35mm LED Indicator",
+        attributes: [
+          { group: "Table", name: "Type", value: "Light Indicator", sourceType: "official" },
+          { group: "PDF datasheet - Technical Data", name: "Accessories", value: "Vertical Mounting Brackets", sourceType: "official" },
+          { group: "PDF datasheet - Technical Data", name: "AVM", value: "Vertical bracket", sourceType: "official" }
+        ]
+      },
+      "852C-B24RGYQD5"
+    ).item;
+
+    const result = await exportRunPdt({ manufacturer: { ...manufacturer, id: "rockwell" } as ManufacturerConfig, items: [item], templatePath, outputPath });
+
+    expect(result.filledSheets["Product Accessory"]).toBe(1);
+    const out = new ExcelJS.Workbook();
+    await out.xlsx.readFile(outputPath);
+    const values = valuesInWorksheet(out.getWorksheet("Product Accessory")!);
+    expect(values).toContain("852C-B24RGYQD5");
+    expect(values).toContain("852C-ABVM");
+    expect(values).toContain("accessory");
+  });
+
   it("routes every known device type through common tabs and its mapped device tab", async () => {
     const dir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-pdt-all-types-"));
     const templatePath = path.join(dir, "template.xlsx");
@@ -2083,6 +2142,7 @@ describe("PDT exporter sheet lookup", () => {
       "Material Master Data",
       "Additional Documents",
       "Connection Point Information",
+      "Product Accessory",
       ...expectedCounts.keys()
     ]);
     expect(new Set(result.keptSheets)).toEqual(expectedKeptSheets);

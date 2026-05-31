@@ -146,6 +146,34 @@ describe("final completeness audit", () => {
     expect(repaired.result.attributes.some((attr) => attr.group === "Final Field Repair" && attr.name === "Weight")).toBe(true);
   });
 
+  it("does not repair current or dimensions from lifetime and cable cross-section text", () => {
+    const result = product({
+      title: "ABC-123 industrial contactor",
+      attributes: [
+        {
+          group: "PDF datasheet - Environmental conditions",
+          name: "MTTF (40 °C)",
+          value: "1000 a",
+          sourceUrl: "https://example.test/abc-123.pdf",
+          parser: "pdf-table-extractor"
+        },
+        {
+          group: "Balluff Digital Product Passport",
+          name: "Resolution",
+          value: "multi turn [bit]; PVC grey, 4x2x0.14 mm²",
+          sourceUrl: "https://example.test/products/ABC-123"
+        }
+      ]
+    });
+
+    const repaired = repairFinalCompletenessFromEvidence(result, manufacturer);
+
+    expect(repaired.repairedFields).not.toContain("current");
+    expect(repaired.repairedFields).not.toContain("dimensions");
+    expect(repaired.result.normalized.current).toBeUndefined();
+    expect(repaired.result.normalized.dimensions).toBeUndefined();
+  });
+
   it("skips the final network retry when all useful fallback stages already ran", () => {
     const result = product({
       title: "ABC-123 enclosure",

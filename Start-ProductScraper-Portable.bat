@@ -3,6 +3,10 @@ setlocal
 cd /d "%~dp0"
 title Product Scraper Portable
 
+:: Portable paket ne sadrzi Ollama/Qwen. Tko zeli AI cleanup, moze prije
+:: pokretanja postaviti PDT_AI_CLEANUP=1 i instalirati Ollama zasebno.
+if not defined PDT_AI_CLEANUP set "PDT_AI_CLEANUP=0"
+
 if not exist "node_modules\electron\dist\electron.exe" (
     echo.
     echo  Nedostaje node_modules\electron\dist\electron.exe.

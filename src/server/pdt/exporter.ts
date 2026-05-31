@@ -10,10 +10,12 @@ import { encodeEnumLabel, isEnumColumn } from "./enum-encode.js";
 import { buildPdtRepairResult, type PdtCleanupAudit, type PdtRepair } from "./ai-cleanup.js";
 import { writeCleanedInputWorkbook } from "./cleaned-input-workbook.js";
 import { normalizePdtCellNumber } from "./unit-cleanup.js";
+import { writeConnectionPointsSheet } from "./connection-points-sheet.js";
+import { writeProductAccessorySheet } from "./product-accessory-sheet.js";
 
 const DOCUMENTS_SHEET = "Additional Documents";
 /** Always kept even when empty (the manual PDT keeps this tab as a placeholder). */
-const ALWAYS_KEPT_SHEETS = ["Connection Point Information"];
+const ALWAYS_KEPT_SHEETS = ["Connection Point Information", "Product Accessory"];
 
 export interface PdtExportResult {
   outputPath: string;
@@ -74,7 +76,7 @@ export async function exportRunPdt(input: {
   for (const item of included) {
     const deviceType = classifyDeviceType(item.result).type;
     if (!deviceType) unclassifiedCatalogNumbers.add(item.catalogNumber);
-    const sheets = targetSheets(deviceType);
+    const sheets = [...targetSheets(deviceType), ...additionalDeviceSheetsForItem(item, manufacturer)];
     // Only constant tabs were chosen and no device tab matched → note for diagnostics.
     if (deviceType && sheets.length === CONSTANT_SHEETS.length) unmappedDeviceTypes.add(deviceType);
     for (const sheetName of sheets) {
@@ -106,6 +108,18 @@ export async function exportRunPdt(input: {
     filledSheets[documentsWs.name] = documentRows;
   } else {
     missingSheets.add(DOCUMENTS_SHEET);
+  }
+
+  const connectionPointWs = workbook.getWorksheet(resolveSheetName("Connection Point Information") ?? "Connection Point Information");
+  if (connectionPointWs) {
+    const connectionRows = writeConnectionPointsSheet(connectionPointWs, included);
+    if (connectionRows > 0) filledSheets[connectionPointWs.name] = connectionRows;
+  }
+
+  const productAccessoryWs = workbook.getWorksheet(resolveSheetName("Product Accessory") ?? "Product Accessory");
+  if (productAccessoryWs) {
+    const accessoryRows = writeProductAccessorySheet(productAccessoryWs, included);
+    if (accessoryRows > 0) filledSheets[productAccessoryWs.name] = accessoryRows;
   }
 
   // Mirror the manual PDT: keep only the tabs actually in use (Material Master Data + the used
@@ -172,7 +186,7 @@ function writeUniformSheet(
   let row = descriptor.firstBodyRow;
   let written = 0;
   for (const item of items) {
-    const ctx: ResolveContext = {
+    const baseCtx: ResolveContext = {
       result: item.result,
       item,
       manufacturer,
@@ -180,40 +194,77 @@ function writeUniformSheet(
       sheetName: ws.name,
       repair: repairs.get(item.id)
     };
-    let wroteCell = false;
-    for (const column of descriptor.columns) {
-      const value = resolvePdtColumnValue(ws, descriptor, column, ctx);
-      if (value === undefined || value === "") continue;
-      // Enum-coded columns: write the legend's canonical label (e.g. "Ring cable connection")
-      // rather than its numeric code, so a human reviewer can spot bad mappings at a glance.
-      // Leave the cell blank when the value doesn't strictly match any legend option.
-      if (shouldEncodeEnum(ws.name, column, value) && isEnumColumn(column.description)) {
-        const label = encodeEnumLabel(column.description, value);
-        if (label === undefined) {
-          writeIssues.push({
-            sheetName: ws.name,
-            catalogNumber: item.catalogNumber,
-            code: column.code,
-            propName: column.propName,
-            description: column.description,
-            value,
-            reason: "enum-unmatched"
-          });
-          continue;
+    for (const rowVariant of uniformRowVariantsFor(ws.name, item, baseCtx)) {
+      const ctx: ResolveContext = { ...baseCtx, rowVariant };
+      let wroteCell = false;
+      for (const column of descriptor.columns) {
+        const value = resolvePdtColumnValue(ws, descriptor, column, ctx);
+        if (value === undefined || value === "") continue;
+        // Enum-coded columns: write the legend's canonical label (e.g. "Ring cable connection")
+        // rather than its numeric code, so a human reviewer can spot bad mappings at a glance.
+        // Leave the cell blank when the value doesn't strictly match any legend option.
+        if (shouldEncodeEnum(ws.name, column, value) && isEnumColumn(column.description)) {
+          const label = encodeEnumLabel(column.description, value);
+          if (label === undefined) {
+            writeIssues.push({
+              sheetName: ws.name,
+              catalogNumber: item.catalogNumber,
+              code: column.code,
+              propName: column.propName,
+              description: column.description,
+              value,
+              reason: "enum-unmatched"
+            });
+            continue;
+          }
+          ws.getCell(row, column.col).value = label;
+        } else {
+          ws.getCell(row, column.col).value = cellValueFor(column, value);
         }
-        ws.getCell(row, column.col).value = label;
-      } else {
-        ws.getCell(row, column.col).value = cellValueFor(column, value);
+        wroteCell = true;
       }
-      wroteCell = true;
-    }
-    if (wroteCell) {
-      written++;
-      row++;
+      if (wroteCell) {
+        written++;
+        row++;
+      }
     }
   }
   removeTemplateLabelColumn(ws);
   return written;
+}
+
+function additionalDeviceSheetsForItem(item: RunItemRecord, manufacturer: ManufacturerConfig): string[] {
+  if (manufacturer.id === "abb" && /^1SDA/i.test(item.catalogNumber)) return ["contactor a. fuses"];
+  return [];
+}
+
+function uniformRowVariantsFor(sheetName: string, item: RunItemRecord, ctx: ResolveContext): Array<Record<string, string> | undefined> {
+  if (item.result?.manufacturerId !== "eaton" || canonicalSheetKey(sheetName) !== "cabinet.mechanical") return [undefined];
+  const model = (eatonModelCode(item.result) ?? resolveProperty("CNSTYPECODE", "CNSTYPECODE", ctx) ?? "").toUpperCase();
+  if (/^PSN-FP-.+MU\b/.test(model)) {
+    return [1, 2, 3, 4].map((index) => ({
+      AAO676: item.catalogNumber,
+      CNS_PROJECT_PATH: `psn_fp_mu_p${index}.prj`,
+      CNS_COMPONENT_GROUP: "Plate@1"
+    }));
+  }
+  if (/^PSN-FPS\b/.test(model)) {
+    return [1, 2, 3, 4].map((index) => ({
+      AAO676: `EP-${item.catalogNumber.replace(/^EP-/i, "")}`,
+      CNS_PROJECT_PATH: index === 4 ? "psn_fps_asmtab.prj" : `psn_fps_p${index}.prj`,
+      CNS_COMPONENT_FUNCTION_3D: "Bracket",
+      CNS_COMPONENT_GROUP: "Bracket@1",
+      "000038001": "Assembly.VariantParts"
+    }));
+  }
+  return [undefined];
+}
+
+function eatonModelCode(result: RunItemRecord["result"]): string | undefined {
+  return cleanString(
+    result?.attributes.find((attribute) => /\b(model code|modellcode)\b/i.test(`${attribute.group ?? ""} ${attribute.name}`) && attribute.value.trim())
+      ?.value
+  );
 }
 
 function cellValueFor(column: { code: string; propName: string; unit?: string }, value: string): ExcelJS.CellValue {
@@ -285,6 +336,8 @@ function resolvePdtColumnValue(
   column: PdtColumn,
   ctx: ResolveContext
 ): string | undefined {
+  const variant = rowVariantValue(column, ctx);
+  if (variant !== undefined) return variant;
   const direct =
     resolveProperty(column.code, column.propName, ctx) ??
     resolvePropertyByDescription(column, ctx) ??
@@ -292,6 +345,16 @@ function resolvePdtColumnValue(
   if (!direct) return undefined;
   if (isGermanDescriptionColumn(ws, descriptor, column)) return translateEnglishDescriptionToGerman(direct);
   return direct;
+}
+
+function rowVariantValue(column: PdtColumn, ctx: ResolveContext): string | undefined {
+  const variant = ctx.rowVariant;
+  if (!variant) return undefined;
+  for (const key of [column.code, column.propName]) {
+    const value = variant[key];
+    if (value !== undefined) return value;
+  }
+  return undefined;
 }
 
 function resolvePropertyByDescription(column: PdtColumn, ctx: ResolveContext): string | undefined {

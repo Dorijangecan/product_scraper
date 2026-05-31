@@ -945,8 +945,8 @@ function abbOfficialMissingResult(catalogNumber: string, lookup: AbbSearchProduc
 async function fetchAbbLocaleFallbackResults(catalogNumber: string, context: ScrapeContext): Promise<ProductResult[]> {
   const encoded = encodeURIComponent(catalogNumber);
   const urls = [
-    `https://new.abb.com/products/de/${encoded}/product`,
     `https://new.abb.com/products/pl/${encoded}/product`,
+    `https://new.abb.com/products/de/${encoded}/product`,
     `https://new.abb.com/products/it/${encoded}/product`
   ];
   const results: ProductResult[] = [];
@@ -1101,14 +1101,12 @@ function abbSearchItemProductUrls(productId: string, alias: string): string[] {
   const encodedId = encodeURIComponent(productId);
   const slug = abbProductSlug(alias);
   // Order matters: try localized PIS URLs first because /en redirects to the AEM shell that
-  // strips technical data. DE comes before IT/PL because German group labels canonicalise
-  // cleanly to English ("Materialkonformität" → "Material compliance"), while Polish/Italian
-  // labels leak into the output ("Zgodność materiału", "Conformità del materiale") and confuse
-  // downstream consumers.
+  // strips technical data. Polish currently resolves the richest ABB detail page for the
+  // benchmarked devices, then German and Italian serve as localized fallbacks.
   return [
+    `https://new.abb.com/products/pl/${encodedId}/${slug}`,
     `https://new.abb.com/products/de/${encodedId}/${slug}`,
     `https://new.abb.com/products/it/${encodedId}/${slug}`,
-    `https://new.abb.com/products/pl/${encodedId}/${slug}`,
     `https://new.abb.com/products/${encodedId}/${slug}`,
     `https://new.abb.com/products/${encodedId}`,
     `https://www.abb.com/global/en/products/${encodeURIComponent(productId.toLowerCase())}`

@@ -22,10 +22,12 @@ function abbDocumentUrl(catalogNumber: string, language: "en" | "de"): string {
 /** The localized product links to list per product: English first, then German. */
 function documentRowsFor(item: RunItemRecord): DocRow[] {
   if (item.result?.manufacturerId === "abb") {
-    return [
+    const rows = [
       { url: abbDocumentUrl(item.catalogNumber, "en"), language: "english", description: "Datasheet(EN)" },
       { url: abbDocumentUrl(item.catalogNumber, "de"), language: "german", description: "Datenblatt" }
     ];
+    if (/^1SDA/i.test(item.catalogNumber)) rows.push({ url: abbDocumentUrl(item.catalogNumber, "en"), language: "english", description: "Product page" });
+    return rows;
   }
 
   const localized = item.result?.localizedUrls;
@@ -34,6 +36,8 @@ function documentRowsFor(item: RunItemRecord): DocRow[] {
   const rows: DocRow[] = [];
   if (en) rows.push({ url: en, language: "english", description: "Datasheet(EN)" });
   if (de) rows.push({ url: de, language: "german", description: "Datenblatt" });
+  const extraDoc = item.result?.documents.find((doc) => doc.url && doc.url !== en && doc.url !== de);
+  if (extraDoc) rows.push({ url: extraDoc.url, language: "english", description: extraDoc.label || "Additional document" });
   return rows;
 }
 

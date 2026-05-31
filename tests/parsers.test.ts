@@ -11,11 +11,72 @@ import {
 import { parseGenericProductPage } from "../src/server/scrapers/generic.js";
 import { parseSchneiderDatasheetReaderPage, parseSchneiderProductPage, parseTelemecaniqueProductPage } from "../src/server/scrapers/schneider.js";
 import { parseSiemensProductApiResponse } from "../src/server/scrapers/siemens.js";
+import { parseRockwellCutsheetPage, parseRockwellDpp, parseRockwellDrawingsPage } from "../src/server/scrapers/rockwell.js";
 import { SCEConnector, parseSceProductPage } from "../src/server/scrapers/sce.js";
 import type { FetchedText } from "../src/server/scrapers/http-client.js";
 import type { ScrapeContext } from "../src/server/scrapers/types.js";
 
 describe("manufacturer parsers", () => {
+  it("parses Rockwell cutsheet, drawings and digital product passport evidence", () => {
+    const catalog = "800F-X10";
+    const cutsheet = parseRockwellCutsheetPage(
+      catalog,
+      fetched(
+        `<html><body>
+          <h3>800F Contact Blocks</h3>
+          <p><a href="https://configurator.rockwellautomation.com/#/configurator/800F-X10/summary">800F-X10</a></p>
+          <p>22.5mm PB No Latch, Screw Contact Block, 1 N.O.</p>
+          <h3>Product Details</h3>
+          <table><tr><th colspan="2">CONTACT BLOCK DATA</th></tr>
+            <tr><td>Latch Style</td><td>No Latch</td></tr>
+            <tr><td>Contact Block(s) Termination Style</td><td>Screw Contact Block</td></tr>
+            <tr><td>Contact Blocks</td><td>1 N.O.</td></tr>
+          </table>
+          <a href="https://literature.rockwellautomation.com/idc/groups/literature/documents/td/800-td008_-en-p.pdf">Technical Document</a>
+        </body></html>`,
+        "https://configurator.rockwellautomation.com/api/Product/800F-X10/cutsheet"
+      )
+    );
+    expect(cutsheet.documents.some((doc) => doc.type === "datasheet" && doc.url.includes("/cutsheet"))).toBe(true);
+    expect(cutsheet.attributes.some((attr) => attr.name === "Contact Blocks" && attr.value === "1 N.O.")).toBe(true);
+
+    const drawings = parseRockwellDrawingsPage(
+      catalog,
+      fetched(
+        `<html><body>
+          Available Drawings for 800F-X10
+          <table><tr><td>800F-X10</td><td><a href="/api/Doc/800f_x10.pdf">ABPFB020.pdf</a></td><td><a href="/api/Doc/ABPFB020.dxf">ABPFB020.dxf</a></td></tr></table>
+        </body></html>`,
+        "https://configurator.rockwellautomation.com/api/Product/800F-X10/drawings"
+      )
+    );
+    expect(drawings.documents.filter((doc) => doc.type === "cad").length).toBe(2);
+
+    const payload = {
+      uniqueProductIdentifier: "https://www.rockwellautomation.com/en-us/products/details.800f-x10.html",
+      elements: [
+        { name: [{ language: "en", value: "Product Name" }], elementId: "productName", value: "22mm Contact Block 800F PB" },
+        { name: [{ language: "en", value: "Registered ID" }], elementId: "registeredId", value: "800f-x10" },
+        { elementId: "productImage", url: "https://www.rockwellautomation.com/resources/images/productinfo/800F-X10_1000x1000.jpg", resourceTitle: "Product image", contentType: "image/jpeg" },
+        {
+          elementId: "dimensions",
+          elements: [
+            { name: [{ language: "en", value: "Weight" }], elementId: "weight", value: "10.0 GRM" },
+            { name: [{ language: "en", value: "Length" }], elementId: "length", value: "1.0 CMT" },
+            { name: [{ language: "en", value: "Width" }], elementId: "width", value: "6.0 CMT" },
+            { name: [{ language: "en", value: "Height" }], elementId: "height", value: "2.0 CMT" }
+          ]
+        }
+      ]
+    };
+    const jwt = `x.${Buffer.from(JSON.stringify(payload)).toString("base64url")}.x`;
+    const dpp = parseRockwellDpp(catalog, fetched(JSON.stringify({ verifiableCredential: { id: `data:application/vc+jwt,${jwt}` } }), "https://www.rockwellautomation.com/bin/rockwell-automation/dpp?catalogNumber=800f-x10&serialNumber="));
+
+    expect(dpp?.normalized.weight).toBe("10.0 g (0.01 kg)");
+    expect(dpp?.normalized.dimensions).toBe("2.0 x 6.0 x 1.0 cm (20 x 60 x 10 mm)");
+    expect(dpp?.documents.some((doc) => doc.type === "image")).toBe(true);
+  });
+
   it("parses ABB JSON-LD product data", () => {
     const html = `
       <html><head>
@@ -1763,7 +1824,7 @@ describe("manufacturer parsers", () => {
     expect(result.documents.some((doc) => doc.type === "datasheet" && doc.url.includes("id=113299"))).toBe(true);
   });
 
-  it("opens only missing Balluff modal sections when static HTML is already complete", async () => {
+  it("opens all Balluff data modal sections once a live render is needed", async () => {
     const staticHtml = `
       <html><head>
         <link rel="canonical" href="https://www.balluff.com/en-gb/products/BCC039H" />
@@ -1833,7 +1894,7 @@ describe("manufacturer parsers", () => {
 
     const result = await new BalluffConnector().scrape("BCC039H", context);
 
-    expect(requestedLabels).toEqual(["Digital Product Passport"]);
+    expect(requestedLabels).toEqual(["Key features", "Classifications", "Digital Product Passport"]);
     expect(result.attributes.some((attr) => attr.group === "Digital Product Passport" && attr.name === "Country of origin" && attr.value === "Hungary")).toBe(true);
   });
 

@@ -370,7 +370,7 @@ export class BrowserRenderSession {
       }
 
       // Final per-section summary so the user sees exactly which sections succeeded per product.
-      const capturedLabels = new Set(sectionFragments.map((fragment) => fragment.label));
+      const capturedLabels = new Set(sectionFragments.map((fragment) => fragment.label.replace(/\s+\(retry\)$/i, "")));
       const summary = sections.map((section) => `${section.label}:${capturedLabels.has(section.label) ? "ok" : "miss"}`).join(" ");
       console.info(`[balluff] modal sequence ${url} → ${summary}`);
 
@@ -591,20 +591,25 @@ async function scrollToBottom(page: PageLike, passes: number, signal?: AbortSign
   for (let pass = 0; pass < Math.max(1, passes); pass += 1) {
     await page.evaluate(
       `new Promise((resolve) => {
-        let previousHeight = 0;
-        let stableSteps = 0;
-        const step = () => {
-          const height = document.documentElement.scrollHeight;
-          window.scrollTo(0, height);
-          stableSteps = height === previousHeight ? stableSteps + 1 : 0;
-          previousHeight = height;
-          if (stableSteps >= 2) {
-            resolve();
-            return;
-          }
-          setTimeout(step, 250);
-        };
-        step();
+          let previousHeight = 0;
+          let stableSteps = 0;
+          const step = () => {
+            const root = document.documentElement || document.body;
+            if (!root) {
+              resolve();
+              return;
+            }
+            const height = Math.max(root.scrollHeight || 0, document.body?.scrollHeight || 0);
+            window.scrollTo(0, height);
+            stableSteps = height === previousHeight ? stableSteps + 1 : 0;
+            previousHeight = height;
+            if (stableSteps >= 2) {
+              resolve();
+              return;
+            }
+            setTimeout(step, 250);
+          };
+          step();
       })`
     );
   }
@@ -1039,7 +1044,7 @@ function balluffDrawerRetryWaitMs(section: ModalSection): number {
 }
 
 function shouldReopenBalluffSection(section: ModalSection): boolean {
-  return /key features|downloads/i.test(section.label);
+  return /key features|downloads|classifications|digital product passport/i.test(section.label);
 }
 
 /**

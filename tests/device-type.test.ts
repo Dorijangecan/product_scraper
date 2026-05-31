@@ -220,6 +220,18 @@ describe("device type classifier", () => {
     ).toBe("Power Supply");
 
     expect(
+      classifyDeviceType(product([], "Micro820 20 Point Programmable Controller", { manufacturerId: "rockwell", catalogNumber: "2080-LC20-20QBB" })).type
+    ).toBe("Programmable Logic Controller");
+
+    expect(
+      classifyDeviceType(product([], "PanelView 5510 Terminal", { manufacturerId: "rockwell", catalogNumber: "2715P-T7CD" })).type
+    ).toBe("HMI");
+
+    expect(
+      classifyDeviceType(product([], "Stratix 2100 unmanaged Ethernet switch", { manufacturerId: "rockwell", catalogNumber: "1783-US5T" })).type
+    ).toBe("Communication Gateway");
+
+    expect(
       classifyDeviceType(
         product([{ group: "SCE Product Data", name: "Product Type", value: "Conditioner, Air - 3400 BTU/Hr. 120 Volt", sourceType: "official" }], "SCE-AC3400B120V", {
           manufacturerId: "sce",
@@ -407,6 +419,17 @@ describe("device type classifier", () => {
       "iTemp PA temperature transmitter"
     );
     expect(classifyDeviceType(result).type).toBe("Temperature Sensor");
+  });
+
+  it("does not treat operating temperature as temperature-sensor evidence over signaling type", () => {
+    const result = product(
+      [
+        { group: "Table", name: "Type", value: "Light Indicator", sourceType: "official" },
+        { group: "PDF datasheet", name: "Operating temperature range", value: "-35...+60 °C", sourceType: "official" }
+      ],
+      "3 Color 35mm LED Indicator"
+    );
+    expect(classifyDeviceType(result).type).toBe("Pilot Light");
   });
 
   it("classifies a rotary encoder", () => {

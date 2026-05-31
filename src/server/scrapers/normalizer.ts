@@ -220,7 +220,7 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
     normalizeCurrentValue(deriveCurrentFromText(attributes));
 
   return {
-    weight: normalizeWeightValue(bestAttributeValue(attributes, FIELD_LABEL_PATTERNS.weight)),
+    weight: bestNormalizedAttributeValue(attributes, FIELD_LABEL_PATTERNS.weight, normalizeWeightValue, "weight"),
     dimensions,
     material,
     wallThickness,
@@ -375,6 +375,13 @@ function normalizedFieldLabelScore(attr: AttributeRecord, field?: keyof Normaliz
   if (field === "dimensions") {
     if (/product net (height|width|depth|length)/.test(label)) return 80;
     if (/dimensioning|drawing|document|data sheet/.test(label)) return -80;
+  }
+  if (field === "weight") {
+    if (/\bdigital product passport\b.*\bweight\b|\bweight\b.*\bdigital product passport\b/.test(label)) return 170;
+    if (/\bproduct net weight|net weight|unit weight|product weight|mechanical data weight\b/.test(label)) return 130;
+    if (/\bshipping|gross|package|packing|packaging\b/.test(label)) return -40;
+    if (/\bcertificate|declaration|compliance|rohs|reach|substance|material compliance\b/.test(label)) return -160;
+    if (/\bweight\b|\bmass\b|\bgewicht\b/.test(label)) return 80;
   }
   if (field === "voltage") {
     if (/\babb\b/.test(label) && /rated ou?tput voltage|ou?tput voltage/.test(label)) return 115;
@@ -607,7 +614,7 @@ function normalizeWeightValue(value: string | undefined): string | undefined {
   const cleaned = normalizeHtmlSpecValue(value);
   if (!cleaned) return undefined;
   const match = cleaned.match(/\b(\d+(?:[.,]\d+)?)\s*(kg|g|lb|lbs|pound|pounds|oz|ounce|ounces)\b/i);
-  if (!match) return cleaned;
+  if (!match) return undefined;
   const number = Number(match[1].replace(",", "."));
   if (!Number.isFinite(number)) return cleaned;
   const unit = match[2].toLowerCase();
@@ -623,6 +630,7 @@ function normalizeDimensionValue(value: string | undefined): string | undefined 
   if (!value) return undefined;
   const cleaned = normalizeHtmlSpecValue(value);
   if (!cleaned) return undefined;
+  if (/\b\d+(?:[.,]\d+)?\s*[xX*]\s*\d+(?:[.,]\d+)?(?:\s*[xX*]\s*\d+(?:[.,]\d+)?)?\s*(?:mm|cm|m)\s*(?:²|2)/i.test(cleaned)) return undefined;
   const labeledParts = parseLabeledDimensionParts(cleaned);
   if (labeledParts.length >= 1) {
     const unit = firstDimensionUnit(labeledParts);
@@ -706,7 +714,9 @@ function normalizeElectricalValue(value: string | undefined): string | undefined
     .replace(/(\d+(?:[.,]\d+)?)\s*volts?\b/gi, "$1 V")
     .replace(/(\d)\s*V\b/gi, "$1 V")
     .replace(/(\d+(?:[.,]\d+)?)\s*(?:amps?|amperes?)\b/gi, "$1 A")
-    .replace(/(\d)\s*(ka|ma|a)\b/gi, (_match, number: string, unit: string) => `${number} ${formatCurrentUnit(unit)}`)
+    .replace(/(\d+(?:[.,]\d+)?)\s*kA\b/gi, (_match, number: string) => `${number} kA`)
+    .replace(/(\d+(?:[.,]\d+)?)\s*mA\b/gi, (_match, number: string) => `${number} mA`)
+    .replace(/(\d+(?:[.,]\d+)?)\s*A\b/g, "$1 A")
     .replace(/(\d+(?:[.,]\d+)?)\s*(?:\.{2,3}|\u2026|\u2013|\u2014|-|to)\s*(\d+(?:[.,]\d+)?)(?=\s*(?:kV|V|kA|mA|A)\b)/gi, "$1...$2")
     .replace(/\s+/g, " ")
     .trim();
@@ -907,13 +917,6 @@ function isPlausibleVoltageValue(value: string, context: string): boolean {
   if (!Number.isFinite(firstNumber)) return false;
   if (/(?:v\s*(?:ac|dc)|vac|vdc|ac\/dc|ac-dc|\bvolts?\b)/i.test(value)) return true;
   return /\b(voltage|supply|power|input|output|operating|rated|operational|utilization|control circuit|u[eirn])\b/i.test(context);
-}
-
-function formatCurrentUnit(unit: string): string {
-  const lower = unit.toLowerCase();
-  if (lower === "ka") return "kA";
-  if (lower === "ma") return "mA";
-  return "A";
 }
 
 function findMaterialAttr(attributes: AttributeRecord[]): string | undefined {

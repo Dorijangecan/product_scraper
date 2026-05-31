@@ -213,7 +213,7 @@ export class BalluffConnector implements ManufacturerConnector {
           continue;
         }
         if (
-          balluffModalSectionsFor(primaryResult, primary.text, docsEnabled).length === 0 &&
+          balluffModalSectionsFor(primaryResult, primary.text, docsEnabled && context.saveDocuments !== false).length === 0 &&
           isCompleteBalluffResult(primaryResult, primary.text, { requireDatasheet: docsEnabled })
         ) {
           return primaryResult;
@@ -260,7 +260,7 @@ export class BalluffConnector implements ManufacturerConnector {
         // the product (404 / wrong locale / different catalog on the page).
         if (current.status === "failed" || primary.statusCode >= 400) continue;
 
-        const modalSections = balluffModalSectionsFor(current, currentHtml, docsEnabled);
+        const modalSections = balluffModalSectionsFor(current, currentHtml, docsEnabled && context.saveDocuments !== false);
         if (modalSections.length === 0) {
           return current;
         }
@@ -1061,6 +1061,7 @@ interface BalluffCompletenessSignals {
   hasClassifications: boolean;
   hasDatasheet: boolean;
   hasDigitalProductPassport: boolean;
+  hasDigitalProductPassportWeight: boolean;
 }
 
 function balluffCompletenessSignals(result: ProductResult): BalluffCompletenessSignals {
@@ -1083,22 +1084,25 @@ function balluffCompletenessSignals(result: ProductResult): BalluffCompletenessS
     result.attributes.some((attr) => /^eclass/i.test(attr.name)) &&
     result.attributes.some((attr) => /^etim/i.test(attr.name)) &&
     result.attributes.some((attr) => /^unspsc/i.test(attr.name));
-  const hasDigitalProductPassport = result.attributes.some(
-    (attr) => /digital product passport/i.test(attr.group ?? "") && Boolean(cleanText(attr.value))
+  const digitalProductPassportAttributes = result.attributes.filter((attr) => /digital product passport/i.test(attr.group ?? ""));
+  const hasDigitalProductPassport = digitalProductPassportAttributes.some((attr) => Boolean(cleanText(attr.value)));
+  const hasDigitalProductPassportWeight = digitalProductPassportAttributes.some(
+    (attr) => /^weight$|^gewicht$/i.test(cleanText(attr.name)) && /\b\d+(?:[.,]\d+)?\s*(?:kg|g|lb|lbs|oz)\b/i.test(cleanText(attr.value))
   );
 
   return {
     hasUsefulDetail,
     hasClassifications,
     hasDatasheet: result.documents.some((doc) => doc.type === "datasheet"),
-    hasDigitalProductPassport
+    hasDigitalProductPassport,
+    hasDigitalProductPassportWeight
   };
 }
 
 function balluffModalSectionsFor(result: ProductResult, html: string, docsEnabled: boolean): ModalSection[] {
-  const availableSections = docsEnabled
-    ? BALLUFF_MODAL_SECTIONS
-    : BALLUFF_MODAL_SECTIONS.filter((section) => section.label !== "Downloads");
+  const dataSections = BALLUFF_MODAL_SECTIONS.filter((section) => section.label !== "Downloads");
+  const downloadsSection = BALLUFF_MODAL_SECTIONS.find((section) => section.label === "Downloads");
+  const availableSections = docsEnabled && downloadsSection ? [...dataSections, downloadsSection] : dataSections;
   if (result.status === "failed") return availableSections;
 
   const signals = balluffCompletenessSignals(result);
@@ -1117,7 +1121,12 @@ function balluffModalSectionsFor(result: ProductResult, html: string, docsEnable
   if (!labels.size) {
     return isCompleteBalluffResult(result, html, { requireDatasheet: docsEnabled }) ? [] : availableSections;
   }
-  return availableSections.filter((section) => labels.has(section.label));
+  // Once a live render is needed, capture all data drawers in one pass. Balluff loads these
+  // sidebars independently; limiting the pass to just the currently-missing label made later
+  // exports depend on stale reader/static snapshots and missed DPP weight on some runs.
+  const htmlMentionsDatasheet = /\b(?:datasheet|product data sheet)\b|pdfengine\/pdf\?[^"'\s<>]*\btype=pdb\b/i.test(html);
+  const shouldOpenDownloads = docsEnabled && !signals.hasDatasheet && !htmlMentionsDatasheet;
+  return availableSections.filter((section) => section.label !== "Downloads" || shouldOpenDownloads);
 }
 
 function isTerminalBalluffHttpStatus(statusCode: number): boolean {
@@ -1133,7 +1142,7 @@ function isCompleteBalluffResult(
   if (!hasExpandedBalluffSections(html)) return false;
   const signals = balluffCompletenessSignals(result);
   const requireDatasheet = options.requireDatasheet !== false;
-  return signals.hasUsefulDetail && signals.hasClassifications && (!requireDatasheet || signals.hasDatasheet);
+  return signals.hasUsefulDetail && signals.hasClassifications && signals.hasDigitalProductPassportWeight && (!requireDatasheet || signals.hasDatasheet);
 }
 
 function readJsonLdProducts($: cheerio.CheerioAPI): Record<string, unknown>[] {

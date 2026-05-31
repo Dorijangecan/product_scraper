@@ -56,7 +56,7 @@ const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
   rule("Inductive Proximity Sensor", /\b(?:inductive\s+(?:proximity\s+)?sensor|inductive proximity|inductive switch|proximity switch)\b/i, 875),
   rule("Capacitive Sensor", /\bcapacitive\s+(?:proximity\s+)?(?:sensor|switch)\b/i, 870),
   rule("Pressure Sensor", /\bpressure\s+(?:sensor|switch|transmitter|transducer)\b/i, 868),
-  rule("Temperature Sensor", /\b(?:temperature|thermocouple|\brtd\b|pt100|pt1000)\s+(?:sensor|probe|transmitter|transducer)?\b/i, 866),
+  rule("Temperature Sensor", /\b(?:temperature\s+(?:sensor|probe|transmitter|transducer)|thermocouple|\brtd\b|pt100|pt1000)\b/i, 866),
   rule("Ultrasonic Sensor", /\bultrasonic\s+(?:sensor|distance sensor|transducer)\b/i, 864),
   rule("Magnetic Field Sensor", /\bmagnetic\s+field\s+sensor|hall[-\s]?effect\s+sensor\b/i, 862),
   rule("Vision Sensor", /\b(?:vision\s+sensor|smart\s*camera|industrial camera|machine vision)\b/i, 860),
@@ -79,7 +79,7 @@ const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
   rule("Soft Starter", /\bsoft[-\s]?starter\b/i, 785),
   rule("Variable Speed Drive", /\b(?:variable speed drive|variable frequency drive|\bvfd\b|frequency (?:converter|inverter)|\bvsd\b|servo drive|ac drive|motor drive|inverter drive)\b/i, 780),
   rule("Motor Starter", /\b(?:motor starter|starter combination|reversing starter|direct[-\s]?on[-\s]?line starter|\bdol starter\b)\b/i, 775),
-  rule("Disconnect Switch", /\b(?:switch[-\s]?disconnector|disconnect(?:or)?\s+switch|isolator switch|safety switch|rotary disconnect|main switch|load break switch)\b/i, 770),
+  rule("Disconnect Switch", /\b(?:switch[-\s]?disconnector|disconnect(?:ing|or)?\s+switch|isolator switch|safety switch|rotary disconnect|main switch|load break switch)\b/i, 770),
   rule("Surge Protective Device", /\b(?:surge protective device|\bspd\b|surge arrester|surge protection|lightning arrester)\b/i, 765),
   rule("Fuse", /\b(?:fuse holder|fuse base|fuse disconnect(?:or)?|fuse switch|fuse link|fuse carrier|nh fuse|d fuse|\bfuse\b)\b/i, 760),
   rule("Switch", /\b(?:selector switch|cam switch|pushbutton switch|rotary switch|toggle switch|key[-\s]?operated switch|\bswitch\b)\b/i, 700),
@@ -396,7 +396,7 @@ export function classifyDeviceType(result: ProductResult | undefined): DeviceTyp
 /** Pull the manufacturer's type code (a.k.a. extended product type) from product attributes. */
 function typeCodeAttribute(result: ProductResult): string | undefined {
   const match = (result.attributes ?? []).find((a) =>
-    /\b(type code|typecode|extended product type|type designation|product main type|main type|catalog(?:ue)? type|order type)\b/i.test(
+    /\b(type code|typecode|extended product type|type designation|product main type|main type|catalog(?:ue)? type|order type|model code|modellcode)\b/i.test(
       a.name ?? ""
     )
   );

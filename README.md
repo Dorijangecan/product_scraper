@@ -2,6 +2,53 @@
 
 Local desktop tool for scraping public ABB, Balluff, and SCE product details from catalog numbers and exporting a traced Excel workbook.
 
+## Najlakse za kolege na Windowsu
+
+Najjednostavnije je poslati im ovu jednu komandu. Otvore PowerShell i zalijepe:
+
+```powershell
+powershell -ExecutionPolicy Bypass -NoProfile -Command "irm https://raw.githubusercontent.com/Dorijangecan/product_scraper/main/Install-ProductScraper.ps1 | iex"
+```
+
+Ta komanda pokusa instalirati Git i Node.js preko `winget` ako ih nema, skine projekt na Desktop u mapu `product_scraper`, instalira npm pakete, instalira Playwright Chromium pri prvom pokretanju ako fali i pokrene aplikaciju.
+
+Ne instalira Ollama/Qwen/AI model. AI cleanup je u launcherima iskljucen po defaultu, jer scraper normalno radi bez toga.
+
+Nakon prvog puta neka samo udju u mapu `product_scraper` i dvokliknu:
+
+```text
+Update-and-Start-ProductScraper.bat
+```
+
+To prvo napravi `git pull`, pa pokrene scraper.
+
+Rucna git varijanta:
+
+```bat
+cd "%USERPROFILE%\Desktop"
+git clone https://github.com/Dorijangecan/product_scraper.git
+cd product_scraper
+Start-ProductScraper.bat
+```
+
+Kasnije update i pokretanje:
+
+```bat
+cd "%USERPROFILE%\Desktop\product_scraper"
+git pull
+Start-ProductScraper.bat
+```
+
+Ako kolege ne zelis muciti s Git/Node instalacijama, napravi portable zip i stavi ga na GitHub Releases:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\create-portable-package.ps1
+```
+
+Zatim uploadas `product_scraper-portable.zip` iz roditeljske mape projekta. Oni samo skinu zip, raspakiraju ga i dvokliknu `Start-ProductScraper-Portable.bat`.
+
+Ako kasnije zelis ukljuciti lokalni AI cleanup na nekom racunalu, instaliraj Ollama i model zasebno pa pokreni app s `PDT_AI_CLEANUP=1`.
+
 ## Run
 
 ```powershell

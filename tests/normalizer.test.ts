@@ -37,6 +37,68 @@ describe("normalizer", () => {
     expect(normalized.dimensions).toBe("2 x 3 x 4 in (50.8 x 76.2 x 101.6 mm)");
   });
 
+  it("prefers real Balluff DPP weight over certificate contact text", () => {
+    const normalized = normalizeFields(
+      [
+        {
+          group: "PDF certificate",
+          name: "weight",
+          value: "Please contact support.de@balluff.de for more information.",
+          sourceType: "generated",
+          parser: "pdf-table-extractor"
+        },
+        {
+          group: "Balluff Digital Product Passport",
+          name: "Weight",
+          value: "59 g",
+          sourceType: "official",
+          parser: "balluff-browser-expanded-product-page"
+        }
+      ],
+      []
+    );
+
+    expect(normalized.weight).toBe("59 g (0.06 kg)");
+  });
+
+  it("does not treat Balluff MTTF years or cable cross-section as current/dimensions", () => {
+    const normalized = normalizeFields(
+      [
+        {
+          group: "PDF datasheet - Environmental conditions",
+          name: "MTTF (40 °C)",
+          value: "1000 a",
+          sourceType: "generated",
+          parser: "pdf-table-extractor"
+        },
+        {
+          group: "Balluff Digital Product Passport",
+          name: "Resolution",
+          value: "multi turn [bit]; PVC grey, 4x2x0.14 mm²",
+          sourceType: "official-fallback",
+          parser: "balluff-browser-expanded-product-page"
+        },
+        {
+          group: "PDF datasheet",
+          name: "Dimensions",
+          value: "4x2x0.14 mm²",
+          sourceType: "generated",
+          parser: "pdf-table-extractor"
+        },
+        {
+          group: "Specs",
+          name: "Current",
+          value: "12 A",
+          sourceType: "official"
+        }
+      ],
+      []
+    );
+
+    expect(normalized.current).toBe("12 A");
+    expect(normalized.dimensions).toBeUndefined();
+  });
+
   it("summarizes Schneider environmental certificate documents without product-title noise", () => {
     const normalized = normalizeFields(
       [],

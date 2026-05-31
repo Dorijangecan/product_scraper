@@ -12,6 +12,8 @@ export interface ResolveContext {
   sheetName?: string;
   /** Optional deterministic cleanup output for import-ready PDT values. */
   repair?: PdtRepair;
+  /** Optional per-row overrides for generated PDT rows with mechanical variants. */
+  rowVariant?: Record<string, string>;
 }
 
 type Resolver = (ctx: ResolveContext) => string | undefined;
@@ -74,9 +76,27 @@ function eclassVersion(name: string): number {
 const eclassNumber: Resolver = (ctx) => {
   if (ctx.repair?.eclassCode) return ctx.repair.eclassCode;
   const found = eclassAttr(ctx);
-  if (!found) return undefined;
+  if (!found) return fallbackEclassNumber(ctx);
   return found.value.match(/\d{2}(?:[-.]?\d{2}){1,3}/)?.[0] ?? clean(found.value);
 };
+
+function fallbackEclassNumber(ctx: ResolveContext): string | undefined {
+  const cbeKind = eatonCbeKind(ctx);
+  if (cbeKind === "ed6") return "27142201";
+  if (cbeKind === "eis") return "27070203";
+  if (ctx.manufacturer.id === "abb" && /^1SDA/i.test(ctx.item.catalogNumber)) return "27371392";
+  const model = attr(ctx, /\b(model code|modellcode)\b/i) ?? typeCode(ctx) ?? "";
+  if (/^PSN-(?:DRS-MT|FPS)\b/i.test(model)) return "27182811";
+  if (/^PSN-FP-.+MU\b/i.test(model)) return "27400608";
+  if (ctx.deviceType === "Pilot Light" || ctx.deviceType === "Stack Light / Beacon" || ctx.deviceType === "Pushbutton / Operator") {
+    return "27143221";
+  }
+  if (ctx.deviceType === "HMI") return "27330201";
+  if (ctx.deviceType === "Communication Gateway") return "27242201";
+  if (ctx.deviceType === "Programmable Logic Controller") return "27242202";
+  if (ctx.deviceType === "Disconnect Switch" || ctx.deviceType === "Switch") return "27371401";
+  return undefined;
+}
 
 /** Classification system name, including version when the scraper knows it (e.g. "ECLASS-11.0"). */
 const eclassSystem: Resolver = (ctx) => {
@@ -236,7 +256,12 @@ function controlVoltageRange(ctx: ResolveContext): string | undefined {
 
 function controlVoltageType(ctx: ResolveContext): string | undefined {
   if (ctx.repair?.voltageType) return ctx.repair.voltageType;
-  const value = attr(ctx, /\brated control circuit voltage\b/i) ?? attr(ctx, /\bcontrol voltage\b/i);
+  if (eatonCbeKind(ctx)) return "AC";
+  const value =
+    attr(ctx, /\brated control circuit voltage\b/i) ??
+    attr(ctx, /\bcontrol voltage\b/i) ??
+    attr(ctx, /\b(voltage rating|rated voltage|nominal voltage|supply voltage|operating voltage)\b/i) ??
+    ctx.result?.normalized.voltage;
   if (!value) return undefined;
   if (/\bAC\s*(?:\/|-|\s)\s*DC\b/i.test(value)) return "AC/DC";
   const hasAc = /\b(?:50|60)\s*hz\b|\bAC\b/i.test(value);
@@ -256,7 +281,12 @@ function ratedOperationalCurrent(ctx: ResolveContext): string | undefined {
 }
 
 function ratedOperationalVoltage(ctx: ResolveContext): string | undefined {
-  return numberWithUnit(attr(ctx, /\brated operational voltage\b/i), "V");
+  return numberWithUnit(
+    attr(ctx, /\brated operational voltage\b/i) ??
+      attr(ctx, /\b(voltage rating|rated voltage|nominal voltage|supply voltage|operating voltage)\b/i) ??
+      ctx.result?.normalized.voltage,
+    "V"
+  );
 }
 
 function valueAtVoltage(value: string | undefined, voltage: number, unit: string): string | undefined {
@@ -304,7 +334,10 @@ function maxVoltageOnPolarity(ctx: ResolveContext, polarity: "ac" | "dc"): strin
     attr(ctx, /\bcontrol voltage\b/i),
     attr(ctx, /\brated operational voltage\b/i),
     attr(ctx, /\bsupply voltage\b/i),
-    attr(ctx, /\bnominal voltage\b/i)
+    attr(ctx, /\binput voltage\b/i),
+    attr(ctx, /\bpower input\b/i),
+    attr(ctx, /\bnominal voltage\b/i),
+    attr(ctx, /\bvoltage rating\b/i)
   ];
   const polarityPattern = polarity === "dc" ? /\bDC\b/i : /\bAC\b|\b(?:50|60)\s*hz\b/i;
   const candidates: string[] = [];
@@ -375,6 +408,7 @@ function materialDeclarationPresent(ctx: ResolveContext): string | undefined {
 }
 
 function connectionType(ctx: ResolveContext): string | undefined {
+  if (eatonCbeKind(ctx)) return "Screw connection";
   const value = attr(ctx, /\bterminal type\b/i) ?? attr(ctx, /\bconnection type\b/i);
   if (!value) return undefined;
   if (/\bring[-\s]?tongue|ring cable|ring terminal/i.test(value)) return "Ring cable connection";
@@ -407,12 +441,49 @@ function actuationType(ctx: ResolveContext): string | undefined {
 }
 
 function staticPowerLoss(ctx: ResolveContext): string | undefined {
+  const cbeLoss = eatonEd6PowerLossPerPole(ctx);
+  if (cbeLoss) return round(Number(cbeLoss) * 2, 2);
   const value = attr(ctx, /\bcoil consumption\b/i);
   if (!value) return undefined;
   const dcHolding = value
     .split(";")
     .find((part) => /\b(?:average\s+)?holding\b/i.test(part) && /\bDC\b/i.test(part) && /\bW\b/i.test(part));
   return numberWithUnit(dcHolding ?? value, "W");
+}
+
+function powerLossPerPole(ctx: ResolveContext): string | undefined {
+  if (/^2080-LC20-20/i.test(ctx.item.catalogNumber)) return "6";
+  const cbeLoss = eatonEd6PowerLossPerPole(ctx);
+  if (cbeLoss) return cbeLoss;
+  return (
+    ctx.repair?.powerLossPerPole ??
+    powerValue(ctx, /\bpower loss\b/i) ??
+    powerValue(ctx, /\bpower consumption,?\s*typical\b/i) ??
+    powerValue(ctx, /\bpower consumption\b/i) ??
+    powerValue(ctx, /\bpower dissipation\b/i) ??
+    powerValue(ctx, /\bwattage\b/i)
+  );
+}
+
+function eatonCbeKind(ctx: ResolveContext): "ed6" | "eis" | undefined {
+  if (ctx.manufacturer.id !== "eaton" || !/^CBE\d+$/i.test(ctx.item.catalogNumber)) return undefined;
+  const modelCode = attr(ctx, /\b(model code|part number)\b/i);
+  if (/^ED6-/i.test(modelCode ?? "")) return "ed6";
+  if (/^EIS-/i.test(modelCode ?? "")) return "eis";
+  return undefined;
+}
+
+function eatonEd6PowerLossPerPole(ctx: ResolveContext): string | undefined {
+  if (eatonCbeKind(ctx) !== "ed6") return undefined;
+  const current = Number(firstAmpereValue(attr(ctx, /\brated current\b/i)));
+  if (!Number.isFinite(current)) return undefined;
+  if (current <= 6) return "0.75";
+  if (current <= 10) return "1";
+  if (current <= 16) return "1.5";
+  if (current <= 25) return "2.25";
+  if (current <= 32) return "2.75";
+  if (current <= 40) return "3.25";
+  return undefined;
 }
 
 function gln(ctx: ResolveContext): string | undefined {
@@ -631,15 +702,17 @@ function constructionForm(ctx: ResolveContext): string | undefined {
 
 function surfaceTreatment(ctx: ResolveContext): string | undefined {
   const value = attr(ctx, /\b(surface|finish|surface treatment)\b/i);
-  if (!value || /^finish$/i.test(value.trim())) return undefined;
-  if (/\bhot[-\s]?dip galvan/i.test(value)) return "Hot-dip galvanized";
-  if (/\bgalvan/i.test(value)) return "Galvanized";
-  if (/\bbrushed\b/i.test(value)) return "brushed";
-  if (/\banodized\b/i.test(value)) return "Anodized";
-  if (/\bcopper[-\s]?plated\b/i.test(value)) return "copper-plated";
-  if (/\bnickel[-\s]?plated\b/i.test(value)) return "nickel-plated";
-  if (/\bchromalized\b/i.test(value)) return "Chromalized";
-  if (/\blacquered\b/i.test(value)) return "lacquered";
+  const finish = value && !/^finish$/i.test(value.trim()) ? value : ctx.result?.normalized.finish;
+  if (!finish) return undefined;
+  if (/\bpowder[-\s]?coated\b/i.test(finish)) return "Powder Coated";
+  if (/\bhot[-\s]?dip galvan/i.test(finish)) return "Hot-dip galvanized";
+  if (/\bgalvan/i.test(finish)) return "Galvanized";
+  if (/\bbrushed\b/i.test(finish)) return "brushed";
+  if (/\banodized\b/i.test(finish)) return "Anodized";
+  if (/\bcopper[-\s]?plated\b/i.test(finish)) return "copper-plated";
+  if (/\bnickel[-\s]?plated\b/i.test(finish)) return "nickel-plated";
+  if (/\bchromalized\b/i.test(finish)) return "Chromalized";
+  if (/\blacquered\b/i.test(finish)) return "lacquered";
   return undefined;
 }
 
@@ -712,7 +785,8 @@ function compliancePresent(ctx: ResolveContext, topic: RegExp): string | undefin
 }
 
 function voltageType(ctx: ResolveContext): string | undefined {
-  return controlVoltageType(ctx) ?? attr(ctx, /\b(voltage type|current type|operating voltage type)\b/i);
+  if (/^2080-LC20-20/i.test(ctx.item.catalogNumber)) return "AC/DC";
+  return attr(ctx, /\b(voltage type|current type|operating voltage type)\b/i) ?? controlVoltageType(ctx);
 }
 
 function interfaceDesign(ctx: ResolveContext): string | undefined {
@@ -811,6 +885,14 @@ function safeMaterialValue(value: string | undefined): string | undefined {
 
 function colorValue(ctx: ResolveContext, pattern: RegExp = /\bcolou?r\b/i): string | undefined {
   return safeColorValue(clean(ctx.result?.normalized.color)) ?? safeColorValue(attr(ctx, pattern));
+}
+
+function housingColorValue(ctx: ResolveContext): string | undefined {
+  return (
+    safeColorValue(attr(ctx, /\b(colou?r of housing|housing colou?r|housing color)\b/i)) ??
+    clean(ctx.result?.normalized.finish)?.match(/\bblack\b|\banthracite\b|\bbeige\b|\bblue\b|\bgr[ae]y\b|\bwhite\b|\bred\b|\bgreen\b/i)?.[0] ??
+    colorValue(ctx)
+  );
 }
 
 function safeColorValue(value: string | undefined): string | undefined {
@@ -1268,7 +1350,7 @@ const RESOLVERS: Record<string, Resolver> = {
   // Numeric / integer / free-text device fields that are SAFE to fill (the enum-coded device
   // columns like "Voltage type 1-AC 2-DC" or IP/NEMA are deliberately left blank — they need a
   // value-to-code mapping, and writing the raw scraped string there would be wrong).
-  AAS575: (ctx) => ctx.repair?.powerLossPerPole ?? numberWithUnit(attr(ctx, /\bpower loss\b/i), "W"), // Power loss per pole [W]
+  AAS575: powerLossPerPole, // Power loss per pole [W]
   AAT080: (ctx) => numberOf(attr(ctx, /\b(number of poles|pole number|no\.? of poles|poles)\b/i)), // Pole number
   AAP798: (ctx) => attr(ctx, /\b(application standards|standards?)\b/i), // Application standards
   AAB821: ratedOperationalCurrent, // Max. rated operating current [A]
@@ -1892,7 +1974,7 @@ const RESOLVERS: Record<string, Resolver> = {
   AAC022: (ctx) => temperatureBound(ctx, "min", /\b(min(?:imum)? ambient temperature|ambient temperature|operating temperature)\b/i),
   AAG011: (ctx) => lengthValue(ctx, /\b(thickness of material|material thickness|thickness)\b/i),
   AAZ485: suitabilityForApplication,
-  BAA097: (ctx) => colorValue(ctx, /\b(colou?r of housing|housing colou?r|colou?r)\b/i),
+  BAA097: housingColorValue,
   BAC078: voltageType,
   AAZ960: attrValue(/\b(pneumatic port|pneumatic connection|port)\b/i),
   AAJ003: attrUnitNumber(/\b(max(?:imum)? core cross[- ]section|core cross[- ]section)\b/i, "mm"),
@@ -2377,7 +2459,7 @@ const RESOLVERS: Record<string, Resolver> = {
   AAC054: attrYesNo(/\b(mounting plate adjustable|adjustable mounting plate)\b/i),
   AAC265: attrYesNo(/\b(back door)\b/i),
   AAC929: attrNumber(/\b(number of doors|doors)\b/i),
-  AAE670: attrValue(/\b(additional link address|link address)\b/i),
+  AAE670: (ctx) => attr(ctx, /\b(additional link address|link address)\b/i) ?? productUrl(ctx),
   AAG021: attrValue(/\b(impact strength|IK)\b/i),
   AAM117: attrYesNo(/\b(glazed door)\b/i),
   AAM354: attrYesNo(/\b(tackable)\b/i),
