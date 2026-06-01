@@ -11,6 +11,7 @@ import { buildPdtRepairResult, type PdtCleanupAudit, type PdtRepair } from "./ai
 import { writeCleanedInputWorkbook } from "./cleaned-input-workbook.js";
 import { normalizePdtCellNumber } from "./unit-cleanup.js";
 import { writeProductAccessorySheet } from "./product-accessory-sheet.js";
+import { writeConnectionPointsSheet } from "./connection-points-sheet.js";
 
 const DOCUMENTS_SHEET = "Additional Documents";
 /** Always kept even when empty (the manual PDT keeps this tab as a placeholder). */
@@ -129,9 +130,13 @@ export async function exportRunPdt(input: {
     missingSheets.add(DOCUMENTS_SHEET);
   }
 
-  // Connection Point Information stays as a template placeholder for now — the manual PDT keeps it
-  // present but unfilled, and the auto-fill produces too many speculative rows to be useful yet.
-  // (The tab itself is kept in the workbook via ALWAYS_KEPT_SHEETS below.)
+  // Fill connection points only for manufacturers with PDT-example-backed connection rules.
+
+  const connectionPointsWs = workbook.getWorksheet(resolveSheetName("Connection Point Information") ?? "Connection Point Information");
+  if (connectionPointsWs) {
+    const connectionPointRows = writeConnectionPointsSheet(connectionPointsWs, included.filter(shouldWriteConnectionPointsForItem));
+    if (connectionPointRows > 0) filledSheets[connectionPointsWs.name] = connectionPointRows;
+  }
 
   const productAccessoryWs = workbook.getWorksheet(resolveSheetName("Product Accessory") ?? "Product Accessory");
   if (productAccessoryWs) {
@@ -174,6 +179,11 @@ export async function exportRunPdt(input: {
 function cleanupSummary(audit: PdtCleanupAudit): PdtCleanupSummary {
   const { products, ...summary } = audit;
   return { ...summary, productRows: products.length };
+}
+
+function shouldWriteConnectionPointsForItem(item: RunItemRecord): boolean {
+  const manufacturerId = item.result?.manufacturerId;
+  return manufacturerId === "abb" || manufacturerId === "eaton" || manufacturerId === "rockwell";
 }
 
 /** Normalise a sheet name for tolerant lookup ("Switch" / "switch" / " SWITCH " → "switch"). */
@@ -269,7 +279,12 @@ function writeUniformSheet(
   return written;
 }
 
-function additionalDeviceSheetsForItem(_item: RunItemRecord, _manufacturer: ManufacturerConfig): string[] {
+function additionalDeviceSheetsForItem(item: RunItemRecord, manufacturer: ManufacturerConfig): string[] {
+  const isRockwell = manufacturer.id === "rockwell" || item.result?.manufacturerId === "rockwell";
+  const text = `${item.catalogNumber} ${item.result?.title ?? ""} ${item.result?.description ?? ""}`;
+  if (isRockwell && /\b(?:PowerFlex|755)\b/i.test(text) && classifyDeviceType(item.result).type === "Variable Speed Drive") {
+    return ["power supply devices"];
+  }
   return [];
 }
 
@@ -300,7 +315,8 @@ function isColumnAllowedForItem(
       "REFERENCE_FEATURE_SYSTEM_NAME",
       "AAO676", // article number
       "BAH005", // rated voltage
-      "BAD915"  // voltage type
+      "BAD915", // voltage type
+      "AAS575"  // power loss per pole (manual PDT carries it for EMAX accessories when available)
     ]);
     return allowed.has(column.code);
   }
@@ -417,6 +433,22 @@ function uniformRowVariantsFor(sheetName: string, item: RunItemRecord, ctx: Reso
     // scraped ECLASS code.
     if (item.result?.manufacturerId === "eaton") {
       const model = (eatonModelCode(item.result) ?? resolveProperty("CNSTYPECODE", "CNSTYPECODE", ctx) ?? "").toUpperCase();
+      // PSN-DRS-MT / PSN-FPS share a richer set of cabinet defaults in the manual PDTs:
+      // NEMA enclosure list, 2 doors, 2 locks, 2 assembly counts. Mirror those here.
+      if (/^PSN-(?:DRS-MT|FPS)\b/i.test(model)) {
+        return [{
+          AAO676: item.catalogNumber,
+          BAB664: "Steel",
+          BAF634: "Steel",
+          BAF785: "Powder coating",
+          AAW361: "NEMA Type 3R, 4, 4X, 12 and Type 13",
+          AAZ486: "NEMA Type 3R, 4, 4X, 12 and Type 13",
+          AAC929: "2",        // Number of doors
+          BAA105: "2",        // Number of locks
+          BAD290: "2",        // Assembly on floor is possible
+          BAD308: "2"         // Wall assembly possible
+        }];
+      }
       if (/^PSN-/i.test(model)) {
         return [{
           AAO676: item.catalogNumber,
@@ -454,6 +486,10 @@ function uniformRowVariantsFor(sheetName: string, item: RunItemRecord, ctx: Reso
         BAF785: "Powder coating",
         BAG975: "IP66"
       }];
+    }
+    const lpplDefaults = sceLpplCabinetDefaults(item.catalogNumber);
+    if (item.result?.manufacturerId === "sce" && lpplDefaults) {
+      return [lpplDefaults];
     }
     return [undefined];
   }
@@ -547,6 +583,29 @@ function eatonModelCode(result: RunItemRecord["result"]): string | undefined {
   );
 }
 
+function sceLpplCabinetDefaults(catalogNumber: string): Record<string, string> | undefined {
+  const part = cleanString(catalogNumber) ?? catalogNumber.trim();
+  if (!/^SCE-\d+EL\d+(?:SS6|SS)?LPPL$/i.test(part)) return undefined;
+  const stainless316 = /SS6LPPL$/i.test(part);
+  const stainless304 = !stainless316 && /SSLPPL$/i.test(part);
+  const material = stainless316 ? "stainless steel Type 316/316L" : stainless304 ? "stainless steel Type 304" : "Carbon steel";
+  const defaults: Record<string, string> = {
+    AAO676: part,
+    REFERENCE_FEATURE_GROUP_ID: "27180101",
+    BAD308: "2", // Wall assembly possible: Yes
+    AAW361: "NEMA Type 3R, 4, 12 and Type 13",
+    AAZ486: "NEMA Type 3R, 4, 12 and Type 13",
+    BAB664: material,
+    BAF634: material,
+    BAG975: "IP66"
+  };
+  if (!stainless316 && !stainless304) {
+    defaults.BAC295 = "ANSI-61 gray";
+    defaults.BAF785 = "Powder coating";
+  }
+  return defaults;
+}
+
 function cellValueFor(column: { code: string; propName: string; unit?: string }, value: string): ExcelJS.CellValue {
   if (isProductUrlColumn(column) && /^https?:\/\//i.test(value)) return { text: value, hyperlink: value };
   if (!isTextColumn(column)) {
@@ -607,6 +666,10 @@ function shouldEncodeEnum(sheetName: string, column: { code: string; propName: s
   if (sheetName === "contactor a. fuses" && /\bvoltage type\b|\bcurrent type\b/i.test(column.description) && /^AC\s*\/\s*DC$/i.test(value.trim())) {
     return false;
   }
+  // NEMA enclosure rating columns (AAW361, AAZ486): manual PDTs use a compound string like
+  // "NEMA Type 3R, 4, 4X, 12 and Type 13" that doesn't match any single enum legend value.
+  // Write it raw so the cell isn't stripped to blank by enum encoding.
+  if ((keys.includes("AAW361") || keys.includes("AAZ486")) && /\bNEMA\b.*\bType\b/i.test(value)) return false;
   return true;
 }
 
@@ -618,13 +681,17 @@ function resolvePdtColumnValue(
 ): string | undefined {
   const variant = rowVariantValue(column, ctx);
   if (variant !== undefined) return variant;
+  // For German description columns, resolve with language="de" so description resolvers pull from
+  // result.localizedDescriptions.de instead of EN. If no localized DE text exists the resolver
+  // returns undefined and the cell stays blank — we no longer fall back to EN→DE translation.
+  const resolveCtx: ResolveContext = isGermanDescriptionColumn(ws, descriptor, column)
+    ? { ...ctx, language: "de" }
+    : ctx;
   const direct =
-    resolveProperty(column.code, column.propName, ctx) ??
-    resolvePropertyByDescription(column, ctx) ??
-    resolvePropertyByColumnMetadata(column, ctx);
-  if (!direct) return undefined;
-  if (isGermanDescriptionColumn(ws, descriptor, column)) return translateEnglishDescriptionToGerman(direct);
-  return direct;
+    resolveProperty(column.code, column.propName, resolveCtx) ??
+    resolvePropertyByDescription(column, resolveCtx) ??
+    resolvePropertyByColumnMetadata(column, resolveCtx);
+  return direct ?? undefined;
 }
 
 function rowVariantValue(column: PdtColumn, ctx: ResolveContext): string | undefined {
@@ -660,10 +727,14 @@ function resolvePropertyByColumnMetadata(column: PdtColumn, ctx: ResolveContext)
       groupedName: normalizedMetadataLabel(`${attribute.group ?? ""} ${attribute.name}`)
     }))
     .filter(({ attribute }) => Boolean(cleanString(attribute.value)))
-    .filter(({ name, groupedName }) => labels.includes(name) || labels.includes(groupedName));
+    .filter(({ name, groupedName }) => labels.some((label) => metadataLabelMatches(label, name) || metadataLabelMatches(label, groupedName)));
   if (candidates.length === 0) return undefined;
 
-  candidates.sort((left, right) => sourceRank(right.attribute.sourceType) - sourceRank(left.attribute.sourceType));
+  candidates.sort(
+    (left, right) =>
+      sourceRank(right.attribute.sourceType) - sourceRank(left.attribute.sourceType) ||
+      metadataMatchScore(labels, right.name, right.groupedName) - metadataMatchScore(labels, left.name, left.groupedName)
+  );
   return cleanString(candidates[0].attribute.value);
 }
 
@@ -686,12 +757,71 @@ function normalizedMetadataLabel(value: string): string {
     .replace(/\([^)]*\)/g, " ")
     .replace(/\bmax\./gi, "maximum")
     .replace(/\bmin\./gi, "minimum")
+    .replace(/\brating\b/gi, "rated")
+    .replace(/\bratings\b/gi, "rated")
     .replace(/\bcolou?r\b/gi, "color")
     .replace(/[^a-z0-9]+/gi, " ")
     .replace(/\bthe\b/gi, " ")
     .replace(/\s+/g, " ")
     .trim()
     .toLowerCase();
+}
+
+function metadataLabelMatches(target: string, candidate: string): boolean {
+  if (target === candidate) return true;
+  const targetTokens = metadataTokens(target);
+  const candidateTokens = metadataTokens(candidate);
+  if (targetTokens.length < 2 || candidateTokens.length < 2) return false;
+  const targetSet = new Set(targetTokens);
+  const candidateSet = new Set(candidateTokens);
+  if (targetTokens.every((token) => candidateSet.has(token))) return true;
+  if (candidateTokens.every((token) => targetSet.has(token))) return true;
+  const overlap = targetTokens.filter((token) => candidateSet.has(token));
+  return overlap.length >= 2 && overlap.some((token) => IMPORTANT_METADATA_TOKENS.has(token));
+}
+
+function metadataMatchScore(labels: string[], name: string, groupedName: string): number {
+  let best = 0;
+  for (const label of labels) {
+    for (const candidate of [name, groupedName]) {
+      if (label === candidate) best = Math.max(best, 100);
+      else if (metadataLabelMatches(label, candidate)) best = Math.max(best, metadataTokens(label).filter((token) => metadataTokens(candidate).includes(token)).length * 10);
+    }
+  }
+  return best;
+}
+
+const METADATA_STOPWORDS = new Set(["of", "the", "and", "for", "with", "to", "in", "by", "manufacturer", "product", "value"]);
+const IMPORTANT_METADATA_TOKENS = new Set([
+  "voltage",
+  "current",
+  "power",
+  "frequency",
+  "weight",
+  "mass",
+  "width",
+  "height",
+  "depth",
+  "length",
+  "material",
+  "surface",
+  "finish",
+  "color",
+  "protection",
+  "certificate",
+  "certification",
+  "approval",
+  "mounting",
+  "connection",
+  "temperature",
+  "poles"
+]);
+
+function metadataTokens(value: string): string[] {
+  return value
+    .split(/\s+/)
+    .map((token) => token.replace(/s$/i, ""))
+    .filter((token) => token.length > 1 && !METADATA_STOPWORDS.has(token));
 }
 
 function isUsableMetadataLabel(value: string): boolean {
@@ -770,52 +900,6 @@ function columnLanguage(ws: ExcelJS.Worksheet, column: number, firstBodyRow: num
   if (/\b(description|desc|product description)\s*de\b|\bde\s*(description|desc)\b|\bdeutsch\b|\bgerman\b/.test(joined)) return "de";
   if (/\b(description|desc|product description)\s*en\b|\ben\s*(description|desc)\b|\benglish\b/.test(joined)) return "en";
   return undefined;
-}
-
-function translateEnglishDescriptionToGerman(value: string): string {
-  const trimmed = value.trim();
-  if (!trimmed) return "";
-  const exact = TECHNICAL_GERMAN_TRANSLATIONS.get(trimmed.toLowerCase());
-  if (exact) return exact;
-  return translateAbbAfContactorDescription(trimmed) ?? translateSimpleTechnicalDescription(trimmed) ?? trimmed;
-}
-
-const TECHNICAL_GERMAN_TRANSLATIONS = new Map<string, string>([
-  ["wall mounted enclosure", "Wandmontiertes Gehäuse"],
-  ["enclosure", "Gehäuse"],
-  ["contactor", "Schütz"]
-]);
-
-function translateSimpleTechnicalDescription(value: string): string | undefined {
-  const normalized = value.trim().toLowerCase();
-  if (/^[\w.-]+\s+contactor$/.test(normalized)) return value.replace(/\bcontactor\b/i, "Schütz");
-  if (/^\d+\s*pole\s+contactor$/.test(normalized)) return value.replace(/^(\d+)\s*pole\s+contactor$/i, "$1-poliger Schütz");
-  return undefined;
-}
-
-function translateAbbAfContactorDescription(value: string): string | undefined {
-  const pattern =
-    /^The\s+(?<model>[\w.-]+)\s+is\s+a\s+(?<poles>\d+)\s+pole\s*-\s*(?<iecVoltage>\d+(?:\.\d+)?)\s*V\s*IEC\s+or\s+(?<ulVoltage>\d+(?:\.\d+)?)\s*(?:V\s*)?UL\s+contactor\s+with\s+(?<terminals>[^,]+),\s+controlling\s+motors\s+up\s+to\s+(?<kw>\d+(?:\.\d+)?)\s*kW\s*\/\s*(?<motorVoltage>\d+(?:\.\d+)?)\s*V\s*AC\s*\(AC-3\)\s+or\s+(?<hp>\d+(?:\.\d+)?)\s*hp\s*\/\s*(?<hpVoltage>\d+(?:\.\d+)?)\s*V\s*UL\s+and\s+switching\s+power\s+circuits\s+up\s+to\s+(?<ac1>\d+(?:\.\d+)?)\s*A\s*\(AC-1\)\s+or\s+(?<ulCurrent>\d+(?:\.\d+)?)\s*A\s*UL\s+general\s+use\.\s+Thanks\s+to\s+(?:the\s+)?AF\s+technology,\s+the\s+contactor\s+has\s+a\s+wide\s+control\s+voltage\s+range\s+\((?<controlVoltage>[^)]+)\),\s+managing\s+large\s+control\s+voltage\s+variations,\s+reducing\s+panel\s+energy\s+consumptions\s+and\s+ensuring\s+distinct\s+operations\s+in\s+unstable\s+networks\.\s+Furthermore,\s+surge\s+protection\s+is\s+built-in,\s+offering\s+a\s+compact\s+solution\.\s+AF\s+contactors\s+have\s+a\s+block\s+type\s+design,\s+can\s+be\s+easily\s+extended\s+with\s+add-on\s+auxiliary\s+contact\s+blocks\s+and\s+an\s+additional\s+wide\s+range\s+of\s+accessories\.?$/i;
-  const match = value.match(pattern);
-  const groups = match?.groups;
-  if (!groups) return undefined;
-  const terminals = translateTerminalPhrase(groups.terminals);
-  const controlVoltage = groups.controlVoltage.replace(/\s+and\s+DC\b/i, " und DC");
-  return [
-    `Der ${groups.model} ist ein ${groups.poles}-poliger Schütz für ${groups.iecVoltage} V IEC bzw. ${groups.ulVoltage} V UL mit ${terminals}.`,
-    `Er steuert Motoren bis ${groups.kw} kW / ${groups.motorVoltage} V AC (AC-3) oder ${groups.hp} hp / ${groups.hpVoltage} V UL und schaltet Leistungskreise bis ${groups.ac1} A (AC-1) oder ${groups.ulCurrent} A UL General Use.`,
-    `Dank AF-Technologie verfügt das Schütz über einen breiten Steuerspannungsbereich (${controlVoltage}), beherrscht große Steuerspannungsschwankungen, reduziert den Energieverbrauch im Schaltschrank und sorgt für zuverlässigen Betrieb in instabilen Netzen.`,
-    "Der integrierte Überspannungsschutz bietet eine kompakte Lösung.",
-    "AF-Schütze sind in Blockbauweise ausgeführt und können einfach mit anbaubaren Hilfskontaktblöcken sowie einem breiten Zubehörprogramm erweitert werden."
-  ].join(" ");
-}
-
-function translateTerminalPhrase(value: string | undefined): string {
-  const text = value?.trim() ?? "";
-  if (/^RT\s+terminals$/i.test(text)) return "RT-Anschlüssen";
-  if (/^screw\s+terminals$/i.test(text)) return "Schraubanschlüssen";
-  if (/^ring\s+tongue\s+terminals$/i.test(text)) return "Ringkabelschuh-Anschlüssen";
-  return text || "Anschlüssen";
 }
 
 function removeTemplateLabelColumn(ws: ExcelJS.Worksheet): void {

@@ -16,6 +16,9 @@ interface SiemensAuthConfig {
   clientSecret: string;
 }
 
+// Module-level memoization: Siemens OAuth tokens are reusable across catalog numbers until they expire.
+let tokenCache: { token: string; expiresAt: number } | undefined;
+
 export class SiemensConnector implements ManufacturerConnector {
   readonly id = "siemens";
 
@@ -69,6 +72,10 @@ export class SiemensConnector implements ManufacturerConnector {
   }
 
   private async fetchAnonymousToken(auth: SiemensAuthConfig, context: ScrapeContext): Promise<string> {
+    // Reuse a cached token across catalog numbers when it still has >60s of life left.
+    if (tokenCache && tokenCache.expiresAt > Date.now() + 60_000) {
+      return tokenCache.token;
+    }
     const tokenUrl = new URL(auth.anonymousTokenUrl, auth.authority).toString();
     const fetched = await context.http.fetchText(tokenUrl, {
       method: "POST",
@@ -85,8 +92,10 @@ export class SiemensConnector implements ManufacturerConnector {
       timeoutMs: 15000,
       signal: context.signal
     });
-    const parsed = JSON.parse(fetched.text) as { access_token?: string; error?: string };
+    const parsed = JSON.parse(fetched.text) as { access_token?: string; error?: string; expires_in?: number };
     if (!parsed.access_token) throw new Error(parsed.error || "Siemens anonymous token was not returned.");
+    const expiresInSec = typeof parsed.expires_in === "number" && parsed.expires_in > 60 ? parsed.expires_in : 300;
+    tokenCache = { token: parsed.access_token, expiresAt: Date.now() + (expiresInSec - 60) * 1000 };
     return parsed.access_token;
   }
 }

@@ -243,9 +243,29 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
   };
 }
 
+function mergeLocalizedDescriptions(
+  primary: ProductResult["localizedDescriptions"],
+  fallback: ProductResult["localizedDescriptions"]
+): ProductResult["localizedDescriptions"] {
+  if (!primary && !fallback) return undefined;
+  const result: NonNullable<ProductResult["localizedDescriptions"]> = {};
+  const locales: Array<"de"> = ["de"];
+  for (const locale of locales) {
+    const p = primary?.[locale];
+    const f = fallback?.[locale];
+    if (!p && !f) continue;
+    const title = p?.title ?? f?.title;
+    const description = p?.description ?? f?.description;
+    if (title || description) result[locale] = { title, description };
+  }
+  return Object.keys(result).length ? result : undefined;
+}
+
 export function mergeResults(primary: ProductResult, fallback?: ProductResult): ProductResult {
   if (!fallback) return primary;
-  const attributes = dedupeAttributes([...primary.attributes, ...fallback.attributes]);
+  // Sort merged attributes deterministically so byte-for-byte reproducibility is possible
+  // across runs that hit primary/fallback in different orders.
+  const attributes = sortAttributesStable(dedupeAttributes([...primary.attributes, ...fallback.attributes]));
   const documents = dedupeDocuments([...primary.documents, ...fallback.documents]);
   const normalized = mergeNormalizedFields(
     normalizeFields(attributes, documents),
@@ -265,6 +285,7 @@ export function mergeResults(primary: ProductResult, fallback?: ProductResult): 
     },
     title: primary.title ?? fallback.title,
     description: primary.description ?? fallback.description,
+    localizedDescriptions: mergeLocalizedDescriptions(primary.localizedDescriptions, fallback.localizedDescriptions),
     normalized,
     attributes,
     documents,
@@ -1427,6 +1448,21 @@ function dedupeAttributes(attributes: AttributeRecord[]): AttributeRecord[] {
     if (seen.has(key)) return false;
     seen.add(key);
     return Boolean(attr.name && attr.value);
+  });
+}
+
+/**
+ * Deterministically sort attributes by (group, name, sourceUrl) so successive runs that hit
+ * sources in different orders still produce byte-identical outputs. Used after merging
+ * primary + fallback attribute lists.
+ */
+function sortAttributesStable(attributes: AttributeRecord[]): AttributeRecord[] {
+  return [...attributes].sort((left, right) => {
+    const groupCmp = (left.group ?? "").localeCompare(right.group ?? "");
+    if (groupCmp !== 0) return groupCmp;
+    const nameCmp = left.name.localeCompare(right.name);
+    if (nameCmp !== 0) return nameCmp;
+    return (left.sourceUrl ?? "").localeCompare(right.sourceUrl ?? "");
   });
 }
 

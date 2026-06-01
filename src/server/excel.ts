@@ -1995,6 +1995,7 @@ function finalCompletenessCheck(result: ProductResult | undefined): string | und
 function finalAuditStatusLabel(record: FinalCompletenessRecord): string {
   if (record.status === "not-applicable") return "not applicable";
   if (record.status === "not-published") return "not published";
+  if (record.status === "retry-skipped") return "retry skipped";
   if (record.status === "found-after-repair") return "found after repair";
   if (record.status === "found-after-retry") return "found after retry";
   return record.status;

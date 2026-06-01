@@ -265,16 +265,25 @@ function connectionRowsFor(item: RunItemRecord): ConnectionPointRow[] {
 function abbConnectionRows(item: RunItemRecord, result: ProductResult): ConnectionPointRow[] {
   if (result.manufacturerId !== "abb") return [];
   const catalog = item.catalogNumber.toUpperCase();
-  const terminalNames = /^1SBL/i.test(catalog)
-    ? ["A1", "A2", "1L1", "2T1", "3L2", "4T2", "5L3", "6T3", "13NO", "14NO", "21NC", "22NC"]
-    : ["U1", "U2", "SEN1", "SEN2", "YC", "YO", "YU", "M", "COM", "DI1", "DI2", "DO1"];
+  // Contactor (1SBL*) — coil + 3-phase main contacts + aux contacts.
+  if (/^1SBL/i.test(catalog)) {
+    const terminalNames = ["A1", "A2", "1L1", "2T1", "3L2", "4T2", "5L3", "6T3", "13NO", "14NO", "21NC", "22NC"];
+    return [
+      ...terminalNames.map((name, index) => electricalRow(item.catalogNumber, index + 1, name, abbConnectionFunction(name), abbElectricalDefaults(result))),
+      operationRow(item.catalogNumber),
+      mountingRow(item.catalogNumber, "MD", abbMountingDescription(result)),
+      drillRow(item.catalogNumber, 1, "MD"),
+      drillRow(item.catalogNumber, 2, "MD"),
+      drillRow(item.catalogNumber, 3, "MD")
+    ];
+  }
+  // For all other ABB articles (accessories like 1SDA*, drives, robotics, etc.) the manual PDT
+  // typically lists only an operation point (OP) and a mounting description (MD). We previously
+  // emitted a 12-row motor terminal template for everything that wasn't 1SBL, which polluted the
+  // CP sheet for E-MAX accessories where the manual operator wrote only OP+MD per article.
   return [
-    ...terminalNames.map((name, index) => electricalRow(item.catalogNumber, index + 1, name, abbConnectionFunction(name), abbElectricalDefaults(result))),
     operationRow(item.catalogNumber),
-    mountingRow(item.catalogNumber, "MD", abbMountingDescription(result)),
-    drillRow(item.catalogNumber, 1, "MD"),
-    drillRow(item.catalogNumber, 2, "MD"),
-    drillRow(item.catalogNumber, 3, "MD")
+    mountingRow(item.catalogNumber, "MD", abbMountingDescription(result))
   ];
 }
 
@@ -447,8 +456,19 @@ function numberedElectricalRows(
   count: number
 ): ConnectionPointRow[] {
   const defaults = electricalDefaults(result);
+  // Only PLC / I/O / Communication-Gateway / HMI devices have logical channel names ("CHn") in
+  // the manual PDTs. For circuit breakers, terminal blocks, disconnect switches, etc. the
+  // channel-name column is left blank — emitting "CH1..CHn" there is pollution.
+  const deviceType = classifyDeviceType(result).type ?? "";
+  const usesChannelNames = /\b(PLC|I\/O|Communication Gateway|Programmable Logic|HMI)\b/i.test(deviceType);
   return Array.from({ length: count }, (_, index) =>
-    electricalRow(item.catalogNumber, index + 1, String(index + 1), `CH${index + 1}`, defaults)
+    electricalRow(
+      item.catalogNumber,
+      index + 1,
+      String(index + 1),
+      usesChannelNames ? `CH${index + 1}` : "",
+      defaults
+    )
   );
 }
 
@@ -503,7 +523,6 @@ function electricalRow(
     article,
     pointName: `ECP_${index}`,
     connectionName: name,
-    description: name,
     designation: name,
     removable: "2",
     connectionType: "13",

@@ -100,7 +100,7 @@ export function repairFinalCompletenessFromEvidence(
       continue;
     }
     if (field === "image") {
-      const document = repairImageDocument(result);
+      const document = repairImageDocument(result, manufacturer);
       if (document) {
         documents.push(document);
         records.push({ field, value: document.url, source: document.sourceUrl });
@@ -361,9 +361,12 @@ function finalCompletenessRecords(
       };
     }
     if (afterMissing && networkRetry && !networkRetry.attempted) {
+      // Distinguish "we deliberately skipped the retry this run" from "the retry ran and
+      // came back empty". retry-skipped is RETRY-eligible on future runs; not-published is
+      // the conclusion after we actually tried.
       return {
         field,
-        status: "not-published",
+        status: "retry-skipped",
         requirement,
         beforeValue,
         afterValue,
@@ -469,14 +472,14 @@ function valueExtractor(field: FinalCompletenessField): (value: string, label: s
   }
 }
 
-function repairImageDocument(result: ProductResult): DocumentRecord | undefined {
+function repairImageDocument(result: ProductResult, manufacturer: ManufacturerConfig): DocumentRecord | undefined {
   const candidates = uniqueStrings(
     result.attributes.flatMap((attr) => {
       const text = `${attr.name} ${attr.value} ${attr.sourceUrl ?? ""}`;
       return imageUrlsFromText(text, attr.sourceUrl);
     })
   );
-  const url = candidates.find((candidate) => productImageUrlLooksRelevant(candidate, result));
+  const url = candidates.find((candidate) => productImageUrlLooksRelevant(candidate, result, manufacturer));
   if (!url) return undefined;
   return {
     type: "image",
@@ -497,12 +500,26 @@ function imageUrlsFromText(value: string, baseUrl?: string): string[] {
   return urls;
 }
 
-function productImageUrlLooksRelevant(url: string, result: ProductResult): boolean {
+function productImageUrlLooksRelevant(url: string, result: ProductResult, manufacturer?: ManufacturerConfig): boolean {
   const text = url.toLowerCase();
   if (/logo|icon|sprite|placeholder|loading/i.test(text)) return false;
   const compactPart = result.catalogNumber.toLowerCase().replace(/[^a-z0-9]/g, "");
   if (compactPart && text.replace(/[^a-z0-9]/g, "").includes(compactPart)) return true;
-  return /product|image|gallery|zoom|media|assets|cdn/i.test(text);
+  // Tightened: only trust generic product/image/cdn keywords when the URL is hosted on a
+  // known official manufacturer domain. Random CDN URLs without catalog-number context were
+  // sneaking through and getting written as product images.
+  if (manufacturer && /product|image|gallery|zoom|media|assets|cdn/i.test(text)) {
+    try {
+      const host = new URL(url).hostname.replace(/^www\./, "").toLowerCase();
+      return manufacturer.officialBaseUrls.some((baseUrl) => {
+        const baseHost = officialHostname(baseUrl);
+        return baseHost ? host === baseHost || host.endsWith(`.${baseHost}`) : false;
+      });
+    } catch {
+      return false;
+    }
+  }
+  return false;
 }
 
 function fieldLabelMatches(field: FinalCompletenessField, label: string): boolean {

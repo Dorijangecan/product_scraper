@@ -183,22 +183,28 @@ export class CachedHttpClient {
     await this.acquireHostSlot(url);
     const cachePath = path.join(this.cacheDir, `${cacheKey}.html`);
     const timeoutSec = Math.max(5, Math.ceil((options.timeoutMs ?? 30000) / 1000));
+    // Defense-in-depth: pass URL and cache path via environment variables instead of
+    // string-interpolating them into the PowerShell script. Single-quoted PS strings do not
+    // expand $(...) so the prior escape was already safe, but env vars eliminate the entire
+    // class of "what if a future change uses double quotes" hazard.
     const command = `
 $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'
+$url = $env:SCRAPER_PS_URL
+$cachePath = $env:SCRAPER_PS_CACHE_PATH
 $headers = @{
 ${powerShellHeaderLines(headers)}
 }
-$response = Invoke-WebRequest -Uri '${url.replaceAll("'", "''")}' -MaximumRedirection 5 -UseBasicParsing -TimeoutSec ${timeoutSec} -Headers $headers
+$response = Invoke-WebRequest -Uri $url -MaximumRedirection 5 -UseBasicParsing -TimeoutSec ${timeoutSec} -Headers $headers
 $content = [string]$response.Content
 if ([string]::IsNullOrWhiteSpace($content)) {
-  throw "Empty response body from ${url.replaceAll("'", "''")}"
+  throw "Empty response body from $url"
 }
-[System.IO.File]::WriteAllText('${cachePath.replaceAll("'", "''")}', $content, [System.Text.Encoding]::UTF8)
-if (-not (Test-Path -LiteralPath '${cachePath.replaceAll("'", "''")}') -or ((Get-Item -LiteralPath '${cachePath.replaceAll("'", "''")}').Length -lt 32)) {
+[System.IO.File]::WriteAllText($cachePath, $content, [System.Text.Encoding]::UTF8)
+if (-not (Test-Path -LiteralPath $cachePath) -or ((Get-Item -LiteralPath $cachePath).Length -lt 32)) {
   throw "Response body was not written to cache"
 }
-$effectiveUrl = if ($response.BaseResponse -and $response.BaseResponse.ResponseUri) { $response.BaseResponse.ResponseUri.AbsoluteUri } else { '${url.replaceAll("'", "''")}' }
+$effectiveUrl = if ($response.BaseResponse -and $response.BaseResponse.ResponseUri) { $response.BaseResponse.ResponseUri.AbsoluteUri } else { $url }
 $contentType = if ($response.Headers['Content-Type']) { [string]$response.Headers['Content-Type'] } else { '' }
 [pscustomobject]@{
   StatusCode = [int]$response.StatusCode
@@ -212,7 +218,8 @@ $contentType = if ($response.Headers['Content-Type']) { [string]$response.Header
       const result = await execFileAsync("powershell.exe", ["-NoProfile", "-EncodedCommand", encodedCommand], {
         timeout: (options.timeoutMs ?? 30000) + 5000,
         maxBuffer: 1024 * 1024,
-        signal: options.signal
+        signal: options.signal,
+        env: { ...process.env, SCRAPER_PS_URL: url, SCRAPER_PS_CACHE_PATH: cachePath }
       });
       stdout = result.stdout;
     } catch (error) {

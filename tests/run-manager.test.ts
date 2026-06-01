@@ -41,9 +41,10 @@ describe("run manager document downloads", () => {
     expect(documentDownloadProfile({ id: "balluff" }, result)).toBe("quality");
   });
 
-  it("downloads Balluff datasheets for Excel enrichment even when document saving is off", () => {
+  it("keeps quality-profile documents for Excel enrichment even when document saving is off", () => {
     expect(shouldDownloadDocumentsForRun({ id: "balluff" }, { downloadDocuments: false, generateExcel: true })).toBe(true);
-    expect(shouldDownloadDocumentsForRun({ id: "abb" }, { downloadDocuments: false, generateExcel: true })).toBe(false);
+    expect(shouldDownloadDocumentsForRun({ id: "abb" }, { downloadDocuments: false, generateExcel: true })).toBe(true);
+    expect(documentDownloadProfile({ id: "abb" }, { documents: [] } as unknown as ProductResult, { saveDocuments: false })).toBe("quality");
     expect(shouldDownloadDocumentsForRun({ id: "balluff" }, { downloadDocuments: false, generateExcel: false })).toBe(false);
   });
 

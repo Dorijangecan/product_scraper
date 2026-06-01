@@ -241,7 +241,7 @@ export class RunManager {
             initiallyGated,
             documentDownloadsForEnrichmentEnabled,
             controller.signal,
-            documentDownloadProfile(manufacturer, initiallyGated),
+            documentDownloadProfile(manufacturer, initiallyGated, { saveDocuments: downloadDocumentsEnabled }),
             downloadImagesEnabled,
             item.catalogNumber
           );
@@ -342,7 +342,7 @@ export class RunManager {
               withSmartFallbacks,
               documentDownloadsForEnrichmentEnabled,
               controller.signal,
-              documentDownloadProfile(manufacturer, withSmartFallbacks),
+              documentDownloadProfile(manufacturer, withSmartFallbacks, { saveDocuments: downloadDocumentsEnabled }),
               downloadImagesEnabled,
               item.catalogNumber
             );
@@ -426,7 +426,7 @@ export class RunManager {
               withFinalCompletenessFallbacks,
               documentDownloadsForEnrichmentEnabled,
               controller.signal,
-              documentDownloadProfile(manufacturer, withFinalCompletenessFallbacks),
+              documentDownloadProfile(manufacturer, withFinalCompletenessFallbacks, { saveDocuments: downloadDocumentsEnabled }),
               downloadImagesEnabled,
               item.catalogNumber
             );
@@ -913,7 +913,12 @@ function documentExtension(url: string, type: DocumentRecord["type"]): string {
   return ".bin";
 }
 
-export function documentDownloadProfile(manufacturer: { id: string }, result: ProductResult): DocumentDownloadProfile {
+export function documentDownloadProfile(
+  manufacturer: { id: string },
+  result: ProductResult,
+  options: { saveDocuments?: boolean } = {}
+): DocumentDownloadProfile {
+  if (options.saveDocuments === false) return "quality";
   if (manufacturer.id === "balluff") return "quality";
   if (manufacturer.id === "rockwell") return "quality";
   return "full";
@@ -925,11 +930,10 @@ export function shouldDownloadDocumentsForRun(
 ): boolean {
   if (options.downloadDocuments) return true;
   // Some manufacturers publish required electrical/dimensional data only inside the
-  // technical-data PDF (Balluff: datasheet modal; Rockwell: 1783-td*** technical data).
-  // When an Excel workbook is being generated, keep the first datasheet in the enrichment
-  // path even when the broad "save documents" option is off.
+  // technical-data PDF. When an Excel workbook is being generated, keep a tiny quality-profile
+  // document path alive for enrichment even when the broad "save documents" option is off.
   if (!options.generateExcel) return false;
-  return manufacturer.id === "balluff" || manufacturer.id === "rockwell";
+  return true;
 }
 
 function shouldDownloadForProfile(

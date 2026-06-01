@@ -41,7 +41,8 @@ const DEVICE_SHEET_MAP: Record<string, string[]> = {
   "Residual Current Device": ["contactor a. fuses"],
   "Motor Circuit Breaker": ["motor protection"],
   "Motor Starter": ["motor protection"],
-  "Disconnect Switch": ["contactor a. fuses", "Switch"],
+  // Manual Eaton EIS isolator PDTs route disconnect switches only to "contactor a. fuses".
+  "Disconnect Switch": ["contactor a. fuses"],
   Switch: ["Switch"],
   "Surge Protective Device": ["int. ext. lightning protection"],
 
@@ -52,7 +53,9 @@ const DEVICE_SHEET_MAP: Record<string, string[]> = {
   Battery: ["power supply devices"],
   Generator: ["generator"],
   Motor: ["motors"],
-  "Variable Speed Drive": ["power supply devices", "servo controller", "motors"],
+  // VSDs are servo drives, not power supplies — manual PDTs for Kinetix etc. only fill `motors`
+  // (and `servo controller` when present). Avoid over-emitting onto `power supply devices`.
+  "Variable Speed Drive": ["servo controller", "motors"],
   "Soft Starter": ["servo controller"],
   "Motion Controller": ["Motion Controller"],
   "Current Sensor": ["el. mesurement devices"],

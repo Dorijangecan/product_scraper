@@ -278,6 +278,7 @@ function vendorFromPath(file: string): ManufacturerId | undefined {
   if (relative.includes("rockwel")) return "rockwell";
   if (relative.includes("eaton")) return "eaton";
   if (relative.includes("abb")) return "abb";
+  if (relative.includes("saginaw")) return "sce";
   return undefined;
 }
 

@@ -2,6 +2,7 @@ param(
     [string]$RepoUrl = "https://github.com/Dorijangecan/product_scraper.git",
     [string]$InstallDir = (Join-Path ([Environment]::GetFolderPath("Desktop")) "product_scraper"),
     [switch]$SkipStart,
+    [switch]$SkipShortcut,
     [switch]$NoToolInstall
 )
 
@@ -78,6 +79,32 @@ function Invoke-Git {
     }
 }
 
+function New-ProductScraperShortcut {
+    param([string]$TargetDir)
+
+    $desktop = [Environment]::GetFolderPath("Desktop")
+    $shortcutPath = Join-Path $desktop "Product Scraper.lnk"
+    $target = Join-Path $TargetDir "Update-and-Start-ProductScraper.bat"
+
+    if (-not (Test-Path -LiteralPath $target)) {
+        Write-Host "Preskacem shortcut jer ne postoji launcher: $target"
+        return
+    }
+
+    try {
+        $shell = New-Object -ComObject WScript.Shell
+        $shortcut = $shell.CreateShortcut($shortcutPath)
+        $shortcut.TargetPath = $target
+        $shortcut.WorkingDirectory = $TargetDir
+        $shortcut.Description = "Update and start Product Scraper"
+        $shortcut.Save()
+        Write-Host "Desktop shortcut je spreman:"
+        Write-Host "  $shortcutPath"
+    } catch {
+        Write-Host "UPOZORENJE: Shortcut nije napravljen: $($_.Exception.Message)"
+    }
+}
+
 Refresh-CurrentPath
 Ensure-Tool "git" "Git.Git" "Git for Windows" "https://git-scm.com/download/win"
 Ensure-Tool "node" "OpenJS.NodeJS.LTS" "Node.js LTS" "https://nodejs.org/en/download"
@@ -106,6 +133,10 @@ if (Test-Path -LiteralPath (Join-Path $InstallDir ".git")) {
 Write-Host ""
 Write-Host "Product Scraper je spreman u:"
 Write-Host "  $InstallDir"
+
+if (-not $SkipShortcut) {
+    New-ProductScraperShortcut -TargetDir $InstallDir
+}
 
 if (-not $SkipStart) {
     Write-Host ""

@@ -239,6 +239,32 @@ describe("eclass resolvers", () => {
     expect(resolveProperty("CNS_DESCRIPTION_SHORT", "CNS_DESCRIPTION_SHORT", c)).toBe("Widget 9000");
   });
 
+  it("derives safe manufacturer family/base/designation fields from structured type evidence", () => {
+    const eaton = ctx(
+      { manufacturerId: "eaton", attributes: [{ name: "Model Code", value: "PSN-DRS-MT-ASMTAB", sourceType: "official" }] },
+      "502419"
+    );
+    eaton.manufacturer = { ...manufacturer, id: "eaton" } as ManufacturerConfig;
+    expect(resolveProperty("AAU731", "AAU731", eaton)).toBe("PSN");
+    expect(resolveProperty("AAU732", "AAU732", eaton)).toBe("PSN-DRS-MT");
+    expect(resolveProperty("AAU733", "AAU733", eaton)).toBe("ASMTAB");
+    expect(resolveProperty("AAW338", "AAW338", eaton)).toBe("PSN-DRS-MT");
+
+    const abb = ctx(
+      { manufacturerId: "abb", attributes: [{ name: "Extended Product Type", value: "AF40B-30-00RT-12", sourceType: "official" }] },
+      "1SBL347060R1100"
+    );
+    abb.manufacturer = { ...manufacturer, id: "abb" } as ManufacturerConfig;
+    expect(resolveProperty("AAU731", "AAU731", abb)).toBe("AF");
+    expect(resolveProperty("AAU732", "AAU732", abb)).toBe("AF40B");
+
+    const sceLppl = ctx({ manufacturerId: "sce" }, "SCE-60EL4812LPPL");
+    sceLppl.manufacturer = { ...manufacturer, id: "sce" } as ManufacturerConfig;
+    expect(resolveProperty("AAU731", "AAU731", sceLppl)).toBe("EL_LPPL");
+    expect(resolveProperty("AAU732", "AAU732", sceLppl)).toBe("EL LPPL Enclosure");
+    expect(resolveProperty("AAW338", "AAW338", sceLppl)).toBe("Wall mounted enclosure");
+  });
+
   it("uses net dimensions and ignores packaging dimensions", () => {
     const c = ctx({
       attributes: [
@@ -333,7 +359,9 @@ describe("eclass resolvers", () => {
     expect(resolveProperty("AAQ326", "AAQ326", c)).toBe("https://new.abb.com/products/1SBL347060R1100");
     expect(resolveProperty("BAH005", "BAH005", c)).toBe("24-60");
     expect(resolveProperty("AAF726", "AAF726", c)).toBe("70");
-    expect(resolveProperty("BAD915", "BAD915", c)).toBeUndefined();
+    // When the source publishes both AC (50/60 Hz) and DC segments, treat the contactor
+    // as dual-mode rather than ambiguous — slash-vs-no-slash isn't a meaningful distinction.
+    expect(resolveProperty("BAD915", "BAD915", c)).toBe("AC/DC");
     expect(resolveProperty("AAT080", "AAT080", c)).toBe("3");
   });
 
@@ -1448,7 +1476,8 @@ describe("PDT exporter", () => {
     const item = ctx(
       {
         title: "Enclosure",
-        description: "Wall mounted enclosure"
+        description: "Wall mounted enclosure",
+        localizedDescriptions: { de: { title: "Gehäuse", description: "Wandmontiertes Gehäuse" } }
       },
       "DESC-1"
     ).item;
@@ -1457,13 +1486,14 @@ describe("PDT exporter", () => {
     const out = new ExcelJS.Workbook();
     await out.xlsx.readFile(outputPath);
     const ws = out.getWorksheet("Material Master Data")!;
+    // DE columns are populated from result.localizedDescriptions.de — never echoed from EN.
     expect(ws.getCell(10, 2).value).toBe("Wandmontiertes Gehäuse");
     expect(ws.getCell(10, 3).value).toBe("Gehäuse");
     expect(ws.getCell(10, 4).value).toBe("Wall mounted enclosure");
     expect(ws.getCell(10, 5).value).toBe("Enclosure");
   });
 
-  it("translates ABB AF contactor descriptions as full German technical text", async () => {
+  it("leaves DE description columns blank when no localized DE text was scraped", async () => {
     const dir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-pdt-abb-de-"));
     const templatePath = path.join(dir, "template.xlsx");
     const outputPath = path.join(dir, "out.xlsx");
@@ -1485,20 +1515,145 @@ describe("PDT exporter", () => {
     await wb.xlsx.writeFile(templatePath);
 
     const description =
-      "The AF40B-30-00RT-12 is a 3 pole - 690 V IEC or 600 UL contactor with RT terminals, controlling motors up to 18.5 kW / 400 V AC (AC-3) or 30 hp / 480 V UL and switching power circuits up to 70 A (AC-1) or 60 A UL general use. Thanks to the AF technology, the contactor has a wide control voltage range (48-130 V 50/60 Hz and DC), managing large control voltage variations, reducing panel energy consumptions and ensuring distinct operations in unstable networks. Furthermore, surge protection is built-in, offering a compact solution. AF contactors have a block type design, can be easily extended with add-on auxiliary contact blocks and an additional wide range of accessories.";
+      "The AF40B-30-00RT-12 is a 3 pole - 690 V IEC or 600 UL contactor with RT terminals, controlling motors up to 18.5 kW / 400 V AC (AC-3) or 30 hp / 480 V UL.";
     const item = ctx({ description }, "AF40B-30-00RT-12").item;
     await exportRunPdt({ manufacturer, items: [item], templatePath, outputPath });
 
     const out = new ExcelJS.Workbook();
     await out.xlsx.readFile(outputPath);
     const ws = out.getWorksheet("Material Master Data")!;
-    const german = String(ws.getCell(10, 2).value);
-    expect(german).toContain("Der AF40B-30-00RT-12 ist ein 3-poliger Schütz");
-    expect(german).toContain("RT-Anschlüssen");
-    expect(german).toContain("Dank AF-Technologie");
-    expect(german).toContain("AF-Schütze sind in Blockbauweise ausgeführt");
-    expect(german).not.toMatch(/\b(controlling motors|with RT terminals|Thanks to|switching power circuits|wide control voltage range)\b/i);
+    // No localizedDescriptions.de on the result → DE column must stay blank rather than echo EN.
+    expect(ws.getCell(10, 2).value).toBeNull();
+    // EN column still gets the scraped English description.
     expect(ws.getCell(10, 3).value).toBe(description);
+  });
+
+  it("leaves DE description columns blank when localized text only echoes English", async () => {
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-pdt-de-echo-"));
+    const templatePath = path.join(dir, "template.xlsx");
+    const outputPath = path.join(dir, "out.xlsx");
+    const wb = new ExcelJS.Workbook();
+    const material = wb.addWorksheet("Material Master Data");
+    material.getCell(2, 2).value = "Description DE";
+    material.getCell(2, 3).value = "Description DE";
+    material.getCell(2, 4).value = "Description EN";
+    material.getCell(2, 5).value = "Description EN";
+    material.getCell(6, 1).value = "ECLASS property";
+    material.getCell(7, 1).value = "Variable name (CNS internal)";
+    material.getCell(8, 1).value = "English variable description";
+    material.getCell(9, 1).value = "Units";
+    material.getCell(6, 2).value = "CNS_DESCRIPTION_LONG / AAU734";
+    material.getCell(7, 2).value = "CNS_DESCRIPTION_LONG";
+    material.getCell(8, 2).value = "Product description long";
+    material.getCell(6, 3).value = "CNS_DESCRIPTION_SHORT";
+    material.getCell(7, 3).value = "CNS_DESCRIPTION_SHORT";
+    material.getCell(8, 3).value = "Product description short";
+    material.getCell(6, 4).value = "CNS_DESCRIPTION_LONG / AAU734";
+    material.getCell(7, 4).value = "CNS_DESCRIPTION_LONG";
+    material.getCell(8, 4).value = "Product description long";
+    material.getCell(6, 5).value = "CNS_DESCRIPTION_SHORT";
+    material.getCell(7, 5).value = "CNS_DESCRIPTION_SHORT";
+    material.getCell(8, 5).value = "Product description short";
+    wb.addWorksheet("Additional Documents");
+    await wb.xlsx.writeFile(templatePath);
+
+    const item = ctx(
+      {
+        title: "Enclosure",
+        description: "Wall mounted enclosure",
+        localizedDescriptions: { de: { title: "Enclosure", description: "Wall mounted enclosure" } }
+      },
+      "DESC-2"
+    ).item;
+    await exportRunPdt({ manufacturer, items: [item], templatePath, outputPath });
+
+    const out = new ExcelJS.Workbook();
+    await out.xlsx.readFile(outputPath);
+    const ws = out.getWorksheet("Material Master Data")!;
+    expect(ws.getCell(10, 2).value).toBeNull();
+    expect(ws.getCell(10, 3).value).toBeNull();
+    expect(ws.getCell(10, 4).value).toBe("Wall mounted enclosure");
+    expect(ws.getCell(10, 5).value).toBe("Enclosure");
+  });
+
+  it("fills PDT columns from semantically equivalent scraped attribute labels", async () => {
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-pdt-fuzzy-label-"));
+    const templatePath = path.join(dir, "template.xlsx");
+    const outputPath = path.join(dir, "out.xlsx");
+    const wb = new ExcelJS.Workbook();
+    const material = wb.addWorksheet("Material Master Data");
+    material.getCell(6, 1).value = "ECLASS property";
+    material.getCell(7, 1).value = "Variable name (CNS internal)";
+    material.getCell(8, 1).value = "English variable description";
+    material.getCell(9, 1).value = "Units";
+    material.getCell(6, 2).value = "UNKNOWN_RATED_VOLTAGE";
+    material.getCell(7, 2).value = "UNKNOWN_RATED_VOLTAGE";
+    material.getCell(8, 2).value = "Rated voltage";
+    material.getCell(9, 2).value = "V";
+    wb.addWorksheet("Additional Documents");
+    await wb.xlsx.writeFile(templatePath);
+
+    const item = ctx(
+      {
+        attributes: [{ group: "PDF Technical Data", name: "Voltage rating", value: "240 V", sourceType: "generated" }]
+      },
+      "BR120"
+    ).item;
+    await exportRunPdt({ manufacturer, items: [item], templatePath, outputPath });
+
+    const out = new ExcelJS.Workbook();
+    await out.xlsx.readFile(outputPath);
+    const ws = out.getWorksheet("Material Master Data")!;
+    expect(ws.getCell(10, 2).value).toBe(240);
+  });
+
+  it("writes Saginaw LPPL cabinet defaults into the final PDT", async () => {
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-pdt-sce-lppl-"));
+    const templatePath = path.join(dir, "template.xlsx");
+    const outputPath = path.join(dir, "out.xlsx");
+    const wb = new ExcelJS.Workbook();
+    const cabinet = wb.addWorksheet("cabinet");
+    for (const [row, label] of ["ClassId", "Priority", "Type", "PropertyId", "PropertyName", "Description", "Unit", "Body"].entries()) {
+      cabinet.getCell(row + 1, 1).value = label;
+    }
+    const columns = [
+      ["AAO676", "Article number"],
+      ["REFERENCE_FEATURE_GROUP_ID", "ECLASS group"],
+      ["BAB664", "Material"],
+      ["BAC295", "Color"],
+      ["BAF785", "Surface"],
+      ["BAG975", "Degree of protection"],
+      ["AAW361", "NEMA rating"]
+    ] as const;
+    for (const [index, [code, description]] of columns.entries()) {
+      const col = index + 2;
+      cabinet.getCell(4, col).value = code;
+      cabinet.getCell(5, col).value = code;
+      cabinet.getCell(6, col).value = description;
+    }
+    wb.addWorksheet("Additional Documents");
+    await wb.xlsx.writeFile(templatePath);
+
+    const item = ctx(
+      { manufacturerId: "sce", attributes: [{ name: "Product Type", value: "Enclosure", sourceType: "generated" }] },
+      "SCE-60EL4812LPPL",
+      "Enclosure"
+    ).item;
+    await exportRunPdt({ manufacturer: { ...manufacturer, id: "sce" } as ManufacturerConfig, items: [item], templatePath, outputPath });
+
+    const out = new ExcelJS.Workbook();
+    await out.xlsx.readFile(outputPath);
+    const ws = out.getWorksheet("cabinet")!;
+    expect(ws.getRow(8).values).toEqual([
+      ,
+      "SCE-60EL4812LPPL",
+      27180101,
+      "Carbon steel",
+      "ANSI-61 gray",
+      "Powder coating",
+      "IP66",
+      "NEMA Type 3R, 4, 12 and Type 13"
+    ]);
   });
 
   it("fills contactor voltage type and operating temperature columns found by description", async () => {
@@ -2103,14 +2258,13 @@ describe("PDT exporter sheet lookup", () => {
     expect(result.keptSheets).toContain("electronic sensor");
   });
 
-  // Connection Point auto-fill is currently disabled in the exporter — the sheet stays as a
-  // placeholder until the routing is reliable enough for the manual PDT layout.
-  it.skip("fills connection point rows from electrical channel and mounting evidence", async () => {
+  it("fills Rockwell connection point rows from PDT-example-backed family rules", async () => {
     const dir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-pdt-connection-points-"));
     const templatePath = path.resolve("templates", "master_pdt.xlsx");
     const outputPath = path.join(dir, "out.xlsx");
     const item = ctx(
       {
+        manufacturerId: "rockwell",
         title: "Micro PLC controller",
         attributes: [
           { group: "General", name: "Product Type", value: "Programmable Logic Controller", sourceType: "official" },
@@ -2120,20 +2274,44 @@ describe("PDT exporter sheet lookup", () => {
           { group: "Mechanical", name: "Mounting type", value: "DIN rail", sourceType: "official" }
         ]
       },
-      "PLC-CP-001"
+      "2080-LC20-20AWB"
     ).item;
 
-    const result = await exportRunPdt({ manufacturer, items: [item], templatePath, outputPath });
+    const result = await exportRunPdt({ manufacturer: { ...manufacturer, id: "rockwell" } as ManufacturerConfig, items: [item], templatePath, outputPath });
 
     expect(result.filledSheets["Connection Point Information"]).toBeGreaterThanOrEqual(9);
     const out = new ExcelJS.Workbook();
     await out.xlsx.readFile(outputPath);
     const values = valuesInWorksheet(out.getWorksheet("Connection Point Information")!);
-    expect(values).toContain("PLC-CP-001");
-    expect(values).toContain("+DC24");
+    expect(values).toContain("2080-LC20-20AWB");
+    expect(values).toContain("+DC10");
     expect(values).toContain("I-00");
     expect(values).toContain("O-00");
-    expect(values).toContain("DIN Rail mounting");
+    expect(values).toContain("DIN rail mounting");
+  });
+
+  it("adds Rockwell PowerFlex drives to the power supply tab like the manual PDT example", async () => {
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-pdt-rockwell-powerflex-"));
+    const templatePath = path.resolve("templates", "master_pdt.xlsx");
+    const outputPath = path.join(dir, "out.xlsx");
+    const item = ctx(
+      {
+        manufacturerId: "rockwell",
+        title: "PowerFlex 755 AC Drive",
+        attributes: [
+          { name: "Product Type", value: "Variable Speed Drive", sourceType: "official" },
+          { name: "Input Voltage", value: "400 V AC", sourceType: "official" },
+          { name: "Rated output current", value: "3 A", sourceType: "official" }
+        ]
+      },
+      "20G1ANC302JA0NNNNN"
+    ).item;
+
+    const result = await exportRunPdt({ manufacturer: { ...manufacturer, id: "rockwell" } as ManufacturerConfig, items: [item], templatePath, outputPath });
+
+    expect(result.filledSheets["servo controller"]).toBe(1);
+    expect(result.filledSheets["motors"]).toBe(1);
+    expect(result.filledSheets["power supply devices"]).toBe(1);
   });
 
   it("fills product accessory rows from Rockwell signaling accessory evidence", async () => {

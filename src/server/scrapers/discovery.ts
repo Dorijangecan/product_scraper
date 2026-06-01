@@ -331,11 +331,21 @@ async function robotsSitemapUrls(context: ScrapeContext, attemptedUrls: string[]
   return [...urls];
 }
 
+// 24h TTL for discovery indexes (sitemaps, robots.txt, search-result pages). These change
+// far more often than individual product pages, so the default 7-day product-page TTL is
+// inappropriate — a stale sitemap can hide newly published catalog numbers for days.
+const DISCOVERY_INDEX_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
+
+function isDiscoveryIndexUrl(url: string): boolean {
+  return /\/sitemap[^/]*\.xml\b|\/robots\.txt\b|[?&]q=|\/search(?:\b|[/?])/i.test(url);
+}
+
 async function fetchDiscoveryText(url: string, context: ScrapeContext): Promise<FetchedText> {
   const policy = context.manufacturer.fetchPolicy ?? {};
+  const indexOverride = isDiscoveryIndexUrl(url) ? DISCOVERY_INDEX_CACHE_TTL_MS : undefined;
   return context.http.fetchText(url, {
     timeoutMs: Math.min(policy.timeoutMs ?? 15000, 30000),
-    cacheTtlMs: policy.cacheTtlMs,
+    cacheTtlMs: indexOverride ?? policy.cacheTtlMs,
     maxAttempts: 1,
     headers: {
       ...(policy.userAgent ? { "user-agent": policy.userAgent } : {}),

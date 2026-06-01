@@ -17,11 +17,15 @@ export class RockwellConnector implements ManufacturerConnector {
 
   async scrape(catalogNumber: string, context: ScrapeContext): Promise<ProductResult> {
     const results: ProductResult[] = [];
-    const attemptedUrls: string[] = [];
+    const urls = rockwellPrimaryUrls(catalogNumber);
+    const attemptedUrls: string[] = [...urls];
 
-    for (const url of rockwellPrimaryUrls(catalogNumber)) {
-      const fetched = await fetchRockwellOptional(url, context);
-      attemptedUrls.push(url);
+    // Parallelize the 5 endpoints — each lives on an independent host so per-host throttling doesn't apply.
+    const fetchedAll = await Promise.all(urls.map((url) => fetchRockwellOptional(url, context)));
+
+    for (let i = 0; i < urls.length; i++) {
+      const url = urls[i];
+      const fetched = fetchedAll[i];
       if (!fetched) continue;
 
       if (/\/bin\/rockwell-automation\/dpp\b/i.test(url)) {
@@ -101,7 +105,7 @@ async function fetchRockwellOptional(url: string, context: ScrapeContext): Promi
         "accept-language": "en-US,en;q=0.9"
       }
     });
-    return fetched.statusCode < 500 ? fetched : undefined;
+    return fetched.statusCode < 400 ? fetched : undefined;
   } catch {
     return undefined;
   }
@@ -157,6 +161,9 @@ function withRockwellConfidence(result: ProductResult, confidence: number): Prod
 }
 
 export function parseRockwellCutsheetPage(catalogNumber: string, fetched: FetchedText): ProductResult {
+  if (fetched.statusCode >= 400 || !catalogTextMatches(fetched.text, catalogNumber, { compact: true, ignoreCase: true })) {
+    return emptyResult("rockwell", catalogNumber, "Rockwell cutsheet page did not contain the catalog number.");
+  }
   const generic = parseGenericProductPage("rockwell", catalogNumber, fetched, "official", "rockwell-cutsheet", {
     match: { compact: true, ignoreCase: true },
     confidence: 0.82
@@ -190,6 +197,9 @@ export function parseRockwellCutsheetPage(catalogNumber: string, fetched: Fetche
 }
 
 export function parseRockwellDrawingsPage(catalogNumber: string, fetched: FetchedText): ProductResult {
+  if (fetched.statusCode >= 400 || !catalogTextMatches(fetched.text, catalogNumber, { compact: true, ignoreCase: true })) {
+    return emptyResult("rockwell", catalogNumber, "Rockwell drawings page did not contain the catalog number.");
+  }
   const $ = cheerio.load(fetched.text);
   const sourceUrl = fetched.effectiveUrl;
   const attributes: AttributeRecord[] = [

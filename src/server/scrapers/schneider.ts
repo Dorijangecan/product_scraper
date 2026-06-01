@@ -318,17 +318,46 @@ export class SchneiderConnector implements ManufacturerConnector {
     const officialResults: ProductResult[] = [];
     let firstFailure: ProductResult | undefined;
 
-    for (const officialUrl of buildSchneiderOfficialUrls(catalogNumber)) {
-      const fetched = await fetchSchneiderProductPage(officialUrl, context);
+    const allUrls = buildSchneiderOfficialUrls(catalogNumber);
+    const psCounter = { count: 0 };
+
+    // Parallelize the first 5 locales — first rich result wins; the rest are discarded but their cache writes persist.
+    const headBatch = allUrls.slice(0, 5);
+    const tailBatch = allUrls.slice(5);
+    const headFetched = await Promise.all(headBatch.map((url) => fetchSchneiderProductPage(url, context, psCounter)));
+
+    let richFound = false;
+    for (let i = 0; i < headBatch.length; i++) {
+      const fetched = headFetched[i];
       if (!fetched) continue;
+      const officialUrl = headBatch[i];
       const result = isTelemecaniqueProductUrl(officialUrl, fetched.effectiveUrl)
         ? parseTelemecaniqueProductPage(catalogNumber, fetched)
         : parseSchneiderProductPage(catalogNumber, fetched);
       if (result.status !== "failed") {
         officialResults.push(result);
-        if (isRichSchneiderResult(result)) break;
+        if (isRichSchneiderResult(result)) {
+          richFound = true;
+          break;
+        }
       } else {
         firstFailure ??= result;
+      }
+    }
+
+    if (!richFound) {
+      for (const officialUrl of tailBatch) {
+        const fetched = await fetchSchneiderProductPage(officialUrl, context, psCounter);
+        if (!fetched) continue;
+        const result = isTelemecaniqueProductUrl(officialUrl, fetched.effectiveUrl)
+          ? parseTelemecaniqueProductPage(catalogNumber, fetched)
+          : parseSchneiderProductPage(catalogNumber, fetched);
+        if (result.status !== "failed") {
+          officialResults.push(result);
+          if (isRichSchneiderResult(result)) break;
+        } else {
+          firstFailure ??= result;
+        }
       }
     }
 
@@ -355,13 +384,28 @@ function buildSchneiderOfficialUrls(catalogNumber: string): string[] {
   return SCHNEIDER_PRODUCT_URL_TEMPLATES.map((template) => template.replace("{part}", encoded));
 }
 
-async function fetchSchneiderProductPage(url: string, context: ScrapeContext): Promise<FetchedText | undefined> {
+const SCHNEIDER_PS_FALLBACK_ERROR = /403|429|TLS|certificate|timeout/i;
+const SCHNEIDER_MAX_PS_INVOCATIONS = 2;
+
+async function fetchSchneiderProductPage(
+  url: string,
+  context: ScrapeContext,
+  psCounter?: { count: number }
+): Promise<FetchedText | undefined> {
+  let primaryError: unknown;
   try {
     const fetched = await context.http.fetchText(url, { timeoutMs: 25000, signal: context.signal });
     if (fetched.statusCode < 400) return fetched;
-  } catch {
-    // Fall through to PowerShell, which succeeds on some Schneider pages blocked by the default fetcher.
+  } catch (err) {
+    primaryError = err;
+    // Fall through to PowerShell only for network errors that PS can plausibly work around.
   }
+
+  // Gate PowerShell fallback: only spawn for 403/429/TLS/certificate/timeout AND cap total invocations per catalog number.
+  const errMsg = primaryError instanceof Error ? primaryError.message : String(primaryError ?? "");
+  if (primaryError !== undefined && !SCHNEIDER_PS_FALLBACK_ERROR.test(errMsg)) return undefined;
+  if (psCounter && psCounter.count >= SCHNEIDER_MAX_PS_INVOCATIONS) return undefined;
+  if (psCounter) psCounter.count += 1;
 
   try {
     const fetched = await context.http.fetchTextViaPowerShell(url, { timeoutMs: 35000, signal: context.signal });
@@ -378,18 +422,25 @@ function shouldFetchSchneiderDatasheetReader(result: ProductResult | undefined):
 }
 
 async function fetchSchneiderDatasheetReader(catalogNumber: string, context: ScrapeContext): Promise<ProductResult | undefined> {
-  for (const url of buildSchneiderDatasheetReaderUrls(catalogNumber)) {
-    try {
-      const fetched = await context.http.fetchText(url, {
-        timeoutMs: 30000,
-        cacheTtlMs: 1000 * 60 * 60 * 24,
-        signal: context.signal
-      });
-      const result = parseSchneiderDatasheetReaderPage(catalogNumber, fetched);
-      if (result.status !== "failed") return result;
-    } catch {
-      // Try the next locale; Schneider has many region-specific datasheet routes.
-    }
+  const allUrls = buildSchneiderDatasheetReaderUrls(catalogNumber);
+  const headBatch = allUrls.slice(0, 4);
+  const tailBatch = allUrls.slice(4);
+
+  // Parallelize the first 4 Jina-proxied locales; pick the first passing result in priority order.
+  const fetchOne = (url: string) =>
+    context.http
+      .fetchText(url, { timeoutMs: 30000, cacheTtlMs: 1000 * 60 * 60 * 24, signal: context.signal })
+      .then((fetched) => parseSchneiderDatasheetReaderPage(catalogNumber, fetched))
+      .catch(() => undefined);
+
+  const headResults = await Promise.all(headBatch.map(fetchOne));
+  for (const result of headResults) {
+    if (result && result.status !== "failed") return result;
+  }
+
+  for (const url of tailBatch) {
+    const result = await fetchOne(url);
+    if (result && result.status !== "failed") return result;
   }
   return undefined;
 }

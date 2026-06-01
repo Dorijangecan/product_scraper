@@ -4,17 +4,24 @@ Local desktop tool for scraping public ABB, Balluff, and SCE product details fro
 
 ## Najlakse za kolege na Windowsu
 
-Najjednostavnije je poslati im ovu jednu komandu. Otvore PowerShell i zalijepe:
+Najbolji flow je:
+
+1. Prvi put pokrenu installer iz PowerShella.
+2. Poslije toga koriste desktop shortcut `Product Scraper` ili dvokliknu `Update-and-Start-ProductScraper.bat`.
+
+Taj launcher prvo napravi `git pull`, zatim sam instalira ili osvjezi npm pakete ako se promijenio `package-lock.json`, provjeri Playwright Chromium i tek onda pokrene aplikaciju. Obican `git pull` ne pokrece instalaciju dependencyja sam od sebe, zato kolege ne bi trebale rucno povlaciti promjene pa posebno pokretati npm komande.
+
+Prvi put im posalji ovu jednu komandu. Otvore PowerShell i zalijepe:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -NoProfile -Command "irm https://raw.githubusercontent.com/Dorijangecan/product_scraper/main/Install-ProductScraper.ps1 | iex"
 ```
 
-Ta komanda pokusa instalirati Git i Node.js preko `winget` ako ih nema, skine projekt na Desktop u mapu `product_scraper`, instalira npm pakete, instalira Playwright Chromium pri prvom pokretanju ako fali i pokrene aplikaciju.
+Ta komanda pokusa instalirati Git i Node.js preko `winget` ako ih nema, skine projekt na Desktop u mapu `product_scraper`, napravi desktop shortcut, instalira npm pakete, instalira Playwright Chromium pri prvom pokretanju ako fali i pokrene aplikaciju.
 
 Ne instalira Ollama/Qwen/AI model. AI cleanup je u launcherima iskljucen po defaultu, jer scraper normalno radi bez toga.
 
-Nakon prvog puta neka samo udju u mapu `product_scraper` i dvokliknu:
+Nakon prvog puta neka samo dvokliknu desktop shortcut `Product Scraper` ili udju u mapu `product_scraper` i dvokliknu:
 
 ```text
 Update-and-Start-ProductScraper.bat

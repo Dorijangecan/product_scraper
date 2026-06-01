@@ -211,13 +211,14 @@ export class EatonConnector implements ManufacturerConnector {
   readonly id = "eaton";
 
   async scrape(catalogNumber: string, context: ScrapeContext): Promise<ProductResult> {
-    const candidates = buildEatonProductUrlCandidates(catalogNumber, context.manufacturer.localizedUrlTemplates);
+    const partNumber = cleanText(catalogNumber) || catalogNumber.trim();
+    const candidates = buildEatonProductUrlCandidates(partNumber, context.manufacturer.localizedUrlTemplates);
     const diagnostics: Pick<ScrapeDiagnostics, "attemptedUrls" | "discoveredCandidates" | "notes"> = {
       attemptedUrls: [],
       discoveredCandidates: [],
       notes: []
     };
-    const cbePdfResult = await scrapeEatonCbeCatalogPdf(catalogNumber, context, diagnostics);
+    const cbePdfResult = await scrapeEatonCbeCatalogPdf(partNumber, context, diagnostics);
     if (cbePdfResult) return withEatonDiagnostics(cbePdfResult, diagnostics);
     let result: ProductResult | undefined;
 
@@ -229,7 +230,7 @@ export class EatonConnector implements ManufacturerConnector {
       candidates.slice(0, 4).map(async (officialUrl) => {
         try {
           const fetched = await context.http.fetchText(officialUrl, { timeoutMs: 5000, maxAttempts: 1, signal: context.signal });
-          return { officialUrl, parsed: parseEatonProductPage(catalogNumber, fetched, officialUrl, context.manufacturer.localizedUrlTemplates) };
+          return { officialUrl, parsed: parseEatonProductPage(partNumber, fetched, officialUrl, context.manufacturer.localizedUrlTemplates) };
         } catch {
           return undefined;
         }
@@ -249,7 +250,7 @@ export class EatonConnector implements ManufacturerConnector {
       // mounted but came back partial — only the "first attempt failed entirely" path short-circuits
       // (Eaton's bot-mitigation makes retries pointless once it blocks us).
       for (const officialUrl of candidates.slice(0, 2)) {
-        const rendered = await renderEatonProductInBrowser(catalogNumber, officialUrl, context, diagnostics);
+        const rendered = await renderEatonProductInBrowser(partNumber, officialUrl, context, diagnostics);
         if (!rendered) {
           if (isEatonBrowserBlocked()) break;
           markEatonBrowserBlocked(`first browser attempt failed for ${officialUrl}`);
@@ -271,7 +272,7 @@ export class EatonConnector implements ManufacturerConnector {
     if (candidates[0]) {
       const richReader = await fetchEatonReader(candidates[0], context, { timeoutMs: 25000, waitForSelector: true });
       if (richReader) {
-        const parsed = parseEatonProductPage(catalogNumber, richReader, candidates[0], context.manufacturer.localizedUrlTemplates);
+        const parsed = parseEatonProductPage(partNumber, richReader, candidates[0], context.manufacturer.localizedUrlTemplates);
         if (parsed.status !== "failed") result = mergeEatonResults(result, parsed);
       }
     }
@@ -287,7 +288,7 @@ export class EatonConnector implements ManufacturerConnector {
         const batchResults = await Promise.all(
           batch.map((officialUrl) =>
             fetchEatonReader(officialUrl, context, { timeoutMs: 12000, waitForSelector: false }).then((fetched) =>
-              fetched ? parseEatonProductPage(catalogNumber, fetched, officialUrl, context.manufacturer.localizedUrlTemplates) : undefined
+              fetched ? parseEatonProductPage(partNumber, fetched, officialUrl, context.manufacturer.localizedUrlTemplates) : undefined
             )
           )
         );
@@ -304,7 +305,7 @@ export class EatonConnector implements ManufacturerConnector {
     // wall-clock collapses to ~30s. Each candidate still tries the direct JCR endpoint first
     // and falls back to its Jina mirror only on failure, so quality is identical.
     if (!result || result.status === "failed" || !isRichEatonResult(result)) {
-      const searchCandidates = await discoverEatonSearchCandidates(catalogNumber, context, diagnostics);
+      const searchCandidates = await discoverEatonSearchCandidates(partNumber, context, diagnostics);
       const searchBatches = chunk(searchCandidates.slice(0, 4), 2);
       let earlyOut = false;
       for (const batch of searchBatches) {
@@ -314,7 +315,7 @@ export class EatonConnector implements ManufacturerConnector {
               (await fetchEatonReader(candidate.url, context, { timeoutMs: 12000, waitForSelector: false })) ??
               (await fetchEatonDirectOptional(candidate.url, context));
             if (!fetched) return undefined;
-            return { candidate, parsed: parseEatonProductPage(catalogNumber, fetched, candidate.url, context.manufacturer.localizedUrlTemplates) };
+            return { candidate, parsed: parseEatonProductPage(partNumber, fetched, candidate.url, context.manufacturer.localizedUrlTemplates) };
           })
         );
         for (const entry of searchResults) {
@@ -327,14 +328,14 @@ export class EatonConnector implements ManufacturerConnector {
     }
 
     if (!result || result.status === "failed") {
-      const pdfFallback = await scrapeEatonCbeCatalogPdf(catalogNumber, context, diagnostics);
+      const pdfFallback = await scrapeEatonCbeCatalogPdf(partNumber, context, diagnostics);
       if (pdfFallback) result = mergeEatonResults(result, pdfFallback);
     }
 
     if (result && result.status !== "failed") return withEatonDiagnostics(result, diagnostics);
 
-    const fallback = await context.fallback.scrape(catalogNumber, context.manufacturer.fallbackSources);
-    return fallback ? withEatonDiagnostics(fallback, diagnostics) : withEatonDiagnostics(result ?? emptyResult("eaton", catalogNumber, "No Eaton product page could be fetched."), diagnostics);
+    const fallback = await context.fallback.scrape(partNumber, context.manufacturer.fallbackSources);
+    return fallback ? withEatonDiagnostics(fallback, diagnostics) : withEatonDiagnostics(result ?? emptyResult("eaton", partNumber, "No Eaton product page could be fetched."), diagnostics);
   }
 }
 
@@ -439,7 +440,7 @@ async function renderEatonProductInBrowser(
 }
 
 export function encodeEatonSkuPart(catalogNumber: string): string {
-  return encodeSlashBraceCatalogPart(catalogNumber);
+  return encodeSlashBraceCatalogPart(cleanText(catalogNumber) || catalogNumber.trim());
 }
 
 export function buildEatonSkuPageUrl(catalogNumber: string, localePath = "us/en-us"): string {
@@ -447,7 +448,8 @@ export function buildEatonSkuPageUrl(catalogNumber: string, localePath = "us/en-
 }
 
 export function buildEatonProductUrlCandidates(catalogNumber: string, localizedUrlTemplates?: LocalizedUrlTemplate[]): string[] {
-  const catalogNumbers = /^5\d{5}$/.test(catalogNumber) ? [`EP-${catalogNumber}`, catalogNumber] : [catalogNumber];
+  const partNumber = cleanText(catalogNumber) || catalogNumber.trim();
+  const catalogNumbers = /^5\d{5}$/.test(partNumber) ? [`EP-${partNumber}`, partNumber] : [partNumber];
   const urls = [
     ...catalogNumbers.flatMap((part) =>
       (localizedUrlTemplates ?? [])
@@ -460,14 +462,16 @@ export function buildEatonProductUrlCandidates(catalogNumber: string, localizedU
 }
 
 export function buildEatonSearchApiUrl(catalogNumber: string, localePath = "us/en-us"): string {
-  return `https://www.eaton.com/content/eaton/${localePath}/site-search/jcr:content/root/responsivegrid/search_results.searchTerm$${encodeURIComponent(catalogNumber)}.SortBy$relevance.Facets$.startDate$.endDate$.loadMore$.json`;
+  const partNumber = cleanText(catalogNumber) || catalogNumber.trim();
+  return `https://www.eaton.com/content/eaton/${localePath}/site-search/jcr:content/root/responsivegrid/search_results.searchTerm$${encodeURIComponent(partNumber)}.SortBy$relevance.Facets$.startDate$.endDate$.loadMore$.json`;
 }
 
 export function buildEatonSearchApiUrlCandidates(catalogNumber: string, configuredTemplates: string[] = []): string[] {
+  const partNumber = cleanText(catalogNumber) || catalogNumber.trim();
   const configured = configuredTemplates
     .filter(templateContainsCatalogPlaceholder)
-    .map((template) => fillCatalogTemplate(template, catalogNumber));
-  return [...new Set([...configured, ...EATON_SEARCH_LOCALE_PATHS.map((localePath) => buildEatonSearchApiUrl(catalogNumber, localePath))])]
+    .map((template) => fillCatalogTemplate(template, partNumber));
+  return [...new Set([...configured, ...EATON_SEARCH_LOCALE_PATHS.map((localePath) => buildEatonSearchApiUrl(partNumber, localePath))])]
     .filter((url) => /^https:\/\/www\.eaton\.com\//i.test(url));
 }
 
@@ -977,8 +981,15 @@ export function parseEatonProductPage(
         statusCode: fetched.statusCode
       } satisfies SourceRecord
     ],
+    localizedDescriptions: isGermanEatonUrl(officialUrl) && (title || description)
+      ? { de: { title: title || undefined, description: description || undefined } }
+      : undefined,
     error: hasUsableProductData ? undefined : "No usable Eaton product data found."
   };
+}
+
+function isGermanEatonUrl(url: string): boolean {
+  return /\/(?:de|at|ch)\/de-(?:de|at|ch)\/skuPage\./i.test(url);
 }
 
 function hasUsableEatonProductData(attributes: AttributeRecord[], documents: DocumentRecord[]): boolean {

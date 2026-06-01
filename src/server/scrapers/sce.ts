@@ -15,10 +15,11 @@ export class SCEConnector implements ManufacturerConnector {
   id = "sce";
 
   async scrape(catalogNumber: string, context: ScrapeContext): Promise<ProductResult> {
+    const partNumber = cleanText(catalogNumber) || catalogNumber.trim();
     let search: FetchedText | undefined;
     try {
       const searchBody = new URLSearchParams({
-        PartNumberSearchString: catalogNumber,
+        PartNumberSearchString: partNumber,
         radio: "Exact",
         PartNumberSubmit: "Search"
       });
@@ -34,26 +35,26 @@ export class SCEConnector implements ManufacturerConnector {
     }
 
     try {
-      const detailUrl = findExactDetailUrl(catalogNumber, search?.text ?? "") ?? buildSceProductUrl(catalogNumber);
+      const detailUrl = findExactDetailUrl(partNumber, search?.text ?? "") ?? buildSceProductUrl(partNumber);
       const detail = await fetchSceGet(context, detailUrl);
       const cad = context.downloadDocuments === false || context.imageOnly
         ? undefined
-        : await fetchSceGet(context, `${SCE_BASE}/download-doc/?PartNumber=${encodeURIComponent(catalogNumber)}`).catch(() => undefined);
-      const primary = parseSceProductPage(catalogNumber, detail, search, cad, context.manufacturer.markerRules);
+        : await fetchSceGet(context, `${SCE_BASE}/download-doc/?PartNumber=${encodeURIComponent(partNumber)}`).catch(() => undefined);
+      const primary = parseSceProductPage(partNumber, detail, search, cad, context.manufacturer.markerRules);
       if (primary.status !== "failed" && primary.status !== "partial") return primary;
 
-      const fallback = await context.fallback.scrape(catalogNumber, context.manufacturer.fallbackSources);
+      const fallback = await context.fallback.scrape(partNumber, context.manufacturer.fallbackSources);
       return mergeResults(primary, fallback);
     } catch (error) {
-      const primary = emptyResult("sce", catalogNumber, error instanceof Error ? error.message : "SCE fetch failed.");
-      const fallback = await context.fallback.scrape(catalogNumber, context.manufacturer.fallbackSources);
+      const primary = emptyResult("sce", partNumber, error instanceof Error ? error.message : "SCE fetch failed.");
+      const fallback = await context.fallback.scrape(partNumber, context.manufacturer.fallbackSources);
       return mergeResults(primary, fallback);
     }
   }
 }
 
 function buildSceProductUrl(catalogNumber: string): string {
-  return `${SCE_BASE}/partnumber_info/?n=${encodeURIComponent(catalogNumber)}`;
+  return `${SCE_BASE}/partnumber_info/?n=${encodeURIComponent(cleanText(catalogNumber) || catalogNumber.trim())}`;
 }
 
 async function fetchSceGet(context: ScrapeContext, url: string): Promise<FetchedText> {
@@ -141,6 +142,7 @@ export function parseSceProductPage(
       confidence: 0.68
     });
   }
+  attributes.push(...deriveSceFamilyAttributes(catalogNumber, attributes, detail.effectiveUrl));
 
   $("span.product-dimension").each((index, element) => {
     const value = cleanText($(element).text());
@@ -530,6 +532,104 @@ function materialComponentPhrases(value: string): string[] {
     components.push(cleanText(`${material} ${component}`));
   }
   return [...new Set(components)].slice(0, 8);
+}
+
+/**
+ * Synthesize family-level attributes for Saginaw catalog families with deterministic data that
+ * the public product page omits or scatters across prose. Manual PDTs fill these consistently for
+ * every SKU in the family, so when we recognize the family we mirror the manual values rather than
+ * leaving the PDT blank. Each synthesized attribute is only added if a stronger evidence-based
+ * attribute is not already present (preserves scraped values over inferences).
+ *
+ * Currently covered: SCE-{H}H{W}{D}LP (header lamp panel + mounting plate enclosures).
+ */
+function deriveSceFamilyAttributes(
+  catalogNumber: string,
+  existing: AttributeRecord[],
+  sourceUrl: string
+): AttributeRecord[] {
+  const derived: AttributeRecord[] = [];
+  const push = (group: string, name: string, value: string, confidence: number) => {
+    derived.push({
+      group,
+      name,
+      value,
+      sourceUrl,
+      sourceType: "generated",
+      parser: "sce-catalog-code",
+      confidence
+    });
+  };
+  const hasGroup = (groupRx: RegExp, nameRx: RegExp): boolean =>
+    existing.some((attr) => groupRx.test(attr.group ?? "") && nameRx.test(attr.name) && cleanText(attr.value).length > 0);
+  const hasColorEvidence = existing.some((attr) => {
+    const label = `${attr.group ?? ""} ${attr.name}`;
+    const value = cleanText(attr.value);
+    if (!value) return false;
+    if (/\b(color|finish|construction|notes?)\b/i.test(label)) {
+      return /\b(ansi-?\d+|gray|grey|white|black|beige|cream|ral\s*\d+|powder coat)/i.test(value);
+    }
+    return false;
+  });
+  const hasSurfaceEvidence = existing.some((attr) => /\b(finish|surface|coating)\b/i.test(attr.name) && cleanText(attr.value).length > 0);
+  const hasIpEvidence = existing.some((attr) => /\bIP\s*\d{2}\b/i.test(attr.value));
+
+  // H_LP family — header lamp panel enclosures with bolt-on mounting ears + sub-panel.
+  if (/^SCE-\d+H\d+LP$/i.test(catalogNumber)) {
+    push("SCE Family Inference", "Product Designation", "Wall mounted enclosure", 0.85);
+    push("SCE Family Inference", "Product Family Type", "Enclosure", 0.85);
+    if (!hasGroup(/.*/, /^(?:certification|certificate|approval)s?$/i) && !hasGroup(/.*/, /\b(industry standards?|standards?)\b/i)) {
+      push(
+        "SCE Family Inference",
+        "Certifications",
+        "NEMA Type 3R, 4, 12 and Type 13, UL Listed Type 3R, 4 and 12, CSA Type 3R, 4 and 12, IEC 60529, IP66",
+        0.78
+      );
+    }
+    if (!hasExplicitSceMaterialEvidence(existing)) push("SCE Family Inference", "Material", "Carbon steel", 0.8);
+    if (!hasColorEvidence) push("SCE Family Inference", "Color", "White", 0.78);
+    if (!hasSurfaceEvidence) {
+      push("SCE Family Inference", "Surface", "Powder coating", 0.78);
+    }
+    if (!hasIpEvidence) {
+      push("SCE Family Inference", "Degree of Protection", "IP66", 0.8);
+    }
+    push("SCE Family Inference", "Number of Doors", "1", 0.82);
+    push("SCE Family Inference", "Number of Locks", "2", 0.82);
+    push("SCE Family Inference", "Mounting", "Wall mount", 0.82);
+  }
+
+  if (/^SCE-\d+EL\d+(?:SS6|SS)?LPPL$/i.test(catalogNumber)) {
+    push("SCE Family Inference", "Product Designation", "Wall mounted enclosure", 0.85);
+    push("SCE Family Inference", "Product Family Type", "Enclosure", 0.85);
+    if (!hasGroup(/.*/, /^(?:certification|certificate|approval)s?$/i) && !hasGroup(/.*/, /\b(industry standards?|standards?)\b/i)) {
+      push(
+        "SCE Family Inference",
+        "Certifications",
+        "NEMA Type 3R, 4, 12 and Type 13, UL Listed Type 3R, 4 and 12, CSA Type 3R, 4 and 12, IEC 60529, IP66",
+        0.78
+      );
+    }
+    if (!hasExplicitSceMaterialEvidence(existing)) {
+      if (/SS6LPPL$/i.test(catalogNumber)) push("SCE Family Inference", "Material", "stainless steel Type 316/316L", 0.78);
+      else if (/SSLPPL$/i.test(catalogNumber)) push("SCE Family Inference", "Material", "stainless steel Type 304", 0.78);
+      else push("SCE Family Inference", "Material", "Carbon steel", 0.8);
+    }
+    if (!/SS(?:6)?LPPL$/i.test(catalogNumber) && !hasColorEvidence) {
+      push("SCE Family Inference", "Color", "ANSI-61 gray", 0.78);
+    }
+    if (!/SS(?:6)?LPPL$/i.test(catalogNumber) && !hasSurfaceEvidence) {
+      push("SCE Family Inference", "Surface", "Powder coating", 0.78);
+    }
+    if (!hasIpEvidence) push("SCE Family Inference", "Degree of Protection", "IP66", 0.8);
+    const productText = cleanText(existing.map((attr) => `${attr.name} ${attr.value}`).join(" "));
+    if (/\b(?:2\s*DR|2DR|two\s+door)\b/i.test(productText)) {
+      push("SCE Family Inference", "Number of Doors", "2", 0.78);
+    }
+    push("SCE Family Inference", "Mounting", "Wall mount", 0.82);
+  }
+
+  return derived;
 }
 
 function deriveSceCertificationAttributes(attributes: AttributeRecord[], sourceUrl: string): AttributeRecord[] {

@@ -77,6 +77,22 @@ describe("manufacturer parsers", () => {
     expect(dpp?.documents.some((doc) => doc.type === "image")).toBe(true);
   });
 
+  it("rejects Rockwell cutsheet and drawing responses that are not exact product pages", () => {
+    const missingCutsheet = parseRockwellCutsheetPage(
+      "800F-X10",
+      { ...fetched("<html><body>Not Found</body></html>", "https://configurator.rockwellautomation.com/api/Product/800F-X10/cutsheet"), statusCode: 404 }
+    );
+    const wrongDrawing = parseRockwellDrawingsPage(
+      "800F-X10",
+      fetched("<html><body>Available Drawings for 800T-X10</body></html>", "https://configurator.rockwellautomation.com/api/Product/800F-X10/drawings")
+    );
+
+    expect(missingCutsheet.status).toBe("failed");
+    expect(missingCutsheet.documents).toHaveLength(0);
+    expect(wrongDrawing.status).toBe("failed");
+    expect(wrongDrawing.documents).toHaveLength(0);
+  });
+
   it("parses ABB JSON-LD product data", () => {
     const html = `
       <html><head>
@@ -619,6 +635,10 @@ describe("manufacturer parsers", () => {
     expect(result.status).toBe("found");
     expect(result.productUrl).toBe("https://www.saginawcontrol.com/partnumber_info/?n=SCE-60EL4812LPPL");
     expect(result.normalized.dimensions).toContain("60.00 x 48.00 x 12.00 in");
+    expect(result.attributes.some((attr) => attr.group === "SCE Family Inference" && attr.name === "Product Designation" && attr.value === "Wall mounted enclosure")).toBe(true);
+    expect(result.attributes.some((attr) => attr.group === "SCE Family Inference" && attr.name === "Color" && attr.value === "ANSI-61 gray")).toBe(true);
+    expect(result.attributes.some((attr) => attr.group === "SCE Family Inference" && attr.name === "Number of Doors" && attr.value === "2")).toBe(true);
+    expect(result.attributes.some((attr) => attr.group === "SCE Family Inference" && attr.name === "Degree of Protection" && attr.value === "IP66")).toBe(true);
     expect(seenUrls).toContain("fetch:https://www.saginawcontrol.com/advanced-part-search/");
     expect(seenUrls).toContain("fetch:https://www.saginawcontrol.com/partnumber_info/?n=SCE-60EL4812LPPL");
     expect(seenUrls).toContain("powershell:https://www.saginawcontrol.com/partnumber_info/?n=SCE-60EL4812LPPL");
@@ -693,6 +713,9 @@ describe("manufacturer parsers", () => {
     expect(result.attributes.some((attr) => attr.name === "Optional Accessory" && attr.value.includes("SCE-16P12 - Subpanel"))).toBe(true);
     expect(result.attributes.some((attr) => attr.name === "Similar Part" && attr.value === "SCE-16H1208LP - Nema 4 LP Enclosure")).toBe(true);
     expect(result.attributes.some((attr) => attr.group === "Recommended Alternative" && attr.value.includes("SCE-16EL1206LP"))).toBe(true);
+    expect(result.attributes.some((attr) => attr.group === "SCE Family Inference" && attr.name === "Product Designation" && attr.value === "Wall mounted enclosure")).toBe(true);
+    expect(result.attributes.some((attr) => attr.group === "SCE Family Inference" && attr.name === "Degree of Protection" && attr.value === "IP66")).toBe(true);
+    expect(result.attributes.some((attr) => attr.group === "SCE Family Inference" && attr.name === "Number of Locks" && attr.value === "2")).toBe(true);
     expect(result.attributes.some((attr) => attr.group === "Construction" && attr.value === "Construction")).toBe(false);
     expect(result.documents.some((doc) => doc.type === "manual" && doc.url.includes("deadfrontel-hlp.pdf"))).toBe(true);
   });
@@ -2781,6 +2804,13 @@ Size
     expect(urls).toContain("https://www.eaton.com/gb/en-gb/skuPage.P1-25%7B%7DI2%7B%7DSVB.html");
     expect(urls).toContain("https://www.eaton.com/no/no-no/skuPage.P1-25%7B%7DI2%7B%7DSVB.html");
     expect(new Set(urls).size).toBe(urls.length);
+  });
+
+  it("trims Eaton catalog numbers before building SKU candidates", () => {
+    const urls = buildEatonProductUrlCandidates("CBE04417 ");
+
+    expect(urls).toContain("https://www.eaton.com/us/en-us/skuPage.CBE04417.html");
+    expect(urls.every((url) => !/%20|CBE04417%20/i.test(url))).toBe(true);
   });
 
   it("builds Eaton official site-search API candidates with encoded catalog input", () => {

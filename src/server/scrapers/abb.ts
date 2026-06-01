@@ -27,6 +27,32 @@ export class ABBConnector implements ManufacturerConnector {
       return abbOfficialMissingResult(catalogNumber, searchLookup);
     }
 
+    // Fire the DE product page in parallel with the rest of the pipeline so we can stash a
+    // localized title/description on the final result without adding sequential latency. The
+    // ABB de PIS URL serves the same `var model = {...}` blob as EN but with German labels.
+    // Skipped for image-only runs (descriptions aren't used) — keeps that fast path lean.
+    const germanDescriptionPromise = context.imageOnly
+      ? Promise.resolve(undefined)
+      : fetchAbbGermanDescription(catalogNumber, context).catch(() => undefined);
+    const attachGerman = async (result: ProductResult): Promise<ProductResult> => {
+      const de = await germanDescriptionPromise;
+      if (!de || (!de.title && !de.description)) return result;
+      const existing = result.localizedDescriptions?.de;
+      const title = existing?.title ?? localizedAbbText(de.title, result.title, catalogNumber);
+      const description = existing?.description ?? localizedAbbText(de.description, result.description, catalogNumber);
+      if (!title && !description) return result;
+      return {
+        ...result,
+        localizedDescriptions: {
+          ...(result.localizedDescriptions ?? {}),
+          de: {
+            title,
+            description
+          }
+        }
+      };
+    };
+
     const urls = searchLookup.urls.length ? searchLookup.urls : buildAbbOfficialUrls(catalogNumber);
     const officialResults: ProductResult[] = [];
     let lastError: unknown;
@@ -93,8 +119,8 @@ export class ABBConnector implements ManufacturerConnector {
       ? await fetchAbbPartcommunityCadCatalogResult(catalogNumber, context)
       : undefined;
     const merged = mergeAbbResults(directPrimary, searchPrimary, localeFallbackPrimary, aemEnriched, browserPrimary, cadCatalogResult);
-    if (merged && isRichAbbResult(merged)) return merged;
-    if (merged && merged.status !== "failed") return merged;
+    if (merged && isRichAbbResult(merged)) return attachGerman(merged);
+    if (merged && merged.status !== "failed") return attachGerman(merged);
 
     const primary =
       merged ??
@@ -103,20 +129,63 @@ export class ABBConnector implements ManufacturerConnector {
       officialResults[0] ??
       emptyResult("abb", catalogNumber, abbFetchFailureMessage(lastError));
 
-    if (context.imageOnly) return primary;
-    if (primary.status === "found" && primary.documents.length > 0) return primary;
+    if (context.imageOnly) return attachGerman(primary);
+    if (primary.status === "found" && primary.documents.length > 0) return attachGerman(primary);
     const enriched = primary;
 
     try {
       const fallback = await context.fallback.scrape(catalogNumber, context.manufacturer.fallbackSources);
-      return mergeResults(enriched, fallback);
+      return attachGerman(mergeResults(enriched, fallback));
     } catch (error) {
-      return {
+      return attachGerman({
         ...enriched,
         error: enriched.error ?? (error instanceof Error ? error.message : "ABB fallback failed.")
-      };
+      });
     }
   }
+}
+
+/**
+ * Fetch the ABB DE locale product page and extract its title/description. This is best-effort —
+ * if the page 404s or the parse fails we return undefined and the DE column stays blank rather
+ * than echo English text. Uses the same parser as EN so any `var model = {...}` PIS blob with
+ * German labels is mined for a real localized title + long description.
+ */
+async function fetchAbbGermanDescription(
+  catalogNumber: string,
+  context: ScrapeContext
+): Promise<{ title?: string; description?: string } | undefined> {
+  const encoded = encodeURIComponent(catalogNumber);
+  const urls = [
+    `https://new.abb.com/products/de/${encoded}/product`,
+    `https://new.abb.com/products/de/${encoded}`
+  ];
+  for (const url of urls) {
+    try {
+      const fetched = await fetchAbbPage(url, context);
+      if (fetched.statusCode >= 400) continue;
+      const parsed = parseAbbProductPage(catalogNumber, fetched, context.manufacturer.markerRules);
+      const title = cleanText(parsed.title);
+      const description = cleanText(parsed.description);
+      if (title || description) return { title: title || undefined, description: description || undefined };
+    } catch {
+      // Try next URL.
+    }
+  }
+  return undefined;
+}
+
+function localizedAbbText(value: string | undefined, englishValue: string | undefined, catalogNumber: string): string | undefined {
+  const localized = cleanText(value);
+  if (!localized) return undefined;
+  const normalized = comparableAbbLocalizedText(localized);
+  if (normalized === comparableAbbLocalizedText(catalogNumber)) return undefined;
+  if (englishValue && normalized === comparableAbbLocalizedText(englishValue)) return undefined;
+  return localized;
+}
+
+function comparableAbbLocalizedText(value: string | undefined): string {
+  return cleanText(value).toLowerCase().replace(/[\s._-]+/g, "");
 }
 
 function abbFetchFailureMessage(_error: unknown): string {
@@ -543,31 +612,29 @@ async function enrichFromAbbLibraryApi(
 
   let documentList: AbbLibraryDocGroup[] = [];
   let synopsis: AbbLibrarySynopsis | undefined;
-  try {
-    const listFetched = await context.http.fetchText(listUrl, {
-      timeoutMs: 25000,
-      signal: context.signal,
-      maxAttempts: 2,
-      headers: { accept: "application/json", referer: fetched.effectiveUrl, origin: "https://new.abb.com" }
-    });
-    if (listFetched.statusCode < 400) {
+  // Parallelize list + synopsis — they're independent payloads on the same host but the requests don't depend on each other.
+  const aemHeaders = { accept: "application/json", referer: fetched.effectiveUrl, origin: "https://new.abb.com" };
+  const [listFetched, synopsisFetched] = await Promise.all([
+    context.http
+      .fetchText(listUrl, { timeoutMs: 25000, signal: context.signal, maxAttempts: 2, headers: aemHeaders })
+      .catch(() => undefined),
+    context.http
+      .fetchText(synopsisUrl, { timeoutMs: 25000, signal: context.signal, maxAttempts: 2, headers: aemHeaders })
+      .catch(() => undefined)
+  ]);
+  if (listFetched && listFetched.statusCode < 400) {
+    try {
       documentList = JSON.parse(listFetched.text) as AbbLibraryDocGroup[];
+    } catch {
+      // Leave documentList empty; synopsis may still produce attributes.
     }
-  } catch {
-    // Fall through with empty doc list — synopsis may still work.
   }
-  try {
-    const synopsisFetched = await context.http.fetchText(synopsisUrl, {
-      timeoutMs: 25000,
-      signal: context.signal,
-      maxAttempts: 2,
-      headers: { accept: "application/json", referer: fetched.effectiveUrl, origin: "https://new.abb.com" }
-    });
-    if (synopsisFetched.statusCode < 400) {
+  if (synopsisFetched && synopsisFetched.statusCode < 400) {
+    try {
       synopsis = JSON.parse(synopsisFetched.text) as AbbLibrarySynopsis;
+    } catch {
+      // No synopsis — that's fine, we'll still have docs.
     }
-  } catch {
-    // No synopsis — that's fine, we'll still have docs.
   }
 
   const attributes = [...buildAbbLibraryAttributes(synopsis, fetched.effectiveUrl)];
@@ -949,17 +1016,22 @@ async function fetchAbbLocaleFallbackResults(catalogNumber: string, context: Scr
     `https://new.abb.com/products/de/${encoded}/product`,
     `https://new.abb.com/products/it/${encoded}/product`
   ];
+  // Parallelize locale fallbacks — fetch all 3 concurrently, then walk results in priority order so the first PIS hit wins.
+  const parsedAll = await Promise.all(
+    urls.map(async (url) => {
+      try {
+        const fetched = await fetchAbbPage(url, context);
+        return parseAbbProductPage(catalogNumber, fetched, context.manufacturer.markerRules);
+      } catch {
+        return undefined;
+      }
+    })
+  );
   const results: ProductResult[] = [];
-  for (const url of urls) {
-    try {
-      const fetched = await fetchAbbPage(url, context);
-      const parsed = parseAbbProductPage(catalogNumber, fetched, context.manufacturer.markerRules);
-      if (parsed.status !== "failed") results.push(parsed);
-      // Stop after first PIS hit — subsequent locales would just duplicate.
-      if (hasAbbPisData(parsed)) break;
-    } catch {
-      // Try the next locale.
-    }
+  for (const parsed of parsedAll) {
+    if (!parsed) continue;
+    if (parsed.status !== "failed") results.push(parsed);
+    if (hasAbbPisData(parsed)) break;
   }
   return results;
 }

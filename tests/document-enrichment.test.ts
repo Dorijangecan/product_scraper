@@ -33,6 +33,34 @@ Cable length L \t0.30 m
     expect(normalized.material).toBe("PUR");
   });
 
+  it("extracts common Eaton, Rockwell and enclosure PDF labels used by PDT resolvers", () => {
+    const attributes = extractDocumentTextAttributes({
+      catalogNumber: "BR120",
+      document: {
+        type: "datasheet",
+        label: "Technical datasheet",
+        url: "https://example.test/br120.pdf"
+      },
+      text: `
+General specifications
+Voltage rating 120/240 V
+Interrupt rating 10 kAIC
+Number of poles 1
+Frame size BR
+Trip Type Thermal magnetic
+NEMA rating NEMA Type 4X
+Surface finishing Powder coating
+      `
+    });
+    const normalized = normalizeFields(attributes, []);
+
+    expect(attributes.some((attr) => attr.name === "Voltage rating" && attr.value === "120/240 V")).toBe(true);
+    expect(attributes.some((attr) => attr.name === "Interrupt rating" && attr.value === "10 kAIC")).toBe(true);
+    expect(attributes.some((attr) => attr.name === "NEMA rating" && attr.value === "NEMA Type 4X")).toBe(true);
+    expect(normalized.voltage).toBe("120/240 V");
+    expect(normalized.finish).toBe("Powder coating");
+  });
+
   it("extracts Siemens VSG dimensions and weight from dimension tables", () => {
     const attributes = extractDocumentTextAttributes({
       catalogNumber: "BPZ:VSG519K15-5",

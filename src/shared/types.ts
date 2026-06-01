@@ -288,7 +288,7 @@ export interface FinalCompletenessDiagnostics {
 
 export interface FinalCompletenessRecord {
   field: string;
-  status: "present" | "found-after-repair" | "found-after-retry" | "missing" | "not-published" | "not-applicable";
+  status: "present" | "found-after-repair" | "found-after-retry" | "missing" | "not-published" | "retry-skipped" | "not-applicable";
   requirement: "required" | "preferred" | "not-applicable";
   beforeValue?: string;
   afterValue?: string;
@@ -388,6 +388,15 @@ export interface LocalizedProductUrls {
   de?: string;
 }
 
+export interface LocalizedDescription {
+  title?: string;
+  description?: string;
+}
+
+export interface LocalizedDescriptions {
+  de?: LocalizedDescription;
+}
+
 export interface ProductResult {
   manufacturerId: ManufacturerId;
   catalogNumber: string;
@@ -395,6 +404,8 @@ export interface ProductResult {
   confidence: number;
   productUrl?: string;
   localizedUrls?: LocalizedProductUrls;
+  /** Per-locale title/description captured from non-English official pages. Currently only `de`. */
+  localizedDescriptions?: LocalizedDescriptions;
   title?: string;
   description?: string;
   normalized: NormalizedProductFields;
