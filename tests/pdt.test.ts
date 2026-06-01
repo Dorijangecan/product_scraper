@@ -176,6 +176,50 @@ describe("eclass resolvers", () => {
     expect(resolveProperty("MANUFACTURER_URL", "MANUFACTURER_URL", c)).toBe("https://acme.test");
   });
 
+  it("uses the gb/en-gb skuPage with EP- prefix for Eaton product URLs (manual PDT format)", () => {
+    const c = ctx({ manufacturerId: "eaton" }, "502419");
+    c.manufacturer = { ...manufacturer, id: "eaton" } as ManufacturerConfig;
+    expect(resolveProperty("AAQ326", "AAQ326", c)).toBe(
+      "https://www.eaton.com/gb/en-gb/skuPage.EP-502419.html"
+    );
+    // Already-prefixed inputs aren't double-prefixed.
+    const c2 = ctx({ manufacturerId: "eaton" }, "EP-502420");
+    c2.manufacturer = { ...manufacturer, id: "eaton" } as ManufacturerConfig;
+    expect(resolveProperty("AAQ326", "AAQ326", c2)).toBe(
+      "https://www.eaton.com/gb/en-gb/skuPage.EP-502420.html"
+    );
+  });
+
+  it("uses partnumber_info/?n= for Saginaw product URLs (manual PDT format)", () => {
+    const c = ctx({ manufacturerId: "sce" }, "SCE-12H2406LP");
+    c.manufacturer = { ...manufacturer, id: "sce" } as ManufacturerConfig;
+    expect(resolveProperty("AAQ326", "AAQ326", c)).toBe(
+      "https://www.saginawcontrol.com/partnumber_info/?n=SCE-12H2406LP"
+    );
+  });
+
+  it("maps deviceType to a single-letter IEC 81346 class code for AAC314", () => {
+    // Subpanel / mounting → U (matches manual Eaton PDT for PSN-FP/PSN-PIP accessories)
+    const subpanel = ctx({}, "EP-502327", "Subpanel");
+    expect(resolveProperty("AAC314", "AAC314", subpanel)).toBe("U");
+    // Contactor → Q
+    const contactor = ctx({}, "1SBL", "Contactor");
+    expect(resolveProperty("AAC314", "AAC314", contactor)).toBe("Q");
+    // PLC → B
+    const plc = ctx({}, "1769-L33ER", "PLC");
+    expect(resolveProperty("AAC314", "AAC314", plc)).toBe("B");
+    // Generic Accessory → U (most often a mounting/support part in our catalogs)
+    const accessory = ctx({}, "1SDA126395R1", "Accessory");
+    expect(resolveProperty("AAC314", "AAC314", accessory)).toBe("U");
+    // Explicit IEC 81346 attribute still wins over the deviceType-based default.
+    const explicit = ctx(
+      { attributes: [{ name: "IEC 81346-2 Class Level 1", value: "X", sourceType: "official" }] },
+      "CAT-1",
+      "Connector"
+    );
+    expect(resolveProperty("AAC314", "AAC314", explicit)).toBe("X");
+  });
+
   it("fills both GTIN and EAN from the same barcode attribute", () => {
     const c = ctx({ attributes: [{ name: "EAN", value: "3471523024755", sourceType: "official" }] });
     expect(resolveProperty("AAO663", "AAO663", c)).toBe("3471523024755");
@@ -284,12 +328,44 @@ describe("eclass resolvers", () => {
     c.manufacturer = { ...manufacturer, id: "abb" } as ManufacturerConfig;
 
     expect(resolveProperty("REFERENCE_FEATURE_GROUP_ID", "REFERENCE_FEATURE_GROUP_ID", c)).toBe("27371003");
-    expect(resolveProperty("REFERENCE_FEATURE_SYSTEM_NAME", "REFERENCE_FEATURE_SYSTEM_NAME", c)).toBe("14");
-    expect(resolveProperty("AAQ326", "AAQ326", c)).toBe("https://new.abb.com/products/ABB1SBL347060R1100");
+    // ABB device-sheet ECLASS version matches the manual PDT (v13) instead of the generic v14 default.
+    expect(resolveProperty("REFERENCE_FEATURE_SYSTEM_NAME", "REFERENCE_FEATURE_SYSTEM_NAME", c)).toBe("13");
+    expect(resolveProperty("AAQ326", "AAQ326", c)).toBe("https://new.abb.com/products/1SBL347060R1100");
     expect(resolveProperty("BAH005", "BAH005", c)).toBe("24-60");
     expect(resolveProperty("AAF726", "AAF726", c)).toBe("70");
     expect(resolveProperty("BAD915", "BAD915", c)).toBeUndefined();
     expect(resolveProperty("AAT080", "AAT080", c)).toBe("3");
+  });
+
+  it("fills ABB contactor/fuses voltage ranges from product text when no voltage attribute exists", () => {
+    const c = ctx({
+      manufacturerId: "abb",
+      title: "SACE Emax 3 EKIP SUPPLY LITE 24-240VAC/DC E1.3..E6.3",
+      description: "EKIP SUPPLY POWER SUPPLY MODULE 24...240V AC-DC E1.3...E6.3",
+      attributes: [
+        { name: "Catalog Description", value: "SACE Emax 3 EKIP SUPPLY LITE 24-240VAC/DC E1.3..E6.3", sourceType: "official" },
+        { name: "Extended Product Type", value: "UVD E1.3..E6.3 110..125Va.c./d.c.", sourceType: "official" },
+        { name: "Current Type", value: "AC/DC", sourceType: "official" }
+      ]
+    });
+    c.sheetName = "contactor a. fuses";
+
+    expect(resolveProperty("BAH005", "BAH005", c)).toBe("24-240");
+    expect(resolveProperty("BAD915", "BAD915", c)).toBe("AC/DC");
+  });
+
+  it("fills ABB contactor current from common thermal/current aliases", () => {
+    const c = ctx({
+      manufacturerId: "abb",
+      attributes: [
+        { name: "Conventional Free-air Thermal Current", value: "acc. to IEC 60947-4-1, open contactors 70 A", sourceType: "official" },
+        { name: "Rated Current", value: "Main Circuit 60 A", sourceType: "official" }
+      ]
+    });
+    c.sheetName = "contactor a. fuses";
+
+    expect(resolveProperty("AAF726", "AAF726", c)).toBe("70");
+    expect(resolveProperty("AAB821", "AAB821", c)).toBe("70");
   });
 
   it("writes AC/DC voltage type only when it is explicitly written in the source", () => {
@@ -1608,6 +1684,63 @@ describe("PDT exporter", () => {
     expect(ws.getCell(8, 2).value).toBeNull();
   });
 
+  it("reports missing minimum Master PDT fields separately from enum issues", async () => {
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-pdt-required-issue-"));
+    const templatePath = path.join(dir, "template.xlsx");
+    const outputPath = path.join(dir, "out.xlsx");
+    const wb = new ExcelJS.Workbook();
+
+    const material = wb.addWorksheet("Material Master Data");
+    material.getCell(4, 1).value = "Priority";
+    material.getCell(6, 1).value = "ECLASS property";
+    material.getCell(7, 1).value = "Variable name (CNS internal)";
+    material.getCell(8, 1).value = "English variable description";
+    material.getCell(9, 1).value = "Units";
+    material.getCell(4, 2).value = "Must field";
+    material.getCell(6, 2).value = "AAO676";
+    material.getCell(7, 2).value = "CNSORDERNO";
+    material.getCell(8, 2).value = "Articlenumber";
+
+    const contactor = wb.addWorksheet("contactor a. fuses");
+    for (const [row, label] of ["ClassId", "Priority", "Type", "PropertyId", "PropertyName", "Description", "Unit", "Body"].entries()) {
+      contactor.getCell(row + 1, 1).value = label;
+    }
+    contactor.getCell(2, 2).value = "Must field";
+    contactor.getCell(4, 2).value = "AAO676";
+    contactor.getCell(5, 2).value = "AAO676";
+    contactor.getCell(6, 2).value = "product article number of manufacturer";
+    contactor.getCell(2, 3).value = "Must field";
+    contactor.getCell(4, 3).value = "AAS575";
+    contactor.getCell(5, 3).value = "AAS575";
+    contactor.getCell(6, 3).value = "Power loss per pole";
+    contactor.getCell(7, 3).value = "W";
+
+    wb.addWorksheet("Additional Documents");
+    await wb.xlsx.writeFile(templatePath);
+
+    const item = ctx(
+      {
+        title: "AF contactor",
+        attributes: [{ name: "Product Type", value: "Contactor", sourceType: "official" }]
+      },
+      "CONTACTOR-1",
+      "Contactor"
+    ).item;
+
+    const result = await exportRunPdt({ manufacturer, items: [item], templatePath, outputPath });
+
+    expect(result.writeIssues).toEqual([]);
+    expect(result.requiredFieldIssues).toEqual([
+      expect.objectContaining({
+        sheetName: "contactor a. fuses",
+        catalogNumber: "CONTACTOR-1",
+        code: "AAS575",
+        propName: "AAS575",
+        reason: "required-missing"
+      })
+    ]);
+  });
+
   it("does not use generic metadata fallback for enum labels covered by resolvers", async () => {
     const dir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-pdt-enum-metadata-"));
     const templatePath = path.join(dir, "template.xlsx");
@@ -1970,7 +2103,9 @@ describe("PDT exporter sheet lookup", () => {
     expect(result.keptSheets).toContain("electronic sensor");
   });
 
-  it("fills connection point rows from electrical channel and mounting evidence", async () => {
+  // Connection Point auto-fill is currently disabled in the exporter — the sheet stays as a
+  // placeholder until the routing is reliable enough for the manual PDT layout.
+  it.skip("fills connection point rows from electrical channel and mounting evidence", async () => {
     const dir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-pdt-connection-points-"));
     const templatePath = path.resolve("templates", "master_pdt.xlsx");
     const outputPath = path.join(dir, "out.xlsx");
@@ -2257,12 +2392,12 @@ describe("PDT exporter sheet lookup", () => {
 
     const expectedCatalogsBySheet = new Map<string, string[]>([
       ["electronic sensor", ["BDG FB058-BCR6-DSRB2-1417-0000-S8R1"]],
-      ["Switch", ["1SDA126387R1"]],
       ["power supply devices", ["1769-PB4"]],
       ["cabinet.airconditioning", ["SCE-AC3400B120V"]],
       ["connector", ["P-P11R2-K3RF0-U450"]],
       ["cabinet.mechanical", ["SCE-SSCLEAN"]],
-      ["contactor a. fuses", ["1SDA124715R1", "1140-E"]],
+      // ABB 1SDA articles are forced to "contactor a. fuses" only — mirrors the manual PDT layout.
+      ["contactor a. fuses", ["1SDA124715R1", "1SDA126387R1", "1140-E"]],
       ["ventil", ["BPZ:VSG519K15-5"]]
     ]);
 
@@ -2567,12 +2702,12 @@ describe("Additional Documents PDT sheet", () => {
     expect(ws.getCell(7, 1).value).toBe("1SBL347060R1100");
     expect(ws.getCell(7, 2).value).toBe(1);
     expect(ws.getCell(7, 4).value).toEqual({
-      text: "https://new.abb.com/products/ABB1SBL347060R1100",
-      hyperlink: "https://new.abb.com/products/ABB1SBL347060R1100"
+      text: "https://new.abb.com/products/1SBL347060R1100",
+      hyperlink: "https://new.abb.com/products/1SBL347060R1100"
     });
     expect(ws.getCell(8, 4).value).toEqual({
-      text: "https://new.abb.com/products/de/ABB1SBL347060R1100",
-      hyperlink: "https://new.abb.com/products/de/ABB1SBL347060R1100"
+      text: "https://new.abb.com/products/de/1SBL347060R1100",
+      hyperlink: "https://new.abb.com/products/de/1SBL347060R1100"
     });
     expect(ws.getCell(8, 5).value).toBe("german");
     expect(ws.getCell(9, 1).value).toBeNull();

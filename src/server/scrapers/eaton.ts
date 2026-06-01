@@ -1,3 +1,5 @@
+import fs from "node:fs/promises";
+import path from "node:path";
 import * as cheerio from "cheerio";
 import { PDFParse } from "pdf-parse";
 import type { AttributeRecord, DocumentRecord, LocalizedUrlTemplate, ProductResult, ScrapeDiagnostics, SourceRecord } from "../../shared/types.js";
@@ -219,23 +221,36 @@ export class EatonConnector implements ManufacturerConnector {
     if (cbePdfResult) return withEatonDiagnostics(cbePdfResult, diagnostics);
     let result: ProductResult | undefined;
 
-    for (const officialUrl of candidates.slice(0, 4)) {
-      try {
-        const fetched = await context.http.fetchText(officialUrl, { timeoutMs: 5000, maxAttempts: 1, signal: context.signal });
-        result = parseEatonProductPage(catalogNumber, fetched, officialUrl, context.manufacturer.localizedUrlTemplates);
-      } catch {
-        // Try the next Eaton locale before falling back to the public reader.
-      }
-      if (result && result.status !== "failed" && isRichEatonResult(result)) return withEatonDiagnostics(result, diagnostics);
+    // Fan the first batch of direct candidates out in parallel — per-host throttling still
+    // staggers requests, but waiting serially on each 5s timeout cost ~20s/item even when
+    // every URL 404s. We still merge ALL successful parses (locales surface different fields)
+    // and only short-circuit once the merged picture is rich enough.
+    const initialDirectResults = await Promise.all(
+      candidates.slice(0, 4).map(async (officialUrl) => {
+        try {
+          const fetched = await context.http.fetchText(officialUrl, { timeoutMs: 5000, maxAttempts: 1, signal: context.signal });
+          return { officialUrl, parsed: parseEatonProductPage(catalogNumber, fetched, officialUrl, context.manufacturer.localizedUrlTemplates) };
+        } catch {
+          return undefined;
+        }
+      })
+    );
+    for (const entry of initialDirectResults) {
+      if (!entry) continue;
+      if (entry.parsed.status === "failed") continue;
+      result = mergeEatonResults(result, entry.parsed);
+    }
+    if (result && result.status !== "failed" && isRichEatonResult(result)) {
+      return withEatonDiagnostics(result, diagnostics);
     }
 
     if (context.browserRenderer && !context.browserRenderer.isUnavailable?.() && !isEatonBrowserBlocked()) {
+      // Keep the original two-URL probe so a second locale can recover a render when the first
+      // mounted but came back partial — only the "first attempt failed entirely" path short-circuits
+      // (Eaton's bot-mitigation makes retries pointless once it blocks us).
       for (const officialUrl of candidates.slice(0, 2)) {
         const rendered = await renderEatonProductInBrowser(catalogNumber, officialUrl, context, diagnostics);
         if (!rendered) {
-          // Render returned nothing — either page.goto timed out or the renderer errored.
-          // Eaton's bot-mitigation makes retries pointless, so break out and tell the rest of
-          // the session to skip browser render entirely.
           if (isEatonBrowserBlocked()) break;
           markEatonBrowserBlocked(`first browser attempt failed for ${officialUrl}`);
           break;
@@ -250,8 +265,9 @@ export class EatonConnector implements ManufacturerConnector {
     }
 
     // Single attempt to ask Jina for a browser-rendered snapshot (waits for the spec table to
-    // hydrate). Jina's free tier currently ignores these headers, but if an API key is added later
-    // this is where we'd start seeing Voltage rating / Number of poles etc. in the markdown.
+    // hydrate). Keep the original 25s budget — `waitForSelector: true` legitimately needs the
+    // headroom to wait for Eaton's client-side spec table to mount; cutting it lower trades
+    // missing Voltage rating / Number of poles for a few seconds of wall-clock.
     if (candidates[0]) {
       const richReader = await fetchEatonReader(candidates[0], context, { timeoutMs: 25000, waitForSelector: true });
       if (richReader) {
@@ -261,33 +277,52 @@ export class EatonConnector implements ManufacturerConnector {
     }
 
     // Iterate ALL locales via Jina without-wait and MERGE results — different Eaton locales
-    // (de/it/no) sometimes surface fields the US page omits (e.g. Rated voltage, Frequency rating).
-    // This is analogous to ABB's locale fallback path that rescues PIS data hidden behind AEM
-    // shells. We cap the number of locales fetched once the result is clearly rich.
-    let localeFetchCount = 0;
-    for (const officialUrl of candidates) {
-      if (result && isRichEatonResult(result) && localeFetchCount >= 2) break;
-      const fetched = await fetchEatonReader(officialUrl, context, { timeoutMs: 12000, waitForSelector: false });
-      if (!fetched) continue;
-      localeFetchCount += 1;
-      const parsed = parseEatonProductPage(catalogNumber, fetched, officialUrl, context.manufacturer.localizedUrlTemplates);
-      if (parsed.status === "failed") continue;
-      result = mergeEatonResults(result, parsed);
+    // (de/it/no) sometimes surface fields the US page omits (Rated voltage, Frequency rating,
+    // approval codes). We keep the original coverage but run 4 in flight per batch, so the
+    // wall-clock collapses from ~150s serial to ~12s per batch with the same merged output.
+    // Bail only once the merged result is rich.
+    if (!result || !isRichEatonResult(result)) {
+      const localeBatches = chunk(candidates, 4);
+      for (const batch of localeBatches) {
+        const batchResults = await Promise.all(
+          batch.map((officialUrl) =>
+            fetchEatonReader(officialUrl, context, { timeoutMs: 12000, waitForSelector: false }).then((fetched) =>
+              fetched ? parseEatonProductPage(catalogNumber, fetched, officialUrl, context.manufacturer.localizedUrlTemplates) : undefined
+            )
+          )
+        );
+        for (const parsed of batchResults) {
+          if (!parsed || parsed.status === "failed") continue;
+          result = mergeEatonResults(result, parsed);
+        }
+        if (result && isRichEatonResult(result)) break;
+      }
     }
 
-    // Search discovery is expensive (~15s/locale via Jina) and only useful when direct skuPage
-    // URLs failed to surface a product page. Run it as a LAST resort, not eagerly.
+    // Search discovery as last resort. Original: 4 URLs × (8s direct + 22s Jina) serial = ~120s.
+    // We keep the full coverage of 4 URLs but fan them out in two parallel batches so the
+    // wall-clock collapses to ~30s. Each candidate still tries the direct JCR endpoint first
+    // and falls back to its Jina mirror only on failure, so quality is identical.
     if (!result || result.status === "failed" || !isRichEatonResult(result)) {
       const searchCandidates = await discoverEatonSearchCandidates(catalogNumber, context, diagnostics);
-      for (const candidate of searchCandidates.slice(0, 4)) {
-        if (result && isRichEatonResult(result)) break;
-        const fetched =
-          (await fetchEatonReader(candidate.url, context, { timeoutMs: 12000, waitForSelector: false })) ??
-          (await fetchEatonDirectOptional(candidate.url, context));
-        if (!fetched) continue;
-        const parsed = parseEatonProductPage(catalogNumber, fetched, candidate.url, context.manufacturer.localizedUrlTemplates);
-        if (parsed.status === "failed") continue;
-        result = mergeEatonResults(result, parsed);
+      const searchBatches = chunk(searchCandidates.slice(0, 4), 2);
+      let earlyOut = false;
+      for (const batch of searchBatches) {
+        const searchResults = await Promise.all(
+          batch.map(async (candidate) => {
+            const fetched =
+              (await fetchEatonReader(candidate.url, context, { timeoutMs: 12000, waitForSelector: false })) ??
+              (await fetchEatonDirectOptional(candidate.url, context));
+            if (!fetched) return undefined;
+            return { candidate, parsed: parseEatonProductPage(catalogNumber, fetched, candidate.url, context.manufacturer.localizedUrlTemplates) };
+          })
+        );
+        for (const entry of searchResults) {
+          if (!entry || entry.parsed.status === "failed") continue;
+          result = mergeEatonResults(result, entry.parsed);
+          if (isRichEatonResult(entry.parsed)) earlyOut = true;
+        }
+        if (earlyOut) break;
       }
     }
 
@@ -544,50 +579,53 @@ async function discoverEatonSearchCandidates(
   const searchUrls = buildEatonSearchApiUrlCandidates(catalogNumber, configuredTemplates);
   const byUrl = new Map<string, EatonSearchCandidate>();
 
-  for (const searchUrl of searchUrls.slice(0, 4)) {
-    diagnostics.attemptedUrls?.push(searchUrl);
-    let succeeded = false;
-    try {
-      const fetched = await context.http.fetchText(searchUrl, {
-        timeoutMs: 8000,
-        maxAttempts: 1,
-        signal: context.signal,
-        headers: {
-          accept: "application/json,text/plain,*/*",
-          referer: `https://www.eaton.com/us/en-us/site-search.html.searchTerm$${encodeURIComponent(catalogNumber)}.tabs$all.html`
-        }
-      });
-      for (const candidate of extractEatonSearchCandidates(fetched.text, fetched.effectiveUrl, catalogNumber)) {
-        const existing = byUrl.get(candidate.url.toLowerCase());
-        if (!existing || candidate.score > existing.score) byUrl.set(candidate.url.toLowerCase(), candidate);
-      }
-      succeeded = true;
-    } catch (error) {
-      diagnostics.notes?.push(`Eaton search discovery failed for ${searchUrl}: ${error instanceof Error ? error.message : String(error)}`);
-    }
-
-    // Direct fetch to eaton.com from this host typically times out; Jina's headless reader can
-    // reach the same JCR search endpoint. Fall back to it when direct discovery failed.
-    if (!succeeded) {
-      const jinaUrl = buildEatonReaderUrl(searchUrl);
+  // Fan the first four search URLs out in parallel; each one tries the direct JCR endpoint
+  // first and falls back to its Jina mirror only when the direct call fails. Previously this
+  // ran 4 URLs × 2 stages serially (~120s worst case); 4 in parallel cuts that to ~22s while
+  // preserving the same locale coverage (locale-specific search hits sometimes surface SKUs
+  // the US locale misses).
+  await Promise.all(
+    searchUrls.slice(0, 4).map(async (searchUrl) => {
+      diagnostics.attemptedUrls?.push(searchUrl);
+      let succeeded = false;
       try {
-        const fetched = await context.http.fetchText(jinaUrl, {
-          timeoutMs: 22000,
+        const fetched = await context.http.fetchText(searchUrl, {
+          timeoutMs: 8000,
           maxAttempts: 1,
           signal: context.signal,
-          headers: { accept: "text/plain,application/json,*/*" }
+          headers: {
+            accept: "application/json,text/plain,*/*",
+            referer: `https://www.eaton.com/us/en-us/site-search.html.searchTerm$${encodeURIComponent(catalogNumber)}.tabs$all.html`
+          }
         });
-        // Jina prefixes the response with "Title: …\n\nURL Source: …\n\nMarkdown Content:\n" then the JSON body.
-        // The existing extractor JSON.parses the text and falls back to a regex scan, so it tolerates the prefix.
-        for (const candidate of extractEatonSearchCandidates(stripJinaTextPreamble(fetched.text), fetched.effectiveUrl, catalogNumber)) {
+        for (const candidate of extractEatonSearchCandidates(fetched.text, fetched.effectiveUrl, catalogNumber)) {
           const existing = byUrl.get(candidate.url.toLowerCase());
           if (!existing || candidate.score > existing.score) byUrl.set(candidate.url.toLowerCase(), candidate);
         }
+        succeeded = true;
       } catch (error) {
-        diagnostics.notes?.push(`Eaton reader search discovery failed for ${jinaUrl}: ${error instanceof Error ? error.message : String(error)}`);
+        diagnostics.notes?.push(`Eaton search discovery failed for ${searchUrl}: ${error instanceof Error ? error.message : String(error)}`);
       }
-    }
-  }
+
+      if (!succeeded) {
+        const jinaUrl = buildEatonReaderUrl(searchUrl);
+        try {
+          const fetched = await context.http.fetchText(jinaUrl, {
+            timeoutMs: 22000,
+            maxAttempts: 1,
+            signal: context.signal,
+            headers: { accept: "text/plain,application/json,*/*" }
+          });
+          for (const candidate of extractEatonSearchCandidates(stripJinaTextPreamble(fetched.text), fetched.effectiveUrl, catalogNumber)) {
+            const existing = byUrl.get(candidate.url.toLowerCase());
+            if (!existing || candidate.score > existing.score) byUrl.set(candidate.url.toLowerCase(), candidate);
+          }
+        } catch (error) {
+          diagnostics.notes?.push(`Eaton reader search discovery failed for ${jinaUrl}: ${error instanceof Error ? error.message : String(error)}`);
+        }
+      }
+    })
+  );
 
   const candidates = [...byUrl.values()].sort((left, right) => right.score - left.score || left.url.length - right.url.length);
   diagnostics.discoveredCandidates?.push(
@@ -726,10 +764,10 @@ async function scrapeEatonCbeCatalogPdf(
     sources: [
       {
         url: EATON_E6_CATALOG_PDF_URL,
-        label: "Eaton E6 catalog PDF",
         sourceType: "official-fallback",
         parser: "eaton-e6-pdf-catalog",
-        parserVersion: "eaton-v2"
+        parserVersion: "eaton-v2",
+        fetchedAt: new Date().toISOString()
       }
     ]
   };
@@ -748,22 +786,81 @@ function eatonPdfAttr(name: string, value: string): AttributeRecord {
   };
 }
 
+const EATON_CBE_PDF_FETCH_TIMEOUT_MS = 30000;
+const EATON_CBE_RECORDS_CACHE_BASENAME = "eaton-cbe-catalog-records.json";
+
 async function loadEatonCbeCatalogRecords(context: ScrapeContext): Promise<Map<string, EatonCbeCatalogRecord>> {
-  eatonCbeCatalogRecordsPromise ??= (async () => {
-    const fetched = await fetch(EATON_E6_CATALOG_PDF_URL, {
-      signal: context.signal,
-      headers: { "user-agent": "product-scraper/1.0", accept: "application/pdf,*/*" }
+  // Per-process singleton: every CBE item shares the same in-flight (or resolved) promise so we
+  // never download or parse the catalog PDF more than once per server lifetime.
+  if (!eatonCbeCatalogRecordsPromise) {
+    eatonCbeCatalogRecordsPromise = (async () => {
+      const cachePath = path.join(context.http.cacheDir, EATON_CBE_RECORDS_CACHE_BASENAME);
+      // Disk cache survives process restarts — the PDF rarely changes, so on cold start we
+      // skip the ~1MB cross-region download and the 57-page PDF parse entirely.
+      const cached = await readEatonCbeCatalogCache(cachePath);
+      if (cached) return cached;
+
+      // The original implementation used the global fetch() with no timeout. If eaton.com.cn
+      // is slow or partially blocked from the host, every CBE item silently hung forever on
+      // the same shared promise. Bound the fetch with an AbortController so failure surfaces
+      // and subsequent items can fall back to the non-PDF pipeline instead of waiting.
+      const controller = new AbortController();
+      const externalSignal = context.signal;
+      const onExternalAbort = () => controller.abort(externalSignal?.reason);
+      externalSignal?.addEventListener("abort", onExternalAbort, { once: true });
+      const timeout = setTimeout(() => controller.abort(new Error("Eaton CBE PDF fetch timed out")), EATON_CBE_PDF_FETCH_TIMEOUT_MS);
+      try {
+        const fetched = await fetch(EATON_E6_CATALOG_PDF_URL, {
+          signal: controller.signal,
+          headers: { "user-agent": "product-scraper/1.0", accept: "application/pdf,*/*" }
+        });
+        if (!fetched.ok) throw new Error(`Eaton E6 PDF fetch failed: ${fetched.status}`);
+        const parser = new PDFParse({ data: Buffer.from(await fetched.arrayBuffer()) });
+        try {
+          const parsed = await parser.getText({ first: 57 });
+          const records = parseEatonCbeCatalogRecords(parsed.text);
+          await writeEatonCbeCatalogCache(cachePath, records).catch(() => undefined);
+          return records;
+        } finally {
+          await parser.destroy?.();
+        }
+      } finally {
+        clearTimeout(timeout);
+        externalSignal?.removeEventListener("abort", onExternalAbort);
+      }
+    })().catch((error) => {
+      // Clear the cached rejection so the NEXT CBE item gets a fresh attempt instead of
+      // inheriting an already-failed promise (otherwise one network blip poisons the rest of
+      // the run).
+      eatonCbeCatalogRecordsPromise = undefined;
+      throw error;
     });
-    if (!fetched.ok) throw new Error(`Eaton E6 PDF fetch failed: ${fetched.status}`);
-    const parser = new PDFParse({ data: Buffer.from(await fetched.arrayBuffer()) });
-    try {
-      const parsed = await parser.getText({ first: 57 });
-      return parseEatonCbeCatalogRecords(parsed.text);
-    } finally {
-      await parser.destroy?.();
-    }
-  })();
+  }
   return eatonCbeCatalogRecordsPromise;
+}
+
+async function readEatonCbeCatalogCache(cachePath: string): Promise<Map<string, EatonCbeCatalogRecord> | undefined> {
+  try {
+    const raw = await fs.readFile(cachePath, "utf8");
+    const entries = JSON.parse(raw) as Array<[string, EatonCbeCatalogRecord]>;
+    if (!Array.isArray(entries) || !entries.length) return undefined;
+    return new Map(entries);
+  } catch {
+    return undefined;
+  }
+}
+
+async function writeEatonCbeCatalogCache(cachePath: string, records: Map<string, EatonCbeCatalogRecord>): Promise<void> {
+  await fs.mkdir(path.dirname(cachePath), { recursive: true });
+  await fs.writeFile(cachePath, JSON.stringify([...records.entries()]), "utf8");
+}
+
+function chunk<T>(items: T[], size: number): T[][] {
+  const batches: T[][] = [];
+  for (let index = 0; index < items.length; index += size) {
+    batches.push(items.slice(index, index + size));
+  }
+  return batches;
 }
 
 function parseEatonCbeCatalogRecords(text: string): Map<string, EatonCbeCatalogRecord> {

@@ -89,7 +89,7 @@ set "NPM_INSTALL_NEEDED=0"
 if not exist "node_modules\" set "NPM_INSTALL_NEEDED=1"
 if not exist "!NPM_STAMP!" set "NPM_INSTALL_NEEDED=1"
 if exist "package-lock.json" if exist "!NPM_STAMP!" (
-    powershell -NoProfile -ExecutionPolicy Bypass -Command "$lock=^(Get-Item -LiteralPath 'package-lock.json'^).LastWriteTimeUtc; $stamp=^(Get-Item -LiteralPath 'node_modules\.product-scraper-install-ok'^).LastWriteTimeUtc; if ^($lock -gt $stamp^) { exit 1 }"
+    powershell -NoProfile -ExecutionPolicy Bypass -Command "$lock=(Get-Item -LiteralPath 'package-lock.json').LastWriteTimeUtc; $stamp=(Get-Item -LiteralPath 'node_modules\.product-scraper-install-ok').LastWriteTimeUtc; if ($lock -gt $stamp) { exit 1 }"
     if errorlevel 1 set "NPM_INSTALL_NEEDED=1"
 )
 if "!NPM_INSTALL_NEEDED!"=="1" (

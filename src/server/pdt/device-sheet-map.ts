@@ -121,3 +121,10 @@ export function deviceSheetsFor(deviceType: string | undefined): string[] {
 export function targetSheets(deviceType: string | undefined): string[] {
   return [...CONSTANT_SHEETS, ...deviceSheetsFor(deviceType)];
 }
+
+/** All distinct device-specific sheet names known to the routing map (sorted). */
+export function knownDeviceSheets(): string[] {
+  const set = new Set<string>();
+  for (const sheets of Object.values(DEVICE_SHEET_MAP)) for (const s of sheets) set.add(s);
+  return [...set].sort((a, b) => a.localeCompare(b));
+}

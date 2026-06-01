@@ -136,6 +136,28 @@ describe("manufacturer parsers", () => {
     ]);
   });
 
+  it("derives ABB voltage range and type from Emax accessory product text", () => {
+    const html = `
+      <html><head>
+        <title>SACE Emax 3 EKIP SUPPLY LITE 24-240VAC/DC E1.3..E6.3 | ABB</title>
+        <link rel="canonical" href="https://new.abb.com/products/1SDA126470R1/ekip-supply-lite" />
+      </head><body>
+        1SDA126470R1
+        <script>
+          var model = {"ProductViewModel":{"Product":{"productDetails":{"item":{"attributes":{
+            "ProductId":{"attributeCode":"ProductId","attributeName":"Product ID","values":[{"text":"1SDA126470R1"}]},
+            "CatalogDescription":{"attributeCode":"CatalogDescription","attributeName":"Catalog Description","values":[{"text":"SACE Emax 3 EKIP SUPPLY LITE 24-240VAC/DC E1.3..E6.3"}]},
+            "LongDescription":{"attributeCode":"LongDescription","attributeName":"Long Description","values":[{"text":"EKIP SUPPLY POWER SUPPLY MODULE 24...240V AC-DC E1.3...E6.3"}]}
+          }}}}}};
+        </script>
+      </body></html>
+    `;
+    const result = parseAbbProductPage("1SDA126470R1", fetched(html, "https://new.abb.com/products/1SDA126470R1/ekip-supply-lite"));
+
+    expect(result.attributes.some((attr) => attr.name === "Derived Voltage Range" && attr.value === "24-240")).toBe(true);
+    expect(result.attributes.some((attr) => attr.name === "Derived Voltage Type" && attr.value === "AC/DC")).toBe(true);
+  });
+
   it("parses ABB product model groups, downloads, classifications, and accessories", () => {
     const model = {
       ProductViewModel: {
@@ -964,7 +986,7 @@ describe("manufacturer parsers", () => {
     expect(result.normalized.current).toBe("4.0 A");
     expect(result.normalized.protection).toBe("IP67, IP68, IP69K");
     expect(result.normalized.material).toBe("PUR black");
-    expect(result.normalized.certificates).toContain("CE; cULus; WEEE");
+    expect(result.normalized.certificates).toContain("cULus, CE, WEEE");
     expect(result.localizedUrls?.en).toBe("https://www.balluff.com/en-us/products/BCC039H");
     expect(result.localizedUrls?.de).toBe("https://www.balluff.com/de-de/products/BCC039H");
     expect(result.documents.some((doc) => doc.type === "datasheet")).toBe(true);

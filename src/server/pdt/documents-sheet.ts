@@ -14,20 +14,51 @@ interface DocRow {
 }
 
 function abbDocumentUrl(catalogNumber: string, language: "en" | "de"): string {
-  const abbProductId = /^ABB/i.test(catalogNumber) ? catalogNumber : `ABB${catalogNumber}`;
-  const encoded = encodeURIComponent(abbProductId);
+  // Match the manual PDT format: bare catalog number, no "ABB" prefix.
+  const bare = catalogNumber.replace(/^ABB/i, "");
+  const encoded = encodeURIComponent(bare);
   return language === "de" ? `https://new.abb.com/products/de/${encoded}` : `https://new.abb.com/products/${encoded}`;
 }
 
-/** The localized product links to list per product: English first, then German. */
+function eatonDocumentUrl(catalogNumber: string, language: "en" | "de"): string {
+  // Manual Eaton PDTs use SKU pages with an "EP-" prefix on the catalog number.
+  // EN uses the gb/en-gb locale (international English), DE uses de/de-de.
+  const withPrefix = /^EP-/i.test(catalogNumber) ? catalogNumber : `EP-${catalogNumber}`;
+  const encoded = encodeURIComponent(withPrefix);
+  return language === "de"
+    ? `https://www.eaton.com/de/de-de/skuPage.${encoded}.html`
+    : `https://www.eaton.com/gb/en-gb/skuPage.${encoded}.html`;
+}
+
+function sagDocumentUrl(catalogNumber: string): string {
+  return `https://www.saginawcontrol.com/partnumber_info/?n=${encodeURIComponent(catalogNumber)}`;
+}
+
+/**
+ * Localized product links per product: English first, then German when the manufacturer publishes
+ * a German page. Manufacturers with no localized DE site (e.g. Saginaw) get only the EN row.
+ * Intentionally does NOT include extra datasheets or "Product page" rows — the manual PDT keeps
+ * exactly the two language links and nothing else.
+ */
 function documentRowsFor(item: RunItemRecord): DocRow[] {
   if (item.result?.manufacturerId === "abb") {
-    const rows = [
+    // ABB exposes a deterministic DE mirror (/products/de/...) for every catalog number.
+    return [
       { url: abbDocumentUrl(item.catalogNumber, "en"), language: "english", description: "Datasheet(EN)" },
       { url: abbDocumentUrl(item.catalogNumber, "de"), language: "german", description: "Datenblatt" }
     ];
-    if (/^1SDA/i.test(item.catalogNumber)) rows.push({ url: abbDocumentUrl(item.catalogNumber, "en"), language: "english", description: "Product page" });
-    return rows;
+  }
+  if (item.result?.manufacturerId === "eaton") {
+    return [
+      { url: eatonDocumentUrl(item.catalogNumber, "en"), language: "english", description: "Datasheet(EN)" },
+      { url: eatonDocumentUrl(item.catalogNumber, "de"), language: "german", description: "Datenblatt" }
+    ];
+  }
+  if (item.result?.manufacturerId === "sce") {
+    // Saginaw publishes a single English partnumber_info page — match the manual PDT (EN only).
+    return [
+      { url: sagDocumentUrl(item.catalogNumber), language: "english", description: "Datasheet(EN)" }
+    ];
   }
 
   const localized = item.result?.localizedUrls;
@@ -36,8 +67,6 @@ function documentRowsFor(item: RunItemRecord): DocRow[] {
   const rows: DocRow[] = [];
   if (en) rows.push({ url: en, language: "english", description: "Datasheet(EN)" });
   if (de) rows.push({ url: de, language: "german", description: "Datenblatt" });
-  const extraDoc = item.result?.documents.find((doc) => doc.url && doc.url !== en && doc.url !== de);
-  if (extraDoc) rows.push({ url: extraDoc.url, language: "english", description: extraDoc.label || "Additional document" });
   return rows;
 }
 

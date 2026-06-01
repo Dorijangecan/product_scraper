@@ -182,10 +182,12 @@ async function createTempPaths(): Promise<{ paths: AppPaths; rootDir: string }> 
     dataDir: path.join(rootDir, "data"),
     cacheDir: path.join(rootDir, "data", "cache"),
     outputDir: path.join(rootDir, "outputs"),
+    customerUploadsDir: path.join(rootDir, "data", "customer-uploads"),
     dbPath: path.join(rootDir, "data", "scraper.db")
   };
   await fs.mkdir(paths.dataDir, { recursive: true });
   await fs.mkdir(paths.cacheDir, { recursive: true });
   await fs.mkdir(paths.outputDir, { recursive: true });
+  await fs.mkdir(paths.customerUploadsDir, { recursive: true });
   return { paths, rootDir };
 }

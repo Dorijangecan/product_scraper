@@ -401,6 +401,7 @@ function finalFieldRequirement(field: FinalCompletenessField, result: ProductRes
   if (field === "certificates") return "preferred";
   if (field === "image") return "required";
   if (manufacturer.id === "sce") return "required";
+  if (field === "material" && manufacturer.id === "abb" && requiredElectricalFields(result).length > 0) return "preferred";
   if (isPassiveMechanicalProduct(result)) return "required";
   if (field === "weight" && isCompactSensorOrElectronics(result)) return "preferred";
   return CORE_NORMALIZED_FIELDS.includes(field) ? "preferred" : "preferred";
@@ -600,7 +601,7 @@ function possibleFinalNetworkStages(result: ProductResult, manufacturer: Manufac
 function triedFinalStages(result: ProductResult): string[] {
   const text = [
     ...(result.diagnostics?.fallbackStages ?? []),
-    ...(result.qualityGate?.attempts.map((attempt) => attempt.stage) ?? []),
+    ...(result.qualityGate?.attempts?.map((attempt) => attempt.stage) ?? []),
     ...result.sources.flatMap((source) => [source.stage, source.parser])
   ]
     .filter(Boolean)

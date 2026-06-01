@@ -3,6 +3,8 @@ import type ExcelJS from "exceljs";
 export interface PdtColumn {
   /** 1-based column index in the worksheet. */
   col: number;
+  /** Value from the Priority row, e.g. "Must field" / "Optional field". */
+  priority: string;
   /** Value from the PropertyId / "ECLASS property" row (e.g. "AAO677", "CNSORDERNO"). */
   code: string;
   /** Value from the "Variable name (CNS internal)" / PropertyName row. */
@@ -67,13 +69,15 @@ export function describeSheet(ws: ExcelJS.Worksheet): SheetDescriptor | undefine
   const scanRows = Math.min(ws.rowCount || 0, 16);
   let propertyRow = 0;
   let propertyNameRow = 0;
+  let priorityRow = 0;
   let descriptionRow = 0;
   let unitRow = 0;
   let bodyRow = 0;
   for (let r = 1; r <= scanRows; r++) {
     const label = normalizeLabel(cellText(ws.getCell(r, 1).value));
     if (!label) continue;
-    if (!propertyRow && PROPERTY_ID_LABELS.includes(label)) propertyRow = r;
+    if (!priorityRow && label === "priority") priorityRow = r;
+    else if (!propertyRow && PROPERTY_ID_LABELS.includes(label)) propertyRow = r;
     else if (!propertyNameRow && PROPERTY_NAME_LABELS.includes(label)) propertyNameRow = r;
     else if (!descriptionRow && DESCRIPTION_LABELS.includes(label)) descriptionRow = r;
     else if (!unitRow && UNIT_LABELS.includes(label)) unitRow = r;
@@ -92,8 +96,9 @@ export function describeSheet(ws: ExcelJS.Worksheet): SheetDescriptor | undefine
     if (!code && !propName) continue;
     const description = descriptionRow ? cellText(ws.getCell(descriptionRow, c).value) : "";
     const unit = unitRow ? cellText(ws.getCell(unitRow, c).value) : "";
+    const priority = priorityRow ? cellText(ws.getCell(priorityRow, c).value) : "";
     if (isHeaderEchoColumn(code, propName, description, unit)) continue;
-    columns.push({ col: c, code, propName, description, unit });
+    columns.push({ col: c, priority, code, propName, description, unit });
   }
   return { propertyRow, propertyNameRow, firstBodyRow, columns };
 }

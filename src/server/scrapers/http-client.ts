@@ -27,7 +27,7 @@ export class CachedHttpClient {
 
   constructor(
     private readonly db: ScraperDb,
-    private readonly cacheDir: string
+    readonly cacheDir: string
   ) {}
 
   setHostMinIntervalMs(ms: number) {

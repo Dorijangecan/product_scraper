@@ -1,3 +1,4 @@
+import crypto from "node:crypto";
 import express from "express";
 import multer from "multer";
 import { spawn } from "node:child_process";
@@ -9,7 +10,7 @@ import { ScraperDb } from "./db.js";
 import { createAppPaths } from "./paths.js";
 import { RunManager } from "./run-manager.js";
 import { getManufacturerConfig, initializeManufacturerConfig, listManufacturerConfigs, resetManufacturerOverride, saveManufacturerConfig } from "./config/manufacturers.js";
-import type { ManufacturerId } from "../shared/types.js";
+import type { CustomerDocumentRecord, ManufacturerId } from "../shared/types.js";
 import { buildRunOutputLayout, findRunLogPath, getAllowedRunOutputRoots, isPathInsideAny, runRootFromOutputPath } from "./run-output.js";
 import { CachedHttpClient } from "./scrapers/http-client.js";
 import { summarizeRunItem } from "./run-item-summary.js";
@@ -21,6 +22,17 @@ initializeManufacturerConfig(appPaths.dataDir);
 const db = new ScraperDb(appPaths);
 const runManager = new RunManager(db, appPaths);
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
+// Customer-provided documents (PDF/XLSX/DOC etc.) can run a lot bigger than the catalog
+// CSV — Eaton's full e6 catalogue is ~3 MB and an Excel BOM workbook can easily exceed
+// 50 MB. Use a dedicated upload pipeline with a roomier per-file cap.
+const customerDocUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 200 * 1024 * 1024, files: 20 }
+});
+const runUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 200 * 1024 * 1024, files: 32 }
+});
 const app = express();
 const port = Number(process.env.PORT ?? 3001);
 
@@ -84,8 +96,17 @@ app.post("/api/csv/preview", upload.single("file"), async (req, res) => {
   }
 });
 
-app.post("/api/runs", upload.single("file"), async (req, res) => {
-  if (!req.file) {
+app.post(
+  "/api/runs",
+  runUpload.fields([
+    { name: "file", maxCount: 1 },
+    { name: "customerDocuments", maxCount: 20 }
+  ]),
+  async (req, res) => {
+  const filesMap = (req.files ?? {}) as Record<string, Express.Multer.File[]>;
+  const inputFile = filesMap.file?.[0];
+  const customerFiles = filesMap.customerDocuments ?? [];
+  if (!inputFile) {
     res.status(400).json({ error: "CSV file is required." });
     return;
   }
@@ -126,14 +147,15 @@ app.post("/api/runs", upload.single("file"), async (req, res) => {
     return;
   }
   try {
-    const catalogNumbers = await extractCatalogNumbers(req.file.buffer, columnName);
+    const catalogNumbers = await extractCatalogNumbers(inputFile.buffer, columnName);
     if (catalogNumbers.length === 0) {
       res.status(400).json({ error: "No catalog numbers found in selected column." });
       return;
     }
+    const customerDocuments = await persistCustomerDocuments(customerFiles);
     const run = runManager.createRun({
       manufacturerId,
-      inputFileName: req.file.originalname,
+      inputFileName: inputFile.originalname,
       catalogNumbers,
       options: {
         downloadDocuments,
@@ -141,7 +163,8 @@ app.post("/api/runs", upload.single("file"), async (req, res) => {
         generateExcel,
         forceFinalRetry,
         ...(customCoverageFields !== undefined ? { customCoverageFields } : {}),
-        ...(hiddenCoverageFields !== undefined ? { hiddenCoverageFields } : {})
+        ...(hiddenCoverageFields !== undefined ? { hiddenCoverageFields } : {}),
+        ...(customerDocuments.length > 0 ? { customerDocuments } : {})
       }
     });
     res.status(201).json(run);
@@ -281,6 +304,49 @@ app.post("/api/runs/:id/files/folder/open", (req, res) => {
   }
 });
 
+app.get("/api/runs/:id/pdt-routing-preview", async (req, res) => {
+  const run = db.getRun(req.params.id);
+  if (!run) {
+    res.status(404).json({ error: "Run not found." });
+    return;
+  }
+  const manufacturer = getManufacturerConfig(run.manufacturerId);
+  if (!manufacturer) {
+    res.status(404).json({ error: "Manufacturer not found." });
+    return;
+  }
+  try {
+    const [{ classifyDeviceType }, { knownDeviceSheets, deviceSheetsFor }] = await Promise.all([
+      import("./scrapers/device-type.js"),
+      import("./pdt/device-sheet-map.js")
+    ]);
+    const items = db.getRunItems(run.id).filter((it) => it.result && (it.status === "found" || it.status === "partial"));
+    const previewItems = items.map((it) => {
+      const deviceType = classifyDeviceType(it.result).type;
+      let suggested: string[];
+      if (manufacturer.id === "abb" && /^1SDA/i.test(it.catalogNumber)) {
+        suggested = ["contactor a. fuses"];
+      } else {
+        suggested = deviceSheetsFor(deviceType);
+      }
+      return {
+        itemId: it.id,
+        catalogNumber: it.catalogNumber,
+        title: it.title,
+        deviceType,
+        suggestedSheets: suggested
+      };
+    });
+    res.json({
+      runId: run.id,
+      items: previewItems,
+      availableSheets: knownDeviceSheets()
+    });
+  } catch (error) {
+    res.status(500).json({ error: error instanceof Error ? error.message : "Could not build routing preview." });
+  }
+});
+
 app.post("/api/runs/:id/pdt", async (req, res) => {
   const run = db.getRun(req.params.id);
   if (!run) {
@@ -307,12 +373,14 @@ app.post("/api/runs/:id/pdt", async (req, res) => {
       fs.mkdirSync(baseDir, { recursive: true });
     }
     const outputPath = path.join(baseDir, `${run.id}_PDT.xlsx`);
+    const sheetOverrides = parseSheetOverrides(req.body?.sheetOverrides);
     const result = await exportRunPdt({
       manufacturer,
       items: db.getRunItems(run.id),
       templatePath,
       outputPath,
-      aiCleanup: req.body?.aiCleanup === true
+      aiCleanup: req.body?.aiCleanup === true,
+      sheetOverrides
     });
     if (result.productCount === 0) {
       res.status(400).json({ error: "No found or partial products to import into the PDT." });
@@ -448,6 +516,49 @@ function parseCustomCoverageFieldsFromRequest(raw: unknown): import("../shared/t
     if (cleaned.length >= 32) break;
   }
   return cleaned;
+}
+
+async function persistCustomerDocuments(files: Express.Multer.File[]): Promise<CustomerDocumentRecord[]> {
+  if (!files.length) return [];
+  const fsAsync = await import("node:fs/promises");
+  const records: CustomerDocumentRecord[] = [];
+  // Stage files in a per-batch folder so we can reference them by absolute path before
+  // the run-manager has built its run directory. The run-manager moves them into the
+  // run output folder at processing time so each run keeps its source-of-truth nearby.
+  const batchDir = path.join(appPaths.customerUploadsDir, `staging-${Date.now()}-${crypto.randomBytes(4).toString("hex")}`);
+  await fsAsync.mkdir(batchDir, { recursive: true });
+  for (const file of files) {
+    const id = crypto.randomBytes(8).toString("hex");
+    const safeName = sanitizeCustomerFileName(file.originalname || `document-${id}`);
+    const storedPath = path.join(batchDir, `${id}-${safeName}`);
+    await fsAsync.writeFile(storedPath, file.buffer);
+    records.push({
+      id,
+      originalName: file.originalname || safeName,
+      storedPath,
+      mimeType: file.mimetype,
+      size: file.size,
+      uploadedAt: new Date().toISOString()
+    });
+  }
+  return records;
+}
+
+function parseSheetOverrides(raw: unknown): import("../shared/types.js").PdtSheetOverrides | undefined {
+  if (!raw || typeof raw !== "object") return undefined;
+  const out: Record<number, string[]> = {};
+  for (const [key, value] of Object.entries(raw as Record<string, unknown>)) {
+    const itemId = Number(key);
+    if (!Number.isFinite(itemId) || !Array.isArray(value)) continue;
+    const sheets = value.filter((v): v is string => typeof v === "string" && v.trim().length > 0).map((s) => s.trim());
+    if (sheets.length > 0) out[itemId] = [...new Set(sheets)];
+  }
+  return Object.keys(out).length > 0 ? out : undefined;
+}
+
+function sanitizeCustomerFileName(name: string): string {
+  const cleaned = name.replace(/[<>:"/\\|?*\x00-\x1F]/g, "-").replace(/\s+/g, "-").slice(0, 120).replace(/^-+|-+$/g, "");
+  return cleaned || "customer-document";
 }
 
 function openLocalFile(filePath: string) {

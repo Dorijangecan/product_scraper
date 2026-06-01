@@ -61,6 +61,12 @@ export async function startRun(input: {
   customCoverageFields?: Array<{ id: string; label: string; pattern: string }>;
   hiddenCoverageFields?: string[];
   forceFinalRetry?: boolean;
+  /**
+   * Customer-provided documents (PDFs, DOCs, XLSX, CSVs). Data extracted from these
+   * files overrides anything scraped from the manufacturer website for the catalog
+   * numbers they mention.
+   */
+  customerDocuments?: File[];
 }): Promise<RunRecord> {
   const form = new FormData();
   form.append("file", input.file);
@@ -76,6 +82,9 @@ export async function startRun(input: {
     form.append("hiddenCoverageFields", JSON.stringify(input.hiddenCoverageFields));
   }
   form.append("forceFinalRetry", String(input.forceFinalRetry ?? false));
+  for (const customerDocument of input.customerDocuments ?? []) {
+    form.append("customerDocuments", customerDocument);
+  }
   return request("/api/runs", { method: "POST", body: form });
 }
 
@@ -112,6 +121,7 @@ export interface PdtImportStats {
   unmappedDeviceTypes: string[];
   unclassifiedCatalogNumbers: string[];
   writeIssues: PdtWriteIssue[];
+  requiredFieldIssues: PdtRequiredFieldIssue[];
   keptSheets: string[];
   removedSheetCount: number;
   cleanedInputPath?: string;
@@ -138,15 +148,33 @@ export interface PdtWriteIssue {
   reason: "enum-unmatched";
 }
 
+export interface PdtRequiredFieldIssue {
+  sheetName: string;
+  catalogNumber: string;
+  code: string;
+  propName: string;
+  description: string;
+  priority: string;
+  reason: "required-missing";
+}
+
 export async function importRunPdt(
   id: string,
-  options: { templatePath?: string; aiCleanup?: boolean } = {}
+  options: { templatePath?: string; aiCleanup?: boolean; sheetOverrides?: import("../shared/types.js").PdtSheetOverrides } = {}
 ): Promise<{ ok: true; path: string; stats: PdtImportStats }> {
   return request(`/api/runs/${id}/pdt`, {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({ templatePath: options.templatePath, aiCleanup: options.aiCleanup ?? false })
+    body: JSON.stringify({
+      templatePath: options.templatePath,
+      aiCleanup: options.aiCleanup ?? false,
+      sheetOverrides: options.sheetOverrides
+    })
   });
+}
+
+export async function getRunPdtRoutingPreview(id: string): Promise<import("../shared/types.js").PdtRoutingPreview> {
+  return request(`/api/runs/${id}/pdt-routing-preview`);
 }
 
 export async function openRunPdt(id: string): Promise<{ ok: true; path: string }> {

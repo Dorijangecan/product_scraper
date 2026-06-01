@@ -7,6 +7,14 @@ import { catalogTextMatches } from "./catalog-number.js";
 
 const MAX_PDF_PAGES = 30;
 const MAX_PDF_TEXT_CHARS = 250_000;
+// Large multi-model technical-data PDFs (e.g. Rockwell 1783-td002 covers every
+// Stratix 2100 variant). Parsing only the first 30 pages can either miss the
+// section for the requested catalog number or mix specs from other models. The
+// targeted reader walks every page cheaply, locates the page range that mentions
+// the catalog number, and returns just those pages plus a small neighbour window.
+const TARGETED_PDF_MAX_PAGES = 200;
+const TARGETED_PDF_NEIGHBOUR_PAGES = 1;
+const TARGETED_PDF_MAX_SECTION_PAGES = 12;
 
 const KNOWN_LABELS = [
   "Approximate shipping weight",
@@ -64,7 +72,7 @@ export async function enrichResultFromDownloadedDocuments(result: ProductResult)
       continue;
     }
     try {
-      const text = await readPdfText(doc.localPath!);
+      const text = await readPdfText(doc.localPath!, result.catalogNumber);
       const attributes = extractDocumentTextAttributes({
         catalogNumber: result.catalogNumber,
         document: doc,
@@ -199,15 +207,77 @@ export function extractDocumentTextAttributes(input: {
   return dedupeAttributes([...productSpecificAttributes, ...attributes]);
 }
 
-async function readPdfText(filePath: string): Promise<string> {
+async function readPdfText(filePath: string, catalogNumber?: string): Promise<string> {
   const data = await fs.readFile(filePath);
   const parser = new PDFParse({ data });
   try {
+    if (catalogNumber) {
+      const targeted = await readTargetedPdfText(parser, catalogNumber);
+      if (targeted) return targeted.slice(0, MAX_PDF_TEXT_CHARS);
+    }
     const parsed = await parser.getText({ first: MAX_PDF_PAGES });
     return parsed.text.slice(0, MAX_PDF_TEXT_CHARS);
   } finally {
     await parser.destroy().catch(() => undefined);
   }
+}
+
+/**
+ * Multi-model technical-data PDFs (Rockwell 1783-td***, Eaton catalogs, etc.) inline
+ * spec tables for many catalog numbers. Reading the first 30 pages either misses the
+ * requested model or mixes its specs with others. This walks pages one at a time, finds
+ * pages that mention the catalog number (compact-matched, like the rest of the pipeline),
+ * and returns those pages plus a small neighbour window — typically a handful of pages
+ * even for a 100+ page document.
+ *
+ * Returns undefined when the catalog number isn't found anywhere in the first
+ * TARGETED_PDF_MAX_PAGES pages, letting the caller fall back to the first-N-pages reader.
+ */
+async function readTargetedPdfText(parser: InstanceType<typeof PDFParse>, catalogNumber: string): Promise<string | undefined> {
+  const compactCatalog = compactKey(catalogNumber);
+  if (!compactCatalog) return undefined;
+  const matches: number[] = [];
+  const pages: Array<{ num: number; text: string }> = [];
+  // pdf-parse exposes getText({partial:[n]}) for single-page reads; we walk pages until we
+  // either run out, hit our budget, or have collected enough matches to be confident the
+  // requested model's section has been captured.
+  for (let pageNum = 1; pageNum <= TARGETED_PDF_MAX_PAGES; pageNum += 1) {
+    let pageResult;
+    try {
+      pageResult = await parser.getText({ partial: [pageNum] });
+    } catch {
+      break;
+    }
+    const pageText = pageResult.pages?.[0]?.text;
+    if (typeof pageText !== "string") break;
+    pages.push({ num: pageNum, text: pageText });
+    if (compactKey(pageText).includes(compactCatalog)) {
+      matches.push(pageNum);
+      if (matches.length >= TARGETED_PDF_MAX_SECTION_PAGES) break;
+    }
+    if (pageResult.total && pageNum >= pageResult.total) break;
+  }
+  if (!matches.length) return undefined;
+  const keepPages = expandWithNeighbours(matches, TARGETED_PDF_NEIGHBOUR_PAGES);
+  return pages
+    .filter((page) => keepPages.has(page.num))
+    .map((page) => page.text)
+    .join("\n");
+}
+
+function compactKey(value: string): string {
+  return value.toLowerCase().replace(/[^a-z0-9]+/g, "");
+}
+
+function expandWithNeighbours(pages: number[], window: number): Set<number> {
+  const set = new Set<number>();
+  for (const num of pages) {
+    for (let offset = -window; offset <= window; offset += 1) {
+      const neighbour = num + offset;
+      if (neighbour >= 1) set.add(neighbour);
+    }
+  }
+  return set;
 }
 
 function shouldParsePdfDocument(doc: DocumentRecord): boolean {

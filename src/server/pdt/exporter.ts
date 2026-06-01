@@ -1,5 +1,5 @@
 import ExcelJS from "exceljs";
-import type { AttributeRecord, ManufacturerConfig, RunItemRecord } from "../../shared/types.js";
+import type { AttributeRecord, ManufacturerConfig, PdtSheetOverrides, RunItemRecord } from "../../shared/types.js";
 import { classifyDeviceType } from "../scrapers/device-type.js";
 import { loadTemplateWorkbook } from "./template.js";
 import { cellText, clearBody, describeSheet, type PdtColumn } from "./sheet-descriptor.js";
@@ -10,7 +10,6 @@ import { encodeEnumLabel, isEnumColumn } from "./enum-encode.js";
 import { buildPdtRepairResult, type PdtCleanupAudit, type PdtRepair } from "./ai-cleanup.js";
 import { writeCleanedInputWorkbook } from "./cleaned-input-workbook.js";
 import { normalizePdtCellNumber } from "./unit-cleanup.js";
-import { writeConnectionPointsSheet } from "./connection-points-sheet.js";
 import { writeProductAccessorySheet } from "./product-accessory-sheet.js";
 
 const DOCUMENTS_SHEET = "Additional Documents";
@@ -26,6 +25,7 @@ export interface PdtExportResult {
   unmappedDeviceTypes: string[];
   unclassifiedCatalogNumbers: string[];
   writeIssues: PdtWriteIssue[];
+  requiredFieldIssues: PdtRequiredFieldIssue[];
   /** Tabs retained in the final workbook (unused template tabs are removed). */
   keptSheets: string[];
   removedSheetCount: number;
@@ -43,6 +43,16 @@ export interface PdtWriteIssue {
   reason: "enum-unmatched";
 }
 
+export interface PdtRequiredFieldIssue {
+  sheetName: string;
+  catalogNumber: string;
+  code: string;
+  propName: string;
+  description: string;
+  priority: string;
+  reason: "required-missing";
+}
+
 export type PdtCleanupSummary = Omit<PdtCleanupAudit, "products"> & { productRows: number };
 
 export async function exportRunPdt(input: {
@@ -51,8 +61,10 @@ export async function exportRunPdt(input: {
   templatePath: string;
   outputPath: string;
   aiCleanup?: boolean;
+  /** Optional user-chosen sheet routing (itemId → list of sheet names). Replaces auto-routing. */
+  sheetOverrides?: PdtSheetOverrides;
 }): Promise<PdtExportResult> {
-  const { manufacturer, items, templatePath, outputPath } = input;
+  const { manufacturer, items, templatePath, outputPath, sheetOverrides } = input;
   const workbook = await loadTemplateWorkbook(templatePath);
 
   const included = items.filter((item) => item.result && (item.status === "found" || item.status === "partial"));
@@ -72,11 +84,18 @@ export async function exportRunPdt(input: {
   const unmappedDeviceTypes = new Set<string>();
   const unclassifiedCatalogNumbers = new Set<string>();
   const writeIssues: PdtWriteIssue[] = [];
+  const requiredFieldIssues: PdtRequiredFieldIssue[] = [];
 
   for (const item of included) {
     const deviceType = classifyDeviceType(item.result).type;
     if (!deviceType) unclassifiedCatalogNumbers.add(item.catalogNumber);
-    const sheets = [...targetSheets(deviceType), ...additionalDeviceSheetsForItem(item, manufacturer)];
+    const userOverride = sheetOverrides?.[item.id];
+    const builtIn = overrideDeviceSheetsForItem(item, manufacturer);
+    // User overrides win over the built-in (ABB 1SDA) rule; both replace device-type auto routing.
+    const override = userOverride && userOverride.length > 0 ? userOverride : builtIn;
+    const sheets = override
+      ? [...CONSTANT_SHEETS, ...override]
+      : [...targetSheets(deviceType), ...additionalDeviceSheetsForItem(item, manufacturer)];
     // Only constant tabs were chosen and no device tab matched → note for diagnostics.
     if (deviceType && sheets.length === CONSTANT_SHEETS.length) unmappedDeviceTypes.add(deviceType);
     for (const sheetName of sheets) {
@@ -98,7 +117,7 @@ export async function exportRunPdt(input: {
       missingSheets.add(sheetName);
       continue;
     }
-    filledSheets[sheetName] = writeUniformSheet(ws, sheetMembers, manufacturer, repairs, writeIssues);
+    filledSheets[sheetName] = writeUniformSheet(ws, sheetMembers, manufacturer, repairs, writeIssues, requiredFieldIssues);
   }
 
   const documentsWs = workbook.getWorksheet(resolveSheetName(DOCUMENTS_SHEET) ?? DOCUMENTS_SHEET);
@@ -110,11 +129,9 @@ export async function exportRunPdt(input: {
     missingSheets.add(DOCUMENTS_SHEET);
   }
 
-  const connectionPointWs = workbook.getWorksheet(resolveSheetName("Connection Point Information") ?? "Connection Point Information");
-  if (connectionPointWs) {
-    const connectionRows = writeConnectionPointsSheet(connectionPointWs, included);
-    if (connectionRows > 0) filledSheets[connectionPointWs.name] = connectionRows;
-  }
+  // Connection Point Information stays as a template placeholder for now — the manual PDT keeps it
+  // present but unfilled, and the auto-fill produces too many speculative rows to be useful yet.
+  // (The tab itself is kept in the workbook via ALWAYS_KEPT_SHEETS below.)
 
   const productAccessoryWs = workbook.getWorksheet(resolveSheetName("Product Accessory") ?? "Product Accessory");
   if (productAccessoryWs) {
@@ -146,6 +163,7 @@ export async function exportRunPdt(input: {
     unmappedDeviceTypes: [...unmappedDeviceTypes],
     unclassifiedCatalogNumbers: [...unclassifiedCatalogNumbers],
     writeIssues,
+    requiredFieldIssues,
     keptSheets: workbook.worksheets.map((ws) => ws.name),
     removedSheetCount: removedSheets.length,
     cleanup: cleanupSummary(cleanup.audit),
@@ -178,7 +196,8 @@ function writeUniformSheet(
   items: RunItemRecord[],
   manufacturer: ManufacturerConfig,
   repairs: Map<number, PdtRepair>,
-  writeIssues: PdtWriteIssue[]
+  writeIssues: PdtWriteIssue[],
+  requiredFieldIssues: PdtRequiredFieldIssue[]
 ): number {
   const descriptor = describeSheet(ws);
   if (!descriptor) return 0;
@@ -197,7 +216,9 @@ function writeUniformSheet(
     for (const rowVariant of uniformRowVariantsFor(ws.name, item, baseCtx)) {
       const ctx: ResolveContext = { ...baseCtx, rowVariant };
       let wroteCell = false;
+      const writtenRequiredColumns = new Set<number>();
       for (const column of descriptor.columns) {
+        if (!isColumnAllowedForItem(ws.name, item, manufacturer, column)) continue;
         const value = resolvePdtColumnValue(ws, descriptor, column, ctx);
         if (value === undefined || value === "") continue;
         // Enum-coded columns: write the legend's canonical label (e.g. "Ring cable connection")
@@ -221,7 +242,22 @@ function writeUniformSheet(
         } else {
           ws.getCell(row, column.col).value = cellValueFor(column, value);
         }
+        if (isTrackedRequiredPdtColumn(ws.name, column)) writtenRequiredColumns.add(column.col);
         wroteCell = true;
+      }
+      for (const column of descriptor.columns) {
+        if (!isColumnAllowedForItem(ws.name, item, manufacturer, column)) continue;
+        if (!isTrackedRequiredPdtColumn(ws.name, column)) continue;
+        if (writtenRequiredColumns.has(column.col)) continue;
+        requiredFieldIssues.push({
+          sheetName: ws.name,
+          catalogNumber: item.catalogNumber,
+          code: column.code,
+          propName: column.propName,
+          description: column.description,
+          priority: column.priority,
+          reason: "required-missing"
+        });
       }
       if (wroteCell) {
         written++;
@@ -233,30 +269,274 @@ function writeUniformSheet(
   return written;
 }
 
-function additionalDeviceSheetsForItem(item: RunItemRecord, manufacturer: ManufacturerConfig): string[] {
-  if (manufacturer.id === "abb" && /^1SDA/i.test(item.catalogNumber)) return ["contactor a. fuses"];
+function additionalDeviceSheetsForItem(_item: RunItemRecord, _manufacturer: ManufacturerConfig): string[] {
   return [];
 }
 
+/** Hard override: when set, REPLACES device-type sheets entirely (only constant tabs + these are written). */
+function overrideDeviceSheetsForItem(item: RunItemRecord, manufacturer: ManufacturerConfig): string[] | null {
+  const isAbb = manufacturer.id === "abb" || item.result?.manufacturerId === "abb";
+  if (isAbb && /^1SDA/i.test(item.catalogNumber)) return ["contactor a. fuses"];
+  return null;
+}
+
+/**
+ * Column-level allowlist for specific (manufacturer, catalog-pattern, sheet) combos. Returns true
+ * when the column should be written for this item. Mirrors the manual PDT layout — e.g. ABB Emax 3
+ * accessories on `contactor a. fuses` only carry ECLASS group/version, article number, and the
+ * actual rated voltage / voltage type when present. Everything else (generic compliance markers,
+ * scraped color, IP rating, etc.) is suppressed to avoid writing junk into ill-suited columns.
+ */
+function isColumnAllowedForItem(
+  sheetName: string,
+  item: RunItemRecord,
+  manufacturer: ManufacturerConfig,
+  column: PdtColumn
+): boolean {
+  const isAbb = manufacturer.id === "abb" || item.result?.manufacturerId === "abb";
+  if (isAbb && /^1SDA/i.test(item.catalogNumber) && canonicalSheetKey(sheetName) === canonicalSheetKey("contactor a. fuses")) {
+    const allowed = new Set([
+      "REFERENCE_FEATURE_GROUP_ID",
+      "REFERENCE_FEATURE_SYSTEM_NAME",
+      "AAO676", // article number
+      "BAH005", // rated voltage
+      "BAD915"  // voltage type
+    ]);
+    return allowed.has(column.code);
+  }
+  return true;
+}
+
+function isTrackedRequiredPdtColumn(sheetName: string, column: PdtColumn): boolean {
+  const priority = column.priority.trim();
+  if (!/\b(?:must|should)\b/i.test(priority)) return false;
+  const sheet = canonicalSheetKey(sheetName);
+  const key = pdtColumnKey(column);
+
+  // These are the minimum import-critical fields read from the Master PDT template tabs the
+  // user works with most. "If available / ECADPORT" classification columns are included when
+  // they are on those tabs, because the exporter can usually derive at least the system/version.
+  const requiredBySheet: Record<string, Set<string>> = {
+    [canonicalSheetKey("Material Master Data")]: new Set([
+      "AAO677",
+      "MANUFACTURER_URL",
+      "AAQ326",
+      "AAO676",
+      "CNSORDERNO",
+      "AAV774/AAO057",
+      "CNSTYPECODE",
+      "AAO057",
+      "AAU731",
+      "AAU732",
+      "CNS_DESCRIPTION_LONG / AAU734",
+      "CNS_DESCRIPTION_LONG",
+      "AAU734",
+      "CNS_DESCRIPTION_SHORT",
+      "CNS_ELECTRO_MATERIAL",
+      "AAF040",
+      "CNS_MASSEXACT"
+    ]),
+    [canonicalSheetKey("Additional Documents")]: new Set(["ARTICLENUMBER"]),
+    [canonicalSheetKey("cabinet")]: new Set(["REFERENCE_FEATURE_GROUP_ID", "REFERENCE_FEATURE_SYSTEM_NAME", "AAO676"]),
+    [canonicalSheetKey("cabinet.mechanical")]: new Set([
+      "REFERENCE_FEATURE_GROUP_ID",
+      "REFERENCE_FEATURE_SYSTEM_NAME",
+      "AAO676",
+      "CNS_COMPONENT_FUNCTION_3D"
+    ]),
+    [canonicalSheetKey("cabinet.rack")]: new Set(["REFERENCE_FEATURE_GROUP_ID", "REFERENCE_FEATURE_SYSTEM_NAME", "AAO676"]),
+    [canonicalSheetKey("Wire ID Information")]: new Set([
+      "AAO676",
+      "CABLE ELEMENT IDENTIFIER",
+      "AAN528",
+      "AAN529",
+      "CNS_CROSSECTION_AWG",
+      "AAN524",
+      "CNS_DESIGN_OF_WIRE",
+      "AAN525",
+      "CNS_FUNCTION_OF_WIRE",
+      "AAN526",
+      "CNS_CONSTRUCTION_OF_WIRE",
+      "AAN530",
+      "CNS_CORE_MATERIAL",
+      "AAN523",
+      "CNS_CONNECTION_DESCRIPTION",
+      "AAN506",
+      "CNS_TYPE_OF_CONNECTION",
+      "AAN527",
+      "BAC469",
+      "BAH005",
+      "CNS_RATED_VOLTAGE",
+      "AAB485",
+      "CNS_RATED_CURRENT",
+      "CABLE ELEMENT IDENTIFIER A"
+    ]),
+    [canonicalSheetKey("cable")]: new Set([
+      "REFERENCE_FEATURE_GROUP_ID",
+      "REFERENCE_FEATURE_SYSTEM_NAME",
+      "AAO676",
+      "BAD974",
+      "00003D001",
+      "BAD821",
+      "00003C001",
+      "AAP775",
+      "\"00003E001\"",
+      "BAD979"
+    ]),
+    [canonicalSheetKey("contactor a. fuses")]: new Set([
+      "REFERENCE_FEATURE_GROUP_ID",
+      "REFERENCE_FEATURE_SYSTEM_NAME",
+      "AAO676",
+      "AAS575"
+    ]),
+    [canonicalSheetKey("subcircuit")]: new Set([
+      "REFERENCE_FEATURE_GROUP_ID",
+      "REFERENCE_FEATURE_SYSTEM_NAME",
+      "AAO676",
+      "AAB733",
+      "HELP"
+    ])
+  };
+
+  return requiredBySheet[sheet]?.has(key) ?? false;
+}
+
+function pdtColumnKey(column: PdtColumn): string {
+  return (column.code || column.propName).trim().toUpperCase();
+}
+
 function uniformRowVariantsFor(sheetName: string, item: RunItemRecord, ctx: ResolveContext): Array<Record<string, string> | undefined> {
-  if (item.result?.manufacturerId !== "eaton" || canonicalSheetKey(sheetName) !== "cabinet.mechanical") return [undefined];
-  const model = (eatonModelCode(item.result) ?? resolveProperty("CNSTYPECODE", "CNSTYPECODE", ctx) ?? "").toUpperCase();
-  if (/^PSN-FP-.+MU\b/.test(model)) {
-    return [1, 2, 3, 4].map((index) => ({
-      AAO676: item.catalogNumber,
-      CNS_PROJECT_PATH: `psn_fp_mu_p${index}.prj`,
-      CNS_COMPONENT_GROUP: "Plate@1"
-    }));
+  const sheetKey = canonicalSheetKey(sheetName);
+
+  // ---- "cabinet" sheet: family-level defaults that the manual PDT operators fill ----
+  if (sheetKey === "cabinet") {
+    // Eaton ProfiSNAP families (PSN-*) share the same minimum cabinet defaults across all
+    // sub-series: steel body + steel internal, powder-coated surface. The manual PDTs fill at
+    // least these three so the cabinet tab isn't blank. We don't hardcode the ECLASS group id —
+    // each PSN sub-family uses a different one and the resolver will fall back to the article's
+    // scraped ECLASS code.
+    if (item.result?.manufacturerId === "eaton") {
+      const model = (eatonModelCode(item.result) ?? resolveProperty("CNSTYPECODE", "CNSTYPECODE", ctx) ?? "").toUpperCase();
+      if (/^PSN-/i.test(model)) {
+        return [{
+          AAO676: item.catalogNumber,
+          BAB664: "Steel",        // material
+          BAF634: "Steel",        // (duplicate ECLASS code for material)
+          BAF785: "Powder coating" // surface
+        }];
+      }
+    }
+    // Saginaw H_LP enclosures use a consistent set of family defaults (carbon steel powder-coated
+    // body, IP66, NEMA Type 3R/4/4X/12/13, 1 front door, 2 locks). The manual PDTs fill these for
+    // every H_LP article — we mirror them here so the generated PDT isn't blank in the cabinet tab.
+    if (item.result?.manufacturerId === "sce" && /^SCE-\d+H\d+LP$/i.test(item.catalogNumber)) {
+      return [{
+        AAO676: item.catalogNumber,
+        REFERENCE_FEATURE_GROUP_ID: "27180101",
+        AAB681: "2",       // suitable for metric installation: Yes
+        AAC265: "1",       // back door present: No (front-door-only)
+        AAC929: "1",       // Number of doors: 1
+        AAF507: "1",       // REACH registration present: No
+        AAM117: "1",       // glazed door present: No
+        AAM272: "2",       // wall build-in possible: Yes
+        AAO191: "1",       // RoHS attention of conformity: No
+        AAP429: "1",       // Number of front doors: 1
+        AAP542: "2",       // Number of locks: 2
+        BAA105: "2",       // Number of locks (duplicate ECLASS code): 2
+        BAD290: "2",       // Assembly on floor is possible: Yes
+        BAD308: "2",       // Wall assembly possible: Yes
+        BAF728: "1",       // Mounting plate present: No
+        AAW361: "NEMA Type 3R, 4, 4X, 12 and Type 13",
+        AAZ486: "NEMA Type 3R, 4, 4X, 12 and Type 13",
+        BAB664: "Carbon steel",
+        BAC295: "White",
+        BAF634: "Carbon steel",
+        BAF785: "Powder coating",
+        BAG975: "IP66"
+      }];
+    }
+    return [undefined];
   }
-  if (/^PSN-FPS\b/.test(model)) {
-    return [1, 2, 3, 4].map((index) => ({
-      AAO676: `EP-${item.catalogNumber.replace(/^EP-/i, "")}`,
-      CNS_PROJECT_PATH: index === 4 ? "psn_fps_asmtab.prj" : `psn_fps_p${index}.prj`,
-      CNS_COMPONENT_FUNCTION_3D: "Bracket",
-      CNS_COMPONENT_GROUP: "Bracket@1",
-      "000038001": "Assembly.VariantParts"
-    }));
+
+  if (sheetKey !== "cabinet.mechanical") return [undefined];
+
+  if (item.result?.manufacturerId === "eaton") {
+    const model = (eatonModelCode(item.result) ?? resolveProperty("CNSTYPECODE", "CNSTYPECODE", ctx) ?? "").toUpperCase();
+    if (/^PSN-FP-.+MU\b/.test(model)) {
+      // Manual PDT for psn_fp_mu uses rows for p1, p2, p3 plus a final asmtab assembly row.
+      // ECLASS 27400608, all rows tagged Plate@1.
+      return ["psn_fp_mu_p1.prj", "psn_fp_mu_p2.prj", "psn_fp_mu_p3.prj", "psn_fp_mu_asmtab.prj"].map((proj) => ({
+        AAO676: item.catalogNumber,
+        REFERENCE_FEATURE_GROUP_ID: "27400608",
+        CNS_PROJECT_PATH: proj,
+        CNS_COMPONENT_GROUP: "Plate@1"
+      }));
+    }
+    if (/^PSN-FPS\b/.test(model)) {
+      // Manual PDT for psn_fps uses p1, p2, p3, asmtab (4 rows). ECLASS 27180907 in the variant
+      // with project paths; 27182811 for the simple EP-prefixed variant (which uses 1 row).
+      // The EP- prefix is applied to the article number per the manual PDT.
+      return ["psn_fps_p1.prj", "psn_fps_p2.prj", "psn_fps_p3.prj", "psn_fps_asmtab.prj"].map((proj) => ({
+        AAO676: `EP-${item.catalogNumber.replace(/^EP-/i, "")}`,
+        REFERENCE_FEATURE_GROUP_ID: "27180907",
+        CNS_PROJECT_PATH: proj,
+        CNS_COMPONENT_FUNCTION_3D: "Bracket",
+        CNS_COMPONENT_GROUP: "Bracket@1",
+        "000038001": "Assembly.VariantParts"
+      }));
+    }
+    // PSN-MT (DIN-rail mounting strip) — single row, ECLASS 27182811, Rail@1.
+    if (/^PSN-MT\b/.test(model)) {
+      return [{
+        AAO676: item.catalogNumber,
+        REFERENCE_FEATURE_GROUP_ID: "27182811",
+        CNS_PROJECT_PATH: "psn_drs_mt.prj",
+        CNS_COMPONENT_GROUP: "Rail@1"
+      }];
+    }
+    // PSN-FP-NZM* / PSN-FP/S-NZM* (front-plate NZM) — single row, ECLASS 27182806, Plate@1.
+    if (/^PSN-FP[/-].*NZM/.test(model)) {
+      return [{
+        AAO676: item.catalogNumber,
+        REFERENCE_FEATURE_GROUP_ID: "27182806",
+        CNS_PROJECT_PATH: "psn_fp_nzm.prj",
+        CNS_COMPONENT_GROUP: "Plate@1"
+      }];
+    }
+    // PSN-PIP-BN (side panel) — single row, ECLASS 27182806, Panel@1.
+    if (/^PSN-PIP-BN\b/.test(model)) {
+      return [{
+        AAO676: item.catalogNumber,
+        REFERENCE_FEATURE_GROUP_ID: "27182806",
+        CNS_PROJECT_PATH: "psn_pip_bn.prj",
+        CNS_COMPONENT_GROUP: "Panel@1"
+      }];
+    }
   }
+
+  if (item.result?.manufacturerId === "sce") {
+    // Saginaw H_LP enclosures (e.g. SCE-12H2408LP, SCE-16H1206LP) expand into 5 mechanical
+    // sub-component rows in the manual PDT: body, door, mounting bracket, lock, assembly.
+    // Each row carries its own ECLASS group id (REFERENCE_FEATURE_GROUP_ID), project path,
+    // component function/group, and 000038001 label, per the h_lp_asmtab template.
+    if (/^SCE-\d+H\d+LP$/i.test(item.catalogNumber)) {
+      return [
+        { project: "h_lp_base", eclass: "27180101", func: "Body", group: "Frame@1", label: "Body" },
+        { project: "h_lp_door", eclass: "27182204", func: "Door", group: "Door@1", label: "Door" },
+        { project: "mnt_ears", eclass: "27182811", func: "Bracket", group: "Bracket@1", label: "Bracket" },
+        { project: "lp_clamp", eclass: "27400641", func: "Door lock", group: "Door lock@2", label: "Lock system" },
+        { project: "h_lp_asmtab", eclass: "27180101", func: "Assembly.Enclosure", group: "Enclosure@1", label: "Assembly.Enclosure" }
+      ].map((row) => ({
+        AAO676: item.catalogNumber,
+        REFERENCE_FEATURE_GROUP_ID: row.eclass,
+        CNS_PROJECT_PATH: row.project,
+        CNS_COMPONENT_FUNCTION_3D: row.func,
+        CNS_COMPONENT_GROUP: row.group,
+        "000038001": row.label
+      }));
+    }
+  }
+
   return [undefined];
 }
 

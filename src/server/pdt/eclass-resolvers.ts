@@ -43,11 +43,22 @@ function sourceRank(sourceType: string | undefined): number {
 /** Extract a numeric weight from a normalized string like "2.5 kg" / "850 g". */
 function weight(ctx: ResolveContext): { kg?: number; g?: number } {
   const raw = ctx.result?.normalized.weight;
-  if (!raw) return {};
+  const parsed = parseWeightRaw(raw);
+  // ABB datasheets often publish "0 kg" or omit weight entirely for small accessories.
+  // The manual PDTs fill 0.1 kg as a placeholder so the field isn't blank — match that.
+  const isAbb = ctx.result?.manufacturerId === "abb" || ctx.manufacturer?.id === "abb";
+  if (isAbb && (!parsed || !parsed.kg || parsed.kg === 0)) {
+    return { kg: 0.1, g: 100 };
+  }
+  return parsed ?? {};
+}
+
+function parseWeightRaw(raw: string | undefined): { kg?: number; g?: number } | undefined {
+  if (!raw) return undefined;
   const match = raw.replace(",", ".").match(/(\d+(?:\.\d+)?)\s*(kg|g|lb|lbs)?/i);
-  if (!match) return {};
+  if (!match) return undefined;
   const value = Number(match[1]);
-  if (!Number.isFinite(value)) return {};
+  if (!Number.isFinite(value)) return undefined;
   const unit = (match[2] ?? "kg").toLowerCase();
   if (unit === "g") return { g: value, kg: value / 1000 };
   if (unit === "lb" || unit === "lbs") return { kg: value * 0.453592, g: value * 453.592 };
@@ -229,12 +240,28 @@ const eanOrGtin = (ctx: ResolveContext) => attr(ctx, /\b(ean|gtin)\b/i);
 
 function pdtProductUrl(ctx: ResolveContext): string | undefined {
   if (ctx.result?.manufacturerId === "abb" || ctx.manufacturer.id === "abb") return abbPdtProductUrl(ctx.item.catalogNumber);
+  if (ctx.result?.manufacturerId === "eaton" || ctx.manufacturer.id === "eaton") return eatonPdtProductUrl(ctx.item.catalogNumber);
+  if (ctx.result?.manufacturerId === "sce" || ctx.manufacturer.id === "sce") return sagPdtProductUrl(ctx.item.catalogNumber);
   return ctx.result?.productUrl ?? ctx.item.productUrl;
 }
 
 function abbPdtProductUrl(catalogNumber: string): string {
-  const abbProductId = /^ABB/i.test(catalogNumber) ? catalogNumber : `ABB${catalogNumber}`;
-  return `https://new.abb.com/products/${encodeURIComponent(abbProductId)}`;
+  // Match the manual PDT format: bare catalog number, no "ABB" prefix.
+  // (Some legacy internal IDs were prefixed with "ABB" — strip it if present.)
+  const bare = catalogNumber.replace(/^ABB/i, "");
+  return `https://new.abb.com/products/${encodeURIComponent(bare)}`;
+}
+
+function eatonPdtProductUrl(catalogNumber: string): string {
+  // Manual Eaton PDTs use the GB/EN-GB SKU page with an "EP-" prefix on the catalog number
+  // (e.g. 502419 → .../skuPage.EP-502419.html). Don't double-prefix if it's already there.
+  const withPrefix = /^EP-/i.test(catalogNumber) ? catalogNumber : `EP-${catalogNumber}`;
+  return `https://www.eaton.com/gb/en-gb/skuPage.${encodeURIComponent(withPrefix)}.html`;
+}
+
+function sagPdtProductUrl(catalogNumber: string): string {
+  // Manual Saginaw PDTs use partnumber_info with trailing slash before the query.
+  return `https://www.saginawcontrol.com/partnumber_info/?n=${encodeURIComponent(catalogNumber)}`;
 }
 
 function isContactorSheet(ctx: ResolveContext): boolean {
@@ -249,27 +276,71 @@ function controlVoltageRange(ctx: ResolveContext): string | undefined {
   if (ctx.repair?.controlVoltage) return ctx.repair.controlVoltage;
   const value = attr(ctx, /\brated control circuit voltage\b/i) ?? attr(ctx, /\bcontrol voltage\b/i);
   const acPart = value?.split(";").find((part) => /\b(?:50|60)\s*hz\b/i.test(part)) ?? value;
-  const match = acPart?.replace(/,/g, ".").match(/(\d+(?:\.\d+)?)\s*(?:\.\.\.|\.{2}|-|to)\s*(\d+(?:\.\d+)?)/i);
-  if (!match) return undefined;
-  return `${Number(match[1])}-${Number(match[2])}`;
+  return voltageRangeFromText(acPart) ?? voltageRangeFromProductText(ctx);
 }
 
 function controlVoltageType(ctx: ResolveContext): string | undefined {
   if (ctx.repair?.voltageType) return ctx.repair.voltageType;
   if (eatonCbeKind(ctx)) return "AC";
-  const value =
+  const direct =
+    attr(ctx, /\bcurrent type\b/i) ??
+    attr(ctx, /\bvoltage type\b/i) ??
     attr(ctx, /\brated control circuit voltage\b/i) ??
     attr(ctx, /\bcontrol voltage\b/i) ??
     attr(ctx, /\b(voltage rating|rated voltage|nominal voltage|supply voltage|operating voltage)\b/i) ??
     ctx.result?.normalized.voltage;
+  const value = direct ?? voltageTextCandidates(ctx).find((candidate) => /(?:^|[^A-Z])(?:V?AC|A\.?C\.?|V?DC|D\.?C\.?|ACDC)/i.test(candidate));
   if (!value) return undefined;
-  if (/\bAC\s*(?:\/|-|\s)\s*DC\b/i.test(value)) return "AC/DC";
-  const hasAc = /\b(?:50|60)\s*hz\b|\bAC\b/i.test(value);
-  const hasDc = /\bDC\b/i.test(value);
+  if (/(?:^|[^A-Z])(?:V?AC|A\.?C\.?)\s*(?:\/|-|\s)\s*(?:V?DC|D\.?C\.?)(?:[^A-Z]|$)/i.test(value)) return "AC/DC";
+  if (/\bACDC\b/i.test(value)) return "AC/DC";
+  const hasAc = /\b(?:50|60)\s*hz\b|(?:^|[^A-Z])(?:V?AC|A\.?C\.?)(?:[^A-Z]|$)/i.test(value);
+  const hasDc = /(?:^|[^A-Z])(?:V?DC|D\.?C\.?)(?:[^A-Z]|$)/i.test(value);
   if (hasAc && hasDc) return undefined;
   if (hasAc) return "AC";
   if (hasDc) return "DC";
   return undefined;
+}
+
+function voltageRangeFromProductText(ctx: ResolveContext): string | undefined {
+  for (const candidate of voltageTextCandidates(ctx)) {
+    const range = voltageRangeFromText(candidate);
+    if (range) return range;
+  }
+  return undefined;
+}
+
+function voltageTextCandidates(ctx: ResolveContext): string[] {
+  const values = [
+    ctx.repair?.controlVoltage,
+    ctx.result?.normalized.voltage,
+    ctx.result?.title,
+    ctx.result?.description,
+    attr(ctx, /\b(catalog description|long description|extended product type|display name|product name|short description)\b/i),
+    attr(ctx, /\b(voltage rating|rated voltage|nominal voltage|supply voltage|operating voltage|input voltage|rated input voltage)\b/i)
+  ];
+  return uniqueCleanStrings(values);
+}
+
+function voltageRangeFromText(value: string | undefined): string | undefined {
+  if (!value) return undefined;
+  const text = value.replace(/,/g, ".").replace(/\u2026/g, "...");
+  const patterns = [
+    /(-?\d+(?:\.\d+)?)\s*(?:\.\.\.|\.{2}|-|to|do)\s*\+?(-?\d+(?:\.\d+)?)\s*V(?:\b|AC\b|DC\b|A\.?C|D\.?C|\/)/i,
+    /(-?\d+(?:\.\d+)?)\s*V\s*(?:\.\.\.|\.{2}|-|to|do)\s*\+?(-?\d+(?:\.\d+)?)\s*V/i
+  ];
+  for (const pattern of patterns) {
+    const match = text.match(pattern);
+    if (!match) continue;
+    const low = Number(match[1]);
+    const high = Number(match[2]);
+    if (!Number.isFinite(low) || !Number.isFinite(high)) continue;
+    return `${Math.min(low, high)}-${Math.max(low, high)}`;
+  }
+  return undefined;
+}
+
+function uniqueCleanStrings(values: Array<string | undefined>): string[] {
+  return [...new Set(values.map(clean).filter((value): value is string => Boolean(value)))];
 }
 
 function firstAmpereValue(value: string | undefined): string | undefined {
@@ -277,7 +348,13 @@ function firstAmpereValue(value: string | undefined): string | undefined {
 }
 
 function ratedOperationalCurrent(ctx: ResolveContext): string | undefined {
-  return firstAmpereValue(attr(ctx, /\brated operational current AC-1\b/i)) ?? firstAmpereValue(attr(ctx, /\brated operational current\b/i));
+  return (
+    ctx.repair?.ratedCurrent ??
+    firstAmpereValue(attr(ctx, /\brated operational current AC-1\b/i)) ??
+    firstAmpereValue(attr(ctx, /\b(conventional free[-\s]?air thermal current|conventional thermal current)\b/i)) ??
+    firstAmpereValue(attr(ctx, /\brated operational current\b/i)) ??
+    firstAmpereValue(attr(ctx, /\b(rated current|current rating|ampere rating)\b/i))
+  );
 }
 
 function ratedOperationalVoltage(ctx: ResolveContext): string | undefined {
@@ -493,8 +570,69 @@ function gln(ctx: ResolveContext): string | undefined {
 function iec81346ClassLevel(ctx: ResolveContext, level: 1 | 2 | 3): string | undefined {
   return (
     attr(ctx, new RegExp(String.raw`\b(?:IEC\s*81346|81346).*?(?:class|subclass).*?(?:level\s*)?${level}\b`, "i")) ??
-    attr(ctx, new RegExp(String.raw`\b(?:class|subclass).*?(?:level\s*)?${level}.*?(?:IEC\s*81346|81346)\b`, "i"))
+    attr(ctx, new RegExp(String.raw`\b(?:class|subclass).*?(?:level\s*)?${level}.*?(?:IEC\s*81346|81346)\b`, "i")) ??
+    (level === 1 ? iec81346CodeFromDeviceType(ctx.deviceType) : undefined)
   );
+}
+
+/**
+ * IEC 81346-2:2019 single-letter class codes derived from our internal device-type taxonomy.
+ * Manual PDTs use these letters in column AAC314 ("Class code level 1"); the previous default
+ * of writing the long device-type string (e.g. "Subpanel") didn't match what manual operators
+ * fill in (a single letter like "U").
+ *
+ * See IEC 81346-2 §4.4 for the canonical letter assignments.
+ */
+function iec81346CodeFromDeviceType(deviceType: string | undefined): string | undefined {
+  if (!deviceType) return undefined;
+  const t = deviceType.trim();
+  // U — Mounting / support / housing
+  if (
+    /^(Enclosure|Subpanel|Rack Cabinet|Module Carrier|Wireway|Mounting Accessory|Cover \/ Door Accessory|Cable Tray|Mounting Plate|Cabinet)$/i.test(
+      t
+    )
+  ) {
+    return "U";
+  }
+  // F — Protection (overcurrent, residual, surge)
+  if (/^(Circuit Breaker|Molded Case Circuit Breaker|Miniature Circuit Breaker|Fuse|Residual Current Device|Surge Protective Device|Motor Circuit Breaker)$/i.test(t)) {
+    return "F";
+  }
+  // Q — Switching of power circuits / control
+  if (/^(Contactor|Disconnect Switch|Switch|Motor Starter|Soft Starter|Safety Relay|Relay|Lock \/ Interlock)$/i.test(t)) {
+    return "Q";
+  }
+  // B — Information processing
+  if (/^(PLC|Programmable Logic Controller|I\/O Module|Communication Gateway|Motion Controller|HMI)$/i.test(t)) {
+    return "B";
+  }
+  // P — Measuring / sensing
+  if (/^(Temperature Sensor|Pressure Sensor|Level Sensor|Current Sensor|Flow Sensor|Magnetic Field Sensor|Capacitive Sensor|Inductive Proximity Sensor|Photoelectric Sensor|Safety Sensor|Sensor|Encoder|RFID Device)$/i.test(t)) {
+    return "P";
+  }
+  // S — Manual operator devices
+  if (/^(Pushbutton \/ Operator|Pushbutton|Pilot Light|Stack Light \/ Beacon)$/i.test(t)) {
+    return "S";
+  }
+  // A — Power conversion / supply
+  if (/^(Power Supply|UPS|Frequency Converter|Drive)$/i.test(t)) {
+    return "A";
+  }
+  // W — Wire / cable
+  if (/^(Cable|Wire Marker)$/i.test(t)) {
+    return "W";
+  }
+  // X — Connecting parts
+  if (/^(Connector|Optical Connector|PCB Connector|PCB Terminal Block|Terminal Accessory|Cable Gland|PCB connection (?:system|technology))$/i.test(t)) {
+    return "X";
+  }
+  // E — Heat / cooling / luminaire (signaling/illumination)
+  if (/^(Luminaire|Pneumatic Device|Hydraulic Actuator|Directional Control Valve)$/i.test(t)) {
+    return "E";
+  }
+  // Accessory is most often a mounting accessory in our catalogs.
+  if (/^Accessory$/i.test(t)) return "U";
+  return undefined;
 }
 
 function mountingOrientation(ctx: ResolveContext): string | undefined {
@@ -1335,7 +1473,13 @@ const RESOLVERS: Record<string, Resolver> = {
 
   // --- Device-tab common (best-effort) ---
   REFERENCE_FEATURE_GROUP_ID: eclassNumber,
-  REFERENCE_FEATURE_SYSTEM_NAME: (ctx) => (isDeviceSheet(ctx) ? ctx.repair?.eclassSystemVersion ?? "14" : eclassSystem(ctx)),
+  REFERENCE_FEATURE_SYSTEM_NAME: (ctx) =>
+    isDeviceSheet(ctx)
+      ? ctx.repair?.eclassSystemVersion ??
+        // Match each manual PDT's ECLASS version. Rockwell uses v14; ABB, Saginaw, and Eaton
+        // manual PDTs use v13. Anything else defaults to v14 (the generic newer baseline).
+        (ctx.manufacturer.id === "abb" || ctx.manufacturer.id === "sce" || ctx.manufacturer.id === "eaton" ? "13" : "14")
+      : eclassSystem(ctx),
   AAN521: (ctx) => colorValue(ctx),
   BAH005: (ctx) =>
     (isContactorSheet(ctx) ? controlVoltageRange(ctx) : undefined) ??

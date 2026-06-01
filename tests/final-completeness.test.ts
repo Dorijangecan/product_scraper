@@ -51,6 +51,36 @@ describe("final completeness audit", () => {
     expect(audit.notApplicable).toEqual([]);
   });
 
+  it("does not burn ABB contactor time retrying material after electrical data is complete", () => {
+    const abbManufacturer: ManufacturerConfig = { ...manufacturer, id: "abb", canonicalName: "ABB", shortName: "ABB" };
+    const result = product({
+      manufacturerId: "abb",
+      title: "AF40 contactor box",
+      normalized: {
+        weight: "0.87 kg",
+        dimensions: "131 x 55 x 111 mm",
+        voltage: "Main Circuit 690 V",
+        current: "(690 V) 40 A",
+        certificates: "CE"
+      },
+      attributes: [
+        { group: "ABB Product Data", name: "Catalog Description", value: "AF40 contactor box" },
+        { group: "ABB Technical", name: "Rated Operational Current AC-1", value: "(690 V) 40 A" },
+        { group: "ABB Technical", name: "Rated Operational Voltage", value: "Main Circuit 690 V" }
+      ],
+      documents: [{ type: "image", label: "Product image", url: "https://example.test/af40.png" }],
+      diagnostics: { fallbackStages: [] },
+      qualityGate: { passed: true, identityConfirmed: true, score: 100, missing: [], reason: "quality ok", attempts: [] }
+    });
+    const audit = evaluateFinalCompleteness(result, abbManufacturer);
+    const decision = finalNetworkRetryDecision(result, abbManufacturer, audit);
+
+    expect(audit.missing).toEqual(["material"]);
+    expect(audit.requirements.material).toBe("preferred");
+    expect(decision.shouldRetry).toBe(false);
+    expect(decision.reason).toContain("preferred-only");
+  });
+
   it("does not count a failed image download as final image coverage", () => {
     const audit = evaluateFinalCompleteness(
       product({

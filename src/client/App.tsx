@@ -40,6 +40,7 @@ import type {
   ManufacturerTestResult,
   MarkerExtractionRule,
   ItemStatus,
+  PdtRoutingPreview,
   RunItemRecord,
   RunRecord,
   ScrapeRecipeConfig
@@ -58,6 +59,7 @@ import {
   openRunWorkbook,
   importRunPdt,
   openRunPdt,
+  getRunPdtRoutingPreview,
   previewCsv,
   resetManufacturerOverride,
   saveManufacturer,
@@ -155,6 +157,10 @@ function pdtImportWarning(stats: PdtImportStats): string | null {
     const examples = stats.writeIssues.map((issue) => `${issue.catalogNumber}/${issue.sheetName}/${issue.code}`);
     warnings.push(`enum write issues: ${stats.writeIssues.length} (${formatShortList(examples, 3)})`);
   }
+  if (stats.requiredFieldIssues?.length > 0) {
+    const examples = stats.requiredFieldIssues.map((issue) => `${issue.catalogNumber}/${issue.sheetName}/${issue.code || issue.propName}`);
+    warnings.push(`missing required PDT fields: ${stats.requiredFieldIssues.length} (${formatShortList(examples, 3)})`);
+  }
   return warnings.length ? `PDT generated with warnings: ${warnings.join("; ")}.` : null;
 }
 
@@ -171,6 +177,11 @@ export function App() {
   const [preview, setPreview] = useState<CsvPreview | null>(null);
   const [columnName, setColumnName] = useState("");
   const [uploadDragActive, setUploadDragActive] = useState(false);
+  // Customer-provided documents (PDFs, DOCs, XLSX, CSVs). Data parsed from these
+  // overrides anything scraped from the manufacturer website — the customer is the
+  // authoritative source. Drag-drop works across every manufacturer config.
+  const [customerDocuments, setCustomerDocuments] = useState<File[]>([]);
+  const [customerDragActive, setCustomerDragActive] = useState(false);
   const [runs, setRuns] = useState<RunRecord[]>([]);
   const [selectedRunId, setSelectedRunId] = useState<string | null>(null);
   const [selectedRun, setSelectedRun] = useState<RunRecord | null>(null);
@@ -202,6 +213,12 @@ export function App() {
   const [generateExcel, setGenerateExcel] = useState(true);
   const [forceFinalRetry, setForceFinalRetry] = useState(false);
   const [pdtAiCleanup, setPdtAiCleanup] = useState(false);
+  // PDT routing review modal — opens when "Import to PDT" is clicked, lets user reassign sheets.
+  const [pdtRoutingPreview, setPdtRoutingPreview] = useState<PdtRoutingPreview | null>(null);
+  const [pdtRoutingOverrides, setPdtRoutingOverrides] = useState<Record<number, string>>({});
+  const [pdtRoutingSelected, setPdtRoutingSelected] = useState<Set<number>>(new Set());
+  const [pdtRoutingBulkSheet, setPdtRoutingBulkSheet] = useState<string>("");
+  const [pdtRoutingLoading, setPdtRoutingLoading] = useState(false);
   // Per-run coverage tiles. `null` means "use the manufacturer default verbatim" — the moment
   // the user types into the editor we copy the manufacturer's list and switch to a concrete
   // array so subsequent edits persist for that run.
@@ -368,6 +385,54 @@ export function App() {
     void handleFile(event.dataTransfer.files?.[0] ?? null);
   }
 
+  function addCustomerDocuments(incoming: FileList | File[] | null | undefined) {
+    if (!incoming) return;
+    const files = Array.from(incoming);
+    if (!files.length) return;
+    setCustomerDocuments((current) => {
+      const existingKeys = new Set(current.map((file) => `${file.name}|${file.size}`));
+      const merged = [...current];
+      for (const file of files) {
+        const key = `${file.name}|${file.size}`;
+        if (existingKeys.has(key)) continue;
+        existingKeys.add(key);
+        merged.push(file);
+      }
+      return merged;
+    });
+  }
+
+  function removeCustomerDocument(index: number) {
+    setCustomerDocuments((current) => current.filter((_, idx) => idx !== index));
+  }
+
+  function handleCustomerDragEnter(event: DragEvent<HTMLLabelElement>) {
+    if (!hasDraggedFiles(event)) return;
+    event.preventDefault();
+    event.dataTransfer.dropEffect = "copy";
+    setCustomerDragActive(true);
+  }
+
+  function handleCustomerDragOver(event: DragEvent<HTMLLabelElement>) {
+    if (!hasDraggedFiles(event)) return;
+    event.preventDefault();
+    event.dataTransfer.dropEffect = "copy";
+    setCustomerDragActive(true);
+  }
+
+  function handleCustomerDragLeave(event: DragEvent<HTMLLabelElement>) {
+    const nextTarget = event.relatedTarget;
+    if (nextTarget instanceof Node && event.currentTarget.contains(nextTarget)) return;
+    setCustomerDragActive(false);
+  }
+
+  function handleCustomerDrop(event: DragEvent<HTMLLabelElement>) {
+    if (!hasDraggedFiles(event)) return;
+    event.preventDefault();
+    setCustomerDragActive(false);
+    addCustomerDocuments(event.dataTransfer.files);
+  }
+
   async function handleStart() {
     if (!file || !columnName) return;
     setBusy(true);
@@ -390,13 +455,17 @@ export function App() {
         generateExcel,
         customCoverageFields,
         hiddenCoverageFields: runHiddenCoverageFields.length > 0 ? runHiddenCoverageFields : undefined,
-        forceFinalRetry
+        forceFinalRetry,
+        customerDocuments: customerDocuments.length > 0 ? customerDocuments : undefined
       });
       setSelectedRunId(run.id);
       // Reset the override after each run so the next one re-inherits the (possibly updated)
       // manufacturer default.
       setRunCoverageFields(null);
       setRunHiddenCoverageFields([]);
+      // Clear customer documents — they're now persisted in the run folder. The next run
+      // starts fresh and the user re-attaches whatever's needed.
+      setCustomerDocuments([]);
       await refreshRuns();
       await refreshSelectedRun(run.id);
     } catch (err) {
@@ -451,10 +520,48 @@ export function App() {
 
   async function handleImportPdt() {
     if (!selectedRun) return;
+    setError(null);
+    setPdtRoutingLoading(true);
+    try {
+      const preview = await getRunPdtRoutingPreview(selectedRun.id);
+      // Seed overrides with auto-suggested sheet (first one) so the dropdown always has a value.
+      const seeded: Record<number, string> = {};
+      for (const it of preview.items) {
+        if (it.suggestedSheets.length > 0) seeded[it.itemId] = it.suggestedSheets[0];
+      }
+      setPdtRoutingOverrides(seeded);
+      setPdtRoutingSelected(new Set());
+      setPdtRoutingBulkSheet("");
+      setPdtRoutingPreview(preview);
+    } catch (err) {
+      setError(errorMessage(err));
+    } finally {
+      setPdtRoutingLoading(false);
+    }
+  }
+
+  async function handleConfirmPdtRouting() {
+    if (!selectedRun || !pdtRoutingPreview) return;
+    const preview = pdtRoutingPreview;
+    setPdtRoutingPreview(null);
+    setPdtRoutingSelected(new Set());
+    setPdtRoutingBulkSheet("");
     setPdtBusy(true);
     setError(null);
     try {
-      const result = await importRunPdt(selectedRun.id, { aiCleanup: pdtAiCleanup });
+      // Build the override payload: one chosen sheet per item, but only when it differs from the
+      // auto-suggestion (keeps payload small and lets the server skip unnecessary work).
+      const payload: Record<number, string[]> = {};
+      for (const it of preview.items) {
+        const chosen = pdtRoutingOverrides[it.itemId];
+        if (!chosen) continue;
+        const auto = it.suggestedSheets[0];
+        if (chosen !== auto) payload[it.itemId] = [chosen];
+      }
+      const result = await importRunPdt(selectedRun.id, {
+        aiCleanup: pdtAiCleanup,
+        sheetOverrides: Object.keys(payload).length > 0 ? payload : undefined
+      });
       await refreshSelectedRun(selectedRun.id);
       const warnings = [pdtImportWarning(result.stats)].filter(Boolean) as string[];
       if (result.stats.cleanup && ["qwen_unavailable", "qwen_no_valid_output"].includes(result.stats.cleanup.status)) {
@@ -765,6 +872,10 @@ export function App() {
   const progress = runTiming.progressPercent;
   const runItemFilterCounts = useMemo(() => buildRunItemFilterCounts(items), [items]);
   const filteredItems = useMemo(() => filterRunItems(items, runItemQuery, runItemFilter), [items, runItemQuery, runItemFilter]);
+  const runItemQueryImpact = useMemo(
+    () => buildRunItemQueryImpact(items, runItemQuery, runItemFilter),
+    [items, runItemFilter, runItemQuery]
+  );
   const effectiveRunItemPageSize = runItemPageSize === "all" ? Math.max(filteredItems.length, 1) : runItemPageSize;
   const runItemPageCount = runItemPageSize === "all" ? 1 : Math.max(1, Math.ceil(filteredItems.length / effectiveRunItemPageSize));
   const safeRunItemPage = Math.min(runItemPage, runItemPageCount);
@@ -910,6 +1021,57 @@ export function App() {
                 </p>
               ))}
             </>
+          )}
+
+          <label
+            className={`upload-zone customer-doc-zone${customerDragActive ? " is-dragging" : ""}`}
+            onDragEnter={handleCustomerDragEnter}
+            onDragOver={handleCustomerDragOver}
+            onDragLeave={handleCustomerDragLeave}
+            onDrop={handleCustomerDrop}
+          >
+            <span className="upload-icon">
+              <FileText size={22} />
+            </span>
+            <strong>
+              {customerDocuments.length
+                ? `${customerDocuments.length} customer document${customerDocuments.length === 1 ? "" : "s"} attached`
+                : "Customer documents (optional)"}
+            </strong>
+            <span>
+              Drop PDFs, DOCs, XLSX or CSVs. Data extracted from these files overrides
+              the website scrape — use this when the customer hands you their own source.
+            </span>
+            <input
+              type="file"
+              multiple
+              accept=".pdf,.doc,.docx,.xls,.xlsx,.csv,.tsv,.txt,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv,text/plain"
+              onChange={(event) => {
+                addCustomerDocuments(event.currentTarget.files);
+                event.currentTarget.value = "";
+              }}
+            />
+          </label>
+          {customerDocuments.length > 0 && (
+            <ul className="customer-doc-list">
+              {customerDocuments.map((doc, index) => (
+                <li key={`${doc.name}-${index}`}>
+                  <span>
+                    <FileCheck2 size={14} />
+                    <strong>{doc.name}</strong>
+                    <small>{formatFileSize(doc.size)}</small>
+                  </span>
+                  <button
+                    type="button"
+                    className="cancel-button compact-action"
+                    onClick={() => removeCustomerDocument(index)}
+                    aria-label={`Remove ${doc.name}`}
+                  >
+                    <XCircle size={14} />
+                  </button>
+                </li>
+              ))}
+            </ul>
           )}
 
           <fieldset className="run-option-group">
@@ -1145,9 +1307,14 @@ export function App() {
                 </label>
               )}
               {hasWorkbook && (
-                <button type="button" className="download-button secondary" onClick={() => void handleImportPdt()} disabled={pdtBusy}>
-                  {pdtBusy ? <Loader2 className="spin" size={16} /> : <FileOutput size={16} />}
-                  {pdtBusy ? "Importing" : "Import to PDT"}
+                <button
+                  type="button"
+                  className="download-button secondary"
+                  onClick={() => void handleImportPdt()}
+                  disabled={pdtBusy || pdtRoutingLoading}
+                >
+                  {pdtBusy || pdtRoutingLoading ? <Loader2 className="spin" size={16} /> : <FileOutput size={16} />}
+                  {pdtBusy ? "Importing" : pdtRoutingLoading ? "Loading" : "Import to PDT"}
                 </button>
               )}
               {hasPdt && (
@@ -1402,6 +1569,11 @@ export function App() {
                       : "0 results"}
                     {filteredItems.length !== items.length ? ` filtered from ${items.length}` : ""}
                   </span>
+                  {runItemQueryImpact && (
+                    <span className="query-impact">
+                      Problem affects <strong>{runItemQueryImpact.count}</strong> {runItemQueryImpact.count === 1 ? "item" : "items"}
+                    </span>
+                  )}
                   <div className="pager" aria-label="Run item pages">
                     <button type="button" className="pager-button" onClick={() => setRunItemPage(1)} disabled={safeRunItemPage <= 1}>
                       <ChevronsLeft size={15} />
@@ -2287,6 +2459,176 @@ de https://www.company.com/de/product/{part}`}
           </div>
         </section>
       )}
+      {pdtRoutingPreview && (
+        <div className="pdt-routing-shell" role="dialog" aria-modal="true">
+          <div className="pdt-routing-backdrop" onClick={() => !pdtBusy && setPdtRoutingPreview(null)} />
+          <div className="pdt-routing-panel">
+            <div className="pdt-routing-header">
+              <div>
+                <h2>PDT routing — review and adjust</h2>
+                <p>
+                  Each scraped article will be written into its suggested device sheet. Override below: select rows and reassign,
+                  or change a single row's sheet directly. Material Master Data and Additional Documents are always filled.
+                </p>
+              </div>
+              <button
+                type="button"
+                className="download-button secondary"
+                onClick={() => setPdtRoutingPreview(null)}
+                disabled={pdtBusy}
+              >
+                <XCircle size={16} />
+                Close
+              </button>
+            </div>
+            <div className="pdt-routing-bulk">
+              <label>
+                <input
+                  type="checkbox"
+                  checked={pdtRoutingSelected.size > 0 && pdtRoutingSelected.size === pdtRoutingPreview.items.length}
+                  ref={(el) => {
+                    if (el) el.indeterminate =
+                      pdtRoutingSelected.size > 0 && pdtRoutingSelected.size < pdtRoutingPreview.items.length;
+                  }}
+                  onChange={(event) => {
+                    if (event.target.checked) {
+                      setPdtRoutingSelected(new Set(pdtRoutingPreview.items.map((it) => it.itemId)));
+                    } else {
+                      setPdtRoutingSelected(new Set());
+                    }
+                  }}
+                />{" "}
+                Select all ({pdtRoutingSelected.size}/{pdtRoutingPreview.items.length})
+              </label>
+              <span>→ Assign selected to sheet:</span>
+              <select
+                value={pdtRoutingBulkSheet}
+                onChange={(event) => setPdtRoutingBulkSheet(event.target.value)}
+              >
+                <option value="">— pick sheet —</option>
+                {pdtRoutingPreview.availableSheets.map((s) => (
+                  <option key={s} value={s}>
+                    {s}
+                  </option>
+                ))}
+              </select>
+              <button
+                type="button"
+                className="download-button secondary"
+                disabled={!pdtRoutingBulkSheet || pdtRoutingSelected.size === 0 || pdtBusy}
+                onClick={() => {
+                  if (!pdtRoutingBulkSheet) return;
+                  setPdtRoutingOverrides((prev) => {
+                    const next = { ...prev };
+                    for (const id of pdtRoutingSelected) next[id] = pdtRoutingBulkSheet;
+                    return next;
+                  });
+                }}
+              >
+                Apply
+              </button>
+              <button
+                type="button"
+                className="download-button secondary"
+                disabled={pdtBusy}
+                onClick={() => {
+                  // Reset every item back to its auto-suggested sheet (the seed we stored on open).
+                  const seeded: Record<number, string> = {};
+                  for (const it of pdtRoutingPreview.items) {
+                    if (it.suggestedSheets.length > 0) seeded[it.itemId] = it.suggestedSheets[0];
+                  }
+                  setPdtRoutingOverrides(seeded);
+                }}
+              >
+                Reset to auto
+              </button>
+            </div>
+            <div className="pdt-routing-table-wrap">
+              <table className="pdt-routing-table">
+                <thead>
+                  <tr>
+                    <th style={{ width: 32 }}></th>
+                    <th>Catalog #</th>
+                    <th>Title</th>
+                    <th>Detected type</th>
+                    <th>Auto sheet</th>
+                    <th>Final sheet</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {pdtRoutingPreview.items.map((it) => {
+                    const auto = it.suggestedSheets[0] ?? "";
+                    const chosen = pdtRoutingOverrides[it.itemId] ?? auto;
+                    const changed = chosen !== auto;
+                    const isSelected = pdtRoutingSelected.has(it.itemId);
+                    return (
+                      <tr key={it.itemId} className={changed ? "changed" : undefined}>
+                        <td>
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={(event) => {
+                              setPdtRoutingSelected((prev) => {
+                                const next = new Set(prev);
+                                if (event.target.checked) next.add(it.itemId);
+                                else next.delete(it.itemId);
+                                return next;
+                              });
+                            }}
+                          />
+                        </td>
+                        <td><code>{it.catalogNumber}</code></td>
+                        <td title={it.title}>{(it.title ?? "").slice(0, 70)}</td>
+                        <td>{it.deviceType ?? <span style={{ color: "var(--muted)" }}>—</span>}</td>
+                        <td>{auto || <span style={{ color: "var(--muted)" }}>—</span>}</td>
+                        <td>
+                          <select
+                            value={chosen}
+                            onChange={(event) => {
+                              const value = event.target.value;
+                              setPdtRoutingOverrides((prev) => ({ ...prev, [it.itemId]: value }));
+                            }}
+                          >
+                            {/* Include the auto-suggested sheet even when it isn't in the device list,
+                                so the dropdown can always reflect the current value. */}
+                            {auto && !pdtRoutingPreview.availableSheets.includes(auto) && (
+                              <option value={auto}>{auto}</option>
+                            )}
+                            {pdtRoutingPreview.availableSheets.map((s) => (
+                              <option key={s} value={s}>
+                                {s}
+                              </option>
+                            ))}
+                          </select>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+            <div className="pdt-routing-actions">
+              <button
+                type="button"
+                className="download-button secondary"
+                onClick={() => setPdtRoutingPreview(null)}
+                disabled={pdtBusy}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="download-button"
+                onClick={() => void handleConfirmPdtRouting()}
+                disabled={pdtBusy}
+              >
+                {pdtBusy ? <Loader2 className="spin" size={16} /> : <FileOutput size={16} />}
+                {pdtBusy ? "Generating" : "Generate PDT"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
@@ -2982,6 +3324,17 @@ function filterRunItems(items: RunItemRecord[], query: string, filter: RunItemFi
   return items.filter((item) => runItemMatchesFilter(item, filter) && runItemMatchesQuery(item, normalizedQuery));
 }
 
+function buildRunItemQueryImpact(
+  items: RunItemRecord[],
+  query: string,
+  filter: RunItemFilter
+): { count: number } | null {
+  const normalizedQuery = query.trim().toLowerCase();
+  if (normalizedQuery.length < 2) return null;
+  const count = items.filter((item) => runItemMatchesFilter(item, filter) && runItemProblemText(item).includes(normalizedQuery)).length;
+  return count > 0 ? { count } : null;
+}
+
 function runItemMatchesFilter(item: RunItemRecord, filter: RunItemFilter): boolean {
   if (filter === "all") return true;
   if (filter === "needs-check") return runItemNeedsCheck(item);
@@ -3016,9 +3369,31 @@ function runItemMatchesQuery(item: RunItemRecord, query: string): boolean {
     .includes(query);
 }
 
+function runItemProblemText(item: RunItemRecord): string {
+  return [
+    itemReason(item),
+    item.coverage?.reason,
+    ...(item.coverage?.qualityMissing ?? []),
+    ...(item.coverage?.finalCompletenessAfterMissing ?? []),
+    item.result?.qualityGate?.reason,
+    ...(item.result?.qualityGate?.missing ?? []),
+    item.error
+  ]
+    .join(" ")
+    .toLowerCase();
+}
+
 function clampPage(value: number, pageCount: number): number {
   if (!Number.isFinite(value)) return 1;
   return Math.min(Math.max(Math.round(value), 1), pageCount);
+}
+
+function formatFileSize(bytes: number | undefined): string {
+  if (!bytes || !Number.isFinite(bytes)) return "";
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
 }
 
 function hasCoverageValue(item: RunItemRecord, key: CoverageKey): boolean {

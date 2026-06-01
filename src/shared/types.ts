@@ -458,6 +458,22 @@ export interface RunOptions {
    * Default false: skip retry for catalog numbers previously confirmed empty.
    */
   forceFinalRetry?: boolean;
+  /**
+   * Customer-provided documents (PDFs, DOCs, XLSX, CSVs) attached to this run. Data
+   * extracted from these files is treated as authoritative — it overrides anything
+   * scraped from the manufacturer website, since the customer has handed us their own
+   * source-of-truth.
+   */
+  customerDocuments?: CustomerDocumentRecord[];
+}
+
+export interface CustomerDocumentRecord {
+  id: string;
+  originalName: string;
+  storedPath: string;
+  mimeType?: string;
+  size?: number;
+  uploadedAt: string;
 }
 
 export type RunCoverageField =
@@ -515,6 +531,26 @@ export interface RunItemRecord {
   coverage?: RunItemCoverageSummary;
   updatedAt: string;
 }
+
+/** One entry per scraped item — used to populate the PDT routing review modal. */
+export interface PdtRoutingItemPreview {
+  itemId: number;
+  catalogNumber: string;
+  title?: string;
+  deviceType?: string;
+  /** Sheets the exporter would route this item to right now (without user overrides). */
+  suggestedSheets: string[];
+}
+
+export interface PdtRoutingPreview {
+  runId: string;
+  items: PdtRoutingItemPreview[];
+  /** All device-specific sheets the user can pick from (constants like MMD are always written). */
+  availableSheets: string[];
+}
+
+/** Map of itemId → chosen device sheet(s). If present for an item, replaces auto-suggestion. */
+export type PdtSheetOverrides = Record<number, string[]>;
 
 export interface CsvPreview {
   columns: string[];

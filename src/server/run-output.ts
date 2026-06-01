@@ -10,6 +10,7 @@ export interface RunOutputLayout {
   documentsDir: string;
   imagesDir: string;
   logsDir: string;
+  customerDocumentsDir: string;
   logPath: string;
   debugJsonPath: string;
 }
@@ -28,6 +29,7 @@ export function buildRunOutputLayout(outputRoot: string, manufacturer: Manufactu
   const documentsDir = path.join(runDir, "documents");
   const imagesDir = path.join(runDir, "images");
   const logsDir = path.join(runDir, "logs");
+  const customerDocumentsDir = path.join(runDir, "customer-documents");
   return {
     manufacturerDir,
     inputDir,
@@ -36,6 +38,7 @@ export function buildRunOutputLayout(outputRoot: string, manufacturer: Manufactu
     documentsDir,
     imagesDir,
     logsDir,
+    customerDocumentsDir,
     logPath: path.join(logsDir, "run-log.txt"),
     debugJsonPath: path.join(logsDir, "run-debug.json")
   };
@@ -46,7 +49,8 @@ export async function ensureRunOutputLayout(layout: RunOutputLayout) {
     fs.mkdir(layout.excelDir, { recursive: true }),
     fs.mkdir(layout.documentsDir, { recursive: true }),
     fs.mkdir(layout.imagesDir, { recursive: true }),
-    fs.mkdir(layout.logsDir, { recursive: true })
+    fs.mkdir(layout.logsDir, { recursive: true }),
+    fs.mkdir(layout.customerDocumentsDir, { recursive: true })
   ]);
 }
 

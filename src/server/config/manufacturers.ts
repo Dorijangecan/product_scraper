@@ -29,10 +29,32 @@ const builtInManufacturerConfigs: Record<string, ManufacturerConfig> = {
       "https://new.abb.com/smartlinks",
       "https://abb-control-products.partcommunity.com/3d-cad-models/?part={part}"
     ],
-    homepageUrl: "https://global.abb.com/group/en",
+    homepageUrl: "https://global.abb/group/en",
     localizedUrlTemplates: [
       { locale: "en", urlTemplate: "https://new.abb.com/smartlinks/en?ProductId={part}&Language=en&PrintPreview=False&pid={part}" },
       { locale: "de", urlTemplate: "https://new.abb.com/smartlinks/de?ProductId={part}&Language=de&PrintPreview=False&pid={part}" }
+    ],
+    customCoverageFields: [
+      {
+        id: "abb-rated-control-voltage",
+        label: "Rated/control voltage",
+        pattern: "rated control circuit voltage|rated voltage|voltage rating|derived voltage range"
+      },
+      {
+        id: "abb-rated-current",
+        label: "Rated current",
+        pattern: "rated operational current|rated current|conventional thermal current|current rating"
+      },
+      {
+        id: "abb-power-loss-per-pole",
+        label: "Power loss / pole",
+        pattern: "power loss|power dissipation|power consumption"
+      },
+      {
+        id: "abb-voltage-type",
+        label: "Voltage type",
+        pattern: "current type|voltage type|rated control circuit voltage|derived voltage type"
+      }
     ],
     fallbackSources: [
       {
@@ -78,6 +100,8 @@ const builtInManufacturerConfigs: Record<string, ManufacturerConfig> = {
     shortName: "SCE",
     rateLimitMs: 1500,
     officialBaseUrls: ["https://www.saginawcontrol.com"],
+    // Matches the manual SCE PDT MANUFACTURER_URL column (homepage with trailing slash).
+    homepageUrl: "https://www.saginawcontrol.com/",
     localizedUrlTemplates: [
       { locale: "en", urlTemplate: "https://www.saginawcontrol.com/partnumber_info?n={part}" }
     ],
@@ -111,6 +135,7 @@ const builtInManufacturerConfigs: Record<string, ManufacturerConfig> = {
     // Balluff uses heavy Playwright/Livewire drawers; two workers is a practical throughput/responsiveness balance.
     concurrency: 2,
     officialBaseUrls: ["https://www.balluff.com/en-gb/products"],
+    homepageUrl: "https://www.balluff.com/en-gb",
     localizedUrlTemplates: [
       { locale: "en", urlTemplate: "https://www.balluff.com/en-gb/products/{part}" },
       { locale: "de", urlTemplate: "https://www.balluff.com/de-de/products/{part}" }
@@ -132,6 +157,7 @@ const builtInManufacturerConfigs: Record<string, ManufacturerConfig> = {
     shortName: "NVE",
     rateLimitMs: 1500,
     officialBaseUrls: ["https://www.nvent.com", "https://www.chemelex.com"],
+    homepageUrl: "https://www.nvent.com/en-us",
     fetchPolicy: {
       timeoutMs: 30000,
       acceptLanguage: "en-US,en;q=0.9",
@@ -174,6 +200,7 @@ const builtInManufacturerConfigs: Record<string, ManufacturerConfig> = {
     shortName: "SCH",
     rateLimitMs: 1500,
     officialBaseUrls: ["https://products.schmersal.com"],
+    homepageUrl: "https://www.schmersal.com/en/",
     localizedUrlTemplates: [
       { locale: "en", urlTemplate: "https://products.schmersal.com/en_US/search?query={part}" },
       { locale: "de", urlTemplate: "https://products.schmersal.com/de_DE/search?query={part}" }
@@ -207,6 +234,7 @@ const builtInManufacturerConfigs: Record<string, ManufacturerConfig> = {
     shortName: "SPE",
     rateLimitMs: 1500,
     officialBaseUrls: ["https://www.spelsberg.com", "https://www.spelsberg.de"],
+    homepageUrl: "https://www.spelsberg.com/en/",
     localizedUrlTemplates: [
       { locale: "en", urlTemplate: "https://www.spelsberg.com/product-finder/?query={part}" },
       { locale: "de", urlTemplate: "https://www.spelsberg.de/produktfinder/?query={part}" }
@@ -232,6 +260,8 @@ const builtInManufacturerConfigs: Record<string, ManufacturerConfig> = {
     shortName: "RA",
     rateLimitMs: 1800,
     officialBaseUrls: ["https://www.rockwellautomation.com/en-us/products"],
+    // Matches MANUFACTURER_URL in the manual Rockwell PDTs.
+    homepageUrl: "https://www.rockwellautomation.com/en-us.html",
     localizedUrlTemplates: [
       { locale: "en", urlTemplate: "https://www.rockwellautomation.com/en-us/products/details.{part}.html" },
       { locale: "de", urlTemplate: "https://www.rockwellautomation.com/de-de/products/details.{part}.html" }
@@ -252,6 +282,7 @@ const builtInManufacturerConfigs: Record<string, ManufacturerConfig> = {
     shortName: "FATH",
     rateLimitMs: 1500,
     officialBaseUrls: ["https://www.fath24.com"],
+    homepageUrl: "https://www.fath.com/en/",
     localizedUrlTemplates: [
       { locale: "en", urlTemplate: "https://www.fath24.com/en/search?search={part}" },
       { locale: "de", urlTemplate: "https://www.fath24.com/de/search?search={part}" }
@@ -274,6 +305,8 @@ const builtInManufacturerConfigs: Record<string, ManufacturerConfig> = {
     shortName: "EAT",
     rateLimitMs: 1500,
     officialBaseUrls: ["https://www.eaton.com"],
+    // Matches MANUFACTURER_URL in the manual Eaton PDTs (CAD + manual variants).
+    homepageUrl: "https://www.eaton.com/us/en-us.html",
     localizedUrlTemplates: [
       { locale: "en", urlTemplate: "https://www.eaton.com/us/en-us/skuPage.{partSlashBraces}.html" },
       { locale: "de", urlTemplate: "https://www.eaton.com/de/de-de/skuPage.{partSlashBraces}.html" }
@@ -297,6 +330,7 @@ const builtInManufacturerConfigs: Record<string, ManufacturerConfig> = {
     shortName: "ETA",
     rateLimitMs: 1500,
     officialBaseUrls: ["https://www.e-t-a.com/products"],
+    homepageUrl: "https://www.e-t-a.com/",
     fallbackSources: [
       {
         id: "eta-product-pages",
@@ -318,6 +352,7 @@ const builtInManufacturerConfigs: Record<string, ManufacturerConfig> = {
     shortName: "SE",
     rateLimitMs: 1800,
     officialBaseUrls: ["https://www.se.com"],
+    homepageUrl: "https://www.se.com/ww/en/",
     localizedUrlTemplates: [
       { locale: "en", urlTemplate: "https://www.se.com/ww/en/product/{part}/" },
       { locale: "de", urlTemplate: "https://www.se.com/de/de/product/{part}/" }
@@ -353,6 +388,7 @@ const builtInManufacturerConfigs: Record<string, ManufacturerConfig> = {
     shortName: "SIE",
     rateLimitMs: 1800,
     officialBaseUrls: ["https://mall.industry.siemens.com"],
+    homepageUrl: "https://www.siemens.com/global/en/",
     localizedUrlTemplates: [
       { locale: "en", urlTemplate: "https://mall.industry.siemens.com/mall/en/WW/Catalog/Product?mlfb={part}" },
       { locale: "de", urlTemplate: "https://mall.industry.siemens.com/mall/de/WW/Catalog/Product?mlfb={part}" }

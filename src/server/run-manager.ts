@@ -1,7 +1,21 @@
 import crypto from "node:crypto";
 import fs from "node:fs/promises";
 import path from "node:path";
-import type { DocumentRecord, ManufacturerConfig, ManufacturerId, ProductResult, RunItemRecord, RunRecord } from "../shared/types.js";
+import type {
+  CustomerDocumentRecord,
+  DocumentRecord,
+  ManufacturerConfig,
+  ManufacturerId,
+  ProductResult,
+  RunItemRecord,
+  RunRecord
+} from "../shared/types.js";
+import {
+  applyCustomerDocumentOverride,
+  CustomerDocumentParseCache,
+  extractCustomerDocumentAttributes,
+  type CustomerDocumentProgressEvent
+} from "./scrapers/customer-documents.js";
 import { getManufacturerConfig } from "./config/manufacturers.js";
 import type { ScraperDb } from "./db.js";
 import { CachedHttpClient, delay } from "./scrapers/http-client.js";
@@ -131,6 +145,14 @@ export class RunManager {
         : withoutNonImageRequiredDocuments(rawManufacturer);
       layout = buildRunOutputLayout(this.paths.outputDir, manufacturer, run);
       await ensureRunOutputLayout(layout);
+      // Move any staged customer-provided documents into the run folder so the
+      // authoritative source-of-truth lives next to the scraped output. The persisted
+      // RunOptions get rewritten with the new paths so downstream code (parser, debug
+      // bundle) always reads from the final location.
+      const customerDocuments = await this.relocateCustomerDocuments(run.options?.customerDocuments ?? [], layout.customerDocumentsDir);
+      if (customerDocuments.length) {
+        this.db.updateRunOptions(run.id, { customerDocuments });
+      }
       await this.appendRunLog(layout, "RUN_START", {
         runId: run.id,
         manufacturer: manufacturer.shortName,
@@ -139,6 +161,7 @@ export class RunManager {
         downloadDocuments: downloadDocumentsEnabled,
         documentDownloadsForEnrichment: documentDownloadsForEnrichmentEnabled,
         downloadImages: downloadImagesEnabled,
+        customerDocumentCount: customerDocuments.length,
         outputFolder: layout.runDir
       });
       if (this.db.isCancellationRequested(run.id)) {
@@ -154,6 +177,10 @@ export class RunManager {
       // Per-host throttle keeps us polite even with N parallel workers hitting the same domain.
       // Manufacturer.rateLimitMs is now treated as the minimum interval between requests to the same host.
       http.setHostMinIntervalMs(Math.max(100, Math.floor(manufacturer.rateLimitMs / Math.max(1, manufacturer.concurrency ?? 3))));
+      // Parse every customer document once and reuse for every catalog lookup. PDF page
+      // walks are expensive — without this cache, a 60-page Eaton catalogue would be
+      // re-walked once per catalog number in the run.
+      const customerDocumentCache = new CustomerDocumentParseCache();
       const browserRenderer = new BrowserRenderSession();
       const pending = this.db.getPendingRunItems(run.id);
       const { GenericFallbackScraper } = await import("./scrapers/generic.js");
@@ -222,11 +249,53 @@ export class RunManager {
           // line (PDF enrichment, fallback discovery, final completeness retry) exists only to
           // populate Excel columns we never write — so skip it all and treat the initial parse
           // as final. Cuts per-item time roughly in half on Balluff.
-          let enriched: typeof withInitialDownloads;
+          // Initialize enriched to withInitialDownloads so every branch below has something to
+          // refine; the customer-override / fallback paths overwrite as needed.
+          let enriched: typeof withInitialDownloads = withInitialDownloads;
           let fallbackStages: string[] | undefined;
+          // Customer documents are authoritative. When the website couldn't find this
+          // catalog AND the customer handed us a doc that covers it, scan the customer
+          // payload first and short-circuit the heavy fallback chain — there's no point
+          // burning minutes on browser fallback / final-network-retry for a catalog the
+          // customer already explained to us.
+          let customerExtractionEarly: Awaited<ReturnType<typeof extractCustomerDocumentAttributes>> | null = null;
+          let customerEarlyShortCircuit = false;
+          if (!imageOnlyMode && customerDocuments.length > 0 && initiallyGated.status === "failed") {
+            this.updateItemStage(
+              item.id,
+              "customer-override",
+              `Website returned nothing — scanning ${customerDocuments.length} customer document${customerDocuments.length === 1 ? "" : "s"} for ${item.catalogNumber}`
+            );
+            customerExtractionEarly = await extractCustomerDocumentAttributes(item.catalogNumber, customerDocuments, {
+              cache: customerDocumentCache,
+              onProgress: (event) => {
+                const message = formatCustomerProgress(event, item.catalogNumber);
+                if (message) this.updateItemStage(item.id, "customer-override", message);
+              }
+            });
+            if (customerExtractionEarly.attributes.length > 0) {
+              customerEarlyShortCircuit = true;
+              enriched = applyCustomerDocumentOverride(initiallyGated, customerExtractionEarly);
+              fallbackStages = enriched.diagnostics?.fallbackStages;
+              await this.appendRunLog(layoutRef, "CUSTOMER_EARLY_OVERRIDE", {
+                catalogNumber: item.catalogNumber,
+                attributesAdded: customerExtractionEarly.attributes.length,
+                documentsAdded: customerExtractionEarly.documents.length,
+                statusAfter: enriched.status,
+                reason: "Website found nothing; customer document carried the data — skipping fallback chain."
+              });
+            } else {
+              await this.appendRunLog(layoutRef, "CUSTOMER_EARLY_OVERRIDE_EMPTY", {
+                catalogNumber: item.catalogNumber,
+                parseFailures: customerExtractionEarly.parseFailures
+              });
+            }
+          }
           if (imageOnlyMode) {
             enriched = withInitialDownloads;
             fallbackStages = enriched.diagnostics?.fallbackStages;
+          } else if (customerEarlyShortCircuit) {
+            // Already populated above. Skip the entire enrichment / fallback / final-audit chain.
           } else {
           this.updateItemStage(item.id, "document-enrichment", "Reading downloaded documents for missing values");
           enriched = finalizeQualityGate(await enrichFromDownloadedDocumentsIfPresent(withInitialDownloads), manufacturer);
@@ -425,7 +494,30 @@ export class RunManager {
             });
           }
           enriched = applyFinalCompletenessStatus(enriched, afterFinalCompleteness, manufacturer);
-          } // end of if (!imageOnlyMode)
+          } // end of fallback-chain else branch
+          // Apply customer override unless we already short-circuited above with the
+          // same extraction. The early path skips the heavy pipeline entirely, so the
+          // override has already been applied and re-running it would be a no-op.
+          if (customerDocuments.length > 0 && !customerEarlyShortCircuit) {
+            this.updateItemStage(item.id, "customer-override", `Applying customer-provided document data for ${item.catalogNumber}`);
+            const customerExtraction = await extractCustomerDocumentAttributes(item.catalogNumber, customerDocuments, {
+              cache: customerDocumentCache,
+              onProgress: (event) => {
+                const message = formatCustomerProgress(event, item.catalogNumber);
+                if (message) this.updateItemStage(item.id, "customer-override", message);
+              }
+            });
+            const before = enriched;
+            enriched = applyCustomerDocumentOverride(enriched, customerExtraction);
+            await this.appendRunLog(layoutRef, "CUSTOMER_OVERRIDE", {
+              catalogNumber: item.catalogNumber,
+              attributesAdded: customerExtraction.attributes.length,
+              documentsAdded: customerExtraction.documents.length,
+              parseFailures: customerExtraction.parseFailures,
+              statusBefore: before.status,
+              statusAfter: enriched.status
+            });
+          }
           this.updateItemStage(item.id, "evidence", "Attaching source evidence");
           enriched = attachEvidence(enriched);
           if (this.db.isCancellationRequested(run.id) || controller.signal.aborted) {
@@ -686,6 +778,41 @@ export class RunManager {
     }
   }
 
+  /**
+   * Move any staged customer-provided documents from the upload area into the run's own
+   * customer-documents folder. Returns the updated records pointing at the final paths.
+   * Files that are already inside the target folder are left untouched — this lets a
+   * resumed run pick up where it left off without duplicating the upload.
+   */
+  private async relocateCustomerDocuments(
+    documents: CustomerDocumentRecord[],
+    targetDir: string
+  ): Promise<CustomerDocumentRecord[]> {
+    if (!documents.length) return documents;
+    await fs.mkdir(targetDir, { recursive: true });
+    const updated: CustomerDocumentRecord[] = [];
+    for (const doc of documents) {
+      if (!doc.storedPath) continue;
+      const currentDir = path.resolve(path.dirname(doc.storedPath));
+      if (path.resolve(currentDir) === path.resolve(targetDir)) {
+        updated.push(doc);
+        continue;
+      }
+      const finalPath = await uniquePath(path.join(targetDir, path.basename(doc.storedPath)));
+      try {
+        await fs.rename(doc.storedPath, finalPath);
+      } catch {
+        // Cross-device rename or source missing: fall back to copy + best-effort cleanup.
+        await fs.copyFile(doc.storedPath, finalPath);
+        await fs.unlink(doc.storedPath).catch(() => undefined);
+      }
+      // Clean up the now-empty staging dir if no other files are left.
+      await fs.rmdir(currentDir).catch(() => undefined);
+      updated.push({ ...doc, storedPath: finalPath });
+    }
+    return updated;
+  }
+
   private async appendRunLog(layout: RunOutputLayout, event: string, data?: Record<string, unknown>) {
     await fs.mkdir(layout.logsDir, { recursive: true });
     const payload = data ? ` ${JSON.stringify(data)}` : "";
@@ -788,6 +915,7 @@ function documentExtension(url: string, type: DocumentRecord["type"]): string {
 
 export function documentDownloadProfile(manufacturer: { id: string }, result: ProductResult): DocumentDownloadProfile {
   if (manufacturer.id === "balluff") return "quality";
+  if (manufacturer.id === "rockwell") return "quality";
   return "full";
 }
 
@@ -796,10 +924,12 @@ export function shouldDownloadDocumentsForRun(
   options: { downloadDocuments: boolean; generateExcel: boolean }
 ): boolean {
   if (options.downloadDocuments) return true;
-  // Balluff often publishes required electrical and dimensional data only in the datasheet
-  // modal/PDF. If an Excel workbook is being generated, keep the first datasheet in the
-  // enrichment path even when the broad "save documents" option is off.
-  return options.generateExcel && manufacturer.id === "balluff";
+  // Some manufacturers publish required electrical/dimensional data only inside the
+  // technical-data PDF (Balluff: datasheet modal; Rockwell: 1783-td*** technical data).
+  // When an Excel workbook is being generated, keep the first datasheet in the enrichment
+  // path even when the broad "save documents" option is off.
+  if (!options.generateExcel) return false;
+  return manufacturer.id === "balluff" || manufacturer.id === "rockwell";
 }
 
 function shouldDownloadForProfile(
@@ -882,6 +1012,32 @@ function formatError(error: unknown): string {
   return String(error);
 }
 
+/**
+ * Turns a CustomerDocumentProgressEvent into the short stage message that lands on the
+ * run dashboard. We keep the line tight so it fits next to the other stages, while still
+ * naming the file the scraper is currently scanning — the user wants to see exactly what
+ * is being looked at.
+ */
+function formatCustomerProgress(event: CustomerDocumentProgressEvent, catalogNumber: string): string | undefined {
+  const name = event.document.originalName || "customer document";
+  switch (event.kind) {
+    case "start":
+      return `Scanning ${name} (${event.documentIndex + 1}/${event.documentTotal}) for ${catalogNumber}`;
+    case "scan-pdf-page": {
+      const total = event.totalPages ?? "?";
+      return `Reading ${name} — page ${event.pageNumber}/${total}, ${event.matchesSoFar} match${event.matchesSoFar === 1 ? "" : "es"} for ${catalogNumber}`;
+    }
+    case "matched":
+      return `Matched ${name}: pulled ${event.attributeCount} attribute${event.attributeCount === 1 ? "" : "s"} for ${catalogNumber}`;
+    case "no-match":
+      return `${name}: no rows mention ${catalogNumber}`;
+    case "parse-error":
+      return `${name}: ${event.message}`;
+    default:
+      return undefined;
+  }
+}
+
 // When the user disables document downloads, the quality gate must not require non-image
 // documents — otherwise gate failures cascade into fallback retries that try to fetch
 // a PDF we never intend to keep. We leave the "image" requirement intact (images are
@@ -913,6 +1069,11 @@ function documentDownloadRank(doc: DocumentRecord): number {
   if (/certificate|declaration|conformity|rohs|weee|ul|ce\b/.test(label)) rank -= 5;
   if (/main|primary|product|iopmain|zoom|gallery/.test(label)) rank -= 4;
   if (/terms|privacy|warranty|brochure|catalogue|catalog\b/.test(label)) rank += 30;
+  // Real PDFs beat HTML stand-ins that share the same type tag (e.g. Rockwell's
+  // configurator /cutsheet endpoint is HTML but gets tagged as "datasheet" so the
+  // workbook can link to it). When the quality profile only downloads one datasheet
+  // per item, we want the actual literature.* PDF to win over the HTML page.
+  if (doc.type !== "image" && /\.pdf(?:[?#]|$)/i.test(doc.url)) rank -= 8;
   return rank;
 }
 

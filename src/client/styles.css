@@ -622,6 +622,65 @@ textarea:focus {
   cursor: pointer;
 }
 
+.customer-doc-zone {
+  min-height: 124px;
+  margin-top: 4px;
+  border-style: dashed;
+  border-color: rgba(255, 196, 110, 0.42);
+  background:
+    linear-gradient(180deg, rgba(255, 196, 110, 0.06), transparent),
+    #161b21;
+}
+
+.customer-doc-zone:hover,
+.customer-doc-zone.is-dragging {
+  border-color: #f0c068;
+  background:
+    linear-gradient(180deg, rgba(240, 192, 104, 0.12), transparent),
+    var(--surface-hover);
+  box-shadow: 0 0 0 3px rgba(240, 192, 104, 0.14);
+}
+
+.customer-doc-list {
+  list-style: none;
+  margin: -6px 0 14px;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.customer-doc-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 10px;
+  border: 1px solid rgba(240, 192, 104, 0.25);
+  background: rgba(240, 192, 104, 0.06);
+  border-radius: 6px;
+  font-size: 12px;
+}
+
+.customer-doc-list li span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.customer-doc-list li strong {
+  font-weight: 600;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 220px;
+}
+
+.customer-doc-list li small {
+  color: var(--muted);
+}
+
 .mini-summary,
 .stat-row,
 .history-overview {
@@ -1340,6 +1399,20 @@ textarea:focus {
   color: var(--muted);
   font-size: 12px;
   font-weight: 800;
+}
+
+.query-impact {
+  margin-right: auto;
+  border: 1px solid rgba(255, 192, 76, 0.34);
+  border-radius: 999px;
+  padding: 6px 10px;
+  background: rgba(255, 192, 76, 0.09);
+  color: #ffd57a;
+  white-space: nowrap;
+}
+
+.query-impact strong {
+  color: #fff1b8;
 }
 
 .pager {
@@ -2688,4 +2761,110 @@ tbody tr:hover {
   h1 {
     font-size: 24px;
   }
+}
+
+/* PDT routing review modal: shows after "Import to PDT" so the user can reassign sheets. */
+.pdt-routing-shell {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+}
+
+.pdt-routing-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+}
+
+.pdt-routing-panel {
+  position: relative;
+  display: grid;
+  grid-template-rows: auto auto 1fr auto;
+  gap: 12px;
+  width: min(1100px, 96vw);
+  max-height: 90vh;
+  padding: 18px 20px;
+  background: #10151b;
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+}
+
+.pdt-routing-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.pdt-routing-header h2 {
+  margin: 0 0 4px;
+  font-size: 18px;
+}
+
+.pdt-routing-header p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.pdt-routing-bulk {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+.pdt-routing-bulk select {
+  min-width: 220px;
+}
+
+.pdt-routing-table-wrap {
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+
+.pdt-routing-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.pdt-routing-table thead th {
+  position: sticky;
+  top: 0;
+  background: #1a212a;
+  border-bottom: 1px solid var(--border-strong);
+  padding: 8px 10px;
+  text-align: left;
+  font-weight: 600;
+}
+
+.pdt-routing-table tbody td {
+  border-bottom: 1px solid var(--border);
+  padding: 6px 10px;
+  vertical-align: middle;
+}
+
+.pdt-routing-table tbody tr.changed td {
+  background: rgba(255, 200, 80, 0.08);
+}
+
+.pdt-routing-table select {
+  width: 100%;
+  min-width: 180px;
+}
+
+.pdt-routing-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
 }

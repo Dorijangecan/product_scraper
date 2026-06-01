@@ -1312,6 +1312,7 @@ export function parseAbbProductPage(catalogNumber: string, fetched: FetchedText,
     };
   }
 
+  attributes.push(...deriveAbbElectricalAttributes(attributes, title, description, fetched.effectiveUrl));
   const cleanAttributes = dedupeAttributes(attributes);
   const cleanDocuments = coalesceAbbImageDocuments(dedupeDocuments(documents));
   const normalized = normalizeFields(cleanAttributes, cleanDocuments);
@@ -1340,6 +1341,76 @@ export function parseAbbProductPage(catalogNumber: string, fetched: FetchedText,
       }
     ]
   };
+}
+
+function deriveAbbElectricalAttributes(
+  attributes: AttributeRecord[],
+  title: string,
+  description: string,
+  sourceUrl: string
+): AttributeRecord[] {
+  const candidates = uniqueStrings([
+    title,
+    description,
+    ...attributes
+      .filter((attr) => /\b(catalog description|long description|extended product type|display name|product name|short description)\b/i.test(attr.name))
+      .map((attr) => attr.value)
+  ]);
+  const voltageRange = candidates.map(abbVoltageRangeFromText).find((value): value is string => Boolean(value));
+  const voltageType = candidates.map(abbVoltageTypeFromText).find((value): value is string => Boolean(value));
+  const derived: AttributeRecord[] = [];
+  if (voltageRange) {
+    derived.push({
+      group: "ABB PDT Derived",
+      name: "Derived Voltage Range",
+      value: voltageRange,
+      sourceUrl,
+      sourceType: "official",
+      parser: "abb-derived-electrical",
+      confidence: 0.82
+    });
+  }
+  if (voltageType) {
+    derived.push({
+      group: "ABB PDT Derived",
+      name: "Derived Voltage Type",
+      value: voltageType,
+      sourceUrl,
+      sourceType: "official",
+      parser: "abb-derived-electrical",
+      confidence: 0.82
+    });
+  }
+  return derived;
+}
+
+function abbVoltageRangeFromText(value: string | undefined): string | undefined {
+  if (!value) return undefined;
+  const text = value.replace(/,/g, ".").replace(/\u2026/g, "...");
+  const patterns = [
+    /(-?\d+(?:\.\d+)?)\s*(?:\.\.\.|\.{2}|-|to|do)\s*\+?(-?\d+(?:\.\d+)?)\s*V(?:\b|AC\b|DC\b|A\.?C|D\.?C|\/)/i,
+    /(-?\d+(?:\.\d+)?)\s*V\s*(?:\.\.\.|\.{2}|-|to|do)\s*\+?(-?\d+(?:\.\d+)?)\s*V/i
+  ];
+  for (const pattern of patterns) {
+    const match = text.match(pattern);
+    if (!match) continue;
+    const low = Number(match[1]);
+    const high = Number(match[2]);
+    if (!Number.isFinite(low) || !Number.isFinite(high)) continue;
+    return `${Math.min(low, high)}-${Math.max(low, high)}`;
+  }
+  return undefined;
+}
+
+function abbVoltageTypeFromText(value: string | undefined): string | undefined {
+  if (!value) return undefined;
+  if (/(?:^|[^A-Z])(?:V?AC|A\.?C\.?)\s*(?:\/|-|\s)\s*(?:V?DC|D\.?C\.?)(?:[^A-Z]|$)|\bACDC\b/i.test(value)) return "AC/DC";
+  const hasAc = /\b(?:50|60)\s*hz\b|(?:^|[^A-Z])(?:V?AC|A\.?C\.?)(?:[^A-Z]|$)/i.test(value);
+  const hasDc = /(?:^|[^A-Z])(?:V?DC|D\.?C\.?)(?:[^A-Z]|$)/i.test(value);
+  if (hasAc && hasDc) return "AC/DC";
+  if (hasAc) return "AC";
+  if (hasDc) return "DC";
+  return undefined;
 }
 
 // JSON-LD fields we drop on the floor:

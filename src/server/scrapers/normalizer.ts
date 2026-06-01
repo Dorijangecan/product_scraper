@@ -190,23 +190,33 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
 
   const protectionFromAttr = collectProtectionValues(attributes) ?? deriveProtectionFromText(attributes);
   const certificateNamePattern = /\b(approval|conformity|declarations?|compliance|certificates?|certifications?|approvals?|standards?|marking)\b|\b(ul|ce|rohs|weee|reach)\b/i;
+  // If the manufacturer publishes an explicit "Standards" attribute (e.g. ABB's "Standards: IEC/UL"),
+  // that IS the curated certification list — don't pollute it with document-derived RoHS / REACH
+  // declarations, which aren't certifications in the same sense and only appear because the
+  // datasheet links to a PDF declaration of compliance. Without this guard, ABB's expected
+  // "IEC, UL" becomes "RoHS, UL, IEC, REACh Regulation".
+  const explicitStandardsAttr = attributes.find(
+    (attr) => /^standards?$/i.test(attr.name) && /\b(?:IEC|UL|CSA|CE|EN|ISO|DIN|VDE|JIS|UKCA)\b/.test(attr.value)
+  );
   const certificateValues = [
     ...attributes
       .filter((attr) => certificateNamePattern.test(`${attr.group ?? ""} ${attr.name}`))
       .flatMap((attr) => splitCertificateValues(normalizeCertificateValue(attr.value, true))),
-    ...documents
-      .filter(
-        (doc) =>
-          !/\bwarranty\b/i.test(doc.label) &&
-          (doc.type === "certificate" || /\b(certificate|declaration|conformity|rohs|weee|ce declaration)\b/i.test(doc.label))
-      )
-      .flatMap((doc) => splitCertificateValues(normalizeDocumentCertificateValue(doc)))
+    ...(explicitStandardsAttr
+      ? []
+      : documents
+          .filter(
+            (doc) =>
+              !/\bwarranty\b/i.test(doc.label) &&
+              (doc.type === "certificate" || /\b(certificate|declaration|conformity|rohs|weee|ce declaration)\b/i.test(doc.label))
+          )
+          .flatMap((doc) => splitCertificateValues(normalizeDocumentCertificateValue(doc))))
   ];
   const certificates = [
     ...removeSubsumedCertificateTokens(
       uniqueCertificateTokens(certificateValues)
     ).sort(compareCertificateToken)
-  ].join("; ");
+  ].join(", "); // Comma-space matches the format used in manual PDTs (ABB: "IEC, UL"; Rockwell: "c-UL-us, FM, CE...").
 
   const voltage =
     normalizeVoltageValue(deriveVoltageRangeFromMinMax(attributes)) ??
@@ -1222,6 +1232,7 @@ function normalizeCertificateValue(value: string, allowNotApplicable = false): s
     ...(cleaned.match(/\bCSA\s+Type\s+[^;]+/gi) ?? []),
     ...(cleaned.match(/\bCSA\s+(?:Component\s+)?Recognized\b/gi) ?? []),
     ...(cleaned.match(/\bIEC\s+\d+(?:[.-]\d+)*(?:\s+IP\s*\d{1,2}[A-Z]?)?/g) ?? []),
+    ...(cleaned.match(/\bIEC\b/g) ?? []),
     ...(cleaned.match(/\bIP\s*\d{1,2}[A-Z]?\b/g) ?? []),
     ...(cleaned.match(/\bcULus\b/g) ?? []),
     ...(cleaned.match(/\bcUL\b/g) ?? []),
@@ -1271,9 +1282,20 @@ function cleanCertificateResourceText(value: string): string {
 }
 
 function splitCertificateValues(value: string): string[] {
+  // Split on ';' and ',' and '/' so values like "IEC/UL" or "CCC,CE,RoHS" become individual tokens.
+  // We keep slash-splitting conservative: only when both sides look like short certification
+  // tokens (no spaces, no digits in the way) — to avoid breaking things like "EN 60947-1/2".
   return value
-    .split(";")
-    .map(cleanText)
+    .split(/[;,]/)
+    .flatMap((part) => {
+      const trimmed = cleanText(part);
+      if (!trimmed) return [];
+      const slashParts = trimmed.split("/").map(cleanText).filter(Boolean);
+      // Only treat as a slash-separated standards list if each part is a short alphanumeric token
+      // (e.g. "IEC", "UL", "CSA") with no embedded standards-number that owns the slash.
+      const looksLikeStandardsList = slashParts.length > 1 && slashParts.every((p) => /^[A-Za-z][A-Za-z0-9-]{1,10}$/.test(p));
+      return looksLikeStandardsList ? slashParts : [trimmed];
+    })
     .filter(Boolean);
 }
 
@@ -1289,7 +1311,10 @@ function removeSubsumedCertificateTokens(values: string[]): string[] {
     return !values.some((other) => {
       if (other === value) return false;
       const compactOther = compactCertificateToken(other);
-      return compactOther.length > compact.length && compactOther.includes(compact);
+      // Subsume only when the larger token STARTS WITH the smaller one (e.g. "UL Listed E12345"
+      // subsumes "UL"). Substring-anywhere was too greedy — e.g. "REACh Regulation" contains
+      // the substring "ul" inside "regulation" and was wrongly subsuming a bare "UL" token.
+      return compactOther.length > compact.length && compactOther.startsWith(compact);
     });
   });
 }
@@ -1299,6 +1324,12 @@ function uniqueCertificateTokens(values: string[]): string[] {
   const unique: string[] = [];
   for (const value of values) {
     const canonical = canonicalCertificateToken(value);
+    // Drop bare placeholder values that pollute the Certificates column. We KEEP prefixed
+    // variants like "UL Not Applicable" / "CSA N/A" / "NEMA Not Applicable" because they're
+    // informative (the manufacturer reports a standard was evaluated and didn't apply).
+    if (/^(?:no certifications? needed|not applicable|n\/a)$/i.test(canonical)) {
+      continue;
+    }
     const compact = compactCertificateToken(canonical);
     if (!canonical || seen.has(compact)) continue;
     seen.add(compact);
@@ -1314,6 +1345,7 @@ function canonicalCertificateToken(value: string): string {
   if (/^weee$/i.test(cleaned)) return "WEEE";
   if (/^ce$/i.test(cleaned)) return "CE";
   if (/^ul$/i.test(cleaned)) return "UL";
+  if (/^iec$/i.test(cleaned)) return "IEC";
   if (/^csa$/i.test(cleaned)) return "CSA";
   if (/^ukca$/i.test(cleaned)) return "UKCA";
   if (/^eac$/i.test(cleaned)) return "EAC";
@@ -1332,19 +1364,21 @@ function compareCertificateToken(left: string, right: string): number {
 }
 
 function certificateTokenRank(value: string): number {
-  if (/^ce$/i.test(value)) return 10;
-  if (/^culus$/i.test(value)) return 20;
-  if (/^cul$/i.test(value)) return 25;
-  if (/^weee$/i.test(value)) return 30;
-  if (/^reach$/i.test(value)) return 40;
-  if (/^rohs$/i.test(value)) return 50;
-  if (/^ukca$/i.test(value)) return 55;
-  if (/^nema/i.test(value)) return 60;
-  if (/^ul/i.test(value)) return 70;
-  if (/^csa/i.test(value)) return 80;
-  if (/^iec/i.test(value)) return 90;
+  // Order roughly matches the manual PDT convention: international/standards first
+  // (IEC, then UL family, then regional CE/UKCA), declarations (RoHS/REACH) last.
+  if (/^iec/i.test(value)) return 5;
+  if (/^ul/i.test(value)) return 10;
+  if (/^culus$/i.test(value)) return 15;
+  if (/^cul$/i.test(value)) return 18;
+  if (/^csa/i.test(value)) return 20;
+  if (/^ce$/i.test(value)) return 30;
+  if (/^ukca$/i.test(value)) return 35;
+  if (/^nema/i.test(value)) return 40;
+  if (/^weee$/i.test(value)) return 60;
+  if (/^reach$/i.test(value)) return 70;
+  if (/^rohs$/i.test(value)) return 80;
   if (/^ip/i.test(value)) return 100;
-  return 100;
+  return 90;
 }
 
 function isLikelySpecText(value: string): boolean {
