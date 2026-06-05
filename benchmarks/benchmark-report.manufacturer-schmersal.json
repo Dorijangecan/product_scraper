@@ -1,0 +1,71 @@
+{
+  "generatedAt": "2026-06-02T09:29:39.598Z",
+  "outputDir": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260602092927",
+  "filters": {
+    "manufacturer": "schmersal"
+  },
+  "summary": {
+    "foundRate": 100,
+    "officialUrlRate": 100,
+    "documentRate": 100,
+    "pdtAuditRate": 100,
+    "deviceTypeRate": 100,
+    "wrongProducts": 0,
+    "partialWithoutMissing": 0,
+    "pdtUnprovenWritten": 0,
+    "pdtUnexplainedRequiredFieldIssues": 0,
+    "pdtWriteIssues": 2,
+    "fixtureCoverage": {
+      "byManufacturer": {
+        "schmersal": {
+          "total": 1,
+          "caseTypes": [
+            "electrical"
+          ],
+          "riskTags": [
+            "configured-fallback",
+            "safety-device"
+          ]
+        }
+      },
+      "thinManufacturers": [
+        "schmersal"
+      ]
+    },
+    "fixtureCoverageRequired": false,
+    "accepted": true
+  },
+  "reports": [
+    {
+      "manufacturerId": "schmersal",
+      "catalogNumber": "AZM300B-ST-1P2P-A",
+      "caseType": "electrical",
+      "expectedDeviceType": "Safety Sensor",
+      "actualDeviceType": "Safety Sensor",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "configured-fallback",
+        "safety-device"
+      ],
+      "status": "found",
+      "confidence": 0.55,
+      "productUrl": "https://products.schmersal.com/en_US/azm300b-st-1p2p-a-103001423",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260602092927\\pdt\\schmersal-AZM300B-ST-1P2P-A-pdt_pdt-audit.json",
+      "pdtWrittenCells": 66,
+      "pdtBlankCells": 81,
+      "pdtSkippedCells": 3,
+      "pdtUnprovenSkipped": 1,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 2,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "qualityMissing": []
+    }
+  ]
+}

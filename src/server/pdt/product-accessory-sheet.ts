@@ -60,30 +60,6 @@ function accessoryRowsForItem(item: RunItemRecord): AccessoryRow[] {
     }
   }
 
-  // Rockwell 852C/852D light indicators publish "AVM = Vertical bracket" in the public
-  // technical-data PDF, while the PDT accessory article is encoded as <family>-ABVM.
-  if (familyPrefix && /\b852[CD]\b/i.test(familyPrefix) && /\bvertical mounting brackets?\b|\bAVM\b.*\bvertical bracket\b/i.test(evidence)) {
-    rows.push({ parentCatalog, accessoryCatalog: `${familyPrefix.toUpperCase()}-ABVM`, relationType: "accessory" });
-  }
-
-  // Saginaw H_LP enclosures (SCE-{H}H{W}{D}LP) ship with a deterministic accessory set in the
-  // manual PDT: a painted (default) mounting plate, a galvanized (-GALV) mounting plate, and a
-  // disconnect-switch sub-panel. The family-prefix regex above does not match SCE because the
-  // SKU prefix is "SCE-" and the accessory codes use different family fragments (SCE-{H}P{W},
-  // SCE-DS{W}N4). The family heuristic also produced false positives from cross-sell sections.
-  if (result.manufacturerId === "sce") {
-    const match = parentCatalog.match(/^SCE-(\d+)H(\d+)(\d+)LP$/i);
-    if (match) {
-      const heightCode = match[1];
-      const widthCode = match[2];
-      const subPanel = `SCE-${heightCode}P${widthCode}`;
-      rows.length = 0; // SCE accessories are deterministic — drop family-prefix noise.
-      rows.push({ parentCatalog, accessoryCatalog: subPanel, relationType: "accessory" });
-      rows.push({ parentCatalog, accessoryCatalog: `${subPanel}GALV`, relationType: "accessory" });
-      rows.push({ parentCatalog, accessoryCatalog: `SCE-DS${widthCode}N4`, relationType: "accessory" });
-    }
-  }
-
   return rows;
 }
 

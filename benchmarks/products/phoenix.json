@@ -1,0 +1,21 @@
+[
+  {
+    "manufacturerId": "phoenix",
+    "catalogNumber": "1715721",
+    "caseType": "electrical",
+    "expectedDeviceType": "PCB Terminal Block",
+    "riskTags": ["phoenix-contact", "pcb-terminal-block", "pcb-connection-technology-sheet-coverage"],
+    "expectedOfficialUrlPatterns": ["phoenixcontact\\.com/(?:.*?/)?(?:product|products)/.*1715721"],
+    "requiredDocuments": ["cad"],
+    "expectedNormalizedFields": ["current", "voltage", "weight"]
+  },
+  {
+    "manufacturerId": "phoenix",
+    "catalogNumber": "1757242",
+    "caseType": "electrical",
+    "expectedDeviceType": "PCB Connector",
+    "riskTags": ["phoenix-contact", "pcb-header", "pcb-connection-system-sheet-coverage"],
+    "expectedOfficialUrlPatterns": ["phoenixcontact\\.com/(?:.*?/)?(?:product|products)/.*1757242"],
+    "expectedNormalizedFields": ["current", "voltage", "weight"]
+  }
+]

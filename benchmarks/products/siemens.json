@@ -1,7 +1,27 @@
-{
-  "manufacturerId": "siemens",
-  "catalogNumber": "BPZ:VSG519K15-5",
-  "expectedOfficialUrlPatterns": ["mall\\.industry\\.siemens\\.com/.*/Catalog/Product"],
-  "requiredDocuments": ["datasheet"],
-  "expectedNormalizedFields": ["dimensions", "weight", "material"]
-}
+[
+  {
+    "manufacturerId": "siemens",
+    "catalogNumber": "BPZ:VSG519K15-5",
+    "caseType": "mechanical",
+    "expectedDeviceType": "Valve",
+    "riskTags": ["siemens-partial", "colon-catalog", "customer-document-supported"],
+    "expectedOfficialUrlPatterns": ["mall\\.industry\\.siemens\\.com/.*/Catalog/Product"],
+    "customerDocuments": ["customer-documents/siemens-vsg519k15-5-datasheet.csv"],
+    "requiredDocuments": ["datasheet"],
+    "expectedNormalizedFields": ["dimensions", "weight", "material"]
+  },
+  {
+    "manufacturerId": "siemens",
+    "catalogNumber": "6ES7193-6BP00-0DA0",
+    "caseType": "mechanical",
+    "expectedDeviceType": "Module Carrier",
+    "riskTags": ["simatic-et200sp-baseunit", "module-carrier-frame-sheet-coverage", "official-sieportal"],
+    "expectedOfficialUrlPatterns": [
+      "sieportal\\.siemens\\.com/.*/products-services/detail/6ES7193-6BP00-0DA0",
+      "mall\\.industry\\.siemens\\.com/.*/Catalog/Product/6ES7193-6BP00-0DA0",
+      "mall\\.industry\\.siemens\\.com/.*/Catalog/Product\\?mlfb=6ES7193-6BP00-0DA0"
+    ],
+    "requiredDocuments": ["datasheet"],
+    "expectedNormalizedFields": ["weight"]
+  }
+]

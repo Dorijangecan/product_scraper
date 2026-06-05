@@ -1,7 +1,42 @@
-{
-  "manufacturerId": "balluff",
-  "catalogNumber": "BCC039H",
-  "expectedOfficialUrlPatterns": ["balluff\\.com/.*/products/BCC039H"],
-  "requiredDocuments": ["datasheet"],
-  "expectedNormalizedFields": ["voltage", "current", "material"]
-}
+[
+  {
+    "manufacturerId": "balluff",
+    "catalogNumber": "BCC039H",
+    "caseType": "electrical",
+    "expectedDeviceType": "Cable",
+    "riskTags": ["official-datasheet", "connector"],
+    "expectedOfficialUrlPatterns": ["balluff\\.com/.*/products/BCC039H"],
+    "requiredDocuments": ["datasheet"],
+    "expectedNormalizedFields": ["voltage", "current", "material"]
+  },
+  {
+    "manufacturerId": "balluff",
+    "catalogNumber": "BCS01CY",
+    "caseType": "electrical",
+    "expectedDeviceType": "Capacitive Sensor",
+    "riskTags": ["official-datasheet", "capacitive-sensor", "electronic-sensor", "browser-expanded-sections"],
+    "expectedOfficialUrlPatterns": ["balluff\\.com/.*/products/BCS01CY"],
+    "requiredDocuments": ["image", "datasheet"],
+    "expectedNormalizedFields": ["dimensions", "weight", "material", "voltage", "protection", "certificates"]
+  },
+  {
+    "manufacturerId": "balluff",
+    "catalogNumber": "BOS025P",
+    "caseType": "electrical",
+    "expectedDeviceType": "Photoelectric Sensor",
+    "riskTags": ["official-datasheet", "photoelectric-sensor", "optical-sensor", "browser-expanded-sections"],
+    "expectedOfficialUrlPatterns": ["balluff\\.com/.*/products/BOS025P"],
+    "requiredDocuments": ["datasheet"],
+    "expectedNormalizedFields": ["dimensions", "weight", "material", "voltage", "certificates"]
+  },
+  {
+    "manufacturerId": "balluff",
+    "catalogNumber": "BSP00R5",
+    "caseType": "electrical",
+    "expectedDeviceType": "Pressure Sensor",
+    "riskTags": ["official-datasheet", "pressure-sensor", "sensor-fluid-sheet-coverage", "browser-expanded-sections"],
+    "expectedOfficialUrlPatterns": ["balluff\\.com/.*/products/BSP00R5"],
+    "requiredDocuments": ["datasheet"],
+    "expectedNormalizedFields": ["material", "voltage", "protection", "certificates"]
+  }
+]

@@ -66,6 +66,7 @@ const expectedKeptSheets = new Set([
   "Material Master Data",
   "Additional Documents",
   "Connection Point Information",
+  "Product Accessory",
   ...expectedCounts.keys()
 ]);
 check(
@@ -73,6 +74,20 @@ check(
   `Kept sheets differ. Actual=${sortStrings(result.keptSheets).join(", ")}`
 );
 check(!result.keptSheets.includes("connector.optical"), "connector.optical must not be retained in final PDT");
+check(Boolean(result.pdtAuditPath), "PDT cell audit JSON path was not returned");
+check((result.cellAudit?.written ?? 0) > 0, "PDT cell audit did not record written cells");
+const unprovenWritten = result.cellAudit.records.filter((record) => record.status === "written" && record.sourceKind === "unproven");
+check(
+  unprovenWritten.length === 0,
+  `Unproven PDT values were written: ${formatAuditRecords(unprovenWritten)}`
+);
+const generatedSpecWrites = result.cellAudit.records.filter(
+  (record) => record.status === "written" && record.sourceKind === "generated-rule" && productSpecAuditRecord(record)
+);
+check(
+  generatedSpecWrites.length === 0,
+  `Generated rules wrote product-spec cells: ${formatAuditRecords(generatedSpecWrites)}`
+);
 
 const out = new ExcelJS.Workbook();
 await out.xlsx.readFile(outputPath);
@@ -151,7 +166,13 @@ function checkDeviceRowsHaveValues(sheetName: string, catalogs: string[]): void 
   if (!ws) return;
   for (const catalog of catalogs) {
     const row = rowValuesContaining(ws, catalog);
-    check(row.length >= 2, `${sheetName}/${catalog} has only ${row.length} populated cells`);
+    const hasAuditReasons = (result.cellAudit?.records ?? []).some(
+      (record) => record.sheetName === sheetName && record.catalogNumber === catalog && record.status !== "written"
+    );
+    check(
+      row.length >= 2 || hasAuditReasons,
+      `${sheetName}/${catalog} has only ${row.length} populated cells and no PDT cell-audit reason for blanks`
+    );
   }
 }
 
@@ -193,6 +214,26 @@ function catalogsInWorksheet(ws: ExcelJS.Worksheet, catalogs: string[]): string[
 
 function check(condition: boolean, message: string): void {
   if (!condition) failures.push(message);
+}
+
+function productSpecAuditRecord(record: { sheetName: string; code: string; propName: string; description: string }): boolean {
+  const key = (record.code || record.propName).trim().toUpperCase();
+  if (["AAO676", "CNSORDERNO", "ABA671", "AAO677", "MANUFACTURER_URL", "ABA669", "AAQ326", "AAY811", "AAO057", "AAC314", "00001C001"].includes(key)) {
+    return false;
+  }
+  if (record.sheetName === "Material Master Data") {
+    return ["CNS_ELECTRO_MATERIAL", "CNS_MASSEXACT", "BAB577", "BAF016", "BAA020", "AAF040", "CERTIFICATION", "AAU731", "AAU732", "AAU733", "AAW338"].includes(key);
+  }
+  return /\b(voltage|current|power|loss|weight|mass|material|colour|color|protection|degree|temperature|dimension|width|height|depth|length|connection|standard|certificate|approval)\b/i.test(
+    `${record.code} ${record.propName} ${record.description}`
+  );
+}
+
+function formatAuditRecords(records: Array<{ sheetName: string; catalogNumber: string; code: string; propName: string; value?: string; reason: string }>): string {
+  return records
+    .slice(0, 20)
+    .map((record) => `${record.sheetName}/${record.catalogNumber}/${record.code || record.propName}=${record.value ?? ""} (${record.reason})`)
+    .join("; ");
 }
 
 function sameSet(left: Set<string>, right: Set<string>): boolean {

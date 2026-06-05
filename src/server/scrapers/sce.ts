@@ -118,6 +118,7 @@ export function parseSceProductPage(
   attributes.push(...deriveSceElectricalRatingAttributes(attributes, detail.effectiveUrl));
   attributes.push(...deriveSceSpecialtyAttributes(attributes, detail.effectiveUrl));
   attributes.push(...deriveSceCertificationAttributes(attributes, detail.effectiveUrl));
+  attributes.push(...deriveSceProseAttributes(catalogNumber, attributes, detail.effectiveUrl));
   const inferredVoltage = inferSceCatalogVoltage(catalogNumber);
   if (inferredVoltage && !hasExplicitSceVoltageEvidence(attributes)) {
     attributes.push({
@@ -219,7 +220,17 @@ export function parseSceProductPage(
     };
   }
 
-  const cleanAttributes = dedupeAttributes(attributes);
+  // Every Saginaw attribute came off the official product page. Several sites in this file push
+  // attributes without an explicit sourceType (Industry Standards onmouseover, section parsers,
+  // dimensions), which then trip the PDT exporter's "unproven" gate and silently drops cells.
+  // Stamp the missing provenance here so downstream resolution doesn't have to guess.
+  const stampedAttributes = attributes.map((attr) => ({
+    ...attr,
+    sourceType: attr.sourceType ?? "official",
+    parser: attr.parser ?? "sce-product-page",
+    confidence: attr.confidence ?? 0.9
+  }));
+  const cleanAttributes = dedupeAttributes(stampedAttributes);
   const cleanDocuments = dedupeDocuments(documents);
   const normalized = normalizeFields(cleanAttributes, cleanDocuments);
   if (!normalized.dimensions) {
@@ -396,7 +407,8 @@ function inferSceCatalogMaterial(catalogNumber: string, description: string | un
   if (/\b(?:cleaner|cleaning|paint|label|gasket|filter|bulb)\b/i.test(text)) return undefined;
   if (/SS6/i.test(catalogNumber) || /\b316(?:\/316L)?\b/i.test(text)) return "stainless steel Type 316/316L";
   if (/SS/i.test(catalogNumber) || /\bS\.?\s*S\.?\b/i.test(text)) return "stainless steel Type 304";
-  if (/\bGALV(?:ANNEALED)?\b/i.test(text)) return "galvannealed steel";
+  if (/\bGALVANNEALED\b/i.test(text)) return "galvannealed steel";
+  if (/\bGALV(?:ANIZED)?\b/i.test(text)) return "galvanized steel";
   if (/\bALUMIN(?:UM|IUM)\b|\b-?AL\b/i.test(text)) return "aluminum";
   if (/\bsub-?panel\b/i.test(text)) return "steel";
   return undefined;
@@ -534,102 +546,103 @@ function materialComponentPhrases(value: string): string[] {
   return [...new Set(components)].slice(0, 8);
 }
 
-/**
- * Synthesize family-level attributes for Saginaw catalog families with deterministic data that
- * the public product page omits or scatters across prose. Manual PDTs fill these consistently for
- * every SKU in the family, so when we recognize the family we mirror the manual values rather than
- * leaving the PDT blank. Each synthesized attribute is only added if a stronger evidence-based
- * attribute is not already present (preserves scraped values over inferences).
- *
- * Currently covered: SCE-{H}H{W}{D}LP (header lamp panel + mounting plate enclosures).
- */
 function deriveSceFamilyAttributes(
-  catalogNumber: string,
-  existing: AttributeRecord[],
-  sourceUrl: string
+  _catalogNumber: string,
+  _existing: AttributeRecord[],
+  _sourceUrl: string
 ): AttributeRecord[] {
+  return [];
+}
+
+interface SceProseFact {
+  scope: "default" | "galv";
+  field: "Material" | "Finish";
+  value: string;
+  confidence: number;
+}
+
+function deriveSceProseAttributes(catalogNumber: string, attributes: AttributeRecord[], sourceUrl: string): AttributeRecord[] {
   const derived: AttributeRecord[] = [];
-  const push = (group: string, name: string, value: string, confidence: number) => {
-    derived.push({
-      group,
-      name,
-      value,
-      sourceUrl,
-      sourceType: "generated",
-      parser: "sce-catalog-code",
-      confidence
-    });
-  };
-  const hasGroup = (groupRx: RegExp, nameRx: RegExp): boolean =>
-    existing.some((attr) => groupRx.test(attr.group ?? "") && nameRx.test(attr.name) && cleanText(attr.value).length > 0);
-  const hasColorEvidence = existing.some((attr) => {
-    const label = `${attr.group ?? ""} ${attr.name}`;
-    const value = cleanText(attr.value);
-    if (!value) return false;
-    if (/\b(color|finish|construction|notes?)\b/i.test(label)) {
-      return /\b(ansi-?\d+|gray|grey|white|black|beige|cream|ral\s*\d+|powder coat)/i.test(value);
+  const isGalvCatalog = /\bGALV\b|GALV$/i.test(catalogNumber);
+  for (const attr of attributes) {
+    if (!/\b(?:application|construction|finish|product specifications|sce product data)\b/i.test(`${attr.group ?? ""} ${attr.name}`)) continue;
+    for (const fact of sceProseFacts(attr.value, attr.group)) {
+      if (fact.scope === "galv" && !isGalvCatalog) continue;
+      derived.push({
+        group: fact.scope === "galv" ? "SCE Catalog Variant" : "SCE Prose Understanding",
+        name: fact.field,
+        value: fact.value,
+        sourceUrl,
+        sourceType: "official",
+        parser: "sce-product-page",
+        confidence: fact.confidence
+      });
     }
-    return false;
-  });
-  const hasSurfaceEvidence = existing.some((attr) => /\b(finish|surface|coating)\b/i.test(attr.name) && cleanText(attr.value).length > 0);
-  const hasIpEvidence = existing.some((attr) => /\bIP\s*\d{2}\b/i.test(attr.value));
-
-  // H_LP family — header lamp panel enclosures with bolt-on mounting ears + sub-panel.
-  if (/^SCE-\d+H\d+LP$/i.test(catalogNumber)) {
-    push("SCE Family Inference", "Product Designation", "Wall mounted enclosure", 0.85);
-    push("SCE Family Inference", "Product Family Type", "Enclosure", 0.85);
-    if (!hasGroup(/.*/, /^(?:certification|certificate|approval)s?$/i) && !hasGroup(/.*/, /\b(industry standards?|standards?)\b/i)) {
-      push(
-        "SCE Family Inference",
-        "Certifications",
-        "NEMA Type 3R, 4, 12 and Type 13, UL Listed Type 3R, 4 and 12, CSA Type 3R, 4 and 12, IEC 60529, IP66",
-        0.78
-      );
-    }
-    if (!hasExplicitSceMaterialEvidence(existing)) push("SCE Family Inference", "Material", "Carbon steel", 0.8);
-    if (!hasColorEvidence) push("SCE Family Inference", "Color", "White", 0.78);
-    if (!hasSurfaceEvidence) {
-      push("SCE Family Inference", "Surface", "Powder coating", 0.78);
-    }
-    if (!hasIpEvidence) {
-      push("SCE Family Inference", "Degree of Protection", "IP66", 0.8);
-    }
-    push("SCE Family Inference", "Number of Doors", "1", 0.82);
-    push("SCE Family Inference", "Number of Locks", "2", 0.82);
-    push("SCE Family Inference", "Mounting", "Wall mount", 0.82);
   }
+  return dedupeAttributes(derived);
+}
 
-  if (/^SCE-\d+EL\d+(?:SS6|SS)?LPPL$/i.test(catalogNumber)) {
-    push("SCE Family Inference", "Product Designation", "Wall mounted enclosure", 0.85);
-    push("SCE Family Inference", "Product Family Type", "Enclosure", 0.85);
-    if (!hasGroup(/.*/, /^(?:certification|certificate|approval)s?$/i) && !hasGroup(/.*/, /\b(industry standards?|standards?)\b/i)) {
-      push(
-        "SCE Family Inference",
-        "Certifications",
-        "NEMA Type 3R, 4, 12 and Type 13, UL Listed Type 3R, 4 and 12, CSA Type 3R, 4 and 12, IEC 60529, IP66",
-        0.78
-      );
-    }
-    if (!hasExplicitSceMaterialEvidence(existing)) {
-      if (/SS6LPPL$/i.test(catalogNumber)) push("SCE Family Inference", "Material", "stainless steel Type 316/316L", 0.78);
-      else if (/SSLPPL$/i.test(catalogNumber)) push("SCE Family Inference", "Material", "stainless steel Type 304", 0.78);
-      else push("SCE Family Inference", "Material", "Carbon steel", 0.8);
-    }
-    if (!/SS(?:6)?LPPL$/i.test(catalogNumber) && !hasColorEvidence) {
-      push("SCE Family Inference", "Color", "ANSI-61 gray", 0.78);
-    }
-    if (!/SS(?:6)?LPPL$/i.test(catalogNumber) && !hasSurfaceEvidence) {
-      push("SCE Family Inference", "Surface", "Powder coating", 0.78);
-    }
-    if (!hasIpEvidence) push("SCE Family Inference", "Degree of Protection", "IP66", 0.8);
-    const productText = cleanText(existing.map((attr) => `${attr.name} ${attr.value}`).join(" "));
-    if (/\b(?:2\s*DR|2DR|two\s+door)\b/i.test(productText)) {
-      push("SCE Family Inference", "Number of Doors", "2", 0.78);
-    }
-    push("SCE Family Inference", "Mounting", "Wall mount", 0.82);
+function sceProseFacts(value: string, group: string | undefined): SceProseFact[] {
+  const facts: SceProseFact[] = [];
+  for (const sentence of splitSceProse(value)) {
+    const scope: SceProseFact["scope"] = /\bGALV\b/i.test(sentence) ? "galv" : "default";
+    const material = sceMaterialFromSentence(sentence, group);
+    if (material) facts.push({ scope, field: "Material", value: material, confidence: scope === "galv" ? 0.94 : 0.91 });
+
+    const finish = sceFinishFromSentence(sentence);
+    if (finish) facts.push({ scope, field: "Finish", value: finish, confidence: scope === "galv" ? 0.92 : 0.9 });
   }
+  return facts;
+}
 
-  return derived;
+function splitSceProse(value: string): string[] {
+  return cleanText(value)
+    .split(/(?<=[.!?])\s+|;\s+/)
+    .map((part) => cleanText(part.replace(/[.!?]+$/g, "")))
+    .filter(Boolean);
+}
+
+function sceMaterialFromSentence(sentence: string, group: string | undefined): string | undefined {
+  const madeOf = sentence.match(/\b(?:made|constructed|fabricated)\s+(?:of|from)\s+(.+?)(?:,|$)/i)?.[1];
+  if (madeOf) return normalizeSceMaterialPhrase(madeOf);
+  if (/\b(?:construction|material)\b/i.test(group ?? "") && sentence.length <= 120 && !isSceSecondaryComponentSentence(sentence)) {
+    return normalizeSceMaterialPhrase(sentence);
+  }
+  return undefined;
+}
+
+function sceFinishFromSentence(sentence: string): string | undefined {
+  if (/\bGALV\b/i.test(sentence) && /\bgalvanized\b/i.test(sentence)) return "galvanized";
+  const powderCoated = sentence.match(/\bpowder[-\s]?coated\s+(?:ANSI[-\s]?61\s+gr[ae]y|RAL\s*\d{4}|white|black|gr[ae]y|red|blue|green|yellow|orange|silver|natural)\b/i)?.[0];
+  if (powderCoated) return cleanText(powderCoated);
+  const ansiPowder = sentence.match(/\bANSI[-\s]?61\s+gr[ae]y\s+powder\s+coating(?:\s+inside\s+and\s+out)?\b/i)?.[0];
+  if (ansiPowder) return cleanText(ansiPowder);
+  return undefined;
+}
+
+function normalizeSceMaterialPhrase(value: string): string | undefined {
+  const cleaned = cleanText(value)
+    .replace(/\band\s+(?:powder[-\s]?coated|painted|finished|coated)\b.*$/i, "")
+    .replace(/\b(?:heavy\s+gauge|washable|removable|clear|frosted|protective|external)\b/gi, "")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (!cleaned || isSceSecondaryComponentSentence(cleaned)) return undefined;
+  if (/\bstainless\s+steel\s+type\s+316\/316L\b/i.test(cleaned)) return "stainless steel Type 316/316L";
+  if (/\bstainless\s+steel\s+type\s+304\b/i.test(cleaned)) return "stainless steel Type 304";
+  if (/\bgalvanized\s+steel\b/i.test(cleaned)) return "galvanized steel";
+  if (/\bgalvannealed\s+steel\b/i.test(cleaned)) return "galvannealed steel";
+  if (/\baluzinc\s+coated\s+steel\b/i.test(cleaned)) return "aluzinc coated steel";
+  if (/\bcarbon\s+steel\b/i.test(cleaned)) return "carbon steel";
+  if (/\bstainless\s+steel\b/i.test(cleaned)) return "stainless steel";
+  if (/\bpolycarbonate\b/i.test(cleaned)) return "polycarbonate";
+  if (/\btechpolymer\b/i.test(cleaned)) return "Techpolymer";
+  if (/\balumin(?:um|ium)\b/i.test(cleaned)) return "aluminum";
+  if (/\bsteel\b/i.test(cleaned)) return "steel";
+  return undefined;
+}
+
+function isSceSecondaryComponentSentence(value: string): boolean {
+  return /\b(?:screws?|washers?|hardware|fasteners?|filters?|grille|ports?|gaskets?|hinges?|latches?|lead wire|wire|cable|cord|connector)\b/i.test(value);
 }
 
 function deriveSceCertificationAttributes(attributes: AttributeRecord[], sourceUrl: string): AttributeRecord[] {

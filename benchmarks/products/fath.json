@@ -1,6 +1,9 @@
 {
   "manufacturerId": "fath",
   "catalogNumber": "098ABG045",
+  "caseType": "mechanical",
+  "expectedDeviceType": "Mounting Accessory",
+  "riskTags": ["configured-fallback", "mechanical-accessory"],
   "expectedOfficialUrlPatterns": ["fath24\\.com/.*/098ABG045"],
   "requiredDocuments": ["image"],
   "expectedNormalizedFields": []

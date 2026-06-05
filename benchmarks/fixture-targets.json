@@ -1,0 +1,292 @@
+{
+  "summary": {
+    "manufacturersConfigured": 13,
+    "thinManufacturers": [
+      "eta",
+      "fath",
+      "schmersal"
+    ],
+    "deviceTypesCovered": 35,
+    "pdtDeviceSheetsCovered": 35,
+    "pdtDeviceSheetsTotal": 41,
+    "uncoveredPdtDeviceSheets": 6
+  },
+  "coveredDeviceTypes": {
+    "Accessory": [
+      "abb"
+    ],
+    "Busbar": [
+      "abb"
+    ],
+    "Cable": [
+      "balluff"
+    ],
+    "Cable Gland": [
+      "spelsberg"
+    ],
+    "Capacitive Sensor": [
+      "balluff"
+    ],
+    "Circuit Breaker": [
+      "eta"
+    ],
+    "Communication Gateway": [
+      "rockwell"
+    ],
+    "Connector": [
+      "sce"
+    ],
+    "Current Sensor": [
+      "eaton"
+    ],
+    "Disconnect Switch": [
+      "eaton"
+    ],
+    "Enclosure": [
+      "nvent",
+      "sce",
+      "schneider",
+      "spelsberg"
+    ],
+    "Filter": [
+      "eaton"
+    ],
+    "HMI": [
+      "rockwell"
+    ],
+    "Loadcenter": [
+      "eaton"
+    ],
+    "Luminaire": [
+      "sce"
+    ],
+    "Module Carrier": [
+      "siemens"
+    ],
+    "Motion Controller": [
+      "rockwell"
+    ],
+    "Motor Circuit Breaker": [
+      "eaton"
+    ],
+    "Mounting Accessory": [
+      "fath",
+      "sce"
+    ],
+    "PCB Connector": [
+      "phoenix"
+    ],
+    "PCB Terminal Block": [
+      "phoenix"
+    ],
+    "Photoelectric Sensor": [
+      "balluff"
+    ],
+    "Power Supply": [
+      "rockwell"
+    ],
+    "Pressure Sensor": [
+      "balluff"
+    ],
+    "Pushbutton / Operator": [
+      "rockwell"
+    ],
+    "Rack Cabinet": [
+      "nvent"
+    ],
+    "Safety Sensor": [
+      "schmersal"
+    ],
+    "Soft Starter": [
+      "schneider"
+    ],
+    "Surge Protective Device": [
+      "abb"
+    ],
+    "Switch": [
+      "rockwell"
+    ],
+    "Terminal Accessory": [
+      "rockwell"
+    ],
+    "Terminal Block": [
+      "rockwell"
+    ],
+    "Thermal Management": [
+      "sce"
+    ],
+    "Valve": [
+      "siemens"
+    ],
+    "Variable Speed Drive": [
+      "abb"
+    ]
+  },
+  "coveredDeviceSheets": {
+    "Busbar": [
+      "abb"
+    ],
+    "cabinet": [
+      "nvent",
+      "sce",
+      "schneider",
+      "spelsberg"
+    ],
+    "cabinet.airconditioning": [
+      "sce"
+    ],
+    "cabinet.mechanical": [
+      "abb",
+      "nvent",
+      "sce",
+      "schneider",
+      "spelsberg"
+    ],
+    "cabinet.rack": [
+      "nvent"
+    ],
+    "cable": [
+      "balluff"
+    ],
+    "cable ducts mounting rails": [
+      "fath",
+      "sce"
+    ],
+    "cable gland": [
+      "spelsberg"
+    ],
+    "command and alarm device": [
+      "rockwell"
+    ],
+    "connector": [
+      "sce"
+    ],
+    "contactor a. fuses": [
+      "eaton",
+      "eta"
+    ],
+    "el. mesurement devices": [
+      "eaton"
+    ],
+    "electronic sensor": [
+      "balluff"
+    ],
+    "energy distribution system": [
+      "eaton"
+    ],
+    "filters": [
+      "eaton"
+    ],
+    "int. ext. lightning protection": [
+      "abb"
+    ],
+    "Luminaire": [
+      "sce"
+    ],
+    "module carrier frame": [
+      "siemens"
+    ],
+    "Motion Controller": [
+      "rockwell"
+    ],
+    "motor protection": [
+      "eaton"
+    ],
+    "motors": [
+      "abb"
+    ],
+    "optical sensor": [
+      "balluff"
+    ],
+    "panel (HMI)": [
+      "rockwell"
+    ],
+    "PCB connection system": [
+      "phoenix"
+    ],
+    "PCB connection technology": [
+      "phoenix"
+    ],
+    "PLC": [
+      "rockwell"
+    ],
+    "power supply devices": [
+      "rockwell"
+    ],
+    "RS232 interfaces": [
+      "rockwell"
+    ],
+    "safety sensor": [
+      "schmersal"
+    ],
+    "sensor - fluid": [
+      "balluff"
+    ],
+    "servo controller": [
+      "abb",
+      "schneider"
+    ],
+    "Switch": [
+      "rockwell"
+    ],
+    "terminal": [
+      "rockwell"
+    ],
+    "terminal endbracket": [
+      "rockwell"
+    ],
+    "ventil": [
+      "siemens"
+    ]
+  },
+  "targets": [
+    {
+      "sheetName": "Wire ID Information",
+      "status": "needs-family-taxonomy-or-manual-catalog",
+      "deviceTypes": [
+        "Wire Marker"
+      ],
+      "configuredFamilyHints": []
+    },
+    {
+      "sheetName": "directional control valve",
+      "status": "needs-family-taxonomy-or-manual-catalog",
+      "deviceTypes": [
+        "Directional Control Valve"
+      ],
+      "configuredFamilyHints": []
+    },
+    {
+      "sheetName": "fluid power",
+      "status": "needs-family-taxonomy-or-manual-catalog",
+      "deviceTypes": [
+        "Hydraulic Actuator"
+      ],
+      "configuredFamilyHints": []
+    },
+    {
+      "sheetName": "generator",
+      "status": "needs-family-taxonomy-or-manual-catalog",
+      "deviceTypes": [
+        "Generator"
+      ],
+      "configuredFamilyHints": []
+    },
+    {
+      "sheetName": "pneumatic handling",
+      "status": "needs-family-taxonomy-or-manual-catalog",
+      "deviceTypes": [
+        "Pneumatic Device"
+      ],
+      "configuredFamilyHints": []
+    },
+    {
+      "sheetName": "pump",
+      "status": "needs-family-taxonomy-or-manual-catalog",
+      "deviceTypes": [
+        "Pump"
+      ],
+      "configuredFamilyHints": []
+    }
+  ]
+}

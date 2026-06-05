@@ -13,6 +13,7 @@ import { writeDocumentsSheet } from "../src/server/pdt/documents-sheet.js";
 import { buildPdtRepairMap, buildPdtRepairResult } from "../src/server/pdt/ai-cleanup.js";
 import { exportRunPdt } from "../src/server/pdt/exporter.js";
 import { normalizePdtCellNumber } from "../src/server/pdt/unit-cleanup.js";
+import { repairFinalCompletenessFromEvidence } from "../src/server/scrapers/final-completeness.js";
 
 const manufacturer = {
   id: "test",
@@ -260,9 +261,9 @@ describe("eclass resolvers", () => {
 
     const sceLppl = ctx({ manufacturerId: "sce" }, "SCE-60EL4812LPPL");
     sceLppl.manufacturer = { ...manufacturer, id: "sce" } as ManufacturerConfig;
-    expect(resolveProperty("AAU731", "AAU731", sceLppl)).toBe("EL_LPPL");
-    expect(resolveProperty("AAU732", "AAU732", sceLppl)).toBe("EL LPPL Enclosure");
-    expect(resolveProperty("AAW338", "AAW338", sceLppl)).toBe("Wall mounted enclosure");
+    expect(resolveProperty("AAU731", "AAU731", sceLppl)).toBeUndefined();
+    expect(resolveProperty("AAU732", "AAU732", sceLppl)).toBeUndefined();
+    expect(resolveProperty("AAW338", "AAW338", sceLppl)).toBeUndefined();
   });
 
   it("uses net dimensions and ignores packaging dimensions", () => {
@@ -291,6 +292,97 @@ describe("eclass resolvers", () => {
     const c = ctx({ normalized: { weight: "2.5 kg" } });
     expect(resolveProperty("CNS_MASSEXACT", "CNS_MASSEXACT", c)).toBe("2.5");
     expect(resolveProperty("BAD875", "BAD875", c)).toBe("2500");
+  });
+
+  it("writes Saginaw imperial weight to PDT (not skipped as unproven)", async () => {
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-pdt-sce-weight-"));
+    const templatePath = path.join(dir, "template.xlsx");
+    const outputPath = path.join(dir, "out.xlsx");
+    const wb = new ExcelJS.Workbook();
+    const material = wb.addWorksheet("Material Master Data");
+    material.getCell(6, 1).value = "ECLASS property";
+    material.getCell(7, 1).value = "Variable name (CNS internal)";
+    material.getCell(8, 1).value = "English variable description";
+    material.getCell(9, 1).value = "Units";
+    material.getCell(6, 2).value = "AAF040";
+    material.getCell(7, 2).value = "CNS_MASSEXACT";
+    material.getCell(8, 2).value = "Weight /Mass (netto)";
+    material.getCell(6, 3).value = "BAD875";
+    material.getCell(7, 3).value = "BAD875";
+    material.getCell(8, 3).value = "Net weight";
+    wb.addWorksheet("Additional Documents");
+    await wb.xlsx.writeFile(templatePath);
+
+    // Mirror the SCE scrape: imperial attribute + dual-unit normalized string. Before the fix the
+    // resolver derived "11.793" but inferCellProvenance couldn't substring-match that against the
+    // "26.00 lbs (11.79 kg)" fact, so the cell was skipped as "unproven".
+    const item = ctx({
+      manufacturerId: "sce",
+      normalized: { weight: "26.00 lbs (11.79 kg)" },
+      attributes: [
+        { group: "Product Specifications", name: "Weight", value: "26.00 lbs", sourceType: "official", parser: "sce-product-page" }
+      ]
+    }, "SCE-NBP6818").item;
+    await exportRunPdt({ manufacturer, items: [item], templatePath, outputPath });
+
+    const out = new ExcelJS.Workbook();
+    await out.xlsx.readFile(outputPath);
+    const ws = out.getWorksheet("Material Master Data")!;
+    expect(ws.getCell(10, 2).value).toBe(11.793);
+    expect(ws.getCell(10, 3).value).toBe(11793);
+  });
+
+  it("converts imperial weight (lbs) to kg and grams via the normalizer's dual-unit string", () => {
+    // Saginaw publishes shipping weight in pounds and the normalizer wraps it as
+    // "26.00 lbs (11.79 kg)". The PDT weight resolvers must reach kg/g, not echo the
+    // dual-unit display string.
+    const c = ctx({ normalized: { weight: "26.00 lbs (11.79 kg)" } });
+    expect(resolveProperty("CNS_MASSEXACT", "CNS_MASSEXACT", c)).toBe("11.793");
+    expect(resolveProperty("AAF040", "AAF040", c)).toBe("11.793");
+    expect(resolveProperty("BAD875", "BAD875", c)).toBe("11793");
+  });
+
+  it("does not repair product weight from unlabeled numeric text", () => {
+    const c = ctx(
+      {
+        manufacturerId: "abb",
+        normalized: {},
+        attributes: [
+          {
+            group: "ABB Related Products",
+            name: "Related Product",
+            value: "1SDA124708R1 - Ekip family accessory, package example 14 kg",
+            sourceType: "official"
+          }
+        ]
+      },
+      "1SDA124707R1"
+    );
+    const result = repairFinalCompletenessFromEvidence(
+      c.result!,
+      { ...manufacturer, id: "abb" } as ManufacturerConfig
+    ).result;
+
+    expect(result.normalized.weight).toBeUndefined();
+    expect(result.attributes.some((attr) => attr.group === "Final Field Repair" && attr.name === "Weight")).toBe(false);
+  });
+
+  it("does not write ABB weight when product identity evidence belongs to another catalog", () => {
+    const c = ctx(
+      {
+        manufacturerId: "abb",
+        normalized: { weight: "14 kg" },
+        attributes: [
+          { name: "Product ID", value: "1SDA124708R1", sourceType: "official" },
+          { name: "Product Net Weight", value: "14 kg", sourceType: "official" }
+        ]
+      },
+      "1SDA124707R1"
+    );
+    c.manufacturer = { ...manufacturer, id: "abb" } as ManufacturerConfig;
+
+    expect(resolveProperty("CNS_MASSEXACT", "CNS_MASSEXACT", c)).toBeUndefined();
+    expect(resolveProperty("BAD875", "BAD875", c)).toBeUndefined();
   });
 
   it("resolves device-tab values from normalized fields and attributes", () => {
@@ -354,8 +446,7 @@ describe("eclass resolvers", () => {
     c.manufacturer = { ...manufacturer, id: "abb" } as ManufacturerConfig;
 
     expect(resolveProperty("REFERENCE_FEATURE_GROUP_ID", "REFERENCE_FEATURE_GROUP_ID", c)).toBe("27371003");
-    // ABB device-sheet ECLASS version matches the manual PDT (v13) instead of the generic v14 default.
-    expect(resolveProperty("REFERENCE_FEATURE_SYSTEM_NAME", "REFERENCE_FEATURE_SYSTEM_NAME", c)).toBe("13");
+    expect(resolveProperty("REFERENCE_FEATURE_SYSTEM_NAME", "REFERENCE_FEATURE_SYSTEM_NAME", c)).toBe("ECLASS");
     expect(resolveProperty("AAQ326", "AAQ326", c)).toBe("https://new.abb.com/products/1SBL347060R1100");
     expect(resolveProperty("BAH005", "BAH005", c)).toBe("24-60");
     expect(resolveProperty("AAF726", "AAF726", c)).toBe("70");
@@ -402,6 +493,21 @@ describe("eclass resolvers", () => {
     });
     c.sheetName = "contactor a. fuses";
     expect(resolveProperty("BAD915", "BAD915", c)).toBe("AC/DC");
+  });
+
+  it("does not hardcode Rockwell Micro PLC voltage type or power loss without source evidence", () => {
+    const c = ctx(
+      {
+        manufacturerId: "rockwell",
+        title: "Micro820 20 Point Programmable Controller"
+      },
+      "2080-LC20-20AWB"
+    );
+    c.manufacturer = { ...manufacturer, id: "rockwell" } as ManufacturerConfig;
+    c.sheetName = "PLC";
+
+    expect(resolveProperty("BAD915", "BAD915", c)).toBeUndefined();
+    expect(resolveProperty("AAS575", "AAS575", c)).toBeUndefined();
   });
 
   it("uses PDT repair values for descriptions and clean temperature fields", () => {
@@ -1091,8 +1197,11 @@ describe("enum encoding", () => {
   it("allows standard material labels when the Master PDT enum legend is truncated", () => {
     const material = "material 1 - Real glas 2 - Thermoplast 3 - Polyvinylalkohol (PVA) ...";
 
+    // Preserve the qualifier when the truncated legend doesn't have a matching specific entry —
+    // collapsing "carbon steel" to bare "steel" lost information (the user explicitly asked for
+    // the more specific label).
     expect(encodeEnum(material, "carbon steel")).toBeUndefined();
-    expect(encodeEnumLabel(material, "carbon steel")).toBe("steel");
+    expect(encodeEnumLabel(material, "carbon steel")).toBe("carbon steel");
     expect(encodeEnumLabel(material, "stainless steel")).toBe("stainless steel");
     expect(encodeEnumLabel("material of housing 1 - Plastic (PBT) 2 - Plastic (ABS) ...", "PBTP")).toBe("Plastic (PBT)");
     expect(encodeEnumLabel("material of housing 1 - Plastic (PBT) 2 - Plastic (ABS) 3 - Plastic ...", "ABS")).toBe("Plastic (ABS)");
@@ -1282,9 +1391,175 @@ describe("PDT exporter", () => {
     expect(ws.getCell(10, 6).value).toBe("85364900");
     expect(result.cleanedInputPath).toBe(path.join(dir, "out_cleaned-input.xlsx"));
     await expect(fs.stat(result.cleanedInputPath!)).resolves.toBeTruthy();
+    expect(result.pdtAuditPath).toBe(path.join(dir, "out_pdt-audit.json"));
+    await expect(fs.stat(result.pdtAuditPath!)).resolves.toBeTruthy();
+    const audit = JSON.parse(await fs.readFile(result.pdtAuditPath!, "utf8")) as { summary: { written: number }; records: Array<{ status: string; sourceKind?: string; code: string }> };
+    expect(audit.summary.written).toBeGreaterThan(0);
+    expect(audit.records.some((record) => record.status === "written" && record.sourceKind === "attribute" && record.code === "AAO663")).toBe(true);
+    expect(audit.records.some((record) => record.status === "written" && record.sourceKind === "generated-rule" && record.code === "AAO676")).toBe(true);
     const cleaned = new ExcelJS.Workbook();
     await cleaned.xlsx.readFile(result.cleanedInputPath!);
     expect(cleaned.getWorksheet("Cleaned PDT Input")).toBeTruthy();
+  });
+
+  it("skips normalized product specs when no source-backed attribute supports the normalized value", async () => {
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-pdt-normalized-provenance-"));
+    const templatePath = path.join(dir, "template.xlsx");
+    const outputPath = path.join(dir, "out.xlsx");
+    const wb = new ExcelJS.Workbook();
+    const material = wb.addWorksheet("Material Master Data");
+    material.getCell(6, 1).value = "ECLASS property";
+    material.getCell(7, 1).value = "Variable name (CNS internal)";
+    material.getCell(8, 1).value = "English variable description";
+    material.getCell(9, 1).value = "Units";
+    material.getCell(6, 2).value = "AAO676";
+    material.getCell(7, 2).value = "CNSORDERNO";
+    material.getCell(8, 2).value = "Articlenumber";
+    material.getCell(6, 3).value = "CNS_ELECTRO_MATERIAL";
+    material.getCell(7, 3).value = "CNS_ELECTRO_MATERIAL";
+    material.getCell(8, 3).value = "Material";
+    wb.addWorksheet("Additional Documents");
+    await wb.xlsx.writeFile(templatePath);
+
+    const item = ctx(
+      {
+        normalized: { material: "Steel" },
+        attributes: [{ name: "Material", value: "Plastic", sourceType: "official" }]
+      },
+      "MAT-1"
+    ).item;
+    const result = await exportRunPdt({ manufacturer, items: [item], templatePath, outputPath });
+
+    const out = new ExcelJS.Workbook();
+    await out.xlsx.readFile(outputPath);
+    const ws = out.getWorksheet("Material Master Data")!;
+    expect(ws.getCell(10, 2).value).toBe("MAT-1");
+    expect(ws.getCell(10, 3).value).toBeNull();
+    expect(result.cellAudit.records.some((record) =>
+      record.catalogNumber === "MAT-1" &&
+      record.code === "CNS_ELECTRO_MATERIAL" &&
+      record.status === "skipped" &&
+      record.sourceKind === "unproven" &&
+      record.value === "Steel"
+    )).toBe(true);
+  });
+
+  it("skips distributor-only product specs even when a resolver can find the attribute", async () => {
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-pdt-distributor-provenance-"));
+    const templatePath = path.join(dir, "template.xlsx");
+    const outputPath = path.join(dir, "out.xlsx");
+    const wb = new ExcelJS.Workbook();
+    const material = wb.addWorksheet("Material Master Data");
+    material.getCell(6, 1).value = "ECLASS property";
+    material.getCell(7, 1).value = "Variable name (CNS internal)";
+    material.getCell(8, 1).value = "English variable description";
+    material.getCell(9, 1).value = "Units";
+    material.getCell(6, 2).value = "AAO676";
+    material.getCell(7, 2).value = "CNSORDERNO";
+    material.getCell(8, 2).value = "Articlenumber";
+    material.getCell(6, 3).value = "CNS_ELECTRO_MATERIAL";
+    material.getCell(7, 3).value = "CNS_ELECTRO_MATERIAL";
+    material.getCell(8, 3).value = "Material";
+    wb.addWorksheet("Additional Documents");
+    await wb.xlsx.writeFile(templatePath);
+
+    const item = ctx(
+      {
+        attributes: [{ name: "Material", value: "Steel", sourceType: "distributor" }]
+      },
+      "DST-1"
+    ).item;
+    const result = await exportRunPdt({ manufacturer, items: [item], templatePath, outputPath });
+
+    const out = new ExcelJS.Workbook();
+    await out.xlsx.readFile(outputPath);
+    const ws = out.getWorksheet("Material Master Data")!;
+    expect(ws.getCell(10, 2).value).toBe("DST-1");
+    expect(ws.getCell(10, 3).value).toBeNull();
+    expect(result.cellAudit.records.some((record) =>
+      record.catalogNumber === "DST-1" &&
+      record.code === "CNS_ELECTRO_MATERIAL" &&
+      record.status === "skipped" &&
+      record.sourceType === "distributor" &&
+      record.value === "Steel"
+    )).toBe(true);
+  });
+
+  it("leaves Material Master dimension values blank without source-backed evidence", async () => {
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-pdt-material-dimension-provenance-"));
+    const templatePath = path.join(dir, "template.xlsx");
+    const outputPath = path.join(dir, "out.xlsx");
+    const wb = new ExcelJS.Workbook();
+    const material = wb.addWorksheet("Material Master Data");
+    material.getCell(6, 1).value = "ECLASS property";
+    material.getCell(7, 1).value = "Variable name (CNS internal)";
+    material.getCell(8, 1).value = "English variable description";
+    material.getCell(9, 1).value = "Units";
+    material.getCell(6, 2).value = "AAO676";
+    material.getCell(7, 2).value = "CNSORDERNO";
+    material.getCell(8, 2).value = "Articlenumber";
+    material.getCell(6, 3).value = "BAB577";
+    material.getCell(7, 3).value = "BAB577";
+    material.getCell(8, 3).value = "Depth";
+    wb.addWorksheet("Additional Documents");
+    await wb.xlsx.writeFile(templatePath);
+
+    const item = ctx({ normalized: { dimensions: "10 x 20 x 30 mm" } }, "DIM-1").item;
+    const result = await exportRunPdt({ manufacturer, items: [item], templatePath, outputPath });
+
+    const out = new ExcelJS.Workbook();
+    await out.xlsx.readFile(outputPath);
+    const ws = out.getWorksheet("Material Master Data")!;
+    expect(ws.getCell(10, 2).value).toBe("DIM-1");
+    expect(ws.getCell(10, 3).value).toBeNull();
+    expect(result.cellAudit.records.some((record) =>
+      record.catalogNumber === "DIM-1" &&
+      record.code === "BAB577" &&
+      record.status === "blank" &&
+      /No source-backed PDT value/.test(record.reason)
+    )).toBe(true);
+  });
+
+  it("records declared generated URL rules in the PDT cell audit", async () => {
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-pdt-url-rule-audit-"));
+    const templatePath = path.join(dir, "template.xlsx");
+    const outputPath = path.join(dir, "out.xlsx");
+    const wb = new ExcelJS.Workbook();
+    const material = wb.addWorksheet("Material Master Data");
+    material.getCell(6, 1).value = "ECLASS property";
+    material.getCell(7, 1).value = "Variable name (CNS internal)";
+    material.getCell(8, 1).value = "English variable description";
+    material.getCell(9, 1).value = "Units";
+    material.getCell(6, 2).value = "AAO676";
+    material.getCell(7, 2).value = "CNSORDERNO";
+    material.getCell(8, 2).value = "Articlenumber";
+    material.getCell(6, 3).value = "AAQ326";
+    material.getCell(7, 3).value = "AAQ326";
+    material.getCell(8, 3).value = "Product URL";
+    wb.addWorksheet("Additional Documents");
+    await wb.xlsx.writeFile(templatePath);
+
+    const item = ctx({ manufacturerId: "abb" }, "ABB1SBL347060R1100").item;
+    const result = await exportRunPdt({
+      manufacturer: { ...manufacturer, id: "abb" } as ManufacturerConfig,
+      items: [item],
+      templatePath,
+      outputPath
+    });
+
+    const out = new ExcelJS.Workbook();
+    await out.xlsx.readFile(outputPath);
+    expect(out.getWorksheet("Material Master Data")!.getCell(10, 3).value).toEqual({
+      text: "https://new.abb.com/products/1SBL347060R1100",
+      hyperlink: "https://new.abb.com/products/1SBL347060R1100"
+    });
+    expect(result.cellAudit.records.some((record) =>
+      record.catalogNumber === "ABB1SBL347060R1100" &&
+      record.code === "AAQ326" &&
+      record.status === "written" &&
+      record.sourceKind === "generated-rule" &&
+      record.ruleName === "abb-pdt-product-url"
+    )).toBe(true);
   });
 
   it("reports unclassified catalog numbers while still writing common PDT tabs", async () => {
@@ -1493,7 +1768,7 @@ describe("PDT exporter", () => {
     expect(ws.getCell(10, 5).value).toBe("Enclosure");
   });
 
-  it("leaves DE description columns blank when no localized DE text was scraped", async () => {
+  it("wraps DE description columns in an Excel TRANSLATE() formula when no localized DE text was scraped", async () => {
     const dir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-pdt-abb-de-"));
     const templatePath = path.join(dir, "template.xlsx");
     const outputPath = path.join(dir, "out.xlsx");
@@ -1522,13 +1797,17 @@ describe("PDT exporter", () => {
     const out = new ExcelJS.Workbook();
     await out.xlsx.readFile(outputPath);
     const ws = out.getWorksheet("Material Master Data")!;
-    // No localizedDescriptions.de on the result → DE column must stay blank rather than echo EN.
-    expect(ws.getCell(10, 2).value).toBeNull();
-    // EN column still gets the scraped English description.
+    // No localizedDescriptions.de on the result → DE cell becomes an Excel TRANSLATE() formula
+    // pointing at the EN twin cell. The cached result preserves the EN placeholder so older
+    // viewers that ignore the formula still see content.
+    const deCell = ws.getCell(10, 2).value as { formula?: string; result?: string };
+    expect(deCell.formula).toBe('=IFERROR(TRANSLATE(C10,"en","de"),C10)');
+    expect(deCell.result).toBe(description);
+    // EN column still gets the scraped English description as a literal value.
     expect(ws.getCell(10, 3).value).toBe(description);
   });
 
-  it("leaves DE description columns blank when localized text only echoes English", async () => {
+  it("wraps DE description columns in TRANSLATE() when localized text only echoes English", async () => {
     const dir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-pdt-de-echo-"));
     const templatePath = path.join(dir, "template.xlsx");
     const outputPath = path.join(dir, "out.xlsx");
@@ -1570,8 +1849,14 @@ describe("PDT exporter", () => {
     const out = new ExcelJS.Workbook();
     await out.xlsx.readFile(outputPath);
     const ws = out.getWorksheet("Material Master Data")!;
-    expect(ws.getCell(10, 2).value).toBeNull();
-    expect(ws.getCell(10, 3).value).toBeNull();
+    // DE long/short cells get an Excel TRANSLATE() formula pointing at the EN twin column,
+    // so the spreadsheet renders the German translation when opened in Excel 2024+/M365.
+    const deLong = ws.getCell(10, 2).value as { formula?: string; result?: string };
+    expect(deLong.formula).toBe('=IFERROR(TRANSLATE(D10,"en","de"),D10)');
+    expect(deLong.result).toBe("Wall mounted enclosure");
+    const deShort = ws.getCell(10, 3).value as { formula?: string; result?: string };
+    expect(deShort.formula).toBe('=IFERROR(TRANSLATE(E10,"en","de"),E10)');
+    expect(deShort.result).toBe("Enclosure");
     expect(ws.getCell(10, 4).value).toBe("Wall mounted enclosure");
     expect(ws.getCell(10, 5).value).toBe("Enclosure");
   });
@@ -1607,7 +1892,63 @@ describe("PDT exporter", () => {
     expect(ws.getCell(10, 2).value).toBe(240);
   });
 
-  it("writes Saginaw LPPL cabinet defaults into the final PDT", async () => {
+  it("skips electrical PDT spec values that do not contain a measurement", async () => {
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-pdt-invalid-electrical-spec-"));
+    const templatePath = path.join(dir, "template.xlsx");
+    const outputPath = path.join(dir, "out.xlsx");
+    const wb = new ExcelJS.Workbook();
+    const switchSheet = wb.addWorksheet("Switch");
+    for (const [row, label] of ["ClassId", "Priority", "Type", "PropertyId", "PropertyName", "Description", "Unit", "Body"].entries()) {
+      switchSheet.getCell(row + 1, 1).value = label;
+    }
+    switchSheet.getCell(4, 2).value = "AAO676";
+    switchSheet.getCell(5, 2).value = "AAO676";
+    switchSheet.getCell(6, 2).value = "product article number of manufacturer";
+    switchSheet.getCell(4, 3).value = "AAB815";
+    switchSheet.getCell(5, 3).value = "AAB815";
+    switchSheet.getCell(6, 3).value = "max. rated operating voltage Ue";
+    switchSheet.getCell(7, 3).value = "V";
+    wb.addWorksheet("Additional Documents");
+    await wb.xlsx.writeFile(templatePath);
+
+    const item = ctx(
+      {
+        title: "Metal Plug-In Oiltight Limit Switch",
+        attributes: [
+          {
+            group: "PDF Technical Data",
+            name: "Voltage rating",
+            value: "for this receptacle is",
+            sourceType: "generated",
+            parser: "pdf-table-extractor"
+          }
+        ]
+      },
+      "802T-KPE"
+    ).item;
+    const result = await exportRunPdt({
+      manufacturer,
+      items: [item],
+      templatePath,
+      outputPath,
+      sheetOverrides: { [item.id]: ["Switch"] }
+    });
+
+    expect(result.cellAudit.records.some((record) =>
+      record.catalogNumber === "802T-KPE" &&
+      record.code === "AAB815" &&
+      record.status === "skipped" &&
+      record.value === "for this receptacle is" &&
+      /semantically invalid product-spec value/i.test(record.reason)
+    )).toBe(true);
+    expect(result.cellAudit.records.some((record) =>
+      record.catalogNumber === "802T-KPE" &&
+      record.code === "AAB815" &&
+      record.status === "written"
+    )).toBe(false);
+  });
+
+  it("does not write Saginaw LPPL cabinet values without source evidence", async () => {
     const dir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-pdt-sce-lppl-"));
     const templatePath = path.join(dir, "template.xlsx");
     const outputPath = path.join(dir, "out.xlsx");
@@ -1644,16 +1985,17 @@ describe("PDT exporter", () => {
     const out = new ExcelJS.Workbook();
     await out.xlsx.readFile(outputPath);
     const ws = out.getWorksheet("cabinet")!;
-    expect(ws.getRow(8).values).toEqual([
-      ,
-      "SCE-60EL4812LPPL",
-      27180101,
-      "Carbon steel",
-      "ANSI-61 gray",
-      "Powder coating",
-      "IP66",
-      "NEMA Type 3R, 4, 12 and Type 13"
-    ]);
+    // After removeTemplateLabelColumn shifts everything left by one: col 1 = AAO676 (article),
+    // col 2 = REFERENCE_FEATURE_GROUP_ID. The cabinet/enclosure device type now triggers the
+    // deterministic ECLASS 27-18-01-01 (version 13.0) fallback in facts.ts, since Saginaw
+    // doesn't publish ECLASS codes. All other product-spec columns stay blank.
+    expect(ws.getCell(8, 1).value).toBe("SCE-60EL4812LPPL");
+    expect(ws.getCell(8, 2).value).toBe(27180101);
+    expect(ws.getCell(8, 3).value).toBeNull();
+    expect(ws.getCell(8, 4).value).toBeNull();
+    expect(ws.getCell(8, 5).value).toBeNull();
+    expect(ws.getCell(8, 6).value).toBeNull();
+    expect(ws.getCell(8, 7).value).toBeNull();
   });
 
   it("fills contactor voltage type and operating temperature columns found by description", async () => {
@@ -1788,6 +2130,75 @@ describe("PDT exporter", () => {
       18.64,
       11
     ]);
+  });
+
+  it("writes ABB 1SDA current fields on contactor/fuses instead of allowlist-blocking them", async () => {
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-pdt-abb-1sda-current-"));
+    const templatePath = path.join(dir, "template.xlsx");
+    const outputPath = path.join(dir, "out.xlsx");
+    const wb = new ExcelJS.Workbook();
+    const contactor = wb.addWorksheet("contactor a. fuses");
+    for (const [row, label] of ["ClassId", "Priority", "Type", "PropertyId", "PropertyName", "Description", "Unit", "Body"].entries()) {
+      contactor.getCell(row + 1, 1).value = label;
+    }
+    const columns = [
+      ["AAO676", "article number", "-"],
+      ["BAH005", "rated voltage", "V"],
+      ["AAF726", "rated current", "A"],
+      ["AAB821", "Max. rated operating current", "A"],
+      ["AAC824", "Nominal current", "-"],
+      ["AAB460", "Rated operating current Ie", "A"],
+      ["AAS574", "Rated current for power loss specification", "A"],
+      ["AAB485", "rated permanent current Iu", "A"],
+      ["AAN521", "color", "-"]
+    ] as const;
+    for (const [index, [code, description, unit]] of columns.entries()) {
+      const col = index + 2;
+      contactor.getCell(2, col).value = "Must field";
+      contactor.getCell(4, col).value = code;
+      contactor.getCell(5, col).value = code;
+      contactor.getCell(6, col).value = description;
+      contactor.getCell(7, col).value = unit;
+    }
+    wb.addWorksheet("Additional Documents");
+    await wb.xlsx.writeFile(templatePath);
+
+    const item = ctx(
+      {
+        manufacturerId: "abb",
+        title: "Emax 3 Ekip Aware LI 3p F IEC",
+        normalized: { voltage: "24 V", current: "250 A", color: "RAL 9005" },
+        attributes: [
+          { group: "ABB Product Data", name: "Product ID", value: "1SDA124707R1", sourceType: "official" },
+          { group: "ABB Technical", name: "Rated Current (In)", value: "250 A", sourceType: "official" }
+        ]
+      },
+      "1SDA124707R1"
+    ).item;
+    const result = await exportRunPdt({ manufacturer: { ...manufacturer, id: "abb" } as ManufacturerConfig, items: [item], templatePath, outputPath });
+
+    const out = new ExcelJS.Workbook();
+    await out.xlsx.readFile(outputPath);
+    const ws = out.getWorksheet("contactor a. fuses")!;
+    expect(ws.getRow(8).values).toEqual([
+      ,
+      "1SDA124707R1",
+      24,
+      250,
+      250,
+      250,
+      250,
+      250,
+      250
+    ]);
+    expect(ws.getCell(8, 10).value).toBeNull();
+    expect(result.requiredFieldIssues).toEqual([]);
+    expect(result.cellAudit.records.some((record) =>
+      record.catalogNumber === "1SDA124707R1" &&
+      record.code === "AAN521" &&
+      record.status === "skipped" &&
+      record.ruleName === "abb-1sda-contactor-fuses-column-allowlist"
+    )).toBe(true);
   });
 
   it("reports enum values that cannot be matched to the PDT legend", async () => {
@@ -2258,7 +2669,7 @@ describe("PDT exporter sheet lookup", () => {
     expect(result.keptSheets).toContain("electronic sensor");
   });
 
-  it("fills Rockwell connection point rows from PDT-example-backed family rules", async () => {
+  it("does not fill Rockwell connection point rows from family rules without source evidence", async () => {
     const dir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-pdt-connection-points-"));
     const templatePath = path.resolve("templates", "master_pdt.xlsx");
     const outputPath = path.join(dir, "out.xlsx");
@@ -2279,15 +2690,15 @@ describe("PDT exporter sheet lookup", () => {
 
     const result = await exportRunPdt({ manufacturer: { ...manufacturer, id: "rockwell" } as ManufacturerConfig, items: [item], templatePath, outputPath });
 
-    expect(result.filledSheets["Connection Point Information"]).toBeGreaterThanOrEqual(9);
+    expect(result.filledSheets["Connection Point Information"]).toBe(0);
     const out = new ExcelJS.Workbook();
     await out.xlsx.readFile(outputPath);
     const values = valuesInWorksheet(out.getWorksheet("Connection Point Information")!);
-    expect(values).toContain("2080-LC20-20AWB");
-    expect(values).toContain("+DC10");
-    expect(values).toContain("I-00");
-    expect(values).toContain("O-00");
-    expect(values).toContain("DIN rail mounting");
+    expect(values).not.toContain("2080-LC20-20AWB");
+    expect(values).not.toContain("+DC10");
+    expect(values).not.toContain("I-00");
+    expect(values).not.toContain("O-00");
+    expect(values).not.toContain("DIN rail mounting");
   });
 
   it("adds Rockwell PowerFlex drives to the power supply tab like the manual PDT example", async () => {
@@ -2314,7 +2725,7 @@ describe("PDT exporter sheet lookup", () => {
     expect(result.filledSheets["power supply devices"]).toBe(1);
   });
 
-  it("fills product accessory rows from Rockwell signaling accessory evidence", async () => {
+  it("does not synthesize Rockwell accessory catalog numbers from shorthand evidence", async () => {
     const dir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-pdt-product-accessory-"));
     const templatePath = path.resolve("templates", "master_pdt.xlsx");
     const outputPath = path.join(dir, "out.xlsx");
@@ -2333,13 +2744,12 @@ describe("PDT exporter sheet lookup", () => {
 
     const result = await exportRunPdt({ manufacturer: { ...manufacturer, id: "rockwell" } as ManufacturerConfig, items: [item], templatePath, outputPath });
 
-    expect(result.filledSheets["Product Accessory"]).toBe(1);
+    expect(result.filledSheets["Product Accessory"]).toBeUndefined();
     const out = new ExcelJS.Workbook();
     await out.xlsx.readFile(outputPath);
     const values = valuesInWorksheet(out.getWorksheet("Product Accessory")!);
-    expect(values).toContain("852C-B24RGYQD5");
-    expect(values).toContain("852C-ABVM");
-    expect(values).toContain("accessory");
+    expect(values).not.toContain("852C-ABVM");
+    expect(values).not.toContain("accessory");
   });
 
   it("routes every known device type through common tabs and its mapped device tab", async () => {
@@ -2552,6 +2962,15 @@ describe("PDT exporter sheet lookup", () => {
       ),
       itemFor(
         {
+          manufacturerId: "abb",
+          title: "EKIP BUSBARS SUPPLY E1.3...E6.3",
+          description: "Emax 3 Ekip Busbars Supply accessory for busbar voltage measurement.",
+          attributes: [{ group: "ABB Product Data", name: "Product Type", value: "Busbar", sourceType: "official" }]
+        },
+        "1SDA126493R1"
+      ),
+      itemFor(
+        {
           manufacturerId: "eta",
           title: "Type 1140-E",
           description: "Thermal Overcurrent Circuit Breakers engineered for resettable protection against overloads and short circuits."
@@ -2574,8 +2993,10 @@ describe("PDT exporter sheet lookup", () => {
       ["cabinet.airconditioning", ["SCE-AC3400B120V"]],
       ["connector", ["P-P11R2-K3RF0-U450"]],
       ["cabinet.mechanical", ["SCE-SSCLEAN"]],
-      // ABB 1SDA articles are forced to "contactor a. fuses" only — mirrors the manual PDT layout.
+      // ABB 1SDA accessory-like articles are forced to "contactor a. fuses"; explicit product
+      // types like Busbar keep their semantic PDT tab.
       ["contactor a. fuses", ["1SDA124715R1", "1SDA126387R1", "1140-E"]],
+      ["Busbar", ["1SDA126493R1"]],
       ["ventil", ["BPZ:VSG519K15-5"]]
     ]);
 
@@ -2672,7 +3093,7 @@ describe("PDT exporter sheet lookup", () => {
       {
         sheet: "module carrier frame",
         catalog: "LOW-CARRIER",
-        minValues: 6,
+        minValues: 5,
         expectedValues: ["LOW-CARRIER", "6 modules", "6", "500", "IEC 60603"],
         item: itemFor(
           "LOW-CARRIER",
@@ -2761,7 +3182,7 @@ describe("PDT exporter sheet lookup", () => {
       {
         sheet: "servo controller",
         catalog: "LOW-SERVO",
-        minValues: 10,
+        minValues: 9,
         expectedValues: ["LOW-SERVO", "encoder", "12", "560", "1500", "230", "3", "400"],
         item: itemFor("LOW-SERVO", "Variable speed drive inverter servo drive", [
           attribute("Product Type", "Variable Speed Drive"),

@@ -4,6 +4,7 @@ import { PDFParse } from "pdf-parse";
 import type { AttributeRecord, DocumentRecord, ProductResult, SourceRecord } from "../../shared/types.js";
 import { cleanText, normalizeFields, splitNameValue } from "./normalizer.js";
 import { catalogTextMatches } from "./catalog-number.js";
+import { buildTightContextForCatalog } from "./tight-context.js";
 
 const MAX_PDF_PAGES = 30;
 const MAX_PDF_TEXT_CHARS = 250_000;
@@ -92,15 +93,21 @@ export async function enrichResultFromDownloadedDocuments(result: ProductResult)
 
   for (const doc of result.documents) {
     if (!shouldParsePdfDocument(doc)) {
-      documents.push({ ...doc, parseStatus: doc.localPath ? "skipped" : doc.parseStatus });
+      documents.push({ ...doc, parseStatus: doc.parseStatus ?? (doc.localPath ? "skipped" : undefined) });
       continue;
     }
     try {
       const text = await readPdfText(doc.localPath!, result.catalogNumber);
+      // Multi-model technical-data PDFs (Rockwell 1783-td*, Eaton multi-variant catalogs)
+      // list specs for several catalog numbers in shared comparison tables. Without this
+      // narrowing, "Power input ... 7.991 8.5 6.2" on a single line meant every catalog
+      // in the run inherited the leftmost value (7.991). Tight context cuts at sibling
+      // products so each catalog only sees its own column / row.
+      const tightText = buildTightContextForCatalog(text, result.catalogNumber, { maxChars: MAX_PDF_TEXT_CHARS }) ?? text;
       const attributes = extractDocumentTextAttributes({
         catalogNumber: result.catalogNumber,
         document: doc,
-        text
+        text: tightText
       });
       if (attributes.length > 0) {
         documentAttributes.push(...stampDocumentAttributes(attributes));
@@ -225,6 +232,7 @@ export function extractDocumentTextAttributes(input: {
   const productSpecificAttributes = [
     ...extractSiemensVsg519Dimensions(input.catalogNumber, lines, sourceUrl),
     ...extractEta1140Dimensions(input.catalogNumber, lines, sourceUrl),
+    ...extractContactRatingAttributes(lines, sourceUrl),
     ...extractCatalogSpecificRows(lines, input.catalogNumber, sourceUrl)
   ];
 
@@ -473,6 +481,85 @@ function extractEta1140Dimensions(catalogNumber: string, lines: string[], source
       sourceUrl
     }
   ];
+}
+
+function extractContactRatingAttributes(lines: string[], sourceUrl: string): AttributeRecord[] {
+  const voltageRanges: string[] = [];
+  const currents: string[] = [];
+  let contactRatingWindow = 0;
+
+  for (const rawLine of lines) {
+    const line = cleanText(rawLine);
+    if (/contact rating/i.test(line)) contactRatingWindow = 35;
+    if (contactRatingWindow <= 0) continue;
+    contactRatingWindow -= 1;
+
+    const tabbed = line.split(/\t+/).map(cleanText).filter(Boolean);
+    if (tabbed.length >= 2) {
+      const voltage = contactRatingVoltageRange(tabbed[0]);
+      const current = contactRatingCurrent(tabbed.slice(1).join(" "));
+      if (voltage && current) {
+        voltageRanges.push(voltage);
+        currents.push(current);
+        continue;
+      }
+    }
+
+    const voltage = contactRatingVoltageRange(line);
+    if (voltage) {
+      voltageRanges.push(voltage);
+      continue;
+    }
+    const current = contactRatingCurrent(line);
+    if (current) currents.push(current);
+  }
+
+  const uniqueVoltages = uniqueInOrder(voltageRanges).slice(0, 8);
+  const uniqueCurrents = uniqueInOrder(currents).slice(0, 8);
+  const attributes: AttributeRecord[] = [];
+  if (uniqueVoltages.length) {
+    attributes.push({
+      group: "PDF Contact Rating",
+      name: "Voltage rating",
+      value: uniqueVoltages.map((value) => `${value} V DC`).join(" / "),
+      sourceUrl
+    });
+  }
+  if (uniqueCurrents.length) {
+    attributes.push({
+      group: "PDF Contact Rating",
+      name: "Current rating",
+      value: uniqueCurrents.join(" / "),
+      sourceUrl
+    });
+  }
+  return attributes;
+}
+
+function contactRatingVoltageRange(value: string): string | undefined {
+  const cleaned = cleanText(value);
+  const match = cleaned.match(/^(\d+(?:[.,]\d+)?\s*(?:\.{2,3}|\u2026|\u2013|\u2014|-|to)\s*\d+(?:[.,]\d+)?)$/);
+  return match ? cleanText(match[1]).replace(/\s*(?:\u2026|\u2013|\u2014|-|to)\s*/i, "...") : undefined;
+}
+
+function contactRatingCurrent(value: string): string | undefined {
+  const cleaned = cleanText(value);
+  const match = cleaned.match(/\b(\d+(?:[.,]\d+)?)\s*(mA|A|kA|amps?|amperes?)\b/i);
+  if (!match) return undefined;
+  const unit = /^mA$/i.test(match[2]) ? "mA" : /^kA$/i.test(match[2]) ? "kA" : "A";
+  return `${match[1]} ${unit}`;
+}
+
+function uniqueInOrder(values: string[]): string[] {
+  const seen = new Set<string>();
+  const unique: string[] = [];
+  for (const value of values) {
+    const key = value.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    unique.push(value);
+  }
+  return unique;
 }
 
 function sectionTracker(): (line: string) => string | undefined {

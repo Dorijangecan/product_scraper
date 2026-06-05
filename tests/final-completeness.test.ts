@@ -51,6 +51,24 @@ describe("final completeness audit", () => {
     expect(audit.notApplicable).toEqual([]);
   });
 
+  it("treats HMI current as not applicable when only voltage is required", () => {
+    const audit = evaluateFinalCompleteness(
+      product({
+        manufacturerId: "rockwell",
+        catalogNumber: "2715P-T7CD",
+        title: "PanelView 5510 HMI operator panel",
+        normalized: { weight: "1.8 kg", dimensions: "7 in", material: "plastic", certificates: "CE" },
+        attributes: [{ group: "Rockwell Product Data", name: "Product Type", value: "HMI operator panel touch screen" }],
+        documents: [{ type: "image", label: "Product image", url: "https://example.test/2715p.png" }]
+      }),
+      manufacturer
+    );
+
+    expect(audit.missing).toEqual(["voltage"]);
+    expect(audit.retryMissing).toEqual(["voltage"]);
+    expect(audit.notApplicable).toEqual(["current"]);
+  });
+
   it("does not burn ABB contactor time retrying material after electrical data is complete", () => {
     const abbManufacturer: ManufacturerConfig = { ...manufacturer, id: "abb", canonicalName: "ABB", shortName: "ABB" };
     const result = product({
@@ -174,6 +192,24 @@ describe("final completeness audit", () => {
     expect(repaired.result.normalized.weight).toBe("12 lb (5.44 kg)");
     expect(repaired.result.normalized.dimensions).toBe("10 x 20 x 30 mm");
     expect(repaired.result.attributes.some((attr) => attr.group === "Final Field Repair" && attr.name === "Weight")).toBe(true);
+  });
+
+  it("does not repair missing fields when structured identity evidence belongs to another catalog", () => {
+    const result = product({
+      title: "ABC-123 enclosure",
+      attributes: [
+        { group: "Structured Data", name: "sku", value: "XYZ-999", sourceUrl: "https://example.test/products/ABC-123" },
+        { group: "PDF datasheet", name: "Unit weight", value: "12 lb", sourceUrl: "https://example.test/abc-123.pdf", parser: "pdf-table-extractor" },
+        { group: "Specs", name: "Overall size", value: "10 x 20 x 30 mm", sourceUrl: "https://example.test/products/ABC-123" }
+      ]
+    });
+
+    const repaired = repairFinalCompletenessFromEvidence(result, manufacturer);
+
+    expect(repaired.repairedFields).toEqual([]);
+    expect(repaired.result.normalized.weight).toBeUndefined();
+    expect(repaired.result.normalized.dimensions).toBeUndefined();
+    expect(repaired.result.attributes.some((attr) => attr.group === "Final Field Repair")).toBe(false);
   });
 
   it("does not repair current or dimensions from lifetime and cable cross-section text", () => {

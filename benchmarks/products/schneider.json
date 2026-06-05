@@ -1,7 +1,21 @@
-{
-  "manufacturerId": "schneider",
-  "catalogNumber": "NSYS3D3215",
-  "expectedOfficialUrlPatterns": ["se\\.com/.*/product/NSYS3D3215"],
-  "requiredDocuments": ["image"],
-  "expectedNormalizedFields": ["dimensions", "material"]
-}
+[
+  {
+    "manufacturerId": "schneider",
+    "catalogNumber": "NSYS3D3215",
+    "caseType": "mechanical",
+    "expectedDeviceType": "Enclosure",
+    "riskTags": ["official-datasheet", "dimensions-material"],
+    "expectedOfficialUrlPatterns": ["se\\.com/.*/product/NSYS3D3215"],
+    "requiredDocuments": ["datasheet"],
+    "expectedNormalizedFields": ["dimensions", "material"]
+  },
+  {
+    "manufacturerId": "schneider",
+    "catalogNumber": "ATS01N212QN",
+    "caseType": "electrical",
+    "expectedDeviceType": "Soft Starter",
+    "riskTags": ["altistart", "soft-starter", "servo-controller-sheet-coverage"],
+    "expectedOfficialUrlPatterns": ["se\\.com/.*/product/ATS01N212QN"],
+    "expectedNormalizedFields": ["current", "voltage", "certificates"]
+  }
+]

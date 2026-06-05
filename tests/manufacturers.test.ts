@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { listManufacturerConfigs } from "../src/server/config/manufacturers.js";
+import { ETAConnector } from "../src/server/scrapers/eta.js";
+import type { ScrapeContext } from "../src/server/scrapers/types.js";
 
 describe("manufacturer configuration", () => {
   it("includes the supported built-in manufacturers", () => {
@@ -7,13 +9,14 @@ describe("manufacturer configuration", () => {
     const byId = new Map(manufacturers.map((manufacturer) => [manufacturer.id, manufacturer]));
 
     expect([...byId.keys()]).toEqual(
-      expect.arrayContaining(["abb", "balluff", "sce", "nvent", "rockwell", "eaton", "eta", "schmersal", "schneider", "siemens", "spelsberg"])
+      expect.arrayContaining(["abb", "balluff", "sce", "nvent", "rockwell", "eaton", "eta", "phoenix", "schmersal", "schneider", "siemens", "spelsberg"])
     );
     expect(byId.get("balluff")?.shortName).toBe("BAL");
     expect(byId.get("balluff")?.concurrency).toBe(2);
     expect(byId.get("sce")?.shortName).toBe("SCE");
     expect(byId.get("schneider")?.shortName).toBe("SE");
     expect(byId.get("siemens")?.shortName).toBe("SIE");
+    expect(byId.get("phoenix")?.shortName).toBe("PHX");
     expect(byId.get("eta")?.fallbackSources[0]?.directUrlTemplates.some((template) => template.includes("{partSnake}"))).toBe(true);
   });
 
@@ -39,6 +42,27 @@ describe("manufacturer configuration", () => {
 
     expect(searchTemplates.some((template) => template.includes("/site-search/jcr:content/root/responsivegrid/search_results.searchTerm${part}"))).toBe(true);
     expect(searchTemplates.some((template) => template.includes("/skuPage.{partSlashBraces}.html"))).toBe(true);
+  });
+
+  it("routes ETA 3120-F variants through the declared official family datasheet rule", async () => {
+    const manufacturer = listManufacturerConfigs().find((item) => item.id === "eta")!;
+    const connector = new ETAConnector();
+    const result = await connector.scrape("3120-F521-P7T1-W01D-16A", {
+      manufacturer,
+      runDir: "",
+      documentsDir: "",
+      http: {} as ScrapeContext["http"],
+      downloadDocument: async (doc) => doc,
+      fallback: {
+        scrape: async () => undefined
+      }
+    });
+
+    expect(result.status).toBe("partial");
+    expect(result.productUrl).toContain("D_3120-F_en.pdf");
+    expect(result.documents[0]).toMatchObject({ type: "datasheet", sourceType: "official-fallback" });
+    expect(result.attributes.find((attr) => attr.name === "Catalog Number")?.value).toBe("3120-F521-P7T1-W01D-16A");
+    expect(result.normalized.current).toBeUndefined();
   });
 
   it("configures Schmersal and Spelsberg discovery through current official search pages", () => {

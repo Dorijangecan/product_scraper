@@ -8,6 +8,11 @@ import type {
 } from "../../shared/types.js";
 import { requiredElectricalFields } from "../../shared/product-requirements.js";
 import { catalogTextMatches, compactCatalogNumber } from "./catalog-number.js";
+import {
+  hasMatchingStructuredIdentity,
+  identityConflictReason,
+  structuredIdentityConflict
+} from "./product-identity.js";
 
 export function evaluateQualityGate(
   result: ProductResult,
@@ -16,11 +21,13 @@ export function evaluateQualityGate(
   attempts: ScrapeAttemptRecord[] = []
 ): QualityGateResult {
   const recipe = manufacturer.scrapeRecipe ?? defaultRecipe();
-  const identityConfirmed = confirmsIdentity(result, catalogNumber, manufacturer);
+  const identityConflict = structuredIdentityConflict(result, catalogNumber, manufacturer);
+  const identityConfirmed = !identityConflict && confirmsIdentity(result, catalogNumber, manufacturer);
   const missing = new Set<string>();
   const sectionAttributeCounts = countRecipeSections(result, recipe);
 
   if (!identityConfirmed) missing.add("identity");
+  if (identityConflict) missing.add("identity-conflict");
 
   for (const pattern of recipe.requiredSections ?? []) {
     if (!sectionAttributeCounts[pattern]) missing.add(`section:${pattern}`);
@@ -68,7 +75,9 @@ export function evaluateQualityGate(
   const passed = identityConfirmed && missing.size === 0 && score >= (recipe.confidenceRules?.foundMinScore ?? 70);
   const reason = passed
     ? "Quality gate passed."
-    : missing.size
+    : identityConflict
+      ? identityConflictReason(identityConflict)
+      : missing.size
       ? `Missing required product data: ${[...missing].join("; ")}`
       : `Quality score ${score} below threshold.`;
 
@@ -121,7 +130,7 @@ export function applyQualityGate(
         ...(gate.attempts.at(-1)?.sectionAttributeCounts ?? {})
       }
     },
-    error: status === "found" ? undefined : result.error ?? gate.reason
+    error: status === "found" ? undefined : gate.reason ?? result.error
   };
 }
 
@@ -159,12 +168,13 @@ function confirmsIdentity(result: ProductResult, catalogNumber: string, manufact
   if (result.sources.some((source) => urlContainsIdentitySignal(source.url, catalogNumber))) return true;
   if (result.title && !isSearchLikeText(result.title) && catalogTextMatches(result.title, catalogNumber, match)) return true;
 
-  const structuredIdentity = result.attributes.some((attr) => {
-    const label = `${attr.group ?? ""} ${attr.name}`;
-    if (!isIdentityAttributeLabel(label)) return false;
-    return catalogTextMatches(attr.value, catalogNumber, match);
-  });
-  if (structuredIdentity) return true;
+  if (hasMatchingStructuredIdentity(result, catalogNumber, manufacturer)) return true;
+
+  // Customer-document attributes are only emitted when our extractor found the catalog
+  // number inside the customer file — the very act of the customer doc producing data
+  // for this catalog IS the identity proof. Without this, customer-only items used to
+  // fail "identity" even with 30+ attributes extracted from a matching PDF section.
+  if (result.attributes.some((attr) => attr.parser === "customer-document")) return true;
 
   return result.documents.some((doc) => {
     if (!["datasheet", "certificate", "manual"].includes(doc.type)) return false;
@@ -308,10 +318,6 @@ function urlContainsIdentitySignal(url: string, catalogNumber: string): boolean 
   }
 }
 
-function isIdentityAttributeLabel(label: string): boolean {
-  return /\b(sku|mpn|mlfb|catalog(?:ue)? number|catalog no|product id|productid|model code|article number|item number|part number|order number|type designation|product type|extended product type|global catalog|catalog notes)\b/i.test(label);
-}
-
 function isSearchLikeText(value: string): boolean {
   return /\b(search results?|suche|suchergebnisse|results for)\b/i.test(value);
 }
@@ -321,7 +327,17 @@ function uniqueStrings(values: Array<string | undefined>): string[] {
 }
 
 function hasOfficialEvidence(result: ProductResult, manufacturer: ManufacturerConfig): boolean {
-  return hasTrustedOfficialSource(result, manufacturer) || hasOfficialProductUrl(result, manufacturer);
+  return hasCustomerDocumentEvidence(result) || hasTrustedOfficialSource(result, manufacturer) || hasOfficialProductUrl(result, manufacturer);
+}
+
+/**
+ * Customer-supplied documents are authoritative by design — the customer's own datasheet
+ * trumps anything we'd scrape from the web. Treat them as satisfying the "official source"
+ * requirement so the quality gate doesn't mark a perfectly-customer-sourced product as
+ * failed just because the URL is file:// instead of eaton.com.
+ */
+function hasCustomerDocumentEvidence(result: ProductResult): boolean {
+  return result.sources.some((source) => source.parser === "customer-document");
 }
 
 function hasTrustedOfficialSource(result: ProductResult, manufacturer: ManufacturerConfig): boolean {

@@ -13,6 +13,7 @@ import { parseSchneiderDatasheetReaderPage, parseSchneiderProductPage, parseTele
 import { parseSiemensProductApiResponse } from "../src/server/scrapers/siemens.js";
 import { parseRockwellCutsheetPage, parseRockwellDpp, parseRockwellDrawingsPage } from "../src/server/scrapers/rockwell.js";
 import { SCEConnector, parseSceProductPage } from "../src/server/scrapers/sce.js";
+import { SpelsbergConnector } from "../src/server/scrapers/spelsberg.js";
 import type { FetchedText } from "../src/server/scrapers/http-client.js";
 import type { ScrapeContext } from "../src/server/scrapers/types.js";
 
@@ -150,6 +151,29 @@ describe("manufacturer parsers", () => {
     expect(result.documents.filter((doc) => doc.type === "image").map((doc) => doc.url)).toEqual([
       "https://cdn.productimages.abb.com/9PAA00000348460_400x400.png"
     ]);
+  });
+
+  it("does not copy ABB product-model weight from a sibling catalog payload", () => {
+    const html = `
+      <html><head>
+        <title>1SDA124707R1 | ABB</title>
+        <link rel="canonical" href="https://new.abb.com/products/1SDA124707R1/product" />
+      </head><body>
+        1SDA124707R1
+        <script>
+          var model = {"ProductViewModel":{"Product":{"productDetails":{"item":{"attributes":{
+            "ProductId":{"attributeCode":"ProductId","attributeName":"Product ID","values":[{"text":"1SDA124708R1"}]},
+            "ProductNetWeight":{"attributeCode":"ProductNetWeight","attributeName":"Product Net Weight","values":[{"text":"14 kg"}]},
+            "ProductNetHeight":{"attributeCode":"ProductNetHeight","attributeName":"Product Net Height","values":[{"text":"100 mm"}]}
+          }}}}}};
+        </script>
+      </body></html>
+    `;
+    const result = parseAbbProductPage("1SDA124707R1", fetched(html, "https://new.abb.com/products/1SDA124707R1/product"));
+
+    expect(result.normalized.weight).toBeUndefined();
+    expect(result.normalized.dimensions).toBeUndefined();
+    expect(result.attributes.some((attr) => /weight/i.test(attr.name) && attr.value === "14 kg")).toBe(false);
   });
 
   it("derives ABB voltage range and type from Emax accessory product text", () => {
@@ -635,10 +659,7 @@ describe("manufacturer parsers", () => {
     expect(result.status).toBe("found");
     expect(result.productUrl).toBe("https://www.saginawcontrol.com/partnumber_info/?n=SCE-60EL4812LPPL");
     expect(result.normalized.dimensions).toContain("60.00 x 48.00 x 12.00 in");
-    expect(result.attributes.some((attr) => attr.group === "SCE Family Inference" && attr.name === "Product Designation" && attr.value === "Wall mounted enclosure")).toBe(true);
-    expect(result.attributes.some((attr) => attr.group === "SCE Family Inference" && attr.name === "Color" && attr.value === "ANSI-61 gray")).toBe(true);
-    expect(result.attributes.some((attr) => attr.group === "SCE Family Inference" && attr.name === "Number of Doors" && attr.value === "2")).toBe(true);
-    expect(result.attributes.some((attr) => attr.group === "SCE Family Inference" && attr.name === "Degree of Protection" && attr.value === "IP66")).toBe(true);
+    expect(result.attributes.some((attr) => attr.group === "SCE Family Inference")).toBe(false);
     expect(seenUrls).toContain("fetch:https://www.saginawcontrol.com/advanced-part-search/");
     expect(seenUrls).toContain("fetch:https://www.saginawcontrol.com/partnumber_info/?n=SCE-60EL4812LPPL");
     expect(seenUrls).toContain("powershell:https://www.saginawcontrol.com/partnumber_info/?n=SCE-60EL4812LPPL");
@@ -713,9 +734,7 @@ describe("manufacturer parsers", () => {
     expect(result.attributes.some((attr) => attr.name === "Optional Accessory" && attr.value.includes("SCE-16P12 - Subpanel"))).toBe(true);
     expect(result.attributes.some((attr) => attr.name === "Similar Part" && attr.value === "SCE-16H1208LP - Nema 4 LP Enclosure")).toBe(true);
     expect(result.attributes.some((attr) => attr.group === "Recommended Alternative" && attr.value.includes("SCE-16EL1206LP"))).toBe(true);
-    expect(result.attributes.some((attr) => attr.group === "SCE Family Inference" && attr.name === "Product Designation" && attr.value === "Wall mounted enclosure")).toBe(true);
-    expect(result.attributes.some((attr) => attr.group === "SCE Family Inference" && attr.name === "Degree of Protection" && attr.value === "IP66")).toBe(true);
-    expect(result.attributes.some((attr) => attr.group === "SCE Family Inference" && attr.name === "Number of Locks" && attr.value === "2")).toBe(true);
+    expect(result.attributes.some((attr) => attr.group === "SCE Family Inference")).toBe(false);
     expect(result.attributes.some((attr) => attr.group === "Construction" && attr.value === "Construction")).toBe(false);
     expect(result.documents.some((doc) => doc.type === "manual" && doc.url.includes("deadfrontel-hlp.pdf"))).toBe(true);
   });
@@ -743,6 +762,45 @@ describe("manufacturer parsers", () => {
 
     expect(result.normalized.material).toBe("stainless steel Type 316/316L");
     expect(result.attributes.some((attr) => attr.group === "SCE Catalog Inference" && attr.name === "Material")).toBe(true);
+  });
+
+  it("uses SCE GALV part text to prefer galvanized steel over default steel and white color", () => {
+    const panelPage = (part: string) => `
+      <html><head><title>${part} - Saginaw Control and Engineering</title></head>
+      <body>
+        <h1>${part}</h1>
+        <div class="prod-specs">
+          <p class="prod-info-body"><strong>Part Number</strong>: ${part}</p>
+          <p class="prod-info-body"><strong>Description</strong>: Panel, Sub</p>
+          <p class="prod-info-body"><strong>Height</strong>: 12.00"</p>
+          <p class="prod-info-body"><strong>Width</strong>: 10.00"</p>
+          <p class="prod-info-body"><strong>Est. Ship Weight</strong>: 3.00 lbs</p>
+        </div>
+        <div class="prod-details-div">
+          <p class="prod-info-header">Application</p>
+          <div class="prod-info-body-wrap">
+            <p class="prod-info-body">Panels for single-door enclosures, can be positioned anywhere along the horizontal mounting channels. Mounting hardware is included. Made of heavy gauge steel and powder coated white. GALV panels made of galvanized steel.</p>
+            <p class="prod-info-body">GALV Part numbers are Galvanized.</p>
+          </div>
+        </div>
+        <div class="prod-details-div">
+          <p class="prod-info-header">Finish</p>
+          <p class="prod-info-body">Powder coated white.</p>
+        </div>
+      </body></html>
+    `;
+    const standard = parseSceProductPage("SCE-12P10", fetched(panelPage("SCE-12P10"), "https://www.saginawcontrol.com/partnumber_info/?n=SCE-12P10"));
+    const result = parseSceProductPage("SCE-12P10GALV", fetched(panelPage("SCE-12P10GALV"), "https://www.saginawcontrol.com/partnumber_info/?n=SCE-12P10GALV"));
+
+    expect(standard.normalized.material).toBe("steel");
+    expect(standard.normalized.finish).toBe("Powder coated white.");
+    expect(standard.normalized.color).toBe("white");
+    expect(standard.attributes.some((attr) => attr.group === "SCE Catalog Variant")).toBe(false);
+    expect(standard.attributes.some((attr) => attr.group === "SCE Prose Understanding" && attr.name === "Material" && attr.value === "steel")).toBe(true);
+    expect(result.normalized.material).toBe("galvanized steel");
+    expect(result.normalized.finish).toBe("galvanized");
+    expect(result.normalized.color).toBeUndefined();
+    expect(result.attributes.some((attr) => attr.group === "SCE Catalog Variant" && attr.name === "Material")).toBe(true);
   });
 
   it("parses Saginaw program port part numbers without the SCE prefix", () => {
@@ -2021,6 +2079,60 @@ describe("manufacturer parsers", () => {
     ]);
   });
 
+  it("parses Phoenix Contact reader inline technical data as source-backed specs", () => {
+    const markdown = `
+      # MKDS 1,5/ 2-5,08 - PCB terminal block - 1715721 | Phoenix Contact
+      URL Source: http://www.phoenixcontact.com/product/1715721
+      Printed circuit board terminal, nominal current: 17.5 A, rated voltage (III/2): 400 V, nominal cross section: 1.5 mm 2, number of positions per row: 2, product range: MKDS 1,5, pitch: 5.08 mm, connection method: Screw connection with tension sleeve, color: green.
+      ## Product details
+      - [x] Technical data
+      Product type Printed circuit board terminal Product family MKDS 1,5 Product line COMBICON Terminals S Type PC terminal block can be aligned Number of positions 2 Pitch 5.08 mm
+      Electrical properties Properties Nominal current I N 17.5 A Nominal voltage U N 400 V Rated voltage (III/3)250 V Rated voltage (III/2)400 V
+      Commercial data Item number 1715721 GTIN 4017918024192 Weight per piece (excluding packing)2.74 g Customs tariff number 85369010 Country of origin DE
+      Classifications ECLASS-13.0 27460101 ETIM 10.0 EC002643 UNSPSC 21.0 39121400
+    `;
+    const result = parseGenericProductPage(
+      "phoenix",
+      "1715721",
+      fetched(markdown, "https://r.jina.ai/http://www.phoenixcontact.com/product/1715721"),
+      "official-fallback",
+      "Phoenix Contact product page"
+    );
+
+    expect(result.attributes.some((attr) => attr.name === "Product type" && attr.value === "Printed circuit board terminal")).toBe(true);
+    expect(result.attributes.some((attr) => /^nominal current$/i.test(attr.name) && attr.value === "17.5 A")).toBe(true);
+    expect(result.attributes.some((attr) => /^rated voltage \(III\/2\)$/i.test(attr.name) && attr.value === "400 V")).toBe(true);
+    expect(result.attributes.some((attr) => attr.name === "ECLASS-13.0" && attr.value === "27460101")).toBe(true);
+    expect(result.normalized.current).toBe("17.5 A");
+    expect(result.normalized.voltage).toBe("400 V");
+    expect(result.normalized.weight).toContain("2.74 g");
+  });
+
+  it("parses Phoenix Contact marker-card dimensions and material from reader text", () => {
+    const markdown = `
+      # SK 5,08/3,8:FORTL.ZAHLEN - Marker card - 0804293 | Phoenix Contact
+      URL Source: http://www.phoenixcontact.com/product/0804293
+      Product properties Product type Terminal marker Pitch 5.08 mm Marking Number of individual labels 12
+      Dimensions Width 50 mm Height 3.8 mm Depth 0.075 mm Pitch 5.08 mm Text field Text field width 5.08 mm Text field height 3.8 mm
+      Material specifications Foil strength 53 um Adhesive strength 20 um Adhesive Acrylic Color white (RAL 9010) Material Polyester Base element material Polyester Components free from silicone and halogen
+      Commercial data Item number 0804293 Weight per piece (excluding packing)0.81 g Customs tariff number 49119900 Country of origin DE
+      Classifications ECLASS-13.0 27281101 ETIM 10.0 EC000761 UNSPSC 21.0 39131500
+    `;
+    const result = parseGenericProductPage(
+      "phoenix",
+      "0804293",
+      fetched(markdown, "https://r.jina.ai/http://www.phoenixcontact.com/product/0804293"),
+      "official-fallback",
+      "Phoenix Contact product page"
+    );
+
+    expect(result.attributes.some((attr) => attr.name === "Product type" && attr.value === "Terminal marker")).toBe(true);
+    expect(result.normalized.dimensions).toBe("3.8 x 50 x 0.075 mm");
+    expect(result.normalized.material).toBe("Polyester");
+    expect(result.normalized.color).toBe("white (RAL 9010)");
+    expect(result.normalized.weight).toContain("0.81 g");
+  });
+
   it("parses generic Next-style embedded state and document URLs", () => {
     const html = `
       <html><head>
@@ -2056,6 +2168,32 @@ describe("manufacturer parsers", () => {
     expect(result.attributes.some((attr) => attr.group === "Next Data" && attr.name === "Material" && attr.value === "Steel")).toBe(true);
     expect(result.normalized.weight).toBe("1.2 kg");
     expect(result.documents.some((doc) => doc.type === "datasheet" && doc.url === "https://example.test/downloads/ABC-123-datasheet.pdf")).toBe(true);
+  });
+
+  it("promotes readable markdown document links into generic fallback documents", () => {
+    const markdown = `
+Title: 6ES7193-6BP00-0DA0 | Siemens Industry Mall
+URL Source: https://mall.industry.siemens.com/mall/en/WW/Catalog/Product?mlfb=6ES7193-6BP00-0DA0
+# 6ES7193-6BP00-0DA0
+SIMATIC ET 200SP, BaseUnit BU15-P16+A0+2D
+Article Number: 6ES7193-6BP00-0DA0
+[Download product data sheet](https | //mall.industry.siemens.com/teddatasheet/?format=PDF&mlfbs=6ES7193-6BP00-0DA0&language=en&caller=SiePortal)
+    `;
+    const result = parseGenericProductPage(
+      "siemens",
+      "6ES7193-6BP00-0DA0",
+      fetched(markdown, "https://r.jina.ai/http://mall.industry.siemens.com/mall/en/WW/Catalog/Product?mlfb=6ES7193-6BP00-0DA0"),
+      "official-fallback",
+      "reader-fallback"
+    );
+
+    const datasheet = result.documents.find((doc) => doc.type === "datasheet");
+    expect(datasheet).toMatchObject({
+      label: "Download product data sheet",
+      sourceType: "official-fallback"
+    });
+    expect(datasheet?.url).toBe("https://mall.industry.siemens.com/teddatasheet/?format=PDF&mlfbs=6ES7193-6BP00-0DA0&language=en&caller=SiePortal");
+    expect(result.attributes.some((attr) => /\[Download product data sheet\]/i.test(`${attr.name} ${attr.value}`))).toBe(false);
   });
 
   it("parses generic escaped Next flight product properties and extensionless product images", () => {
@@ -2098,6 +2236,56 @@ describe("manufacturer parsers", () => {
     );
 
     expect(result.documents.some((doc) => doc.type === "datasheet" && doc.url.includes("10590801.pdf"))).toBe(true);
+  });
+
+  it("adds Spelsberg datasheet evidence from the official product finder article number", async () => {
+    const detailHtml = `<html><body><h1>KVR M50</h1><p>Cable gland, polyamide, grey.</p></body></html>`;
+    const context = {
+      manufacturer: {
+        id: "spelsberg",
+        canonicalName: "Spelsberg",
+        shortName: "SPE",
+        rateLimitMs: 0,
+        officialBaseUrls: ["https://www.spelsberg.com", "https://www.spelsberg.de"],
+        localizedUrlTemplates: [],
+        fallbackSources: []
+      },
+      http: {
+        fetchText: async (url: string, init?: { method?: string }) => {
+          if (init?.method === "POST") {
+            return fetched(JSON.stringify({
+              hits: [{
+                artnr: "24745001",
+                name: "KVR M50",
+                produktart: "Cable gland",
+                agtext: "Cable gland, IP68/IP69, polyamide, grey",
+                abmessungen: "60 x 60 x 63 mm",
+                url: "/accessories/spelsberg-general-accessories/24745001/",
+                image: "/media/kvr-m50.jpg",
+                MATERIAL: "Polyamide",
+                EANMINVME: "4013902858095",
+                ETIMKLASSE: "EC000441"
+              }]
+            }), url);
+          }
+          return fetched(detailHtml, url);
+        }
+      },
+      runDir: "",
+      documentsDir: "",
+      downloadDocument: async (doc: Parameters<ScrapeContext["downloadDocument"]>[0]) => doc,
+      fallback: {
+        scrape: async () => undefined
+      }
+    } as unknown as ScrapeContext;
+
+    const result = await new SpelsbergConnector().scrape("KVR M50", context);
+
+    expect(result.productUrl).toBe("https://www.spelsberg.com/accessories/spelsberg-general-accessories/24745001/");
+    expect(result.documents.some((doc) => doc.type === "datasheet" && doc.url === "https://www.spelsberg.com/p/24745001.pdf")).toBe(true);
+    expect(result.documents.some((doc) => doc.type === "image" && doc.url === "https://www.spelsberg.com/media/kvr-m50.jpg")).toBe(true);
+    expect(result.normalized.dimensions).toContain("60 x 60 x 63 mm");
+    expect(result.normalized.material).toContain("Polyamide");
   });
 
   it("does not treat image dimensions metadata as product dimensions or images", () => {

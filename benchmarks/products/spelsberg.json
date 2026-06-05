@@ -1,7 +1,22 @@
-{
-  "manufacturerId": "spelsberg",
-  "catalogNumber": "TK PS 2518-11-m",
-  "expectedOfficialUrlPatterns": ["spelsberg\\.(de|com)/p/"],
-  "requiredDocuments": ["datasheet"],
-  "expectedNormalizedFields": ["dimensions", "material"]
-}
+[
+  {
+    "manufacturerId": "spelsberg",
+    "catalogNumber": "TK PS 2518-11-m",
+    "caseType": "mechanical",
+    "expectedDeviceType": "Enclosure",
+    "riskTags": ["algolia-search", "dimensions-material"],
+    "expectedOfficialUrlPatterns": ["spelsberg\\.(de|com)/p/"],
+    "requiredDocuments": ["datasheet"],
+    "expectedNormalizedFields": ["dimensions", "material"]
+  },
+  {
+    "manufacturerId": "spelsberg",
+    "catalogNumber": "KVR M50",
+    "caseType": "mechanical",
+    "expectedDeviceType": "Cable Gland",
+    "riskTags": ["spelsberg-accessory", "cable-gland", "cable-gland-sheet-coverage"],
+    "expectedOfficialUrlPatterns": ["spelsberg\\.(de|com)/(?:accessories/spelsberg-general-accessories/)?24745001/?"],
+    "requiredDocuments": ["datasheet"],
+    "expectedNormalizedFields": ["dimensions", "material"]
+  }
+]

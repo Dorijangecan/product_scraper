@@ -20,6 +20,7 @@ import { getManufacturerConfig } from "./config/manufacturers.js";
 import type { ScraperDb } from "./db.js";
 import { CachedHttpClient, delay } from "./scrapers/http-client.js";
 import { getConnector } from "./scrapers/index.js";
+import { emptyResult } from "./scrapers/normalizer.js";
 import { finalizeQualityGate } from "./scrapers/quality-gate.js";
 import {
   applyFinalCompletenessStatus,
@@ -190,10 +191,53 @@ export class RunManager {
       const layoutRef = layout!;
       const processItem = async (item: typeof pending[number]): Promise<void> => {
         if (this.db.isCancellationRequested(run.id) || controller.signal.aborted) return;
-        this.updateItemStage(item.id, "official-source", "Scraping official source", { status: "processing", error: undefined });
         await this.appendRunLog(layoutRef, "ITEM_START", { rowIndex: item.rowIndex, catalogNumber: item.catalogNumber });
         // layoutRef is captured via closure (declared above); avoid touching outer `layout` inside this hot path
         try {
+          let customerExtractionFirst: Awaited<ReturnType<typeof extractCustomerDocumentAttributes>> | null = null;
+          const customerFirstShortCircuit = false;
+          let customerEarlyShortCircuit = false;
+          let enriched: ProductResult | undefined;
+          let fallbackStages: string[] | undefined;
+          let initialAttributeCount = 0;
+
+          // First pass: scan customer documents so the user gets early "customer doc matched"
+          // feedback in the UI and so cached parse work primes for the override re-run later.
+          // We DO NOT short-circuit the website — even when the customer doc has everything,
+          // the web pass still supplies product identity (title, official URL) and the user
+          // explicitly asked for both sources to always run, with the customer doc winning
+          // on conflict at the merge step further down.
+          if (!imageOnlyMode && customerDocuments.length > 0) {
+            this.updateItemStage(
+              item.id,
+              "customer-override",
+              `Scanning ${customerDocuments.length} customer document${customerDocuments.length === 1 ? "" : "s"} before manufacturer website lookup`,
+              { status: "processing", error: undefined }
+            );
+            customerExtractionFirst = await extractCustomerDocumentAttributes(item.catalogNumber, customerDocuments, {
+              cache: customerDocumentCache,
+              onProgress: (event) => {
+                const message = formatCustomerProgress(event, item.catalogNumber);
+                if (message) this.updateItemStage(item.id, "customer-override", message);
+              }
+            });
+            if (customerExtractionFirst.attributes.length > 0) {
+              await this.appendRunLog(layoutRef, "CUSTOMER_FIRST_SCAN", {
+                catalogNumber: item.catalogNumber,
+                attributesFound: customerExtractionFirst.attributes.length,
+                documentsFound: customerExtractionFirst.documents.length,
+                reason: "Customer document matched — proceeding with website scrape so both sources contribute; customer values will override on conflict."
+              });
+            } else {
+              await this.appendRunLog(layoutRef, "CUSTOMER_FIRST_SCAN_EMPTY", {
+                catalogNumber: item.catalogNumber,
+                parseFailures: customerExtractionFirst.parseFailures
+              });
+            }
+          }
+
+          {
+          this.updateItemStage(item.id, "official-source", "Scraping official source", { status: "processing", error: undefined });
           const result = await connector.scrape(item.catalogNumber, {
             http,
             manufacturer,
@@ -232,6 +276,7 @@ export class RunManager {
           }
           this.updateItemStage(item.id, "quality-gate", "Checking required fields from official result");
           const initiallyGated = finalizeQualityGate(result, manufacturer);
+          initialAttributeCount = initiallyGated.attributes.length;
           this.updateItemStage(item.id, "downloads", "Downloading product images and documents");
           const withInitialDownloads = await this.downloadDocuments(
             http,
@@ -251,15 +296,13 @@ export class RunManager {
           // as final. Cuts per-item time roughly in half on Balluff.
           // Initialize enriched to withInitialDownloads so every branch below has something to
           // refine; the customer-override / fallback paths overwrite as needed.
-          let enriched: typeof withInitialDownloads = withInitialDownloads;
-          let fallbackStages: string[] | undefined;
+          enriched = withInitialDownloads;
           // Customer documents are authoritative. When the website couldn't find this
           // catalog AND the customer handed us a doc that covers it, scan the customer
           // payload first and short-circuit the heavy fallback chain — there's no point
           // burning minutes on browser fallback / final-network-retry for a catalog the
           // customer already explained to us.
           let customerExtractionEarly: Awaited<ReturnType<typeof extractCustomerDocumentAttributes>> | null = null;
-          let customerEarlyShortCircuit = false;
           if (!imageOnlyMode && customerDocuments.length > 0 && initiallyGated.status === "failed") {
             this.updateItemStage(
               item.id,
@@ -495,10 +538,16 @@ export class RunManager {
           }
           enriched = applyFinalCompletenessStatus(enriched, afterFinalCompleteness, manufacturer);
           } // end of fallback-chain else branch
+          } // end of official-source branch
+
+          if (!enriched) {
+            throw new Error("No product result was produced.");
+          }
+
           // Apply customer override unless we already short-circuited above with the
           // same extraction. The early path skips the heavy pipeline entirely, so the
           // override has already been applied and re-running it would be a no-op.
-          if (customerDocuments.length > 0 && !customerEarlyShortCircuit) {
+          if (customerDocuments.length > 0 && !customerEarlyShortCircuit && !customerFirstShortCircuit) {
             this.updateItemStage(item.id, "customer-override", `Applying customer-provided document data for ${item.catalogNumber}`);
             const customerExtraction = await extractCustomerDocumentAttributes(item.catalogNumber, customerDocuments, {
               cache: customerDocumentCache,
@@ -525,7 +574,8 @@ export class RunManager {
             await this.appendRunLog(layoutRef, "ITEM_CANCELLED", { catalogNumber: item.catalogNumber });
             return;
           }
-          this.updateItemStage(item.id, "complete", `Completed as ${enriched.status}`, {
+          const dataSourceSummary = summarizeDataSource(enriched, { customerFirstShortCircuit, customerEarlyShortCircuit });
+          this.updateItemStage(item.id, "complete", `${dataSourceSummary} — completed as ${enriched.status}`, {
             status: enriched.status,
             title: enriched.title,
             productUrl: enriched.productUrl,
@@ -544,7 +594,7 @@ export class RunManager {
             qualityMissing: enriched.qualityGate?.missing,
             finalCompleteness: enriched.diagnostics?.finalCompleteness,
             fallbackStages,
-            pdfAttributesAdded: Math.max(0, enriched.attributes.length - initiallyGated.attributes.length),
+            pdfAttributesAdded: Math.max(0, enriched.attributes.length - initialAttributeCount),
             downloadFailures: enriched.documents.filter((doc) => doc.downloadStatus === "failed").length,
             error: enriched.error
           });
@@ -889,6 +939,27 @@ export class RunManager {
     };
     await fs.writeFile(layout.debugJsonPath, JSON.stringify(payload, null, 2), "utf8");
   }
+}
+
+function summarizeDataSource(
+  result: ProductResult,
+  flags: { customerFirstShortCircuit: boolean; customerEarlyShortCircuit: boolean }
+): string {
+  const customerAttrs = result.attributes.filter((attr) => attr.parser === "customer-document").length;
+  const webAttrs = result.attributes.length - customerAttrs;
+  if (flags.customerFirstShortCircuit) {
+    return `Loaded from customer document only (website skipped) — ${customerAttrs} attrs`;
+  }
+  if (customerAttrs > 0 && webAttrs > 0) {
+    return `Customer document overrode website — ${customerAttrs} customer attrs, ${webAttrs} web attrs`;
+  }
+  if (customerAttrs > 0) {
+    return `Loaded from customer document — ${customerAttrs} attrs`;
+  }
+  if (flags.customerEarlyShortCircuit) {
+    return `Customer document filled in (website returned nothing) — ${customerAttrs} attrs`;
+  }
+  return `Loaded from manufacturer website — ${webAttrs} attrs`;
 }
 
 function createRunId(): string {

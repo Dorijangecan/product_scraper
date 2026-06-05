@@ -190,9 +190,22 @@ function attributesFromHit(hit: SpelsbergAlgoliaHit, sourceUrl: string): Attribu
 }
 
 function documentsFromHit(hit: SpelsbergAlgoliaHit, sourceUrl: string): DocumentRecord[] {
+  const documents: DocumentRecord[] = [];
+  const articleNumber = cleanText(hit.artnr ?? "");
+  if (/^\d{6,}$/.test(articleNumber)) {
+    documents.push({
+      type: "datasheet",
+      label: cleanText(`${hit.name ?? articleNumber} data sheet`),
+      url: `https://www.spelsberg.com/p/${articleNumber}.pdf`,
+      sourceUrl,
+      sourceType: "official-fallback",
+      parser: "spelsberg-algolia",
+      confidence: 0.72
+    });
+  }
   const imageUrl = absoluteSpelsbergUrl(hit.image);
-  return imageUrl
-    ? [{
+  if (imageUrl) {
+    documents.push({
         type: "image",
         label: cleanText(`${hit.name ?? "Spelsberg"} product image`),
         url: imageUrl,
@@ -200,8 +213,9 @@ function documentsFromHit(hit: SpelsbergAlgoliaHit, sourceUrl: string): Document
         sourceType: "official-fallback",
         parser: "spelsberg-algolia",
         confidence: 0.72
-      }]
-    : [];
+    });
+  }
+  return documents;
 }
 
 function officialProductUrlFromHit(hit: SpelsbergAlgoliaHit): string | undefined {

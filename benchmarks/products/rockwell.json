@@ -1,7 +1,82 @@
-{
-  "manufacturerId": "rockwell",
-  "catalogNumber": "800F-X10",
-  "expectedOfficialUrlPatterns": ["rockwellautomation\\.com/.*/products/details\\.800F-X10\\.html"],
-  "requiredDocuments": ["datasheet"],
-  "expectedNormalizedFields": ["certificates"]
-}
+[
+  {
+    "manufacturerId": "rockwell",
+    "catalogNumber": "800F-X10",
+    "caseType": "accessory",
+    "expectedDeviceType": "Pushbutton / Operator",
+    "riskTags": ["official-datasheet", "accessory-no-synthesis"],
+    "expectedOfficialUrlPatterns": ["rockwellautomation\\.com/.*/products/details\\.800F-X10\\.html"],
+    "requiredDocuments": ["datasheet"],
+    "expectedNormalizedFields": ["certificates"]
+  },
+  {
+    "manufacturerId": "rockwell",
+    "catalogNumber": "1783-US5T",
+    "caseType": "edge",
+    "expectedDeviceType": "Communication Gateway",
+    "riskTags": ["stratix-switch", "official-dpp", "plc-rs232-sheet-coverage"],
+    "expectedOfficialUrlPatterns": ["rockwellautomation\\.com/.*/products/details\\.1783-US5T\\.html"],
+    "requiredDocuments": ["image", "datasheet"],
+    "expectedNormalizedFields": ["dimensions", "weight", "certificates"]
+  },
+  {
+    "manufacturerId": "rockwell",
+    "catalogNumber": "1769-PB4",
+    "caseType": "electrical",
+    "expectedDeviceType": "Power Supply",
+    "riskTags": ["compactlogix-power-supply", "official-dpp", "power-supply-devices"],
+    "expectedOfficialUrlPatterns": ["rockwellautomation\\.com/.*/products/details\\.1769-PB4\\.html"],
+    "requiredDocuments": ["image", "datasheet"],
+    "expectedNormalizedFields": ["dimensions", "weight", "certificates"]
+  },
+  {
+    "manufacturerId": "rockwell",
+    "catalogNumber": "2715P-T7CD",
+    "caseType": "electrical",
+    "expectedDeviceType": "HMI",
+    "riskTags": ["panelview-hmi", "official-dpp", "panel-hmi-sheet-coverage"],
+    "expectedOfficialUrlPatterns": ["rockwellautomation\\.com/.*/products/details\\.2715P-T7CD\\.html"],
+    "requiredDocuments": ["image", "datasheet"],
+    "expectedNormalizedFields": ["dimensions", "weight", "certificates"]
+  },
+  {
+    "manufacturerId": "rockwell",
+    "catalogNumber": "1492-J3",
+    "caseType": "mechanical",
+    "expectedDeviceType": "Terminal Block",
+    "riskTags": ["terminal-block", "official-dpp", "terminal-sheet-coverage"],
+    "expectedOfficialUrlPatterns": ["rockwellautomation\\.com/.*/products/details\\.1492-j3\\.html"],
+    "requiredDocuments": ["image"],
+    "expectedNormalizedFields": ["dimensions"]
+  },
+  {
+    "manufacturerId": "rockwell",
+    "catalogNumber": "1492-EAJ35",
+    "caseType": "mechanical",
+    "expectedDeviceType": "Terminal Accessory",
+    "riskTags": ["terminal-accessory", "end-anchor", "terminal-endbracket-sheet-coverage", "1492-family-disambiguation"],
+    "expectedOfficialUrlPatterns": ["rockwellautomation\\.com/.*/products/details\\.1492-eaj35\\.html"],
+    "requiredDocuments": ["image", "datasheet"],
+    "expectedNormalizedFields": ["dimensions"]
+  },
+  {
+    "manufacturerId": "rockwell",
+    "catalogNumber": "1756-M02AE",
+    "caseType": "electrical",
+    "expectedDeviceType": "Motion Controller",
+    "riskTags": ["motion-controller", "controllogix-motion-module", "motion-controller-sheet-coverage"],
+    "expectedOfficialUrlPatterns": ["rockwellautomation\\.com/.*/products/details\\.1756-m02ae\\.html"],
+    "requiredDocuments": ["datasheet"],
+    "expectedNormalizedFields": ["certificates"]
+  },
+  {
+    "manufacturerId": "rockwell",
+    "catalogNumber": "802T-KPE",
+    "caseType": "electrical",
+    "expectedDeviceType": "Switch",
+    "riskTags": ["limit-switch", "switch-sheet-coverage", "official-datasheet"],
+    "expectedOfficialUrlPatterns": ["rockwellautomation\\.com/.*/products/details\\.802t-kpe\\.html"],
+    "requiredDocuments": ["datasheet"],
+    "expectedNormalizedFields": ["certificates"]
+  }
+]

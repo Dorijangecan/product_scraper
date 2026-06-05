@@ -1,7 +1,52 @@
-{
-  "manufacturerId": "eaton",
-  "catalogNumber": "P1-25/I2/SVB",
-  "expectedOfficialUrlPatterns": ["eaton\\.com/.*/skuPage"],
-  "requiredDocuments": ["datasheet"],
-  "expectedNormalizedFields": ["current", "dimensions", "weight"]
-}
+[
+  {
+    "manufacturerId": "eaton",
+    "catalogNumber": "P1-25/I2/SVB",
+    "caseType": "electrical",
+    "expectedDeviceType": "Disconnect Switch",
+    "riskTags": ["eaton-url-format", "electrical-ratings"],
+    "expectedOfficialUrlPatterns": ["eaton\\.com/.*/skuPage"],
+    "requiredDocuments": ["datasheet"],
+    "expectedNormalizedFields": ["current", "dimensions", "weight"]
+  },
+  {
+    "manufacturerId": "eaton",
+    "catalogNumber": "PKZM0-10",
+    "caseType": "electrical",
+    "expectedDeviceType": "Motor Circuit Breaker",
+    "riskTags": ["eaton-url-format", "motor-protection", "manual-motor-protector"],
+    "expectedOfficialUrlPatterns": ["eaton\\.com/.*/skuPage\\.PKZM0-10\\.html"],
+    "requiredDocuments": ["datasheet"],
+    "expectedNormalizedFields": ["current", "dimensions", "weight"]
+  },
+  {
+    "manufacturerId": "eaton",
+    "catalogNumber": "222AS10051A",
+    "caseType": "mechanical",
+    "expectedDeviceType": "Filter",
+    "riskTags": ["eaton-url-format", "filter-element", "filters-sheet-coverage"],
+    "expectedOfficialUrlPatterns": ["eaton\\.com/.*/skuPage\\.222AS10051A\\.html"],
+    "requiredDocuments": ["datasheet"],
+    "expectedNormalizedFields": ["dimensions", "weight", "material"]
+  },
+  {
+    "manufacturerId": "eaton",
+    "catalogNumber": "BRP42BC225",
+    "caseType": "electrical",
+    "expectedDeviceType": "Loadcenter",
+    "riskTags": ["eaton-url-format", "loadcenter", "energy-distribution-system-sheet-coverage"],
+    "expectedOfficialUrlPatterns": ["eaton\\.com/.*/skuPage\\.BRP42BC225\\.html"],
+    "requiredDocuments": ["datasheet"],
+    "expectedNormalizedFields": ["current", "dimensions", "weight", "voltage"]
+  },
+  {
+    "manufacturerId": "eaton",
+    "catalogNumber": "M030-151",
+    "caseType": "electrical",
+    "expectedDeviceType": "Current Sensor",
+    "riskTags": ["eaton-url-format", "current-sensor", "electrical-measurement-devices-sheet-coverage"],
+    "expectedOfficialUrlPatterns": ["eaton\\.com/.*/skuPage\\.M030-151\\.html"],
+    "requiredDocuments": ["datasheet"],
+    "expectedNormalizedFields": ["current", "dimensions", "weight"]
+  }
+]

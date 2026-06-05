@@ -1,7 +1,52 @@
-{
-  "manufacturerId": "sce",
-  "catalogNumber": "SCE-12EL1206LP",
-  "expectedOfficialUrlPatterns": ["saginawcontrol\\.com/partnumber_info"],
-  "requiredDocuments": ["image"],
-  "expectedNormalizedFields": ["dimensions", "weight"]
-}
+[
+  {
+    "manufacturerId": "sce",
+    "catalogNumber": "SCE-12EL1206LP",
+    "caseType": "mechanical",
+    "expectedDeviceType": "Enclosure",
+    "riskTags": ["saginaw-url-format", "dimensions-weight"],
+    "expectedOfficialUrlPatterns": ["saginawcontrol\\.com/partnumber_info"],
+    "requiredDocuments": ["image"],
+    "expectedNormalizedFields": ["dimensions", "weight"]
+  },
+  {
+    "manufacturerId": "sce",
+    "catalogNumber": "SCE-FK0618",
+    "caseType": "mechanical",
+    "expectedDeviceType": "Mounting Accessory",
+    "riskTags": ["saginaw-url-format", "mounting-accessory", "family-correction"],
+    "expectedOfficialUrlPatterns": ["saginawcontrol\\.com/partnumber_info"],
+    "requiredDocuments": ["image"],
+    "expectedNormalizedFields": ["dimensions", "weight", "material"]
+  },
+  {
+    "manufacturerId": "sce",
+    "catalogNumber": "SCE-AC3400B120V",
+    "caseType": "electrical",
+    "expectedDeviceType": "Thermal Management",
+    "riskTags": ["saginaw-url-format", "thermal-management", "air-conditioner", "voltage-rated"],
+    "expectedOfficialUrlPatterns": ["saginawcontrol\\.com/partnumber_info"],
+    "requiredDocuments": ["image", "manual"],
+    "expectedNormalizedFields": ["dimensions", "weight", "material", "voltage", "protection", "certificates"]
+  },
+  {
+    "manufacturerId": "sce",
+    "catalogNumber": "SCE-LF1824VDC",
+    "caseType": "electrical",
+    "expectedDeviceType": "Luminaire",
+    "riskTags": ["saginaw-url-format", "luminaire", "led-light-fixture", "voltage-rated"],
+    "expectedOfficialUrlPatterns": ["saginawcontrol\\.com/partnumber_info"],
+    "requiredDocuments": ["image"],
+    "expectedNormalizedFields": ["dimensions", "weight", "voltage"]
+  },
+  {
+    "manufacturerId": "sce",
+    "catalogNumber": "P-P11R2-K3RF0-U450",
+    "caseType": "accessory",
+    "expectedDeviceType": "Connector",
+    "riskTags": ["saginaw-url-format", "programming-port", "connector", "accessory-no-synthesis"],
+    "expectedOfficialUrlPatterns": ["saginawcontrol\\.com/partnumber_info"],
+    "requiredDocuments": ["image", "manual"],
+    "expectedNormalizedFields": ["dimensions", "weight", "material", "certificates"]
+  }
+]

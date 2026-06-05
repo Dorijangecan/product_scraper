@@ -1,6 +1,9 @@
 {
   "manufacturerId": "schmersal",
   "catalogNumber": "AZM300B-ST-1P2P-A",
+  "caseType": "electrical",
+  "expectedDeviceType": "Safety Sensor",
+  "riskTags": ["configured-fallback", "safety-device"],
   "expectedOfficialUrlPatterns": ["products\\.schmersal\\.com/.*/AZM300B-ST-1P2P-A\\.html"],
   "requiredDocuments": ["image"],
   "expectedNormalizedFields": ["certificates"]

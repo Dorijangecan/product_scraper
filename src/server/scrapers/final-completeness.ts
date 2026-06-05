@@ -9,6 +9,7 @@ import type {
 } from "../../shared/types.js";
 import { requiredElectricalFields } from "../../shared/product-requirements.js";
 import { cleanText, normalizeFields } from "./normalizer.js";
+import { structuredIdentityConflict } from "./product-identity.js";
 
 export type FinalCompletenessField = "image" | keyof Pick<
   NormalizedProductFields,
@@ -87,6 +88,10 @@ export function repairFinalCompletenessFromEvidence(
   manufacturer: ManufacturerConfig,
   audit: FinalCompletenessAudit = evaluateFinalCompleteness(result, manufacturer)
 ): FinalCompletenessRepairResult {
+  if (structuredIdentityConflict(result, result.catalogNumber, manufacturer)) {
+    return { result, repairedFields: [], records: [] };
+  }
+
   const repairFields = uniqueFields([...audit.retryMissing, ...audit.missing]).filter((field) => field !== "image" || !audit.notApplicable.includes(field));
   const attributes: AttributeRecord[] = [];
   const documents: DocumentRecord[] = [];
@@ -450,7 +455,7 @@ function repairFieldFromAttributes(
 }
 
 function requiresFieldEvidenceForRepair(field: FinalCompletenessField): boolean {
-  return field === "dimensions" || field === "voltage" || field === "current";
+  return field === "weight" || field === "dimensions" || field === "voltage" || field === "current";
 }
 
 function valueExtractor(field: FinalCompletenessField): (value: string, label: string) => string | undefined {

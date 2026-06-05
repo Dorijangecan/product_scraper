@@ -326,6 +326,8 @@ export function parseGenericProductPage(
   });
 
   attributes.push(...extractPlainTextAttributes(fetched.text, fetched.effectiveUrl));
+  attributes.push(...extractKnownPlainTextSpecAttributes(fetched.text, fetched.effectiveUrl));
+  documents.push(...extractPlainTextDocumentLinks(fetched.text, fetched.effectiveUrl, catalogNumber, options));
 
   const markerData = extractMarkerData(fetched.text, options.markerRules, fetched.effectiveUrl);
   attributes.push(...markerData.attributes);
@@ -562,6 +564,7 @@ function isDownloadableProductDocumentUrl(url: string): boolean {
   return (
     /\.(pdf|zip|dwg|dxf|stp|step)(\?|$)/i.test(url) ||
     /\.download\?[^#]*(?:file|uri)=[^#]*\.(?:pdf|zip|dwg|dxf|stp|step)/i.test(url) ||
+    /\/teddatasheet\/?\?[^#]*(?:format=pdf|mlfbs=)/i.test(url) ||
     /\/documents\/(?:td|in|sg)\//i.test(url) ||
     /\/cutsheet(?:[?#]|$)/i.test(url)
   );
@@ -1525,6 +1528,12 @@ function uniqueStringValues(values: string[]): string[] {
 
 function extractCertificationAttributes($: cheerio.CheerioAPI, sourceUrl: string): AttributeRecord[] {
   const values = new Set<string>();
+  // Rendered certification lists (e.g. Rockwell's <ul class="ra-product-new__certification-list">)
+  // beat icon alt-text guesses: the list enumerates every approval, the icons only show the top few.
+  $("[class*='certification-list'] li, [class*='certifications-list'] li, [class*='approval-list'] li").each((_, element) => {
+    const text = cleanText($(element).text());
+    if (text) values.add(text);
+  });
   $("img[src],img[data-src],img[alt],a[href]").each((_, element) => {
     const context = cleanText(
       [
@@ -1559,6 +1568,7 @@ function extractPlainTextAttributes(text: string, sourceUrl: string): AttributeR
   const attributes: AttributeRecord[] = [];
   for (let index = 0; index < lines.length; index += 1) {
     const line = lines[index];
+    if (isPlainTextMarkdownLinkLine(line)) continue;
     const tableMatch = line.match(/^\|?\s*([^|]{2,90})\s+\|\s+([^|]{1,300})\s*\|?$/);
     if (tableMatch) {
       attributes.push({ group: "Plain Text", name: cleanText(tableMatch[1]), value: cleanText(tableMatch[2]), sourceUrl });
@@ -1566,7 +1576,9 @@ function extractPlainTextAttributes(text: string, sourceUrl: string): AttributeR
     }
     const pair = splitNameValue(line);
     if (pair) {
-      attributes.push({ group: "Plain Text", ...pair, sourceUrl });
+      if (!isInlineSpecSummaryPair(pair)) {
+        attributes.push({ group: "Plain Text", ...pair, sourceUrl });
+      }
       continue;
     }
     if (isPlainTextLabel(line)) {
@@ -1575,6 +1587,200 @@ function extractPlainTextAttributes(text: string, sourceUrl: string): AttributeR
     }
   }
   return dedupeAttributes(attributes).slice(0, 120);
+}
+
+function isInlineSpecSummaryPair(pair: { name: string; value: string }): boolean {
+  return (
+    pair.name.includes(",") &&
+    /,\s*(?:rated|nominal|number of|product range|pitch|connection method|mounting|color|gtin|weight|customs tariff)\b/i.test(pair.value)
+  );
+}
+
+function extractKnownPlainTextSpecAttributes(text: string, sourceUrl: string): AttributeRecord[] {
+  const attributes: AttributeRecord[] = [];
+  const normalizedText = text
+    .split(/\r?\n/)
+    .map(cleanText)
+    .filter(Boolean)
+    .join(" ");
+
+  for (const match of normalizedText.matchAll(/(?:^|[,.]\s+)([A-Za-z][A-Za-z0-9 /()[\].+-]{2,80}?):\s*([^,;\n]{1,160})/g)) {
+    const name = cleanText(match[1]);
+    const value = cleanInlineSpecValue(match[2]);
+    if (!isKnownInlineSpecLabel(name) || !value) continue;
+    attributes.push({ group: "Plain Text Specs", name, value, sourceUrl });
+  }
+
+  const fixedPatterns: Array<{
+    name: string | ((match: RegExpMatchArray) => string);
+    value: (match: RegExpMatchArray) => string;
+    pattern: RegExp;
+  }> = [
+    {
+      name: "Nominal current",
+      value: (match) => match[1],
+      pattern: /\bNominal current(?:\s+I\s*N)?\s+(\d+(?:[.,]\d+)?\s*(?:mA|A|kA))\b/gi
+    },
+    {
+      name: "Nominal voltage",
+      value: (match) => match[1],
+      pattern: /\bNominal voltage(?:\s+U\s*N)?\s+(\d+(?:[.,]\d+)?\s*(?:mV|V|kV))\b/gi
+    },
+    {
+      name: (match) => `Rated voltage${match[1] ? ` ${cleanText(match[1])}` : ""}`,
+      value: (match) => match[2],
+      pattern: /\bRated voltage\s*(\([^)]{1,24}\))?\s*(\d+(?:[.,]\d+)?\s*(?:mV|V|kV))\b/gi
+    },
+    {
+      name: "GTIN",
+      value: (match) => match[1],
+      pattern: /\bGTIN\s+(\d{8,14})\b/gi
+    },
+    {
+      name: (match) => `Weight per piece (${cleanText(match[1])} packing)`,
+      value: (match) => match[2],
+      pattern: /\bWeight per piece \((including|excluding) packing\)\s*(\d+(?:[.,]\d+)?\s*(?:mg|g|kg|lb|lbs|oz))\b/gi
+    },
+    {
+      name: "Customs tariff number",
+      value: (match) => match[1],
+      pattern: /\bCustoms tariff number\s+([0-9]{6,12})\b/gi
+    },
+    {
+      name: "Product type",
+      value: (match) => match[1],
+      pattern: /\bProduct type\s+([A-Za-z][A-Za-z0-9 /().,+-]{2,120}?)(?=\s+Product family\b|\s+Product line\b|\s+Type\b|\s+Number of\b|\s+Pitch\b|$)/gi
+    },
+    {
+      name: "Product family",
+      value: (match) => match[1],
+      pattern: /\bProduct family\s+([A-Za-z0-9][A-Za-z0-9 /().,+-]{1,80}?)(?=\s+Product line\b|\s+Type\b|\s+Number of\b|\s+Pitch\b|$)/gi
+    },
+    {
+      name: "Product line",
+      value: (match) => match[1],
+      pattern: /\bProduct line\s+([A-Za-z0-9][A-Za-z0-9 /().,+-]{1,100}?)(?=\s+Type\b|\s+Number of\b|\s+Pitch\b|$)/gi
+    },
+    {
+      name: "Country of origin",
+      value: (match) => match[1],
+      pattern: /\bCountry of origin\s+([A-Z]{2})\b/g
+    },
+    {
+      name: (match) => `ECLASS-${match[1]}`,
+      value: (match) => match[2],
+      pattern: /\bECLASS-([0-9]+(?:\.[0-9]+)?)\s+([0-9]{6,10})\b/gi
+    },
+    {
+      name: (match) => `ETIM ${match[1]}`,
+      value: (match) => match[2],
+      pattern: /\bETIM\s+([0-9]+(?:\.[0-9]+)?)\s+(EC[0-9]{6})\b/gi
+    },
+    {
+      name: (match) => `UNSPSC ${match[1]}`,
+      value: (match) => match[2],
+      pattern: /\bUNSPSC\s+([0-9]+(?:\.[0-9]+)?)\s+([0-9]{6,10})\b/gi
+    }
+  ];
+
+  for (const entry of fixedPatterns) {
+    for (const match of normalizedText.matchAll(entry.pattern)) {
+      const name = typeof entry.name === "function" ? entry.name(match) : entry.name;
+      const value = cleanInlineSpecValue(entry.value(match));
+      if (!name || !value) continue;
+      attributes.push({ group: "Plain Text Specs", name, value, sourceUrl });
+    }
+  }
+
+  const dimensions = normalizedText.match(
+    /\bDimensions\s+Width\s+(\d+(?:[.,]\d+)?\s*(?:mm|cm|m|in|inch|inches))\s+Height\s+(\d+(?:[.,]\d+)?\s*(?:mm|cm|m|in|inch|inches))\s+Depth\s+(\d+(?:[.,]\d+)?\s*(?:mm|cm|m|in|inch|inches))\b/i
+  );
+  if (dimensions) {
+    attributes.push(
+      { group: "Plain Text Specs", name: "Width", value: cleanInlineSpecValue(dimensions[1]), sourceUrl },
+      { group: "Plain Text Specs", name: "Height", value: cleanInlineSpecValue(dimensions[2]), sourceUrl },
+      { group: "Plain Text Specs", name: "Depth", value: cleanInlineSpecValue(dimensions[3]), sourceUrl }
+    );
+  }
+
+  const color = normalizedText.match(/\bColor\s+([A-Za-z][A-Za-z0-9 /().-]{1,80}?)(?=\s+Material\b|\s+Base element material\b|\s+Components\b|$)/i);
+  if (color) attributes.push({ group: "Plain Text Specs", name: "Color", value: cleanInlineSpecValue(color[1]), sourceUrl });
+
+  const material = normalizedText.match(/\bMaterial\s+([A-Za-z][A-Za-z0-9 /().-]{1,80}?)(?=\s+Base element material\b|\s+Components\b|$)/i);
+  if (material) attributes.push({ group: "Plain Text Specs", name: "Material", value: cleanInlineSpecValue(material[1]), sourceUrl });
+
+  const baseMaterial = normalizedText.match(/\bBase element material\s+([A-Za-z][A-Za-z0-9 /().-]{1,80}?)(?=\s+Components\b|$)/i);
+  if (baseMaterial) attributes.push({ group: "Plain Text Specs", name: "Base element material", value: cleanInlineSpecValue(baseMaterial[1]), sourceUrl });
+
+  return dedupeAttributes(attributes).slice(0, 120);
+}
+
+function isKnownInlineSpecLabel(name: string): boolean {
+  return /^(?:product type|product family|product line|type|nominal current|rated current|nominal voltage|rated voltage(?:\s*\([^)]{1,24}\))?|nominal cross section|cross section|number of potentials|number of rows|number of positions(?: per row)?|number of connections|pitch|connection method|mounting|mounting type|color|contact surface|contact connection type|pin layout|solder pin(?:\s*\[[^\]]+\])?|number of solder pins per potential|plug-in system|type of packaging|item number|packing unit|minimum order quantity|sales key|product key|gtin|weight per piece(?:\s*\([^)]{1,40}\))?|customs tariff number|country of origin)$/i.test(
+    name
+  );
+}
+
+function cleanInlineSpecValue(value: string): string {
+  return cleanText(value)
+    .replace(/!\[[^\]]*]\([^)]*\)/g, "")
+    .replace(/\[[^\]]*]\([^)]*\)/g, "")
+    .replace(/\s*(?:## Product details.*|- \[x\].*)$/i, "")
+    .replace(/\.$/, "")
+    .trim();
+}
+
+function isPlainTextMarkdownLinkLine(line: string): boolean {
+  return /^(?:\*+\s*)?!?\[[^\]]+\]\(https?\s*(?:[:|]\s*)?\/\//i.test(line);
+}
+
+function extractPlainTextDocumentLinks(
+  text: string,
+  sourceUrl: string,
+  catalogNumber: string,
+  options: GenericParseOptions
+): DocumentRecord[] {
+  const documents: DocumentRecord[] = [];
+  for (const match of text.matchAll(/!?\[([^\]]{1,180})\]\(([^)\r\n]{1,1000})\)/g)) {
+    const label = cleanText(match[1]);
+    const rawUrl = cleanText(match[2]);
+    const absolute = toAbsoluteUrl(normalizePlainTextLinkUrl(rawUrl), sourceUrl);
+    if (!label || !absolute) continue;
+    if (matchesAnyPattern(absolute, options.extractionPolicy?.ignoredDocumentUrlPatterns)) continue;
+    const policyDocumentMatch = matchesAnyPattern(absolute, options.extractionPolicy?.documentUrlPatterns);
+    const type = classifyDocument(label, absolute);
+    if (!isDownloadableProductDocumentUrl(absolute) && !isLikelyImageUrl(absolute) && !policyDocumentMatch && !isDocumentLikePlainTextLink(label, type)) {
+      continue;
+    }
+    if (
+      type === "other" &&
+      !policyDocumentMatch &&
+      !catalogTextMatches(absolute, catalogNumber, options.match) &&
+      !catalogTextMatches(label, catalogNumber, options.match)
+    ) {
+      continue;
+    }
+    documents.push({
+      type,
+      label,
+      url: absolute,
+      sourceUrl
+    });
+  }
+  return dedupeDocuments(documents).slice(0, 80);
+}
+
+function normalizePlainTextLinkUrl(value: string): string {
+  return cleanText(value)
+    .replace(/^<|>$/g, "")
+    .replace(/^(https?)\s*\|\s*\/\//i, "$1://")
+    .replace(/^(https?)\s*:\s+\/\//i, "$1://")
+    .replace(/\s+/g, "%20");
+}
+
+function isDocumentLikePlainTextLink(label: string, type: DocumentRecord["type"]): boolean {
+  if (type !== "other") return true;
+  return /\b(download|document|datasheet|data sheet|manual|instruction|certificate|declaration|conformity|cad|drawing|spec(?:ification)? sheet|technical)\b/i.test(label);
 }
 
 function isPlainTextNoiseLine(line: string): boolean {

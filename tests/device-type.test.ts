@@ -110,8 +110,11 @@ describe("device type classifier", () => {
       ["27-28-04-02", "RFID Device"],
       ["27-11-03-50", "Luminaire"],
       ["27-06-03-11", "Cable"],
+      ["27-28-11-01", "Wire Marker"],
       ["27-44-01-02", "Connector"],
       ["27-44-01-14", "Optical Connector"],
+      ["27-46-01-01", "PCB Terminal Block"],
+      ["27-46-02-01", "PCB Connector"],
       ["27-14-23-90", "Lock / Interlock"],
       ["27-37-10-03", "Contactor"],
       ["27-37-13-07", "Lock / Interlock"],
@@ -137,9 +140,12 @@ describe("device type classifier", () => {
       ["EC001852", "Sensor"],
       ["EC002593", "Safety Sensor"],
       ["EC000232", "Luminaire"],
+      ["EC000761", "Wire Marker"],
       ["EC000030", "Sensor"],
       ["EC001829", "Sensor"],
       ["EC002998", "RFID Device"],
+      ["EC002637", "PCB Connector"],
+      ["EC002643", "PCB Terminal Block"],
       ["EC002051", "Lock / Interlock"],
       ["EC002498", "Accessory"]
     ] as const;
@@ -296,6 +302,20 @@ describe("device type classifier", () => {
         })
       ).type
     ).toBe("Valve");
+
+    expect(
+      classifyDeviceType(
+        product(
+          [{ group: "Siemens API", name: "Product Family", value: "BaseUnits", sourceType: "official" }],
+          "SIMATIC ET 200SP, BaseUnit BU15-P16+A0+2D",
+          {
+            manufacturerId: "siemens",
+            catalogNumber: "6ES7193-6BP00-0DA0",
+            description: "SIMATIC ET 200SP BaseUnit, push-in terminals, without aux. terminals."
+          }
+        )
+      ).type
+    ).toBe("Module Carrier");
   });
 
   it("prefers a specific sensor kind over the generic Sensor fallback even when generic wins on source weight", () => {
@@ -307,6 +327,19 @@ describe("device type classifier", () => {
       "Inductive Proximity Sensor M12 PNP"
     );
     expect(classifyDeviceType(result).type).toBe("Inductive Proximity Sensor");
+  });
+
+  it("classifies Balluff capacitive level sensors as Capacitive Sensor instead of generic Sensor", () => {
+    const result = product(
+      [
+        { group: "Balluff Key features", name: "Product group", value: "Capacitive level sensors", sourceType: "official" },
+        { group: "Balluff Key features", name: "Operating voltage Ub", value: "18...30 VDC", sourceType: "official" }
+      ],
+      "BCS01CY (BCS R08RRE-PICFHC-BP00,3-GS04) Cubic version with teachable switching distance",
+      { manufacturerId: "balluff", catalogNumber: "BCS01CY" }
+    );
+
+    expect(classifyDeviceType(result).type).toBe("Capacitive Sensor");
   });
 
   it("classifies a circuit breaker without misfiring on the generic Switch rule", () => {
@@ -347,6 +380,49 @@ describe("device type classifier", () => {
       "MC3 Motion Controller"
     );
     expect(classifyDeviceType(result).type).toBe("Motion Controller");
+  });
+
+  it("classifies analog servo modules as motion controllers, not generic I/O modules", () => {
+    const result = product(
+      [{ group: "General", name: "Product Type", value: "ControlLogix 2 Axis Analog Servo Module", sourceType: "official" }],
+      "1756-M02AE 2-Axis Servo, Analog/ENC-LCP"
+    );
+    expect(classifyDeviceType(result).type).toBe("Motion Controller");
+  });
+
+  it("classifies axis servo descriptions as motion controllers even when the title is sparse", () => {
+    const result = product(
+      [{ group: "General", name: "Description", value: "2-Axis Servo, Analog/ENC-LCP", sourceType: "official" }],
+      "1756-M02AE"
+    );
+    expect(classifyDeviceType(result).type).toBe("Motion Controller");
+  });
+
+  it("keeps ordinary analog input modules classified as I/O modules", () => {
+    const result = product(
+      [{ group: "General", name: "Product Type", value: "Analog input module", sourceType: "official" }],
+      "1756-IF16 analog input module"
+    );
+    expect(classifyDeviceType(result).type).toBe("I/O Module");
+  });
+
+  it("uses the narrower Rockwell 1756 motion family before the broad 1756 I/O family", () => {
+    const motion = product(
+      [{ group: "General", name: "Product Name", value: "ControlLogix 2 Axis Analog Servo Module", sourceType: "official" }],
+      "1756-M02AE"
+    );
+    motion.manufacturerId = "rockwell";
+    motion.catalogNumber = "1756-M02AE";
+
+    const io = product(
+      [{ group: "General", name: "Product Name", value: "ControlLogix analog input module", sourceType: "official" }],
+      "1756-IF16"
+    );
+    io.manufacturerId = "rockwell";
+    io.catalogNumber = "1756-IF16";
+
+    expect(classifyDeviceType(motion).type).toBe("Motion Controller");
+    expect(classifyDeviceType(io).type).toBe("I/O Module");
   });
 
   it("classifies a three-phase motor", () => {
@@ -480,6 +556,29 @@ describe("device type classifier", () => {
     expect(classifyDeviceType(result).type).toBe("Rack Cabinet");
   });
 
+  it("classifies a communication/server cabinet with rack-unit evidence as Rack Cabinet", () => {
+    const result = product(
+      [
+        { group: "Product specifications", name: "Cabinet Type", value: "Communication and Server", sourceType: "official" },
+        { group: "Product specifications", name: "Rack Mount Spacing", value: "19-in", sourceType: "official" },
+        { group: "Product specifications", name: "Material", value: "Steel", sourceType: "official" }
+      ],
+      "ProLine S1 Cabinet, 1200x600x900mm, Black, Steel"
+    );
+    expect(classifyDeviceType(result).type).toBe("Rack Cabinet");
+  });
+
+  it("does not classify rack-angle accessories as Rack Cabinet", () => {
+    const result = product(
+      [
+        { group: "Product specifications", name: "Product Type", value: "19-inch rack angle", sourceType: "official" },
+        { group: "Product specifications", name: "Used With", value: "ProLine G2 frame", sourceType: "official" }
+      ],
+      "ProLine G2 19-Inch Rack Angle Sq Hole"
+    );
+    expect(classifyDeviceType(result).type).not.toBe("Rack Cabinet");
+  });
+
   it("classifies a Modbus gateway as Communication Gateway (not I/O Module)", () => {
     const result = product(
       [{ group: "General", name: "Product Type", value: "Modbus gateway RS485 to Ethernet", sourceType: "official" }],
@@ -597,14 +696,62 @@ describe("device type classifier — family / series signals", () => {
     expect(classifyDeviceType(result).type).toBe("Contactor");
   });
 
-  it("classifies SCE filter kits via family even with bare catalog input", () => {
+  it("classifies SCE floor stand kits via family even with bare catalog input", () => {
     const result = product([], "SCE-FK0618", { manufacturerId: "sce", catalogNumber: "SCE-FK0618" });
-    expect(classifyDeviceType(result).type).toBe("Thermal Management");
+    expect(classifyDeviceType(result).type).toBe("Mounting Accessory");
   });
 
   it("classifies Rockwell 100-series contactors via family", () => {
     const result = product([], "100-C09D10", { manufacturerId: "rockwell", catalogNumber: "100-C09D10" });
     expect(classifyDeviceType(result).type).toBe("Contactor");
+  });
+
+  it("distinguishes Rockwell 1492 terminal blocks from 1492 end-anchor accessories", () => {
+    expect(classifyDeviceType(product([], "1492-J3", { manufacturerId: "rockwell", catalogNumber: "1492-J3" })).type).toBe(
+      "Terminal Block"
+    );
+    expect(classifyDeviceType(product([], "1492-EAJ35", { manufacturerId: "rockwell", catalogNumber: "1492-EAJ35" })).type).toBe(
+      "Terminal Accessory"
+    );
+  });
+
+  it("lets explicit busbar names outrank broad ABB accessory classifications", () => {
+    const result = product(
+      [
+        { group: "ABB Product Data", name: "Product Name", value: "Accessory", sourceType: "official" },
+        { group: "ABB Product Data", name: "Extended Product Type", value: "SACE Emax 3 EKIP BUSBARS SUPPLY E1.3...E6.3", sourceType: "official" },
+        { group: "ABB Product Data", name: "ETIM 10", value: "EC002498 - Accessory/spare part for low-voltage switch technology", sourceType: "official" }
+      ],
+      "EKIP BUSBARS SUPPLY E1.3...E6.3",
+      { manufacturerId: "abb", catalogNumber: "1SDA126493R1" }
+    );
+    expect(classifyDeviceType(result).type).toBe("Busbar");
+  });
+
+  it("does not classify terminal blocks as busbars from dimensional busbar attributes", () => {
+    const result = product(
+      [
+        { group: "Technical", name: "Product Type", value: "Terminal Block", sourceType: "official" },
+        { group: "Technical", name: "Max. busbar width", value: "12 mm", sourceType: "official" },
+        { group: "Technical", name: "Max. busbar thickness", value: "2 mm", sourceType: "official" }
+      ],
+      "Feed-through terminal block",
+      { manufacturerId: "rockwell", catalogNumber: "1492-J3" }
+    );
+    expect(classifyDeviceType(result).type).toBe("Terminal Block");
+  });
+
+  it("keeps broad ABB 1SDA motorized accessories as Accessory when the specific text is not a close call", () => {
+    const result = product(
+      [
+        { group: "ABB Product Data", name: "Product Name", value: "Accessory", sourceType: "official" },
+        { group: "ABB Product Data", name: "Catalog Description", value: "SACE Emax 3 RRD Motor 110 - 220Cac/dc E1.3", sourceType: "official" },
+        { group: "ABB Product Data", name: "eClass", value: "V13.0 : 27371392", sourceType: "official" }
+      ],
+      "RRD Motor 110 - 220Vac/dc E1.3",
+      { manufacturerId: "abb", catalogNumber: "1SDA126190R1" }
+    );
+    expect(classifyDeviceType(result).type).toBe("Accessory");
   });
 
   it("classifies a Pilz PNOZ safety relay via family", () => {

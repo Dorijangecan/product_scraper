@@ -171,6 +171,93 @@ describe("quality gate", () => {
     expect(result.qualityGate?.missing).toContain("identity");
   });
 
+  it("fails pages with structured identity conflicts even when the URL matches the requested product", () => {
+    const result = finalizeQualityGate(
+      product({
+        title: "ABC-123 enclosure",
+        productUrl: "https://example.test/products/ABC-123",
+        normalized: { voltage: "24 V", material: "Steel" },
+        attributes: [
+          { group: "Structured Data", name: "sku", value: "XYZ-999" },
+          { group: "Technical Data", name: "Voltage", value: "24 V" },
+          { group: "Technical Data", name: "Material", value: "Steel" }
+        ],
+        documents: [{ type: "datasheet", label: "ABC-123 datasheet", url: "https://example.test/ABC-123.pdf" }]
+      }),
+      manufacturer
+    );
+
+    expect(result.status).toBe("failed");
+    expect(result.qualityGate?.identityConfirmed).toBe(false);
+    expect(result.qualityGate?.missing).toContain("identity-conflict");
+    expect(result.error).toContain("Structured product identity conflicts");
+  });
+
+  it("does not treat EAN or UPC labels as catalog identity conflicts", () => {
+    const result = finalizeQualityGate(
+      product({
+        title: "ABC-123 enclosure",
+        productUrl: "https://example.test/products/ABC-123",
+        normalized: { voltage: "24 V", material: "Steel" },
+        attributes: [
+          { group: "Structured Data", name: "EAN (European Article Number)", value: "4030661425931" },
+          { group: "Structured Data", name: "UPC", value: "195125000292" },
+          { group: "Technical Data", name: "Voltage", value: "24 V" },
+          { group: "Technical Data", name: "Material", value: "Steel" }
+        ],
+        documents: [{ type: "datasheet", label: "ABC-123 datasheet", url: "https://example.test/ABC-123.pdf" }]
+      }),
+      manufacturer
+    );
+
+    expect(result.status).toBe("found");
+    expect(result.qualityGate?.missing).not.toContain("identity-conflict");
+  });
+
+  it("ignores manufacturer internal numeric article numbers for Schmersal and Spelsberg catalog identity", () => {
+    for (const id of ["schmersal", "spelsberg"]) {
+      const result = finalizeQualityGate(
+        product({
+          manufacturerId: id,
+          catalogNumber: "TK PS 2518-11-m",
+          title: "TK PS 2518-11-m",
+          productUrl: "https://example.test/products/TK-PS-2518-11-m",
+          normalized: { material: "Polyamide", dimensions: "111 x 254 x 0.18 mm" },
+          attributes: [
+            { group: "Ordering data", name: "Article number (order number)", value: "10590801" },
+            { group: "Technical Data", name: "Material", value: "Polyamide" },
+            { group: "Technical Data", name: "Dimensions", value: "111 x 254 x 0.18 mm" }
+          ],
+          documents: [{ type: "datasheet", label: "TK PS 2518-11-m datasheet", url: "https://example.test/TK-PS-2518-11-m.pdf" }]
+        }),
+        { ...manufacturer, id }
+      );
+
+      expect(result.status).toBe("partial");
+      expect(result.qualityGate?.identityConfirmed).toBe(true);
+      expect(result.qualityGate?.missing).not.toContain("identity-conflict");
+    }
+  });
+
+  it("accepts one matching structured identity even when a page also lists related product ids", () => {
+    const result = finalizeQualityGate(
+      product({
+        title: "ABC-123 enclosure",
+        attributes: [
+          { group: "Structured Data", name: "sku", value: "ABC-123" },
+          { group: "Related Products", name: "Product ID", value: "XYZ-999" },
+          { group: "Technical Data", name: "Voltage", value: "24 V" },
+          { group: "Technical Data", name: "Material", value: "Steel" }
+        ],
+        documents: [{ type: "datasheet", label: "ABC-123 datasheet", url: "https://example.test/ABC-123.pdf" }]
+      }),
+      manufacturer
+    );
+
+    expect(result.status).toBe("found");
+    expect(result.qualityGate?.missing).not.toContain("identity-conflict");
+  });
+
   it("does not accept search URLs as product identity", () => {
     const result = finalizeQualityGate(
       product({
@@ -204,6 +291,87 @@ describe("quality gate", () => {
     expect(result.qualityGate?.missing).not.toContain("normalized:current");
   });
 
+  it("does not require voltage and current for passive rack cabinets even when network switches are mentioned", () => {
+    const result = finalizeQualityGate(
+      product({
+        title: "ProLine S1 Cabinet, 1200x600x900mm, Black, Steel",
+        description: "Cabinet to house servers, switches, cables and other communication equipment.",
+        normalized: { dimensions: "1200 x 600 x 900 mm", material: "Steel" },
+        attributes: [
+          { group: "Product specifications", name: "Cabinet Type", value: "Communication and Server" },
+          { group: "Product specifications", name: "Rack Mount Spacing", value: "19-in" },
+          { group: "Product specifications", name: "Material", value: "Steel" }
+        ]
+      }),
+      productTypeAwareManufacturer
+    );
+
+    expect(result.status).toBe("found");
+    expect(result.qualityGate?.missing).not.toContain("normalized:voltage");
+    expect(result.qualityGate?.missing).not.toContain("normalized:current");
+  });
+
+  it("does not require voltage and current for passive pressure regulator valves", () => {
+    const result = finalizeQualityGate(
+      product({
+        manufacturerId: "siemens",
+        catalogNumber: "BPZ:VSG519K15-5",
+        title: "VSG519K15-5 differential pressure regulator valve",
+        normalized: { material: "Valve body spheroidal cast iron GJS-400-15", dimensions: "DN 15", weight: "4.5 kg" },
+        attributes: [
+          { group: "Customer datasheet", name: "Product Type", value: "Differential pressure regulator valve" },
+          { group: "Customer datasheet", name: "Material", value: "Valve body spheroidal cast iron GJS-400-15" }
+        ],
+        documents: [{ type: "datasheet", label: "BPZ:VSG519K15-5 datasheet", url: "file:///customer/siemens-vsg519k15-5-datasheet.csv" }]
+      }),
+      productTypeAwareManufacturer
+    );
+
+    expect(result.status).toBe("found");
+    expect(result.qualityGate?.missing).not.toContain("normalized:voltage");
+    expect(result.qualityGate?.missing).not.toContain("normalized:current");
+  });
+
+  it("does not require voltage and current for passive Siemens module carrier base units", () => {
+    const siemens = getManufacturerConfig("siemens");
+    expect(siemens).toBeDefined();
+
+    const result = finalizeQualityGate(
+      product({
+        manufacturerId: "siemens",
+        catalogNumber: "6ES7193-6BP00-0DA0",
+        productUrl: "https://mall.industry.siemens.com/mall/en/WW/Catalog/Product?mlfb=6ES7193-6BP00-0DA0",
+        normalized: { weight: "45 g (0.05 kg)" },
+        attributes: [
+          { group: "Plain Text", name: "Article Number", value: "6ES7193-6BP00-0DA0" },
+          { group: "Plain Text", name: "Product description", value: "SIMATIC ET 200SP, BaseUnit BU15-P16+A0+2D" },
+          { group: "Plain Text", name: "Net weight", value: "45 g" }
+        ],
+        documents: [
+          {
+            type: "datasheet",
+            label: "Download product data sheet",
+            url: "https://mall.industry.siemens.com/teddatasheet/?format=PDF&mlfbs=6ES7193-6BP00-0DA0&language=en&caller=SiePortal"
+          }
+        ],
+        sources: [
+          {
+            url: "https://mall.industry.siemens.com/mall/en/WW/Catalog/Product?mlfb=6ES7193-6BP00-0DA0",
+            sourceType: "official-fallback",
+            parser: "fixture",
+            fetchedAt: "2026-05-20T00:00:00.000Z",
+            statusCode: 200
+          }
+        ]
+      }),
+      siemens!
+    );
+
+    expect(result.status).toBe("found");
+    expect(result.qualityGate?.missing).not.toContain("normalized:voltage");
+    expect(result.qualityGate?.missing).not.toContain("normalized:current");
+  });
+
   it("requires voltage and current for active electrical products", () => {
     const result = finalizeQualityGate(
       product({
@@ -216,6 +384,26 @@ describe("quality gate", () => {
     expect(result.status).toBe("partial");
     expect(result.qualityGate?.missing).toContain("normalized:voltage");
     expect(result.qualityGate?.missing).toContain("normalized:current");
+  });
+
+  it("requires voltage but not current for HMI operator panels without published current", () => {
+    const result = finalizeQualityGate(
+      product({
+        manufacturerId: "rockwell",
+        catalogNumber: "2715P-T7CD",
+        title: "2715P-T7CD PanelView 5510 Terminal",
+        productUrl: "https://www.rockwellautomation.com/en-us/products/details.2715P-T7CD.html",
+        attributes: [
+          { group: "Structured Data", name: "sku", value: "2715P-T7CD" },
+          { group: "Rockwell Product Data", name: "Product Type", value: "HMI operator panel touch screen" }
+        ]
+      }),
+      productTypeAwareManufacturer
+    );
+
+    expect(result.status).toBe("partial");
+    expect(result.qualityGate?.missing).toContain("normalized:voltage");
+    expect(result.qualityGate?.missing).not.toContain("normalized:current");
   });
 
   it("requires voltage and current for Schneider pushbuttons with electrical contacts", () => {

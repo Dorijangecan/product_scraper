@@ -7,6 +7,7 @@ const connectorLoaders: Record<string, () => Promise<ManufacturerConnector>> = {
   abb: async () => new (await import("./abb.js")).ABBConnector(),
   balluff: async () => new (await import("./balluff.js")).BalluffConnector(),
   eaton: async () => new (await import("./eaton.js")).EatonConnector(),
+  eta: async () => new (await import("./eta.js")).ETAConnector(),
   fath: async () => new (await import("./fath.js")).FathConnector(),
   rockwell: async () => new (await import("./rockwell.js")).RockwellConnector(),
   sce: async () => new (await import("./sce.js")).SCEConnector(),

@@ -1,0 +1,71 @@
+{
+  "generatedAt": "2026-06-02T09:24:21.309Z",
+  "outputDir": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260602092419",
+  "filters": {
+    "manufacturer": "fath"
+  },
+  "summary": {
+    "foundRate": 100,
+    "officialUrlRate": 100,
+    "documentRate": 100,
+    "pdtAuditRate": 100,
+    "deviceTypeRate": 100,
+    "wrongProducts": 0,
+    "partialWithoutMissing": 0,
+    "pdtUnprovenWritten": 0,
+    "pdtUnexplainedRequiredFieldIssues": 0,
+    "pdtWriteIssues": 0,
+    "fixtureCoverage": {
+      "byManufacturer": {
+        "fath": {
+          "total": 1,
+          "caseTypes": [
+            "mechanical"
+          ],
+          "riskTags": [
+            "configured-fallback",
+            "mechanical-accessory"
+          ]
+        }
+      },
+      "thinManufacturers": [
+        "fath"
+      ]
+    },
+    "fixtureCoverageRequired": false,
+    "accepted": true
+  },
+  "reports": [
+    {
+      "manufacturerId": "fath",
+      "catalogNumber": "098ABG045",
+      "caseType": "mechanical",
+      "expectedDeviceType": "Mounting Accessory",
+      "actualDeviceType": "Mounting Accessory",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "configured-fallback",
+        "mechanical-accessory"
+      ],
+      "status": "found",
+      "confidence": 0.78,
+      "productUrl": "https://www.fath24.com/en/Anti-slip-Plate-for-Bell-Feet/098ABG045",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260602092419\\pdt\\fath-098ABG045-pdt_pdt-audit.json",
+      "pdtWrittenCells": 18,
+      "pdtBlankCells": 67,
+      "pdtSkippedCells": 1,
+      "pdtUnprovenSkipped": 1,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "qualityMissing": []
+    }
+  ]
+}

@@ -12,12 +12,17 @@ import type {
 import { catalogTextMatches } from "./catalog-number.js";
 import { extractDocumentTextAttributes } from "./document-enrichment.js";
 import { cleanText, normalizeFields } from "./normalizer.js";
+import { buildTightContextForCatalog } from "./tight-context.js";
 
 const MAX_CUSTOMER_PDF_PAGES = 400;
 const MAX_CUSTOMER_PDF_TEXT_CHARS = 400_000;
 const CUSTOMER_DOC_CONFIDENCE = 0.97;
-const TARGETED_NEIGHBOUR_PAGES = 1;
+// 2 pages of context on each side — Eaton-style spec tables routinely span across a page
+// break, and the normalizer needs the label / value pair on the same chunk of text to
+// recognize "Rated voltage: 230 V". One neighbour was too tight and dropped many specs.
+const TARGETED_NEIGHBOUR_PAGES = 2;
 const TARGETED_MAX_SECTION_PAGES = 20;
+const PDF_TEXT_MIN_CHARS_FOR_PARSE = 80; // anything below this is effectively a scanned image — warn the user.
 
 export type CustomerDocumentProgressEvent =
   | { kind: "start"; documentIndex: number; documentTotal: number; document: CustomerDocumentRecord }
@@ -126,13 +131,14 @@ export async function extractCustomerDocumentAttributes(
   catalogNumber: string,
   customerDocuments: CustomerDocumentRecord[],
   options: { cache?: CustomerDocumentParseCache; onProgress?: CustomerDocumentProgress } = {}
-): Promise<{ attributes: AttributeRecord[]; sources: SourceRecord[]; documents: DocumentRecord[]; parseFailures: string[] }> {
+): Promise<{ attributes: AttributeRecord[]; sources: SourceRecord[]; documents: DocumentRecord[]; parseFailures: string[]; titleSuggestion?: string }> {
   const cache = options.cache ?? new CustomerDocumentParseCache();
   const onProgress = options.onProgress ?? (() => undefined);
   const attributes: AttributeRecord[] = [];
   const sources: SourceRecord[] = [];
   const documents: DocumentRecord[] = [];
   const parseFailures: string[] = [];
+  let titleSuggestion: string | undefined;
 
   for (let documentIndex = 0; documentIndex < customerDocuments.length; documentIndex += 1) {
     const doc = customerDocuments[documentIndex];
@@ -143,8 +149,17 @@ export async function extractCustomerDocumentAttributes(
     const sourceUrl = pathToFileUrl(doc.storedPath);
     try {
       let extracted: AttributeRecord[] = [];
+      let docTitleHint: string | undefined;
       if (extension === ".pdf") {
-        extracted = await extractFromPdf(catalogNumber, doc, cache, onProgress);
+        const pdfOutcome = await extractFromPdf(catalogNumber, doc, cache, onProgress);
+        extracted = pdfOutcome.attributes;
+        docTitleHint = pdfOutcome.titleHint;
+        if (pdfOutcome.scannedImageOnly) {
+          const message = `PDF looks like a scanned image (no extractable text) — OCR not yet supported, so customer data from this file cannot be used.`;
+          parseFailures.push(`${doc.originalName}: ${message}`);
+          onProgress({ kind: "parse-error", document: doc, message });
+          continue;
+        }
       } else if (extension === ".xlsx" || extension === ".xls") {
         extracted = await extractFromWorkbook(catalogNumber, doc, cache);
       } else if (extension === ".csv" || extension === ".tsv" || extension === ".txt") {
@@ -155,6 +170,7 @@ export async function extractCustomerDocumentAttributes(
         onProgress({ kind: "parse-error", document: doc, message });
         continue;
       }
+      if (!titleSuggestion && docTitleHint) titleSuggestion = docTitleHint;
 
       if (extracted.length === 0) {
         onProgress({ kind: "no-match", document: doc });
@@ -172,7 +188,7 @@ export async function extractCustomerDocumentAttributes(
         fetchedAt: doc.uploadedAt ?? new Date().toISOString()
       });
       documents.push({
-        type: customerDocumentType(extension),
+        type: customerDocumentType(extension, doc.originalName),
         label: `Customer document: ${doc.originalName}`,
         url: sourceUrl,
         localPath: doc.storedPath,
@@ -192,7 +208,7 @@ export async function extractCustomerDocumentAttributes(
     }
   }
 
-  return { attributes, sources, documents, parseFailures };
+  return { attributes, sources, documents, parseFailures, titleSuggestion };
 }
 
 /**
@@ -206,7 +222,7 @@ export async function extractCustomerDocumentAttributes(
  */
 export function applyCustomerDocumentOverride(
   result: ProductResult,
-  extraction: { attributes: AttributeRecord[]; sources: SourceRecord[]; documents: DocumentRecord[]; parseFailures: string[] }
+  extraction: { attributes: AttributeRecord[]; sources: SourceRecord[]; documents: DocumentRecord[]; parseFailures: string[]; titleSuggestion?: string }
 ): ProductResult {
   const hasCustomerData = extraction.attributes.length > 0 || extraction.documents.length > 0;
   if (!hasCustomerData && extraction.parseFailures.length === 0) return result;
@@ -228,9 +244,15 @@ export function applyCustomerDocumentOverride(
     if (status === "partial" && hasAllCoreFields(normalized)) status = "found";
   }
 
+  // Promote the customer's title only when the website didn't supply one — the official
+  // catalog page is always preferred when present, but a blank title is worse than the
+  // heading we extracted from the customer's PDF section.
+  const title = result.title?.trim() ? result.title : extraction.titleSuggestion;
+
   return {
     ...result,
     status,
+    title,
     confidence: Math.max(result.confidence, hasCustomerData ? CUSTOMER_DOC_CONFIDENCE : result.confidence),
     normalized,
     attributes: mergedAttributes,
@@ -294,15 +316,30 @@ function customerTouchedFields(customerAttributes: AttributeRecord[]): Set<strin
   return touched;
 }
 
+interface PdfExtractionOutcome {
+  attributes: AttributeRecord[];
+  titleHint?: string;
+  scannedImageOnly: boolean;
+}
+
 async function extractFromPdf(
   catalogNumber: string,
   doc: CustomerDocumentRecord,
   cache: CustomerDocumentParseCache,
   onProgress: CustomerDocumentProgress
-): Promise<AttributeRecord[]> {
+): Promise<PdfExtractionOutcome> {
   const pages = await cache.getPdfPages(doc);
   const compactCatalog = compactKey(catalogNumber);
-  if (!compactCatalog || pages.length === 0) return [];
+  if (!compactCatalog || pages.length === 0) {
+    return { attributes: [], scannedImageOnly: pages.length === 0 };
+  }
+  // Detect a fully-scanned PDF: every page has near-zero extractable text. Caller turns
+  // this into a clear user-visible warning so the user knows OCR (not yet implemented)
+  // would be required to use this file.
+  const totalTextChars = pages.reduce((sum, page) => sum + page.text.length, 0);
+  if (totalTextChars < PDF_TEXT_MIN_CHARS_FOR_PARSE) {
+    return { attributes: [], scannedImageOnly: true };
+  }
   const matches: number[] = [];
   for (const page of pages) {
     if (compactKey(page.text).includes(compactCatalog) || catalogTextMatches(page.text, catalogNumber)) {
@@ -317,19 +354,80 @@ async function extractFromPdf(
       if (matches.length >= TARGETED_MAX_SECTION_PAGES) break;
     }
   }
-  if (!matches.length) return [];
+  if (!matches.length) return { attributes: [], scannedImageOnly: false };
   const keepPages = expandWithNeighbours(matches, TARGETED_NEIGHBOUR_PAGES);
-  const text = pages
+  const widePagesText = pages
     .filter((page) => keepPages.has(page.num))
     .map((page) => page.text)
     .join("\n")
     .slice(0, MAX_CUSTOMER_PDF_TEXT_CHARS);
-  if (!text) return [];
-  return extractDocumentTextAttributes({
+  if (!widePagesText) return { attributes: [], scannedImageOnly: false };
+  // Scope to the line block around each catalog match: stop expanding at any line that
+  // looks like a DIFFERENT product's catalog number. This avoids "row pollution" where
+  // a customer PDF's spec table for CBE04417 sits next to CBE04418, and the loose page-
+  // wide window otherwise drags CBE04418's voltage/current into CBE04417's attribute set.
+  const tightText = buildTightContextForCatalog(widePagesText, catalogNumber, { maxChars: MAX_CUSTOMER_PDF_TEXT_CHARS }) ?? widePagesText;
+  const attributes = extractDocumentTextAttributes({
     catalogNumber,
     document: { label: doc.originalName, type: "other", url: pathToFileUrl(doc.storedPath), localPath: doc.storedPath },
-    text
+    text: tightText
   });
+  const titleHint = guessTitleFromPdfText(widePagesText, catalogNumber);
+  return { attributes, titleHint, scannedImageOnly: false };
+}
+
+
+/**
+ * Pick a plausible product title from the customer PDF text. We look at lines on the
+ * matched pages near (above and below) the catalog number — most catalogs print a
+ * product name as a heading just above the spec table that contains the catalog code.
+ * Fallback: longest single-line phrase under 120 chars that doesn't look like a label
+ * row, isn't the catalog number itself, and doesn't read as a section header.
+ */
+function guessTitleFromPdfText(text: string, catalogNumber: string): string | undefined {
+  const compactCatalog = compactKey(catalogNumber);
+  if (!compactCatalog) return undefined;
+  const lines = text
+    .split(/\r?\n/)
+    .map((line) => cleanText(line))
+    .filter((line) => line.length > 0);
+  let bestNeighbour: string | undefined;
+  for (let index = 0; index < lines.length; index += 1) {
+    if (!compactKey(lines[index]).includes(compactCatalog) && !catalogTextMatches(lines[index], catalogNumber)) continue;
+    for (let offset = 1; offset <= 4; offset += 1) {
+      const before = lines[index - offset];
+      if (before && looksLikeTitleLine(before, catalogNumber)) {
+        bestNeighbour = before;
+        break;
+      }
+    }
+    if (bestNeighbour) break;
+    for (let offset = 1; offset <= 2; offset += 1) {
+      const after = lines[index + offset];
+      if (after && looksLikeTitleLine(after, catalogNumber)) {
+        bestNeighbour = after;
+        break;
+      }
+    }
+    if (bestNeighbour) break;
+  }
+  return bestNeighbour;
+}
+
+function looksLikeTitleLine(line: string, catalogNumber: string): boolean {
+  if (line.length < 8 || line.length > 140) return false;
+  if (catalogTextMatches(line, catalogNumber)) return false;
+  if (compactKey(line).includes(compactKey(catalogNumber))) return false;
+  // Reject lines that are clearly tables/labels (lots of colons, mostly digits/units).
+  const colonCount = (line.match(/:/g) || []).length;
+  if (colonCount > 1) return false;
+  const digitRatio = (line.replace(/[^0-9]/g, "").length) / line.length;
+  if (digitRatio > 0.4) return false;
+  // Title-like: has 2+ alphabetic words, mixed case OK, no trailing colon.
+  const wordCount = line.split(/\s+/).filter((word) => /[A-Za-z]{2,}/.test(word)).length;
+  if (wordCount < 2) return false;
+  if (/^(page|chapter|section|table|figure)\b/i.test(line)) return false;
+  return true;
 }
 
 async function extractFromWorkbook(
@@ -361,10 +459,27 @@ function attributesFromMatrix(matrix: string[][], catalogNumber: string, group: 
   const dataStartIndex = headerLooksLikeHeader ? 1 : 0;
   const attributes: AttributeRecord[] = [];
 
+  // Detect "long-format" sheets like [Catalog, Attribute, Value] — common in customer-
+  // supplied spec dumps. Without this, the value column ends up as an attribute named
+  // "Value" with value="230V", which the normalizer can't map to voltage. With it, we
+  // emit { name: "Voltage", value: "230V" } pairs that normalize correctly.
+  const longFormat = headerLooksLikeHeader ? detectLongFormatColumns(header) : null;
+
   for (let rowIndex = dataStartIndex; rowIndex < matrix.length; rowIndex += 1) {
     const row = matrix[rowIndex];
     if (!row || !row.some((cell) => cleanText(cell || "").length > 0)) continue;
     if (!row.some((cell) => catalogTextMatches(cell || "", catalogNumber))) continue;
+
+    if (longFormat) {
+      const name = cleanText(row[longFormat.nameCol] || "");
+      const value = cleanText(row[longFormat.valueCol] || "");
+      if (!name || !value) continue;
+      if (catalogTextMatches(value, catalogNumber)) continue;
+      if (value.length > 600) continue;
+      attributes.push({ group: `Customer / ${group}`, name, value, sourceUrl });
+      continue;
+    }
+
     for (let colIndex = 0; colIndex < row.length; colIndex += 1) {
       const value = cleanText(row[colIndex] || "");
       if (!value) continue;
@@ -376,6 +491,26 @@ function attributesFromMatrix(matrix: string[][], catalogNumber: string, group: 
   }
 
   return attributes;
+}
+
+/**
+ * Detect three-column long-format sheets: one catalog column, one attribute-name column,
+ * one value column. Returns the {nameCol, valueCol} indices when the header looks like
+ * one — null otherwise (so we fall back to wide-format row scanning).
+ */
+function detectLongFormatColumns(header: string[]): { nameCol: number; valueCol: number } | null {
+  if (header.length < 3 || header.length > 6) return null;
+  const namePattern = /^(attribute|attr|name|property|prop|parameter|param|feature|characteristic|spec(?:ification)?|field)$/i;
+  const valuePattern = /^(value|val|spec(?:ification)? ?value|measurement|content|data)$/i;
+  let nameCol = -1;
+  let valueCol = -1;
+  for (let index = 0; index < header.length; index += 1) {
+    const cell = header[index];
+    if (nameCol < 0 && namePattern.test(cell)) nameCol = index;
+    else if (valueCol < 0 && valuePattern.test(cell)) valueCol = index;
+  }
+  if (nameCol < 0 || valueCol < 0 || nameCol === valueCol) return null;
+  return { nameCol, valueCol };
 }
 
 function cellToString(value: unknown): string {
@@ -402,7 +537,11 @@ function stampCustomerAttributes(attributes: AttributeRecord[], sourceUrl: strin
   }));
 }
 
-function customerDocumentType(extension: string): DocumentRecord["type"] {
+function customerDocumentType(extension: string, originalName = ""): DocumentRecord["type"] {
+  const label = originalName.toLowerCase();
+  if (/\b(data\s*sheet|datasheet|technical\s*data|spec(?:ification)?\s*sheet)\b/.test(label)) return "datasheet";
+  if (/\b(certificate|certification|declaration|approval)\b/.test(label)) return "certificate";
+  if (/\b(manual|instruction|installation|user\s*guide)\b/.test(label)) return "manual";
   if (extension === ".pdf") return "datasheet";
   return "other";
 }

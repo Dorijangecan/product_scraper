@@ -1,6 +1,7 @@
 import type ExcelJS from "exceljs";
 import type { RunItemRecord } from "../../shared/types.js";
 import { clearBody, describeSheet, type PdtColumn } from "./sheet-descriptor.js";
+import { localizedPdtDocumentUrlRules } from "./rules.js";
 
 function findCol(columns: PdtColumn[], match: (key: string) => boolean): number | undefined {
   const hit = columns.find((c) => match(c.code.toLowerCase()) || match(c.propName.toLowerCase()));
@@ -15,23 +16,21 @@ interface DocRow {
 
 function abbDocumentUrl(catalogNumber: string, language: "en" | "de"): string {
   // Match the manual PDT format: bare catalog number, no "ABB" prefix.
-  const bare = catalogNumber.replace(/^ABB/i, "");
-  const encoded = encodeURIComponent(bare);
-  return language === "de" ? `https://new.abb.com/products/de/${encoded}` : `https://new.abb.com/products/${encoded}`;
+  const rule = localizedPdtDocumentUrlRules({ manufacturerId: "abb", catalogNumber })
+    .find((candidate) => candidate.value.language === (language === "de" ? "german" : "english"));
+  return rule?.value.url ?? catalogNumber;
 }
 
 function eatonDocumentUrl(catalogNumber: string, language: "en" | "de"): string {
   // Manual Eaton PDTs use SKU pages with an "EP-" prefix on the catalog number.
   // EN uses the gb/en-gb locale (international English), DE uses de/de-de.
-  const withPrefix = /^EP-/i.test(catalogNumber) ? catalogNumber : `EP-${catalogNumber}`;
-  const encoded = encodeURIComponent(withPrefix);
-  return language === "de"
-    ? `https://www.eaton.com/de/de-de/skuPage.${encoded}.html`
-    : `https://www.eaton.com/gb/en-gb/skuPage.${encoded}.html`;
+  const rule = localizedPdtDocumentUrlRules({ manufacturerId: "eaton", catalogNumber })
+    .find((candidate) => candidate.value.language === (language === "de" ? "german" : "english"));
+  return rule?.value.url ?? catalogNumber;
 }
 
 function sagDocumentUrl(catalogNumber: string): string {
-  return `https://www.saginawcontrol.com/partnumber_info/?n=${encodeURIComponent(catalogNumber)}`;
+  return localizedPdtDocumentUrlRules({ manufacturerId: "sce", catalogNumber })[0]?.value.url ?? catalogNumber;
 }
 
 /**
@@ -41,6 +40,12 @@ function sagDocumentUrl(catalogNumber: string): string {
  * exactly the two language links and nothing else.
  */
 function documentRowsFor(item: RunItemRecord): DocRow[] {
+  const ruleRows = localizedPdtDocumentUrlRules({
+    manufacturerId: item.result?.manufacturerId,
+    catalogNumber: item.catalogNumber
+  }).map((rule) => rule.value);
+  if (ruleRows.length > 0) return ruleRows;
+
   if (item.result?.manufacturerId === "abb") {
     // ABB exposes a deterministic DE mirror (/products/de/...) for every catalog number.
     return [

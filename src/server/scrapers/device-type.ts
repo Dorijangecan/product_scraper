@@ -49,12 +49,12 @@ const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
   rule("Communication Gateway", /\b(?:communication gateway|fieldbus gateway|fieldbus coupler|bus coupler|protocol converter|protocol gateway|serial gateway|modbus gateway|profibus gateway|profinet gateway|ethernet gateway|rs[-\s]?232(?:\s+(?:to|converter|interface|module))?|rs[-\s]?485(?:\s+(?:to|converter|interface|module))?|rs[-\s]?422|serial[-\s]?to[-\s]?ethernet|communication module|communication interface|industrial gateway|iiot gateway|edge gateway)\b/i, 905),
   rule("I/O Module", /\b(?:i\/o|io|input\/output)\s+(?:module|expansion|system|block|card|interface)|(?:analog|digital)\s+(?:input|output)s?\s+(?:module|card|expansion)|remote\s+i\/o|io-link\s+(?:master|hub|module)\b/i, 900),
   rule("HMI", /\b(?:hmi|human[\s-]?machine[\s-]?interface|operator panel|touch panel|touchscreen panel|display terminal|graphic terminal)\b/i, 890),
-  rule("Motion Controller", /\b(?:motion controller|motion control(?:ler)? module|cnc controller|servo controller)\b/i, 885),
+  rule("Motion Controller", /\b(?:motion controller|motion control(?:ler)? module|motion module|integrated motion module|analog servo module|servo module|\d+\s*[- ]?axis servo|axis servo,\s*analog|servo,\s*analog\/enc|cnc controller|servo controller)\b/i, 930),
 
   // --- Sensors (specific kinds first; generic "Sensor" is a fallback) ---
   rule("Photoelectric Sensor", /\b(?:photoelectric|photo\s*electric|through-?beam|retro[-\s]?reflective|diffuse\s+(?:reflective|sensor)|fork\s+(?:sensor|light barrier)|light barrier|light grid)\b/i, 880),
   rule("Inductive Proximity Sensor", /\b(?:inductive\s+(?:proximity\s+)?sensor|inductive proximity|inductive switch|proximity switch)\b/i, 875),
-  rule("Capacitive Sensor", /\bcapacitive\s+(?:proximity\s+)?(?:sensor|switch)\b/i, 870),
+  rule("Capacitive Sensor", /\bcapacitive\s+(?:(?:proximity|level)\s+)?(?:sensors?|switch(?:es)?)\b/i, 870),
   rule("Pressure Sensor", /\bpressure\s+(?:sensor|switch|transmitter|transducer)\b/i, 868),
   rule("Temperature Sensor", /\b(?:temperature\s+(?:sensor|probe|transmitter|transducer)|thermocouple|\brtd\b|pt100|pt1000)\b/i, 866),
   rule("Ultrasonic Sensor", /\bultrasonic\s+(?:sensor|distance sensor|transducer)\b/i, 864),
@@ -95,7 +95,11 @@ const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
 
   // --- Enclosures & mounting ---
   rule("Loadcenter", /\b(?:loadcenter|load center|panelboard|distribution board|consumer unit|switchgear assembly)\b/i, 770),
-  rule("Rack Cabinet", /\b(?:server rack|19[-\s]?inch rack|network rack|\brack cabinet\b)\b/i, 765),
+  rule(
+    "Rack Cabinet",
+    /\b(?:server rack|network rack|\brack cabinet\b|(?:communication\s+and\s+server|server|network)\s+cabinet|cabinet\b(?=[\s\S]{0,180}\b(?:servers?|network|rack[-\s]?mount|rack\s+(?:unit|spacing|angle)s?|\d+\s*u\b))|(?:rack[-\s]?mount|rack\s+(?:unit|spacing)s?|\d+\s*u\b)[\s\S]{0,180}\bcabinet\b)\b/i,
+    765
+  ),
   rule("Wireway", /\b(?:wireway|wire duct|cable duct|cable tray|cable channel|cable trunking)\b/i, 760),
   rule("Subpanel", /\b(?:subpanel|sub-panel|back[-\s]?panel|mounting panel|mounting plate)\b/i, 755),
   rule("Module Carrier", /\b(?:module carrier|carrier frame|backplane|module rack|subrack)\b/i, 753),
@@ -105,13 +109,13 @@ const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
   rule("Terminal Accessory", /\b(?:terminal accessory|end bracket|end[-\s]?stop|end[-\s]?clamp|end[-\s]?plate|partition plate|terminal end\b|terminal cover|terminal\s+(?:end\s+)?bracket|separator plate|end section)\b/i, 770),
   rule("PCB Terminal Block", /\b(?:pcb terminal block|board[-\s]?mount terminal|printed[-\s]?circuit terminal|pluggable pcb terminal|pcb screw terminal)\b/i, 765),
   rule("PCB Connector", /\b(?:pin header|board[-\s]?to[-\s]?board connector|pcb connector|pcb header|board[-\s]?mount connector|edge connector|smt connector|socket strip|pcb plug|wire[-\s]?to[-\s]?board connector)\b/i, 760),
-  rule("Wire Marker", /\b(?:wire marker|cable marker|wire label|cable label|cable tag|wire ferrule|terminal marker|terminal label|marking tag)\b/i, 750),
+  rule("Wire Marker", /\b(?:wire marker|cable marker|wire label|cable label|cable tag|wire ferrule|terminal marker|terminal label|marking tag|marker card)\b/i, 750),
   rule("Terminal Block", /\b(?:terminal block|power terminal|terminal strip|pluggable terminal|push[-\s]?in terminal|spring[-\s]?clamp terminal|screw terminal block)\b/i, 740),
   rule("Cable Gland", /\b(?:cable gland|\bgland\b|cord grip)\b/i, 735),
   rule("Optical Connector", /\b(?:optical connector|fiber[-\s]?optic connector|fibre[-\s]?optic connector|fiber optics?|fibre optics?|glass fibers?|plastic fibers?|\blc connector\b|\bsc connector\b|\bst connector\b|\bmpo connector\b|fc connector)\b/i, 732),
   rule("Connector", /\b(?:industrial connector|circular connector|m\d+ connector|connector\b|plug-?in\s+(?:plug|socket)|cordset|patch cord|programming port|port,\s*programming)\b/i, 720),
   rule("Cable", /\b(?:cable assembly|control cable|power cable|signal cable|servo cable|motor cable|lead wire|patch cable|\bcable\b|\bcord\b)\b/i, 710),
-  rule("Busbar", /\b(?:busbar|bus[-\s]?bar|busway|busbar system)\b/i, 720),
+  rule("Busbar", /\b(?:busbars?|bus[-\s]?bars?|busway|busbar system)\b/i, 720),
 
   // --- Signaling ---
   rule("Stack Light / Beacon", /\b(?:stack light|signal tower|signal beacon|\bbeacon\b|warning light|horn|buzzer|sounder)\b/i, 760),
@@ -132,7 +136,7 @@ const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
 
   // --- Lower-specificity catch-alls (priority < 700 so they only win when nothing else matches) ---
   rule("Lock / Interlock", /\b(?:padlock|key[-\s]?lock|interlock|locking device|key switch)\b/i, 620),
-  rule("Mounting Accessory", /\b(?:mounting accessory|mounting kit|mounting bracket|mounting foot|mounting plate|adapter plate|din rail|\brail\b|\bbracket\b)\b/i, 610),
+  rule("Mounting Accessory", /\b(?:mounting accessory|mounting kit|mounting bracket|mounting foot|mounting plate|adapter plate|anti[-\s]?slip plate|level(?:ing|ling) feet?|pivot feet?|bell feet?|din rail|\brail\b|\bbracket\b)\b/i, 610),
   rule("Cover / Door Accessory", /\b(?:cover|door|hinge|latch|handle|gasket|window kit)\b/i, 600),
   rule("Accessory", /\b(?:accessory|spare part|replacement part|cleaner|\bkit\b)\b/i, 560)
 ];
@@ -172,6 +176,11 @@ const CHANNEL_WEIGHTS = { text: 1.0, family: 1.2, url: 1.0, eclass: 1.25, etim: 
 /** Score added to the winner per additional channel that agreed with it. */
 const MULTI_CHANNEL_BONUS = 250;
 
+const RACK_CABINET_COMBINED_PATTERN =
+  /\b(?:server rack|network rack|rack cabinet|(?:communication\s+and\s+server|server|network)\s+cabinet|cabinet\b(?=[\s\S]{0,260}\b(?:servers?|network|rack[-\s]?mount|rack\s+(?:unit|spacing|angle)s?|\d+\s*u\b))|(?:rack[-\s]?mount|rack\s+(?:unit|spacing)s?|\d+\s*u\b)[\s\S]{0,260}\bcabinet\b)\b/i;
+const BUSBAR_TYPE_NAME_PATTERN =
+  /(?:^|\b)(?:busbars?\s+(?:supply|system|adapter|support|holder|terminal|connector|distribution)|(?:supply|system|adapter|support|holder|terminal|connector|distribution)\s+busbars?|busbars?)(?:\b|$)/i;
+
 interface EclassTypeEntry {
   code: string;
   type: string;
@@ -194,6 +203,9 @@ const ECLASS_TYPE_ENTRIES: EclassTypeEntry[] = [
   { code: "27280402", type: "RFID Device", match: "exact", notes: "RFID read/write head or antenna" },
   { code: "272706", type: "Sensor", match: "prefix", notes: "Limit/position switch" },
   { code: "27060311", type: "Cable", match: "exact", notes: "Cordset/cable assembly" },
+  { code: "27281101", type: "Wire Marker", match: "exact", notes: "Terminal or wire marker" },
+  { code: "27460101", type: "PCB Terminal Block", match: "exact", notes: "PCB terminal block" },
+  { code: "27460201", type: "PCB Connector", match: "exact", notes: "PCB connector / PCB header" },
   { code: "27440114", type: "Optical Connector", match: "exact", notes: "Passive fiber optic" },
   { code: "27440102", type: "Connector", match: "exact", notes: "Field attachable connector" }
 ];
@@ -212,6 +224,9 @@ const ETIM_TYPE_ENTRIES: EtimTypeEntry[] = [
   { code: "EC001852", type: "Sensor", notes: "Inclination sensor" },
   { code: "EC002544", type: "Encoder", notes: "Linear position measuring system" },
   { code: "EC002593", type: "Safety Sensor", notes: "Safety switch / interlock" },
+  { code: "EC000761", type: "Wire Marker", notes: "Terminal or wire marker" },
+  { code: "EC002637", type: "PCB Connector", notes: "PCB connector / PCB header" },
+  { code: "EC002643", type: "PCB Terminal Block", notes: "PCB terminal block" },
   { code: "EC002716", type: "Photoelectric Sensor", notes: "Photoelectric sensor" },
   { code: "EC002998", type: "RFID Device", notes: "RFID read/write head or antenna" },
   { code: "EC002051", type: "Lock / Interlock", notes: "Padlock barrier for switch" },
@@ -272,6 +287,26 @@ export function classifyDeviceType(result: ProductResult | undefined): DeviceTyp
         evidence: `${match.candidate.label}: ${match.candidate.value}`
       });
     }
+  }
+
+  const combinedRackCabinetText = combinedDeviceTypeText(result);
+  if (RACK_CABINET_COMBINED_PATTERN.test(combinedRackCabinetText)) {
+    signals.push({
+      type: "Rack Cabinet",
+      score: 1475 * CHANNEL_WEIGHTS.text,
+      channel: "text",
+      evidence: "Combined product text: cabinet with rack/server evidence"
+    });
+  }
+
+  const busbarTypeNameText = combinedBusbarTypeNameText(result);
+  if (BUSBAR_TYPE_NAME_PATTERN.test(busbarTypeNameText)) {
+    signals.push({
+      type: "Busbar",
+      score: 1800 * CHANNEL_WEIGHTS.text,
+      channel: "text",
+      evidence: "Product type/name text: busbar"
+    });
   }
 
   // --- Channel 2: family / series prefix (manufacturer-specific catalog patterns) ---
@@ -364,7 +399,10 @@ export function classifyDeviceType(result: ProductResult | undefined): DeviceTyp
     if (entry.channels.size > 1) entry.score += MULTI_CHANNEL_BONUS * (entry.channels.size - 1);
   }
 
-  const ranked = [...byType.values()].sort((left, right) => right.score - left.score);
+  let ranked = [...byType.values()].sort((left, right) => right.score - left.score);
+  if (shouldPreferSpecificTextTypeOverBroadAccessory(ranked[0], ranked[1])) {
+    ranked = [ranked[1], ranked[0], ...ranked.slice(2)];
+  }
   const best = ranked[0];
   const runnerUp = ranked[1];
   const margin = runnerUp ? best.score - runnerUp.score : best.score;
@@ -482,6 +520,13 @@ function rule(type: string, pattern: RegExp, priority: number): DeviceTypeRule {
   return { type, pattern, priority };
 }
 
+function shouldPreferSpecificTextTypeOverBroadAccessory(best: AggregatedType | undefined, runnerUp: AggregatedType | undefined): boolean {
+  if (!best || !runnerUp) return false;
+  if (best.type !== "Accessory" || runnerUp.type === "Accessory") return false;
+  if (!runnerUp.channels.has("text")) return false;
+  return best.score - runnerUp.score <= 650;
+}
+
 export function knownDeviceTypes(): string[] {
   return [...new Set(DEVICE_TYPE_RULES.map((entry) => entry.type))];
 }
@@ -505,6 +550,38 @@ function deviceTypeCandidates(result: ProductResult): DeviceTypeCandidate[] {
   addCandidate(candidates, { label: "Title", value: result.title, text: result.title, priority: 610 });
   addCandidate(candidates, { label: "Description", value: result.description, text: result.description, priority: 590 });
   return candidates;
+}
+
+function combinedDeviceTypeText(result: ProductResult): string {
+  const attributeText = (result.attributes ?? [])
+    .filter((attr) => attributeDeviceTypePriority(attr) || isRackCabinetSignalAttribute(attr))
+    .slice(0, 80)
+    .map((attr) => `${attr.group ?? ""} ${attr.name} ${attr.value}`)
+    .join(" ");
+  return cleanText([result.title, result.description, attributeText].filter(Boolean).join(" "));
+}
+
+function combinedBusbarTypeNameText(result: ProductResult): string {
+  const attributeText = (result.attributes ?? [])
+    .filter(isBusbarTypeNameAttribute)
+    .slice(0, 30)
+    .map((attr) => `${attr.group ?? ""} ${attr.name} ${attr.value}`)
+    .join(" ");
+  return cleanText([result.title, result.description, attributeText].filter(Boolean).join(" "));
+}
+
+function isBusbarTypeNameAttribute(attr: AttributeRecord): boolean {
+  const label = `${attr.group ?? ""} ${attr.name}`;
+  if (/\b(?:max(?:imum)?|minimum|min\.?|width|height|depth|thickness|dimension|suitable for|used with)\b/i.test(label)) return false;
+  return /\b(?:product or component type|product main type|product type|product name|item name|display name|catalog description|long description|short description|description|extended product type|product family|product group|product category|classification path)\b/i.test(
+    label
+  );
+}
+
+function isRackCabinetSignalAttribute(attr: AttributeRecord): boolean {
+  return /\b(?:cabinet|server|network|rack[-\s]?(?:mount|unit|spacing|angle)s?|\b\d+\s*u\b)\b/i.test(
+    `${attr.group ?? ""} ${attr.name} ${attr.value}`
+  );
 }
 
 function attributeDeviceTypePriority(attr: AttributeRecord): number | undefined {

@@ -1,0 +1,73 @@
+{
+  "generatedAt": "2026-06-02T08:03:47.337Z",
+  "outputDir": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260602080343",
+  "filters": {
+    "manufacturer": "eta"
+  },
+  "summary": {
+    "foundRate": 100,
+    "officialUrlRate": 100,
+    "documentRate": 100,
+    "pdtAuditRate": 100,
+    "deviceTypeRate": 100,
+    "wrongProducts": 0,
+    "partialWithoutMissing": 0,
+    "pdtUnprovenWritten": 0,
+    "pdtUnexplainedRequiredFieldIssues": 0,
+    "pdtWriteIssues": 0,
+    "fixtureCoverage": {
+      "byManufacturer": {
+        "eta": {
+          "total": 1,
+          "caseTypes": [
+            "electrical"
+          ],
+          "riskTags": [
+            "configured-fallback",
+            "eta-no-special-connector",
+            "thermal-breaker"
+          ]
+        }
+      },
+      "thinManufacturers": [
+        "eta"
+      ]
+    },
+    "fixtureCoverageRequired": false,
+    "accepted": true
+  },
+  "reports": [
+    {
+      "manufacturerId": "eta",
+      "catalogNumber": "3120-F521-P7T1-W01D-16A",
+      "caseType": "electrical",
+      "expectedDeviceType": "Circuit Breaker",
+      "actualDeviceType": "Circuit Breaker",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "configured-fallback",
+        "thermal-breaker",
+        "eta-no-special-connector"
+      ],
+      "status": "found",
+      "confidence": 0.72,
+      "productUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Thermisch/2_en/D_3120-F_en.pdf",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260602080343\\pdt\\eta-3120-F521-P7T1-W01D-16A-pdt_pdt-audit.json",
+      "pdtWrittenCells": 38,
+      "pdtBlankCells": 57,
+      "pdtSkippedCells": 2,
+      "pdtUnprovenSkipped": 2,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 2,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "qualityMissing": []
+    }
+  ]
+}

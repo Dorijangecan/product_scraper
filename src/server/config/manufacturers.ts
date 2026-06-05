@@ -346,6 +346,34 @@ const builtInManufacturerConfigs: Record<string, ManufacturerConfig> = {
       }
     ]
   },
+  phoenix: {
+    id: "phoenix",
+    canonicalName: "Phoenix Contact",
+    shortName: "PHX",
+    rateLimitMs: 1500,
+    officialBaseUrls: ["https://www.phoenixcontact.com"],
+    homepageUrl: "https://www.phoenixcontact.com/",
+    localizedUrlTemplates: [
+      { locale: "en", urlTemplate: "https://www.phoenixcontact.com/product/{part}" }
+    ],
+    fallbackSources: [
+      {
+        id: "phoenix-product-number",
+        label: "Phoenix Contact product page",
+        enabled: true,
+        sourceType: "official-fallback",
+        directUrlTemplates: [
+          "https://r.jina.ai/http://www.phoenixcontact.com/product/{part}",
+          "https://r.jina.ai/http://www.phoenixcontact.com/us/products/{part}",
+          "https://www.phoenixcontact.com/product/{part}",
+          "https://www.phoenixcontact.com/us/products/{part}",
+          "https://www.phoenixcontact.com/en-us/products/{part}"
+        ],
+        confidence: 0.72,
+        fetchPolicy: { timeoutMs: 30000, minContentLength: 1000 }
+      }
+    ]
+  },
   schneider: {
     id: "schneider",
     canonicalName: "Schneider Electric",
@@ -375,9 +403,9 @@ const builtInManufacturerConfigs: Record<string, ManufacturerConfig> = {
         enabled: true,
         sourceType: "official-fallback",
         directUrlTemplates: [
-          "https://r.jina.ai/http://https://www.se.com/us/en/product/{part}/",
-          "https://r.jina.ai/http://https://www.se.com/ww/en/product/{part}/",
-          "https://r.jina.ai/http://https://www.se.com/ww/products/US/en/products/{part}"
+          "https://r.jina.ai/http://www.se.com/us/en/product/{part}/",
+          "https://r.jina.ai/http://www.se.com/ww/en/product/{part}/",
+          "https://r.jina.ai/http://www.se.com/ww/products/US/en/products/{part}"
         ]
       }
     ]
@@ -490,7 +518,7 @@ function attachBuiltInScrapeRecipes() {
       "product id|catalog number|range",
       "material|product weight|ip degree|enclosure nominal|voltage|current"
     ],
-    requiredDocuments: ["image"],
+    requiredDocuments: ["datasheet|image"],
     minAttributes: 4,
     expandSelectors: accordionSelectors,
     dynamicFramework: ["embedded-json", "json-ld"],
@@ -583,7 +611,7 @@ function attachBuiltInScrapeRecipes() {
     confidenceRules: { foundMinScore: 76, partialMaxConfidence: 0.72, distributorMaxConfidence: 0.45 }
   };
 
-  for (const id of ["nvent", "rockwell", "schmersal", "spelsberg", "eta"] as const) {
+  for (const id of ["nvent", "rockwell", "schmersal", "spelsberg", "eta", "phoenix"] as const) {
     builtInManufacturerConfigs[id].scrapeRecipe = {
       searchUrlTemplates: [`${builtInManufacturerConfigs[id].officialBaseUrls[0]}`].filter(templateContainsCatalogPlaceholder),
       requiredAttributes: ["catalog|article|part|product|description|material|dimensions|weight|certification|approval"],

@@ -1,0 +1,1028 @@
+{
+  "generatedAt": "2026-06-02T15:22:21.392Z",
+  "outputDir": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260602152107",
+  "filters": {
+    "manufacturer": "rockwell"
+  },
+  "summary": {
+    "foundRate": 100,
+    "officialUrlRate": 100,
+    "documentRate": 100,
+    "pdtAuditRate": 100,
+    "deviceTypeRate": 100,
+    "customerDocumentRate": 0,
+    "wrongProducts": 0,
+    "partialWithoutMissing": 0,
+    "pdtUnprovenWritten": 0,
+    "pdtUnexplainedRequiredFieldIssues": 0,
+    "pdtWriteIssues": 9,
+    "qualityAccepted": true,
+    "fixtureCoverageAccepted": true,
+    "fixtureCoverage": {
+      "byManufacturer": {
+        "rockwell": {
+          "total": 8,
+          "caseTypes": [
+            "accessory",
+            "edge",
+            "electrical",
+            "mechanical"
+          ],
+          "riskTags": [
+            "1492-family-disambiguation",
+            "accessory-no-synthesis",
+            "compactlogix-power-supply",
+            "controllogix-motion-module",
+            "end-anchor",
+            "limit-switch",
+            "motion-controller",
+            "motion-controller-sheet-coverage",
+            "official-datasheet",
+            "official-dpp",
+            "panel-hmi-sheet-coverage",
+            "panelview-hmi",
+            "plc-rs232-sheet-coverage",
+            "power-supply-devices",
+            "stratix-switch",
+            "switch-sheet-coverage",
+            "terminal-accessory",
+            "terminal-block",
+            "terminal-endbracket-sheet-coverage",
+            "terminal-sheet-coverage"
+          ]
+        }
+      },
+      "byDeviceType": {
+        "Pushbutton / Operator": {
+          "total": 1,
+          "manufacturers": [
+            "rockwell"
+          ],
+          "caseTypes": [
+            "accessory"
+          ]
+        },
+        "Communication Gateway": {
+          "total": 1,
+          "manufacturers": [
+            "rockwell"
+          ],
+          "caseTypes": [
+            "edge"
+          ]
+        },
+        "Power Supply": {
+          "total": 1,
+          "manufacturers": [
+            "rockwell"
+          ],
+          "caseTypes": [
+            "electrical"
+          ]
+        },
+        "HMI": {
+          "total": 1,
+          "manufacturers": [
+            "rockwell"
+          ],
+          "caseTypes": [
+            "electrical"
+          ]
+        },
+        "Terminal Block": {
+          "total": 1,
+          "manufacturers": [
+            "rockwell"
+          ],
+          "caseTypes": [
+            "mechanical"
+          ]
+        },
+        "Terminal Accessory": {
+          "total": 1,
+          "manufacturers": [
+            "rockwell"
+          ],
+          "caseTypes": [
+            "mechanical"
+          ]
+        },
+        "Motion Controller": {
+          "total": 1,
+          "manufacturers": [
+            "rockwell"
+          ],
+          "caseTypes": [
+            "electrical"
+          ]
+        },
+        "Switch": {
+          "total": 1,
+          "manufacturers": [
+            "rockwell"
+          ],
+          "caseTypes": [
+            "electrical"
+          ]
+        }
+      },
+      "byDeviceSheet": {
+        "command and alarm device": {
+          "total": 1,
+          "deviceTypes": [
+            "Pushbutton / Operator"
+          ],
+          "manufacturers": [
+            "rockwell"
+          ]
+        },
+        "PLC": {
+          "total": 2,
+          "deviceTypes": [
+            "Communication Gateway",
+            "HMI"
+          ],
+          "manufacturers": [
+            "rockwell"
+          ]
+        },
+        "RS232 interfaces": {
+          "total": 1,
+          "deviceTypes": [
+            "Communication Gateway"
+          ],
+          "manufacturers": [
+            "rockwell"
+          ]
+        },
+        "power supply devices": {
+          "total": 1,
+          "deviceTypes": [
+            "Power Supply"
+          ],
+          "manufacturers": [
+            "rockwell"
+          ]
+        },
+        "panel (HMI)": {
+          "total": 1,
+          "deviceTypes": [
+            "HMI"
+          ],
+          "manufacturers": [
+            "rockwell"
+          ]
+        },
+        "terminal": {
+          "total": 1,
+          "deviceTypes": [
+            "Terminal Block"
+          ],
+          "manufacturers": [
+            "rockwell"
+          ]
+        },
+        "terminal endbracket": {
+          "total": 1,
+          "deviceTypes": [
+            "Terminal Accessory"
+          ],
+          "manufacturers": [
+            "rockwell"
+          ]
+        },
+        "Motion Controller": {
+          "total": 1,
+          "deviceTypes": [
+            "Motion Controller"
+          ],
+          "manufacturers": [
+            "rockwell"
+          ]
+        },
+        "Switch": {
+          "total": 1,
+          "deviceTypes": [
+            "Switch"
+          ],
+          "manufacturers": [
+            "rockwell"
+          ]
+        }
+      },
+      "thinManufacturers": [],
+      "uncoveredDeviceSheets": [
+        "Busbar",
+        "Luminaire",
+        "PCB connection system",
+        "PCB connection technology",
+        "Wire ID Information",
+        "cabinet",
+        "cabinet.airconditioning",
+        "cabinet.mechanical",
+        "cabinet.rack",
+        "cable",
+        "cable ducts mounting rails",
+        "cable gland",
+        "connector",
+        "contactor a. fuses",
+        "directional control valve",
+        "el. mesurement devices",
+        "electronic sensor",
+        "energy distribution system",
+        "filters",
+        "fluid power",
+        "generator",
+        "int. ext. lightning protection",
+        "module carrier frame",
+        "motor protection",
+        "motors",
+        "optical sensor",
+        "pneumatic handling",
+        "pump",
+        "safety sensor",
+        "sensor - fluid",
+        "servo controller",
+        "ventil"
+      ],
+      "missingDeviceSheetRecommendations": [
+        {
+          "sheetName": "Busbar",
+          "deviceTypes": [
+            "Busbar"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "Luminaire",
+          "deviceTypes": [
+            "Luminaire"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "PCB connection system",
+          "deviceTypes": [
+            "PCB Connector"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "PCB connection technology",
+          "deviceTypes": [
+            "PCB Terminal Block"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "Wire ID Information",
+          "deviceTypes": [
+            "Wire Marker"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "cabinet",
+          "deviceTypes": [
+            "Enclosure"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PSN",
+              "deviceType": "Enclosure",
+              "notes": "xEnergy ProfiSNAP enclosure panels/accessories"
+            },
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "ABOX",
+              "deviceType": "Enclosure",
+              "notes": "Spelsberg junction boxes / enclosures"
+            },
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "AK",
+              "deviceType": "Enclosure",
+              "notes": "Spelsberg junction boxes / enclosures"
+            }
+          ]
+        },
+        {
+          "sheetName": "cabinet.airconditioning",
+          "deviceTypes": [
+            "Thermal Management"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "cabinet.mechanical",
+          "deviceTypes": [
+            "Accessory",
+            "Cover / Door Accessory",
+            "Enclosure",
+            "Subpanel"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PSN",
+              "deviceType": "Enclosure",
+              "notes": "xEnergy ProfiSNAP enclosure panels/accessories"
+            },
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "ABOX",
+              "deviceType": "Enclosure",
+              "notes": "Spelsberg junction boxes / enclosures"
+            },
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "AK",
+              "deviceType": "Enclosure",
+              "notes": "Spelsberg junction boxes / enclosures"
+            }
+          ]
+        },
+        {
+          "sheetName": "cabinet.rack",
+          "deviceTypes": [
+            "Rack Cabinet"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "cable",
+          "deviceTypes": [
+            "Cable"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "cable ducts mounting rails",
+          "deviceTypes": [
+            "Mounting Accessory",
+            "Wireway"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "sce",
+              "pattern": "SCE-FK",
+              "deviceType": "Mounting Accessory",
+              "notes": "SCE floor stand / enclosure mounting kits"
+            }
+          ]
+        },
+        {
+          "sheetName": "cable gland",
+          "deviceTypes": [
+            "Cable Gland"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "connector",
+          "deviceTypes": [
+            "Connector",
+            "Optical Connector"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "contactor a. fuses",
+          "deviceTypes": [
+            "Circuit Breaker",
+            "Contactor",
+            "Disconnect Switch",
+            "Fuse",
+            "Miniature Circuit Breaker",
+            "Molded Case Circuit Breaker",
+            "Relay",
+            "Residual Current Device"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "eta",
+              "pattern": "3120",
+              "deviceType": "Circuit Breaker"
+            },
+            {
+              "manufacturerId": "eta",
+              "pattern": "REX",
+              "deviceType": "Circuit Breaker"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "140G",
+              "deviceType": "Circuit Breaker"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "A",
+              "deviceType": "Contactor",
+              "notes": "AF / A / AL / AX series IEC contactors"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "AF",
+              "deviceType": "Contactor",
+              "notes": "AF / A / AL / AX series IEC contactors"
+            }
+          ]
+        },
+        {
+          "sheetName": "directional control valve",
+          "deviceTypes": [
+            "Directional Control Valve"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "el. mesurement devices",
+          "deviceTypes": [
+            "Current Sensor"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "electronic sensor",
+          "deviceTypes": [
+            "Capacitive Sensor",
+            "Encoder",
+            "Inductive Proximity Sensor",
+            "Magnetic Field Sensor",
+            "RFID Device",
+            "Sensor",
+            "Ultrasonic Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BCS",
+              "deviceType": "Capacitive Sensor"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BDG",
+              "deviceType": "Encoder",
+              "notes": "Absolute encoder"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BTL",
+              "deviceType": "Encoder",
+              "notes": "Magnetostrictive linear encoder"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BES",
+              "deviceType": "Inductive Proximity Sensor"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BIS",
+              "deviceType": "Inductive Proximity Sensor"
+            }
+          ]
+        },
+        {
+          "sheetName": "energy distribution system",
+          "deviceTypes": [
+            "Loadcenter"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "filters",
+          "deviceTypes": [
+            "Filter"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "fluid power",
+          "deviceTypes": [
+            "Hydraulic Actuator"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "generator",
+          "deviceTypes": [
+            "Generator"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "int. ext. lightning protection",
+          "deviceTypes": [
+            "Surge Protective Device"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "OVR",
+              "deviceType": "Surge Protective Device"
+            }
+          ]
+        },
+        {
+          "sheetName": "module carrier frame",
+          "deviceTypes": [
+            "Module Carrier"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "motor protection",
+          "deviceTypes": [
+            "Motor Circuit Breaker",
+            "Motor Starter"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "MO",
+              "deviceType": "Motor Circuit Breaker",
+              "notes": "Manual motor starter"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MS",
+              "deviceType": "Motor Circuit Breaker",
+              "notes": "Manual motor starter"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PKE",
+              "deviceType": "Motor Circuit Breaker"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PKZM",
+              "deviceType": "Motor Circuit Breaker"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "140M",
+              "deviceType": "Motor Circuit Breaker"
+            }
+          ]
+        },
+        {
+          "sheetName": "motors",
+          "deviceTypes": [
+            "Motor",
+            "Variable Speed Drive"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "M2A",
+              "deviceType": "Motor"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "TM",
+              "deviceType": "Motor"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "ACQ",
+              "deviceType": "Variable Speed Drive",
+              "notes": "ACS / ACQ / ACH drives"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "ACS",
+              "deviceType": "Variable Speed Drive",
+              "notes": "ACS / ACQ / ACH drives"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "DC1",
+              "deviceType": "Variable Speed Drive",
+              "notes": "PowerXL"
+            }
+          ]
+        },
+        {
+          "sheetName": "optical sensor",
+          "deviceTypes": [
+            "Photoelectric Sensor",
+            "Vision Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BOH",
+              "deviceType": "Photoelectric Sensor"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BOS",
+              "deviceType": "Photoelectric Sensor"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "42EF",
+              "deviceType": "Photoelectric Sensor"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "42JS",
+              "deviceType": "Photoelectric Sensor"
+            },
+            {
+              "manufacturerId": "schneider",
+              "pattern": "XU",
+              "deviceType": "Photoelectric Sensor",
+              "notes": "OsiSense XU"
+            }
+          ]
+        },
+        {
+          "sheetName": "pneumatic handling",
+          "deviceTypes": [
+            "Pneumatic Device"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "pump",
+          "deviceTypes": [
+            "Pump"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "safety sensor",
+          "deviceTypes": [
+            "Safety Relay",
+            "Safety Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "PLUTO",
+              "deviceType": "Safety Relay",
+              "notes": "Pluto safety controller"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "440R",
+              "deviceType": "Safety Relay"
+            },
+            {
+              "manufacturerId": "schmersal",
+              "pattern": "PROTECT-",
+              "deviceType": "Safety Relay"
+            },
+            {
+              "manufacturerId": "schmersal",
+              "pattern": "SRB",
+              "deviceType": "Safety Relay"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "3SF",
+              "deviceType": "Safety Relay"
+            }
+          ]
+        },
+        {
+          "sheetName": "sensor - fluid",
+          "deviceTypes": [
+            "Flow Sensor",
+            "Level Sensor",
+            "Pressure Sensor",
+            "Temperature Sensor"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "servo controller",
+          "deviceTypes": [
+            "Soft Starter",
+            "Variable Speed Drive"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "PSE",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "PSTX",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "DS7",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "schneider",
+              "pattern": "ATS",
+              "deviceType": "Soft Starter",
+              "notes": "Altistart"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "3RW",
+              "deviceType": "Soft Starter",
+              "notes": "SIRIUS soft starter"
+            }
+          ]
+        },
+        {
+          "sheetName": "ventil",
+          "deviceTypes": [
+            "Valve"
+          ],
+          "examples": []
+        }
+      ],
+      "deviceSheetCoverage": {
+        "covered": 9,
+        "total": 41
+      }
+    },
+    "fixtureCoverageRequired": false,
+    "accepted": true
+  },
+  "reports": [
+    {
+      "manufacturerId": "rockwell",
+      "catalogNumber": "800F-X10",
+      "caseType": "accessory",
+      "expectedDeviceType": "Pushbutton / Operator",
+      "actualDeviceType": "Pushbutton / Operator",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "official-datasheet",
+        "accessory-no-synthesis"
+      ],
+      "status": "found",
+      "confidence": 0.86,
+      "productUrl": "https://www.rockwellautomation.com/en-us/products/details.800F-X10.html",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260602152107\\pdt\\rockwell-800F-X10-pdt_pdt-audit.json",
+      "pdtWrittenCells": 28,
+      "pdtBlankCells": 49,
+      "pdtSkippedCells": 4,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 4,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": []
+    },
+    {
+      "manufacturerId": "rockwell",
+      "catalogNumber": "1783-US5T",
+      "caseType": "edge",
+      "expectedDeviceType": "Communication Gateway",
+      "actualDeviceType": "Communication Gateway",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "stratix-switch",
+        "official-dpp",
+        "plc-rs232-sheet-coverage"
+      ],
+      "status": "found",
+      "confidence": 0.72,
+      "productUrl": "https://www.rockwellautomation.com/en-us/products/details.1783-US5T.html",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260602152107\\pdt\\rockwell-1783-US5T-pdt_pdt-audit.json",
+      "pdtWrittenCells": 37,
+      "pdtBlankCells": 59,
+      "pdtSkippedCells": 3,
+      "pdtUnprovenSkipped": 2,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 1,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": []
+    },
+    {
+      "manufacturerId": "rockwell",
+      "catalogNumber": "1769-PB4",
+      "caseType": "electrical",
+      "expectedDeviceType": "Power Supply",
+      "actualDeviceType": "Power Supply",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "compactlogix-power-supply",
+        "official-dpp",
+        "power-supply-devices"
+      ],
+      "status": "found",
+      "confidence": 0.72,
+      "productUrl": "https://www.rockwellautomation.com/en-us/products/details.1769-PB4.html",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260602152107\\pdt\\rockwell-1769-PB4-pdt_pdt-audit.json",
+      "pdtWrittenCells": 39,
+      "pdtBlankCells": 157,
+      "pdtSkippedCells": 1,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 1,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": []
+    },
+    {
+      "manufacturerId": "rockwell",
+      "catalogNumber": "2715P-T7CD",
+      "caseType": "electrical",
+      "expectedDeviceType": "HMI",
+      "actualDeviceType": "HMI",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "panelview-hmi",
+        "official-dpp",
+        "panel-hmi-sheet-coverage"
+      ],
+      "status": "found",
+      "confidence": 0.86,
+      "productUrl": "https://www.rockwellautomation.com/en-us/products/details.2715P-T7CD.html",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": false,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260602152107\\pdt\\rockwell-2715P-T7CD-pdt_pdt-audit.json",
+      "pdtWrittenCells": 55,
+      "pdtBlankCells": 79,
+      "pdtSkippedCells": 4,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 3,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": []
+    },
+    {
+      "manufacturerId": "rockwell",
+      "catalogNumber": "1492-J3",
+      "caseType": "mechanical",
+      "expectedDeviceType": "Terminal Block",
+      "actualDeviceType": "Terminal Block",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "terminal-block",
+        "official-dpp",
+        "terminal-sheet-coverage"
+      ],
+      "status": "found",
+      "confidence": 0.72,
+      "productUrl": "https://www.rockwellautomation.com/en-us/products/details.1492-J3.html",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260602152107\\pdt\\rockwell-1492-J3-pdt_pdt-audit.json",
+      "pdtWrittenCells": 31,
+      "pdtBlankCells": 35,
+      "pdtSkippedCells": 0,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": []
+    },
+    {
+      "manufacturerId": "rockwell",
+      "catalogNumber": "1492-EAJ35",
+      "caseType": "mechanical",
+      "expectedDeviceType": "Terminal Accessory",
+      "actualDeviceType": "Terminal Accessory",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "terminal-accessory",
+        "end-anchor",
+        "terminal-endbracket-sheet-coverage",
+        "1492-family-disambiguation"
+      ],
+      "status": "found",
+      "confidence": 0.72,
+      "productUrl": "https://www.rockwellautomation.com/en-us/products/details.1492-EAJ35.html",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260602152107\\pdt\\rockwell-1492-EAJ35-pdt_pdt-audit.json",
+      "pdtWrittenCells": 24,
+      "pdtBlankCells": 30,
+      "pdtSkippedCells": 0,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": []
+    },
+    {
+      "manufacturerId": "rockwell",
+      "catalogNumber": "1756-M02AE",
+      "caseType": "electrical",
+      "expectedDeviceType": "Motion Controller",
+      "actualDeviceType": "Motion Controller",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "motion-controller",
+        "controllogix-motion-module",
+        "motion-controller-sheet-coverage"
+      ],
+      "status": "found",
+      "confidence": 0.86,
+      "productUrl": "https://www.rockwellautomation.com/en-us/products/details.1756-M02AE.html",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260602152107\\pdt\\rockwell-1756-M02AE-pdt_pdt-audit.json",
+      "pdtWrittenCells": 24,
+      "pdtBlankCells": 42,
+      "pdtSkippedCells": 0,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": []
+    },
+    {
+      "manufacturerId": "rockwell",
+      "catalogNumber": "802T-KPE",
+      "caseType": "electrical",
+      "expectedDeviceType": "Switch",
+      "actualDeviceType": "Switch",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "limit-switch",
+        "switch-sheet-coverage",
+        "official-datasheet"
+      ],
+      "status": "found",
+      "confidence": 0.72,
+      "productUrl": "https://www.rockwellautomation.com/en-us/products/details.802T-KPE.html",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260602152107\\pdt\\rockwell-802T-KPE-pdt_pdt-audit.json",
+      "pdtWrittenCells": 38,
+      "pdtBlankCells": 41,
+      "pdtSkippedCells": 1,
+      "pdtUnprovenSkipped": 1,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": []
+    }
+  ]
+}

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { DragEvent } from "react";
 import {
   Activity,
@@ -131,6 +131,11 @@ const REQUIRED_COVERAGE_FIELDS = [
 
 type CoverageKey = (typeof REQUIRED_COVERAGE_FIELDS)[number]["key"];
 type RunItemFilter = "all" | "needs-check" | ItemStatus;
+type OpenFilePicker = (options: {
+  id?: string;
+  multiple?: boolean;
+  types?: Array<{ description?: string; accept: Record<string, string[]> }>;
+}) => Promise<Array<{ getFile(): Promise<File> }>>;
 
 const RUN_ITEM_FILTERS: Array<{ key: RunItemFilter; label: string }> = [
   { key: "all", label: "All" },
@@ -161,6 +166,9 @@ function pdtImportWarning(stats: PdtImportStats): string | null {
     const examples = stats.requiredFieldIssues.map((issue) => `${issue.catalogNumber}/${issue.sheetName}/${issue.code || issue.propName}`);
     warnings.push(`missing required PDT fields: ${stats.requiredFieldIssues.length} (${formatShortList(examples, 3)})`);
   }
+  if ((stats.cellAudit?.unprovenSkipped ?? 0) > 0) {
+    warnings.push(`unproven PDT values skipped: ${stats.cellAudit!.unprovenSkipped}`);
+  }
   return warnings.length ? `PDT generated with warnings: ${warnings.join("; ")}.` : null;
 }
 
@@ -174,6 +182,8 @@ export function App() {
   const [manufacturers, setManufacturers] = useState<ManufacturerConfig[]>([]);
   const [manufacturerId, setManufacturerId] = useState("abb");
   const [file, setFile] = useState<File | null>(null);
+  const uploadInputRef = useRef<HTMLInputElement | null>(null);
+  const customerInputRef = useRef<HTMLInputElement | null>(null);
   const [preview, setPreview] = useState<CsvPreview | null>(null);
   const [columnName, setColumnName] = useState("");
   const [uploadDragActive, setUploadDragActive] = useState(false);
@@ -354,31 +364,94 @@ export function App() {
     }
   }
 
+  async function pickCatalogFile() {
+    const picker = (window as Window & { showOpenFilePicker?: OpenFilePicker }).showOpenFilePicker;
+    if (!picker) {
+      uploadInputRef.current?.click();
+      return;
+    }
+    try {
+      const handles = await picker({
+        id: "product-scraper-catalog-source",
+        multiple: false,
+        types: [
+          {
+            description: "Catalog input",
+            accept: {
+              "text/csv": [".csv"],
+              "application/vnd.ms-excel": [".xls"],
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [".xlsx"]
+            }
+          }
+        ]
+      });
+      const nextFile = handles[0] ? await handles[0].getFile() : null;
+      await handleFile(nextFile);
+    } catch (err) {
+      if (err instanceof DOMException && err.name === "AbortError") return;
+      setError(errorMessage(err));
+    }
+  }
+
+  async function pickCustomerDocuments() {
+    const picker = (window as Window & { showOpenFilePicker?: OpenFilePicker }).showOpenFilePicker;
+    if (!picker) {
+      customerInputRef.current?.click();
+      return;
+    }
+    try {
+      const handles = await picker({
+        id: "product-scraper-customer-documents",
+        multiple: true,
+        types: [
+          {
+            description: "Customer documents",
+            accept: {
+              "application/pdf": [".pdf"],
+              "application/vnd.openxmlformats-officedocument.wordprocessingml.document": [".docx", ".doc"],
+              "application/vnd.ms-excel": [".xls"],
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [".xlsx"],
+              "text/csv": [".csv"],
+              "text/tab-separated-values": [".tsv"],
+              "text/plain": [".txt"]
+            }
+          }
+        ]
+      });
+      const files = await Promise.all(handles.map((handle) => handle.getFile()));
+      addCustomerDocuments(files);
+    } catch (err) {
+      if (err instanceof DOMException && err.name === "AbortError") return;
+      // showOpenFilePicker threw (e.g. browser rejected a MIME type) — fall back to native input.
+      customerInputRef.current?.click();
+    }
+  }
+
   function hasDraggedFiles(event: DragEvent<HTMLElement>) {
     return Array.from(event.dataTransfer.types).includes("Files");
   }
 
-  function handleUploadDragEnter(event: DragEvent<HTMLLabelElement>) {
+  function handleUploadDragEnter(event: DragEvent<HTMLElement>) {
     if (!hasDraggedFiles(event)) return;
     event.preventDefault();
     event.dataTransfer.dropEffect = "copy";
     setUploadDragActive(true);
   }
 
-  function handleUploadDragOver(event: DragEvent<HTMLLabelElement>) {
+  function handleUploadDragOver(event: DragEvent<HTMLElement>) {
     if (!hasDraggedFiles(event)) return;
     event.preventDefault();
     event.dataTransfer.dropEffect = "copy";
     setUploadDragActive(true);
   }
 
-  function handleUploadDragLeave(event: DragEvent<HTMLLabelElement>) {
+  function handleUploadDragLeave(event: DragEvent<HTMLElement>) {
     const nextTarget = event.relatedTarget;
     if (nextTarget instanceof Node && event.currentTarget.contains(nextTarget)) return;
     setUploadDragActive(false);
   }
 
-  function handleUploadDrop(event: DragEvent<HTMLLabelElement>) {
+  function handleUploadDrop(event: DragEvent<HTMLElement>) {
     if (!hasDraggedFiles(event)) return;
     event.preventDefault();
     setUploadDragActive(false);
@@ -406,27 +479,27 @@ export function App() {
     setCustomerDocuments((current) => current.filter((_, idx) => idx !== index));
   }
 
-  function handleCustomerDragEnter(event: DragEvent<HTMLLabelElement>) {
+  function handleCustomerDragEnter(event: DragEvent<HTMLElement>) {
     if (!hasDraggedFiles(event)) return;
     event.preventDefault();
     event.dataTransfer.dropEffect = "copy";
     setCustomerDragActive(true);
   }
 
-  function handleCustomerDragOver(event: DragEvent<HTMLLabelElement>) {
+  function handleCustomerDragOver(event: DragEvent<HTMLElement>) {
     if (!hasDraggedFiles(event)) return;
     event.preventDefault();
     event.dataTransfer.dropEffect = "copy";
     setCustomerDragActive(true);
   }
 
-  function handleCustomerDragLeave(event: DragEvent<HTMLLabelElement>) {
+  function handleCustomerDragLeave(event: DragEvent<HTMLElement>) {
     const nextTarget = event.relatedTarget;
     if (nextTarget instanceof Node && event.currentTarget.contains(nextTarget)) return;
     setCustomerDragActive(false);
   }
 
-  function handleCustomerDrop(event: DragEvent<HTMLLabelElement>) {
+  function handleCustomerDrop(event: DragEvent<HTMLElement>) {
     if (!hasDraggedFiles(event)) return;
     event.preventDefault();
     setCustomerDragActive(false);
@@ -975,8 +1048,16 @@ export function App() {
             </button>
           </div>
 
-          <label
+          <div
             className={`upload-zone${uploadDragActive ? " is-dragging" : ""}`}
+            role="button"
+            tabIndex={0}
+            onClick={() => void pickCatalogFile()}
+            onKeyDown={(event) => {
+              if (event.key !== "Enter" && event.key !== " ") return;
+              event.preventDefault();
+              void pickCatalogFile();
+            }}
             onDragEnter={handleUploadDragEnter}
             onDragOver={handleUploadDragOver}
             onDragLeave={handleUploadDragLeave}
@@ -988,11 +1069,13 @@ export function App() {
             <strong>{file ? file.name : "Drop or select CSV/XLSX"}</strong>
             <span>{file ? "File loaded for preview" : "One catalog-number column"}</span>
             <input
+              ref={uploadInputRef}
               type="file"
               accept=".csv,.xlsx,.xls,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+              onClick={(event) => event.stopPropagation()}
               onChange={(event) => void handleFile(event.currentTarget.files?.[0] ?? null)}
             />
-          </label>
+          </div>
 
           {preview && (
             <>
@@ -1023,8 +1106,16 @@ export function App() {
             </>
           )}
 
-          <label
+          <div
             className={`upload-zone customer-doc-zone${customerDragActive ? " is-dragging" : ""}`}
+            role="button"
+            tabIndex={0}
+            onClick={() => void pickCustomerDocuments()}
+            onKeyDown={(event) => {
+              if (event.key !== "Enter" && event.key !== " ") return;
+              event.preventDefault();
+              void pickCustomerDocuments();
+            }}
             onDragEnter={handleCustomerDragEnter}
             onDragOver={handleCustomerDragOver}
             onDragLeave={handleCustomerDragLeave}
@@ -1043,15 +1134,17 @@ export function App() {
               the website scrape — use this when the customer hands you their own source.
             </span>
             <input
+              ref={customerInputRef}
               type="file"
               multiple
               accept=".pdf,.doc,.docx,.xls,.xlsx,.csv,.tsv,.txt,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv,text/plain"
+              onClick={(event) => event.stopPropagation()}
               onChange={(event) => {
                 addCustomerDocuments(event.currentTarget.files);
                 event.currentTarget.value = "";
               }}
             />
-          </label>
+          </div>
           {customerDocuments.length > 0 && (
             <ul className="customer-doc-list">
               {customerDocuments.map((doc, index) => (
@@ -1618,6 +1711,7 @@ export function App() {
                       <th>#</th>
                       <th>Catalog number</th>
                       <th>Status</th>
+                      <th>Source</th>
                       <th>Activity</th>
                       <th>Title</th>
                       <th>Reason</th>
@@ -1633,6 +1727,9 @@ export function App() {
                         <td className="mono">{item.catalogNumber}</td>
                         <td>
                           <ItemBadge status={item.status} />
+                        </td>
+                        <td>
+                          <SourceBadge item={item} />
                         </td>
                         <td>
                           <StageCell item={item} />
@@ -2503,7 +2600,20 @@ de https://www.company.com/de/product/{part}`}
               <span>→ Assign selected to sheet:</span>
               <select
                 value={pdtRoutingBulkSheet}
-                onChange={(event) => setPdtRoutingBulkSheet(event.target.value)}
+                onChange={(event) => {
+                  const next = event.target.value;
+                  setPdtRoutingBulkSheet(next);
+                  // Auto-apply on pick when there are already-selected rows. The Apply button
+                  // still exists as a safety net, but most users miss the second click and
+                  // expect the pick to take effect immediately — exactly what happens here.
+                  if (next && pdtRoutingSelected.size > 0) {
+                    setPdtRoutingOverrides((prev) => {
+                      const updated = { ...prev };
+                      for (const id of pdtRoutingSelected) updated[id] = next;
+                      return updated;
+                    });
+                  }
+                }}
               >
                 <option value="">— pick sheet —</option>
                 {pdtRoutingPreview.availableSheets.map((s) => (
@@ -2560,9 +2670,10 @@ de https://www.company.com/de/product/{part}`}
                     const auto = it.suggestedSheets[0] ?? "";
                     const chosen = pdtRoutingOverrides[it.itemId] ?? auto;
                     const changed = chosen !== auto;
+                    const unassigned = !chosen;
                     const isSelected = pdtRoutingSelected.has(it.itemId);
                     return (
-                      <tr key={it.itemId} className={changed ? "changed" : undefined}>
+                      <tr key={it.itemId} className={`${changed ? "changed " : ""}${unassigned ? "unassigned" : ""}`.trim() || undefined}>
                         <td>
                           <input
                             type="checkbox"
@@ -2584,11 +2695,17 @@ de https://www.company.com/de/product/{part}`}
                         <td>
                           <select
                             value={chosen}
+                            className={unassigned ? "select-unassigned" : undefined}
                             onChange={(event) => {
                               const value = event.target.value;
                               setPdtRoutingOverrides((prev) => ({ ...prev, [it.itemId]: value }));
                             }}
                           >
+                            {/* Explicit placeholder so an empty/unset row renders as a clearly-
+                                unselected dropdown instead of silently defaulting to the first
+                                option (which looked like "Busbar was chosen" and caused users to
+                                click Generate without actually picking a sheet). */}
+                            <option value="">— not assigned —</option>
                             {/* Include the auto-suggested sheet even when it isn't in the device list,
                                 so the dropdown can always reflect the current value. */}
                             {auto && !pdtRoutingPreview.availableSheets.includes(auto) && (
@@ -2608,6 +2725,19 @@ de https://www.company.com/de/product/{part}`}
               </table>
             </div>
             <div className="pdt-routing-actions">
+              {(() => {
+                // Count items left without any sheet (no override AND no auto-suggestion) so we
+                // can warn the user — these will only land in constant tabs (Material Master Data,
+                // Additional Documents) and skip every device tab, which is almost always wrong.
+                const unassignedCount = pdtRoutingPreview.items.filter(
+                  (it) => !(pdtRoutingOverrides[it.itemId] ?? it.suggestedSheets[0])
+                ).length;
+                return unassignedCount > 0 ? (
+                  <span className="pdt-routing-warning">
+                    ⚠ {unassignedCount} row{unassignedCount === 1 ? "" : "s"} not assigned to a sheet — those products will only be written to Material Master Data and Additional Documents.
+                  </span>
+                ) : null;
+              })()}
               <button
                 type="button"
                 className="download-button secondary"
@@ -2727,6 +2857,47 @@ function StageCell({ item }: { item: RunItemRecord }) {
       {detail ? <small>{detail}</small> : null}
     </span>
   );
+}
+
+function SourceBadge({ item }: { item: RunItemRecord }) {
+  // While the item is still running and we haven't got the full result yet, fall back to
+  // the live stage — "customer-override" means the customer doc is being scanned right now.
+  if (!item.result) {
+    if (item.stage === "customer-override") {
+      return <span className="source-badge source-badge--customer" title="Currently reading customer document">Customer doc</span>;
+    }
+    if (item.stage === "official-source") {
+      return <span className="source-badge source-badge--web" title="Currently scraping manufacturer website">Website</span>;
+    }
+    return <span className="source-badge source-badge--idle">—</span>;
+  }
+  const customerCount = item.result.attributes.filter((attr) => attr.parser === "customer-document").length;
+  const webCount = item.result.attributes.length - customerCount;
+  if (customerCount > 0 && webCount === 0) {
+    return (
+      <span className="source-badge source-badge--customer" title={`${customerCount} attributes from customer document`}>
+        Customer doc
+      </span>
+    );
+  }
+  if (customerCount > 0 && webCount > 0) {
+    return (
+      <span
+        className="source-badge source-badge--mixed"
+        title={`${customerCount} attrs from customer document override ${webCount} from website`}
+      >
+        Customer + web
+      </span>
+    );
+  }
+  if (webCount > 0) {
+    return (
+      <span className="source-badge source-badge--web" title={`${webCount} attributes from manufacturer website`}>
+        Website
+      </span>
+    );
+  }
+  return <span className="source-badge source-badge--idle">—</span>;
 }
 
 function EmptyState() {
@@ -3029,7 +3200,8 @@ function stageLabel(stage: string | undefined, status: RunItemRecord["status"]):
 
 const STAGE_LABELS: Record<string, string> = {
   pending: "Pending",
-  "official-source": "Official source",
+  "customer-override": "Customer doc",
+  "official-source": "Manufacturer website",
   "quality-gate": "Quality check",
   downloads: "Downloads",
   "document-enrichment": "Document parse",

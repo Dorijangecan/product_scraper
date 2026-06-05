@@ -1,18 +1,961 @@
 {
-  "generatedAt": "2026-05-31T11:20:23.030Z",
-  "outputDir": "D:\\Projekti\\product_scraper\\benchmarks\\output\\20260531111857",
+  "generatedAt": "2026-06-02T16:35:58.471Z",
+  "outputDir": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260602162846",
+  "filters": {},
   "summary": {
-    "foundRate": 90.9,
+    "foundRate": 100,
     "officialUrlRate": 100,
-    "documentRate": 81.8,
+    "documentRate": 100,
+    "pdtAuditRate": 100,
+    "deviceTypeRate": 100,
+    "customerDocumentRate": 100,
     "wrongProducts": 0,
     "partialWithoutMissing": 0,
-    "accepted": true
+    "pdtUnprovenWritten": 0,
+    "pdtUnexplainedRequiredFieldIssues": 0,
+    "pdtWriteIssues": 53,
+    "qualityAccepted": true,
+    "fixtureCoverageAccepted": false,
+    "fixtureCoverage": {
+      "byManufacturer": {
+        "abb": {
+          "total": 4,
+          "caseTypes": [
+            "edge",
+            "electrical"
+          ],
+          "riskTags": [
+            "abb-1sda",
+            "abb-acs",
+            "abb-ovr",
+            "busbar",
+            "busbar-sheet-coverage",
+            "lightning-protection-sheet-coverage",
+            "motors-sheet-coverage",
+            "pdt-provenance",
+            "sheet-override",
+            "surge-protection",
+            "variable-speed-drive"
+          ]
+        },
+        "balluff": {
+          "total": 4,
+          "caseTypes": [
+            "electrical"
+          ],
+          "riskTags": [
+            "browser-expanded-sections",
+            "capacitive-sensor",
+            "connector",
+            "electronic-sensor",
+            "official-datasheet",
+            "optical-sensor",
+            "photoelectric-sensor",
+            "pressure-sensor",
+            "sensor-fluid-sheet-coverage"
+          ]
+        },
+        "eaton": {
+          "total": 5,
+          "caseTypes": [
+            "electrical",
+            "mechanical"
+          ],
+          "riskTags": [
+            "current-sensor",
+            "eaton-url-format",
+            "electrical-measurement-devices-sheet-coverage",
+            "electrical-ratings",
+            "energy-distribution-system-sheet-coverage",
+            "filter-element",
+            "filters-sheet-coverage",
+            "loadcenter",
+            "manual-motor-protector",
+            "motor-protection"
+          ]
+        },
+        "eta": {
+          "total": 1,
+          "caseTypes": [
+            "electrical"
+          ],
+          "riskTags": [
+            "configured-fallback",
+            "eta-no-special-connector",
+            "thermal-breaker"
+          ]
+        },
+        "fath": {
+          "total": 1,
+          "caseTypes": [
+            "mechanical"
+          ],
+          "riskTags": [
+            "configured-fallback",
+            "mechanical-accessory"
+          ]
+        },
+        "nvent": {
+          "total": 2,
+          "caseTypes": [
+            "mechanical"
+          ],
+          "riskTags": [
+            "cabinet-rack-sheet-coverage",
+            "dimensions-material",
+            "hoffman",
+            "multi-brand",
+            "rack-cabinet"
+          ]
+        },
+        "phoenix": {
+          "total": 2,
+          "caseTypes": [
+            "electrical"
+          ],
+          "riskTags": [
+            "pcb-connection-system-sheet-coverage",
+            "pcb-connection-technology-sheet-coverage",
+            "pcb-header",
+            "pcb-terminal-block",
+            "phoenix-contact"
+          ]
+        },
+        "rockwell": {
+          "total": 8,
+          "caseTypes": [
+            "accessory",
+            "edge",
+            "electrical",
+            "mechanical"
+          ],
+          "riskTags": [
+            "1492-family-disambiguation",
+            "accessory-no-synthesis",
+            "compactlogix-power-supply",
+            "controllogix-motion-module",
+            "end-anchor",
+            "limit-switch",
+            "motion-controller",
+            "motion-controller-sheet-coverage",
+            "official-datasheet",
+            "official-dpp",
+            "panel-hmi-sheet-coverage",
+            "panelview-hmi",
+            "plc-rs232-sheet-coverage",
+            "power-supply-devices",
+            "stratix-switch",
+            "switch-sheet-coverage",
+            "terminal-accessory",
+            "terminal-block",
+            "terminal-endbracket-sheet-coverage",
+            "terminal-sheet-coverage"
+          ]
+        },
+        "sce": {
+          "total": 5,
+          "caseTypes": [
+            "accessory",
+            "electrical",
+            "mechanical"
+          ],
+          "riskTags": [
+            "accessory-no-synthesis",
+            "air-conditioner",
+            "connector",
+            "dimensions-weight",
+            "family-correction",
+            "led-light-fixture",
+            "luminaire",
+            "mounting-accessory",
+            "programming-port",
+            "saginaw-url-format",
+            "thermal-management",
+            "voltage-rated"
+          ]
+        },
+        "schmersal": {
+          "total": 1,
+          "caseTypes": [
+            "electrical"
+          ],
+          "riskTags": [
+            "configured-fallback",
+            "safety-device"
+          ]
+        },
+        "schneider": {
+          "total": 2,
+          "caseTypes": [
+            "electrical",
+            "mechanical"
+          ],
+          "riskTags": [
+            "altistart",
+            "dimensions-material",
+            "official-datasheet",
+            "servo-controller-sheet-coverage",
+            "soft-starter"
+          ]
+        },
+        "siemens": {
+          "total": 2,
+          "caseTypes": [
+            "mechanical"
+          ],
+          "riskTags": [
+            "colon-catalog",
+            "customer-document-supported",
+            "module-carrier-frame-sheet-coverage",
+            "official-sieportal",
+            "siemens-partial",
+            "simatic-et200sp-baseunit"
+          ]
+        },
+        "spelsberg": {
+          "total": 2,
+          "caseTypes": [
+            "mechanical"
+          ],
+          "riskTags": [
+            "algolia-search",
+            "cable-gland",
+            "cable-gland-sheet-coverage",
+            "dimensions-material",
+            "spelsberg-accessory"
+          ]
+        }
+      },
+      "byDeviceType": {
+        "Accessory": {
+          "total": 1,
+          "manufacturers": [
+            "abb"
+          ],
+          "caseTypes": [
+            "edge"
+          ]
+        },
+        "Surge Protective Device": {
+          "total": 1,
+          "manufacturers": [
+            "abb"
+          ],
+          "caseTypes": [
+            "electrical"
+          ]
+        },
+        "Busbar": {
+          "total": 1,
+          "manufacturers": [
+            "abb"
+          ],
+          "caseTypes": [
+            "edge"
+          ]
+        },
+        "Variable Speed Drive": {
+          "total": 1,
+          "manufacturers": [
+            "abb"
+          ],
+          "caseTypes": [
+            "electrical"
+          ]
+        },
+        "Cable": {
+          "total": 1,
+          "manufacturers": [
+            "balluff"
+          ],
+          "caseTypes": [
+            "electrical"
+          ]
+        },
+        "Capacitive Sensor": {
+          "total": 1,
+          "manufacturers": [
+            "balluff"
+          ],
+          "caseTypes": [
+            "electrical"
+          ]
+        },
+        "Photoelectric Sensor": {
+          "total": 1,
+          "manufacturers": [
+            "balluff"
+          ],
+          "caseTypes": [
+            "electrical"
+          ]
+        },
+        "Pressure Sensor": {
+          "total": 1,
+          "manufacturers": [
+            "balluff"
+          ],
+          "caseTypes": [
+            "electrical"
+          ]
+        },
+        "Disconnect Switch": {
+          "total": 1,
+          "manufacturers": [
+            "eaton"
+          ],
+          "caseTypes": [
+            "electrical"
+          ]
+        },
+        "Motor Circuit Breaker": {
+          "total": 1,
+          "manufacturers": [
+            "eaton"
+          ],
+          "caseTypes": [
+            "electrical"
+          ]
+        },
+        "Filter": {
+          "total": 1,
+          "manufacturers": [
+            "eaton"
+          ],
+          "caseTypes": [
+            "mechanical"
+          ]
+        },
+        "Loadcenter": {
+          "total": 1,
+          "manufacturers": [
+            "eaton"
+          ],
+          "caseTypes": [
+            "electrical"
+          ]
+        },
+        "Current Sensor": {
+          "total": 1,
+          "manufacturers": [
+            "eaton"
+          ],
+          "caseTypes": [
+            "electrical"
+          ]
+        },
+        "Circuit Breaker": {
+          "total": 1,
+          "manufacturers": [
+            "eta"
+          ],
+          "caseTypes": [
+            "electrical"
+          ]
+        },
+        "Mounting Accessory": {
+          "total": 2,
+          "manufacturers": [
+            "fath",
+            "sce"
+          ],
+          "caseTypes": [
+            "mechanical"
+          ]
+        },
+        "Enclosure": {
+          "total": 4,
+          "manufacturers": [
+            "nvent",
+            "sce",
+            "schneider",
+            "spelsberg"
+          ],
+          "caseTypes": [
+            "mechanical"
+          ]
+        },
+        "Rack Cabinet": {
+          "total": 1,
+          "manufacturers": [
+            "nvent"
+          ],
+          "caseTypes": [
+            "mechanical"
+          ]
+        },
+        "PCB Terminal Block": {
+          "total": 1,
+          "manufacturers": [
+            "phoenix"
+          ],
+          "caseTypes": [
+            "electrical"
+          ]
+        },
+        "PCB Connector": {
+          "total": 1,
+          "manufacturers": [
+            "phoenix"
+          ],
+          "caseTypes": [
+            "electrical"
+          ]
+        },
+        "Pushbutton / Operator": {
+          "total": 1,
+          "manufacturers": [
+            "rockwell"
+          ],
+          "caseTypes": [
+            "accessory"
+          ]
+        },
+        "Communication Gateway": {
+          "total": 1,
+          "manufacturers": [
+            "rockwell"
+          ],
+          "caseTypes": [
+            "edge"
+          ]
+        },
+        "Power Supply": {
+          "total": 1,
+          "manufacturers": [
+            "rockwell"
+          ],
+          "caseTypes": [
+            "electrical"
+          ]
+        },
+        "HMI": {
+          "total": 1,
+          "manufacturers": [
+            "rockwell"
+          ],
+          "caseTypes": [
+            "electrical"
+          ]
+        },
+        "Terminal Block": {
+          "total": 1,
+          "manufacturers": [
+            "rockwell"
+          ],
+          "caseTypes": [
+            "mechanical"
+          ]
+        },
+        "Terminal Accessory": {
+          "total": 1,
+          "manufacturers": [
+            "rockwell"
+          ],
+          "caseTypes": [
+            "mechanical"
+          ]
+        },
+        "Motion Controller": {
+          "total": 1,
+          "manufacturers": [
+            "rockwell"
+          ],
+          "caseTypes": [
+            "electrical"
+          ]
+        },
+        "Switch": {
+          "total": 1,
+          "manufacturers": [
+            "rockwell"
+          ],
+          "caseTypes": [
+            "electrical"
+          ]
+        },
+        "Thermal Management": {
+          "total": 1,
+          "manufacturers": [
+            "sce"
+          ],
+          "caseTypes": [
+            "electrical"
+          ]
+        },
+        "Luminaire": {
+          "total": 1,
+          "manufacturers": [
+            "sce"
+          ],
+          "caseTypes": [
+            "electrical"
+          ]
+        },
+        "Connector": {
+          "total": 1,
+          "manufacturers": [
+            "sce"
+          ],
+          "caseTypes": [
+            "accessory"
+          ]
+        },
+        "Safety Sensor": {
+          "total": 1,
+          "manufacturers": [
+            "schmersal"
+          ],
+          "caseTypes": [
+            "electrical"
+          ]
+        },
+        "Soft Starter": {
+          "total": 1,
+          "manufacturers": [
+            "schneider"
+          ],
+          "caseTypes": [
+            "electrical"
+          ]
+        },
+        "Valve": {
+          "total": 1,
+          "manufacturers": [
+            "siemens"
+          ],
+          "caseTypes": [
+            "mechanical"
+          ]
+        },
+        "Module Carrier": {
+          "total": 1,
+          "manufacturers": [
+            "siemens"
+          ],
+          "caseTypes": [
+            "mechanical"
+          ]
+        },
+        "Cable Gland": {
+          "total": 1,
+          "manufacturers": [
+            "spelsberg"
+          ],
+          "caseTypes": [
+            "mechanical"
+          ]
+        }
+      },
+      "byDeviceSheet": {
+        "cabinet.mechanical": {
+          "total": 5,
+          "deviceTypes": [
+            "Accessory",
+            "Enclosure"
+          ],
+          "manufacturers": [
+            "abb",
+            "nvent",
+            "sce",
+            "schneider",
+            "spelsberg"
+          ]
+        },
+        "int. ext. lightning protection": {
+          "total": 1,
+          "deviceTypes": [
+            "Surge Protective Device"
+          ],
+          "manufacturers": [
+            "abb"
+          ]
+        },
+        "Busbar": {
+          "total": 1,
+          "deviceTypes": [
+            "Busbar"
+          ],
+          "manufacturers": [
+            "abb"
+          ]
+        },
+        "servo controller": {
+          "total": 2,
+          "deviceTypes": [
+            "Soft Starter",
+            "Variable Speed Drive"
+          ],
+          "manufacturers": [
+            "abb",
+            "schneider"
+          ]
+        },
+        "motors": {
+          "total": 1,
+          "deviceTypes": [
+            "Variable Speed Drive"
+          ],
+          "manufacturers": [
+            "abb"
+          ]
+        },
+        "cable": {
+          "total": 1,
+          "deviceTypes": [
+            "Cable"
+          ],
+          "manufacturers": [
+            "balluff"
+          ]
+        },
+        "electronic sensor": {
+          "total": 1,
+          "deviceTypes": [
+            "Capacitive Sensor"
+          ],
+          "manufacturers": [
+            "balluff"
+          ]
+        },
+        "optical sensor": {
+          "total": 1,
+          "deviceTypes": [
+            "Photoelectric Sensor"
+          ],
+          "manufacturers": [
+            "balluff"
+          ]
+        },
+        "sensor - fluid": {
+          "total": 1,
+          "deviceTypes": [
+            "Pressure Sensor"
+          ],
+          "manufacturers": [
+            "balluff"
+          ]
+        },
+        "contactor a. fuses": {
+          "total": 2,
+          "deviceTypes": [
+            "Circuit Breaker",
+            "Disconnect Switch"
+          ],
+          "manufacturers": [
+            "eaton",
+            "eta"
+          ]
+        },
+        "motor protection": {
+          "total": 1,
+          "deviceTypes": [
+            "Motor Circuit Breaker"
+          ],
+          "manufacturers": [
+            "eaton"
+          ]
+        },
+        "filters": {
+          "total": 1,
+          "deviceTypes": [
+            "Filter"
+          ],
+          "manufacturers": [
+            "eaton"
+          ]
+        },
+        "energy distribution system": {
+          "total": 1,
+          "deviceTypes": [
+            "Loadcenter"
+          ],
+          "manufacturers": [
+            "eaton"
+          ]
+        },
+        "el. mesurement devices": {
+          "total": 1,
+          "deviceTypes": [
+            "Current Sensor"
+          ],
+          "manufacturers": [
+            "eaton"
+          ]
+        },
+        "cable ducts mounting rails": {
+          "total": 2,
+          "deviceTypes": [
+            "Mounting Accessory"
+          ],
+          "manufacturers": [
+            "fath",
+            "sce"
+          ]
+        },
+        "cabinet": {
+          "total": 4,
+          "deviceTypes": [
+            "Enclosure"
+          ],
+          "manufacturers": [
+            "nvent",
+            "sce",
+            "schneider",
+            "spelsberg"
+          ]
+        },
+        "cabinet.rack": {
+          "total": 1,
+          "deviceTypes": [
+            "Rack Cabinet"
+          ],
+          "manufacturers": [
+            "nvent"
+          ]
+        },
+        "PCB connection technology": {
+          "total": 1,
+          "deviceTypes": [
+            "PCB Terminal Block"
+          ],
+          "manufacturers": [
+            "phoenix"
+          ]
+        },
+        "PCB connection system": {
+          "total": 1,
+          "deviceTypes": [
+            "PCB Connector"
+          ],
+          "manufacturers": [
+            "phoenix"
+          ]
+        },
+        "command and alarm device": {
+          "total": 1,
+          "deviceTypes": [
+            "Pushbutton / Operator"
+          ],
+          "manufacturers": [
+            "rockwell"
+          ]
+        },
+        "PLC": {
+          "total": 2,
+          "deviceTypes": [
+            "Communication Gateway",
+            "HMI"
+          ],
+          "manufacturers": [
+            "rockwell"
+          ]
+        },
+        "RS232 interfaces": {
+          "total": 1,
+          "deviceTypes": [
+            "Communication Gateway"
+          ],
+          "manufacturers": [
+            "rockwell"
+          ]
+        },
+        "power supply devices": {
+          "total": 1,
+          "deviceTypes": [
+            "Power Supply"
+          ],
+          "manufacturers": [
+            "rockwell"
+          ]
+        },
+        "panel (HMI)": {
+          "total": 1,
+          "deviceTypes": [
+            "HMI"
+          ],
+          "manufacturers": [
+            "rockwell"
+          ]
+        },
+        "terminal": {
+          "total": 1,
+          "deviceTypes": [
+            "Terminal Block"
+          ],
+          "manufacturers": [
+            "rockwell"
+          ]
+        },
+        "terminal endbracket": {
+          "total": 1,
+          "deviceTypes": [
+            "Terminal Accessory"
+          ],
+          "manufacturers": [
+            "rockwell"
+          ]
+        },
+        "Motion Controller": {
+          "total": 1,
+          "deviceTypes": [
+            "Motion Controller"
+          ],
+          "manufacturers": [
+            "rockwell"
+          ]
+        },
+        "Switch": {
+          "total": 1,
+          "deviceTypes": [
+            "Switch"
+          ],
+          "manufacturers": [
+            "rockwell"
+          ]
+        },
+        "cabinet.airconditioning": {
+          "total": 1,
+          "deviceTypes": [
+            "Thermal Management"
+          ],
+          "manufacturers": [
+            "sce"
+          ]
+        },
+        "Luminaire": {
+          "total": 1,
+          "deviceTypes": [
+            "Luminaire"
+          ],
+          "manufacturers": [
+            "sce"
+          ]
+        },
+        "connector": {
+          "total": 1,
+          "deviceTypes": [
+            "Connector"
+          ],
+          "manufacturers": [
+            "sce"
+          ]
+        },
+        "safety sensor": {
+          "total": 1,
+          "deviceTypes": [
+            "Safety Sensor"
+          ],
+          "manufacturers": [
+            "schmersal"
+          ]
+        },
+        "ventil": {
+          "total": 1,
+          "deviceTypes": [
+            "Valve"
+          ],
+          "manufacturers": [
+            "siemens"
+          ]
+        },
+        "module carrier frame": {
+          "total": 1,
+          "deviceTypes": [
+            "Module Carrier"
+          ],
+          "manufacturers": [
+            "siemens"
+          ]
+        },
+        "cable gland": {
+          "total": 1,
+          "deviceTypes": [
+            "Cable Gland"
+          ],
+          "manufacturers": [
+            "spelsberg"
+          ]
+        }
+      },
+      "thinManufacturers": [
+        "eta",
+        "fath",
+        "schmersal"
+      ],
+      "uncoveredDeviceSheets": [
+        "Wire ID Information",
+        "directional control valve",
+        "fluid power",
+        "generator",
+        "pneumatic handling",
+        "pump"
+      ],
+      "missingDeviceSheetRecommendations": [
+        {
+          "sheetName": "Wire ID Information",
+          "deviceTypes": [
+            "Wire Marker"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "directional control valve",
+          "deviceTypes": [
+            "Directional Control Valve"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "fluid power",
+          "deviceTypes": [
+            "Hydraulic Actuator"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "generator",
+          "deviceTypes": [
+            "Generator"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "pneumatic handling",
+          "deviceTypes": [
+            "Pneumatic Device"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "pump",
+          "deviceTypes": [
+            "Pump"
+          ],
+          "examples": []
+        }
+      ],
+      "deviceSheetCoverage": {
+        "covered": 35,
+        "total": 41
+      }
+    },
+    "fixtureCoverageRequired": true,
+    "accepted": false
   },
   "reports": [
     {
       "manufacturerId": "abb",
       "catalogNumber": "1SDA126190R1",
+      "caseType": "edge",
+      "expectedDeviceType": "Accessory",
+      "actualDeviceType": "Accessory",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "abb-1sda",
+        "sheet-override",
+        "pdt-provenance"
+      ],
       "status": "found",
       "confidence": 0.9,
       "productUrl": "http://new.abb.com/products/pl/1SDA126190R1/rrd-motor-110-220vac-dc-e1-3",
@@ -21,11 +964,134 @@
       "officialUrlMatched": true,
       "requiredDocumentsMatched": true,
       "normalizedFieldsMatched": false,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260602162846\\pdt\\abb-1SDA126190R1-pdt_pdt-audit.json",
+      "pdtWrittenCells": 24,
+      "pdtBlankCells": 26,
+      "pdtSkippedCells": 47,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 1,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": []
+    },
+    {
+      "manufacturerId": "abb",
+      "catalogNumber": "2CTB804201R0100",
+      "caseType": "electrical",
+      "expectedDeviceType": "Surge Protective Device",
+      "actualDeviceType": "Surge Protective Device",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "abb-ovr",
+        "surge-protection",
+        "lightning-protection-sheet-coverage"
+      ],
+      "status": "found",
+      "confidence": 0.9,
+      "productUrl": "http://new.abb.com/products/pl/2CTB804201R0100/ovr-t2-40-275",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260602162846\\pdt\\abb-2CTB804201R0100-pdt_pdt-audit.json",
+      "pdtWrittenCells": 41,
+      "pdtBlankCells": 101,
+      "pdtSkippedCells": 8,
+      "pdtUnprovenSkipped": 4,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 4,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": []
+    },
+    {
+      "manufacturerId": "abb",
+      "catalogNumber": "1SDA126493R1",
+      "caseType": "edge",
+      "expectedDeviceType": "Busbar",
+      "actualDeviceType": "Busbar",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "abb-1sda",
+        "busbar",
+        "sheet-override",
+        "busbar-sheet-coverage"
+      ],
+      "status": "found",
+      "confidence": 0.9,
+      "productUrl": "http://new.abb.com/products/pl/1SDA126493R1/ekip-busbars-supply-e1-3-e6-3",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260602162846\\pdt\\abb-1SDA126493R1-pdt_pdt-audit.json",
+      "pdtWrittenCells": 29,
+      "pdtBlankCells": 53,
+      "pdtSkippedCells": 0,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": []
+    },
+    {
+      "manufacturerId": "abb",
+      "catalogNumber": "ACS580-01-039A-4",
+      "caseType": "electrical",
+      "expectedDeviceType": "Variable Speed Drive",
+      "actualDeviceType": "Variable Speed Drive",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "abb-acs",
+        "variable-speed-drive",
+        "motors-sheet-coverage"
+      ],
+      "status": "found",
+      "confidence": 0.9,
+      "productUrl": "http://new.abb.com/products/pl/3ABD50000038962/acs580-01-039a-4",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260602162846\\pdt\\abb-ACS580-01-039A-4-pdt_pdt-audit.json",
+      "pdtWrittenCells": 32,
+      "pdtBlankCells": 62,
+      "pdtSkippedCells": 3,
+      "pdtUnprovenSkipped": 1,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 2,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
       "qualityMissing": []
     },
     {
       "manufacturerId": "balluff",
       "catalogNumber": "BCC039H",
+      "caseType": "electrical",
+      "expectedDeviceType": "Cable",
+      "actualDeviceType": "Cable",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "official-datasheet",
+        "connector"
+      ],
       "status": "found",
       "confidence": 0.92,
       "productUrl": "https://www.balluff.com/en-gb/products/BCC039H",
@@ -34,11 +1100,136 @@
       "officialUrlMatched": true,
       "requiredDocumentsMatched": true,
       "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260602162846\\pdt\\balluff-BCC039H-pdt_pdt-audit.json",
+      "pdtWrittenCells": 42,
+      "pdtBlankCells": 43,
+      "pdtSkippedCells": 2,
+      "pdtUnprovenSkipped": 2,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": []
+    },
+    {
+      "manufacturerId": "balluff",
+      "catalogNumber": "BCS01CY",
+      "caseType": "electrical",
+      "expectedDeviceType": "Capacitive Sensor",
+      "actualDeviceType": "Capacitive Sensor",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "official-datasheet",
+        "capacitive-sensor",
+        "electronic-sensor",
+        "browser-expanded-sections"
+      ],
+      "status": "found",
+      "confidence": 0.92,
+      "productUrl": "https://www.balluff.com/en-gb/products/BCS01CY",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260602162846\\pdt\\balluff-BCS01CY-pdt_pdt-audit.json",
+      "pdtWrittenCells": 52,
+      "pdtBlankCells": 82,
+      "pdtSkippedCells": 6,
+      "pdtUnprovenSkipped": 1,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 5,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": []
+    },
+    {
+      "manufacturerId": "balluff",
+      "catalogNumber": "BOS025P",
+      "caseType": "electrical",
+      "expectedDeviceType": "Photoelectric Sensor",
+      "actualDeviceType": "Photoelectric Sensor",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "official-datasheet",
+        "photoelectric-sensor",
+        "optical-sensor",
+        "browser-expanded-sections"
+      ],
+      "status": "found",
+      "confidence": 0.92,
+      "productUrl": "https://www.balluff.com/en-gb/products/BOS025P",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260602162846\\pdt\\balluff-BOS025P-pdt_pdt-audit.json",
+      "pdtWrittenCells": 68,
+      "pdtBlankCells": 206,
+      "pdtSkippedCells": 11,
+      "pdtUnprovenSkipped": 5,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 6,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": []
+    },
+    {
+      "manufacturerId": "balluff",
+      "catalogNumber": "BSP00R5",
+      "caseType": "electrical",
+      "expectedDeviceType": "Pressure Sensor",
+      "actualDeviceType": "Pressure Sensor",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "official-datasheet",
+        "pressure-sensor",
+        "sensor-fluid-sheet-coverage",
+        "browser-expanded-sections"
+      ],
+      "status": "found",
+      "confidence": 0.92,
+      "productUrl": "https://www.balluff.com/en-gb/products/BSP00R5",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260602162846\\pdt\\balluff-BSP00R5-pdt_pdt-audit.json",
+      "pdtWrittenCells": 49,
+      "pdtBlankCells": 102,
+      "pdtSkippedCells": 4,
+      "pdtUnprovenSkipped": 2,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 2,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
       "qualityMissing": []
     },
     {
       "manufacturerId": "eaton",
       "catalogNumber": "P1-25/I2/SVB",
+      "caseType": "electrical",
+      "expectedDeviceType": "Disconnect Switch",
+      "actualDeviceType": "Disconnect Switch",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "eaton-url-format",
+        "electrical-ratings"
+      ],
       "status": "found",
       "confidence": 0.82,
       "productUrl": "https://www.eaton.com/us/en-us/skuPage.P1-25%7B%7DI2%7B%7DSVB.html",
@@ -47,24 +1238,235 @@
       "officialUrlMatched": true,
       "requiredDocumentsMatched": true,
       "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260602162846\\pdt\\eaton-P1-25-I2-SVB-pdt_pdt-audit.json",
+      "pdtWrittenCells": 26,
+      "pdtBlankCells": 71,
+      "pdtSkippedCells": 0,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 3,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": []
+    },
+    {
+      "manufacturerId": "eaton",
+      "catalogNumber": "PKZM0-10",
+      "caseType": "electrical",
+      "expectedDeviceType": "Motor Circuit Breaker",
+      "actualDeviceType": "Motor Circuit Breaker",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "eaton-url-format",
+        "motor-protection",
+        "manual-motor-protector"
+      ],
+      "status": "found",
+      "confidence": 0.82,
+      "productUrl": "https://www.eaton.com/us/en-us/skuPage.PKZM0-10.html",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260602162846\\pdt\\eaton-PKZM0-10-pdt_pdt-audit.json",
+      "pdtWrittenCells": 23,
+      "pdtBlankCells": 73,
+      "pdtSkippedCells": 1,
+      "pdtUnprovenSkipped": 1,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": []
+    },
+    {
+      "manufacturerId": "eaton",
+      "catalogNumber": "222AS10051A",
+      "caseType": "mechanical",
+      "expectedDeviceType": "Filter",
+      "actualDeviceType": "Filter",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "eaton-url-format",
+        "filter-element",
+        "filters-sheet-coverage"
+      ],
+      "status": "found",
+      "confidence": 0.82,
+      "productUrl": "https://www.eaton.com/us/en-us/skuPage.222AS10051A.html",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": false,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260602162846\\pdt\\eaton-222AS10051A-pdt_pdt-audit.json",
+      "pdtWrittenCells": 21,
+      "pdtBlankCells": 35,
+      "pdtSkippedCells": 0,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": []
+    },
+    {
+      "manufacturerId": "eaton",
+      "catalogNumber": "BRP42BC225",
+      "caseType": "electrical",
+      "expectedDeviceType": "Loadcenter",
+      "actualDeviceType": "Loadcenter",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "eaton-url-format",
+        "loadcenter",
+        "energy-distribution-system-sheet-coverage"
+      ],
+      "status": "found",
+      "confidence": 0.82,
+      "productUrl": "https://www.eaton.com/us/en-us/skuPage.BRP42BC225.html",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260602162846\\pdt\\eaton-BRP42BC225-pdt_pdt-audit.json",
+      "pdtWrittenCells": 34,
+      "pdtBlankCells": 66,
+      "pdtSkippedCells": 1,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 1,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": []
+    },
+    {
+      "manufacturerId": "eaton",
+      "catalogNumber": "M030-151",
+      "caseType": "electrical",
+      "expectedDeviceType": "Current Sensor",
+      "actualDeviceType": "Current Sensor",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "eaton-url-format",
+        "current-sensor",
+        "electrical-measurement-devices-sheet-coverage"
+      ],
+      "status": "found",
+      "confidence": 0.82,
+      "productUrl": "https://www.eaton.com/us/en-us/skuPage.M030-151.html",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260602162846\\pdt\\eaton-M030-151-pdt_pdt-audit.json",
+      "pdtWrittenCells": 22,
+      "pdtBlankCells": 92,
+      "pdtSkippedCells": 3,
+      "pdtUnprovenSkipped": 1,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": []
+    },
+    {
+      "manufacturerId": "eta",
+      "catalogNumber": "3120-F521-P7T1-W01D-16A",
+      "caseType": "electrical",
+      "expectedDeviceType": "Circuit Breaker",
+      "actualDeviceType": "Circuit Breaker",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "configured-fallback",
+        "thermal-breaker",
+        "eta-no-special-connector"
+      ],
+      "status": "found",
+      "confidence": 0.72,
+      "productUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Thermisch/2_en/D_3120-F_en.pdf",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260602162846\\pdt\\eta-3120-F521-P7T1-W01D-16A-pdt_pdt-audit.json",
+      "pdtWrittenCells": 38,
+      "pdtBlankCells": 57,
+      "pdtSkippedCells": 2,
+      "pdtUnprovenSkipped": 2,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 2,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
       "qualityMissing": []
     },
     {
       "manufacturerId": "fath",
       "catalogNumber": "098ABG045",
+      "caseType": "mechanical",
+      "expectedDeviceType": "Mounting Accessory",
+      "actualDeviceType": "Mounting Accessory",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "configured-fallback",
+        "mechanical-accessory"
+      ],
       "status": "found",
       "confidence": 0.78,
       "productUrl": "https://www.fath24.com/en/Anti-slip-Plate-for-Bell-Feet/098ABG045",
       "identityConfirmed": true,
       "wrongProduct": false,
       "officialUrlMatched": true,
-      "requiredDocumentsMatched": false,
+      "requiredDocumentsMatched": true,
       "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260602162846\\pdt\\fath-098ABG045-pdt_pdt-audit.json",
+      "pdtWrittenCells": 18,
+      "pdtBlankCells": 67,
+      "pdtSkippedCells": 1,
+      "pdtUnprovenSkipped": 1,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
       "qualityMissing": []
     },
     {
       "manufacturerId": "nvent",
       "catalogNumber": "A12126T1PP",
+      "caseType": "mechanical",
+      "expectedDeviceType": "Enclosure",
+      "actualDeviceType": "Enclosure",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "multi-brand",
+        "hoffman",
+        "dimensions-material"
+      ],
       "status": "found",
       "confidence": 0.55,
       "productUrl": "https://www.nvent.com/en-bs/hoffman/products/enca12126t1pp",
@@ -73,11 +1475,133 @@
       "officialUrlMatched": true,
       "requiredDocumentsMatched": true,
       "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260602162846\\pdt\\nvent-A12126T1PP-pdt_pdt-audit.json",
+      "pdtWrittenCells": 45,
+      "pdtBlankCells": 85,
+      "pdtSkippedCells": 5,
+      "pdtUnprovenSkipped": 5,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 3,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": []
+    },
+    {
+      "manufacturerId": "nvent",
+      "catalogNumber": "PS1C1269B",
+      "caseType": "mechanical",
+      "expectedDeviceType": "Rack Cabinet",
+      "actualDeviceType": "Rack Cabinet",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "hoffman",
+        "rack-cabinet",
+        "cabinet-rack-sheet-coverage"
+      ],
+      "status": "found",
+      "confidence": 0.55,
+      "productUrl": "https://www.nvent.com/en-bs/hoffman/products/encps1c1269b",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260602162846\\pdt\\nvent-PS1C1269B-pdt_pdt-audit.json",
+      "pdtWrittenCells": 32,
+      "pdtBlankCells": 53,
+      "pdtSkippedCells": 2,
+      "pdtUnprovenSkipped": 1,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 1,
+      "pdtRequiredFieldIssues": 1,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": []
+    },
+    {
+      "manufacturerId": "phoenix",
+      "catalogNumber": "1715721",
+      "caseType": "electrical",
+      "expectedDeviceType": "PCB Terminal Block",
+      "actualDeviceType": "PCB Terminal Block",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "phoenix-contact",
+        "pcb-terminal-block",
+        "pcb-connection-technology-sheet-coverage"
+      ],
+      "status": "found",
+      "confidence": 0.72,
+      "productUrl": "https://r.jina.ai/http://www.phoenixcontact.com/product/1715721",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260602162846\\pdt\\phoenix-1715721-pdt_pdt-audit.json",
+      "pdtWrittenCells": 42,
+      "pdtBlankCells": 109,
+      "pdtSkippedCells": 8,
+      "pdtUnprovenSkipped": 1,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 7,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": []
+    },
+    {
+      "manufacturerId": "phoenix",
+      "catalogNumber": "1757242",
+      "caseType": "electrical",
+      "expectedDeviceType": "PCB Connector",
+      "actualDeviceType": "PCB Connector",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "phoenix-contact",
+        "pcb-header",
+        "pcb-connection-system-sheet-coverage"
+      ],
+      "status": "found",
+      "confidence": 0.72,
+      "productUrl": "https://r.jina.ai/http://www.phoenixcontact.com/product/1757242",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260602162846\\pdt\\phoenix-1757242-pdt_pdt-audit.json",
+      "pdtWrittenCells": 40,
+      "pdtBlankCells": 77,
+      "pdtSkippedCells": 12,
+      "pdtUnprovenSkipped": 3,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 9,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
       "qualityMissing": []
     },
     {
       "manufacturerId": "rockwell",
       "catalogNumber": "800F-X10",
+      "caseType": "accessory",
+      "expectedDeviceType": "Pushbutton / Operator",
+      "actualDeviceType": "Pushbutton / Operator",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "official-datasheet",
+        "accessory-no-synthesis"
+      ],
       "status": "found",
       "confidence": 0.86,
       "productUrl": "https://www.rockwellautomation.com/en-us/products/details.800F-X10.html",
@@ -86,11 +1610,270 @@
       "officialUrlMatched": true,
       "requiredDocumentsMatched": true,
       "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260602162846\\pdt\\rockwell-800F-X10-pdt_pdt-audit.json",
+      "pdtWrittenCells": 28,
+      "pdtBlankCells": 49,
+      "pdtSkippedCells": 4,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 4,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": []
+    },
+    {
+      "manufacturerId": "rockwell",
+      "catalogNumber": "1783-US5T",
+      "caseType": "edge",
+      "expectedDeviceType": "Communication Gateway",
+      "actualDeviceType": "Communication Gateway",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "stratix-switch",
+        "official-dpp",
+        "plc-rs232-sheet-coverage"
+      ],
+      "status": "found",
+      "confidence": 0.72,
+      "productUrl": "https://www.rockwellautomation.com/en-us/products/details.1783-US5T.html",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260602162846\\pdt\\rockwell-1783-US5T-pdt_pdt-audit.json",
+      "pdtWrittenCells": 37,
+      "pdtBlankCells": 59,
+      "pdtSkippedCells": 3,
+      "pdtUnprovenSkipped": 2,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 1,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": []
+    },
+    {
+      "manufacturerId": "rockwell",
+      "catalogNumber": "1769-PB4",
+      "caseType": "electrical",
+      "expectedDeviceType": "Power Supply",
+      "actualDeviceType": "Power Supply",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "compactlogix-power-supply",
+        "official-dpp",
+        "power-supply-devices"
+      ],
+      "status": "found",
+      "confidence": 0.72,
+      "productUrl": "https://www.rockwellautomation.com/en-us/products/details.1769-PB4.html",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260602162846\\pdt\\rockwell-1769-PB4-pdt_pdt-audit.json",
+      "pdtWrittenCells": 39,
+      "pdtBlankCells": 157,
+      "pdtSkippedCells": 1,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 1,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": []
+    },
+    {
+      "manufacturerId": "rockwell",
+      "catalogNumber": "2715P-T7CD",
+      "caseType": "electrical",
+      "expectedDeviceType": "HMI",
+      "actualDeviceType": "HMI",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "panelview-hmi",
+        "official-dpp",
+        "panel-hmi-sheet-coverage"
+      ],
+      "status": "found",
+      "confidence": 0.86,
+      "productUrl": "https://www.rockwellautomation.com/en-us/products/details.2715P-T7CD.html",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": false,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260602162846\\pdt\\rockwell-2715P-T7CD-pdt_pdt-audit.json",
+      "pdtWrittenCells": 55,
+      "pdtBlankCells": 79,
+      "pdtSkippedCells": 4,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 3,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": []
+    },
+    {
+      "manufacturerId": "rockwell",
+      "catalogNumber": "1492-J3",
+      "caseType": "mechanical",
+      "expectedDeviceType": "Terminal Block",
+      "actualDeviceType": "Terminal Block",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "terminal-block",
+        "official-dpp",
+        "terminal-sheet-coverage"
+      ],
+      "status": "found",
+      "confidence": 0.72,
+      "productUrl": "https://www.rockwellautomation.com/en-us/products/details.1492-J3.html",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260602162846\\pdt\\rockwell-1492-J3-pdt_pdt-audit.json",
+      "pdtWrittenCells": 31,
+      "pdtBlankCells": 35,
+      "pdtSkippedCells": 0,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": []
+    },
+    {
+      "manufacturerId": "rockwell",
+      "catalogNumber": "1492-EAJ35",
+      "caseType": "mechanical",
+      "expectedDeviceType": "Terminal Accessory",
+      "actualDeviceType": "Terminal Accessory",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "terminal-accessory",
+        "end-anchor",
+        "terminal-endbracket-sheet-coverage",
+        "1492-family-disambiguation"
+      ],
+      "status": "found",
+      "confidence": 0.72,
+      "productUrl": "https://www.rockwellautomation.com/en-us/products/details.1492-EAJ35.html",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260602162846\\pdt\\rockwell-1492-EAJ35-pdt_pdt-audit.json",
+      "pdtWrittenCells": 24,
+      "pdtBlankCells": 30,
+      "pdtSkippedCells": 0,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": []
+    },
+    {
+      "manufacturerId": "rockwell",
+      "catalogNumber": "1756-M02AE",
+      "caseType": "electrical",
+      "expectedDeviceType": "Motion Controller",
+      "actualDeviceType": "Motion Controller",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "motion-controller",
+        "controllogix-motion-module",
+        "motion-controller-sheet-coverage"
+      ],
+      "status": "found",
+      "confidence": 0.86,
+      "productUrl": "https://www.rockwellautomation.com/en-us/products/details.1756-M02AE.html",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260602162846\\pdt\\rockwell-1756-M02AE-pdt_pdt-audit.json",
+      "pdtWrittenCells": 24,
+      "pdtBlankCells": 42,
+      "pdtSkippedCells": 0,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": []
+    },
+    {
+      "manufacturerId": "rockwell",
+      "catalogNumber": "802T-KPE",
+      "caseType": "electrical",
+      "expectedDeviceType": "Switch",
+      "actualDeviceType": "Switch",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "limit-switch",
+        "switch-sheet-coverage",
+        "official-datasheet"
+      ],
+      "status": "found",
+      "confidence": 0.72,
+      "productUrl": "https://www.rockwellautomation.com/en-us/products/details.802T-KPE.html",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260602162846\\pdt\\rockwell-802T-KPE-pdt_pdt-audit.json",
+      "pdtWrittenCells": 38,
+      "pdtBlankCells": 41,
+      "pdtSkippedCells": 1,
+      "pdtUnprovenSkipped": 1,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
       "qualityMissing": []
     },
     {
       "manufacturerId": "sce",
       "catalogNumber": "SCE-12EL1206LP",
+      "caseType": "mechanical",
+      "expectedDeviceType": "Enclosure",
+      "actualDeviceType": "Enclosure",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "saginaw-url-format",
+        "dimensions-weight"
+      ],
       "status": "found",
       "confidence": 0.9,
       "productUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-12EL1206LP",
@@ -99,11 +1882,170 @@
       "officialUrlMatched": true,
       "requiredDocumentsMatched": true,
       "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260602162846\\pdt\\sce-SCE-12EL1206LP-pdt_pdt-audit.json",
+      "pdtWrittenCells": 31,
+      "pdtBlankCells": 96,
+      "pdtSkippedCells": 8,
+      "pdtUnprovenSkipped": 6,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 2,
+      "pdtRequiredFieldIssues": 5,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": []
+    },
+    {
+      "manufacturerId": "sce",
+      "catalogNumber": "SCE-FK0618",
+      "caseType": "mechanical",
+      "expectedDeviceType": "Mounting Accessory",
+      "actualDeviceType": "Mounting Accessory",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "saginaw-url-format",
+        "mounting-accessory",
+        "family-correction"
+      ],
+      "status": "found",
+      "confidence": 0.9,
+      "productUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-FK0618",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260602162846\\pdt\\sce-SCE-FK0618-pdt_pdt-audit.json",
+      "pdtWrittenCells": 23,
+      "pdtBlankCells": 58,
+      "pdtSkippedCells": 5,
+      "pdtUnprovenSkipped": 4,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 1,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": []
+    },
+    {
+      "manufacturerId": "sce",
+      "catalogNumber": "SCE-AC3400B120V",
+      "caseType": "electrical",
+      "expectedDeviceType": "Thermal Management",
+      "actualDeviceType": "Thermal Management",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "saginaw-url-format",
+        "thermal-management",
+        "air-conditioner",
+        "voltage-rated"
+      ],
+      "status": "found",
+      "confidence": 0.9,
+      "productUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-AC3400B120V",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260602162846\\pdt\\sce-SCE-AC3400B120V-pdt_pdt-audit.json",
+      "pdtWrittenCells": 35,
+      "pdtBlankCells": 56,
+      "pdtSkippedCells": 1,
+      "pdtUnprovenSkipped": 1,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": []
+    },
+    {
+      "manufacturerId": "sce",
+      "catalogNumber": "SCE-LF1824VDC",
+      "caseType": "electrical",
+      "expectedDeviceType": "Luminaire",
+      "actualDeviceType": "Luminaire",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "saginaw-url-format",
+        "luminaire",
+        "led-light-fixture",
+        "voltage-rated"
+      ],
+      "status": "found",
+      "confidence": 0.9,
+      "productUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-LF1824VDC",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260602162846\\pdt\\sce-SCE-LF1824VDC-pdt_pdt-audit.json",
+      "pdtWrittenCells": 24,
+      "pdtBlankCells": 40,
+      "pdtSkippedCells": 2,
+      "pdtUnprovenSkipped": 1,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 1,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": []
+    },
+    {
+      "manufacturerId": "sce",
+      "catalogNumber": "P-P11R2-K3RF0-U450",
+      "caseType": "accessory",
+      "expectedDeviceType": "Connector",
+      "actualDeviceType": "Connector",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "saginaw-url-format",
+        "programming-port",
+        "connector",
+        "accessory-no-synthesis"
+      ],
+      "status": "found",
+      "confidence": 0.9,
+      "productUrl": "https://www.saginawcontrol.com/partnumber_info/?n=P-P11R2-K3RF0-U450",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260602162846\\pdt\\sce-P-P11R2-K3RF0-U450-pdt_pdt-audit.json",
+      "pdtWrittenCells": 22,
+      "pdtBlankCells": 59,
+      "pdtSkippedCells": 2,
+      "pdtUnprovenSkipped": 2,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
       "qualityMissing": []
     },
     {
       "manufacturerId": "schmersal",
       "catalogNumber": "AZM300B-ST-1P2P-A",
+      "caseType": "electrical",
+      "expectedDeviceType": "Safety Sensor",
+      "actualDeviceType": "Safety Sensor",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "configured-fallback",
+        "safety-device"
+      ],
       "status": "found",
       "confidence": 0.55,
       "productUrl": "https://products.schmersal.com/en_US/azm300b-st-1p2p-a-103001423",
@@ -112,41 +2054,166 @@
       "officialUrlMatched": true,
       "requiredDocumentsMatched": true,
       "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260602162846\\pdt\\schmersal-AZM300B-ST-1P2P-A-pdt_pdt-audit.json",
+      "pdtWrittenCells": 66,
+      "pdtBlankCells": 81,
+      "pdtSkippedCells": 3,
+      "pdtUnprovenSkipped": 1,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 2,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
       "qualityMissing": []
     },
     {
       "manufacturerId": "schneider",
       "catalogNumber": "NSYS3D3215",
+      "caseType": "mechanical",
+      "expectedDeviceType": "Enclosure",
+      "actualDeviceType": "Enclosure",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "official-datasheet",
+        "dimensions-material"
+      ],
       "status": "found",
-      "confidence": 0.86,
-      "productUrl": "https://www.se.com/us/en/product/NSYS3D3215/wall-mounted-steel-enclosure-panelset-s3d-plain-door-without-mounting-plate-300x200x150mm-ip66-ik10/",
+      "confidence": 0.8,
+      "productUrl": "http://www.se.com/us/en/product/NSYS3D3215/",
       "identityConfirmed": true,
       "wrongProduct": false,
       "officialUrlMatched": true,
       "requiredDocumentsMatched": true,
       "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260602162846\\pdt\\schneider-NSYS3D3215-pdt_pdt-audit.json",
+      "pdtWrittenCells": 30,
+      "pdtBlankCells": 104,
+      "pdtSkippedCells": 1,
+      "pdtUnprovenSkipped": 1,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 5,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": []
+    },
+    {
+      "manufacturerId": "schneider",
+      "catalogNumber": "ATS01N212QN",
+      "caseType": "electrical",
+      "expectedDeviceType": "Soft Starter",
+      "actualDeviceType": "Soft Starter",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "altistart",
+        "soft-starter",
+        "servo-controller-sheet-coverage"
+      ],
+      "status": "found",
+      "confidence": 0.8,
+      "productUrl": "http://www.se.com/us/en/product/ATS01N212QN/",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260602162846\\pdt\\schneider-ATS01N212QN-pdt_pdt-audit.json",
+      "pdtWrittenCells": 28,
+      "pdtBlankCells": 34,
+      "pdtSkippedCells": 2,
+      "pdtUnprovenSkipped": 1,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
       "qualityMissing": []
     },
     {
       "manufacturerId": "siemens",
       "catalogNumber": "BPZ:VSG519K15-5",
-      "status": "partial",
-      "confidence": 0.63,
+      "caseType": "mechanical",
+      "expectedDeviceType": "Valve",
+      "actualDeviceType": "Valve",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "siemens-partial",
+        "colon-catalog",
+        "customer-document-supported"
+      ],
+      "status": "found",
+      "confidence": 0.97,
       "productUrl": "https://r.jina.ai/http://mall.industry.siemens.com/mall/en/WW/Catalog/Product?mlfb=BPZ%3AVSG519K15-5",
       "identityConfirmed": true,
       "wrongProduct": false,
       "officialUrlMatched": true,
-      "requiredDocumentsMatched": false,
-      "normalizedFieldsMatched": false,
-      "qualityMissing": [
-        "normalized:voltage",
-        "normalized:current",
-        "minDocuments:1"
-      ]
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260602162846\\pdt\\siemens-BPZ-VSG519K15-5-pdt_pdt-audit.json",
+      "pdtWrittenCells": 17,
+      "pdtBlankCells": 59,
+      "pdtSkippedCells": 0,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 1,
+      "customerDocumentsMatched": true,
+      "qualityMissing": []
+    },
+    {
+      "manufacturerId": "siemens",
+      "catalogNumber": "6ES7193-6BP00-0DA0",
+      "caseType": "mechanical",
+      "expectedDeviceType": "Module Carrier",
+      "actualDeviceType": "Module Carrier",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "simatic-et200sp-baseunit",
+        "module-carrier-frame-sheet-coverage",
+        "official-sieportal"
+      ],
+      "status": "found",
+      "confidence": 0.55,
+      "productUrl": "https://r.jina.ai/http://mall.industry.siemens.com/mall/en/WW/Catalog/Product?mlfb=6ES7193-6BP00-0DA0",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260602162846\\pdt\\siemens-6ES7193-6BP00-0DA0-pdt_pdt-audit.json",
+      "pdtWrittenCells": 12,
+      "pdtBlankCells": 38,
+      "pdtSkippedCells": 2,
+      "pdtUnprovenSkipped": 2,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": []
     },
     {
       "manufacturerId": "spelsberg",
       "catalogNumber": "TK PS 2518-11-m",
+      "caseType": "mechanical",
+      "expectedDeviceType": "Enclosure",
+      "actualDeviceType": "Enclosure",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "algolia-search",
+        "dimensions-material"
+      ],
       "status": "found",
       "confidence": 0.82,
       "productUrl": "https://www.spelsberg.com/industrial-housing/with-/-without-metric-knock-outs/10590801/",
@@ -155,6 +2222,52 @@
       "officialUrlMatched": true,
       "requiredDocumentsMatched": true,
       "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260602162846\\pdt\\spelsberg-TK-PS-2518-11-m-pdt_pdt-audit.json",
+      "pdtWrittenCells": 42,
+      "pdtBlankCells": 90,
+      "pdtSkippedCells": 3,
+      "pdtUnprovenSkipped": 2,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 1,
+      "pdtRequiredFieldIssues": 5,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": []
+    },
+    {
+      "manufacturerId": "spelsberg",
+      "catalogNumber": "KVR M50",
+      "caseType": "mechanical",
+      "expectedDeviceType": "Cable Gland",
+      "actualDeviceType": "Cable Gland",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "spelsberg-accessory",
+        "cable-gland",
+        "cable-gland-sheet-coverage"
+      ],
+      "status": "found",
+      "confidence": 0.82,
+      "productUrl": "https://www.spelsberg.com/accessories/spelsberg-general-accessories/22705001/",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260602162846\\pdt\\spelsberg-KVR-M50-pdt_pdt-audit.json",
+      "pdtWrittenCells": 33,
+      "pdtBlankCells": 28,
+      "pdtSkippedCells": 0,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
       "qualityMissing": []
     }
   ]

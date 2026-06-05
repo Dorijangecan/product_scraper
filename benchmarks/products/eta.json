@@ -1,0 +1,8 @@
+{
+  "manufacturerId": "eta",
+  "catalogNumber": "3120-F521-P7T1-W01D-16A",
+  "caseType": "electrical",
+  "expectedDeviceType": "Circuit Breaker",
+  "riskTags": ["configured-fallback", "thermal-breaker", "eta-no-special-connector"],
+  "expectedOfficialUrlPatterns": ["e-t-a\\.com/.*/3120"]
+}

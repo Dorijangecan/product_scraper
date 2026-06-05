@@ -202,9 +202,11 @@ function isEatonBrowserBlocked(): boolean {
 
 function markEatonBrowserBlocked(reason: string): void {
   eatonBrowserBlockedUntil = Date.now() + EATON_BROWSER_BLOCKED_COOLDOWN_MS;
-  if (typeof process !== "undefined" && process.env?.DEBUG_EATON) {
-    console.warn(`[eaton] disabling browser render for ${EATON_BROWSER_BLOCKED_COOLDOWN_MS / 60000}min: ${reason}`);
-  }
+  debugEaton(`disabling browser render for ${EATON_BROWSER_BLOCKED_COOLDOWN_MS / 60000}min: ${reason}`);
+}
+
+function debugEaton(message: string): void {
+  if (typeof process !== "undefined" && process.env?.DEBUG_EATON) console.warn(`[eaton] ${message}`);
 }
 
 export class EatonConnector implements ManufacturerConnector {
@@ -245,35 +247,19 @@ export class EatonConnector implements ManufacturerConnector {
       return withEatonDiagnostics(result, diagnostics);
     }
 
-    if (context.browserRenderer && !context.browserRenderer.isUnavailable?.() && !isEatonBrowserBlocked()) {
-      // Keep the original two-URL probe so a second locale can recover a render when the first
-      // mounted but came back partial — only the "first attempt failed entirely" path short-circuits
-      // (Eaton's bot-mitigation makes retries pointless once it blocks us).
-      for (const officialUrl of candidates.slice(0, 2)) {
-        const rendered = await renderEatonProductInBrowser(partNumber, officialUrl, context, diagnostics);
-        if (!rendered) {
-          if (isEatonBrowserBlocked()) break;
-          markEatonBrowserBlocked(`first browser attempt failed for ${officialUrl}`);
-          break;
-        }
-        if (rendered.status !== "failed") {
-          if (!result || result.status === "failed" || (rendered.attributes.length > result.attributes.length)) {
-            result = rendered;
-          }
-          if (isRichEatonResult(rendered)) return withEatonDiagnostics(rendered, diagnostics);
-        }
-      }
-    }
-
-    // Single attempt to ask Jina for a browser-rendered snapshot (waits for the spec table to
-    // hydrate). Keep the original 25s budget — `waitForSelector: true` legitimately needs the
-    // headroom to wait for Eaton's client-side spec table to mount; cutting it lower trades
-    // missing Voltage rating / Number of poles for a few seconds of wall-clock.
+    // Jina's plain markdown snapshot is often Eaton's fastest source-backed path. Try that
+    // before any browser-backed render so bot-mitigation does not consume the fixture budget.
     if (candidates[0]) {
-      const richReader = await fetchEatonReader(candidates[0], context, { timeoutMs: 25000, waitForSelector: true });
-      if (richReader) {
-        const parsed = parseEatonProductPage(partNumber, richReader, candidates[0], context.manufacturer.localizedUrlTemplates);
+      const plainReader = await fetchEatonReader(candidates[0], context, { timeoutMs: 12000, waitForSelector: false });
+      if (plainReader) {
+        debugEaton(`primary reader parse start ${candidates[0]}`);
+        const parseStartedAt = Date.now();
+        const parsed = parseEatonProductPage(partNumber, plainReader, candidates[0], context.manufacturer.localizedUrlTemplates);
+        debugEaton(
+          `primary reader parse done ${Date.now() - parseStartedAt}ms status=${parsed.status} attrs=${parsed.attributes.length} docs=${parsed.documents.length} rich=${isRichEatonResult(parsed)}`
+        );
         if (parsed.status !== "failed") result = mergeEatonResults(result, parsed);
+        if (result && isRichEatonResult(result)) return withEatonDiagnostics(result, diagnostics);
       }
     }
 
@@ -324,6 +310,31 @@ export class EatonConnector implements ManufacturerConnector {
           if (isRichEatonResult(entry.parsed)) earlyOut = true;
         }
         if (earlyOut) break;
+      }
+    }
+
+    // Browser-backed sources are last-resort only: they can recover hydrated spec tables, but
+    // they are the slowest and least stable Eaton path under bot checks.
+    if (candidates[0] && (!result || !isRichEatonResult(result))) {
+      const richReader = await fetchEatonReader(candidates[0], context, { timeoutMs: 18000, waitForSelector: true });
+      if (richReader) {
+        const parsed = parseEatonProductPage(partNumber, richReader, candidates[0], context.manufacturer.localizedUrlTemplates);
+        if (parsed.status !== "failed") result = mergeEatonResults(result, parsed);
+      }
+    }
+
+    if ((!result || !isRichEatonResult(result)) && context.browserRenderer && !context.browserRenderer.isUnavailable?.() && !isEatonBrowserBlocked()) {
+      for (const officialUrl of candidates.slice(0, 2)) {
+        const rendered = await renderEatonProductInBrowser(partNumber, officialUrl, context, diagnostics);
+        if (!rendered) {
+          if (isEatonBrowserBlocked()) break;
+          markEatonBrowserBlocked(`first browser attempt failed for ${officialUrl}`);
+          break;
+        }
+        if (rendered.status !== "failed") {
+          if (!result || result.status === "failed" || rendered.attributes.length > result.attributes.length) result = rendered;
+          if (isRichEatonResult(rendered)) break;
+        }
       }
     }
 
@@ -543,14 +554,19 @@ async function fetchEatonReader(
     headers["x-wait-for-selector"] = ".specification-row, .product-specification-item, .specification-title";
     headers["x-timeout"] = "30";
   }
+  const startedAt = Date.now();
+  const mode = options.waitForSelector ? "reader-render" : "reader";
   try {
-    return await context.http.fetchText(buildEatonReaderUrl(officialUrl), {
+    const fetched = await context.http.fetchText(buildEatonReaderUrl(officialUrl), {
       timeoutMs: options.timeoutMs,
       maxAttempts: 1,
       signal: context.signal,
       headers
     });
+    debugEaton(`${mode} ${officialUrl} ok ${Date.now() - startedAt}ms ${fetched.text.length} chars`);
+    return fetched;
   } catch {
+    debugEaton(`${mode} ${officialUrl} failed ${Date.now() - startedAt}ms`);
     return undefined;
   }
 }

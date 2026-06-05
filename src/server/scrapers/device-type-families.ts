@@ -86,6 +86,7 @@ export const DEVICE_TYPE_FAMILIES: Record<string, readonly FamilyEntry[]> = {
     { patterns: ["6SE", "6SL", "6SN", "G120", "S120", "V20"], type: "Variable Speed Drive", notes: "Sinamics" },
     { patterns: ["6EP"], type: "Power Supply", notes: "SITOP" },
     { patterns: ["3SK", "3SF"], type: "Safety Relay" },
+    { patterns: ["6ES7193", "BaseUnits"], type: "Module Carrier", notes: "SIMATIC ET 200SP BaseUnits / base carriers" },
     { patterns: ["6ES7", "S7-1200", "S7-1500", "S7-300", "S7-400"], type: "Programmable Logic Controller", notes: "SIMATIC S7" },
     { patterns: ["6AV"], type: "HMI", notes: "SIMATIC HMI" },
     { patterns: ["3SE", "3SU"], type: "Pushbutton / Operator" }
@@ -102,7 +103,7 @@ export const DEVICE_TYPE_FAMILIES: Record<string, readonly FamilyEntry[]> = {
     { patterns: ["BDG"], type: "Encoder", notes: "Absolute encoder" }
   ],
   sce: [
-    { patterns: ["SCE-FK"], type: "Thermal Management", notes: "SCE filter kits" }
+    { patterns: ["SCE-FK"], type: "Mounting Accessory", notes: "SCE floor stand / enclosure mounting kits" }
   ],
   phoenix: [
     { patterns: ["QUINT", "TRIO", "STEP", "MINI-PS", "MINI-DC", "UNO-PS"], type: "Power Supply" },
@@ -144,6 +145,7 @@ export const DEVICE_TYPE_FAMILIES: Record<string, readonly FamilyEntry[]> = {
     { patterns: ["42EF", "42JS", "45CRM", "45DMS", "45LMS"], type: "Photoelectric Sensor" },
     { patterns: ["871", "872"], type: "Inductive Proximity Sensor" },
     { patterns: ["1769-PA", "1769-PB"], type: "Power Supply", notes: "CompactLogix power supply" },
+    { patterns: ["1756-M02", "1756-HYD"], type: "Motion Controller", notes: "ControlLogix integrated motion modules" },
     { patterns: ["1734", "1756", "1769", "1794", "5069"], type: "I/O Module" },
     { patterns: ["2080"], type: "Programmable Logic Controller", notes: "Micro800 / Micro820 PLC" },
     { patterns: ["1783"], type: "Communication Gateway", notes: "Stratix industrial Ethernet switch" },
@@ -151,6 +153,7 @@ export const DEVICE_TYPE_FAMILIES: Record<string, readonly FamilyEntry[]> = {
     { patterns: ["800F", "800T"], type: "Pushbutton / Operator" },
     { patterns: ["440R"], type: "Safety Relay" },
     { patterns: ["440N", "440G"], type: "Safety Sensor" },
+    { patterns: ["1492-EAJ", "1492-EAH", "1492-EAP", "1492-ERL"], type: "Terminal Accessory", notes: "1492 end anchors / end retainers" },
     { patterns: ["1492"], type: "Terminal Block" }
   ],
   eta: [
@@ -205,6 +208,7 @@ export function familyTypeFor(
       // Patterns that already include a non-alphanumeric terminator (e.g. "P5-") have done their
       // own disambiguation — accept the match as-is.
       if (/[^A-Z0-9]$/.test(pattern)) return entry;
+      if (/[^A-Z0-9]/.test(pattern)) return entry;
       const next = upper.charAt(pattern.length);
       if (next === "" || !/[A-Z]/.test(next)) return entry;
     }

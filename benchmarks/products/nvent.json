@@ -1,7 +1,22 @@
-{
-  "manufacturerId": "nvent",
-  "catalogNumber": "A12126T1PP",
-  "expectedOfficialUrlPatterns": ["nvent\\.com|hoffman\\.nvent\\.com"],
-  "requiredDocuments": ["image"],
-  "expectedNormalizedFields": ["dimensions", "material"]
-}
+[
+  {
+    "manufacturerId": "nvent",
+    "catalogNumber": "A12126T1PP",
+    "caseType": "mechanical",
+    "expectedDeviceType": "Enclosure",
+    "riskTags": ["multi-brand", "hoffman", "dimensions-material"],
+    "expectedOfficialUrlPatterns": ["nvent\\.com|hoffman\\.nvent\\.com"],
+    "requiredDocuments": ["image"],
+    "expectedNormalizedFields": ["dimensions", "material"]
+  },
+  {
+    "manufacturerId": "nvent",
+    "catalogNumber": "PS1C1269B",
+    "caseType": "mechanical",
+    "expectedDeviceType": "Rack Cabinet",
+    "riskTags": ["hoffman", "rack-cabinet", "cabinet-rack-sheet-coverage"],
+    "expectedOfficialUrlPatterns": ["nvent\\.com/.*/hoffman/products/encps1c1269b"],
+    "requiredDocuments": ["image", "datasheet"],
+    "expectedNormalizedFields": ["dimensions", "material"]
+  }
+]

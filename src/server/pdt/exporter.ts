@@ -1,8 +1,10 @@
 import ExcelJS from "exceljs";
+import fs from "node:fs/promises";
+import path from "node:path";
 import type { AttributeRecord, ManufacturerConfig, PdtSheetOverrides, RunItemRecord } from "../../shared/types.js";
 import { classifyDeviceType } from "../scrapers/device-type.js";
 import { loadTemplateWorkbook } from "./template.js";
-import { cellText, clearBody, describeSheet, type PdtColumn } from "./sheet-descriptor.js";
+import { cellText, clearBody, describeSheet, type PdtColumn, type SheetDescriptor } from "./sheet-descriptor.js";
 import { CONSTANT_SHEETS, targetSheets } from "./device-sheet-map.js";
 import { resolveProperty, type ResolveContext } from "./eclass-resolvers.js";
 import { writeDocumentsSheet } from "./documents-sheet.js";
@@ -11,7 +13,8 @@ import { buildPdtRepairResult, type PdtCleanupAudit, type PdtRepair } from "./ai
 import { writeCleanedInputWorkbook } from "./cleaned-input-workbook.js";
 import { normalizePdtCellNumber } from "./unit-cleanup.js";
 import { writeProductAccessorySheet } from "./product-accessory-sheet.js";
-import { writeConnectionPointsSheet } from "./connection-points-sheet.js";
+import { bestFact, buildPdtFactIndex, factsMatchingValue, type PdtFact, type PdtFactIndex } from "./facts.js";
+import { additionalPdtSheetsRule, pdtColumnAllowRule, pdtSheetOverrideRule } from "./rules.js";
 
 const DOCUMENTS_SHEET = "Additional Documents";
 /** Always kept even when empty (the manual PDT keeps this tab as a placeholder). */
@@ -32,6 +35,8 @@ export interface PdtExportResult {
   removedSheetCount: number;
   cleanup: PdtCleanupSummary;
   cleanedInputPath?: string;
+  pdtAuditPath?: string;
+  cellAudit: PdtCellAuditSummary;
 }
 
 export interface PdtWriteIssue {
@@ -55,6 +60,54 @@ export interface PdtRequiredFieldIssue {
 }
 
 export type PdtCleanupSummary = Omit<PdtCleanupAudit, "products"> & { productRows: number };
+
+export interface PdtCellAuditRecord {
+  sheetName: string;
+  catalogNumber: string;
+  row: number;
+  column: number;
+  code: string;
+  propName: string;
+  description: string;
+  priority: string;
+  status: "written" | "blank" | "skipped";
+  value?: string;
+  reason: string;
+  sourceKind?: string;
+  sourceType?: string;
+  sourceUrl?: string;
+  parser?: string;
+  stage?: string;
+  confidence?: number;
+  ruleName?: string;
+}
+
+export interface PdtCellAuditSummary {
+  auditPath?: string;
+  written: number;
+  blank: number;
+  skipped: number;
+  unprovenSkipped: number;
+  records: PdtCellAuditRecord[];
+}
+
+interface PdtResolvedCell {
+  value: string;
+  provenance: PdtCellProvenance;
+  /** When set, write the cell as an Excel formula instead of a literal value. The `value` field becomes the cached result. */
+  formula?: string;
+}
+
+interface PdtCellProvenance {
+  sourceKind: string;
+  sourceType?: string;
+  sourceUrl?: string;
+  parser?: string;
+  stage?: string;
+  confidence: number;
+  ruleName?: string;
+  reason: string;
+}
 
 export async function exportRunPdt(input: {
   manufacturer: ManufacturerConfig;
@@ -86,17 +139,18 @@ export async function exportRunPdt(input: {
   const unclassifiedCatalogNumbers = new Set<string>();
   const writeIssues: PdtWriteIssue[] = [];
   const requiredFieldIssues: PdtRequiredFieldIssue[] = [];
+  const cellAuditRecords: PdtCellAuditRecord[] = [];
 
   for (const item of included) {
     const deviceType = classifyDeviceType(item.result).type;
     if (!deviceType) unclassifiedCatalogNumbers.add(item.catalogNumber);
     const userOverride = sheetOverrides?.[item.id];
-    const builtIn = overrideDeviceSheetsForItem(item, manufacturer);
+    const builtIn = overrideDeviceSheetsForItem(item, manufacturer, deviceType);
     // User overrides win over the built-in (ABB 1SDA) rule; both replace device-type auto routing.
     const override = userOverride && userOverride.length > 0 ? userOverride : builtIn;
     const sheets = override
       ? [...CONSTANT_SHEETS, ...override]
-      : [...targetSheets(deviceType), ...additionalDeviceSheetsForItem(item, manufacturer)];
+      : [...targetSheets(deviceType), ...additionalDeviceSheetsForItem(item, manufacturer, deviceType)];
     // Only constant tabs were chosen and no device tab matched → note for diagnostics.
     if (deviceType && sheets.length === CONSTANT_SHEETS.length) unmappedDeviceTypes.add(deviceType);
     for (const sheetName of sheets) {
@@ -118,7 +172,7 @@ export async function exportRunPdt(input: {
       missingSheets.add(sheetName);
       continue;
     }
-    filledSheets[sheetName] = writeUniformSheet(ws, sheetMembers, manufacturer, repairs, writeIssues, requiredFieldIssues);
+    filledSheets[sheetName] = writeUniformSheet(ws, sheetMembers, manufacturer, repairs, writeIssues, requiredFieldIssues, cellAuditRecords);
   }
 
   const documentsWs = workbook.getWorksheet(resolveSheetName(DOCUMENTS_SHEET) ?? DOCUMENTS_SHEET);
@@ -134,8 +188,7 @@ export async function exportRunPdt(input: {
 
   const connectionPointsWs = workbook.getWorksheet(resolveSheetName("Connection Point Information") ?? "Connection Point Information");
   if (connectionPointsWs) {
-    const connectionPointRows = writeConnectionPointsSheet(connectionPointsWs, included.filter(shouldWriteConnectionPointsForItem));
-    if (connectionPointRows > 0) filledSheets[connectionPointsWs.name] = connectionPointRows;
+    filledSheets[connectionPointsWs.name] = 0;
   }
 
   const productAccessoryWs = workbook.getWorksheet(resolveSheetName("Product Accessory") ?? "Product Accessory");
@@ -158,6 +211,23 @@ export async function exportRunPdt(input: {
     }
   }
   await workbook.xlsx.writeFile(outputPath);
+  const cellAudit = buildCellAuditSummary(cellAuditRecords);
+  const pdtAuditPath = pdtAuditPathFor(outputPath);
+  cellAudit.auditPath = pdtAuditPath;
+  await fs.writeFile(pdtAuditPath, JSON.stringify({
+    generatedAt: new Date().toISOString(),
+    outputPath,
+    productCount: included.length,
+    summary: {
+      written: cellAudit.written,
+      blank: cellAudit.blank,
+      skipped: cellAudit.skipped,
+      unprovenSkipped: cellAudit.unprovenSkipped
+    },
+    writeIssues,
+    requiredFieldIssues,
+    records: cellAudit.records
+  }, null, 2), "utf8");
 
   return {
     outputPath,
@@ -172,7 +242,9 @@ export async function exportRunPdt(input: {
     keptSheets: workbook.worksheets.map((ws) => ws.name),
     removedSheetCount: removedSheets.length,
     cleanup: cleanupSummary(cleanup.audit),
-    cleanedInputPath
+    cleanedInputPath,
+    pdtAuditPath,
+    cellAudit
   };
 }
 
@@ -181,9 +253,51 @@ function cleanupSummary(audit: PdtCleanupAudit): PdtCleanupSummary {
   return { ...summary, productRows: products.length };
 }
 
-function shouldWriteConnectionPointsForItem(item: RunItemRecord): boolean {
-  const manufacturerId = item.result?.manufacturerId;
-  return manufacturerId === "abb" || manufacturerId === "eaton" || manufacturerId === "rockwell";
+function buildCellAuditSummary(records: PdtCellAuditRecord[]): PdtCellAuditSummary {
+  return {
+    written: records.filter((record) => record.status === "written").length,
+    blank: records.filter((record) => record.status === "blank").length,
+    skipped: records.filter((record) => record.status === "skipped").length,
+    unprovenSkipped: records.filter((record) => record.status === "skipped" && /unproven/i.test(record.reason)).length,
+    records
+  };
+}
+
+function pdtAuditPathFor(outputPath: string): string {
+  const parsed = path.parse(outputPath);
+  return path.join(parsed.dir, `${parsed.name}_pdt-audit.json`);
+}
+
+function auditRecord(
+  sheetName: string,
+  item: RunItemRecord,
+  row: number,
+  column: PdtColumn,
+  status: PdtCellAuditRecord["status"],
+  reason: string,
+  value?: string,
+  provenance?: PdtCellProvenance
+): PdtCellAuditRecord {
+  return {
+    sheetName,
+    catalogNumber: item.catalogNumber,
+    row,
+    column: column.col,
+    code: column.code,
+    propName: column.propName,
+    description: column.description,
+    priority: column.priority,
+    status,
+    value,
+    reason,
+    sourceKind: provenance?.sourceKind,
+    sourceType: provenance?.sourceType,
+    sourceUrl: provenance?.sourceUrl,
+    parser: provenance?.parser,
+    stage: provenance?.stage,
+    confidence: provenance?.confidence,
+    ruleName: provenance?.ruleName
+  };
 }
 
 /** Normalise a sheet name for tolerant lookup ("Switch" / "switch" / " SWITCH " → "switch"). */
@@ -207,7 +321,8 @@ function writeUniformSheet(
   manufacturer: ManufacturerConfig,
   repairs: Map<number, PdtRepair>,
   writeIssues: PdtWriteIssue[],
-  requiredFieldIssues: PdtRequiredFieldIssue[]
+  requiredFieldIssues: PdtRequiredFieldIssue[],
+  cellAuditRecords: PdtCellAuditRecord[]
 ): number {
   const descriptor = describeSheet(ws);
   if (!descriptor) return 0;
@@ -223,14 +338,55 @@ function writeUniformSheet(
       sheetName: ws.name,
       repair: repairs.get(item.id)
     };
+    const facts = buildPdtFactIndex({
+      item,
+      manufacturer,
+      deviceType: baseCtx.deviceType,
+      repair: baseCtx.repair
+    });
     for (const rowVariant of uniformRowVariantsFor(ws.name, item, baseCtx)) {
       const ctx: ResolveContext = { ...baseCtx, rowVariant };
       let wroteCell = false;
       const writtenRequiredColumns = new Set<number>();
       for (const column of descriptor.columns) {
-        if (!isColumnAllowedForItem(ws.name, item, manufacturer, column)) continue;
-        const value = resolvePdtColumnValue(ws, descriptor, column, ctx);
-        if (value === undefined || value === "") continue;
+        const columnRule = columnAllowRuleForItem(ws.name, item, manufacturer, baseCtx.deviceType, column);
+        if (columnRule && !columnRule.value) {
+          cellAuditRecords.push(auditRecord(
+            ws.name,
+            item,
+            row,
+            column,
+            "skipped",
+            columnRule.rationale,
+            undefined,
+            {
+              sourceKind: "generated-rule",
+              confidence: 0.99,
+              ruleName: columnRule.name,
+              reason: columnRule.rationale
+            }
+          ));
+          continue;
+        }
+        const resolved = resolvePdtColumnCell(ws, descriptor, column, row, ctx, facts);
+        if (!resolved || resolved.value === "") {
+          cellAuditRecords.push(auditRecord(ws.name, item, row, column, "blank", "No source-backed PDT value resolved for this column."));
+          continue;
+        }
+        if (!canWriteResolvedCell(resolved, ws.name, column)) {
+          cellAuditRecords.push(auditRecord(
+            ws.name,
+            item,
+            row,
+            column,
+            "skipped",
+            skippedCellReason(resolved, ws.name, column),
+            resolved.value,
+            resolved.provenance
+          ));
+          continue;
+        }
+        const value = resolved.value;
         // Enum-coded columns: write the legend's canonical label (e.g. "Ring cable connection")
         // rather than its numeric code, so a human reviewer can spot bad mappings at a glance.
         // Leave the cell blank when the value doesn't strictly match any legend option.
@@ -246,17 +402,31 @@ function writeUniformSheet(
               value,
               reason: "enum-unmatched"
             });
+            cellAuditRecords.push(auditRecord(
+              ws.name,
+              item,
+              row,
+              column,
+              "skipped",
+              "Resolved value did not match the PDT enum legend.",
+              value,
+              resolved.provenance
+            ));
             continue;
           }
           ws.getCell(row, column.col).value = label;
+        } else if (resolved.formula) {
+          ws.getCell(row, column.col).value = { formula: resolved.formula, result: value } as ExcelJS.CellFormulaValue;
         } else {
           ws.getCell(row, column.col).value = cellValueFor(column, value);
         }
+        cellAuditRecords.push(auditRecord(ws.name, item, row, column, "written", resolved.provenance.reason, value, resolved.provenance));
         if (isTrackedRequiredPdtColumn(ws.name, column)) writtenRequiredColumns.add(column.col);
         wroteCell = true;
       }
       for (const column of descriptor.columns) {
-        if (!isColumnAllowedForItem(ws.name, item, manufacturer, column)) continue;
+        const columnRule = columnAllowRuleForItem(ws.name, item, manufacturer, baseCtx.deviceType, column);
+        if (columnRule && !columnRule.value) continue;
         if (!isTrackedRequiredPdtColumn(ws.name, column)) continue;
         if (writtenRequiredColumns.has(column.col)) continue;
         requiredFieldIssues.push({
@@ -279,20 +449,13 @@ function writeUniformSheet(
   return written;
 }
 
-function additionalDeviceSheetsForItem(item: RunItemRecord, manufacturer: ManufacturerConfig): string[] {
-  const isRockwell = manufacturer.id === "rockwell" || item.result?.manufacturerId === "rockwell";
-  const text = `${item.catalogNumber} ${item.result?.title ?? ""} ${item.result?.description ?? ""}`;
-  if (isRockwell && /\b(?:PowerFlex|755)\b/i.test(text) && classifyDeviceType(item.result).type === "Variable Speed Drive") {
-    return ["power supply devices"];
-  }
-  return [];
+function additionalDeviceSheetsForItem(item: RunItemRecord, manufacturer: ManufacturerConfig, deviceType: string | undefined): string[] {
+  return additionalPdtSheetsRule({ item, manufacturer, deviceType })?.value ?? [];
 }
 
 /** Hard override: when set, REPLACES device-type sheets entirely (only constant tabs + these are written). */
-function overrideDeviceSheetsForItem(item: RunItemRecord, manufacturer: ManufacturerConfig): string[] | null {
-  const isAbb = manufacturer.id === "abb" || item.result?.manufacturerId === "abb";
-  if (isAbb && /^1SDA/i.test(item.catalogNumber)) return ["contactor a. fuses"];
-  return null;
+function overrideDeviceSheetsForItem(item: RunItemRecord, manufacturer: ManufacturerConfig, deviceType: string | undefined): string[] | null {
+  return pdtSheetOverrideRule({ item, manufacturer, deviceType })?.value ?? null;
 }
 
 /**
@@ -302,25 +465,14 @@ function overrideDeviceSheetsForItem(item: RunItemRecord, manufacturer: Manufact
  * actual rated voltage / voltage type when present. Everything else (generic compliance markers,
  * scraped color, IP rating, etc.) is suppressed to avoid writing junk into ill-suited columns.
  */
-function isColumnAllowedForItem(
+function columnAllowRuleForItem(
   sheetName: string,
   item: RunItemRecord,
   manufacturer: ManufacturerConfig,
+  deviceType: string | undefined,
   column: PdtColumn
-): boolean {
-  const isAbb = manufacturer.id === "abb" || item.result?.manufacturerId === "abb";
-  if (isAbb && /^1SDA/i.test(item.catalogNumber) && canonicalSheetKey(sheetName) === canonicalSheetKey("contactor a. fuses")) {
-    const allowed = new Set([
-      "REFERENCE_FEATURE_GROUP_ID",
-      "REFERENCE_FEATURE_SYSTEM_NAME",
-      "AAO676", // article number
-      "BAH005", // rated voltage
-      "BAD915", // voltage type
-      "AAS575"  // power loss per pole (manual PDT carries it for EMAX accessories when available)
-    ]);
-    return allowed.has(column.code);
-  }
-  return true;
+): ReturnType<typeof pdtColumnAllowRule> {
+  return pdtColumnAllowRule({ sheetName, item, manufacturer, deviceType, column });
 }
 
 function isTrackedRequiredPdtColumn(sheetName: string, column: PdtColumn): boolean {
@@ -403,6 +555,12 @@ function isTrackedRequiredPdtColumn(sheetName: string, column: PdtColumn): boole
       "REFERENCE_FEATURE_GROUP_ID",
       "REFERENCE_FEATURE_SYSTEM_NAME",
       "AAO676",
+      "AAF726",
+      "AAB821",
+      "AAC824",
+      "AAB460",
+      "AAS574",
+      "AAB485",
       "AAS575"
     ]),
     [canonicalSheetKey("subcircuit")]: new Set([
@@ -421,189 +579,14 @@ function pdtColumnKey(column: PdtColumn): string {
   return (column.code || column.propName).trim().toUpperCase();
 }
 
-function uniformRowVariantsFor(sheetName: string, item: RunItemRecord, ctx: ResolveContext): Array<Record<string, string> | undefined> {
-  const sheetKey = canonicalSheetKey(sheetName);
-
-  // ---- "cabinet" sheet: family-level defaults that the manual PDT operators fill ----
-  if (sheetKey === "cabinet") {
-    // Eaton ProfiSNAP families (PSN-*) share the same minimum cabinet defaults across all
-    // sub-series: steel body + steel internal, powder-coated surface. The manual PDTs fill at
-    // least these three so the cabinet tab isn't blank. We don't hardcode the ECLASS group id —
-    // each PSN sub-family uses a different one and the resolver will fall back to the article's
-    // scraped ECLASS code.
-    if (item.result?.manufacturerId === "eaton") {
-      const model = (eatonModelCode(item.result) ?? resolveProperty("CNSTYPECODE", "CNSTYPECODE", ctx) ?? "").toUpperCase();
-      // PSN-DRS-MT / PSN-FPS share a richer set of cabinet defaults in the manual PDTs:
-      // NEMA enclosure list, 2 doors, 2 locks, 2 assembly counts. Mirror those here.
-      if (/^PSN-(?:DRS-MT|FPS)\b/i.test(model)) {
-        return [{
-          AAO676: item.catalogNumber,
-          BAB664: "Steel",
-          BAF634: "Steel",
-          BAF785: "Powder coating",
-          AAW361: "NEMA Type 3R, 4, 4X, 12 and Type 13",
-          AAZ486: "NEMA Type 3R, 4, 4X, 12 and Type 13",
-          AAC929: "2",        // Number of doors
-          BAA105: "2",        // Number of locks
-          BAD290: "2",        // Assembly on floor is possible
-          BAD308: "2"         // Wall assembly possible
-        }];
-      }
-      if (/^PSN-/i.test(model)) {
-        return [{
-          AAO676: item.catalogNumber,
-          BAB664: "Steel",        // material
-          BAF634: "Steel",        // (duplicate ECLASS code for material)
-          BAF785: "Powder coating" // surface
-        }];
-      }
-    }
-    // Saginaw H_LP enclosures use a consistent set of family defaults (carbon steel powder-coated
-    // body, IP66, NEMA Type 3R/4/4X/12/13, 1 front door, 2 locks). The manual PDTs fill these for
-    // every H_LP article — we mirror them here so the generated PDT isn't blank in the cabinet tab.
-    if (item.result?.manufacturerId === "sce" && /^SCE-\d+H\d+LP$/i.test(item.catalogNumber)) {
-      return [{
-        AAO676: item.catalogNumber,
-        REFERENCE_FEATURE_GROUP_ID: "27180101",
-        AAB681: "2",       // suitable for metric installation: Yes
-        AAC265: "1",       // back door present: No (front-door-only)
-        AAC929: "1",       // Number of doors: 1
-        AAF507: "1",       // REACH registration present: No
-        AAM117: "1",       // glazed door present: No
-        AAM272: "2",       // wall build-in possible: Yes
-        AAO191: "1",       // RoHS attention of conformity: No
-        AAP429: "1",       // Number of front doors: 1
-        AAP542: "2",       // Number of locks: 2
-        BAA105: "2",       // Number of locks (duplicate ECLASS code): 2
-        BAD290: "2",       // Assembly on floor is possible: Yes
-        BAD308: "2",       // Wall assembly possible: Yes
-        BAF728: "1",       // Mounting plate present: No
-        AAW361: "NEMA Type 3R, 4, 4X, 12 and Type 13",
-        AAZ486: "NEMA Type 3R, 4, 4X, 12 and Type 13",
-        BAB664: "Carbon steel",
-        BAC295: "White",
-        BAF634: "Carbon steel",
-        BAF785: "Powder coating",
-        BAG975: "IP66"
-      }];
-    }
-    const lpplDefaults = sceLpplCabinetDefaults(item.catalogNumber);
-    if (item.result?.manufacturerId === "sce" && lpplDefaults) {
-      return [lpplDefaults];
-    }
-    return [undefined];
-  }
-
-  if (sheetKey !== "cabinet.mechanical") return [undefined];
-
-  if (item.result?.manufacturerId === "eaton") {
-    const model = (eatonModelCode(item.result) ?? resolveProperty("CNSTYPECODE", "CNSTYPECODE", ctx) ?? "").toUpperCase();
-    if (/^PSN-FP-.+MU\b/.test(model)) {
-      // Manual PDT for psn_fp_mu uses rows for p1, p2, p3 plus a final asmtab assembly row.
-      // ECLASS 27400608, all rows tagged Plate@1.
-      return ["psn_fp_mu_p1.prj", "psn_fp_mu_p2.prj", "psn_fp_mu_p3.prj", "psn_fp_mu_asmtab.prj"].map((proj) => ({
-        AAO676: item.catalogNumber,
-        REFERENCE_FEATURE_GROUP_ID: "27400608",
-        CNS_PROJECT_PATH: proj,
-        CNS_COMPONENT_GROUP: "Plate@1"
-      }));
-    }
-    if (/^PSN-FPS\b/.test(model)) {
-      // Manual PDT for psn_fps uses p1, p2, p3, asmtab (4 rows). ECLASS 27180907 in the variant
-      // with project paths; 27182811 for the simple EP-prefixed variant (which uses 1 row).
-      // The EP- prefix is applied to the article number per the manual PDT.
-      return ["psn_fps_p1.prj", "psn_fps_p2.prj", "psn_fps_p3.prj", "psn_fps_asmtab.prj"].map((proj) => ({
-        AAO676: `EP-${item.catalogNumber.replace(/^EP-/i, "")}`,
-        REFERENCE_FEATURE_GROUP_ID: "27180907",
-        CNS_PROJECT_PATH: proj,
-        CNS_COMPONENT_FUNCTION_3D: "Bracket",
-        CNS_COMPONENT_GROUP: "Bracket@1",
-        "000038001": "Assembly.VariantParts"
-      }));
-    }
-    // PSN-MT (DIN-rail mounting strip) — single row, ECLASS 27182811, Rail@1.
-    if (/^PSN-MT\b/.test(model)) {
-      return [{
-        AAO676: item.catalogNumber,
-        REFERENCE_FEATURE_GROUP_ID: "27182811",
-        CNS_PROJECT_PATH: "psn_drs_mt.prj",
-        CNS_COMPONENT_GROUP: "Rail@1"
-      }];
-    }
-    // PSN-FP-NZM* / PSN-FP/S-NZM* (front-plate NZM) — single row, ECLASS 27182806, Plate@1.
-    if (/^PSN-FP[/-].*NZM/.test(model)) {
-      return [{
-        AAO676: item.catalogNumber,
-        REFERENCE_FEATURE_GROUP_ID: "27182806",
-        CNS_PROJECT_PATH: "psn_fp_nzm.prj",
-        CNS_COMPONENT_GROUP: "Plate@1"
-      }];
-    }
-    // PSN-PIP-BN (side panel) — single row, ECLASS 27182806, Panel@1.
-    if (/^PSN-PIP-BN\b/.test(model)) {
-      return [{
-        AAO676: item.catalogNumber,
-        REFERENCE_FEATURE_GROUP_ID: "27182806",
-        CNS_PROJECT_PATH: "psn_pip_bn.prj",
-        CNS_COMPONENT_GROUP: "Panel@1"
-      }];
-    }
-  }
-
-  if (item.result?.manufacturerId === "sce") {
-    // Saginaw H_LP enclosures (e.g. SCE-12H2408LP, SCE-16H1206LP) expand into 5 mechanical
-    // sub-component rows in the manual PDT: body, door, mounting bracket, lock, assembly.
-    // Each row carries its own ECLASS group id (REFERENCE_FEATURE_GROUP_ID), project path,
-    // component function/group, and 000038001 label, per the h_lp_asmtab template.
-    if (/^SCE-\d+H\d+LP$/i.test(item.catalogNumber)) {
-      return [
-        { project: "h_lp_base", eclass: "27180101", func: "Body", group: "Frame@1", label: "Body" },
-        { project: "h_lp_door", eclass: "27182204", func: "Door", group: "Door@1", label: "Door" },
-        { project: "mnt_ears", eclass: "27182811", func: "Bracket", group: "Bracket@1", label: "Bracket" },
-        { project: "lp_clamp", eclass: "27400641", func: "Door lock", group: "Door lock@2", label: "Lock system" },
-        { project: "h_lp_asmtab", eclass: "27180101", func: "Assembly.Enclosure", group: "Enclosure@1", label: "Assembly.Enclosure" }
-      ].map((row) => ({
-        AAO676: item.catalogNumber,
-        REFERENCE_FEATURE_GROUP_ID: row.eclass,
-        CNS_PROJECT_PATH: row.project,
-        CNS_COMPONENT_FUNCTION_3D: row.func,
-        CNS_COMPONENT_GROUP: row.group,
-        "000038001": row.label
-      }));
-    }
-  }
-
+function uniformRowVariantsFor(_sheetName: string, _item: RunItemRecord, _ctx: ResolveContext): Array<Record<string, string> | undefined> {
   return [undefined];
 }
-
 function eatonModelCode(result: RunItemRecord["result"]): string | undefined {
   return cleanString(
     result?.attributes.find((attribute) => /\b(model code|modellcode)\b/i.test(`${attribute.group ?? ""} ${attribute.name}`) && attribute.value.trim())
       ?.value
   );
-}
-
-function sceLpplCabinetDefaults(catalogNumber: string): Record<string, string> | undefined {
-  const part = cleanString(catalogNumber) ?? catalogNumber.trim();
-  if (!/^SCE-\d+EL\d+(?:SS6|SS)?LPPL$/i.test(part)) return undefined;
-  const stainless316 = /SS6LPPL$/i.test(part);
-  const stainless304 = !stainless316 && /SSLPPL$/i.test(part);
-  const material = stainless316 ? "stainless steel Type 316/316L" : stainless304 ? "stainless steel Type 304" : "Carbon steel";
-  const defaults: Record<string, string> = {
-    AAO676: part,
-    REFERENCE_FEATURE_GROUP_ID: "27180101",
-    BAD308: "2", // Wall assembly possible: Yes
-    AAW361: "NEMA Type 3R, 4, 12 and Type 13",
-    AAZ486: "NEMA Type 3R, 4, 12 and Type 13",
-    BAB664: material,
-    BAF634: material,
-    BAG975: "IP66"
-  };
-  if (!stainless316 && !stainless304) {
-    defaults.BAC295 = "ANSI-61 gray";
-    defaults.BAF785 = "Powder coating";
-  }
-  return defaults;
 }
 
 function cellValueFor(column: { code: string; propName: string; unit?: string }, value: string): ExcelJS.CellValue {
@@ -673,25 +656,357 @@ function shouldEncodeEnum(sheetName: string, column: { code: string; propName: s
   return true;
 }
 
-function resolvePdtColumnValue(
+function resolvePdtColumnCell(
   ws: ExcelJS.Worksheet,
-  descriptor: { firstBodyRow: number },
+  descriptor: SheetDescriptor,
   column: PdtColumn,
-  ctx: ResolveContext
-): string | undefined {
+  row: number,
+  ctx: ResolveContext,
+  facts: PdtFactIndex
+): PdtResolvedCell | undefined {
   const variant = rowVariantValue(column, ctx);
-  if (variant !== undefined) return variant;
-  // For German description columns, resolve with language="de" so description resolvers pull from
-  // result.localizedDescriptions.de instead of EN. If no localized DE text exists the resolver
-  // returns undefined and the cell stays blank — we no longer fall back to EN→DE translation.
-  const resolveCtx: ResolveContext = isGermanDescriptionColumn(ws, descriptor, column)
-    ? { ...ctx, language: "de" }
-    : ctx;
-  const direct =
-    resolveProperty(column.code, column.propName, resolveCtx) ??
-    resolvePropertyByDescription(column, resolveCtx) ??
-    resolvePropertyByColumnMetadata(column, resolveCtx);
-  return direct ?? undefined;
+  if (variant !== undefined) {
+    return {
+      value: variant,
+      provenance: {
+        sourceKind: "generated-rule",
+        confidence: 0.72,
+        ruleName: "row-variant",
+        reason: "Value came from an explicit PDT row variant rule."
+      }
+    };
+  }
+
+  const isDeDescription = isGermanDescriptionColumn(ws, descriptor, column);
+  const resolveCtx: ResolveContext = isDeDescription ? { ...ctx, language: "de" } : ctx;
+  const factResolved = resolveColumnFromFacts(column, resolveCtx, facts);
+  const direct = factResolved
+    ? factResolved
+    : (() => {
+        const value =
+          resolveProperty(column.code, column.propName, resolveCtx) ??
+          resolvePropertyByDescription(column, resolveCtx) ??
+          resolvePropertyByColumnMetadata(column, resolveCtx);
+        if (!value) return undefined;
+        // Resolvers often DERIVE / transform attribute text (units converted, color summarized,
+        // material canonicalised). The transformed value rarely substring-matches the raw scraped
+        // attribute, so inferCellProvenance falls through to "unproven" and the cell gets skipped.
+        // For known-derived columns, borrow the upstream fact's provenance directly.
+        const borrowedFactKey = derivedFactKeyForColumn(column);
+        if (borrowedFactKey) {
+          const upstream = bestFact(facts, borrowedFactKey);
+          if (upstream) return { value, provenance: provenanceFromFact(upstream) };
+        }
+        return { value, provenance: inferCellProvenance(column, value, resolveCtx, facts) };
+      })();
+  if (!direct) return undefined;
+
+  // DE description columns fall back to the EN string when no localized German source exists.
+  // Wrap that placeholder in an Excel TRANSLATE() formula so spreadsheet readers (Excel 2024+/M365)
+  // render the actual German translation via Microsoft Translator. We only emit the formula when
+  // the underlying value really came from the EN fallback — if the scraper got a localized DE
+  // text, we keep that authoritative string as a literal.
+  if (isDeDescription && !hasLocalizedGermanSource(ctx, column)) {
+    const enTwin = findEnDescriptionTwin(ws, descriptor, column);
+    if (enTwin) {
+      const enAddress = ws.getCell(row, enTwin.col).address;
+      return {
+        ...direct,
+        formula: `=IFERROR(TRANSLATE(${enAddress},"en","de"),${enAddress})`,
+        provenance: {
+          ...direct.provenance,
+          reason: `${direct.provenance.reason} Wrapped in Excel TRANSLATE() formula pointing at the EN twin cell ${enAddress}.`
+        }
+      };
+    }
+  }
+  return direct;
+}
+
+function isWeightColumn(column: PdtColumn): boolean {
+  const keys = propertyKeysForColumn(column);
+  return keys.includes("CNS_MASSEXACT") || keys.includes("AAF040") || keys.includes("BAD875");
+}
+
+/**
+ * Map a column to an upstream fact key whose provenance the column's resolved value should
+ * inherit. Used when the resolver derives a transformed value that won't substring-match the
+ * raw scraped attribute (weight conversions, color/finish summaries, material canonicalisation).
+ */
+function derivedFactKeyForColumn(column: PdtColumn): string | undefined {
+  if (isWeightColumn(column)) return "weight";
+  const keys = propertyKeysForColumn(column);
+  if (keys.includes("BAC295") || keys.includes("AAN521")) return "color";
+  if (keys.includes("CNS_ELECTRO_MATERIAL") || keys.includes("BAB664") || keys.includes("BAF634")) return "material";
+  return undefined;
+}
+
+function hasLocalizedGermanSource(ctx: ResolveContext, column: PdtColumn): boolean {
+  const de = ctx.result?.localizedDescriptions?.de;
+  if (!de) return false;
+  const key = `${column.code} ${column.propName}`.toUpperCase();
+  const compare = (deValue: string | undefined, enValue: string | undefined): boolean => {
+    const trimmed = deValue?.trim();
+    if (!trimmed) return false;
+    // When the localized "DE" text is byte-for-byte the EN string (manufacturers occasionally
+    // echo English back from their /de/ page), treat it as no real DE source so the cell still
+    // gets wrapped in TRANSLATE() rather than shipped as-is.
+    const enTrimmed = enValue?.trim();
+    if (enTrimmed && trimmed.toLowerCase().replace(/[\s._-]+/g, "") === enTrimmed.toLowerCase().replace(/[\s._-]+/g, "")) return false;
+    return true;
+  };
+  if (/SHORT/.test(key)) return compare(de.title, ctx.result?.title);
+  return compare(de.description, ctx.result?.description);
+}
+
+function findEnDescriptionTwin(
+  ws: ExcelJS.Worksheet,
+  descriptor: SheetDescriptor,
+  column: PdtColumn
+): PdtColumn | undefined {
+  const key = pdtColumnKey(column);
+  return descriptor.columns.find(
+    (candidate) =>
+      candidate.col !== column.col &&
+      pdtColumnKey(candidate) === key &&
+      columnLanguage(ws, candidate.col, descriptor.firstBodyRow) === "en"
+  );
+}
+
+function resolveColumnFromFacts(column: PdtColumn, ctx: ResolveContext, facts: PdtFactIndex): PdtResolvedCell | undefined {
+  for (const key of factKeysForColumn(column, ctx)) {
+    const fact = bestFact(facts, key);
+    if (fact) return { value: fact.value, provenance: provenanceFromFact(fact) };
+  }
+  return undefined;
+}
+
+function factKeysForColumn(column: PdtColumn, ctx: ResolveContext): string[] {
+  const keys = propertyKeysForColumn(column);
+  const factKeys: string[] = [];
+  const add = (key: string) => {
+    if (!factKeys.includes(key)) factKeys.push(key);
+  };
+
+  if (keys.some((key) => ["AAO676", "CNSORDERNO", "ABA671"].includes(key))) add("articleNumber");
+  if (keys.includes("AAO677")) add("manufacturerName");
+  if (keys.includes("MANUFACTURER_URL") || keys.includes("ABA669")) add("manufacturerUrl");
+  if (keys.includes("AAQ326") || keys.includes("AAY811")) add("productUrl");
+  if (keys.includes("AAO057")) add("deviceType");
+  if (keys.includes("REFERENCE_FEATURE_GROUP_ID")) add("eclassCode");
+  if (keys.includes("REFERENCE_FEATURE_SYSTEM_NAME")) add("eclassSystemVersion");
+  const enumColumn = isEnumColumn(column.description);
+  if (keys.includes("CNS_ELECTRO_MATERIAL") || keys.includes("BAB664") || keys.includes("BAF634") || (!enumColumn && /material/i.test(column.description))) add("material");
+  if (keys.includes("AAN521") || keys.includes("BAC295") || (!enumColumn && /colou?r/i.test(column.description))) add("color");
+  if (keys.includes("CERTIFICATION") || (!enumColumn && /certification|approval/i.test(column.description))) add("certificates");
+  if (keys.includes("CNS_CTN") || keys.includes("AAD931")) add("customsTariff");
+  if (keys.includes("AAO663") || keys.includes("CNS_EAN") || keys.includes("AAN743")) add("eanOrGtin");
+  if (keys.includes("CNSTYPECODE") || keys.includes("AAV774")) add("typeCode");
+  if (keys.includes("AAU731")) add("productFamily");
+  if (keys.includes("AAW338")) add("productDesignation");
+  if (keys.includes("AAU734") || keys.includes("CNS_DESCRIPTION_LONG")) add(ctx.language === "de" ? "localizedLongDescriptionDe" : "longDescription");
+  if (keys.includes("CNS_DESCRIPTION_SHORT")) add(ctx.language === "de" ? "localizedShortDescriptionDe" : "shortDescription");
+  // Weight columns must run through the dedicated weight resolvers (AAF040 / BAD875 / CNS_MASSEXACT)
+  // so imperial sources like Saginaw's "26.00 lbs (11.79 kg)" emit kg-only / g-only values instead of
+  // the dual-unit display string the normalizer publishes for the UI.
+  if (keys.includes("BAD915") || /\bvoltage type\b|\bcurrent type\b/i.test(column.description)) add("voltageType");
+
+  return factKeys;
+}
+
+function inferCellProvenance(column: PdtColumn, value: string, ctx: ResolveContext, facts: PdtFactIndex): PdtCellProvenance {
+  const matchedFact = factsMatchingValue(facts, value).find((fact) => fact.sourceKind !== "generated-rule" || generatedColumn(column));
+  if (matchedFact) return provenanceFromFact(matchedFact);
+
+  const attr = (ctx.result?.attributes ?? []).find((candidate) => attributeSupportsValue(candidate, value, column));
+  if (attr) {
+    return {
+      sourceKind: "attribute",
+      sourceType: attr.sourceType,
+      sourceUrl: attr.sourceUrl,
+      parser: attr.parser,
+      stage: attr.stage,
+      confidence: attr.confidence ?? (attr.sourceType === "official" ? 0.9 : attr.sourceType === "official-fallback" ? 0.78 : attr.sourceType === "distributor" ? 0.45 : 0.65),
+      reason: `Resolved from scraped attribute "${attr.name}".`
+    };
+  }
+
+  if (generatedColumn(column)) {
+    return {
+      sourceKind: "generated-rule",
+      confidence: 0.86,
+      ruleName: "deterministic-pdt-resolver",
+      reason: "Deterministic non-spec PDT value derived from input/catalog context."
+    };
+  }
+
+  return {
+    sourceKind: "unproven",
+    confidence: 0.1,
+    reason: "Resolver returned a value, but no matching source-backed fact or attribute was found."
+  };
+}
+
+function provenanceFromFact(fact: PdtFact): PdtCellProvenance {
+  return {
+    sourceKind: fact.sourceKind,
+    sourceType: fact.sourceType,
+    sourceUrl: fact.sourceUrl,
+    parser: fact.parser,
+    stage: fact.stage,
+    confidence: fact.confidence,
+    ruleName: fact.ruleName,
+    reason: fact.reason
+  };
+}
+
+function canWriteResolvedCell(resolved: PdtResolvedCell, sheetName: string, column: PdtColumn): boolean {
+  if (resolved.provenance.sourceKind === "unproven") return false;
+  if (resolved.provenance.sourceType === "distributor" && resolved.provenance.confidence < 0.6) return false;
+  if (resolved.provenance.sourceKind === "generated-rule" && productSpecColumn(sheetName, column)) return false;
+  if (productSpecColumn(sheetName, column) && productSpecMeasurementIssue(resolved.value, column)) return false;
+  return true;
+}
+
+function skippedCellReason(resolved: PdtResolvedCell, sheetName: string, column: PdtColumn): string {
+  if (resolved.provenance.sourceKind === "unproven") return `Skipped unproven PDT value: ${resolved.provenance.reason}`;
+  if (resolved.provenance.sourceType === "distributor" && resolved.provenance.confidence < 0.6) {
+    return `Skipped weak distributor-only PDT value: ${resolved.provenance.reason}`;
+  }
+  if (resolved.provenance.sourceKind === "generated-rule") {
+    return `Skipped generated PDT value for product-spec cell: ${resolved.provenance.reason}`;
+  }
+  const measurementIssue = productSpecColumn(sheetName, column) ? productSpecMeasurementIssue(resolved.value, column) : undefined;
+  if (measurementIssue) return `Skipped semantically invalid product-spec value: ${measurementIssue}`;
+  return `Skipped PDT value: ${resolved.provenance.reason}`;
+}
+
+function productSpecMeasurementIssue(value: string, column: PdtColumn): string | undefined {
+  const columnText = normalizedMetadataLabel(`${column.code} ${column.propName} ${descriptionWithoutEnumLegend(column.description)} ${column.unit}`);
+  const cleanValue = cleanString(value);
+  if (!cleanValue) return "empty product-spec value";
+  if (/\b(?:voltage|current)\s+type\b/.test(columnText)) return undefined;
+
+  if (/\bvoltage\b|\bvolt\b/.test(columnText) && !hasMeasuredValue(cleanValue, column.unit, /\b(?:m?v|kv|vac|vdc|v\s*(?:ac|dc)?)\b/i)) {
+    return "voltage cell value does not contain a numeric voltage measurement";
+  }
+  if (/\bcurrent\b|\bamp\b/.test(columnText) && !hasMeasuredValue(cleanValue, column.unit, /\b(?:u?a|m?a|ka|amps?|amperes?)\b/i)) {
+    return "current cell value does not contain a numeric current measurement";
+  }
+  if (/\b(?:power|loss|watt|horsepower)\b/.test(columnText) && !hasMeasuredValue(cleanValue, column.unit, /\b(?:w|kw|mw|hp|horsepower)\b/i)) {
+    return "power cell value does not contain a numeric power measurement";
+  }
+  return undefined;
+}
+
+function hasMeasuredValue(value: string, declaredUnit: string, unitPattern: RegExp): boolean {
+  if (!/-?\d+(?:[.,]\d+)?/.test(value)) return false;
+  return unitPattern.test(value) || unitPattern.test(declaredUnit) || numericPdtCellValue(value);
+}
+
+function numericPdtCellValue(value: string): boolean {
+  return /^\s*(?:[<>=~±+\-–—.\/,;:()\s]|\d)+(?:\.\.\.\s*(?:[<>=~±+\-–—.\/,;:()\s]|\d)+)?\s*$/.test(value);
+}
+
+function productSpecColumn(sheetName: string, column: PdtColumn): boolean {
+  const key = pdtColumnKey(column);
+  if (generatedColumn(column)) return false;
+  if (canonicalSheetKey(sheetName) === canonicalSheetKey("Material Master Data")) {
+    return [
+      "CNS_ELECTRO_MATERIAL",
+      "CNS_MASSEXACT",
+      "BAB577",
+      "BAF016",
+      "BAA020",
+      "AAF040",
+      "CERTIFICATION",
+      "AAU731",
+      "AAU732",
+      "AAU733",
+      "AAW338"
+    ].includes(key);
+  }
+  return /\b(voltage|current|power|loss|weight|mass|material|colour|color|protection|degree|temperature|dimension|width|height|depth|length|connection|standard|certificate|approval)\b/i.test(
+    `${column.code} ${column.propName} ${column.description}`
+  );
+}
+
+function generatedColumn(column: PdtColumn): boolean {
+  const keys = propertyKeysForColumn(column);
+  return keys.some((key) =>
+    [
+      "AAO676",
+      "CNSORDERNO",
+      "ABA671",
+      "AAO677",
+      "MANUFACTURER_URL",
+      "ABA669",
+      "AAQ326",
+      "AAY811",
+      "AAO057",
+      "AAC314",
+      "00001C001"
+    ].includes(key)
+  );
+}
+
+function attributeSupportsValue(attr: AttributeRecord, value: string, column: PdtColumn): boolean {
+  if (!cleanString(attr.value)) return false;
+  const labelCompatible =
+    metadataLabelMatches(normalizedMetadataLabel(descriptionWithoutEnumLegend(column.description)), normalizedMetadataLabel(`${attr.group ?? ""} ${attr.name}`)) ||
+    semanticPdtLabelCompatible(column, attr);
+  if (labelCompatible && derivedResolverValue(value)) return true;
+
+  const attrValue = comparableCellValue(attr.value);
+  const resolved = comparableCellValue(value);
+  if (!attrValue || !resolved) return false;
+  if (!(attrValue === resolved || attrValue.includes(resolved) || resolved.includes(attrValue))) return false;
+  if (!productSpecColumn("", column)) return true;
+  return labelCompatible;
+}
+
+function semanticPdtLabelCompatible(column: PdtColumn, attr: AttributeRecord): boolean {
+  const columnText = normalizedMetadataLabel(`${column.code} ${column.propName} ${descriptionWithoutEnumLegend(column.description)}`);
+  const attrText = normalizedMetadataLabel(`${attr.group ?? ""} ${attr.name}`);
+  const pairs: Array<[RegExp, RegExp]> = [
+    [/\bvoltage\b/, /\b(voltage|spannung|volt)\b/],
+    [/\bcurrent\b/, /\b(current|amp|amperage|strom)\b/],
+    [/\bpower\b|\bloss\b/, /\b(power|loss|consumption|horse power|horsepower|hp|watt)\b/],
+    [/\bmounting\b|\brail\b/, /\b(mounting|rail|din)\b/],
+    [/\bconnection\b|\bterminal\b/, /\b(connection|terminal|wire|conductor|ring|screw|spring)\b/],
+    [/\bmaterial\b/, /\b(material|housing|body|jacket|sheath|enclosure|construction|carbon|stainless|aluminum|aluminium|steel)\b/],
+    [/\btemperature\b|\btemp\b/, /\b(temperature|temp|amb(?:ient)?\s*air\s*tem)\b/],
+    [/\bprotection\b|\bip\b|\bnema\b/, /\b(protection|ip|nema|enclosure|industry\s*standard|standards?)\b/],
+    [/\bcolou?r\b|\bfinish\b|\bral\b/, /\b(colou?r|finish|paint|coat|powder|ral|ansi)\b/],
+    [/\b(?:wall|housing)\s*thickness\b|\bthickness\b|\bgauge\b/, /\b(thickness|gauge|construction|wall|steel)\b/],
+    [/\bdeclaration\b|\bcertificate\b|\bapproval\b/, /\b(declaration|certificate|approval|rohs|reach|standard)\b/],
+    [/\b(?:actuation|voltage type|current type)\b/, /\b(voltage|current|spannung|volt|control circuit|operation)\b/],
+    [/\bpole\b/, /\b(pole|poles)\b/]
+  ];
+  return pairs.some(([columnPattern, attrPattern]) => columnPattern.test(columnText) && attrPattern.test(attrText));
+}
+
+function derivedResolverValue(value: string): boolean {
+  return /^(?:yes|no|ac|dc|ac\/dc|ring cable connection|screw connection|spring pulley connection|plug\/coupler)$/i.test(value.trim()) ||
+    /^-?\d+(?:\.\d+)?(?:\s*-\s*-?\d+(?:\.\d+)?)?$/.test(value.trim());
+}
+
+function propertyKeysForColumn(column: PdtColumn): string[] {
+  const keys = new Set<string>();
+  for (const raw of [column.code, column.propName]) {
+    const normalized = raw?.trim().toUpperCase();
+    if (!normalized) continue;
+    keys.add(normalized.replace(/^"+|"+$/g, "").replace(/\s*\([^)]*\)\s*$/g, "").replace(/\*+$/g, ""));
+    for (const part of normalized.split("/")) {
+      const trimmed = part.trim();
+      if (trimmed) keys.add(trimmed.replace(/^"+|"+$/g, ""));
+    }
+  }
+  return [...keys];
+}
+
+function comparableCellValue(value: string | undefined): string {
+  return (value ?? "").toLowerCase().replace(/[^a-z0-9]+/g, "");
 }
 
 function rowVariantValue(column: PdtColumn, ctx: ResolveContext): string | undefined {

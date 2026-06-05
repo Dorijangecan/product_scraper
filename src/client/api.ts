@@ -125,6 +125,14 @@ export interface PdtImportStats {
   keptSheets: string[];
   removedSheetCount: number;
   cleanedInputPath?: string;
+  pdtAuditPath?: string;
+  cellAudit?: {
+    auditPath?: string;
+    written: number;
+    blank: number;
+    skipped: number;
+    unprovenSkipped: number;
+  };
   cleanup?: {
     status: "disabled" | "qwen_unavailable" | "qwen_no_valid_output" | "qwen_reviewed" | "qwen_applied";
     host: string;

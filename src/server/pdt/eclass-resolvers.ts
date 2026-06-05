@@ -1,6 +1,7 @@
 import type { ManufacturerConfig, ProductResult, RunItemRecord } from "../../shared/types.js";
 import type { PdtRepair } from "./ai-cleanup.js";
 import { maxUnitNumber, splitTemperatureRange } from "./unit-cleanup.js";
+import { pdtProductUrlRule } from "./rules.js";
 
 export interface ResolveContext {
   result?: ProductResult;
@@ -56,13 +57,24 @@ function weight(ctx: ResolveContext): { kg?: number; g?: number } {
   // ABB datasheets often publish "0 kg" or omit weight entirely for small accessories.
   // The manual PDTs fill 0.1 kg as a placeholder so the field isn't blank — match that.
   const isAbb = ctx.result?.manufacturerId === "abb" || ctx.manufacturer?.id === "abb";
-  // Apply the ABB 0.1 kg placeholder ONLY when ABB itself published a zero weight (genuine
-  // "ABB said 0"). When `parsed` is undefined we couldn't extract a weight at all — return
-  // empty so downstream completeness logic flags the gap instead of being silently masked.
-  if (isAbb && parsed && (parsed.kg === undefined || parsed.kg === 0)) {
-    return { kg: 0.1, g: 100 };
-  }
+  if (isAbb && parsed && abbWeightIdentityMismatch(ctx)) return {};
   return parsed ?? {};
+}
+
+function abbWeightIdentityMismatch(ctx: ResolveContext): boolean {
+  const identities = (ctx.result?.attributes ?? [])
+    .filter((attr) => /\b(product id|productid|global commercial alias|extended product type|abb type designation|type code|catalog number)\b/i.test(`${attr.group ?? ""} ${attr.name}`))
+    .map((attr) => attr.value)
+    .filter(Boolean);
+  if (!identities.length) return false;
+  return !identities.some((value) => sameCatalogToken(value, ctx.item.catalogNumber));
+}
+
+function sameCatalogToken(left: string, right: string): boolean {
+  const compact = (value: string) => value.toUpperCase().replace(/[^A-Z0-9]+/g, "");
+  const leftCompact = compact(left);
+  const rightCompact = compact(right);
+  return Boolean(leftCompact && rightCompact && leftCompact === rightCompact);
 }
 
 function parseWeightRaw(raw: string | undefined): { kg?: number; g?: number } | undefined {
@@ -101,27 +113,9 @@ function eclassVersion(name: string): number {
 const eclassNumber: Resolver = (ctx) => {
   if (ctx.repair?.eclassCode) return ctx.repair.eclassCode;
   const found = eclassAttr(ctx);
-  if (!found) return fallbackEclassNumber(ctx);
+  if (!found) return undefined;
   return found.value.match(/\d{2}(?:[-.]?\d{2}){1,3}/)?.[0] ?? clean(found.value);
 };
-
-function fallbackEclassNumber(ctx: ResolveContext): string | undefined {
-  const cbeKind = eatonCbeKind(ctx);
-  if (cbeKind === "ed6") return "27142201";
-  if (cbeKind === "eis") return "27070203";
-  if (ctx.manufacturer.id === "abb" && /^1SDA/i.test(ctx.item.catalogNumber.trim())) return "27371392";
-  const model = attr(ctx, /\b(model code|modellcode)\b/i) ?? typeCode(ctx) ?? "";
-  if (/^PSN-(?:DRS-MT|FPS)\b/i.test(model)) return "27182811";
-  if (/^PSN-FP-.+MU\b/i.test(model)) return "27400608";
-  if (ctx.deviceType === "Pilot Light" || ctx.deviceType === "Stack Light / Beacon" || ctx.deviceType === "Pushbutton / Operator") {
-    return "27143221";
-  }
-  if (ctx.deviceType === "HMI") return "27330201";
-  if (ctx.deviceType === "Communication Gateway") return "27242201";
-  if (ctx.deviceType === "Programmable Logic Controller") return "27242202";
-  if (ctx.deviceType === "Disconnect Switch" || ctx.deviceType === "Switch") return "27371401";
-  return undefined;
-}
 
 /** Classification system name, including version when the scraper knows it (e.g. "ECLASS-11.0"). */
 const eclassSystem: Resolver = (ctx) => {
@@ -192,10 +186,14 @@ function stripEatonCatalogPrefix(value: string | undefined, catalogNumber: strin
 }
 const longDescription: Resolver = (ctx) => {
   if (ctx.language === "de") {
-    // Conservative: only return a real German description sourced from the manufacturer's DE
-    // product page. If no localized text exists, leave the DE cell blank rather than echo EN.
+    // DE columns must always be populated so the downstream importer is forced to translate
+    // them (blank cells silently pass through to the catalog as English). Prefer the real DE
+    // text scraped from the manufacturer's DE product page; otherwise fall back to the EN
+    // long description as a translation placeholder.
     const de = localizedGermanText(ctx.result?.localizedDescriptions?.de?.description, ctx.result?.description, ctx.item.catalogNumber);
-    return ctx.result?.manufacturerId === "eaton" ? stripEatonCatalogPrefix(de, ctx.item.catalogNumber) : de;
+    const fallback = clean(ctx.repair?.longDescription) ?? clean(ctx.result?.description) ?? attr(ctx, /\b(long description|catalog description|invoice description)\b/i);
+    const value = de ?? fallback;
+    return ctx.result?.manufacturerId === "eaton" ? stripEatonCatalogPrefix(value, ctx.item.catalogNumber) : value;
   }
   const raw = clean(ctx.repair?.longDescription) ?? clean(ctx.result?.description) ?? attr(ctx, /\b(long description|catalog description|invoice description)\b/i);
   return ctx.result?.manufacturerId === "eaton" ? stripEatonCatalogPrefix(raw, ctx.item.catalogNumber) : raw;
@@ -203,7 +201,14 @@ const longDescription: Resolver = (ctx) => {
 const shortDescription: Resolver = (ctx) => {
   if (ctx.language === "de") {
     const de = localizedGermanText(ctx.result?.localizedDescriptions?.de?.title, ctx.result?.title, ctx.item.catalogNumber);
-    return ctx.result?.manufacturerId === "eaton" ? stripEatonCatalogPrefix(de, ctx.item.catalogNumber) : de;
+    // Mirror the EN short-description logic for the fallback so DE never inherits a row where
+    // the title is just the SKU (the catalog cell would otherwise repeat the article number).
+    const titleCandidate = clean(ctx.result?.title);
+    const titleIsCatalog = titleCandidate && ctx.item.catalogNumber &&
+      titleCandidate.replace(/\s+/g, "").toLowerCase() === ctx.item.catalogNumber.replace(/\s+/g, "").toLowerCase();
+    const fallback = clean(ctx.repair?.shortDescription) ?? (titleIsCatalog ? undefined : titleCandidate) ?? attr(ctx, /\b(catalog description|display name|short description|product name)\b/i);
+    const value = de ?? fallback;
+    return ctx.result?.manufacturerId === "eaton" ? stripEatonCatalogPrefix(value, ctx.item.catalogNumber) : value;
   }
   // Skip echoing the catalog number itself when the scraped page title is just the SKU — manual
   // PDTs leave short description blank rather than repeating the article number.
@@ -274,23 +279,6 @@ function derivedManufacturerTypeParts(ctx: ResolveContext): { family?: string; b
   const manufacturerId = ctx.result?.manufacturerId ?? ctx.manufacturer.id;
   const code = structuredTypeCode(ctx);
   const catalogNumber = clean(ctx.item.catalogNumber) ?? ctx.item.catalogNumber;
-
-  if (manufacturerId === "sce") {
-    if (/^SCE-\d+H\d+LP$/i.test(catalogNumber)) {
-      return {
-        family: "H_LP",
-        base: "H_LP Enclosure",
-        designation: "Wall mounted enclosure"
-      };
-    }
-    if (/^SCE-\d+EL\d+(?:SS6|SS)?LPPL$/i.test(catalogNumber)) {
-      return {
-        family: "EL_LPPL",
-        base: "EL LPPL Enclosure",
-        designation: "Wall mounted enclosure"
-      };
-    }
-  }
 
   if (manufacturerId === "eaton" && code && /^PSN-/i.test(code)) {
     const parts = code.split(/[-_]/).filter(Boolean);
@@ -376,7 +364,10 @@ function parseDimensionToMm(rawValue: string | undefined, attrName: string | und
 function detectLengthUnit(text: string): "mm" | "cm" | "m" | "in" | "ft" | undefined {
   if (/\b(mm|millim(?:etre|eter)s?)\b/i.test(text)) return "mm";
   if (/\b(cm|centim(?:etre|eter)s?)\b/i.test(text)) return "cm";
-  if (/(?:\d|\b)\s*"|(?:^|[^a-z])in(?:ch(?:es)?)?\b/i.test(text)) return "in";
+  // Recognize the inch double-prime ("), inch/inches words, and the SCE-style "(inch)" attribute label.
+  // The earlier "(?:\d|\b)\s*\"" form required a digit before the quote, but after slicing off the
+  // leading number we only see the tail (e.g. just `"`), so the digit lookbehind never matched.
+  if (/"|(?:^|[^a-z])in(?:ch(?:es)?)?\b/i.test(text)) return "in";
   if (/\b(ft|feet|foot)\b|'/i.test(text)) return "ft";
   if (/\bm\b/i.test(text)) return "m";
   return undefined;
@@ -419,30 +410,29 @@ const eanOrGtinForEanColumn = (ctx: ResolveContext) => {
 };
 
 function pdtProductUrl(ctx: ResolveContext): string | undefined {
-  if (ctx.result?.manufacturerId === "abb" || ctx.manufacturer.id === "abb") return abbPdtProductUrl(ctx.item.catalogNumber);
-  if (ctx.result?.manufacturerId === "eaton" || ctx.manufacturer.id === "eaton") return eatonPdtProductUrl(ctx.item.catalogNumber);
-  if (ctx.result?.manufacturerId === "sce" || ctx.manufacturer.id === "sce") return sagPdtProductUrl(ctx.item.catalogNumber);
+  const rule = pdtProductUrlRule({
+    manufacturerId: ctx.result?.manufacturerId ?? ctx.manufacturer.id,
+    catalogNumber: ctx.item.catalogNumber
+  });
+  if (rule) return rule.value;
   return ctx.result?.productUrl ?? ctx.item.productUrl;
 }
 
 function abbPdtProductUrl(catalogNumber: string): string {
   // Match the manual PDT format: bare catalog number, no "ABB" prefix.
   // (Some legacy internal IDs were prefixed with "ABB" — strip it if present.)
-  const bare = (clean(catalogNumber) ?? catalogNumber).replace(/^ABB/i, "");
-  return `https://new.abb.com/products/${encodeURIComponent(bare)}`;
+  return pdtProductUrlRule({ manufacturerId: "abb", catalogNumber })?.value ?? catalogNumber;
 }
 
 function eatonPdtProductUrl(catalogNumber: string): string {
   // Manual Eaton PDTs use the GB/EN-GB SKU page with an "EP-" prefix on the catalog number
   // (e.g. 502419 → .../skuPage.EP-502419.html). Don't double-prefix if it's already there.
-  const part = clean(catalogNumber) ?? catalogNumber;
-  const withPrefix = /^EP-/i.test(part) ? part : `EP-${part}`;
-  return `https://www.eaton.com/gb/en-gb/skuPage.${encodeURIComponent(withPrefix)}.html`;
+  return pdtProductUrlRule({ manufacturerId: "eaton", catalogNumber })?.value ?? catalogNumber;
 }
 
 function sagPdtProductUrl(catalogNumber: string): string {
   // Manual Saginaw PDTs use partnumber_info with trailing slash before the query.
-  return `https://www.saginawcontrol.com/partnumber_info/?n=${encodeURIComponent(clean(catalogNumber) ?? catalogNumber)}`;
+  return pdtProductUrlRule({ manufacturerId: "sce", catalogNumber })?.value ?? catalogNumber;
 }
 
 function isContactorSheet(ctx: ResolveContext): boolean {
@@ -712,7 +702,6 @@ function staticPowerLoss(ctx: ResolveContext): string | undefined {
 }
 
 function powerLossPerPole(ctx: ResolveContext): string | undefined {
-  if (/^2080-LC20-20/i.test(ctx.item.catalogNumber.trim())) return "6";
   const cbeLoss = eatonEd6PowerLossPerPole(ctx);
   if (cbeLoss) return cbeLoss;
   return (
@@ -1138,7 +1127,6 @@ function compliancePresent(ctx: ResolveContext, topic: RegExp): string | undefin
 }
 
 function voltageType(ctx: ResolveContext): string | undefined {
-  if (/^2080-LC20-20/i.test(ctx.item.catalogNumber.trim())) return "AC/DC";
   return attr(ctx, /\b(voltage type|current type|operating voltage type)\b/i) ?? controlVoltageType(ctx);
 }
 
@@ -1694,13 +1682,7 @@ const RESOLVERS: Record<string, Resolver> = {
 
   // --- Device-tab common (best-effort) ---
   REFERENCE_FEATURE_GROUP_ID: eclassNumber,
-  REFERENCE_FEATURE_SYSTEM_NAME: (ctx) =>
-    isDeviceSheet(ctx)
-      ? ctx.repair?.eclassSystemVersion ??
-        // Match each manual PDT's ECLASS version. Rockwell uses v14; ABB, Saginaw, and Eaton
-        // manual PDTs use v13. Anything else defaults to v14 (the generic newer baseline).
-        (ctx.manufacturer.id === "abb" || ctx.manufacturer.id === "sce" || ctx.manufacturer.id === "eaton" ? "13" : "14")
-      : eclassSystem(ctx),
+  REFERENCE_FEATURE_SYSTEM_NAME: (ctx) => ctx.repair?.eclassSystemVersion ?? eclassSystem(ctx),
   AAN521: (ctx) => colorValue(ctx),
   BAH005: (ctx) =>
     (isContactorSheet(ctx) ? controlVoltageRange(ctx) : undefined) ??

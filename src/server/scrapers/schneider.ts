@@ -23,16 +23,16 @@ const SCHNEIDER_PRODUCT_URL_TEMPLATES = [
   "https://shop.se.com/pro/us/en/product/{part}"
 ];
 const SCHNEIDER_DATASHEET_READER_URL_TEMPLATES = [
-  "https://r.jina.ai/http://https://www.se.com/us/en/product/download-pdf/{part}",
-  "https://r.jina.ai/http://https://www.se.com/ww/en/product/download-pdf/{part}",
-  "https://r.jina.ai/http://https://www.se.com/uk/en/product/download-pdf/{part}",
-  "https://r.jina.ai/http://https://www.se.com/ie/en/product/download-pdf/{part}",
-  "https://r.jina.ai/http://https://www.se.com/au/en/product/download-pdf/{part}",
-  "https://r.jina.ai/http://https://www.se.com/sg/en/product/download-pdf/{part}",
-  "https://r.jina.ai/http://https://www.se.com/in/en/product/download-pdf/{part}",
-  "https://r.jina.ai/http://https://www.se.com/za/en/product/download-pdf/{part}",
-  "https://r.jina.ai/http://https://www.se.com/ca/en/product/download-pdf/{part}",
-  "https://r.jina.ai/http://https://www.se.com/id/en/product/download-pdf/{part}"
+  "https://r.jina.ai/http://www.se.com/us/en/product/download-pdf/{part}",
+  "https://r.jina.ai/http://www.se.com/ww/en/product/download-pdf/{part}",
+  "https://r.jina.ai/http://www.se.com/uk/en/product/download-pdf/{part}",
+  "https://r.jina.ai/http://www.se.com/ie/en/product/download-pdf/{part}",
+  "https://r.jina.ai/http://www.se.com/au/en/product/download-pdf/{part}",
+  "https://r.jina.ai/http://www.se.com/sg/en/product/download-pdf/{part}",
+  "https://r.jina.ai/http://www.se.com/in/en/product/download-pdf/{part}",
+  "https://r.jina.ai/http://www.se.com/za/en/product/download-pdf/{part}",
+  "https://r.jina.ai/http://www.se.com/ca/en/product/download-pdf/{part}",
+  "https://r.jina.ai/http://www.se.com/id/en/product/download-pdf/{part}"
 ];
 const SCHNEIDER_PARSER = "schneider-product-page";
 const SCHNEIDER_DATASHEET_READER_PARSER = "schneider-datasheet-reader";

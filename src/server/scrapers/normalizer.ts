@@ -182,6 +182,7 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
   const dimensions =
     normalizeDimensionValue(formatDimensions(height, width, depth, length)) ??
     bestNormalizedAttributeValue(attributes, FIELD_LABEL_PATTERNS.dimensions, normalizeDimensionValue, "dimensions") ??
+    deriveDimensionsFromText(attributes) ??
     cableLengthDimension;
   const material = findMaterialAttr(attributes) ?? deriveMaterialFromAttributes(attributes);
   const finish = normalizeFinishValue(bestAttributeValue(attributes, FIELD_LABEL_PATTERNS.finish)) ?? deriveFinishFromAttributes(attributes) ?? deriveFinishFromMaterial(material);
@@ -464,6 +465,7 @@ function attributeEvidenceScore(attr: AttributeRecord): number {
   const source = attr.sourceType ?? "generated";
   let score = source === "official" ? 500 : source === "official-fallback" ? 430 : source === "generated" ? 320 : source === "cache" ? 250 : 100;
   const parser = `${attr.parser ?? ""} ${attr.stage ?? ""} ${attr.group ?? ""}`.toLowerCase();
+  if (/\bcatalog variant\b/.test(parser)) score += 90;
   if (/pdf|document/.test(parser)) score += 140;
   if (/browser-network|api/.test(parser)) score += 25;
   if (/browser-render/.test(parser)) score += 5;
@@ -845,6 +847,37 @@ function deriveCurrentFromText(attributes: AttributeRecord[]): string | undefine
   return bestDerivedElectricalValue(attributes, extractCurrentValues);
 }
 
+function deriveDimensionsFromText(attributes: AttributeRecord[]): string | undefined {
+  const candidates = attributes
+    .filter(isDimensionTextCandidate)
+    .flatMap((attr) =>
+      extractDimensionValuesFromText(derivedSpecText(attr)).map((value) => ({
+        value,
+        score: attributeEvidenceScore(attr) + electricalTextLabelScore(`${attr.group ?? ""} ${attr.name}`)
+      }))
+    );
+  return candidates.sort((left, right) => right.score - left.score)[0]?.value;
+}
+
+function isDimensionTextCandidate(attr: AttributeRecord): boolean {
+  const label = `${attr.group ?? ""} ${attr.name}`;
+  const text = derivedSpecText(attr);
+  if (!/\b\d+(?:[.,]\d+)?\s*[xX*]\s*\d+(?:[.,]\d+)?(?:\s*[xX*]\s*\d+(?:[.,]\d+)?)?\s*(?:mm|cm|m|in|inch|inches|")\b/i.test(text)) {
+    return false;
+  }
+  if (/\bplain text\b/i.test(label) && /\btitle\b/i.test(label)) return /\bschneider\b/i.test(`${attr.name} ${attr.value}`);
+  if (/\b(structured data|meta)\b/i.test(label) && /\b(name|title|description|og:description|twitter:description)\b/i.test(label)) return true;
+  if (/\bschneider\b/i.test(label) && /\b(product info|description|title|name|product type|long description)\b/i.test(label)) return true;
+  if (/\b(product specifications|sce product data)\b/i.test(label) && /\b(description|product type|product name)\b/i.test(label)) return true;
+  return /\babb\b/i.test(label) && /\b(name|title|description|catalog description|long description|short description|product short text|product type|type description)\b/i.test(label);
+}
+
+function extractDimensionValuesFromText(value: string): string[] {
+  const cleaned = cleanText(value);
+  const matches = cleaned.match(/\b\d+(?:[.,]\d+)?\s*[xX*]\s*\d+(?:[.,]\d+)?(?:\s*[xX*]\s*\d+(?:[.,]\d+)?)?\s*(?:mm|cm|m|in|inch|inches|")\b/gi) ?? [];
+  return [...new Set(matches.map((match) => normalizeDimensionValue(match)).filter((match): match is string => Boolean(match)))];
+}
+
 function bestDerivedElectricalValue(
   attributes: AttributeRecord[],
   extractor: (value: string, label: string) => string[]
@@ -1000,7 +1033,7 @@ function finishPhraseFromText(value: string): string | undefined {
   const cleaned = normalizeHtmlSpecValue(value);
   if (!cleaned) return undefined;
   const phrase = cleaned.match(
-    /\b(?:(?:black|white|gr[ae]y|red|blue|green|yellow|orange|silver|natural)\s+)?(?:ANSI[-\s]?61|RAL\s*\d{4}|powder[-\s]?coated|painted|anodized|brushed|nickel[-\s]?plated|zinc[-\s]?plated|chrome[-\s]?plated)\b[^.;]*/i
+    /\b(?:(?:black|white|gr[ae]y|red|blue|green|yellow|orange|silver|natural)\s+)?(?:ANSI[-\s]?61|RAL\s*\d{4}|powder[-\s]?coated|painted|anodized|brushed|nickel[-\s]?plated|zinc[-\s]?plated|chrome[-\s]?plated|(?:pre)?galvanized)\b[^.;]*/i
   )?.[0];
   return phrase ? cleanText(phrase) : undefined;
 }
@@ -1014,6 +1047,7 @@ function deriveFinishFromMaterial(value: string | undefined): string | undefined
     ...(cleaned.match(/\bgold[-\s]?plated\b/gi) ?? []),
     ...(cleaned.match(/\bzinc[-\s]?plated\b/gi) ?? []),
     ...(cleaned.match(/\bchrome[-\s]?plated\b/gi) ?? []),
+    ...(cleaned.match(/\b(?:pre)?galvanized\b/gi) ?? []),
     ...(cleaned.match(/\bpowder[-\s]?coated\b/gi) ?? []),
     ...(cleaned.match(/\bpainted\b/gi) ?? []),
     ...(cleaned.match(/\bCu\s*\d+(?:[.,]\d+)?\s*(?:µm|um)\b/gi) ?? []),
@@ -1261,6 +1295,11 @@ function normalizeCertificateValue(value: string, allowNotApplicable = false): s
     ...(cleaned.match(/\bBV\b/g) ?? []),
     ...(cleaned.match(/\bEAC\b/g) ?? []),
     ...(cleaned.match(/\bRCM\b/g) ?? []),
+    ...(cleaned.match(/\bKC\b/g) ?? []),
+    ...(cleaned.match(/\bODVA\b/g) ?? []),
+    ...(cleaned.match(/\bATEX\b/g) ?? []),
+    ...(cleaned.match(/\bIECEx\b/gi) ?? []),
+    ...(cleaned.match(/\bSIL\s*\d\b/gi) ?? []),
     ...(cleaned.match(/\bVDE\b/g) ?? []),
     ...(cleaned.match(/\bCSA\b/g) ?? []),
     ...(cleaned.match(/\bUL\b/g) ?? []),
@@ -1371,6 +1410,10 @@ function canonicalCertificateToken(value: string): string {
   if (/^ukca$/i.test(cleaned)) return "UKCA";
   if (/^eac$/i.test(cleaned)) return "EAC";
   if (/^vde$/i.test(cleaned)) return "VDE";
+  if (/^kc$/i.test(cleaned)) return "KC";
+  if (/^odva$/i.test(cleaned)) return "ODVA";
+  if (/^atex$/i.test(cleaned)) return "ATEX";
+  if (/^iecex$/i.test(cleaned)) return "IECEx";
   if (/^culus$/i.test(cleaned)) return "cULus";
   if (/^cul$/i.test(cleaned)) return "cUL";
   return cleaned;
@@ -1416,8 +1459,9 @@ function materialCandidateScore(attr: AttributeRecord): number {
   const haystack = `${attr.group ?? ""} ${attr.name} ${attr.value}`.toLowerCase();
   let score = Math.round(attributeEvidenceScore(attr) / 10);
   if (/\bmaterial\b/i.test(attr.name)) score += 20;
+  if (/\bcatalog variant\b/i.test(haystack)) score += 45;
   if (/housing|enclosure|body|valve body|cable jacket/i.test(haystack)) score += 40;
-  if (/spheroidal cast iron|carbon steel|stainless steel|mild steel|polycarbonate|polyester|pvc|pur/i.test(haystack)) score += 20;
+  if (/spheroidal cast iron|carbon steel|stainless steel|mild steel|galvanized steel|galvannealed steel|polycarbonate|polyester|pvc|pur/i.test(haystack)) score += 20;
   if (/accessor(?:y|ies)|fittings?|hex nut|knurled nut|screw|terminal|mounting screw|wire size/i.test(haystack)) score -= 35;
   return score;
 }

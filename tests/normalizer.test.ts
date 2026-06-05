@@ -172,6 +172,7 @@ describe("normalizer", () => {
       []
     );
     expect(enclosure.protection).toContain("IP66");
+    expect(enclosure.dimensions).toBe("300x200x150mm");
 
     const analogModule = normalizeFields(
       [
@@ -344,6 +345,41 @@ describe("normalizer", () => {
     expect(normalized.material).toBe("steel");
     expect(normalized.finish).toBe("powder coated white");
     expect(normalized.color).toBe("white");
+  });
+
+  it("keeps SCE galvanized panel material separate from white powder coat color", () => {
+    const standardPanel = normalizeFields(
+      [
+        {
+          group: "Application",
+          name: "Application",
+          value:
+            "Panels for single-door enclosures, can be positioned anywhere along the horizontal mounting channels. Mounting hardware is included. Made of heavy gauge steel and powder coated white. GALV panels made of galvanized steel. GALV Part numbers are Galvanized."
+        }
+      ],
+      []
+    );
+    expect(standardPanel.material).toBe("steel");
+    expect(standardPanel.finish).toBe("powder coated white");
+    expect(standardPanel.color).toBe("white");
+
+    const galvPanel = normalizeFields(
+      [
+        {
+          group: "Application",
+          name: "Application",
+          value:
+            "Panels for single-door enclosures, can be positioned anywhere along the horizontal mounting channels. Mounting hardware is included. Made of heavy gauge steel and powder coated white. GALV panels made of galvanized steel. GALV Part numbers are Galvanized."
+        },
+        { group: "Finish", name: "Finish", value: "powder coated white", sourceType: "official", parser: "sce-product-page", confidence: 0.9 },
+        { group: "SCE Catalog Variant", name: "Material", value: "galvanized steel", sourceType: "official" },
+        { group: "SCE Catalog Variant", name: "Finish", value: "galvanized", sourceType: "official" }
+      ],
+      []
+    );
+    expect(galvPanel.material).toBe("galvanized steel");
+    expect(galvPanel.finish).toBe("galvanized");
+    expect(galvPanel.color).toBeUndefined();
   });
 
   it("does not turn SCE not-applicable standards into real UL or CSA certificates", () => {

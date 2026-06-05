@@ -170,8 +170,15 @@ function standardMaterialLabel(description: string, value: string): string | und
   if (/\bthermoplast\b/.test(text)) return hasLabel(/^Thermoplast$/i) ?? hasLabel(/^Plastic$/i);
   if (/\bpolycarbonate\b/.test(text)) return hasLabel(/^polycarbonate$/i) ?? hasLabel(/^Thermoplast$/i) ?? hasLabel(/^Plastic$/i);
   if (/\bepoxy\b|\bfiberglass\b|\bfibreglass\b|\bglass fiber\b|\bglass fibre\b/.test(text)) return hasLabel(/^Plastic$/i);
-  if (/\bstainless steel\b/.test(text)) return "stainless steel";
-  if (/\b(?:carbon|mild|sheet|galvanized)?\s*steel\b/.test(text)) return "steel";
+  if (/\bstainless steel\b/.test(text)) return hasLabel(/^stainless\s+steel/i) ?? "stainless steel";
+  // Preserve the qualifier ("carbon steel", "galvanized steel"...) when the legend offers a
+  // matching label. The previous unconditional return of "steel" collapsed "carbon steel" into a
+  // bare "steel" even when the PDT column had a "carbon steel" option (or accepted free text).
+  if (/\bcarbon\s*steel\b/.test(text)) return hasLabel(/^carbon\s+steel/i) ?? "carbon steel";
+  if (/\bgalvanized\s*steel\b/.test(text)) return hasLabel(/^galvanized\s+steel/i) ?? "galvanized steel";
+  if (/\bmild\s*steel\b/.test(text)) return hasLabel(/^mild\s+steel/i) ?? "mild steel";
+  if (/\bsheet\s*steel\b/.test(text)) return hasLabel(/^sheet\s+steel/i) ?? "sheet steel";
+  if (/\bsteel\b/.test(text)) return "steel";
   if (/\baluminium\b|\baluminum\b/.test(text)) return "aluminum";
   if (/\bpolyamide\b|\bpa66\b/.test(text)) return "polyamide";
   if (/\bpvc\b|\bpolyvinyl chloride\b/.test(text)) return "PVC";

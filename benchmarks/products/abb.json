@@ -1,7 +1,39 @@
-{
-  "manufacturerId": "abb",
-  "catalogNumber": "1SDA126190R1",
-  "expectedOfficialUrlPatterns": ["new\\.abb\\.com", "ProductId=1SDA126190R1"],
-  "requiredDocuments": ["image"],
-  "expectedNormalizedFields": ["weight"]
-}
+[
+  {
+    "manufacturerId": "abb",
+    "catalogNumber": "1SDA126190R1",
+    "caseType": "edge",
+    "expectedDeviceType": "Accessory",
+    "riskTags": ["abb-1sda", "sheet-override", "pdt-provenance"],
+    "expectedOfficialUrlPatterns": ["new\\.abb\\.com", "ProductId=1SDA126190R1"],
+    "requiredDocuments": ["image"],
+    "expectedNormalizedFields": ["weight"]
+  },
+  {
+    "manufacturerId": "abb",
+    "catalogNumber": "2CTB804201R0100",
+    "caseType": "electrical",
+    "expectedDeviceType": "Surge Protective Device",
+    "riskTags": ["abb-ovr", "surge-protection", "lightning-protection-sheet-coverage"],
+    "expectedOfficialUrlPatterns": ["new\\.abb\\.com/products/2CTB804201R0100/ovr-t2-40-275"],
+    "requiredDocuments": ["image", "datasheet"],
+    "expectedNormalizedFields": ["certificates"]
+  },
+  {
+    "manufacturerId": "abb",
+    "catalogNumber": "1SDA126493R1",
+    "caseType": "edge",
+    "expectedDeviceType": "Busbar",
+    "riskTags": ["abb-1sda", "busbar", "sheet-override", "busbar-sheet-coverage"],
+    "expectedOfficialUrlPatterns": ["new\\.abb\\.com/products/(?:pl/)?1SDA126493R1/ekip-busbars-supply-e1-3-e6-3"]
+  },
+  {
+    "manufacturerId": "abb",
+    "catalogNumber": "ACS580-01-039A-4",
+    "caseType": "electrical",
+    "expectedDeviceType": "Variable Speed Drive",
+    "riskTags": ["abb-acs", "variable-speed-drive", "motors-sheet-coverage"],
+    "expectedOfficialUrlPatterns": ["new\\.abb\\.com/products/pl/3A[XB]D50000038962/acs580-01-039a-4"],
+    "expectedNormalizedFields": ["current", "voltage"]
+  }
+]

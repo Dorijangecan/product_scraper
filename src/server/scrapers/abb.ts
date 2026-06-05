@@ -27,28 +27,26 @@ export class ABBConnector implements ManufacturerConnector {
       return abbOfficialMissingResult(catalogNumber, searchLookup);
     }
 
-    // Fire the DE product page in parallel with the rest of the pipeline so we can stash a
-    // localized title/description on the final result without adding sequential latency. The
-    // ABB de PIS URL serves the same `var model = {...}` blob as EN but with German labels.
-    // Skipped for image-only runs (descriptions aren't used) — keeps that fast path lean.
-    const germanDescriptionPromise = context.imageOnly
-      ? Promise.resolve(undefined)
-      : fetchAbbGermanDescription(catalogNumber, context).catch(() => undefined);
+    // Lazy DE rescue: only fetch the DE product page if the rest of the pipeline did NOT
+    // already produce a German localized title/description. parseAbbProductPage now auto-fills
+    // `localizedDescriptions.de` whenever it parses a /products/de/ URL, so any DE hit produced
+    // by the locale-fallback or PIS-search paths already populates this column for free.
+    // CachedHttpClient serializes per-host requests with a ~350 ms gap, so an unconditional
+    // upfront DE fetch was effectively adding 1–2 extra sequential new.abb.com round-trips
+    // per product (the previous "parallel" implementation was an illusion under host throttling).
     const attachGerman = async (result: ProductResult): Promise<ProductResult> => {
-      const de = await germanDescriptionPromise;
+      if (context.imageOnly) return result;
+      if (result.localizedDescriptions?.de?.title || result.localizedDescriptions?.de?.description) return result;
+      const de = await fetchAbbGermanDescription(catalogNumber, context).catch(() => undefined);
       if (!de || (!de.title && !de.description)) return result;
-      const existing = result.localizedDescriptions?.de;
-      const title = existing?.title ?? localizedAbbText(de.title, result.title, catalogNumber);
-      const description = existing?.description ?? localizedAbbText(de.description, result.description, catalogNumber);
+      const title = localizedAbbText(de.title, result.title, catalogNumber);
+      const description = localizedAbbText(de.description, result.description, catalogNumber);
       if (!title && !description) return result;
       return {
         ...result,
         localizedDescriptions: {
           ...(result.localizedDescriptions ?? {}),
-          de: {
-            title,
-            description
-          }
+          de: { title, description }
         }
       };
     };
@@ -1016,22 +1014,20 @@ async function fetchAbbLocaleFallbackResults(catalogNumber: string, context: Scr
     `https://new.abb.com/products/de/${encoded}/product`,
     `https://new.abb.com/products/it/${encoded}/product`
   ];
-  // Parallelize locale fallbacks — fetch all 3 concurrently, then walk results in priority order so the first PIS hit wins.
-  const parsedAll = await Promise.all(
-    urls.map(async (url) => {
-      try {
-        const fetched = await fetchAbbPage(url, context);
-        return parseAbbProductPage(catalogNumber, fetched, context.manufacturer.markerRules);
-      } catch {
-        return undefined;
-      }
-    })
-  );
+  // CachedHttpClient enforces a per-host serial gap (~350 ms) on new.abb.com, so a Promise.all
+  // here would still execute sequentially AND lose the early-break, paying for all 3 fetches
+  // even when the first locale already returned PIS data. Walk locales serially and bail on
+  // the first PIS hit — this is the fast path for the vast majority of ABB products.
   const results: ProductResult[] = [];
-  for (const parsed of parsedAll) {
-    if (!parsed) continue;
-    if (parsed.status !== "failed") results.push(parsed);
-    if (hasAbbPisData(parsed)) break;
+  for (const url of urls) {
+    try {
+      const fetched = await fetchAbbPage(url, context);
+      const parsed = parseAbbProductPage(catalogNumber, fetched, context.manufacturer.markerRules);
+      if (parsed.status !== "failed") results.push(parsed);
+      if (hasAbbPisData(parsed)) break;
+    } catch {
+      // Try the next locale.
+    }
   }
   return results;
 }
@@ -1272,7 +1268,7 @@ export function parseAbbProductPage(catalogNumber: string, fetched: FetchedText,
     }
   }
 
-  const embeddedAttributes = extractAbbEmbeddedAttributes(fetched.text, fetched.effectiveUrl, productPayloads);
+  const embeddedAttributes = extractAbbEmbeddedAttributes(fetched.text, fetched.effectiveUrl, productPayloads, catalogNumber);
   attributes.push(...embeddedAttributes);
   attributes.push(...extractAbbRelationshipAttributes(fetched.text, fetched.effectiveUrl, productPayloads));
   attributes.push(...extractAbbClassificationAttributes(fetched.text, fetched.effectiveUrl, productPayloads));
@@ -1390,6 +1386,12 @@ export function parseAbbProductPage(catalogNumber: string, fetched: FetchedText,
   const normalized = normalizeFields(cleanAttributes, cleanDocuments);
   const hasUsefulData = Boolean(product) || cleanAttributes.length > 0 || cleanDocuments.length > 0;
 
+  // If this parse is of a DE locale URL, capture the German title/description directly so it
+  // flows through mergeResults to the final ProductResult without a second standalone fetch.
+  const localizedDescriptions = isAbbDeLocaleUrl(fetched.effectiveUrl)
+    ? buildAbbDeLocalizedDescriptions(title, description, catalogNumber)
+    : undefined;
+
   return {
     manufacturerId: "abb",
     catalogNumber,
@@ -1399,6 +1401,7 @@ export function parseAbbProductPage(catalogNumber: string, fetched: FetchedText,
     localizedUrls: buildLocalizedProductUrls("abb", catalogNumber, productUrl),
     title,
     description,
+    localizedDescriptions,
     normalized,
     attributes: cleanAttributes,
     documents: cleanDocuments,
@@ -1413,6 +1416,26 @@ export function parseAbbProductPage(catalogNumber: string, fetched: FetchedText,
       }
     ]
   };
+}
+
+function isAbbDeLocaleUrl(url: string | undefined): boolean {
+  if (!url) return false;
+  try {
+    return /\/products\/de(?:\/|$)/i.test(new URL(url).pathname);
+  } catch {
+    return /\/products\/de\//i.test(url);
+  }
+}
+
+function buildAbbDeLocalizedDescriptions(
+  title: string,
+  description: string,
+  catalogNumber: string
+): ProductResult["localizedDescriptions"] | undefined {
+  const localizedTitle = localizedAbbText(title, undefined, catalogNumber);
+  const localizedDescription = localizedAbbText(description, undefined, catalogNumber);
+  if (!localizedTitle && !localizedDescription) return undefined;
+  return { de: { title: localizedTitle, description: localizedDescription } };
 }
 
 function deriveAbbElectricalAttributes(
@@ -1540,8 +1563,13 @@ function firstImageUrl(value: unknown): string | undefined {
   return undefined;
 }
 
-function extractAbbEmbeddedAttributes(html: string, sourceUrl: string, productPayloads = extractAbbProductPayloads(html)): AttributeRecord[] {
-  const modelAttributes = extractAbbModelAttributes(html, sourceUrl, productPayloads);
+function extractAbbEmbeddedAttributes(
+  html: string,
+  sourceUrl: string,
+  productPayloads = extractAbbProductPayloads(html),
+  catalogNumber?: string
+): AttributeRecord[] {
+  const modelAttributes = extractAbbModelAttributes(html, sourceUrl, productPayloads, catalogNumber);
   if (modelAttributes.length) return modelAttributes;
   return extractAbbRegexAttributes(html, sourceUrl);
 }
@@ -1656,10 +1684,16 @@ function extractAbbRegexAttributes(html: string, sourceUrl: string): AttributeRe
   return attributes;
 }
 
-function extractAbbModelAttributes(html: string, sourceUrl: string, productPayloads = extractAbbProductPayloads(html)): AttributeRecord[] {
+function extractAbbModelAttributes(
+  html: string,
+  sourceUrl: string,
+  productPayloads = extractAbbProductPayloads(html),
+  catalogNumber?: string
+): AttributeRecord[] {
   const attributes: AttributeRecord[] = [];
   const seen = new Set<string>();
-  for (const product of productPayloads) {
+  const scopedPayloads = scopedAbbProductPayloads(productPayloads, catalogNumber);
+  for (const product of scopedPayloads) {
     const productDetails = recordAt(product, "productDetails");
     const item = recordAt(productDetails, "item");
     pushUniqueAbbAttributes(attributes, attributesFromAbbMap(recordAt(item, "attributes"), "ABB Product Data", sourceUrl), seen);
@@ -1672,6 +1706,52 @@ function extractAbbModelAttributes(html: string, sourceUrl: string, productPaylo
     }
   }
   return attributes;
+}
+
+function scopedAbbProductPayloads(productPayloads: Record<string, unknown>[], catalogNumber: string | undefined): Record<string, unknown>[] {
+  if (!catalogNumber) return productPayloads;
+  const exact = productPayloads.filter((product) => abbProductPayloadMatchesCatalog(product, catalogNumber));
+  if (exact.length > 0) return exact;
+  // If ABB's payload declares product identifiers but none match the requested catalog, treat it
+  // as a family/alias payload. Keeping those attributes would copy one item's weight/dimensions
+  // into every sibling catalog in the run.
+  if (productPayloads.some((product) => abbProductPayloadCatalogCandidates(product).length > 0)) return [];
+  return productPayloads;
+}
+
+function abbProductPayloadMatchesCatalog(product: Record<string, unknown>, catalogNumber: string): boolean {
+  return abbProductPayloadCatalogCandidates(product).some((candidate) => sameCatalogNumber(candidate, catalogNumber));
+}
+
+function abbProductPayloadCatalogCandidates(product: Record<string, unknown>): string[] {
+  const candidates: string[] = [];
+  collectAbbCatalogCandidateValues(product, candidates, 0);
+  return candidates;
+}
+
+function collectAbbCatalogCandidateValues(value: unknown, target: string[], depth: number): void {
+  if (depth > 6 || value === null || value === undefined) return;
+  if (typeof value === "string" || typeof value === "number") return;
+  if (Array.isArray(value)) {
+    for (const item of value) collectAbbCatalogCandidateValues(item, target, depth + 1);
+    return;
+  }
+  if (!isRecord(value)) return;
+  for (const [key, entry] of Object.entries(value)) {
+    const normalizedKey = key.replace(/[^a-z0-9]+/gi, "").toLowerCase();
+    if (
+      /^(?:productid|productcode|catalognumber|globalcommercialalias|extendedproducttype|abbtypedesignation|typecode|sku|mpn)$/.test(normalizedKey) ||
+      /^(?:productid|glocomali|extendedproducttype|abbtype)$/i.test(String(isRecord(entry) ? firstStringOrNumber(entry.attributeCode) ?? "" : ""))
+    ) {
+      const direct = firstStringOrNumber(entry);
+      if (direct) target.push(direct);
+      if (isRecord(entry)) {
+        const attrValue = parseAbbAttributeValueObjects(arrayAt(entry, "values"));
+        if (attrValue) target.push(attrValue);
+      }
+    }
+    collectAbbCatalogCandidateValues(entry, target, depth + 1);
+  }
 }
 
 function extractAbbRelationshipAttributes(html: string, sourceUrl: string, productPayloads = extractAbbProductPayloads(html)): AttributeRecord[] {
