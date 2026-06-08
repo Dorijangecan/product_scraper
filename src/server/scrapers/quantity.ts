@@ -306,15 +306,19 @@ export function parseTemperatureRange(text: string): { min?: number; max?: numbe
   if (!text) return {};
   const normalized = normalizeForParsing(text);
   const { cleaned } = stripConditions(normalized);
+  // Split on ; newline, and a comma that begins a new labelled clause (", storage ...") — but
+  // NOT a comma inside a value ("-40, +85"), so a real range is never torn apart.
   const clauses = cleaned
-    .split(/[;\n]+/)
+    .split(/[;\n]+|,(?=\s*[A-Za-zÄÖÜäöüß])/)
     .map((clause) => clause.trim())
     .filter(Boolean);
   const candidates = clauses.length ? clauses : [cleaned];
 
+  // Never report a storage/transport range as the operating temperature: storage-only clauses
+  // are excluded from both lists, so a string that has only storage temps returns {}.
   const operating = candidates.filter((clause) => OPERATING_RE.test(clause) && !STORAGE_RE.test(clause));
   const nonStorage = candidates.filter((clause) => !STORAGE_RE.test(clause));
-  const ordered = uniqueStrings([...operating, ...nonStorage, ...candidates]);
+  const ordered = uniqueStrings([...operating, ...nonStorage]);
 
   for (const clause of ordered) {
     const hasTempKeyword = TEMP_KEYWORD_RE.test(clause);

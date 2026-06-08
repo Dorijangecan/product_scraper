@@ -278,17 +278,34 @@ function deriveOperatingTemperature(attributes: AttributeRecord[]): { min?: stri
   const isExcludedLabel = (attr: AttributeRecord): boolean =>
     /\b(current|strom|storage|lager|colou?r\s+temp(?:erature)?|color\s+temp)\b/i.test(label(attr));
 
-  const candidates = attributes.filter((attr) => attr.value && isTemperatureLabel(attr) && !isExcludedLabel(attr));
-  for (const attr of candidates) {
-    const range = parseTemperatureRange(`${attr.name}: ${attr.value}`);
-    if (range.min === undefined && range.max === undefined) continue;
+  const fromText = (text: string): { min?: string; max?: string } | undefined => {
+    const range = parseTemperatureRange(text);
+    if (range.min === undefined && range.max === undefined) return undefined;
     // Reject physically impossible operating temperatures so a misparse never reaches the PDT.
-    if (range.min !== undefined && !isPlausibleTemperatureCelsius(range.min)) continue;
-    if (range.max !== undefined && !isPlausibleTemperatureCelsius(range.max)) continue;
+    if (range.min !== undefined && !isPlausibleTemperatureCelsius(range.min)) return undefined;
+    if (range.max !== undefined && !isPlausibleTemperatureCelsius(range.max)) return undefined;
     return {
       min: range.min !== undefined ? formatTemperatureBound(range.min) : undefined,
       max: range.max !== undefined ? formatTemperatureBound(range.max) : undefined
     };
+  };
+
+  // 1) Explicitly temperature-labelled attributes (most reliable).
+  for (const attr of attributes) {
+    if (!attr.value || !isTemperatureLabel(attr) || isExcludedLabel(attr)) continue;
+    const result = fromText(`${attr.name}: ${attr.value}`);
+    if (result) return result;
+  }
+
+  // 2) Prose fallback: mine the operating/ambient temperature out of a long description, but only
+  // when the text explicitly mentions temperature/°C (parseTemperatureRange already ignores
+  // de-rating conditions and storage temps). This is the "buried in a sentence" case.
+  for (const attr of attributes) {
+    if (!attr.value || isExcludedLabel(attr)) continue;
+    if (!/\b(catalog description|long description|short description|product description|description|features?|technical data|specifications?)\b/i.test(label(attr))) continue;
+    if (!/\btemp(?:erature|eratur)?\b|°\s*c|℃/i.test(attr.value)) continue;
+    const result = fromText(attr.value);
+    if (result) return result;
   }
   return {};
 }

@@ -45,6 +45,14 @@ describe("quantity grammar — temperature understanding", () => {
   it("orders the bounds numerically", () => {
     expect(parseTemperatureRange("ambient temperature +5 °C to +40 °C")).toEqual({ min: 5, max: 40 });
   });
+
+  it("never reports a storage-only range as operating temperature", () => {
+    expect(parseTemperatureRange("storage temperature -40 to 85 °C")).toEqual({});
+  });
+
+  it("picks operating over storage in a comma-separated list", () => {
+    expect(parseTemperatureRange("operating -25 to 70 °C, storage -40 to 85 °C")).toEqual({ min: -25, max: 70 });
+  });
 });
 
 describe("quantity grammar — voltage/current/power", () => {

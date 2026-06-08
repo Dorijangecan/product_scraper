@@ -68,6 +68,24 @@ describe("normalizer", () => {
     expect(normalized.operatingTemperatureMax).toBeUndefined();
   });
 
+  it("mines operating temperature buried in a long description, ignoring current de-rating", () => {
+    const normalized = normalizeFields(
+      [{ name: "Long Description", value: "3-pole contactor, 24 V coil, ambient temperature -25 to +60 °C, rated current 16 A at 40 °C." }],
+      []
+    );
+    expect(normalized.operatingTemperatureMin).toBe("-25");
+    expect(normalized.operatingTemperatureMax).toBe("60");
+  });
+
+  it("does not invent operating temperature from a description without temperature", () => {
+    const normalized = normalizeFields(
+      [{ name: "Long Description", value: "Compact 3-pole contactor, 24 V coil, rated current 16 A." }],
+      []
+    );
+    expect(normalized.operatingTemperatureMin).toBeUndefined();
+    expect(normalized.operatingTemperatureMax).toBeUndefined();
+  });
+
   it("normalizes units and prefers official evidence over distributor values", () => {
     const normalized = normalizeFields(
       [
