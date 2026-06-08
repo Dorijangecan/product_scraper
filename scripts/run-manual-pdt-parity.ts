@@ -10,6 +10,7 @@ import { RunManager } from "../src/server/run-manager.js";
 import { exportRunPdt } from "../src/server/pdt/exporter.js";
 import { resolveTemplatePath } from "../src/server/pdt/template.js";
 import { cellText, describeSheet } from "../src/server/pdt/sheet-descriptor.js";
+import { comparePdtValues, type PdtCellDiff, type PdtValueCell } from "../src/server/pdt/pdt-compare.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, "..");
@@ -62,6 +63,13 @@ interface CaseReport {
   manualSheets: Record<string, number>;
   generatedSheets: Record<string, number>;
   sheetGaps: Array<{ sheet: string; manualCells: number; generatedCells: number }>;
+  /** Value-level precision vs the human gold (workstream A). */
+  valuePrecision: number;
+  comparableCells: number;
+  valueMismatches: number;
+  manualOnlyCells: number;
+  generatedOnlyCells: number;
+  topDiffs: PdtCellDiff[];
 }
 
 const args = parseArgs(process.argv.slice(2));
@@ -116,9 +124,9 @@ console.log(`Manual catalogs: ${report.summary.totalManualCatalogs} | Generated 
 console.log(`Report: ${reportPath}`);
 for (const item of reports) {
   console.log(
-    `${item.passed ? "PASS" : "FAIL"} ${item.vendor} ${path.basename(item.manualFile)} catalogs ${item.generatedCatalogs}/${item.manualCatalogs} gaps ${item.sheetGaps
-      .map((gap) => `${gap.sheet}:${gap.generatedCells}/${gap.manualCells}`)
-      .join(", ")}`
+    `${item.passed ? "PASS" : "FAIL"} ${item.vendor} ${path.basename(item.manualFile)} catalogs ${item.generatedCatalogs}/${item.manualCatalogs}` +
+      ` precision ${(item.valuePrecision * 100).toFixed(0)}% (mismatch ${item.valueMismatches}/${item.comparableCells}, missed ${item.manualOnlyCells}, extra ${item.generatedOnlyCells})` +
+      ` gaps ${item.sheetGaps.map((gap) => `${gap.sheet}:${gap.generatedCells}/${gap.manualCells}`).join(", ")}`
   );
 }
 
@@ -165,6 +173,9 @@ async function runCase(manualCase: ManualCase, reuseRunId?: string): Promise<Cas
     .map(([sheet, manualCells]) => ({ sheet, manualCells, generatedCells: generatedSheets[sheet] ?? 0 }))
     .filter((gap) => gap.generatedCells < gap.manualCells);
 
+  // Value-level precision: of cells both the human gold and our output filled, do they agree?
+  const comparison = comparePdtValues(await collectValueCells(manualCase.file), await collectValueCells(generatedFile));
+
   return {
     vendor: manualCase.vendor,
     manualFile: manualCase.file,
@@ -177,8 +188,40 @@ async function runCase(manualCase: ManualCase, reuseRunId?: string): Promise<Cas
     failedCatalogs,
     manualSheets,
     generatedSheets,
-    sheetGaps
+    sheetGaps,
+    valuePrecision: comparison.precision,
+    comparableCells: comparison.comparable,
+    valueMismatches: comparison.mismatch,
+    manualOnlyCells: comparison.manualOnly,
+    generatedOnlyCells: comparison.generatedOnly,
+    topDiffs: comparison.diffs.slice(0, 20)
   };
+}
+
+async function collectValueCells(file: string): Promise<PdtValueCell[]> {
+  const workbook = new ExcelJS.Workbook();
+  await workbook.xlsx.readFile(file);
+  const cells: PdtValueCell[] = [];
+  for (const ws of workbook.worksheets) {
+    if (ws.name === "Help") continue;
+    const descriptor = describeSheet(ws);
+    if (!descriptor) continue;
+    const articleColumn = descriptor.columns.find((column) =>
+      [column.code, column.propName].some((value) => value.trim().toUpperCase() === "AAO676")
+    )?.col;
+    if (!articleColumn) continue;
+    for (let row = descriptor.firstBodyRow; row <= ws.rowCount; row += 1) {
+      const article = normalizeCatalogNumber(cellText(ws.getCell(row, articleColumn).value));
+      if (!article || !isRealCatalogNumber(article)) continue;
+      for (const column of descriptor.columns) {
+        if (column.col === articleColumn) continue;
+        const value = cellText(ws.getCell(row, column.col).value);
+        if (!value) continue;
+        cells.push({ article, sheet: ws.name, column: column.code || column.propName, value });
+      }
+    }
+  }
+  return cells;
 }
 
 async function discoverManualCases(): Promise<ManualCase[]> {
