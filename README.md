@@ -16,8 +16,16 @@ Taj launcher prvo napravi `git pull`, zatim sam instalira ili osvjezi npm pakete
 Prvi put im posalji ovu jednu komandu. Otvore PowerShell i zalijepe:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -NoProfile -Command "irm https://raw.githubusercontent.com/Dorijangecan/product_scraper/main/Install-ProductScraper.ps1 | iex"
+irm https://raw.githubusercontent.com/Dorijangecan/product_scraper/main/Install-ProductScraper.ps1 | iex
 ```
+
+Ako PowerShell blokira skripte, u istom prozoru prvo pokrenu:
+
+```powershell
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+```
+
+Pa onda ponove `irm ... | iex` komandu. Duzu `powershell -ExecutionPolicy Bypass -NoProfile -Command "..."` varijantu koristi samo iz `cmd.exe` ili Windows Run prozora.
 
 Ta komanda pokusa instalirati Git preko `winget` ako ga nema, skine projekt na Desktop u mapu `product_scraper`, napravi desktop shortcut, skine lokalni Node.js 22 runtime ako sistemski Node nije kompatibilan ili ga nema, instalira npm pakete, instalira Playwright Chromium pri prvom pokretanju ako fali, napravi frontend build ako treba i pokrene aplikaciju.
 

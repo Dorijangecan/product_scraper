@@ -8,7 +8,7 @@ Ovo je preporuceni nacin za Windows racunalo na kojem kolega treba samo pokretat
 2. Zalijepi ovu komandu:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -NoProfile -Command "irm https://raw.githubusercontent.com/Dorijangecan/product_scraper/main/Install-ProductScraper.ps1 | iex"
+irm https://raw.githubusercontent.com/Dorijangecan/product_scraper/main/Install-ProductScraper.ps1 | iex
 ```
 
 Installer ce:
@@ -26,6 +26,24 @@ Installer ce:
 Prvi run moze trajati nekoliko minuta jer tada skida Node runtime, Node pakete, Electron i Playwright Chromium.
 
 Ako Windows otvori download stranicu za Git, instaliraj sto trazi, zatvori PowerShell i ponovi istu komandu.
+
+Ako PowerShell blokira skripte, prvo pokreni:
+
+```powershell
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+```
+
+Pa onda ponovno:
+
+```powershell
+irm https://raw.githubusercontent.com/Dorijangecan/product_scraper/main/Install-ProductScraper.ps1 | iex
+```
+
+Ako komandu pokreces iz `cmd.exe` ili Windows Run prozora, koristi duzu varijantu:
+
+```powershell
+powershell -ExecutionPolicy Bypass -NoProfile -Command "irm https://raw.githubusercontent.com/Dorijangecan/product_scraper/main/Install-ProductScraper.ps1 | iex"
+```
 
 ## Svako sljedece pokretanje
 
