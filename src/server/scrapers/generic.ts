@@ -453,7 +453,11 @@ function extractImageDocuments(
   for (const product of jsonLdProducts) {
     for (const imageUrl of imageUrlsFromStructuredValue(product.image)) {
       const absolute = toAbsoluteUrl(imageUrl, sourceUrl);
-      if (absolute && !matchesAnyPattern(absolute, extractionPolicy?.ignoredImageUrlPatterns)) {
+      if (
+        absolute &&
+        !matchesAnyPattern(absolute, extractionPolicy?.ignoredImageUrlPatterns) &&
+        !isLikelySchematicImage(absolute.toLowerCase())
+      ) {
         structuredDocuments.push({ type: "image", label: "Product image", url: absolute, sourceUrl });
       }
     }
@@ -465,7 +469,12 @@ function extractImageDocuments(
     if (!name || !content || !/image/i.test(name)) return;
     if (/image:(?:alt|width|height|type)$/i.test(name)) return;
     const absolute = toAbsoluteUrl(content, sourceUrl);
-    if (absolute && isLikelyImageUrl(absolute) && !matchesAnyPattern(absolute, extractionPolicy?.ignoredImageUrlPatterns)) {
+    if (
+      absolute &&
+      isLikelyImageUrl(absolute) &&
+      !matchesAnyPattern(absolute, extractionPolicy?.ignoredImageUrlPatterns) &&
+      !isLikelySchematicImage(`${name} ${absolute}`.toLowerCase())
+    ) {
       metaDocuments.push({ type: "image", label: cleanText(name) || "Product image", url: absolute, sourceUrl });
     }
   });
@@ -543,9 +552,22 @@ function toAbsoluteUrl(value: string, baseUrl: string): string | undefined {
   }
 }
 
+// Schematics, wiring/connection diagrams, dimensional drawings and CAD previews are NOT the
+// product photo the user wants. Reject them by filename/alt/path markers. Deliberately narrow:
+// product TYPE words that merely sound technical ("circuit breaker", "wiring duct") must NOT match,
+// so we only key off unambiguous drawing/diagram/CAD tokens.
+const SCHEMATIC_IMAGE_RE =
+  /\b(?:schematic|schaltbild|diagram|diagramm|dimensional|ma(?:ss|ß)zeichnung|drawing|zeichnung|blueprint|exploded|cross[-\s]?section|line\s*art|cad)\b/i;
+const SCHEMATIC_FILE_RE = /\.(?:dwg|dxf|step|stp)(?:[?#]|$)/i;
+
+export function isLikelySchematicImage(combined: string): boolean {
+  return SCHEMATIC_IMAGE_RE.test(combined) || SCHEMATIC_FILE_RE.test(combined);
+}
+
 function looksLikeProductImage(url: string, context: string, compactPart: string): boolean {
   const combined = `${url} ${context}`.toLowerCase();
   if (/(logo|favicon|sprite|spinner|loader|social|flag|avatar|placeholder|spacer|transparent|bit\.gif|mobile[_-]?menu|illustration[_-]?footer|footer|faq|icon)/i.test(combined)) return false;
+  if (isLikelySchematicImage(combined)) return false;
   const compactCombined = compactKey(combined);
   if (compactPart && compactCombined.includes(compactPart)) return true;
   if (/product[_-]?and[_-]?sku|product[-_/\s]?(?:gallery|image|hero)|\b(?:gallery|zoom|primary|pim)\b/i.test(combined)) return true;

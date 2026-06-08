@@ -2079,6 +2079,30 @@ describe("manufacturer parsers", () => {
     ]);
   });
 
+  it("keeps the real product photo and rejects schematics, dimension drawings and CAD previews", () => {
+    const html = `
+      <html><head>
+        <title>ABC-123 - Eaton</title>
+      </head><body>
+        <h1>ABC-123 circuit breaker</h1>
+        <img class="product-gallery-image" src="/media/ABC-123-side.png" alt="ABC-123 circuit breaker side view" />
+        <img src="/media/ABC-123-wiring-diagram.png" alt="Wiring diagram" />
+        <img src="/media/ABC-123-dim.png" alt="Dimension drawing" />
+        <img src="/cad/ABC-123-preview.png" alt="CAD model" />
+      </body></html>
+    `;
+    const result = parseGenericProductPage(
+      "eaton",
+      "ABC-123",
+      fetched(html, "https://www.eaton.com/us/en-us/skuPage.ABC-123.html"),
+      "official-fallback",
+      "Eaton SKU page"
+    );
+    const imageUrls = result.documents.filter((doc) => doc.type === "image").map((doc) => doc.url);
+    expect(imageUrls).toContain("https://www.eaton.com/media/ABC-123-side.png");
+    expect(imageUrls.some((url) => /diagram|dim\.png|\/cad\//i.test(url))).toBe(false);
+  });
+
   it("parses Phoenix Contact reader inline technical data as source-backed specs", () => {
     const markdown = `
       # MKDS 1,5/ 2-5,08 - PCB terminal block - 1715721 | Phoenix Contact
