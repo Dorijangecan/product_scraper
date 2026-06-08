@@ -19,9 +19,14 @@ export type QuantityKind =
   | "voltage"
   | "current"
   | "power"
+  | "apparentPower"
+  | "reactivePower"
+  | "charge"
+  | "energy"
   | "temperature"
   | "mass"
   | "length"
+  | "area"
   | "torque"
   | "frequency"
   | "pressure"
@@ -107,16 +112,30 @@ const UNIT_TABLE: Record<string, UnitInfo> = {
   "ω": { unit: "Ω", kind: "resistance" },
   ohm: { unit: "Ω", kind: "resistance" },
   "kω": { unit: "kΩ", kind: "resistance" },
-  "mω": { unit: "MΩ", kind: "resistance" }
+  "mω": { unit: "MΩ", kind: "resistance" },
+  va: { unit: "VA", kind: "apparentPower" },
+  kva: { unit: "kVA", kind: "apparentPower" },
+  var: { unit: "var", kind: "reactivePower" },
+  kvar: { unit: "kvar", kind: "reactivePower" },
+  ah: { unit: "Ah", kind: "charge" },
+  mah: { unit: "mAh", kind: "charge" },
+  wh: { unit: "Wh", kind: "energy" },
+  kwh: { unit: "kWh", kind: "energy" },
+  "mm²": { unit: "mm²", kind: "area" },
+  mm2: { unit: "mm²", kind: "area" },
+  "cm²": { unit: "cm²", kind: "area" },
+  cm2: { unit: "cm²", kind: "area" }
 };
 
 // Order matters: most specific / longest first so e.g. "kg" wins over "g".
+// Longest / most-specific tokens first within each overlap group, so e.g. "kVA" wins over "kV",
+// "mAh" over "mA", "kWh" over "kW", and "mm²" over "mm".
 const UNIT_PATTERN =
-  "VAC|VDC|kV|mV|V|kA|mA|A|kW|mW|W|Nm|°\\s*C|degC|kHz|MHz|Hz|mbar|kPa|MPa|Pa|bar|psi|kg|mg|g|lb|oz|mm|cm|MΩ|kΩ|Ω|ohm|amperes?|amps?|volts?|watts?";
+  "VAC|VDC|kVA|VA|kvar|var|kV|mV|V|mAh|Ah|kA|mA|A|kWh|Wh|kW|mW|W|Nm|°\\s*C|degC|kHz|MHz|Hz|mbar|kPa|MPa|Pa|bar|psi|kg|mg|g|lb|oz|mm²|mm2|cm²|cm2|mm|cm|MΩ|kΩ|Ω|ohm|amperes?|amps?|volts?|watts?";
 
 const RANGE_SEP = "\\.{2,3}|…|\\bto\\b|\\bbis\\b|\\bdo\\b|~|/|-";
 
-const QUALIFIER_TOKEN = "≤|<=|≥|>=|max\\.?|min\\.?|maximum|minimum|up\\s*to|nominal|rated";
+const QUALIFIER_TOKEN = "≤|<=|<|≥|>=|>|max\\.?|min\\.?|maximum|minimum|up\\s*to|nominal|rated";
 
 const QUANTITY_RE = new RegExp(
   `(${QUALIFIER_TOKEN})?\\s*` +
@@ -204,8 +223,8 @@ function detectTolerance(window: string): QuantityTolerance | undefined {
 function qualifierFromToken(token: string | undefined): "min" | "max" | undefined {
   if (!token) return undefined;
   const normalized = token.toLowerCase().replace(/\s+/g, " ").trim();
-  if (/^(≤|<=|max\.?|maximum|up to)$/.test(normalized)) return "max";
-  if (/^(≥|>=|min\.?|minimum)$/.test(normalized)) return "min";
+  if (/^(≤|<=|<|max\.?|maximum|up to)$/.test(normalized)) return "max";
+  if (/^(≥|>=|>|min\.?|minimum)$/.test(normalized)) return "min";
   return undefined;
 }
 
@@ -370,7 +389,12 @@ export const SANITY_BOUNDS: Partial<Record<QuantityKind, { min: number; max: num
   power: { min: 0, max: 100_000_000 },
   mass: { min: 0, max: 200_000 },
   frequency: { min: 0, max: 5_000_000 },
-  pressure: { min: 0, max: 5_000_000 }
+  pressure: { min: 0, max: 5_000_000 },
+  apparentPower: { min: 0, max: 100_000_000 },
+  reactivePower: { min: 0, max: 100_000_000 },
+  charge: { min: 0, max: 1_000_000 },
+  energy: { min: 0, max: 1_000_000_000 },
+  area: { min: 0, max: 1_000_000 }
 };
 
 function quantityNumbers(quantity: ParsedQuantity): number[] {

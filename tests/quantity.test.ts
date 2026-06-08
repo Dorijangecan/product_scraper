@@ -144,3 +144,24 @@ describe("quantity grammar — sanity bounds", () => {
     expect(isQuantityPlausible(temp)).toBe(true);
   });
 });
+
+describe("quantity grammar — extended units & qualifiers", () => {
+  it("parses apparent/reactive power, charge, energy and area units", () => {
+    expect(parseQuantities("2.5 kVA")[0]).toMatchObject({ kind: "apparentPower", unit: "kVA", value: 2.5 });
+    expect(parseQuantities("10 kvar")[0]).toMatchObject({ kind: "reactivePower", unit: "kvar", value: 10 });
+    expect(parseQuantities("2.2 Ah")[0]).toMatchObject({ kind: "charge", unit: "Ah", value: 2.2 });
+    expect(parseQuantities("1.5 kWh")[0]).toMatchObject({ kind: "energy", unit: "kWh", value: 1.5 });
+    expect(parseQuantities("2.5 mm²")[0]).toMatchObject({ kind: "area", unit: "mm²", value: 2.5 });
+  });
+
+  it("understands < and > as max / min", () => {
+    expect(parseQuantities("< 16 A", { kind: "current" })[0]).toMatchObject({ max: 16, qualifier: "max" });
+    expect(parseQuantities("> 12 V", { kind: "voltage" })[0]).toMatchObject({ min: 12, qualifier: "min" });
+  });
+
+  it("still parses the base units after the additions", () => {
+    expect(parseQuantities("18.5 kW")[0]).toMatchObject({ kind: "power", unit: "kW", value: 18.5 });
+    expect(parseQuantities("16 A", { kind: "current" })[0]).toMatchObject({ kind: "current", value: 16 });
+    expect(parseQuantities("100 mm", { kind: "length" })[0]).toMatchObject({ kind: "length", unit: "mm", value: 100 });
+  });
+});
