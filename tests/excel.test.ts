@@ -152,6 +152,7 @@ describe("excel export", () => {
     expect(headers).toContain("Thread Size");
     expect(headers).toContain("Final Completeness Check");
     expect(headers).toContain("Missing Required Fields");
+    expect(headers).toContain("Unmapped Spec Labels");
     expect(workbook.getWorksheet("Run Summary")).toBeTruthy();
     expect(workbook.getWorksheet("Clean Export")).toBeTruthy();
     expect(workbook.getWorksheet("Import Ready")).toBeTruthy();

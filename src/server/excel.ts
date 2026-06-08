@@ -213,6 +213,7 @@ export async function exportRunWorkbook(input: {
     { header: "Fallback Stages", key: "fallbackStages", width: 32 },
     { header: "Final Completeness Check", key: "finalCompletenessCheck", width: 56 },
     { header: "Missing Required Fields", key: "missingRequiredFields", width: 42 },
+    { header: "Unmapped Spec Labels", key: "unmappedSpecLabels", width: 42 },
     { header: "Error", key: "error", width: 40 }
   ];
 
@@ -1972,6 +1973,7 @@ function productRow(manufacturer: ManufacturerConfig, item: RunItemRecord, resul
     fallbackStages: result?.diagnostics?.fallbackStages?.join("; "),
     finalCompletenessCheck: finalCompletenessCheck(result),
     missingRequiredFields: missingRequiredFields(row),
+    unmappedSpecLabels: result?.diagnostics?.unmappedSpecLabels?.join("; "),
     error: result?.error ?? item.error
   };
 }
