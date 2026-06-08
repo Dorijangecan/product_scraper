@@ -883,32 +883,78 @@ function chunk<T>(items: T[], size: number): T[][] {
   return batches;
 }
 
-function parseEatonCbeCatalogRecords(text: string): Map<string, EatonCbeCatalogRecord> {
+// The E6 catalog is a clean, uniform TAB-delimited table: every product row is
+//   [ratings...]  <part number>  <CBE article number>  <units per package>
+// The earlier two regexes only matched the EIS (20) and ED6 (84) families and silently dropped
+// the other ~1270 rows (ELD6 780, E6 468, Z accessories 22, ...). This generic parser keys off
+// the CBE cell, takes the part number from the cell before it, and derives the structured fields
+// from the (authoritative) part number per family \u2014 covering every CBE article in the catalog.
+export function parseEatonCbeCatalogRecords(text: string): Map<string, EatonCbeCatalogRecord> {
   const records = new Map<string, EatonCbeCatalogRecord>();
   const normalized = text.replace(/\u00a0/g, " ");
-  for (const match of normalized.matchAll(/(\d+)\s+(\d+)\s+(EIS-\d+\/\d+)\s+(CBE\d+)\s+(\d+)/gi)) {
-    records.set(match[4].toUpperCase(), {
-      articleNumber: match[4],
-      partNumber: match[3],
-      productName: "EIS Disconnecting Switch",
-      ratedCurrent: match[1],
-      poles: match[2],
-      unitPerPackage: match[5]
-    });
-  }
-  for (const match of normalized.matchAll(/(\d+)\/(0\.\d+)\s+(ED6-\d+\/1N\/([CD])\/\d+(?:-[A-Z])?)\s+(CBE\d+)\s+(\d+)/gi)) {
-    records.set(match[5].toUpperCase(), {
-      articleNumber: match[5],
-      partNumber: match[3],
-      productName: "ED6 Residual Current Circuit Breaker with Overload Protection",
-      ratedCurrent: match[1],
-      poles: "2",
-      residualCurrent: match[2],
-      releaseCharacteristic: match[4],
-      unitPerPackage: match[6]
-    });
+  for (const rawLine of normalized.split(/\r?\n/)) {
+    const cells = rawLine.split(/\t+|\s{2,}/).map((cell) => cell.trim()).filter(Boolean);
+    const cbeIndex = cells.findIndex((cell) => /^CBE\d+$/i.test(cell));
+    if (cbeIndex < 1) continue;
+    const article = cells[cbeIndex].toUpperCase();
+    if (records.has(article)) continue;
+    const trailing = cells[cbeIndex + 1];
+    const record = deriveEatonCbeRecord(
+      article,
+      cells[cbeIndex - 1],
+      cells.slice(0, cbeIndex - 1),
+      trailing && /^\d+$/.test(trailing) ? trailing : undefined
+    );
+    if (record) records.set(article, record);
   }
   return records;
+}
+
+export function deriveEatonCbeRecord(
+  article: string,
+  partNumber: string,
+  ratingCells: string[],
+  unitPerPackage: string | undefined
+): EatonCbeCatalogRecord | undefined {
+  if (!partNumber || /^CBE\d+$/i.test(partNumber)) return undefined;
+  const base = { articleNumber: article, partNumber, unitPerPackage };
+
+  let match: RegExpMatchArray | null;
+  if ((match = partNumber.match(/^EIS-(\d+)\/(\d+)$/i))) {
+    return { ...base, productName: "EIS Disconnecting Switch", ratedCurrent: match[1], poles: match[2] };
+  }
+  if ((match = partNumber.match(/^E6-(\d+)\/(\d+)\/([A-Z])$/i))) {
+    return {
+      ...base,
+      productName: "E6 Miniature Circuit Breaker",
+      ratedCurrent: match[1],
+      poles: match[2],
+      releaseCharacteristic: match[3].toUpperCase()
+    };
+  }
+  if ((match = partNumber.match(/^(E[L]?D6)-(\d+)\/(\d+)N\/([A-Z])\/(\d+)/i))) {
+    return {
+      ...base,
+      productName: `${match[1].toUpperCase()} Residual Current Circuit Breaker with Overload Protection`,
+      ratedCurrent: match[2],
+      poles: String(Number(match[3]) + 1),
+      releaseCharacteristic: match[4].toUpperCase(),
+      residualCurrent: eatonResidualCurrent(ratingCells[0], match[5])
+    };
+  }
+  if (/^Z-/i.test(partNumber)) {
+    return { ...base, productName: "E6 series accessory" };
+  }
+  // Unknown family: still capture article + type code (+ a leading numeric current), never guess.
+  return { ...base, productName: "Eaton E6 series device", ratedCurrent: ratingCells.find((cell) => /^\d+(?:\.\d+)?$/.test(cell)) };
+}
+
+function eatonResidualCurrent(ratingCell: string | undefined, suffix: string): string | undefined {
+  // Prefer the explicit "1/0.03" rating cell; fall back to the part-number suffix (003 -> 0.03 A).
+  const fromCell = ratingCell?.match(/\/\s*(\d*\.\d+)/)?.[1];
+  if (fromCell) return fromCell;
+  const value = Number(suffix);
+  return Number.isFinite(value) && value > 0 ? String(value / 100) : undefined;
 }
 
 function withEatonDiagnostics(
