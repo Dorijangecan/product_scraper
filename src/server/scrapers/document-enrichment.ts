@@ -4,7 +4,7 @@ import { PDFParse } from "pdf-parse";
 import type { AttributeRecord, DocumentRecord, ProductResult, SourceRecord } from "../../shared/types.js";
 import { cleanText, normalizeFields, splitNameValue } from "./normalizer.js";
 import { catalogTextMatches } from "./catalog-number.js";
-import { buildTightContextForCatalog } from "./tight-context.js";
+import { buildTightContextForCatalog, buildVariantColumnContext } from "./tight-context.js";
 
 const MAX_PDF_PAGES = 30;
 const MAX_PDF_TEXT_CHARS = 250_000;
@@ -103,7 +103,12 @@ export async function enrichResultFromDownloadedDocuments(result: ProductResult)
       // narrowing, "Power input ... 7.991 8.5 6.2" on a single line meant every catalog
       // in the run inherited the leftmost value (7.991). Tight context cuts at sibling
       // products so each catalog only sees its own column / row.
-      const tightText = buildTightContextForCatalog(text, result.catalogNumber, { maxChars: MAX_PDF_TEXT_CHARS }) ?? text;
+      // Prefer column-accurate extraction for multi-variant comparison tables; fall back to
+      // line-window scoping, then the whole text, so non-tabular PDFs behave exactly as before.
+      const tightText =
+        buildVariantColumnContext(text, result.catalogNumber, { maxChars: MAX_PDF_TEXT_CHARS }) ??
+        buildTightContextForCatalog(text, result.catalogNumber, { maxChars: MAX_PDF_TEXT_CHARS }) ??
+        text;
       const attributes = extractDocumentTextAttributes({
         catalogNumber: result.catalogNumber,
         document: doc,

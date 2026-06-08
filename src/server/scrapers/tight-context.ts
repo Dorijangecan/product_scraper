@@ -77,3 +77,81 @@ export function buildTightContextForCatalog(
 function compactKey(value: string): string {
   return value.toLowerCase().replace(/[^a-z0-9]+/g, "");
 }
+
+function splitTableCells(line: string): string[] {
+  return line
+    .split(/\t+|\s{2,}/)
+    .map((cell) => cell.trim())
+    .filter(Boolean);
+}
+
+function isVariantToken(cell: string): boolean {
+  // A catalog/type-code-shaped token (e.g. "EIS-40/1", "CBE04417") — but not a bare number or unit.
+  return new RegExp(`^(?:${CATALOG_LIKE_TOKEN_PATTERN.source})$`, "i").test(cell);
+}
+
+function variantCellPositions(cells: string[]): number[] {
+  return cells.map((cell, index) => (isVariantToken(cell) ? index : -1)).filter((index) => index >= 0);
+}
+
+/**
+ * Select the correct COLUMN for one catalog number from a multi-variant comparison table
+ * (workstream C). Many datasheets list several type codes across a header row and one value
+ * per column on each spec row ("Weight  0.08  0.16  0.24"). Plain per-line extraction takes the
+ * leftmost value for every variant; this finds the header column whose token matches our catalog
+ * and rewrites each aligned spec row to "Label: <our column's value>".
+ *
+ * Intentionally conservative: only fires when a header row lists >=2 variant tokens including
+ * ours, and only rewrites rows whose cell count matches the header. Returns undefined otherwise,
+ * so the caller falls back to line-window scoping and nothing changes for non-tabular PDFs.
+ */
+export function buildVariantColumnContext(
+  text: string,
+  catalogNumber: string,
+  options: { maxChars?: number } = {}
+): string | undefined {
+  const compactCatalog = compactKey(catalogNumber);
+  if (!compactCatalog) return undefined;
+  const lines = text.split(/\r?\n/);
+
+  let headerIndex = -1;
+  let headerCellCount = 0;
+  let firstVariant = 0;
+  let ourOrdinal = -1;
+  for (let index = 0; index < lines.length; index += 1) {
+    const cells = splitTableCells(lines[index]);
+    if (cells.length < 3) continue;
+    const positions = variantCellPositions(cells);
+    if (positions.length < 2) continue;
+    const matchedPosition = positions.find((position) => {
+      const token = compactKey(cells[position]);
+      return token.length >= 3 && (token === compactCatalog || token.includes(compactCatalog) || compactCatalog.includes(token));
+    });
+    if (matchedPosition === undefined) continue;
+    headerIndex = index;
+    headerCellCount = cells.length;
+    firstVariant = positions[0];
+    ourOrdinal = positions.indexOf(matchedPosition);
+    break;
+  }
+  if (headerIndex < 0) return undefined;
+
+  const out: string[] = [catalogNumber];
+  for (let index = headerIndex + 1; index < lines.length; index += 1) {
+    const cells = splitTableCells(lines[index]);
+    if (cells.length === 0) continue;
+    if (cells.length !== headerCellCount) {
+      // A second comparison table (>=2 variant tokens) ends this one; anything else is just skipped.
+      if (variantCellPositions(cells).length >= 2) break;
+      continue;
+    }
+    const label = cells.slice(0, firstVariant).join(" ").trim();
+    const value = cells[firstVariant + ourOrdinal];
+    if (!label || value === undefined || value === "") continue;
+    out.push(`${label}: ${value}`);
+  }
+
+  if (out.length <= 1) return undefined;
+  const joined = out.join("\n");
+  return options.maxChars ? joined.slice(0, options.maxChars) : joined;
+}
