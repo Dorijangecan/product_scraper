@@ -32,6 +32,23 @@ describe("property ontology — general multilingual understanding", () => {
     expect(temp.quantities[0]).toMatchObject({ kind: "temperature", min: -25, max: 60 });
   });
 
+  it("understands French and Italian labels", () => {
+    expect(matchProperty("Courant assigné")?.key).toBe("ratedCurrent");
+    expect(matchProperty("Tension nominale")?.key).toBe("ratedVoltage");
+    expect(matchProperty("Puissance")?.key).toBe("power");
+    expect(matchProperty("Matériau")?.key).toBe("material");
+    expect(matchProperty("Couleur")?.key).toBe("color");
+  });
+
+  it("knows the newly taught canonical properties", () => {
+    expect(matchProperty("Rated insulation voltage")?.key).toBe("insulationVoltage");
+    expect(matchProperty("Rated impulse withstand voltage")?.key).toBe("impulseVoltage");
+    expect(matchProperty("Utilization category")?.key).toBe("utilizationCategory");
+    expect(matchProperty("Pollution degree")?.key).toBe("pollutionDegree");
+    expect(matchProperty("Conductor cross-section")?.key).toBe("conductorCrossSection");
+    expect(matchProperty("Mechanical durability")?.key).toBe("mechanicalLife");
+  });
+
   it("flags labels it does not understand (knowledge-base gaps), never guesses them", () => {
     const gaps = findUnmappedSpecLabels([
       { name: "Nennstrom", value: "16 A" }, // mapped → not a gap

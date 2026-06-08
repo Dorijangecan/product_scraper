@@ -46,7 +46,9 @@ export const PROPERTY_ONTOLOGY: CanonicalProperty[] = [
       /nennspannung/i,
       /bemessungsspannung/i,
       /betriebsspannung/i,
-      /\bspannung\b/i
+      /\bspannung\b/i,
+      /\btension\b/i,
+      /\btensione\b/i
     ]
   },
   {
@@ -60,7 +62,9 @@ export const PROPERTY_ONTOLOGY: CanonicalProperty[] = [
       /\bcurrent\b/i,
       /nennstrom/i,
       /bemessungsstrom/i,
-      /\bstrom\b/i
+      /\bstrom\b/i,
+      /\bcourant\b/i,
+      /\bcorrente\b/i
     ]
   },
   {
@@ -73,7 +77,7 @@ export const PROPERTY_ONTOLOGY: CanonicalProperty[] = [
     key: "power",
     label: "Power",
     unitKind: "power",
-    synonyms: [/\bpower\b/i, /output\s+power/i, /\bleistung\b/i, /\bwattage\b/i],
+    synonyms: [/\bpower\b/i, /output\s+power/i, /\bleistung\b/i, /\bwattage\b/i, /\bpuissance\b/i, /\bpotenza\b/i],
     exclude: [/power\s+loss/i, /verlustleistung/i, /power\s+supply/i]
   },
   {
@@ -110,7 +114,7 @@ export const PROPERTY_ONTOLOGY: CanonicalProperty[] = [
     key: "weight",
     label: "Weight",
     unitKind: "mass",
-    synonyms: [/\bweight\b/i, /\bmass\b/i, /\bgewicht\b/i, /\bmasse\b/i, /\bpeso\b/i, /te[zž]ina/i],
+    synonyms: [/\bweight\b/i, /\bmass\b/i, /\bgewicht\b/i, /\bmasse\b/i, /\bpeso\b/i, /\bpoids\b/i, /te[zž]ina/i],
     exclude: [/molecular|atomic/i]
   },
   {
@@ -148,14 +152,14 @@ export const PROPERTY_ONTOLOGY: CanonicalProperty[] = [
     key: "material",
     label: "Material",
     unitKind: undefined,
-    synonyms: [/\bmaterial\b/i, /\bwerkstoff\b/i, /materijal/i, /housing\s+material/i, /enclosure\s+material/i, /body\s+material/i],
+    synonyms: [/\bmaterial\b/i, /\bwerkstoff\b/i, /materijal/i, /mat[ée]riau/i, /materiale/i, /housing\s+material/i, /enclosure\s+material/i, /body\s+material/i],
     exclude: [/declaration|compliance|rohs|reach/i]
   },
   {
     key: "color",
     label: "Colour",
     unitKind: undefined,
-    synonyms: [/\bcolou?r\b/i, /\bfarbe\b/i, /\bboja\b/i],
+    synonyms: [/\bcolou?r\b/i, /\bfarbe\b/i, /\bboja\b/i, /\bcouleur\b/i, /\bcolore\b/i],
     exclude: [COLOUR_TEMP]
   },
   {
@@ -181,6 +185,43 @@ export const PROPERTY_ONTOLOGY: CanonicalProperty[] = [
     label: "Approvals / standards",
     unitKind: undefined,
     synonyms: [/\bapprovals?\b/i, /certificat/i, /\bconformity\b/i, /\bstandards?\b/i, /\bzulassung\b/i, /\bnormen?\b/i, /\bmarking\b/i]
+  },
+  {
+    key: "insulationVoltage",
+    label: "Rated insulation voltage",
+    unitKind: "voltage",
+    synonyms: [/insulation\s+voltage/i, /rated\s+insulation/i, /bemessungsisolationsspannung/i, /isolationsspannung/i, /tension\s+assign[ée]e\s+d['e]isolement/i]
+  },
+  {
+    key: "impulseVoltage",
+    label: "Rated impulse withstand voltage",
+    unitKind: "voltage",
+    synonyms: [/impulse\s+(?:withstand\s+)?voltage/i, /\buimp\b/i, /impuls(?:steh)?spannung/i, /bemessungssto[ßs]spannung/i]
+  },
+  {
+    key: "conductorCrossSection",
+    label: "Conductor cross-section",
+    synonyms: [/conductor\s+cross[-\s]?section/i, /cross[-\s]?section/i, /querschnitt/i, /\bsezione\b/i, /section\s+(?:du\s+)?conducteur/i]
+  },
+  {
+    key: "utilizationCategory",
+    label: "Utilization category",
+    synonyms: [/utili[sz]ation\s+categor/i, /gebrauchskategorie/i, /categoria\s+d'?\s*(?:impiego|utilizzo)/i]
+  },
+  {
+    key: "pollutionDegree",
+    label: "Pollution degree",
+    synonyms: [/pollution\s+degree/i, /degree\s+of\s+pollution/i, /verschmutzungsgrad/i]
+  },
+  {
+    key: "mechanicalLife",
+    label: "Mechanical life / operating cycles",
+    synonyms: [/mechanical\s+(?:life|durability|endurance)/i, /(?:operating|switching)\s+cycles/i, /schaltspiele/i, /mechanische\s+lebensdauer/i]
+  },
+  {
+    key: "mountingType",
+    label: "Mounting type",
+    synonyms: [/mounting\s+(?:type|method|position)/i, /din\s+rail\s+mounting/i, /montageart/i, /befestigungsart/i]
   }
 ];
 
