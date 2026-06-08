@@ -70,6 +70,16 @@ describe("normalizer", () => {
     expect(normalizeFields([{ name: "Couleur", value: "RAL 7035" }], []).color).toBe("RAL 7035");
   });
 
+  it("understands French/Italian materials via the expanded lexicon", () => {
+    expect(normalizeFields([{ name: "Matériau", value: "fonte" }], []).material).toBe("cast iron");
+    expect(normalizeFields([{ name: "Materiale", value: "ottone" }], []).material).toBe("brass");
+  });
+
+  it("understands French/Italian colours via the expanded lexicon", () => {
+    expect(normalizeFields([{ name: "Couleur", value: "gris" }], []).color).toBe("gray");
+    expect(normalizeFields([{ name: "Colore", value: "nero" }], []).color).toBe("black");
+  });
+
   it("rejects a physically impossible operating temperature range", () => {
     const normalized = normalizeFields([{ name: "Operating temperature", value: "-40 to 5000 °C" }], []);
     expect(normalized.operatingTemperatureMin).toBeUndefined();

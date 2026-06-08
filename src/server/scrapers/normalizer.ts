@@ -1197,15 +1197,16 @@ function deriveColorFromFinish(value: string | undefined): string | undefined {
 // German colour words (and a couple of neighbours) mapped to the canonical English name,
 // so colours buried in non-English finish/colour text are still understood.
 const FOREIGN_COLOR_SYNONYMS: Array<[RegExp, string]> = [
-  [/\bhell\s*grau\b|\blicht\s*grau\b/i, "light gray"],
-  [/\bdunkel\s*grau\b/i, "dark gray"],
-  [/\bgrau\b/i, "gray"],
-  [/\bschwarz\b/i, "black"],
-  [/\bwei(?:ß|ss)\b/i, "white"],
-  [/\bsilber\b/i, "silver"],
-  [/\brot\b/i, "red"],
-  [/\bblau\b/i, "blue"],
-  [/\bgelb\b/i, "yellow"]
+  [/\bhell\s*grau\b|\blicht\s*grau\b|\bgris\s+clair\b|\bgrigio\s+chiaro\b/i, "light gray"],
+  [/\bdunkel\s*grau\b|\bgris\s+fonc[ée]\b|\bgrigio\s+scuro\b/i, "dark gray"],
+  [/\bgrau\b|\bgris\b|\bgrigio\b/i, "gray"],
+  [/\bschwarz\b|\bnoir\b|\bnero\b/i, "black"],
+  [/\bwei(?:ß|ss)\b|\bblanc\b|\bbianco\b/i, "white"],
+  [/\bsilber\b|\bargent\b|\bargento\b/i, "silver"],
+  [/\brot\b|\brouge\b|\brosso\b/i, "red"],
+  [/\bblau\b|\bbleu\b|\bblu\b|\bazzurro\b/i, "blue"],
+  [/\bgr[üu]n\b|\bvert\b|\bverde\b/i, "green"],
+  [/\bgelb\b|\bjaune\b|\bgiallo\b/i, "yellow"]
 ];
 
 function foreignColorMatches(cleaned: string): string[] {
@@ -1407,14 +1408,16 @@ const FOREIGN_MATERIAL_SYNONYMS: Array<[RegExp, string]> = [
   [/\bedelstahl\b|\bnirosta\b|\bacciaio\s+inox\b|\bacier\s+inoxydable\b/i, "stainless steel"],
   [/\bstahlblech\b/i, "sheet steel"],
   [/\bverzinkter?\s+stahl\b|\bverzinktem\s+stahl\b|\bverzinkter?\s+stahlblech\b/i, "galvanized steel"],
+  [/\bgusseisen\b|\bgrauguss\b|\bfonte\b|\bghisa\b/i, "cast iron"],
   [/\bstahl\b|\bacciaio\b|\bacier\b/i, "steel"],
-  [/\baluminiumlegierung\b|\balluminio\b/i, "aluminum"],
-  [/\bpolycarbonat\b/i, "polycarbonate"],
-  [/\bpolyamid\b/i, "polyamide"],
-  [/\bkunststoff\b|\bthermoplast\b|\bplastik\b/i, "plastic"],
-  [/\bmessing\b|\blaiton\b/i, "brass"],
-  [/\bkupfer\b/i, "copper"],
-  [/\bzink\b/i, "zinc"]
+  [/\baluminiumlegierung\b|\baluminiumdruckguss\b|\balluminio\b/i, "aluminum"],
+  [/\bpolycarbonat\b|\bpolicarbonato\b/i, "polycarbonate"],
+  [/\bpolyamid\b|\bpoliammide\b/i, "polyamide"],
+  [/\bkunststoff\b|\bthermoplast\b|\bplastik\b|\bplastique\b|\bplastica\b/i, "plastic"],
+  [/\bmessing\b|\blaiton\b|\bottone\b/i, "brass"],
+  [/\bbronze\b|\bbronzo\b/i, "bronze"],
+  [/\bkupfer\b|\bcuivre\b|\brame\b/i, "copper"],
+  [/\bzink\b|\bzinco\b/i, "zinc"]
 ];
 
 function foreignMaterialSynonym(cleaned: string): string | undefined {
