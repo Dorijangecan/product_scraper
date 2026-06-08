@@ -165,3 +165,37 @@ describe("quantity grammar — extended units & qualifiers", () => {
     expect(parseQuantities("100 mm", { kind: "length" })[0]).toMatchObject({ kind: "length", unit: "mm", value: 100 });
   });
 });
+
+describe("quantity grammar — real-world disambiguation set", () => {
+  it("separates voltage + AC type + frequency on one line", () => {
+    const quantities = parseQuantities("230 V AC 50/60 Hz");
+    expect(quantities.find((q) => q.kind === "voltage")).toMatchObject({ value: 230, currentType: "AC" });
+    expect(quantities.find((q) => q.kind === "frequency")).toMatchObject({ values: [50, 60] });
+  });
+
+  it("reads a decimal-comma pressure range", () => {
+    expect(parseQuantities("0,5 ... 6 bar", { kind: "pressure" })[0]).toMatchObject({ kind: "pressure", min: 0.5, max: 6 });
+  });
+
+  it("reads a torque range and an AC/DC voltage type", () => {
+    expect(parseQuantities("Tightening torque 2.5...3 Nm", { kind: "torque" })[0]).toMatchObject({ min: 2.5, max: 3 });
+    expect(parseQuantities("24 V AC/DC", { kind: "voltage" })[0]).toMatchObject({ value: 24, currentType: "AC/DC" });
+  });
+
+  it("reads a max power qualifier", () => {
+    expect(parseQuantities("power consumption max. 2.5 W", { kind: "power" })[0]).toMatchObject({
+      kind: "power",
+      max: 2.5,
+      qualifier: "max"
+    });
+  });
+
+  it("never invents quantities from IP ratings or thread sizes", () => {
+    expect(parseQuantities("IP66 / IP67")).toHaveLength(0);
+    expect(parseQuantities("M12 x 1")).toHaveLength(0);
+  });
+
+  it("reads an operating temperature range with a trailing label", () => {
+    expect(parseTemperatureRange("-25 °C … +70 °C (operating)")).toEqual({ min: -25, max: 70 });
+  });
+});
