@@ -107,7 +107,6 @@ function New-ProductScraperShortcut {
 
 Refresh-CurrentPath
 Ensure-Tool "git" "Git.Git" "Git for Windows" "https://git-scm.com/download/win"
-Ensure-Tool "node" "OpenJS.NodeJS.LTS" "Node.js LTS" "https://nodejs.org/en/download"
 
 $InstallDir = [System.IO.Path]::GetFullPath($InstallDir)
 $parentDir = Split-Path -Parent $InstallDir
@@ -143,7 +142,7 @@ if (-not $SkipStart) {
     Write-Host "Pokrecem aplikaciju..."
     Push-Location $InstallDir
     try {
-        & ".\Start-ProductScraper.bat"
+        & ".\Update-and-Start-ProductScraper.bat"
     } finally {
         Pop-Location
     }

@@ -7,6 +7,12 @@ title Product Scraper
 :: moze prije pokretanja postaviti PDT_AI_CLEANUP=1.
 if not defined PDT_AI_CLEANUP set "PDT_AI_CLEANUP=0"
 
+set "PROJECT_NODE_DIR=%~dp0.runtime\node"
+if exist "%PROJECT_NODE_DIR%\node.exe" (
+    set "PATH=%PROJECT_NODE_DIR%;%PATH%"
+    goto :node_ok
+)
+
 :: Provjeri je li Node.js instaliran. NAJPRIJE pogledamo PATH (najlaksi slucaj).
 :: Ako PATH ne radi (npr. user instalirao Node ali nije se relogovao, ili je PATH
 :: nekako "ocistio"), rucno trazimo node.exe na uobicajenim mjestima i dodajemo
@@ -14,7 +20,7 @@ if not defined PDT_AI_CLEANUP set "PDT_AI_CLEANUP=0"
 :: na "Node nije instaliran" ako je Node fizicki tu.
 set "NODE_DIR="
 where node >nul 2>&1
-if not errorlevel 1 goto :node_ok
+if not errorlevel 1 goto :system_node_found
 
 :: NAPOMENA: ne koristimo FOR loop jer "%ProgramFiles(x86)%" sadrzi ")" sto bi
 :: pokvarilo zatvaranje petlje. Provjeravamo svaku lokaciju zasebno.
@@ -35,7 +41,7 @@ if defined NODE_DIR goto :node_found
 call :check_node_dir "C:\Program Files (x86)\nodejs"
 if defined NODE_DIR goto :node_found
 
-:: Posljednja sansa: NVM (nodejs verzionisanje za Windows) — uzmi najviju verziju
+:: Posljednja sansa: NVM (nodejs verzionisanje za Windows) - uzmi najnoviju verziju
 if defined NVM_SYMLINK call :check_node_dir "%NVM_SYMLINK%"
 if defined NODE_DIR goto :node_found
 if exist "%APPDATA%\nvm" (
@@ -47,25 +53,16 @@ if exist "%APPDATA%\nvm" (
     )
 )
 
-if not defined NODE_DIR (
-    echo.
-    echo  ============================================================
-    echo   NODE.JS NIJE INSTALIRAN!
-    echo  ============================================================
-    echo.
-    echo  Trebas instalirati Node.js da bi app radio.
-    echo  Otvaram download stranicu...
-    echo.
-    start https://nodejs.org/en/download
-    echo  Nakon instalacije Node.js, pokreni ovu datoteku ponovo.
-    echo.
-    pause
-    exit /b 1
-)
+if not defined NODE_DIR goto :install_project_node
 
 :node_found
 echo  Node nije bio u PATH-u, ali sam ga nasao u: !NODE_DIR!
 set "PATH=!NODE_DIR!;%PATH%"
+
+:system_node_found
+set "NODE_MAJOR="
+for /f %%V in ('node -p "process.versions.node.split(String.fromCharCode(46))[0]" 2^>nul') do set "NODE_MAJOR=%%V"
+if not "!NODE_MAJOR!"=="20" if not "!NODE_MAJOR!"=="22" goto :install_project_node
 
 :node_ok
 :: Provjeri da node stvarno radi
@@ -82,6 +79,37 @@ if errorlevel 1 (
     pause
     exit /b 1
 )
+
+goto :npm_install_check
+
+:install_project_node
+echo.
+echo  Instaliram lokalni Node.js 22 runtime za Product Scraper...
+echo.
+powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0scripts\Ensure-ProductScraperRuntime.ps1"
+if errorlevel 1 (
+    echo.
+    echo  ============================================================
+    echo   NODE.JS RUNTIME NIJE INSTALIRAN!
+    echo  ============================================================
+    echo.
+    echo  Automatsko skidanje Node.js runtimea nije uspjelo.
+    echo  Provjeri internet konekciju pa pokreni ovu datoteku ponovo.
+    echo.
+    pause
+    exit /b 1
+)
+if not exist "%PROJECT_NODE_DIR%\node.exe" (
+    echo.
+    echo  Node.js runtime nije pronadjen u: %PROJECT_NODE_DIR%
+    echo.
+    pause
+    exit /b 1
+)
+set "PATH=%PROJECT_NODE_DIR%;%PATH%"
+goto :node_ok
+
+:npm_install_check
 
 :: Instaliraj ili osvjezi node_modules ako ne postoje ili ako je package-lock.json noviji.
 set "NPM_STAMP=node_modules\.product-scraper-install-ok"

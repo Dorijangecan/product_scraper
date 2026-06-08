@@ -4,6 +4,8 @@ Local desktop tool for scraping public ABB, Balluff, and SCE product details fro
 
 ## Najlakse za kolege na Windowsu
 
+Kratke upute za slanje kolegi su u [`KOLEGA-INSTALL.md`](KOLEGA-INSTALL.md).
+
 Najbolji flow je:
 
 1. Prvi put pokrenu installer iz PowerShella.
@@ -17,7 +19,7 @@ Prvi put im posalji ovu jednu komandu. Otvore PowerShell i zalijepe:
 powershell -ExecutionPolicy Bypass -NoProfile -Command "irm https://raw.githubusercontent.com/Dorijangecan/product_scraper/main/Install-ProductScraper.ps1 | iex"
 ```
 
-Ta komanda pokusa instalirati Git i Node.js preko `winget` ako ih nema, skine projekt na Desktop u mapu `product_scraper`, napravi desktop shortcut, instalira npm pakete, instalira Playwright Chromium pri prvom pokretanju ako fali i pokrene aplikaciju.
+Ta komanda pokusa instalirati Git preko `winget` ako ga nema, skine projekt na Desktop u mapu `product_scraper`, napravi desktop shortcut, skine lokalni Node.js 22 runtime ako sistemski Node nije kompatibilan ili ga nema, instalira npm pakete, instalira Playwright Chromium pri prvom pokretanju ako fali, napravi frontend build ako treba i pokrene aplikaciju.
 
 Ne instalira Ollama/Qwen/AI model. AI cleanup je u launcherima iskljucen po defaultu, jer scraper normalno radi bez toga.
 
@@ -28,6 +30,14 @@ Update-and-Start-ProductScraper.bat
 ```
 
 To prvo napravi `git pull`, pa pokrene scraper.
+
+Ako je stari prvi run pao na `better-sqlite3` / `node-gyp` / `Python` zbog Node `24.x`, na tom racunalu obrisati `node_modules` i pokrenuti launcher opet:
+
+```bat
+cd "%USERPROFILE%\Desktop\product_scraper"
+rmdir /s /q node_modules
+Update-and-Start-ProductScraper.bat
+```
 
 Rucna git varijanta:
 
@@ -46,7 +56,7 @@ git pull
 Start-ProductScraper.bat
 ```
 
-Ako kolege ne zelis muciti s Git/Node instalacijama, napravi portable zip i stavi ga na GitHub Releases:
+Ako kolege ne zelis muciti s Git instalacijom, napravi portable zip i stavi ga na GitHub Releases:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\create-portable-package.ps1
