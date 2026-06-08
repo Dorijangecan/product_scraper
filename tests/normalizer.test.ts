@@ -62,6 +62,14 @@ describe("normalizer", () => {
     expect(normalizeFields([{ name: "Finish", value: "powder coated, RAL 7035" }], []).color).toBe("RAL 7035");
   });
 
+  it("gap-fills material from a French label the field patterns miss (via ontology)", () => {
+    expect(normalizeFields([{ name: "Matériau", value: "acier inoxydable" }], []).material).toBe("stainless steel");
+  });
+
+  it("gap-fills colour (RAL) from a French label (via ontology)", () => {
+    expect(normalizeFields([{ name: "Couleur", value: "RAL 7035" }], []).color).toBe("RAL 7035");
+  });
+
   it("rejects a physically impossible operating temperature range", () => {
     const normalized = normalizeFields([{ name: "Operating temperature", value: "-40 to 5000 °C" }], []);
     expect(normalized.operatingTemperatureMin).toBeUndefined();

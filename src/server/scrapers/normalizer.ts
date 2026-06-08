@@ -1,5 +1,6 @@
 import type { AttributeRecord, DocumentRecord, NormalizedProductFields, ProductResult } from "../../shared/types.js";
 import { isPlausibleTemperatureCelsius, parseTemperatureRange } from "./quantity.js";
+import { matchProperty } from "./ontology.js";
 
 export function cleanText(value: string | undefined | null): string {
   return decodeHtmlEntities(String(value ?? ""))
@@ -197,12 +198,26 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
     bestNormalizedAttributeValue(attributes, FIELD_LABEL_PATTERNS.dimensions, normalizeDimensionValue, "dimensions") ??
     deriveDimensionsFromText(attributes) ??
     cableLengthDimension;
-  const material = findMaterialAttr(attributes) ?? deriveMaterialFromAttributes(attributes);
-  const finish = normalizeFinishValue(bestAttributeValue(attributes, FIELD_LABEL_PATTERNS.finish)) ?? deriveFinishFromAttributes(attributes) ?? deriveFinishFromMaterial(material);
+  const material =
+    findMaterialAttr(attributes) ??
+    deriveMaterialFromAttributes(attributes) ??
+    ontologyFieldValue(attributes, "material", materialValueFromText);
+  const finish =
+    normalizeFinishValue(bestAttributeValue(attributes, FIELD_LABEL_PATTERNS.finish)) ??
+    deriveFinishFromAttributes(attributes) ??
+    deriveFinishFromMaterial(material) ??
+    ontologyFieldValue(attributes, "finish", (value) => finishPhraseFromText(value) ?? normalizeFinishValue(value));
   const wallThickness = bestWallThicknessAttributeValue(attributes) ?? deriveWallThicknessFromAttributes(attributes);
-  const color = findColorAttr(attributes) ?? deriveColorFromFinish(finish) ?? deriveColorFromMaterial(material);
+  const color =
+    findColorAttr(attributes) ??
+    deriveColorFromFinish(finish) ??
+    deriveColorFromMaterial(material) ??
+    ontologyFieldValue(attributes, "color", deriveColorFromFinish);
 
-  const protectionFromAttr = collectProtectionValues(attributes) ?? deriveProtectionFromText(attributes);
+  const protectionFromAttr =
+    collectProtectionValues(attributes) ??
+    deriveProtectionFromText(attributes) ??
+    ontologyFieldValue(attributes, "protection", normalizeProtectionValue);
   const certificateNamePattern = /\b(approval|conformity|declarations?|compliance|certificates?|certifications?|approvals?|standards?|marking)\b|\b(ul|ce|rohs|weee|reach)\b/i;
   // If the manufacturer publishes an explicit "Standards" attribute (e.g. ABB's "Standards: IEC/UL"),
   // that IS the curated certification list — don't pollute it with document-derived RoHS / REACH
@@ -312,6 +327,26 @@ function deriveOperatingTemperature(attributes: AttributeRecord[]): { min?: stri
 
 function formatTemperatureBound(value: number): string {
   return String(Number(value.toFixed(6)));
+}
+
+/**
+ * General gap-fill via the property ontology (B-2): when the field-specific extractors above found
+ * nothing, look for an attribute whose label MEANS this field (any language the ontology knows,
+ * incl. FR/IT labels the FIELD_LABEL_PATTERNS miss) and run its value through the SAME value
+ * normalizer used elsewhere — so we only ever add a clean, source-backed value, never raw text.
+ */
+function ontologyFieldValue(
+  attributes: AttributeRecord[],
+  key: string,
+  normalize: (value: string) => string | undefined
+): string | undefined {
+  for (const attr of attributes) {
+    if (!attr.value || !isLikelySpecText(attr.value) || !isAvailableSpecValue(attr.value)) continue;
+    if (matchProperty(`${attr.group ?? ""} ${attr.name}`)?.key !== key) continue;
+    const value = normalize(attr.value);
+    if (value) return value;
+  }
+  return undefined;
 }
 
 function mergeLocalizedDescriptions(
