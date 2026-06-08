@@ -50,6 +50,18 @@ describe("normalizer", () => {
     expect(normalized.operatingTemperatureMax).toBeUndefined();
   });
 
+  it("understands German material names and steel grades", () => {
+    expect(normalizeFields([{ name: "Construction", value: "Edelstahl 1.4301" }], []).material).toBe("stainless steel Type 304");
+    expect(normalizeFields([{ name: "Construction", value: "Gehäuse aus Edelstahl" }], []).material).toBe("stainless steel");
+    expect(normalizeFields([{ name: "Construction", value: "verzinkter Stahl" }], []).material).toBe("galvanized steel");
+    expect(normalizeFields([{ name: "Construction", value: "Kunststoff" }], []).material).toBe("plastic");
+  });
+
+  it("understands German colours and RAL codes from finish text", () => {
+    expect(normalizeFields([{ name: "Finish", value: "hellgrau pulverbeschichtet" }], []).color).toBe("light gray");
+    expect(normalizeFields([{ name: "Finish", value: "powder coated, RAL 7035" }], []).color).toBe("RAL 7035");
+  });
+
   it("normalizes units and prefers official evidence over distributor values", () => {
     const normalized = normalizeFields(
       [

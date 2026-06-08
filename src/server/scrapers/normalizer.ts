@@ -1128,9 +1128,41 @@ function deriveColorFromFinish(value: string | undefined): string | undefined {
     return /optional\s+sub-?panels?.*white/i.test(cleaned) ? "ANSI-61 gray (optional sub-panels white)" : "ANSI-61 gray";
   }
   const colors = [
-    ...(cleaned.match(/\b(?:black|white|gr[ae]y|red|blue|green|yellow|orange|silver|natural|beige|cream)\b/gi) ?? [])
-  ].map((color) => color.toLowerCase().replace("grey", "gray"));
-  return colors.length ? [...new Set(colors)].join("; ") : undefined;
+    ...(cleaned.match(/\b(?:black|white|gr[ae]y|red|blue|green|yellow|orange|silver|natural|beige|cream)\b/gi) ?? []).map((color) =>
+      color.toLowerCase().replace("grey", "gray")
+    ),
+    ...foreignColorMatches(cleaned)
+  ];
+  if (colors.length) return [...new Set(colors)].join("; ");
+  const ral = cleaned.match(/\bRAL\s*(\d{4})\b/i);
+  if (ral) return `RAL ${ral[1]}`;
+  return undefined;
+}
+
+// German colour words (and a couple of neighbours) mapped to the canonical English name,
+// so colours buried in non-English finish/colour text are still understood.
+const FOREIGN_COLOR_SYNONYMS: Array<[RegExp, string]> = [
+  [/\bhell\s*grau\b|\blicht\s*grau\b/i, "light gray"],
+  [/\bdunkel\s*grau\b/i, "dark gray"],
+  [/\bgrau\b/i, "gray"],
+  [/\bschwarz\b/i, "black"],
+  [/\bwei(?:ß|ss)\b/i, "white"],
+  [/\bsilber\b/i, "silver"],
+  [/\brot\b/i, "red"],
+  [/\bblau\b/i, "blue"],
+  [/\bgelb\b/i, "yellow"]
+];
+
+function foreignColorMatches(cleaned: string): string[] {
+  const found: string[] = [];
+  for (const [pattern, canonical] of FOREIGN_COLOR_SYNONYMS) {
+    if (pattern.test(cleaned)) found.push(canonical);
+  }
+  // A specific shade ("light gray") supersedes the bare "gray" the same text also matches.
+  if (found.includes("light gray") || found.includes("dark gray")) {
+    return found.filter((color) => color !== "gray");
+  }
+  return found;
 }
 
 function deriveColorFromMaterial(value: string | undefined): string | undefined {
@@ -1303,10 +1335,38 @@ function materialValueFromText(value: string): string | undefined {
   if (/\baluzinc\s+coated\s+steel\b/i.test(cleaned)) return "aluzinc coated steel";
   if (/\bS\.?\s*S\.?\b/i.test(cleaned)) return "stainless steel";
   if (/^(?:PA|PC|POM|PBTP?|PETP?|PE|PP|PPS|PTFE|PUR|PVC|ABS|ASA|SAN|PMMA|PEEK|PEI|TPE|TPU|HDPE|LDPE)(?:\s*\d{1,2})?$/u.test(cleaned)) return cleaned;
+  const foreign = foreignMaterialSynonym(cleaned);
+  if (foreign) return foreign;
   const match = cleaned.match(
     /\b(techpolymer|feraloy iron alloy|iron alloy|spheroidal cast iron|malleable cast iron|cast iron|stainless steel|carbon steel|mild steel|galvannealed steel|galvanized steel|steel|aluminum|aluminium|die-cast zinc|zinc|nickel[-\s]?plated brass|brass|nickel[-\s]?plated copper|copper braid|copper|fluoropolymer|polyolefin|polycarbonate|polyamide|polypropylene|polyethylene|polyester|fiberglass|plastic|silicone|nylon|rubber|pvc|pur|epdm|abs)\b/i
   );
   return match ? cleanText(match[1]).replace(/^aluminium$/i, "aluminum") : undefined;
+}
+
+// Non-English material names (German first, light Italian/French) mapped to the canonical
+// English term so multilingual manufacturer pages (Phoenix, Siemens, Schmersal, Spelsberg,
+// Fath, Eta...) stop losing material data. Steel grade numbers map to the matching SS type.
+const FOREIGN_MATERIAL_SYNONYMS: Array<[RegExp, string]> = [
+  [/\b1\.4404\b|\b1\.4571\b|\bv4a\b/i, "stainless steel Type 316/316L"],
+  [/\b1\.4301\b|\bv2a\b/i, "stainless steel Type 304"],
+  [/\bedelstahl\b|\bnirosta\b|\bacciaio\s+inox\b|\bacier\s+inoxydable\b/i, "stainless steel"],
+  [/\bstahlblech\b/i, "sheet steel"],
+  [/\bverzinkter?\s+stahl\b|\bverzinktem\s+stahl\b|\bverzinkter?\s+stahlblech\b/i, "galvanized steel"],
+  [/\bstahl\b|\bacciaio\b|\bacier\b/i, "steel"],
+  [/\baluminiumlegierung\b|\balluminio\b/i, "aluminum"],
+  [/\bpolycarbonat\b/i, "polycarbonate"],
+  [/\bpolyamid\b/i, "polyamide"],
+  [/\bkunststoff\b|\bthermoplast\b|\bplastik\b/i, "plastic"],
+  [/\bmessing\b|\blaiton\b/i, "brass"],
+  [/\bkupfer\b/i, "copper"],
+  [/\bzink\b/i, "zinc"]
+];
+
+function foreignMaterialSynonym(cleaned: string): string | undefined {
+  for (const [pattern, canonical] of FOREIGN_MATERIAL_SYNONYMS) {
+    if (pattern.test(cleaned)) return canonical;
+  }
+  return undefined;
 }
 
 function normalizeCertificateValue(value: string, allowNotApplicable = false): string {
