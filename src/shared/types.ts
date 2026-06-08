@@ -266,6 +266,8 @@ export interface ScrapeDiagnostics {
   suggestedApiEndpoints?: string[];
   documentParseFailures?: string[];
   sectionAttributeCounts?: Record<string, number>;
+  /** Self-diagnosis: spec labels with a recognizable value but no known meaning — knowledge-base gaps to teach, not guess. */
+  unmappedSpecLabels?: string[];
   notes?: string[];
 }
 

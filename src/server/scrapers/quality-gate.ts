@@ -7,6 +7,7 @@ import type {
   SourceRecord
 } from "../../shared/types.js";
 import { requiredElectricalFields } from "../../shared/product-requirements.js";
+import { findUnmappedSpecLabels } from "./ontology.js";
 import { catalogTextMatches, compactCatalogNumber } from "./catalog-number.js";
 import {
   hasMatchingStructuredIdentity,
@@ -114,6 +115,9 @@ export function applyQualityGate(
     ? Math.max(result.confidence, trustedOfficialEvidence && officialFloor !== undefined ? officialFloor : 0)
     : Math.min(result.confidence, distributorOnly ? distributorCap : partialCap);
   const productUrl = canonicalizeProductUrl(result.productUrl, recipe);
+  // Self-diagnosis (workstream I): surface spec labels we recognized a value for but could not map
+  // to a known property — visible knowledge-base gaps to teach, never silently guessed.
+  const unmappedSpecLabels = findUnmappedSpecLabels(result.attributes).slice(0, 30);
 
   return {
     ...result,
@@ -128,7 +132,8 @@ export function applyQualityGate(
       sectionAttributeCounts: {
         ...result.diagnostics?.sectionAttributeCounts,
         ...(gate.attempts.at(-1)?.sectionAttributeCounts ?? {})
-      }
+      },
+      ...(unmappedSpecLabels.length ? { unmappedSpecLabels } : {})
     },
     error: status === "found" ? undefined : gate.reason ?? result.error
   };
