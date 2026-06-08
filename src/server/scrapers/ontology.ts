@@ -48,7 +48,10 @@ export const PROPERTY_ONTOLOGY: CanonicalProperty[] = [
       /betriebsspannung/i,
       /\bspannung\b/i,
       /\btension\b/i,
-      /\btensione\b/i
+      /\btensione\b/i,
+      /\btensi[óo]n\b/i,
+      /\bvoltaje\b/i,
+      /\bspanning\b/i
     ]
   },
   {
@@ -64,7 +67,9 @@ export const PROPERTY_ONTOLOGY: CanonicalProperty[] = [
       /bemessungsstrom/i,
       /\bstrom\b/i,
       /\bcourant\b/i,
-      /\bcorrente\b/i
+      /\bcorrente\b/i,
+      /\bcorriente\b/i,
+      /\bstroom\b/i
     ]
   },
   {
@@ -77,7 +82,7 @@ export const PROPERTY_ONTOLOGY: CanonicalProperty[] = [
     key: "power",
     label: "Power",
     unitKind: "power",
-    synonyms: [/\bpower\b/i, /output\s+power/i, /\bleistung\b/i, /\bwattage\b/i, /\bpuissance\b/i, /\bpotenza\b/i],
+    synonyms: [/\bpower\b/i, /output\s+power/i, /\bleistung\b/i, /\bwattage\b/i, /\bpuissance\b/i, /\bpotenza\b/i, /\bpotencia\b/i, /\bvermogen\b/i],
     exclude: [/power\s+loss/i, /verlustleistung/i, /power\s+supply/i]
   },
   {
@@ -159,7 +164,7 @@ export const PROPERTY_ONTOLOGY: CanonicalProperty[] = [
     key: "color",
     label: "Colour",
     unitKind: undefined,
-    synonyms: [/\bcolou?r\b/i, /\bfarbe\b/i, /\bboja\b/i, /\bcouleur\b/i, /\bcolore\b/i],
+    synonyms: [/\bcolou?r\b/i, /\bfarbe\b/i, /\bboja\b/i, /\bcouleur\b/i, /\bcolore\b/i, /\bkleur\b/i],
     exclude: [COLOUR_TEMP]
   },
   {
@@ -222,6 +227,43 @@ export const PROPERTY_ONTOLOGY: CanonicalProperty[] = [
     key: "mountingType",
     label: "Mounting type",
     synonyms: [/mounting\s+(?:type|method|position)/i, /din\s+rail\s+mounting/i, /montageart/i, /befestigungsart/i]
+  },
+  {
+    key: "sensingDistance",
+    label: "Sensing / operating distance",
+    unitKind: "length",
+    synonyms: [/sensing\s+distance/i, /operating\s+distance/i, /switching\s+distance/i, /detection\s+(?:range|distance)/i, /schaltabstand/i, /distanza\s+di\s+commutazione/i, /distance\s+de\s+d[ée]tection/i]
+  },
+  {
+    key: "switchingFrequency",
+    label: "Switching frequency",
+    unitKind: "frequency",
+    synonyms: [/switching\s+frequency/i, /switching\s+rate/i, /schaltfrequenz/i, /frequenza\s+di\s+commutazione/i]
+  },
+  {
+    key: "responseTime",
+    label: "Response time",
+    synonyms: [/response\s+time/i, /reaction\s+time/i, /ansprechzeit/i, /tempo\s+di\s+risposta/i, /temps\s+de\s+r[ée]ponse/i]
+  },
+  {
+    key: "repeatAccuracy",
+    label: "Repeat accuracy",
+    synonyms: [/repeat(?:ability)?\s+accuracy/i, /reproducibility/i, /wiederholgenauigkeit/i, /ripetibilit[àa]/i]
+  },
+  {
+    key: "flowRate",
+    label: "Flow rate",
+    synonyms: [/flow\s+rate/i, /volumetric\s+flow/i, /air\s*flow/i, /durchfluss/i, /\bportata\b/i, /d[ée]bit/i]
+  },
+  {
+    key: "connectionType",
+    label: "Connection type",
+    synonyms: [/connection\s+type/i, /type\s+of\s+connection/i, /anschlussart/i, /tipo\s+di\s+(?:connessione|collegamento)/i, /type\s+de\s+(?:connexion|raccordement)/i]
+  },
+  {
+    key: "outputType",
+    label: "Output type",
+    synonyms: [/output\s+type/i, /type\s+of\s+output/i, /ausgangsart/i, /tipo\s+di\s+uscita/i, /type\s+de\s+sortie/i]
   }
 ];
 
