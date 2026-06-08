@@ -62,6 +62,12 @@ describe("normalizer", () => {
     expect(normalizeFields([{ name: "Finish", value: "powder coated, RAL 7035" }], []).color).toBe("RAL 7035");
   });
 
+  it("rejects a physically impossible operating temperature range", () => {
+    const normalized = normalizeFields([{ name: "Operating temperature", value: "-40 to 5000 °C" }], []);
+    expect(normalized.operatingTemperatureMin).toBeUndefined();
+    expect(normalized.operatingTemperatureMax).toBeUndefined();
+  });
+
   it("normalizes units and prefers official evidence over distributor values", () => {
     const normalized = normalizeFields(
       [

@@ -1,5 +1,5 @@
 import type { AttributeRecord, DocumentRecord, NormalizedProductFields, ProductResult } from "../../shared/types.js";
-import { parseTemperatureRange } from "./quantity.js";
+import { isPlausibleTemperatureCelsius, parseTemperatureRange } from "./quantity.js";
 
 export function cleanText(value: string | undefined | null): string {
   return decodeHtmlEntities(String(value ?? ""))
@@ -282,6 +282,9 @@ function deriveOperatingTemperature(attributes: AttributeRecord[]): { min?: stri
   for (const attr of candidates) {
     const range = parseTemperatureRange(`${attr.name}: ${attr.value}`);
     if (range.min === undefined && range.max === undefined) continue;
+    // Reject physically impossible operating temperatures so a misparse never reaches the PDT.
+    if (range.min !== undefined && !isPlausibleTemperatureCelsius(range.min)) continue;
+    if (range.max !== undefined && !isPlausibleTemperatureCelsius(range.max)) continue;
     return {
       min: range.min !== undefined ? formatTemperatureBound(range.min) : undefined,
       max: range.max !== undefined ? formatTemperatureBound(range.max) : undefined

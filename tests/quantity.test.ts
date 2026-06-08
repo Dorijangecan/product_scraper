@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  isQuantityPlausible,
   parseQuantities,
   parseTemperatureRange,
   quantityMax,
@@ -117,5 +118,21 @@ describe("quantity grammar — voltage/current/power", () => {
 
   it("does not invent quantities from unit-less part-number-like text", () => {
     expect(parseQuantities("Type S201-C6 order code 2CDS251001R0064")).toHaveLength(0);
+  });
+});
+
+describe("quantity grammar — sanity bounds", () => {
+  it("flags physically impossible values", () => {
+    const [tooHot] = parseQuantities("9000 °C", { kind: "temperature" });
+    expect(isQuantityPlausible(tooHot)).toBe(false);
+    const [voltage] = parseQuantities("230 V", { kind: "voltage" });
+    expect(isQuantityPlausible(voltage)).toBe(true);
+  });
+
+  it("accepts real industrial extremes", () => {
+    const [current] = parseQuantities("6300 A", { kind: "current" });
+    expect(isQuantityPlausible(current)).toBe(true);
+    const [temp] = parseQuantities("-40 °C", { kind: "temperature" });
+    expect(isQuantityPlausible(temp)).toBe(true);
   });
 });

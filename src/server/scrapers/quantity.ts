@@ -353,6 +353,41 @@ export function quantityMin(quantity: ParsedQuantity): number | undefined {
   return quantity.value;
 }
 
+/**
+ * Sanity bounds (workstream B-6). Deliberately GENEROUS — they only reject values
+ * that are physically impossible for industrial products, so a garbage parse never
+ * reaches the PDT (second pillar of "never hallucinate"), without dropping real
+ * extremes (1000 V, 6300 A busbars, MV gear). Bounds are in the value's stated unit.
+ */
+export const SANITY_BOUNDS: Partial<Record<QuantityKind, { min: number; max: number }>> = {
+  temperature: { min: -120, max: 400 },
+  voltage: { min: 0, max: 2_000_000 },
+  current: { min: 0, max: 500_000 },
+  power: { min: 0, max: 100_000_000 },
+  mass: { min: 0, max: 200_000 },
+  frequency: { min: 0, max: 5_000_000 },
+  pressure: { min: 0, max: 5_000_000 }
+};
+
+function quantityNumbers(quantity: ParsedQuantity): number[] {
+  return [quantity.value, quantity.min, quantity.max, ...(quantity.values ?? [])].filter(
+    (value): value is number => typeof value === "number" && Number.isFinite(value)
+  );
+}
+
+export function isQuantityPlausible(quantity: ParsedQuantity): boolean {
+  const bounds = SANITY_BOUNDS[quantity.kind];
+  if (!bounds) return true;
+  const numbers = quantityNumbers(quantity);
+  if (!numbers.length) return true;
+  return numbers.every((value) => value >= bounds.min && value <= bounds.max);
+}
+
+export function isPlausibleTemperatureCelsius(value: number): boolean {
+  const bounds = SANITY_BOUNDS.temperature;
+  return !bounds || (value >= bounds.min && value <= bounds.max);
+}
+
 function uniqueStrings(values: string[]): string[] {
   return [...new Set(values)];
 }
