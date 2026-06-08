@@ -23,6 +23,33 @@ describe("normalizer", () => {
     expect(normalized.certificates).toContain("Declaration of Conformity");
   });
 
+  it("understands an operating temperature range into min/max", () => {
+    const normalized = normalizeFields([{ name: "Operating temperature", value: "-40 to +80 °C" }], []);
+    expect(normalized.operatingTemperatureMin).toBe("-40");
+    expect(normalized.operatingTemperatureMax).toBe("80");
+  });
+
+  it("understands a German Umgebungstemperatur 'bis' range", () => {
+    const normalized = normalizeFields([{ name: "Umgebungstemperatur", value: "-20 °C bis +55 °C" }], []);
+    expect(normalized.operatingTemperatureMin).toBe("-20");
+    expect(normalized.operatingTemperatureMax).toBe("55");
+  });
+
+  it("does not read a current de-rating row as operating temperature", () => {
+    const normalized = normalizeFields(
+      [{ name: "Rated Operational Current AC-1", value: "(690 V) 40 C 70 A; (690 V) 60 C 60 A" }],
+      []
+    );
+    expect(normalized.operatingTemperatureMin).toBeUndefined();
+    expect(normalized.operatingTemperatureMax).toBeUndefined();
+  });
+
+  it("does not treat color temperature as operating temperature", () => {
+    const normalized = normalizeFields([{ group: "Balluff Key features", name: "Color temperature", value: "4000 K" }], []);
+    expect(normalized.operatingTemperatureMin).toBeUndefined();
+    expect(normalized.operatingTemperatureMax).toBeUndefined();
+  });
+
   it("normalizes units and prefers official evidence over distributor values", () => {
     const normalized = normalizeFields(
       [

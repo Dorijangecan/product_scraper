@@ -295,8 +295,8 @@ function heuristicRepair(item: RunItemRecord, manufacturer: ManufacturerConfig):
     currentMax: currentMaxValue(item),
     powerLossPerPole: numberWithUnit(attr(item, /\bpower loss\b/i), "W"),
     voltageType: controlVoltageType(item),
-    operatingTemperatureMin: explicitTemperatureRange(item).min,
-    operatingTemperatureMax: explicitTemperatureRange(item).max,
+    operatingTemperatureMin: item.result?.normalized.operatingTemperatureMin ?? explicitTemperatureRange(item).min,
+    operatingTemperatureMax: item.result?.normalized.operatingTemperatureMax ?? explicitTemperatureRange(item).max,
     shortDescription: normalizedShortDescription(item),
     longDescription: normalizedLongDescription(item)
   });

@@ -381,6 +381,10 @@ export interface NormalizedProductFields {
   current?: string;
   protection?: string;
   certificates?: string;
+  /** Operating/ambient temperature lower bound in °C (plain number string), understood from a range. */
+  operatingTemperatureMin?: string;
+  /** Operating/ambient temperature upper bound in °C (plain number string), understood from a range. */
+  operatingTemperatureMax?: string;
 }
 
 export interface LocalizedProductUrls {

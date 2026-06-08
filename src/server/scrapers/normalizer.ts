@@ -1,4 +1,5 @@
 import type { AttributeRecord, DocumentRecord, NormalizedProductFields, ProductResult } from "../../shared/types.js";
+import { parseTemperatureRange } from "./quantity.js";
 
 export function cleanText(value: string | undefined | null): string {
   return decodeHtmlEntities(String(value ?? ""))
@@ -166,6 +167,18 @@ const FIELD_LABEL_PATTERNS: Record<keyof NormalizedProductFields, RegExp[]> = {
     /\brohs\b/,
     /\bweee\b/,
     /\breach\b/
+  ],
+  operatingTemperatureMin: [
+    /\b(operating|operational|ambient|working|surrounding|service)\b[^.;|]*\btemp(?:erature)?\b/,
+    /\btemperature range\b/,
+    /\bumgebungstemperatur\b/,
+    /\bbetriebstemperatur\b/
+  ],
+  operatingTemperatureMax: [
+    /\b(operating|operational|ambient|working|surrounding|service)\b[^.;|]*\btemp(?:erature)?\b/,
+    /\btemperature range\b/,
+    /\bumgebungstemperatur\b/,
+    /\bbetriebstemperatur\b/
   ]
 };
 
@@ -230,6 +243,8 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
     bestNormalizedAttributeValue(attributes, FIELD_LABEL_PATTERNS.current, normalizeCurrentValue, "current") ??
     normalizeCurrentValue(deriveCurrentFromText(attributes));
 
+  const operatingTemperature = deriveOperatingTemperature(attributes);
+
   return {
     weight: bestNormalizedAttributeValue(attributes, FIELD_LABEL_PATTERNS.weight, normalizeWeightValue, "weight"),
     dimensions,
@@ -240,8 +255,43 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
     voltage,
     current,
     protection: protectionFromAttr,
-    certificates: certificates || undefined
+    certificates: certificates || undefined,
+    operatingTemperatureMin: operatingTemperature.min,
+    operatingTemperatureMax: operatingTemperature.max
   };
+}
+
+/**
+ * Understand an operating/ambient temperature range from explicitly temperature-labelled
+ * attributes only — never from a current/power de-rating row or a "color temperature" spec.
+ * Uses the quantity grammar (workstream B-1) so messy ranges ("-40 to +80 °C", "-20 °C bis
+ * +55 °C", "Temperature range -40 do 70") and condition temps ("70 A at 40 °C") are handled.
+ */
+function deriveOperatingTemperature(attributes: AttributeRecord[]): { min?: string; max?: string } {
+  const label = (attr: AttributeRecord): string => `${attr.group ?? ""} ${attr.name}`;
+  const isTemperatureLabel = (attr: AttributeRecord): boolean =>
+    /\b(operating|operational|ambient|working|surrounding|service)\b[^.;|]*\btemp(?:erature)?\b/i.test(label(attr)) ||
+    /\btemp(?:erature)?\b[^.;|]*\b(operating|operational|ambient|working|surrounding|service)\b/i.test(label(attr)) ||
+    /\b(operating|ambient)\s+temperature\b/i.test(label(attr)) ||
+    /\btemperature range\b/i.test(label(attr)) ||
+    /\bumgebungstemperatur\b|\bbetriebstemperatur\b/i.test(label(attr));
+  const isExcludedLabel = (attr: AttributeRecord): boolean =>
+    /\b(current|strom|storage|lager|colou?r\s+temp(?:erature)?|color\s+temp)\b/i.test(label(attr));
+
+  const candidates = attributes.filter((attr) => attr.value && isTemperatureLabel(attr) && !isExcludedLabel(attr));
+  for (const attr of candidates) {
+    const range = parseTemperatureRange(`${attr.name}: ${attr.value}`);
+    if (range.min === undefined && range.max === undefined) continue;
+    return {
+      min: range.min !== undefined ? formatTemperatureBound(range.min) : undefined,
+      max: range.max !== undefined ? formatTemperatureBound(range.max) : undefined
+    };
+  }
+  return {};
+}
+
+function formatTemperatureBound(value: number): string {
+  return String(Number(value.toFixed(6)));
 }
 
 function mergeLocalizedDescriptions(

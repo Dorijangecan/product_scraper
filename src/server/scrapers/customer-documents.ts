@@ -302,7 +302,9 @@ const FIELD_LABEL_HINTS: Record<keyof ProductResult["normalized"], RegExp> = {
   voltage: /voltage|volt|spannung/i,
   current: /current|amp|amper|strom/i,
   protection: /\bip\b|nema|protection|schutzart/i,
-  certificates: /approval|certificat|conformity|standards|marking|\b(ul|ce|rohs|weee|reach)\b/i
+  certificates: /approval|certificat|conformity|standards|marking|\b(ul|ce|rohs|weee|reach)\b/i,
+  operatingTemperatureMin: /operating temperature|operational temperature|ambient temperature|umgebungstemperatur|betriebstemperatur|temperature range/i,
+  operatingTemperatureMax: /operating temperature|operational temperature|ambient temperature|umgebungstemperatur|betriebstemperatur|temperature range/i
 };
 
 function customerTouchedFields(customerAttributes: AttributeRecord[]): Set<string> {
