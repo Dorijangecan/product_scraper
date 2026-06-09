@@ -126,7 +126,13 @@ export const PROPERTY_ONTOLOGY: CanonicalProperty[] = [
       /full[-\s]?load\s+current/i,
       /\bFLA\b/,                                        // Full-load amps
       /line\s+(?:rated\s+)?current/i,
-      /base\s+load\s+current/i,                         // Rockwell base load
+      /base[-\s]?load\s+current/i,                      // Rockwell / Siemens drive base-load
+      /(?:rated\s+)?uninterrupted\s+current/i,          // ABB Iu
+      /rated\s+frame\s+current/i,                        // Schneider Inm
+      /continuous\s+(?:rms\s+|output\s+)?current/i,      // ABB/Danfoss drives
+      /intermittent\s+(?:output\s+)?current/i,           // Danfoss overload current
+      /rated\s+(?:output|input)\s+current/i,             // drives
+      /\bcurrent\s+rating\b/i,                            // Littelfuse/Bussmann
       // ABB utilization-category currents: AC-1, AC-3, AC-3e, AC-15, AC-21A, AC-22A, AC-23A, DC-1, DC-3, DC-5, DC-13
       /rated\s+operational\s+current\s+(?:AC|DC)[-\s]?\d{1,2}[a-eA-E]?/i,
       /(?:AC|DC)[-\s]?\d{1,2}[a-eA-E]?\s+thermal\s+current/i,
@@ -134,6 +140,7 @@ export const PROPERTY_ONTOLOGY: CanonicalProperty[] = [
       /\bIe\b/,
       /\bIu\b/,
       /\bIth\b/,
+      /\bInm\b/,                                          // Schneider rated frame current
       /\bInom\b/i,
       /\bIN\b/,                                          // Phoenix "IN"
       /\bcurrent\b/i,
@@ -154,7 +161,8 @@ export const PROPERTY_ONTOLOGY: CanonicalProperty[] = [
       /\bstruja\b/i
     ],
     exclude: [
-      /short[-\s]?circuit|breaking|making|interrupt(?:ing)?|inrush|leakage|residual|test|fault/i,
+      // \binterrupt avoids matching "unINTERRUPTed current" (ABB Iu), which IS a rated current.
+      /short[-\s]?circuit|breaking|making|\binterrupt(?:ing)?|inrush|leakage|residual|test|fault/i,
       /tripping|trip\s+current|magnetic/i,
       /transient|prospective/i,
       /consumption|standby|no[-\s]?load/i
@@ -174,8 +182,11 @@ export const PROPERTY_ONTOLOGY: CanonicalProperty[] = [
       /rated\s+conditional\s+short[-\s]?circuit\s+current/i,                       // Eaton/ABB Iq
       /short[-\s]?circuit\s+(?:current|capacity|breaking|withstand|making|rating)/i,
       /short[-\s]?circuit\s+current\s+rating/i,                                    // Rockwell SCCR
+      /(?:ac|dc)\s+interrupt(?:ing)?\s+rating/i,                                   // Littelfuse AC/DC Interrupting Rating
       /interrupt(?:ing)?\s+(?:rating|capacity)/i,                                  // Eaton "Interrupt rating"
       /maximum\s+interrupt(?:ing)?\s+rating/i,
+      /rated\s+breaking\s+capacity/i,                                              // Mersen / Schneider Icn
+      /rupture\s+capacity/i,                                                       // distributor wording
       /making\s+capacity/i,
       /energy\s+limiting\s+(?:class|category)/i,                                   // ABB
       /prospective\s+(?:line\s+)?Isc/i,                                            // Schneider
@@ -183,8 +194,10 @@ export const PROPERTY_ONTOLOGY: CanonicalProperty[] = [
       /\bIcs\b/,
       /\bIcw\b/,
       /\bIcm\b/,
+      /\bIcn\b/,                                                                   // Schneider rated breaking capacity
       /\bIq\b/,
       /\bSCCR\b/,
+      /\bAIC\b/,                                                                   // US Amps Interrupting Capacity
       /\bkAIC\b/i,
       /schaltverm[öo]gen/i,
       /kurzschluss(?:strom|festigkeit|ausschalt(?:verm[öo]gen)?)?/i,
@@ -206,15 +219,23 @@ export const PROPERTY_ONTOLOGY: CanonicalProperty[] = [
     unitKind: "power",
     synonyms: [
       /\bpower\b/i,
-      /output\s+power/i,
-      /rated\s+power/i,
+      /(?:output|input)\s+power/i,
+      /rated\s+(?:output\s+)?power/i,
+      /rated\s+output\b/i,                              // WEG "Rated output"
       /nominal\s+power/i,
       /motor\s+power/i,
+      /shaft\s+(?:power|output)/i,                       // P2 / shaft power
+      /typical\s+shaft\s+output/i,                       // Danfoss
+      /\bP2\b/,                                          // shaft power symbol
+      /\bPm\b/,                                          // SEW motor power
+      /\bP_N\b/,                                         // rated power P_N (underscore form; avoids "PN" pressure)
       /\bleistung\b/i,
       /nennleistung/i,
       /ausgangsleistung/i,
       /motorleistung/i,
       /\bwattage\b/i,
+      /\bhorsepower\b/i,
+      /\bhp\s+rating\b/i,
       /\bpuissance\b/i,
       /puissance\s+(?:nominale|de\s+sortie|moteur)/i,
       /\bpotenza\b/i,
@@ -385,9 +406,16 @@ export const PROPERTY_ONTOLOGY: CanonicalProperty[] = [
     unitKind: "pressure",
     synonyms: [
       /\bpressure\b/i,
-      /operating\s+pressure/i,
+      /operating\s+pressure(?:\s+range)?/i,
       /working\s+pressure/i,
       /nominal\s+pressure/i,
+      /max(?:imum)?\s+(?:operating\s+)?pressure/i,             // SMC/Bürkert
+      /min(?:imum)?\s+operating\s+pressure/i,
+      /proof\s+pressure/i,                                     // SMC proof
+      /burst\s+pressure/i,
+      /permissible\s+(?:operating\s+)?pressure/i,              // Rittal "Permissible operating pressure"
+      /pressure\s+range/i,
+      /\bPN\s*\d+\b/,                                          // nominal pressure designation PN16/PN40
       /\bdruck\b/i,
       /betriebsdruck/i,
       /nenndruck/i,
@@ -471,7 +499,6 @@ export const PROPERTY_ONTOLOGY: CanonicalProperty[] = [
       /\bdiameter\b/i,
       /outer\s+diameter/i,
       /inner\s+diameter/i,
-      /\bbore\b/i,
       /\bdurchmesser\b/i,
       /au[ßs]endurchmesser/i,
       /innendurchmesser/i,
@@ -505,9 +532,14 @@ export const PROPERTY_ONTOLOGY: CanonicalProperty[] = [
     label: "Material",
     unitKind: undefined,
     synonyms: [
-      /\bmaterial\b/i,
-      /housing\s+material/i,
+      /\bmaterials?\b/i,
+      /housing\s+materials?/i,                                  // ifm/SICK plural "Housing materials"
       /enclosure\s+material/i,
+      /basic\s+material/i,                                      // Rittal "Basic material"
+      /insulating\s+material/i,                                 // WAGO/Phoenix terminal blocks
+      /wetted\s+(?:parts?\s+)?materials?/i,                     // E+H/VEGA process "Wetted materials"
+      /materials?\s+\(wetted\s+parts?\)/i,
+      /material,?\s+wetted\s+parts/i,
       /body\s+material/i,
       /case\s+material/i,
       /case\s+construction/i,
@@ -585,7 +617,8 @@ export const PROPERTY_ONTOLOGY: CanonicalProperty[] = [
     synonyms: [
       /degree\s+of\s+protection/i,
       /protection\s+(?:class|rating|degree|level|category|type)/i,
-      /protective\s+treatment/i,                            // Schneider
+      /protection\s+category\s+(?:to\s+iec|nema)/i,          // Rittal "Protection category to IEC 60 529"
+      /protective\s+(?:treatment|structure)/i,               // Schneider treatment, Omron structure
       /ingress\s+protection/i,
       /enclosure\s+(?:rating|type|protection)/i,            // Eaton/Rockwell "Enclosure Rating"
       /environmental\s+rating/i,                            // Eaton
@@ -638,6 +671,7 @@ export const PROPERTY_ONTOLOGY: CanonicalProperty[] = [
       /poles?\s+description/i,                            // Schneider
       /pole\s+(?:count|number)/i,
       /\bpoles\b/i,
+      /number\s+of\s+(?:connections?|connection\s+points?|levels?|potentials?|tiers?|positions?)/i, // WAGO/Weidmüller/Phoenix terminal blocks
       /\bno\.?\s+of\s+positions\b/i,                      // Phoenix
       /polzahl/i,
       /\bpolig\b/i,
@@ -814,11 +848,19 @@ export const PROPERTY_ONTOLOGY: CanonicalProperty[] = [
     synonyms: [
       /conductor\s+cross[-\s]?section/i,
       /cross[-\s]?section/i,
-      /wire\s+(?:gauge|size|cross[-\s]?section)/i,
+      /(?:rated|nominal)\s+cross[-\s]?section/i,                 // WAGO/Weidmüller "Rated cross-section"
+      /(?:solid|stranded|fine[-\s]?stranded|rigid|flexible)\s+conductor/i, // WAGO/Phoenix conductor rows
+      /conductor\s+cross[-\s]?section\s+(?:rigid|flexible|solid|stranded|AWG)/i,
+      /(?:with|without)\s+ferrule/i,                             // ferrule rows
+      /wire\s+(?:gauge|size|range|cross[-\s]?section)/i,         // wire range / AWG
+      /\bclamping\s+range\b/i,                                   // terminal clamping range
+      /\bAWG(?:\/kcmil)?\b/,                                     // AWG / kcmil
       /cable\s+(?:cross[-\s]?section|size)/i,
       /terminal\s+capacity/i,
       /querschnitt/i,
       /leiterquerschnitt/i,
+      /anschlussquerschnitt/i,                                   // Weidmüller
+      /nennquerschnitt/i,                                        // rated cross-section DE
       /\bsezione\b/i,
       /sezione\s+(?:del\s+)?conduttore/i,
       /section\s+(?:du\s+)?conducteur/i,
@@ -939,7 +981,10 @@ export const PROPERTY_ONTOLOGY: CanonicalProperty[] = [
     key: "mountingPosition",
     label: "Mounting position",
     synonyms: [
-      /mounting\s+(?:position|orientation|attitude)/i,
+      /mounting\s+(?:position|orientation|attitude|arrangement)/i,   // WEG "Mounting arrangement"
+      /\bIM\s*B\s?\d{1,2}\b/,                                        // IEC mounting designation IM B3/B5/B14
+      /\bIM\s*V\s?\d{1,2}\b/,                                        // IM V1/V18 vertical
+      /(?:foot|flange)[-\s]?mounted/i,                               // SEW foot/flange
       /einbau(?:lage|position)/i,
       /position\s+de\s+montage/i,
       /posizione\s+(?:di\s+)?montaggio/i,
@@ -953,12 +998,21 @@ export const PROPERTY_ONTOLOGY: CanonicalProperty[] = [
     label: "Sensing / operating distance",
     unitKind: "length",
     synonyms: [
-      /sensing\s+distance/i,
-      /operating\s+distance/i,
+      /sensing\s+(?:distance|range)/i,                          // SICK "Sensing range"
+      /(?:rated|nominal|real|assured|safe)\s+(?:switching|operating|sensing)\s+(?:distance|range)/i, // Sn/Sr/Sa variants
+      /operating\s+(?:distance|range)/i,
       /switching\s+distance/i,
+      /scanning\s+range/i,                                      // photoelectric (P+F/SICK)
+      /adjustment\s+range/i,
       /detection\s+(?:range|distance)/i,
       /\bSn\b/,
+      /\bSa\b/,                                                  // assured/working distance
+      /\bSr\b/,                                                  // real sensing distance (ifm)
+      /\bSao\b/, /\bSar\b/,                                      // Balluff assured on/off
       /schaltabstand/i,
+      /bemessungsschaltabstand/i,                               // P+F rated switching distance
+      /realschaltabstand/i,
+      /tastweite/i,                                             // SICK photoelectric
       /erfassungsbereich/i,
       /distance\s+de\s+(?:d[ée]tection|commutation)/i,
       /port[ée]e\s+(?:de\s+)?d[ée]tection/i,
@@ -976,6 +1030,7 @@ export const PROPERTY_ONTOLOGY: CanonicalProperty[] = [
     synonyms: [
       /switching\s+frequency/i,
       /switching\s+rate/i,
+      /response\s+frequency/i,                                  // Omron's term for switching frequency
       /\bPWM\s+frequency\b/i,
       /schaltfrequenz/i,
       /fr[ée]quence\s+de\s+commutation/i,
@@ -1010,7 +1065,9 @@ export const PROPERTY_ONTOLOGY: CanonicalProperty[] = [
     synonyms: [
       /repeat(?:ability)?\s+accuracy/i,
       /repeat\s+accuracy/i,
-      /reproducibility/i,
+      /\brepeatability\b/i,                                     // Keyence/Baumer bare "Repeatability"
+      /reproducib(?:ility|ilit[àa])/i,                          // SICK "Reproducibility" / IT
+      /reproduzierbarkeit/i,                                    // SICK DE
       /wiederholgenauigkeit/i,
       /r[ée]p[ée]tabilit[ée]/i,
       /ripetibilit[àa]/i,
@@ -1024,8 +1081,10 @@ export const PROPERTY_ONTOLOGY: CanonicalProperty[] = [
     label: "Flow rate",
     synonyms: [
       /flow\s+rate/i,
+      /(?:standard\s+)?nominal\s+flow(?:\s+rate)?/i,            // Festo "Standard nominal flow rate"
       /volumetric\s+flow/i,
       /air\s*flow/i,
+      /air\s+throughput/i,                                      // Rittal "Air throughput"
       /mass\s+flow/i,
       /durchfluss(?:menge|rate)?/i,
       /volumenstrom/i,
@@ -1188,10 +1247,19 @@ export const PROPERTY_ONTOLOGY: CanonicalProperty[] = [
     synonyms: [
       /connection\s+(?:type|method)/i,
       /type\s+of\s+connection/i,
-      /terminal\s+(?:type|technology)/i,
+      /\bconnection\b/i,                                        // ifm/Turck/Banner bare "Connection"
+      /electrical\s+connection/i,
+      /process\s+connection/i,                                  // E+H/VEGA/WIKA process instruments
+      /pneumatic\s+connection/i,                                // Festo
+      /(?:piping\s+)?port\s+size/i,                             // SMC port size
+      /port\s+connection/i,                                     // Bürkert
+      /\bM(?:8|12|16|23)\b/,                                    // sensor connector sizes
+      /terminal\s+(?:type)/i,
       /(?:screw|spring|push[-\s]?in|cage|clamp)\s+(?:terminal|connection)/i,
       /anschlussart/i,
-      /anschlusstechnik/i,
+      /elektrischer\s+anschluss/i,
+      /pneumatischer\s+anschluss/i,                             // Festo DE
+      /prozessanschluss/i,                                      // E+H DE
       /klemmentechnik/i,
       /type\s+de\s+(?:connexion|raccordement|borne)/i,
       /tipo\s+di\s+(?:connessione|collegamento|morsetto)/i,
@@ -1206,12 +1274,16 @@ export const PROPERTY_ONTOLOGY: CanonicalProperty[] = [
     synonyms: [
       /output\s+type/i,
       /type\s+of\s+output/i,
+      /output\s+(?:signal|function|configuration)/i,           // ifm/Turck/E+H/VEGA "Output signal/function"
+      /signal\s+output/i,
+      /control\s+output/i,                                     // Omron
+      /(?:current|voltage|switching)\s+output/i,
+      /\bIO[-\s]?Link\b/i,
       /\b(?:PNP|NPN|push[-\s]?pull|open\s+collector|relay)\s+output\b/i,
       /\b(?:analog|analogue|digital)\s+output\b/i,
       /\b4[-\s]?20\s*mA\b/i,
       /\b0[-\s]?10\s*V\b/i,
-      /ausgangsart/i,
-      /ausgangstyp/i,
+      /ausgangs(?:art|typ|signal|funktion)/i,
       /type\s+de\s+sortie/i,
       /tipo\s+di\s+uscita/i,
       /tipo\s+de\s+salida/i,
@@ -1304,6 +1376,614 @@ export const PROPERTY_ONTOLOGY: CanonicalProperty[] = [
       /teilungseinheiten/i,
       /modulteilung/i,
       /m[óo]dulos\s+de\s+ancho/i
+    ]
+  },
+  // ── Motors / drives ───────────────────────────────────────────────────────
+  {
+    key: "ratedSpeed",
+    label: "Rated speed",
+    synonyms: [
+      /rated\s+speed/i,
+      /(?:rotational|output|shaft|full[-\s]?load|no[-\s]?load|synchronous|nominal)\s+speed/i,
+      /\brpm\b/i,
+      /\bmin-?\s?1\b/,                                          // min⁻¹
+      /\bn[_\s]?N\b/,                                           // rated speed symbol nN
+      /\bna\b\s*\[?r\/min\]?/i,                                 // SEW output speed na
+      /nenndrehzahl/i,
+      /\bdrehzahl\b/i,
+      /vitesse\s+(?:de\s+rotation|nominale)/i,
+      /velocit[àa]\s+(?:nominale|di\s+rotazione)/i,
+      /velocidad\s+(?:nominal|de\s+rotaci[óo]n)/i,
+      /\btoerental\b/i,
+      /brzina\s+vrtnje/i
+    ],
+    exclude: [/sampling|switching|transfer|baud|data|bit|response/i]
+  },
+  {
+    key: "efficiencyClass",
+    label: "Efficiency class (IE)",
+    synonyms: [
+      /efficiency\s+class/i,
+      /\bIE[1-5]\b/,                                            // IE1..IE4 (IE5 emerging)
+      /\bIE[-\s]?class\b/i,
+      /\bIES\d?\b/,                                             // variable-speed efficiency class
+      /energieeffizienzklasse/i,
+      /wirkungsgradklasse/i,
+      /classe\s+de\s+rendement/i,
+      /classe\s+di\s+efficienza/i,
+      /clase\s+de\s+(?:rendimiento|eficiencia)/i,
+      /rendementsklasse/i
+    ]
+  },
+  {
+    key: "insulationClass",
+    label: "Insulation / thermal class",
+    synonyms: [
+      /insulation\s+class/i,
+      /thermal\s+class(?:ification)?/i,
+      /temperature\s+class/i,
+      /insulation\s+classification/i,
+      /(?:insulating\s+material|insulation)\s+class/i,
+      /w[äa]rmeklasse/i,
+      /isolier(?:stoff)?klasse/i,
+      /isolationsklasse/i,
+      /classe\s+(?:d['e]isolation|thermique)/i,
+      /classe\s+(?:di\s+)?isolamento/i,
+      /clase\s+(?:de\s+)?aislamiento/i,
+      /isolatieklasse/i,
+      /klasa\s+izolacije/i
+    ]
+  },
+  {
+    key: "serviceFactor",
+    label: "Service factor",
+    synonyms: [
+      /\bservice\s+factor\b/i,
+      /\bS\.F\.\b/,
+      /servicefaktor/i,
+      /betriebsfaktor/i,
+      /facteur\s+de\s+service/i,
+      /fattore\s+di\s+servizio/i,
+      /factor\s+de\s+servicio/i
+    ]
+  },
+  {
+    key: "dutyType",
+    label: "Duty type / cycle",
+    synonyms: [
+      /duty\s+(?:type|cycle|rating)/i,
+      /duty\s+(?:type\s+)?S[1-9]/i,                             // S1/S3/S6
+      /cyclic\s+duration\s+factor/i,
+      /\b%\s?ED\b/,
+      /einschaltdauer/i,
+      /betriebsart/i,
+      /mode\s+de\s+service/i,
+      /tipo\s+di\s+servizio/i,
+      /tipo\s+de\s+servicio/i,
+      /bedrijfssoort/i,
+      /vrsta\s+rada/i
+    ]
+  },
+  {
+    key: "momentOfInertia",
+    label: "Moment of inertia",
+    synonyms: [
+      /moment\s+of\s+inertia/i,
+      /(?:mass\s+|rotor\s+|external\s+)?inertia\b/i,
+      /\bWR2\b/i,
+      /tr[äa]gheitsmoment/i,
+      /moment\s+d['e]inertie/i,
+      /momento\s+d['e]inerzia/i,
+      /momento\s+de\s+inercia/i,
+      /traagheidsmoment/i,
+      /moment\s+tromosti/i
+    ]
+  },
+  {
+    key: "gearRatio",
+    label: "Gear ratio",
+    synonyms: [
+      /gear(?:\s+unit)?\s+ratio/i,
+      /reduction\s+ratio/i,
+      /transmission\s+ratio/i,
+      /total\s+ratio/i,
+      /[üu]bersetzung(?:sverh[äa]ltnis)?/i,
+      /untersetzung/i,
+      /rapport\s+de\s+r[ée]duction/i,
+      /rapporto\s+di\s+riduzione/i,
+      /relaci[óo]n\s+de\s+reducci[óo]n/i,
+      /overbrengingsverhouding/i,
+      /prijenosni\s+omjer/i
+    ]
+  },
+  {
+    key: "lockedRotorCurrentRatio",
+    label: "Starting / locked-rotor current ratio",
+    synonyms: [
+      /locked[-\s]?rotor\s+current/i,
+      /starting\s+current(?:\s+ratio)?/i,
+      /\bIp\/In\b/i,
+      /\bIA\/IN\b/i,
+      /anlaufstrom(?:verh[äa]ltnis)?/i,
+      /anzugsstrom/i,
+      /courant\s+de\s+d[ée]marrage/i,
+      /corrente\s+di\s+spunto/i,
+      /corriente\s+de\s+arranque/i,
+      /aanloopstroom/i,
+      /struja\s+pokretanja/i
+    ]
+  },
+  {
+    key: "overloadCapability",
+    label: "Overload capability",
+    synonyms: [
+      /overload\s+(?:capability|capacity|torque|current)/i,
+      /overloadability/i,
+      /[üu]berlast(?:barkeit|f[äa]higkeit|moment)/i,
+      /capacit[ée]\s+de\s+surcharge/i,
+      /capacit[àa]\s+di\s+sovraccarico/i,
+      /capacidad\s+de\s+sobrecarga/i,
+      /overbelasting(?:scapaciteit)?/i,
+      /preopteret/i
+    ]
+  },
+  // ── Circuit protection / fuses / relays ───────────────────────────────────
+  {
+    key: "fuseClass",
+    label: "Fuse class / operating class",
+    synonyms: [
+      /\b(?:gG|gL|aM|aR|gR|gPV|gS|aR)\b/,                      // IEC operating classes
+      /\bgL\/gG\b/,
+      /(?:fuse\s+|operating\s+)?class\s+(?:CC|J|T|RK1|RK5|L|G|H|K5)\b/i, // UL fuse classes
+      /operating\s+class/i,
+      /fuse\s+class/i,
+      /betriebsklasse/i,
+      /classe\s+de\s+fusible/i,
+      /classe\s+(?:di\s+)?fusibile/i
+    ]
+  },
+  {
+    key: "fuseSpeed",
+    label: "Fuse speed / acting characteristic",
+    synonyms: [
+      /(?:super[-\s]?)?(?:quick|fast)[-\s]?acting/i,
+      /slow[-\s]?blow/i,
+      /time[-\s]?(?:lag|delay)/i,
+      /dual[-\s]?element\s+time[-\s]?delay/i,
+      /very\s+fast[-\s]?acting/i,
+      /tr[äa]ge\b/i,                                            // DE slow
+      /flink\b/i,                                              // DE fast
+      /mitteltr[äa]ge/i,                                        // DE medium time-lag
+      /\b(?:FF|F|T|TT|M)\b\s*(?:characteristic)?/               // Schurter FF/F/T/TT/M
+    ]
+  },
+  {
+    key: "ratedResidualCurrent",
+    label: "Rated residual current (RCD)",
+    synonyms: [
+      /rated\s+residual\s+(?:operating\s+)?current/i,
+      /residual\s+operating\s+current/i,
+      /\bI[ΔdD]n\b/,
+      /earth[-\s]?leakage\s+(?:current\s+)?rating/i,
+      /bemessungs(?:differenz|fehler)strom/i,
+      /courant\s+diff[ée]rentiel\s+(?:assign[ée]|r[ée]siduel)/i,
+      /corrente\s+differenziale\s+(?:nominale|residua)/i,
+      /corriente\s+diferencial\s+(?:nominal|residual)/i,
+      /nazivna\s+diferencijalna\s+struja/i
+    ]
+  },
+  {
+    key: "rcdType",
+    label: "RCD type",
+    synonyms: [
+      /\bRCD\s+type\b/i,
+      /residual\s+current\s+(?:device\s+)?type/i,
+      /\btype\s+(?:AC|A|B|F|B\+|EV)\b\s*(?:RCD|residual|rcbo|rccb)/i,
+      /\brcd\s+(?:class|characteristic)\b/i
+    ]
+  },
+  {
+    key: "letThroughCurrent",
+    label: "Let-through current / I²t",
+    synonyms: [
+      /(?:peak\s+)?let[-\s]?through\s+current/i,
+      /(?:nominal\s+|total\s+|melting\s+|clearing\s+)?I\s?2\s?t/i, // I2t / I²t
+      /\bI[²2]t\b/i,
+      /durchlassstrom/i,
+      /schmelzintegral/i,
+      /joule\s+integral/i,
+      /\bIp\b\s*(?:let[-\s]?through)?/i
+    ]
+  },
+  {
+    key: "switchingCapacity",
+    label: "Switching capacity (relay output)",
+    synonyms: [
+      /switching\s+(?:capacity|power)/i,
+      /max(?:imum)?\.?\s+switching\s+(?:voltage|current|power)/i,
+      /switching\s+(?:voltage|current)/i,
+      /contact\s+rating/i,                                     // relay contact rating
+      /schaltleistung/i,
+      /schalt(?:spannung|strom)/i,
+      /pouvoir\s+de\s+commutation/i,
+      /potere\s+di\s+commutazione/i,
+      /capacidad\s+de\s+conmutaci[óo]n/i,
+      /schakelvermogen/i
+    ]
+  },
+  {
+    key: "coilPower",
+    label: "Coil power",
+    unitKind: "power",
+    synonyms: [
+      /coil\s+(?:power|consumption|wattage)/i,
+      /coil\s+(?:VA|W)\b/,
+      /spulenleistung/i,
+      /leistungsaufnahme\s+der\s+spule/i,
+      /puissance\s+de\s+(?:la\s+)?bobine/i,
+      /potenza\s+(?:della\s+)?bobina/i,
+      /potencia\s+de\s+(?:la\s+)?bobina/i
+    ]
+  },
+  {
+    key: "overvoltageCategory",
+    label: "Overvoltage category",
+    synonyms: [
+      /over[-\s]?voltage\s+categor/i,
+      /[üu]berspannungskategorie/i,
+      /cat[ée]gorie\s+de\s+surtension/i,
+      /categoria\s+di\s+sovratensione/i,
+      /categor[íi]a\s+de\s+sobretensi[óo]n/i,
+      /overspanningscategorie/i,
+      /kategorija\s+prenapona/i
+    ]
+  },
+  // ── Terminal blocks / connection technology ───────────────────────────────
+  {
+    key: "connectionTechnology",
+    label: "Connection technology",
+    synonyms: [
+      /connection\s+technology/i,
+      /\bCAGE\s?CLAMP\b/i,
+      /push[-\s]?in(?:\s+CAGE\s?CLAMP)?(?:\s+connection)?/i,
+      /\bPUSH[-\s]?X\b/i,
+      /tension[-\s]?(?:clamp|spring)(?:\s+connection)?/i,
+      /spring[-\s]?cage(?:\s+connection)?/i,
+      /spring[-\s]?clamp/i,
+      /screw[-\s]?clamp/i,
+      /\bIDC\b/,
+      /insulation[-\s]?displacement/i,
+      /fast[-\s]?on/i,
+      /anschlusstechnik/i,
+      /(?:zugfeder|federzug|k[äa]figzug)(?:anschluss|klemme)?/i,
+      /schraubanschluss/i
+    ]
+  },
+  {
+    key: "strippingLength",
+    label: "Stripping length",
+    unitKind: "length",
+    synonyms: [
+      /strip(?:ping)?\s+length/i,
+      /wire\s+strip\s+length/i,
+      /abisolierl[äa]nge/i,
+      /longueur\s+(?:de\s+d[ée]nudage|[àa]\s+d[ée]nuder)/i,
+      /lunghezza\s+(?:di\s+)?spelatura/i,
+      /longitud\s+de\s+pelado/i,
+      /striplengte/i,
+      /duljina\s+skidanja\s+izolacije/i
+    ]
+  },
+  // ── Enclosure climate (cooling / heating) ─────────────────────────────────
+  {
+    key: "coolingOutput",
+    label: "Cooling output / capacity",
+    unitKind: "power",
+    synonyms: [
+      /(?:total\s+|useful\s+|rated\s+)?cooling\s+(?:output|capacity|power)/i,
+      /refrigeration\s+(?:capacity|output)/i,
+      /(?:gesamt|nutz)?k[üu]hlleistung/i,
+      /puissance\s+frigorifique/i,
+      /potenza\s+frigorifera/i,
+      /potencia\s+frigor[íi]fica/i,
+      /koelvermogen/i,
+      /rashladni\s+u[čc]inak/i
+    ]
+  },
+  {
+    key: "heatingCapacity",
+    label: "Heating capacity",
+    unitKind: "power",
+    synonyms: [
+      /heating\s+(?:capacity|output|power)/i,
+      /heater\s+(?:power|output|wattage|rating)/i,
+      /heizleistung/i,
+      /puissance\s+de\s+chauffage/i,
+      /potenza\s+(?:riscaldante|di\s+riscaldamento)/i,
+      /potencia\s+(?:calef|de\s+calefacci[óo]n)/i,
+      /verwarmingsvermogen/i,
+      /u[čc]inak\s+grijanja/i
+    ]
+  },
+  {
+    key: "refrigerant",
+    label: "Refrigerant",
+    synonyms: [
+      /\brefrigerant\b/i,
+      /\bR[-\s]?\d{2,4}[A-Za-z]?\b/,                            // R-513A, R134a, R410A
+      /k[äa]ltemittel/i,
+      /fluide\s+frigorig[èe]ne/i,
+      /\brefrigerante\b/i,
+      /koudemiddel/i,
+      /rashladni\s+medij/i
+    ]
+  },
+  {
+    key: "gwp",
+    label: "Global warming potential",
+    synonyms: [
+      /\bGWP\b/,
+      /global\s+warming\s+potential/i,
+      /treibhauspotenzial/i,
+      /potentiel\s+de\s+r[ée]chauffement/i,
+      /potenziale\s+di\s+riscaldamento\s+globale/i,
+      /potencial\s+de\s+calentamiento\s+global/i
+    ]
+  },
+  // ── Pneumatics / fluid ────────────────────────────────────────────────────
+  {
+    key: "stroke",
+    label: "Stroke length",
+    unitKind: "length",
+    synonyms: [
+      /stroke(?:\s+length)?/i,
+      /\bhub\b/i,
+      /hubl[äa]nge/i,
+      /\bcourse\b/i,
+      /\bcorsa\b/i,
+      /\bcarrera\b/i,
+      /\bslag\b/i,
+      /\bhod\b/i
+    ]
+  },
+  {
+    key: "bore",
+    label: "Bore / piston diameter",
+    unitKind: "length",
+    synonyms: [
+      /\bbore(?:\s+(?:size|diameter))?\b/i,
+      /piston\s+diameter/i,
+      /piston[-\s]?[øo]/i,
+      /kolben(?:durchmesser|[-\s]?[øo])/i,
+      /\bal[ée]sage\b/i,
+      /\balesaggio\b/i,
+      /di[áa]metro\s+del\s+pist[óo]n/i,
+      /zuiger(?:diameter|[-\s]?[øo])/i,
+      /promjer\s+(?:klipa|cilindra)/i
+    ]
+  },
+  {
+    key: "flowCoefficient",
+    label: "Flow coefficient (Kv/Cv)",
+    synonyms: [
+      /\bKv(?:s)?(?:[-\s]?(?:value|wert))?\b/i,
+      /\bCv(?:[-\s]?value)?\b/,
+      /flow\s+coefficient/i,
+      /durchflusskoeffizient/i,
+      /valeur\s+kv/i,
+      /valore\s+kv/i,
+      /coeficiente\s+de\s+(?:caudal|flujo)/i
+    ]
+  },
+  {
+    key: "orificeSize",
+    label: "Orifice / nominal diameter",
+    unitKind: "length",
+    synonyms: [
+      /orifice(?:\s+(?:size|diameter))?/i,
+      /nominal\s+diameter\s*(?:DN)?/i,
+      /\bDN\s?\d{1,4}\b/,
+      /nennweite/i,
+      /diam[èe]tre\s+nominal/i,
+      /diametro\s+nominale/i,
+      /di[áa]metro\s+nominal/i,
+      /nominale\s+diameter/i,
+      /nazivni\s+promjer/i
+    ]
+  },
+  {
+    key: "medium",
+    label: "Operating medium / fluid",
+    synonyms: [
+      /operating\s+medium/i,
+      /\bworking\s+fluid\b/i,
+      /\bfluid\b/i,
+      /\bmedium\b/i,
+      /betriebsmedium/i,
+      /(?:f[öo]rder|prozess)medium/i,
+      /\bfluide\b/i,
+      /\bfluido\b/i,
+      /\bmedij\b/i
+    ],
+    exclude: [/medium\s+(?:voltage|time|wave|size|access|temperature)/i, /\bmedium[-\s]?time[-\s]?lag\b/i]
+  },
+  {
+    key: "theoreticalForce",
+    label: "Theoretical force",
+    synonyms: [
+      /theoretical\s+force/i,
+      /(?:advancing|retracting|pushing|pulling|actuating|holding)\s+force/i,
+      /theoretische\s+kraft/i,
+      /force\s+th[ée]orique/i,
+      /forza\s+teorica/i,
+      /fuerza\s+te[óo]rica/i
+    ]
+  },
+  // ── Process instrumentation / measuring sensors ───────────────────────────
+  {
+    key: "accuracy",
+    label: "Accuracy",
+    synonyms: [
+      /\baccuracy\b/i,
+      /accuracy\s+(?:class|at\s+reference)/i,
+      /measured?\s+error/i,
+      /measurement\s+error/i,
+      /reference\s+accuracy/i,
+      /non[-\s]?linearity(?:\s+\(?BFSL\)?)?/i,
+      /(?:total\s+)?deviation/i,
+      /messabweichung/i,
+      /messgenauigkeit/i,
+      /genauigkeit/i,
+      /\bpr[ée]cision\b/i,
+      /\bprecisione\b/i,
+      /\bprecisi[óo]n\b/i,
+      /nauwkeurigheid/i,
+      /to[čc]nost/i
+    ],
+    exclude: [/repeat|reproducib|wiederhol/i]
+  },
+  {
+    key: "measuringRange",
+    label: "Measuring range / span",
+    synonyms: [
+      /measuring\s+range/i,
+      /measurement\s+range/i,
+      /\bspan\b/i,
+      /full[-\s]?scale(?:\s+value)?/i,
+      /measuring\s+span/i,
+      /messbereich/i,
+      /messspanne/i,
+      /plage\s+de\s+mesure/i,
+      /campo\s+di\s+misura/i,
+      /rango\s+de\s+medici[óo]n/i,
+      /meetbereik/i,
+      /mjerno\s+podru[čc]je/i
+    ]
+  },
+  {
+    key: "turndown",
+    label: "Turndown ratio",
+    synonyms: [
+      /turn[-\s]?down(?:\s+ratio)?/i,
+      /\bTD\s+ratio\b/i,
+      /adjustment\s+ratio/i,
+      /messspannenverh[äa]ltnis/i,
+      /rapport\s+de\s+r[ée]glage/i,
+      /rapporto\s+di\s+campo/i,
+      /relaci[óo]n\s+de\s+ajuste/i
+    ]
+  },
+  {
+    key: "resolution",
+    label: "Resolution",
+    synonyms: [
+      /\bresolution\b/i,
+      /aufl[öo]sung/i,
+      /\br[ée]solution\b/i,
+      /\brisoluzione\b/i,
+      /\bresoluci[óo]n\b/i,
+      /\bresolutie\b/i,
+      /\brezolucija\b/i
+    ]
+  },
+  {
+    key: "linearity",
+    label: "Linearity",
+    synonyms: [
+      /\blinearity\b/i,
+      /linearity\s+error/i,
+      /linearit[äa]t(?:sfehler)?/i,
+      /lin[ée]arit[ée]/i,
+      /linearit[àa]/i,
+      /linealidad/i,
+      /lineariteit/i,
+      /linearnost/i
+    ]
+  },
+  // ── Switching / measuring sensors ─────────────────────────────────────────
+  {
+    key: "hysteresis",
+    label: "Hysteresis",
+    synonyms: [
+      /\bhysteresis\b/i,
+      /\bhysterese\b/i,
+      /differential\s+travel/i,                                // Omron's term for hysteresis
+      /\bhist[ée]resis\b/i,
+      /\bisteresi\b/i,
+      /\bhistereza\b/i
+    ]
+  },
+  {
+    key: "blindZone",
+    label: "Blind zone / dead band",
+    unitKind: "length",
+    synonyms: [
+      /blind\s+(?:zone|spot)/i,
+      /dead\s+(?:zone|band)/i,
+      /\btotzone\b/i,
+      /blindbereich/i,
+      /zone\s+morte/i,
+      /zona\s+(?:cieca|muerta)/i,
+      /dode\s+zone/i,
+      /mrtva\s+zona/i
+    ]
+  },
+  {
+    key: "correctionFactor",
+    label: "Correction / reduction factor",
+    synonyms: [
+      /correction\s+factor/i,
+      /reduction\s+factor/i,
+      /korrektur(?:faktor)?/i,
+      /reduktionsfaktor/i,
+      /facteur\s+de\s+(?:correction|r[ée]duction)/i,
+      /fattore\s+di\s+(?:correzione|riduzione)/i,
+      /factor\s+de\s+(?:correcci[óo]n|reducci[óo]n)/i,
+      /reductiefactor/i
+    ]
+  },
+  {
+    key: "voltageDrop",
+    label: "Voltage drop",
+    unitKind: "voltage",
+    synonyms: [
+      /voltage\s+drop/i,
+      /residual\s+voltage/i,                                   // Omron's term for voltage drop
+      /spannungs(?:fall|abfall)/i,
+      /chute\s+de\s+tension/i,
+      /caduta\s+di\s+tensione/i,
+      /ca[íi]da\s+de\s+tensi[óo]n/i,
+      /spanningsval/i,
+      /pad\s+napona/i
+    ]
+  },
+  {
+    key: "leakageCurrent",
+    label: "Leakage / off-state current",
+    unitKind: "current",
+    synonyms: [
+      /leakage\s+current/i,
+      /off[-\s]?state\s+current/i,
+      /residual\s+current/i,                                   // 2-wire sensor leakage (NOT the RCD IΔn)
+      /reststrom/i,
+      /leckstrom/i,
+      /courant\s+de\s+fuite/i,
+      /corrente\s+di\s+dispersione/i,
+      /corriente\s+de\s+fuga/i,
+      /lekstroom/i,
+      /struja\s+curenja/i
+    ],
+    exclude: [/rated\s+residual|differential|fehlerstrom|differenzstrom/i]
+  },
+  {
+    key: "lightDarkOperate",
+    label: "Light/dark operate",
+    synonyms: [
+      /light\s*\/\s*dark\s+(?:operate|switching|on)/i,
+      /(?:light|dark)[-\s]?on\b/i,
+      /\bL\.?O\.?\s*\/\s*D\.?O\.?\b/,
+      /hell[-\s]?dunkel/i,
+      /(?:hell|dunkel)schaltung/i
     ]
   }
 ];

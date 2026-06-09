@@ -147,6 +147,134 @@ describe("property ontology — general multilingual understanding", () => {
     expect(matchProperty("Input type")?.key).toBe("inputType");
   });
 
+  it("understands motor / drive spec labels (WEG, SEW, Lenze, Danfoss, ABB, Siemens)", () => {
+    expect(matchProperty("Rated speed")?.key).toBe("ratedSpeed");
+    expect(matchProperty("RPM")?.key).toBe("ratedSpeed");
+    expect(matchProperty("Nenndrehzahl")?.key).toBe("ratedSpeed");
+    expect(matchProperty("Output speed na")?.key).toBe("ratedSpeed");
+    expect(matchProperty("IE3")?.key).toBe("efficiencyClass");
+    expect(matchProperty("Efficiency class")?.key).toBe("efficiencyClass");
+    expect(matchProperty("Insulation class")?.key).toBe("insulationClass");
+    expect(matchProperty("Wärmeklasse")?.key).toBe("insulationClass");
+    expect(matchProperty("Service factor")?.key).toBe("serviceFactor");
+    expect(matchProperty("Duty type S1")?.key).toBe("dutyType");
+    expect(matchProperty("Moment of inertia")?.key).toBe("momentOfInertia");
+    expect(matchProperty("Gear unit ratio i")?.key).toBe("gearRatio");
+    expect(matchProperty("Reduction ratio")?.key).toBe("gearRatio");
+    expect(matchProperty("Overload capability")?.key).toBe("overloadCapability");
+    expect(matchProperty("Locked rotor current")?.key).toBe("lockedRotorCurrentRatio");
+    expect(matchProperty("Starting current ratio")?.key).toBe("lockedRotorCurrentRatio");
+    // expanded power: motor/drive output variants
+    expect(matchProperty("Rated output")?.key).toBe("power");
+    expect(matchProperty("Shaft power")?.key).toBe("power");
+    expect(matchProperty("Typical shaft output")?.key).toBe("power");
+  });
+
+  it("understands circuit-protection / fuse / relay labels (Mersen, Bussmann, Littelfuse, Hager, Finder)", () => {
+    expect(matchProperty("gG")?.key).toBe("fuseClass");
+    expect(matchProperty("Class J")?.key).toBe("fuseClass");
+    expect(matchProperty("Operating class")?.key).toBe("fuseClass");
+    expect(matchProperty("Slow-Blow")?.key).toBe("fuseSpeed");
+    expect(matchProperty("Fast-Acting")?.key).toBe("fuseSpeed");
+    expect(matchProperty("Dual-element time-delay")?.key).toBe("fuseSpeed");
+    expect(matchProperty("Rated residual current")?.key).toBe("ratedResidualCurrent");
+    expect(matchProperty("Bemessungsdifferenzstrom")?.key).toBe("ratedResidualCurrent");
+    expect(matchProperty("RCD type")?.key).toBe("rcdType");
+    expect(matchProperty("Let-through current")?.key).toBe("letThroughCurrent");
+    expect(matchProperty("Switching capacity")?.key).toBe("switchingCapacity");
+    expect(matchProperty("Contact rating")?.key).toBe("switchingCapacity");
+    expect(matchProperty("Coil power")?.key).toBe("coilPower");
+    expect(matchProperty("Overvoltage category")?.key).toBe("overvoltageCategory");
+    // expanded ratedCurrent / breakingCapacity symbols
+    expect(matchProperty("Rated uninterrupted current Iu")?.key).toBe("ratedCurrent");
+    expect(matchProperty("Current Rating")?.key).toBe("ratedCurrent");
+    expect(matchProperty("Continuous rms current")?.key).toBe("ratedCurrent");
+    expect(matchProperty("Rated breaking capacity Icn")?.key).toBe("breakingCapacity");
+    expect(matchProperty("AC Interrupting Rating")?.key).toBe("breakingCapacity");
+  });
+
+  it("understands terminal-block labels (WAGO, Weidmüller, Phoenix)", () => {
+    expect(matchProperty("Connection technology")?.key).toBe("connectionTechnology");
+    expect(matchProperty("Push-in CAGE CLAMP")?.key).toBe("connectionTechnology");
+    expect(matchProperty("Tension clamp connection")?.key).toBe("connectionTechnology");
+    expect(matchProperty("Stripping length")?.key).toBe("strippingLength");
+    expect(matchProperty("Abisolierlänge")?.key).toBe("strippingLength");
+    expect(matchProperty("Rated cross-section")?.key).toBe("conductorCrossSection");
+    expect(matchProperty("AWG")?.key).toBe("conductorCrossSection");
+    expect(matchProperty("Number of connections")?.key).toBe("poles");
+    expect(matchProperty("Number of levels")?.key).toBe("poles");
+  });
+
+  it("understands enclosure-climate labels (Rittal, Pfannenberg, STEGO)", () => {
+    expect(matchProperty("Total cooling output")?.key).toBe("coolingOutput");
+    expect(matchProperty("Cooling capacity")?.key).toBe("coolingOutput");
+    expect(matchProperty("Nutzkühlleistung")?.key).toBe("coolingOutput");
+    expect(matchProperty("Heating capacity")?.key).toBe("heatingCapacity");
+    expect(matchProperty("Heizleistung")?.key).toBe("heatingCapacity");
+    expect(matchProperty("Refrigerant")?.key).toBe("refrigerant");
+    expect(matchProperty("Global Warming Potential (GWP)")?.key).toBe("gwp");
+    expect(matchProperty("Air throughput")?.key).toBe("flowRate");
+  });
+
+  it("understands pneumatic / fluid labels (Festo, SMC, Bürkert)", () => {
+    expect(matchProperty("Stroke length")?.key).toBe("stroke");
+    expect(matchProperty("Hub")?.key).toBe("stroke");
+    expect(matchProperty("Bore size")?.key).toBe("bore");
+    expect(matchProperty("Piston diameter")?.key).toBe("bore");
+    expect(matchProperty("Kv value")?.key).toBe("flowCoefficient");
+    expect(matchProperty("Orifice")?.key).toBe("orificeSize");
+    expect(matchProperty("Nominal diameter DN")?.key).toBe("orificeSize");
+    expect(matchProperty("Operating medium")?.key).toBe("medium");
+    expect(matchProperty("Fluid")?.key).toBe("medium");
+    expect(matchProperty("Theoretical force at 6 bar")?.key).toBe("theoreticalForce");
+    expect(matchProperty("Proof pressure")?.key).toBe("pressure");
+    expect(matchProperty("Max operating pressure")?.key).toBe("pressure");
+  });
+
+  it("understands process-instrument / measuring-sensor labels (E+H, VEGA, WIKA, Keyence, Omron, SICK)", () => {
+    expect(matchProperty("Accuracy")?.key).toBe("accuracy");
+    expect(matchProperty("Measured error")?.key).toBe("accuracy");
+    expect(matchProperty("Measuring range")?.key).toBe("measuringRange");
+    expect(matchProperty("Full scale value")?.key).toBe("measuringRange");
+    expect(matchProperty("Turndown ratio")?.key).toBe("turndown");
+    expect(matchProperty("Resolution")?.key).toBe("resolution");
+    expect(matchProperty("Linearity")?.key).toBe("linearity");
+    expect(matchProperty("Hysteresis")?.key).toBe("hysteresis");
+    expect(matchProperty("Differential travel")?.key).toBe("hysteresis"); // Omron's term
+    expect(matchProperty("Blind zone")?.key).toBe("blindZone");
+    expect(matchProperty("Correction factors")?.key).toBe("correctionFactor");
+    expect(matchProperty("Reduction factor")?.key).toBe("correctionFactor"); // Turck
+    expect(matchProperty("Voltage drop")?.key).toBe("voltageDrop");
+    expect(matchProperty("Residual voltage")?.key).toBe("voltageDrop"); // Omron's term
+    expect(matchProperty("Leakage current")?.key).toBe("leakageCurrent");
+    expect(matchProperty("Light/Dark operate")?.key).toBe("lightDarkOperate");
+    // expanded sensor variants
+    expect(matchProperty("Sensing range Sn")?.key).toBe("sensingDistance");
+    expect(matchProperty("Scanning range")?.key).toBe("sensingDistance");
+    expect(matchProperty("Response frequency")?.key).toBe("switchingFrequency"); // Omron
+    expect(matchProperty("Repeatability")?.key).toBe("repeatAccuracy");
+    expect(matchProperty("Output signal")?.key).toBe("outputType");
+    expect(matchProperty("Process connection")?.key).toBe("connectionType");
+    expect(matchProperty("Port size")?.key).toBe("connectionType");
+  });
+
+  it("disambiguates false-friend labels across product families", () => {
+    // Medium-* are NOT the fluid 'medium'
+    expect(matchProperty("Medium voltage")?.key).not.toBe("medium");
+    expect(matchProperty("Medium time-lag")?.key).not.toBe("medium");
+    // Coil power is its own concept, not the coil control voltage
+    expect(matchProperty("Coil power")?.key).toBe("coilPower");
+    // RCD rated residual current must beat the generic sensor leakage 'residual current'
+    expect(matchProperty("Rated residual current")?.key).toBe("ratedResidualCurrent");
+    expect(matchProperty("Residual current")?.key).toBe("leakageCurrent");
+    // sampling speed must not be taken as motor shaft speed
+    expect(matchProperty("Max. sampling speed")?.key).not.toBe("ratedSpeed");
+    // PN pressure designation must not be read as power (P_N)
+    expect(matchProperty("PN16")?.key).not.toBe("power");
+    // Bore is its own (cylinder) concept, not generic diameter
+    expect(matchProperty("Bore")?.key).toBe("bore");
+  });
+
   it("flags labels it does not understand (knowledge-base gaps), never guesses them", () => {
     const gaps = findUnmappedSpecLabels([
       { name: "Nennstrom", value: "16 A" }, // mapped → not a gap
