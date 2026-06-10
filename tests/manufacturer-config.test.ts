@@ -36,15 +36,62 @@ describe("manufacturer config aliases", () => {
           maxCandidates: 7
         },
         interactionPolicy: { expandSelectors: ["button[aria-expanded='false']"], maxClicks: 20 },
-        extractionPolicy: { labelAliases: { Gewicht: "Weight" }, documentUrlPatterns: ["datasheet"] },
-        qualityPolicy: { requiredNormalizedFields: ["weight"], requiredDocumentTypes: ["datasheet"] }
+        extractionPolicy: {
+          labelAliases: { Gewicht: "Weight" },
+          documentUrlPatterns: ["datasheet"],
+          embeddedProductTableNames: ["customProductRows"],
+          embeddedResourceTableNames: ["customResourceRows"]
+        },
+        qualityPolicy: {
+          requiredNormalizedFields: ["weight", "color", "operatingTemperatureMin", "operatingTemperatureMax"],
+          requiredFinalFields: ["weight", "dimensions", "material"],
+          preferredFinalFields: ["certificates"],
+          typeCodeFallback: "catalogNumber",
+          rationales: {
+            requiredFinalFields: "Custom official datasheets require physical final fields.",
+            preferredFinalFields: "Custom PDT examples treat certificates as preferred.",
+            typeCodeFallback: "Custom official pages use catalog number as source-backed type code."
+          },
+          requiredDocumentTypes: ["datasheet"]
+        },
+        fallbackPolicy: {
+          documentDownloadProfile: "images-only",
+          skipPreferredFinalCompletenessRetry: true,
+          rationales: {
+            documentDownloadProfile: "Custom official image documents are source-backed, but non-image files should not be saved.",
+            skipPreferredFinalCompletenessRetry: "Custom official pages do not improve preferred-only final fields."
+          }
+        }
       }
     });
 
     expect(saved.scrapeRecipe?.discoveryPolicy?.maxCandidates).toBe(7);
     expect(saved.scrapeRecipe?.interactionPolicy?.maxClicks).toBe(20);
     expect(saved.scrapeRecipe?.extractionPolicy?.labelAliases?.Gewicht).toBe("Weight");
-    expect(saved.scrapeRecipe?.qualityPolicy?.requiredNormalizedFields).toEqual(["weight"]);
+    expect(saved.scrapeRecipe?.extractionPolicy?.embeddedProductTableNames).toEqual(["customProductRows"]);
+    expect(saved.scrapeRecipe?.extractionPolicy?.embeddedResourceTableNames).toEqual(["customResourceRows"]);
+    expect(saved.scrapeRecipe?.qualityPolicy?.requiredNormalizedFields).toEqual([
+      "weight",
+      "color",
+      "operatingTemperatureMin",
+      "operatingTemperatureMax"
+    ]);
+    expect(saved.scrapeRecipe?.qualityPolicy?.requiredFinalFields).toEqual(["weight", "dimensions", "material"]);
+    expect(saved.scrapeRecipe?.qualityPolicy?.preferredFinalFields).toEqual(["certificates"]);
+    expect(saved.scrapeRecipe?.qualityPolicy?.typeCodeFallback).toBe("catalogNumber");
+    expect(saved.scrapeRecipe?.qualityPolicy?.rationales?.requiredFinalFields).toBe("Custom official datasheets require physical final fields.");
+    expect(saved.scrapeRecipe?.qualityPolicy?.rationales?.preferredFinalFields).toBe("Custom PDT examples treat certificates as preferred.");
+    expect(saved.scrapeRecipe?.qualityPolicy?.rationales?.typeCodeFallback).toBe(
+      "Custom official pages use catalog number as source-backed type code."
+    );
+    expect(saved.scrapeRecipe?.fallbackPolicy?.documentDownloadProfile).toBe("images-only");
+    expect(saved.scrapeRecipe?.fallbackPolicy?.rationales?.documentDownloadProfile).toBe(
+      "Custom official image documents are source-backed, but non-image files should not be saved."
+    );
+    expect(saved.scrapeRecipe?.fallbackPolicy?.skipPreferredFinalCompletenessRetry).toBe(true);
+    expect(saved.scrapeRecipe?.fallbackPolicy?.rationales?.skipPreferredFinalCompletenessRetry).toBe(
+      "Custom official pages do not improve preferred-only final fields."
+    );
   });
 
   it("edits built-ins as local overrides and can reset back to the built-in config", async () => {

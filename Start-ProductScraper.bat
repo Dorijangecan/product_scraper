@@ -134,6 +134,34 @@ if "!NPM_INSTALL_NEEDED!"=="1" (
     type nul > "!NPM_STAMP!"
 )
 
+:: Native moduli (npr. better-sqlite3) ovise o tocnoj Node ABI verziji.
+:: Ako su node_modules zadnji put instalirani s drugim Nodeom, aplikacija se srusi
+:: na startu s "NODE_MODULE_VERSION ...". Provjeri i automatski rebuildaj.
+node -e "require('better-sqlite3'); console.log('native-ok')" >nul 2>&1
+if errorlevel 1 (
+    echo.
+    echo  Native moduli nisu za ovu Node.js verziju - popravljam better-sqlite3...
+    echo.
+    call npm rebuild better-sqlite3
+    if errorlevel 1 (
+        echo.
+        echo  GRESKA pri popravljanju better-sqlite3 native modula!
+        echo  Probaj rucno pokrenuti: npm rebuild better-sqlite3
+        echo.
+        pause
+        exit /b 1
+    )
+    node -e "require('better-sqlite3')" >nul 2>&1
+    if errorlevel 1 (
+        echo.
+        echo  better-sqlite3 se i dalje ne moze ucitati.
+        echo  Probaj rucno: npm install
+        echo.
+        pause
+        exit /b 1
+    )
+)
+
 :: Provjeri je li Electron binary raspakiran (path.txt mora sadrzavati samo "electron.exe")
 if exist "node_modules\electron\path.txt" (
     for /f %%i in (node_modules\electron\path.txt) do set EPATH=%%i

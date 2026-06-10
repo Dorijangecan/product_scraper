@@ -1,10 +1,22 @@
-{
-  "manufacturerId": "schmersal",
-  "catalogNumber": "AZM300B-ST-1P2P-A",
-  "caseType": "electrical",
-  "expectedDeviceType": "Safety Sensor",
-  "riskTags": ["configured-fallback", "safety-device"],
-  "expectedOfficialUrlPatterns": ["products\\.schmersal\\.com/.*/AZM300B-ST-1P2P-A\\.html"],
-  "requiredDocuments": ["image"],
-  "expectedNormalizedFields": ["certificates"]
-}
+[
+  {
+    "manufacturerId": "schmersal",
+    "catalogNumber": "AZM300B-ST-1P2P-A",
+    "caseType": "electrical",
+    "expectedDeviceType": "Safety Sensor",
+    "riskTags": ["configured-fallback", "safety-device"],
+    "expectedOfficialUrlPatterns": ["products\\.schmersal\\.com/.*/AZM300B-ST-1P2P-A\\.html"],
+    "requiredDocuments": ["image"],
+    "expectedNormalizedFields": ["certificates"]
+  },
+  {
+    "manufacturerId": "schmersal",
+    "catalogNumber": "SRB-E-201ST",
+    "caseType": "electrical",
+    "expectedDeviceType": "Safety Relay",
+    "riskTags": ["customer-document-supported", "safety-relay", "schmersal-thin-coverage"],
+    "expectedOfficialUrlPatterns": ["products\\.schmersal\\.com", "file:.*/thin-manufacturer-fixtures\\.csv"],
+    "customerDocuments": ["customer-documents/thin-manufacturer-fixtures.csv"],
+    "expectedNormalizedFields": ["current", "dimensions", "weight", "material", "voltage", "certificates"]
+  }
+]

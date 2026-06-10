@@ -233,7 +233,7 @@ export function parseGenericProductPage(
   attributes.push(...dynamicData.attributes);
   documents.push(...dynamicData.documents);
 
-  const embeddedTableData = extractEmbeddedTableData(fetched.text, catalogNumber, fetched.effectiveUrl);
+  const embeddedTableData = extractEmbeddedTableData(fetched.text, catalogNumber, fetched.effectiveUrl, options.extractionPolicy);
   attributes.push(...embeddedTableData.attributes);
   documents.push(...embeddedTableData.documents);
 
@@ -1043,23 +1043,26 @@ function titleFromPath(path: string[]): string {
 function extractEmbeddedTableData(
   rawText: string,
   catalogNumber: string,
-  sourceUrl: string
+  sourceUrl: string,
+  extractionPolicy?: ExtractionPolicyConfig
 ): { attributes: AttributeRecord[]; documents: DocumentRecord[] } {
   const attributes: AttributeRecord[] = [];
   const documents: DocumentRecord[] = [];
-  const productTableNames = [
+  const productTableNames = uniqueStrings([
     "ProductDetail_ProductVariantsTable_Metric",
     "ProductDetail_ProductVariantsTable_Imperial",
     "ProductDetail_ProductVariantsTable",
     "productItemsTableDataMetric",
     "productItemsTableDataImperial",
-    "productItemsTableData"
-  ];
-  const resourceTableNames = [
+    "productItemsTableData",
+    ...(extractionPolicy?.embeddedProductTableNames ?? [])
+  ]);
+  const resourceTableNames = uniqueStrings([
     "ProductDetail_ProductResourcesTable",
     "resourcesTableData",
-    "productResourcesTableData"
-  ];
+    "productResourcesTableData",
+    ...(extractionPolicy?.embeddedResourceTableNames ?? [])
+  ]);
 
   for (const tableName of productTableNames) {
     for (const table of extractNamedJsonArrays(rawText, tableName)) {

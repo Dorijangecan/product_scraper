@@ -35,5 +35,15 @@
     "riskTags": ["abb-acs", "variable-speed-drive", "motors-sheet-coverage"],
     "expectedOfficialUrlPatterns": ["new\\.abb\\.com/products/pl/3A[XB]D50000038962/acs580-01-039a-4"],
     "expectedNormalizedFields": ["current", "voltage"]
+  },
+  {
+    "manufacturerId": "abb",
+    "catalogNumber": "GEN-12KVA",
+    "caseType": "electrical",
+    "expectedDeviceType": "Generator",
+    "riskTags": ["customer-document-supported", "generator-sheet-coverage", "power-voltage-current-facts"],
+    "expectedOfficialUrlPatterns": ["abb\\.com", "file:.*/rare-device-sheets\\.csv"],
+    "customerDocuments": ["customer-documents/rare-device-sheets.csv"],
+    "expectedNormalizedFields": ["current", "dimensions", "weight", "material", "voltage"]
   }
 ]

@@ -1,8 +1,20 @@
-{
-  "manufacturerId": "eta",
-  "catalogNumber": "3120-F521-P7T1-W01D-16A",
-  "caseType": "electrical",
-  "expectedDeviceType": "Circuit Breaker",
-  "riskTags": ["configured-fallback", "thermal-breaker", "eta-no-special-connector"],
-  "expectedOfficialUrlPatterns": ["e-t-a\\.com/.*/3120"]
-}
+[
+  {
+    "manufacturerId": "eta",
+    "catalogNumber": "3120-F521-P7T1-W01D-16A",
+    "caseType": "electrical",
+    "expectedDeviceType": "Circuit Breaker",
+    "riskTags": ["configured-fallback", "thermal-breaker", "eta-no-special-connector"],
+    "expectedOfficialUrlPatterns": ["e-t-a\\.com/.*/3120"]
+  },
+  {
+    "manufacturerId": "eta",
+    "catalogNumber": "ESS20-003-DC24V-2A",
+    "caseType": "electrical",
+    "expectedDeviceType": "Circuit Breaker",
+    "riskTags": ["customer-document-supported", "electronic-circuit-protector", "eta-thin-coverage"],
+    "expectedOfficialUrlPatterns": ["e-t-a\\.com", "file:.*/thin-manufacturer-fixtures\\.csv"],
+    "customerDocuments": ["customer-documents/thin-manufacturer-fixtures.csv"],
+    "expectedNormalizedFields": ["current", "dimensions", "weight", "material", "voltage", "certificates"]
+  }
+]

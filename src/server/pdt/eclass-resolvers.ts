@@ -1,5 +1,10 @@
 import type { ManufacturerConfig, ProductResult, RunItemRecord } from "../../shared/types.js";
 import type { PdtRepair } from "./ai-cleanup.js";
+import { compactFamilyShortDescription } from "./description-formatting.js";
+import { eclassDefaultForDeviceType, isSignalDeviceType } from "./device-type-profiles.js";
+import { bestFact, buildPdtFactIndex, type PdtFact, type PdtFactIndex } from "./facts.js";
+import { iec81346IdentifierForDeviceType } from "./iec-identifiers.js";
+import { pdtExceptionEclassDefault } from "./pdt-exceptions.js";
 import { maxUnitNumber, splitTemperatureRange } from "./unit-cleanup.js";
 import { pdtProductUrlRule } from "./rules.js";
 
@@ -13,6 +18,10 @@ export interface ResolveContext {
   sheetName?: string;
   /** Optional deterministic cleanup output for import-ready PDT values. */
   repair?: PdtRepair;
+  /** Optional normalized fact index shared with the exporter. */
+  pdtFacts?: PdtFactIndex;
+  /** Cache key for pdtFacts so shallow-copied contexts with a new item rebuild facts. */
+  pdtFactsKey?: string;
   /** Optional per-row overrides for generated PDT rows with mechanical variants. */
   rowVariant?: Record<string, string>;
   /**
@@ -50,8 +59,58 @@ function sourceRank(sourceType: string | undefined): number {
   return 0;
 }
 
+function pdtFactValue(ctx: ResolveContext, key: string): string | undefined {
+  return clean(pdtFact(ctx, key)?.value);
+}
+
+function pdtSourceFactValue(ctx: ResolveContext, key: string): string | undefined {
+  const fact = pdtFact(ctx, key);
+  if (!fact || fact.sourceKind === "generated-rule") return undefined;
+  return clean(fact.value);
+}
+
+function pdtFact(ctx: ResolveContext, key: string): PdtFact | undefined {
+  const cacheKey = pdtFactCacheKey(ctx);
+  if (ctx.pdtFacts && !ctx.pdtFactsKey) {
+    ctx.pdtFactsKey = cacheKey;
+  } else if (!ctx.pdtFacts || ctx.pdtFactsKey !== cacheKey) {
+    ctx.pdtFacts = buildPdtFactIndex({
+      item: ctx.item,
+      manufacturer: ctx.manufacturer,
+      deviceType: ctx.deviceType,
+      repair: ctx.repair
+    });
+    ctx.pdtFactsKey = cacheKey;
+  }
+  return bestFact(ctx.pdtFacts, key);
+}
+
+function pdtFactCacheKey(ctx: ResolveContext): string {
+  return [
+    ctx.manufacturer.id,
+    ctx.item.id,
+    ctx.item.catalogNumber,
+    ctx.item.result?.manufacturerId,
+    ctx.item.result?.catalogNumber,
+    ctx.deviceType,
+    ctx.repair?.catalogNumber
+  ].map((value) => value ?? "").join("|");
+}
+
 /** Extract a numeric weight from a normalized string like "2.5 kg" / "850 g". */
 function weight(ctx: ResolveContext): { kg?: number; g?: number } {
+  const pdtWeight = Number(pdtFactValue(ctx, "pdtWeightKg"));
+  if (Number.isFinite(pdtWeight)) return { kg: pdtWeight, g: pdtWeight * 1000 };
+  if (isRockwellPanelView5510(ctx)) return { kg: 2, g: 2000 };
+  if (isRockwellControlLogixL9(ctx)) return { kg: 0.394, g: 394 };
+  const powerFlexWeight = rockwellPowerFlex755TsWeight(ctx);
+  if (powerFlexWeight !== undefined) return { kg: powerFlexWeight, g: powerFlexWeight * 1000 };
+  const stratix = rockwellStratix2100Values(ctx);
+  if (stratix) {
+    const kg = Number(stratix.weight);
+    if (Number.isFinite(kg)) return { kg, g: kg * 1000 };
+  }
+  if (isRockwellArmorKinetixDsm(ctx)) return { kg: 5, g: 5000 };
   const raw = ctx.result?.normalized.weight;
   const parsed = parseWeightRaw(raw);
   // ABB datasheets often publish "0 kg" or omit weight entirely for small accessories.
@@ -112,19 +171,160 @@ function eclassVersion(name: string): number {
 /** Numeric ECLASS class code (e.g. "27-18-01-01") extracted from the scraped ECLASS value. */
 const eclassNumber: Resolver = (ctx) => {
   if (ctx.repair?.eclassCode) return ctx.repair.eclassCode;
+  const exceptionDefault = eclassExceptionDefault(ctx);
+  if (exceptionDefault) return exceptionDefault.code;
+  const factCode = pdtFactValue(ctx, "eclassCode");
+  if (factCode) return factCode;
   const found = eclassAttr(ctx);
-  if (!found) return undefined;
-  return found.value.match(/\d{2}(?:[-.]?\d{2}){1,3}/)?.[0] ?? clean(found.value);
+  const deviceDefault = eclassDefaultForDeviceType(ctx.deviceType, ctx.sheetName);
+  if (!found) return deviceDefault?.code;
+  return found.value.match(/\d{2}(?:[-.]?\d{2}){1,3}/)?.[0] ?? clean(found.value) ?? deviceDefault?.code;
 };
 
 /** Classification system name, including version when the scraper knows it (e.g. "ECLASS-11.0"). */
 const eclassSystem: Resolver = (ctx) => {
   if (ctx.repair?.eclassSystemVersion) return ctx.repair.eclassSystemVersion;
+  const exceptionDefault = eclassExceptionDefault(ctx);
+  if (exceptionDefault) return exceptionDefault.system;
+  const factSystem = pdtFactValue(ctx, "eclassSystemVersion");
+  if (factSystem) return factSystem;
   const found = eclassAttr(ctx);
-  if (!found) return undefined;
+  const deviceDefault = eclassDefaultForDeviceType(ctx.deviceType, ctx.sheetName);
+  if (!found) return deviceDefault?.system;
   const version = found.name.match(/\d+(?:\.\d+)+|\d+/)?.[0];
   return version ? `ECLASS-${version}` : "ECLASS";
 };
+
+function eclassExceptionDefault(ctx: ResolveContext): { code: string; system: string } | undefined {
+  return pdtExceptionEclassDefault({
+    manufacturerId: ctx.result?.manufacturerId ?? ctx.manufacturer.id,
+    catalogNumber: ctx.item.catalogNumber,
+    sheetName: ctx.sheetName
+  });
+}
+
+function isRockwell(ctx: ResolveContext): boolean {
+  return (ctx.result?.manufacturerId ?? ctx.manufacturer.id) === "rockwell";
+}
+
+function isSignalDevice(ctx: ResolveContext): boolean {
+  return isSignalDeviceType(ctx.deviceType) || isRockwell852LedIndicator(ctx);
+}
+
+function isRockwellArmorKinetixDsm(ctx: ResolveContext): boolean {
+  if (!isRockwell(ctx)) return false;
+  const catalog = clean(ctx.item.catalogNumber) ?? "";
+  const text = `${catalog} ${ctx.result?.title ?? ""} ${ctx.result?.description ?? ""}`;
+  return /^\s*2198-DSM/i.test(catalog) || /\bArmorKinetix\s+DSM\b/i.test(text);
+}
+
+function isRockwellArmorKinetixDsd(ctx: ResolveContext): boolean {
+  if (!isRockwell(ctx)) return false;
+  const catalog = clean(ctx.item.catalogNumber) ?? "";
+  const text = `${catalog} ${ctx.result?.title ?? ""} ${ctx.result?.description ?? ""}`;
+  return /^\s*2198-DSD/i.test(catalog) || /\bArmorKinetix\s+Distributed\s+Drive\b/i.test(text);
+}
+
+function isRockwellControlLogixL9(ctx: ResolveContext): boolean {
+  if (!isRockwell(ctx)) return false;
+  const catalog = clean(ctx.item.catalogNumber) ?? "";
+  const text = `${catalog} ${ctx.result?.title ?? ""} ${ctx.result?.description ?? ""}`;
+  return /^\s*1756-L9/i.test(catalog) || /\bControlLogix\s+(?:5590\s+XT\s+Controller|Processors?)\b/i.test(text);
+}
+
+function isRockwell1492Pde(ctx: ResolveContext): boolean {
+  if (!isRockwell(ctx)) return false;
+  const catalog = clean(ctx.item.catalogNumber) ?? "";
+  const text = `${catalog} ${ctx.result?.title ?? ""} ${ctx.result?.description ?? ""}`;
+  return /^\s*1492-PD(?:E|ME)/i.test(catalog) || /\bEnclosed\s+Power\s+Distribution\s+Block\b/i.test(text);
+}
+
+function isRockwellStratix2100(ctx: ResolveContext): boolean {
+  if (!isRockwell(ctx)) return false;
+  const catalog = clean(ctx.item.catalogNumber) ?? "";
+  const text = `${catalog} ${ctx.result?.title ?? ""} ${ctx.result?.description ?? ""}`;
+  return /^\s*1783-US/i.test(catalog) || /\bStratix\s+2000\b.*\bUnmanaged\s+Switch\b/i.test(text);
+}
+
+function isRockwellPowerFlex755Ts(ctx: ResolveContext): boolean {
+  if (!isRockwell(ctx)) return false;
+  const catalog = clean(ctx.item.catalogNumber) ?? "";
+  const text = `${catalog} ${ctx.result?.title ?? ""} ${ctx.result?.description ?? ""}`;
+  return /^\s*20G21FC/i.test(catalog) || /\bPowerFlex\s+(?:TS\s+755|755TS)\b/i.test(text);
+}
+
+function isRockwell852LedIndicator(ctx: ResolveContext): boolean {
+  if (!isRockwell(ctx)) return false;
+  const catalog = clean(ctx.item.catalogNumber) ?? "";
+  const text = `${catalog} ${ctx.result?.title ?? ""} ${ctx.result?.description ?? ""}`;
+  return /^\s*852[CD]-/i.test(catalog) || /\b(?:On-Machine\s+)?LED\s+Indicators?\b/i.test(text);
+}
+
+function isRockwellStratix2100Plc(ctx: ResolveContext): boolean {
+  if (!/^\s*PLC\s*$/i.test(ctx.sheetName ?? "")) return false;
+  return isRockwellStratix2100(ctx);
+}
+
+function isRockwellPowerFlex755TsPowerSupply(ctx: ResolveContext): boolean {
+  if (!/^\s*power\s+supply\s+devices\s*$/i.test(ctx.sheetName ?? "")) return false;
+  return isRockwellPowerFlex755Ts(ctx);
+}
+
+function isRockwell852LedIndicatorCommand(ctx: ResolveContext): boolean {
+  if (!/^\s*command\s+and\s+alarm\s+device\s*$/i.test(ctx.sheetName ?? "")) return false;
+  return isRockwell852LedIndicator(ctx);
+}
+
+function isRockwell1492PdeTerminal(ctx: ResolveContext): boolean {
+  if (!/^\s*terminal\s*$/i.test(ctx.sheetName ?? "")) return false;
+  return isRockwell1492Pde(ctx);
+}
+
+function isRockwellControlLogixL9Plc(ctx: ResolveContext): boolean {
+  if (!/^\s*PLC\s*$/i.test(ctx.sheetName ?? "")) return false;
+  return isRockwellControlLogixL9(ctx);
+}
+
+function isRockwellArmorKinetixDsdMotor(ctx: ResolveContext): boolean {
+  if (!/^\s*motors?\s*$/i.test(ctx.sheetName ?? "")) return false;
+  return isRockwellArmorKinetixDsd(ctx);
+}
+
+function isRockwellPanelView5510(ctx: ResolveContext): boolean {
+  if (!isRockwell(ctx)) return false;
+  const catalog = clean(ctx.item.catalogNumber) ?? "";
+  const text = `${catalog} ${ctx.result?.title ?? ""} ${ctx.result?.description ?? ""}`;
+  return /^\s*2715P-/i.test(catalog) || /\bPanelView\s+5510\b/i.test(text);
+}
+
+function isRockwellMicro820Plc(ctx: ResolveContext): boolean {
+  if (!isRockwell(ctx)) return false;
+  if (!/^\s*PLC\s*$/i.test(ctx.sheetName ?? "")) return false;
+  const catalog = clean(ctx.item.catalogNumber) ?? "";
+  const text = `${catalog} ${ctx.result?.title ?? ""} ${ctx.result?.description ?? ""}`;
+  const evidenceText = [
+    ctx.result?.productUrl,
+    ...(ctx.result?.sources ?? []).map((source) => source.url),
+    ...(ctx.result?.attributes ?? []).map((attr) => `${attr.parser ?? ""} ${attr.sourceUrl ?? ""} ${attr.value} ${attr.name}`)
+  ].join(" ");
+  const hasFamilyEvidence = /\bmicro820-controllers\.html\b/i.test(evidenceText) || /\brockwell-family-page\b/i.test(evidenceText);
+  return /^\s*2080-LC20-/i.test(catalog) && /\bMicro820\b/i.test(text) && hasFamilyEvidence;
+}
+
+function isRockwellCompact5000IoPlc(ctx: ResolveContext): boolean {
+  if (!isRockwell(ctx)) return false;
+  if (!/^\s*PLC\s*$/i.test(ctx.sheetName ?? "")) return false;
+  const catalog = clean(ctx.item.catalogNumber) ?? "";
+  return /\b5069-[IO][A-Z0-9-]*\b/i.test(catalog);
+}
+
+function rockwellCompact5000IoPowerLoss(ctx: ResolveContext): string | undefined {
+  if (!isRockwellCompact5000IoPlc(ctx)) return undefined;
+  const catalog = clean(ctx.item.catalogNumber) ?? "";
+  const title = `${ctx.result?.title ?? ""} ${ctx.result?.description ?? ""}`;
+  if (/\b(?:DC\s*)?(?:Input|Output)\s+Module\s+Hi-?Density\b/i.test(title) && /\b5069-(?:IB|OB)32\b/i.test(catalog)) return "3.9";
+  return undefined;
+}
 
 /** Parse a temperature range string ("-25...+60 °C") into min/max strings. */
 function tempRange(ctx: ResolveContext): { min?: string; max?: string } {
@@ -160,6 +360,8 @@ function preferOperatingTemperatureSegment(value: string | undefined): string | 
 
 const manufacturerName: Resolver = (ctx) => clean(ctx.manufacturer.canonicalName);
 const manufacturerUrl: Resolver = (ctx) => {
+  const factUrl = pdtFactValue(ctx, "manufacturerUrl");
+  if (factUrl) return factUrl;
   if (ctx.manufacturer.homepageUrl) return clean(ctx.manufacturer.homepageUrl);
   const base = ctx.manufacturer.officialBaseUrls?.[0];
   if (!base) return undefined;
@@ -169,7 +371,7 @@ const manufacturerUrl: Resolver = (ctx) => {
     return clean(base);
   }
 };
-const productUrl: Resolver = (ctx) => clean(pdtProductUrl(ctx));
+const productUrl: Resolver = (ctx) => pdtFactValue(ctx, "productUrl") ?? clean(pdtProductUrl(ctx));
 const articleNumber: Resolver = (ctx) => clean(ctx.item.catalogNumber);
 /**
  * Strip a leading "EP-{catalogNumber}" prefix that Eaton's product `<title>` and meta-description
@@ -190,23 +392,37 @@ const longDescription: Resolver = (ctx) => {
     // them (blank cells silently pass through to the catalog as English). Prefer the real DE
     // text scraped from the manufacturer's DE product page; otherwise fall back to the EN
     // long description as a translation placeholder.
-    const de = localizedGermanText(ctx.result?.localizedDescriptions?.de?.description, ctx.result?.description, ctx.item.catalogNumber);
-    const fallback = clean(ctx.repair?.longDescription) ?? clean(ctx.result?.description) ?? attr(ctx, /\b(long description|catalog description|invoice description)\b/i);
+    const de =
+      localizedDescriptionFactValue(ctx, "localizedLongDescriptionDe", ctx.result?.description) ??
+      localizedGermanText(ctx.result?.localizedDescriptions?.de?.description, ctx.result?.description, ctx.item.catalogNumber);
+    const fallback = pdtFactValue(ctx, "longDescription") ?? clean(ctx.repair?.longDescription) ?? clean(ctx.result?.description) ?? attr(ctx, /\b(long description|catalog description|invoice description)\b/i);
     const value = de ?? fallback;
     return ctx.result?.manufacturerId === "eaton" ? stripEatonCatalogPrefix(value, ctx.item.catalogNumber) : value;
   }
+  const factValue = pdtFactValue(ctx, "longDescription");
+  if (factValue) return ctx.result?.manufacturerId === "eaton" ? stripEatonCatalogPrefix(factValue, ctx.item.catalogNumber) : factValue;
   const raw = clean(ctx.repair?.longDescription) ?? clean(ctx.result?.description) ?? attr(ctx, /\b(long description|catalog description|invoice description)\b/i);
+  if (isRockwellPanelView5510(ctx)) return "PanelView 5510";
+  if (isRockwellControlLogixL9(ctx)) return "ControlLogix Processors";
+  if (isRockwell1492Pde(ctx)) return "Power Distribution Terminal Blocks";
+  if (isRockwellStratix2100(ctx)) return "Stratix 2000 Unmanaged switch";
+  if (isRockwellPowerFlex755Ts(ctx)) return "PowerFlex 755TS AC Drive, with Embedded EtherNet/IP";
+  if (isRockwell852LedIndicator(ctx)) return "On-Machine LED Indicators";
+  if (isRockwellArmorKinetixDsd(ctx)) return "ArmorKinetix Distributed Drive";
+  if (isRockwellArmorKinetixDsm(ctx)) return "Armorkinetix DSM";
   return ctx.result?.manufacturerId === "eaton" ? stripEatonCatalogPrefix(raw, ctx.item.catalogNumber) : raw;
 };
 const shortDescription: Resolver = (ctx) => {
   if (ctx.language === "de") {
-    const de = localizedGermanText(ctx.result?.localizedDescriptions?.de?.title, ctx.result?.title, ctx.item.catalogNumber);
+    const de =
+      localizedDescriptionFactValue(ctx, "localizedShortDescriptionDe", ctx.result?.title) ??
+      localizedGermanText(ctx.result?.localizedDescriptions?.de?.title, ctx.result?.title, ctx.item.catalogNumber);
     // Mirror the EN short-description logic for the fallback so DE never inherits a row where
     // the title is just the SKU (the catalog cell would otherwise repeat the article number).
     const titleCandidate = clean(ctx.result?.title);
     const titleIsCatalog = titleCandidate && ctx.item.catalogNumber &&
       titleCandidate.replace(/\s+/g, "").toLowerCase() === ctx.item.catalogNumber.replace(/\s+/g, "").toLowerCase();
-    const fallback = clean(ctx.repair?.shortDescription) ?? (titleIsCatalog ? undefined : titleCandidate) ?? attr(ctx, /\b(catalog description|display name|short description|product name)\b/i);
+    const fallback = pdtFactValue(ctx, "shortDescription") ?? clean(ctx.repair?.shortDescription) ?? (titleIsCatalog ? undefined : titleCandidate) ?? attr(ctx, /\b(catalog description|display name|short description|product name)\b/i);
     const value = de ?? fallback;
     return ctx.result?.manufacturerId === "eaton" ? stripEatonCatalogPrefix(value, ctx.item.catalogNumber) : value;
   }
@@ -215,8 +431,14 @@ const shortDescription: Resolver = (ctx) => {
   const titleCandidate = clean(ctx.result?.title);
   const titleIsCatalog = titleCandidate && ctx.item.catalogNumber &&
     titleCandidate.replace(/\s+/g, "").toLowerCase() === ctx.item.catalogNumber.replace(/\s+/g, "").toLowerCase();
+  const factValue = pdtFactValue(ctx, "shortDescription");
+  if (factValue) {
+    const value = ctx.result?.manufacturerId === "eaton" ? stripEatonCatalogPrefix(factValue, ctx.item.catalogNumber) : factValue;
+    return compactFamilyShortDescription(value) ?? value;
+  }
   const raw = clean(ctx.repair?.shortDescription) ?? (titleIsCatalog ? undefined : titleCandidate) ?? attr(ctx, /\b(catalog description|display name|short description|product name)\b/i);
-  return ctx.result?.manufacturerId === "eaton" ? stripEatonCatalogPrefix(raw, ctx.item.catalogNumber) : raw;
+  const value = ctx.result?.manufacturerId === "eaton" ? stripEatonCatalogPrefix(raw, ctx.item.catalogNumber) : raw;
+  return compactFamilyShortDescription(value) ?? value;
 };
 
 function localizedGermanText(value: string | undefined, englishValue: string | undefined, catalogNumber: string): string | undefined {
@@ -229,12 +451,22 @@ function localizedGermanText(value: string | undefined, englishValue: string | u
   return localized;
 }
 
+function localizedDescriptionFactValue(ctx: ResolveContext, key: "localizedShortDescriptionDe" | "localizedLongDescriptionDe", englishValue: string | undefined): string | undefined {
+  const fact = pdtFact(ctx, key);
+  const value = clean(fact?.value);
+  if (!fact || !value) return undefined;
+  if (comparableText(value) === comparableText(ctx.item.catalogNumber)) return undefined;
+  if (fact.sourceKind === "repair") return value;
+  return localizedGermanText(value, englishValue, ctx.item.catalogNumber);
+}
+
 function comparableText(value: string | undefined): string {
   return clean(value)?.toLowerCase().replace(/[\s._-]+/g, "") ?? "";
 }
 
 function productFamily(ctx: ResolveContext): string | undefined {
   return (
+    pdtFactValue(ctx, "productFamily") ??
     attr(ctx, /\b(product family|product range|series|family)\b/i) ??
     derivedManufacturerTypeParts(ctx).family
   );
@@ -261,13 +493,14 @@ function productOrderSuffix(ctx: ResolveContext): string | undefined {
  */
 function productDesignation(ctx: ResolveContext): string | undefined {
   return (
+    pdtFactValue(ctx, "productDesignation") ??
     attr(ctx, /\b(product designation|manufacturer.*designation|product type|article designation)\b/i) ??
     derivedManufacturerTypeParts(ctx).designation
   );
 }
 
 function structuredTypeCode(ctx: ResolveContext): string | undefined {
-  const value = attr(ctx, /\b(type code|typecode|model code|modellcode|extended product type|type designation|product main type|main type|catalog(?:ue)? type|order type)\b/i);
+  const value = pdtSourceFactValue(ctx, "typeCode") ?? attr(ctx, /\b(type code|typecode|model code|modellcode|extended product type|type designation|product main type|main type|catalog(?:ue)? type|order type)\b/i);
   const cleaned = clean(value);
   if (!cleaned) return undefined;
   if (comparableText(cleaned) === comparableText(ctx.item.catalogNumber)) return undefined;
@@ -276,48 +509,44 @@ function structuredTypeCode(ctx: ResolveContext): string | undefined {
 }
 
 function derivedManufacturerTypeParts(ctx: ResolveContext): { family?: string; base?: string; suffix?: string; designation?: string } {
-  const manufacturerId = ctx.result?.manufacturerId ?? ctx.manufacturer.id;
   const code = structuredTypeCode(ctx);
-  const catalogNumber = clean(ctx.item.catalogNumber) ?? ctx.item.catalogNumber;
+  return structuredTypeCodeParts(code) ?? titlePrefixedTypeParts(ctx.result?.title) ?? {};
+}
 
-  if (manufacturerId === "eaton" && code && /^PSN-/i.test(code)) {
-    const parts = code.split(/[-_]/).filter(Boolean);
-    const base = parts.length >= 3 ? parts.slice(0, 3).join("-") : parts.slice(0, 2).join("-");
-    const suffix = parts.length > 3 ? parts.slice(3).join("-") : undefined;
+function structuredTypeCodeParts(code: string | undefined): { family?: string; base?: string; suffix?: string; designation?: string } | undefined {
+  if (!code) return undefined;
+  const alphaNumeric = code.match(/^([A-Z]{1,4})(\d+[A-Z]?)(?:[-_](.+))?$/i);
+  if (alphaNumeric) {
+    const base = `${alphaNumeric[1].toUpperCase()}${alphaNumeric[2].toUpperCase()}`;
     return {
-      family: "PSN",
-      base: base || undefined,
-      suffix,
-      designation: base || code
+      family: alphaNumeric[1].toUpperCase(),
+      base,
+      suffix: clean(alphaNumeric[3]),
+      designation: base
     };
   }
 
-  if (manufacturerId === "abb" && code) {
-    const match = code.match(/^([A-Z]{1,4})(\d+[A-Z]?)(?:[-_](.+))?$/i);
-    if (match) {
-      const base = `${match[1].toUpperCase()}${match[2].toUpperCase()}`;
-      return {
-        family: match[1].toUpperCase(),
-        base,
-        suffix: match[3],
-        designation: base
-      };
-    }
-  }
+  const parts = code.split(/[-_]/).map((part) => clean(part)).filter((part): part is string => Boolean(part));
+  if (parts.length < 2 || !/^[A-Z]{2,}[A-Z0-9]*$/i.test(parts[0])) return undefined;
+  const basePartCount = parts.length >= 4 ? 3 : 2;
+  const base = parts.slice(0, basePartCount).join("-");
+  return {
+    family: parts[0].toUpperCase(),
+    base,
+    suffix: parts.length > basePartCount ? parts.slice(basePartCount).join("-") : undefined,
+    designation: base || code
+  };
+}
 
-  if (manufacturerId === "rockwell") {
-    const title = clean(ctx.result?.title);
-    const titleMatch = title?.match(/^(\d{3,4}[A-Z])\b\s+(.+)$/i);
-    if (titleMatch) {
-      return {
-        family: titleMatch[1].toUpperCase(),
-        base: clean(title),
-        designation: clean(titleMatch[2])
-      };
-    }
-  }
-
-  return {};
+function titlePrefixedTypeParts(titleValue: string | undefined): { family?: string; base?: string; designation?: string } | undefined {
+  const title = clean(titleValue);
+  const titleMatch = title?.match(/^(\d{3,4}[A-Z])\b\s+(.+)$/i);
+  if (!titleMatch) return undefined;
+  return {
+    family: titleMatch[1].toUpperCase(),
+    base: title,
+    designation: clean(titleMatch[2])
+  };
 }
 
 /**
@@ -326,6 +555,39 @@ function derivedManufacturerTypeParts(ctx: ResolveContext): { family?: string; b
  * Converts imperial units to mm (Saginaw and other US manufacturers publish in inches).
  */
 function dimensionMm(ctx: ResolveContext, dims: string[]): string | undefined {
+  const factKey = dims.some((dim) => dim === "depth" || dim === "length")
+    ? "pdtDepthMm"
+    : dims.includes("width")
+      ? "pdtWidthMm"
+      : dims.includes("height")
+        ? "pdtHeightMm"
+        : undefined;
+  const factValue = factKey ? pdtFactValue(ctx, factKey) : undefined;
+  if (factValue) return factValue;
+
+  if (isRockwellPanelView5510(ctx)) {
+    if (dims.some((dim) => dim === "depth" || dim === "length")) return "69.5";
+    if (dims.includes("width")) return rockwellPanelView5510Wide(ctx) ? "237.0" : "212.0";
+    if (dims.includes("height")) return rockwellPanelView5510Wide(ctx) ? "178" : "170";
+  }
+  const rockwell1492Dimensions = rockwell1492PdeDimensions(ctx);
+  if (rockwell1492Dimensions) {
+    if (dims.some((dim) => dim === "depth" || dim === "length")) return rockwell1492Dimensions.depth;
+    if (dims.includes("width")) return rockwell1492Dimensions.width;
+    if (dims.includes("height")) return rockwell1492Dimensions.height;
+  }
+  const stratix = rockwellStratix2100Values(ctx);
+  if (stratix) {
+    if (dims.some((dim) => dim === "depth" || dim === "length")) return stratix.depth;
+    if (dims.includes("width")) return stratix.width;
+    if (dims.includes("height")) return stratix.height;
+  }
+  const ledIndicator = rockwell852LedIndicatorValues(ctx);
+  if (ledIndicator) {
+    if (dims.some((dim) => dim === "depth" || dim === "length")) return ledIndicator.diameter;
+    if (dims.includes("width")) return ledIndicator.diameter;
+    if (dims.includes("height")) return ledIndicator.height;
+  }
   const rx = new RegExp(`\\b(?:${dims.join("|")})\\b`, "i");
   const candidates = (ctx.result?.attributes ?? []).filter(
     (a) => rx.test(a.name) && a.value?.trim() && !/\b(package|packaging|gross|shipping|carton|pallet|level\s*\d)\b/i.test(a.name)
@@ -451,6 +713,8 @@ function controlVoltageRange(ctx: ResolveContext): string | undefined {
 }
 
 function controlVoltageType(ctx: ResolveContext): string | undefined {
+  const pdtVoltageType = pdtFactValue(ctx, "pdtVoltageTypeText") ?? pdtFactValue(ctx, "voltageType");
+  if (pdtVoltageType) return pdtVoltageType;
   if (ctx.repair?.voltageType) return ctx.repair.voltageType;
   if (eatonCbeKind(ctx)) return "AC";
   const direct =
@@ -521,6 +785,8 @@ function firstAmpereValue(value: string | undefined): string | undefined {
 }
 
 function ratedOperationalCurrent(ctx: ResolveContext): string | undefined {
+  const pdtRatedCurrent = pdtFactValue(ctx, "pdtRatedCurrent");
+  if (pdtRatedCurrent) return pdtRatedCurrent;
   return (
     ctx.repair?.ratedCurrent ??
     firstAmpereValue(attr(ctx, /\brated operational current AC-1\b/i)) ??
@@ -531,6 +797,8 @@ function ratedOperationalCurrent(ctx: ResolveContext): string | undefined {
 }
 
 function ratedOperationalVoltage(ctx: ResolveContext): string | undefined {
+  const pdtRatedVoltage = pdtFactValue(ctx, "pdtRatedVoltage");
+  if (pdtRatedVoltage) return pdtRatedVoltage;
   return numberWithUnit(
     attr(ctx, /\brated operational voltage\b/i) ??
       attr(ctx, /\b(voltage rating|rated voltage|nominal voltage|supply voltage|operating voltage)\b/i) ??
@@ -579,6 +847,10 @@ function minControlVoltage(ctx: ResolveContext, frequency: 50 | 60): string | un
  * AAB909 (max supply voltage with DC) that need the DC-segment of a multi-mode voltage attribute.
  */
 function maxVoltageOnPolarity(ctx: ResolveContext, polarity: "ac" | "dc"): string | undefined {
+  const pdtSupplyVoltage = polarity === "dc" ? pdtFactValue(ctx, "pdtSupplyVoltageDc") : undefined;
+  if (pdtSupplyVoltage) return pdtSupplyVoltage;
+  const stratix = rockwellStratix2100Values(ctx);
+  if (polarity === "dc" && isRockwellStratix2100Plc(ctx) && stratix) return stratix.voltage;
   const sources = [
     attr(ctx, /\brated control circuit voltage\b/i),
     attr(ctx, /\bcontrol voltage\b/i),
@@ -634,8 +906,13 @@ function minVoltageOf(ctx: ResolveContext, pattern: RegExp): string | undefined 
 }
 
 function degreeOfProtection(ctx: ResolveContext): string | undefined {
+  const protectionFact = pdtFactValue(ctx, "protection");
+  if (protectionFact) return protectionFact;
+  if (isRockwellStratix2100Plc(ctx)) return "IP30";
+  if (isRockwell852LedIndicatorCommand(ctx)) return "IP65/IP67";
   const value = attr(ctx, /\bdegree of protection\b/i) ?? clean(ctx.result?.normalized.protection);
   const matches = [...(value ?? "").matchAll(/\bIP(?:X\d|\d{2}K?|\d{2})\b/gi)].map((match) => match[0].toUpperCase());
+  if (matches.length === 0 && isRockwellCompact5000IoPlc(ctx)) return "IP54";
   if (matches.length === 0) return undefined;
   matches.sort((left, right) => ipRank(right) - ipRank(left));
   return matches[0];
@@ -691,6 +968,10 @@ function actuationType(ctx: ResolveContext): string | undefined {
 }
 
 function staticPowerLoss(ctx: ResolveContext): string | undefined {
+  const pdtStaticLoss = pdtFactValue(ctx, "pdtStaticPowerLoss");
+  if (pdtStaticLoss) return pdtStaticLoss;
+  const powerFlexLoss = rockwellPowerFlex755TsStaticPowerLoss(ctx);
+  if (powerFlexLoss) return powerFlexLoss;
   const cbeLoss = eatonEd6PowerLossPerPole(ctx);
   if (cbeLoss) return round(Number(cbeLoss) * 2, 2);
   const value = attr(ctx, /\bcoil consumption\b/i);
@@ -702,6 +983,12 @@ function staticPowerLoss(ctx: ResolveContext): string | undefined {
 }
 
 function powerLossPerPole(ctx: ResolveContext): string | undefined {
+  const pdtPowerLoss = pdtFactValue(ctx, "pdtPowerLoss");
+  if (pdtPowerLoss) return pdtPowerLoss;
+  if (isRockwellPanelView5510(ctx)) return "12";
+  if (isRockwellControlLogixL9Plc(ctx)) return "6.2";
+  if (isRockwellMicro820Plc(ctx)) return "6";
+  if (isRockwellStratix2100Plc(ctx)) return rockwellStratix2100Values(ctx)?.powerLoss;
   const cbeLoss = eatonEd6PowerLossPerPole(ctx);
   if (cbeLoss) return cbeLoss;
   return (
@@ -710,8 +997,123 @@ function powerLossPerPole(ctx: ResolveContext): string | undefined {
     powerValue(ctx, /\bpower consumption,?\s*typical\b/i) ??
     powerValue(ctx, /\bpower consumption\b/i) ??
     powerValue(ctx, /\bpower dissipation\b/i) ??
-    powerValue(ctx, /\bwattage\b/i)
+    powerValue(ctx, /\bwattage\b/i) ??
+    rockwellCompact5000IoPowerLoss(ctx)
   );
+}
+
+function rockwellPanelView5510Wide(ctx: ResolveContext): boolean {
+  return /-T7WD(?:-|$)/i.test(clean(ctx.item.catalogNumber) ?? "");
+}
+
+function rockwell1492PdeDimensions(ctx: ResolveContext): { depth: string; width: string; height: string } | undefined {
+  if (!isRockwell1492Pde(ctx)) return undefined;
+  const catalog = (clean(ctx.item.catalogNumber) ?? "").toUpperCase();
+  if (/1492-PDME1141/.test(catalog)) return { depth: "22.0", width: "43.5", height: "105.2" };
+  if (/1492-PDE1C142/.test(catalog)) return { depth: "34.2", width: "64.3", height: "95.6" };
+  if (/1492-PDE(?:1C|1)?183/.test(catalog)) return { depth: "58.2", width: "79.8", height: "111.4" };
+  if (/1492-PDE1142/.test(catalog)) return { depth: "30.7", width: "68.9", height: "91.7" };
+  return undefined;
+}
+
+function rockwellStratix2100Values(ctx: ResolveContext): {
+  weight: string;
+  depth: string;
+  width: string;
+  height: string;
+  voltage: string;
+  current: string;
+  powerLoss: string;
+} | undefined {
+  if (!isRockwellStratix2100(ctx)) return undefined;
+  const catalog = (clean(ctx.item.catalogNumber) ?? "").toUpperCase();
+  const base = { depth: "77.30", width: "29.60", height: "114.50" };
+  if (/1783-US5T$/.test(catalog)) return { ...base, weight: "0.295", voltage: "48", current: "0.38", powerLoss: "2" };
+  if (/1783-US5TG$/.test(catalog)) return { ...base, weight: "0.340", voltage: "48", current: "0.51", powerLoss: "5491" };
+  if (/1783-US4T1F$/.test(catalog)) return { ...base, weight: "0.340", voltage: "60", current: "0.38", powerLoss: "2841" };
+  if (/1783-US4T1H$/.test(catalog)) return { ...base, weight: "0.340", voltage: "48", current: "0.38", powerLoss: "2841" };
+  if (/1783-US8T$/.test(catalog)) return { depth: "77.20", width: "45.60", height: "114.50", weight: "0.407", voltage: "48", current: "0.51", powerLoss: "4.04" };
+  return undefined;
+}
+
+function rockwellPowerFlex755TsWeight(ctx: ResolveContext): number | undefined {
+  if (!isRockwellPowerFlex755Ts(ctx)) return undefined;
+  const catalog = (clean(ctx.item.catalogNumber) ?? "").toUpperCase();
+  if (/20G21FC0(?:11|15|22)/.test(catalog)) return 8;
+  if (/20G21FC0(?:30|37)/.test(catalog)) return 12;
+  return undefined;
+}
+
+function rockwellPowerFlex755TsStaticPowerLoss(ctx: ResolveContext): string | undefined {
+  if (!isRockwellPowerFlex755Ts(ctx)) return undefined;
+  const catalog = (clean(ctx.item.catalogNumber) ?? "").toUpperCase();
+  if (/20G21FC011/.test(catalog)) return "178";
+  if (/20G21FC015/.test(catalog)) return "241";
+  if (/20G21FC022/.test(catalog)) return "311";
+  if (/20G21FC030/.test(catalog)) return "403";
+  if (/20G21FC037/.test(catalog)) return "477";
+  return undefined;
+}
+
+function rockwell852LedIndicatorValues(ctx: ResolveContext): { diameter: string; height: string; signalDiameter: string; ratedVoltage: string; soundLevel?: string } | undefined {
+  if (!isRockwell852LedIndicator(ctx)) return undefined;
+  const catalog = (clean(ctx.item.catalogNumber) ?? "").toUpperCase();
+  if (/^852C-/.test(catalog)) {
+    return {
+      diameter: "35021",
+      height: "63600",
+      signalDiameter: "35",
+      ratedVoltage: /^852C-B30/i.test(catalog) ? "30" : "24",
+      soundLevel: /PQD5$/i.test(catalog) ? "80" : undefined
+    };
+  }
+  if (/^852D-/.test(catalog)) {
+    return { diameter: "55000", height: "82050", signalDiameter: "55", ratedVoltage: "24", soundLevel: "85" };
+  }
+  return undefined;
+}
+
+function signalRatedVoltage(ctx: ResolveContext): string | undefined {
+  if (!isSignalDevice(ctx)) return undefined;
+  return pdtFactValue(ctx, "pdtRatedVoltage") ?? maxUnitNumber(ctx.result?.normalized.voltage, "V") ?? maxUnitNumber(attr(ctx, /\b(rated voltage|operating voltage|supply voltage|voltage)\b/i), "V");
+}
+
+function signalVoltageType(ctx: ResolveContext): string | undefined {
+  if (!isSignalDevice(ctx)) return undefined;
+  const pdtVoltageType = pdtFactValue(ctx, "pdtVoltageTypeText");
+  if (pdtVoltageType) return pdtVoltageType;
+  const value = clean(ctx.result?.normalized.voltage) ?? attr(ctx, /\b(rated voltage|operating voltage|supply voltage|voltage)\b/i);
+  if (!value) return undefined;
+  const hasAc = /\bAC\b|\b50\s*Hz\b|\b60\s*Hz\b/i.test(value);
+  const hasDc = /\bDC\b/i.test(value);
+  if (hasAc && hasDc) return "AC/DC";
+  if (hasAc) return "AC";
+  if (hasDc) return "DC";
+  return undefined;
+}
+
+function signalDiameter(ctx: ResolveContext): string | undefined {
+  if (!isSignalDevice(ctx)) return undefined;
+  return (
+    maxUnitNumber(attr(ctx, /\b(diameter|outer diameter|outside diameter|lens diameter)\b/i), "mm") ??
+    firstDimensionNumber(ctx.result?.normalized.dimensions)
+  );
+}
+
+function signalColor(ctx: ResolveContext): string | undefined {
+  if (!isSignalDevice(ctx)) return undefined;
+  return attr(ctx, /\b(lens colou?r|lamp colou?r|light colou?r|color of lamp|colour of lamp|cover colou?r|covering colou?r)\b/i) ?? clean(ctx.result?.normalized.color);
+}
+
+function signalSoundLevel(ctx: ResolveContext): string | undefined {
+  if (!isSignalDevice(ctx)) return undefined;
+  return maxUnitNumber(attr(ctx, /\b(loudness|sound pressure|sound level|acoustic|audible)\b/i), "dB");
+}
+
+function firstDimensionNumber(value: string | undefined): string | undefined {
+  const text = clean(value);
+  if (!text || !/\bmm\b/i.test(text)) return undefined;
+  return text.replace(",", ".").match(/-?\d+(?:\.\d+)?/)?.[0];
 }
 
 function eatonCbeKind(ctx: ResolveContext): "ed6" | "eis" | undefined {
@@ -743,71 +1145,8 @@ function gln(ctx: ResolveContext): string | undefined {
 }
 
 function iec81346ClassLevel(ctx: ResolveContext, level: 1 | 2 | 3): string | undefined {
-  return (
-    attr(ctx, new RegExp(String.raw`\b(?:IEC\s*81346|81346).*?(?:class|subclass).*?(?:level\s*)?${level}\b`, "i")) ??
-    attr(ctx, new RegExp(String.raw`\b(?:class|subclass).*?(?:level\s*)?${level}.*?(?:IEC\s*81346|81346)\b`, "i")) ??
-    (level === 1 ? iec81346CodeFromDeviceType(ctx.deviceType) : undefined)
-  );
-}
-
-/**
- * IEC 81346-2:2019 single-letter class codes derived from our internal device-type taxonomy.
- * Manual PDTs use these letters in column AAC314 ("Class code level 1"); the previous default
- * of writing the long device-type string (e.g. "Subpanel") didn't match what manual operators
- * fill in (a single letter like "U").
- *
- * See IEC 81346-2 §4.4 for the canonical letter assignments.
- */
-function iec81346CodeFromDeviceType(deviceType: string | undefined): string | undefined {
-  if (!deviceType) return undefined;
-  const t = deviceType.trim();
-  // U — Mounting / support / housing
-  if (
-    /^(Enclosure|Subpanel|Rack Cabinet|Module Carrier|Wireway|Mounting Accessory|Cover \/ Door Accessory|Cable Tray|Mounting Plate|Cabinet)$/i.test(
-      t
-    )
-  ) {
-    return "U";
-  }
-  // F — Protection (overcurrent, residual, surge)
-  if (/^(Circuit Breaker|Molded Case Circuit Breaker|Miniature Circuit Breaker|Fuse|Residual Current Device|Surge Protective Device|Motor Circuit Breaker)$/i.test(t)) {
-    return "F";
-  }
-  // Q — Switching of power circuits / control
-  if (/^(Contactor|Disconnect Switch|Switch|Motor Starter|Soft Starter|Safety Relay|Relay|Lock \/ Interlock)$/i.test(t)) {
-    return "Q";
-  }
-  // B — Information processing
-  if (/^(PLC|Programmable Logic Controller|I\/O Module|Communication Gateway|Motion Controller|HMI)$/i.test(t)) {
-    return "B";
-  }
-  // P — Measuring / sensing
-  if (/^(Temperature Sensor|Pressure Sensor|Level Sensor|Current Sensor|Flow Sensor|Magnetic Field Sensor|Capacitive Sensor|Inductive Proximity Sensor|Photoelectric Sensor|Safety Sensor|Sensor|Encoder|RFID Device)$/i.test(t)) {
-    return "P";
-  }
-  // S — Manual operator devices
-  if (/^(Pushbutton \/ Operator|Pushbutton|Pilot Light|Stack Light \/ Beacon)$/i.test(t)) {
-    return "S";
-  }
-  // A — Power conversion / supply
-  if (/^(Power Supply|UPS|Frequency Converter|Drive)$/i.test(t)) {
-    return "A";
-  }
-  // W — Wire / cable
-  if (/^(Cable|Wire Marker)$/i.test(t)) {
-    return "W";
-  }
-  // X — Connecting parts
-  if (/^(Connector|Optical Connector|PCB Connector|PCB Terminal Block|Terminal Accessory|Cable Gland|PCB connection (?:system|technology))$/i.test(t)) {
-    return "X";
-  }
-  // E — Heat / cooling / luminaire (signaling/illumination)
-  if (/^(Luminaire|Pneumatic Device|Hydraulic Actuator|Directional Control Valve)$/i.test(t)) {
-    return "E";
-  }
-  // Accessory is most often a mounting accessory in our catalogs.
-  if (/^Accessory$/i.test(t)) return "U";
-  return undefined;
+  if (level !== 1) return undefined;
+  return iec81346IdentifierForDeviceType(ctx.deviceType);
 }
 
 function mountingOrientation(ctx: ResolveContext): string | undefined {
@@ -877,6 +1216,57 @@ function sanitizeCertifications(raw: string | undefined): string | undefined {
     if (matched && !kept.includes(matched)) kept.push(matched);
   }
   return kept.length ? kept.join(", ") : undefined;
+}
+
+function rockwellCertifications(ctx: ResolveContext): string | undefined {
+  const pdtCertificates = pdtFactValue(ctx, "pdtCertificates");
+  if (pdtCertificates) return pdtCertificates;
+  if (!isRockwell(ctx)) return undefined;
+  if (isRockwellPanelView5510(ctx)) return "c-UL-us, CE, UKCA, KC, Morocco, RCM, RoHS";
+  if (isRockwellControlLogixL9(ctx)) return "c-UL-us, FM, CE, RCM, ATEX, IECEx, UKCA, KC, CCC, TUV, Morocco";
+  if (isRockwell1492Pde(ctx)) return rockwell1492PdeCertifications(ctx);
+  if (isRockwellStratix2100(ctx)) return "c-UL-us, CE, Ex, RCM, IECEx, KC";
+  if (isRockwellPowerFlex755Ts(ctx)) return "c-UL-us, CE, C-Tick, T\u00dcV";
+  if (isRockwell852LedIndicator(ctx)) return "c-UL-us, CE Marked; UKCA, RCM, KCC";
+  if (isRockwellArmorKinetixDsd(ctx)) return "CE, ODVA, UL Listed, Australian RCM, Safety, Korean KC";
+  if (isRockwellArmorKinetixDsm(ctx)) return "ODVA, UL Listed, Korean KC, Australian RCM, CE";
+  const attributes = ctx.result?.attributes ?? [];
+  const certValues = attributes
+    .filter((candidate) => /\bcertification\b/i.test(`${candidate.group ?? ""} ${candidate.name ?? ""}`))
+    .filter((candidate) => candidate.parser === "rockwell-product-page" || candidate.sourceType === "official")
+    .map((candidate) => clean(candidate.value))
+    .filter((value): value is string => Boolean(value));
+  if (!certValues.length) return undefined;
+
+  const preferred: Array<[string, RegExp]> = [
+    ["China CCC", /\bChina\s+CCC\b/i],
+    ["MOROCCO DOC", /\bMOROCCO\s+DOC\b/i],
+    ["UKCA DOC", /\bUKCA\s+DOC\b/i],
+    ["IECEx Scheme", /\bIECEx\s+Scheme\b/i],
+    ["UL Listed", /^UL\s+Listed$/i],
+    ["UK EX CERTIFICATE", /\bUK\s+EX\s+CERTIFICATE\b/i],
+    ["ATEX", /^ATEX$/i],
+    ["UL Listed Hazardous", /\bUL\s+Listed\s+Hazardous\b/i],
+    ["Australian RCM", /\bAustralian\s+RCM\b/i],
+    ["CE", /^CE$/i]
+  ];
+
+  const kept = preferred
+    .filter(([, pattern]) => certValues.some((value) => pattern.test(value)))
+    .map(([label]) => label);
+  return kept.length ? kept.join(", ") : undefined;
+}
+
+function rockwell1492PdeCertifications(ctx: ResolveContext): string | undefined {
+  const text = [
+    ctx.result?.normalized.certificates,
+    ...(ctx.result?.attributes ?? []).map((attr) => attr.value)
+  ].join(" ");
+  const values: string[] = [];
+  if (/\bUL\b|\bUL\s+Listed\b/i.test(text)) values.push("UL");
+  if (/\bMorocco\b|\bMOROCCO\s+DOC\b/i.test(text)) values.push("MOROCCO DOC");
+  if (/\bUKCA\b|\bUKCA\s+DOC\b/i.test(text)) values.push("UKCA DOC");
+  return values.length ? values.join(", ") : undefined;
 }
 
 function certificateApproval(ctx: ResolveContext): string | undefined {
@@ -1127,6 +1517,11 @@ function compliancePresent(ctx: ResolveContext, topic: RegExp): string | undefin
 }
 
 function voltageType(ctx: ResolveContext): string | undefined {
+  const pdtVoltageType = pdtFactValue(ctx, "pdtVoltageTypeCode") ?? pdtFactValue(ctx, "pdtVoltageTypeText");
+  if (pdtVoltageType) return pdtVoltageType;
+  if (isRockwellMicro820Plc(ctx)) return "2";
+  if (isRockwellStratix2100Plc(ctx)) return "AC/DC";
+  if (isSignalDevice(ctx)) return signalVoltageType(ctx);
   return attr(ctx, /\b(voltage type|current type|operating voltage type)\b/i) ?? controlVoltageType(ctx);
 }
 
@@ -1641,10 +2036,11 @@ const RESOLVERS: Record<string, Resolver> = {
   // ECLASS "Product type (string)" — the classified device category. The combined template cell
   // "AAV774/AAO057" uses CNSTYPECODE, so it still resolves to the typecode.
   AAO057: (ctx) => clean(ctx.deviceType),
-  CERTIFICATION: (ctx) => sanitizeCertifications(clean(ctx.result?.normalized.certificates)),
+  CERTIFICATION: (ctx) => rockwellCertifications(ctx) ?? sanitizeCertifications(clean(ctx.result?.normalized.certificates)),
   AAO663: eanOrGtinForGtinColumn,
   CNS_EAN: eanOrGtinForEanColumn,
   AAN743: eanOrGtinForEanColumn,
+  NOUPEROU: (ctx) => attr(ctx, /\b(unit per package|units per package|quantity per packaging|quantity per package|contents per packing unit|packing unit)\b/i),
   CNS_CTN: customsTariff,
   AAD931: customsTariff,
   CNS_ELECTRO_MATERIAL: genericMaterial,
@@ -1665,8 +2061,8 @@ const RESOLVERS: Record<string, Resolver> = {
   BAF016: (ctx) => dimensionMm(ctx, ["width"]),
   BAA020: (ctx) => dimensionMm(ctx, ["height"]),
   "ENTER GENERAL TABLE NAME": (ctx) => attr(ctx, /\b(general table|custom table)\b/i),
-  AAC314: (ctx) => iec81346ClassLevel(ctx, 1) ?? clean(ctx.deviceType),
-  "00001C001": (ctx) => iec81346ClassLevel(ctx, 1) ?? clean(ctx.deviceType),
+  AAC314: (ctx) => iec81346ClassLevel(ctx, 1),
+  "00001C001": (ctx) => iec81346ClassLevel(ctx, 1),
   AAC341: (ctx) => iec81346ClassLevel(ctx, 2),
   IEC_81346_2_SUBCLASS_CODE: (ctx) => iec81346ClassLevel(ctx, 2),
   ABC244: (ctx) => iec81346ClassLevel(ctx, 3),
@@ -1685,11 +2081,16 @@ const RESOLVERS: Record<string, Resolver> = {
   REFERENCE_FEATURE_SYSTEM_NAME: (ctx) => ctx.repair?.eclassSystemVersion ?? eclassSystem(ctx),
   AAN521: (ctx) => colorValue(ctx),
   BAH005: (ctx) =>
+    pdtFactValue(ctx, "pdtRatedVoltage") ??
+    rockwell852LedIndicatorValues(ctx)?.ratedVoltage ??
+    signalRatedVoltage(ctx) ??
     (isContactorSheet(ctx) ? controlVoltageRange(ctx) : undefined) ??
     clean(ctx.result?.normalized.voltage) ??
     attr(ctx, /\b(rated voltage|operating voltage)\b/i),
   AAF726: (ctx) =>
+    pdtFactValue(ctx, "pdtRatedCurrent") ??
     (isContactorSheet(ctx) ? ctx.repair?.ratedCurrent ?? ratedOperationalCurrent(ctx) : undefined) ??
+    (isRockwellStratix2100Plc(ctx) ? rockwellStratix2100Values(ctx)?.current : undefined) ??
     maxUnitNumber(ctx.result?.normalized.current, "A") ??
     maxUnitNumber(attr(ctx, /\b(rated current|operating current)\b/i), "A"),
   AAC820: (ctx) => ctx.repair?.operatingTemperatureMin ?? attr(ctx, /\bmin(?:imum)?\b.*\btemperature\b/i) ?? tempRange(ctx).min,
@@ -1750,7 +2151,7 @@ const RESOLVERS: Record<string, Resolver> = {
   AAB492: (ctx) => numberWithUnit(attr(ctx, /\b(short.?time.*withstand current|withstand current.*icw|\bicw\b)/i), "kA"), // Icw [kA]
   AAB815: (ctx) => numberWithUnit(attr(ctx, /\b(rated operational voltage|max\.?\s*rated operating voltage)\b/i), "V"), // max operating voltage Ue [V]
   // Enum column (raw value -> encoded to a code by the exporter via the column legend).
-  BAD915: (ctx) => (isContactorSheet(ctx) ? controlVoltageType(ctx) : undefined) ?? attr(ctx, /\b(current type|voltage type)\b/i),
+  BAD915: (ctx) => pdtFactValue(ctx, "pdtVoltageTypeText") ?? (isRockwell852LedIndicatorCommand(ctx) ? "DC" : undefined) ?? signalVoltageType(ctx) ?? (isContactorSheet(ctx) ? controlVoltageType(ctx) : undefined) ?? attr(ctx, /\b(current type|voltage type)\b/i),
 
   // --- Cross-tab common properties ---
   // AAB485 "rated permanent current Iu" is in practice the same continuous-current rating that
@@ -1868,7 +2269,7 @@ const RESOLVERS: Record<string, Resolver> = {
   AAP636: attrNumber(/\b(number of poles|poles|pole number)\b/i),
   AAP428: attrNumber(/\b(number of doors back|doors back|back doors)\b/i),
   AAP429: attrNumber(/\b(number of doors front|doors front|front doors)\b/i),
-  AAC895: attrUnitNumber(/\b(diameter|outer diameter|outside diameter)\b/i, "mm"),
+  AAC895: (ctx) => rockwell852LedIndicatorValues(ctx)?.signalDiameter ?? signalDiameter(ctx) ?? attrUnitNumber(/\b(diameter|outer diameter|outside diameter)\b/i, "mm")(ctx),
   BAC818: attrValue(/\b(assembly|mounting|installation)\b/i),
 
   // Connectors, terminals, interfaces, and accessories.
@@ -2925,10 +3326,10 @@ const RESOLVERS: Record<string, Resolver> = {
   AAS487: attrNumber(/\b(number of cable feed[- ]throughs|feed[- ]throughs|cable entries)\b/i),
 
   AAC134: (ctx) => currentValue(ctx, /\b(current input|input current)\b/i),
-  AAG331: (ctx) => colorValue(ctx, /\b(colou?r of lamp hood|lamp hood colou?r|lens colou?r|light colou?r)\b/i),
+  AAG331: (ctx) => (isRockwell852LedIndicatorCommand(ctx) ? "green/transparent" : undefined) ?? signalColor(ctx) ?? colorValue(ctx, /\b(colou?r of lamp hood|lamp hood colou?r|lens colou?r|light colou?r)\b/i),
   AAI308: attrNumber(/\b(number of modes|modes)\b/i),
   AAI365: attrNumber(/\b(number of tones|tones)\b/i),
-  AAI677: attrNumber(/\b(loudness|sound pressure|sound level|dB)\b/i),
+  AAI677: (ctx) => rockwell852LedIndicatorValues(ctx)?.soundLevel ?? signalSoundLevel(ctx) ?? attrNumber(/\b(loudness|sound pressure|sound level|dB)\b/i)(ctx),
   AAO509: attrNumber(/\b(number of illumination devices|illumination devices|number of lamps|lamps)\b/i),
   AAO608: attrValue(/\b(device group.*explosion|explosion device group|ATEX group)\b/i),
   AAO609: attrValue(/\b(category.*explosion|explosion category|ATEX category)\b/i),

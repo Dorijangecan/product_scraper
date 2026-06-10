@@ -1,15 +1,11 @@
 {
   "summary": {
     "manufacturersConfigured": 13,
-    "thinManufacturers": [
-      "eta",
-      "fath",
-      "schmersal"
-    ],
-    "deviceTypesCovered": 35,
-    "pdtDeviceSheetsCovered": 35,
+    "thinManufacturers": [],
+    "deviceTypesCovered": 42,
+    "pdtDeviceSheetsCovered": 41,
     "pdtDeviceSheetsTotal": 41,
-    "uncoveredPdtDeviceSheets": 6
+    "uncoveredPdtDeviceSheets": 0
   },
   "coveredDeviceTypes": {
     "Accessory": [
@@ -39,6 +35,9 @@
     "Current Sensor": [
       "eaton"
     ],
+    "Directional Control Valve": [
+      "eaton"
+    ],
     "Disconnect Switch": [
       "eaton"
     ],
@@ -51,8 +50,14 @@
     "Filter": [
       "eaton"
     ],
+    "Generator": [
+      "abb"
+    ],
     "HMI": [
       "rockwell"
+    ],
+    "Hydraulic Actuator": [
+      "eaton"
     ],
     "Loadcenter": [
       "eaton"
@@ -82,17 +87,26 @@
     "Photoelectric Sensor": [
       "balluff"
     ],
+    "Pneumatic Device": [
+      "balluff"
+    ],
     "Power Supply": [
       "rockwell"
     ],
     "Pressure Sensor": [
       "balluff"
     ],
+    "Pump": [
+      "eaton"
+    ],
     "Pushbutton / Operator": [
       "rockwell"
     ],
     "Rack Cabinet": [
       "nvent"
+    ],
+    "Safety Relay": [
+      "schmersal"
     ],
     "Safety Sensor": [
       "schmersal"
@@ -120,6 +134,9 @@
     ],
     "Variable Speed Drive": [
       "abb"
+    ],
+    "Wire Marker": [
+      "phoenix"
     ]
   },
   "coveredDeviceSheets": {
@@ -165,6 +182,9 @@
       "eaton",
       "eta"
     ],
+    "directional control valve": [
+      "eaton"
+    ],
     "el. mesurement devices": [
       "eaton"
     ],
@@ -176,6 +196,12 @@
     ],
     "filters": [
       "eaton"
+    ],
+    "fluid power": [
+      "eaton"
+    ],
+    "generator": [
+      "abb"
     ],
     "int. ext. lightning protection": [
       "abb"
@@ -210,8 +236,14 @@
     "PLC": [
       "rockwell"
     ],
+    "pneumatic handling": [
+      "balluff"
+    ],
     "power supply devices": [
       "rockwell"
+    ],
+    "pump": [
+      "eaton"
     ],
     "RS232 interfaces": [
       "rockwell"
@@ -237,56 +269,10 @@
     ],
     "ventil": [
       "siemens"
+    ],
+    "Wire ID Information": [
+      "phoenix"
     ]
   },
-  "targets": [
-    {
-      "sheetName": "Wire ID Information",
-      "status": "needs-family-taxonomy-or-manual-catalog",
-      "deviceTypes": [
-        "Wire Marker"
-      ],
-      "configuredFamilyHints": []
-    },
-    {
-      "sheetName": "directional control valve",
-      "status": "needs-family-taxonomy-or-manual-catalog",
-      "deviceTypes": [
-        "Directional Control Valve"
-      ],
-      "configuredFamilyHints": []
-    },
-    {
-      "sheetName": "fluid power",
-      "status": "needs-family-taxonomy-or-manual-catalog",
-      "deviceTypes": [
-        "Hydraulic Actuator"
-      ],
-      "configuredFamilyHints": []
-    },
-    {
-      "sheetName": "generator",
-      "status": "needs-family-taxonomy-or-manual-catalog",
-      "deviceTypes": [
-        "Generator"
-      ],
-      "configuredFamilyHints": []
-    },
-    {
-      "sheetName": "pneumatic handling",
-      "status": "needs-family-taxonomy-or-manual-catalog",
-      "deviceTypes": [
-        "Pneumatic Device"
-      ],
-      "configuredFamilyHints": []
-    },
-    {
-      "sheetName": "pump",
-      "status": "needs-family-taxonomy-or-manual-catalog",
-      "deviceTypes": [
-        "Pump"
-      ],
-      "configuredFamilyHints": []
-    }
-  ]
+  "targets": []
 }

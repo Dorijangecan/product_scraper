@@ -48,5 +48,35 @@
     "expectedOfficialUrlPatterns": ["eaton\\.com/.*/skuPage\\.M030-151\\.html"],
     "requiredDocuments": ["datasheet"],
     "expectedNormalizedFields": ["current", "dimensions", "weight"]
+  },
+  {
+    "manufacturerId": "eaton",
+    "catalogNumber": "DG4V-3-2A-M-U-H7-60",
+    "caseType": "mechanical",
+    "expectedDeviceType": "Directional Control Valve",
+    "riskTags": ["customer-document-supported", "directional-control-valve-sheet-coverage", "flow-pressure-facts"],
+    "expectedOfficialUrlPatterns": ["eaton\\.com", "file:.*/rare-device-sheets\\.csv"],
+    "customerDocuments": ["customer-documents/rare-device-sheets.csv"],
+    "expectedNormalizedFields": ["current", "dimensions", "weight", "material", "voltage"]
+  },
+  {
+    "manufacturerId": "eaton",
+    "catalogNumber": "HC-50-100",
+    "caseType": "mechanical",
+    "expectedDeviceType": "Hydraulic Actuator",
+    "riskTags": ["customer-document-supported", "hydraulic-actuator", "fluid-power-sheet-coverage", "pressure-facts"],
+    "expectedOfficialUrlPatterns": ["eaton\\.com", "file:.*/rare-device-sheets\\.csv"],
+    "customerDocuments": ["customer-documents/rare-device-sheets.csv"],
+    "expectedNormalizedFields": ["dimensions", "weight", "material"]
+  },
+  {
+    "manufacturerId": "eaton",
+    "catalogNumber": "PUMP-12M3H",
+    "caseType": "mechanical",
+    "expectedDeviceType": "Pump",
+    "riskTags": ["customer-document-supported", "pump-sheet-coverage", "flow-pressure-facts"],
+    "expectedOfficialUrlPatterns": ["eaton\\.com", "file:.*/rare-device-sheets\\.csv"],
+    "customerDocuments": ["customer-documents/rare-device-sheets.csv"],
+    "expectedNormalizedFields": ["current", "dimensions", "weight", "material", "voltage"]
   }
 ]

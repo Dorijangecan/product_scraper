@@ -24,6 +24,7 @@ import {
   CustomerDocumentParseCache,
   extractCustomerDocumentAttributes
 } from "../src/server/scrapers/customer-documents.js";
+import { matchesExpectedOfficialUrl } from "./benchmark-utils.js";
 
 interface BenchmarkFixture {
   manufacturerId: string;
@@ -417,25 +418,6 @@ function summarizePdtAudit(pdt: PdtExportResult | undefined): Pick<
   };
 }
 
-function matchesExpectedOfficialUrl(result: ProductResult, manufacturer: ManufacturerConfig, fixture: BenchmarkFixture): boolean {
-  const url = result.productUrl ?? "";
-  if (!url) return false;
-  if (fixture.expectedOfficialUrlPatterns?.some((pattern) => safeRegExp(pattern).test(url))) return true;
-  try {
-    const host = new URL(url).hostname.replace(/^www\./, "");
-    return manufacturer.officialBaseUrls.some((baseUrl) => {
-      try {
-        const baseHost = new URL(baseUrl).hostname.replace(/^www\./, "");
-        return host === baseHost || host.endsWith(`.${baseHost}`);
-      } catch {
-        return false;
-      }
-    });
-  } catch {
-    return false;
-  }
-}
-
 function matchesRequiredDocuments(result: ProductResult, fixture: BenchmarkFixture): boolean {
   if (!fixture.requiredDocuments?.length) return true;
   return fixture.requiredDocuments.every((type) => result.documents.some((doc) => doc.type === type));
@@ -699,14 +681,6 @@ function benchmarkReportPath(): string {
     .map(([key, value]) => `${key}-${safePart(value)}`)
     .join(".");
   return path.join(benchmarkDir, suffix ? `benchmark-report.${suffix}.json` : "benchmark-report.json");
-}
-
-function safeRegExp(pattern: string): RegExp {
-  try {
-    return new RegExp(pattern, "i");
-  } catch {
-    return new RegExp(pattern.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
-  }
 }
 
 function percent(count: number, total: number): number {

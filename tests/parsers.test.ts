@@ -11,7 +11,7 @@ import {
 import { parseGenericProductPage } from "../src/server/scrapers/generic.js";
 import { parseSchneiderDatasheetReaderPage, parseSchneiderProductPage, parseTelemecaniqueProductPage } from "../src/server/scrapers/schneider.js";
 import { parseSiemensProductApiResponse } from "../src/server/scrapers/siemens.js";
-import { parseRockwellCutsheetPage, parseRockwellDpp, parseRockwellDrawingsPage } from "../src/server/scrapers/rockwell.js";
+import { parseRockwellCutsheetPage, parseRockwellDpp, parseRockwellDrawingsPage, parseRockwellFamilyPage } from "../src/server/scrapers/rockwell.js";
 import { SCEConnector, parseSceProductPage } from "../src/server/scrapers/sce.js";
 import { SpelsbergConnector } from "../src/server/scrapers/spelsberg.js";
 import type { FetchedText } from "../src/server/scrapers/http-client.js";
@@ -92,6 +92,27 @@ describe("manufacturer parsers", () => {
     expect(missingCutsheet.documents).toHaveLength(0);
     expect(wrongDrawing.status).toBe("failed");
     expect(wrongDrawing.documents).toHaveLength(0);
+  });
+
+  it("parses Rockwell Micro820 family pages as official family evidence", () => {
+    const result = parseRockwellFamilyPage(
+      "2080-LC20-20AWB",
+      fetched(
+        `<html><body>
+          <h1>Micro820 Controllers</h1>
+          <p>Micro820 programmable controllers from Rockwell Automation.</p>
+          <a href="https://literature.rockwellautomation.com/idc/groups/literature/documents/td/2080-td004_-en-e.pdf">Technical Data</a>
+        </body></html>`,
+        "https://www.rockwellautomation.com/en-us/products/hardware/allen-bradley/programmable-controllers/micro-controllers/micro800-family/micro820-controllers.html"
+      )
+    );
+
+    expect(result.status).toBe("partial");
+    expect(result.productUrl).toContain("/micro820-controllers.html");
+    expect(result.normalized.weight).toBe("0.38 kg");
+    expect(result.localizedDescriptions?.de?.title).toBe("Micro820-Steuerung");
+    expect(result.attributes.some((attr) => attr.parser === "rockwell-family-page" && attr.value === "Micro820 Controller")).toBe(true);
+    expect(result.documents.some((doc) => doc.type === "datasheet" && doc.label === "Technical Datasheet (EN)")).toBe(true);
   });
 
   it("parses ABB JSON-LD product data", () => {
@@ -2079,6 +2100,43 @@ describe("manufacturer parsers", () => {
     ]);
   });
 
+  it("uses manufacturer-configured embedded table names in the generic parser", () => {
+    const html = `
+      <html><head><title>ABC-123 custom product</title></head><body>
+        <h1>ABC-123 custom product</h1>
+        <script>
+          window.customProductRows = [
+            ["Catalog", "Material", "Weight"],
+            ["ABC-123", "Steel", "1.2 kg"],
+            ["ZZZ-999", "Plastic", "2 kg"]
+          ];
+          window.customResourceRows = [
+            ["Document Name", "Document URL"],
+            ["Datasheet", "/downloads/ABC-123-datasheet.pdf"]
+          ];
+        </script>
+      </body></html>
+    `;
+    const result = parseGenericProductPage(
+      "eaton",
+      "ABC-123",
+      fetched(html, "https://example.test/products/ABC-123"),
+      "official-fallback",
+      "custom",
+      {
+        extractionPolicy: {
+          embeddedProductTableNames: ["customProductRows"],
+          embeddedResourceTableNames: ["customResourceRows"]
+        }
+      }
+    );
+
+    expect(result.attributes.some((attr) => attr.group === "Embedded Product Table" && attr.name === "Material" && attr.value === "Steel")).toBe(true);
+    expect(result.attributes.some((attr) => attr.value === "Plastic")).toBe(false);
+    expect(result.normalized.weight).toBe("1.2 kg");
+    expect(result.documents.some((doc) => doc.type === "datasheet" && doc.url === "https://example.test/downloads/ABC-123-datasheet.pdf")).toBe(true);
+  });
+
   it("keeps the real product photo and rejects schematics, dimension drawings and CAD previews", () => {
     const html = `
       <html><head>
@@ -3482,6 +3540,52 @@ Terminal capacity
     expect(result.documents.some((doc) => doc.type === "datasheet" && doc.label === "Eaton Specification Sheet - ABC-LD")).toBe(true);
     expect(result.documents.some((doc) => doc.type === "cad" && doc.label === "abc_ld.stp (mCAD model)")).toBe(true);
     expect(result.documents.some((doc) => doc.type === "certificate" && doc.label === "abc-declaration-of-conformity.pdf (Declarations of conformity)")).toBe(true);
+  });
+
+  it("extracts Eaton hidden resource payload documents from product HTML", () => {
+    const html = `
+      <html><head><title>ABC-LD | Eaton test product | Eaton</title></head><body>
+        <h1>ABC-LD</h1>
+        <div class="product-specification-item">
+          <h2 class="product-specification-item__title">General specifications</h2>
+          <table>
+            <tr class="specification-row"><td class="specification-title"><strong>Product Name</strong></td><td class="specification-value">Eaton test product</td></tr>
+            <tr class="specification-row"><td class="specification-title"><strong>Catalog Number</strong></td><td class="specification-value">ABC-LD</td></tr>
+            <tr class="specification-row"><td class="specification-title"><strong>Product Weight</strong></td><td class="specification-value">1 kg</td></tr>
+          </table>
+        </div>
+        <script>
+          window.eatonResources = {
+            "resources": [
+              {
+                "title": "Eaton Specification Sheet - ABC-LD",
+                "documentType": "Product data sheet",
+                "url": "https:\\/\\/www.eaton.com\\/us\\/en-us\\/skuPage.ABC-LD.pdf"
+              },
+              {
+                "title": "abc-ld-declaration-of-conformity.pdf",
+                "documentType": "Declarations of conformity",
+                "downloadUrl": "\\/content\\/dam\\/eaton\\/products\\/controls\\/abc-ld-declaration-of-conformity.pdf"
+              },
+              {
+                "resourceTitle": "ABC-LD 3D mCAD model",
+                "downloadUrl": "\\/content\\/dam\\/eaton\\/cad\\/mcad\\/step\\/abc_ld.stp"
+              }
+            ]
+          };
+        </script>
+      </body></html>
+    `;
+    const result = parseEatonProductPage(
+      "ABC-LD",
+      fetched(html, "https://www.eaton.com/us/en-us/skuPage.ABC-LD.html"),
+      "https://www.eaton.com/us/en-us/skuPage.ABC-LD.html"
+    );
+
+    expect(result.status).toBe("found");
+    expect(result.documents.some((doc) => doc.type === "datasheet" && doc.label === "Eaton Specification Sheet - ABC-LD")).toBe(true);
+    expect(result.documents.some((doc) => doc.type === "certificate" && doc.url.endsWith("/abc-ld-declaration-of-conformity.pdf"))).toBe(true);
+    expect(result.documents.some((doc) => doc.type === "cad" && doc.label === "ABC-LD 3D mCAD model")).toBe(true);
   });
 
   it("does not parse Eaton static HTML meta tags as markdown attributes", () => {

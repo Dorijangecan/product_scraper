@@ -218,7 +218,21 @@ function check(condition: boolean, message: string): void {
 
 function productSpecAuditRecord(record: { sheetName: string; code: string; propName: string; description: string }): boolean {
   const key = (record.code || record.propName).trim().toUpperCase();
-  if (["AAO676", "CNSORDERNO", "ABA671", "AAO677", "MANUFACTURER_URL", "ABA669", "AAQ326", "AAY811", "AAO057", "AAC314", "00001C001"].includes(key)) {
+  if ([
+    "AAO676",
+    "CNSORDERNO",
+    "ABA671",
+    "AAO677",
+    "MANUFACTURER_URL",
+    "ABA669",
+    "AAQ326",
+    "AAY811",
+    "AAO057",
+    "REFERENCE_FEATURE_GROUP_ID",
+    "REFERENCE_FEATURE_SYSTEM_NAME",
+    "AAC314",
+    "00001C001"
+  ].includes(key)) {
     return false;
   }
   if (record.sheetName === "Material Master Data") {

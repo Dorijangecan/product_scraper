@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseEatonCbeCatalogRecords } from "../src/server/scrapers/eaton.js";
+import { deriveEatonCbeRecord, parseEatonCbeCatalogRecords } from "../src/server/scrapers/eaton.js";
 
 // One representative row per E6-catalog family, tab-delimited exactly as pdf-parse emits them.
 const CATALOG = [
@@ -35,5 +35,36 @@ describe("Eaton E6 catalog parser", () => {
     });
     expect(records.get("CBE03553")).toMatchObject({ partNumber: "ED6-6/1N/C/003", residualCurrent: "0.03" });
     expect(records.get("CBE04437")).toMatchObject({ partNumber: "Z-AHK", productName: "E6 series accessory" });
+  });
+
+  it("adds family-level PDT enrichment for EIS and ED6 records", () => {
+    expect(deriveEatonCbeRecord("CBE04417", "EIS-40/1", ["40", "1"], "12")).toMatchObject({
+      productFamily: "EIS",
+      productBase: "Miniature circuit breaker",
+      eclassCode: "27070203",
+      eclassVersion: "13",
+      ratedVoltage: "230",
+      ratedInsulationVoltage: "690",
+      weightKg: "0.08",
+      depthMm: "71.899",
+      widthMm: "17.7",
+      heightMm: "83.7",
+      operatingTemperature: "-25...+60 C",
+      degreeOfProtection: "IP20",
+      connectionType: "Screw connection"
+    });
+    expect(deriveEatonCbeRecord("CBE03553", "ED6-6/1N/C/003", ["6/0.03"], "6")).toMatchObject({
+      productFamily: "E6 series",
+      productBase: "6A 1N C I△n=30mA AC type",
+      eclassCode: "27142201",
+      ratedVoltage: "230",
+      ratedInsulationVoltage: "500",
+      weightKg: "0.18",
+      depthMm: "75.5",
+      widthMm: "35",
+      heightMm: "83.7",
+      operatingTemperature: "-30...+60 C",
+      degreeOfProtection: "IP20"
+    });
   });
 });

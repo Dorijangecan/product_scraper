@@ -15,6 +15,8 @@ import { templateContainsCatalogPlaceholder } from "../scrapers/catalog-number.j
 
 type DiscoveryUrlVariant = NonNullable<NonNullable<ScrapeRecipeConfig["discoveryPolicy"]>["urlVariants"]>[number];
 type RequiredNormalizedField = NonNullable<NonNullable<ScrapeRecipeConfig["qualityPolicy"]>["requiredNormalizedFields"]>[number];
+type RequiredFinalField = NonNullable<NonNullable<ScrapeRecipeConfig["qualityPolicy"]>["requiredFinalFields"]>[number];
+type PreferredFinalField = NonNullable<NonNullable<ScrapeRecipeConfig["qualityPolicy"]>["preferredFinalFields"]>[number];
 type RequiredDocumentType = NonNullable<NonNullable<ScrapeRecipeConfig["qualityPolicy"]>["requiredDocumentTypes"]>[number];
 
 const builtInManufacturerConfigs: Record<string, ManufacturerConfig> = {
@@ -261,7 +263,7 @@ const builtInManufacturerConfigs: Record<string, ManufacturerConfig> = {
     rateLimitMs: 1800,
     officialBaseUrls: ["https://www.rockwellautomation.com/en-us/products"],
     // Matches MANUFACTURER_URL in the manual Rockwell PDTs.
-    homepageUrl: "https://www.rockwellautomation.com/en-us.html",
+    homepageUrl: "https://www.rockwellautomation.com",
     localizedUrlTemplates: [
       { locale: "en", urlTemplate: "https://www.rockwellautomation.com/en-us/products/details.{part}.html" },
       { locale: "de", urlTemplate: "https://www.rockwellautomation.com/de-de/products/details.{part}.html" }
@@ -500,6 +502,10 @@ function attachBuiltInScrapeRecipes() {
       officialFirst: true,
       readerOnQualityFailure: true,
       browserOnQualityFailure: true,
+      documentDownloadProfile: "quality",
+      rationales: {
+        documentDownloadProfile: "Balluff official pages expose source PDF datasheets that are useful for PDT enrichment; keep a quality-profile document path without saving every document."
+      },
       distributorFallback: false,
       maxReaderAttempts: 1,
       maxBrowserAttempts: 1
@@ -563,6 +569,12 @@ function attachBuiltInScrapeRecipes() {
     minAttributes: 3,
     expandSelectors: accordionSelectors,
     dynamicFramework: ["json-ld", "embedded-json"],
+    qualityPolicy: {
+      preferredFinalFields: ["material"],
+      rationales: {
+        preferredFinalFields: "ABB official contactor pages and manual PDT examples prioritize source-backed electrical facts; material is optional for active electrical rows to avoid false required-field failures."
+      }
+    },
     fallbackPolicy: {
       officialFirst: true,
       readerOnQualityFailure: true,
@@ -578,6 +590,12 @@ function attachBuiltInScrapeRecipes() {
     requiredAttributes: ["part number|description|height|width|depth|weight"],
     requiredDocuments: ["image"],
     minAttributes: 4,
+    qualityPolicy: {
+      requiredFinalFields: ["weight", "dimensions", "material"],
+      rationales: {
+        requiredFinalFields: "Saginaw enclosure manual PDT examples depend on source-backed physical facts, so weight, dimensions, and material remain required final fields."
+      }
+    },
     fallbackPolicy: {
       officialFirst: true,
       readerOnQualityFailure: true,
@@ -629,6 +647,37 @@ function attachBuiltInScrapeRecipes() {
       confidenceRules: { foundMinScore: 74, partialMaxConfidence: 0.72, distributorMaxConfidence: 0.45 }
     };
   }
+
+  builtInManufacturerConfigs.rockwell.scrapeRecipe = {
+    requiredAttributes: ["catalog|article|part|product|description"],
+    minAttributes: 3,
+    minDocuments: 0,
+    expandSelectors: accordionSelectors,
+    dynamicFramework: ["json-ld", "embedded-json", "api"],
+    qualityPolicy: {
+      typeCodeFallback: "catalogNumber",
+      rationales: {
+        typeCodeFallback: "Rockwell official product pages and manual PDT examples use catalog number as the final type code when no dedicated type-code attribute is published."
+      }
+    },
+    fallbackPolicy: {
+      officialFirst: true,
+      readerOnQualityFailure: true,
+      browserOnQualityFailure: false,
+      documentDownloadProfile: "quality",
+      // Rockwell shared manuals are large and repeatedly re-entered for optional
+      // final fields; preserve required retries but skip preferred-only loops.
+      skipPreferredFinalCompletenessRetry: true,
+      rationales: {
+        documentDownloadProfile: "Rockwell official pages and source PDFs use large shared manuals; quality-profile downloads retain PDT enrichment evidence without saving every document.",
+        skipPreferredFinalCompletenessRetry: "Rockwell official product pages expose large shared manuals; manual PDT parity showed preferred-only final retries loop without improving source-backed cells."
+      },
+      distributorFallback: false,
+      maxReaderAttempts: 1,
+      maxBrowserAttempts: 0
+    },
+    confidenceRules: { foundMinScore: 74, partialMaxConfidence: 0.72, distributorMaxConfidence: 0.45 }
+  };
 
   builtInManufacturerConfigs.schmersal.scrapeRecipe = {
     searchUrlTemplates: [
@@ -1099,6 +1148,8 @@ function sanitizeExtractionPolicy(input: unknown): ScrapeRecipeConfig["extractio
     ...nonEmptyList("documentUrlPatterns", sanitizeStringList(record.documentUrlPatterns).slice(0, 80)),
     ...nonEmptyList("ignoredDocumentUrlPatterns", sanitizeStringList(record.ignoredDocumentUrlPatterns).slice(0, 80)),
     ...nonEmptyList("ignoredImageUrlPatterns", sanitizeStringList(record.ignoredImageUrlPatterns).slice(0, 80)),
+    ...nonEmptyList("embeddedProductTableNames", sanitizeStringList(record.embeddedProductTableNames).slice(0, 80)),
+    ...nonEmptyList("embeddedResourceTableNames", sanitizeStringList(record.embeddedResourceTableNames).slice(0, 80)),
     ...(record.maxRawAttributes !== undefined ? { maxRawAttributes: clampInteger(Number(record.maxRawAttributes), 1, 2000) } : {}),
     ...(record.maxDocuments !== undefined ? { maxDocuments: clampInteger(Number(record.maxDocuments), 1, 300) } : {})
   };
@@ -1108,16 +1159,54 @@ function sanitizeExtractionPolicy(input: unknown): ScrapeRecipeConfig["extractio
 function sanitizeQualityPolicy(input: unknown): ScrapeRecipeConfig["qualityPolicy"] | undefined {
   if (!input || typeof input !== "object") return undefined;
   const record = input as NonNullable<ScrapeRecipeConfig["qualityPolicy"]>;
-  const normalizedFields = new Set(["weight", "dimensions", "material", "voltage", "current", "protection", "certificates"]);
+  const normalizedFields = new Set([
+    "weight",
+    "dimensions",
+    "material",
+    "wallThickness",
+    "finish",
+    "color",
+    "voltage",
+    "current",
+    "protection",
+    "certificates",
+    "operatingTemperatureMin",
+    "operatingTemperatureMax"
+  ]);
+  const finalFields = new Set([
+    "image",
+    "weight",
+    "dimensions",
+    "material",
+    "certificates",
+    "voltage",
+    "current",
+    "color",
+    "protection",
+    "operatingTemperature",
+    "typeCode"
+  ]);
   const documentTypes = new Set(["datasheet", "certificate", "manual", "cad", "image", "other"]);
   const requiredNormalizedFields = Array.isArray(record.requiredNormalizedFields)
     ? record.requiredNormalizedFields.filter((item): item is RequiredNormalizedField => typeof item === "string" && normalizedFields.has(item))
     : [];
+  const requiredFinalFields = Array.isArray(record.requiredFinalFields)
+    ? record.requiredFinalFields.filter((item): item is RequiredFinalField => typeof item === "string" && finalFields.has(item))
+    : [];
+  const preferredFinalFields = Array.isArray(record.preferredFinalFields)
+    ? record.preferredFinalFields.filter((item): item is PreferredFinalField => typeof item === "string" && finalFields.has(item))
+    : [];
   const requiredDocumentTypes = Array.isArray(record.requiredDocumentTypes)
     ? record.requiredDocumentTypes.filter((item): item is RequiredDocumentType => typeof item === "string" && documentTypes.has(item))
     : [];
+  const rationales = sanitizeStringRecord(record.rationales);
+  const allowedRationales = pickRecord(rationales, ["requiredFinalFields", "preferredFinalFields", "typeCodeFallback"]);
   const policy: NonNullable<ScrapeRecipeConfig["qualityPolicy"]> = {
     ...(requiredNormalizedFields.length ? { requiredNormalizedFields: [...new Set(requiredNormalizedFields)] } : {}),
+    ...(requiredFinalFields.length ? { requiredFinalFields: [...new Set(requiredFinalFields)] } : {}),
+    ...(preferredFinalFields.length ? { preferredFinalFields: [...new Set(preferredFinalFields)] } : {}),
+    ...(record.typeCodeFallback === "catalogNumber" ? { typeCodeFallback: "catalogNumber" } : {}),
+    ...(Object.keys(allowedRationales).length ? { rationales: allowedRationales } : {}),
     ...(record.minRawAttributes !== undefined ? { minRawAttributes: clampInteger(Number(record.minRawAttributes), 0, 2000) } : {}),
     ...(requiredDocumentTypes.length ? { requiredDocumentTypes: [...new Set(requiredDocumentTypes)] } : {}),
     ...(record.officialSourceConfidenceFloor !== undefined ? { officialSourceConfidenceFloor: clampOptionalNumber(record.officialSourceConfidenceFloor, 0.05, 0.99) } : {}),
@@ -1139,16 +1228,24 @@ function sanitizeDynamicFramework(input: ScrapeRecipeConfig["dynamicFramework"])
 function sanitizeFallbackPolicy(input: unknown): ScrapeRecipeConfig["fallbackPolicy"] | undefined {
   if (!input || typeof input !== "object") return undefined;
   const record = input as NonNullable<ScrapeRecipeConfig["fallbackPolicy"]>;
+  const rationales = pickRecord(sanitizeStringRecord(record.rationales), ["documentDownloadProfile", "skipPreferredFinalCompletenessRetry"]);
   const policy: NonNullable<ScrapeRecipeConfig["fallbackPolicy"]> = {
     ...(typeof record.officialFirst === "boolean" ? { officialFirst: record.officialFirst } : {}),
     ...(typeof record.readerOnQualityFailure === "boolean" ? { readerOnQualityFailure: record.readerOnQualityFailure } : {}),
     ...(typeof record.browserOnQualityFailure === "boolean" ? { browserOnQualityFailure: record.browserOnQualityFailure } : {}),
+    ...(isDocumentDownloadProfile(record.documentDownloadProfile) ? { documentDownloadProfile: record.documentDownloadProfile } : {}),
+    ...(typeof record.skipPreferredFinalCompletenessRetry === "boolean" ? { skipPreferredFinalCompletenessRetry: record.skipPreferredFinalCompletenessRetry } : {}),
+    ...(Object.keys(rationales).length ? { rationales } : {}),
     ...(typeof record.distributorFallback === "boolean" ? { distributorFallback: record.distributorFallback } : {}),
     ...(record.distributorConfidenceCap !== undefined ? { distributorConfidenceCap: clampOptionalNumber(record.distributorConfidenceCap, 0.05, 0.95) } : {}),
     ...(record.maxReaderAttempts !== undefined ? { maxReaderAttempts: clampInteger(Number(record.maxReaderAttempts), 0, 5) } : {}),
     ...(record.maxBrowserAttempts !== undefined ? { maxBrowserAttempts: clampInteger(Number(record.maxBrowserAttempts), 0, 3) } : {})
   };
   return Object.keys(policy).length ? policy : undefined;
+}
+
+function isDocumentDownloadProfile(value: unknown): value is NonNullable<ScrapeRecipeConfig["fallbackPolicy"]>["documentDownloadProfile"] {
+  return value === "full" || value === "quality" || value === "images-only";
 }
 
 function sanitizeConfidenceRules(input: unknown): ScrapeRecipeConfig["confidenceRules"] | undefined {
@@ -1177,6 +1274,11 @@ function sanitizeStringRecord(input: unknown): Record<string, string> {
       .map(([key, value]) => [clean(key), clean(String(value))] as const)
       .filter(([key, value]) => key && value)
   );
+}
+
+function pickRecord<const Key extends string>(record: Record<string, string>, keys: readonly Key[]): Partial<Record<Key, string>> {
+  const allowed = new Set<string>(keys);
+  return Object.fromEntries(Object.entries(record).filter(([key]) => allowed.has(key))) as Partial<Record<Key, string>>;
 }
 
 function nonEmptyList<Key extends string, Value>(key: Key, value: Value[]): Record<Key, Value[]> | {} {

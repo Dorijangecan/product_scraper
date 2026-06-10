@@ -12,32 +12,12 @@ interface DocRow {
   url: string;
   language: string;
   description: string;
-}
-
-function abbDocumentUrl(catalogNumber: string, language: "en" | "de"): string {
-  // Match the manual PDT format: bare catalog number, no "ABB" prefix.
-  const rule = localizedPdtDocumentUrlRules({ manufacturerId: "abb", catalogNumber })
-    .find((candidate) => candidate.value.language === (language === "de" ? "german" : "english"));
-  return rule?.value.url ?? catalogNumber;
-}
-
-function eatonDocumentUrl(catalogNumber: string, language: "en" | "de"): string {
-  // Manual Eaton PDTs use SKU pages with an "EP-" prefix on the catalog number.
-  // EN uses the gb/en-gb locale (international English), DE uses de/de-de.
-  const rule = localizedPdtDocumentUrlRules({ manufacturerId: "eaton", catalogNumber })
-    .find((candidate) => candidate.value.language === (language === "de" ? "german" : "english"));
-  return rule?.value.url ?? catalogNumber;
-}
-
-function sagDocumentUrl(catalogNumber: string): string {
-  return localizedPdtDocumentUrlRules({ manufacturerId: "sce", catalogNumber })[0]?.value.url ?? catalogNumber;
+  documentType?: string;
 }
 
 /**
- * Localized product links per product: English first, then German when the manufacturer publishes
- * a German page. Manufacturers with no localized DE site (e.g. Saginaw) get only the EN row.
- * Intentionally does NOT include extra datasheets or "Product page" rows — the manual PDT keeps
- * exactly the two language links and nothing else.
+ * Additional Documents is generic by default: use official localized URLs found by
+ * the scraper. Manual-PDT formatting exceptions live in localizedPdtDocumentUrlRules.
  */
 function documentRowsFor(item: RunItemRecord): DocRow[] {
   const ruleRows = localizedPdtDocumentUrlRules({
@@ -45,26 +25,6 @@ function documentRowsFor(item: RunItemRecord): DocRow[] {
     catalogNumber: item.catalogNumber
   }).map((rule) => rule.value);
   if (ruleRows.length > 0) return ruleRows;
-
-  if (item.result?.manufacturerId === "abb") {
-    // ABB exposes a deterministic DE mirror (/products/de/...) for every catalog number.
-    return [
-      { url: abbDocumentUrl(item.catalogNumber, "en"), language: "english", description: "Datasheet(EN)" },
-      { url: abbDocumentUrl(item.catalogNumber, "de"), language: "german", description: "Datenblatt" }
-    ];
-  }
-  if (item.result?.manufacturerId === "eaton") {
-    return [
-      { url: eatonDocumentUrl(item.catalogNumber, "en"), language: "english", description: "Datasheet(EN)" },
-      { url: eatonDocumentUrl(item.catalogNumber, "de"), language: "german", description: "Datenblatt" }
-    ];
-  }
-  if (item.result?.manufacturerId === "sce") {
-    // Saginaw publishes a single English partnumber_info page — match the manual PDT (EN only).
-    return [
-      { url: sagDocumentUrl(item.catalogNumber), language: "english", description: "Datasheet(EN)" }
-    ];
-  }
 
   const localized = item.result?.localizedUrls;
   const en = localized?.en ?? item.result?.productUrl ?? item.productUrl;
@@ -76,8 +36,7 @@ function documentRowsFor(item: RunItemRecord): DocRow[] {
 }
 
 /**
- * Fill "Additional Documents" to mirror the manual PDT: exactly the localized product links per
- * product — one English row and one German row — with Document ID, language and description set.
+ * Fill "Additional Documents" with localized product/document links per product.
  * Columns are located by header label since this is a repeating document table.
  */
 export function writeDocumentsSheet(ws: ExcelJS.Worksheet, items: RunItemRecord[]): number {
@@ -86,6 +45,7 @@ export function writeDocumentsSheet(ws: ExcelJS.Worksheet, items: RunItemRecord[
   const cols = {
     article: findCol(descriptor.columns, (k) => k.includes("articlenumber") || k.includes("article number")),
     docId: findCol(descriptor.columns, (k) => k.includes("document id")),
+    type: findCol(descriptor.columns, (k) => k.includes("document type")),
     path: findCol(descriptor.columns, (k) => k.includes("document path")),
     language: findCol(descriptor.columns, (k) => k === "document" || k.includes("document language")),
     description: findCol(
@@ -106,6 +66,7 @@ export function writeDocumentsSheet(ws: ExcelJS.Worksheet, items: RunItemRecord[
     docs.forEach((doc, index) => {
       ws.getCell(row, cols.article!).value = item.catalogNumber;
       if (cols.docId) ws.getCell(row, cols.docId).value = index + 1;
+      if (cols.type && doc.documentType) ws.getCell(row, cols.type).value = doc.documentType;
       ws.getCell(row, cols.path!).value = { text: doc.url, hyperlink: doc.url };
       if (cols.language) ws.getCell(row, cols.language).value = doc.language;
       if (cols.description) ws.getCell(row, cols.description).value = doc.description;

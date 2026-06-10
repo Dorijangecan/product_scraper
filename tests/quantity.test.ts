@@ -154,6 +154,24 @@ describe("quantity grammar — extended units & qualifiers", () => {
     expect(parseQuantities("2.5 mm²")[0]).toMatchObject({ kind: "area", unit: "mm²", value: 2.5 });
   });
 
+  it("parses fluid and air flow-rate units", () => {
+    expect(parseQuantities("standard nominal flow rate 500 l/min", { kind: "flowRate" })[0]).toMatchObject({
+      kind: "flowRate",
+      unit: "l/min",
+      value: 500
+    });
+    expect(parseQuantities("pump flow 12 m3/h", { kind: "flowRate" })[0]).toMatchObject({
+      kind: "flowRate",
+      unit: "m3/h",
+      value: 12
+    });
+    expect(parseQuantities("air flow 120 cfm", { kind: "flowRate" })[0]).toMatchObject({
+      kind: "flowRate",
+      unit: "cfm",
+      value: 120
+    });
+  });
+
   it("understands < and > as max / min", () => {
     expect(parseQuantities("< 16 A", { kind: "current" })[0]).toMatchObject({ max: 16, qualifier: "max" });
     expect(parseQuantities("> 12 V", { kind: "voltage" })[0]).toMatchObject({ min: 12, qualifier: "min" });

@@ -3,6 +3,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import type {
   CustomerDocumentRecord,
+  DocumentDownloadProfile as SharedDocumentDownloadProfile,
   DocumentRecord,
   ManufacturerConfig,
   ManufacturerId,
@@ -35,7 +36,7 @@ import { BrowserRenderSession } from "./scrapers/browser-renderer.js";
 import type { AppPaths } from "./paths.js";
 import { buildRunOutputLayout, ensureRunOutputLayout, type RunOutputLayout } from "./run-output.js";
 
-export type DocumentDownloadProfile = "full" | "quality" | "images-only";
+export type DocumentDownloadProfile = SharedDocumentDownloadProfile;
 
 const INTERRUPTED_RUN_RESUME_WINDOW_MS = 5 * 60 * 1000;
 
@@ -182,6 +183,7 @@ export class RunManager {
       // walks are expensive — without this cache, a 60-page Eaton catalogue would be
       // re-walked once per catalog number in the run.
       const customerDocumentCache = new CustomerDocumentParseCache();
+      const sharedDocumentDownloads = new Map<string, Promise<string>>();
       const browserRenderer = new BrowserRenderSession();
       const pending = this.db.getPendingRunItems(run.id);
       const { GenericFallbackScraper } = await import("./scrapers/generic.js");
@@ -266,7 +268,8 @@ export class RunManager {
                 documentDownloadsForEnrichmentEnabled,
                 controller.signal,
                 undefined,
-                downloadImagesEnabled
+                downloadImagesEnabled,
+                sharedDocumentDownloads
               )
           });
           if (this.db.isCancellationRequested(run.id) || controller.signal.aborted) {
@@ -288,7 +291,8 @@ export class RunManager {
             controller.signal,
             documentDownloadProfile(manufacturer, initiallyGated, { saveDocuments: downloadDocumentsEnabled }),
             downloadImagesEnabled,
-            item.catalogNumber
+            item.catalogNumber,
+            sharedDocumentDownloads
           );
           // In "Images only" mode the saved deliverable is just the PNG. Everything below this
           // line (PDF enrichment, fallback discovery, final completeness retry) exists only to
@@ -373,7 +377,8 @@ export class RunManager {
                   documentDownloadsForEnrichmentEnabled,
                   controller.signal,
                   undefined,
-                  downloadImagesEnabled
+                  downloadImagesEnabled,
+                  sharedDocumentDownloads
                 )
             });
             this.updateItemStage(item.id, "downloads", "Downloading fallback images and documents");
@@ -387,7 +392,8 @@ export class RunManager {
               controller.signal,
               documentDownloadProfile(manufacturer, withSmartFallbacks, { saveDocuments: downloadDocumentsEnabled }),
               downloadImagesEnabled,
-              item.catalogNumber
+              item.catalogNumber,
+              sharedDocumentDownloads
             );
             this.updateItemStage(item.id, "document-enrichment", "Reading fallback documents for missing values");
             enriched = finalizeQualityGate(await enrichFromDownloadedDocumentsIfPresent(withFallbackDownloads), manufacturer);
@@ -457,7 +463,8 @@ export class RunManager {
                   documentDownloadsForEnrichmentEnabled,
                   controller.signal,
                   undefined,
-                  downloadImagesEnabled
+                  downloadImagesEnabled,
+                  sharedDocumentDownloads
                 )
             });
             this.updateItemStage(item.id, "downloads", "Downloading final retry images and documents");
@@ -471,7 +478,8 @@ export class RunManager {
               controller.signal,
               documentDownloadProfile(manufacturer, withFinalCompletenessFallbacks, { saveDocuments: downloadDocumentsEnabled }),
               downloadImagesEnabled,
-              item.catalogNumber
+              item.catalogNumber,
+              sharedDocumentDownloads
             );
             this.updateItemStage(item.id, "document-enrichment", "Reading final retry documents for missing values");
             enriched = finalizeQualityGate(await enrichFromDownloadedDocumentsIfPresent(withFinalCompletenessDownloads), manufacturer);
@@ -711,7 +719,8 @@ export class RunManager {
     signal?: AbortSignal,
     profile: DocumentDownloadProfile = "full",
     downloadImagesEnabled: boolean = true,
-    catalogNumberForFiles: string = result.catalogNumber
+    catalogNumberForFiles: string = result.catalogNumber,
+    sharedDocumentDownloads?: Map<string, Promise<string>>
   ): Promise<ProductResult> {
     const documents: DocumentRecord[] = [];
     const maxDownloads = profile === "full" ? 25 : 8;
@@ -767,7 +776,7 @@ export class RunManager {
         nonImageDownloadCount += 1;
         profileTypeCounts.set(doc.type, (profileTypeCounts.get(doc.type) ?? 0) + 1);
       }
-      documents.push(await this.downloadDocument(http, documentsDir, imagesDir, manufacturerShortName, catalogNumberForFiles, doc, downloadDocumentsEnabled, signal, indexForDoc, downloadImagesEnabled));
+      documents.push(await this.downloadDocument(http, documentsDir, imagesDir, manufacturerShortName, catalogNumberForFiles, doc, downloadDocumentsEnabled, signal, indexForDoc, downloadImagesEnabled, sharedDocumentDownloads));
       if (doc.type === "image") imageIndex += 1;
       downloadCount += 1;
     }
@@ -784,7 +793,8 @@ export class RunManager {
     downloadDocumentsEnabled: boolean,
     signal?: AbortSignal,
     imageIndex?: number,
-    downloadImagesEnabled: boolean = true
+    downloadImagesEnabled: boolean = true,
+    sharedDocumentDownloads?: Map<string, Promise<string>>
   ): Promise<DocumentRecord> {
     if (doc.localPath) return doc;
     if (doc.type === "image" && !downloadImagesEnabled) {
@@ -816,7 +826,9 @@ export class RunManager {
       }
       const extension = documentExtension(doc.url, doc.type);
       const suggestedName = `${catalogNumber}-${doc.type}-${safeLabel(doc.label)}${extension}`;
-      const localPath = await http.downloadFile(doc.url, documentsDir, suggestedName, signal);
+      const localPath = await sharedDocumentDownload(sharedDocumentDownloads, doc.url, () =>
+        http.downloadFile(doc.url, documentsDir, suggestedName, signal)
+      );
       return { ...doc, localPath, downloadStatus: "downloaded", downloadError: undefined };
     } catch (error) {
       if (signal?.aborted) throw new Error("Cancelled by user.");
@@ -985,14 +997,12 @@ function documentExtension(url: string, type: DocumentRecord["type"]): string {
 }
 
 export function documentDownloadProfile(
-  manufacturer: { id: string },
+  manufacturer: { id: string; scrapeRecipe?: ManufacturerConfig["scrapeRecipe"] },
   result: ProductResult,
   options: { saveDocuments?: boolean } = {}
 ): DocumentDownloadProfile {
   if (options.saveDocuments === false) return "quality";
-  if (manufacturer.id === "balluff") return "quality";
-  if (manufacturer.id === "rockwell") return "quality";
-  return "full";
+  return manufacturer.scrapeRecipe?.fallbackPolicy?.documentDownloadProfile ?? "full";
 }
 
 export function shouldDownloadDocumentsForRun(
@@ -1032,6 +1042,33 @@ function shouldDownloadLocalDocument(doc: DocumentRecord): boolean {
   const extension = documentExtension(doc.url, doc.type).toLowerCase();
   if (extension === ".pdf") return true;
   return false;
+}
+
+async function sharedDocumentDownload(
+  downloads: Map<string, Promise<string>> | undefined,
+  url: string,
+  download: () => Promise<string>
+): Promise<string> {
+  if (!downloads) return download();
+  const key = canonicalDownloadUrl(url);
+  const existing = downloads.get(key);
+  if (existing) return existing;
+  const pending = download().catch((error) => {
+    downloads.delete(key);
+    throw error;
+  });
+  downloads.set(key, pending);
+  return pending;
+}
+
+function canonicalDownloadUrl(url: string): string {
+  try {
+    const parsed = new URL(url);
+    parsed.hash = "";
+    return parsed.toString();
+  } catch {
+    return url;
+  }
 }
 
 async function enrichFromDownloadedDocumentsIfPresent(result: ProductResult): Promise<ProductResult> {
@@ -1156,12 +1193,12 @@ const MAX_GALLERY_IMAGES = 5;
 
 export function coalesceImageDocuments(documents: DocumentRecord[]): DocumentRecord[] {
   const images = documents.filter((doc) => doc.type === "image");
-  if (images.length <= 1) return documents;
+  if (images.length <= 1 && !images.some((doc) => doc.candidateUrls?.length)) return documents;
 
   // Group by image identity (same product image at different sizes/qualities collapses into one;
   // distinct gallery images keep their own groups).
   const groups = new Map<string, DocumentRecord[]>();
-  for (const image of images) {
+  for (const image of images.flatMap(expandImageCandidates)) {
     const identity = imageIdentity(image.url);
     const existing = groups.get(identity);
     if (existing) existing.push(image);
@@ -1173,7 +1210,6 @@ export function coalesceImageDocuments(documents: DocumentRecord[]): DocumentRec
     const ranked = [...group].sort((left, right) => imageDocumentRank(left) - imageDocumentRank(right));
     const primary = ranked[0];
     const candidateUrls = uniqueStrings([
-      ...(primary.candidateUrls ?? []),
       ...ranked.slice(1).flatMap((doc) => [doc.url, ...(doc.candidateUrls ?? [])])
     ]).filter((url) => url !== primary.url);
     coalescedGroups.push({
@@ -1189,14 +1225,27 @@ export function coalesceImageDocuments(documents: DocumentRecord[]): DocumentRec
   return [...kept, ...documents.filter((doc) => doc.type !== "image")];
 }
 
+function expandImageCandidates(image: DocumentRecord): DocumentRecord[] {
+  const urls = uniqueStrings([image.url, ...(image.candidateUrls ?? [])]);
+  if (urls.length <= 1) return [image];
+  return urls.map((url) => ({
+    ...image,
+    url,
+    candidateUrls: urls.filter((candidate) => candidate !== url)
+  }));
+}
+
 function imageIdentity(url: string): string {
   try {
     const parsed = new URL(url);
     const filename = parsed.pathname.split("/").pop() ?? parsed.pathname;
-    const stem = filename.replace(/\.(?:png|jpe?g|webp|gif|avif|svg)$/i, "");
-    return stem
-      .replace(/[-_](?:\d{2,4}x\d{2,4}|master|thumb(?:nail)?|small|medium|large|hd|original|main|crop(?:ped)?)$/i, "")
-      .toLowerCase();
+    let stem = filename.replace(/\.(?:png|jpe?g|webp|gif|avif|svg)$/i, "");
+    let previous = "";
+    while (stem !== previous) {
+      previous = stem;
+      stem = stem.replace(/[-_](?:\d{2,5}x\d{2,5}|master|thumb(?:nail)?|small|medium|large|hd|original|main|crop(?:ped)?)$/i, "");
+    }
+    return stem.toLowerCase();
   } catch {
     return url.toLowerCase();
   }
@@ -1206,10 +1255,29 @@ function imageDocumentRank(doc: DocumentRecord): number {
   const text = `${doc.label} ${doc.url}`.toLowerCase();
   let rank = documentDownloadRank(doc);
   if (doc.localPath || doc.downloadStatus === "downloaded") rank -= 50;
-  if (/_400x400\b|[?&](?:width|w)=400\b|400\s*x\s*400/.test(text)) rank -= 25;
+  const dimensions = imageDimensionsFromUrl(doc.url);
+  if (dimensions) {
+    const area = dimensions.width * dimensions.height;
+    if (area >= 900_000) rank -= 35;
+    else if (area >= 160_000) rank -= 25;
+    else if (area <= 40_000) rank += 35;
+    const ratio = Math.max(dimensions.width / dimensions.height, dimensions.height / dimensions.width);
+    if (ratio > 3) rank += 20;
+  }
+  if (!dimensions && /_400x400\b|[?&](?:width|w)=400\b|400\s*x\s*400/.test(text)) rank -= 25;
   if (/_master\b|master\./.test(text)) rank -= 15;
   if (/thumbnail|thumb|_100x100\b|[?&](?:width|w)=100\b|100\s*x\s*100/.test(text)) rank += 30;
+  if (/\b(?:schematic|wiring|diagram|drawing|dimension|dimensional|cad|2d|3d|technical|sketch)\b/.test(text)) rank += 70;
   return rank;
+}
+
+function imageDimensionsFromUrl(url: string): { width: number; height: number } | undefined {
+  const match = url.match(/(?:^|[_/?&=-])(\d{2,5})\s*x\s*(\d{2,5})(?=$|[_.?&#/-])/i);
+  if (!match) return undefined;
+  const width = Number(match[1]);
+  const height = Number(match[2]);
+  if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) return undefined;
+  return { width, height };
 }
 
 function uniqueStrings(values: Array<string | undefined>): string[] {

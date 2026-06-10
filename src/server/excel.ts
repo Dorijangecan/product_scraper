@@ -7,12 +7,16 @@ import type { FinalCompletenessRecord, ManufacturerConfig, ProductResult, RunIte
 import { requiredElectricalFields } from "../shared/product-requirements.js";
 import { AI_CLEANED_INPUT_SHEET, writeAiCleanedInputSheet } from "./pdt/ai-cleaned-input-sheet.js";
 import { buildPdtRepairResult } from "./pdt/ai-cleanup.js";
+import { electricalFieldsForDeviceType } from "./pdt/device-type-profiles.js";
 import { classifyDeviceType } from "./scrapers/device-type.js";
 import { buildLocalizedProductUrls } from "./scrapers/localized-urls.js";
 import { cleanText, normalizeFields } from "./scrapers/normalizer.js";
+import { listTechnicalAttributeAliases } from "./scrapers/technical-attribute-aliases.js";
 
 const POUND_TO_KILOGRAM = 0.45359237;
 const INCH_TO_MILLIMETER = 25.4;
+const MISSING_IMPORTANT_FILL = "FFFEE2E2";
+const MISSING_IMPORTANT_FONT = "FF991B1B";
 
 export async function exportRunWorkbook(input: {
   run: RunRecord;
@@ -43,6 +47,8 @@ export async function exportRunWorkbook(input: {
   const lookup = workbook.addWorksheet("XLOOKUP", { views: [{ state: "frozen", xSplit: 1, ySplit: 1 }] });
   const products = workbook.addWorksheet("Products", { views: [{ state: "frozen", xSplit: 3, ySplit: 1 }] });
   const attributes = workbook.addWorksheet("Attributes", { views: [{ state: "frozen", xSplit: 2, ySplit: 1 }] });
+  const technicalAttributes = workbook.addWorksheet("Technical Attributes", { views: [{ state: "frozen", xSplit: 4, ySplit: 1 }] });
+  const aliasDictionary = workbook.addWorksheet("Alias Dictionary", { views: [{ state: "frozen", xSplit: 3, ySplit: 1 }] });
   const documents = workbook.addWorksheet("Documents", { views: [{ state: "frozen", xSplit: 2, ySplit: 1 }] });
   const sources = workbook.addWorksheet("Sources", { views: [{ state: "frozen", xSplit: 2, ySplit: 1 }] });
   const evidence = workbook.addWorksheet("Evidence", { views: [{ state: "frozen", xSplit: 2, ySplit: 1 }] });
@@ -230,6 +236,45 @@ export async function exportRunWorkbook(input: {
     { header: "Source URL", key: "sourceUrl", width: 60 }
   ];
 
+  technicalAttributes.columns = [
+    { header: "Manufacturer", key: "manufacturer", width: 18 },
+    { header: "Catalog Number", key: "catalogNumber", width: 24 },
+    { header: "Canonical Key", key: "canonicalKey", width: 26 },
+    { header: "Canonical Label", key: "canonicalLabel", width: 34 },
+    { header: "Original Group", key: "originalGroup", width: 28 },
+    { header: "Original Attribute", key: "originalName", width: 38 },
+    { header: "Original Value", key: "originalValue", width: 72 },
+    { header: "Unit Kind", key: "unitKind", width: 14 },
+    { header: "Parsed Quantities", key: "quantities", width: 50 },
+    { header: "Confidence", key: "confidence", width: 12 },
+    { header: "Reason", key: "reason", width: 50 },
+    { header: "Source Type", key: "sourceType", width: 18 },
+    { header: "Parser", key: "parser", width: 26 },
+    { header: "Stage", key: "stage", width: 20 },
+    { header: "Source URL", key: "sourceUrl", width: 60 }
+  ];
+
+  aliasDictionary.columns = [
+    { header: "Canonical Key", key: "canonicalKey", width: 26 },
+    { header: "Manufacturer", key: "manufacturer", width: 22 },
+    { header: "Manufacturer ID", key: "manufacturerId", width: 16 },
+    { header: "Manufacturer Label", key: "originalName", width: 58 },
+    { header: "Evidence", key: "evidenceLabel", width: 34 },
+    { header: "Evidence URL", key: "evidenceUrl", width: 76 },
+    { header: "Note", key: "note", width: 50 }
+  ];
+  for (const alias of listTechnicalAttributeAliases()) {
+    aliasDictionary.addRow({
+      canonicalKey: alias.canonicalKey,
+      manufacturer: alias.manufacturerName,
+      manufacturerId: alias.manufacturerId,
+      originalName: alias.originalName,
+      evidenceLabel: alias.evidenceLabel,
+      evidenceUrl: alias.evidenceUrl,
+      note: alias.note
+    });
+  }
+
   documents.columns = [
     { header: "Manufacturer", key: "manufacturer", width: 18 },
     { header: "Catalog Number", key: "catalogNumber", width: 24 },
@@ -327,6 +372,25 @@ export async function exportRunWorkbook(input: {
         sourceType: attr.sourceType,
         parser: attr.parser,
         confidence: attr.confidence,
+        sourceUrl: attr.sourceUrl
+      });
+    }
+    for (const attr of result.technicalAttributes ?? []) {
+      technicalAttributes.addRow({
+        manufacturer: input.manufacturer.canonicalName,
+        catalogNumber: result.catalogNumber,
+        canonicalKey: attr.canonicalKey,
+        canonicalLabel: attr.canonicalLabel,
+        originalGroup: attr.originalGroup,
+        originalName: attr.originalName,
+        originalValue: attr.originalValue,
+        unitKind: attr.unitKind,
+        quantities: formatTechnicalQuantities(attr.quantities),
+        confidence: attr.confidence,
+        reason: attr.reason,
+        sourceType: attr.sourceType,
+        parser: attr.parser,
+        stage: attr.stage,
         sourceUrl: attr.sourceUrl
       });
     }
@@ -443,6 +507,8 @@ export async function exportRunWorkbook(input: {
     lookup,
     products,
     attributes,
+    technicalAttributes,
+    aliasDictionary,
     documents,
     sources,
     evidence,
@@ -469,6 +535,23 @@ export async function exportRunWorkbook(input: {
 }
 
 type ProductExportRow = ReturnType<typeof productRow>;
+
+function formatTechnicalQuantities(quantities: NonNullable<ProductResult["technicalAttributes"]>[number]["quantities"]): string | undefined {
+  if (!quantities?.length) return undefined;
+  return quantities
+    .map((quantity) => {
+      const value =
+        quantity.value !== undefined
+          ? String(quantity.value)
+          : quantity.min !== undefined || quantity.max !== undefined
+            ? `${quantity.min ?? ""}...${quantity.max ?? ""}`
+            : quantity.values?.join("/");
+      return [quantity.kind, value ? `${value}${quantity.unit ? ` ${quantity.unit}` : ""}` : undefined, quantity.currentType, quantity.condition]
+        .filter(Boolean)
+        .join(" ");
+    })
+    .join("; ");
+}
 
 function populateRunSummarySheet(
   sheet: ExcelJS.Worksheet,
@@ -588,6 +671,8 @@ function populateRunSummarySheet(
     "XLOOKUP",
     "Products",
     "Attributes",
+    "Technical Attributes",
+    "Alias Dictionary",
     "Documents",
     "Sources",
     "Evidence",
@@ -614,6 +699,8 @@ function sheetPurpose(sheetName: string): string {
     "XLOOKUP": "Single-line lookup-friendly row set for formulas and external matching.",
     "Products": "Raw rich product rows with summaries, images, measurements, and diagnostics.",
     "Attributes": "Raw extracted attributes with source metadata.",
+    "Technical Attributes": "Canonical map of original manufacturer spec names to standard technical properties.",
+    "Alias Dictionary": "Known manufacturer-specific aliases and evidence links for canonical technical properties.",
     "Documents": "Raw document records with download and parse metadata.",
     "Sources": "Fetched source URLs and scrape stages.",
     "Evidence": "Normalized field evidence used to support exported values.",
@@ -3785,7 +3872,14 @@ function missingRequiredFields(row: {
   const hasDimensions = [row.heightIn, row.widthIn, row.depthIn, row.lengthIn, row.heightMm, row.widthMm, row.depthMm, row.lengthMm].some(
     (value) => value !== undefined
   );
-  const electricalFields = row.result ? requiredElectricalFields(row.result) : [];
+  const classification = row.result ? classifyDeviceType(row.result) : undefined;
+  const electricalFields = row.result
+    ? requiredElectricalFields(row.result, {
+        deviceType: classification?.type,
+        deviceTypeConfidence: classification?.confidence,
+        deviceTypeElectricalFields: electricalFieldsForDeviceType(classification?.type)
+      })
+    : [];
   const missing = [
     row.productUrlEn ? undefined : "English URL",
     row.productUrlDe || row.manufacturer.id === "sce" ? undefined : "German URL",
@@ -3859,6 +3953,7 @@ function applyUsabilityFormatting(sheet: ExcelJS.Worksheet) {
   styleConfidenceColumn(sheet);
   styleQualityTierColumn(sheet);
   styleOkMissingCells(sheet);
+  styleImportantMissingFieldCells(sheet);
 }
 
 function applyWorkbookUsability(workbook: ExcelJS.Workbook) {
@@ -4068,6 +4163,107 @@ function styleOkMissingCells(sheet: ExcelJS.Worksheet) {
       cell.alignment = { vertical: "middle", horizontal: "center" };
     });
   });
+}
+
+function styleImportantMissingFieldCells(sheet: ExcelJS.Worksheet) {
+  const fieldColumns = importantFieldColumns(sheet);
+  if (!fieldColumns.length) return;
+  const missingRequiredColumn = headerColumnNumber(sheet, "Missing Required Fields");
+  const finalCompletenessColumn = headerColumnNumber(sheet, "Final Completeness Check");
+  const missingKeyColumn = headerColumnNumber(sheet, "Missing Key Fields");
+
+  for (let rowNumber = 2; rowNumber <= sheet.rowCount; rowNumber += 1) {
+    const row = sheet.getRow(rowNumber);
+    const missing = importantMissingFields(
+      cleanText(missingRequiredColumn ? row.getCell(missingRequiredColumn).text || String(row.getCell(missingRequiredColumn).value ?? "") : ""),
+      cleanText(finalCompletenessColumn ? row.getCell(finalCompletenessColumn).text || String(row.getCell(finalCompletenessColumn).value ?? "") : ""),
+      cleanText(missingKeyColumn ? row.getCell(missingKeyColumn).text || String(row.getCell(missingKeyColumn).value ?? "") : "")
+    );
+    if (!missing.size) continue;
+
+    for (const { field, columns } of fieldColumns) {
+      if (!missing.has(field)) continue;
+      for (const column of columns) {
+        const cell = row.getCell(column);
+        if (cellHasUsefulValue(cell)) continue;
+        markMissingImportantCell(cell);
+      }
+    }
+  }
+}
+
+function importantFieldColumns(sheet: ExcelJS.Worksheet): Array<{ field: string; columns: number[] }> {
+  const groups: Array<{ field: string; headers: string[] }> = [
+    { field: "image", headers: ["Image", "Image URL", "Image Local Path"] },
+    { field: "weight", headers: ["Weight", "Weight (kg)", "Weight (lb)"] },
+    { field: "dimensions", headers: ["Dimensions", "Height (mm)", "Width (mm)", "Depth (mm)", "Length (mm)", "Height (in)", "Width (in)", "Depth (in)", "Length (in)"] },
+    { field: "material", headers: ["Material"] },
+    { field: "color", headers: ["Color"] },
+    { field: "voltage", headers: ["Voltage", "Voltage AC", "Voltage DC", "Voltage Range", "Operating Voltage Ub / Ur"] },
+    { field: "current", headers: ["Current", "Rated Current", "Current AC", "Current DC", "Current Sum US (sensor)", "Current Sum UA (actuator)", "Current Sum US", "Current Sum UA"] },
+    { field: "protection", headers: ["Protection", "IP Rating", "NEMA / Type Rating"] },
+    { field: "certificates", headers: ["Certificates", "Standards"] },
+    { field: "operatingTemperature", headers: ["Operating Temperature"] },
+    { field: "typeCode", headers: ["Product Type"] }
+  ];
+
+  return groups
+    .map((group) => ({
+      field: group.field,
+      columns: group.headers.map((header) => headerColumnNumber(sheet, header)).filter((value): value is number => Boolean(value))
+    }))
+    .filter((group) => group.columns.length > 0);
+}
+
+function importantMissingFields(...texts: string[]): Set<string> {
+  const fields = new Set<string>();
+  for (const raw of texts) {
+    const text = cleanText(raw);
+    if (!text) continue;
+    for (const part of text.split(/[;,]/).map((item) => cleanText(item)).filter(Boolean)) {
+      const field = missingFieldKey(part);
+      if (field && missingFieldPhraseIndicatesProblem(part)) fields.add(field);
+    }
+  }
+  return fields;
+}
+
+function missingFieldPhraseIndicatesProblem(value: string): boolean {
+  if (/not[-\s]?applicable|n\/a/i.test(value)) return false;
+  if (/present|found|ok|passed/i.test(value) && !/missing|not published|retry skipped|skipped/i.test(value)) return false;
+  return /missing|not published|retry skipped|skipped|^image$|^weight$|^dimensions$|^material$|^color$|^voltage$|^current$|^protection$|^certificates$|^operating temperature$|^type code$/i.test(value);
+}
+
+function missingFieldKey(value: string): string | undefined {
+  const normalized = cleanText(value)
+    .replace(/:.+$/i, "")
+    .replace(/^normalized:/i, "")
+    .trim()
+    .toLowerCase();
+  if (/^image$|product image/.test(normalized)) return "image";
+  if (/^weight$|weight \(/.test(normalized)) return "weight";
+  if (/^dimensions?$|height|width|depth|length/.test(normalized)) return "dimensions";
+  if (/^material$/.test(normalized)) return "material";
+  if (/^colou?r$/.test(normalized)) return "color";
+  if (/^voltage$|operating voltage|supply voltage/.test(normalized)) return "voltage";
+  if (/^current$|rated current/.test(normalized)) return "current";
+  if (/^protection$|ip rating|nema/.test(normalized)) return "protection";
+  if (/^certificates?$|standards?/.test(normalized)) return "certificates";
+  if (/operating temperature|temperature/.test(normalized)) return "operatingTemperature";
+  if (/type code|typecode|product type/.test(normalized)) return "typeCode";
+  return undefined;
+}
+
+function cellHasUsefulValue(cell: ExcelJS.Cell): boolean {
+  const value = cell.value;
+  if (value === undefined || value === null || value === "") return false;
+  if (typeof value === "object" && "text" in value) return Boolean(cleanText(String(value.text ?? "")));
+  return Boolean(cleanText(cell.text || String(value)));
+}
+
+function markMissingImportantCell(cell: ExcelJS.Cell) {
+  cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: MISSING_IMPORTANT_FILL } };
+  cell.font = { ...(cell.font ?? {}), color: { argb: MISSING_IMPORTANT_FONT }, bold: true };
 }
 
 function styleCoverageScoreColumn(sheet: ExcelJS.Worksheet) {

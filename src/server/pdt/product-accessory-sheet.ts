@@ -11,6 +11,31 @@ interface AccessoryRow {
   accessoryItem?: RunItemRecord;
 }
 
+export interface CuratedAccessoryRule {
+  name: string;
+  manufacturerId: string;
+  catalogPattern: RegExp;
+  accessoryCatalog: string;
+  rationale: string;
+}
+
+export const CURATED_ACCESSORY_RULES: CuratedAccessoryRule[] = [
+  {
+    name: "rockwell-852c-abvm-accessory",
+    manufacturerId: "rockwell",
+    catalogPattern: /^\s*852C-/i,
+    accessoryCatalog: "852C-ABVM",
+    rationale: "Manual Rockwell PDT Product Accessory examples use the curated 852C-ABVM vertical mounting bracket for 852C LED indicator variants."
+  },
+  {
+    name: "rockwell-852d-abvm-accessory",
+    manufacturerId: "rockwell",
+    catalogPattern: /^\s*852D-/i,
+    accessoryCatalog: "852D-ABVM",
+    rationale: "Manual Rockwell PDT Product Accessory examples use the curated 852D-ABVM vertical mounting bracket for 852D LED indicator variants."
+  }
+];
+
 export function writeProductAccessorySheet(ws: ExcelJS.Worksheet, items: RunItemRecord[]): number {
   const descriptor = describeSheet(ws);
   if (!descriptor) return 0;
@@ -41,26 +66,45 @@ function accessoryRowsForItem(item: RunItemRecord): AccessoryRow[] {
   const result = item.result;
   if (!result) return [];
   const parentCatalog = item.catalogNumber;
-  const familyPrefix = parentCatalog.match(/^[A-Z0-9]+(?=-)/i)?.[0];
   const rows: AccessoryRow[] = [];
-  const evidence = [result.title, result.description, ...result.attributes.flatMap((attr) => [attr.name, attr.value])].filter(Boolean).join("\n");
 
-  // Rockwell product pages list many family siblings (every 5069-*, 1756-*, etc.) on every page
-  // via cross-sell widgets — matching the family prefix produces dozens of false accessories per
-  // product. Manual Rockwell PDTs leave the Product Accessory tab empty for all 10 reference cases,
-  // so we skip the loose family-prefix heuristic for Rockwell and only emit specifically curated
-  // accessories (e.g. the 852C/852D ABVM bracket below).
-  const skipFamilyPrefixHeuristic = result.manufacturerId === "rockwell";
+  for (const accessoryCatalog of sourceBackedAccessoryCatalogs(result.attributes, parentCatalog)) {
+    rows.push({ parentCatalog, accessoryCatalog, relationType: "accessory" });
+  }
 
-  if (familyPrefix && !skipFamilyPrefixHeuristic) {
-    const familyPattern = new RegExp(`\\b${escapeRegExp(familyPrefix)}-[A-Z0-9]{3,}\\b`, "gi");
-    for (const match of evidence.matchAll(familyPattern)) {
+  const curatedRockwellAccessory = rockwell852Accessory(parentCatalog, result.manufacturerId);
+  if (curatedRockwellAccessory) rows.push({ parentCatalog, accessoryCatalog: curatedRockwellAccessory, relationType: "accessory" });
+
+  return rows;
+}
+
+function sourceBackedAccessoryCatalogs(attributes: AttributeRecord[], parentCatalog: string): string[] {
+  const familyPrefix = parentCatalog.match(/^[A-Z0-9]+(?=-)/i)?.[0];
+  if (!familyPrefix) return [];
+  const familyPattern = new RegExp(`\\b${escapeRegExp(familyPrefix)}-[A-Z0-9]{3,}\\b`, "gi");
+  const parentKey = parentCatalog.trim().toUpperCase();
+  const catalogs: string[] = [];
+
+  for (const attr of attributes) {
+    if (!isAccessoryAttribute(attr)) continue;
+    for (const match of attr.value.matchAll(familyPattern)) {
       const accessoryCatalog = match[0].toUpperCase();
-      if (accessoryCatalog !== parentCatalog.toUpperCase()) rows.push({ parentCatalog, accessoryCatalog, relationType: "accessory" });
+      if (accessoryCatalog !== parentKey) catalogs.push(accessoryCatalog);
     }
   }
 
-  return rows;
+  return [...new Set(catalogs)];
+}
+
+function isAccessoryAttribute(attr: AttributeRecord): boolean {
+  const label = `${attr.group ?? ""} ${attr.name}`;
+  return /\b(accessor(?:y|ies)|related\s+(?:products?|items?)|recommended\s+(?:products?|items?)|optional\s+(?:products?|items?)|spare\s+parts?)\b/i.test(label);
+}
+
+function rockwell852Accessory(parentCatalog: string, manufacturerId: string | undefined): string | undefined {
+  if (manufacturerId !== "rockwell") return undefined;
+  const catalog = parentCatalog.trim().toUpperCase();
+  return CURATED_ACCESSORY_RULES.find((rule) => rule.manufacturerId === manufacturerId && rule.catalogPattern.test(catalog))?.accessoryCatalog;
 }
 
 function valueForColumn(
@@ -79,7 +123,6 @@ function valueForColumn(
   const accessoryResult = row.accessoryItem?.result;
   if (!accessoryResult) return undefined;
 
-  // GTIN / EAN: column code AAO676 already matched above; look for dedicated GTIN columns.
   if (
     keys.includes("AAO663") ||
     keys.includes("GTIN") ||
@@ -89,7 +132,6 @@ function valueForColumn(
     return findAttribute(accessoryResult.attributes ?? [], /\b(ean|gtin)\b/i);
   }
 
-  // Manufacturer name: PDT AAO677, or column described as "manufacturer".
   if (
     keys.includes("AAO677") ||
     keys.includes("MANUFACTURER") ||
@@ -100,7 +142,6 @@ function valueForColumn(
     return getManufacturerConfig(manufacturerId)?.canonicalName;
   }
 
-  // Designation: PDT AAW338 / "designation".
   if (
     keys.includes("AAW338") ||
     keys.includes("DESIGNATION") ||

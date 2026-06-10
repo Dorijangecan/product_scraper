@@ -406,6 +406,47 @@ describe("quality gate", () => {
     expect(result.qualityGate?.missing).not.toContain("normalized:current");
   });
 
+  it("uses device type classification to require gateway voltage without current", () => {
+    const result = finalizeQualityGate(
+      product({
+        catalogNumber: "GW-ETH-1",
+        title: "Industrial Ethernet communication gateway",
+        attributes: [
+          { group: "Structured Data", name: "sku", value: "GW-ETH-1" },
+          { group: "Product Data", name: "Product Type", value: "Modbus TCP to EtherNet/IP communication gateway" }
+        ]
+      }),
+      productTypeAwareManufacturer
+    );
+
+    expect(result.status).toBe("partial");
+    expect(result.qualityGate?.missing).toContain("normalized:voltage");
+    expect(result.qualityGate?.missing).not.toContain("normalized:current");
+  });
+
+  it("does not force normalized voltage/current fallback for Rockwell Micro820 family pages", () => {
+    const familyUrl = "https://www.rockwellautomation.com/en-us/products/hardware/allen-bradley/programmable-controllers/micro-controllers/micro800-family/micro820-controllers.html";
+    const result = finalizeQualityGate(
+      product({
+        manufacturerId: "rockwell",
+        catalogNumber: "2080-LC20-20AWB",
+        title: "Micro820 Controller",
+        description: "Micro820 Controller",
+        productUrl: familyUrl,
+        attributes: [
+          { group: "Rockwell Family", name: "Product Family", value: "Micro820", parser: "rockwell-family-page", sourceType: "official", sourceUrl: familyUrl },
+          { group: "Rockwell Family", name: "Weight", value: "0.38 kg", parser: "rockwell-family-page", sourceType: "official", sourceUrl: familyUrl }
+        ],
+        documents: [{ type: "datasheet", label: "Technical Datasheet (EN)", url: familyUrl, sourceType: "official" }],
+        sources: [{ url: familyUrl, sourceType: "official", parser: "rockwell-family-page", stage: "rockwell-family-page", fetchedAt: "2026-06-09T00:00:00.000Z" }]
+      }),
+      productTypeAwareManufacturer
+    );
+
+    expect(result.qualityGate?.missing).not.toContain("normalized:voltage");
+    expect(result.qualityGate?.missing).not.toContain("normalized:current");
+  });
+
   it("requires voltage and current for Schneider pushbuttons with electrical contacts", () => {
     const result = finalizeQualityGate(
       product({

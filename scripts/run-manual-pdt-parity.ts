@@ -16,6 +16,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, "..");
 const manualRoot = path.join(rootDir, "primjeri PDTa");
 const appPaths = createAppPaths(rootDir);
+const IGNORED_PARITY_SHEETS = new Set(["Connection Point Information"]);
 
 interface ManualCase {
   vendor: ManufacturerId;
@@ -145,7 +146,7 @@ async function runCase(manualCase: ManualCase, reuseRunId?: string): Promise<Cas
       manufacturerId: manualCase.vendor,
       inputFileName: path.basename(manualCase.file),
       catalogNumbers: manualCase.catalogNumbers,
-      options: { downloadDocuments: true, downloadImages: true, generateExcel: true, forceFinalRetry: true }
+      options: { downloadDocuments: true, downloadImages: true, generateExcel: true, forceFinalRetry: args.forceFinalRetry }
     });
     console.log(`\nRunning ${manualCase.vendor} ${path.basename(manualCase.file)} (${manualCase.catalogNumbers.length} catalogs)`);
     await runManager.processRun(run.id);
@@ -169,6 +170,7 @@ async function runCase(manualCase: ManualCase, reuseRunId?: string): Promise<Cas
   const manualSheets = sheetScoreMap(manualCase.manualAudit);
   const generatedSheets = sheetScoreMap(generatedAudit);
   const sheetGaps = Object.entries(manualSheets)
+    .filter(([sheet]) => !IGNORED_PARITY_SHEETS.has(sheet))
     .filter(([, manualCells]) => manualCells > 0)
     .map(([sheet, manualCells]) => ({ sheet, manualCells, generatedCells: generatedSheets[sheet] ?? 0 }))
     .filter((gap) => gap.generatedCells < gap.manualCells);
@@ -204,6 +206,7 @@ async function collectValueCells(file: string): Promise<PdtValueCell[]> {
   const cells: PdtValueCell[] = [];
   for (const ws of workbook.worksheets) {
     if (ws.name === "Help") continue;
+    if (IGNORED_PARITY_SHEETS.has(ws.name)) continue;
     const descriptor = describeSheet(ws);
     if (!descriptor) continue;
     const articleColumn = descriptor.columns.find((column) =>
@@ -330,14 +333,15 @@ async function readReuseRunIds(reportPath: string): Promise<Map<string, string>>
   return new Map(parsed.cases.map((item) => [path.resolve(item.manualFile), item.runId]));
 }
 
-function parseArgs(values: string[]): { vendor?: ManufacturerId; file?: string; maxCases?: number; reuseReport?: string } {
-  const parsed: { vendor?: ManufacturerId; file?: string; maxCases?: number; reuseReport?: string } = {};
+function parseArgs(values: string[]): { vendor?: ManufacturerId; file?: string; maxCases?: number; reuseReport?: string; forceFinalRetry?: boolean } {
+  const parsed: { vendor?: ManufacturerId; file?: string; maxCases?: number; reuseReport?: string; forceFinalRetry?: boolean } = {};
   for (let index = 0; index < values.length; index += 1) {
     const value = values[index];
     if (value === "--vendor") parsed.vendor = values[++index] as ManufacturerId;
     else if (value === "--file") parsed.file = values[++index];
     else if (value === "--max-cases") parsed.maxCases = Number(values[++index]);
     else if (value === "--reuse-report") parsed.reuseReport = values[++index];
+    else if (value === "--force-final-retry") parsed.forceFinalRetry = true;
   }
   return parsed;
 }

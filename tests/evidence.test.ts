@@ -27,6 +27,8 @@ describe("evidence model", () => {
     expect(result.evidence?.some((record) => record.kind === "attribute" && record.name === "Weight")).toBe(true);
     expect(result.evidence?.some((record) => record.kind === "document" && record.url?.endsWith("ABC-123.pdf"))).toBe(true);
     expect(result.evidence?.some((record) => record.kind === "normalized" && record.name === "weight")).toBe(true);
+    expect(result.technicalAttributes?.some((record) => record.canonicalKey === "weight" && record.originalName === "Weight")).toBe(true);
+    expect(result.evidence?.some((record) => record.kind === "technical-attribute" && record.name === "weight")).toBe(true);
     expect(result.evidence?.some((record) => record.kind === "source" && record.stage === "direct-template")).toBe(true);
   });
 });

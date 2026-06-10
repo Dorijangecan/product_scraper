@@ -303,6 +303,78 @@ describe("excel export", () => {
     expect(checkValues).toContain("Missing image");
   });
 
+  it("highlights important missing product cells in red", async () => {
+    const outputDir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-xlsx-missing-"));
+    const run: RunRecord = {
+      id: "missing-cells-run",
+      manufacturerId: "abb",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      status: "completed",
+      total: 1,
+      processed: 1,
+      found: 0,
+      partial: 1,
+      failed: 0
+    };
+    const manufacturer: ManufacturerConfig = {
+      id: "abb",
+      canonicalName: "ABB",
+      shortName: "ABB",
+      rateLimitMs: 100,
+      officialBaseUrls: [],
+      fallbackSources: []
+    };
+    const item: RunItemRecord = {
+      id: 1,
+      runId: run.id,
+      rowIndex: 1,
+      catalogNumber: "AF09-30-10",
+      status: "partial",
+      updatedAt: run.updatedAt,
+      result: {
+        manufacturerId: "abb",
+        catalogNumber: "AF09-30-10",
+        status: "partial",
+        confidence: 0.72,
+        title: "AF09 contactor",
+        normalized: { material: "plastic", certificates: "CE" },
+        attributes: [{ group: "ABB Product Data", name: "Catalog Description", value: "AF09 contactor", sourceType: "official" }],
+        documents: [],
+        sources: [],
+        diagnostics: {
+          finalCompleteness: {
+            checkedAt: "2026-06-09T00:00:00.000Z",
+            beforeMissing: ["image", "weight", "dimensions", "voltage", "current"],
+            retryMissing: ["image", "weight", "dimensions", "voltage", "current"],
+            afterMissing: ["image", "weight", "dimensions", "voltage", "current"],
+            notApplicable: [],
+            records: [
+              { field: "image", status: "missing", requirement: "required" },
+              { field: "weight", status: "missing", requirement: "preferred" },
+              { field: "dimensions", status: "missing", requirement: "preferred" },
+              { field: "voltage", status: "missing", requirement: "required" },
+              { field: "current", status: "missing", requirement: "required" }
+            ]
+          }
+        }
+      }
+    };
+
+    const filePath = await exportRunWorkbook({ run, manufacturer, items: [item], outputDir });
+    const workbook = new ExcelJS.Workbook();
+    await workbook.xlsx.readFile(filePath);
+    const products = workbook.getWorksheet("Products")!;
+    const headers = (products.getRow(1).values as unknown[]).slice(1);
+    const row = products.getRow(2);
+    const redFill = "FFFEE2E2";
+
+    for (const header of ["Image", "Weight", "Weight (kg)", "Dimensions", "Voltage", "Current"]) {
+      expect(row.getCell(headers.indexOf(header) + 1).fill).toMatchObject({ fgColor: { argb: redFill } });
+    }
+    expect(row.getCell(headers.indexOf("Material") + 1).fill).not.toMatchObject({ fgColor: { argb: redFill } });
+  });
+
   it("writes Qwen-prepared values to the scraped workbook AI sheet only", async () => {
     const outputDir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-ai-input-xlsx-"));
     const run: RunRecord = {

@@ -38,5 +38,15 @@
     "expectedOfficialUrlPatterns": ["balluff\\.com/.*/products/BSP00R5"],
     "requiredDocuments": ["datasheet"],
     "expectedNormalizedFields": ["material", "voltage", "protection", "certificates"]
+  },
+  {
+    "manufacturerId": "balluff",
+    "catalogNumber": "PG-32",
+    "caseType": "mechanical",
+    "expectedDeviceType": "Pneumatic Device",
+    "riskTags": ["customer-document-supported", "pneumatic-handling-sheet-coverage", "flow-pressure-facts"],
+    "expectedOfficialUrlPatterns": ["balluff\\.com", "file:.*/rare-device-sheets\\.csv"],
+    "customerDocuments": ["customer-documents/rare-device-sheets.csv"],
+    "expectedNormalizedFields": ["dimensions", "weight", "material"]
   }
 ]

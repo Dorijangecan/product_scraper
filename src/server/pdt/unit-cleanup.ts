@@ -20,6 +20,10 @@ const UNIT_ALIASES: Record<string, string> = {
   watts: "W",
   mw: "mW",
   kw: "kW",
+  hz: "Hz",
+  hertz: "Hz",
+  khz: "kHz",
+  mhz: "MHz",
   nm: "Nm",
   "n*m": "Nm",
   "nÂ·m": "Nm",
@@ -34,7 +38,21 @@ const UNIT_ALIASES: Record<string, string> = {
   g: "g",
   kg: "kg",
   lb: "lb",
-  lbs: "lb"
+  lbs: "lb",
+  "nl/min": "Nl/min",
+  "l/min": "l/min",
+  lpm: "l/min",
+  "m3/h": "m3/h",
+  "m3/min": "m3/min",
+  "dm3/min": "dm3/min",
+  gpm: "gpm",
+  cfm: "cfm",
+  pa: "Pa",
+  kpa: "kPa",
+  mpa: "MPa",
+  mbar: "mbar",
+  bar: "bar",
+  psi: "psi"
 };
 
 const UNIT_FACTORS: Record<string, number> = {
@@ -47,6 +65,9 @@ const UNIT_FACTORS: Record<string, number> = {
   W: 1,
   mW: 0.001,
   kW: 1000,
+  Hz: 1,
+  kHz: 1000,
+  MHz: 1000000,
   Nm: 1,
   C: 1,
   mm: 1,
@@ -54,7 +75,20 @@ const UNIT_FACTORS: Record<string, number> = {
   m: 1000,
   g: 1,
   kg: 1000,
-  lb: 453.59237
+  lb: 453.59237,
+  "Nl/min": 1,
+  "l/min": 1,
+  "m3/h": 1000 / 60,
+  "m3/min": 1000,
+  "dm3/min": 1,
+  gpm: 3.785411784,
+  cfm: 28.316846592,
+  Pa: 0.00001,
+  kPa: 0.01,
+  MPa: 10,
+  mbar: 0.001,
+  bar: 1,
+  psi: 0.0689475729
 };
 
 const UNIT_FAMILIES: Record<string, string> = {
@@ -67,6 +101,9 @@ const UNIT_FAMILIES: Record<string, string> = {
   W: "power",
   mW: "power",
   kW: "power",
+  Hz: "frequency",
+  kHz: "frequency",
+  MHz: "frequency",
   Nm: "torque",
   C: "temperature",
   mm: "length",
@@ -74,7 +111,20 @@ const UNIT_FAMILIES: Record<string, string> = {
   m: "length",
   g: "mass",
   kg: "mass",
-  lb: "mass"
+  lb: "mass",
+  "Nl/min": "flowRate",
+  "l/min": "flowRate",
+  "m3/h": "flowRate",
+  "m3/min": "flowRate",
+  "dm3/min": "flowRate",
+  gpm: "flowRate",
+  cfm: "flowRate",
+  Pa: "pressure",
+  kPa: "pressure",
+  MPa: "pressure",
+  mbar: "pressure",
+  bar: "pressure",
+  psi: "pressure"
 };
 
 export interface UnitNumber {
@@ -122,11 +172,18 @@ export function splitTemperatureRange(value: string | undefined): { min?: string
 
 function extractUnitNumbers(raw: string, targetUnit: string): UnitNumber[] {
   const text = normalizeForParsing(raw);
-  const exact = [...text.matchAll(/(-?\d+(?:\.\d+)?)\s*(mA|kA|A|mV|kV|V|mW|kW|W|kg|g|lb|lbs|mm|cm|m|°C|C)\b/gi)]
+  const exact = [...text.matchAll(/(-?\d+(?:\.\d+)?)\s*(mA|kA|A|mV|kV|V|mW|kW|W|MHz|kHz|Hz|kg|g|lb|lbs|mm|cm|m|°C|C)\b/gi)]
     .map((match) => ({ value: Number(match[1]), unit: normalizeUnit(match[2]) }))
     .filter((entry) => Number.isFinite(entry.value) && Boolean(entry.unit)) as UnitNumber[];
 
-  const sameFamily = exact.filter((entry) => entry.unit && UNIT_FAMILIES[entry.unit] === UNIT_FAMILIES[targetUnit]);
+  const flowExact = [...text.matchAll(/(-?\d+(?:\.\d+)?)\s*(Nl\s*\/\s*min|l\s*\/\s*min|lpm|m3\s*\/\s*h|m3\s*\/\s*min|dm3\s*\/\s*min|gpm|cfm)\b/gi)]
+    .map((match) => ({ value: Number(match[1]), unit: normalizeUnit(match[2]) }))
+    .filter((entry) => Number.isFinite(entry.value) && Boolean(entry.unit)) as UnitNumber[];
+  const pressureExact = [...text.matchAll(/(-?\d+(?:\.\d+)?)\s*(mbar|kPa|MPa|Pa|bar|psi)\b/gi)]
+    .map((match) => ({ value: Number(match[1]), unit: normalizeUnit(match[2]) }))
+    .filter((entry) => Number.isFinite(entry.value) && Boolean(entry.unit)) as UnitNumber[];
+
+  const sameFamily = [...exact, ...flowExact, ...pressureExact].filter((entry) => entry.unit && UNIT_FAMILIES[entry.unit] === UNIT_FAMILIES[targetUnit]);
   if (sameFamily.length > 0) return sameFamily;
 
   const range = text.match(/(-?\d+(?:\.\d+)?)\s*(?:\.\.\.|\.{2}|-|to|do)\s*\+?(-?\d+(?:\.\d+)?)/i);
@@ -164,6 +221,7 @@ function normalizeUnit(value: string | undefined): string | undefined {
 
 function normalizeForParsing(value: string): string {
   return value
+    .replace(/\u00b3/g, "3")
     .replace(/Â°/g, "°")
     .replace(/℃/g, "°C")
     .replace(/−/g, "-")

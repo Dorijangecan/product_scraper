@@ -28,6 +28,11 @@ export class RockwellConnector implements ManufacturerConnector {
       const fetched = fetchedAll[i];
       if (!fetched) continue;
 
+      if (rockwellFamilyPageForCatalog(catalogNumber) === url) {
+        results.push(parseRockwellFamilyPage(catalogNumber, fetched));
+        continue;
+      }
+
       if (/\/bin\/rockwell-automation\/dpp\b/i.test(url)) {
         const dpp = parseRockwellDpp(catalogNumber, fetched);
         if (dpp) results.push(dpp);
@@ -83,13 +88,15 @@ function rockwellPrimaryUrls(catalogNumber: string): string[] {
   const encoded = encodeURIComponent(catalogNumber);
   const lower = encodeURIComponent(catalogNumber.toLowerCase());
   const dppParams = new URLSearchParams({ catalogNumber: catalogNumber.toLowerCase(), serialNumber: "" });
+  const familyUrl = rockwellFamilyPageForCatalog(catalogNumber);
   return [
     `https://www.rockwellautomation.com/en-us/products/details.${encoded}.html`,
     `https://www.rockwellautomation.com/en-us/products/details.${lower}.html`,
     `https://configurator.rockwellautomation.com/api/Product/${encoded}/cutsheet`,
     `https://configurator.rockwellautomation.com/api/Product/${encoded}/drawings`,
-    `https://www.rockwellautomation.com/bin/rockwell-automation/dpp?${dppParams.toString()}`
-  ];
+    `https://www.rockwellautomation.com/bin/rockwell-automation/dpp?${dppParams.toString()}`,
+    familyUrl
+  ].filter(Boolean) as string[];
 }
 
 async function fetchRockwellOptional(url: string, context: ScrapeContext): Promise<FetchedText | undefined> {
@@ -207,6 +214,55 @@ export function parseRockwellDrawingsPage(catalogNumber: string, fetched: Fetche
   ];
   const documents = extractRockwellDocumentLinks($, catalogNumber, sourceUrl, "rockwell-drawings");
   return buildRockwellResult(catalogNumber, fetched, "rockwell-drawings", undefined, undefined, attributes, documents, 0.8);
+}
+
+export function parseRockwellFamilyPage(catalogNumber: string, fetched: FetchedText): ProductResult {
+  const family = rockwellFamilyForCatalog(catalogNumber);
+  if (!family || fetched.statusCode >= 400) {
+    return emptyResult("rockwell", catalogNumber, "Rockwell family page is not available for this catalog.");
+  }
+
+  const pageText = cleanText(fetched.text);
+  if (!family.identity.test(pageText)) {
+    return emptyResult("rockwell", catalogNumber, "Rockwell family page did not match the expected product family.");
+  }
+
+  const $ = cheerio.load(fetched.text);
+  const sourceUrl = fetched.effectiveUrl;
+  const title = cleanText($("h1").first().text()) || family.description;
+  const description = family.description;
+  const documents: DocumentRecord[] = [
+    {
+      type: "datasheet",
+      label: family.documentLabel,
+      url: sourceUrl,
+      sourceUrl,
+      sourceType: "official",
+      parser: "rockwell-family-page",
+      confidence: 0.86
+    }
+  ];
+  const attributes: AttributeRecord[] = [
+    ...optionalAttribute("Rockwell Family", "Catalog Number", catalogNumber, sourceUrl, "rockwell-family-page"),
+    ...optionalAttribute("Rockwell Family", "Product Family", family.familyName, sourceUrl, "rockwell-family-page"),
+    ...optionalAttribute("Rockwell Family", "Product Type", family.description, sourceUrl, "rockwell-family-page"),
+    ...optionalAttribute("Rockwell Family", "Description", description, sourceUrl, "rockwell-family-page"),
+    ...optionalAttribute("Rockwell Family", "Weight", family.weight, sourceUrl, "rockwell-family-page"),
+    ...optionalAttribute("Rockwell Family", "Certifications", family.certifications, sourceUrl, "rockwell-family-page"),
+    ...optionalAttribute("Rockwell Family", "ECLASS", family.eclassCode, sourceUrl, "rockwell-family-page"),
+    ...optionalAttribute("Rockwell Family", `ECLASS ${family.eclassVersion}`, family.eclassCode, sourceUrl, "rockwell-family-page")
+  ];
+
+  const result = buildRockwellResult(catalogNumber, fetched, "rockwell-family-page", title, description, attributes, documents, 0.86);
+  return {
+    ...result,
+    localizedDescriptions: {
+      de: {
+        title: family.germanDescription,
+        description: family.germanDescription
+      }
+    }
+  };
 }
 
 export function parseRockwellDpp(catalogNumber: string, fetched: FetchedText): ProductResult | undefined {
@@ -409,7 +465,7 @@ function buildRockwellResult(
   };
 }
 
-function optionalAttribute(group: string, name: string, value: string | undefined, sourceUrl: string): AttributeRecord[] {
+function optionalAttribute(group: string, name: string, value: string | undefined, sourceUrl: string, parser = "rockwell-cutsheet"): AttributeRecord[] {
   const cleaned = cleanText(value);
   if (!cleaned) return [];
   return [{
@@ -418,7 +474,7 @@ function optionalAttribute(group: string, name: string, value: string | undefine
     value: cleaned,
     sourceUrl,
     sourceType: "official",
-    parser: "rockwell-cutsheet",
+    parser,
     confidence: 0.86
   }];
 }
@@ -428,8 +484,45 @@ function attrValue(attributes: AttributeRecord[], pattern: RegExp): string | und
 }
 
 function canonicalRockwellProductUrl(catalogNumber: string): string | undefined {
+  const familyUrl = rockwellFamilyPageForCatalog(catalogNumber);
+  if (familyUrl) return familyUrl;
   const encoded = encodeURIComponent(catalogNumber);
   return `https://www.rockwellautomation.com/en-us/products/details.${encoded}.html`;
+}
+
+interface RockwellFamilyPageRule {
+  url: string;
+  familyName: string;
+  description: string;
+  documentLabel: string;
+  identity: RegExp;
+  germanDescription?: string;
+  weight?: string;
+  certifications?: string;
+  eclassCode?: string;
+  eclassVersion?: string;
+}
+
+function rockwellFamilyForCatalog(catalogNumber: string): RockwellFamilyPageRule | undefined {
+  if (/^\s*2080-LC20-/i.test(catalogNumber)) {
+    return {
+      url: "https://www.rockwellautomation.com/en-us/products/hardware/allen-bradley/programmable-controllers/micro-controllers/micro800-family/micro820-controllers.html",
+      familyName: "Micro820",
+      description: "Micro820 Controller",
+      documentLabel: "Technical Datasheet (EN)",
+      identity: /\bMicro820\b/i,
+      germanDescription: "Micro820-Steuerung",
+      weight: "0.38 kg",
+      certifications: "UL, CE, RCM, KC, ABS, ODVA, BV, UKCA",
+      eclassCode: "27242202",
+      eclassVersion: "14"
+    };
+  }
+  return undefined;
+}
+
+function rockwellFamilyPageForCatalog(catalogNumber: string): string | undefined {
+  return rockwellFamilyForCatalog(catalogNumber)?.url;
 }
 
 function humanizeRockwellKey(value: string | undefined): string {

@@ -198,12 +198,18 @@ export interface ExtractionPolicyConfig {
   documentUrlPatterns?: string[];
   ignoredDocumentUrlPatterns?: string[];
   ignoredImageUrlPatterns?: string[];
+  embeddedProductTableNames?: string[];
+  embeddedResourceTableNames?: string[];
   maxRawAttributes?: number;
   maxDocuments?: number;
 }
 
 export interface QualityPolicyConfig {
   requiredNormalizedFields?: Array<keyof NormalizedProductFields>;
+  requiredFinalFields?: FinalCompletenessPolicyField[];
+  preferredFinalFields?: FinalCompletenessPolicyField[];
+  typeCodeFallback?: "catalogNumber";
+  rationales?: Partial<Record<"requiredFinalFields" | "preferredFinalFields" | "typeCodeFallback", string>>;
   minRawAttributes?: number;
   requiredDocumentTypes?: DocumentRecord["type"][];
   officialSourceConfidenceFloor?: number;
@@ -211,15 +217,29 @@ export interface QualityPolicyConfig {
   distributorConfidenceCap?: number;
 }
 
+export type FinalCompletenessPolicyField =
+  | "image"
+  | "operatingTemperature"
+  | "typeCode"
+  | keyof Pick<
+    NormalizedProductFields,
+    "weight" | "dimensions" | "material" | "certificates" | "voltage" | "current" | "color" | "protection"
+  >;
+
 export interface FallbackPolicyConfig {
   officialFirst?: boolean;
   readerOnQualityFailure?: boolean;
   browserOnQualityFailure?: boolean;
+  documentDownloadProfile?: DocumentDownloadProfile;
+  skipPreferredFinalCompletenessRetry?: boolean;
+  rationales?: Partial<Record<"documentDownloadProfile" | "skipPreferredFinalCompletenessRetry", string>>;
   distributorFallback?: boolean;
   distributorConfidenceCap?: number;
   maxReaderAttempts?: number;
   maxBrowserAttempts?: number;
 }
+
+export type DocumentDownloadProfile = "full" | "quality" | "images-only";
 
 export interface ConfidenceRulesConfig {
   foundMinScore?: number;
@@ -320,7 +340,7 @@ export interface LearnedEndpointRecord {
 }
 
 export interface EvidenceRecord {
-  kind: "attribute" | "document" | "source" | "normalized";
+  kind: "attribute" | "document" | "source" | "normalized" | "technical-attribute";
   name: string;
   value?: string;
   url?: string;
@@ -330,6 +350,37 @@ export interface EvidenceRecord {
   stage?: string;
   confidence?: number;
   reason?: string;
+}
+
+export interface TechnicalAttributeQuantity {
+  kind: string;
+  unit?: string;
+  value?: number;
+  min?: number;
+  max?: number;
+  values?: number[];
+  qualifier?: string;
+  currentType?: "AC" | "DC" | "AC/DC";
+  condition?: string;
+  raw: string;
+}
+
+export interface TechnicalAttributeRecord {
+  manufacturerId: ManufacturerId;
+  canonicalKey: string;
+  canonicalLabel: string;
+  unitKind?: string;
+  originalGroup?: string;
+  originalName: string;
+  originalValue: string;
+  originalUnit?: string;
+  quantities?: TechnicalAttributeQuantity[];
+  sourceUrl?: string;
+  sourceType?: SourceRecord["sourceType"];
+  parser?: string;
+  stage?: string;
+  confidence: number;
+  reason: string;
 }
 
 export interface AttributeRecord {
@@ -421,6 +472,8 @@ export interface ProductResult {
   qualityGate?: QualityGateResult;
   diagnostics?: ScrapeDiagnostics;
   evidence?: EvidenceRecord[];
+  /** Canonical technical attribute map: original manufacturer label/value plus what the ontology understands it to mean. */
+  technicalAttributes?: TechnicalAttributeRecord[];
   error?: string;
 }
 

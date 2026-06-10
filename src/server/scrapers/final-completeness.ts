@@ -2,20 +2,23 @@ import type {
   AttributeRecord,
   DocumentRecord,
   FinalCompletenessRecord,
+  FinalCompletenessPolicyField,
   ManufacturerConfig,
   NormalizedProductFields,
   ProductResult,
   SourceRecord
 } from "../../shared/types.js";
 import { requiredElectricalFields } from "../../shared/product-requirements.js";
+import { getManufacturerConfig } from "../config/manufacturers.js";
+import { electricalFieldsForDeviceType, finalCompletenessFieldsForDeviceType } from "../pdt/device-type-profiles.js";
+import { classifyDeviceType } from "./device-type.js";
 import { cleanText, normalizeFields } from "./normalizer.js";
+import { matchProperty } from "./ontology.js";
 import { structuredIdentityConflict } from "./product-identity.js";
+import { isPlausibleTemperatureCelsius, parseTemperatureRange } from "./quantity.js";
 
-export type FinalCompletenessField = "image" | keyof Pick<
-  NormalizedProductFields,
-  "weight" | "dimensions" | "material" | "certificates" | "voltage" | "current"
->;
-type FinalCompletenessNormalizedField = Exclude<FinalCompletenessField, "image">;
+export type FinalCompletenessField = FinalCompletenessPolicyField;
+type FinalCompletenessNormalizedField = Extract<FinalCompletenessField, keyof NormalizedProductFields>;
 type FinalRequirement = FinalCompletenessRecord["requirement"];
 
 export interface FinalCompletenessAudit {
@@ -42,10 +45,14 @@ export interface FinalNetworkRetryDecision {
 
 const CORE_NORMALIZED_FIELDS: FinalCompletenessNormalizedField[] = ["weight", "dimensions", "material"];
 const SECONDARY_NORMALIZED_FIELDS: FinalCompletenessNormalizedField[] = ["certificates"];
-const ALL_FIELDS: FinalCompletenessField[] = ["image", "weight", "dimensions", "material", "certificates", "voltage", "current"];
+const BASE_FIELDS: FinalCompletenessField[] = ["image", "weight", "dimensions", "material", "certificates", "voltage", "current"];
 
 const MATERIAL_PATTERN =
   /\b(stainless steel|carbon steel|mild steel|galvannealed steel|galvanized steel|steel|aluminum|aluminium|polycarbonate|polyester|fiberglass|fibreglass|plastic|pvc|pur|brass|copper|zinc|cast iron|polyamide|polypropylene|polyethylene|rubber|epdm|nylon)\b/i;
+const TYPE_CODE_PATTERN =
+  /\b(type\s*code|typecode|model\s*code|modellcode|extended\s+product\s+type|type\s+designation|product\s+main\s+type|main\s+type|catalog(?:ue)?\s+type|order\s+type|MLFB)\b/i;
+const TYPE_CODE_REQUIRED_ATTRIBUTE =
+  "type code|typecode|model code|modellcode|extended product type|type designation|product main type|main type|catalog(?:ue)? type|order type|MLFB";
 
 export function evaluateFinalCompleteness(result: ProductResult, manufacturer: ManufacturerConfig): FinalCompletenessAudit {
   const missing: FinalCompletenessField[] = [];
@@ -58,11 +65,15 @@ export function evaluateFinalCompleteness(result: ProductResult, manufacturer: M
     material: result.normalized.material,
     certificates: result.normalized.certificates,
     voltage: result.normalized.voltage,
-    current: result.normalized.current
+    current: result.normalized.current,
+    color: result.normalized.color,
+    protection: result.normalized.protection,
+    operatingTemperature: operatingTemperatureValue(result),
+    typeCode: typeCodeValue(result, manufacturer)
   };
   const requirements: Partial<Record<FinalCompletenessField, FinalRequirement>> = {};
 
-  for (const field of ALL_FIELDS) {
+  for (const field of finalCompletenessFields(result)) {
     const requirement = finalFieldRequirement(field, result, manufacturer);
     requirements[field] = requirement;
     if (requirement === "not-applicable") {
@@ -187,10 +198,19 @@ export function finalNetworkRetryDecision(
     return { shouldRetry: false, fields: [], reason: "No retryable final completeness fields are missing.", triedStages: triedFinalStages(result), untriedStages: [] };
   }
 
-  // Performance: skip expensive network retry when quality gate already passed and only
-  // preferred (not required) fields are missing. These retries cost ~5-10s per item but
-  // rarely find values that weren't already published on the primary page.
+  // Performance: skip expensive network retry when either the manufacturer data profile
+  // documents that preferred-only final retries are unproductive, or quality already passed.
+  // Required fields still retry unless they are cached as exhausted.
   const allPreferred = fields.every((field) => audit.requirements[field] === "preferred");
+  if (allPreferred && manufacturer.scrapeRecipe?.fallbackPolicy?.skipPreferredFinalCompletenessRetry && !force) {
+    return {
+      shouldRetry: false,
+      fields,
+      reason: `Skipped network retry for preferred-only missing fields (${fields.join(", ")}) because the manufacturer profile marks these final retries as unproductive.`,
+      triedStages: triedFinalStages(result),
+      untriedStages: []
+    };
+  }
   if (allPreferred && result.qualityGate?.passed && !force) {
     const triedStages = triedFinalStages(result);
     return {
@@ -230,14 +250,21 @@ export function withFinalCompletenessPolicy(
   manufacturer: ManufacturerConfig,
   missing: FinalCompletenessField[]
 ): ManufacturerConfig {
-  const normalizedMissing = missing.filter((field): field is FinalCompletenessNormalizedField => field !== "image");
+  const normalizedMissing = missing.flatMap((field): Array<keyof NormalizedProductFields> => {
+    if (field === "operatingTemperature") return ["operatingTemperatureMin", "operatingTemperatureMax"];
+    return isNormalizedCompletenessField(field) ? [field] : [];
+  });
   const needsImage = missing.includes("image");
+  const needsTypeCode = missing.includes("typeCode");
   const existingRecipe = manufacturer.scrapeRecipe ?? {};
   const existingQualityPolicy = existingRecipe.qualityPolicy ?? {};
   return {
     ...manufacturer,
     scrapeRecipe: {
       ...existingRecipe,
+      requiredAttributes: needsTypeCode
+        ? uniqueStrings([...(existingRecipe.requiredAttributes ?? []), TYPE_CODE_REQUIRED_ATTRIBUTE])
+        : existingRecipe.requiredAttributes,
       requiredDocuments: needsImage
         ? uniqueStrings([...(existingRecipe.requiredDocuments ?? []).map(String), "image"])
         : existingRecipe.requiredDocuments,
@@ -333,7 +360,7 @@ function finalCompletenessRecords(
   repairedFields: FinalCompletenessField[],
   networkRetry: (FinalNetworkRetryDecision & { attempted: boolean }) | undefined
 ): FinalCompletenessRecord[] {
-  return ALL_FIELDS.map((field) => {
+  return auditRecordFields(before, after).map((field) => {
     const requirement = after.requirements[field] ?? before.requirements[field] ?? "preferred";
     const beforeMissing = before.missing.includes(field);
     const afterMissing = after.missing.includes(field);
@@ -403,22 +430,58 @@ function finalCompletenessRecords(
 }
 
 function finalFieldRequirement(field: FinalCompletenessField, result: ProductResult, manufacturer: ManufacturerConfig): FinalRequirement {
+  const classification = classifyDeviceType(result);
+  const electricalContext = {
+    deviceType: classification.type,
+    deviceTypeConfidence: classification.confidence,
+    deviceTypeElectricalFields: electricalFieldsForDeviceType(classification.type)
+  };
   if (field === "voltage" || field === "current") {
-    return requiredElectricalFields(result).includes(field) ? "required" : "not-applicable";
+    return requiredElectricalFields(result, electricalContext).includes(field) ? "required" : "not-applicable";
   }
+  if (isRockwellMicro820FamilyPageResult(result) && ["image", "dimensions", "material", "color", "operatingTemperature"].includes(field)) return "not-applicable";
+  if (field === "color" || field === "operatingTemperature" || field === "protection" || field === "typeCode") return "preferred";
   if (field === "certificates") return "preferred";
   if (field === "image") return "required";
-  if (manufacturer.id === "sce") return "required";
-  if (field === "material" && manufacturer.id === "abb" && requiredElectricalFields(result).length > 0) return "preferred";
+  if (manufacturer.scrapeRecipe?.qualityPolicy?.requiredFinalFields?.includes(field)) return "required";
+  if (manufacturer.scrapeRecipe?.qualityPolicy?.preferredFinalFields?.includes(field)) return "preferred";
   if (isPassiveMechanicalProduct(result)) return "required";
   if (field === "weight" && isCompactSensorOrElectronics(result)) return "preferred";
   return CORE_NORMALIZED_FIELDS.includes(field) ? "preferred" : "preferred";
+}
+
+function isRockwellMicro820FamilyPageResult(result: ProductResult): boolean {
+  if (result.manufacturerId !== "rockwell") return false;
+  if (!/^\s*2080-LC20-/i.test(result.catalogNumber)) return false;
+  const evidence = [
+    result.productUrl,
+    ...result.sources.map((source) => `${source.url} ${source.parser ?? ""} ${source.stage ?? ""}`),
+    ...result.attributes.map((attr) => `${attr.sourceUrl ?? ""} ${attr.parser ?? ""} ${attr.value}`)
+  ].join(" ");
+  return /\bmicro820-controllers\.html\b/i.test(evidence) || /\brockwell-family-page\b/i.test(evidence);
 }
 
 function isRetryableField(field: FinalCompletenessField, requirement: FinalRequirement): boolean {
   if (requirement === "not-applicable") return false;
   if (field === "certificates") return false;
   return true;
+}
+
+function finalCompletenessFields(result: ProductResult): FinalCompletenessField[] {
+  const classified = classifyDeviceType(result);
+  const profileFields = finalCompletenessFieldsForDeviceType(classified.confidence && classified.confidence >= 0.78 ? classified.type : undefined);
+  return uniqueFields([...BASE_FIELDS, ...profileFields]);
+}
+
+function isNormalizedCompletenessField(field: FinalCompletenessField): field is FinalCompletenessNormalizedField {
+  return field !== "image" && field !== "operatingTemperature" && field !== "typeCode";
+}
+
+function auditRecordFields(before: FinalCompletenessAudit, after: FinalCompletenessAudit): FinalCompletenessField[] {
+  return uniqueFields([
+    ...Object.keys(before.requirements),
+    ...Object.keys(after.requirements)
+  ] as FinalCompletenessField[]);
 }
 
 function repairFieldFromAttributes(
@@ -455,7 +518,7 @@ function repairFieldFromAttributes(
 }
 
 function requiresFieldEvidenceForRepair(field: FinalCompletenessField): boolean {
-  return field === "weight" || field === "dimensions" || field === "voltage" || field === "current";
+  return field !== "material" && field !== "certificates";
 }
 
 function valueExtractor(field: FinalCompletenessField): (value: string, label: string) => string | undefined {
@@ -472,6 +535,14 @@ function valueExtractor(field: FinalCompletenessField): (value: string, label: s
       return (value) => extractVoltage(value);
     case "current":
       return (value) => extractCurrent(value);
+    case "color":
+      return (value) => extractColor(value);
+    case "protection":
+      return (value) => extractProtection(value);
+    case "operatingTemperature":
+      return (value, label) => extractOperatingTemperature(`${label}: ${value}`);
+    case "typeCode":
+      return (value) => extractTypeCode(value);
     case "image":
       return () => undefined;
   }
@@ -541,6 +612,14 @@ function fieldLabelMatches(field: FinalCompletenessField, label: string): boolea
       return /\b(voltage|volt|vac|vdc|rated operational voltage|supply voltage|input power)\b/i.test(label);
     case "current":
       return /\b(current|amp|amps|amperage|switching capacity|max\.? current|rated current)\b/i.test(label);
+    case "color":
+      return matchProperty(label)?.key === "color";
+    case "protection":
+      return matchProperty(label)?.key === "protection";
+    case "operatingTemperature":
+      return matchProperty(label)?.key === "operatingTemperature";
+    case "typeCode":
+      return matchProperty(label)?.key === "typeCode" || TYPE_CODE_PATTERN.test(label);
     case "image":
       return /\b(image|picture|photo|media)\b/i.test(label);
   }
@@ -610,6 +689,48 @@ function extractCurrent(value: string): string | undefined {
   return match ? cleanText(match[0].replace(/\s+/g, " ")) : undefined;
 }
 
+function extractColor(value: string): string | undefined {
+  const cleaned = cleanText(value);
+  const ansi = cleaned.match(/\bANSI[-\s]?61\s+gr[ae]y\b/i);
+  if (ansi) return "ANSI-61 gray";
+  const ral = cleaned.match(/\bRAL\s*(\d{4})\b/i);
+  if (ral) return `RAL ${ral[1]}`;
+  const match = cleaned.match(/\b(?:black|white|gr[ae]y|red|blue|green|yellow|orange|silver|natural|beige|cream)\b/i);
+  return match ? cleanText(match[0].toLowerCase().replace(/^grey$/, "gray")) : undefined;
+}
+
+function extractProtection(value: string): string | undefined {
+  const cleaned = cleanText(value);
+  const tokens = [
+    ...(cleaned.match(/\bIP\s*\d{2}[A-Z]?\b/gi) ?? []),
+    ...(cleaned.match(/\bIK\s*\d{2}\b/gi) ?? []),
+    ...(cleaned.match(/\bNEMA\s*(?:Type\s*)?\d+[A-Z]?\b/gi) ?? [])
+  ];
+  for (const match of cleaned.matchAll(/\bType\s+\d+[A-Z]?\b/gi)) {
+    const prefix = cleaned.slice(Math.max(0, match.index - 8), match.index);
+    if (!/NEMA\s*$/i.test(prefix)) tokens.push(match[0]);
+  }
+  const normalized = uniqueStrings(
+    tokens.map((token) => cleanText(token).replace(/\s+/g, "").replace(/^NEMAType/i, "NEMA Type ").replace(/^NEMA/i, "NEMA ").replace(/^type/i, "Type"))
+  );
+  return normalized.join("; ") || undefined;
+}
+
+function extractOperatingTemperature(value: string): string | undefined {
+  if (/\b(storage|transport|color\s+temp|colou?r\s+temp)\b/i.test(value)) return undefined;
+  const range = parseTemperatureRange(value);
+  if (range.min === undefined && range.max === undefined) return undefined;
+  if (range.min !== undefined && !isPlausibleTemperatureCelsius(range.min)) return undefined;
+  if (range.max !== undefined && !isPlausibleTemperatureCelsius(range.max)) return undefined;
+  return formatOperatingTemperature(range.min, range.max);
+}
+
+function extractTypeCode(value: string): string | undefined {
+  const cleaned = cleanText(value);
+  if (!cleaned || cleaned.length > 120) return undefined;
+  return cleaned;
+}
+
 function possibleFinalNetworkStages(result: ProductResult, manufacturer: ManufacturerConfig): string[] {
   const stages = ["discovery"];
   if (hasOfficialProductUrl(result, manufacturer)) {
@@ -674,6 +795,47 @@ function firstImageValue(result: ProductResult): string | undefined {
   return image?.localPath ?? image?.url;
 }
 
+function operatingTemperatureValue(result: ProductResult): string | undefined {
+  const min = numberFromString(result.normalized.operatingTemperatureMin);
+  const max = numberFromString(result.normalized.operatingTemperatureMax);
+  return formatOperatingTemperature(min, max);
+}
+
+function formatOperatingTemperature(min: number | undefined, max: number | undefined): string | undefined {
+  if (min === undefined && max === undefined) return undefined;
+  if (min !== undefined && max !== undefined) return `${formatTemperatureBound(min)}..${formatTemperatureBound(max)} °C`;
+  if (min !== undefined) return `>= ${formatTemperatureBound(min)} °C`;
+  if (max !== undefined) return `<= ${formatTemperatureBound(max)} °C`;
+  return undefined;
+}
+
+function formatTemperatureBound(value: number): string {
+  return String(Number(value.toFixed(6)));
+}
+
+function numberFromString(value: string | undefined): number | undefined {
+  if (value === undefined || value === "") return undefined;
+  const parsed = Number(value.replace(",", "."));
+  return Number.isFinite(parsed) ? parsed : undefined;
+}
+
+function typeCodeValue(result: ProductResult, manufacturer: ManufacturerConfig): string | undefined {
+  const attr = result.attributes.find((candidate) => {
+    const label = `${candidate.group ?? ""} ${candidate.name}`;
+    return matchProperty(label)?.key === "typeCode" || TYPE_CODE_PATTERN.test(label);
+  });
+  if (attr?.value) return cleanText(attr.value);
+  if (manufacturerPolicyForResult(result, manufacturer).scrapeRecipe?.qualityPolicy?.typeCodeFallback === "catalogNumber") {
+    return cleanText(result.catalogNumber);
+  }
+  return undefined;
+}
+
+function manufacturerPolicyForResult(result: ProductResult, manufacturer: ManufacturerConfig): ManufacturerConfig {
+  if (!result.manufacturerId || result.manufacturerId === manufacturer.id) return manufacturer;
+  return getManufacturerConfig(result.manufacturerId) ?? manufacturer;
+}
+
 function isPassiveMechanicalProduct(result: ProductResult): boolean {
   return /\b(enclosure|cabinet|box|junction box|panel|subpanel|mounting plate|door|cover|bracket|plate|wireway)\b/i.test(primaryProductText(result));
 }
@@ -717,6 +879,14 @@ function canonicalFieldLabel(field: FinalCompletenessField): string {
       return "Voltage";
     case "current":
       return "Current";
+    case "color":
+      return "Color";
+    case "protection":
+      return "Protection";
+    case "operatingTemperature":
+      return "Operating Temperature";
+    case "typeCode":
+      return "Type Code";
   }
 }
 

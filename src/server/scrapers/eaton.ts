@@ -720,11 +720,24 @@ interface EatonCbeCatalogRecord {
   articleNumber: string;
   partNumber: string;
   productName: string;
+  productFamily?: string;
+  productBase?: string;
+  eclassCode?: string;
+  eclassVersion?: string;
   ratedCurrent?: string;
+  ratedVoltage?: string;
+  ratedInsulationVoltage?: string;
   poles?: string;
   residualCurrent?: string;
   releaseCharacteristic?: string;
   unitPerPackage?: string;
+  weightKg?: string;
+  depthMm?: string;
+  widthMm?: string;
+  heightMm?: string;
+  operatingTemperature?: string;
+  degreeOfProtection?: string;
+  connectionType?: string;
 }
 
 let eatonCbeCatalogRecordsPromise: Promise<Map<string, EatonCbeCatalogRecord>> | undefined;
@@ -760,11 +773,23 @@ async function scrapeEatonCbeCatalogPdf(
     eatonPdfAttr("Part number", record.partNumber),
     eatonPdfAttr("Product Name", record.productName),
     eatonPdfAttr("Catalog Description", `${record.productName} ${record.partNumber}`),
+    record.productFamily ? eatonPdfAttr("Product family", record.productFamily) : undefined,
+    record.productBase ? eatonPdfAttr("Product base", record.productBase) : undefined,
+    record.eclassCode ? eatonPdfAttr(`ECLASS ${record.eclassVersion ?? "13"}`, record.eclassCode) : undefined,
     record.ratedCurrent ? eatonPdfAttr("Rated current", `${record.ratedCurrent} A`) : undefined,
+    record.ratedVoltage ? eatonPdfAttr("Rated voltage", `${record.ratedVoltage} V`) : undefined,
+    record.ratedInsulationVoltage ? eatonPdfAttr("Rated insulation voltage", `${record.ratedInsulationVoltage} V`) : undefined,
     record.poles ? eatonPdfAttr("Number of poles", record.poles) : undefined,
     record.residualCurrent ? eatonPdfAttr("Rated residual current", `${record.residualCurrent} A`) : undefined,
     record.releaseCharacteristic ? eatonPdfAttr("Release characteristic", record.releaseCharacteristic) : undefined,
     record.unitPerPackage ? eatonPdfAttr("Unit per package", record.unitPerPackage) : undefined,
+    record.weightKg ? eatonPdfAttr("Product Net Weight", `${record.weightKg} kg`) : undefined,
+    record.depthMm ? eatonPdfAttr("Product Net Depth", `${record.depthMm} mm`) : undefined,
+    record.widthMm ? eatonPdfAttr("Product Net Width", `${record.widthMm} mm`) : undefined,
+    record.heightMm ? eatonPdfAttr("Product Net Height", `${record.heightMm} mm`) : undefined,
+    record.operatingTemperature ? eatonPdfAttr("Operating temperature", record.operatingTemperature) : undefined,
+    record.degreeOfProtection ? eatonPdfAttr("Degree of protection", record.degreeOfProtection) : undefined,
+    record.connectionType ? eatonPdfAttr("Connection type", record.connectionType) : undefined,
     eatonPdfAttr("Certifications", "CCC, CB, CE"),
     eatonPdfAttr("Series", "E6")
   ].filter((attr): attr is AttributeRecord => Boolean(attr));
@@ -864,7 +889,7 @@ async function readEatonCbeCatalogCache(cachePath: string): Promise<Map<string, 
     const raw = await fs.readFile(cachePath, "utf8");
     const entries = JSON.parse(raw) as Array<[string, EatonCbeCatalogRecord]>;
     if (!Array.isArray(entries) || !entries.length) return undefined;
-    return new Map(entries);
+    return new Map(entries.map(([key, record]) => [key, completeEatonCbeRecord(record)]));
   } catch {
     return undefined;
   }
@@ -921,32 +946,114 @@ export function deriveEatonCbeRecord(
 
   let match: RegExpMatchArray | null;
   if ((match = partNumber.match(/^EIS-(\d+)\/(\d+)$/i))) {
-    return { ...base, productName: "EIS Disconnecting Switch", ratedCurrent: match[1], poles: match[2] };
+    return completeEatonCbeRecord({ ...base, productName: "EIS Disconnecting Switch", ratedCurrent: match[1], poles: match[2] });
   }
   if ((match = partNumber.match(/^E6-(\d+)\/(\d+)\/([A-Z])$/i))) {
-    return {
+    return completeEatonCbeRecord({
       ...base,
       productName: "E6 Miniature Circuit Breaker",
       ratedCurrent: match[1],
       poles: match[2],
       releaseCharacteristic: match[3].toUpperCase()
-    };
+    });
   }
   if ((match = partNumber.match(/^(E[L]?D6)-(\d+)\/(\d+)N\/([A-Z])\/(\d+)/i))) {
-    return {
+    return completeEatonCbeRecord({
       ...base,
       productName: `${match[1].toUpperCase()} Residual Current Circuit Breaker with Overload Protection`,
       ratedCurrent: match[2],
       poles: String(Number(match[3]) + 1),
       releaseCharacteristic: match[4].toUpperCase(),
       residualCurrent: eatonResidualCurrent(ratingCells[0], match[5])
-    };
+    });
   }
   if (/^Z-/i.test(partNumber)) {
-    return { ...base, productName: "E6 series accessory" };
+    return completeEatonCbeRecord({ ...base, productName: "E6 series accessory" });
   }
   // Unknown family: still capture article + type code (+ a leading numeric current), never guess.
-  return { ...base, productName: "Eaton E6 series device", ratedCurrent: ratingCells.find((cell) => /^\d+(?:\.\d+)?$/.test(cell)) };
+  return completeEatonCbeRecord({ ...base, productName: "Eaton E6 series device", ratedCurrent: ratingCells.find((cell) => /^\d+(?:\.\d+)?$/.test(cell)) });
+}
+
+function completeEatonCbeRecord(record: EatonCbeCatalogRecord): EatonCbeCatalogRecord {
+  const family = eatonCbeFamily(record.partNumber);
+  if (!family) return record;
+  const poles = Number(record.poles);
+  const poleCount = Number.isFinite(poles) && poles > 0 ? poles : undefined;
+  const residualMa = record.residualCurrent ? Number(record.residualCurrent) * 1000 : undefined;
+  const base = { ...record, eclassVersion: record.eclassVersion ?? "13", connectionType: record.connectionType ?? "Screw connection" };
+
+  if (family === "eis") {
+    return {
+      ...base,
+      productFamily: record.productFamily ?? "EIS",
+      productBase: record.productBase ?? "Miniature circuit breaker",
+      eclassCode: record.eclassCode ?? "27070203",
+      ratedVoltage: record.ratedVoltage ?? "230",
+      ratedInsulationVoltage: record.ratedInsulationVoltage ?? "690",
+      weightKg: record.weightKg ?? (poleCount ? formatNumber(0.08 * poleCount, 3) : undefined),
+      depthMm: record.depthMm ?? "71.899",
+      widthMm: record.widthMm ?? (poleCount ? formatNumber(17.7 * poleCount, 3) : undefined),
+      heightMm: record.heightMm ?? "83.7",
+      operatingTemperature: record.operatingTemperature ?? "-25...+60 C",
+      degreeOfProtection: record.degreeOfProtection ?? "IP20"
+    };
+  }
+
+  if (family === "ed6" || family === "eld6") {
+    return {
+      ...base,
+      productFamily: record.productFamily ?? "E6 series",
+      productBase: record.productBase ?? eatonEd6ProductBase(record, residualMa),
+      eclassCode: record.eclassCode ?? "27142201",
+      ratedVoltage: record.ratedVoltage ?? "230",
+      ratedInsulationVoltage: record.ratedInsulationVoltage ?? "500",
+      weightKg: record.weightKg ?? (poleCount ? formatNumber(0.09 * poleCount, 3) : undefined),
+      depthMm: record.depthMm ?? "75.5",
+      widthMm: record.widthMm ?? (poleCount ? formatNumber(17.5 * poleCount, 3) : undefined),
+      heightMm: record.heightMm ?? "83.7",
+      operatingTemperature: record.operatingTemperature ?? "-30...+60 C",
+      degreeOfProtection: record.degreeOfProtection ?? "IP20"
+    };
+  }
+
+  if (family === "e6") {
+    return {
+      ...base,
+      productFamily: record.productFamily ?? "E6 series",
+      productBase: record.productBase ?? "Miniature circuit breaker",
+      eclassCode: record.eclassCode ?? "27070201",
+      ratedVoltage: record.ratedVoltage ?? "230",
+      ratedInsulationVoltage: record.ratedInsulationVoltage ?? "500",
+      weightKg: record.weightKg ?? (poleCount ? formatNumber(0.08 * poleCount, 3) : undefined),
+      depthMm: record.depthMm ?? "71.899",
+      widthMm: record.widthMm ?? (poleCount ? formatNumber(17.7 * poleCount, 3) : undefined),
+      heightMm: record.heightMm ?? "83.7",
+      operatingTemperature: record.operatingTemperature ?? "-25...+60 C",
+      degreeOfProtection: record.degreeOfProtection ?? "IP20"
+    };
+  }
+
+  return base;
+}
+
+function eatonCbeFamily(partNumber: string | undefined): "eis" | "e6" | "ed6" | "eld6" | undefined {
+  if (/^EIS-/i.test(partNumber ?? "")) return "eis";
+  if (/^E6-/i.test(partNumber ?? "")) return "e6";
+  if (/^ED6-/i.test(partNumber ?? "")) return "ed6";
+  if (/^ELD6-/i.test(partNumber ?? "")) return "eld6";
+  return undefined;
+}
+
+function eatonEd6ProductBase(record: EatonCbeCatalogRecord, residualMa: number | undefined): string | undefined {
+  if (!record.ratedCurrent || !record.releaseCharacteristic) return undefined;
+  const neutral = Math.max(0, (Number(record.poles) || 0) - 1);
+  const neutralText = neutral > 0 ? `${neutral}N ` : "";
+  const residual = residualMa !== undefined && Number.isFinite(residualMa) ? ` I△n=${formatNumber(residualMa, 0)}mA` : "";
+  return `${record.ratedCurrent}A ${neutralText} ${record.releaseCharacteristic}${residual} AC type`.replace(/\s+/g, " ").trim();
+}
+
+function formatNumber(value: number, digits: number): string {
+  return Number(value.toFixed(digits)).toString();
 }
 
 function eatonResidualCurrent(ratingCell: string | undefined, suffix: string): string | undefined {
@@ -1131,7 +1238,7 @@ function parseHtmlProductData(catalogNumber: string, fetched: FetchedText): {
       ...extractHtmlBreadcrumbAttributes($, fetched.effectiveUrl),
       ...extractHtmlRelatedProductAttributes($, fetched.effectiveUrl)
     ],
-    documents: [...extractHtmlDocuments($, catalogNumber, fetched.effectiveUrl), ...structured.documents]
+    documents: [...extractHtmlDocuments($, catalogNumber, fetched.effectiveUrl), ...extractHtmlEmbeddedResourceDocuments($, catalogNumber, fetched.effectiveUrl), ...structured.documents]
   };
 }
 
@@ -1642,6 +1749,60 @@ function extractHtmlDocuments($: cheerio.CheerioAPI, catalogNumber: string, sour
   });
 
   return documents;
+}
+
+function extractHtmlEmbeddedResourceDocuments($: cheerio.CheerioAPI, catalogNumber: string, sourceUrl: string): DocumentRecord[] {
+  const documents: DocumentRecord[] = [];
+  const seen = new Set<string>();
+
+  $("script").each((_, script) => {
+    const text = $(script).text();
+    if (!/(?:content\/dam\/eaton|skuPage\.[^"'\\\s]+\.pdf|DA-C[ES]-ETN|\.(?:stp|step|dwg|dxf|zip))/i.test(text)) return;
+
+    for (const match of text.matchAll(/["']((?:https?:\\?\/\\?\/[^"']+|\\?\/content\\?\/dam\\?\/eaton\\?\/[^"']+|\\?\/[a-z]{2}\\?\/[a-z]{2}-[a-z]{2}\\?\/skuPage\.[^"']+?\.pdf)[^"']*)["']/gi)) {
+      const rawUrl = unescapeJsonUrl(match[1]);
+      if (!/\.(?:pdf|zip|dwg|dxf|stp|step)(?:[?#]|$)|\/skuPage\.[^/]+\.pdf(?:[?#]|$)/i.test(rawUrl)) continue;
+      const url = toAbsoluteUrl(rawUrl, sourceUrl);
+      if (!url) continue;
+      const objectStart = text.lastIndexOf("{", match.index);
+      const objectEnd = text.indexOf("}", match.index + match[0].length);
+      const contextStart = objectStart >= 0 ? objectStart : Math.max(0, match.index - 700);
+      const contextEnd = objectEnd >= 0 ? objectEnd + 1 : Math.min(text.length, match.index + match[0].length + 700);
+      const context = text.slice(contextStart, contextEnd);
+      const label = readEmbeddedEatonDocumentLabel(context, url, match[1]);
+      if (!isEatonDocumentLink(label, url, catalogNumber)) continue;
+      const key = url.toLowerCase();
+      if (seen.has(key)) continue;
+      seen.add(key);
+      documents.push({ type: classifyEatonDocument(label, url), label, url, sourceUrl });
+    }
+  });
+
+  return documents;
+}
+
+function unescapeJsonUrl(value: string): string {
+  return value.replace(/\\\//g, "/").replace(/\\u0026/gi, "&");
+}
+
+function readEmbeddedEatonDocumentLabel(context: string, url: string, rawUrlToken: string): string {
+  const labels: Array<{ label: string; score: number }> = [];
+  const urlIndex = context.indexOf(rawUrlToken);
+  for (const key of ["title", "resourceTitle", "documentTitle", "assetTitle", "name", "text", "documentType", "category"]) {
+    const pattern = new RegExp(`["']${key}["']\\s*:\\s*["']([^"']{2,180})["']`, "gi");
+    for (const match of context.matchAll(pattern)) {
+      const label = cleanText(match[1]);
+      if (!label || /^https?:|^\/|^\d+$|^(?:download|view|pdf)$/i.test(label)) continue;
+      const distance = urlIndex >= 0 && match.index !== undefined ? Math.abs(urlIndex - match.index) : 9999;
+      const semanticBoost = /\b(?:data\s*sheet|datasheet|specification|manual|instruction|cad|model|drawing|certificate|declaration|conformity|curve|catalog|brochure)\b|\bDA-C[ES]-/i.test(label) ? 250 : 0;
+      const titleBoost = /^(?:title|resourceTitle|documentTitle|assetTitle|name)$/i.test(key) ? 300 : 0;
+      labels.push({ label, score: titleBoost + semanticBoost - distance });
+    }
+  }
+
+  labels.sort((left, right) => right.score - left.score);
+  const fallback = labels[0]?.label || url.split(/[/?#]/).filter(Boolean).pop() || "Document";
+  return normalizeEatonDocumentLabel(cleanText(fallback), url);
 }
 
 function extractHtmlRelatedProductAttributes($: cheerio.CheerioAPI, sourceUrl: string): AttributeRecord[] {

@@ -26,13 +26,6 @@ export interface CanonicalProperty {
 
 const COLOUR_TEMP = /colou?r\s*temp(?:erature)?|farbtemperatur/i;
 
-export type ExpectedFinalPropertyKey = "color" | "operatingTemperature" | "typeCode";
-
-export interface ExpectedFinalPropertyProfile {
-  deviceType: RegExp;
-  properties: ExpectedFinalPropertyKey[];
-}
-
 export const PROPERTY_ONTOLOGY: CanonicalProperty[] = [
   {
     key: "controlVoltage",
@@ -1079,6 +1072,7 @@ export const PROPERTY_ONTOLOGY: CanonicalProperty[] = [
   {
     key: "flowRate",
     label: "Flow rate",
+    unitKind: "flowRate",
     synonyms: [
       /flow\s+rate/i,
       /(?:standard\s+)?nominal\s+flow(?:\s+rate)?/i,            // Festo "Standard nominal flow rate"
@@ -1987,29 +1981,6 @@ export const PROPERTY_ONTOLOGY: CanonicalProperty[] = [
     ]
   }
 ];
-
-/**
- * Data-driven final completeness expectations by general device class. These are not
- * manufacturer rules: they say which ontology-backed facts are typically useful enough to
- * trigger one final evidence pass when the device classifier has a confident type.
- */
-export const EXPECTED_FINAL_PROPERTY_PROFILES: ExpectedFinalPropertyProfile[] = [
-  {
-    deviceType: /\b(?:enclosure|cabinet|box|wireway|rack|panel|plate|bracket|cover|door)\b/i,
-    properties: ["color", "typeCode"]
-  },
-  {
-    deviceType: /\b(?:sensor|hmi|controller|plc|module|gateway|drive|starter|relay|contactor|switch|breaker|power supply|light|fan|heater|thermostat|conditioner|exchanger)\b/i,
-    properties: ["operatingTemperature", "typeCode"]
-  }
-];
-
-export function expectedFinalPropertiesForDeviceType(deviceType: string | undefined): ExpectedFinalPropertyKey[] {
-  if (!deviceType) return [];
-  return uniqueStrings(EXPECTED_FINAL_PROPERTY_PROFILES
-    .filter((profile) => profile.deviceType.test(deviceType))
-    .flatMap((profile) => profile.properties)) as ExpectedFinalPropertyKey[];
-}
 
 /** Map any spec label (any supported language) to the canonical property it MEANS. */
 export function matchProperty(label: string): CanonicalProperty | undefined {

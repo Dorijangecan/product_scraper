@@ -72,7 +72,20 @@ export function valuesEquivalent(a: string, b: string): boolean {
   const na = pureNumber(a);
   const nb = pureNumber(b);
   if (Number.isFinite(na) && Number.isFinite(nb)) return na === nb;
+  const dateA = excelDateDecimal(a);
+  const dateB = excelDateDecimal(b);
+  if (dateA !== undefined && Number.isFinite(nb)) return dateA === nb;
+  if (dateB !== undefined && Number.isFinite(na)) return dateB === na;
   return unifyRanges(a) === unifyRanges(b);
+}
+
+function excelDateDecimal(value: string): number | undefined {
+  const match = value.trim().match(/^(\d{4})-(\d{2})-(\d{2})T00:00:00\.000Z$/);
+  if (!match) return undefined;
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  if (!Number.isInteger(month) || !Number.isInteger(day) || month < 1 || month > 12 || day < 1 || day > 31) return undefined;
+  return Number(`${day}.${month}`);
 }
 
 function articleKey(value: string): string {

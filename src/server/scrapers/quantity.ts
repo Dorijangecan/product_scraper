@@ -30,6 +30,7 @@ export type QuantityKind =
   | "torque"
   | "frequency"
   | "pressure"
+  | "flowRate"
   | "resistance"
   | "unknown";
 
@@ -102,6 +103,14 @@ const UNIT_TABLE: Record<string, UnitInfo> = {
   bar: { unit: "bar", kind: "pressure" },
   mbar: { unit: "mbar", kind: "pressure" },
   psi: { unit: "psi", kind: "pressure" },
+  "nl/min": { unit: "Nl/min", kind: "flowRate" },
+  "l/min": { unit: "l/min", kind: "flowRate" },
+  lpm: { unit: "l/min", kind: "flowRate" },
+  "m3/h": { unit: "m3/h", kind: "flowRate" },
+  "m3/min": { unit: "m3/min", kind: "flowRate" },
+  "dm3/min": { unit: "dm3/min", kind: "flowRate" },
+  gpm: { unit: "gpm", kind: "flowRate" },
+  cfm: { unit: "cfm", kind: "flowRate" },
   kg: { unit: "kg", kind: "mass" },
   mg: { unit: "mg", kind: "mass" },
   g: { unit: "g", kind: "mass" },
@@ -131,7 +140,7 @@ const UNIT_TABLE: Record<string, UnitInfo> = {
 // Longest / most-specific tokens first within each overlap group, so e.g. "kVA" wins over "kV",
 // "mAh" over "mA", "kWh" over "kW", and "mm²" over "mm".
 const UNIT_PATTERN =
-  "VAC|VDC|kVA|VA|kvar|var|kV|mV|V|mAh|Ah|kA|mA|A|kWh|Wh|kW|mW|W|Nm|°\\s*C|degC|kHz|MHz|Hz|mbar|kPa|MPa|Pa|bar|psi|kg|mg|g|lb|oz|mm²|mm2|cm²|cm2|mm|cm|MΩ|kΩ|Ω|ohm|amperes?|amps?|volts?|watts?";
+  "VAC|VDC|kVA|VA|kvar|var|kV|mV|V|mAh|Ah|kA|mA|A|kWh|Wh|kW|mW|W|Nm|°\\s*C|degC|kHz|MHz|Hz|mbar|kPa|MPa|Pa|bar|psi|Nl\\s*/\\s*min|l\\s*/\\s*min|lpm|m3\\s*/\\s*h|m3\\s*/\\s*min|dm3\\s*/\\s*min|gpm|cfm|kg|mg|g|lb|oz|mm²|mm2|cm²|cm2|mm|cm|MΩ|kΩ|Ω|ohm|amperes?|amps?|volts?|watts?";
 
 const RANGE_SEP = "\\.{2,3}|…|\\bto\\b|\\bbis\\b|\\bdo\\b|~|/|-";
 
@@ -153,6 +162,7 @@ export function normalizeForParsing(value: string): string {
   return value
     .replace(/Â°/g, "°")
     .replace(/℃/g, "°C")
+    .replace(/\u00b3/g, "3")
     .replace(/ /g, " ")
     .replace(/[–—−]/g, "-")
     .replace(/(\d),(\d)/g, "$1.$2")
@@ -390,6 +400,7 @@ export const SANITY_BOUNDS: Partial<Record<QuantityKind, { min: number; max: num
   mass: { min: 0, max: 200_000 },
   frequency: { min: 0, max: 5_000_000 },
   pressure: { min: 0, max: 5_000_000 },
+  flowRate: { min: 0, max: 10_000_000 },
   apparentPower: { min: 0, max: 100_000_000 },
   reactivePower: { min: 0, max: 100_000_000 },
   charge: { min: 0, max: 1_000_000 },

@@ -7,6 +7,8 @@ import type {
   SourceRecord
 } from "../../shared/types.js";
 import { requiredElectricalFields } from "../../shared/product-requirements.js";
+import { electricalFieldsForDeviceType } from "../pdt/device-type-profiles.js";
+import { classifyDeviceType } from "./device-type.js";
 import { findUnmappedSpecLabels } from "./ontology.js";
 import { catalogTextMatches, compactCatalogNumber } from "./catalog-number.js";
 import {
@@ -46,7 +48,12 @@ export function evaluateQualityGate(
     if (!result.normalized[field]) missing.add(`normalized:${field}`);
   }
 
-  const electricalFields = requiredElectricalFields(result);
+  const classification = classifyDeviceType(result);
+  const electricalFields = requiredElectricalFields(result, {
+    deviceType: classification.type,
+    deviceTypeConfidence: classification.confidence,
+    deviceTypeElectricalFields: electricalFieldsForDeviceType(classification.type)
+  });
   if (electricalFields.includes("voltage") && !result.normalized.voltage) {
     missing.add("normalized:voltage");
   }

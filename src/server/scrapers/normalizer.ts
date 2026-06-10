@@ -212,7 +212,8 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
     findColorAttr(attributes) ??
     deriveColorFromFinish(finish) ??
     deriveColorFromMaterial(material) ??
-    ontologyFieldValue(attributes, "color", deriveColorFromFinish);
+    ontologyFieldValue(attributes, "color", deriveColorFromFinish) ??
+    deriveColorFromProseAttributes(attributes);
 
   const protectionFromAttr =
     collectProtectionValues(attributes) ??
@@ -1183,7 +1184,7 @@ function deriveColorFromFinish(value: string | undefined): string | undefined {
     return /optional\s+sub-?panels?.*white/i.test(cleaned) ? "ANSI-61 gray (optional sub-panels white)" : "ANSI-61 gray";
   }
   const colors = [
-    ...(cleaned.match(/\b(?:black|white|gr[ae]y|red|blue|green|yellow|orange|silver|natural|beige|cream)\b/gi) ?? []).map((color) =>
+    ...(cleaned.match(/\b(?:black|white|gr[ae]y|red|blue|green|yellow|orange|silver|natural|beige|cream|brown|clear|transparent)\b/gi) ?? []).map((color) =>
       color.toLowerCase().replace("grey", "gray")
     ),
     ...foreignColorMatches(cleaned)
@@ -1223,6 +1224,53 @@ function foreignColorMatches(cleaned: string): string[] {
 
 function deriveColorFromMaterial(value: string | undefined): string | undefined {
   return deriveColorFromFinish(value);
+}
+
+function deriveColorFromProseAttributes(attributes: AttributeRecord[]): string | undefined {
+  const hasVariantMaterialOrFinish = attributes.some((attr) =>
+    /\bcatalog variant\b/i.test(`${attr.group ?? ""}`) && /\b(material|finish)\b/i.test(attr.name)
+  );
+  for (const attr of attributes) {
+    const label = `${attr.group ?? ""} ${attr.name}`;
+    if (!/\b(catalog description|long description|short description|product description|description|features?|application|construction|overview)\b/i.test(label)) continue;
+    if (/\b(display|screen|lcd|tft|colour temperature|color temperature)\b/i.test(`${label} ${attr.value}`)) continue;
+    const cleaned = normalizeHtmlSpecValue(attr.value);
+    if (!cleaned) continue;
+
+    const explicitColor = cleaned.match(/\b(?:colou?r|farbe|couleur|colore|kleur)\b\s*(?:is|:|=|-|of)?\s*([^.;]{1,80})/i);
+    const explicitValue = explicitColor ? deriveColorFromFinish(explicitColor[1]) : undefined;
+    if (explicitValue) return explicitValue;
+    if (hasVariantMaterialOrFinish) continue;
+
+    const componentValue = colorFromComponentProse(cleaned);
+    if (componentValue) return componentValue;
+
+    const finishColor = cleaned.match(
+      new RegExp(String.raw`\b(?:painted|powder[-\s]?coated|anodized|finished|coated)\s+(?:in\s+)?${COLOR_TOKEN}\b`, "i")
+    );
+    const finishValue = finishColor ? deriveColorFromFinish(finishColor[0]) : undefined;
+    if (finishValue) return finishValue;
+  }
+  return undefined;
+}
+
+const COLOR_TOKEN = String.raw`(?:ANSI[-\s]?61\s+gr[ae]y|RAL\s*\d{4}|black|white|gr[ae]y|red|blue|green|yellow|orange|silver|natural|beige|cream|brown|clear|transparent|hell\s*grau|licht\s*grau|dunkel\s*grau|grau|schwarz|wei(?:ß|ss)|silber|rot|blau|gr[üu]n|gelb|gris\s+clair|gris\s+fonc[ée]|gris|noir|blanc|rouge|bleu|vert|jaune|grigio\s+chiaro|grigio\s+scuro|grigio|nero|bianco|rosso|blu|verde|giallo)`;
+const MATERIAL_OR_COMPONENT_TOKEN = String.raw`(?:stainless\s+steel|carbon\s+steel|mild\s+steel|galvanized\s+steel|galvannealed\s+steel|sheet\s+steel|steel|alumin(?:um|ium)|polycarbonate|polyamide|polyester|polypropylene|polyethylene|polyolefin|plastic|pvc|pur|rubber|housing|enclosure|body|cover|case|casing|jacket)`;
+
+function colorFromComponentProse(cleaned: string): string | undefined {
+  const colorBeforeMaterial = cleaned.match(
+    new RegExp(String.raw`\b${COLOR_TOKEN}\s+(?:(?:powder[-\s]?coated|painted|anodized|finished|coated)\s+)?${MATERIAL_OR_COMPONENT_TOKEN}\b`, "i")
+  );
+  const colorBeforeMaterialValue = colorBeforeMaterial ? deriveColorFromFinish(colorBeforeMaterial[0]) : undefined;
+  if (colorBeforeMaterialValue) return colorBeforeMaterialValue;
+
+  const componentThenColor = cleaned.match(
+    new RegExp(String.raw`\b(?:housing|enclosure|body|cover|case|casing|jacket)\b[^.;]{0,80}\b(?:in|is|:|,)?\s*(${COLOR_TOKEN})\b`, "i")
+  );
+  const componentValue = componentThenColor ? deriveColorFromFinish(componentThenColor[1]) : undefined;
+  if (componentValue) return componentValue;
+
+  return undefined;
 }
 
 function deriveWallThicknessFromAttributes(attributes: AttributeRecord[]): string | undefined {
@@ -1354,7 +1402,7 @@ function deriveMaterialFromAttributes(attributes: AttributeRecord[]): string | u
   }
 
   for (const attr of attributes) {
-    if (!/(description|application|finish|feature|detail|material|body|housing|enclosure)/i.test(`${attr.group ?? ""} ${attr.name}`)) continue;
+    if (!/(description|overview|application|finish|feature|detail|material|body|housing|enclosure)/i.test(`${attr.group ?? ""} ${attr.name}`)) continue;
     const madeOfMaterial = materialFromMadeOfPhrase(attr.value);
     if (madeOfMaterial) return madeOfMaterial;
     if (isSecondaryComponentMaterialText(attr.value)) continue;
@@ -1367,7 +1415,7 @@ function deriveMaterialFromAttributes(attributes: AttributeRecord[]): string | u
 
 function materialFromMadeOfPhrase(value: string): string | undefined {
   const cleaned = normalizeHtmlSpecValue(value);
-  const match = cleaned?.match(/\bmade\s+(?:of|from)\s+([^.]+)|\b(?:constructed|fabricated)\s+(?:of|from)\s+([^.]+)/i);
+  const match = cleaned?.match(/\bmade\s+(?:of|from)\s+([^.]+)|\b(?:constructed|fabricated|manufactured|formed)\s+(?:of|from)\s+([^.]+)/i);
   return materialValueFromText(match?.[1] ?? match?.[2] ?? "");
 }
 
@@ -1389,14 +1437,45 @@ function materialValueFromText(value: string): string | undefined {
   if (/\bstainless\s+steel\s+type\s+316\/316L\b/i.test(cleaned)) return "stainless steel Type 316/316L";
   if (/\bstainless\s+steel\s+type\s+304\b/i.test(cleaned)) return "stainless steel Type 304";
   if (/\baluzinc\s+coated\s+steel\b/i.test(cleaned)) return "aluzinc coated steel";
+  const composite = compositeMaterialValue(cleaned);
+  if (composite) return composite;
   if (/\bS\.?\s*S\.?\b/i.test(cleaned)) return "stainless steel";
   if (/^(?:PA|PC|POM|PBTP?|PETP?|PE|PP|PPS|PTFE|PUR|PVC|ABS|ASA|SAN|PMMA|PEEK|PEI|TPE|TPU|HDPE|LDPE)(?:\s*\d{1,2})?$/u.test(cleaned)) return cleaned;
   const foreign = foreignMaterialSynonym(cleaned);
   if (foreign) return foreign;
   const match = cleaned.match(
-    /\b(techpolymer|feraloy iron alloy|iron alloy|spheroidal cast iron|malleable cast iron|cast iron|stainless steel|carbon steel|mild steel|galvannealed steel|galvanized steel|steel|aluminum|aluminium|die-cast zinc|zinc|nickel[-\s]?plated brass|brass|nickel[-\s]?plated copper|copper braid|copper|fluoropolymer|polyolefin|polycarbonate|polyamide|polypropylene|polyethylene|polyester|fiberglass|plastic|silicone|nylon|rubber|pvc|pur|epdm|abs)\b/i
+    /\b(techpolymer|feraloy iron alloy|iron alloy|spheroidal cast iron|malleable cast iron|cast iron|stainless steel|carbon steel|mild steel|galvannealed steel|galvanized steel|sheet steel|steel|aluminum|aluminium|die-cast zinc|zinc|nickel[-\s]?plated brass|brass|nickel[-\s]?plated copper|copper braid|copper|fluoropolymer|polyolefin|polycarbonate|polyamide|polyurethane|polypropylene|polyethylene|polyester|fiberglass|plastic|silicone|nylon|rubber|pvc|pur|epdm|abs|ceramic|glass)\b/i
   );
   return match ? cleanText(match[1]).replace(/^aluminium$/i, "aluminum") : undefined;
+}
+
+function compositeMaterialValue(cleaned: string): string | undefined {
+  const normalized = cleaned.replace(/\bglass\s*fibre\b/gi, "glass fiber");
+  const gfPolymer = normalized.match(
+    /\b(?:glass[-\s]?fiber|fiberglass)\s*(?:reinforced|filled)?\s+(polyamide|polycarbonate|polyester|polypropylene|polyethylene|polyurethane|plastic|PBT|PA|PC|PP|PE)(?:\s*\d{1,2}(?:[.,]\d)?)?(?:\s*GF\s*\d{1,2})?\b/i
+  );
+  if (gfPolymer) return `glass-fiber reinforced ${canonicalPolymerName(gfPolymer[1])}`;
+
+  const polymerGf = normalized.match(
+    /\b(PA|PC|PBT|PET|PP|PE|ABS|ASA|POM|PPS|PEEK|PEI|polyamide|polycarbonate|polyester|polypropylene|polyethylene|plastic)\s*(?:\d{1,2}(?:[.,]\d)?)?\s*GF\s*(\d{1,2})\b/i
+  );
+  if (polymerGf) return `${canonicalPolymerName(polymerGf[1])} GF${polymerGf[2]}`;
+
+  if (/\bdie[-\s]?cast\s+alumin(?:um|ium)\b|\balumin(?:um|ium)\s+die[-\s]?cast\b/i.test(cleaned)) return "die-cast aluminum";
+  if (/\bpainted\s+galvanized\s+steel\b/i.test(cleaned)) return "painted galvanized steel";
+  if (/\bpowder[-\s]?coated\s+(?:sheet\s+)?steel\b/i.test(cleaned)) return "powder-coated steel";
+
+  return undefined;
+}
+
+function canonicalPolymerName(value: string): string {
+  const compact = value.toUpperCase().replace(/\s+/g, "");
+  if (compact === "PA") return "polyamide";
+  if (compact === "PC") return "polycarbonate";
+  if (compact === "PBT" || compact === "PET") return "polyester";
+  if (compact === "PP") return "polypropylene";
+  if (compact === "PE") return "polyethylene";
+  return cleanText(value).toLowerCase();
 }
 
 // Non-English material names (German first, light Italian/French) mapped to the canonical

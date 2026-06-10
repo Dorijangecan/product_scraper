@@ -231,6 +231,16 @@ describe("property ontology — general multilingual understanding", () => {
     expect(matchProperty("Max operating pressure")?.key).toBe("pressure");
   });
 
+  it("understands pneumatic and pump flow-rate values as structured quantities", () => {
+    const nominalFlow = understand("Standard nominal flow rate", "500 l/min");
+    expect(nominalFlow.property?.key).toBe("flowRate");
+    expect(nominalFlow.quantities[0]).toMatchObject({ kind: "flowRate", unit: "l/min", value: 500 });
+
+    const pumpFlow = understand("Volumetric flow", "12 m3/h");
+    expect(pumpFlow.property?.key).toBe("flowRate");
+    expect(pumpFlow.quantities[0]).toMatchObject({ kind: "flowRate", unit: "m3/h", value: 12 });
+  });
+
   it("understands process-instrument / measuring-sensor labels (E+H, VEGA, WIKA, Keyence, Omron, SICK)", () => {
     expect(matchProperty("Accuracy")?.key).toBe("accuracy");
     expect(matchProperty("Measured error")?.key).toBe("accuracy");

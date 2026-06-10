@@ -1,6 +1,8 @@
 import type { ManufacturerConfig, RunItemRecord } from "../../shared/types.js";
 import { classifyDeviceType } from "../scrapers/device-type.js";
 import { deviceSheetsFor } from "./device-sheet-map.js";
+import { soleEclassDefaultForDeviceType, type DeviceTypeEclassDefault } from "./device-type-profiles.js";
+import { pdtExceptionEclassDefault } from "./pdt-exceptions.js";
 import { maxUnitNumber, splitTemperatureRange } from "./unit-cleanup.js";
 
 export interface PdtRepair {
@@ -287,8 +289,8 @@ function heuristicRepair(item: RunItemRecord, manufacturer: ManufacturerConfig):
   const result = item.result;
   return sanitizeRepair({
     catalogNumber: item.catalogNumber,
-    eclassCode: eclassCode(item),
-    eclassSystemVersion: manufacturer.id === "abb" || result?.manufacturerId === "abb" ? "14" : undefined,
+    eclassCode: eclassCode(item, manufacturer),
+    eclassSystemVersion: eclassSystemVersion(item, manufacturer),
     controlVoltage: controlVoltageRange(item),
     voltageMax: voltageMaxValue(item),
     ratedCurrent: firstAmpereValue(attr(item, /\brated operational current AC-1\b/i)),
@@ -636,8 +638,27 @@ function sourceRank(sourceType: string | undefined): number {
   return 0;
 }
 
-function eclassCode(item: RunItemRecord): string | undefined {
-  return cleanCode(attr(item, /\beclass\b/i));
+function eclassCode(item: RunItemRecord, manufacturer?: ManufacturerConfig): string | undefined {
+  const defaultEclass = preferredEclassDefault(item, manufacturer);
+  return defaultEclass?.code ?? cleanCode(attr(item, /\beclass\b/i)) ?? profileEclassDefault(item)?.code;
+}
+
+function eclassSystemVersion(item: RunItemRecord, manufacturer: ManufacturerConfig): string | undefined {
+  const defaultEclass = preferredEclassDefault(item, manufacturer);
+  if (defaultEclass) return defaultEclass.system;
+  if (manufacturer.id === "abb" || item.result?.manufacturerId === "abb") return "14";
+  return profileEclassDefault(item)?.system;
+}
+
+function profileEclassDefault(item: RunItemRecord): DeviceTypeEclassDefault | undefined {
+  return soleEclassDefaultForDeviceType(classifyDeviceType(item.result).type);
+}
+
+function preferredEclassDefault(item: RunItemRecord, manufacturer?: ManufacturerConfig): DeviceTypeEclassDefault | undefined {
+  return pdtExceptionEclassDefault({
+    manufacturerId: item.result?.manufacturerId ?? manufacturer?.id,
+    catalogNumber: item.catalogNumber
+  });
 }
 
 function controlVoltageRange(item: RunItemRecord): string | undefined {
@@ -763,6 +784,7 @@ function acceptsEclassCode(item: RunItemRecord, value: string | undefined): bool
 
 function acceptsEclassSystemVersion(item: RunItemRecord, manufacturer: ManufacturerConfig, value: string | undefined): boolean {
   if (!value) return false;
+  if (preferredEclassDefault(item, manufacturer)?.system === value) return true;
   if ((manufacturer.id === "abb" || item.result?.manufacturerId === "abb") && value === "14" && eclassCode(item)) return true;
   const evidence = attr(item, /\beclass\b/i);
   return Boolean(evidence && new RegExp(`\\b${escapeRegExp(value)}\\b`).test(evidence));

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { coalesceImageDocuments, documentDownloadProfile, imageFileName, shouldDownloadDocumentsForRun } from "../src/server/run-manager.js";
+import { getManufacturerConfig } from "../src/server/config/manufacturers.js";
 import type { DocumentRecord, ProductResult } from "../src/shared/types.js";
 
 describe("run manager document downloads", () => {
@@ -22,6 +23,41 @@ describe("run manager document downloads", () => {
     expect(result.some((doc) => doc.type === "other")).toBe(true);
   });
 
+  it("promotes higher quality candidate URLs before downloading an image", () => {
+    const documents: DocumentRecord[] = [
+      {
+        type: "image",
+        label: "Product image",
+        url: "https://assets.example.test/ABC-123_thumb_100x100.jpg",
+        candidateUrls: [
+          "https://assets.example.test/ABC-123_1000x1000.jpg",
+          "https://assets.example.test/ABC-123_400x400.jpg"
+        ]
+      }
+    ];
+
+    const result = coalesceImageDocuments(documents);
+
+    expect(result.filter((doc) => doc.type === "image")).toHaveLength(1);
+    expect(result[0].url).toBe("https://assets.example.test/ABC-123_1000x1000.jpg");
+    expect(result[0].candidateUrls).toEqual([
+      "https://assets.example.test/ABC-123_400x400.jpg",
+      "https://assets.example.test/ABC-123_thumb_100x100.jpg"
+    ]);
+  });
+
+  it("keeps schematic and drawing image candidates behind real product photos", () => {
+    const documents: DocumentRecord[] = [
+      image("Wiring diagram", "https://assets.example.test/ABC-123-wiring-diagram_1000x1000.png"),
+      image("Product image", "https://assets.example.test/ABC-123-product_400x400.png"),
+      image("Dimension drawing", "https://assets.example.test/ABC-123-dimension-drawing_1000x1000.png")
+    ];
+
+    const result = coalesceImageDocuments(documents);
+
+    expect(result[0].url).toBe("https://assets.example.test/ABC-123-product_400x400.png");
+  });
+
   it("keeps Balluff datasheets in the download/enrichment path after quality passes", () => {
     const result = {
       manufacturerId: "balluff",
@@ -38,7 +74,10 @@ describe("run manager document downloads", () => {
       qualityGate: { passed: true, identityConfirmed: true, score: 100, missing: [], reason: "Complete", attempts: [] }
     } as ProductResult;
 
-    expect(documentDownloadProfile({ id: "balluff" }, result)).toBe("quality");
+    const balluff = getManufacturerConfig("balluff");
+    expect(balluff?.scrapeRecipe?.fallbackPolicy?.documentDownloadProfile).toBe("quality");
+    expect(documentDownloadProfile(balluff!, result)).toBe("quality");
+    expect(documentDownloadProfile({ id: "balluff" }, result)).toBe("full");
   });
 
   it("keeps quality-profile documents for Excel enrichment even when document saving is off", () => {

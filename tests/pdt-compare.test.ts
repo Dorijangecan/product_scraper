@@ -7,6 +7,7 @@ describe("PDT value comparison (eval precision)", () => {
     expect(valuesEquivalent("0.10 kg", "0.1 kg")).toBe(true);
     expect(valuesEquivalent("24-60", "24...60")).toBe(true);
     expect(valuesEquivalent("AC/DC", "ac/dc")).toBe(true);
+    expect(valuesEquivalent("2026-07-30T00:00:00.000Z", "30.7")).toBe(true);
   });
 
   it("flags genuinely different values", () => {

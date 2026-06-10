@@ -17,5 +17,15 @@
     "riskTags": ["phoenix-contact", "pcb-header", "pcb-connection-system-sheet-coverage"],
     "expectedOfficialUrlPatterns": ["phoenixcontact\\.com/(?:.*?/)?(?:product|products)/.*1757242"],
     "expectedNormalizedFields": ["current", "voltage", "weight"]
+  },
+  {
+    "manufacturerId": "phoenix",
+    "catalogNumber": "UC-TM-5",
+    "caseType": "mechanical",
+    "expectedDeviceType": "Wire Marker",
+    "riskTags": ["customer-document-supported", "wire-marker", "wire-id-information-sheet-coverage"],
+    "expectedOfficialUrlPatterns": ["phoenixcontact\\.com", "file:.*/rare-device-sheets\\.csv"],
+    "customerDocuments": ["customer-documents/rare-device-sheets.csv"],
+    "expectedNormalizedFields": ["dimensions", "weight", "material", "certificates"]
   }
 ]

@@ -6,6 +6,7 @@ import { classifyDeviceType } from "../scrapers/device-type.js";
 import { loadTemplateWorkbook } from "./template.js";
 import { cellText, clearBody, describeSheet, type PdtColumn, type SheetDescriptor } from "./sheet-descriptor.js";
 import { CONSTANT_SHEETS, targetSheets } from "./device-sheet-map.js";
+import { criticalFactsForDeviceType, isSignalDeviceType } from "./device-type-profiles.js";
 import { resolveProperty, type ResolveContext } from "./eclass-resolvers.js";
 import { writeDocumentsSheet } from "./documents-sheet.js";
 import { encodeEnumLabel, isEnumColumn } from "./enum-encode.js";
@@ -19,6 +20,12 @@ import { additionalPdtSheetsRule, pdtColumnAllowRule, pdtSheetOverrideRule } fro
 const DOCUMENTS_SHEET = "Additional Documents";
 /** Always kept even when empty (the manual PDT keeps this tab as a placeholder). */
 const ALWAYS_KEPT_SHEETS = ["Connection Point Information", "Product Accessory"];
+const MISSING_REQUIRED_FILL: ExcelJS.Fill = {
+  type: "pattern",
+  pattern: "solid",
+  fgColor: { argb: "FFFFC7CE" }
+};
+const MISSING_REQUIRED_FONT: Partial<ExcelJS.Font> = { color: { argb: "FF9C0006" } };
 
 export interface PdtExportResult {
   outputPath: string;
@@ -188,6 +195,7 @@ export async function exportRunPdt(input: {
 
   const connectionPointsWs = workbook.getWorksheet(resolveSheetName("Connection Point Information") ?? "Connection Point Information");
   if (connectionPointsWs) {
+    clearConnectionPointTemplateBody(connectionPointsWs);
     filledSheets[connectionPointsWs.name] = 0;
   }
 
@@ -345,7 +353,7 @@ function writeUniformSheet(
       repair: baseCtx.repair
     });
     for (const rowVariant of uniformRowVariantsFor(ws.name, item, baseCtx)) {
-      const ctx: ResolveContext = { ...baseCtx, rowVariant };
+      const ctx: ResolveContext = { ...baseCtx, rowVariant, pdtFacts: facts };
       let wroteCell = false;
       const writtenRequiredColumns = new Set<number>();
       for (const column of descriptor.columns) {
@@ -421,21 +429,22 @@ function writeUniformSheet(
           ws.getCell(row, column.col).value = cellValueFor(column, value);
         }
         cellAuditRecords.push(auditRecord(ws.name, item, row, column, "written", resolved.provenance.reason, value, resolved.provenance));
-        if (isTrackedRequiredPdtColumn(ws.name, column)) writtenRequiredColumns.add(column.col);
+        if (isTrackedRequiredPdtColumn(ws.name, column, ctx)) writtenRequiredColumns.add(column.col);
         wroteCell = true;
       }
       for (const column of descriptor.columns) {
         const columnRule = columnAllowRuleForItem(ws.name, item, manufacturer, baseCtx.deviceType, column);
         if (columnRule && !columnRule.value) continue;
-        if (!isTrackedRequiredPdtColumn(ws.name, column)) continue;
+        if (!isTrackedRequiredPdtColumn(ws.name, column, ctx)) continue;
         if (writtenRequiredColumns.has(column.col)) continue;
+        markMissingRequiredCell(ws.getCell(row, column.col));
         requiredFieldIssues.push({
           sheetName: ws.name,
           catalogNumber: item.catalogNumber,
           code: column.code,
           propName: column.propName,
           description: column.description,
-          priority: column.priority,
+          priority: column.priority.trim() || "profile-critical",
           reason: "required-missing"
         });
       }
@@ -475,9 +484,8 @@ function columnAllowRuleForItem(
   return pdtColumnAllowRule({ sheetName, item, manufacturer, deviceType, column });
 }
 
-function isTrackedRequiredPdtColumn(sheetName: string, column: PdtColumn): boolean {
+function isTrackedRequiredPdtColumn(sheetName: string, column: PdtColumn, ctx: ResolveContext): boolean {
   const priority = column.priority.trim();
-  if (!/\b(?:must|should)\b/i.test(priority)) return false;
   const sheet = canonicalSheetKey(sheetName);
   const key = pdtColumnKey(column);
 
@@ -572,7 +580,59 @@ function isTrackedRequiredPdtColumn(sheetName: string, column: PdtColumn): boole
     ])
   };
 
-  return requiredBySheet[sheet]?.has(key) ?? false;
+  const templateTracked = /\b(?:must|should)\b/i.test(priority) && (requiredBySheet[sheet]?.has(key) ?? false);
+  return templateTracked || isProfileCriticalPdtColumn(sheetName, column, ctx);
+}
+
+function isProfileCriticalPdtColumn(sheetName: string, column: PdtColumn, ctx: ResolveContext): boolean {
+  const requiredFacts = criticalFactsForDeviceType(ctx.deviceType, sheetName);
+  if (requiredFacts.length === 0) return false;
+  const columnFacts = semanticFactKeysForColumn(column, ctx);
+  return requiredFacts.some((requiredFact) => columnFacts.includes(requiredFact));
+}
+
+function semanticFactKeysForColumn(column: PdtColumn, ctx: ResolveContext): string[] {
+  const keys = propertyKeysForColumn(column);
+  const facts = new Set<string>(factKeysForColumn(column, ctx));
+  if (isWeightColumn(column)) facts.add("weight");
+  if (keys.includes("CNS_ELECTRO_MATERIAL") || keys.includes("BAB664") || keys.includes("BAF634") || (!isEnumColumn(column.description) && /material/i.test(column.description))) {
+    facts.add("material");
+  }
+  if (keys.includes("AAN521") || keys.includes("BAC295") || keys.includes("AAG331") || keys.includes("AAO620") || (!isEnumColumn(column.description) && /colou?r/i.test(column.description))) {
+    facts.add("color");
+    facts.add("pdtLampColor");
+  }
+  if (keys.includes("BAH005") || keys.includes("AAF583") || keys.includes("AAB485") || keys.includes("CNS_RATED_VOLTAGE") || /\brated voltage|nominal voltage/i.test(column.description)) {
+    facts.add("ratedVoltage");
+    facts.add("pdtRatedVoltage");
+  }
+  for (const fact of specificVoltageFactKeysForColumn(column)) facts.add(fact);
+  if (keys.includes("AAF726") || keys.includes("AAB821") || keys.includes("AAC824") || keys.includes("CNS_RATED_CURRENT") || /\brated current|nominal current/i.test(column.description)) {
+    facts.add("ratedCurrent");
+    facts.add("pdtRatedCurrent");
+  }
+  if (isLeakageCurrentColumn(column)) facts.add("leakageCurrent");
+  if (isBreakingCapacityColumn(column)) facts.add("breakingCapacity");
+  if (isFlowRateColumn(column)) facts.add("flowRate");
+  if (isPressureColumn(column)) facts.add("pressure");
+  for (const fact of frequencyFactKeysForColumn(column)) facts.add(fact);
+  for (const fact of temperatureFactKeysForColumn(column)) facts.add(fact);
+  if (isTorqueColumn(column)) facts.add("torque");
+  for (const fact of specificLengthFactKeysForColumn(column)) facts.add(fact);
+  for (const fact of powerFactKeysForColumn(column)) facts.add(fact);
+  if (keys.includes("BAD915") || keys.includes("BAC065") || /\bvoltage type\b|\bcurrent type\b/i.test(column.description)) {
+    facts.add("voltageType");
+    facts.add("pdtVoltageTypeText");
+  }
+  if (keys.includes("AAC895") || /\bdiameter\b/i.test(column.description)) facts.add("pdtSignalDiameter");
+  if (keys.includes("BAB577") || keys.includes("BAF016") || keys.includes("BAA020") || /\b(depth|width|height|dimension)\b/i.test(column.description)) facts.add("dimensions");
+  if (keys.includes("BAG975") || /\bdegree of protection\b|\bprotection type\b|\bIP\b/i.test(column.description)) facts.add("protection");
+  return [...facts];
+}
+
+function markMissingRequiredCell(cell: ExcelJS.Cell): void {
+  cell.fill = MISSING_REQUIRED_FILL;
+  cell.font = { ...cell.font, ...MISSING_REQUIRED_FONT };
 }
 
 function pdtColumnKey(column: PdtColumn): string {
@@ -582,11 +642,11 @@ function pdtColumnKey(column: PdtColumn): string {
 function uniformRowVariantsFor(_sheetName: string, _item: RunItemRecord, _ctx: ResolveContext): Array<Record<string, string> | undefined> {
   return [undefined];
 }
-function eatonModelCode(result: RunItemRecord["result"]): string | undefined {
-  return cleanString(
-    result?.attributes.find((attribute) => /\b(model code|modellcode)\b/i.test(`${attribute.group ?? ""} ${attribute.name}`) && attribute.value.trim())
-      ?.value
-  );
+
+function clearConnectionPointTemplateBody(ws: ExcelJS.Worksheet): void {
+  const descriptor = describeSheet(ws);
+  if (!descriptor) return;
+  clearBody(ws, descriptor.firstBodyRow);
 }
 
 function cellValueFor(column: { code: string; propName: string; unit?: string }, value: string): ExcelJS.CellValue {
@@ -645,6 +705,8 @@ function isTextColumn(column: { code: string; propName: string }): boolean {
 
 function shouldEncodeEnum(sheetName: string, column: { code: string; propName: string; description: string }, value: string): boolean {
   const keys = [column.code, column.propName].map((key) => key.trim().toUpperCase());
+  if (sheetName === "PLC" && (keys.includes("BAB968") || keys.includes("BAC065")) && /^\d+$/.test(value.trim())) return false;
+  if (sheetName === "PLC" && keys.includes("BAC065") && /^AC\s*\/\s*DC$/i.test(value.trim())) return false;
   if (sheetName === "contactor a. fuses" && keys.includes("BAD915")) return false;
   if (sheetName === "contactor a. fuses" && /\bvoltage type\b|\bcurrent type\b/i.test(column.description) && /^AC\s*\/\s*DC$/i.test(value.trim())) {
     return false;
@@ -728,6 +790,224 @@ function isWeightColumn(column: PdtColumn): boolean {
   return keys.includes("CNS_MASSEXACT") || keys.includes("AAF040") || keys.includes("BAD875");
 }
 
+function isFlowRateColumn(column: PdtColumn): boolean {
+  const keys = propertyKeysForColumn(column);
+  if (keys.some((key) => ["AAC199", "BAC393", "AAB217", "AAB547"].includes(key))) return true;
+  return /\b(?:flow rate|volume flow|air flow|transport volume|flow response|air throughput)\b/i.test(column.description);
+}
+
+function isPressureColumn(column: PdtColumn): boolean {
+  const keys = propertyKeysForColumn(column);
+  if (
+    keys.some((key) =>
+      [
+        "AAA900",
+        "AAZ943",
+        "AAZ944",
+        "AAZ954",
+        "AAZ803",
+        "AAZ809",
+        "AAZ810",
+        "AAZ814",
+        "AAZ817",
+        "AAZ819",
+        "AAZ821",
+        "AAZ841",
+        "AAZ955",
+        "ABC460",
+        "ABC461",
+        "ABC470",
+        "AAB523",
+        "AAR854",
+        "AAZ270"
+      ].includes(key)
+    )
+  ) {
+    return true;
+  }
+  return /\b(?:operating pressure|working pressure|rated pressure|nominal pressure|proof pressure|burst pressure|pilot pressure|inlet pressure|outlet pressure|set pressure|overload pressure|release pressure|locking pressure|unlocking pressure)\b/i.test(column.description);
+}
+
+function frequencyFactKeysForColumn(column: PdtColumn): string[] {
+  const keys = propertyKeysForColumn(column);
+  const description = column.description;
+  if (/\bfrequency measurement\b|\bmeasurement possible\b/i.test(description)) return [];
+  if (
+    keys.some((key) => ["BAD900", "AAN328"].includes(key)) ||
+    /\b(?:switching|switch|pwm|response|sampling)\s+frequency\b/i.test(description)
+  ) {
+    return ["switchingFrequency", "frequency"];
+  }
+  if (
+    keys.some((key) => ["BAC403", "ABD489", "BAC678", "BAC741", "BAE125", "BAE130"].includes(key)) ||
+    /\b(?:nominal|rated|mains|line|power|supply|operating|output)?\s*frequency\b|\b(?:mhz|khz|hz)\b/i.test(description)
+  ) {
+    return ["frequency"];
+  }
+  return [];
+}
+
+function temperatureFactKeysForColumn(column: PdtColumn): string[] {
+  const keys = propertyKeysForColumn(column);
+  const description = column.description;
+  const text = `${column.code} ${column.propName} ${description}`;
+  const storage = /\bstorage\b/i.test(text) || keys.some((key) => ["AAQ341", "AAQ342"].includes(key));
+  const min =
+    keys.some((key) => ["AAC820", "BAA038", "AAZ952", "AAW301", "AAZ360", "AAC022", "AAF526", "AAC021", "AAQ342"].includes(key)) ||
+    /\b(?:min(?:imum)?|lower limit)\b/i.test(description);
+  const max =
+    keys.some((key) => ["AAC821", "BAA039", "AAW302", "AAZ361", "AAB906", "AAF525", "AAB905", "AAQ341"].includes(key)) ||
+    /\b(?:max(?:imum)?|upper limit)\b/i.test(description);
+  const temperatureColumn =
+    /\b(?:ambient|operating|storage|cable outside|permissible cable|temperature|temp)\b/i.test(text) ||
+    keys.some((key) =>
+      [
+        "AAC820",
+        "AAC821",
+        "BAA038",
+        "BAA039",
+        "AAZ952",
+        "AAW301",
+        "AAW302",
+        "AAZ360",
+        "AAZ361",
+        "AAB906",
+        "AAC022",
+        "AAF526",
+        "AAF525",
+        "AAB905",
+        "AAC021",
+        "AAQ341",
+        "AAQ342"
+      ].includes(key)
+    );
+  if (!temperatureColumn) return [];
+  const prefix = storage ? "storageTemperature" : "operatingTemperature";
+  if (min && !max) return [`${prefix}Min`, prefix];
+  if (max && !min) return [`${prefix}Max`, prefix];
+  if (min && max) return [`${prefix}Min`, `${prefix}Max`, prefix];
+  return [];
+}
+
+function specificLengthFactKeysForColumn(column: PdtColumn): string[] {
+  const keys = propertyKeysForColumn(column);
+  const description = column.description;
+  const text = `${column.code} ${column.propName} ${description}`;
+  if (
+    keys.some((key) => ["AAG011", "AAB902", "AAC019", "AAG365", "BAE496"].includes(key)) ||
+    /\b(?:wall|material|sheet|plate|conductor bar|busbar)\s+thickness\b|\bthickness\s+of\s+(?:material|busbar|sheet|plate|wall)\b/i.test(text)
+  ) {
+    return ["wallThickness"];
+  }
+  if (
+    keys.some((key) => ["AAB497", "AAB498", "AAB884", "AAM384", "BAD815"].includes(key)) ||
+    /\b(?:sensing|switching|scanning|detection|operating)\s+(?:distance|range)\b/i.test(text)
+  ) {
+    return ["sensingDistance"];
+  }
+  if (keys.includes("ABD480") || /\b(?:operating|installation|max(?:imum)?)\s+altitude\b|\belevation above mean sea level\b/i.test(text)) {
+    return ["altitude"];
+  }
+  if (keys.includes("AAB202") || /\b(?:stripping|strip|insulation stripped)\s+length\b/i.test(text)) {
+    return ["strippingLength"];
+  }
+  if (
+    keys.some((key) => ["AAZ930", "ABC413", "AAZ931", "AAZ945", "AAZ946"].includes(key)) ||
+    (/\bstroke\b/i.test(text) && !/\bstroke reduction\b/i.test(text))
+  ) {
+    return ["stroke"];
+  }
+  if (keys.includes("AAZ420") || /\b(?:bore(?:\s+(?:size|diameter))?|piston\s+diameter)\b/i.test(text)) {
+    return ["bore"];
+  }
+  if (/\b(?:orifice(?:\s+(?:size|diameter))?|nominal\s+diameter\s*(?:DN)?|DN\s?\d{1,4})\b/i.test(text)) {
+    return ["orificeSize"];
+  }
+  if (/\b(?:blind\s+(?:zone|spot)|dead\s+(?:zone|band))\b/i.test(text)) {
+    return ["blindZone"];
+  }
+  return [];
+}
+
+function isTorqueColumn(column: PdtColumn): boolean {
+  const keys = propertyKeysForColumn(column);
+  if (keys.some((key) => ["ABD482", "ABD484", "AAZ807", "AAZ808", "AAZ816", "AAZ917", "AAZ947", "AAZ948", "AAZ949", "AAZ991", "ABC462", "ABF441", "ABF442", "ABF445", "ABF446", "ABF447"].includes(key))) {
+    return true;
+  }
+  return /\b(?:tightening|drive|assembly|effective|through drive|torsion)?\s*torque\b|\bNm\b/i.test(column.description);
+}
+
+function isBreakingCapacityColumn(column: PdtColumn): boolean {
+  const keys = propertyKeysForColumn(column);
+  if (keys.some((key) => ["AAB447", "AAB492", "AAS568", "AAS569", "AAS570", "AAF862"].includes(key))) return true;
+  return /\b(?:breaking capacity|interrupt(?:ing)? rating|interrupt(?:ing)? capacity|short[- ]circuit (?:breaking )?(?:capacity|current|rating)|withstand current|SCCR|Icu|Ics|Icw|Icn|Iq|AIC|kAIC)\b/i.test(
+    column.description
+  );
+}
+
+function specificVoltageFactKeysForColumn(column: PdtColumn): string[] {
+  const keys = propertyKeysForColumn(column);
+  const description = column.description;
+  if (keys.includes("AAB491") || /\b(?:rated\s+)?(?:insulation|isolation)\s+voltage\b|\bUi\b/i.test(description)) return ["insulationVoltage"];
+  if (
+    keys.some((key) => ["AAB814", "AAB499"].includes(key)) ||
+    /\b(?:rated\s+)?(?:impulse\s+(?:withstand\s+)?voltage|surge voltage)\b|\bUimp\b/i.test(description)
+  ) {
+    return ["impulseVoltage"];
+  }
+  if (/\b(?:voltage drop|residual voltage)\b/i.test(description)) return ["voltageDrop"];
+  return [];
+}
+
+function isLeakageCurrentColumn(column: PdtColumn): boolean {
+  const keys = propertyKeysForColumn(column);
+  if (keys.includes("ABD348")) return true;
+  const description = column.description;
+  if (/\b(?:rated residual|differential residual|residual operating current|RCD)\b/i.test(description)) return false;
+  return /\b(?:leakage current|off[- ]state current|residual current)\b/i.test(description);
+}
+
+function powerFactKeysForColumn(column: PdtColumn): string[] {
+  const keys = propertyKeysForColumn(column);
+  const description = column.description;
+  if (keys.some((key) => ["AAB456", "AAB455", "AAS566", "AAS567"].includes(key))) return [];
+  if (keys.some((key) => ["AAS575", "AAS577", "ABF095", "BAA303"].includes(key)) || /\b(?:power loss|power dissipation|heat dissipation|watt loss)\b/i.test(description)) {
+    return ["powerLoss", "powerConsumption", "power"];
+  }
+  if (keys.some((key) => ["AAF954", "AAJ701", "AAZ820", "ABC477"].includes(key)) || /\b(?:power consumption|electricity consumption|idle power|standby power)\b/i.test(description)) {
+    return ["powerConsumption", "powerLoss", "power"];
+  }
+  if (
+    keys.some((key) => ["AAC066", "AAW364", "BAF766", "BAF767", "BAF768", "BAF769"].includes(key)) ||
+    /\b(?:cooling capacity|cooling output|cooling power|refrigeration capacity|refrigeration output)\b/i.test(description)
+  ) {
+    return ["coolingOutput", "power", "powerConsumption", "powerLoss"];
+  }
+  if (/\b(?:heating capacity|heating output|heating power|heater power|heater output|heater wattage|heater rating)\b/i.test(description)) {
+    return ["heatingCapacity", "power", "powerConsumption", "powerLoss"];
+  }
+  if (
+    keys.some((key) =>
+      [
+        "AAC967",
+        "AAZ831",
+        "BAC545",
+        "AAC970",
+        "AAW362",
+        "BAF072",
+        "BAH385",
+        "BAC687",
+        "BAE077",
+        "BAE076"
+      ].includes(key)
+    ) ||
+    /\b(?:rated power|rated performance|nominal power|mechanical power|output power|input power|cooling capacity|heating capacity|wattage)\b/i.test(description)
+  ) {
+    return ["power", "powerConsumption", "powerLoss"];
+  }
+  return [];
+}
+
 /**
  * Map a column to an upstream fact key whose provenance the column's resolved value should
  * inherit. Used when the resolver derives a transformed value that won't substring-match the
@@ -738,12 +1018,24 @@ function derivedFactKeyForColumn(column: PdtColumn): string | undefined {
   const keys = propertyKeysForColumn(column);
   if (keys.includes("BAC295") || keys.includes("AAN521")) return "color";
   if (keys.includes("CNS_ELECTRO_MATERIAL") || keys.includes("BAB664") || keys.includes("BAF634")) return "material";
-  return undefined;
+  if (isFlowRateColumn(column)) return "flowRate";
+  if (isPressureColumn(column)) return "pressure";
+  const voltageFact = specificVoltageFactKeysForColumn(column)[0];
+  if (voltageFact) return voltageFact;
+  const frequencyFact = frequencyFactKeysForColumn(column)[0];
+  if (frequencyFact) return frequencyFact;
+  const temperatureFact = temperatureFactKeysForColumn(column)[0];
+  if (temperatureFact) return temperatureFact;
+  if (isTorqueColumn(column)) return "torque";
+  if (isBreakingCapacityColumn(column)) return "breakingCapacity";
+  if (isLeakageCurrentColumn(column)) return "leakageCurrent";
+  const lengthFact = specificLengthFactKeysForColumn(column)[0];
+  if (lengthFact) return lengthFact;
+  return powerFactKeysForColumn(column)[0];
 }
 
 function hasLocalizedGermanSource(ctx: ResolveContext, column: PdtColumn): boolean {
   const de = ctx.result?.localizedDescriptions?.de;
-  if (!de) return false;
   const key = `${column.code} ${column.propName}`.toUpperCase();
   const compare = (deValue: string | undefined, enValue: string | undefined): boolean => {
     const trimmed = deValue?.trim();
@@ -755,8 +1047,14 @@ function hasLocalizedGermanSource(ctx: ResolveContext, column: PdtColumn): boole
     if (enTrimmed && trimmed.toLowerCase().replace(/[\s._-]+/g, "") === enTrimmed.toLowerCase().replace(/[\s._-]+/g, "")) return false;
     return true;
   };
-  if (/SHORT/.test(key)) return compare(de.title, ctx.result?.title);
-  return compare(de.description, ctx.result?.description);
+  if (/SHORT/.test(key)) {
+    const fact = bestFact(ctx.pdtFacts, "localizedShortDescriptionDe");
+    if (fact?.sourceKind === "repair") return Boolean(fact.value?.trim());
+    return compare(fact?.value ?? de?.title, ctx.result?.title);
+  }
+  const fact = bestFact(ctx.pdtFacts, "localizedLongDescriptionDe");
+  if (fact?.sourceKind === "repair") return Boolean(fact.value?.trim());
+  return compare(fact?.value ?? de?.description, ctx.result?.description);
 }
 
 function findEnDescriptionTwin(
@@ -764,13 +1062,27 @@ function findEnDescriptionTwin(
   descriptor: SheetDescriptor,
   column: PdtColumn
 ): PdtColumn | undefined {
-  const key = pdtColumnKey(column);
+  const type = descriptionColumnType(column);
   return descriptor.columns.find(
     (candidate) =>
       candidate.col !== column.col &&
-      pdtColumnKey(candidate) === key &&
+      descriptionColumnType(candidate) === type &&
+      descriptionColumnsMatch(column, candidate) &&
       columnLanguage(ws, candidate.col, descriptor.firstBodyRow) === "en"
   );
+}
+
+function descriptionColumnsMatch(left: PdtColumn, right: PdtColumn): boolean {
+  const leftKeys = descriptionPropertyKeys(left);
+  const rightKeys = descriptionPropertyKeys(right);
+  return leftKeys.some((key) => rightKeys.includes(key));
+}
+
+function descriptionPropertyKeys(column: PdtColumn): string[] {
+  const type = descriptionColumnType(column);
+  return propertyKeysForColumn(column)
+    .map((key) => (key === "AAU734" ? "CNS_DESCRIPTION_LONG" : key))
+    .filter((key) => (type === "long" ? key === "CNS_DESCRIPTION_LONG" : key === "CNS_DESCRIPTION_SHORT"));
 }
 
 function resolveColumnFromFacts(column: PdtColumn, ctx: ResolveContext, facts: PdtFactIndex): PdtResolvedCell | undefined {
@@ -792,26 +1104,75 @@ function factKeysForColumn(column: PdtColumn, ctx: ResolveContext): string[] {
   if (keys.includes("AAO677")) add("manufacturerName");
   if (keys.includes("MANUFACTURER_URL") || keys.includes("ABA669")) add("manufacturerUrl");
   if (keys.includes("AAQ326") || keys.includes("AAY811")) add("productUrl");
+  if (keys.includes("CNSTYPECODE") || keys.includes("AAV774")) add("typeCode");
   if (keys.includes("AAO057")) add("deviceType");
   if (keys.includes("REFERENCE_FEATURE_GROUP_ID")) add("eclassCode");
   if (keys.includes("REFERENCE_FEATURE_SYSTEM_NAME")) add("eclassSystemVersion");
   const enumColumn = isEnumColumn(column.description);
   if (keys.includes("CNS_ELECTRO_MATERIAL") || keys.includes("BAB664") || keys.includes("BAF634") || (!enumColumn && /material/i.test(column.description))) add("material");
-  if (keys.includes("AAN521") || keys.includes("BAC295") || (!enumColumn && /colou?r/i.test(column.description))) add("color");
-  if (keys.includes("CERTIFICATION") || (!enumColumn && /certification|approval/i.test(column.description))) add("certificates");
+  if (keys.includes("AAN521") || keys.includes("BAC295") || keys.includes("AAG331") || keys.includes("AAO620") || (!enumColumn && /colou?r/i.test(column.description))) {
+    add("color");
+    add("pdtLampColor");
+  }
+  if (keys.includes("CERTIFICATION") || (!enumColumn && /certification|approval/i.test(column.description))) {
+    add("pdtCertificates");
+    add("certificates");
+  }
+  if (keys.includes("BAG975") || (!enumColumn && /\bdegree of protection\b|\bprotection type\b/i.test(column.description))) add("protection");
+  for (const fact of specificVoltageFactKeysForColumn(column)) add(fact);
+  if (isLeakageCurrentColumn(column)) add("leakageCurrent");
+  if (isBreakingCapacityColumn(column)) add("breakingCapacity");
+  if (isFlowRateColumn(column)) add("flowRate");
+  if (isPressureColumn(column)) add("pressure");
+  for (const fact of frequencyFactKeysForColumn(column)) add(fact);
+  for (const fact of temperatureFactKeysForColumn(column)) add(fact);
+  if (isTorqueColumn(column)) add("torque");
+  for (const fact of specificLengthFactKeysForColumn(column)) add(fact);
+  for (const fact of powerFactKeysForColumn(column)) add(fact);
   if (keys.includes("CNS_CTN") || keys.includes("AAD931")) add("customsTariff");
   if (keys.includes("AAO663") || keys.includes("CNS_EAN") || keys.includes("AAN743")) add("eanOrGtin");
-  if (keys.includes("CNSTYPECODE") || keys.includes("AAV774")) add("typeCode");
   if (keys.includes("AAU731")) add("productFamily");
   if (keys.includes("AAW338")) add("productDesignation");
   if (keys.includes("AAU734") || keys.includes("CNS_DESCRIPTION_LONG")) add(ctx.language === "de" ? "localizedLongDescriptionDe" : "longDescription");
   if (keys.includes("CNS_DESCRIPTION_SHORT")) add(ctx.language === "de" ? "localizedShortDescriptionDe" : "shortDescription");
+  if (isWeightColumn(column) && !ctx.result?.normalized.weight) add("weight");
+  if (keys.includes("AAF040")) add("pdtWeightKg");
+  if (keys.includes("BAA303")) add("pdtStaticPowerLoss");
+  if (keys.includes("BAB577")) add("pdtDepthMm");
+  if (keys.includes("BAF016")) add("pdtWidthMm");
+  if (keys.includes("BAA020")) add("pdtHeightMm");
+  if (keys.includes("AAC895")) add("pdtSignalDiameter");
+  if (keys.includes("BAH005") || keys.includes("AAF583") || keys.includes("AAB485") || keys.includes("CNS_RATED_VOLTAGE") || /\brated voltage|nominal voltage/i.test(column.description)) {
+    add("pdtRatedVoltage");
+  }
+  if (keys.includes("AAF726") || keys.includes("AAB821") || keys.includes("AAC824") || keys.includes("CNS_RATED_CURRENT") || /\brated current|nominal current/i.test(column.description)) {
+    add("pdtRatedCurrent");
+  }
+  if (keys.includes("AAI677") && isSignalDevice(ctx)) add("pdtSoundLevel");
+  if (keys.includes("BAD915") || keys.includes("BAC065") || /\bvoltage type\b|\bcurrent type\b/i.test(column.description)) {
+    add("voltageType");
+    add("pdtVoltageTypeText");
+  }
+  if (keys.includes("AAB909")) add("pdtSupplyVoltageDc");
+  if (keys.includes("AAS575")) add("pdtPowerLoss");
+  if (keys.includes("BAB968") || keys.includes("BAC065")) add("pdtVoltageTypeCode");
   // Weight columns must run through the dedicated weight resolvers (AAF040 / BAD875 / CNS_MASSEXACT)
   // so imperial sources like Saginaw's "26.00 lbs (11.79 kg)" emit kg-only / g-only values instead of
   // the dual-unit display string the normalizer publishes for the UI.
-  if (keys.includes("BAD915") || /\bvoltage type\b|\bcurrent type\b/i.test(column.description)) add("voltageType");
 
   return factKeys;
+}
+
+function isRockwell852LedIndicator(ctx: ResolveContext): boolean {
+  const manufacturerId = ctx.result?.manufacturerId ?? ctx.manufacturer.id;
+  if (manufacturerId !== "rockwell") return false;
+  const catalog = ctx.item.catalogNumber ?? "";
+  const text = `${catalog} ${ctx.result?.title ?? ""} ${ctx.result?.description ?? ""}`;
+  return /^\s*852[CD]-/i.test(catalog) || /\b(?:On-Machine\s+)?LED\s+Indicators?\b/i.test(text);
+}
+
+function isSignalDevice(ctx: ResolveContext): boolean {
+  return isSignalDeviceType(ctx.deviceType) || isRockwell852LedIndicator(ctx);
 }
 
 function inferCellProvenance(column: PdtColumn, value: string, ctx: ResolveContext, facts: PdtFactIndex): PdtCellProvenance {
@@ -890,11 +1251,20 @@ function productSpecMeasurementIssue(value: string, column: PdtColumn): string |
   if (/\bvoltage\b|\bvolt\b/.test(columnText) && !hasMeasuredValue(cleanValue, column.unit, /\b(?:m?v|kv|vac|vdc|v\s*(?:ac|dc)?)\b/i)) {
     return "voltage cell value does not contain a numeric voltage measurement";
   }
-  if (/\bcurrent\b|\bamp\b/.test(columnText) && !hasMeasuredValue(cleanValue, column.unit, /\b(?:u?a|m?a|ka|amps?|amperes?)\b/i)) {
+  if (/\bcurrent\b|\bamp\b/.test(columnText) && !/\b(?:current independent|non current dependent)\b/.test(columnText) && !hasMeasuredValue(cleanValue, column.unit, /\b(?:u?a|m?a|ka|amps?|amperes?)\b/i)) {
     return "current cell value does not contain a numeric current measurement";
   }
-  if (/\b(?:power|loss|watt|horsepower)\b/.test(columnText) && !hasMeasuredValue(cleanValue, column.unit, /\b(?:w|kw|mw|hp|horsepower)\b/i)) {
+  if (/\b(?:power|loss|watt|horsepower)\b/.test(columnText) && !/\bpower frequency\b/.test(columnText) && !hasMeasuredValue(cleanValue, column.unit, /\b(?:w|kw|mw|hp|horsepower)\b/i)) {
     return "power cell value does not contain a numeric power measurement";
+  }
+  if (/\bpressure\b|\bbar\b|\bpsi\b/.test(columnText) && !hasMeasuredValue(cleanValue, column.unit, /\b(?:mbar|kpa|mpa|pa|bar|psi)\b/i)) {
+    return "pressure cell value does not contain a numeric pressure measurement";
+  }
+  if (/\bfrequency\b|\bhz\b/.test(columnText) && !/\bfrequency measurement\b|\bmeasurement possible\b/.test(columnText) && !hasMeasuredValue(cleanValue, column.unit, /\b(?:mhz|khz|hz|hertz)\b/i)) {
+    return "frequency cell value does not contain a numeric frequency measurement";
+  }
+  if (/\btorque\b|\bnm\b/.test(columnText) && !hasMeasuredValue(cleanValue, column.unit, /\b(?:n\s*[·*]?\s*m|nm|newton\s*meters?)\b/i)) {
+    return "torque cell value does not contain a numeric torque measurement";
   }
   return undefined;
 }
@@ -926,7 +1296,7 @@ function productSpecColumn(sheetName: string, column: PdtColumn): boolean {
       "AAW338"
     ].includes(key);
   }
-  return /\b(voltage|current|power|loss|weight|mass|material|colour|color|protection|degree|temperature|dimension|width|height|depth|length|connection|standard|certificate|approval)\b/i.test(
+  return /\b(voltage|current|power|loss|pressure|frequency|hz|torque|nm|weight|mass|material|colour|color|protection|degree|temperature|dimension|width|height|depth|length|connection|standard|certificate|approval)\b/i.test(
     `${column.code} ${column.propName} ${column.description}`
   );
 }
@@ -944,6 +1314,8 @@ function generatedColumn(column: PdtColumn): boolean {
       "AAQ326",
       "AAY811",
       "AAO057",
+      "REFERENCE_FEATURE_GROUP_ID",
+      "REFERENCE_FEATURE_SYSTEM_NAME",
       "AAC314",
       "00001C001"
     ].includes(key)
@@ -972,10 +1344,14 @@ function semanticPdtLabelCompatible(column: PdtColumn, attr: AttributeRecord): b
     [/\bvoltage\b/, /\b(voltage|spannung|volt)\b/],
     [/\bcurrent\b/, /\b(current|amp|amperage|strom)\b/],
     [/\bpower\b|\bloss\b/, /\b(power|loss|consumption|horse power|horsepower|hp|watt)\b/],
+    [/\bfrequency\b|\bhz\b/, /\b(frequency|frequenz|hz|hertz)\b/],
+    [/\btorque\b|\bnm\b/, /\b(torque|drehmoment|moment|nm|newton)\b/],
+    [/\bpressure\b/, /\b(pressure|druck|pression|pressione|presi[óo]n|tlak|bar|psi)\b/],
     [/\bmounting\b|\brail\b/, /\b(mounting|rail|din)\b/],
     [/\bconnection\b|\bterminal\b/, /\b(connection|terminal|wire|conductor|ring|screw|spring)\b/],
     [/\bmaterial\b/, /\b(material|housing|body|jacket|sheath|enclosure|construction|carbon|stainless|aluminum|aluminium|steel)\b/],
     [/\btemperature\b|\btemp\b/, /\b(temperature|temp|amb(?:ient)?\s*air\s*tem)\b/],
+    [/\b(?:dimension|depth|width|height|length)\b/, /\b(depth|width|height|length|dimension)\b/],
     [/\bprotection\b|\bip\b|\bnema\b/, /\b(protection|ip|nema|enclosure|industry\s*standard|standards?)\b/],
     [/\bcolou?r\b|\bfinish\b|\bral\b/, /\b(colou?r|finish|paint|coat|powder|ral|ansi)\b/],
     [/\b(?:wall|housing)\s*thickness\b|\bthickness\b|\bgauge\b/, /\b(thickness|gauge|construction|wall|steel)\b/],
@@ -1211,6 +1587,8 @@ function columnLanguage(ws: ExcelJS.Worksheet, column: number, firstBodyRow: num
     const text = cellText(ws.getCell(row, column).value);
     if (text) samples.push(text);
   }
+  if (samples.some((sample) => /^(?:de|de[-_ ]?de|ger|german|deutsch)$/i.test(sample.trim()))) return "de";
+  if (samples.some((sample) => /^(?:en|en[-_ ]?(?:gb|us)|eng|english)$/i.test(sample.trim()))) return "en";
   const joined = samples.join(" ").toLowerCase();
   if (/\b(description|desc|product description)\s*de\b|\bde\s*(description|desc)\b|\bdeutsch\b|\bgerman\b/.test(joined)) return "de";
   if (/\b(description|desc|product description)\s*en\b|\ben\s*(description|desc)\b|\benglish\b/.test(joined)) return "en";

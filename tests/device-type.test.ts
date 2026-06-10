@@ -666,6 +666,56 @@ describe("device type classifier", () => {
     );
     expect(classifyDeviceType(result).type).toBe("Pump");
   });
+
+  it("routes rare fluid, pneumatic, power and marking product descriptions to their PDT sheets", () => {
+    const samples = [
+      {
+        title: "Printable wire marker sleeve for 2.5 mm2 conductors",
+        productType: "Wire marker sleeve",
+        expectedType: "Wire Marker",
+        expectedSheets: ["Wire ID Information"]
+      },
+      {
+        title: "24 V DC 5/2-way directional control valve with solenoid actuator",
+        productType: "5/2-way directional control valve",
+        expectedType: "Directional Control Valve",
+        expectedSheets: ["directional control valve"]
+      },
+      {
+        title: "Double-acting hydraulic cylinder with clevis mount",
+        productType: "Hydraulic cylinder double acting",
+        expectedType: "Hydraulic Actuator",
+        expectedSheets: ["fluid power"]
+      },
+      {
+        title: "Standby diesel generator set 100 kVA",
+        productType: "Diesel generator set",
+        expectedType: "Generator",
+        expectedSheets: ["generator"]
+      },
+      {
+        title: "Pneumatic gripper with G1/8 air ports",
+        productType: "Pneumatic gripper",
+        expectedType: "Pneumatic Device",
+        expectedSheets: ["pneumatic handling"]
+      },
+      {
+        title: "Centrifugal pump stainless steel 5 m3/h",
+        productType: "Centrifugal pump",
+        expectedType: "Pump",
+        expectedSheets: ["pump"]
+      }
+    ] as const;
+
+    for (const sample of samples) {
+      const classification = classifyDeviceType(
+        product([{ group: "General", name: "Product Type", value: sample.productType, sourceType: "official" }], sample.title)
+      );
+
+      expect(classification.type, sample.expectedType).toBe(sample.expectedType);
+      expect(deviceSheetsFor(classification.type), sample.expectedType).toEqual(sample.expectedSheets);
+    }
+  });
 });
 
 describe("device type classifier — family / series signals", () => {

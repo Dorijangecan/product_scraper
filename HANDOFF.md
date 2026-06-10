@@ -3,7 +3,40 @@
 This document is self-contained so another agent (Codex) can continue without prior chat
 context. Branch: **`feature/understanding-engine`** (17 commits, NOT merged/rebased).
 
-State at handoff: **497 tests green**, `npx tsc --noEmit` clean, `npm run audit:pdt` exit 0.
+State at latest Codex update: **518 tests green**, `npx tsc --noEmit` clean, `npm run audit:pdt` exit 0.
+
+## Latest Codex update (2026-06-09)
+- Rockwell slowness/root cause: it **does read datasheets/documents** (`pdfAttributesAdded` was high),
+  but Rockwell pages expose large shared manuals and final completeness retry could re-enter expensive
+  document/download paths for preferred-only fields. Shared document downloads are now de-duped per run,
+  and Rockwell typeCode falls back to the catalog number for final completeness.
+- Manual PDT parity now ignores only `Connection Point Information` as requested.
+- Rockwell manual PDT parity is clean for the first three examples:
+  - `01. 3B791_IOs - Compact 5000 IO_STD - Discrete.xlsx`: 2/2 catalogs, 100%, 0 mismatch, 0 missed.
+  - `02. 3B391_Kinetix 5700 DSx_Priority NPI.xlsx`: 5/5 catalogs, 100%, 0 mismatch, 0 missed.
+  - `03. 3B876_TERM - PV 5510 Rev2.xlsx`: 5/5 catalogs, 100%, 0 mismatch, 0 missed.
+  - Report: `outputs/_manual_pdt_parity/20260609082810/manual-pdt-parity-report.json`.
+- Rockwell family PDT rules added conservatively for manual-import conventions:
+  - Compact 5000 I/O (`5069-*`): family short description, certifications, PLC ECLASS/version, IP54, power loss.
+  - ArmorKinetix DSM (`2198-DSM*`): family search URL, description, certifications, 5 kg PDT mass, motors ECLASS/version.
+  - PanelView 5510 (`2715P-*`): family search URL, description, certifications, PDT mass/dimensions, PLC ECLASS/current/power.
+- Still to validate: Rockwell examples 04-10 and whether final retry skip should be made more central instead
+  of the current Rockwell guard in `run-manager.ts`.
+
+## Codex continuation update
+- **H** offline final-completeness loop is now extended through the ontology: confident device
+  classifications add expected final facts for colour, operating temperature and type-code; retry
+  policy maps these to normalized fields / attribute requirements without making them required.
+- **B-3 colour-from-prose** is now implemented conservatively for explicit prose only, with SCE
+  catalog-variant safeguards.
+- **J** is partially advanced: custom/built-in manufacturer `scrapeRecipe.extractionPolicy` can now
+  carry embedded product/resource table names, and custom quality policies preserve colour and
+  operating-temperature normalized fields.
+- **D** image handling is further improved offline: final image coalescing now promotes higher
+  quality URLs from `candidateUrls`, orders fallback image downloads by URL-derived resolution, and
+  pushes schematic/drawing/CAD candidates behind product photos.
+- Still not done: full manufacturer-profile extraction for every scraper, image sharpness/aspect
+  ranking, ABB/Rockwell/SCE live-PDF validation, and any network-bound parity work.
 
 ## 0. Hard constraints (do not violate)
 - Runs **offline on weak PCs for ~15 users, no API key** → **NO runtime LLM/model**.

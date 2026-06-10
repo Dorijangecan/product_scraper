@@ -80,6 +80,51 @@ describe("normalizer", () => {
     expect(normalizeFields([{ name: "Colore", value: "nero" }], []).color).toBe("black");
   });
 
+  it("mines product colour from explicit prose without treating display colour as housing colour", () => {
+    expect(
+      normalizeFields(
+        [{ name: "Long Description", value: "Painted steel enclosure. Color is ANSI-61 gray for the housing." }],
+        []
+      ).color
+    ).toBe("ANSI-61 gray");
+    expect(
+      normalizeFields(
+        [{ name: "Product Description", value: "Operator panel with TFT display colour 16 million colours and color temperature controls." }],
+        []
+      ).color
+    ).toBeUndefined();
+  });
+
+  it("mines colour and material from messy prose when colour is attached to the housing material", () => {
+    const normalized = normalizeFields(
+      [{ name: "Long Description", value: "Gray powder-coated steel enclosure with clear polycarbonate viewing window." }],
+      []
+    );
+
+    expect(normalized.material).toBe("powder-coated steel");
+    expect(normalized.color).toBe("gray");
+  });
+
+  it("understands reinforced polymer and component colour from prose", () => {
+    const normalized = normalizeFields(
+      [{ name: "Product Description", value: "Housing made from PA6 GF30, black; terminals are nickel plated brass." }],
+      []
+    );
+
+    expect(normalized.material).toBe("polyamide GF30");
+    expect(normalized.color).toBe("black");
+  });
+
+  it("understands die-cast aluminium material and foreign colour from prose", () => {
+    const normalized = normalizeFields(
+      [{ name: "Overview", value: "Robust aluminium die-cast body, schwarz pulverbeschichtet, IP67." }],
+      []
+    );
+
+    expect(normalized.material).toBe("die-cast aluminum");
+    expect(normalized.color).toBe("black");
+  });
+
   it("rejects a physically impossible operating temperature range", () => {
     const normalized = normalizeFields([{ name: "Operating temperature", value: "-40 to 5000 °C" }], []);
     expect(normalized.operatingTemperatureMin).toBeUndefined();

@@ -1,10 +1,22 @@
-{
-  "manufacturerId": "fath",
-  "catalogNumber": "098ABG045",
-  "caseType": "mechanical",
-  "expectedDeviceType": "Mounting Accessory",
-  "riskTags": ["configured-fallback", "mechanical-accessory"],
-  "expectedOfficialUrlPatterns": ["fath24\\.com/.*/098ABG045"],
-  "requiredDocuments": ["image"],
-  "expectedNormalizedFields": []
-}
+[
+  {
+    "manufacturerId": "fath",
+    "catalogNumber": "098ABG045",
+    "caseType": "mechanical",
+    "expectedDeviceType": "Mounting Accessory",
+    "riskTags": ["configured-fallback", "mechanical-accessory"],
+    "expectedOfficialUrlPatterns": ["fath24\\.com/.*/098ABG045"],
+    "requiredDocuments": ["image"],
+    "expectedNormalizedFields": []
+  },
+  {
+    "manufacturerId": "fath",
+    "catalogNumber": "093W201",
+    "caseType": "mechanical",
+    "expectedDeviceType": "Mounting Accessory",
+    "riskTags": ["customer-document-supported", "machine-frame-accessory", "fath-thin-coverage"],
+    "expectedOfficialUrlPatterns": ["fath24\\.com", "file:.*/thin-manufacturer-fixtures\\.csv"],
+    "customerDocuments": ["customer-documents/thin-manufacturer-fixtures.csv"],
+    "expectedNormalizedFields": ["dimensions", "weight", "material", "certificates"]
+  }
+]

@@ -8,6 +8,8 @@ import type {
   RunItemRecord
 } from "../shared/types.js";
 import { requiredElectricalFields } from "../shared/product-requirements.js";
+import { electricalFieldsForDeviceType } from "./pdt/device-type-profiles.js";
+import { classifyDeviceType } from "./scrapers/device-type.js";
 
 const CRITICAL_FIELDS: RunCoverageField[] = ["image", "weight", "dimensions", "material", "voltage", "current"];
 
@@ -86,7 +88,14 @@ function compileCustomFieldRegex(pattern: string): RegExp | undefined {
 function coverageState(result: ProductResult, field: RunCoverageField): RunCoverageState {
   if (hasCoverageValue(result, field)) return "present";
   if (field === "deUrl" && isGermanUrlNotApplicable(result)) return "not-applicable";
-  if ((field === "voltage" || field === "current") && !requiredElectricalFields(result).includes(field)) return "not-applicable";
+  if (field === "voltage" || field === "current") {
+    const classification = classifyDeviceType(result);
+    if (!requiredElectricalFields(result, {
+      deviceType: classification.type,
+      deviceTypeConfidence: classification.confidence,
+      deviceTypeElectricalFields: electricalFieldsForDeviceType(classification.type)
+    }).includes(field)) return "not-applicable";
+  }
   return "missing";
 }
 

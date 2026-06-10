@@ -1,6 +1,8 @@
 import type { EvidenceRecord, ProductResult, SourceRecord } from "../../shared/types.js";
+import { normalizeTechnicalAttributes } from "./technical-attributes.js";
 
 export function attachEvidence(result: ProductResult): ProductResult {
+  const technicalAttributes = normalizeTechnicalAttributes(result.manufacturerId, result.attributes, result.sources);
   const evidence = dedupeEvidence([
     ...(result.evidence ?? []),
     ...result.attributes.map((attr): EvidenceRecord => ({
@@ -43,6 +45,17 @@ export function attachEvidence(result: ProductResult): ProductResult {
           ]
         : []
     ),
+    ...technicalAttributes.map((attribute): EvidenceRecord => ({
+      kind: "technical-attribute",
+      name: attribute.canonicalKey,
+      value: `${attribute.originalName}: ${attribute.originalValue}`,
+      sourceUrl: attribute.sourceUrl,
+      sourceType: attribute.sourceType,
+      parser: attribute.parser,
+      stage: attribute.stage ?? "technical-normalize",
+      confidence: attribute.confidence,
+      reason: attribute.reason
+    })),
     ...result.sources.map((source): EvidenceRecord => ({
       kind: "source",
       name: source.parser,
@@ -56,7 +69,7 @@ export function attachEvidence(result: ProductResult): ProductResult {
     }))
   ]);
 
-  return { ...result, evidence };
+  return { ...result, technicalAttributes, evidence };
 }
 
 function normalizedSourceUrl(result: ProductResult, fieldName: string, normalizedValue: string): string | undefined {
