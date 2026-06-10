@@ -5,7 +5,7 @@ Ovo je preporuceni nacin za Windows racunalo na kojem kolega treba samo pokretat
 ## Prvi put
 
 1. Otvori **PowerShell**.
-2. Zalijepi ovu komandu:
+2. Zalijepi ovu komandu **tocno ovako**. Ako je prompt vec `PS ...>`, ne dodavati rijec `powershell` ispred:
 
 ```powershell
 irm https://raw.githubusercontent.com/Dorijangecan/product_scraper/main/Install-ProductScraper.ps1 | iex
@@ -44,6 +44,8 @@ Ako komandu pokreces iz `cmd.exe` ili Windows Run prozora, koristi duzu varijant
 ```powershell
 powershell -ExecutionPolicy Bypass -NoProfile -Command "irm https://raw.githubusercontent.com/Dorijangecan/product_scraper/main/Install-ProductScraper.ps1 | iex"
 ```
+
+Ako u PowerShellu dobijes `Program 'powershell.exe' failed to run: Access is denied`, to znaci da si u PowerShell zalijepio dugu `powershell -ExecutionPolicy ...` varijantu. Ostani u istom prozoru i pokreni kratku `irm ... | iex` komandu iznad.
 
 ## Svako sljedece pokretanje
 

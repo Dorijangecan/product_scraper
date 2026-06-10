@@ -19,6 +19,8 @@ Prvi put im posalji ovu jednu komandu. Otvore PowerShell i zalijepe:
 irm https://raw.githubusercontent.com/Dorijangecan/product_scraper/main/Install-ProductScraper.ps1 | iex
 ```
 
+Ako prompt vec pocinje s `PS ...>`, ne dodavati `powershell` ispred komande. Duga `powershell -ExecutionPolicy ...` varijanta je samo za `cmd.exe` ili Windows Run.
+
 Ako PowerShell blokira skripte, u istom prozoru prvo pokrenu:
 
 ```powershell
