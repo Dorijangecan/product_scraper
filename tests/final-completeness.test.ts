@@ -260,6 +260,32 @@ describe("final completeness audit", () => {
     expect(profiledAudit.missing).not.toContain("typeCode");
   });
 
+  it("does not start expensive final network retry only for image and typeCode", () => {
+    const result = product({
+      title: "ABC-123 contactor",
+      normalized: {
+        weight: "0.5 kg",
+        dimensions: "45 x 90 x 70 mm",
+        material: "plastic",
+        voltage: "24 V DC",
+        current: "5 A",
+        certificates: "CE",
+        operatingTemperatureMin: "-20",
+        operatingTemperatureMax: "60"
+      },
+      attributes: [{ group: "Product Data", name: "Product Type", value: "Contactor" }],
+      documents: [],
+      diagnostics: { fallbackStages: [] }
+    });
+    const audit = evaluateFinalCompleteness(result, manufacturer);
+    const decision = finalNetworkRetryDecision(result, manufacturer, audit);
+
+    expect(audit.missing).toEqual(["image", "typeCode"]);
+    expect(audit.retryMissing).toEqual(["image", "typeCode"]);
+    expect(decision.shouldRetry).toBe(false);
+    expect(decision.reason).toContain("final-only fields");
+  });
+
   it("does not count a failed image download as final image coverage", () => {
     const audit = evaluateFinalCompleteness(
       product({

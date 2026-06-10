@@ -177,6 +177,25 @@ export function finalNetworkRetryDecision(
   const exhausted = options.exhaustedFields;
   const force = options.force ?? false;
 
+  // Final network retry is the expensive tail of the run. By this point the main scrape,
+  // document enrichment, quality fallback, and existing-evidence repair have already had a
+  // chance to find product media and identity labels. Do not start another discovery/reader/
+  // browser round only for these final-export conveniences; keep them visible as missing and
+  // let the row finish quickly. Force retry keeps the old exhaustive behavior for manual audits.
+  if (!force) {
+    const networkFields = fields.filter(isNetworkRetryField);
+    if (networkFields.length === 0 && fields.length > 0) {
+      return {
+        shouldRetry: false,
+        fields,
+        reason: `Skipped network retry for final-only fields (${fields.join(", ")}); existing evidence repair already ran.`,
+        triedStages: triedFinalStages(result),
+        untriedStages: []
+      };
+    }
+    fields = networkFields;
+  }
+
   // Honor the persisted "exhausted" cache: if a prior run already proved this catalog
   // number doesn't publish this field, don't burn time looking again. The user can
   // override with the forceFinalRetry run option.
@@ -465,6 +484,10 @@ function isRetryableField(field: FinalCompletenessField, requirement: FinalRequi
   if (requirement === "not-applicable") return false;
   if (field === "certificates") return false;
   return true;
+}
+
+function isNetworkRetryField(field: FinalCompletenessField): boolean {
+  return field !== "image" && field !== "typeCode";
 }
 
 function finalCompletenessFields(result: ProductResult): FinalCompletenessField[] {
