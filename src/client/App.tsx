@@ -352,6 +352,7 @@ export function App() {
     setColumnName("");
     setError(null);
     if (!nextFile) return;
+    void rememberDesktopFolder("catalogInput", nextFile);
     setBusy(true);
     try {
       const data = await previewCsv(nextFile);
@@ -365,6 +366,18 @@ export function App() {
   }
 
   async function pickCatalogFile() {
+    const desktopFiles = await pickDesktopFiles({
+      kind: "catalogInput",
+      title: "Select catalog input",
+      multiple: false,
+      filters: [{ name: "Catalog input", extensions: ["csv", "xlsx", "xls"] }]
+    });
+    if (desktopFiles !== null) {
+      if (desktopFiles.length === 0) return;
+      await handleFile(desktopFiles[0] ?? null);
+      return;
+    }
+
     const picker = (window as Window & { showOpenFilePicker?: OpenFilePicker }).showOpenFilePicker;
     if (!picker) {
       uploadInputRef.current?.click();
@@ -394,6 +407,18 @@ export function App() {
   }
 
   async function pickCustomerDocuments() {
+    const desktopFiles = await pickDesktopFiles({
+      kind: "customerDocuments",
+      title: "Select customer documents",
+      multiple: true,
+      filters: [{ name: "Customer documents", extensions: ["pdf", "doc", "docx", "xls", "xlsx", "csv", "tsv", "txt"] }]
+    });
+    if (desktopFiles !== null) {
+      if (desktopFiles.length === 0) return;
+      addCustomerDocuments(desktopFiles);
+      return;
+    }
+
     const picker = (window as Window & { showOpenFilePicker?: OpenFilePicker }).showOpenFilePicker;
     if (!picker) {
       customerInputRef.current?.click();
@@ -424,6 +449,33 @@ export function App() {
       if (err instanceof DOMException && err.name === "AbortError") return;
       // showOpenFilePicker threw (e.g. browser rejected a MIME type) — fall back to native input.
       customerInputRef.current?.click();
+    }
+  }
+
+  async function pickDesktopFiles(options: Parameters<ProductScraperDesktopApi["pickFiles"]>[0]): Promise<File[] | null> {
+    if (!window.productScraperDesktop) return null;
+    try {
+      const pickedFiles = await window.productScraperDesktop.pickFiles(options);
+      return pickedFiles.map(desktopPickedFileToFile);
+    } catch (err) {
+      setError(errorMessage(err));
+      return [];
+    }
+  }
+
+  function desktopPickedFileToFile(pickedFile: ProductScraperDesktopPickedFile): File {
+    const data =
+      pickedFile.data instanceof ArrayBuffer
+        ? pickedFile.data
+        : new Uint8Array(pickedFile.data).buffer;
+    return new File([data], pickedFile.name, { type: pickedFile.type || undefined });
+  }
+
+  async function rememberDesktopFolder(kind: "catalogInput" | "customerDocuments", file: File) {
+    try {
+      await window.productScraperDesktop?.rememberFileFolder(kind, file);
+    } catch {
+      // Folder memory is a desktop convenience; uploads should keep working if it is unavailable.
     }
   }
 
@@ -462,6 +514,7 @@ export function App() {
     if (!incoming) return;
     const files = Array.from(incoming);
     if (!files.length) return;
+    void rememberDesktopFolder("customerDocuments", files[files.length - 1]);
     setCustomerDocuments((current) => {
       const existingKeys = new Set(current.map((file) => `${file.name}|${file.size}`));
       const merged = [...current];

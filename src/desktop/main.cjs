@@ -1,4 +1,4 @@
-const { app, BrowserWindow, Menu, shell, dialog } = require("electron");
+const { app, BrowserWindow, Menu, shell, dialog, ipcMain } = require("electron");
 const fs = require("node:fs");
 const http = require("node:http");
 const net = require("node:net");
@@ -8,6 +8,7 @@ const { spawn } = require("node:child_process");
 const rootDir = path.resolve(__dirname, "../..");
 const dataDir = path.join(rootDir, "data");
 const serverLogPath = path.join(dataDir, "desktop-server.log");
+const desktopSettingsPath = path.join(dataDir, "desktop-settings.json");
 
 let serverProcess;
 let mainWindow;
@@ -62,7 +63,8 @@ function createWindow(port) {
     webPreferences: {
       contextIsolation: true,
       nodeIntegration: false,
-      sandbox: true
+      sandbox: true,
+      preload: path.join(__dirname, "preload.cjs")
     }
   });
 
@@ -73,6 +75,30 @@ function createWindow(port) {
 
   mainWindow.loadURL(`http://127.0.0.1:${port}`);
 }
+
+ipcMain.handle("desktop:open-files", async (_event, options = {}) => {
+  const kind = normalizePickerKind(options.kind);
+  const lastDirs = readDesktopLastDirs();
+  const defaultPath = lastDirs[kind] && fs.existsSync(lastDirs[kind]) ? lastDirs[kind] : undefined;
+  const result = await dialog.showOpenDialog(mainWindow ?? undefined, {
+    title: typeof options.title === "string" ? options.title : undefined,
+    defaultPath,
+    properties: options.multiple ? ["openFile", "multiSelections"] : ["openFile"],
+    filters: normalizeDialogFilters(options.filters)
+  });
+  if (result.canceled) return [];
+
+  const selectedPaths = result.filePaths;
+  rememberLastDir(kind, selectedPaths[selectedPaths.length - 1]);
+  return Promise.all(selectedPaths.map(readDialogFile));
+});
+
+ipcMain.handle("desktop:remember-file-folder", (_event, options = {}) => {
+  const filePath = typeof options.filePath === "string" ? options.filePath : "";
+  if (!filePath) return false;
+  rememberLastDir(normalizePickerKind(options.kind), filePath);
+  return true;
+});
 
 async function startServer(port) {
   fs.mkdirSync(dataDir, { recursive: true });
@@ -108,9 +134,14 @@ async function startServer(port) {
 }
 
 function getServerRuntime() {
-  const bundledNode = path.join(rootDir, "runtime", "node", "node.exe");
-  if (fs.existsSync(bundledNode)) {
-    return { command: bundledNode, args: [], env: {} };
+  const projectNode = path.join(rootDir, ".runtime", "node", "node.exe");
+  if (fs.existsSync(projectNode)) {
+    return { command: projectNode, args: [], env: {} };
+  }
+
+  const portableNode = path.join(rootDir, "runtime", "node", "node.exe");
+  if (fs.existsSync(portableNode)) {
+    return { command: portableNode, args: [], env: {} };
   }
 
   if (process.env.npm_node_execpath) {
@@ -124,6 +155,80 @@ function getServerRuntime() {
     args: [],
     env: { ELECTRON_RUN_AS_NODE: "1" }
   };
+}
+
+function normalizePickerKind(value) {
+  return value === "customerDocuments" ? "customerDocuments" : "catalogInput";
+}
+
+function readDesktopLastDirs() {
+  try {
+    const parsed = JSON.parse(fs.readFileSync(desktopSettingsPath, "utf8"));
+    const lastDirs = parsed && typeof parsed === "object" ? parsed.lastDirs : undefined;
+    return lastDirs && typeof lastDirs === "object" ? lastDirs : {};
+  } catch {
+    return {};
+  }
+}
+
+function writeDesktopLastDirs(lastDirs) {
+  fs.mkdirSync(dataDir, { recursive: true });
+  fs.writeFileSync(desktopSettingsPath, JSON.stringify({ lastDirs }, null, 2));
+}
+
+function rememberLastDir(kind, filePath) {
+  if (!filePath) return;
+  const dir = path.dirname(filePath);
+  if (!dir || !fs.existsSync(dir)) return;
+  const lastDirs = readDesktopLastDirs();
+  lastDirs[kind] = dir;
+  writeDesktopLastDirs(lastDirs);
+}
+
+function normalizeDialogFilters(filters) {
+  if (!Array.isArray(filters)) return undefined;
+  return filters
+    .map((filter) => ({
+      name: typeof filter.name === "string" ? filter.name : "Files",
+      extensions: Array.isArray(filter.extensions)
+        ? filter.extensions
+            .map((extension) => String(extension).replace(/^\./, "").trim())
+            .filter(Boolean)
+        : []
+    }))
+    .filter((filter) => filter.extensions.length > 0);
+}
+
+async function readDialogFile(filePath) {
+  const data = await fs.promises.readFile(filePath);
+  return {
+    name: path.basename(filePath),
+    type: mimeTypeForFile(filePath),
+    data: data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength)
+  };
+}
+
+function mimeTypeForFile(filePath) {
+  switch (path.extname(filePath).toLowerCase()) {
+    case ".csv":
+      return "text/csv";
+    case ".tsv":
+      return "text/tab-separated-values";
+    case ".txt":
+      return "text/plain";
+    case ".pdf":
+      return "application/pdf";
+    case ".doc":
+      return "application/msword";
+    case ".docx":
+      return "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+    case ".xls":
+      return "application/vnd.ms-excel";
+    case ".xlsx":
+      return "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+    default:
+      return "application/octet-stream";
+  }
 }
 
 function stopServer() {
