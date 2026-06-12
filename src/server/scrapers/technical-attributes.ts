@@ -6,8 +6,9 @@ import type {
   TechnicalAttributeRecord
 } from "../../shared/types.js";
 import { cleanText } from "./normalizer.js";
-import { findTechnicalAttributeAlias } from "./technical-attribute-aliases.js";
-import { matchProperty, PROPERTY_ONTOLOGY, understand, type CanonicalProperty } from "./ontology.js";
+import { matchTechnicalAttributeAlias, type TechnicalAttributeAliasMatch } from "./technical-attribute-aliases.js";
+import { matchProperty, PROPERTY_ONTOLOGY, type CanonicalProperty } from "./ontology.js";
+import { parseQuantities, type ParsedQuantity } from "./quantity.js";
 
 export function normalizeTechnicalAttributes(
   manufacturerId: ManufacturerId,
@@ -17,17 +18,28 @@ export function normalizeTechnicalAttributes(
   return dedupeTechnicalAttributes(
     attributes.flatMap((attribute) => {
       const label = attributeLabel(attribute);
-      const knownAlias = findTechnicalAttributeAlias(manufacturerId, attribute.name) ?? findTechnicalAttributeAlias(manufacturerId, label);
-      const property = propertyForKnownAlias(knownAlias?.canonicalKey) ?? matchProperty(label);
+      const exactAlias =
+        matchTechnicalAttributeAlias(manufacturerId, attribute.name, { includeFuzzy: false }) ??
+        matchTechnicalAttributeAlias(manufacturerId, label, { includeFuzzy: false });
+      const ontologyProperty = matchProperty(label);
+      const fuzzyAlias = exactAlias
+        ? undefined
+        : matchTechnicalAttributeAlias(manufacturerId, attribute.name) ?? matchTechnicalAttributeAlias(manufacturerId, label);
+      const aliasMatch = exactAlias ?? (shouldPreferFuzzyAlias(fuzzyAlias, ontologyProperty) ? fuzzyAlias : undefined);
+      const property = propertyForKnownAlias(aliasMatch?.alias.canonicalKey) ?? ontologyProperty;
       if (!property) return [];
-      const understood = understand(label, attribute.value);
-      const quantities = understood.quantities.map(toTechnicalQuantity);
+      const matchType = technicalAttributeMatchType(aliasMatch, ontologyProperty);
+      const quantities = parseQuantities(attribute.value, property.unitKind ? { kind: property.unitKind } : {}).map(toTechnicalQuantity);
       return [
         {
           manufacturerId,
           canonicalKey: property.key,
           canonicalLabel: property.label,
           unitKind: property.unitKind,
+          matchType,
+          matchedAlias: aliasMatch?.alias.originalName,
+          matchedAliasManufacturerId: aliasMatch?.alias.manufacturerId,
+          matchScore: aliasMatch?.score,
           originalGroup: attribute.group,
           originalName: attribute.name,
           originalValue: attribute.value,
@@ -37,8 +49,8 @@ export function normalizeTechnicalAttributes(
           sourceType: attribute.sourceType ?? sourceTypeForUrl(sources, attribute.sourceUrl),
           parser: attribute.parser ?? parserForUrl(sources, attribute.sourceUrl),
           stage: attribute.stage ?? stageForUrl(sources, attribute.sourceUrl),
-          confidence: technicalAttributeConfidence(attribute, property.unitKind, quantities.length, Boolean(knownAlias)),
-          reason: technicalAttributeReason(attribute, property.key, property.unitKind, quantities.length, knownAlias?.evidenceLabel)
+          confidence: technicalAttributeConfidence(attribute, property.unitKind, quantities.length, matchType, aliasMatch?.score),
+          reason: technicalAttributeReason(attribute, property.key, property.unitKind, quantities.length, aliasMatch, matchType)
         }
       ];
     })
@@ -50,11 +62,28 @@ function propertyForKnownAlias(canonicalKey: string | undefined): CanonicalPrope
   return PROPERTY_ONTOLOGY.find((property) => property.key === canonicalKey);
 }
 
+function shouldPreferFuzzyAlias(
+  aliasMatch: TechnicalAttributeAliasMatch | undefined,
+  ontologyProperty: CanonicalProperty | undefined
+): boolean {
+  if (!aliasMatch) return false;
+  if (!ontologyProperty) return true;
+  if (aliasMatch.alias.canonicalKey === ontologyProperty.key) return false;
+  return ontologyProperty.key === "power" && aliasMatch.alias.canonicalKey === "powerLoss" && aliasMatch.score >= 0.84;
+}
+
+function technicalAttributeMatchType(
+  aliasMatch: TechnicalAttributeAliasMatch | undefined,
+  ontologyProperty: CanonicalProperty | undefined
+): TechnicalAttributeRecord["matchType"] {
+  return aliasMatch?.matchType ?? (ontologyProperty ? "ontology" : undefined);
+}
+
 function attributeLabel(attribute: AttributeRecord): string {
   return cleanText(`${attribute.group ?? ""} ${attribute.name}`.trim());
 }
 
-function toTechnicalQuantity(quantity: ReturnType<typeof understand>["quantities"][number]): TechnicalAttributeQuantity {
+function toTechnicalQuantity(quantity: ParsedQuantity): TechnicalAttributeQuantity {
   return {
     kind: quantity.kind,
     unit: quantity.unit,
@@ -69,11 +98,17 @@ function toTechnicalQuantity(quantity: ReturnType<typeof understand>["quantities
   };
 }
 
-function technicalAttributeConfidence(attribute: AttributeRecord, unitKind: string | undefined, quantityCount: number, knownAlias: boolean): number {
-  let confidence = 0.82;
-  if (knownAlias) confidence += 0.05;
+function technicalAttributeConfidence(
+  attribute: AttributeRecord,
+  unitKind: string | undefined,
+  quantityCount: number,
+  matchType: TechnicalAttributeRecord["matchType"],
+  matchScore: number | undefined
+): number {
+  let confidence = confidenceBaseForMatchType(matchType);
   if (unitKind && quantityCount > 0) confidence += 0.08;
   if (!unitKind) confidence += 0.04;
+  if (matchType?.startsWith("fuzzy_") && matchScore !== undefined) confidence += Math.max(0, (matchScore - 0.84) * 0.12);
   if (attribute.sourceType === "official") confidence += 0.06;
   else if (attribute.sourceType === "official-fallback") confidence += 0.04;
   else if (attribute.sourceType === "distributor") confidence -= 0.12;
@@ -82,19 +117,40 @@ function technicalAttributeConfidence(attribute: AttributeRecord, unitKind: stri
   return Math.max(0.1, Math.min(0.99, Number(confidence.toFixed(2))));
 }
 
+function confidenceBaseForMatchType(matchType: TechnicalAttributeRecord["matchType"]): number {
+  if (matchType === "manufacturer_alias") return 0.88;
+  if (matchType === "global_alias") return 0.87;
+  if (matchType === "fuzzy_manufacturer_alias") return 0.78;
+  if (matchType === "fuzzy_global_alias") return 0.76;
+  if (matchType === "fuzzy_cross_manufacturer_alias") return 0.72;
+  return 0.82;
+}
+
 function technicalAttributeReason(
   attribute: AttributeRecord,
   canonicalKey: string,
   unitKind: string | undefined,
   quantityCount: number,
-  aliasEvidenceLabel: string | undefined
+  aliasMatch: TechnicalAttributeAliasMatch | undefined,
+  matchType: TechnicalAttributeRecord["matchType"]
 ): string {
-  const parts = aliasEvidenceLabel
-    ? [`Known manufacturer alias from ${aliasEvidenceLabel} mapped to '${canonicalKey}'`]
+  const parts = aliasMatch
+    ? [technicalAliasReason(aliasMatch, canonicalKey)]
     : [`Label matched ontology key '${canonicalKey}'`];
   if (unitKind) parts.push(quantityCount ? `value parsed as ${unitKind}` : `expected ${unitKind} value not parsed`);
+  if (matchType) parts.push(`match type ${matchType}`);
   if (attribute.sourceType) parts.push(`source ${attribute.sourceType}`);
   return parts.join("; ");
+}
+
+function technicalAliasReason(aliasMatch: TechnicalAttributeAliasMatch, canonicalKey: string): string {
+  if (aliasMatch.matchType === "manufacturer_alias") {
+    return `Known manufacturer alias from ${aliasMatch.alias.evidenceLabel} mapped to '${canonicalKey}'`;
+  }
+  if (aliasMatch.matchType === "global_alias") {
+    return `Global alias '${aliasMatch.alias.originalName}' mapped to '${canonicalKey}'`;
+  }
+  return `Fuzzy alias '${aliasMatch.alias.originalName}' (${aliasMatch.score}) mapped to '${canonicalKey}'`;
 }
 
 function sourceTypeForUrl(sources: SourceRecord[], sourceUrl: string | undefined): SourceRecord["sourceType"] | undefined {

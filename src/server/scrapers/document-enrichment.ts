@@ -5,6 +5,7 @@ import type { AttributeRecord, DocumentRecord, ProductResult, SourceRecord } fro
 import { cleanText, normalizeFields, splitNameValue } from "./normalizer.js";
 import { catalogTextMatches } from "./catalog-number.js";
 import { buildTightContextForCatalog, buildVariantColumnContext } from "./tight-context.js";
+import { listTechnicalAttributeAliases } from "./technical-attribute-aliases.js";
 
 const MAX_PDF_PAGES = 30;
 const MAX_PDF_TEXT_CHARS = 250_000;
@@ -17,7 +18,7 @@ const TARGETED_PDF_MAX_PAGES = 200;
 const TARGETED_PDF_NEIGHBOUR_PAGES = 1;
 const TARGETED_PDF_MAX_SECTION_PAGES = 12;
 
-const KNOWN_LABELS = [
+const BASE_KNOWN_LABELS = [
   "Approximate shipping weight",
   "Approval/Conformity",
   "Cable jacket, material",
@@ -26,6 +27,7 @@ const KNOWN_LABELS = [
   "Certifications",
   "Circuit breaker frame type",
   "Connection type",
+  "Conditional rated short-circuit current Iq",
   "Current ratings",
   "Degree of protection",
   "Dimensions (HxWxD), approx.",
@@ -40,9 +42,14 @@ const KNOWN_LABELS = [
   "Frequency rating",
   "Gross weight",
   "Height",
+  "Heat dissipation",
   "HP rating - max",
   "Housing material",
+  "Input current",
+  "Input nominal current",
   "Input nominal voltage",
+  "Input voltage",
+  "Input voltage range",
   "Interrupt rating",
   "Interrupt rating range",
   "IP rating",
@@ -60,8 +67,23 @@ const KNOWN_LABELS = [
   "Number of poles",
   "Operating voltage Ub",
   "Overall dimensions",
+  "Output current",
+  "Output voltage",
+  "Power consumption",
+  "Power dissipation",
+  "Power dissipation in W",
+  "Power dissipation per pole",
+  "Power input",
+  "Power input, max",
+  "Power loss",
+  "Power loss per pole",
+  "Power loss Pv",
   "Product Weight",
   "Product net weight",
+  "Rated conditional short-circuit current",
+  "Rated conditional short-circuit current (Iq)",
+  "Rated conditional short-circuit current Iq",
+  "Rated current for power loss specification",
   "Rated impulse withstand voltage",
   "Rated operation current (Ie)",
   "Rated operational current",
@@ -70,20 +92,37 @@ const KNOWN_LABELS = [
   "Rated operational voltage (Ue) - max",
   "Rated current (40 °C)",
   "Rated current (40 Â°C)",
+  "Rated output current",
+  "Rated output voltage",
+  "Rated service short-circuit breaking capacity",
+  "Rated short-circuit breaking capacity",
+  "Rated ultimate short-circuit breaking capacity",
   "Rated voltage",
+  "SCCR",
   "Shipping weight",
   "Size",
+  "Short Circuit Current Rating (SCCR)",
   "Standards, directives and approvals",
+  "Static heat dissipation, non-current-dependent Pvs",
   "Surface finishing",
+  "Thermal dissipation",
   "Trip Type",
   "Unit weight",
+  "Utilization category",
   "Voltage rating",
   "Voltage rating - max",
   "Voltage type",
   "Weight",
   "Weight, approx.",
   "Width"
-].sort((left, right) => right.length - left.length);
+];
+
+const KNOWN_LABELS = uniqueKnownLabels([
+  ...BASE_KNOWN_LABELS,
+  ...listTechnicalAttributeAliases()
+    .map((alias) => alias.originalName)
+    .filter(isUsefulTechnicalAliasPdfLabel)
+]).sort((left, right) => right.length - left.length);
 
 export async function enrichResultFromDownloadedDocuments(result: ProductResult): Promise<ProductResult> {
   const documentAttributes: AttributeRecord[] = [];
@@ -209,6 +248,14 @@ export function extractDocumentTextAttributes(input: {
       continue;
     }
 
+    if (isKnownLabelOnly(line)) {
+      const value = nextMeaningfulLine(lines, index + 1);
+      if (value) {
+        attributes.push({ group: `${documentGroup}${section ? ` - ${section}` : ""}`, name: line, value, sourceUrl });
+      }
+      continue;
+    }
+
     const knownPair = parseKnownInlinePair(line);
     if (knownPair) {
       attributes.push({ group: `${documentGroup}${section ? ` - ${section}` : ""}`, ...knownPair, sourceUrl });
@@ -218,14 +265,6 @@ export function extractDocumentTextAttributes(input: {
     const colonPair = splitNameValue(line);
     if (colonPair) {
       attributes.push({ group: `${documentGroup}${section ? ` - ${section}` : ""}`, ...colonPair, sourceUrl });
-      continue;
-    }
-
-    if (isKnownLabelOnly(line)) {
-      const value = nextMeaningfulLine(lines, index + 1);
-      if (value) {
-        attributes.push({ group: `${documentGroup}${section ? ` - ${section}` : ""}`, name: line, value, sourceUrl });
-      }
       continue;
     }
 
@@ -322,6 +361,31 @@ function shouldParsePdfDocument(doc: DocumentRecord): boolean {
   if (!doc.localPath) return false;
   if (!/\.pdf$/i.test(doc.localPath)) return false;
   return ["datasheet", "certificate", "manual", "other"].includes(doc.type);
+}
+
+function uniqueKnownLabels(labels: string[]): string[] {
+  const seen = new Set<string>();
+  const unique: string[] = [];
+  for (const label of labels) {
+    const cleaned = cleanText(label);
+    if (!cleaned) continue;
+    const key = cleaned.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    unique.push(cleaned);
+  }
+  return unique;
+}
+
+function isUsefulTechnicalAliasPdfLabel(value: string): boolean {
+  const label = cleanText(value);
+  if (/^SCCR$/i.test(label)) return true;
+  if (label.length < 4 || label.length > 140) return false;
+  if (!/[a-z]/i.test(label)) return false;
+  if (/^(?:Ue|Us|Ub|Un|Ur|Uc|Ie|In|Iu|Ith|Inm|Inom|IN|Icu|Ics|Icw|Icm|Icn|Iq|AIC|Pv|Pvs|Pls|Ple|PlIp|P2|Pm|P_N)$/i.test(label)) {
+    return false;
+  }
+  return /[\s,\/()[\]_-]/.test(label) || label.length >= 8;
 }
 
 function stampDocumentAttributes(attributes: AttributeRecord[]): AttributeRecord[] {
@@ -578,7 +642,7 @@ function sectionTracker(): (line: string) => string | undefined {
 }
 
 function isPdfSectionHeading(line: string): boolean {
-  return /^(basic features|electrical data|electrical connection|environmental conditions|interface|material|mechanical data|technical data|dimensions|approvals|compliances|product details)$/i.test(
+  return /^(approvals|basic features|compliances|construction|dimensions|electrical connection|electrical data|electrical ratings|electrical specifications|enclosure|environmental conditions|environmental specifications|general specifications|interface|material|mechanical data|mechanical specifications|product data|product details|product specifications|ratings|short-circuit ratings|specifications|technical data|technical specifications)$/i.test(
     line
   );
 }

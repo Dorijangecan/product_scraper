@@ -1255,7 +1255,7 @@ function deriveColorFromProseAttributes(attributes: AttributeRecord[]): string |
 }
 
 const COLOR_TOKEN = String.raw`(?:ANSI[-\s]?61\s+gr[ae]y|RAL\s*\d{4}|black|white|gr[ae]y|red|blue|green|yellow|orange|silver|natural|beige|cream|brown|clear|transparent|hell\s*grau|licht\s*grau|dunkel\s*grau|grau|schwarz|wei(?:ß|ss)|silber|rot|blau|gr[üu]n|gelb|gris\s+clair|gris\s+fonc[ée]|gris|noir|blanc|rouge|bleu|vert|jaune|grigio\s+chiaro|grigio\s+scuro|grigio|nero|bianco|rosso|blu|verde|giallo)`;
-const MATERIAL_OR_COMPONENT_TOKEN = String.raw`(?:stainless\s+steel|carbon\s+steel|mild\s+steel|galvanized\s+steel|galvannealed\s+steel|sheet\s+steel|steel|alumin(?:um|ium)|polycarbonate|polyamide|polyester|polypropylene|polyethylene|polyolefin|plastic|pvc|pur|rubber|housing|enclosure|body|cover|case|casing|jacket)`;
+const MATERIAL_OR_COMPONENT_TOKEN = String.raw`(?:stainless\s+steel|carbon\s+steel|mild\s+steel|galvanized\s+steel|galvannealed\s+steel|sheet\s+steel|steel|alumin(?:um|ium)|engineering\s+plastic|thermoplastic|polycarbonate|polyamide|polyester|polypropylene|polyethylene|polyolefin|plastic|pvc|pur|rubber|housing|enclosure|body|cover|case|casing|jacket)`;
 
 function colorFromComponentProse(cleaned: string): string | undefined {
   const colorBeforeMaterial = cleaned.match(
@@ -1444,7 +1444,7 @@ function materialValueFromText(value: string): string | undefined {
   const foreign = foreignMaterialSynonym(cleaned);
   if (foreign) return foreign;
   const match = cleaned.match(
-    /\b(techpolymer|feraloy iron alloy|iron alloy|spheroidal cast iron|malleable cast iron|cast iron|stainless steel|carbon steel|mild steel|galvannealed steel|galvanized steel|sheet steel|steel|aluminum|aluminium|die-cast zinc|zinc|nickel[-\s]?plated brass|brass|nickel[-\s]?plated copper|copper braid|copper|fluoropolymer|polyolefin|polycarbonate|polyamide|polyurethane|polypropylene|polyethylene|polyester|fiberglass|plastic|silicone|nylon|rubber|pvc|pur|epdm|abs|ceramic|glass)\b/i
+    /\b(techpolymer|feraloy iron alloy|iron alloy|spheroidal cast iron|malleable cast iron|cast iron|stainless steel|carbon steel|mild steel|galvannealed steel|galvanized steel|sheet steel|steel|aluminum|aluminium|die-cast zinc|zinc|nickel[-\s]?plated brass|brass|nickel[-\s]?plated copper|copper braid|copper|fluoropolymer|polyolefin|engineering plastic|thermoplastic|polycarbonate|polyamide|polyurethane|polypropylene|polyethylene|polyester|fiberglass|plastic|silicone|nylon|rubber|pvc|pur|epdm|abs|ceramic|glass)\b/i
   );
   return match ? cleanText(match[1]).replace(/^aluminium$/i, "aluminum") : undefined;
 }
@@ -1708,7 +1708,7 @@ function materialCandidateScore(attr: AttributeRecord): number {
   if (/\bmaterial\b/i.test(attr.name)) score += 20;
   if (/\bcatalog variant\b/i.test(haystack)) score += 45;
   if (/housing|enclosure|body|valve body|cable jacket/i.test(haystack)) score += 40;
-  if (/spheroidal cast iron|carbon steel|stainless steel|mild steel|galvanized steel|galvannealed steel|polycarbonate|polyester|pvc|pur/i.test(haystack)) score += 20;
+  if (/spheroidal cast iron|carbon steel|stainless steel|mild steel|galvanized steel|galvannealed steel|engineering plastic|thermoplastic|polycarbonate|polyester|pvc|pur/i.test(haystack)) score += 20;
   if (/accessor(?:y|ies)|fittings?|hex nut|knurled nut|screw|terminal|mounting screw|wire size/i.test(haystack)) score -= 35;
   return score;
 }

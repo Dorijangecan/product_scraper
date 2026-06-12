@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 import type { ProductResult } from "../src/shared/types.js";
 import { enrichResultFromDownloadedDocuments, extractDocumentTextAttributes } from "../src/server/scrapers/document-enrichment.js";
 import { normalizeFields } from "../src/server/scrapers/normalizer.js";
+import { normalizeTechnicalAttributes } from "../src/server/scrapers/technical-attributes.js";
 import { applyCustomerDocumentOverride, extractCustomerDocumentAttributes } from "../src/server/scrapers/customer-documents.js";
 import { classifyDeviceType } from "../src/server/scrapers/device-type.js";
 
@@ -64,6 +65,58 @@ Surface finishing Powder coating
     expect(attributes.some((attr) => attr.name === "NEMA rating" && attr.value === "NEMA Type 4X")).toBe(true);
     expect(normalized.voltage).toBe("120/240 V");
     expect(normalized.finish).toBe("Powder coating");
+  });
+
+  it("extracts and normalizes electrical aliases from PDF label/value layouts", () => {
+    const attributes = extractDocumentTextAttributes({
+      catalogNumber: "MMP-25",
+      document: {
+        type: "datasheet",
+        label: "Electrical datasheet",
+        url: "https://example.test/mmp-25.pdf"
+      },
+      text: `
+Electrical ratings
+SCCR
+100 kA
+Short Circuit Current Rating (SCCR)
+65 kA
+Power dissipation per pole
+5 W
+Dissipation power
+3.2 W
+Static heat dissipation, non-current-dependent Pvs
+1 W
+Rated conditional short-circuit current Iq
+50 kA
+Input voltage
+24 V DC
+Output current
+2.5 A
+Utilization category
+AC-3
+      `
+    });
+    const normalized = normalizeFields(attributes, []);
+    const technical = normalizeTechnicalAttributes("any-new-manufacturer", attributes);
+
+    expect(attributes).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ group: "PDF datasheet - Electrical ratings", name: "SCCR", value: "100 kA" }),
+        expect.objectContaining({ group: "PDF datasheet - Electrical ratings", name: "Short Circuit Current Rating (SCCR)", value: "65 kA" }),
+        expect.objectContaining({ group: "PDF datasheet - Electrical ratings", name: "Power dissipation per pole", value: "5 W" }),
+        expect.objectContaining({ group: "PDF datasheet - Electrical ratings", name: "Dissipation power", value: "3.2 W" }),
+        expect.objectContaining({ group: "PDF datasheet - Electrical ratings", name: "Static heat dissipation, non-current-dependent Pvs", value: "1 W" }),
+        expect.objectContaining({ group: "PDF datasheet - Electrical ratings", name: "Rated conditional short-circuit current Iq", value: "50 kA" }),
+        expect.objectContaining({ group: "PDF datasheet - Electrical ratings", name: "Input voltage", value: "24 V DC" }),
+        expect.objectContaining({ group: "PDF datasheet - Electrical ratings", name: "Output current", value: "2.5 A" })
+      ])
+    );
+    expect(normalized.voltage).toBe("24 V DC");
+    expect(normalized.current).toBe("2.5 A");
+    expect([...new Set(technical.map((item) => item.canonicalKey))]).toEqual(
+      expect.arrayContaining(["breakingCapacity", "powerLoss", "ratedVoltage", "ratedCurrent"])
+    );
   });
 
   it("extracts source-backed contact rating voltage/current pairs from PDF tables", () => {

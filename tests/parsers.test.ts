@@ -78,6 +78,57 @@ describe("manufacturer parsers", () => {
     expect(dpp?.documents.some((doc) => doc.type === "image")).toBe(true);
   });
 
+  it("extracts Rockwell cutsheet line-pair specs and family literature documents", () => {
+    const result = parseRockwellCutsheetPage(
+      "1783-US5T",
+      fetched(
+        `<html><body>
+          <h1>Cut Sheet 1783-US5T</h1>
+          <div>Stratix 2000</div>
+          <div>1783-US5T</div>
+          <div>Stratix 2000 , 5 port unmanaged switch</div>
+          <h2>Product Details</h2>
+          <div>Type</div><div>Unmanaged Switch</div>
+          <h2>DATA</h2>
+          <div>Environment</div><div>IP20</div>
+          <div>Stratix Ethernet Family</div><div>Stratix 2000</div>
+          <h2>Additional Details</h2>
+          <div>Mounting</div><div>Din Rail</div>
+          <div>Operating Temperature</div><div>0...60 °C (32...140 °F)</div>
+          <div>Ports per Module</div><div>5</div>
+        </body></html>`,
+        "https://configurator.rockwellautomation.com/api/Product/1783-US5T/cutsheet"
+      )
+    );
+
+    expect(result.attributes).toEqual(expect.arrayContaining([
+      expect.objectContaining({ group: "Rockwell Cutsheet - Product Details", name: "Type", value: "Unmanaged Switch" }),
+      expect.objectContaining({ group: "Rockwell Cutsheet - Data", name: "Environment", value: "IP20" }),
+      expect.objectContaining({ group: "Rockwell Cutsheet - Additional Details", name: "Operating Temperature", value: "0...60 °C (32...140 °F)" })
+    ]));
+    expect(result.documents).toEqual(expect.arrayContaining([
+      expect.objectContaining({ type: "datasheet", url: "https://literature.rockwellautomation.com/idc/groups/literature/documents/td/1783-td002_-en-p.pdf" }),
+      expect.objectContaining({ type: "manual", url: "https://literature.rockwellautomation.com/idc/groups/literature/documents/in/1783-in003_-en-p.pdf" }),
+      expect.objectContaining({ type: "manual", url: "https://literature.rockwellautomation.com/idc/groups/literature/documents/um/1783-um007_-en-p.pdf" })
+    ]));
+  });
+
+  it("rejects Rockwell digital product passport payloads for a different catalog", () => {
+    const payload = {
+      elements: [
+        { name: [{ language: "en", value: "Registered ID" }], elementId: "registeredId", value: "800f-x11" },
+        { name: [{ language: "en", value: "Product Name" }], elementId: "productName", value: "Wrong product" }
+      ]
+    };
+    const jwt = `x.${Buffer.from(JSON.stringify(payload)).toString("base64url")}.x`;
+    const result = parseRockwellDpp(
+      "800F-X10",
+      fetched(JSON.stringify({ verifiableCredential: { id: `data:application/vc+jwt,${jwt}` } }), "https://www.rockwellautomation.com/bin/rockwell-automation/dpp?catalogNumber=800f-x10&serialNumber=")
+    );
+
+    expect(result).toBeUndefined();
+  });
+
   it("rejects Rockwell cutsheet and drawing responses that are not exact product pages", () => {
     const missingCutsheet = parseRockwellCutsheetPage(
       "800F-X10",

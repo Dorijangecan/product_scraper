@@ -11,6 +11,7 @@ const connectorLoaders: Record<string, () => Promise<ManufacturerConnector>> = {
   fath: async () => new (await import("./fath.js")).FathConnector(),
   rockwell: async () => new (await import("./rockwell.js")).RockwellConnector(),
   sce: async () => new (await import("./sce.js")).SCEConnector(),
+  scame: async () => new (await import("./scame.js")).ScameConnector(),
   schneider: async () => new (await import("./schneider.js")).SchneiderConnector(),
   siemens: async () => new (await import("./siemens.js")).SiemensConnector(),
   spelsberg: async () => new (await import("./spelsberg.js")).SpelsbergConnector()

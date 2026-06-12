@@ -21,6 +21,32 @@ describe("technical attribute normalization", () => {
     expect(mapped.every((item) => item.originalValue && item.confidence >= 0.9)).toBe(true);
   });
 
+  it("uses global aliases for unknown manufacturers before falling back to manufacturer-specific knowledge", () => {
+    const mapped = normalizeTechnicalAttributes("unknown-maker", [
+      { name: "Dissipation power", value: "3.2 W", sourceType: "official" },
+      { name: "Power loss", value: "2 W", sourceType: "official" },
+      { name: "Verlustleistung", value: "4 W", sourceType: "official" },
+      { name: "Pv", value: "1.5 W", sourceType: "official" }
+    ]);
+
+    expect(mapped).toHaveLength(4);
+    expect(new Set(mapped.map((item) => item.canonicalKey))).toEqual(new Set(["powerLoss"]));
+    expect(new Set(mapped.map((item) => item.matchType))).toEqual(new Set(["global_alias"]));
+    expect(mapped.every((item) => item.matchedAliasManufacturerId === "global")).toBe(true);
+  });
+
+  it("uses conservative fuzzy aliases for unknown manufacturers when labels are misspelled or reordered", () => {
+    const mapped = normalizeTechnicalAttributes("unknown-maker", [
+      { name: "Dissipaton power", value: "3.2 W", sourceType: "official" },
+      { name: "Loss of power", value: "2 W", sourceType: "official" }
+    ]);
+
+    expect(mapped).toHaveLength(2);
+    expect(new Set(mapped.map((item) => item.canonicalKey))).toEqual(new Set(["powerLoss"]));
+    expect(mapped.map((item) => item.matchType)).toEqual(["fuzzy_global_alias", "fuzzy_global_alias"]);
+    expect(mapped.every((item) => item.matchScore && item.matchScore >= 0.84)).toBe(true);
+  });
+
   it("keeps source evidence and parsed quantities for mapped technical attributes", () => {
     const sources: SourceRecord[] = [
       {
@@ -56,7 +82,7 @@ describe("technical attribute normalization", () => {
   });
 
   it("keeps the manufacturer alias catalog executable, not just documented", () => {
-    const aliases = listTechnicalAttributeAliases();
+    const aliases = listTechnicalAttributeAliases().filter((alias) => alias.scope === "manufacturer");
     const manufacturers = new Set(aliases.map((alias) => alias.manufacturerId));
 
     expect(manufacturers).toEqual(new Set(["abb", "schneider", "siemens", "eaton", "rockwell"]));
@@ -66,6 +92,19 @@ describe("technical attribute normalization", () => {
       ]);
       expect(mapped[0]?.canonicalKey, `${alias.manufacturerId} ${alias.originalName}`).toBe(alias.canonicalKey);
       expect(mapped[0]?.reason).toContain("Known manufacturer alias");
+    }
+  });
+
+  it("keeps the global alias catalog executable for any manufacturer", () => {
+    const aliases = listTechnicalAttributeAliases().filter((alias) => alias.scope === "global");
+
+    expect(aliases.length).toBeGreaterThan(20);
+    for (const alias of aliases) {
+      const mapped = normalizeTechnicalAttributes("any-new-manufacturer", [
+        { name: alias.originalName, value: sampleValueForCanonicalKey(alias.canonicalKey), sourceType: "official" }
+      ]);
+      expect(mapped[0]?.canonicalKey, alias.originalName).toBe(alias.canonicalKey);
+      expect(mapped[0]?.matchType, alias.originalName).toBe("global_alias");
     }
   });
 });

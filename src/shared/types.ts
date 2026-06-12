@@ -370,6 +370,16 @@ export interface TechnicalAttributeRecord {
   canonicalKey: string;
   canonicalLabel: string;
   unitKind?: string;
+  matchType?:
+    | "manufacturer_alias"
+    | "global_alias"
+    | "ontology"
+    | "fuzzy_manufacturer_alias"
+    | "fuzzy_global_alias"
+    | "fuzzy_cross_manufacturer_alias";
+  matchedAlias?: string;
+  matchedAliasManufacturerId?: string;
+  matchScore?: number;
   originalGroup?: string;
   originalName: string;
   originalValue: string;

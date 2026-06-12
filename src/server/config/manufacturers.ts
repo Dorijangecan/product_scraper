@@ -256,12 +256,35 @@ const builtInManufacturerConfigs: Record<string, ManufacturerConfig> = {
       }
     ]
   },
+  scame: {
+    id: "scame",
+    canonicalName: "SCAME",
+    shortName: "SCA",
+    rateLimitMs: 1500,
+    concurrency: 2,
+    officialBaseUrls: ["https://www.scame.com", "https://techsheet.scame.com"],
+    homepageUrl: "https://www.scame.com/web/scame-uk/home",
+    localizedUrlTemplates: [
+      { locale: "en", urlTemplate: "https://techsheet.scame.com/infodata/en/{partLower}.pdf" }
+    ],
+    fetchPolicy: {
+      timeoutMs: 30000,
+      acceptLanguage: "en-GB,en;q=0.9,en-US;q=0.8",
+      referer: "https://www.scame.com/web/scame-uk/home",
+      minContentLength: 1000
+    },
+    fallbackSources: []
+  },
   rockwell: {
     id: "rockwell",
     canonicalName: "Rockwell Automation",
     shortName: "RA",
     rateLimitMs: 1800,
-    officialBaseUrls: ["https://www.rockwellautomation.com/en-us/products"],
+    officialBaseUrls: [
+      "https://www.rockwellautomation.com/en-us/products",
+      "https://configurator.rockwellautomation.com",
+      "https://literature.rockwellautomation.com"
+    ],
     // Matches MANUFACTURER_URL in the manual Rockwell PDTs.
     homepageUrl: "https://www.rockwellautomation.com",
     localizedUrlTemplates: [
@@ -654,6 +677,13 @@ function attachBuiltInScrapeRecipes() {
     minDocuments: 0,
     expandSelectors: accordionSelectors,
     dynamicFramework: ["json-ld", "embedded-json", "api"],
+    extractionPolicy: {
+      documentUrlPatterns: [
+        "literature\\.rockwellautomation\\.com/.+\\.(?:pdf|zip)$",
+        "configurator\\.rockwellautomation\\.com/api/Product/.+/(?:cutsheet|drawings)"
+      ],
+      ignoredImageUrlPatterns: ["logo|favicon|sprite|placeholder|icon"]
+    },
     qualityPolicy: {
       typeCodeFallback: "catalogNumber",
       rationales: {
@@ -758,6 +788,42 @@ function attachBuiltInScrapeRecipes() {
     confidenceRules: { foundMinScore: 74, partialMaxConfidence: 0.72, distributorMaxConfidence: 0.45 }
   };
 
+  builtInManufacturerConfigs.scame.scrapeRecipe = {
+    requiredAttributes: [
+      "catalog|article|part|product|description|commercial series",
+      "material|dimensions|voltage|current|protection|colour|color|certification|approval"
+    ],
+    requiredDocuments: ["datasheet"],
+    minAttributes: 3,
+    minDocuments: 1,
+    dynamicFramework: ["api", "embedded-json"],
+    discoveryPolicy: {
+      allowedOfficialDomains: ["scame.com", "techsheet.scame.com"],
+      urlVariants: ["partLower", "part", "partCompact", "partAfterColon"],
+      maxCandidates: 8
+    },
+    extractionPolicy: {
+      documentUrlPatterns: [
+        "techsheet\\.scame\\.com/infodata/.+\\.pdf",
+        "techsheet\\.scame\\.com/Download/dms/cad/pdf/.+\\.pdf"
+      ],
+      ignoredImageUrlPatterns: ["logo|favicon|sprite|placeholder|icon"]
+    },
+    fallbackPolicy: {
+      officialFirst: true,
+      readerOnQualityFailure: false,
+      browserOnQualityFailure: true,
+      documentDownloadProfile: "quality",
+      distributorFallback: false,
+      maxReaderAttempts: 0,
+      maxBrowserAttempts: 1,
+      rationales: {
+        documentDownloadProfile: "SCAME publishes official product facts in techsheet PDFs; keep the first source PDF for PDT enrichment without downloading every linked CAD asset."
+      }
+    },
+    confidenceRules: { foundMinScore: 74, partialMaxConfidence: 0.74, distributorMaxConfidence: 0.4 }
+  };
+
   builtInManufacturerConfigs.nvent.scrapeRecipe = {
     requiredAttributes: ["catalog|article|part|product|description|material|dimensions|weight|certification|approval"],
     requiredDocuments: ["image"],
@@ -802,6 +868,8 @@ const legacyManufacturerAliases: Record<string, string> = {
   newabb: "abb",
   saginawcontrol: "sce",
   schneiderelectric: "schneider",
+  scameparre: "scame",
+  scameuk: "scame",
   nventhoffman: "nvent",
   eldon: "nvent"
 };

@@ -184,7 +184,8 @@ export function parseRockwellCutsheetPage(catalogNumber: string, fetched: Fetche
     ...generic.attributes,
     ...optionalAttribute("Rockwell Cutsheet", "Catalog Number", linkedCatalog || catalogNumber, sourceUrl),
     ...optionalAttribute("Rockwell Cutsheet", "Product Family", title, sourceUrl),
-    ...optionalAttribute("Rockwell Cutsheet", "Description", description, sourceUrl)
+    ...optionalAttribute("Rockwell Cutsheet", "Description", description, sourceUrl),
+    ...extractRockwellCutsheetTextAttributes(catalogNumber, fetched.text, sourceUrl)
   ];
   const documents: DocumentRecord[] = [
     ...generic.documents,
@@ -268,8 +269,12 @@ export function parseRockwellFamilyPage(catalogNumber: string, fetched: FetchedT
 export function parseRockwellDpp(catalogNumber: string, fetched: FetchedText): ProductResult | undefined {
   const payload = decodeRockwellDppPayload(fetched.text);
   if (!payload) return undefined;
+  if (!dppPayloadMatchesCatalog(payload, catalogNumber)) return undefined;
   const sourceUrl = fetched.effectiveUrl;
-  const attributes: AttributeRecord[] = [];
+  const attributes: AttributeRecord[] = [
+    ...optionalAttribute("Rockwell Digital Product Passport", "DPP Last Updated", cleanDppString(payload.lastUpdated), sourceUrl, "rockwell-digital-product-passport"),
+    ...optionalAttribute("Rockwell Digital Product Passport", "DPP Schema Version", cleanDppString(payload.dppSchemaVersion), sourceUrl, "rockwell-digital-product-passport")
+  ];
   const documents: DocumentRecord[] = [];
   collectDppElements(payload.elements, sourceUrl, attributes, documents);
 
@@ -337,7 +342,7 @@ function collectDppElements(
     if (label && url && /^https?:\/\//i.test(url)) {
       const contentType = cleanDppString(item.contentType) ?? "";
       documents.push({
-        type: /image/i.test(label) || /image\//i.test(contentType) ? "image" : "other",
+        type: classifyRockwellDppDocument(label, url, contentType),
         label: cleanDppString(item.resourceTitle) || label,
         url,
         sourceUrl,
@@ -365,6 +370,95 @@ function normalizeRockwellUnit(value: string): string {
     .replace(/\bMMT\b/gi, "mm")
     .replace(/\bMTR\b/gi, "m")
     .replace(/\bINH\b/gi, "in");
+}
+
+function extractRockwellCutsheetTextAttributes(catalogNumber: string, html: string, sourceUrl: string): AttributeRecord[] {
+  const lines = rockwellTextLinesFromHtml(html);
+  const attributes: AttributeRecord[] = [];
+  let section = "Rockwell Cutsheet";
+
+  for (let index = 0; index < lines.length - 1; index += 1) {
+    const line = lines[index];
+    if (isRockwellCutsheetSection(line)) {
+      section = `Rockwell Cutsheet - ${canonicalRockwellCutsheetSection(line)}`;
+      continue;
+    }
+    if (isRockwellCutsheetNoise(line, catalogNumber)) continue;
+
+    const value = lines[index + 1];
+    if (!isRockwellCutsheetLabel(line) || !isRockwellCutsheetValue(value, catalogNumber)) continue;
+    if (isRockwellCutsheetSection(value) || isRockwellCutsheetNoise(value, catalogNumber)) continue;
+
+    attributes.push({
+      group: section,
+      name: canonicalRockwellCutsheetLabel(line),
+      value: normalizeRockwellCutsheetValue(value),
+      sourceUrl,
+      sourceType: "official",
+      parser: "rockwell-cutsheet",
+      confidence: 0.82
+    });
+    index += 1;
+  }
+
+  return dedupeAttributes(attributes).slice(0, 120);
+}
+
+function rockwellTextLinesFromHtml(html: string): string[] {
+  const withBreaks = html
+    .replace(/<\s*br\s*\/?>/gi, "\n")
+    .replace(/<\/\s*(?:td|th|tr|table|p|div|li|h[1-6]|section|article)\s*>/gi, "\n")
+    .replace(/<\s*(?:td|th|tr|table|p|div|li|h[1-6]|section|article)[^>]*>/gi, "\n");
+  return cheerio.load(withBreaks).root().text()
+    .split(/\r?\n/)
+    .map(cleanText)
+    .filter(Boolean);
+}
+
+function isRockwellCutsheetSection(line: string): boolean {
+  return /^(?:product details|data|additional details|accessories|manufacturing|family|supporting documentation and downloads|circuit breaker data|contact block data)$/i.test(line);
+}
+
+function canonicalRockwellCutsheetSection(line: string): string {
+  return cleanText(line).toLowerCase().replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
+function isRockwellCutsheetNoise(line: string, catalogNumber: string): boolean {
+  return (
+    /^cut sheet\b/i.test(line) ||
+    /^product registration link$/i.test(line) ||
+    /^link to literature library/i.test(line) ||
+    /^supporting documentation and downloads$/i.test(line) ||
+    catalogTextMatches(line, catalogNumber, { compact: true, ignoreCase: true })
+  );
+}
+
+function isRockwellCutsheetLabel(line: string): boolean {
+  if (line.length < 2 || line.length > 140) return false;
+  if (/^(?:yes|no|none|not applicable|factory assembled)$/i.test(line)) return false;
+  if (/^(?:\d+(?:[.,]\d+)?\s*)?(?:v|a|w|kw|kg|g|mm|cm|in|°c|°f|ip\d+)/i.test(line)) return false;
+  return /[A-Za-z]/.test(line);
+}
+
+function isRockwellCutsheetValue(line: string, catalogNumber: string): boolean {
+  if (!line || line.length > 500) return false;
+  if (/^cut sheet\b/i.test(line)) return false;
+  if (catalogTextMatches(line, catalogNumber, { compact: true, ignoreCase: true })) return true;
+  return /[A-Za-z0-9]/.test(line);
+}
+
+function canonicalRockwellCutsheetLabel(line: string): string {
+  return cleanText(line)
+    .replace(/\(A\)\b/i, "(A)")
+    .replace(/\s+/g, " ");
+}
+
+function normalizeRockwellCutsheetValue(value: string): string {
+  return cleanText(value)
+    .replace(/\b(\d+(?:[.,]\d+)?)\s*Arms\b/gi, "$1 A RMS")
+    .replace(/&amp;/gi, "&")
+    .replace(/\s*â€¦\s*/g, "...")
+    .replace(/\s*…\s*/g, "...");
 }
 
 function extractRockwellDocumentLinks(
@@ -406,13 +500,82 @@ function classifyRockwellDocument(label: string, url: string): DocumentRecord["t
   if (/\/resources\/images\/productinfo\/|\.(?:jpg|jpeg|png|webp)(?:[?#]|$)/i.test(combined)) return "image";
   if (/\.(?:dwg|dxf|stp|step|wmf|zip)(?:[?#]|$)|\b(?:drawing|cad|3d|2d|step|dxf|dwg)\b/i.test(combined)) return "cad";
   if (/\b(?:manual|user manual|installation)\b/i.test(combined)) return "manual";
+  if (/\/documents\/(?:in|um|rm)\//i.test(combined)) return "manual";
   if (/\b(?:cert|declaration|conformity|rohs|reach|ul|ce)\b/i.test(combined)) return "certificate";
-  if (/\/cutsheet\b|\b(?:cutsheet|technical data|technical document|datasheet|data sheet)\b|\.pdf(?:[?#]|$)/i.test(combined)) return "datasheet";
+  if (/\/documents\/td\//i.test(combined) || /\/cutsheet\b|\b(?:cutsheet|technical data|technical document|datasheet|data sheet)\b|\.pdf(?:[?#]|$)/i.test(combined)) return "datasheet";
   return "other";
 }
 
 function isIgnoredRockwellUrl(url: string): boolean {
   return /RockwellAutomation_logo|spotify\.com|privacy|sign[-_]?in|custhelp\.com/i.test(url);
+}
+
+function rockwellLiteratureDocuments(catalogNumber: string, sourceUrl: string, parser: string): DocumentRecord[] {
+  const rules: Array<{ pattern: RegExp; docs: Array<{ type: DocumentRecord["type"]; label: string; url: string }> }> = [
+    {
+      pattern: /^\s*1783-US/i,
+      docs: [
+        { type: "datasheet", label: "Rockwell Stratix 2000 technical data", url: "https://literature.rockwellautomation.com/idc/groups/literature/documents/td/1783-td002_-en-p.pdf" },
+        { type: "manual", label: "Rockwell Stratix 2000 installation instructions", url: "https://literature.rockwellautomation.com/idc/groups/literature/documents/in/1783-in003_-en-p.pdf" },
+        { type: "manual", label: "Rockwell Stratix 2000 user manual", url: "https://literature.rockwellautomation.com/idc/groups/literature/documents/um/1783-um007_-en-p.pdf" }
+      ]
+    },
+    {
+      pattern: /^\s*2198-DSD/i,
+      docs: [
+        { type: "datasheet", label: "Rockwell ArmorKinetix distributed servo drives technical data", url: "https://literature.rockwellautomation.com/idc/groups/literature/documents/td/pec-td011_-en-e.pdf" },
+        { type: "manual", label: "Rockwell ArmorKinetix distributed servo drives user manual", url: "https://literature.rockwellautomation.com/idc/groups/literature/documents/um/2198-um006_-en-p.pdf" }
+      ]
+    },
+    {
+      pattern: /^\s*140G-/i,
+      docs: [
+        { type: "datasheet", label: "Rockwell 140G molded case circuit breaker technical data", url: "https://literature.rockwellautomation.com/idc/groups/literature/documents/td/140g-td101_-en-p.pdf" }
+      ]
+    },
+    {
+      pattern: /^\s*800F-/i,
+      docs: [
+        { type: "datasheet", label: "Rockwell 800F push button technical data", url: "https://literature.rockwellautomation.com/idc/groups/literature/documents/td/800-td008_-en-p.pdf" },
+        { type: "manual", label: "Rockwell 800F push button user manual", url: "https://literature.rockwellautomation.com/idc/groups/literature/documents/um/800-um001_-en-p.pdf" }
+      ]
+    },
+    {
+      pattern: /^\s*1492-PD(?:E|ME)/i,
+      docs: [
+        { type: "datasheet", label: "Rockwell 1492 power distribution blocks technical data", url: "https://literature.rockwellautomation.com/idc/groups/literature/documents/td/1492-td013_-en-p.pdf" }
+      ]
+    },
+    {
+      pattern: /^\s*2715P-/i,
+      docs: [
+        { type: "datasheet", label: "Rockwell PanelView 5510 technical data", url: "https://literature.rockwellautomation.com/idc/groups/literature/documents/td/2715p-td001_-en-p.pdf" },
+        { type: "other", label: "Rockwell PanelView 5510 product profile", url: "https://literature.rockwellautomation.com/idc/groups/literature/documents/pp/2715-pp001_-en-p.pdf" }
+      ]
+    },
+    {
+      pattern: /^\s*856T-/i,
+      docs: [
+        { type: "datasheet", label: "Rockwell 855/856 Control Tower Stack Lights technical data", url: "https://literature.rockwellautomation.com/idc/groups/literature/documents/td/855-td001_-en-p.pdf" }
+      ]
+    },
+    {
+      pattern: /^\s*2080-LC20-/i,
+      docs: [
+        { type: "datasheet", label: "Rockwell Micro820 controller technical data", url: "https://literature.rockwellautomation.com/idc/groups/literature/documents/td/2080-td004_-en-e.pdf" }
+      ]
+    }
+  ];
+  const match = rules.find((rule) => rule.pattern.test(catalogNumber));
+  if (!match) return [];
+  return match.docs.map((doc) => ({
+    ...doc,
+    sourceUrl,
+    sourceType: "official",
+    parser: "rockwell-literature-rules",
+    stage: parser,
+    confidence: 0.74
+  }));
 }
 
 function buildRockwellResult(
@@ -426,7 +589,10 @@ function buildRockwellResult(
   confidence: number
 ): ProductResult {
   const cleanAttributes = dedupeAttributes(attributes).filter((attribute) => attribute.name && attribute.value);
-  const cleanDocuments = dedupeDocuments(documents);
+  const cleanDocuments = dedupeDocuments([
+    ...documents,
+    ...rockwellLiteratureDocuments(catalogNumber, fetched.effectiveUrl, parser)
+  ]);
   const normalized = normalizeFields(cleanAttributes, cleanDocuments);
   const sourceType: SourceRecord["sourceType"] = "official";
   return {
@@ -488,6 +654,34 @@ function canonicalRockwellProductUrl(catalogNumber: string): string | undefined 
   if (familyUrl) return familyUrl;
   const encoded = encodeURIComponent(catalogNumber);
   return `https://www.rockwellautomation.com/en-us/products/details.${encoded}.html`;
+}
+
+function dppPayloadMatchesCatalog(payload: Record<string, unknown>, catalogNumber: string): boolean {
+  const values = dppValuesByLabel(payload.elements, /^(?:registered id|catalog number|catalogue number)$/i);
+  if (!values.length) return true;
+  return values.some((value) => catalogTextMatches(value, catalogNumber, { compact: true, ignoreCase: true }));
+}
+
+function dppValuesByLabel(value: unknown, labelPattern: RegExp): string[] {
+  const values: string[] = [];
+  const walk = (item: unknown) => {
+    if (Array.isArray(item)) {
+      for (const child of item) walk(child);
+      return;
+    }
+    if (!isRecord(item)) return;
+    const label = dppElementLabel(item);
+    const rawValue = cleanDppString(item.value);
+    if (label && rawValue && labelPattern.test(label)) values.push(rawValue);
+    walk(item.elements);
+  };
+  walk(value);
+  return values;
+}
+
+function classifyRockwellDppDocument(label: string, url: string, contentType: string): DocumentRecord["type"] {
+  if (/image/i.test(label) || /image\//i.test(contentType)) return "image";
+  return classifyRockwellDocument(label, url);
 }
 
 interface RockwellFamilyPageRule {

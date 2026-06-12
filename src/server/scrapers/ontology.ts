@@ -10,6 +10,7 @@
  * To teach it more, add entries/synonyms here (data), not new regexes scattered through scrapers.
  */
 import { parseQuantities, type ParsedQuantity, type QuantityKind } from "./quantity.js";
+import { matchTechnicalAttributeAlias } from "./technical-attribute-aliases.js";
 
 export interface CanonicalProperty {
   /** Stable canonical id. */
@@ -2026,6 +2027,7 @@ export function findUnmappedSpecLabels(attributes: LabelledValue[]): string[] {
   for (const attribute of attributes) {
     const label = `${attribute.group ?? ""} ${attribute.name}`.trim();
     if (!label || matchProperty(label)) continue;
+    if (matchTechnicalAttributeAlias("global", label, { includeCrossManufacturer: false })) continue;
     if (parseQuantities(attribute.value).length === 0) continue;
     unmapped.add(attribute.name.trim());
   }

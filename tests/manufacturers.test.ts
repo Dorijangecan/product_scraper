@@ -9,7 +9,7 @@ describe("manufacturer configuration", () => {
     const byId = new Map(manufacturers.map((manufacturer) => [manufacturer.id, manufacturer]));
 
     expect([...byId.keys()]).toEqual(
-      expect.arrayContaining(["abb", "balluff", "sce", "nvent", "rockwell", "eaton", "eta", "phoenix", "schmersal", "schneider", "siemens", "spelsberg"])
+      expect.arrayContaining(["abb", "balluff", "sce", "nvent", "rockwell", "eaton", "eta", "phoenix", "schmersal", "schneider", "siemens", "spelsberg", "scame"])
     );
     expect(byId.get("balluff")?.shortName).toBe("BAL");
     expect(byId.get("balluff")?.concurrency).toBe(2);
@@ -29,6 +29,9 @@ describe("manufacturer configuration", () => {
     expect(byId.get("rockwell")?.scrapeRecipe?.fallbackPolicy?.rationales?.skipPreferredFinalCompletenessRetry).toMatch(/official.*manual PDT/i);
     expect(byId.get("siemens")?.shortName).toBe("SIE");
     expect(byId.get("phoenix")?.shortName).toBe("PHX");
+    expect(byId.get("scame")?.shortName).toBe("SCA");
+    expect(byId.get("scame")?.scrapeRecipe?.fallbackPolicy?.distributorFallback).toBe(false);
+    expect(byId.get("scame")?.scrapeRecipe?.fallbackPolicy?.documentDownloadProfile).toBe("quality");
     expect(byId.get("eta")?.fallbackSources[0]?.directUrlTemplates.some((template) => template.includes("{partSnake}"))).toBe(true);
   });
 
@@ -89,5 +92,17 @@ describe("manufacturer configuration", () => {
     expect(spelsberg?.officialBaseUrls).toContain("https://www.spelsberg.com");
     expect(spelsberg?.scrapeRecipe?.searchUrlTemplates).toContain("https://www.spelsberg.com/product-finder/?query={part}");
     expect(spelsberg?.scrapeRecipe?.extractionPolicy?.documentUrlPatterns).toContain("\\.download\\?file=.+\\.pdf");
+  });
+
+  it("configures SCAME through official techsheet PDFs", () => {
+    const scame = listManufacturerConfigs().find((manufacturer) => manufacturer.id === "scame");
+
+    expect(scame?.officialBaseUrls).toEqual(expect.arrayContaining(["https://www.scame.com", "https://techsheet.scame.com"]));
+    expect(scame?.homepageUrl).toBe("https://www.scame.com/web/scame-uk/home");
+    expect(scame?.scrapeRecipe?.requiredDocuments).toEqual(["datasheet"]);
+    expect(scame?.scrapeRecipe?.extractionPolicy?.documentUrlPatterns).toEqual(expect.arrayContaining([
+      "techsheet\\.scame\\.com/infodata/.+\\.pdf",
+      "techsheet\\.scame\\.com/Download/dms/cad/pdf/.+\\.pdf"
+    ]));
   });
 });

@@ -241,6 +241,10 @@ export async function exportRunWorkbook(input: {
     { header: "Catalog Number", key: "catalogNumber", width: 24 },
     { header: "Canonical Key", key: "canonicalKey", width: 26 },
     { header: "Canonical Label", key: "canonicalLabel", width: 34 },
+    { header: "Match Type", key: "matchType", width: 24 },
+    { header: "Matched Alias", key: "matchedAlias", width: 42 },
+    { header: "Alias Manufacturer", key: "matchedAliasManufacturerId", width: 18 },
+    { header: "Match Score", key: "matchScore", width: 12, style: { numFmt: "0.000" } },
     { header: "Original Group", key: "originalGroup", width: 28 },
     { header: "Original Attribute", key: "originalName", width: 38 },
     { header: "Original Value", key: "originalValue", width: 72 },
@@ -256,6 +260,7 @@ export async function exportRunWorkbook(input: {
 
   aliasDictionary.columns = [
     { header: "Canonical Key", key: "canonicalKey", width: 26 },
+    { header: "Scope", key: "scope", width: 14 },
     { header: "Manufacturer", key: "manufacturer", width: 22 },
     { header: "Manufacturer ID", key: "manufacturerId", width: 16 },
     { header: "Manufacturer Label", key: "originalName", width: 58 },
@@ -266,6 +271,7 @@ export async function exportRunWorkbook(input: {
   for (const alias of listTechnicalAttributeAliases()) {
     aliasDictionary.addRow({
       canonicalKey: alias.canonicalKey,
+      scope: alias.scope,
       manufacturer: alias.manufacturerName,
       manufacturerId: alias.manufacturerId,
       originalName: alias.originalName,
@@ -381,6 +387,10 @@ export async function exportRunWorkbook(input: {
         catalogNumber: result.catalogNumber,
         canonicalKey: attr.canonicalKey,
         canonicalLabel: attr.canonicalLabel,
+        matchType: attr.matchType,
+        matchedAlias: attr.matchedAlias,
+        matchedAliasManufacturerId: attr.matchedAliasManufacturerId,
+        matchScore: attr.matchScore,
         originalGroup: attr.originalGroup,
         originalName: attr.originalName,
         originalValue: attr.originalValue,
