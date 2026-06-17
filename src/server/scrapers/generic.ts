@@ -37,6 +37,7 @@ export class GenericFallbackScraper {
   ) {}
 
   async scrape(catalogNumber: string, sources: FallbackSourceConfig[], signal?: AbortSignal): Promise<ProductResult | undefined> {
+    let bestPartial: ProductResult | undefined;
     for (const source of sources.filter((item) => item.enabled && this.sourceAllowedByPolicy(item)).sort(compareFallbackSources)) {
       for (const template of source.directUrlTemplates) {
         throwIfCancelled(signal);
@@ -53,11 +54,11 @@ export class GenericFallbackScraper {
             extractionPolicy: this.manufacturer?.scrapeRecipe?.extractionPolicy
           });
           const discovery = discoverProductLinksWithDiagnostics(fetched.text, fetched.effectiveUrl, catalogNumber);
-          const detailUrl = discovery.candidates[0]?.url;
           let detailResolved = false;
-          if (detailUrl) {
+          for (const candidate of discovery.candidates.slice(0, 4)) {
+            if (sameUrl(candidate.url, fetched.effectiveUrl)) continue;
             try {
-              const detail = await this.fetchTextWithFallback(detailUrl, source, signal);
+              const detail = await this.fetchTextWithFallback(candidate.url, source, signal);
               if (catalogTextMatches(detail.text, catalogNumber, match)) {
                 const detailParsed = parseGenericProductPage(this.manufacturerId, catalogNumber, detail, source.sourceType, source.label, {
                   match,
@@ -67,22 +68,30 @@ export class GenericFallbackScraper {
                   extractionPolicy: this.manufacturer?.scrapeRecipe?.extractionPolicy
                 });
                 detailResolved = !isUnresolvedSearchResultPage(detail.effectiveUrl, detailParsed.title, false);
-                if (detailResolved && detailParsed.status !== "failed") return withLinkDiagnostics(mergeResults(detailParsed, parsed), discovery);
+                if (detailResolved && detailParsed.status !== "failed") {
+                  const merged = withLinkDiagnostics(mergeResults(detailParsed, parsed), discovery);
+                  if (isStrongGenericResult(merged)) return merged;
+                  bestPartial = pickBetterResult(bestPartial, merged);
+                }
               }
             } catch (error) {
               if (isCancellationError(error, signal)) throw error;
-              // Keep the original parsed page when detail navigation fails.
+              // Keep trying the next search/detail candidate.
             }
           }
           if (isUnresolvedSearchResultPage(fetched.effectiveUrl, parsed.title, detailResolved)) continue;
-          if (parsed.status !== "failed") return withLinkDiagnostics(parsed, discovery);
+          if (parsed.status !== "failed") {
+            const parsedWithDiagnostics = withLinkDiagnostics(parsed, discovery);
+            if (isStrongGenericResult(parsedWithDiagnostics)) return parsedWithDiagnostics;
+            bestPartial = pickBetterResult(bestPartial, parsedWithDiagnostics);
+          }
         } catch (error) {
           if (isCancellationError(error, signal)) throw error;
           continue;
         }
       }
     }
-    return undefined;
+    return bestPartial;
   }
 
   private sourceAllowedByPolicy(source: FallbackSourceConfig): boolean {
@@ -165,6 +174,60 @@ function compareFallbackSources(left: FallbackSourceConfig, right: FallbackSourc
 
 function sourceRank(source: FallbackSourceConfig): number {
   return source.sourceType === "official-fallback" ? 0 : 10;
+}
+
+function isStrongGenericResult(result: ProductResult): boolean {
+  if (result.status === "failed") return false;
+  if (isSuspiciousResultUrl(result.productUrl)) return false;
+  const imageCount = result.documents.filter((doc) => doc.type === "image").length;
+  const nonImageDocCount = result.documents.length - imageCount;
+  if (result.attributes.length >= 3 && (result.documents.length > 0 || result.title)) return true;
+  if (result.attributes.length >= 2 && imageCount > 0) return true;
+  if (result.attributes.length >= 1 && nonImageDocCount > 0 && imageCount > 0) return true;
+  return false;
+}
+
+function pickBetterResult(current: ProductResult | undefined, candidate: ProductResult): ProductResult {
+  if (!current) return candidate;
+  return resultEvidenceScore(candidate) > resultEvidenceScore(current) ? candidate : current;
+}
+
+function resultEvidenceScore(result: ProductResult): number {
+  let score = result.confidence * 100;
+  score += Math.min(result.attributes.length, 20) * 4;
+  score += Math.min(result.documents.length, 10) * 6;
+  if (result.documents.some((doc) => doc.type === "image")) score += 18;
+  if (result.sources.some((source) => source.sourceType === "official" || source.sourceType === "official-fallback")) score += 15;
+  if (result.title) score += 8;
+  if (isSuspiciousResultUrl(result.productUrl)) score -= 40;
+  return score;
+}
+
+function isSuspiciousResultUrl(url: string | undefined): boolean {
+  if (!url) return true;
+  try {
+    const parsed = new URL(url);
+    const full = `${parsed.hostname}${parsed.pathname}${parsed.search}`.toLowerCase();
+    if (/\/search(?:\/|$)|[?&](?:q|query|search|term)=/i.test(full)) return true;
+    if (/partcommunity|3d-cad-models|\/cad(?:\/|$)|\/download(?:\/|$)|\/documents?(?:\/|$)/i.test(full)) return true;
+    if (/\.(?:pdf|zip|dwg|dxf|stp|step|png|jpe?g|webp)(?:[?#]|$)/i.test(full)) return true;
+    return false;
+  } catch {
+    return /\b(?:search|query)=|\/search\/|partcommunity|3d-cad-models|\.(?:pdf|zip|dwg|dxf|stp|step|png|jpe?g|webp)\b/i.test(url);
+  }
+}
+
+function sameUrl(left: string | undefined, right: string | undefined): boolean {
+  if (!left || !right) return false;
+  try {
+    const leftUrl = new URL(left);
+    const rightUrl = new URL(right);
+    leftUrl.hash = "";
+    rightUrl.hash = "";
+    return leftUrl.toString().toLowerCase() === rightUrl.toString().toLowerCase();
+  } catch {
+    return left.trim().toLowerCase() === right.trim().toLowerCase();
+  }
 }
 
 export function isUnresolvedSearchResultPage(url: string, title: string | undefined, detailResolved: boolean): boolean {
