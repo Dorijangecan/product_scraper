@@ -43,15 +43,7 @@ export class SchmersalConnector implements ManufacturerConnector {
 
   async scrape(catalogNumber: string, context: ScrapeContext): Promise<ProductResult> {
     let baseResult = await context.fallback.scrape(catalogNumber, schmersalSources(context));
-    if (!baseResult || baseResult.status === "failed" || isSchmersalSearchUrl(baseResult.productUrl)) {
-      const detailUrl = await discoverSchmersalDetailUrl(catalogNumber, context, baseResult?.productUrl);
-      if (detailUrl) {
-        const detailResult = await context.fallback.scrape(catalogNumber, [schmersalDetailSource(detailUrl)]);
-        if (detailResult && detailResult.status !== "failed") {
-          baseResult = detailResult;
-        }
-      }
-    }
+    baseResult = await rescueSchmersalResultFromSearch(catalogNumber, context, baseResult);
     if (!baseResult) {
       const { emptyResult } = await import("./normalizer.js");
       return emptyResult(this.id, catalogNumber, `No Schmersal product page found for ${catalogNumber}.`);
@@ -61,7 +53,14 @@ export class SchmersalConnector implements ManufacturerConnector {
       return withSchmersalDocuments(baseResult, baseResult.documents.filter((doc) => doc.type === "image"));
     }
 
-    const page = await fetchBestSchmersalPage(baseResult, catalogNumber, context);
+    let page = await fetchBestSchmersalPage(baseResult, catalogNumber, context);
+    if (!page) {
+      const rescued = await rescueSchmersalResultFromSearch(catalogNumber, context, baseResult, { force: true });
+      if (rescued && rescued !== baseResult) {
+        baseResult = rescued;
+        page = await fetchBestSchmersalPage(baseResult, catalogNumber, context);
+      }
+    }
     if (!page) {
       return withSchmersalDocuments(baseResult, baseResult.documents.filter((doc) => doc.type === "image"));
     }
@@ -90,6 +89,30 @@ function schmersalSources(context: ScrapeContext): FallbackSourceConfig[] {
     fetchPolicy: { timeoutMs: 30000, minContentLength: 1000 }
   }));
   return [...searchTemplates, ...context.manufacturer.fallbackSources];
+}
+
+async function rescueSchmersalResultFromSearch(
+  catalogNumber: string,
+  context: ScrapeContext,
+  currentResult?: ProductResult,
+  options: { force?: boolean } = {}
+): Promise<ProductResult | undefined> {
+  if (!options.force && !shouldUseSchmersalSearchRescue(currentResult)) return currentResult;
+  const detailUrl = await discoverSchmersalDetailUrl(catalogNumber, context, currentResult?.productUrl);
+  if (!detailUrl) return currentResult;
+  if (sameUrl(currentResult?.productUrl, detailUrl) && currentResult?.status !== "failed") return currentResult;
+
+  const detailResult = await context.fallback.scrape(catalogNumber, [schmersalDetailSource(detailUrl)]);
+  return detailResult && detailResult.status !== "failed" ? detailResult : currentResult;
+}
+
+function shouldUseSchmersalSearchRescue(result: ProductResult | undefined): boolean {
+  if (!result) return true;
+  if (result.status === "failed") return true;
+  if (isSchmersalSearchUrl(result.productUrl)) return true;
+  if (!isOfficialSchmersalDetailUrl(result.productUrl)) return true;
+  if (!result.documents.some((doc) => doc.type === "image")) return true;
+  return result.attributes.length === 0 && result.documents.length === 0;
 }
 
 function schmersalDetailSource(url: string): FallbackSourceConfig {
@@ -468,6 +491,33 @@ function isSchmersalSearchUrl(url: string | undefined): boolean {
     return parsed.hostname.toLowerCase() === "products.schmersal.com" && /\/search(?:\/|$)/i.test(parsed.pathname);
   } catch {
     return /products\.schmersal\.com\/[^/]+\/search/i.test(url);
+  }
+}
+
+function isOfficialSchmersalDetailUrl(url: string | undefined): boolean {
+  if (!url) return false;
+  try {
+    const parsed = new URL(url);
+    return (
+      parsed.hostname.toLowerCase() === "products.schmersal.com" &&
+      !/\/search(?:\/|$)/i.test(parsed.pathname) &&
+      /\/(?:de_DE|en_US|en_GB)\/[^/?#]+-\d{6,}(?:[/?#]|$)/i.test(parsed.pathname)
+    );
+  } catch {
+    return false;
+  }
+}
+
+function sameUrl(left: string | undefined, right: string | undefined): boolean {
+  if (!left || !right) return false;
+  try {
+    const leftUrl = new URL(left);
+    const rightUrl = new URL(right);
+    leftUrl.hash = "";
+    rightUrl.hash = "";
+    return leftUrl.toString().toLowerCase() === rightUrl.toString().toLowerCase();
+  } catch {
+    return left.trim().toLowerCase() === right.trim().toLowerCase();
   }
 }
 
