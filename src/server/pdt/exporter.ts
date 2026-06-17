@@ -18,6 +18,8 @@ import { bestFact, buildPdtFactIndex, factsMatchingValue, type PdtFact, type Pdt
 import { additionalPdtSheetsRule, pdtColumnAllowRule, pdtSheetOverrideRule } from "./rules.js";
 
 const DOCUMENTS_SHEET = "Additional Documents";
+const CABINET_SHEET = "cabinet";
+const CABINET_MECHANICAL_SHEET = "cabinet.mechanical";
 /** Always kept even when empty (the manual PDT keeps this tab as a placeholder). */
 const ALWAYS_KEPT_SHEETS = ["Connection Point Information", "Product Accessory"];
 const MISSING_REQUIRED_FILL: ExcelJS.Fill = {
@@ -141,6 +143,7 @@ export async function exportRunPdt(input: {
 
   // Uniform (property-per-column) tabs map to the ordered products written into each tab.
   const sheetItems = new Map<string, RunItemRecord[]>();
+  const keepEmptySheets = new Set<string>();
   const missingSheets = new Set<string>();
   const unmappedDeviceTypes = new Set<string>();
   const unclassifiedCatalogNumbers = new Set<string>();
@@ -160,7 +163,8 @@ export async function exportRunPdt(input: {
       : [...targetSheets(deviceType), ...additionalDeviceSheetsForItem(item, manufacturer, deviceType)];
     // Only constant tabs were chosen and no device tab matched → note for diagnostics.
     if (deviceType && sheets.length === CONSTANT_SHEETS.length) unmappedDeviceTypes.add(deviceType);
-    for (const sheetName of sheets) {
+    const writableSheets = companionEmptySheetsFor(sheets, keepEmptySheets);
+    for (const sheetName of writableSheets) {
       if (canonicalSheetKey(sheetName) === canonicalSheetKey(DOCUMENTS_SHEET)) continue; // handled separately below
       const resolved = resolveSheetName(sheetName);
       if (!resolved) {
@@ -205,11 +209,25 @@ export async function exportRunPdt(input: {
     if (accessoryRows > 0) filledSheets[productAccessoryWs.name] = accessoryRows;
   }
 
+  for (const sheetName of keepEmptySheets) {
+    const resolved = resolveSheetName(sheetName);
+    if (!resolved) {
+      missingSheets.add(sheetName);
+      continue;
+    }
+    const ws = workbook.getWorksheet(resolved);
+    if (ws) {
+      if (sheetItems.has(resolved)) continue;
+      clearUniformSheet(ws);
+      filledSheets[ws.name] = 0;
+    }
+  }
+
   // Mirror the manual PDT: keep only the tabs actually in use (Material Master Data + the used
   // device tabs, both in `sheetItems`) plus Additional Documents and the always-kept placeholders.
   // Drop every other template tab so the workbook isn't cluttered with 50+ unused classifications.
   const keepKeys = new Set<string>(
-    [...sheetItems.keys(), DOCUMENTS_SHEET, ...ALWAYS_KEPT_SHEETS].map(canonicalSheetKey)
+    [...sheetItems.keys(), ...keepEmptySheets, DOCUMENTS_SHEET, ...ALWAYS_KEPT_SHEETS].map(canonicalSheetKey)
   );
   const removedSheets: string[] = [];
   for (const ws of [...workbook.worksheets]) {
@@ -465,6 +483,19 @@ function additionalDeviceSheetsForItem(item: RunItemRecord, manufacturer: Manufa
 /** Hard override: when set, REPLACES device-type sheets entirely (only constant tabs + these are written). */
 function overrideDeviceSheetsForItem(item: RunItemRecord, manufacturer: ManufacturerConfig, deviceType: string | undefined): string[] | null {
   return pdtSheetOverrideRule({ item, manufacturer, deviceType })?.value ?? null;
+}
+
+function companionEmptySheetsFor(sheets: string[], keepEmptySheets: Set<string>): string[] {
+  const hasCabinet = sheets.some((sheet) => canonicalSheetKey(sheet) === canonicalSheetKey(CABINET_SHEET));
+  if (!hasCabinet) return sheets;
+  keepEmptySheets.add(CABINET_MECHANICAL_SHEET);
+  return sheets.filter((sheet) => canonicalSheetKey(sheet) !== canonicalSheetKey(CABINET_MECHANICAL_SHEET));
+}
+
+function clearUniformSheet(ws: ExcelJS.Worksheet): void {
+  const descriptor = describeSheet(ws);
+  if (descriptor) clearBody(ws, descriptor.firstBodyRow);
+  removeTemplateLabelColumn(ws);
 }
 
 /**

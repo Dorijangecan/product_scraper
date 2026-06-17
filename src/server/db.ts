@@ -348,9 +348,23 @@ export class ScraperDb {
       .run(now, now, runId);
   }
 
+  pauseActiveRunItems(runId: string) {
+    const now = new Date().toISOString();
+    this.db
+      .prepare(
+        "UPDATE run_items SET status = 'pending', stage = 'paused', stage_message = 'Paused by user. Resume this run to continue.', stage_started_at = ?, error = NULL, updated_at = ? WHERE run_id = ? AND status = 'processing'"
+      )
+      .run(now, now, runId);
+  }
+
   isCancellationRequested(runId: string): boolean {
     const row = this.db.prepare("SELECT status FROM runs WHERE id = ?").get(runId) as { status: RunStatus } | undefined;
     return row?.status === "cancelling" || row?.status === "cancelled";
+  }
+
+  isPauseRequested(runId: string): boolean {
+    const row = this.db.prepare("SELECT status FROM runs WHERE id = ?").get(runId) as { status: RunStatus } | undefined;
+    return row?.status === "pausing" || row?.status === "paused";
   }
 
   updateRunItem(

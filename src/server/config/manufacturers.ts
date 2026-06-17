@@ -201,6 +201,7 @@ const builtInManufacturerConfigs: Record<string, ManufacturerConfig> = {
     canonicalName: "Schmersal",
     shortName: "SCH",
     rateLimitMs: 1500,
+    concurrency: 4,
     officialBaseUrls: ["https://products.schmersal.com"],
     homepageUrl: "https://www.schmersal.com/en/",
     localizedUrlTemplates: [

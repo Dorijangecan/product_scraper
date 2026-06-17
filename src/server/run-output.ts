@@ -8,7 +8,9 @@ export interface RunOutputLayout {
   runDir: string;
   excelDir: string;
   documentsDir: string;
+  cadDir: string;
   imagesDir: string;
+  linksDir: string;
   logsDir: string;
   customerDocumentsDir: string;
   logPath: string;
@@ -27,7 +29,9 @@ export function buildRunOutputLayout(outputRoot: string, manufacturer: Manufactu
     : path.join(inputDir, safeOutputPart(runFolderName(runInput), safeOutputPart(runInput.id), 120));
   const excelDir = path.join(runDir, "excel");
   const documentsDir = path.join(runDir, "documents");
+  const cadDir = path.join(runDir, "cad");
   const imagesDir = path.join(runDir, "images");
+  const linksDir = path.join(runDir, "links");
   const logsDir = path.join(runDir, "logs");
   const customerDocumentsDir = path.join(runDir, "customer-documents");
   return {
@@ -36,7 +40,9 @@ export function buildRunOutputLayout(outputRoot: string, manufacturer: Manufactu
     runDir,
     excelDir,
     documentsDir,
+    cadDir,
     imagesDir,
+    linksDir,
     logsDir,
     customerDocumentsDir,
     logPath: path.join(logsDir, "run-log.txt"),
@@ -48,7 +54,9 @@ export async function ensureRunOutputLayout(layout: RunOutputLayout) {
   await Promise.all([
     fs.mkdir(layout.excelDir, { recursive: true }),
     fs.mkdir(layout.documentsDir, { recursive: true }),
+    fs.mkdir(layout.cadDir, { recursive: true }),
     fs.mkdir(layout.imagesDir, { recursive: true }),
+    fs.mkdir(layout.linksDir, { recursive: true }),
     fs.mkdir(layout.logsDir, { recursive: true }),
     fs.mkdir(layout.customerDocumentsDir, { recursive: true })
   ]);

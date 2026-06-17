@@ -801,9 +801,59 @@ textarea:focus {
   line-height: 1.35;
 }
 
+.run-checkbox-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
+.run-checkbox-card {
+  display: grid;
+  grid-template-columns: 16px 1fr;
+  gap: 9px;
+  align-items: start;
+  padding: 9px 10px;
+  border: 1px solid rgba(83, 99, 117, 0.78);
+  border-radius: 7px;
+  background: rgba(21, 28, 37, 0.92);
+  cursor: pointer;
+}
+
+.run-checkbox-card.is-selected {
+  border-color: rgba(100, 217, 133, 0.78);
+  background: rgba(100, 217, 133, 0.08);
+}
+
+.run-checkbox-card input {
+  width: 14px;
+  height: 14px;
+  margin: 2px 0 0;
+  accent-color: var(--accent);
+}
+
+.run-checkbox-card span {
+  min-width: 0;
+}
+
+.run-checkbox-card strong {
+  display: block;
+  font-size: 12px;
+  line-height: 1.15;
+  text-transform: uppercase;
+}
+
+.run-checkbox-card small {
+  display: block;
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.25;
+}
+
 .primary-action,
 .secondary-action,
 .download-button,
+.pause-button,
 .cancel-button,
 .alert button {
   display: inline-flex;
@@ -940,6 +990,22 @@ textarea:focus {
 .download-button.secondary:hover {
   background: rgba(110, 203, 255, 0.18);
   color: #c5ebff;
+}
+
+.pause-button {
+  padding: 0 12px;
+  border: 1px solid rgba(240, 185, 90, 0.45);
+  background: var(--warn-soft);
+  color: #f4ca7c;
+}
+
+.pause-button:hover:not(:disabled) {
+  background: rgba(240, 185, 90, 0.18);
+}
+
+.pause-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.68;
 }
 
 .cancel-button {
@@ -1725,6 +1791,7 @@ tbody tr:hover {
   color: var(--warn);
 }
 
+.run-pausing,
 .run-cancelling {
   border-color: rgba(255, 157, 89, 0.42);
   background: rgba(255, 157, 89, 0.13);
@@ -1751,6 +1818,7 @@ tbody tr:hover {
   color: var(--bad);
 }
 
+.run-paused,
 .run-cancelled,
 .item-cancelled {
   border-color: rgba(119, 131, 146, 0.36);

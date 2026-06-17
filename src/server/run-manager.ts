@@ -1,6 +1,7 @@
 import crypto from "node:crypto";
 import fs from "node:fs/promises";
 import path from "node:path";
+import sanitize from "sanitize-filename";
 import type {
   CustomerDocumentRecord,
   DocumentDownloadProfile as SharedDocumentDownloadProfile,
@@ -40,9 +41,17 @@ export type DocumentDownloadProfile = SharedDocumentDownloadProfile;
 
 const INTERRUPTED_RUN_RESUME_WINDOW_MS = 5 * 60 * 1000;
 
+interface LocalDownloadSelection {
+  images: boolean;
+  pdfs: boolean;
+  cad: boolean;
+}
+
 export class RunManager {
   private activeRuns = new Map<string, AbortController>();
   private instantlyCancelledRuns = new Set<string>();
+  private pausedRuns = new Set<string>();
+  private resumeAfterPauseRuns = new Set<string>();
 
   constructor(
     private readonly db: ScraperDb,
@@ -62,8 +71,12 @@ export class RunManager {
   }
 
   resumeInterruptedRuns() {
-    const resumable = this.db.listRunsByStatus(["queued", "running", "cancelling"]);
+    const resumable = this.db.listRunsByStatus(["queued", "running", "pausing", "cancelling"]);
     for (const run of resumable) {
+      if (run.status === "pausing") {
+        void this.finalizePausedRun(run.id);
+        continue;
+      }
       if (this.isStaleInterruptedRun(run)) {
         this.db.cancelActiveRunItems(run.id);
         this.db.recountRun(run.id);
@@ -85,12 +98,74 @@ export class RunManager {
     if (!run) return undefined;
     if (run.status === "completed" || run.status === "failed" || run.status === "cancelled") return run;
 
+    this.pausedRuns.delete(run.id);
+    this.resumeAfterPauseRuns.delete(run.id);
     this.instantlyCancelledRuns.add(run.id);
     this.db.updateRun(run.id, { status: "cancelled", error: "Cancelled by user." });
     this.db.cancelActiveRunItems(run.id);
     this.db.recountRun(run.id);
     this.activeRuns.get(run.id)?.abort();
     return this.db.getRun(run.id);
+  }
+
+  async pauseRun(runId: string): Promise<RunRecord | undefined> {
+    const run = this.db.getRun(runId);
+    if (!run) return undefined;
+    if (run.status === "completed" || run.status === "failed" || run.status === "cancelled" || run.status === "paused") return run;
+    if (run.status === "pausing") return run;
+
+    this.resumeAfterPauseRuns.delete(run.id);
+    this.pausedRuns.add(run.id);
+    this.db.updateRun(run.id, {
+      status: "pausing",
+      activityStage: "pausing",
+      activityMessage: "Pausing active work. The current row will be retried on resume.",
+      error: undefined
+    });
+    const controller = this.activeRuns.get(run.id);
+    if (controller) {
+      controller.abort();
+      this.finalizePauseSoon(run.id);
+      return this.db.getRun(run.id);
+    }
+    await this.finalizePausedRun(run.id);
+    return this.db.getRun(run.id);
+  }
+
+  async resumeRun(runId: string): Promise<RunRecord | undefined> {
+    const run = this.db.getRun(runId);
+    if (!run) return undefined;
+    if (run.status !== "paused" && run.status !== "pausing") return run;
+
+    if (this.activeRuns.has(run.id)) {
+      this.resumeAfterPauseRuns.add(run.id);
+      if (run.status === "pausing") {
+        await this.finalizePausedRun(run.id);
+      }
+      return this.db.getRun(run.id);
+    }
+
+    this.pausedRuns.delete(run.id);
+    this.resumeAfterPauseRuns.delete(run.id);
+    this.db.updateRun(run.id, {
+      status: "queued",
+      activityStage: undefined,
+      activityMessage: undefined,
+      activityStartedAt: undefined,
+      error: undefined
+    });
+    void this.processRun(run.id);
+    return this.db.getRun(run.id);
+  }
+
+  private finalizePauseSoon(runId: string) {
+    const timer = setTimeout(() => {
+      const run = this.db.getRun(runId);
+      if (run?.status === "pausing") {
+        void this.finalizePausedRun(runId);
+      }
+    }, 2500);
+    timer.unref?.();
   }
 
   private updateItemStage(
@@ -125,12 +200,21 @@ export class RunManager {
     try {
       const run = this.db.getRun(runId);
       if (!run) return;
+      if (run.status === "paused") return;
       const rawManufacturer = getManufacturerConfig(run.manufacturerId);
       if (!rawManufacturer) throw new Error(`Unknown manufacturer ${run.manufacturerId}`);
       const connector = getConnector(run.manufacturerId);
-      const downloadDocumentsEnabled = run.options?.downloadDocuments !== false;
+      const downloadPdfsEnabled = run.options?.downloadPdfs ?? run.options?.downloadDocuments ?? false;
+      const downloadCadEnabled = run.options?.downloadCad ?? run.options?.downloadDocuments ?? false;
+      const downloadDocumentsEnabled = downloadPdfsEnabled || downloadCadEnabled;
       const downloadImagesEnabled = run.options?.downloadImages !== false;
       const generateExcelEnabled = run.options?.generateExcel !== false;
+      const generateLinksFileEnabled = run.options?.generateLinksFile === true;
+      const localDownloads: LocalDownloadSelection = {
+        images: downloadImagesEnabled,
+        pdfs: downloadPdfsEnabled,
+        cad: downloadCadEnabled
+      };
       const documentDownloadsForEnrichmentEnabled = shouldDownloadDocumentsForRun(rawManufacturer, {
         downloadDocuments: downloadDocumentsEnabled,
         generateExcel: generateExcelEnabled
@@ -138,7 +222,8 @@ export class RunManager {
       // "Images only" mode: no Excel, no documents, just the PNGs. Treat the whole pipeline
       // as a fast path — skip Playwright modal renders, fallback retries, and PDF
       // enrichment, since none of those affect the saved images.
-      const imageOnlyMode = !generateExcelEnabled && !downloadDocumentsEnabled && downloadImagesEnabled;
+      const imageOnlyMode = !generateExcelEnabled && !generateLinksFileEnabled && !downloadDocumentsEnabled && downloadImagesEnabled;
+      const linksOnlyMode = generateLinksFileEnabled && !generateExcelEnabled && !downloadImagesEnabled && !downloadDocumentsEnabled;
       // When the user disables document downloads, the quality gate must not demand non-image
       // documents (datasheet/manual/etc.) — otherwise it always "fails", spawning fallback work
       // that re-fetches and re-renders pages to look for a PDF we never intend to download.
@@ -155,14 +240,19 @@ export class RunManager {
       if (customerDocuments.length) {
         this.db.updateRunOptions(run.id, { customerDocuments });
       }
+      const assetOnlyMode = !generateExcelEnabled && customerDocuments.length === 0;
       await this.appendRunLog(layout, "RUN_START", {
         runId: run.id,
         manufacturer: manufacturer.shortName,
         inputFileName: run.inputFileName,
         total: run.total,
         downloadDocuments: downloadDocumentsEnabled,
+        downloadPdfs: downloadPdfsEnabled,
+        downloadCad: downloadCadEnabled,
         documentDownloadsForEnrichment: documentDownloadsForEnrichmentEnabled,
         downloadImages: downloadImagesEnabled,
+        generateExcel: generateExcelEnabled,
+        generateLinksFile: generateLinksFileEnabled,
         customerDocumentCount: customerDocuments.length,
         outputFolder: layout.runDir
       });
@@ -171,6 +261,10 @@ export class RunManager {
         if (!this.wasInstantlyCancelled(run.id)) {
           await this.finalizeRun(run.id, "cancelled");
         }
+        return;
+      }
+      if (this.db.isPauseRequested(run.id)) {
+        await this.finalizePausedRun(run.id, layout);
         return;
       }
       this.db.updateRun(run.id, { status: "running", error: undefined });
@@ -192,6 +286,7 @@ export class RunManager {
 
       const layoutRef = layout!;
       const processItem = async (item: typeof pending[number]): Promise<void> => {
+        if (this.db.isPauseRequested(run.id)) return;
         if (this.db.isCancellationRequested(run.id) || controller.signal.aborted) return;
         await this.appendRunLog(layoutRef, "ITEM_START", { rowIndex: item.rowIndex, catalogNumber: item.catalogNumber });
         // layoutRef is captured via closure (declared above); avoid touching outer `layout` inside this hot path
@@ -261,17 +356,21 @@ export class RunManager {
               this.downloadDocument(
                 http,
                 layout!.documentsDir,
+                layout!.cadDir,
                 layout!.imagesDir,
                 manufacturer.shortName,
                 item.catalogNumber,
                 doc,
-                documentDownloadsForEnrichmentEnabled,
+                localDownloads,
                 controller.signal,
                 undefined,
-                downloadImagesEnabled,
                 sharedDocumentDownloads
               )
           });
+          if (this.db.isPauseRequested(run.id)) {
+            await this.markItemPaused(run.id, item, layoutRef);
+            return;
+          }
           if (this.db.isCancellationRequested(run.id) || controller.signal.aborted) {
             this.updateItemStage(item.id, "cancelled", "Cancelled by user.", { status: "cancelled", error: "Cancelled by user." });
             await this.appendRunLog(layoutRef, "ITEM_CANCELLED", { catalogNumber: item.catalogNumber });
@@ -284,13 +383,13 @@ export class RunManager {
           const withInitialDownloads = await this.downloadDocuments(
             http,
             layoutRef.documentsDir,
+            layoutRef.cadDir,
             layoutRef.imagesDir,
             manufacturer.shortName,
             initiallyGated,
-            documentDownloadsForEnrichmentEnabled,
+            localDownloads,
             controller.signal,
             documentDownloadProfile(manufacturer, initiallyGated, { saveDocuments: downloadDocumentsEnabled }),
-            downloadImagesEnabled,
             item.catalogNumber,
             sharedDocumentDownloads
           );
@@ -338,7 +437,10 @@ export class RunManager {
               });
             }
           }
-          if (imageOnlyMode) {
+          if (imageOnlyMode || assetOnlyMode) {
+            enriched = withInitialDownloads;
+            fallbackStages = enriched.diagnostics?.fallbackStages;
+          } else if (linksOnlyMode) {
             enriched = withInitialDownloads;
             fallbackStages = enriched.diagnostics?.fallbackStages;
           } else if (customerEarlyShortCircuit) {
@@ -370,14 +472,14 @@ export class RunManager {
                 this.downloadDocument(
                   http,
                   layoutRef.documentsDir,
+                  layoutRef.cadDir,
                   layoutRef.imagesDir,
                   manufacturer.shortName,
                   item.catalogNumber,
                   doc,
-                  documentDownloadsForEnrichmentEnabled,
+                  localDownloads,
                   controller.signal,
                   undefined,
-                  downloadImagesEnabled,
                   sharedDocumentDownloads
                 )
             });
@@ -385,13 +487,13 @@ export class RunManager {
             const withFallbackDownloads = await this.downloadDocuments(
               http,
               layoutRef.documentsDir,
+              layoutRef.cadDir,
               layoutRef.imagesDir,
               manufacturer.shortName,
               withSmartFallbacks,
-              documentDownloadsForEnrichmentEnabled,
+              localDownloads,
               controller.signal,
               documentDownloadProfile(manufacturer, withSmartFallbacks, { saveDocuments: downloadDocumentsEnabled }),
-              downloadImagesEnabled,
               item.catalogNumber,
               sharedDocumentDownloads
             );
@@ -454,30 +556,30 @@ export class RunManager {
               },
               downloadDocument: (doc) =>
                 this.downloadDocument(
-                  http,
-                  layoutRef.documentsDir,
-                  layoutRef.imagesDir,
-                  manufacturer.shortName,
-                  item.catalogNumber,
-                  doc,
-                  documentDownloadsForEnrichmentEnabled,
-                  controller.signal,
-                  undefined,
-                  downloadImagesEnabled,
-                  sharedDocumentDownloads
-                )
+                http,
+                layoutRef.documentsDir,
+                layoutRef.cadDir,
+                layoutRef.imagesDir,
+                manufacturer.shortName,
+                item.catalogNumber,
+                doc,
+                localDownloads,
+                controller.signal,
+                undefined,
+                sharedDocumentDownloads
+              )
             });
             this.updateItemStage(item.id, "downloads", "Downloading final retry images and documents");
             const withFinalCompletenessDownloads = await this.downloadDocuments(
               http,
               layoutRef.documentsDir,
+              layoutRef.cadDir,
               layoutRef.imagesDir,
               manufacturer.shortName,
               withFinalCompletenessFallbacks,
-              documentDownloadsForEnrichmentEnabled,
+              localDownloads,
               controller.signal,
               documentDownloadProfile(manufacturer, withFinalCompletenessFallbacks, { saveDocuments: downloadDocumentsEnabled }),
-              downloadImagesEnabled,
               item.catalogNumber,
               sharedDocumentDownloads
             );
@@ -577,6 +679,10 @@ export class RunManager {
           }
           this.updateItemStage(item.id, "evidence", "Attaching source evidence");
           enriched = attachEvidence(enriched);
+          if (this.db.isPauseRequested(run.id)) {
+            await this.markItemPaused(run.id, item, layoutRef);
+            return;
+          }
           if (this.db.isCancellationRequested(run.id) || controller.signal.aborted) {
             this.updateItemStage(item.id, "cancelled", "Cancelled by user.", { status: "cancelled", error: "Cancelled by user." });
             await this.appendRunLog(layoutRef, "ITEM_CANCELLED", { catalogNumber: item.catalogNumber });
@@ -607,6 +713,10 @@ export class RunManager {
             error: enriched.error
           });
         } catch (error) {
+          if (this.db.isPauseRequested(run.id) || this.pausedRuns.has(run.id)) {
+            await this.markItemPaused(run.id, item, layoutRef);
+            return;
+          }
           if (controller.signal.aborted || this.db.isCancellationRequested(run.id)) {
             this.updateItemStage(item.id, "cancelled", "Cancelled by user.", {
               status: "cancelled",
@@ -629,16 +739,29 @@ export class RunManager {
 
       try {
         const concurrency = Math.max(1, Math.min(manufacturer.concurrency ?? 3, 8));
-        await runWithConcurrency(pending, concurrency, processItem, () => this.db.isCancellationRequested(run.id) || controller.signal.aborted);
+        await runWithConcurrency(
+          pending,
+          concurrency,
+          processItem,
+          () => this.db.isPauseRequested(run.id) || this.db.isCancellationRequested(run.id) || controller.signal.aborted
+        );
       } finally {
         await browserRenderer.close();
       }
 
+      if (this.db.isPauseRequested(run.id) || this.pausedRuns.has(run.id)) {
+        await this.finalizePausedRun(run.id, layout);
+        return;
+      }
       const status = this.db.isCancellationRequested(run.id) || controller.signal.aborted ? "cancelled" : "completed";
       if (status === "cancelled") this.db.cancelActiveRunItems(run.id);
       if (status === "cancelled" && this.wasInstantlyCancelled(run.id)) return;
       await this.finalizeRun(run.id, status);
     } catch (error) {
+      if (this.db.isPauseRequested(runId) || this.pausedRuns.has(runId)) {
+        await this.finalizePausedRun(runId, layout);
+        return;
+      }
       if (controller.signal.aborted || this.db.isCancellationRequested(runId)) {
         this.db.cancelActiveRunItems(runId);
         if (!this.wasInstantlyCancelled(runId)) {
@@ -655,13 +778,65 @@ export class RunManager {
         await this.writeRunDebugBundle(layout, runId);
       }
     } finally {
+      const shouldResumeAfterPause = this.resumeAfterPauseRuns.has(runId) && this.db.getRun(runId)?.status === "paused";
       this.activeRuns.delete(runId);
       this.instantlyCancelledRuns.delete(runId);
+      this.pausedRuns.delete(runId);
+      if (shouldResumeAfterPause) {
+        this.resumeAfterPauseRuns.delete(runId);
+        this.db.updateRun(runId, {
+          status: "queued",
+          activityStage: undefined,
+          activityMessage: undefined,
+          activityStartedAt: undefined,
+          error: undefined
+        });
+        void this.processRun(runId);
+      }
     }
   }
 
   private wasInstantlyCancelled(runId: string): boolean {
     return this.instantlyCancelledRuns.has(runId) || this.db.getRun(runId)?.status === "cancelled";
+  }
+
+  private async markItemPaused(runId: string, item: RunItemRecord, layout: RunOutputLayout) {
+    this.updateItemStage(item.id, "paused", "Paused by user. This row will be retried on resume.", {
+      status: "pending",
+      error: undefined
+    });
+    await this.appendRunLog(layout, "ITEM_PAUSED", { catalogNumber: item.catalogNumber });
+    this.db.recountRun(runId);
+  }
+
+  private async finalizePausedRun(runId: string, layout?: RunOutputLayout) {
+    const run = this.db.getRun(runId);
+    if (!run) return;
+    this.db.pauseActiveRunItems(runId);
+    this.db.recountRun(runId);
+    this.db.updateRun(runId, {
+      status: "paused",
+      activityStage: undefined,
+      activityMessage: undefined,
+      activityStartedAt: undefined,
+      error: undefined
+    });
+    const layoutRef =
+      layout ??
+      (() => {
+        const manufacturer = getManufacturerConfig(run.manufacturerId);
+        return manufacturer ? buildRunOutputLayout(this.paths.outputDir, manufacturer, run) : undefined;
+      })();
+    if (layoutRef) {
+      await ensureRunOutputLayout(layoutRef);
+      const updatedRun = this.db.getRun(runId);
+      await this.appendRunLog(layoutRef, "RUN_PAUSED", {
+        processed: updatedRun?.processed,
+        total: updatedRun?.total,
+        pending: Math.max(0, (updatedRun?.total ?? 0) - (updatedRun?.processed ?? 0))
+      });
+      await this.writeRunDebugBundle(layoutRef, runId);
+    }
   }
 
   private async finalizeRun(runId: string, status: "completed" | "cancelled") {
@@ -674,6 +849,7 @@ export class RunManager {
     await ensureRunOutputLayout(layout);
     // "Images only" mode skips workbook generation; everything else still produces one.
     const shouldGenerateExcel = finalRun.options?.generateExcel !== false;
+    const shouldGenerateLinksFile = finalRun.options?.generateLinksFile === true;
     const outputPath = shouldGenerateExcel
       ? await (async () => {
           const { exportRunWorkbook } = await import("./excel.js");
@@ -686,6 +862,9 @@ export class RunManager {
             onActivity: (activity) => this.updateRunActivity(runId, activity.stage, activity.message)
           });
         })()
+      : undefined;
+    const linksPath = shouldGenerateLinksFile
+      ? await this.writeDeviceLinksFile(layout, this.db.getRunItems(runId))
       : undefined;
     this.db.updateRun(runId, {
       status,
@@ -703,22 +882,44 @@ export class RunManager {
       partial: updatedRun?.partial,
       failed: updatedRun?.failed,
       excelPath: outputPath,
+      linksPath,
       logPath: layout.logPath,
       debugJsonPath: layout.debugJsonPath
     });
     await this.writeRunDebugBundle(layout, runId);
   }
 
+  private async writeDeviceLinksFile(layout: RunOutputLayout, items: RunItemRecord[]): Promise<string> {
+    await fs.mkdir(layout.linksDir, { recursive: true });
+    const outputPath = path.join(layout.linksDir, "device-links.csv");
+    const lines = [
+      ["Row", "Catalog Number", "Status", "Title", "Device URL"].map(csvCell).join(","),
+      ...items.map((item) =>
+        [
+          String(item.rowIndex),
+          item.catalogNumber,
+          item.status,
+          item.title ?? item.result?.title ?? "",
+          item.productUrl ?? item.result?.productUrl ?? ""
+        ]
+          .map(csvCell)
+          .join(",")
+      )
+    ];
+    await fs.writeFile(outputPath, `${lines.join("\n")}\n`, "utf8");
+    return outputPath;
+  }
+
   private async downloadDocuments(
     http: CachedHttpClient,
     documentsDir: string,
+    cadDir: string,
     imagesDir: string,
     manufacturerShortName: string,
     result: ProductResult,
-    downloadDocumentsEnabled: boolean,
+    selection: LocalDownloadSelection,
     signal?: AbortSignal,
     profile: DocumentDownloadProfile = "full",
-    downloadImagesEnabled: boolean = true,
     catalogNumberForFiles: string = result.catalogNumber,
     sharedDocumentDownloads?: Map<string, Promise<string>>
   ): Promise<ProductResult> {
@@ -731,7 +932,7 @@ export class RunManager {
     const profileTypeCounts = new Map<DocumentRecord["type"], number>();
     for (const doc of rankedDocuments) {
       if (signal?.aborted) throw new Error("Cancelled by user.");
-      if (doc.type === "image" && !downloadImagesEnabled) {
+      if (doc.type === "image" && !selection.images) {
         documents.push({
           ...doc,
           downloadStatus: "skipped",
@@ -739,11 +940,12 @@ export class RunManager {
         });
         continue;
       }
-      if (doc.type !== "image" && !downloadDocumentsEnabled) {
+      const selectionCheck = shouldSaveForSelection(doc, selection);
+      if (!selectionCheck.enabled) {
         documents.push({
           ...doc,
           downloadStatus: "skipped",
-          downloadError: "Document downloads disabled for this run."
+          downloadError: selectionCheck.reason
         });
         continue;
       }
@@ -776,7 +978,21 @@ export class RunManager {
         nonImageDownloadCount += 1;
         profileTypeCounts.set(doc.type, (profileTypeCounts.get(doc.type) ?? 0) + 1);
       }
-      documents.push(await this.downloadDocument(http, documentsDir, imagesDir, manufacturerShortName, catalogNumberForFiles, doc, downloadDocumentsEnabled, signal, indexForDoc, downloadImagesEnabled, sharedDocumentDownloads));
+      documents.push(
+        await this.downloadDocument(
+          http,
+          documentsDir,
+          cadDir,
+          imagesDir,
+          manufacturerShortName,
+          catalogNumberForFiles,
+          doc,
+          selection,
+          signal,
+          indexForDoc,
+          sharedDocumentDownloads
+        )
+      );
       if (doc.type === "image") imageIndex += 1;
       downloadCount += 1;
     }
@@ -786,29 +1002,30 @@ export class RunManager {
   private async downloadDocument(
     http: CachedHttpClient,
     documentsDir: string,
+    cadDir: string,
     imagesDir: string,
     manufacturerShortName: string,
     catalogNumber: string,
     doc: DocumentRecord,
-    downloadDocumentsEnabled: boolean,
+    selection: LocalDownloadSelection,
     signal?: AbortSignal,
     imageIndex?: number,
-    downloadImagesEnabled: boolean = true,
     sharedDocumentDownloads?: Map<string, Promise<string>>
   ): Promise<DocumentRecord> {
     if (doc.localPath) return doc;
-    if (doc.type === "image" && !downloadImagesEnabled) {
+    if (doc.type === "image" && !selection.images) {
       return {
         ...doc,
         downloadStatus: "skipped",
         downloadError: "Image downloads disabled for this run."
       };
     }
-    if (doc.type !== "image" && !downloadDocumentsEnabled) {
+    const selectionCheck = shouldSaveForSelection(doc, selection);
+    if (!selectionCheck.enabled) {
       return {
         ...doc,
         downloadStatus: "skipped",
-        downloadError: "Document downloads disabled for this run."
+        downloadError: selectionCheck.reason
       };
     }
     if (doc.type !== "image" && !shouldDownloadLocalDocument(doc)) {
@@ -826,8 +1043,9 @@ export class RunManager {
       }
       const extension = documentExtension(doc.url, doc.type);
       const suggestedName = `${catalogNumber}-${doc.type}-${safeLabel(doc.label)}${extension}`;
-      const localPath = await sharedDocumentDownload(sharedDocumentDownloads, doc.url, () =>
-        http.downloadFile(doc.url, documentsDir, suggestedName, signal)
+      const targetDir = doc.type === "cad" ? cadDir : documentsDir;
+      const localPath = await sharedDocumentDownload(sharedDocumentDownloads, doc.url, targetDir, suggestedName, () =>
+        http.downloadFile(doc.url, targetDir, suggestedName, signal)
       );
       return { ...doc, localPath, downloadStatus: "downloaded", downloadError: undefined };
     } catch (error) {
@@ -987,6 +1205,10 @@ function safeLabel(label: string): string {
     .slice(0, 48) || "document";
 }
 
+function csvCell(value: string): string {
+  return `"${value.replace(/"/g, '""')}"`;
+}
+
 function documentExtension(url: string, type: DocumentRecord["type"]): string {
   const parsed = new URL(url);
   const fromPath = path.extname(parsed.pathname);
@@ -1041,18 +1263,50 @@ function shouldDownloadLocalDocument(doc: DocumentRecord): boolean {
   if (doc.type === "image") return true;
   const extension = documentExtension(doc.url, doc.type).toLowerCase();
   if (extension === ".pdf") return true;
+  if (doc.type === "cad") {
+    return [".bin", ".zip", ".dwg", ".dxf", ".stp", ".step", ".igs", ".iges", ".sat", ".x_t", ".x_b", ".3dxml", ".prt", ".sldprt"].includes(extension);
+  }
   return false;
+}
+
+function shouldSaveForSelection(doc: DocumentRecord, selection: LocalDownloadSelection): { enabled: boolean; reason?: string } {
+  if (doc.type === "image") {
+    return selection.images
+      ? { enabled: true }
+      : { enabled: false, reason: "Image downloads disabled for this run." };
+  }
+  if (doc.type === "cad") {
+    return selection.cad
+      ? { enabled: true }
+      : { enabled: false, reason: "CAD downloads disabled for this run." };
+  }
+  if (!selection.pdfs) {
+    return { enabled: false, reason: "PDF downloads disabled for this run." };
+  }
+  if (!isPdfLikeDocument(doc)) {
+    return { enabled: false, reason: "Skipped non-PDF document; URL retained in workbook." };
+  }
+  return { enabled: true };
+}
+
+function isPdfLikeDocument(doc: DocumentRecord): boolean {
+  if (doc.type === "datasheet" || doc.type === "certificate" || doc.type === "manual") return true;
+  return documentExtension(doc.url, doc.type).toLowerCase() === ".pdf" || /pdfengine\/pdf/i.test(doc.url);
 }
 
 async function sharedDocumentDownload(
   downloads: Map<string, Promise<string>> | undefined,
   url: string,
+  targetDir: string,
+  suggestedName: string,
   download: () => Promise<string>
 ): Promise<string> {
   if (!downloads) return download();
   const key = canonicalDownloadUrl(url);
   const existing = downloads.get(key);
-  if (existing) return existing;
+  if (existing) {
+    return copySharedDownload(await existing, targetDir, suggestedName);
+  }
   const pending = download().catch((error) => {
     downloads.delete(key);
     throw error;
@@ -1061,10 +1315,28 @@ async function sharedDocumentDownload(
   return pending;
 }
 
+async function copySharedDownload(sourcePath: string, targetDir: string, suggestedName: string): Promise<string> {
+  await fs.mkdir(targetDir, { recursive: true });
+  const finalName = sanitize(suggestedName) || "document.pdf";
+  const sourceResolved = path.resolve(sourcePath);
+  let outputPath = path.join(targetDir, finalName);
+  let index = 2;
+  while (await exists(outputPath)) {
+    const parsed = path.parse(finalName);
+    outputPath = path.join(targetDir, `${parsed.name}-${index}${parsed.ext}`);
+    index += 1;
+  }
+  if (path.resolve(outputPath) === sourceResolved) return sourcePath;
+  await fs.copyFile(sourcePath, outputPath);
+  return outputPath;
+}
+
 function canonicalDownloadUrl(url: string): string {
   try {
     const parsed = new URL(url);
-    parsed.hash = "";
+    if (!/^#(?:de-DE|en-US)$/i.test(parsed.hash)) {
+      parsed.hash = "";
+    }
     return parsed.toString();
   } catch {
     return url;

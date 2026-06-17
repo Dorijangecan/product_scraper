@@ -22,6 +22,7 @@ import {
   Layers3,
   ListChecks,
   Loader2,
+  Pause,
   Pencil,
   Play,
   Plus,
@@ -55,6 +56,7 @@ import {
   inspectManufacturer,
   listRuns,
   openRunOutputFolder,
+  pauseRun,
   updateRunCoverageFields,
   openRunWorkbook,
   importRunPdt,
@@ -62,6 +64,7 @@ import {
   getRunPdtRoutingPreview,
   previewCsv,
   resetManufacturerOverride,
+  resumeRun,
   saveManufacturer,
   startRun,
   testManufacturer,
@@ -151,6 +154,17 @@ const RUN_ITEM_FILTERS: Array<{ key: RunItemFilter; label: string }> = [
 const RUN_ITEM_PAGE_SIZES = [25, 50, 100, 250, "all"] as const;
 type RunItemPageSize = (typeof RUN_ITEM_PAGE_SIZES)[number];
 
+const RUN_STATUS_LABELS: Record<RunRecord["status"], string> = {
+  queued: "Queued",
+  running: "Running",
+  pausing: "Pausing",
+  paused: "Paused",
+  cancelling: "Cancelling",
+  cancelled: "Cancelled",
+  completed: "Completed",
+  failed: "Failed"
+};
+
 function pdtImportWarning(stats: PdtImportStats): string | null {
   const warnings: string[] = [];
   if (stats.missingSheets.length > 0) warnings.push(`missing sheets: ${formatShortList(stats.missingSheets)}`);
@@ -198,6 +212,8 @@ export function App() {
   const [items, setItems] = useState<RunItemRecord[]>([]);
   const [busy, setBusy] = useState(false);
   const [cancelBusy, setCancelBusy] = useState(false);
+  const [pauseBusy, setPauseBusy] = useState(false);
+  const [resumeBusy, setResumeBusy] = useState(false);
   const [openWorkbookBusy, setOpenWorkbookBusy] = useState(false);
   const [openOutputFolderBusy, setOpenOutputFolderBusy] = useState(false);
   const [pdtBusy, setPdtBusy] = useState(false);
@@ -218,11 +234,18 @@ export function App() {
   const [runItemPageSize, setRunItemPageSize] = useState<RunItemPageSize>(50);
   const [runItemPage, setRunItemPage] = useState(1);
   const [historyExpanded, setHistoryExpanded] = useState(false);
-  const [downloadDocuments, setDownloadDocuments] = useState(false);
+  const [downloadPdfs, setDownloadPdfs] = useState(false);
+  const [downloadCad, setDownloadCad] = useState(false);
   const [downloadImages, setDownloadImages] = useState(true);
   const [generateExcel, setGenerateExcel] = useState(true);
+  const [generateLinksFile, setGenerateLinksFile] = useState(false);
   const [forceFinalRetry, setForceFinalRetry] = useState(false);
   const [pdtAiCleanup, setPdtAiCleanup] = useState(false);
+  const downloadDocuments = downloadPdfs || downloadCad;
+  const setDownloadDocuments = (enabled: boolean) => {
+    setDownloadPdfs(enabled);
+    setDownloadCad(enabled);
+  };
   // PDT routing review modal — opens when "Import to PDT" is clicked, lets user reassign sheets.
   const [pdtRoutingPreview, setPdtRoutingPreview] = useState<PdtRoutingPreview | null>(null);
   const [pdtRoutingOverrides, setPdtRoutingOverrides] = useState<Record<number, string>>({});
@@ -308,7 +331,7 @@ export function App() {
     const timer = window.setInterval(() => {
       void refreshRuns();
       if (selectedRunId) void refreshSelectedRun(selectedRunId);
-    }, selectedRun?.status === "running" || selectedRun?.status === "queued" || selectedRun?.status === "cancelling" ? 750 : 4000);
+    }, selectedRun?.status === "running" || selectedRun?.status === "queued" || selectedRun?.status === "pausing" || selectedRun?.status === "cancelling" ? 750 : 4000);
     return () => window.clearInterval(timer);
   }, [selectedRunId, selectedRun?.status]);
 
@@ -576,9 +599,12 @@ export function App() {
         file,
         manufacturerId,
         columnName,
-        downloadDocuments,
+        downloadDocuments: downloadPdfs || downloadCad,
+        downloadPdfs,
+        downloadCad,
         downloadImages,
         generateExcel,
+        generateLinksFile,
         customCoverageFields,
         hiddenCoverageFields: runHiddenCoverageFields.length > 0 ? runHiddenCoverageFields : undefined,
         forceFinalRetry,
@@ -614,6 +640,38 @@ export function App() {
       setError(errorMessage(err));
     } finally {
       setCancelBusy(false);
+    }
+  }
+
+  async function handlePause() {
+    if (!selectedRun) return;
+    setPauseBusy(true);
+    setError(null);
+    try {
+      const run = await pauseRun(selectedRun.id);
+      setSelectedRun(run);
+      await refreshRuns();
+      await refreshSelectedRun(run.id);
+    } catch (err) {
+      setError(errorMessage(err));
+    } finally {
+      setPauseBusy(false);
+    }
+  }
+
+  async function handleResume() {
+    if (!selectedRun) return;
+    setResumeBusy(true);
+    setError(null);
+    try {
+      const run = await resumeRun(selectedRun.id);
+      setSelectedRun(run);
+      await refreshRuns();
+      await refreshSelectedRun(run.id);
+    } catch (err) {
+      setError(errorMessage(err));
+    } finally {
+      setResumeBusy(false);
     }
   }
 
@@ -958,8 +1016,16 @@ export function App() {
     }
   }
 
-  const readyToRun = Boolean(file && preview && columnName && selectedManufacturer);
-  const canCancel = selectedRun?.status === "queued" || selectedRun?.status === "running" || selectedRun?.status === "cancelling";
+  const hasSelectedOutput = generateExcel || downloadImages || downloadPdfs || downloadCad || generateLinksFile;
+  const readyToRun = Boolean(file && preview && columnName && selectedManufacturer && hasSelectedOutput);
+  const canPause = selectedRun?.status === "queued" || selectedRun?.status === "running";
+  const canResume = selectedRun?.status === "paused" || selectedRun?.status === "pausing";
+  const canCancel =
+    selectedRun?.status === "queued" ||
+    selectedRun?.status === "running" ||
+    selectedRun?.status === "pausing" ||
+    selectedRun?.status === "paused" ||
+    selectedRun?.status === "cancelling";
   const runFinished = selectedRun?.status === "completed" || selectedRun?.status === "cancelled";
   // "Images only" runs never produce an .xlsx, so the Excel button must hide; the run's
   // outputPath is the cleanest signal that a workbook actually exists on disk.
@@ -967,7 +1033,7 @@ export function App() {
   const hasPdt = runFinished && Boolean(selectedRun?.pdtPath);
   const hasOutputFolder = runFinished;
   const historyCount = runs.length;
-  const activeRunCount = runs.filter((run) => ["queued", "running"].includes(run.status)).length;
+  const activeRunCount = runs.filter((run) => ["queued", "running", "pausing"].includes(run.status)).length;
   const manufacturerSourceCount = selectedManufacturer?.fallbackSources.filter((source) => source.enabled).length ?? 0;
   const activeManufacturer = useMemo(
     () =>
@@ -1221,8 +1287,45 @@ export function App() {
           )}
 
           <fieldset className="run-option-group">
-            <legend>Download mode</legend>
-            {(
+            <legend>Outputs</legend>
+            <div className="run-checkbox-grid">
+              <label className={`run-checkbox-card${generateExcel ? " is-selected" : ""}`}>
+                <input type="checkbox" checked={generateExcel} onChange={(event) => setGenerateExcel(event.target.checked)} />
+                <span>
+                  <strong>Excel</strong>
+                  <small>Workbook with scraped product data.</small>
+                </span>
+              </label>
+              <label className={`run-checkbox-card${downloadImages ? " is-selected" : ""}`}>
+                <input type="checkbox" checked={downloadImages} onChange={(event) => setDownloadImages(event.target.checked)} />
+                <span>
+                  <strong>Images</strong>
+                  <small>Save product images to the images folder.</small>
+                </span>
+              </label>
+              <label className={`run-checkbox-card${downloadPdfs ? " is-selected" : ""}`}>
+                <input type="checkbox" checked={downloadPdfs} onChange={(event) => setDownloadPdfs(event.target.checked)} />
+                <span>
+                  <strong>PDFs</strong>
+                  <small>Datasheets, manuals and certificates.</small>
+                </span>
+              </label>
+              <label className={`run-checkbox-card${downloadCad ? " is-selected" : ""}`}>
+                <input type="checkbox" checked={downloadCad} onChange={(event) => setDownloadCad(event.target.checked)} />
+                <span>
+                  <strong>CAD</strong>
+                  <small>CAD files in a separate cad folder.</small>
+                </span>
+              </label>
+              <label className={`run-checkbox-card${generateLinksFile ? " is-selected" : ""}`}>
+                <input type="checkbox" checked={generateLinksFile} onChange={(event) => setGenerateLinksFile(event.target.checked)} />
+                <span>
+                  <strong>Device links</strong>
+                  <small>Separate CSV with product URLs.</small>
+                </span>
+              </label>
+            </div>
+            {false && (
               [
                 {
                   id: "excel-images",
@@ -1429,6 +1532,18 @@ export function App() {
           <div className="run-header">
             <PanelTitle icon={<FileSpreadsheet size={18} />} title="Current run" meta={selectedRun?.id ?? "No run"} />
             <div className="run-actions">
+              {canPause && selectedRun && (
+                <button className="pause-button" disabled={pauseBusy} onClick={() => void handlePause()}>
+                  {pauseBusy ? <Loader2 className="spin" size={16} /> : <Pause size={16} />}
+                  {pauseBusy ? "Pausing" : "Pause"}
+                </button>
+              )}
+              {canResume && selectedRun && (
+                <button className="download-button" disabled={resumeBusy} onClick={() => void handleResume()}>
+                  {resumeBusy ? <Loader2 className="spin" size={16} /> : <Play size={16} />}
+                  {resumeBusy ? "Resuming" : "Resume"}
+                </button>
+              )}
               {canCancel && (
                 <button className="cancel-button" disabled={cancelBusy || selectedRun.status === "cancelling"} onClick={() => void handleCancel()}>
                   {cancelBusy ? <Loader2 className="spin" size={16} /> : <XCircle size={16} />}
@@ -1475,7 +1590,7 @@ export function App() {
                   {openOutputFolderBusy ? "Opening" : "Folder"}
                 </button>
               )}
-              {selectedRun && !["queued", "running", "cancelling"].includes(selectedRun.status) && (
+              {selectedRun && !["queued", "running", "pausing", "cancelling"].includes(selectedRun.status) && (
                 <a className="download-button secondary" href={`/api/runs/${selectedRun.id}/files/log`}>
                   <FileText size={16} />
                   Log
@@ -2857,7 +2972,7 @@ function Metric({ label, value }: { label: string; value: string | number }) {
 }
 
 function StatusBadge({ status }: { status: RunRecord["status"] }) {
-  return <span className={`badge run-${status}`}>{status}</span>;
+  return <span className={`badge run-${status}`}>{RUN_STATUS_LABELS[status] ?? status}</span>;
 }
 
 function HistoryRunButton({
@@ -3001,7 +3116,7 @@ function buildRunTiming(run: RunRecord | null, items: RunItemRecord[], nowMs: nu
     };
   }
 
-  const active = ["queued", "running", "cancelling"].includes(run.status);
+  const active = ["queued", "running", "pausing", "cancelling"].includes(run.status);
   const startMs = safeTime(run.createdAt) ?? nowMs;
   const endMs = active ? nowMs : safeTime(run.updatedAt) ?? nowMs;
   const elapsedMs = Math.max(0, endMs - startMs);
@@ -3025,6 +3140,12 @@ function buildRunTiming(run: RunRecord | null, items: RunItemRecord[], nowMs: nu
     remaining = "--";
   } else if (run.status === "cancelled") {
     eta = "Cancelled";
+    remaining = "--";
+  } else if (run.status === "paused") {
+    eta = "Paused";
+    remaining = "--";
+  } else if (run.status === "pausing") {
+    eta = "Pausing";
     remaining = "--";
   } else if (rawRemainingCount === 0) {
     eta = "Finalizing";
@@ -3077,6 +3198,34 @@ function buildRunTiming(run: RunRecord | null, items: RunItemRecord[], nowMs: nu
       activityDetail: "Stopping active work and marking pending rows as cancelled.",
       stage: "Cancelling",
       stageElapsed: "Live"
+    };
+  }
+
+  if (run.status === "pausing") {
+    return {
+      elapsed: formatDuration(elapsedMs),
+      progressPercent,
+      eta,
+      remaining,
+      avgPerItem: avgMs ? formatDuration(avgMs) : "--",
+      activityTitle: "Pausing run",
+      activityDetail: "Stopping active work without cancelling pending rows.",
+      stage: "Pausing",
+      stageElapsed: "Live"
+    };
+  }
+
+  if (run.status === "paused") {
+    return {
+      elapsed: formatDuration(elapsedMs),
+      progressPercent,
+      eta,
+      remaining,
+      avgPerItem: avgMs ? formatDuration(avgMs) : "--",
+      activityTitle: "Paused",
+      activityDetail: "Start another run now, then resume this one from history when ready.",
+      stage: "Paused",
+      stageElapsed: formatClock(endMs)
     };
   }
 
@@ -3264,6 +3413,7 @@ const STAGE_LABELS: Record<string, string> = {
   "final-network-retry": "Final retry",
   evidence: "Evidence",
   complete: "Complete",
+  paused: "Paused",
   failed: "Failed",
   cancelled: "Cancelled"
 };

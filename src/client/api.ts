@@ -52,8 +52,11 @@ export async function startRun(input: {
   manufacturerId: string;
   columnName: string;
   downloadDocuments: boolean;
+  downloadPdfs?: boolean;
+  downloadCad?: boolean;
   downloadImages: boolean;
   generateExcel: boolean;
+  generateLinksFile?: boolean;
   /**
    * Per-run override of the coverage tiles. Pass `undefined` to use the manufacturer
    * defaults; pass an array (including empty `[]`) to override for this single run.
@@ -73,8 +76,11 @@ export async function startRun(input: {
   form.append("manufacturerId", input.manufacturerId);
   form.append("columnName", input.columnName);
   form.append("downloadDocuments", String(input.downloadDocuments));
+  form.append("downloadPdfs", String(input.downloadPdfs ?? input.downloadDocuments));
+  form.append("downloadCad", String(input.downloadCad ?? input.downloadDocuments));
   form.append("downloadImages", String(input.downloadImages));
   form.append("generateExcel", String(input.generateExcel));
+  form.append("generateLinksFile", String(input.generateLinksFile ?? false));
   if (input.customCoverageFields !== undefined) {
     form.append("customCoverageFields", JSON.stringify(input.customCoverageFields));
   }
@@ -102,6 +108,14 @@ export async function getRunItem(runId: string, itemId: number): Promise<RunItem
 
 export async function cancelRun(id: string): Promise<RunRecord> {
   return request(`/api/runs/${id}/cancel`, { method: "POST" });
+}
+
+export async function pauseRun(id: string): Promise<RunRecord> {
+  return request(`/api/runs/${id}/pause`, { method: "POST" });
+}
+
+export async function resumeRun(id: string): Promise<RunRecord> {
+  return request(`/api/runs/${id}/resume`, { method: "POST" });
 }
 
 export async function openRunWorkbook(id: string): Promise<{ ok: true; path: string }> {

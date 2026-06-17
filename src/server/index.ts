@@ -112,9 +112,13 @@ app.post(
   }
   const manufacturerId = String(req.body.manufacturerId ?? "") as ManufacturerId;
   const columnName = String(req.body.columnName ?? "");
-  const downloadDocuments = String(req.body.downloadDocuments ?? "true") === "true";
+  const legacyDownloadDocuments = req.body.downloadDocuments === undefined ? undefined : String(req.body.downloadDocuments) === "true";
+  const downloadPdfs = req.body.downloadPdfs === undefined ? legacyDownloadDocuments ?? true : String(req.body.downloadPdfs) === "true";
+  const downloadCad = req.body.downloadCad === undefined ? legacyDownloadDocuments ?? true : String(req.body.downloadCad) === "true";
+  const downloadDocuments = downloadPdfs || downloadCad;
   const downloadImages = String(req.body.downloadImages ?? "true") === "true";
   const generateExcel = String(req.body.generateExcel ?? "true") === "true";
+  const generateLinksFile = String(req.body.generateLinksFile ?? "false") === "true";
   const forceFinalRetry = String(req.body.forceFinalRetry ?? "false") === "true";
   // Per-run override of the manufacturer's custom coverage tiles. The client sends a JSON
   // string when the user touched the editor; `undefined` (missing field) means "fall back
@@ -159,8 +163,11 @@ app.post(
       catalogNumbers,
       options: {
         downloadDocuments,
+        downloadPdfs,
+        downloadCad,
         downloadImages,
         generateExcel,
+        generateLinksFile,
         forceFinalRetry,
         ...(customCoverageFields !== undefined ? { customCoverageFields } : {}),
         ...(hiddenCoverageFields !== undefined ? { hiddenCoverageFields } : {}),
@@ -252,6 +259,32 @@ app.post("/api/runs/:id/cancel", async (req, res) => {
   }
 });
 
+app.post("/api/runs/:id/pause", async (req, res) => {
+  try {
+    const run = await runManager.pauseRun(req.params.id);
+    if (!run) {
+      res.status(404).json({ error: "Run not found." });
+      return;
+    }
+    res.json(run);
+  } catch (error) {
+    res.status(500).json({ error: error instanceof Error ? error.message : "Could not pause run." });
+  }
+});
+
+app.post("/api/runs/:id/resume", async (req, res) => {
+  try {
+    const run = await runManager.resumeRun(req.params.id);
+    if (!run) {
+      res.status(404).json({ error: "Run not found." });
+      return;
+    }
+    res.json(run);
+  } catch (error) {
+    res.status(500).json({ error: error instanceof Error ? error.message : "Could not resume run." });
+  }
+});
+
 app.get("/api/runs/:id/files/result", (req, res) => {
   const run = db.getRun(req.params.id);
   if (!run?.outputPath || !fs.existsSync(run.outputPath)) {
@@ -328,6 +361,9 @@ app.get("/api/runs/:id/pdt-routing-preview", async (req, res) => {
         suggested = ["contactor a. fuses"];
       } else {
         suggested = deviceSheetsFor(deviceType);
+      }
+      if (suggested.some((sheet) => sheet.trim().toLowerCase() === "cabinet") && !suggested.some((sheet) => sheet.trim().toLowerCase() === "cabinet.mechanical")) {
+        suggested = [...suggested, "cabinet.mechanical"];
       }
       return {
         itemId: it.id,

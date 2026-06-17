@@ -1,6 +1,6 @@
 export type ManufacturerId = string;
 
-export type RunStatus = "queued" | "running" | "cancelling" | "cancelled" | "completed" | "failed";
+export type RunStatus = "queued" | "running" | "pausing" | "paused" | "cancelling" | "cancelled" | "completed" | "failed";
 export type ItemStatus = "pending" | "processing" | "found" | "partial" | "failed" | "cancelled";
 
 export interface ManufacturerConfig {
@@ -511,6 +511,10 @@ export interface RunRecord {
 
 export interface RunOptions {
   downloadDocuments?: boolean;
+  /** Save PDF-like manufacturer documents such as datasheets, manuals and certificates. */
+  downloadPdfs?: boolean;
+  /** Save CAD/CAE files separately from PDF documents. */
+  downloadCad?: boolean;
   /**
    * When false, skip saving product images to disk. URLs are still discovered and kept
    * in the workbook. Default true.
@@ -521,6 +525,11 @@ export interface RunOptions {
    * mode where the user just wants the PNG files. Default true.
    */
   generateExcel?: boolean;
+  /**
+   * Generate a separate CSV with catalog numbers and discovered manufacturer product URLs.
+   * Can be used alone for a links-only run or together with other outputs.
+   */
+  generateLinksFile?: boolean;
   /**
    * Per-run override for the manufacturer's custom coverage tiles. When set (even to an
    * empty array, meaning "no custom tiles"), this replaces the manufacturer default for
