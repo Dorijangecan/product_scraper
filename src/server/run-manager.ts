@@ -438,7 +438,7 @@ export class RunManager {
             }
           }
           if (imageOnlyMode || assetOnlyMode) {
-            enriched = withInitialDownloads;
+            enriched = assetOnlyMode ? applyAssetOnlyStatus(withInitialDownloads) : withInitialDownloads;
             fallbackStages = enriched.diagnostics?.fallbackStages;
           } else if (linksOnlyMode) {
             enriched = withInitialDownloads;
@@ -1190,6 +1190,21 @@ function summarizeDataSource(
     return `Customer document filled in (website returned nothing) — ${customerAttrs} attrs`;
   }
   return `Loaded from manufacturer website — ${webAttrs} attrs`;
+}
+
+function applyAssetOnlyStatus(result: ProductResult): ProductResult {
+  const downloadedAssets = result.documents.filter((doc) => doc.downloadStatus === "downloaded" && doc.localPath);
+  const availableAssets = result.documents.filter((doc) => doc.downloadStatus !== "failed" && doc.downloadStatus !== "skipped");
+  const hasProductEvidence = Boolean(result.productUrl || result.title || result.attributes.length || result.sources.length);
+  if (!downloadedAssets.length && !availableAssets.length && !hasProductEvidence) return result;
+
+  const status = downloadedAssets.length ? "found" : result.status === "failed" ? "partial" : result.status;
+  return {
+    ...result,
+    status,
+    confidence: Math.max(result.confidence, downloadedAssets.length ? 0.74 : 0.55),
+    error: undefined
+  };
 }
 
 function createRunId(): string {

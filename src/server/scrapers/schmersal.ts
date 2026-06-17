@@ -42,7 +42,16 @@ export class SchmersalConnector implements ManufacturerConnector {
   readonly id = "schmersal";
 
   async scrape(catalogNumber: string, context: ScrapeContext): Promise<ProductResult> {
-    const baseResult = await context.fallback.scrape(catalogNumber, schmersalSources(context));
+    let baseResult = await context.fallback.scrape(catalogNumber, schmersalSources(context));
+    if (!baseResult || baseResult.status === "failed" || isSchmersalSearchUrl(baseResult.productUrl)) {
+      const detailUrl = await discoverSchmersalDetailUrl(catalogNumber, context, baseResult?.productUrl);
+      if (detailUrl) {
+        const detailResult = await context.fallback.scrape(catalogNumber, [schmersalDetailSource(detailUrl)]);
+        if (detailResult && detailResult.status !== "failed") {
+          baseResult = detailResult;
+        }
+      }
+    }
     if (!baseResult) {
       const { emptyResult } = await import("./normalizer.js");
       return emptyResult(this.id, catalogNumber, `No Schmersal product page found for ${catalogNumber}.`);
@@ -81,6 +90,44 @@ function schmersalSources(context: ScrapeContext): FallbackSourceConfig[] {
     fetchPolicy: { timeoutMs: 30000, minContentLength: 1000 }
   }));
   return [...searchTemplates, ...context.manufacturer.fallbackSources];
+}
+
+function schmersalDetailSource(url: string): FallbackSourceConfig {
+  return {
+    id: "schmersal-discovered-product",
+    label: "Schmersal product page",
+    enabled: true,
+    sourceType: "official-fallback",
+    directUrlTemplates: [url],
+    confidence: 0.86,
+    fetchPolicy: { timeoutMs: 30000, minContentLength: 1000 }
+  };
+}
+
+async function discoverSchmersalDetailUrl(
+  catalogNumber: string,
+  context: ScrapeContext,
+  preferredUrl?: string
+): Promise<string | undefined> {
+  const urls = [
+    preferredUrl,
+    ...SCHMERSAL_TARGET_LOCALES.map((item) => `${SCHMERSAL_BASE_URL}/${localePath(item.locale)}/search?query=${encodeURIComponent(catalogNumber)}`)
+  ].filter((url): url is string => Boolean(url));
+
+  for (const url of uniqueStrings(urls)) {
+    try {
+      const fetched = await context.http.fetchText(localizeSchmersalUrl(url, "de-DE"), {
+        timeoutMs: 30000,
+        cacheTtlMs: context.manufacturer.fetchPolicy?.cacheTtlMs,
+        signal: context.signal
+      });
+      const detailUrl = extractSchmersalDetailUrl(fetched.text, fetched.effectiveUrl, catalogNumber);
+      if (detailUrl) return detailUrl;
+    } catch {
+      // Try the next search/result page candidate.
+    }
+  }
+  return undefined;
 }
 
 async function fetchBestSchmersalPage(
@@ -316,8 +363,9 @@ function withSchmersalDocuments(result: ProductResult, documents: DocumentRecord
 export function extractSchmersalPageData(rawHtml: string): SchmersalPageData | undefined {
   const html = unescapeNextPayload(rawHtml);
   const productId =
+    html.match(/"product":\{[\s\S]{0,3000}?"id":"([^"]+)"/)?.[1] ??
     html.match(/"product":\{"id":"([^"]+)"/)?.[1] ??
-    html.match(/"productId":"([^"]+)"/)?.[1] ??
+    html.match(/"productId":"([^"]+)"/i)?.[1] ??
     html.match(/api\/og\?type=product&slug=([^&"]+)/)?.[1];
   if (!productId) return undefined;
   const rawGroups = extractJsonValueAfter(html, '"dataTabGroups":');
@@ -329,6 +377,25 @@ export function extractSchmersalPageData(rawHtml: string): SchmersalPageData | u
   } catch {
     return undefined;
   }
+}
+
+function extractSchmersalDetailUrl(rawHtml: string, baseUrl: string, catalogNumber: string): string | undefined {
+  const html = unescapeNextPayload(rawHtml).replace(/&amp;/g, "&");
+  const escapedPart = escapeRegExp(catalogNumber);
+  const patterns = [
+    new RegExp(`/(?:de_DE|en_US|en_GB)/[^"'<>\\s]*${escapedPart}[^"'<>\\s]*`, "i"),
+    new RegExp(`https://products\\.schmersal\\.com/(?:de_DE|en_US|en_GB)/[^"'<>\\s]*${escapedPart}[^"'<>\\s]*`, "i")
+  ];
+  for (const pattern of patterns) {
+    const match = html.match(pattern)?.[0];
+    if (!match || /\/search(?:[/?#]|$)/i.test(match)) continue;
+    try {
+      return localizeSchmersalUrl(new URL(match, baseUrl).toString(), "de-DE");
+    } catch {
+      // Continue to the next inline candidate.
+    }
+  }
+  return undefined;
 }
 
 function extractJsonValueAfter(text: string, marker: string): string | undefined {
@@ -394,6 +461,16 @@ function withLocaleFragment(url: string, locale: string): string {
   return parsed.toString();
 }
 
+function isSchmersalSearchUrl(url: string | undefined): boolean {
+  if (!url) return false;
+  try {
+    const parsed = new URL(url);
+    return parsed.hostname.toLowerCase() === "products.schmersal.com" && /\/search(?:\/|$)/i.test(parsed.pathname);
+  } catch {
+    return /products\.schmersal\.com\/[^/]+\/search/i.test(url);
+  }
+}
+
 function localizeSchmersalUrl(url: string, locale: string): string {
   return url.replace(/\/(?:de_DE|de-DE|en_US|en-US|en_GB|en-GB)(?=\/)/, `/${localePath(locale)}`);
 }
@@ -417,4 +494,8 @@ async function exists(filePath: string): Promise<boolean> {
 
 function uniqueStrings(values: string[]): string[] {
   return [...new Set(values)];
+}
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }

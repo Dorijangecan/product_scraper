@@ -113,6 +113,7 @@ function scoreProductLink(url: string, context: string, catalogNumber: string, b
   if (catalogTextMatches(haystack, catalogNumber, { compact: true, afterColon: true })) score += 55;
   if (catalogTextMatches(url, catalogNumber, { compact: true, afterColon: true })) score += 25;
   if (pathContainsExactCatalogSegment(url, catalogNumber)) score += 50;
+  if (/products\.schmersal\.com$/i.test(new URL(url).hostname) && /\/[a-z]{2}_[A-Z]{2}\/[^/?#]+-\d{6,}(?:[/?#]|$)/.test(new URL(url).pathname)) score += 25;
   if (/\b(product|products|sku|catalog|detail|details|pdp|partnumber_info|skupage)\b|\/p\/|\/item\//i.test(lowerUrl)) score += 25;
   if (/\b(view|details?|product|catalog|part number|sku)\b/i.test(context)) score += 10;
   if (/[?&](?:q|query|search|s|term)=/i.test(lowerUrl)) score -= 15;
