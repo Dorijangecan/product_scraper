@@ -222,18 +222,32 @@ describe("eclass resolvers", () => {
     expect(resolveProperty("MANUFACTURER_URL", "MANUFACTURER_URL", c)).toBe("https://acme.test");
   });
 
-  it("uses the gb/en-gb skuPage with EP- prefix for Eaton product URLs", () => {
+  it("uses the gb/en-gb skuPage without inventing an EP- prefix for Eaton product URLs", () => {
     const c = ctx({ manufacturerId: "eaton" }, "502419");
     c.manufacturer = { ...manufacturer, id: "eaton" } as ManufacturerConfig;
     expect(resolveProperty("AAQ326", "AAQ326", c)).toBe(
-      "https://www.eaton.com/gb/en-gb/skuPage.EP-502419.html"
+      "https://www.eaton.com/gb/en-gb/skuPage.502419.html"
     );
-    // Already-prefixed inputs aren't double-prefixed.
+    // Already-prefixed inputs are preserved for legacy rows that really use an EP skuPage.
     const c2 = ctx({ manufacturerId: "eaton" }, "EP-502420");
     c2.manufacturer = { ...manufacturer, id: "eaton" } as ManufacturerConfig;
     expect(resolveProperty("AAQ326", "AAQ326", c2)).toBe(
       "https://www.eaton.com/gb/en-gb/skuPage.EP-502420.html"
     );
+  });
+
+  it("prefers the actual Eaton skuPage found by the scraper over catalog-based PDT fallbacks", () => {
+    const c = ctx(
+      {
+        manufacturerId: "eaton",
+        productUrl: "https://www.eaton.com/gb/en-gb/skuPage.284245.html"
+      },
+      "XSFH20"
+    );
+    c.manufacturer = { ...manufacturer, id: "eaton" } as ManufacturerConfig;
+
+    expect(resolveProperty("AAQ326", "AAQ326", c)).toBe("https://www.eaton.com/gb/en-gb/skuPage.284245.html");
+    expect(resolveProperty("AAY811", "AAY811", c)).toBe("https://www.eaton.com/gb/en-gb/skuPage.284245.html");
   });
 
   it("uses partnumber_info/?n= for Saginaw product URLs (manual PDT format)", () => {
@@ -242,6 +256,13 @@ describe("eclass resolvers", () => {
     expect(resolveProperty("AAQ326", "AAQ326", c)).toBe(
       "https://www.saginawcontrol.com/partnumber_info/?n=SCE-12H2406LP"
     );
+  });
+
+  it("uses exact Rockwell details URLs for unknown Rockwell families", () => {
+    const c = ctx({ manufacturerId: "rockwell" }, "5094-IF8");
+    c.manufacturer = { ...manufacturer, id: "rockwell" } as ManufacturerConfig;
+    expect(resolveProperty("AAQ326", "AAQ326", c)).toBe("https://www.rockwellautomation.com/en-us/products/details.5094-IF8.html");
+    expect(resolveProperty("AAY811", "AAY811", c)).toBe("https://www.rockwellautomation.com/en-us/products/details.5094-IF8.html");
   });
 
   it("fills IEC 81346 class identifiers only from the IEC identifiers table", () => {
@@ -663,12 +684,12 @@ describe("eclass resolvers", () => {
     const rules = localizedPdtDocumentUrlRules({ manufacturerId: "eaton", catalogNumber: "502419" }).map((rule) => rule.value);
     expect(rules).toEqual([
       {
-        url: "https://www.eaton.com/gb/en-gb/skuPage.EP-502419.pdf",
+        url: "https://www.eaton.com/gb/en-gb/skuPage.502419.pdf",
         language: "english",
         description: "Datasheet(EN)"
       },
       {
-        url: "https://www.eaton.com/de/de-de/skuPage.EP-502419.pdf",
+        url: "https://www.eaton.com/de/de-de/skuPage.502419.pdf",
         language: "german",
         description: "Datenblatt"
       }
@@ -696,23 +717,74 @@ describe("eclass resolvers", () => {
       {
         manufacturerId: "rockwell",
         title: "Compact 5000 DC Input Module Hi-Density",
-        description: "Compact 5000 DC Input Module Hi-Density"
+        description: "Compact 5000 DC Input Module Hi-Density",
+        normalized: { dimensions: "144.6 x 22 x 105.4 mm" },
+        attributes: [
+          { name: "Digital Inputs", value: "5069-IB32", sourceType: "official" },
+          { name: "Product Net Width", value: "22 mm", sourceType: "official" }
+        ]
       },
       "5069-IB32"
     );
     c.manufacturer = { ...manufacturer, id: "rockwell" } as ManufacturerConfig;
     c.sheetName = "PLC";
 
-    expect(resolveProperty("AAQ326", "AAQ326", c)).toBe("https://www.rockwellautomation.com/en-us/search.html?keyword=5069-IB32&tab=all");
+    expect(resolveProperty("AAQ326", "AAQ326", c)).toBe("https://www.rockwellautomation.com/en-us/products/details.5069-IB32.html");
+    expect(resolveProperty("AAY811", "AAY811", c)).toBe("https://www.rockwellautomation.com/en-us/products/details.5069-IB32.html");
     expect(resolveProperty("REFERENCE_FEATURE_GROUP_ID", "REFERENCE_FEATURE_GROUP_ID", c)).toBe("27242604");
     expect(resolveProperty("REFERENCE_FEATURE_SYSTEM_NAME", "REFERENCE_FEATURE_SYSTEM_NAME", c)).toBe("14");
     expect(resolveProperty("AAS575", "AAS575", c)).toBe("3.9");
     expect(resolveProperty("BAG975", "BAG975", c)).toBe("IP54");
+    expect(resolveProperty("AAP508", "AAP508", c)).toBe("32");
+    expect(resolveProperty("AAP610", "AAP610", c)).toBeUndefined();
+    expect(resolveProperty("BAF016", "BAF016", { ...c, sheetName: "Material Master Data" })).toBeUndefined();
+    expect(localizedPdtDocumentUrlRules({ manufacturerId: "rockwell", catalogNumber: "5069-IB32" }).map((rule) => rule.value)).toEqual([
+      {
+        url: "https://literature.rockwellautomation.com/idc/groups/literature/documents/td/5069-td001_-en-p.pdf",
+        language: "english",
+        description: "Technical Datasheet (EN)",
+        documentType: "pdf"
+      }
+    ]);
+
+    const output = ctx(
+      {
+        manufacturerId: "rockwell",
+        attributes: [{ name: "Digital Outputs", value: "5069-OB32", sourceType: "official" }]
+      },
+      "5069-OB32",
+      "Programmable Logic Controller"
+    );
+    output.manufacturer = { ...manufacturer, id: "rockwell" } as ManufacturerConfig;
+    output.sheetName = "PLC";
+    expect(resolveProperty("AAP508", "AAP508", output)).toBeUndefined();
+    expect(resolveProperty("AAP610", "AAP610", output)).toBe("32");
 
     const sparse = ctx({ manufacturerId: "rockwell" }, "5069-OB32", "Programmable Logic Controller");
     sparse.manufacturer = { ...manufacturer, id: "rockwell" } as ManufacturerConfig;
     sparse.sheetName = "PLC";
     expect(resolveProperty("REFERENCE_FEATURE_GROUP_ID", "REFERENCE_FEATURE_GROUP_ID", sparse)).toBe("27242604");
+  });
+
+  it("derives Rockwell I/O point counts from catalog prefixes across families", () => {
+    const samples = [
+      ["5094-IB16", "AAP508", "16"],
+      ["1756-OB16E", "AAP610", "16"],
+      ["5094-IF8", "AAP341", "8"],
+      ["1756-OF8", "AAP342", "8"]
+    ] as const;
+
+    for (const [catalogNumber, property, expected] of samples) {
+      const c = ctx({ manufacturerId: "rockwell" }, catalogNumber, "I/O Module");
+      c.manufacturer = { ...manufacturer, id: "rockwell" } as ManufacturerConfig;
+      c.sheetName = "PLC";
+      expect(resolveProperty(property, property, c), catalogNumber).toBe(expected);
+    }
+
+    const analogInput = ctx({ manufacturerId: "rockwell" }, "5094-IF8", "I/O Module");
+    analogInput.manufacturer = { ...manufacturer, id: "rockwell" } as ManufacturerConfig;
+    analogInput.sheetName = "PLC";
+    expect(resolveProperty("AAP508", "AAP508", analogInput)).toBeUndefined();
   });
 
   it("keeps full Rockwell certification labels and trims Compact 5000 short descriptions", () => {
@@ -2466,7 +2538,7 @@ describe("PDT exporter", () => {
     expect(ws.getCell(10, 5).value).toBe("ControlLogix Processors");
   });
 
-  it("wraps DE description columns in an Excel TRANSLATE() formula when no localized DE text was scraped", async () => {
+  it("writes DE description fallbacks as literals when no localized DE text was scraped", async () => {
     const dir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-pdt-abb-de-"));
     const templatePath = path.join(dir, "template.xlsx");
     const outputPath = path.join(dir, "out.xlsx");
@@ -2495,17 +2567,14 @@ describe("PDT exporter", () => {
     const out = new ExcelJS.Workbook();
     await out.xlsx.readFile(outputPath);
     const ws = out.getWorksheet("Material Master Data")!;
-    // No localizedDescriptions.de on the result → DE cell becomes an Excel TRANSLATE() formula
-    // pointing at the EN twin cell. The cached result preserves the EN placeholder so older
-    // viewers that ignore the formula still see content.
-    const deCell = ws.getCell(10, 2).value as { formula?: string; result?: string };
-    expect(deCell.formula).toBe('=IFERROR(TRANSLATE(C10,"en","de"),C10)');
-    expect(deCell.result).toBe(description);
+    // No localizedDescriptions.de on the result: write the fallback as a literal so Excel
+    // does not require manual recalculation before downstream import.
+    expect(ws.getCell(10, 2).value).toBe(description);
     // EN column still gets the scraped English description as a literal value.
     expect(ws.getCell(10, 3).value).toBe(description);
   });
 
-  it("wraps DE description columns in TRANSLATE() when localized text only echoes English", async () => {
+  it("writes echoed DE description fallbacks as literals", async () => {
     const dir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-pdt-de-echo-"));
     const templatePath = path.join(dir, "template.xlsx");
     const outputPath = path.join(dir, "out.xlsx");
@@ -2547,19 +2616,13 @@ describe("PDT exporter", () => {
     const out = new ExcelJS.Workbook();
     await out.xlsx.readFile(outputPath);
     const ws = out.getWorksheet("Material Master Data")!;
-    // DE long/short cells get an Excel TRANSLATE() formula pointing at the EN twin column,
-    // so the spreadsheet renders the German translation when opened in Excel 2024+/M365.
-    const deLong = ws.getCell(10, 2).value as { formula?: string; result?: string };
-    expect(deLong.formula).toBe('=IFERROR(TRANSLATE(D10,"en","de"),D10)');
-    expect(deLong.result).toBe("Wall mounted enclosure");
-    const deShort = ws.getCell(10, 3).value as { formula?: string; result?: string };
-    expect(deShort.formula).toBe('=IFERROR(TRANSLATE(E10,"en","de"),E10)');
-    expect(deShort.result).toBe("Enclosure");
+    expect(ws.getCell(10, 2).value).toBe("Wall mounted enclosure");
+    expect(ws.getCell(10, 3).value).toBe("Enclosure");
     expect(ws.getCell(10, 4).value).toBe("Wall mounted enclosure");
     expect(ws.getCell(10, 5).value).toBe("Enclosure");
   });
 
-  it("wraps Material Master DE descriptions when language headers and property IDs use loose template variants", async () => {
+  it("writes Material Master DE description fallbacks with loose template variants", async () => {
     const dir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-pdt-loose-translate-"));
     const templatePath = path.join(dir, "template.xlsx");
     const outputPath = path.join(dir, "out.xlsx");
@@ -2587,9 +2650,7 @@ describe("PDT exporter", () => {
     const out = new ExcelJS.Workbook();
     await out.xlsx.readFile(outputPath);
     const ws = out.getWorksheet("Material Master Data")!;
-    const deCell = ws.getCell(10, 2).value as { formula?: string; result?: string };
-    expect(deCell.formula).toBe('=IFERROR(TRANSLATE(C10,"en","de"),C10)');
-    expect(deCell.result).toBe(description);
+    expect(ws.getCell(10, 2).value).toBe(description);
     expect(ws.getCell(10, 3).value).toBe(description);
   });
 
@@ -5104,5 +5165,77 @@ describe("Additional Documents PDT sheet", () => {
       hyperlink: "https://example.test/de/produkte/GEN-1"
     });
     expect(ws.getCell(8, 5).value).toBe("german");
+  });
+
+  it("prefers direct Rockwell literature PDFs over product pages for unknown families", () => {
+    const ws = addDocumentsWorksheet();
+    const item = ctx(
+      {
+        manufacturerId: "rockwell",
+        productUrl: "https://www.rockwellautomation.com/en-us/products/details.5094-IF8.html",
+        localizedUrls: {
+          en: "https://www.rockwellautomation.com/en-us/products/details.5094-IF8.html",
+          de: "https://www.rockwellautomation.com/de-de/products/details.5094-IF8.html"
+        },
+        documents: [
+          {
+            type: "datasheet",
+            label: "Technical Detail",
+            url: "https://literature.rockwellautomation.com/idc/groups/literature/documents/td/5094-td001_-en-p.pdf",
+            sourceType: "official",
+            confidence: 0.9
+          },
+          {
+            type: "manual",
+            label: "Installation Instructions",
+            url: "https://literature.rockwellautomation.com/idc/groups/literature/documents/in/5094-in001_-en-p.pdf",
+            sourceType: "official",
+            confidence: 0.8
+          }
+        ]
+      },
+      "5094-IF8"
+    ).item;
+
+    expect(writeDocumentsSheet(ws, [item])).toBe(1);
+    expect(ws.getCell(7, 1).value).toBe("5094-IF8");
+    expect(ws.getCell(7, 3).value).toBe("pdf");
+    expect(ws.getCell(7, 4).value).toEqual({
+      text: "https://literature.rockwellautomation.com/idc/groups/literature/documents/td/5094-td001_-en-p.pdf",
+      hyperlink: "https://literature.rockwellautomation.com/idc/groups/literature/documents/td/5094-td001_-en-p.pdf"
+    });
+    expect(ws.getCell(7, 5).value).toBe("english");
+    expect(ws.getCell(7, 7).value).toBe("Technical Datasheet (EN)");
+  });
+
+  it("uses direct Eaton skuPage PDFs from scraper documents without adding EP to the path", () => {
+    const ws = addDocumentsWorksheet();
+    const item = ctx(
+      {
+        manufacturerId: "eaton",
+        productUrl: "https://www.eaton.com/gb/en-gb/skuPage.284245.html",
+        documents: [
+          {
+            type: "datasheet",
+            label: "Eaton Specification Sheet - 284245",
+            url: "https://www.eaton.com/gb/en-gb/skuPage.284245.pdf",
+            sourceType: "official-fallback",
+            confidence: 0.9
+          }
+        ]
+      },
+      "XSFH20"
+    ).item;
+
+    expect(writeDocumentsSheet(ws, [item])).toBe(1);
+    expect(ws.getCell(7, 1).value).toBe("XSFH20");
+    expect(ws.getCell(7, 3).value).toBe("pdf");
+    expect(ws.getCell(7, 4).value).toEqual({
+      text: "https://www.eaton.com/gb/en-gb/skuPage.284245.pdf",
+      hyperlink: "https://www.eaton.com/gb/en-gb/skuPage.284245.pdf"
+    });
+    expect(String((ws.getCell(7, 4).value as { text: string }).text)).not.toContain("EP-284245");
+    expect(ws.getCell(7, 5).value).toBe("english");
+    expect(ws.getCell(7, 7).value).toBe("Datasheet(EN)");
   });
 });

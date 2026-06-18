@@ -46,12 +46,15 @@ const BASE_KNOWN_LABELS = [
   "HP rating - max",
   "Housing material",
   "Input current",
+  "Input current, max",
   "Input nominal current",
   "Input nominal voltage",
   "Input voltage",
   "Input voltage range",
+  "Inrush current",
   "Interrupt rating",
   "Interrupt rating range",
+  "Isolation voltage",
   "IP rating",
   "Length",
   "Mass",
@@ -63,12 +66,18 @@ const BASE_KNOWN_LABELS = [
   "Model Code",
   "Mounting Method",
   "NEMA rating",
+  "Nominal current",
+  "Nominal voltage",
   "Net weight",
   "Number of poles",
+  "Operating current",
+  "Operating temperature",
   "Operating voltage Ub",
   "Overall dimensions",
   "Output current",
+  "Output current rating",
   "Output voltage",
+  "Output voltage range",
   "Power consumption",
   "Power dissipation",
   "Power dissipation in W",
@@ -80,12 +89,17 @@ const BASE_KNOWN_LABELS = [
   "Power loss Pv",
   "Product Weight",
   "Product net weight",
+  "Protection class",
+  "Protection rating",
   "Rated conditional short-circuit current",
   "Rated conditional short-circuit current (Iq)",
   "Rated conditional short-circuit current Iq",
   "Rated current for power loss specification",
   "Rated impulse withstand voltage",
+  "Rated insulation voltage",
   "Rated operation current (Ie)",
+  "Rated operating current",
+  "Rated operating voltage",
   "Rated operational current",
   "Rated operational current for specified heat dissipation (In)",
   "Rated operational voltage",
@@ -94,6 +108,8 @@ const BASE_KNOWN_LABELS = [
   "Rated current (40 Â°C)",
   "Rated output current",
   "Rated output voltage",
+  "Removable terminal block power rating",
+  "Rated supply voltage",
   "Rated service short-circuit breaking capacity",
   "Rated short-circuit breaking capacity",
   "Rated ultimate short-circuit breaking capacity",
@@ -103,7 +119,23 @@ const BASE_KNOWN_LABELS = [
   "Size",
   "Short Circuit Current Rating (SCCR)",
   "Standards, directives and approvals",
+  "Storage temperature",
   "Static heat dissipation, non-current-dependent Pvs",
+  "Supply voltage",
+  "Supply voltage range",
+  "Field power voltage",
+  "Field power voltage range",
+  "Field power current",
+  "Module power consumption",
+  "Module power dissipation",
+  "Backplane current",
+  "Current draw",
+  "Current draw at 24V DC",
+  "Current draw @ 24V DC",
+  "On-state voltage drop",
+  "Off-state leakage current",
+  "Off-state leakage",
+  "Thermal dissipation",
   "Surface finishing",
   "Thermal dissipation",
   "Trip Type",
@@ -114,7 +146,10 @@ const BASE_KNOWN_LABELS = [
   "Voltage type",
   "Weight",
   "Weight, approx.",
-  "Width"
+  "Width",
+  "Wire cross-section",
+  "Wire size",
+  "Tightening torque"
 ];
 
 const KNOWN_LABELS = uniqueKnownLabels([
@@ -197,6 +232,91 @@ export async function enrichResultFromDownloadedDocuments(result: ProductResult)
   };
 }
 
+export async function enrichResultFromRemoteDocuments(
+  result: ProductResult,
+  fetchDocument: (document: DocumentRecord) => Promise<{ localPath: string; cleanup?: () => Promise<void> }>,
+  options: { maxDocuments?: number } = {}
+): Promise<ProductResult> {
+  const documentAttributes: AttributeRecord[] = [];
+  const documentSources: SourceRecord[] = [];
+  const documentParseFailures: string[] = [];
+  const documents: DocumentRecord[] = [];
+  const maxDocuments = options.maxDocuments ?? 4;
+  let parsedDocuments = 0;
+
+  for (const doc of prioritizeRemoteProbeDocuments(result.documents)) {
+    if (!shouldProbeRemotePdfDocument(doc) || parsedDocuments >= maxDocuments) {
+      documents.push(doc);
+      continue;
+    }
+    let cleanup: (() => Promise<void>) | undefined;
+    try {
+      const fetched = await fetchDocument(doc);
+      cleanup = fetched.cleanup;
+      const text = await readPdfText(fetched.localPath, result.catalogNumber);
+      const tightText =
+        buildVariantColumnContext(text, result.catalogNumber, { maxChars: MAX_PDF_TEXT_CHARS }) ??
+        buildTightContextForCatalog(text, result.catalogNumber, { maxChars: MAX_PDF_TEXT_CHARS }) ??
+        text;
+      const attributes = extractDocumentTextAttributes({
+        catalogNumber: result.catalogNumber,
+        document: doc,
+        text: tightText
+      });
+      if (attributes.length > 0) {
+        documentAttributes.push(...stampDocumentAttributes(attributes));
+        documentSources.push({
+          url: doc.url,
+          sourceType: "generated",
+          parser: "pdf-table-extractor",
+          stage: "probe-remote-documents",
+          reason: doc.type,
+          fetchedAt: new Date().toISOString()
+        });
+      }
+      documents.push({ ...doc, parseStatus: attributes.length > 1 ? "parsed" : "skipped", parseError: undefined });
+      parsedDocuments += 1;
+    } catch (error) {
+      const parseError = error instanceof Error ? error.message : "PDF parse failed";
+      documentParseFailures.push(`${doc.label || doc.url}: ${parseError}`);
+      documents.push({ ...doc, parseStatus: "failed", parseError });
+    } finally {
+      await cleanup?.().catch(() => undefined);
+    }
+  }
+
+  if (!documentAttributes.length) {
+    return {
+      ...result,
+      diagnostics: withDocumentParseFailures(result, documentParseFailures),
+      documents
+    };
+  }
+
+  const attributes = dedupeAttributes([...result.attributes, ...documentAttributes]);
+  const normalized = {
+    ...normalizeFields(attributes, documents),
+    ...nonEmptyNormalized(result.normalized)
+  };
+
+  return {
+    ...result,
+    status: result.status === "failed" ? result.status : "found",
+    diagnostics: {
+      ...withDocumentParseFailures(result, documentParseFailures),
+      fallbackStages: uniqueStrings([...(result.diagnostics?.fallbackStages ?? []), "remote-document-enrichment"]),
+      notes: uniqueStrings([
+        ...(result.diagnostics?.notes ?? []),
+        `Remote document enrichment parsed ${parsedDocuments} datasheet/manual document${parsedDocuments === 1 ? "" : "s"} for missing data.`
+      ]).slice(0, 50)
+    },
+    normalized,
+    attributes,
+    documents,
+    sources: dedupeSources([...result.sources, ...documentSources])
+  };
+}
+
 function withDocumentParseFailures(
   result: ProductResult,
   documentParseFailures: string[]
@@ -249,10 +369,16 @@ export function extractDocumentTextAttributes(input: {
     }
 
     if (isKnownLabelOnly(line)) {
-      const value = nextMeaningfulLine(lines, index + 1);
+      const value = nextPdfLabelValue(lines, index + 1);
       if (value) {
         attributes.push({ group: `${documentGroup}${section ? ` - ${section}` : ""}`, name: line, value, sourceUrl });
       }
+      continue;
+    }
+
+    const knownPairs = parseMultipleKnownInlinePairs(line);
+    if (knownPairs.length >= 2) {
+      attributes.push(...knownPairs.map((pair) => ({ group: `${documentGroup}${section ? ` - ${section}` : ""}`, ...pair, sourceUrl })));
       continue;
     }
 
@@ -363,6 +489,34 @@ function shouldParsePdfDocument(doc: DocumentRecord): boolean {
   return ["datasheet", "certificate", "manual", "other"].includes(doc.type);
 }
 
+function shouldProbeRemotePdfDocument(doc: DocumentRecord): boolean {
+  if (doc.localPath || doc.parseStatus === "parsed") return false;
+  if (doc.downloadStatus === "failed") return false;
+  if (!["datasheet", "manual", "other"].includes(doc.type)) return false;
+  const text = `${doc.type} ${doc.label} ${doc.url}`;
+  if (doc.type === "other" && !/\b(?:data\s*sheet|datasheet|technical|spec(?:ification)?|manual|installation|instruction)\b/i.test(text)) {
+    return false;
+  }
+  return /\.pdf(?:[?#]|$)/i.test(doc.url) || /pdfengine\/pdf|[?&](?:format|output|filetype|type)=pdf\b|[?&](?:documentid|docid|mediaid)=/i.test(doc.url);
+}
+
+function prioritizeRemoteProbeDocuments(documents: DocumentRecord[]): DocumentRecord[] {
+  return [...documents].sort((left, right) => remoteProbeDocumentScore(right) - remoteProbeDocumentScore(left));
+}
+
+function remoteProbeDocumentScore(doc: DocumentRecord): number {
+  const text = `${doc.type} ${doc.label} ${doc.url}`.toLowerCase();
+  let score = 0;
+  if (doc.type === "datasheet") score += 90;
+  if (doc.type === "manual") score += 70;
+  if (/\b(?:data\s*sheet|datasheet|technical\s+data|technical\s+datasheet|spec(?:ification)?\s+sheet|cutsheet)\b/i.test(text)) score += 35;
+  if (/\b(?:installation|install|instruction|user\s+manual|manual)\b/i.test(text)) score += 25;
+  if (/\b(?:certificate|declaration|conformity|rohs|reach|weee|warranty)\b/i.test(text)) score -= 45;
+  if (/\.pdf(?:[?#]|$)/i.test(doc.url)) score += 8;
+  if (doc.parseStatus === "failed") score -= 80;
+  return score;
+}
+
 function uniqueKnownLabels(labels: string[]): string[] {
   const seen = new Set<string>();
   const unique: string[] = [];
@@ -428,7 +582,7 @@ function parseTabbedPair(rawLine: string): { name: string; value: string } | und
     .filter(Boolean);
   if (cells.length < 2) return undefined;
   const name = cells[0];
-  const value = joinUniquePipeCells(cells.slice(1));
+  const value = normalizePdfAttributeValue(joinUniquePipeCells(cells.slice(1)));
   if (!isLikelyAttributeName(name) || !value) return undefined;
   return { name, value };
 }
@@ -440,7 +594,7 @@ function parseSpacedTablePair(rawLine: string): { name: string; value: string } 
     .filter(Boolean);
   if (cells.length < 2) return undefined;
   const [name, ...values] = cells;
-  const value = joinUniquePipeCells(values);
+  const value = normalizePdfAttributeValue(joinUniquePipeCells(values));
   if (!isLikelyAttributeName(name) || !value || /^[-–—]+$/.test(value)) return undefined;
   if (!/[a-z]/i.test(name) || value.length > 300) return undefined;
   return { name, value };
@@ -465,11 +619,71 @@ function parseKnownInlinePair(line: string): { name: string; value: string } | u
     const pattern = new RegExp(`^${escapeRegExp(label)}\\s+(.+)$`, "i");
     const match = line.match(pattern);
     if (!match) continue;
-    const value = cleanText(match[1]);
+    const value = normalizePdfAttributeValue(match[1]);
     if (!value || value.toLowerCase() === label.toLowerCase()) continue;
     return { name: canonicalLabel(label), value };
   }
   return undefined;
+}
+
+function parseMultipleKnownInlinePairs(line: string): Array<{ name: string; value: string }> {
+  const matches: Array<{ label: string; index: number; end: number }> = [];
+  for (const label of KNOWN_LABELS) {
+    const pattern = new RegExp(`(?:^|\\s)${escapeRegExp(label)}(?=\\s+\\S)`, "ig");
+    for (const match of line.matchAll(pattern)) {
+      const rawIndex = match.index ?? 0;
+      const prefixLength = match[0].length - label.length;
+      const index = rawIndex + prefixLength;
+      if (matches.some((existing) => rangesOverlap(index, index + label.length, existing.index, existing.end))) continue;
+      matches.push({ label, index, end: index + label.length });
+    }
+  }
+  const ordered = matches.sort((left, right) => left.index - right.index);
+  if (ordered.length < 2) return [];
+
+  const pairs: Array<{ name: string; value: string }> = [];
+  for (let index = 0; index < ordered.length; index += 1) {
+    const current = ordered[index];
+    const next = ordered[index + 1];
+    const value = normalizePdfAttributeValue(line.slice(current.end, next?.index ?? line.length));
+    if (!value || value.toLowerCase() === current.label.toLowerCase()) continue;
+    if (!isLikelyInlineKnownValue(value)) continue;
+    pairs.push({ name: canonicalLabel(current.label), value });
+  }
+  return pairs;
+}
+
+function normalizePdfAttributeValue(value: string): string {
+  const cleaned = cleanText(value)
+    .replace(/\s*\|\s*/g, " | ")
+    .trim();
+  const unitPrefix = cleaned.match(/^(?:\[|\()?\s*(V\s?AC|V\s?DC|VAC|VDC|V|mA|kA|A|kW|W|VA|Hz|kg|g|lbs?|mm|cm|m|in|Nm|N\s*m|Â°C|°C|degC|%)(?:\s*(?:\]|\)))?\s*(?:\|\s*)?(.+)$/i);
+  if (!unitPrefix) return cleaned;
+  const unit = canonicalPdfUnit(unitPrefix[1]);
+  const rest = cleanText(unitPrefix[2]).replace(/^\|\s*/, "");
+  if (!/^[-+]?\d/.test(rest)) return cleaned;
+  if (new RegExp(`\\b${escapeRegExp(unit)}\\b`, "i").test(rest)) return rest;
+  return cleanText(`${rest} ${unit}`);
+}
+
+function canonicalPdfUnit(unit: string): string {
+  const compact = unit.replace(/\s+/g, "").toLowerCase();
+  if (compact === "vac") return "V AC";
+  if (compact === "vdc") return "V DC";
+  if (compact === "lb" || compact === "lbs") return "lb";
+  if (compact === "nm") return "N m";
+  if (compact === "degc" || compact === "â°c" || compact === "°c") return "Â°C";
+  return cleanText(unit);
+}
+
+function rangesOverlap(leftStart: number, leftEnd: number, rightStart: number, rightEnd: number): boolean {
+  return leftStart < rightEnd && rightStart < leftEnd;
+}
+
+function isLikelyInlineKnownValue(value: string): boolean {
+  if (value.length > 180) return false;
+  if (/^(?:-|n\/?a|not available|none)$/i.test(value)) return false;
+  return /\d|[A-Z]{2,}|steel|aluminum|aluminium|plastic|poly|powder|coating|paint|nema|ip\s*\d|ce|ul|csa|rohs|reach/i.test(value);
 }
 
 function isKnownLabelOnly(line: string): boolean {
@@ -487,6 +701,19 @@ function nextMeaningfulLine(lines: string[], start: number): string | undefined 
     return line;
   }
   return undefined;
+}
+
+function nextPdfLabelValue(lines: string[], start: number): string | undefined {
+  const first = nextMeaningfulLine(lines, start);
+  if (!first) return undefined;
+  if (!isStandalonePdfUnit(first)) return normalizePdfAttributeValue(first);
+  const second = nextMeaningfulLine(lines, start + 1);
+  if (!second || !/^[-+]?\d/.test(cleanText(second))) return normalizePdfAttributeValue(first);
+  return normalizePdfAttributeValue(`${first} ${second}`);
+}
+
+function isStandalonePdfUnit(value: string): boolean {
+  return /^(?:\[|\()?\s*(V\s?AC|V\s?DC|VAC|VDC|V|mA|kA|A|kW|W|VA|Hz|kg|g|lbs?|mm|cm|m|in|Nm|N\s*m|Â°C|°C|degC|%)(?:\s*(?:\]|\)))?$/i.test(cleanText(value));
 }
 
 function isUsefulFeatureLine(line: string, catalogNumber: string): boolean {
@@ -629,6 +856,10 @@ function uniqueInOrder(values: string[]): string[] {
     unique.push(value);
   }
   return unique;
+}
+
+function uniqueStrings(values: Array<string | undefined>): string[] {
+  return [...new Set(values.map((value) => value?.trim()).filter((value): value is string => Boolean(value)))];
 }
 
 function sectionTracker(): (line: string) => string | undefined {

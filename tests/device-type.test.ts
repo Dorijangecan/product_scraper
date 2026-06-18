@@ -119,6 +119,9 @@ describe("device type classifier", () => {
       ["27-37-10-03", "Contactor"],
       ["27-37-13-07", "Lock / Interlock"],
       ["27-37-13-92", "Accessory"],
+      ["27-24-22-01", "Communication Gateway"],
+      ["27-24-22-02", "Programmable Logic Controller"],
+      ["27-24-26-04", "I/O Module"],
       ["27-27-06-91", "Sensor"],
       ["27-27-06-02", "Sensor"]
     ] as const;
@@ -763,6 +766,33 @@ describe("device type classifier — family / series signals", () => {
     expect(classifyDeviceType(product([], "1492-EAJ35", { manufacturerId: "rockwell", catalogNumber: "1492-EAJ35" })).type).toBe(
       "Terminal Accessory"
     );
+  });
+
+  it("routes broader Rockwell families to the right PDT device type without product text", () => {
+    const samples = [
+      ["1756-L85E", "Programmable Logic Controller"],
+      ["5069-L350ER", "Programmable Logic Controller"],
+      ["1756-PA75", "Power Supply"],
+      ["1606-XLS240E", "Power Supply"],
+      ["1734-AENTR", "Communication Gateway"],
+      ["1783-BMS10CGN", "Communication Gateway"],
+      ["5094-IF8", "I/O Module"],
+      ["1489-M1C160", "Miniature Circuit Breaker"],
+      ["1492-SPM1C160", "Miniature Circuit Breaker"],
+      ["194R-N30-1753", "Disconnect Switch"],
+      ["855T-B10DN3", "Stack Light / Beacon"],
+      ["440L-P4K0480YD", "Safety Sensor"],
+      ["871TM-DH2NP12-D4", "Inductive Proximity Sensor"],
+      ["836P-D1NFGA20PA-D4", "Pressure Sensor"],
+      ["837T-D3N14B10PA-D4", "Temperature Sensor"]
+    ] as const;
+
+    for (const [catalogNumber, expectedType] of samples) {
+      expect(
+        classifyDeviceType(product([], catalogNumber, { manufacturerId: "rockwell", catalogNumber })).type,
+        catalogNumber
+      ).toBe(expectedType);
+    }
   });
 
   it("lets explicit busbar names outrank broad ABB accessory classifications", () => {

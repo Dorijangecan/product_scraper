@@ -122,12 +122,15 @@ export function buildPdtFactIndex(input: PdtFactInput): PdtFactIndex {
     manufacturerId: result.manufacturerId ?? input.manufacturer.id,
     catalogNumber: input.item.catalogNumber
   });
+  const productUrl = result.manufacturerId === "eaton" ? result.productUrl ?? pdtUrlRule?.value : pdtUrlRule?.value ?? result.productUrl;
   addGenerated(
     facts,
     "productUrl",
-    pdtUrlRule?.value ?? result.productUrl,
-    pdtUrlRule?.name ?? "product-url",
-    pdtUrlRule?.rationale ?? "Product URL selected by the scraper after identity checks."
+    productUrl,
+    result.manufacturerId === "eaton" && result.productUrl ? "product-url" : pdtUrlRule?.name ?? "product-url",
+    result.manufacturerId === "eaton" && result.productUrl
+      ? "Eaton product URL selected by the scraper after resolving the actual skuPage identifier."
+      : pdtUrlRule?.rationale ?? "Product URL selected by the scraper after identity checks."
   );
   addGenerated(facts, "localizedProductUrlEn", result.localizedUrls?.en, "localized-product-url", "English product URL selected by the scraper.");
   addGenerated(facts, "localizedProductUrlDe", result.localizedUrls?.de, "localized-product-url", "German product URL selected by the scraper.");
@@ -175,6 +178,7 @@ export function buildPdtFactIndex(input: PdtFactInput): PdtFactIndex {
   addAttributeFact(facts, result, "productDesignation", /\b(product designation|manufacturer.*designation|product type|article designation)\b/i);
   addEclassFacts(facts, result);
   addDeviceTypePdtFacts(facts, input);
+  addRockwellIoCatalogFacts(facts, input);
   addRockwellCompact5000IoFacts(facts, input);
   addRockwellMicro820Facts(facts, input);
   addRockwellControlLogixL9Facts(facts, input);
@@ -638,6 +642,8 @@ function addRockwellCompact5000IoFacts(facts: PdtFact[], input: PdtFactInput): v
   const catalog = clean(input.item.catalogNumber) ?? "";
   const compact5000Io = /\b5069-[IO][A-Z0-9-]*\b/i.test(catalog);
   if (!compact5000Io) return;
+  const inputCount = rockwellIoCatalogPointCount(catalog, "digitalInput");
+  const outputCount = rockwellIoCatalogPointCount(catalog, "digitalOutput");
 
   addDeterministicRepair(
     facts,
@@ -655,6 +661,81 @@ function addRockwellCompact5000IoFacts(facts: PdtFact[], input: PdtFactInput): v
       "Rockwell Compact 5000 I/O manual PDTs use IP54 for the PLC degree-of-protection column."
     );
   }
+  addDeterministicRepair(
+    facts,
+    "pdtDigitalInputCount",
+    inputCount,
+    "rockwell-compact-5000-io-point-count",
+    "Rockwell Compact 5000 I/O input modules encode their digital point count in the 5069-I* catalog suffix."
+  );
+  addDeterministicRepair(
+    facts,
+    "pdtDigitalOutputCount",
+    outputCount,
+    "rockwell-compact-5000-io-point-count",
+    "Rockwell Compact 5000 I/O output modules encode their digital point count in the 5069-O* catalog suffix."
+  );
+}
+
+function addRockwellIoCatalogFacts(facts: PdtFact[], input: PdtFactInput): void {
+  if (!input.item.result || !isRockwell(input)) return;
+  const catalog = clean(input.item.catalogNumber) ?? "";
+  const specs = [
+    {
+      key: "pdtDigitalInputCount",
+      kind: "digitalInput" as const,
+      label: "digital input",
+      rule: "rockwell-io-catalog-digital-input-count"
+    },
+    {
+      key: "pdtDigitalOutputCount",
+      kind: "digitalOutput" as const,
+      label: "digital output",
+      rule: "rockwell-io-catalog-digital-output-count"
+    },
+    {
+      key: "pdtAnalogInputCount",
+      kind: "analogInput" as const,
+      label: "analog input",
+      rule: "rockwell-io-catalog-analog-input-count"
+    },
+    {
+      key: "pdtAnalogOutputCount",
+      kind: "analogOutput" as const,
+      label: "analog output",
+      rule: "rockwell-io-catalog-analog-output-count"
+    }
+  ];
+  for (const spec of specs) {
+    addDeterministicRepair(
+      facts,
+      spec.key,
+      rockwellIoCatalogPointCount(catalog, spec.kind),
+      spec.rule,
+      `Rockwell I/O modules encode their ${spec.label} point count in the catalog suffix.`
+    );
+  }
+}
+
+function rockwellIoCatalogPointCount(
+  catalogNumber: string,
+  kind: "digitalInput" | "digitalOutput" | "analogInput" | "analogOutput"
+): string | undefined {
+  const catalog = clean(catalogNumber)?.toUpperCase() ?? "";
+  if (!/\b(?:1734|1756|1769|1794|2085|5069|5094)-/.test(catalog)) return undefined;
+  const module = catalog.match(/\b(?:1734|1756|1769|1794|2085|5069|5094)-([A-Z]+)(\d{1,3})[A-Z0-9-]*\b/)?.slice(1, 3);
+  if (!module) return undefined;
+  const [prefix, count] = module;
+  const digitalInputPrefixes = ["IA", "IB", "IC", "IM", "IN", "IQ", "IV"];
+  const digitalOutputPrefixes = ["OA", "OB", "OC", "OW", "OX", "OV"];
+  const analogInputPrefixes = ["IF", "IE", "IR", "IT", "IJ"];
+  const analogOutputPrefixes = ["OF", "OE"];
+  const expected =
+    kind === "digitalInput" ? digitalInputPrefixes :
+    kind === "digitalOutput" ? digitalOutputPrefixes :
+    kind === "analogInput" ? analogInputPrefixes :
+    analogOutputPrefixes;
+  return expected.some((entry) => prefix.startsWith(entry)) ? count : undefined;
 }
 
 function addRockwellMicro820Facts(facts: PdtFact[], input: PdtFactInput): void {

@@ -327,6 +327,7 @@ export function parseGenericProductPage(
   attributes.push(...extractCertificationAttributes($, fetched.effectiveUrl));
   attributes.push(...extractProductSectionAttributes($, fetched.effectiveUrl));
   attributes.push(...extractLabeledSpecAttributes($, fetched.effectiveUrl));
+  attributes.push(...extractSemanticSpecAttributes($, fetched.effectiveUrl));
   attributes.push(...extractSummaryAttributes(title, description, fetched.effectiveUrl));
 
   $("tr").each((_, element) => {
@@ -391,6 +392,7 @@ export function parseGenericProductPage(
   attributes.push(...extractPlainTextAttributes(fetched.text, fetched.effectiveUrl));
   attributes.push(...extractKnownPlainTextSpecAttributes(fetched.text, fetched.effectiveUrl));
   documents.push(...extractPlainTextDocumentLinks(fetched.text, fetched.effectiveUrl, catalogNumber, options));
+  documents.push(...extractHiddenDocumentLinks($, fetched.text, fetched.effectiveUrl, catalogNumber, options));
 
   const markerData = extractMarkerData(fetched.text, options.markerRules, fetched.effectiveUrl);
   attributes.push(...markerData.attributes);
@@ -649,6 +651,8 @@ function isDownloadableProductDocumentUrl(url: string): boolean {
   return (
     /\.(pdf|zip|dwg|dxf|stp|step)(\?|$)/i.test(url) ||
     /\.download\?[^#]*(?:file|uri)=[^#]*\.(?:pdf|zip|dwg|dxf|stp|step)/i.test(url) ||
+    /[?&](?:format|output|filetype|type)=pdf\b/i.test(url) ||
+    /[?&](?:documentid|documentId|docId|mediaId)=/i.test(url) ||
     /\/teddatasheet\/?\?[^#]*(?:format=pdf|mlfbs=)/i.test(url) ||
     /\/documents\/(?:td|in|sg)\//i.test(url) ||
     /\/cutsheet(?:[?#]|$)/i.test(url)
@@ -965,6 +969,7 @@ function extractProductDataFromUnknown(
     }
 
     const record = item as Record<string, unknown>;
+    maybeAddDocumentFromRecord(record, sourceUrl, documents);
     const pair = dynamicNameValuePair(record);
     if (pair && !isSystemStatePath(path) && isUsefulDynamicValue(pair.value, compactPart)) {
       attributes.push({ group, name: pair.name, value: pair.value, sourceUrl });
@@ -992,8 +997,9 @@ function dynamicNameValuePair(record: Record<string, unknown>): { name: string; 
   const value =
     firstString(record, ["value", "labelText", "displayValue", "valueText", "formattedValue", "text"]) ??
     firstCharacteristicValue(record.characteristicValues);
+  const unit = firstString(record, ["unit", "unitText", "unitOfMeasure", "uom"]);
   if (!name || !value) return undefined;
-  return { name: cleanText(name), value: cleanText(value) };
+  return { name: cleanText(name), value: appendUnit(cleanText(value), unit) };
 }
 
 function firstCharacteristicValue(value: unknown): string | undefined {
@@ -1025,6 +1031,17 @@ function maybeAddDocument(value: string, label: string, sourceUrl: string, docum
     url: absolute,
     sourceUrl
   });
+}
+
+function maybeAddDocumentFromRecord(record: Record<string, unknown>, sourceUrl: string, documents: DocumentRecord[]) {
+  const url = firstString(record, ["url", "href", "downloadUrl", "documentUrl", "datasheetUrl", "manualUrl", "fileUrl", "mediaUrl", "resourceUrl"]);
+  if (!url) return;
+  const label = uniqueStrings([
+    firstString(record, ["manualLabel", "datasheetLabel", "documentLabel", "fileName", "filename", "label", "title", "name", "displayName", "description"]),
+    firstString(record, ["type", "documentType", "category", "group"]),
+    firstString(record, ["language", "locale"])
+  ].map((value) => cleanText(value)).filter(Boolean)).join(" - ");
+  maybeAddDocument(url, label || "Document", sourceUrl, documents);
 }
 
 function extractAssignedJsonBlocks(raw: string): string[] {
@@ -1546,6 +1563,59 @@ function extractLabeledSpecAttributes($: cheerio.CheerioAPI, sourceUrl: string):
   return dedupeAttributes(attributes).slice(0, 140);
 }
 
+function extractSemanticSpecAttributes($: cheerio.CheerioAPI, sourceUrl: string): AttributeRecord[] {
+  const attributes: AttributeRecord[] = [];
+  const push = (name: string | undefined, value: string | undefined, group = "Product Specifications") => {
+    const cleanName = cleanText(name).replace(/[:ďĽš]\s*$/, "");
+    const cleanValue = cleanText(value);
+    if (!cleanName || !cleanValue) return;
+    if (!isUsefulSpecLabel(cleanName) || !isUsefulDataRowValue(cleanValue)) return;
+    attributes.push({ group, name: cleanName, value: cleanValue, sourceUrl });
+  };
+
+  $("[itemprop]").each((_, element) => {
+    const prop = $(element).attr("itemprop");
+    if (!prop || !isUsefulSpecLabel(prop)) return;
+    const value = cleanText($(element).attr("content") || $(element).attr("value") || $(element).text());
+    push(titleFromDataKey(prop), value, "Structured Properties");
+  });
+
+  $("[data-label],[data-name],[data-title],[data-spec-name],[data-attribute-name],[data-property-name]").each((_, element) => {
+    const attrs = element.attribs ?? {};
+    const name =
+      attrs["data-spec-name"] ??
+      attrs["data-attribute-name"] ??
+      attrs["data-property-name"] ??
+      attrs["data-label"] ??
+      attrs["data-name"] ??
+      attrs["data-title"];
+    const value =
+      attrs["data-spec-value"] ??
+      attrs["data-attribute-value"] ??
+      attrs["data-property-value"] ??
+      attrs["data-value"] ??
+      attrs["data-display-value"] ??
+      cleanText($(element).text()).replace(new RegExp(`^${escapeRegex(cleanText(name ?? ""))}\\s*[:ďĽš]?\\s*`, "i"), "");
+    push(name, value, semanticSpecGroup($, element));
+  });
+
+  $("[aria-label]").each((_, element) => {
+    const aria = cleanText($(element).attr("aria-label"));
+    const match = aria.match(/^([^:]{2,80})[:ďĽš]\s*(.{1,220})$/);
+    if (!match) return;
+    push(match[1], match[2], semanticSpecGroup($, element));
+  });
+
+  return dedupeAttributes(attributes).slice(0, 180);
+}
+
+function semanticSpecGroup($: cheerio.CheerioAPI, element: Parameters<cheerio.CheerioAPI>[0]): string {
+  const container = $(element).closest("[id*='spec'],[class*='spec'],[id*='tech'],[class*='tech'],[id*='attribute'],[class*='attribute'],section,article,div");
+  const heading = cleanText(container.find("h2,h3,h4,[class*='heading'],[class*='title']").first().text());
+  if (heading && heading.length <= 80) return heading;
+  return "Product Specifications";
+}
+
 function isUsefulSpecLabel(label: string): boolean {
   return /classification|type|material|finish|color|height|width|depth|length|weight|voltage|current|power|temperature|sensor|signal|display|enclosure|function|mounting|protection|rating|standard|certification|ground|path|jacket|conductor|connection|package|upc|ean|catalog|item|article/i.test(label);
 }
@@ -1856,6 +1926,95 @@ function extractPlainTextDocumentLinks(
     });
   }
   return dedupeDocuments(documents).slice(0, 80);
+}
+
+function extractHiddenDocumentLinks(
+  $: cheerio.CheerioAPI,
+  text: string,
+  sourceUrl: string,
+  catalogNumber: string,
+  options: GenericParseOptions
+): DocumentRecord[] {
+  const documents: DocumentRecord[] = [];
+  const add = (rawUrl: string | undefined, label: string, context: string) => {
+    const absolute = rawUrl ? toAbsoluteUrl(normalizePlainTextLinkUrl(rawUrl), sourceUrl) : undefined;
+    if (!absolute) return;
+    if (matchesAnyPattern(absolute, options.extractionPolicy?.ignoredDocumentUrlPatterns)) return;
+    const policyDocumentMatch = matchesAnyPattern(absolute, options.extractionPolicy?.documentUrlPatterns);
+    if (!isDownloadableProductDocumentUrl(absolute) && !policyDocumentMatch) return;
+    const type = classifyDocument(`${label} ${context}`, absolute);
+    if (
+      type === "other" &&
+      !policyDocumentMatch &&
+      !catalogTextMatches(absolute, catalogNumber, options.match) &&
+      !catalogTextMatches(context, catalogNumber, options.match)
+    ) {
+      return;
+    }
+    documents.push({
+      type,
+      label: cleanText(label) || documentLabelFromContext(context, absolute),
+      url: absolute,
+      sourceUrl
+    });
+  };
+
+  $("[data-url],[data-href],[data-file],[data-download],[data-document-url],[data-datasheet-url],[data-manual-url],[data-resource-url],a[download],button[formaction],form[action]").each((_, element) => {
+    const attrs = element.attribs ?? {};
+    const context = cleanText(
+      [
+        $(element).text(),
+        $(element).attr("title"),
+        $(element).attr("aria-label"),
+        $(element).closest("tr,li,article,.resource,.download,.document,.product,.card").text()
+      ]
+        .filter(Boolean)
+        .join(" ")
+    );
+    for (const [name, value] of Object.entries(attrs)) {
+      if (!/^(?:data-(?:url|href|file|download|document-url|datasheet-url|manual-url|resource-url)|href|action|formaction)$/i.test(name)) continue;
+      add(value, labelFromDocumentAttributeName(name, context), context);
+    }
+  });
+
+  $("meta[content]").each((_, element) => {
+    const name = $(element).attr("name") || $(element).attr("property") || "meta";
+    add($(element).attr("content"), cleanText(name), cleanText([$("h1").first().text(), $("title").first().text()].filter(Boolean).join(" ")));
+  });
+
+  for (const found of findDocumentUrlsInText(text, sourceUrl)) {
+    add(found.url, found.label, found.context);
+  }
+
+  return dedupeDocuments(documents).slice(0, 100);
+}
+
+function labelFromDocumentAttributeName(name: string, context: string): string {
+  if (/datasheet/i.test(name)) return "Datasheet";
+  if (/manual/i.test(name)) return "Installation manual";
+  if (/document|resource|download|file/i.test(name)) return "Document";
+  return documentLabelFromContext(context, "");
+}
+
+function findDocumentUrlsInText(text: string, sourceUrl: string): Array<{ url: string; label: string; context: string }> {
+  const decodedTexts = embeddedJsonSearchTexts(text);
+  const found: Array<{ url: string; label: string; context: string }> = [];
+  for (const decoded of decodedTexts) {
+    const urlPattern = /https?:\/\/[^"'<>\s)]+|\/[a-z0-9][^"'<>\s)]*/gi;
+    for (const match of decoded.matchAll(urlPattern)) {
+      const rawUrl = match[0].replace(/[\\,.;]+$/g, "");
+      const absolute = toAbsoluteUrl(rawUrl, sourceUrl);
+      if (!absolute || !isDownloadableProductDocumentUrl(absolute)) continue;
+      const index = match.index ?? 0;
+      const context = cleanText(decoded.slice(Math.max(0, index - 180), Math.min(decoded.length, index + rawUrl.length + 180)));
+      found.push({
+        url: absolute,
+        label: documentLabelFromContext(context, absolute),
+        context
+      });
+    }
+  }
+  return found;
 }
 
 function normalizePlainTextLinkUrl(value: string): string {

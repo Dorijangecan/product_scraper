@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-06-02T14:47:05.346Z",
-  "outputDir": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260602144300",
+  "generatedAt": "2026-06-18T10:55:48.849Z",
+  "outputDir": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260618105250",
   "filters": {
     "manufacturer": "eaton"
   },
@@ -10,33 +10,40 @@
     "documentRate": 100,
     "pdtAuditRate": 100,
     "deviceTypeRate": 100,
-    "customerDocumentRate": 0,
+    "customerDocumentRate": 100,
     "wrongProducts": 0,
     "partialWithoutMissing": 0,
     "pdtUnprovenWritten": 0,
     "pdtUnexplainedRequiredFieldIssues": 0,
-    "pdtWriteIssues": 3,
+    "pdtWriteIssues": 2,
     "qualityAccepted": true,
     "fixtureCoverageAccepted": true,
     "fixtureCoverage": {
       "byManufacturer": {
         "eaton": {
-          "total": 5,
+          "total": 8,
           "caseTypes": [
             "electrical",
             "mechanical"
           ],
           "riskTags": [
             "current-sensor",
+            "customer-document-supported",
+            "directional-control-valve-sheet-coverage",
             "eaton-url-format",
             "electrical-measurement-devices-sheet-coverage",
             "electrical-ratings",
             "energy-distribution-system-sheet-coverage",
             "filter-element",
             "filters-sheet-coverage",
+            "flow-pressure-facts",
+            "fluid-power-sheet-coverage",
+            "hydraulic-actuator",
             "loadcenter",
             "manual-motor-protector",
-            "motor-protection"
+            "motor-protection",
+            "pressure-facts",
+            "pump-sheet-coverage"
           ]
         }
       },
@@ -85,6 +92,33 @@
           "caseTypes": [
             "electrical"
           ]
+        },
+        "Directional Control Valve": {
+          "total": 1,
+          "manufacturers": [
+            "eaton"
+          ],
+          "caseTypes": [
+            "mechanical"
+          ]
+        },
+        "Hydraulic Actuator": {
+          "total": 1,
+          "manufacturers": [
+            "eaton"
+          ],
+          "caseTypes": [
+            "mechanical"
+          ]
+        },
+        "Pump": {
+          "total": 1,
+          "manufacturers": [
+            "eaton"
+          ],
+          "caseTypes": [
+            "mechanical"
+          ]
         }
       },
       "byDeviceSheet": {
@@ -132,6 +166,33 @@
           "manufacturers": [
             "eaton"
           ]
+        },
+        "directional control valve": {
+          "total": 1,
+          "deviceTypes": [
+            "Directional Control Valve"
+          ],
+          "manufacturers": [
+            "eaton"
+          ]
+        },
+        "fluid power": {
+          "total": 1,
+          "deviceTypes": [
+            "Hydraulic Actuator"
+          ],
+          "manufacturers": [
+            "eaton"
+          ]
+        },
+        "pump": {
+          "total": 1,
+          "deviceTypes": [
+            "Pump"
+          ],
+          "manufacturers": [
+            "eaton"
+          ]
         }
       },
       "thinManufacturers": [],
@@ -154,9 +215,7 @@
         "cable gland",
         "command and alarm device",
         "connector",
-        "directional control valve",
         "electronic sensor",
-        "fluid power",
         "generator",
         "int. ext. lightning protection",
         "module carrier frame",
@@ -165,7 +224,6 @@
         "panel (HMI)",
         "pneumatic handling",
         "power supply devices",
-        "pump",
         "safety sensor",
         "sensor - fluid",
         "servo controller",
@@ -232,33 +290,34 @@
           ],
           "examples": [
             {
+              "manufacturerId": "phoenix",
+              "pattern": "FL",
+              "deviceType": "Communication Gateway",
+              "notes": "FL switch / FL gateway"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "RAD",
+              "deviceType": "Communication Gateway",
+              "notes": "Radioline"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENT",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENTR",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            },
+            {
               "manufacturerId": "rockwell",
               "pattern": "1783",
               "deviceType": "Communication Gateway",
-              "notes": "Stratix industrial Ethernet switch"
-            },
-            {
-              "manufacturerId": "abb",
-              "pattern": "CP6",
-              "deviceType": "HMI",
-              "notes": "CP6xx HMI panel"
-            },
-            {
-              "manufacturerId": "eaton",
-              "pattern": "XV",
-              "deviceType": "HMI"
-            },
-            {
-              "manufacturerId": "rockwell",
-              "pattern": "2711",
-              "deviceType": "HMI",
-              "notes": "PanelView HMI"
-            },
-            {
-              "manufacturerId": "rockwell",
-              "pattern": "2711P",
-              "deviceType": "HMI",
-              "notes": "PanelView HMI"
+              "notes": "Stratix industrial networking and communication modules"
             }
           ]
         },
@@ -269,10 +328,34 @@
           ],
           "examples": [
             {
+              "manufacturerId": "phoenix",
+              "pattern": "FL",
+              "deviceType": "Communication Gateway",
+              "notes": "FL switch / FL gateway"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "RAD",
+              "deviceType": "Communication Gateway",
+              "notes": "Radioline"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENT",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENTR",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            },
+            {
               "manufacturerId": "rockwell",
               "pattern": "1783",
               "deviceType": "Communication Gateway",
-              "notes": "Stratix industrial Ethernet switch"
+              "notes": "Stratix industrial networking and communication modules"
             }
           ]
         },
@@ -365,7 +448,14 @@
           "deviceTypes": [
             "Cable"
           ],
-          "examples": []
+          "examples": [
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "889",
+              "deviceType": "Cable",
+              "notes": "Allen-Bradley cordsets and patchcords"
+            }
+          ]
         },
         {
           "sheetName": "cable ducts mounting rails",
@@ -410,7 +500,7 @@
             },
             {
               "manufacturerId": "rockwell",
-              "pattern": "800T",
+              "pattern": "800H",
               "deviceType": "Pushbutton / Operator"
             },
             {
@@ -433,14 +523,18 @@
             "Connector",
             "Optical Connector"
           ],
-          "examples": []
-        },
-        {
-          "sheetName": "directional control valve",
-          "deviceTypes": [
-            "Directional Control Valve"
-          ],
-          "examples": []
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "MCS",
+              "deviceType": "Connector"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VIP",
+              "deviceType": "Connector"
+            }
+          ]
         },
         {
           "sheetName": "electronic sensor",
@@ -484,13 +578,6 @@
           ]
         },
         {
-          "sheetName": "fluid power",
-          "deviceTypes": [
-            "Hydraulic Actuator"
-          ],
-          "examples": []
-        },
-        {
           "sheetName": "generator",
           "deviceTypes": [
             "Generator"
@@ -507,6 +594,16 @@
               "manufacturerId": "abb",
               "pattern": "OVR",
               "deviceType": "Surge Protective Device"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VAL-CP",
+              "deviceType": "Surge Protective Device"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VAL-MS",
+              "deviceType": "Surge Protective Device"
             }
           ]
         },
@@ -515,7 +612,20 @@
           "deviceTypes": [
             "Module Carrier"
           ],
-          "examples": []
+          "examples": [
+            {
+              "manufacturerId": "siemens",
+              "pattern": "6ES7193",
+              "deviceType": "Module Carrier",
+              "notes": "SIMATIC ET 200SP BaseUnits / base carriers"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "BaseUnits",
+              "deviceType": "Module Carrier",
+              "notes": "SIMATIC ET 200SP BaseUnits / base carriers"
+            }
+          ]
         },
         {
           "sheetName": "motors",
@@ -655,30 +765,22 @@
               "notes": "CP-T / CP-E DIN-rail PSUs"
             },
             {
-              "manufacturerId": "rockwell",
-              "pattern": "1769-PA",
-              "deviceType": "Power Supply",
-              "notes": "CompactLogix power supply"
-            },
-            {
-              "manufacturerId": "rockwell",
-              "pattern": "1769-PB",
-              "deviceType": "Power Supply",
-              "notes": "CompactLogix power supply"
-            },
-            {
-              "manufacturerId": "schneider",
-              "pattern": "ABL",
+              "manufacturerId": "phoenix",
+              "pattern": "QUINT",
               "deviceType": "Power Supply"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "TRIO",
+              "deviceType": "Power Supply"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1606",
+              "deviceType": "Power Supply",
+              "notes": "Allen-Bradley switched mode power supplies"
             }
           ]
-        },
-        {
-          "sheetName": "pump",
-          "deviceTypes": [
-            "Pump"
-          ],
-          "examples": []
         },
         {
           "sheetName": "safety sensor",
@@ -694,23 +796,23 @@
               "notes": "Pluto safety controller"
             },
             {
+              "manufacturerId": "phoenix",
+              "pattern": "PSR",
+              "deviceType": "Safety Relay"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "PSRMINI",
+              "deviceType": "Safety Relay"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "440C",
+              "deviceType": "Safety Relay"
+            },
+            {
               "manufacturerId": "rockwell",
               "pattern": "440R",
-              "deviceType": "Safety Relay"
-            },
-            {
-              "manufacturerId": "schmersal",
-              "pattern": "PROTECT-",
-              "deviceType": "Safety Relay"
-            },
-            {
-              "manufacturerId": "schmersal",
-              "pattern": "SRB",
-              "deviceType": "Safety Relay"
-            },
-            {
-              "manufacturerId": "siemens",
-              "pattern": "3SF",
               "deviceType": "Safety Relay"
             }
           ]
@@ -723,7 +825,32 @@
             "Pressure Sensor",
             "Temperature Sensor"
           ],
-          "examples": []
+          "examples": [
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "839E",
+              "deviceType": "Flow Sensor",
+              "notes": "Allen-Bradley flow sensors"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "840E",
+              "deviceType": "Level Sensor",
+              "notes": "Allen-Bradley level sensors"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "836P",
+              "deviceType": "Pressure Sensor",
+              "notes": "Allen-Bradley pressure sensors"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "837T",
+              "deviceType": "Temperature Sensor",
+              "notes": "Allen-Bradley temperature sensors"
+            }
+          ]
         },
         {
           "sheetName": "servo controller",
@@ -768,6 +895,16 @@
           ],
           "examples": [
             {
+              "manufacturerId": "phoenix",
+              "pattern": "UK",
+              "deviceType": "Terminal Block"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "UT",
+              "deviceType": "Terminal Block"
+            },
+            {
               "manufacturerId": "rockwell",
               "pattern": "1492",
               "deviceType": "Terminal Block"
@@ -780,6 +917,16 @@
             "Terminal Accessory"
           ],
           "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "CLIPFIX",
+              "deviceType": "Terminal Accessory"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "E/UK",
+              "deviceType": "Terminal Accessory"
+            },
             {
               "manufacturerId": "rockwell",
               "pattern": "1492-EAH",
@@ -803,7 +950,7 @@
         }
       ],
       "deviceSheetCoverage": {
-        "covered": 5,
+        "covered": 8,
         "total": 41
       }
     },
@@ -831,14 +978,14 @@
       "requiredDocumentsMatched": true,
       "normalizedFieldsMatched": true,
       "pdtAuditMatched": true,
-      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260602144300\\pdt\\eaton-P1-25-I2-SVB-pdt_pdt-audit.json",
-      "pdtWrittenCells": 26,
-      "pdtBlankCells": 71,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260618105250\\pdt\\eaton-P1-25-I2-SVB-pdt_pdt-audit.json",
+      "pdtWrittenCells": 25,
+      "pdtBlankCells": 72,
       "pdtSkippedCells": 0,
       "pdtUnprovenSkipped": 0,
       "pdtUnprovenWritten": 0,
       "pdtWriteIssues": 0,
-      "pdtRequiredFieldIssues": 3,
+      "pdtRequiredFieldIssues": 8,
       "pdtUnexplainedRequiredFieldIssues": 0,
       "customerDocumentsExpected": 0,
       "customerDocumentsMatched": true,
@@ -865,14 +1012,14 @@
       "requiredDocumentsMatched": true,
       "normalizedFieldsMatched": true,
       "pdtAuditMatched": true,
-      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260602144300\\pdt\\eaton-PKZM0-10-pdt_pdt-audit.json",
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260618105250\\pdt\\eaton-PKZM0-10-pdt_pdt-audit.json",
       "pdtWrittenCells": 23,
       "pdtBlankCells": 73,
       "pdtSkippedCells": 1,
       "pdtUnprovenSkipped": 1,
       "pdtUnprovenWritten": 0,
       "pdtWriteIssues": 0,
-      "pdtRequiredFieldIssues": 0,
+      "pdtRequiredFieldIssues": 2,
       "pdtUnexplainedRequiredFieldIssues": 0,
       "customerDocumentsExpected": 0,
       "customerDocumentsMatched": true,
@@ -899,7 +1046,7 @@
       "requiredDocumentsMatched": true,
       "normalizedFieldsMatched": false,
       "pdtAuditMatched": true,
-      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260602144300\\pdt\\eaton-222AS10051A-pdt_pdt-audit.json",
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260618105250\\pdt\\eaton-222AS10051A-pdt_pdt-audit.json",
       "pdtWrittenCells": 21,
       "pdtBlankCells": 35,
       "pdtSkippedCells": 0,
@@ -933,13 +1080,13 @@
       "requiredDocumentsMatched": true,
       "normalizedFieldsMatched": true,
       "pdtAuditMatched": true,
-      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260602144300\\pdt\\eaton-BRP42BC225-pdt_pdt-audit.json",
-      "pdtWrittenCells": 34,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260618105250\\pdt\\eaton-BRP42BC225-pdt_pdt-audit.json",
+      "pdtWrittenCells": 33,
       "pdtBlankCells": 66,
-      "pdtSkippedCells": 1,
+      "pdtSkippedCells": 2,
       "pdtUnprovenSkipped": 0,
       "pdtUnprovenWritten": 0,
-      "pdtWriteIssues": 1,
+      "pdtWriteIssues": 2,
       "pdtRequiredFieldIssues": 0,
       "pdtUnexplainedRequiredFieldIssues": 0,
       "customerDocumentsExpected": 0,
@@ -967,16 +1114,116 @@
       "requiredDocumentsMatched": true,
       "normalizedFieldsMatched": true,
       "pdtAuditMatched": true,
-      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260602144300\\pdt\\eaton-M030-151-pdt_pdt-audit.json",
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260618105250\\pdt\\eaton-M030-151-pdt_pdt-audit.json",
       "pdtWrittenCells": 22,
       "pdtBlankCells": 92,
       "pdtSkippedCells": 3,
       "pdtUnprovenSkipped": 1,
       "pdtUnprovenWritten": 0,
-      "pdtWriteIssues": 2,
+      "pdtWriteIssues": 0,
       "pdtRequiredFieldIssues": 0,
       "pdtUnexplainedRequiredFieldIssues": 0,
       "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": []
+    },
+    {
+      "manufacturerId": "eaton",
+      "catalogNumber": "DG4V-3-2A-M-U-H7-60",
+      "caseType": "mechanical",
+      "expectedDeviceType": "Directional Control Valve",
+      "actualDeviceType": "Directional Control Valve",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "customer-document-supported",
+        "directional-control-valve-sheet-coverage",
+        "flow-pressure-facts"
+      ],
+      "status": "found",
+      "confidence": 0.97,
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260618105250\\pdt\\eaton-DG4V-3-2A-M-U-H7-60-pdt_pdt-audit.json",
+      "pdtWrittenCells": 26,
+      "pdtBlankCells": 117,
+      "pdtSkippedCells": 0,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 1,
+      "customerDocumentsMatched": true,
+      "qualityMissing": []
+    },
+    {
+      "manufacturerId": "eaton",
+      "catalogNumber": "HC-50-100",
+      "caseType": "mechanical",
+      "expectedDeviceType": "Hydraulic Actuator",
+      "actualDeviceType": "Hydraulic Actuator",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "customer-document-supported",
+        "hydraulic-actuator",
+        "fluid-power-sheet-coverage",
+        "pressure-facts"
+      ],
+      "status": "found",
+      "confidence": 0.97,
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260618105250\\pdt\\eaton-HC-50-100-pdt_pdt-audit.json",
+      "pdtWrittenCells": 25,
+      "pdtBlankCells": 151,
+      "pdtSkippedCells": 0,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 1,
+      "customerDocumentsMatched": true,
+      "qualityMissing": []
+    },
+    {
+      "manufacturerId": "eaton",
+      "catalogNumber": "PUMP-12M3H",
+      "caseType": "mechanical",
+      "expectedDeviceType": "Pump",
+      "actualDeviceType": "Pump",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "customer-document-supported",
+        "pump-sheet-coverage",
+        "flow-pressure-facts"
+      ],
+      "status": "found",
+      "confidence": 0.97,
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260618105250\\pdt\\eaton-PUMP-12M3H-pdt_pdt-audit.json",
+      "pdtWrittenCells": 40,
+      "pdtBlankCells": 65,
+      "pdtSkippedCells": 0,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 1,
       "customerDocumentsMatched": true,
       "qualityMissing": []
     }

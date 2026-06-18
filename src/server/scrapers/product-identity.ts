@@ -1,5 +1,5 @@
 import type { ManufacturerConfig, ProductResult } from "../../shared/types.js";
-import { catalogTextMatches } from "./catalog-number.js";
+import { catalogTextMatches, sameCatalogNumber } from "./catalog-number.js";
 
 export interface ProductIdentityConflict {
   catalogNumber: string;
@@ -30,8 +30,9 @@ export function hasMatchingStructuredIdentity(
 ): boolean {
   return result.attributes.some((attr) => {
     const label = `${attr.group ?? ""} ${attr.name}`;
-    if (!isIdentityAttributeLabel(label)) return false;
-    return catalogTextMatches(attr.value, catalogNumber, identityMatchPolicy(manufacturer));
+    const strength = identityAttributeLabelStrength(label);
+    if (!strength) return false;
+    return identityValueMatches(attr.value, catalogNumber, manufacturer, strength);
   });
 }
 
@@ -50,8 +51,9 @@ export function structuredIdentityConflict(
 
   const hasMatch = result.attributes.some((attr) => {
     const label = `${attr.group ?? ""} ${attr.name}`;
-    if (identityAttributeLabelStrength(label) !== "strong") return false;
-    return catalogTextMatches(attr.value, catalogNumber, identityMatchPolicy(manufacturer));
+    const strength = identityAttributeLabelStrength(label);
+    if (strength !== "strong" && !(manufacturer.id === "eaton" && strength === "weak")) return false;
+    return identityValueMatches(attr.value, catalogNumber, manufacturer, strength);
   });
   return hasMatch ? undefined : { catalogNumber, mismatches: mismatches.slice(0, 6) };
 }
@@ -69,6 +71,17 @@ function identityMatchPolicy(manufacturer: ManufacturerConfig) {
     ignoreCase: true,
     ...manufacturer.match
   };
+}
+
+function identityValueMatches(
+  value: string,
+  catalogNumber: string,
+  manufacturer: ManufacturerConfig,
+  strength: "strong" | "weak"
+): boolean {
+  const policy = identityMatchPolicy(manufacturer);
+  if (strength === "weak") return sameCatalogNumber(value, catalogNumber, policy);
+  return catalogTextMatches(value, catalogNumber, policy);
 }
 
 function isUsableIdentityValue(value: string | undefined): value is string {

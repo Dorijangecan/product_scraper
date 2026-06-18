@@ -26,8 +26,8 @@ export interface ResolveContext {
   rowVariant?: Record<string, string>;
   /**
    * Target language for the column currently being resolved. When set to "de", description
-   * resolvers prefer `result.localizedDescriptions.de` and return undefined if no real DE text
-   * exists — DE cells stay blank rather than echo English.
+   * resolvers prefer `result.localizedDescriptions.de` and then fall back to the same literal
+   * description text the EN column would use.
    */
   language?: "en" | "de";
 }
@@ -314,6 +314,11 @@ function isRockwellMicro820Plc(ctx: ResolveContext): boolean {
 function isRockwellCompact5000IoPlc(ctx: ResolveContext): boolean {
   if (!isRockwell(ctx)) return false;
   if (!/^\s*PLC\s*$/i.test(ctx.sheetName ?? "")) return false;
+  return isRockwellCompact5000IoCatalog(ctx);
+}
+
+function isRockwellCompact5000IoCatalog(ctx: ResolveContext): boolean {
+  if (!isRockwell(ctx)) return false;
   const catalog = clean(ctx.item.catalogNumber) ?? "";
   return /\b5069-[IO][A-Z0-9-]*\b/i.test(catalog);
 }
@@ -555,6 +560,8 @@ function titlePrefixedTypeParts(titleValue: string | undefined): { family?: stri
  * Converts imperial units to mm (Saginaw and other US manufacturers publish in inches).
  */
 function dimensionMm(ctx: ResolveContext, dims: string[]): string | undefined {
+  if (isRockwellCompact5000IoCatalog(ctx)) return undefined;
+
   const factKey = dims.some((dim) => dim === "depth" || dim === "length")
     ? "pdtDepthMm"
     : dims.includes("width")
@@ -687,8 +694,8 @@ function abbPdtProductUrl(catalogNumber: string): string {
 }
 
 function eatonPdtProductUrl(catalogNumber: string): string {
-  // Manual Eaton PDTs use the GB/EN-GB SKU page with an "EP-" prefix on the catalog number
-  // (e.g. 502419 → .../skuPage.EP-502419.html). Don't double-prefix if it's already there.
+  // Manual Eaton PDTs use the GB/EN-GB SKU page. Some legacy rows already contain an EP-
+  // skuPage identifier; preserve it, but don't invent the prefix for plain article numbers.
   return pdtProductUrlRule({ manufacturerId: "eaton", catalogNumber })?.value ?? catalogNumber;
 }
 
@@ -1907,6 +1914,13 @@ function currentValue(ctx: ResolveContext, pattern: RegExp): string | undefined 
   return numberWithUnit(value, "A") ?? numberOf(value);
 }
 
+function rockwellCompact5000IoPointCount(ctx: ResolveContext, direction: "input" | "output"): string | undefined {
+  if (!isRockwellCompact5000IoCatalog(ctx)) return undefined;
+  const catalog = clean(ctx.item.catalogNumber) ?? "";
+  const pattern = direction === "input" ? /\b5069-I[A-Z]*(\d+)\b/i : /\b5069-O[A-Z]*(\d+)\b/i;
+  return catalog.match(pattern)?.[1];
+}
+
 function powerValue(ctx: ResolveContext, pattern: RegExp): string | undefined {
   const value = attr(ctx, pattern);
   return numberWithUnit(value, "W") ?? numberWithUnit(value, "kW") ?? numberOf(value);
@@ -2166,10 +2180,10 @@ const RESOLVERS: Record<string, Resolver> = {
   AAC031: (ctx) => minVoltageOf(ctx, /\b(min(?:imum)?\s+(?:permissible\s+)?voltage|voltage\s+(?:min(?:imum)?)|input\s+voltage range)\b/i),
   AAC030: (ctx) => minVoltageOf(ctx, /\b(min(?:imum)?\s+(?:permissible\s+)?(?:output\s+)?voltage|output\s+voltage\s+(?:range|min(?:imum)?))\b/i),
   // I/O counts — common on PLC / Motion Controller / Luminaire / Generator tabs
-  AAP341: (ctx) => numberOf(attr(ctx, /\b(?:number of\s+)?analog(?:ue)?\s+(?:input(?:s)?|in\b)\b/i)),
-  AAP342: (ctx) => numberOf(attr(ctx, /\b(?:number of\s+)?analog(?:ue)?\s+(?:output(?:s)?|out\b)\b/i)),
-  AAP508: (ctx) => numberOf(attr(ctx, /\b(?:number of\s+)?digital\s+(?:input(?:s)?|in\b)\b/i)),
-  AAP610: (ctx) => numberOf(attr(ctx, /\b(?:number of\s+)?digital\s+(?:output(?:s)?|out\b)\b/i)),
+  AAP341: (ctx) => pdtFactValue(ctx, "pdtAnalogInputCount") ?? numberOf(attr(ctx, /\b(?:number of\s+)?analog(?:ue)?\s+(?:input(?:s)?|in\b)\b/i)),
+  AAP342: (ctx) => pdtFactValue(ctx, "pdtAnalogOutputCount") ?? numberOf(attr(ctx, /\b(?:number of\s+)?analog(?:ue)?\s+(?:output(?:s)?|out\b)\b/i)),
+  AAP508: (ctx) => pdtFactValue(ctx, "pdtDigitalInputCount") ?? rockwellCompact5000IoPointCount(ctx, "input") ?? numberOf(attr(ctx, /\b(?:number of\s+)?digital\s+(?:input(?:s)?|in\b)\b/i)),
+  AAP610: (ctx) => pdtFactValue(ctx, "pdtDigitalOutputCount") ?? rockwellCompact5000IoPointCount(ctx, "output") ?? numberOf(attr(ctx, /\b(?:number of\s+)?digital\s+(?:output(?:s)?|out\b)\b/i)),
   // Configurable I/O flags (yes/no enum)
   AAM485: (ctx) => yesNoAttr(ctx, /\bdigital outputs?,?\s+configurable\b/i),
   AAM486: (ctx) => yesNoAttr(ctx, /\banalog(?:ue)?\s+(?:input|output)s?,?\s+configurable\b/i),

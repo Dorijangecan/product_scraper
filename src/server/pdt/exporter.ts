@@ -103,8 +103,6 @@ export interface PdtCellAuditSummary {
 interface PdtResolvedCell {
   value: string;
   provenance: PdtCellProvenance;
-  /** When set, write the cell as an Excel formula instead of a literal value. The `value` field becomes the cached result. */
-  formula?: string;
 }
 
 interface PdtCellProvenance {
@@ -441,8 +439,6 @@ function writeUniformSheet(
             continue;
           }
           ws.getCell(row, column.col).value = label;
-        } else if (resolved.formula) {
-          ws.getCell(row, column.col).value = { formula: resolved.formula, result: value } as ExcelJS.CellFormulaValue;
         } else {
           ws.getCell(row, column.col).value = cellValueFor(column, value);
         }
@@ -769,6 +765,7 @@ function resolvePdtColumnCell(
       }
     };
   }
+  if (isSuppressedRockwellCompact5000IoDimension(column, ctx)) return undefined;
 
   const isDeDescription = isGermanDescriptionColumn(ws, descriptor, column);
   const resolveCtx: ResolveContext = isDeDescription ? { ...ctx, language: "de" } : ctx;
@@ -794,25 +791,7 @@ function resolvePdtColumnCell(
       })();
   if (!direct) return undefined;
 
-  // DE description columns fall back to the EN string when no localized German source exists.
-  // Wrap that placeholder in an Excel TRANSLATE() formula so spreadsheet readers (Excel 2024+/M365)
-  // render the actual German translation via Microsoft Translator. We only emit the formula when
-  // the underlying value really came from the EN fallback — if the scraper got a localized DE
-  // text, we keep that authoritative string as a literal.
-  if (isDeDescription && !hasLocalizedGermanSource(ctx, column)) {
-    const enTwin = findEnDescriptionTwin(ws, descriptor, column);
-    if (enTwin) {
-      const enAddress = ws.getCell(row, enTwin.col).address;
-      return {
-        ...direct,
-        formula: `=IFERROR(TRANSLATE(${enAddress},"en","de"),${enAddress})`,
-        provenance: {
-          ...direct.provenance,
-          reason: `${direct.provenance.reason} Wrapped in Excel TRANSLATE() formula pointing at the EN twin cell ${enAddress}.`
-        }
-      };
-    }
-  }
+  // Write resolved descriptions as literals; formulas are not recalculated reliably by recipients.
   return direct;
 }
 
@@ -1065,57 +1044,6 @@ function derivedFactKeyForColumn(column: PdtColumn): string | undefined {
   return powerFactKeysForColumn(column)[0];
 }
 
-function hasLocalizedGermanSource(ctx: ResolveContext, column: PdtColumn): boolean {
-  const de = ctx.result?.localizedDescriptions?.de;
-  const key = `${column.code} ${column.propName}`.toUpperCase();
-  const compare = (deValue: string | undefined, enValue: string | undefined): boolean => {
-    const trimmed = deValue?.trim();
-    if (!trimmed) return false;
-    // When the localized "DE" text is byte-for-byte the EN string (manufacturers occasionally
-    // echo English back from their /de/ page), treat it as no real DE source so the cell still
-    // gets wrapped in TRANSLATE() rather than shipped as-is.
-    const enTrimmed = enValue?.trim();
-    if (enTrimmed && trimmed.toLowerCase().replace(/[\s._-]+/g, "") === enTrimmed.toLowerCase().replace(/[\s._-]+/g, "")) return false;
-    return true;
-  };
-  if (/SHORT/.test(key)) {
-    const fact = bestFact(ctx.pdtFacts, "localizedShortDescriptionDe");
-    if (fact?.sourceKind === "repair") return Boolean(fact.value?.trim());
-    return compare(fact?.value ?? de?.title, ctx.result?.title);
-  }
-  const fact = bestFact(ctx.pdtFacts, "localizedLongDescriptionDe");
-  if (fact?.sourceKind === "repair") return Boolean(fact.value?.trim());
-  return compare(fact?.value ?? de?.description, ctx.result?.description);
-}
-
-function findEnDescriptionTwin(
-  ws: ExcelJS.Worksheet,
-  descriptor: SheetDescriptor,
-  column: PdtColumn
-): PdtColumn | undefined {
-  const type = descriptionColumnType(column);
-  return descriptor.columns.find(
-    (candidate) =>
-      candidate.col !== column.col &&
-      descriptionColumnType(candidate) === type &&
-      descriptionColumnsMatch(column, candidate) &&
-      columnLanguage(ws, candidate.col, descriptor.firstBodyRow) === "en"
-  );
-}
-
-function descriptionColumnsMatch(left: PdtColumn, right: PdtColumn): boolean {
-  const leftKeys = descriptionPropertyKeys(left);
-  const rightKeys = descriptionPropertyKeys(right);
-  return leftKeys.some((key) => rightKeys.includes(key));
-}
-
-function descriptionPropertyKeys(column: PdtColumn): string[] {
-  const type = descriptionColumnType(column);
-  return propertyKeysForColumn(column)
-    .map((key) => (key === "AAU734" ? "CNS_DESCRIPTION_LONG" : key))
-    .filter((key) => (type === "long" ? key === "CNS_DESCRIPTION_LONG" : key === "CNS_DESCRIPTION_SHORT"));
-}
-
 function resolveColumnFromFacts(column: PdtColumn, ctx: ResolveContext, facts: PdtFactIndex): PdtResolvedCell | undefined {
   for (const key of factKeysForColumn(column, ctx)) {
     const fact = bestFact(facts, key);
@@ -1169,9 +1097,15 @@ function factKeysForColumn(column: PdtColumn, ctx: ResolveContext): string[] {
   if (isWeightColumn(column) && !ctx.result?.normalized.weight) add("weight");
   if (keys.includes("AAF040")) add("pdtWeightKg");
   if (keys.includes("BAA303")) add("pdtStaticPowerLoss");
-  if (keys.includes("BAB577")) add("pdtDepthMm");
-  if (keys.includes("BAF016")) add("pdtWidthMm");
-  if (keys.includes("BAA020")) add("pdtHeightMm");
+  if (!isRockwellCompact5000Io(ctx)) {
+    if (keys.includes("BAB577")) add("pdtDepthMm");
+    if (keys.includes("BAF016")) add("pdtWidthMm");
+    if (keys.includes("BAA020")) add("pdtHeightMm");
+  }
+  if (keys.includes("AAP341")) add("pdtAnalogInputCount");
+  if (keys.includes("AAP342")) add("pdtAnalogOutputCount");
+  if (keys.includes("AAP508")) add("pdtDigitalInputCount");
+  if (keys.includes("AAP610")) add("pdtDigitalOutputCount");
   if (keys.includes("AAC895")) add("pdtSignalDiameter");
   if (keys.includes("BAH005") || keys.includes("AAF583") || keys.includes("AAB485") || keys.includes("CNS_RATED_VOLTAGE") || /\brated voltage|nominal voltage/i.test(column.description)) {
     add("pdtRatedVoltage");
@@ -1200,6 +1134,18 @@ function isRockwell852LedIndicator(ctx: ResolveContext): boolean {
   const catalog = ctx.item.catalogNumber ?? "";
   const text = `${catalog} ${ctx.result?.title ?? ""} ${ctx.result?.description ?? ""}`;
   return /^\s*852[CD]-/i.test(catalog) || /\b(?:On-Machine\s+)?LED\s+Indicators?\b/i.test(text);
+}
+
+function isRockwellCompact5000Io(ctx: ResolveContext): boolean {
+  const manufacturerId = ctx.result?.manufacturerId ?? ctx.manufacturer.id;
+  if (manufacturerId !== "rockwell") return false;
+  return /\b5069-[IO][A-Z0-9-]*\b/i.test(ctx.item.catalogNumber ?? "");
+}
+
+function isSuppressedRockwellCompact5000IoDimension(column: PdtColumn, ctx: ResolveContext): boolean {
+  if (!isRockwellCompact5000Io(ctx)) return false;
+  const keys = propertyKeysForColumn(column);
+  return keys.includes("BAB577") || keys.includes("BAF016") || keys.includes("BAA020");
 }
 
 function isSignalDevice(ctx: ResolveContext): boolean {

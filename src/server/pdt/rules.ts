@@ -99,11 +99,10 @@ export function pdtProductUrlRule(ctx: PdtUrlContext): AppliedPdtRule<string> | 
         value: EATON_E6_CATALOG_PDF_URL
       };
     }
-    const withPrefix = /^EP-/i.test(part) ? part : `EP-${part}`;
     return {
       name: "eaton-pdt-sku-page-url",
-      rationale: "Eaton manual PDTs use gb/en-gb skuPage URLs and require an EP- prefix.",
-      value: `https://www.eaton.com/gb/en-gb/skuPage.${encodeURIComponent(withPrefix)}.html`
+      rationale: "Eaton PDT product URLs should use the real skuPage identifier without inventing an EP- prefix.",
+      value: `https://www.eaton.com/gb/en-gb/skuPage.${encodeURIComponent(part)}.html`
     };
   }
   if (ctx.manufacturerId === "sce") {
@@ -155,9 +154,9 @@ export function pdtProductUrlRule(ctx: PdtUrlContext): AppliedPdtRule<string> | 
     if (/^\s*5069-/i.test(ctx.catalogNumber)) {
       const catalog = clean(ctx.catalogNumber) ?? ctx.catalogNumber;
       return {
-        name: "rockwell-compact-5000-io-pdt-search-url",
-        rationale: "Rockwell Compact 5000 I/O manual PDTs use the catalog search URL for 5069 module variants.",
-        value: `https://www.rockwellautomation.com/en-us/search.html?keyword=${encodeURIComponent(catalog)}&tab=all`
+        name: "rockwell-compact-5000-io-pdt-details-url",
+        rationale: "Rockwell Compact 5000 I/O PDT product web addresses must point to the exact details page, not the search-results page.",
+        value: `https://www.rockwellautomation.com/en-us/products/details.${encodeURIComponent(catalog)}.html`
       };
     }
     if (/^\s*2715P-/i.test(ctx.catalogNumber)) {
@@ -188,7 +187,14 @@ export function pdtProductUrlRule(ctx: PdtUrlContext): AppliedPdtRule<string> | 
         value: "https://www.rockwellautomation.com/en-us/search.html?keyword=armorkinetix+DSM&tab=all"
       };
     }
-    return undefined;
+    {
+      const catalog = clean(ctx.catalogNumber) ?? ctx.catalogNumber;
+      return {
+        name: "rockwell-pdt-details-url-default",
+        rationale: "Unknown Rockwell families should use the exact catalog details page rather than a search-results URL.",
+        value: `https://www.rockwellautomation.com/en-us/products/details.${encodeURIComponent(catalog)}.html`
+      };
+    }
   }
   return undefined;
 }
@@ -226,17 +232,16 @@ export function localizedPdtDocumentUrlRules(ctx: PdtUrlContext): Array<AppliedP
         }
       ];
     }
-    const withPrefix = /^EP-/i.test(part) ? part : `EP-${part}`;
-    const encoded = encodeURIComponent(withPrefix);
+    const encoded = encodeURIComponent(part);
     return [
       {
         name: "eaton-pdt-document-url-en",
-        rationale: "Eaton PDT Additional Documents should point at the downloadable localized specification PDF, not the HTML skuPage.",
+        rationale: "Eaton PDT Additional Documents should point at the downloadable localized specification PDF for the real skuPage identifier.",
         value: { url: `https://www.eaton.com/gb/en-gb/skuPage.${encoded}.pdf`, language: "english", description: "Datasheet(EN)" }
       },
       {
         name: "eaton-pdt-document-url-de",
-        rationale: "Eaton PDT Additional Documents should point at the downloadable localized specification PDF, not the HTML skuPage.",
+        rationale: "Eaton PDT Additional Documents should point at the downloadable localized specification PDF for the real skuPage identifier.",
         value: { url: `https://www.eaton.com/de/de-de/skuPage.${encoded}.pdf`, language: "german", description: "Datenblatt" }
       }
     ];
@@ -260,6 +265,20 @@ export function localizedPdtDocumentUrlRules(ctx: PdtUrlContext): Array<AppliedP
         name: "rockwell-micro820-pdt-document-url-en",
         rationale: "Rockwell Micro820 manual PDT Additional Documents include one English technical datasheet link to the family page.",
         value: { url: ROCKWELL_MICRO820_FAMILY_URL, language: "english", description: "Technical Datasheet (EN)", documentType: "pdf" }
+      }
+    ];
+  }
+  if (ctx.manufacturerId === "rockwell" && /^\s*5069-[IO]/i.test(ctx.catalogNumber)) {
+    return [
+      {
+        name: "rockwell-compact-5000-io-pdt-document-url-en",
+        rationale: "Rockwell Compact 5000 I/O Additional Documents should use the direct Technical Data PDF, not the product-page documentation tab.",
+        value: {
+          url: "https://literature.rockwellautomation.com/idc/groups/literature/documents/td/5069-td001_-en-p.pdf",
+          language: "english",
+          description: "Technical Datasheet (EN)",
+          documentType: "pdf"
+        }
       }
     ];
   }

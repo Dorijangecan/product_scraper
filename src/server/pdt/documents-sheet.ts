@@ -1,5 +1,5 @@
 import type ExcelJS from "exceljs";
-import type { RunItemRecord } from "../../shared/types.js";
+import type { DocumentRecord, RunItemRecord } from "../../shared/types.js";
 import { clearBody, describeSheet, type PdtColumn } from "./sheet-descriptor.js";
 import { localizedPdtDocumentUrlRules } from "./rules.js";
 
@@ -20,11 +20,21 @@ interface DocRow {
  * the scraper. Manual-PDT formatting exceptions live in localizedPdtDocumentUrlRules.
  */
 function documentRowsFor(item: RunItemRecord): DocRow[] {
+  if (item.result?.manufacturerId === "eaton") {
+    const directDocuments = eatonDirectDocumentRows(item.result.documents);
+    if (directDocuments.length > 0) return directDocuments;
+  }
+
   const ruleRows = localizedPdtDocumentUrlRules({
     manufacturerId: item.result?.manufacturerId,
     catalogNumber: item.catalogNumber
   }).map((rule) => rule.value);
   if (ruleRows.length > 0) return ruleRows;
+
+  if (item.result?.manufacturerId === "rockwell") {
+    const directDocuments = rockwellDirectDocumentRows(item.result.documents);
+    if (directDocuments.length > 0) return directDocuments;
+  }
 
   const localized = item.result?.localizedUrls;
   const en = localized?.en ?? item.result?.productUrl ?? item.productUrl;
@@ -33,6 +43,64 @@ function documentRowsFor(item: RunItemRecord): DocRow[] {
   if (en) rows.push({ url: en, language: "english", description: "Datasheet(EN)" });
   if (de) rows.push({ url: de, language: "german", description: "Datenblatt" });
   return rows;
+}
+
+function eatonDirectDocumentRows(documents: DocumentRecord[]): DocRow[] {
+  const direct = documents
+    .filter((doc) => doc.type === "datasheet" && /^https:\/\/www\.eaton\.com\/.+\/skuPage\.[^/?#]+\.pdf(?:[?#].*)?$/i.test(doc.url))
+    .sort((left, right) => eatonDocumentRank(right) - eatonDocumentRank(left));
+  return direct.slice(0, 2).map((doc) => ({
+    url: doc.url,
+    language: eatonDocumentLanguage(doc.url),
+    description: eatonDocumentDescription(doc.url),
+    documentType: "pdf"
+  }));
+}
+
+function eatonDocumentRank(doc: DocumentRecord): number {
+  const localeRank = /\/gb\/en-gb\/|\/us\/en-us\//i.test(doc.url) ? 20 : /\/de\/de-de\//i.test(doc.url) ? 10 : 0;
+  const sourceRank = doc.sourceType === "official" ? 10 : doc.sourceType === "official-fallback" ? 5 : 0;
+  return localeRank + sourceRank + (doc.confidence ?? 0);
+}
+
+function eatonDocumentLanguage(url: string): string {
+  return /\/de\/de-de\//i.test(url) ? "german" : "english";
+}
+
+function eatonDocumentDescription(url: string): string {
+  return /\/de\/de-de\//i.test(url) ? "Datenblatt" : "Datasheet(EN)";
+}
+
+function rockwellDirectDocumentRows(documents: DocumentRecord[]): DocRow[] {
+  const direct = documents
+    .filter((doc) => isDirectRockwellPdf(doc.url))
+    .sort((left, right) => rockwellDocumentRank(right) - rockwellDocumentRank(left));
+  const bestDatasheet = direct.find((doc) => doc.type === "datasheet");
+  const chosen = bestDatasheet ? [bestDatasheet] : direct.slice(0, 1);
+  return chosen.map((doc) => ({
+    url: doc.url,
+    language: "english",
+    description: rockwellDocumentDescription(doc),
+    documentType: "pdf"
+  }));
+}
+
+function isDirectRockwellPdf(url: string): boolean {
+  return /^https:\/\/literature\.rockwellautomation\.com\/.+\.pdf(?:[?#].*)?$/i.test(url);
+}
+
+function rockwellDocumentRank(doc: DocumentRecord): number {
+  const typeRank = doc.type === "datasheet" ? 50 : doc.type === "manual" ? 30 : doc.type === "certificate" ? 20 : 10;
+  const labelRank = /\btechnical\s+(?:data|detail|datasheet)|datasheet|data\s+sheet\b/i.test(doc.label) ? 20 : 0;
+  const sourceRank = doc.sourceType === "official" ? 10 : doc.sourceType === "official-fallback" ? 5 : 0;
+  return typeRank + labelRank + sourceRank + (doc.confidence ?? 0);
+}
+
+function rockwellDocumentDescription(doc: DocumentRecord): string {
+  if (doc.type === "datasheet") return "Technical Datasheet (EN)";
+  if (doc.type === "manual") return "Manual (EN)";
+  if (doc.type === "certificate") return "Certificate (EN)";
+  return doc.label || "Document (EN)";
 }
 
 /**

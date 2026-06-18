@@ -5,7 +5,7 @@ import type { ManufacturerConnector, ScrapeContext } from "./types.js";
 import { catalogTextMatches } from "./catalog-number.js";
 import { dedupeAttributes, dedupeDocuments } from "./dedupe.js";
 import { buildLocalizedProductUrls } from "./localized-urls.js";
-import { cleanText, emptyResult, mergeResults, normalizeFields } from "./normalizer.js";
+import { cleanText, emptyResult, mergeResults, normalizeFields, splitNameValue } from "./normalizer.js";
 import { parseGenericProductPage } from "./generic.js";
 
 const ROCKWELL_USER_AGENT =
@@ -55,7 +55,7 @@ export class RockwellConnector implements ManufacturerConnector {
         extractionPolicy: context.manufacturer.scrapeRecipe?.extractionPolicy,
         confidence: 0.78
       });
-      if (parsed.status !== "failed") results.push(withRockwellConfidence(parsed, 0.84));
+      if (parsed.status !== "failed") results.push(withRockwellConfidence(enrichRockwellParsedPage(parsed, fetched, catalogNumber, "rockwell-product-page"), 0.84));
     }
 
     const merged = mergeRockwellResults(results);
@@ -167,6 +167,25 @@ function withRockwellConfidence(result: ProductResult, confidence: number): Prod
   };
 }
 
+function enrichRockwellParsedPage(result: ProductResult, fetched: FetchedText, catalogNumber: string, parser: string): ProductResult {
+  const $ = cheerio.load(fetched.text);
+  const sourceUrl = fetched.effectiveUrl;
+  const attributes = dedupeAttributes([
+    ...result.attributes,
+    ...extractRockwellStructuredAttributes($, fetched.text, sourceUrl, catalogNumber, parser)
+  ]);
+  const documents = dedupeDocuments([
+    ...result.documents,
+    ...extractRockwellDocumentLinks($, catalogNumber, sourceUrl, parser)
+  ]);
+  return {
+    ...result,
+    normalized: normalizeFields(attributes, documents),
+    attributes,
+    documents
+  };
+}
+
 export function parseRockwellCutsheetPage(catalogNumber: string, fetched: FetchedText): ProductResult {
   if (fetched.statusCode >= 400 || !catalogTextMatches(fetched.text, catalogNumber, { compact: true, ignoreCase: true })) {
     return emptyResult("rockwell", catalogNumber, "Rockwell cutsheet page did not contain the catalog number.");
@@ -185,6 +204,7 @@ export function parseRockwellCutsheetPage(catalogNumber: string, fetched: Fetche
     ...optionalAttribute("Rockwell Cutsheet", "Catalog Number", linkedCatalog || catalogNumber, sourceUrl),
     ...optionalAttribute("Rockwell Cutsheet", "Product Family", title, sourceUrl),
     ...optionalAttribute("Rockwell Cutsheet", "Description", description, sourceUrl),
+    ...extractRockwellStructuredAttributes($, fetched.text, sourceUrl, catalogNumber, "rockwell-cutsheet"),
     ...extractRockwellCutsheetTextAttributes(catalogNumber, fetched.text, sourceUrl)
   ];
   const documents: DocumentRecord[] = [
@@ -461,6 +481,207 @@ function normalizeRockwellCutsheetValue(value: string): string {
     .replace(/\s*…\s*/g, "...");
 }
 
+function extractRockwellStructuredAttributes(
+  $: cheerio.CheerioAPI,
+  html: string,
+  sourceUrl: string,
+  catalogNumber: string,
+  parser: string
+): AttributeRecord[] {
+  const attributes: AttributeRecord[] = [
+    ...extractRockwellDomTableAttributes($, sourceUrl, parser),
+    ...extractRockwellDataAttributeSpecs($, sourceUrl, parser),
+    ...extractRockwellJsonPairAttributes(html, sourceUrl, parser)
+  ];
+  return dedupeAttributes(attributes)
+    .filter((attr) => isUsefulRockwellStructuredAttribute(attr, catalogNumber))
+    .slice(0, 180);
+}
+
+function extractRockwellDomTableAttributes($: cheerio.CheerioAPI, sourceUrl: string, parser: string): AttributeRecord[] {
+  const attributes: AttributeRecord[] = [];
+  $("tr").each((_, row) => {
+    const cells = $(row)
+      .find("th,td")
+      .map((__, cell) => cleanText($(cell).text()))
+      .get()
+      .filter(Boolean);
+    if (cells.length < 2) return;
+    const name = canonicalRockwellCutsheetLabel(cells[0]);
+    const value = normalizeRockwellCutsheetValue(joinUniqueRockwellCells(cells.slice(1)));
+    if (!isLikelyRockwellSpecName(name) || !isLikelyRockwellSpecValue(value)) return;
+    attributes.push({
+      group: rockwellStructuredGroup($, row, "Rockwell Structured Table"),
+      name,
+      value,
+      sourceUrl,
+      sourceType: "official",
+      parser,
+      confidence: 0.86
+    });
+  });
+
+  $("dt").each((_, element) => {
+    const name = canonicalRockwellCutsheetLabel($(element).text());
+    const value = normalizeRockwellCutsheetValue($(element).next("dd").text());
+    if (!isLikelyRockwellSpecName(name) || !isLikelyRockwellSpecValue(value)) return;
+    attributes.push({
+      group: rockwellStructuredGroup($, element, "Rockwell Structured List"),
+      name,
+      value,
+      sourceUrl,
+      sourceType: "official",
+      parser,
+      confidence: 0.84
+    });
+  });
+
+  return attributes;
+}
+
+function extractRockwellDataAttributeSpecs($: cheerio.CheerioAPI, sourceUrl: string, parser: string): AttributeRecord[] {
+  const attributes: AttributeRecord[] = [];
+  $(
+    "*[data-label],*[data-name],*[data-display-name],*[data-attribute-name],*[data-spec-name],*[data-title],*[data-value],*[data-attribute-value],*[data-spec-value]"
+  ).each((_, element) => {
+    const attrs = (element as { attribs?: Record<string, string> }).attribs ?? {};
+    const name = firstCleanRockwellValue(
+      attrs["data-label"],
+      attrs["data-name"],
+      attrs["data-display-name"],
+      attrs["data-attribute-name"],
+      attrs["data-spec-name"],
+      attrs["data-title"],
+      attrs["aria-label"]
+    );
+    const value = firstCleanRockwellValue(
+      attrs["data-value"],
+      attrs["data-attribute-value"],
+      attrs["data-spec-value"],
+      attrs["data-text"],
+      attrs.value,
+      $(element).text()
+    );
+    if (!name || !value || name === value) return;
+    if (!isLikelyRockwellSpecName(name) || !isLikelyRockwellSpecValue(value)) return;
+    attributes.push({
+      group: rockwellStructuredGroup($, element, "Rockwell Data Attributes"),
+      name: canonicalRockwellCutsheetLabel(name),
+      value: normalizeRockwellCutsheetValue(value),
+      sourceUrl,
+      sourceType: "official",
+      parser,
+      confidence: 0.82
+    });
+  });
+  return attributes;
+}
+
+function extractRockwellJsonPairAttributes(html: string, sourceUrl: string, parser: string): AttributeRecord[] {
+  const decoded = decodeRockwellEmbeddedText(html);
+  const attributes: AttributeRecord[] = [];
+  const labelValuePattern =
+    /"(?:attributeName|displayName|label|name|title|propertyName)"\s*:\s*"((?:\\.|[^"\\]){2,140})"[\s\S]{0,700}?"(?:value|displayValue|attributeValue|text|propertyValue|values)"\s*:\s*(?:"((?:\\.|[^"\\]){1,400})"|\[((?:\\.|[^\]\\]){1,600})\])/gi;
+  for (const match of decoded.matchAll(labelValuePattern)) {
+    const name = unescapeRockwellJsonString(match[1]);
+    const value = normalizeRockwellJsonValue(match[2] ?? match[3]);
+    if (!name || !value) continue;
+    if (!isLikelyRockwellSpecName(name) || !isLikelyRockwellSpecValue(value)) continue;
+    attributes.push({
+      group: "Rockwell Embedded JSON",
+      name: canonicalRockwellCutsheetLabel(name),
+      value: normalizeRockwellCutsheetValue(value),
+      sourceUrl,
+      sourceType: "official",
+      parser,
+      confidence: 0.8
+    });
+  }
+  return attributes;
+}
+
+function rockwellStructuredGroup($: cheerio.CheerioAPI, element: Parameters<cheerio.CheerioAPI>[0], fallback: string): string {
+  const container = $(element).parents("section,article,div").first();
+  const heading = $(element).prevAll("h1,h2,h3,h4,h5,h6").first().text() ||
+    container.find("h1,h2,h3,h4,h5,h6").first().text() ||
+    container.prevAll("h1,h2,h3,h4,h5,h6").first().text();
+  const cleaned = cleanText(heading);
+  return cleaned ? `${fallback} - ${canonicalRockwellCutsheetSection(cleaned)}` : fallback;
+}
+
+function joinUniqueRockwellCells(cells: string[]): string {
+  const seen = new Set<string>();
+  const values: string[] = [];
+  for (const cell of cells) {
+    const value = cleanText(cell);
+    if (!value) continue;
+    const key = value.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    values.push(value);
+  }
+  return values.join(" | ");
+}
+
+function firstCleanRockwellValue(...values: Array<string | undefined>): string | undefined {
+  return values.map((value) => cleanText(value)).find(Boolean);
+}
+
+function decodeRockwellEmbeddedText(value: string): string {
+  return value
+    .replace(/\\\//g, "/")
+    .replace(/&amp;/gi, "&")
+    .replace(/&quot;/gi, "\"")
+    .replace(/&#39;/g, "'")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">");
+}
+
+function unescapeRockwellJsonString(value: string | undefined): string | undefined {
+  if (!value) return undefined;
+  try {
+    return cleanText(JSON.parse(`"${value.replace(/"/g, "\\\"")}"`) as string);
+  } catch {
+    return cleanText(value.replace(/\\"/g, "\"").replace(/\\\\/g, "\\"));
+  }
+}
+
+function normalizeRockwellJsonValue(value: string | undefined): string | undefined {
+  if (!value) return undefined;
+  const decoded = decodeRockwellEmbeddedText(value);
+  const stringValues = [...decoded.matchAll(/"((?:\\.|[^"\\])+)"/g)]
+    .map((match) => unescapeRockwellJsonString(match[1]))
+    .filter((entry): entry is string => Boolean(entry));
+  if (stringValues.length > 0) return joinUniqueRockwellCells(stringValues);
+  return unescapeRockwellJsonString(decoded);
+}
+
+function isUsefulRockwellStructuredAttribute(attr: AttributeRecord, catalogNumber: string): boolean {
+  const name = cleanText(attr.name);
+  const value = cleanText(attr.value);
+  if (!name || !value) return false;
+  if (catalogTextMatches(name, catalogNumber, { compact: true, ignoreCase: true })) return false;
+  if (/^(?:image|url|href|link|path|locale|language|id|uuid|guid|slug|status|available|active)$/i.test(name)) return false;
+  return true;
+}
+
+function isLikelyRockwellSpecName(value: string): boolean {
+  const name = cleanText(value);
+  if (!name || name.length < 2 || name.length > 140) return false;
+  if (/^(?:yes|no|true|false|null|undefined|\d+|select|view|download)$/i.test(name)) return false;
+  if (/^(?:href|url|src|alt|title|class|style|target|rel|type)$/i.test(name)) return false;
+  const pair = splitNameValue(name);
+  if (pair && pair.value.length > pair.name.length) return false;
+  return /[a-z]/i.test(name);
+}
+
+function isLikelyRockwellSpecValue(value: string): boolean {
+  const cleaned = cleanText(value);
+  if (!cleaned || cleaned.length > 500) return false;
+  if (/^(?:select|view|download|learn more|sign in|add to cart)$/i.test(cleaned)) return false;
+  return /[a-z0-9]/i.test(cleaned);
+}
+
 function extractRockwellDocumentLinks(
   $: cheerio.CheerioAPI,
   catalogNumber: string,
@@ -468,24 +689,73 @@ function extractRockwellDocumentLinks(
   parser: string
 ): DocumentRecord[] {
   const documents: DocumentRecord[] = [];
-  $("a[href],img[src]").each((_, element) => {
-    const rawUrl = $(element).attr("href") || $(element).attr("src");
-    const url = rawUrl ? toAbsoluteUrl(rawUrl, sourceUrl) : undefined;
-    if (!url || isIgnoredRockwellUrl(url)) return;
-    const label = cleanText($(element).text() || $(element).attr("alt") || $(element).attr("title") || pathBaseName(url));
-    const context = cleanText(`${label} ${url} ${$(element).closest("tr,li,div").text()}`);
-    if (!isRockwellProductDocument(context, url, catalogNumber)) return;
+  $("a[href],img[src],*[data-href],*[data-url],*[data-download-url],*[data-document-url],*[data-link]").each((_, element) => {
+    for (const url of rockwellElementUrls(element, sourceUrl)) {
+      if (isIgnoredRockwellUrl(url)) continue;
+      const label = cleanText($(element).text() || $(element).attr("alt") || $(element).attr("title") || pathBaseName(url));
+      const context = cleanText(`${label} ${url} ${$(element).closest("tr,li,div").text()}`);
+      if (!isRockwellProductDocument(context, url, catalogNumber)) continue;
+      documents.push({
+        type: parser === "rockwell-drawings" ? "cad" : classifyRockwellDocument(label, url),
+        label: label || pathBaseName(url),
+        url,
+        sourceUrl,
+        sourceType: "official",
+        parser,
+        confidence: 0.84
+      });
+    }
+  });
+  for (const url of rockwellDocumentUrlsFromText($.root().html() ?? "", sourceUrl)) {
+    if (isIgnoredRockwellUrl(url) || !isRockwellProductDocument(url, url, catalogNumber)) continue;
     documents.push({
-      type: parser === "rockwell-drawings" ? "cad" : classifyRockwellDocument(label, url),
-      label: label || pathBaseName(url),
+      type: parser === "rockwell-drawings" ? "cad" : classifyRockwellDocument(pathBaseName(url), url),
+      label: pathBaseName(url),
       url,
       sourceUrl,
       sourceType: "official",
       parser,
-      confidence: 0.84
+      confidence: 0.78
     });
-  });
+  }
   return dedupeDocuments(documents);
+}
+
+function rockwellElementUrls(element: unknown, sourceUrl: string): string[] {
+  const attrs = (element as { attribs?: Record<string, string> }).attribs ?? {};
+  const candidates = [
+    attrs.href,
+    attrs.src,
+    attrs["data-href"],
+    attrs["data-url"],
+    attrs["data-download-url"],
+    attrs["data-document-url"],
+    attrs["data-link"]
+  ];
+  return candidates
+    .flatMap((value) => value ? [value, ...rockwellDocumentUrlCandidates(value)] : [])
+    .map((value) => toAbsoluteUrl(value, sourceUrl))
+    .filter((url): url is string => Boolean(url));
+}
+
+function rockwellDocumentUrlsFromText(text: string, sourceUrl: string): string[] {
+  return rockwellDocumentUrlCandidates(text)
+    .map((value) => toAbsoluteUrl(value, sourceUrl))
+    .filter((url): url is string => Boolean(url));
+}
+
+function rockwellDocumentUrlCandidates(value: string | undefined): string[] {
+  if (!value) return [];
+  const decoded = value
+    .replace(/\\\//g, "/")
+    .replace(/&amp;/gi, "&")
+    .replace(/&quot;/gi, "\"")
+    .replace(/&#39;/g, "'");
+  const matches = [
+    ...decoded.matchAll(/https?:\/\/literature\.rockwellautomation\.com\/[^\s"'<>]+?\.(?:pdf|zip|dwg|dxf|stp|step|wmf)(?:[?#][^\s"'<>]*)?/gi),
+    ...decoded.matchAll(/\/idc\/groups\/literature\/documents\/[^\s"'<>]+?\.(?:pdf|zip|dwg|dxf|stp|step|wmf)(?:[?#][^\s"'<>]*)?/gi)
+  ];
+  return matches.map((match) => match[0]);
 }
 
 function isRockwellProductDocument(context: string, url: string, catalogNumber: string): boolean {
@@ -512,6 +782,12 @@ function isIgnoredRockwellUrl(url: string): boolean {
 
 function rockwellLiteratureDocuments(catalogNumber: string, sourceUrl: string, parser: string): DocumentRecord[] {
   const rules: Array<{ pattern: RegExp; docs: Array<{ type: DocumentRecord["type"]; label: string; url: string }> }> = [
+    {
+      pattern: /^\s*5069-[IO]/i,
+      docs: [
+        { type: "datasheet", label: "Rockwell Compact 5000 I/O technical data", url: "https://literature.rockwellautomation.com/idc/groups/literature/documents/td/5069-td001_-en-p.pdf" }
+      ]
+    },
     {
       pattern: /^\s*1783-US/i,
       docs: [

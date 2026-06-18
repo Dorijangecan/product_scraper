@@ -196,9 +196,19 @@ async function runFixtureAttempt(
   };
 
   const stage = <T>(label: string, task: () => Promise<T>): Promise<T> => benchmarkStage(fixture, label, task);
-  const scraped = await stage("scrape", () => connector.scrape(fixture.catalogNumber, context));
-  const customerBacked = await stage("customerDocuments.initial", () => applyBenchmarkCustomerDocuments(fixture, scraped, customerDocumentCache));
-  const initial = finalizeQualityGate(customerBacked, manufacturer);
+  const customerOnly = finalizeQualityGate(
+    await stage("customerDocuments.first", () => applyBenchmarkCustomerDocuments(fixture, baseCustomerResult(fixture, manufacturer), customerDocumentCache)),
+    manufacturer
+  );
+  const initial = shouldUseBenchmarkCustomerFirst(manufacturer, fixture, customerOnly)
+    ? customerOnly
+    : finalizeQualityGate(
+        await stage("customerDocuments.initial", async () => {
+          const scraped = await stage("scrape", () => connector.scrape(fixture.catalogNumber, context));
+          return applyBenchmarkCustomerDocuments(fixture, scraped, customerDocumentCache);
+        }),
+        manufacturer
+      );
   const withDownloads = await stage("downloadDocuments.initial", () => downloadDocuments(manufacturer, fixture.catalogNumber, initial, signal));
   let result = finalizeQualityGate(await stage("enrich.initial", () => enrichResultFromDownloadedDocuments(withDownloads)), manufacturer);
   if (!result.qualityGate?.passed) {
@@ -222,6 +232,30 @@ async function applyBenchmarkCustomerDocuments(
   if (!documents.length) return result;
   const extraction = await extractCustomerDocumentAttributes(fixture.catalogNumber, documents, { cache });
   return applyCustomerDocumentOverride(result, extraction);
+}
+
+function baseCustomerResult(fixture: BenchmarkFixture, manufacturer: ManufacturerConfig): ProductResult {
+  return {
+    manufacturerId: manufacturer.id,
+    catalogNumber: fixture.catalogNumber,
+    status: "failed",
+    confidence: 0,
+    normalized: {},
+    attributes: [],
+    documents: [],
+    sources: [],
+    error: "Official source not scraped yet."
+  };
+}
+
+function shouldUseBenchmarkCustomerFirst(manufacturer: ManufacturerConfig, fixture: BenchmarkFixture, result: ProductResult): boolean {
+  if (manufacturer.id !== "eaton" || !fixture.customerDocuments?.length) return false;
+  if (result.status === "failed" || result.qualityGate?.identityConfirmed === false) return false;
+  const normalized = result.normalized;
+  const hasPhysicalCore = Boolean(normalized.weight && normalized.dimensions && normalized.material);
+  const hasDutySpec = Boolean(normalized.voltage || normalized.current) || result.attributes.some((attr) => /^(?:pressure|flow rate|flow|power)$/i.test(attr.name));
+  const hasDescriptiveIdentity = result.attributes.some((attr) => /^(?:product type|description|product short text|product name)$/i.test(attr.name));
+  return result.attributes.length >= 5 && result.documents.some((doc) => doc.parser === "customer-document") && hasPhysicalCore && hasDutySpec && hasDescriptiveIdentity;
 }
 
 async function benchmarkCustomerDocuments(fixture: BenchmarkFixture): Promise<CustomerDocumentRecord[]> {

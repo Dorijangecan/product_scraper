@@ -1,9 +1,10 @@
+import * as cheerio from "cheerio";
 import type { ManufacturerConfig, ScrapeDiagnostics, SourceRecord } from "../../shared/types.js";
 import { catalogTextMatches, compactCatalogNumber, fillCatalogTemplate, templateContainsCatalogPlaceholder } from "./catalog-number.js";
 import type { FetchedText } from "./http-client.js";
 import type { ScrapeContext } from "./types.js";
 import { discoverProductLinksWithDiagnostics } from "./link-discovery.js";
-import { learnedEndpointUrls } from "./learned-endpoints.js";
+import { learnEndpointFromNetworkFetch, learnedEndpointUrls } from "./learned-endpoints.js";
 
 export interface ProductDiscoveryCandidate {
   url: string;
@@ -54,6 +55,79 @@ export async function discoverOfficialProductCandidates(catalogNumber: string, c
     });
   }
 
+  const searchUrls = [
+    ...searchTemplates(manufacturer).map((template) => fillCatalogTemplate(template, catalogNumber)),
+    ...(await discoverSearchFormUrls(catalogNumber, context, attemptedUrls, notes))
+  ];
+  const renderedSearchCandidates: string[] = [];
+  let searchedUrlCount = 0;
+  for (const searchUrl of uniqueStrings(searchUrls)) {
+    if (searchedUrlCount >= 28) break;
+    searchedUrlCount += 1;
+    attemptedUrls.push(searchUrl);
+    let discoveredCount = 0;
+    try {
+      const fetched = await fetchDiscoveryText(searchUrl, context);
+      const discovered = discoverProductLinksWithDiagnostics(fetched.text, fetched.effectiveUrl, catalogNumber);
+      rejectedLinks.push(...discovered.rejected);
+      for (const link of discovered.candidates) {
+        discoveredCount += 1;
+        add({
+          url: link.url,
+          score: scoreDiscoveryCandidate(link.url, catalogNumber, "search-result", manufacturer) + Math.min(20, Math.round(link.score / 5)),
+          reason: `official search result: ${link.reason}`,
+          stage: "search-result",
+          sourceType: "official-fallback"
+        });
+      }
+    } catch (error) {
+      notes.push(`Search discovery failed for ${searchUrl}: ${formatError(error)}`);
+    }
+    if (discoveredCount === 0) renderedSearchCandidates.push(searchUrl);
+  }
+
+  if (!hasSearchResultCandidate(candidates) && shouldUseRenderedSearchDiscovery(context)) {
+    for (const searchUrl of renderedSearchCandidates.slice(0, 4)) {
+      attemptedUrls.push(`browser:${searchUrl}`);
+      try {
+        const rendered = await context.browserRenderer!.renderProductPage(searchUrl, manufacturer.scrapeRecipe, context.signal);
+        const renderedTexts = [
+          ...(rendered.fetched ? [rendered.fetched] : []),
+          ...rendered.networkTexts.filter((fetched) => /search|suggest|product|catalog|sku|api|json/i.test(`${fetched.effectiveUrl} ${fetched.contentType}`)).slice(0, 8)
+        ];
+        for (const fetched of renderedTexts) {
+          const discovered = discoverProductLinksWithDiagnostics(fetched.text, fetched.effectiveUrl || searchUrl, catalogNumber);
+          rejectedLinks.push(...discovered.rejected);
+          const isNetworkText = fetched !== rendered.fetched;
+          if (isNetworkText && discovered.candidates.length) {
+            const learned = learnEndpointFromNetworkFetch({
+              manufacturer,
+              catalogNumber,
+              fetched,
+              discoveredFromUrl: searchUrl,
+              parserKind: "browser-search-network",
+              store: context.learnedEndpoints
+            });
+            if (learned) notes.push(`Learned search/product API endpoint from rendered search: ${fetched.effectiveUrl}`);
+          }
+          for (const link of discovered.candidates) {
+            add({
+              url: link.url,
+              score: scoreDiscoveryCandidate(link.url, catalogNumber, "search-result", manufacturer) + Math.min(24, 6 + Math.round(link.score / 5)),
+              reason: `rendered official search result: ${link.reason}`,
+              stage: "search-result",
+              sourceType: "official-fallback"
+            });
+          }
+        }
+        if (rendered.error) notes.push(`Rendered search discovery failed for ${searchUrl}: ${rendered.error}`);
+        if (hasSearchResultCandidate(candidates)) break;
+      } catch (error) {
+        notes.push(`Rendered search discovery failed for ${searchUrl}: ${formatError(error)}`);
+      }
+    }
+  }
+
   for (const url of officialVariantUrls(manufacturer, catalogNumber)) {
     add({
       url,
@@ -72,28 +146,6 @@ export async function discoverOfficialProductCandidates(catalogNumber: string, c
       stage: "url-variant",
       sourceType: "official-fallback"
     });
-  }
-
-  for (const template of searchTemplates(manufacturer)) {
-    if (candidates.size >= maxCandidates) break;
-    const searchUrl = fillCatalogTemplate(template, catalogNumber);
-    attemptedUrls.push(searchUrl);
-    try {
-      const fetched = await fetchDiscoveryText(searchUrl, context);
-      const discovered = discoverProductLinksWithDiagnostics(fetched.text, fetched.effectiveUrl, catalogNumber);
-      rejectedLinks.push(...discovered.rejected);
-      for (const link of discovered.candidates) {
-        add({
-          url: link.url,
-          score: scoreDiscoveryCandidate(link.url, catalogNumber, "search-result", manufacturer) + Math.min(20, Math.round(link.score / 5)),
-          reason: `official search result: ${link.reason}`,
-          stage: "search-result",
-          sourceType: "official-fallback"
-        });
-      }
-    } catch (error) {
-      notes.push(`Search discovery failed for ${searchUrl}: ${formatError(error)}`);
-    }
   }
 
   if ((policy?.enableRobotsSitemaps ?? true) && candidates.size < Math.max(4, maxCandidates / 2)) {
@@ -187,10 +239,159 @@ function officialDirectTemplates(manufacturer: ManufacturerConfig): Array<{
 }
 
 function searchTemplates(manufacturer: ManufacturerConfig): string[] {
-  return [
+  const configured = [
     ...(manufacturer.scrapeRecipe?.discoveryPolicy?.searchUrlTemplates ?? []),
     ...(manufacturer.scrapeRecipe?.searchUrlTemplates ?? [])
   ].filter(templateContainsCatalogPlaceholder);
+  return [...new Set([...configured, ...genericOfficialSearchTemplates(manufacturer)])];
+}
+
+function genericOfficialSearchTemplates(manufacturer: ManufacturerConfig): string[] {
+  const bases = new Set<string>();
+  for (const baseUrl of manufacturer.officialBaseUrls) {
+    if (templateContainsCatalogPlaceholder(baseUrl)) continue;
+    try {
+      const parsed = new URL(baseUrl);
+      bases.add(parsed.origin);
+      const segments = parsed.pathname.split("/").filter(Boolean);
+      const localePrefix = localePathPrefix(segments);
+      if (localePrefix) bases.add(`${parsed.origin}/${localePrefix}`);
+    } catch {
+      // Ignore invalid configured URLs; direct templates already validate elsewhere.
+    }
+  }
+
+  const templates: string[] = [];
+  const queryKeys = ["q", "query", "search", "text", "keyword", "searchTerm"];
+  for (const base of bases) {
+    const cleanBase = base.replace(/\/+$/g, "");
+    for (const key of queryKeys) {
+      templates.push(`${cleanBase}/search?${key}={part}`);
+    }
+    templates.push(`${cleanBase}/search/{part}`);
+    templates.push(`${cleanBase}/site-search?q={part}`);
+  }
+  return templates.slice(0, 18);
+}
+
+function localePathPrefix(segments: string[]): string | undefined {
+  const first = segments[0];
+  const second = segments[1];
+  if (!first) return undefined;
+  if (/^[a-z]{2}(?:-[a-z]{2})?$/i.test(first)) return first;
+  if (/^[a-z]{2}$/i.test(first) && /^[a-z]{2}$/i.test(second ?? "")) return `${first}/${second}`;
+  return undefined;
+}
+
+function hasSearchResultCandidate(candidates: Map<string, ProductDiscoveryCandidate>): boolean {
+  return [...candidates.values()].some((candidate) => candidate.stage === "search-result");
+}
+
+function shouldUseRenderedSearchDiscovery(context: ScrapeContext): boolean {
+  if (!context.browserRenderer) return false;
+  if (context.browserRenderer.isUnavailable?.()) return false;
+  if (context.manufacturer.scrapeRecipe?.fallbackPolicy?.browserOnQualityFailure === false) return false;
+  if (context.manufacturer.scrapeRecipe?.fallbackPolicy?.maxBrowserAttempts === 0) return false;
+  return true;
+}
+
+async function discoverSearchFormUrls(
+  catalogNumber: string,
+  context: ScrapeContext,
+  attemptedUrls: string[],
+  notes: string[]
+): Promise<string[]> {
+  const urls: string[] = [];
+  for (const pageUrl of searchFormProbePages(context.manufacturer).slice(0, 4)) {
+    attemptedUrls.push(pageUrl);
+    try {
+      const fetched = await fetchDiscoveryText(pageUrl, context);
+      urls.push(...searchUrlsFromForms(fetched.text, fetched.effectiveUrl, catalogNumber));
+    } catch (error) {
+      notes.push(`Search form discovery failed for ${pageUrl}: ${formatError(error)}`);
+    }
+  }
+  return uniqueStrings(urls).slice(0, 10);
+}
+
+function searchFormProbePages(manufacturer: ManufacturerConfig): string[] {
+  const pages = new Set<string>();
+  for (const baseUrl of manufacturer.officialBaseUrls) {
+    if (templateContainsCatalogPlaceholder(baseUrl)) continue;
+    try {
+      const parsed = new URL(baseUrl);
+      pages.add(parsed.origin);
+      pages.add(`${parsed.origin}${parsed.pathname.replace(/\/+$/g, "")}`);
+      const localePrefix = localePathPrefix(parsed.pathname.split("/").filter(Boolean));
+      if (localePrefix) pages.add(`${parsed.origin}/${localePrefix}`);
+    } catch {
+      // Invalid base URLs are ignored; configured templates still run separately.
+    }
+  }
+  return [...pages].filter((url) => /^https?:\/\//i.test(url));
+}
+
+function searchUrlsFromForms(html: string, baseUrl: string, catalogNumber: string): string[] {
+  const $ = cheerio.load(html);
+  const urls: string[] = [];
+  $("form").each((_, form) => {
+    const method = ($(form).attr("method") || "get").toLowerCase();
+    if (method && method !== "get") return;
+    const formContext = cleanFormContext($, form);
+    const queryName = searchQueryInputName($, form, formContext);
+    if (!queryName) return;
+    const action = $(form).attr("action") || baseUrl;
+    let target: URL;
+    try {
+      target = new URL(action, baseUrl);
+    } catch {
+      return;
+    }
+    $(form)
+      .find("input[type='hidden'][name]")
+      .each((__, input) => {
+        const name = $(input).attr("name");
+        const value = $(input).attr("value");
+        if (name && value !== undefined && name !== queryName) target.searchParams.set(name, value);
+      });
+    target.searchParams.set(queryName, catalogNumber);
+    urls.push(target.toString());
+  });
+  return urls;
+}
+
+function cleanFormContext($: cheerio.CheerioAPI, form: Parameters<cheerio.CheerioAPI>[0]): string {
+  return [
+    $(form).attr("role"),
+    $(form).attr("class"),
+    $(form).attr("id"),
+    $(form).attr("action"),
+    $(form).text(),
+    $(form).find("input,button").map((_, input) => [$(input).attr("type"), $(input).attr("name"), $(input).attr("id"), $(input).attr("placeholder"), $(input).attr("aria-label"), $(input).attr("value")].filter(Boolean).join(" ")).get().join(" ")
+  ]
+    .map((value) => String(value ?? ""))
+    .join(" ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function searchQueryInputName($: cheerio.CheerioAPI, form: Parameters<cheerio.CheerioAPI>[0], context: string): string | undefined {
+  if (!/\b(search|suche|find|keyword|query|site-search|site search|product search|catalog search)\b/i.test(context)) return undefined;
+  const inputs = $(form).find("input[name],select[name],textarea[name]").toArray();
+  const ranked = inputs
+    .map((input) => {
+      const name = $(input).attr("name") ?? "";
+      const haystack = [name, $(input).attr("type"), $(input).attr("id"), $(input).attr("class"), $(input).attr("placeholder"), $(input).attr("aria-label")].filter(Boolean).join(" ");
+      let score = 0;
+      if (/^(?:q|s|query|search|text|keyword|searchTerm|term)$/i.test(name)) score += 50;
+      if (/search/i.test($(input).attr("type") ?? "")) score += 30;
+      if (/\b(search|suche|find|keyword|query|term|text)\b/i.test(haystack)) score += 20;
+      if (/email|mail|zip|postal|country|language|csrf|token|session|password|login/i.test(haystack)) score -= 80;
+      return { name, score };
+    })
+    .filter((item) => item.name && item.score > 0)
+    .sort((left, right) => right.score - left.score);
+  return ranked[0]?.name;
 }
 
 function officialVariantUrls(manufacturer: ManufacturerConfig, catalogNumber: string): string[] {
@@ -337,7 +538,7 @@ async function robotsSitemapUrls(context: ScrapeContext, attemptedUrls: string[]
 const DISCOVERY_INDEX_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 
 function isDiscoveryIndexUrl(url: string): boolean {
-  return /\/sitemap[^/]*\.xml\b|\/robots\.txt\b|[?&]q=|\/search(?:\b|[/?])/i.test(url);
+  return /\/sitemap[^/]*\.xml\b|\/robots\.txt\b|[?&](?:q|query|search|text|keyword|searchTerm)=|\/(?:site-)?search(?:\b|[/?])/i.test(url);
 }
 
 async function fetchDiscoveryText(url: string, context: ScrapeContext): Promise<FetchedText> {
@@ -424,4 +625,8 @@ function pathContainsCatalogSegment(url: string, catalogNumber: string): boolean
 
 function formatError(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
+}
+
+function uniqueStrings(values: Array<string | undefined>): string[] {
+  return [...new Set(values.filter((value): value is string => Boolean(value)))];
 }

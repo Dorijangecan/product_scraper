@@ -84,9 +84,10 @@ export class CustomerDocumentParseCache {
     const cached = this.csvMatrices.get(doc.storedPath);
     if (cached) return cached;
     const text = await fs.readFile(doc.storedPath, "utf8");
+    const delimiter = detectDelimitedTextDelimiter(text);
     const matrix = parse(text, {
       bom: true,
-      delimiter: [",", ";", "\t"],
+      delimiter,
       skip_empty_lines: true,
       relax_column_count: true,
       trim: true
@@ -94,6 +95,35 @@ export class CustomerDocumentParseCache {
     this.csvMatrices.set(doc.storedPath, matrix);
     return matrix;
   }
+}
+
+function detectDelimitedTextDelimiter(text: string): "," | ";" | "\t" {
+  const header = text.split(/\r?\n/).find((line) => cleanText(line).length > 0) ?? "";
+  const scores: Array<{ delimiter: "," | ";" | "\t"; count: number }> = [
+    { delimiter: "\t", count: countDelimiterOutsideQuotes(header, "\t") },
+    { delimiter: ",", count: countDelimiterOutsideQuotes(header, ",") },
+    { delimiter: ";", count: countDelimiterOutsideQuotes(header, ";") }
+  ];
+  scores.sort((left, right) => right.count - left.count);
+  return scores[0]?.count ? scores[0].delimiter : ",";
+}
+
+function countDelimiterOutsideQuotes(line: string, delimiter: "," | ";" | "\t"): number {
+  let count = 0;
+  let quoted = false;
+  for (let index = 0; index < line.length; index += 1) {
+    const char = line[index];
+    if (char === '"') {
+      if (quoted && line[index + 1] === '"') {
+        index += 1;
+      } else {
+        quoted = !quoted;
+      }
+      continue;
+    }
+    if (!quoted && char === delimiter) count += 1;
+  }
+  return count;
 }
 
 async function readAllPdfPages(filePath: string): Promise<PdfPageEntry[]> {
@@ -188,7 +218,7 @@ export async function extractCustomerDocumentAttributes(
         fetchedAt: doc.uploadedAt ?? new Date().toISOString()
       });
       documents.push({
-        type: customerDocumentType(extension, doc.originalName),
+        type: customerDocumentType(extension, doc.originalName, extracted),
         label: `Customer document: ${doc.originalName}`,
         url: sourceUrl,
         localPath: doc.storedPath,
@@ -539,13 +569,32 @@ function stampCustomerAttributes(attributes: AttributeRecord[], sourceUrl: strin
   }));
 }
 
-function customerDocumentType(extension: string, originalName = ""): DocumentRecord["type"] {
+function customerDocumentType(extension: string, originalName = "", attributes: AttributeRecord[] = []): DocumentRecord["type"] {
   const label = originalName.toLowerCase();
   if (/\b(data\s*sheet|datasheet|technical\s*data|spec(?:ification)?\s*sheet)\b/.test(label)) return "datasheet";
   if (/\b(certificate|certification|declaration|approval)\b/.test(label)) return "certificate";
   if (/\b(manual|instruction|installation|user\s*guide)\b/.test(label)) return "manual";
   if (extension === ".pdf") return "datasheet";
+  if (looksLikeStructuredDatasheet(attributes)) return "datasheet";
   return "other";
+}
+
+function looksLikeStructuredDatasheet(attributes: AttributeRecord[]): boolean {
+  if (attributes.length < 4) return false;
+  const names = new Set(attributes.map((attr) => cleanText(attr.name).toLowerCase()));
+  const technicalHits = [
+    ["material"],
+    ["dimensions", "size"],
+    ["weight", "mass"],
+    ["voltage"],
+    ["current"],
+    ["pressure"],
+    ["flow rate", "flow"],
+    ["power"],
+    ["certificates", "certifications", "standards"]
+  ].filter((aliases) => aliases.some((alias) => names.has(alias))).length;
+  const identityHits = ["product type", "description", "product short text", "product name"].filter((name) => names.has(name)).length;
+  return identityHits >= 1 && technicalHits >= 3;
 }
 
 function pathToFileUrl(filePath: string): string {

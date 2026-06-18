@@ -7,7 +7,7 @@ import type { FetchedText } from "./http-client.js";
 import { buildLocalizedProductUrls } from "./localized-urls.js";
 import { classifyDocument, cleanText, emptyResult, mergeResults, normalizeFields } from "./normalizer.js";
 import type { ManufacturerConnector, ScrapeContext } from "./types.js";
-import { catalogTextMatches, compactCatalogNumber, encodeSlashBraceCatalogPart, fillCatalogTemplate, templateContainsCatalogPlaceholder } from "./catalog-number.js";
+import { catalogTextMatches, compactCatalogNumber, encodeSlashBraceCatalogPart, fillCatalogTemplate, sameCatalogNumber, templateContainsCatalogPlaceholder } from "./catalog-number.js";
 
 const EATON_PRODUCT_BASE_URL = "https://www.eaton.com/us/en-us/skuPage";
 const EATON_E6_CATALOG_PDF_URL =
@@ -304,8 +304,10 @@ export class EatonConnector implements ManufacturerConnector {
             return { candidate, parsed: parseEatonProductPage(partNumber, fetched, candidate.url, context.manufacturer.localizedUrlTemplates) };
           })
         );
-        for (const entry of searchResults) {
-          if (!entry || entry.parsed.status === "failed") continue;
+        const parsedSearchResults = searchResults.filter((entry): entry is NonNullable<typeof entry> => Boolean(entry && entry.parsed.status !== "failed"));
+        const hasExactIdentityResult = parsedSearchResults.some((entry) => hasExactEatonIdentity(entry.parsed, partNumber));
+        for (const entry of parsedSearchResults) {
+          if (hasExactIdentityResult && !hasExactEatonIdentity(entry.parsed, partNumber)) continue;
           result = mergeEatonResults(result, entry.parsed);
           if (isRichEatonResult(entry.parsed)) earlyOut = true;
         }
@@ -360,6 +362,23 @@ function mergeEatonResults(primary: ProductResult | undefined, incoming: Product
   // Prefer attribute-richer result as the "primary" side of the merge so its title/description win.
   const [base, addition] = incoming.attributes.length > primary.attributes.length ? [incoming, primary] : [primary, incoming];
   return mergeResults(base, addition);
+}
+
+function hasExactEatonIdentity(result: ProductResult, catalogNumber: string): boolean {
+  if (result.productUrl && eatonSkuPathMatches(result.productUrl, catalogNumber)) return true;
+  return result.attributes.some((attr) => {
+    if (!/\b(?:catalog\s*number|model\s*code|global\s*catalog)\b/i.test(`${attr.group ?? ""} ${attr.name}`)) return false;
+    return sameCatalogNumber(attr.value, catalogNumber, { compact: true, afterColon: true, ignoreCase: true });
+  });
+}
+
+function eatonSkuPathMatches(url: string, catalogNumber: string): boolean {
+  try {
+    const match = new URL(url).pathname.match(/\/skuPage\.([^/]+?)\.html$/i);
+    return Boolean(match?.[1] && sameCatalogNumber(decodeURIComponent(match[1]), catalogNumber, { compact: true, afterColon: true, ignoreCase: true }));
+  } catch {
+    return false;
+  }
 }
 
 function isRichEatonResult(result: ProductResult): boolean {
@@ -1116,7 +1135,12 @@ export function parseEatonProductPage(
     confidence: htmlParsed.attributes.length ? 0.9 : 0.84,
     ...attr
   }));
-  const documents = dedupeDocuments([...htmlParsed.documents, ...markdownDocuments]).map((doc) => ({
+  const catalogNumberForUrls = preferredEatonCatalogNumber(catalogNumber, attributes);
+  const documents = dedupeDocuments([
+    ...htmlParsed.documents,
+    ...markdownDocuments,
+    ...(attributes.length ? buildEatonGeneratedSpecSheetDocuments(officialUrl, catalogNumberForUrls) : [])
+  ]).map((doc) => ({
     sourceType: "official-fallback" as const,
     parser: "eaton-product-page",
     stage: htmlParsed.attributes.length ? "static-html" : "reader",
@@ -1126,7 +1150,6 @@ export function parseEatonProductPage(
   const title = cleanText(htmlParsed.title || readMarkdownTitle(lines) || catalogNumber);
   const description = htmlParsed.description || readDescription(lines, catalogNumber);
   const normalized = normalizeFields(attributes, documents);
-  const catalogNumberForUrls = preferredEatonCatalogNumber(catalogNumber, attributes);
   const hasUsableProductData = hasUsableEatonProductData(attributes, documents);
   return {
     manufacturerId: "eaton",
@@ -1184,6 +1207,33 @@ function isEatonNotFoundPage(fetched: FetchedText, title?: string, description?:
 function preferredEatonCatalogNumber(requestedCatalogNumber: string, attributes: AttributeRecord[]): string {
   const pageCatalogNumber = attributes.find((attr) => /^catalog number$/i.test(attr.name) && /^[\w./(){} -]{2,80}$/i.test(attr.value))?.value;
   return cleanText(pageCatalogNumber) || requestedCatalogNumber;
+}
+
+function buildEatonGeneratedSpecSheetDocuments(officialUrl: string, catalogNumber: string): DocumentRecord[] {
+  const pdfUrl = eatonGeneratedSpecSheetUrl(officialUrl);
+  if (!pdfUrl) return [];
+  return [
+    {
+      type: "datasheet",
+      label: `Eaton Specification Sheet - ${catalogNumber}`,
+      url: pdfUrl,
+      sourceUrl: officialUrl
+    }
+  ];
+}
+
+function eatonGeneratedSpecSheetUrl(officialUrl: string): string | undefined {
+  try {
+    const parsed = new URL(officialUrl);
+    if (!/eaton\.com$/i.test(parsed.hostname)) return undefined;
+    if (!/\/skuPage\.[^/]+\.html$/i.test(parsed.pathname)) return undefined;
+    parsed.pathname = parsed.pathname.replace(/\.html$/i, ".pdf");
+    parsed.search = "";
+    parsed.hash = "";
+    return parsed.toString();
+  } catch {
+    return undefined;
+  }
 }
 
 function parseHtmlProductData(catalogNumber: string, fetched: FetchedText): {
@@ -1952,15 +2002,48 @@ function normalizeEatonImageUrl(url: string): string {
 
 function extractMarkdownLinks(text: string, catalogNumber: string, sourceUrl: string): DocumentRecord[] {
   const documents: DocumentRecord[] = [];
-  for (const match of text.matchAll(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g)) {
-    const label = cleanText(match[1]);
-    const url = match[2];
+  for (const link of readMarkdownLinks(text)) {
+    const label = cleanText(link.label);
+    const url = link.url;
     if (!/\.(pdf|zip|dwg|dxf|stp|step)(?:[?#]|$)/i.test(url) && !isEatonDocumentLink(label, url, catalogNumber)) continue;
     const type = classifyEatonDocument(label, url);
     if (type === "other" && !catalogTextMatches(`${label} ${url}`, catalogNumber) && !/\bwarranty\b/i.test(`${label} ${url}`)) continue;
     documents.push({ type, label, url, sourceUrl });
   }
   return documents;
+}
+
+function readMarkdownLinks(text: string): Array<{ label: string; url: string }> {
+  const links: Array<{ label: string; url: string }> = [];
+  const linkStartPattern = /\[([^\]]+)\]\(/g;
+  for (const match of text.matchAll(linkStartPattern)) {
+    const urlStart = (match.index ?? 0) + match[0].length;
+    const urlEnd = findMarkdownUrlEnd(text, urlStart);
+    if (urlEnd <= urlStart) continue;
+    const url = cleanText(text.slice(urlStart, urlEnd).replace(/^<|>$/g, ""));
+    if (!/^https?:\/\//i.test(url)) continue;
+    links.push({ label: match[1], url });
+  }
+  return links;
+}
+
+function findMarkdownUrlEnd(text: string, urlStart: number): number {
+  let depth = 0;
+  for (let index = urlStart; index < text.length; index += 1) {
+    const char = text[index];
+    if (char === "\\" && index + 1 < text.length) {
+      index += 1;
+      continue;
+    }
+    if (char === "(") {
+      depth += 1;
+      continue;
+    }
+    if (char !== ")") continue;
+    if (depth === 0) return index;
+    depth -= 1;
+  }
+  return -1;
 }
 
 function readDescription(lines: string[], catalogNumber: string): string | undefined {

@@ -770,6 +770,8 @@ function normalizeDimensionValue(value: string | undefined): string | undefined 
   const cleaned = normalizeHtmlSpecValue(value);
   if (!cleaned) return undefined;
   if (/\b\d+(?:[.,]\d+)?\s*[xX*]\s*\d+(?:[.,]\d+)?(?:\s*[xX*]\s*\d+(?:[.,]\d+)?)?\s*(?:mm|cm|m)\s*(?:²|2)/i.test(cleaned)) return undefined;
+  const boreStroke = normalizeBoreStrokeDimensionValue(cleaned);
+  if (boreStroke) return boreStroke;
   const labeledParts = parseLabeledDimensionParts(cleaned);
   if (labeledParts.length >= 1) {
     const unit = firstDimensionUnit(labeledParts);
@@ -786,6 +788,22 @@ function normalizeDimensionValue(value: string | undefined): string | undefined 
   if (values.some((number) => !Number.isFinite(number))) return cleaned;
   const millimeters = values.map((number) => convertDimensionToMillimeters(number, unit));
   return `${cleaned} (${millimeters.map(formatNumber).join(" x ")} mm)`;
+}
+
+function normalizeBoreStrokeDimensionValue(value: string): string | undefined {
+  const bore = value.match(/\b(\d+(?:[.,]\d+)?)\s*(mm|cm|m|in|inch|inches|")?\s*bore\b/i);
+  const stroke = value.match(/\b(\d+(?:[.,]\d+)?)\s*(mm|cm|m|in|inch|inches|")?\s*stroke\b/i);
+  if (!bore && !stroke) return undefined;
+  const parts: string[] = [];
+  if (bore) parts.push(`Bore ${formatDimensionQuantity(bore[1], bore[2])}`);
+  if (stroke) parts.push(`stroke ${formatDimensionQuantity(stroke[1], stroke[2])}`);
+  return parts.join("; ");
+}
+
+function formatDimensionQuantity(rawNumber: string, rawUnit: string | undefined): string {
+  const unit = normalizeDimensionUnit(rawUnit) ?? "mm";
+  const number = Number(rawNumber.replace(",", "."));
+  return `${Number.isFinite(number) ? formatNumber(number) : cleanText(rawNumber)} ${unit}`;
 }
 
 interface LabeledDimensionPart {
@@ -1332,7 +1350,7 @@ function collectProtectionValues(attributes: AttributeRecord[]): string | undefi
     .filter((attr) => /\bip\b|nema|protection|environmental rating|\benclosure\b|industry standard|stupanj/i.test(`${attr.group ?? ""} ${attr.name}`))
     .map((attr) => normalizeProtectionValue(attr.value))
     .filter((value): value is string => Boolean(value && isLikelySpecText(value) && isAvailableSpecValue(value)));
-  const unique = [...new Set(values)];
+  const unique = uniqueProtectionValues(values);
   return unique.length ? unique.join("; ") : undefined;
 }
 
@@ -1341,7 +1359,7 @@ function deriveProtectionFromText(attributes: AttributeRecord[]): string | undef
     .filter(isElectricalTextCandidate)
     .map((attr) => normalizeProtectionValue(derivedSpecText(attr)))
     .filter((value): value is string => Boolean(value && isLikelySpecText(value) && isAvailableSpecValue(value)));
-  const unique = [...new Set(values)];
+  const unique = uniqueProtectionValues(values);
   return unique.length ? unique.join("; ") : undefined;
 }
 
@@ -1375,6 +1393,23 @@ function cleanProtectionSegments(value: string): string {
     })
     .filter(Boolean)
     .join("; ");
+}
+
+function uniqueProtectionValues(values: string[]): string[] {
+  const seen = new Set<string>();
+  const unique: string[] = [];
+  for (const value of values) {
+    const key = protectionDedupeKey(value);
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+    unique.push(value);
+  }
+  return unique;
+}
+
+function protectionDedupeKey(value: string): string {
+  const tokens = value.match(/\b(?:IP\s*\d{2}[A-Z]?|IK\s*\d{2}|NEMA\s*\d+[A-Z]?|Type\s+\d+[A-Z]?)\b/gi);
+  return tokens?.length ? tokens.map((token) => token.replace(/\s+/g, "").toUpperCase()).join("|") : value.toLowerCase();
 }
 
 function deriveMaterialFromAttributes(attributes: AttributeRecord[]): string | undefined {

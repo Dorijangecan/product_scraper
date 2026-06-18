@@ -3,7 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import type { ProductResult } from "../src/shared/types.js";
-import { enrichResultFromDownloadedDocuments, extractDocumentTextAttributes } from "../src/server/scrapers/document-enrichment.js";
+import { enrichResultFromDownloadedDocuments, enrichResultFromRemoteDocuments, extractDocumentTextAttributes } from "../src/server/scrapers/document-enrichment.js";
 import { normalizeFields } from "../src/server/scrapers/normalizer.js";
 import { normalizeTechnicalAttributes } from "../src/server/scrapers/technical-attributes.js";
 import { applyCustomerDocumentOverride, extractCustomerDocumentAttributes } from "../src/server/scrapers/customer-documents.js";
@@ -67,6 +67,95 @@ Surface finishing Powder coating
     expect(normalized.finish).toBe("Powder coating");
   });
 
+  it("splits multiple known PDF label/value pairs from one extracted line", () => {
+    const attributes = extractDocumentTextAttributes({
+      catalogNumber: "ABC-123",
+      document: {
+        type: "datasheet",
+        label: "Packed technical datasheet",
+        url: "https://example.test/abc-123.pdf"
+      },
+      text: "Voltage rating 120 V Current ratings 5 A NEMA rating NEMA Type 4X Surface finishing Powder coating"
+    });
+    const normalized = normalizeFields(attributes, []);
+
+    expect(attributes).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ name: "Voltage rating", value: "120 V" }),
+        expect.objectContaining({ name: "Current ratings", value: "5 A" }),
+        expect.objectContaining({ name: "NEMA rating", value: "NEMA Type 4X" }),
+        expect.objectContaining({ name: "Surface finishing", value: "Powder coating" })
+      ])
+    );
+    expect(normalized.voltage).toBe("120 V");
+    expect(normalized.current).toBe("5 A");
+    expect(normalized.finish).toBe("Powder coating");
+  });
+
+  it("rejoins PDF table units that were extracted as separate cells before the value", () => {
+    const attributes = extractDocumentTextAttributes({
+      catalogNumber: "ABC-123",
+      document: {
+        type: "datasheet",
+        label: "Unit table datasheet",
+        url: "https://example.test/abc-123.pdf"
+      },
+      text: `
+Electrical data
+Rated voltage \t[V]\t24
+Current ratings    [A]    2.5
+Weight    [kg]    1.2
+      `
+    });
+    const normalized = normalizeFields(attributes, []);
+
+    expect(attributes).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ name: "Rated voltage", value: "24 V" }),
+        expect.objectContaining({ name: "Current ratings", value: "2.5 A" }),
+        expect.objectContaining({ name: "Weight", value: "1.2 kg" })
+      ])
+    );
+    expect(normalized.voltage).toBe("24 V");
+    expect(normalized.current).toBe("2.5 A");
+    expect(normalized.weight).toBe("1.2 kg");
+  });
+
+  it("rejoins PDF label/unit/value blocks split across separate lines", () => {
+    const attributes = extractDocumentTextAttributes({
+      catalogNumber: "ABC-123",
+      document: {
+        type: "datasheet",
+        label: "Stacked unit datasheet",
+        url: "https://example.test/abc-123.pdf"
+      },
+      text: `
+Electrical data
+Rated supply voltage
+V DC
+24
+Rated operating current
+A
+2.5
+Net weight
+kg
+1.2
+      `
+    });
+    const normalized = normalizeFields(attributes, []);
+
+    expect(attributes).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ name: "Rated supply voltage", value: "24 V DC" }),
+        expect.objectContaining({ name: "Rated operating current", value: "2.5 A" }),
+        expect.objectContaining({ name: "Net weight", value: "1.2 kg" })
+      ])
+    );
+    expect(normalized.voltage).toBe("24 V DC");
+    expect(normalized.current).toBe("2.5 A");
+    expect(normalized.weight).toBe("1.2 kg");
+  });
+
   it("extracts and normalizes electrical aliases from PDF label/value layouts", () => {
     const attributes = extractDocumentTextAttributes({
       catalogNumber: "MMP-25",
@@ -116,6 +205,45 @@ AC-3
     expect(normalized.current).toBe("2.5 A");
     expect([...new Set(technical.map((item) => item.canonicalKey))]).toEqual(
       expect.arrayContaining(["breakingCapacity", "powerLoss", "ratedVoltage", "ratedCurrent"])
+    );
+  });
+
+  it("extracts Rockwell I/O datasheet labels into canonical technical attributes", () => {
+    const attributes = extractDocumentTextAttributes({
+      catalogNumber: "5094-IF8",
+      document: {
+        type: "datasheet",
+        label: "Rockwell I/O technical data",
+        url: "https://literature.rockwellautomation.com/idc/groups/literature/documents/td/5094-td001_-en-p.pdf"
+      },
+      text: `
+Technical specifications
+Field Power Voltage Range
+18...32 V DC
+Current Draw @ 24V DC
+180 mA
+Output Current Rating
+2 A per channel
+Isolation Voltage
+250 V continuous
+On-state Voltage Drop
+0.2 V max
+Off-state Leakage Current
+0.1 mA
+      `
+    });
+    const technical = normalizeTechnicalAttributes("rockwell", attributes);
+
+    expect(attributes).toEqual(expect.arrayContaining([
+      expect.objectContaining({ name: "Field Power Voltage Range", value: "18...32 V DC" }),
+      expect.objectContaining({ name: "Current Draw @ 24V DC", value: "180 mA" }),
+      expect.objectContaining({ name: "Output Current Rating", value: "2 A per channel" }),
+      expect.objectContaining({ name: "Isolation Voltage", value: "250 V continuous" }),
+      expect.objectContaining({ name: "On-state Voltage Drop", value: "0.2 V max" }),
+      expect.objectContaining({ name: "Off-state Leakage Current", value: "0.1 mA" })
+    ]));
+    expect([...new Set(technical.map((item) => item.canonicalKey))]).toEqual(
+      expect.arrayContaining(["ratedVoltage", "ratedCurrent", "insulationVoltage", "voltageDrop", "leakageCurrent"])
     );
   });
 
@@ -216,6 +344,36 @@ W
     expect(classifyDeviceType(enriched).type).toBe("Valve");
   });
 
+  it("keeps quoted semicolon dimensions in customer CSV datasheets for Eaton hydraulic products", async () => {
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-eaton-customer-docs-"));
+    const storedPath = path.join(dir, "rare-device-sheets.csv");
+    await fs.writeFile(
+      storedPath,
+      [
+        "Catalog Number,Product Short Text,Description,Product Type,Material,Dimensions,Weight,Voltage,Current,Flow rate,Pressure,Power,Certificates",
+        'HC-50-100,Hydraulic cylinder,Double acting hydraulic cylinder actuator with 50 mm bore and 100 mm stroke,Hydraulic cylinder,steel,"50 mm bore; 100 mm stroke",3.2 kg,,,,160 bar,,CE'
+      ].join("\n"),
+      "utf8"
+    );
+
+    const extraction = await extractCustomerDocumentAttributes("HC-50-100", [
+      {
+        id: "customer-doc-1",
+        originalName: path.basename(storedPath),
+        storedPath,
+        mimeType: "text/csv",
+        uploadedAt: "2026-06-02T00:00:00.000Z"
+      }
+    ]);
+    const enriched = applyCustomerDocumentOverride(product({ manufacturerId: "eaton", catalogNumber: "HC-50-100", status: "failed" }), extraction);
+
+    expect(extraction.documents[0].type).toBe("datasheet");
+    expect(enriched.normalized.dimensions).toBe("Bore 50 mm; stroke 100 mm");
+    expect(enriched.normalized.weight).toBe("3.2 kg");
+    expect(enriched.attributes.some((attr) => attr.name === "Pressure" && attr.value === "160 bar")).toBe(true);
+    expect(classifyDeviceType(enriched).type).toBe("Hydraulic Actuator");
+  });
+
   it("records PDF parse failures without adding them as product attributes", async () => {
     const result = await enrichResultFromDownloadedDocuments(product({
       documents: [
@@ -232,6 +390,31 @@ W
     expect(result.documents[0].parseStatus).toBe("failed");
     expect(result.diagnostics?.documentParseFailures?.[0]).toContain("Broken datasheet");
     expect(result.attributes).toEqual([]);
+  });
+
+  it("reads remote datasheet PDFs for missing values without retaining a local file path", async () => {
+    const fixturePath = path.resolve("benchmarks", "live-check", "nvent-docs", "spec-00583.pdf");
+    const result = await enrichResultFromRemoteDocuments(
+      product({
+        catalogNumber: "NO-MATCH",
+        documents: [
+          {
+            type: "datasheet",
+            label: "Thermostat controller spec sheet",
+            url: "https://example.test/spec-00583.pdf",
+            downloadStatus: "skipped",
+            downloadError: "PDF downloads disabled for this run."
+          }
+        ]
+      }),
+      async () => ({ localPath: fixturePath })
+    );
+
+    expect(result.documents[0].parseStatus).toBe("parsed");
+    expect(result.documents[0].localPath).toBeUndefined();
+    expect(result.attributes.some((attr) => attr.name === "Supply Voltage" && /115V/.test(attr.value))).toBe(true);
+    expect(result.normalized.protection).toBe("IP20");
+    expect(result.sources.some((source) => source.stage === "probe-remote-documents")).toBe(true);
   });
 });
 

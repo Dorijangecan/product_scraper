@@ -113,6 +113,96 @@ describe("manufacturer parsers", () => {
     ]));
   });
 
+  it("adds the direct Rockwell Compact 5000 I/O technical data PDF for 5069 modules", () => {
+    const result = parseRockwellCutsheetPage(
+      "5069-IB32",
+      fetched(
+        `<html><body>
+          <h1>Cut Sheet 5069-IB32</h1>
+          <div>Compact 5000 I/O</div>
+          <div>5069-IB32</div>
+          <div>Compact 5000 DC Input Module Hi-Density</div>
+          <h2>Product Details</h2>
+          <div>Digital Inputs</div><div>32</div>
+        </body></html>`,
+        "https://configurator.rockwellautomation.com/api/Product/5069-IB32/cutsheet"
+      )
+    );
+
+    expect(result.documents).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        type: "datasheet",
+        url: "https://literature.rockwellautomation.com/idc/groups/literature/documents/td/5069-td001_-en-p.pdf"
+      })
+    ]));
+  });
+
+  it("extracts hidden Rockwell literature links from data attributes and page JSON", () => {
+    const result = parseRockwellCutsheetPage(
+      "5094-IF8",
+      fetched(
+        `<html><body>
+          <h1>Cut Sheet 5094-IF8</h1>
+          <div>5094-IF8</div>
+          <button data-document-url="https://literature.rockwellautomation.com/idc/groups/literature/documents/td/5094-td001_-en-p.pdf">Technical Detail</button>
+          <script>
+            window.docs = {"manual":"https:\\/\\/literature.rockwellautomation.com\\/idc\\/groups\\/literature\\/documents\\/in\\/5094-in001_-en-p.pdf"};
+          </script>
+        </body></html>`,
+        "https://configurator.rockwellautomation.com/api/Product/5094-IF8/cutsheet"
+      )
+    );
+
+    expect(result.documents).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        type: "datasheet",
+        url: "https://literature.rockwellautomation.com/idc/groups/literature/documents/td/5094-td001_-en-p.pdf"
+      }),
+      expect.objectContaining({
+        type: "manual",
+        url: "https://literature.rockwellautomation.com/idc/groups/literature/documents/in/5094-in001_-en-p.pdf"
+      })
+    ]));
+  });
+
+  it("extracts Rockwell specs from data attributes, tables and embedded page JSON", () => {
+    const result = parseRockwellCutsheetPage(
+      "5094-IF8",
+      fetched(
+        `<html><body>
+          <h1>Cut Sheet 5094-IF8</h1>
+          <div>5094-IF8</div>
+          <section>
+            <h2>Technical Specifications</h2>
+            <div data-label="Field Power Voltage Range" data-value="18...32V DC"></div>
+            <table>
+              <tr><th>Input Type</th><td>Analog Current/Voltage</td></tr>
+              <tr><td>Current Draw @ 24V DC</td><td>180 mA</td></tr>
+            </table>
+            <dl><dt>Isolation Voltage</dt><dd>250V continuous</dd></dl>
+          </section>
+          <script>
+            window.__rockwellSpecs = {
+              "attributes": [
+                {"attributeName":"Output Current Rating","value":"2 A per channel"},
+                {"displayName":"On-state Voltage Drop","values":["0.2 V max"]}
+              ]
+            };
+          </script>
+        </body></html>`,
+        "https://configurator.rockwellautomation.com/api/Product/5094-IF8/cutsheet"
+      )
+    );
+
+    expect(result.attributes).toEqual(expect.arrayContaining([
+      expect.objectContaining({ group: "Rockwell Data Attributes - Technical Specifications", name: "Field Power Voltage Range", value: "18...32V DC" }),
+      expect.objectContaining({ group: "Rockwell Structured Table - Technical Specifications", name: "Current Draw @ 24V DC", value: "180 mA" }),
+      expect.objectContaining({ group: "Rockwell Structured List - Technical Specifications", name: "Isolation Voltage", value: "250V continuous" }),
+      expect.objectContaining({ group: "Rockwell Embedded JSON", name: "Output Current Rating", value: "2 A per channel" }),
+      expect.objectContaining({ group: "Rockwell Embedded JSON", name: "On-state Voltage Drop", value: "0.2 V max" })
+    ]));
+  });
+
   it("rejects Rockwell digital product passport payloads for a different catalog", () => {
     const payload = {
       elements: [
@@ -2842,6 +2932,67 @@ Motor Control Renewal Parts- Contact Kit, A201, Model K, Three-pole
     expect(result.documents.some((doc) => doc.type === "datasheet")).toBe(true);
   });
 
+  it("keeps Eaton markdown PDF URLs with parentheses intact", () => {
+    const markdown = `
+Title: M030-151 | Eaton 5A split core current sensor | Eaton
+URL Source: http://www.eaton.com/us/en-us/skuPage.M030-151.html
+# M030-151
+Split Core Current Transformer, 150A, 5% accuracy, 0.80 x 1.95 in window
+## General specifications
+Product Name
+Eaton 5A split core current sensor
+Catalog Number
+M030-151
+Product Weight
+1 lb
+## Product specifications
+Amperage Rating
+150A
+Output Current (Secondary)
+5A
+* [5A split core current transformers (CT-SP) technical data](https://www.eaton.com/content/dam/eaton/products/low-voltage-power-distribution-controls-systems/power-energy-meters/5a-solid-core-current-transformer/5a-split-core-current-transformers-(ct-sp).pdf)
+    `;
+    const result = parseEatonProductPage(
+      "M030-151",
+      fetched(markdown, "https://r.jina.ai/http://www.eaton.com/us/en-us/skuPage.M030-151.html"),
+      "https://www.eaton.com/us/en-us/skuPage.M030-151.html"
+    );
+
+    expect(result.status).toBe("found");
+    expect(result.documents.some((doc) => doc.type === "datasheet" && doc.url.endsWith("5a-split-core-current-transformers-(ct-sp).pdf"))).toBe(true);
+    expect(result.documents.some((doc) => doc.url.endsWith("(ct-sp"))).toBe(false);
+  });
+
+  it("adds Eaton generated SKU specification sheets even when the page hides resource links", () => {
+    const markdown = `
+Title: ABC-123 | Eaton hidden-link product | Eaton
+URL Source: http://www.eaton.com/us/en-us/skuPage.ABC-123.html
+# ABC-123
+Eaton hidden-link product, 24 V DC, 2 A
+## General specifications
+Product Name
+Eaton hidden-link product
+Catalog Number
+ABC-123
+Product Weight
+0.2 kg
+    `;
+    const result = parseEatonProductPage(
+      "ABC-123",
+      fetched(markdown, "https://r.jina.ai/http://www.eaton.com/us/en-us/skuPage.ABC-123.html"),
+      "https://www.eaton.com/us/en-us/skuPage.ABC-123.html"
+    );
+
+    expect(result.status).toBe("found");
+    expect(result.documents).toContainEqual(
+      expect.objectContaining({
+        type: "datasheet",
+        label: "Eaton Specification Sheet - ABC-123",
+        url: "https://www.eaton.com/us/en-us/skuPage.ABC-123.pdf"
+      })
+    );
+  });
+
   it("rejects Eaton soft-404 SKU pages so discovery can continue", () => {
     const html = `
       <html>
@@ -3298,6 +3449,90 @@ Size
     expect(result.localizedUrls?.en).toBe("https://www.eaton.com/us/en-us/skuPage.276704.html");
     expect(result.localizedUrls?.de).toBe("https://www.eaton.com/de/de-de/skuPage.276704.html");
     expect(requestedUrls).toContain("https://www.eaton.com/us/en-us/skuPage.276704.html");
+  });
+
+  it("prefers exact Eaton model-code search results over similar sibling SKUs", async () => {
+    const searchUrl = buildEatonSearchApiUrlCandidates("XSFH20")[0];
+    const connector = new EatonConnector();
+    const searchJson = JSON.stringify({
+      siteSearchResults: [
+        {
+          title: "284245",
+          description: "Eaton xEnergy Main LV switchgear XSFH20",
+          contentType: "sku",
+          completeUrl: "https://www.eaton.com/us/en-us/skuPage.284245.html"
+        },
+        {
+          title: "150482",
+          description: "Eaton xEnergy Main LV switchgear XSFH20-I-D",
+          contentType: "sku",
+          completeUrl: "https://www.eaton.com/us/en-us/skuPage.150482.html"
+        }
+      ]
+    });
+    const exactHtml = `
+      <html><head><title>284245 | Eaton xEnergy Main LV switchgear | Eaton</title></head><body>
+        <div class="product-specification-item">
+          <h2 class="product-specification-item__title">General specifications</h2>
+          <table>
+            <tr class="specification-row"><td class="specification-title"><strong>Product Name</strong></td><td class="specification-value">Eaton xEnergy Main LV switchgear</td></tr>
+            <tr class="specification-row"><td class="specification-title"><strong>Catalog Number</strong></td><td class="specification-value">284245</td></tr>
+            <tr class="specification-row"><td class="specification-title"><strong>Model Code</strong></td><td class="specification-value">XSFH20</td></tr>
+            <tr class="specification-row"><td class="specification-title"><strong>Product Height</strong></td><td class="specification-value">1910 mm</td></tr>
+            <tr class="specification-row"><td class="specification-title"><strong>Product Width</strong></td><td class="specification-value">70.5 mm</td></tr>
+            <tr class="specification-row"><td class="specification-title"><strong>Product Length/Depth</strong></td><td class="specification-value">40 mm</td></tr>
+            <tr class="specification-row"><td class="specification-title"><strong>Product Weight</strong></td><td class="specification-value">21 kg</td></tr>
+          </table>
+        </div>
+        <a href="https://www.eaton.com/us/en-us/skuPage.284245.pdf">Eaton Specification Sheet - 284245</a>
+      </body></html>
+    `;
+    const siblingHtml = exactHtml
+      .replaceAll("284245", "150482")
+      .replace("XSFH20</td>", "XSFH20-I-D</td>")
+      .replace("21 kg", "17.138 kg")
+      .replace("70.5 mm", "65.5 mm");
+    const context = {
+      manufacturer: {
+        id: "eaton",
+        canonicalName: "Eaton",
+        shortName: "EAT",
+        rateLimitMs: 0,
+        officialBaseUrls: ["https://www.eaton.com"],
+        localizedUrlTemplates: [],
+        fallbackSources: [],
+        scrapeRecipe: { searchUrlTemplates: [searchUrl] }
+      },
+      http: {
+        fetchText: async (url: string) => {
+          if (url === searchUrl) return fetched(searchJson, url);
+          if (/skuPage\.XSFH20\.html/i.test(url)) return fetched("<html><title>404 | Eaton</title><h1>404</h1></html>", url);
+          if (url === "https://www.eaton.com/us/en-us/skuPage.284245.html") return fetched(exactHtml, url);
+          if (url === "https://www.eaton.com/us/en-us/skuPage.150482.html") return fetched(siblingHtml, url);
+          throw new Error(`Unexpected URL ${url}`);
+        }
+      },
+      runDir: "",
+      documentsDir: "",
+      downloadDocument: async (doc: Parameters<ScrapeContext["downloadDocument"]>[0]) => doc,
+      fallback: {
+        scrape: async () => undefined
+      }
+    } as unknown as ScrapeContext;
+
+    const result = await connector.scrape("XSFH20", context);
+
+    expect(result.status).toBe("found");
+    expect(result.productUrl).toBe("https://www.eaton.com/us/en-us/skuPage.284245.html");
+    expect(result.attributes.some((attr) => attr.name === "Model Code" && attr.value === "XSFH20")).toBe(true);
+    expect(result.attributes.some((attr) => attr.name === "Model Code" && attr.value === "XSFH20-I-D")).toBe(false);
+    expect(result.normalized.weight).toBe("21 kg");
+    expect(result.documents).toContainEqual(
+      expect.objectContaining({
+        type: "datasheet",
+        url: "https://www.eaton.com/us/en-us/skuPage.284245.pdf"
+      })
+    );
   });
 
   it("parses localized Eaton reader fields that are not in the fixed label list", () => {

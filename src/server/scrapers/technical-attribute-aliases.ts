@@ -52,6 +52,8 @@ const ROCKWELL_1494 =
   "https://literature.rockwellautomation.com/idc/groups/literature/documents/td/1494-td002_-en-p.pdf";
 const ROCKWELL_1492 =
   "https://literature.rockwellautomation.com/idc/groups/literature/documents/td/1492-td013_-en-p.pdf";
+const ROCKWELL_IO =
+  "https://literature.rockwellautomation.com/idc/groups/literature/documents/td/5069-td001_-en-p.pdf";
 
 export const GLOBAL_TECHNICAL_ATTRIBUTE_ALIASES: TechnicalAttributeAlias[] = [
   globalAlias("ratedVoltage", "Rated voltage"),
@@ -60,6 +62,9 @@ export const GLOBAL_TECHNICAL_ATTRIBUTE_ALIASES: TechnicalAttributeAlias[] = [
   globalAlias("ratedVoltage", "Operational voltage"),
   globalAlias("ratedVoltage", "Nominal voltage"),
   globalAlias("ratedVoltage", "Supply voltage"),
+  globalAlias("ratedVoltage", "Supply voltage range"),
+  globalAlias("ratedVoltage", "Field power voltage range"),
+  globalAlias("ratedVoltage", "Output voltage range"),
   globalAlias("ratedVoltage", "Voltage rating max"),
   globalAlias("ratedVoltage", "Voltage rating - max"),
   globalAlias("ratedVoltage", "Maximum operating voltage"),
@@ -80,6 +85,10 @@ export const GLOBAL_TECHNICAL_ATTRIBUTE_ALIASES: TechnicalAttributeAlias[] = [
   globalAlias("ratedCurrent", "Conventional free air thermal current"),
   globalAlias("ratedCurrent", "Amperage rating"),
   globalAlias("ratedCurrent", "Current rating"),
+  globalAlias("ratedCurrent", "Output current rating"),
+  globalAlias("ratedCurrent", "Current draw"),
+  globalAlias("ratedCurrent", "Current draw at 24V DC"),
+  globalAlias("ratedCurrent", "Current draw @ 24V DC"),
   globalAlias("ratedCurrent", "Nennstrom"),
   globalAlias("ratedCurrent", "Bemessungsbetriebsstrom"),
   globalAlias("ratedCurrent", "Ie"),
@@ -190,13 +199,23 @@ export const MANUFACTURER_TECHNICAL_ATTRIBUTE_ALIASES: TechnicalAttributeAlias[]
   alias("eaton", "Eaton", "protection", "NEMA rating", EATON_172852, "Eaton skuPage"),
 
   alias("rockwell", "Rockwell Automation", "ratedVoltage", "Rated Operational Voltage", ROCKWELL_1494, "Rockwell technical data"),
+  alias("rockwell", "Rockwell Automation", "ratedVoltage", "Field Power Voltage Range", ROCKWELL_IO, "Rockwell I/O technical data"),
+  alias("rockwell", "Rockwell Automation", "ratedVoltage", "Output Voltage Range", ROCKWELL_IO, "Rockwell I/O technical data"),
+  alias("rockwell", "Rockwell Automation", "ratedVoltage", "Supply Voltage Range", ROCKWELL_IO, "Rockwell I/O technical data"),
   alias("rockwell", "Rockwell Automation", "ratedCurrent", "Continuous Operating Current", ROCKWELL_1494, "Rockwell technical data"),
   alias("rockwell", "Rockwell Automation", "ratedCurrent", "Continuous Current Rating [A]", ROCKWELL_1494, "Rockwell technical data"),
+  alias("rockwell", "Rockwell Automation", "ratedCurrent", "Output Current Rating", ROCKWELL_IO, "Rockwell I/O technical data"),
+  alias("rockwell", "Rockwell Automation", "ratedCurrent", "Current Draw", ROCKWELL_IO, "Rockwell I/O technical data"),
+  alias("rockwell", "Rockwell Automation", "ratedCurrent", "Current Draw at 24V DC", ROCKWELL_IO, "Rockwell I/O technical data"),
+  alias("rockwell", "Rockwell Automation", "ratedCurrent", "Current Draw @ 24V DC", ROCKWELL_IO, "Rockwell I/O technical data"),
   alias("rockwell", "Rockwell Automation", "breakingCapacity", "SCCR", ROCKWELL_SCCR, "Rockwell SCCR publication"),
   alias("rockwell", "Rockwell Automation", "breakingCapacity", "Short Circuit Current Rating (SCCR)", ROCKWELL_1492, "Rockwell terminal block technical data"),
   alias("rockwell", "Rockwell Automation", "breakingCapacity", "Interrupting Rating", ROCKWELL_SCCR, "Rockwell SCCR publication"),
   alias("rockwell", "Rockwell Automation", "poles", "Number of poles", ROCKWELL_1494, "Rockwell technical data"),
   alias("rockwell", "Rockwell Automation", "protection", "Enclosure Type", ROCKWELL_1494, "Rockwell technical data"),
+  alias("rockwell", "Rockwell Automation", "insulationVoltage", "Isolation Voltage", ROCKWELL_IO, "Rockwell I/O technical data"),
+  alias("rockwell", "Rockwell Automation", "voltageDrop", "On-state Voltage Drop", ROCKWELL_IO, "Rockwell I/O technical data"),
+  alias("rockwell", "Rockwell Automation", "leakageCurrent", "Off-state Leakage Current", ROCKWELL_IO, "Rockwell I/O technical data"),
   alias("rockwell", "Rockwell Automation", "mountingType", "Mounting", ROCKWELL_1494, "Rockwell technical data"),
   alias("rockwell", "Rockwell Automation", "frameSize", "Frame Size", ROCKWELL_1494, "Rockwell technical data"),
   alias("rockwell", "Rockwell Automation", "tripCharacteristic", "Trip Curve", ROCKWELL_1494, "Rockwell technical data"),

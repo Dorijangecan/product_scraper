@@ -1,5 +1,6 @@
 import crypto from "node:crypto";
 import fs from "node:fs/promises";
+import os from "node:os";
 import path from "node:path";
 import sanitize from "sanitize-filename";
 import type {
@@ -292,7 +293,7 @@ export class RunManager {
         // layoutRef is captured via closure (declared above); avoid touching outer `layout` inside this hot path
         try {
           let customerExtractionFirst: Awaited<ReturnType<typeof extractCustomerDocumentAttributes>> | null = null;
-          const customerFirstShortCircuit = false;
+          let customerFirstShortCircuit = false;
           let customerEarlyShortCircuit = false;
           let enriched: ProductResult | undefined;
           let fallbackStages: string[] | undefined;
@@ -319,6 +320,26 @@ export class RunManager {
               }
             });
             if (customerExtractionFirst.attributes.length > 0) {
+              const customerOnlyResult = finalizeQualityGate(
+                applyCustomerDocumentOverride(
+                  emptyResult(manufacturer.id, item.catalogNumber, "Official source skipped because customer document already supplied complete Eaton data."),
+                  customerExtractionFirst
+                ),
+                manufacturer
+              );
+              if (shouldShortCircuitCustomerFirst(manufacturer, customerOnlyResult, customerExtractionFirst)) {
+                customerFirstShortCircuit = true;
+                enriched = customerOnlyResult;
+                fallbackStages = enriched.diagnostics?.fallbackStages;
+                await this.appendRunLog(layoutRef, "CUSTOMER_FIRST_SHORT_CIRCUIT", {
+                  catalogNumber: item.catalogNumber,
+                  attributesFound: customerExtractionFirst.attributes.length,
+                  documentsFound: customerExtractionFirst.documents.length,
+                  statusAfter: enriched.status,
+                  qualityMissing: enriched.qualityGate?.missing ?? [],
+                  reason: "Customer document supplied complete Eaton data; skipped slow official lookup."
+                });
+              }
               await this.appendRunLog(layoutRef, "CUSTOMER_FIRST_SCAN", {
                 catalogNumber: item.catalogNumber,
                 attributesFound: customerExtractionFirst.attributes.length,
@@ -333,7 +354,7 @@ export class RunManager {
             }
           }
 
-          {
+          if (!customerFirstShortCircuit) {
           this.updateItemStage(item.id, "official-source", "Scraping official source", { status: "processing", error: undefined });
           const result = await connector.scrape(item.catalogNumber, {
             http,
@@ -450,6 +471,14 @@ export class RunManager {
           enriched = finalizeQualityGate(await enrichFromDownloadedDocumentsIfPresent(withInitialDownloads), manufacturer);
           fallbackStages = enriched.diagnostics?.fallbackStages;
           if (!enriched.qualityGate?.passed) {
+            this.updateItemStage(item.id, "document-enrichment", "Reading datasheets/manuals for missing values");
+            enriched = finalizeQualityGate(
+              await enrichFromRemoteDocumentsForMissingValues(enriched, http, enriched.qualityGate?.missing ?? [], controller.signal),
+              manufacturer
+            );
+            fallbackStages = enriched.diagnostics?.fallbackStages;
+          }
+          if (!enriched.qualityGate?.passed) {
             this.updateItemStage(item.id, "quality-fallback", "Running fallback because required fields are missing");
             const withSmartFallbacks = await runDeterministicScrapePipeline(enriched, item.catalogNumber, {
               http,
@@ -516,6 +545,25 @@ export class RunManager {
             });
           }
           let afterRepairFinalCompleteness = evaluateFinalCompleteness(enriched, manufacturer);
+          if (afterRepairFinalCompleteness.missing.length) {
+            const beforeRemoteMissing = afterRepairFinalCompleteness.missing;
+            this.updateItemStage(item.id, "document-enrichment", `Reading datasheets/manuals for missing final fields: ${beforeRemoteMissing.join(", ")}`);
+            enriched = finalizeQualityGate(
+              await enrichFromRemoteDocumentsForMissingValues(enriched, http, beforeRemoteMissing, controller.signal),
+              manufacturer
+            );
+            fallbackStages = enriched.diagnostics?.fallbackStages;
+            afterRepairFinalCompleteness = evaluateFinalCompleteness(enriched, manufacturer);
+            const remoteFilledFields = beforeRemoteMissing.filter((field) => !afterRepairFinalCompleteness.missing.includes(field));
+            if (remoteFilledFields.length) {
+              repairedFinalFields = [...new Set([...repairedFinalFields, ...remoteFilledFields])];
+              await this.appendRunLog(layoutRef, "REMOTE_DOCUMENT_FIELD_REPAIR", {
+                catalogNumber: item.catalogNumber,
+                repairedFields: remoteFilledFields,
+                remainingMissing: afterRepairFinalCompleteness.missing
+              });
+            }
+          }
           const exhaustedFields = this.db.listExhaustedFields(manufacturer.id, item.catalogNumber);
           const forceFinalRetry = run.options?.forceFinalRetry === true;
           let networkRetry = {
@@ -1254,6 +1302,24 @@ export function shouldDownloadDocumentsForRun(
   return true;
 }
 
+function shouldShortCircuitCustomerFirst(
+  manufacturer: ManufacturerConfig,
+  result: ProductResult,
+  extraction: { attributes: AttributeRecordLike[]; documents: DocumentRecord[] }
+): boolean {
+  if (manufacturer.id !== "eaton") return false;
+  if (extraction.attributes.length < 5 || extraction.documents.length === 0) return false;
+  if (result.qualityGate?.identityConfirmed === false) return false;
+  if (result.status === "failed") return false;
+  const normalized = result.normalized;
+  const hasPhysicalCore = Boolean(normalized.weight && normalized.dimensions && normalized.material);
+  const hasDutySpec = Boolean(normalized.voltage || normalized.current) || extraction.attributes.some((attr) => /^(?:pressure|flow rate|flow|power)$/i.test(attr.name));
+  const hasDescriptiveIdentity = extraction.attributes.some((attr) => /^(?:product type|description|product short text|product name)$/i.test(attr.name));
+  return hasPhysicalCore && hasDutySpec && hasDescriptiveIdentity;
+}
+
+type AttributeRecordLike = Pick<ProductResult["attributes"][number], "name">;
+
 function shouldDownloadForProfile(
   doc: DocumentRecord,
   profile: DocumentDownloadProfile,
@@ -1364,10 +1430,49 @@ async function enrichFromDownloadedDocumentsIfPresent(result: ProductResult): Pr
   return enrichResultFromDownloadedDocuments(result);
 }
 
+async function enrichFromRemoteDocumentsForMissingValues(
+  result: ProductResult,
+  http: CachedHttpClient,
+  missingFields: string[],
+  signal?: AbortSignal
+): Promise<ProductResult> {
+  if (!missingFields.length || !result.documents.some((doc) => shouldProbeRemoteDocument(doc))) return result;
+  const { enrichResultFromRemoteDocuments } = await import("./scrapers/document-enrichment.js");
+  return enrichResultFromRemoteDocuments(
+    result,
+    async (doc) => {
+      const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-doc-probe-"));
+      const extension = documentExtension(doc.url, doc.type);
+      const suggestedName = `${result.catalogNumber}-${doc.type}-${safeLabel(doc.label)}${extension}`;
+      try {
+        const localPath = await http.downloadFile(doc.url, tempDir, suggestedName, signal);
+        return {
+          localPath,
+          cleanup: () => fs.rm(tempDir, { recursive: true, force: true })
+        };
+      } catch (error) {
+        await fs.rm(tempDir, { recursive: true, force: true }).catch(() => undefined);
+        throw error;
+      }
+    },
+    { maxDocuments: 4 }
+  );
+}
+
 function shouldParseDownloadedDocument(doc: DocumentRecord): boolean {
   if (doc.downloadStatus && doc.downloadStatus !== "downloaded") return false;
   if (!doc.localPath || !/\.pdf$/i.test(doc.localPath)) return false;
   return ["datasheet", "certificate", "manual", "other"].includes(doc.type);
+}
+
+function shouldProbeRemoteDocument(doc: DocumentRecord): boolean {
+  if (doc.localPath || doc.parseStatus === "parsed" || doc.downloadStatus === "failed") return false;
+  if (!["datasheet", "manual", "other"].includes(doc.type)) return false;
+  const text = `${doc.type} ${doc.label} ${doc.url}`;
+  if (doc.type === "other" && !/\b(?:data\s*sheet|datasheet|technical|spec(?:ification)?|manual|installation|instruction)\b/i.test(text)) {
+    return false;
+  }
+  return /\.pdf(?:[?#]|$)/i.test(doc.url) || /pdfengine\/pdf|[?&](?:format|output|filetype|type)=pdf\b|[?&](?:documentid|docid|mediaid)=/i.test(doc.url);
 }
 
 async function uniquePath(filePath: string): Promise<string> {

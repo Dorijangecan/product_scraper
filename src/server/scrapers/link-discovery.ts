@@ -65,6 +65,13 @@ export function discoverProductLinksWithDiagnostics(html: string, baseUrl: strin
     addCandidate(rawUrl, context, "canonical/meta product url", 25);
   });
 
+  $("meta[http-equiv][content]").each((_, element) => {
+    if (!/^refresh$/i.test($(element).attr("http-equiv") ?? "")) return;
+    const refreshUrl = ($(element).attr("content") ?? "").match(/\burl\s*=\s*([^;]+)/i)?.[1];
+    const context = cleanText([$("h1").first().text(), $("title").first().text()].filter(Boolean).join(" "));
+    addCandidate(refreshUrl, context, "meta refresh product url", 18);
+  });
+
   $("a[href]").each((_, element) => {
     const href = $(element).attr("href");
     const context = cleanText(
@@ -81,14 +88,33 @@ export function discoverProductLinksWithDiagnostics(html: string, baseUrl: strin
     addCandidate(href, context, "anchor");
   });
 
+  $("[data-url],[data-href],[data-link],[data-product-url],[data-detail-url],[data-item-url],[data-pdp-url],[data-target],form[action],button[formaction]").each((_, element) => {
+    const attributes = element.attribs ?? {};
+    const context = cleanText(
+      [
+        $(element).text(),
+        $(element).attr("title"),
+        $(element).attr("aria-label"),
+        $(element).closest("tr,li,article,.product,.product-card,.product-list,.search-result,.result,.card,form").text()
+      ]
+        .filter(Boolean)
+        .join(" ")
+    );
+    for (const [name, value] of Object.entries(attributes)) {
+      if (!/^(?:data-(?:url|href|link|product-url|detail-url|item-url|pdp-url|target)|action|formaction)$/i.test(name)) continue;
+      addCandidate(value, context, `element ${name} product url`, 12);
+    }
+  });
+
   const decoded = html.replace(/\\\//g, "/").replace(/&amp;/g, "&");
   const compactPart = compactCatalogNumber(catalogNumber).toLowerCase();
   if (compactPart) {
     const urlPattern = /https?:\/\/[^"'<>\s)]+|\/[a-z0-9][^"'<>\s)]*/gi;
     for (const match of decoded.matchAll(urlPattern)) {
       const rawUrl = match[0];
-      if (!compactCatalogNumber(rawUrl).toLowerCase().includes(compactPart)) continue;
-      addCandidate(rawUrl, rawUrl, "inline url", 10);
+      const context = inlineUrlContext(decoded, match.index ?? 0, rawUrl.length);
+      if (!compactCatalogNumber(`${rawUrl} ${context}`).toLowerCase().includes(compactPart)) continue;
+      addCandidate(rawUrl, context, "inline url", 10);
     }
   }
 
@@ -96,6 +122,10 @@ export function discoverProductLinksWithDiagnostics(html: string, baseUrl: strin
     candidates: [...candidates.values()].sort((left, right) => right.score - left.score || left.url.length - right.url.length).slice(0, 8),
     rejected: [...rejected.values()].sort((left, right) => right.score - left.score || left.url.length - right.url.length).slice(0, 20)
   };
+}
+
+function inlineUrlContext(text: string, index: number, length: number): string {
+  return cleanText(text.slice(Math.max(0, index - 260), Math.min(text.length, index + length + 260)));
 }
 
 function candidateConfirmsCatalog(url: string, context: string, catalogNumber: string): boolean {
