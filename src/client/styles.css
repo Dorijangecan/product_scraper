@@ -1338,6 +1338,40 @@ textarea:focus {
   align-items: center;
 }
 
+.catalog-list-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px;
+}
+
+.catalog-list-actions .compact-action {
+  height: 31px;
+  min-height: 31px;
+  padding: 0 9px;
+  font-size: 11px;
+}
+
+.catalog-list-actions .compact-action strong {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 20px;
+  border-radius: 999px;
+  padding: 0 6px;
+  background: rgba(0, 0, 0, 0.18);
+  color: var(--text);
+  font-size: 11px;
+}
+
+.catalog-list-message {
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 850;
+}
+
 .run-search-field,
 .page-size-field {
   display: flex;

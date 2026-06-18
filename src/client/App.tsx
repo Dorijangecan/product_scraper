@@ -233,6 +233,7 @@ export function App() {
   const [runItemFilter, setRunItemFilter] = useState<RunItemFilter>("all");
   const [runItemPageSize, setRunItemPageSize] = useState<RunItemPageSize>(50);
   const [runItemPage, setRunItemPage] = useState(1);
+  const [catalogListMessage, setCatalogListMessage] = useState("");
   const [historyExpanded, setHistoryExpanded] = useState(false);
   const [downloadPdfs, setDownloadPdfs] = useState(false);
   const [downloadCad, setDownloadCad] = useState(false);
@@ -903,6 +904,21 @@ export function App() {
     setRunItemPage(1);
   }
 
+  async function handleCatalogListExport(label: string, sourceItems: RunItemRecord[]) {
+    const catalogNumbers = uniqueCatalogNumbers(sourceItems);
+    const body = catalogNumbers.join("\n");
+    const fileName = `${slugify(label)}-catalogs.txt`;
+    try {
+      if (!body) throw new Error("No catalog numbers in this list.");
+      const copied = await copyTextToClipboard(body);
+      if (!copied) downloadTextFile(fileName, body);
+      setCatalogListMessage(`${catalogNumbers.length} ${copied ? "copied" : "saved"}`);
+    } catch {
+      if (body) downloadTextFile(fileName, body);
+      setCatalogListMessage(body ? `${catalogNumbers.length} saved` : "No rows");
+    }
+  }
+
   function handleDistributorFallbackToggle(checked: boolean) {
     setWizardAllowDistributor(checked);
     setWizardTestResult(null);
@@ -1064,6 +1080,11 @@ export function App() {
   const progress = runTiming.progressPercent;
   const runItemFilterCounts = useMemo(() => buildRunItemFilterCounts(items), [items]);
   const filteredItems = useMemo(() => filterRunItems(items, runItemQuery, runItemFilter), [items, runItemQuery, runItemFilter]);
+  const failedListItems = useMemo(() => items.filter((item) => item.status === "failed"), [items]);
+  const missingImageListItems = useMemo(
+    () => items.filter((item) => item.status !== "pending" && item.status !== "processing" && coverageState(item, "image") === "missing"),
+    [items]
+  );
   const runItemQueryImpact = useMemo(
     () => buildRunItemQueryImpact(items, runItemQuery, runItemFilter),
     [items, runItemFilter, runItemQuery]
@@ -1093,6 +1114,12 @@ export function App() {
   useEffect(() => {
     setRunItemPage((current) => Math.min(Math.max(current, 1), runItemPageCount));
   }, [runItemPageCount]);
+
+  useEffect(() => {
+    if (!catalogListMessage) return;
+    const timer = window.setTimeout(() => setCatalogListMessage(""), 2500);
+    return () => window.clearTimeout(timer);
+  }, [catalogListMessage]);
 
   return (
     <main className="app-shell">
@@ -1807,6 +1834,39 @@ export function App() {
                       }))}
                     />
                   </label>
+                  <div className="catalog-list-actions" aria-label="Catalog list actions">
+                    <button
+                      type="button"
+                      className="secondary-action compact-action"
+                      onClick={() => void handleCatalogListExport("failed", failedListItems)}
+                      disabled={failedListItems.length === 0}
+                    >
+                      <XCircle size={14} />
+                      Failed
+                      <strong>{uniqueCatalogNumbers(failedListItems).length}</strong>
+                    </button>
+                    <button
+                      type="button"
+                      className="secondary-action compact-action"
+                      onClick={() => void handleCatalogListExport("missing-images", missingImageListItems)}
+                      disabled={missingImageListItems.length === 0}
+                    >
+                      <FileOutput size={14} />
+                      Missing images
+                      <strong>{uniqueCatalogNumbers(missingImageListItems).length}</strong>
+                    </button>
+                    <button
+                      type="button"
+                      className="primary-action compact-action"
+                      onClick={() => void handleCatalogListExport("current-filter", filteredItems)}
+                      disabled={filteredItems.length === 0}
+                    >
+                      <ListChecks size={14} />
+                      Current list
+                      <strong>{uniqueCatalogNumbers(filteredItems).length}</strong>
+                    </button>
+                    {catalogListMessage && <span className="catalog-list-message">{catalogListMessage}</span>}
+                  </div>
                 </div>
 
                 <div className="run-filter-strip" aria-label="Filter run items">
@@ -1879,12 +1939,12 @@ export function App() {
                       <th>#</th>
                       <th>Catalog number</th>
                       <th>Status</th>
+                      <th>Link</th>
                       <th>Source</th>
                       <th>Activity</th>
                       <th>Title</th>
                       <th>Reason</th>
                       <th>Confidence</th>
-                      <th>Link</th>
                       <th>Debug</th>
                     </tr>
                   </thead>
@@ -1897,6 +1957,14 @@ export function App() {
                           <ItemBadge status={item.status} />
                         </td>
                         <td>
+                          {item.productUrl ? (
+                            <a className="source-link" href={item.productUrl} target="_blank" rel="noreferrer">
+                              Source
+                              <ArrowUpRight size={13} />
+                            </a>
+                          ) : null}
+                        </td>
+                        <td>
                           <SourceBadge item={item} />
                         </td>
                         <td>
@@ -1905,14 +1973,6 @@ export function App() {
                         <td>{item.title ?? item.error ?? ""}</td>
                         <td>{itemReason(item)}</td>
                         <td>{item.confidence ? `${Math.round(item.confidence * 100)}%` : ""}</td>
-                        <td>
-                          {item.productUrl ? (
-                            <a className="source-link" href={item.productUrl} target="_blank" rel="noreferrer">
-                              Source
-                              <ArrowUpRight size={13} />
-                            </a>
-                          ) : null}
-                        </td>
                         <td>
                           {item.result || item.coverage ? (
                             <button type="button" className="icon-button" title="Open run item diagnostics" onClick={() => setSelectedItemId(item.id)}>
@@ -3697,6 +3757,47 @@ function filterRunItems(items: RunItemRecord[], query: string, filter: RunItemFi
   const normalizedQuery = query.trim().toLowerCase();
   if (!normalizedQuery && filter === "all") return items;
   return items.filter((item) => runItemMatchesFilter(item, filter) && runItemMatchesQuery(item, normalizedQuery));
+}
+
+function uniqueCatalogNumbers(items: RunItemRecord[]): string[] {
+  return [...new Set(items.map((item) => item.catalogNumber.trim()).filter(Boolean))];
+}
+
+async function copyTextToClipboard(text: string): Promise<boolean> {
+  try {
+    await navigator.clipboard?.writeText(text);
+    return true;
+  } catch {
+    // Fall through to the legacy path below.
+  }
+
+  const textarea = document.createElement("textarea");
+  textarea.value = text;
+  textarea.setAttribute("readonly", "true");
+  textarea.style.position = "fixed";
+  textarea.style.left = "-9999px";
+  textarea.style.top = "0";
+  document.body.appendChild(textarea);
+  textarea.select();
+  try {
+    return document.execCommand("copy");
+  } catch {
+    return false;
+  } finally {
+    textarea.remove();
+  }
+}
+
+function downloadTextFile(fileName: string, body: string) {
+  const blob = new Blob([`${body}\n`], { type: "text/plain;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = fileName || "catalogs.txt";
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
 }
 
 function buildRunItemQueryImpact(
