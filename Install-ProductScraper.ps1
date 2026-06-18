@@ -1,6 +1,6 @@
 param(
     [string]$RepoUrl = "https://github.com/Dorijangecan/product_scraper.git",
-    [string]$InstallDir = (Join-Path ([Environment]::GetFolderPath("Desktop")) "product_scraper"),
+    [string]$InstallDir,
     [switch]$SkipStart,
     [switch]$SkipShortcut,
     [switch]$NoToolInstall
@@ -27,6 +27,14 @@ function Refresh-CurrentPath {
 function Get-LocalCommand($name) {
     Refresh-CurrentPath
     return Get-Command $name -ErrorAction SilentlyContinue
+}
+
+function Get-DefaultInstallDir {
+    if (Test-Path -LiteralPath "D:\") {
+        return "D:\product_scraper"
+    }
+
+    return (Join-Path ([Environment]::GetFolderPath("Desktop")) "product_scraper")
 }
 
 function Ensure-Tool($commandName, $wingetId, $displayName, $downloadUrl) {
@@ -107,6 +115,10 @@ function New-ProductScraperShortcut {
 
 Refresh-CurrentPath
 Ensure-Tool "git" "Git.Git" "Git for Windows" "https://git-scm.com/download/win"
+
+if (-not $InstallDir -or $InstallDir.Trim().Length -eq 0) {
+    $InstallDir = Get-DefaultInstallDir
+}
 
 $InstallDir = [System.IO.Path]::GetFullPath($InstallDir)
 $parentDir = Split-Path -Parent $InstallDir

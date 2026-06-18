@@ -1,0 +1,905 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Product Scraper Architecture</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0d1117;
+      --panel: #131a24;
+      --panel-2: #182131;
+      --panel-3: #202b3d;
+      --ink: #edf3ff;
+      --muted: #aebbd0;
+      --dim: #7f8da5;
+      --line: #2a3648;
+      --blue: #62a8ff;
+      --cyan: #56d3e8;
+      --green: #58d68d;
+      --amber: #f3bd5b;
+      --red: #ff7f8a;
+      --shadow: 0 24px 80px rgba(0, 0, 0, 0.42);
+    }
+
+    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Arial, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 18% 0%, rgba(98, 168, 255, 0.22), transparent 34rem),
+        radial-gradient(circle at 88% 14%, rgba(86, 211, 232, 0.16), transparent 30rem),
+        linear-gradient(180deg, #0b0f16 0%, var(--bg) 45%, #0a0d12 100%);
+      line-height: 1.55;
+    }
+
+    a { color: var(--cyan); }
+
+    main {
+      width: min(1180px, calc(100% - 36px));
+      margin: 28px auto 70px;
+    }
+
+    .hero {
+      min-height: 430px;
+      display: grid;
+      align-content: end;
+      padding: 54px;
+      border: 1px solid var(--line);
+      background:
+        linear-gradient(145deg, rgba(19, 26, 36, 0.94), rgba(13, 17, 23, 0.78)),
+        repeating-linear-gradient(90deg, rgba(255,255,255,0.04) 0 1px, transparent 1px 52px),
+        repeating-linear-gradient(0deg, rgba(255,255,255,0.035) 0 1px, transparent 1px 52px);
+      box-shadow: var(--shadow);
+      border-radius: 18px;
+      overflow: hidden;
+    }
+
+    .eyebrow {
+      margin: 0 0 14px;
+      color: var(--cyan);
+      text-transform: uppercase;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+    }
+
+    h1 {
+      max-width: 880px;
+      margin: 0 0 18px;
+      font-size: clamp(44px, 7vw, 84px);
+      line-height: 0.97;
+      letter-spacing: 0;
+    }
+
+    .subtitle {
+      max-width: 820px;
+      margin: 0;
+      color: var(--muted);
+      font-size: clamp(18px, 2.4vw, 24px);
+    }
+
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      margin: 18px 0;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(13, 17, 23, 0.86);
+      backdrop-filter: blur(16px);
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.26);
+    }
+
+    nav ul {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    nav a {
+      display: block;
+      padding: 7px 10px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 13px;
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    nav a:hover {
+      color: var(--ink);
+      border-color: rgba(98, 168, 255, 0.62);
+      background: rgba(98, 168, 255, 0.12);
+    }
+
+    section {
+      margin: 18px 0;
+      padding: 28px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: linear-gradient(180deg, rgba(24, 33, 49, 0.96), rgba(19, 26, 36, 0.96));
+      box-shadow: 0 18px 56px rgba(0, 0, 0, 0.22);
+    }
+
+    h2 {
+      margin: 0 0 18px;
+      font-size: clamp(26px, 3.2vw, 38px);
+      line-height: 1.1;
+      letter-spacing: 0;
+    }
+
+    h3 {
+      margin: 26px 0 10px;
+      font-size: 19px;
+      color: #dbe7ff;
+    }
+
+    p { margin: 0 0 15px; color: var(--muted); }
+
+    ul, ol { margin: 0; padding-left: 22px; color: var(--muted); }
+    li { margin: 8px 0; }
+    strong { color: var(--ink); }
+
+    code {
+      font-family: Consolas, "Courier New", monospace;
+      color: #d9ecff;
+      background: rgba(98, 168, 255, 0.11);
+      border: 1px solid rgba(98, 168, 255, 0.18);
+      border-radius: 6px;
+      padding: 1px 6px;
+    }
+
+    pre {
+      margin: 14px 0 0;
+      padding: 14px;
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #0a0f16;
+      color: #dce8f8;
+      font-size: 14px;
+    }
+
+    pre code {
+      padding: 0;
+      border: 0;
+      background: transparent;
+      color: inherit;
+    }
+
+    table {
+      width: 100%;
+      margin: 16px 0 0;
+      border-collapse: collapse;
+      color: var(--muted);
+      font-size: 14px;
+      overflow: hidden;
+      border-radius: 12px;
+    }
+
+    th, td {
+      border: 1px solid var(--line);
+      padding: 11px 12px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      color: var(--ink);
+      background: rgba(98, 168, 255, 0.13);
+    }
+
+    tr:nth-child(even) td { background: rgba(255, 255, 255, 0.025); }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+      margin: 20px 0 0;
+    }
+
+    .card {
+      min-height: 128px;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: linear-gradient(180deg, rgba(32, 43, 61, 0.95), rgba(19, 26, 36, 0.95));
+    }
+
+    .card b {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--ink);
+      font-size: 22px;
+      line-height: 1.1;
+    }
+
+    .card span {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .callout {
+      margin: 18px 0;
+      padding: 15px 17px;
+      border: 1px solid rgba(98, 168, 255, 0.35);
+      border-left: 4px solid var(--blue);
+      border-radius: 12px;
+      background: rgba(98, 168, 255, 0.1);
+      color: var(--muted);
+    }
+
+    .callout.warning {
+      border-color: rgba(243, 189, 91, 0.38);
+      border-left-color: var(--amber);
+      background: rgba(243, 189, 91, 0.1);
+    }
+
+    .callout.danger {
+      border-color: rgba(255, 127, 138, 0.38);
+      border-left-color: var(--red);
+      background: rgba(255, 127, 138, 0.08);
+    }
+
+    .diagram {
+      margin-top: 18px;
+      padding: 12px;
+      overflow-x: hidden;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #101722;
+    }
+
+    .diagram .mermaid {
+      width: 100%;
+      min-width: 0;
+      color: var(--ink);
+    }
+
+    .diagram pre.mermaid {
+      margin: 0;
+      padding: 0;
+      overflow: visible;
+      border: 0;
+      background: transparent;
+    }
+
+    .diagram svg {
+      display: block;
+      width: 100% !important;
+      max-width: 100% !important;
+      height: auto !important;
+      margin: 0 auto;
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+
+    .three-col {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 16px;
+    }
+
+    .mini-panel {
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.035);
+    }
+
+    .mini-panel h3 {
+      margin: 0 0 8px;
+      font-size: 16px;
+    }
+
+    .mini-panel p {
+      margin: 0;
+      font-size: 14px;
+    }
+
+    .tag {
+      display: inline-block;
+      margin: 0 6px 6px 0;
+      padding: 4px 8px;
+      border: 1px solid rgba(86, 211, 232, 0.32);
+      border-radius: 999px;
+      color: #c9f8ff;
+      background: rgba(86, 211, 232, 0.08);
+      font-size: 13px;
+    }
+
+    .footer {
+      padding: 30px 12px 0;
+      color: var(--dim);
+      text-align: center;
+      font-size: 13px;
+    }
+
+    @media (max-width: 920px) {
+      main { width: min(100% - 18px, 1180px); }
+      .hero, section { padding: 24px; }
+      .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .two-col, .three-col { grid-template-columns: 1fr; }
+      nav { position: static; }
+    }
+
+    @media (max-width: 620px) {
+      main { width: 100%; margin: 0; }
+      .hero, section, nav { border-radius: 0; border-left: 0; border-right: 0; }
+      .cards { grid-template-columns: 1fr; }
+    }
+
+    @media print {
+      @page {
+        size: A4 landscape;
+        margin: 10mm;
+      }
+
+      :root { color-scheme: dark; }
+      * {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      body { background: var(--bg); }
+      main { width: 100%; margin: 0; }
+      nav { display: none; }
+      .hero {
+        min-height: 250px;
+        padding: 26px;
+      }
+      h1 {
+        font-size: 52px;
+      }
+      section {
+        margin: 10px 0;
+        padding: 18px;
+      }
+      h2 {
+        font-size: 26px;
+        margin-bottom: 12px;
+      }
+      h3 {
+        font-size: 16px;
+        margin: 16px 0 8px;
+      }
+      p, li, table {
+        font-size: 12px;
+      }
+      .hero, section {
+        break-inside: auto;
+        box-shadow: none;
+      }
+      h2, h3 {
+        break-after: avoid;
+      }
+      table, .diagram, pre, .cards {
+        break-inside: avoid;
+      }
+      .three-col {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+      }
+      .mini-panel {
+        padding: 10px;
+      }
+      .mini-panel h3 {
+        font-size: 13px;
+      }
+      .mini-panel p {
+        font-size: 11px;
+      }
+      .diagram {
+        overflow: visible;
+        padding: 10px;
+      }
+      .diagram .mermaid {
+        width: 100% !important;
+        min-width: 0 !important;
+      }
+      .diagram pre.mermaid {
+        overflow: visible !important;
+      }
+      .diagram svg {
+        width: 100% !important;
+        max-width: 100% !important;
+        height: auto !important;
+      }
+      a { color: var(--cyan); text-decoration: none; }
+    }
+  </style>
+  <script type="module">
+    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+    mermaid.initialize({
+      startOnLoad: true,
+      securityLevel: "loose",
+      theme: "dark",
+      flowchart: {
+        nodeSpacing: 20,
+        rankSpacing: 26,
+        padding: 8,
+        curve: "basis"
+      },
+      sequence: {
+        diagramMarginX: 12,
+        diagramMarginY: 12,
+        actorMargin: 34,
+        width: 112,
+        height: 34,
+        boxMargin: 4,
+        messageMargin: 28,
+        mirrorActors: false
+      },
+      themeVariables: {
+        background: "#101722",
+        primaryColor: "#1e2a3d",
+        primaryTextColor: "#edf3ff",
+        primaryBorderColor: "#62a8ff",
+        lineColor: "#56d3e8",
+        secondaryColor: "#182131",
+        tertiaryColor: "#202b3d",
+        fontFamily: "Segoe UI, Arial, sans-serif",
+        fontSize: "13px"
+      }
+    });
+  </script>
+</head>
+<body>
+  <main>
+    <header class="hero">
+      <p class="eyebrow">Architecture documentation</p>
+      <h1>Product Scraper</h1>
+      <p class="subtitle">A local Windows desktop system that turns catalog numbers into traced, source-backed product workbooks and optional PDT exports.</p>
+    </header>
+
+    <nav aria-label="Sections">
+      <ul>
+        <li><a href="#accuracy">Accuracy</a></li>
+        <li><a href="#what">What It Does</a></li>
+        <li><a href="#runtime">Runtime</a></li>
+        <li><a href="#pipeline">Pipeline</a></li>
+        <li><a href="#manufacturers">Manufacturers</a></li>
+        <li><a href="#infrastructure">Infrastructure</a></li>
+        <li><a href="#understanding">Understanding</a></li>
+        <li><a href="#quality">Quality</a></li>
+        <li><a href="#pdt">PDT</a></li>
+        <li><a href="#storage">Storage</a></li>
+        <li><a href="#desktop">Desktop</a></li>
+        <li><a href="#lifecycle">Lifecycle</a></li>
+        <li><a href="#limits">Limits</a></li>
+        <li><a href="#commands">Commands</a></li>
+      </ul>
+    </nav>
+
+    <section id="accuracy">
+      <h2>Accuracy Notes</h2>
+      <div class="cards">
+        <div class="card"><b>Local app</b><span>No cloud API key is needed for normal scraping.</span></div>
+        <div class="card"><b>Not offline</b><span>Manufacturer websites are still contacted unless data is cached or supplied.</span></div>
+        <div class="card"><b>14 profiles</b><span>12 dedicated connectors plus 2 config-driven built-in profiles.</span></div>
+        <div class="card"><b>5 min resume</b><span>Recent interrupted runs resume; stale interrupted runs are cancelled.</span></div>
+      </div>
+      <div class="callout warning">
+        Runtime LLM use is off by default. Optional PDT AI cleanup only runs when <code>PDT_AI_CLEANUP=1</code> and local Ollama/Qwen is available.
+      </div>
+    </section>
+
+    <section id="what">
+      <h2>What It Does</h2>
+      <p>You upload a CSV or Excel file, choose the catalog-number column and select a manufacturer. The app creates a run, scrapes official and configured sources, normalizes technical attributes, grades each item and exports source-backed workbooks.</p>
+      <p>In practical terms, it replaces manual copy/paste work from manufacturer pages, datasheets and catalog PDFs. The operator gives it article numbers; the system builds a structured product dataset with source evidence, downloadable assets and a PDT-ready export path.</p>
+      <ol>
+        <li>Creates a local run in SQLite.</li>
+        <li>Scrapes official manufacturer sources first.</li>
+        <li>Uses configured fallbacks, discovery, rendered pages and document enrichment when the first result is weak.</li>
+        <li>Normalizes technical attributes without a runtime model call.</li>
+        <li>Grades each item with a quality gate.</li>
+        <li>Exports a traced <code>products.xlsx</code> workbook and, on demand, a PDT workbook.</li>
+      </ol>
+      <div class="three-col">
+        <div class="mini-panel">
+          <h3>Input</h3>
+          <p>CSV/XLSX with catalog numbers, selected manufacturer, optional customer documents and run options for images, PDFs, CAD, links or Excel output.</p>
+        </div>
+        <div class="mini-panel">
+          <h3>Processing</h3>
+          <p>Official pages are tried first, then configured fallback URLs, search/discovery, rendered pages and document parsing when needed.</p>
+        </div>
+        <div class="mini-panel">
+          <h3>Output</h3>
+          <p>Traceable Excel workbook, optional PDT workbook, downloaded documents/CAD/images, product links and debug logs.</p>
+        </div>
+      </div>
+      <div class="callout">
+        The design goal is source-backed output. Values come from scraped pages, documents, customer uploads, parsed quantities or explicit deterministic rules. Unknown values are left missing and surfaced in diagnostics instead of guessed.
+      </div>
+    </section>
+
+    <section id="runtime">
+      <h2>Runtime Shape</h2>
+      <p>Electron starts the local server and opens a desktop window. The API listens on <code>127.0.0.1</code>; it is private to the machine and is not a public service.</p>
+      <div class="diagram">
+        <pre class="mermaid">
+flowchart LR
+  UI["React UI<br/>src/client"] <--> API["Express API<br/>src/server/index.ts"]
+  API --> RM["RunManager<br/>src/server/run-manager.ts"]
+  RM --> SCR["Scrapers<br/>src/server/scrapers"]
+  RM --> XLS["Excel export<br/>src/server/excel.ts"]
+  RM --> PDT["PDT export<br/>src/server/pdt"]
+  RM <--> DB[("SQLite<br/>data/scraper.db")]
+  SCR <--> WEB["Manufacturer websites"]
+  SCR <--> CACHE["HTTP/page cache<br/>data/cache"]
+  XLS --> OUT["outputs/"]
+  PDT --> OUT
+        </pre>
+      </div>
+    </section>
+
+    <section id="pipeline">
+      <h2>End-To-End Run</h2>
+      <p>Each catalog number moves through the same controlled pipeline. Official data is preferred; deeper strategies are used when the quality gate says a result is weak.</p>
+      <div class="diagram">
+        <pre class="mermaid">
+flowchart LR
+  A["Upload<br/>CSV/XLSX"] --> B["Create run<br/>SQLite"]
+  B --> C["Worker pool"]
+  C --> D["Official<br/>scrape"]
+  D --> E{"Quality<br/>gate"}
+  E -->|pass| I["Evidence"]
+  E -->|weak| F["Deterministic<br/>fallback"]
+  F --> G["Browser / smart<br/>fallback"]
+  G --> H["Documents +<br/>final check"]
+  H --> I
+  I --> J["Persist item"]
+  J --> K["Finalize"]
+  K --> L["products.xlsx"]
+  K --> M["debug logs"]
+        </pre>
+      </div>
+      <h3>Important fast paths</h3>
+      <ul>
+        <li>Images-only runs skip Excel generation, broad fallbacks and PDF enrichment.</li>
+        <li>Links-only runs can produce discovered product URLs without image/document downloads.</li>
+        <li>Customer documents are moved into the run folder and treated as authoritative overrides for the run.</li>
+      </ul>
+      <h3>What happens inside a weak result</h3>
+      <p>A weak scrape is not accepted immediately. The run manager can ask the deterministic fallback pipeline to try better candidates, use Playwright for JavaScript-heavy pages, parse downloaded datasheets for missing facts and run a final completeness check before the item is finalized.</p>
+      <table>
+        <thead>
+          <tr><th>Stage</th><th>Why it exists</th><th>Example result</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Official connector</td><td>Prefer vendor-owned pages and APIs.</td><td>Product title, attributes, documents and official product URL.</td></tr>
+          <tr><td>Discovery/fallback</td><td>Recover when direct URL templates do not find the product.</td><td>Search result, sitemap candidate or learned endpoint.</td></tr>
+          <tr><td>Browser rendering</td><td>Handle sites where data appears only after JavaScript/modals/tabs load.</td><td>Rendered HTML and network product API responses.</td></tr>
+          <tr><td>Document enrichment</td><td>Fill missing technical facts from datasheets or manuals.</td><td>Voltage/current/temperature/dimensions extracted from PDFs.</td></tr>
+          <tr><td>Final completeness</td><td>Check critical fields by device type before export.</td><td>Missing image, type code or electrical facts are flagged.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="manufacturers">
+      <h2>Manufacturer Support</h2>
+      <p>Built-in manufacturer profiles live in <code>src/server/config/manufacturers.ts</code>. Dedicated connector modules are registered in <code>src/server/scrapers/index.ts</code>.</p>
+      <p>The distinction is important: a dedicated connector is hand-written code for a difficult vendor website, while a config-driven profile uses generic scraping rules. This lets the tool support both complex vendors and simpler vendors without adding custom code for every new brand.</p>
+      <table>
+        <thead>
+          <tr><th>Manufacturer</th><th>ID</th><th>Connector</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>ABB</td><td><code>abb</code></td><td><code>abb.ts</code></td></tr>
+          <tr><td>Balluff</td><td><code>balluff</code></td><td><code>balluff.ts</code></td></tr>
+          <tr><td>Eaton</td><td><code>eaton</code></td><td><code>eaton.ts</code></td></tr>
+          <tr><td>E-T-A</td><td><code>eta</code></td><td><code>eta.ts</code></td></tr>
+          <tr><td>FATH</td><td><code>fath</code></td><td><code>fath.ts</code></td></tr>
+          <tr><td>Rockwell Automation</td><td><code>rockwell</code></td><td><code>rockwell.ts</code></td></tr>
+          <tr><td>Saginaw / SCE</td><td><code>sce</code></td><td><code>sce.ts</code></td></tr>
+          <tr><td>SCAME</td><td><code>scame</code></td><td><code>scame.ts</code></td></tr>
+          <tr><td>Schmersal</td><td><code>schmersal</code></td><td><code>schmersal.ts</code></td></tr>
+          <tr><td>Schneider Electric</td><td><code>schneider</code></td><td><code>schneider.ts</code></td></tr>
+          <tr><td>Siemens</td><td><code>siemens</code></td><td><code>siemens.ts</code></td></tr>
+          <tr><td>Spelsberg</td><td><code>spelsberg</code></td><td><code>spelsberg.ts</code></td></tr>
+        </tbody>
+      </table>
+      <table>
+        <thead>
+          <tr><th>Config-driven built-in</th><th>ID</th><th>Notes</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>nVent / Hoffman</td><td><code>nvent</code></td><td>Built-in profile using configured URL templates/fallbacks.</td></tr>
+          <tr><td>Phoenix Contact</td><td><code>phoenix</code></td><td>Built-in profile using configured URL templates/fallbacks.</td></tr>
+        </tbody>
+      </table>
+      <p>Custom manufacturers are saved in <code>data/manufacturers.json</code> and use the same configured fallback connector. Their config can define URL templates, localized templates, fallback sources, marker rules, discovery policy, interaction policy, extraction policy, quality policy and fetch policy.</p>
+      <div class="three-col">
+        <div class="mini-panel">
+          <h3>URL templates</h3>
+          <p>Use placeholders like <code>{part}</code>, <code>{partLower}</code> and <code>{partCompact}</code> to generate product/search URLs.</p>
+        </div>
+        <div class="mini-panel">
+          <h3>Quality policy</h3>
+          <p>Defines required normalized fields, required document types, minimum raw attributes and confidence caps.</p>
+        </div>
+        <div class="mini-panel">
+          <h3>Extraction rules</h3>
+          <p>Marker rules and label aliases teach the generic connector where values, documents and images live.</p>
+        </div>
+      </div>
+      <p>Legacy IDs are normalized in the config layer: <code>newabb -> abb</code>, <code>saginawcontrol -> sce</code>, <code>schneiderelectric -> schneider</code>, and <code>nventhoffman</code> / <code>eldon -> nvent</code>.</p>
+    </section>
+
+    <section id="infrastructure">
+      <h2>Shared Scraping Infrastructure</h2>
+      <table>
+        <thead>
+          <tr><th>Module</th><th>Role</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>http-client.ts</code></td><td>Cached GET/POST, retries, per-host throttling, page cache and file/image downloads.</td></tr>
+          <tr><td><code>browser-renderer.ts</code></td><td>Playwright Chromium rendering for JS-heavy pages and modal/tab interactions.</td></tr>
+          <tr><td><code>discovery.ts</code></td><td>Official URL discovery from templates, search pages, sitemaps, learned endpoints and URL variants.</td></tr>
+          <tr><td><code>link-discovery.ts</code></td><td>Catalog-number-aware link filtering and scoring.</td></tr>
+          <tr><td><code>learned-endpoints.ts</code></td><td>Stores successful official API URL patterns in SQLite for later replay.</td></tr>
+          <tr><td><code>evidence.ts</code></td><td>Attaches source/parser/stage/confidence records to values.</td></tr>
+          <tr><td><code>dedupe.ts</code></td><td>Merges duplicate attributes/documents while preserving higher confidence data.</td></tr>
+        </tbody>
+      </table>
+      <p>Concurrency is manufacturer-specific through <code>ManufacturerConfig.concurrency</code>. It defaults to 3 and is capped at 8. Per-host throttling is derived from <code>ManufacturerConfig.rateLimitMs</code>.</p>
+    </section>
+
+    <section id="understanding">
+      <h2>Understanding Engine</h2>
+      <p>The normalization layer is deterministic. It keeps raw manufacturer attributes unchanged and adds a technical/normalized view when it can recognize a meaning.</p>
+      <p>This is the part that makes the scraper more than a downloader. Manufacturers write the same fact in many ways: different languages, different labels, decimal comma, units embedded in text, ranges, AC/DC notation and conditions such as "at 40 C". The understanding engine maps those forms into stable internal facts while preserving the original wording.</p>
+      <div class="diagram">
+        <pre class="mermaid">
+flowchart LR
+  RAW["Raw manufacturer specs"] --> ONT["Ontology<br/>property aliases"]
+  RAW --> QTY["Quantity parser<br/>units, ranges, AC/DC"]
+  ONT --> TECH["Technical Attributes"]
+  QTY --> TECH
+  TECH --> NORM["Normalized fields"]
+  NORM --> XLS["Workbook + PDT resolvers"]
+  RAW --> DIAG["Unmapped labels<br/>diagnostics"]
+        </pre>
+      </div>
+      <table>
+        <thead>
+          <tr><th>Module</th><th>Role</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>ontology.ts</code></td><td>Canonical property ontology, multilingual aliases and unmapped-label diagnostics.</td></tr>
+          <tr><td><code>quantity.ts</code></td><td>Quantity parsing, units, ranges, tolerances, AC/DC and sanity bounds.</td></tr>
+          <tr><td><code>normalizer.ts</code></td><td>Normalized fields such as weight, dimensions, material, color, protection and temperature.</td></tr>
+          <tr><td><code>technical-attributes.ts</code></td><td>Builds <code>ProductResult.technicalAttributes</code> from raw attributes.</td></tr>
+          <tr><td><code>tight-context.ts</code></td><td>Selects the right variant column in comparison-style documents.</td></tr>
+          <tr><td><code>device-type.ts</code></td><td>Classifies products into PDT-relevant device types.</td></tr>
+        </tbody>
+      </table>
+      <h3>How to teach it more</h3>
+      <ol>
+        <li>Add new property meaning to <code>PROPERTY_ONTOLOGY</code>.</li>
+        <li>Add new units or sanity bounds in <code>quantity.ts</code>.</li>
+        <li>Add material/color language terms in <code>normalizer.ts</code>.</li>
+        <li>Add tests before relying on the new mapping.</li>
+      </ol>
+      <div class="callout danger">
+        Do not add scattered one-off regexes for every product unless there is no more general representation available.
+      </div>
+      <h3>No-hallucination rule</h3>
+      <p>If the system cannot recognize a label or parse a value safely, it does not invent a normalized value. The raw attribute still remains in the workbook, and the unknown label can appear in diagnostics as a knowledge-base gap to improve later.</p>
+    </section>
+
+    <section id="quality">
+      <h2>Quality Gate</h2>
+      <p><code>quality-gate.ts</code> decides whether an item is <code>found</code>, <code>partial</code> or <code>failed</code>.</p>
+      <div class="diagram">
+        <pre class="mermaid">
+flowchart LR
+  R["ProductResult"] --> ID{"Identity<br/>ok?"}
+  ID -->|conflict| FAIL["failed"]
+  ID -->|ok| REQ{"Required<br/>data?"}
+  REQ --> ELEC{"Device<br/>rules?"}
+  ELEC --> SCORE["Score<br/>sources + docs"]
+  SCORE --> TH{"Threshold?"}
+  TH -->|yes| FOUND["found"]
+  TH -->|no| PART["partial<br/>fallback"]
+        </pre>
+      </div>
+      <ul>
+        <li>Checks catalog identity conflicts.</li>
+        <li>Checks required sections, attributes and documents from manufacturer config.</li>
+        <li>Checks normalized fields and device-type-aware requirements.</li>
+        <li>Scores source/document/section depth.</li>
+        <li>Applies confidence caps for distributor or weaker rendered data.</li>
+      </ul>
+      <p>The quality gate records attempted stages and missing fields in <code>ProductResult.qualityGate</code> and diagnostics. A weak result can trigger deeper fallbacks.</p>
+      <div class="three-col">
+        <div class="mini-panel">
+          <h3>Found</h3>
+          <p>Identity is confirmed, key requirements are present and score is above the configured threshold.</p>
+        </div>
+        <div class="mini-panel">
+          <h3>Partial</h3>
+          <p>The page/product was likely found, but some important facts or documents are missing.</p>
+        </div>
+        <div class="mini-panel">
+          <h3>Failed</h3>
+          <p>The system could not confirm the product, or the result conflicts with the requested catalog number.</p>
+        </div>
+      </div>
+      <p>For management reporting, this means the tool can separate "usable but incomplete" from "wrong or not found", which is safer than silently exporting low-confidence data as if it were complete.</p>
+    </section>
+
+    <section id="pdt">
+      <h2>PDT Export</h2>
+      <p>PDT export is generated on demand from the run result and <code>templates/master_pdt.xlsx</code>.</p>
+      <p>The PDT exporter does not simply dump scraped columns into Excel. It classifies each product into a device type, routes it to the correct template sheets, resolves each PDT column from normalized facts and highlights required values that are still missing.</p>
+      <div class="diagram">
+        <pre class="mermaid">
+flowchart LR
+  T["Load<br/>template"] --> F["Found / partial<br/>items"]
+  F --> R["Route by<br/>device type"]
+  R --> W["Resolve<br/>columns"]
+  W --> H["Highlight<br/>missing"]
+  H --> S["Special<br/>sheets"]
+  S --> O["Write PDT<br/>+ audit"]
+        </pre>
+      </div>
+      <table>
+        <thead>
+          <tr><th>Module</th><th>Role</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>exporter.ts</code></td><td>Orchestrates PDT generation.</td></tr>
+          <tr><td><code>device-sheet-map.ts</code></td><td>Constant sheets and device-specific routing.</td></tr>
+          <tr><td><code>device-type-profiles.ts</code></td><td>Per-device target sheets and critical facts.</td></tr>
+          <tr><td><code>eclass-resolvers.ts</code></td><td>Resolves normalized attributes into PDT columns.</td></tr>
+          <tr><td><code>documents-sheet.ts</code></td><td>Adds downloaded/customer document references.</td></tr>
+          <tr><td><code>ai-cleanup.ts</code></td><td>Optional local Ollama/Qwen cleanup, off by default.</td></tr>
+        </tbody>
+      </table>
+      <p><code>npm run audit:pdt</code> validates the template, resolver coverage, profile mapping, ontology facts and benchmark fixtures.</p>
+      <div class="callout">
+        PDT output is intentionally auditable. The generated workbook can show which values were filled, which are missing and which documents support the product record.
+      </div>
+    </section>
+
+    <section id="storage">
+      <h2>Storage And Output Layout</h2>
+      <p>The SQLite database is <code>data/scraper.db</code>.</p>
+      <p>All run state is local. The database tracks status, per-row results, cached pages, learned endpoints and fields that have already been exhausted for a product. Output files are written next to the run so the workbook, documents and logs can be reviewed together.</p>
+      <table>
+        <thead>
+          <tr><th>Table</th><th>Holds</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>runs</code></td><td>Run status, counts, options and output paths.</td></tr>
+          <tr><td><code>run_items</code></td><td>Per-row catalog result and serialized <code>ProductResult</code>.</td></tr>
+          <tr><td><code>page_cache</code></td><td>Cached HTTP responses and fetched metadata.</td></tr>
+          <tr><td><code>learned_endpoints</code></td><td>Successful official API/URL patterns.</td></tr>
+          <tr><td><code>exhausted_fields</code></td><td>Fields previously confirmed missing for a catalog number.</td></tr>
+        </tbody>
+      </table>
+      <h3>Output folders</h3>
+      <pre><code>outputs/
+  &lt;manufacturer-short-name&gt;/
+    &lt;input-file-name-or-manual-input&gt;/
+      &lt;yyyy-mm-dd_hh-mm-ss&gt;_&lt;runId&gt;/
+        excel/
+        documents/
+        cad/
+        images/
+        links/
+        logs/
+        customer-documents/</code></pre>
+      <p>The main workbook filename is <code>&lt;manufacturerShortName&gt;.&lt;inputName&gt;.product-scrape-&lt;runId&gt;.xlsx</code>.</p>
+      <p>The workbook includes product rows, attributes, technical attributes, alias dictionary, documents, sources, evidence, final audit and failure/diagnostic worksheets.</p>
+      <h3>Why this layout matters</h3>
+      <ul>
+        <li>Runs are easy to archive or send internally because all artifacts are grouped under one run folder.</li>
+        <li>Downloaded documents and images can be traced back to the same run that generated the workbook.</li>
+        <li>Debug logs make it possible to explain why an item was partial or failed without rerunning immediately.</li>
+      </ul>
+    </section>
+
+    <section id="desktop">
+      <h2>Desktop Boot</h2>
+      <div class="diagram">
+        <pre class="mermaid">
+sequenceDiagram
+  participant User
+  participant Start as scripts/start-desktop.cjs
+  participant Main as src/desktop/main.cjs
+  participant API as src/server/index.ts
+  User->>Start: npm run desktop or shortcut
+  Start->>Start: ensure frontend build
+  Start->>Main: launch Electron
+  Main->>Main: single-instance lock and free port
+  Main->>API: spawn local server
+  API-->>Main: /api/health OK
+  Main->>User: open desktop BrowserWindow
+        </pre>
+      </div>
+      <p><code>scripts/start-desktop.cjs</code> sets <code>PDT_AI_CLEANUP=0</code> when the variable is not already set. This keeps AI cleanup opt-in.</p>
+      <p>The user experience is a desktop app, but technically the UI and API are still standard web components running locally. That keeps development simple while avoiding the need for users to manually open a browser tab or manage server ports.</p>
+    </section>
+
+    <section id="lifecycle">
+      <h2>Run Lifecycle</h2>
+      <div class="diagram">
+        <pre class="mermaid">
+flowchart LR
+  START(["start"]) --> Q["queued"]
+  Q --> R["running"]
+  R --> C["completed"]
+  R --> PING["pausing"]
+  PING --> P["paused"]
+  P -->|resume| Q
+  R -->|cancel| X["cancelled"]
+  R -->|error| F["failed"]
+  C --> END(["end"])
+  X --> END
+  F --> END
+        </pre>
+      </div>
+      <p>On server start, <code>resumeInterruptedRuns()</code> picks up recent <code>queued</code>, <code>running</code>, <code>pausing</code> and <code>cancelling</code> runs. Runs older than the 5-minute interruption window are cancelled to avoid silently resuming stale work.</p>
+      <p>Pause/resume is designed for long batches. The current active row is retried on resume so the system does not persist a half-finished scrape as if it were complete.</p>
+    </section>
+
+    <section id="limits">
+      <h2>Boundaries And Risks</h2>
+      <p>The tool is built for public manufacturer data. It does not attempt login-only portals, CAPTCHA solving, paywall bypasses or network-control bypass behavior.</p>
+      <table>
+        <thead>
+          <tr><th>Boundary</th><th>Reason</th><th>How it is handled</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Manufacturer site changes</td><td>Vendor websites can change layout or APIs without notice.</td><td>Quality gate, diagnostics, fallback sources and connector tests reveal breakage.</td></tr>
+          <tr><td>Missing published data</td><td>Some manufacturers do not publish every PDT field.</td><td>Missing fields are flagged instead of guessed.</td></tr>
+          <tr><td>JavaScript-heavy pages</td><td>Some data is hidden behind tabs, modals or dynamic API calls.</td><td>Playwright rendering and network capture are used when needed.</td></tr>
+          <tr><td>Local PC differences</td><td>Node/native modules/Chromium can vary between machines.</td><td>Installer and launcher manage Node runtime, npm packages and Playwright Chromium.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="commands">
+      <h2>Commands</h2>
+      <table>
+        <thead>
+          <tr><th>Command</th><th>What it does</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>npm run desktop</code></td><td>Launches the Electron desktop app.</td></tr>
+          <tr><td><code>npm run dev</code></td><td>Runs API watch mode and Vite UI.</td></tr>
+          <tr><td><code>npm run build</code></td><td>Runs <code>tsc --noEmit</code> and Vite build.</td></tr>
+          <tr><td><code>npm test</code></td><td>Runs Vitest.</td></tr>
+          <tr><td><code>npm run benchmark</code></td><td>Runs benchmark fixtures and writes <code>benchmarks/benchmark-report.json</code>.</td></tr>
+          <tr><td><code>npm run audit:pdt</code></td><td>Runs PDT/template/resolver audits.</td></tr>
+          <tr><td><code>npm run clean:pdt-input</code></td><td>Cleans a raw PDT input workbook.</td></tr>
+        </tbody>
+      </table>
+      <h3>Before committing code changes</h3>
+      <pre><code>npx tsc --noEmit
+npx vitest run</code></pre>
+    </section>
+
+    <p class="footer">Source: docs/ARCHITECTURE.md. Open in browser, then Ctrl+P -> Save as PDF if you want a shareable deck.</p>
+  </main>
+</body>
+</html>

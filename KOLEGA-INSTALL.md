@@ -15,7 +15,7 @@ Installer ce:
 
 - provjeriti ima li Git
 - pokusati instalirati Git preko `winget` ako fali
-- skinuti projekt na Desktop u mapu `product_scraper`
+- skinuti projekt u `D:\product_scraper` ako postoji D disk, a ako D disk ne postoji onda na Desktop u mapu `product_scraper`
 - napraviti desktop shortcut `Product Scraper`
 - skinuti lokalni Node.js 22 runtime ako sistemski Node nije kompatibilan ili ga nema
 - instalirati sve npm pakete iz `package-lock.json`
@@ -65,10 +65,18 @@ Taj launcher prvo napravi `git pull --ff-only`, zatim po potrebi osvjezi npm pak
 
 ## Ako je prvi npm install pao
 
-Ako je prije ove verzije instalacija pala na `better-sqlite3`, `node-gyp`, `Python` ili Node `24.x`, napravi ovo na koleginom racunalu:
+Ako je prije ove verzije instalacija pala na `better-sqlite3`, `node-gyp`, `Python` ili Node `24.x`, napravi ovo na koleginom racunalu za novu default instalaciju na D disku:
 
 ```bat
-cd "%USERPROFILE%\Desktop\product_scraper"
+cd /d D:\product_scraper
+rmdir /s /q node_modules
+Update-and-Start-ProductScraper.bat
+```
+
+Ako je projekt starije instaliran na Desktopu, koristi:
+
+```bat
+cd /d "%USERPROFILE%\Desktop\product_scraper"
 rmdir /s /q node_modules
 Update-and-Start-ProductScraper.bat
 ```
@@ -79,7 +87,7 @@ Nova verzija ce koristiti lokalni Node.js 22 runtime i ponovno instalirati paket
 
 Ako shortcut ne postoji:
 
-1. Otvori mapu `%USERPROFILE%\Desktop\product_scraper`
+1. Otvori mapu `D:\product_scraper` za novu default instalaciju, ili `%USERPROFILE%\Desktop\product_scraper` ako je instalirano starom metodom
 2. Dvoklikni `Update-and-Start-ProductScraper.bat`
 
 ## Rucni update bez pokretanja
@@ -87,7 +95,7 @@ Ako shortcut ne postoji:
 Ako samo zelis povuci novu verziju:
 
 ```bat
-cd "%USERPROFILE%\Desktop\product_scraper"
+cd /d D:\product_scraper
 git pull --ff-only
 ```
 

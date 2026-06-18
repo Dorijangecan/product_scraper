@@ -19,7 +19,7 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "Local product data scraper for ABB and SCE catalog numbers.",
+  "description": "Local desktop product data scraper for manufacturer catalog numbers.",
   "dependencies": {
     "@vitejs/plugin-react": "^6.0.1",
     "better-sqlite3": "^12.10.0",
