@@ -374,6 +374,24 @@ W
     expect(classifyDeviceType(enriched).type).toBe("Hydraulic Actuator");
   });
 
+  it("extracts customer PDF specs even when the catalog number is not printed in the PDF text", async () => {
+    const storedPath = path.resolve("benchmarks", "live-check", "nvent-docs", "spec-00583.pdf");
+    const extraction = await extractCustomerDocumentAttributes("NO-MATCH", [
+      {
+        id: "customer-doc-1",
+        originalName: "spec-00583.pdf",
+        storedPath,
+        mimeType: "application/pdf",
+        uploadedAt: "2026-06-02T00:00:00.000Z"
+      }
+    ]);
+    const enriched = applyCustomerDocumentOverride(product({ manufacturerId: "nvent", catalogNumber: "NO-MATCH", status: "failed" }), extraction);
+
+    expect(extraction.documents[0].parseStatus).toBe("parsed");
+    expect(extraction.attributes.some((attr) => attr.parser === "customer-document" && attr.name === "Supply Voltage")).toBe(true);
+    expect(enriched.normalized.protection).toBe("IP20");
+  });
+
   it("records PDF parse failures without adding them as product attributes", async () => {
     const result = await enrichResultFromDownloadedDocuments(product({
       documents: [

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { coalesceImageDocuments, documentDownloadProfile, imageFileName, shouldDownloadDocumentsForRun } from "../src/server/run-manager.js";
+import { coalesceImageDocuments, documentDownloadProfile, imageFileName, isDownloadablePdfDocument, shouldDownloadDocumentsForRun } from "../src/server/run-manager.js";
 import { getManufacturerConfig } from "../src/server/config/manufacturers.js";
 import type { DocumentRecord, ProductResult } from "../src/shared/types.js";
 
@@ -85,6 +85,12 @@ describe("run manager document downloads", () => {
     expect(shouldDownloadDocumentsForRun({ id: "abb" }, { downloadDocuments: false, generateExcel: true })).toBe(true);
     expect(documentDownloadProfile({ id: "abb" }, { documents: [] } as unknown as ProductResult, { saveDocuments: false })).toBe("quality");
     expect(shouldDownloadDocumentsForRun({ id: "balluff" }, { downloadDocuments: false, generateExcel: false })).toBe(false);
+  });
+
+  it("does not treat Rockwell configurator cutsheets as downloadable PDFs", () => {
+    expect(isDownloadablePdfDocument({ url: "https://configurator.rockwellautomation.com/api/Product/800F-X10/cutsheet" })).toBe(false);
+    expect(isDownloadablePdfDocument({ url: "https://literature.rockwellautomation.com/idc/groups/literature/documents/td/800-td008_-en-p.pdf" })).toBe(true);
+    expect(isDownloadablePdfDocument({ url: "https://www.se.com/us/en/product/download-pdf/GV2ME08" })).toBe(true);
   });
 
   it("names SCE images from the requested catalog number with the preview suffix", () => {

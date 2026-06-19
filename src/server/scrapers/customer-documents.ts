@@ -22,6 +22,7 @@ const CUSTOMER_DOC_CONFIDENCE = 0.97;
 // recognize "Rated voltage: 230 V". One neighbour was too tight and dropped many specs.
 const TARGETED_NEIGHBOUR_PAGES = 2;
 const TARGETED_MAX_SECTION_PAGES = 20;
+const FALLBACK_UNMATCHED_PDF_PAGES = 30;
 const PDF_TEXT_MIN_CHARS_FOR_PARSE = 80; // anything below this is effectively a scanned image — warn the user.
 
 export type CustomerDocumentProgressEvent =
@@ -386,7 +387,9 @@ async function extractFromPdf(
       if (matches.length >= TARGETED_MAX_SECTION_PAGES) break;
     }
   }
-  if (!matches.length) return { attributes: [], scannedImageOnly: false };
+  if (!matches.length) {
+    return extractFromUnmatchedCustomerPdf(catalogNumber, doc, pages);
+  }
   const keepPages = expandWithNeighbours(matches, TARGETED_NEIGHBOUR_PAGES);
   const widePagesText = pages
     .filter((page) => keepPages.has(page.num))
@@ -405,7 +408,43 @@ async function extractFromPdf(
     text: tightText
   });
   const titleHint = guessTitleFromPdfText(widePagesText, catalogNumber);
-  return { attributes, titleHint, scannedImageOnly: false };
+  return {
+    attributes: hasSubstantiveDocumentAttributes(attributes) ? attributes : [],
+    titleHint,
+    scannedImageOnly: false
+  };
+}
+
+function extractFromUnmatchedCustomerPdf(
+  catalogNumber: string,
+  doc: CustomerDocumentRecord,
+  pages: PdfPageEntry[]
+): PdfExtractionOutcome {
+  const text = pages
+    .slice(0, FALLBACK_UNMATCHED_PDF_PAGES)
+    .map((page) => page.text)
+    .join("\n")
+    .slice(0, MAX_CUSTOMER_PDF_TEXT_CHARS);
+  if (!text) return { attributes: [], scannedImageOnly: false };
+
+  const attributes = extractDocumentTextAttributes({
+    catalogNumber,
+    document: { label: doc.originalName, type: "other", url: pathToFileUrl(doc.storedPath), localPath: doc.storedPath },
+    text
+  });
+  if (!hasSubstantiveDocumentAttributes(attributes)) {
+    return { attributes: [], scannedImageOnly: false };
+  }
+
+  return {
+    attributes,
+    titleHint: guessTitleFromPdfText(text, catalogNumber),
+    scannedImageOnly: false
+  };
+}
+
+function hasSubstantiveDocumentAttributes(attributes: AttributeRecord[]): boolean {
+  return attributes.some((attr) => !(attr.group === "PDF Document" && attr.name === "Parsed document"));
 }
 
 

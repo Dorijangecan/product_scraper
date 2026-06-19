@@ -1095,6 +1095,9 @@ export class RunManager {
       const localPath = await sharedDocumentDownload(sharedDocumentDownloads, doc.url, targetDir, suggestedName, () =>
         http.downloadFile(doc.url, targetDir, suggestedName, signal)
       );
+      if (extension.toLowerCase() === ".pdf") {
+        await assertValidPdfFile(localPath);
+      }
       return { ...doc, localPath, downloadStatus: "downloaded", downloadError: undefined };
     } catch (error) {
       if (signal?.aborted) throw new Error("Cancelled by user.");
@@ -1343,7 +1346,7 @@ function shouldDownloadForProfile(
 function shouldDownloadLocalDocument(doc: DocumentRecord): boolean {
   if (doc.type === "image") return true;
   const extension = documentExtension(doc.url, doc.type).toLowerCase();
-  if (extension === ".pdf") return true;
+  if (extension === ".pdf") return isDownloadablePdfDocument(doc);
   if (doc.type === "cad") {
     return [".bin", ".zip", ".dwg", ".dxf", ".stp", ".step", ".igs", ".iges", ".sat", ".x_t", ".x_b", ".3dxml", ".prt", ".sldprt"].includes(extension);
   }
@@ -1371,8 +1374,23 @@ function shouldSaveForSelection(doc: DocumentRecord, selection: LocalDownloadSel
 }
 
 function isPdfLikeDocument(doc: DocumentRecord): boolean {
-  if (doc.type === "datasheet" || doc.type === "certificate" || doc.type === "manual") return true;
-  return documentExtension(doc.url, doc.type).toLowerCase() === ".pdf" || /pdfengine\/pdf/i.test(doc.url);
+  return isDownloadablePdfDocument(doc);
+}
+
+export function isDownloadablePdfDocument(doc: Pick<DocumentRecord, "url">): boolean {
+  const url = doc.url;
+  if (isKnownNonPdfDocumentUrl(url)) return false;
+  return (
+    /\.pdf(?:[?#]|$)/i.test(url) ||
+    /\/download-pdf(?:[/?#]|$)/i.test(url) ||
+    /pdfengine\/pdf/i.test(url) ||
+    /[?&](?:format|output|filetype|type)=pdf\b/i.test(url) ||
+    /[?&](?:documentid|docid|mediaid)=/i.test(url)
+  );
+}
+
+function isKnownNonPdfDocumentUrl(url: string): boolean {
+  return /configurator\.rockwellautomation\.com\/api\/Product\/[^/]+\/cutsheet\b/i.test(url);
 }
 
 async function sharedDocumentDownload(
@@ -1410,6 +1428,21 @@ async function copySharedDownload(sourcePath: string, targetDir: string, suggest
   if (path.resolve(outputPath) === sourceResolved) return sourcePath;
   await fs.copyFile(sourcePath, outputPath);
   return outputPath;
+}
+
+async function assertValidPdfFile(filePath: string): Promise<void> {
+  const handle = await fs.open(filePath, "r");
+  try {
+    const buffer = Buffer.alloc(1024);
+    const { bytesRead } = await handle.read(buffer, 0, buffer.length, 0);
+    const header = buffer.subarray(0, bytesRead).toString("latin1");
+    if (!header.includes("%PDF-")) {
+      await fs.rm(filePath, { force: true }).catch(() => undefined);
+      throw new Error("Downloaded file is not a valid PDF; server returned a non-PDF response.");
+    }
+  } finally {
+    await handle.close();
+  }
 }
 
 function canonicalDownloadUrl(url: string): string {
