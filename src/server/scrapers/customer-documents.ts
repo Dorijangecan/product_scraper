@@ -22,7 +22,7 @@ const CUSTOMER_DOC_CONFIDENCE = 0.97;
 // recognize "Rated voltage: 230 V". One neighbour was too tight and dropped many specs.
 const TARGETED_NEIGHBOUR_PAGES = 2;
 const TARGETED_MAX_SECTION_PAGES = 20;
-const FALLBACK_UNMATCHED_PDF_PAGES = 30;
+const SMALL_UNMATCHED_PDF_FALLBACK_MAX_PAGES = 12;
 const PDF_TEXT_MIN_CHARS_FOR_PARSE = 80; // anything below this is effectively a scanned image — warn the user.
 
 export type CustomerDocumentProgressEvent =
@@ -37,6 +37,7 @@ export type CustomerDocumentProgress = (event: CustomerDocumentProgressEvent) =>
 interface PdfPageEntry {
   num: number;
   text: string;
+  compactText?: string;
 }
 
 /**
@@ -375,7 +376,8 @@ async function extractFromPdf(
   }
   const matches: number[] = [];
   for (const page of pages) {
-    if (compactKey(page.text).includes(compactCatalog) || catalogTextMatches(page.text, catalogNumber)) {
+    page.compactText ??= compactKey(page.text);
+    if (page.compactText.includes(compactCatalog) || catalogTextMatches(page.text, catalogNumber)) {
       matches.push(page.num);
       onProgress({
         kind: "scan-pdf-page",
@@ -420,8 +422,11 @@ function extractFromUnmatchedCustomerPdf(
   doc: CustomerDocumentRecord,
   pages: PdfPageEntry[]
 ): PdfExtractionOutcome {
+  if (pages.length > SMALL_UNMATCHED_PDF_FALLBACK_MAX_PAGES) {
+    return { attributes: [], scannedImageOnly: false };
+  }
   const text = pages
-    .slice(0, FALLBACK_UNMATCHED_PDF_PAGES)
+    .slice(0, SMALL_UNMATCHED_PDF_FALLBACK_MAX_PAGES)
     .map((page) => page.text)
     .join("\n")
     .slice(0, MAX_CUSTOMER_PDF_TEXT_CHARS);

@@ -293,6 +293,7 @@ export class RunManager {
         // layoutRef is captured via closure (declared above); avoid touching outer `layout` inside this hot path
         try {
           let customerExtractionFirst: Awaited<ReturnType<typeof extractCustomerDocumentAttributes>> | null = null;
+          let customerExtractionEarly: Awaited<ReturnType<typeof extractCustomerDocumentAttributes>> | null = null;
           let customerFirstShortCircuit = false;
           let customerEarlyShortCircuit = false;
           let enriched: ProductResult | undefined;
@@ -426,20 +427,21 @@ export class RunManager {
           // payload first and short-circuit the heavy fallback chain — there's no point
           // burning minutes on browser fallback / final-network-retry for a catalog the
           // customer already explained to us.
-          let customerExtractionEarly: Awaited<ReturnType<typeof extractCustomerDocumentAttributes>> | null = null;
           if (!imageOnlyMode && customerDocuments.length > 0 && initiallyGated.status === "failed") {
             this.updateItemStage(
               item.id,
               "customer-override",
               `Website returned nothing — scanning ${customerDocuments.length} customer document${customerDocuments.length === 1 ? "" : "s"} for ${item.catalogNumber}`
             );
-            customerExtractionEarly = await extractCustomerDocumentAttributes(item.catalogNumber, customerDocuments, {
-              cache: customerDocumentCache,
-              onProgress: (event) => {
-                const message = formatCustomerProgress(event, item.catalogNumber);
-                if (message) this.updateItemStage(item.id, "customer-override", message);
-              }
-            });
+            customerExtractionEarly =
+              customerExtractionFirst ??
+              (await extractCustomerDocumentAttributes(item.catalogNumber, customerDocuments, {
+                cache: customerDocumentCache,
+                onProgress: (event) => {
+                  const message = formatCustomerProgress(event, item.catalogNumber);
+                  if (message) this.updateItemStage(item.id, "customer-override", message);
+                }
+              }));
             if (customerExtractionEarly.attributes.length > 0) {
               customerEarlyShortCircuit = true;
               enriched = applyCustomerDocumentOverride(initiallyGated, customerExtractionEarly);
@@ -707,13 +709,16 @@ export class RunManager {
           // override has already been applied and re-running it would be a no-op.
           if (customerDocuments.length > 0 && !customerEarlyShortCircuit && !customerFirstShortCircuit) {
             this.updateItemStage(item.id, "customer-override", `Applying customer-provided document data for ${item.catalogNumber}`);
-            const customerExtraction = await extractCustomerDocumentAttributes(item.catalogNumber, customerDocuments, {
-              cache: customerDocumentCache,
-              onProgress: (event) => {
-                const message = formatCustomerProgress(event, item.catalogNumber);
-                if (message) this.updateItemStage(item.id, "customer-override", message);
-              }
-            });
+            const customerExtraction =
+              customerExtractionFirst ??
+              customerExtractionEarly ??
+              (await extractCustomerDocumentAttributes(item.catalogNumber, customerDocuments, {
+                cache: customerDocumentCache,
+                onProgress: (event) => {
+                  const message = formatCustomerProgress(event, item.catalogNumber);
+                  if (message) this.updateItemStage(item.id, "customer-override", message);
+                }
+              }));
             const before = enriched;
             enriched = applyCustomerDocumentOverride(enriched, customerExtraction);
             await this.appendRunLog(layoutRef, "CUSTOMER_OVERRIDE", {
