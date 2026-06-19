@@ -37,6 +37,41 @@ function Get-DefaultInstallDir {
     return (Join-Path ([Environment]::GetFolderPath("Desktop")) "product_scraper")
 }
 
+function Resolve-InstallDir {
+    param([string]$Path)
+
+    if (-not $Path -or $Path.Trim().Length -eq 0) {
+        $Path = Get-DefaultInstallDir
+    }
+
+    try {
+        return [System.IO.Path]::GetFullPath($Path)
+    } catch {
+        throw "InstallDir nije ispravan Windows path: $Path"
+    }
+}
+
+function Ensure-ParentDirectory {
+    param([string]$Path)
+
+    $parentDir = Split-Path -Parent $Path
+    if (-not $parentDir -or $parentDir.Trim().Length -eq 0) {
+        throw "Ne mogu odrediti parent mapu za install path: $Path"
+    }
+
+    if ([System.IO.Directory]::Exists($parentDir)) {
+        return $parentDir
+    }
+
+    New-Item -ItemType Directory -Force -Path $parentDir | Out-Null
+
+    if (-not [System.IO.Directory]::Exists($parentDir)) {
+        throw "Ne mogu napraviti parent mapu: $parentDir"
+    }
+
+    return $parentDir
+}
+
 function Ensure-Tool($commandName, $wingetId, $displayName, $downloadUrl) {
     if (Get-LocalCommand $commandName) {
         Write-Host "$displayName je pronadjen."
@@ -116,15 +151,11 @@ function New-ProductScraperShortcut {
 Refresh-CurrentPath
 Ensure-Tool "git" "Git.Git" "Git for Windows" "https://git-scm.com/download/win"
 
-if (-not $InstallDir -or $InstallDir.Trim().Length -eq 0) {
-    $InstallDir = Get-DefaultInstallDir
-}
+$InstallDir = Resolve-InstallDir $InstallDir
+$parentDir = Ensure-ParentDirectory $InstallDir
 
-$InstallDir = [System.IO.Path]::GetFullPath($InstallDir)
-$parentDir = Split-Path -Parent $InstallDir
-if (-not [System.IO.Directory]::Exists($parentDir)) {
-    New-Item -ItemType Directory -Force -Path $parentDir | Out-Null
-}
+Write-Host "Install mapa:"
+Write-Host "  $InstallDir"
 
 if (Test-Path -LiteralPath (Join-Path $InstallDir ".git")) {
     Write-Host "Product Scraper vec postoji. Radim git pull..."

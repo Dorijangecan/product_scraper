@@ -11,6 +11,13 @@ Ovo je preporuceni nacin za Windows racunalo na kojem kolega treba samo pokretat
 irm https://raw.githubusercontent.com/Dorijangecan/product_scraper/main/Install-ProductScraper.ps1 | iex
 ```
 
+Ako zelis forsirati instalaciju na D disk i zaobici eventualni cache stare
+skripte, koristi ovu varijantu:
+
+```powershell
+$s = irm "https://raw.githubusercontent.com/Dorijangecan/product_scraper/main/Install-ProductScraper.ps1?cache=$(Get-Random)"; & ([scriptblock]::Create($s)) -InstallDir "D:\product_scraper"
+```
+
 Installer ce:
 
 - provjeriti ima li Git
