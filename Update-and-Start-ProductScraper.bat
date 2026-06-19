@@ -33,7 +33,7 @@ if exist ".git\" (
         echo.
         echo  Provjeravam ima li nove verzije...
         echo.
-        "%GIT_EXE%" pull --ff-only
+        "%GIT_EXE%" -c http.sslBackend=schannel pull --ff-only
         if errorlevel 1 (
             echo.
             echo  UPOZORENJE: Git update nije uspio.

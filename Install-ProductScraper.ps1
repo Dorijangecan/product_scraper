@@ -113,12 +113,69 @@ function Invoke-Git {
 
     Push-Location $workingDirectory
     try {
-        & $git.Source @Arguments
+        $effectiveArguments = @("-c", "http.sslBackend=schannel") + $Arguments
+        & $git.Source @effectiveArguments
         if ($LASTEXITCODE -ne 0) {
             throw "git $($Arguments -join ' ') nije uspio."
         }
     } finally {
         Pop-Location
+    }
+}
+
+function Get-GitHubMainZipUrl {
+    param([string]$RepoUrl)
+
+    if ($RepoUrl -match '^https://github\.com/([^/]+)/([^/.]+)(?:\.git)?/?$') {
+        return "https://github.com/$($matches[1])/$($matches[2])/archive/refs/heads/main.zip"
+    }
+
+    throw "ZIP fallback podrzava samo github.com HTTPS repo URL: $RepoUrl"
+}
+
+function Install-FromGitHubZip {
+    param(
+        [string]$RepoUrl,
+        [string]$InstallDir
+    )
+
+    $zipUrl = Get-GitHubMainZipUrl $RepoUrl
+    $tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) "product-scraper-install-$(Get-Date -Format 'yyyyMMdd-HHmmss')"
+    $zipPath = Join-Path $tempRoot "product-scraper-main.zip"
+    $extractDir = Join-Path $tempRoot "extract"
+
+    New-Item -ItemType Directory -Force -Path $tempRoot | Out-Null
+    New-Item -ItemType Directory -Force -Path $extractDir | Out-Null
+
+    try {
+        Write-Host "Skidam ZIP fallback:"
+        Write-Host "  $zipUrl"
+        Invoke-WebRequest -Uri $zipUrl -OutFile $zipPath
+
+        Write-Host "Raspakiravam Product Scraper..."
+        Expand-Archive -LiteralPath $zipPath -DestinationPath $extractDir -Force
+
+        $sourceRoot = Get-ChildItem -LiteralPath $extractDir -Directory | Select-Object -First 1
+        if (-not $sourceRoot) {
+            throw "ZIP fallback nema ocekivanu mapu nakon raspakiravanja."
+        }
+
+        if (Test-Path -LiteralPath $InstallDir) {
+            Remove-Item -LiteralPath $InstallDir -Recurse -Force
+        }
+
+        New-Item -ItemType Directory -Force -Path $InstallDir | Out-Null
+        Get-ChildItem -LiteralPath $sourceRoot.FullName -Force | Copy-Item -Destination $InstallDir -Recurse -Force
+
+        $markerPath = Join-Path $InstallDir ".product-scraper-zip-install.txt"
+        Set-Content -LiteralPath $markerPath -Value @(
+            "Installed from GitHub ZIP fallback because git clone failed.",
+            "Run the installer again later to convert this folder to a git checkout."
+        )
+    } finally {
+        if (Test-Path -LiteralPath $tempRoot) {
+            Remove-Item -LiteralPath $tempRoot -Recurse -Force -ErrorAction SilentlyContinue
+        }
     }
 }
 
@@ -159,7 +216,26 @@ Write-Host "  $InstallDir"
 
 if (Test-Path -LiteralPath (Join-Path $InstallDir ".git")) {
     Write-Host "Product Scraper vec postoji. Radim git pull..."
-    Invoke-Git -Arguments @("pull", "--ff-only") -WorkingDirectory $InstallDir
+    try {
+        Invoke-Git -Arguments @("pull", "--ff-only") -WorkingDirectory $InstallDir
+    } catch {
+        $backupDir = "$InstallDir-backup-$(Get-Date -Format 'yyyyMMdd-HHmmss')"
+        Write-Host "Git pull nije uspio:"
+        Write-Host "  $($_.Exception.Message)"
+        Write-Host "Premjestam postojecu mapu u backup i radim svjezu instalaciju:"
+        Write-Host "  $backupDir"
+        Move-Item -LiteralPath $InstallDir -Destination $backupDir
+
+        Write-Host "Skidam Product Scraper sa GitHuba..."
+        try {
+            Invoke-Git -Arguments @("clone", $RepoUrl, $InstallDir) -WorkingDirectory $parentDir
+        } catch {
+            Write-Host "Git clone nije uspio:"
+            Write-Host "  $($_.Exception.Message)"
+            Write-Host "Pokusavam instalaciju bez Gita preko GitHub ZIP-a..."
+            Install-FromGitHubZip -RepoUrl $RepoUrl -InstallDir $InstallDir
+        }
+    }
 } else {
     if (Test-Path -LiteralPath $InstallDir) {
         $backupDir = "$InstallDir-backup-$(Get-Date -Format 'yyyyMMdd-HHmmss')"
@@ -171,7 +247,14 @@ if (Test-Path -LiteralPath (Join-Path $InstallDir ".git")) {
     }
 
     Write-Host "Skidam Product Scraper sa GitHuba..."
-    Invoke-Git -Arguments @("clone", $RepoUrl, $InstallDir) -WorkingDirectory $parentDir
+    try {
+        Invoke-Git -Arguments @("clone", $RepoUrl, $InstallDir) -WorkingDirectory $parentDir
+    } catch {
+        Write-Host "Git clone nije uspio:"
+        Write-Host "  $($_.Exception.Message)"
+        Write-Host "Pokusavam instalaciju bez Gita preko GitHub ZIP-a..."
+        Install-FromGitHubZip -RepoUrl $RepoUrl -InstallDir $InstallDir
+    }
 }
 
 Write-Host ""
