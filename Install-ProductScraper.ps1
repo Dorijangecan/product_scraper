@@ -122,7 +122,9 @@ if (-not $InstallDir -or $InstallDir.Trim().Length -eq 0) {
 
 $InstallDir = [System.IO.Path]::GetFullPath($InstallDir)
 $parentDir = Split-Path -Parent $InstallDir
-New-Item -ItemType Directory -Force -Path $parentDir | Out-Null
+if (-not [System.IO.Directory]::Exists($parentDir)) {
+    New-Item -ItemType Directory -Force -Path $parentDir | Out-Null
+}
 
 if (Test-Path -LiteralPath (Join-Path $InstallDir ".git")) {
     Write-Host "Product Scraper vec postoji. Radim git pull..."
