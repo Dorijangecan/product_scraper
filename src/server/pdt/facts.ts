@@ -844,13 +844,13 @@ function addRockwell1756L8ControllerFacts(facts: PdtFact[], input: PdtFactInput)
 function addRockwell1444DynamixFacts(facts: PdtFact[], input: PdtFactInput): void {
   if (!input.item.result || !isRockwell(input)) return;
   if (!/^1444-DYN04-01RA$/i.test(input.item.catalogNumber.trim())) return;
-  addTypeDefaultIfMissing(facts, "shortDescription", "Dynamic Measurement Module", "rockwell-1444-product-page", "Rockwell product page identifies 1444-DYN04-01RA as a Dynamic Measurement Module.");
-  addTypeDefaultIfMissing(facts, "longDescription", "Dynamic Measurement Module", "rockwell-1444-product-page", "Rockwell product page identifies 1444-DYN04-01RA as a Dynamic Measurement Module.");
-  addTypeDefaultIfMissing(facts, "localizedShortDescriptionDe", "Dynamic Measurement Modul", "rockwell-1444-german-description", "German PDT fallback for Rockwell Dynamic Measurement Module.");
-  addTypeDefaultIfMissing(facts, "localizedLongDescriptionDe", "Dynamic Measurement Modul", "rockwell-1444-german-description", "German PDT fallback for Rockwell Dynamic Measurement Module.");
-  addTypeDefaultIfMissing(facts, "pdtDepthMm", "154", "rockwell-1444-product-page", "Rockwell product page publishes depth without terminal base in millimeters.");
-  addTypeDefaultIfMissing(facts, "pdtWidthMm", "102", "rockwell-1444-product-page", "Rockwell product page publishes width without terminal base in millimeters.");
-  addTypeDefaultIfMissing(facts, "pdtHeightMm", "106", "rockwell-1444-product-page", "Rockwell product page publishes height without terminal base in millimeters.");
+  addTypeDefault(facts, "shortDescription", "Dynamic Measurement Module", "rockwell-1444-product-page", "Rockwell product page identifies 1444-DYN04-01RA as a Dynamic Measurement Module.");
+  addTypeDefault(facts, "longDescription", "Dynamic Measurement Module", "rockwell-1444-product-page", "Rockwell product page identifies 1444-DYN04-01RA as a Dynamic Measurement Module.");
+  addTypeDefault(facts, "localizedShortDescriptionDe", "Dynamic Measurement Modul", "rockwell-1444-german-description", "German PDT fallback for Rockwell Dynamic Measurement Module.");
+  addTypeDefault(facts, "localizedLongDescriptionDe", "Dynamic Measurement Modul", "rockwell-1444-german-description", "German PDT fallback for Rockwell Dynamic Measurement Module.");
+  addTypeDefault(facts, "pdtDepthMm", "154", "rockwell-1444-product-page", "Rockwell product page publishes depth without terminal base in millimeters.");
+  addTypeDefault(facts, "pdtWidthMm", "102", "rockwell-1444-product-page", "Rockwell product page publishes width without terminal base in millimeters.");
+  addTypeDefault(facts, "pdtHeightMm", "106", "rockwell-1444-product-page", "Rockwell product page publishes height without terminal base in millimeters.");
   addTypeDefaultIfMissing(facts, "pdtWeightKg", "0.4", "rockwell-1444-product-page", "Rockwell product page publishes weight without terminal base.");
   addTypeDefaultIfMissing(facts, "operatingTemperatureMin", "-25 C", "rockwell-1444-technical-data", "Rockwell Dynamix 1444 technical data publishes operating temperature for 1444-DYN04-01RA.");
   addTypeDefaultIfMissing(facts, "operatingTemperatureMax", "70 C", "rockwell-1444-technical-data", "Rockwell Dynamix 1444 technical data publishes operating temperature for 1444-DYN04-01RA.");
@@ -1058,6 +1058,7 @@ function isUnhelpfulProductFamily(value: string): boolean {
 
 function isUnhelpfulStructuredPdtValue(value: string): boolean {
   const cleaned = value.replace(/\s+/g, " ").trim();
+  if (isDecorativeAssetText(cleaned)) return true;
   if (/^(?:downloads?|download\s*(?:\(\s*zip\s*\)|zip)?|zip|pdf|cad|data\s*sheet|datasheet|manual|product\s+documentation|documentation|select|selected\s+result|learn\s+more)$/i.test(cleaned)) return true;
   if (/\b(?:table below|shown in the table|series consists|consists of the models|models shown)\b/i.test(cleaned)) return true;
   return cleaned.split(/\s+/).length > 12 && /[.;:]/.test(cleaned);
@@ -1123,7 +1124,12 @@ function repairLongDescription(input: PdtFactInput): string | undefined {
 function safeDescription(value: string | undefined, catalogNumber: string): string | undefined {
   const cleaned = clean(value);
   if (!cleaned) return undefined;
+  if (isDecorativeAssetText(cleaned)) return undefined;
   return comparableValue(cleaned) === comparableValue(catalogNumber) ? undefined : cleaned;
+}
+
+function isDecorativeAssetText(value: string): boolean {
+  return /(?:^|\s)\.cls-\d+\s*\{|[{;]\s*fill\s*:\s*#[0-9a-f]{3,6}\b|_AB_Logo\b|\bAB_Logo\b|\bsvg\b/i.test(value);
 }
 
 function betterLongDescription(result: ProductResult, current: string | undefined, catalogNumber: string): string | undefined {

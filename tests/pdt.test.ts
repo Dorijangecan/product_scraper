@@ -469,14 +469,26 @@ describe("eclass resolvers", () => {
     const c = ctx(
       {
         manufacturerId: "rockwell",
-        title: "1444-DYN04-01RA",
-        description: "1444-DYN04-01RA",
+        title: ".cls-1 { fill: #003e7e; } .cls-2 { fill: #6d6e71; } 2019_AB_Logo",
+        description: ".cls-1 { fill: #003e7e; } .cls-2 { fill: #6d6e71; } 2019_AB_Logo",
+        localizedDescriptions: {
+          de: {
+            title: ".cls-1 { fill: #003e7e; } .cls-2 { fill: #6d6e71; } 2019_AB_Logo",
+            description: ".cls-1 { fill: #003e7e; } .cls-2 { fill: #6d6e71; } 2019_AB_Logo"
+          }
+        },
         attributes: [
           {
             group: "PDF introduction",
             name: "Type",
             value: "The 1444 series consists of the Models shown in the table below:",
             sourceType: "official-fallback"
+          },
+          {
+            group: "Header asset",
+            name: "Product Type",
+            value: ".cls-1 { fill: #003e7e; } .cls-2 { fill: #6d6e71; } 2019_AB_Logo",
+            sourceType: "official"
           },
           { group: "Physical", name: "Height", value: "auto } .thumbnail {", sourceType: "official" }
         ]
@@ -486,6 +498,9 @@ describe("eclass resolvers", () => {
     c.manufacturer = { ...manufacturer, id: "rockwell", canonicalName: "Rockwell Automation" } as ManufacturerConfig;
 
     expect(resolveProperty("AAV774", "CNSTYPECODE", c)).toBe("1444-DYN04-01RA");
+    expect(resolveProperty("ABA671", "ABA671", c)).toBe("1444-DYN04-01RA");
+    expect(resolveProperty("AAU734", "AAU734", c)).toBe("Dynamic Measurement Module");
+    expect(resolveProperty("AAW338", "AAW338", c)).toBeUndefined();
     expect(resolveProperty("CNS_DESCRIPTION_LONG", "CNS_DESCRIPTION_LONG", c)).toBe("Dynamic Measurement Module");
     expect(resolveProperty("CNS_DESCRIPTION_SHORT", "CNS_DESCRIPTION_SHORT", c)).toBe("Dynamic Measurement Module");
     expect(resolveProperty("CNS_DESCRIPTION_LONG", "CNS_DESCRIPTION_LONG", { ...c, language: "de" })).toBe("Dynamic Measurement Modul");

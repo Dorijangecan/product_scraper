@@ -41,7 +41,7 @@ function clean(value: string | undefined): string | undefined {
 
 function cleanStructuredValue(value: string | undefined): string | undefined {
   const cleaned = clean(value);
-  if (!cleaned || isUiPlaceholderValue(cleaned) || isProsePlaceholderValue(cleaned)) return undefined;
+  if (!cleaned || isUiPlaceholderValue(cleaned) || isProsePlaceholderValue(cleaned) || isDecorativeAssetText(cleaned)) return undefined;
   return cleaned;
 }
 
@@ -62,6 +62,16 @@ function isProsePlaceholderValue(value: string): boolean {
   const cleaned = value.replace(/\s+/g, " ").trim();
   if (/\b(?:table below|shown in the table|series consists|consists of the models|models shown)\b/i.test(cleaned)) return true;
   return cleaned.split(/\s+/).length > 12 && /[.;:]/.test(cleaned);
+}
+
+function cleanDescriptionValue(value: string | undefined): string | undefined {
+  const cleaned = clean(value);
+  if (!cleaned || isDecorativeAssetText(cleaned)) return undefined;
+  return cleaned;
+}
+
+function isDecorativeAssetText(value: string): boolean {
+  return /(?:^|\s)\.cls-\d+\s*\{|[{;]\s*fill\s*:\s*#[0-9a-f]{3,6}\b|_AB_Logo\b|\bAB_Logo\b|\bsvg\b/i.test(value);
 }
 
 /** First attribute whose name (or group) matches `pattern`, preferring official sources. */
@@ -414,13 +424,13 @@ const longDescription: Resolver = (ctx) => {
     const de =
       localizedDescriptionFactValue(ctx, "localizedLongDescriptionDe", ctx.result?.description) ??
       localizedGermanText(ctx.result?.localizedDescriptions?.de?.description, ctx.result?.description, ctx.item.catalogNumber);
-    const fallback = pdtFactValue(ctx, "longDescription") ?? clean(ctx.repair?.longDescription) ?? clean(ctx.result?.description) ?? attr(ctx, /\b(long description|catalog description|invoice description)\b/i);
+    const fallback = pdtFactValue(ctx, "longDescription") ?? cleanDescriptionValue(ctx.repair?.longDescription) ?? cleanDescriptionValue(ctx.result?.description) ?? cleanDescriptionValue(attr(ctx, /\b(long description|catalog description|invoice description)\b/i));
     const value = de ?? fallback;
     return ctx.result?.manufacturerId === "eaton" ? stripEatonCatalogPrefix(value, ctx.item.catalogNumber) : value;
   }
   const factValue = pdtFactValue(ctx, "longDescription");
   if (factValue) return ctx.result?.manufacturerId === "eaton" ? stripEatonCatalogPrefix(factValue, ctx.item.catalogNumber) : factValue;
-  const raw = clean(ctx.repair?.longDescription) ?? clean(ctx.result?.description) ?? attr(ctx, /\b(long description|catalog description|invoice description)\b/i);
+  const raw = cleanDescriptionValue(ctx.repair?.longDescription) ?? cleanDescriptionValue(ctx.result?.description) ?? cleanDescriptionValue(attr(ctx, /\b(long description|catalog description|invoice description)\b/i));
   return ctx.result?.manufacturerId === "eaton" ? stripEatonCatalogPrefix(raw, ctx.item.catalogNumber) : raw;
 };
 const shortDescription: Resolver = (ctx) => {
@@ -430,16 +440,16 @@ const shortDescription: Resolver = (ctx) => {
       localizedGermanText(ctx.result?.localizedDescriptions?.de?.title, ctx.result?.title, ctx.item.catalogNumber);
     // Mirror the EN short-description logic for the fallback so DE never inherits a row where
     // the title is just the SKU (the catalog cell would otherwise repeat the article number).
-    const titleCandidate = clean(ctx.result?.title);
+    const titleCandidate = cleanDescriptionValue(ctx.result?.title);
     const titleIsCatalog = titleCandidate && ctx.item.catalogNumber &&
       titleCandidate.replace(/\s+/g, "").toLowerCase() === ctx.item.catalogNumber.replace(/\s+/g, "").toLowerCase();
-    const fallback = pdtFactValue(ctx, "shortDescription") ?? clean(ctx.repair?.shortDescription) ?? (titleIsCatalog ? undefined : titleCandidate) ?? attr(ctx, /\b(catalog description|display name|short description|product name)\b/i);
+    const fallback = pdtFactValue(ctx, "shortDescription") ?? cleanDescriptionValue(ctx.repair?.shortDescription) ?? (titleIsCatalog ? undefined : titleCandidate) ?? cleanDescriptionValue(attr(ctx, /\b(catalog description|display name|short description|product name)\b/i));
     const value = de ?? fallback;
     return ctx.result?.manufacturerId === "eaton" ? stripEatonCatalogPrefix(value, ctx.item.catalogNumber) : value;
   }
   // Skip echoing the catalog number itself when the scraped page title is just the SKU — manual
   // PDTs leave short description blank rather than repeating the article number.
-  const titleCandidate = clean(ctx.result?.title);
+  const titleCandidate = cleanDescriptionValue(ctx.result?.title);
   const titleIsCatalog = titleCandidate && ctx.item.catalogNumber &&
     titleCandidate.replace(/\s+/g, "").toLowerCase() === ctx.item.catalogNumber.replace(/\s+/g, "").toLowerCase();
   const factValue = pdtFactValue(ctx, "shortDescription");
@@ -447,13 +457,13 @@ const shortDescription: Resolver = (ctx) => {
     const value = ctx.result?.manufacturerId === "eaton" ? stripEatonCatalogPrefix(factValue, ctx.item.catalogNumber) : factValue;
     return compactFamilyShortDescription(value) ?? value;
   }
-  const raw = clean(ctx.repair?.shortDescription) ?? (titleIsCatalog ? undefined : titleCandidate) ?? attr(ctx, /\b(catalog description|display name|short description|product name)\b/i);
+  const raw = cleanDescriptionValue(ctx.repair?.shortDescription) ?? (titleIsCatalog ? undefined : titleCandidate) ?? cleanDescriptionValue(attr(ctx, /\b(catalog description|display name|short description|product name)\b/i));
   const value = ctx.result?.manufacturerId === "eaton" ? stripEatonCatalogPrefix(raw, ctx.item.catalogNumber) : raw;
   return compactFamilyShortDescription(value) ?? value;
 };
 
 function localizedGermanText(value: string | undefined, englishValue: string | undefined, catalogNumber: string): string | undefined {
-  const localized = clean(value);
+  const localized = cleanDescriptionValue(value);
   if (!localized) return undefined;
   const english = clean(englishValue);
   const normalized = comparableText(localized);
@@ -464,7 +474,7 @@ function localizedGermanText(value: string | undefined, englishValue: string | u
 
 function localizedDescriptionFactValue(ctx: ResolveContext, key: "localizedShortDescriptionDe" | "localizedLongDescriptionDe", englishValue: string | undefined): string | undefined {
   const fact = pdtFact(ctx, key);
-  const value = clean(fact?.value);
+  const value = cleanDescriptionValue(fact?.value);
   if (!fact || !value) return undefined;
   if (comparableText(value) === comparableText(ctx.item.catalogNumber)) return undefined;
   if (fact.sourceKind === "repair") return value;

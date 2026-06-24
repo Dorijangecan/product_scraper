@@ -1047,6 +1047,7 @@ function resolveGermanDescriptionCell(column: PdtColumn, ctx: ResolveContext, fa
   const catalogNumber = ctx.item.catalogNumber;
   if (
     localizedFact &&
+    !decorativeAssetText(localizedFact.value) &&
     !sameDescriptionText(localizedFact.value, catalogNumber) &&
     !sameDescriptionText(localizedFact.value, englishFact?.value)
   ) {
@@ -1054,6 +1055,7 @@ function resolveGermanDescriptionCell(column: PdtColumn, ctx: ResolveContext, fa
   }
   if (
     localizedLongFact &&
+    !decorativeAssetText(localizedLongFact.value) &&
     !sameDescriptionText(localizedLongFact.value, catalogNumber) &&
     !sameDescriptionText(localizedLongFact.value, englishLongFact?.value)
   ) {
@@ -1083,7 +1085,7 @@ function resolveGermanDescriptionCell(column: PdtColumn, ctx: ResolveContext, fa
 
 function translateDescriptionToGerman(value: string | undefined): string | undefined {
   const source = cleanString(value);
-  if (!source) return undefined;
+  if (!source || decorativeAssetText(source)) return undefined;
   let translated = ` ${source} `;
   const replacements: Array<[RegExp, string]> = [
     [/\bfrom the official Eaton China product catalog\b/gi, "aus dem offiziellen Eaton China Produktkatalog"],
@@ -1175,6 +1177,10 @@ function sameDescriptionText(left: string | undefined, right: string | undefined
   const a = normalize(left);
   const b = normalize(right);
   return Boolean(a && b && a === b);
+}
+
+function decorativeAssetText(value: string | undefined): boolean {
+  return /(?:^|\s)\.cls-\d+\s*\{|[{;]\s*fill\s*:\s*#[0-9a-f]{3,6}\b|_AB_Logo\b|\bAB_Logo\b|\bsvg\b/i.test(value ?? "");
 }
 
 function factKeysForColumn(column: PdtColumn, ctx: ResolveContext): string[] {
