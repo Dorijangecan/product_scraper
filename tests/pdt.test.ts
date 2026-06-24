@@ -363,6 +363,22 @@ describe("eclass resolvers", () => {
     expect(resolveProperty("AAW338", "AAW338", sceLppl)).toBeUndefined();
   });
 
+  it("does not use Eaton skuPage metadata as the manufacturer product family", () => {
+    const c = ctx(
+      {
+        manufacturerId: "eaton",
+        attributes: [
+          { group: "Page metadata", name: "Product Family", value: "sku page", sourceType: "official" },
+          { group: "Page metadata", name: "Product Core Group", value: "Industrial controls", sourceType: "official" }
+        ]
+      },
+      "142824"
+    );
+    c.manufacturer = { ...manufacturer, id: "eaton" } as ManufacturerConfig;
+
+    expect(resolveProperty("AAU731", "AAU731", c)).toBe("Industrial controls");
+  });
+
   it("uses net dimensions and ignores packaging dimensions", () => {
     const c = ctx({
       attributes: [
@@ -1853,6 +1869,24 @@ describe("PDT Qwen cleanup guardrails", () => {
     expect(repair?.operatingTemperatureMax).toBe("70");
   });
 
+  it("prefers source-backed negative temperature over stale normalized positive bounds", async () => {
+    const c = ctx(
+      {
+        manufacturerId: "eaton",
+        normalized: { operatingTemperatureMin: "5", operatingTemperatureMax: "40" },
+        attributes: [
+          { name: "Ambient operating temperature", value: "\u00e2\u20ac\u00935 ?C ... +40 ?C", sourceType: "official" }
+        ]
+      },
+      "142824"
+    );
+
+    const result = await buildPdtRepairResult([c.item], { ...manufacturer, id: "eaton" } as ManufacturerConfig);
+    const repair = result.repairs.get(c.item.id);
+    expect(repair?.operatingTemperatureMin).toBe("-5");
+    expect(repair?.operatingTemperatureMax).toBe("40");
+  });
+
   it("does not accept generated lifetime values as current max", async () => {
     const c = ctx(
       {
@@ -2913,6 +2947,18 @@ describe("PDT exporter", () => {
     const item = ctx(
       {
         manufacturerId: "eaton",
+        attributes: [
+          {
+            group: "PDF certificate",
+            name: "Certifications",
+            value: "CE, UKCA",
+            sourceUrl: "https://example.test/eaton-ce.pdf",
+            sourceType: "generated",
+            parser: "pdf-table-extractor",
+            stage: "downloaded-document-enrichment",
+            confidence: 0.86
+          }
+        ],
         documents: [
           {
             type: "certificate",
@@ -2932,13 +2978,13 @@ describe("PDT exporter", () => {
     const out = new ExcelJS.Workbook();
     await out.xlsx.readFile(outputPath);
     const ws = out.getWorksheet("Material Master Data")!;
-    expect(ws.getCell(10, 3).value).toBe("EU Declaration of Conformity");
+    expect(ws.getCell(10, 3).value).toBe("CE, UKCA");
     expect(result.cellAudit.records.some((record) =>
       record.catalogNumber === "142824" &&
       record.code === "CERTIFICATION" &&
       record.status === "written" &&
       record.sourceKind === "document" &&
-      record.value === "EU Declaration of Conformity"
+      record.value === "CE, UKCA"
     )).toBe(true);
   });
 

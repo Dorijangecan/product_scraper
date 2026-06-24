@@ -332,9 +332,9 @@ const builtInManufacturerConfigs: Record<string, ManufacturerConfig> = {
     rateLimitMs: 1500,
     officialBaseUrls: ["https://www.eaton.com", "https://www.eaton.com.cn"],
     // Matches MANUFACTURER_URL in the manual Eaton PDTs (CAD + manual variants).
-    homepageUrl: "https://www.eaton.com/us/en-us.html",
+    homepageUrl: "https://www.eaton.com/gb/en-gb.html",
     localizedUrlTemplates: [
-      { locale: "en", urlTemplate: "https://www.eaton.com/us/en-us/skuPage.{partSlashBraces}.html" },
+      { locale: "en", urlTemplate: "https://www.eaton.com/gb/en-gb/skuPage.{partSlashBraces}.html" },
       { locale: "de", urlTemplate: "https://www.eaton.com/de/de-de/skuPage.{partSlashBraces}.html" },
       { locale: "zh", urlTemplate: "https://www.eaton.com.cn/cn/zh-cn/skuPage.{partSlashBraces}.html" }
     ],

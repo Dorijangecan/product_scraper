@@ -44,6 +44,18 @@ describe("normalizer", () => {
     expect(normalized.operatingTemperatureMax).toBe("80");
   });
 
+  it("keeps the minus sign from unicode operating temperature ranges", () => {
+    const normalized = normalizeFields([{ name: "Operating temperature", value: "\u20135 \u00b0C ... +40 \u00b0C" }], []);
+    expect(normalized.operatingTemperatureMin).toBe("-5");
+    expect(normalized.operatingTemperatureMax).toBe("40");
+  });
+
+  it("keeps the minus sign from mojibake operating temperature ranges", () => {
+    const normalized = normalizeFields([{ name: "Operating temperature", value: "\u00e2\u20ac\u00935 ?C ... +40 ?C" }], []);
+    expect(normalized.operatingTemperatureMin).toBe("-5");
+    expect(normalized.operatingTemperatureMax).toBe("40");
+  });
+
   it("understands a German Umgebungstemperatur 'bis' range", () => {
     const normalized = normalizeFields([{ name: "Umgebungstemperatur", value: "-20 °C bis +55 °C" }], []);
     expect(normalized.operatingTemperatureMin).toBe("-20");

@@ -66,6 +66,13 @@ describe("manufacturer configuration", () => {
     const searchTemplates = eaton?.scrapeRecipe?.searchUrlTemplates ?? [];
 
     expect(eaton?.officialBaseUrls).toContain("https://www.eaton.com.cn");
+    expect(eaton?.homepageUrl).toBe("https://www.eaton.com/gb/en-gb.html");
+    expect(eaton?.localizedUrlTemplates?.find((template) => template.locale === "en")?.urlTemplate).toBe(
+      "https://www.eaton.com/gb/en-gb/skuPage.{partSlashBraces}.html"
+    );
+    expect(eaton?.localizedUrlTemplates?.find((template) => template.locale === "de")?.urlTemplate).toBe(
+      "https://www.eaton.com/de/de-de/skuPage.{partSlashBraces}.html"
+    );
     expect(searchTemplates.some((template) => template.includes("/site-search/jcr:content/root/responsivegrid/search_results.searchTerm${part}"))).toBe(true);
     expect(searchTemplates.some((template) => template.includes("/skuPage.{partSlashBraces}.html"))).toBe(true);
   });

@@ -287,6 +287,7 @@ export async function buildPdtRepairResult(
 
 function heuristicRepair(item: RunItemRecord, manufacturer: ManufacturerConfig): PdtRepair {
   const result = item.result;
+  const explicitTemperature = explicitTemperatureRange(item);
   return sanitizeRepair({
     catalogNumber: item.catalogNumber,
     eclassCode: eclassCode(item, manufacturer),
@@ -297,8 +298,8 @@ function heuristicRepair(item: RunItemRecord, manufacturer: ManufacturerConfig):
     currentMax: currentMaxValue(item),
     powerLossPerPole: numberWithUnit(attr(item, /\bpower loss\b/i), "W"),
     voltageType: controlVoltageType(item),
-    operatingTemperatureMin: item.result?.normalized.operatingTemperatureMin ?? explicitTemperatureRange(item).min,
-    operatingTemperatureMax: item.result?.normalized.operatingTemperatureMax ?? explicitTemperatureRange(item).max,
+    operatingTemperatureMin: explicitTemperature.min ?? item.result?.normalized.operatingTemperatureMin,
+    operatingTemperatureMax: explicitTemperature.max ?? item.result?.normalized.operatingTemperatureMax,
     shortDescription: normalizedShortDescription(item),
     longDescription: normalizedLongDescription(item)
   });

@@ -177,7 +177,7 @@ export function buildPdtFactIndex(input: PdtFactInput): PdtFactIndex {
   addAttributeFact(facts, result, "eanOrGtin", /\b(ean|gtin)\b/i);
   addAttributeFact(facts, result, "customsTariff", /\b(customs tariff|tariff code|tariff|hs code|commodity code|cn ?8|cn code|combined nomenclature)\b/i);
   addAttributeFact(facts, result, "typeCode", /\b(type code|typecode|model code|modellcode|extended product type|type designation|product main type|main type|catalog(?:ue)? type|order type)\b/i);
-  addAttributeFact(facts, result, "productFamily", /\b(product family|product range|series|family)\b/i);
+  addProductFamilyFact(facts, result);
   addAttributeFact(facts, result, "productDesignation", /\b(product designation|manufacturer.*designation|product type|article designation)\b/i);
   addEclassFacts(facts, result);
   addDeviceTypePdtFacts(facts, input);
@@ -277,7 +277,10 @@ function addDocumentCertificateFacts(facts: PdtFact[], result: ProductResult): v
   if (facts.some((fact) => fact.key === "certificates" || fact.key === "pdtCertificates")) return;
   const certificateDoc = bestCertificateDocument(result.documents);
   if (!certificateDoc) return;
-  const value = clean(result.normalized.certificates) ?? clean(normalizeFields(result.attributes, result.documents).certificates);
+  const value =
+    clean(normalizeFields(result.attributes, []).certificates) ??
+    clean(result.normalized.certificates) ??
+    clean(normalizeFields(result.attributes, result.documents).certificates);
   if (!value) return;
   const sourceType = certificateDoc.sourceType ?? "official";
   const confidence =
@@ -345,6 +348,32 @@ function addAttributeFact(facts: PdtFact[], result: ProductResult, key: string, 
   const attr = bestAttribute(result.attributes, pattern);
   if (!attr) return;
   facts.push(factFromAttribute(key, attr, `Attribute "${attr.name}" matched canonical PDT fact ${key}.`));
+}
+
+function addProductFamilyFact(facts: PdtFact[], result: ProductResult): void {
+  const matches = result.attributes
+    .filter((attr) => /\b(product core group|product category|product family|product range|series|family)\b/i.test(`${attr.group ?? ""} ${attr.name}`))
+    .filter((attr) => {
+      const value = clean(attr.value);
+      return value && !isUnhelpfulProductFamily(value);
+    });
+  matches.sort((left, right) => {
+    const semanticRank = productFamilyAttributeRank(right) - productFamilyAttributeRank(left);
+    return semanticRank || sourceRank(right.sourceType) - sourceRank(left.sourceType) || (right.confidence ?? 0) - (left.confidence ?? 0);
+  });
+  const attr = matches[0];
+  if (!attr) return;
+  const value = clean(attr.value);
+  if (!value) return;
+  facts.push(factFromAttribute("productFamily", attr, `Attribute "${attr.name}" matched canonical PDT fact productFamily.`));
+}
+
+function productFamilyAttributeRank(attr: AttributeRecord): number {
+  const label = `${attr.group ?? ""} ${attr.name}`;
+  if (/\bproduct core group\b/i.test(label)) return 4;
+  if (/\bproduct category\b/i.test(label)) return 3;
+  if (/\bproduct family\b/i.test(label)) return 2;
+  return 1;
 }
 
 /**
@@ -882,6 +911,10 @@ function labelLooksLikeFact(label: string, key: string): boolean {
   if (key === "color") return /\b(colou?r|farbe)\b/.test(text);
   if (key === "certificates") return /\b(cert|approval|standard|conformity)\b/.test(text);
   return false;
+}
+
+function isUnhelpfulProductFamily(value: string): boolean {
+  return /^(?:sku\s*page|product\s+sku|product\s+page|page)$/i.test(value.trim());
 }
 
 function ontologyFactKeys(ontologyKey: string): string[] {

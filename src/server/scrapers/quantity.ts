@@ -159,7 +159,11 @@ const CONDITION_RE = new RegExp(
 );
 
 export function normalizeForParsing(value: string): string {
-  return value
+  const dashNormalized = value
+    .replace(/[\u2013\u2014\u2212]/g, "-")
+    .replace(/\u00e2[\u20ac\u0088][\u201c\u201d\u0092\u0093\u0094]/g, "-");
+  return dashNormalized
+    .replace(/[?\ufffd]\s*C\b/gi, " C")
     .replace(/Â°/g, "°")
     .replace(/℃/g, "°C")
     .replace(/\u00b3/g, "3")
@@ -316,6 +320,14 @@ const TEMP_KEYWORD_RE = /\b(temp|temperature|temperatur|operating|operational|am
 const DERATING_KINDS: QuantityKind[] = ["voltage", "current", "power", "frequency"];
 
 function bareNumericRange(text: string): { min: number; max: number } | undefined {
+  const asciiMatch = text.match(
+    /([+-]?\d+(?:\.\d+)?)\s*(?:\u00b0?\s*C)?\s*(?:\.{2,3}|\u2026|\bto\b|\bbis\b|\bdo\b|~|-)\s*\+?([+-]?\d+(?:\.\d+)?)\s*(?:\u00b0?\s*C)?/i
+  );
+  if (asciiMatch) {
+    const a = Number(asciiMatch[1]);
+    const b = Number(asciiMatch[2]);
+    if (Number.isFinite(a) && Number.isFinite(b)) return { min: Math.min(a, b), max: Math.max(a, b) };
+  }
   const match = text.match(
     /([+-]?\d+(?:\.\d+)?)\s*(?:°\s*C)?\s*(?:\.{2,3}|…|\bto\b|\bbis\b|\bdo\b|~|-)\s*\+?([+-]?\d+(?:\.\d+)?)\s*(?:°\s*C)?/i
   );

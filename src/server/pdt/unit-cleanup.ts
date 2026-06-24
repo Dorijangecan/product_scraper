@@ -222,8 +222,9 @@ function normalizeUnit(value: string | undefined): string | undefined {
 function normalizeForParsing(value: string): string {
   const dashNormalized = value
     .replace(/[\u2013\u2014\u2212]/g, "-")
-    .replace(/\u00e2[\u20ac\u0088][\u201c\u201d\u0092]/g, "-");
+    .replace(/\u00e2[\u20ac\u0088][\u201c\u201d\u0092\u0093\u0094]/g, "-");
   return dashNormalized
+    .replace(/[?\ufffd]\s*C\b/gi, " C")
     .replace(/\u00b3/g, "3")
     .replace(/Â°/g, "°")
     .replace(/℃/g, "°C")

@@ -16,6 +16,7 @@ import { normalizePdtCellNumber } from "./unit-cleanup.js";
 import { writeProductAccessorySheet } from "./product-accessory-sheet.js";
 import { bestFact, buildPdtFactIndex, factsMatchingValue, type PdtFact, type PdtFactIndex } from "./facts.js";
 import { additionalPdtSheetsRule, pdtColumnAllowRule, pdtSheetOverrideRule } from "./rules.js";
+import { compactFamilyShortDescription } from "./description-formatting.js";
 
 const DOCUMENTS_SHEET = "Additional Documents";
 /** Always kept even when empty (the manual PDT keeps this tab as a placeholder). */
@@ -1039,6 +1040,8 @@ function resolveGermanDescriptionCell(column: PdtColumn, ctx: ResolveContext, fa
   const englishKey = type === "long" ? "longDescription" : "shortDescription";
   const englishFact = bestFact(facts, englishKey);
   const localizedFact = bestFact(facts, localizedKey);
+  const localizedLongFact = type === "short" ? bestFact(facts, "localizedLongDescriptionDe") : undefined;
+  const englishLongFact = type === "short" ? bestFact(facts, "longDescription") : undefined;
   const catalogNumber = ctx.item.catalogNumber;
   if (
     localizedFact &&
@@ -1047,9 +1050,18 @@ function resolveGermanDescriptionCell(column: PdtColumn, ctx: ResolveContext, fa
   ) {
     return { value: localizedFact.value, provenance: provenanceFromFact(localizedFact) };
   }
+  if (
+    localizedLongFact &&
+    !sameDescriptionText(localizedLongFact.value, catalogNumber) &&
+    !sameDescriptionText(localizedLongFact.value, englishLongFact?.value)
+  ) {
+    const compact = compactFamilyShortDescription(localizedLongFact.value) ?? localizedLongFact.value;
+    return { value: compact, provenance: provenanceFromFact(localizedLongFact) };
+  }
 
   const englishValue = cleanString(
     englishFact?.value ??
+    (type === "short" ? compactFamilyShortDescription(englishLongFact?.value) : undefined) ??
     resolveProperty(column.code, column.propName, { ...ctx, language: undefined }) ??
     resolvePropertyByDescription(column, { ...ctx, language: undefined }) ??
     resolvePropertyByColumnMetadata(column, { ...ctx, language: undefined })
