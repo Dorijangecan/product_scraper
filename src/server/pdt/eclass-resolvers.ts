@@ -1368,6 +1368,47 @@ function attrNumber(pattern: RegExp): Resolver {
   return (ctx) => numberOf(attr(ctx, pattern));
 }
 
+function hmiResolutionPixel(ctx: ResolveContext, axis: "horizontal" | "vertical"): string | undefined {
+  const direct = axis === "horizontal"
+    ? numberOf(attr(ctx, /\b(max(?:imum)? number of pixels.*horizontal|horizontal pixels)\b/i))
+    : numberOf(attr(ctx, /\b(max(?:imum)? number of pixels.*vertical|vertical pixels)\b/i));
+  if (direct) return direct;
+  const value = attr(ctx, /\b(?:display|screen|image)?\s*resolution\b/i);
+  if (!value) return undefined;
+  const match = value.replace(/,/g, ".").match(/\b(\d{3,5})\s*(?:x|×|by)\s*(\d{3,5})\b/i);
+  if (!match) return undefined;
+  return axis === "horizontal" ? match[1] : match[2];
+}
+
+function hmiDisplayType(ctx: ResolveContext): string | undefined {
+  const direct = attr(ctx, /\b(display type|type of display)\b/i);
+  const value = direct ?? productEvidenceText(ctx);
+  if (/\bTFT\b/i.test(value)) return "TFT";
+  if (/\bLCD\b/i.test(value)) return /\bback(?:ground)?\s*light|backlit|illuminat/i.test(value)
+    ? "LCD with background illumination"
+    : "LCD";
+  if (/\bLED\b/i.test(value)) return "LED";
+  if (/\bCRT\b/i.test(value)) return "CRT";
+  if (/\bplasma\b/i.test(value)) return "plasma";
+  if (/\bSTN\b/i.test(value)) return "STN";
+  if (/\bgraph(?:ic|ical|ics)[-\s]?(?:oriented|display)?\b/i.test(value)) return "graphic oriented";
+  return clean(direct);
+}
+
+function hmiTouchScreen(ctx: ResolveContext): string | undefined {
+  return yesNoAttr(ctx, /\b(touch screen|touchscreen)\b/i) ?? (/\b(?:multi[-\s]?touch|touch[-\s]?screen|touchscreen)\b/i.test(productEvidenceText(ctx)) ? "Yes" : undefined);
+}
+
+function productEvidenceText(ctx: ResolveContext): string {
+  return [
+    ctx.result?.title,
+    ctx.result?.description,
+    ctx.result?.localizedDescriptions?.de?.title,
+    ctx.result?.localizedDescriptions?.de?.description,
+    ...(ctx.result?.attributes ?? []).map((attribute) => `${attribute.group ?? ""} ${attribute.name} ${attribute.value}`)
+  ].filter(Boolean).join(" ");
+}
+
 function attrUnitNumber(pattern: RegExp, unit: string): Resolver {
   return (ctx) => numberWithUnit(attr(ctx, pattern), unit);
 }
@@ -2645,8 +2686,8 @@ const RESOLVERS: Record<string, Resolver> = {
   AAC857: attrNumber(/\b(project memory|user memory|usable memory)\b/i),
   AAG522: attrNumber(/\b(number of grey scales|gray scales|grey scales)\b/i),
   AAM480: attrValue(/\b(transmission standard|communication standard)\b/i),
-  AAM494: attrNumber(/\b(max(?:imum)? number of pixels.*horizontal|horizontal pixels)\b/i),
-  AAM495: attrNumber(/\b(max(?:imum)? number of pixels.*vertical|vertical pixels)\b/i),
+  AAM494: (ctx) => hmiResolutionPixel(ctx, "horizontal"),
+  AAM495: (ctx) => hmiResolutionPixel(ctx, "vertical"),
   AAO495: attrNumber(/\b(number of HW interfaces parallel|parallel interfaces)\b/i),
   AAO496: attrNumber(/\b(number of HW interfaces PROFINET|PROFINET interfaces)\b/i),
   AAO500: attrNumber(/\b(number of HW interfaces.*RS232|RS232 interfaces)\b/i),
@@ -2659,14 +2700,14 @@ const RESOLVERS: Record<string, Resolver> = {
   AAP386: attrNumber(/\b(number of colors|number of colours|shades of gray|shades of grey)\b/i),
   AAP466: attrNumber(/\b(number of programmable function keys|function keys)\b/i),
   AAP531: attrNumber(/\b(number of levels.*password|password protection levels)\b/i),
-  BAC163: attrValue(/\b(display type|type of display)\b/i),
+  BAC163: hmiDisplayType,
   BAC657: (ctx) => lengthValue(ctx, /\b(max(?:imum)? fall height|fall height)\b/i),
   BAD085: attrYesNo(/\b(formulations present|formulations)\b/i),
   BAD092: attrYesNo(/\b(connection,? pluggable|pluggable connection)\b/i),
   BAD315: attrYesNo(/\b(alpha keyboard|keyboard)\b/i),
   BAD336: attrYesNo(/\b(display,? colou?r|colou?r display)\b/i),
   BAD395: attrYesNo(/\b(messaging system|message buffer)\b/i),
-  BAD443: attrYesNo(/\b(touch screen|touchscreen)\b/i),
+  BAD443: hmiTouchScreen,
   BAD452: attrYesNo(/\b(permission key|dead man key)\b/i),
   BAD579: attrYesNo(/\b(process value display|value display)\b/i),
   BAD580: attrYesNo(/\b(process value provision|value provision)\b/i),

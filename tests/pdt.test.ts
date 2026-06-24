@@ -265,6 +265,25 @@ describe("eclass resolvers", () => {
     expect(resolveProperty("AAY811", "AAY811", c)).toBe(productUrl);
   });
 
+  it("uses official ABB CP6610 CP600-Pro descriptions and abb.com family URL fallbacks", () => {
+    const c = ctx(
+      {
+        manufacturerId: "abb",
+        title: "CP600-Pro",
+        description: "CP600-Pro panels feature multitouch glass displays and modern industrial design."
+      },
+      "CP6610"
+    );
+    c.manufacturer = { ...manufacturer, id: "abb", canonicalName: "ABB" } as ManufacturerConfig;
+
+    expect(resolveProperty("AAQ326", "AAQ326", c)).toBe("https://www.abb.com/global/en/areas/motion/plc/control-panels/cp600-pro");
+    expect(resolveProperty("AAY811", "AAY811", c)).toBe("https://www.abb.com/global/en/areas/motion/plc/control-panels/cp600-pro");
+    expect(resolveProperty("CNS_DESCRIPTION_SHORT", "CNS_DESCRIPTION_SHORT", c)).toBe("Control Panel CP600-Pro");
+    expect(resolveProperty("CNS_DESCRIPTION_LONG", "CNS_DESCRIPTION_LONG", c)).toBe(
+      "CP6610, control panel, TFT graphical display, multi-touch screen, 10.1\", 1280 x 800 pixel, for PB610 applications and visualization of AC500 V3 web server"
+    );
+  });
+
   it("uses partnumber_info/?n= for Saginaw product URLs (manual PDT format)", () => {
     const c = ctx({ manufacturerId: "sce" }, "SCE-12H2406LP");
     c.manufacturer = { ...manufacturer, id: "sce" } as ManufacturerConfig;
@@ -653,6 +672,33 @@ describe("eclass resolvers", () => {
 
     expect(resolveProperty("AAF726", "AAF726", c)).toBe("70");
     expect(resolveProperty("AAB821", "AAB821", c)).toBe("70");
+  });
+
+  it("fills ABB CP6610 HMI resolution, operating temperature and certificates from datasheet-style attributes", () => {
+    const c = ctx(
+      {
+        manufacturerId: "abb",
+        title: "Control Panel CP600-Pro",
+        description: "CP6610, control panel, TFT graphical display, multi-touch screen, 10.1\", 1280 x 800 pixel, for PB610 applications and visualization of AC500 V3 web server",
+        normalized: { certificates: "CE, cULus, DNV" },
+        attributes: [
+          { group: "ABB Datasheet", name: "Resolution", value: "1280 x 800 pixels", sourceType: "official" },
+          { group: "ABB Datasheet", name: "Operating temperature", value: "-20...+60 °C", sourceType: "official" },
+          { group: "ABB Datasheet", name: "Approvals and Certifications", value: "CE, cULus, DNV", sourceType: "official" }
+        ]
+      },
+      "CP6610"
+    );
+    c.manufacturer = { ...manufacturer, id: "abb", canonicalName: "ABB" } as ManufacturerConfig;
+    c.sheetName = "panel (HMI)";
+
+    expect(resolveProperty("AAM494", "max. number of pixels, horizontal (integer)", c)).toBe("1280");
+    expect(resolveProperty("AAM495", "max. number of pixels, vertical (integer)", c)).toBe("800");
+    expect(resolveProperty("AAB906", "Max. operating temperature", c)).toBe("60");
+    expect(resolveProperty("AAC022", "Min. operating temperature", c)).toBe("-20");
+    expect(resolveProperty("BAC163", "Display type", c)).toBe("TFT");
+    expect(resolveProperty("BAD443", "Touch screen present", c)).toBe("Yes");
+    expect(resolveProperty("CERTIFICATION", "certificate/approval", c)).toBe("CE, cULus, DNV");
   });
 
   it("writes AC/DC voltage type only when it is explicitly written in the source", () => {
@@ -2814,6 +2860,58 @@ describe("PDT exporter", () => {
     expect(ws.getCell(10, 3).value).toBe("AC522 Analogeingangs-/ausgangsmodul");
     expect(ws.getCell(10, 4).value).toBe(description);
     expect(ws.getCell(10, 5).value).toBe(title);
+  });
+
+  it("writes German ABB CP6610 CP600-Pro description fallbacks as literals", async () => {
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-pdt-abb-cp6610-de-"));
+    const templatePath = path.join(dir, "template.xlsx");
+    const outputPath = path.join(dir, "out.xlsx");
+    const wb = new ExcelJS.Workbook();
+    const material = wb.addWorksheet("Material Master Data");
+    material.getCell(2, 2).value = "Description DE";
+    material.getCell(2, 3).value = "Description DE";
+    material.getCell(2, 4).value = "Description EN";
+    material.getCell(2, 5).value = "Description EN";
+    material.getCell(6, 1).value = "ECLASS property";
+    material.getCell(7, 1).value = "Variable name (CNS internal)";
+    material.getCell(8, 1).value = "English variable description";
+    material.getCell(9, 1).value = "Units";
+    material.getCell(6, 2).value = "CNS_DESCRIPTION_LONG / AAU734";
+    material.getCell(7, 2).value = "CNS_DESCRIPTION_LONG";
+    material.getCell(8, 2).value = "Product description long";
+    material.getCell(6, 3).value = "CNS_DESCRIPTION_SHORT";
+    material.getCell(7, 3).value = "CNS_DESCRIPTION_SHORT";
+    material.getCell(8, 3).value = "Product description short";
+    material.getCell(6, 4).value = "CNS_DESCRIPTION_LONG / AAU734";
+    material.getCell(7, 4).value = "CNS_DESCRIPTION_LONG";
+    material.getCell(8, 4).value = "Product description long";
+    material.getCell(6, 5).value = "CNS_DESCRIPTION_SHORT";
+    material.getCell(7, 5).value = "CNS_DESCRIPTION_SHORT";
+    material.getCell(8, 5).value = "Product description short";
+    wb.addWorksheet("Additional Documents");
+    await wb.xlsx.writeFile(templatePath);
+
+    const item = ctx(
+      {
+        manufacturerId: "abb",
+        title: "CP600-Pro",
+        description: "CP600-Pro panels feature multitouch glass displays and modern industrial design."
+      },
+      "CP6610"
+    ).item;
+    await exportRunPdt({ manufacturer: { ...manufacturer, id: "abb", canonicalName: "ABB" } as ManufacturerConfig, items: [item], templatePath, outputPath });
+
+    const out = new ExcelJS.Workbook();
+    await out.xlsx.readFile(outputPath);
+    const ws = out.getWorksheet("Material Master Data")!;
+    expect(ws.getCell(10, 2).value).toContain("Bedienpanel");
+    expect(ws.getCell(10, 2).value).toContain("Grafikdisplay");
+    expect(ws.getCell(10, 2).value).toContain("Multi-Touchscreen");
+    expect(ws.getCell(10, 3).value).toBe("Bedienpanel CP600-Pro");
+    expect(ws.getCell(10, 4).value).toBe(
+      "CP6610, control panel, TFT graphical display, multi-touch screen, 10.1\", 1280 x 800 pixel, for PB610 applications and visualization of AC500 V3 web server"
+    );
+    expect(ws.getCell(10, 5).value).toBe("Control Panel CP600-Pro");
   });
 
   it("writes echoed DE description fallbacks as literals", async () => {
@@ -5522,6 +5620,27 @@ describe("Additional Documents PDT sheet", () => {
     expect(ws.getCell(7, 5).value).toBe("english");
     expect(ws.getCell(8, 4).value).toEqual({ text: germanUrl, hyperlink: germanUrl });
     expect(ws.getCell(8, 5).value).toBe("german");
+  });
+
+  it("uses official ABB CP6610 datasheet and family page in Additional Documents", () => {
+    const ws = addDocumentsWorksheet();
+    const item = ctx(
+      {
+        manufacturerId: "abb",
+        productUrl: "https://www.abb.com/global/en/areas/motion/plc/control-panels/cp600-pro"
+      },
+      "CP6610"
+    ).item;
+
+    expect(writeDocumentsSheet(ws, [item])).toBe(2);
+    const urls = [ws.getCell(7, 4).value, ws.getCell(8, 4).value].map((value) =>
+      typeof value === "object" && value && "hyperlink" in value ? value.hyperlink : String(value)
+    );
+    expect(urls).toEqual([
+      "https://library.e.abb.com/public/0df8d53c4774407a8cfc66bd9cbd9112/CP6610_Data_Sheet_3ADR010234%2C%202%2C%20en_US_RevB.pdf",
+      "https://www.abb.com/global/en/areas/motion/plc/control-panels/cp600-pro"
+    ]);
+    expect(urls.some((url) => /new\.abb\.com\/products/i.test(url))).toBe(false);
   });
 
   it("uses scraped localized official URLs for manufacturers without PDT document rules", () => {

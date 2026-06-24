@@ -30,6 +30,8 @@ function documentRowsFor(item: RunItemRecord): DocRow[] {
     if (directDocuments.length > 0) return completeEatonDocumentLanguages(directDocuments, ruleRows);
   }
 
+  if (isAbbCp6610(item) && ruleRows.length > 0) return ruleRows;
+
   if (item.result?.manufacturerId === "abb" && item.result.productUrl) {
     const scrapedRows = localizedProductDocumentRows(item, true);
     if (scrapedRows.length > 0) return scrapedRows;
@@ -43,6 +45,10 @@ function documentRowsFor(item: RunItemRecord): DocRow[] {
   }
 
   return localizedProductDocumentRows(item);
+}
+
+function isAbbCp6610(item: RunItemRecord): boolean {
+  return item.result?.manufacturerId === "abb" && /^CP6610$/i.test(item.catalogNumber.trim());
 }
 
 function localizedProductDocumentRows(item: RunItemRecord, preferProductUrl = false): DocRow[] {

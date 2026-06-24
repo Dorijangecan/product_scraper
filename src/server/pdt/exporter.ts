@@ -630,6 +630,8 @@ function semanticFactKeysForColumn(column: PdtColumn, ctx: ResolveContext): stri
   if (keys.includes("AAC895") || /\bdiameter\b/i.test(column.description)) facts.add("pdtSignalDiameter");
   if (keys.includes("BAB577") || keys.includes("BAF016") || keys.includes("BAA020") || /\b(depth|width|height|dimension)\b/i.test(column.description)) facts.add("dimensions");
   if (keys.includes("BAG975") || /\bdegree of protection\b|\bprotection type\b|\bIP\b/i.test(column.description)) facts.add("protection");
+  if (keys.includes("BAC163") || /\bdisplay type\b|\btype of display\b/i.test(column.description)) facts.add("pdtHmiDisplayType");
+  if (keys.includes("BAD443") || /\btouch[-\s]?screen\b|\btouchscreen\b/i.test(column.description)) facts.add("pdtHmiTouchScreenPresent");
   return [...facts];
 }
 
@@ -1109,6 +1111,11 @@ function translateDescriptionToGerman(value: string | undefined): string | undef
     [/\banalog output module\b/gi, "Analogausgangsmodul"],
     [/\banalogue output module\b/gi, "Analogausgangsmodul"],
     [/\binput\/output module\b/gi, "Eingangs-/Ausgangsmodul"],
+    [/\bcontrol panel\b/gi, "Bedienpanel"],
+    [/\bgraphical display\b/gi, "Grafikdisplay"],
+    [/\bgraphic display\b/gi, "Grafikdisplay"],
+    [/\bmulti-touch screen\b/gi, "Multi-Touchscreen"],
+    [/\bweb server\b/gi, "Webserver"],
     [/\bsafety relay\b/gi, "Sicherheitsrelais"],
     [/\bterminal block\b/gi, "Reihenklemme"],
     [/\bpush button\b/gi, "Drucktaster"],
@@ -1134,6 +1141,11 @@ function translateDescriptionToGerman(value: string | undefined): string | undef
     [/\bconnector\b/gi, "Steckverbinder"],
     [/\bcontacts\b/gi, "Kontakte"],
     [/\bmounted\b/gi, "montiert"],
+    [/\bapplications\b/gi, "Anwendungen"],
+    [/\bapplication\b/gi, "Anwendung"],
+    [/\bvisualization\b/gi, "Visualisierung"],
+    [/\bdisplay\b/gi, "Display"],
+    [/\bpixel\b/gi, "Pixel"],
     [/\bcompact\b/gi, "kompakt"],
     [/\bdistributed\b/gi, "dezentral"],
     [/\bofficial\b/gi, "offiziell"],
@@ -1181,6 +1193,8 @@ function factKeysForColumn(column: PdtColumn, ctx: ResolveContext): string[] {
     add("certificates");
   }
   if (keys.includes("BAG975") || (!enumColumn && /\bdegree of protection\b|\bprotection type\b/i.test(column.description))) add("protection");
+  if (keys.includes("BAC163") || /\bdisplay type\b|\btype of display\b/i.test(column.description)) add("pdtHmiDisplayType");
+  if (keys.includes("BAD443") || /\btouch[-\s]?screen\b|\btouchscreen\b/i.test(column.description)) add("pdtHmiTouchScreenPresent");
   for (const fact of specificVoltageFactKeysForColumn(column)) add(fact);
   if (isLeakageCurrentColumn(column)) add("leakageCurrent");
   if (isBreakingCapacityColumn(column)) add("breakingCapacity");

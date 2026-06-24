@@ -22,6 +22,9 @@ const EATON_E6_CATALOG_PDF_URL =
   "https://www.eaton.com.cn/content/dam/eaton/products/electrical-circuit-protection/circuit-breakers/e6-series/eaton-e6-catalogue-en-cn.pdf";
 const ROCKWELL_MICRO820_FAMILY_URL =
   "https://www.rockwellautomation.com/en-us/products/hardware/allen-bradley/programmable-controllers/micro-controllers/micro800-family/micro820-controllers.html";
+const ABB_CP600_PRO_URL = "https://www.abb.com/global/en/areas/motion/plc/control-panels/cp600-pro";
+const ABB_CP6610_DATASHEET_URL =
+  "https://library.e.abb.com/public/0df8d53c4774407a8cfc66bd9cbd9112/CP6610_Data_Sheet_3ADR010234%2C%202%2C%20en_US_RevB.pdf";
 
 const ABB_1SDA_ALLOWED_CONTACTOR_COLUMNS = new Set([
   "REFERENCE_FEATURE_GROUP_ID",
@@ -84,6 +87,13 @@ export function pdtColumnAllowRule(ctx: PdtRuleContext & { sheetName: string; co
 export function pdtProductUrlRule(ctx: PdtUrlContext): AppliedPdtRule<string> | undefined {
   if (ctx.manufacturerId === "abb") {
     const bare = clean(ctx.catalogNumber)?.replace(/^ABB/i, "") ?? ctx.catalogNumber.replace(/^ABB/i, "");
+    if (/^CP6610$/i.test(bare)) {
+      return {
+        name: "abb-cp6610-pdt-product-url",
+        rationale: "ABB CP6610 belongs to the CP600-Pro family page; avoid the obsolete new.abb.com/products/{catalog} fallback.",
+        value: ABB_CP600_PRO_URL
+      };
+    }
     return {
       name: "abb-pdt-product-url",
       rationale: "ABB manual PDTs use the new.abb.com/products/{catalog} URL format with no ABB prefix.",
@@ -202,6 +212,20 @@ export function pdtProductUrlRule(ctx: PdtUrlContext): AppliedPdtRule<string> | 
 export function localizedPdtDocumentUrlRules(ctx: PdtUrlContext): Array<AppliedPdtRule<{ url: string; language: "english" | "german"; description: string; documentType?: string }>> {
   if (ctx.manufacturerId === "abb") {
     const bare = clean(ctx.catalogNumber)?.replace(/^ABB/i, "") ?? ctx.catalogNumber.replace(/^ABB/i, "");
+    if (/^CP6610$/i.test(bare)) {
+      return [
+        {
+          name: "abb-cp6610-datasheet-document-url-en",
+          rationale: "ABB CP6610 PDT Additional Documents should use the official ABB Library datasheet instead of the obsolete new.abb.com/products fallback.",
+          value: { url: ABB_CP6610_DATASHEET_URL, language: "english", description: "Datasheet(EN)", documentType: "pdf" }
+        },
+        {
+          name: "abb-cp6610-family-document-url-en",
+          rationale: "ABB CP6610 is published on the CP600-Pro family page on abb.com/global.",
+          value: { url: ABB_CP600_PRO_URL, language: "english", description: "Product page" }
+        }
+      ];
+    }
     const encoded = encodeURIComponent(bare);
     return [
       {

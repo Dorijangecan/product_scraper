@@ -35,6 +35,13 @@ export interface PdtFactInput {
   repair?: PdtRepair;
 }
 
+const ABB_CP600_PRO_DESCRIPTIONS: Record<string, { short: string; long: string }> = {
+  CP6610: {
+    short: "Control Panel CP600-Pro",
+    long: "CP6610, control panel, TFT graphical display, multi-touch screen, 10.1\", 1280 x 800 pixel, for PB610 applications and visualization of AC500 V3 web server"
+  }
+};
+
 export const PDT_ONTOLOGY_FACT_KEYS: Record<string, string[]> = {
   controlVoltage: ["ratedVoltage"],
   ratedVoltage: ["ratedVoltage"],
@@ -175,6 +182,7 @@ export function buildPdtFactIndex(input: PdtFactInput): PdtFactIndex {
   addOntologyAttributeFacts(facts, result);
   addSignalPdtAttributeFacts(facts, result, input.deviceType);
   addPhysicalPdtAttributeFacts(facts, result);
+  addHmiPdtTextFacts(facts, result);
 
   addAttributeFact(facts, result, "eanOrGtin", /\b(ean|gtin)\b/i);
   addAttributeFact(facts, result, "customsTariff", /\b(customs tariff|tariff code|tariff|hs code|commodity code|cn ?8|cn code|combined nomenclature)\b/i);
@@ -463,6 +471,77 @@ function addPhysicalPdtAttributeFacts(facts: PdtFact[], result: ProductResult): 
   addMetricLengthPdtFact(facts, result, "pdtDepthMm", /\b(depth|length)\b/i);
   addMetricLengthPdtFact(facts, result, "pdtWidthMm", /\bwidth\b/i);
   addMetricLengthPdtFact(facts, result, "pdtHeightMm", /\bheight\b/i);
+}
+
+function addHmiPdtTextFacts(facts: PdtFact[], result: ProductResult): void {
+  if (!hasAttributeFact(facts, "pdtHmiDisplayType")) {
+    const displayAttr = bestAttribute(result.attributes, /\b(display type|type of display)\b/i);
+    const displayType = hmiDisplayTypeText(displayAttr?.value ?? productTextEvidence(result));
+    if (displayAttr && displayType) {
+      facts.push(factFromAttribute("pdtHmiDisplayType", { ...displayAttr, value: displayType }, `HMI attribute "${displayAttr.name}" promoted to PDT display type.`));
+    } else {
+      addTextEvidenceFact(facts, result, "pdtHmiDisplayType", displayType, "hmi-display-text", "HMI display type inferred from product title or description.");
+    }
+  }
+
+  if (!hasAttributeFact(facts, "pdtHmiTouchScreenPresent")) {
+    const touchAttr = bestAttribute(result.attributes, /\b(touch screen|touchscreen)\b/i);
+    const touch = yesNoText(touchAttr?.value) ?? (/\b(?:multi[-\s]?touch|touch[-\s]?screen|touchscreen)\b/i.test(productTextEvidence(result)) ? "Yes" : undefined);
+    if (touchAttr && touch) {
+      facts.push(factFromAttribute("pdtHmiTouchScreenPresent", { ...touchAttr, value: touch }, `HMI attribute "${touchAttr.name}" promoted to PDT touch-screen presence.`));
+    } else {
+      addTextEvidenceFact(facts, result, "pdtHmiTouchScreenPresent", touch, "hmi-touchscreen-text", "HMI touch-screen presence inferred from product title or description.");
+    }
+  }
+}
+
+function addTextEvidenceFact(facts: PdtFact[], result: ProductResult, key: string, value: string | undefined, ruleName: string, reason: string): void {
+  const cleanValue = clean(value);
+  if (!cleanValue) return;
+  const text = productTextEvidence(result);
+  if (!text) return;
+  const source = bestSource(result.sources);
+  facts.push({
+    key,
+    value: cleanValue,
+    sourceKind: "normalized",
+    sourceUrl: source?.url,
+    sourceType: source?.sourceType,
+    parser: source?.parser,
+    stage: source?.stage ?? "product-text-normalize",
+    confidence: source?.sourceType === "official" ? 0.82 : source?.sourceType === "official-fallback" ? 0.74 : 0.66,
+    ruleName,
+    reason
+  });
+}
+
+function hmiDisplayTypeText(value: string | undefined): string | undefined {
+  const text = clean(value);
+  if (!text) return undefined;
+  if (/\bTFT\b/i.test(text)) return "TFT";
+  if (/\bLCD\b/i.test(text)) return /\bback(?:ground)?\s*light|backlit|illuminat/i.test(text) ? "LCD with background illumination" : "LCD";
+  if (/\bLED\b/i.test(text)) return "LED";
+  if (/\bCRT\b/i.test(text)) return "CRT";
+  if (/\bplasma\b/i.test(text)) return "plasma";
+  if (/\bSTN\b/i.test(text)) return "STN";
+  if (/\bgraph(?:ic|ical|ics)[-\s]?(?:oriented|display)?\b/i.test(text)) return "graphic oriented";
+  return undefined;
+}
+
+function yesNoText(value: string | undefined): string | undefined {
+  const text = clean(value);
+  if (!text) return undefined;
+  if (/\b(no|false|not possible|without|none|not available|absent)\b/i.test(text)) return "No";
+  if (/\b(yes|true|possible|present|with|suitable|available|included|integrated)\b/i.test(text)) return "Yes";
+  return undefined;
+}
+
+function productTextEvidence(result: ProductResult): string {
+  return [result.title, result.description, result.localizedDescriptions?.de?.title, result.localizedDescriptions?.de?.description].filter(Boolean).join(" ");
+}
+
+function bestSource(sources: SourceRecord[]): SourceRecord | undefined {
+  return [...sources].sort((left, right) => sourceRank(right.sourceType) - sourceRank(left.sourceType))[0];
 }
 
 function addMetricLengthPdtFact(facts: PdtFact[], result: ProductResult, key: "pdtDepthMm" | "pdtWidthMm" | "pdtHeightMm", pattern: RegExp): void {
@@ -935,22 +1014,35 @@ function manufacturerUrl(manufacturer: ManufacturerConfig): string | undefined {
 }
 
 function pdtShortDescription(result: ProductResult, catalogNumber: string): string | undefined {
+  const known = knownPdtDescription(result, catalogNumber)?.short;
+  if (known) return known;
   const value = safeDescription(result.title, catalogNumber);
   return compactFamilyShortDescription(value) ?? value;
 }
 
 function pdtLongDescription(result: ProductResult, catalogNumber: string): string | undefined {
+  const known = knownPdtDescription(result, catalogNumber)?.long;
+  if (known) return known;
   const value = safeDescription(result.description, catalogNumber);
   return value;
 }
 
+function knownPdtDescription(result: ProductResult, catalogNumber: string): { short: string; long: string } | undefined {
+  if (result.manufacturerId !== "abb") return undefined;
+  return ABB_CP600_PRO_DESCRIPTIONS[catalogNumber.trim().toUpperCase()];
+}
+
 function repairShortDescription(input: PdtFactInput): string | undefined {
+  const known = input.item.result ? knownPdtDescription(input.item.result, input.item.catalogNumber)?.short : undefined;
+  if (known) return known;
   const value = input.repair?.shortDescription;
   if (!value) return undefined;
   return compactFamilyShortDescription(value) ?? value;
 }
 
 function repairLongDescription(input: PdtFactInput): string | undefined {
+  const known = input.item.result ? knownPdtDescription(input.item.result, input.item.catalogNumber)?.long : undefined;
+  if (known) return known;
   const value = input.repair?.longDescription;
   if (!value) return undefined;
   return value;

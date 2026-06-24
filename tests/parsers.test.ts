@@ -2356,6 +2356,239 @@ describe("manufacturer parsers", () => {
     expect(result.attributes.some((attr) => attr.name === "Downloads" && attr.value === "Download")).toBe(false);
   });
 
+  it("extracts generic page-wide specs from product tables, loose pairs, responsive cells, and JSON-LD properties", () => {
+    const html = `
+      <html><head><title>PRD-55 module</title>
+        <script type="application/ld+json">
+          {
+            "@context": "https://schema.org",
+            "@type": "Product",
+            "sku": "PRD-55",
+            "name": "PRD-55 I/O module",
+            "additionalProperty": [
+              {"name": "Operating temperature", "value": "-20...+60", "unitText": "C"},
+              {"name": "Protection rating", "value": "IP67"}
+            ]
+          }
+        </script>
+      </head><body>
+        <h1>PRD-55 I/O module</h1>
+        <section>
+          <h2>Technical data</h2>
+          <table>
+            <tr><th>Article number</th><th>Rated voltage [V]</th><th>Current consumption</th><th>Housing material</th></tr>
+            <tr><td>PRD-55</td><td>24 DC</td><td>55 mA</td><td>Polycarbonate</td></tr>
+          </table>
+        </section>
+        <section>
+          <h2>Mechanical data</h2>
+          <div><span>Weight</span><span>120 g</span></div>
+          <span id="mounting-label">Mounting type</span>
+          <span aria-labelledby="mounting-label">DIN rail</span>
+        </section>
+        <table>
+          <tr>
+            <td data-label="Number of channels">4</td>
+            <td data-label="Input type">AI, DI</td>
+          </tr>
+        </table>
+      </body></html>
+    `;
+    const result = parseGenericProductPage(
+      "unseen-maker",
+      "PRD-55",
+      fetched(html, "https://example.test/products/PRD-55"),
+      "official-fallback",
+      "Unseen manufacturer page"
+    );
+
+    expect(result.normalized.voltage).toBe("24 V DC");
+    expect(result.normalized.current).toBe("55 mA");
+    expect(result.normalized.material).toBe("Polycarbonate");
+    expect(result.normalized.weight).toBe("120 g (0.12 kg)");
+    expect(result.normalized.protection).toBe("IP67");
+    expect(result.normalized.operatingTemperatureMin).toBe("-20");
+    expect(result.normalized.operatingTemperatureMax).toBe("60");
+    expect(result.attributes).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ group: "Technical data", name: "Rated voltage [V]", value: "24 V DC" }),
+        expect.objectContaining({ group: "Mechanical data", name: "Weight", value: "120 g" }),
+        expect.objectContaining({ group: "Mechanical data", name: "Mounting type", value: "DIN rail" }),
+        expect.objectContaining({ group: "Product Table", name: "Number of channels", value: "4" }),
+        expect.objectContaining({ group: "Structured Properties", name: "Protection rating", value: "IP67" })
+      ])
+    );
+  });
+
+  it("extracts matching variant specs from JSON-LD graphs without mixing sibling products", () => {
+    const html = `
+      <html><head><title>MOD-24 module family</title>
+        <script type="application/ld+json">
+          {
+            "@context": "https://schema.org",
+            "@graph": [
+              {
+                "@type": "ProductGroup",
+                "name": "MOD I/O modules",
+                "hasVariant": [
+                  {
+                    "@type": ["Product", "IndividualProduct"],
+                    "sku": "MOD-24",
+                    "name": "MOD-24 digital input module",
+                    "additionalProperty": [
+                      {"name": "Rated voltage", "value": "24", "unitText": "V DC"},
+                      {"name": "Input channels", "value": "16"}
+                    ],
+                    "image": "/images/MOD-24.png"
+                  },
+                  {
+                    "@type": "Product",
+                    "sku": "MOD-120",
+                    "additionalProperty": [
+                      {"name": "Rated voltage", "value": "120", "unitText": "V AC"}
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        </script>
+      </head><body><h1>MOD-24 digital input module</h1></body></html>
+    `;
+    const result = parseGenericProductPage(
+      "unseen-maker",
+      "MOD-24",
+      fetched(html, "https://example.test/products/mod-family"),
+      "official-fallback",
+      "Unseen manufacturer page"
+    );
+
+    expect(result.normalized.voltage).toBe("24 V DC");
+    expect(result.attributes).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ group: "Structured Properties", name: "Rated voltage", value: "24 V DC" }),
+        expect.objectContaining({ group: "Structured Properties", name: "Input channels", value: "16" })
+      ])
+    );
+    expect(result.attributes.some((attr) => attr.value === "120 V AC")).toBe(false);
+    expect(result.documents.some((doc) => doc.type === "image" && doc.url === "https://example.test/images/MOD-24.png")).toBe(true);
+  });
+
+  it("extracts generic product evidence from analytics data layers and schema quantitative values", () => {
+    const html = `
+      <html><head><title>DRV-480 servo drive</title>
+        <script type="application/ld+json">
+          {
+            "@context": "https://schema.org",
+            "@type": "Product",
+            "sku": "DRV-480",
+            "subjectOf": {
+              "@type": "DigitalDocument",
+              "name": "DRV-480 technical datasheet",
+              "encodingFormat": "application/pdf",
+              "contentUrl": "/downloads/DRV-480-datasheet.pdf"
+            },
+            "additionalProperty": [
+              {"name": "Rated power", "value": {"@type": "QuantitativeValue", "value": "1.5", "unitText": "kW"}},
+              {"name": "Ambient temperature", "value": {"value": "-10...+50", "unitText": "C"}}
+            ]
+          }
+        </script>
+        <script>
+          dataLayer.push({
+            "event": "view_item",
+            "ecommerce": {
+              "items": [{
+                "item_id": "DRV-480",
+                "item_name": "DRV-480 servo drive",
+                "item_brand": "ACME Drives",
+                "item_category": "Servo drive",
+                "technicalSpecs": [
+                  {"propertyName": "Rated voltage", "propertyValue": "480", "unit": "V AC"},
+                  {"propertyName": "Output current", "propertyValue": "4.2", "unit": "A"}
+                ]
+              }]
+            }
+          });
+        </script>
+      </head><body><h1>DRV-480 servo drive</h1></body></html>
+    `;
+    const result = parseGenericProductPage(
+      "unseen-maker",
+      "DRV-480",
+      fetched(html, "https://example.test/products/DRV-480"),
+      "official-fallback",
+      "Unseen manufacturer page"
+    );
+
+    expect(result.normalized.voltage).toBe("480 V AC");
+    expect(result.normalized.current).toBe("4.2 A");
+    expect(result.normalized.operatingTemperatureMin).toBe("-10");
+    expect(result.normalized.operatingTemperatureMax).toBe("50");
+    expect(result.attributes).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ group: "Embedded State", name: "Rated voltage", value: "480 V AC" }),
+        expect.objectContaining({ group: "Embedded State", name: "Output current", value: "4.2 A" }),
+        expect.objectContaining({ group: "Structured Properties", name: "Rated power", value: "1.5 kW" }),
+        expect.objectContaining({ group: "Structured Properties", name: "Ambient temperature", value: "-10...+50 C" })
+      ])
+    );
+    expect(result.documents.some((doc) => doc.type === "datasheet" && doc.url === "https://example.test/downloads/DRV-480-datasheet.pdf")).toBe(true);
+  });
+
+  it("extracts generic schema.org microdata and RDFa PropertyValue specs", () => {
+    const html = `
+      <html><head><title>SNS-24 sensor</title></head><body>
+        <h1>SNS-24 sensor</h1>
+        <section>
+          <h2>Electrical data</h2>
+          <div itemprop="additionalProperty" itemscope itemtype="https://schema.org/PropertyValue">
+            <span itemprop="name">Rated voltage</span>
+            <meta itemprop="value" content="24" />
+            <meta itemprop="unitText" content="V DC" />
+          </div>
+          <div itemscope itemtype="https://schema.org/PropertyValue">
+            <span itemprop="name">Current consumption</span>
+            <span itemprop="value">80</span>
+            <span itemprop="unitText">mA</span>
+          </div>
+        </section>
+        <section>
+          <h2>Mechanical data</h2>
+          <div typeof="PropertyValue">
+            <span property="name">Housing material</span>
+            <span property="value">stainless steel</span>
+          </div>
+          <div typeof="schema:PropertyValue">
+            <span property="name">Ambient temperature</span>
+            <span property="value">-25...+70</span>
+            <span property="unitText">C</span>
+          </div>
+        </section>
+      </body></html>
+    `;
+    const result = parseGenericProductPage(
+      "unseen-maker",
+      "SNS-24",
+      fetched(html, "https://example.test/products/SNS-24"),
+      "official-fallback",
+      "Unseen manufacturer page"
+    );
+
+    expect(result.normalized.voltage).toBe("24 V DC");
+    expect(result.normalized.current).toBe("80 mA");
+    expect(result.normalized.material).toBe("stainless steel");
+    expect(result.normalized.operatingTemperatureMin).toBe("-25");
+    expect(result.normalized.operatingTemperatureMax).toBe("70");
+    expect(result.attributes).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ group: "Electrical data", name: "Rated voltage", value: "24 V DC" }),
+        expect.objectContaining({ group: "Electrical data", name: "Current consumption", value: "80 mA" }),
+        expect.objectContaining({ group: "Mechanical data", name: "Housing material", value: "stainless steel" })
+      ])
+    );
+  });
+
   it("uses manufacturer-configured embedded table names in the generic parser", () => {
     const html = `
       <html><head><title>ABC-123 custom product</title></head><body>

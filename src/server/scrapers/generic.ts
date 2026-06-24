@@ -299,7 +299,7 @@ export function parseGenericProductPage(
   const documents: DocumentRecord[] = [];
   const documentCandidates: NonNullable<ScrapeDiagnostics["documentCandidates"]> = [];
   attributes.push(...extractCatalogIdentityAttributes($, catalogNumber, fetched.effectiveUrl));
-  const jsonLdProducts = readJsonLdProducts($);
+  const jsonLdProducts = readJsonLdProducts($, catalogNumber);
   for (const product of jsonLdProducts) {
     for (const [name, value] of Object.entries(product)) {
       if (value === undefined || value === null || typeof value === "object") continue;
@@ -310,8 +310,10 @@ export function parseGenericProductPage(
         sourceUrl: fetched.effectiveUrl
       });
     }
+    attributes.push(...attributesFromJsonLdProduct(product, fetched.effectiveUrl));
   }
   documents.push(...extractImageDocuments($, catalogNumber, fetched.effectiveUrl, jsonLdProducts, options.extractionPolicy));
+  documents.push(...documentsFromJsonLdProducts(jsonLdProducts, fetched.effectiveUrl));
 
   for (const product of readEmbeddedProductData($)) {
     for (const [name, value] of Object.entries(product)) {
@@ -361,7 +363,9 @@ export function parseGenericProductPage(
   attributes.push(...extractProductSectionAttributes($, fetched.effectiveUrl));
   attributes.push(...extractLabeledSpecAttributes($, fetched.effectiveUrl));
   attributes.push(...extractSemanticSpecAttributes($, fetched.effectiveUrl));
+  attributes.push(...extractSchemaPropertyValueAttributes($, fetched.effectiveUrl));
   attributes.push(...extractSectionAwareSpecAttributes($, fetched.effectiveUrl));
+  attributes.push(...extractPageWideSpecAttributes($, catalogNumber, fetched.effectiveUrl));
   attributes.push(...extractSummaryAttributes(title, description, fetched.effectiveUrl));
 
   $("tr").each((_, element) => {
@@ -862,21 +866,74 @@ function firstRegexPhrase(text: string, pattern: RegExp): string | undefined {
   return match ? cleanText(match) : undefined;
 }
 
-function readJsonLdProducts($: cheerio.CheerioAPI): Record<string, unknown>[] {
+function readJsonLdProducts($: cheerio.CheerioAPI, catalogNumber: string): Record<string, unknown>[] {
   const products: Record<string, unknown>[] = [];
+  const seen = new Set<string>();
   $("script[type='application/ld+json']").each((_, element) => {
     const raw = $(element).text();
     try {
-      const parsed = JSON.parse(raw) as Record<string, unknown> | Record<string, unknown>[];
-      const entries = Array.isArray(parsed) ? parsed : [parsed];
-      for (const entry of entries) {
-        if (entry["@type"] === "Product") products.push(entry);
+      const parsed = JSON.parse(raw) as unknown;
+      for (const product of collectJsonLdProducts(parsed, catalogNumber)) {
+        const key = JSON.stringify(product).slice(0, 2000);
+        if (seen.has(key)) continue;
+        seen.add(key);
+        products.push(product);
       }
     } catch {
       // Ignore malformed script blocks.
     }
   });
   return products;
+}
+
+function collectJsonLdProducts(value: unknown, catalogNumber: string): Record<string, unknown>[] {
+  const products: Record<string, unknown>[] = [];
+  const compactPart = compactCatalogNumber(catalogNumber).toLowerCase();
+
+  const walk = (item: unknown, depth: number) => {
+    if (depth > 8 || item === null || item === undefined) return;
+    if (Array.isArray(item)) {
+      for (const child of item.slice(0, 200)) walk(child, depth + 1);
+      return;
+    }
+    if (typeof item !== "object") return;
+    const record = item as Record<string, unknown>;
+    const variantRecords = arrayRecords(record.hasVariant);
+    if (isJsonLdProductRecord(record) && jsonLdProductMatchesCatalog(record, compactPart, variantRecords.length)) {
+      products.push(record);
+    }
+    if (variantRecords.length) {
+      const matchingVariants = variantRecords.filter((variant) => jsonLdProductMatchesCatalog(variant, compactPart, variantRecords.length));
+      for (const variant of matchingVariants.length ? matchingVariants : variantRecords.length === 1 ? variantRecords : []) {
+        walk(variant, depth + 1);
+      }
+    }
+    for (const [key, child] of Object.entries(record)) {
+      if (/^(?:breadcrumb|review|aggregateRating|offers?)$/i.test(key)) continue;
+      if (key === "hasVariant") continue;
+      walk(child, depth + 1);
+    }
+  };
+
+  walk(value, 0);
+  return products;
+}
+
+function isJsonLdProductRecord(record: Record<string, unknown>): boolean {
+  const rawType = record["@type"];
+  const types = Array.isArray(rawType) ? rawType : [rawType];
+  if (types.some((type) => typeof type === "string" && /^(?:Product|ProductModel|ProductGroup|IndividualProduct)$/i.test(type))) return true;
+  return Boolean(record.sku || record.mpn || record.productID || record.model || record.additionalProperty || record.hasVariant);
+}
+
+function jsonLdProductMatchesCatalog(record: Record<string, unknown>, compactPart: string, siblingCount: number): boolean {
+  if (!compactPart) return true;
+  const identity = uniqueStrings([
+    firstString(record, ["sku", "mpn", "productID", "model", "gtin", "name", "alternateName", "@id"]),
+    firstNestedString(record, ["identifier"], ["value", "name", "text"])
+  ].map((value) => cleanText(value)).filter((value): value is string => Boolean(value))).join(" ");
+  if (!identity) return siblingCount <= 1;
+  return compactCatalogNumber(identity).toLowerCase().includes(compactPart);
 }
 
 function readEmbeddedProductData($: cheerio.CheerioAPI): Record<string, unknown>[] {
@@ -895,6 +952,59 @@ function readEmbeddedProductData($: cheerio.CheerioAPI): Record<string, unknown>
     }
   });
   return products;
+}
+
+function attributesFromJsonLdProduct(product: Record<string, unknown>, sourceUrl: string): AttributeRecord[] {
+  const attributes: AttributeRecord[] = [];
+  const push = (group: string, name: string | undefined, value: string | undefined, unit?: string) => {
+    const cleanName = cleanSpecPairLabel(name);
+    const rawValue = cleanText(value);
+    if (!rawValue) return;
+    const cleanValue = cleanSpecPairValue(appendUnit(rawValue, unit), cleanName);
+    if (!isUsefulSectionAwareSpecPair(cleanName, cleanValue)) return;
+    attributes.push({ group, name: cleanName, value: cleanValue, sourceUrl });
+  };
+
+  for (const key of ["brand", "manufacturer"]) {
+    const value = product[key];
+    if (typeof value === "string" || typeof value === "number") {
+      push("Structured Data", titleFromDataKey(key), String(value));
+    } else if (value && typeof value === "object" && !Array.isArray(value)) {
+      push("Structured Data", titleFromDataKey(key), firstString(value as Record<string, unknown>, ["name", "legalName"]));
+    }
+  }
+
+  for (const property of arrayRecords(product.additionalProperty)) {
+    const name = firstString(property, ["name", "propertyID", "identifier", "label"]);
+    const value =
+      firstString(property, ["value", "valueReference", "displayValue", "text"]) ??
+      schemaValueText(property.value) ??
+      firstArrayString(property, ["values", "valueList", "displayValues"]);
+    const unit = firstString(property, ["unitCode", "unitText", "unit", "uom"]) ?? schemaUnitText(property.value);
+    push("Structured Properties", name, value, unit);
+  }
+
+  return dedupeAttributes(attributes).slice(0, 120);
+}
+
+function documentsFromJsonLdProducts(products: Record<string, unknown>[], sourceUrl: string): DocumentRecord[] {
+  const documents: DocumentRecord[] = [];
+  const walk = (value: unknown, depth: number) => {
+    if (depth > 6 || value === null || value === undefined || documents.length > 80) return;
+    if (Array.isArray(value)) {
+      for (const item of value.slice(0, 120)) walk(item, depth + 1);
+      return;
+    }
+    if (typeof value !== "object") return;
+    const record = value as Record<string, unknown>;
+    maybeAddDocumentFromRecord(record, sourceUrl, documents);
+    for (const [key, child] of Object.entries(record)) {
+      if (!/^(?:subjectOf|associatedMedia|encoding|encodings|media|documents?|downloads?|resources?|mainEntityOfPage|url|contentUrl)$/i.test(key)) continue;
+      walk(child, depth + 1);
+    }
+  };
+  for (const product of products) walk(product, 0);
+  return dedupeDocuments(documents).slice(0, 60);
 }
 
 function documentContextForAnchor($: cheerio.CheerioAPI, element: Parameters<cheerio.CheerioAPI>[0]): string {
@@ -960,8 +1070,9 @@ function extractDynamicComponentData(
     }
   }
 
-  $("script[type='application/json'],script#__NEXT_DATA__,script#__NUXT_DATA__,script#__ASTRO_DATA__,script#ng-state").each((_, element) => {
+  $("script[type*='json'],script#__NEXT_DATA__,script#__NUXT_DATA__,script#__ASTRO_DATA__,script#ng-state").each((_, element) => {
     if (isSystemJsonScript($, element)) return;
+    if (/^application\/ld\+json$/i.test($(element).attr("type") ?? "")) return;
     const raw = $(element).text().trim();
     if (!raw) return;
     try {
@@ -1060,9 +1171,11 @@ function isSystemStatePath(path: string[]): boolean {
 }
 
 function dynamicNameValuePair(record: Record<string, unknown>): { name: string; value: string } | undefined {
-  const name = firstString(record, ["characteristicName", "attributeName", "label", "name", "title", "key", "displayName"]);
+  const name = firstString(record, ["characteristicName", "attributeName", "propertyName", "specName", "label", "name", "title", "key", "displayName"]);
   const value =
-    firstString(record, ["value", "labelText", "displayValue", "valueText", "formattedValue", "text"]) ??
+    firstString(record, ["value", "labelText", "displayValue", "valueText", "formattedValue", "text", "specValue", "propertyValue"]) ??
+    firstNestedString(record, ["value", "displayValue", "formattedValue", "data"], ["formatted", "display", "label", "name", "text", "value"]) ??
+    firstArrayString(record, ["values", "valueList", "displayValues", "options", "items"]) ??
     firstCharacteristicValue(record.characteristicValues);
   const unit = firstString(record, ["unit", "unitText", "unitOfMeasure", "uom"]);
   if (!name || !value) return undefined;
@@ -1088,6 +1201,52 @@ function firstString(record: Record<string, unknown>, keys: string[]): string | 
   return undefined;
 }
 
+function schemaValueText(value: unknown): string | undefined {
+  if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") return cleanText(String(value));
+  if (!value || typeof value !== "object" || Array.isArray(value)) return undefined;
+  const record = value as Record<string, unknown>;
+  return firstString(record, ["value", "minValue", "maxValue", "name", "text", "displayValue", "formattedValue"]);
+}
+
+function schemaUnitText(value: unknown): string | undefined {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return undefined;
+  return firstString(value as Record<string, unknown>, ["unitText", "unitCode", "unit", "uom"]);
+}
+
+function firstNestedString(record: Record<string, unknown>, keys: string[], nestedKeys: string[]): string | undefined {
+  for (const key of keys) {
+    const value = record[key];
+    if (!value || typeof value !== "object" || Array.isArray(value)) continue;
+    const nested = firstString(value as Record<string, unknown>, nestedKeys);
+    if (nested) return nested;
+  }
+  return undefined;
+}
+
+function firstArrayString(record: Record<string, unknown>, keys: string[]): string | undefined {
+  for (const key of keys) {
+    const value = record[key];
+    if (!Array.isArray(value)) continue;
+    const values = value
+      .slice(0, 20)
+      .map((item) => {
+        if (typeof item === "string" || typeof item === "number" || typeof item === "boolean") return cleanText(String(item));
+        if (item && typeof item === "object" && !Array.isArray(item)) {
+          return firstString(item as Record<string, unknown>, ["value", "label", "name", "text", "displayValue", "formatted"]);
+        }
+        return "";
+      })
+      .filter((item): item is string => Boolean(item));
+    if (values.length) return uniqueStrings(values).join("; ");
+  }
+  return undefined;
+}
+
+function arrayRecords(value: unknown): Array<Record<string, unknown>> {
+  if (!Array.isArray(value)) return [];
+  return value.filter((item): item is Record<string, unknown> => Boolean(item && typeof item === "object" && !Array.isArray(item)));
+}
+
 function maybeAddDocument(value: string, label: string, sourceUrl: string, documents: DocumentRecord[]) {
   const absolute = toAbsoluteUrl(value, sourceUrl);
   if (!absolute) return;
@@ -1101,11 +1260,11 @@ function maybeAddDocument(value: string, label: string, sourceUrl: string, docum
 }
 
 function maybeAddDocumentFromRecord(record: Record<string, unknown>, sourceUrl: string, documents: DocumentRecord[]) {
-  const url = firstString(record, ["url", "href", "downloadUrl", "documentUrl", "datasheetUrl", "manualUrl", "fileUrl", "mediaUrl", "resourceUrl"]);
+  const url = firstString(record, ["url", "href", "contentUrl", "downloadUrl", "documentUrl", "datasheetUrl", "manualUrl", "fileUrl", "mediaUrl", "resourceUrl", "assetUrl", "downloadLink", "src"]);
   if (!url) return;
   const label = uniqueStrings([
     firstString(record, ["manualLabel", "datasheetLabel", "documentLabel", "fileName", "filename", "label", "title", "name", "displayName", "description"]),
-    firstString(record, ["type", "documentType", "category", "group"]),
+    firstString(record, ["type", "documentType", "category", "group", "encodingFormat", "fileFormat"]),
     firstString(record, ["language", "locale"])
   ].map((value) => cleanText(value)).filter(Boolean)).join(" - ");
   maybeAddDocument(url, label || "Document", sourceUrl, documents);
@@ -1118,6 +1277,15 @@ function extractAssignedJsonBlocks(raw: string): string[] {
     "window.__APOLLO_STATE__",
     "window.__PRELOADED_STATE__",
     "window.__PRODUCT_DATA__",
+    "window.productData",
+    "window.product",
+    "window.digitalData",
+    "digitalData",
+    "utag_data",
+    "dataLayer.push",
+    "gtag(",
+    "gtag (",
+    "productData",
     "__NEXT_DATA__",
     "__ASTRO_DATA__"
   ];
@@ -1171,7 +1339,7 @@ function dynamicScriptGroup(id: string | undefined): string {
 
 function isUsefulDynamicKey(key: string): boolean {
   const normalized = key.replace(/([a-z])([A-Z])/g, "$1 $2").replace(/[_-]+/g, " ");
-  return /(product|catalog|article|sku|mpn|material|weight|height|width|depth|dimension|voltage|current|protection|\bip\b|certificate|certification|approval|class|eclass|etim|unspsc|description|feature|connection|cable|datasheet|document|download|\burl\b|image)/i.test(
+  return /(product|catalog|article|order|part|item|sku|mpn|model|brand|manufacturer|material|weight|height|width|depth|length|diameter|dimension|voltage|current|power|temperature|ambient|storage|torque|frequency|pressure|flow|protection|\bip\b|certificate|certification|approval|class|eclass|etim|unspsc|description|feature|connection|channel|input|output|cable|datasheet|document|download|\burl\b|image)/i.test(
     normalized
   );
 }
@@ -1305,7 +1473,7 @@ function translatedNameBefore(text: string, index: number): string | undefined {
 function isUsefulEmbeddedProperty(name: string, value: string): boolean {
   if (!value || value.length > 500) return false;
   if (/^\s*(?:-|n\/?a|not available|none|without|ohne)\s*$/i.test(value)) return false;
-  return isUsefulDynamicKey(name) || /\b(?:standard|cert|approval|voltage|current|material|dimension|weight|protection|ip|connection|coding|actuator|temperature)\b/i.test(name);
+  return isUsefulDynamicKey(name) || /\b(?:standard|cert|approval|voltage|current|material|dimension|weight|protection|ip|connection|coding|actuator|temperature|ambient|storage|torque|frequency|pressure|flow)\b/i.test(name);
 }
 
 function extractNamedJsonArrays(rawText: string, key: string): unknown[] {
@@ -1676,6 +1844,52 @@ function extractSemanticSpecAttributes($: cheerio.CheerioAPI, sourceUrl: string)
   return dedupeAttributes(attributes).slice(0, 180);
 }
 
+function extractSchemaPropertyValueAttributes($: cheerio.CheerioAPI, sourceUrl: string): AttributeRecord[] {
+  const attributes: AttributeRecord[] = [];
+  const selectors = [
+    "[itemtype*='PropertyValue']",
+    "[typeof*='PropertyValue']",
+    "[itemprop='additionalProperty'][itemscope]",
+    "[property='additionalProperty'][typeof]"
+  ].join(",");
+
+  $(selectors).slice(0, 300).each((_, element) => {
+    const name = schemaScopedValue($, element, ["name", "propertyID", "identifier", "label"]);
+    const rawValue = schemaScopedValue($, element, ["value", "valueReference", "displayValue", "text"]);
+    const unit = schemaScopedValue($, element, ["unitText", "unitCode", "unit", "uom"]);
+    const cleanName = cleanSpecPairLabel(name);
+    const cleanValue = cleanSpecPairValue(appendUnit(cleanText(rawValue), unit), cleanName);
+    if (!isUsefulSectionAwareSpecPair(cleanName, cleanValue)) return;
+    attributes.push({ group: schemaPropertyGroup($, element), name: cleanName, value: cleanValue, sourceUrl });
+  });
+
+  return dedupeAttributes(attributes).slice(0, 160);
+}
+
+function schemaScopedValue($: cheerio.CheerioAPI, root: Parameters<cheerio.CheerioAPI>[0], propertyNames: string[]): string | undefined {
+  for (const propertyName of propertyNames) {
+    const direct = $(root)
+      .find(`[itemprop='${propertyName}'],[property='${propertyName}']`)
+      .filter((_, element) => $(element).parents("[itemtype*='PropertyValue'],[typeof*='PropertyValue'],[itemscope]").first().get(0) === root)
+      .first();
+    if (!direct.length) continue;
+    const value = cleanText(direct.attr("content") || direct.attr("value") || direct.attr("data-value") || direct.text());
+    if (value) return value;
+  }
+  return undefined;
+}
+
+function schemaPropertyGroup($: cheerio.CheerioAPI, element: Parameters<cheerio.CheerioAPI>[0]): string {
+  const heading = cleanText(
+    [
+      $(element).closest("section,article,div").find("h2,h3,h4,[role='heading'],[class*='heading'],[class*='title']").first().text(),
+      $(element).prevAll("h2,h3,h4,[role='heading']").first().text()
+    ].filter(Boolean)[0]
+  );
+  if (heading && heading.length <= 90) return heading;
+  return "Schema Properties";
+}
+
 function extractSectionAwareSpecAttributes($: cheerio.CheerioAPI, sourceUrl: string): AttributeRecord[] {
   const attributes: AttributeRecord[] = [];
   const seenContainers = new Set<unknown>();
@@ -1738,6 +1952,150 @@ function extractSectionAwareSpecAttributes($: cheerio.CheerioAPI, sourceUrl: str
   });
 
   return dedupeAttributes(attributes).slice(0, 180);
+}
+
+function extractPageWideSpecAttributes($: cheerio.CheerioAPI, catalogNumber: string, sourceUrl: string): AttributeRecord[] {
+  return dedupeAttributes([
+    ...extractHeaderMappedTableAttributes($, catalogNumber, sourceUrl),
+    ...extractLooseChildPairAttributes($, sourceUrl),
+    ...extractResponsiveCellAttributes($, sourceUrl),
+    ...extractAriaReferencedAttributes($, sourceUrl)
+  ]).slice(0, 240);
+}
+
+function extractHeaderMappedTableAttributes($: cheerio.CheerioAPI, catalogNumber: string, sourceUrl: string): AttributeRecord[] {
+  const attributes: AttributeRecord[] = [];
+  $("table").slice(0, 120).each((_, table) => {
+    const rows: string[][] = [];
+    $(table).find("tr").slice(0, 80).each((__, row) => {
+      const cells = $(row).find("th,td").map((___, cell) => cleanSectionValue($(cell).text())).get().filter(Boolean);
+      if (cells.length) rows.push(cells);
+    });
+    if (rows.length < 2) return;
+    const header = rows[0].map(cleanSpecPairLabel);
+    if (header.length < 2 || header.filter(isUsefulSpecLabel).length === 0) return;
+    if (header.every((cell) => /^header\s+\d+$/i.test(cell))) return;
+
+    const dataRows = rows.slice(1).filter((row) => row.length >= 2);
+    const matchingRows = dataRows.filter((row) => catalogTextMatches(row.join(" "), catalogNumber, { compact: true, ignoreCase: true, afterColon: true }));
+    const chosenRows = matchingRows.length > 0 ? matchingRows : dataRows.length === 1 && tableLooksProductSpecific($, table) ? dataRows : [];
+    if (!chosenRows.length) return;
+    const group = tableSpecGroup($, table);
+
+    for (const row of chosenRows.slice(0, 4)) {
+      for (let index = 0; index < Math.min(header.length, row.length); index += 1) {
+        const name = header[index];
+        const value = cleanSpecPairValue(row[index], name);
+        if (!isUsefulSectionAwareSpecPair(name, value)) continue;
+        attributes.push({ group, name, value, sourceUrl });
+      }
+    }
+  });
+  return dedupeAttributes(attributes).slice(0, 180);
+}
+
+function extractLooseChildPairAttributes($: cheerio.CheerioAPI, sourceUrl: string): AttributeRecord[] {
+  const attributes: AttributeRecord[] = [];
+  $("div,li,p,section,article,[role='row']")
+    .slice(0, 1600)
+    .each((_, row) => {
+      if (isInsideTable($, row) || isNavigationLike($, row)) return;
+      const pair = childElementSpecPair($, row) ?? splitNameValue($(row).text());
+      if (!pair) return;
+      const name = cleanSpecPairLabel(pair.name);
+      const value = cleanSpecPairValue(pair.value, name);
+      if (!isUsefulSectionAwareSpecPair(name, value)) return;
+      attributes.push({ group: loosePairGroup($, row), name, value, sourceUrl });
+    });
+  return dedupeAttributes(attributes).slice(0, 160);
+}
+
+function extractResponsiveCellAttributes($: cheerio.CheerioAPI, sourceUrl: string): AttributeRecord[] {
+  const attributes: AttributeRecord[] = [];
+  $("td[data-label],td[data-title],td[headers],li[data-label],div[data-label]")
+    .slice(0, 500)
+    .each((_, element) => {
+      const name = cleanSpecPairLabel($(element).attr("data-label") || $(element).attr("data-title") || $(element).attr("headers"));
+      const value = cleanSpecPairValue($(element).text(), name);
+      if (!isUsefulSectionAwareSpecPair(name, value)) return;
+      attributes.push({ group: tableSpecGroup($, $(element).closest("table").get(0) ?? element), name, value, sourceUrl });
+    });
+  return dedupeAttributes(attributes).slice(0, 120);
+}
+
+function extractAriaReferencedAttributes($: cheerio.CheerioAPI, sourceUrl: string): AttributeRecord[] {
+  const attributes: AttributeRecord[] = [];
+  $("[aria-labelledby],[aria-describedby]")
+    .slice(0, 700)
+    .each((_, element) => {
+      if (isNavigationLike($, element)) return;
+      const labelText = referencedElementText($, $(element).attr("aria-labelledby"));
+      const describedText = referencedElementText($, $(element).attr("aria-describedby"));
+      const ownText = cleanSectionValue($(element).text());
+      const name = cleanSpecPairLabel(labelText || ariaPairLabelFromOwnText(ownText));
+      const valueSource = labelText ? ownText : describedText;
+      const value = cleanSpecPairValue(valueSource, name);
+      if (!isUsefulSectionAwareSpecPair(name, value)) return;
+      attributes.push({ group: loosePairGroup($, element), name, value, sourceUrl });
+    });
+  return dedupeAttributes(attributes).slice(0, 120);
+}
+
+function referencedElementText($: cheerio.CheerioAPI, idList: string | undefined): string | undefined {
+  const ids = cleanText(idList).split(/\s+/).filter(Boolean).slice(0, 5);
+  const values: string[] = [];
+  for (const id of ids) {
+    const text = cleanSectionValue($("[id]").filter((_, element) => $(element).attr("id") === id).first().text());
+    if (text) values.push(text);
+  }
+  return values.length ? uniqueStringValues(values).join(" ") : undefined;
+}
+
+function ariaPairLabelFromOwnText(text: string): string | undefined {
+  const pair = splitNameValue(text);
+  return pair?.name;
+}
+
+function tableLooksProductSpecific($: cheerio.CheerioAPI, table: Parameters<cheerio.CheerioAPI>[0]): boolean {
+  const context = cleanText([
+    $(table).attr("class"),
+    $(table).attr("id"),
+    $(table).closest("section,article,div").find("h2,h3,h4,[role='heading']").first().text(),
+    $(table).prevAll("h2,h3,h4,[role='heading']").first().text()
+  ].filter(Boolean).join(" "));
+  return /\b(?:spec|technical|tech|electrical|mechanical|attribute|property|characteristic|parameter|product|variant|data|rating)\b/i.test(context);
+}
+
+function tableSpecGroup($: cheerio.CheerioAPI, element: Parameters<cheerio.CheerioAPI>[0]): string {
+  const heading = cleanText(
+    [
+      $(element).closest("section,article,div").find("h2,h3,h4,[role='heading'],[class*='heading'],[class*='title']").first().text(),
+      $(element).prevAll("h2,h3,h4,[role='heading']").first().text()
+    ].filter(Boolean)[0]
+  );
+  if (heading && heading.length <= 90) return heading;
+  return "Product Table";
+}
+
+function loosePairGroup($: cheerio.CheerioAPI, element: Parameters<cheerio.CheerioAPI>[0]): string {
+  const heading = cleanText(
+    [
+      $(element).closest("section,article").find("h2,h3,h4,[role='heading'],[class*='heading'],[class*='title']").first().text(),
+      $(element).prevAll("h2,h3,h4,[role='heading']").first().text()
+    ].filter(Boolean)[0]
+  );
+  if (heading && heading.length <= 90) return heading;
+  return "Page Evidence";
+}
+
+function isInsideTable($: cheerio.CheerioAPI, element: Parameters<cheerio.CheerioAPI>[0]): boolean {
+  return $(element).parents("table").length > 0;
+}
+
+function isNavigationLike($: cheerio.CheerioAPI, element: Parameters<cheerio.CheerioAPI>[0]): boolean {
+  const tagName = (element as { tagName?: string } | undefined)?.tagName;
+  const context = cleanText([$(element).attr("class"), $(element).attr("id"), tagName].filter(Boolean).join(" "));
+  return /\b(?:nav|menu|breadcrumb|footer|header|cookie|modal|pagination|toolbar|filter|facet)\b/i.test(context);
 }
 
 function isLikelySpecContainer($: cheerio.CheerioAPI, element: Parameters<cheerio.CheerioAPI>[0]): boolean {
@@ -1895,7 +2253,7 @@ function semanticSpecGroup($: cheerio.CheerioAPI, element: Parameters<cheerio.Ch
 }
 
 function isUsefulSpecLabel(label: string): boolean {
-  return /classification|type|material|finish|color|height|width|depth|length|weight|voltage|current|power|temperature|sensor|signal|display|enclosure|function|mounting|protection|rating|standard|certification|ground|path|jacket|conductor|connection|package|upc|ean|catalog|item|article/i.test(label);
+  return /classification|type|material|finish|colou?r|height|width|depth|length|diameter|weight|mass|voltage|current|power|temperature|ambient|storage|torque|frequency|pressure|flow|sensor|signal|display|enclosure|function|mounting|protection|rating|standard|certification|approval|ground|path|jacket|conductor|connection|channel|input|output|i\/o|package|brand|manufacturer|model|sku|mpn|gtin|upc|ean|catalog|order|part|item|article/i.test(label);
 }
 
 function labeledSpecGroup($: cheerio.CheerioAPI, labelElement: Parameters<cheerio.CheerioAPI>[0]): string {
