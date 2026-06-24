@@ -30,6 +30,11 @@ function documentRowsFor(item: RunItemRecord): DocRow[] {
     if (directDocuments.length > 0) return completeEatonDocumentLanguages(directDocuments, ruleRows);
   }
 
+  if (item.result?.manufacturerId === "abb" && item.result.productUrl) {
+    const scrapedRows = localizedProductDocumentRows(item, true);
+    if (scrapedRows.length > 0) return scrapedRows;
+  }
+
   if (ruleRows.length > 0) return ruleRows;
 
   if (item.result?.manufacturerId === "rockwell") {
@@ -37,12 +42,16 @@ function documentRowsFor(item: RunItemRecord): DocRow[] {
     if (directDocuments.length > 0) return directDocuments;
   }
 
+  return localizedProductDocumentRows(item);
+}
+
+function localizedProductDocumentRows(item: RunItemRecord, preferProductUrl = false): DocRow[] {
   const localized = item.result?.localizedUrls;
-  const en = localized?.en ?? item.result?.productUrl ?? item.productUrl;
+  const en = preferProductUrl ? item.result?.productUrl ?? localized?.en ?? item.productUrl : localized?.en ?? item.result?.productUrl ?? item.productUrl;
   const de = localized?.de;
   const rows: DocRow[] = [];
   if (en) rows.push({ url: en, language: "english", description: "Datasheet(EN)" });
-  if (de) rows.push({ url: de, language: "german", description: "Datenblatt" });
+  if (de && de !== en) rows.push({ url: de, language: "german", description: "Datenblatt" });
   return rows;
 }
 

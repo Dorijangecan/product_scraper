@@ -250,6 +250,21 @@ describe("eclass resolvers", () => {
     expect(resolveProperty("AAY811", "AAY811", c)).toBe("https://www.eaton.com/gb/en-gb/skuPage.284245.html");
   });
 
+  it("prefers the actual ABB product page found by the scraper over catalog-based PDT fallbacks", () => {
+    const productUrl = "https://www.abb.com/global/en/products/1sap250500r0001";
+    const c = ctx(
+      {
+        manufacturerId: "abb",
+        productUrl
+      },
+      "AC522"
+    );
+    c.manufacturer = { ...manufacturer, id: "abb", canonicalName: "ABB" } as ManufacturerConfig;
+
+    expect(resolveProperty("AAQ326", "AAQ326", c)).toBe(productUrl);
+    expect(resolveProperty("AAY811", "AAY811", c)).toBe(productUrl);
+  });
+
   it("uses partnumber_info/?n= for Saginaw product URLs (manual PDT format)", () => {
     const c = ctx({ manufacturerId: "sce" }, "SCE-12H2406LP");
     c.manufacturer = { ...manufacturer, id: "sce" } as ManufacturerConfig;
@@ -2752,10 +2767,53 @@ describe("PDT exporter", () => {
     // No localizedDescriptions.de on the result: write the fallback as a literal so Excel
     // does not require manual recalculation before downstream import.
     expect(ws.getCell(10, 2).value).toBe(
-      "The AF40B-30-00RT-12 is a 3 pole - 690 V IEC or 600 UL Schuetz with RT terminals, controlling motors up to 18.5 kW / 400 V AC (AC-3) or 30 hp / 480 V UL."
+      "The AF40B-30-00RT-12 is a 3 pole - 690 V IEC oder 600 UL Schuetz with RT terminals, controlling motors up to 18.5 kW / 400 V AC (AC-3) oder 30 hp / 480 V UL."
     );
     // EN column still gets the scraped English description as a literal value.
     expect(ws.getCell(10, 3).value).toBe(description);
+  });
+
+  it("writes German ABB analog module description fallbacks as literals", async () => {
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-pdt-abb-ac522-de-"));
+    const templatePath = path.join(dir, "template.xlsx");
+    const outputPath = path.join(dir, "out.xlsx");
+    const wb = new ExcelJS.Workbook();
+    const material = wb.addWorksheet("Material Master Data");
+    material.getCell(2, 2).value = "Description DE";
+    material.getCell(2, 3).value = "Description DE";
+    material.getCell(2, 4).value = "Description EN";
+    material.getCell(2, 5).value = "Description EN";
+    material.getCell(6, 1).value = "ECLASS property";
+    material.getCell(7, 1).value = "Variable name (CNS internal)";
+    material.getCell(8, 1).value = "English variable description";
+    material.getCell(9, 1).value = "Units";
+    material.getCell(6, 2).value = "CNS_DESCRIPTION_LONG / AAU734";
+    material.getCell(7, 2).value = "CNS_DESCRIPTION_LONG";
+    material.getCell(8, 2).value = "Product description long";
+    material.getCell(6, 3).value = "CNS_DESCRIPTION_SHORT";
+    material.getCell(7, 3).value = "CNS_DESCRIPTION_SHORT";
+    material.getCell(8, 3).value = "Product description short";
+    material.getCell(6, 4).value = "CNS_DESCRIPTION_LONG / AAU734";
+    material.getCell(7, 4).value = "CNS_DESCRIPTION_LONG";
+    material.getCell(8, 4).value = "Product description long";
+    material.getCell(6, 5).value = "CNS_DESCRIPTION_SHORT";
+    material.getCell(7, 5).value = "CNS_DESCRIPTION_SHORT";
+    material.getCell(8, 5).value = "Product description short";
+    wb.addWorksheet("Additional Documents");
+    await wb.xlsx.writeFile(templatePath);
+
+    const title = "AC522 Analog input/output module";
+    const description = "AC522 Analog input/output module. 4 channels: AI U, I, RTD, DI or AO U, I. 4 channels: AI U, I, RTD or AO U (AC522)";
+    const item = ctx({ manufacturerId: "abb", title, description }, "AC522").item;
+    await exportRunPdt({ manufacturer: { ...manufacturer, id: "abb" } as ManufacturerConfig, items: [item], templatePath, outputPath });
+
+    const out = new ExcelJS.Workbook();
+    await out.xlsx.readFile(outputPath);
+    const ws = out.getWorksheet("Material Master Data")!;
+    expect(ws.getCell(10, 2).value).toBe("AC522 Analogeingangs-/ausgangsmodul. 4 Kanaele: AI U, I, RTD, DI oder AO U, I. 4 Kanaele: AI U, I, RTD oder AO U (AC522)");
+    expect(ws.getCell(10, 3).value).toBe("AC522 Analogeingangs-/ausgangsmodul");
+    expect(ws.getCell(10, 4).value).toBe(description);
+    expect(ws.getCell(10, 5).value).toBe(title);
   });
 
   it("writes echoed DE description fallbacks as literals", async () => {
@@ -5440,6 +5498,30 @@ describe("Additional Documents PDT sheet", () => {
     expect(ws.getCell(8, 5).value).toBe("german");
     expect(ws.getCell(9, 1).value).toBeNull();
     expect(ws.getCell(10, 1).value).toBe("1SBL347060R1200");
+  });
+
+  it("uses scraped ABB product URLs in Additional Documents when the scraper found the specific page", () => {
+    const ws = addDocumentsWorksheet();
+    const productUrl = "https://www.abb.com/global/en/products/1sap250500r0001";
+    const germanUrl = "https://www.abb.com/global/de/products/1sap250500r0001";
+    const item = ctx(
+      {
+        manufacturerId: "abb",
+        productUrl,
+        localizedUrls: {
+          en: "https://new.abb.com/smartlinks/en?ProductId=AC522",
+          de: germanUrl
+        }
+      },
+      "AC522"
+    ).item;
+
+    expect(writeDocumentsSheet(ws, [item])).toBe(2);
+    expect(ws.getCell(7, 1).value).toBe("AC522");
+    expect(ws.getCell(7, 4).value).toEqual({ text: productUrl, hyperlink: productUrl });
+    expect(ws.getCell(7, 5).value).toBe("english");
+    expect(ws.getCell(8, 4).value).toEqual({ text: germanUrl, hyperlink: germanUrl });
+    expect(ws.getCell(8, 5).value).toBe("german");
   });
 
   it("uses scraped localized official URLs for manufacturers without PDT document rules", () => {

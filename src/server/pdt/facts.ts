@@ -124,14 +124,16 @@ export function buildPdtFactIndex(input: PdtFactInput): PdtFactIndex {
     manufacturerId: result.manufacturerId ?? input.manufacturer.id,
     catalogNumber: input.item.catalogNumber
   });
-  const productUrl = result.manufacturerId === "eaton" ? result.productUrl ?? pdtUrlRule?.value : pdtUrlRule?.value ?? result.productUrl;
+  const manufacturerId = result.manufacturerId ?? input.manufacturer.id;
+  const prefersResolvedProductUrl = (manufacturerId === "eaton" || manufacturerId === "abb") && Boolean(result.productUrl);
+  const productUrl = prefersResolvedProductUrl ? result.productUrl ?? pdtUrlRule?.value : pdtUrlRule?.value ?? result.productUrl;
   addGenerated(
     facts,
     "productUrl",
     productUrl,
-    result.manufacturerId === "eaton" && result.productUrl ? "product-url" : pdtUrlRule?.name ?? "product-url",
-    result.manufacturerId === "eaton" && result.productUrl
-      ? "Eaton product URL selected by the scraper after resolving the actual skuPage identifier."
+    prefersResolvedProductUrl ? "product-url" : pdtUrlRule?.name ?? "product-url",
+    prefersResolvedProductUrl
+      ? `${manufacturer.canonicalName} product URL selected by the scraper after resolving the actual product page.`
       : pdtUrlRule?.rationale ?? "Product URL selected by the scraper after identity checks."
   );
   addGenerated(facts, "localizedProductUrlEn", result.localizedUrls?.en, "localized-product-url", "English product URL selected by the scraper.");

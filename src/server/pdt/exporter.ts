@@ -1102,6 +1102,13 @@ function translateDescriptionToGerman(value: string | undefined): string | undef
     [/\bcircuit breaker\b/gi, "Leistungsschalter"],
     [/\bpower distribution block\b/gi, "Stromverteilerblock"],
     [/\bpower supply\b/gi, "Stromversorgung"],
+    [/\banalog input\/output module\b/gi, "Analogeingangs-/ausgangsmodul"],
+    [/\banalogue input\/output module\b/gi, "Analogeingangs-/ausgangsmodul"],
+    [/\banalog input module\b/gi, "Analogeingangsmodul"],
+    [/\banalogue input module\b/gi, "Analogeingangsmodul"],
+    [/\banalog output module\b/gi, "Analogausgangsmodul"],
+    [/\banalogue output module\b/gi, "Analogausgangsmodul"],
+    [/\binput\/output module\b/gi, "Eingangs-/Ausgangsmodul"],
     [/\bsafety relay\b/gi, "Sicherheitsrelais"],
     [/\bterminal block\b/gi, "Reihenklemme"],
     [/\bpush button\b/gi, "Drucktaster"],
@@ -1113,6 +1120,11 @@ function translateDescriptionToGerman(value: string | undefined): string | undef
     [/\bcontroller\b/gi, "Steuerung"],
     [/\bswitchgear\b/gi, "Schaltanlage"],
     [/\benclosure\b/gi, "Gehaeuse"],
+    [/\bchannels\b/gi, "Kanaele"],
+    [/\bchannel\b/gi, "Kanal"],
+    [/\binput\/output\b/gi, "Eingang/Ausgang"],
+    [/\binput\b/gi, "Eingang"],
+    [/\boutput\b/gi, "Ausgang"],
     [/\bmodule\b/gi, "Modul"],
     [/\bdrive\b/gi, "Antrieb"],
     [/\bswitch\b/gi, "Schalter"],
@@ -1127,7 +1139,8 @@ function translateDescriptionToGerman(value: string | undefined): string | undef
     [/\bofficial\b/gi, "offiziell"],
     [/\bproduct catalog\b/gi, "Produktkatalog"],
     [/\bproduct\b/gi, "Produkt"],
-    [/\bcatalog\b/gi, "Katalog"]
+    [/\bcatalog\b/gi, "Katalog"],
+    [/\bor\b/gi, "oder"]
   ];
   for (const [pattern, replacement] of replacements) {
     translated = translated.replace(pattern, replacement);
