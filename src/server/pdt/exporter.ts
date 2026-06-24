@@ -746,7 +746,7 @@ function resolvePdtColumnCell(
   const isDeDescription = isGermanDescriptionColumn(ws, descriptor, column);
   if (isDeDescription) {
     const translated = resolveGermanDescriptionCell(column, ctx, facts);
-    if (translated) return translated;
+    return translated;
   }
   const resolveCtx: ResolveContext = isDeDescription ? { ...ctx, language: "de" } : ctx;
   const factResolved = resolveColumnFromFacts(column, resolveCtx, facts);
@@ -1074,6 +1074,13 @@ function translateDescriptionToGerman(value: string | undefined): string | undef
   const replacements: Array<[RegExp, string]> = [
     [/\bfrom the official Eaton China product catalog\b/gi, "aus dem offiziellen Eaton China Produktkatalog"],
     [/\bofficial Eaton China product catalog\b/gi, "offizieller Eaton China Produktkatalog"],
+    [/\bmain load disconnector switch\b/gi, "Hauptlasttrennschalter"],
+    [/\bload disconnector switch\b/gi, "Lasttrennschalter"],
+    [/\bdisconnector switch\b/gi, "Trennschalter"],
+    [/\bwith isolation function\b/gi, "mit Isolierfunktion"],
+    [/\bisolation function\b/gi, "Isolierfunktion"],
+    [/\bhighly wear resistant contacts\b/gi, "hoch verschleissfeste Kontakte"],
+    [/\bwear resistant contacts\b/gi, "verschleissfeste Kontakte"],
     [/\bdistributed variable frequency drive\b/gi, "dezentraler Frequenzumrichter"],
     [/\bvariable frequency drive\b/gi, "Frequenzumrichter"],
     [/\badjustable frequency drive\b/gi, "Frequenzumrichter"],
@@ -1101,6 +1108,7 @@ function translateDescriptionToGerman(value: string | undefined): string | undef
     [/\bsensor\b/gi, "Sensor"],
     [/\bcable\b/gi, "Kabel"],
     [/\bconnector\b/gi, "Steckverbinder"],
+    [/\bcontacts\b/gi, "Kontakte"],
     [/\bmounted\b/gi, "montiert"],
     [/\bcompact\b/gi, "kompakt"],
     [/\bdistributed\b/gi, "dezentral"],

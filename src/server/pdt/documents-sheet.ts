@@ -20,15 +20,16 @@ interface DocRow {
  * the scraper. Manual-PDT formatting exceptions live in localizedPdtDocumentUrlRules.
  */
 function documentRowsFor(item: RunItemRecord): DocRow[] {
-  if (item.result?.manufacturerId === "eaton") {
-    const directDocuments = eatonDirectDocumentRows(item.result.documents);
-    if (directDocuments.length > 0) return directDocuments;
-  }
-
   const ruleRows = localizedPdtDocumentUrlRules({
     manufacturerId: item.result?.manufacturerId,
     catalogNumber: item.catalogNumber
   }).map((rule) => rule.value);
+
+  if (item.result?.manufacturerId === "eaton") {
+    const directDocuments = eatonDirectDocumentRows(item.result.documents);
+    if (directDocuments.length > 0) return completeEatonDocumentLanguages(directDocuments, ruleRows);
+  }
+
   if (ruleRows.length > 0) return ruleRows;
 
   if (item.result?.manufacturerId === "rockwell") {
@@ -43,6 +44,27 @@ function documentRowsFor(item: RunItemRecord): DocRow[] {
   if (en) rows.push({ url: en, language: "english", description: "Datasheet(EN)" });
   if (de) rows.push({ url: de, language: "german", description: "Datenblatt" });
   return rows;
+}
+
+function completeEatonDocumentLanguages(primary: DocRow[], fallback: DocRow[]): DocRow[] {
+  const rows = [...primary];
+  for (const fallbackRow of fallback) {
+    if (rows.some((row) => row.language === fallbackRow.language)) continue;
+    const englishDirect = rows.find((row) => row.language === "english");
+    const localizedUrl = fallbackRow.language === "german" && englishDirect
+      ? eatonGermanCounterpartUrl(englishDirect.url)
+      : undefined;
+    rows.push({
+      ...fallbackRow,
+      ...(localizedUrl ? { url: localizedUrl } : {})
+    });
+  }
+  return rows;
+}
+
+function eatonGermanCounterpartUrl(url: string): string | undefined {
+  if (!/^https:\/\/www\.eaton\.com\/.+\/skuPage\.[^/?#]+\.pdf(?:[?#].*)?$/i.test(url)) return undefined;
+  return url.replace(/\/(?:gb\/en-gb|us\/en-us|ww\/en|en-gb|en-us)\//i, "/de/de-de/");
 }
 
 function eatonDirectDocumentRows(documents: DocumentRecord[]): DocRow[] {

@@ -2,6 +2,7 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
+import JSZip from "jszip";
 import type { ProductResult } from "../src/shared/types.js";
 import { enrichResultFromDownloadedDocuments, enrichResultFromRemoteDocuments, extractDocumentTextAttributes } from "../src/server/scrapers/document-enrichment.js";
 import { normalizeFields } from "../src/server/scrapers/normalizer.js";
@@ -744,6 +745,53 @@ Material glass-filled polyamide
     ]));
   });
 
+  it("uses DOCX customer documents as source-backed datasheets", async () => {
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-customer-docx-docs-"));
+    const storedPath = path.join(dir, "ZX-CTRL-24-technical-datasheet.docx");
+    await writeMinimalDocx(storedPath, `
+      <w:p><w:r><w:t>ZX-CTRL-24 compact controller</w:t></w:r></w:p>
+      <w:tbl>
+        <w:tr>
+          <w:tc><w:p><w:r><w:t>Housing material</w:t></w:r></w:p></w:tc>
+          <w:tc><w:p><w:r><w:t>Polycarbonate</w:t></w:r></w:p></w:tc>
+        </w:tr>
+        <w:tr>
+          <w:tc><w:p><w:r><w:t>Dimensions</w:t></w:r></w:p></w:tc>
+          <w:tc><w:p><w:r><w:t>120 x 80 x 55 mm</w:t></w:r></w:p></w:tc>
+        </w:tr>
+        <w:tr>
+          <w:tc><w:p><w:r><w:t>Weight</w:t></w:r></w:p></w:tc>
+          <w:tc><w:p><w:r><w:t>0.7 kg</w:t></w:r></w:p></w:tc>
+        </w:tr>
+        <w:tr>
+          <w:tc><w:p><w:r><w:t>Power input</w:t></w:r></w:p></w:tc>
+          <w:tc><w:p><w:r><w:t>24 V DC</w:t></w:r></w:p></w:tc>
+        </w:tr>
+      </w:tbl>
+    `);
+
+    const extraction = await extractCustomerDocumentAttributes("ZX-CTRL-24", [
+      {
+        id: "customer-doc-1",
+        originalName: path.basename(storedPath),
+        storedPath,
+        mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        uploadedAt: "2026-06-02T00:00:00.000Z"
+      }
+    ]);
+    const enriched = applyCustomerDocumentOverride(product({ catalogNumber: "ZX-CTRL-24", status: "failed" }), extraction);
+
+    expect(extraction.documents[0].type).toBe("datasheet");
+    expect(extraction.attributes).toEqual(expect.arrayContaining([
+      expect.objectContaining({ name: "Housing material", value: "Polycarbonate", parser: "customer-document" }),
+      expect.objectContaining({ name: "Power input", value: "24 V DC", parser: "customer-document" })
+    ]));
+    expect(enriched.normalized.material).toBe("Polycarbonate");
+    expect(enriched.normalized.dimensions).toBe("120 x 80 x 55 mm");
+    expect(enriched.normalized.weight).toBe("0.7 kg");
+    expect(enriched.normalized.voltage).toBe("24 V DC");
+  });
+
   it("uses the central field registry to decide which normalized fields customer documents override", () => {
     const base = product({
       normalized: {
@@ -1153,4 +1201,18 @@ function product(overrides: Partial<ProductResult>): ProductResult {
     sources: [],
     ...overrides
   };
+}
+
+async function writeMinimalDocx(filePath: string, bodyXml: string): Promise<void> {
+  const zip = new JSZip();
+  zip.file("[Content_Types].xml", `<?xml version="1.0" encoding="UTF-8"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+  <Default Extension="xml" ContentType="application/xml"/>
+  <Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>
+</Types>`);
+  zip.file("word/document.xml", `<?xml version="1.0" encoding="UTF-8"?>
+<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+  <w:body>${bodyXml}</w:body>
+</w:document>`);
+  await fs.writeFile(filePath, await zip.generateAsync({ type: "nodebuffer" }));
 }

@@ -1360,6 +1360,12 @@ describe("eclass resolvers", () => {
     expect(resolveProperty("AAC821", "AAC821", c)).toBe("80");
   });
 
+  it("keeps the minus sign from unicode temperature ranges", () => {
+    const c = ctx({ attributes: [{ name: "Operating temperature", value: "\u20135 \u00b0C ... +40 \u00b0C" }] });
+    expect(resolveProperty("AAC820", "AAC820", c)).toBe("-5");
+    expect(resolveProperty("AAC821", "AAC821", c)).toBe("40");
+  });
+
   it("uses ABB Amb Air Tem operating range before storage range", () => {
     const c = ctx({
       attributes: [
@@ -2826,6 +2832,34 @@ describe("PDT exporter", () => {
     expect(ws.getCell("AB10").value).toBe("CDVRL00001 - Eaton Rapid Link 5X RASP5X variable frequency drive");
   });
 
+  it("does not echo English Eaton descriptions into bundled German description columns", async () => {
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-pdt-eaton-de-description-"));
+    const outputPath = path.join(dir, "out.xlsx");
+    const item = ctx(
+      {
+        manufacturerId: "eaton",
+        title: "Eaton 142824 Main load disconnector Switch",
+        description: "Eaton 142824 Main load disconnector Switch with isolation function, highly wear resistant contacts, 240V, 80 A, 1P"
+      },
+      "142824"
+    ).item;
+
+    await exportRunPdt({
+      manufacturer: { ...manufacturer, id: "eaton" } as ManufacturerConfig,
+      items: [item],
+      templatePath: path.resolve("templates", "master_pdt.xlsx"),
+      outputPath
+    });
+
+    const out = new ExcelJS.Workbook();
+    await out.xlsx.readFile(outputPath);
+    const ws = out.getWorksheet("Material Master Data")!;
+    expect(ws.getCell("Y10").value).toBe("Eaton 142824 Hauptlasttrennschalter mit Isolierfunktion, hoch verschleissfeste Kontakte, 240V, 80 A, 1P");
+    expect(ws.getCell("Z10").value).toBe("Eaton 142824 Hauptlasttrennschalter");
+    expect(ws.getCell("AA10").value).toBe("Eaton 142824 Main load disconnector Switch with isolation function, highly wear resistant contacts, 240V, 80 A, 1P");
+    expect(ws.getCell("AB10").value).toBe("Eaton 142824 Main load disconnector Switch");
+  });
+
   it("fills PDT columns from semantically equivalent scraped attribute labels", async () => {
     const dir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-pdt-fuzzy-label-"));
     const templatePath = path.join(dir, "template.xlsx");
@@ -2855,6 +2889,57 @@ describe("PDT exporter", () => {
     await out.xlsx.readFile(outputPath);
     const ws = out.getWorksheet("Material Master Data")!;
     expect(ws.getCell(10, 2).value).toBe(240);
+  });
+
+  it("writes Material Master certificate columns from certificate documents", async () => {
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-pdt-document-certificates-"));
+    const templatePath = path.join(dir, "template.xlsx");
+    const outputPath = path.join(dir, "out.xlsx");
+    const wb = new ExcelJS.Workbook();
+    const material = wb.addWorksheet("Material Master Data");
+    material.getCell(6, 1).value = "ECLASS property";
+    material.getCell(7, 1).value = "Variable name (CNS internal)";
+    material.getCell(8, 1).value = "English variable description";
+    material.getCell(9, 1).value = "Units";
+    material.getCell(6, 2).value = "AAO676";
+    material.getCell(7, 2).value = "CNSORDERNO";
+    material.getCell(8, 2).value = "Articlenumber";
+    material.getCell(6, 3).value = "CERTIFICATION";
+    material.getCell(7, 3).value = "CERTIFICATION";
+    material.getCell(8, 3).value = "certificate/approval";
+    wb.addWorksheet("Additional Documents");
+    await wb.xlsx.writeFile(templatePath);
+
+    const item = ctx(
+      {
+        manufacturerId: "eaton",
+        documents: [
+          {
+            type: "certificate",
+            label: "EU Declaration of Conformity - CE",
+            url: "https://example.test/eaton-ce.pdf",
+            sourceType: "official",
+            parser: "test",
+            stage: "download",
+            confidence: 0.92
+          }
+        ]
+      },
+      "142824"
+    ).item;
+    const result = await exportRunPdt({ manufacturer: { ...manufacturer, id: "eaton" } as ManufacturerConfig, items: [item], templatePath, outputPath });
+
+    const out = new ExcelJS.Workbook();
+    await out.xlsx.readFile(outputPath);
+    const ws = out.getWorksheet("Material Master Data")!;
+    expect(ws.getCell(10, 3).value).toBe("EU Declaration of Conformity");
+    expect(result.cellAudit.records.some((record) =>
+      record.catalogNumber === "142824" &&
+      record.code === "CERTIFICATION" &&
+      record.status === "written" &&
+      record.sourceKind === "document" &&
+      record.value === "EU Declaration of Conformity"
+    )).toBe(true);
   });
 
   it("fills profile-critical PDT fields from multilingual ontology-backed attributes when normalized fields are empty", async () => {
@@ -5339,6 +5424,40 @@ describe("Additional Documents PDT sheet", () => {
     expect(ws.getCell(8, 5).value).toBe("german");
   });
 
+  it("adds the missing German Eaton document row when only an English direct PDF was scraped", () => {
+    const ws = addDocumentsWorksheet();
+    const item = ctx(
+      {
+        manufacturerId: "eaton",
+        documents: [
+          {
+            type: "datasheet",
+            label: "Eaton 142824 datasheet",
+            url: "https://www.eaton.com/gb/en-gb/skuPage.142824.pdf",
+            sourceType: "official",
+            parser: "test",
+            stage: "download",
+            confidence: 0.95
+          }
+        ]
+      },
+      "142824"
+    ).item;
+
+    expect(writeDocumentsSheet(ws, [item])).toBe(2);
+    expect(ws.getCell(7, 4).value).toEqual({
+      text: "https://www.eaton.com/gb/en-gb/skuPage.142824.pdf",
+      hyperlink: "https://www.eaton.com/gb/en-gb/skuPage.142824.pdf"
+    });
+    expect(ws.getCell(7, 5).value).toBe("english");
+    expect(ws.getCell(8, 4).value).toEqual({
+      text: "https://www.eaton.com/de/de-de/skuPage.142824.pdf",
+      hyperlink: "https://www.eaton.com/de/de-de/skuPage.142824.pdf"
+    });
+    expect(ws.getCell(8, 5).value).toBe("german");
+    expect(ws.getCell(8, 7).value).toBe("Datenblatt");
+  });
+
   it("prefers direct Rockwell literature PDFs over product pages for unknown families", () => {
     const ws = addDocumentsWorksheet();
     const item = ctx(
@@ -5399,7 +5518,7 @@ describe("Additional Documents PDT sheet", () => {
       "XSFH20"
     ).item;
 
-    expect(writeDocumentsSheet(ws, [item])).toBe(1);
+    expect(writeDocumentsSheet(ws, [item])).toBe(2);
     expect(ws.getCell(7, 1).value).toBe("XSFH20");
     expect(ws.getCell(7, 3).value).toBe("pdf");
     expect(ws.getCell(7, 4).value).toEqual({
@@ -5409,5 +5528,11 @@ describe("Additional Documents PDT sheet", () => {
     expect(String((ws.getCell(7, 4).value as { text: string }).text)).not.toContain("EP-284245");
     expect(ws.getCell(7, 5).value).toBe("english");
     expect(ws.getCell(7, 7).value).toBe("Datasheet(EN)");
+    expect(ws.getCell(8, 4).value).toEqual({
+      text: "https://www.eaton.com/de/de-de/skuPage.284245.pdf",
+      hyperlink: "https://www.eaton.com/de/de-de/skuPage.284245.pdf"
+    });
+    expect(ws.getCell(8, 5).value).toBe("german");
+    expect(ws.getCell(8, 7).value).toBe("Datenblatt");
   });
 });

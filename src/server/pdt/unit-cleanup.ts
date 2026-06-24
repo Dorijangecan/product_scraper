@@ -220,7 +220,10 @@ function normalizeUnit(value: string | undefined): string | undefined {
 }
 
 function normalizeForParsing(value: string): string {
-  return value
+  const dashNormalized = value
+    .replace(/[\u2013\u2014\u2212]/g, "-")
+    .replace(/\u00e2[\u20ac\u0088][\u201c\u201d\u0092]/g, "-");
+  return dashNormalized
     .replace(/\u00b3/g, "3")
     .replace(/Â°/g, "°")
     .replace(/℃/g, "°C")

@@ -1,4 +1,4 @@
-import type { AttributeRecord, ManufacturerConfig, ProductResult, RunItemRecord, SourceRecord } from "../../shared/types.js";
+import type { AttributeRecord, DocumentRecord, ManufacturerConfig, ProductResult, RunItemRecord, SourceRecord } from "../../shared/types.js";
 import { getManufacturerConfig } from "../config/manufacturers.js";
 import { matchProperty, understand } from "../scrapers/ontology.js";
 import { normalizeFields } from "../scrapers/normalizer.js";
@@ -163,6 +163,7 @@ export function buildPdtFactIndex(input: PdtFactInput): PdtFactIndex {
   addNormalized(facts, result, "protection", result.normalized.protection);
   addNormalized(facts, result, "certificates", result.normalized.certificates);
   addSemanticNormalizedFacts(facts, result);
+  addDocumentCertificateFacts(facts, result);
 
   // Customer-document attributes are authoritative — when one clearly looks like voltage
   // or current and the normalizer didn't pick it up (often because of a column-style label
@@ -270,6 +271,39 @@ function addSemanticNormalizedFacts(facts: PdtFact[], result: ProductResult): vo
   if (!clean(result.normalized.color)) addSemanticNormalizedIfMissing(facts, result, "color", normalized.color);
   if (!clean(result.normalized.voltage)) addSemanticNormalizedIfMissing(facts, result, "ratedVoltage", normalized.voltage);
   if (!clean(result.normalized.current)) addSemanticNormalizedIfMissing(facts, result, "ratedCurrent", normalized.current);
+}
+
+function addDocumentCertificateFacts(facts: PdtFact[], result: ProductResult): void {
+  if (facts.some((fact) => fact.key === "certificates" || fact.key === "pdtCertificates")) return;
+  const certificateDoc = bestCertificateDocument(result.documents);
+  if (!certificateDoc) return;
+  const value = clean(result.normalized.certificates) ?? clean(normalizeFields(result.attributes, result.documents).certificates);
+  if (!value) return;
+  const sourceType = certificateDoc.sourceType ?? "official";
+  const confidence =
+    certificateDoc.confidence ??
+    (sourceType === "official" ? 0.86 : sourceType === "official-fallback" ? 0.74 : sourceType === "distributor" ? 0.45 : 0.62);
+  const base: Omit<PdtFact, "key"> = {
+    value,
+    sourceKind: "document",
+    sourceUrl: certificateDoc.url,
+    sourceType,
+    parser: certificateDoc.parser,
+    stage: certificateDoc.stage ?? certificateDoc.parseStatus ?? "document-normalize",
+    confidence,
+    reason: `Certificate value derived from source document "${certificateDoc.label}".`
+  };
+  facts.push({ key: "certificates", ...base }, { key: "pdtCertificates", ...base });
+}
+
+function bestCertificateDocument(documents: DocumentRecord[]): DocumentRecord | undefined {
+  const matches = documents.filter(
+    (doc) =>
+      !/\bwarranty\b/i.test(doc.label) &&
+      (doc.type === "certificate" || /\b(certificate|declaration|conformity|rohs|weee|ce declaration)\b/i.test(doc.label))
+  );
+  matches.sort((left, right) => sourceRank(right.sourceType) - sourceRank(left.sourceType) || (right.confidence ?? 0) - (left.confidence ?? 0));
+  return matches[0];
 }
 
 function addSemanticNormalizedIfMissing(facts: PdtFact[], result: ProductResult, key: string, value: string | undefined): void {

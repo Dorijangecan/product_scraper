@@ -2,6 +2,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import * as cheerio from "cheerio";
 import { parse } from "csv-parse/sync";
+import JSZip from "jszip";
 import { PDFParse } from "pdf-parse";
 import type {
   AttributeRecord,
@@ -213,6 +214,14 @@ export async function extractCustomerDocumentAttributes(
       } else if (extension === ".csv" || extension === ".tsv") {
         extracted = await extractFromCsv(catalogNumber, doc, cache);
         if (extracted.length === 0) extracted = await extractFromTextDocument(catalogNumber, doc, extension, { requireCatalogMatch: true });
+      } else if (extension === ".docx") {
+        extracted = await extractFromDocxDocument(catalogNumber, doc);
+      } else if (extension === ".doc") {
+        const message = `legacy Word .doc files are not supported yet; save this document as .docx, PDF, or plain text and attach it again.`;
+        parseFailures.push(`${doc.originalName}: ${message}`);
+        documentProcessing.push(customerDocumentProcessingRecord(doc, sourceUrl, "failed", message, message));
+        onProgress({ kind: "parse-error", document: doc, message });
+        continue;
       } else if (isFreeTextCustomerDocumentExtension(extension)) {
         extracted = await extractFromTextDocument(catalogNumber, doc, extension);
       } else {
@@ -783,6 +792,25 @@ async function extractFromTextDocument(
   return hasSubstantiveDocumentAttributes(attributes) ? attributes : [];
 }
 
+async function extractFromDocxDocument(
+  catalogNumber: string,
+  doc: CustomerDocumentRecord
+): Promise<AttributeRecord[]> {
+  const buffer = await fs.readFile(doc.storedPath);
+  const text = await customerDocxToPlainText(buffer);
+  if (!cleanText(text)) return [];
+  const textMentionsCatalog = catalogTextMatches(text, catalogNumber) || compactKey(text).includes(compactKey(catalogNumber));
+  const scoped = textMentionsCatalog
+    ? buildTightContextForCatalog(text, catalogNumber, { maxChars: MAX_CUSTOMER_PDF_TEXT_CHARS }) ?? text
+    : text;
+  const attributes = extractDocumentTextAttributes({
+    catalogNumber,
+    document: { label: doc.originalName, type: "other", url: pathToFileUrl(doc.storedPath), localPath: doc.storedPath },
+    text: scoped.slice(0, MAX_CUSTOMER_PDF_TEXT_CHARS)
+  });
+  return hasSubstantiveDocumentAttributes(attributes) ? attributes : [];
+}
+
 function isFreeTextCustomerDocumentExtension(extension: string): boolean {
   return [".txt", ".md", ".markdown", ".html", ".htm", ".json"].includes(extension);
 }
@@ -804,6 +832,69 @@ function customerTextDocumentToPlainText(raw: string, extension: string): string
     return $.root().text();
   }
   return raw;
+}
+
+async function customerDocxToPlainText(buffer: Buffer): Promise<string> {
+  const zip = await JSZip.loadAsync(buffer);
+  const partNames = [
+    "word/document.xml",
+    ...Object.keys(zip.files)
+      .filter((name) => /^word\/(?:header|footer)\d+\.xml$/i.test(name))
+      .sort((left, right) => left.localeCompare(right, undefined, { numeric: true }))
+  ];
+  const parts: string[] = [];
+  for (const name of partNames) {
+    const file = zip.file(name);
+    if (!file) continue;
+    const xml = await file.async("string");
+    const text = docxXmlToPlainText(xml);
+    if (text) parts.push(text);
+  }
+  return parts.join("\n").slice(0, MAX_CUSTOMER_PDF_TEXT_CHARS);
+}
+
+function docxXmlToPlainText(xml: string): string {
+  const chunks: string[] = [];
+  let textDepth = 0;
+  for (const token of xml.match(/<[^>]+>|[^<]+/g) ?? []) {
+    if (token.startsWith("<")) {
+      const tagName = token.match(/^<\/?\s*([A-Za-z0-9_:.-]+)/)?.[1]?.toLowerCase() ?? "";
+      const closing = /^<\//.test(token);
+      const selfClosing = /\/\s*>$/.test(token);
+      if (tagName === "w:t") {
+        if (closing) textDepth = Math.max(0, textDepth - 1);
+        else if (!selfClosing) textDepth += 1;
+      }
+      if (!closing && (tagName === "w:tab" || tagName === "w:br" || tagName === "w:cr")) {
+        chunks.push(tagName === "w:tab" ? "\t" : "\n");
+      }
+      if (closing && tagName === "w:tc") chunks.push("\t");
+      if (closing && (tagName === "w:p" || tagName === "w:tr")) chunks.push("\n");
+      continue;
+    }
+    if (textDepth > 0) chunks.push(decodeXmlText(token));
+  }
+  return normalizeExtractedDocxText(chunks.join(""));
+}
+
+function decodeXmlText(value: string): string {
+  return value
+    .replace(/&#x([0-9a-f]+);/gi, (_, hex: string) => String.fromCodePoint(Number.parseInt(hex, 16)))
+    .replace(/&#(\d+);/g, (_, decimal: string) => String.fromCodePoint(Number.parseInt(decimal, 10)))
+    .replace(/&quot;/g, '"')
+    .replace(/&apos;/g, "'")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&amp;/g, "&");
+}
+
+function normalizeExtractedDocxText(text: string): string {
+  return text
+    .replace(/\r/g, "\n")
+    .split(/\n+/)
+    .map((line) => line.replace(/[ ]+/g, " ").replace(/[ \t]*\t+[ \t]*/g, "\t").trim())
+    .filter(Boolean)
+    .join("\n");
 }
 
 function flattenCustomerJsonText(value: unknown, prefix = ""): string[] {
