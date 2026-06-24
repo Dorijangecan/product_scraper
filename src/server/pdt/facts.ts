@@ -186,13 +186,28 @@ export function buildPdtFactIndex(input: PdtFactInput): PdtFactIndex {
 
   addAttributeFact(facts, result, "eanOrGtin", /\b(ean|gtin)\b/i);
   addAttributeFact(facts, result, "customsTariff", /\b(customs tariff|tariff code|tariff|hs code|commodity code|cn ?8|cn code|combined nomenclature)\b/i);
-  addAttributeFact(facts, result, "typeCode", /\b(type code|typecode|model code|modellcode|extended product type|type designation|product main type|main type|catalog(?:ue)? type|order type)\b/i);
+  addAttributeFact(
+    facts,
+    result,
+    "typeCode",
+    /\b(type code|typecode|model code|modellcode|extended product type|type designation|product main type|main type|catalog(?:ue)? type|order type)\b/i,
+    isUsableTypeCodeValue
+  );
   addProductFamilyFact(facts, result);
-  addAttributeFact(facts, result, "productDesignation", /\b(product designation|manufacturer.*designation|product type|article designation)\b/i);
+  addAttributeFact(
+    facts,
+    result,
+    "productDesignation",
+    /\b(product designation|manufacturer.*designation|product type|article designation)\b/i,
+    (value) => !isUnhelpfulStructuredPdtValue(value)
+  );
   addEclassFacts(facts, result);
   addDeviceTypePdtFacts(facts, input);
   addRockwellIoCatalogFacts(facts, input);
   addRockwellCompact5000IoFacts(facts, input);
+  addRockwell1756L8ControllerFacts(facts, input);
+  addRockwell1444DynamixFacts(facts, input);
+  addRockwell700HbRelayFacts(facts, input);
 
   addRepair(facts, "eclassCode", input.repair?.eclassCode, "pdt-repair", "Deterministic PDT cleanup produced an ECLASS code from scraped evidence.");
   addRepair(facts, "eclassSystemVersion", input.repair?.eclassSystemVersion, "pdt-repair", "Deterministic PDT cleanup produced an ECLASS system version.");
@@ -354,8 +369,11 @@ function sourceForSemanticLabel(result: ProductResult, key: string): AttributeRe
   return matches[0];
 }
 
-function addAttributeFact(facts: PdtFact[], result: ProductResult, key: string, pattern: RegExp): void {
-  const attr = bestAttribute(result.attributes, pattern);
+function addAttributeFact(facts: PdtFact[], result: ProductResult, key: string, pattern: RegExp, usableValue: (value: string) => boolean = () => true): void {
+  const attr = bestAttribute(result.attributes.filter((candidate) => {
+    const value = clean(candidate.value);
+    return Boolean(value && usableValue(value));
+  }), pattern);
   if (!attr) return;
   facts.push(factFromAttribute(key, attr, `Attribute "${attr.name}" matched canonical PDT fact ${key}.`));
 }
@@ -365,7 +383,7 @@ function addProductFamilyFact(facts: PdtFact[], result: ProductResult): void {
     .filter((attr) => /\b(product core group|product category|product family|product range|series|family)\b/i.test(`${attr.group ?? ""} ${attr.name}`))
     .filter((attr) => {
       const value = clean(attr.value);
-      return value && !isUnhelpfulProductFamily(value);
+      return value && !isUnhelpfulStructuredPdtValue(value) && !isUnhelpfulProductFamily(value);
     });
   matches.sort((left, right) => {
     const semanticRank = productFamilyAttributeRank(right) - productFamilyAttributeRank(left);
@@ -548,7 +566,7 @@ function addMetricLengthPdtFact(facts: PdtFact[], result: ProductResult, key: "p
   if (hasAttributeFact(facts, key)) return;
   const attr = bestAttribute(result.attributes, pattern);
   const valueWithUnit = lengthValueWithUnit(attr);
-  if (!attr || !valueWithUnit || !/\bmm\b/i.test(valueWithUnit)) return;
+  if (!attr || !valueWithUnit || !isSafeLengthMeasurement(valueWithUnit) || !/\bmm\b/i.test(valueWithUnit)) return;
   const value = firstNumberWithUnit(valueWithUnit, "mm");
   if (!value) return;
   facts.push(factFromAttribute(key, { ...attr, value }, `Physical attribute "${attr.name}" promoted to PDT ${key}.`));
@@ -563,6 +581,13 @@ function lengthValueWithUnit(attr: AttributeRecord | undefined): string | undefi
   if (!value) return undefined;
   if (unitAlreadyPresent(value, "length") || !clean(attr?.unit)) return value;
   return `${value} ${attr?.unit}`;
+}
+
+function isSafeLengthMeasurement(value: string | undefined): boolean {
+  const text = clean(value);
+  if (!text || text.length > 80 || !/\d/.test(text)) return false;
+  if (/[{}]|var\(--|@media|display\s*:|calc\(|--[a-z0-9-]+|\b(?:auto|thumbnail|function|style|script)\b/i.test(text)) return false;
+  return true;
 }
 
 function soundValueWithUnit(attr: AttributeRecord | undefined): string | undefined {
@@ -798,6 +823,39 @@ function addRockwellCompact5000IoFacts(facts: PdtFact[], input: PdtFactInput): v
   );
 }
 
+function addRockwell700HbRelayFacts(facts: PdtFact[], input: PdtFactInput): void {
+  if (!input.item.result || !isRockwell(input)) return;
+  if (!/^700-HB/i.test(input.item.catalogNumber.trim())) return;
+  addTypeDefaultIfMissing(facts, "operatingTemperatureMin", "-40 C", "rockwell-700-hb-technical-data", "Rockwell 700-HB technical data publishes an operating temperature range of -40...+70 C.");
+  addTypeDefaultIfMissing(facts, "operatingTemperatureMax", "70 C", "rockwell-700-hb-technical-data", "Rockwell 700-HB technical data publishes an operating temperature range of -40...+70 C.");
+  addTypeDefaultIfMissing(facts, "pdtDepthMm", "35.8", "rockwell-700-hb-technical-data", "Rockwell 700-HB technical data publishes relay dimensions in millimeters.");
+  addTypeDefaultIfMissing(facts, "pdtWidthMm", "38.2", "rockwell-700-hb-technical-data", "Rockwell 700-HB technical data publishes relay dimensions in millimeters.");
+  addTypeDefaultIfMissing(facts, "pdtHeightMm", "51.4", "rockwell-700-hb-technical-data", "Rockwell 700-HB technical data publishes relay dimensions in millimeters.");
+}
+
+function addRockwell1756L8ControllerFacts(facts: PdtFact[], input: PdtFactInput): void {
+  if (!input.item.result || !isRockwell(input)) return;
+  if (!/^1756-L8[1-5]E(?:K|-NSE)?$/i.test(input.item.catalogNumber.trim())) return;
+  addTypeDefaultIfMissing(facts, "pdtDepthMm", "139.6", "rockwell-1756-in043-installation-instructions", "Rockwell 1756-IN043 installation instructions publish ControlLogix 5580 controller dimensions in millimeters.");
+  addTypeDefaultIfMissing(facts, "pdtWidthMm", "34.55", "rockwell-1756-in043-installation-instructions", "Rockwell 1756-IN043 installation instructions publish ControlLogix 5580 controller dimensions in millimeters.");
+  addTypeDefaultIfMissing(facts, "pdtHeightMm", "145.2", "rockwell-1756-in043-installation-instructions", "Rockwell 1756-IN043 installation instructions publish ControlLogix 5580 controller dimensions in millimeters.");
+}
+
+function addRockwell1444DynamixFacts(facts: PdtFact[], input: PdtFactInput): void {
+  if (!input.item.result || !isRockwell(input)) return;
+  if (!/^1444-DYN04-01RA$/i.test(input.item.catalogNumber.trim())) return;
+  addTypeDefaultIfMissing(facts, "shortDescription", "Dynamic Measurement Module", "rockwell-1444-product-page", "Rockwell product page identifies 1444-DYN04-01RA as a Dynamic Measurement Module.");
+  addTypeDefaultIfMissing(facts, "longDescription", "Dynamic Measurement Module", "rockwell-1444-product-page", "Rockwell product page identifies 1444-DYN04-01RA as a Dynamic Measurement Module.");
+  addTypeDefaultIfMissing(facts, "localizedShortDescriptionDe", "Dynamic Measurement Modul", "rockwell-1444-german-description", "German PDT fallback for Rockwell Dynamic Measurement Module.");
+  addTypeDefaultIfMissing(facts, "localizedLongDescriptionDe", "Dynamic Measurement Modul", "rockwell-1444-german-description", "German PDT fallback for Rockwell Dynamic Measurement Module.");
+  addTypeDefaultIfMissing(facts, "pdtDepthMm", "154", "rockwell-1444-product-page", "Rockwell product page publishes depth without terminal base in millimeters.");
+  addTypeDefaultIfMissing(facts, "pdtWidthMm", "102", "rockwell-1444-product-page", "Rockwell product page publishes width without terminal base in millimeters.");
+  addTypeDefaultIfMissing(facts, "pdtHeightMm", "106", "rockwell-1444-product-page", "Rockwell product page publishes height without terminal base in millimeters.");
+  addTypeDefaultIfMissing(facts, "pdtWeightKg", "0.4", "rockwell-1444-product-page", "Rockwell product page publishes weight without terminal base.");
+  addTypeDefaultIfMissing(facts, "operatingTemperatureMin", "-25 C", "rockwell-1444-technical-data", "Rockwell Dynamix 1444 technical data publishes operating temperature for 1444-DYN04-01RA.");
+  addTypeDefaultIfMissing(facts, "operatingTemperatureMax", "70 C", "rockwell-1444-technical-data", "Rockwell Dynamix 1444 technical data publishes operating temperature for 1444-DYN04-01RA.");
+}
+
 function addRockwellIoCatalogFacts(facts: PdtFact[], input: PdtFactInput): void {
   if (!input.item.result || !isRockwell(input)) return;
   const catalog = clean(input.item.catalogNumber) ?? "";
@@ -998,6 +1056,20 @@ function isUnhelpfulProductFamily(value: string): boolean {
   return /^(?:sku\s*page|product\s+sku|product\s+page|page)$/i.test(value.trim());
 }
 
+function isUnhelpfulStructuredPdtValue(value: string): boolean {
+  const cleaned = value.replace(/\s+/g, " ").trim();
+  if (/^(?:downloads?|download\s*(?:\(\s*zip\s*\)|zip)?|zip|pdf|cad|data\s*sheet|datasheet|manual|product\s+documentation|documentation|select|selected\s+result|learn\s+more)$/i.test(cleaned)) return true;
+  if (/\b(?:table below|shown in the table|series consists|consists of the models|models shown)\b/i.test(cleaned)) return true;
+  return cleaned.split(/\s+/).length > 12 && /[.;:]/.test(cleaned);
+}
+
+function isUsableTypeCodeValue(value: string): boolean {
+  const cleaned = value.replace(/\s+/g, " ").trim();
+  if (isUnhelpfulStructuredPdtValue(cleaned)) return false;
+  if (cleaned.length > 80 || cleaned.split(/\s+/).length > 8) return false;
+  return /[A-Z0-9]/i.test(cleaned);
+}
+
 function ontologyFactKeys(ontologyKey: string): string[] {
   return PDT_ONTOLOGY_FACT_KEYS[ontologyKey] ?? [];
 }
@@ -1023,8 +1095,8 @@ function pdtShortDescription(result: ProductResult, catalogNumber: string): stri
 function pdtLongDescription(result: ProductResult, catalogNumber: string): string | undefined {
   const known = knownPdtDescription(result, catalogNumber)?.long;
   if (known) return known;
-  const value = safeDescription(result.description, catalogNumber);
-  return value;
+  const current = safeDescription(result.description, catalogNumber);
+  return betterLongDescription(result, current, catalogNumber) ?? current;
 }
 
 function knownPdtDescription(result: ProductResult, catalogNumber: string): { short: string; long: string } | undefined {
@@ -1052,6 +1124,24 @@ function safeDescription(value: string | undefined, catalogNumber: string): stri
   const cleaned = clean(value);
   if (!cleaned) return undefined;
   return comparableValue(cleaned) === comparableValue(catalogNumber) ? undefined : cleaned;
+}
+
+function betterLongDescription(result: ProductResult, current: string | undefined, catalogNumber: string): string | undefined {
+  const title = safeDescription(result.title, catalogNumber);
+  const candidates = result.attributes
+    .filter((attr) => /\b(long description|catalog description|product description|description|invoice description)\b/i.test(`${attr.group ?? ""} ${attr.name}`))
+    .map((attr) => safeDescription(attr.value, catalogNumber))
+    .filter((value): value is string => Boolean(value))
+    .filter((value) => !sameDescription(value, title))
+    .filter((value) => !current || sameDescription(current, title) || value.length > current.length + 12);
+  candidates.sort((left, right) => right.length - left.length);
+  return candidates[0];
+}
+
+function sameDescription(left: string | undefined, right: string | undefined): boolean {
+  const a = comparableValue(left ?? "");
+  const b = comparableValue(right ?? "");
+  return Boolean(a && b && a === b);
 }
 
 function indexFacts(facts: PdtFact[]): PdtFactIndex {

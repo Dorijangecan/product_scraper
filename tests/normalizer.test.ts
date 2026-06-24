@@ -38,6 +38,25 @@ describe("normalizer", () => {
     expect(normalized.certificates).toBe("UKCA");
   });
 
+  it("normalizes verbose certification labels into compact certificate tokens", () => {
+    const normalized = normalizeFields(
+      [
+        { name: "Certification", value: "CE Marked" },
+        { name: "Certification", value: "CSA Listed" },
+        { name: "Certification", value: "Registro Italiano Navale" },
+        { name: "Certification", value: "UL Listed" },
+        { name: "Certification", value: "UL Recognized" },
+        { name: "Certification", value: "Australian RCM" },
+        { name: "Certification", value: "Korean KC" },
+        { name: "Certification", value: "UKCA DOC" },
+        { name: "Certification", value: "Certificate Programs" }
+      ],
+      []
+    );
+
+    expect(normalized.certificates).toBe("UL Listed, UL Recognized, CSA Listed, CE, UKCA, KC, RCM, RINA");
+  });
+
   it("understands an operating temperature range into min/max", () => {
     const normalized = normalizeFields([{ name: "Operating temperature", value: "-40 to +80 °C" }], []);
     expect(normalized.operatingTemperatureMin).toBe("-40");
@@ -84,6 +103,25 @@ describe("normalizer", () => {
     expect(normalizeFields([{ name: "Construction", value: "Kunststoff" }], []).material).toBe("plastic");
   });
 
+  it("ignores accessory cable order-warning text as product material", () => {
+    const normalized = normalizeFields(
+      [
+        {
+          name: "Material",
+          value: "Ethylene Propylene Diene Monomer (EPDM). Do not order part number CP-USB-B, as it is made of silicone rubber.",
+          sourceType: "official"
+        },
+        {
+          name: "Product Description",
+          value: "ControlLogix 5580 Controller with 5 MB User Memory, USB Port, 1 gigabit Ethernet port",
+          sourceType: "official"
+        }
+      ],
+      []
+    );
+
+    expect(normalized.material).toBeUndefined();
+  });
   it("understands German colours and RAL codes from finish text", () => {
     expect(normalizeFields([{ name: "Finish", value: "hellgrau pulverbeschichtet" }], []).color).toBe("light gray");
     expect(normalizeFields([{ name: "Finish", value: "powder coated, RAL 7035" }], []).color).toBe("RAL 7035");

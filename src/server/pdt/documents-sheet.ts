@@ -37,11 +37,15 @@ function documentRowsFor(item: RunItemRecord): DocRow[] {
     if (scrapedRows.length > 0) return scrapedRows;
   }
 
+  if (item.result?.manufacturerId === "rockwell" && ruleRows.length > 0) {
+    return completeRockwellDocumentLanguages(ruleRows, localizedProductDocumentRows(item));
+  }
+
   if (ruleRows.length > 0) return ruleRows;
 
   if (item.result?.manufacturerId === "rockwell") {
     const directDocuments = rockwellDirectDocumentRows(item.result.documents);
-    if (directDocuments.length > 0) return directDocuments;
+    if (directDocuments.length > 0) return completeRockwellDocumentLanguages(directDocuments, localizedProductDocumentRows(item));
   }
 
   return localizedProductDocumentRows(item);
@@ -120,6 +124,18 @@ function rockwellDirectDocumentRows(documents: DocumentRecord[]): DocRow[] {
     description: rockwellDocumentDescription(doc),
     documentType: "pdf"
   }));
+}
+
+function completeRockwellDocumentLanguages(primary: DocRow[], localizedRows: DocRow[]): DocRow[] {
+  const rows = [...primary];
+  for (const localized of localizedRows) {
+    if (rows.some((row) => row.language === localized.language)) continue;
+    rows.push({
+      ...localized,
+      description: localized.language === "german" ? "Datenblatt" : localized.description
+    });
+  }
+  return rows;
 }
 
 function isDirectRockwellPdf(url: string): boolean {

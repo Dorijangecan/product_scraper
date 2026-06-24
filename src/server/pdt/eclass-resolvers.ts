@@ -39,6 +39,31 @@ function clean(value: string | undefined): string | undefined {
   return trimmed ? trimmed : undefined;
 }
 
+function cleanStructuredValue(value: string | undefined): string | undefined {
+  const cleaned = clean(value);
+  if (!cleaned || isUiPlaceholderValue(cleaned) || isProsePlaceholderValue(cleaned)) return undefined;
+  return cleaned;
+}
+
+function cleanTypeCodeValue(value: string | undefined): string | undefined {
+  const cleaned = cleanStructuredValue(value);
+  if (!cleaned) return undefined;
+  if (cleaned.length > 80 || cleaned.split(/\s+/).length > 8) return undefined;
+  if (!/[A-Z0-9]/i.test(cleaned)) return undefined;
+  return cleaned;
+}
+
+function isUiPlaceholderValue(value: string): boolean {
+  const cleaned = value.replace(/\s+/g, " ").trim();
+  return /^(?:downloads?|download\s*(?:\(\s*zip\s*\)|zip)?|zip|pdf|cad|data\s*sheet|datasheet|manual|product\s+documentation|documentation|select|selected\s+result|learn\s+more)$/i.test(cleaned);
+}
+
+function isProsePlaceholderValue(value: string): boolean {
+  const cleaned = value.replace(/\s+/g, " ").trim();
+  if (/\b(?:table below|shown in the table|series consists|consists of the models|models shown)\b/i.test(cleaned)) return true;
+  return cleaned.split(/\s+/).length > 12 && /[.;:]/.test(cleaned);
+}
+
 /** First attribute whose name (or group) matches `pattern`, preferring official sources. */
 function attr(ctx: ResolveContext, pattern: RegExp): string | undefined {
   const attributes = ctx.result?.attributes ?? [];
@@ -333,8 +358,7 @@ function tempRange(ctx: ResolveContext): { min?: string; max?: string } {
     // actually need for ambient/operating columns.
     attr(ctx, /\bcable temperature,?\s+fixed\s+(?:routing|laid)\b/i),
     attr(ctx, /\bcable temperature,?\s+flexible\s+routing\b/i),
-    attr(ctx, /\bcable temperature\b/i),
-    attr(ctx, /\bstorage temperature\b/i)
+    attr(ctx, /\bcable temperature\b/i)
   ];
   for (const value of values) {
     const range = splitTemperatureRange(preferOperatingTemperatureSegment(value));
@@ -453,23 +477,23 @@ function comparableText(value: string | undefined): string {
 
 function productFamily(ctx: ResolveContext): string | undefined {
   return (
-    pdtFactValue(ctx, "productFamily") ??
-    attr(ctx, /\b(product family|product range|series|family)\b/i) ??
+    cleanStructuredValue(pdtFactValue(ctx, "productFamily")) ??
+    cleanStructuredValue(attr(ctx, /\b(product family|product range|series|family)\b/i)) ??
     derivedManufacturerTypeParts(ctx).family
   );
 }
 
 function productBase(ctx: ResolveContext): string | undefined {
   return (
-    attr(ctx, /\b(product base|base product|base type)\b/i) ??
+    cleanStructuredValue(attr(ctx, /\b(product base|base product|base type)\b/i)) ??
     derivedManufacturerTypeParts(ctx).base ??
-    attr(ctx, /\b(model)\b/i) ??
-    attr(ctx, /\b(product family|product range|series|family)\b/i)
+    cleanStructuredValue(attr(ctx, /\b(model)\b/i)) ??
+    cleanStructuredValue(attr(ctx, /\b(product family|product range|series|family)\b/i))
   );
 }
 
 function productOrderSuffix(ctx: ResolveContext): string | undefined {
-  return attr(ctx, /\b(order suffix|product order suffix|suffix)\b/i) ?? derivedManufacturerTypeParts(ctx).suffix;
+  return cleanStructuredValue(attr(ctx, /\b(order suffix|product order suffix|suffix)\b/i)) ?? derivedManufacturerTypeParts(ctx).suffix;
 }
 
 /**
@@ -480,18 +504,17 @@ function productOrderSuffix(ctx: ResolveContext): string | undefined {
  */
 function productDesignation(ctx: ResolveContext): string | undefined {
   return (
-    pdtFactValue(ctx, "productDesignation") ??
-    attr(ctx, /\b(product designation|manufacturer.*designation|product type|article designation)\b/i) ??
+    cleanStructuredValue(pdtFactValue(ctx, "productDesignation")) ??
+    cleanStructuredValue(attr(ctx, /\b(product designation|manufacturer.*designation|product type|article designation)\b/i)) ??
     derivedManufacturerTypeParts(ctx).designation
   );
 }
 
 function structuredTypeCode(ctx: ResolveContext): string | undefined {
-  const value = pdtSourceFactValue(ctx, "typeCode") ?? attr(ctx, /\b(type code|typecode|model code|modellcode|extended product type|type designation|product main type|main type|catalog(?:ue)? type|order type)\b/i);
+  const value = cleanTypeCodeValue(pdtSourceFactValue(ctx, "typeCode")) ?? cleanTypeCodeValue(attr(ctx, /\b(type code|typecode|model code|modellcode|extended product type|type designation|product main type|main type|catalog(?:ue)? type|order type)\b/i));
   const cleaned = clean(value);
   if (!cleaned) return undefined;
   if (comparableText(cleaned) === comparableText(ctx.item.catalogNumber)) return undefined;
-  if (cleaned.length > 80 || cleaned.split(/\s+/).length > 8) return undefined;
   return cleaned;
 }
 
@@ -556,7 +579,7 @@ function dimensionMm(ctx: ResolveContext, dims: string[]): string | undefined {
 
   const rx = new RegExp(`\\b(?:${dims.join("|")})\\b`, "i");
   const candidates = (ctx.result?.attributes ?? []).filter(
-    (a) => rx.test(a.name) && a.value?.trim() && !/\b(package|packaging|gross|shipping|carton|pallet|level\s*\d)\b/i.test(a.name)
+    (a) => rx.test(a.name) && isLikelyLengthMeasurement(a.value) && !/\b(package|packaging|gross|shipping|carton|pallet|level\s*\d)\b/i.test(a.name)
   );
   if (candidates.length === 0) return undefined;
   candidates.sort(
@@ -576,7 +599,7 @@ function dimensionMm(ctx: ResolveContext, dims: string[]): string | undefined {
  */
 function parseDimensionToMm(rawValue: string | undefined, attrName: string | undefined): string | undefined {
   const text = clean(rawValue);
-  if (!text) return undefined;
+  if (!text || !isLikelyLengthMeasurement(text)) return undefined;
   const numMatch = text.replace(/,/g, ".").match(/-?\d+(?:\.\d+)?/);
   if (!numMatch) return undefined;
   const value = Number(numMatch[0]);
@@ -587,6 +610,13 @@ function parseDimensionToMm(rawValue: string | undefined, attrName: string | und
   if (mm === undefined) return undefined;
   // Preserve integer cleanliness when conversion lands on a whole number, otherwise keep 2 decimals.
   return Number.isInteger(mm) ? String(mm) : String(Number(mm.toFixed(2)));
+}
+
+function isLikelyLengthMeasurement(value: string | undefined): boolean {
+  const text = clean(value);
+  if (!text || text.length > 80 || !/\d/.test(text)) return false;
+  if (/[{}]|var\(--|@media|display\s*:|calc\(|--[a-z0-9-]+|\b(?:auto|thumbnail|function|style|script)\b/i.test(text)) return false;
+  return /^-?\d+(?:[.,]\d+)?(?:\s+\d+\/\d+)?\s*(?:mm|cm|m|in|inch|inches|ft|feet|foot|")?(?:\s*\(\s*-?\d+(?:[.,]\d+)?\s*(?:mm|cm|m|in|inch|inches|ft|feet|foot|")\s*\))?$/i.test(text);
 }
 
 function detectLengthUnit(text: string): "mm" | "cm" | "m" | "in" | "ft" | undefined {
@@ -614,7 +644,7 @@ function convertLengthToMm(value: number, unit: "mm" | "cm" | "m" | "in" | "ft")
 // "product type" attribute here — that holds the device category (e.g. "Enclosure"), which
 // belongs in the ECLASS product-type field, not the typecode. Fall back to the catalog number.
 const typeCode: Resolver = (ctx) =>
-  attr(ctx, /\b(type code|typecode|model code|modellcode|extended product type|type designation|product main type|main type|catalog(?:ue)? type|order type)\b/i) ??
+  cleanTypeCodeValue(attr(ctx, /\b(type code|typecode|model code|modellcode|extended product type|type designation|product main type|main type|catalog(?:ue)? type|order type)\b/i)) ??
   clean(ctx.item.catalogNumber);
 
 // Customs tariff / commodity code. Manufacturers label this differently — ABB uses "Cn8".
@@ -1105,24 +1135,54 @@ function sanitizeCertifications(raw: string | undefined): string | undefined {
 
 function sanitizeSourceCertifications(raw: string | undefined): string | undefined {
   if (!raw) return undefined;
-  const allow = [
-    "ISO 9001", "EN 60947", "UL Listed", "UL Recognized", "c-UL-us", "cULus", "cUL", "IECEx",
-    "MOROCCO DOC", "UKCA DOC", "C-Tick", "Australian RCM", "Korean KC", "China CCC", "ClassNK",
-    "ODVA", "Safety", "Morocco", "RoHS", "ATEX", "GOST", "EAC", "RCM", "KCC", "FCC", "FM",
-    "VDE", "T\u00dcV", "TUV", "DNV", "Lloyd", "BV", "ABS", "RINA", "CSA", "CCC", "UKCA",
-    "IEC", "UL", "CE", "KC", "KR", "NK", "Ex"
+  const allow: Array<[string, RegExp]> = [
+    ["ISO 9001", /\bISO\s*9001\b/i],
+    ["EN 60947", /\bEN\s*60947\b/i],
+    ["UL Listed", /\bUL\s+Listed\b/i],
+    ["UL Recognized", /\bUL\s+(?:Component\s+)?Recognized\b/i],
+    ["CSA Listed", /\bCSA\s+Listed\b/i],
+    ["CSA", /\bCSA\b/i],
+    ["cULus", /\bcULus\b/i],
+    ["c-UL-us", /\bc-?UL-?us\b/i],
+    ["cUL", /\bcUL\b/i],
+    ["IECEx", /\bIECEx\b/i],
+    ["UKCA", /\bUKCA\b/i],
+    ["C-Tick", /\bC-?Tick\b/i],
+    ["CCC", /\b(?:China\s+)?CCC\b/i],
+    ["RCM", /\b(?:Australian\s+)?RCM\b/i],
+    ["KC", /\b(?:Korean\s+)?KC\b/i],
+    ["RINA", /\b(?:RINA|Registro\s+Italiano\s+Navale)\b/i],
+    ["ClassNK", /\bClassNK\b/i],
+    ["ODVA", /\bODVA\b/i],
+    ["Safety", /\bSafety\b/i],
+    ["Morocco", /\bMOROCCO\s+DOC\b|\bMorocco\b/i],
+    ["ATEX", /\bATEX\b/i],
+    ["GOST", /\bGOST\b/i],
+    ["EAC", /\bEAC\b/i],
+    ["KCC", /\bKCC\b/i],
+    ["FCC", /\bFCC\b/i],
+    ["FM", /\bFM\b/i],
+    ["VDE", /\bVDE\b/i],
+    ["T\u00dcV", /\bT(?:\u00dc|U)V\b/i],
+    ["DNV", /\bDNV\b/i],
+    ["Lloyd", /\bLloyd\b/i],
+    ["BV", /\bBV\b/i],
+    ["ABS", /\bABS\b/i],
+    ["IEC", /\bIEC\b/i],
+    ["UL", /\bUL\b/i],
+    ["CE", /\bCE\b/i],
+    ["KR", /\bKR\b/i],
+    ["NK", /\bNK\b/i],
+    ["Ex", /\bEx\b/i]
   ];
   const reject = /\b(reach|weee|no certification|compliance)\b/i;
   const kept: string[] = [];
   for (const rawToken of raw.split(/[,;/]/)) {
     const token = clean(rawToken);
     if (!token || reject.test(token)) continue;
-    const matched = allow.find((std) => new RegExp(`\\b${escapeRegex(std)}\\b`, "i").test(token));
+    const matched = allow.find(([, pattern]) => pattern.test(token))?.[0];
     if (!matched) continue;
-    const display = token.length <= 40 && !/\b(?:programs?|certificate\s+programs?|certifications?)\b/i.test(token)
-      ? token
-      : matched;
-    if (!kept.includes(display)) kept.push(display);
+    if (!kept.includes(matched)) kept.push(matched);
   }
   return kept.length ? kept.join(", ") : undefined;
 }
@@ -1140,16 +1200,18 @@ function rockwellCertifications(ctx: ResolveContext): string | undefined {
   if (!certValues.length) return undefined;
 
   const preferred: Array<[string, RegExp]> = [
-    ["China CCC", /\bChina\s+CCC\b/i],
-    ["MOROCCO DOC", /\bMOROCCO\s+DOC\b/i],
-    ["UKCA DOC", /\bUKCA\s+DOC\b/i],
-    ["IECEx Scheme", /\bIECEx\s+Scheme\b/i],
+    ["CE", /^CE$/i],
+    ["CSA Listed", /\bCSA\s+Listed\b/i],
+    ["RINA", /\b(?:RINA|Registro\s+Italiano\s+Navale)\b/i],
     ["UL Listed", /^UL\s+Listed$/i],
-    ["UK EX CERTIFICATE", /\bUK\s+EX\s+CERTIFICATE\b/i],
+    ["UL Recognized", /^UL\s+(?:Component\s+)?Recognized$/i],
+    ["CCC", /\bChina\s+CCC\b/i],
+    ["Morocco", /\bMOROCCO\s+DOC\b/i],
+    ["UKCA", /\bUKCA\s+DOC\b/i],
+    ["IECEx", /\bIECEx\s+Scheme\b/i],
     ["ATEX", /^ATEX$/i],
     ["UL Listed Hazardous", /\bUL\s+Listed\s+Hazardous\b/i],
-    ["Australian RCM", /\bAustralian\s+RCM\b/i],
-    ["CE", /^CE$/i]
+    ["RCM", /\bAustralian\s+RCM\b/i]
   ];
 
   const kept = preferred
@@ -1544,6 +1606,8 @@ function safeMaterialValue(value: string | undefined): string | undefined {
   if (!value) return undefined;
   if (/^\d[A-Z0-9]{7,}$/i.test(value.trim())) return undefined;
   if (/\b(directive|declaration|regulation|certificate|template|compliance)\b/i.test(value)) return undefined;
+  if (/\bdo\s+not\s+order\b|\border(?:ing)?\b[^.;]{0,80}\bpart\s+number\b|\bdownload\s*(?:\(\s*zip\s*\)|zip)?\b/i.test(value)) return undefined;
+  if (/\bpart\s+number\b[^.;]{0,80}\b(?:accessor(?:y|ies)|cable|cord|connector|usb|cp-usb)\b/i.test(value)) return undefined;
   return value;
 }
 
@@ -1785,6 +1849,14 @@ function pressureBound(ctx: ResolveContext, bound: "min" | "max", pattern: RegEx
 }
 
 function temperatureBound(ctx: ResolveContext, side: "min" | "max", pattern: RegExp): string | undefined {
+  const patternText = String(pattern);
+  const factPrefix = /\bstorage\b/i.test(patternText)
+    ? "storageTemperature"
+    : /\b(ambient|operating|cable outside|permissible cable|temperature limit)\b/i.test(patternText)
+      ? "operatingTemperature"
+      : undefined;
+  const factValue = factPrefix ? pdtFactValue(ctx, `${factPrefix}${side === "min" ? "Min" : "Max"}`) : undefined;
+  if (factValue) return numberWithUnit(factValue, "C") ?? numberOf(factValue);
   const split = splitTemperatureRange(attr(ctx, pattern));
   return side === "min" ? split.min : split.max;
 }

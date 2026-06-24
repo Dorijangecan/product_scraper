@@ -334,6 +334,24 @@ describe("eclass resolvers", () => {
     expect(resolveProperty("CNS_DESCRIPTION_SHORT", "CNS_DESCRIPTION_SHORT", c)).toBe("Widget 9000");
   });
 
+  it("uses a longer description attribute when scraped title and description are identical", () => {
+    const c = ctx({
+      title: "Short relay name",
+      description: "Short relay name",
+      attributes: [
+        {
+          group: "Product Specifications",
+          name: "Long Description",
+          value: "General purpose relay with test button, manual override and pilot light",
+          sourceType: "official"
+        }
+      ]
+    });
+
+    expect(resolveProperty("CNS_DESCRIPTION_SHORT", "CNS_DESCRIPTION_SHORT", c)).toBe("Short relay name");
+    expect(resolveProperty("CNS_DESCRIPTION_LONG", "CNS_DESCRIPTION_LONG", c)).toBe("General purpose relay with test button, manual override and pilot light");
+  });
+
   it("prefers fact-index descriptions before local description fallbacks", () => {
     const c = ctx({
       title: "Raw title",
@@ -411,6 +429,70 @@ describe("eclass resolvers", () => {
     c.manufacturer = { ...manufacturer, id: "eaton" } as ManufacturerConfig;
 
     expect(resolveProperty("AAU731", "AAU731", c)).toBe("Industrial controls");
+  });
+
+  it("does not use download placeholders for required Material Master family/base/designation fields", () => {
+    const c = ctx(
+      {
+        manufacturerId: "rockwell",
+        title: "1756-L82E",
+        description: "ControlLogix 5580 Controller with 5 MB User Memory, USB Port, 1 gigabit Ethernet port",
+        attributes: [
+          {
+            group: "Accessories",
+            name: "Material",
+            value: "Ethylene Propylene Diene Monomer (EPDM). Do not order part number CP-USB-B, as it is made of silicone rubber.",
+            sourceType: "official"
+          },
+          { group: "Physical", name: "Height", value: "auto } .thumbnail {", sourceType: "official" },
+          { group: "Downloads", name: "Product Family", value: "Download(ZIP)", sourceType: "official" },
+          { group: "Downloads", name: "Product Range", value: "Download", sourceType: "official" },
+          { group: "Downloads", name: "Product Base", value: "ZIP", sourceType: "official" },
+          { group: "Downloads", name: "Product Type", value: "Download(ZIP)", sourceType: "official" },
+          { group: "Downloads", name: "Extended Product Type", value: "Download(ZIP)", sourceType: "official" }
+        ]
+      },
+      "1756-L82E"
+    );
+
+    expect(resolveProperty("AAU731", "AAU731", c)).toBeUndefined();
+    expect(resolveProperty("AAU732", "AAU732", c)).toBeUndefined();
+    expect(resolveProperty("AAW338", "AAW338", c)).toBeUndefined();
+    expect(resolveProperty("AAV774", "CNSTYPECODE", c)).toBe("1756-L82E");
+    expect(resolveProperty("CNS_ELECTRO_MATERIAL", "CNS_ELECTRO_MATERIAL", c)).toBeUndefined();
+    expect(resolveProperty("BAB577", "BAB577", c)).toBe("139.6");
+    expect(resolveProperty("BAF016", "BAF016", c)).toBe("34.55");
+    expect(resolveProperty("BAA020", "BAA020", c)).toBe("145.2");
+  });
+
+  it("normalizes Rockwell 1444-DYN04 PDT typecode, descriptions and dimensions", () => {
+    const c = ctx(
+      {
+        manufacturerId: "rockwell",
+        title: "1444-DYN04-01RA",
+        description: "1444-DYN04-01RA",
+        attributes: [
+          {
+            group: "PDF introduction",
+            name: "Type",
+            value: "The 1444 series consists of the Models shown in the table below:",
+            sourceType: "official-fallback"
+          },
+          { group: "Physical", name: "Height", value: "auto } .thumbnail {", sourceType: "official" }
+        ]
+      },
+      "1444-DYN04-01RA"
+    );
+    c.manufacturer = { ...manufacturer, id: "rockwell", canonicalName: "Rockwell Automation" } as ManufacturerConfig;
+
+    expect(resolveProperty("AAV774", "CNSTYPECODE", c)).toBe("1444-DYN04-01RA");
+    expect(resolveProperty("CNS_DESCRIPTION_LONG", "CNS_DESCRIPTION_LONG", c)).toBe("Dynamic Measurement Module");
+    expect(resolveProperty("CNS_DESCRIPTION_SHORT", "CNS_DESCRIPTION_SHORT", c)).toBe("Dynamic Measurement Module");
+    expect(resolveProperty("CNS_DESCRIPTION_LONG", "CNS_DESCRIPTION_LONG", { ...c, language: "de" })).toBe("Dynamic Measurement Modul");
+    expect(resolveProperty("CNS_DESCRIPTION_SHORT", "CNS_DESCRIPTION_SHORT", { ...c, language: "de" })).toBe("Dynamic Measurement Modul");
+    expect(resolveProperty("BAB577", "BAB577", c)).toBe("154");
+    expect(resolveProperty("BAF016", "BAF016", c)).toBe("102");
+    expect(resolveProperty("BAA020", "BAA020", c)).toBe("106");
   });
 
   it("uses net dimensions and ignores packaging dimensions", () => {
@@ -868,7 +950,7 @@ describe("eclass resolvers", () => {
     expect(resolveProperty("AAP508", "AAP508", analogInput)).toBeUndefined();
   });
 
-  it("keeps full Rockwell certification labels and trims Compact 5000 short descriptions", () => {
+  it("writes compact Rockwell certification labels and trims Compact 5000 short descriptions", () => {
     const c = ctx(
       {
         manufacturerId: "rockwell",
@@ -891,10 +973,50 @@ describe("eclass resolvers", () => {
     );
     c.manufacturer = { ...manufacturer, id: "rockwell" } as ManufacturerConfig;
 
-    expect(resolveProperty("CERTIFICATION", "CERTIFICATION", c)).toBe(
-      "China CCC, MOROCCO DOC, UKCA DOC, IECEx Scheme, UL Listed, UK EX CERTIFICATE, ATEX, UL Listed Hazardous, Australian RCM, CE"
-    );
+    expect(resolveProperty("CERTIFICATION", "CERTIFICATION", c)).toBe("CE, UL Listed, CCC, Morocco, UKCA, IECEx, ATEX, UL Listed Hazardous, RCM");
     expect(resolveProperty("CNS_DESCRIPTION_SHORT", "CNS_DESCRIPTION_SHORT", c)).toBe("DC-Output Module Hi-Density");
+  });
+
+  it("normalizes Rockwell 700-HB relay PDT descriptions, certificates, dimensions and operating temperatures", () => {
+    const productUrl = "https://www.rockwellautomation.com/en-us/products/details.700-HB32A1-3-4.html";
+    const c = ctx(
+      {
+        manufacturerId: "rockwell",
+        title: "120V 50/60Hz GP Tall Square Base Relay",
+        description: "700-HB General Purpose Blade Base Relay, 15 Amp Contact, DPDT, 120V 50/60Hz, Push-To-Test & Manual Override function and Pilot Light",
+        productUrl,
+        localizedUrls: {
+          en: productUrl,
+          de: "https://www.rockwellautomation.com/de-de/products/details.700-HB32A1-3-4.html"
+        },
+        attributes: [
+          { group: "Physical Characteristics", name: "Width", value: "38.2 mm", sourceType: "official", parser: "rockwell-product-page" },
+          { group: "Physical Characteristics", name: "Height", value: "auto } .thumbnail {", sourceType: "official", parser: "rockwell-product-page" },
+          { group: "Physical Characteristics", name: "Depth", value: "35.8 mm", sourceType: "official", parser: "rockwell-product-page" },
+          { group: "Compliance & Environment", name: "Operating temperature", value: "-40 °C", sourceType: "official", parser: "rockwell-product-page" },
+          { group: "Compliance & Environment", name: "Storage temperature", value: "-40 °C", sourceType: "official", parser: "rockwell-product-page" },
+          { group: "Certifications", name: "Certification", value: "CE", sourceType: "official", parser: "rockwell-product-page" },
+          { group: "Certifications", name: "Certification", value: "CSA Listed", sourceType: "official", parser: "rockwell-product-page" },
+          { group: "Certifications", name: "Certification", value: "Registro Italiano Navale", sourceType: "official", parser: "rockwell-product-page" },
+          { group: "Certifications", name: "Certification", value: "UL Listed", sourceType: "official", parser: "rockwell-product-page" },
+          { group: "Certifications", name: "Certification", value: "UL Recognized", sourceType: "official", parser: "rockwell-product-page" }
+        ]
+      },
+      "700-HB32A1-3-4"
+    );
+    c.manufacturer = { ...manufacturer, id: "rockwell", canonicalName: "Rockwell Automation" } as ManufacturerConfig;
+    c.sheetName = "contactor a. fuses";
+
+    expect(resolveProperty("CNS_DESCRIPTION_LONG", "CNS_DESCRIPTION_LONG", c)).toBe(
+      "700-HB General Purpose Blade Base Relay, 15 Amp Contact, DPDT, 120V 50/60Hz, Push-To-Test & Manual Override function and Pilot Light"
+    );
+    expect(resolveProperty("CNS_DESCRIPTION_SHORT", "CNS_DESCRIPTION_SHORT", c)).toBe("120V 50/60Hz GP Tall Square Base Relay");
+    expect(resolveProperty("CERTIFICATION", "CERTIFICATION", c)).toBe("CE, CSA Listed, RINA, UL Listed, UL Recognized");
+    expect(resolveProperty("BAB577", "BAB577", c)).toBe("35.8");
+    expect(resolveProperty("BAF016", "BAF016", c)).toBe("38.2");
+    expect(resolveProperty("BAA020", "BAA020", c)).toBe("51.4");
+    expect(resolveProperty("AAB906", "Max. operating temperature", c)).toBe("70");
+    expect(resolveProperty("AAC022", "Min. operating temperature", c)).toBe("-40");
   });
 
   it("normalizes Rockwell ArmorKinetix DSM family PDT values", () => {
@@ -917,7 +1039,7 @@ describe("eclass resolvers", () => {
 
     expect(resolveProperty("CNS_DESCRIPTION_SHORT", "CNS_DESCRIPTION_SHORT", c)).toBe("16 Amp Peak ArmorKinetix DSM");
     expect(resolveProperty("CNS_DESCRIPTION_LONG", "CNS_DESCRIPTION_LONG", c)).toBe("16 Amp Peak ArmorKinetix DSM");
-    expect(resolveProperty("CERTIFICATION", "CERTIFICATION", c)).toBe("ODVA, UL Listed, Korean KC, Australian RCM, CE");
+    expect(resolveProperty("CERTIFICATION", "CERTIFICATION", c)).toBe("ODVA, UL Listed, KC, RCM, CE");
     expect(resolveProperty("AAF040", "AAF040", c)).toBe("4.55");
 
     const sparse = ctx({ manufacturerId: "rockwell", title: "16 Amp Peak ArmorKinetix DSM" }, "2198-DSM016-ERS2-A0751E-CJ12AA");
@@ -949,7 +1071,7 @@ describe("eclass resolvers", () => {
     );
     expect(resolveProperty("CNS_DESCRIPTION_SHORT", "CNS_DESCRIPTION_SHORT", c)).toBe("ArmorKinetix Distributed Drive 16A ERS2");
     expect(resolveProperty("CNS_DESCRIPTION_LONG", "CNS_DESCRIPTION_LONG", c)).toBe("ArmorKinetix Distributed Drive 16A ERS2");
-    expect(resolveProperty("CERTIFICATION", "CERTIFICATION", c)).toBe("CE, ODVA, UL Listed, Australian RCM, Safety, Korean KC");
+    expect(resolveProperty("CERTIFICATION", "CERTIFICATION", c)).toBe("CE, ODVA, UL Listed, RCM, Safety, KC");
     expect(resolveProperty("AAF040", "AAF040", c)).toBe("2.05");
     expect(resolveProperty("REFERENCE_FEATURE_GROUP_ID", "REFERENCE_FEATURE_GROUP_ID", { ...c, sheetName: "motors" })).toBe("27023101");
     expect(resolveProperty("REFERENCE_FEATURE_SYSTEM_NAME", "REFERENCE_FEATURE_SYSTEM_NAME", { ...c, sheetName: "motors" })).toBe("14");
@@ -1007,7 +1129,7 @@ describe("eclass resolvers", () => {
     expect(resolveProperty("AAQ326", "AAQ326", c)).toBe("https://www.rockwellautomation.com/en-us/search.html?keyword=1756-L9&tab=all");
     expect(resolveProperty("CNS_DESCRIPTION_SHORT", "CNS_DESCRIPTION_SHORT", c)).toBe("ControlLogix 5590 XT Controller");
     expect(resolveProperty("CNS_DESCRIPTION_LONG", "CNS_DESCRIPTION_LONG", c)).toBe("ControlLogix 5590 XT Controller");
-    expect(resolveProperty("CERTIFICATION", "CERTIFICATION", c)).toBe("c-UL-us, FM, CE, RCM, ATEX, IECEx, UKCA, KC, CCC, TUV, Morocco");
+    expect(resolveProperty("CERTIFICATION", "CERTIFICATION", c)).toBe("c-UL-us, FM, CE, RCM, ATEX, IECEx, UKCA, KC, CCC, TÜV, Morocco");
     expect(resolveProperty("AAF040", "AAF040", c)).toBe("0.54");
     expect(resolveProperty("REFERENCE_FEATURE_GROUP_ID", "REFERENCE_FEATURE_GROUP_ID", { ...c, sheetName: "PLC" })).toBe("27242208");
     expect(resolveProperty("REFERENCE_FEATURE_SYSTEM_NAME", "REFERENCE_FEATURE_SYSTEM_NAME", { ...c, sheetName: "PLC" })).toBe("14");
@@ -1046,7 +1168,7 @@ describe("eclass resolvers", () => {
     expect(resolveProperty("AAQ326", "AAQ326", c)).toBe("https://www.rockwellautomation.com/en-us/search.html?keyword=1492-PDE&tab=all");
     expect(resolveProperty("CNS_DESCRIPTION_SHORT", "CNS_DESCRIPTION_SHORT", c)).toBe("200 A Enclosed Power Distribution Block");
     expect(resolveProperty("CNS_DESCRIPTION_LONG", "CNS_DESCRIPTION_LONG", c)).toBe("200 A Enclosed Power Distribution Block");
-    expect(resolveProperty("CERTIFICATION", "CERTIFICATION", c)).toBe("MOROCCO DOC, UL Listed");
+    expect(resolveProperty("CERTIFICATION", "CERTIFICATION", c)).toBe("UL Listed, Morocco");
     expect(resolveProperty("BAB577", "BAB577", c)).toBe("30.7");
     expect(resolveProperty("BAF016", "BAF016", c)).toBe("68.9");
     expect(resolveProperty("BAA020", "BAA020", c)).toBe("91.7");
@@ -1184,7 +1306,7 @@ describe("eclass resolvers", () => {
     expect(resolveProperty("AAQ326", "AAQ326", c)).toBe("https://www.rockwellautomation.com/en-us/products/details.852C-B24RGYPQD5.html");
     expect(resolveProperty("CNS_DESCRIPTION_SHORT", "CNS_DESCRIPTION_SHORT", c)).toBe("3 Color 35mm LED Indicator with sound");
     expect(resolveProperty("CNS_DESCRIPTION_LONG", "CNS_DESCRIPTION_LONG", c)).toBe("3 Color 35mm LED Indicator with sound");
-    expect(resolveProperty("CERTIFICATION", "CERTIFICATION", c)).toBe("c-UL-us, CE Marked, UKCA, RCM, KCC");
+    expect(resolveProperty("CERTIFICATION", "CERTIFICATION", c)).toBe("c-UL-us, CE, UKCA, RCM, KCC");
     expect(resolveProperty("BAB577", "BAB577", c)).toBe("35.021");
     expect(resolveProperty("BAF016", "BAF016", c)).toBe("35.021");
     expect(resolveProperty("BAA020", "BAA020", c)).toBe("63.6");
@@ -1387,7 +1509,7 @@ describe("eclass resolvers", () => {
 
     expect(resolveProperty("CNS_DESCRIPTION_SHORT", "CNS_DESCRIPTION_SHORT", c)).toBe("PanelView 5510 Graphic Terminal");
     expect(resolveProperty("CNS_DESCRIPTION_LONG", "CNS_DESCRIPTION_LONG", c)).toBe("PanelView 5510 Graphic Terminal");
-    expect(resolveProperty("CERTIFICATION", "CERTIFICATION", c)).toBe("c-UL-us, CE, UKCA, KC, Morocco, RCM, RoHS");
+    expect(resolveProperty("CERTIFICATION", "CERTIFICATION", c)).toBe("c-UL-us, CE, UKCA, KC, Morocco, RCM");
     expect(resolveProperty("AAF040", "AAF040", c)).toBe("2.57");
     expect(resolveProperty("BAB577", "BAB577", c)).toBe("69.5");
     expect(resolveProperty("BAF016", "BAF016", c)).toBe("212.0");
@@ -2912,6 +3034,58 @@ describe("PDT exporter", () => {
       "CP6610, control panel, TFT graphical display, multi-touch screen, 10.1\", 1280 x 800 pixel, for PB610 applications and visualization of AC500 V3 web server"
     );
     expect(ws.getCell(10, 5).value).toBe("Control Panel CP600-Pro");
+  });
+
+  it("writes distinct English and German Rockwell 700-HB relay descriptions", async () => {
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-pdt-rockwell-700hb-desc-"));
+    const templatePath = path.join(dir, "template.xlsx");
+    const outputPath = path.join(dir, "out.xlsx");
+    const wb = new ExcelJS.Workbook();
+    const material = wb.addWorksheet("Material Master Data");
+    material.getCell(2, 2).value = "Description DE";
+    material.getCell(2, 3).value = "Description DE";
+    material.getCell(2, 4).value = "Description EN";
+    material.getCell(2, 5).value = "Description EN";
+    material.getCell(6, 1).value = "ECLASS property";
+    material.getCell(7, 1).value = "Variable name (CNS internal)";
+    material.getCell(8, 1).value = "English variable description";
+    material.getCell(9, 1).value = "Units";
+    material.getCell(6, 2).value = "CNS_DESCRIPTION_LONG / AAU734";
+    material.getCell(7, 2).value = "CNS_DESCRIPTION_LONG";
+    material.getCell(8, 2).value = "Product description long";
+    material.getCell(6, 3).value = "CNS_DESCRIPTION_SHORT";
+    material.getCell(7, 3).value = "CNS_DESCRIPTION_SHORT";
+    material.getCell(8, 3).value = "Product description short";
+    material.getCell(6, 4).value = "CNS_DESCRIPTION_LONG / AAU734";
+    material.getCell(7, 4).value = "CNS_DESCRIPTION_LONG";
+    material.getCell(8, 4).value = "Product description long";
+    material.getCell(6, 5).value = "CNS_DESCRIPTION_SHORT";
+    material.getCell(7, 5).value = "CNS_DESCRIPTION_SHORT";
+    material.getCell(8, 5).value = "Product description short";
+    wb.addWorksheet("Additional Documents");
+    await wb.xlsx.writeFile(templatePath);
+
+    const item = ctx(
+      {
+        manufacturerId: "rockwell",
+        title: "120V 50/60Hz GP Tall Square Base Relay",
+        description: "700-HB General Purpose Blade Base Relay, 15 Amp Contact, DPDT, 120V 50/60Hz, Push-To-Test & Manual Override function and Pilot Light"
+      },
+      "700-HB32A1-3-4"
+    ).item;
+    await exportRunPdt({ manufacturer: { ...manufacturer, id: "rockwell", canonicalName: "Rockwell Automation" } as ManufacturerConfig, items: [item], templatePath, outputPath });
+
+    const out = new ExcelJS.Workbook();
+    await out.xlsx.readFile(outputPath);
+    const ws = out.getWorksheet("Material Master Data")!;
+    expect(ws.getCell(10, 2).value).toContain("Universal-Steckrelais");
+    expect(ws.getCell(10, 2).value).toContain("Testtaster");
+    expect(ws.getCell(10, 2).value).toContain("Handbetätigung");
+    expect(ws.getCell(10, 3).value).toContain("quadratisches Steckrelais");
+    expect(ws.getCell(10, 4).value).toBe(
+      "700-HB General Purpose Blade Base Relay, 15 Amp Contact, DPDT, 120V 50/60Hz, Push-To-Test & Manual Override function and Pilot Light"
+    );
+    expect(ws.getCell(10, 5).value).toBe("120V 50/60Hz GP Tall Square Base Relay");
   });
 
   it("writes echoed DE description fallbacks as literals", async () => {
@@ -5643,6 +5817,63 @@ describe("Additional Documents PDT sheet", () => {
     expect(urls.some((url) => /new\.abb\.com\/products/i.test(url))).toBe(false);
   });
 
+  it("adds German Rockwell product-page row when a direct English PDF was scraped", () => {
+    const ws = addDocumentsWorksheet();
+    const deUrl = "https://www.rockwellautomation.com/de-de/products/details.700-HB32A1-3-4.html";
+    const pdfUrl = "https://literature.rockwellautomation.com/idc/groups/literature/documents/td/700-td552_-en-p.pdf";
+    const item = ctx(
+      {
+        manufacturerId: "rockwell",
+        localizedUrls: {
+          en: "https://www.rockwellautomation.com/en-us/products/details.700-HB32A1-3-4.html",
+          de: deUrl
+        },
+        documents: [
+          {
+            type: "datasheet",
+            label: "700-td552_-en-p",
+            url: pdfUrl,
+            sourceType: "official",
+            parser: "rockwell-product-page",
+            confidence: 0.95
+          }
+        ]
+      },
+      "700-HB32A1-3-4"
+    ).item;
+
+    expect(writeDocumentsSheet(ws, [item])).toBe(2);
+    expect(ws.getCell(7, 4).value).toEqual({ text: pdfUrl, hyperlink: pdfUrl });
+    expect(ws.getCell(7, 5).value).toBe("english");
+    expect(ws.getCell(8, 4).value).toEqual({ text: deUrl, hyperlink: deUrl });
+    expect(ws.getCell(8, 5).value).toBe("german");
+    expect(ws.getCell(8, 7).value).toBe("Datenblatt");
+  });
+
+  it("writes English and German Rockwell product-page rows for 1444-DYN04", () => {
+    const ws = addDocumentsWorksheet();
+    const enUrl = "https://www.rockwellautomation.com/en-us/products/details.1444-dyn04-01ra.html";
+    const deUrl = "https://www.rockwellautomation.com/de-de/products/details.1444-dyn04-01ra.html";
+    const item = ctx(
+      {
+        manufacturerId: "rockwell",
+        productUrl: enUrl,
+        localizedUrls: {
+          en: enUrl,
+          de: deUrl
+        }
+      },
+      "1444-DYN04-01RA"
+    ).item;
+
+    expect(writeDocumentsSheet(ws, [item])).toBe(2);
+    expect(ws.getCell(7, 4).value).toEqual({ text: enUrl, hyperlink: enUrl });
+    expect(ws.getCell(7, 5).value).toBe("english");
+    expect(ws.getCell(8, 4).value).toEqual({ text: deUrl, hyperlink: deUrl });
+    expect(ws.getCell(8, 5).value).toBe("german");
+    expect(ws.getCell(8, 7).value).toBe("Datenblatt");
+  });
+
   it("uses scraped localized official URLs for manufacturers without PDT document rules", () => {
     const ws = addDocumentsWorksheet();
     const item = ctx(
@@ -5735,7 +5966,7 @@ describe("Additional Documents PDT sheet", () => {
       "5094-IF8"
     ).item;
 
-    expect(writeDocumentsSheet(ws, [item])).toBe(1);
+    expect(writeDocumentsSheet(ws, [item])).toBe(2);
     expect(ws.getCell(7, 1).value).toBe("5094-IF8");
     expect(ws.getCell(7, 3).value).toBe("pdf");
     expect(ws.getCell(7, 4).value).toEqual({
@@ -5744,6 +5975,12 @@ describe("Additional Documents PDT sheet", () => {
     });
     expect(ws.getCell(7, 5).value).toBe("english");
     expect(ws.getCell(7, 7).value).toBe("Technical Datasheet (EN)");
+    expect(ws.getCell(8, 4).value).toEqual({
+      text: "https://www.rockwellautomation.com/de-de/products/details.5094-IF8.html",
+      hyperlink: "https://www.rockwellautomation.com/de-de/products/details.5094-IF8.html"
+    });
+    expect(ws.getCell(8, 5).value).toBe("german");
+    expect(ws.getCell(8, 7).value).toBe("Datenblatt");
   });
 
   it("uses direct Eaton skuPage PDFs from scraper documents without adding EP to the path", () => {

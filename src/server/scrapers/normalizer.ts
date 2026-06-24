@@ -1189,6 +1189,7 @@ function findMaterialAttr(attributes: AttributeRecord[]): string | undefined {
     if (/compliance|declaration|certificate|rohs|reach|tsca|substances?/.test(haystack)) continue;
     if (!materialPatterns.some((pattern) => pattern.test(haystack))) continue;
     if (!isLikelySpecText(attr.value) || !isAvailableSpecValue(attr.value)) continue;
+    if (isAccessoryOrderWarningMaterialText(attr.value)) continue;
     const material = materialValueFromText(attr.value);
     if (!material) continue;
     candidates.push({
@@ -1492,7 +1493,7 @@ function deriveMaterialFromAttributes(attributes: AttributeRecord[]): string | u
   const cable = attributes.find((attr) => /^cable$/i.test(attr.name));
   if (cable?.value) {
     const material = cable.value.split(",")[0]?.trim();
-    if (material && /pur|pvc|tpe|ptfe|rubber|silicone|poly|steel|stainless|aluminum|aluminium|zinc|brass|copper|cast iron|epdm/i.test(material)) {
+    if (material && !isAccessoryOrderWarningMaterialText(cable.value) && /pur|pvc|tpe|ptfe|rubber|silicone|poly|steel|stainless|aluminum|aluminium|zinc|brass|copper|cast iron|epdm/i.test(material)) {
       return material;
     }
   }
@@ -1508,6 +1509,7 @@ function deriveMaterialFromAttributes(attributes: AttributeRecord[]): string | u
 
   const description = attributes.find((attr) => /description/i.test(attr.name));
   if (description?.value) {
+    if (isAccessoryOrderWarningMaterialText(description.value)) return undefined;
     const material = materialValueFromText(description.value);
     if (material) return material;
   }
@@ -1526,8 +1528,19 @@ function deriveMaterialFromAttributes(attributes: AttributeRecord[]): string | u
 
 function materialFromMadeOfPhrase(value: string): string | undefined {
   const cleaned = normalizeHtmlSpecValue(value);
+  if (isAccessoryOrderWarningMaterialText(cleaned)) return undefined;
   const match = cleaned?.match(/\bmade\s+(?:of|from)\s+([^.]+)|\b(?:constructed|fabricated|manufactured|formed)\s+(?:of|from)\s+([^.]+)/i);
   return materialValueFromText(match?.[1] ?? match?.[2] ?? "");
+}
+
+function isAccessoryOrderWarningMaterialText(value: string | undefined): boolean {
+  const cleaned = normalizeHtmlSpecValue(value);
+  if (!cleaned) return false;
+  if (/\bdownload\s*(?:\(\s*zip\s*\)|zip)?\b/i.test(cleaned)) return true;
+  if (/\bdo\s+not\s+order\b/i.test(cleaned)) return true;
+  if (/\border(?:ing)?\b[^.;]{0,80}\bpart\s+number\b/i.test(cleaned)) return true;
+  if (/\bpart\s+number\b[^.;]{0,80}\b(?:accessor(?:y|ies)|cable|cord|connector|usb|cp-usb)\b/i.test(cleaned)) return true;
+  return false;
 }
 
 function isSecondaryComponentMaterialText(value: string): boolean {
@@ -1542,6 +1555,7 @@ function isSecondaryComponentMaterialText(value: string): boolean {
 function materialValueFromText(value: string): string | undefined {
   const cleaned = normalizeHtmlSpecValue(value);
   if (!cleaned) return undefined;
+  if (isAccessoryOrderWarningMaterialText(cleaned)) return undefined;
   if (/\b(?:stainless steel|carbon steel|mild steel|galvannealed steel|galvanized steel|steel|aluminum|aluminium)\s+(?:cleaner|cleaning|paint|label)\b/i.test(cleaned)) {
     return undefined;
   }
@@ -1631,6 +1645,7 @@ function normalizeCertificateValue(value: string, allowNotApplicable = false): s
   );
   if (allowNotApplicable && /^(not applicable|no certification needed|no certifications? needed|n\/a)$/i.test(cleaned)) return cleaned;
   if (allowNotApplicable && /^(?:UL|CSA|NEMA)\s+(?:not applicable|n\/a|na)$/i.test(cleaned)) return cleaned;
+  if (isGenericCertificatePlaceholder(cleaned)) return "";
   const tokens = [
     ...(cleaned.match(/\bcULus\s+File\s+Component\s+Recognized\s+[A-Z0-9-]+/gi) ?? []),
     ...(cleaned.match(/\bcULus\s+(?:Listed|Recognized)\s+[A-Z0-9-]+/gi) ?? []),
@@ -1640,10 +1655,14 @@ function normalizeCertificateValue(value: string, allowNotApplicable = false): s
     ...(cleaned.match(/\bUL\s+\d+(?:\.\d+)*/gi) ?? []),
     ...(cleaned.match(/\bNEMA\s+BI\s+\d+/gi) ?? []),
     ...(cleaned.match(/\bNEMA\s+Type\s+[A-Z0-9 -]+/gi) ?? []),
+    ...(cleaned.match(/\bUL\s+Listed\b/gi) ?? []),
     ...(cleaned.match(/\bUL\s+Listed\s+[^;]+/gi) ?? []),
     ...(cleaned.match(/\bUL\s+(?:Component\s+)?Recognized\b/gi) ?? []),
+    ...(cleaned.match(/\bCSA\s+Listed\b/gi) ?? []),
     ...(cleaned.match(/\bCSA\s+Type\s+[^;]+/gi) ?? []),
     ...(cleaned.match(/\bCSA\s+(?:Component\s+)?Recognized\b/gi) ?? []),
+    ...(cleaned.match(/\bRegistro\s+Italiano\s+Navale\b/gi) ?? []),
+    ...(cleaned.match(/\bRINA\b/g) ?? []),
     ...(cleaned.match(/\bIEC\s+\d+(?:[.-]\d+)*(?:\s+IP\s*\d{1,2}[A-Z]?)?/g) ?? []),
     ...(cleaned.match(/\bIEC\b/g) ?? []),
     ...(cleaned.match(/\bIP\s*\d{1,2}[A-Z]?\b/g) ?? []),
@@ -1655,10 +1674,12 @@ function normalizeCertificateValue(value: string, allowNotApplicable = false): s
     ...(cleaned.match(/\bRCM\b/g) ?? []),
     ...(cleaned.match(/\bKC\b/g) ?? []),
     ...(cleaned.match(/\bODVA\b/g) ?? []),
+    ...(cleaned.match(/\bC-?Tick\b/gi) ?? []),
     ...(cleaned.match(/\bATEX\b/g) ?? []),
     ...(cleaned.match(/\bIECEx\b/gi) ?? []),
     ...(cleaned.match(/\bSIL\s*\d\b/gi) ?? []),
     ...(cleaned.match(/\bVDE\b/g) ?? []),
+    ...(cleaned.match(/\bT(?:Ü|U)V\b/gi) ?? []),
     ...(cleaned.match(/\bCSA\b/g) ?? []),
     ...(cleaned.match(/\bUL\b/g) ?? []),
     ...(cleaned.match(/\bWEEE\b/g) ?? []),
@@ -1671,6 +1692,10 @@ function normalizeCertificateValue(value: string, allowNotApplicable = false): s
   if (tokens.length > 0) return uniqueCertificateTokens(tokens).sort(compareCertificateToken).join("; ");
   if (/\b(certificate|declaration|conformity|listed|approved)\b/i.test(cleaned)) return cleaned;
   return "";
+}
+
+function isGenericCertificatePlaceholder(value: string): boolean {
+  return /^(?:certificate\s+programs?|certifications?|approvals?|standards?|product certifications?)$/i.test(cleanText(value));
 }
 
 function normalizeDocumentCertificateValue(doc: DocumentRecord): string {
@@ -1758,6 +1783,20 @@ function uniqueCertificateTokens(values: string[]): string[] {
 
 function canonicalCertificateToken(value: string): string {
   const cleaned = cleanText(value);
+  if (isGenericCertificatePlaceholder(cleaned)) return "";
+  if (/^ce(?:\s+marked)?$/i.test(cleaned)) return "CE";
+  if (/^ul\s+listed\b/i.test(cleaned)) return "UL Listed";
+  if (/^ul\s+(?:component\s+)?recognized\b/i.test(cleaned)) return "UL Recognized";
+  if (/^csa\s+listed\b/i.test(cleaned)) return "CSA Listed";
+  if (/^registro\s+italiano\s+navale$/i.test(cleaned)) return "RINA";
+  if (/^australian\s+rcm$/i.test(cleaned)) return "RCM";
+  if (/^korean\s+kc$/i.test(cleaned)) return "KC";
+  if (/^china\s+ccc$/i.test(cleaned)) return "CCC";
+  if (/^ukca\s+doc$/i.test(cleaned)) return "UKCA";
+  if (/^morocco\s+doc$/i.test(cleaned)) return "Morocco";
+  if (/^iecex\s+scheme$/i.test(cleaned)) return "IECEx";
+  if (/^c-?tick$/i.test(cleaned)) return "C-Tick";
+  if (/^t(?:ü|u)v$/i.test(cleaned)) return "TÜV";
   if (/^reach$/i.test(cleaned)) return "REACH";
   if (/^rohs$/i.test(cleaned)) return "RoHS";
   if (/^weee$/i.test(cleaned)) return "WEEE";

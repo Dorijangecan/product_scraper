@@ -133,7 +133,7 @@ function finalizeRockwellResult(result: ProductResult): ProductResult {
   const documents = dedupeDocuments(result.documents);
   const normalized = normalizeFields(attributes, documents);
   const title = cleanText(result.title) || attrValue(attributes, /\b(product name|catalog description|description)\b/i);
-  const description = cleanText(result.description) || attrValue(attributes, /\bdescription\b/i);
+  const description = preferredRockwellDescription(cleanText(result.description), title, attributes);
   const productUrl = preferredRockwellProductUrl(result);
   const richEnough = attributes.length >= 8 || documents.some((doc) => doc.type === "datasheet" || doc.type === "cad" || doc.type === "image");
   return {
@@ -148,6 +148,21 @@ function finalizeRockwellResult(result: ProductResult): ProductResult {
     attributes,
     documents
   };
+}
+
+function preferredRockwellDescription(current: string, title: string | undefined, attributes: AttributeRecord[]): string | undefined {
+  const attributeDescription = attrValue(attributes, /\bdescription\b/i);
+  if (attributeDescription && (!current || sameText(current, title) || attributeDescription.length > current.length + 12)) {
+    return attributeDescription;
+  }
+  return current || attributeDescription;
+}
+
+function sameText(left: string | undefined, right: string | undefined): boolean {
+  const normalize = (value: string | undefined) => cleanText(value ?? "").toLowerCase().replace(/[\s._-]+/g, "");
+  const a = normalize(left);
+  const b = normalize(right);
+  return Boolean(a && b && a === b);
 }
 
 function withRockwellConfidence(result: ProductResult, confidence: number): ProductResult {
