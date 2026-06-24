@@ -18,8 +18,6 @@ import { bestFact, buildPdtFactIndex, factsMatchingValue, type PdtFact, type Pdt
 import { additionalPdtSheetsRule, pdtColumnAllowRule, pdtSheetOverrideRule } from "./rules.js";
 
 const DOCUMENTS_SHEET = "Additional Documents";
-const CABINET_SHEET = "cabinet";
-const CABINET_MECHANICAL_SHEET = "cabinet.mechanical";
 /** Always kept even when empty (the manual PDT keeps this tab as a placeholder). */
 const ALWAYS_KEPT_SHEETS = ["Connection Point Information", "Product Accessory"];
 const MISSING_REQUIRED_FILL: ExcelJS.Fill = {
@@ -141,7 +139,6 @@ export async function exportRunPdt(input: {
 
   // Uniform (property-per-column) tabs map to the ordered products written into each tab.
   const sheetItems = new Map<string, RunItemRecord[]>();
-  const keepEmptySheets = new Set<string>();
   const missingSheets = new Set<string>();
   const unmappedDeviceTypes = new Set<string>();
   const unclassifiedCatalogNumbers = new Set<string>();
@@ -161,8 +158,7 @@ export async function exportRunPdt(input: {
       : [...targetSheets(deviceType), ...additionalDeviceSheetsForItem(item, manufacturer, deviceType)];
     // Only constant tabs were chosen and no device tab matched → note for diagnostics.
     if (deviceType && sheets.length === CONSTANT_SHEETS.length) unmappedDeviceTypes.add(deviceType);
-    const writableSheets = companionEmptySheetsFor(sheets, keepEmptySheets);
-    for (const sheetName of writableSheets) {
+    for (const sheetName of sheets) {
       if (canonicalSheetKey(sheetName) === canonicalSheetKey(DOCUMENTS_SHEET)) continue; // handled separately below
       const resolved = resolveSheetName(sheetName);
       if (!resolved) {
@@ -207,25 +203,11 @@ export async function exportRunPdt(input: {
     if (accessoryRows > 0) filledSheets[productAccessoryWs.name] = accessoryRows;
   }
 
-  for (const sheetName of keepEmptySheets) {
-    const resolved = resolveSheetName(sheetName);
-    if (!resolved) {
-      missingSheets.add(sheetName);
-      continue;
-    }
-    const ws = workbook.getWorksheet(resolved);
-    if (ws) {
-      if (sheetItems.has(resolved)) continue;
-      clearUniformSheet(ws);
-      filledSheets[ws.name] = 0;
-    }
-  }
-
   // Mirror the manual PDT: keep only the tabs actually in use (Material Master Data + the used
   // device tabs, both in `sheetItems`) plus Additional Documents and the always-kept placeholders.
   // Drop every other template tab so the workbook isn't cluttered with 50+ unused classifications.
   const keepKeys = new Set<string>(
-    [...sheetItems.keys(), ...keepEmptySheets, DOCUMENTS_SHEET, ...ALWAYS_KEPT_SHEETS].map(canonicalSheetKey)
+    [...sheetItems.keys(), DOCUMENTS_SHEET, ...ALWAYS_KEPT_SHEETS].map(canonicalSheetKey)
   );
   const removedSheets: string[] = [];
   for (const ws of [...workbook.worksheets]) {
@@ -479,13 +461,6 @@ function additionalDeviceSheetsForItem(item: RunItemRecord, manufacturer: Manufa
 /** Hard override: when set, REPLACES device-type sheets entirely (only constant tabs + these are written). */
 function overrideDeviceSheetsForItem(item: RunItemRecord, manufacturer: ManufacturerConfig, deviceType: string | undefined): string[] | null {
   return pdtSheetOverrideRule({ item, manufacturer, deviceType })?.value ?? null;
-}
-
-function companionEmptySheetsFor(sheets: string[], keepEmptySheets: Set<string>): string[] {
-  const hasCabinet = sheets.some((sheet) => canonicalSheetKey(sheet) === canonicalSheetKey(CABINET_SHEET));
-  if (!hasCabinet) return sheets;
-  keepEmptySheets.add(CABINET_MECHANICAL_SHEET);
-  return sheets.filter((sheet) => canonicalSheetKey(sheet) !== canonicalSheetKey(CABINET_MECHANICAL_SHEET));
 }
 
 function clearUniformSheet(ws: ExcelJS.Worksheet): void {
@@ -766,8 +741,13 @@ function resolvePdtColumnCell(
     };
   }
   if (isSuppressedRockwellCompact5000IoDimension(column, ctx)) return undefined;
+  if (isDriveMotorReducedVoltageColumn(column, ctx) && !hasDriveMotorRatedVoltageEvidence(ctx)) return undefined;
 
   const isDeDescription = isGermanDescriptionColumn(ws, descriptor, column);
+  if (isDeDescription) {
+    const translated = resolveGermanDescriptionCell(column, ctx, facts);
+    if (translated) return translated;
+  }
   const resolveCtx: ResolveContext = isDeDescription ? { ...ctx, language: "de" } : ctx;
   const factResolved = resolveColumnFromFacts(column, resolveCtx, facts);
   const direct = factResolved
@@ -1052,6 +1032,96 @@ function resolveColumnFromFacts(column: PdtColumn, ctx: ResolveContext, facts: P
   return undefined;
 }
 
+function resolveGermanDescriptionCell(column: PdtColumn, ctx: ResolveContext, facts: PdtFactIndex): PdtResolvedCell | undefined {
+  const type = descriptionColumnType(column);
+  if (!type) return undefined;
+  const localizedKey = type === "long" ? "localizedLongDescriptionDe" : "localizedShortDescriptionDe";
+  const englishKey = type === "long" ? "longDescription" : "shortDescription";
+  const englishFact = bestFact(facts, englishKey);
+  const localizedFact = bestFact(facts, localizedKey);
+  const catalogNumber = ctx.item.catalogNumber;
+  if (
+    localizedFact &&
+    !sameDescriptionText(localizedFact.value, catalogNumber) &&
+    !sameDescriptionText(localizedFact.value, englishFact?.value)
+  ) {
+    return { value: localizedFact.value, provenance: provenanceFromFact(localizedFact) };
+  }
+
+  const englishValue = cleanString(
+    englishFact?.value ??
+    resolveProperty(column.code, column.propName, { ...ctx, language: undefined }) ??
+    resolvePropertyByDescription(column, { ...ctx, language: undefined }) ??
+    resolvePropertyByColumnMetadata(column, { ...ctx, language: undefined })
+  );
+  const translated = translateDescriptionToGerman(englishValue);
+  if (!translated || sameDescriptionText(translated, englishValue)) return undefined;
+  return {
+    value: translated,
+    provenance: {
+      sourceKind: "generated-rule",
+      confidence: 0.74,
+      ruleName: "deterministic-german-description-fallback",
+      reason: "Deterministic German fallback translated from the English PDT description."
+    }
+  };
+}
+
+function translateDescriptionToGerman(value: string | undefined): string | undefined {
+  const source = cleanString(value);
+  if (!source) return undefined;
+  let translated = ` ${source} `;
+  const replacements: Array<[RegExp, string]> = [
+    [/\bfrom the official Eaton China product catalog\b/gi, "aus dem offiziellen Eaton China Produktkatalog"],
+    [/\bofficial Eaton China product catalog\b/gi, "offizieller Eaton China Produktkatalog"],
+    [/\bdistributed variable frequency drive\b/gi, "dezentraler Frequenzumrichter"],
+    [/\bvariable frequency drive\b/gi, "Frequenzumrichter"],
+    [/\badjustable frequency drive\b/gi, "Frequenzumrichter"],
+    [/\bwall mounted enclosure\b/gi, "Wandgehaeuse"],
+    [/\bcontrol cabinet\b/gi, "Schaltschrank"],
+    [/\blow voltage switchgear\b/gi, "Niederspannungs-Schaltanlage"],
+    [/\bcircuit breaker\b/gi, "Leistungsschalter"],
+    [/\bpower distribution block\b/gi, "Stromverteilerblock"],
+    [/\bpower supply\b/gi, "Stromversorgung"],
+    [/\bsafety relay\b/gi, "Sicherheitsrelais"],
+    [/\bterminal block\b/gi, "Reihenklemme"],
+    [/\bpush button\b/gi, "Drucktaster"],
+    [/\bpushbutton\b/gi, "Drucktaster"],
+    [/\bindicator light\b/gi, "Meldeleuchte"],
+    [/\bled indicator\b/gi, "LED-Meldeleuchte"],
+    [/\bservo drive\b/gi, "Servoantrieb"],
+    [/\bcontactor\b/gi, "Schuetz"],
+    [/\bcontroller\b/gi, "Steuerung"],
+    [/\bswitchgear\b/gi, "Schaltanlage"],
+    [/\benclosure\b/gi, "Gehaeuse"],
+    [/\bmodule\b/gi, "Modul"],
+    [/\bdrive\b/gi, "Antrieb"],
+    [/\bswitch\b/gi, "Schalter"],
+    [/\brelay\b/gi, "Relais"],
+    [/\bsensor\b/gi, "Sensor"],
+    [/\bcable\b/gi, "Kabel"],
+    [/\bconnector\b/gi, "Steckverbinder"],
+    [/\bmounted\b/gi, "montiert"],
+    [/\bcompact\b/gi, "kompakt"],
+    [/\bdistributed\b/gi, "dezentral"],
+    [/\bofficial\b/gi, "offiziell"],
+    [/\bproduct catalog\b/gi, "Produktkatalog"],
+    [/\bproduct\b/gi, "Produkt"],
+    [/\bcatalog\b/gi, "Katalog"]
+  ];
+  for (const [pattern, replacement] of replacements) {
+    translated = translated.replace(pattern, replacement);
+  }
+  return cleanString(translated);
+}
+
+function sameDescriptionText(left: string | undefined, right: string | undefined): boolean {
+  const normalize = (value: string | undefined) => cleanString(value)?.toLowerCase().replace(/[\s._-]+/g, "") ?? "";
+  const a = normalize(left);
+  const b = normalize(right);
+  return Boolean(a && b && a === b);
+}
+
 function factKeysForColumn(column: PdtColumn, ctx: ResolveContext): string[] {
   const keys = propertyKeysForColumn(column);
   const factKeys: string[] = [];
@@ -1107,7 +1177,10 @@ function factKeysForColumn(column: PdtColumn, ctx: ResolveContext): string[] {
   if (keys.includes("AAP508")) add("pdtDigitalInputCount");
   if (keys.includes("AAP610")) add("pdtDigitalOutputCount");
   if (keys.includes("AAC895")) add("pdtSignalDiameter");
-  if (keys.includes("BAH005") || keys.includes("AAF583") || keys.includes("AAB485") || keys.includes("CNS_RATED_VOLTAGE") || /\brated voltage|nominal voltage/i.test(column.description)) {
+  if (
+    !isDriveMotorReducedVoltageColumn(column, ctx) &&
+    (keys.includes("BAH005") || keys.includes("AAF583") || keys.includes("AAB485") || keys.includes("CNS_RATED_VOLTAGE") || /\brated voltage|nominal voltage/i.test(column.description))
+  ) {
     add("pdtRatedVoltage");
   }
   if (keys.includes("AAF726") || keys.includes("AAB821") || keys.includes("AAC824") || keys.includes("CNS_RATED_CURRENT") || /\brated current|nominal current/i.test(column.description)) {
@@ -1150,6 +1223,17 @@ function isSuppressedRockwellCompact5000IoDimension(column: PdtColumn, ctx: Reso
 
 function isSignalDevice(ctx: ResolveContext): boolean {
   return isSignalDeviceType(ctx.deviceType) || isRockwell852LedIndicator(ctx);
+}
+
+function isDriveMotorReducedVoltageColumn(column: PdtColumn, ctx: ResolveContext): boolean {
+  if (!/^\s*motors?\s*$/i.test(ctx.sheetName ?? "")) return false;
+  if (ctx.deviceType !== "Variable Speed Drive") return false;
+  const keys = propertyKeysForColumn(column);
+  return keys.includes("BAE081") || /\brated voltage\s*\(reduced\)/i.test(column.description);
+}
+
+function hasDriveMotorRatedVoltageEvidence(ctx: ResolveContext): boolean {
+  return (ctx.result?.attributes ?? []).some((attribute) => /\b(motor rated voltage|rated motor voltage)\b/i.test(`${attribute.group ?? ""} ${attribute.name}`) && cleanString(attribute.value));
 }
 
 function inferCellProvenance(column: PdtColumn, value: string, ctx: ResolveContext, facts: PdtFactIndex): PdtCellProvenance {

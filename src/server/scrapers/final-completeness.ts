@@ -8,10 +8,12 @@ import type {
   ProductResult,
   SourceRecord
 } from "../../shared/types.js";
-import { requiredElectricalFields } from "../../shared/product-requirements.js";
+import { isFamilyOverviewResult, requiredElectricalFields } from "../../shared/product-requirements.js";
 import { getManufacturerConfig } from "../config/manufacturers.js";
 import { electricalFieldsForDeviceType, finalCompletenessFieldsForDeviceType } from "../pdt/device-type-profiles.js";
 import { classifyDeviceType } from "./device-type.js";
+import { dedupeDocuments as dedupeSharedDocuments } from "./dedupe.js";
+import { fieldMatchesLabel, type RegistryFieldKey } from "./field-registry.js";
 import { cleanText, normalizeFields } from "./normalizer.js";
 import { matchProperty } from "./ontology.js";
 import { structuredIdentityConflict } from "./product-identity.js";
@@ -43,6 +45,10 @@ export interface FinalNetworkRetryDecision {
   untriedStages: string[];
 }
 
+export interface FinalCompletenessOptions {
+  requireImage?: boolean;
+}
+
 const CORE_NORMALIZED_FIELDS: FinalCompletenessNormalizedField[] = ["weight", "dimensions", "material"];
 const SECONDARY_NORMALIZED_FIELDS: FinalCompletenessNormalizedField[] = ["certificates"];
 const BASE_FIELDS: FinalCompletenessField[] = ["image", "weight", "dimensions", "material", "certificates", "voltage", "current"];
@@ -54,7 +60,11 @@ const TYPE_CODE_PATTERN =
 const TYPE_CODE_REQUIRED_ATTRIBUTE =
   "type code|typecode|model code|modellcode|extended product type|type designation|product main type|main type|catalog(?:ue)? type|order type|MLFB";
 
-export function evaluateFinalCompleteness(result: ProductResult, manufacturer: ManufacturerConfig): FinalCompletenessAudit {
+export function evaluateFinalCompleteness(
+  result: ProductResult,
+  manufacturer: ManufacturerConfig,
+  options: FinalCompletenessOptions = {}
+): FinalCompletenessAudit {
   const missing: FinalCompletenessField[] = [];
   const retryMissing: FinalCompletenessField[] = [];
   const notApplicable: FinalCompletenessField[] = [];
@@ -72,9 +82,10 @@ export function evaluateFinalCompleteness(result: ProductResult, manufacturer: M
     typeCode: typeCodeValue(result, manufacturer)
   };
   const requirements: Partial<Record<FinalCompletenessField, FinalRequirement>> = {};
+  const requireImage = options.requireImage ?? true;
 
   for (const field of finalCompletenessFields(result)) {
-    const requirement = finalFieldRequirement(field, result, manufacturer);
+    const requirement = finalFieldRequirement(field, result, manufacturer, { requireImage });
     requirements[field] = requirement;
     if (requirement === "not-applicable") {
       if (!values[field]) notApplicable.push(field);
@@ -448,7 +459,15 @@ function finalCompletenessRecords(
   });
 }
 
-function finalFieldRequirement(field: FinalCompletenessField, result: ProductResult, manufacturer: ManufacturerConfig): FinalRequirement {
+function finalFieldRequirement(
+  field: FinalCompletenessField,
+  result: ProductResult,
+  manufacturer: ManufacturerConfig,
+  options: FinalCompletenessOptions = {}
+): FinalRequirement {
+  if (field === "image" && options.requireImage === false) return "not-applicable";
+  const profileRequirement = profileFinalFieldRequirement(field, manufacturer);
+  if (profileRequirement) return profileRequirement;
   const classification = classifyDeviceType(result);
   const electricalContext = {
     deviceType: classification.type,
@@ -458,26 +477,23 @@ function finalFieldRequirement(field: FinalCompletenessField, result: ProductRes
   if (field === "voltage" || field === "current") {
     return requiredElectricalFields(result, electricalContext).includes(field) ? "required" : "not-applicable";
   }
-  if (isRockwellMicro820FamilyPageResult(result) && ["image", "dimensions", "material", "color", "operatingTemperature"].includes(field)) return "not-applicable";
+  if (isFamilyOverviewResult(result) && ["image", "dimensions", "material", "color", "operatingTemperature"].includes(field)) return "not-applicable";
   if (field === "color" || field === "operatingTemperature" || field === "protection" || field === "typeCode") return "preferred";
   if (field === "certificates") return "preferred";
   if (field === "image") return "required";
-  if (manufacturer.scrapeRecipe?.qualityPolicy?.requiredFinalFields?.includes(field)) return "required";
-  if (manufacturer.scrapeRecipe?.qualityPolicy?.preferredFinalFields?.includes(field)) return "preferred";
   if (isPassiveMechanicalProduct(result)) return "required";
   if (field === "weight" && isCompactSensorOrElectronics(result)) return "preferred";
   return CORE_NORMALIZED_FIELDS.includes(field) ? "preferred" : "preferred";
 }
 
-function isRockwellMicro820FamilyPageResult(result: ProductResult): boolean {
-  if (result.manufacturerId !== "rockwell") return false;
-  if (!/^\s*2080-LC20-/i.test(result.catalogNumber)) return false;
-  const evidence = [
-    result.productUrl,
-    ...result.sources.map((source) => `${source.url} ${source.parser ?? ""} ${source.stage ?? ""}`),
-    ...result.attributes.map((attr) => `${attr.sourceUrl ?? ""} ${attr.parser ?? ""} ${attr.value}`)
-  ].join(" ");
-  return /\bmicro820-controllers\.html\b/i.test(evidence) || /\brockwell-family-page\b/i.test(evidence);
+function profileFinalFieldRequirement(field: FinalCompletenessField, manufacturer: ManufacturerConfig): FinalRequirement | undefined {
+  const policy = manufacturer.scrapeRecipe?.qualityPolicy;
+  if (!policy?.requiredFinalFields?.length) {
+    return policy?.preferredFinalFields?.includes(field) ? "preferred" : undefined;
+  }
+  if (policy.requiredFinalFields.includes(field)) return "required";
+  if (policy.preferredFinalFields?.includes(field)) return "preferred";
+  return "not-applicable";
 }
 
 function isRetryableField(field: FinalCompletenessField, requirement: FinalRequirement): boolean {
@@ -622,30 +638,8 @@ function productImageUrlLooksRelevant(url: string, result: ProductResult, manufa
 }
 
 function fieldLabelMatches(field: FinalCompletenessField, label: string): boolean {
-  switch (field) {
-    case "weight":
-      return /\b(weight|mass|gewicht|peso|shipping weight|unit weight|net weight|gross weight)\b/i.test(label);
-    case "dimensions":
-      return /\b(dimensions?|size|height|width|depth|length|hxwxd|h x w x d|overall)\b/i.test(label);
-    case "material":
-      return /\b(material|housing|body|enclosure|construction)\b/i.test(label);
-    case "certificates":
-      return /\b(approval|conformity|certificate|certification|standard|compliance|ul|ce|rohs|weee|reach)\b/i.test(label);
-    case "voltage":
-      return /\b(voltage|volt|vac|vdc|rated operational voltage|supply voltage|input power)\b/i.test(label);
-    case "current":
-      return /\b(current|amp|amps|amperage|switching capacity|max\.? current|rated current)\b/i.test(label);
-    case "color":
-      return matchProperty(label)?.key === "color";
-    case "protection":
-      return matchProperty(label)?.key === "protection";
-    case "operatingTemperature":
-      return matchProperty(label)?.key === "operatingTemperature";
-    case "typeCode":
-      return matchProperty(label)?.key === "typeCode" || TYPE_CODE_PATTERN.test(label);
-    case "image":
-      return /\b(image|picture|photo|media)\b/i.test(label);
-  }
+  if (fieldMatchesLabel(field as RegistryFieldKey, label)) return true;
+  return matchProperty(label)?.key === field || (field === "typeCode" && TYPE_CODE_PATTERN.test(label));
 }
 
 function repairAttributeScore(field: FinalCompletenessField, attr: AttributeRecord): number {
@@ -939,15 +933,7 @@ function dedupeAttributes(attributes: AttributeRecord[]): AttributeRecord[] {
   });
 }
 
-function dedupeDocuments(documents: DocumentRecord[]): DocumentRecord[] {
-  const seen = new Set<string>();
-  return documents.filter((doc) => {
-    const key = doc.url.toLowerCase();
-    if (!doc.url || seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  });
-}
+const dedupeDocuments = dedupeSharedDocuments;
 
 function dedupeSources(sources: SourceRecord[]): SourceRecord[] {
   const seen = new Set<string>();

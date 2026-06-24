@@ -6,6 +6,7 @@ import { dedupeAttributes, dedupeDocuments } from "./dedupe.js";
 import { buildLocalizedProductUrls } from "./localized-urls.js";
 import { parseGenericProductPage } from "./generic.js";
 import { cleanText, emptyResult, mergeResults, normalizeFields } from "./normalizer.js";
+import { scrapeDiscoveredFallback, withDiscoveryFallbackDiagnostics } from "./discovery-fallback.js";
 
 const ALGOLIA_APP_ID = "NG1O3MB1NI";
 const ALGOLIA_API_KEY = "35654b18ecea8d001fec2453b93029f2";
@@ -84,10 +85,12 @@ export class SpelsbergConnector implements ManufacturerConnector {
 
     if (primary && primary.status !== "failed") return primary;
 
-    const fallback = await context.fallback.scrape(catalogNumber, context.manufacturer.fallbackSources);
-    if (fallback) return primary ? mergeResults(primary, fallback) : fallback;
-
-    return primary ?? emptyResult("spelsberg", catalogNumber, lastError instanceof Error ? lastError.message : "Spelsberg product finder did not return a matching product.");
+    const { result: fallback, discovery } = await scrapeDiscoveredFallback(catalogNumber, context, { idPrefix: this.id });
+    const result =
+      primary && fallback
+        ? mergeResults(primary, fallback)
+        : fallback ?? primary ?? emptyResult("spelsberg", catalogNumber, lastError instanceof Error ? lastError.message : "Spelsberg product finder did not return a matching product.");
+    return withDiscoveryFallbackDiagnostics(result, discovery);
   }
 }
 

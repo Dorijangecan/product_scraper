@@ -7,6 +7,7 @@ import { buildLocalizedProductUrls } from "./localized-urls.js";
 import { catalogTextMatches, sameCatalogNumber } from "./catalog-number.js";
 import { extractMarkerData } from "./marker-extractor.js";
 import { dedupeAttributes, dedupeDocuments } from "./dedupe.js";
+import { scrapeDiscoveredFallback, withDiscoveryFallbackDiagnostics } from "./discovery-fallback.js";
 
 const ABB_USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0 Safari/537.36";
 const ABB_PARTCOMMUNITY_BASE_URL = "https://abb-control-products.partcommunity.com/3d-cad-models/";
@@ -132,8 +133,8 @@ export class ABBConnector implements ManufacturerConnector {
     const enriched = primary;
 
     try {
-      const fallback = await context.fallback.scrape(catalogNumber, context.manufacturer.fallbackSources);
-      return attachGerman(mergeResults(enriched, fallback));
+      const { result: fallback, discovery } = await scrapeDiscoveredFallback(catalogNumber, context, { idPrefix: this.id });
+      return attachGerman(withDiscoveryFallbackDiagnostics(mergeResults(enriched, fallback), discovery));
     } catch (error) {
       return attachGerman({
         ...enriched,

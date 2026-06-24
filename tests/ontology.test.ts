@@ -193,6 +193,34 @@ describe("property ontology — general multilingual understanding", () => {
     expect(matchProperty("AC Interrupting Rating")?.key).toBe("breakingCapacity");
   });
 
+  it("understands broad electrical catalog labels for voltage, current, current draw, and losses", () => {
+    expect(matchProperty("Electrical data - supply voltage range")?.key).toBe("ratedVoltage");
+    expect(matchProperty("Module supply voltage")?.key).toBe("ratedVoltage");
+    expect(matchProperty("Sensor supply voltage")?.key).toBe("ratedVoltage");
+    expect(matchProperty("Auxiliary voltage")?.key).toBe("ratedVoltage");
+    expect(matchProperty("Load voltage")?.key).toBe("ratedVoltage");
+    expect(matchProperty("Max. operating voltage")?.key).toBe("ratedVoltage");
+
+    expect(matchProperty("Load current")?.key).toBe("ratedCurrent");
+    expect(matchProperty("Nominal load current")?.key).toBe("ratedCurrent");
+    expect(matchProperty("Maximum load current")?.key).toBe("ratedCurrent");
+    expect(matchProperty("Output current range")?.key).toBe("ratedCurrent");
+    expect(matchProperty("Current-carrying capacity")?.key).toBe("ratedCurrent");
+    expect(matchProperty("Permissible current")?.key).toBe("ratedCurrent");
+
+    expect(matchProperty("Current consumption max.")?.key).toBe("currentConsumption");
+    expect(matchProperty("Input current max.")?.key).toBe("currentConsumption");
+    expect(matchProperty("No-load current Io max.")?.key).toBe("currentConsumption");
+    expect(matchProperty("Quiescent current")?.key).toBe("currentConsumption");
+    expect(matchProperty("Current Draw at 24V DC")?.key).toBe("currentConsumption");
+
+    expect(matchProperty("Power loss [W] / maximum")?.key).toBe("powerLoss");
+    expect(matchProperty("Module power dissipation")?.key).toBe("powerLoss");
+    expect(matchProperty("Total power loss")?.key).toBe("powerLoss");
+    expect(matchProperty("Internal power loss")?.key).toBe("powerLoss");
+    expect(matchProperty("Heat loss")?.key).toBe("powerLoss");
+  });
+
   it("understands terminal-block labels (WAGO, Weidmüller, Phoenix)", () => {
     expect(matchProperty("Connection technology")?.key).toBe("connectionTechnology");
     expect(matchProperty("Push-in CAGE CLAMP")?.key).toBe("connectionTechnology");

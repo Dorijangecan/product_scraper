@@ -5,6 +5,9 @@ import { buildLocalizedProductUrls } from "./localized-urls.js";
 import { classifyDocument, cleanText, emptyResult, mergeResults, normalizeFields } from "./normalizer.js";
 import type { ManufacturerConnector, ScrapeContext } from "./types.js";
 import { catalogTextMatches } from "./catalog-number.js";
+import { dedupeDocuments } from "./dedupe.js";
+import { documentUrlLooksDownloadable } from "./document-url.js";
+import { scrapeDiscoveredFallback, withDiscoveryFallbackDiagnostics } from "./discovery-fallback.js";
 
 const SCHNEIDER_PRODUCT_URL_TEMPLATES = [
   "https://www.se.com/us/en/product/{part}/",
@@ -373,9 +376,11 @@ export class SchneiderConnector implements ManufacturerConnector {
     }
 
     const result = firstFailure ?? emptyResult("schneider", catalogNumber, "No Schneider product page could be fetched.");
-    const fallback = await context.fallback.scrape(catalogNumber, context.manufacturer.fallbackSources);
-    if (datasheetReader && fallback) return mergeResults(datasheetReader, fallback);
-    return datasheetReader ?? fallback ?? result;
+    const { result: fallback, discovery } = await scrapeDiscoveredFallback(catalogNumber, context, { idPrefix: this.id });
+    const recovered = datasheetReader && fallback
+      ? mergeResults(datasheetReader, fallback)
+      : datasheetReader ?? fallback ?? result;
+    return withDiscoveryFallbackDiagnostics(recovered, discovery);
   }
 }
 
@@ -845,7 +850,11 @@ function cleanTelemecaniqueValue(value: string): string {
 }
 
 function isTelemecaniqueDocumentUrl(url: string): boolean {
-  return /downloads\.telemecaniquesensors\.com\/dam\/|telemecaniquesensors\.com\/(?:global|us|uk|be|tr|pl)\/en\/download\/dam\//i.test(url);
+  const knownHost = /downloads\.telemecaniquesensors\.com|telemecaniquesensors\.com|download\.schneider-electric\.com/i.test(url);
+  return (
+    (knownHost && documentUrlLooksDownloadable(url)) ||
+    /downloads\.telemecaniquesensors\.com\/dam\/|telemecaniquesensors\.com\/(?:global|us|uk|be|tr|pl)\/en\/download\/dam\//i.test(url)
+  );
 }
 
 function telemecaniqueDocumentLabel(url: string): string {
@@ -1467,16 +1476,6 @@ function dedupeAttributes(attributes: AttributeRecord[]): AttributeRecord[] {
   return attributes.filter((attr) => {
     const key = `${attr.group ?? ""}|${attr.name}|${attr.value}`.toLowerCase();
     if (!attr.name || !attr.value || seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  });
-}
-
-function dedupeDocuments(documents: DocumentRecord[]): DocumentRecord[] {
-  const seen = new Set<string>();
-  return documents.filter((doc) => {
-    const key = doc.url.toLowerCase();
-    if (!doc.url || seen.has(key)) return false;
     seen.add(key);
     return true;
   });

@@ -77,7 +77,7 @@ const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
   rule("Contactor", /\b(?:contactor|contactor relay|kontaktor|contact kit|contact tip kit|main contact kit|replacement contacts?)\b/i, 800),
   rule("Relay", /\b(?:interface relay|coupling relay|plug-?in relay|timer relay|monitoring relay|relais|relej|\brelay\b)\b/i, 790),
   rule("Soft Starter", /\bsoft[-\s]?starter\b/i, 785),
-  rule("Variable Speed Drive", /\b(?:variable speed drive|variable frequency drive|\bvfd\b|frequency (?:converter|inverter)|\bvsd\b|servo drive|ac drive|motor drive|inverter drive)\b/i, 780),
+  rule("Variable Speed Drive", /\b(?:variable speed drive|variable frequency drive|\bvfd\b|frequency (?:converter|inverter)|\bvsd\b|servo drive|ac drive|motor drive|inverter drive)\b|(?:\u53d8\u9891\u5668|\u53d8\u9891\u9a71\u52a8|\u9891\u7387\u8f6c\u6362\u5668)/i, 780),
   rule("Motor Starter", /\b(?:motor starter|starter combination|reversing starter|direct[-\s]?on[-\s]?line starter|\bdol starter\b)\b/i, 775),
   rule("Disconnect Switch", /\b(?:switch[-\s]?disconnector|disconnect(?:ing|or)?\s+switch|isolator switch|safety switch|rotary disconnect|main switch|load break switch)\b/i, 770),
   rule("Surge Protective Device", /\b(?:surge protective device|\bspd\b|surge arrester|surge protection|lightning arrester)\b/i, 765),
@@ -103,7 +103,7 @@ const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
   rule("Wireway", /\b(?:wireway|wire duct|cable duct|cable tray|cable channel|cable trunking)\b/i, 760),
   rule("Subpanel", /\b(?:subpanel|sub-panel|back[-\s]?panel|mounting panel|mounting plate)\b/i, 755),
   rule("Module Carrier", /\b(?:module carrier|carrier frame|backplane|module rack|subrack)\b/i, 753),
-  rule("Enclosure", /\b(?:enclosure|wall[-\s]?mount(?:ed)? enclosure|floor[-\s]?stand(?:ing)? enclosure|junction box|control box|terminal box|\bcabinet\b)\b/i, 750),
+  rule("Enclosure", /\b(?:enc(?:losure)?\.?|wall[-\s]?mount(?:ed)? enclosure|floor[-\s]?stand(?:ing)? enclosure|junction box|control box|terminal box|\bcabinet\b)\b/i, 750),
 
   // --- Wiring & connectors ---
   rule("Terminal Accessory", /\b(?:terminal accessory|end bracket|end[-\s]?stop|end[-\s]?clamp|end[-\s]?plate|partition plate|terminal end\b|terminal cover|terminal\s+(?:end\s+)?bracket|separator plate|end section)\b/i, 770),

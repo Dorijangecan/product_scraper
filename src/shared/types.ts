@@ -104,7 +104,7 @@ export interface FallbackSourceConfig {
 }
 
 export interface LocalizedUrlTemplate {
-  locale: "en" | "de";
+  locale: "en" | "de" | "zh";
   urlTemplate: string;
 }
 
@@ -284,11 +284,57 @@ export interface ScrapeDiagnostics {
   finalCompleteness?: FinalCompletenessDiagnostics;
   browserNetwork?: BrowserNetworkRecord[];
   suggestedApiEndpoints?: string[];
+  documentCandidates?: DocumentCandidateDiagnostic[];
+  documentProcessing?: DocumentProcessingDiagnostic[];
   documentParseFailures?: string[];
   sectionAttributeCounts?: Record<string, number>;
   /** Self-diagnosis: spec labels with a recognizable value but no known meaning — knowledge-base gaps to teach, not guess. */
   unmappedSpecLabels?: string[];
+  fieldHealth?: FieldHealthRecord[];
   notes?: string[];
+}
+
+export interface DocumentProcessingDiagnostic {
+  url: string;
+  label?: string;
+  type?: DocumentRecord["type"];
+  action: "parsed" | "skipped" | "failed";
+  stage: "downloaded-document-enrichment" | "remote-document-enrichment" | "customer-document-enrichment";
+  reason: string;
+  localPath?: string;
+  sourceUrl?: string;
+  parseError?: string;
+}
+
+export interface DocumentCandidateDiagnostic {
+  url: string;
+  label?: string;
+  type?: DocumentRecord["type"];
+  status: "accepted" | "rejected";
+  reason: string;
+  sourceUrl?: string;
+}
+
+export interface FieldHealthRecord {
+  field: string;
+  label: string;
+  status: "found" | "missing" | "low-confidence" | "conflicting";
+  value?: string;
+  confidence?: number;
+  sourceUrls?: string[];
+  conflicts?: Array<{
+    value: string;
+    sourceUrls: string[];
+    confidence?: number;
+    sourceTypes?: SourceRecord["sourceType"][];
+    parsers?: string[];
+    stages?: string[];
+    priority?: number;
+    priorityReason?: string;
+    selected?: boolean;
+  }>;
+  reason?: string;
+  resolution?: string;
 }
 
 export interface FinalCompletenessDiagnostics {
@@ -578,6 +624,33 @@ export type RunCoverageField =
 
 export type RunCoverageState = "present" | "missing" | "not-applicable";
 
+export interface RunItemFieldHealthSummary {
+  found: number;
+  missing: number;
+  lowConfidence: number;
+  conflicting: number;
+  reviewFields: string[];
+}
+
+export interface RunItemDocumentProcessingSummary {
+  parsed: number;
+  skipped: number;
+  failed: number;
+  reviewDocuments: string[];
+}
+
+export interface RunItemDiscoverySummary {
+  attempted: number;
+  discovered: number;
+  rejected: number;
+  documentCandidatesAccepted: number;
+  documentCandidatesRejected: number;
+  attemptedUrls: string[];
+  topCandidates: string[];
+  rejectedLinks: string[];
+  rejectedDocuments: string[];
+}
+
 export interface RunItemCoverageSummary {
   fields: Partial<Record<RunCoverageField, RunCoverageState>>;
   /**
@@ -590,6 +663,9 @@ export interface RunItemCoverageSummary {
   qualityPassed?: boolean;
   qualityMissing?: string[];
   finalCompletenessAfterMissing?: string[];
+  fieldHealth?: RunItemFieldHealthSummary;
+  documentProcessing?: RunItemDocumentProcessingSummary;
+  discovery?: RunItemDiscoverySummary;
   attributeCount?: number;
   documentCount?: number;
   evidenceCount?: number;

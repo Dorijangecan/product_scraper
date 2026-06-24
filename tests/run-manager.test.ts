@@ -1,5 +1,19 @@
 import { describe, expect, it } from "vitest";
-import { coalesceImageDocuments, documentDownloadProfile, imageFileName, isDownloadablePdfDocument, shouldDownloadDocumentsForRun } from "../src/server/run-manager.js";
+import fs from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
+import {
+  coalesceImageDocuments,
+  documentDownloadCandidateUrls,
+  documentDownloadProfile,
+  documentExtension,
+  imageFileName,
+  isDownloadablePdfDocument,
+  RunManager,
+  shouldShortCircuitCustomerFirst,
+  shouldDownloadDocumentsForRun,
+  withRemoteDocumentProbeSkippedDiagnostics
+} from "../src/server/run-manager.js";
 import { getManufacturerConfig } from "../src/server/config/manufacturers.js";
 import type { DocumentRecord, ProductResult } from "../src/shared/types.js";
 
@@ -77,6 +91,7 @@ describe("run manager document downloads", () => {
     const balluff = getManufacturerConfig("balluff");
     expect(balluff?.scrapeRecipe?.fallbackPolicy?.documentDownloadProfile).toBe("quality");
     expect(documentDownloadProfile(balluff!, result)).toBe("quality");
+    expect(documentDownloadProfile(balluff!, result, { saveDocuments: true })).toBe("full");
     expect(documentDownloadProfile({ id: "balluff" }, result)).toBe("full");
   });
 
@@ -87,10 +102,197 @@ describe("run manager document downloads", () => {
     expect(shouldDownloadDocumentsForRun({ id: "balluff" }, { downloadDocuments: false, generateExcel: false })).toBe(false);
   });
 
+  it("allows complete customer documents to short-circuit official lookup for unseen manufacturers", () => {
+    const result = customerOnlyResult({
+      manufacturerId: "unseen-maker",
+      normalized: { weight: "1.2 kg", dimensions: "120 x 80 x 40 mm", material: "steel", voltage: "24 V DC" },
+      qualityGate: { passed: true, identityConfirmed: true, score: 94, missing: [], reason: "customer complete", attempts: [] }
+    });
+
+    expect(
+      shouldShortCircuitCustomerFirst(result, {
+        attributes: [
+          { name: "Part Number" },
+          { name: "Description" },
+          { name: "Weight" },
+          { name: "Dimensions" },
+          { name: "Material" },
+          { name: "Voltage" }
+        ],
+        documents: [{ type: "datasheet", label: "Customer datasheet", url: "file:///customer/ABC-123.pdf" }]
+      })
+    ).toBe(true);
+  });
+
+  it("keeps weak customer documents in the merge path instead of short-circuiting", () => {
+    const result = customerOnlyResult({
+      manufacturerId: "unseen-maker",
+      normalized: { material: "steel" },
+      qualityGate: { passed: false, identityConfirmed: true, score: 52, missing: ["normalized:voltage"], reason: "missing", attempts: [] }
+    });
+
+    expect(
+      shouldShortCircuitCustomerFirst(result, {
+        attributes: [{ name: "Part Number" }, { name: "Material" }, { name: "Description" }],
+        documents: [{ type: "datasheet", label: "Customer datasheet", url: "file:///customer/ABC-123.pdf" }]
+      })
+    ).toBe(false);
+  });
+
+  it("records why remote document enrichment skipped non-probeable documents", () => {
+    const result = withRemoteDocumentProbeSkippedDiagnostics(
+      customerOnlyResult({
+        status: "partial",
+        documents: [
+          { type: "image", label: "Product image", url: "https://example.test/ABC-123.png" },
+          { type: "other", label: "Warranty terms", url: "https://example.test/warranty" }
+        ]
+      }),
+      ["normalized:voltage", "normalized:material"]
+    );
+
+    expect(result.diagnostics?.documentProcessing).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        url: "https://example.test/ABC-123.png",
+        action: "skipped",
+        stage: "remote-document-enrichment",
+        reason: expect.stringContaining("document type 'image'")
+      }),
+      expect.objectContaining({
+        url: "https://example.test/warranty",
+        action: "skipped",
+        stage: "remote-document-enrichment",
+        reason: expect.stringContaining("does not look like a datasheet")
+      })
+    ]));
+    expect(result.diagnostics?.notes?.some((note) => note.includes("Remote document enrichment skipped"))).toBe(true);
+  });
+
+  it("records when remote document enrichment has no document candidates at all", () => {
+    const result = withRemoteDocumentProbeSkippedDiagnostics(
+      customerOnlyResult({ status: "partial", documents: [] }),
+      ["document:datasheet"]
+    );
+
+    expect(result.diagnostics?.documentProcessing).toBeUndefined();
+    expect(result.diagnostics?.notes?.some((note) => note.includes("product has no document candidates"))).toBe(true);
+  });
+
+  it("keeps PDF-like query documents in the quality profile for enrichment", () => {
+    const result = {
+      documents: [
+        {
+          type: "other",
+          label: "ABC-123 technical datasheet",
+          url: "https://example.test/files?p_Doc_Ref=ABC123_TECHDATA&p_enDocType=Data+Sheet"
+        }
+      ]
+    } as ProductResult;
+
+    expect(documentDownloadProfile({ id: "generic" }, result, { saveDocuments: false })).toBe("quality");
+  });
+
   it("does not treat Rockwell configurator cutsheets as downloadable PDFs", () => {
     expect(isDownloadablePdfDocument({ url: "https://configurator.rockwellautomation.com/api/Product/800F-X10/cutsheet" })).toBe(false);
     expect(isDownloadablePdfDocument({ url: "https://literature.rockwellautomation.com/idc/groups/literature/documents/td/800-td008_-en-p.pdf" })).toBe(true);
     expect(isDownloadablePdfDocument({ url: "https://www.se.com/us/en/product/download-pdf/GV2ME08" })).toBe(true);
+    expect(isDownloadablePdfDocument({ url: "https://example.test/files?p_Doc_Ref=ABC123_TECHDATA&p_enDocType=Data+Sheet" })).toBe(true);
+  });
+
+  it("names PDF-like query downloads as PDFs even when the document type is generic", () => {
+    expect(documentExtension("https://example.test/files?p_Doc_Ref=ABC123_TECHDATA&p_enDocType=Data+Sheet", "other")).toBe(".pdf");
+    expect(documentExtension("https://example.test/download?documentId=ABC123&format=pdf", "other")).toBe(".pdf");
+    expect(documentExtension("/assets/download?filename=ABC-123_datasheet.pdf&token=abc", "other")).toBe(".pdf");
+  });
+
+  it("keeps parseable document candidate URLs for fallback download attempts", () => {
+    const urls = documentDownloadCandidateUrls({
+      type: "datasheet",
+      label: "ABC-123 datasheet",
+      url: "https://example.test/broken-download",
+      candidateUrls: [
+        "https://example.test/files?p_Doc_Ref=ABC123_TECHDATA&p_enDocType=Data+Sheet",
+        "https://example.test/about"
+      ]
+    });
+
+    expect(urls).toEqual([
+      "https://example.test/files?p_Doc_Ref=ABC123_TECHDATA&p_enDocType=Data+Sheet"
+    ]);
+  });
+
+  it("keeps relevant datasheet endpoints without PDF suffixes as download candidates", () => {
+    const urls = documentDownloadCandidateUrls({
+      type: "datasheet",
+      label: "ABC-123 technical datasheet PDF",
+      url: "https://example.test/resources/ABC123_TECHDATA",
+      sourceUrl: "https://example.test/products/ABC-123"
+    });
+
+    expect(urls).toEqual(["https://example.test/resources/ABC123_TECHDATA"]);
+    expect(documentExtension(urls[0], "datasheet")).toBe(".pdf");
+  });
+
+  it("keeps relative PDF-like document links as download candidates", () => {
+    const urls = documentDownloadCandidateUrls({
+      type: "datasheet",
+      label: "ABC-123 technical datasheet",
+      url: "/downloads/files?filename=ABC-123_datasheet.pdf&token=abc",
+      sourceUrl: "https://example.test/products/ABC-123"
+    });
+
+    expect(urls).toEqual(["/downloads/files?filename=ABC-123_datasheet.pdf&token=abc"]);
+  });
+
+  it("falls back to parseable candidate URLs when the primary document download fails", async () => {
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-doc-candidates-"));
+    const attempts: string[] = [];
+    const http = {
+      downloadFile: async (url: string, targetDir: string, suggestedName: string) => {
+        attempts.push(url);
+        if (attempts.length === 1) throw new Error("primary URL failed");
+        await fs.mkdir(targetDir, { recursive: true });
+        const output = path.join(targetDir, suggestedName);
+        await fs.writeFile(output, "%PDF-1.4\n% fake test pdf\n", "utf8");
+        return output;
+      }
+    };
+    const manager = new RunManager({} as never, {} as never);
+
+    const downloaded = await (manager as unknown as {
+      downloadDocument: (
+        http: { downloadFile: (url: string, targetDir: string, suggestedName: string) => Promise<string> },
+        documentsDir: string,
+        cadDir: string,
+        imagesDir: string,
+        manufacturerShortName: string,
+        catalogNumber: string,
+        doc: DocumentRecord,
+        selection: { images: boolean; pdfs: boolean; cad: boolean }
+      ) => Promise<DocumentRecord>;
+    }).downloadDocument(
+      http,
+      dir,
+      dir,
+      dir,
+      "TST",
+      "ABC-123",
+      {
+        type: "datasheet",
+        label: "ABC-123 datasheet",
+        url: "https://example.test/primary.pdf",
+        candidateUrls: ["https://example.test/download?documentId=ABC123&format=pdf"]
+      },
+      { images: false, pdfs: true, cad: false }
+    );
+
+    expect(attempts).toEqual([
+      "https://example.test/primary.pdf",
+      "https://example.test/download?documentId=ABC123&format=pdf"
+    ]);
+    expect(downloaded.downloadStatus).toBe("downloaded");
+    expect(downloaded.url).toBe("https://example.test/download?documentId=ABC123&format=pdf");
+    expect(downloaded.localPath).toMatch(/ABC-123-datasheet/i);
   });
 
   it("names SCE images from the requested catalog number with the preview suffix", () => {
@@ -102,4 +304,18 @@ describe("run manager document downloads", () => {
 
 function image(label: string, url: string): DocumentRecord {
   return { type: "image", label, url };
+}
+
+function customerOnlyResult(overrides: Partial<ProductResult>): ProductResult {
+  return {
+    manufacturerId: "unseen-maker",
+    catalogNumber: "ABC-123",
+    status: "found",
+    confidence: 0.9,
+    normalized: {},
+    attributes: [],
+    documents: [],
+    sources: [],
+    ...overrides
+  };
 }

@@ -50,6 +50,8 @@ export async function exportRunWorkbook(input: {
   const technicalAttributes = workbook.addWorksheet("Technical Attributes", { views: [{ state: "frozen", xSplit: 4, ySplit: 1 }] });
   const aliasDictionary = workbook.addWorksheet("Alias Dictionary", { views: [{ state: "frozen", xSplit: 3, ySplit: 1 }] });
   const documents = workbook.addWorksheet("Documents", { views: [{ state: "frozen", xSplit: 2, ySplit: 1 }] });
+  const documentDiagnostics = workbook.addWorksheet("Document Diagnostics", { views: [{ state: "frozen", xSplit: 2, ySplit: 1 }] });
+  const fieldDiagnostics = workbook.addWorksheet("Field Diagnostics", { views: [{ state: "frozen", xSplit: 3, ySplit: 1 }] });
   const sources = workbook.addWorksheet("Sources", { views: [{ state: "frozen", xSplit: 2, ySplit: 1 }] });
   const evidence = workbook.addWorksheet("Evidence", { views: [{ state: "frozen", xSplit: 2, ySplit: 1 }] });
   const finalAudit = workbook.addWorksheet("Final Audit", { views: [{ state: "frozen", xSplit: 2, ySplit: 1 }] });
@@ -122,11 +124,13 @@ export async function exportRunWorkbook(input: {
     { header: "All Specifications", key: "allSpecifications", width: 120 },
     { header: "Attribute Count", key: "attributeCount", width: 16 },
     { header: "Document Count", key: "documentCount", width: 16 },
+    { header: "Document Processing", key: "documentProcessingSummary", width: 70 },
     { header: "Image Count", key: "imageCount", width: 12 },
     { header: "Quality Gate Passed", key: "qualityPassed", width: 18 },
     { header: "Quality Score", key: "qualityScore", width: 14 },
     { header: "Quality Missing", key: "qualityMissing", width: 56 },
     { header: "Final Completeness Check", key: "finalCompletenessCheck", width: 64 },
+    { header: "Field Health", key: "fieldHealthSummary", width: 70 },
     { header: "Missing Required Fields", key: "missingRequiredFields", width: 48 },
     { header: "Error", key: "error", width: 56 }
   ];
@@ -213,11 +217,13 @@ export async function exportRunWorkbook(input: {
     { header: "All Specifications", key: "allSpecifications", width: 100 },
     { header: "Page Attribute Count", key: "attributeCount", width: 18 },
     { header: "Document Count", key: "documentCount", width: 14 },
+    { header: "Document Processing", key: "documentProcessingSummary", width: 70 },
     { header: "Quality Gate Passed", key: "qualityPassed", width: 18 },
     { header: "Quality Score", key: "qualityScore", width: 14 },
     { header: "Quality Missing", key: "qualityMissing", width: 48 },
     { header: "Fallback Stages", key: "fallbackStages", width: 32 },
     { header: "Final Completeness Check", key: "finalCompletenessCheck", width: 56 },
+    { header: "Field Health", key: "fieldHealthSummary", width: 70 },
     { header: "Missing Required Fields", key: "missingRequiredFields", width: 42 },
     { header: "Unmapped Spec Labels", key: "unmappedSpecLabels", width: 42 },
     { header: "Error", key: "error", width: 40 }
@@ -299,6 +305,36 @@ export async function exportRunWorkbook(input: {
     { header: "Source URL", key: "sourceUrl", width: 60 }
   ];
 
+  documentDiagnostics.columns = [
+    { header: "Manufacturer", key: "manufacturer", width: 18 },
+    { header: "Catalog Number", key: "catalogNumber", width: 24 },
+    { header: "Action", key: "action", width: 14 },
+    { header: "Stage", key: "stage", width: 30 },
+    { header: "Type", key: "type", width: 14 },
+    { header: "Label", key: "label", width: 42 },
+    { header: "Reason", key: "reason", width: 70 },
+    { header: "Parse Error", key: "parseError", width: 56 },
+    { header: "URL", key: "url", width: 70 },
+    { header: "Local Path", key: "localPath", width: 60 },
+    { header: "Source URL", key: "sourceUrl", width: 70 }
+  ];
+
+  fieldDiagnostics.columns = [
+    { header: "Manufacturer", key: "manufacturer", width: 18 },
+    { header: "Catalog Number", key: "catalogNumber", width: 24 },
+    { header: "Field", key: "field", width: 24 },
+    { header: "Label", key: "label", width: 28 },
+    { header: "Status", key: "status", width: 18 },
+    { header: "Value", key: "value", width: 54 },
+    { header: "Confidence", key: "confidence", width: 12 },
+    { header: "Source URLs", key: "sourceUrls", width: 80 },
+    { header: "Reason", key: "reason", width: 70 },
+    { header: "Resolution", key: "resolution", width: 90 },
+    { header: "Conflicting Values", key: "conflictingValues", width: 80 },
+    { header: "Selected Conflict", key: "selectedConflict", width: 64 },
+    { header: "Conflict Sources", key: "conflictSources", width: 90 }
+  ];
+
   sources.columns = [
     { header: "Manufacturer", key: "manufacturer", width: 18 },
     { header: "Catalog Number", key: "catalogNumber", width: 24 },
@@ -353,7 +389,7 @@ export async function exportRunWorkbook(input: {
 
   for (const item of input.items) {
     const result = item.result;
-    const rowData = productRow(input.manufacturer, item, result);
+    const rowData = productRow(input.manufacturer, item, result, { includeImages: input.run.options?.downloadImages !== false });
     productRows.push(rowData);
     lookup.addRow(lookupRow(rowData, result));
     const productExcelRow = products.addRow(rowData);
@@ -421,6 +457,38 @@ export async function exportRunWorkbook(input: {
         parser: doc.parser,
         confidence: doc.confidence,
         sourceUrl: doc.sourceUrl
+      });
+    }
+    for (const doc of result.diagnostics?.documentProcessing ?? []) {
+      documentDiagnostics.addRow({
+        manufacturer: input.manufacturer.canonicalName,
+        catalogNumber: result.catalogNumber,
+        action: doc.action,
+        stage: doc.stage,
+        type: doc.type,
+        label: doc.label,
+        reason: doc.reason,
+        parseError: doc.parseError,
+        url: doc.url,
+        localPath: doc.localPath,
+        sourceUrl: doc.sourceUrl
+      });
+    }
+    for (const record of result.diagnostics?.fieldHealth ?? []) {
+      fieldDiagnostics.addRow({
+        manufacturer: input.manufacturer.canonicalName,
+        catalogNumber: result.catalogNumber,
+        field: record.field,
+        label: record.label,
+        status: record.status,
+        value: record.value,
+        confidence: record.confidence,
+        sourceUrls: record.sourceUrls?.join("; "),
+        reason: record.reason,
+        resolution: record.resolution,
+        conflictingValues: fieldConflictValues(record.conflicts),
+        selectedConflict: selectedFieldConflict(record.conflicts),
+        conflictSources: fieldConflictSources(record.conflicts)
       });
     }
     for (const source of result.sources) {
@@ -520,6 +588,8 @@ export async function exportRunWorkbook(input: {
     technicalAttributes,
     aliasDictionary,
     documents,
+    documentDiagnostics,
+    fieldDiagnostics,
     sources,
     evidence,
     finalAudit,
@@ -684,6 +754,8 @@ function populateRunSummarySheet(
     "Technical Attributes",
     "Alias Dictionary",
     "Documents",
+    "Document Diagnostics",
+    "Field Diagnostics",
     "Sources",
     "Evidence",
     "Final Audit",
@@ -712,6 +784,8 @@ function sheetPurpose(sheetName: string): string {
     "Technical Attributes": "Canonical map of original manufacturer spec names to standard technical properties.",
     "Alias Dictionary": "Known manufacturer-specific aliases and evidence links for canonical technical properties.",
     "Documents": "Raw document records with download and parse metadata.",
+    "Document Diagnostics": "Document parsing actions, skip reasons, failures, and source paths.",
+    "Field Diagnostics": "Field-level found/missing/low-confidence/conflict records with source URLs and conflict resolution.",
     "Sources": "Fetched source URLs and scrape stages.",
     "Evidence": "Normalized field evidence used to support exported values.",
     "Final Audit": "Final completeness check records and retry decisions.",
@@ -1361,7 +1435,7 @@ function populateChecksSheet(sheet: ExcelJS.Worksheet, productRows: ProductExpor
     addCheckRow(sheet, row, row.qualityPassed === false, "Medium", "Quality gate failed", row.qualityMissing, "Review quality missing fields.");
     addCheckRow(sheet, row, !row.productUrlEn && !row.productUrl, "High", "Missing product URL", "No source product URL exported.", "Check source discovery and localized URL mapping.");
     addCheckRow(sheet, row, !hasDocumentSummaryType(row.downloads, "Datasheet"), "Medium", "Missing datasheet", "No datasheet document found.", "Check Downloads or manufacturer document portal.");
-    addCheckRow(sheet, row, !row.imageUrl, "Low", "Missing image", "No product image URL found.", "Check image-only run or source page media.");
+    addCheckRow(sheet, row, imageExpected(row) && !row.imageUrl, "Low", "Missing image", "No product image URL found.", "Check image-only run or source page media.");
   }
 
   if (sheet.rowCount === 1) {
@@ -1420,7 +1494,7 @@ function reviewReason(row: ProductExportRow): string | undefined {
     row.attributeCount === 0 ? "No attributes" : undefined,
     row.documentCount === 0 ? "No documents" : undefined,
     !row.productUrlEn ? "Missing product URL" : undefined,
-    !row.imageUrl ? "Missing image" : undefined,
+    imageExpected(row) && !row.imageUrl ? "Missing image" : undefined,
     !hasDocumentSummaryType(row.downloads, "Datasheet") ? "Missing datasheet" : undefined,
     row.missingRequiredFields ? `Missing: ${row.missingRequiredFields}` : undefined,
     row.error ? "Has error" : undefined
@@ -1443,7 +1517,7 @@ function reviewPriorityScore(row: ProductExportRow): number {
   if (row.documentCount === 0) score += 12;
   if (!row.productUrlEn) score += 10;
   if (!hasDocumentSummaryType(row.downloads, "Datasheet")) score += 8;
-  if (!row.imageUrl) score += 5;
+  if (imageExpected(row) && !row.imageUrl) score += 5;
   return score;
 }
 
@@ -1684,7 +1758,7 @@ function reviewIssueType(row: ProductExportRow): string | undefined {
     row.documentCount === 0 ? "No documents" : undefined,
     !row.productUrlEn && !row.productUrl ? "Missing product URL" : undefined,
     !hasDocumentSummaryType(row.downloads, "Datasheet") ? "Missing datasheet" : undefined,
-    !row.imageUrl ? "Missing image" : undefined
+    imageExpected(row) && !row.imageUrl ? "Missing image" : undefined
   ].filter((value): value is string => Boolean(value));
   return uniqueStrings(issues).slice(0, 5).join("; ") || undefined;
 }
@@ -1699,7 +1773,7 @@ function reviewSuggestedAction(row: ProductExportRow): string | undefined {
   if (row.qualityPassed === false) return "Review quality missing fields and source evidence.";
   if (coverage.score < 0.6) return "Open Field Coverage and fill the highest-value missing fields.";
   if (!hasDocumentSummaryType(row.downloads, "Datasheet")) return "Add a datasheet URL or confirm the manufacturer does not publish one.";
-  if (!row.imageUrl) return "Add a product image URL/file or confirm image is not required.";
+  if (imageExpected(row) && !row.imageUrl) return "Add a product image URL/file or confirm image is not required.";
   if (row.documentCount === 0) return "Check the manufacturer document portal and add relevant document URLs.";
   if (row.attributeCount === 0) return "Check extraction and source page structure for missing specifications.";
   if (confidence > 0 && confidence < 0.65) return "Open the product page and verify the catalog match.";
@@ -1742,7 +1816,7 @@ interface FieldCoverage {
 function fieldCoverageForRow(row: ProductExportRow): FieldCoverage {
   const checks: Array<[string, boolean]> = [
     ["Product URL", Boolean(row.productUrlEn || row.productUrl)],
-    ["Image", Boolean(row.imageUrl)],
+    ...(imageExpected(row) ? [["Image", Boolean(row.imageUrl)] as [string, boolean]] : []),
     ["Datasheet", hasDocumentSummaryType(row.downloads, "Datasheet")],
     ["Product Type", Boolean(row.productType)],
     ["Weight", row.weightKg !== undefined || row.weightLb !== undefined],
@@ -1935,7 +2009,12 @@ function singleLineForLookup(value: unknown): string | undefined {
   return cleaned || undefined;
 }
 
-function productRow(manufacturer: ManufacturerConfig, item: RunItemRecord, result?: ProductResult) {
+function productRow(
+  manufacturer: ManufacturerConfig,
+  item: RunItemRecord,
+  result?: ProductResult,
+  options: { includeImages?: boolean } = {}
+) {
   const urls = {
     ...buildLocalizedProductUrls(manufacturer.id, item.catalogNumber, result?.productUrl ?? item.productUrl, manufacturer.localizedUrlTemplates),
     ...result?.localizedUrls
@@ -2006,6 +2085,7 @@ function productRow(manufacturer: ManufacturerConfig, item: RunItemRecord, resul
     downloads: summary.downloads,
     allResources: summary.allResources,
     image: row.primaryImage?.localPath ? "Embedded" : row.primaryImage ? "Linked" : undefined,
+    imageExpected: options.includeImages ?? true,
     imageLocalPath: row.primaryImage?.localPath,
     imageUrl: row.primaryImage?.url,
     imageCount: documents.filter((doc) => doc.type === "image").length || undefined,
@@ -2064,15 +2144,97 @@ function productRow(manufacturer: ManufacturerConfig, item: RunItemRecord, resul
     eclass,
     attributeCount: result?.attributes.length ?? 0,
     documentCount: documents.length,
+    documentProcessingSummary: documentProcessingSummaryForExport(result),
     qualityPassed: result?.qualityGate?.passed,
     qualityScore: result?.qualityGate?.score,
     qualityMissing: result?.qualityGate?.missing.join("; "),
     fallbackStages: result?.diagnostics?.fallbackStages?.join("; "),
     finalCompletenessCheck: finalCompletenessCheck(result),
+    fieldHealthSummary: fieldHealthSummaryForExport(result),
     missingRequiredFields: missingRequiredFields(row),
     unmappedSpecLabels: result?.diagnostics?.unmappedSpecLabels?.join("; "),
     error: result?.error ?? item.error
   };
+}
+
+function imageExpected(row: ProductExportRow): boolean {
+  return row.imageExpected !== false;
+}
+
+function fieldHealthSummaryForExport(result: ProductResult | undefined): string | undefined {
+  const records = result?.diagnostics?.fieldHealth;
+  if (!records?.length) return undefined;
+  const found = records.filter((record) => record.status === "found").length;
+  const missing = records.filter((record) => record.status === "missing").length;
+  const lowConfidence = records.filter((record) => record.status === "low-confidence").length;
+  const conflicting = records.filter((record) => record.status === "conflicting").length;
+  const review = records
+    .filter((record) => record.status === "missing" || record.status === "low-confidence" || record.status === "conflicting")
+    .map((record) => `${record.label || record.field}: ${record.status}`)
+    .slice(0, 8);
+  return [
+    `found ${found}`,
+    `missing ${missing}`,
+    `low confidence ${lowConfidence}`,
+    `conflicting ${conflicting}`,
+    review.length ? `review ${review.join("; ")}` : undefined
+  ].filter(Boolean).join("; ");
+}
+
+type FieldConflictRecords = NonNullable<NonNullable<ProductResult["diagnostics"]>["fieldHealth"]>[number]["conflicts"];
+
+function fieldConflictValues(conflicts: FieldConflictRecords): string | undefined {
+  if (!conflicts?.length) return undefined;
+  return conflicts
+    .map((conflict) => [
+      conflict.selected ? `[selected] ${conflict.value}` : conflict.value,
+      conflict.confidence !== undefined ? `confidence ${conflict.confidence.toFixed(2)}` : undefined,
+      conflict.priorityReason
+    ].filter(Boolean).join(" - "))
+    .join("; ");
+}
+
+function selectedFieldConflict(conflicts: FieldConflictRecords): string | undefined {
+  const selected = conflicts?.find((conflict) => conflict.selected);
+  if (!selected) return undefined;
+  return [
+    selected.value,
+    selected.priorityReason,
+    selected.confidence !== undefined ? `confidence ${selected.confidence.toFixed(2)}` : undefined
+  ].filter(Boolean).join(" - ");
+}
+
+function fieldConflictSources(conflicts: FieldConflictRecords): string | undefined {
+  if (!conflicts?.length) return undefined;
+  return conflicts
+    .map((conflict) => `${conflict.value}: ${[
+      ...(conflict.sourceTypes?.length ? [`types ${conflict.sourceTypes.join(", ")}`] : []),
+      ...(conflict.parsers?.length ? [`parsers ${conflict.parsers.join(", ")}`] : []),
+      ...(conflict.stages?.length ? [`stages ${conflict.stages.join(", ")}`] : []),
+      ...(conflict.sourceUrls?.length ? [`urls ${conflict.sourceUrls.join(" | ")}`] : [])
+    ].join("; ")}`)
+    .join("\n");
+}
+
+function documentProcessingSummaryForExport(result: ProductResult | undefined): string | undefined {
+  const records = result?.diagnostics?.documentProcessing;
+  if (!records?.length) return undefined;
+  const parsed = records.filter((record) => record.action === "parsed").length;
+  const skipped = records.filter((record) => record.action === "skipped").length;
+  const failed = records.filter((record) => record.action === "failed").length;
+  const review = records
+    .filter((record) => record.action === "skipped" || record.action === "failed")
+    .map((record) => {
+      const label = record.label || record.type || record.url;
+      return `${label}: ${record.action}${record.reason ? ` (${record.reason})` : ""}`;
+    })
+    .slice(0, 6);
+  return [
+    `parsed ${parsed}`,
+    `skipped ${skipped}`,
+    `failed ${failed}`,
+    review.length ? `review ${review.join("; ")}` : undefined
+  ].filter(Boolean).join("; ");
 }
 
 function finalCompletenessCheck(result: ProductResult | undefined): string | undefined {

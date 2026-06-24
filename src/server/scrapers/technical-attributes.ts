@@ -8,7 +8,7 @@ import type {
 import { cleanText } from "./normalizer.js";
 import { matchTechnicalAttributeAlias, type TechnicalAttributeAliasMatch } from "./technical-attribute-aliases.js";
 import { matchProperty, PROPERTY_ONTOLOGY, type CanonicalProperty } from "./ontology.js";
-import { parseQuantities, type ParsedQuantity } from "./quantity.js";
+import { parseQuantities, type ParsedQuantity, type QuantityKind } from "./quantity.js";
 
 export function normalizeTechnicalAttributes(
   manufacturerId: ManufacturerId,
@@ -29,7 +29,8 @@ export function normalizeTechnicalAttributes(
       const property = propertyForKnownAlias(aliasMatch?.alias.canonicalKey) ?? ontologyProperty;
       if (!property) return [];
       const matchType = technicalAttributeMatchType(aliasMatch, ontologyProperty);
-      const quantities = parseQuantities(attribute.value, property.unitKind ? { kind: property.unitKind } : {}).map(toTechnicalQuantity);
+      const quantityText = quantityTextWithUnitHint(attribute, property.unitKind);
+      const quantities = parseQuantities(quantityText, property.unitKind ? { kind: property.unitKind } : {}).map(toTechnicalQuantity);
       return [
         {
           manufacturerId,
@@ -81,6 +82,44 @@ function technicalAttributeMatchType(
 
 function attributeLabel(attribute: AttributeRecord): string {
   return cleanText(`${attribute.group ?? ""} ${attribute.name}`.trim());
+}
+
+function quantityTextWithUnitHint(attribute: AttributeRecord, kind: QuantityKind | undefined): string {
+  const value = cleanText(attribute.value);
+  if (!value || !kind || parseQuantities(value, { kind }).length > 0) return value;
+  if (!/-?\d/.test(value)) return value;
+  const hint = explicitUnitHint(attribute, kind);
+  return hint ? `${value} ${hint}` : value;
+}
+
+function explicitUnitHint(attribute: AttributeRecord, kind: QuantityKind): string | undefined {
+  const unit = cleanText(attribute.unit);
+  if (unit && parseQuantities(`1 ${unit}`, { kind }).length > 0) return unit;
+  const label = cleanText(`${attribute.group ?? ""} ${attribute.name}`);
+  for (const candidate of unitCandidatesForKind(kind)) {
+    const escaped = escapeRegExp(candidate);
+    if (new RegExp(`(?:^|[\\s\\[\\]()/,-])${escaped}(?:$|[\\s\\[\\]()/,-])`, "i").test(label)) return candidate;
+  }
+  return undefined;
+}
+
+function unitCandidatesForKind(kind: QuantityKind): string[] {
+  if (kind === "voltage") return ["VAC", "VDC", "kV", "mV", "V"];
+  if (kind === "current") return ["kA", "mA", "A"];
+  if (kind === "power") return ["kW", "mW", "W"];
+  if (kind === "frequency") return ["MHz", "kHz", "Hz"];
+  if (kind === "temperature") return ["degC"];
+  if (kind === "mass") return ["kg", "mg", "g", "lb", "oz"];
+  if (kind === "length") return ["mm", "cm"];
+  if (kind === "torque") return ["Nm"];
+  if (kind === "pressure") return ["MPa", "kPa", "mbar", "bar", "psi", "Pa"];
+  if (kind === "flowRate") return ["Nl/min", "l/min", "m3/h", "m3/min", "dm3/min", "gpm", "cfm"];
+  if (kind === "area") return ["mm2", "cm2"];
+  return [];
+}
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 function toTechnicalQuantity(quantity: ParsedQuantity): TechnicalAttributeQuantity {

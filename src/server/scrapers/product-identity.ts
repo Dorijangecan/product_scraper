@@ -44,7 +44,7 @@ export function structuredIdentityConflict(
   const mismatches = result.attributes
     .filter((attr) => identityAttributeLabelStrength(`${attr.group ?? ""} ${attr.name}`) === "strong")
     .filter((attr) => isUsableIdentityValue(attr.value))
-    .filter((attr) => !isManufacturerInternalIdentityValue(attr, manufacturer))
+    .filter((attr) => !isInternalNumericArticleOrOrderValue(attr, catalogNumber))
     .filter((attr) => !catalogTextMatches(attr.value, catalogNumber, identityMatchPolicy(manufacturer)))
     .map((attr) => ({ label: [attr.group, attr.name].filter(Boolean).join(" / "), value: attr.value }));
   if (!mismatches.length) return undefined;
@@ -52,7 +52,7 @@ export function structuredIdentityConflict(
   const hasMatch = result.attributes.some((attr) => {
     const label = `${attr.group ?? ""} ${attr.name}`;
     const strength = identityAttributeLabelStrength(label);
-    if (strength !== "strong" && !(manufacturer.id === "eaton" && strength === "weak")) return false;
+    if (!identityStrengthCanResolveConflict(strength)) return false;
     return identityValueMatches(attr.value, catalogNumber, manufacturer, strength);
   });
   return hasMatch ? undefined : { catalogNumber, mismatches: mismatches.slice(0, 6) };
@@ -84,6 +84,10 @@ function identityValueMatches(
   return catalogTextMatches(value, catalogNumber, policy);
 }
 
+function identityStrengthCanResolveConflict(strength: "strong" | "weak" | undefined): strength is "strong" | "weak" {
+  return strength === "strong" || strength === "weak";
+}
+
 function isUsableIdentityValue(value: string | undefined): value is string {
   if (!value) return false;
   const clean = value.replace(/\s+/g, " ").trim();
@@ -92,17 +96,21 @@ function isUsableIdentityValue(value: string | undefined): value is string {
   return /[a-z0-9]{3,}/i.test(clean);
 }
 
-function isManufacturerInternalIdentityValue(
+function isInternalNumericArticleOrOrderValue(
   attr: ProductResult["attributes"][number],
-  manufacturer: ManufacturerConfig
+  catalogNumber: string
 ): boolean {
   const label = `${attr.group ?? ""} ${attr.name}`;
   const value = attr.value.replace(/\s+/g, "").trim();
-  if (manufacturer.id === "schmersal" && /\barticle\s*(?:number|no\.?)\b/i.test(label) && /\border\s*(?:number|no\.?)\b/i.test(label)) {
-    return /^\d{6,10}$/.test(value);
+  if (!/^\d{6,10}$/.test(value)) return false;
+
+  const requested = catalogNumber.replace(/[^a-z0-9]+/gi, "");
+  if (!/[a-z]/i.test(requested) || /^\d{6,10}$/.test(requested)) return false;
+  if (requested.includes(value) || value.includes(requested)) return false;
+
+  if (/\b(?:catalog(?:ue)?\s*(?:number|no\.?)|sku|mpn|manufacturer\s*part\s*number|part\s*(?:number|no\.?))\b/i.test(label)) {
+    return false;
   }
-  if (manufacturer.id === "spelsberg" && /\barticle\s*(?:number|no\.?)\b|\bartnr\b/i.test(label)) {
-    return /^\d{6,10}$/.test(value);
-  }
-  return false;
+
+  return /\b(?:article\s*(?:number|no\.?)|artnr|order\s*(?:code|number|no\.?)|item\s*(?:number|no\.?))\b/i.test(label);
 }

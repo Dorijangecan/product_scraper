@@ -8,6 +8,7 @@ import { buildLocalizedProductUrls } from "./localized-urls.js";
 import { catalogTextMatches } from "./catalog-number.js";
 import { extractMarkerData } from "./marker-extractor.js";
 import { dedupeAttributes, dedupeDocuments } from "./dedupe.js";
+import { scrapeDiscoveredFallback, withDiscoveryFallbackDiagnostics } from "./discovery-fallback.js";
 
 const SCE_BASE = "https://www.saginawcontrol.com";
 
@@ -43,14 +44,17 @@ export class SCEConnector implements ManufacturerConnector {
       const primary = parseSceProductPage(partNumber, detail, search, cad, context.manufacturer.markerRules);
       if (primary.status !== "failed" && primary.status !== "partial") return primary;
 
-      const fallback = await context.fallback.scrape(partNumber, context.manufacturer.fallbackSources);
-      return mergeResults(primary, fallback);
+      return mergeSceDiscoveryFallback(primary, partNumber, context);
     } catch (error) {
       const primary = emptyResult("sce", partNumber, error instanceof Error ? error.message : "SCE fetch failed.");
-      const fallback = await context.fallback.scrape(partNumber, context.manufacturer.fallbackSources);
-      return mergeResults(primary, fallback);
+      return mergeSceDiscoveryFallback(primary, partNumber, context);
     }
   }
+}
+
+async function mergeSceDiscoveryFallback(primary: ProductResult, partNumber: string, context: ScrapeContext): Promise<ProductResult> {
+  const { result: fallback, discovery } = await scrapeDiscoveredFallback(partNumber, context, { idPrefix: "sce" });
+  return withDiscoveryFallbackDiagnostics(mergeResults(primary, fallback), discovery);
 }
 
 function buildSceProductUrl(catalogNumber: string): string {
@@ -131,16 +135,16 @@ export function parseSceProductPage(
       confidence: 0.64
     });
   }
-  const inferredMaterial = inferSceCatalogMaterial(catalogNumber, description);
+  const inferredMaterial = inferSceDescriptionMaterial(description);
   if (inferredMaterial && !hasExplicitSceMaterialEvidence(attributes)) {
     attributes.push({
-      group: "SCE Catalog Inference",
+      group: "SCE Description Inference",
       name: "Material",
       value: inferredMaterial,
       sourceUrl: detail.effectiveUrl,
-      sourceType: "generated",
-      parser: "sce-catalog-code",
-      confidence: 0.68
+      sourceType: "official",
+      parser: "sce-description-inference",
+      confidence: 0.74
     });
   }
   attributes.push(...deriveSceFamilyAttributes(catalogNumber, attributes, detail.effectiveUrl));
@@ -402,11 +406,12 @@ function findSceDescription(attributes: AttributeRecord[]): string | undefined {
     .find((value) => value && !catalogLike(value));
 }
 
-function inferSceCatalogMaterial(catalogNumber: string, description: string | undefined): string | undefined {
-  const text = cleanText(`${catalogNumber} ${description ?? ""}`);
+function inferSceDescriptionMaterial(description: string | undefined): string | undefined {
+  const text = cleanText(description ?? "");
   if (/\b(?:cleaner|cleaning|paint|label|gasket|filter|bulb)\b/i.test(text)) return undefined;
-  if (/SS6/i.test(catalogNumber) || /\b316(?:\/316L)?\b/i.test(text)) return "stainless steel Type 316/316L";
-  if (/SS/i.test(catalogNumber) || /\bS\.?\s*S\.?\b/i.test(text)) return "stainless steel Type 304";
+  if (/\b316(?:\/316L)?\b/i.test(text)) return "stainless steel Type 316/316L";
+  if (/\bstainless\s+steel\s+type\s+304\b/i.test(text)) return "stainless steel Type 304";
+  if (/\bS\.?\s*S\.?\b|\bstainless\s+steel\b/i.test(text)) return "stainless steel";
   if (/\bGALVANNEALED\b/i.test(text)) return "galvannealed steel";
   if (/\bGALV(?:ANIZED)?\b/i.test(text)) return "galvanized steel";
   if (/\bALUMIN(?:UM|IUM)\b|\b-?AL\b/i.test(text)) return "aluminum";

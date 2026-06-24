@@ -6,6 +6,7 @@ import sanitize from "sanitize-filename";
 import type {
   CustomerDocumentRecord,
   DocumentDownloadProfile as SharedDocumentDownloadProfile,
+  DocumentProcessingDiagnostic,
   DocumentRecord,
   ManufacturerConfig,
   ManufacturerId,
@@ -33,10 +34,12 @@ import {
   withFinalCompletenessDiagnostics,
   withFinalCompletenessPolicy
 } from "./scrapers/final-completeness.js";
+import { canonicalDocumentUrlKey } from "./scrapers/dedupe.js";
 import { attachEvidence } from "./scrapers/evidence.js";
 import { BrowserRenderSession } from "./scrapers/browser-renderer.js";
 import type { AppPaths } from "./paths.js";
 import { buildRunOutputLayout, ensureRunOutputLayout, type RunOutputLayout } from "./run-output.js";
+import { documentUrlLooksRelevant, isPdfLikeDocument } from "./scrapers/document-url.js";
 
 export type DocumentDownloadProfile = SharedDocumentDownloadProfile;
 
@@ -209,6 +212,7 @@ export class RunManager {
       const downloadCadEnabled = run.options?.downloadCad ?? run.options?.downloadDocuments ?? false;
       const downloadDocumentsEnabled = downloadPdfsEnabled || downloadCadEnabled;
       const downloadImagesEnabled = run.options?.downloadImages !== false;
+      const finalCompletenessOptions = { requireImage: downloadImagesEnabled };
       const generateExcelEnabled = run.options?.generateExcel !== false;
       const generateLinksFileEnabled = run.options?.generateLinksFile === true;
       const localDownloads: LocalDownloadSelection = {
@@ -302,10 +306,8 @@ export class RunManager {
 
           // First pass: scan customer documents so the user gets early "customer doc matched"
           // feedback in the UI and so cached parse work primes for the override re-run later.
-          // We DO NOT short-circuit the website — even when the customer doc has everything,
-          // the web pass still supplies product identity (title, official URL) and the user
-          // explicitly asked for both sources to always run, with the customer doc winning
-          // on conflict at the merge step further down.
+          // Generic customer-first short-circuiting happens only after quality-gate identity
+          // and core technical completeness checks pass; otherwise website data is still merged.
           if (!imageOnlyMode && customerDocuments.length > 0) {
             this.updateItemStage(
               item.id,
@@ -323,12 +325,12 @@ export class RunManager {
             if (customerExtractionFirst.attributes.length > 0) {
               const customerOnlyResult = finalizeQualityGate(
                 applyCustomerDocumentOverride(
-                  emptyResult(manufacturer.id, item.catalogNumber, "Official source skipped because customer document already supplied complete Eaton data."),
+                  emptyResult(manufacturer.id, item.catalogNumber, "Official source skipped because customer document already supplied complete data."),
                   customerExtractionFirst
                 ),
                 manufacturer
               );
-              if (shouldShortCircuitCustomerFirst(manufacturer, customerOnlyResult, customerExtractionFirst)) {
+              if (shouldShortCircuitCustomerFirst(customerOnlyResult, customerExtractionFirst)) {
                 customerFirstShortCircuit = true;
                 enriched = customerOnlyResult;
                 fallbackStages = enriched.diagnostics?.fallbackStages;
@@ -338,7 +340,7 @@ export class RunManager {
                   documentsFound: customerExtractionFirst.documents.length,
                   statusAfter: enriched.status,
                   qualityMissing: enriched.qualityGate?.missing ?? [],
-                  reason: "Customer document supplied complete Eaton data; skipped slow official lookup."
+                  reason: "Customer document supplied complete source-backed data; skipped slow official lookup."
                 });
               }
               await this.appendRunLog(layoutRef, "CUSTOMER_FIRST_SCAN", {
@@ -533,7 +535,7 @@ export class RunManager {
             fallbackStages = enriched.diagnostics?.fallbackStages;
           }
           this.updateItemStage(item.id, "final-audit", "Checking final missing fields");
-          const beforeFinalCompleteness = evaluateFinalCompleteness(enriched, manufacturer);
+          const beforeFinalCompleteness = evaluateFinalCompleteness(enriched, manufacturer, finalCompletenessOptions);
           const finalRepair = repairFinalCompletenessFromEvidence(enriched, manufacturer, beforeFinalCompleteness);
           let repairedFinalFields = finalRepair.repairedFields;
           if (repairedFinalFields.length) {
@@ -546,7 +548,7 @@ export class RunManager {
               repairs: finalRepair.records
             });
           }
-          let afterRepairFinalCompleteness = evaluateFinalCompleteness(enriched, manufacturer);
+          let afterRepairFinalCompleteness = evaluateFinalCompleteness(enriched, manufacturer, finalCompletenessOptions);
           if (afterRepairFinalCompleteness.missing.length) {
             const beforeRemoteMissing = afterRepairFinalCompleteness.missing;
             this.updateItemStage(item.id, "document-enrichment", `Reading datasheets/manuals for missing final fields: ${beforeRemoteMissing.join(", ")}`);
@@ -555,7 +557,7 @@ export class RunManager {
               manufacturer
             );
             fallbackStages = enriched.diagnostics?.fallbackStages;
-            afterRepairFinalCompleteness = evaluateFinalCompleteness(enriched, manufacturer);
+            afterRepairFinalCompleteness = evaluateFinalCompleteness(enriched, manufacturer, finalCompletenessOptions);
             const remoteFilledFields = beforeRemoteMissing.filter((field) => !afterRepairFinalCompleteness.missing.includes(field));
             if (remoteFilledFields.length) {
               repairedFinalFields = [...new Set([...repairedFinalFields, ...remoteFilledFields])];
@@ -635,7 +637,11 @@ export class RunManager {
             );
             this.updateItemStage(item.id, "document-enrichment", "Reading final retry documents for missing values");
             enriched = finalizeQualityGate(await enrichFromDownloadedDocumentsIfPresent(withFinalCompletenessDownloads), manufacturer);
-            const postNetworkRepair = repairFinalCompletenessFromEvidence(enriched, manufacturer);
+            const postNetworkRepair = repairFinalCompletenessFromEvidence(
+              enriched,
+              manufacturer,
+              evaluateFinalCompleteness(enriched, manufacturer, finalCompletenessOptions)
+            );
             if (postNetworkRepair.repairedFields.length) {
               this.updateItemStage(item.id, "final-field-repair", `Repairing ${postNetworkRepair.repairedFields.join(", ")} from final retry evidence`);
               enriched = finalizeQualityGate(postNetworkRepair.result, manufacturer);
@@ -656,7 +662,7 @@ export class RunManager {
               triedStages: networkRetry.triedStages
             });
           }
-          const afterFinalCompleteness = evaluateFinalCompleteness(enriched, manufacturer);
+          const afterFinalCompleteness = evaluateFinalCompleteness(enriched, manufacturer, finalCompletenessOptions);
           // If retry actually ran AND nothing new was found AND there are no untried stages left,
           // we can now be confident the manufacturer simply doesn't publish those preferred values
           // for this catalog number. Persist that finding so future runs skip the retry instantly.
@@ -977,7 +983,7 @@ export class RunManager {
     sharedDocumentDownloads?: Map<string, Promise<string>>
   ): Promise<ProductResult> {
     const documents: DocumentRecord[] = [];
-    const maxDownloads = profile === "full" ? 25 : 8;
+    const maxDownloads = profile === "full" ? 200 : 8;
     const rankedDocuments = coalesceImageDocuments(result.documents).sort((left, right) => documentDownloadRank(left) - documentDownloadRank(right));
     let downloadCount = 0;
     let imageIndex = 0;
@@ -1010,7 +1016,7 @@ export class RunManager {
         });
         continue;
       }
-      if (doc.type !== "image" && !shouldDownloadLocalDocument(doc)) {
+      if (doc.type !== "image" && documentDownloadCandidateUrls(doc).length === 0) {
         documents.push({
           ...doc,
           downloadStatus: "skipped",
@@ -1081,7 +1087,7 @@ export class RunManager {
         downloadError: selectionCheck.reason
       };
     }
-    if (doc.type !== "image" && !shouldDownloadLocalDocument(doc)) {
+    if (doc.type !== "image" && documentDownloadCandidateUrls(doc).length === 0) {
       return {
         ...doc,
         downloadStatus: "skipped",
@@ -1094,16 +1100,23 @@ export class RunManager {
         await http.downloadImageAsPng([doc.url, ...(doc.candidateUrls ?? [])], localPath, signal);
         return { ...doc, localPath, downloadStatus: "downloaded", downloadError: undefined };
       }
-      const extension = documentExtension(doc.url, doc.type);
+      const urls = documentDownloadCandidateUrls(doc);
+      const extension = documentExtension(urls[0] ?? doc.url, doc.type);
       const suggestedName = `${catalogNumber}-${doc.type}-${safeLabel(doc.label)}${extension}`;
       const targetDir = doc.type === "cad" ? cadDir : documentsDir;
-      const localPath = await sharedDocumentDownload(sharedDocumentDownloads, doc.url, targetDir, suggestedName, () =>
-        http.downloadFile(doc.url, targetDir, suggestedName, signal)
-      );
-      if (extension.toLowerCase() === ".pdf") {
+      const downloaded = await downloadDocumentFromCandidates(http, sharedDocumentDownloads, urls, targetDir, suggestedName, signal);
+      const localPath = downloaded.localPath;
+      if (documentExtension(downloaded.url, doc.type).toLowerCase() === ".pdf") {
         await assertValidPdfFile(localPath);
       }
-      return { ...doc, localPath, downloadStatus: "downloaded", downloadError: undefined };
+      return {
+        ...doc,
+        url: downloaded.url,
+        candidateUrls: urls.filter((url) => url !== downloaded.url),
+        localPath,
+        downloadStatus: "downloaded",
+        downloadError: undefined
+      };
     } catch (error) {
       if (signal?.aborted) throw new Error("Cancelled by user.");
       return {
@@ -1268,6 +1281,33 @@ function createRunId(): string {
   return `${stamp}-${crypto.randomBytes(4).toString("hex")}`;
 }
 
+async function downloadDocumentFromCandidates(
+  http: CachedHttpClient,
+  sharedDocumentDownloads: Map<string, Promise<string>> | undefined,
+  urls: string[],
+  targetDir: string,
+  suggestedName: string,
+  signal?: AbortSignal
+): Promise<{ url: string; localPath: string }> {
+  let lastError: unknown;
+  for (const url of urls) {
+    try {
+      const localPath = await sharedDocumentDownload(sharedDocumentDownloads, url, targetDir, suggestedName, () =>
+        http.downloadFile(url, targetDir, suggestedName, signal)
+      );
+      return { url, localPath };
+    } catch (error) {
+      lastError = error;
+      if (signal?.aborted) throw new Error("Cancelled by user.");
+    }
+  }
+  throw lastError instanceof Error ? lastError : new Error("Document download failed for every candidate URL");
+}
+
+export function documentDownloadCandidateUrls(doc: DocumentRecord): string[] {
+  return uniqueStrings([doc.url, ...(doc.candidateUrls ?? [])]).filter((url) => shouldDownloadLocalDocument({ ...doc, url }));
+}
+
 function safeLabel(label: string): string {
   return label
     .toLowerCase()
@@ -1280,13 +1320,21 @@ function csvCell(value: string): string {
   return `"${value.replace(/"/g, '""')}"`;
 }
 
-function documentExtension(url: string, type: DocumentRecord["type"]): string {
-  const parsed = new URL(url);
-  const fromPath = path.extname(parsed.pathname);
+export function documentExtension(url: string, type: DocumentRecord["type"]): string {
+  const fromPath = urlPathExtension(url);
   if (fromPath) return fromPath;
+  if (isDownloadablePdfDocument({ url })) return ".pdf";
   if (/pdfengine\/pdf/i.test(url) || type === "datasheet" || type === "certificate" || type === "manual") return ".pdf";
   if (type === "cad") return ".bin";
   return ".bin";
+}
+
+function urlPathExtension(url: string): string {
+  try {
+    return path.extname(new URL(url, "https://scraper.local").pathname);
+  } catch {
+    return path.extname(url.split(/[?#]/, 1)[0] ?? "");
+  }
 }
 
 export function documentDownloadProfile(
@@ -1295,6 +1343,7 @@ export function documentDownloadProfile(
   options: { saveDocuments?: boolean } = {}
 ): DocumentDownloadProfile {
   if (options.saveDocuments === false) return "quality";
+  if (options.saveDocuments === true) return "full";
   return manufacturer.scrapeRecipe?.fallbackPolicy?.documentDownloadProfile ?? "full";
 }
 
@@ -1310,12 +1359,10 @@ export function shouldDownloadDocumentsForRun(
   return true;
 }
 
-function shouldShortCircuitCustomerFirst(
-  manufacturer: ManufacturerConfig,
+export function shouldShortCircuitCustomerFirst(
   result: ProductResult,
   extraction: { attributes: AttributeRecordLike[]; documents: DocumentRecord[] }
 ): boolean {
-  if (manufacturer.id !== "eaton") return false;
   if (extraction.attributes.length < 5 || extraction.documents.length === 0) return false;
   if (result.qualityGate?.identityConfirmed === false) return false;
   if (result.status === "failed") return false;
@@ -1343,7 +1390,7 @@ function shouldDownloadForProfile(
   if (doc.type === "certificate") return countForType < 1;
   if (doc.type === "manual") return countForType < 1;
   if (doc.type === "other" && countForType < 1) {
-    return /\.pdf(?:[?#]|$)/i.test(doc.url) || /pdfengine\/pdf/i.test(doc.url);
+    return documentHasPdfLikeCandidate(doc);
   }
   return false;
 }
@@ -1351,7 +1398,7 @@ function shouldDownloadForProfile(
 function shouldDownloadLocalDocument(doc: DocumentRecord): boolean {
   if (doc.type === "image") return true;
   const extension = documentExtension(doc.url, doc.type).toLowerCase();
-  if (extension === ".pdf") return isDownloadablePdfDocument(doc);
+  if (extension === ".pdf") return isDownloadablePdfDocument(doc) || isRelevantPdfDownloadCandidate(doc);
   if (doc.type === "cad") {
     return [".bin", ".zip", ".dwg", ".dxf", ".stp", ".step", ".igs", ".iges", ".sat", ".x_t", ".x_b", ".3dxml", ".prt", ".sldprt"].includes(extension);
   }
@@ -1372,30 +1419,40 @@ function shouldSaveForSelection(doc: DocumentRecord, selection: LocalDownloadSel
   if (!selection.pdfs) {
     return { enabled: false, reason: "PDF downloads disabled for this run." };
   }
-  if (!isPdfLikeDocument(doc)) {
+  if (!documentHasPdfLikeCandidate(doc)) {
     return { enabled: false, reason: "Skipped non-PDF document; URL retained in workbook." };
   }
   return { enabled: true };
 }
 
-function isPdfLikeDocument(doc: DocumentRecord): boolean {
-  return isDownloadablePdfDocument(doc);
-}
-
 export function isDownloadablePdfDocument(doc: Pick<DocumentRecord, "url">): boolean {
-  const url = doc.url;
-  if (isKnownNonPdfDocumentUrl(url)) return false;
-  return (
-    /\.pdf(?:[?#]|$)/i.test(url) ||
-    /\/download-pdf(?:[/?#]|$)/i.test(url) ||
-    /pdfengine\/pdf/i.test(url) ||
-    /[?&](?:format|output|filetype|type)=pdf\b/i.test(url) ||
-    /[?&](?:documentid|docid|mediaid)=/i.test(url)
-  );
+  return isPdfLikeDocument(doc);
 }
 
-function isKnownNonPdfDocumentUrl(url: string): boolean {
-  return /configurator\.rockwellautomation\.com\/api\/Product\/[^/]+\/cutsheet\b/i.test(url);
+function documentHasPdfLikeCandidate(doc: DocumentRecord): boolean {
+  return [doc.url, ...(doc.candidateUrls ?? [])].some((url) => isPdfLikeDocument({ url }) || isRelevantPdfDownloadCandidate({ ...doc, url }));
+}
+
+function isRelevantPdfDownloadCandidate(doc: DocumentRecord): boolean {
+  if (!["datasheet", "manual", "certificate", "other"].includes(doc.type)) return false;
+  if (!looksLikeDocumentEndpoint(doc.url)) return false;
+  const context = [doc.label, doc.sourceUrl, doc.stage, doc.parser].filter(Boolean).join(" ");
+  if (!documentUrlLooksRelevant(doc.url, context, doc.type)) return false;
+  if (doc.type !== "other") return true;
+  return /\b(?:pdf|data\s*sheet|datasheet|manual|instruction|installation|certificate|declaration|conformity|technical\s+(?:data|sheet|information)|spec(?:ification)?\s*sheet)\b/i.test(context);
+}
+
+function looksLikeDocumentEndpoint(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    const segments = parsed.pathname.toLowerCase().split("/").filter(Boolean);
+    if (segments.some((segment) => /^(?:download|downloads|file|files|document|documents|doc|docs|resource|resources|media|dam|asset|assets)$/.test(segment))) {
+      return true;
+    }
+    return [...parsed.searchParams.keys()].some((key) => /^(?:doc|document|documentid|docid|docref|file|filename|asset|assetid|media|mediaid|download|p_doc_ref|p_endoctype)$/i.test(key));
+  } catch {
+    return false;
+  }
 }
 
 async function sharedDocumentDownload(
@@ -1456,9 +1513,9 @@ function canonicalDownloadUrl(url: string): string {
     if (!/^#(?:de-DE|en-US)$/i.test(parsed.hash)) {
       parsed.hash = "";
     }
-    return parsed.toString();
+    return canonicalDocumentUrlKey(parsed.toString());
   } catch {
-    return url;
+    return canonicalDocumentUrlKey(url);
   }
 }
 
@@ -1474,18 +1531,23 @@ async function enrichFromRemoteDocumentsForMissingValues(
   missingFields: string[],
   signal?: AbortSignal
 ): Promise<ProductResult> {
-  if (!missingFields.length || !result.documents.some((doc) => shouldProbeRemoteDocument(doc))) return result;
+  if (!missingFields.length) return result;
+  if (!result.documents.some((doc) => shouldProbeRemoteDocument(doc))) {
+    return withRemoteDocumentProbeSkippedDiagnostics(result, missingFields);
+  }
   const { enrichResultFromRemoteDocuments } = await import("./scrapers/document-enrichment.js");
   return enrichResultFromRemoteDocuments(
     result,
     async (doc) => {
       const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-doc-probe-"));
-      const extension = documentExtension(doc.url, doc.type);
+      const urls = documentDownloadCandidateUrls(doc);
+      const extension = documentExtension(urls[0] ?? doc.url, doc.type);
       const suggestedName = `${result.catalogNumber}-${doc.type}-${safeLabel(doc.label)}${extension}`;
       try {
-        const localPath = await http.downloadFile(doc.url, tempDir, suggestedName, signal);
+        const downloaded = await downloadDocumentFromCandidates(http, undefined, urls.length ? urls : [doc.url], tempDir, suggestedName, signal);
         return {
-          localPath,
+          localPath: downloaded.localPath,
+          url: downloaded.url,
           cleanup: () => fs.rm(tempDir, { recursive: true, force: true })
         };
       } catch (error) {
@@ -1497,20 +1559,69 @@ async function enrichFromRemoteDocumentsForMissingValues(
   );
 }
 
+export function withRemoteDocumentProbeSkippedDiagnostics(result: ProductResult, missingFields: string[]): ProductResult {
+  const documents = result.documents.slice(0, 30);
+  const skipped: DocumentProcessingDiagnostic[] = documents.map((doc) => ({
+    url: doc.url,
+    label: doc.label,
+    type: doc.type,
+    action: "skipped",
+    stage: "remote-document-enrichment",
+    reason: remoteDocumentProbeSkipReason(doc),
+    localPath: doc.localPath,
+    sourceUrl: doc.sourceUrl,
+    parseError: doc.parseError
+  }));
+  const missing = missingFields.slice(0, 8).join(", ");
+  const note = documents.length
+    ? `Remote document enrichment skipped while missing ${missing}: no probeable PDF datasheet/manual candidates.`
+    : `Remote document enrichment skipped while missing ${missing}: product has no document candidates.`;
+
+  return {
+    ...result,
+    diagnostics: {
+      ...result.diagnostics,
+      ...(skipped.length
+        ? {
+            documentProcessing: [
+              ...(result.diagnostics?.documentProcessing ?? []),
+              ...skipped
+            ].slice(-80)
+          }
+        : {}),
+      notes: uniqueStrings([...(result.diagnostics?.notes ?? []), note]).slice(0, 50)
+    }
+  };
+}
+
+function remoteDocumentProbeSkipReason(doc: DocumentRecord): string {
+  if (doc.localPath) return "Skipped remote probe because the document is already downloaded locally.";
+  if (doc.parseStatus === "parsed") return "Skipped remote probe because the document was already parsed.";
+  if (doc.downloadStatus === "failed") return `Skipped remote probe because document download previously failed: ${doc.downloadError ?? "unknown error"}.`;
+  if (!["datasheet", "manual", "other"].includes(doc.type)) return `Skipped remote probe because document type '${doc.type}' is not a datasheet/manual/technical PDF candidate.`;
+  const text = `${doc.type} ${doc.label} ${doc.url} ${(doc.candidateUrls ?? []).join(" ")}`;
+  if (doc.type === "other" && !/\b(?:data\s*sheet|datasheet|technical|spec(?:ification)?|manual|installation|instruction)\b/i.test(text)) {
+    return "Skipped remote probe because the generic document does not look like a datasheet, manual, or technical PDF.";
+  }
+  if (!documentHasPdfLikeCandidate(doc)) return "Skipped remote probe because no PDF-like URL or candidate URL was available.";
+  return "Skipped remote probe because the document was not eligible for remote enrichment.";
+}
+
 function shouldParseDownloadedDocument(doc: DocumentRecord): boolean {
   if (doc.downloadStatus && doc.downloadStatus !== "downloaded") return false;
-  if (!doc.localPath || !/\.pdf$/i.test(doc.localPath)) return false;
+  if (!doc.localPath) return false;
+  if (!/\.pdf$/i.test(doc.localPath) && !isDownloadablePdfDocument(doc)) return false;
   return ["datasheet", "certificate", "manual", "other"].includes(doc.type);
 }
 
 function shouldProbeRemoteDocument(doc: DocumentRecord): boolean {
   if (doc.localPath || doc.parseStatus === "parsed" || doc.downloadStatus === "failed") return false;
   if (!["datasheet", "manual", "other"].includes(doc.type)) return false;
-  const text = `${doc.type} ${doc.label} ${doc.url}`;
+  const text = `${doc.type} ${doc.label} ${doc.url} ${(doc.candidateUrls ?? []).join(" ")}`;
   if (doc.type === "other" && !/\b(?:data\s*sheet|datasheet|technical|spec(?:ification)?|manual|installation|instruction)\b/i.test(text)) {
     return false;
   }
-  return /\.pdf(?:[?#]|$)/i.test(doc.url) || /pdfengine\/pdf|[?&](?:format|output|filetype|type)=pdf\b|[?&](?:documentid|docid|mediaid)=/i.test(doc.url);
+  return documentHasPdfLikeCandidate(doc);
 }
 
 async function uniquePath(filePath: string): Promise<string> {
@@ -1569,6 +1680,8 @@ function formatCustomerProgress(event: CustomerDocumentProgressEvent, catalogNum
       const total = event.totalPages ?? "?";
       return `Reading ${name} — page ${event.pageNumber}/${total}, ${event.matchesSoFar} match${event.matchesSoFar === 1 ? "" : "es"} for ${catalogNumber}`;
     }
+    case "ocr-pdf":
+      return `${name}: ${event.message}`;
     case "matched":
       return `Matched ${name}: pulled ${event.attributeCount} attribute${event.attributeCount === 1 ? "" : "s"} for ${catalogNumber}`;
     case "no-match":

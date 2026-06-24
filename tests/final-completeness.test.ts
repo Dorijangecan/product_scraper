@@ -35,6 +35,23 @@ describe("final completeness audit", () => {
     expect(audit.notApplicable).toEqual(["voltage", "current"]);
   });
 
+  it("does not require image when image output is disabled for the run", () => {
+    const audit = evaluateFinalCompleteness(
+      product({
+        title: "ABC-123 steel enclosure",
+        normalized: { weight: "1 kg", dimensions: "10 x 20 x 30 mm", material: "steel", certificates: "CE" },
+        attributes: [{ group: "Product", name: "Catalog Description", value: "Steel enclosure" }],
+        documents: []
+      }),
+      manufacturer,
+      { requireImage: false }
+    );
+
+    expect(audit.missing).not.toContain("image");
+    expect(audit.retryMissing).not.toContain("image");
+    expect(audit.notApplicable).toContain("image");
+  });
+
   it("retries required electrical fields for active products", () => {
     const audit = evaluateFinalCompleteness(
       product({
@@ -136,6 +153,74 @@ describe("final completeness audit", () => {
     expect(audit.missing).toEqual([]);
     expect(audit.retryMissing).toEqual([]);
     expect(audit.notApplicable).toEqual(["image", "dimensions", "material", "voltage", "current", "operatingTemperature"]);
+  });
+
+  it("does not require unpublished voltage fields for Rockwell CompactLogix 5390 family evidence", () => {
+    const familyUrl = "https://www.rockwellautomation.com/en-us/products/hardware/programmable-controllers/compactLogix-5390-controllers.html";
+    const audit = evaluateFinalCompleteness(
+      product({
+        manufacturerId: "rockwell",
+        catalogNumber: "5034-L9020TSXT",
+        title: "CompactLogix 5390 Controllers",
+        description: "CompactLogix 5390 Controller",
+        productUrl: familyUrl,
+        attributes: [
+          { group: "Rockwell Family", name: "Product Family", value: "CompactLogix 5390", parser: "rockwell-family-page", sourceType: "official", sourceUrl: familyUrl },
+          { group: "Customer / Rockwell CompactLogix 5390", name: "Description", value: "CompactLogix 2MB XT Controller", parser: "customer-document", sourceType: "official", sourceUrl: "file:///customer/02.-CompactLogix-5390-Controller.pdf" }
+        ],
+        documents: [{ type: "datasheet", label: "Rockwell CompactLogix 5390 controller family page", url: familyUrl, sourceType: "official" }],
+        sources: [{ url: familyUrl, sourceType: "official", parser: "rockwell-family-page", stage: "rockwell-family-page", fetchedAt: "2026-06-19T00:00:00.000Z" }]
+      }),
+      manufacturer
+    );
+
+    expect(audit.missing).not.toContain("voltage");
+    expect(audit.retryMissing).not.toContain("voltage");
+    expect(audit.notApplicable).toEqual(expect.arrayContaining(["voltage", "current"]));
+  });
+
+  it("treats generic family overview pages as not publishing variant electrical ratings", () => {
+    const familyUrl = "https://example.test/products/acme-controller-family.html";
+    const audit = evaluateFinalCompleteness(
+      product({
+        manufacturerId: "acme",
+        catalogNumber: "ACME-CTRL-7",
+        title: "ACME controller family overview",
+        description: "ACME controller series overview",
+        productUrl: familyUrl,
+        attributes: [
+          { group: "Official Family", name: "Product Family", value: "ACME controller series", parser: "generic-family-page", sourceType: "official", sourceUrl: familyUrl },
+          { group: "Official Family", name: "Product Type", value: "Programmable logic controller", parser: "generic-family-page", sourceType: "official", sourceUrl: familyUrl }
+        ],
+        documents: [{ type: "datasheet", label: "ACME controller family datasheet", url: familyUrl, sourceType: "official" }],
+        sources: [{ url: familyUrl, sourceType: "official", parser: "generic-family-page", stage: "generic-family-page", fetchedAt: "2026-06-19T00:00:00.000Z" }]
+      }),
+      manufacturer
+    );
+
+    expect(audit.missing).not.toContain("voltage");
+    expect(audit.missing).not.toContain("current");
+    expect(audit.notApplicable).toEqual(expect.arrayContaining(["image", "dimensions", "material", "voltage", "current", "operatingTemperature"]));
+  });
+
+  it("still requires voltage for exact controller product pages", () => {
+    const audit = evaluateFinalCompleteness(
+      product({
+        manufacturerId: "acme",
+        catalogNumber: "ACME-CTRL-7",
+        title: "ACME-CTRL-7 programmable logic controller",
+        description: "Compact PLC controller",
+        productUrl: "https://example.test/products/ACME-CTRL-7",
+        normalized: { weight: "300 g", dimensions: "120 x 80 x 55 mm", material: "polycarbonate", certificates: "CE" },
+        attributes: [{ group: "Product Data", name: "Product Type", value: "Programmable logic controller", sourceType: "official" }],
+        documents: [{ type: "image", label: "Product image", url: "https://example.test/acme-ctrl-7.png" }]
+      }),
+      manufacturer
+    );
+
+    expect(audit.missing).toContain("voltage");
+    expect(audit.notApplicable).toContain("current");
+    expect(audit.notApplicable).not.toContain("voltage");
   });
 
   it("does not burn ABB contactor time retrying material after electrical data is complete", () => {
@@ -388,6 +473,28 @@ describe("final completeness audit", () => {
     expect(repaired.result.normalized.protection).toContain("NEMA Type 4X");
     expect(repaired.result.normalized.protection).not.toContain("Type4X");
     expect(repaired.result.attributes.some((attr) => attr.group === "Final Field Repair" && attr.name === "Weight")).toBe(true);
+  });
+
+  it("uses the central field registry aliases when repairing final fields from existing evidence", () => {
+    const result = product({
+      title: "ABC-123 communication gateway",
+      normalized: {
+        weight: "120 g",
+        dimensions: "100 x 25 x 75 mm",
+        material: "plastic",
+        certificates: "CE"
+      },
+      attributes: [
+        { group: "PDF datasheet", name: "Input power", value: "24 V DC", sourceUrl: "https://example.test/abc-123.pdf", parser: "pdf-table-extractor" }
+      ],
+      documents: [{ type: "image", label: "Product image", url: "https://example.test/abc-123.png" }]
+    });
+
+    const repaired = repairFinalCompletenessFromEvidence(result, manufacturer);
+
+    expect(repaired.repairedFields).toContain("voltage");
+    expect(repaired.result.normalized.voltage).toBe("24 V DC");
+    expect(repaired.result.attributes.some((attr) => attr.group === "Final Field Repair" && attr.name === "Voltage")).toBe(true);
   });
 
   it("does not repair missing fields when structured identity evidence belongs to another catalog", () => {

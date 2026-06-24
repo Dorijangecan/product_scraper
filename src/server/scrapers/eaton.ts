@@ -8,25 +8,45 @@ import { buildLocalizedProductUrls } from "./localized-urls.js";
 import { classifyDocument, cleanText, emptyResult, mergeResults, normalizeFields } from "./normalizer.js";
 import type { ManufacturerConnector, ScrapeContext } from "./types.js";
 import { catalogTextMatches, compactCatalogNumber, encodeSlashBraceCatalogPart, fillCatalogTemplate, sameCatalogNumber, templateContainsCatalogPlaceholder } from "./catalog-number.js";
+import { dedupeDocuments as dedupeSharedDocuments } from "./dedupe.js";
+import { documentUrlLooksDownloadable, documentUrlLooksRelevant } from "./document-url.js";
+import { scrapeDiscoveredFallback, withDiscoveryFallbackDiagnostics } from "./discovery-fallback.js";
 
-const EATON_PRODUCT_BASE_URL = "https://www.eaton.com/us/en-us/skuPage";
+const EATON_PRODUCT_HOST = "www.eaton.com";
+const EATON_CHINA_PRODUCT_HOST = "www.eaton.com.cn";
+const EATON_PRODUCT_BASE_URL = `https://${EATON_PRODUCT_HOST}/us/en-us/skuPage`;
 const EATON_E6_CATALOG_PDF_URL =
   "https://www.eaton.com.cn/content/dam/eaton/products/electrical-circuit-protection/circuit-breakers/e6-series/eaton-e6-catalogue-en-cn.pdf";
-const EATON_SKU_LOCALE_PATHS = [
-  "at/de-de",
-  "us/en-us",
-  "de/de-de",
-  "gb/en-gb",
-  "ca/en-gb",
-  "au/en-gb",
-  "ae/en-gb",
-  "no/no-no",
-  "pl/pl-pl",
-  "fr/fr-fr",
-  "it/it-it",
-  "es/es-es"
+const EATON_RAPID_LINK_5X_CATALOG_CN_PDF_URL =
+  "https://www.eaton.com.cn/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/en-globalprime/rapid-link-5x/eaton-rapid-link-5x-catalog-zh-cn.pdf";
+const EATON_RAPID_LINK_5X_CATALOG_EN_PDF_URL =
+  "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/rapid-link-5x/eaton-rapid-link-5x-catalog-en-us.pdf";
+const EATON_SKU_LOCALES = [
+  { host: EATON_PRODUCT_HOST, localePath: "at/de-de" },
+  { host: EATON_PRODUCT_HOST, localePath: "us/en-us" },
+  { host: EATON_PRODUCT_HOST, localePath: "de/de-de" },
+  { host: EATON_PRODUCT_HOST, localePath: "gb/en-gb" },
+  { host: EATON_PRODUCT_HOST, localePath: "ca/en-gb" },
+  { host: EATON_PRODUCT_HOST, localePath: "au/en-gb" },
+  { host: EATON_PRODUCT_HOST, localePath: "ae/en-gb" },
+  { host: EATON_PRODUCT_HOST, localePath: "no/no-no" },
+  { host: EATON_PRODUCT_HOST, localePath: "pl/pl-pl" },
+  { host: EATON_PRODUCT_HOST, localePath: "fr/fr-fr" },
+  { host: EATON_PRODUCT_HOST, localePath: "it/it-it" },
+  { host: EATON_PRODUCT_HOST, localePath: "es/es-es" },
+  { host: EATON_CHINA_PRODUCT_HOST, localePath: "cn/zh-cn" }
 ];
-const EATON_SEARCH_LOCALE_PATHS = ["at/de-de", "us/en-us", "gb/en-gb", "de/de-de", "no/no-no", "fr/fr-fr", "it/it-it", "es/es-es"];
+const EATON_SEARCH_LOCALES = [
+  { host: EATON_PRODUCT_HOST, localePath: "at/de-de" },
+  { host: EATON_PRODUCT_HOST, localePath: "us/en-us" },
+  { host: EATON_CHINA_PRODUCT_HOST, localePath: "cn/zh-cn" },
+  { host: EATON_PRODUCT_HOST, localePath: "gb/en-gb" },
+  { host: EATON_PRODUCT_HOST, localePath: "de/de-de" },
+  { host: EATON_PRODUCT_HOST, localePath: "no/no-no" },
+  { host: EATON_PRODUCT_HOST, localePath: "fr/fr-fr" },
+  { host: EATON_PRODUCT_HOST, localePath: "it/it-it" },
+  { host: EATON_PRODUCT_HOST, localePath: "es/es-es" }
+];
 
 interface EatonSearchCandidate {
   url: string;
@@ -223,6 +243,38 @@ export class EatonConnector implements ManufacturerConnector {
     const cbePdfResult = await scrapeEatonCbeCatalogPdf(partNumber, context, diagnostics);
     if (cbePdfResult) return withEatonDiagnostics(cbePdfResult, diagnostics);
     let result: ProductResult | undefined;
+    let attemptedSearchDiscovery = false;
+    let searchDiscoveryFoundEvidence = false;
+    const runSearchDiscovery = async () => {
+      if (attemptedSearchDiscovery) return;
+      attemptedSearchDiscovery = true;
+      const searchDocuments: DocumentRecord[] = [];
+      const searchCandidates = await discoverEatonSearchCandidates(partNumber, context, diagnostics, searchDocuments);
+      if (searchCandidates.length > 0 || searchDocuments.length > 0) searchDiscoveryFoundEvidence = true;
+      const searchBatches = chunk(searchCandidates.slice(0, 4), 2);
+      let earlyOut = false;
+      for (const batch of searchBatches) {
+        const searchResults = await Promise.all(
+          batch.map(async (candidate) => {
+            const fetched =
+              (await fetchEatonReader(candidate.url, context, { timeoutMs: 12000, waitForSelector: false })) ??
+              (await fetchEatonDirectOptional(candidate.url, context));
+            if (!fetched) return undefined;
+            return { candidate, parsed: parseEatonProductPage(partNumber, fetched, candidate.url, context.manufacturer.localizedUrlTemplates) };
+          })
+        );
+        const parsedSearchResults = searchResults.filter((entry): entry is NonNullable<typeof entry> => Boolean(entry && entry.parsed.status !== "failed"));
+        const hasExactIdentityResult = parsedSearchResults.some((entry) => hasExactEatonIdentity(entry.parsed, partNumber));
+        for (const entry of parsedSearchResults) {
+          if (hasExactIdentityResult && !hasExactEatonIdentity(entry.parsed, partNumber)) continue;
+          result = mergeEatonResults(result, entry.parsed);
+          if (isRichEatonResult(entry.parsed)) earlyOut = true;
+        }
+        if (earlyOut) break;
+      }
+      const documentResult = buildEatonDocumentSearchResult(partNumber, searchDocuments);
+      if (documentResult) result = mergeEatonResults(result, documentResult);
+    };
 
     // Fan the first batch of direct candidates out in parallel — per-host throttling still
     // staggers requests, but waiting serially on each 5s timeout cost ~20s/item even when
@@ -244,7 +296,25 @@ export class EatonConnector implements ManufacturerConnector {
       result = mergeEatonResults(result, entry.parsed);
     }
     if (result && result.status !== "failed" && isRichEatonResult(result)) {
+      result = await enrichEatonLocalizedDescriptions(result, context, diagnostics);
       return withEatonDiagnostics(result, diagnostics);
+    }
+
+    if (!result || result.status === "failed" || !hasExactEatonIdentity(result, partNumber)) {
+      await runSearchDiscovery();
+      if (shouldStopAfterEmptyEatonSearch(partNumber, result, attemptedSearchDiscovery, searchDiscoveryFoundEvidence)) {
+        return withEatonDiagnostics(
+          emptyResult("eaton", partNumber, "Eaton site search did not expose an official CDVRL SKU page or source document for this catalog number."),
+          diagnostics
+        );
+      }
+      if (result && result.status !== "failed" && result.documents.some((doc) => doc.stage === "search-document")) {
+        return withEatonDiagnostics(result, diagnostics);
+      }
+      if (result && isRichEatonResult(result)) {
+        result = await enrichEatonLocalizedDescriptions(result, context, diagnostics);
+        return withEatonDiagnostics(result, diagnostics);
+      }
     }
 
     // Jina's plain markdown snapshot is often Eaton's fastest source-backed path. Try that
@@ -259,7 +329,10 @@ export class EatonConnector implements ManufacturerConnector {
           `primary reader parse done ${Date.now() - parseStartedAt}ms status=${parsed.status} attrs=${parsed.attributes.length} docs=${parsed.documents.length} rich=${isRichEatonResult(parsed)}`
         );
         if (parsed.status !== "failed") result = mergeEatonResults(result, parsed);
-        if (result && isRichEatonResult(result)) return withEatonDiagnostics(result, diagnostics);
+        if (result && isRichEatonResult(result)) {
+          result = await enrichEatonLocalizedDescriptions(result, context, diagnostics);
+          return withEatonDiagnostics(result, diagnostics);
+        }
       }
     }
 
@@ -268,7 +341,22 @@ export class EatonConnector implements ManufacturerConnector {
     // approval codes). We keep the original coverage but run 4 in flight per batch, so the
     // wall-clock collapses from ~150s serial to ~12s per batch with the same merged output.
     // Bail only once the merged result is rich.
-    if (!result || !isRichEatonResult(result)) {
+    const skipSkuReaderSweep = (!result || result.status === "failed") && attemptedSearchDiscovery && !searchDiscoveryFoundEvidence;
+
+    if (!result || result.status === "failed") {
+      await runSearchDiscovery();
+      if (shouldStopAfterEmptyEatonSearch(partNumber, result, attemptedSearchDiscovery, searchDiscoveryFoundEvidence)) {
+        return withEatonDiagnostics(
+          emptyResult("eaton", partNumber, "Eaton site search did not expose an official CDVRL SKU page or source document for this catalog number."),
+          diagnostics
+        );
+      }
+      if (result && result.status !== "failed" && result.documents.some((doc) => doc.stage === "search-document")) {
+        return withEatonDiagnostics(result, diagnostics);
+      }
+    }
+
+    if ((!result || !isRichEatonResult(result)) && !skipSkuReaderSweep) {
       const localeBatches = chunk(candidates, 4);
       for (const batch of localeBatches) {
         const batchResults = await Promise.all(
@@ -291,33 +379,21 @@ export class EatonConnector implements ManufacturerConnector {
     // wall-clock collapses to ~30s. Each candidate still tries the direct JCR endpoint first
     // and falls back to its Jina mirror only on failure, so quality is identical.
     if (!result || result.status === "failed" || !isRichEatonResult(result)) {
-      const searchCandidates = await discoverEatonSearchCandidates(partNumber, context, diagnostics);
-      const searchBatches = chunk(searchCandidates.slice(0, 4), 2);
-      let earlyOut = false;
-      for (const batch of searchBatches) {
-        const searchResults = await Promise.all(
-          batch.map(async (candidate) => {
-            const fetched =
-              (await fetchEatonReader(candidate.url, context, { timeoutMs: 12000, waitForSelector: false })) ??
-              (await fetchEatonDirectOptional(candidate.url, context));
-            if (!fetched) return undefined;
-            return { candidate, parsed: parseEatonProductPage(partNumber, fetched, candidate.url, context.manufacturer.localizedUrlTemplates) };
-          })
+      await runSearchDiscovery();
+      if (shouldStopAfterEmptyEatonSearch(partNumber, result, attemptedSearchDiscovery, searchDiscoveryFoundEvidence)) {
+        return withEatonDiagnostics(
+          emptyResult("eaton", partNumber, "Eaton site search did not expose an official CDVRL SKU page or source document for this catalog number."),
+          diagnostics
         );
-        const parsedSearchResults = searchResults.filter((entry): entry is NonNullable<typeof entry> => Boolean(entry && entry.parsed.status !== "failed"));
-        const hasExactIdentityResult = parsedSearchResults.some((entry) => hasExactEatonIdentity(entry.parsed, partNumber));
-        for (const entry of parsedSearchResults) {
-          if (hasExactIdentityResult && !hasExactEatonIdentity(entry.parsed, partNumber)) continue;
-          result = mergeEatonResults(result, entry.parsed);
-          if (isRichEatonResult(entry.parsed)) earlyOut = true;
-        }
-        if (earlyOut) break;
+      }
+      if (result && result.status !== "failed" && result.documents.some((doc) => doc.stage === "search-document") && !isRichEatonResult(result)) {
+        return withEatonDiagnostics(result, diagnostics);
       }
     }
 
     // Browser-backed sources are last-resort only: they can recover hydrated spec tables, but
     // they are the slowest and least stable Eaton path under bot checks.
-    if (candidates[0] && (!result || !isRichEatonResult(result))) {
+    if (candidates[0] && (!result || !isRichEatonResult(result)) && !skipSkuReaderSweep) {
       const richReader = await fetchEatonReader(candidates[0], context, { timeoutMs: 18000, waitForSelector: true });
       if (richReader) {
         const parsed = parseEatonProductPage(partNumber, richReader, candidates[0], context.manufacturer.localizedUrlTemplates);
@@ -325,7 +401,7 @@ export class EatonConnector implements ManufacturerConnector {
       }
     }
 
-    if ((!result || !isRichEatonResult(result)) && context.browserRenderer && !context.browserRenderer.isUnavailable?.() && !isEatonBrowserBlocked()) {
+    if ((!result || !isRichEatonResult(result)) && !skipSkuReaderSweep && context.browserRenderer && !context.browserRenderer.isUnavailable?.() && !isEatonBrowserBlocked()) {
       for (const officialUrl of candidates.slice(0, 2)) {
         const rendered = await renderEatonProductInBrowser(partNumber, officialUrl, context, diagnostics);
         if (!rendered) {
@@ -345,10 +421,17 @@ export class EatonConnector implements ManufacturerConnector {
       if (pdfFallback) result = mergeEatonResults(result, pdfFallback);
     }
 
-    if (result && result.status !== "failed") return withEatonDiagnostics(result, diagnostics);
+    if (result && result.status !== "failed") {
+      result = await enrichEatonLocalizedDescriptions(result, context, diagnostics);
+      return withEatonDiagnostics(result, diagnostics);
+    }
 
-    const fallback = await context.fallback.scrape(partNumber, context.manufacturer.fallbackSources);
-    return fallback ? withEatonDiagnostics(fallback, diagnostics) : withEatonDiagnostics(result ?? emptyResult("eaton", partNumber, "No Eaton product page could be fetched."), diagnostics);
+    const { result: fallback, discovery } = await scrapeDiscoveredFallback(partNumber, context, { idPrefix: this.id });
+    const recovered = withDiscoveryFallbackDiagnostics(
+      fallback ?? result ?? emptyResult("eaton", partNumber, "No Eaton product page could be fetched through Eaton-specific paths or generic official discovery."),
+      discovery
+    );
+    return withEatonDiagnostics(recovered, diagnostics);
   }
 }
 
@@ -357,11 +440,37 @@ const EATON_RICH_TECH_FIELD_THRESHOLD = 3;
 const EATON_RICH_TOTAL_ATTRIBUTE_THRESHOLD = 10;
 const EATON_RICH_DOCUMENT_THRESHOLD = 2;
 
+function shouldStopAfterEmptyEatonSearch(
+  catalogNumber: string,
+  result: ProductResult | undefined,
+  attemptedSearchDiscovery: boolean,
+  searchDiscoveryFoundEvidence: boolean
+): boolean {
+  return isEatonCdvrlCatalogNumber(catalogNumber) && attemptedSearchDiscovery && !searchDiscoveryFoundEvidence && (!result || result.status === "failed" || !hasExactEatonIdentity(result, catalogNumber));
+}
+
+function isEatonCdvrlCatalogNumber(catalogNumber: string): boolean {
+  return /^CDVRL\d{5}$/i.test(cleanText(catalogNumber));
+}
+
 function mergeEatonResults(primary: ProductResult | undefined, incoming: ProductResult): ProductResult {
   if (!primary || primary.status === "failed") return incoming;
+  const primaryIsEnglish = hasEnglishEatonSource(primary);
+  const incomingIsEnglish = hasEnglishEatonSource(incoming);
+  if (primaryIsEnglish !== incomingIsEnglish) {
+    const [base, addition] = primaryIsEnglish ? [primary, incoming] : [incoming, primary];
+    return mergeResults(base, addition);
+  }
   // Prefer attribute-richer result as the "primary" side of the merge so its title/description win.
   const [base, addition] = incoming.attributes.length > primary.attributes.length ? [incoming, primary] : [primary, incoming];
   return mergeResults(base, addition);
+}
+
+function hasEnglishEatonSource(result: ProductResult): boolean {
+  return result.sources
+    .map((source) => source.url)
+    .filter((url): url is string => Boolean(url))
+    .some(isEnglishEatonUrl);
 }
 
 function hasExactEatonIdentity(result: ProductResult, catalogNumber: string): boolean {
@@ -473,8 +582,22 @@ export function encodeEatonSkuPart(catalogNumber: string): string {
   return encodeSlashBraceCatalogPart(cleanText(catalogNumber) || catalogNumber.trim());
 }
 
-export function buildEatonSkuPageUrl(catalogNumber: string, localePath = "us/en-us"): string {
-  return `${EATON_PRODUCT_BASE_URL.replace("/us/en-us/", `/${localePath}/`)}.${encodeEatonSkuPart(catalogNumber)}.html`;
+export function buildEatonSkuPageUrl(catalogNumber: string, localePath = "us/en-us", host = EATON_PRODUCT_HOST): string {
+  return `https://${host}/${localePath}/skuPage.${encodeEatonSkuPart(catalogNumber)}.html`;
+}
+
+function eatonSkuFromProductUrl(url: string): string | undefined {
+  try {
+    const match = new URL(url).pathname.match(/\/skuPage\.([^/]+?)\.html$/i);
+    return match ? decodeUrlPart(match[1]) : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function canonicalEatonEnglishProductUrl(url: string): string | undefined {
+  const sku = eatonSkuFromProductUrl(url);
+  return sku ? buildEatonSkuPageUrl(sku, "us/en-us") : undefined;
 }
 
 export function buildEatonProductUrlCandidates(catalogNumber: string, localizedUrlTemplates?: LocalizedUrlTemplate[]): string[] {
@@ -486,14 +609,14 @@ export function buildEatonProductUrlCandidates(catalogNumber: string, localizedU
         .filter((template) => templateContainsCatalogPlaceholder(template.urlTemplate))
         .map((template) => fillCatalogTemplate(template.urlTemplate, part))
     ),
-    ...catalogNumbers.flatMap((part) => EATON_SKU_LOCALE_PATHS.map((localePath) => buildEatonSkuPageUrl(part, localePath)))
+    ...catalogNumbers.flatMap((part) => EATON_SKU_LOCALES.map((locale) => buildEatonSkuPageUrl(part, locale.localePath, locale.host)))
   ];
-  return [...new Set(urls.filter((url) => /^https:\/\/www\.eaton\.com\//i.test(url)))];
+  return [...new Set(urls.filter(isAllowedEatonProductUrl))];
 }
 
-export function buildEatonSearchApiUrl(catalogNumber: string, localePath = "us/en-us"): string {
+export function buildEatonSearchApiUrl(catalogNumber: string, localePath = "us/en-us", host = EATON_PRODUCT_HOST): string {
   const partNumber = cleanText(catalogNumber) || catalogNumber.trim();
-  return `https://www.eaton.com/content/eaton/${localePath}/site-search/jcr:content/root/responsivegrid/search_results.searchTerm$${encodeURIComponent(partNumber)}.SortBy$relevance.Facets$.startDate$.endDate$.loadMore$.json`;
+  return `https://${host}/content/eaton/${localePath}/site-search/jcr:content/root/responsivegrid/search_results.searchTerm$${encodeURIComponent(partNumber)}.SortBy$relevance.Facets$.startDate$.endDate$.loadMore$.json`;
 }
 
 export function buildEatonSearchApiUrlCandidates(catalogNumber: string, configuredTemplates: string[] = []): string[] {
@@ -501,8 +624,8 @@ export function buildEatonSearchApiUrlCandidates(catalogNumber: string, configur
   const configured = configuredTemplates
     .filter(templateContainsCatalogPlaceholder)
     .map((template) => fillCatalogTemplate(template, partNumber));
-  return [...new Set([...configured, ...EATON_SEARCH_LOCALE_PATHS.map((localePath) => buildEatonSearchApiUrl(partNumber, localePath))])]
-    .filter((url) => /^https:\/\/www\.eaton\.com\//i.test(url));
+  return [...new Set([...configured, ...EATON_SEARCH_LOCALES.map((locale) => buildEatonSearchApiUrl(partNumber, locale.localePath, locale.host))])]
+    .filter(isAllowedEatonProductUrl);
 }
 
 export function extractEatonSearchCandidates(text: string, baseUrl: string, catalogNumber: string): EatonSearchCandidate[] {
@@ -545,6 +668,127 @@ export function extractEatonSearchCandidates(text: string, baseUrl: string, cata
   return [...candidates.values()]
     .sort((left, right) => right.score - left.score || left.url.length - right.url.length)
     .slice(0, 12);
+}
+
+function extractEatonSearchDocuments(text: string, baseUrl: string, catalogNumber: string): DocumentRecord[] {
+  const documents: DocumentRecord[] = [];
+  const baseUrlConfirmsCatalog = catalogTextMatches(baseUrl, catalogNumber, { compact: true, afterColon: true, ignoreCase: true });
+  const push = (rawUrl: unknown, rawLabel: unknown, rawContext: unknown) => {
+    const url = typeof rawUrl === "string" ? toAbsoluteUrl(rawUrl.trim().replace(/\\u002f/gi, "/").replace(/&amp;/gi, "&"), baseUrl) : undefined;
+    if (!url) return;
+    const label = cleanText(String(rawLabel ?? "")) || documentLabelFromEatonSearchUrl(url);
+    const context = cleanText([label, rawContext, url].filter(Boolean).join(" "));
+    if (!catalogTextMatches(context, catalogNumber, { compact: true, afterColon: true, ignoreCase: true }) && !baseUrlConfirmsCatalog) return;
+    if (!isEatonDocumentLink(context, url, catalogNumber)) return;
+    documents.push({
+      type: classifyEatonDocument(label || context, url),
+      label: normalizeEatonDocumentLabel(label || documentLabelFromEatonSearchUrl(url), url),
+      url,
+      sourceUrl: baseUrl,
+      sourceType: "official-fallback",
+      parser: "eaton-search",
+      stage: "search-document",
+      confidence: 0.72
+    });
+  };
+
+  try {
+    const parsed = JSON.parse(text) as unknown;
+    for (const item of findEatonSearchResultItems(parsed)) {
+      const context = cleanText([
+        item.title,
+        item.description,
+        item.contentType,
+        item.url,
+        item.completeUrl,
+        item.elNumber,
+        item.modelCode,
+        item.catalogNumber,
+        ...readSecondaryLinkText(item)
+      ].filter(Boolean).join(" "));
+      push(item.completeUrl, item.title, context);
+      push(item.url, item.title, context);
+      for (const link of readSecondaryLinks(item)) push(link.url, link.text ?? item.title, context);
+    }
+  } catch {
+    const normalized = text.replace(/\\\//g, "/");
+    for (const match of normalized.matchAll(/https?:\/\/(?:www\.)?eaton\.com(?:\.cn)?\/[^"'<>\s)]+(?:\.pdf|format=pdf|documentId=|docId=)[^"'<>\s)]*/gi)) {
+      const index = match.index ?? 0;
+      const context = cleanText(normalized.slice(Math.max(0, index - 240), Math.min(normalized.length, index + match[0].length + 240)));
+      push(match[0], documentLabelFromEatonSearchUrl(match[0]), context);
+    }
+  }
+
+  return dedupeDocuments(documents)
+    .filter((doc) => doc.type === "datasheet" || doc.type === "manual" || doc.type === "other")
+    .slice(0, 6);
+}
+
+function buildEatonDocumentSearchResult(catalogNumber: string, documents: DocumentRecord[]): ProductResult | undefined {
+  const cleanDocuments = prioritizeEatonSearchDocuments(dedupeDocuments(documents)).slice(0, 6);
+  if (!cleanDocuments.length) return undefined;
+  const attributes: AttributeRecord[] = [
+    {
+      group: "Eaton Search",
+      name: "Catalog Number",
+      value: catalogNumber,
+      sourceUrl: cleanDocuments[0].sourceUrl ?? cleanDocuments[0].url,
+      sourceType: "official-fallback",
+      parser: "eaton-search",
+      stage: "search-document",
+      confidence: 0.72
+    }
+  ];
+  return {
+    manufacturerId: "eaton",
+    catalogNumber,
+    status: "partial",
+    confidence: 0.62,
+    productUrl: cleanDocuments[0].sourceUrl ?? cleanDocuments[0].url,
+    title: `${catalogNumber} - Eaton document search`,
+    description: `Eaton search found source documents for ${catalogNumber}.`,
+    normalized: normalizeFields(attributes, cleanDocuments),
+    attributes,
+    documents: cleanDocuments,
+    sources: [
+      {
+        url: cleanDocuments[0].sourceUrl ?? cleanDocuments[0].url,
+        sourceType: "official-fallback",
+        parser: "eaton-search",
+        parserVersion: "eaton-v2",
+        fetchedAt: new Date().toISOString()
+      }
+    ],
+    diagnostics: {
+      fallbackStages: ["eaton-search-documents"],
+      notes: [`Eaton SKU pages did not expose a usable product page; using ${cleanDocuments.length} search document candidate(s).`]
+    }
+  };
+}
+
+function prioritizeEatonSearchDocuments(documents: DocumentRecord[]): DocumentRecord[] {
+  return [...documents].sort((left, right) => eatonSearchDocumentScore(right) - eatonSearchDocumentScore(left));
+}
+
+function eatonSearchDocumentScore(doc: DocumentRecord): number {
+  const text = `${doc.type} ${doc.label} ${doc.url}`.toLowerCase();
+  let score = 0;
+  if (doc.type === "datasheet") score += 100;
+  if (doc.type === "manual") score += 70;
+  if (/\b(?:catalog|catalogue|sample|datasheet|data\s*sheet|technical|spec(?:ification)?)\b/i.test(text)) score += 35;
+  if (/\b(?:installation|instruction|manual|user\s*manual)\b/i.test(text)) score += 10;
+  if (/\b(?:certificate|declaration|rohs|reach|warranty)\b/i.test(text)) score -= 40;
+  return score;
+}
+
+function documentLabelFromEatonSearchUrl(url: string): string {
+  try {
+    const parsed = new URL(url);
+    const filename = decodeUrlPart(parsed.pathname.split("/").pop() ?? "");
+    return cleanText(filename.replace(/\.(?:pdf|zip|dwg|dxf|stp|step)$/i, "").replace(/[-_]+/g, " ")) || "Eaton document";
+  } catch {
+    return "Eaton document";
+  }
 }
 
 function buildEatonReaderUrl(officialUrl: string): string {
@@ -609,7 +853,8 @@ async function fetchEatonDirectOptional(url: string, context: ScrapeContext): Pr
 async function discoverEatonSearchCandidates(
   catalogNumber: string,
   context: ScrapeContext,
-  diagnostics: Pick<ScrapeDiagnostics, "attemptedUrls" | "discoveredCandidates" | "notes">
+  diagnostics: Pick<ScrapeDiagnostics, "attemptedUrls" | "discoveredCandidates" | "notes">,
+  documentSink?: DocumentRecord[]
 ): Promise<EatonSearchCandidate[]> {
   const configuredTemplates = [
     ...(context.manufacturer.scrapeRecipe?.discoveryPolicy?.searchUrlTemplates ?? []),
@@ -618,52 +863,34 @@ async function discoverEatonSearchCandidates(
   const searchUrls = buildEatonSearchApiUrlCandidates(catalogNumber, configuredTemplates);
   const byUrl = new Map<string, EatonSearchCandidate>();
 
+  if (documentSink) {
+    const fastDocumentUrls = searchUrls.filter(isEatonFastDocumentSearchUrl);
+    await Promise.all(fastDocumentUrls.map((searchUrl) => searchEatonSearchUrl(searchUrl, catalogNumber, context, diagnostics, byUrl, documentSink)));
+    if (documentSink.length > 0) {
+      return [...byUrl.values()].sort((left, right) => right.score - left.score || left.url.length - right.url.length);
+    }
+    if (fastDocumentUrls.length > 0 && isEatonCdvrlCatalogNumber(catalogNumber) && byUrl.size === 0) {
+      const familyDocuments = eatonRapidLinkFamilyDocuments(catalogNumber, fastDocumentUrls[0]);
+      if (familyDocuments.length) {
+        documentSink.push(...familyDocuments);
+        diagnostics.notes?.push("Eaton China search returned no exact CDVRL hit; using official Rapid Link 5X family catalog for source-backed extraction.");
+        return [];
+      }
+      diagnostics.notes?.push("Eaton China document search returned no CDVRL source documents; skipped slower locale search sweep for this Rapid Link catalog number.");
+      return [];
+    }
+  }
+
   // Fan the first four search URLs out in parallel; each one tries the direct JCR endpoint
   // first and falls back to its Jina mirror only when the direct call fails. Previously this
   // ran 4 URLs × 2 stages serially (~120s worst case); 4 in parallel cuts that to ~22s while
   // preserving the same locale coverage (locale-specific search hits sometimes surface SKUs
   // the US locale misses).
   await Promise.all(
-    searchUrls.slice(0, 4).map(async (searchUrl) => {
-      diagnostics.attemptedUrls?.push(searchUrl);
-      let succeeded = false;
-      try {
-        const fetched = await context.http.fetchText(searchUrl, {
-          timeoutMs: 8000,
-          maxAttempts: 1,
-          signal: context.signal,
-          headers: {
-            accept: "application/json,text/plain,*/*",
-            referer: `https://www.eaton.com/us/en-us/site-search.html.searchTerm$${encodeURIComponent(catalogNumber)}.tabs$all.html`
-          }
-        });
-        for (const candidate of extractEatonSearchCandidates(fetched.text, fetched.effectiveUrl, catalogNumber)) {
-          const existing = byUrl.get(candidate.url.toLowerCase());
-          if (!existing || candidate.score > existing.score) byUrl.set(candidate.url.toLowerCase(), candidate);
-        }
-        succeeded = true;
-      } catch (error) {
-        diagnostics.notes?.push(`Eaton search discovery failed for ${searchUrl}: ${error instanceof Error ? error.message : String(error)}`);
-      }
-
-      if (!succeeded) {
-        const jinaUrl = buildEatonReaderUrl(searchUrl);
-        try {
-          const fetched = await context.http.fetchText(jinaUrl, {
-            timeoutMs: 22000,
-            maxAttempts: 1,
-            signal: context.signal,
-            headers: { accept: "text/plain,application/json,*/*" }
-          });
-          for (const candidate of extractEatonSearchCandidates(stripJinaTextPreamble(fetched.text), fetched.effectiveUrl, catalogNumber)) {
-            const existing = byUrl.get(candidate.url.toLowerCase());
-            if (!existing || candidate.score > existing.score) byUrl.set(candidate.url.toLowerCase(), candidate);
-          }
-        } catch (error) {
-          diagnostics.notes?.push(`Eaton reader search discovery failed for ${jinaUrl}: ${error instanceof Error ? error.message : String(error)}`);
-        }
-      }
-    })
+    searchUrls
+      .filter((searchUrl) => !documentSink || !isEatonFastDocumentSearchUrl(searchUrl))
+      .slice(0, 4)
+      .map((searchUrl) => searchEatonSearchUrl(searchUrl, catalogNumber, context, diagnostics, byUrl, documentSink))
   );
 
   const candidates = [...byUrl.values()].sort((left, right) => right.score - left.score || left.url.length - right.url.length);
@@ -679,27 +906,137 @@ async function discoverEatonSearchCandidates(
   return candidates;
 }
 
+function isEatonFastDocumentSearchUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    return /^www\.eaton\.com\.cn$/i.test(parsed.hostname) && /\/site-search\//i.test(parsed.pathname);
+  } catch {
+    return /www\.eaton\.com\.cn\/.*\/site-search\//i.test(url);
+  }
+}
+
+function eatonRapidLinkFamilyDocuments(catalogNumber: string, sourceUrl?: string): DocumentRecord[] {
+  if (!isEatonRapidLinkCatalogCoveredRange(catalogNumber)) return [];
+  return [
+    {
+      type: "datasheet",
+      label: "Eaton Rapid Link 5X RASP5X product catalog",
+      url: EATON_RAPID_LINK_5X_CATALOG_CN_PDF_URL,
+      candidateUrls: [EATON_RAPID_LINK_5X_CATALOG_EN_PDF_URL],
+      sourceUrl: sourceUrl ?? EATON_RAPID_LINK_5X_CATALOG_CN_PDF_URL,
+      sourceType: "official-fallback",
+      parser: "eaton-rapid-link-family-catalog",
+      stage: "search-document",
+      confidence: 0.68
+    }
+  ];
+}
+
+function isEatonRapidLinkCatalogCoveredRange(catalogNumber: string): boolean {
+  const match = cleanText(catalogNumber).match(/^CDVRL(\d{5})$/i);
+  if (!match) return false;
+  const value = Number(match[1]);
+  return [
+    [1, 144],
+    [289, 432],
+    [10001, 10144],
+    [10289, 10576],
+    [10721, 11044],
+    [20001, 20756]
+  ].some(([start, end]) => value >= start && value <= end);
+}
+
+async function searchEatonSearchUrl(
+  searchUrl: string,
+  catalogNumber: string,
+  context: ScrapeContext,
+  diagnostics: Pick<ScrapeDiagnostics, "attemptedUrls" | "discoveredCandidates" | "notes">,
+  byUrl: Map<string, EatonSearchCandidate>,
+  documentSink?: DocumentRecord[]
+): Promise<void> {
+  diagnostics.attemptedUrls?.push(searchUrl);
+  let succeeded = false;
+  try {
+    const fetched = await context.http.fetchText(searchUrl, {
+      timeoutMs: 8000,
+      maxAttempts: 1,
+      signal: context.signal,
+      headers: {
+        accept: "application/json,text/plain,*/*",
+        referer: `https://www.eaton.com/us/en-us/site-search.html.searchTerm$${encodeURIComponent(catalogNumber)}.tabs$all.html`
+      }
+    });
+    addEatonSearchCandidates(byUrl, extractEatonSearchCandidates(fetched.text, fetched.effectiveUrl, catalogNumber));
+    documentSink?.push(...extractEatonSearchDocuments(fetched.text, fetched.effectiveUrl, catalogNumber));
+    succeeded = true;
+  } catch (error) {
+    diagnostics.notes?.push(`Eaton search discovery failed for ${searchUrl}: ${error instanceof Error ? error.message : String(error)}`);
+  }
+
+  if ((documentSink?.length ?? 0) > 0) return;
+  if (!succeeded) {
+    const jinaUrl = buildEatonReaderUrl(searchUrl);
+    try {
+      const fetched = await context.http.fetchText(jinaUrl, {
+        timeoutMs: 22000,
+        maxAttempts: 1,
+        signal: context.signal,
+        headers: { accept: "text/plain,application/json,*/*" }
+      });
+      const text = stripJinaTextPreamble(fetched.text);
+      addEatonSearchCandidates(byUrl, extractEatonSearchCandidates(text, fetched.effectiveUrl, catalogNumber));
+      documentSink?.push(...extractEatonSearchDocuments(text, fetched.effectiveUrl, catalogNumber));
+    } catch (error) {
+      diagnostics.notes?.push(`Eaton reader search discovery failed for ${jinaUrl}: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
+}
+
+function addEatonSearchCandidates(byUrl: Map<string, EatonSearchCandidate>, candidates: EatonSearchCandidate[]): void {
+  for (const candidate of candidates) {
+    const existing = byUrl.get(candidate.url.toLowerCase());
+    if (!existing || candidate.score > existing.score) byUrl.set(candidate.url.toLowerCase(), candidate);
+  }
+}
+
 function normalizeEatonSearchProductUrl(rawUrl: string, baseUrl: string): string | undefined {
   if (!rawUrl || /^javascript:|^mailto:|^tel:|^data:/i.test(rawUrl)) return undefined;
   try {
     let parsed = new URL(rawUrl.trim().replace(/\\u002f/gi, "/").replace(/&amp;/gi, "&"), baseUrl);
     const contentPath = parsed.pathname.match(/^\/content\/eaton\/([^/]+\/[^/]+)\/skuPage\.([^/?#]+)$/i);
     if (contentPath) {
-      parsed = new URL(`https://www.eaton.com/${contentPath[1]}/skuPage.${contentPath[2]}.html`);
+      parsed = new URL(`https://${eatonSkuHostForLocalePath(contentPath[1], parsed.hostname)}/${contentPath[1]}/skuPage.${contentPath[2]}.html`);
     }
     parsed.hash = "";
     parsed.search = "";
     parsed.pathname = parsed.pathname.replace(/\.specifications\.html$/i, ".html");
     if (/\/skuPage\.[^/]+$/i.test(parsed.pathname) && !/\.html$/i.test(parsed.pathname)) parsed.pathname = `${parsed.pathname}.html`;
     if (!isEatonSkuPageUrl(parsed)) return undefined;
-    return parsed.toString();
+    return isChinaEatonUrl(parsed.toString()) ? parsed.toString() : canonicalEatonEnglishProductUrl(parsed.toString()) ?? parsed.toString();
   } catch {
     return undefined;
   }
 }
 
 function isEatonSkuPageUrl(url: URL): boolean {
-  return /^www\.eaton\.com$/i.test(url.hostname) && /\/skuPage\.[^/]+\.html$/i.test(url.pathname) && !/\.pdf$/i.test(url.pathname);
+  return isAllowedEatonHost(url.hostname) && /\/skuPage\.[^/]+\.html$/i.test(url.pathname) && !/\.pdf$/i.test(url.pathname);
+}
+
+function eatonSkuHostForLocalePath(localePath: string, fallbackHost: string): string {
+  if (/^cn\/zh-cn$/i.test(localePath)) return EATON_CHINA_PRODUCT_HOST;
+  return isAllowedEatonHost(fallbackHost) ? fallbackHost : EATON_PRODUCT_HOST;
+}
+
+function isAllowedEatonProductUrl(url: string): boolean {
+  try {
+    return isAllowedEatonHost(new URL(url).hostname);
+  } catch {
+    return false;
+  }
+}
+
+function isAllowedEatonHost(hostname: string): boolean {
+  return new RegExp(`^(?:${escapeRegExp(EATON_PRODUCT_HOST)}|${escapeRegExp(EATON_CHINA_PRODUCT_HOST)})$`, "i").test(hostname);
 }
 
 function scoreEatonSearchCandidate(url: string, context: string, catalogNumber: string, baseScore: number): number {
@@ -738,7 +1075,7 @@ function readSecondaryLinkText(item: Record<string, unknown>): string[] {
 interface EatonCbeCatalogRecord {
   articleNumber: string;
   partNumber: string;
-  productName: string;
+  productName?: string;
   productFamily?: string;
   productBase?: string;
   eclassCode?: string;
@@ -790,8 +1127,8 @@ async function scrapeEatonCbeCatalogPdf(
     eatonPdfAttr("Catalog Number", record.articleNumber),
     eatonPdfAttr("Model Code", record.partNumber),
     eatonPdfAttr("Part number", record.partNumber),
-    eatonPdfAttr("Product Name", record.productName),
-    eatonPdfAttr("Catalog Description", `${record.productName} ${record.partNumber}`),
+    record.productName ? eatonPdfAttr("Product Name", record.productName) : undefined,
+    eatonPdfAttr("Catalog Description", [record.productName, record.partNumber].filter(Boolean).join(" ")),
     record.productFamily ? eatonPdfAttr("Product family", record.productFamily) : undefined,
     record.productBase ? eatonPdfAttr("Product base", record.productBase) : undefined,
     record.eclassCode ? eatonPdfAttr(`ECLASS ${record.eclassVersion ?? "13"}`, record.eclassCode) : undefined,
@@ -808,11 +1145,9 @@ async function scrapeEatonCbeCatalogPdf(
     record.heightMm ? eatonPdfAttr("Product Net Height", `${record.heightMm} mm`) : undefined,
     record.operatingTemperature ? eatonPdfAttr("Operating temperature", record.operatingTemperature) : undefined,
     record.degreeOfProtection ? eatonPdfAttr("Degree of protection", record.degreeOfProtection) : undefined,
-    record.connectionType ? eatonPdfAttr("Connection type", record.connectionType) : undefined,
-    eatonPdfAttr("Certifications", "CCC, CB, CE"),
-    eatonPdfAttr("Series", "E6")
+    record.connectionType ? eatonPdfAttr("Connection type", record.connectionType) : undefined
   ].filter((attr): attr is AttributeRecord => Boolean(attr));
-  const title = `${record.partNumber} - ${record.productName}`;
+  const title = [record.partNumber, record.productName].filter(Boolean).join(" - ");
   return {
     manufacturerId: "eaton",
     catalogNumber,
@@ -908,7 +1243,7 @@ async function readEatonCbeCatalogCache(cachePath: string): Promise<Map<string, 
     const raw = await fs.readFile(cachePath, "utf8");
     const entries = JSON.parse(raw) as Array<[string, EatonCbeCatalogRecord]>;
     if (!Array.isArray(entries) || !entries.length) return undefined;
-    return new Map(entries.map(([key, record]) => [key, completeEatonCbeRecord(record)]));
+    return new Map(entries);
   } catch {
     return undefined;
   }
@@ -961,118 +1296,40 @@ export function deriveEatonCbeRecord(
   unitPerPackage: string | undefined
 ): EatonCbeCatalogRecord | undefined {
   if (!partNumber || /^CBE\d+$/i.test(partNumber)) return undefined;
-  const base = { articleNumber: article, partNumber, unitPerPackage };
+  const descriptiveCells = ratingCells.filter((cell) => /[A-Za-z]/.test(cell) && !/^\d+(?:[.,]\d+)?(?:\s*\/\s*\d+(?:[.,]\d+)?)?$/.test(cell));
+  const base: EatonCbeCatalogRecord = {
+    articleNumber: article,
+    partNumber,
+    ...(unitPerPackage ? { unitPerPackage } : {}),
+    ...(descriptiveCells[0] ? { productName: descriptiveCells.join(" ") } : {})
+  };
 
   let match: RegExpMatchArray | null;
   if ((match = partNumber.match(/^EIS-(\d+)\/(\d+)$/i))) {
-    return completeEatonCbeRecord({ ...base, productName: "EIS Disconnecting Switch", ratedCurrent: match[1], poles: match[2] });
+    return { ...base, ratedCurrent: match[1], poles: match[2] };
   }
   if ((match = partNumber.match(/^E6-(\d+)\/(\d+)\/([A-Z])$/i))) {
-    return completeEatonCbeRecord({
+    return {
       ...base,
-      productName: "E6 Miniature Circuit Breaker",
       ratedCurrent: match[1],
       poles: match[2],
       releaseCharacteristic: match[3].toUpperCase()
-    });
+    };
   }
   if ((match = partNumber.match(/^(E[L]?D6)-(\d+)\/(\d+)N\/([A-Z])\/(\d+)/i))) {
-    return completeEatonCbeRecord({
+    return {
       ...base,
-      productName: `${match[1].toUpperCase()} Residual Current Circuit Breaker with Overload Protection`,
       ratedCurrent: match[2],
       poles: String(Number(match[3]) + 1),
       releaseCharacteristic: match[4].toUpperCase(),
       residualCurrent: eatonResidualCurrent(ratingCells[0], match[5])
-    });
-  }
-  if (/^Z-/i.test(partNumber)) {
-    return completeEatonCbeRecord({ ...base, productName: "E6 series accessory" });
+    };
   }
   // Unknown family: still capture article + type code (+ a leading numeric current), never guess.
-  return completeEatonCbeRecord({ ...base, productName: "Eaton E6 series device", ratedCurrent: ratingCells.find((cell) => /^\d+(?:\.\d+)?$/.test(cell)) });
-}
-
-function completeEatonCbeRecord(record: EatonCbeCatalogRecord): EatonCbeCatalogRecord {
-  const family = eatonCbeFamily(record.partNumber);
-  if (!family) return record;
-  const poles = Number(record.poles);
-  const poleCount = Number.isFinite(poles) && poles > 0 ? poles : undefined;
-  const residualMa = record.residualCurrent ? Number(record.residualCurrent) * 1000 : undefined;
-  const base = { ...record, eclassVersion: record.eclassVersion ?? "13", connectionType: record.connectionType ?? "Screw connection" };
-
-  if (family === "eis") {
-    return {
-      ...base,
-      productFamily: record.productFamily ?? "EIS",
-      productBase: record.productBase ?? "Miniature circuit breaker",
-      eclassCode: record.eclassCode ?? "27070203",
-      ratedVoltage: record.ratedVoltage ?? "230",
-      ratedInsulationVoltage: record.ratedInsulationVoltage ?? "690",
-      weightKg: record.weightKg ?? (poleCount ? formatNumber(0.08 * poleCount, 3) : undefined),
-      depthMm: record.depthMm ?? "71.899",
-      widthMm: record.widthMm ?? (poleCount ? formatNumber(17.7 * poleCount, 3) : undefined),
-      heightMm: record.heightMm ?? "83.7",
-      operatingTemperature: record.operatingTemperature ?? "-25...+60 C",
-      degreeOfProtection: record.degreeOfProtection ?? "IP20"
-    };
-  }
-
-  if (family === "ed6" || family === "eld6") {
-    return {
-      ...base,
-      productFamily: record.productFamily ?? "E6 series",
-      productBase: record.productBase ?? eatonEd6ProductBase(record, residualMa),
-      eclassCode: record.eclassCode ?? "27142201",
-      ratedVoltage: record.ratedVoltage ?? "230",
-      ratedInsulationVoltage: record.ratedInsulationVoltage ?? "500",
-      weightKg: record.weightKg ?? (poleCount ? formatNumber(0.09 * poleCount, 3) : undefined),
-      depthMm: record.depthMm ?? "75.5",
-      widthMm: record.widthMm ?? (poleCount ? formatNumber(17.5 * poleCount, 3) : undefined),
-      heightMm: record.heightMm ?? "83.7",
-      operatingTemperature: record.operatingTemperature ?? "-30...+60 C",
-      degreeOfProtection: record.degreeOfProtection ?? "IP20"
-    };
-  }
-
-  if (family === "e6") {
-    return {
-      ...base,
-      productFamily: record.productFamily ?? "E6 series",
-      productBase: record.productBase ?? "Miniature circuit breaker",
-      eclassCode: record.eclassCode ?? "27070201",
-      ratedVoltage: record.ratedVoltage ?? "230",
-      ratedInsulationVoltage: record.ratedInsulationVoltage ?? "500",
-      weightKg: record.weightKg ?? (poleCount ? formatNumber(0.08 * poleCount, 3) : undefined),
-      depthMm: record.depthMm ?? "71.899",
-      widthMm: record.widthMm ?? (poleCount ? formatNumber(17.7 * poleCount, 3) : undefined),
-      heightMm: record.heightMm ?? "83.7",
-      operatingTemperature: record.operatingTemperature ?? "-25...+60 C",
-      degreeOfProtection: record.degreeOfProtection ?? "IP20"
-    };
-  }
-
-  return base;
-}
-
-function eatonCbeFamily(partNumber: string | undefined): "eis" | "e6" | "ed6" | "eld6" | undefined {
-  if (/^EIS-/i.test(partNumber ?? "")) return "eis";
-  if (/^E6-/i.test(partNumber ?? "")) return "e6";
-  if (/^ED6-/i.test(partNumber ?? "")) return "ed6";
-  if (/^ELD6-/i.test(partNumber ?? "")) return "eld6";
-  return undefined;
-}
-
-function eatonEd6ProductBase(record: EatonCbeCatalogRecord, residualMa: number | undefined): string | undefined {
-  if (!record.ratedCurrent || !record.releaseCharacteristic) return undefined;
-  const neutral = Math.max(0, (Number(record.poles) || 0) - 1);
-  const neutralText = neutral > 0 ? `${neutral}N ` : "";
-  const residual = residualMa !== undefined && Number.isFinite(residualMa) ? ` I△n=${formatNumber(residualMa, 0)}mA` : "";
-  return `${record.ratedCurrent}A ${neutralText} ${record.releaseCharacteristic}${residual} AC type`.replace(/\s+/g, " ").trim();
-}
-
-function formatNumber(value: number, digits: number): string {
-  return Number(value.toFixed(digits)).toString();
+  return {
+    ...base,
+    ratedCurrent: ratingCells.find((cell) => /^\d+(?:[.,]\d+)?$/.test(cell))?.replace(",", ".")
+  };
 }
 
 function eatonResidualCurrent(ratingCell: string | undefined, suffix: string): string | undefined {
@@ -1136,10 +1393,11 @@ export function parseEatonProductPage(
     ...attr
   }));
   const catalogNumberForUrls = preferredEatonCatalogNumber(catalogNumber, attributes);
+  const productUrl = canonicalEatonEnglishProductUrl(officialUrl) ?? officialUrl;
   const documents = dedupeDocuments([
     ...htmlParsed.documents,
     ...markdownDocuments,
-    ...(attributes.length ? buildEatonGeneratedSpecSheetDocuments(officialUrl, catalogNumberForUrls) : [])
+    ...(attributes.length ? buildEatonGeneratedSpecSheetDocuments(productUrl, catalogNumberForUrls) : [])
   ]).map((doc) => ({
     sourceType: "official-fallback" as const,
     parser: "eaton-product-page",
@@ -1156,8 +1414,8 @@ export function parseEatonProductPage(
     catalogNumber,
     status: hasUsableProductData ? "found" : "failed",
     confidence: hasUsableProductData ? 0.82 : 0,
-    productUrl: officialUrl,
-    localizedUrls: buildLocalizedProductUrls("eaton", catalogNumberForUrls, officialUrl, localizedUrlTemplates),
+    productUrl,
+    localizedUrls: buildLocalizedProductUrls("eaton", catalogNumberForUrls, productUrl, localizedUrlTemplates),
     title,
     description,
     normalized,
@@ -1184,6 +1442,19 @@ function isGermanEatonUrl(url: string): boolean {
   return /\/(?:de|at|ch)\/de-(?:de|at|ch)\/skuPage\./i.test(url);
 }
 
+function isEnglishEatonUrl(url: string): boolean {
+  return /\/(?:us|gb|ca|au|ae)\/en-(?:us|gb|ca|au|ae)\/skuPage\./i.test(url);
+}
+
+function isChinaEatonUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    return /^www\.eaton\.com\.cn$/i.test(parsed.hostname) && /\/cn\/zh-cn\/skuPage\./i.test(parsed.pathname);
+  } catch {
+    return /www\.eaton\.com\.cn\/cn\/zh-cn\/skuPage\./i.test(url);
+  }
+}
+
 function hasUsableEatonProductData(attributes: AttributeRecord[], documents: DocumentRecord[]): boolean {
   if (documents.length > 0) return true;
   if (attributes.length >= 3) return true;
@@ -1207,6 +1478,35 @@ function isEatonNotFoundPage(fetched: FetchedText, title?: string, description?:
 function preferredEatonCatalogNumber(requestedCatalogNumber: string, attributes: AttributeRecord[]): string {
   const pageCatalogNumber = attributes.find((attr) => /^catalog number$/i.test(attr.name) && /^[\w./(){} -]{2,80}$/i.test(attr.value))?.value;
   return cleanText(pageCatalogNumber) || requestedCatalogNumber;
+}
+
+async function enrichEatonLocalizedDescriptions(
+  result: ProductResult,
+  context: ScrapeContext,
+  diagnostics: Pick<ScrapeDiagnostics, "attemptedUrls" | "discoveredCandidates" | "notes">
+): Promise<ProductResult> {
+  if (result.status === "failed" || result.localizedDescriptions?.de?.title || result.localizedDescriptions?.de?.description) return result;
+  const germanUrl = result.localizedUrls?.de;
+  if (!germanUrl || sameUrl(germanUrl, result.productUrl)) return result;
+  diagnostics.attemptedUrls?.push(`localized-de:${germanUrl}`);
+  const fetched =
+    (await fetchEatonReader(germanUrl, context, { timeoutMs: 12000, waitForSelector: false })) ??
+    (await fetchEatonDirectOptional(germanUrl, context));
+  if (!fetched) return result;
+  const parsed = parseEatonProductPage(result.catalogNumber, fetched, germanUrl, context.manufacturer.localizedUrlTemplates);
+  if (parsed.status === "failed") return result;
+  return mergeEatonResults(result, parsed);
+}
+
+function sameUrl(left: string | undefined, right: string | undefined): boolean {
+  if (!left || !right) return false;
+  try {
+    const leftUrl = new URL(left);
+    const rightUrl = new URL(right);
+    return leftUrl.origin.toLowerCase() === rightUrl.origin.toLowerCase() && leftUrl.pathname.toLowerCase() === rightUrl.pathname.toLowerCase();
+  } catch {
+    return left.toLowerCase() === right.toLowerCase();
+  }
 }
 
 function buildEatonGeneratedSpecSheetDocuments(officialUrl: string, catalogNumber: string): DocumentRecord[] {
@@ -1807,11 +2107,10 @@ function extractHtmlEmbeddedResourceDocuments($: cheerio.CheerioAPI, catalogNumb
 
   $("script").each((_, script) => {
     const text = $(script).text();
-    if (!/(?:content\/dam\/eaton|skuPage\.[^"'\\\s]+\.pdf|DA-C[ES]-ETN|\.(?:stp|step|dwg|dxf|zip))/i.test(text)) return;
+    if (!/(?:content\/dam\/eaton|skuPage\.[^"'\\\s]+\.pdf|DA-C[ES]-ETN|\.(?:pdf|stp|step|dwg|dxf|zip|igs|iges)|documentId|docId|format=pdf|downloadUrl|documentUrl|resourceUrl)/i.test(text)) return;
 
-    for (const match of text.matchAll(/["']((?:https?:\\?\/\\?\/[^"']+|\\?\/content\\?\/dam\\?\/eaton\\?\/[^"']+|\\?\/[a-z]{2}\\?\/[a-z]{2}-[a-z]{2}\\?\/skuPage\.[^"']+?\.pdf)[^"']*)["']/gi)) {
+    for (const match of text.matchAll(/["']((?:https?:\\?\/\\?\/|\\?\/|\/)[^"']+)["']/gi)) {
       const rawUrl = unescapeJsonUrl(match[1]);
-      if (!/\.(?:pdf|zip|dwg|dxf|stp|step)(?:[?#]|$)|\/skuPage\.[^/]+\.pdf(?:[?#]|$)/i.test(rawUrl)) continue;
       const url = toAbsoluteUrl(rawUrl, sourceUrl);
       if (!url) continue;
       const objectStart = text.lastIndexOf("{", match.index);
@@ -1820,11 +2119,13 @@ function extractHtmlEmbeddedResourceDocuments($: cheerio.CheerioAPI, catalogNumb
       const contextEnd = objectEnd >= 0 ? objectEnd + 1 : Math.min(text.length, match.index + match[0].length + 700);
       const context = text.slice(contextStart, contextEnd);
       const label = readEmbeddedEatonDocumentLabel(context, url, match[1]);
+      const type = classifyEatonDocument(label, url);
+      if (!documentUrlLooksDownloadable(url) && !documentUrlLooksRelevant(url, context, type) && !/\/content\/dam\/eaton\//i.test(url)) continue;
       if (!isEatonDocumentLink(label, url, catalogNumber)) continue;
       const key = url.toLowerCase();
       if (seen.has(key)) continue;
       seen.add(key);
-      documents.push({ type: classifyEatonDocument(label, url), label, url, sourceUrl });
+      documents.push({ type, label, url, sourceUrl });
     }
   });
 
@@ -1961,7 +2262,8 @@ function looksLikeEatonProductImage(context: string, catalogNumber: string): boo
 
 function isEatonDocumentLink(label: string, url: string, catalogNumber: string): boolean {
   const combined = `${label} ${url}`;
-  if (/\.(pdf|zip|dwg|dxf|stp|step)(?:[?#]|$)/i.test(url)) return true;
+  if (documentUrlLooksDownloadable(url)) return true;
+  if (/\.(pdf|zip|dwg|dxf|stp|step|igs|iges)(?:[?#]|$)/i.test(url)) return true;
   if (/\b(catalog|brochure|manual|guide|instruction|data\s*sheet|datasheet|technical|specification|drawing|cad|ecad|mcad|3d model|2d model|curve|certificate|declaration|application note|service bulletin)\b|\bda-c[es]-/i.test(combined)) {
     return /\/content\/dam\/eaton\//i.test(url) || catalogTextMatches(combined, catalogNumber);
   }
@@ -2099,23 +2401,13 @@ function dedupeAttributes(attributes: AttributeRecord[]): AttributeRecord[] {
 }
 
 function dedupeDocuments(documents: DocumentRecord[]): DocumentRecord[] {
-  const order: string[] = [];
-  const byUrl = new Map<string, DocumentRecord>();
-  for (const doc of documents) {
-    if (!doc.url) continue;
+  return dedupeSharedDocuments(documents, {
     // For dynamicmedia.eaton.com images, fold _C / _L / _R / _T / _B camera-angle variants into
     // a single bucket so we don't emit 3 near-identical photos per product. The "center" view
     // (suffix _C) is preferred; we score by view rank in dynamicMediaViewRank.
-    const key = dynamicMediaImageBucketKey(doc) ?? doc.url.toLowerCase();
-    const existing = byUrl.get(key);
-    if (!existing) {
-      order.push(key);
-      byUrl.set(key, doc);
-      continue;
-    }
-    if (compareEatonDocumentCandidates(doc, existing) > 0) byUrl.set(key, doc);
-  }
-  return order.map((key) => byUrl.get(key)).filter((doc): doc is DocumentRecord => Boolean(doc));
+    bucketKey: dynamicMediaImageBucketKey,
+    compare: compareEatonDocumentCandidates
+  });
 }
 
 const EATON_DYNAMIC_MEDIA_IMAGE_PATTERN = /\/is\/image\/eaton\/([^?#/]+?)(?:_(C|L|R|T|B|F))(?=[?#]|$)/i;

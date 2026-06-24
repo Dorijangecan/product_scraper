@@ -1,4 +1,5 @@
 import type { AttributeRecord, ManufacturerConfig, ProductResult, RunItemRecord, SourceRecord } from "../../shared/types.js";
+import { getManufacturerConfig } from "../config/manufacturers.js";
 import { matchProperty, understand } from "../scrapers/ontology.js";
 import { normalizeFields } from "../scrapers/normalizer.js";
 import type { PdtRepair } from "./ai-cleanup.js";
@@ -108,12 +109,13 @@ export const PDT_ONTOLOGY_QUANTITY_FACT_KEYS: Record<string, string> = {
 
 export function buildPdtFactIndex(input: PdtFactInput): PdtFactIndex {
   const result = input.item.result;
+  const manufacturer = result?.manufacturerId ? getManufacturerConfig(result.manufacturerId) ?? input.manufacturer : input.manufacturer;
   const facts: PdtFact[] = [];
 
   addGenerated(facts, "articleNumber", input.item.catalogNumber, "catalog-number", "Catalog number from the uploaded input row.");
   addGenerated(facts, "typeCode", input.item.catalogNumber, "catalog-number", "Manufacturer type code fallback from the uploaded catalog number.");
-  addGenerated(facts, "manufacturerName", input.manufacturer.canonicalName, "manufacturer-config", "Manufacturer name from the selected manufacturer config.");
-  addGenerated(facts, "manufacturerUrl", manufacturerUrl(input.manufacturer), "manufacturer-config", "Manufacturer homepage from the selected manufacturer config.");
+  addGenerated(facts, "manufacturerName", manufacturer.canonicalName, "manufacturer-config", "Manufacturer name from the selected manufacturer config.");
+  addGenerated(facts, "manufacturerUrl", manufacturerUrl(manufacturer), "manufacturer-config", "Manufacturer homepage from the selected manufacturer config.");
   addGenerated(facts, "deviceType", input.deviceType, "device-classifier", "Device type classified from scraped product evidence.");
 
   if (!result) return indexFacts(facts);
@@ -137,14 +139,14 @@ export function buildPdtFactIndex(input: PdtFactInput): PdtFactIndex {
   addGenerated(
     facts,
     "shortDescription",
-    pdtShortDescription(result, input.manufacturer, input.item.catalogNumber),
+    pdtShortDescription(result, input.item.catalogNumber),
     "product-title",
     "Product title selected by the scraper and normalized for PDT import."
   );
   addGenerated(
     facts,
     "longDescription",
-    pdtLongDescription(result, input.manufacturer, input.item.catalogNumber),
+    pdtLongDescription(result, input.item.catalogNumber),
     "product-description",
     "Product description selected by the scraper and normalized for PDT import."
   );
@@ -180,15 +182,6 @@ export function buildPdtFactIndex(input: PdtFactInput): PdtFactIndex {
   addDeviceTypePdtFacts(facts, input);
   addRockwellIoCatalogFacts(facts, input);
   addRockwellCompact5000IoFacts(facts, input);
-  addRockwellMicro820Facts(facts, input);
-  addRockwellControlLogixL9Facts(facts, input);
-  addRockwell1492PdeFacts(facts, input);
-  addRockwellStratix2100Facts(facts, input);
-  addRockwellPowerFlex755TsFacts(facts, input);
-  addRockwell852LedIndicatorFacts(facts, input);
-  addRockwellArmorKinetixDsdFacts(facts, input);
-  addRockwellArmorKinetixDsmFacts(facts, input);
-  addRockwellPanelView5510Facts(facts, input);
 
   addRepair(facts, "eclassCode", input.repair?.eclassCode, "pdt-repair", "Deterministic PDT cleanup produced an ECLASS code from scraped evidence.");
   addRepair(facts, "eclassSystemVersion", input.repair?.eclassSystemVersion, "pdt-repair", "Deterministic PDT cleanup produced an ECLASS system version.");
@@ -647,22 +640,6 @@ function addRockwellCompact5000IoFacts(facts: PdtFact[], input: PdtFactInput): v
 
   addDeterministicRepair(
     facts,
-    "manufacturerUrl",
-    "https://www.rockwellautomation.com/en-us.html",
-    "rockwell-compact-5000-io-manufacturer-url-default",
-    "Rockwell Compact 5000 I/O manual PDTs use the localized Rockwell Automation homepage URL."
-  );
-  if (!facts.some((fact) => fact.key === "protection")) {
-    addDeterministicRepair(
-      facts,
-      "protection",
-      "IP54",
-      "rockwell-compact-5000-io-protection-default",
-      "Rockwell Compact 5000 I/O manual PDTs use IP54 for the PLC degree-of-protection column."
-    );
-  }
-  addDeterministicRepair(
-    facts,
     "pdtDigitalInputCount",
     inputCount,
     "rockwell-compact-5000-io-point-count",
@@ -736,332 +713,6 @@ function rockwellIoCatalogPointCount(
     kind === "analogInput" ? analogInputPrefixes :
     analogOutputPrefixes;
   return expected.some((entry) => prefix.startsWith(entry)) ? count : undefined;
-}
-
-function addRockwellMicro820Facts(facts: PdtFact[], input: PdtFactInput): void {
-  if (!isRockwellMicro820Input(input)) return;
-  addDeterministicRepair(
-    facts,
-    "pdtWeightKg",
-    "0.38",
-    "rockwell-micro820-weight-default",
-    "Rockwell Micro820 manual PDTs use 0.38 kg in the Material Master Data mass column."
-  );
-  addDeterministicRepair(
-    facts,
-    "pdtPowerLoss",
-    "6",
-    "rockwell-micro820-plc-default",
-    "Rockwell Micro820 manual PDTs use 6 W in the PLC power-loss column."
-  );
-  addDeterministicRepair(
-    facts,
-    "pdtVoltageTypeCode",
-    "2",
-    "rockwell-micro820-plc-default",
-    "Rockwell Micro820 manual PDTs use enum code 2 (DC) in the PLC voltage/current type columns."
-  );
-  addDeterministicRepair(
-    facts,
-    "certificates",
-    "UL, CE, RCM, KC, ABS, ODVA, BV, UKCA",
-    "rockwell-micro820-certification-default",
-    "Rockwell Micro820 manual PDTs use the family certification list."
-  );
-}
-
-function addRockwellControlLogixL9Facts(facts: PdtFact[], input: PdtFactInput): void {
-  if (!isRockwellControlLogixL9Input(input)) return;
-  addDeterministicRepair(
-    facts,
-    "manufacturerUrl",
-    "https://www.rockwellautomation.com/en-us.html",
-    "rockwell-controllogix-l9-manufacturer-url-default",
-    "Rockwell ControlLogix L9 manual PDTs use the localized Rockwell Automation homepage URL."
-  );
-  addDeterministicRepair(
-    facts,
-    "pdtWeightKg",
-    "0.394",
-    "rockwell-controllogix-l9-weight-default",
-    "Rockwell ControlLogix L9 manual PDTs use 0.394 kg in the Material Master Data mass column."
-  );
-  addDeterministicRepair(
-    facts,
-    "pdtPowerLoss",
-    "6.2",
-    "rockwell-controllogix-l9-plc-default",
-    "Rockwell ControlLogix L9 manual PDTs use 6.2 W in the PLC power-loss column."
-  );
-  addDeterministicRepair(
-    facts,
-    "certificates",
-    "c-UL-us, FM, CE, RCM, ATEX, IECEx, UKCA, KC, CCC, TUV, Morocco",
-    "rockwell-controllogix-l9-certification-default",
-    "Rockwell ControlLogix L9 manual PDTs use the family certification list."
-  );
-  addDeterministicRepair(
-    facts,
-    "localizedShortDescriptionDe",
-    "ControlLogix-Prozessoren",
-    "rockwell-controllogix-l9-description-default",
-    "Rockwell ControlLogix L9 manual PDTs use the German family description."
-  );
-  addDeterministicRepair(
-    facts,
-    "localizedLongDescriptionDe",
-    "ControlLogix-Prozessoren",
-    "rockwell-controllogix-l9-description-default",
-    "Rockwell ControlLogix L9 manual PDTs use the German family description."
-  );
-}
-
-function addRockwell1492PdeFacts(facts: PdtFact[], input: PdtFactInput): void {
-  if (!isRockwell1492PdeInput(input)) return;
-  const dimensions = rockwell1492PdeDimensions(input.item.catalogNumber);
-  addDeterministicRepair(
-    facts,
-    "manufacturerUrl",
-    "https://www.rockwellautomation.com/en-us.html",
-    "rockwell-1492-pde-manufacturer-url-default",
-    "Rockwell 1492-PDE/PDME manual PDTs use the localized Rockwell Automation homepage URL."
-  );
-  addDeterministicRepair(
-    facts,
-    "pdtDepthMm",
-    dimensions?.depth,
-    "rockwell-1492-pde-dimensions-default",
-    "Rockwell 1492-PDE/PDME manual PDTs use family depth by enclosed-block variant."
-  );
-  addDeterministicRepair(
-    facts,
-    "pdtWidthMm",
-    dimensions?.width,
-    "rockwell-1492-pde-dimensions-default",
-    "Rockwell 1492-PDE/PDME manual PDTs use family width by enclosed-block variant."
-  );
-  addDeterministicRepair(
-    facts,
-    "pdtHeightMm",
-    dimensions?.height,
-    "rockwell-1492-pde-dimensions-default",
-    "Rockwell 1492-PDE/PDME manual PDTs use family height by enclosed-block variant."
-  );
-  addDeterministicRepair(
-    facts,
-    "pdtCertificates",
-    rockwell1492PdeCertifications(input.item.result),
-    "rockwell-1492-pde-certification-default",
-    "Rockwell 1492-PDE/PDME manual PDTs use normalized family certification labels."
-  );
-  addDeterministicRepair(
-    facts,
-    "localizedShortDescriptionDe",
-    "Stromanschlussblock",
-    "rockwell-1492-pde-description-default",
-    "Rockwell 1492-PDE/PDME manual PDTs use the German family short description."
-  );
-  addDeterministicRepair(
-    facts,
-    "localizedLongDescriptionDe",
-    "Stromverteiler-Anschlussblöcke",
-    "rockwell-1492-pde-description-default",
-    "Rockwell 1492-PDE/PDME manual PDTs use the German family long description."
-  );
-}
-
-function addRockwellStratix2100Facts(facts: PdtFact[], input: PdtFactInput): void {
-  if (!isRockwellStratix2100Input(input)) return;
-  const values = rockwellStratix2100Values(input.item.catalogNumber);
-  addDeterministicRepair(
-    facts,
-    "pdtWeightKg",
-    values?.weight,
-    "rockwell-stratix-2100-defaults",
-    "Rockwell Stratix 2100 manual PDTs use family mass by unmanaged-switch variant."
-  );
-  addDeterministicRepair(
-    facts,
-    "pdtDepthMm",
-    values?.depth,
-    "rockwell-stratix-2100-defaults",
-    "Rockwell Stratix 2100 manual PDTs use family depth by unmanaged-switch variant."
-  );
-  addDeterministicRepair(
-    facts,
-    "pdtWidthMm",
-    values?.width,
-    "rockwell-stratix-2100-defaults",
-    "Rockwell Stratix 2100 manual PDTs use family width by unmanaged-switch variant."
-  );
-  addDeterministicRepair(
-    facts,
-    "pdtHeightMm",
-    values?.height,
-    "rockwell-stratix-2100-defaults",
-    "Rockwell Stratix 2100 manual PDTs use family height by unmanaged-switch variant."
-  );
-  addDeterministicRepair(facts, "pdtSupplyVoltageDc", values?.voltage, "rockwell-stratix-2100-plc-default", "Rockwell Stratix 2100 manual PDTs use family DC supply voltage.");
-  addDeterministicRepair(facts, "pdtRatedCurrent", values?.current, "rockwell-stratix-2100-plc-default", "Rockwell Stratix 2100 manual PDTs use family rated current.");
-  addDeterministicRepair(facts, "pdtPowerLoss", values?.powerLoss, "rockwell-stratix-2100-plc-default", "Rockwell Stratix 2100 manual PDTs use family power loss.");
-  addDeterministicRepair(facts, "pdtVoltageTypeText", "AC/DC", "rockwell-stratix-2100-plc-default", "Rockwell Stratix 2100 manual PDTs use AC/DC in the PLC current-type column.");
-  addDeterministicRepair(facts, "protection", "IP30", "rockwell-stratix-2100-plc-default", "Rockwell Stratix 2100 manual PDTs use IP30 in the PLC degree-of-protection column.");
-  addDeterministicRepair(facts, "pdtCertificates", "c-UL-us, CE, Ex, RCM, IECEx, KC", "rockwell-stratix-2100-certification-default", "Rockwell Stratix 2100 manual PDTs use the family certification list.");
-  addDeterministicRepair(facts, "localizedShortDescriptionDe", "Unmanaged Switch", "rockwell-stratix-2100-description-default", "Rockwell Stratix 2100 manual PDTs use the family short description.");
-  addDeterministicRepair(facts, "localizedLongDescriptionDe", "Stratix 2000 Unmanaged Switch", "rockwell-stratix-2100-description-default", "Rockwell Stratix 2100 manual PDTs use the family long description.");
-}
-
-function addRockwellPowerFlex755TsFacts(facts: PdtFact[], input: PdtFactInput): void {
-  if (!isRockwellPowerFlex755TsInput(input)) return;
-  const weight = rockwellPowerFlex755TsWeight(input.item.catalogNumber);
-  addDeterministicRepair(
-    facts,
-    "pdtWeightKg",
-    weight,
-    "rockwell-powerflex-755ts-weight-default",
-    "Rockwell PowerFlex 755TS manual PDTs use family mass by drive frame."
-  );
-  addDeterministicRepair(
-    facts,
-    "pdtStaticPowerLoss",
-    rockwellPowerFlex755TsStaticPowerLoss(input.item.catalogNumber),
-    "rockwell-powerflex-755ts-power-loss-default",
-    "Rockwell PowerFlex 755TS manual PDTs use family static power loss by drive current."
-  );
-  addDeterministicRepair(
-    facts,
-    "pdtCertificates",
-    "c-UL-us, CE, C-Tick, T\u00dcV",
-    "rockwell-powerflex-755ts-certification-default",
-    "Rockwell PowerFlex 755TS manual PDTs use the family certification list."
-  );
-  addDeterministicRepair(
-    facts,
-    "localizedShortDescriptionDe",
-    "PowerFlex 755TS",
-    "rockwell-powerflex-755ts-description-default",
-    "Rockwell PowerFlex 755TS manual PDTs use the German family short description."
-  );
-  addDeterministicRepair(
-    facts,
-    "localizedLongDescriptionDe",
-    "PowerFlex 755TS-Frequenzumrichter mit integriertem EtherNet/IP",
-    "rockwell-powerflex-755ts-description-default",
-    "Rockwell PowerFlex 755TS manual PDTs use the German family long description."
-  );
-}
-
-function addRockwell852LedIndicatorFacts(facts: PdtFact[], input: PdtFactInput): void {
-  if (!isRockwell852LedIndicatorInput(input)) return;
-  const values = rockwell852LedIndicatorValues(input.item.catalogNumber);
-  addDeterministicRepair(
-    facts,
-    "manufacturerUrl",
-    "https://www.rockwellautomation.com/en-us.html",
-    "rockwell-852-led-indicator-manufacturer-url-default",
-    "Rockwell 852C/852D manual PDTs use the localized Rockwell Automation homepage URL."
-  );
-  addDeterministicRepair(facts, "longDescription", "On-Machine LED Indicators", "rockwell-852-led-indicator-description-default", "Rockwell 852C/852D manual PDTs use the family long description.");
-  addDeterministicRepair(facts, "shortDescription", "LED indicator", "rockwell-852-led-indicator-description-default", "Rockwell 852C/852D manual PDTs use the family short description.");
-  addDeterministicRepair(facts, "pdtCertificates", "c-UL-us, CE Marked; UKCA, RCM, KCC", "rockwell-852-led-indicator-certification-default", "Rockwell 852C/852D manual PDTs use the family certification list.");
-  addDeterministicRepair(facts, "pdtDepthMm", values?.diameter, "rockwell-852-led-indicator-dimensions-default", "Rockwell 852C/852D manual PDTs use family diameter as depth.");
-  addDeterministicRepair(facts, "pdtWidthMm", values?.diameter, "rockwell-852-led-indicator-dimensions-default", "Rockwell 852C/852D manual PDTs use family diameter as width.");
-  addDeterministicRepair(facts, "pdtHeightMm", values?.height, "rockwell-852-led-indicator-dimensions-default", "Rockwell 852C/852D manual PDTs use family height.");
-  addDeterministicRepair(facts, "pdtSignalDiameter", values?.signalDiameter, "rockwell-852-led-indicator-command-default", "Rockwell 852C/852D manual PDTs use the family signaling diameter.");
-  addDeterministicRepair(facts, "pdtLampColor", "green/transparent", "rockwell-852-led-indicator-command-default", "Rockwell 852C/852D manual PDTs use the normalized lamp color.");
-  addDeterministicRepair(facts, "pdtRatedVoltage", values?.ratedVoltage, "rockwell-852-led-indicator-command-default", "Rockwell 852C/852D manual PDTs use nominal voltage from the catalog family.");
-  addDeterministicRepair(facts, "pdtSoundLevel", values?.soundLevel, "rockwell-852-led-indicator-command-default", "Rockwell 852C/852D manual PDTs use family audible sound level.");
-  addDeterministicRepair(facts, "pdtVoltageTypeText", "DC", "rockwell-852-led-indicator-command-default", "Rockwell 852C/852D manual PDTs use DC as voltage type.");
-  addDeterministicRepair(facts, "protection", "IP65/IP67", "rockwell-852-led-indicator-command-default", "Rockwell 852C/852D manual PDTs use IP65/IP67 degree of protection.");
-}
-
-function addRockwellArmorKinetixDsdFacts(facts: PdtFact[], input: PdtFactInput): void {
-  if (!isRockwellArmorKinetixDsdInput(input)) return;
-  addDeterministicRepair(
-    facts,
-    "manufacturerUrl",
-    "https://www.rockwellautomation.com/en-us.html",
-    "rockwell-armorkinetix-dsd-manufacturer-url-default",
-    "Rockwell ArmorKinetix DSD manual PDTs use the localized Rockwell Automation homepage URL."
-  );
-  addDeterministicRepair(
-    facts,
-    "pdtWeightKg",
-    "2260",
-    "rockwell-armorkinetix-dsd-weight-default",
-    "Rockwell ArmorKinetix DSD manual PDTs use 2260 in the Material Master Data mass column."
-  );
-  addDeterministicRepair(
-    facts,
-    "certificates",
-    "CE, ODVA, UL Listed, Australian RCM, Safety, Korean KC",
-    "rockwell-armorkinetix-dsd-certification-default",
-    "Rockwell ArmorKinetix DSD manual PDTs use the family certification list."
-  );
-  addDeterministicRepair(
-    facts,
-    "localizedShortDescriptionDe",
-    "ArmorKinetix Verteilter Antrieb",
-    "rockwell-armorkinetix-dsd-description-default",
-    "Rockwell ArmorKinetix DSD manual PDTs use the German family description."
-  );
-  addDeterministicRepair(
-    facts,
-    "localizedLongDescriptionDe",
-    "ArmorKinetix Verteilter Antrieb",
-    "rockwell-armorkinetix-dsd-description-default",
-    "Rockwell ArmorKinetix DSD manual PDTs use the German family description."
-  );
-}
-
-function addRockwellArmorKinetixDsmFacts(facts: PdtFact[], input: PdtFactInput): void {
-  if (!isRockwellArmorKinetixDsmInput(input)) return;
-  addDeterministicRepair(
-    facts,
-    "manufacturerUrl",
-    "https://www.rockwellautomation.com/en-us.html",
-    "rockwell-armorkinetix-dsm-manufacturer-url-default",
-    "Rockwell ArmorKinetix DSM manual PDTs use the localized Rockwell Automation homepage URL."
-  );
-  addDeterministicRepair(
-    facts,
-    "pdtWeightKg",
-    "5",
-    "rockwell-armorkinetix-dsm-weight-default",
-    "Rockwell ArmorKinetix DSM manual PDTs use 5 kg in the Material Master Data mass column."
-  );
-  addDeterministicRepair(
-    facts,
-    "certificates",
-    "ODVA, UL Listed, Korean KC, Australian RCM, CE",
-    "rockwell-armorkinetix-dsm-certification-default",
-    "Rockwell ArmorKinetix DSM manual PDTs use the family certification list."
-  );
-}
-
-function addRockwellPanelView5510Facts(facts: PdtFact[], input: PdtFactInput): void {
-  if (!isRockwellPanelView5510Input(input)) return;
-  const wide = /-T7WD(?:-|$)/i.test(input.item.catalogNumber);
-  addDeterministicRepair(
-    facts,
-    "manufacturerUrl",
-    "https://www.rockwellautomation.com/en-us.html",
-    "rockwell-panelview-5510-manufacturer-url-default",
-    "Rockwell PanelView 5510 manual PDTs use the localized Rockwell Automation homepage URL."
-  );
-  addDeterministicRepair(facts, "pdtWeightKg", "2", "rockwell-panelview-5510-weight-default", "Rockwell PanelView 5510 manual PDTs use 2 kg.");
-  addDeterministicRepair(facts, "pdtDepthMm", "69.5", "rockwell-panelview-5510-dimensions-default", "Rockwell PanelView 5510 manual PDTs use 69.5 mm depth.");
-  addDeterministicRepair(facts, "pdtWidthMm", wide ? "237.0" : "212.0", "rockwell-panelview-5510-dimensions-default", "Rockwell PanelView 5510 manual PDTs use family width by display variant.");
-  addDeterministicRepair(facts, "pdtHeightMm", wide ? "178" : "170", "rockwell-panelview-5510-dimensions-default", "Rockwell PanelView 5510 manual PDTs use family height by display variant.");
-  addDeterministicRepair(facts, "pdtRatedCurrent", "7", "rockwell-panelview-5510-plc-default", "Rockwell PanelView 5510 manual PDTs use 7 A in the PLC current column.");
-  addDeterministicRepair(facts, "pdtPowerLoss", "12", "rockwell-panelview-5510-plc-default", "Rockwell PanelView 5510 manual PDTs use 12 W in the PLC power-loss column.");
-  addDeterministicRepair(
-    facts,
-    "certificates",
-    "c-UL-us, CE, UKCA, KC, Morocco, RCM, RoHS",
-    "rockwell-panelview-5510-certification-default",
-    "Rockwell PanelView 5510 manual PDTs use the family certification list."
-  );
 }
 
 function isRockwell(input: PdtFactInput): boolean {
@@ -1214,248 +865,32 @@ function manufacturerUrl(manufacturer: ManufacturerConfig): string | undefined {
   }
 }
 
-function pdtShortDescription(result: ProductResult, manufacturer: ManufacturerConfig, catalogNumber: string): string | undefined {
+function pdtShortDescription(result: ProductResult, catalogNumber: string): string | undefined {
   const value = safeDescription(result.title, catalogNumber);
-  if (isRockwellMicro820Result(result, manufacturer, catalogNumber)) return "Micro820 Controller";
-  if (isRockwellPanelView5510Result(result, manufacturer, catalogNumber)) return "PanelView 5510";
-  if (isRockwellControlLogixL9Result(result, manufacturer, catalogNumber)) return "ControlLogix Processors";
-  if (isRockwell1492PdeResult(result, manufacturer, catalogNumber)) return "Power Terminal Block";
-  if (isRockwellStratix2100Result(result, manufacturer, catalogNumber)) return "Unmanaged switch";
-  if (isRockwellPowerFlex755TsResult(result, manufacturer, catalogNumber)) return "PowerFlex 755TS";
-  if (isRockwell852LedIndicatorResult(result, manufacturer, catalogNumber)) return "LED indicator";
-  if (isRockwellArmorKinetixDsdResult(result, manufacturer, catalogNumber)) return "ArmorKinetix Distributed Drive";
-  if (isRockwellArmorKinetixDsmResult(result, manufacturer, catalogNumber)) return "Armorkinetix DSM";
   return compactFamilyShortDescription(value) ?? value;
 }
 
-function pdtLongDescription(result: ProductResult, manufacturer: ManufacturerConfig, catalogNumber: string): string | undefined {
+function pdtLongDescription(result: ProductResult, catalogNumber: string): string | undefined {
   const value = safeDescription(result.description, catalogNumber);
-  if (isRockwellMicro820Result(result, manufacturer, catalogNumber)) return "Micro820 Controller";
-  if (isRockwellPanelView5510Result(result, manufacturer, catalogNumber)) return "PanelView 5510";
-  if (isRockwellControlLogixL9Result(result, manufacturer, catalogNumber)) return "ControlLogix Processors";
-  if (isRockwell1492PdeResult(result, manufacturer, catalogNumber)) return "Power Distribution Terminal Blocks";
-  if (isRockwellStratix2100Result(result, manufacturer, catalogNumber)) return "Stratix 2000 Unmanaged switch";
-  if (isRockwellPowerFlex755TsResult(result, manufacturer, catalogNumber)) return "PowerFlex 755TS AC Drive, with Embedded EtherNet/IP";
-  if (isRockwell852LedIndicatorResult(result, manufacturer, catalogNumber)) return "On-Machine LED Indicators";
-  if (isRockwellArmorKinetixDsdResult(result, manufacturer, catalogNumber)) return "ArmorKinetix Distributed Drive";
-  if (isRockwellArmorKinetixDsmResult(result, manufacturer, catalogNumber)) return "Armorkinetix DSM";
   return value;
 }
 
 function repairShortDescription(input: PdtFactInput): string | undefined {
   const value = input.repair?.shortDescription;
   if (!value) return undefined;
-  if (isRockwellMicro820Input(input)) return "Micro820 Controller";
-  if (isRockwellPanelView5510Input(input)) return "PanelView 5510";
-  if (isRockwellControlLogixL9Input(input)) return "ControlLogix Processors";
-  if (isRockwell1492PdeInput(input)) return "Power Terminal Block";
-  if (isRockwellStratix2100Input(input)) return "Unmanaged switch";
-  if (isRockwellPowerFlex755TsInput(input)) return "PowerFlex 755TS";
-  if (isRockwell852LedIndicatorInput(input)) return "LED indicator";
-  if (isRockwellArmorKinetixDsdInput(input)) return "ArmorKinetix Distributed Drive";
-  if (isRockwellArmorKinetixDsmInput(input)) return "Armorkinetix DSM";
   return compactFamilyShortDescription(value) ?? value;
 }
 
 function repairLongDescription(input: PdtFactInput): string | undefined {
   const value = input.repair?.longDescription;
   if (!value) return undefined;
-  if (isRockwellMicro820Input(input)) return "Micro820 Controller";
-  if (isRockwellPanelView5510Input(input)) return "PanelView 5510";
-  if (isRockwellControlLogixL9Input(input)) return "ControlLogix Processors";
-  if (isRockwell1492PdeInput(input)) return "Power Distribution Terminal Blocks";
-  if (isRockwellStratix2100Input(input)) return "Stratix 2000 Unmanaged switch";
-  if (isRockwellPowerFlex755TsInput(input)) return "PowerFlex 755TS AC Drive, with Embedded EtherNet/IP";
-  if (isRockwell852LedIndicatorInput(input)) return "On-Machine LED Indicators";
-  if (isRockwellArmorKinetixDsdInput(input)) return "ArmorKinetix Distributed Drive";
-  if (isRockwellArmorKinetixDsmInput(input)) return "Armorkinetix DSM";
   return value;
-}
-
-function isRockwellArmorKinetixDsmInput(input: PdtFactInput): boolean {
-  const result = input.item.result;
-  return Boolean(result && isRockwellArmorKinetixDsmResult(result, input.manufacturer, input.item.catalogNumber));
-}
-
-function isRockwellArmorKinetixDsdInput(input: PdtFactInput): boolean {
-  const result = input.item.result;
-  return Boolean(result && isRockwellArmorKinetixDsdResult(result, input.manufacturer, input.item.catalogNumber));
-}
-
-function isRockwellPanelView5510Input(input: PdtFactInput): boolean {
-  const result = input.item.result;
-  return Boolean(result && isRockwellPanelView5510Result(result, input.manufacturer, input.item.catalogNumber));
-}
-
-function isRockwellControlLogixL9Input(input: PdtFactInput): boolean {
-  const result = input.item.result;
-  return Boolean(result && isRockwellControlLogixL9Result(result, input.manufacturer, input.item.catalogNumber));
-}
-
-function isRockwell1492PdeInput(input: PdtFactInput): boolean {
-  const result = input.item.result;
-  return Boolean(result && isRockwell1492PdeResult(result, input.manufacturer, input.item.catalogNumber));
-}
-
-function isRockwellStratix2100Input(input: PdtFactInput): boolean {
-  const result = input.item.result;
-  return Boolean(result && isRockwellStratix2100Result(result, input.manufacturer, input.item.catalogNumber));
-}
-
-function isRockwellPowerFlex755TsInput(input: PdtFactInput): boolean {
-  const result = input.item.result;
-  return Boolean(result && isRockwellPowerFlex755TsResult(result, input.manufacturer, input.item.catalogNumber));
-}
-
-function isRockwell852LedIndicatorInput(input: PdtFactInput): boolean {
-  const result = input.item.result;
-  return Boolean(result && isRockwell852LedIndicatorResult(result, input.manufacturer, input.item.catalogNumber));
-}
-
-function isRockwellMicro820Input(input: PdtFactInput): boolean {
-  const result = input.item.result;
-  return Boolean(result && isRockwellMicro820Result(result, input.manufacturer, input.item.catalogNumber));
-}
-
-function isRockwellMicro820Result(result: ProductResult, manufacturer: ManufacturerConfig, catalogNumber: string): boolean {
-  if ((result.manufacturerId ?? manufacturer.id) !== "rockwell") return false;
-  const evidenceText = [
-    result.productUrl,
-    ...result.sources.map((source) => source.url),
-    ...result.attributes.map((attr) => `${attr.parser ?? ""} ${attr.sourceUrl ?? ""} ${attr.value} ${attr.name}`)
-  ].join(" ");
-  const hasFamilyEvidence = /\bmicro820-controllers\.html\b/i.test(evidenceText) || /\brockwell-family-page\b/i.test(evidenceText);
-  if (!hasFamilyEvidence) return false;
-  const text = `${catalogNumber} ${result.title ?? ""} ${result.description ?? ""}`;
-  return /^\s*2080-LC20-/i.test(catalogNumber) && /\bMicro820\b/i.test(text);
-}
-
-function isRockwellArmorKinetixDsmResult(result: ProductResult, manufacturer: ManufacturerConfig, catalogNumber: string): boolean {
-  if ((result.manufacturerId ?? manufacturer.id) !== "rockwell") return false;
-  const text = `${catalogNumber} ${result.title ?? ""} ${result.description ?? ""}`;
-  return /^\s*2198-DSM/i.test(catalogNumber) || /\bArmorKinetix\s+DSM\b/i.test(text);
-}
-
-function isRockwellArmorKinetixDsdResult(result: ProductResult, manufacturer: ManufacturerConfig, catalogNumber: string): boolean {
-  if ((result.manufacturerId ?? manufacturer.id) !== "rockwell") return false;
-  const text = `${catalogNumber} ${result.title ?? ""} ${result.description ?? ""}`;
-  return /^\s*2198-DSD/i.test(catalogNumber) || /\bArmorKinetix\s+Distributed\s+Drive\b/i.test(text);
-}
-
-function isRockwellControlLogixL9Result(result: ProductResult, manufacturer: ManufacturerConfig, catalogNumber: string): boolean {
-  if ((result.manufacturerId ?? manufacturer.id) !== "rockwell") return false;
-  const text = `${catalogNumber} ${result.title ?? ""} ${result.description ?? ""}`;
-  return /^\s*1756-L9/i.test(catalogNumber) || /\bControlLogix\s+(?:5590\s+XT\s+Controller|Processors?)\b/i.test(text);
-}
-
-function isRockwell1492PdeResult(result: ProductResult, manufacturer: ManufacturerConfig, catalogNumber: string): boolean {
-  if ((result.manufacturerId ?? manufacturer.id) !== "rockwell") return false;
-  const text = `${catalogNumber} ${result.title ?? ""} ${result.description ?? ""}`;
-  return /^\s*1492-PD(?:E|ME)/i.test(catalogNumber) || /\bEnclosed\s+Power\s+Distribution\s+Block\b/i.test(text);
-}
-
-function isRockwellStratix2100Result(result: ProductResult, manufacturer: ManufacturerConfig, catalogNumber: string): boolean {
-  if ((result.manufacturerId ?? manufacturer.id) !== "rockwell") return false;
-  const text = `${catalogNumber} ${result.title ?? ""} ${result.description ?? ""}`;
-  return /^\s*1783-US/i.test(catalogNumber) || /\bStratix\s+2000\b.*\bUnmanaged\s+Switch\b/i.test(text);
-}
-
-function isRockwellPowerFlex755TsResult(result: ProductResult, manufacturer: ManufacturerConfig, catalogNumber: string): boolean {
-  if ((result.manufacturerId ?? manufacturer.id) !== "rockwell") return false;
-  const text = `${catalogNumber} ${result.title ?? ""} ${result.description ?? ""}`;
-  return /^\s*20G21FC/i.test(catalogNumber) || /\bPowerFlex\s+(?:TS\s+755|755TS)\b/i.test(text);
-}
-
-function isRockwell852LedIndicatorResult(result: ProductResult, manufacturer: ManufacturerConfig, catalogNumber: string): boolean {
-  if ((result.manufacturerId ?? manufacturer.id) !== "rockwell") return false;
-  const text = `${catalogNumber} ${result.title ?? ""} ${result.description ?? ""}`;
-  return /^\s*852[CD]-/i.test(catalogNumber) || /\b(?:On-Machine\s+)?LED\s+Indicators?\b/i.test(text);
-}
-
-function isRockwellPanelView5510Result(result: ProductResult, manufacturer: ManufacturerConfig, catalogNumber: string): boolean {
-  if ((result.manufacturerId ?? manufacturer.id) !== "rockwell") return false;
-  const text = `${catalogNumber} ${result.title ?? ""} ${result.description ?? ""}`;
-  return /^\s*2715P-/i.test(catalogNumber) || /\bPanelView\s+5510\b/i.test(text);
 }
 
 function safeDescription(value: string | undefined, catalogNumber: string): string | undefined {
   const cleaned = clean(value);
   if (!cleaned) return undefined;
   return comparableValue(cleaned) === comparableValue(catalogNumber) ? undefined : cleaned;
-}
-
-function rockwell1492PdeCertifications(result: ProductResult | undefined): string | undefined {
-  const text = [
-    result?.normalized.certificates,
-    ...(result?.attributes ?? []).map((attr) => attr.value)
-  ].join(" ");
-  const values: string[] = [];
-  if (/\bUL\b|\bUL\s+Listed\b/i.test(text)) values.push("UL");
-  if (/\bMorocco\b|\bMOROCCO\s+DOC\b/i.test(text)) values.push("MOROCCO DOC");
-  if (/\bUKCA\b|\bUKCA\s+DOC\b/i.test(text)) values.push("UKCA DOC");
-  return values.length ? values.join(", ") : undefined;
-}
-
-function rockwell1492PdeDimensions(catalogNumber: string): { depth: string; width: string; height: string } | undefined {
-  const catalog = catalogNumber.trim().toUpperCase();
-  if (/1492-PDME1141/.test(catalog)) return { depth: "22.0", width: "43.5", height: "105.2" };
-  if (/1492-PDE1C142/.test(catalog)) return { depth: "34.2", width: "64.3", height: "95.6" };
-  if (/1492-PDE(?:1C|1)?183/.test(catalog)) return { depth: "58.2", width: "79.8", height: "111.4" };
-  if (/1492-PDE1142/.test(catalog)) return { depth: "30.7", width: "68.9", height: "91.7" };
-  return undefined;
-}
-
-function rockwellStratix2100Values(catalogNumber: string): {
-  weight: string;
-  depth: string;
-  width: string;
-  height: string;
-  voltage: string;
-  current: string;
-  powerLoss: string;
-} | undefined {
-  const catalog = catalogNumber.trim().toUpperCase();
-  const base = { depth: "77.30", width: "29.60", height: "114.50" };
-  if (/1783-US5T$/.test(catalog)) return { ...base, weight: "0.295", voltage: "48", current: "0.38", powerLoss: "2" };
-  if (/1783-US5TG$/.test(catalog)) return { ...base, weight: "0.340", voltage: "48", current: "0.51", powerLoss: "5491" };
-  if (/1783-US4T1F$/.test(catalog)) return { ...base, weight: "0.340", voltage: "60", current: "0.38", powerLoss: "2841" };
-  if (/1783-US4T1H$/.test(catalog)) return { ...base, weight: "0.340", voltage: "48", current: "0.38", powerLoss: "2841" };
-  if (/1783-US8T$/.test(catalog)) return { depth: "77.20", width: "45.60", height: "114.50", weight: "0.407", voltage: "48", current: "0.51", powerLoss: "4.04" };
-  return undefined;
-}
-
-function rockwellPowerFlex755TsWeight(catalogNumber: string): string | undefined {
-  const catalog = catalogNumber.trim().toUpperCase();
-  if (/20G21FC0(?:11|15|22)/.test(catalog)) return "8";
-  if (/20G21FC0(?:30|37)/.test(catalog)) return "12";
-  return undefined;
-}
-
-function rockwellPowerFlex755TsStaticPowerLoss(catalogNumber: string): string | undefined {
-  const catalog = catalogNumber.trim().toUpperCase();
-  if (/20G21FC011/.test(catalog)) return "178";
-  if (/20G21FC015/.test(catalog)) return "241";
-  if (/20G21FC022/.test(catalog)) return "311";
-  if (/20G21FC030/.test(catalog)) return "403";
-  if (/20G21FC037/.test(catalog)) return "477";
-  return undefined;
-}
-
-function rockwell852LedIndicatorValues(catalogNumber: string): { diameter: string; height: string; signalDiameter: string; ratedVoltage: string; soundLevel?: string } | undefined {
-  const catalog = catalogNumber.trim().toUpperCase();
-  if (/^852C-/.test(catalog)) {
-    return {
-      diameter: "35021",
-      height: "63600",
-      signalDiameter: "35",
-      ratedVoltage: /^852C-B30/i.test(catalog) ? "30" : "24",
-      soundLevel: /PQD5$/i.test(catalog) ? "80" : undefined
-    };
-  }
-  if (/^852D-/.test(catalog)) {
-    return { diameter: "55000", height: "82050", signalDiameter: "55", ratedVoltage: "24", soundLevel: "85" };
-  }
-  return undefined;
 }
 
 function indexFacts(facts: PdtFact[]): PdtFactIndex {

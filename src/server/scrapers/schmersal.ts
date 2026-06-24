@@ -5,6 +5,8 @@ import sanitize from "sanitize-filename";
 import type { DocumentRecord, FallbackSourceConfig, ProductResult } from "../../shared/types.js";
 import type { ManufacturerConnector, ScrapeContext } from "./types.js";
 import { dedupeDocuments } from "./dedupe.js";
+import { scrapeDiscoveredFallback, withDiscoveryFallbackDiagnostics } from "./discovery-fallback.js";
+import { emptyResult } from "./normalizer.js";
 
 const SCHMERSAL_BASE_URL = "https://products.schmersal.com";
 const SCHMERSAL_TARGET_LOCALES = [
@@ -45,8 +47,14 @@ export class SchmersalConnector implements ManufacturerConnector {
     let baseResult = await context.fallback.scrape(catalogNumber, schmersalSources(context));
     baseResult = await rescueSchmersalResultFromSearch(catalogNumber, context, baseResult);
     if (!baseResult) {
-      const { emptyResult } = await import("./normalizer.js");
-      return emptyResult(this.id, catalogNumber, `No Schmersal product page found for ${catalogNumber}.`);
+      const { result, discovery } = await scrapeDiscoveredFallback(catalogNumber, context, { idPrefix: this.id });
+      if (!result) {
+        return withDiscoveryFallbackDiagnostics(
+          emptyResult(this.id, catalogNumber, `No Schmersal product page found for ${catalogNumber}.`),
+          discovery
+        );
+      }
+      baseResult = withDiscoveryFallbackDiagnostics(result, discovery);
     }
 
     if (context.imageOnly || context.downloadDocuments === false) {

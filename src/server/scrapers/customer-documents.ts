@@ -1,17 +1,21 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import * as cheerio from "cheerio";
 import { parse } from "csv-parse/sync";
 import { PDFParse } from "pdf-parse";
 import type {
   AttributeRecord,
   CustomerDocumentRecord,
+  DocumentProcessingDiagnostic,
   DocumentRecord,
   ProductResult,
   SourceRecord
 } from "../../shared/types.js";
 import { catalogTextMatches } from "./catalog-number.js";
 import { extractDocumentTextAttributes } from "./document-enrichment.js";
+import { fieldMatchesLabel, FIELD_REGISTRY, type RegistryFieldKey } from "./field-registry.js";
 import { cleanText, normalizeFields } from "./normalizer.js";
+import { readPdfWithOptionalOcr } from "./pdf-ocr.js";
 import { buildTightContextForCatalog } from "./tight-context.js";
 
 const MAX_CUSTOMER_PDF_PAGES = 400;
@@ -28,11 +32,21 @@ const PDF_TEXT_MIN_CHARS_FOR_PARSE = 80; // anything below this is effectively a
 export type CustomerDocumentProgressEvent =
   | { kind: "start"; documentIndex: number; documentTotal: number; document: CustomerDocumentRecord }
   | { kind: "scan-pdf-page"; document: CustomerDocumentRecord; pageNumber: number; totalPages?: number; matchesSoFar: number }
+  | { kind: "ocr-pdf"; document: CustomerDocumentRecord; message: string }
   | { kind: "matched"; document: CustomerDocumentRecord; attributeCount: number }
   | { kind: "no-match"; document: CustomerDocumentRecord }
   | { kind: "parse-error"; document: CustomerDocumentRecord; message: string };
 
 export type CustomerDocumentProgress = (event: CustomerDocumentProgressEvent) => void;
+
+interface CustomerDocumentExtraction {
+  attributes: AttributeRecord[];
+  sources: SourceRecord[];
+  documents: DocumentRecord[];
+  parseFailures: string[];
+  documentProcessing: DocumentProcessingDiagnostic[];
+  titleSuggestion?: string;
+}
 
 interface PdfPageEntry {
   num: number;
@@ -163,13 +177,14 @@ export async function extractCustomerDocumentAttributes(
   catalogNumber: string,
   customerDocuments: CustomerDocumentRecord[],
   options: { cache?: CustomerDocumentParseCache; onProgress?: CustomerDocumentProgress } = {}
-): Promise<{ attributes: AttributeRecord[]; sources: SourceRecord[]; documents: DocumentRecord[]; parseFailures: string[]; titleSuggestion?: string }> {
+): Promise<CustomerDocumentExtraction> {
   const cache = options.cache ?? new CustomerDocumentParseCache();
   const onProgress = options.onProgress ?? (() => undefined);
   const attributes: AttributeRecord[] = [];
   const sources: SourceRecord[] = [];
   const documents: DocumentRecord[] = [];
   const parseFailures: string[] = [];
+  const documentProcessing: DocumentProcessingDiagnostic[] = [];
   let titleSuggestion: string | undefined;
 
   for (let documentIndex = 0; documentIndex < customerDocuments.length; documentIndex += 1) {
@@ -187,24 +202,35 @@ export async function extractCustomerDocumentAttributes(
         extracted = pdfOutcome.attributes;
         docTitleHint = pdfOutcome.titleHint;
         if (pdfOutcome.scannedImageOnly) {
-          const message = `PDF looks like a scanned image (no extractable text) — OCR not yet supported, so customer data from this file cannot be used.`;
+          const message = `PDF looks like a scanned image and OCR did not return enough usable text, so customer data from this file cannot be used.`;
           parseFailures.push(`${doc.originalName}: ${message}`);
+          documentProcessing.push(customerDocumentProcessingRecord(doc, sourceUrl, "failed", message, message));
           onProgress({ kind: "parse-error", document: doc, message });
           continue;
         }
       } else if (extension === ".xlsx" || extension === ".xls") {
         extracted = await extractFromWorkbook(catalogNumber, doc, cache);
-      } else if (extension === ".csv" || extension === ".tsv" || extension === ".txt") {
+      } else if (extension === ".csv" || extension === ".tsv") {
         extracted = await extractFromCsv(catalogNumber, doc, cache);
+        if (extracted.length === 0) extracted = await extractFromTextDocument(catalogNumber, doc, extension, { requireCatalogMatch: true });
+      } else if (isFreeTextCustomerDocumentExtension(extension)) {
+        extracted = await extractFromTextDocument(catalogNumber, doc, extension);
       } else {
         const message = `unsupported file type "${extension || "(unknown)"}"`;
         parseFailures.push(`${doc.originalName}: ${message}`);
+        documentProcessing.push(customerDocumentProcessingRecord(doc, sourceUrl, "failed", message, message));
         onProgress({ kind: "parse-error", document: doc, message });
         continue;
       }
       if (!titleSuggestion && docTitleHint) titleSuggestion = docTitleHint;
 
       if (extracted.length === 0) {
+        documentProcessing.push(customerDocumentProcessingRecord(
+          doc,
+          sourceUrl,
+          "skipped",
+          `Customer document was parsed, but no usable attributes for catalog ${catalogNumber} were found.`
+        ));
         onProgress({ kind: "no-match", document: doc });
         continue;
       }
@@ -232,15 +258,24 @@ export async function extractCustomerDocumentAttributes(
         stage: "customer-override",
         confidence: CUSTOMER_DOC_CONFIDENCE
       });
+      documentProcessing.push(customerDocumentProcessingRecord(
+        doc,
+        sourceUrl,
+        "parsed",
+        `Parsed ${stamped.length} customer-document attribute record${stamped.length === 1 ? "" : "s"} for catalog ${catalogNumber}.`,
+        undefined,
+        customerDocumentType(extension, doc.originalName, extracted)
+      ));
       onProgress({ kind: "matched", document: doc, attributeCount: stamped.length });
     } catch (error) {
       const message = error instanceof Error ? error.message : "Customer document parse failed";
       parseFailures.push(`${doc.originalName}: ${message}`);
+      documentProcessing.push(customerDocumentProcessingRecord(doc, sourceUrl, "failed", "Customer document parse failed.", message));
       onProgress({ kind: "parse-error", document: doc, message });
     }
   }
 
-  return { attributes, sources, documents, parseFailures, titleSuggestion };
+  return { attributes, sources, documents, parseFailures, documentProcessing, titleSuggestion };
 }
 
 /**
@@ -254,10 +289,10 @@ export async function extractCustomerDocumentAttributes(
  */
 export function applyCustomerDocumentOverride(
   result: ProductResult,
-  extraction: { attributes: AttributeRecord[]; sources: SourceRecord[]; documents: DocumentRecord[]; parseFailures: string[]; titleSuggestion?: string }
+  extraction: CustomerDocumentExtraction
 ): ProductResult {
   const hasCustomerData = extraction.attributes.length > 0 || extraction.documents.length > 0;
-  if (!hasCustomerData && extraction.parseFailures.length === 0) return result;
+  if (!hasCustomerData && extraction.parseFailures.length === 0 && extraction.documentProcessing.length === 0) return result;
 
   // Customer attributes ride at the front so normalization tie-breaks in their favor.
   const mergedAttributes = hasCustomerData
@@ -273,7 +308,7 @@ export function applyCustomerDocumentOverride(
   let status = result.status;
   if (hasCustomerData) {
     if (status === "failed") status = "partial";
-    if (status === "partial" && hasAllCoreFields(normalized)) status = "found";
+    if (status === "partial" && hasEnoughCustomerFieldCoverage(normalized, extraction.attributes)) status = "found";
   }
 
   // Promote the customer's title only when the website didn't supply one — the official
@@ -290,21 +325,76 @@ export function applyCustomerDocumentOverride(
     attributes: mergedAttributes,
     documents: mergedDocuments,
     sources: hasCustomerData ? [...extraction.sources, ...result.sources] : result.sources,
-    diagnostics: extraction.parseFailures.length
+    diagnostics: extraction.parseFailures.length || extraction.documentProcessing.length
       ? {
           ...result.diagnostics,
-          documentParseFailures: [
-            ...(result.diagnostics?.documentParseFailures ?? []),
-            ...extraction.parseFailures.map((entry) => `(customer) ${entry}`)
-          ].slice(0, 50)
+          ...(extraction.parseFailures.length
+            ? {
+                documentParseFailures: [
+                  ...(result.diagnostics?.documentParseFailures ?? []),
+                  ...extraction.parseFailures.map((entry) => `(customer) ${entry}`)
+                ].slice(0, 50)
+              }
+            : {}),
+          ...(extraction.documentProcessing.length
+            ? {
+                documentProcessing: [
+                  ...(result.diagnostics?.documentProcessing ?? []),
+                  ...extraction.documentProcessing
+                ].slice(-100)
+              }
+            : {})
         }
       : result.diagnostics,
     error: hasCustomerData && status !== "failed" ? undefined : result.error
   };
 }
 
-function hasAllCoreFields(normalized: ProductResult["normalized"]): boolean {
-  return Boolean(normalized.weight || normalized.dimensions || normalized.material);
+function customerDocumentProcessingRecord(
+  doc: CustomerDocumentRecord,
+  sourceUrl: string,
+  action: DocumentProcessingDiagnostic["action"],
+  reason: string,
+  parseError?: string,
+  type?: DocumentRecord["type"]
+): DocumentProcessingDiagnostic {
+  return {
+    url: sourceUrl,
+    label: `Customer document: ${doc.originalName}`,
+    type: type ?? customerDocumentType(path.extname(doc.originalName || doc.storedPath).toLowerCase(), doc.originalName),
+    action,
+    stage: "customer-document-enrichment",
+    reason,
+    localPath: doc.storedPath,
+    sourceUrl,
+    ...(parseError ? { parseError } : {})
+  };
+}
+
+function hasEnoughCustomerFieldCoverage(
+  normalized: ProductResult["normalized"],
+  customerAttributes: AttributeRecord[]
+): boolean {
+  const filledFields = customerFilledRegistryFields(normalized, customerAttributes);
+  return filledFields.size >= 3 || ["weight", "dimensions", "material"].some((field) => filledFields.has(field as RegistryFieldKey));
+}
+
+function customerFilledRegistryFields(
+  normalized: ProductResult["normalized"],
+  customerAttributes: AttributeRecord[]
+): Set<RegistryFieldKey> {
+  const filled = new Set<RegistryFieldKey>();
+  for (const attr of customerAttributes) {
+    const label = `${attr.group ?? ""} ${attr.name}`;
+    for (const field of FIELD_REGISTRY) {
+      if (!isCustomerDatasheetTechnicalField(field.key)) continue;
+      if (!fieldMatchesLabel(field.key, label)) continue;
+      if (normalizedKeysForRegistryField(field.key).some((key) => Boolean(normalized[key]))) {
+        filled.add(field.key);
+      }
+    }
+  }
+  return filled;
 }
 
 function overrideNormalized(
@@ -324,30 +414,25 @@ function overrideNormalized(
   return next;
 }
 
-const FIELD_LABEL_HINTS: Record<keyof ProductResult["normalized"], RegExp> = {
-  weight: /weight|mass|gewicht/i,
-  dimensions: /dimension|size|abmessungen|height|width|depth|length|cable length/i,
-  material: /material|werkstoff|housing|enclosure|body/i,
-  wallThickness: /thickness|gauge/i,
-  finish: /finish|coating|paint/i,
-  color: /colou?r|farbe/i,
-  voltage: /voltage|volt|spannung/i,
-  current: /current|amp|amper|strom/i,
-  protection: /\bip\b|nema|protection|schutzart/i,
-  certificates: /approval|certificat|conformity|standards|marking|\b(ul|ce|rohs|weee|reach)\b/i,
-  operatingTemperatureMin: /operating temperature|operational temperature|ambient temperature|umgebungstemperatur|betriebstemperatur|temperature range/i,
-  operatingTemperatureMax: /operating temperature|operational temperature|ambient temperature|umgebungstemperatur|betriebstemperatur|temperature range/i
-};
-
 function customerTouchedFields(customerAttributes: AttributeRecord[]): Set<string> {
   const touched = new Set<string>();
   for (const attr of customerAttributes) {
-    const label = `${attr.group ?? ""} ${attr.name}`.toLowerCase();
-    for (const [field, pattern] of Object.entries(FIELD_LABEL_HINTS)) {
-      if (pattern.test(label)) touched.add(field);
+    const label = `${attr.group ?? ""} ${attr.name}`;
+    for (const field of FIELD_REGISTRY) {
+      if (!isCustomerOverrideField(field.key) || !fieldMatchesLabel(field.key, label)) continue;
+      for (const normalizedKey of normalizedKeysForRegistryField(field.key)) touched.add(normalizedKey);
     }
   }
   return touched;
+}
+
+function isCustomerOverrideField(field: RegistryFieldKey): boolean {
+  return !["image", "datasheetUrl", "manualUrl", "certificateUrl", "typeCode"].includes(field);
+}
+
+function normalizedKeysForRegistryField(field: RegistryFieldKey): Array<keyof ProductResult["normalized"]> {
+  if (field === "operatingTemperature") return ["operatingTemperatureMin", "operatingTemperatureMax"];
+  return [field as keyof ProductResult["normalized"]];
 }
 
 interface PdfExtractionOutcome {
@@ -367,12 +452,17 @@ async function extractFromPdf(
   if (!compactCatalog || pages.length === 0) {
     return { attributes: [], scannedImageOnly: pages.length === 0 };
   }
-  // Detect a fully-scanned PDF: every page has near-zero extractable text. Caller turns
-  // this into a clear user-visible warning so the user knows OCR (not yet implemented)
-  // would be required to use this file.
+  // Detect a fully-scanned PDF, leave a clear progress trail, and try OCR before giving up.
   const totalTextChars = pages.reduce((sum, page) => sum + page.text.length, 0);
   if (totalTextChars < PDF_TEXT_MIN_CHARS_FOR_PARSE) {
-    return { attributes: [], scannedImageOnly: true };
+    onProgress({ kind: "ocr-pdf", document: doc, message: "PDF has no extractable text; trying OCR fallback." });
+    const ocr = await readPdfWithOptionalOcr(doc.storedPath, { maxPages: Math.min(12, pages.length || 12) });
+    if (ocr.text.trim().length < PDF_TEXT_MIN_CHARS_FOR_PARSE) {
+      if (ocr.error) onProgress({ kind: "ocr-pdf", document: doc, message: `OCR failed: ${ocr.error}` });
+      return { attributes: [], scannedImageOnly: true };
+    }
+    onProgress({ kind: "ocr-pdf", document: doc, message: `OCR extracted text from ${ocr.pageCount || "some"} page(s).` });
+    return extractFromOcrText(catalogNumber, doc, ocr.text);
   }
   const matches: number[] = [];
   for (const page of pages) {
@@ -390,6 +480,8 @@ async function extractFromPdf(
     }
   }
   if (!matches.length) {
+    const familyFallback = extractFamilyPdf(catalogNumber, doc, pages);
+    if (familyFallback) return familyFallback;
     return extractFromUnmatchedCustomerPdf(catalogNumber, doc, pages);
   }
   const keepPages = expandWithNeighbours(matches, TARGETED_NEIGHBOUR_PAGES);
@@ -415,6 +507,137 @@ async function extractFromPdf(
     titleHint,
     scannedImageOnly: false
   };
+}
+
+function extractFromOcrText(
+  catalogNumber: string,
+  doc: CustomerDocumentRecord,
+  text: string
+): PdfExtractionOutcome {
+  const tightText = buildTightContextForCatalog(text, catalogNumber, { maxChars: MAX_CUSTOMER_PDF_TEXT_CHARS }) ?? text.slice(0, MAX_CUSTOMER_PDF_TEXT_CHARS);
+  const attributes = extractDocumentTextAttributes({
+    catalogNumber,
+    document: { label: doc.originalName, type: "other", url: pathToFileUrl(doc.storedPath), localPath: doc.storedPath },
+    text: tightText
+  });
+  return {
+    attributes: hasSubstantiveDocumentAttributes(attributes) ? attributes : [],
+    titleHint: guessTitleFromPdfText(text, catalogNumber),
+    scannedImageOnly: false
+  };
+}
+
+function extractFamilyPdf(
+  catalogNumber: string,
+  doc: CustomerDocumentRecord,
+  pages: PdfPageEntry[]
+): PdfExtractionOutcome | undefined {
+  const text = pages.map((page) => page.text).join("\n").slice(0, MAX_CUSTOMER_PDF_TEXT_CHARS);
+  const attributes = extractCustomerFamilyPdfAttributes(
+    catalogNumber,
+    doc.originalName,
+    pathToFileUrl(doc.storedPath),
+    text
+  );
+  if (!hasSubstantiveDocumentAttributes(attributes)) return undefined;
+  return {
+    attributes,
+    titleHint: guessTitleFromPdfText(text, catalogNumber) ?? familyTitleFromText(text),
+    scannedImageOnly: false
+  };
+}
+
+export function extractCustomerFamilyPdfAttributes(
+  catalogNumber: string,
+  documentName: string,
+  sourceUrl: string,
+  text: string
+): AttributeRecord[] {
+  const family = inferCatalogFamilyEvidence(catalogNumber, text);
+  if (!family) return [];
+  const extracted = extractDocumentTextAttributes({
+    catalogNumber,
+    document: { label: documentName, type: "other", url: sourceUrl },
+    text
+  });
+  const familyTitle = familyTitleFromText(text);
+  const attributes: AttributeRecord[] = [
+    { group: "PDF Document", name: "Parsed document", value: cleanText(documentName), sourceUrl },
+    {
+      group: "Customer / Family document",
+      name: "Requested catalog number",
+      value: catalogNumber,
+      sourceUrl,
+      sourceType: "generated",
+      parser: "customer-family-pdf-inference",
+      stage: "customer-document-enrichment",
+      confidence: 0.55
+    },
+    {
+      group: "Customer / Family document",
+      name: "Matched catalog family",
+      value: family.displayKey,
+      sourceUrl,
+      sourceType: "generated",
+      parser: "customer-family-pdf-inference",
+      stage: "customer-document-enrichment",
+      confidence: 0.58
+    }
+  ];
+  return dedupeCustomerAttributes([...attributes, ...extracted]);
+}
+
+function inferCatalogFamilyEvidence(catalogNumber: string, text: string): { key: string; displayKey: string } | undefined {
+  const compactText = compactKey(text);
+  if (!compactText) return undefined;
+  return catalogFamilyKeys(catalogNumber)
+    .map((key) => ({ key: compactKey(key), displayKey: key }))
+    .filter((entry) => isUsefulFamilyKey(entry.key))
+    .sort((left, right) => right.key.length - left.key.length)
+    .find((entry) => compactText.includes(entry.key));
+}
+
+function catalogFamilyKeys(catalogNumber: string): string[] {
+  const cleaned = cleanText(catalogNumber).toUpperCase();
+  const keys: string[] = [];
+  const parts = cleaned.split(/[^A-Z0-9]+/).filter(Boolean);
+  for (let index = 0; index < parts.length; index += 1) {
+    const part = parts[index];
+    const alphaNumeric = part.match(/^([A-Z]+)(\d{2,})/);
+    if (alphaNumeric) {
+      keys.push(`${alphaNumeric[1]}${alphaNumeric[2].slice(0, 3)}`);
+    }
+    const numericAlpha = part.match(/^(\d{3,})([A-Z]+)(\d*)/);
+    if (numericAlpha) {
+      keys.push(`${numericAlpha[1]}${numericAlpha[2]}`);
+      if (numericAlpha[3]) keys.push(`${numericAlpha[1]}${numericAlpha[2]}${numericAlpha[3][0]}`);
+    }
+    const next = parts[index + 1];
+    if (!next) continue;
+    const nextAlphaNumeric = next.match(/^([A-Z]+)(\d{1,})/);
+    if (nextAlphaNumeric && /\d/.test(part)) {
+      keys.push(`${part}${nextAlphaNumeric[1]}`);
+      keys.push(`${part}${nextAlphaNumeric[1]}${nextAlphaNumeric[2][0]}`);
+      if (nextAlphaNumeric[2].length >= 2) keys.push(`${part}${nextAlphaNumeric[1]}${nextAlphaNumeric[2].slice(0, 2)}`);
+    }
+  }
+  return [...new Set(keys)];
+}
+
+function isUsefulFamilyKey(value: string): boolean {
+  return value.length >= 5 && /[a-z]/i.test(value) && /\d/.test(value);
+}
+
+function familyTitleFromText(text: string): string | undefined {
+  return text
+    .split(/\r?\n/)
+    .map((line) => cleanText(line))
+    .find((line) =>
+      line.length >= 8 &&
+      line.length <= 120 &&
+      /\b(?:controller|module|switch|drive|sensor|terminal|relay|breaker|contactor|datasheet|technical data)\b/i.test(line) &&
+      /[A-Za-z]/.test(line)
+    );
 }
 
 function extractFromUnmatchedCustomerPdf(
@@ -450,6 +673,16 @@ function extractFromUnmatchedCustomerPdf(
 
 function hasSubstantiveDocumentAttributes(attributes: AttributeRecord[]): boolean {
   return attributes.some((attr) => !(attr.group === "PDF Document" && attr.name === "Parsed document"));
+}
+
+function dedupeCustomerAttributes(attributes: AttributeRecord[]): AttributeRecord[] {
+  const seen = new Set<string>();
+  return attributes.filter((attr) => {
+    const key = `${attr.group ?? ""}|${attr.name}|${attr.value}|${attr.sourceUrl ?? ""}`.toLowerCase();
+    if (!attr.name || !attr.value || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 }
 
 
@@ -526,6 +759,65 @@ async function extractFromCsv(
 ): Promise<AttributeRecord[]> {
   const matrix = await cache.getCsvMatrix(doc);
   return attributesFromMatrix(matrix, catalogNumber, doc.originalName, pathToFileUrl(doc.storedPath));
+}
+
+async function extractFromTextDocument(
+  catalogNumber: string,
+  doc: CustomerDocumentRecord,
+  extension: string,
+  options: { requireCatalogMatch?: boolean } = {}
+): Promise<AttributeRecord[]> {
+  const raw = await fs.readFile(doc.storedPath, "utf8");
+  const text = customerTextDocumentToPlainText(raw, extension).slice(0, MAX_CUSTOMER_PDF_TEXT_CHARS);
+  if (!cleanText(text)) return [];
+  const textMentionsCatalog = catalogTextMatches(text, catalogNumber) || compactKey(text).includes(compactKey(catalogNumber));
+  if (options.requireCatalogMatch && !textMentionsCatalog) return [];
+  const scoped = textMentionsCatalog
+    ? buildTightContextForCatalog(text, catalogNumber, { maxChars: MAX_CUSTOMER_PDF_TEXT_CHARS }) ?? text
+    : text;
+  const attributes = extractDocumentTextAttributes({
+    catalogNumber,
+    document: { label: doc.originalName, type: "other", url: pathToFileUrl(doc.storedPath), localPath: doc.storedPath },
+    text: scoped
+  });
+  return hasSubstantiveDocumentAttributes(attributes) ? attributes : [];
+}
+
+function isFreeTextCustomerDocumentExtension(extension: string): boolean {
+  return [".txt", ".md", ".markdown", ".html", ".htm", ".json"].includes(extension);
+}
+
+function customerTextDocumentToPlainText(raw: string, extension: string): string {
+  if (extension === ".json") {
+    try {
+      return flattenCustomerJsonText(JSON.parse(raw) as unknown).join("\n");
+    } catch {
+      return raw;
+    }
+  }
+  if (extension === ".html" || extension === ".htm") {
+    const withBreaks = raw
+      .replace(/<\s*br\s*\/?>/gi, "\n")
+      .replace(/<\/\s*(?:p|div|li|tr|td|th|section|article|h[1-6]|dt|dd)\s*>/gi, "\n");
+    const $ = cheerio.load(withBreaks);
+    $("script,style,noscript,template,svg").remove();
+    return $.root().text();
+  }
+  return raw;
+}
+
+function flattenCustomerJsonText(value: unknown, prefix = ""): string[] {
+  if (value === null || value === undefined) return [];
+  if (Array.isArray(value)) return value.flatMap((entry) => flattenCustomerJsonText(entry, prefix));
+  if (typeof value === "object") {
+    return Object.entries(value as Record<string, unknown>).flatMap(([key, entry]) => {
+      const label = cleanText([prefix, key].filter(Boolean).join(" "));
+      if (entry === null || entry === undefined || typeof entry === "object") return flattenCustomerJsonText(entry, label);
+      return [`${label} ${cleanText(String(entry))}`];
+    });
+  }
+  const text = cleanText(String(value));
+  return text ? [prefix ? `${prefix} ${text}` : text] : [];
 }
 
 function attributesFromMatrix(matrix: string[][], catalogNumber: string, group: string, sourceUrl: string): AttributeRecord[] {
@@ -606,10 +898,10 @@ function stampCustomerAttributes(attributes: AttributeRecord[], sourceUrl: strin
   return attributes.map((attr) => ({
     ...attr,
     sourceUrl: attr.sourceUrl ?? sourceUrl,
-    sourceType: "official",
-    parser: "customer-document",
-    stage: "customer-override",
-    confidence: CUSTOMER_DOC_CONFIDENCE
+    sourceType: attr.sourceType ?? "official",
+    parser: attr.parser ?? "customer-document",
+    stage: attr.stage ?? "customer-override",
+    confidence: attr.confidence ?? CUSTOMER_DOC_CONFIDENCE
   }));
 }
 
@@ -625,20 +917,25 @@ function customerDocumentType(extension: string, originalName = "", attributes: 
 
 function looksLikeStructuredDatasheet(attributes: AttributeRecord[]): boolean {
   if (attributes.length < 4) return false;
-  const names = new Set(attributes.map((attr) => cleanText(attr.name).toLowerCase()));
-  const technicalHits = [
-    ["material"],
-    ["dimensions", "size"],
-    ["weight", "mass"],
-    ["voltage"],
-    ["current"],
-    ["pressure"],
-    ["flow rate", "flow"],
-    ["power"],
-    ["certificates", "certifications", "standards"]
-  ].filter((aliases) => aliases.some((alias) => names.has(alias))).length;
-  const identityHits = ["product type", "description", "product short text", "product name"].filter((name) => names.has(name)).length;
-  return identityHits >= 1 && technicalHits >= 3;
+  const technicalFields = new Set<RegistryFieldKey>();
+  let identityHits = 0;
+  for (const attr of attributes) {
+    const label = cleanText(`${attr.group ?? ""} ${attr.name}`);
+    if (isCustomerDocumentIdentityLabel(label)) identityHits += 1;
+    for (const field of FIELD_REGISTRY) {
+      if (!isCustomerDatasheetTechnicalField(field.key)) continue;
+      if (fieldMatchesLabel(field.key, label)) technicalFields.add(field.key);
+    }
+  }
+  return identityHits >= 1 && technicalFields.size >= 3;
+}
+
+function isCustomerDatasheetTechnicalField(field: RegistryFieldKey): boolean {
+  return isCustomerOverrideField(field) && field !== "typeCode";
+}
+
+function isCustomerDocumentIdentityLabel(label: string): boolean {
+  return fieldMatchesLabel("typeCode", label) || /\b(?:product\s+(?:type|name|short\s+text)|description|designation|model)\b/i.test(label);
 }
 
 function pathToFileUrl(filePath: string): string {

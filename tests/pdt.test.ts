@@ -661,7 +661,10 @@ describe("eclass resolvers", () => {
         },
         attributes: [
           { group: "Rockwell Family", name: "Product Family", value: "Micro820", parser: "rockwell-family-page", sourceType: "official", sourceUrl: familyUrl },
-          { group: "Rockwell Family", name: "Product Type", value: "Micro820 Controller", parser: "rockwell-family-page", sourceType: "official", sourceUrl: familyUrl }
+          { group: "Rockwell Family", name: "Product Type", value: "Micro820 Controller", parser: "rockwell-family-page", sourceType: "official", sourceUrl: familyUrl },
+          { group: "Rockwell Family", name: "Product Net Weight", value: "0.38 kg", parser: "rockwell-family-page", sourceType: "official", sourceUrl: familyUrl },
+          { group: "Rockwell Family", name: "Power loss", value: "6 W", parser: "rockwell-family-page", sourceType: "official", sourceUrl: familyUrl },
+          { group: "Rockwell Family", name: "Current type", value: "DC", parser: "rockwell-family-page", sourceType: "official", sourceUrl: familyUrl }
         ]
       },
       "2080-LC20-20AWB"
@@ -671,9 +674,10 @@ describe("eclass resolvers", () => {
 
     expect(resolveProperty("REFERENCE_FEATURE_GROUP_ID", "REFERENCE_FEATURE_GROUP_ID", c)).toBe("27242202");
     expect(resolveProperty("REFERENCE_FEATURE_SYSTEM_NAME", "REFERENCE_FEATURE_SYSTEM_NAME", c)).toBe("14");
+    expect(resolveProperty("AAF040", "AAF040", c)).toBe("0.38");
     expect(resolveProperty("AAS575", "AAS575", c)).toBe("6");
-    expect(resolveProperty("BAB968", "BAB968", c)).toBe("2");
-    expect(resolveProperty("BAC065", "BAC065", c)).toBe("2");
+    expect(resolveProperty("BAB968", "BAB968", c)).toBe("DC");
+    expect(resolveProperty("BAC065", "BAC065", c)).toBe("DC");
     expect(resolveProperty("CNS_DESCRIPTION_SHORT", "CNS_DESCRIPTION_SHORT", { ...c, sheetName: "Material Master Data" })).toBe("Micro820 Controller");
     expect(localizedPdtDocumentUrlRules({ manufacturerId: "rockwell", catalogNumber: "2080-LC20-20AWB" }).map((rule) => rule.value)).toEqual([
       { url: familyUrl, language: "english", description: "Technical Datasheet (EN)", documentType: "pdf" }
@@ -734,7 +738,7 @@ describe("eclass resolvers", () => {
     expect(resolveProperty("REFERENCE_FEATURE_GROUP_ID", "REFERENCE_FEATURE_GROUP_ID", c)).toBe("27242604");
     expect(resolveProperty("REFERENCE_FEATURE_SYSTEM_NAME", "REFERENCE_FEATURE_SYSTEM_NAME", c)).toBe("14");
     expect(resolveProperty("AAS575", "AAS575", c)).toBe("3.9");
-    expect(resolveProperty("BAG975", "BAG975", c)).toBe("IP54");
+    expect(resolveProperty("BAG975", "BAG975", c)).toBeUndefined();
     expect(resolveProperty("AAP508", "AAP508", c)).toBe("32");
     expect(resolveProperty("AAP610", "AAP610", c)).toBeUndefined();
     expect(resolveProperty("BAF016", "BAF016", { ...c, sheetName: "Material Master Data" })).toBeUndefined();
@@ -824,17 +828,25 @@ describe("eclass resolvers", () => {
         description: "16 Amp Peak ArmorKinetix DSM",
         normalized: {
           weight: "4.55 kg",
-          certificates: "UL, Certificate Programs"
-        }
+          certificates: "ODVA, UL Listed, Korean KC, Australian RCM, CE"
+        },
+        attributes: [
+          { group: "Technical Data", name: "Product Net Weight", value: "4.55 kg", sourceType: "official", parser: "rockwell-product-page" }
+        ]
       },
       "2198-DSM016-ERS2-A0751E-CJ12AA"
     );
     c.manufacturer = { ...manufacturer, id: "rockwell" } as ManufacturerConfig;
 
-    expect(resolveProperty("CNS_DESCRIPTION_SHORT", "CNS_DESCRIPTION_SHORT", c)).toBe("Armorkinetix DSM");
-    expect(resolveProperty("CNS_DESCRIPTION_LONG", "CNS_DESCRIPTION_LONG", c)).toBe("Armorkinetix DSM");
+    expect(resolveProperty("CNS_DESCRIPTION_SHORT", "CNS_DESCRIPTION_SHORT", c)).toBe("16 Amp Peak ArmorKinetix DSM");
+    expect(resolveProperty("CNS_DESCRIPTION_LONG", "CNS_DESCRIPTION_LONG", c)).toBe("16 Amp Peak ArmorKinetix DSM");
     expect(resolveProperty("CERTIFICATION", "CERTIFICATION", c)).toBe("ODVA, UL Listed, Korean KC, Australian RCM, CE");
-    expect(resolveProperty("AAF040", "AAF040", c)).toBe("5");
+    expect(resolveProperty("AAF040", "AAF040", c)).toBe("4.55");
+
+    const sparse = ctx({ manufacturerId: "rockwell", title: "16 Amp Peak ArmorKinetix DSM" }, "2198-DSM016-ERS2-A0751E-CJ12AA");
+    sparse.manufacturer = { ...manufacturer, id: "rockwell" } as ManufacturerConfig;
+    expect(resolveProperty("AAF040", "AAF040", sparse)).toBeUndefined();
+    expect(resolveProperty("CERTIFICATION", "CERTIFICATION", sparse)).toBeUndefined();
   });
 
   it("normalizes Rockwell ArmorKinetix DSD family PDT values", async () => {
@@ -845,8 +857,11 @@ describe("eclass resolvers", () => {
         description: "ArmorKinetix Distributed Drive 16A ERS2",
         normalized: {
           weight: "2.05 kg",
-          certificates: "UL Listed, Australian RCM, CE"
-        }
+          certificates: "CE, ODVA, UL Listed, Australian RCM, Safety, Korean KC"
+        },
+        attributes: [
+          { group: "Technical Data", name: "Product Net Weight", value: "2.05 kg", sourceType: "official", parser: "rockwell-product-page" }
+        ]
       },
       "2198-DSD016-ERS2"
     );
@@ -855,11 +870,17 @@ describe("eclass resolvers", () => {
     expect(resolveProperty("AAQ326", "AAQ326", c)).toBe(
       "https://www.rockwellautomation.com/en-us/products/details.2198-DSD016-ERS2.html"
     );
-    expect(resolveProperty("CNS_DESCRIPTION_SHORT", "CNS_DESCRIPTION_SHORT", c)).toBe("ArmorKinetix Distributed Drive");
-    expect(resolveProperty("CNS_DESCRIPTION_LONG", "CNS_DESCRIPTION_LONG", c)).toBe("ArmorKinetix Distributed Drive");
+    expect(resolveProperty("CNS_DESCRIPTION_SHORT", "CNS_DESCRIPTION_SHORT", c)).toBe("ArmorKinetix Distributed Drive 16A ERS2");
+    expect(resolveProperty("CNS_DESCRIPTION_LONG", "CNS_DESCRIPTION_LONG", c)).toBe("ArmorKinetix Distributed Drive 16A ERS2");
     expect(resolveProperty("CERTIFICATION", "CERTIFICATION", c)).toBe("CE, ODVA, UL Listed, Australian RCM, Safety, Korean KC");
+    expect(resolveProperty("AAF040", "AAF040", c)).toBe("2.05");
     expect(resolveProperty("REFERENCE_FEATURE_GROUP_ID", "REFERENCE_FEATURE_GROUP_ID", { ...c, sheetName: "motors" })).toBe("27023101");
     expect(resolveProperty("REFERENCE_FEATURE_SYSTEM_NAME", "REFERENCE_FEATURE_SYSTEM_NAME", { ...c, sheetName: "motors" })).toBe("14");
+
+    const sparse = ctx({ manufacturerId: "rockwell", title: "ArmorKinetix Distributed Drive 16A ERS2" }, "2198-DSD016-ERS2");
+    sparse.manufacturer = { ...manufacturer, id: "rockwell" } as ManufacturerConfig;
+    expect(resolveProperty("AAF040", "AAF040", sparse)).toBeUndefined();
+    expect(resolveProperty("CERTIFICATION", "CERTIFICATION", sparse)).toBeUndefined();
 
     const dir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-pdt-rockwell-dsd-"));
     const templatePath = path.join(dir, "template.xlsx");
@@ -884,7 +905,7 @@ describe("eclass resolvers", () => {
     await out.xlsx.readFile(outputPath);
     const ws = out.getWorksheet("Material Master Data")!;
     expect(ws.getCell(10, 2).value).toBe("https://www.rockwellautomation.com/en-us.html");
-    expect(ws.getCell(10, 3).value).toBe(2260);
+    expect(ws.getCell(10, 3).value).toBe(2.05);
   });
 
   it("normalizes Rockwell ControlLogix L9 family PDT values", () => {
@@ -895,21 +916,31 @@ describe("eclass resolvers", () => {
         description: "ControlLogix 5590 XT Controller",
         normalized: {
           weight: "0.54 kg",
-          certificates: "UL Listed Hazardous, CCC, Certificate Programs"
-        }
+          certificates: "c-UL-us, FM, CE, RCM, ATEX, IECEx, UKCA, KC, CCC, TUV, Morocco"
+        },
+        attributes: [
+          { group: "Technical Data", name: "Product Net Weight", value: "0.54 kg", sourceType: "official", parser: "rockwell-product-page" },
+          { group: "Technical Data", name: "Power loss", value: "6.2 W", sourceType: "official", parser: "rockwell-product-page" }
+        ]
       },
       "1756-L902TSXT"
     );
     c.manufacturer = { ...manufacturer, id: "rockwell" } as ManufacturerConfig;
 
     expect(resolveProperty("AAQ326", "AAQ326", c)).toBe("https://www.rockwellautomation.com/en-us/search.html?keyword=1756-L9&tab=all");
-    expect(resolveProperty("CNS_DESCRIPTION_SHORT", "CNS_DESCRIPTION_SHORT", c)).toBe("ControlLogix Processors");
-    expect(resolveProperty("CNS_DESCRIPTION_LONG", "CNS_DESCRIPTION_LONG", c)).toBe("ControlLogix Processors");
+    expect(resolveProperty("CNS_DESCRIPTION_SHORT", "CNS_DESCRIPTION_SHORT", c)).toBe("ControlLogix 5590 XT Controller");
+    expect(resolveProperty("CNS_DESCRIPTION_LONG", "CNS_DESCRIPTION_LONG", c)).toBe("ControlLogix 5590 XT Controller");
     expect(resolveProperty("CERTIFICATION", "CERTIFICATION", c)).toBe("c-UL-us, FM, CE, RCM, ATEX, IECEx, UKCA, KC, CCC, TUV, Morocco");
-    expect(resolveProperty("AAF040", "AAF040", c)).toBe("0.394");
+    expect(resolveProperty("AAF040", "AAF040", c)).toBe("0.54");
     expect(resolveProperty("REFERENCE_FEATURE_GROUP_ID", "REFERENCE_FEATURE_GROUP_ID", { ...c, sheetName: "PLC" })).toBe("27242208");
     expect(resolveProperty("REFERENCE_FEATURE_SYSTEM_NAME", "REFERENCE_FEATURE_SYSTEM_NAME", { ...c, sheetName: "PLC" })).toBe("14");
     expect(resolveProperty("AAS575", "AAS575", { ...c, sheetName: "PLC" })).toBe("6.2");
+
+    const sparse = ctx({ manufacturerId: "rockwell", title: "ControlLogix 5590 XT Controller" }, "1756-L902TSXT");
+    sparse.manufacturer = { ...manufacturer, id: "rockwell" } as ManufacturerConfig;
+    expect(resolveProperty("AAF040", "AAF040", sparse)).toBeUndefined();
+    expect(resolveProperty("AAS575", "AAS575", { ...sparse, sheetName: "PLC" })).toBeUndefined();
+    expect(resolveProperty("CERTIFICATION", "CERTIFICATION", sparse)).toBeUndefined();
   });
 
   it("normalizes Rockwell 1492-PDE power distribution terminal block PDT values", () => {
@@ -925,7 +956,10 @@ describe("eclass resolvers", () => {
         },
         attributes: [
           { group: "Certifications", name: "Certification", value: "UL Listed", sourceType: "official", parser: "rockwell-product-page" },
-          { group: "Certifications", name: "Certification", value: "MOROCCO DOC", sourceType: "official", parser: "rockwell-product-page" }
+          { group: "Certifications", name: "Certification", value: "MOROCCO DOC", sourceType: "official", parser: "rockwell-product-page" },
+          { group: "Technical Data", name: "Product Net Depth", value: "30.7 mm", sourceType: "official", parser: "rockwell-product-page" },
+          { group: "Technical Data", name: "Product Net Width", value: "68.9 mm", sourceType: "official", parser: "rockwell-product-page" },
+          { group: "Technical Data", name: "Product Net Height", value: "91.7 mm", sourceType: "official", parser: "rockwell-product-page" }
         ]
       },
       "1492-PDE1142"
@@ -933,14 +967,21 @@ describe("eclass resolvers", () => {
     c.manufacturer = { ...manufacturer, id: "rockwell" } as ManufacturerConfig;
 
     expect(resolveProperty("AAQ326", "AAQ326", c)).toBe("https://www.rockwellautomation.com/en-us/search.html?keyword=1492-PDE&tab=all");
-    expect(resolveProperty("CNS_DESCRIPTION_SHORT", "CNS_DESCRIPTION_SHORT", c)).toBe("Power Terminal Block");
-    expect(resolveProperty("CNS_DESCRIPTION_LONG", "CNS_DESCRIPTION_LONG", c)).toBe("Power Distribution Terminal Blocks");
-    expect(resolveProperty("CERTIFICATION", "CERTIFICATION", c)).toBe("UL, MOROCCO DOC");
+    expect(resolveProperty("CNS_DESCRIPTION_SHORT", "CNS_DESCRIPTION_SHORT", c)).toBe("200 A Enclosed Power Distribution Block");
+    expect(resolveProperty("CNS_DESCRIPTION_LONG", "CNS_DESCRIPTION_LONG", c)).toBe("200 A Enclosed Power Distribution Block");
+    expect(resolveProperty("CERTIFICATION", "CERTIFICATION", c)).toBe("MOROCCO DOC, UL Listed");
     expect(resolveProperty("BAB577", "BAB577", c)).toBe("30.7");
     expect(resolveProperty("BAF016", "BAF016", c)).toBe("68.9");
     expect(resolveProperty("BAA020", "BAA020", c)).toBe("91.7");
     expect(resolveProperty("REFERENCE_FEATURE_GROUP_ID", "REFERENCE_FEATURE_GROUP_ID", { ...c, sheetName: "terminal" })).toBe("27250101");
     expect(resolveProperty("REFERENCE_FEATURE_SYSTEM_NAME", "REFERENCE_FEATURE_SYSTEM_NAME", { ...c, sheetName: "terminal" })).toBe("14");
+
+    const sparse = ctx({ manufacturerId: "rockwell", title: "200 A Enclosed Power Distribution Block" }, "1492-PDE1142");
+    sparse.manufacturer = { ...manufacturer, id: "rockwell" } as ManufacturerConfig;
+    expect(resolveProperty("BAB577", "BAB577", sparse)).toBeUndefined();
+    expect(resolveProperty("BAF016", "BAF016", sparse)).toBeUndefined();
+    expect(resolveProperty("BAA020", "BAA020", sparse)).toBeUndefined();
+    expect(resolveProperty("CERTIFICATION", "CERTIFICATION", sparse)).toBeUndefined();
   });
 
   it("normalizes Rockwell Stratix 2100 unmanaged switch PDT values", () => {
@@ -950,18 +991,30 @@ describe("eclass resolvers", () => {
         title: "Stratix 2000 8T Port Unmanaged Switch",
         description: "Stratix 2000 8T Port Unmanaged Switch",
         normalized: {
-          weight: "0.34 kg",
-          dimensions: "57 x 127 x 187 mm",
-          certificates: "CCC"
-        }
+          weight: "0.407 kg",
+          dimensions: "114.50 x 45.60 x 77.20 mm",
+          current: "0.51 A",
+          voltage: "48 V DC",
+          certificates: "c-UL-us, CE, Ex, RCM, IECEx, KC"
+        },
+        attributes: [
+          { group: "Technical Data", name: "Product Net Weight", value: "0.407 kg", sourceType: "official", parser: "rockwell-product-page" },
+          { group: "Technical Data", name: "Product Net Depth", value: "77.20 mm", sourceType: "official", parser: "rockwell-product-page" },
+          { group: "Technical Data", name: "Product Net Width", value: "45.60 mm", sourceType: "official", parser: "rockwell-product-page" },
+          { group: "Technical Data", name: "Product Net Height", value: "114.50 mm", sourceType: "official", parser: "rockwell-product-page" },
+          { group: "Technical Data", name: "Supply voltage", value: "48 V DC", sourceType: "official", parser: "rockwell-product-page" },
+          { group: "Technical Data", name: "Rated current", value: "0.51 A", sourceType: "official", parser: "rockwell-product-page" },
+          { group: "Technical Data", name: "Power loss", value: "4.04 W", sourceType: "official", parser: "rockwell-product-page" },
+          { group: "Technical Data", name: "Voltage type", value: "AC/DC", sourceType: "official", parser: "rockwell-product-page" }
+        ]
       },
       "1783-US8T"
     );
     c.manufacturer = { ...manufacturer, id: "rockwell" } as ManufacturerConfig;
 
     expect(resolveProperty("AAQ326", "AAQ326", c)).toBe("https://www.rockwellautomation.com/en-us/products/details.1783-US8T.html");
-    expect(resolveProperty("CNS_DESCRIPTION_SHORT", "CNS_DESCRIPTION_SHORT", c)).toBe("Unmanaged switch");
-    expect(resolveProperty("CNS_DESCRIPTION_LONG", "CNS_DESCRIPTION_LONG", c)).toBe("Stratix 2000 Unmanaged switch");
+    expect(resolveProperty("CNS_DESCRIPTION_SHORT", "CNS_DESCRIPTION_SHORT", c)).toBe("Stratix 2000 8T Port Unmanaged Switch");
+    expect(resolveProperty("CNS_DESCRIPTION_LONG", "CNS_DESCRIPTION_LONG", c)).toBe("Stratix 2000 8T Port Unmanaged Switch");
     expect(resolveProperty("CERTIFICATION", "CERTIFICATION", c)).toBe("c-UL-us, CE, Ex, RCM, IECEx, KC");
     expect(resolveProperty("AAF040", "AAF040", c)).toBe("0.407");
     expect(resolveProperty("BAB577", "BAB577", c)).toBe("77.20");
@@ -973,7 +1026,19 @@ describe("eclass resolvers", () => {
     expect(resolveProperty("AAF726", "AAF726", { ...c, sheetName: "PLC" })).toBe("0.51");
     expect(resolveProperty("AAS575", "AAS575", { ...c, sheetName: "PLC" })).toBe("4.04");
     expect(resolveProperty("BAC065", "BAC065", { ...c, sheetName: "PLC" })).toBe("AC/DC");
-    expect(resolveProperty("BAG975", "BAG975", { ...c, sheetName: "PLC" })).toBe("IP30");
+    expect(resolveProperty("BAG975", "BAG975", { ...c, sheetName: "PLC" })).toBeUndefined();
+
+    const sparse = ctx({ manufacturerId: "rockwell", title: "Stratix 2000 8T Port Unmanaged Switch" }, "1783-US8T");
+    sparse.manufacturer = { ...manufacturer, id: "rockwell" } as ManufacturerConfig;
+    expect(resolveProperty("AAF040", "AAF040", sparse)).toBeUndefined();
+    expect(resolveProperty("BAB577", "BAB577", sparse)).toBeUndefined();
+    expect(resolveProperty("BAF016", "BAF016", sparse)).toBeUndefined();
+    expect(resolveProperty("BAA020", "BAA020", sparse)).toBeUndefined();
+    expect(resolveProperty("AAB909", "AAB909", { ...sparse, sheetName: "PLC" })).toBeUndefined();
+    expect(resolveProperty("AAF726", "AAF726", { ...sparse, sheetName: "PLC" })).toBeUndefined();
+    expect(resolveProperty("AAS575", "AAS575", { ...sparse, sheetName: "PLC" })).toBeUndefined();
+    expect(resolveProperty("BAC065", "BAC065", { ...sparse, sheetName: "PLC" })).toBeUndefined();
+    expect(resolveProperty("CERTIFICATION", "CERTIFICATION", sparse)).toBeUndefined();
   });
 
   it("normalizes Rockwell PowerFlex 755TS drive PDT values", () => {
@@ -986,25 +1051,31 @@ describe("eclass resolvers", () => {
           weight: "9.072 kg",
           voltage: "400 V AC 3PH",
           current: "11.5 A",
-          certificates: "NEMA Type 4X Back"
-        }
+          certificates: "c-UL-us, CE, C-Tick, T\u00dcV"
+        },
+        attributes: [
+          { name: "Product Net Weight", value: "9.072 kg" },
+          { name: "Power loss, static, current-independent [Pls]", value: "178 W" }
+        ]
       },
       "20G21FC011JA0NNNNN"
     );
     c.manufacturer = { ...manufacturer, id: "rockwell" } as ManufacturerConfig;
 
     expect(resolveProperty("AAQ326", "AAQ326", c)).toBe("https://literature.rockwellautomation.com/idc/groups/literature/documents/in/750-in119_-en-p.pdf");
-    expect(resolveProperty("CNS_DESCRIPTION_SHORT", "CNS_DESCRIPTION_SHORT", c)).toBe("PowerFlex 755TS");
-    expect(resolveProperty("CNS_DESCRIPTION_LONG", "CNS_DESCRIPTION_LONG", c)).toBe("PowerFlex 755TS AC Drive, with Embedded EtherNet/IP");
+    expect(resolveProperty("CNS_DESCRIPTION_SHORT", "CNS_DESCRIPTION_SHORT", c)).toBe("PowerFlex TS 755 AC Drive");
+    expect(resolveProperty("CNS_DESCRIPTION_LONG", "CNS_DESCRIPTION_LONG", c)).toBe("PowerFlex TS 755 AC Drive");
     expect(resolveProperty("CERTIFICATION", "CERTIFICATION", c)).toBe("c-UL-us, CE, C-Tick, T\u00dcV");
-    expect(resolveProperty("AAF040", "AAF040", c)).toBe("8");
+    expect(resolveProperty("AAF040", "AAF040", c)).toBe("9.072");
     expect(resolveProperty("BAA303", "BAA303", { ...c, sheetName: "power supply devices" })).toBe("178");
     expect(resolveProperty("REFERENCE_FEATURE_GROUP_ID", "REFERENCE_FEATURE_GROUP_ID", { ...c, sheetName: "power supply devices" })).toBe("27023101");
     expect(resolveProperty("REFERENCE_FEATURE_SYSTEM_NAME", "REFERENCE_FEATURE_SYSTEM_NAME", { ...c, sheetName: "power supply devices" })).toBe("13");
 
-    const larger = { ...c, item: { ...c.item, catalogNumber: "20G21FC037JA0NNNNN" } };
-    expect(resolveProperty("AAF040", "AAF040", larger)).toBe("12");
-    expect(resolveProperty("BAA303", "BAA303", { ...larger, sheetName: "power supply devices" })).toBe("477");
+    const sparse = ctx({ manufacturerId: "rockwell", title: "PowerFlex TS 755 AC Drive" }, "20G21FC037JA0NNNNN");
+    sparse.manufacturer = { ...manufacturer, id: "rockwell" } as ManufacturerConfig;
+    expect(resolveProperty("AAF040", "AAF040", sparse)).toBeUndefined();
+    expect(resolveProperty("BAA303", "BAA303", { ...sparse, sheetName: "power supply devices" })).toBeUndefined();
+    expect(resolveProperty("CERTIFICATION", "CERTIFICATION", sparse)).toBeUndefined();
   });
 
   it("normalizes Rockwell 852C/852D LED indicator PDT values", () => {
@@ -1017,34 +1088,70 @@ describe("eclass resolvers", () => {
           voltage: "24 V DC",
           current: "0.032 A",
           material: "Polycarbonate",
-          color: "red"
-        }
+          color: "red",
+          certificates: "c-UL-us, CE Marked; UKCA, RCM, KCC"
+        },
+        attributes: [
+          { group: "Technical Data", name: "Product Net Depth", value: "35.021 mm", sourceType: "official", parser: "rockwell-product-page" },
+          { group: "Technical Data", name: "Product Net Width", value: "35.021 mm", sourceType: "official", parser: "rockwell-product-page" },
+          { group: "Technical Data", name: "Product Net Height", value: "63.6 mm", sourceType: "official", parser: "rockwell-product-page" },
+          { group: "Technical Data", name: "Signal Diameter", value: "35 mm", sourceType: "official", parser: "rockwell-product-page" },
+          { group: "Technical Data", name: "Rated Voltage", value: "24 V DC", sourceType: "official", parser: "rockwell-product-page" },
+          { group: "Technical Data", name: "Sound Pressure", value: "80 dB", sourceType: "official", parser: "rockwell-product-page" }
+        ]
       },
       "852C-B24RGYPQD5"
     );
     c.manufacturer = { ...manufacturer, id: "rockwell" } as ManufacturerConfig;
 
     expect(resolveProperty("AAQ326", "AAQ326", c)).toBe("https://www.rockwellautomation.com/en-us/products/details.852C-B24RGYPQD5.html");
-    expect(resolveProperty("CNS_DESCRIPTION_SHORT", "CNS_DESCRIPTION_SHORT", c)).toBe("LED indicator");
-    expect(resolveProperty("CNS_DESCRIPTION_LONG", "CNS_DESCRIPTION_LONG", c)).toBe("On-Machine LED Indicators");
-    expect(resolveProperty("CERTIFICATION", "CERTIFICATION", c)).toBe("c-UL-us, CE Marked; UKCA, RCM, KCC");
-    expect(resolveProperty("BAB577", "BAB577", c)).toBe("35021");
-    expect(resolveProperty("BAF016", "BAF016", c)).toBe("35021");
-    expect(resolveProperty("BAA020", "BAA020", c)).toBe("63600");
+    expect(resolveProperty("CNS_DESCRIPTION_SHORT", "CNS_DESCRIPTION_SHORT", c)).toBe("3 Color 35mm LED Indicator with sound");
+    expect(resolveProperty("CNS_DESCRIPTION_LONG", "CNS_DESCRIPTION_LONG", c)).toBe("3 Color 35mm LED Indicator with sound");
+    expect(resolveProperty("CERTIFICATION", "CERTIFICATION", c)).toBe("c-UL-us, CE Marked, UKCA, RCM, KCC");
+    expect(resolveProperty("BAB577", "BAB577", c)).toBe("35.021");
+    expect(resolveProperty("BAF016", "BAF016", c)).toBe("35.021");
+    expect(resolveProperty("BAA020", "BAA020", c)).toBe("63.6");
     expect(resolveProperty("REFERENCE_FEATURE_GROUP_ID", "REFERENCE_FEATURE_GROUP_ID", { ...c, sheetName: "command and alarm device" })).toBe("27143221");
     expect(resolveProperty("REFERENCE_FEATURE_SYSTEM_NAME", "REFERENCE_FEATURE_SYSTEM_NAME", { ...c, sheetName: "command and alarm device" })).toBe("13");
     expect(resolveProperty("AAC895", "AAC895", { ...c, sheetName: "command and alarm device" })).toBe("35");
-    expect(resolveProperty("AAG331", "AAG331", { ...c, sheetName: "command and alarm device" })).toBe("green/transparent");
+    expect(resolveProperty("AAG331", "AAG331", { ...c, sheetName: "command and alarm device" })).toBe("red");
     expect(resolveProperty("BAH005", "BAH005", { ...c, sheetName: "command and alarm device" })).toBe("24");
     expect(resolveProperty("AAI677", "AAI677", { ...c, sheetName: "command and alarm device" })).toBe("80");
     expect(resolveProperty("BAD915", "BAD915", { ...c, sheetName: "command and alarm device" })).toBe("DC");
-    expect(resolveProperty("BAG975", "BAG975", { ...c, sheetName: "command and alarm device" })).toBe("IP65/IP67");
+    expect(resolveProperty("BAG975", "BAG975", { ...c, sheetName: "command and alarm device" })).toBeUndefined();
 
-    const larger = { ...c, item: { ...c.item, catalogNumber: "852D-B24RGYPQD5" } };
-    expect(resolveProperty("BAB577", "BAB577", larger)).toBe("55000");
-    expect(resolveProperty("BAA020", "BAA020", larger)).toBe("82050");
-    expect(resolveProperty("AAC895", "AAC895", { ...larger, sheetName: "command and alarm device" })).toBe("55");
-    expect(resolveProperty("AAI677", "AAI677", { ...larger, sheetName: "command and alarm device" })).toBe("85");
+    const d = ctx(
+      {
+        manufacturerId: "rockwell",
+        title: "3 Color 55mm LED Indicator with sound",
+        description: "3 Color 55mm LED Indicator with sound",
+        normalized: { voltage: "24 V DC", color: "red" },
+        attributes: [
+          { group: "Technical Data", name: "Product Net Depth", value: "55 mm", sourceType: "official", parser: "rockwell-product-page" },
+          { group: "Technical Data", name: "Product Net Height", value: "82.05 mm", sourceType: "official", parser: "rockwell-product-page" },
+          { group: "Technical Data", name: "Signal Diameter", value: "55 mm", sourceType: "official", parser: "rockwell-product-page" },
+          { group: "Technical Data", name: "Rated Voltage", value: "24 V DC", sourceType: "official", parser: "rockwell-product-page" },
+          { group: "Technical Data", name: "Sound Pressure", value: "85 dB", sourceType: "official", parser: "rockwell-product-page" }
+        ]
+      },
+      "852D-B24RGYPQD5"
+    );
+    d.manufacturer = { ...manufacturer, id: "rockwell" } as ManufacturerConfig;
+    expect(resolveProperty("BAB577", "BAB577", d)).toBe("55");
+    expect(resolveProperty("BAA020", "BAA020", d)).toBe("82.05");
+    expect(resolveProperty("AAC895", "AAC895", { ...d, sheetName: "command and alarm device" })).toBe("55");
+    expect(resolveProperty("AAI677", "AAI677", { ...d, sheetName: "command and alarm device" })).toBe("85");
+
+    const sparse = ctx({ manufacturerId: "rockwell", title: "3 Color 35mm LED Indicator with sound" }, "852C-B24RGYPQD5");
+    sparse.manufacturer = { ...manufacturer, id: "rockwell" } as ManufacturerConfig;
+    expect(resolveProperty("BAB577", "BAB577", sparse)).toBeUndefined();
+    expect(resolveProperty("BAF016", "BAF016", sparse)).toBeUndefined();
+    expect(resolveProperty("BAA020", "BAA020", sparse)).toBeUndefined();
+    expect(resolveProperty("AAC895", "AAC895", { ...sparse, sheetName: "command and alarm device" })).toBeUndefined();
+    expect(resolveProperty("BAH005", "BAH005", { ...sparse, sheetName: "command and alarm device" })).toBeUndefined();
+    expect(resolveProperty("AAI677", "AAI677", { ...sparse, sheetName: "command and alarm device" })).toBeUndefined();
+    expect(resolveProperty("BAD915", "BAD915", { ...sparse, sheetName: "command and alarm device" })).toBeUndefined();
+    expect(resolveProperty("CERTIFICATION", "CERTIFICATION", sparse)).toBeUndefined();
   });
 
   it("prefers official signal-device facts over Rockwell 852 family defaults", () => {
@@ -1133,6 +1240,32 @@ describe("eclass resolvers", () => {
     expect(resolveProperty("REFERENCE_FEATURE_SYSTEM_NAME", "REFERENCE_FEATURE_SYSTEM_NAME", { ...drive, sheetName: "motors" })).toBe("14");
   });
 
+  it("does not use drive input voltage as motor reduced rated voltage", () => {
+    const drive = ctx(
+      {
+        title: "Variable frequency drive",
+        attributes: [{ group: "PDF Electrical Text", name: "Rated voltage", value: "380...480 V", sourceType: "generated" }]
+      },
+      "CDVRL00001",
+      "Variable Speed Drive"
+    );
+    const driveWithMotorVoltage = ctx(
+      {
+        title: "Variable frequency drive",
+        attributes: [
+          { group: "PDF Electrical Text", name: "Rated voltage", value: "380...480 V", sourceType: "generated" },
+          { group: "Motor Data", name: "Motor rated voltage", value: "400 V", sourceType: "official" }
+        ]
+      },
+      "CDVRL00001",
+      "Variable Speed Drive"
+    );
+
+    expect(resolveProperty("BAE081", "BAE081", { ...drive, sheetName: "motors" })).toBeUndefined();
+    expect(resolveProperty("BAE081", "BAE081", { ...driveWithMotorVoltage, sheetName: "motors" })).toBe("400");
+    expect(resolveProperty("BAE081", "BAE081", { ...drive, sheetName: "servo controller" })).toBe("480");
+  });
+
   it("keeps manufacturer-specific ECLASS overrides in the documented exception registry", () => {
     expect(PDT_EXCEPTION_RULES.every((rule) => rule.name && rule.rationale)).toBe(true);
     expect(
@@ -1161,17 +1294,24 @@ describe("eclass resolvers", () => {
         normalized: {
           weight: "2.57 kg",
           dimensions: "286 x 183 mm",
-          certificates: "KC"
-        }
+          certificates: "c-UL-us, CE, UKCA, KC, Morocco, RCM, RoHS"
+        },
+        attributes: [
+          { group: "Technical Data", name: "Product Net Weight", value: "2.57 kg", sourceType: "official", parser: "rockwell-product-page" },
+          { group: "Technical Data", name: "Product Net Depth", value: "69.5 mm", sourceType: "official", parser: "rockwell-product-page" },
+          { group: "Technical Data", name: "Product Net Width", value: "212.0 mm", sourceType: "official", parser: "rockwell-product-page" },
+          { group: "Technical Data", name: "Product Net Height", value: "170 mm", sourceType: "official", parser: "rockwell-product-page" },
+          { group: "Technical Data", name: "Power loss", value: "12 W", sourceType: "official", parser: "rockwell-product-page" }
+        ]
       },
       "2715P-T7CD"
     );
     c.manufacturer = { ...manufacturer, id: "rockwell" } as ManufacturerConfig;
 
-    expect(resolveProperty("CNS_DESCRIPTION_SHORT", "CNS_DESCRIPTION_SHORT", c)).toBe("PanelView 5510");
-    expect(resolveProperty("CNS_DESCRIPTION_LONG", "CNS_DESCRIPTION_LONG", c)).toBe("PanelView 5510");
+    expect(resolveProperty("CNS_DESCRIPTION_SHORT", "CNS_DESCRIPTION_SHORT", c)).toBe("PanelView 5510 Graphic Terminal");
+    expect(resolveProperty("CNS_DESCRIPTION_LONG", "CNS_DESCRIPTION_LONG", c)).toBe("PanelView 5510 Graphic Terminal");
     expect(resolveProperty("CERTIFICATION", "CERTIFICATION", c)).toBe("c-UL-us, CE, UKCA, KC, Morocco, RCM, RoHS");
-    expect(resolveProperty("AAF040", "AAF040", c)).toBe("2");
+    expect(resolveProperty("AAF040", "AAF040", c)).toBe("2.57");
     expect(resolveProperty("BAB577", "BAB577", c)).toBe("69.5");
     expect(resolveProperty("BAF016", "BAF016", c)).toBe("212.0");
     expect(resolveProperty("BAA020", "BAA020", c)).toBe("170");
@@ -1179,8 +1319,12 @@ describe("eclass resolvers", () => {
 
     const wide = ctx({ manufacturerId: "rockwell", title: "PanelView 5510 Graphic Terminal" }, "2715P-T7WD");
     wide.manufacturer = { ...manufacturer, id: "rockwell" } as ManufacturerConfig;
-    expect(resolveProperty("BAF016", "BAF016", wide)).toBe("237.0");
-    expect(resolveProperty("BAA020", "BAA020", wide)).toBe("178");
+    expect(resolveProperty("AAF040", "AAF040", wide)).toBeUndefined();
+    expect(resolveProperty("BAB577", "BAB577", wide)).toBeUndefined();
+    expect(resolveProperty("BAF016", "BAF016", wide)).toBeUndefined();
+    expect(resolveProperty("BAA020", "BAA020", wide)).toBeUndefined();
+    expect(resolveProperty("AAS575", "AAS575", wide)).toBeUndefined();
+    expect(resolveProperty("CERTIFICATION", "CERTIFICATION", wide)).toBeUndefined();
   });
 
   it("uses PDT repair values for descriptions and clean temperature fields", () => {
@@ -2480,7 +2624,7 @@ describe("PDT exporter", () => {
     expect(ws.getCell(10, 5).value).toBe("Enclosure");
   });
 
-  it("writes documented localized PDT description facts as DE literals", async () => {
+  it("writes deterministic German PDT description fallbacks without DE evidence", async () => {
     const dir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-pdt-localized-fact-de-"));
     const templatePath = path.join(dir, "template.xlsx");
     const outputPath = path.join(dir, "out.xlsx");
@@ -2519,23 +2663,21 @@ describe("PDT exporter", () => {
     ).item;
     const result = await exportRunPdt({ manufacturer: { ...manufacturer, id: "rockwell" } as ManufacturerConfig, items: [item], templatePath, outputPath });
 
-    expect(result.cellAudit.records).toContainEqual(
+    expect(result.cellAudit.records).not.toContainEqual(
       expect.objectContaining({
         sheetName: "Material Master Data",
         catalogNumber: "1756-L902TSXT",
         code: "CNS_DESCRIPTION_LONG / AAU734",
-        value: "ControlLogix-Prozessoren",
-        sourceKind: "repair",
         ruleName: "rockwell-controllogix-l9-description-default"
       })
     );
     const out = new ExcelJS.Workbook();
     await out.xlsx.readFile(outputPath);
     const ws = out.getWorksheet("Material Master Data")!;
-    expect(ws.getCell(10, 2).value).toBe("ControlLogix-Prozessoren");
-    expect(ws.getCell(10, 3).value).toBe("ControlLogix-Prozessoren");
-    expect(ws.getCell(10, 4).value).toBe("ControlLogix Processors");
-    expect(ws.getCell(10, 5).value).toBe("ControlLogix Processors");
+    expect(ws.getCell(10, 2).value).toBe("ControlLogix 5590 XT Steuerung");
+    expect(ws.getCell(10, 3).value).toBe("ControlLogix 5590 XT Steuerung");
+    expect(ws.getCell(10, 4).value).toBe("ControlLogix 5590 XT Controller");
+    expect(ws.getCell(10, 5).value).toBe("ControlLogix 5590 XT Controller");
   });
 
   it("writes DE description fallbacks as literals when no localized DE text was scraped", async () => {
@@ -2569,7 +2711,9 @@ describe("PDT exporter", () => {
     const ws = out.getWorksheet("Material Master Data")!;
     // No localizedDescriptions.de on the result: write the fallback as a literal so Excel
     // does not require manual recalculation before downstream import.
-    expect(ws.getCell(10, 2).value).toBe(description);
+    expect(ws.getCell(10, 2).value).toBe(
+      "The AF40B-30-00RT-12 is a 3 pole - 690 V IEC or 600 UL Schuetz with RT terminals, controlling motors up to 18.5 kW / 400 V AC (AC-3) or 30 hp / 480 V UL."
+    );
     // EN column still gets the scraped English description as a literal value.
     expect(ws.getCell(10, 3).value).toBe(description);
   });
@@ -2616,8 +2760,8 @@ describe("PDT exporter", () => {
     const out = new ExcelJS.Workbook();
     await out.xlsx.readFile(outputPath);
     const ws = out.getWorksheet("Material Master Data")!;
-    expect(ws.getCell(10, 2).value).toBe("Wall mounted enclosure");
-    expect(ws.getCell(10, 3).value).toBe("Enclosure");
+    expect(ws.getCell(10, 2).value).toBe("Wandgehaeuse");
+    expect(ws.getCell(10, 3).value).toBe("Gehaeuse");
     expect(ws.getCell(10, 4).value).toBe("Wall mounted enclosure");
     expect(ws.getCell(10, 5).value).toBe("Enclosure");
   });
@@ -2650,8 +2794,36 @@ describe("PDT exporter", () => {
     const out = new ExcelJS.Workbook();
     await out.xlsx.readFile(outputPath);
     const ws = out.getWorksheet("Material Master Data")!;
-    expect(ws.getCell(10, 2).value).toBe(description);
+    expect(ws.getCell(10, 2).value).toBe("kompakt Sicherheitsrelais with removable screw terminals.");
     expect(ws.getCell(10, 3).value).toBe(description);
+  });
+
+  it("writes deterministic German descriptions in the bundled Material Master template", async () => {
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-pdt-bundled-de-"));
+    const outputPath = path.join(dir, "out.xlsx");
+    const item = ctx(
+      {
+        manufacturerId: "eaton",
+        title: "CDVRL00001 - Eaton Rapid Link 5X RASP5X variable frequency drive",
+        description: "Eaton Rapid Link 5X RASP5X distributed variable frequency drive from the official Eaton China product catalog."
+      },
+      "CDVRL00001"
+    ).item;
+
+    await exportRunPdt({
+      manufacturer: { ...manufacturer, id: "eaton" } as ManufacturerConfig,
+      items: [item],
+      templatePath: path.resolve("templates", "master_pdt.xlsx"),
+      outputPath
+    });
+
+    const out = new ExcelJS.Workbook();
+    await out.xlsx.readFile(outputPath);
+    const ws = out.getWorksheet("Material Master Data")!;
+    expect(ws.getCell("Y10").value).toBe("Eaton Rapid Link 5X RASP5X dezentraler Frequenzumrichter aus dem offiziellen Eaton China Produktkatalog.");
+    expect(ws.getCell("Z10").value).toBe("CDVRL00001 - Eaton Rapid Link 5X RASP5X Frequenzumrichter");
+    expect(ws.getCell("AA10").value).toBe("Eaton Rapid Link 5X RASP5X distributed variable frequency drive from the official Eaton China product catalog.");
+    expect(ws.getCell("AB10").value).toBe("CDVRL00001 - Eaton Rapid Link 5X RASP5X variable frequency drive");
   });
 
   it("fills PDT columns from semantically equivalent scraped attribute labels", async () => {

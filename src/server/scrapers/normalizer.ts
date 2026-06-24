@@ -1,4 +1,6 @@
 import type { AttributeRecord, DocumentRecord, NormalizedProductFields, ProductResult } from "../../shared/types.js";
+import { dedupeDocuments as dedupeSharedDocuments } from "./dedupe.js";
+import { fieldMatchesLabel } from "./field-registry.js";
 import { isPlausibleTemperatureCelsius, parseTemperatureRange } from "./quantity.js";
 import { matchProperty } from "./ontology.js";
 
@@ -51,7 +53,8 @@ const FIELD_LABEL_PATTERNS: Record<keyof NormalizedProductFields, RegExp[]> = {
     /masse\b/,
     /massa/,
     /peso/,
-    /te[z\u017e]ina/
+    /te[z\u017e]ina/,
+    /\u91cd\u91cf/
   ],
   dimensions: [
     /\bdimensions?\b/,
@@ -61,7 +64,8 @@ const FIELD_LABEL_PATTERNS: Record<keyof NormalizedProductFields, RegExp[]> = {
     /\bma(?:sse|\u00dfe)\b/,
     /\bmasse\b/,
     /\bdimenzije\b/,
-    /\bcable length\b/
+    /\bcable length\b/,
+    /\u5c3a\u5bf8/
   ],
   material: [
     /\bmaterial\b/,
@@ -114,6 +118,7 @@ const FIELD_LABEL_PATTERNS: Record<keyof NormalizedProductFields, RegExp[]> = {
     /\bmaximum operating voltage\b/,
     /\bvoltage protection level\b/,
     /napon/,
+    /\u7535\u538b/,
     /\b(?:u[eirn]|u[abs]|uimp)\b/
   ],
   current: [
@@ -140,7 +145,8 @@ const FIELD_LABEL_PATTERNS: Record<keyof NormalizedProductFields, RegExp[]> = {
     /\bstrom\b/,
     /amperage/,
     /corrente/,
-    /struja/
+    /struja/,
+    /\u7535\u6d41/
   ],
   protection: [
     /\bip\b/,
@@ -153,7 +159,9 @@ const FIELD_LABEL_PATTERNS: Record<keyof NormalizedProductFields, RegExp[]> = {
     /enclosure rating/,
     /enclosure type/,
     /industry standard/,
-    /stupanj/
+    /stupanj/,
+    /\u9632\u62a4\u7b49\u7ea7/,
+    /\u4fdd\u62a4\u7b49\u7ea7/
   ],
   certificates: [
     /\bapproval\b/,
@@ -173,13 +181,17 @@ const FIELD_LABEL_PATTERNS: Record<keyof NormalizedProductFields, RegExp[]> = {
     /\b(operating|operational|ambient|working|surrounding|service)\b[^.;|]*\btemp(?:erature)?\b/,
     /\btemperature range\b/,
     /\bumgebungstemperatur\b/,
-    /\bbetriebstemperatur\b/
+    /\bbetriebstemperatur\b/,
+    /\u5de5\u4f5c\u6e29\u5ea6/,
+    /\u73af\u5883\u6e29\u5ea6/
   ],
   operatingTemperatureMax: [
     /\b(operating|operational|ambient|working|surrounding|service)\b[^.;|]*\btemp(?:erature)?\b/,
     /\btemperature range\b/,
     /\bumgebungstemperatur\b/,
-    /\bbetriebstemperatur\b/
+    /\bbetriebstemperatur\b/,
+    /\u5de5\u4f5c\u6e29\u5ea6/,
+    /\u73af\u5883\u6e29\u5ea6/
   ]
 };
 
@@ -196,20 +208,24 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
   const dimensions =
     normalizeDimensionValue(formatDimensions(height, width, depth, length)) ??
     bestNormalizedAttributeValue(attributes, FIELD_LABEL_PATTERNS.dimensions, normalizeDimensionValue, "dimensions") ??
+    registryFieldValue(attributes, "dimensions", normalizeDimensionValue) ??
     deriveDimensionsFromText(attributes) ??
     cableLengthDimension;
   const material =
     findMaterialAttr(attributes) ??
+    registryFieldValue(attributes, "material", materialValueFromText) ??
     deriveMaterialFromAttributes(attributes) ??
     ontologyFieldValue(attributes, "material", materialValueFromText);
   const finish =
     normalizeFinishValue(bestAttributeValue(attributes, FIELD_LABEL_PATTERNS.finish)) ??
+    registryFieldValue(attributes, "finish", (value) => finishPhraseFromText(value) ?? normalizeFinishValue(value)) ??
     deriveFinishFromAttributes(attributes) ??
     deriveFinishFromMaterial(material) ??
     ontologyFieldValue(attributes, "finish", (value) => finishPhraseFromText(value) ?? normalizeFinishValue(value));
-  const wallThickness = bestWallThicknessAttributeValue(attributes) ?? deriveWallThicknessFromAttributes(attributes);
+  const wallThickness = bestWallThicknessAttributeValue(attributes) ?? registryFieldValue(attributes, "wallThickness", normalizeWallThicknessValue) ?? deriveWallThicknessFromAttributes(attributes);
   const color =
     findColorAttr(attributes) ??
+    registryFieldValue(attributes, "color", deriveColorFromFinish) ??
     deriveColorFromFinish(finish) ??
     deriveColorFromMaterial(material) ??
     ontologyFieldValue(attributes, "color", deriveColorFromFinish) ??
@@ -218,8 +234,8 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
   const protectionFromAttr =
     collectProtectionValues(attributes) ??
     deriveProtectionFromText(attributes) ??
+    registryFieldValue(attributes, "protection", normalizeProtectionValue) ??
     ontologyFieldValue(attributes, "protection", normalizeProtectionValue);
-  const certificateNamePattern = /\b(approval|conformity|declarations?|compliance|certificates?|certifications?|approvals?|standards?|marking)\b|\b(ul|ce|rohs|weee|reach)\b/i;
   // If the manufacturer publishes an explicit "Standards" attribute (e.g. ABB's "Standards: IEC/UL"),
   // that IS the curated certification list — don't pollute it with document-derived RoHS / REACH
   // declarations, which aren't certifications in the same sense and only appear because the
@@ -230,7 +246,7 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
   );
   const certificateValues = [
     ...attributes
-      .filter((attr) => certificateNamePattern.test(`${attr.group ?? ""} ${attr.name}`))
+      .filter((attr) => fieldMatchesLabel("certificates", `${attr.group ?? ""} ${attr.name}`))
       .flatMap((attr) => splitCertificateValues(normalizeCertificateValue(attr.value, true))),
     ...(explicitStandardsAttr
       ? []
@@ -250,19 +266,21 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
 
   const voltage =
     normalizeVoltageValue(deriveVoltageRangeFromMinMax(attributes)) ??
-    schneiderPowerSupplyOutputVoltage(attributes) ??
+    powerSupplyOutputVoltage(attributes) ??
     numericVoltAttributeVoltage(attributes) ??
     bestNormalizedAttributeValue(attributes, FIELD_LABEL_PATTERNS.voltage, normalizeVoltageValue, "voltage") ??
+    registryFieldValue(attributes, "voltage", normalizeVoltageValue) ??
     normalizeVoltageValue(deriveVoltageFromText(attributes));
   const current =
     numericCurrentAttributeCurrent(attributes) ??
     bestNormalizedAttributeValue(attributes, FIELD_LABEL_PATTERNS.current, normalizeCurrentValue, "current") ??
+    registryFieldValue(attributes, "current", normalizeCurrentValue) ??
     normalizeCurrentValue(deriveCurrentFromText(attributes));
 
   const operatingTemperature = deriveOperatingTemperature(attributes);
 
   return {
-    weight: bestNormalizedAttributeValue(attributes, FIELD_LABEL_PATTERNS.weight, normalizeWeightValue, "weight"),
+    weight: bestNormalizedAttributeValue(attributes, FIELD_LABEL_PATTERNS.weight, normalizeWeightValue, "weight") ?? registryFieldValue(attributes, "weight", normalizeWeightValue),
     dimensions,
     material,
     wallThickness,
@@ -290,7 +308,8 @@ function deriveOperatingTemperature(attributes: AttributeRecord[]): { min?: stri
     /\btemp(?:erature)?\b[^.;|]*\b(operating|operational|ambient|working|surrounding|service)\b/i.test(label(attr)) ||
     /\b(operating|ambient)\s+temperature\b/i.test(label(attr)) ||
     /\btemperature range\b/i.test(label(attr)) ||
-    /\bumgebungstemperatur\b|\bbetriebstemperatur\b/i.test(label(attr));
+    /\bumgebungstemperatur\b|\bbetriebstemperatur\b/i.test(label(attr)) ||
+    fieldMatchesLabel("operatingTemperature", label(attr));
   const isExcludedLabel = (attr: AttributeRecord): boolean =>
     /\b(current|strom|storage|lager|colou?r\s+temp(?:erature)?|color\s+temp)\b/i.test(label(attr));
 
@@ -348,6 +367,29 @@ function ontologyFieldValue(
     if (value) return value;
   }
   return undefined;
+}
+
+function registryFieldValue(
+  attributes: AttributeRecord[],
+  key: keyof NormalizedProductFields,
+  normalize: (value: string) => string | undefined
+): string | undefined {
+  return attributes
+    .filter((attr) => {
+      if (!attr.value || !isLikelySpecText(attr.value) || !isAvailableSpecValue(attr.value)) return false;
+      if (shouldSkipRegistryFieldCandidate(attr, key)) return false;
+      return fieldMatchesLabel(key, `${attr.group ?? ""} ${attr.name}`);
+    })
+    .sort((left, right) => attributeEvidenceScore(right) + normalizedFieldLabelScore(right, key) - attributeEvidenceScore(left) - normalizedFieldLabelScore(left, key))
+    .map((attr) => normalize(attr.value) ?? normalize(`${attr.name}: ${attr.value}`))
+    .find((value): value is string => Boolean(value));
+}
+
+function shouldSkipRegistryFieldCandidate(attr: AttributeRecord, key: keyof NormalizedProductFields): boolean {
+  const label = `${attr.group ?? ""} ${attr.name}`.toLowerCase();
+  if (key === "current" && /\b(?:inrush|starting|peak)\s+current\b/.test(label)) return true;
+  if (key === "voltage" && isLowValueVoltageLabel(label)) return true;
+  return normalizedFieldLabelScore(attr, key) < -50;
 }
 
 function mergeLocalizedDescriptions(
@@ -439,29 +481,24 @@ function bestNormalizedAttributeValue(
     .find((value): value is string => Boolean(value));
 }
 
-function schneiderPowerSupplyOutputVoltage(attributes: AttributeRecord[]): string | undefined {
-  if (!isSchneiderPowerSupply(attributes)) return undefined;
+function powerSupplyOutputVoltage(attributes: AttributeRecord[]): string | undefined {
+  if (!isPowerSupplyProduct(attributes)) return undefined;
   return attributes
     .filter((attr) => {
       const label = `${attr.group ?? ""} ${attr.name}`.toLowerCase();
-      return isSchneiderEvidence(attr) && isPowerSupplyOutputVoltageLabel(label) && isLikelySpecText(attr.value) && isAvailableSpecValue(attr.value);
+      return isPowerSupplyOutputVoltageLabel(label) && isLikelySpecText(attr.value) && isAvailableSpecValue(attr.value);
     })
     .sort(compareAttributeEvidence)
     .map((attr) => normalizeVoltageValue(attr.value))
     .find((value): value is string => Boolean(value));
 }
 
-function isSchneiderPowerSupply(attributes: AttributeRecord[]): boolean {
-  if (!attributes.some(isSchneiderEvidence)) return false;
+function isPowerSupplyProduct(attributes: AttributeRecord[]): boolean {
   return attributes.some((attr) => {
     const label = `${attr.group ?? ""} ${attr.name}`.toLowerCase();
     if (!/product|range|description|title|family|type|name/.test(label)) return false;
     return /\bpower suppl(?:y|ies)\b/i.test(`${attr.name} ${attr.value}`);
   });
-}
-
-function isSchneiderEvidence(attr: AttributeRecord): boolean {
-  return /schneider|telemecanique|se\.com/i.test(`${attr.group ?? ""} ${attr.parser ?? ""} ${attr.sourceUrl ?? ""}`);
 }
 
 function isPowerSupplyOutputVoltageLabel(label: string): boolean {
@@ -714,14 +751,16 @@ export function emptyResult(manufacturerId: ProductResult["manufacturerId"], cat
 export function classifyDocument(label: string, url: string): DocumentRecord["type"] {
   const text = `${label} ${url}`.toLowerCase();
   if (/\b(cert|certificate|certifications?|declaration|conformity|rohs|weee|reach|tsca|prop\s*65|culus|curus|cul|ul|ce|ukca|eac)\b|\bul-listed\b/.test(text)) return "certificate";
+  if (/\b(?:data.?sheet|datasheet|tech(?:nical)?\s*data|technical\s+(?:sheet|information)|specification(?:s)? sheet|spec sheet)\b/i.test(label)) return "datasheet";
+  if (/\b(?:manual|instruction|installation)\b/i.test(label)) return "manual";
   if (/\/documents\/in\//.test(text) || /manual|instruction|instman|installation/.test(text)) return "manual";
-  if (/\b(?:cad|drawing|dwg|dxf|step|stp|zip)\b|\.(?:dwg|dxf|step|stp|zip)(?:[?#]|$)/.test(text)) return "cad";
+  if (/\b(?:cad|drawing|dwg|dxf|step|stp|igs|iges|zip)\b|\.(?:dwg|dxf|step|stp|igs|iges|zip)(?:[?#]|$)/.test(text)) return "cad";
   if (
     /\/documents\/td\//.test(text) ||
     /\/products\/[^?#]+\/pdf(?:[?#]|$)/.test(text) ||
     /(?:^|\b)download\s+pdf\b/.test(text) ||
     /[?&](?:file|uri)=[^&#]*\d+[^&#]*\.pdf\b/.test(text) ||
-    /cutsheet|data.?sheet|datasheet|technical|specification(?:s)? sheet|spec sheet|catalog|brochure|flyer|handbook|test report|engineering specification/.test(text)
+    /cutsheet|data.?sheet|datasheet|tech(?:nical)?\s*data|technical|specification(?:s)? sheet|spec sheet|catalog|brochure|flyer|handbook|test report|engineering specification/.test(text)
   ) return "datasheet";
   if (/\.(png|jpe?g|webp|gif)(\?|$)/.test(text)) return "image";
   return "other";
@@ -778,6 +817,8 @@ function normalizeDimensionValue(value: string | undefined): string | undefined 
     if (!unit || unit === "mm" || /\bmm\b/i.test(cleaned)) return cleaned;
     return `${cleaned} (${formatLabeledMillimeters(labeledParts, unit)})`;
   }
+  const repeatedUnitDimensions = normalizeRepeatedUnitDimensionChain(cleaned);
+  if (repeatedUnitDimensions) return repeatedUnitDimensions;
   const match = cleaned.match(/\b(\d+(?:[.,]\d+)?)\s*[xX*]\s*(\d+(?:[.,]\d+)?)\s*(?:[xX*]\s*(\d+(?:[.,]\d+)?)\s*)?(mm|cm|m|in|inch|inches|")\b/i);
   if (!match) return undefined;
   const unit = match[4] === `"` ? "in" : match[4].toLowerCase();
@@ -788,6 +829,25 @@ function normalizeDimensionValue(value: string | undefined): string | undefined 
   if (values.some((number) => !Number.isFinite(number))) return cleaned;
   const millimeters = values.map((number) => convertDimensionToMillimeters(number, unit));
   return `${cleaned} (${millimeters.map(formatNumber).join(" x ")} mm)`;
+}
+
+function normalizeRepeatedUnitDimensionChain(value: string): string | undefined {
+  const match = value.match(
+    /\b(\d+(?:[.,]\d+)?\s*(?:mm|cm|m|inches|inch|in|")\s*[xX*]\s*\d+(?:[.,]\d+)?\s*(?:mm|cm|m|inches|inch|in|")(?:\s*[xX*]\s*\d+(?:[.,]\d+)?\s*(?:mm|cm|m|inches|inch|in|")){0,3})\b/i
+  );
+  if (!match) return undefined;
+  const dimensionText = cleanText(match[1]).replace(/\*/g, "x");
+  const parts = [...dimensionText.matchAll(/(\d+(?:[.,]\d+)?)\s*(mm|cm|m|inches|inch|in|")\b/gi)].map((part) => ({
+    value: Number(part[1].replace(",", ".")),
+    unit: normalizeDimensionUnit(part[2])
+  }));
+  if (parts.length < 2 || parts.some((part) => !Number.isFinite(part.value) || !part.unit)) return undefined;
+  const firstUnit = parts[0].unit;
+  if (!firstUnit) return undefined;
+  if (parts.some((part) => part.unit !== firstUnit)) return dimensionText;
+  if (firstUnit === "mm") return dimensionText;
+  const millimeters = parts.map((part) => convertDimensionToMillimeters(part.value, firstUnit));
+  return `${dimensionText} (${millimeters.map(formatNumber).join(" x ")} mm)`;
 }
 
 function normalizeBoreStrokeDimensionValue(value: string): string | undefined {
@@ -1396,20 +1456,36 @@ function cleanProtectionSegments(value: string): string {
 }
 
 function uniqueProtectionValues(values: string[]): string[] {
-  const seen = new Set<string>();
   const unique: string[] = [];
+  const uniqueTokenSets: string[][] = [];
   for (const value of values) {
-    const key = protectionDedupeKey(value);
-    if (!key || seen.has(key)) continue;
-    seen.add(key);
-    unique.push(value);
+    for (const part of splitProtectionValues(value)) {
+      const tokens = protectionDedupeTokens(part);
+      const key = tokens.length ? tokens.join("|") : part.toLowerCase();
+      if (!key) continue;
+      if (tokens.length && uniqueTokenSets.some((existing) => tokens.every((token) => existing.includes(token)))) continue;
+      unique.push(part);
+      uniqueTokenSets.push(tokens.length ? tokens : [key]);
+    }
   }
   return unique;
 }
 
+function splitProtectionValues(value: string): string[] {
+  if (!value.includes(";")) return [value];
+  const parts = value.split(";").map(cleanText).filter(Boolean);
+  if (parts.length <= 1) return [value];
+  return parts;
+}
+
 function protectionDedupeKey(value: string): string {
+  const tokens = protectionDedupeTokens(value);
+  return tokens.length ? tokens.join("|") : value.toLowerCase();
+}
+
+function protectionDedupeTokens(value: string): string[] {
   const tokens = value.match(/\b(?:IP\s*\d{2}[A-Z]?|IK\s*\d{2}|NEMA\s*\d+[A-Z]?|Type\s+\d+[A-Z]?)\b/gi);
-  return tokens?.length ? tokens.map((token) => token.replace(/\s+/g, "").toUpperCase()).join("|") : value.toLowerCase();
+  return tokens?.length ? tokens.map((token) => token.replace(/\s+/g, "").toUpperCase()) : [];
 }
 
 function deriveMaterialFromAttributes(attributes: AttributeRecord[]): string | undefined {
@@ -1603,7 +1679,7 @@ function normalizeDocumentCertificateValue(doc: DocumentRecord): string {
   if (/circularity/i.test(text)) return "Circularity Profile";
   if (/environmental|ecopassport|pep/i.test(text)) return "Environmental Disclosure";
   if (/end.?of.?life/i.test(text)) return "End of Life Information";
-  if (/reach/i.test(text)) return "REACh Regulation";
+  if (/reach/i.test(text)) return "REACH Regulation";
   if (/rohs/i.test(text)) return "RoHS";
   if (/weee/i.test(text)) return "WEEE";
   if (/tsca/i.test(text)) return "TSCA";
@@ -1792,12 +1868,4 @@ function sortAttributesStable(attributes: AttributeRecord[]): AttributeRecord[] 
   });
 }
 
-function dedupeDocuments(documents: DocumentRecord[]): DocumentRecord[] {
-  const seen = new Set<string>();
-  return documents.filter((doc) => {
-    const key = doc.url.toLowerCase();
-    if (seen.has(key)) return false;
-    seen.add(key);
-    return Boolean(doc.url);
-  });
-}
+const dedupeDocuments = dedupeSharedDocuments;

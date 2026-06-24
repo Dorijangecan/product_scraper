@@ -1,4 +1,5 @@
 import type { EvidenceRecord, ProductResult, SourceRecord } from "../../shared/types.js";
+import { buildFieldHealth, FIELD_REGISTRY, findFieldSourceAttribute, type RegistryFieldKey } from "./field-registry.js";
 import { normalizeTechnicalAttributes } from "./technical-attributes.js";
 
 export function attachEvidence(result: ProductResult): ProductResult {
@@ -29,22 +30,23 @@ export function attachEvidence(result: ProductResult): ProductResult {
         .filter(Boolean)
         .join("; ")
     })),
-    ...Object.entries(result.normalized).flatMap(([name, value]): EvidenceRecord[] =>
-      value
-        ? [
-            {
-              kind: "normalized",
-              name,
-              value,
-              sourceUrl: normalizedSourceUrl(result, name, value),
-              sourceType: sourceTypeForUrl(result.sources, normalizedSourceUrl(result, name, value)),
-              parser: parserForUrl(result.sources, normalizedSourceUrl(result, name, value)),
-              stage: "normalize",
-              confidence: result.confidence
-            }
-          ]
-        : []
-    ),
+    ...Object.entries(result.normalized).flatMap(([name, value]): EvidenceRecord[] => {
+      if (!value) return [];
+      const sourceAttribute = normalizedSourceAttribute(result, name, value);
+      const sourceUrl = sourceAttribute?.sourceUrl;
+      return [
+        {
+          kind: "normalized",
+          name,
+          value,
+          sourceUrl,
+          sourceType: sourceAttribute?.sourceType ?? sourceTypeForUrl(result.sources, sourceUrl),
+          parser: sourceAttribute?.parser ?? parserForUrl(result.sources, sourceUrl),
+          stage: sourceAttribute?.stage ?? "normalize",
+          confidence: sourceAttribute?.confidence ?? result.confidence
+        }
+      ];
+    }),
     ...technicalAttributes.map((attribute): EvidenceRecord => ({
       kind: "technical-attribute",
       name: attribute.canonicalKey,
@@ -69,26 +71,24 @@ export function attachEvidence(result: ProductResult): ProductResult {
     }))
   ]);
 
-  return { ...result, technicalAttributes, evidence };
+  return {
+    ...result,
+    technicalAttributes,
+    evidence,
+    diagnostics: {
+      ...result.diagnostics,
+      fieldHealth: buildFieldHealth(result)
+    }
+  };
 }
 
-function normalizedSourceUrl(result: ProductResult, fieldName: string, normalizedValue: string): string | undefined {
-  return (
-    result.attributes.find((attr) => attr.value === normalizedValue || normalizedValue.includes(attr.value) || attr.value.includes(normalizedValue)) ??
-    result.attributes.find((attr) => labelLooksLikeField(attr.name, fieldName))
-  )?.sourceUrl;
+function normalizedSourceAttribute(result: ProductResult, fieldName: string, normalizedValue: string): ProductResult["attributes"][number] | undefined {
+  if (!isRegistryFieldKey(fieldName)) return undefined;
+  return findFieldSourceAttribute(result.attributes, fieldName, normalizedValue);
 }
 
-function labelLooksLikeField(label: string, fieldName: string): boolean {
-  const text = label.toLowerCase();
-  if (fieldName === "weight") return /weight|mass|gewicht|peso/.test(text);
-  if (fieldName === "dimensions") return /dimension|height|width|depth|length|abmess/.test(text);
-  if (fieldName === "material") return /material|werkstoff/.test(text);
-  if (fieldName === "voltage") return /voltage|spannung|napon/.test(text);
-  if (fieldName === "current") return /current|strom|amperage|struja/.test(text);
-  if (fieldName === "protection") return /ip|nema|protection|schutzart/.test(text);
-  if (fieldName === "certificates") return /cert|approval|conformity|standard/.test(text);
-  return false;
+function isRegistryFieldKey(fieldName: string): fieldName is RegistryFieldKey {
+  return FIELD_REGISTRY.some((field) => field.key === fieldName);
 }
 
 function sourceTypeForUrl(sources: SourceRecord[], sourceUrl: string | undefined): SourceRecord["sourceType"] | undefined {

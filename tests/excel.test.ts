@@ -92,6 +92,80 @@ describe("excel export", () => {
             }
           ],
           sources: [],
+          diagnostics: {
+            documentProcessing: [
+              {
+                url: "https://search.abb.com/library/Download.aspx?DocumentID=1SBC100214C0202&LanguageCode=en&Action=Launch",
+                label: "Data Sheet, Technical Information",
+                type: "datasheet",
+                action: "parsed",
+                stage: "downloaded-document-enrichment",
+                reason: "parsed downloaded PDF",
+                localPath: path.join(outputDir, "1SBC100214C0202.pdf"),
+                sourceUrl: "https://new.abb.com/smartlinks/en?ProductId=1SDA126387R1"
+              },
+              {
+                url: "https://search.abb.com/library/Download.aspx?DocumentID=manual&Action=Launch",
+                label: "Instructions and Manuals",
+                type: "manual",
+                action: "skipped",
+                stage: "remote-document-enrichment",
+                reason: "already parsed from downloaded copy",
+                sourceUrl: "https://new.abb.com/smartlinks/en?ProductId=1SDA126387R1"
+              },
+              {
+                url: "https://search.abb.com/library/Download.aspx?DocumentID=broken&Action=Launch",
+                label: "Broken certificate",
+                type: "certificate",
+                action: "failed",
+                stage: "downloaded-document-enrichment",
+                reason: "pdf parser failed",
+                parseError: "Unable to extract text"
+              }
+            ],
+            fieldHealth: [
+              { field: "weight", label: "Weight", status: "found", value: "0.028 kg" },
+              { field: "material", label: "Material", status: "found", value: "Steel" },
+              { field: "voltage", label: "Voltage", status: "low-confidence", value: "24 V DC" },
+              {
+                field: "current",
+                label: "Current",
+                status: "conflicting",
+                value: "2 A",
+                confidence: 0.91,
+                sourceUrls: [
+                  "https://new.abb.com/smartlinks/en?ProductId=1SDA126387R1",
+                  "https://search.abb.com/library/Download.aspx?DocumentID=1SBC100214C0202&LanguageCode=en&Action=Launch"
+                ],
+                reason: "Multiple source-backed values were found for the same field.",
+                resolution: "Normalized value '2 A' was selected from official source; all conflicting source values are retained.",
+                conflicts: [
+                  {
+                    value: "2 A",
+                    sourceUrls: ["https://new.abb.com/smartlinks/en?ProductId=1SDA126387R1"],
+                    confidence: 0.91,
+                    sourceTypes: ["official"],
+                    parsers: ["abb-product-model"],
+                    stages: ["product-page"],
+                    priority: 868,
+                    priorityReason: "official product source priority",
+                    selected: true
+                  },
+                  {
+                    value: "3 A",
+                    sourceUrls: ["https://search.abb.com/library/Download.aspx?DocumentID=1SBC100214C0202&LanguageCode=en&Action=Launch"],
+                    confidence: 0.78,
+                    sourceTypes: ["generated"],
+                    parsers: ["pdf-table-extractor"],
+                    stages: ["enrich-documents"],
+                    priority: 706,
+                    priorityReason: "parsed document priority"
+                  }
+                ]
+              },
+              { field: "ipRating", label: "IP Rating", status: "missing" }
+            ]
+          },
           evidence: [
             {
               kind: "normalized",
@@ -151,6 +225,8 @@ describe("excel export", () => {
     expect(headers).toContain("Wire / Cable Size");
     expect(headers).toContain("Thread Size");
     expect(headers).toContain("Final Completeness Check");
+    expect(headers).toContain("Field Health");
+    expect(headers).toContain("Document Processing");
     expect(headers).toContain("Missing Required Fields");
     expect(headers).toContain("Unmapped Spec Labels");
     expect(workbook.getWorksheet("Run Summary")).toBeTruthy();
@@ -167,6 +243,8 @@ describe("excel export", () => {
     expect(workbook.getWorksheet("Checks")).toBeTruthy();
     expect(workbook.getWorksheet("Evidence")).toBeTruthy();
     expect(workbook.getWorksheet("Final Audit")).toBeTruthy();
+    expect(workbook.getWorksheet("Document Diagnostics")).toBeTruthy();
+    expect(workbook.getWorksheet("Field Diagnostics")).toBeTruthy();
     const productUrlDeCell = products.getRow(2).getCell(headers.indexOf("Product URL DE") + 1);
     expect(cellText(productUrlDeCell)).toBe("https://new.abb.com/smartlinks/de?ProductId=1SDA126387R1");
     expect(productUrlDeCell.hyperlink).toBe("https://new.abb.com/smartlinks/de?ProductId=1SDA126387R1");
@@ -196,6 +274,10 @@ describe("excel export", () => {
     expect(String(products.getRow(2).getCell(headers.indexOf("Downloads") + 1).value)).toContain("Manual: Instructions and Manuals");
     expect(String(products.getRow(2).getCell(headers.indexOf("All Resources") + 1).value)).toContain("Datasheet: Data Sheet, Technical Information");
     expect(String(products.getRow(2).getCell(headers.indexOf("All Resources") + 1).value)).toContain("DocumentID=1SBC100214C0202");
+    expect(String(products.getRow(2).getCell(headers.indexOf("Field Health") + 1).value)).toContain("low confidence 1");
+    expect(String(products.getRow(2).getCell(headers.indexOf("Field Health") + 1).value)).toContain("Current: conflicting");
+    expect(String(products.getRow(2).getCell(headers.indexOf("Document Processing") + 1).value)).toContain("parsed 1");
+    expect(String(products.getRow(2).getCell(headers.indexOf("Document Processing") + 1).value)).toContain("Broken certificate: failed");
     const attributes = workbook.getWorksheet("Attributes")!;
     const attributeHeaders = (attributes.getRow(1).values as unknown[]).slice(1);
     expect(attributeHeaders).toContain("Source Type");
@@ -206,6 +288,24 @@ describe("excel export", () => {
     expect(documentHeaders).toContain("Source Type");
     expect(documentHeaders).toContain("Parser");
     expect(documentHeaders).toContain("Confidence");
+    const documentDiagnostics = workbook.getWorksheet("Document Diagnostics")!;
+    const documentDiagnosticHeaders = (documentDiagnostics.getRow(1).values as unknown[]).slice(1);
+    expect(documentDiagnosticHeaders).toContain("Action");
+    expect(documentDiagnosticHeaders).toContain("Reason");
+    expect(documentDiagnostics.rowCount).toBe(4);
+    expect(documentDiagnostics.getRow(4).getCell(documentDiagnosticHeaders.indexOf("Parse Error") + 1).value).toBe("Unable to extract text");
+    const fieldDiagnostics = workbook.getWorksheet("Field Diagnostics")!;
+    const fieldDiagnosticHeaders = (fieldDiagnostics.getRow(1).values as unknown[]).slice(1);
+    expect(fieldDiagnosticHeaders).toContain("Conflicting Values");
+    expect(fieldDiagnosticHeaders).toContain("Selected Conflict");
+    expect(fieldDiagnosticHeaders).toContain("Conflict Sources");
+    const currentRow = fieldDiagnostics.getRows(2, fieldDiagnostics.rowCount - 1)?.find((row) =>
+      row.getCell(fieldDiagnosticHeaders.indexOf("Field") + 1).value === "current"
+    );
+    expect(currentRow?.getCell(fieldDiagnosticHeaders.indexOf("Status") + 1).value).toBe("conflicting");
+    expect(String(currentRow?.getCell(fieldDiagnosticHeaders.indexOf("Selected Conflict") + 1).value)).toContain("official product source priority");
+    expect(String(currentRow?.getCell(fieldDiagnosticHeaders.indexOf("Conflicting Values") + 1).value)).toContain("[selected] 2 A");
+    expect(String(currentRow?.getCell(fieldDiagnosticHeaders.indexOf("Conflict Sources") + 1).value)).toContain("pdf-table-extractor");
 
     const cleanDocuments = workbook.getWorksheet("Clean Documents")!;
     const cleanDocumentHeaders = (cleanDocuments.getRow(1).values as unknown[]).slice(1);

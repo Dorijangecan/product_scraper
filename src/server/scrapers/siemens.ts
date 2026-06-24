@@ -4,6 +4,8 @@ import { buildLocalizedProductUrls } from "./localized-urls.js";
 import { cleanText, emptyResult, mergeResults, normalizeFields } from "./normalizer.js";
 import type { ManufacturerConnector, ScrapeContext } from "./types.js";
 import { sameCatalogNumber } from "./catalog-number.js";
+import { dedupeDocuments } from "./dedupe.js";
+import { scrapeDiscoveredFallback, withDiscoveryFallbackDiagnostics } from "./discovery-fallback.js";
 
 const SIEMENS_BASE = "https://sieportal.siemens.com";
 const SIEMENS_PRODUCT_API = `${SIEMENS_BASE}/api/mall/SearchApi/GetProductsDetails`;
@@ -43,16 +45,18 @@ export class SiemensConnector implements ManufacturerConnector {
       });
       const result = parseSiemensProductApiResponse(catalogNumber, fetched);
       if (result.status !== "failed") {
-        const fallback = await context.fallback.scrape(catalogNumber, context.manufacturer.fallbackSources);
-        return mergeResults(result, fallback);
+        const { result: fallback, discovery } = await scrapeDiscoveredFallback(catalogNumber, context, { idPrefix: this.id });
+        return withDiscoveryFallbackDiagnostics(mergeResults(result, fallback), discovery);
       }
     } catch {
-      // Fall through to configured public URL templates.
+      // Fall through to generic official discovery and configured public URL templates.
     }
 
-    const fallback = await context.fallback.scrape(catalogNumber, context.manufacturer.fallbackSources);
-    if (fallback) return fallback;
-    return emptyResult(this.id, catalogNumber, "Siemens public API and configured fallback pages did not return product data.");
+    const { result, discovery } = await scrapeDiscoveredFallback(catalogNumber, context, { idPrefix: this.id });
+    return withDiscoveryFallbackDiagnostics(
+      result ?? emptyResult(this.id, catalogNumber, "Siemens public API, official discovery, and configured fallback pages did not return product data."),
+      discovery
+    );
   }
 
   private async readAuthConfig(context: ScrapeContext): Promise<SiemensAuthConfig> {
@@ -233,12 +237,3 @@ function dedupeAttributes(attributes: AttributeRecord[]): AttributeRecord[] {
   });
 }
 
-function dedupeDocuments(documents: DocumentRecord[]): DocumentRecord[] {
-  const seen = new Set<string>();
-  return documents.filter((doc) => {
-    const key = doc.url.toLowerCase();
-    if (seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  });
-}

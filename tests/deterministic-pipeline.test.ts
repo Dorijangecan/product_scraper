@@ -67,6 +67,73 @@ describe("deterministic scrape pipeline", () => {
     expect(repaired.productUrl).toBe("https://example.test/catalog/detail.aspx?ugly=true&id=ABC-123");
     expect(repaired.qualityGate?.passed).toBe(true);
   });
+
+  it("recovers a failed custom-adapter result through generic official search discovery", async () => {
+    const fetchedUrls: string[] = [];
+    const manufacturer: ManufacturerConfig = {
+      id: "customco",
+      canonicalName: "CustomCo",
+      shortName: "CUS",
+      rateLimitMs: 100,
+      officialBaseUrls: ["https://customco.test"],
+      fallbackSources: [],
+      scrapeRecipe: {
+        searchUrlTemplates: ["https://customco.test/search?keyword={part}"],
+        discoveryPolicy: { maxCandidates: 8 }
+      }
+    };
+    const initial: ProductResult = {
+      manufacturerId: "customco",
+      catalogNumber: "ABC-123",
+      status: "failed",
+      confidence: 0,
+      normalized: {},
+      attributes: [],
+      documents: [],
+      sources: [],
+      error: "Custom adapter did not find the product."
+    };
+
+    const repaired = await runDeterministicScrapePipeline(initial, "ABC-123", {
+      manufacturer,
+      http: {
+        fetchText: async (url: string) => {
+          fetchedUrls.push(url);
+          if (url === "https://customco.test/search?keyword=ABC-123") {
+            return html(url, `<article class="result" data-detail-url="/catalog/detail?id=987">
+              <strong>ABC-123 compact controller</strong>
+            </article>`);
+          }
+          if (url === "https://customco.test/catalog/detail?id=987") {
+            return html(url, `
+              <h1>ABC-123 compact controller</h1>
+              <table>
+                <tr><th>Catalog Number</th><td>ABC-123</td></tr>
+                <tr><th>Material</th><td>polycarbonate</td></tr>
+                <tr><th>Size</th><td>120 x 80 x 55 mm</td></tr>
+                <tr><th>IP rating</th><td>IP66</td></tr>
+                <tr><th>Rated voltage</th><td>24 V DC</td></tr>
+                <tr><th>Rated current</th><td>2 A</td></tr>
+              </table>
+              <a href="/docs/ABC-123-datasheet.pdf">ABC-123 datasheet</a>
+            `);
+          }
+          throw new Error(`not found: ${url}`);
+        }
+      }
+    } as never);
+
+    expect(fetchedUrls).toContain("https://customco.test/search?keyword=ABC-123");
+    expect(repaired.status).toBe("found");
+    expect(repaired.productUrl).toBe("https://customco.test/catalog/detail?id=987");
+    expect(repaired.normalized.material).toBe("polycarbonate");
+    expect(repaired.normalized.dimensions).toBe("120 x 80 x 55 mm");
+    expect(repaired.normalized.voltage).toBe("24 V DC");
+    expect(repaired.normalized.current).toBe("2 A");
+    expect(repaired.documents.some((doc) => doc.type === "datasheet")).toBe(true);
+    expect(repaired.diagnostics?.fallbackStages).toContain("discovery");
+    expect(repaired.diagnostics?.discoveredCandidates?.some((candidate) => candidate.url === "https://customco.test/catalog/detail?id=987")).toBe(true);
+  });
 });
 
 function html(url: string, body: string) {

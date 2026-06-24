@@ -15,22 +15,22 @@ const CRITICAL_FIELDS: RunCoverageField[] = ["image", "weight", "dimensions", "m
 
 export function summarizeRunItem(
   item: RunItemRecord,
-  options: { customCoverageFields?: CustomCoverageField[] } = {}
+  options: { customCoverageFields?: CustomCoverageField[]; includeImages?: boolean } = {}
 ): RunItemRecord {
   if (!item.result) return item;
   return {
     ...item,
-    coverage: buildCoverageSummary(item, options.customCoverageFields ?? []),
+    coverage: buildCoverageSummary(item, options.customCoverageFields ?? [], options.includeImages ?? true),
     result: undefined
   };
 }
 
-function buildCoverageSummary(item: RunItemRecord, customFieldDefs: CustomCoverageField[]): RunItemCoverageSummary {
+function buildCoverageSummary(item: RunItemRecord, customFieldDefs: CustomCoverageField[], includeImages: boolean): RunItemCoverageSummary {
   const result = item.result!;
   const fields: Partial<Record<RunCoverageField, RunCoverageState>> = {
     enUrl: coverageState(result, "enUrl"),
     deUrl: coverageState(result, "deUrl"),
-    image: coverageState(result, "image"),
+    image: includeImages ? coverageState(result, "image") : "not-applicable",
     weight: coverageState(result, "weight"),
     certificates: coverageState(result, "certificates"),
     dimensions: coverageState(result, "dimensions"),
@@ -38,7 +38,8 @@ function buildCoverageSummary(item: RunItemRecord, customFieldDefs: CustomCovera
     voltage: coverageState(result, "voltage"),
     current: coverageState(result, "current")
   };
-  const criticalMissing = CRITICAL_FIELDS.filter((field) => fields[field] === "missing");
+  const criticalFields = includeImages ? CRITICAL_FIELDS : CRITICAL_FIELDS.filter((field) => field !== "image");
+  const criticalMissing = criticalFields.filter((field) => fields[field] === "missing");
   const customFields = evaluateCustomFields(result, customFieldDefs);
   return {
     fields,
@@ -48,9 +49,80 @@ function buildCoverageSummary(item: RunItemRecord, customFieldDefs: CustomCovera
     qualityPassed: result.qualityGate?.passed,
     qualityMissing: result.qualityGate?.missing ?? [],
     finalCompletenessAfterMissing: result.diagnostics?.finalCompleteness?.afterMissing,
+    fieldHealth: fieldHealthSummary(result),
+    documentProcessing: documentProcessingSummary(result),
+    discovery: discoverySummary(result),
     attributeCount: result.attributes.length,
     documentCount: result.documents.length,
     evidenceCount: result.evidence?.length ?? 0
+  };
+}
+
+function fieldHealthSummary(result: ProductResult): RunItemCoverageSummary["fieldHealth"] | undefined {
+  const records = result.diagnostics?.fieldHealth;
+  if (!records?.length) return undefined;
+  const found = records.filter((record) => record.status === "found").length;
+  const missing = records.filter((record) => record.status === "missing").length;
+  const lowConfidence = records.filter((record) => record.status === "low-confidence").length;
+  const conflicting = records.filter((record) => record.status === "conflicting").length;
+  const reviewFields = records
+    .filter((record) => record.status === "missing" || record.status === "low-confidence" || record.status === "conflicting")
+    .map((record) => record.label || record.field)
+    .slice(0, 12);
+  return { found, missing, lowConfidence, conflicting, reviewFields };
+}
+
+function documentProcessingSummary(result: ProductResult): RunItemCoverageSummary["documentProcessing"] | undefined {
+  const records = result.diagnostics?.documentProcessing;
+  if (!records?.length) return undefined;
+  const parsed = records.filter((record) => record.action === "parsed").length;
+  const skipped = records.filter((record) => record.action === "skipped").length;
+  const failed = records.filter((record) => record.action === "failed").length;
+  const reviewDocuments = records
+    .filter((record) => record.action === "skipped" || record.action === "failed")
+    .map((record) => {
+      const label = record.label || record.type || record.url;
+      return `${label}: ${record.action}${record.reason ? ` (${record.reason})` : ""}`;
+    })
+    .slice(0, 12);
+  return { parsed, skipped, failed, reviewDocuments };
+}
+
+function discoverySummary(result: ProductResult): RunItemCoverageSummary["discovery"] | undefined {
+  const diagnostics = result.diagnostics;
+  if (!diagnostics) return undefined;
+
+  const attemptedUrls = diagnostics.attemptedUrls ?? [];
+  const discoveredCandidates = diagnostics.discoveredCandidates ?? [];
+  const rejectedLinks = diagnostics.rejectedLinks ?? [];
+  const documentCandidates = diagnostics.documentCandidates ?? [];
+  if (!attemptedUrls.length && !discoveredCandidates.length && !rejectedLinks.length && !documentCandidates.length) {
+    return undefined;
+  }
+
+  const acceptedDocumentCandidates = documentCandidates.filter((candidate) => candidate.status === "accepted");
+  const rejectedDocumentCandidates = documentCandidates.filter((candidate) => candidate.status === "rejected");
+  return {
+    attempted: attemptedUrls.length,
+    discovered: discoveredCandidates.length,
+    rejected: rejectedLinks.length,
+    documentCandidatesAccepted: acceptedDocumentCandidates.length,
+    documentCandidatesRejected: rejectedDocumentCandidates.length,
+    attemptedUrls: attemptedUrls.slice(0, 12),
+    topCandidates: discoveredCandidates
+      .slice()
+      .sort((a, b) => b.score - a.score)
+      .map((candidate) => `${candidate.url}: score ${candidate.score}${candidate.reason ? ` (${candidate.reason})` : ""}`)
+      .slice(0, 8),
+    rejectedLinks: rejectedLinks
+      .map((link) => `${link.url}: ${link.reason}${typeof link.score === "number" ? ` (score ${link.score})` : ""}`)
+      .slice(0, 8),
+    rejectedDocuments: rejectedDocumentCandidates
+      .map((candidate) => {
+        const label = candidate.label || candidate.type || candidate.url;
+        return `${label}: ${candidate.reason}`;
+      })
+      .slice(0, 8)
   };
 }
 

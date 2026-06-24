@@ -23,6 +23,21 @@ describe("normalizer", () => {
     expect(normalized.certificates).toContain("Declaration of Conformity");
   });
 
+  it("uses the central field registry as a generic fallback for unfamiliar spec labels", () => {
+    const normalized = normalizeFields(
+      [
+        { name: "Size", value: "120 x 80 x 55 mm" },
+        { name: "Cover material", value: "polycarbonate" },
+        { name: "UKCA", value: "UKCA" }
+      ],
+      []
+    );
+
+    expect(normalized.dimensions).toBe("120 x 80 x 55 mm");
+    expect(normalized.material).toBe("polycarbonate");
+    expect(normalized.certificates).toBe("UKCA");
+  });
+
   it("understands an operating temperature range into min/max", () => {
     const normalized = normalizeFields([{ name: "Operating temperature", value: "-40 to +80 °C" }], []);
     expect(normalized.operatingTemperatureMin).toBe("-40");
@@ -264,7 +279,7 @@ describe("normalizer", () => {
       ]
     );
 
-    expect(normalized.certificates).toContain("REACh Regulation");
+    expect(normalized.certificates).toContain("REACH Regulation");
     expect(normalized.certificates).toContain("EU Declaration of Conformity");
     expect(normalized.certificates).not.toContain("XS5");
   });
@@ -313,6 +328,45 @@ describe("normalizer", () => {
       []
     );
     expect(analogModule.voltage).toBe("24 V DC");
+  });
+
+  it("prefers output voltage for source-backed power supplies from unseen manufacturers", () => {
+    const normalized = normalizeFields(
+      [
+        {
+          group: "Product Data",
+          name: "Product Type",
+          value: "DIN rail power supply",
+          sourceType: "official",
+          sourceUrl: "https://example.test/products/PSU-24-5"
+        },
+        {
+          group: "Electrical Data",
+          name: "Input voltage",
+          value: "100...240 V AC",
+          sourceType: "official",
+          sourceUrl: "https://example.test/products/PSU-24-5"
+        },
+        {
+          group: "Electrical Data",
+          name: "Rated output voltage",
+          value: "24 V DC",
+          sourceType: "official",
+          sourceUrl: "https://example.test/products/PSU-24-5"
+        },
+        {
+          group: "Electrical Data",
+          name: "Output current",
+          value: "5 A",
+          sourceType: "official",
+          sourceUrl: "https://example.test/products/PSU-24-5"
+        }
+      ],
+      []
+    );
+
+    expect(normalized.voltage).toBe("24 V DC");
+    expect(normalized.current).toBe("5 A");
   });
 
   it("derives SCE enclosure material, wall thickness, finish, and color from page sections", () => {
@@ -785,6 +839,22 @@ describe("normalizer", () => {
 
     expect(normalized.dimensions).toBe("H 103.7 mm x W 50 mm");
     expect(normalized.dimensions).not.toContain("1000 m");
+  });
+
+  it("normalizes drawing dimensions when each axis repeats the unit", () => {
+    const normalized = normalizeFields(
+      [
+        {
+          group: "PDF Dimension Text",
+          name: "Dimensions",
+          value: "34.5 mm x 27.5 mm x 19 mm",
+          sourceType: "official"
+        }
+      ],
+      []
+    );
+
+    expect(normalized.dimensions).toBe("34.5 mm x 27.5 mm x 19 mm");
   });
 
   it("does not use Schneider package or timer pulse fields as product dimensions", () => {

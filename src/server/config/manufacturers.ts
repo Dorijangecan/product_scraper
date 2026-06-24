@@ -287,7 +287,7 @@ const builtInManufacturerConfigs: Record<string, ManufacturerConfig> = {
       "https://literature.rockwellautomation.com"
     ],
     // Matches MANUFACTURER_URL in the manual Rockwell PDTs.
-    homepageUrl: "https://www.rockwellautomation.com",
+    homepageUrl: "https://www.rockwellautomation.com/en-us.html",
     localizedUrlTemplates: [
       { locale: "en", urlTemplate: "https://www.rockwellautomation.com/en-us/products/details.{part}.html" },
       { locale: "de", urlTemplate: "https://www.rockwellautomation.com/de-de/products/details.{part}.html" }
@@ -330,12 +330,13 @@ const builtInManufacturerConfigs: Record<string, ManufacturerConfig> = {
     canonicalName: "Eaton",
     shortName: "EAT",
     rateLimitMs: 1500,
-    officialBaseUrls: ["https://www.eaton.com"],
+    officialBaseUrls: ["https://www.eaton.com", "https://www.eaton.com.cn"],
     // Matches MANUFACTURER_URL in the manual Eaton PDTs (CAD + manual variants).
     homepageUrl: "https://www.eaton.com/us/en-us.html",
     localizedUrlTemplates: [
       { locale: "en", urlTemplate: "https://www.eaton.com/us/en-us/skuPage.{partSlashBraces}.html" },
-      { locale: "de", urlTemplate: "https://www.eaton.com/de/de-de/skuPage.{partSlashBraces}.html" }
+      { locale: "de", urlTemplate: "https://www.eaton.com/de/de-de/skuPage.{partSlashBraces}.html" },
+      { locale: "zh", urlTemplate: "https://www.eaton.com.cn/cn/zh-cn/skuPage.{partSlashBraces}.html" }
     ],
     fallbackSources: [
       {
@@ -633,6 +634,7 @@ function attachBuiltInScrapeRecipes() {
   builtInManufacturerConfigs.eaton.scrapeRecipe = {
     searchUrlTemplates: [
       "https://www.eaton.com/content/eaton/us/en-us/site-search/jcr:content/root/responsivegrid/search_results.searchTerm${part}.SortBy$relevance.Facets$.startDate$.endDate$.loadMore$.json",
+      "https://www.eaton.com.cn/content/eaton/cn/zh-cn/site-search/jcr:content/root/responsivegrid/search_results.searchTerm${part}.SortBy$relevance.Facets$.startDate$.endDate$.loadMore$.json",
       "https://www.eaton.com/content/eaton/gb/en-gb/site-search/jcr:content/root/responsivegrid/search_results.searchTerm${part}.SortBy$relevance.Facets$.startDate$.endDate$.loadMore$.json",
       "https://www.eaton.com/content/eaton/de/de-de/site-search/jcr:content/root/responsivegrid/search_results.searchTerm${part}.SortBy$relevance.Facets$.startDate$.endDate$.loadMore$.json",
       "https://www.eaton.com/content/eaton/no/no-no/site-search/jcr:content/root/responsivegrid/search_results.searchTerm${part}.SortBy$relevance.Facets$.startDate$.endDate$.loadMore$.json",
@@ -1062,7 +1064,7 @@ function sanitizeLocalizedUrlTemplates(input: unknown): LocalizedUrlTemplate[] {
     .map((item) => {
       if (!item || typeof item !== "object") return undefined;
       const record = item as Partial<LocalizedUrlTemplate>;
-      const locale = record.locale === "de" ? "de" : record.locale === "en" ? "en" : undefined;
+      const locale = record.locale === "de" ? "de" : record.locale === "en" ? "en" : record.locale === "zh" ? "zh" : undefined;
       const urlTemplate = clean(String(record.urlTemplate ?? ""));
       if (!locale || !templateContainsCatalogPlaceholder(urlTemplate)) return undefined;
       return { locale, urlTemplate } satisfies LocalizedUrlTemplate;

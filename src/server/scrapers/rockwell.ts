@@ -7,6 +7,7 @@ import { dedupeAttributes, dedupeDocuments } from "./dedupe.js";
 import { buildLocalizedProductUrls } from "./localized-urls.js";
 import { cleanText, emptyResult, mergeResults, normalizeFields, splitNameValue } from "./normalizer.js";
 import { parseGenericProductPage } from "./generic.js";
+import { scrapeDiscoveredFallback, withDiscoveryFallbackDiagnostics } from "./discovery-fallback.js";
 
 const ROCKWELL_USER_AGENT =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0 Safari/537.36";
@@ -69,18 +70,21 @@ export class RockwellConnector implements ManufacturerConnector {
       };
     }
 
-    const fallback = await context.fallback.scrape(catalogNumber, context.manufacturer.fallbackSources);
-    if (fallback) {
-      return finalizeRockwellResult({
-        ...fallback,
-        diagnostics: {
-          ...fallback.diagnostics,
-          attemptedUrls: [...(fallback.diagnostics?.attemptedUrls ?? []), ...attemptedUrls]
-        }
-      });
-    }
+    const { result: fallback, discovery } = await scrapeDiscoveredFallback(catalogNumber, context, { idPrefix: "rockwell" });
+    const fallbackResult = fallback
+      ? finalizeRockwellResult(fallback)
+      : emptyResult("rockwell", catalogNumber, "No Rockwell Automation product data could be fetched through primary endpoints, official discovery, or configured fallback pages.");
 
-    return emptyResult("rockwell", catalogNumber, "No Rockwell Automation product data could be fetched.");
+    return withDiscoveryFallbackDiagnostics(
+      {
+        ...fallbackResult,
+        diagnostics: {
+          ...fallbackResult.diagnostics,
+          attemptedUrls: [...(fallbackResult.diagnostics?.attemptedUrls ?? []), ...attemptedUrls]
+        }
+      },
+      discovery
+    );
   }
 }
 
@@ -130,9 +134,7 @@ function finalizeRockwellResult(result: ProductResult): ProductResult {
   const normalized = normalizeFields(attributes, documents);
   const title = cleanText(result.title) || attrValue(attributes, /\b(product name|catalog description|description)\b/i);
   const description = cleanText(result.description) || attrValue(attributes, /\bdescription\b/i);
-  const productUrl =
-    canonicalRockwellProductUrl(result.catalogNumber) ??
-    result.productUrl;
+  const productUrl = preferredRockwellProductUrl(result);
   const richEnough = attributes.length >= 8 || documents.some((doc) => doc.type === "datasheet" || doc.type === "cad" || doc.type === "image");
   return {
     ...result,
@@ -250,40 +252,32 @@ export function parseRockwellFamilyPage(catalogNumber: string, fetched: FetchedT
 
   const $ = cheerio.load(fetched.text);
   const sourceUrl = fetched.effectiveUrl;
-  const title = cleanText($("h1").first().text()) || family.description;
-  const description = family.description;
+  const generic = parseGenericProductPage("rockwell", catalogNumber, fetched, "official", "rockwell-family-page", {
+    confidence: 0.72
+  });
+  const title = generic.title ?? cleanText($("h1").first().text());
+  const description = generic.description ?? title;
   const documents: DocumentRecord[] = [
     {
       type: "datasheet",
-      label: family.documentLabel,
+      label: "Rockwell family page",
       url: sourceUrl,
       sourceUrl,
       sourceType: "official",
       parser: "rockwell-family-page",
       confidence: 0.86
-    }
+    },
+    ...generic.documents,
+    ...extractRockwellDocumentLinks($, catalogNumber, sourceUrl, "rockwell-family-page")
   ];
   const attributes: AttributeRecord[] = [
+    ...generic.attributes,
     ...optionalAttribute("Rockwell Family", "Catalog Number", catalogNumber, sourceUrl, "rockwell-family-page"),
-    ...optionalAttribute("Rockwell Family", "Product Family", family.familyName, sourceUrl, "rockwell-family-page"),
-    ...optionalAttribute("Rockwell Family", "Product Type", family.description, sourceUrl, "rockwell-family-page"),
-    ...optionalAttribute("Rockwell Family", "Description", description, sourceUrl, "rockwell-family-page"),
-    ...optionalAttribute("Rockwell Family", "Weight", family.weight, sourceUrl, "rockwell-family-page"),
-    ...optionalAttribute("Rockwell Family", "Certifications", family.certifications, sourceUrl, "rockwell-family-page"),
-    ...optionalAttribute("Rockwell Family", "ECLASS", family.eclassCode, sourceUrl, "rockwell-family-page"),
-    ...optionalAttribute("Rockwell Family", `ECLASS ${family.eclassVersion}`, family.eclassCode, sourceUrl, "rockwell-family-page")
+    ...optionalAttribute("Rockwell Family", "Product Family", title, sourceUrl, "rockwell-family-page"),
+    ...optionalAttribute("Rockwell Family", "Description", description, sourceUrl, "rockwell-family-page")
   ];
 
-  const result = buildRockwellResult(catalogNumber, fetched, "rockwell-family-page", title, description, attributes, documents, 0.86);
-  return {
-    ...result,
-    localizedDescriptions: {
-      de: {
-        title: family.germanDescription,
-        description: family.germanDescription
-      }
-    }
-  };
+  return buildRockwellResult(catalogNumber, fetched, "rockwell-family-page", title, description, attributes, documents, 0.78);
 }
 
 export function parseRockwellDpp(catalogNumber: string, fetched: FetchedText): ProductResult | undefined {
@@ -780,80 +774,6 @@ function isIgnoredRockwellUrl(url: string): boolean {
   return /RockwellAutomation_logo|spotify\.com|privacy|sign[-_]?in|custhelp\.com/i.test(url);
 }
 
-function rockwellLiteratureDocuments(catalogNumber: string, sourceUrl: string, parser: string): DocumentRecord[] {
-  const rules: Array<{ pattern: RegExp; docs: Array<{ type: DocumentRecord["type"]; label: string; url: string }> }> = [
-    {
-      pattern: /^\s*5069-[IO]/i,
-      docs: [
-        { type: "datasheet", label: "Rockwell Compact 5000 I/O technical data", url: "https://literature.rockwellautomation.com/idc/groups/literature/documents/td/5069-td001_-en-p.pdf" }
-      ]
-    },
-    {
-      pattern: /^\s*1783-US/i,
-      docs: [
-        { type: "datasheet", label: "Rockwell Stratix 2000 technical data", url: "https://literature.rockwellautomation.com/idc/groups/literature/documents/td/1783-td002_-en-p.pdf" },
-        { type: "manual", label: "Rockwell Stratix 2000 installation instructions", url: "https://literature.rockwellautomation.com/idc/groups/literature/documents/in/1783-in003_-en-p.pdf" },
-        { type: "manual", label: "Rockwell Stratix 2000 user manual", url: "https://literature.rockwellautomation.com/idc/groups/literature/documents/um/1783-um007_-en-p.pdf" }
-      ]
-    },
-    {
-      pattern: /^\s*2198-DSD/i,
-      docs: [
-        { type: "datasheet", label: "Rockwell ArmorKinetix distributed servo drives technical data", url: "https://literature.rockwellautomation.com/idc/groups/literature/documents/td/pec-td011_-en-e.pdf" },
-        { type: "manual", label: "Rockwell ArmorKinetix distributed servo drives user manual", url: "https://literature.rockwellautomation.com/idc/groups/literature/documents/um/2198-um006_-en-p.pdf" }
-      ]
-    },
-    {
-      pattern: /^\s*140G-/i,
-      docs: [
-        { type: "datasheet", label: "Rockwell 140G molded case circuit breaker technical data", url: "https://literature.rockwellautomation.com/idc/groups/literature/documents/td/140g-td101_-en-p.pdf" }
-      ]
-    },
-    {
-      pattern: /^\s*800F-/i,
-      docs: [
-        { type: "datasheet", label: "Rockwell 800F push button technical data", url: "https://literature.rockwellautomation.com/idc/groups/literature/documents/td/800-td008_-en-p.pdf" },
-        { type: "manual", label: "Rockwell 800F push button user manual", url: "https://literature.rockwellautomation.com/idc/groups/literature/documents/um/800-um001_-en-p.pdf" }
-      ]
-    },
-    {
-      pattern: /^\s*1492-PD(?:E|ME)/i,
-      docs: [
-        { type: "datasheet", label: "Rockwell 1492 power distribution blocks technical data", url: "https://literature.rockwellautomation.com/idc/groups/literature/documents/td/1492-td013_-en-p.pdf" }
-      ]
-    },
-    {
-      pattern: /^\s*2715P-/i,
-      docs: [
-        { type: "datasheet", label: "Rockwell PanelView 5510 technical data", url: "https://literature.rockwellautomation.com/idc/groups/literature/documents/td/2715p-td001_-en-p.pdf" },
-        { type: "other", label: "Rockwell PanelView 5510 product profile", url: "https://literature.rockwellautomation.com/idc/groups/literature/documents/pp/2715-pp001_-en-p.pdf" }
-      ]
-    },
-    {
-      pattern: /^\s*856T-/i,
-      docs: [
-        { type: "datasheet", label: "Rockwell 855/856 Control Tower Stack Lights technical data", url: "https://literature.rockwellautomation.com/idc/groups/literature/documents/td/855-td001_-en-p.pdf" }
-      ]
-    },
-    {
-      pattern: /^\s*2080-LC20-/i,
-      docs: [
-        { type: "datasheet", label: "Rockwell Micro820 controller technical data", url: "https://literature.rockwellautomation.com/idc/groups/literature/documents/td/2080-td004_-en-e.pdf" }
-      ]
-    }
-  ];
-  const match = rules.find((rule) => rule.pattern.test(catalogNumber));
-  if (!match) return [];
-  return match.docs.map((doc) => ({
-    ...doc,
-    sourceUrl,
-    sourceType: "official",
-    parser: "rockwell-literature-rules",
-    stage: parser,
-    confidence: 0.74
-  }));
-}
-
 function buildRockwellResult(
   catalogNumber: string,
   fetched: FetchedText,
@@ -865,10 +785,7 @@ function buildRockwellResult(
   confidence: number
 ): ProductResult {
   const cleanAttributes = dedupeAttributes(attributes).filter((attribute) => attribute.name && attribute.value);
-  const cleanDocuments = dedupeDocuments([
-    ...documents,
-    ...rockwellLiteratureDocuments(catalogNumber, fetched.effectiveUrl, parser)
-  ]);
+  const cleanDocuments = dedupeDocuments(documents);
   const normalized = normalizeFields(cleanAttributes, cleanDocuments);
   const sourceType: SourceRecord["sourceType"] = "official";
   return {
@@ -932,6 +849,25 @@ function canonicalRockwellProductUrl(catalogNumber: string): string | undefined 
   return `https://www.rockwellautomation.com/en-us/products/details.${encoded}.html`;
 }
 
+function preferredRockwellProductUrl(result: ProductResult): string | undefined {
+  if (isCatalogConfirmedRockwellUrl(result.productUrl, result.catalogNumber)) return result.productUrl;
+  return canonicalRockwellProductUrl(result.catalogNumber) ?? result.productUrl;
+}
+
+function isCatalogConfirmedRockwellUrl(url: string | undefined, catalogNumber: string): boolean {
+  const cleaned = cleanText(url);
+  if (!cleaned) return false;
+  try {
+    const parsed = new URL(cleaned);
+    if (!/(^|\.)rockwellautomation\.com$/i.test(parsed.hostname)) return false;
+    const full = decodeURIComponent(`${parsed.pathname}${parsed.search}`);
+    if (/\/(?:search|site-search)(?:[/.?&]|$)|[?&](?:keyword|search|q)=/i.test(full)) return false;
+    return catalogTextMatches(full, catalogNumber, { compact: true, ignoreCase: true });
+  } catch {
+    return false;
+  }
+}
+
 function dppPayloadMatchesCatalog(payload: Record<string, unknown>, catalogNumber: string): boolean {
   const values = dppValuesByLabel(payload.elements, /^(?:registered id|catalog number|catalogue number)$/i);
   if (!values.length) return true;
@@ -962,30 +898,14 @@ function classifyRockwellDppDocument(label: string, url: string, contentType: st
 
 interface RockwellFamilyPageRule {
   url: string;
-  familyName: string;
-  description: string;
-  documentLabel: string;
   identity: RegExp;
-  germanDescription?: string;
-  weight?: string;
-  certifications?: string;
-  eclassCode?: string;
-  eclassVersion?: string;
 }
 
 function rockwellFamilyForCatalog(catalogNumber: string): RockwellFamilyPageRule | undefined {
   if (/^\s*2080-LC20-/i.test(catalogNumber)) {
     return {
       url: "https://www.rockwellautomation.com/en-us/products/hardware/allen-bradley/programmable-controllers/micro-controllers/micro800-family/micro820-controllers.html",
-      familyName: "Micro820",
-      description: "Micro820 Controller",
-      documentLabel: "Technical Datasheet (EN)",
-      identity: /\bMicro820\b/i,
-      germanDescription: "Micro820-Steuerung",
-      weight: "0.38 kg",
-      certifications: "UL, CE, RCM, KC, ABS, ODVA, BV, UKCA",
-      eclassCode: "27242202",
-      eclassVersion: "14"
+      identity: /\bMicro820\b/i
     };
   }
   return undefined;

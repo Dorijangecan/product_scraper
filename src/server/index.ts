@@ -226,7 +226,13 @@ app.get("/api/runs/:id", (req, res) => {
     const manufacturer = getManufacturerConfig(run.manufacturerId);
     const customCoverageFields =
       run.options?.customCoverageFields ?? manufacturer?.customCoverageFields ?? [];
-    res.json({ run, items: items.map((item) => summarizeRunItem(item, { customCoverageFields })) });
+    res.json({
+      run,
+      items: items.map((item) => summarizeRunItem(item, {
+        customCoverageFields,
+        includeImages: run.options?.downloadImages !== false
+      }))
+    });
     return;
   }
   res.json({ run, items });

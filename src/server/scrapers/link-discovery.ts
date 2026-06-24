@@ -109,6 +109,12 @@ export function discoverProductLinksWithDiagnostics(html: string, baseUrl: strin
   const decoded = html.replace(/\\\//g, "/").replace(/&amp;/g, "&");
   const compactPart = compactCatalogNumber(catalogNumber).toLowerCase();
   if (compactPart) {
+    for (const entry of inlineStructuredUrlValues(decoded)) {
+      const context = inlineUrlContext(decoded, entry.index, entry.value.length);
+      if (!compactCatalogNumber(`${entry.value} ${context}`).toLowerCase().includes(compactPart)) continue;
+      addCandidate(entry.value, context, `inline ${entry.key} value`, 14);
+      if (isRootRelativePathWithoutSlash(entry.value)) addCandidate(`/${entry.value}`, context, `inline ${entry.key} root-relative value`, 16);
+    }
     const urlPattern = /https?:\/\/[^"'<>\s)]+|\/[a-z0-9][^"'<>\s)]*/gi;
     for (const match of decoded.matchAll(urlPattern)) {
       const rawUrl = match[0];
@@ -122,6 +128,40 @@ export function discoverProductLinksWithDiagnostics(html: string, baseUrl: strin
     candidates: [...candidates.values()].sort((left, right) => right.score - left.score || left.url.length - right.url.length).slice(0, 8),
     rejected: [...rejected.values()].sort((left, right) => right.score - left.score || left.url.length - right.url.length).slice(0, 20)
   };
+}
+
+function inlineStructuredUrlValues(text: string): Array<{ key: string; value: string; index: number }> {
+  const values: Array<{ key: string; value: string; index: number }> = [];
+  const pattern =
+    /["']?(url|href|link|productUrl|product_url|detailUrl|detail_url|pdpUrl|pdp_url|itemUrl|item_url|path|route)["']?\s*:\s*["']([^"'<>]+)["']/gi;
+  for (const match of text.matchAll(pattern)) {
+    const key = match[1];
+    const value = cleanStructuredUrlValue(match[2]);
+    if (!value || !looksLikeStructuredProductPath(value)) continue;
+    values.push({ key, value, index: match.index ?? 0 });
+  }
+  return values;
+}
+
+function cleanStructuredUrlValue(value: string): string {
+  return value
+    .trim()
+    .replace(/\\u002f/gi, "/")
+    .replace(/\\u0026/gi, "&")
+    .replace(/\\\//g, "/")
+    .replace(/&amp;/gi, "&");
+}
+
+function looksLikeStructuredProductPath(value: string): boolean {
+  if (/^(?:javascript|mailto|tel|data):/i.test(value)) return false;
+  if (/^https?:\/\//i.test(value) || /^\//.test(value)) return true;
+  if (/^[?#]/.test(value)) return false;
+  if (/\s/.test(value)) return false;
+  return /\b(?:product|products|catalog|detail|details|pdp|sku|item|partnumber|skupage)\b|[?&](?:id|item|sku|part|product|record)=/i.test(value);
+}
+
+function isRootRelativePathWithoutSlash(value: string): boolean {
+  return !/^https?:\/\//i.test(value) && !value.startsWith("/") && looksLikeStructuredProductPath(value);
 }
 
 function inlineUrlContext(text: string, index: number, length: number): string {

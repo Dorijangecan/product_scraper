@@ -7,18 +7,17 @@ import { bestDimensionAxisValue, classifyDocument, cleanText, emptyResult, merge
 import { buildLocalizedProductUrls } from "./localized-urls.js";
 import { catalogTextMatches, sameCatalogNumber } from "./catalog-number.js";
 import { dedupeAttributes, dedupeDocuments, dedupeSources } from "./dedupe.js";
+import { documentUrlLooksDownloadable } from "./document-url.js";
 import { enrichResultFromDownloadedDocuments } from "./document-enrichment.js";
 import { findBestProductLink } from "./link-discovery.js";
 import { renderProductPage, type ModalSection } from "./browser-renderer.js";
+import { scrapeDiscoveredFallback, withDiscoveryFallbackDiagnostics } from "./discovery-fallback.js";
 
 const BALLUFF_PRODUCT_LOCALES = ["en-gb", "en-us", "de-de", "en-de", "en-ca", "en-au", "en-in", "en-xi"];
 const BALLUFF_ACCEPT_LANGUAGE = "en-GB,en;q=0.9,en-US;q=0.8,de;q=0.6";
 const BALLUFF_REFERER = "https://www.balluff.com/en-gb/products";
 const BALLUFF_BOT_USER_AGENT = "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)";
 const BALLUFF_PARSER_VERSION = "balluff-v3";
-const BALLUFF_KNOWN_PRODUCT_CODE_ALIASES: Record<string, string[]> = {
-  BTL4W6A: ["BTL4E6W"]
-};
 const BALLUFF_EXPANDED_SECTIONS_RECIPE: ScrapeRecipeConfig = {
   interactionPolicy: {
     closeOverlaySelectors: [
@@ -298,11 +297,12 @@ export class BalluffConnector implements ManufacturerConnector {
       lastError = error;
     }
 
-    return (
-      bestBalluffResult(partialResults) ??
-      partialResults[0] ??
-      emptyResult("balluff", catalogNumber, lastError instanceof Error ? lastError.message : "Balluff fetch failed.")
-    );
+    const primary = bestBalluffResult(partialResults) ?? partialResults[0];
+    const { result: fallback, discovery } = await scrapeDiscoveredFallback(catalogNumber, context, { idPrefix: this.id });
+    const result = primary && fallback
+      ? mergeBalluffResults(primary, fallback)
+      : fallback ?? primary ?? emptyResult("balluff", catalogNumber, lastError instanceof Error ? lastError.message : "Balluff fetch failed.");
+    return withDiscoveryFallbackDiagnostics(result, discovery);
   }
 }
 
@@ -940,9 +940,10 @@ function balluffSearchTerms(catalogNumber: string): string[] {
 
 function balluffCatalogAliases(catalogNumber: string): string[] {
   const cleaned = cleanText(catalogNumber).toUpperCase();
-  const aliases = [...(BALLUFF_KNOWN_PRODUCT_CODE_ALIASES[cleaned] ?? [])];
-  if (/^BDG\s+FB058-[A-Z0-9]+-DSR[BG]\d-/i.test(catalogNumber)) aliases.push("MP11418306");
-  return [...new Set(aliases)];
+  const tokens = cleanText(catalogNumber)
+    .match(/\b[A-Z]{2,4}[0-9][0-9A-Z]{3,8}\b/gi)
+    ?.map((token) => token.toUpperCase()) ?? [];
+  return [...new Set(tokens.filter((token) => token !== cleaned && isBalluffProductPageCode(token)))];
 }
 
 function isBalluffProductPageCode(value: string): boolean {
@@ -2407,7 +2408,9 @@ function decodeHtmlAttribute(value: string): string {
 }
 
 function isBalluffDocumentUrl(url: string): boolean {
+  const balluffDownloadHost = /(?:^|\/\/)(?:[^/]+\.)?balluff\.com\b|publications\.balluff\.com|assets\.balluff\.com/i.test(url);
   return (
+    (balluffDownloadHost && documentUrlLooksDownloadable(url)) ||
     /publications\.balluff\.com/i.test(url) ||
     /partcommunity\.com/i.test(url) ||
     /eprel\.ec\.europa\.eu/i.test(url) ||

@@ -9,6 +9,7 @@ import type {
   MarkerExtractionRule,
   MatchPolicyConfig,
   ProductResult,
+  ScrapeDiagnostics,
   SourceRecord
 } from "../../shared/types.js";
 import type { CachedHttpClient, FetchedText } from "./http-client.js";
@@ -18,8 +19,39 @@ import { catalogTextMatches, compactCatalogNumber, fillCatalogTemplate } from ".
 import { dedupeAttributes, dedupeDocuments } from "./dedupe.js";
 import { extractMarkerData } from "./marker-extractor.js";
 import { discoverProductLinksWithDiagnostics, type ProductLinkDiscoveryResult } from "./link-discovery.js";
+import { documentUrlLooksDownloadable, documentUrlLooksRelevant } from "./document-url.js";
+import { listFieldRegistryDocumentLabels } from "./field-registry.js";
+import { extractElectricalSpecAttributesFromText } from "./electrical-spec-miner.js";
 
 const GENERIC_PARSER_VERSION = "generic-v2";
+
+const PLAIN_TEXT_METADATA_LABELS = [
+  "Product type",
+  "Product family",
+  "Product line",
+  "Type",
+  "GTIN",
+  "Country of origin",
+  "Customs tariff number",
+  "Item number",
+  "Packing unit",
+  "Minimum order quantity",
+  "Sales key",
+  "Product key",
+  "Connection method",
+  "Mounting",
+  "Mounting type",
+  "Pitch",
+  "Number of positions",
+  "Number of rows",
+  "Number of connections",
+  "Contact surface",
+  "Plug-in system",
+  "Type of packaging"
+];
+const PLAIN_TEXT_INLINE_LABELS = uniqueStrings([...listFieldRegistryDocumentLabels(), ...PLAIN_TEXT_METADATA_LABELS])
+  .filter((label) => label.length >= 2)
+  .sort((left, right) => right.length - left.length || left.localeCompare(right));
 
 interface GenericParseOptions {
   match?: MatchPolicyConfig;
@@ -265,6 +297,7 @@ export function parseGenericProductPage(
   const description = cleanText($("meta[name='description']").attr("content") || $("meta[property='og:description']").attr("content"));
   const attributes: AttributeRecord[] = [];
   const documents: DocumentRecord[] = [];
+  const documentCandidates: NonNullable<ScrapeDiagnostics["documentCandidates"]> = [];
   attributes.push(...extractCatalogIdentityAttributes($, catalogNumber, fetched.effectiveUrl));
   const jsonLdProducts = readJsonLdProducts($);
   for (const product of jsonLdProducts) {
@@ -328,6 +361,7 @@ export function parseGenericProductPage(
   attributes.push(...extractProductSectionAttributes($, fetched.effectiveUrl));
   attributes.push(...extractLabeledSpecAttributes($, fetched.effectiveUrl));
   attributes.push(...extractSemanticSpecAttributes($, fetched.effectiveUrl));
+  attributes.push(...extractSectionAwareSpecAttributes($, fetched.effectiveUrl));
   attributes.push(...extractSummaryAttributes(title, description, fetched.effectiveUrl));
 
   $("tr").each((_, element) => {
@@ -391,6 +425,11 @@ export function parseGenericProductPage(
 
   attributes.push(...extractPlainTextAttributes(fetched.text, fetched.effectiveUrl));
   attributes.push(...extractKnownPlainTextSpecAttributes(fetched.text, fetched.effectiveUrl));
+  attributes.push(...extractElectricalSpecAttributesFromText({
+    text: fetched.text,
+    sourceUrl: fetched.effectiveUrl,
+    group: "Electrical Text"
+  }));
   documents.push(...extractPlainTextDocumentLinks(fetched.text, fetched.effectiveUrl, catalogNumber, options));
   documents.push(...extractHiddenDocumentLinks($, fetched.text, fetched.effectiveUrl, catalogNumber, options));
 
@@ -401,21 +440,38 @@ export function parseGenericProductPage(
   $("a[href]").each((_, element) => {
     const href = $(element).attr("href");
     if (!href) return;
-    const absolute = new URL(href, fetched.effectiveUrl).toString();
+    const absolute = toAbsoluteUrl(href, fetched.effectiveUrl);
+    if (!absolute) {
+      documentCandidates.push({ url: href, status: "rejected", reason: "Invalid or non-HTTP document URL.", sourceUrl: fetched.effectiveUrl });
+      return;
+    }
     const policyDocumentMatch = matchesAnyPattern(absolute, options.extractionPolicy?.documentUrlPatterns);
-    if (!isDownloadableProductDocumentUrl(absolute) && !policyDocumentMatch) return;
-    if (matchesAnyPattern(absolute, options.extractionPolicy?.ignoredDocumentUrlPatterns)) return;
     const rowContext = documentContextForAnchor($, element);
     const label = cleanText($(element).text() || $(element).attr("aria-label") || $(element).attr("title")) || documentLabelFromContext(rowContext, absolute);
-    const type = classifyDocument(`${label} ${rowContext}`, absolute);
+    const labelType = classifyDocument(label, absolute);
+    const type = labelType === "other" ? classifyDocument(`${label} ${rowContext}`, absolute) : labelType;
+    if (matchesAnyPattern(absolute, options.extractionPolicy?.ignoredDocumentUrlPatterns)) {
+      documentCandidates.push({ url: absolute, label, type, status: "rejected", reason: "Matched ignored document URL pattern.", sourceUrl: fetched.effectiveUrl });
+      return;
+    }
+    if (!isDocumentUrlWithContext(absolute, `${label} ${rowContext}`, type) && !policyDocumentMatch) {
+      documentCandidates.push({ url: absolute, label, type, status: "rejected", reason: "Link did not look like a product document.", sourceUrl: fetched.effectiveUrl });
+      return;
+    }
+    if (isUnrelatedPolicyDocument(label, rowContext, absolute, catalogNumber, options)) {
+      documentCandidates.push({ url: absolute, label, type, status: "rejected", reason: "Rejected unrelated policy/legal document.", sourceUrl: fetched.effectiveUrl });
+      return;
+    }
     if (
       type === "other" &&
       !policyDocumentMatch &&
       !catalogTextMatches(absolute, catalogNumber, options.match) &&
       !catalogTextMatches(rowContext, catalogNumber, options.match)
     ) {
+      documentCandidates.push({ url: absolute, label, type, status: "rejected", reason: "Generic document link did not match catalog identity.", sourceUrl: fetched.effectiveUrl });
       return;
     }
+    documentCandidates.push({ url: absolute, label, type, status: "accepted", reason: policyDocumentMatch ? "Matched configured document URL pattern." : "Recognized product document link.", sourceUrl: fetched.effectiveUrl });
     documents.push({
       type,
       label,
@@ -460,6 +516,11 @@ export function parseGenericProductPage(
     normalized,
     attributes: cleanAttributes,
     documents: cleanDocuments,
+    diagnostics: documentCandidates.length
+      ? {
+          documentCandidates: documentCandidates.slice(0, 120)
+        }
+      : undefined,
     sources: [
       {
         url: fetched.effectiveUrl,
@@ -647,16 +708,21 @@ function isLikelyImageUrl(url: string): boolean {
   return /\.(?:png|jpe?g|webp|gif|avif|svg)(?:[?#]|$)/i.test(url) || /\/is\/image\/|\/mdmfiles\/|\/images?\/|\/api\/og\?|\/opengraph-image(?:[?#]|$)/i.test(url);
 }
 
-function isDownloadableProductDocumentUrl(url: string): boolean {
-  return (
-    /\.(pdf|zip|dwg|dxf|stp|step)(\?|$)/i.test(url) ||
-    /\.download\?[^#]*(?:file|uri)=[^#]*\.(?:pdf|zip|dwg|dxf|stp|step)/i.test(url) ||
-    /[?&](?:format|output|filetype|type)=pdf\b/i.test(url) ||
-    /[?&](?:documentid|documentId|docId|mediaId)=/i.test(url) ||
-    /\/teddatasheet\/?\?[^#]*(?:format=pdf|mlfbs=)/i.test(url) ||
-    /\/documents\/(?:td|in|sg)\//i.test(url) ||
-    /\/cutsheet(?:[?#]|$)/i.test(url)
-  );
+function isDocumentUrlWithContext(url: string, context: string, type: DocumentRecord["type"]): boolean {
+  return documentUrlLooksRelevant(url, context, type);
+}
+
+function isUnrelatedPolicyDocument(
+  label: string,
+  context: string,
+  url: string,
+  catalogNumber: string,
+  options: GenericParseOptions
+): boolean {
+  const text = `${label} ${url}`;
+  if (!/\b(?:terms?|conditions?|privacy|cookies?|legal|returns?|shipping|sales policy|warranty)\b|termsconditions/i.test(text)) return false;
+  if (/\b(?:certificate|declaration|conformity|datasheet|data\s*sheet|manual|instruction|installation)\b/i.test(`${label} ${context}`)) return false;
+  return !catalogTextMatches(label, catalogNumber, options.match) && !catalogTextMatches(url, catalogNumber, options.match);
 }
 
 function imageIdentity(url: string): string {
@@ -834,7 +900,7 @@ function readEmbeddedProductData($: cheerio.CheerioAPI): Record<string, unknown>
 function documentContextForAnchor($: cheerio.CheerioAPI, element: Parameters<cheerio.CheerioAPI>[0]): string {
   const parentWithHeading = $(element)
     .parents()
-    .filter((_, parent) => $(parent).children("h2,h3,h4").length > 0)
+    .filter((_, parent) => !/^(?:html|body)$/i.test(parent.tagName ?? "") && $(parent).children("h2,h3,h4").length > 0)
     .first();
   const headedContext = cleanText(parentWithHeading.text());
   if (headedContext && headedContext.length <= 260) return headedContext;
@@ -852,7 +918,8 @@ function documentContextForAnchor($: cheerio.CheerioAPI, element: Parameters<che
   ].join(",");
   const nearest = cleanText($(element).closest(contextSelectors).first().text());
   if (nearest && nearest.length <= 260) return nearest;
-  const parent = cleanText($(element).parent().text());
+  const parentElement = $(element).parent();
+  const parent = /^(?:html|body)$/i.test(parentElement.get(0)?.tagName ?? "") ? "" : cleanText(parentElement.text());
   if (parent && parent.length <= 260) return parent;
   return nearest || parent;
 }
@@ -1024,7 +1091,7 @@ function firstString(record: Record<string, unknown>, keys: string[]): string | 
 function maybeAddDocument(value: string, label: string, sourceUrl: string, documents: DocumentRecord[]) {
   const absolute = toAbsoluteUrl(value, sourceUrl);
   if (!absolute) return;
-  if (!isDownloadableProductDocumentUrl(absolute) && !isLikelyImageUrl(absolute)) return;
+  if (!documentUrlLooksDownloadable(absolute) && !isLikelyImageUrl(absolute)) return;
   documents.push({
     type: classifyDocument(label, absolute),
     label: cleanText(label) || absolute.split("/").pop() || "Document",
@@ -1346,7 +1413,7 @@ function documentsFromEmbeddedResourceTable(table: unknown, sourceUrl: string): 
   for (const row of dataRows) {
     const urlValue = tableValueByHeader(headers, row, /(?:document|resource)?\s*url|href|download/i) ?? row.map(tableCellText).find((value) => Boolean(toAbsoluteUrl(value, sourceUrl)));
     const absolute = urlValue ? toAbsoluteUrl(urlValue, sourceUrl) : undefined;
-    if (!absolute || (!isDownloadableProductDocumentUrl(absolute) && !isLikelyImageUrl(absolute))) continue;
+    if (!absolute || (!documentUrlLooksDownloadable(absolute) && !isLikelyImageUrl(absolute))) continue;
     const category = tableValueByHeader(headers, row, /category|group|section/i);
     const docType = tableValueByHeader(headers, row, /^type$|document type|file type/i);
     const name = tableValueByHeader(headers, row, /^(?:document|resource)\s*name$|^name$|title|description/i) ?? pathLikeBaseName(new URL(absolute).pathname);
@@ -1609,6 +1676,217 @@ function extractSemanticSpecAttributes($: cheerio.CheerioAPI, sourceUrl: string)
   return dedupeAttributes(attributes).slice(0, 180);
 }
 
+function extractSectionAwareSpecAttributes($: cheerio.CheerioAPI, sourceUrl: string): AttributeRecord[] {
+  const attributes: AttributeRecord[] = [];
+  const seenContainers = new Set<unknown>();
+  const containers = $(
+    [
+      "section",
+      "article",
+      "[role='tabpanel']",
+      "[class*='spec']",
+      "[id*='spec']",
+      "[class*='tech']",
+      "[id*='tech']",
+      "[class*='attribute']",
+      "[id*='attribute']",
+      "[class*='property']",
+      "[id*='property']",
+      "[class*='product-detail']",
+      "[id*='product-detail']",
+      "[class*='accordion']",
+      "[id*='accordion']",
+      "[class*='tab']",
+      "[id*='tab']",
+      "[class*='feature']",
+      "[id*='feature']"
+    ].join(",")
+  );
+
+  const push = (name: string | undefined, value: string | undefined, group: string) => {
+    const cleanName = cleanSpecPairLabel(name);
+    const cleanValue = cleanSpecPairValue(value, cleanName);
+    if (!isUsefulSectionAwareSpecPair(cleanName, cleanValue)) return;
+    attributes.push({ group, name: cleanName, value: cleanValue, sourceUrl });
+  };
+
+  containers.slice(0, 500).each((_, container) => {
+    if (seenContainers.has(container)) return;
+    seenContainers.add(container);
+    if (!isLikelySpecContainer($, container)) return;
+    const group = sectionAwareSpecGroup($, container);
+
+    for (const pair of classHintSpecPairs($, container)) {
+      push(pair.name, pair.value, group);
+    }
+
+    $(container)
+      .find("[class*='row'],[class*='item'],[class*='property'],[class*='attribute'],[class*='field'],[class*='detail'],[class*='spec']")
+      .slice(0, 220)
+      .each((__, row) => {
+        const pair = childElementSpecPair($, row);
+        if (pair) push(pair.name, pair.value, group);
+      });
+
+    $(container)
+      .children("div,li,p")
+      .slice(0, 160)
+      .each((__, row) => {
+        const pair = childElementSpecPair($, row) ?? splitNameValue($(row).text());
+        if (pair) push(pair.name, pair.value, group);
+      });
+  });
+
+  return dedupeAttributes(attributes).slice(0, 180);
+}
+
+function isLikelySpecContainer($: cheerio.CheerioAPI, element: Parameters<cheerio.CheerioAPI>[0]): boolean {
+  const tagName = String((element as { tagName?: string } | undefined)?.tagName ?? "").toLowerCase();
+  if (/^(?:html|body|head|script|style|noscript|nav|footer|header|form|button|select|option)$/i.test(tagName)) return false;
+  const text = cleanText($(element).text());
+  if (!text || text.length < 8 || text.length > 9000) return false;
+  const context = cleanText(
+    [
+      $(element).attr("class"),
+      $(element).attr("id"),
+      $(element).attr("role"),
+      $(element).attr("aria-label"),
+      $(element).find("h2,h3,h4,h5,[role='heading'],[class*='heading'],[class*='title']").first().text()
+    ]
+      .filter(Boolean)
+      .join(" ")
+  );
+  return /\b(?:spec|technical|tech|electrical|mechanical|attribute|property|characteristic|parameter|feature|detail|data|rating)\b/i.test(context);
+}
+
+function classHintSpecPairs($: cheerio.CheerioAPI, container: Parameters<cheerio.CheerioAPI>[0]): Array<{ name: string; value: string }> {
+  const pairs: Array<{ name: string; value: string }> = [];
+  $(container)
+    .find(
+      [
+        "[class*='spec-label']",
+        "[class*='attribute-label']",
+        "[class*='field-label']",
+        "[class*='property-label']",
+        "[class*='label']",
+        "[class*='spec-name']",
+        "[class*='attribute-name']",
+        "[class*='property-name']",
+        "[class*='characteristic-name']"
+      ].join(",")
+    )
+    .slice(0, 180)
+    .each((_, labelElement) => {
+      if (hasValueClassHint($, labelElement)) return;
+      const name = cleanSpecPairLabel($(labelElement).text());
+      if (!isUsefulSpecLabel(name)) return;
+      const value = valueForClassHintLabel($, labelElement);
+      if (value) pairs.push({ name, value });
+    });
+  return pairs;
+}
+
+function valueForClassHintLabel($: cheerio.CheerioAPI, labelElement: Parameters<cheerio.CheerioAPI>[0]): string | undefined {
+  const parent = $(labelElement).parent();
+  const hintedValue = parent
+    .find(
+      [
+        "[class*='spec-value']",
+        "[class*='attribute-value']",
+        "[class*='field-value']",
+        "[class*='property-value']",
+        "[class*='value']",
+        "[class*='characteristic-value']"
+      ].join(",")
+    )
+    .filter((_, valueElement) => valueElement !== labelElement)
+    .first();
+  if (hintedValue.length) return cleanSectionValue(hintedValue.text());
+
+  const next = $(labelElement).next();
+  const nextText = cleanSectionValue(next.text());
+  if (next.length && nextText && nextText.length <= 300) return nextText;
+
+  if (parent.length && parent.children().length <= 8) {
+    const clone = parent.clone();
+    clone.children().filter((_, child) => child === labelElement).first().remove();
+    const value = cleanSectionValue(clone.text()).replace(/^[:ÄŹÄ˝Ĺˇ]\s*/, "");
+    if (value && value.length <= 300) return value;
+  }
+
+  return undefined;
+}
+
+function childElementSpecPair($: cheerio.CheerioAPI, row: Parameters<cheerio.CheerioAPI>[0]): { name: string; value: string } | undefined {
+  if ($(row).is("script,style,noscript,table,thead,tbody,tr,ul,ol,select,button,a")) return undefined;
+  const children = $(row)
+    .children()
+    .filter((_, child) => !/^(?:script|style|noscript|svg|img|picture|button|a)$/i.test(String(child.tagName ?? "")))
+    .toArray();
+  if (children.length < 2 || children.length > 8) return undefined;
+
+  const texts = children.map((child) => cleanSectionValue($(child).text())).filter(Boolean);
+  if (texts.length < 2) return undefined;
+  const [name, ...valueParts] = texts;
+  const value = valueParts.join(" | ");
+  if (!isUsefulSectionAwareSpecPair(cleanSpecPairLabel(name), cleanSpecPairValue(value, name))) return undefined;
+  return { name, value };
+}
+
+function sectionAwareSpecGroup($: cheerio.CheerioAPI, element: Parameters<cheerio.CheerioAPI>[0]): string {
+  const aria = cleanText($(element).attr("aria-label"));
+  if (aria && aria.length <= 90 && /\b(?:spec|technical|tech|electrical|mechanical|data|attribute|characteristic|parameter)\b/i.test(aria)) return aria;
+  const ownHeading = cleanText($(element).children("h2,h3,h4,h5,[role='heading'],[class*='heading'],[class*='title']").first().text());
+  if (ownHeading && ownHeading.length <= 90) return ownHeading;
+  const descendantHeading = cleanText($(element).find("h2,h3,h4,h5,[role='heading'],[class*='heading'],[class*='title']").first().text());
+  if (descendantHeading && descendantHeading.length <= 90) return descendantHeading;
+  const previousHeading = cleanText($(element).prevAll("h2,h3,h4,h5,[role='heading']").first().text());
+  if (previousHeading && previousHeading.length <= 90) return previousHeading;
+  return "Product Specifications";
+}
+
+function cleanSpecPairLabel(label: string | undefined): string {
+  return cleanText(label)
+    .replace(/[:ÄŹÄ˝Ĺˇ]\s*$/, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function cleanSpecPairValue(value: string | undefined, label: string): string {
+  let cleaned = cleanSectionValue(value ?? "").replace(/^[:ÄŹÄ˝Ĺˇ]\s*/, "");
+  if (label) cleaned = cleaned.replace(new RegExp(`^${escapeRegex(cleanText(label))}\\s*[:ÄŹÄ˝Ĺˇ]?\\s*`, "i"), "");
+  return cleanSectionValue(applyLabelUnitHintToSpecValue(label, cleaned));
+}
+
+function applyLabelUnitHintToSpecValue(label: string, value: string): string {
+  const unit = cleanText(label.match(/\[\s*(m?v|k?v|m?a|k?a|m?w|k?w|v|a|w)\s*\]/i)?.[1] ?? "");
+  if (!unit || !/[-+]?\d/.test(value)) return value;
+  const normalizedUnit = unit === unit.toLowerCase() ? unit.replace(/^([mkv])?([vaw])$/i, (_, prefix: string = "", base: string) => `${prefix}${base.toUpperCase()}`) : unit;
+  const unitKindPattern =
+    /v$/i.test(normalizedUnit) ? /\b(?:mV|V|kV|VAC|VDC|Vac|Vdc)\b/i :
+    /a$/i.test(normalizedUnit) ? /\b(?:uA|mA|A|kA)\b/i :
+    /\b(?:mW|W|kW)\b/i;
+  if (unitKindPattern.test(value)) return value;
+  if (/\b(?:AC|DC)\b/i.test(value)) return value.replace(/([-+]?\d+(?:[.,]\d+)?(?:\s*(?:\.\.\.|-|to)\s*[-+]?\d+(?:[.,]\d+)?)?)\s+(AC|DC)\b/i, `$1 ${normalizedUnit} $2`);
+  return value.replace(/([-+]?\d+(?:[.,]\d+)?(?:\s*(?:\.\.\.|-|to)\s*[-+]?\d+(?:[.,]\d+)?)?)/, `$1 ${normalizedUnit}`);
+}
+
+function isUsefulSectionAwareSpecPair(name: string, value: string): boolean {
+  if (!name || !value) return false;
+  if (name.length > 120 || value.length > 300) return false;
+  if (!isUsefulSpecLabel(name) || !isUsefulDataRowValue(value)) return false;
+  if (cleanText(name).toLowerCase() === cleanText(value).toLowerCase()) return false;
+  if (/^(?:download|downloads|resources?|documents?|manuals?|videos?|view|show|hide|read more|learn more|add to cart|quantity)$/i.test(name)) return false;
+  if (/^(?:download|downloads|view|show|hide|select|read more|learn more|copy table)$/i.test(value)) return false;
+  if (/\b(?:privacy|cookie|terms?|conditions?|newsletter|subscribe|login|sign in)\b/i.test(`${name} ${value}`)) return false;
+  return /[A-Za-z0-9]/.test(value);
+}
+
+function hasValueClassHint($: cheerio.CheerioAPI, element: Parameters<cheerio.CheerioAPI>[0]): boolean {
+  const context = cleanText([$(element).attr("class"), $(element).attr("id")].filter(Boolean).join(" "));
+  return /\bvalue\b|(?:^|[-_])value(?:$|[-_])/i.test(context);
+}
+
 function semanticSpecGroup($: cheerio.CheerioAPI, element: Parameters<cheerio.CheerioAPI>[0]): string {
   const container = $(element).closest("[id*='spec'],[class*='spec'],[id*='tech'],[class*='tech'],[id*='attribute'],[class*='attribute'],section,article,div");
   const heading = cleanText(container.find("h2,h3,h4,[class*='heading'],[class*='title']").first().text());
@@ -1769,6 +2047,8 @@ function extractKnownPlainTextSpecAttributes(text: string, sourceUrl: string): A
     attributes.push({ group: "Plain Text Specs", name, value, sourceUrl });
   }
 
+  attributes.push(...extractDelimitedPlainTextSpecAttributes(normalizedText, sourceUrl));
+
   const fixedPatterns: Array<{
     name: string | ((match: RegExpMatchArray) => string);
     value: (match: RegExpMatchArray) => string;
@@ -1861,22 +2141,61 @@ function extractKnownPlainTextSpecAttributes(text: string, sourceUrl: string): A
     );
   }
 
-  const color = normalizedText.match(/\bColor\s+([A-Za-z][A-Za-z0-9 /().-]{1,80}?)(?=\s+Material\b|\s+Base element material\b|\s+Components\b|$)/i);
-  if (color) attributes.push({ group: "Plain Text Specs", name: "Color", value: cleanInlineSpecValue(color[1]), sourceUrl });
-
-  const material = normalizedText.match(/\bMaterial\s+([A-Za-z][A-Za-z0-9 /().-]{1,80}?)(?=\s+Base element material\b|\s+Components\b|$)/i);
-  if (material) attributes.push({ group: "Plain Text Specs", name: "Material", value: cleanInlineSpecValue(material[1]), sourceUrl });
-
-  const baseMaterial = normalizedText.match(/\bBase element material\s+([A-Za-z][A-Za-z0-9 /().-]{1,80}?)(?=\s+Components\b|$)/i);
-  if (baseMaterial) attributes.push({ group: "Plain Text Specs", name: "Base element material", value: cleanInlineSpecValue(baseMaterial[1]), sourceUrl });
-
   return dedupeAttributes(attributes).slice(0, 120);
 }
 
 function isKnownInlineSpecLabel(name: string): boolean {
-  return /^(?:product type|product family|product line|type|nominal current|rated current|nominal voltage|rated voltage(?:\s*\([^)]{1,24}\))?|nominal cross section|cross section|number of potentials|number of rows|number of positions(?: per row)?|number of connections|pitch|connection method|mounting|mounting type|color|contact surface|contact connection type|pin layout|solder pin(?:\s*\[[^\]]+\])?|number of solder pins per potential|plug-in system|type of packaging|item number|packing unit|minimum order quantity|sales key|product key|gtin|weight per piece(?:\s*\([^)]{1,40}\))?|customs tariff number|country of origin)$/i.test(
-    name
+  const normalized = normalizePlainTextSpecLabel(name);
+  if (PLAIN_TEXT_INLINE_LABELS.some((label) => normalizePlainTextSpecLabel(label) === normalized)) return true;
+  return /^(?:rated|nominal)\s+(?:current|voltage)(?:\s*\([^)]{1,24}\))?$|^(?:nominal\s+)?cross\s+section$|^number\s+of\s+(?:potentials|positions(?:\s+per\s+row)?|solder\s+pins\s+per\s+potential)$|^contact\s+connection\s+type$|^pin\s+layout$|^solder\s+pin(?:\s*\[[^\]]+\])?$|^weight\s+per\s+piece(?:\s*\([^)]{1,40}\))?$/i.test(name);
+}
+
+function extractDelimitedPlainTextSpecAttributes(text: string, sourceUrl: string): AttributeRecord[] {
+  const attributes: AttributeRecord[] = [];
+  const labelPattern = plainTextInlineLabelPattern();
+  const pattern = new RegExp(
+    `(?:^|[\\s,;|])(${labelPattern})\\s*(?::|-)?\\s+(.{1,180}?)(?=\\s+(?:${labelPattern})\\s*(?::|-)?\\s+|$)`,
+    "gi"
   );
+  for (const match of text.matchAll(pattern)) {
+    const name = canonicalPlainTextInlineLabel(match[1]);
+    const value = cleanDelimitedPlainTextSpecValue(name, match[2]);
+    if (!name || !isUsefulDelimitedPlainTextSpecValue(name, value)) continue;
+    attributes.push({ group: "Plain Text Specs", name, value, sourceUrl });
+  }
+  return attributes;
+}
+
+function plainTextInlineLabelPattern(): string {
+  return PLAIN_TEXT_INLINE_LABELS.map(escapeRegExp).join("|").replace(/\\ /g, "\\s+");
+}
+
+function canonicalPlainTextInlineLabel(label: string): string {
+  const normalized = normalizePlainTextSpecLabel(label);
+  return PLAIN_TEXT_INLINE_LABELS.find((entry) => normalizePlainTextSpecLabel(entry) === normalized) ?? cleanText(label);
+}
+
+function normalizePlainTextSpecLabel(label: string): string {
+  return cleanText(label).toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+}
+
+function isUsefulDelimitedPlainTextSpecValue(name: string, value: string): boolean {
+  if (!value || value.length > 160) return false;
+  if (/^(?:-|n\/?a|not applicable|none)$/i.test(value)) return false;
+  if (normalizePlainTextSpecLabel(name) === normalizePlainTextSpecLabel(value)) return false;
+  if (PLAIN_TEXT_INLINE_LABELS.some((label) => normalizePlainTextSpecLabel(label) === normalizePlainTextSpecLabel(value))) return false;
+  return /[A-Za-z0-9]/.test(value);
+}
+
+function cleanDelimitedPlainTextSpecValue(name: string, value: string): string {
+  let cleaned = cleanInlineSpecValue(value);
+  if (/\bvoltage\b/i.test(name)) {
+    cleaned = cleaned.replace(/^(?:U\s*)?N\s+/i, "").replace(/^U\s+N\s+/i, "");
+  }
+  if (/\bcurrent\b/i.test(name)) {
+    cleaned = cleaned.replace(/^(?:I\s*)?N\s+/i, "").replace(/^I\s+N\s+/i, "");
+  }
+  return cleanInlineSpecValue(cleaned);
 }
 
 function cleanInlineSpecValue(value: string): string {
@@ -1886,6 +2205,10 @@ function cleanInlineSpecValue(value: string): string {
     .replace(/\s*(?:## Product details.*|- \[x\].*)$/i, "")
     .replace(/\.$/, "")
     .trim();
+}
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 function isPlainTextMarkdownLinkLine(line: string): boolean {
@@ -1907,7 +2230,13 @@ function extractPlainTextDocumentLinks(
     if (matchesAnyPattern(absolute, options.extractionPolicy?.ignoredDocumentUrlPatterns)) continue;
     const policyDocumentMatch = matchesAnyPattern(absolute, options.extractionPolicy?.documentUrlPatterns);
     const type = classifyDocument(label, absolute);
-    if (!isDownloadableProductDocumentUrl(absolute) && !isLikelyImageUrl(absolute) && !policyDocumentMatch && !isDocumentLikePlainTextLink(label, type)) {
+    if (isUnrelatedPolicyDocument(label, "", absolute, catalogNumber, options)) continue;
+    if (
+      !isDocumentUrlWithContext(absolute, label, type) &&
+      !isLikelyImageUrl(absolute) &&
+      !policyDocumentMatch &&
+      !isDocumentLikePlainTextLink(label, type)
+    ) {
       continue;
     }
     if (
@@ -1941,8 +2270,10 @@ function extractHiddenDocumentLinks(
     if (!absolute) return;
     if (matchesAnyPattern(absolute, options.extractionPolicy?.ignoredDocumentUrlPatterns)) return;
     const policyDocumentMatch = matchesAnyPattern(absolute, options.extractionPolicy?.documentUrlPatterns);
-    if (!isDownloadableProductDocumentUrl(absolute) && !policyDocumentMatch) return;
-    const type = classifyDocument(`${label} ${context}`, absolute);
+    const labelType = classifyDocument(label, absolute);
+    const type = labelType === "other" ? classifyDocument(`${label} ${context}`, absolute) : labelType;
+    if (!isDocumentUrlWithContext(absolute, `${label} ${context}`, type) && !policyDocumentMatch) return;
+    if (isUnrelatedPolicyDocument(label, context, absolute, catalogNumber, options)) return;
     if (
       type === "other" &&
       !policyDocumentMatch &&
@@ -2004,12 +2335,15 @@ function findDocumentUrlsInText(text: string, sourceUrl: string): Array<{ url: s
     for (const match of decoded.matchAll(urlPattern)) {
       const rawUrl = match[0].replace(/[\\,.;]+$/g, "");
       const absolute = toAbsoluteUrl(rawUrl, sourceUrl);
-      if (!absolute || !isDownloadableProductDocumentUrl(absolute)) continue;
+      if (!absolute) continue;
       const index = match.index ?? 0;
       const context = cleanText(decoded.slice(Math.max(0, index - 180), Math.min(decoded.length, index + rawUrl.length + 180)));
+      const label = documentLabelFromContext(context, absolute);
+      const type = classifyDocument(label, absolute);
+      if (!isDocumentUrlWithContext(absolute, context, type)) continue;
       found.push({
         url: absolute,
-        label: documentLabelFromContext(context, absolute),
+        label,
         context
       });
     }

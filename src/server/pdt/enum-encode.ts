@@ -114,7 +114,7 @@ function standardEnumLabel(description: string, rawValue: string): string | unde
     const nema = standardNemaLabel(description, rawValue);
     if (nema) return nema;
   }
-  if (/degree of protection/i.test(description)) return standardIpLabel(rawValue);
+  if (/\b(?:degree of protection|protection type)\b/i.test(description)) return standardIpLabel(description, rawValue);
   if (/\bimpact strength\b/i.test(description)) return standardImpactStrengthLabel(rawValue);
   if (/\bthread\b/i.test(description)) return standardThreadLabel(rawValue);
   if (/\bprotection class\b/i.test(description)) return standardProtectionClassLabel(rawValue);
@@ -128,12 +128,22 @@ function standardEnumLabel(description: string, rawValue: string): string | unde
   return undefined;
 }
 
-function standardIpLabel(value: string): string | undefined {
+function standardIpLabel(description: string, value: string): string | undefined {
   const matches = [...value.matchAll(/\bIP(?:X\d|\d{2}K?|\d{2})\b/gi)].map((match) => match[0].toUpperCase());
   const unique = [...new Set(matches)];
   if (unique.length === 0) return undefined;
+  const legendLabels = [...(parseEnumLegend(description)?.values() ?? [])].map((entry) => entry.label);
+  for (const ip of unique) {
+    const compactIp = normalizeIp(ip);
+    const legendMatch = legendLabels.find((label) => normalizeIp(label) === compactIp);
+    if (legendMatch) return legendMatch;
+  }
   if (unique.length === 1) return unique[0];
   return unique.sort((left, right) => ipRank(right) - ipRank(left)).join("/");
+}
+
+function normalizeIp(value: string): string {
+  return value.toUpperCase().replace(/\s+/g, "");
 }
 
 function standardNemaLabel(description: string, value: string): string | undefined {

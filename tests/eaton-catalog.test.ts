@@ -3,7 +3,7 @@ import { deriveEatonCbeRecord, parseEatonCbeCatalogRecords } from "../src/server
 
 // One representative row per E6-catalog family, tab-delimited exactly as pdf-parse emits them.
 const CATALOG = [
-  "Rated current\tPart number\tCatalog Number\tUnit", // header — no CBE token, must be skipped
+  "Rated current\tPart number\tCatalog Number\tUnit", // header: no CBE token, must be skipped
   "40\t1\tEIS-40/1\tCBE04417\t12",
   "40\t3\tEIS-40/3\tCBE04419\t4",
   "1\tE6-1/1/B\tCBE03319\t12",
@@ -18,7 +18,7 @@ describe("Eaton E6 catalog parser", () => {
     expect(records.size).toBe(6);
   });
 
-  it("derives structured fields from the authoritative part number", () => {
+  it("derives structured fields from the source row and model code", () => {
     const records = parseEatonCbeCatalogRecords(CATALOG);
     expect(records.get("CBE04417")).toMatchObject({ partNumber: "EIS-40/1", ratedCurrent: "40", poles: "1" });
     expect(records.get("CBE03319")).toMatchObject({
@@ -34,37 +34,46 @@ describe("Eaton E6 catalog parser", () => {
       releaseCharacteristic: "C"
     });
     expect(records.get("CBE03553")).toMatchObject({ partNumber: "ED6-6/1N/C/003", residualCurrent: "0.03" });
-    expect(records.get("CBE04437")).toMatchObject({ partNumber: "Z-AHK", productName: "E6 series accessory" });
+    expect(records.get("CBE04437")).toMatchObject({ partNumber: "Z-AHK", productName: "E6,ED6,ELD6/1NO1NC" });
   });
 
-  it("adds family-level PDT enrichment for EIS and ED6 records", () => {
-    expect(deriveEatonCbeRecord("CBE04417", "EIS-40/1", ["40", "1"], "12")).toMatchObject({
-      productFamily: "EIS",
-      productBase: "Miniature circuit breaker",
-      eclassCode: "27070203",
-      eclassVersion: "13",
-      ratedVoltage: "230",
-      ratedInsulationVoltage: "690",
-      weightKg: "0.08",
-      depthMm: "71.899",
-      widthMm: "17.7",
-      heightMm: "83.7",
-      operatingTemperature: "-25...+60 C",
-      degreeOfProtection: "IP20",
-      connectionType: "Screw connection"
+  it("does not invent family-level technical values that are not in the catalog row", () => {
+    const eis = deriveEatonCbeRecord("CBE04417", "EIS-40/1", ["40", "1"], "12");
+    expect(eis).toMatchObject({
+      articleNumber: "CBE04417",
+      partNumber: "EIS-40/1",
+      ratedCurrent: "40",
+      poles: "1",
+      unitPerPackage: "12"
     });
-    expect(deriveEatonCbeRecord("CBE03553", "ED6-6/1N/C/003", ["6/0.03"], "6")).toMatchObject({
-      productFamily: "E6 series",
-      productBase: "6A 1N C I△n=30mA AC type",
-      eclassCode: "27142201",
-      ratedVoltage: "230",
-      ratedInsulationVoltage: "500",
-      weightKg: "0.18",
-      depthMm: "75.5",
-      widthMm: "35",
-      heightMm: "83.7",
-      operatingTemperature: "-30...+60 C",
-      degreeOfProtection: "IP20"
+    expect(eis).not.toHaveProperty("productFamily");
+    expect(eis).not.toHaveProperty("productBase");
+    expect(eis).not.toHaveProperty("eclassCode");
+    expect(eis).not.toHaveProperty("ratedVoltage");
+    expect(eis).not.toHaveProperty("ratedInsulationVoltage");
+    expect(eis).not.toHaveProperty("weightKg");
+    expect(eis).not.toHaveProperty("depthMm");
+    expect(eis).not.toHaveProperty("widthMm");
+    expect(eis).not.toHaveProperty("heightMm");
+    expect(eis).not.toHaveProperty("operatingTemperature");
+    expect(eis).not.toHaveProperty("degreeOfProtection");
+    expect(eis).not.toHaveProperty("connectionType");
+
+    const ed6 = deriveEatonCbeRecord("CBE03553", "ED6-6/1N/C/003", ["6/0.03"], "6");
+    expect(ed6).toMatchObject({
+      articleNumber: "CBE03553",
+      partNumber: "ED6-6/1N/C/003",
+      ratedCurrent: "6",
+      poles: "2",
+      releaseCharacteristic: "C",
+      residualCurrent: "0.03",
+      unitPerPackage: "6"
     });
+    expect(ed6).not.toHaveProperty("productFamily");
+    expect(ed6).not.toHaveProperty("productBase");
+    expect(ed6).not.toHaveProperty("eclassCode");
+    expect(ed6).not.toHaveProperty("ratedVoltage");
+    expect(ed6).not.toHaveProperty("weightKg");
+    expect(ed6).not.toHaveProperty("degreeOfProtection");
   });
 });

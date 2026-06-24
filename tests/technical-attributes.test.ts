@@ -47,6 +47,61 @@ describe("technical attribute normalization", () => {
     expect(mapped.every((item) => item.matchScore && item.matchScore >= 0.84)).toBe(true);
   });
 
+  it("normalizes broad electrical labels from unknown manufacturers without collapsing distinct current meanings", () => {
+    const mapped = normalizeTechnicalAttributes("unknown-maker", [
+      { group: "Electrical data", name: "Supply voltage range", value: "18...30 V DC", sourceType: "official" },
+      { group: "Ratings", name: "Load current", value: "2 A", sourceType: "official" },
+      { group: "Electronics", name: "Current consumption max.", value: "40 mA at 24 V DC", sourceType: "official" },
+      { group: "Thermal data", name: "Module power dissipation", value: "1.5 W", sourceType: "official" }
+    ]);
+
+    expect(mapped.map((item) => item.canonicalKey)).toEqual([
+      "currentConsumption",
+      "powerLoss",
+      "ratedCurrent",
+      "ratedVoltage"
+    ]);
+    expect(mapped.find((item) => item.canonicalKey === "currentConsumption")?.quantities?.[0]).toMatchObject({
+      kind: "current",
+      value: 40,
+      unit: "mA"
+    });
+    expect(mapped.find((item) => item.canonicalKey === "ratedVoltage")?.quantities?.[0]).toMatchObject({
+      kind: "voltage",
+      min: 18,
+      max: 30
+    });
+    expect(mapped.find((item) => item.canonicalKey === "powerLoss")?.quantities?.[0]).toMatchObject({
+      kind: "power",
+      value: 1.5,
+      unit: "W"
+    });
+  });
+
+  it("parses quantities when the unit is carried by the label or unit column", () => {
+    const mapped = normalizeTechnicalAttributes("unknown-maker", [
+      { group: "Electrical data", name: "Supply voltage [V]", value: "24", sourceType: "official" },
+      { group: "Ratings", name: "Rated current", value: "2", unit: "A", sourceType: "official" },
+      { group: "Thermal data", name: "Power loss [W] / maximum", value: "1.5", sourceType: "official" }
+    ]);
+
+    expect(mapped.find((item) => item.canonicalKey === "ratedVoltage")?.quantities?.[0]).toMatchObject({
+      kind: "voltage",
+      value: 24,
+      unit: "V"
+    });
+    expect(mapped.find((item) => item.canonicalKey === "ratedCurrent")?.quantities?.[0]).toMatchObject({
+      kind: "current",
+      value: 2,
+      unit: "A"
+    });
+    expect(mapped.find((item) => item.canonicalKey === "powerLoss")?.quantities?.[0]).toMatchObject({
+      kind: "power",
+      value: 1.5,
+      unit: "W"
+    });
+  });
+
   it("keeps source evidence and parsed quantities for mapped technical attributes", () => {
     const sources: SourceRecord[] = [
       {

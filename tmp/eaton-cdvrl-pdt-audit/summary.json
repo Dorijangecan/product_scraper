@@ -1,0 +1,34 @@
+{
+  "csvPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\Testing PDT\\kiki.csv",
+  "outputPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\tmp\\eaton-cdvrl-pdt-audit\\eaton-cdvrl-kiki-pdt-1782240678330.xlsx",
+  "productCount": 1788,
+  "documentRows": 3576,
+  "filledSheets": {
+    "Material Master Data": 1788,
+    "servo controller": 1788,
+    "motors": 1788,
+    "Additional Documents": 3576,
+    "Connection Point Information": 0
+  },
+  "missingSheets": [],
+  "unmappedDeviceTypes": [],
+  "unclassifiedCatalogNumbers": 0,
+  "writeIssues": 0,
+  "requiredFieldIssues": 5364,
+  "requiredFieldIssueGroups": {
+    "motors | BAE082 | BAE082 | Rated voltage at 50 Hz\n1 - 400 V\n2 - </=50 V\n3 - >10 kV\n4 - >690 V, but </=1000 V\n5 - 1 up to 6 kV\n6 - 6-10 kV\n7 - 200 or 208 V\n8 - 230/400 V\n9 - 230 V\n10 - 400/690 V\n11 - 480 or 500 V\n12 - 690-1000 V\n13 - 690 V\n14 - up to 6 kV\n15 - up to 690 V": 1788,
+    "motors | BAE083 | BAE083 | Rated voltage at 60 Hz\n1 - 480 V\n2 - 440 V\n3 - 575 V\n4 - 460 V\n5 - </=50 V\n6 - >10 kV\n7 - >690 V, but </=1000 V\n8 - 1 up to 6 kV\n9 - 6-10 kV\n10 - 200 or 208 V\n11 - 230/400 V\n12 - 230 V\n13 - 400/690 V\n14 - 480 or 500 V\n15 - 690-1000 V\n16 - 690 V\n17 - up to 6 kV\n18 - up to 690 V": 1788,
+    "motors | BAE081 | BAE081 | Rated voltage (reduced)\n1 - 100-310 V\n2 - 400/420 V\n3 - 460/470 V\n4 - 520 V\n5 - 600 V\n6 - 720 V\n7 - 810 V\n8 - greater than 900 V\n9 - up to 100 V": 1788
+  },
+  "cellAudit": {
+    "written": 69276,
+    "blank": 97008,
+    "skipped": 7152,
+    "unprovenSkipped": 0
+  },
+  "classifications": {
+    "Variable Speed Drive": 1788
+  },
+  "missingNormalizedCount": 0,
+  "missingNormalizedSamples": []
+}

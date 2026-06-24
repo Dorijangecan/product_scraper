@@ -214,29 +214,50 @@ describe("quality gate", () => {
     expect(result.qualityGate?.missing).not.toContain("identity-conflict");
   });
 
-  it("ignores manufacturer internal numeric article numbers for Schmersal and Spelsberg catalog identity", () => {
-    for (const id of ["schmersal", "spelsberg"]) {
-      const result = finalizeQualityGate(
-        product({
-          manufacturerId: id,
-          catalogNumber: "TK PS 2518-11-m",
-          title: "TK PS 2518-11-m",
-          productUrl: "https://example.test/products/TK-PS-2518-11-m",
-          normalized: { material: "Polyamide", dimensions: "111 x 254 x 0.18 mm" },
-          attributes: [
-            { group: "Ordering data", name: "Article number (order number)", value: "10590801" },
-            { group: "Technical Data", name: "Material", value: "Polyamide" },
-            { group: "Technical Data", name: "Dimensions", value: "111 x 254 x 0.18 mm" }
-          ],
-          documents: [{ type: "datasheet", label: "TK PS 2518-11-m datasheet", url: "https://example.test/TK-PS-2518-11-m.pdf" }]
-        }),
-        { ...manufacturer, id }
-      );
+  it("ignores generic internal numeric article/order numbers for alphanumeric catalog identity", () => {
+    const result = finalizeQualityGate(
+      product({
+        manufacturerId: "unseen-maker",
+        catalogNumber: "TK PS 2518-11-m",
+        title: "TK PS 2518-11-m",
+        productUrl: "https://example.test/products/TK-PS-2518-11-m",
+        normalized: { material: "Polyamide", dimensions: "111 x 254 x 0.18 mm" },
+        attributes: [
+          { group: "Ordering data", name: "Article number (order number)", value: "10590801" },
+          { group: "Technical Data", name: "Material", value: "Polyamide" },
+          { group: "Technical Data", name: "Dimensions", value: "111 x 254 x 0.18 mm" }
+        ],
+        documents: [{ type: "datasheet", label: "TK PS 2518-11-m datasheet", url: "https://example.test/TK-PS-2518-11-m.pdf" }]
+      }),
+      { ...manufacturer, id: "unseen-maker" }
+    );
 
-      expect(result.status).toBe("partial");
-      expect(result.qualityGate?.identityConfirmed).toBe(true);
-      expect(result.qualityGate?.missing).not.toContain("identity-conflict");
-    }
+    expect(result.status).toBe("partial");
+    expect(result.qualityGate?.identityConfirmed).toBe(true);
+    expect(result.qualityGate?.missing).not.toContain("identity-conflict");
+  });
+
+  it("still treats mismatched numeric article numbers as identity conflicts when the requested catalog is numeric", () => {
+    const result = finalizeQualityGate(
+      product({
+        manufacturerId: "unseen-maker",
+        catalogNumber: "10590801",
+        title: "10590801 enclosure",
+        productUrl: "https://example.test/products/10590801",
+        normalized: { voltage: "24 V", material: "Steel" },
+        attributes: [
+          { group: "Ordering data", name: "Article Number", value: "10590802" },
+          { group: "Technical Data", name: "Voltage", value: "24 V" },
+          { group: "Technical Data", name: "Material", value: "Steel" }
+        ],
+        documents: [{ type: "datasheet", label: "10590801 datasheet", url: "https://example.test/10590801.pdf" }]
+      }),
+      { ...manufacturer, id: "unseen-maker" }
+    );
+
+    expect(result.status).toBe("failed");
+    expect(result.qualityGate?.identityConfirmed).toBe(false);
+    expect(result.qualityGate?.missing).toContain("identity-conflict");
   });
 
   it("accepts one matching structured identity even when a page also lists related product ids", () => {
@@ -256,6 +277,46 @@ describe("quality gate", () => {
 
     expect(result.status).toBe("found");
     expect(result.qualityGate?.missing).not.toContain("identity-conflict");
+  });
+
+  it("uses exact weak identity labels to resolve related-product id conflicts for unseen manufacturers", () => {
+    const result = finalizeQualityGate(
+      product({
+        manufacturerId: "unseen-maker",
+        title: "ABC-123 enclosure",
+        attributes: [
+          { group: "Product Data", name: "Type designation", value: "ABC-123" },
+          { group: "Related Products", name: "Product ID", value: "XYZ-999" },
+          { group: "Technical Data", name: "Voltage", value: "24 V" },
+          { group: "Technical Data", name: "Material", value: "Steel" }
+        ],
+        documents: [{ type: "datasheet", label: "ABC-123 datasheet", url: "https://example.test/ABC-123.pdf" }]
+      }),
+      { ...manufacturer, id: "unseen-maker" }
+    );
+
+    expect(result.status).toBe("found");
+    expect(result.qualityGate?.missing).not.toContain("identity-conflict");
+  });
+
+  it("does not let descriptive weak identity text hide a structured catalog conflict", () => {
+    const result = finalizeQualityGate(
+      product({
+        manufacturerId: "unseen-maker",
+        title: "ABC-123 enclosure",
+        attributes: [
+          { group: "Product Data", name: "Type designation", value: "ABC-123 accessory kit" },
+          { group: "Structured Data", name: "sku", value: "XYZ-999" },
+          { group: "Technical Data", name: "Voltage", value: "24 V" },
+          { group: "Technical Data", name: "Material", value: "Steel" }
+        ],
+        documents: [{ type: "datasheet", label: "ABC-123 datasheet", url: "https://example.test/ABC-123.pdf" }]
+      }),
+      { ...manufacturer, id: "unseen-maker" }
+    );
+
+    expect(result.status).toBe("failed");
+    expect(result.qualityGate?.missing).toContain("identity-conflict");
   });
 
   it("does not accept search URLs as product identity", () => {
@@ -287,6 +348,42 @@ describe("quality gate", () => {
     );
 
     expect(result.status).toBe("found");
+    expect(result.qualityGate?.missing).not.toContain("normalized:voltage");
+    expect(result.qualityGate?.missing).not.toContain("normalized:current");
+  });
+
+  it("does not require voltage and current for abbreviated SCE enclosure descriptions", () => {
+    const sce = getManufacturerConfig("sce");
+    expect(sce).toBeDefined();
+
+    const result = finalizeQualityGate(
+      product({
+        manufacturerId: "sce",
+        catalogNumber: "SCE-N68C4018",
+        title: "SCE-N68C4018",
+        description: "1DR Enc. Center Bay - Both Side Open",
+        productUrl: "https://www.saginawcontrol.com/partnumber_info?n=SCE-N68C4018",
+        normalized: {
+          weight: "348.00 lbs (157.85 kg)",
+          dimensions: "68.00 x 40.25 x 18.00 in",
+          material: "carbon steel",
+          protection: "NEMA Type 3R, 4, 12 and Type 13"
+        },
+        attributes: [
+          { group: "Product Specifications", name: "Part Number", value: "SCE-N68C4018" },
+          { group: "Product Specifications", name: "Description", value: "1DR Enc. Center Bay - Both Side Open" },
+          {
+            group: "Application",
+            name: "Application",
+            value: "Designed to house a variety of electrical and electronic controls and instruments."
+          },
+          { group: "Construction", name: "Construction Detail", value: "Provisions for light kit." }
+        ],
+        documents: [{ type: "image", label: "Product image", url: "https://www.saginawcontrol.com/images/sce-n68c4018.png" }]
+      }),
+      sce!
+    );
+
     expect(result.qualityGate?.missing).not.toContain("normalized:voltage");
     expect(result.qualityGate?.missing).not.toContain("normalized:current");
   });
@@ -368,6 +465,31 @@ describe("quality gate", () => {
     );
 
     expect(result.status).toBe("found");
+    expect(result.qualityGate?.missing).not.toContain("normalized:voltage");
+    expect(result.qualityGate?.missing).not.toContain("normalized:current");
+  });
+
+  it("does not require voltage and current for passive module carrier base units from unseen manufacturers", () => {
+    const result = finalizeQualityGate(
+      product({
+        manufacturerId: "unseen-maker",
+        catalogNumber: "BU15-P16-A0-2D",
+        title: "Remote I/O BaseUnit BU15-P16+A0+2D",
+        productUrl: "https://example.test/products/BU15-P16-A0-2D",
+        normalized: { material: "polycarbonate", dimensions: "15 x 60 x 35 mm", weight: "45 g" },
+        attributes: [
+          { group: "Product Data", name: "Catalog Number", value: "BU15-P16-A0-2D" },
+          { group: "Product Data", name: "Product description", value: "Remote I/O terminal base unit for electronic modules" },
+          { group: "Technical Data", name: "Material", value: "polycarbonate" },
+          { group: "Technical Data", name: "Dimensions", value: "15 x 60 x 35 mm" },
+          { group: "Technical Data", name: "Net weight", value: "45 g" }
+        ],
+        documents: [{ type: "datasheet", label: "BU15-P16 datasheet", url: "https://example.test/bu15-p16.pdf" }]
+      }),
+      productTypeAwareManufacturer
+    );
+
+    expect(result.status).not.toBe("failed");
     expect(result.qualityGate?.missing).not.toContain("normalized:voltage");
     expect(result.qualityGate?.missing).not.toContain("normalized:current");
   });
@@ -619,6 +741,53 @@ describe("quality gate", () => {
     expect(result.qualityGate?.missing).not.toContain("normalized:current");
   });
 
+  it("does not require electrical ratings for passive programming ports from unseen manufacturers", () => {
+    const result = finalizeQualityGate(
+      product({
+        manufacturerId: "unseen-maker",
+        catalogNumber: "P-P11R2-K3RF0-U450",
+        title: "Panel programming port",
+        productUrl: "https://example.test/products/P-P11R2-K3RF0-U450",
+        normalized: { material: "polycarbonate", dimensions: "3.50 x 5.10 x 1.65 in", weight: "2.00 lbs" },
+        attributes: [
+          { group: "Product Specifications", name: "Part Number", value: "P-P11R2-K3RF0-U450" },
+          { group: "Product Specifications", name: "Description", value: "Port, Programming" },
+          { group: "Product Specifications", name: "Material", value: "polycarbonate" },
+          { group: "Product Specifications", name: "Dimensions", value: "3.50 x 5.10 x 1.65 in" },
+          { group: "Product Specifications", name: "Weight", value: "2.00 lbs" },
+          { group: "Application", name: "Application", value: "Data interface ports outside the enclosure." }
+        ],
+        documents: [{ type: "manual", label: "Convenience receptacles and program ports", url: "https://example.test/program-ports.pdf" }]
+      }),
+      productTypeAwareManufacturer
+    );
+
+    expect(result.status).toBe("found");
+    expect(result.qualityGate?.missing).not.toContain("normalized:voltage");
+    expect(result.qualityGate?.missing).not.toContain("normalized:current");
+  });
+
+  it("requires voltage for enclosure thermal devices from unseen manufacturers", () => {
+    const result = finalizeQualityGate(
+      product({
+        manufacturerId: "unseen-maker",
+        catalogNumber: "HX-120",
+        title: "HX-120 Heat Exchanger",
+        normalized: { dimensions: "20 x 8 x 6 in", weight: "14 lb" },
+        attributes: [
+          { group: "Product Specifications", name: "Description", value: "Exchanger, Heat" },
+          { group: "Product Specifications", name: "Height", value: "20 in" }
+        ],
+        documents: [{ type: "image", label: "Product image", url: "https://example.test/hx-120.png" }]
+      }),
+      productTypeAwareManufacturer
+    );
+
+    expect(result.status).toBe("partial");
+    expect(result.qualityGate?.missing).toContain("normalized:voltage");
+    expect(result.qualityGate?.missing).not.toContain("normalized:current");
+  });
+
   it("accepts SCE service consumables when Saginaw publishes only an image document", () => {
     const sce = getManufacturerConfig("sce")!;
     const result = finalizeQualityGate(
@@ -706,6 +875,63 @@ describe("quality gate", () => {
       product({
         title: "ABC-123 key lock in connected-isolated position",
         attributes: [{ group: "ABB Product Data", name: "Catalog Description", value: "KEY LOCK WITH DIFFERENT KEYS" }]
+      }),
+      productTypeAwareManufacturer
+    );
+
+    expect(result.status).toBe("found");
+    expect(result.qualityGate?.missing).not.toContain("normalized:voltage");
+    expect(result.qualityGate?.missing).not.toContain("normalized:current");
+  });
+
+  it("uses generic voltage-only sensor rules for previously unseen manufacturers", () => {
+    const result = finalizeQualityGate(
+      product({
+        title: "ZX-77 capacitive level sensor",
+        normalized: { voltage: "18...30 V DC", protection: "IP67" },
+        attributes: [
+          { group: "Technical Data", name: "Product group", value: "Capacitive level sensors" },
+          { group: "Technical Data", name: "Operating voltage", value: "18...30 V DC" }
+        ],
+        documents: [{ type: "datasheet", label: "ZX-77 datasheet", url: "https://example.test/ZX-77.pdf" }]
+      }),
+      productTypeAwareManufacturer
+    );
+
+    expect(result.status).toBe("found");
+    expect(result.qualityGate?.missing).not.toContain("normalized:voltage");
+    expect(result.qualityGate?.missing).not.toContain("normalized:current");
+  });
+
+  it("does not invent electrical requirements for generic passive pilot-device actuators", () => {
+    const result = finalizeQualityGate(
+      product({
+        title: "ZX-M22 non-illuminated pushbutton actuator head",
+        normalized: { material: "plastic", protection: "IP66" },
+        attributes: [
+          { group: "Technical Data", name: "Product type", value: "Non-illuminated pushbutton actuator" },
+          { group: "Technical Data", name: "Degree of protection", value: "IP66" }
+        ],
+        documents: [{ type: "datasheet", label: "ZX-M22 datasheet", url: "https://example.test/ZX-M22.pdf" }]
+      }),
+      productTypeAwareManufacturer
+    );
+
+    expect(result.status).toBe("found");
+    expect(result.qualityGate?.missing).not.toContain("normalized:voltage");
+    expect(result.qualityGate?.missing).not.toContain("normalized:current");
+  });
+
+  it("requires only published current for generic mechanical limit switches", () => {
+    const result = finalizeQualityGate(
+      product({
+        title: "ZX-LS mechanical single position limit switch",
+        normalized: { current: "6 A", protection: "IP65" },
+        attributes: [
+          { group: "Technical Data", name: "Product group", value: "Mechanical single position limit switches" },
+          { group: "Technical Data", name: "Continuous current", value: "6 A" }
+        ],
+        documents: [{ type: "datasheet", label: "ZX-LS datasheet", url: "https://example.test/ZX-LS.pdf" }]
       }),
       productTypeAwareManufacturer
     );

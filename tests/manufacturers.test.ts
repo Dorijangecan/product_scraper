@@ -1,6 +1,16 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { listManufacturerConfigs } from "../src/server/config/manufacturers.js";
+import { ABBConnector } from "../src/server/scrapers/abb.js";
+import { BalluffConnector } from "../src/server/scrapers/balluff.js";
+import { EatonConnector } from "../src/server/scrapers/eaton.js";
 import { ETAConnector } from "../src/server/scrapers/eta.js";
+import { RockwellConnector } from "../src/server/scrapers/rockwell.js";
+import { SCEConnector } from "../src/server/scrapers/sce.js";
+import { ScameConnector } from "../src/server/scrapers/scame.js";
+import { SchmersalConnector } from "../src/server/scrapers/schmersal.js";
+import { SchneiderConnector } from "../src/server/scrapers/schneider.js";
+import { SiemensConnector } from "../src/server/scrapers/siemens.js";
+import { SpelsbergConnector } from "../src/server/scrapers/spelsberg.js";
 import type { ScrapeContext } from "../src/server/scrapers/types.js";
 
 describe("manufacturer configuration", () => {
@@ -55,6 +65,7 @@ describe("manufacturer configuration", () => {
     const eaton = listManufacturerConfigs().find((manufacturer) => manufacturer.id === "eaton");
     const searchTemplates = eaton?.scrapeRecipe?.searchUrlTemplates ?? [];
 
+    expect(eaton?.officialBaseUrls).toContain("https://www.eaton.com.cn");
     expect(searchTemplates.some((template) => template.includes("/site-search/jcr:content/root/responsivegrid/search_results.searchTerm${part}"))).toBe(true);
     expect(searchTemplates.some((template) => template.includes("/skuPage.{partSlashBraces}.html"))).toBe(true);
   });
@@ -77,7 +88,915 @@ describe("manufacturer configuration", () => {
     expect(result.productUrl).toContain("D_3120-F_en.pdf");
     expect(result.documents[0]).toMatchObject({ type: "datasheet", sourceType: "official-fallback" });
     expect(result.attributes.find((attr) => attr.name === "Catalog Number")?.value).toBe("3120-F521-P7T1-W01D-16A");
+    expect(result.attributes.some((attr) => /product family|description/i.test(attr.name))).toBe(false);
+    expect(result.title).toBeUndefined();
+    expect(result.description).toBeUndefined();
     expect(result.normalized.current).toBeUndefined();
+  });
+
+  it("uses generic official discovery for ETA catalog numbers outside known family datasheet rules", async () => {
+    const manufacturer = listManufacturerConfigs().find((item) => item.id === "eta")!;
+    const connector = new ETAConnector();
+    const fetchedUrls: string[] = [];
+    const fallbackSourcesSeen: string[] = [];
+    const result = await connector.scrape("ESX10-TB-101-DC24V-10A", {
+      manufacturer: {
+        ...manufacturer,
+        scrapeRecipe: {
+          ...manufacturer.scrapeRecipe,
+          searchUrlTemplates: ["https://www.e-t-a.com/search?q={part}"],
+          discoveryPolicy: {
+            ...(manufacturer.scrapeRecipe?.discoveryPolicy ?? {}),
+            allowedOfficialDomains: ["e-t-a.com"],
+            maxCandidates: 6
+          }
+        }
+      },
+      runDir: "",
+      documentsDir: "",
+      http: {
+        fetchText: async (url: string) => {
+          fetchedUrls.push(url);
+          if (url === "https://www.e-t-a.com/search?q=ESX10-TB-101-DC24V-10A") {
+            return {
+              requestedUrl: url,
+              effectiveUrl: url,
+              statusCode: 200,
+              contentType: "text/html",
+              fetchedAt: "2026-01-01T00:00:00.000Z",
+              fromCache: false,
+              text: `<main>
+                <a href="/products/nonstandard/esx10/detail?id=44">ESX10-TB-101-DC24V-10A electronic circuit protector</a>
+              </main>`
+            };
+          }
+          throw new Error(`unexpected URL ${url}`);
+        }
+      } as unknown as ScrapeContext["http"],
+      downloadDocument: async (doc) => doc,
+      fallback: {
+        scrape: async (_catalogNumber, sources) => {
+          fallbackSourcesSeen.push(...sources.flatMap((source) => source.directUrlTemplates));
+          return {
+            manufacturerId: "eta",
+            catalogNumber: "ESX10-TB-101-DC24V-10A",
+            status: "partial",
+            confidence: 0.72,
+            productUrl: "https://www.e-t-a.com/products/nonstandard/esx10/detail?id=44",
+            normalized: { voltage: "24 V DC", current: "10 A" },
+            attributes: [
+              { group: "Generic ETA page", name: "Catalog Number", value: "ESX10-TB-101-DC24V-10A" },
+              { group: "Generic ETA page", name: "Rated voltage", value: "24 V DC" },
+              { group: "Generic ETA page", name: "Rated current", value: "10 A" }
+            ],
+            documents: [{ type: "datasheet", label: "ESX10 datasheet", url: "https://www.e-t-a.com/esx10.pdf" }],
+            sources: []
+          };
+        }
+      }
+    });
+
+    expect(fetchedUrls).toContain("https://www.e-t-a.com/search?q=ESX10-TB-101-DC24V-10A");
+    expect(fallbackSourcesSeen).toContain("https://www.e-t-a.com/products/nonstandard/esx10/detail?id=44");
+    expect(result.productUrl).toBe("https://www.e-t-a.com/products/nonstandard/esx10/detail?id=44");
+    expect(result.normalized.voltage).toBe("24 V DC");
+    expect(result.diagnostics?.attemptedUrls).toContain("https://www.e-t-a.com/search?q=ESX10-TB-101-DC24V-10A");
+    expect(result.diagnostics?.discoveredCandidates?.some((candidate) => candidate.url === "https://www.e-t-a.com/products/nonstandard/esx10/detail?id=44")).toBe(true);
+  });
+
+  it("uses generic official discovery for ABB when PIS search and direct product URLs miss", async () => {
+    const manufacturer = listManufacturerConfigs().find((item) => item.id === "abb")!;
+    const connector = new ABBConnector();
+    const fetchedUrls: string[] = [];
+    const fallbackSourcesSeen: string[] = [];
+    const catalogNumber = "ABB-NEW-24";
+    const searchUrl = "https://new.abb.com/search?query=ABB-NEW-24";
+    const discoveredUrl = "https://new.abb.com/products/nonstandard/abb-new-24?catalog=ABB-NEW-24";
+
+    const result = await connector.scrape(catalogNumber, {
+      manufacturer: {
+        ...manufacturer,
+        rateLimitMs: 0,
+        officialBaseUrls: ["https://new.abb.com"],
+        fallbackSources: [],
+        scrapeRecipe: {
+          ...manufacturer.scrapeRecipe,
+          searchUrlTemplates: ["https://products.schmersal.com/en_US/catalogsearch/result?q={part}"],
+          discoveryPolicy: {
+            ...(manufacturer.scrapeRecipe?.discoveryPolicy ?? {}),
+            allowedOfficialDomains: ["new.abb.com", "abb.com"],
+            maxCandidates: 6
+          }
+        }
+      },
+      runDir: "",
+      documentsDir: "",
+      http: {
+        fetchText: async (url: string) => {
+          fetchedUrls.push(url);
+          if (url.includes("/api/PisSearchApi")) {
+            return {
+              requestedUrl: url,
+              effectiveUrl: url,
+              statusCode: 200,
+              contentType: "application/json",
+              fetchedAt: "2026-01-01T00:00:00.000Z",
+              fromCache: false,
+              text: JSON.stringify({ Items: [], TotalResultsCount: 1 })
+            };
+          }
+          if (url === searchUrl) {
+            return {
+              requestedUrl: url,
+              effectiveUrl: url,
+              statusCode: 200,
+              contentType: "text/html",
+              fetchedAt: "2026-01-01T00:00:00.000Z",
+              fromCache: false,
+              text: `<main>
+                <a href="/products/nonstandard/abb-new-24?catalog=ABB-NEW-24">ABB-NEW-24 miniature contactor</a>
+              </main>`
+            };
+          }
+          throw new Error(`unexpected URL ${url}`);
+        },
+        fetchTextViaPowerShell: async (url: string) => {
+          throw new Error(`unexpected PowerShell URL ${url}`);
+        }
+      } as unknown as ScrapeContext["http"],
+      downloadDocument: async (doc) => doc,
+      fallback: {
+        scrape: async (_catalogNumber, sources) => {
+          fallbackSourcesSeen.push(...sources.flatMap((source) => source.directUrlTemplates));
+          return sources.some((source) => source.directUrlTemplates.includes(discoveredUrl))
+            ? {
+                manufacturerId: "abb",
+                catalogNumber,
+                status: "partial",
+                confidence: 0.74,
+                productUrl: discoveredUrl,
+                localizedDescriptions: { de: { title: "ABB-NEW-24", description: "ABB-NEW-24" } },
+                normalized: { voltage: "24 V DC", current: "9 A" },
+                attributes: [
+                  { group: "ABB Product Data", name: "Catalog Number", value: catalogNumber },
+                  { group: "ABB Product Data", name: "Rated control supply voltage", value: "24 V DC" },
+                  { group: "ABB Product Data", name: "Rated operational current", value: "9 A" }
+                ],
+                documents: [{ type: "datasheet", label: "ABB product datasheet", url: `${discoveredUrl}&download=pdf` }],
+                sources: []
+              }
+            : undefined;
+        }
+      }
+    });
+
+    expect(fetchedUrls).toContain(searchUrl);
+    expect(fallbackSourcesSeen).toContain(discoveredUrl);
+    expect(result.productUrl).toBe(discoveredUrl);
+    expect(result.normalized.voltage).toBe("24 V DC");
+    expect(result.diagnostics?.attemptedUrls).toContain(searchUrl);
+    expect(result.diagnostics?.discoveredCandidates?.some((candidate) => candidate.url === discoveredUrl)).toBe(true);
+  });
+
+  it("uses generic official discovery for Eaton when site search returns a non-sku product link", async () => {
+    const manufacturer = listManufacturerConfigs().find((item) => item.id === "eaton")!;
+    const connector = new EatonConnector();
+    const fetchedUrls: string[] = [];
+    const fallbackSourcesSeen: string[] = [];
+    const catalogNumber = "ETN-NEW-24";
+    const searchUrl = "https://www.eaton.com/search?query=ETN-NEW-24";
+    const discoveredUrl = "https://www.eaton.com/us/en-us/catalog/nonstandard/etn-new-24.html?catalog=ETN-NEW-24";
+
+    const result = await connector.scrape(catalogNumber, {
+      manufacturer: {
+        ...manufacturer,
+        officialBaseUrls: ["https://www.eaton.com"],
+        fallbackSources: [],
+        scrapeRecipe: {
+          ...manufacturer.scrapeRecipe,
+          searchUrlTemplates: ["https://products.schmersal.com/en_US/catalogsearch/result?q={part}"],
+          discoveryPolicy: {
+            ...(manufacturer.scrapeRecipe?.discoveryPolicy ?? {}),
+            searchUrlTemplates: [searchUrl],
+            allowedOfficialDomains: ["eaton.com", "www.eaton.com"],
+            maxCandidates: 6
+          }
+        }
+      },
+      runDir: "",
+      documentsDir: "",
+      http: {
+        fetchText: async (url: string) => {
+          fetchedUrls.push(url);
+          if (url === searchUrl) {
+            return {
+              requestedUrl: url,
+              effectiveUrl: url,
+              statusCode: 200,
+              contentType: "text/html",
+              fetchedAt: "2026-01-01T00:00:00.000Z",
+              fromCache: false,
+              text: `<main>
+                <a href="/us/en-us/catalog/nonstandard/etn-new-24.html?catalog=ETN-NEW-24">ETN-NEW-24 illuminated selector</a>
+              </main>`
+            };
+          }
+          throw new Error(`unexpected URL ${url}`);
+        }
+      } as unknown as ScrapeContext["http"],
+      downloadDocument: async (doc) => doc,
+      fallback: {
+        scrape: async (_catalogNumber, sources) => {
+          fallbackSourcesSeen.push(...sources.flatMap((source) => source.directUrlTemplates));
+          return sources.some((source) => source.directUrlTemplates.includes(discoveredUrl))
+            ? {
+                manufacturerId: "eaton",
+                catalogNumber,
+                status: "partial",
+                confidence: 0.73,
+                productUrl: discoveredUrl,
+                normalized: { voltage: "24 V AC/DC", current: "2 A" },
+                attributes: [
+                  { group: "Eaton Product Data", name: "Catalog Number", value: catalogNumber },
+                  { group: "Eaton Product Data", name: "Voltage rating", value: "24 V AC/DC" },
+                  { group: "Eaton Product Data", name: "Amperage Rating", value: "2 A" }
+                ],
+                documents: [{ type: "datasheet", label: "Eaton product datasheet", url: `${discoveredUrl}&download=pdf` }],
+                sources: []
+              }
+            : undefined;
+        }
+      }
+    });
+
+    expect(fetchedUrls).toContain(searchUrl);
+    expect(fallbackSourcesSeen).toContain(discoveredUrl);
+    expect(result.productUrl).toBe(discoveredUrl);
+    expect(result.normalized.voltage).toBe("24 V AC/DC");
+    expect(result.diagnostics?.attemptedUrls).toContain(searchUrl);
+    expect(result.diagnostics?.discoveredCandidates?.some((candidate) => candidate.url === discoveredUrl)).toBe(true);
+  });
+
+  it("uses generic official discovery for Balluff when direct pages and built-in search do not parse", async () => {
+    const manufacturer = listManufacturerConfigs().find((item) => item.id === "balluff")!;
+    const connector = new BalluffConnector();
+    const fetchedUrls: string[] = [];
+    const fallbackSourcesSeen: string[] = [];
+    const catalogNumber = "BAL-NEW-24";
+    const searchUrl = "https://www.balluff.com/en-gb/search?query=BAL-NEW-24";
+    const discoveredUrl = "https://www.balluff.com/en-gb/products/nonstandard/bal-new-24?sku=BAL-NEW-24";
+    const filler = " Balluff official search result ".repeat(60);
+
+    const result = await connector.scrape(catalogNumber, {
+      manufacturer: {
+        ...manufacturer,
+        rateLimitMs: 0,
+        officialBaseUrls: ["https://www.balluff.com/en-gb"],
+        fallbackSources: [],
+        scrapeRecipe: {
+          ...manufacturer.scrapeRecipe,
+          searchUrlTemplates: [searchUrl],
+          discoveryPolicy: {
+            ...(manufacturer.scrapeRecipe?.discoveryPolicy ?? {}),
+            allowedOfficialDomains: ["balluff.com", "www.balluff.com"],
+            maxCandidates: 6
+          }
+        }
+      },
+      runDir: "",
+      documentsDir: "",
+      http: {
+        fetchText: async (url: string) => {
+          fetchedUrls.push(url);
+          if (url === searchUrl) {
+            return {
+              requestedUrl: url,
+              effectiveUrl: url,
+              statusCode: 200,
+              contentType: "text/html",
+              fetchedAt: "2026-01-01T00:00:00.000Z",
+              fromCache: false,
+              text: `<main>
+                <a href="/en-gb/products/nonstandard/bal-new-24?sku=BAL-NEW-24">BAL-NEW-24 inductive sensor</a>
+                <p>${filler}</p>
+              </main>`
+            };
+          }
+          throw new Error(`unexpected URL ${url}`);
+        },
+        fetchTextViaPowerShell: async (url: string) => {
+          throw new Error(`unexpected PowerShell URL ${url}`);
+        }
+      } as unknown as ScrapeContext["http"],
+      downloadDocument: async (doc) => doc,
+      fallback: {
+        scrape: async (_catalogNumber, sources) => {
+          fallbackSourcesSeen.push(...sources.flatMap((source) => source.directUrlTemplates));
+          return sources.some((source) => source.directUrlTemplates.includes(discoveredUrl))
+            ? {
+                manufacturerId: "balluff",
+                catalogNumber,
+                status: "partial",
+                confidence: 0.74,
+                productUrl: discoveredUrl,
+                normalized: { voltage: "24 V DC", protection: "IP67" },
+                attributes: [
+                  { group: "Balluff Product Data", name: "Order code", value: catalogNumber },
+                  { group: "Balluff Product Data", name: "Operating voltage", value: "24 V DC" },
+                  { group: "Balluff Product Data", name: "IP rating", value: "IP67" }
+                ],
+                documents: [{ type: "datasheet", label: "Balluff product datasheet", url: `${discoveredUrl}&download=pdf` }],
+                sources: []
+              }
+            : undefined;
+        }
+      }
+    });
+
+    expect(fetchedUrls).toContain(searchUrl);
+    expect(fallbackSourcesSeen).toContain(discoveredUrl);
+    expect(result.productUrl).toBe(discoveredUrl);
+    expect(result.normalized.protection).toBe("IP67");
+    expect(result.diagnostics?.attemptedUrls).toContain(searchUrl);
+    expect(result.diagnostics?.discoveredCandidates?.some((candidate) => candidate.url === discoveredUrl)).toBe(true);
+  });
+
+  it("uses generic official discovery when the Siemens API path cannot resolve a new product", async () => {
+    const manufacturer = listManufacturerConfigs().find((item) => item.id === "siemens")!;
+    const connector = new SiemensConnector();
+    const fetchedUrls: string[] = [];
+    const fallbackSourcesSeen: string[] = [];
+    const catalogNumber = "6ES7-NEW-24V";
+    const discoveredUrl = "https://sieportal.siemens.com/en-ww/products-services/detail/6ES7-NEW-24V";
+    const searchUrl = "https://sieportal.siemens.com/search?query=6ES7-NEW-24V";
+
+    const result = await connector.scrape(catalogNumber, {
+      manufacturer: {
+        ...manufacturer,
+        officialBaseUrls: ["https://sieportal.siemens.com"],
+        fallbackSources: [],
+        scrapeRecipe: {
+          ...manufacturer.scrapeRecipe,
+          searchUrlTemplates: [searchUrl],
+          discoveryPolicy: {
+            ...(manufacturer.scrapeRecipe?.discoveryPolicy ?? {}),
+            allowedOfficialDomains: ["sieportal.siemens.com"],
+            maxCandidates: 6
+          }
+        }
+      },
+      runDir: "",
+      documentsDir: "",
+      http: {
+        fetchText: async (url: string) => {
+          fetchedUrls.push(url);
+          if (url === searchUrl) {
+            return {
+              requestedUrl: url,
+              effectiveUrl: url,
+              statusCode: 200,
+              contentType: "text/html",
+              fetchedAt: "2026-01-01T00:00:00.000Z",
+              fromCache: false,
+              text: `<section>
+                <a href="/en-ww/products-services/detail/6ES7-NEW-24V">6ES7-NEW-24V compact automation module</a>
+              </section>`
+            };
+          }
+          throw new Error(`unexpected URL ${url}`);
+        }
+      } as unknown as ScrapeContext["http"],
+      downloadDocument: async (doc) => doc,
+      fallback: {
+        scrape: async (_catalogNumber, sources) => {
+          fallbackSourcesSeen.push(...sources.flatMap((source) => source.directUrlTemplates));
+          return sources.some((source) => source.directUrlTemplates.includes(discoveredUrl))
+            ? {
+                manufacturerId: "siemens",
+                catalogNumber,
+                status: "partial",
+                confidence: 0.74,
+                productUrl: discoveredUrl,
+                normalized: { voltage: "24 V DC" },
+                attributes: [
+                  { group: "Generic Siemens page", name: "Article Number", value: catalogNumber },
+                  { group: "Generic Siemens page", name: "Rated voltage", value: "24 V DC" }
+                ],
+                documents: [{ type: "datasheet", label: "Siemens datasheet", url: `${discoveredUrl}/datasheet.pdf` }],
+                sources: []
+              }
+            : undefined;
+        }
+      }
+    });
+
+    expect(fetchedUrls).toContain(searchUrl);
+    expect(fallbackSourcesSeen).toContain(discoveredUrl);
+    expect(result.productUrl).toBe(discoveredUrl);
+    expect(result.normalized.voltage).toBe("24 V DC");
+    expect(result.diagnostics?.attemptedUrls).toContain(searchUrl);
+    expect(result.diagnostics?.discoveredCandidates?.some((candidate) => candidate.url === discoveredUrl)).toBe(true);
+  });
+
+  it("uses generic official discovery for Rockwell when standard product URLs miss a nonstandard page", async () => {
+    const manufacturer = listManufacturerConfigs().find((item) => item.id === "rockwell")!;
+    const connector = new RockwellConnector();
+    const fetchedUrls: string[] = [];
+    const fallbackSourcesSeen: string[] = [];
+    const catalogNumber = "1756-L902TSXT";
+    const discoveredUrl = "https://www.rockwellautomation.com/en-us/products/details.controlLogix-5590-xt.1756-L902TSXT.html";
+    const searchUrl = "https://www.rockwellautomation.com/site-search?keyword=1756-L902TSXT";
+
+    const result = await connector.scrape(catalogNumber, {
+      manufacturer: {
+        ...manufacturer,
+        officialBaseUrls: ["https://www.rockwellautomation.com"],
+        fallbackSources: [],
+        scrapeRecipe: {
+          ...manufacturer.scrapeRecipe,
+          searchUrlTemplates: ["https://www.rockwellautomation.com/site-search?keyword={part}"],
+          discoveryPolicy: {
+            ...(manufacturer.scrapeRecipe?.discoveryPolicy ?? {}),
+            allowedOfficialDomains: ["rockwellautomation.com"],
+            maxCandidates: 6
+          }
+        }
+      },
+      runDir: "",
+      documentsDir: "",
+      http: {
+        fetchText: async (url: string) => {
+          fetchedUrls.push(url);
+          if (url === searchUrl) {
+            return {
+              requestedUrl: url,
+              effectiveUrl: url,
+              statusCode: 200,
+              contentType: "text/html",
+              fetchedAt: "2026-01-01T00:00:00.000Z",
+              fromCache: false,
+              text: `<main>
+                <a href="/en-us/products/details.controlLogix-5590-xt.1756-L902TSXT.html">1756-L902TSXT ControlLogix 5590 XT controller</a>
+              </main>`
+            };
+          }
+          throw new Error(`unexpected URL ${url}`);
+        }
+      } as ScrapeContext["http"],
+      downloadDocument: async (doc) => doc,
+      fallback: {
+        scrape: async (_catalogNumber, sources) => {
+          fallbackSourcesSeen.push(...sources.flatMap((source) => source.directUrlTemplates));
+          return sources.some((source) => source.directUrlTemplates.includes(discoveredUrl))
+            ? {
+                manufacturerId: "rockwell",
+                catalogNumber,
+                status: "partial",
+                confidence: 0.76,
+                productUrl: discoveredUrl,
+                normalized: { voltage: "24 V DC" },
+                attributes: [
+                  { group: "Rockwell Product Page", name: "Catalog Number", value: catalogNumber },
+                  { group: "Technical Data", name: "Supply voltage", value: "24 V DC" },
+                  { group: "Technical Data", name: "Product Net Width", value: "68.9 mm" },
+                  { group: "Technical Data", name: "Product Net Height", value: "91.7 mm" }
+                ],
+                documents: [{ type: "datasheet", label: "Rockwell technical data", url: "https://literature.rockwellautomation.com/idc/groups/literature/documents/td/1756-td001_-en-p.pdf" }],
+                sources: []
+              }
+            : undefined;
+        }
+      }
+    });
+
+    expect(fetchedUrls).toContain(searchUrl);
+    expect(fallbackSourcesSeen).toContain(discoveredUrl);
+    expect(result.productUrl).toBe(discoveredUrl);
+    expect(result.normalized.voltage).toBe("24 V DC");
+    expect(result.diagnostics?.attemptedUrls).toEqual(expect.arrayContaining([
+      "https://www.rockwellautomation.com/en-us/products/details.1756-L902TSXT.html",
+      searchUrl
+    ]));
+    expect(result.diagnostics?.discoveredCandidates?.some((candidate) => candidate.url === discoveredUrl)).toBe(true);
+  });
+
+  it("uses generic official discovery for SCE when advanced search and direct URLs miss", async () => {
+    const manufacturer = listManufacturerConfigs().find((item) => item.id === "sce")!;
+    const connector = new SCEConnector();
+    const fetchedUrls: string[] = [];
+    const fallbackSourcesSeen: string[] = [];
+    const catalogNumber = "SCE-NEW-24X20";
+    const searchUrl = "https://www.saginawcontrol.com/search?keyword=SCE-NEW-24X20";
+    const discoveredUrl = "https://www.saginawcontrol.com/partnumber_info/?n=SCE-NEW-24X20&variant=painted";
+
+    const result = await connector.scrape(catalogNumber, {
+      manufacturer: {
+        ...manufacturer,
+        officialBaseUrls: ["https://www.saginawcontrol.com"],
+        fallbackSources: [],
+        scrapeRecipe: {
+          ...manufacturer.scrapeRecipe,
+          searchUrlTemplates: ["https://www.saginawcontrol.com/search?keyword={part}"],
+          discoveryPolicy: {
+            ...(manufacturer.scrapeRecipe?.discoveryPolicy ?? {}),
+            allowedOfficialDomains: ["saginawcontrol.com"],
+            maxCandidates: 6
+          }
+        }
+      },
+      runDir: "",
+      documentsDir: "",
+      http: {
+        fetchText: async (url: string) => {
+          fetchedUrls.push(url);
+          if (url === searchUrl) {
+            return {
+              requestedUrl: url,
+              effectiveUrl: url,
+              statusCode: 200,
+              contentType: "text/html",
+              fetchedAt: "2026-01-01T00:00:00.000Z",
+              fromCache: false,
+              text: `<article>
+                <a href="/partnumber_info/?n=SCE-NEW-24X20&variant=painted">SCE-NEW-24X20 steel enclosure</a>
+              </article>`
+            };
+          }
+          throw new Error(`unexpected URL ${url}`);
+        },
+        fetchTextViaPowerShell: async (url: string) => {
+          throw new Error(`unexpected PowerShell URL ${url}`);
+        }
+      } as unknown as ScrapeContext["http"],
+      downloadDocument: async (doc) => doc,
+      fallback: {
+        scrape: async (_catalogNumber, sources) => {
+          fallbackSourcesSeen.push(...sources.flatMap((source) => source.directUrlTemplates));
+          return sources.some((source) => source.directUrlTemplates.includes(discoveredUrl))
+            ? {
+                manufacturerId: "sce",
+                catalogNumber,
+                status: "partial",
+                confidence: 0.73,
+                productUrl: discoveredUrl,
+                normalized: { material: "Carbon steel", dimensions: "24 x 20 x 8 in" },
+                attributes: [
+                  { group: "SCE Product Data", name: "Catalog Number", value: catalogNumber },
+                  { group: "SCE Product Data", name: "Material", value: "Carbon steel" },
+                  { group: "SCE Product Data", name: "Dimensions", value: "24 x 20 x 8 in" }
+                ],
+                documents: [{ type: "datasheet", label: "SCE technical data", url: `${discoveredUrl}&pdf=1` }],
+                sources: []
+              }
+            : undefined;
+        }
+      }
+    });
+
+    expect(fetchedUrls).toContain(searchUrl);
+    expect(fallbackSourcesSeen).toContain(discoveredUrl);
+    expect(result.productUrl).toBe(discoveredUrl);
+    expect(result.normalized.material).toBe("Carbon steel");
+    expect(result.diagnostics?.attemptedUrls).toContain(searchUrl);
+    expect(result.diagnostics?.discoveredCandidates?.some((candidate) => candidate.url === discoveredUrl)).toBe(true);
+  });
+
+  it("uses generic official discovery for Schneider when locale product URLs miss", async () => {
+    const manufacturer = listManufacturerConfigs().find((item) => item.id === "schneider")!;
+    const connector = new SchneiderConnector();
+    const fetchedUrls: string[] = [];
+    const fallbackSourcesSeen: string[] = [];
+    const catalogNumber = "XB4NEW42";
+    const searchUrl = "https://www.se.com/ww/en/search/XB4NEW42";
+    const discoveredUrl = "https://www.se.com/ww/en/product/XB4NEW42/?source=site-search";
+
+    const result = await connector.scrape(catalogNumber, {
+      manufacturer: {
+        ...manufacturer,
+        officialBaseUrls: ["https://www.se.com"],
+        fallbackSources: [],
+        scrapeRecipe: {
+          ...manufacturer.scrapeRecipe,
+          searchUrlTemplates: ["https://www.se.com/ww/en/search/{part}"],
+          discoveryPolicy: {
+            ...(manufacturer.scrapeRecipe?.discoveryPolicy ?? {}),
+            allowedOfficialDomains: ["se.com", "www.se.com"],
+            maxCandidates: 6
+          }
+        }
+      },
+      runDir: "",
+      documentsDir: "",
+      http: {
+        fetchText: async (url: string) => {
+          fetchedUrls.push(url);
+          if (url === searchUrl) {
+            return {
+              requestedUrl: url,
+              effectiveUrl: url,
+              statusCode: 200,
+              contentType: "text/html",
+              fetchedAt: "2026-01-01T00:00:00.000Z",
+              fromCache: false,
+              text: `<main>
+                <a href="/ww/en/product/XB4NEW42/?source=site-search">XB4NEW42 illuminated push button</a>
+              </main>`
+            };
+          }
+          throw new Error(`unexpected URL ${url}`);
+        },
+        fetchTextViaPowerShell: async (url: string) => {
+          throw new Error(`unexpected PowerShell URL ${url}`);
+        }
+      } as unknown as ScrapeContext["http"],
+      downloadDocument: async (doc) => doc,
+      fallback: {
+        scrape: async (_catalogNumber, sources) => {
+          fallbackSourcesSeen.push(...sources.flatMap((source) => source.directUrlTemplates));
+          return sources.some((source) => source.directUrlTemplates.includes(discoveredUrl))
+            ? {
+                manufacturerId: "schneider",
+                catalogNumber,
+                status: "partial",
+                confidence: 0.75,
+                productUrl: discoveredUrl,
+                normalized: { voltage: "24 V AC/DC", protection: "IP66" },
+                attributes: [
+                  { group: "Schneider Main", name: "Product or Component Type", value: "Illuminated push-button" },
+                  { group: "Schneider Complementary", name: "Rated supply voltage", value: "24 V AC/DC" },
+                  { group: "Schneider Environment", name: "IP degree of protection", value: "IP66" }
+                ],
+                documents: [{ type: "datasheet", label: "Schneider product datasheet", url: "https://www.se.com/ww/en/product/download-pdf/XB4NEW42" }],
+                sources: []
+              }
+            : undefined;
+        }
+      }
+    });
+
+    expect(fetchedUrls).toContain(searchUrl);
+    expect(fallbackSourcesSeen).toContain(discoveredUrl);
+    expect(result.productUrl).toBe(discoveredUrl);
+    expect(result.normalized.protection).toBe("IP66");
+    expect(result.diagnostics?.attemptedUrls).toContain(searchUrl);
+    expect(result.diagnostics?.discoveredCandidates?.some((candidate) => candidate.url === discoveredUrl)).toBe(true);
+  });
+
+  it("uses generic official discovery for Spelsberg when product finder has no exact hit", async () => {
+    const manufacturer = listManufacturerConfigs().find((item) => item.id === "spelsberg")!;
+    const connector = new SpelsbergConnector();
+    const fetchedUrls: string[] = [];
+    const fallbackSourcesSeen: string[] = [];
+    const catalogNumber = "TK-NEW-1818";
+    const searchUrl = "https://www.spelsberg.com/product-finder/?query=TK-NEW-1818";
+    const discoveredUrl = "https://www.spelsberg.com/product-finder/tk-new-1818?sku=TK-NEW-1818";
+
+    const result = await connector.scrape(catalogNumber, {
+      manufacturer: {
+        ...manufacturer,
+        officialBaseUrls: ["https://www.spelsberg.com"],
+        fallbackSources: [],
+        scrapeRecipe: {
+          ...manufacturer.scrapeRecipe,
+          searchUrlTemplates: [searchUrl],
+          discoveryPolicy: {
+            ...(manufacturer.scrapeRecipe?.discoveryPolicy ?? {}),
+            allowedOfficialDomains: ["spelsberg.com", "www.spelsberg.com"],
+            maxCandidates: 6
+          }
+        }
+      },
+      runDir: "",
+      documentsDir: "",
+      http: {
+        fetchText: async (url: string) => {
+          fetchedUrls.push(url);
+          if (url === searchUrl) {
+            return {
+              requestedUrl: url,
+              effectiveUrl: url,
+              statusCode: 200,
+              contentType: "text/html",
+              fetchedAt: "2026-01-01T00:00:00.000Z",
+              fromCache: false,
+              text: `<main>
+                <a href="/product-finder/tk-new-1818?sku=TK-NEW-1818">TK-NEW-1818 empty enclosure</a>
+              </main>`
+            };
+          }
+          if (url.includes("algolia.net")) {
+            return {
+              requestedUrl: url,
+              effectiveUrl: url,
+              statusCode: 200,
+              contentType: "application/json",
+              fetchedAt: "2026-01-01T00:00:00.000Z",
+              fromCache: false,
+              text: JSON.stringify({ hits: [] })
+            };
+          }
+          throw new Error(`unexpected URL ${url}`);
+        }
+      } as unknown as ScrapeContext["http"],
+      downloadDocument: async (doc) => doc,
+      fallback: {
+        scrape: async (_catalogNumber, sources) => {
+          fallbackSourcesSeen.push(...sources.flatMap((source) => source.directUrlTemplates));
+          return sources.some((source) => source.directUrlTemplates.includes(discoveredUrl))
+            ? {
+                manufacturerId: "spelsberg",
+                catalogNumber,
+                status: "partial",
+                confidence: 0.73,
+                productUrl: discoveredUrl,
+                normalized: { material: "Polystyrene", protection: "IP65" },
+                attributes: [
+                  { group: "Spelsberg Product Data", name: "Catalog Number", value: catalogNumber },
+                  { group: "Spelsberg Product Data", name: "Material", value: "Polystyrene" },
+                  { group: "Spelsberg Product Data", name: "Protection class", value: "IP65" }
+                ],
+                documents: [{ type: "datasheet", label: "Spelsberg product datasheet", url: `${discoveredUrl}&download=pdf` }],
+                sources: []
+              }
+            : undefined;
+        }
+      }
+    });
+
+    expect(fetchedUrls).toContain(searchUrl);
+    expect(fallbackSourcesSeen).toContain(discoveredUrl);
+    expect(result.productUrl).toBe(discoveredUrl);
+    expect(result.normalized.material).toBe("Polystyrene");
+    expect(result.diagnostics?.attemptedUrls).toContain(searchUrl);
+    expect(result.diagnostics?.discoveredCandidates?.some((candidate) => candidate.url === discoveredUrl)).toBe(true);
+  });
+
+  it("uses generic official discovery for SCAME when techsheet PDF endpoints are not published", async () => {
+    const manufacturer = listManufacturerConfigs().find((item) => item.id === "scame")!;
+    const connector = new ScameConnector();
+    const fetchedUrls: string[] = [];
+    const fallbackSourcesSeen: string[] = [];
+    const catalogNumber = "NEW.1698/S";
+    const searchUrl = "https://www.scame.com/search?keyword=NEW.1698%2FS";
+    const discoveredUrl = "https://www.scame.com/web/scame-uk/product/new-1698-s?code=NEW.1698%2FS";
+    const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response("not found", { status: 404, headers: { "content-type": "text/html" } })
+    );
+
+    try {
+      const result = await connector.scrape(catalogNumber, {
+        manufacturer: {
+          ...manufacturer,
+          officialBaseUrls: ["https://www.scame.com"],
+          fallbackSources: [],
+          scrapeRecipe: {
+            ...manufacturer.scrapeRecipe,
+            searchUrlTemplates: ["https://www.scame.com/search?keyword={part}"],
+            discoveryPolicy: {
+              ...(manufacturer.scrapeRecipe?.discoveryPolicy ?? {}),
+              allowedOfficialDomains: ["scame.com", "www.scame.com"],
+              maxCandidates: 6
+            }
+          }
+        },
+        runDir: "",
+        documentsDir: "",
+        http: {
+          fetchText: async (url: string) => {
+            fetchedUrls.push(url);
+            if (url === searchUrl) {
+              return {
+                requestedUrl: url,
+                effectiveUrl: url,
+                statusCode: 200,
+                contentType: "text/html",
+                fetchedAt: "2026-01-01T00:00:00.000Z",
+                fromCache: false,
+                text: `<main>
+                  <a href="/web/scame-uk/product/new-1698-s?code=NEW.1698%2FS">NEW.1698/S industrial plug</a>
+                </main>`
+              };
+            }
+            throw new Error(`unexpected URL ${url}`);
+          }
+        } as unknown as ScrapeContext["http"],
+        downloadDocument: async (doc) => doc,
+        fallback: {
+          scrape: async (_catalogNumber, sources) => {
+            fallbackSourcesSeen.push(...sources.flatMap((source) => source.directUrlTemplates));
+            return sources.some((source) => source.directUrlTemplates.includes(discoveredUrl))
+              ? {
+                  manufacturerId: "scame",
+                  catalogNumber,
+                  status: "partial",
+                  confidence: 0.72,
+                  productUrl: discoveredUrl,
+                  normalized: { voltage: "400 V", current: "16 A", protection: "IP67" },
+                  attributes: [
+                    { group: "SCAME Product Data", name: "Catalog Number", value: catalogNumber },
+                    { group: "SCAME Product Data", name: "Rated voltage", value: "400 V" },
+                    { group: "SCAME Product Data", name: "Rated current", value: "16 A" },
+                    { group: "SCAME Product Data", name: "IP rating", value: "IP67" }
+                  ],
+                  documents: [{ type: "datasheet", label: "SCAME product information sheet", url: `${discoveredUrl}&download=pdf` }],
+                  sources: []
+                }
+              : undefined;
+          }
+        }
+      });
+
+      expect(fetchSpy).toHaveBeenCalled();
+      expect(fetchedUrls).toContain(searchUrl);
+      expect(fallbackSourcesSeen).toContain(discoveredUrl);
+      expect(result.productUrl).toBe(discoveredUrl);
+      expect(result.normalized.current).toBe("16 A");
+      expect(result.diagnostics?.attemptedUrls).toEqual(expect.arrayContaining([
+        "https://techsheet.scame.com/infodata/en/new.1698_s.pdf",
+        searchUrl
+      ]));
+      expect(result.diagnostics?.discoveredCandidates?.some((candidate) => candidate.url === discoveredUrl)).toBe(true);
+    } finally {
+      fetchSpy.mockRestore();
+    }
+  });
+
+  it("uses generic official discovery for Schmersal when its standard search rescue misses", async () => {
+    const manufacturer = listManufacturerConfigs().find((item) => item.id === "schmersal")!;
+    const connector = new SchmersalConnector();
+    const fetchedUrls: string[] = [];
+    const fallbackSourcesSeen: string[] = [];
+    const catalogNumber = "AZM-NEW-24";
+    const searchUrl = "https://products.schmersal.com/en_US/catalogsearch/result?q=AZM-NEW-24";
+    const discoveredUrl = "https://products.schmersal.com/en_US/product/azm-new-24?item=AZM-NEW-24";
+
+    const result = await connector.scrape(catalogNumber, {
+      manufacturer: {
+        ...manufacturer,
+        officialBaseUrls: ["https://products.schmersal.com"],
+        fallbackSources: [],
+        scrapeRecipe: {
+          ...manufacturer.scrapeRecipe,
+          searchUrlTemplates: ["https://products.schmersal.com/en_US/catalogsearch/result?q={part}"],
+          discoveryPolicy: {
+            ...(manufacturer.scrapeRecipe?.discoveryPolicy ?? {}),
+            allowedOfficialDomains: ["products.schmersal.com"],
+            maxCandidates: 6
+          }
+        }
+      },
+      runDir: "",
+      documentsDir: "",
+      http: {
+        fetchText: async (url: string) => {
+          fetchedUrls.push(url);
+          if (url === searchUrl) {
+            return {
+              requestedUrl: url,
+              effectiveUrl: url,
+              statusCode: 200,
+              contentType: "text/html",
+              fetchedAt: "2026-01-01T00:00:00.000Z",
+              fromCache: false,
+              text: `<main>
+                <a href="/en_US/product/azm-new-24?item=AZM-NEW-24">AZM-NEW-24 solenoid interlock</a>
+              </main>`
+            };
+          }
+          throw new Error(`unexpected URL ${url}`);
+        }
+      } as unknown as ScrapeContext["http"],
+      downloadDocument: async (doc) => doc,
+      fallback: {
+        scrape: async (_catalogNumber, sources) => {
+          fallbackSourcesSeen.push(...sources.flatMap((source) => source.directUrlTemplates));
+          return sources.some((source) => source.directUrlTemplates.includes(discoveredUrl))
+            ? {
+                manufacturerId: "schmersal",
+                catalogNumber,
+                status: "partial",
+                confidence: 0.74,
+                productUrl: discoveredUrl,
+                normalized: { voltage: "24 V DC", protection: "IP67" },
+                attributes: [
+                  { group: "Schmersal Product Data", name: "Catalog Number", value: catalogNumber },
+                  { group: "Schmersal Product Data", name: "Rated control voltage", value: "24 V DC" },
+                  { group: "Schmersal Product Data", name: "Degree of protection", value: "IP67" }
+                ],
+                documents: [{ type: "datasheet", label: "Schmersal product datasheet", url: `${discoveredUrl}&download=pdf` }],
+                sources: []
+              }
+            : undefined;
+        }
+      }
+    });
+
+    expect(fetchedUrls).toContain(searchUrl);
+    expect(fallbackSourcesSeen).toContain(discoveredUrl);
+    expect(result.productUrl).toBe(discoveredUrl);
+    expect(result.normalized.protection).toBe("IP67");
+    expect(result.diagnostics?.attemptedUrls).toContain(searchUrl);
+    expect(result.diagnostics?.discoveredCandidates?.some((candidate) => candidate.url === discoveredUrl)).toBe(true);
   });
 
   it("configures Schmersal and Spelsberg discovery through current official search pages", () => {

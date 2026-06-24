@@ -58,13 +58,22 @@ export const PROPERTY_ONTOLOGY: CanonicalProperty[] = [
       /rated\s+(?:operational\s+|maximum\s+|minimum\s+|nominal\s+)?voltage/i,
       /operational\s+voltage/i,
       /operating\s+voltage/i,
+      /operating\s+voltage\s+range/i,
       /nominal\s+voltage/i,
       /line\s+voltage/i,
       /supply\s+voltage/i,
+      /supply\s+voltage\s+range/i,
       /rated\s+supply\s+voltage/i,                   // Schneider [Us]
+      /field\s+power\s+voltage\s+range/i,
+      /module\s+supply\s+voltage/i,
+      /sensor\s+supply\s+voltage/i,
+      /auxiliary\s+voltage/i,
+      /load\s+voltage/i,
       /mains\s+voltage/i,
       /working\s+voltage/i,
+      /(?:min(?:imum)?|max(?:imum)?)\s+(?:rated\s+|operating\s+|supply\s+)?voltage/i,
       /voltage\s+rating(?:\s*-\s*(?:min|max))?/i,    // Eaton "Voltage rating - max"
+      /voltage\s+(?:range|rated\s+value|nominal\s+value|limits?)/i,
       /maximum\s+operating\s+voltage(?:\s+UL\/CSA)?/i,// ABB MaxOpeVolUlCsa
       /rated\s+(?:input|output)\s+voltage/i,         // ABB Rat(Input/Output)Vol
       /(?:input|output)\s+nominal\s+voltage/i,       // Eaton Input/Output nominal voltage
@@ -94,7 +103,11 @@ export const PROPERTY_ONTOLOGY: CanonicalProperty[] = [
       /\bspanning\b/i,
       /nazivni\s+napon/i,
       /radni\s+napon/i,
-      /\bnapon\b/i
+      /\bnapon\b/i,
+      /\u7535\u538b/i,
+      /\u989d\u5b9a\u7535\u538b/i,
+      /\u8f93\u5165\u7535\u538b/i,
+      /\u8f93\u51fa\u7535\u538b/i
     ],
     exclude: [
       /insulation/i, /impulse/i, /surge/i, /withstand/i, /control/i, /coil/i,
@@ -117,15 +130,20 @@ export const PROPERTY_ONTOLOGY: CanonicalProperty[] = [
       /conventional\s+(?:free[-\s]?air\s+)?thermal\s+current/i,  // ABB/Schneider ConFreAirTheCur, Ith
       /nominal\s+current/i,
       /nominal\s+(?:input|output)\s+current/i,
+      /nominal\s+load\s+current/i,
       /full[-\s]?load\s+current/i,
       /\bFLA\b/,                                        // Full-load amps
       /line\s+(?:rated\s+)?current/i,
+      /load\s+current/i,
       /base[-\s]?load\s+current/i,                      // Rockwell / Siemens drive base-load
       /(?:rated\s+)?uninterrupted\s+current/i,          // ABB Iu
       /rated\s+frame\s+current/i,                        // Schneider Inm
       /continuous\s+(?:rms\s+|output\s+)?current/i,      // ABB/Danfoss drives
       /intermittent\s+(?:output\s+)?current/i,           // Danfoss overload current
       /rated\s+(?:output|input)\s+current/i,             // drives
+      /(?:max(?:imum)?\s+)?(?:load|output|operating|continuous)\s+current(?:\s+rating|\s+range)?/i,
+      /permissible\s+(?:load\s+)?current/i,
+      /current[-\s]?carrying\s+capacity/i,
       /\bcurrent\s+rating\b/i,                            // Littelfuse/Bussmann
       // ABB utilization-category currents: AC-1, AC-3, AC-3e, AC-15, AC-21A, AC-22A, AC-23A, DC-1, DC-3, DC-5, DC-13
       /rated\s+operational\s+current\s+(?:AC|DC)[-\s]?\d{1,2}[a-eA-E]?/i,
@@ -152,7 +170,11 @@ export const PROPERTY_ONTOLOGY: CanonicalProperty[] = [
       /nominale\s+stroom/i,
       /\bstroom\b/i,
       /nazivna\s+struja/i,
-      /\bstruja\b/i
+      /\bstruja\b/i,
+      /\u7535\u6d41/i,
+      /\u989d\u5b9a\u7535\u6d41/i,
+      /\u8f93\u5165\u7535\u6d41/i,
+      /\u8f93\u51fa\u7535\u6d41/i
     ],
     exclude: [
       // \binterrupt avoids matching "unINTERRUPTed current" (ABB Iu), which IS a rated current.
@@ -240,7 +262,10 @@ export const PROPERTY_ONTOLOGY: CanonicalProperty[] = [
       /nominaal\s+vermogen/i,
       /uitgangsvermogen/i,
       /\bsnaga\b/i,
-      /nazivna\s+snaga/i
+      /nazivna\s+snaga/i,
+      /\u529f\u7387/i,
+      /\u989d\u5b9a\u529f\u7387/i,
+      /\u8f93\u51fa\u529f\u7387/i
     ],
     exclude: [
       /power\s+loss/i, /verlustleistung/i, /power\s+supply/i,
@@ -254,13 +279,21 @@ export const PROPERTY_ONTOLOGY: CanonicalProperty[] = [
     unitKind: "power",
     synonyms: [
       /power\s+loss(?:\s+(?:per\s+pole|at\s+Ie|output\s+capacity))?/i,    // ABB "Power loss at Ie", AAS577 "Power loss output capacity"
+      /power\s+loss(?:es)?\s*(?:\[?W\]?)?(?:\s*\/\s*(?:maximum|rated|per\s+pole))?/i,
+      /total\s+power\s+loss(?:es)?/i,
+      /internal\s+power\s+loss(?:es)?/i,
+      /loss\s+power/i,
       /power\s+dissipation(?:\s+(?:per\s+pole|in\s+W))?/i,                // Schneider "Power dissipation per pole / in W"
+      /module\s+power\s+dissipation/i,
       /dissipation\s+power/i,
       /(?:heat|thermal)\s+dissipation/i,
       /static\s+heat\s+dissipation/i,                                     // Eaton "Static heat dissipation, non-current-dependent Pvs"
       /heat\s+dissipation,?\s+non[-\s]?current[-\s]?dependent/i,
+      /heat\s+(?:loss(?:es)?|generated)/i,
       /dissipated\s+power/i,
-      /watt\s+loss/i,
+      /power\s+dissipated/i,
+      /watts?\s+loss(?:es)?/i,
+      /\bP(?:_|-)?loss\b/i,
       /\bPv\b/,
       /\bPvs\b/,                                                          // Eaton static
       /\bPls\b/,                                                          // current-independent
@@ -278,7 +311,10 @@ export const PROPERTY_ONTOLOGY: CanonicalProperty[] = [
       /vermogensverlies/i,
       /warmteafgifte/i,
       /gubitak\s+snage/i,
-      /toplinski\s+gubici/i
+      /toplinski\s+gubici/i,
+      /\u529f\u8017/i,
+      /\u529f\u7387\u635f\u8017/i,
+      /\u6563\u70ed/i
     ]
   },
   {
@@ -629,6 +665,9 @@ export const PROPERTY_ONTOLOGY: CanonicalProperty[] = [
       /\bnema\s*type\s*[1-9][0-9]?[a-zR]?\b/i,              // NEMA Type 4, 4X, 12, 13, 3R
       /\btype\s*[1-9][0-9]?[xrXR]?\b/i,                     // Type 4X, Type 12, Type 3R (US enclosure, case-insensitive)
       /\bUL\s*type\s*\d+[xrXR]?\b/i,
+      /\u9632\u62a4\u7b49\u7ea7/i,
+      /\u4fdd\u62a4\u7b49\u7ea7/i,
+      /\u5916\u58f3\u9632\u62a4/i,
       /indice\s+de\s+protection/i,
       /degr[ée]\s+de\s+protection/i,
       /grado\s+(?:di|de)\s+protezi[óo]n?[e]?/i,
@@ -1322,17 +1361,41 @@ export const PROPERTY_ONTOLOGY: CanonicalProperty[] = [
     ]
   },
   {
+    key: "currentConsumption",
+    label: "Current consumption / current draw",
+    unitKind: "current",
+    synonyms: [
+      /current\s+consumption(?:\s+max\.?)?/i,
+      /operating\s+current\s+consumption/i,
+      /(?:input|supply|module|electronics|sensor)\s+current(?:\s+consumption|\s+draw|\s+max\.?|\s+typical)?/i,
+      /current\s+draw(?:\s+(?:at|@)\s+\d+\s*V(?:\s*(?:AC|DC))?)?/i,
+      /no[-\s]?load\s+current(?:\s+I[o0])?(?:\s+max\.?)?/i,
+      /quiescent\s+current/i,
+      /idle\s+current/i,
+      /standby\s+current/i,
+      /stromaufnahme/i,
+      /eigenstromaufnahme/i,
+      /leerlaufstrom/i,
+      /consommation\s+(?:de\s+)?courant/i,
+      /courant\s+absorbe/i,
+      /consumo\s+(?:di\s+)?corrente/i,
+      /corrente\s+assorbita/i,
+      /consumo\s+(?:de\s+)?corriente/i,
+      /corriente\s+absorbida/i,
+      /stroomverbruik/i,
+      /stroomopname/i,
+      /potrosnja\s+struje/i
+    ],
+    exclude: [/leakage|residual|fault|short[-\s]?circuit|breaking|interrupt/i]
+  },
+  {
     key: "powerConsumption",
     label: "Power consumption",
     unitKind: "power",
     synonyms: [
       /power\s+consumption(?:,?\s+typical)?/i,                 // Eaton "Power consumption, typical"
-      /current\s+consumption(?:\s+max\.?)?/i,                  // Balluff
-      /input\s+current(?:\s+max\.?)?/i,                        // Balluff
-      /total\s+current(?:\s+max\.?)?/i,
       /no[-\s]?load\s+(?:power|loss)/i,
       /standby\s+(?:power|consumption)/i,
-      /quiescent\s+current/i,
       /idle\s+power/i,
       /stromaufnahme/i,
       /leistungsaufnahme/i,

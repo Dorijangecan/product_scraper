@@ -1,4 +1,5 @@
-import type { ProductResult, ScrapeAttemptRecord } from "../../shared/types.js";
+import type { AttributeRecord, DocumentRecord, ProductResult, ScrapeAttemptRecord } from "../../shared/types.js";
+import { dedupeDocuments } from "./dedupe.js";
 import { discoverOfficialProductCandidates } from "./discovery.js";
 import { isUnresolvedSearchResultPage, parseGenericProductPage } from "./generic.js";
 import type { FetchedText } from "./http-client.js";
@@ -19,7 +20,7 @@ export async function runDeterministicScrapePipeline(
     context.manufacturer,
     evaluateQualityGate(initial, context.manufacturer, catalogNumber, attempts)
   );
-  if (current.qualityGate?.passed && !needsOfficialProductLinkRepair(current)) return current;
+  if (current.qualityGate?.passed && !needsOfficialProductLinkRepair(current)) return promoteQualityPassedOfficialResult(current);
 
   const discovery = await discoverOfficialProductCandidates(catalogNumber, context);
   current = withDiscoveryDiagnostics(current, discovery);
@@ -71,6 +72,16 @@ export async function runDeterministicScrapePipeline(
     }
   }
 
+  if (!current.qualityGate?.passed && discovery.documentCandidates.length) {
+    const documentResult = discoveryDocumentResult(catalogNumber, context, discovery.documentCandidates);
+    const merged = mergeResults(current, documentResult);
+    current = applyQualityGate(
+      merged,
+      context.manufacturer,
+      evaluateQualityGate(merged, context.manufacturer, catalogNumber, attempts)
+    );
+  }
+
   if (!current.qualityGate?.passed) {
     current = await runSmartFallbackPipeline(
       applyQualityGate(current, context.manufacturer, evaluateQualityGate(current, context.manufacturer, catalogNumber, attempts)),
@@ -79,7 +90,58 @@ export async function runDeterministicScrapePipeline(
     );
   }
 
-  return applyQualityGate(current, context.manufacturer, evaluateQualityGate(current, context.manufacturer, catalogNumber, attempts));
+  return promoteQualityPassedOfficialResult(
+    applyQualityGate(current, context.manufacturer, evaluateQualityGate(current, context.manufacturer, catalogNumber, attempts))
+  );
+}
+
+function discoveryDocumentResult(catalogNumber: string, context: ScrapeContext, documents: DocumentRecord[]): ProductResult {
+  const cleanDocuments = dedupeDocuments(documents).slice(0, 8);
+  const sourceUrl = cleanDocuments[0]?.sourceUrl ?? cleanDocuments[0]?.url ?? `generated:official-document-discovery:${catalogNumber}`;
+  const attributes: AttributeRecord[] = [
+    {
+      group: "Official Document Discovery",
+      name: "Catalog Number",
+      value: catalogNumber,
+      sourceUrl,
+      sourceType: "official-fallback",
+      parser: "official-discovery",
+      stage: "document-discovery",
+      confidence: 0.68
+    }
+  ];
+  return {
+    manufacturerId: context.manufacturer.id,
+    catalogNumber,
+    status: "partial",
+    confidence: 0.58,
+    productUrl: sourceUrl,
+    title: `${catalogNumber} - ${context.manufacturer.canonicalName} source documents`,
+    description: `${context.manufacturer.canonicalName} discovery found source documents for ${catalogNumber}.`,
+    normalized: {},
+    attributes,
+    documents: cleanDocuments,
+    sources: [
+      {
+        url: sourceUrl,
+        sourceType: "official-fallback",
+        parser: "official-discovery",
+        parserVersion: "document-discovery-v1",
+        stage: "document-discovery",
+        fetchedAt: new Date().toISOString()
+      }
+    ],
+    diagnostics: {
+      fallbackStages: ["official-document-discovery"],
+      notes: [`Official discovery found ${cleanDocuments.length} source document candidate(s).`]
+    }
+  };
+}
+
+function promoteQualityPassedOfficialResult(result: ProductResult): ProductResult {
+  if (!result.qualityGate?.passed || result.status !== "partial") return result;
+  if (result.sources.length > 0 && result.sources.every((source) => source.sourceType === "distributor")) return result;
+  return { ...result, status: "found" };
 }
 
 function repairProductUrlFromSources(result: ProductResult): ProductResult {
@@ -169,6 +231,7 @@ function withDiscoveryDiagnostics(
     ...result,
     diagnostics: {
       ...result.diagnostics,
+      fallbackStages: uniqueStrings([...(result.diagnostics?.fallbackStages ?? []), "discovery"]),
       attemptedUrls: uniqueStrings([...(result.diagnostics?.attemptedUrls ?? []), ...(discovery.diagnostics.attemptedUrls ?? [])]),
       discoveredCandidates: [
         ...(result.diagnostics?.discoveredCandidates ?? []),

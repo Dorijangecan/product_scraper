@@ -1,10 +1,11 @@
 import * as cheerio from "cheerio";
-import type { ManufacturerConfig, ScrapeDiagnostics, SourceRecord } from "../../shared/types.js";
+import type { DocumentRecord, ManufacturerConfig, ScrapeDiagnostics, SourceRecord } from "../../shared/types.js";
 import { catalogTextMatches, compactCatalogNumber, fillCatalogTemplate, templateContainsCatalogPlaceholder } from "./catalog-number.js";
 import type { FetchedText } from "./http-client.js";
 import type { ScrapeContext } from "./types.js";
 import { discoverProductLinksWithDiagnostics } from "./link-discovery.js";
 import { learnEndpointFromNetworkFetch, learnedEndpointUrls } from "./learned-endpoints.js";
+import { discoverSourceDocumentsWithDiagnostics } from "./source-document-discovery.js";
 
 export interface ProductDiscoveryCandidate {
   url: string;
@@ -16,6 +17,7 @@ export interface ProductDiscoveryCandidate {
 
 export interface ProductDiscoveryResult {
   candidates: ProductDiscoveryCandidate[];
+  documentCandidates: DocumentRecord[];
   diagnostics: Pick<ScrapeDiagnostics, "attemptedUrls" | "discoveredCandidates" | "rejectedLinks" | "notes">;
 }
 
@@ -23,16 +25,54 @@ export async function discoverOfficialProductCandidates(catalogNumber: string, c
   const candidates = new Map<string, ProductDiscoveryCandidate>();
   const attemptedUrls: string[] = [];
   const rejectedLinks: NonNullable<ScrapeDiagnostics["rejectedLinks"]> = [];
+  const documentCandidates = new Map<string, DocumentRecord>();
   const notes: string[] = [];
   const manufacturer = context.manufacturer;
   const policy = manufacturer.scrapeRecipe?.discoveryPolicy;
   const maxCandidates = policy?.maxCandidates ?? 12;
 
   const add = (candidate: ProductDiscoveryCandidate) => {
-    if (!isAllowedOfficialUrl(candidate.url, manufacturer)) return;
+    if (!isAllowedOfficialUrl(candidate.url, manufacturer)) {
+      rejectedLinks.push({
+        url: candidate.url,
+        score: candidate.score,
+        reason: `Rejected ${candidate.stage} candidate outside allowed official domains: ${candidate.reason}`
+      });
+      return;
+    }
     const key = canonicalCandidateKey(candidate.url);
     const existing = candidates.get(key);
-    if (!existing || candidate.score > existing.score) candidates.set(key, candidate);
+    if (!existing || candidate.score > existing.score) {
+      if (existing) {
+        rejectedLinks.push({
+          url: existing.url,
+          score: existing.score,
+          reason: `Replaced duplicate ${existing.stage} candidate with higher-scoring ${candidate.stage} candidate for the same canonical URL`
+        });
+      }
+      candidates.set(key, candidate);
+      return;
+    }
+    rejectedLinks.push({
+      url: candidate.url,
+      score: candidate.score,
+      reason: `Rejected duplicate ${candidate.stage} candidate because an equal or higher-scoring canonical URL was already found`
+    });
+  };
+
+  const addDocuments = (documents: DocumentRecord[]) => {
+    for (const document of documents) {
+      if (!isAllowedOfficialUrl(document.url, manufacturer)) {
+        rejectedLinks.push({
+          url: document.url,
+          score: Math.round((document.confidence ?? 0.4) * 100),
+          reason: "Rejected discovered document outside allowed official domains"
+        });
+        continue;
+      }
+      const key = canonicalCandidateKey(document.url);
+      if (!documentCandidates.has(key)) documentCandidates.set(key, document);
+    }
   };
 
   for (const template of officialDirectTemplates(manufacturer)) {
@@ -70,6 +110,13 @@ export async function discoverOfficialProductCandidates(catalogNumber: string, c
       const fetched = await fetchDiscoveryText(searchUrl, context);
       const discovered = discoverProductLinksWithDiagnostics(fetched.text, fetched.effectiveUrl, catalogNumber);
       rejectedLinks.push(...discovered.rejected);
+      const sourceDocuments = discoverSourceDocumentsWithDiagnostics(fetched.text, fetched.effectiveUrl, catalogNumber, {
+        sourceType: "official-fallback",
+        parser: "official-discovery",
+        stage: "search-document"
+      });
+      addDocuments(sourceDocuments.documents);
+      rejectedLinks.push(...sourceDocuments.rejected);
       for (const link of discovered.candidates) {
         discoveredCount += 1;
         add({
@@ -99,6 +146,13 @@ export async function discoverOfficialProductCandidates(catalogNumber: string, c
           const discovered = discoverProductLinksWithDiagnostics(fetched.text, fetched.effectiveUrl || searchUrl, catalogNumber);
           rejectedLinks.push(...discovered.rejected);
           const isNetworkText = fetched !== rendered.fetched;
+          const sourceDocuments = discoverSourceDocumentsWithDiagnostics(fetched.text, fetched.effectiveUrl || searchUrl, catalogNumber, {
+            sourceType: "official-fallback",
+            parser: "official-discovery",
+            stage: isNetworkText ? "rendered-search-network-document" : "rendered-search-document"
+          });
+          addDocuments(sourceDocuments.documents);
+          rejectedLinks.push(...sourceDocuments.rejected);
           if (isNetworkText && discovered.candidates.length) {
             const learned = learnEndpointFromNetworkFetch({
               manufacturer,
@@ -138,16 +192,6 @@ export async function discoverOfficialProductCandidates(catalogNumber: string, c
     });
   }
 
-  for (const url of nventRaychemFamilyUrls(manufacturer, catalogNumber)) {
-    add({
-      url,
-      score: 104,
-      reason: "nVent RAYCHEM family page inferred from catalog prefix",
-      stage: "url-variant",
-      sourceType: "official-fallback"
-    });
-  }
-
   if ((policy?.enableRobotsSitemaps ?? true) && candidates.size < Math.max(4, maxCandidates / 2)) {
     for (const url of await discoverFromSitemaps(catalogNumber, context, attemptedUrls, notes)) {
       add({
@@ -167,6 +211,7 @@ export async function discoverOfficialProductCandidates(catalogNumber: string, c
 
   return {
     candidates: sorted,
+    documentCandidates: [...documentCandidates.values()].slice(0, 20),
     diagnostics: {
       attemptedUrls,
       discoveredCandidates: sorted.map((candidate) => ({
@@ -248,17 +293,10 @@ function searchTemplates(manufacturer: ManufacturerConfig): string[] {
 
 function genericOfficialSearchTemplates(manufacturer: ManufacturerConfig): string[] {
   const bases = new Set<string>();
-  for (const baseUrl of manufacturer.officialBaseUrls) {
-    if (templateContainsCatalogPlaceholder(baseUrl)) continue;
-    try {
-      const parsed = new URL(baseUrl);
-      bases.add(parsed.origin);
-      const segments = parsed.pathname.split("/").filter(Boolean);
-      const localePrefix = localePathPrefix(segments);
-      if (localePrefix) bases.add(`${parsed.origin}/${localePrefix}`);
-    } catch {
-      // Ignore invalid configured URLs; direct templates already validate elsewhere.
-    }
+  for (const base of officialUrlBases(manufacturer)) {
+    bases.add(base.origin);
+    const localePrefix = localePathPrefix(base.segments);
+    if (localePrefix) bases.add(`${base.origin}/${localePrefix}`);
   }
 
   const templates: string[] = [];
@@ -316,16 +354,12 @@ async function discoverSearchFormUrls(
 
 function searchFormProbePages(manufacturer: ManufacturerConfig): string[] {
   const pages = new Set<string>();
-  for (const baseUrl of manufacturer.officialBaseUrls) {
-    if (templateContainsCatalogPlaceholder(baseUrl)) continue;
-    try {
-      const parsed = new URL(baseUrl);
-      pages.add(parsed.origin);
-      pages.add(`${parsed.origin}${parsed.pathname.replace(/\/+$/g, "")}`);
-      const localePrefix = localePathPrefix(parsed.pathname.split("/").filter(Boolean));
-      if (localePrefix) pages.add(`${parsed.origin}/${localePrefix}`);
-    } catch {
-      // Invalid base URLs are ignored; configured templates still run separately.
+  for (const base of officialUrlBases(manufacturer)) {
+    pages.add(base.origin);
+    const localePrefix = localePathPrefix(base.segments);
+    if (localePrefix) pages.add(`${base.origin}/${localePrefix}`);
+    if (!base.hasCatalogPlaceholder && base.pathname) {
+      pages.add(`${base.origin}${base.pathname}`);
     }
   }
   return [...pages].filter((url) => /^https?:\/\//i.test(url));
@@ -336,7 +370,7 @@ function searchUrlsFromForms(html: string, baseUrl: string, catalogNumber: strin
   const urls: string[] = [];
   $("form").each((_, form) => {
     const method = ($(form).attr("method") || "get").toLowerCase();
-    if (method && method !== "get") return;
+    if (method && method !== "get" && method !== "post") return;
     const formContext = cleanFormContext($, form);
     const queryName = searchQueryInputName($, form, formContext);
     if (!queryName) return;
@@ -376,7 +410,7 @@ function cleanFormContext($: cheerio.CheerioAPI, form: Parameters<cheerio.Cheeri
 }
 
 function searchQueryInputName($: cheerio.CheerioAPI, form: Parameters<cheerio.CheerioAPI>[0], context: string): string | undefined {
-  if (!/\b(search|suche|find|keyword|query|site-search|site search|product search|catalog search)\b/i.test(context)) return undefined;
+  const hasSearchContext = /\b(search|suche|find|keyword|query|site-search|site search|product search|catalog search|product finder|part finder)\b/i.test(context);
   const inputs = $(form).find("input[name],select[name],textarea[name]").toArray();
   const ranked = inputs
     .map((input) => {
@@ -384,30 +418,27 @@ function searchQueryInputName($: cheerio.CheerioAPI, form: Parameters<cheerio.Ch
       const haystack = [name, $(input).attr("type"), $(input).attr("id"), $(input).attr("class"), $(input).attr("placeholder"), $(input).attr("aria-label")].filter(Boolean).join(" ");
       let score = 0;
       if (/^(?:q|s|query|search|text|keyword|searchTerm|term)$/i.test(name)) score += 50;
+      if (/\b(?:catalog|catalogue|cat|part|partnumber|part-number|part_number|mpn|sku|article|article-no|articleno|article_number|item|item-no|itemno|product(?:code|id|number)?|model|mlfb)\b/i.test(haystack)) score += 45;
       if (/search/i.test($(input).attr("type") ?? "")) score += 30;
       if (/\b(search|suche|find|keyword|query|term|text)\b/i.test(haystack)) score += 20;
+      if (hasSearchContext) score += 10;
       if (/email|mail|zip|postal|country|language|csrf|token|session|password|login/i.test(haystack)) score -= 80;
       return { name, score };
     })
     .filter((item) => item.name && item.score > 0)
     .sort((left, right) => right.score - left.score);
-  return ranked[0]?.name;
+  if (!ranked[0]) return undefined;
+  if (!hasSearchContext && ranked[0].score < 40) return undefined;
+  return ranked[0].name;
 }
 
 function officialVariantUrls(manufacturer: ManufacturerConfig, catalogNumber: string): string[] {
   const urls: string[] = [];
   const variants = urlVariantValues(catalogNumber, manufacturer.scrapeRecipe?.discoveryPolicy?.urlVariants);
-  for (const baseUrl of manufacturer.officialBaseUrls) {
-    if (templateContainsCatalogPlaceholder(baseUrl)) continue;
-    let parsed: URL;
-    try {
-      parsed = new URL(baseUrl);
-    } catch {
-      continue;
-    }
-    const base = `${parsed.origin}${parsed.pathname.replace(/\/+$/g, "")}`;
+  for (const parsed of officialUrlBases(manufacturer)) {
+    const base = `${parsed.origin}${parsed.pathname}`;
     for (const variant of variants.slice(0, 5)) {
-      urls.push(`${base}/${encodeURIComponent(variant)}`);
+      if (parsed.pathname) urls.push(`${base}/${encodeURIComponent(variant)}`);
       urls.push(`${parsed.origin}/products/${encodeURIComponent(variant)}`);
       urls.push(`${parsed.origin}/product/${encodeURIComponent(variant)}`);
       urls.push(`${parsed.origin}/search?q=${encodeURIComponent(variant)}`);
@@ -416,53 +447,43 @@ function officialVariantUrls(manufacturer: ManufacturerConfig, catalogNumber: st
   return [...new Set(urls)];
 }
 
-function nventRaychemFamilyUrls(manufacturer: ManufacturerConfig, catalogNumber: string): string[] {
-  if (manufacturer.id !== "nvent") return [];
-  const slugs = raychemFamilySlugs(catalogNumber);
-  return slugs.map((slug) => `https://www.chemelex.com/en-us/raychem/products/${slug}`);
+function officialUrlBases(manufacturer: ManufacturerConfig): Array<{
+  origin: string;
+  pathname: string;
+  segments: string[];
+  hasCatalogPlaceholder: boolean;
+}> {
+  const bases: Array<{ origin: string; pathname: string; segments: string[]; hasCatalogPlaceholder: boolean }> = [];
+  const seen = new Set<string>();
+  for (const baseUrl of manufacturer.officialBaseUrls) {
+    try {
+      const parsed = new URL(baseUrl);
+      const rawSegments = parsed.pathname.split("/").filter(Boolean).map((segment) => safeDecode(segment));
+      const placeholderIndex = rawSegments.findIndex((segment) => templateContainsCatalogPlaceholder(segment));
+      const segments = placeholderIndex >= 0 ? rawSegments.slice(0, placeholderIndex) : rawSegments;
+      const pathname = segments.length ? `/${segments.map(encodeURIComponent).join("/")}`.replace(/\/+$/g, "") : "";
+      const key = `${parsed.origin}${pathname}|${templateContainsCatalogPlaceholder(baseUrl) ? "template" : "base"}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      bases.push({
+        origin: parsed.origin,
+        pathname,
+        segments,
+        hasCatalogPlaceholder: templateContainsCatalogPlaceholder(baseUrl)
+      });
+    } catch {
+      // Invalid configured URLs are ignored; direct templates already validate elsewhere.
+    }
+  }
+  return bases;
 }
 
-function raychemFamilySlugs(catalogNumber: string): string[] {
-  const normalized = catalogNumber.toUpperCase();
-  const compact = compactCatalogNumber(catalogNumber).toUpperCase();
-  const slugs: string[] = [];
-  const add = (slug: string) => {
-    if (!slugs.includes(slug)) slugs.push(slug);
-  };
-
-  if (/\bHWAT[-\s_]*ECO\b/i.test(normalized) || compact.startsWith("HWATECO")) add("hwat-eco-electronic-control-unit");
-  if (/\bELEXANT[-\s_]*3500I\b/i.test(normalized) || compact.startsWith("ELEXANT3500I")) add("elexant-3500i-electronic-thermostat");
-  if (/\bELEXANT[-\s_]*4010I\b/i.test(normalized) || compact.startsWith("ELEXANT4010I")) add("elexant-4010i-heat-trace-controller");
-  if (/\bELEXANT[-\s_]*4020I\b/i.test(normalized) || compact.startsWith("ELEXANT4020I")) add("elexant-4020i-heat-trace-controller");
-  if (/\bETS[-\s_]*05\b/i.test(normalized) || compact.startsWith("ETS05")) add("ets-05-electronic-thermostat");
-  if (/\bTC[-\s_]*3\b/i.test(normalized) || compact.startsWith("TC3")) add("tc3-mechanical-thermostat");
-  if (/\bAMC[-\s_]*F5\b/i.test(normalized) || compact.startsWith("AMCF5")) add("amc-f5-mechanical-thermostat");
-  if (/\bAMC[-\s_]*1A\b/i.test(normalized) || compact.startsWith("AMC1A")) add("amc-1a-mechanical-thermostat");
-  if (/\bAMC[-\s_]*1B\b/i.test(normalized) || compact.startsWith("AMC1B")) add("amc-1b-mechanical-thermostat");
-  if (/\bAMC[-\s_]*1H\b/i.test(normalized) || compact.startsWith("AMC1H")) add("amc-1h-mechanical-thermostat");
-  if (/\bAMC[-\s_]*2B[-\s_]*2\b/i.test(normalized) || compact.startsWith("AMC2B2")) add("amc-2b-2-mechanical-thermostat");
-  if (/^NGC40IO\b/.test(compact)) add("ngc-40-series-io-module");
-  if (/^NGC40BRIDGE\b/.test(compact)) add("ngc-40-series-bridge-module");
-  if (/^NGC40PTM\b/.test(compact)) add("ngc-40-series-power-termination-module");
-  if (/^NGC40HTC3?\b/.test(compact)) add("ngc-40-series-control-module");
-  if (/^NGC40\b/.test(compact)) add("ngc-40-series-control-module");
-
-  if (/^(?:RAYCLIC|RAYCLICSB|RAYCLICE|RAYCLICLE)/.test(compact)) add("rayclic-connection-kit");
-  if (/^(?:GT66|GS54|AT180)\b/.test(compact)) add("fixing-tape");
-  if (/^(?:ETL|WARNING)/.test(compact)) add("warning-label");
-  if (/^MONIPT100260\b/.test(compact)) add("moni-pt100-260-rtd-sensor-for-non-hazardous-areas");
-
-  if (/^\d+XLE[12]/.test(compact) || compact.includes("XLTRACEEDGE")) add("xl-trace-edge-self-regulating-heating-cable");
-  if (/^GM[12]XT?\b/.test(compact)) add("icestop-self-regulating-heating-cable");
-  if (/(?:^|\D)LBTV\d/i.test(normalized) || compact.includes("LBTV")) add("lbtv-self-regulating-heating-cable");
-  if (/(?:^|\D)QTVR\d/i.test(normalized) || compact.includes("QTVR")) add("qtvr-self-regulating-heating-cable");
-  if (/(?:^|\D)XTVR\d/i.test(normalized) || compact.includes("XTVR")) add("xtvr-self-regulating-heating-cable");
-  if (/(?:^|\D)HTV\d/i.test(normalized) || compact.includes("HTV")) add("htv-self-regulating-heating-cable");
-  if (/(?:^|\D)BTV\d/i.test(normalized) || compact.includes("BTV")) add("btv-self-regulating-heating-cable");
-  if (/(?:^|\D)VPL\d/i.test(normalized) || compact.includes("VPL")) add("vpl-power-limiting-heating-cable");
-  if (/^HWAT(?!ECO)/.test(compact)) add("hwat-self-regulating-heating-cable");
-
-  return slugs;
+function safeDecode(value: string): string {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
+  }
 }
 
 function urlVariantValues(catalogNumber: string, requested: Array<string> | undefined): string[] {

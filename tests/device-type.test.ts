@@ -278,6 +278,20 @@ describe("device type classifier", () => {
 
     expect(
       classifyDeviceType(
+        product(
+          [{ group: "SCE Product Data", name: "Description", value: "1DR Enc. Center Bay - Both Side Open", sourceType: "official" }],
+          "SCE-N68C4018",
+          {
+            manufacturerId: "sce",
+            catalogNumber: "SCE-N68C4018",
+            description: "1DR Enc. Center Bay - Both Side Open"
+          }
+        )
+      ).type
+    ).toBe("Enclosure");
+
+    expect(
+      classifyDeviceType(
         product([], "E1.3 - ABB Low Voltage & Systems", {
           manufacturerId: "abb",
           catalogNumber: "1SDA124715R1",
@@ -365,6 +379,18 @@ describe("device type classifier", () => {
     const result = product(
       [{ group: "General", name: "Product Type", value: "Variable frequency drive", sourceType: "official" }],
       "ACS580 Drive 11 kW"
+    );
+    expect(classifyDeviceType(result).type).toBe("Variable Speed Drive");
+  });
+
+  it("classifies localized inverter wording from source PDFs as a variable speed drive", () => {
+    const result = product(
+      [
+        { group: "PDF Localized Technical Data", name: "Product family", value: "Rapid Link \u5206\u5e03\u5f0f\u53d8\u9891\u5668", sourceType: "generated" },
+        { group: "PDF Catalog Ordering Table", name: "Rated power", value: "0.75 kW", sourceType: "generated" }
+      ],
+      "CDVRL00001 - Eaton Rapid Link 5X",
+      { manufacturerId: "eaton", catalogNumber: "CDVRL00001" }
     );
     expect(classifyDeviceType(result).type).toBe("Variable Speed Drive");
   });

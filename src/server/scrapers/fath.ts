@@ -2,9 +2,10 @@ import * as cheerio from "cheerio";
 import type { AttributeRecord, DocumentRecord, ProductResult, SourceRecord } from "../../shared/types.js";
 import type { FetchedText } from "./http-client.js";
 import type { ManufacturerConnector, ScrapeContext } from "./types.js";
-import { cleanText, emptyResult, normalizeFields } from "./normalizer.js";
+import { cleanText, emptyResult, mergeResults, normalizeFields } from "./normalizer.js";
 import { buildLocalizedProductUrls } from "./localized-urls.js";
 import { catalogTextMatches, compactCatalogNumber } from "./catalog-number.js";
+import { scrapeDiscoveredFallback, withDiscoveryFallbackDiagnostics } from "./discovery-fallback.js";
 
 // FATH24 (Shopware-based) catalog numbers look like 098ABG045 / 098ABG045S01 / 093BA1001D80M12.
 // Direct product URLs are slug-prefixed (e.g. /en/Anti-slip-Plate-for-Bell-Feet/098ABG045), so we
@@ -45,7 +46,7 @@ export class FathConnector implements ManufacturerConnector {
       }
     }
     if (!searchPage) {
-      return withDiagnostics(emptyResult("fath", catalogNumber, "FATH search page could not be fetched."), attemptedUrls, notes);
+      return withFathDiscoveryFallback(emptyResult("fath", catalogNumber, "FATH search page could not be fetched."), catalogNumber, context, attemptedUrls, notes);
     }
 
     const detailUrl = findFathDetailUrl(searchPage.text, catalogNumber);
@@ -53,7 +54,7 @@ export class FathConnector implements ManufacturerConnector {
       // No exact product URL on the search page — try to salvage an image-only result from the
       // search markdown so the caller at least gets a product image.
       const fallback = buildFathResultFromSearch(catalogNumber, searchPage);
-      return withDiagnostics(fallback ?? emptyResult("fath", catalogNumber, "FATH search returned no matching product."), attemptedUrls, notes);
+      return withFathDiscoveryFallback(fallback ?? emptyResult("fath", catalogNumber, "FATH search returned no matching product."), catalogNumber, context, attemptedUrls, notes);
     }
 
     let detailPage: FetchedText | undefined;
@@ -73,12 +74,24 @@ export class FathConnector implements ManufacturerConnector {
     }
     if (!detailPage) {
       const fallback = buildFathResultFromSearch(catalogNumber, searchPage, detailUrl);
-      return withDiagnostics(fallback ?? emptyResult("fath", catalogNumber, "FATH product detail page could not be fetched."), attemptedUrls, notes);
+      return withFathDiscoveryFallback(fallback ?? emptyResult("fath", catalogNumber, "FATH product detail page could not be fetched."), catalogNumber, context, attemptedUrls, notes);
     }
 
     const result = parseFathProductPage(catalogNumber, detailPage, detailUrl, searchPage, context.manufacturer.localizedUrlTemplates);
     return withDiagnostics(result, attemptedUrls, notes);
   }
+}
+
+async function withFathDiscoveryFallback(
+  primary: ProductResult,
+  catalogNumber: string,
+  context: ScrapeContext,
+  attemptedUrls: string[],
+  notes: string[]
+): Promise<ProductResult> {
+  const { result: fallback, discovery } = await scrapeDiscoveredFallback(catalogNumber, context, { idPrefix: "fath" });
+  const result = fallback ? mergeResults(primary, fallback) : primary;
+  return withDiscoveryFallbackDiagnostics(withDiagnostics(result, attemptedUrls, notes), discovery);
 }
 
 async function fetchFathPage(

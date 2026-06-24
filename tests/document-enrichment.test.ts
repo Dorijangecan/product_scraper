@@ -6,7 +6,11 @@ import type { ProductResult } from "../src/shared/types.js";
 import { enrichResultFromDownloadedDocuments, enrichResultFromRemoteDocuments, extractDocumentTextAttributes } from "../src/server/scrapers/document-enrichment.js";
 import { normalizeFields } from "../src/server/scrapers/normalizer.js";
 import { normalizeTechnicalAttributes } from "../src/server/scrapers/technical-attributes.js";
-import { applyCustomerDocumentOverride, extractCustomerDocumentAttributes } from "../src/server/scrapers/customer-documents.js";
+import {
+  applyCustomerDocumentOverride,
+  extractCustomerDocumentAttributes,
+  extractCustomerFamilyPdfAttributes
+} from "../src/server/scrapers/customer-documents.js";
 import { classifyDeviceType } from "../src/server/scrapers/device-type.js";
 
 describe("document enrichment", () => {
@@ -90,6 +94,66 @@ Surface finishing Powder coating
     expect(normalized.voltage).toBe("120 V");
     expect(normalized.current).toBe("5 A");
     expect(normalized.finish).toBe("Powder coating");
+  });
+
+  it("uses central field registry document labels when extracting PDF specs", () => {
+    const attributes = extractDocumentTextAttributes({
+      catalogNumber: "ABC-123",
+      document: {
+        type: "datasheet",
+        label: "Registry-label datasheet",
+        url: "https://example.test/abc-123.pdf"
+      },
+      text: `
+General data
+Enclosure protection
+IP65
+Materiale
+ottone
+Electrical data
+Power input 24 V DC
+      `
+    });
+    const normalized = normalizeFields(attributes, []);
+
+    expect(attributes).toEqual(expect.arrayContaining([
+      expect.objectContaining({ name: "Enclosure protection", value: "IP65" }),
+      expect.objectContaining({ name: "Materiale", value: "ottone" }),
+      expect.objectContaining({ name: "Power input", value: "24 V DC" })
+    ]));
+    expect(normalized.protection).toBe("IP65");
+    expect(normalized.material).toBe("brass");
+    expect(normalized.voltage).toBe("24 V DC");
+  });
+
+  it("extracts inline PDF specs from registry aliases even when labels are unseen", () => {
+    const attributes = extractDocumentTextAttributes({
+      catalogNumber: "ABC-123",
+      document: {
+        type: "datasheet",
+        label: "Alias-only datasheet",
+        url: "https://example.test/abc-123-alias.pdf"
+      },
+      text: `
+General data
+Case material Stainless steel
+Ingress protection IP67
+Nominal voltage 48 V DC
+Surface finish RAL 7035 powder coating
+      `
+    });
+    const normalized = normalizeFields(attributes, []);
+
+    expect(attributes).toEqual(expect.arrayContaining([
+      expect.objectContaining({ name: "Case material", value: "Stainless steel" }),
+      expect.objectContaining({ name: "Ingress protection", value: "IP67" }),
+      expect.objectContaining({ name: "Nominal voltage", value: "48 V DC" }),
+      expect.objectContaining({ name: "Surface finish", value: "RAL 7035 powder coating" })
+    ]));
+    expect(normalized.material).toBe("Stainless steel");
+    expect(normalized.protection).toBe("IP67");
+    expect(normalized.voltage).toBe("48 V DC");
+    expect(normalized.finish).toBe("RAL 7035 powder coating");
   });
 
   it("rejoins PDF table units that were extracted as separate cells before the value", () => {
@@ -306,10 +370,253 @@ W
       `
     });
     const normalized = normalizeFields(attributes, []);
+    expect(attributes).toEqual(expect.arrayContaining([
+      expect.objectContaining({ group: "PDF Dimension Table Row", name: "Dimensions", value: expect.stringContaining("DN 15") }),
+      expect.objectContaining({ group: "PDF Dimension Table Row", name: "Weight", value: "4.5 kg" })
+    ]));
     expect(normalized.dimensions).toContain("DN 15");
     expect(normalized.weight).toBe("4.5 kg");
     expect(normalized.material).toBe("Valve body Spheroidal cast iron GJS-400-15");
     expect(normalized.certificates).toContain("CE");
+  });
+
+  it("extracts source-backed fields from generic catalog table rows for unseen products", () => {
+    const attributes = extractDocumentTextAttributes({
+      catalogNumber: "ZX-CTRL-24",
+      document: {
+        type: "datasheet",
+        label: "ZX-CTRL-24 technical data",
+        url: "https://example.test/zx-ctrl-24.pdf"
+      },
+      text: [
+        "Technical data",
+        "Catalog Number\tDescription\tProduct Type\tMaterial\tWidth [mm]\tHeight [mm]\tDepth [mm]\tWeight [kg]\tSupply voltage\tRated current",
+        "ZX-CTRL-24\tCompact industrial controller\tProgrammable logic controller\tPolycarbonate\t120\t80\t55\t0.7\t24 V DC\t500 mA"
+      ].join("\n")
+    });
+    const normalized = normalizeFields(attributes, []);
+
+    expect(attributes).toEqual(expect.arrayContaining([
+      expect.objectContaining({ group: "PDF Catalog Table Row", name: "Catalog Number", value: "ZX-CTRL-24" }),
+      expect.objectContaining({ group: "PDF Catalog Table Row", name: "Product Type", value: "Programmable logic controller" }),
+      expect.objectContaining({ group: "PDF Catalog Table Row", name: "Dimensions", value: "W 120 mm x H 80 mm x D 55 mm" }),
+      expect.objectContaining({ group: "PDF Catalog Table Row", name: "Weight", value: "0.7 kg" }),
+      expect.objectContaining({ group: "PDF Catalog Table Row", name: "Voltage rating", value: "24 V DC" }),
+      expect.objectContaining({ group: "PDF Catalog Table Row", name: "Current rating", value: "500 mA" })
+    ]));
+    expect(normalized.material).toBe("Polycarbonate");
+    expect(normalized.dimensions).toBe("W 120 mm x H 80 mm x D 55 mm");
+    expect(normalized.weight).toBe("0.7 kg");
+    expect(normalized.voltage).toBe("24 V DC");
+    expect(normalized.current).toBe("500 mA");
+  });
+
+  it("maps Eaton-style PDF ordering tables and localized technical pages without catalog hardcoding", () => {
+    const document = {
+      type: "datasheet" as const,
+      label: "Rapid Link catalog",
+      url: "https://example.test/rapid-link-cn.pdf"
+    };
+    const text = [
+        "5G = \u901a\u7528\u7248\uff0cIP54",
+        "5A = \u9ad8\u7ea7\u7248\uff0cIP65",
+        "412 = HAN Q4/2, lower entrance",
+        "512 = HAN Q5, lower entrance",
+        "Rapid Link \u5206\u5e03\u5f0f\u53d8\u9891\u5668",
+        "\u901a\u7528\u7248\uff0cIP54",
+        "\u989d\u5b9a",
+        "\u7535\u6d41",
+        "(A)",
+        "\u989d\u5b9a",
+        "\u529f\u7387",
+        "(kW)",
+        "\u62b1\u95f8",
+        "\u63a7\u5236",
+        "\u7535\u538b",
+        "\u65e0\u7ef4\u4fee\u5f00\u5173 \t\u5e26\u7ef4\u4fee\u5f00\u5173",
+        "4DI/2DO 3 \t0.75 \t- \tRASP5G-0420A31-4120000S1-000 \tRASP5G-0420A31-412R000S1-000 \tRASP5G-0420A31-4120100S1-000 \tRASP5G-0420A31-412R100S1-000",
+        "CDVRL00073 \tCDVRL00001 \tCDVRL00097 \tCDVRL00025",
+        "DC180V \tRASP5G-0421A31-4120000S1-000 \tRASP5G-0421A31-412R000S1-000 \tRASP5G-0421A31-4120100S1-000 \tRASP5G-0421A31-412R100S1-000",
+        "CDVRL00079 \tCDVRL00007 \tCDVRL00103 \tCDVRL00031",
+        "\u9ad8\u7ea7\u7248\uff0cIP65",
+        "4DI/2DO 3 \t0.75 \t- \tRASP5A-0420A31-4120010S1-000 \tRASP5A-0420A31-412R010S1-000 \tRASP5A-0420A31-4120110S1-000 \tRASP5A-0420A31-412R110S1-000",
+        "CDVRL10073 \tCDVRL10001 \tCDVRL10097 \tCDVRL10025",
+        "PROFINET",
+        "\u901a\u7528\u7248\uff0cIP54",
+        "4DI/2DO 3 \t0.75 \t- \tRASP5G-0420PNT-4120000S1-000 \tRASP5G-0420PNT-412R000S1-000 \tRASP5G-0420PNT-4120100S1-000 \tRASP5G-0420PNT-412R100S1-000",
+        "CDVRL00361 \tCDVRL00289 \tCDVRL00385 \tCDVRL00313",
+        "\u6280\u672f\u53c2\u6570\u548c\u89c4\u683c",
+        "\u5c5e\u6027 \t\u4ea7\u54c1\u63cf\u8ff0 \t\u89c4\u683c",
+        "\u989d\u5b9a\u8f93\u5165 \t\u8f93\u5165\u7535\u538b/\u9891\u7387 \t3 \u76f8 380 - 480V\uff0c-15% ~ +10 %\uff0c50/60 Hz",
+        "\u9632\u62a4\u7b49\u7ea7 \tIP65\uff08RASP5A...\uff09\u3001IP54\uff08RASP5G...\uff09",
+        "\u73af\u5883\u6761\u4ef6 \t\u5de5\u4f5c\u6e29\u5ea6 \t-25~45\u2103 \u65e0\u964d\u5bb9",
+        "\u5c3a\u5bf8 (W x H x D, mm)",
+        "\u529f\u7387 (kW) \t\u7c7b\u578b \tW \tH \tD \t\u8bf4\u660e",
+        "0.75/1.5/2.2 \tRASP5X-...-xxx0xx0xx-\u2026 \t220 \t270 \t182 \t\u65e0\u7ef4\u4fee\u5f00\u5173\uff0c\u65e0\u98ce\u6247",
+        "0.75/1.5/2.2 \tRASP5X-...-xxxRxx0xx-\u2026 \t220 \t290 \t182 \t\u6709\u7ef4\u4fee\u5f00\u5173\uff0c\u65e0\u98ce\u6247",
+        "\u91cd\u91cf ( kg )",
+        "\u529f\u7387 (kW) \t\u7c7b\u578b \t\u91cd\u91cf \t\u8bf4\u660e",
+        "0.75/1.5/2.2 \tRASP5X-...-xxxR0x0xx-\u2026 \t3.76 \t\u6709\u7ef4\u4fee\u5f00\u5173\uff0c\u65e0\u5236\u52a8\u7535\u963b\uff0c\u65e0\u98ce\u6247",
+        "0.75/1.5/2.2 \tRASP5X-...-xxxR1x0xx-\u2026 \t3.83 \t\u6709\u7ef4\u4fee\u5f00\u5173\uff0c\u6709\u5236\u52a8\u7535\u963b\uff0c\u65e0\u98ce\u6247"
+    ].join("\n");
+    const attributes = extractDocumentTextAttributes({
+      catalogNumber: "CDVRL00001",
+      document,
+      text
+    });
+    const normalized = normalizeFields(attributes, []);
+    const technical = normalizeTechnicalAttributes("eaton", attributes);
+
+    expect(attributes).toEqual(expect.arrayContaining([
+      expect.objectContaining({ group: "PDF Catalog Ordering Table", name: "Catalog Number", value: "CDVRL00001" }),
+      expect.objectContaining({ group: "PDF Catalog Ordering Table", name: "Model Code", value: "RASP5G-0420A31-412R000S1-000" }),
+      expect.objectContaining({ group: "PDF Catalog Ordering Table", name: "Rated current", value: "3 A" }),
+      expect.objectContaining({ group: "PDF Catalog Ordering Table", name: "Rated power", value: "0.75 kW" }),
+      expect.objectContaining({ group: "PDF Catalog Ordering Table", name: "Degree of protection", value: "IP54" }),
+      expect.objectContaining({ group: "PDF Model Pattern Table", name: "Dimensions", value: "220 x 290 x 182 mm" }),
+      expect.objectContaining({ group: "PDF Model Pattern Table", name: "Weight", value: "3.76 kg" }),
+      expect.objectContaining({ group: "PDF Localized Technical Data", name: "Product Type", value: "Variable frequency drive" }),
+      expect.objectContaining({ group: "PDF Localized Technical Data", name: "Input voltage", value: "380...480 V" }),
+      expect.objectContaining({ group: "PDF Localized Technical Data", name: "Degree of protection", value: "IP65; IP54" })
+    ]));
+    expect(normalized.current).toBe("3 A");
+    expect(normalized.dimensions).toBe("220 x 290 x 182 mm");
+    expect(normalized.weight).toBe("3.76 kg");
+    expect(normalized.voltage).toBe("380...480 V");
+    expect(normalized.protection).toBe("IP54; IP65");
+    expect([...new Set(technical.map((item) => item.canonicalKey))]).toEqual(
+      expect.arrayContaining(["ratedCurrent", "ratedVoltage", "power", "protection"])
+    );
+
+    const brakeVoltageAttributes = extractDocumentTextAttributes({
+      catalogNumber: "CDVRL00007",
+      document,
+      text
+    });
+    expect(brakeVoltageAttributes).toEqual(expect.arrayContaining([
+      expect.objectContaining({ group: "PDF Catalog Ordering Table", name: "Catalog Number", value: "CDVRL00007" }),
+      expect.objectContaining({ group: "PDF Catalog Ordering Table", name: "Model Code", value: "RASP5G-0421A31-412R000S1-000" }),
+      expect.objectContaining({ group: "PDF Catalog Ordering Table", name: "Rated current", value: "3 A" }),
+      expect.objectContaining({ group: "PDF Catalog Ordering Table", name: "Rated power", value: "0.75 kW" }),
+      expect.objectContaining({ group: "PDF Catalog Ordering Table", name: "Control voltage", value: "180 V DC" })
+    ]));
+
+    const inferredHanQ5Attributes = extractDocumentTextAttributes({
+      catalogNumber: "CDVRL00055",
+      document,
+      text
+    });
+    const inferredHanQ5Normalized = normalizeFields(inferredHanQ5Attributes, []);
+    expect(inferredHanQ5Attributes).toEqual(expect.arrayContaining([
+      expect.objectContaining({ group: "PDF Catalog Ordering Table Inferred", name: "Catalog Number", value: "CDVRL00055" }),
+      expect.objectContaining({ group: "PDF Catalog Ordering Table Inferred", name: "Model Code", value: "RASP5G-0421A31-512R000S1-000" }),
+      expect.objectContaining({ group: "PDF Catalog Ordering Table Inferred", name: "Rated current", value: "3 A" }),
+      expect.objectContaining({ group: "PDF Catalog Ordering Table Inferred", name: "Control voltage", value: "180 V DC" }),
+      expect.objectContaining({ group: "PDF Catalog Ordering Table Inferred", name: "Inference basis", value: expect.stringContaining("512 = HAN Q5") }),
+      expect.objectContaining({ group: "PDF Model Pattern Table", name: "Dimensions", value: "220 x 290 x 182 mm" }),
+      expect.objectContaining({ group: "PDF Model Pattern Table", name: "Weight", value: "3.76 kg" })
+    ]));
+    expect(inferredHanQ5Normalized.current).toBe("3 A");
+    expect(inferredHanQ5Normalized.dimensions).toBe("220 x 290 x 182 mm");
+    expect(inferredHanQ5Normalized.weight).toBe("3.76 kg");
+
+    const inferredAdvancedProfinetAttributes = extractDocumentTextAttributes({
+      catalogNumber: "CDVRL10337",
+      document,
+      text
+    });
+    const inferredAdvancedProfinetNormalized = normalizeFields(inferredAdvancedProfinetAttributes, []);
+    expect(inferredAdvancedProfinetAttributes).toEqual(expect.arrayContaining([
+      expect.objectContaining({ group: "PDF Catalog Ordering Table Inferred", name: "Catalog Number", value: "CDVRL10337" }),
+      expect.objectContaining({ group: "PDF Catalog Ordering Table Inferred", name: "Model Code", value: "RASP5A-0420PNT-512R000S1-000" }),
+      expect.objectContaining({ group: "PDF Catalog Ordering Table Inferred", name: "Rated current", value: "3 A" }),
+      expect.objectContaining({ group: "PDF Catalog Ordering Table Inferred", name: "Degree of protection", value: "IP65" }),
+      expect.objectContaining({ group: "PDF Catalog Ordering Table Inferred", name: "Inference basis", value: expect.stringContaining("5A = advanced IP65") })
+    ]));
+    expect(inferredAdvancedProfinetNormalized.current).toBe("3 A");
+    expect(inferredAdvancedProfinetNormalized.protection).toBe("IP65; IP54");
+    expect(inferredAdvancedProfinetNormalized.dimensions).toBe("220 x 290 x 182 mm");
+    expect(inferredAdvancedProfinetNormalized.weight).toBe("3.76 kg");
+
+    const inferredC2AsiAttributes = extractDocumentTextAttributes({
+      catalogNumber: "CDVRL20001",
+      document,
+      text
+    });
+    expect(inferredC2AsiAttributes).toEqual(expect.arrayContaining([
+      expect.objectContaining({ group: "PDF Catalog Ordering Table Inferred", name: "Catalog Number", value: "CDVRL20001" }),
+      expect.objectContaining({ group: "PDF Catalog Ordering Table Inferred", name: "Model Code", value: "RASP5A-0420A31-412R020S1-000" }),
+      expect.objectContaining({ group: "PDF Catalog Ordering Table Inferred", name: "Inference basis", value: expect.stringContaining("EMC option 2") })
+    ]));
+
+    const inferredC2HanQ5Attributes = extractDocumentTextAttributes({
+      catalogNumber: "CDVRL20169",
+      document,
+      text
+    });
+    const inferredC2HanQ5Normalized = normalizeFields(inferredC2HanQ5Attributes, []);
+    expect(inferredC2HanQ5Attributes).toEqual(expect.arrayContaining([
+      expect.objectContaining({ group: "PDF Catalog Ordering Table Inferred", name: "Catalog Number", value: "CDVRL20169" }),
+      expect.objectContaining({ group: "PDF Catalog Ordering Table Inferred", name: "Model Code", value: "RASP5A-0420A31-512R020S1-000" }),
+      expect.objectContaining({ group: "PDF Catalog Ordering Table Inferred", name: "Inference basis", value: expect.stringContaining("512 = HAN Q5") })
+    ]));
+    expect(inferredC2HanQ5Normalized.current).toBe("3 A");
+    expect(inferredC2HanQ5Normalized.dimensions).toBe("220 x 290 x 182 mm");
+    expect(inferredC2HanQ5Normalized.weight).toBe("3.76 kg");
+
+    const inferredC2HanQ5SubBlockAttributes = extractDocumentTextAttributes({
+      catalogNumber: "CDVRL20217",
+      document,
+      text
+    });
+    expect(inferredC2HanQ5SubBlockAttributes).toEqual(expect.arrayContaining([
+      expect.objectContaining({ group: "PDF Catalog Ordering Table Inferred", name: "Catalog Number", value: "CDVRL20217" }),
+      expect.objectContaining({ group: "PDF Catalog Ordering Table Inferred", name: "Model Code", value: "RASP5A-0420A31-5120020S1-000" }),
+      expect.objectContaining({ group: "PDF Catalog Ordering Table Inferred", name: "Inference basis", value: expect.stringContaining("512 = HAN Q5") })
+    ]));
+
+    const inferredC2ProfinetAttributes = extractDocumentTextAttributes({
+      catalogNumber: "CDVRL20289",
+      document,
+      text
+    });
+    const inferredC2ProfinetNormalized = normalizeFields(inferredC2ProfinetAttributes, []);
+    expect(inferredC2ProfinetAttributes).toEqual(expect.arrayContaining([
+      expect.objectContaining({ group: "PDF Catalog Ordering Table Inferred", name: "Catalog Number", value: "CDVRL20289" }),
+      expect.objectContaining({ group: "PDF Catalog Ordering Table Inferred", name: "Model Code", value: "RASP5A-0420PNT-412R020S1-000" }),
+      expect.objectContaining({ group: "PDF Catalog Ordering Table Inferred", name: "Rated current", value: "3 A" })
+    ]));
+    expect(inferredC2ProfinetNormalized.current).toBe("3 A");
+    expect(inferredC2ProfinetNormalized.dimensions).toBe("220 x 290 x 182 mm");
+    expect(inferredC2ProfinetNormalized.weight).toBe("3.76 kg");
+  });
+
+  it("extracts inline drawing dimensions from document text without product-family hardcoding", () => {
+    const attributes = extractDocumentTextAttributes({
+      catalogNumber: "NX-DRAW-01",
+      document: {
+        type: "datasheet",
+        label: "NX-DRAW-01 dimensional drawing",
+        url: "https://example.test/nx-draw-01.pdf"
+      },
+      text: `
+Mechanical data
+Dimensional drawing
+Overall dimensions approx. 34.5 mm x 27.5 mm x 19 mm
+Material glass-filled polyamide
+      `
+    });
+    const normalized = normalizeFields(attributes, []);
+
+    expect(attributes).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        group: "PDF Dimension Text",
+        name: "Dimensions",
+        value: "34.5 mm x 27.5 mm x 19 mm"
+      })
+    ]));
+    expect(normalized.dimensions).toBe("34.5 mm x 27.5 mm x 19 mm");
+    expect(normalized.material).toBe("glass-filled polyamide");
   });
 
   it("uses customer CSV datasheets as source-backed Siemens evidence", async () => {
@@ -341,6 +648,20 @@ W
     expect(enriched.normalized.weight).toBe("4.5 kg");
     expect(enriched.normalized.dimensions).toContain("DN 15");
     expect(enriched.normalized.material).toBe("Valve body spheroidal cast iron GJS-400-15");
+    expect(extraction.documentProcessing).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        action: "parsed",
+        stage: "customer-document-enrichment",
+        reason: expect.stringContaining("Parsed")
+      })
+    ]));
+    expect(enriched.diagnostics?.documentProcessing).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        action: "parsed",
+        stage: "customer-document-enrichment",
+        label: `Customer document: ${path.basename(storedPath)}`
+      })
+    ]));
     expect(classifyDeviceType(enriched).type).toBe("Valve");
   });
 
@@ -374,6 +695,122 @@ W
     expect(classifyDeviceType(enriched).type).toBe("Hydraulic Actuator");
   });
 
+  it("uses free-text customer documents as source-backed datasheets", async () => {
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-customer-text-docs-"));
+    const storedPath = path.join(dir, "ABC-123-technical-datasheet.txt");
+    await fs.writeFile(
+      storedPath,
+      [
+        "ABC-123 compact controller",
+        "Technical summary",
+        "Housing material",
+        "Polycarbonate",
+        "Dimensions",
+        "120 x 80 x 55 mm",
+        "Weight",
+        "0.7 kg",
+        "Power input",
+        "24 V DC"
+      ].join("\n"),
+      "utf8"
+    );
+
+    const extraction = await extractCustomerDocumentAttributes("ABC-123", [
+      {
+        id: "customer-doc-1",
+        originalName: path.basename(storedPath),
+        storedPath,
+        mimeType: "text/plain",
+        uploadedAt: "2026-06-02T00:00:00.000Z"
+      }
+    ]);
+    const enriched = applyCustomerDocumentOverride(product({ catalogNumber: "ABC-123", status: "failed" }), extraction);
+
+    expect(extraction.documents[0].type).toBe("datasheet");
+    expect(extraction.attributes).toEqual(expect.arrayContaining([
+      expect.objectContaining({ name: "Housing material", value: "Polycarbonate", parser: "customer-document" }),
+      expect.objectContaining({ name: "Power input", value: "24 V DC", parser: "customer-document" })
+    ]));
+    expect(enriched.normalized.material).toBe("Polycarbonate");
+    expect(enriched.normalized.dimensions).toBe("120 x 80 x 55 mm");
+    expect(enriched.normalized.weight).toBe("0.7 kg");
+    expect(enriched.normalized.voltage).toBe("24 V DC");
+    expect(enriched.diagnostics?.documentProcessing).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        action: "parsed",
+        stage: "customer-document-enrichment",
+        label: `Customer document: ${path.basename(storedPath)}`
+      })
+    ]));
+  });
+
+  it("uses the central field registry to decide which normalized fields customer documents override", () => {
+    const base = product({
+      normalized: {
+        finish: "black oxide",
+        material: "steel"
+      }
+    });
+
+    const enriched = applyCustomerDocumentOverride(base, {
+      attributes: [
+        {
+          group: "Customer datasheet",
+          name: "Surface treatment",
+          value: "RAL 7035 powder coating",
+          sourceUrl: "file:///customer/spec.csv",
+          sourceType: "official",
+          parser: "customer-document",
+          stage: "customer-override",
+          confidence: 0.97
+        }
+      ],
+      sources: [],
+      documents: [],
+      parseFailures: [],
+      documentProcessing: []
+    });
+
+    expect(enriched.normalized.finish).toBe("RAL 7035 powder coating");
+    expect(enriched.normalized.material).toBe("steel");
+  });
+
+  it("classifies unseen customer spec tables as datasheets using the field registry", async () => {
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-customer-registry-docs-"));
+    const storedPath = path.join(dir, "unseen-device-export.csv");
+    await fs.writeFile(
+      storedPath,
+      [
+        "MLFB,Product Short Text,Surface treatment,Enclosure protection,Power input,Working temperature",
+        "ZX-77,Unseen control box,RAL 7035 powder coating,IP66,24 V DC,-20...60 °C"
+      ].join("\n"),
+      "utf8"
+    );
+
+    const extraction = await extractCustomerDocumentAttributes("ZX-77", [
+      {
+        id: "customer-doc-1",
+        originalName: path.basename(storedPath),
+        storedPath,
+        mimeType: "text/csv",
+        uploadedAt: "2026-06-02T00:00:00.000Z"
+      }
+    ]);
+    const enriched = applyCustomerDocumentOverride(product({ catalogNumber: "ZX-77", status: "failed" }), extraction);
+
+    expect(extraction.documents[0].type).toBe("datasheet");
+    expect(enriched.status).toBe("found");
+    expect(extraction.attributes).toEqual(expect.arrayContaining([
+      expect.objectContaining({ name: "Surface treatment", value: "RAL 7035 powder coating" }),
+      expect.objectContaining({ name: "Enclosure protection", value: "IP66" }),
+      expect.objectContaining({ name: "Power input", value: "24 V DC" }),
+      expect.objectContaining({ name: "Working temperature", value: "-20...60 °C" })
+    ]));
+    expect(enriched.normalized.finish).toBe("RAL 7035 powder coating");
+    expect(enriched.normalized.protection).toBe("IP66");
+    expect(enriched.normalized.voltage).toBe("24 V DC");
+  });
+
   it("extracts customer PDF specs even when the catalog number is not printed in the PDF text", async () => {
     const storedPath = path.resolve("benchmarks", "live-check", "nvent-docs", "spec-00583.pdf");
     const extraction = await extractCustomerDocumentAttributes("NO-MATCH", [
@@ -392,6 +829,152 @@ W
     expect(enriched.normalized.protection).toBe("IP20");
   });
 
+  it("keeps customer document no-match attempts visible in diagnostics", async () => {
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-customer-docs-no-match-"));
+    const storedPath = path.join(dir, "customer-sheets.csv");
+    await fs.writeFile(
+      storedPath,
+      [
+        "Catalog Number,Material,Weight",
+        "OTHER-1,steel,1 kg"
+      ].join("\n"),
+      "utf8"
+    );
+
+    const extraction = await extractCustomerDocumentAttributes("ABC-123", [
+      {
+        id: "customer-doc-1",
+        originalName: path.basename(storedPath),
+        storedPath,
+        mimeType: "text/csv",
+        uploadedAt: "2026-06-02T00:00:00.000Z"
+      }
+    ]);
+    const enriched = applyCustomerDocumentOverride(product({ catalogNumber: "ABC-123" }), extraction);
+
+    expect(extraction.attributes).toEqual([]);
+    expect(enriched.diagnostics?.documentProcessing).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        action: "skipped",
+        stage: "customer-document-enrichment",
+        reason: expect.stringContaining("no usable attributes for catalog ABC-123")
+      })
+    ]));
+  });
+
+  it("uses customer PDFs as family evidence when only the catalog family is printed", () => {
+    const attributes = extractCustomerFamilyPdfAttributes(
+      "5034-L9020TSXT",
+      "02.-CompactLogix-5390-Controller.pdf",
+      "file:///customer/02.-CompactLogix-5390-Controller.pdf",
+      `
+CompactLogix 5390 Controller
+5034 Local I/O support
+Support up to 32 IO modules
+Operating Temperature
+-25 to +60 Degree C
+Operating Temperature XT
+-40 to +70 Degree C
+CIP Security
+IEC-62443-4-2
+Catalogs planned for release
+5034-L9020TS CompactLogix 2MB Controller
+      `
+    );
+
+    expect(attributes).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        name: "Requested catalog number",
+        value: "5034-L9020TSXT",
+        sourceType: "generated",
+        parser: "customer-family-pdf-inference",
+        confidence: 0.55
+      }),
+      expect.objectContaining({
+        name: "Matched catalog family",
+        value: expect.stringMatching(/^5034L9/),
+        sourceType: "generated",
+        parser: "customer-family-pdf-inference",
+        confidence: 0.58
+      })
+    ]));
+    expect(attributes.some((attr) => attr.name === "Product Family")).toBe(false);
+  });
+
+  it("extracts generic catalog-row descriptions and memory from PDF text", () => {
+    const attributes = extractDocumentTextAttributes({
+      catalogNumber: "5034-L9010TNSXT",
+      document: {
+        type: "datasheet",
+        label: "CompactLogix controller flyer",
+        url: "file:///customer/compactlogix.pdf"
+      },
+      text: `
+Catalogs planned for release
+5034 -L9004TS CompactLogix 400KB Controller
+5034 -L9010TNSXT CompactLogix 1MB XT NSE Controller
+      `
+    });
+
+    expect(attributes).toEqual(expect.arrayContaining([
+      expect.objectContaining({ group: "PDF Catalog Description Row", name: "Catalog Number", value: "5034-L9010TNSXT" }),
+      expect.objectContaining({ group: "PDF Catalog Description Row", name: "Description", value: "CompactLogix 1MB XT NSE Controller" }),
+      expect.objectContaining({ group: "PDF Catalog Description Row", name: "Memory", value: "1 MB" }),
+      expect.objectContaining({ group: "PDF Catalog Description Row", name: "Variant", value: "XT, NSE" })
+    ]));
+  });
+
+  it("extracts description facts from unseen catalog rows without manufacturer-specific rules", () => {
+    const attributes = extractDocumentTextAttributes({
+      catalogNumber: "ZX-CTRL-24",
+      document: {
+        type: "datasheet",
+        label: "Generic controller selector",
+        url: "https://example.test/generic-controller-selector.pdf"
+      },
+      text: `
+Selector table
+ZX - CTRL - 12 Modular controller 256KB Standard 12 V DC
+ZX - CTRL - 24 Modular controller 512KB Safety CPU 24 V DC
+ZX - CTRL - 48 Modular controller 1MB High power 48 V DC
+      `
+    });
+
+    expect(attributes).toEqual(expect.arrayContaining([
+      expect.objectContaining({ group: "PDF Catalog Description Row", name: "Catalog Number", value: "ZX-CTRL-24" }),
+      expect.objectContaining({ group: "PDF Catalog Description Row", name: "Description", value: "Modular controller 512KB Safety CPU 24 V DC" }),
+      expect.objectContaining({ group: "PDF Catalog Description Row", name: "Memory", value: "512 KB" }),
+      expect.objectContaining({ group: "PDF Catalog Description Row", name: "Voltage rating", value: "24 V DC" }),
+      expect.objectContaining({ group: "PDF Catalog Description Row", name: "Variant", value: "Safety" })
+    ]));
+  });
+
+  it("keeps qualified PDF temperature labels from becoming bogus inline values", () => {
+    const attributes = extractDocumentTextAttributes({
+      catalogNumber: "ABC-123",
+      document: {
+        type: "datasheet",
+        label: "Controller PDF",
+        url: "https://example.test/controller.pdf"
+      },
+      text: `
+Operating Temperature
+-25 to +60 Degree C
+Operating Temperature XT
+-40 to +70 Degree C
+      `
+    });
+
+    expect(attributes).toEqual(expect.arrayContaining([
+      expect.objectContaining({ name: "Operating Temperature", value: "-25 to +60 Degree C" }),
+      expect.objectContaining({ name: "Operating temperature XT", value: "-40 to +70 Degree C" })
+    ]));
+    expect(attributes).not.toEqual(expect.arrayContaining([
+      expect.objectContaining({ name: "Operating temperature", value: "XT" }),
+      expect.objectContaining({ name: "Feature", value: "Operating Temperature XT" })
+    ]));
+  });
+
   it("records PDF parse failures without adding them as product attributes", async () => {
     const result = await enrichResultFromDownloadedDocuments(product({
       documents: [
@@ -407,6 +990,14 @@ W
 
     expect(result.documents[0].parseStatus).toBe("failed");
     expect(result.diagnostics?.documentParseFailures?.[0]).toContain("Broken datasheet");
+    expect(result.diagnostics?.documentProcessing).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        url: "https://example.test/broken.pdf",
+        action: "failed",
+        stage: "downloaded-document-enrichment",
+        reason: "Downloaded PDF parse failed."
+      })
+    ]));
     expect(result.attributes).toEqual([]);
   });
 
@@ -433,6 +1024,119 @@ W
     expect(result.attributes.some((attr) => attr.name === "Supply Voltage" && /115V/.test(attr.value))).toBe(true);
     expect(result.normalized.protection).toBe("IP20");
     expect(result.sources.some((source) => source.stage === "probe-remote-documents")).toBe(true);
+    expect(result.diagnostics?.documentProcessing).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        url: "https://example.test/spec-00583.pdf",
+        action: "parsed",
+        stage: "remote-document-enrichment"
+      })
+    ]));
+  });
+
+  it("reads remote PDF-like query endpoints even when the URL has no .pdf suffix", async () => {
+    const fixturePath = path.resolve("benchmarks", "live-check", "nvent-docs", "spec-00583.pdf");
+    const result = await enrichResultFromRemoteDocuments(
+      product({
+        catalogNumber: "NO-MATCH",
+        documents: [
+          {
+            type: "other",
+            label: "Thermostat technical datasheet",
+            url: "https://example.test/files?p_Doc_Ref=SPEC00583&p_enDocType=Data+Sheet",
+            downloadStatus: "skipped",
+            downloadError: "Skipped non-essential local download; URL retained in workbook."
+          }
+        ]
+      }),
+      async () => ({ localPath: fixturePath })
+    );
+
+    expect(result.documents[0].parseStatus).toBe("parsed");
+    expect(result.attributes.some((attr) => attr.name === "Supply Voltage" && /115V/.test(attr.value))).toBe(true);
+    expect(result.diagnostics?.fallbackStages).toContain("remote-document-enrichment");
+  });
+
+  it("reads remote PDF candidate URLs when the primary document link is only a product-page anchor", async () => {
+    const fixturePath = path.resolve("benchmarks", "live-check", "nvent-docs", "spec-00583.pdf");
+    const requestedUrls: string[] = [];
+    const result = await enrichResultFromRemoteDocuments(
+      product({
+        catalogNumber: "NO-MATCH",
+        documents: [
+          {
+            type: "datasheet",
+            label: "Thermostat technical datasheet",
+            url: "https://example.test/products/NO-MATCH#downloads",
+            candidateUrls: ["https://example.test/downloads/spec-00583.pdf?download=1"]
+          }
+        ]
+      }),
+      async (document) => {
+        requestedUrls.push(document.url);
+        return { localPath: fixturePath, url: document.url };
+      }
+    );
+
+    expect(requestedUrls).toEqual(["https://example.test/downloads/spec-00583.pdf?download=1"]);
+    expect(result.documents[0].url).toBe("https://example.test/downloads/spec-00583.pdf?download=1");
+    expect(result.sources.some((source) => source.url === "https://example.test/downloads/spec-00583.pdf?download=1")).toBe(true);
+    expect(result.attributes.some((attr) => attr.sourceUrl === "https://example.test/downloads/spec-00583.pdf?download=1")).toBe(true);
+  });
+
+  it("parses downloaded PDF-like query documents even when the local file has no PDF suffix", async () => {
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-downloaded-query-pdf-"));
+    const fixturePath = path.resolve("benchmarks", "live-check", "nvent-docs", "spec-00583.pdf");
+    const localPath = path.join(dir, "downloaded-query-document");
+    await fs.copyFile(fixturePath, localPath);
+
+    const result = await enrichResultFromDownloadedDocuments(product({
+      catalogNumber: "NO-MATCH",
+      documents: [
+        {
+          type: "other",
+          label: "Thermostat technical datasheet",
+          url: "https://example.test/files?p_Doc_Ref=SPEC00583&p_enDocType=Data+Sheet",
+          localPath,
+          downloadStatus: "downloaded"
+        }
+      ]
+    }));
+
+    expect(result.documents[0].parseStatus).toBe("parsed");
+    expect(result.attributes.some((attr) => attr.name === "Supply Voltage" && /115V/.test(attr.value))).toBe(true);
+    expect(result.diagnostics?.documentProcessing).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        url: "https://example.test/files?p_Doc_Ref=SPEC00583&p_enDocType=Data+Sheet",
+        action: "parsed",
+        stage: "downloaded-document-enrichment"
+      })
+    ]));
+  });
+
+  it("records remote document skip reasons when a candidate is not parseable", async () => {
+    const result = await enrichResultFromRemoteDocuments(
+      product({
+        documents: [
+          {
+            type: "certificate",
+            label: "EU declaration",
+            url: "https://example.test/ABC-123-ce.pdf"
+          }
+        ]
+      }),
+      async () => {
+        throw new Error("certificate should not be fetched for remote datasheet/manual enrichment");
+      }
+    );
+
+    expect(result.diagnostics?.documentProcessing).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        url: "https://example.test/ABC-123-ce.pdf",
+        action: "skipped",
+        stage: "remote-document-enrichment",
+        reason: "Skipped because document type 'certificate' is not a remote PDF enrichment candidate."
+      })
+    ]));
   });
 });
 

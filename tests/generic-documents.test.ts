@@ -49,6 +49,114 @@ describe("generic document discovery", () => {
     );
   });
 
+  it("keeps document download links that rely on labels instead of .pdf extensions", () => {
+    const result = parseGenericProductPage(
+      "generic",
+      "ABC-123",
+      {
+        requestedUrl: "https://example.test/products/ABC-123",
+        effectiveUrl: "https://example.test/products/ABC-123",
+        statusCode: 200,
+        contentType: "text/html",
+        fetchedAt: "2026-01-01T00:00:00.000Z",
+        fromCache: false,
+        text: `
+          <html><body>
+            <h1>ABC-123 safety relay</h1>
+            <a href="/global/en/download/dam/ABC123_TECHDATA">ABC-123 technical datasheet PDF</a>
+            <a href="/files?p_Doc_Ref=ABC123_INSTALL&p_enDocType=Instruction+Sheet">ABC-123 installation manual</a>
+          </body></html>
+        `
+      },
+      "official-fallback",
+      "generic-test"
+    );
+
+    expect(result.documents).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          type: "datasheet",
+          url: "https://example.test/global/en/download/dam/ABC123_TECHDATA"
+        }),
+        expect.objectContaining({
+          type: "manual",
+          url: "https://example.test/files?p_Doc_Ref=ABC123_INSTALL&p_enDocType=Instruction+Sheet"
+        })
+      ])
+    );
+  });
+
+  it("deduplicates equivalent PDF links with tracking parameters or reordered query strings", () => {
+    const result = parseGenericProductPage(
+      "generic",
+      "ABC-123",
+      {
+        requestedUrl: "https://example.test/products/ABC-123",
+        effectiveUrl: "https://example.test/products/ABC-123",
+        statusCode: 200,
+        contentType: "text/html",
+        fetchedAt: "2026-01-01T00:00:00.000Z",
+        fromCache: false,
+        text: `
+          <html><body>
+            <h1>ABC-123 controller</h1>
+            <a href="/download?documentId=spec123&format=pdf&utm_source=search">ABC-123 datasheet</a>
+            <a href="/download?format=pdf&documentId=spec123">ABC-123 technical datasheet</a>
+          </body></html>
+        `
+      },
+      "official-fallback",
+      "generic-test"
+    );
+
+    expect(result.documents.filter((doc) => /spec123/.test(doc.url))).toHaveLength(1);
+  });
+
+  it("records document discovery decisions for accepted and rejected anchor links", () => {
+    const result = parseGenericProductPage(
+      "generic",
+      "ABC-123",
+      {
+        requestedUrl: "https://example.test/products/ABC-123",
+        effectiveUrl: "https://example.test/products/ABC-123",
+        statusCode: 200,
+        contentType: "text/html",
+        fetchedAt: "2026-01-01T00:00:00.000Z",
+        fromCache: false,
+        text: `
+          <html><body>
+            <h1>ABC-123 controller</h1>
+            <a href="../docs/ABC-123-datasheet.pdf">ABC-123 datasheet</a>
+            <a href="/legal/privacy.pdf">Privacy policy</a>
+            <a href="/about">About us</a>
+          </body></html>
+        `
+      },
+      "official-fallback",
+      "generic-test"
+    );
+
+    expect(result.diagnostics?.documentCandidates).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          url: "https://example.test/docs/ABC-123-datasheet.pdf",
+          status: "accepted",
+          reason: "Recognized product document link."
+        }),
+        expect.objectContaining({
+          url: "https://example.test/legal/privacy.pdf",
+          status: "rejected",
+          reason: "Rejected unrelated policy/legal document."
+        }),
+        expect.objectContaining({
+          url: "https://example.test/about",
+          status: "rejected",
+          reason: "Link did not look like a product document."
+        })
+      ])
+    );
+  });
+
   it("extracts important specs from semantic DOM attributes and JSON value/unit objects", () => {
     const result = parseGenericProductPage(
       "generic",

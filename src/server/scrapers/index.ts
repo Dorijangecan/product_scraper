@@ -1,7 +1,7 @@
 import type { ManufacturerId } from "../../shared/types.js";
 import type { ManufacturerConnector, ScrapeContext } from "./types.js";
 import { emptyResult } from "./normalizer.js";
-import { templateContainsCatalogPlaceholder } from "./catalog-number.js";
+import { scrapeDiscoveredFallback, withDiscoveryFallbackDiagnostics } from "./discovery-fallback.js";
 
 const connectorLoaders: Record<string, () => Promise<ManufacturerConnector>> = {
   abb: async () => new (await import("./abb.js")).ABBConnector(),
@@ -45,35 +45,18 @@ class ConfiguredManufacturerConnector implements ManufacturerConnector {
   constructor(readonly id: ManufacturerId) {}
 
   async scrape(catalogNumber: string, context: ScrapeContext) {
-    const officialTemplates = context.manufacturer.officialBaseUrls
-      .filter(templateContainsCatalogPlaceholder)
-      .map((url, index) => ({
-        id: `${context.manufacturer.id}-official-${index + 1}`,
-        label: `${context.manufacturer.shortName} official template`,
-        enabled: true,
-        sourceType: "official-fallback" as const,
-        directUrlTemplates: [url]
-      }));
-    const searchTemplates = (context.manufacturer.scrapeRecipe?.searchUrlTemplates ?? [])
-      .filter(templateContainsCatalogPlaceholder)
-      .map((url, index) => ({
-        id: `${context.manufacturer.id}-official-search-${index + 1}`,
-        label: `${context.manufacturer.shortName} official search`,
-        enabled: true,
-        sourceType: "official-fallback" as const,
-        directUrlTemplates: [url]
-      }));
-    const result = await context.fallback.scrape(catalogNumber, [
-      ...officialTemplates,
-      ...searchTemplates,
-      ...context.manufacturer.fallbackSources
-    ]);
-    if (result) return result;
+    const { result, discovery } = await scrapeDiscoveredFallback(catalogNumber, context);
+    if (result) {
+      return withDiscoveryFallbackDiagnostics(result, discovery);
+    }
 
-    return emptyResult(
-      this.id,
-      catalogNumber,
-      `No configured URL template found a page for ${catalogNumber}. Add a source URL template containing {part}.`
+    return withDiscoveryFallbackDiagnostics(
+      emptyResult(
+        this.id,
+        catalogNumber,
+        `No configured URL template found a page for ${catalogNumber}. Add a source URL template containing {part}.`
+      ),
+      discovery
     );
   }
 }

@@ -78,7 +78,7 @@ describe("manufacturer parsers", () => {
     expect(dpp?.documents.some((doc) => doc.type === "image")).toBe(true);
   });
 
-  it("extracts Rockwell cutsheet line-pair specs and family literature documents", () => {
+  it("extracts Rockwell cutsheet line-pair specs without injecting family-mapped literature", () => {
     const result = parseRockwellCutsheetPage(
       "1783-US5T",
       fetched(
@@ -106,14 +106,11 @@ describe("manufacturer parsers", () => {
       expect.objectContaining({ group: "Rockwell Cutsheet - Data", name: "Environment", value: "IP20" }),
       expect.objectContaining({ group: "Rockwell Cutsheet - Additional Details", name: "Operating Temperature", value: "0...60 °C (32...140 °F)" })
     ]));
-    expect(result.documents).toEqual(expect.arrayContaining([
-      expect.objectContaining({ type: "datasheet", url: "https://literature.rockwellautomation.com/idc/groups/literature/documents/td/1783-td002_-en-p.pdf" }),
-      expect.objectContaining({ type: "manual", url: "https://literature.rockwellautomation.com/idc/groups/literature/documents/in/1783-in003_-en-p.pdf" }),
-      expect.objectContaining({ type: "manual", url: "https://literature.rockwellautomation.com/idc/groups/literature/documents/um/1783-um007_-en-p.pdf" })
-    ]));
+    expect(result.documents.some((doc) => doc.parser === "rockwell-literature-rules")).toBe(false);
+    expect(result.documents.some((doc) => /1783-td002|1783-in003|1783-um007/i.test(doc.url))).toBe(false);
   });
 
-  it("adds the direct Rockwell Compact 5000 I/O technical data PDF for 5069 modules", () => {
+  it("does not add Rockwell Compact 5000 I/O technical data PDF unless the page exposes it", () => {
     const result = parseRockwellCutsheetPage(
       "5069-IB32",
       fetched(
@@ -129,12 +126,7 @@ describe("manufacturer parsers", () => {
       )
     );
 
-    expect(result.documents).toEqual(expect.arrayContaining([
-      expect.objectContaining({
-        type: "datasheet",
-        url: "https://literature.rockwellautomation.com/idc/groups/literature/documents/td/5069-td001_-en-p.pdf"
-      })
-    ]));
+    expect(result.documents.some((doc) => doc.url === "https://literature.rockwellautomation.com/idc/groups/literature/documents/td/5069-td001_-en-p.pdf")).toBe(false);
   });
 
   it("extracts hidden Rockwell literature links from data attributes and page JSON", () => {
@@ -163,6 +155,23 @@ describe("manufacturer parsers", () => {
         url: "https://literature.rockwellautomation.com/idc/groups/literature/documents/in/5094-in001_-en-p.pdf"
       })
     ]));
+  });
+
+  it("keeps sparse Rockwell cutsheets source-backed instead of adding family-mapped literature", () => {
+    const result = parseRockwellCutsheetPage(
+      "5094-IF8",
+      fetched(
+        `<html><body>
+          <h1>Cut Sheet 5094-IF8</h1>
+          <div>5094-IF8</div>
+          <div>FLEX 5000 I/O analog input module</div>
+        </body></html>`,
+        "https://configurator.rockwellautomation.com/api/Product/5094-IF8/cutsheet"
+      )
+    );
+
+    expect(result.attributes.some((attr) => attr.group === "Rockwell Catalog Mapping")).toBe(false);
+    expect(result.documents.some((doc) => /5094-(?:td001|in001)/i.test(doc.url))).toBe(false);
   });
 
   it("extracts Rockwell specs from data attributes, tables and embedded page JSON", () => {
@@ -250,10 +259,11 @@ describe("manufacturer parsers", () => {
 
     expect(result.status).toBe("partial");
     expect(result.productUrl).toContain("/micro820-controllers.html");
-    expect(result.normalized.weight).toBe("0.38 kg");
-    expect(result.localizedDescriptions?.de?.title).toBe("Micro820-Steuerung");
-    expect(result.attributes.some((attr) => attr.parser === "rockwell-family-page" && attr.value === "Micro820 Controller")).toBe(true);
-    expect(result.documents.some((doc) => doc.type === "datasheet" && doc.label === "Technical Datasheet (EN)")).toBe(true);
+    expect(result.normalized.weight).toBeUndefined();
+    expect(result.localizedDescriptions?.de).toBeUndefined();
+    expect(result.attributes.some((attr) => attr.parser === "rockwell-family-page" && attr.value === "Micro820 Controllers")).toBe(true);
+    expect(result.documents.some((doc) => doc.type === "datasheet" && doc.label === "Rockwell family page")).toBe(true);
+    expect(result.documents.some((doc) => doc.type === "datasheet" && doc.url.includes("2080-td004_-en-e.pdf"))).toBe(true);
   });
 
   it("parses ABB JSON-LD product data", () => {
@@ -901,7 +911,7 @@ describe("manufacturer parsers", () => {
     expect(result.documents.some((doc) => doc.type === "manual" && doc.url.includes("deadfrontel-hlp.pdf"))).toBe(true);
   });
 
-  it("infers SCE material from sparse catalog descriptions and part codes", () => {
+  it("infers SCE material from sparse official descriptions without using part-code grade guesses", () => {
     const html = `
       <html><head><title>SCE-DS12SS6 - Saginaw Control and Engineering</title></head>
       <body>
@@ -922,8 +932,9 @@ describe("manufacturer parsers", () => {
     `;
     const result = parseSceProductPage("SCE-DS12SS6", fetched(html, "https://www.saginawcontrol.com/partnumber_info/?n=SCE-DS12SS6"));
 
-    expect(result.normalized.material).toBe("stainless steel Type 316/316L");
-    expect(result.attributes.some((attr) => attr.group === "SCE Catalog Inference" && attr.name === "Material")).toBe(true);
+    expect(result.normalized.material).toBe("stainless steel");
+    expect(result.attributes.some((attr) => attr.group === "SCE Description Inference" && attr.name === "Material")).toBe(true);
+    expect(result.attributes.some((attr) => attr.group === "SCE Catalog Inference" && attr.name === "Material")).toBe(false);
   });
 
   it("uses SCE GALV part text to prefer galvanized steel over default steel and white color", () => {
@@ -1258,7 +1269,7 @@ describe("manufacturer parsers", () => {
     expect(images[0].candidateUrls?.length).toBeGreaterThan(1);
   });
 
-  it("accepts known Balluff product-code aliases and configured BDG family pages", () => {
+  it("does not accept undiscovered Balluff product-code aliases but accepts pages containing the requested catalog", () => {
     const btlHtml = `
       <html><head>
         <link rel="canonical" href="https://www.balluff.com/en-gb/products/BTL4E6W" />
@@ -1267,7 +1278,7 @@ describe("manufacturer parsers", () => {
         </script>
       </head><body><h1>BTL4E6W</h1><div>BTL5-H114-M0229-J-DEXC-TA12</div></body></html>
     `;
-    expect(parseBalluffProductPage("BTL4W6A", fetched(btlHtml, "https://www.balluff.com/en-gb/products/BTL4E6W")).status).toBe("found");
+    expect(parseBalluffProductPage("BTL4W6A", fetched(btlHtml, "https://www.balluff.com/en-gb/products/BTL4E6W")).status).toBe("failed");
 
     const bdgHtml = `
       <html><head>
@@ -1283,7 +1294,7 @@ describe("manufacturer parsers", () => {
     expect(parseBalluffProductPage("BDG FB058-BCR6-DSRB2-1417-0000-S8R1", fetched(bdgHtml, "https://www.balluff.com/en-gb/products/MP11418306")).status).toBe("found");
   });
 
-  it("tries known Balluff aliases before stale direct product codes", async () => {
+  it("does not try hardcoded Balluff aliases before direct product codes", async () => {
     const seenUrls: string[] = [];
     const aliasHtml = `
       <html><head>
@@ -1321,10 +1332,12 @@ describe("manufacturer parsers", () => {
       http: {
         fetchText: async (url: string) => {
           seenUrls.push(url);
+          if (!/\/products\/BTL4W6A/i.test(url)) throw new Error(`Unexpected fallback URL ${url}`);
           return fetched(aliasHtml, url);
         },
         fetchTextViaPowerShell: async (url: string) => {
           seenUrls.push(url);
+          if (!/\/products\/BTL4W6A/i.test(url)) throw new Error(`Unexpected fallback URL ${url}`);
           return fetched(aliasHtml, url);
         }
       },
@@ -1344,9 +1357,8 @@ describe("manufacturer parsers", () => {
 
     const result = await new BalluffConnector().scrape("BTL4W6A", context);
 
-    expect(seenUrls[0]).toContain("/products/BTL4E6W");
-    expect(result.status).toBe("found");
-    expect(result.productUrl).toContain("/products/BTL4E6W");
+    expect(seenUrls[0]).toContain("/products/BTL4W6A");
+    expect(result.status).toBe("failed");
   });
 
   it("canonicalizes ugly Balluff configurator URLs", () => {
@@ -1682,7 +1694,8 @@ describe("manufacturer parsers", () => {
         productLabel: "BCC M415-M414-3A-304-PX0434-050",
         datasheet: "https://publications.balluff.com/pdfengine/pdf?type=pdb&id=289976&con=de",
         weeePdfUrl: "https://publications.balluff.com/pdfengine/pdf?id=PV156662&type=weee&language=de",
-        cadLink: "https://balluff-embedded.partcommunity.com/?catalog=balluff&part=BCC M415-M414-3A-304-PX0434-050"
+        cadLink: "https://balluff-embedded.partcommunity.com/?catalog=balluff&part=BCC M415-M414-3A-304-PX0434-050",
+        caeLink: "https://assets.balluff.com/cad/BCC039P.igs?download=1"
       },
       memo: { name: "product::downloads" }
     }).replaceAll('"', "&quot;");
@@ -1701,6 +1714,7 @@ describe("manufacturer parsers", () => {
     expect(result.documents.some((doc) => doc.type === "datasheet" && doc.url.includes("type=pdb"))).toBe(true);
     expect(result.documents.some((doc) => doc.type === "certificate" && doc.url.includes("type=weee"))).toBe(true);
     expect(result.documents.some((doc) => doc.type === "cad" && doc.url.includes("part=BCC%20M415"))).toBe(true);
+    expect(result.documents.some((doc) => doc.type === "cad" && doc.url.includes("BCC039P.igs"))).toBe(true);
   });
 
   it("parses Balluff DOM feature grids with device-specific labels", () => {
@@ -2239,6 +2253,107 @@ describe("manufacturer parsers", () => {
       "https://www.eaton.com/assets/ABC-123-og.webp",
       "https://www.eaton.com/media/ABC-123-side.png"
     ]);
+  });
+
+  it("extracts registry-backed inline specs from an unseen manufacturer plain-text page", () => {
+    const html = `
+      <html><head><title>XYZ-777 enclosure</title></head><body>
+        <h1>XYZ-777 field enclosure</h1>
+        <p>XYZ-777</p>
+        <p>
+          Technical summary
+          Housing material Glass-fiber reinforced polyester
+          Enclosure protection IP66
+          Power input 24 V DC
+          Ambient temperature -25...+60 C
+          Colour RAL 7035
+        </p>
+      </body></html>
+    `;
+    const result = parseGenericProductPage(
+      "unseen-maker",
+      "XYZ-777",
+      fetched(html, "https://example.test/products/XYZ-777"),
+      "official-fallback",
+      "Unseen manufacturer page"
+    );
+
+    expect(result.normalized.material).toBe("Glass-fiber reinforced polyester");
+    expect(result.normalized.protection).toBe("IP66");
+    expect(result.normalized.voltage).toBe("24 V DC");
+    expect(result.normalized.color).toBe("RAL 7035");
+    expect(result.attributes).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ group: "Plain Text Specs", name: "Housing material", value: "Glass-fiber reinforced polyester" }),
+        expect.objectContaining({ group: "Plain Text Specs", name: "Enclosure protection", value: "IP66" }),
+        expect.objectContaining({ group: "Plain Text Specs", name: "Power input", value: "24 V DC" })
+      ])
+    );
+  });
+
+  it("extracts generic section-aware specs from card and grid layouts", () => {
+    const html = `
+      <html><head><title>PSU-24 module</title></head><body>
+        <h1>PSU-24 module</h1>
+        <p>Catalog PSU-24</p>
+        <section class="product-tech-data">
+          <h2>Electrical specifications</h2>
+          <div class="spec-row"><span class="spec-name">Supply voltage [V]</span><span class="spec-value">24 DC</span></div>
+          <div class="property"><div>Output current rating</div><div>500 mA</div></div>
+          <div class="attribute"><span>Power dissipation</span><strong>1.8 W</strong></div>
+        </section>
+      </body></html>
+    `;
+    const result = parseGenericProductPage(
+      "unseen-maker",
+      "PSU-24",
+      fetched(html, "https://example.test/products/PSU-24"),
+      "official-fallback",
+      "Unseen manufacturer page"
+    );
+
+    expect(result.normalized.voltage).toBe("24 V DC");
+    expect(result.normalized.current).toBe("500 mA");
+    expect(result.attributes).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ group: "Electrical specifications", name: "Supply voltage [V]", value: "24 V DC" }),
+        expect.objectContaining({ group: "Electrical specifications", name: "Output current rating", value: "500 mA" }),
+        expect.objectContaining({ group: "Electrical specifications", name: "Power dissipation", value: "1.8 W" })
+      ])
+    );
+  });
+
+  it("extracts generic section-aware specs from tab panels and accordion rows", () => {
+    const html = `
+      <html><head><title>IO-55 module</title></head><body>
+        <h1>IO-55 module</h1>
+        <p>IO-55</p>
+        <div class="accordion technical-data">
+          <div role="tabpanel" aria-label="Technical data">
+            <div class="row"><div class="label">Current consumption max.</div><div class="value">55 mA</div></div>
+            <div class="feature-row"><span>Operating temperature</span><span>-25...+70 C</span></div>
+            <div class="download-row"><span class="label">Downloads</span><span class="value">Download</span></div>
+          </div>
+        </div>
+      </body></html>
+    `;
+    const result = parseGenericProductPage(
+      "unseen-maker",
+      "IO-55",
+      fetched(html, "https://example.test/products/IO-55"),
+      "official-fallback",
+      "Unseen manufacturer page"
+    );
+
+    expect(result.normalized.operatingTemperatureMin).toBe("-25");
+    expect(result.normalized.operatingTemperatureMax).toBe("70");
+    expect(result.attributes).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ group: "Technical data", name: "Current consumption max.", value: "55 mA" }),
+        expect.objectContaining({ group: "Technical data", name: "Operating temperature", value: "-25...+70 C" })
+      ])
+    );
+    expect(result.attributes.some((attr) => attr.name === "Downloads" && attr.value === "Download")).toBe(false);
   });
 
   it("uses manufacturer-configured embedded table names in the generic parser", () => {
@@ -2993,6 +3108,117 @@ Product Weight
     );
   });
 
+  it("canonicalizes Eaton search SKU hits to the English product URL", () => {
+    const searchJson = JSON.stringify({
+      siteSearchResults: [
+        {
+          title: "150482",
+          description: "Eaton xEnergy Main LV systems LV switchgear. Height section, section add-on configuration, H = 2000 mm, grey XSFH20-I-D",
+          contentType: "sku",
+          completeUrl: "https://www.eaton.com/de/de-de/skuPage.150482.html"
+        }
+      ]
+    });
+
+    const [candidate] = extractEatonSearchCandidates(
+      searchJson,
+      "https://www.eaton.com/us/en-us/site-search.html.searchTerm$XSFH20-I-D.tabs$all.html",
+      "XSFH20-I-D"
+    );
+
+    expect(candidate?.url).toBe("https://www.eaton.com/us/en-us/skuPage.150482.html");
+  });
+
+  it("keeps Eaton English title/description primary while adding German localized descriptions", async () => {
+    const connector = new EatonConnector();
+    const englishHtml = `
+      <html><head>
+        <title>150482 | Eaton xEnergy Main LV switchgear | Eaton</title>
+        <meta name="description" content="Eaton xEnergy Main LV systems LV switchgear. Height section, section add-on configuration, H = 2000 mm, grey" />
+      </head><body>
+        <div class="product-specification-item">
+          <h2 class="product-specification-item__title">General specifications</h2>
+          <table>
+            <tr class="specification-row"><td class="specification-title"><strong>Product Name</strong></td><td class="specification-value">Eaton xEnergy Main LV switchgear</td></tr>
+            <tr class="specification-row"><td class="specification-title"><strong>Catalog Number</strong></td><td class="specification-value">150482</td></tr>
+            <tr class="specification-row"><td class="specification-title"><strong>Model Code</strong></td><td class="specification-value">XSFH20-I-D</td></tr>
+            <tr class="specification-row"><td class="specification-title"><strong>Product Height</strong></td><td class="specification-value">2000 mm</td></tr>
+            <tr class="specification-row"><td class="specification-title"><strong>Product Width</strong></td><td class="specification-value">65.5 mm</td></tr>
+            <tr class="specification-row"><td class="specification-title"><strong>Product Length/Depth</strong></td><td class="specification-value">40 mm</td></tr>
+            <tr class="specification-row"><td class="specification-title"><strong>Product Weight</strong></td><td class="specification-value">17.138 kg</td></tr>
+            <tr class="specification-row"><td class="specification-title"><strong>Voltage rating</strong></td><td class="specification-value">415 V</td></tr>
+          </table>
+        </div>
+      </body></html>
+    `;
+    const germanHtml = `
+      <html><head>
+        <title>150482 | Eaton xEnergy Main Niederspannungs-Schaltgerate | Eaton</title>
+        <meta name="description" content="Eaton xEnergy Main Niederspannungs-Systeme Niederspannungs-Schaltgerate Fachhohe, Feldanreihung, H = 2000 mm, grau" />
+      </head><body>
+        <div class="product-specification-item">
+          <h2 class="product-specification-item__title">Allgemeine Spezifikationen</h2>
+          <table>
+            <tr class="specification-row"><td class="specification-title"><strong>Produktname</strong></td><td class="specification-value">Eaton xEnergy Main Niederspannungs-Schaltgerate</td></tr>
+            <tr class="specification-row"><td class="specification-title"><strong>Catalog Number</strong></td><td class="specification-value">150482</td></tr>
+            <tr class="specification-row"><td class="specification-title"><strong>Model Code</strong></td><td class="specification-value">XSFH20-I-D</td></tr>
+            <tr class="specification-row"><td class="specification-title"><strong>Product Height</strong></td><td class="specification-value">2000 mm</td></tr>
+            <tr class="specification-row"><td class="specification-title"><strong>Product Weight</strong></td><td class="specification-value">17.138 kg</td></tr>
+            <tr class="specification-row"><td class="specification-title"><strong>Farbe</strong></td><td class="specification-value">Grau</td></tr>
+            <tr class="specification-row"><td class="specification-title"><strong>Material</strong></td><td class="specification-value">Metall</td></tr>
+            <tr class="specification-row"><td class="specification-title"><strong>RAL-Nummer</strong></td><td class="specification-value">7035</td></tr>
+            <tr class="specification-row"><td class="specification-title"><strong>Ausfuhrung</strong></td><td class="specification-value">Profil</td></tr>
+            <tr class="specification-row"><td class="specification-title"><strong>Geeignet fur Gehaeusebauhoehe</strong></td><td class="specification-value">2000 mm</td></tr>
+          </table>
+        </div>
+      </body></html>
+    `;
+    const context = {
+      manufacturer: {
+        id: "eaton",
+        canonicalName: "Eaton",
+        shortName: "EAT",
+        rateLimitMs: 0,
+        officialBaseUrls: ["https://www.eaton.com"],
+        localizedUrlTemplates: [
+          { locale: "en", urlTemplate: "https://www.eaton.com/us/en-us/skuPage.{partSlashBraces}.html" },
+          { locale: "de", urlTemplate: "https://www.eaton.com/de/de-de/skuPage.{partSlashBraces}.html" }
+        ],
+        fallbackSources: []
+      },
+      http: {
+        fetchText: async (url: string) => {
+          if (url === "https://www.eaton.com/us/en-us/skuPage.150482.html") return fetched(englishHtml, url);
+          if (url === "https://www.eaton.com/de/de-de/skuPage.150482.html") return fetched(germanHtml, url);
+          if (/skuPage\.150482\.pdf/i.test(url)) throw new Error(`PDF fetch is not part of this test ${url}`);
+          throw new Error(`Unexpected URL ${url}`);
+        }
+      },
+      runDir: "",
+      documentsDir: "",
+      downloadDocument: async (doc: Parameters<ScrapeContext["downloadDocument"]>[0]) => doc,
+      fallback: {
+        scrape: async () => undefined
+      }
+    } as unknown as ScrapeContext;
+
+    const result = await connector.scrape("150482", context);
+
+    expect(result.productUrl).toBe("https://www.eaton.com/us/en-us/skuPage.150482.html");
+    expect(result.localizedUrls?.en).toBe("https://www.eaton.com/us/en-us/skuPage.150482.html");
+    expect(result.localizedUrls?.de).toBe("https://www.eaton.com/de/de-de/skuPage.150482.html");
+    expect(result.title).toBe("150482 | Eaton xEnergy Main LV switchgear");
+    expect(result.description).toBe("Eaton xEnergy Main LV systems LV switchgear. Height section, section add-on configuration, H = 2000 mm, grey");
+    expect(result.localizedDescriptions?.de?.title).toBe("150482 | Eaton xEnergy Main Niederspannungs-Schaltgerate");
+    expect(result.localizedDescriptions?.de?.description).toBe("Eaton xEnergy Main Niederspannungs-Systeme Niederspannungs-Schaltgerate Fachhohe, Feldanreihung, H = 2000 mm, grau");
+    expect(result.documents).toContainEqual(
+      expect.objectContaining({
+        type: "datasheet",
+        url: "https://www.eaton.com/us/en-us/skuPage.150482.pdf"
+      })
+    );
+  });
+
   it("rejects Eaton soft-404 SKU pages so discovery can continue", () => {
     const html = `
       <html>
@@ -3275,6 +3501,7 @@ Size
     expect(urls).toContain("https://www.eaton.com/de/de-de/skuPage.P1-25%7B%7DI2%7B%7DSVB.html");
     expect(urls).toContain("https://www.eaton.com/gb/en-gb/skuPage.P1-25%7B%7DI2%7B%7DSVB.html");
     expect(urls).toContain("https://www.eaton.com/no/no-no/skuPage.P1-25%7B%7DI2%7B%7DSVB.html");
+    expect(urls).toContain("https://www.eaton.com.cn/cn/zh-cn/skuPage.P1-25%7B%7DI2%7B%7DSVB.html");
     expect(new Set(urls).size).toBe(urls.length);
   });
 
@@ -3293,6 +3520,9 @@ Size
     expect(urls[0]).toContain("search_results.searchTerm$P1-25%2FI2%2FSVB.SortBy$relevance");
     expect(urls).toContain(
       "https://www.eaton.com/content/eaton/no/no-no/site-search/jcr:content/root/responsivegrid/search_results.searchTerm$P1-25%2FI2%2FSVB.SortBy$relevance.Facets$.startDate$.endDate$.loadMore$.json"
+    );
+    expect(urls).toContain(
+      "https://www.eaton.com.cn/content/eaton/cn/zh-cn/site-search/jcr:content/root/responsivegrid/search_results.searchTerm$P1-25%2FI2%2FSVB.SortBy$relevance.Facets$.startDate$.endDate$.loadMore$.json"
     );
     expect(new Set(urls).size).toBe(urls.length);
   });
@@ -3354,6 +3584,206 @@ Size
 
     expect(candidates[0]?.url).toBe("https://www.eaton.com/us/en-us/skuPage.276705.html");
     expect(candidates[0]?.score).toBeGreaterThan(candidates[1]?.score ?? 0);
+  });
+
+  it("preserves Eaton China SKU search hits instead of canonicalizing them back to US pages", () => {
+    const searchJson = JSON.stringify({
+      siteSearchResults: [
+        {
+          title: "279159",
+          description: "Eaton Moeller series xEffect FAZ-PN MCB, 16 A, 240 V AC / 415 V AC",
+          contentType: "sku",
+          completeUrl: "https://www.eaton.com.cn/cn/zh-cn/skuPage.279159.specifications.html",
+          secondaryLinkList: [
+            { text: "Specifications", url: "/content/eaton/cn/zh-cn/skuPage.279159" }
+          ]
+        }
+      ]
+    });
+
+    const candidates = extractEatonSearchCandidates(
+      searchJson,
+      "https://www.eaton.com.cn/content/eaton/cn/zh-cn/site-search/jcr:content/root/responsivegrid/search_results.json",
+      "279159"
+    );
+
+    expect(candidates[0]?.url).toBe("https://www.eaton.com.cn/cn/zh-cn/skuPage.279159.html");
+  });
+
+  it("uses Eaton China search PDF documents when a catalog has no SKU page", async () => {
+    const searchUrl = buildEatonSearchApiUrlCandidates("CDVRL00001").find((url) => url.includes("www.eaton.com.cn"))!;
+    const requestedUrls: string[] = [];
+    const connector = new EatonConnector();
+    const searchJson = JSON.stringify({
+      siteSearchResults: [
+        {
+          title: "Eaton Rapid Link 5X RASP5X Product Catalog",
+          description: "",
+          contentType: "resource",
+          completeUrl:
+            "https://www.eaton.com.cn/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/en-globalprime/rapid-link-5x/eaton-rapid-link-5x-catalog-zh-cn.pdf"
+        }
+      ]
+    });
+    const context = {
+      manufacturer: {
+        id: "eaton",
+        canonicalName: "Eaton",
+        shortName: "EAT",
+        rateLimitMs: 0,
+        officialBaseUrls: ["https://www.eaton.com", "https://www.eaton.com.cn"],
+        localizedUrlTemplates: [
+          { locale: "en", urlTemplate: "https://www.eaton.com/us/en-us/skuPage.{partSlashBraces}.html" },
+          { locale: "de", urlTemplate: "https://www.eaton.com/de/de-de/skuPage.{partSlashBraces}.html" },
+          { locale: "zh", urlTemplate: "https://www.eaton.com.cn/cn/zh-cn/skuPage.{partSlashBraces}.html" }
+        ],
+        fallbackSources: [],
+        scrapeRecipe: { searchUrlTemplates: [searchUrl] }
+      },
+      http: {
+        fetchText: async (url: string) => {
+          requestedUrls.push(url);
+          if (url === searchUrl) return fetched(searchJson, url);
+          if (/skuPage\.CDVRL00001\.html/i.test(url) || /r\.jina\.ai\/http:\/\/www\.eaton\.com\/us\/en-us\/skuPage\.CDVRL00001\.html/i.test(url)) {
+            throw new Error(`No SKU page for ${url}`);
+          }
+          throw new Error(`Unexpected URL ${url}`);
+        }
+      },
+      runDir: "",
+      documentsDir: "",
+      downloadDocument: async (doc: Parameters<ScrapeContext["downloadDocument"]>[0]) => doc,
+      fallback: {
+        scrape: async () => undefined
+      }
+    } as unknown as ScrapeContext;
+
+    const result = await connector.scrape("CDVRL00001", context);
+
+    expect(result.status).toBe("partial");
+    expect(result.documents).toContainEqual(
+      expect.objectContaining({
+        type: "datasheet",
+        stage: "search-document",
+        url: "https://www.eaton.com.cn/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/en-globalprime/rapid-link-5x/eaton-rapid-link-5x-catalog-zh-cn.pdf"
+      })
+    );
+    expect(result.diagnostics?.fallbackStages).toContain("eaton-search-documents");
+    expect(requestedUrls).toContain(searchUrl);
+    expect(requestedUrls.filter((url) => /site-search\/jcr:content/i.test(url))).toEqual([searchUrl]);
+    expect(requestedUrls.some((url) => /at\/de-de\/skuPage\.CDVRL00001/i.test(url) && url.includes("r.jina.ai"))).toBe(false);
+  });
+
+  it("uses the Rapid Link family catalog for covered Eaton CDVRL numbers when exact China search is empty", async () => {
+    const searchUrl = buildEatonSearchApiUrlCandidates("CDVRL00060").find((url) => url.includes("www.eaton.com.cn"))!;
+    const requestedUrls: string[] = [];
+    let genericFallbackCalled = false;
+    const connector = new EatonConnector();
+    const context = {
+      manufacturer: {
+        id: "eaton",
+        canonicalName: "Eaton",
+        shortName: "EAT",
+        rateLimitMs: 0,
+        officialBaseUrls: ["https://www.eaton.com", "https://www.eaton.com.cn"],
+        localizedUrlTemplates: [
+          { locale: "en", urlTemplate: "https://www.eaton.com/us/en-us/skuPage.{partSlashBraces}.html" },
+          { locale: "de", urlTemplate: "https://www.eaton.com/de/de-de/skuPage.{partSlashBraces}.html" },
+          { locale: "zh", urlTemplate: "https://www.eaton.com.cn/cn/zh-cn/skuPage.{partSlashBraces}.html" }
+        ],
+        fallbackSources: [],
+        scrapeRecipe: { searchUrlTemplates: [searchUrl] }
+      },
+      http: {
+        fetchText: async (url: string) => {
+          requestedUrls.push(url);
+          if (url === searchUrl) {
+            return fetched(JSON.stringify({ siteSearchResults: [] }), url);
+          }
+          if (/skuPage\.CDVRL00060\.html/i.test(url) && !/r\.jina\.ai/i.test(url)) {
+            throw new Error(`No SKU page for ${url}`);
+          }
+          throw new Error(`Unexpected URL ${url}`);
+        }
+      },
+      runDir: "",
+      documentsDir: "",
+      downloadDocument: async (doc: Parameters<ScrapeContext["downloadDocument"]>[0]) => doc,
+      fallback: {
+        scrape: async () => {
+          genericFallbackCalled = true;
+          return undefined;
+        }
+      }
+    } as unknown as ScrapeContext;
+
+    const result = await connector.scrape("CDVRL00060", context);
+
+    expect(result.status).toBe("partial");
+    expect(result.documents).toContainEqual(
+      expect.objectContaining({
+        type: "datasheet",
+        parser: "eaton-rapid-link-family-catalog",
+        url: "https://www.eaton.com.cn/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/en-globalprime/rapid-link-5x/eaton-rapid-link-5x-catalog-zh-cn.pdf"
+      })
+    );
+    expect(genericFallbackCalled).toBe(false);
+    expect(requestedUrls).toContain(searchUrl);
+    expect(requestedUrls.filter((url) => /site-search\/jcr:content/i.test(url))).toEqual([searchUrl]);
+    expect(requestedUrls.some((url) => /r\.jina\.ai/i.test(url))).toBe(false);
+  });
+
+  it("fails fast for uncovered Eaton CDVRL ranges when China search has no source document", async () => {
+    const searchUrl = buildEatonSearchApiUrlCandidates("CDVRL30001").find((url) => url.includes("www.eaton.com.cn"))!;
+    const requestedUrls: string[] = [];
+    let genericFallbackCalled = false;
+    const connector = new EatonConnector();
+    const context = {
+      manufacturer: {
+        id: "eaton",
+        canonicalName: "Eaton",
+        shortName: "EAT",
+        rateLimitMs: 0,
+        officialBaseUrls: ["https://www.eaton.com", "https://www.eaton.com.cn"],
+        localizedUrlTemplates: [
+          { locale: "en", urlTemplate: "https://www.eaton.com/us/en-us/skuPage.{partSlashBraces}.html" },
+          { locale: "de", urlTemplate: "https://www.eaton.com/de/de-de/skuPage.{partSlashBraces}.html" },
+          { locale: "zh", urlTemplate: "https://www.eaton.com.cn/cn/zh-cn/skuPage.{partSlashBraces}.html" }
+        ],
+        fallbackSources: [],
+        scrapeRecipe: { searchUrlTemplates: [searchUrl] }
+      },
+      http: {
+        fetchText: async (url: string) => {
+          requestedUrls.push(url);
+          if (url === searchUrl) {
+            return fetched(JSON.stringify({ siteSearchResults: [] }), url);
+          }
+          if (/skuPage\.CDVRL30001\.html/i.test(url) && !/r\.jina\.ai/i.test(url)) {
+            throw new Error(`No SKU page for ${url}`);
+          }
+          throw new Error(`Unexpected URL ${url}`);
+        }
+      },
+      runDir: "",
+      documentsDir: "",
+      downloadDocument: async (doc: Parameters<ScrapeContext["downloadDocument"]>[0]) => doc,
+      fallback: {
+        scrape: async () => {
+          genericFallbackCalled = true;
+          return undefined;
+        }
+      }
+    } as unknown as ScrapeContext;
+
+    const result = await connector.scrape("CDVRL30001", context);
+
+    expect(result.status).toBe("failed");
+    expect(result.error).toContain("Eaton site search did not expose");
+    expect(genericFallbackCalled).toBe(false);
+    expect(requestedUrls).toContain(searchUrl);
+    expect(requestedUrls.filter((url) => /site-search\/jcr:content/i.test(url))).toEqual([searchUrl]);
+    expect(requestedUrls.some((url) => /r\.jina\.ai/i.test(url))).toBe(false);
   });
 
   it("uses Eaton site-search discovery when the input is a model code instead of the SKU page number", async () => {
@@ -3874,6 +4304,59 @@ Terminal capacity
     expect(result.documents.some((doc) => doc.type === "cad" && doc.label === "ABC-LD 3D mCAD model")).toBe(true);
   });
 
+  it("extracts Eaton hidden PDF query resources without extension suffixes", () => {
+    const html = `
+      <html><body>
+        <h1>ABC-LD</h1>
+        <p>Catalog Number ABC-LD</p>
+        <script>
+          window.eatonResources = {
+            "resources": [
+              {
+                "title": "ABC-LD technical datasheet",
+                "documentType": "Product data sheet",
+                "downloadUrl": "https:\\/\\/www.eaton.com\\/download?documentId=ABC-LD-SPEC&format=pdf&utm_source=search"
+              },
+              {
+                "title": "ABC-LD installation instructions",
+                "documentType": "Instruction sheet",
+                "downloadUrl": "\\/download?documentId=ABC-LD-INSTALL&format=pdf"
+              }
+            ]
+          };
+        </script>
+      </body></html>
+    `;
+    const result = parseEatonProductPage(
+      "ABC-LD",
+      fetched(html, "https://www.eaton.com/us/en-us/skuPage.ABC-LD.html"),
+      "https://www.eaton.com/us/en-us/skuPage.ABC-LD.html"
+    );
+
+    expect(result.documents.some((doc) => doc.type === "datasheet" && doc.url.includes("documentId=ABC-LD-SPEC"))).toBe(true);
+    expect(result.documents.some((doc) => doc.type === "manual" && doc.url.includes("documentId=ABC-LD-INSTALL"))).toBe(true);
+  });
+
+  it("deduplicates equivalent Eaton PDF links with reordered query strings and tracking params", () => {
+    const html = `
+      <html><body>
+        <h1>ABC-LD</h1>
+        <p>Catalog Number ABC-LD</p>
+        <a href="https://www.eaton.com/download?documentId=ABC-LD&format=pdf&utm_source=search">ABC-LD datasheet</a>
+        <a href="https://www.eaton.com/download?format=pdf&documentId=ABC-LD">Eaton Specification Sheet - ABC-LD</a>
+      </body></html>
+    `;
+    const result = parseEatonProductPage(
+      "ABC-LD",
+      fetched(html, "https://www.eaton.com/us/en-us/skuPage.ABC-LD.html"),
+      "https://www.eaton.com/us/en-us/skuPage.ABC-LD.html"
+    );
+
+    const matchingDocuments = result.documents.filter((doc) => /documentId=ABC-LD/.test(doc.url));
+    expect(matchingDocuments).toHaveLength(1);
+    expect(matchingDocuments[0]?.label).toBe("Eaton Specification Sheet - ABC-LD");
+  });
+
   it("does not parse Eaton static HTML meta tags as markdown attributes", () => {
     const html = `
       <html><head>
@@ -3917,6 +4400,7 @@ Terminal capacity
         &quot;characteristicName&quot;:&quot;Product Weight&quot;,&quot;characteristicValues&quot;:[{&quot;needUpperCase&quot;:true,&quot;labelText&quot;:&quot;6.66 lb(US) (3.02 kg)&quot;}]
         &quot;characteristicName&quot;:&quot;IP degree of protection&quot;,&quot;characteristicValues&quot;:[{&quot;needUpperCase&quot;:true,&quot;labelText&quot;:&quot;IP66 IEC 60529&quot;}]
         &quot;url&quot;:&quot;https://download.schneider-electric.com/files?p_Doc_Ref=NSYS3D3215_IoPmain-ODA20&amp;p_File_Type=rendition_1500_jpg&quot;
+        &quot;url&quot;:&quot;https://download.schneider-electric.com/files?p_File_Type=rendition_1500_jpg&amp;p_Doc_Ref=NSYS3D3215_IoPmain-ODA20&amp;utm_source=search&quot;
         &quot;url&quot;:&quot;/us/en/product/download-pdf/NSYS3D3215?filename=NSYS3D3215.pdf&quot;
         &quot;url&quot;:&quot;https://download.schneider-electric.com/files?p_enDocType=CAD&amp;p_File_Name=NSYS3D3215_3D-Simplified.stp&amp;p_Doc_Ref=NSYS3D3215_3D-CAD&quot;
       </body></html>
@@ -3931,6 +4415,7 @@ Terminal capacity
     expect(result.normalized.certificates).toContain("UL");
     expect(result.normalized.certificates).toContain("cUL");
     expect(result.documents.some((doc) => doc.type === "image")).toBe(true);
+    expect(result.documents.filter((doc) => /NSYS3D3215_IoPmain-ODA20/.test(doc.url))).toHaveLength(1);
     expect(result.documents.some((doc) => doc.type === "datasheet" && doc.url.includes("/download-pdf/NSYS3D3215"))).toBe(true);
     expect(result.documents.some((doc) => doc.type === "cad")).toBe(true);
   });
@@ -4420,8 +4905,8 @@ IP degree of protection IP68 conforming to IEC 60529 IP69K conforming to DIN 400
               articleNumber: "6AG4141-5BB04-0FA0",
               uiNetWeightValue: "3,00 Kg",
               uiPackagingDimension: "Not available",
-              thumbnailUrl: "https://mall.industry.siemens.com/thumb.jpg",
-              imageUrl: "https://mall.industry.siemens.com/image.jpg",
+              thumbnailUrl: "https://mall.industry.siemens.com/image.jpg?size=thumb&id=6AG4141&utm_source=search",
+              imageUrl: "https://mall.industry.siemens.com/image.jpg?id=6AG4141&size=thumb",
               description: "SIMATIC IPC427E, 24 V DC industrial power supply",
               materialShortText: "SIMATIC IPC427E",
               countryOfOrigin: "DE",
@@ -4438,7 +4923,8 @@ IP degree of protection IP68 conforming to IEC 60529 IP69K conforming to DIN 400
     expect(result.normalized.voltage).toBeUndefined();
     expect(result.description).toContain("24 V DC");
     expect(result.localizedUrls?.de).toContain("mall/de/WW/Catalog/Product");
-    expect(result.documents.filter((doc) => doc.type === "image")).toHaveLength(2);
+    expect(result.documents.filter((doc) => doc.type === "image")).toHaveLength(1);
+    expect(result.documents.find((doc) => doc.type === "image")?.label).toBe("Product image");
     expect(result.attributes.some((attr) => attr.name === "Country Of Origin" && attr.value === "DE")).toBe(true);
   });
 });

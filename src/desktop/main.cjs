@@ -9,6 +9,7 @@ const rootDir = path.resolve(__dirname, "../..");
 const dataDir = path.join(rootDir, "data");
 const serverLogPath = path.join(dataDir, "desktop-server.log");
 const desktopSettingsPath = path.join(dataDir, "desktop-settings.json");
+const serverStartupTimeoutMs = 120000;
 
 let serverProcess;
 let mainWindow;
@@ -130,7 +131,7 @@ async function startServer(port) {
     appendLog(`Desktop server exited with code=${code ?? ""} signal=${signal ?? ""}\n`);
   });
 
-  await waitForHealth(port, 30000);
+  await waitForHealth(port, serverStartupTimeoutMs);
 }
 
 function getServerRuntime() {

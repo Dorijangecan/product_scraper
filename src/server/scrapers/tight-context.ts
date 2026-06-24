@@ -55,7 +55,7 @@ export function buildTightContextForCatalog(
     for (let offset = 1; offset <= before; offset += 1) {
       const target = index - offset;
       if (target < 0) break;
-      if (isDifferentCatalogLine(allLines[target])) break;
+      if (isDifferentCatalogLine(allLines[target]) && !isOrderingTableCompanionLine(allLines[target], allLines[index], offset)) break;
       kept.add(target);
     }
     for (let offset = 1; offset <= after; offset += 1) {
@@ -64,6 +64,7 @@ export function buildTightContextForCatalog(
       if (isDifferentCatalogLine(allLines[target])) break;
       kept.add(target);
     }
+    keepOrderingParentRatingRow(allLines, index, kept);
   }
 
   if (kept.size === 0) return undefined;
@@ -92,6 +93,42 @@ function isVariantToken(cell: string): boolean {
 
 function variantCellPositions(cells: string[]): number[] {
   return cells.map((cell, index) => (isVariantToken(cell) ? index : -1)).filter((index) => index >= 0);
+}
+
+function keepOrderingParentRatingRow(lines: string[], catalogIndex: number, kept: Set<number>) {
+  const previous = lines[catalogIndex - 1];
+  if (!previous || !isOrderingModelRow(previous) || orderingRowHasRatingPrefix(previous)) return;
+  for (let index = catalogIndex - 2; index >= Math.max(0, catalogIndex - 12); index -= 1) {
+    if (!isOrderingModelRow(lines[index])) continue;
+    if (!orderingRowHasRatingPrefix(lines[index])) continue;
+    kept.add(index);
+    return;
+  }
+}
+
+function isOrderingModelRow(line: string): boolean {
+  return variantCellPositions(splitTableCells(line)).length >= 2;
+}
+
+function orderingRowHasRatingPrefix(line: string): boolean {
+  const cells = splitTableCells(line);
+  const positions = variantCellPositions(cells);
+  if (positions.length < 2) return false;
+  const prefix = cells.slice(0, positions[0]).join(" ");
+  const numbers = prefix.split(/\s+/).filter((token) => /^-?\d+(?:[.,]\d+)?$/.test(token));
+  return numbers.length >= 2;
+}
+
+function isOrderingTableCompanionLine(candidate: string, catalogLine: string, offset: number): boolean {
+  if (offset > 1) return false;
+  const catalogCells = splitTableCells(catalogLine);
+  const candidateCells = splitTableCells(candidate);
+  const catalogVariants = variantCellPositions(catalogCells);
+  const candidateVariants = variantCellPositions(candidateCells);
+  if (catalogVariants.length < 2 || candidateVariants.length < 2) return false;
+  if (candidateVariants.length < catalogVariants.length) return false;
+  const prefix = candidateCells.slice(0, candidateVariants[0]).join(" ");
+  return /\d/.test(prefix) || /\b(?:AC|DC)\s*\d|\d+\s*V\b/i.test(prefix);
 }
 
 /**

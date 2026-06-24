@@ -14,24 +14,24 @@ const NON_ELECTRICAL_ACCESSORY_PATTERN =
 const CURRENT_ONLY_DEVICE_PATTERN =
   /\b(current\s+sensor|homopolar\s+toroid|toroid\s+transformer|external\s+neutral|current\s+transformer)\b/i;
 
-const BALLUFF_CURRENT_ONLY_DEVICE_PATTERN =
+const MECHANICAL_LIMIT_SWITCH_PATTERN =
   /\bmechanical\s+(?:single|multiple)\s+position\s+limit\s+switch(?:es)?\b/i;
 
-const EATON_CURRENT_ONLY_DEVICE_PATTERN =
+const SWITCH_DISCONNECTOR_CURRENT_ONLY_PATTERN =
   /\b(?:rotary\s+disconnect|main\s+switch|switch[-\s]?disconnectors?)\b/i;
 
 // Eaton sells many non-electrical product lines (aerospace, vehicle, filtration, golf grips, …).
 // These have no voltage/current data on their catalog pages and never will, so the quality gate
 // must not flag them as "missing electrical fields". The pattern lists product-type tokens that
 // only ever appear in Eaton's mechanical / hydraulic / aerospace / consumer catalogs.
-const EATON_NON_ELECTRICAL_PATTERN =
+const NON_ELECTRICAL_INDUSTRIAL_PRODUCT_PATTERN =
   /\b(?:golf\s+grip|grip,\s+(?:putter|swing|wrap)|putter\s+grip|swing\s+grip|engine\s+valve|valvetrain|valve\s+actuation|differential|differentials|aftermarket\s+differential|original\s+equipment\s+differential|transmission\s+(?:parts?|fluid|service)?|clutch(?:\s+disc)?|brake(?:\s+disc|\s+pad)?|filter\s+(?:media|element|cartridge|bag|disc|housing|strainer)|strainer|coupling|quick\s+disconnect\s+(?:coupling|fitting|hose)|hose\s+(?:assembly|assemblies)|hydraulic\s+(?:hose|cylinder|valve|cartridge|pump|motor|fitting|tube)|aerospace\s+(?:tube|hose|fitting|seal|valve|pump|coupling|connector|fuel|hydraulic|nozzle)|fuel\s+(?:nozzle|connector|coupling|inerting|pump)|emissions\s+control|ducting|plastic\s+extrusion|extrusion|zipmate|fastener|fixing\s+system|pipe\s+hanger|strut\s+system|seismic\s+brac|cable\s+tray|ladder\s+system|ground[ie]ng\s+(?:clamp|electrode|conductor|kit)|grommet|seal\s+(?:ring|kit)|o-ring|fitting|gland(?:\s+kit)?|adaptor|adapter\s+(?:plate|kit)|conduit\s+bod(?:y|ies)|conduit\s+fitting|outlet\s+box|junction\s+box|wireway\s+(?:fitting|cover|tee|elbow))\b/i;
 
 // M22 / RMQ-Titan pushbutton ACTUATORS (front-panel button heads) are sold separately from the
 // contact blocks that carry the actual switching voltage/current. The actuator itself has no
 // electrical rating on Eaton's catalog page — voltage/current come from the paired contact block.
 // Same for non-illuminated selector heads, mushroom heads, knurled buttons, etc.
-const EATON_PASSIVE_ACTUATOR_PATTERN =
+const PASSIVE_PILOT_DEVICE_ACTUATOR_PATTERN =
   /\b(?:modular\s+pushbutton|m22(?:[-\s]d)?|rmq[-\s]?titan|non[-\s]?illuminated\s+(?:pushbutton|push\s+button|actuator|selector|button\s+head)|pushbutton\s+(?:head|actuator)|selector\s+(?:switch\s+head|head)|mushroom\s+(?:head|button)|knurled\s+button|enclosure\s+lens|button\s+lens|legend\s+plate|nameplate\s+holder|contact\s+block\s+holder|fixing\s+adapter)\b/i;
 
 const ACTIVE_PUSHBUTTON_CONTACT_PATTERN =
@@ -40,13 +40,13 @@ const ACTIVE_PUSHBUTTON_CONTACT_PATTERN =
 const SAFETY_SWITCH_RATED_PATTERN =
   /\bsafety\s+switch(?:es)?\b/i;
 
-const BALLUFF_CURRENT_RATING_PRESENT_PATTERN =
+const CURRENT_RATING_PRESENT_PATTERN =
   /\b(?:continuous current|rated current|switching current|rated operating current|rated operating voltage|operating voltage)\b/i;
 
-const BALLUFF_PASSIVE_RFID_DEVICE_PATTERN =
+const PASSIVE_RFID_DEVICE_PATTERN =
   /\b(?:read\/write\s+heads?|antennas?)\b/i;
 
-const BALLUFF_PASSIVE_ACCESSORY_PATTERN =
+const PASSIVE_SENSOR_ACCESSORY_PATTERN =
   /\b(?:cylindrical\s+glass\s+fibers?|glass\s+fibers?|field\s+attachables?)\b/i;
 
 const PASSIVE_FLUID_DEVICE_PATTERN =
@@ -58,14 +58,14 @@ const ACTIVE_FLUID_DEVICE_PATTERN =
 const VOLTAGE_ONLY_DEVICE_PATTERN =
   /\b(rrd\s+motor|remote\s+racking|geared\s+motor|motor\s+operator|motorized?|closing\s+coil|shunt\s+(?:opening|trip)|undervoltage|under\s+voltage|supply\s+module|power\s+supply\s+module|communication\s+module|hmi|human[\s-]?machine[\s-]?interface|operator\s+panel|touch\s+panel|touchscreen\s+panel|display\s+terminal|graphic\s+terminal)\b/i;
 
-const BALLUFF_VOLTAGE_ONLY_DEVICE_PATTERN =
+const SENSOR_AND_INDICATOR_VOLTAGE_ONLY_PATTERN =
   /\b(condition\s+monitoring|inclination|capacitive|level\s+sensors?|smart\s+level|smartlight|machine\s+lights?|led\s+stack\s+lights?|indicator\s+lights?|signal\s+towers?|stack\s+lights?|inductive|proximity|photoelectric|fork\s+(?:sensors?|light\s+barriers?)|light\s+barriers?|analog\s+(?:distance\s+)?sensors?|pressure(?:-rated)?|ultrasonic|magnetic\s+field|linear\s+position|position\s+sensors?|distance\s+sensors?|rfid|evaluation\s+units?|smartcamera|machine\s+vision|industrial\s+cameras?|vision\s+sensors?|io-link\s+(?:sensor\/actuator\s+)?hubs?)\b/i;
 
 const ELECTRICAL_DEVICE_PATTERN =
   /\b(contactor|kontaktor|relay|relais|relej|breaker|circuit\s+breaker|miniature\s+circuit\s+breaker|mccb|mcb|rcd|fuse(?:\s+holder)?|safety\s+switch|switch(?:es)?|push-?buttons?|pilot\s+lights?|selector\s+switch|contact\s+blocks?|switch-?disconnectors?|disconnect(?:or)?|surge\s+protective|surge\s+arrester|\bspd\b|sensor|proximity|photoelectric|limit\s+switch|power\s+supply|psu|transformer|motor\s+starter|starter|overload|drive|vfd|inverter|soft\s+starter|plc|controller|timer|counter|terminal\s+block|connectors?|cordsets?|cables?|cable\s+assembly|lamp|light|led|beacon|horn|buzzer|fan|heater|thermostat|solenoid|actuator)\b/i;
 
 const PASSIVE_PRODUCT_PATTERN =
-  /\b(enclosure|cabinet|box|junction\s+box|control\s+box|panel|sub\s*panel|subpanel|back\s*panel|dead\s*front|accessor(?:y|ies)|mount(?:ing)?\s+(?:kit|foot|bracket|plate)|bracket|hinge|latch|clamp|gasket|cover|window|flange|adapter|plate|rail|wireway|duct|shelf)\b/i;
+  /\b(enc(?:losure)?\.?|cabinet|box|junction\s+box|control\s+box|panel|sub\s*panel|subpanel|back\s*panel|dead\s*front|accessor(?:y|ies)|mount(?:ing)?\s+(?:kit|foot|bracket|plate)|bracket|hinge|latch|clamp|gasket|cover|window|flange|adapter|plate|rail|wireway|duct|shelf)\b/i;
 
 const PASSIVE_RACK_CABINET_PATTERN =
   /\b(?:server rack|network rack|rack cabinet|(?:communication\s+and\s+server|server|network)\s+cabinet|cabinet\b(?=[\s\S]{0,180}\b(?:servers?|network|rack[-\s]?mount|rack\s+(?:unit|spacing|angle)s?|\d+\s*u\b))|(?:rack[-\s]?mount|rack\s+(?:unit|spacing)s?|\d+\s*u\b)[\s\S]{0,180}\bcabinet\b)\b/i;
@@ -73,86 +73,77 @@ const PASSIVE_RACK_CABINET_PATTERN =
 const PASSIVE_MODULE_CARRIER_PATTERN =
   /\b(?:module carrier|carrier frame|module rack|subrack|base\s*unit|baseunit|terminal base|backplane)\b/i;
 
-const SCE_VOLTAGE_RATED_DEVICE_PATTERN =
+const ENCLOSURE_THERMAL_VOLTAGE_DEVICE_PATTERN =
   /\b(fan\s*\/\s*heater|heater(?:\s+w\/?\s*thermostat)?|touch\s+safe\s+heater|fan\s+heater|filter\s+fan|fan\s+package|blower|blower\s+package|air\s+conditioner|conditioner,\s*ng\s+air|heat\s+exchanger|exchanger,\s*heat|dehumidifier|light\s+fixture|fixture,\s*led\s+light|led\s+light\s+fixture|thermostat|ethernet\s+converter|converter\s+kit|remote\s+display)\b/i;
 
-const SCE_PASSIVE_OR_ACCESSORY_PATTERN =
-  /\b(enclosure|cabinet|box|junction\s+box|panel|sub\s*panel|subpanel|back\s*panel|dead\s*front|accessor(?:y|ies)|mount(?:ing)?|kit|door|cover|bar|strap|shield|shelf|port|programming\s+port|connection\s+cord|cord|connector|cable|vortex\s+cooler|grounding|latch|hinge|adapter|plate)\b/i;
+const PASSIVE_ENCLOSURE_ACCESSORY_PATTERN =
+  /\b(enc(?:losure)?\.?|cabinet|box|junction\s+box|panel|sub\s*panel|subpanel|back\s*panel|dead\s*front|accessor(?:y|ies)|mount(?:ing)?|kit|door|cover|bar|strap|shield|shelf|port|programming\s+port|connection\s+cord|cord|connector|cable|vortex\s+cooler|grounding|latch|hinge|adapter|plate)\b/i;
 
 export function requiredElectricalFields(result: ProductResult, context: ElectricalRequirementContext = {}): ElectricalField[] {
   const primaryText = productPrimaryRequirementText(result);
   const text = productRequirementText(result);
   if (!text) return [];
   if (NON_ELECTRICAL_ACCESSORY_PATTERN.test(primaryText)) return [];
-  if (result.manufacturerId === "eaton" && EATON_NON_ELECTRICAL_PATTERN.test(primaryText)) return [];
-  if (result.manufacturerId === "eaton" && EATON_PASSIVE_ACTUATOR_PATTERN.test(primaryText)) return [];
-  if (result.manufacturerId === "siemens" && /^6ES7193/i.test(result.catalogNumber.replace(/[^a-z0-9]/gi, ""))) return [];
-  if (isRockwellMicro820FamilyPageResult(result)) return [];
-  if (isRockwellControlLogixL9Processor(result)) return [];
-  if (isRockwell1492PdeTerminalBlock(result)) return [];
-  if (isRockwellStratix2100Switch(result)) return [];
-  if (isRockwellPowerFlex755TsDrive(result)) return [];
-  if (result.manufacturerId === "sce") return requiredSceElectricalFields(primaryText);
+  if (NON_ELECTRICAL_INDUSTRIAL_PRODUCT_PATTERN.test(primaryText)) return [];
+  if (PASSIVE_PILOT_DEVICE_ACTUATOR_PATTERN.test(primaryText)) return [];
+  if (PASSIVE_MODULE_CARRIER_PATTERN.test(primaryText)) return [];
+  if (isFamilyOverviewWithoutPublishedElectricalRatings(result, text)) return [];
   if (PASSIVE_FLUID_DEVICE_PATTERN.test(primaryText) && !ACTIVE_FLUID_DEVICE_PATTERN.test(primaryText)) return [];
   if (CURRENT_ONLY_DEVICE_PATTERN.test(text)) return ["current"];
-  if (result.manufacturerId === "eaton" && EATON_CURRENT_ONLY_DEVICE_PATTERN.test(text)) return ["current"];
-  if (result.manufacturerId === "balluff" && BALLUFF_CURRENT_ONLY_DEVICE_PATTERN.test(text)) {
-    return BALLUFF_CURRENT_RATING_PRESENT_PATTERN.test(text) ? ["current"] : [];
+  if (SWITCH_DISCONNECTOR_CURRENT_ONLY_PATTERN.test(text)) return ["current"];
+  if (MECHANICAL_LIMIT_SWITCH_PATTERN.test(text)) {
+    return CURRENT_RATING_PRESENT_PATTERN.test(text) ? ["current"] : [];
   }
-  if (result.manufacturerId === "balluff" && BALLUFF_PASSIVE_ACCESSORY_PATTERN.test(primaryText)) return [];
+  if (PASSIVE_SENSOR_ACCESSORY_PATTERN.test(primaryText)) return [];
   if (VOLTAGE_ONLY_DEVICE_PATTERN.test(text)) return ["voltage"];
-  if (result.manufacturerId === "balluff" && BALLUFF_PASSIVE_RFID_DEVICE_PATTERN.test(primaryText) && !BALLUFF_CURRENT_RATING_PRESENT_PATTERN.test(text)) return [];
-  if (result.manufacturerId === "balluff" && BALLUFF_VOLTAGE_ONLY_DEVICE_PATTERN.test(text)) {
+  if (PASSIVE_RFID_DEVICE_PATTERN.test(primaryText) && !CURRENT_RATING_PRESENT_PATTERN.test(text)) return [];
+  if (SENSOR_AND_INDICATOR_VOLTAGE_ONLY_PATTERN.test(text)) {
     return ["voltage"];
   }
+  if (ENCLOSURE_THERMAL_VOLTAGE_DEVICE_PATTERN.test(primaryText)) return ["voltage"];
   if (SAFETY_SWITCH_RATED_PATTERN.test(text)) return ["voltage", "current"];
   if (ACTIVE_PUSHBUTTON_CONTACT_PATTERN.test(text)) return ["voltage", "current"];
+  if (PASSIVE_ENCLOSURE_ACCESSORY_PATTERN.test(primaryText)) return [];
   const deviceFields = requiredElectricalFieldsForDeviceType(context.deviceType, context.deviceTypeConfidence, context.deviceTypeElectricalFields);
   if (deviceFields) return deviceFields;
   if (PASSIVE_RACK_CABINET_PATTERN.test(primaryText)) return [];
-  if (PASSIVE_MODULE_CARRIER_PATTERN.test(primaryText)) return [];
   if (ELECTRICAL_DEVICE_PATTERN.test(text)) return ["voltage", "current"];
   if (PASSIVE_PRODUCT_PATTERN.test(primaryText)) return [];
   return [];
 }
 
-function isRockwellMicro820FamilyPageResult(result: ProductResult): boolean {
-  if (result.manufacturerId !== "rockwell") return false;
-  if (!/^\s*2080-LC20-/i.test(result.catalogNumber)) return false;
+export function isFamilyOverviewResult(result: ProductResult): boolean {
+  const compactCatalog = compactRequirementKey(result.catalogNumber);
   const evidence = [
     result.productUrl,
+    result.title,
+    result.description,
     ...result.sources.map((source) => `${source.url} ${source.parser ?? ""} ${source.stage ?? ""}`),
-    ...result.attributes.map((attr) => `${attr.sourceUrl ?? ""} ${attr.parser ?? ""} ${attr.value}`)
+    ...result.documents.map((doc) => `${doc.url} ${doc.label ?? ""} ${doc.sourceUrl ?? ""}`),
+    ...result.attributes
+      .filter((attr) => /\b(?:product\s+family|family|series|range|catalogs?\s+planned|planned\s+for\s+release)\b/i.test(`${attr.group ?? ""} ${attr.name} ${attr.value}`))
+      .map((attr) => `${attr.sourceUrl ?? ""} ${attr.parser ?? ""} ${attr.name} ${attr.value}`)
   ].join(" ");
-  return /\bmicro820-controllers\.html\b/i.test(evidence) || /\brockwell-family-page\b/i.test(evidence);
-}
-
-function isRockwellControlLogixL9Processor(result: ProductResult): boolean {
-  if (result.manufacturerId !== "rockwell") return false;
-  const text = [result.catalogNumber, result.title, result.description].filter(Boolean).join(" ");
-  return /^\s*1756-L9/i.test(result.catalogNumber) || /\bControlLogix\s+(?:5590\s+XT\s+Controller|Processors?)\b/i.test(text);
-}
-
-function isRockwell1492PdeTerminalBlock(result: ProductResult): boolean {
-  if (result.manufacturerId !== "rockwell") return false;
-  const text = [result.catalogNumber, result.title, result.description].filter(Boolean).join(" ");
-  return /^\s*1492-PD(?:E|ME)/i.test(result.catalogNumber) || /\bEnclosed\s+Power\s+Distribution\s+Block\b/i.test(text);
-}
-
-function isRockwellStratix2100Switch(result: ProductResult): boolean {
-  if (result.manufacturerId !== "rockwell") return false;
-  const text = [result.catalogNumber, result.title, result.description].filter(Boolean).join(" ");
-  return /^\s*1783-US/i.test(result.catalogNumber) || /\bStratix\s+2000\b.*\bUnmanaged\s+Switch\b/i.test(text);
-}
-
-function isRockwellPowerFlex755TsDrive(result: ProductResult): boolean {
-  if (result.manufacturerId !== "rockwell") return false;
-  const text = [result.catalogNumber, result.title, result.description].filter(Boolean).join(" ");
-  return /^\s*20G21FC/i.test(result.catalogNumber) || /\bPowerFlex\s+(?:TS\s+755|755TS)\b/i.test(text);
+  const lowerEvidence = evidence.toLowerCase();
+  if (/\bfamily-page\b|\bfamily page\b|\boverview\b|\bselection guide\b|\bcatalogs?\s+planned\s+for\s+release\b/i.test(evidence)) return true;
+  if (/\/[^\s"'<>?#]*(?:family|families|series|range|overview)[^\s"'<>?#]*/i.test(evidence)) return true;
+  if (/\b(?:controllers|processors|drives|switches|sensors|modules|terminals|blocks)\b/i.test(evidence) && /\b(?:family|series|range|overview)\b/i.test(evidence)) {
+    return true;
+  }
+  const productUrlCompact = compactRequirementKey(result.productUrl ?? "");
+  const exactProductUrl = Boolean(compactCatalog && productUrlCompact.includes(compactCatalog));
+  const familyishTitle = /\b(?:family|series|range|overview)\b/i.test(`${result.title ?? ""} ${result.description ?? ""}`);
+  return familyishTitle && !exactProductUrl && !lowerEvidence.includes("product page");
 }
 
 export function requiresElectricalRatings(result: ProductResult): boolean {
   return requiredElectricalFields(result).length > 0;
+}
+
+function isFamilyOverviewWithoutPublishedElectricalRatings(result: ProductResult, text: string): boolean {
+  if (!isFamilyOverviewResult(result)) return false;
+  if (result.normalized.voltage || result.normalized.current) return false;
+  return !/\b(?:rated|nominal|operating|supply|input|output|control\s+circuit|main\s+circuit)\s+(?:voltage|current)\b|\b\d+(?:[.,]\d+)?\s*(?:v(?:ac|dc)?|a|ma|ka)\b/i.test(text);
 }
 
 export function requiredElectricalFieldsForDeviceType(
@@ -193,9 +184,6 @@ function productPrimaryRequirementText(result: ProductResult): string {
     .toLowerCase();
 }
 
-function requiredSceElectricalFields(primaryText: string): Array<"voltage" | "current"> {
-  if (SCE_VOLTAGE_RATED_DEVICE_PATTERN.test(primaryText)) return ["voltage"];
-  if (SCE_PASSIVE_OR_ACCESSORY_PATTERN.test(primaryText)) return [];
-  if (/\b(?:vac|vdc|\d+(?:[.,]\d+)?\s*(?:v(?:ac|dc)?|volts?))\b/i.test(primaryText)) return ["voltage"];
-  return [];
+function compactRequirementKey(value: string): string {
+  return value.toLowerCase().replace(/[^a-z0-9]+/g, "");
 }

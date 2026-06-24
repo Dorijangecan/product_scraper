@@ -5,6 +5,7 @@ import { dedupeAttributes, dedupeDocuments } from "./dedupe.js";
 import { extractDocumentTextAttributes } from "./document-enrichment.js";
 import { cleanText, emptyResult, normalizeFields } from "./normalizer.js";
 import type { ManufacturerConnector, ScrapeContext } from "./types.js";
+import { scrapeDiscoveredFallback, withDiscoveryFallbackDiagnostics } from "./discovery-fallback.js";
 
 const SCAME_PARSER_VERSION = "scame-v1";
 const SCAME_TECHSHEET_BASE = "https://techsheet.scame.com";
@@ -80,12 +81,18 @@ export class ScameConnector implements ManufacturerConnector {
     }
 
     if (!attributes.length && !documents.length) {
-      const fallback = await context.fallback.scrape(catalogNumber, context.manufacturer.fallbackSources);
-      if (fallback) return fallback;
-      return {
-        ...emptyResult("scame", catalogNumber, "SCAME did not publish a validated techsheet PDF for this catalog number."),
-        diagnostics: { attemptedUrls }
-      };
+      const { result: fallback, discovery } = await scrapeDiscoveredFallback(catalogNumber, context, { idPrefix: this.id });
+      const result = fallback ?? emptyResult("scame", catalogNumber, "SCAME did not publish a validated techsheet PDF for this catalog number and official discovery did not find a parseable product page.");
+      return withDiscoveryFallbackDiagnostics(
+        {
+          ...result,
+          diagnostics: {
+            ...result.diagnostics,
+            attemptedUrls: [...(result.diagnostics?.attemptedUrls ?? []), ...attemptedUrls]
+          }
+        },
+        discovery
+      );
     }
 
     if (!attributes.some((attr) => /catalog|code|article|part/i.test(attr.name))) {
