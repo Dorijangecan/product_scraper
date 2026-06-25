@@ -52,9 +52,23 @@ function buildCoverageSummary(item: RunItemRecord, customFieldDefs: CustomCovera
     fieldHealth: fieldHealthSummary(result),
     documentProcessing: documentProcessingSummary(result),
     discovery: discoverySummary(result),
+    pageMining: pageMiningSummary(result),
     attributeCount: result.attributes.length,
     documentCount: result.documents.length,
     evidenceCount: result.evidence?.length ?? 0
+  };
+}
+
+function pageMiningSummary(result: ProductResult): RunItemCoverageSummary["pageMining"] | undefined {
+  const records = result.diagnostics?.pageMining ?? [];
+  const driftSuspected = result.diagnostics?.drift?.suspected ?? result.diagnostics?.targetHealth?.driftSuspected;
+  if (!records.length && !driftSuspected) return undefined;
+  return {
+    stages: records.length,
+    attributes: records.reduce((sum, record) => sum + record.attributeCount, 0),
+    documents: records.reduce((sum, record) => sum + record.documentCount, 0),
+    signals: [...new Set(records.flatMap((record) => record.signals ?? []))].slice(0, 12),
+    driftSuspected
   };
 }
 
@@ -78,6 +92,8 @@ function documentProcessingSummary(result: ProductResult): RunItemCoverageSummar
   const parsed = records.filter((record) => record.action === "parsed").length;
   const skipped = records.filter((record) => record.action === "skipped").length;
   const failed = records.filter((record) => record.action === "failed").length;
+  const attributeCount = records.reduce((sum, record) => sum + (record.attributeCount ?? 0), 0);
+  const normalizedFields = [...new Set(records.flatMap((record) => record.normalizedFields ?? []))].sort();
   const reviewDocuments = records
     .filter((record) => record.action === "skipped" || record.action === "failed")
     .map((record) => {
@@ -85,7 +101,7 @@ function documentProcessingSummary(result: ProductResult): RunItemCoverageSummar
       return `${label}: ${record.action}${record.reason ? ` (${record.reason})` : ""}`;
     })
     .slice(0, 12);
-  return { parsed, skipped, failed, reviewDocuments };
+  return { parsed, skipped, failed, attributeCount, normalizedFields, reviewDocuments };
 }
 
 function discoverySummary(result: ProductResult): RunItemCoverageSummary["discovery"] | undefined {

@@ -2103,7 +2103,7 @@ describe("manufacturer parsers", () => {
     expect(result.documents.some((doc) => doc.type === "datasheet" && doc.url.includes("id=113299"))).toBe(true);
   });
 
-  it("opens all Balluff data modal sections once a live render is needed", async () => {
+  it("opens only missing Balluff data modal sections once static sections are already parsed", async () => {
     const staticHtml = `
       <html><head>
         <link rel="canonical" href="https://www.balluff.com/en-gb/products/BCC039H" />
@@ -2173,7 +2173,7 @@ describe("manufacturer parsers", () => {
 
     const result = await new BalluffConnector().scrape("BCC039H", context);
 
-    expect(requestedLabels).toEqual(["Key features", "Classifications", "Digital Product Passport"]);
+    expect(requestedLabels).toEqual(["Digital Product Passport"]);
     expect(result.attributes.some((attr) => attr.group === "Digital Product Passport" && attr.name === "Country of origin" && attr.value === "Hungary")).toBe(true);
   });
 
@@ -3229,6 +3229,228 @@ Article Number: 6ES7193-6BP00-0DA0
     expect(result.documents.some((doc) => doc.type === "datasheet" && doc.label.includes("Datasheet BTV"))).toBe(true);
     expect(result.documents.some((doc) => doc.type === "certificate" && doc.label.includes("CSA 1233495"))).toBe(true);
     expect(result.documents.some((doc) => doc.type === "manual" && doc.label.includes("Installation and Maintenance Manual"))).toBe(true);
+  });
+
+  it("extracts first-seen product specs from alternating responsive grids", () => {
+    const html = `
+      <html><head>
+        <meta name="description" content="Compact IO module with spring terminals and IP67 protection." />
+      </head><body>
+        <h1>HX-24IO Industrial I/O Module</h1>
+        <div>Catalog number HX-24IO</div>
+        <section class="pdp-technical-data">
+          <h2>Technical data</h2>
+          <div class="responsive-spec-grid" role="grid">
+            <div>Rated supply voltage</div>
+            <div>24 V DC</div>
+            <div>Input current</div>
+            <div>180 mA</div>
+            <div>Degree of protection</div>
+            <div>IP67</div>
+            <div>Operating temperature</div>
+            <div>-25 to +70 °C</div>
+            <div>Housing material</div>
+            <div>Polyamide</div>
+            <div>Product weight</div>
+            <div>0.42 kg</div>
+          </div>
+        </section>
+      </body></html>
+    `;
+    const result = parseGenericProductPage(
+      "firstseen",
+      "HX-24IO",
+      fetched(html, "https://example.test/products/hx-24io"),
+      "official-fallback",
+      "first-seen-grid-fixture"
+    );
+
+    expect(result.attributes).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ group: "Technical data", name: "Rated supply voltage", value: "24 V DC" }),
+        expect.objectContaining({ group: "Technical data", name: "Input current", value: "180 mA" }),
+        expect.objectContaining({ group: "Technical data", name: "Degree of protection", value: "IP67" }),
+        expect.objectContaining({ group: "Technical data", name: "Operating temperature", value: "-25 to +70 °C" }),
+        expect.objectContaining({ group: "Technical data", name: "Housing material", value: "Polyamide" }),
+        expect.objectContaining({ group: "Technical data", name: "Product weight", value: "0.42 kg" })
+      ])
+    );
+    expect(result.attributes.some((attr) => attr.name === "Rated supply voltage" && /Input current/.test(attr.value))).toBe(false);
+    expect(result.normalized.voltage).toBe("24 V DC");
+    expect(result.normalized.current).toBe("180 mA");
+    expect(result.normalized.protection).toBe("IP67");
+    expect(result.normalized.material).toBe("Polyamide");
+    expect(result.normalized.weight).toBe("0.42 kg");
+    expect(result.normalized.operatingTemperatureMin).toBe("-25");
+    expect(result.normalized.operatingTemperatureMax).toBe("70");
+  });
+
+  it("extracts first-seen specs and documents from embedded JSON maps", () => {
+    const payload = {
+      props: {
+        pageProps: {
+          product: {
+            sku: "HX-JSON",
+            name: "HX JSON module",
+            specifications: {
+              ratedSupplyVoltage: { minValue: 18, maxValue: 30, unitText: "V DC" },
+              housingMaterial: "Polycarbonate",
+              productWeight: { value: 850, unitText: "g" },
+              degreeOfProtection: "IP65"
+            },
+            resources: [
+              {
+                resourceName: "HX-JSON technical datasheet",
+                pdfUrl: "/downloads/hx-json-datasheet.pdf",
+                documentType: "Data Sheet",
+                language: "English"
+              }
+            ]
+          }
+        }
+      }
+    };
+    const html = `
+      <html><body>
+        <h1>HX JSON module</h1>
+        <p>Catalog HX-JSON</p>
+        <script id="__NEXT_DATA__" type="application/json">${JSON.stringify(payload)}</script>
+      </body></html>
+    `;
+    const result = parseGenericProductPage(
+      "firstseen",
+      "HX-JSON",
+      fetched(html, "https://example.test/products/hx-json"),
+      "official-fallback",
+      "first-seen-json-fixture"
+    );
+
+    expect(result.attributes).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ name: "Rated Supply Voltage", value: "18...30 V DC" }),
+        expect.objectContaining({ name: "Housing Material", value: "Polycarbonate" }),
+        expect.objectContaining({ name: "Product Weight", value: "850 g" }),
+        expect.objectContaining({ name: "Degree Of Protection", value: "IP65" })
+      ])
+    );
+    expect(result.documents).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ type: "datasheet", label: expect.stringContaining("HX-JSON technical datasheet"), url: "https://example.test/downloads/hx-json-datasheet.pdf" })
+      ])
+    );
+    expect(result.normalized.voltage).toBe("18...30 V DC");
+    expect(result.normalized.material).toBe("Polycarbonate");
+    expect(result.normalized.weight).toBe("850 g (0.85 kg)");
+    expect(result.normalized.protection).toBe("IP65");
+  });
+
+  it("opens stringified hydration JSON and scopes product arrays to the requested catalog", () => {
+    const hydration = {
+      products: [
+        {
+          sku: "HX-STRING",
+          specifications: {
+            ratedSupplyVoltage: "24 V DC",
+            inputCurrent: "90 mA",
+            housingMaterial: "Aluminum"
+          }
+        },
+        {
+          sku: "HX-SIBLING",
+          specifications: {
+            ratedSupplyVoltage: "230 V AC",
+            inputCurrent: "4 A",
+            housingMaterial: "Steel"
+          }
+        }
+      ],
+      assets: [
+        {
+          resourceName: "HX-STRING installation guide",
+          manualUrl: "/downloads/hx-string-installation.pdf",
+          documentType: "Manual"
+        }
+      ]
+    };
+    const payload = {
+      props: {
+        pageProps: {
+          hydration: JSON.stringify(hydration)
+        }
+      }
+    };
+    const html = `
+      <html><body>
+        <h1>HX-STRING compact module</h1>
+        <p>Catalog HX-STRING</p>
+        <script id="__NEXT_DATA__" type="application/json">${JSON.stringify(payload)}</script>
+      </body></html>
+    `;
+    const result = parseGenericProductPage(
+      "firstseen",
+      "HX-STRING",
+      fetched(html, "https://example.test/products/hx-string"),
+      "official-fallback",
+      "first-seen-stringified-json-fixture"
+    );
+
+    expect(result.attributes).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ name: "Rated Supply Voltage", value: "24 V DC" }),
+        expect.objectContaining({ name: "Input Current", value: "90 mA" }),
+        expect.objectContaining({ name: "Housing Material", value: "Aluminum" })
+      ])
+    );
+    expect(result.attributes.some((attr) => attr.value === "230 V AC" || attr.value === "4 A" || attr.value === "Steel")).toBe(false);
+    expect(result.documents).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ type: "manual", label: expect.stringContaining("HX-STRING installation guide"), url: "https://example.test/downloads/hx-string-installation.pdf" })
+      ])
+    );
+    expect(result.normalized.voltage).toBe("24 V DC");
+    expect(result.normalized.current).toBe("90 mA");
+    expect(result.normalized.material).toBe("Aluminum");
+  });
+
+  it("extracts first-seen specs from heading-value and ARIA describedby cards", () => {
+    const html = `
+      <html><body>
+        <h1>HX Card Sensor</h1>
+        <p>Catalog HX-CARD</p>
+        <section class="technical-overview">
+          <h2>Technical overview</h2>
+          <article class="metric-card">
+            <h3>Product weight</h3>
+            <p>1.2 kg</p>
+          </article>
+          <article class="metric-card">
+            <h3>Housing material</h3>
+            <p>Stainless steel</p>
+          </article>
+          <span id="voltage-label">Rated supply voltage</span>
+          <span id="voltage-value">24 V DC</span>
+          <div class="metric-card" aria-labelledby="voltage-label" aria-describedby="voltage-value"></div>
+        </section>
+      </body></html>
+    `;
+    const result = parseGenericProductPage(
+      "firstseen",
+      "HX-CARD",
+      fetched(html, "https://example.test/products/hx-card"),
+      "official-fallback",
+      "first-seen-card-fixture"
+    );
+
+    expect(result.attributes).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ name: "Product weight", value: "1.2 kg" }),
+        expect.objectContaining({ name: "Housing material", value: "Stainless steel" }),
+        expect.objectContaining({ name: "Rated supply voltage", value: "24 V DC" })
+      ])
+    );
+    expect(result.normalized.weight).toBe("1.2 kg");
+    expect(result.normalized.material).toBe("Stainless steel");
+    expect(result.normalized.voltage).toBe("24 V DC");
   });
 
   it("rejects blocked official pages before marker extraction can produce false specs", () => {

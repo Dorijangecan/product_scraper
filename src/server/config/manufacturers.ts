@@ -569,7 +569,7 @@ function attachBuiltInScrapeRecipes() {
       "https://mall.industry.siemens.com/mall/en/WW/Catalog/Product?mlfb={part}"
     ],
     canonicalParamDenylist: ["SiepCountryCode"],
-    requiredAttributes: ["article number|mlfb|product short text|description"],
+    requiredAttributes: ["article number|mlfb|product short text|description|catalog number|product details|product type|type code|model code"],
     minAttributes: 3,
     minDocuments: 1,
     expandSelectors: accordionSelectors,

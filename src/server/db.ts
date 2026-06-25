@@ -1,6 +1,7 @@
 import Database from "better-sqlite3";
 import type {
   ItemStatus,
+  LearnedExtractorRecord,
   LearnedEndpointRecord,
   ManufacturerId,
   ProductResult,
@@ -28,6 +29,18 @@ interface RunRow {
   activity_message?: string | null;
   activity_started_at?: string | null;
   options_json?: string;
+  error?: string;
+}
+
+interface StageObservationInput {
+  manufacturerId: ManufacturerId;
+  host?: string;
+  stage: string;
+  status: "passed" | "partial" | "failed" | "skipped";
+  qualityScore?: number;
+  attributeCount?: number;
+  documentCount?: number;
+  elapsedMs?: number;
   error?: string;
 }
 
@@ -69,6 +82,18 @@ interface LearnedEndpointRow {
   body_template?: string;
   headers_json?: string;
   discovered_from_url: string;
+  parser_kind: string;
+  success_count: number;
+  last_success_at: string;
+}
+
+interface LearnedExtractorRow {
+  id: number;
+  manufacturer_id: ManufacturerId;
+  host: string;
+  kind: LearnedExtractorRecord["kind"];
+  pattern: string;
+  source_url: string;
   parser_kind: string;
   success_count: number;
   last_success_at: string;
@@ -163,10 +188,52 @@ export class ScraperDb {
         PRIMARY KEY (manufacturer_id, catalog_number, field)
       );
 
+      CREATE TABLE IF NOT EXISTS stage_observations (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        manufacturer_id TEXT NOT NULL,
+        host TEXT,
+        stage TEXT NOT NULL,
+        status TEXT NOT NULL,
+        quality_score REAL,
+        attribute_count INTEGER,
+        document_count INTEGER,
+        elapsed_ms INTEGER,
+        error TEXT,
+        observed_at TEXT NOT NULL
+      );
+
+      CREATE TABLE IF NOT EXISTS target_health (
+        manufacturer_id TEXT NOT NULL,
+        host TEXT NOT NULL DEFAULT '',
+        stage TEXT NOT NULL DEFAULT '',
+        sample_count INTEGER NOT NULL DEFAULT 0,
+        success_count INTEGER NOT NULL DEFAULT 0,
+        quality_score_sum REAL NOT NULL DEFAULT 0,
+        attribute_count_sum INTEGER NOT NULL DEFAULT 0,
+        document_count_sum INTEGER NOT NULL DEFAULT 0,
+        last_observed_at TEXT NOT NULL,
+        PRIMARY KEY (manufacturer_id, host, stage)
+      );
+
+      CREATE TABLE IF NOT EXISTS learned_extractors (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        manufacturer_id TEXT NOT NULL,
+        host TEXT NOT NULL,
+        kind TEXT NOT NULL,
+        pattern TEXT NOT NULL,
+        source_url TEXT NOT NULL,
+        parser_kind TEXT NOT NULL,
+        success_count INTEGER NOT NULL DEFAULT 1,
+        last_success_at TEXT NOT NULL,
+        UNIQUE(manufacturer_id, host, kind, pattern)
+      );
+
       CREATE INDEX IF NOT EXISTS idx_runs_created_at ON runs(created_at DESC);
       CREATE INDEX IF NOT EXISTS idx_run_items_run_id ON run_items(run_id, row_index);
       CREATE INDEX IF NOT EXISTS idx_page_cache_url ON page_cache(url);
       CREATE INDEX IF NOT EXISTS idx_learned_endpoints_manufacturer ON learned_endpoints(manufacturer_id, success_count DESC, last_success_at DESC);
+      CREATE INDEX IF NOT EXISTS idx_stage_observations_target ON stage_observations(manufacturer_id, host, stage, observed_at DESC);
+      CREATE INDEX IF NOT EXISTS idx_learned_extractors_target ON learned_extractors(manufacturer_id, host, success_count DESC, last_success_at DESC);
     `);
     this.addColumnIfMissing("runs", "options_json", "TEXT");
     this.addColumnIfMissing("runs", "output_path", "TEXT");
@@ -510,6 +577,172 @@ export class ScraperDb {
       });
   }
 
+  recordStageObservation(observation: StageObservationInput) {
+    const now = new Date().toISOString();
+    const host = observation.host ?? "";
+    const status = observation.status;
+    const qualityScore = observation.qualityScore ?? 0;
+    const attributeCount = observation.attributeCount ?? 0;
+    const documentCount = observation.documentCount ?? 0;
+    const tx = this.db.transaction(() => {
+      this.db
+        .prepare(
+          `
+            INSERT INTO stage_observations (
+              manufacturer_id,
+              host,
+              stage,
+              status,
+              quality_score,
+              attribute_count,
+              document_count,
+              elapsed_ms,
+              error,
+              observed_at
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          `
+        )
+        .run(
+          observation.manufacturerId,
+          host || null,
+          observation.stage,
+          status,
+          observation.qualityScore ?? null,
+          observation.attributeCount ?? null,
+          observation.documentCount ?? null,
+          observation.elapsedMs ?? null,
+          observation.error ?? null,
+          now
+        );
+      this.db
+        .prepare(
+          `
+            INSERT INTO target_health (
+              manufacturer_id,
+              host,
+              stage,
+              sample_count,
+              success_count,
+              quality_score_sum,
+              attribute_count_sum,
+              document_count_sum,
+              last_observed_at
+            )
+            VALUES (?, ?, ?, 1, ?, ?, ?, ?, ?)
+            ON CONFLICT(manufacturer_id, host, stage) DO UPDATE SET
+              sample_count = target_health.sample_count + 1,
+              success_count = target_health.success_count + excluded.success_count,
+              quality_score_sum = target_health.quality_score_sum + excluded.quality_score_sum,
+              attribute_count_sum = target_health.attribute_count_sum + excluded.attribute_count_sum,
+              document_count_sum = target_health.document_count_sum + excluded.document_count_sum,
+              last_observed_at = excluded.last_observed_at
+          `
+        )
+        .run(
+          observation.manufacturerId,
+          host,
+          observation.stage,
+          status === "passed" ? 1 : 0,
+          qualityScore,
+          attributeCount,
+          documentCount,
+          now
+        );
+    });
+    tx();
+  }
+
+  getTargetHealth(manufacturerId: ManufacturerId, stage?: string, host?: string) {
+    const row = this.db
+      .prepare(
+        `
+          SELECT *
+          FROM target_health
+          WHERE manufacturer_id = ?
+            AND stage = ?
+            AND host = ?
+        `
+      )
+      .get(manufacturerId, stage ?? "", host ?? "") as
+        | {
+            manufacturer_id: ManufacturerId;
+            host: string;
+            stage: string;
+            sample_count: number;
+            success_count: number;
+            quality_score_sum: number;
+            attribute_count_sum: number;
+            document_count_sum: number;
+          }
+        | undefined;
+    if (!row) return undefined;
+    const sampleCount = row.sample_count || 0;
+    return {
+      manufacturerId: row.manufacturer_id,
+      host: row.host || undefined,
+      stage: row.stage || undefined,
+      sampleCount,
+      successRate: sampleCount ? row.success_count / sampleCount : 0,
+      avgQualityScore: sampleCount ? row.quality_score_sum / sampleCount : undefined,
+      avgAttributeCount: sampleCount ? row.attribute_count_sum / sampleCount : undefined,
+      avgDocumentCount: sampleCount ? row.document_count_sum / sampleCount : undefined,
+      driftSuspected: sampleCount >= 8 && (row.success_count / sampleCount < 0.45 || row.quality_score_sum / sampleCount < 45),
+      reason: sampleCount >= 8 && (row.success_count / sampleCount < 0.45 || row.quality_score_sum / sampleCount < 45)
+        ? "Recent target health is below the adaptive mining threshold."
+        : "Target health is within the normal range."
+    };
+  }
+
+  listLearnedExtractors(manufacturerId: ManufacturerId, host: string, limit = 20): LearnedExtractorRecord[] {
+    const rows = this.db
+      .prepare(
+        `
+          SELECT *
+          FROM learned_extractors
+          WHERE manufacturer_id = ? AND host = ?
+          ORDER BY success_count DESC, last_success_at DESC
+          LIMIT ?
+        `
+      )
+      .all(manufacturerId, host, limit) as LearnedExtractorRow[];
+    return rows.map(mapLearnedExtractor);
+  }
+
+  upsertLearnedExtractor(extractor: Omit<LearnedExtractorRecord, "id" | "successCount" | "lastSuccessAt">) {
+    const now = new Date().toISOString();
+    this.db
+      .prepare(
+        `
+          INSERT INTO learned_extractors (
+            manufacturer_id,
+            host,
+            kind,
+            pattern,
+            source_url,
+            parser_kind,
+            success_count,
+            last_success_at
+          )
+          VALUES (?, ?, ?, ?, ?, ?, 1, ?)
+          ON CONFLICT(manufacturer_id, host, kind, pattern) DO UPDATE SET
+            source_url = excluded.source_url,
+            parser_kind = excluded.parser_kind,
+            success_count = learned_extractors.success_count + 1,
+            last_success_at = excluded.last_success_at
+        `
+      )
+      .run(
+        extractor.manufacturerId,
+        extractor.host,
+        extractor.kind,
+        extractor.pattern,
+        extractor.sourceUrl,
+        extractor.parserKind,
+        now
+      );
+  }
+
   /**
    * Returns the set of fields marked as definitively-unpublished for this catalog number,
    * based on prior runs that exhausted all available stages without finding them.
@@ -614,6 +847,20 @@ function mapLearnedEndpoint(row: LearnedEndpointRow): LearnedEndpointRecord {
     bodyTemplate: row.body_template,
     headers: parseHeaders(row.headers_json),
     discoveredFromUrl: row.discovered_from_url,
+    parserKind: row.parser_kind,
+    successCount: row.success_count,
+    lastSuccessAt: row.last_success_at
+  };
+}
+
+function mapLearnedExtractor(row: LearnedExtractorRow): LearnedExtractorRecord {
+  return {
+    id: row.id,
+    manufacturerId: row.manufacturer_id,
+    host: row.host,
+    kind: row.kind,
+    pattern: row.pattern,
+    sourceUrl: row.source_url,
     parserKind: row.parser_kind,
     successCount: row.success_count,
     lastSuccessAt: row.last_success_at

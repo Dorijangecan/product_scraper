@@ -291,7 +291,99 @@ export interface ScrapeDiagnostics {
   /** Self-diagnosis: spec labels with a recognizable value but no known meaning — knowledge-base gaps to teach, not guess. */
   unmappedSpecLabels?: string[];
   fieldHealth?: FieldHealthRecord[];
+  pageMining?: PageMiningRecord[];
+  pageIntelligence?: PageIntelligenceDiagnostic[];
+  fieldCandidates?: FieldCandidateRecord[];
+  fieldResolutions?: FieldResolutionRecord[];
+  targetHealth?: TargetHealthRecord;
+  drift?: DriftDiagnostic;
   notes?: string[];
+}
+
+export interface PageMiningRecord {
+  stage: string;
+  url: string;
+  method: "static-html" | "rendered-dom" | "browser-network" | "learned-extractor";
+  attributeCount: number;
+  documentCount: number;
+  candidateCount?: number;
+  usefulAttributeCount?: number;
+  usefulDocumentCount?: number;
+  signals?: string[];
+  elapsedMs?: number;
+  reason?: string;
+}
+
+export interface PageIntelligenceDiagnostic {
+  stage: string;
+  url?: string;
+  action: "mined" | "skipped" | "failed" | "learned" | "replayed";
+  reason: string;
+  attributeCount?: number;
+  documentCount?: number;
+  scoreBefore?: number;
+  scoreAfter?: number;
+}
+
+export interface FieldCandidateRecord {
+  field: string;
+  label: string;
+  value: string;
+  sourceUrl?: string;
+  sourceType?: SourceRecord["sourceType"];
+  parser?: string;
+  stage?: string;
+  confidence?: number;
+  priority: number;
+  priorityReason: string;
+  selected?: boolean;
+}
+
+export interface FieldResolutionRecord {
+  field: string;
+  label: string;
+  selectedValue?: string;
+  selectedSourceUrl?: string;
+  selectedParser?: string;
+  selectedStage?: string;
+  confidence?: number;
+  candidateCount: number;
+  conflictCount: number;
+  reason: string;
+}
+
+export interface LearnedExtractorRecord {
+  id?: number;
+  manufacturerId: ManufacturerId;
+  host: string;
+  kind: "dom-pattern" | "json-path" | "network-payload" | "interaction" | "document-pattern";
+  pattern: string;
+  sourceUrl: string;
+  parserKind: string;
+  successCount: number;
+  lastSuccessAt: string;
+}
+
+export interface TargetHealthRecord {
+  manufacturerId: ManufacturerId;
+  host?: string;
+  stage?: string;
+  sampleCount: number;
+  successRate: number;
+  avgQualityScore?: number;
+  avgAttributeCount?: number;
+  avgDocumentCount?: number;
+  driftSuspected?: boolean;
+  reason?: string;
+}
+
+export interface DriftDiagnostic {
+  suspected: boolean;
+  reason: string;
+  manufacturerId?: ManufacturerId;
+  stage?: string;
+  successRate?: number;
+  avgQualityScore?: number;
 }
 
 export interface DocumentProcessingDiagnostic {
@@ -301,6 +393,10 @@ export interface DocumentProcessingDiagnostic {
   action: "parsed" | "skipped" | "failed";
   stage: "downloaded-document-enrichment" | "remote-document-enrichment" | "customer-document-enrichment";
   reason: string;
+  attributeCount?: number;
+  normalizedFields?: string[];
+  pageCount?: number;
+  elapsedMs?: number;
   localPath?: string;
   sourceUrl?: string;
   parseError?: string;
@@ -636,6 +732,8 @@ export interface RunItemDocumentProcessingSummary {
   parsed: number;
   skipped: number;
   failed: number;
+  attributeCount?: number;
+  normalizedFields?: string[];
   reviewDocuments: string[];
 }
 
@@ -649,6 +747,14 @@ export interface RunItemDiscoverySummary {
   topCandidates: string[];
   rejectedLinks: string[];
   rejectedDocuments: string[];
+}
+
+export interface RunItemPageMiningSummary {
+  stages: number;
+  attributes: number;
+  documents: number;
+  signals: string[];
+  driftSuspected?: boolean;
 }
 
 export interface RunItemCoverageSummary {
@@ -666,6 +772,7 @@ export interface RunItemCoverageSummary {
   fieldHealth?: RunItemFieldHealthSummary;
   documentProcessing?: RunItemDocumentProcessingSummary;
   discovery?: RunItemDiscoverySummary;
+  pageMining?: RunItemPageMiningSummary;
   attributeCount?: number;
   documentCount?: number;
   evidenceCount?: number;

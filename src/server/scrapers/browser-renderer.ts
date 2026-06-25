@@ -2,6 +2,7 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import type { BrowserNetworkRecord, ScrapeRecipeConfig } from "../../shared/types.js";
 import type { FetchedText } from "./http-client.js";
+import { adaptiveInteractionSelectors } from "./interaction-explorer.js";
 
 interface BrowserLike {
   newContext(options?: Record<string, unknown>): Promise<BrowserContextLike>;
@@ -181,10 +182,7 @@ export class BrowserRenderSession {
       await clickSafeSelectors(
         page,
         [
-          ...(recipe?.interactionPolicy?.tabSelectors ?? []),
-          ...(recipe?.interactionPolicy?.downloadSectionSelectors ?? []),
-          ...(recipe?.interactionPolicy?.expandSelectors ?? []),
-          ...(recipe?.expandSelectors ?? []),
+          ...adaptiveInteractionSelectors(recipe),
           ...DEFAULT_EXPAND_SELECTORS
         ],
         recipe?.interactionPolicy?.maxClicks ?? 50,

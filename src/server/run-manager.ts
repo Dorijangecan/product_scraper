@@ -373,6 +373,14 @@ export class RunManager {
               list: (manufacturerId, limit) => this.db.listLearnedEndpoints(manufacturerId, limit),
               upsert: (endpoint) => this.db.upsertLearnedEndpoint(endpoint)
             },
+            learnedExtractors: {
+              list: (manufacturerId, host, limit) => this.db.listLearnedExtractors(manufacturerId, host, limit),
+              upsert: (extractor) => this.db.upsertLearnedExtractor(extractor)
+            },
+            targetHealth: {
+              record: (observation) => this.db.recordStageObservation(observation),
+              get: (manufacturerId, stage, host) => this.db.getTargetHealth(manufacturerId, stage, host)
+            },
             fallback: {
               scrape: (catalogNumber, sources) => fallback.scrape(catalogNumber, sources, controller.signal)
             },

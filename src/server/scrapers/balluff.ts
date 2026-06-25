@@ -1122,12 +1122,10 @@ function balluffModalSectionsFor(result: ProductResult, html: string, docsEnable
   if (!labels.size) {
     return isCompleteBalluffResult(result, html, { requireDatasheet: docsEnabled }) ? [] : availableSections;
   }
-  // Once a live render is needed, capture all data drawers in one pass. Balluff loads these
-  // sidebars independently; limiting the pass to just the currently-missing label made later
-  // exports depend on stale reader/static snapshots and missed DPP weight on some runs.
   const htmlMentionsDatasheet = /\b(?:datasheet|product data sheet)\b|pdfengine\/pdf\?[^"'\s<>]*\btype=pdb\b/i.test(html);
   const shouldOpenDownloads = docsEnabled && !signals.hasDatasheet && !htmlMentionsDatasheet;
-  return availableSections.filter((section) => section.label !== "Downloads" || shouldOpenDownloads);
+  if (shouldOpenDownloads) labels.add("Downloads");
+  return availableSections.filter((section) => labels.has(section.label));
 }
 
 function isTerminalBalluffHttpStatus(statusCode: number): boolean {

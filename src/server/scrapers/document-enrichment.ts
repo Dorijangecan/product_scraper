@@ -194,6 +194,7 @@ export async function enrichResultFromDownloadedDocuments(result: ProductResult)
   const documents: DocumentRecord[] = [];
 
   for (const doc of prioritizeDownloadedDocuments(result.documents)) {
+    const started = Date.now();
     if (shouldSkipAfterStrongDocumentEvidence(doc, documentAttributes)) {
       documentProcessing.push(documentProcessingRecord(doc, "downloaded-document-enrichment", "skipped", "Skipped lower-priority document because a datasheet/catalog already supplied strong product attributes."));
       documents.push({ ...doc, parseStatus: doc.parseStatus ?? "skipped" });
@@ -230,13 +231,15 @@ export async function enrichResultFromDownloadedDocuments(result: ProductResult)
         doc,
         "downloaded-document-enrichment",
         attributes.length > 1 ? "parsed" : "skipped",
-        attributes.length > 1 ? `Parsed ${attributes.length} attribute records from downloaded PDF.` : "Opened downloaded PDF, but no source-backed product attributes were extracted."
+        attributes.length > 1 ? `Parsed ${attributes.length} attribute records from downloaded PDF.` : "Opened downloaded PDF, but no source-backed product attributes were extracted.",
+        undefined,
+        documentExtractionMetrics(attributes, [doc], Date.now() - started)
       ));
     } catch (error) {
       const parseError = error instanceof Error ? error.message : "PDF parse failed";
       documentParseFailures.push(`${doc.label || doc.url}: ${parseError}`);
       documents.push({ ...doc, parseStatus: "failed", parseError });
-      documentProcessing.push(documentProcessingRecord(doc, "downloaded-document-enrichment", "failed", "Downloaded PDF parse failed.", parseError));
+      documentProcessing.push(documentProcessingRecord(doc, "downloaded-document-enrichment", "failed", "Downloaded PDF parse failed.", parseError, { elapsedMs: Date.now() - started }));
     }
   }
 
@@ -279,6 +282,7 @@ export async function enrichResultFromRemoteDocuments(
   let parsedDocuments = 0;
 
   for (const doc of prioritizeRemoteProbeDocuments(result.documents)) {
+    const started = Date.now();
     if (shouldSkipAfterStrongDocumentEvidence(doc, documentAttributes)) {
       documentProcessing.push(documentProcessingRecord(doc, "remote-document-enrichment", "skipped", "Skipped lower-priority remote document because a datasheet/catalog already supplied strong product attributes."));
       documents.push({ ...doc, parseStatus: doc.parseStatus ?? "skipped" });
@@ -323,14 +327,16 @@ export async function enrichResultFromRemoteDocuments(
         parsedDoc,
         "remote-document-enrichment",
         attributes.length > 1 ? "parsed" : "skipped",
-        attributes.length > 1 ? `Fetched and parsed ${attributes.length} attribute records from remote PDF.` : "Fetched remote PDF, but no source-backed product attributes were extracted."
+        attributes.length > 1 ? `Fetched and parsed ${attributes.length} attribute records from remote PDF.` : "Fetched remote PDF, but no source-backed product attributes were extracted.",
+        undefined,
+        documentExtractionMetrics(attributes, [parsedDoc], Date.now() - started)
       ));
       parsedDocuments += 1;
     } catch (error) {
       const parseError = error instanceof Error ? error.message : "PDF parse failed";
       documentParseFailures.push(`${doc.label || doc.url}: ${parseError}`);
       documents.push({ ...doc, parseStatus: "failed", parseError });
-      documentProcessing.push(documentProcessingRecord(doc, "remote-document-enrichment", "failed", "Remote PDF probe failed.", parseError));
+      documentProcessing.push(documentProcessingRecord(doc, "remote-document-enrichment", "failed", "Remote PDF probe failed.", parseError, { elapsedMs: Date.now() - started }));
     } finally {
       await cleanup?.().catch(() => undefined);
     }
@@ -399,7 +405,8 @@ function documentProcessingRecord(
   stage: DocumentProcessingDiagnostic["stage"],
   action: DocumentProcessingDiagnostic["action"],
   reason: string,
-  parseError?: string
+  parseError?: string,
+  metrics: Partial<Pick<DocumentProcessingDiagnostic, "attributeCount" | "normalizedFields" | "pageCount" | "elapsedMs">> = {}
 ): DocumentProcessingDiagnostic {
   return {
     url: doc.url,
@@ -408,10 +415,30 @@ function documentProcessingRecord(
     action,
     stage,
     reason,
+    ...metrics,
     localPath: doc.localPath,
     sourceUrl: doc.sourceUrl,
     parseError
   };
+}
+
+function documentExtractionMetrics(
+  attributes: AttributeRecord[],
+  documents: DocumentRecord[],
+  elapsedMs?: number
+): Pick<DocumentProcessingDiagnostic, "attributeCount" | "normalizedFields" | "elapsedMs"> {
+  return {
+    attributeCount: attributes.length,
+    normalizedFields: normalizedFieldNames(normalizeFields(attributes, documents)),
+    ...(elapsedMs !== undefined ? { elapsedMs } : {})
+  };
+}
+
+function normalizedFieldNames(normalized: ProductResult["normalized"]): string[] {
+  return Object.entries(normalized)
+    .filter(([, value]) => value !== undefined && value !== "")
+    .map(([key]) => key)
+    .sort();
 }
 
 function downloadedDocumentSkipReason(doc: DocumentRecord): string {

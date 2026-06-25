@@ -873,8 +873,42 @@ Material glass-filled polyamide
     const enriched = applyCustomerDocumentOverride(product({ manufacturerId: "nvent", catalogNumber: "NO-MATCH", status: "failed" }), extraction);
 
     expect(extraction.documents[0].parseStatus).toBe("parsed");
-    expect(extraction.attributes.some((attr) => attr.parser === "customer-document" && attr.name === "Supply Voltage")).toBe(true);
+    expect(extraction.attributes.some((attr) => attr.parser === "customer-unmatched-pdf-fallback" && attr.name === "Supply Voltage")).toBe(true);
+    expect(extraction.documentProcessing).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        action: "parsed",
+        attributeCount: expect.any(Number),
+        normalizedFields: expect.arrayContaining(["protection", "voltage"]),
+        pageCount: expect.any(Number)
+      })
+    ]));
     expect(enriched.normalized.protection).toBe("IP20");
+  });
+
+  it("does not let unmatched customer PDF fallback overwrite existing official normalized values", async () => {
+    const storedPath = path.resolve("benchmarks", "live-check", "nvent-docs", "spec-00583.pdf");
+    const extraction = await extractCustomerDocumentAttributes("NO-MATCH", [
+      {
+        id: "customer-doc-1",
+        originalName: "spec-00583.pdf",
+        storedPath,
+        mimeType: "application/pdf",
+        uploadedAt: "2026-06-02T00:00:00.000Z"
+      }
+    ]);
+    const enriched = applyCustomerDocumentOverride(product({
+      manufacturerId: "nvent",
+      catalogNumber: "NO-MATCH",
+      normalized: { voltage: "24 V DC", protection: "IP67" },
+      attributes: [
+        { group: "Official", name: "Rated voltage", value: "24 V DC", sourceType: "official" },
+        { group: "Official", name: "Protection", value: "IP67", sourceType: "official" }
+      ]
+    }), extraction);
+
+    expect(extraction.attributes.some((attr) => attr.confidence === 0.72)).toBe(true);
+    expect(enriched.normalized.voltage).toBe("24 V DC");
+    expect(enriched.normalized.protection).toBe("IP67");
   });
 
   it("keeps customer document no-match attempts visible in diagnostics", async () => {

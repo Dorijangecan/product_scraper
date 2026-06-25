@@ -26,9 +26,11 @@ manufacturer. The app then:
 2. Scrapes official manufacturer sources first.
 3. Uses configured fallbacks, discovery, rendered pages and document enrichment
    when the first result is weak.
-4. Normalizes technical attributes without a runtime model call.
-5. Grades each item with a quality gate.
-6. Exports a traced `products.xlsx` workbook and, on demand, a PDT workbook.
+4. Runs adaptive page intelligence when quality, field coverage or target-health
+   signals show that more data may be hidden in the page.
+5. Normalizes technical attributes without a runtime model call.
+6. Grades each item with a quality gate.
+7. Exports a traced `products.xlsx` workbook and, on demand, a PDT workbook.
 
 The design goal is source-backed output. Values should come from scraped pages,
 documents, customer uploads, parsed quantities or explicit deterministic rules.
@@ -129,6 +131,10 @@ Legacy IDs are normalized in the config layer, for example `newabb -> abb`,
 | [`discovery.ts`](../src/server/scrapers/discovery.ts) | Official URL discovery from templates, search pages, sitemaps, learned endpoints and URL variants |
 | [`link-discovery.ts`](../src/server/scrapers/link-discovery.ts) | Catalog-number-aware link filtering and scoring |
 | [`learned-endpoints.ts`](../src/server/scrapers/learned-endpoints.ts) | Stores successful official API URL patterns in SQLite for later replay |
+| [`page-intelligence.ts`](../src/server/scrapers/page-intelligence.ts) | Orchestrates adaptive static/rendered/network mining for weak or drifting results |
+| [`page-mining.ts`](../src/server/scrapers/page-mining.ts) | Mines hidden DOM, embedded JSON, data attributes, lazy images, documents and key/value shapes |
+| [`interaction-explorer.ts`](../src/server/scrapers/interaction-explorer.ts) | Supplies semantic selectors for technical/download/detail tab exploration |
+| [`field-candidates.ts`](../src/server/scrapers/field-candidates.ts) | Builds field candidates and source-priority resolutions while retaining conflicts |
 | [`evidence.ts`](../src/server/scrapers/evidence.ts) | Attaches source/parser/stage/confidence records to values |
 | [`dedupe.ts`](../src/server/scrapers/dedupe.ts) | Merges duplicate attributes/documents while preserving higher confidence data |
 
@@ -177,6 +183,38 @@ The quality gate records attempted stages and missing fields in
 `ProductResult.qualityGate` and diagnostics. A weak result can trigger deeper
 fallbacks.
 
+## PDF And Customer Documents
+
+Downloaded official PDFs are parsed after the first official scrape and again
+after fallback/final-retry downloads when required fields are still missing.
+Customer-provided documents are scanned before the manufacturer lookup to prime
+the per-run parse cache and can short-circuit slow web scraping when they provide
+complete source-backed data. They are applied again near the end so matched
+customer values override weaker website values.
+
+Document processing diagnostics record the document action plus extraction yield:
+attribute count, normalized fields filled, page count when available, elapsed
+time, source path, and parse errors. Customer PDFs that do not mention the
+catalog number can still fill missing values for small single-product sheets, but
+they are marked as lower-confidence unmatched PDF fallback evidence and do not
+overwrite already-populated official normalized fields.
+
+## Adaptive Page Intelligence
+
+Adaptive page intelligence is deterministic and opt-in by signal rather than run
+by default for every item. The mission-control check enables it when the primary
+result is weak, has low attribute/document yield, misses critical coverage, or
+target-health history suggests drift. The mining pass inspects static HTML,
+rendered DOM and browser network payloads for hidden/collapsed sections,
+embedded product JSON, hydration state, lazy media, document links, and semantic
+key/value shapes. Mined values become normal `AttributeRecord` and
+`DocumentRecord` entries with parser/stage/confidence metadata.
+
+The field candidate resolver then records all candidate values per central field,
+selects the highest-priority source-backed value, fills only missing normalized
+fields, and leaves conflicts visible in diagnostics and the workbook. No runtime
+LLM or anti-bot bypass is used.
+
 ## PDT Export
 
 PDT export is generated on demand from the run result and
@@ -212,6 +250,9 @@ Main tables:
 | `run_items` | Per-row catalog result and serialized `ProductResult` |
 | `page_cache` | Cached HTTP responses and fetched metadata |
 | `learned_endpoints` | Successful official API/URL patterns |
+| `learned_extractors` | Successful page-mining signals and extraction patterns |
+| `stage_observations` | Per-stage yield/quality observations for adaptive health |
+| `target_health` | Aggregated manufacturer/host/stage health used for drift signals |
 | `exhausted_fields` | Fields previously confirmed missing for a catalog number |
 
 Output folders are built by

@@ -1,38 +1,40 @@
 import type { EvidenceRecord, ProductResult, SourceRecord } from "../../shared/types.js";
+import { applyFieldCandidateResolution } from "./field-candidates.js";
 import { buildFieldHealth, FIELD_REGISTRY, findFieldSourceAttribute, type RegistryFieldKey } from "./field-registry.js";
 import { normalizeTechnicalAttributes } from "./technical-attributes.js";
 
 export function attachEvidence(result: ProductResult): ProductResult {
-  const technicalAttributes = normalizeTechnicalAttributes(result.manufacturerId, result.attributes, result.sources);
+  const resolvedResult = applyFieldCandidateResolution(result);
+  const technicalAttributes = normalizeTechnicalAttributes(resolvedResult.manufacturerId, resolvedResult.attributes, resolvedResult.sources);
   const evidence = dedupeEvidence([
-    ...(result.evidence ?? []),
-    ...result.attributes.map((attr): EvidenceRecord => ({
+    ...(resolvedResult.evidence ?? []),
+    ...resolvedResult.attributes.map((attr): EvidenceRecord => ({
       kind: "attribute",
       name: attr.name,
       value: attr.value,
       sourceUrl: attr.sourceUrl,
-      sourceType: attr.sourceType ?? sourceTypeForUrl(result.sources, attr.sourceUrl),
-      parser: attr.parser ?? parserForUrl(result.sources, attr.sourceUrl),
-      stage: attr.stage ?? stageForUrl(result.sources, attr.sourceUrl),
+      sourceType: attr.sourceType ?? sourceTypeForUrl(resolvedResult.sources, attr.sourceUrl),
+      parser: attr.parser ?? parserForUrl(resolvedResult.sources, attr.sourceUrl),
+      stage: attr.stage ?? stageForUrl(resolvedResult.sources, attr.sourceUrl),
       confidence: attr.confidence
     })),
-    ...result.documents.map((doc): EvidenceRecord => ({
+    ...resolvedResult.documents.map((doc): EvidenceRecord => ({
       kind: "document",
       name: `${doc.type}: ${doc.label}`,
       value: doc.localPath,
       url: doc.url,
       sourceUrl: doc.sourceUrl,
-      sourceType: doc.sourceType ?? sourceTypeForUrl(result.sources, doc.sourceUrl),
-      parser: doc.parser ?? parserForUrl(result.sources, doc.sourceUrl),
-      stage: doc.stage ?? stageForUrl(result.sources, doc.sourceUrl),
+      sourceType: doc.sourceType ?? sourceTypeForUrl(resolvedResult.sources, doc.sourceUrl),
+      parser: doc.parser ?? parserForUrl(resolvedResult.sources, doc.sourceUrl),
+      stage: doc.stage ?? stageForUrl(resolvedResult.sources, doc.sourceUrl),
       confidence: doc.confidence,
       reason: [doc.downloadStatus === "failed" ? doc.downloadError : doc.downloadStatus, doc.parseStatus, doc.parseError]
         .filter(Boolean)
         .join("; ")
     })),
-    ...Object.entries(result.normalized).flatMap(([name, value]): EvidenceRecord[] => {
+    ...Object.entries(resolvedResult.normalized).flatMap(([name, value]): EvidenceRecord[] => {
       if (!value) return [];
-      const sourceAttribute = normalizedSourceAttribute(result, name, value);
+      const sourceAttribute = normalizedSourceAttribute(resolvedResult, name, value);
       const sourceUrl = sourceAttribute?.sourceUrl;
       return [
         {
@@ -40,10 +42,10 @@ export function attachEvidence(result: ProductResult): ProductResult {
           name,
           value,
           sourceUrl,
-          sourceType: sourceAttribute?.sourceType ?? sourceTypeForUrl(result.sources, sourceUrl),
-          parser: sourceAttribute?.parser ?? parserForUrl(result.sources, sourceUrl),
+          sourceType: sourceAttribute?.sourceType ?? sourceTypeForUrl(resolvedResult.sources, sourceUrl),
+          parser: sourceAttribute?.parser ?? parserForUrl(resolvedResult.sources, sourceUrl),
           stage: sourceAttribute?.stage ?? "normalize",
-          confidence: sourceAttribute?.confidence ?? result.confidence
+          confidence: sourceAttribute?.confidence ?? resolvedResult.confidence
         }
       ];
     }),
@@ -58,7 +60,7 @@ export function attachEvidence(result: ProductResult): ProductResult {
       confidence: attribute.confidence,
       reason: attribute.reason
     })),
-    ...result.sources.map((source): EvidenceRecord => ({
+    ...resolvedResult.sources.map((source): EvidenceRecord => ({
       kind: "source",
       name: source.parser,
       url: source.url,
@@ -67,16 +69,16 @@ export function attachEvidence(result: ProductResult): ProductResult {
       parser: source.parser,
       stage: source.stage,
       reason: source.reason,
-      confidence: result.confidence
+      confidence: resolvedResult.confidence
     }))
   ]);
 
   return {
-    ...result,
+    ...resolvedResult,
     technicalAttributes,
     evidence,
     diagnostics: {
-      ...result.diagnostics,
+      ...resolvedResult.diagnostics,
       fieldHealth: buildFieldHealth(result)
     }
   };

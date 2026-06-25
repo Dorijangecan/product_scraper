@@ -1,4 +1,12 @@
-import type { DocumentRecord, FallbackSourceConfig, LearnedEndpointRecord, ManufacturerConfig, ProductResult } from "../../shared/types.js";
+import type {
+  DocumentRecord,
+  FallbackSourceConfig,
+  LearnedEndpointRecord,
+  LearnedExtractorRecord,
+  ManufacturerConfig,
+  ProductResult,
+  TargetHealthRecord
+} from "../../shared/types.js";
 import type { CachedHttpClient } from "./http-client.js";
 import type { BrowserRenderSession } from "./browser-renderer.js";
 
@@ -12,6 +20,24 @@ export interface ScrapeContext {
   learnedEndpoints?: {
     list: (manufacturerId: string, limit?: number) => LearnedEndpointRecord[];
     upsert: (endpoint: Omit<LearnedEndpointRecord, "id" | "successCount" | "lastSuccessAt">) => void;
+  };
+  learnedExtractors?: {
+    list: (manufacturerId: string, host: string, limit?: number) => LearnedExtractorRecord[];
+    upsert: (extractor: Omit<LearnedExtractorRecord, "id" | "successCount" | "lastSuccessAt">) => void;
+  };
+  targetHealth?: {
+    record: (observation: {
+      manufacturerId: string;
+      host?: string;
+      stage: string;
+      status: "passed" | "partial" | "failed" | "skipped";
+      qualityScore?: number;
+      attributeCount?: number;
+      documentCount?: number;
+      elapsedMs?: number;
+      error?: string;
+    }) => void;
+    get: (manufacturerId: string, stage?: string, host?: string) => TargetHealthRecord | undefined;
   };
   downloadDocument: (doc: DocumentRecord) => Promise<DocumentRecord>;
   fallback: {

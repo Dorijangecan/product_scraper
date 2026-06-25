@@ -23,7 +23,7 @@ import { documentUrlLooksDownloadable, documentUrlLooksRelevant } from "./docume
 import { listFieldRegistryDocumentLabels } from "./field-registry.js";
 import { extractElectricalSpecAttributesFromText } from "./electrical-spec-miner.js";
 
-const GENERIC_PARSER_VERSION = "generic-v2";
+const GENERIC_PARSER_VERSION = "generic-v3";
 
 const PLAIN_TEXT_METADATA_LABELS = [
   "Product type",
@@ -365,6 +365,7 @@ export function parseGenericProductPage(
   attributes.push(...extractSemanticSpecAttributes($, fetched.effectiveUrl));
   attributes.push(...extractSchemaPropertyValueAttributes($, fetched.effectiveUrl));
   attributes.push(...extractSectionAwareSpecAttributes($, fetched.effectiveUrl));
+  attributes.push(...extractHeadingValueSpecAttributes($, fetched.effectiveUrl));
   attributes.push(...extractPageWideSpecAttributes($, catalogNumber, fetched.effectiveUrl));
   attributes.push(...extractSummaryAttributes(title, description, fetched.effectiveUrl));
 
@@ -1133,12 +1134,17 @@ function extractProductDataFromUnknown(
   const walk = (item: unknown, path: string[], depth: number) => {
     if (attributes.length > 350 || documents.length > 100 || depth > 8 || item === null || item === undefined) return;
     if (Array.isArray(item)) {
-      for (const child of item.slice(0, 250)) walk(child, path, depth + 1);
+      for (const child of scopedDynamicArrayItems(item, catalogNumber).slice(0, 250)) walk(child, path, depth + 1);
       return;
     }
     if (typeof item !== "object") {
       const key = path.at(-1) ?? "";
       const text = cleanText(String(item));
+      const parsedStringJson = parseStringifiedJson(text);
+      if (parsedStringJson !== undefined) {
+        walk(parsedStringJson, path, depth + 1);
+        return;
+      }
       if (text && !isSystemStatePath(path) && isUsefulDynamicKey(key) && isUsefulDynamicValue(text, compactPart)) {
         attributes.push({ group, name: titleFromPath(path), value: text, sourceUrl });
       }
@@ -1148,6 +1154,9 @@ function extractProductDataFromUnknown(
 
     const record = item as Record<string, unknown>;
     maybeAddDocumentFromRecord(record, sourceUrl, documents);
+    if (!isSystemStatePath(path)) {
+      attributes.push(...dynamicSpecMapAttributes(record, path, sourceUrl));
+    }
     const pair = dynamicNameValuePair(record);
     if (pair && !isSystemStatePath(path) && isUsefulDynamicValue(pair.value, compactPart)) {
       attributes.push({ group, name: pair.name, value: pair.value, sourceUrl });
@@ -1166,20 +1175,160 @@ function extractProductDataFromUnknown(
   };
 }
 
+function scopedDynamicArrayItems(items: unknown[], catalogNumber: string): unknown[] {
+  const records = items.filter((item): item is Record<string, unknown> => Boolean(item && typeof item === "object" && !Array.isArray(item)));
+  if (records.length < 2) return items;
+  const productLikeRecords = records.filter(isDynamicProductLikeRecord);
+  if (productLikeRecords.length < 2) return items;
+  const matching = productLikeRecords.filter((record) => dynamicRecordMatchesCatalog(record, catalogNumber));
+  return matching.length ? matching : items;
+}
+
+function isDynamicProductLikeRecord(record: Record<string, unknown>): boolean {
+  return Boolean(firstString(record, DYNAMIC_PRODUCT_IDENTITY_KEYS));
+}
+
+function dynamicRecordMatchesCatalog(record: Record<string, unknown>, catalogNumber: string): boolean {
+  const identity = uniqueStrings([
+    firstString(record, DYNAMIC_PRODUCT_IDENTITY_KEYS),
+    firstNestedString(record, ["identifier", "identity"], ["value", "name", "text", "id", "sku", "code"])
+  ].map((value) => cleanText(value)).filter(Boolean)).join(" ");
+  return Boolean(identity && catalogTextMatches(identity, catalogNumber, { compact: true, ignoreCase: true, afterColon: true }));
+}
+
+const DYNAMIC_PRODUCT_IDENTITY_KEYS = [
+  "sku",
+  "mpn",
+  "catalogNumber",
+  "catalogNo",
+  "catalog",
+  "partNumber",
+  "partNo",
+  "productId",
+  "productID",
+  "articleNumber",
+  "articleNo",
+  "itemNumber",
+  "itemNo",
+  "orderNumber",
+  "model",
+  "modelCode"
+];
+
+function parseStringifiedJson(value: string): unknown | undefined {
+  if (!value || value.length > 120_000) return undefined;
+  const variants = uniqueStrings([
+    value,
+    decodeHtmlForJsonSearch(value),
+    decodeEscapedJsonString(value),
+    decodeEscapedJsonString(decodeHtmlForJsonSearch(value))
+  ])
+    .map((candidate) => candidate.trim())
+    .filter((candidate) => /^[{[]/.test(candidate));
+  for (const candidate of variants.slice(0, 4)) {
+    try {
+      return JSON.parse(candidate) as unknown;
+    } catch {
+      // Continue with decoded variants.
+    }
+  }
+  return undefined;
+}
+
 function isSystemStatePath(path: string[]): boolean {
   return path.some((part) => /^(languages?|ajaxPageState|region_manager|back_to_top|ckeditorAccordion|permissionsHash|theme_token|pluralDelimiter)$/i.test(part));
 }
 
 function dynamicNameValuePair(record: Record<string, unknown>): { name: string; value: string } | undefined {
-  const name = firstString(record, ["characteristicName", "attributeName", "propertyName", "specName", "label", "name", "title", "key", "displayName"]);
+  const name = firstString(record, [
+    "characteristicName",
+    "attributeName",
+    "propertyName",
+    "specName",
+    "attributeLabel",
+    "propertyLabel",
+    "specLabel",
+    "label",
+    "name",
+    "title",
+    "key",
+    "displayName"
+  ]);
   const value =
-    firstString(record, ["value", "labelText", "displayValue", "valueText", "formattedValue", "text", "specValue", "propertyValue"]) ??
+    dynamicValueText(record) ??
     firstNestedString(record, ["value", "displayValue", "formattedValue", "data"], ["formatted", "display", "label", "name", "text", "value"]) ??
     firstArrayString(record, ["values", "valueList", "displayValues", "options", "items"]) ??
     firstCharacteristicValue(record.characteristicValues);
   const unit = firstString(record, ["unit", "unitText", "unitOfMeasure", "uom"]);
   if (!name || !value) return undefined;
   return { name: cleanText(name), value: appendUnit(cleanText(value), unit) };
+}
+
+function dynamicSpecMapAttributes(record: Record<string, unknown>, path: string[], sourceUrl: string): AttributeRecord[] {
+  if (!isSpecMapPath(path)) return [];
+  if (dynamicNameValuePair(record)) return [];
+  const attributes: AttributeRecord[] = [];
+  const group = titleFromPath(path);
+  for (const [rawName, rawValue] of Object.entries(record).slice(0, 240)) {
+    if (rawName.startsWith("_") || /^(?:id|uuid|url|href|link|links|image|images|documents?|downloads?|resources?)$/i.test(rawName)) continue;
+    const name = cleanSpecPairLabel(titleFromDataKey(rawName));
+    const value = cleanSpecPairValue(valueTextFromUnknown(rawValue), name);
+    if (!isUsefulSectionAwareSpecPair(name, value)) continue;
+    attributes.push({ group, name, value, sourceUrl });
+  }
+  return dedupeAttributes(attributes).slice(0, 120);
+}
+
+function isSpecMapPath(path: string[]): boolean {
+  const key = path.at(-1) ?? "";
+  return /^(?:specs?|specifications?|technicalSpecifications?|technicalData|attributes?|properties|characteristics?|parameters?|productAttributes?|productDetails?)$/i.test(key);
+}
+
+function dynamicValueText(record: Record<string, unknown>): string | undefined {
+  const minMax = minMaxValueText(record);
+  if (minMax) return minMax;
+  return (
+    firstString(record, [
+      "value",
+      "labelText",
+      "displayValue",
+      "valueText",
+      "formattedValue",
+      "formatted",
+      "text",
+      "specValue",
+      "propertyValue",
+      "rawValue",
+      "selectedValue"
+    ]) ?? firstNestedString(record, ["selected", "option"], ["value", "label", "name", "text", "displayValue"])
+  );
+}
+
+function valueTextFromUnknown(value: unknown): string | undefined {
+  if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") return cleanText(String(value));
+  if (Array.isArray(value)) {
+    const values = value
+      .slice(0, 20)
+      .map((item) => valueTextFromUnknown(item))
+      .filter((item): item is string => Boolean(item));
+    return values.length ? uniqueStrings(values).join("; ") : undefined;
+  }
+  if (!value || typeof value !== "object") return undefined;
+  const record = value as Record<string, unknown>;
+  const base = dynamicValueText(record) ?? firstArrayString(record, ["values", "valueList", "displayValues", "options", "items"]);
+  const unit = firstString(record, ["unit", "unitText", "unitCode", "unitOfMeasure", "uom"]);
+  return base ? appendUnit(base, unit) : undefined;
+}
+
+function minMaxValueText(record: Record<string, unknown>): string | undefined {
+  const min = firstString(record, ["minValue", "minimumValue", "min", "minimum"]);
+  const max = firstString(record, ["maxValue", "maximumValue", "max", "maximum"]);
+  if (!min && !max) return undefined;
+  const unit = firstString(record, ["unitText", "unitCode", "unit", "uom", "symbol"]) ?? firstNestedString(record, ["unit", "uom"], ["symbol", "code", "name", "label", "text", "value"]);
+  const suffix = unit ? ` ${cleanText(unit)}` : "";
+  if (min && max) return `${cleanText(min)}...${cleanText(max)}${suffix}`;
+  if (min) return `>= ${cleanText(min)}${suffix}`;
+  return `<= ${cleanText(max)}${suffix}`;
 }
 
 function firstCharacteristicValue(value: unknown): string | undefined {
@@ -1205,7 +1354,7 @@ function schemaValueText(value: unknown): string | undefined {
   if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") return cleanText(String(value));
   if (!value || typeof value !== "object" || Array.isArray(value)) return undefined;
   const record = value as Record<string, unknown>;
-  return firstString(record, ["value", "minValue", "maxValue", "name", "text", "displayValue", "formattedValue"]);
+  return minMaxValueText(record) ?? firstString(record, ["value", "name", "text", "displayValue", "formattedValue"]);
 }
 
 function schemaUnitText(value: unknown): string | undefined {
@@ -1260,10 +1409,31 @@ function maybeAddDocument(value: string, label: string, sourceUrl: string, docum
 }
 
 function maybeAddDocumentFromRecord(record: Record<string, unknown>, sourceUrl: string, documents: DocumentRecord[]) {
-  const url = firstString(record, ["url", "href", "contentUrl", "downloadUrl", "documentUrl", "datasheetUrl", "manualUrl", "fileUrl", "mediaUrl", "resourceUrl", "assetUrl", "downloadLink", "src"]);
+  const url = firstString(record, [
+    "url",
+    "href",
+    "contentUrl",
+    "downloadUrl",
+    "downloadUri",
+    "documentUrl",
+    "datasheetUrl",
+    "manualUrl",
+    "pdfUrl",
+    "fileUrl",
+    "mediaUrl",
+    "resourceUrl",
+    "assetUrl",
+    "imageUrl",
+    "primaryImageUrl",
+    "thumbnailUrl",
+    "downloadLink",
+    "src",
+    "file",
+    "uri"
+  ]);
   if (!url) return;
   const label = uniqueStrings([
-    firstString(record, ["manualLabel", "datasheetLabel", "documentLabel", "fileName", "filename", "label", "title", "name", "displayName", "description"]),
+    firstString(record, ["manualLabel", "datasheetLabel", "documentLabel", "fileName", "filename", "resourceName", "assetName", "label", "title", "name", "displayName", "description"]),
     firstString(record, ["type", "documentType", "category", "group", "encodingFormat", "fileFormat"]),
     firstString(record, ["language", "locale"])
   ].map((value) => cleanText(value)).filter(Boolean)).join(" - ");
@@ -1954,10 +2124,55 @@ function extractSectionAwareSpecAttributes($: cheerio.CheerioAPI, sourceUrl: str
   return dedupeAttributes(attributes).slice(0, 180);
 }
 
+function extractHeadingValueSpecAttributes($: cheerio.CheerioAPI, sourceUrl: string): AttributeRecord[] {
+  const attributes: AttributeRecord[] = [];
+  $("h2,h3,h4,h5,h6,[role='heading']")
+    .slice(0, 500)
+    .each((_, heading) => {
+      if (isNavigationLike($, heading)) return;
+      const name = cleanSpecPairLabel($(heading).text());
+      if (!isUsefulSpecLabel(name) || isBroadSectionHeading(name)) return;
+      const value = cleanSpecPairValue(nextHeadingValue($, heading), name);
+      if (!isUsefulSectionAwareSpecPair(name, value)) return;
+      attributes.push({ group: loosePairGroup($, heading), name, value, sourceUrl });
+    });
+  return dedupeAttributes(attributes).slice(0, 120);
+}
+
+function nextHeadingValue($: cheerio.CheerioAPI, heading: Parameters<cheerio.CheerioAPI>[0]): string | undefined {
+  let node = $(heading).next();
+  for (let index = 0; index < 5 && node.length; index += 1) {
+    const tagName = String(node.get(0)?.tagName ?? "").toLowerCase();
+    if (/^h[1-6]$/i.test(tagName) || node.is("[role='heading']")) return undefined;
+    if (node.is("script,style,noscript,svg,img,picture,button,a,table")) {
+      node = node.next();
+      continue;
+    }
+    const text = cleanSectionValue(node.text());
+    if (text && text.length <= 300) return text;
+    node = node.next();
+  }
+  const parent = $(heading).parent();
+  if (parent.length && parent.children().length <= 6) {
+    const clone = parent.clone();
+    clone.children().first().remove();
+    const text = cleanSectionValue(clone.text());
+    if (text && text.length <= 300) return text;
+  }
+  return undefined;
+}
+
+function isBroadSectionHeading(value: string): boolean {
+  return /^(?:features?|spec(?:ification)?s?|technical\s+(?:data|details?|spec(?:ification)?s?)|product\s+(?:details?|data|information|spec(?:ification)?s?)|documents?|downloads?|resources?|overview|description|related\s+products?)$/i.test(
+    value
+  );
+}
+
 function extractPageWideSpecAttributes($: cheerio.CheerioAPI, catalogNumber: string, sourceUrl: string): AttributeRecord[] {
   return dedupeAttributes([
     ...extractHeaderMappedTableAttributes($, catalogNumber, sourceUrl),
     ...extractLooseChildPairAttributes($, sourceUrl),
+    ...extractAlternatingSpecGridAttributes($, sourceUrl),
     ...extractResponsiveCellAttributes($, sourceUrl),
     ...extractAriaReferencedAttributes($, sourceUrl)
   ]).slice(0, 240);
@@ -2010,6 +2225,83 @@ function extractLooseChildPairAttributes($: cheerio.CheerioAPI, sourceUrl: strin
   return dedupeAttributes(attributes).slice(0, 160);
 }
 
+function extractAlternatingSpecGridAttributes($: cheerio.CheerioAPI, sourceUrl: string): AttributeRecord[] {
+  const attributes: AttributeRecord[] = [];
+  const containers = $(
+    [
+      "section",
+      "article",
+      "[role='table']",
+      "[role='grid']",
+      "[role='list']",
+      "[class*='spec']",
+      "[id*='spec']",
+      "[class*='tech']",
+      "[id*='tech']",
+      "[class*='attribute']",
+      "[id*='attribute']",
+      "[class*='property']",
+      "[id*='property']",
+      "[class*='parameter']",
+      "[id*='parameter']",
+      "[class*='characteristic']",
+      "[id*='characteristic']",
+      "[class*='product-detail']",
+      "[id*='product-detail']"
+    ].join(",")
+  );
+
+  containers.slice(0, 700).each((_, container) => {
+    if (isInsideTable($, container) || isNavigationLike($, container) || !isLikelySpecContainer($, container)) return;
+    const cells = directTextCells($, container);
+    const pairs = alternatingSpecPairsFromTexts(cells.map((cell) => cell.text));
+    if (pairs.length < 2) return;
+    const group = sectionAwareSpecGroup($, container);
+    for (const pair of pairs) {
+      attributes.push({ group, name: pair.name, value: pair.value, sourceUrl });
+    }
+  });
+
+  return dedupeAttributes(attributes).slice(0, 160);
+}
+
+function directTextCells($: cheerio.CheerioAPI, container: Parameters<cheerio.CheerioAPI>[0]): Array<{ text: string }> {
+  return $(container)
+    .children()
+    .filter((_, child) => {
+      const tagName = String(child.tagName ?? "").toLowerCase();
+      return !/^(?:script|style|noscript|svg|img|picture|button|a|table|thead|tbody|tr|ul|ol|select|option)$/i.test(tagName);
+    })
+    .map((_, child) => ({ text: cleanSectionValue($(child).text()) }))
+    .get()
+    .filter((cell) => Boolean(cell.text) && cell.text.length <= 300);
+}
+
+function alternatingSpecPairsFromTexts(texts: string[]): Array<{ name: string; value: string }> {
+  if (texts.length < 4 || texts.length > 80) return [];
+  const candidates = [0, 1].map((offset) => alternatingSpecPairsFromOffset(texts, offset));
+  return candidates.sort((left, right) => right.length - left.length)[0] ?? [];
+}
+
+function alternatingSpecPairsFromOffset(texts: string[], offset: number): Array<{ name: string; value: string }> {
+  const pairs: Array<{ name: string; value: string }> = [];
+  for (let index = offset; index + 1 < texts.length; index += 2) {
+    const name = cleanSpecPairLabel(texts[index]);
+    const value = cleanSpecPairValue(texts[index + 1], name);
+    if (!isUsefulSectionAwareSpecPair(name, value)) continue;
+    if (looksLikeAnotherSpecLabel(value)) continue;
+    pairs.push({ name, value });
+  }
+  return pairs;
+}
+
+function looksLikeAnotherSpecLabel(value: string): boolean {
+  const cleaned = cleanSpecPairLabel(value);
+  if (!cleaned || cleaned.length > 80) return false;
+  if (/[0-9]/.test(cleaned) || /\b(?:mm|cm|m|in|inch|kg|g|lb|v|a|w|hz|bar|psi|ip\d+|nema)\b/i.test(cleaned)) return false;
+  return isUsefulSpecLabel(cleaned);
+}
+
 function extractResponsiveCellAttributes($: cheerio.CheerioAPI, sourceUrl: string): AttributeRecord[] {
   const attributes: AttributeRecord[] = [];
   $("td[data-label],td[data-title],td[headers],li[data-label],div[data-label]")
@@ -2033,7 +2325,7 @@ function extractAriaReferencedAttributes($: cheerio.CheerioAPI, sourceUrl: strin
       const describedText = referencedElementText($, $(element).attr("aria-describedby"));
       const ownText = cleanSectionValue($(element).text());
       const name = cleanSpecPairLabel(labelText || ariaPairLabelFromOwnText(ownText));
-      const valueSource = labelText ? ownText : describedText;
+      const valueSource = describedText || (labelText ? ownText : undefined);
       const value = cleanSpecPairValue(valueSource, name);
       if (!isUsefulSectionAwareSpecPair(name, value)) return;
       attributes.push({ group: loosePairGroup($, element), name, value, sourceUrl });
@@ -2185,6 +2477,7 @@ function childElementSpecPair($: cheerio.CheerioAPI, row: Parameters<cheerio.Che
 
   const texts = children.map((child) => cleanSectionValue($(child).text())).filter(Boolean);
   if (texts.length < 2) return undefined;
+  if (alternatingSpecPairsFromTexts(texts).length >= 2) return undefined;
   const [name, ...valueParts] = texts;
   const value = valueParts.join(" | ");
   if (!isUsefulSectionAwareSpecPair(cleanSpecPairLabel(name), cleanSpecPairValue(value, name))) return undefined;

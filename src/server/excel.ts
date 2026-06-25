@@ -52,6 +52,11 @@ export async function exportRunWorkbook(input: {
   const documents = workbook.addWorksheet("Documents", { views: [{ state: "frozen", xSplit: 2, ySplit: 1 }] });
   const documentDiagnostics = workbook.addWorksheet("Document Diagnostics", { views: [{ state: "frozen", xSplit: 2, ySplit: 1 }] });
   const fieldDiagnostics = workbook.addWorksheet("Field Diagnostics", { views: [{ state: "frozen", xSplit: 3, ySplit: 1 }] });
+  const fieldCandidates = workbook.addWorksheet("Field Candidates", { views: [{ state: "frozen", xSplit: 3, ySplit: 1 }] });
+  const fieldResolutions = workbook.addWorksheet("Field Resolutions", { views: [{ state: "frozen", xSplit: 3, ySplit: 1 }] });
+  const conflicts = workbook.addWorksheet("Conflicts", { views: [{ state: "frozen", xSplit: 3, ySplit: 1 }] });
+  const pageMining = workbook.addWorksheet("Page Mining", { views: [{ state: "frozen", xSplit: 3, ySplit: 1 }] });
+  const targetHealth = workbook.addWorksheet("Target Health", { views: [{ state: "frozen", xSplit: 2, ySplit: 1 }] });
   const sources = workbook.addWorksheet("Sources", { views: [{ state: "frozen", xSplit: 2, ySplit: 1 }] });
   const evidence = workbook.addWorksheet("Evidence", { views: [{ state: "frozen", xSplit: 2, ySplit: 1 }] });
   const finalAudit = workbook.addWorksheet("Final Audit", { views: [{ state: "frozen", xSplit: 2, ySplit: 1 }] });
@@ -312,6 +317,10 @@ export async function exportRunWorkbook(input: {
     { header: "Stage", key: "stage", width: 30 },
     { header: "Type", key: "type", width: 14 },
     { header: "Label", key: "label", width: 42 },
+    { header: "Attribute Count", key: "attributeCount", width: 16 },
+    { header: "Normalized Fields", key: "normalizedFields", width: 42 },
+    { header: "Page Count", key: "pageCount", width: 12 },
+    { header: "Elapsed ms", key: "elapsedMs", width: 12 },
     { header: "Reason", key: "reason", width: 70 },
     { header: "Parse Error", key: "parseError", width: 56 },
     { header: "URL", key: "url", width: 70 },
@@ -333,6 +342,76 @@ export async function exportRunWorkbook(input: {
     { header: "Conflicting Values", key: "conflictingValues", width: 80 },
     { header: "Selected Conflict", key: "selectedConflict", width: 64 },
     { header: "Conflict Sources", key: "conflictSources", width: 90 }
+  ];
+
+  fieldCandidates.columns = [
+    { header: "Manufacturer", key: "manufacturer", width: 18 },
+    { header: "Catalog Number", key: "catalogNumber", width: 24 },
+    { header: "Field", key: "field", width: 24 },
+    { header: "Label", key: "label", width: 28 },
+    { header: "Value", key: "value", width: 64 },
+    { header: "Selected", key: "selected", width: 12 },
+    { header: "Priority", key: "priority", width: 12 },
+    { header: "Priority Reason", key: "priorityReason", width: 42 },
+    { header: "Confidence", key: "confidence", width: 12 },
+    { header: "Source Type", key: "sourceType", width: 18 },
+    { header: "Parser", key: "parser", width: 26 },
+    { header: "Stage", key: "stage", width: 28 },
+    { header: "Source URL", key: "sourceUrl", width: 70 }
+  ];
+
+  fieldResolutions.columns = [
+    { header: "Manufacturer", key: "manufacturer", width: 18 },
+    { header: "Catalog Number", key: "catalogNumber", width: 24 },
+    { header: "Field", key: "field", width: 24 },
+    { header: "Label", key: "label", width: 28 },
+    { header: "Selected Value", key: "selectedValue", width: 64 },
+    { header: "Candidate Count", key: "candidateCount", width: 16 },
+    { header: "Conflict Count", key: "conflictCount", width: 16 },
+    { header: "Confidence", key: "confidence", width: 12 },
+    { header: "Selected Parser", key: "selectedParser", width: 26 },
+    { header: "Selected Stage", key: "selectedStage", width: 28 },
+    { header: "Reason", key: "reason", width: 78 },
+    { header: "Selected Source URL", key: "selectedSourceUrl", width: 70 }
+  ];
+
+  conflicts.columns = [
+    { header: "Manufacturer", key: "manufacturer", width: 18 },
+    { header: "Catalog Number", key: "catalogNumber", width: 24 },
+    { header: "Field", key: "field", width: 24 },
+    { header: "Label", key: "label", width: 28 },
+    { header: "Selected Value", key: "selectedValue", width: 64 },
+    { header: "Conflict Values", key: "conflictValues", width: 90 },
+    { header: "Reason", key: "reason", width: 80 },
+    { header: "Sources", key: "sources", width: 90 }
+  ];
+
+  pageMining.columns = [
+    { header: "Manufacturer", key: "manufacturer", width: 18 },
+    { header: "Catalog Number", key: "catalogNumber", width: 24 },
+    { header: "Stage", key: "stage", width: 30 },
+    { header: "Method", key: "method", width: 18 },
+    { header: "Attributes", key: "attributeCount", width: 12 },
+    { header: "Documents", key: "documentCount", width: 12 },
+    { header: "Candidates", key: "candidateCount", width: 12 },
+    { header: "Signals", key: "signals", width: 48 },
+    { header: "Elapsed Ms", key: "elapsedMs", width: 12 },
+    { header: "Reason", key: "reason", width: 70 },
+    { header: "URL", key: "url", width: 80 }
+  ];
+
+  targetHealth.columns = [
+    { header: "Manufacturer", key: "manufacturer", width: 18 },
+    { header: "Catalog Number", key: "catalogNumber", width: 24 },
+    { header: "Stage", key: "stage", width: 28 },
+    { header: "Host", key: "host", width: 34 },
+    { header: "Sample Count", key: "sampleCount", width: 14 },
+    { header: "Success Rate", key: "successRate", width: 14 },
+    { header: "Avg Quality", key: "avgQualityScore", width: 14 },
+    { header: "Avg Attributes", key: "avgAttributeCount", width: 14 },
+    { header: "Avg Documents", key: "avgDocumentCount", width: 14 },
+    { header: "Drift Suspected", key: "driftSuspected", width: 16 },
+    { header: "Reason", key: "reason", width: 80 }
   ];
 
   sources.columns = [
@@ -467,6 +546,10 @@ export async function exportRunWorkbook(input: {
         stage: doc.stage,
         type: doc.type,
         label: doc.label,
+        attributeCount: doc.attributeCount,
+        normalizedFields: doc.normalizedFields?.join(", "),
+        pageCount: doc.pageCount,
+        elapsedMs: doc.elapsedMs,
         reason: doc.reason,
         parseError: doc.parseError,
         url: doc.url,
@@ -489,6 +572,82 @@ export async function exportRunWorkbook(input: {
         conflictingValues: fieldConflictValues(record.conflicts),
         selectedConflict: selectedFieldConflict(record.conflicts),
         conflictSources: fieldConflictSources(record.conflicts)
+      });
+      if (record.status === "conflicting") {
+        conflicts.addRow({
+          manufacturer: input.manufacturer.canonicalName,
+          catalogNumber: result.catalogNumber,
+          field: record.field,
+          label: record.label,
+          selectedValue: record.value,
+          conflictValues: fieldConflictValues(record.conflicts),
+          reason: record.reason,
+          sources: fieldConflictSources(record.conflicts)
+        });
+      }
+    }
+    for (const candidate of result.diagnostics?.fieldCandidates ?? []) {
+      fieldCandidates.addRow({
+        manufacturer: input.manufacturer.canonicalName,
+        catalogNumber: result.catalogNumber,
+        field: candidate.field,
+        label: candidate.label,
+        value: candidate.value,
+        selected: candidate.selected ? "yes" : "",
+        priority: candidate.priority,
+        priorityReason: candidate.priorityReason,
+        confidence: candidate.confidence,
+        sourceType: candidate.sourceType,
+        parser: candidate.parser,
+        stage: candidate.stage,
+        sourceUrl: candidate.sourceUrl
+      });
+    }
+    for (const resolution of result.diagnostics?.fieldResolutions ?? []) {
+      fieldResolutions.addRow({
+        manufacturer: input.manufacturer.canonicalName,
+        catalogNumber: result.catalogNumber,
+        field: resolution.field,
+        label: resolution.label,
+        selectedValue: resolution.selectedValue,
+        candidateCount: resolution.candidateCount,
+        conflictCount: resolution.conflictCount,
+        confidence: resolution.confidence,
+        selectedParser: resolution.selectedParser,
+        selectedStage: resolution.selectedStage,
+        reason: resolution.reason,
+        selectedSourceUrl: resolution.selectedSourceUrl
+      });
+    }
+    for (const record of result.diagnostics?.pageMining ?? []) {
+      pageMining.addRow({
+        manufacturer: input.manufacturer.canonicalName,
+        catalogNumber: result.catalogNumber,
+        stage: record.stage,
+        method: record.method,
+        attributeCount: record.attributeCount,
+        documentCount: record.documentCount,
+        candidateCount: record.candidateCount,
+        signals: record.signals?.join("; "),
+        elapsedMs: record.elapsedMs,
+        reason: record.reason,
+        url: record.url
+      });
+    }
+    if (result.diagnostics?.targetHealth || result.diagnostics?.drift) {
+      const health = result.diagnostics.targetHealth;
+      targetHealth.addRow({
+        manufacturer: input.manufacturer.canonicalName,
+        catalogNumber: result.catalogNumber,
+        stage: health?.stage ?? result.diagnostics.drift?.stage,
+        host: health?.host,
+        sampleCount: health?.sampleCount,
+        successRate: health?.successRate,
+        avgQualityScore: health?.avgQualityScore,
+        avgAttributeCount: health?.avgAttributeCount,
+        avgDocumentCount: health?.avgDocumentCount,
+        driftSuspected: health?.driftSuspected ?? result.diagnostics.drift?.suspected,
+        reason: health?.reason ?? result.diagnostics.drift?.reason
       });
     }
     for (const source of result.sources) {
@@ -590,6 +749,11 @@ export async function exportRunWorkbook(input: {
     documents,
     documentDiagnostics,
     fieldDiagnostics,
+    fieldCandidates,
+    fieldResolutions,
+    conflicts,
+    pageMining,
+    targetHealth,
     sources,
     evidence,
     finalAudit,

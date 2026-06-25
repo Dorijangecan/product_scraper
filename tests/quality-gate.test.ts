@@ -469,6 +469,40 @@ describe("quality gate", () => {
     expect(result.qualityGate?.missing).not.toContain("normalized:current");
   });
 
+  it("accepts Siemens fallback identity labels learned from page mining", () => {
+    const siemens = getManufacturerConfig("siemens");
+    expect(siemens).toBeDefined();
+
+    const result = finalizeQualityGate(
+      product({
+        manufacturerId: "siemens",
+        catalogNumber: "BPZ:VSG519K15-5",
+        productUrl: "https://r.jina.ai/http://mall.industry.siemens.com/mall/en/b1/Catalog/Product/bpzvsg519k155",
+        title: "BPZ:VSG519K15-5 differential pressure regulator valve",
+        normalized: { material: "Valve body spheroidal cast iron GJS-400-15", dimensions: "DN 15", weight: "4.5 kg" },
+        attributes: [
+          { group: "Page Mining", name: "Catalog Number", value: "BPZ:VSG519K15-5" },
+          { group: "Page Mining", name: "Product Type", value: "Differential pressure regulator valve" },
+          { group: "Page Mining", name: "Net weight", value: "4.5 kg" }
+        ],
+        documents: [{ type: "datasheet", label: "BPZ:VSG519K15-5 datasheet", url: "file:///customer/siemens-vsg519k15-5-datasheet.csv" }],
+        sources: [
+          {
+            url: "https://r.jina.ai/http://mall.industry.siemens.com/mall/en/b1/Catalog/Product/bpzvsg519k155",
+            sourceType: "official-fallback",
+            parser: "fixture",
+            fetchedAt: "2026-06-25T00:00:00.000Z",
+            statusCode: 200
+          }
+        ]
+      }),
+      siemens!
+    );
+
+    expect(result.status).toBe("found");
+    expect(result.qualityGate?.missing).not.toContain("attribute:article number|mlfb|product short text|description");
+  });
+
   it("does not require voltage and current for passive module carrier base units from unseen manufacturers", () => {
     const result = finalizeQualityGate(
       product({

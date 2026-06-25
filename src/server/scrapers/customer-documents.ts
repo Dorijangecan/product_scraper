@@ -198,14 +198,16 @@ export async function extractCustomerDocumentAttributes(
     try {
       let extracted: AttributeRecord[] = [];
       let docTitleHint: string | undefined;
+      let documentPageCount: number | undefined;
       if (extension === ".pdf") {
         const pdfOutcome = await extractFromPdf(catalogNumber, doc, cache, onProgress);
         extracted = pdfOutcome.attributes;
         docTitleHint = pdfOutcome.titleHint;
+        documentPageCount = pdfOutcome.pageCount;
         if (pdfOutcome.scannedImageOnly) {
           const message = `PDF looks like a scanned image and OCR did not return enough usable text, so customer data from this file cannot be used.`;
           parseFailures.push(`${doc.originalName}: ${message}`);
-          documentProcessing.push(customerDocumentProcessingRecord(doc, sourceUrl, "failed", message, message));
+          documentProcessing.push(customerDocumentProcessingRecord(doc, sourceUrl, "failed", message, message, undefined, { pageCount: documentPageCount, attributeCount: 0 }));
           onProgress({ kind: "parse-error", document: doc, message });
           continue;
         }
@@ -238,7 +240,10 @@ export async function extractCustomerDocumentAttributes(
           doc,
           sourceUrl,
           "skipped",
-          `Customer document was parsed, but no usable attributes for catalog ${catalogNumber} were found.`
+          `Customer document was parsed, but no usable attributes for catalog ${catalogNumber} were found.`,
+          undefined,
+          undefined,
+          { pageCount: documentPageCount, attributeCount: 0, normalizedFields: [] }
         ));
         onProgress({ kind: "no-match", document: doc });
         continue;
@@ -273,7 +278,8 @@ export async function extractCustomerDocumentAttributes(
         "parsed",
         `Parsed ${stamped.length} customer-document attribute record${stamped.length === 1 ? "" : "s"} for catalog ${catalogNumber}.`,
         undefined,
-        customerDocumentType(extension, doc.originalName, extracted)
+        customerDocumentType(extension, doc.originalName, extracted),
+        customerExtractionMetrics(stamped, documentPageCount)
       ));
       onProgress({ kind: "matched", document: doc, attributeCount: stamped.length });
     } catch (error) {
@@ -365,7 +371,8 @@ function customerDocumentProcessingRecord(
   action: DocumentProcessingDiagnostic["action"],
   reason: string,
   parseError?: string,
-  type?: DocumentRecord["type"]
+  type?: DocumentRecord["type"],
+  metrics: Partial<Pick<DocumentProcessingDiagnostic, "attributeCount" | "normalizedFields" | "pageCount" | "elapsedMs">> = {}
 ): DocumentProcessingDiagnostic {
   return {
     url: sourceUrl,
@@ -374,6 +381,7 @@ function customerDocumentProcessingRecord(
     action,
     stage: "customer-document-enrichment",
     reason,
+    ...metrics,
     localPath: doc.storedPath,
     sourceUrl,
     ...(parseError ? { parseError } : {})
@@ -426,6 +434,7 @@ function overrideNormalized(
 function customerTouchedFields(customerAttributes: AttributeRecord[]): Set<string> {
   const touched = new Set<string>();
   for (const attr of customerAttributes) {
+    if ((attr.confidence ?? CUSTOMER_DOC_CONFIDENCE) < 0.9) continue;
     const label = `${attr.group ?? ""} ${attr.name}`;
     for (const field of FIELD_REGISTRY) {
       if (!isCustomerOverrideField(field.key) || !fieldMatchesLabel(field.key, label)) continue;
@@ -448,6 +457,7 @@ interface PdfExtractionOutcome {
   attributes: AttributeRecord[];
   titleHint?: string;
   scannedImageOnly: boolean;
+  pageCount?: number;
 }
 
 async function extractFromPdf(
@@ -459,7 +469,7 @@ async function extractFromPdf(
   const pages = await cache.getPdfPages(doc);
   const compactCatalog = compactKey(catalogNumber);
   if (!compactCatalog || pages.length === 0) {
-    return { attributes: [], scannedImageOnly: pages.length === 0 };
+    return { attributes: [], scannedImageOnly: pages.length === 0, pageCount: pages.length };
   }
   // Detect a fully-scanned PDF, leave a clear progress trail, and try OCR before giving up.
   const totalTextChars = pages.reduce((sum, page) => sum + page.text.length, 0);
@@ -468,10 +478,10 @@ async function extractFromPdf(
     const ocr = await readPdfWithOptionalOcr(doc.storedPath, { maxPages: Math.min(12, pages.length || 12) });
     if (ocr.text.trim().length < PDF_TEXT_MIN_CHARS_FOR_PARSE) {
       if (ocr.error) onProgress({ kind: "ocr-pdf", document: doc, message: `OCR failed: ${ocr.error}` });
-      return { attributes: [], scannedImageOnly: true };
+      return { attributes: [], scannedImageOnly: true, pageCount: ocr.pageCount || pages.length };
     }
     onProgress({ kind: "ocr-pdf", document: doc, message: `OCR extracted text from ${ocr.pageCount || "some"} page(s).` });
-    return extractFromOcrText(catalogNumber, doc, ocr.text);
+    return { ...extractFromOcrText(catalogNumber, doc, ocr.text), pageCount: ocr.pageCount || pages.length };
   }
   const matches: number[] = [];
   for (const page of pages) {
@@ -499,7 +509,7 @@ async function extractFromPdf(
     .map((page) => page.text)
     .join("\n")
     .slice(0, MAX_CUSTOMER_PDF_TEXT_CHARS);
-  if (!widePagesText) return { attributes: [], scannedImageOnly: false };
+  if (!widePagesText) return { attributes: [], scannedImageOnly: false, pageCount: pages.length };
   // Scope to the line block around each catalog match: stop expanding at any line that
   // looks like a DIFFERENT product's catalog number. This avoids "row pollution" where
   // a customer PDF's spec table for CBE04417 sits next to CBE04418, and the loose page-
@@ -514,7 +524,8 @@ async function extractFromPdf(
   return {
     attributes: hasSubstantiveDocumentAttributes(attributes) ? attributes : [],
     titleHint,
-    scannedImageOnly: false
+    scannedImageOnly: false,
+    pageCount: pages.length
   };
 }
 
@@ -552,7 +563,8 @@ function extractFamilyPdf(
   return {
     attributes,
     titleHint: guessTitleFromPdfText(text, catalogNumber) ?? familyTitleFromText(text),
-    scannedImageOnly: false
+    scannedImageOnly: false,
+    pageCount: pages.length
   };
 }
 
@@ -655,28 +667,47 @@ function extractFromUnmatchedCustomerPdf(
   pages: PdfPageEntry[]
 ): PdfExtractionOutcome {
   if (pages.length > SMALL_UNMATCHED_PDF_FALLBACK_MAX_PAGES) {
-    return { attributes: [], scannedImageOnly: false };
+    return { attributes: [], scannedImageOnly: false, pageCount: pages.length };
   }
   const text = pages
     .slice(0, SMALL_UNMATCHED_PDF_FALLBACK_MAX_PAGES)
     .map((page) => page.text)
     .join("\n")
     .slice(0, MAX_CUSTOMER_PDF_TEXT_CHARS);
-  if (!text) return { attributes: [], scannedImageOnly: false };
+  if (!text) return { attributes: [], scannedImageOnly: false, pageCount: pages.length };
 
   const attributes = extractDocumentTextAttributes({
     catalogNumber,
     document: { label: doc.originalName, type: "other", url: pathToFileUrl(doc.storedPath), localPath: doc.storedPath },
     text
-  });
+  }).map((attr) => ({
+    ...attr,
+    parser: attr.parser ?? "customer-unmatched-pdf-fallback",
+    confidence: Math.min(attr.confidence ?? 0.72, 0.72)
+  }));
   if (!hasSubstantiveDocumentAttributes(attributes)) {
-    return { attributes: [], scannedImageOnly: false };
+    return { attributes: [], scannedImageOnly: false, pageCount: pages.length };
   }
 
   return {
     attributes,
     titleHint: guessTitleFromPdfText(text, catalogNumber),
-    scannedImageOnly: false
+    scannedImageOnly: false,
+    pageCount: pages.length
+  };
+}
+
+function customerExtractionMetrics(
+  attributes: AttributeRecord[],
+  pageCount?: number
+): Pick<DocumentProcessingDiagnostic, "attributeCount" | "normalizedFields" | "pageCount"> {
+  return {
+    attributeCount: attributes.length,
+    normalizedFields: Object.entries(normalizeFields(attributes, []))
+      .filter(([, value]) => value !== undefined && value !== "")
+      .map(([key]) => key)
+      .sort(),
+    ...(pageCount !== undefined ? { pageCount } : {})
   };
 }
 

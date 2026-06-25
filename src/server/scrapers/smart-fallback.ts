@@ -3,9 +3,11 @@ import type { FetchedText } from "./http-client.js";
 import type { ScrapeContext } from "./types.js";
 import { parseGenericProductPage } from "./generic.js";
 import { mergeResults } from "./normalizer.js";
+import { mergeFetchedPageMining } from "./page-intelligence.js";
 import { applyQualityGate, evaluateQualityGate } from "./quality-gate.js";
 import { renderProductPage } from "./browser-renderer.js";
 import { learnEndpointFromNetworkFetch } from "./learned-endpoints.js";
+import { catalogTextMatches, compactCatalogNumber } from "./catalog-number.js";
 
 export async function runSmartFallbackPipeline(
   result: ProductResult,
@@ -76,7 +78,12 @@ async function tryReaderFallback(
       extractionPolicy: context.manufacturer.scrapeRecipe?.extractionPolicy
     });
     attempts.push(attemptFromFetched("reader", fetched, parsed));
-    const merged = mergeResults(current, parsed);
+    const mined = mergeFetchedPageMining(parsed, fetched, catalogNumber, context, {
+      stage: "adaptive-reader-page-mining",
+      method: "static-html",
+      sourceType: "official-fallback"
+    });
+    const merged = mergeResults(current, mined);
     return withFallbackStage(
       applyQualityGate(merged, context.manufacturer, evaluateQualityGate(merged, context.manufacturer, catalogNumber, attempts)),
       "reader"
@@ -113,10 +120,16 @@ async function tryBrowserFallback(
       extractionPolicy: context.manufacturer.scrapeRecipe?.extractionPolicy
     });
     attempts.push(attemptFromFetched("browser-render", rendered.fetched, parsed));
-    merged = mergeResults(merged, parsed);
+    const mined = mergeFetchedPageMining(parsed, rendered.fetched, catalogNumber, context, {
+      stage: "adaptive-rendered-page-mining",
+      method: "rendered-dom",
+      sourceType: "official-fallback"
+    });
+    merged = mergeResults(merged, mined);
   }
 
-  for (const fetched of rendered.networkTexts.slice(0, 12)) {
+  const rankedNetworkTexts = rankBrowserNetworkTexts(rendered.networkTexts, rendered.networkDiagnostics, catalogNumber);
+  for (const fetched of rankedNetworkTexts) {
     const networkRecord = rendered.networkDiagnostics.find((entry) => entry.url === fetched.effectiveUrl);
     const parsed = parseGenericProductPage(context.manufacturer.id, catalogNumber, fetched, "official-fallback", "browser-network", {
       match: context.manufacturer.match,
@@ -128,7 +141,12 @@ async function tryBrowserFallback(
     if (parsed.status === "failed") continue;
     attempts.push(attemptFromFetched("browser-network", fetched, parsed));
     const beforeGate = evaluateQualityGate(merged, context.manufacturer, catalogNumber, attempts);
-    merged = mergeResults(merged, parsed);
+    const mined = mergeFetchedPageMining(parsed, fetched, catalogNumber, context, {
+      stage: "adaptive-network-page-mining",
+      method: "browser-network",
+      sourceType: "official-fallback"
+    });
+    merged = mergeResults(merged, mined);
     const afterGate = evaluateQualityGate(merged, context.manufacturer, catalogNumber, attempts);
     if (networkRecord?.category === "product-api" && qualityImproved(beforeGate, afterGate)) {
       const learned = learnEndpointFromNetworkFetch({
@@ -176,7 +194,13 @@ async function tryBrowserFallback(
             ...rendered.networkDiagnostics
               .filter((entry) => entry.category === "product-api")
               .map((entry) => entry.url)
-          ]).slice(0, 20)
+          ]).slice(0, 20),
+          notes: uniqueStrings([
+            ...(merged.diagnostics?.notes ?? []),
+            rankedNetworkTexts.length < rendered.networkTexts.length
+              ? `Ranked ${rendered.networkTexts.length} browser network payloads and parsed top ${rankedNetworkTexts.length}.`
+              : undefined
+          ].filter((value): value is string => Boolean(value))).slice(0, 50)
         }
       },
       context.manufacturer,
@@ -184,6 +208,77 @@ async function tryBrowserFallback(
     ),
     rendered.error ? "browser-failed" : "browser"
   );
+}
+
+function rankBrowserNetworkTexts(
+  networkTexts: FetchedText[],
+  diagnostics: Array<{ url: string; category?: string; contentType?: string; statusCode?: number }>,
+  catalogNumber: string
+): FetchedText[] {
+  const chronologicalKeep = networkTexts.slice(0, 4);
+  const ranked = networkTexts
+    .map((fetched, index) => ({
+      fetched,
+      index,
+      score: browserNetworkPayloadScore(
+        fetched,
+        diagnostics.find((entry) => entry.url === fetched.effectiveUrl),
+        catalogNumber
+      )
+    }))
+    .filter((entry) => entry.score > 0)
+    .sort((left, right) => right.score - left.score || left.index - right.index)
+    .map((entry) => entry.fetched);
+  return uniqueFetchedTexts([...ranked.slice(0, 24), ...chronologicalKeep]).slice(0, 24);
+}
+
+function browserNetworkPayloadScore(
+  fetched: FetchedText,
+  diagnostic: { category?: string; contentType?: string; statusCode?: number } | undefined,
+  catalogNumber: string
+): number {
+  const url = fetched.effectiveUrl || fetched.requestedUrl;
+  const contentType = `${diagnostic?.contentType ?? ""} ${fetched.contentType ?? ""}`;
+  const category = diagnostic?.category ?? "";
+  const textSample = fetched.text.slice(0, 80_000);
+  const combined = `${url} ${contentType}`;
+  let score = 0;
+
+  if (category === "product-api") score += 90;
+  else if (category === "document-api") score += 60;
+  else if (category === "search-api") score += 45;
+  else if (category === "html" || category === "text") score += 12;
+
+  if (/json|graphql|api|javascript/i.test(combined)) score += 24;
+  if (/\b(?:product|sku|catalog|article|part|pim|detail|details|spec|technical|attribute|document|download|resource)\b/i.test(url)) score += 22;
+  if (catalogTextMatches(url, catalogNumber, { compact: true, ignoreCase: true, afterColon: true })) score += 80;
+  if (catalogTextMatches(textSample, catalogNumber, { compact: true, ignoreCase: true, afterColon: true })) score += 110;
+  else {
+    const compact = compactCatalogNumber(catalogNumber).toLowerCase();
+    if (compact && compactCatalogNumber(textSample).toLowerCase().includes(compact)) score += 60;
+  }
+
+  if (/"(?:sku|mpn|catalogNumber|catalogNo|partNumber|productId|articleNumber)"\s*:/i.test(textSample)) score += 28;
+  if (/"(?:specifications?|technicalData|attributes?|properties|characteristics?|parameters?)"\s*:/i.test(textSample)) score += 35;
+  if (/"(?:documents?|downloads?|resources?|datasheetUrl|manualUrl|pdfUrl|assetUrl)"\s*:/i.test(textSample)) score += 24;
+  if (/\b(?:rated voltage|supply voltage|rated current|material|weight|degree of protection|ip rating|datasheet|manual)\b/i.test(textSample)) score += 20;
+  if (/^\s*</.test(textSample) && !/\b(?:product|catalog|sku|technical|spec|download|datasheet)\b/i.test(textSample)) score -= 30;
+  if (diagnostic?.statusCode && diagnostic.statusCode >= 400) score -= 80;
+  if (fetched.text.length > 500_000) score -= 20;
+
+  return score;
+}
+
+function uniqueFetchedTexts(values: FetchedText[]): FetchedText[] {
+  const seen = new Set<string>();
+  const unique: FetchedText[] = [];
+  for (const fetched of values) {
+    const key = `${fetched.effectiveUrl || fetched.requestedUrl}|${fetched.contentType ?? ""}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    unique.push(fetched);
+  }
+  return unique;
 }
 
 function qualityImproved(

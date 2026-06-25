@@ -4,7 +4,9 @@ import { discoverOfficialProductCandidates } from "./discovery.js";
 import { isUnresolvedSearchResultPage, parseGenericProductPage } from "./generic.js";
 import type { FetchedText } from "./http-client.js";
 import { mergeResults } from "./normalizer.js";
+import { runAdaptivePageIntelligence } from "./page-intelligence.js";
 import { applyQualityGate, evaluateQualityGate } from "./quality-gate.js";
+import { recordTargetObservation } from "./target-health.js";
 import { runSmartFallbackPipeline } from "./smart-fallback.js";
 import type { ScrapeContext } from "./types.js";
 
@@ -20,6 +22,7 @@ export async function runDeterministicScrapePipeline(
     context.manufacturer,
     evaluateQualityGate(initial, context.manufacturer, catalogNumber, attempts)
   );
+  recordTargetObservation(context, current, { stage: "official-source" });
   if (current.qualityGate?.passed && !needsOfficialProductLinkRepair(current)) return promoteQualityPassedOfficialResult(current);
 
   const discovery = await discoverOfficialProductCandidates(catalogNumber, context);
@@ -79,6 +82,15 @@ export async function runDeterministicScrapePipeline(
       merged,
       context.manufacturer,
       evaluateQualityGate(merged, context.manufacturer, catalogNumber, attempts)
+    );
+  }
+
+  if (!current.qualityGate?.passed || (current.qualityGate?.score ?? 100) < 82) {
+    const mined = await runAdaptivePageIntelligence(current, catalogNumber, context);
+    current = applyQualityGate(
+      mined,
+      context.manufacturer,
+      evaluateQualityGate(mined, context.manufacturer, catalogNumber, attempts)
     );
   }
 
