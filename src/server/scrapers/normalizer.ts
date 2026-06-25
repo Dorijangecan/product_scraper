@@ -1632,17 +1632,18 @@ function foreignMaterialSynonym(cleaned: string): string | undefined {
 }
 
 function normalizeCertificateValue(value: string, allowNotApplicable = false): string {
-  const cleaned = cleanCertificateResourceText(
+  const cleaned = stripCertificateLegalProse(cleanCertificateResourceText(
     cleanText(value)
       .replace(/ddrivetip\('([\s\S]*?)'\s*,[\s\S]*$/i, "$1")
       .replace(/<br\s*\/?>/gi, "; ")
       .replace(/<\/?[^>]+>/g, " ")
       .replace(/CE(?=cULus)/g, "CE, ")
+      .replace(/cULus(?=cURus)/g, "cULus, ")
       .replace(/cULus(?=WEEE)/g, "cULus, ")
       .replace(/([,;])\s*/g, "$1 ")
       .replace(/\s+/g, " ")
       .trim()
-  );
+  ));
   if (allowNotApplicable && /^(not applicable|no certification needed|no certifications? needed|n\/a)$/i.test(cleaned)) return cleaned;
   if (allowNotApplicable && /^(?:UL|CSA|NEMA)\s+(?:not applicable|n\/a|na)$/i.test(cleaned)) return cleaned;
   if (isGenericCertificatePlaceholder(cleaned)) return "";
@@ -1667,6 +1668,7 @@ function normalizeCertificateValue(value: string, allowNotApplicable = false): s
     ...(cleaned.match(/\bIEC\b/g) ?? []),
     ...(cleaned.match(/\bIP\s*\d{1,2}[A-Z]?\b/g) ?? []),
     ...(cleaned.match(/\bcULus\b/g) ?? []),
+    ...(cleaned.match(/\bcURus\b/g) ?? []),
     ...(cleaned.match(/\bcUL\b/g) ?? []),
     ...(cleaned.match(/\bCCC\b/g) ?? []),
     ...(cleaned.match(/\bBV\b/g) ?? []),
@@ -1682,6 +1684,7 @@ function normalizeCertificateValue(value: string, allowNotApplicable = false): s
     ...(cleaned.match(/\bT(?:Ü|U)V\b/gi) ?? []),
     ...(cleaned.match(/\bCSA\b/g) ?? []),
     ...(cleaned.match(/\bUL\b/g) ?? []),
+    ...(cleaned.match(/\bLloyds?\b/gi) ?? []),
     ...(cleaned.match(/\bWEEE\b/g) ?? []),
     ...(cleaned.match(/\bREACH\b/gi) ?? []),
     ...(cleaned.match(/\bRoHS\b/gi) ?? []),
@@ -1724,6 +1727,15 @@ function cleanCertificateResourceText(value: string): string {
     .trim();
 }
 
+function stripCertificateLegalProse(value: string): string {
+  return value
+    .replace(/\bdescribed above is in conformity with[\s\S]*$/i, "")
+    .replace(/\bof conformity is issued under[\s\S]*$/i, "")
+    .replace(/\bon this Certificate\b[\s\S]*$/i, "")
+    .replace(/\s*[,;]\s*$/g, "")
+    .trim();
+}
+
 function splitCertificateValues(value: string): string[] {
   // Split on ';' and ',' and '/' so values like "IEC/UL" or "CCC,CE,RoHS" become individual tokens.
   // We keep slash-splitting conservative: only when both sides look like short certification
@@ -1748,6 +1760,7 @@ function removeSubsumedCertificateTokens(values: string[]): string[] {
     const compact = compactCertificateToken(value);
     if (compact === "ul" && compactValues.some((other) => /^ul(?:notapplicable|na)$/.test(other))) return false;
     if (compact === "csa" && compactValues.some((other) => /^csa(?:notapplicable|na)$/.test(other))) return false;
+    if (/^(?:ul508|ulrecognized)$/.test(compact) && compactValues.some((other) => /^(?:culus|curus)$/.test(other))) return false;
     if (compact === "ul" && compactValues.some((other) => other !== compact && /^(?:ul|cul|culus)/.test(other) && other.includes("ul"))) return false;
     if (compact === "csa" && compactValues.some((other) => other !== compact && /^csa/.test(other))) return false;
     if (/^(?:ce|bv)$/.test(compact)) return true;
@@ -1812,7 +1825,9 @@ function canonicalCertificateToken(value: string): string {
   if (/^atex$/i.test(cleaned)) return "ATEX";
   if (/^iecex$/i.test(cleaned)) return "IECEx";
   if (/^culus$/i.test(cleaned)) return "cULus";
+  if (/^curus$/i.test(cleaned)) return "cURus";
   if (/^cul$/i.test(cleaned)) return "cUL";
+  if (/^lloyds?$/i.test(cleaned)) return "Lloyds";
   return cleaned;
 }
 
@@ -1830,6 +1845,7 @@ function certificateTokenRank(value: string): number {
   if (/^iec/i.test(value)) return 5;
   if (/^ul/i.test(value)) return 10;
   if (/^culus$/i.test(value)) return 15;
+  if (/^curus$/i.test(value)) return 16;
   if (/^cul$/i.test(value)) return 18;
   if (/^csa/i.test(value)) return 20;
   if (/^ce$/i.test(value)) return 30;

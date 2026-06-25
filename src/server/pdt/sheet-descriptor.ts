@@ -52,6 +52,10 @@ export function clearBody(ws: ExcelJS.Worksheet, firstBodyRow: number): void {
   }
 }
 
+export function firstDataRow(descriptor: Pick<SheetDescriptor, "firstBodyRow">): number {
+  return descriptor.firstBodyRow + 1;
+}
+
 const PROPERTY_ID_LABELS = ["propertyid", "property id", "eclass property"];
 const PROPERTY_NAME_LABELS = ["propertyname", "property name", "variable name (cns internal)", "variable name"];
 const DESCRIPTION_LABELS = ["description", "english variable description"];

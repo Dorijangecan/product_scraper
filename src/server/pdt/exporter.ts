@@ -4,7 +4,7 @@ import path from "node:path";
 import type { AttributeRecord, ManufacturerConfig, PdtSheetOverrides, RunItemRecord } from "../../shared/types.js";
 import { classifyDeviceType } from "../scrapers/device-type.js";
 import { loadTemplateWorkbook } from "./template.js";
-import { cellText, clearBody, describeSheet, type PdtColumn, type SheetDescriptor } from "./sheet-descriptor.js";
+import { cellText, clearBody, describeSheet, firstDataRow, type PdtColumn, type SheetDescriptor } from "./sheet-descriptor.js";
 import { CONSTANT_SHEETS, targetSheets } from "./device-sheet-map.js";
 import { criticalFactsForDeviceType, isSignalDeviceType } from "./device-type-profiles.js";
 import { resolveProperty, type ResolveContext } from "./eclass-resolvers.js";
@@ -334,7 +334,11 @@ function writeUniformSheet(
   const descriptor = describeSheet(ws);
   if (!descriptor) return 0;
   clearBody(ws, descriptor.firstBodyRow);
-  let row = descriptor.firstBodyRow;
+  if (canonicalSheetKey(ws.name) === canonicalSheetKey("cabinet.mechanical")) {
+    removeTemplateLabelColumn(ws);
+    return 0;
+  }
+  let row = firstDataRow(descriptor);
   let written = 0;
   for (const item of items) {
     const baseCtx: ResolveContext = {
@@ -619,7 +623,7 @@ function semanticFactKeysForColumn(column: PdtColumn, ctx: ResolveContext): stri
   if (isFlowRateColumn(column)) facts.add("flowRate");
   if (isPressureColumn(column)) facts.add("pressure");
   for (const fact of frequencyFactKeysForColumn(column)) facts.add(fact);
-  for (const fact of temperatureFactKeysForColumn(column)) facts.add(fact);
+  for (const fact of temperatureFactKeysForColumn(column, ctx)) facts.add(fact);
   if (isTorqueColumn(column)) facts.add("torque");
   for (const fact of specificLengthFactKeysForColumn(column)) facts.add(fact);
   for (const fact of powerFactKeysForColumn(column)) facts.add(fact);
@@ -840,11 +844,12 @@ function frequencyFactKeysForColumn(column: PdtColumn): string[] {
   return [];
 }
 
-function temperatureFactKeysForColumn(column: PdtColumn): string[] {
+function temperatureFactKeysForColumn(column: PdtColumn, ctx?: ResolveContext): string[] {
   const keys = propertyKeysForColumn(column);
   const description = column.description;
   const text = `${column.code} ${column.propName} ${description}`;
-  const storage = /\bstorage\b/i.test(text) || keys.some((key) => ["AAQ341", "AAQ342"].includes(key));
+  const contactorFusesSheet = /^\s*contactor\s+a\.\s*fuses\s*$/i.test(ctx?.sheetName ?? "");
+  const storage = !contactorFusesSheet && (/\bstorage\b/i.test(text) || keys.some((key) => ["AAQ341", "AAQ342"].includes(key)));
   const min =
     keys.some((key) => ["AAC820", "BAA038", "AAZ952", "AAW301", "AAZ360", "AAC022", "AAF526", "AAC021", "AAQ342"].includes(key)) ||
     /\b(?:min(?:imum)?|lower limit)\b/i.test(description);
@@ -1213,7 +1218,7 @@ function factKeysForColumn(column: PdtColumn, ctx: ResolveContext): string[] {
   if (isFlowRateColumn(column)) add("flowRate");
   if (isPressureColumn(column)) add("pressure");
   for (const fact of frequencyFactKeysForColumn(column)) add(fact);
-  for (const fact of temperatureFactKeysForColumn(column)) add(fact);
+  for (const fact of temperatureFactKeysForColumn(column, ctx)) add(fact);
   if (isTorqueColumn(column)) add("torque");
   for (const fact of specificLengthFactKeysForColumn(column)) add(fact);
   for (const fact of powerFactKeysForColumn(column)) add(fact);

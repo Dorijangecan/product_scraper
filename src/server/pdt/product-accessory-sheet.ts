@@ -1,7 +1,7 @@
 import ExcelJS from "exceljs";
 import type { AttributeRecord, RunItemRecord } from "../../shared/types.js";
 import { getManufacturerConfig } from "../config/manufacturers.js";
-import { cellText, clearBody, describeSheet } from "./sheet-descriptor.js";
+import { cellText, clearBody, describeSheet, firstDataRow } from "./sheet-descriptor.js";
 
 interface AccessoryRow {
   parentCatalog: string;
@@ -50,7 +50,7 @@ export function writeProductAccessorySheet(ws: ExcelJS.Worksheet, items: RunItem
     ...row,
     accessoryItem: itemsByCatalog.get(row.accessoryCatalog.trim().toUpperCase())
   }));
-  let rowNumber = descriptor.firstBodyRow;
+  let rowNumber = firstDataRow(descriptor);
   for (const row of rows) {
     for (const column of descriptor.columns) {
       const value = valueForColumn(column, row);

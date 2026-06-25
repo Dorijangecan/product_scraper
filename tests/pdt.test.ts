@@ -561,12 +561,12 @@ describe("eclass resolvers", () => {
     const out = new ExcelJS.Workbook();
     await out.xlsx.readFile(outputPath);
     const ws = out.getWorksheet("Material Master Data")!;
-    expect(ws.getCell(10, 2).value).toBe("Dynamic Measurement Modul");
-    expect(ws.getCell(10, 3).value).toBe("Dynamic Measurement Modul");
-    expect(ws.getCell(10, 4).value).toBe("Dynamic Measurement Module");
-    expect(ws.getCell(10, 5).value).toBe("Dynamic Measurement Module");
+    expect(ws.getCell(11, 2).value).toBe("Dynamic Measurement Modul");
+    expect(ws.getCell(11, 3).value).toBe("Dynamic Measurement Modul");
+    expect(ws.getCell(11, 4).value).toBe("Dynamic Measurement Module");
+    expect(ws.getCell(11, 5).value).toBe("Dynamic Measurement Module");
 
-    const writtenText = (ws.getRow(10).values as ExcelJS.CellValue[]).map((value) => String(value ?? "")).join(" ");
+    const writtenText = (ws.getRow(11).values as ExcelJS.CellValue[]).map((value) => String(value ?? "")).join(" ");
     expect(writtenText).not.toMatch(/\.cls-\d+|fill\s*:\s*#|AB_Logo/i);
   });
 
@@ -632,8 +632,8 @@ describe("eclass resolvers", () => {
     const out = new ExcelJS.Workbook();
     await out.xlsx.readFile(outputPath);
     const ws = out.getWorksheet("Material Master Data")!;
-    expect(ws.getCell(10, 2).value).toBe(11.793);
-    expect(ws.getCell(10, 3).value).toBe(11793);
+    expect(ws.getCell(11, 2).value).toBe(11.793);
+    expect(ws.getCell(11, 3).value).toBe(11793);
   });
 
   it("converts imperial weight (lbs) to kg and grams via the normalizer's dual-unit string", () => {
@@ -754,7 +754,7 @@ describe("eclass resolvers", () => {
 
     const out = new ExcelJS.Workbook();
     await out.xlsx.readFile(outputPath);
-    expect(out.getWorksheet("Material Master Data")!.getCell(10, 2).value).toBe("XMC060602");
+    expect(out.getWorksheet("Material Master Data")!.getCell(11, 2).value).toBe("XMC060602");
     const audit = JSON.parse(await fs.readFile(result.pdtAuditPath!, "utf8")) as { records: Array<{ code: string; value?: string; sourceKind?: string }> };
     expect(audit.records).toEqual(
       expect.arrayContaining([
@@ -1178,8 +1178,8 @@ describe("eclass resolvers", () => {
     const out = new ExcelJS.Workbook();
     await out.xlsx.readFile(outputPath);
     const ws = out.getWorksheet("Material Master Data")!;
-    expect(ws.getCell(10, 2).value).toBe("https://www.rockwellautomation.com/en-us.html");
-    expect(ws.getCell(10, 3).value).toBe(2.05);
+    expect(ws.getCell(11, 2).value).toBe("https://www.rockwellautomation.com/en-us.html");
+    expect(ws.getCell(11, 3).value).toBe(2.05);
   });
 
   it("normalizes Rockwell ControlLogix L9 family PDT values", () => {
@@ -2539,10 +2539,10 @@ describe("PDT exporter", () => {
     const out = new ExcelJS.Workbook();
     await out.xlsx.readFile(outputPath);
     const ws = out.getWorksheet("Material Master Data")!;
-    expect(ws.getCell(10, 3).value).toBe("1SBL347060R1100");
-    expect(ws.getCell(10, 4).value).toBe("3471523024755");
-    expect(ws.getCell(10, 5).value).toBe("3471523024755");
-    expect(ws.getCell(10, 6).value).toBe("85364900");
+    expect(ws.getCell(11, 3).value).toBe("1SBL347060R1100");
+    expect(ws.getCell(11, 4).value).toBe("3471523024755");
+    expect(ws.getCell(11, 5).value).toBe("3471523024755");
+    expect(ws.getCell(11, 6).value).toBe("85364900");
     expect(result.cleanedInputPath).toBe(path.join(dir, "out_cleaned-input.xlsx"));
     await expect(fs.stat(result.cleanedInputPath!)).resolves.toBeTruthy();
     expect(result.pdtAuditPath).toBe(path.join(dir, "out_pdt-audit.json"));
@@ -2587,8 +2587,8 @@ describe("PDT exporter", () => {
     const out = new ExcelJS.Workbook();
     await out.xlsx.readFile(outputPath);
     const ws = out.getWorksheet("Material Master Data")!;
-    expect(ws.getCell(10, 2).value).toBe("MAT-1");
-    expect(ws.getCell(10, 3).value).toBeNull();
+    expect(ws.getCell(11, 2).value).toBe("MAT-1");
+    expect(ws.getCell(11, 3).value).toBeNull();
     expect(result.cellAudit.records.some((record) =>
       record.catalogNumber === "MAT-1" &&
       record.code === "CNS_ELECTRO_MATERIAL" &&
@@ -2628,8 +2628,8 @@ describe("PDT exporter", () => {
     const out = new ExcelJS.Workbook();
     await out.xlsx.readFile(outputPath);
     const ws = out.getWorksheet("Material Master Data")!;
-    expect(ws.getCell(10, 2).value).toBe("DST-1");
-    expect(ws.getCell(10, 3).value).toBeNull();
+    expect(ws.getCell(11, 2).value).toBe("DST-1");
+    expect(ws.getCell(11, 3).value).toBeNull();
     expect(result.cellAudit.records.some((record) =>
       record.catalogNumber === "DST-1" &&
       record.code === "CNS_ELECTRO_MATERIAL" &&
@@ -2664,8 +2664,8 @@ describe("PDT exporter", () => {
     const out = new ExcelJS.Workbook();
     await out.xlsx.readFile(outputPath);
     const ws = out.getWorksheet("Material Master Data")!;
-    expect(ws.getCell(10, 2).value).toBe("DIM-1");
-    expect(ws.getCell(10, 3).value).toBeNull();
+    expect(ws.getCell(11, 2).value).toBe("DIM-1");
+    expect(ws.getCell(11, 3).value).toBeNull();
     expect(result.cellAudit.records.some((record) =>
       record.catalogNumber === "DIM-1" &&
       record.code === "BAB577" &&
@@ -2703,7 +2703,7 @@ describe("PDT exporter", () => {
 
     const out = new ExcelJS.Workbook();
     await out.xlsx.readFile(outputPath);
-    expect(out.getWorksheet("Material Master Data")!.getCell(10, 3).value).toEqual({
+    expect(out.getWorksheet("Material Master Data")!.getCell(11, 3).value).toEqual({
       text: "https://new.abb.com/products/1SBL347060R1100",
       hyperlink: "https://new.abb.com/products/1SBL347060R1100"
     });
@@ -2763,7 +2763,7 @@ describe("PDT exporter", () => {
 
     const out = new ExcelJS.Workbook();
     await out.xlsx.readFile(outputPath);
-    expect(out.getWorksheet("Material Master Data")!.getRow(10).values).toContain("UNK-001");
+    expect(out.getWorksheet("Material Master Data")!.getRow(11).values).toContain("UNK-001");
     expect(valuesInWorksheet(out.getWorksheet("Additional Documents")!)).toContain("UNK-001");
     expect(out.getWorksheet("Connection Point Information")).toBeTruthy();
   });
@@ -2867,10 +2867,10 @@ describe("PDT exporter", () => {
     await out.xlsx.readFile(outputPath);
     const ws = out.getWorksheet("Material Master Data")!;
     expect(ws.getCell(9, 3).value).toBe("V");
-    expect(ws.getCell(10, 3).value).toBe(80);
-    expect(ws.getCell(10, 4).value).toBe(3);
-    expect(ws.getCell(10, 5).value).toBe(-40);
-    expect(ws.getCell(10, 6).value).toBe(80);
+    expect(ws.getCell(11, 3).value).toBe(80);
+    expect(ws.getCell(11, 4).value).toBe(3);
+    expect(ws.getCell(11, 5).value).toBe(-40);
+    expect(ws.getCell(11, 6).value).toBe(80);
   });
 
   it("writes German descriptions without relying on Excel TRANSLATE formulas", async () => {
@@ -2916,10 +2916,10 @@ describe("PDT exporter", () => {
     await out.xlsx.readFile(outputPath);
     const ws = out.getWorksheet("Material Master Data")!;
     // DE columns are populated from result.localizedDescriptions.de — never echoed from EN.
-    expect(ws.getCell(10, 2).value).toBe("Wandmontiertes Gehäuse");
-    expect(ws.getCell(10, 3).value).toBe("Gehäuse");
-    expect(ws.getCell(10, 4).value).toBe("Wall mounted enclosure");
-    expect(ws.getCell(10, 5).value).toBe("Enclosure");
+    expect(ws.getCell(11, 2).value).toBe("Wandmontiertes Gehäuse");
+    expect(ws.getCell(11, 3).value).toBe("Gehäuse");
+    expect(ws.getCell(11, 4).value).toBe("Wall mounted enclosure");
+    expect(ws.getCell(11, 5).value).toBe("Enclosure");
   });
 
   it("writes deterministic German PDT description fallbacks without DE evidence", async () => {
@@ -2972,10 +2972,10 @@ describe("PDT exporter", () => {
     const out = new ExcelJS.Workbook();
     await out.xlsx.readFile(outputPath);
     const ws = out.getWorksheet("Material Master Data")!;
-    expect(ws.getCell(10, 2).value).toBe("ControlLogix 5590 XT Steuerung");
-    expect(ws.getCell(10, 3).value).toBe("ControlLogix 5590 XT Steuerung");
-    expect(ws.getCell(10, 4).value).toBe("ControlLogix 5590 XT Controller");
-    expect(ws.getCell(10, 5).value).toBe("ControlLogix 5590 XT Controller");
+    expect(ws.getCell(11, 2).value).toBe("ControlLogix 5590 XT Steuerung");
+    expect(ws.getCell(11, 3).value).toBe("ControlLogix 5590 XT Steuerung");
+    expect(ws.getCell(11, 4).value).toBe("ControlLogix 5590 XT Controller");
+    expect(ws.getCell(11, 5).value).toBe("ControlLogix 5590 XT Controller");
   });
 
   it("writes DE description fallbacks as literals when no localized DE text was scraped", async () => {
@@ -3009,11 +3009,11 @@ describe("PDT exporter", () => {
     const ws = out.getWorksheet("Material Master Data")!;
     // No localizedDescriptions.de on the result: write the fallback as a literal so Excel
     // does not require manual recalculation before downstream import.
-    expect(ws.getCell(10, 2).value).toBe(
+    expect(ws.getCell(11, 2).value).toBe(
       "The AF40B-30-00RT-12 is a 3 pole - 690 V IEC oder 600 UL Schuetz with RT terminals, controlling motors up to 18.5 kW / 400 V AC (AC-3) oder 30 hp / 480 V UL."
     );
     // EN column still gets the scraped English description as a literal value.
-    expect(ws.getCell(10, 3).value).toBe(description);
+    expect(ws.getCell(11, 3).value).toBe(description);
   });
 
   it("writes German ABB analog module description fallbacks as literals", async () => {
@@ -3053,10 +3053,10 @@ describe("PDT exporter", () => {
     const out = new ExcelJS.Workbook();
     await out.xlsx.readFile(outputPath);
     const ws = out.getWorksheet("Material Master Data")!;
-    expect(ws.getCell(10, 2).value).toBe("AC522 Analogeingangs-/ausgangsmodul. 4 Kanaele: AI U, I, RTD, DI oder AO U, I. 4 Kanaele: AI U, I, RTD oder AO U (AC522)");
-    expect(ws.getCell(10, 3).value).toBe("AC522 Analogeingangs-/ausgangsmodul");
-    expect(ws.getCell(10, 4).value).toBe(description);
-    expect(ws.getCell(10, 5).value).toBe(title);
+    expect(ws.getCell(11, 2).value).toBe("AC522 Analogeingangs-/ausgangsmodul. 4 Kanaele: AI U, I, RTD, DI oder AO U, I. 4 Kanaele: AI U, I, RTD oder AO U (AC522)");
+    expect(ws.getCell(11, 3).value).toBe("AC522 Analogeingangs-/ausgangsmodul");
+    expect(ws.getCell(11, 4).value).toBe(description);
+    expect(ws.getCell(11, 5).value).toBe(title);
   });
 
   it("writes German ABB CP6610 CP600-Pro description fallbacks as literals", async () => {
@@ -3101,14 +3101,14 @@ describe("PDT exporter", () => {
     const out = new ExcelJS.Workbook();
     await out.xlsx.readFile(outputPath);
     const ws = out.getWorksheet("Material Master Data")!;
-    expect(ws.getCell(10, 2).value).toContain("Bedienpanel");
-    expect(ws.getCell(10, 2).value).toContain("Grafikdisplay");
-    expect(ws.getCell(10, 2).value).toContain("Multi-Touchscreen");
-    expect(ws.getCell(10, 3).value).toBe("Bedienpanel CP600-Pro");
-    expect(ws.getCell(10, 4).value).toBe(
+    expect(ws.getCell(11, 2).value).toContain("Bedienpanel");
+    expect(ws.getCell(11, 2).value).toContain("Grafikdisplay");
+    expect(ws.getCell(11, 2).value).toContain("Multi-Touchscreen");
+    expect(ws.getCell(11, 3).value).toBe("Bedienpanel CP600-Pro");
+    expect(ws.getCell(11, 4).value).toBe(
       "CP6610, control panel, TFT graphical display, multi-touch screen, 10.1\", 1280 x 800 pixel, for PB610 applications and visualization of AC500 V3 web server"
     );
-    expect(ws.getCell(10, 5).value).toBe("Control Panel CP600-Pro");
+    expect(ws.getCell(11, 5).value).toBe("Control Panel CP600-Pro");
   });
 
   it("writes distinct English and German Rockwell 700-HB relay descriptions", async () => {
@@ -3153,14 +3153,14 @@ describe("PDT exporter", () => {
     const out = new ExcelJS.Workbook();
     await out.xlsx.readFile(outputPath);
     const ws = out.getWorksheet("Material Master Data")!;
-    expect(ws.getCell(10, 2).value).toContain("Universal-Steckrelais");
-    expect(ws.getCell(10, 2).value).toContain("Testtaster");
-    expect(ws.getCell(10, 2).value).toContain("Handbetätigung");
-    expect(ws.getCell(10, 3).value).toContain("quadratisches Steckrelais");
-    expect(ws.getCell(10, 4).value).toBe(
+    expect(ws.getCell(11, 2).value).toContain("Universal-Steckrelais");
+    expect(ws.getCell(11, 2).value).toContain("Testtaster");
+    expect(ws.getCell(11, 2).value).toContain("Handbetätigung");
+    expect(ws.getCell(11, 3).value).toContain("quadratisches Steckrelais");
+    expect(ws.getCell(11, 4).value).toBe(
       "700-HB General Purpose Blade Base Relay, 15 Amp Contact, DPDT, 120V 50/60Hz, Push-To-Test & Manual Override function and Pilot Light"
     );
-    expect(ws.getCell(10, 5).value).toBe("120V 50/60Hz GP Tall Square Base Relay");
+    expect(ws.getCell(11, 5).value).toBe("120V 50/60Hz GP Tall Square Base Relay");
   });
 
   it("writes echoed DE description fallbacks as literals", async () => {
@@ -3205,10 +3205,10 @@ describe("PDT exporter", () => {
     const out = new ExcelJS.Workbook();
     await out.xlsx.readFile(outputPath);
     const ws = out.getWorksheet("Material Master Data")!;
-    expect(ws.getCell(10, 2).value).toBe("Wandgehaeuse");
-    expect(ws.getCell(10, 3).value).toBe("Gehaeuse");
-    expect(ws.getCell(10, 4).value).toBe("Wall mounted enclosure");
-    expect(ws.getCell(10, 5).value).toBe("Enclosure");
+    expect(ws.getCell(11, 2).value).toBe("Wandgehaeuse");
+    expect(ws.getCell(11, 3).value).toBe("Gehaeuse");
+    expect(ws.getCell(11, 4).value).toBe("Wall mounted enclosure");
+    expect(ws.getCell(11, 5).value).toBe("Enclosure");
   });
 
   it("writes Material Master DE description fallbacks with loose template variants", async () => {
@@ -3239,8 +3239,8 @@ describe("PDT exporter", () => {
     const out = new ExcelJS.Workbook();
     await out.xlsx.readFile(outputPath);
     const ws = out.getWorksheet("Material Master Data")!;
-    expect(ws.getCell(10, 2).value).toBe("kompakt Sicherheitsrelais with removable screw terminals.");
-    expect(ws.getCell(10, 3).value).toBe(description);
+    expect(ws.getCell(11, 2).value).toBe("kompakt Sicherheitsrelais with removable screw terminals.");
+    expect(ws.getCell(11, 3).value).toBe(description);
   });
 
   it("writes deterministic German descriptions in the bundled Material Master template", async () => {
@@ -3265,10 +3265,10 @@ describe("PDT exporter", () => {
     const out = new ExcelJS.Workbook();
     await out.xlsx.readFile(outputPath);
     const ws = out.getWorksheet("Material Master Data")!;
-    expect(ws.getCell("Y10").value).toBe("Eaton Rapid Link 5X RASP5X dezentraler Frequenzumrichter aus dem offiziellen Eaton China Produktkatalog.");
-    expect(ws.getCell("Z10").value).toBe("CDVRL00001 - Eaton Rapid Link 5X RASP5X Frequenzumrichter");
-    expect(ws.getCell("AA10").value).toBe("Eaton Rapid Link 5X RASP5X distributed variable frequency drive from the official Eaton China product catalog.");
-    expect(ws.getCell("AB10").value).toBe("CDVRL00001 - Eaton Rapid Link 5X RASP5X variable frequency drive");
+    expect(ws.getCell("Y11").value).toBe("Eaton Rapid Link 5X RASP5X dezentraler Frequenzumrichter aus dem offiziellen Eaton China Produktkatalog.");
+    expect(ws.getCell("Z11").value).toBe("CDVRL00001 - Eaton Rapid Link 5X RASP5X Frequenzumrichter");
+    expect(ws.getCell("AA11").value).toBe("Eaton Rapid Link 5X RASP5X distributed variable frequency drive from the official Eaton China product catalog.");
+    expect(ws.getCell("AB11").value).toBe("CDVRL00001 - Eaton Rapid Link 5X RASP5X variable frequency drive");
   });
 
   it("does not echo English Eaton descriptions into bundled German description columns", async () => {
@@ -3293,10 +3293,10 @@ describe("PDT exporter", () => {
     const out = new ExcelJS.Workbook();
     await out.xlsx.readFile(outputPath);
     const ws = out.getWorksheet("Material Master Data")!;
-    expect(ws.getCell("Y10").value).toBe("Eaton 142824 Hauptlasttrennschalter mit Isolierfunktion, hoch verschleissfeste Kontakte, 240V, 80 A, 1P");
-    expect(ws.getCell("Z10").value).toBe("Eaton 142824 Hauptlasttrennschalter");
-    expect(ws.getCell("AA10").value).toBe("Eaton 142824 Main load disconnector Switch with isolation function, highly wear resistant contacts, 240V, 80 A, 1P");
-    expect(ws.getCell("AB10").value).toBe("Eaton 142824 Main load disconnector Switch");
+    expect(ws.getCell("Y11").value).toBe("Eaton 142824 Hauptlasttrennschalter mit Isolierfunktion, hoch verschleissfeste Kontakte, 240V, 80 A, 1P");
+    expect(ws.getCell("Z11").value).toBe("Eaton 142824 Hauptlasttrennschalter");
+    expect(ws.getCell("AA11").value).toBe("Eaton 142824 Main load disconnector Switch with isolation function, highly wear resistant contacts, 240V, 80 A, 1P");
+    expect(ws.getCell("AB11").value).toBe("Eaton 142824 Main load disconnector Switch");
   });
 
   it("fills PDT columns from semantically equivalent scraped attribute labels", async () => {
@@ -3327,7 +3327,7 @@ describe("PDT exporter", () => {
     const out = new ExcelJS.Workbook();
     await out.xlsx.readFile(outputPath);
     const ws = out.getWorksheet("Material Master Data")!;
-    expect(ws.getCell(10, 2).value).toBe(240);
+    expect(ws.getCell(11, 2).value).toBe(240);
   });
 
   it("writes Material Master certificate columns from certificate documents", async () => {
@@ -3383,7 +3383,7 @@ describe("PDT exporter", () => {
     const out = new ExcelJS.Workbook();
     await out.xlsx.readFile(outputPath);
     const ws = out.getWorksheet("Material Master Data")!;
-    expect(ws.getCell(10, 3).value).toBe("CE, UKCA");
+    expect(ws.getCell(11, 3).value).toBe("CE, UKCA");
     expect(result.cellAudit.records.some((record) =>
       record.catalogNumber === "142824" &&
       record.code === "CERTIFICATION" &&
@@ -3468,13 +3468,13 @@ describe("PDT exporter", () => {
     await out.xlsx.readFile(outputPath);
     const materialOut = out.getWorksheet("Material Master Data")!;
     const commandOut = out.getWorksheet("command and alarm device")!;
-    expect(materialOut.getCell(10, 3).value).toBe(0.25);
-    expect(materialOut.getCell(10, 4).value).toBe("polyamide");
-    expect(materialOut.getCell(10, 5).value).toBe("black");
-    expect(commandOut.getCell(8, 2).value).toBe(24);
-    expect(commandOut.getCell(8, 3).value).toBe("DC");
-    expect(commandOut.getCell(8, 4).value).toBe("black");
-    expect(commandOut.getCell(8, 5).value).toBe(60);
+    expect(materialOut.getCell(11, 3).value).toBe(0.25);
+    expect(materialOut.getCell(11, 4).value).toBe("polyamide");
+    expect(materialOut.getCell(11, 5).value).toBe("black");
+    expect(commandOut.getCell(9, 2).value).toBe(24);
+    expect(commandOut.getCell(9, 3).value).toBe("DC");
+    expect(commandOut.getCell(9, 4).value).toBe("black");
+    expect(commandOut.getCell(9, 5).value).toBe(60);
   });
 
   it("promotes manufacturer-agnostic quantity attributes into PDT facts", () => {
@@ -3693,9 +3693,9 @@ describe("PDT exporter", () => {
     const out = new ExcelJS.Workbook();
     await out.xlsx.readFile(outputPath);
     const pumpOut = out.getWorksheet("pump")!;
-    expect(pumpOut.getCell(8, 2).value).toBe(200);
-    expect(pumpOut.getCell(8, 3).value).toBe(6);
-    expect(pumpOut.getCell(8, 4).value).toBe(1.5);
+    expect(pumpOut.getCell(9, 2).value).toBe(200);
+    expect(pumpOut.getCell(9, 3).value).toBe(6);
+    expect(pumpOut.getCell(9, 4).value).toBe(1.5);
   });
 
   it("fills generic frequency PDT columns from ontology-backed attributes", async () => {
@@ -3747,7 +3747,7 @@ describe("PDT exporter", () => {
     const out = new ExcelJS.Workbook();
     await out.xlsx.readFile(outputPath);
     const motorsOut = out.getWorksheet("motors")!;
-    expect(motorsOut.getCell(8, 2).value).toBe(60);
+    expect(motorsOut.getCell(9, 2).value).toBe(60);
   });
 
   it("fills cooling and heating capacity PDT columns from ontology-backed attributes", async () => {
@@ -3810,8 +3810,8 @@ describe("PDT exporter", () => {
     const out = new ExcelJS.Workbook();
     await out.xlsx.readFile(outputPath);
     const thermalOut = out.getWorksheet("cabinet.airconditioning")!;
-    expect(thermalOut.getCell(8, 2).value).toBe(500);
-    expect(thermalOut.getCell(8, 3).value).toBe(1200);
+    expect(thermalOut.getCell(9, 2).value).toBe(500);
+    expect(thermalOut.getCell(9, 3).value).toBe(1200);
   });
 
   it("fills generic breaking-capacity PDT columns from ontology-backed attributes", async () => {
@@ -3869,7 +3869,7 @@ describe("PDT exporter", () => {
     const out = new ExcelJS.Workbook();
     await out.xlsx.readFile(outputPath);
     const contactorOut = out.getWorksheet("contactor a. fuses")!;
-    expect(contactorOut.getCell(8, 2).value).toBe(50);
+    expect(contactorOut.getCell(9, 2).value).toBe(50);
   });
 
   it("fills specific voltage and leakage-current PDT columns from ontology-backed attributes", async () => {
@@ -3942,10 +3942,10 @@ describe("PDT exporter", () => {
     const out = new ExcelJS.Workbook();
     await out.xlsx.readFile(outputPath);
     const sensorOut = out.getWorksheet("electronic sensor")!;
-    expect(sensorOut.getCell(8, 2).value).toBe(690);
-    expect(sensorOut.getCell(8, 3).value).toBe(8000);
-    expect(sensorOut.getCell(8, 4).value).toBe(2.5);
-    expect(sensorOut.getCell(8, 5).value).toBe(0.0008);
+    expect(sensorOut.getCell(9, 2).value).toBe(690);
+    expect(sensorOut.getCell(9, 3).value).toBe(8000);
+    expect(sensorOut.getCell(9, 4).value).toBe(2.5);
+    expect(sensorOut.getCell(9, 5).value).toBe(0.0008);
   });
 
   it("fills operating and storage temperature PDT min/max columns from ontology-backed attributes", async () => {
@@ -4016,10 +4016,10 @@ describe("PDT exporter", () => {
     const out = new ExcelJS.Workbook();
     await out.xlsx.readFile(outputPath);
     const plcOut = out.getWorksheet("PLC")!;
-    expect(plcOut.getCell(8, 2).value).toBe(-25);
-    expect(plcOut.getCell(8, 3).value).toBe(70);
-    expect(plcOut.getCell(8, 4).value).toBe(-40);
-    expect(plcOut.getCell(8, 5).value).toBe(85);
+    expect(plcOut.getCell(9, 2).value).toBe(-25);
+    expect(plcOut.getCell(9, 3).value).toBe(70);
+    expect(plcOut.getCell(9, 4).value).toBe(-40);
+    expect(plcOut.getCell(9, 5).value).toBe(85);
   });
 
   it("fills specific length PDT columns from ontology-backed attributes", async () => {
@@ -4112,14 +4112,14 @@ describe("PDT exporter", () => {
     const out = new ExcelJS.Workbook();
     await out.xlsx.readFile(outputPath);
     const sensorOut = out.getWorksheet("electronic sensor")!;
-    expect(sensorOut.getCell(8, 2).value).toBe(1.5);
-    expect(sensorOut.getCell(8, 3).value).toBe(4);
-    expect(sensorOut.getCell(8, 4).value).toBe(2000);
-    expect(sensorOut.getCell(8, 5).value).toBe(12);
-    expect(sensorOut.getCell(8, 6).value).toBe(50);
-    expect(sensorOut.getCell(8, 7).value).toBe(32);
-    expect(sensorOut.getCell(8, 8).value).toBe(2.5);
-    expect(sensorOut.getCell(8, 9).value).toBe(80);
+    expect(sensorOut.getCell(9, 2).value).toBe(1.5);
+    expect(sensorOut.getCell(9, 3).value).toBe(4);
+    expect(sensorOut.getCell(9, 4).value).toBe(2000);
+    expect(sensorOut.getCell(9, 5).value).toBe(12);
+    expect(sensorOut.getCell(9, 6).value).toBe(50);
+    expect(sensorOut.getCell(9, 7).value).toBe(32);
+    expect(sensorOut.getCell(9, 8).value).toBe(2.5);
+    expect(sensorOut.getCell(9, 9).value).toBe(80);
   });
 
   it("skips electrical PDT spec values that do not contain a measurement", async () => {
@@ -4219,13 +4219,13 @@ describe("PDT exporter", () => {
     // col 2 = REFERENCE_FEATURE_GROUP_ID. The cabinet/enclosure device type now triggers the
     // deterministic ECLASS 27-18-01-01 (version 13.0) fallback from the Enclosure device-type
     // profile, since Saginaw doesn't publish ECLASS codes. All other product-spec columns stay blank.
-    expect(ws.getCell(8, 1).value).toBe("SCE-60EL4812LPPL");
-    expect(ws.getCell(8, 2).value).toBe(27180101);
-    expect(ws.getCell(8, 3).value).toBeNull();
-    expect(ws.getCell(8, 4).value).toBeNull();
-    expect(ws.getCell(8, 5).value).toBeNull();
-    expect(ws.getCell(8, 6).value).toBeNull();
-    expect(ws.getCell(8, 7).value).toBeNull();
+    expect(ws.getCell(9, 1).value).toBe("SCE-60EL4812LPPL");
+    expect(ws.getCell(9, 2).value).toBe(27180101);
+    expect(ws.getCell(9, 3).value).toBeNull();
+    expect(ws.getCell(9, 4).value).toBeNull();
+    expect(ws.getCell(9, 5).value).toBeNull();
+    expect(ws.getCell(9, 6).value).toBeNull();
+    expect(ws.getCell(9, 7).value).toBeNull();
   });
 
   it("fills contactor voltage type and operating temperature columns found by description", async () => {
@@ -4273,9 +4273,56 @@ describe("PDT exporter", () => {
     const out = new ExcelJS.Workbook();
     await out.xlsx.readFile(outputPath);
     const ws = out.getWorksheet("contactor a. fuses")!;
-    expect(ws.getCell(8, 1).value).toBe("AC/DC");
-    expect(ws.getCell(8, 2).value).toBe(-40);
-    expect(ws.getCell(8, 3).value).toBe(70);
+    expect(ws.getCell(9, 1).value).toBe("AC/DC");
+    expect(ws.getCell(9, 2).value).toBe(-40);
+    expect(ws.getCell(9, 3).value).toBe(70);
+  });
+
+  it("uses operating temperature rather than storage temperature on contactor/fuses temperature columns", async () => {
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-pdt-contactor-operating-temp-"));
+    const templatePath = path.join(dir, "template.xlsx");
+    const outputPath = path.join(dir, "out.xlsx");
+    const wb = new ExcelJS.Workbook();
+    const contactor = wb.addWorksheet("contactor a. fuses");
+    for (const [row, label] of ["ClassId", "Priority", "Type", "PropertyId", "PropertyName", "Description", "Unit", "Body"].entries()) {
+      contactor.getCell(row + 1, 1).value = label;
+    }
+    contactor.getCell(4, 2).value = "AAQ342";
+    contactor.getCell(5, 2).value = "AAQ342";
+    contactor.getCell(6, 2).value = "Min storage temperature";
+    contactor.getCell(7, 2).value = "C";
+    contactor.getCell(4, 3).value = "AAQ341";
+    contactor.getCell(5, 3).value = "AAQ341";
+    contactor.getCell(6, 3).value = "Max storage temperature";
+    contactor.getCell(7, 3).value = "C";
+    wb.addWorksheet("Additional Documents");
+    await wb.xlsx.writeFile(templatePath);
+
+    const item = ctx(
+      {
+        manufacturerId: "eaton",
+        title: "500FL Lighting Contactor",
+        attributes: [
+          { group: "Technical data", name: "Operating temperature", value: "-25...+60 C", sourceType: "official" },
+          { group: "Technical data", name: "Storage temperature", value: "-40...+85 C", sourceType: "official" }
+        ]
+      },
+      "500FL-FOD92"
+    ).item;
+
+    await exportRunPdt({
+      manufacturer: { ...manufacturer, id: "eaton" } as ManufacturerConfig,
+      items: [item],
+      templatePath,
+      outputPath,
+      sheetOverrides: { [item.id]: ["contactor a. fuses"] }
+    });
+
+    const out = new ExcelJS.Workbook();
+    await out.xlsx.readFile(outputPath);
+    const ws = out.getWorksheet("contactor a. fuses")!;
+    expect(ws.getCell(9, 1).value).toBe(-25);
+    expect(ws.getCell(9, 2).value).toBe(60);
   });
 
   it("writes broader contactor/fuses fields when ABB source data is available", async () => {
@@ -4341,7 +4388,7 @@ describe("PDT exporter", () => {
     const out = new ExcelJS.Workbook();
     await out.xlsx.readFile(outputPath);
     const ws = out.getWorksheet("contactor a. fuses")!;
-    expect(ws.getRow(8).values).toEqual([
+    expect(ws.getRow(9).values).toEqual([
       ,
       70,
       70,
@@ -4410,7 +4457,7 @@ describe("PDT exporter", () => {
     const out = new ExcelJS.Workbook();
     await out.xlsx.readFile(outputPath);
     const ws = out.getWorksheet("contactor a. fuses")!;
-    expect(ws.getRow(8).values).toEqual([
+    expect(ws.getRow(9).values).toEqual([
       ,
       "1SDA124707R1",
       24,
@@ -4421,7 +4468,7 @@ describe("PDT exporter", () => {
       250,
       250
     ]);
-    expect(ws.getCell(8, 10).value).toBeNull();
+    expect(ws.getCell(9, 10).value).toBeNull();
     expect(result.requiredFieldIssues).toEqual([]);
     expect(result.cellAudit.records.some((record) =>
       record.catalogNumber === "1SDA124707R1" &&
@@ -4476,8 +4523,8 @@ describe("PDT exporter", () => {
     const out = new ExcelJS.Workbook();
     await out.xlsx.readFile(outputPath);
     const ws = out.getWorksheet("cabinet")!;
-    expect(ws.getCell(8, 1).value).toBe("CAB-ENUM-1");
-    expect(ws.getCell(8, 2).value).toBeNull();
+    expect(ws.getCell(9, 1).value).toBe("CAB-ENUM-1");
+    expect(ws.getCell(9, 2).value).toBeNull();
   });
 
   it("reports missing minimum Master PDT fields separately from enum issues", async () => {
@@ -4607,15 +4654,15 @@ describe("PDT exporter", () => {
     const out = new ExcelJS.Workbook();
     await out.xlsx.readFile(outputPath);
     const materialOut = out.getWorksheet("Material Master Data")!;
-    expect(materialOut.getCell(10, 2).value).toBe("SIG-12-BLUE");
-    expect(materialOut.getCell(10, 3).value).toBe(12);
+    expect(materialOut.getCell(11, 2).value).toBe("SIG-12-BLUE");
+    expect(materialOut.getCell(11, 3).value).toBe(12);
     const commandOut = out.getWorksheet("command and alarm device")!;
-    expect(commandOut.getCell(8, 1).value).toBe("SIG-12-BLUE");
-    expect(commandOut.getCell(8, 2).value).toBe(12);
-    expect(commandOut.getCell(8, 3).value).toBe("DC");
-    expect(commandOut.getCell(8, 4).value).toBe("blue");
-    expect(commandOut.getCell(8, 5).value).toBe(40);
-    expect(commandOut.getCell(8, 6).value).toBe(95);
+    expect(commandOut.getCell(9, 1).value).toBe("SIG-12-BLUE");
+    expect(commandOut.getCell(9, 2).value).toBe(12);
+    expect(commandOut.getCell(9, 3).value).toBe("DC");
+    expect(commandOut.getCell(9, 4).value).toBe("blue");
+    expect(commandOut.getCell(9, 5).value).toBe(40);
+    expect(commandOut.getCell(9, 6).value).toBe(95);
     expect(result.cellAudit.records).toContainEqual(
       expect.objectContaining({
         sheetName: "Material Master Data",
@@ -4692,10 +4739,10 @@ describe("PDT exporter", () => {
     await out.xlsx.readFile(outputPath);
     const materialOut = out.getWorksheet("Material Master Data")!;
     const commandOut = out.getWorksheet("command and alarm device")!;
-    expect((materialOut.getCell(10, 3).fill as ExcelJS.FillPattern).fgColor?.argb).toBe("FFFFC7CE");
-    expect((commandOut.getCell(8, 2).fill as ExcelJS.FillPattern).fgColor?.argb).toBe("FFFFC7CE");
-    expect((commandOut.getCell(8, 3).fill as ExcelJS.FillPattern).fgColor?.argb).toBe("FFFFC7CE");
-    expect((commandOut.getCell(8, 4).fill as ExcelJS.FillPattern).fgColor?.argb).toBe("FFFFC7CE");
+    expect((materialOut.getCell(11, 3).fill as ExcelJS.FillPattern).fgColor?.argb).toBe("FFFFC7CE");
+    expect((commandOut.getCell(9, 2).fill as ExcelJS.FillPattern).fgColor?.argb).toBe("FFFFC7CE");
+    expect((commandOut.getCell(9, 3).fill as ExcelJS.FillPattern).fgColor?.argb).toBe("FFFFC7CE");
+    expect((commandOut.getCell(9, 4).fill as ExcelJS.FillPattern).fgColor?.argb).toBe("FFFFC7CE");
   });
 
   it("only marks voltage red for voltage-only device profiles", async () => {
@@ -4757,8 +4804,8 @@ describe("PDT exporter", () => {
     const out = new ExcelJS.Workbook();
     await out.xlsx.readFile(outputPath);
     const plcOut = out.getWorksheet("PLC")!;
-    expect((plcOut.getCell(8, 2).fill as ExcelJS.FillPattern).fgColor?.argb).toBe("FFFFC7CE");
-    expect((plcOut.getCell(8, 3).fill as ExcelJS.FillPattern | undefined)?.fgColor?.argb).toBeUndefined();
+    expect((plcOut.getCell(9, 2).fill as ExcelJS.FillPattern).fgColor?.argb).toBe("FFFFC7CE");
+    expect((plcOut.getCell(9, 3).fill as ExcelJS.FillPattern | undefined)?.fgColor?.argb).toBeUndefined();
   });
 
   it("does not use generic metadata fallback for enum labels covered by resolvers", async () => {
@@ -4805,8 +4852,8 @@ describe("PDT exporter", () => {
     const out = new ExcelJS.Workbook();
     await out.xlsx.readFile(outputPath);
     const ws = out.getWorksheet("electronic sensor")!;
-    expect(ws.getCell(8, 1).value).toBe("SENSOR-NO-IP");
-    expect(ws.getCell(8, 2).value).toBeNull();
+    expect(ws.getCell(9, 1).value).toBe("SENSOR-NO-IP");
+    expect(ws.getCell(9, 2).value).toBeNull();
   });
 
   it("uses exact PDT column metadata as a fallback when no specific resolver exists", async () => {
@@ -4855,8 +4902,8 @@ describe("PDT exporter", () => {
     const out = new ExcelJS.Workbook();
     await out.xlsx.readFile(outputPath);
     const ws = out.getWorksheet("Switch")!;
-    expect(ws.getCell(8, 1).value).toBe("SW-META-1");
-    expect(ws.getCell(8, 2).value).toBe(2.5);
+    expect(ws.getCell(9, 1).value).toBe("SW-META-1");
+    expect(ws.getCell(9, 2).value).toBe(2.5);
   });
 
   it("keeps Qwen suggestions out of the final PDT workbook", async () => {
@@ -4925,7 +4972,7 @@ describe("PDT exporter", () => {
       await out.xlsx.readFile(outputPath);
       const outContactor = out.getWorksheet("contactor a. fuses")!;
       expect(fetchCalls).toBe(0);
-      expect(outContactor.getCell(8, 1).value).toBe("24-60");
+      expect(outContactor.getCell(9, 1).value).toBe("24-60");
     } finally {
       globalThis.fetch = originalFetch;
       if (originalAiCleanup === undefined) delete process.env.PDT_AI_CLEANUP;
@@ -4978,7 +5025,7 @@ describe("PDT exporter sheet lookup", () => {
     await out.xlsx.readFile(outputPath);
     // The exporter strips the leading label column after writing, so the body value lands in
     // column 1 of the written sheet.
-    expect(out.getWorksheet("switch")!.getCell(8, 1).value).toBe("SW-001");
+    expect(out.getWorksheet("switch")!.getCell(9, 1).value).toBe("SW-001");
   });
 
   it("routes a mixed batch of devices to the correct combination of tabs", async () => {
@@ -4986,7 +5033,8 @@ describe("PDT exporter sheet lookup", () => {
     // Expected behaviour:
     //   - Material Master Data + Additional Documents include ALL three products (constant tabs).
     //   - contactor a. fuses contains ONLY the contactor.
-    //   - cabinet + cabinet.mechanical contain ONLY the enclosure.
+    //   - cabinet contains ONLY the enclosure.
+    //   - cabinet.mechanical is kept but intentionally left empty.
     //   - electronic sensor contains ONLY the sensor.
     //   - No product is leaked into an unrelated tab.
     const dir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-pdt-multi-"));
@@ -5078,38 +5126,41 @@ describe("PDT exporter sheet lookup", () => {
     expect(result.filledSheets["Material Master Data"]).toBe(3);
     expect(result.filledSheets["contactor a. fuses"]).toBe(1);
     expect(result.filledSheets["cabinet"]).toBe(1);
-    expect(result.filledSheets["cabinet.mechanical"]).toBe(1);
+    expect(result.filledSheets["cabinet.mechanical"]).toBe(0);
     expect(result.filledSheets["electronic sensor"]).toBe(1);
 
     const out = new ExcelJS.Workbook();
     await out.xlsx.readFile(outputPath);
 
-    // Material Master Data lists all three article numbers (body starts at row 10 in this layout).
+    // Material Master Data lists all three article numbers after one blank spacer row.
     const materialOut = out.getWorksheet("Material Master Data")!;
+    expect(materialOut.getCell(10, 2).value ?? null).toBeNull();
     expect([
-      materialOut.getCell(10, 2).value,
       materialOut.getCell(11, 2).value,
-      materialOut.getCell(12, 2).value
+      materialOut.getCell(12, 2).value,
+      materialOut.getCell(13, 2).value
     ]).toEqual(["CTR-001", "ENC-001", "SNS-001"]);
 
-    // Each device-specific tab has exactly its own product, in the first body row (row 8 in the
-    // tab layout, column 1 after the helper label column is stripped).
-    expect(out.getWorksheet("contactor a. fuses")!.getCell(8, 1).value).toBe("CTR-001");
-    expect(out.getWorksheet("contactor a. fuses")!.getCell(9, 1).value ?? null).toBeNull();
+    // Each populated device-specific tab has one blank spacer row, then exactly its own product.
+    expect(out.getWorksheet("contactor a. fuses")!.getCell(8, 1).value ?? null).toBeNull();
+    expect(out.getWorksheet("contactor a. fuses")!.getCell(9, 1).value).toBe("CTR-001");
+    expect(out.getWorksheet("contactor a. fuses")!.getCell(10, 1).value ?? null).toBeNull();
 
-    expect(out.getWorksheet("cabinet")!.getCell(8, 1).value).toBe("ENC-001");
-    expect(out.getWorksheet("cabinet")!.getCell(9, 1).value ?? null).toBeNull();
+    expect(out.getWorksheet("cabinet")!.getCell(8, 1).value ?? null).toBeNull();
+    expect(out.getWorksheet("cabinet")!.getCell(9, 1).value).toBe("ENC-001");
+    expect(out.getWorksheet("cabinet")!.getCell(10, 1).value ?? null).toBeNull();
 
-    expect(out.getWorksheet("cabinet.mechanical")!.getCell(8, 1).value).toBe("ENC-001");
+    expect(out.getWorksheet("cabinet.mechanical")!.getCell(8, 1).value ?? null).toBeNull();
     expect(out.getWorksheet("cabinet.mechanical")!.getCell(9, 1).value ?? null).toBeNull();
 
-    expect(out.getWorksheet("electronic sensor")!.getCell(8, 1).value).toBe("SNS-001");
-    expect(out.getWorksheet("electronic sensor")!.getCell(9, 1).value ?? null).toBeNull();
+    expect(out.getWorksheet("electronic sensor")!.getCell(8, 1).value ?? null).toBeNull();
+    expect(out.getWorksheet("electronic sensor")!.getCell(9, 1).value).toBe("SNS-001");
+    expect(out.getWorksheet("electronic sensor")!.getCell(10, 1).value ?? null).toBeNull();
 
     // No cross-contamination: the contactor tab does not contain the sensor or enclosure, etc.
     const contactorRow1Values = [
-      out.getWorksheet("contactor a. fuses")!.getCell(8, 1).value,
-      out.getWorksheet("contactor a. fuses")!.getCell(9, 1).value
+      out.getWorksheet("contactor a. fuses")!.getCell(9, 1).value,
+      out.getWorksheet("contactor a. fuses")!.getCell(10, 1).value
     ];
     expect(contactorRow1Values).not.toContain("ENC-001");
     expect(contactorRow1Values).not.toContain("SNS-001");
@@ -5326,6 +5377,7 @@ describe("PDT exporter sheet lookup", () => {
 
     const items = knownDeviceTypes().map((deviceType, index) => {
       for (const sheetName of deviceSheetsFor(deviceType)) {
+        if (sheetName === "cabinet.mechanical") continue;
         expectedCounts.set(sheetName, (expectedCounts.get(sheetName) ?? 0) + 1);
       }
       const catalogNumber = `TYPE-${String(index + 1).padStart(3, "0")}`;
@@ -5353,8 +5405,8 @@ describe("PDT exporter sheet lookup", () => {
 
     const out = new ExcelJS.Workbook();
     await out.xlsx.readFile(outputPath);
-    expect(out.getWorksheet("Material Master Data")!.getCell(10, 2).value).toBe("TYPE-001");
-    expect(out.getWorksheet("Material Master Data")!.getCell(9 + items.length, 2).value).toBe(
+    expect(out.getWorksheet("Material Master Data")!.getCell(11, 2).value).toBe("TYPE-001");
+    expect(out.getWorksheet("Material Master Data")!.getCell(10 + items.length, 2).value).toBe(
       `TYPE-${String(items.length).padStart(3, "0")}`
     );
   });
@@ -5369,6 +5421,7 @@ describe("PDT exporter sheet lookup", () => {
     const items = knownDeviceTypes().map((deviceType, index) => {
       const catalogNumber = `REAL-${String(index + 1).padStart(3, "0")}`;
       for (const sheetName of deviceSheetsFor(deviceType)) {
+        if (sheetName === "cabinet.mechanical") continue;
         expectedCounts.set(sheetName, (expectedCounts.get(sheetName) ?? 0) + 1);
         const catalogs = expectedCatalogsBySheet.get(sheetName) ?? [];
         catalogs.push(catalogNumber);
@@ -5400,6 +5453,7 @@ describe("PDT exporter sheet lookup", () => {
       "Additional Documents",
       "Connection Point Information",
       "Product Accessory",
+      "cabinet.mechanical",
       ...expectedCounts.keys()
     ]);
     expect(new Set(result.keptSheets)).toEqual(expectedKeptSheets);
@@ -5408,8 +5462,8 @@ describe("PDT exporter sheet lookup", () => {
     const out = new ExcelJS.Workbook();
     await out.xlsx.readFile(outputPath);
     const materialOut = out.getWorksheet("Material Master Data")!;
-    expect(materialOut.getRow(10).values).toContain("REAL-001");
-    expect(materialOut.getRow(9 + items.length).values).toContain(`REAL-${String(items.length).padStart(3, "0")}`);
+    expect(materialOut.getRow(11).values).toContain("REAL-001");
+    expect(materialOut.getRow(10 + items.length).values).toContain(`REAL-${String(items.length).padStart(3, "0")}`);
 
     const allCatalogs = items.map((item) => item.catalogNumber);
     for (const [sheetName, expectedCatalogs] of expectedCatalogsBySheet) {
@@ -5526,7 +5580,6 @@ describe("PDT exporter sheet lookup", () => {
       ["power supply devices", ["1769-PB4"]],
       ["cabinet.airconditioning", ["SCE-AC3400B120V"]],
       ["connector", ["P-P11R2-K3RF0-U450"]],
-      ["cabinet.mechanical", ["SCE-SSCLEAN"]],
       // ABB 1SDA accessory-like articles are forced to "contactor a. fuses"; explicit product
       // types like Busbar keep their semantic PDT tab.
       ["contactor a. fuses", ["1SDA124715R1", "1SDA126387R1", "1140-E"]],
@@ -5832,19 +5885,19 @@ describe("Additional Documents PDT sheet", () => {
     expect(writeDocumentsSheet(ws, [first, second])).toBe(4);
     expect(ws.getCell(1, 1).value).toBeNull();
     expect(ws.getCell(4, 1).value).toBe("Articlenumber");
-    expect(ws.getCell(7, 1).value).toBe("1SBL347060R1100");
-    expect(ws.getCell(7, 2).value).toBe(1);
-    expect(ws.getCell(7, 4).value).toEqual({
+    expect(ws.getCell(8, 1).value).toBe("1SBL347060R1100");
+    expect(ws.getCell(8, 2).value).toBe(1);
+    expect(ws.getCell(8, 4).value).toEqual({
       text: "https://new.abb.com/products/1SBL347060R1100",
       hyperlink: "https://new.abb.com/products/1SBL347060R1100"
     });
-    expect(ws.getCell(8, 4).value).toEqual({
+    expect(ws.getCell(9, 4).value).toEqual({
       text: "https://new.abb.com/products/de/1SBL347060R1100",
       hyperlink: "https://new.abb.com/products/de/1SBL347060R1100"
     });
-    expect(ws.getCell(8, 5).value).toBe("german");
-    expect(ws.getCell(9, 1).value).toBeNull();
-    expect(ws.getCell(10, 1).value).toBe("1SBL347060R1200");
+    expect(ws.getCell(9, 5).value).toBe("german");
+    expect(ws.getCell(10, 1).value).toBeNull();
+    expect(ws.getCell(11, 1).value).toBe("1SBL347060R1200");
   });
 
   it("uses scraped ABB product URLs in Additional Documents when the scraper found the specific page", () => {
@@ -5864,11 +5917,11 @@ describe("Additional Documents PDT sheet", () => {
     ).item;
 
     expect(writeDocumentsSheet(ws, [item])).toBe(2);
-    expect(ws.getCell(7, 1).value).toBe("AC522");
-    expect(ws.getCell(7, 4).value).toEqual({ text: productUrl, hyperlink: productUrl });
-    expect(ws.getCell(7, 5).value).toBe("english");
-    expect(ws.getCell(8, 4).value).toEqual({ text: germanUrl, hyperlink: germanUrl });
-    expect(ws.getCell(8, 5).value).toBe("german");
+    expect(ws.getCell(8, 1).value).toBe("AC522");
+    expect(ws.getCell(8, 4).value).toEqual({ text: productUrl, hyperlink: productUrl });
+    expect(ws.getCell(8, 5).value).toBe("english");
+    expect(ws.getCell(9, 4).value).toEqual({ text: germanUrl, hyperlink: germanUrl });
+    expect(ws.getCell(9, 5).value).toBe("german");
   });
 
   it("uses official ABB CP6610 datasheet and family page in Additional Documents", () => {
@@ -5882,7 +5935,7 @@ describe("Additional Documents PDT sheet", () => {
     ).item;
 
     expect(writeDocumentsSheet(ws, [item])).toBe(2);
-    const urls = [ws.getCell(7, 4).value, ws.getCell(8, 4).value].map((value) =>
+    const urls = [ws.getCell(8, 4).value, ws.getCell(9, 4).value].map((value) =>
       typeof value === "object" && value && "hyperlink" in value ? value.hyperlink : String(value)
     );
     expect(urls).toEqual([
@@ -5918,11 +5971,11 @@ describe("Additional Documents PDT sheet", () => {
     ).item;
 
     expect(writeDocumentsSheet(ws, [item])).toBe(2);
-    expect(ws.getCell(7, 4).value).toEqual({ text: pdfUrl, hyperlink: pdfUrl });
-    expect(ws.getCell(7, 5).value).toBe("english");
-    expect(ws.getCell(8, 4).value).toEqual({ text: deUrl, hyperlink: deUrl });
-    expect(ws.getCell(8, 5).value).toBe("german");
-    expect(ws.getCell(8, 7).value).toBe("Datenblatt");
+    expect(ws.getCell(8, 4).value).toEqual({ text: pdfUrl, hyperlink: pdfUrl });
+    expect(ws.getCell(8, 5).value).toBe("english");
+    expect(ws.getCell(9, 4).value).toEqual({ text: deUrl, hyperlink: deUrl });
+    expect(ws.getCell(9, 5).value).toBe("german");
+    expect(ws.getCell(9, 7).value).toBe("Datenblatt");
   });
 
   it("writes English and German Rockwell product-page rows for 1444-DYN04", () => {
@@ -5942,11 +5995,11 @@ describe("Additional Documents PDT sheet", () => {
     ).item;
 
     expect(writeDocumentsSheet(ws, [item])).toBe(2);
-    expect(ws.getCell(7, 4).value).toEqual({ text: enUrl, hyperlink: enUrl });
-    expect(ws.getCell(7, 5).value).toBe("english");
-    expect(ws.getCell(8, 4).value).toEqual({ text: deUrl, hyperlink: deUrl });
-    expect(ws.getCell(8, 5).value).toBe("german");
-    expect(ws.getCell(8, 7).value).toBe("Datenblatt");
+    expect(ws.getCell(8, 4).value).toEqual({ text: enUrl, hyperlink: enUrl });
+    expect(ws.getCell(8, 5).value).toBe("english");
+    expect(ws.getCell(9, 4).value).toEqual({ text: deUrl, hyperlink: deUrl });
+    expect(ws.getCell(9, 5).value).toBe("german");
+    expect(ws.getCell(9, 7).value).toBe("Datenblatt");
   });
 
   it("uses scraped localized official URLs for manufacturers without PDT document rules", () => {
@@ -5964,17 +6017,17 @@ describe("Additional Documents PDT sheet", () => {
     ).item;
 
     expect(writeDocumentsSheet(ws, [item])).toBe(2);
-    expect(ws.getCell(7, 1).value).toBe("GEN-1");
-    expect(ws.getCell(7, 4).value).toEqual({
+    expect(ws.getCell(8, 1).value).toBe("GEN-1");
+    expect(ws.getCell(8, 4).value).toEqual({
       text: "https://example.test/en/products/GEN-1",
       hyperlink: "https://example.test/en/products/GEN-1"
     });
-    expect(ws.getCell(7, 5).value).toBe("english");
-    expect(ws.getCell(8, 4).value).toEqual({
+    expect(ws.getCell(8, 5).value).toBe("english");
+    expect(ws.getCell(9, 4).value).toEqual({
       text: "https://example.test/de/produkte/GEN-1",
       hyperlink: "https://example.test/de/produkte/GEN-1"
     });
-    expect(ws.getCell(8, 5).value).toBe("german");
+    expect(ws.getCell(9, 5).value).toBe("german");
   });
 
   it("adds the missing German Eaton document row when only an English direct PDF was scraped", () => {
@@ -5998,17 +6051,17 @@ describe("Additional Documents PDT sheet", () => {
     ).item;
 
     expect(writeDocumentsSheet(ws, [item])).toBe(2);
-    expect(ws.getCell(7, 4).value).toEqual({
+    expect(ws.getCell(8, 4).value).toEqual({
       text: "https://www.eaton.com/gb/en-gb/skuPage.142824.pdf",
       hyperlink: "https://www.eaton.com/gb/en-gb/skuPage.142824.pdf"
     });
-    expect(ws.getCell(7, 5).value).toBe("english");
-    expect(ws.getCell(8, 4).value).toEqual({
+    expect(ws.getCell(8, 5).value).toBe("english");
+    expect(ws.getCell(9, 4).value).toEqual({
       text: "https://www.eaton.com/de/de-de/skuPage.142824.pdf",
       hyperlink: "https://www.eaton.com/de/de-de/skuPage.142824.pdf"
     });
-    expect(ws.getCell(8, 5).value).toBe("german");
-    expect(ws.getCell(8, 7).value).toBe("Datenblatt");
+    expect(ws.getCell(9, 5).value).toBe("german");
+    expect(ws.getCell(9, 7).value).toBe("Datenblatt");
   });
 
   it("prefers direct Rockwell literature PDFs over product pages for unknown families", () => {
@@ -6042,20 +6095,20 @@ describe("Additional Documents PDT sheet", () => {
     ).item;
 
     expect(writeDocumentsSheet(ws, [item])).toBe(2);
-    expect(ws.getCell(7, 1).value).toBe("5094-IF8");
-    expect(ws.getCell(7, 3).value).toBe("pdf");
-    expect(ws.getCell(7, 4).value).toEqual({
+    expect(ws.getCell(8, 1).value).toBe("5094-IF8");
+    expect(ws.getCell(8, 3).value).toBe("pdf");
+    expect(ws.getCell(8, 4).value).toEqual({
       text: "https://literature.rockwellautomation.com/idc/groups/literature/documents/td/5094-td001_-en-p.pdf",
       hyperlink: "https://literature.rockwellautomation.com/idc/groups/literature/documents/td/5094-td001_-en-p.pdf"
     });
-    expect(ws.getCell(7, 5).value).toBe("english");
-    expect(ws.getCell(7, 7).value).toBe("Technical Datasheet (EN)");
-    expect(ws.getCell(8, 4).value).toEqual({
+    expect(ws.getCell(8, 5).value).toBe("english");
+    expect(ws.getCell(8, 7).value).toBe("Technical Datasheet (EN)");
+    expect(ws.getCell(9, 4).value).toEqual({
       text: "https://www.rockwellautomation.com/de-de/products/details.5094-IF8.html",
       hyperlink: "https://www.rockwellautomation.com/de-de/products/details.5094-IF8.html"
     });
-    expect(ws.getCell(8, 5).value).toBe("german");
-    expect(ws.getCell(8, 7).value).toBe("Datenblatt");
+    expect(ws.getCell(9, 5).value).toBe("german");
+    expect(ws.getCell(9, 7).value).toBe("Datenblatt");
   });
 
   it("uses direct Eaton skuPage PDFs from scraper documents without adding EP to the path", () => {
@@ -6078,20 +6131,20 @@ describe("Additional Documents PDT sheet", () => {
     ).item;
 
     expect(writeDocumentsSheet(ws, [item])).toBe(2);
-    expect(ws.getCell(7, 1).value).toBe("XSFH20");
-    expect(ws.getCell(7, 3).value).toBe("pdf");
-    expect(ws.getCell(7, 4).value).toEqual({
+    expect(ws.getCell(8, 1).value).toBe("XSFH20");
+    expect(ws.getCell(8, 3).value).toBe("pdf");
+    expect(ws.getCell(8, 4).value).toEqual({
       text: "https://www.eaton.com/gb/en-gb/skuPage.284245.pdf",
       hyperlink: "https://www.eaton.com/gb/en-gb/skuPage.284245.pdf"
     });
-    expect(String((ws.getCell(7, 4).value as { text: string }).text)).not.toContain("EP-284245");
-    expect(ws.getCell(7, 5).value).toBe("english");
-    expect(ws.getCell(7, 7).value).toBe("Datasheet(EN)");
-    expect(ws.getCell(8, 4).value).toEqual({
+    expect(String((ws.getCell(8, 4).value as { text: string }).text)).not.toContain("EP-284245");
+    expect(ws.getCell(8, 5).value).toBe("english");
+    expect(ws.getCell(8, 7).value).toBe("Datasheet(EN)");
+    expect(ws.getCell(9, 4).value).toEqual({
       text: "https://www.eaton.com/de/de-de/skuPage.284245.pdf",
       hyperlink: "https://www.eaton.com/de/de-de/skuPage.284245.pdf"
     });
-    expect(ws.getCell(8, 5).value).toBe("german");
-    expect(ws.getCell(8, 7).value).toBe("Datenblatt");
+    expect(ws.getCell(9, 5).value).toBe("german");
+    expect(ws.getCell(9, 7).value).toBe("Datenblatt");
   });
 });

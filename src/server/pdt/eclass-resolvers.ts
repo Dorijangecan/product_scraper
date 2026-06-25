@@ -1147,6 +1147,7 @@ function sanitizeSourceCertifications(raw: string | undefined): string | undefin
     ["CSA Listed", /\bCSA\s+Listed\b/i],
     ["CSA", /\bCSA\b/i],
     ["cULus", /\bcULus\b/i],
+    ["cURus", /\bcURus\b/i],
     ["c-UL-us", /\bc-?UL-?us\b/i],
     ["cUL", /\bcUL\b/i],
     ["IECEx", /\bIECEx\b/i],
@@ -1169,7 +1170,7 @@ function sanitizeSourceCertifications(raw: string | undefined): string | undefin
     ["VDE", /\bVDE\b/i],
     ["T\u00dcV", /\bT(?:\u00dc|U)V\b/i],
     ["DNV", /\bDNV\b/i],
-    ["Lloyd", /\bLloyd\b/i],
+    ["Lloyds", /\bLloyds?\b/i],
     ["BV", /\bBV\b/i],
     ["ABS", /\bABS\b/i],
     ["IEC", /\bIEC\b/i],
@@ -1188,7 +1189,9 @@ function sanitizeSourceCertifications(raw: string | undefined): string | undefin
     if (!matched) continue;
     if (!kept.includes(matched)) kept.push(matched);
   }
-  return kept.length ? kept.join(", ") : undefined;
+  const hasCombinedUlRecognition = kept.some((value) => /^(?:cULus|cURus|c-UL-us)$/i.test(value));
+  const filtered = hasCombinedUlRecognition ? kept.filter((value) => !/^(?:UL|UL Recognized)$/i.test(value)) : kept;
+  return filtered.length ? filtered.join(", ") : undefined;
 }
 
 function rockwellCertifications(ctx: ResolveContext): string | undefined {

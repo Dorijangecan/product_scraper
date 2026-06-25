@@ -57,6 +57,25 @@ describe("normalizer", () => {
     expect(normalized.certificates).toBe("UL Listed, UL Recognized, CSA Listed, CE, UKCA, KC, RCM, RINA");
   });
 
+  it("keeps certificate cells to recognized tokens instead of copied declaration prose", () => {
+    const normalized = normalizeFields(
+      [
+        {
+          name: "Certificates",
+          value:
+            "UL 508, UL Recognized, cULus, cURus, CSA, CE, Lloyds, described above is in conformity with the relevant Union harmonization legislation, of conformity is issued under the sole responsibility of the manufacturer., on this Certificate.",
+          sourceType: "official"
+        }
+      ],
+      []
+    );
+
+    expect(normalized.certificates).toBe("cULus, cURus, CSA, CE, Lloyds");
+    expect(normalized.certificates).not.toContain("described above");
+    expect(normalized.certificates).not.toContain("UL 508");
+    expect(normalized.certificates).not.toContain("UL Recognized");
+  });
+
   it("understands an operating temperature range into min/max", () => {
     const normalized = normalizeFields([{ name: "Operating temperature", value: "-40 to +80 °C" }], []);
     expect(normalized.operatingTemperatureMin).toBe("-40");

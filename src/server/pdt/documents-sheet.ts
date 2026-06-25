@@ -1,6 +1,6 @@
 import type ExcelJS from "exceljs";
 import type { DocumentRecord, RunItemRecord } from "../../shared/types.js";
-import { clearBody, describeSheet, type PdtColumn } from "./sheet-descriptor.js";
+import { clearBody, describeSheet, firstDataRow, type PdtColumn } from "./sheet-descriptor.js";
 import { localizedPdtDocumentUrlRules } from "./rules.js";
 
 function findCol(columns: PdtColumn[], match: (key: string) => boolean): number | undefined {
@@ -177,7 +177,7 @@ export function writeDocumentsSheet(ws: ExcelJS.Worksheet, items: RunItemRecord[
   if (!cols.article || !cols.path) return 0;
 
   clearBody(ws, descriptor.firstBodyRow);
-  let row = descriptor.firstBodyRow;
+  let row = firstDataRow(descriptor);
   let written = 0;
   const documentedItems = items
     .map((item) => ({ item, docs: documentRowsFor(item) }))
