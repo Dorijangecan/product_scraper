@@ -16,7 +16,7 @@ import { normalizePdtCellNumber } from "./unit-cleanup.js";
 import { writeProductAccessorySheet } from "./product-accessory-sheet.js";
 import { bestFact, buildPdtFactIndex, factsMatchingValue, type PdtFact, type PdtFactIndex } from "./facts.js";
 import { additionalPdtSheetsRule, pdtColumnAllowRule, pdtSheetOverrideRule } from "./rules.js";
-import { compactFamilyShortDescription } from "./description-formatting.js";
+import { compactFamilyShortDescription, isDecorativeAssetText } from "./description-formatting.js";
 
 const DOCUMENTS_SHEET = "Additional Documents";
 /** Always kept even when empty (the manual PDT keeps this tab as a placeholder). */
@@ -1047,7 +1047,7 @@ function resolveGermanDescriptionCell(column: PdtColumn, ctx: ResolveContext, fa
   const catalogNumber = ctx.item.catalogNumber;
   if (
     localizedFact &&
-    !decorativeAssetText(localizedFact.value) &&
+    !isDecorativeAssetText(localizedFact.value) &&
     !sameDescriptionText(localizedFact.value, catalogNumber) &&
     !sameDescriptionText(localizedFact.value, englishFact?.value)
   ) {
@@ -1055,7 +1055,7 @@ function resolveGermanDescriptionCell(column: PdtColumn, ctx: ResolveContext, fa
   }
   if (
     localizedLongFact &&
-    !decorativeAssetText(localizedLongFact.value) &&
+    !isDecorativeAssetText(localizedLongFact.value) &&
     !sameDescriptionText(localizedLongFact.value, catalogNumber) &&
     !sameDescriptionText(localizedLongFact.value, englishLongFact?.value)
   ) {
@@ -1085,7 +1085,7 @@ function resolveGermanDescriptionCell(column: PdtColumn, ctx: ResolveContext, fa
 
 function translateDescriptionToGerman(value: string | undefined): string | undefined {
   const source = cleanString(value);
-  if (!source || decorativeAssetText(source)) return undefined;
+  if (!source || isDecorativeAssetText(source)) return undefined;
   let translated = ` ${source} `;
   const replacements: Array<[RegExp, string]> = [
     [/\bfrom the official Eaton China product catalog\b/gi, "aus dem offiziellen Eaton China Produktkatalog"],
@@ -1177,10 +1177,6 @@ function sameDescriptionText(left: string | undefined, right: string | undefined
   const a = normalize(left);
   const b = normalize(right);
   return Boolean(a && b && a === b);
-}
-
-function decorativeAssetText(value: string | undefined): boolean {
-  return /(?:^|\s)\.cls-\d+\s*\{|[{;]\s*fill\s*:\s*#[0-9a-f]{3,6}\b|_AB_Logo\b|\bAB_Logo\b|\bsvg\b/i.test(value ?? "");
 }
 
 function factKeysForColumn(column: PdtColumn, ctx: ResolveContext): string[] {

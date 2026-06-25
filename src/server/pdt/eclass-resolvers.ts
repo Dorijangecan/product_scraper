@@ -1,6 +1,6 @@
 import type { ManufacturerConfig, ProductResult, RunItemRecord } from "../../shared/types.js";
 import type { PdtRepair } from "./ai-cleanup.js";
-import { compactFamilyShortDescription } from "./description-formatting.js";
+import { cleanProductDescription, compactFamilyShortDescription, isDecorativeAssetText } from "./description-formatting.js";
 import { eclassDefaultForDeviceType, isSignalDeviceType } from "./device-type-profiles.js";
 import { bestFact, buildPdtFactIndex, type PdtFact, type PdtFactIndex } from "./facts.js";
 import { iec81346IdentifierForDeviceType } from "./iec-identifiers.js";
@@ -65,13 +65,7 @@ function isProsePlaceholderValue(value: string): boolean {
 }
 
 function cleanDescriptionValue(value: string | undefined): string | undefined {
-  const cleaned = clean(value);
-  if (!cleaned || isDecorativeAssetText(cleaned)) return undefined;
-  return cleaned;
-}
-
-function isDecorativeAssetText(value: string): boolean {
-  return /(?:^|\s)\.cls-\d+\s*\{|[{;]\s*fill\s*:\s*#[0-9a-f]{3,6}\b|_AB_Logo\b|\bAB_Logo\b|\bsvg\b/i.test(value);
+  return cleanProductDescription(value);
 }
 
 /** First attribute whose name (or group) matches `pattern`, preferring official sources. */

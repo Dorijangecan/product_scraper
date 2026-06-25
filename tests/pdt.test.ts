@@ -510,6 +510,66 @@ describe("eclass resolvers", () => {
     expect(resolveProperty("BAA020", "BAA020", c)).toBe("106");
   });
 
+  it("does not write Rockwell SVG/CSS asset text into PDT description cells", async () => {
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-pdt-rockwell-1444-desc-"));
+    const templatePath = path.join(dir, "template.xlsx");
+    const outputPath = path.join(dir, "out.xlsx");
+    const wb = new ExcelJS.Workbook();
+    const material = wb.addWorksheet("Material Master Data");
+    material.getCell(2, 2).value = "Description DE";
+    material.getCell(2, 3).value = "Description DE";
+    material.getCell(2, 4).value = "Description EN";
+    material.getCell(2, 5).value = "Description EN";
+    material.getCell(6, 1).value = "ECLASS property";
+    material.getCell(7, 1).value = "Variable name (CNS internal)";
+    material.getCell(8, 1).value = "English variable description";
+    material.getCell(9, 1).value = "Units";
+    material.getCell(6, 2).value = "CNS_DESCRIPTION_LONG / AAU734";
+    material.getCell(7, 2).value = "CNS_DESCRIPTION_LONG";
+    material.getCell(8, 2).value = "Product description long";
+    material.getCell(6, 3).value = "CNS_DESCRIPTION_SHORT";
+    material.getCell(7, 3).value = "CNS_DESCRIPTION_SHORT";
+    material.getCell(8, 3).value = "Product description short";
+    material.getCell(6, 4).value = "CNS_DESCRIPTION_LONG / AAU734";
+    material.getCell(7, 4).value = "CNS_DESCRIPTION_LONG";
+    material.getCell(8, 4).value = "Product description long";
+    material.getCell(6, 5).value = "CNS_DESCRIPTION_SHORT";
+    material.getCell(7, 5).value = "CNS_DESCRIPTION_SHORT";
+    material.getCell(8, 5).value = "Product description short";
+    wb.addWorksheet("Additional Documents");
+    await wb.xlsx.writeFile(templatePath);
+
+    const noisy = ".cls-1 { fill: #003e7e; } .cls-2 { fill: #6d6e71; } 2019_AB_Logo";
+    const item = ctx(
+      {
+        manufacturerId: "rockwell",
+        title: noisy,
+        description: noisy,
+        localizedDescriptions: { de: { title: noisy, description: noisy } },
+        attributes: [{ group: "Header asset", name: "Product Type", value: noisy, sourceType: "official" }]
+      },
+      "1444-DYN04-01RA"
+    ).item;
+
+    await exportRunPdt({
+      manufacturer: { ...manufacturer, id: "rockwell", canonicalName: "Rockwell Automation" } as ManufacturerConfig,
+      items: [item],
+      templatePath,
+      outputPath
+    });
+
+    const out = new ExcelJS.Workbook();
+    await out.xlsx.readFile(outputPath);
+    const ws = out.getWorksheet("Material Master Data")!;
+    expect(ws.getCell(10, 2).value).toBe("Dynamic Measurement Modul");
+    expect(ws.getCell(10, 3).value).toBe("Dynamic Measurement Modul");
+    expect(ws.getCell(10, 4).value).toBe("Dynamic Measurement Module");
+    expect(ws.getCell(10, 5).value).toBe("Dynamic Measurement Module");
+
+    const writtenText = (ws.getRow(10).values as ExcelJS.CellValue[]).map((value) => String(value ?? "")).join(" ");
+    expect(writtenText).not.toMatch(/\.cls-\d+|fill\s*:\s*#|AB_Logo/i);
+  });
+
   it("uses net dimensions and ignores packaging dimensions", () => {
     const c = ctx({
       attributes: [

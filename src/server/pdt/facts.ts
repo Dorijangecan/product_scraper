@@ -3,7 +3,7 @@ import { getManufacturerConfig } from "../config/manufacturers.js";
 import { matchProperty, understand } from "../scrapers/ontology.js";
 import { normalizeFields } from "../scrapers/normalizer.js";
 import type { PdtRepair } from "./ai-cleanup.js";
-import { compactFamilyShortDescription } from "./description-formatting.js";
+import { cleanProductDescription, compactFamilyShortDescription, isDecorativeAssetText } from "./description-formatting.js";
 import { isSignalDeviceType, soleEclassDefaultForDeviceType } from "./device-type-profiles.js";
 import { pdtProductUrlRule } from "./rules.js";
 import { splitTemperatureRange } from "./unit-cleanup.js";
@@ -159,8 +159,8 @@ export function buildPdtFactIndex(input: PdtFactInput): PdtFactIndex {
     "product-description",
     "Product description selected by the scraper and normalized for PDT import."
   );
-  addGenerated(facts, "localizedShortDescriptionDe", result.localizedDescriptions?.de?.title, "localized-product-title", "German product title scraped from localized page.");
-  addGenerated(facts, "localizedLongDescriptionDe", result.localizedDescriptions?.de?.description, "localized-product-description", "German product description scraped from localized page.");
+  addGenerated(facts, "localizedShortDescriptionDe", safeDescription(result.localizedDescriptions?.de?.title, input.item.catalogNumber), "localized-product-title", "German product title scraped from localized page.");
+  addGenerated(facts, "localizedLongDescriptionDe", safeDescription(result.localizedDescriptions?.de?.description, input.item.catalogNumber), "localized-product-description", "German product description scraped from localized page.");
 
   addNormalized(facts, result, "weight", result.normalized.weight);
   addNormalized(facts, result, "dimensions", result.normalized.dimensions);
@@ -1108,7 +1108,7 @@ function knownPdtDescription(result: ProductResult, catalogNumber: string): { sh
 function repairShortDescription(input: PdtFactInput): string | undefined {
   const known = input.item.result ? knownPdtDescription(input.item.result, input.item.catalogNumber)?.short : undefined;
   if (known) return known;
-  const value = input.repair?.shortDescription;
+  const value = cleanProductDescription(input.repair?.shortDescription, input.item.catalogNumber);
   if (!value) return undefined;
   return compactFamilyShortDescription(value) ?? value;
 }
@@ -1116,20 +1116,13 @@ function repairShortDescription(input: PdtFactInput): string | undefined {
 function repairLongDescription(input: PdtFactInput): string | undefined {
   const known = input.item.result ? knownPdtDescription(input.item.result, input.item.catalogNumber)?.long : undefined;
   if (known) return known;
-  const value = input.repair?.longDescription;
+  const value = cleanProductDescription(input.repair?.longDescription, input.item.catalogNumber);
   if (!value) return undefined;
   return value;
 }
 
 function safeDescription(value: string | undefined, catalogNumber: string): string | undefined {
-  const cleaned = clean(value);
-  if (!cleaned) return undefined;
-  if (isDecorativeAssetText(cleaned)) return undefined;
-  return comparableValue(cleaned) === comparableValue(catalogNumber) ? undefined : cleaned;
-}
-
-function isDecorativeAssetText(value: string): boolean {
-  return /(?:^|\s)\.cls-\d+\s*\{|[{;]\s*fill\s*:\s*#[0-9a-f]{3,6}\b|_AB_Logo\b|\bAB_Logo\b|\bsvg\b/i.test(value);
+  return cleanProductDescription(value, catalogNumber);
 }
 
 function betterLongDescription(result: ProductResult, current: string | undefined, catalogNumber: string): string | undefined {
