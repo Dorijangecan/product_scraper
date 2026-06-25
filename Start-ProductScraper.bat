@@ -8,19 +8,24 @@ title Product Scraper
 if not defined PDT_AI_CLEANUP set "PDT_AI_CLEANUP=0"
 
 set "PROJECT_NODE_DIR=%~dp0.runtime\node"
+set "NODE_DIR="
+
+:: Provjeri je li Node.js instaliran. NAJPRIJE pogledamo PATH (najlaksi slucaj).
+:: Ako postoji sistemski Node, preferiramo njega jer su node_modules/native moduli
+:: najcesce instalirani upravo tom verzijom. Lokalni .runtime je fallback za portable
+:: pokretanje bez Node.js instalacije.
+where node >nul 2>&1
+if not errorlevel 1 goto :system_node_found
+
 if exist "%PROJECT_NODE_DIR%\node.exe" (
     set "PATH=%PROJECT_NODE_DIR%;%PATH%"
     goto :node_ok
 )
 
-:: Provjeri je li Node.js instaliran. NAJPRIJE pogledamo PATH (najlaksi slucaj).
 :: Ako PATH ne radi (npr. user instalirao Node ali nije se relogovao, ili je PATH
 :: nekako "ocistio"), rucno trazimo node.exe na uobicajenim mjestima i dodajemo
 :: ga u PATH samo za ovu sesiju. Tako se Start-ProductScraper.bat NIKAD ne zali
 :: na "Node nije instaliran" ako je Node fizicki tu.
-set "NODE_DIR="
-where node >nul 2>&1
-if not errorlevel 1 goto :system_node_found
 
 :: NAPOMENA: ne koristimo FOR loop jer "%ProgramFiles(x86)%" sadrzi ")" sto bi
 :: pokvarilo zatvaranje petlje. Provjeravamo svaku lokaciju zasebno.
@@ -62,7 +67,7 @@ set "PATH=!NODE_DIR!;%PATH%"
 :system_node_found
 set "NODE_MAJOR="
 for /f %%V in ('node -p "process.versions.node.split(String.fromCharCode(46))[0]" 2^>nul') do set "NODE_MAJOR=%%V"
-if not "!NODE_MAJOR!"=="20" if not "!NODE_MAJOR!"=="22" goto :install_project_node
+if not "!NODE_MAJOR!"=="20" if not "!NODE_MAJOR!"=="22" if not "!NODE_MAJOR!"=="24" goto :install_project_node
 
 :node_ok
 :: Provjeri da node stvarno radi

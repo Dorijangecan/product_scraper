@@ -135,6 +135,14 @@ async function startServer(port) {
 }
 
 function getServerRuntime() {
+  // When launched through npm, prefer the same Node executable that installed
+  // node_modules. Native packages such as better-sqlite3 are ABI-bound to that
+  // Node version; using the bundled fallback runtime first can make desktop
+  // startup fail with NODE_MODULE_VERSION mismatches.
+  if (process.env.npm_node_execpath && fs.existsSync(process.env.npm_node_execpath)) {
+    return { command: process.env.npm_node_execpath, args: [], env: {} };
+  }
+
   const projectNode = path.join(rootDir, ".runtime", "node", "node.exe");
   if (fs.existsSync(projectNode)) {
     return { command: projectNode, args: [], env: {} };
