@@ -551,8 +551,13 @@ function cleanProductTitle($: cheerio.CheerioAPI): string {
 function isBlockedOrErrorPage(fetched: FetchedText, title: string): boolean {
   if (fetched.statusCode >= 400) return true;
   const compactTitle = cleanText(title).toLowerCase();
-  if (/^(just a moment|access denied|attention required|forbidden|not found)$/i.test(compactTitle)) return true;
-  return /cf-browser-verification|challenge-platform|cf-challenge|cdn-cgi\/challenge-platform/i.test(fetched.text);
+  if (/^(just a moment|access denied|attention required|forbidden|not found|are you a robot|verify you are human)$/i.test(compactTitle)) return true;
+  // Bot-wall / anti-automation challenge markers. Returning true here makes the generic parser
+  // emit an empty result, so the quality gate fails and the pipeline escalates to the browser
+  // renderer instead of mistaking the challenge HTML for product data.
+  if (/cf-browser-verification|challenge-platform|cf-challenge|cdn-cgi\/challenge-platform/i.test(fetched.text)) return true;
+  const challengeText = cleanText(fetched.text).slice(0, 4000).toLowerCase();
+  return /\b(?:verify you are human|are you a robot|enable javascript (?:and cookies )?to continue|please complete the (?:security|captcha) check|request (?:was )?blocked|unusual traffic from your|access to this page has been denied|px-captcha|hcaptcha|g-recaptcha)\b/i.test(challengeText);
 }
 
 function extractCatalogIdentityAttributes($: cheerio.CheerioAPI, catalogNumber: string, sourceUrl: string): AttributeRecord[] {

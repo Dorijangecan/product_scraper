@@ -3640,7 +3640,40 @@ export function resolveProperty(code: string, propName: string, ctx: ResolveCont
       if (value !== undefined && value !== "") return value;
     }
   }
+  // Robust colour fallback: any column whose NAME denotes a colour ("Colour", "Color",
+  // "Colour of housing", "Farbe", …) resolves from the scraped colour/finish even when its
+  // specific ECLASS code has no dedicated resolver. Without this, a colour clearly present on
+  // the page silently drops out of PDT colour columns that happen to use an unmapped code.
+  // Look-alikes (colour temperature, number of colours, colour code/space/depth/detection,
+  // colour rendering index) are excluded so they are never mis-filled with a colour name.
+  if (isColourPropertyName(propName)) {
+    const fallback = canonicalColour(housingColorValue(ctx));
+    if (fallback !== undefined && fallback !== "") return fallback;
+  }
   return undefined;
+}
+
+function isColourPropertyName(propName: string): boolean {
+  if (!/\bcolou?r\b|\bfarbe\b/i.test(propName)) return false;
+  return !/\b(temp|temperature|number|amount|count|shade|code|space|depth|detection|procedure|rendering|index|resolution)\b/i.test(propName);
+}
+
+/**
+ * Reduce a scraped colour/finish phrase to a clean colour token for a PDT colour cell, so the
+ * cell shows "gray" rather than "ANSI-61 gray powder coat inside and out…" regardless of how the
+ * source page phrased it. Falls back to the original string (never empty when a colour exists).
+ */
+function canonicalColour(value: string | undefined): string | undefined {
+  if (!value) return undefined;
+  const text = value.toLowerCase();
+  if (/\bansi[-\s]?61\b/.test(text) || /\bgr[ae]y\b/.test(text)) return "gray";
+  const ral = value.match(/\bRAL\s*(\d{3,4})\b/i);
+  if (ral) return `RAL ${ral[1]}`;
+  const word = text.match(/\b(black|white|red|blue|green|yellow|orange|silver|beige|cream|brown|natural|clear|transparent)\b/);
+  if (word) return word[1];
+  if (/\bstainless steel\b/.test(text)) return "stainless steel";
+  if (/\balumin(?:i?um)\b/.test(text)) return "aluminum";
+  return value.trim() || undefined;
 }
 
 export function hasPropertyResolver(code: string, propName: string): boolean {

@@ -17,7 +17,8 @@ službene izvore, deterministički normalizira atribute, ocjenjuje kvalitetu i i
 **Stack:** TypeScript (ESM, `"type":"module"`) · Node + **Express 5** · **React 19 + Vite** · **Electron**
 · **better-sqlite3** · **Playwright** · ExcelJS / csv-parse / pdf-parse / sharp · **Vitest**.
 Sve lokalno na `127.0.0.1:3001`, bez cloud key-a. Runtime LLM (PDT AI cleanup) je opt-in
-(`PDT_AI_CLEANUP=1`, lokalni Ollama/Qwen). Princip: vrijednosti dolaze iz izvora — **nepoznato se ne pogađa**.
+(`PDT_AI_CLEANUP=1`, lokalni Ollama/Qwen). Reader fallback (r.jina.ai — šalje URL trećoj strani) je
+također opt-in: `PRODUCT_SCRAPER_ALLOW_EXTERNAL_READER=1`. Princip: vrijednosti dolaze iz izvora — **nepoznato se ne pogađa**.
 
 ## 2. Struktura
 

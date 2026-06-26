@@ -152,12 +152,13 @@ export class BrowserRenderSession {
     const captured: FetchedText[] = [];
     const responseCaptures: Promise<void>[] = [];
     const networkDiagnostics: BrowserNetworkRecord[] = [];
+    const captureState = createNetworkCaptureState();
     let page: PageLike | undefined;
     try {
       const context = await this.ensureContext();
       page = await context.newPage();
       page.on("response", (response) => {
-        responseCaptures.push(captureResponse(response, captured, networkDiagnostics, signal));
+        responseCaptures.push(captureResponse(response, captured, networkDiagnostics, captureState, signal));
       });
       const blockedResourceTypes = new Set(recipe?.interactionPolicy?.blockResourceTypes ?? []);
       if (blockedResourceTypes.size > 0) {
@@ -263,12 +264,13 @@ export class BrowserRenderSession {
     const responseCaptures: Promise<void>[] = [];
     const networkDiagnostics: BrowserNetworkRecord[] = [];
     const sectionFragments: Array<{ label: string; html: string }> = [];
+    const captureState = createNetworkCaptureState();
     let page: PageLike | undefined;
     try {
       const context = await this.ensureContext();
       page = await context.newPage();
       page.on("response", (response) => {
-        responseCaptures.push(captureResponse(response, captured, networkDiagnostics, signal));
+        responseCaptures.push(captureResponse(response, captured, networkDiagnostics, captureState, signal));
       });
       const response = await page.goto(url, { waitUntil: "domcontentloaded", timeout: 45000 });
       await page.waitForLoadState("networkidle", { timeout: Math.min(recipe?.interactionPolicy?.networkIdleTimeoutMs ?? 3000, 3000) }).catch(() => undefined);
@@ -613,13 +615,33 @@ async function scrollToBottom(page: PageLike, passes: number, signal?: AbortSign
   }
 }
 
+/**
+ * Mutable capture budget shared across all `captureResponse` calls for one render.
+ * Network responses arrive in chronological order, but the product/document API payload
+ * we actually want often fires LATE (after analytics, ads, tracking pixels). A plain
+ * "stop after N bodies" FIFO cap would silently drop that late payload. So we split the
+ * budget: low-value bodies (html/text/search-api) are capped early, while high-value
+ * product-api/document-api bodies are always captured up to a higher total ceiling.
+ */
+interface NetworkCaptureState {
+  lowValue: number;
+}
+
+const TOTAL_BODY_CAP = 60;
+const LOW_VALUE_BODY_CAP = 30;
+
+function createNetworkCaptureState(): NetworkCaptureState {
+  return { lowValue: 0 };
+}
+
 async function captureResponse(
   response: ResponseLike,
   captured: FetchedText[],
   diagnostics: BrowserNetworkRecord[],
+  state: NetworkCaptureState,
   signal?: AbortSignal
 ): Promise<void> {
-  if (signal?.aborted || captured.length >= 40) return;
+  if (signal?.aborted || captured.length >= TOTAL_BODY_CAP) return;
   try {
     const headers = await response.headers();
     const contentType = headers["content-type"] ?? "";
@@ -632,8 +654,13 @@ async function captureResponse(
       category
     });
     if (!shouldCaptureNetworkBody(url, contentType, category)) return;
+    // Reserve capacity for the payloads that actually carry specs/documents so a late
+    // product-api response is never crowded out by earlier low-value html/text bodies.
+    const highValue = category === "product-api" || category === "document-api";
+    if (!highValue && state.lowValue >= LOW_VALUE_BODY_CAP) return;
     const text = await response.text();
     if (!text.trim() || text.length > 750_000) return;
+    if (!highValue) state.lowValue += 1;
     captured.push({
       requestedUrl: url,
       effectiveUrl: url,

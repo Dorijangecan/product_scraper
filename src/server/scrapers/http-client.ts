@@ -23,7 +23,15 @@ export interface FetchedText {
 export class CachedHttpClient {
   private readonly hostQueues = new Map<string, Promise<void>>();
   private readonly hostNextAvailable = new Map<string, number>();
+  /**
+   * Self-tuning politeness: extra delay added on top of `hostMinIntervalMs` for a specific
+   * host. Grows (exponentially) every time the host answers 429/503 and decays back toward
+   * zero on healthy responses, so a run that starts hammering a rate-limiting host slows down
+   * automatically instead of cascading into a wall of `failed` items.
+   */
+  private readonly hostPenaltyMs = new Map<string, number>();
   private hostMinIntervalMs = 350;
+  private static readonly MAX_HOST_PENALTY_MS = 10000;
 
   constructor(
     private readonly db: ScraperDb,
@@ -34,15 +42,38 @@ export class CachedHttpClient {
     this.hostMinIntervalMs = Math.max(0, ms);
   }
 
-  private async acquireHostSlot(url: string): Promise<void> {
-    if (this.hostMinIntervalMs <= 0) return;
+  /**
+   * Feed an observed response status back into the adaptive per-host throttle. 429/503 grow
+   * the host penalty; any healthy (<400) response decays it. Called for every fetch/download
+   * response so all hosts benefit, not just the ones with a dedicated connector.
+   */
+  private recordHostThrottleSignal(url: string, statusCode: number) {
     let host: string;
     try {
       host = new URL(url).hostname.toLowerCase();
     } catch {
       return;
     }
-    const interval = this.hostMinIntervalMs;
+    const current = this.hostPenaltyMs.get(host) ?? 0;
+    if (statusCode === 429 || statusCode === 503) {
+      const grown = current === 0 ? 1000 : current * 2;
+      this.hostPenaltyMs.set(host, Math.min(grown, CachedHttpClient.MAX_HOST_PENALTY_MS));
+    } else if (statusCode < 400 && current > 0) {
+      const decayed = Math.floor(current / 2);
+      if (decayed < 250) this.hostPenaltyMs.delete(host);
+      else this.hostPenaltyMs.set(host, decayed);
+    }
+  }
+
+  private async acquireHostSlot(url: string): Promise<void> {
+    let host: string;
+    try {
+      host = new URL(url).hostname.toLowerCase();
+    } catch {
+      return;
+    }
+    const interval = this.hostMinIntervalMs + (this.hostPenaltyMs.get(host) ?? 0);
+    if (interval <= 0) return;
     const previous = this.hostQueues.get(host) ?? Promise.resolve();
     const next = previous.then(async () => {
       const earliest = this.hostNextAvailable.get(host) ?? 0;
@@ -284,8 +315,9 @@ $contentType = if ($response.Headers['Content-Type']) { [string]$response.Header
           signal: request.signal
         });
         const text = await response.text();
-        if (response.status >= 500 && attempt < maxAttempts) {
-          await delay(retryBackoffMs * attempt, options.signal);
+        this.recordHostThrottleSignal(url, response.status);
+        if (isRetryableStatus(response.status) && attempt < maxAttempts) {
+          await delay(retryDelayMs(response, retryBackoffMs, attempt), options.signal);
           continue;
         }
         return { response, text };
@@ -432,8 +464,9 @@ $contentType = if ($response.Headers['Content-Type']) { [string]$response.Header
           signal: request.signal
         });
         const buffer = Buffer.from(await response.arrayBuffer());
-        if (response.status >= 500 && attempt < maxAttempts) {
-          await delay(750 * attempt, options.signal);
+        this.recordHostThrottleSignal(url, response.status);
+        if (isRetryableStatus(response.status) && attempt < maxAttempts) {
+          await delay(retryDelayMs(response, 750, attempt), options.signal);
           continue;
         }
         return { response, buffer };
@@ -451,47 +484,39 @@ $contentType = if ($response.Headers['Content-Type']) { [string]$response.Header
     throw lastError instanceof Error ? lastError : new Error("Download failed");
   }
 
-  private async fetchWithRetry(
-    url: string,
-    options: {
-      method: "GET" | "POST";
-      body?: URLSearchParams | string;
-      headers: Record<string, string>;
-      timeoutMs: number;
-      signal?: AbortSignal;
-    }
-  ): Promise<Response> {
-    let lastError: unknown;
-    const maxAttempts = 2;
-    for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
-      throwIfAborted(options.signal);
-      const request = createRequestAbort(options.timeoutMs, options.signal);
-      try {
-        const response = await fetch(url, {
-          method: options.method,
-          body: options.body,
-          headers: options.headers,
-          redirect: "follow",
-          signal: request.signal
-        });
-        if (response.status >= 500 && attempt < maxAttempts) {
-          await delay(750 * attempt, options.signal);
-          continue;
-        }
-        return response;
-      } catch (error) {
-        if (options.signal?.aborted) throw new Error("Cancelled by user.");
-        lastError = error;
-        if (attempt < maxAttempts) {
-          await delay(750 * attempt, options.signal);
-          continue;
-        }
-      } finally {
-        request.cleanup();
-      }
-    }
-    throw lastError instanceof Error ? lastError : new Error("Fetch failed");
-  }
+}
+
+/**
+ * Retry on transient server / rate-limit statuses. 429 (Too Many Requests) and 503 (Service
+ * Unavailable) are explicitly included alongside 5xx and 408 so a polite backoff kicks in for
+ * EVERY fetch, not just the connectors (ABB/Schneider) that special-case them by hand.
+ */
+export function isRetryableStatus(status: number): boolean {
+  return status === 408 || status === 429 || status >= 500;
+}
+
+/**
+ * Backoff for a retryable response: honor a server-sent `Retry-After` (seconds or HTTP date)
+ * when present, otherwise exponential backoff with jitter. Capped so a misbehaving header
+ * can't stall a run for minutes.
+ */
+function retryDelayMs(response: Response, baseBackoffMs: number, attempt: number): number {
+  const MAX_RETRY_DELAY_MS = 30000;
+  const retryAfter = parseRetryAfterMs(response);
+  if (retryAfter !== undefined) return Math.min(retryAfter, MAX_RETRY_DELAY_MS);
+  const exponential = baseBackoffMs * attempt;
+  const jitter = Math.floor(exponential * 0.25 * ((attempt * 2654435761) % 1000) / 1000);
+  return Math.min(exponential + jitter, MAX_RETRY_DELAY_MS);
+}
+
+export function parseRetryAfterMs(response: Response): number | undefined {
+  const header = response.headers.get("retry-after");
+  if (!header) return undefined;
+  const seconds = Number(header);
+  if (Number.isFinite(seconds)) return Math.max(0, seconds * 1000);
+  const dateMs = Date.parse(header);
+  if (Number.isFinite(dateMs)) return Math.max(0, dateMs - Date.now());
+  return undefined;
 }
 
 function hash(input: string): string {

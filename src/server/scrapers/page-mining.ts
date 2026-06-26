@@ -154,7 +154,9 @@ function mineHiddenDom(
     "[class*='drawer' i]",
     "[class*='modal' i]"
   ];
-  $(selectors.join(",")).slice(0, 250).each((_, element) => {
+  const hidden = $(selectors.join(","));
+  if (hidden.length > 250) signals.add("capped:hidden-dom");
+  hidden.slice(0, 250).each((_, element) => {
     const text = cleanText($(element).text());
     if (!text || text.length < 8) return;
     signals.add("hidden-dom");
@@ -174,7 +176,9 @@ function mineDataAttributes(
   pushDocument: (url: string | undefined, label: string, context?: string) => void,
   signals: Set<string>
 ) {
-  $("*").slice(0, 4000).each((_, element) => {
+  const allElements = $("*");
+  if (allElements.length > 4000) signals.add("capped:data-attributes");
+  allElements.slice(0, 4000).each((_, element) => {
     const attrs = (element as unknown as { attribs?: Record<string, string> }).attribs ?? {};
     const context = cleanText($(element).text()).slice(0, 500);
     for (const [name, value] of Object.entries(attrs)) {
@@ -228,7 +232,9 @@ function mineSemanticKeyValueShapes(
   pushAttribute: (group: string, name: string, value: string) => void,
   signals: Set<string>
 ) {
-  $("tr").slice(0, 1200).each((_, element) => {
+  const tableRows = $("tr");
+  if (tableRows.length > 1200) signals.add("capped:key-value-table");
+  tableRows.slice(0, 1200).each((_, element) => {
     const cells = $(element).find("th,td").map((__, cell) => cleanText($(cell).text())).get().filter(Boolean);
     if (cells.length >= 2) {
       signals.add("key-value-table");
@@ -280,17 +286,47 @@ function mineCatalogNeighborhood(
   const compactNeedle = catalogNumber.replace(/[^a-z0-9]/gi, "").toLowerCase();
   const compactHaystack = bodyText.replace(/[^a-z0-9]/gi, "").toLowerCase();
   if (!compactNeedle || !compactHaystack.includes(compactNeedle)) return;
-  const directIndex = bodyText.toLowerCase().indexOf(catalogNumber.toLowerCase());
-  const index = directIndex >= 0 ? directIndex : Math.max(0, Math.floor(bodyText.length / 2) - 1200);
-  const context = bodyText.slice(Math.max(0, index - 2000), Math.min(bodyText.length, index + 2500));
-  if (!catalogTextMatches(context, catalogNumber, { compact: true, ignoreCase: true, afterColon: true })) return;
-  signals.add("catalog-neighborhood");
-  for (const pair of textPairs(context).slice(0, 30)) {
-    pushAttribute("Catalog Neighborhood", pair.name, pair.value);
+  // The catalog number often appears multiple times (breadcrumb/title, comparison table,
+  // spec block). The first occurrence is frequently a heading with no specs next to it, so
+  // mine a window around EACH occurrence rather than only the first.
+  const occurrences = catalogOccurrenceIndices(bodyText, catalogNumber);
+  let processedWindowEnd = -1;
+  for (const index of occurrences) {
+    // Skip occurrences that fall inside the previous window — they would re-mine the same text.
+    if (index <= processedWindowEnd) continue;
+    const start = Math.max(0, index - 2000);
+    const end = Math.min(bodyText.length, index + 2500);
+    processedWindowEnd = end;
+    const context = bodyText.slice(start, end);
+    if (!catalogTextMatches(context, catalogNumber, { compact: true, ignoreCase: true, afterColon: true })) continue;
+    signals.add("catalog-neighborhood");
+    for (const pair of textPairs(context).slice(0, 30)) {
+      pushAttribute("Catalog Neighborhood", pair.name, pair.value);
+    }
+    for (const url of urlsFromText(context)) {
+      pushDocument(url, documentLabelFromContext(context, url), context);
+    }
   }
-  for (const url of urlsFromText(context)) {
-    pushDocument(url, documentLabelFromContext(context, url), context);
+}
+
+/**
+ * Returns the start indices of up to 6 occurrences of the catalog number in the body text.
+ * Falls back to a single mid-document window when the number is only present in compacted
+ * form (e.g. broken up by markup-stripped whitespace) so we still mine something.
+ */
+function catalogOccurrenceIndices(bodyText: string, catalogNumber: string): number[] {
+  const lowerBody = bodyText.toLowerCase();
+  const needle = catalogNumber.toLowerCase();
+  const indices: number[] = [];
+  let from = 0;
+  while (indices.length < 6) {
+    const found = lowerBody.indexOf(needle, from);
+    if (found < 0) break;
+    indices.push(found);
+    from = found + needle.length;
   }
+  if (indices.length) return indices;
+  return [Math.max(0, Math.floor(bodyText.length / 2) - 1200)];
 }
 
 function mineEmbeddedJson(
@@ -302,7 +338,9 @@ function mineEmbeddedJson(
   signals: Set<string>
 ) {
   const chunks: string[] = [];
-  $("script").slice(0, 250).each((_, element) => {
+  const scripts = $("script");
+  if (scripts.length > 250) signals.add("capped:embedded-json-scripts");
+  scripts.slice(0, 250).each((_, element) => {
     const type = String($(element).attr("type") ?? "");
     const id = String($(element).attr("id") ?? "");
     const text = $(element).html() ?? "";

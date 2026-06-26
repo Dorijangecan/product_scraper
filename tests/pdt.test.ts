@@ -6148,3 +6148,34 @@ describe("Additional Documents PDT sheet", () => {
     expect(ws.getCell(9, 7).value).toBe("Datenblatt");
   });
 });
+
+describe("colour property name fallback", () => {
+  it("resolves a colour column whose ECLASS code has no dedicated resolver from the scraped colour", () => {
+    const c = ctx({
+      normalized: { color: "ANSI-61 gray (optional sub-panels white)" }
+    });
+    // Unmapped ECLASS code, but the property name denotes a colour → resolves from normalized.color.
+    expect(resolveProperty("ZZ999999", "Colour", c)).toBe("gray");
+    expect(resolveProperty("ZZ999999", "Colour of housing", c)).toBe("gray");
+    expect(resolveProperty("ZZ999999", "Farbe", c)).toBe("gray");
+  });
+
+  it("derives the colour from the finish text when normalized.color is absent", () => {
+    const c = ctx({
+      normalized: { finish: "ANSI-61 gray powder coat inside and out." }
+    });
+    expect(resolveProperty("ZZ999999", "Colour", c)).toBe("gray");
+  });
+
+  it("never mis-fills colour look-alike columns", () => {
+    const c = ctx({ normalized: { color: "gray" } });
+    expect(resolveProperty("ZZ999999", "Number of colours", c)).toBeUndefined();
+    expect(resolveProperty("ZZ999999", "Colour temperature", c)).toBeUndefined();
+    expect(resolveProperty("ZZ999999", "Colour rendering index", c)).toBeUndefined();
+  });
+
+  it("leaves the colour column empty when nothing colour-like was scraped", () => {
+    const c = ctx({ normalized: {} });
+    expect(resolveProperty("ZZ999999", "Colour", c)).toBeUndefined();
+  });
+});

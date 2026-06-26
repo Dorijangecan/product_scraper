@@ -152,4 +152,46 @@ describe("adaptive page mining", () => {
     );
     expect(mined.record.signals).toContain("embedded-json");
   });
+
+  it("mines the spec block around a later catalog-number occurrence, not just the first", () => {
+    const mined = minePage(
+      {
+        requestedUrl: "https://example.test/products/ABC-123",
+        effectiveUrl: "https://example.test/products/ABC-123",
+        statusCode: 200,
+        contentType: "text/html",
+        fetchedAt: "2026-01-01T00:00:00.000Z",
+        fromCache: false,
+        // First occurrence is a breadcrumb with no specs; the real spec block sits next to a
+        // second occurrence far enough away to fall outside the first window. Padding ensures
+        // the two occurrences land in separate mining windows.
+        text: `
+          <html><body>
+            <nav>Home / Catalog / ABC-123</nav>
+            <div>${"Unrelated marketing copy. ".repeat(220)}</div>
+            <div>
+              Product ABC-123 technical data
+              Rated voltage: 400 V AC
+              Weight: 1.8 kg
+            </div>
+          </body></html>
+        `
+      },
+      {
+        manufacturerId: "test",
+        catalogNumber: "ABC-123",
+        stage: "test-page-mining",
+        method: "static-html",
+        sourceType: "official-fallback"
+      }
+    );
+
+    expect(mined.attributes).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ name: "Rated voltage", value: "400 V AC" }),
+        expect.objectContaining({ name: "Weight", value: "1.8 kg" })
+      ])
+    );
+    expect(mined.record.signals).toContain("catalog-neighborhood");
+  });
 });

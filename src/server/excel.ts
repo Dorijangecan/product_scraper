@@ -61,6 +61,7 @@ export async function exportRunWorkbook(input: {
   const evidence = workbook.addWorksheet("Evidence", { views: [{ state: "frozen", xSplit: 2, ySplit: 1 }] });
   const finalAudit = workbook.addWorksheet("Final Audit", { views: [{ state: "frozen", xSplit: 2, ySplit: 1 }] });
   const failures = workbook.addWorksheet("Failures", { views: [{ state: "frozen", xSplit: 2, ySplit: 1 }] });
+  const unmappedLabels = workbook.addWorksheet("Unmapped Labels", { views: [{ state: "frozen", xSplit: 1, ySplit: 1 }] });
 
   lookup.columns = [
     { header: "Catalog Number", key: "catalogNumber", width: 24 },
@@ -464,6 +465,15 @@ export async function exportRunWorkbook(input: {
     { header: "Error", key: "error", width: 80 }
   ];
 
+  // Run-level backlog of spec labels we recognized a value for but could not map to a known
+  // property. Ranked by frequency so the ontology can be taught the highest-impact gaps first.
+  unmappedLabels.columns = [
+    { header: "Spec Label", key: "label", width: 48 },
+    { header: "Occurrences", key: "occurrences", width: 14 },
+    { header: "Example Values", key: "exampleValues", width: 70 },
+    { header: "Example Catalog Numbers", key: "exampleCatalogNumbers", width: 50 }
+  ];
+
   const productRows: ProductExportRow[] = [];
 
   for (const item of input.items) {
@@ -701,6 +711,33 @@ export async function exportRunWorkbook(input: {
     }
   }
 
+  // Aggregate unmapped spec labels across every item into a single ranked teach-list.
+  const unmappedAgg = new Map<string, { label: string; count: number; catalogs: Set<string>; values: Set<string> }>();
+  for (const item of input.items) {
+    const result = item.result;
+    const labels = result?.diagnostics?.unmappedSpecLabels;
+    if (!result || !labels?.length) continue;
+    for (const rawLabel of labels) {
+      const label = cleanText(rawLabel);
+      if (!label) continue;
+      const key = label.toLowerCase();
+      const entry = unmappedAgg.get(key) ?? { label, count: 0, catalogs: new Set<string>(), values: new Set<string>() };
+      entry.count += 1;
+      entry.catalogs.add(result.catalogNumber);
+      const exampleValue = result.attributes.find((attr) => cleanText(attr.name).toLowerCase() === key)?.value;
+      if (exampleValue) entry.values.add(cleanText(exampleValue).slice(0, 80));
+      unmappedAgg.set(key, entry);
+    }
+  }
+  for (const entry of [...unmappedAgg.values()].sort((left, right) => right.count - left.count || left.label.localeCompare(right.label))) {
+    unmappedLabels.addRow({
+      label: entry.label,
+      occurrences: entry.count,
+      exampleValues: [...entry.values].slice(0, 5).join(" | "),
+      exampleCatalogNumbers: [...entry.catalogs].slice(0, 8).join(", ")
+    });
+  }
+
   await input.onActivity?.({ stage: "cleaned-input", message: "Preparing cleaned PDT input sheet." });
   const aiCleanup = await buildPdtRepairResult(
     input.items.filter((item) => item.result && (item.status === "found" || item.status === "partial")),
@@ -757,7 +794,8 @@ export async function exportRunWorkbook(input: {
     sources,
     evidence,
     finalAudit,
-    failures
+    failures,
+    unmappedLabels
   ];
   await input.onActivity?.({ stage: "workbook-style", message: "Styling workbook sheets." });
   for (const sheet of dataSheets) {

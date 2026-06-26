@@ -41,10 +41,19 @@ export async function runSmartFallbackPipeline(
 }
 
 function shouldUseReader(result: ProductResult, manufacturer: ManufacturerConfig): boolean {
+  // The reader fallback proxies the target URL through r.jina.ai (a third party). For a tool
+  // that is otherwise fully local, this must be explicit opt-in — mirrors the PDT_AI_CLEANUP
+  // pattern. Off unless PRODUCT_SCRAPER_ALLOW_EXTERNAL_READER is set.
+  if (!externalReaderAllowed()) return false;
   const policy = manufacturer.scrapeRecipe?.fallbackPolicy;
   if (policy?.readerOnQualityFailure === false) return false;
   if (result.sources.some((source) => /reader|r\.jina/i.test(`${source.parser} ${source.url}`))) return false;
   return !result.qualityGate?.passed && !isDistributorOnly(result);
+}
+
+function externalReaderAllowed(): boolean {
+  const flag = process.env.PRODUCT_SCRAPER_ALLOW_EXTERNAL_READER;
+  return flag === "1" || /^(?:true|yes|on)$/i.test(flag ?? "");
 }
 
 function shouldUseBrowser(result: ProductResult, manufacturer: ManufacturerConfig): boolean {
