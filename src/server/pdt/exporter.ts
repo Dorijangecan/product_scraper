@@ -334,9 +334,13 @@ function writeUniformSheet(
   const descriptor = describeSheet(ws);
   if (!descriptor) return 0;
   clearBody(ws, descriptor.firstBodyRow);
-  // cabinet.mechanical used to be intentionally left empty. For enclosures it must travel together
-  // with the `cabinet` sheet (Saginaw convention), so we now write the product-level row here too;
-  // the per-component CAD decomposition rows are still added later from ECADPORT.
+  // cabinet.mechanical is intentionally left EMPTY (its rows are the per-component CAD decomposition
+  // created from ECADPORT, not scraped). The tab itself is still kept in the workbook for enclosures
+  // (see ALWAYS_KEPT / device-type routing) so cabinet and cabinet.mechanical travel together.
+  if (canonicalSheetKey(ws.name) === canonicalSheetKey("cabinet.mechanical")) {
+    removeTemplateLabelColumn(ws);
+    return 0;
+  }
   let row = firstDataRow(descriptor);
   let written = 0;
   for (const item of items) {
