@@ -53,5 +53,6 @@ if exist ".git\" (
     echo.
 )
 
+set "PRODUCT_SCRAPER_SKIP_GIT_UPDATE=1"
 call "%~dp0Start-ProductScraper.bat"
 exit /b %errorlevel%
