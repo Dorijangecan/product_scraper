@@ -10,3 +10,6 @@ benchmarks/output/
 *.tsbuildinfo
 .claude/
 .codex-tools/
+
+# Local test inputs the desktop app overwrites at runtime (caused git update conflicts)
+Testing PDT/
