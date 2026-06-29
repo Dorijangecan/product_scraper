@@ -205,7 +205,7 @@ Politike u `ManufacturerConfig.scrapeRecipe`: `DiscoveryPolicyConfig`, `Interact
 | `discovery-fallback.ts` | `scrapeDiscoveredFallback`, `withDiscoveryFallbackDiagnostics` |
 | `link-discovery.ts` | `findBestProductLink`, `discoverProductLinks(WithDiagnostics)` |
 | `learned-endpoints.ts` | `LearnedEndpointStore`, `learnedEndpointUrls`, `learnEndpointFromNetworkFetch` |
-| `localized-urls.ts` | `buildLocalizedProductUrls` |
+| `localized-urls.ts` | `buildLocalizedProductUrls`, `canonicalizeNventLocaleUrl`, `canonicalizeProductLocaleUrls` (collapse geo-locale `/en-xx/`→`/en-us/`) |
 | `generic.ts` | `parseGenericProductPage`, `GenericFallbackScraper`, `isUnresolvedSearchResultPage` |
 | `smart-fallback.ts` | `runSmartFallbackPipeline` |
 | `page-intelligence.ts` | `runAdaptivePageIntelligence`, `mergeFetchedPageMining`, `mergeNetworkPageMining` |

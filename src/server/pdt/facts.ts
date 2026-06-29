@@ -159,15 +159,63 @@ export function buildPdtFactIndex(input: PdtFactInput): PdtFactIndex {
     "product-description",
     "Product description selected by the scraper and normalized for PDT import."
   );
-  const deShortDescription = sceEnclosureShortDescriptionDe(result, input.deviceType) ?? safeDescription(result.localizedDescriptions?.de?.title, input.item.catalogNumber);
+  const deTitle = safeDescription(result.localizedDescriptions?.de?.title, input.item.catalogNumber);
+  const deDescription = safeDescription(result.localizedDescriptions?.de?.description, input.item.catalogNumber);
+  // Mirror the EN rule: only when the EN title is the structured enclosure name does the German
+  // long description become the (translated) title and the short its first comma segment.
+  const enclosureDescription = Boolean(structuredEnclosureTitle(result, input.item.catalogNumber, input.deviceType));
   addGenerated(
     facts,
     "localizedShortDescriptionDe",
-    deShortDescription,
+    sceEnclosureShortDescriptionDe(result, input.deviceType) ?? (enclosureDescription ? firstCommaSegment(deTitle) : deTitle),
     "localized-product-title",
     "German product title scraped from localized page."
   );
-  addGenerated(facts, "localizedLongDescriptionDe", safeDescription(result.localizedDescriptions?.de?.description, input.item.catalogNumber), "localized-product-description", "German product description scraped from localized page.");
+  addGenerated(facts, "localizedLongDescriptionDe", enclosureDescription ? deTitle ?? deDescription : deDescription, "localized-product-description", "German product description scraped from localized page.");
+
+  // nVent publishes a numeric "Article Number" on the product page (e.g. 13402) distinct from the
+  // orderable catalog number. The PDT type code should carry that web article number, so add it as
+  // an attribute-sourced fact that outranks the catalog-number type-code fallback above.
+  if (manufacturerId === "nvent") {
+    const articleAttr = result.attributes.find((attr) => /\barticle\s*number\b/i.test(attr.name) && /\d/.test(attr.value ?? ""));
+    const articleNumber = clean(articleAttr?.value);
+    if (articleNumber) {
+      facts.push({
+        key: "typeCode",
+        value: articleNumber,
+        sourceKind: "attribute",
+        sourceUrl: articleAttr?.sourceUrl,
+        sourceType: articleAttr?.sourceType,
+        parser: articleAttr?.parser,
+        stage: articleAttr?.stage,
+        confidence: articleAttr?.confidence ?? 0.9,
+        ruleName: "nvent-web-article-number",
+        reason: "nVent web Article Number used as the PDT type code."
+      });
+    }
+
+    // nVent's "Industry Standards" block is the authoritative certification list (UL 50, cUL per
+    // CSA C22.2, IEC 60529/IP). Build the certificates from it so the PDT shows those standards
+    // instead of the loose RoHS/REACH/Prop 65/TSCA markers and the linked declaration PDFs. Added
+    // before the document-certificate facts below so it both wins on rank and suppresses them.
+    const industryStandardsAttrs = result.attributes.filter((attr) => /\bindustry standards?\b/i.test(attr.group ?? ""));
+    const standardsCertificates = clean(normalizeFields(industryStandardsAttrs, []).certificates);
+    if (standardsCertificates) {
+      const source = industryStandardsAttrs.find((attr) => clean(attr.value));
+      const certBase = {
+        value: standardsCertificates,
+        sourceKind: "attribute" as const,
+        sourceUrl: source?.sourceUrl,
+        sourceType: source?.sourceType,
+        parser: source?.parser,
+        stage: source?.stage,
+        confidence: source?.confidence ?? 0.9,
+        ruleName: "nvent-industry-standards",
+        reason: "nVent Industry Standards block used as the certificate list."
+      };
+      facts.push({ key: "certificates", ...certBase }, { key: "pdtCertificates", ...certBase });
+    }
+  }
 
   addNormalized(facts, result, "weight", result.normalized.weight);
   addNormalized(facts, result, "dimensions", result.normalized.dimensions);
@@ -1112,11 +1160,46 @@ function manufacturerUrl(manufacturer: ManufacturerConfig): string | undefined {
   }
 }
 
+// Enclosure-family device types whose manufacturer TITLE is the canonical structured product name
+// ("<name>, <dims>, <color>, <material>"). For these the PDT long description IS that title and the
+// short description is the title up to the first comma — matching the Saginaw manual-PDT convention.
+const STRUCTURED_TITLE_DEVICE_TYPES = new Set([
+  "Enclosure",
+  "Subpanel",
+  "Rack Cabinet",
+  "Wireway",
+  "Loadcenter",
+  "Module Carrier",
+  "Thermal Management"
+]);
+
+// True only when the manufacturer title is the structured enclosure name — "<name>, <WxHxD>,
+// <color>, <material>" (a dimension token or 3+ comma-separated descriptor parts). A bare title
+// like "Enclosure" is NOT structured, so its richer prose description stays the long description.
+function isStructuredProductTitle(title: string): boolean {
+  return /\d+(?:[.,]\d+)?\s*[x×]\s*\d+(?:[.,]\d+)?\s*[x×]\s*\d+/i.test(title) || title.split(",").length >= 3;
+}
+
+function structuredEnclosureTitle(result: ProductResult, catalogNumber: string, deviceType: string | undefined): string | undefined {
+  if (!deviceType || !STRUCTURED_TITLE_DEVICE_TYPES.has(deviceType)) return undefined;
+  const title = safeDescription(result.title, catalogNumber);
+  if (!title || !isStructuredProductTitle(title)) return undefined;
+  return title;
+}
+
+function firstCommaSegment(value: string | undefined): string | undefined {
+  if (!value) return value;
+  const comma = value.indexOf(",");
+  return comma > 0 ? value.slice(0, comma).trim() : value;
+}
+
 function pdtShortDescription(result: ProductResult, catalogNumber: string, deviceType?: string): string | undefined {
   const known = knownPdtDescription(result, catalogNumber)?.short;
   if (known) return known;
   const sceShort = sceEnclosureShortDescription(result, deviceType);
   if (sceShort) return sceShort;
+  const structured = structuredEnclosureTitle(result, catalogNumber, deviceType);
+  if (structured) return firstCommaSegment(structured);
   const value = safeDescription(result.title, catalogNumber);
   return compactFamilyShortDescription(value) ?? value;
 }
@@ -1126,6 +1209,8 @@ function pdtLongDescription(result: ProductResult, catalogNumber: string, device
   if (known) return known;
   const sceDescription = sceProductSpecificationDescription(result, catalogNumber);
   if (sceDescription) return sceDescription;
+  const structured = structuredEnclosureTitle(result, catalogNumber, deviceType);
+  if (structured) return structured;
   const current = safeDescription(result.description, catalogNumber);
   return betterLongDescription(result, current, catalogNumber) ?? current;
 }
@@ -1148,7 +1233,7 @@ function sceEnclosureShortDescriptionDe(result: ProductResult, deviceType?: stri
 
 function isSceEnclosure(result: ProductResult, deviceType?: string): boolean {
   if (result.manufacturerId !== "sce") return false;
-  const text = [deviceType, result.title, result.description, ...result.attributes.map((attr) => attr.value)].filter(Boolean).join(" ");
+  const text = `${deviceType ?? ""} ${result.title ?? ""} ${result.description ?? ""} ${result.attributes.map((attr) => attr.value).join(" ")}`;
   return /\benclosure\b/i.test(text);
 }
 
@@ -1160,6 +1245,10 @@ function knownPdtDescription(result: ProductResult, catalogNumber: string): { sh
 function repairShortDescription(input: PdtFactInput): string | undefined {
   const known = input.item.result ? knownPdtDescription(input.item.result, input.item.catalogNumber)?.short : undefined;
   if (known) return known;
+  // Enclosure structured-title rule wins over the repaired prose (the repair fact outranks the
+  // generated one), so keep both consistent: short = title up to the first comma.
+  const structured = input.item.result ? structuredEnclosureTitle(input.item.result, input.item.catalogNumber, input.deviceType) : undefined;
+  if (structured) return firstCommaSegment(structured);
   const value = cleanProductDescription(input.repair?.shortDescription, input.item.catalogNumber);
   if (!value) return undefined;
   return compactFamilyShortDescription(value) ?? value;
@@ -1168,6 +1257,8 @@ function repairShortDescription(input: PdtFactInput): string | undefined {
 function repairLongDescription(input: PdtFactInput): string | undefined {
   const known = input.item.result ? knownPdtDescription(input.item.result, input.item.catalogNumber)?.long : undefined;
   if (known) return known;
+  const structured = input.item.result ? structuredEnclosureTitle(input.item.result, input.item.catalogNumber, input.deviceType) : undefined;
+  if (structured) return structured;
   const value = cleanProductDescription(input.repair?.longDescription, input.item.catalogNumber);
   if (!value) return undefined;
   return value;

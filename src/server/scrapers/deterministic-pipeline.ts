@@ -3,6 +3,7 @@ import { dedupeDocuments } from "./dedupe.js";
 import { discoverOfficialProductCandidates } from "./discovery.js";
 import { isUnresolvedSearchResultPage, parseGenericProductPage } from "./generic.js";
 import type { FetchedText } from "./http-client.js";
+import { canonicalizeProductLocaleUrls } from "./localized-urls.js";
 import { mergeResults } from "./normalizer.js";
 import { runAdaptivePageIntelligence } from "./page-intelligence.js";
 import { applyQualityGate, evaluateQualityGate } from "./quality-gate.js";
@@ -23,7 +24,8 @@ export async function runDeterministicScrapePipeline(
     evaluateQualityGate(initial, context.manufacturer, catalogNumber, attempts)
   );
   recordTargetObservation(context, current, { stage: "official-source" });
-  if (current.qualityGate?.passed && !needsOfficialProductLinkRepair(current)) return promoteQualityPassedOfficialResult(current);
+  if (current.qualityGate?.passed && !needsOfficialProductLinkRepair(current))
+    return canonicalizeProductLocaleUrls(promoteQualityPassedOfficialResult(current));
 
   const discovery = await discoverOfficialProductCandidates(catalogNumber, context);
   current = withDiscoveryDiagnostics(current, discovery);
@@ -102,8 +104,10 @@ export async function runDeterministicScrapePipeline(
     );
   }
 
-  return promoteQualityPassedOfficialResult(
-    applyQualityGate(current, context.manufacturer, evaluateQualityGate(current, context.manufacturer, catalogNumber, attempts))
+  return canonicalizeProductLocaleUrls(
+    promoteQualityPassedOfficialResult(
+      applyQualityGate(current, context.manufacturer, evaluateQualityGate(current, context.manufacturer, catalogNumber, attempts))
+    )
   );
 }
 

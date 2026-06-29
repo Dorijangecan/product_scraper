@@ -1,6 +1,43 @@
 import type { LocalizedProductUrls, LocalizedUrlTemplate, ManufacturerId } from "../../shared/types.js";
 import { buildConfiguredLocalizedUrls, encodeSlashBraceCatalogPart } from "./catalog-number.js";
 
+// nVent serves the same English product page under a geo-detected locale segment
+// (e.g. /en-bs/ for the Bahamas, /en-gb/, …). The deterministic catalog/PDT layer expects a
+// single canonical English URL, so collapse any English locale variant to /en-us/. This is a
+// host fact (nvent.com / chemelex.com), not a per-vendor branch, so it is safe to apply to any
+// URL — non-matching hosts are returned untouched.
+const NVENT_LOCALE_HOSTS = /(?:^|\.)(?:nvent\.com|chemelex\.com)$/i;
+
+export function canonicalizeNventLocaleUrl(url: string | undefined): string | undefined {
+  if (!url) return url;
+  try {
+    const parsed = new URL(url);
+    if (!NVENT_LOCALE_HOSTS.test(parsed.hostname)) return url;
+    const canonicalPath = parsed.pathname.replace(/^\/en-[a-z]{2}\//i, "/en-us/");
+    if (canonicalPath === parsed.pathname) return url;
+    parsed.pathname = canonicalPath;
+    return parsed.toString();
+  } catch {
+    return url;
+  }
+}
+
+// Collapse geo-detected locale variants in the surfaced product URLs to a single canonical English
+// URL so the PDT/Excel link columns and localized URLs stay stable across runs. Host-gated, so it
+// is a no-op for results that don't carry an nVent/Chemelex URL.
+export function canonicalizeProductLocaleUrls<T extends { productUrl?: string; localizedUrls?: LocalizedProductUrls }>(
+  result: T
+): T {
+  const productUrl = canonicalizeNventLocaleUrl(result.productUrl);
+  const en = canonicalizeNventLocaleUrl(result.localizedUrls?.en);
+  if (productUrl === result.productUrl && en === result.localizedUrls?.en) return result;
+  return {
+    ...result,
+    productUrl,
+    localizedUrls: result.localizedUrls ? { ...result.localizedUrls, en } : result.localizedUrls
+  };
+}
+
 export function buildLocalizedProductUrls(
   manufacturerId: ManufacturerId,
   catalogNumber: string,
@@ -46,11 +83,15 @@ export function buildLocalizedProductUrls(
         en: `https://www.rockwellautomation.com/en-us/products/details.${encodeURIComponent(catalogNumber)}.html`,
         de: `https://www.rockwellautomation.com/de-de/products/details.${encodeURIComponent(catalogNumber)}.html`
       };
-    case "nvent":
+    case "nvent": {
+      const base =
+        canonicalizeNventLocaleUrl(productUrl) ||
+        `https://www.nvent.com/en-us/hoffman/products/enc${encodeURIComponent(catalogNumber.toLowerCase())}`;
       return {
-        en: productUrl || `https://www.nvent.com/en-us/hoffman/products/enc${encodeURIComponent(catalogNumber.toLowerCase())}`,
-        de: productUrl?.replace("/en-us/", "/de-de/")
+        en: base,
+        de: base.replace("/en-us/", "/de-de/")
       };
+    }
     case "eta":
       return {
         en: productUrl,

@@ -106,9 +106,35 @@ export function buildFieldResolutions(candidates: FieldCandidateRecord[]): Field
   return resolutions.sort((left, right) => left.field.localeCompare(right.field));
 }
 
+// Heading-less loose key/value pairs the generic parser could not attribute to a real spec table
+// (locale switchers, breadcrumbs, "Current Selected Country", …). They must never be promoted into
+// a normalized field — they bypass the value validation normalizeFields applies and inject chrome
+// like "Bahamas | English" into electrical fields.
+function isNonSpecEvidenceAttribute(attribute: AttributeRecord): boolean {
+  return (attribute.group ?? "").trim().toLowerCase() === "page evidence";
+}
+
+// Quantitative fields require a numeric value. Field candidates use the RAW attribute value with no
+// normalization, so without this guard a label match alone lets non-numeric prose (a certificate's
+// "Maximum)" tail, a country name) populate voltage/current/weight/dimensions when normalizeFields
+// correctly left them blank.
+const NUMERIC_FIELDS = new Set<string>([
+  "weight",
+  "dimensions",
+  "wallThickness",
+  "voltage",
+  "current",
+  "operatingTemperature",
+  "operatingTemperatureMin",
+  "operatingTemperatureMax"
+]);
+
 function attributeCandidates(attributes: AttributeRecord[], field: RegistryFieldKey, label: string): FieldCandidateRecord[] {
   if (field === "image" || field === "datasheetUrl" || field === "manualUrl" || field === "certificateUrl") return [];
+  const requiresNumeric = NUMERIC_FIELDS.has(field);
   return attributes
+    .filter((attribute) => !isNonSpecEvidenceAttribute(attribute))
+    .filter((attribute) => !requiresNumeric || /\d/.test(attribute.value ?? ""))
     .filter((attribute) => fieldMatchesLabel(field, fieldAttributeLabel(attribute)))
     .filter((attribute) => cleanText(attribute.value))
     .map((attribute) => toCandidate({

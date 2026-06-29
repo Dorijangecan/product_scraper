@@ -389,7 +389,15 @@ function shouldSkipRegistryFieldCandidate(attr: AttributeRecord, key: keyof Norm
   const label = `${attr.group ?? ""} ${attr.name}`.toLowerCase();
   if (key === "current" && /\b(?:inrush|starting|peak)\s+current\b/.test(label)) return true;
   if (key === "voltage" && isLowValueVoltageLabel(label)) return true;
+  if ((key === "voltage" || key === "current") && isStandardsScopeElectricalLabel(label)) return true;
   return normalizedFieldLabelScore(attr, key) < -50;
+}
+
+// Certificate/standard titles such as "NEMA 250 Enclosures for Electrical Equipment (1000 Volts
+// Maximum)" describe a standard's scope, not a product's electrical rating. Their stray "Volts"
+// token otherwise leaks into the voltage field of mechanical products like enclosures.
+function isStandardsScopeElectricalLabel(label: string): boolean {
+  return /\benclosures?\s+for\s+electrical\s+equipment\b/.test(label) || /\bnema\s*250\b/.test(label);
 }
 
 function mergeLocalizedDescriptions(
@@ -1426,7 +1434,10 @@ function deriveProtectionFromText(attributes: AttributeRecord[]): string | undef
 
 function normalizeProtectionValue(value: string | undefined): string | undefined {
   const cleaned = normalizeHtmlSpecValue(value);
-  if (!cleaned || !/\b(?:ip\s*\d|nema|ik\s*\d|iec\s*60529|type\s+\d)/i.test(cleaned)) return undefined;
+  // Require a real protection token (a digit after NEMA/IP/IK/Type, or the IEC 60529 standard).
+  // A bare "NEMA" with no rating is page chrome or accessory prose ("Works With: NEMA Details")
+  // and must not be treated as a protection rating.
+  if (!cleaned || !/\b(?:ip\s*\d|nema\s*\d|ik\s*\d|iec\s*60529|type\s+\d)/i.test(cleaned)) return undefined;
   const withoutDownloadLabels = cleanProtectionSegments(
     cleaned
     .replace(/\s*(?:datasheet|data sheet|manual|downloads?|cad|certificate).*$/i, "")

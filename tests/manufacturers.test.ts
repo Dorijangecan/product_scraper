@@ -52,13 +52,17 @@ describe("manufacturer configuration", () => {
     expect(nvent?.canonicalName).toBe("nVent");
     expect(nvent?.officialBaseUrls).toContain("https://www.chemelex.com");
     expect(templates).toEqual(expect.arrayContaining([
-      "https://www.nvent.com/en-us/caddy/products/efs{partLower}",
-      "https://www.nvent.com/en-us/erico/products/efs{partLower}",
-      "https://www.nvent.com/en-us/eriflex/products/efs{partLower}",
-      "https://www.nvent.com/en-us/schroff/products/enc{partLower}"
+      "https://www.nvent.com/en-us/hoffman/products/enc{partLower}",
+      "https://www.nvent.com/en-us/caddy/products/{partLower}",
+      "https://www.nvent.com/en-us/erico/products/{partLower}",
+      "https://www.nvent.com/en-us/eriflex/products/{partLower}",
+      "https://www.nvent.com/en-us/schroff/products/{partLower}"
     ]));
     expect(nvent?.scrapeRecipe?.discoveryPolicy?.allowedOfficialDomains).toContain("chemelex.com");
-    expect(nvent?.scrapeRecipe?.discoveryPolicy?.searchUrlTemplates).toContain("https://www.chemelex.com/en-us/raychem/search?keyword={part}");
+    // Sitemap discovery is disabled for nVent — the direct brand templates + search URL resolve
+    // products without per-part fetches of the large per-host sitemaps.
+    expect(nvent?.scrapeRecipe?.discoveryPolicy?.sitemapUrls).toEqual([]);
+    expect(nvent?.scrapeRecipe?.discoveryPolicy?.enableRobotsSitemaps).toBe(false);
   });
 
   it("configures Eaton official site-search API discovery", () => {

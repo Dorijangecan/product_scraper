@@ -175,22 +175,18 @@ const builtInManufacturerConfigs: Record<string, ManufacturerConfig> = {
         label: "nVent product page",
         enabled: true,
         sourceType: "official-fallback",
+        // Canonical Hoffman enclosure URL first (verified resolver), then one template per remaining
+        // brand line. Redundant `/pdf`, `efs`, and non-en-us duplicate variants were removed: they
+        // multiplied sequential rate-limited fetches per part without adding coverage the brand
+        // base templates don't already provide.
         directUrlTemplates: [
-          "https://hoffman.nvent.com/en-us/products/enc{partLower}",
           "https://www.nvent.com/en-us/hoffman/products/enc{partLower}",
-          "https://www.nvent.com/en-us/hoffman/products/enc{partLower}/pdf",
+          "https://hoffman.nvent.com/en-us/products/enc{partLower}",
           "https://www.nvent.com/en-us/hoffman/products/{partLower}",
-          "https://www.nvent.com/en-us/hoffman/products/{partLower}/pdf",
-          "https://www.nvent.com/en-us/caddy/products/efs{partLower}",
           "https://www.nvent.com/en-us/caddy/products/{partLower}",
-          "https://www.nvent.com/en-us/erico/products/efs{partLower}",
-          "https://www.nvent.com/erico/products/efs{partLower}",
           "https://www.nvent.com/en-us/erico/products/{partLower}",
-          "https://www.nvent.com/en-us/eriflex/products/efs{partLower}",
           "https://www.nvent.com/en-us/eriflex/products/{partLower}",
-          "https://www.nvent.com/en-us/schroff/products/enc{partLower}",
           "https://www.nvent.com/en-us/schroff/products/{partLower}",
-          "https://www.nvent.com/raychem/products/{partLower}",
           "https://www.nvent.com/en-us/raychem/products/{partLower}"
         ]
       }
@@ -836,13 +832,16 @@ function attachBuiltInScrapeRecipes() {
     dynamicFramework: ["embedded-json", "json-ld"],
     discoveryPolicy: {
       searchUrlTemplates: [
-        "https://www.nvent.com/en-us/search?text={part}",
-        "https://www.chemelex.com/en-us/raychem/search?keyword={part}"
+        "https://www.nvent.com/en-us/search?text={part}"
       ],
       allowedOfficialDomains: ["nvent.com", "hoffman.nvent.com", "chemelex.com"],
-      sitemapUrls: ["https://www.nvent.com/sitemap.xml", "https://www.chemelex.com/sitemap.xml"],
-      urlVariants: ["partLower", "part", "partUpper"],
-      maxCandidates: 18
+      // Sitemaps disabled: nVent's per-host sitemaps are large and were fetched/scanned on every
+      // catalog number before the (now reliable) direct enc{partLower} templates ran. The direct
+      // templates + search URL resolve nVent products, so sitemap discovery was pure latency.
+      sitemapUrls: [],
+      enableRobotsSitemaps: false,
+      urlVariants: ["partLower", "part"],
+      maxCandidates: 12
     },
     extractionPolicy: {
       documentUrlPatterns: [
@@ -861,7 +860,12 @@ function attachBuiltInScrapeRecipes() {
       distributorFallback: true,
       distributorConfidenceCap: 0.45,
       maxReaderAttempts: 1,
-      maxBrowserAttempts: 1
+      maxBrowserAttempts: 1,
+      // nVent product pages link ~25-30 documents (declarations, manuals, certs). Downloading and
+      // parsing all of them dominated per-part time. "quality" caps downloads (images + a few
+      // datasheets/certs/manuals); the Additional Documents sheet still lists every discovered link,
+      // and the core specs (dimensions, weight, material, NEMA, IP, certificates) come from the HTML.
+      documentDownloadProfile: "quality"
     },
     confidenceRules: { foundMinScore: 76, partialMaxConfidence: 0.72, distributorMaxConfidence: 0.45 }
   };

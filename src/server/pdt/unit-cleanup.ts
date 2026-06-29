@@ -35,10 +35,25 @@ const UNIT_ALIASES: Record<string, string> = {
   mm: "mm",
   cm: "cm",
   m: "m",
+  in: "in",
+  inch: "in",
+  inches: "in",
+  '"': "in",
+  ft: "ft",
+  foot: "ft",
+  feet: "ft",
+  yd: "yd",
+  yard: "yd",
+  yards: "yd",
   g: "g",
   kg: "kg",
   lb: "lb",
   lbs: "lb",
+  pound: "lb",
+  pounds: "lb",
+  oz: "oz",
+  ounce: "oz",
+  ounces: "oz",
   "nl/min": "Nl/min",
   "l/min": "l/min",
   lpm: "l/min",
@@ -73,9 +88,13 @@ const UNIT_FACTORS: Record<string, number> = {
   mm: 1,
   cm: 10,
   m: 1000,
+  in: 25.4,
+  ft: 304.8,
+  yd: 914.4,
   g: 1,
   kg: 1000,
   lb: 453.59237,
+  oz: 28.349523125,
   "Nl/min": 1,
   "l/min": 1,
   "m3/h": 1000 / 60,
@@ -109,9 +128,13 @@ const UNIT_FAMILIES: Record<string, string> = {
   mm: "length",
   cm: "length",
   m: "length",
+  in: "length",
+  ft: "length",
+  yd: "length",
   g: "mass",
   kg: "mass",
   lb: "mass",
+  oz: "mass",
   "Nl/min": "flowRate",
   "l/min": "flowRate",
   "m3/h": "flowRate",
@@ -183,7 +206,19 @@ function extractUnitNumbers(raw: string, targetUnit: string): UnitNumber[] {
     .map((match) => ({ value: Number(match[1]), unit: normalizeUnit(match[2]) }))
     .filter((entry) => Number.isFinite(entry.value) && Boolean(entry.unit)) as UnitNumber[];
 
-  const sameFamily = [...exact, ...flowExact, ...pressureExact].filter((entry) => entry.unit && UNIT_FAMILIES[entry.unit] === UNIT_FAMILIES[targetUnit]);
+  // Imperial length/mass — US manufacturers publish inches/feet/pounds/ounces. Word forms are
+  // matched before their abbreviations (longest-first) and inch double-prime (6") is handled too.
+  const imperialExact: UnitNumber[] = [
+    ...text.matchAll(/(-?\d+(?:\.\d+)?)\s*(inches|inch|feet|foot|yards|yard|ounces|ounce|pounds|pound|in|ft|yd|oz)\b/gi)
+  ]
+    .map((match) => ({ value: Number(match[1]), unit: normalizeUnit(match[2]) }))
+    .filter((entry) => Number.isFinite(entry.value) && Boolean(entry.unit)) as UnitNumber[];
+  for (const match of text.matchAll(/(-?\d+(?:\.\d+)?)\s*"/g)) {
+    const value = Number(match[1]);
+    if (Number.isFinite(value)) imperialExact.push({ value, unit: "in" });
+  }
+
+  const sameFamily = [...exact, ...flowExact, ...pressureExact, ...imperialExact].filter((entry) => entry.unit && UNIT_FAMILIES[entry.unit] === UNIT_FAMILIES[targetUnit]);
   if (sameFamily.length > 0) return sameFamily;
 
   const range = text.match(/(-?\d+(?:\.\d+)?)\s*(?:\.\.\.|\.{2}|-|to|do)\s*\+?(-?\d+(?:\.\d+)?)/i);

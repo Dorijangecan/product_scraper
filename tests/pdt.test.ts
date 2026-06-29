@@ -2033,6 +2033,16 @@ describe("PDT unit cleanup", () => {
     expect(normalizePdtCellNumber("2.5 kg", "g")).toBe("2500");
   });
 
+  it("converts imperial length and mass units (US manufacturers publish inches/pounds)", () => {
+    expect(normalizePdtCellNumber("6 in", "mm")).toBe("152.4");
+    expect(normalizePdtCellNumber("6 inches", "mm")).toBe("152.4");
+    expect(normalizePdtCellNumber('6"', "mm")).toBe("152.4");
+    expect(normalizePdtCellNumber("2 ft", "mm")).toBe("609.6");
+    expect(normalizePdtCellNumber("3.6 lb", "kg")).toBe("1.632933");
+    expect(normalizePdtCellNumber("3.6 pounds", "g")).toBe("1632.932532");
+    expect(normalizePdtCellNumber("8 oz", "g")).toBe("226.796185");
+  });
+
   it("normalizes torque values used by PDT mechanical columns", () => {
     expect(normalizePdtCellNumber("2.5 Nm", "Nm")).toBe("2.5");
   });

@@ -409,6 +409,39 @@ function stripEatonCatalogPrefix(value: string | undefined, catalogNumber: strin
   const pattern = new RegExp(`^\\s*EP-${bare.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\$&")}\\s*[-|:]\\s*`, "i");
   return value.replace(pattern, "").trim() || value;
 }
+// Enclosure-family device types whose manufacturer TITLE is the canonical structured product name
+// ("<name>, <dims>, <color>, <material>" — e.g. nVent "Hinge-Cover Small Drip-Shield Enclosure
+// Type 3R, 6.00x4.00x4.00, Gray, Steel"). For these the PDT long description IS that title and the
+// short description is the title up to the first comma, matching the Saginaw manual-PDT convention.
+// Other device types keep prose long descriptions.
+const STRUCTURED_TITLE_DEVICE_TYPES = new Set([
+  "Enclosure",
+  "Subpanel",
+  "Rack Cabinet",
+  "Wireway",
+  "Loadcenter",
+  "Module Carrier",
+  "Thermal Management"
+]);
+
+function structuredTitleDescription(ctx: ResolveContext): string | undefined {
+  if (!ctx.deviceType || !STRUCTURED_TITLE_DEVICE_TYPES.has(ctx.deviceType)) return undefined;
+  const title = cleanDescriptionValue(ctx.result?.title);
+  if (!title) return undefined;
+  const catalog = ctx.item.catalogNumber?.replace(/\s+/g, "").toLowerCase();
+  if (catalog && title.replace(/\s+/g, "").toLowerCase() === catalog) return undefined;
+  // Only the structured "<name>, <WxHxD>, <color>, <material>" title (a dimension token or 3+
+  // comma parts) replaces the prose long description — a bare title like "Enclosure" does not.
+  if (!/\d+(?:[.,]\d+)?\s*[x×]\s*\d+(?:[.,]\d+)?\s*[x×]\s*\d+/i.test(title) && title.split(",").length < 3) return undefined;
+  return title;
+}
+
+function firstCommaSegment(value: string | undefined): string | undefined {
+  if (!value) return value;
+  const comma = value.indexOf(",");
+  return comma > 0 ? value.slice(0, comma).trim() : value;
+}
+
 function sceProductSpecificationDescription(ctx: ResolveContext): string | undefined {
   if ((ctx.result?.manufacturerId ?? ctx.manufacturer.id) !== "sce") return undefined;
   const attribute = ctx.result?.attributes.find((attr) => /^product specifications$/i.test(attr.group ?? "") && /^description$/i.test(attr.name));
@@ -417,12 +450,24 @@ function sceProductSpecificationDescription(ctx: ResolveContext): string | undef
 
 function isSceEnclosure(ctx: ResolveContext): boolean {
   if ((ctx.result?.manufacturerId ?? ctx.manufacturer.id) !== "sce") return false;
-  const text = [ctx.deviceType, ctx.result?.title, ctx.result?.description, ...(ctx.result?.attributes ?? []).map((attr) => attr.value)].filter(Boolean).join(" ");
+  const text = `${ctx.deviceType ?? ""} ${ctx.result?.title ?? ""} ${ctx.result?.description ?? ""} ${(ctx.result?.attributes ?? []).map((attr) => attr.value).join(" ")}`;
   return /\benclosure\b/i.test(text);
 }
+
 const longDescription: Resolver = (ctx) => {
   const sceDescription = sceProductSpecificationDescription(ctx);
   if (sceDescription) return sceDescription;
+  const structuredTitle = structuredTitleDescription(ctx);
+  if (structuredTitle) {
+    if (ctx.language === "de") {
+      const de =
+        localizedDescriptionFactValue(ctx, "localizedLongDescriptionDe", ctx.result?.description) ??
+        localizedGermanText(ctx.result?.localizedDescriptions?.de?.description, ctx.result?.description, ctx.item.catalogNumber) ??
+        localizedGermanText(ctx.result?.localizedDescriptions?.de?.title, ctx.result?.title, ctx.item.catalogNumber);
+      return de ?? structuredTitle;
+    }
+    return structuredTitle;
+  }
   if (ctx.language === "de") {
     // DE columns must always be populated so the downstream importer is forced to translate
     // them (blank cells silently pass through to the catalog as English). Prefer the real DE
@@ -442,6 +487,16 @@ const longDescription: Resolver = (ctx) => {
 };
 const shortDescription: Resolver = (ctx) => {
   if (isSceEnclosure(ctx)) return ctx.language === "de" ? "Gehaeuse" : "Enclosure";
+  const structuredTitle = structuredTitleDescription(ctx);
+  if (structuredTitle) {
+    if (ctx.language === "de") {
+      const de =
+        localizedDescriptionFactValue(ctx, "localizedShortDescriptionDe", ctx.result?.title) ??
+        localizedGermanText(ctx.result?.localizedDescriptions?.de?.title, ctx.result?.title, ctx.item.catalogNumber);
+      return firstCommaSegment(de ?? structuredTitle);
+    }
+    return firstCommaSegment(structuredTitle);
+  }
   if (ctx.language === "de") {
     const de =
       localizedDescriptionFactValue(ctx, "localizedShortDescriptionDe", ctx.result?.title) ??
@@ -661,9 +716,18 @@ function convertLengthToMm(value: number, unit: "mm" | "cm" | "m" | "in" | "ft")
 // Type code = manufacturer's type designation. We deliberately do NOT match a generic
 // "product type" attribute here — that holds the device category (e.g. "Enclosure"), which
 // belongs in the ECLASS product-type field, not the typecode. Fall back to the catalog number.
-const typeCode: Resolver = (ctx) =>
-  cleanTypeCodeValue(attr(ctx, /\b(type code|typecode|model code|modellcode|extended product type|type designation|product main type|main type|catalog(?:ue)? type|order type)\b/i)) ??
-  clean(ctx.item.catalogNumber);
+const typeCode: Resolver = (ctx) => {
+  // nVent publishes a numeric "Article Number" on the product page (e.g. 13402) distinct from the
+  // orderable catalog number (A6R44HCR). The PDT type code should carry that web article number.
+  if ((ctx.result?.manufacturerId ?? ctx.manufacturer.id) === "nvent") {
+    const articleNumber = cleanTypeCodeValue(attr(ctx, /\barticle\s*number\b/i));
+    if (articleNumber) return articleNumber;
+  }
+  return (
+    cleanTypeCodeValue(attr(ctx, /\b(type code|typecode|model code|modellcode|extended product type|type designation|product main type|main type|catalog(?:ue)? type|order type)\b/i)) ??
+    clean(ctx.item.catalogNumber)
+  );
+};
 
 // Customs tariff / commodity code. Manufacturers label this differently — ABB uses "Cn8".
 const customsTariff = (ctx: ResolveContext) =>
@@ -1368,10 +1432,28 @@ function electricalConnectionDesign(ctx: ResolveContext): string | undefined {
   return undefined;
 }
 
+// Build NEMA candidate text from NEMA-labelled attributes' name AND value, because manufacturers
+// frequently put the rating in the label ("NEMA/EEMAC Type 3R" with value "IEC 60529, IP32").
+// Page-evidence chrome and accessory prose are excluded; the normalized protection field is the
+// fallback when no NEMA-labelled attribute exists.
+function nemaCandidateText(ctx: ResolveContext): string | undefined {
+  const matches = (ctx.result?.attributes ?? [])
+    .filter((a) => (a.group ?? "").trim().toLowerCase() !== "page evidence")
+    .filter((a) => /\b(NEMA|EEMAC|degree of protection.*front)\b/i.test(`${a.group ?? ""} ${a.name}`));
+  matches.sort((l, r) => sourceRank(r.sourceType) - sourceRank(l.sourceType) || (r.confidence ?? 0) - (l.confidence ?? 0));
+  const text = matches.map((a) => `${a.name ?? ""} ${a.value ?? ""}`).join(" ; ");
+  return clean(text) || clean(ctx.result?.normalized.protection);
+}
+
 function nemaProtection(ctx: ResolveContext): string | undefined {
-  const value = attr(ctx, /\b(NEMA|degree of protection.*front)\b/i) ?? clean(ctx.result?.normalized.protection);
-  const match = value?.match(/\bNEMA\s*([0-9A-Z, /-]+)/i);
-  return match ? `NEMA ${match[1].replace(/\s+/g, " ").trim()}` : undefined;
+  // Prefer a value that already spells out the full "NEMA …" designation (e.g. a "NEMA Rating"
+  // attribute) and preserve it verbatim. Only fall back to token extraction when the rating lives
+  // in the label rather than the value (nVent's "NEMA/EEMAC Type 3R" with an IEC/IP value).
+  const labelled = attr(ctx, /\b(NEMA|degree of protection.*front)\b/i) ?? clean(ctx.result?.normalized.protection);
+  const direct = labelled?.match(/\bNEMA\s*([0-9A-Z, /-]+)/i);
+  if (direct) return `NEMA ${direct[1].replace(/\s+/g, " ").trim()}`;
+  const tokens = nemaTokens(nemaCandidateText(ctx));
+  return tokens.length ? `NEMA ${tokens.join(", ")}` : undefined;
 }
 
 function isSensorSheet(ctx: ResolveContext): boolean {
@@ -1379,8 +1461,7 @@ function isSensorSheet(ctx: ResolveContext): boolean {
 }
 
 function singleNemaProtection(ctx: ResolveContext): string | undefined {
-  const value = attr(ctx, /\b(NEMA|degree of protection.*front)\b/i) ?? clean(ctx.result?.normalized.protection);
-  const tokens = nemaTokens(value);
+  const tokens = nemaTokens(nemaCandidateText(ctx));
   return tokens.length === 1 ? `NEMA ${tokens[0]}` : undefined;
 }
 

@@ -1,6 +1,7 @@
 import type { AttributeRecord, DocumentRecord, FallbackSourceConfig, ProductResult, ScrapeDiagnostics } from "../../shared/types.js";
 import { dedupeDocuments } from "./dedupe.js";
 import { discoverOfficialProductCandidates, type ProductDiscoveryResult } from "./discovery.js";
+import { canonicalizeProductLocaleUrls } from "./localized-urls.js";
 import { normalizeFields } from "./normalizer.js";
 import type { ScrapeContext } from "./types.js";
 
@@ -15,9 +16,10 @@ export async function scrapeDiscoveredFallback(
     ...discoveredSources,
     ...context.manufacturer.fallbackSources
   ]);
-  const result = scraped && scraped.status !== "failed"
+  const resolved = scraped && scraped.status !== "failed"
     ? scraped
     : discoveryDocumentFallbackResult(catalogNumber, context, discovery.documentCandidates, scraped);
+  const result = resolved ? canonicalizeProductLocaleUrls(resolved) : resolved;
   return { result, discovery };
 }
 
