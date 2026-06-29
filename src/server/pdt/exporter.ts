@@ -334,10 +334,9 @@ function writeUniformSheet(
   const descriptor = describeSheet(ws);
   if (!descriptor) return 0;
   clearBody(ws, descriptor.firstBodyRow);
-  if (canonicalSheetKey(ws.name) === canonicalSheetKey("cabinet.mechanical")) {
-    removeTemplateLabelColumn(ws);
-    return 0;
-  }
+  // cabinet.mechanical used to be intentionally left empty. For enclosures it must travel together
+  // with the `cabinet` sheet (Saginaw convention), so we now write the product-level row here too;
+  // the per-component CAD decomposition rows are still added later from ECADPORT.
   let row = firstDataRow(descriptor);
   let written = 0;
   for (const item of items) {

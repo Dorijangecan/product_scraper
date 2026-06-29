@@ -5169,7 +5169,7 @@ describe("PDT exporter sheet lookup", () => {
     //   - Material Master Data + Additional Documents include ALL three products (constant tabs).
     //   - contactor a. fuses contains ONLY the contactor.
     //   - cabinet contains ONLY the enclosure.
-    //   - cabinet.mechanical is kept but intentionally left empty.
+    //   - cabinet.mechanical travels with cabinet for enclosures and contains the enclosure too.
     //   - electronic sensor contains ONLY the sensor.
     //   - No product is leaked into an unrelated tab.
     const dir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-pdt-multi-"));
@@ -5261,7 +5261,7 @@ describe("PDT exporter sheet lookup", () => {
     expect(result.filledSheets["Material Master Data"]).toBe(3);
     expect(result.filledSheets["contactor a. fuses"]).toBe(1);
     expect(result.filledSheets["cabinet"]).toBe(1);
-    expect(result.filledSheets["cabinet.mechanical"]).toBe(0);
+    expect(result.filledSheets["cabinet.mechanical"]).toBe(1);
     expect(result.filledSheets["electronic sensor"]).toBe(1);
 
     const out = new ExcelJS.Workbook();
@@ -5286,7 +5286,8 @@ describe("PDT exporter sheet lookup", () => {
     expect(out.getWorksheet("cabinet")!.getCell(10, 1).value ?? null).toBeNull();
 
     expect(out.getWorksheet("cabinet.mechanical")!.getCell(8, 1).value ?? null).toBeNull();
-    expect(out.getWorksheet("cabinet.mechanical")!.getCell(9, 1).value ?? null).toBeNull();
+    expect(out.getWorksheet("cabinet.mechanical")!.getCell(9, 1).value).toBe("ENC-001");
+    expect(out.getWorksheet("cabinet.mechanical")!.getCell(10, 1).value ?? null).toBeNull();
 
     expect(out.getWorksheet("electronic sensor")!.getCell(8, 1).value ?? null).toBeNull();
     expect(out.getWorksheet("electronic sensor")!.getCell(9, 1).value).toBe("SNS-001");
