@@ -32,6 +32,11 @@ export const DEVICE_TYPE_URL_PATTERNS: UrlPatternEntry[] = [
   { host: /abb\.com$/i, pattern: /\/(surge[-\s]?protection|spd|lightning)\b/i, type: "Surge Protective Device" },
   { host: /abb\.com$/i, pattern: /\/(fuse)\b/i, type: "Fuse" },
 
+  // --- nVent (Hoffman/Schroff enclosure product pages use the "enc" path prefix, e.g.
+  //     /hoffman/products/enca6r44hcr). This keeps "Hinged-Cover" enclosures from being
+  //     misclassified as a Cover/Door accessory by the page's category/description text. ---
+  { host: /nvent\.com$/i, pattern: /\/products\/enc/i, type: "Enclosure" },
+
   // --- Schneider Electric ---
   { host: /schneider-electric\.|se\.com$/i, pattern: /\/contactor/i, type: "Contactor" },
   { host: /schneider-electric\.|se\.com$/i, pattern: /\/(circuit-breaker|breaker)\//i, type: "Circuit Breaker" },
