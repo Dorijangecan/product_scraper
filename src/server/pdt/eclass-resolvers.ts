@@ -409,7 +409,20 @@ function stripEatonCatalogPrefix(value: string | undefined, catalogNumber: strin
   const pattern = new RegExp(`^\\s*EP-${bare.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\$&")}\\s*[-|:]\\s*`, "i");
   return value.replace(pattern, "").trim() || value;
 }
+function sceProductSpecificationDescription(ctx: ResolveContext): string | undefined {
+  if ((ctx.result?.manufacturerId ?? ctx.manufacturer.id) !== "sce") return undefined;
+  const attribute = ctx.result?.attributes.find((attr) => /^product specifications$/i.test(attr.group ?? "") && /^description$/i.test(attr.name));
+  return cleanDescriptionValue(attribute?.value) ?? cleanDescriptionValue(ctx.result?.description);
+}
+
+function isSceEnclosure(ctx: ResolveContext): boolean {
+  if ((ctx.result?.manufacturerId ?? ctx.manufacturer.id) !== "sce") return false;
+  const text = [ctx.deviceType, ctx.result?.title, ctx.result?.description, ...(ctx.result?.attributes ?? []).map((attr) => attr.value)].filter(Boolean).join(" ");
+  return /\benclosure\b/i.test(text);
+}
 const longDescription: Resolver = (ctx) => {
+  const sceDescription = sceProductSpecificationDescription(ctx);
+  if (sceDescription) return sceDescription;
   if (ctx.language === "de") {
     // DE columns must always be populated so the downstream importer is forced to translate
     // them (blank cells silently pass through to the catalog as English). Prefer the real DE
@@ -428,6 +441,7 @@ const longDescription: Resolver = (ctx) => {
   return ctx.result?.manufacturerId === "eaton" ? stripEatonCatalogPrefix(raw, ctx.item.catalogNumber) : raw;
 };
 const shortDescription: Resolver = (ctx) => {
+  if (isSceEnclosure(ctx)) return ctx.language === "de" ? "Gehaeuse" : "Enclosure";
   if (ctx.language === "de") {
     const de =
       localizedDescriptionFactValue(ctx, "localizedShortDescriptionDe", ctx.result?.title) ??
@@ -3209,7 +3223,7 @@ const RESOLVERS: Record<string, Resolver> = {
   AAP366: attrNumber(/\b(number of breaking contacts per actuation direction|breaking contacts)\b/i),
   AAP695: attrNumber(/\b(number of shutters per direction|shutters per direction)\b/i),
   AAP713: attrNumber(/\b(number of switch positions|switch positions)\b/i),
-  AAW361: singleNemaProtection,
+  AAW361: nemaProtection,
   AAZ486: nemaProtection,
   ABI270: attrNumber(/\b(min(?:imum)? resolution|resolution)\b/i),
   ABI720: nemaProtection,

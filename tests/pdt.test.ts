@@ -292,6 +292,24 @@ describe("eclass resolvers", () => {
     );
   });
 
+  it("uses Saginaw product-spec description for enclosure PDT descriptions", () => {
+    const c = ctx(
+      {
+        manufacturerId: "sce",
+        title: "SCE-724824FSDAD",
+        description: "FSDAD Enclosure",
+        attributes: [{ group: "Product Specifications", name: "Description", value: "FSDAD Enclosure", sourceType: "official" }]
+      },
+      "SCE-724824FSDAD",
+      "Enclosure"
+    );
+    c.manufacturer = { ...manufacturer, id: "sce" } as ManufacturerConfig;
+
+    expect(resolveProperty("CNS_DESCRIPTION_LONG", "CNS_DESCRIPTION_LONG", c)).toBe("FSDAD Enclosure");
+    expect(resolveProperty("CNS_DESCRIPTION_SHORT", "CNS_DESCRIPTION_SHORT", c)).toBe("Enclosure");
+    expect(resolveProperty("CNS_DESCRIPTION_SHORT", "CNS_DESCRIPTION_SHORT", { ...c, language: "de" })).toBe("Gehaeuse");
+  });
+
   it("uses exact Rockwell details URLs for unknown Rockwell families", () => {
     const c = ctx({ manufacturerId: "rockwell" }, "5094-IF8");
     c.manufacturer = { ...manufacturer, id: "rockwell" } as ManufacturerConfig;
@@ -1793,11 +1811,11 @@ describe("eclass resolvers", () => {
     );
 
     const multiNema = ctx({ attributes: [{ name: "NEMA Rating", value: "NEMA Type 3R, 4, 12 and Type 13", sourceType: "official" }] });
-    expect(resolveProperty("AAW361", "AAW361", multiNema)).toBeUndefined();
+    expect(resolveProperty("AAW361", "AAW361", multiNema)).toBe("NEMA Type 3R, 4, 12 and Type 13");
     expect(resolveProperty("AAZ486", "AAZ486", multiNema)).toBe("NEMA Type 3R, 4, 12 and Type 13");
     expect(
       resolveProperty("AAW361", "AAW361", ctx({ attributes: [{ name: "NEMA Rating", value: "NEMA Type 4X", sourceType: "official" }] }))
-    ).toBe("NEMA 4X");
+    ).toBe("NEMA Type 4X");
 
     const materialComplianceDoc = ctx({
       attributes: [{ group: "ABB Material Compliance", name: "Conflict Minerals Reporting Template (CMRT)", value: "9AKK108467A5658", sourceType: "official" }]
@@ -2919,6 +2937,55 @@ describe("PDT exporter", () => {
     expect(ws.getCell(11, 2).value).toBe("Wandmontiertes Gehäuse");
     expect(ws.getCell(11, 3).value).toBe("Gehäuse");
     expect(ws.getCell(11, 4).value).toBe("Wall mounted enclosure");
+    expect(ws.getCell(11, 5).value).toBe("Enclosure");
+  });
+
+  it("writes Saginaw enclosure descriptions from product specifications", async () => {
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-pdt-sce-desc-"));
+    const templatePath = path.join(dir, "template.xlsx");
+    const outputPath = path.join(dir, "out.xlsx");
+    const wb = new ExcelJS.Workbook();
+    const material = wb.addWorksheet("Material Master Data");
+    material.getCell(2, 2).value = "Description DE";
+    material.getCell(2, 3).value = "Description DE";
+    material.getCell(2, 4).value = "Description EN";
+    material.getCell(2, 5).value = "Description EN";
+    material.getCell(6, 1).value = "ECLASS property";
+    material.getCell(7, 1).value = "Variable name (CNS internal)";
+    material.getCell(8, 1).value = "English variable description";
+    material.getCell(9, 1).value = "Units";
+    material.getCell(6, 2).value = "CNS_DESCRIPTION_LONG / AAU734";
+    material.getCell(7, 2).value = "CNS_DESCRIPTION_LONG";
+    material.getCell(8, 2).value = "Product description long";
+    material.getCell(6, 3).value = "CNS_DESCRIPTION_SHORT";
+    material.getCell(7, 3).value = "CNS_DESCRIPTION_SHORT";
+    material.getCell(8, 3).value = "Product description short";
+    material.getCell(6, 4).value = "CNS_DESCRIPTION_LONG / AAU734";
+    material.getCell(7, 4).value = "CNS_DESCRIPTION_LONG";
+    material.getCell(8, 4).value = "Product description long";
+    material.getCell(6, 5).value = "CNS_DESCRIPTION_SHORT";
+    material.getCell(7, 5).value = "CNS_DESCRIPTION_SHORT";
+    material.getCell(8, 5).value = "Product description short";
+    wb.addWorksheet("Additional Documents");
+    await wb.xlsx.writeFile(templatePath);
+
+    const item = ctx(
+      {
+        manufacturerId: "sce",
+        title: "SCE-724824FSDAD",
+        description: "FSDAD Enclosure",
+        attributes: [{ group: "Product Specifications", name: "Description", value: "FSDAD Enclosure", sourceType: "official" }]
+      },
+      "SCE-724824FSDAD",
+      "Enclosure"
+    ).item;
+    await exportRunPdt({ manufacturer: { ...manufacturer, id: "sce" } as ManufacturerConfig, items: [item], templatePath, outputPath });
+
+    const out = new ExcelJS.Workbook();
+    await out.xlsx.readFile(outputPath);
+    const ws = out.getWorksheet("Material Master Data")!;
+    expect(ws.getCell(11, 3).value).toBe("Gehaeuse");
+    expect(ws.getCell(11, 4).value).toBe("FSDAD Enclosure");
     expect(ws.getCell(11, 5).value).toBe("Enclosure");
   });
 
@@ -4226,6 +4293,64 @@ describe("PDT exporter", () => {
     expect(ws.getCell(9, 5).value).toBeNull();
     expect(ws.getCell(9, 6).value).toBeNull();
     expect(ws.getCell(9, 7).value).toBeNull();
+  });
+
+  it("writes Saginaw cabinet color from source-backed finish text", async () => {
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-pdt-sce-color-"));
+    const templatePath = path.join(dir, "template.xlsx");
+    const outputPath = path.join(dir, "out.xlsx");
+    const wb = new ExcelJS.Workbook();
+    const cabinet = wb.addWorksheet("cabinet");
+    for (const [row, label] of ["ClassId", "Priority", "Type", "PropertyId", "PropertyName", "Description", "Unit", "Body"].entries()) {
+      cabinet.getCell(row + 1, 1).value = label;
+    }
+    const columns = [
+      ["AAO676", "Article number"],
+      ["BAA351", "color 1 - Other 2 - cream white/electro white 3 - Stainless steel ..."],
+      ["BAC295", "Color (string)"]
+    ] as const;
+    for (const [index, [code, description]] of columns.entries()) {
+      const col = index + 2;
+      cabinet.getCell(4, col).value = code;
+      cabinet.getCell(5, col).value = code;
+      cabinet.getCell(6, col).value = description;
+    }
+    wb.addWorksheet("Additional Documents");
+    await wb.xlsx.writeFile(templatePath);
+
+    const item = ctx(
+      {
+        manufacturerId: "sce",
+        title: "SCE-724824FSDAD",
+        description: "FSDAD Enclosure",
+        normalized: {
+          color: "ANSI-61 gray (optional sub-panels white)",
+          finish: "ANSI-61 gray finish inside and out. Optional sub-panels are powder coated white."
+        },
+        attributes: [
+          {
+            group: "Finish",
+            name: "Finish",
+            value: "ANSI-61 gray finish inside and out. Optional sub-panels are powder coated white.",
+            sourceType: "official",
+            parser: "sce-product-page",
+            confidence: 0.9
+          }
+        ]
+      },
+      "SCE-724824FSDAD",
+      "Enclosure"
+    ).item;
+    const result = await exportRunPdt({ manufacturer: { ...manufacturer, id: "sce" } as ManufacturerConfig, items: [item], templatePath, outputPath });
+
+    const out = new ExcelJS.Workbook();
+    await out.xlsx.readFile(outputPath);
+    const ws = out.getWorksheet("cabinet")!;
+    expect(ws.getCell(9, 1).value).toBe("SCE-724824FSDAD");
+    expect(ws.getCell(9, 2).value).toBe("gray");
+    expect(ws.getCell(9, 3).value).toBe("ANSI-61 gray (optional sub-panels white)");
+    expect(result.cellAudit.records.some((record) => record.code === "BAA351" && record.status === "written")).toBe(true);
+    expect(result.cellAudit.records.some((record) => record.code === "BAC295" && record.status === "written")).toBe(true);
   });
 
   it("fills contactor voltage type and operating temperature columns found by description", async () => {

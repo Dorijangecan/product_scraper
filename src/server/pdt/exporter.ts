@@ -605,7 +605,7 @@ function semanticFactKeysForColumn(column: PdtColumn, ctx: ResolveContext): stri
   if (keys.includes("CNS_ELECTRO_MATERIAL") || keys.includes("BAB664") || keys.includes("BAF634") || (!isEnumColumn(column.description) && /material/i.test(column.description))) {
     facts.add("material");
   }
-  if (keys.includes("AAN521") || keys.includes("BAC295") || keys.includes("AAG331") || keys.includes("AAO620") || (!isEnumColumn(column.description) && /colou?r/i.test(column.description))) {
+  if (keys.includes("AAN521") || keys.includes("BAA351") || keys.includes("BAC295") || keys.includes("AAG331") || keys.includes("AAO620") || (!isEnumColumn(column.description) && /colou?r/i.test(column.description))) {
     facts.add("color");
     facts.add("pdtLampColor");
   }
@@ -1014,8 +1014,12 @@ function powerFactKeysForColumn(column: PdtColumn): string[] {
 function derivedFactKeyForColumn(column: PdtColumn): string | undefined {
   if (isWeightColumn(column)) return "weight";
   const keys = propertyKeysForColumn(column);
-  if (keys.includes("BAC295") || keys.includes("AAN521")) return "color";
+  if (keys.includes("BAA351") || keys.includes("BAC295") || keys.includes("AAN521")) return "color";
   if (keys.includes("CNS_ELECTRO_MATERIAL") || keys.includes("BAB664") || keys.includes("BAF634")) return "material";
+  // NEMA protection-type columns derive a canonical "NEMA 3R" token from the protection attribute
+  // (often "NEMA/EEMAC Type 3R"), so borrow the protection fact's provenance instead of failing the
+  // substring-based proof check.
+  if (keys.some((key) => ["AAW361", "AAZ486", "AAZ487"].includes(key))) return "protection";
   if (isFlowRateColumn(column)) return "flowRate";
   if (isPressureColumn(column)) return "pressure";
   const voltageFact = specificVoltageFactKeysForColumn(column)[0];
@@ -1201,7 +1205,7 @@ function factKeysForColumn(column: PdtColumn, ctx: ResolveContext): string[] {
   if (keys.includes("REFERENCE_FEATURE_SYSTEM_NAME")) add("eclassSystemVersion");
   const enumColumn = isEnumColumn(column.description);
   if (keys.includes("CNS_ELECTRO_MATERIAL") || keys.includes("BAB664") || keys.includes("BAF634") || (!enumColumn && /material/i.test(column.description))) add("material");
-  if (keys.includes("AAN521") || keys.includes("BAC295") || keys.includes("AAG331") || keys.includes("AAO620") || (!enumColumn && /colou?r/i.test(column.description))) {
+  if (keys.includes("AAN521") || keys.includes("BAA351") || keys.includes("BAC295") || keys.includes("AAG331") || keys.includes("AAO620") || (!enumColumn && /colou?r/i.test(column.description))) {
     add("color");
     add("pdtLampColor");
   }

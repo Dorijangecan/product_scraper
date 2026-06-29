@@ -148,18 +148,25 @@ export function buildPdtFactIndex(input: PdtFactInput): PdtFactIndex {
   addGenerated(
     facts,
     "shortDescription",
-    pdtShortDescription(result, input.item.catalogNumber),
+    pdtShortDescription(result, input.item.catalogNumber, input.deviceType),
     "product-title",
     "Product title selected by the scraper and normalized for PDT import."
   );
   addGenerated(
     facts,
     "longDescription",
-    pdtLongDescription(result, input.item.catalogNumber),
+    pdtLongDescription(result, input.item.catalogNumber, input.deviceType),
     "product-description",
     "Product description selected by the scraper and normalized for PDT import."
   );
-  addGenerated(facts, "localizedShortDescriptionDe", safeDescription(result.localizedDescriptions?.de?.title, input.item.catalogNumber), "localized-product-title", "German product title scraped from localized page.");
+  const deShortDescription = sceEnclosureShortDescriptionDe(result, input.deviceType) ?? safeDescription(result.localizedDescriptions?.de?.title, input.item.catalogNumber);
+  addGenerated(
+    facts,
+    "localizedShortDescriptionDe",
+    deShortDescription,
+    "localized-product-title",
+    "German product title scraped from localized page."
+  );
   addGenerated(facts, "localizedLongDescriptionDe", safeDescription(result.localizedDescriptions?.de?.description, input.item.catalogNumber), "localized-product-description", "German product description scraped from localized page.");
 
   addNormalized(facts, result, "weight", result.normalized.weight);
@@ -934,6 +941,7 @@ function normalizedValueCanComeFromAttribute(key: string, normalizedValue: strin
   if (comparableValue(rawValue).includes(comparableValue(normalizedValue))) return true;
   if (comparableValue(normalizedValue).includes(comparableValue(rawValue))) return true;
 
+  if (key === "color") return sameColor(rawValue, normalizedValue) || comparableValue(normalizeFields([attr], []).color ?? "") === comparableValue(normalizedValue);
   if (key === "weight") return sameWeight(rawValue, normalizedValue);
   if (key === "dimensions") return sameLengthNumber(rawValue, normalizedValue);
   // Tabular customer sources often label the column "Rated current (A)" and put just "16"
@@ -951,6 +959,24 @@ function sameUnitNumber(left: string, right: string, unit: "A" | "V", labelHint?
   const rightNumbers = unitNumbers(right, unit, labelHint);
   if (!leftNumbers.length || !rightNumbers.length) return false;
   return leftNumbers.some((leftNumber) => rightNumbers.some((rightNumber) => nearlyEqual(leftNumber, rightNumber)));
+}
+
+function sameColor(left: string, right: string): boolean {
+  const leftTokens = colorTokens(left);
+  const rightTokens = colorTokens(right);
+  return leftTokens.some((leftToken) => rightTokens.includes(leftToken));
+}
+
+function colorTokens(value: string): string[] {
+  const text = value.toLowerCase();
+  const tokens = [
+    ...(text.match(/\bansi[-\s]?61\b/g) ?? []).map(() => "ansi61"),
+    ...(text.match(/\bral\s*\d{3,4}\b/g) ?? []).map((match) => match.replace(/\s+/g, "")),
+    ...(text.match(/\b(?:black|white|gr[ae]y|red|blue|green|yellow|orange|silver|natural|beige|cream|brown|clear|transparent)\b/g) ?? []).map((match) =>
+      match.replace("grey", "gray")
+    )
+  ];
+  return [...new Set(tokens)];
 }
 
 function sameWeight(left: string, right: string): boolean {
@@ -1047,7 +1073,7 @@ function labelLooksLikeFact(label: string, key: string): boolean {
   if (key === "material") return /\b(material|housing|body|enclosure)\b/.test(text);
   if (key === "ratedVoltage") return /\b(voltage|spannung|volt)\b/.test(text);
   if (key === "ratedCurrent") return /\b(current|amp|strom)\b/.test(text);
-  if (key === "color") return /\b(colou?r|farbe)\b/.test(text);
+  if (key === "color") return /\b(colou?r|farbe|finish|surface|coating|paint)\b/.test(text);
   if (key === "certificates") return /\b(cert|approval|standard|conformity)\b/.test(text);
   return false;
 }
@@ -1086,18 +1112,44 @@ function manufacturerUrl(manufacturer: ManufacturerConfig): string | undefined {
   }
 }
 
-function pdtShortDescription(result: ProductResult, catalogNumber: string): string | undefined {
+function pdtShortDescription(result: ProductResult, catalogNumber: string, deviceType?: string): string | undefined {
   const known = knownPdtDescription(result, catalogNumber)?.short;
   if (known) return known;
+  const sceShort = sceEnclosureShortDescription(result, deviceType);
+  if (sceShort) return sceShort;
   const value = safeDescription(result.title, catalogNumber);
   return compactFamilyShortDescription(value) ?? value;
 }
 
-function pdtLongDescription(result: ProductResult, catalogNumber: string): string | undefined {
+function pdtLongDescription(result: ProductResult, catalogNumber: string, deviceType?: string): string | undefined {
   const known = knownPdtDescription(result, catalogNumber)?.long;
   if (known) return known;
+  const sceDescription = sceProductSpecificationDescription(result, catalogNumber);
+  if (sceDescription) return sceDescription;
   const current = safeDescription(result.description, catalogNumber);
   return betterLongDescription(result, current, catalogNumber) ?? current;
+}
+
+function sceProductSpecificationDescription(result: ProductResult, catalogNumber: string): string | undefined {
+  if (result.manufacturerId !== "sce") return undefined;
+  const attribute = result.attributes.find((attr) => /^product specifications$/i.test(attr.group ?? "") && /^description$/i.test(attr.name));
+  return safeDescription(attribute?.value, catalogNumber) ?? safeDescription(result.description, catalogNumber);
+}
+
+function sceEnclosureShortDescription(result: ProductResult, deviceType?: string): string | undefined {
+  if (!isSceEnclosure(result, deviceType)) return undefined;
+  return "Enclosure";
+}
+
+function sceEnclosureShortDescriptionDe(result: ProductResult, deviceType?: string): string | undefined {
+  if (!isSceEnclosure(result, deviceType)) return undefined;
+  return "Gehaeuse";
+}
+
+function isSceEnclosure(result: ProductResult, deviceType?: string): boolean {
+  if (result.manufacturerId !== "sce") return false;
+  const text = [deviceType, result.title, result.description, ...result.attributes.map((attr) => attr.value)].filter(Boolean).join(" ");
+  return /\benclosure\b/i.test(text);
 }
 
 function knownPdtDescription(result: ProductResult, catalogNumber: string): { short: string; long: string } | undefined {
