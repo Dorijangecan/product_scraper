@@ -15,7 +15,8 @@ const connectorLoaders: Record<string, () => Promise<ManufacturerConnector>> = {
   schmersal: async () => new (await import("./schmersal.js")).SchmersalConnector(),
   schneider: async () => new (await import("./schneider.js")).SchneiderConnector(),
   siemens: async () => new (await import("./siemens.js")).SiemensConnector(),
-  spelsberg: async () => new (await import("./spelsberg.js")).SpelsbergConnector()
+  spelsberg: async () => new (await import("./spelsberg.js")).SpelsbergConnector(),
+  turck: async () => new (await import("./turck.js")).TurckConnector()
 };
 const connectorPromises = new Map<string, Promise<ManufacturerConnector>>();
 

@@ -1035,4 +1035,23 @@ describe("manufacturer configuration", () => {
       "techsheet\\.scame\\.com/Download/dms/cad/pdf/.+\\.pdf"
     ]));
   });
+
+  it("configures Turck through official shop search and product pages", () => {
+    const turck = listManufacturerConfigs().find((manufacturer) => manufacturer.id === "turck");
+
+    expect(turck?.shortName).toBe("TUR");
+    expect(turck?.officialBaseUrls).toEqual(expect.arrayContaining(["https://www.turck.com/de/en/shop"]));
+    expect(turck?.scrapeRecipe?.searchUrlTemplates).toContain("https://www.turck.com/de/en/shop/search?q={part}");
+    expect(turck?.scrapeRecipe?.discoveryPolicy?.allowedOfficialDomains).toEqual(expect.arrayContaining([
+      "turck.com",
+      "hansturck.azureedge.net"
+    ]));
+    expect(turck?.fallbackSources.some((source) =>
+      source.id === "turck-shop-product" &&
+      source.directUrlTemplates.includes("https://www.turck.com/de/en/shop/p/{part}")
+    )).toBe(true);
+    expect(turck?.fallbackSources.flatMap((source) => source.directUrlTemplates).some((template) =>
+      template.includes("/sensors/inductive-sensors/")
+    )).toBe(false);
+  });
 });

@@ -3116,5 +3116,6 @@ function fetchHeaders(policy: { userAgent?: string; acceptLanguage?: string; ref
 }
 
 function hasEnoughContent(fetched: FetchedText, policy: { minContentLength?: number }): boolean {
+  if (fetched.statusCode >= 400) return false;
   return !policy.minContentLength || fetched.text.trim().length >= policy.minContentLength;
 }

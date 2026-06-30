@@ -95,9 +95,10 @@ export async function discoverOfficialProductCandidates(catalogNumber: string, c
     });
   }
 
+  const configuredSearchUrls = configuredSearchTemplates(manufacturer).map((template) => fillCatalogTemplate(template, catalogNumber));
   const searchUrls = [
     ...searchTemplates(manufacturer).map((template) => fillCatalogTemplate(template, catalogNumber)),
-    ...(await discoverSearchFormUrls(catalogNumber, context, attemptedUrls, notes))
+    ...(configuredSearchUrls.length ? [] : await discoverSearchFormUrls(catalogNumber, context, attemptedUrls, notes))
   ];
   const renderedSearchCandidates: string[] = [];
   let searchedUrlCount = 0;
@@ -131,6 +132,7 @@ export async function discoverOfficialProductCandidates(catalogNumber: string, c
       notes.push(`Search discovery failed for ${searchUrl}: ${formatError(error)}`);
     }
     if (discoveredCount === 0) renderedSearchCandidates.push(searchUrl);
+    if (configuredSearchUrls.length && searchedUrlCount >= configuredSearchUrls.length && hasSearchResultCandidate(candidates)) break;
   }
 
   if (!hasSearchResultCandidate(candidates) && shouldUseRenderedSearchDiscovery(context)) {
@@ -284,11 +286,15 @@ function officialDirectTemplates(manufacturer: ManufacturerConfig): Array<{
 }
 
 function searchTemplates(manufacturer: ManufacturerConfig): string[] {
-  const configured = [
+  const configured = configuredSearchTemplates(manufacturer);
+  return [...new Set([...configured, ...genericOfficialSearchTemplates(manufacturer)])];
+}
+
+function configuredSearchTemplates(manufacturer: ManufacturerConfig): string[] {
+  return [
     ...(manufacturer.scrapeRecipe?.discoveryPolicy?.searchUrlTemplates ?? []),
     ...(manufacturer.scrapeRecipe?.searchUrlTemplates ?? [])
   ].filter(templateContainsCatalogPlaceholder);
-  return [...new Set([...configured, ...genericOfficialSearchTemplates(manufacturer)])];
 }
 
 function genericOfficialSearchTemplates(manufacturer: ManufacturerConfig): string[] {
@@ -498,7 +504,7 @@ function urlVariantValues(catalogNumber: string, requested: Array<string> | unde
     partAfterColon: afterColon,
     partAfterColonCompact: compactCatalogNumber(afterColon)
   };
-  const keys = requested?.length ? requested : ["part", "partUpper", "partLower", "partCompact", "partAfterColon", "partAfterColonCompact"];
+  const keys = requested ? requested : ["part", "partUpper", "partLower", "partCompact", "partAfterColon", "partAfterColonCompact"];
   return [...new Set(keys.map((key) => all[key]).filter(Boolean))];
 }
 

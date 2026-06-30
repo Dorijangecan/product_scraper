@@ -272,6 +272,42 @@ const builtInManufacturerConfigs: Record<string, ManufacturerConfig> = {
     },
     fallbackSources: []
   },
+  turck: {
+    id: "turck",
+    canonicalName: "Turck",
+    shortName: "TUR",
+    rateLimitMs: 2500,
+    concurrency: 1,
+    officialBaseUrls: ["https://www.turck.com/de/en/shop"],
+    homepageUrl: "https://www.turck.com/de/en",
+    fetchPolicy: {
+      timeoutMs: 10000,
+      acceptLanguage: "en-US,en;q=0.9,de;q=0.7",
+      referer: "https://www.turck.com/de/en/shop",
+      fallbackUserAgents: [
+        "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)"
+      ],
+      minContentLength: 1000
+    },
+    fallbackSources: [
+      {
+        id: "turck-shop-search",
+        label: "Turck shop search",
+        enabled: true,
+        sourceType: "official-fallback",
+        directUrlTemplates: ["https://www.turck.com/de/en/shop/search?q={part}"],
+        confidence: 0.72
+      },
+      {
+        id: "turck-shop-product",
+        label: "Turck shop product page",
+        enabled: true,
+        sourceType: "official-fallback",
+        directUrlTemplates: ["https://www.turck.com/de/en/shop/p/{part}"],
+        confidence: 0.76
+      }
+    ]
+  },
   rockwell: {
     id: "rockwell",
     canonicalName: "Rockwell Automation",
@@ -821,6 +857,67 @@ function attachBuiltInScrapeRecipes() {
       }
     },
     confidenceRules: { foundMinScore: 74, partialMaxConfidence: 0.74, distributorMaxConfidence: 0.4 }
+  };
+
+  builtInManufacturerConfigs.turck.scrapeRecipe = {
+    searchUrlTemplates: [
+      "https://www.turck.com/de/en/shop/search?q={part}",
+      "https://www.turck.com/de/de/shop/search?q={part}"
+    ],
+    canonicalParamDenylist: ["q", "query"],
+    requiredAttributes: [
+      "order id|sku|product sku|product id",
+      "technical data|switching distance|operating voltage|output function|connection|mounting|housing|protection"
+    ],
+    requiredDocuments: ["image"],
+    minAttributes: 4,
+    minDocuments: 1,
+    expandSelectors: accordionSelectors,
+    dynamicFramework: ["next", "embedded-json", "api"],
+    discoveryPolicy: {
+      allowedOfficialDomains: ["turck.com", "hansturck.azureedge.net"],
+      searchUrlTemplates: [
+        "https://www.turck.com/de/en/shop/search?q={part}",
+        "https://www.turck.com/de/de/shop/search?q={part}"
+      ],
+      urlVariants: [],
+      maxCandidates: 10
+    },
+    interactionPolicy: {
+      expandSelectors: accordionSelectors,
+      tabSelectors: [
+        "button:has-text('Technical Data')",
+        "button:has-text('Downloads')",
+        "button:has-text('CAD')",
+        "[role='tab']"
+      ],
+      waitForSelectors: ["body"],
+      scrollPasses: 2,
+      maxClicks: 45,
+      networkIdleTimeoutMs: 15000
+    },
+    extractionPolicy: {
+      labelAliases: {
+        "Order ID no.": "Order ID",
+        "Product SKU": "Order ID",
+        "Product ID": "Order ID"
+      },
+      documentUrlPatterns: [
+        "turck\\.com/.+\\.(?:pdf|zip|step|stp|dxf|dwg)",
+        "azureedge\\.net/.+\\.(?:png|jpe?g|webp|pdf|zip|step|stp|dxf|dwg)"
+      ],
+      embeddedProductTableNames: ["product", "productDetail", "technicalData", "attributes", "specifications"],
+      embeddedResourceTableNames: ["downloads", "documents", "assets", "resources"]
+    },
+    fallbackPolicy: {
+      officialFirst: true,
+      readerOnQualityFailure: false,
+      browserOnQualityFailure: false,
+      documentDownloadProfile: "quality",
+      distributorFallback: false,
+      maxBrowserAttempts: 0
+    },
+    confidenceRules: { foundMinScore: 78, partialMaxConfidence: 0.74 }
   };
 
   builtInManufacturerConfigs.nvent.scrapeRecipe = {

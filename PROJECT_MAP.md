@@ -25,7 +25,7 @@ također opt-in: `PRODUCT_SCRAPER_ALLOW_EXTERNAL_READER=1`. Princip: vrijednosti
 | Folder / fajl | Čemu služi |
 | --- | --- |
 | `src/server/` | Express API, orkestracija runova, DB, I/O, layout outputa |
-| `src/server/scrapers/` | **Srce sustava** — konektori po proizvođaču + zajednička infra + "understanding engine" (39 fajlova) |
+| `src/server/scrapers/` | **Srce sustava** — konektori po proizvođaču + zajednička infra + "understanding engine" (40 fajlova) |
 | `src/server/pdt/` | Generiranje PDT Excela iz rezultata runa (22 fajla) |
 | `src/server/config/` | `manufacturers.ts` — built-in profili + custom config |
 | `src/client/` | React UI (`App.tsx` monolitan, `Dropdown.tsx`, `api.ts`, `main.tsx`, `styles.css`) |
@@ -243,7 +243,7 @@ Politike u `ManufacturerConfig.scrapeRecipe`: `DiscoveryPolicyConfig`, `Interact
 
 ### `src/server/scrapers/` — konektori (svi imaju `<Name>Connector`)
 `abb.ts` `balluff.ts` `eaton.ts` `eta.ts` `fath.ts` `rockwell.ts` `sce.ts` `scame.ts` `schmersal.ts`
-`schneider.ts` `siemens.ts` `spelsberg.ts` — uz `parse<Vendor>ProductPage` helpere.
+`schneider.ts` `siemens.ts` `spelsberg.ts` `turck.ts` — uz `parse<Vendor>ProductPage` helpere.
 Config-driven (bez fajla): `nvent`, `phoenix`.
 
 ### `src/server/pdt/`

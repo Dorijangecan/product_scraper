@@ -4,6 +4,8 @@ import { scrapeDiscoveredFallback } from "../src/server/scrapers/discovery-fallb
 import { GenericFallbackScraper } from "../src/server/scrapers/generic.js";
 import { getConnector } from "../src/server/scrapers/index.js";
 import { discoverProductLinksWithDiagnostics } from "../src/server/scrapers/link-discovery.js";
+import { findTurckProductUrl } from "../src/server/scrapers/turck.js";
+import { getManufacturerConfig } from "../src/server/config/manufacturers.js";
 import type { DocumentRecord, FallbackSourceConfig, LearnedEndpointRecord, ManufacturerConfig } from "../src/shared/types.js";
 
 const manufacturer: ManufacturerConfig = {
@@ -695,5 +697,316 @@ describe("official discovery scoring", () => {
     expect(requestedUrls).toContain("https://newco.test/en-us/search?keyword=ABC-123");
     expect(result.diagnostics?.attemptedUrls).toContain("https://newco.test/en-us/search?keyword=ABC-123");
     expect(result.diagnostics?.discoveredCandidates?.some((candidate) => candidate.url === "https://newco.test/catalog/detail.aspx?id=987")).toBe(true);
+  });
+
+  it("discovers Turck shop product URLs from catalog-name search results", async () => {
+    const turck = getManufacturerConfig("turck")!;
+    const searchedUrls: string[] = [];
+    const discovered = await discoverOfficialProductCandidates("NI12U-EG18SK-VP4X", {
+      manufacturer: turck,
+      http: {
+        fetchText: async (url: string) => {
+          searchedUrls.push(url);
+          if (url === "https://www.turck.com/de/en/shop/search?q=NI12U-EG18SK-VP4X") {
+            return {
+              requestedUrl: url,
+              effectiveUrl: url,
+              statusCode: 200,
+              contentType: "text/html",
+              fetchedAt: "2026-01-01T00:00:00.000Z",
+              fromCache: false,
+              text: `<main>
+                <article data-testid="product-list-item">
+                  <a href="/de/en/shop/sensors/inductive-sensors/1581801">
+                    <h3>NI12U-EG18SK-VP4X</h3>
+                    <span>Order ID no. 1581801</span>
+                    <span>Inductive Sensor</span>
+                  </a>
+                </article>
+              </main>`
+            };
+          }
+          return {
+            requestedUrl: url,
+            effectiveUrl: url,
+            statusCode: 200,
+            contentType: "text/html",
+            fetchedAt: "2026-01-01T00:00:00.000Z",
+            fromCache: false,
+            text: "<main>No matching Turck products</main>"
+          };
+        }
+      }
+    } as never);
+
+    expect(turck.shortName).toBe("TUR");
+    expect(searchedUrls).toContain("https://www.turck.com/de/en/shop/search?q=NI12U-EG18SK-VP4X");
+    expect(discovered.candidates.some((candidate) =>
+      candidate.url === "https://www.turck.com/de/en/shop/sensors/inductive-sensors/1581801" &&
+      candidate.stage === "search-result"
+    )).toBe(true);
+  });
+
+  it("scrapes Turck catalog names through the dedicated shop connector", async () => {
+    const turck = getManufacturerConfig("turck")!;
+    const requestedUrls: string[] = [];
+    const result = await getConnector("turck").scrape("NI12U-EG18SK-VP4X", {
+      manufacturer: turck,
+      http: {
+        fetchText: async (url: string) => {
+          requestedUrls.push(url);
+          if (url === "https://www.turck.com/de/en/shop/search?q=NI12U-EG18SK-VP4X") {
+            return {
+              requestedUrl: url,
+              effectiveUrl: url,
+              statusCode: 200,
+              contentType: "text/html",
+              fetchedAt: "2026-01-01T00:00:00.000Z",
+              fromCache: false,
+              text: `<main>
+                <article>
+                  <a href="/de/en/shop/sensors/inductive-sensors/1581801">
+                    <h3>NI12U-EG18SK-VP4X</h3>
+                    <span>Order ID no. 1581801</span>
+                  </a>
+                </article>
+              </main>`
+            };
+          }
+          if (url === "https://www.turck.com/de/en/shop/sensors/inductive-sensors/1581801") {
+            return {
+              requestedUrl: url,
+              effectiveUrl: url,
+              statusCode: 200,
+              contentType: "text/html",
+              fetchedAt: "2026-01-01T00:00:00.000Z",
+              fromCache: false,
+              text: `<html><head>
+                <title>NI12U-EG18SK-VP4X | TURCK - Your Global Automation Partner</title>
+                <meta property="og:title" content="NI12U-EG18SK-VP4X | TURCK - Your Global Automation Partner" />
+                <meta property="og:image" content="https://hansturck.azureedge.net/highres/79852_v0_highres.png" />
+                <meta name="keywords" content="Inductive Sensor, " />
+              </head><body>
+                <h1>NI12U-EG18SK-VP4X</h1>
+                <p>Inductive Sensor NI12U-EG18SK-VP4X Order ID no. 1581801</p>
+                <table>
+                  <tr><th>Housing material</th><td>Stainless steel</td></tr>
+                  <tr><th>Protection class</th><td>IP68</td></tr>
+                </table>
+                <a href="https://hansturck.azureedge.net/edb/en_US_HQ/EDB_1581801_gbr_en.pdf">Datasheet</a>
+              </body></html>`
+            };
+          }
+          throw new Error(`Unexpected URL ${url}`);
+        }
+      },
+      runDir: "",
+      documentsDir: "",
+      downloadDocument: async (doc: DocumentRecord) => doc,
+      fallback: {
+        scrape: async () => undefined
+      }
+    } as never);
+
+    expect(requestedUrls).toEqual([
+      "https://www.turck.com/de/en/shop/search?q=NI12U-EG18SK-VP4X",
+      "https://www.turck.com/de/en/shop/sensors/inductive-sensors/1581801"
+    ]);
+    expect(result.productUrl).toBe("https://www.turck.com/de/en/shop/sensors/inductive-sensors/1581801");
+    expect(result.title).toBe("NI12U-EG18SK-VP4X");
+    expect(result.attributes).toContainEqual(expect.objectContaining({ name: "Order ID", value: "1581801" }));
+    expect(result.documents.some((doc) => doc.type === "image")).toBe(true);
+    expect(result.normalized.material).toBe("Stainless steel");
+  });
+
+  it("does not assume a fixed Turck product category path", async () => {
+    const turck = getManufacturerConfig("turck")!;
+    const result = await getConnector("turck").scrape("TBEN-L4-8DIP-8DOP", {
+      manufacturer: turck,
+      http: {
+        fetchText: async (url: string) => {
+          if (url === "https://www.turck.com/de/en/shop/search?q=TBEN-L4-8DIP-8DOP") {
+            return {
+              requestedUrl: url,
+              effectiveUrl: url,
+              statusCode: 200,
+              contentType: "text/html",
+              fetchedAt: "2026-01-01T00:00:00.000Z",
+              fromCache: false,
+              text: `<article>
+                <a href="/de/en/shop/automation-technology/i-o-systems/1000001">
+                  <h3>TBEN-L4-8DIP-8DOP</h3>
+                  <span>Order ID no. 1000001</span>
+                </a>
+              </article>`
+            };
+          }
+          if (url === "https://www.turck.com/de/en/shop/automation-technology/i-o-systems/1000001") {
+            return {
+              requestedUrl: url,
+              effectiveUrl: url,
+              statusCode: 200,
+              contentType: "text/html",
+              fetchedAt: "2026-01-01T00:00:00.000Z",
+              fromCache: false,
+              text: `<html><head>
+                <title>TBEN-L4-8DIP-8DOP | TURCK - Your Global Automation Partner</title>
+                <meta property="og:image" content="https://hansturck.azureedge.net/highres/1000001_v0_highres.png" />
+                <meta name="keywords" content="I/O module, " />
+              </head><body>
+                <h1>TBEN-L4-8DIP-8DOP</h1>
+                <p>I/O module TBEN-L4-8DIP-8DOP Order ID no. 1000001</p>
+                <table>
+                  <tr><th>Operating voltage</th><td>24 V DC</td></tr>
+                  <tr><th>Protection class</th><td>IP67</td></tr>
+                </table>
+              </body></html>`
+            };
+          }
+          throw new Error(`Unexpected URL ${url}`);
+        }
+      },
+      runDir: "",
+      documentsDir: "",
+      downloadDocument: async (doc: DocumentRecord) => doc,
+      fallback: {
+        scrape: async () => undefined
+      }
+    } as never);
+
+    expect(result.productUrl).toBe("https://www.turck.com/de/en/shop/automation-technology/i-o-systems/1000001");
+    expect(result.title).toBe("TBEN-L4-8DIP-8DOP");
+    expect(result.attributes).toContainEqual(expect.objectContaining({ name: "Product Type", value: "I/O module" }));
+    expect(result.normalized.voltage).toBe("24 V DC");
+  });
+
+  it("finds Turck product URLs embedded in JSON search payloads", () => {
+    const url = findTurckProductUrl(
+      JSON.stringify({
+        results: [
+          {
+            sku: "TBEN-L4-8DIP-8DOP",
+            title: "TBEN-L4-8DIP-8DOP block I/O module",
+            detailUrl: "/de/en/shop/automation-technology/i-o-systems/1000001"
+          }
+        ]
+      }),
+      "https://www.turck.com/de/en/shop/search?q=TBEN-L4-8DIP-8DOP",
+      "TBEN-L4-8DIP-8DOP"
+    );
+
+    expect(url).toBe("https://www.turck.com/de/en/shop/automation-technology/i-o-systems/1000001");
+  });
+
+  it("uses all configured Turck shop search templates before failing", async () => {
+    const turck = getManufacturerConfig("turck")!;
+    const requestedUrls: string[] = [];
+    const result = await getConnector("turck").scrape("TX-REMOTE-24", {
+      manufacturer: turck,
+      http: {
+        fetchText: async (url: string) => {
+          requestedUrls.push(url);
+          if (url === "https://www.turck.com/de/en/shop/search?q=TX-REMOTE-24") {
+            return {
+              requestedUrl: url,
+              effectiveUrl: url,
+              statusCode: 200,
+              contentType: "text/html",
+              fetchedAt: "2026-01-01T00:00:00.000Z",
+              fromCache: false,
+              text: "<main>No English result</main>"
+            };
+          }
+          if (url === "https://www.turck.com/de/de/shop/search?q=TX-REMOTE-24") {
+            return {
+              requestedUrl: url,
+              effectiveUrl: url,
+              statusCode: 200,
+              contentType: "application/json",
+              fetchedAt: "2026-01-01T00:00:00.000Z",
+              fromCache: false,
+              text: `{"results":[{"sku":"TX-REMOTE-24","url":"/de/de/shop/automation-technology/fieldbus-technology/1001001"}]}`
+            };
+          }
+          if (url === "https://www.turck.com/de/de/shop/automation-technology/fieldbus-technology/1001001") {
+            return {
+              requestedUrl: url,
+              effectiveUrl: url,
+              statusCode: 200,
+              contentType: "text/html",
+              fetchedAt: "2026-01-01T00:00:00.000Z",
+              fromCache: false,
+              text: `<html><head>
+                <title>TX-REMOTE-24 | TURCK - Your Global Automation Partner</title>
+                <meta name="keywords" content="Fieldbus module, " />
+              </head><body>
+                <h1>TX-REMOTE-24</h1>
+                <p>TX-REMOTE-24 Order ID no. 1001001</p>
+                <table><tr><th>Operating voltage</th><td>24 V DC</td></tr></table>
+              </body></html>`
+            };
+          }
+          throw new Error(`Unexpected URL ${url}`);
+        }
+      },
+      runDir: "",
+      documentsDir: "",
+      downloadDocument: async (doc: DocumentRecord) => doc,
+      fallback: {
+        scrape: async () => undefined
+      }
+    } as never);
+
+    expect(requestedUrls).toContain("https://www.turck.com/de/en/shop/search?q=TX-REMOTE-24");
+    expect(requestedUrls).toContain("https://www.turck.com/de/de/shop/search?q=TX-REMOTE-24");
+    expect(result.productUrl).toBe("https://www.turck.com/de/de/shop/automation-technology/fieldbus-technology/1001001");
+    expect(result.localizedUrls?.en).toBe("https://www.turck.com/de/en/shop/automation-technology/fieldbus-technology/1001001");
+    expect(result.localizedUrls?.de).toBe("https://www.turck.com/de/de/shop/automation-technology/fieldbus-technology/1001001");
+  });
+
+  it("rejects a Turck numeric fallback page when the order id does not match", async () => {
+    const turck = getManufacturerConfig("turck")!;
+    const result = await getConnector("turck").scrape("1234567", {
+      manufacturer: turck,
+      http: {
+        fetchText: async (url: string) => {
+          if (url.includes("/shop/search?")) {
+            return {
+              requestedUrl: url,
+              effectiveUrl: url,
+              statusCode: 200,
+              contentType: "text/html",
+              fetchedAt: "2026-01-01T00:00:00.000Z",
+              fromCache: false,
+              text: "<main>No matching Turck products</main>"
+            };
+          }
+          if (url === "https://www.turck.com/de/en/shop/p/1234567") {
+            return {
+              requestedUrl: url,
+              effectiveUrl: "https://www.turck.com/de/en/shop/sensors/inductive-sensors/7654321",
+              statusCode: 200,
+              contentType: "text/html",
+              fetchedAt: "2026-01-01T00:00:00.000Z",
+              fromCache: false,
+              text: `<html><head><title>OTHER-TURCK-PART | TURCK</title></head><body>
+                <h1>OTHER-TURCK-PART</h1>
+                <p>Order ID no. 7654321</p>
+              </body></html>`
+            };
+          }
+          throw new Error(`Unexpected URL ${url}`);
+        }
+      },
+      runDir: "",
+      documentsDir: "",
+      downloadDocument: async (doc: DocumentRecord) => doc,
+      fallback: {
+        scrape: async () => undefined
+      }
+    } as never);
+
+    expect(result.status).toBe("failed");
+    expect(result.productUrl).toBeUndefined();
   });
 });

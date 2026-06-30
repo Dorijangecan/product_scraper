@@ -131,17 +131,41 @@ export class CachedHttpClient {
     }
 
     await this.acquireHostSlot(url);
-    const { response, text } = await this.fetchTextWithRetry(url, {
-      method,
-      body: options.body,
-      headers: {
-        ...headers
-      },
-      timeoutMs: options.timeoutMs ?? 30000,
-      maxAttempts: options.maxAttempts,
-      retryBackoffMs: options.retryBackoffMs,
-      signal: options.signal
-    });
+    let response: Response;
+    let text: string;
+    try {
+      ({ response, text } = await this.fetchTextWithRetry(url, {
+        method,
+        body: options.body,
+        headers: {
+          ...headers
+        },
+        timeoutMs: options.timeoutMs ?? 30000,
+        maxAttempts: options.maxAttempts,
+        retryBackoffMs: options.retryBackoffMs,
+        signal: options.signal
+      }));
+    } catch (error) {
+      if (method === "GET") {
+        return this.fetchTextViaCurl(url, {
+          headers,
+          timeoutMs: options.timeoutMs ?? 30000,
+          cache: useCache,
+          cacheTtlMs: options.cacheTtlMs,
+          signal: options.signal
+        }, error);
+      }
+      throw error;
+    }
+    if (method === "GET" && isRetryableStatus(response.status)) {
+      return this.fetchTextViaCurl(url, {
+        headers,
+        timeoutMs: options.timeoutMs ?? 30000,
+        cache: useCache,
+        cacheTtlMs: options.cacheTtlMs,
+        signal: options.signal
+      }, new Error(`HTTP ${response.status}`));
+    }
     const fetchedAt = new Date().toISOString();
     const contentType = response.headers.get("content-type") ?? "";
     const cachePath = path.join(this.cacheDir, `${cacheKey}.html`);
@@ -286,6 +310,97 @@ $contentType = if ($response.Headers['Content-Type']) { [string]$response.Header
       fetchedAt,
       fromCache: false
     };
+  }
+
+  async fetchTextViaCurl(
+    url: string,
+    options: {
+      headers?: Record<string, string>;
+      timeoutMs?: number;
+      cache?: boolean;
+      cacheTtlMs?: number;
+      signal?: AbortSignal;
+    } = {},
+    cause?: unknown
+  ): Promise<FetchedText> {
+    throwIfAborted(options.signal);
+    const method = "CURL_GET";
+    const headers = {
+      "user-agent": DEFAULT_USER_AGENT,
+      accept: "text/html,application/xhtml+xml,application/xml;q=0.9,text/plain;q=0.8,*/*;q=0.5",
+      ...options.headers
+    };
+    const requestHash = hash(`CURL\nGET\n${url}\n${headerFingerprint(headers)}`);
+    const cacheKey = requestHash;
+    const useCache = options.cache ?? true;
+    const cached = useCache ? this.db.getPageCache(cacheKey) : undefined;
+    if (cached && isCacheFresh(cached.fetched_at, options.cacheTtlMs) && isCacheableTextStatus(cached.status_code)) {
+      try {
+        const text = await fs.readFile(cached.path, "utf8");
+        if (!text.trim()) throw new Error("Empty cached response");
+        return {
+          requestedUrl: url,
+          effectiveUrl: cached.effective_url ?? url,
+          statusCode: cached.status_code ?? 200,
+          contentType: cached.content_type ?? "text/html",
+          text,
+          fetchedAt: cached.fetched_at,
+          fromCache: true
+        };
+      } catch {
+        // Cache row is stale; fetch again and overwrite it.
+      }
+    }
+
+    await fs.mkdir(this.cacheDir, { recursive: true });
+    await this.acquireHostSlot(url);
+    const cachePath = path.join(this.cacheDir, `${cacheKey}.html`);
+    const curl = process.platform === "win32" ? "curl.exe" : "curl";
+    const timeoutSec = Math.max(5, Math.ceil((options.timeoutMs ?? 30000) / 1000));
+    const args = ["-L", "--fail", "--retry", "1", "--retry-delay", "1", "--max-time", String(timeoutSec)];
+    if (process.platform === "win32") args.push("--ssl-no-revoke");
+    for (const [name, value] of Object.entries(headers)) {
+      if (/^user-agent$/i.test(name)) args.push("-A", value);
+      else args.push("-H", `${name}: ${value}`);
+    }
+    args.push("-o", cachePath, url);
+    try {
+      await execFileAsync(curl, args, {
+        timeout: (options.timeoutMs ?? 30000) + 5000,
+        maxBuffer: 1024 * 1024,
+        signal: options.signal
+      });
+      const text = await fs.readFile(cachePath, "utf8");
+      if (!text.trim()) throw new Error(`Empty response body from ${url}`);
+      const fetchedAt = new Date().toISOString();
+      if (useCache && shouldCacheTextResponse(200, text)) {
+        this.db.setPageCache({
+          cache_key: cacheKey,
+          method,
+          url,
+          request_hash: requestHash,
+          path: cachePath,
+          status_code: 200,
+          content_type: "text/html",
+          effective_url: url,
+          fetched_at: fetchedAt
+        });
+      }
+      return {
+        requestedUrl: url,
+        effectiveUrl: url,
+        statusCode: 200,
+        contentType: "text/html",
+        text,
+        fetchedAt,
+        fromCache: false
+      };
+    } catch (error) {
+      if (options.signal?.aborted) throw new Error("Cancelled by user.");
+      const message = error instanceof Error ? error.message : "curl fetch failed";
+      const original = cause instanceof Error ? cause.message : undefined;
+      throw new Error(original ? `${original}; curl fallback failed: ${message}` : message);
+    }
   }
 
   private async fetchTextWithRetry(
