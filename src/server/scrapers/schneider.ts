@@ -5,7 +5,7 @@ import { buildLocalizedProductUrls } from "./localized-urls.js";
 import { classifyDocument, cleanText, emptyResult, mergeResults, normalizeFields } from "./normalizer.js";
 import type { ManufacturerConnector, ScrapeContext } from "./types.js";
 import { catalogTextMatches } from "./catalog-number.js";
-import { dedupeDocuments } from "./dedupe.js";
+import { dedupeAttributes, dedupeDocuments } from "./dedupe.js";
 import { documentUrlLooksDownloadable } from "./document-url.js";
 import { scrapeDiscoveredFallback, withDiscoveryFallbackDiagnostics } from "./discovery-fallback.js";
 
@@ -1469,16 +1469,6 @@ function decodeEmbeddedHtml(value: string): string {
     .replace(/&amp;/g, "&")
     .replace(/&lt;/g, "<")
     .replace(/&gt;/g, ">");
-}
-
-function dedupeAttributes(attributes: AttributeRecord[]): AttributeRecord[] {
-  const seen = new Set<string>();
-  return attributes.filter((attr) => {
-    const key = `${attr.group ?? ""}|${attr.name}|${attr.value}`.toLowerCase();
-    if (!attr.name || !attr.value || seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  });
 }
 
 function parseJsonObject(value: string | undefined): JsonObject | undefined {

@@ -188,10 +188,12 @@ Politike u `ManufacturerConfig.scrapeRecipe`: `DiscoveryPolicyConfig`, `Interact
 | `csv.ts` | `previewCsv`, `extractCatalogNumbers` |
 | `excel.ts` | `exportRunWorkbook` |
 | `manufacturer-wizard.ts` | `inspectManufacturerDraft`, `testManufacturerDraft` |
-| `config/manufacturers.ts` | `getManufacturerConfig`, `listManufacturerConfigs`, `saveManufacturerConfig`, `initializeManufacturerConfig`, `resetManufacturerOverride`, `isBuiltInManufacturer` |
+| `config/manufacturers.ts` | `getManufacturerConfig`, `listManufacturerConfigs`, `saveManufacturerConfig`, `initializeManufacturerConfig`, `resetManufacturerOverride` |
 | `paths.ts` | `AppPaths`, `createAppPaths` |
 | `run-output.ts` | `buildRunOutputLayout`, `ensureRunOutputLayout`, `getAllowedRunOutputRoots`, `isPathInsideAny`, `findRunLogPath` |
 | `run-item-summary.ts` | `summarizeRunItem` |
+| `text-util.ts` | `cleanText`, `collapseWhitespace`, `collapseWhitespaceOrUndefined`, `uniqueStrings`, `slugify` — **leaf** text helpers (dependency sink; import from here, no local copies) |
+| `url-util.ts` | `sameNormalizedUrl`, `sameUrlIgnoringHash`, `sameUrlOriginAndPath` — **leaf** URL-equality helpers (3 distinct semantics — see file header) |
 
 ### `src/server/scrapers/` — infrastruktura
 | Fajl | Ključni exporti |
@@ -199,7 +201,7 @@ Politike u `ManufacturerConfig.scrapeRecipe`: `DiscoveryPolicyConfig`, `Interact
 | `index.ts` | `getConnector` |
 | `types.ts` | `ScrapeContext`, `ManufacturerConnector` |
 | `http-client.ts` | `CachedHttpClient`, `FetchedText`, `delay` |
-| `browser-renderer.ts` | `BrowserRenderSession`, `renderProductPage`, `RenderedPage`, `ModalSection` |
+| `browser-renderer.ts` | `BrowserRenderSession`, `renderProductPage`, `RenderedPage`, `ModalSection`, `clickSafeSelectors`, `captureFrameFragments`, `captureShadowDomFragments` (zadnja tri exportana za testove: klik-petlja s re-scanom + iframe + shadow-DOM capture) |
 | `deterministic-pipeline.ts` | `runDeterministicScrapePipeline` |
 | `discovery.ts` | `discoverOfficialProductCandidates`, `scoreDiscoveryCandidate` |
 | `discovery-fallback.ts` | `scrapeDiscoveredFallback`, `withDiscoveryFallbackDiagnostics` |
@@ -208,9 +210,9 @@ Politike u `ManufacturerConfig.scrapeRecipe`: `DiscoveryPolicyConfig`, `Interact
 | `localized-urls.ts` | `buildLocalizedProductUrls`, `canonicalizeNventLocaleUrl`, `canonicalizeProductLocaleUrls` (collapse geo-locale `/en-xx/`→`/en-us/`) |
 | `generic.ts` | `parseGenericProductPage`, `GenericFallbackScraper`, `isUnresolvedSearchResultPage` |
 | `smart-fallback.ts` | `runSmartFallbackPipeline` |
-| `page-intelligence.ts` | `runAdaptivePageIntelligence`, `mergeFetchedPageMining`, `mergeNetworkPageMining` |
+| `page-intelligence.ts` | `runAdaptivePageIntelligence`, `mergeFetchedPageMining` |
 | `page-mining.ts` | `minePage`, `PageMiningResult`, `PageMiningOptions` |
-| `interaction-explorer.ts` | `adaptiveInteractionSelectors`, `interactionYieldUseful` |
+| `interaction-explorer.ts` | `adaptiveInteractionSelectors` |
 | `field-candidates.ts` | `applyFieldCandidateResolution`, `buildFieldCandidates`, `buildFieldResolutions` |
 | `mission-control.ts` | `shouldRunAdaptiveMining`, `driftFromTargetHealth` |
 | `target-health.ts` | `recordTargetObservation` |
@@ -218,7 +220,7 @@ Politike u `ManufacturerConfig.scrapeRecipe`: `DiscoveryPolicyConfig`, `Interact
 | `final-completeness.ts` | `evaluateFinalCompleteness`, `repairFinalCompletenessFromEvidence`, `finalNetworkRetryDecision`, `withFinalCompletenessPolicy` |
 | `evidence.ts` | `attachEvidence` (+ field candidate/resolution diagnostics) |
 | `dedupe.ts` | `dedupeAttributes`, `dedupeDocuments`, `dedupeSources`, `canonicalDocumentUrlKey` |
-| `document-enrichment.ts` | `enrichResultFromDownloadedDocuments`, `enrichResultFromRemoteDocuments`, `extractDocumentTextAttributes` |
+| `document-enrichment.ts` | `enrichResultFromDownloadedDocuments`, `enrichResultFromRemoteDocuments`, `extractDocumentTextAttributes`, `documentAttributesAreSubstantive` |
 | `document-url.ts` | `isPdfLikeDocument(Url)`, `documentUrlLooksRelevant`, `documentUrlLooksDownloadable` |
 | `source-document-discovery.ts` | `discoverSourceDocumentsWithDiagnostics` |
 | `pdf-ocr.ts` | `readPdfWithOptionalOcr` |
@@ -235,7 +237,7 @@ Politike u `ManufacturerConfig.scrapeRecipe`: `DiscoveryPolicyConfig`, `Interact
 | `ontology.ts` | `PROPERTY_ONTOLOGY`, `matchProperty`, `understand`, `findUnmappedSpecLabels` |
 | `quantity.ts` | `parseQuantities`, `parseTemperatureRange`, `quantityMin/Max`, `ParsedQuantity` |
 | `technical-attributes.ts` | `normalizeTechnicalAttributes` |
-| `technical-attribute-aliases.ts` | `TECHNICAL_ATTRIBUTE_ALIASES`, `listTechnicalAttributeAliases` |
+| `technical-attribute-aliases.ts` | `TECHNICAL_ATTRIBUTE_ALIASES`, `listTechnicalAttributeAliases`, `matchTechnicalAttributeAlias`, `suggestTechnicalAttributeAlias` (zadnji: prijedlog najbližeg kanonskog ključa za "Unmapped Labels") |
 | `field-registry.ts` | `FIELD_REGISTRY`, `fieldDefinition`, `findFieldSourceAttribute`, `buildFieldHealth` |
 | `device-type.ts` | `classifyDeviceType`, `knownDeviceTypes` |
 | `device-type-families.ts` / `device-type-urls.ts` | `familyTypeFor` / `urlTypeFor` |
@@ -274,6 +276,7 @@ Config-driven (bez fajla): `nvent`, `phoenix`.
 - **Testovi:** `tests/`, ime prati modul (`quality-gate.ts`→`quality-gate.test.ts`), Vitest.
 - **Lazy loading:** teški moduli (konektori, PDT, wizard) se učitavaju `await import(...)` u handleru/`getConnector` radi brzog starta — slijedi obrazac.
 - **Deterministički princip:** vrijednost iz izvora/dokumenta/pravila; nepoznato ostaje prazno + dijagnostika. Općenito značenje u ontology/quantity/normalizer, ne one-off regexi.
+- **Zajednički helperi:** za `cleanText`/`uniqueStrings`/`collapseWhitespace`/`slugify` importaj iz [text-util.ts](src/server/text-util.ts); za URL-usporedbu iz [url-util.ts](src/server/url-util.ts). **Ne** definiraj lokalne kopije (to su leaf moduli bez ovisnosti). CI: `npm run lint:dead` / `lint:orphans` / `lint:circular`.
 - **Prije commita:** `npx tsc --noEmit` i `npx vitest run`. (Node toolchain možda nije na PATH-u — koristi `/c/Program Files/nodejs` + `npx`.)
 
 ## 9. Gdje tražiti što

@@ -19,10 +19,6 @@ export function identityAttributeLabelStrength(label: string): "strong" | "weak"
   return undefined;
 }
 
-export function isIdentityAttributeLabel(label: string): boolean {
-  return identityAttributeLabelStrength(label) !== undefined;
-}
-
 export function hasMatchingStructuredIdentity(
   result: ProductResult,
   catalogNumber: string,

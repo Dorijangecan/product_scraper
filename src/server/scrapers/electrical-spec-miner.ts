@@ -1,3 +1,5 @@
+import { dedupeAttributes as dedupeAttributesBase } from "./dedupe.js";
+import { uniqueStrings as uniqueStringsBase } from "../text-util.js";
 import type { AttributeRecord } from "../../shared/types.js";
 import { cleanText } from "./normalizer.js";
 import { parseQuantities, type ParsedQuantity, type QuantityKind } from "./quantity.js";
@@ -312,17 +314,9 @@ function globalPattern(pattern: RegExp): RegExp {
 }
 
 function dedupeAttributes(attributes: AttributeRecord[]): AttributeRecord[] {
-  const seen = new Set<string>();
-  const out: AttributeRecord[] = [];
-  for (const attribute of attributes) {
-    const key = `${attribute.group ?? ""}|${attribute.name}|${attribute.value}|${attribute.sourceUrl ?? ""}`.toLowerCase();
-    if (seen.has(key)) continue;
-    seen.add(key);
-    out.push(attribute);
-  }
-  return out;
+  return dedupeAttributesBase(attributes, { includeSourceUrl: true, requireNameValue: false });
 }
 
 function uniqueStrings(values: string[]): string[] {
-  return [...new Set(values)];
+  return uniqueStringsBase(values, { filterEmpty: false });
 }

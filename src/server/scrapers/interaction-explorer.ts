@@ -1,34 +1,66 @@
-import type { PageMiningRecord, ScrapeRecipeConfig } from "../../shared/types.js";
+import { uniqueStrings as uniqueStringsBase } from "../text-util.js";
+import type { ScrapeRecipeConfig } from "../../shared/types.js";
 
 const TECHNICAL_TERMS = [
   "Technical data",
   "Technical Data",
+  "Technical details",
   "Technische Daten",
+  "Technische Details",
   "Specifications",
   "Specification",
   "Specifikationen",
+  "Full specifications",
   "Characteristics",
+  "Parameters",
+  "Parameter",
+  "Merkmale",
+  "Kenngrößen",
+  "Kenngroessen",
+  "Eigenschaften",
   "Product details",
   "Product Details",
+  "Produktdetails",
   "Details",
+  "More details",
+  "Mehr Details",
   "Electrical data",
+  "Elektrische Daten",
   "Mechanical data",
+  "Mechanische Daten",
   "Environmental",
   "Classifications",
   "Klassifizierungen",
   "Approvals",
+  "Zulassungen",
   "Certificates",
+  "Zertifikate",
+  "Datasheet",
+  "Data sheet",
+  "Datenblatt",
+  "Datenblätter",
   "Downloads",
+  "Download",
+  "Herunterladen",
   "Documents",
+  "Dokumente",
+  "Dokumentation",
   "Resources",
   "CAD",
   "Drawings",
+  "Zeichnungen",
   "Media",
   "Images",
   "Show more",
   "Show More",
+  "Mehr anzeigen",
+  "Weitere Informationen",
+  "Weitere",
   "All details",
-  "View all"
+  "Alle anzeigen",
+  "View all",
+  "View more",
+  "Read more"
 ];
 
 export function adaptiveInteractionSelectors(recipe: ScrapeRecipeConfig | undefined): string[] {
@@ -40,11 +72,6 @@ export function adaptiveInteractionSelectors(recipe: ScrapeRecipeConfig | undefi
   ];
   const semantic = TECHNICAL_TERMS.flatMap((term) => selectorsForTerm(term));
   return uniqueStrings([...configured, ...semantic]);
-}
-
-export function interactionYieldUseful(before: PageMiningRecord | undefined, after: PageMiningRecord): boolean {
-  if (!before) return after.attributeCount > 0 || after.documentCount > 0;
-  return after.attributeCount > before.attributeCount || after.documentCount > before.documentCount;
 }
 
 function selectorsForTerm(term: string): string[] {
@@ -61,5 +88,5 @@ function selectorsForTerm(term: string): string[] {
 }
 
 function uniqueStrings(values: string[]): string[] {
-  return [...new Set(values.map((value) => value.trim()).filter(Boolean))];
+  return uniqueStringsBase(values, { normalize: "trim" });
 }

@@ -1,3 +1,4 @@
+import { uniqueStrings } from "../text-util.js";
 import type { AttributeRecord, DocumentRecord, FallbackSourceConfig, ProductResult, ScrapeDiagnostics } from "../../shared/types.js";
 import { dedupeDocuments } from "./dedupe.js";
 import { discoverOfficialProductCandidates, type ProductDiscoveryResult } from "./discovery.js";
@@ -59,10 +60,6 @@ export function withDiscoveryFallbackDiagnostics(
       notes: uniqueStrings([...(result.diagnostics?.notes ?? []), ...(discovery.diagnostics.notes ?? [])]).slice(0, limits.notes ?? 60)
     } satisfies ScrapeDiagnostics
   };
-}
-
-function uniqueStrings(values: string[]): string[] {
-  return [...new Set(values.filter(Boolean))];
 }
 
 function discoveryDocumentFallbackResult(

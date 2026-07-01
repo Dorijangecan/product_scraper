@@ -1,4 +1,5 @@
 import type { AttributeRecord, DocumentRecord, NormalizedProductFields, ProductResult } from "../../shared/types.js";
+import { cleanText, uniqueStrings } from "../text-util.js";
 
 export type RegistryFieldKey =
   | keyof NormalizedProductFields
@@ -486,13 +487,3 @@ function fallbackConfidence(sourceType: AttributeRecord["sourceType"] | Document
   return 0.55;
 }
 
-function uniqueStrings(values: Array<string | undefined>): string[] {
-  return [...new Set(values.filter((value): value is string => Boolean(value)))];
-}
-
-function cleanText(value: string | undefined | null): string {
-  return String(value ?? "")
-    .replace(/\u00a0/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-}

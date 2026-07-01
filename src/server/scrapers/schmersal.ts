@@ -1,3 +1,5 @@
+import { sameUrlIgnoringHash as sameUrl } from "../url-util.js";
+import { uniqueStrings as uniqueStringsBase } from "../text-util.js";
 import crypto from "node:crypto";
 import fs from "node:fs/promises";
 import path from "node:path";
@@ -516,19 +518,6 @@ function isOfficialSchmersalDetailUrl(url: string | undefined): boolean {
   }
 }
 
-function sameUrl(left: string | undefined, right: string | undefined): boolean {
-  if (!left || !right) return false;
-  try {
-    const leftUrl = new URL(left);
-    const rightUrl = new URL(right);
-    leftUrl.hash = "";
-    rightUrl.hash = "";
-    return leftUrl.toString().toLowerCase() === rightUrl.toString().toLowerCase();
-  } catch {
-    return left.trim().toLowerCase() === right.trim().toLowerCase();
-  }
-}
-
 function localizeSchmersalUrl(url: string, locale: string): string {
   return url.replace(/\/(?:de_DE|de-DE|en_US|en-US|en_GB|en-GB)(?=\/)/, `/${localePath(locale)}`);
 }
@@ -551,7 +540,7 @@ async function exists(filePath: string): Promise<boolean> {
 }
 
 function uniqueStrings(values: string[]): string[] {
-  return [...new Set(values)];
+  return uniqueStringsBase(values, { filterEmpty: false });
 }
 
 function escapeRegExp(value: string): string {

@@ -1,3 +1,5 @@
+import { sameNormalizedUrl as sameUrl } from "./url-util.js";
+import { uniqueStrings as uniqueStringsBase } from "./text-util.js";
 import ExcelJS from "exceljs";
 import fs from "node:fs";
 import path from "node:path";
@@ -11,7 +13,7 @@ import { electricalFieldsForDeviceType } from "./pdt/device-type-profiles.js";
 import { classifyDeviceType } from "./scrapers/device-type.js";
 import { buildLocalizedProductUrls } from "./scrapers/localized-urls.js";
 import { cleanText, normalizeFields } from "./scrapers/normalizer.js";
-import { listTechnicalAttributeAliases } from "./scrapers/technical-attribute-aliases.js";
+import { listTechnicalAttributeAliases, suggestTechnicalAttributeAlias } from "./scrapers/technical-attribute-aliases.js";
 
 const POUND_TO_KILOGRAM = 0.45359237;
 const INCH_TO_MILLIMETER = 25.4;
@@ -470,6 +472,7 @@ export async function exportRunWorkbook(input: {
   unmappedLabels.columns = [
     { header: "Spec Label", key: "label", width: 48 },
     { header: "Occurrences", key: "occurrences", width: 14 },
+    { header: "Suggested Key (score)", key: "suggestedKey", width: 34 },
     { header: "Example Values", key: "exampleValues", width: 70 },
     { header: "Example Catalog Numbers", key: "exampleCatalogNumbers", width: 50 }
   ];
@@ -730,9 +733,12 @@ export async function exportRunWorkbook(input: {
     }
   }
   for (const entry of [...unmappedAgg.values()].sort((left, right) => right.count - left.count || left.label.localeCompare(right.label))) {
+    // Suggest the closest known canonical key so teaching the ontology is a review, not a hunt.
+    const suggestion = suggestTechnicalAttributeAlias(entry.label);
     unmappedLabels.addRow({
       label: entry.label,
       occurrences: entry.count,
+      suggestedKey: suggestion ? `${suggestion.canonicalKey} (${suggestion.score.toFixed(2)})` : "",
       exampleValues: [...entry.values].slice(0, 5).join(" | "),
       exampleCatalogNumbers: [...entry.catalogs].slice(0, 8).join(", ")
     });
@@ -2071,7 +2077,6 @@ function cleanAttributeCategory(attr: ProductResult["attributes"][number]): stri
   return "Other";
 }
 
-
 function addSummarySection(sheet: ExcelJS.Worksheet, row: number, title: string): number {
   sheet.mergeCells(row, 1, row, 4);
   const cell = sheet.getCell(row, 1);
@@ -2474,20 +2479,6 @@ function distinctGermanUrl(deUrl?: string, enUrl?: string, sourceUrl?: string): 
   if (!deUrl) return undefined;
   if ([enUrl, sourceUrl].filter((url): url is string => Boolean(url)).some((url) => sameUrl(url, deUrl))) return undefined;
   return deUrl;
-}
-
-function sameUrl(left: string, right: string): boolean {
-  try {
-    const leftUrl = new URL(left);
-    const rightUrl = new URL(right);
-    return (
-      leftUrl.origin.toLowerCase() === rightUrl.origin.toLowerCase() &&
-      leftUrl.pathname.replace(/\/+$/, "").toLowerCase() === rightUrl.pathname.replace(/\/+$/, "").toLowerCase() &&
-      leftUrl.searchParams.toString() === rightUrl.searchParams.toString()
-    );
-  } catch {
-    return left.replace(/\/+$/, "").toLowerCase() === right.replace(/\/+$/, "").toLowerCase();
-  }
 }
 
 interface ExportMeasurements {
@@ -4168,7 +4159,7 @@ function extractComplianceSummaryTokens(value: string): string[] {
 }
 
 function uniqueStrings(values: string[]): string[] {
-  return [...new Set(values.map(cleanText).filter(Boolean))];
+  return uniqueStringsBase(values, { normalize: "clean" });
 }
 
 function summaryAttributeScore(attr: ProductResult["attributes"][number]): number {

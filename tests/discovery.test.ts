@@ -6,7 +6,7 @@ import { getConnector } from "../src/server/scrapers/index.js";
 import { discoverProductLinksWithDiagnostics } from "../src/server/scrapers/link-discovery.js";
 import { findTurckProductUrl } from "../src/server/scrapers/turck.js";
 import { getManufacturerConfig } from "../src/server/config/manufacturers.js";
-import type { DocumentRecord, FallbackSourceConfig, LearnedEndpointRecord, ManufacturerConfig } from "../src/shared/types.js";
+import type { DocumentRecord, FallbackSourceConfig, LearnedEndpointRecord, ManufacturerConfig, ProductResult } from "../src/shared/types.js";
 
 const manufacturer: ManufacturerConfig = {
   id: "test",
@@ -962,6 +962,113 @@ describe("official discovery scoring", () => {
     expect(result.productUrl).toBe("https://www.turck.com/de/de/shop/automation-technology/fieldbus-technology/1001001");
     expect(result.localizedUrls?.en).toBe("https://www.turck.com/de/en/shop/automation-technology/fieldbus-technology/1001001");
     expect(result.localizedUrls?.de).toBe("https://www.turck.com/de/de/shop/automation-technology/fieldbus-technology/1001001");
+  });
+
+  it("falls back to the shared official discovery/search net when Turck bespoke search misses", async () => {
+    const turck = getManufacturerConfig("turck")!;
+    const attemptedFallback: string[] = [];
+    const fallbackResult: ProductResult = {
+      manufacturerId: "turck",
+      catalogNumber: "NI-DOES-NOT-EXIST-XYZ",
+      status: "partial",
+      confidence: 0.6,
+      productUrl: "https://www.turck.com/de/en/shop/sensors/inductive-sensors/2002002",
+      title: "Recovered via shared discovery",
+      normalized: {},
+      attributes: [],
+      documents: [],
+      sources: []
+    };
+    const result = await getConnector("turck").scrape("NI-DOES-NOT-EXIST-XYZ", {
+      manufacturer: turck,
+      http: {
+        // Every bespoke/discovery fetch returns "no match" so the connector must reach the
+        // shared discovery fallback rather than giving up (which is what it did before).
+        fetchText: async (url: string) => ({
+          requestedUrl: url,
+          effectiveUrl: url,
+          statusCode: 200,
+          contentType: "text/html",
+          fetchedAt: "2026-01-01T00:00:00.000Z",
+          fromCache: false,
+          text: "<main>No matching Turck products</main>"
+        })
+      },
+      runDir: "",
+      documentsDir: "",
+      downloadDocument: async (doc: DocumentRecord) => doc,
+      fallback: {
+        scrape: async (catalogNumber: string) => {
+          attemptedFallback.push(catalogNumber);
+          return fallbackResult;
+        }
+      }
+    } as never);
+
+    expect(attemptedFallback).toContain("NI-DOES-NOT-EXIST-XYZ");
+    expect(result.status).toBe("partial");
+    expect(result.productUrl).toBe("https://www.turck.com/de/en/shop/sensors/inductive-sensors/2002002");
+  });
+
+  it("auto-discovers the site's search form even when a configured search template returns nothing", async () => {
+    const searchedUrls: string[] = [];
+    const discovered = await discoverOfficialProductCandidates("ABC-123", {
+      manufacturer: {
+        id: "generic",
+        canonicalName: "Generic Manufacturer",
+        shortName: "GEN",
+        rateLimitMs: 100,
+        officialBaseUrls: ["https://example.test/catalog"],
+        fallbackSources: [],
+        scrapeRecipe: {
+          // A configured search endpoint that has since gone stale / returns no results.
+          searchUrlTemplates: ["https://example.test/legacy-search?q={part}"]
+        }
+      },
+      http: {
+        fetchText: async (url: string) => {
+          searchedUrls.push(url);
+          if (url === "https://example.test" || url === "https://example.test/") {
+            return {
+              requestedUrl: url,
+              effectiveUrl: url,
+              statusCode: 200,
+              contentType: "text/html",
+              fetchedAt: "2026-01-01T00:00:00.000Z",
+              fromCache: false,
+              text: `<form id="site-search" action="/search/results" method="get">
+                <input type="search" name="q" aria-label="Search products" />
+              </form>`
+            };
+          }
+          if (url === "https://example.test/search/results?q=ABC-123") {
+            return {
+              requestedUrl: url,
+              effectiveUrl: url,
+              statusCode: 200,
+              contentType: "text/html",
+              fetchedAt: "2026-01-01T00:00:00.000Z",
+              fromCache: false,
+              text: `<a href="/catalog/detail.aspx?id=987">ABC-123 details</a>`
+            };
+          }
+          // The configured legacy endpoint (and everything else) yields no product.
+          return {
+            requestedUrl: url,
+            effectiveUrl: url,
+            statusCode: 200,
+            contentType: "text/html",
+            fetchedAt: "2026-01-01T00:00:00.000Z",
+            fromCache: false,
+            text: "<main>No results</main>"
+          };
+        }
+      }
+    } as never);
+
+    expect(searchedUrls).toContain("https://example.test/legacy-search?q=ABC-123");
+    expect(searchedUrls).toContain("https://example.test/search/results?q=ABC-123");
+    expect(discovered.candidates.some((candidate) => candidate.url === "https://example.test/catalog/detail.aspx?id=987")).toBe(true);
   });
 
   it("rejects a Turck numeric fallback page when the order id does not match", async () => {

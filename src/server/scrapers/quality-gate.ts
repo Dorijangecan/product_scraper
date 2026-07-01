@@ -1,3 +1,4 @@
+import { uniqueStrings } from "../text-util.js";
 import type {
   ManufacturerConfig,
   ProductResult,
@@ -332,10 +333,6 @@ function urlContainsIdentitySignal(url: string, catalogNumber: string): boolean 
 
 function isSearchLikeText(value: string): boolean {
   return /\b(search results?|suche|suchergebnisse|results for)\b/i.test(value);
-}
-
-function uniqueStrings(values: Array<string | undefined>): string[] {
-  return [...new Set(values.filter((value): value is string => Boolean(value)))];
 }
 
 function hasOfficialEvidence(result: ProductResult, manufacturer: ManufacturerConfig): boolean {

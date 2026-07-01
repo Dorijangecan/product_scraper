@@ -4,7 +4,7 @@ import { buildLocalizedProductUrls } from "./localized-urls.js";
 import { cleanText, emptyResult, mergeResults, normalizeFields } from "./normalizer.js";
 import type { ManufacturerConnector, ScrapeContext } from "./types.js";
 import { sameCatalogNumber } from "./catalog-number.js";
-import { dedupeDocuments } from "./dedupe.js";
+import { dedupeAttributes, dedupeDocuments } from "./dedupe.js";
 import { scrapeDiscoveredFallback, withDiscoveryFallbackDiagnostics } from "./discovery-fallback.js";
 
 const SIEMENS_BASE = "https://sieportal.siemens.com";
@@ -225,15 +225,5 @@ function siemensSource(url: string, parser: string, fetched: FetchedText): Sourc
     fetchedAt: fetched.fetchedAt,
     statusCode: fetched.statusCode
   };
-}
-
-function dedupeAttributes(attributes: AttributeRecord[]): AttributeRecord[] {
-  const seen = new Set<string>();
-  return attributes.filter((attr) => {
-    const key = `${attr.group ?? ""}|${attr.name}|${attr.value}`.toLowerCase();
-    if (seen.has(key) || !attr.name || !attr.value) return false;
-    seen.add(key);
-    return true;
-  });
 }
 

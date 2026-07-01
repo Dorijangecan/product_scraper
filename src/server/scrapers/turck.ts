@@ -1,6 +1,7 @@
 import type { AttributeRecord, LocalizedProductUrls, ProductResult, SourceRecord } from "../../shared/types.js";
 import { catalogTextMatches, compactCatalogNumber, fillCatalogTemplate } from "./catalog-number.js";
 import { dedupeAttributes, dedupeDocuments, dedupeSources } from "./dedupe.js";
+import { scrapeDiscoveredFallback, withDiscoveryFallbackDiagnostics } from "./discovery-fallback.js";
 import { parseGenericProductPage } from "./generic.js";
 import type { FetchedText } from "./http-client.js";
 import { cleanText, emptyResult, normalizeFields } from "./normalizer.js";
@@ -61,10 +62,22 @@ export class TurckConnector implements ManufacturerConnector {
       }
     }
 
-    return {
-      ...emptyResult("turck", catalogNumber, `Turck product page was not found for ${catalogNumber}.`),
-      diagnostics: { attemptedUrls }
-    };
+    // Bespoke shop search + numeric order-id both missed. Fall through to the shared official
+    // discovery net (configured/generic search-URL templates, automatic search-form discovery,
+    // rendered search, sitemap) so Turck has the same universal on-site-search safety net as
+    // every other connector instead of giving up here.
+    const { result: fallback, discovery } = await scrapeDiscoveredFallback(catalogNumber, context, { idPrefix: this.id });
+    const result = fallback ?? emptyResult("turck", catalogNumber, `Turck product page was not found for ${catalogNumber}.`);
+    return withDiscoveryFallbackDiagnostics(
+      {
+        ...result,
+        diagnostics: {
+          ...result.diagnostics,
+          attemptedUrls: [...new Set([...(result.diagnostics?.attemptedUrls ?? []), ...attemptedUrls])]
+        }
+      },
+      discovery
+    );
   }
 }
 

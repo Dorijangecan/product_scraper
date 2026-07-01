@@ -1,6 +1,10 @@
 import type { AttributeRecord, DocumentRecord, SourceRecord } from "../../shared/types.js";
 
-export function dedupeAttributes(attributes: AttributeRecord[], options: { includeSourceUrl?: boolean } = {}): AttributeRecord[] {
+export function dedupeAttributes(
+  attributes: AttributeRecord[],
+  options: { includeSourceUrl?: boolean; requireNameValue?: boolean } = {}
+): AttributeRecord[] {
+  const requireNameValue = options.requireNameValue ?? true;
   const seen = new Set<string>();
   return attributes.filter((attr) => {
     const key = [
@@ -11,7 +15,7 @@ export function dedupeAttributes(attributes: AttributeRecord[], options: { inclu
     ]
       .join("|")
       .toLowerCase();
-    if (!attr.name || !attr.value || seen.has(key)) return false;
+    if ((requireNameValue && (!attr.name || !attr.value)) || seen.has(key)) return false;
     seen.add(key);
     return true;
   });

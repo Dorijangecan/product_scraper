@@ -4,7 +4,7 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 import JSZip from "jszip";
 import type { ProductResult } from "../src/shared/types.js";
-import { enrichResultFromDownloadedDocuments, enrichResultFromRemoteDocuments, extractDocumentTextAttributes } from "../src/server/scrapers/document-enrichment.js";
+import { documentAttributesAreSubstantive, enrichResultFromDownloadedDocuments, enrichResultFromRemoteDocuments, extractDocumentTextAttributes } from "../src/server/scrapers/document-enrichment.js";
 import { normalizeFields } from "../src/server/scrapers/normalizer.js";
 import { normalizeTechnicalAttributes } from "../src/server/scrapers/technical-attributes.js";
 import {
@@ -13,6 +13,21 @@ import {
   extractCustomerFamilyPdfAttributes
 } from "../src/server/scrapers/customer-documents.js";
 import { classifyDeviceType } from "../src/server/scrapers/device-type.js";
+
+describe("documentAttributesAreSubstantive", () => {
+  const stub = { group: "PDF Document", name: "Parsed document", value: "datasheet.pdf" };
+  const real = { name: "Operating voltage", value: "24 V DC" };
+
+  it("treats a lone 'Parsed document' marker as non-substantive (parseStatus should be skipped)", () => {
+    expect(documentAttributesAreSubstantive([stub])).toBe(false);
+    expect(documentAttributesAreSubstantive([])).toBe(false);
+  });
+
+  it("treats even a single genuine attribute as substantive (the old length>1 proxy mislabelled this)", () => {
+    expect(documentAttributesAreSubstantive([real])).toBe(true);
+    expect(documentAttributesAreSubstantive([stub, real])).toBe(true);
+  });
+});
 
 describe("document enrichment", () => {
   it("extracts PDF table specs for datasheets", () => {

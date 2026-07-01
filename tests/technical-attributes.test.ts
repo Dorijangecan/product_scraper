@@ -1,7 +1,35 @@
 import { describe, expect, it } from "vitest";
-import { listTechnicalAttributeAliases } from "../src/server/scrapers/technical-attribute-aliases.js";
+import { listTechnicalAttributeAliases, suggestTechnicalAttributeAlias } from "../src/server/scrapers/technical-attribute-aliases.js";
 import { normalizeTechnicalAttributes } from "../src/server/scrapers/technical-attributes.js";
 import type { AttributeRecord, SourceRecord } from "../src/shared/types.js";
+
+describe("multilingual electrical aliases (Phase 4 U1a)", () => {
+  it("maps German/French/Italian voltage & current labels to canonical keys via global aliases", () => {
+    const mapped = normalizeTechnicalAttributes("unknown-maker", [
+      { name: "Betriebsspannung", value: "400 V", sourceType: "official" },
+      { name: "Tension nominale", value: "230 V", sourceType: "official" },
+      { name: "Corrente nominale", value: "16 A", sourceType: "official" },
+      { name: "Pouvoir de coupure", value: "10 kA", sourceType: "official" }
+    ]);
+    const byKey = new Map(mapped.map((item) => [item.originalName, item.canonicalKey]));
+    expect(byKey.get("Betriebsspannung")).toBe("ratedVoltage");
+    expect(byKey.get("Tension nominale")).toBe("ratedVoltage");
+    expect(byKey.get("Corrente nominale")).toBe("ratedCurrent");
+    expect(byKey.get("Pouvoir de coupure")).toBe("breakingCapacity");
+  });
+});
+
+describe("suggestTechnicalAttributeAlias (Phase 4 U4)", () => {
+  it("suggests the closest canonical key for a near-miss unmapped label", () => {
+    const suggestion = suggestTechnicalAttributeAlias("Rated operating voltage");
+    expect(suggestion?.canonicalKey).toBe("ratedVoltage");
+    expect(suggestion!.score).toBeGreaterThan(0.7);
+  });
+
+  it("returns undefined for an empty label", () => {
+    expect(suggestTechnicalAttributeAlias("")).toBeUndefined();
+  });
+});
 
 describe("technical attribute normalization", () => {
   it("maps different manufacturer labels for power loss to one canonical property while preserving originals", () => {

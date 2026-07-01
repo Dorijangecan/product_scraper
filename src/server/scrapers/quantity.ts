@@ -118,6 +118,12 @@ const UNIT_TABLE: Record<string, UnitInfo> = {
   oz: { unit: "oz", kind: "mass" },
   mm: { unit: "mm", kind: "length" },
   cm: { unit: "cm", kind: "length" },
+  inch: { unit: "in", kind: "length" },
+  inches: { unit: "in", kind: "length" },
+  ft: { unit: "ft", kind: "length" },
+  feet: { unit: "ft", kind: "length" },
+  "µm": { unit: "µm", kind: "length" },
+  um: { unit: "µm", kind: "length" },
   "ω": { unit: "Ω", kind: "resistance" },
   ohm: { unit: "Ω", kind: "resistance" },
   "kω": { unit: "kΩ", kind: "resistance" },
@@ -140,7 +146,7 @@ const UNIT_TABLE: Record<string, UnitInfo> = {
 // Longest / most-specific tokens first within each overlap group, so e.g. "kVA" wins over "kV",
 // "mAh" over "mA", "kWh" over "kW", and "mm²" over "mm".
 const UNIT_PATTERN =
-  "VAC|VDC|kVA|VA|kvar|var|kV|mV|V|mAh|Ah|kA|mA|A|kWh|Wh|kW|mW|W|Nm|°\\s*C|degC|kHz|MHz|Hz|mbar|kPa|MPa|Pa|bar|psi|Nl\\s*/\\s*min|l\\s*/\\s*min|lpm|m3\\s*/\\s*h|m3\\s*/\\s*min|dm3\\s*/\\s*min|gpm|cfm|kg|mg|g|lb|oz|mm²|mm2|cm²|cm2|mm|cm|MΩ|kΩ|Ω|ohm|amperes?|amps?|volts?|watts?";
+  "VAC|VDC|kVA|VA|kvar|var|kV|mV|V|mAh|Ah|kA|mA|A|kWh|Wh|kW|mW|W|Nm|°\\s*C|degC|kHz|MHz|Hz|mbar|kPa|MPa|Pa|bar|psi|Nl\\s*/\\s*min|l\\s*/\\s*min|lpm|m3\\s*/\\s*h|m3\\s*/\\s*min|dm3\\s*/\\s*min|gpm|cfm|kg|mg|g|lb|oz|mm²|mm2|cm²|cm2|mm|cm|inches|inch|feet|ft|µm|um|MΩ|kΩ|Ω|ohm|amperes?|amps?|volts?|watts?";
 
 const RANGE_SEP = "\\.{2,3}|…|\\bto\\b|\\bbis\\b|\\bdo\\b|~|/|-";
 
@@ -262,7 +268,9 @@ export function parseQuantities(text: string, options: ParseQuantitiesOptions = 
   const condition = conditions.length ? conditions.join("; ") : undefined;
 
   const quantities: ParsedQuantity[] = [];
-  for (const match of cleaned.matchAll(QUANTITY_RE)) {
+  const matches = [...cleaned.matchAll(QUANTITY_RE)];
+  for (let matchIndex = 0; matchIndex < matches.length; matchIndex += 1) {
+    const match = matches[matchIndex];
     const [, qualToken, numRaw, unitRaw] = match;
     const unitInfo = canonicalUnit(unitRaw);
     if (!unitInfo) continue;
@@ -270,7 +278,12 @@ export function parseQuantities(text: string, options: ParseQuantitiesOptions = 
     if (!numeric) continue;
 
     const matchEnd = (match.index ?? 0) + match[0].length;
-    const window = cleaned.slice(matchEnd, matchEnd + 14);
+    // Look ahead for a ± tolerance clause. The window is wider than the value's immediate suffix
+    // (e.g. "24 V DC, tolerance ±20%") but is bounded by the start of the NEXT quantity so a
+    // value can never borrow a following value's tolerance (upstream normalization has already
+    // flattened newlines, so a fixed char cap alone would leak across rows).
+    const nextStart = matches[matchIndex + 1]?.index ?? cleaned.length;
+    const window = cleaned.slice(matchEnd, Math.min(matchEnd + 28, nextStart));
     const tolerance = detectTolerance(window);
     const tokenQualifier = qualifierFromToken(qualToken);
 

@@ -1,3 +1,4 @@
+import { uniqueStrings as uniqueStringsBase } from "../text-util.js";
 import * as cheerio from "cheerio";
 import type { AttributeRecord, DocumentRecord, MarkerExtractionRule, ProductResult } from "../../shared/types.js";
 import type { ManufacturerConnector, ScrapeContext } from "./types.js";
@@ -2255,7 +2256,7 @@ function firstStringOrNumber(...values: unknown[]): string | undefined {
 }
 
 function uniqueStrings(values: string[]): string[] {
-  return [...new Set(values.map(cleanText).filter(Boolean))];
+  return uniqueStringsBase(values, { normalize: "clean" });
 }
 
 function canonicalAbbAttributeName(code: string, fallbackName: string): string {

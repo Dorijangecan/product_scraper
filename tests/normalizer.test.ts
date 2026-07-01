@@ -23,6 +23,22 @@ describe("normalizer", () => {
     expect(normalized.certificates).toContain("Declaration of Conformity");
   });
 
+  it("fills voltage/current/weight from Italian labels via the multilingual ontology fallback (Phase 4 U1b)", () => {
+    // These labels are not in FIELD_LABEL_PATTERNS (EN/DE); only the multilingual ontology
+    // recognises them. Before wiring the ontology gap-fill for these fields, they stayed empty.
+    const normalized = normalizeFields(
+      [
+        { name: "Tensione nominale", value: "400 V" },
+        { name: "Corrente nominale", value: "16 A" },
+        { name: "Peso", value: "0.5 kg" }
+      ],
+      []
+    );
+    expect(normalized.voltage).toBe("400 V");
+    expect(normalized.current).toBe("16 A");
+    expect(normalized.weight).toBe("0.5 kg");
+  });
+
   it("uses the central field registry as a generic fallback for unfamiliar spec labels", () => {
     const normalized = normalizeFields(
       [

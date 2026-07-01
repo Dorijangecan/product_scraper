@@ -1,3 +1,4 @@
+import { uniqueStrings } from "../text-util.js";
 import type { AttributeRecord, DocumentRecord, ProductResult, ScrapeAttemptRecord } from "../../shared/types.js";
 import { dedupeDocuments } from "./dedupe.js";
 import { discoverOfficialProductCandidates } from "./discovery.js";
@@ -298,6 +299,3 @@ function attemptFromFetched(
   };
 }
 
-function uniqueStrings(values: Array<string | undefined>): string[] {
-  return [...new Set(values.filter((value): value is string => Boolean(value)))];
-}

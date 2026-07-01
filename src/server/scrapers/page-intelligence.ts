@@ -1,3 +1,4 @@
+import { uniqueStrings } from "../text-util.js";
 import type { ProductResult, SourceRecord } from "../../shared/types.js";
 import type { FetchedText } from "./http-client.js";
 import { applyFieldCandidateResolution } from "./field-candidates.js";
@@ -137,35 +138,6 @@ export function mergeFetchedPageMining(
   return applyFieldCandidateResolution(next);
 }
 
-export function mergeNetworkPageMining(
-  result: ProductResult,
-  networkTexts: FetchedText[],
-  catalogNumber: string,
-  context: ScrapeContext,
-  limit = 12
-): ProductResult {
-  let current = result;
-  const ranked = rankNetworkTexts(networkTexts, catalogNumber).slice(0, limit);
-  for (const fetched of ranked) {
-    current = mergeFetchedPageMining(current, fetched, catalogNumber, context, {
-      stage: "adaptive-network-page-mining",
-      method: "browser-network",
-      sourceType: "official-fallback"
-    });
-  }
-  if (!ranked.length) return current;
-  return {
-    ...current,
-    diagnostics: {
-      ...current.diagnostics,
-      notes: uniqueStrings([
-        ...(current.diagnostics?.notes ?? []),
-        `Adaptive network mining parsed ${ranked.length} ranked browser payload(s).`
-      ]).slice(0, 50)
-    }
-  };
-}
-
 function mergeMiningResult(
   result: ProductResult,
   fetched: FetchedText,
@@ -237,27 +209,6 @@ function officialCandidateUrl(result: ProductResult, context: ScrapeContext): st
   return candidates.find((url) => isOfficialUrl(url, context) && !isAssetUrl(url));
 }
 
-function rankNetworkTexts(networkTexts: FetchedText[], catalogNumber: string): FetchedText[] {
-  return networkTexts
-    .map((fetched, index) => ({ fetched, index, score: networkScore(fetched, catalogNumber) }))
-    .filter((entry) => entry.score > 0)
-    .sort((left, right) => right.score - left.score || left.index - right.index)
-    .map((entry) => entry.fetched);
-}
-
-function networkScore(fetched: FetchedText, catalogNumber: string): number {
-  const sample = fetched.text.slice(0, 120_000);
-  const combined = `${fetched.effectiveUrl} ${fetched.contentType}`;
-  let score = 0;
-  if (/json|graphql|api|javascript/i.test(combined)) score += 30;
-  if (new RegExp(escapeRegExp(catalogNumber), "i").test(`${combined} ${sample}`)) score += 120;
-  if (/\b(?:product|sku|catalog|article|part|pim|details?|spec|technical|attribute|characteristic|document|download|asset|image)\b/i.test(`${combined} ${sample}`)) score += 70;
-  if (/^\s*</.test(sample) && !/technical|spec|download|datasheet|product/i.test(sample)) score -= 40;
-  if (fetched.statusCode >= 400) score -= 100;
-  if (fetched.text.length > 750_000) score -= 40;
-  return score;
-}
-
 function learnFromMining(context: ScrapeContext, url: string, mining: PageMiningResult, stage: string) {
   if (!context.learnedExtractors || (!mining.attributes.length && !mining.documents.length)) return;
   const host = hostFromUrl(url);
@@ -308,10 +259,3 @@ function hostFromUrl(url: string | undefined): string | undefined {
   }
 }
 
-function escapeRegExp(value: string): string {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
-function uniqueStrings(values: Array<string | undefined>): string[] {
-  return [...new Set(values.filter((value): value is string => Boolean(value)))];
-}

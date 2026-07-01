@@ -7,6 +7,33 @@ import {
   quantityMin
 } from "../src/server/scrapers/quantity.js";
 
+describe("imperial and micrometer lengths (Phase 4 U2)", () => {
+  it("parses inch, feet and micrometre lengths", () => {
+    expect(parseQuantities("12 inch")[0]).toMatchObject({ kind: "length", unit: "in", value: 12 });
+    expect(parseQuantities("5 ft")[0]).toMatchObject({ kind: "length", unit: "ft", value: 5 });
+    expect(parseQuantities("50 µm")[0]).toMatchObject({ kind: "length", unit: "µm", value: 50 });
+    expect(parseQuantities("50 um")[0]).toMatchObject({ kind: "length", unit: "µm", value: 50 });
+  });
+
+  it("does not treat prose words as units (no bare 'in'/'m' collisions)", () => {
+    expect(parseQuantities("5 in stock").some((q) => q.kind === "length")).toBe(false);
+    expect(parseQuantities("3 min").some((q) => q.kind === "length")).toBe(false);
+  });
+});
+
+describe("tolerance window (Phase 4 U3)", () => {
+  it("captures a ± tolerance that trails the value beyond the old 14-char window", () => {
+    const [quantity] = parseQuantities("24 V DC, tolerance ±20%");
+    expect(quantity).toMatchObject({ kind: "voltage", value: 24 });
+    expect(quantity.tolerance).toMatchObject({ type: "percent", value: 20 });
+  });
+
+  it("does not borrow a tolerance from the next line", () => {
+    const [first] = parseQuantities("24 V DC\n230 V AC ±10%");
+    expect(first.tolerance).toBeUndefined();
+  });
+});
+
 describe("quantity grammar — temperature understanding", () => {
   it("reads an English operating-temperature range into min/max", () => {
     expect(parseTemperatureRange("ambient temperature -40 to +80 °C")).toEqual({ min: -40, max: 80 });

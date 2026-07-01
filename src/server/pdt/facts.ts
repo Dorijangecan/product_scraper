@@ -1,3 +1,4 @@
+import { collapseWhitespaceOrUndefined as clean } from "../text-util.js";
 import type { AttributeRecord, DocumentRecord, ManufacturerConfig, ProductResult, RunItemRecord, SourceRecord } from "../../shared/types.js";
 import { getManufacturerConfig } from "../config/manufacturers.js";
 import { matchProperty, understand } from "../scrapers/ontology.js";
@@ -1319,11 +1320,6 @@ function sourceRank(sourceType: SourceRecord["sourceType"] | undefined): number 
   if (sourceType === "cache") return 1;
   if (sourceType === "distributor") return -2;
   return 0;
-}
-
-function clean(value: string | undefined): string | undefined {
-  const trimmed = value?.replace(/\s+/g, " ").trim();
-  return trimmed ? trimmed : undefined;
 }
 
 function comparableValue(value: string | undefined): string {

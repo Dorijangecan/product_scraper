@@ -1,39 +1,13 @@
 import type { AttributeRecord, DocumentRecord, NormalizedProductFields, ProductResult } from "../../shared/types.js";
-import { dedupeDocuments as dedupeSharedDocuments } from "./dedupe.js";
+import { dedupeAttributes as dedupeAttributesBase, dedupeDocuments as dedupeSharedDocuments } from "./dedupe.js";
 import { fieldMatchesLabel } from "./field-registry.js";
 import { isPlausibleTemperatureCelsius, parseTemperatureRange } from "./quantity.js";
 import { matchProperty } from "./ontology.js";
+import { cleanText } from "../text-util.js";
 
-export function cleanText(value: string | undefined | null): string {
-  return decodeHtmlEntities(String(value ?? ""))
-    .replace(/\u00a0/g, " ")
-    .replace(/â€¦/g, "...")
-    .replace(/â€“|â€”/g, "-")
-    .replace(/Â°/g, "°")
-    .replace(/Â²/g, "²")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
-function decodeHtmlEntities(value: string): string {
-  return value
-    .replace(/&#x([0-9a-f]+);/gi, (entity: string, code: string) => decodeEntityCodePoint(Number.parseInt(code, 16), entity))
-    .replace(/&#(\d+);/g, (entity: string, code: string) => decodeEntityCodePoint(Number.parseInt(code, 10), entity))
-    .replace(/&nbsp;/gi, " ")
-    .replace(/&amp;/gi, "&")
-    .replace(/&quot;/gi, '"')
-    .replace(/&apos;|&#39;/gi, "'")
-    .replace(/&lt;/gi, "<")
-    .replace(/&gt;/gi, ">")
-    .replace(/&deg;/gi, "\u00b0")
-    .replace(/&sup2;/gi, "\u00b2")
-    .replace(/&micro;/gi, "\u00b5");
-}
-
-function decodeEntityCodePoint(codePoint: number, fallback: string): string {
-  if (!Number.isFinite(codePoint) || codePoint < 0 || codePoint > 0x10ffff) return fallback;
-  return String.fromCodePoint(codePoint);
-}
+// cleanText/entity decoding now live in the leaf text-util module so field-registry can
+// share the canonical cleaner without creating an import cycle.
+export { cleanText };
 
 export function splitNameValue(text: string): { name: string; value: string } | undefined {
   const cleaned = cleanText(text);
@@ -270,17 +244,21 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
     numericVoltAttributeVoltage(attributes) ??
     bestNormalizedAttributeValue(attributes, FIELD_LABEL_PATTERNS.voltage, normalizeVoltageValue, "voltage") ??
     registryFieldValue(attributes, "voltage", normalizeVoltageValue) ??
-    normalizeVoltageValue(deriveVoltageFromText(attributes));
+    normalizeVoltageValue(deriveVoltageFromText(attributes)) ??
+    // Last resort: the ontology recognises FR/IT/DE voltage labels that FIELD_LABEL_PATTERNS
+    // (mostly EN/DE) miss. Most-specific matchProperty keeps insulation/impulse voltage out.
+    ontologyFieldValue(attributes, "ratedVoltage", normalizeVoltageValue);
   const current =
     numericCurrentAttributeCurrent(attributes) ??
     bestNormalizedAttributeValue(attributes, FIELD_LABEL_PATTERNS.current, normalizeCurrentValue, "current") ??
     registryFieldValue(attributes, "current", normalizeCurrentValue) ??
-    normalizeCurrentValue(deriveCurrentFromText(attributes));
+    normalizeCurrentValue(deriveCurrentFromText(attributes)) ??
+    ontologyFieldValue(attributes, "ratedCurrent", normalizeCurrentValue);
 
   const operatingTemperature = deriveOperatingTemperature(attributes);
 
   return {
-    weight: bestNormalizedAttributeValue(attributes, FIELD_LABEL_PATTERNS.weight, normalizeWeightValue, "weight") ?? registryFieldValue(attributes, "weight", normalizeWeightValue),
+    weight: bestNormalizedAttributeValue(attributes, FIELD_LABEL_PATTERNS.weight, normalizeWeightValue, "weight") ?? registryFieldValue(attributes, "weight", normalizeWeightValue) ?? ontologyFieldValue(attributes, "weight", normalizeWeightValue),
     dimensions,
     material,
     wallThickness,
@@ -1910,13 +1888,7 @@ function formatConvertedNumber(value: number): string {
 }
 
 function dedupeAttributes(attributes: AttributeRecord[]): AttributeRecord[] {
-  const seen = new Set<string>();
-  return attributes.filter((attr) => {
-    const key = `${attr.group ?? ""}|${attr.name}|${attr.value}|${attr.sourceUrl ?? ""}`.toLowerCase();
-    if (seen.has(key)) return false;
-    seen.add(key);
-    return Boolean(attr.name && attr.value);
-  });
+  return dedupeAttributesBase(attributes, { includeSourceUrl: true });
 }
 
 /**

@@ -1,3 +1,4 @@
+import { collapseWhitespaceOrUndefined as clean } from "../text-util.js";
 import identifiers from "./iec-identifiers.generated.json";
 
 interface IecIdentifierRow {
@@ -72,11 +73,6 @@ function identifierForCategory(category: string): string | undefined {
   const matches = rows.filter((row) => comparable(row.category) === normalized);
   const identifiers = [...new Set(matches.map((row) => clean(row.identifier)).filter((value): value is string => Boolean(value)))];
   return identifiers.length === 1 ? identifiers[0] : undefined;
-}
-
-function clean(value: string | undefined): string | undefined {
-  const trimmed = value?.replace(/\s+/g, " ").trim();
-  return trimmed ? trimmed : undefined;
 }
 
 function comparable(value: string): string {

@@ -1,3 +1,4 @@
+import { uniqueStrings } from "../text-util.js";
 import type {
   AttributeRecord,
   DocumentRecord,
@@ -12,7 +13,7 @@ import { isFamilyOverviewResult, requiredElectricalFields } from "../../shared/p
 import { getManufacturerConfig } from "../config/manufacturers.js";
 import { electricalFieldsForDeviceType, finalCompletenessFieldsForDeviceType } from "../pdt/device-type-profiles.js";
 import { classifyDeviceType } from "./device-type.js";
-import { dedupeDocuments as dedupeSharedDocuments } from "./dedupe.js";
+import { dedupeAttributes as dedupeAttributesBase, dedupeDocuments as dedupeSharedDocuments, dedupeSources } from "./dedupe.js";
 import { fieldMatchesLabel, type RegistryFieldKey } from "./field-registry.js";
 import { cleanText, normalizeFields } from "./normalizer.js";
 import { matchProperty } from "./ontology.js";
@@ -924,31 +925,12 @@ function nonEmptyNormalized(normalized: ProductResult["normalized"]): ProductRes
 }
 
 function dedupeAttributes(attributes: AttributeRecord[]): AttributeRecord[] {
-  const seen = new Set<string>();
-  return attributes.filter((attr) => {
-    const key = `${attr.group ?? ""}|${attr.name}|${attr.value}|${attr.sourceUrl ?? ""}`.toLowerCase();
-    if (!attr.name || !attr.value || seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  });
+  return dedupeAttributesBase(attributes, { includeSourceUrl: true });
 }
 
 const dedupeDocuments = dedupeSharedDocuments;
-
-function dedupeSources(sources: SourceRecord[]): SourceRecord[] {
-  const seen = new Set<string>();
-  return sources.filter((source) => {
-    const key = `${source.parser}|${source.url}`.toLowerCase();
-    if (seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  });
-}
 
 function uniqueFields(values: FinalCompletenessField[]): FinalCompletenessField[] {
   return [...new Set(values)];
 }
 
-function uniqueStrings(values: Array<string | undefined>): string[] {
-  return [...new Set(values.filter((value): value is string => Boolean(value)))];
-}

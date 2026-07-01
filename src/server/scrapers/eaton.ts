@@ -1,3 +1,4 @@
+import { uniqueStrings } from "../text-util.js";
 import fs from "node:fs/promises";
 import path from "node:path";
 import * as cheerio from "cheerio";
@@ -8,7 +9,7 @@ import { buildLocalizedProductUrls } from "./localized-urls.js";
 import { classifyDocument, cleanText, emptyResult, mergeResults, normalizeFields } from "./normalizer.js";
 import type { ManufacturerConnector, ScrapeContext } from "./types.js";
 import { catalogTextMatches, compactCatalogNumber, encodeSlashBraceCatalogPart, fillCatalogTemplate, sameCatalogNumber, templateContainsCatalogPlaceholder } from "./catalog-number.js";
-import { dedupeDocuments as dedupeSharedDocuments } from "./dedupe.js";
+import { dedupeAttributes, dedupeDocuments as dedupeSharedDocuments } from "./dedupe.js";
 import { documentUrlLooksDownloadable, documentUrlLooksRelevant } from "./document-url.js";
 import { scrapeDiscoveredFallback, withDiscoveryFallbackDiagnostics } from "./discovery-fallback.js";
 
@@ -2390,16 +2391,6 @@ function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-function dedupeAttributes(attributes: AttributeRecord[]): AttributeRecord[] {
-  const seen = new Set<string>();
-  return attributes.filter((attr) => {
-    const key = `${attr.group ?? ""}|${attr.name}|${attr.value}`.toLowerCase();
-    if (seen.has(key) || !attr.name || !attr.value) return false;
-    seen.add(key);
-    return true;
-  });
-}
-
 function dedupeDocuments(documents: DocumentRecord[]): DocumentRecord[] {
   return dedupeSharedDocuments(documents, {
     // For dynamicmedia.eaton.com images, fold _C / _L / _R / _T / _B camera-angle variants into
@@ -2447,10 +2438,6 @@ function documentLabelScore(doc: DocumentRecord): number {
   if (/^(download|document|product specifications?)$/i.test(doc.label)) score -= 60;
   if (doc.type === "datasheet" || doc.type === "cad" || doc.type === "manual") score += 20;
   return score;
-}
-
-function uniqueStrings(values: string[]): string[] {
-  return [...new Set(values.filter(Boolean))];
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

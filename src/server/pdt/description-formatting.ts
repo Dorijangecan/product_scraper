@@ -1,7 +1,5 @@
-function clean(value: string | undefined): string | undefined {
-  const trimmed = value?.replace(/\s+/g, " ").trim();
-  return trimmed || undefined;
-}
+import { collapseWhitespaceOrUndefined as clean } from "../text-util.js";
+
 
 export function isDecorativeAssetText(value: string | undefined): boolean {
   return /(?:^|\s)\.cls-\d+\s*\{|[{;]\s*fill\s*:\s*#[0-9a-f]{3,6}\b|_AB_Logo\b|\bAB_Logo\b|\bsvg\b/i.test(value ?? "");

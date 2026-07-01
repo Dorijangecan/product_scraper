@@ -9,6 +9,7 @@
  *
  * To teach it more, add entries/synonyms here (data), not new regexes scattered through scrapers.
  */
+import { uniqueStrings as uniqueStringsBase } from "../text-util.js";
 import { parseQuantities, type ParsedQuantity, type QuantityKind } from "./quantity.js";
 import { matchTechnicalAttributeAlias } from "./technical-attribute-aliases.js";
 
@@ -2098,5 +2099,5 @@ export function findUnmappedSpecLabels(attributes: LabelledValue[]): string[] {
 }
 
 function uniqueStrings(values: string[]): string[] {
-  return [...new Set(values)];
+  return uniqueStringsBase(values, { filterEmpty: false });
 }

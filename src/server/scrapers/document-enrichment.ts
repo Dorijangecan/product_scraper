@@ -1,3 +1,5 @@
+import { dedupeAttributes as dedupeAttributesBase, dedupeSources } from "./dedupe.js";
+import { uniqueStrings as uniqueStringsBase } from "../text-util.js";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { PDFParse } from "pdf-parse";
@@ -226,12 +228,13 @@ export async function enrichResultFromDownloadedDocuments(result: ProductResult)
           fetchedAt: new Date().toISOString()
         });
       }
-      documents.push({ ...doc, parseStatus: attributes.length > 1 ? "parsed" : "skipped", parseError: undefined });
+      const substantive = documentAttributesAreSubstantive(attributes);
+      documents.push({ ...doc, parseStatus: substantive ? "parsed" : "skipped", parseError: undefined });
       documentProcessing.push(documentProcessingRecord(
         doc,
         "downloaded-document-enrichment",
-        attributes.length > 1 ? "parsed" : "skipped",
-        attributes.length > 1 ? `Parsed ${attributes.length} attribute records from downloaded PDF.` : "Opened downloaded PDF, but no source-backed product attributes were extracted.",
+        substantive ? "parsed" : "skipped",
+        substantive ? `Parsed ${attributes.length} attribute records from downloaded PDF.` : "Opened downloaded PDF, but no source-backed product attributes were extracted.",
         undefined,
         documentExtractionMetrics(attributes, [doc], Date.now() - started)
       ));
@@ -322,12 +325,13 @@ export async function enrichResultFromRemoteDocuments(
           fetchedAt: new Date().toISOString()
         });
       }
-      documents.push({ ...parsedDoc, parseStatus: attributes.length > 1 ? "parsed" : "skipped", parseError: undefined });
+      const substantive = documentAttributesAreSubstantive(attributes);
+      documents.push({ ...parsedDoc, parseStatus: substantive ? "parsed" : "skipped", parseError: undefined });
       documentProcessing.push(documentProcessingRecord(
         parsedDoc,
         "remote-document-enrichment",
-        attributes.length > 1 ? "parsed" : "skipped",
-        attributes.length > 1 ? `Fetched and parsed ${attributes.length} attribute records from remote PDF.` : "Fetched remote PDF, but no source-backed product attributes were extracted.",
+        substantive ? "parsed" : "skipped",
+        substantive ? `Fetched and parsed ${attributes.length} attribute records from remote PDF.` : "Fetched remote PDF, but no source-backed product attributes were extracted.",
         undefined,
         documentExtractionMetrics(attributes, [parsedDoc], Date.now() - started)
       ));
@@ -497,6 +501,15 @@ function parsedDocumentAttribute(
     value: cleanText(document.label || path.basename(document.localPath ?? document.url)),
     sourceUrl
   };
+}
+
+/**
+ * True when extraction produced at least one real product attribute (not just the
+ * "Parsed document" marker stub). Used to decide parsed-vs-skipped: the old `length > 1`
+ * proxy mislabelled a document that yielded exactly one genuine attribute as "skipped".
+ */
+export function documentAttributesAreSubstantive(attributes: AttributeRecord[]): boolean {
+  return attributes.some((attr) => !(attr.group === "PDF Document" && attr.name === "Parsed document"));
 }
 
 function cachedNormalizedPdfLines(text: string, sourceUrl: string): string[] {
@@ -721,7 +734,7 @@ async function readPdfText(filePath: string, catalogNumber?: string, cacheIdenti
   } finally {
     await parser.destroy().catch(() => undefined);
   }
-  const ocr = await readPdfWithOptionalOcr(filePath);
+  const ocr = await readPdfWithOptionalOcr(filePath, { maxPages: MAX_PDF_PAGES });
   if (ocr.text.trim().length >= PDF_TEXT_MIN_CHARS_FOR_PARSE) return ocr.text.slice(0, MAX_PDF_TEXT_CHARS);
   throw new Error(ocr.error ? `PDF has no extractable text and OCR failed: ${ocr.error}` : "PDF has no extractable text and OCR returned no text.");
 }
@@ -756,7 +769,7 @@ async function readFullPdfText(filePath: string): Promise<string> {
   } finally {
     await parser.destroy().catch(() => undefined);
   }
-  const ocr = await readPdfWithOptionalOcr(filePath);
+  const ocr = await readPdfWithOptionalOcr(filePath, { maxPages: MAX_PDF_PAGES });
   if (ocr.text.trim().length >= PDF_TEXT_MIN_CHARS_FOR_PARSE) return ocr.text.slice(0, MAX_PDF_TEXT_CHARS);
   throw new Error(ocr.error ? `PDF has no extractable text and OCR failed: ${ocr.error}` : "PDF has no extractable text and OCR returned no text.");
 }
@@ -804,7 +817,19 @@ async function readTargetedPdfText(parser: InstanceType<typeof PDFParse>, catalo
     }
     if (pageResult.total && pageNum >= pageResult.total) break;
   }
-  if (!matches.length) return undefined;
+  if (!matches.length) {
+    // No page names the catalog number. For a SMALL document, fall back (undefined) to the
+    // first-N-pages reader — that's the whole doc anyway and keeps the title/description page.
+    // For a LARGE document, the first N pages are usually a cover/TOC/intro, so instead return
+    // the technically densest pages we already walked rather than reading blind.
+    if (pages.length <= MAX_PDF_PAGES) return undefined;
+    const technicalPages = new Set(selectGlobalTechnicalPages(pages, new Set<number>()));
+    if (!technicalPages.size) return undefined;
+    return pages
+      .filter((page) => technicalPages.has(page.num))
+      .map((page) => page.text)
+      .join("\n");
+  }
   const keepPages = expandWithNeighbours(matches, TARGETED_PDF_NEIGHBOUR_PAGES);
   for (const num of selectGlobalTechnicalPages(pages, keepPages)) keepPages.add(num);
   return pages
@@ -2208,7 +2233,7 @@ function uniqueInOrder(values: string[]): string[] {
 }
 
 function uniqueStrings(values: Array<string | undefined>): string[] {
-  return [...new Set(values.map((value) => value?.trim()).filter((value): value is string => Boolean(value)))];
+  return uniqueStringsBase(values, { normalize: "trim" });
 }
 
 function sectionTracker(): (line: string) => string | undefined {
@@ -2237,23 +2262,7 @@ function nonEmptyNormalized(normalized: ProductResult["normalized"]): ProductRes
 }
 
 function dedupeAttributes(attributes: AttributeRecord[]): AttributeRecord[] {
-  const seen = new Set<string>();
-  return attributes.filter((attr) => {
-    const key = `${attr.group ?? ""}|${attr.name}|${attr.value}|${attr.sourceUrl ?? ""}`.toLowerCase();
-    if (!attr.name || !attr.value || seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  });
-}
-
-function dedupeSources(sources: SourceRecord[]): SourceRecord[] {
-  const seen = new Set<string>();
-  return sources.filter((source) => {
-    const key = `${source.parser}|${source.url}`.toLowerCase();
-    if (seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  });
+  return dedupeAttributesBase(attributes, { includeSourceUrl: true });
 }
 
 function compact(value: string): string {

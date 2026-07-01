@@ -1,3 +1,4 @@
+import { uniqueStrings } from "../text-util.js";
 import * as cheerio from "cheerio";
 import type { DocumentRecord, ManufacturerConfig, ScrapeDiagnostics, SourceRecord } from "../../shared/types.js";
 import { catalogTextMatches, compactCatalogNumber, fillCatalogTemplate, templateContainsCatalogPlaceholder } from "./catalog-number.js";
@@ -96,43 +97,55 @@ export async function discoverOfficialProductCandidates(catalogNumber: string, c
   }
 
   const configuredSearchUrls = configuredSearchTemplates(manufacturer).map((template) => fillCatalogTemplate(template, catalogNumber));
-  const searchUrls = [
-    ...searchTemplates(manufacturer).map((template) => fillCatalogTemplate(template, catalogNumber)),
-    ...(configuredSearchUrls.length ? [] : await discoverSearchFormUrls(catalogNumber, context, attemptedUrls, notes))
-  ];
   const renderedSearchCandidates: string[] = [];
+  const processedSearchUrls = new Set<string>();
   let searchedUrlCount = 0;
-  for (const searchUrl of uniqueStrings(searchUrls)) {
-    if (searchedUrlCount >= 28) break;
-    searchedUrlCount += 1;
-    attemptedUrls.push(searchUrl);
-    let discoveredCount = 0;
-    try {
-      const fetched = await fetchDiscoveryText(searchUrl, context);
-      const discovered = discoverProductLinksWithDiagnostics(fetched.text, fetched.effectiveUrl, catalogNumber);
-      rejectedLinks.push(...discovered.rejected);
-      const sourceDocuments = discoverSourceDocumentsWithDiagnostics(fetched.text, fetched.effectiveUrl, catalogNumber, {
-        sourceType: "official-fallback",
-        parser: "official-discovery",
-        stage: "search-document"
-      });
-      addDocuments(sourceDocuments.documents);
-      rejectedLinks.push(...sourceDocuments.rejected);
-      for (const link of discovered.candidates) {
-        discoveredCount += 1;
-        add({
-          url: link.url,
-          score: scoreDiscoveryCandidate(link.url, catalogNumber, "search-result", manufacturer) + Math.min(20, Math.round(link.score / 5)),
-          reason: `official search result: ${link.reason}`,
-          stage: "search-result",
-          sourceType: "official-fallback"
+
+  const processSearchUrls = async (urls: string[]): Promise<void> => {
+    for (const searchUrl of uniqueStrings(urls)) {
+      if (searchedUrlCount >= 28) break;
+      if (processedSearchUrls.has(searchUrl)) continue;
+      processedSearchUrls.add(searchUrl);
+      searchedUrlCount += 1;
+      attemptedUrls.push(searchUrl);
+      let discoveredCount = 0;
+      try {
+        const fetched = await fetchDiscoveryText(searchUrl, context);
+        const discovered = discoverProductLinksWithDiagnostics(fetched.text, fetched.effectiveUrl, catalogNumber);
+        rejectedLinks.push(...discovered.rejected);
+        const sourceDocuments = discoverSourceDocumentsWithDiagnostics(fetched.text, fetched.effectiveUrl, catalogNumber, {
+          sourceType: "official-fallback",
+          parser: "official-discovery",
+          stage: "search-document"
         });
+        addDocuments(sourceDocuments.documents);
+        rejectedLinks.push(...sourceDocuments.rejected);
+        for (const link of discovered.candidates) {
+          discoveredCount += 1;
+          add({
+            url: link.url,
+            score: scoreDiscoveryCandidate(link.url, catalogNumber, "search-result", manufacturer) + Math.min(20, Math.round(link.score / 5)),
+            reason: `official search result: ${link.reason}`,
+            stage: "search-result",
+            sourceType: "official-fallback"
+          });
+        }
+      } catch (error) {
+        notes.push(`Search discovery failed for ${searchUrl}: ${formatError(error)}`);
       }
-    } catch (error) {
-      notes.push(`Search discovery failed for ${searchUrl}: ${formatError(error)}`);
+      if (discoveredCount === 0) renderedSearchCandidates.push(searchUrl);
+      if (configuredSearchUrls.length && searchedUrlCount >= configuredSearchUrls.length && hasSearchResultCandidate(candidates)) break;
     }
-    if (discoveredCount === 0) renderedSearchCandidates.push(searchUrl);
-    if (configuredSearchUrls.length && searchedUrlCount >= configuredSearchUrls.length && hasSearchResultCandidate(candidates)) break;
+  };
+
+  // Configured + generic search-URL templates first (cheap: no extra page fetch to find a form).
+  await processSearchUrls(searchTemplates(manufacturer).map((template) => fillCatalogTemplate(template, catalogNumber)));
+  // Fallback for EVERY connector: if templates surfaced no product, auto-discover the site’s real
+  // search FORM from the homepage and submit the catalog number to it — i.e. "type it into their
+  // search box". Previously this ran only when no search templates were configured, so a broken or
+  // renamed configured endpoint disabled on-site search entirely; now it is a universal safety net.
+  if (!hasSearchResultCandidate(candidates)) {
+    await processSearchUrls(await discoverSearchFormUrls(catalogNumber, context, attemptedUrls, notes));
   }
 
   if (!hasSearchResultCandidate(candidates) && shouldUseRenderedSearchDiscovery(context)) {
@@ -654,6 +667,3 @@ function formatError(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
-function uniqueStrings(values: Array<string | undefined>): string[] {
-  return [...new Set(values.filter((value): value is string => Boolean(value)))];
-}

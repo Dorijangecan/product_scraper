@@ -471,6 +471,8 @@ $contentType = if ($response.Headers['Content-Type']) { [string]$response.Header
           accept: "*/*"
         },
         timeoutMs: 90000,
+        // Over this size we don't buffer into memory; the catch below streams to disk via curl.
+        maxBytes: MAX_IN_MEMORY_DOWNLOAD_BYTES,
         signal
       });
       if (!response.ok) {
@@ -563,6 +565,7 @@ $contentType = if ($response.Headers['Content-Type']) { [string]$response.Header
       headers: Record<string, string>;
       timeoutMs: number;
       signal?: AbortSignal;
+      maxBytes?: number;
     }
   ): Promise<{ response: Response; buffer: Buffer }> {
     let lastError: unknown;
@@ -578,6 +581,18 @@ $contentType = if ($response.Headers['Content-Type']) { [string]$response.Header
           redirect: "follow",
           signal: request.signal
         });
+        // Guard against buffering an enormous file (e.g. a 200 MB catalog brochure) into memory.
+        // If the server declares an over-limit size, bail before arrayBuffer() so the caller can
+        // stream it to disk via the curl fallback instead. Non-retryable: retrying re-reads the
+        // same too-large body.
+        if (options.maxBytes) {
+          const declared = Number(response.headers.get("content-length"));
+          if (Number.isFinite(declared) && declared > options.maxBytes) {
+            const tooLarge = new Error(`Response body ${declared} bytes exceeds max ${options.maxBytes} bytes for ${url}`);
+            (tooLarge as { nonRetryable?: boolean }).nonRetryable = true;
+            throw tooLarge;
+          }
+        }
         const buffer = Buffer.from(await response.arrayBuffer());
         this.recordHostThrottleSignal(url, response.status);
         if (isRetryableStatus(response.status) && attempt < maxAttempts) {
@@ -587,6 +602,7 @@ $contentType = if ($response.Headers['Content-Type']) { [string]$response.Header
         return { response, buffer };
       } catch (error) {
         if (options.signal?.aborted) throw new Error("Cancelled by user.");
+        if ((error as { nonRetryable?: boolean } | undefined)?.nonRetryable) throw error;
         lastError = error;
         if (attempt < maxAttempts) {
           await delay(750 * attempt, options.signal);
@@ -780,3 +796,8 @@ export function delay(ms: number, signal?: AbortSignal): Promise<void> {
 
 const DEFAULT_USER_AGENT =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0 Safari/537.36";
+
+// Above this declared content-length we refuse to buffer a download into memory (a single
+// oversized catalog brochure × concurrent items could otherwise exhaust RAM). Such files are
+// instead streamed straight to disk by the curl fallback in downloadFile().
+const MAX_IN_MEMORY_DOWNLOAD_BYTES = 96 * 1024 * 1024;

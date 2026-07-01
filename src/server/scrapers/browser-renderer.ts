@@ -1,3 +1,4 @@
+import { uniqueStrings as uniqueStringsBase } from "../text-util.js";
 import * as fs from "node:fs";
 import * as path from "node:path";
 import type { BrowserNetworkRecord, ScrapeRecipeConfig } from "../../shared/types.js";
@@ -25,6 +26,11 @@ interface KeyboardLike {
   press(key: string): Promise<void>;
 }
 
+interface FrameLike {
+  url(): string;
+  content(): Promise<string>;
+}
+
 interface PageLike {
   on(event: "response", listener: (response: ResponseLike) => void): void;
   goto(url: string, options?: Record<string, unknown>): Promise<{ status(): number } | null>;
@@ -36,6 +42,7 @@ interface PageLike {
   close(): Promise<void>;
   keyboard: KeyboardLike;
   route(url: string | RegExp | ((url: URL) => boolean), handler: (route: RouteLike) => unknown): Promise<void>;
+  frames?(): FrameLike[];
 }
 
 interface RouteLike {
@@ -81,6 +88,9 @@ export interface RenderedModalSequence extends RenderedPage {
 const DEFAULT_EXPAND_SELECTORS = [
   "button[aria-expanded='false']",
   "[role='button'][aria-expanded='false']",
+  "[aria-expanded='false'][class*='accordion' i]",
+  "[aria-expanded='false'][class*='expand' i]",
+  "[aria-expanded='false'][class*='toggle' i]",
   "summary",
   "[role='tab']",
   "button:has-text('Show more')",
@@ -90,6 +100,37 @@ const DEFAULT_EXPAND_SELECTORS = [
   "button:has-text('Klassifizierungen')",
   "button:has-text('Technical data')",
   "button:has-text('Technische Daten')"
+];
+
+// State-aware expanders only: these selectors stop matching once opened (`aria-expanded`
+// flips to true, `summary` parent gains `[open]`), so re-running them across rescan rounds
+// reveals nested accordions WITHOUT re-toggling anything already open. Text-based buttons are
+// deliberately excluded here because clicking them a second time could collapse a panel.
+const STATE_AWARE_EXPAND_SELECTORS = [
+  "button[aria-expanded='false']",
+  "[role='button'][aria-expanded='false']",
+  "[aria-expanded='false'][class*='accordion' i]",
+  "[aria-expanded='false'][class*='expand' i]",
+  "[aria-expanded='false'][class*='toggle' i]",
+  "details:not([open]) > summary"
+];
+
+// Generic "next page / load more" controls, tried in a loop so paginated spec/document lists
+// (variants, downloads) are fully expanded. Multilingual (EN/DE) + rel/aria hints.
+const PAGINATION_SELECTORS = [
+  "button:has-text('Load more')",
+  "button:has-text('Show more results')",
+  "button:has-text('Mehr laden')",
+  "button:has-text('Weitere laden')",
+  "button:has-text('Mehr Ergebnisse')",
+  "a:has-text('Next')",
+  "button:has-text('Next')",
+  "a:has-text('Weiter')",
+  "button:has-text('Weiter')",
+  "a[rel='next']",
+  "[aria-label='Next']",
+  "[aria-label='Nächste Seite']",
+  "[aria-label='Next page']"
 ];
 
 const OVERLAY_CLOSE_SELECTORS = [
@@ -179,7 +220,7 @@ export class BrowserRenderSession {
       await clickSafeSelectors(page, [...(recipe?.interactionPolicy?.closeOverlaySelectors ?? []), ...OVERLAY_CLOSE_SELECTORS], 5, signal);
       await clickSafeSelectors(page, recipe?.interactionPolicy?.localeSelectors ?? [], 4, signal);
       await waitForRecipeSelectors(page, recipe?.interactionPolicy?.waitForSelectors ?? [], signal);
-      await scrollToBottom(page, recipe?.interactionPolicy?.scrollPasses ?? 1, signal);
+      await scrollToBottom(page, recipe?.interactionPolicy?.scrollPasses ?? 2, signal);
       await clickSafeSelectors(
         page,
         [
@@ -187,14 +228,24 @@ export class BrowserRenderSession {
           ...DEFAULT_EXPAND_SELECTORS
         ],
         recipe?.interactionPolicy?.maxClicks ?? 50,
-        signal
+        signal,
+        // Re-scan nested accordions/tabs revealed by the first click pass, without re-toggling
+        // anything already open.
+        { rescanSelectors: STATE_AWARE_EXPAND_SELECTORS }
       );
-      await clickSafeSelectors(page, recipe?.interactionPolicy?.paginationSelectors ?? [], 12, signal);
-      await scrollToBottom(page, recipe?.interactionPolicy?.scrollPasses ?? 1, signal);
+      await paginateThroughAll(page, [...(recipe?.interactionPolicy?.paginationSelectors ?? []), ...PAGINATION_SELECTORS], signal);
+      await scrollToBottom(page, recipe?.interactionPolicy?.scrollPasses ?? 2, signal);
       await page.waitForLoadState("networkidle", { timeout: recipe?.interactionPolicy?.networkIdleTimeoutMs ?? 12000 }).catch(() => undefined);
       await page.waitForTimeout(750);
       await Promise.allSettled(responseCaptures);
-      const text = await page.content();
+      const mainHtml = await page.content();
+      // Merge content the serialized light DOM omits so the parser sees it: same-site iframe
+      // bodies (configurator/PIM widgets) and open shadow roots (web-component product widgets).
+      const fragments = [
+        ...(await captureFrameFragments(page, url)),
+        ...(await captureShadowDomFragments(page))
+      ];
+      const text = combineHtmlWithFragments(mainHtml, fragments);
       const fetchedAt = new Date().toISOString();
       return {
         fetched: {
@@ -548,28 +599,191 @@ async function loadPlaywright(): Promise<{ chromium: ChromiumLike }> {
   }
 }
 
-async function clickSafeSelectors(page: PageLike, selectors: string[], maxClicks: number, signal?: AbortSignal): Promise<void> {
-  let clicks = 0;
-  for (const selector of uniqueStrings(selectors)) {
-    if (clicks >= maxClicks) return;
-    if (signal?.aborted) throw new Error("Cancelled by user.");
-    let count = 0;
+async function clickLocator(page: PageLike, selector: string, index: number, signal?: AbortSignal): Promise<boolean> {
+  if (signal?.aborted) throw new Error("Cancelled by user.");
+  const target = page.locator(selector).nth(index);
+  // Scroll the control into view first — below-the-fold tabs/accordions otherwise fail the
+  // actionability check and are silently skipped. On a covered/animated control the normal
+  // click times out, so retry once with force to punch through sticky bars/overlays.
+  if (target.scrollIntoViewIfNeeded) {
+    await target.scrollIntoViewIfNeeded({ timeout: 1500 }).catch(() => undefined);
+  }
+  try {
+    await target.click({ timeout: 2500, force: false });
+    return true;
+  } catch {
     try {
-      count = Math.min(await page.locator(selector).count(), maxClicks - clicks);
+      await target.click({ timeout: 1500, force: true });
+      return true;
     } catch {
-      continue;
+      return false;
     }
-    for (let index = 0; index < count; index += 1) {
+  }
+}
+
+export async function clickSafeSelectors(
+  page: PageLike,
+  selectors: string[],
+  maxClicks: number,
+  signal?: AbortSignal,
+  options: { rescanSelectors?: string[]; rounds?: number } = {}
+): Promise<void> {
+  let clicks = 0;
+  const runPass = async (passSelectors: string[]): Promise<number> => {
+    let passClicks = 0;
+    for (const selector of uniqueStrings(passSelectors)) {
+      if (clicks >= maxClicks) return passClicks;
       if (signal?.aborted) throw new Error("Cancelled by user.");
+      let count = 0;
       try {
-        await page.locator(selector).nth(index).click({ timeout: 2500, force: false });
-        clicks += 1;
-        await page.waitForTimeout(150);
+        count = Math.min(await page.locator(selector).count(), maxClicks - clicks);
       } catch {
-        // Some controls are invisible, already open, or covered; keep trying the rest.
+        continue;
+      }
+      for (let index = 0; index < count; index += 1) {
+        if (clicks >= maxClicks) return passClicks;
+        if (await clickLocator(page, selector, index, signal)) {
+          clicks += 1;
+          passClicks += 1;
+          await page.waitForTimeout(150);
+        }
+      }
+    }
+    return passClicks;
+  };
+
+  await runPass(selectors);
+  // Re-scan rounds: a first-round click can reveal nested accordions/tabs that were not in the
+  // DOM (or not yet "closed") when we counted. Re-run only the state-aware expanders so already
+  // open sections are not re-toggled. Stop as soon as a round opens nothing new.
+  const rescanSelectors = options.rescanSelectors;
+  if (rescanSelectors && rescanSelectors.length) {
+    const rounds = options.rounds ?? 3;
+    for (let round = 0; round < rounds && clicks < maxClicks; round += 1) {
+      const opened = await runPass(rescanSelectors);
+      if (opened === 0) break;
+    }
+  }
+}
+
+/**
+ * Repeatedly clicks the first available "next page / load more" control, re-scanning after each
+ * click, so paginated variant/spec/document lists are fully expanded before we snapshot the DOM.
+ */
+async function paginateThroughAll(page: PageLike, selectors: string[], signal?: AbortSignal, maxPages = 12): Promise<void> {
+  const unique = uniqueStrings(selectors);
+  if (!unique.length) return;
+  for (let step = 0; step < maxPages; step += 1) {
+    if (signal?.aborted) throw new Error("Cancelled by user.");
+    let clicked = false;
+    for (const selector of unique) {
+      let count = 0;
+      try {
+        count = await page.locator(selector).count();
+      } catch {
+        continue;
+      }
+      if (count <= 0) continue;
+      if (await clickLocator(page, selector, 0, signal)) {
+        clicked = true;
+        await page.waitForTimeout(400);
+        await page.waitForLoadState("networkidle", { timeout: 4000 }).catch(() => undefined);
+        break; // DOM changed — re-scan pagination controls from the top.
+      }
+    }
+    if (!clicked) break;
+  }
+}
+
+/**
+ * Captures the HTML of same-site iframes. Spec tables in configurator/PIM widgets frequently
+ * live inside an iframe that the top-level `page.content()` never includes. Cross-origin frames
+ * throw on `content()` and are skipped; ad/tracker iframes on other hosts are filtered out.
+ */
+// Walks open shadow roots (recursively) and returns each root's innerHTML. Written as a string
+// IIFE — like scrollToBottom — so the browser-context DOM code needs no "dom" lib types on the
+// Node side. Budget-capped so a pathological page can't return megabytes.
+const SHADOW_DOM_WALK = `(function () {
+  var out = [];
+  var budget = 400000;
+  function visit(root) {
+    var els = root && root.querySelectorAll ? root.querySelectorAll('*') : [];
+    for (var i = 0; i < els.length; i++) {
+      var sr = els[i].shadowRoot;
+      if (sr) {
+        var html = sr.innerHTML || '';
+        if (html && budget > 0) {
+          var clipped = html.slice(0, budget);
+          budget -= clipped.length;
+          out.push(clipped);
+        }
+        visit(sr);
       }
     }
   }
+  try { visit(document); } catch (e) {}
+  return out;
+})()`;
+
+/**
+ * Captures the innerHTML of open shadow roots. `page.content()` serializes only the light DOM,
+ * so spec tables rendered inside web-component product widgets (custom elements) are otherwise
+ * invisible to the parser. Cross-closed roots and detached nodes are silently skipped.
+ */
+export async function captureShadowDomFragments(page: PageLike): Promise<Array<{ label: string; html: string }>> {
+  let htmls: string[];
+  try {
+    htmls = await page.evaluate<string[]>(SHADOW_DOM_WALK);
+  } catch {
+    return [];
+  }
+  if (!Array.isArray(htmls)) return [];
+  return htmls
+    .filter((html) => typeof html === "string" && html.length > 100)
+    .map((html, index) => ({ label: `shadow-dom-${index + 1}`, html }));
+}
+
+export async function captureFrameFragments(page: PageLike, mainUrl: string): Promise<Array<{ label: string; html: string }>> {
+  if (!page.frames) return [];
+  let frames: FrameLike[];
+  try {
+    frames = page.frames();
+  } catch {
+    return [];
+  }
+  let mainHost = "";
+  try {
+    mainHost = new URL(mainUrl).hostname.replace(/^www\./, "");
+  } catch {
+    // Non-absolute main URL — accept any frame that yields content.
+  }
+  const fragments: Array<{ label: string; html: string }> = [];
+  for (const frame of frames.slice(0, 12)) {
+    let frameUrl = "";
+    try {
+      frameUrl = frame.url();
+    } catch {
+      continue;
+    }
+    if (!frameUrl || frameUrl === "about:blank" || frameUrl === mainUrl) continue;
+    if (mainHost) {
+      let frameHost = "";
+      try {
+        frameHost = new URL(frameUrl).hostname.replace(/^www\./, "");
+      } catch {
+        continue;
+      }
+      const sameSite = frameHost === mainHost || frameHost.endsWith(`.${mainHost}`) || mainHost.endsWith(`.${frameHost}`);
+      if (!sameSite) continue;
+    }
+    try {
+      const html = await frame.content();
+      if (html && html.length > 200) fragments.push({ label: `iframe:${frameUrl}`, html });
+    } catch {
+      // Cross-origin or detached frame.
+    }
+  }
+  return fragments;
 }
 
 async function waitForRecipeSelectors(page: PageLike, selectors: string[], signal?: AbortSignal): Promise<void> {
@@ -694,7 +908,7 @@ function categorizeNetworkResponse(url: string, contentType: string): BrowserNet
 }
 
 function uniqueStrings(values: string[]): string[] {
-  return [...new Set(values.map((value) => value.trim()).filter(Boolean))];
+  return uniqueStringsBase(values, { normalize: "trim" });
 }
 
 const MODAL_CONTAINER_SELECTORS = [
@@ -1134,7 +1348,7 @@ function combineHtmlWithFragments(mainHtml: string, fragments: Array<{ label: st
   // Inject before </body> if possible so cheerio sees a well-formed document.
   const bodyClose = mainHtml.lastIndexOf("</body>");
   if (bodyClose >= 0) {
-    return `${mainHtml.slice(0, bodyClose)}\n<!-- balluff modal fragments -->\n${blob}\n${mainHtml.slice(bodyClose)}`;
+    return `${mainHtml.slice(0, bodyClose)}\n<!-- injected fragments -->\n${blob}\n${mainHtml.slice(bodyClose)}`;
   }
-  return `${mainHtml}\n<!-- balluff modal fragments -->\n${blob}`;
+  return `${mainHtml}\n<!-- injected fragments -->\n${blob}`;
 }

@@ -1,3 +1,4 @@
+import { uniqueStrings } from "../text-util.js";
 import { PDFParse } from "pdf-parse";
 import type { AttributeRecord, DocumentRecord, LocalizedProductUrls, ProductResult, SourceRecord } from "../../shared/types.js";
 import { catalogNumberVariants } from "./catalog-number.js";
@@ -517,6 +518,3 @@ function sameUrl(left: string, right: string): boolean {
   }
 }
 
-function uniqueStrings(values: string[]): string[] {
-  return [...new Set(values.filter(Boolean))];
-}

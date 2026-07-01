@@ -32,7 +32,7 @@ export async function readPdfWithOptionalOcr(filePath: string, options: { maxPag
   if (ocrToolsUnavailableReason) {
     return { text: "", pageCount: 0, error: ocrToolsUnavailableReason };
   }
-  const maxPages = Math.max(1, Math.min(options.maxPages ?? 10, 20));
+  const maxPages = Math.max(1, Math.min(options.maxPages ?? 12, 30));
   const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "product-scraper-ocr-"));
   try {
     const imagePrefix = path.join(tempDir, "page");

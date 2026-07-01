@@ -1,3 +1,4 @@
+import { uniqueStrings } from "../text-util.js";
 import type { ManufacturerConfig, ProductResult, ScrapeAttemptRecord, SourceRecord } from "../../shared/types.js";
 import type { FetchedText } from "./http-client.js";
 import type { ScrapeContext } from "./types.js";
@@ -367,6 +368,3 @@ function isDistributorOnly(result: ProductResult): boolean {
   return result.sources.length > 0 && result.sources.every((source: SourceRecord) => source.sourceType === "distributor");
 }
 
-function uniqueStrings(values: string[]): string[] {
-  return [...new Set(values.filter(Boolean))];
-}

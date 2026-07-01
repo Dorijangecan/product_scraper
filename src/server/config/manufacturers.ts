@@ -1,3 +1,4 @@
+import { collapseWhitespace as clean, slugify } from "../text-util.js";
 import fs from "node:fs";
 import path from "node:path";
 import type {
@@ -1047,10 +1048,6 @@ export async function resetManufacturerOverride(id: ManufacturerId): Promise<Man
   return withManufacturerOrigin(builtInManufacturerConfigs[normalizedId]);
 }
 
-export function isBuiltInManufacturer(id: ManufacturerId): boolean {
-  return Boolean(builtInManufacturerConfigs[normalizeManufacturerId(id)]);
-}
-
 function withManufacturerOrigin(config: ManufacturerConfig): ManufacturerConfig {
   const id = normalizeManufacturerId(config.id);
   const builtIn = Boolean(builtInManufacturerConfigs[id]);
@@ -1464,19 +1461,6 @@ function isHttpUrl(value: string): boolean {
   } catch {
     return false;
   }
-}
-
-function clean(value: string): string {
-  return value.replace(/\s+/g, " ").trim();
-}
-
-function slugify(value: string): string {
-  return value
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 48);
 }
 
 function clampInteger(value: number, min: number, max: number): number {

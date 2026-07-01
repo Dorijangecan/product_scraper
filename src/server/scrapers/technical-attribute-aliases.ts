@@ -166,7 +166,51 @@ export const GLOBAL_TECHNICAL_ATTRIBUTE_ALIASES: TechnicalAttributeAlias[] = [
   globalAlias("operatingTemperature", "Ambient air temperature for operation"),
   globalAlias("material", "Material"),
   globalAlias("weight", "Weight"),
-  globalAlias("weight", "Product net weight")
+  globalAlias("weight", "Product net weight"),
+
+  // Multilingual (DE/FR/IT) exact aliases. Exact-alias matches carry higher confidence (0.87)
+  // than an ontology synonym fallback (0.82); the connectors for ABB/Siemens/Schneider etc.
+  // serve rich German/French/Italian pages where the English alias never matched.
+  globalAlias("ratedVoltage", "Betriebsspannung"),
+  globalAlias("ratedVoltage", "Versorgungsspannung"),
+  globalAlias("ratedVoltage", "Eingangsspannung"),
+  globalAlias("ratedVoltage", "Bemessungsbetriebsspannung"),
+  globalAlias("ratedVoltage", "Tension assignée"),
+  globalAlias("ratedVoltage", "Tension nominale"),
+  globalAlias("ratedVoltage", "Tension d'emploi"),
+  globalAlias("ratedVoltage", "Tension d'alimentation"),
+  globalAlias("ratedVoltage", "Tensione nominale"),
+  globalAlias("ratedVoltage", "Tensione assegnata"),
+  globalAlias("ratedVoltage", "Tensione d'impiego"),
+
+  globalAlias("ratedCurrent", "Betriebsstrom"),
+  globalAlias("ratedCurrent", "Bemessungsstrom"),
+  globalAlias("ratedCurrent", "Nennbetriebsstrom"),
+  globalAlias("ratedCurrent", "Courant assigné"),
+  globalAlias("ratedCurrent", "Courant nominal"),
+  globalAlias("ratedCurrent", "Courant d'emploi"),
+  globalAlias("ratedCurrent", "Corrente nominale"),
+  globalAlias("ratedCurrent", "Corrente assegnata"),
+  globalAlias("ratedCurrent", "Corrente d'impiego"),
+
+  globalAlias("breakingCapacity", "Schaltvermögen"),
+  globalAlias("breakingCapacity", "Bemessungsausschaltvermögen"),
+  globalAlias("breakingCapacity", "Kurzschlussausschaltvermögen"),
+  globalAlias("breakingCapacity", "Pouvoir de coupure"),
+  globalAlias("breakingCapacity", "Pouvoir de coupure assigné"),
+  globalAlias("breakingCapacity", "Potere di interruzione"),
+  globalAlias("breakingCapacity", "Potere di interruzione nominale"),
+
+  globalAlias("powerLoss", "Wärmeverlustleistung"),
+  globalAlias("powerLoss", "Verlustleistung pro Pol"),
+  globalAlias("powerLoss", "Puissance dissipée"),
+  globalAlias("powerLoss", "Pertes de puissance"),
+  globalAlias("powerLoss", "Potenza dissipata"),
+  globalAlias("powerLoss", "Perdita di potenza"),
+
+  globalAlias("currentConsumption", "Stromverbrauch"),
+  globalAlias("currentConsumption", "Consommation de courant"),
+  globalAlias("currentConsumption", "Assorbimento di corrente")
 ];
 
 export const MANUFACTURER_TECHNICAL_ATTRIBUTE_ALIASES: TechnicalAttributeAlias[] = [
@@ -261,10 +305,6 @@ export function listTechnicalAttributeAliases(manufacturerId?: ManufacturerId): 
   return TECHNICAL_ATTRIBUTE_ALIASES.filter((alias) => alias.scope === "global" || alias.manufacturerId === normalized);
 }
 
-export function findTechnicalAttributeAlias(manufacturerId: ManufacturerId, originalName: string): TechnicalAttributeAlias | undefined {
-  return matchTechnicalAttributeAlias(manufacturerId, originalName, { includeFuzzy: false })?.alias;
-}
-
 export function matchTechnicalAttributeAlias(
   manufacturerId: ManufacturerId,
   originalName: string,
@@ -316,6 +356,31 @@ export function matchTechnicalAttributeAlias(
     }
   }
   return best;
+}
+
+export interface TechnicalAttributeAliasSuggestion {
+  canonicalKey: string;
+  matchedLabel: string;
+  score: number;
+}
+
+/**
+ * Best-effort suggestion for an UNMAPPED label: the closest known alias by string similarity,
+ * regardless of the auto-map threshold. Feeds the "Unmapped Labels" teach-list so a human can
+ * decide whether to promote the label into the ontology/alias table. It NEVER auto-assigns a
+ * value — the deterministic parser still owns every value.
+ */
+export function suggestTechnicalAttributeAlias(originalName: string): TechnicalAttributeAliasSuggestion | undefined {
+  const normalizedName = normalizeAliasName(originalName);
+  if (!normalizedName) return undefined;
+  let best: TechnicalAttributeAliasSuggestion | undefined;
+  for (const candidate of TECHNICAL_ATTRIBUTE_ALIASES) {
+    const score = aliasSimilarity(normalizedName, normalizeAliasName(candidate.originalName));
+    if (!best || score > best.score) {
+      best = { canonicalKey: candidate.canonicalKey, matchedLabel: candidate.originalName, score: Number(score.toFixed(3)) };
+    }
+  }
+  return best && best.score > 0 ? best : undefined;
 }
 
 function alias(

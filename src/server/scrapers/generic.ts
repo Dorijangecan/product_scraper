@@ -1,3 +1,5 @@
+import { sameUrlIgnoringHash as sameUrl } from "../url-util.js";
+import { uniqueStrings as uniqueStringsBase } from "../text-util.js";
 import * as cheerio from "cheerio";
 import type {
   AttributeRecord,
@@ -246,19 +248,6 @@ function isSuspiciousResultUrl(url: string | undefined): boolean {
     return false;
   } catch {
     return /\b(?:search|query)=|\/search\/|partcommunity|3d-cad-models|\.(?:pdf|zip|dwg|dxf|stp|step|png|jpe?g|webp)\b/i.test(url);
-  }
-}
-
-function sameUrl(left: string | undefined, right: string | undefined): boolean {
-  if (!left || !right) return false;
-  try {
-    const leftUrl = new URL(left);
-    const rightUrl = new URL(right);
-    leftUrl.hash = "";
-    rightUrl.hash = "";
-    return leftUrl.toString().toLowerCase() === rightUrl.toString().toLowerCase();
-  } catch {
-    return left.trim().toLowerCase() === right.trim().toLowerCase();
   }
 }
 
@@ -1812,15 +1801,7 @@ function tableValueByHeader(headers: string[], row: unknown[], pattern: RegExp):
 }
 
 function uniqueStrings(values: string[]): string[] {
-  const seen = new Set<string>();
-  const unique: string[] = [];
-  for (const value of values) {
-    const key = value.toLowerCase();
-    if (seen.has(key)) continue;
-    seen.add(key);
-    unique.push(value);
-  }
-  return unique;
+  return uniqueStringsBase(values, { filterEmpty: false, caseInsensitive: true });
 }
 
 function parseDataRowAttributes(raw: string | undefined, sourceUrl: string, catalogNumber: string): AttributeRecord[] {

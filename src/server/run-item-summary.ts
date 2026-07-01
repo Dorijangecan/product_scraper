@@ -1,3 +1,4 @@
+import { sameNormalizedUrl as sameUrl } from "./url-util.js";
 import type {
   CustomCoverageField,
   ProductResult,
@@ -271,16 +272,3 @@ function isGermanUrlNotApplicable(result: ProductResult): boolean {
   );
 }
 
-function sameUrl(left: string, right: string): boolean {
-  try {
-    const leftUrl = new URL(left);
-    const rightUrl = new URL(right);
-    return (
-      leftUrl.origin.toLowerCase() === rightUrl.origin.toLowerCase() &&
-      leftUrl.pathname.replace(/\/+$/, "").toLowerCase() === rightUrl.pathname.replace(/\/+$/, "").toLowerCase() &&
-      leftUrl.searchParams.toString() === rightUrl.searchParams.toString()
-    );
-  } catch {
-    return left.replace(/\/+$/, "").toLowerCase() === right.replace(/\/+$/, "").toLowerCase();
-  }
-}

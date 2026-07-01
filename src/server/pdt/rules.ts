@@ -1,3 +1,4 @@
+import { collapseWhitespaceOrUndefined as clean } from "../text-util.js";
 import type { ManufacturerConfig, RunItemRecord } from "../../shared/types.js";
 import type { PdtColumn } from "./sheet-descriptor.js";
 
@@ -321,7 +322,3 @@ function canonicalSheetKey(name: string): string {
   return name.replace(/\s+/g, " ").trim().toLowerCase();
 }
 
-function clean(value: string | undefined): string | undefined {
-  const trimmed = value?.replace(/\s+/g, " ").trim();
-  return trimmed ? trimmed : undefined;
-}

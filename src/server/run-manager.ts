@@ -1,3 +1,4 @@
+import { uniqueStrings } from "./text-util.js";
 import crypto from "node:crypto";
 import fs from "node:fs/promises";
 import os from "node:os";
@@ -1392,11 +1393,15 @@ function shouldDownloadForProfile(
   if (doc.type === "image") return true;
   if (profile === "full") return true;
   if (profile === "images-only") return false;
-  if (nonImageDownloadCount >= 3) return false;
+  if (nonImageDownloadCount >= 4) return false;
   const countForType = typeCounts.get(doc.type) ?? 0;
-  if (doc.type === "datasheet") return countForType < 1;
+  // Documents arrive pre-sorted by documentDownloadRank (best first — real PDFs beat HTML
+  // stubs of the same type), so the first 1-2 kept per type are the highest-value ones.
+  // Allow two datasheets/manuals: a "technical data" sheet and a dimensional/installation
+  // sheet (or a real PDF alongside an HTML stub) often carry complementary specs.
+  if (doc.type === "datasheet") return countForType < 2;
   if (doc.type === "certificate") return countForType < 1;
-  if (doc.type === "manual") return countForType < 1;
+  if (doc.type === "manual") return countForType < 2;
   if (doc.type === "other" && countForType < 1) {
     return documentHasPdfLikeCandidate(doc);
   }
@@ -1829,10 +1834,6 @@ function imageDimensionsFromUrl(url: string): { width: number; height: number } 
   const height = Number(match[2]);
   if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) return undefined;
   return { width, height };
-}
-
-function uniqueStrings(values: Array<string | undefined>): string[] {
-  return [...new Set(values.filter((value): value is string => Boolean(value)))];
 }
 
 /**

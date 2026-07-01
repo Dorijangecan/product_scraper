@@ -1,3 +1,4 @@
+import { collapseWhitespaceOrUndefined as clean } from "../text-util.js";
 import type { ManufacturerConfig, ProductResult, RunItemRecord } from "../../shared/types.js";
 import type { PdtRepair } from "./ai-cleanup.js";
 import { cleanProductDescription, compactFamilyShortDescription, isDecorativeAssetText } from "./description-formatting.js";
@@ -33,11 +34,6 @@ export interface ResolveContext {
 }
 
 type Resolver = (ctx: ResolveContext) => string | undefined;
-
-function clean(value: string | undefined): string | undefined {
-  const trimmed = value?.replace(/\s+/g, " ").trim();
-  return trimmed ? trimmed : undefined;
-}
 
 function cleanStructuredValue(value: string | undefined): string | undefined {
   const cleaned = clean(value);

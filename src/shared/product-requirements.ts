@@ -136,10 +136,6 @@ export function isFamilyOverviewResult(result: ProductResult): boolean {
   return familyishTitle && !exactProductUrl && !lowerEvidence.includes("product page");
 }
 
-export function requiresElectricalRatings(result: ProductResult): boolean {
-  return requiredElectricalFields(result).length > 0;
-}
-
 function isFamilyOverviewWithoutPublishedElectricalRatings(result: ProductResult, text: string): boolean {
   if (!isFamilyOverviewResult(result)) return false;
   if (result.normalized.voltage || result.normalized.current) return false;

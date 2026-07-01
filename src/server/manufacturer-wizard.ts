@@ -1,3 +1,4 @@
+import { collapseWhitespace as clean, slugify, uniqueStrings } from "./text-util.js";
 import fs from "node:fs/promises";
 import path from "node:path";
 import * as cheerio from "cheerio";
@@ -453,20 +454,8 @@ function acronym(value: string): string {
   return words.map((word) => word[0]).join("").slice(0, 4);
 }
 
-function slugify(value: string): string {
-  return value.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 48);
-}
-
 function compact(value: string): string {
   return value.toLowerCase().replace(/[^a-z0-9]/g, "");
-}
-
-function clean(value: string | undefined): string {
-  return String(value ?? "").replace(/\s+/g, " ").trim();
-}
-
-function uniqueStrings(values: string[]): string[] {
-  return [...new Set(values.filter(Boolean))];
 }
 
 function decodeXml(value: string): string {

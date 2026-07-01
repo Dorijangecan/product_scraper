@@ -1,3 +1,4 @@
+import { sameUrlOriginAndPath } from "../url-util.js";
 import type { EvidenceRecord, ProductResult, SourceRecord } from "../../shared/types.js";
 import { applyFieldCandidateResolution } from "./field-candidates.js";
 import { buildFieldHealth, FIELD_REGISTRY, findFieldSourceAttribute, type RegistryFieldKey } from "./field-registry.js";
@@ -108,16 +109,6 @@ function stageForUrl(sources: SourceRecord[], sourceUrl: string | undefined): st
 function sourceForUrl(sources: SourceRecord[], sourceUrl: string | undefined): SourceRecord | undefined {
   if (!sourceUrl) return undefined;
   return sources.find((source) => source.url === sourceUrl) ?? sources.find((source) => sameUrlOriginAndPath(source.url, sourceUrl));
-}
-
-function sameUrlOriginAndPath(left: string, right: string): boolean {
-  try {
-    const leftUrl = new URL(left);
-    const rightUrl = new URL(right);
-    return leftUrl.origin === rightUrl.origin && leftUrl.pathname === rightUrl.pathname;
-  } catch {
-    return false;
-  }
 }
 
 function dedupeEvidence(records: EvidenceRecord[]): EvidenceRecord[] {
