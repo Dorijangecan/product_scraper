@@ -9,7 +9,7 @@ const rootDir = path.resolve(__dirname, "../..");
 const dataDir = path.join(rootDir, "data");
 const serverLogPath = path.join(dataDir, "desktop-server.log");
 const desktopSettingsPath = path.join(dataDir, "desktop-settings.json");
-const serverStartupTimeoutMs = 120000;
+const serverStartupTimeoutMs = 300000;
 
 let serverProcess;
 let mainWindow;
