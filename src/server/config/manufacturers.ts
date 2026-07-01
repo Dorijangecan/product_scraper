@@ -258,8 +258,9 @@ const builtInManufacturerConfigs: Record<string, ManufacturerConfig> = {
     id: "scame",
     canonicalName: "SCAME",
     shortName: "SCA",
+    // 1500/3 = 500ms per-host interval, matching Saginaw. Techsheet PDFs are cheap direct fetches.
     rateLimitMs: 1500,
-    concurrency: 2,
+    concurrency: 3,
     officialBaseUrls: ["https://www.scame.com", "https://techsheet.scame.com"],
     homepageUrl: "https://www.scame.com/web/scame-uk/home",
     localizedUrlTemplates: [
@@ -277,8 +278,13 @@ const builtInManufacturerConfigs: Record<string, ManufacturerConfig> = {
     id: "turck",
     canonicalName: "Turck",
     shortName: "TUR",
-    rateLimitMs: 2500,
-    concurrency: 1,
+    // Effective per-host interval = rateLimitMs / concurrency (run-manager wiring). 1500/3 = 500ms,
+    // identical to Saginaw (sce). The old 2500/1 gave a 2500ms interval — 5x slower — for no
+    // documented reason; the adaptive per-host throttle (http-client) still backs off on 429/503,
+    // so quality/reliability is preserved. Concurrency only overlaps parsing; the throttle keeps
+    // network requests to turck.com serialized 500ms apart.
+    rateLimitMs: 1500,
+    concurrency: 3,
     officialBaseUrls: ["https://www.turck.com/de/en/shop"],
     homepageUrl: "https://www.turck.com/de/en",
     fetchPolicy: {
@@ -313,7 +319,8 @@ const builtInManufacturerConfigs: Record<string, ManufacturerConfig> = {
     id: "rockwell",
     canonicalName: "Rockwell Automation",
     shortName: "RA",
-    rateLimitMs: 1800,
+    // 1500/3 = 500ms per-host interval, matching Saginaw (was 1800 → 600ms).
+    rateLimitMs: 1500,
     officialBaseUrls: [
       "https://www.rockwellautomation.com/en-us/products",
       "https://configurator.rockwellautomation.com",
@@ -438,7 +445,8 @@ const builtInManufacturerConfigs: Record<string, ManufacturerConfig> = {
     id: "schneider",
     canonicalName: "Schneider Electric",
     shortName: "SE",
-    rateLimitMs: 1800,
+    // 1500/3 = 500ms per-host interval, matching Saginaw (was 1800 → 600ms).
+    rateLimitMs: 1500,
     officialBaseUrls: ["https://www.se.com"],
     homepageUrl: "https://www.se.com/ww/en/",
     localizedUrlTemplates: [
@@ -474,7 +482,8 @@ const builtInManufacturerConfigs: Record<string, ManufacturerConfig> = {
     id: "siemens",
     canonicalName: "Siemens",
     shortName: "SIE",
-    rateLimitMs: 1800,
+    // 1500/3 = 500ms per-host interval, matching Saginaw (was 1800 → 600ms).
+    rateLimitMs: 1500,
     officialBaseUrls: ["https://mall.industry.siemens.com"],
     homepageUrl: "https://www.siemens.com/global/en/",
     localizedUrlTemplates: [
