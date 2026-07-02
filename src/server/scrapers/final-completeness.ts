@@ -468,16 +468,26 @@ function finalFieldRequirement(
 ): FinalRequirement {
   if (field === "image" && options.requireImage === false) return "not-applicable";
   const profileRequirement = profileFinalFieldRequirement(field, manufacturer);
-  if (profileRequirement) return profileRequirement;
-  const classification = classifyDeviceType(result);
-  const electricalContext = {
-    deviceType: classification.type,
-    deviceTypeConfidence: classification.confidence,
-    deviceTypeElectricalFields: electricalFieldsForDeviceType(classification.type)
-  };
+
+  // Voltage/current are decided by the device-type-aware electrical requirement, NOT by a
+  // manufacturer's fixed requiredFinalFields list. Otherwise a profile like SCE's
+  // (requiredFinalFields: weight/dimensions/material) forces voltage/current to "not-applicable"
+  // for EVERY part of that manufacturer — including the fans/heaters/thermostats that do publish
+  // voltage — so the field never enters the "missing" set and the datasheet/manual PDF is never
+  // opened to fill it. An explicit profile entry (required/preferred) still wins, so a profile can
+  // force the electrical check on; it just can't silently suppress it.
   if (field === "voltage" || field === "current") {
+    if (profileRequirement === "required" || profileRequirement === "preferred") return profileRequirement;
+    const classification = classifyDeviceType(result);
+    const electricalContext = {
+      deviceType: classification.type,
+      deviceTypeConfidence: classification.confidence,
+      deviceTypeElectricalFields: electricalFieldsForDeviceType(classification.type)
+    };
     return requiredElectricalFields(result, electricalContext).includes(field) ? "required" : "not-applicable";
   }
+
+  if (profileRequirement) return profileRequirement;
   if (isFamilyOverviewResult(result) && ["image", "dimensions", "material", "color", "operatingTemperature"].includes(field)) return "not-applicable";
   if (field === "color" || field === "operatingTemperature" || field === "protection" || field === "typeCode") return "preferred";
   if (field === "certificates") return "preferred";

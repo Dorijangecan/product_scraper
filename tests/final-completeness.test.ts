@@ -315,10 +315,15 @@ describe("final completeness audit", () => {
       strictManufacturer
     );
 
-    expect(audit.missing).toEqual(["weight", "dimensions", "material"]);
+    // The profile requires the core physical fields, but voltage stays device-type driven:
+    // a "Remote display module" is an active electronic device that publishes a supply voltage,
+    // so a fixed requiredFinalFields list must NOT suppress it — otherwise the missing voltage
+    // never triggers the datasheet/manual PDF probe.
+    expect(audit.missing).toEqual(["weight", "dimensions", "material", "voltage"]);
     expect(audit.requirements.weight).toBe("required");
     expect(audit.requirements.dimensions).toBe("required");
     expect(audit.requirements.material).toBe("required");
+    expect(audit.requirements.voltage).toBe("required");
   });
 
   it("uses manufacturer profile policy, not built-in manufacturer IDs, for type-code fallback", () => {
