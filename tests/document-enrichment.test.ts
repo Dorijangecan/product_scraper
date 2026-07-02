@@ -59,6 +59,34 @@ Cable length L \t0.30 m
     expect(normalized.material).toBe("PUR");
   });
 
+  it("extracts voltage, current, power dissipation and certificates from a Turck sensor datasheet", () => {
+    // Labels exactly as they appear in the Turck NI12U-EG18SK-VP4X datasheet PDF (user report).
+    const attributes = extractDocumentTextAttributes({
+      catalogNumber: "NI12U-EG18SK-VP4X",
+      document: {
+        type: "datasheet",
+        label: "Datasheet",
+        url: "https://pdb2.turck.com/datasheet/1581801.pdf"
+      },
+      text: `
+NI12U-EG18SK-VP4X  Inductive Sensor
+Operating voltage U B \t10…65 VDC
+Supply voltage \t24 VDC
+Power dissipation, typical \t<= 3.5 W
+Operating current \tMax. 145 mA
+Approvals and certificates \tCE
+UL Certificate \tcULus LISTED 21 W2, Encl.type 1 IND.CONT.EQ.
+      `
+    });
+    const normalized = normalizeFields(attributes, []);
+
+    expect(normalized.voltage).toBeTruthy();
+    expect(normalized.current).toBe("Max. 145 mA");
+    expect(normalized.certificates).toMatch(/CE/);
+    expect(normalized.certificates).toMatch(/cULus/);
+    expect(attributes.some((attr) => /power dissipation/i.test(attr.name) && /3\.5\s*W/.test(attr.value))).toBe(true);
+  });
+
   it("extracts common Eaton, Rockwell and enclosure PDF labels used by PDT resolvers", () => {
     const attributes = extractDocumentTextAttributes({
       catalogNumber: "BR120",

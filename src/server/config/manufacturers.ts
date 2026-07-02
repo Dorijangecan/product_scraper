@@ -919,13 +919,26 @@ function attachBuiltInScrapeRecipes() {
       embeddedProductTableNames: ["product", "productDetail", "technicalData", "attributes", "specifications"],
       embeddedResourceTableNames: ["downloads", "documents", "assets", "resources"]
     },
+    qualityPolicy: {
+      // The Turck shop page exposes a "Type" spec row that is exactly the catalog number
+      // (e.g. NI12U-EG18SK-VP4X), so use the catalog number as the type code when no explicit
+      // type-code label is parsed. Keeps the PDT Type Code column populated for every Turck part.
+      typeCodeFallback: "catalogNumber"
+    },
     fallbackPolicy: {
       officialFirst: true,
       readerOnQualityFailure: false,
-      browserOnQualityFailure: false,
+      // The shop page only carries price/stock; the datasheet PDF and the Approvals/Declarations
+      // certificate documents live behind the "Downloads"/"Approvals" tabs. Allow ONE browser
+      // render on quality failure so the interaction explorer expands those tabs and surfaces the
+      // datasheet/certificate links — the existing document enrichment then reads voltage, current,
+      // power dissipation and certificates straight out of the PDF. This is self-limiting: it only
+      // fires when required fields (e.g. voltage for a sensor) are still missing after the cheaper
+      // static + deep-mining stages, so parts that already resolve stay fast.
+      browserOnQualityFailure: true,
       documentDownloadProfile: "quality",
       distributorFallback: false,
-      maxBrowserAttempts: 0
+      maxBrowserAttempts: 1
     },
     confidenceRules: { foundMinScore: 78, partialMaxConfidence: 0.74 }
   };

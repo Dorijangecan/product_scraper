@@ -1053,5 +1053,11 @@ describe("manufacturer configuration", () => {
     expect(turck?.fallbackSources.flatMap((source) => source.directUrlTemplates).some((template) =>
       template.includes("/sensors/inductive-sensors/")
     )).toBe(false);
+    // Type Code column is populated from the catalog number (the shop "Type" row equals it).
+    expect(turck?.scrapeRecipe?.qualityPolicy?.typeCodeFallback).toBe("catalogNumber");
+    // Datasheet + Approvals certificate PDFs sit behind JS tabs, so one browser render is allowed
+    // on quality failure to surface them for voltage/current/power/certificate enrichment.
+    expect(turck?.scrapeRecipe?.fallbackPolicy?.browserOnQualityFailure).toBe(true);
+    expect(turck?.scrapeRecipe?.fallbackPolicy?.maxBrowserAttempts).toBe(1);
   });
 });

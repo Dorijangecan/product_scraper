@@ -222,6 +222,21 @@ describe("eclass resolvers", () => {
     expect(resolveProperty("MANUFACTURER_URL", "MANUFACTURER_URL", c)).toBe("https://acme.test");
   });
 
+  it("rejects a leaked datasheet ordering-table header as a type code and falls back to the catalog number", () => {
+    // Turck /shop/others pages exposed only the ordering table; its header row
+    // ("Ident no. Description Dimension drawing") leaked into a type-designation attribute.
+    const c = ctx(
+      {
+        manufacturerId: "turck",
+        attributes: [
+          { group: "Turck Product Data", name: "Type designation", value: "Ident no. Description Dimension drawing" }
+        ]
+      },
+      "15758"
+    );
+    expect(resolveProperty("CNSTYPECODE", "CNSTYPECODE", c)).toBe("15758");
+  });
+
   it("uses the gb/en-gb skuPage without inventing an EP- prefix for Eaton product URLs", () => {
     const c = ctx({ manufacturerId: "eaton" }, "502419");
     c.manufacturer = { ...manufacturer, id: "eaton" } as ManufacturerConfig;

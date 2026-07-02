@@ -46,7 +46,19 @@ function cleanTypeCodeValue(value: string | undefined): string | undefined {
   if (!cleaned) return undefined;
   if (cleaned.length > 80 || cleaned.split(/\s+/).length > 8) return undefined;
   if (!/[A-Z0-9]/i.test(cleaned)) return undefined;
+  if (isCatalogTableHeaderFragment(cleaned)) return undefined;
   return cleaned;
+}
+
+/**
+ * Turck (and other) datasheet ordering tables have a header row like
+ * "Ident no. | Description | Dimension drawing". When a product page exposes only that table,
+ * the header text can leak into an attribute and land in the type-code column. It is never a real
+ * type designation, so reject it and let the resolver fall back to the catalog number.
+ */
+function isCatalogTableHeaderFragment(value: string): boolean {
+  const cleaned = value.replace(/\s+/g, " ").trim();
+  return /\bident\.?\s*no\.?\b/i.test(cleaned) || /\bdimension\s+drawing\b/i.test(cleaned);
 }
 
 function isUiPlaceholderValue(value: string): boolean {
