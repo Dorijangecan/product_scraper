@@ -143,6 +143,7 @@ describe("device sheet map", () => {
     }
     expect(electricalFieldsForDeviceType("Communication Gateway")).toEqual(["voltage"]);
     expect(electricalFieldsForDeviceType("Contactor")).toEqual(["voltage", "current"]);
+    expect(electricalFieldsForDeviceType("Inductive Proximity Sensor")).toEqual(["voltage", "current"]);
     expect(electricalFieldsForDeviceType("Enclosure")).toEqual([]);
   });
 

@@ -87,6 +87,34 @@ UL Certificate \tcULus LISTED 21 W2, Encl.type 1 IND.CONT.EQ.
     expect(attributes.some((attr) => /power dissipation/i.test(attr.name) && /3\.5\s*W/.test(attr.value))).toBe(true);
   });
 
+  it("extracts Turck real PDF current labels with DC prefix", () => {
+    const attributes = extractDocumentTextAttributes({
+      catalogNumber: "NI12U-EG18SK-VP4X",
+      document: {
+        type: "datasheet",
+        label: "Datasheet",
+        url: "https://hansturck.azureedge.net/edb/en_US_HQ/EDB_1581801_gbr_en.pdf"
+      },
+      text: `
+Technical data
+Type NI12U-EG18SK-VP4X
+Electrical data
+Operating voltage UB 10...65 VDC
+DC rated operating current Ie <= 200 mA
+No-load current <= 15 mA
+      `
+    });
+    const normalized = normalizeFields(attributes, []);
+
+    expect(attributes).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ group: "PDF datasheet - Electrical data", name: "DC rated operating current Ie", value: "<= 200 mA" })
+      ])
+    );
+    expect(normalized.voltage).toBe("10...65 V DC");
+    expect(normalized.current).toBe("200 mA");
+  });
+
   it("extracts common Eaton, Rockwell and enclosure PDF labels used by PDT resolvers", () => {
     const attributes = extractDocumentTextAttributes({
       catalogNumber: "BR120",

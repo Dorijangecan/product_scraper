@@ -15,10 +15,18 @@ const TURCK_DIRECT_ORDER_TEMPLATE = "https://www.turck.com/de/en/shop/p/{part}";
 // endpoint, which server-renders a static HTML table (Type / Certificate # / Filename) of the
 // product's approval documents. This is the only online source of Turck certificate data.
 const TURCK_CERTIFICATES_TEMPLATE = "https://certificates.digital.aws.turck.com/documents/{part}";
+// The current Turck shop omits several ordering fields from its rendered HTML. The legacy official
+// product page still publishes them by numeric order id (EAN, eCl@ss, customs tariff, origin, weight).
+const TURCK_LEGACY_PRODUCT_TEMPLATE = "https://www.turck.pl/pl/product/{part}";
 
 interface TurckCertificates {
   value: string;
   sourceUrl: string;
+}
+
+interface TurckLegacyProductData {
+  attributes: AttributeRecord[];
+  source: SourceRecord;
 }
 
 interface TurckProductCandidate {
@@ -118,12 +126,30 @@ async function withTurckMetadata(
   // text as the product description (long and short), so promote it when the parser left the
   // description blank rather than echoing the SKU into the description columns.
   const description = result.description?.trim() ? result.description : productType;
-  const certificates = orderId ? await fetchTurckCertificates(orderId, context) : undefined;
+  let certificates: TurckCertificates | undefined;
+  let legacyProductData: TurckLegacyProductData | undefined;
+  if (orderId) {
+    [certificates, legacyProductData] = await Promise.all([
+      fetchTurckCertificates(orderId, context),
+      fetchTurckLegacyProductData(orderId, context)
+    ]);
+  }
   const attributes: AttributeRecord[] = [
     ...result.attributes,
+    ...(legacyProductData?.attributes ?? []),
     {
       group: "Turck Product Data",
       name: "Catalog Number",
+      value: catalogNumber,
+      sourceUrl,
+      sourceType: "official",
+      parser: TURCK_PARSER,
+      stage: TURCK_PARSER,
+      confidence: 0.86
+    },
+    {
+      group: "Turck Product Data",
+      name: "Type Code",
       value: catalogNumber,
       sourceUrl,
       sourceType: "official",
@@ -192,7 +218,8 @@ async function withTurckMetadata(
     sources: dedupeSources([
       ...sourcePages,
       ...(result.sources ?? []),
-      turckSource(fetched, TURCK_PARSER, `Turck product page accepted from ${discoveryStage}.`)
+      turckSource(fetched, TURCK_PARSER, `Turck product page accepted from ${discoveryStage}.`),
+      ...(legacyProductData ? [legacyProductData.source] : [])
     ]),
     normalized: normalizeFields(dedupedAttributes, documents),
     diagnostics: {
@@ -211,7 +238,8 @@ async function withTurckMetadata(
       attemptedUrls: [...new Set([...(result.diagnostics?.attemptedUrls ?? []), ...attemptedUrls])],
       notes: [
         ...(result.diagnostics?.notes ?? []),
-        `Turck product page accepted from ${discoveryStage === "search-result" ? "official search result" : "numeric order-id URL"}.`
+        `Turck product page accepted from ${discoveryStage === "search-result" ? "official search result" : "numeric order-id URL"}.`,
+        ...(legacyProductData ? ["Turck legacy official product page enriched ordering and physical data."] : [])
       ]
     }
   };
@@ -305,6 +333,128 @@ async function fetchTurckCertificates(orderId: string, context: ScrapeContext): 
   }
 }
 
+async function fetchTurckLegacyProductData(orderId: string, context: ScrapeContext): Promise<TurckLegacyProductData | undefined> {
+  const url = fillCatalogTemplate(TURCK_LEGACY_PRODUCT_TEMPLATE, orderId);
+  try {
+    const fetched = await fetchTurckText(url, context);
+    const attributes = parseTurckLegacyProductAttributes(fetched.text, fetched.effectiveUrl);
+    if (attributes.length === 0) return undefined;
+    return {
+      attributes,
+      source: turckSource(fetched, "turck-legacy-product", "Turck legacy official product page supplied ordering and physical attributes.")
+    };
+  } catch {
+    return undefined;
+  }
+}
+
+export function parseTurckLegacyProductAttributes(html: string, sourceUrl: string): AttributeRecord[] {
+  const attributes: AttributeRecord[] = [];
+  const seen = new Set<string>();
+
+  for (const [rawLabel, rawValue] of turckLegacyTablePairs(html)) {
+    const mapped = mapTurckLegacyLabel(rawLabel, rawValue);
+    if (!mapped) continue;
+    const key = `${mapped.group}\u0000${mapped.name}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    attributes.push({
+      group: mapped.group,
+      name: mapped.name,
+      value: mapped.value,
+      sourceUrl,
+      sourceType: "official",
+      parser: TURCK_PARSER,
+      stage: "turck-legacy-product",
+      confidence: mapped.confidence
+    });
+  }
+
+  return attributes;
+}
+
+function turckLegacyTablePairs(html: string): Array<[string, string]> {
+  const pairs: Array<[string, string]> = [];
+  for (const rowMatch of html.matchAll(/<tr\b[^>]*>([\s\S]*?)<\/tr>/gi)) {
+    const cells = [...rowMatch[1].matchAll(/<t[dh]\b[^>]*>([\s\S]*?)<\/t[dh]>/gi)].map((cell) => turckCellText(cell[1]));
+    if (cells.length < 2) continue;
+    const label = cells[0];
+    const value = cells.slice(1).join(" ");
+    if (!label || !value) continue;
+    pairs.push([label, value]);
+  }
+  return pairs;
+}
+
+function turckCellText(html: string): string {
+  return cleanText(decodeHtml(html.replace(/<script[\s\S]*?<\/script>/gi, " ").replace(/<style[\s\S]*?<\/style>/gi, " ").replace(/<[^>]+>/g, " ")))
+    .replace(/\u00a0/g, " ")
+    .replace(/\u2026/g, "...")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function mapTurckLegacyLabel(label: string, value: string): { group: string; name: string; value: string; confidence: number } | undefined {
+  const normalizedLabel = normalizeTurckLegacyLabel(label);
+  const cleanedValue = cleanTurckLegacyValue(value);
+  if (!cleanedValue) return undefined;
+
+  switch (normalizedLabel) {
+    case "ean":
+      return { group: "Turck Product Data", name: "EAN", value: cleanedValue, confidence: 0.9 };
+    case "kod ecl@ss (v5.1.4)":
+      return { group: "Turck Classifications", name: "ECLASS 5.1.4", value: cleanedValue.match(/\b\d{8}\b/)?.[0] ?? cleanedValue, confidence: 0.9 };
+    case "numer taryfy celnej":
+      return { group: "Turck Product Data", name: "Customs Tariff Number", value: cleanedValue.match(/\b\d{6,12}\b/)?.[0] ?? cleanedValue, confidence: 0.9 };
+    case "kraj pochodzenia":
+      return { group: "Turck Product Data", name: "Country of Origin", value: cleanedValue, confidence: 0.9 };
+    case "waga":
+      return { group: "Turck Product Data", name: "Weight", value: cleanedValue, confidence: 0.88 };
+    case "wymiary konstrukcji":
+      return { group: "Turck Legacy Technical Data", name: "Dimensions", value: cleanedValue, confidence: 0.78 };
+    case "znamionowy zakres detekcji":
+      return { group: "Turck Legacy Technical Data", name: "Rated operating distance", value: cleanedValue, confidence: 0.78 };
+    case "warunki montazowe":
+      return { group: "Turck Legacy Technical Data", name: "Mounting condition", value: cleanedValue, confidence: 0.74 };
+    case "napiecie zasilania":
+      return { group: "Turck Legacy Technical Data", name: "Supply voltage", value: cleanedValue, confidence: 0.82 };
+    case "funkcja wyjscia":
+      return { group: "Turck Legacy Technical Data", name: "Output function", value: cleanedValue, confidence: 0.74 };
+    case "czestotliwosc przelaczania":
+      return { group: "Turck Legacy Technical Data", name: "Switching frequency", value: cleanedValue, confidence: 0.78 };
+    case "polaczenie elektryczne":
+      return { group: "Turck Legacy Technical Data", name: "Electrical connection", value: cleanedValue, confidence: 0.74 };
+    case "material obudowy":
+      return { group: "Turck Legacy Technical Data", name: "Housing material", value: cleanedValue, confidence: 0.74 };
+    case "temperatura pracy":
+      return { group: "Turck Legacy Technical Data", name: "Operating temperature", value: cleanedValue, confidence: 0.82 };
+    case "stopien ochrony":
+      return { group: "Turck Legacy Technical Data", name: "Protection class", value: cleanedValue, confidence: 0.82 };
+    case "cechy szczegolne":
+      return { group: "Turck Legacy Technical Data", name: "Special features", value: cleanedValue, confidence: 0.7 };
+    default:
+      return undefined;
+  }
+}
+
+function normalizeTurckLegacyLabel(label: string): string {
+  return cleanText(label)
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, " ")
+    .replace(/:$/, "")
+    .trim()
+    .toLowerCase();
+}
+
+function cleanTurckLegacyValue(value: string): string {
+  return cleanText(value)
+    .replace(/\u00a0/g, " ")
+    .replace(/\u2026/g, "...")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 /**
  * Extract the certificate "Type" descriptions from the Turck document-management HTML table and join
  * them into a single value. `normalizeFields` then tokenises this into canonical marks (CE, UKCA, CCC,
@@ -396,9 +546,17 @@ function turckLocalizedUrls(productUrl: string): LocalizedProductUrls {
 
 function decodeHtml(value: string): string {
   return value
+    .replace(/&#x([0-9a-f]+);/gi, (_, code: string) => htmlCodePoint(parseInt(code, 16)))
+    .replace(/&#(\d+);/g, (_, code: string) => htmlCodePoint(Number(code)))
     .replace(/&amp;/g, "&")
     .replace(/&quot;/g, '"')
+    .replace(/&deg;/g, "\u00b0")
+    .replace(/&nbsp;/g, " ")
     .replace(/&#x27;|&#39;/g, "'")
     .replace(/&lt;/g, "<")
     .replace(/&gt;/g, ">");
+}
+
+function htmlCodePoint(code: number): string {
+  return Number.isFinite(code) && code > 0 ? String.fromCodePoint(code) : "";
 }

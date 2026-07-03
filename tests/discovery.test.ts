@@ -814,6 +814,33 @@ describe("official discovery scoring", () => {
               </table>`
             };
           }
+          if (url === "https://www.turck.pl/pl/product/1581801") {
+            return {
+              requestedUrl: url,
+              effectiveUrl: url,
+              statusCode: 200,
+              contentType: "text/html",
+              fetchedAt: "2026-01-01T00:00:00.000Z",
+              fromCache: false,
+              text: `<html><body>
+                <h3>Dane ogolne</h3>
+                <table>
+                  <tr><td>EAN</td><td>4047101126112</td></tr>
+                  <tr><td>Kod eCl@ss (V5.1.4):</td><td>27270101 -/- Czujnik indukcyjny</td></tr>
+                  <tr><td>Numer taryfy celnej</td><td>85365080000</td></tr>
+                  <tr><td>Kraj pochodzenia</td><td>DE</td></tr>
+                  <tr><td>Waga</td><td>70 g</td></tr>
+                </table>
+                <h3>Dane techniczne</h3>
+                <table>
+                  <tr><td>Wymiary konstrukcji</td><td>M18 x 1</td></tr>
+                  <tr><td>Napiecie zasilania</td><td>10&#8230;65 V DC</td></tr>
+                  <tr><td>Temperatura pracy</td><td>-30&#8230;+85 &deg;C</td></tr>
+                  <tr><td>Stopien ochrony</td><td>IP68</td></tr>
+                </table>
+              </body></html>`
+            };
+          }
           throw new Error(`Unexpected URL ${url}`);
         }
       },
@@ -828,15 +855,24 @@ describe("official discovery scoring", () => {
     expect(requestedUrls).toEqual([
       "https://www.turck.com/de/en/shop/search?q=NI12U-EG18SK-VP4X",
       "https://www.turck.com/de/en/shop/sensors/inductive-sensors/1581801",
-      "https://certificates.digital.aws.turck.com/documents/1581801"
+      "https://certificates.digital.aws.turck.com/documents/1581801",
+      "https://www.turck.pl/pl/product/1581801"
     ]);
     expect(result.productUrl).toBe("https://www.turck.com/de/en/shop/sensors/inductive-sensors/1581801");
     expect(result.title).toBe("NI12U-EG18SK-VP4X");
     // The shop <title> is just the SKU; the descriptive family is promoted to the description so the
     // PDT description columns carry "Inductive Sensor" instead of the article number.
     expect(result.description).toBe("Inductive Sensor");
+    expect(result.attributes).toContainEqual(expect.objectContaining({ name: "Type Code", value: "NI12U-EG18SK-VP4X" }));
     expect(result.attributes).toContainEqual(expect.objectContaining({ name: "Order ID", value: "1581801" }));
+    expect(result.attributes).toContainEqual(expect.objectContaining({ name: "EAN", value: "4047101126112" }));
+    expect(result.attributes).toContainEqual(expect.objectContaining({ name: "ECLASS 5.1.4", value: "27270101" }));
+    expect(result.attributes).toContainEqual(expect.objectContaining({ name: "Customs Tariff Number", value: "85365080000" }));
+    expect(result.attributes).toContainEqual(expect.objectContaining({ name: "Country of Origin", value: "DE" }));
+    expect(result.attributes).toContainEqual(expect.objectContaining({ name: "Weight", value: "70 g" }));
     expect(result.documents.some((doc) => doc.type === "image")).toBe(true);
+    expect(result.normalized.weight).toBe("70 g (0.07 kg)");
+    expect(result.normalized.voltage).toBe("10...65 V DC");
     expect(result.normalized.material).toBe("Stainless steel");
     // Certificates are read from the document-management table and canonicalised.
     expect(result.normalized.certificates).toBe("CE, UKCA, CCC");
