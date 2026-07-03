@@ -11,6 +11,15 @@ const TURCK_PARSER = "turck-shop";
 const TURCK_PARSER_VERSION = "turck-v1";
 const TURCK_SEARCH_FALLBACK_TEMPLATE = "https://www.turck.com/de/en/shop/search?q={part}";
 const TURCK_DIRECT_ORDER_TEMPLATE = "https://www.turck.com/de/en/shop/p/{part}";
+// The "Approvals/Declarations" panel on a Turck product page links to this document-management
+// endpoint, which server-renders a static HTML table (Type / Certificate # / Filename) of the
+// product's approval documents. This is the only online source of Turck certificate data.
+const TURCK_CERTIFICATES_TEMPLATE = "https://certificates.digital.aws.turck.com/documents/{part}";
+
+interface TurckCertificates {
+  value: string;
+  sourceUrl: string;
+}
 
 interface TurckProductCandidate {
   url: string;
@@ -49,13 +58,14 @@ export class TurckConnector implements ManufacturerConnector {
         if (!turckPageMatches(productPage, catalogNumber, context, candidate.stage)) {
           continue;
         }
-        return withTurckMetadata(
+        return await withTurckMetadata(
           parseTurckProductPage(catalogNumber, productPage, context),
           productPage,
           catalogNumber,
           attemptedUrls,
           sourcePages,
-          candidate.stage
+          candidate.stage,
+          context
         );
       } catch {
         // Try the next candidate.
@@ -90,18 +100,25 @@ function parseTurckProductPage(catalogNumber: string, fetched: FetchedText, cont
   });
 }
 
-function withTurckMetadata(
+async function withTurckMetadata(
   result: ProductResult,
   fetched: FetchedText,
   catalogNumber: string,
   attemptedUrls: string[],
   sourcePages: SourceRecord[],
-  discoveryStage: TurckProductCandidate["stage"]
-): ProductResult {
+  discoveryStage: TurckProductCandidate["stage"],
+  context: ScrapeContext
+): Promise<ProductResult> {
   const title = turckTitle(fetched.text) ?? result.title;
   const orderId = orderIdFromText(fetched.text) ?? orderIdFromUrl(fetched.effectiveUrl);
   const productType = turckProductType(fetched.text);
   const sourceUrl = fetched.effectiveUrl;
+  // The Turck shop <title> is just the catalog number; the descriptive product family
+  // ("Inductive Sensor") is published in the page keywords/heading. Manual PDTs use that family
+  // text as the product description (long and short), so promote it when the parser left the
+  // description blank rather than echoing the SKU into the description columns.
+  const description = result.description?.trim() ? result.description : productType;
+  const certificates = orderId ? await fetchTurckCertificates(orderId, context) : undefined;
   const attributes: AttributeRecord[] = [
     ...result.attributes,
     {
@@ -137,13 +154,36 @@ function withTurckMetadata(
           stage: TURCK_PARSER,
           confidence: 0.78
         }]
+      : []),
+    ...(certificates
+      ? [{
+          group: "Approvals/Declarations",
+          name: "Certifications",
+          value: certificates.value,
+          sourceUrl: certificates.sourceUrl,
+          sourceType: "official" as const,
+          parser: TURCK_PARSER,
+          stage: TURCK_PARSER,
+          confidence: 0.86
+        }]
       : [])
   ];
   const dedupedAttributes = dedupeAttributes(attributes);
-  const documents = dedupeDocuments(result.documents);
+  const documents = dedupeDocuments([
+    ...result.documents,
+    ...(certificates
+      ? [{
+          type: "certificate" as const,
+          label: "Approvals/Declarations",
+          url: certificates.sourceUrl,
+          sourceUrl
+        }]
+      : [])
+  ]);
   return {
     ...result,
     title,
+    description,
     productUrl: sourceUrl,
     localizedUrls: turckLocalizedUrls(sourceUrl),
     confidence: Math.max(result.confidence, 0.78),
@@ -245,6 +285,43 @@ async function fetchTurckText(url: string, context: ScrapeContext): Promise<Fetc
     },
     signal: context.signal
   });
+}
+
+/**
+ * Fetch and parse the Turck document-management page for an order id and distil its approval-document
+ * table into a certificate value (e.g. "CE, UKCA, CCC"). The page is static server-rendered HTML, so a
+ * plain GET is enough — no browser render. Returns undefined when the page is unreachable or lists no
+ * approval rows so the caller simply omits the certificate attribute.
+ */
+async function fetchTurckCertificates(orderId: string, context: ScrapeContext): Promise<TurckCertificates | undefined> {
+  const url = fillCatalogTemplate(TURCK_CERTIFICATES_TEMPLATE, orderId);
+  try {
+    const fetched = await fetchTurckText(url, context);
+    const value = parseTurckCertificateValue(fetched.text);
+    if (!value) return undefined;
+    return { value, sourceUrl: fetched.effectiveUrl };
+  } catch {
+    return undefined;
+  }
+}
+
+/**
+ * Extract the certificate "Type" descriptions from the Turck document-management HTML table and join
+ * them into a single value. `normalizeFields` then tokenises this into canonical marks (CE, UKCA, CCC,
+ * UL, …). We read the first cell of every body row and skip the header row.
+ */
+export function parseTurckCertificateValue(html: string): string | undefined {
+  const types: string[] = [];
+  for (const rowMatch of html.matchAll(/<tr>([\s\S]*?)<\/tr>/gi)) {
+    const cells = [...rowMatch[1].matchAll(/<t[dh][^>]*>([\s\S]*?)<\/t[dh]>/gi)].map((cell) =>
+      decodeHtml(cell[1].replace(/<[^>]+>/g, " ")).replace(/\s+/g, " ").trim()
+    );
+    const first = cells[0];
+    if (!first || /^type$/i.test(first)) continue; // header row / empty
+    types.push(first);
+  }
+  const value = [...new Set(types)].join("; ");
+  return value || undefined;
 }
 
 export function findTurckProductUrl(html: string, baseUrl: string, catalogNumber: string): string | undefined {

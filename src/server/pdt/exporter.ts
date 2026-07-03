@@ -1100,6 +1100,17 @@ function translateDescriptionToGerman(value: string | undefined): string | undef
   if (!source || isDecorativeAssetText(source)) return undefined;
   let translated = ` ${source} `;
   const replacements: Array<[RegExp, string]> = [
+    // Sensor family names (phrase-level, so they win over the generic word rules below). Turck and
+    // other sensor vendors publish the family as the product description; the manual PDTs translate
+    // it into the German column rather than leaving it blank.
+    [/\binductive (?:proximity )?sensor\b/gi, "Induktiver Sensor"],
+    [/\bcapacitive (?:proximity )?sensor\b/gi, "Kapazitiver Sensor"],
+    [/\bphotoelectric sensor\b/gi, "Optoelektronischer Sensor"],
+    [/\bultrasonic sensor\b/gi, "Ultraschallsensor"],
+    [/\bmagnetic field sensor\b/gi, "Magnetfeldsensor"],
+    [/\bflow sensor\b/gi, "Durchflusssensor"],
+    [/\bpressure sensor\b/gi, "Drucksensor"],
+    [/\btemperature sensor\b/gi, "Temperatursensor"],
     [/\bfrom the official Eaton China product catalog\b/gi, "aus dem offiziellen Eaton China Produktkatalog"],
     [/\bofficial Eaton China product catalog\b/gi, "offizieller Eaton China Produktkatalog"],
     [/\bmain load disconnector switch\b/gi, "Hauptlasttrennschalter"],

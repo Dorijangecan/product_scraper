@@ -797,6 +797,23 @@ describe("official discovery scoring", () => {
               </body></html>`
             };
           }
+          if (url === "https://certificates.digital.aws.turck.com/documents/1581801") {
+            return {
+              requestedUrl: url,
+              effectiveUrl: url,
+              statusCode: 200,
+              contentType: "text/html",
+              fetchedAt: "2026-01-01T00:00:00.000Z",
+              fromCache: false,
+              text: `<table>
+                <thead><tr><th>Type</th><th>Certificate #</th><th>Filename</th></tr></thead>
+                <tbody>
+                  <tr><td>CE/UKCA Decl. of Conformity</td><td>5447M</td><td>5447-3M.pdf</td></tr>
+                  <tr><td>CCC Certification Scheme China</td><td>2024010305706455</td><td>ccc.pdf</td></tr>
+                </tbody>
+              </table>`
+            };
+          }
           throw new Error(`Unexpected URL ${url}`);
         }
       },
@@ -810,13 +827,19 @@ describe("official discovery scoring", () => {
 
     expect(requestedUrls).toEqual([
       "https://www.turck.com/de/en/shop/search?q=NI12U-EG18SK-VP4X",
-      "https://www.turck.com/de/en/shop/sensors/inductive-sensors/1581801"
+      "https://www.turck.com/de/en/shop/sensors/inductive-sensors/1581801",
+      "https://certificates.digital.aws.turck.com/documents/1581801"
     ]);
     expect(result.productUrl).toBe("https://www.turck.com/de/en/shop/sensors/inductive-sensors/1581801");
     expect(result.title).toBe("NI12U-EG18SK-VP4X");
+    // The shop <title> is just the SKU; the descriptive family is promoted to the description so the
+    // PDT description columns carry "Inductive Sensor" instead of the article number.
+    expect(result.description).toBe("Inductive Sensor");
     expect(result.attributes).toContainEqual(expect.objectContaining({ name: "Order ID", value: "1581801" }));
     expect(result.documents.some((doc) => doc.type === "image")).toBe(true);
     expect(result.normalized.material).toBe("Stainless steel");
+    // Certificates are read from the document-management table and canonicalised.
+    expect(result.normalized.certificates).toBe("CE, UKCA, CCC");
   });
 
   it("does not assume a fixed Turck product category path", async () => {

@@ -2778,7 +2778,23 @@ function extractKnownPlainTextSpecAttributes(text: string, sourceUrl: string): A
     );
   }
 
-  return dedupeAttributes(attributes).slice(0, 120);
+  // Drop pairs whose value is a leaked JSON/markup fragment (e.g. a `{"width":"..(mm)","height":"..}`
+  // object split as if it were `Name: Value` plain text). Such fragments carry structural tokens that
+  // never appear in a real spec value and would otherwise pollute PDT columns (Turck's shop page embeds
+  // a dimensions JSON blob that the delimited-label matcher used to mis-read as a "Width" spec).
+  return dedupeAttributes(attributes.filter((attr) => !looksLikeStructuredMarkupFragment(attr.value))).slice(0, 120);
+}
+
+/**
+ * True when a value string carries JSON structural tokens (`":"`, `","`, an escaped quote, or a brace)
+ * that only appear when a serialized JSON object leaks into a plain-text spec value. Legitimate spec
+ * values use the inch double-prime (e.g. `1.5"`) but never a quote directly adjacent to `:`/`,`. We do
+ * NOT reject on stray HTML tags here — cleanInlineSpecValue can leave a harmless trailing `</p>` that
+ * the downstream normalizer tolerates, and rejecting those would drop valid values (e.g. "RAL 7035").
+ */
+function looksLikeStructuredMarkupFragment(value: string | undefined): boolean {
+  if (!value) return false;
+  return /["'\\]\s*[:,]\s*["']|[:,]\s*["'][A-Za-z]|\\"|[{}]/.test(value);
 }
 
 function isKnownInlineSpecLabel(name: string): boolean {

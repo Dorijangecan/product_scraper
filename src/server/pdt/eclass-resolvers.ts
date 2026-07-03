@@ -990,6 +990,33 @@ function minVoltageOf(ctx: ResolveContext, pattern: RegExp): string | undefined 
   return String(Math.min(...numbers.filter(Number.isFinite)));
 }
 
+/**
+ * Highest numeric voltage from any attribute matching `pattern` — the max-voltage counterpart to
+ * {@link minVoltageOf}. A range like "Operating voltage Ub: 10...65 VDC" therefore yields 65 for the
+ * "max. operating voltage with DC" column, while minVoltageOf yields 10 for the min column.
+ */
+function maxVoltageOf(ctx: ResolveContext, pattern: RegExp): string | undefined {
+  const matches = (ctx.result?.attributes ?? []).filter(
+    (a) => pattern.test(`${a.group ?? ""} ${a.name}`) && a.value?.trim()
+  );
+  if (matches.length === 0) return undefined;
+  const numbers: number[] = [];
+  for (const m of matches) {
+    const text = m.value.replace(/,/g, ".");
+    const range = text.match(/(-?\d+(?:\.\d+)?)\s*(?:\.\.\.|\.{2}|-|to|do)\s*\+?(-?\d+(?:\.\d+)?)\s*V/i);
+    if (range) {
+      numbers.push(Number(range[1]), Number(range[2]));
+      continue;
+    }
+    for (const match of text.matchAll(/(-?\d+(?:\.\d+)?)\s*V\b/gi)) {
+      const n = Number(match[1]);
+      if (Number.isFinite(n)) numbers.push(n);
+    }
+  }
+  if (!numbers.length) return undefined;
+  return String(Math.max(...numbers.filter(Number.isFinite)));
+}
+
 function degreeOfProtection(ctx: ResolveContext): string | undefined {
   const explicitProtection = attr(ctx, /\bdegree of protection\b/i);
   const value = explicitProtection ?? pdtFactValue(ctx, "protection") ?? clean(ctx.result?.normalized.protection);
@@ -2348,7 +2375,12 @@ const RESOLVERS: Record<string, Resolver> = {
 
   // Cross-tab electrical ratings and operating conditions.
   AAB459: (ctx) => maxVoltageOnPolarity(ctx, "ac"),
-  AAB840: (ctx) => maxVoltageOnPolarity(ctx, "dc"),
+  // Prefer the range-aware scan so "Operating voltage Ub: 10...65 VDC" yields 65 (the true max
+  // operating voltage), mirroring AAB973's min side; fall back to the supply/input-voltage scan for
+  // vendors that publish the DC max only under those labels.
+  AAB840: (ctx) =>
+    maxVoltageOf(ctx, /\b(max(?:imum)? .*voltage.*DC|max(?:imum)? operating voltage.*DC|operating voltage.*DC|supply voltage.*DC|operating voltage(?:\s+Ub)?|supply voltage|input voltage|rated operating voltage)\b/i) ??
+    maxVoltageOnPolarity(ctx, "dc"),
   // Balluff publishes the operating-voltage range in the value ("Operating voltage Ub: 10...30
   // VDC"), not the name — the old regex insisted on "DC" in the name and so missed it. Accept
   // any "operating voltage" / "supply voltage" attribute; minVoltageOf scans values and picks

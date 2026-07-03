@@ -991,6 +991,16 @@ function normalizedValueCanComeFromAttribute(key: string, normalizedValue: strin
   if (comparableValue(normalizedValue).includes(comparableValue(rawValue))) return true;
 
   if (key === "color") return sameColor(rawValue, normalizedValue) || comparableValue(normalizeFields([attr], []).color ?? "") === comparableValue(normalizedValue);
+  // Certificate tokens are canonicalised (e.g. "CE/UKCA Decl. of Conformity; CCC Certification
+  // Scheme China" -> "CE, UKCA, CCC"), so the derived value never substring-matches the raw label.
+  // Re-normalise the attribute in isolation and treat it as the source when its tokens overlap the
+  // combined normalized list (a single attribute may supply only part of the final certificate set).
+  if (key === "certificates") {
+    const fromAttr = comparableValue(normalizeFields([attr], []).certificates ?? "");
+    if (!fromAttr) return false;
+    const normalizedComparable = comparableValue(normalizedValue);
+    return fromAttr === normalizedComparable || normalizedComparable.includes(fromAttr) || fromAttr.includes(normalizedComparable);
+  }
   if (key === "weight") return sameWeight(rawValue, normalizedValue);
   if (key === "dimensions") return sameLengthNumber(rawValue, normalizedValue);
   // Tabular customer sources often label the column "Rated current (A)" and put just "16"
@@ -1123,7 +1133,7 @@ function labelLooksLikeFact(label: string, key: string): boolean {
   if (key === "ratedVoltage") return /\b(voltage|spannung|volt)\b/.test(text);
   if (key === "ratedCurrent") return /\b(current|amp|strom)\b/.test(text);
   if (key === "color") return /\b(colou?r|farbe|finish|surface|coating|paint)\b/.test(text);
-  if (key === "certificates") return /\b(cert|approval|standard|conformity)\b/.test(text);
+  if (key === "certificates") return /\b(certif|approv|standard|conformit|declaration)/.test(text);
   return false;
 }
 
@@ -1201,7 +1211,10 @@ function pdtShortDescription(result: ProductResult, catalogNumber: string, devic
   if (sceShort) return sceShort;
   const structured = structuredEnclosureTitle(result, catalogNumber, deviceType);
   if (structured) return firstCommaSegment(structured);
-  const value = safeDescription(result.title, catalogNumber);
+  // Prefer the page title, but when it is just the SKU (e.g. Turck's shop <title>) fall back to the
+  // descriptive product family so the short-description column carries "Inductive Sensor" instead of
+  // repeating the article number. Manual PDTs reuse the same family text for long and short.
+  const value = safeDescription(result.title, catalogNumber) ?? safeDescription(result.description, catalogNumber);
   return compactFamilyShortDescription(value) ?? value;
 }
 
