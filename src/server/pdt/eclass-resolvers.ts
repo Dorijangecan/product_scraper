@@ -1,4 +1,4 @@
-import { collapseWhitespaceOrUndefined as clean } from "../text-util.js";
+import { collapseWhitespaceOrUndefined as clean, normalizeNumberSeparators } from "../text-util.js";
 import type { ManufacturerConfig, ProductResult, RunItemRecord } from "../../shared/types.js";
 import type { PdtRepair } from "./ai-cleanup.js";
 import { cleanProductDescription, compactFamilyShortDescription, isDecorativeAssetText } from "./description-formatting.js";
@@ -165,7 +165,8 @@ function sameCatalogToken(left: string, right: string): boolean {
 
 function parseWeightRaw(raw: string | undefined): { kg?: number; g?: number } | undefined {
   if (!raw) return undefined;
-  const match = raw.replace(",", ".").match(/(\d+(?:\.\d+)?)\s*(kg|g|lb|lbs|oz|ounce|ounces)?/i);
+  // Normalize separators over the WHOLE string first so "1,050.00 lbs" reads as 1050, not 1.05.
+  const match = normalizeNumberSeparators(raw).match(/(\d+(?:\.\d+)?)\s*(kg|g|lb|lbs|oz|ounce|ounces)?/i);
   if (!match) return undefined;
   const value = Number(match[1]);
   if (!Number.isFinite(value)) return undefined;

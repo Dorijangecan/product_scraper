@@ -1,5 +1,5 @@
 import { sameNormalizedUrl as sameUrl } from "./url-util.js";
-import { uniqueStrings as uniqueStringsBase } from "./text-util.js";
+import { normalizeNumberSeparators, uniqueStrings as uniqueStringsBase } from "./text-util.js";
 import ExcelJS from "exceljs";
 import fs from "node:fs";
 import path from "node:path";
@@ -2540,10 +2540,11 @@ function bestWeightMeasurement(attributes: ProductResult["attributes"], fallback
 }
 
 function parseWeightMeasurement(value: string | undefined): WeightMeasurement | undefined {
-  const cleaned = cleanText(value);
-  const match = cleaned.match(/\b(\d+(?:[.,]\d+)?)\s*(kg|g|lb|lbs|pound|pounds|oz|ounce|ounces)\b/i);
+  // Normalize separators over the WHOLE string first so "1,050.00 lbs" reads as 1050, not 1.05.
+  const cleaned = normalizeNumberSeparators(cleanText(value));
+  const match = cleaned.match(/\b(\d+(?:\.\d+)?)\s*(kg|g|lb|lbs|pound|pounds|oz|ounce|ounces)\b/i);
   if (!match) return undefined;
-  const number = Number(match[1].replace(",", "."));
+  const number = Number(match[1]);
   if (!Number.isFinite(number)) return undefined;
   const unit = match[2].toLowerCase();
   if (unit === "kg") return { kg: number, lb: number / POUND_TO_KILOGRAM };

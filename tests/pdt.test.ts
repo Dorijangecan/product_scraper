@@ -81,6 +81,24 @@ function ctx(overrides: Partial<ProductResult>, catalogNumber = "CAT-1", deviceT
   return { result, item, manufacturer, deviceType };
 }
 
+describe("weight resolver — US thousands separator (Saginaw SCE-90XM7818G: 1,050.00 lbs)", () => {
+  it("resolves 1,050 lb to ~476 kg, never 0.48 kg", () => {
+    // The display string normalizer keeps the source formatting incl. the comma.
+    const c = ctx({ normalized: { weight: "1,050.00 lbs (476.3 kg)" } });
+    expect(Number(resolveProperty("CNS_MASSEXACT", "CNS_MASSEXACT", c))).toBeCloseTo(476.27, 1);
+  });
+
+  it("resolves a raw 1,050.00 lbs string the same way", () => {
+    const c = ctx({ normalized: { weight: "1,050.00 lbs" } });
+    expect(Number(resolveProperty("CNS_MASSEXACT", "CNS_MASSEXACT", c))).toBeCloseTo(476.27, 1);
+  });
+
+  it("still reads European decimal weights (0,25 kg = 0.25 kg)", () => {
+    const c = ctx({ normalized: { weight: "0,25 kg" } });
+    expect(Number(resolveProperty("CNS_MASSEXACT", "CNS_MASSEXACT", c))).toBeCloseTo(0.25, 3);
+  });
+});
+
 describe("device sheet map", () => {
   it("maps enclosure to cabinet tabs plus constant tabs", () => {
     expect(deviceSheetsFor("Enclosure")).toEqual(["cabinet", "cabinet.mechanical"]);
