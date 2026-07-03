@@ -15,6 +15,8 @@
  * isolation and reused by the normalizer, prose miner, and PDT resolvers.
  */
 
+import { normalizeNumberSeparators } from "../text-util.js";
+
 export type QuantityKind =
   | "voltage"
   | "current"
@@ -168,16 +170,17 @@ export function normalizeForParsing(value: string): string {
   const dashNormalized = value
     .replace(/[\u2013\u2014\u2212]/g, "-")
     .replace(/\u00e2[\u20ac\u0088][\u201c\u201d\u0092\u0093\u0094]/g, "-");
-  return dashNormalized
+  const collapsed = dashNormalized
     .replace(/[?\ufffd]\s*C\b/gi, " C")
     .replace(/Â°/g, "°")
     .replace(/℃/g, "°C")
     .replace(/\u00b3/g, "3")
     .replace(/ /g, " ")
     .replace(/[–—−]/g, "-")
-    .replace(/(\d),(\d)/g, "$1.$2")
     .replace(/\s+/g, " ")
     .trim();
+  // Resolve decimal vs. thousands separators per-number so "1,050.00 lbs" stays 1050, not 1.05.
+  return normalizeNumberSeparators(collapsed);
 }
 
 function canonicalUnit(raw: string): UnitInfo | undefined {

@@ -3,7 +3,7 @@ import { dedupeAttributes as dedupeAttributesBase, dedupeDocuments as dedupeShar
 import { fieldMatchesLabel } from "./field-registry.js";
 import { isPlausibleTemperatureCelsius, parseTemperatureRange } from "./quantity.js";
 import { matchProperty } from "./ontology.js";
-import { cleanText } from "../text-util.js";
+import { cleanText, normalizeNumberSeparators } from "../text-util.js";
 
 // cleanText/entity decoding now live in the leaf text-util module so field-registry can
 // share the canonical cleaner without creating an import cycle.
@@ -777,9 +777,12 @@ function normalizeWeightValue(value: string | undefined): string | undefined {
   if (!value) return undefined;
   const cleaned = normalizeHtmlSpecValue(value);
   if (!cleaned) return undefined;
-  const match = cleaned.match(/\b(\d+(?:[.,]\d+)?)\s*(kg|g|lb|lbs|pound|pounds|oz|ounce|ounces)\b/i);
+  // Resolve decimal vs. thousands separators before reading the number so "1,050.00 lbs"
+  // is 1050, not 1.05 (or 50). The original `cleaned` text is kept for display.
+  const normalized = normalizeNumberSeparators(cleaned);
+  const match = normalized.match(/\b(\d+(?:\.\d+)?)\s*(kg|g|lb|lbs|pound|pounds|oz|ounce|ounces)\b/i);
   if (!match) return undefined;
-  const number = Number(match[1].replace(",", "."));
+  const number = Number(match[1]);
   if (!Number.isFinite(number)) return cleaned;
   const unit = match[2].toLowerCase();
   if (unit === "kg") return cleaned;
