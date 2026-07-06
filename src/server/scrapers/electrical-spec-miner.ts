@@ -9,6 +9,10 @@ interface ElectricalSpecDefinition {
   kind: QuantityKind;
   labels: RegExp[];
   exclude?: RegExp[];
+  // Like `exclude`, but tested against a short peek of text AFTER the label instead of
+  // before/label itself — for trailing qualifiers (e.g. "... voltage (Type A/AC operation)")
+  // that disqualify the match but sit past where `exclude`'s before-context window looks.
+  excludeAfter?: RegExp[];
 }
 
 const ELECTRICAL_SPEC_DEFINITIONS: ElectricalSpecDefinition[] = [
@@ -53,17 +57,25 @@ const ELECTRICAL_SPEC_DEFINITIONS: ElectricalSpecDefinition[] = [
     name: "Rated voltage",
     kind: "voltage",
     labels: [
-      /\b(?:rated|nominal|operating|operational|supply|input|output|working|mains|auxiliary|load)\s+voltage(?:\s+range|\s+rating|\s+limits?)?\b/i,
+      // RCD/RCCB datasheets (e.g. Doepke) publish a "min./max. operating voltage range of test
+      // circuit" — the voltage the RCD's own trip-test button/instrument needs, not the product's
+      // rated supply voltage. The negative lookaheads keep that phrase out of "Rated voltage"
+      // without touching the shared before/after exclude-context window other definitions rely on.
+      /\b(?:rated|nominal|operating|operational|supply|input|output|working|mains|auxiliary|load)\s+voltage(?:\s+range|\s+rating|\s+limits?)?\b(?!\s+(?:range\s+)?of\s+test)/i,
       /\b(?:field\s+power|module\s+supply|sensor\s+supply)\s+voltage(?:\s+range)?\b/i,
-      /\b(?:min(?:imum)?|max(?:imum)?)\s+(?:rated\s+|operating\s+|supply\s+)?voltage\b/i,
-      /\bvoltage\s+(?:range|rating|rated\s+value|nominal\s+value|limits?)\b/i,
+      /\b(?:min(?:imum)?|max(?:imum)?)\s+(?:rated\s+|operating\s+|supply\s+)?voltage\b(?!\s+(?:range\s+)?of\s+test)/i,
+      /\bvoltage\s+(?:range|rating|rated\s+value|nominal\s+value|limits?)\b(?!\s+of\s+test)/i,
       /\bU[esbnr]\b/,
       /\u7535\u538b/,
       /\u8f93\u5165\u7535\u538b/,
       /\u8f93\u51fa\u7535\u538b/,
       /\u989d\u5b9a\u7535\u538b/
     ],
-    exclude: [/insulation|isolation|impulse|surge|withstand|control|coil|drop|short[-\s]?circuit|trip/i]
+    exclude: [/insulation|isolation|impulse|surge|withstand|control|coil|drop|short[-\s]?circuit|trip/i],
+    // RCD/RCBO datasheets (e.g. Doepke) publish a per-sensitivity-type minimum, such as "Minimum
+    // rated operating voltage (Type A/AC operation)" / "(Type B operation)" — the supply floor for
+    // one specific detection mode's electronics, not the product's overall rated voltage.
+    excludeAfter: [/\(type\s+[a-z]/i]
   },
   {
     name: "Breaking capacity",
@@ -173,6 +185,7 @@ export function extractElectricalSpecAttributesFromText(input: {
         const after = normalized.slice(index + match[0].length, index + match[0].length + 220);
         const labelContext = cleanText(`${before} ${label}`);
         if (definition.exclude?.some((pattern) => pattern.test(labelContext))) continue;
+        if (definition.excludeAfter?.some((pattern) => pattern.test(cleanText(after.slice(0, 40))))) continue;
 
         const valueWindow = trimValuePrefix(after);
         const valueSlice = valueWindow.slice(0, nextLabelIndex(valueWindow));

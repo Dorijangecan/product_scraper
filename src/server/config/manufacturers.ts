@@ -315,6 +315,31 @@ const builtInManufacturerConfigs: Record<string, ManufacturerConfig> = {
       }
     ]
   },
+  doepke: {
+    id: "doepke",
+    canonicalName: "Doepke Schaltgeräte GmbH",
+    shortName: "DOE",
+    rateLimitMs: 1500,
+    concurrency: 3,
+    officialBaseUrls: ["https://www.doepke.de"],
+    homepageUrl: "https://www.doepke.de/en/",
+    // Doepke keys its entire catalog off a legacy `prodext.php` endpoint that takes the raw
+    // article number directly (no search/discovery needed) and serves the same static template
+    // for every product family (RCCB, RCBO, accessories, ...). English is tried first because its
+    // technical-data labels ("Weight", "Width", "Rated voltage (AC)", ...) match the ontology
+    // synonyms directly; German is a same-content fallback for older articles.
+    localizedUrlTemplates: [
+      { locale: "en", urlTemplate: "https://www.doepke.de/source/prodext.php?ARTNR={part}&lang=en" },
+      { locale: "de", urlTemplate: "https://www.doepke.de/source/prodext.php?ARTNR={part}&lang=de" }
+    ],
+    fetchPolicy: {
+      timeoutMs: 15000,
+      acceptLanguage: "en-US,en;q=0.9,de;q=0.7",
+      referer: "https://www.doepke.de/en/",
+      minContentLength: 300
+    },
+    fallbackSources: []
+  },
   rockwell: {
     id: "rockwell",
     canonicalName: "Rockwell Automation",
@@ -941,6 +966,42 @@ function attachBuiltInScrapeRecipes() {
       maxBrowserAttempts: 1
     },
     confidenceRules: { foundMinScore: 78, partialMaxConfidence: 0.74 }
+  };
+
+  builtInManufacturerConfigs.doepke.scrapeRecipe = {
+    requiredAttributes: [
+      "catalog number|type code|article",
+      "rated current|rated voltage|residual current|number of poles|width|height|depth|weight"
+    ],
+    requiredDocuments: ["datasheet"],
+    minAttributes: 4,
+    minDocuments: 1,
+    dynamicFramework: [],
+    discoveryPolicy: {
+      allowedOfficialDomains: ["doepke.de"],
+      urlVariants: [],
+      maxCandidates: 6
+    },
+    extractionPolicy: {
+      documentUrlPatterns: [
+        "doepke\\.de/uploads/tx_doepkeproducts/(?:datenblatt|masszeichnung|anschlussschema|cad)/.+\\.(?:pdf|jpe?g|png|stp|step)",
+        "doepke\\.de/produktbilder/.+\\.(?:png|jpe?g)"
+      ],
+      ignoredImageUrlPatterns: ["logo|favicon|flaggen|sprite|placeholder|icon"]
+    },
+    fallbackPolicy: {
+      officialFirst: true,
+      // prodext.php is a static server-rendered template (no client-side JS) and the datasheet PDF
+      // carries every physical/electrical fact Doepke publishes, so neither a text-reader pass nor
+      // a browser render adds coverage — they would only slow every part down.
+      readerOnQualityFailure: false,
+      browserOnQualityFailure: false,
+      documentDownloadProfile: "quality",
+      distributorFallback: false,
+      maxReaderAttempts: 0,
+      maxBrowserAttempts: 0
+    },
+    confidenceRules: { foundMinScore: 80, partialMaxConfidence: 0.76 }
   };
 
   builtInManufacturerConfigs.nvent.scrapeRecipe = {

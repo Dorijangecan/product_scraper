@@ -343,6 +343,9 @@ function ontologyFieldValue(
   for (const attr of attributes) {
     if (!attr.value || !isLikelySpecText(attr.value) || !isAvailableSpecValue(attr.value)) continue;
     if (matchProperty(`${attr.group ?? ""} ${attr.name}`)?.key !== key) continue;
+    // Same guard as shouldSkipRegistryFieldCandidate: a disqualifying "... of test circuit"
+    // qualifier can end up in either the label or the value depending on how the PDF line split.
+    if (key === "ratedVoltage" && (isLowValueVoltageLabel(`${attr.group ?? ""} ${attr.name}`) || isLowValueVoltageLabel(attr.value))) continue;
     const value = normalize(attr.value);
     if (value) return value;
   }
@@ -368,7 +371,9 @@ function registryFieldValue(
 function shouldSkipRegistryFieldCandidate(attr: AttributeRecord, key: keyof NormalizedProductFields): boolean {
   const label = `${attr.group ?? ""} ${attr.name}`.toLowerCase();
   if (key === "current" && /\b(?:inrush|starting|peak)\s+current\b/.test(label)) return true;
-  if (key === "voltage" && isLowValueVoltageLabel(label)) return true;
+  // Check the value too, not just the label: a loose PDF "label: value" split can leave a
+  // disqualifying "... of test circuit" qualifier in the value (see deriveVoltageRangeFromMinMax).
+  if (key === "voltage" && (isLowValueVoltageLabel(label) || isLowValueVoltageLabel(attr.value))) return true;
   if ((key === "voltage" || key === "current") && isStandardsScopeElectricalLabel(label)) return true;
   return normalizedFieldLabelScore(attr, key) < -50;
 }
@@ -461,7 +466,10 @@ function bestNormalizedAttributeValue(
     .filter((attr) => {
       const haystack = `${attr.group ?? ""} ${attr.name}`.toLowerCase();
       if (field === "current" && /\b(?:inrush|starting|peak)\s+current\b/.test(haystack)) return false;
-      if (field === "voltage" && isLowValueVoltageLabel(haystack)) return false;
+      // A loose PDF "label: value" split can leave a disqualifying "... of test circuit"
+      // qualifier in the value instead of the label — check both sides (see
+      // deriveVoltageRangeFromMinMax for the same fix on the min/max-pairing path).
+      if (field === "voltage" && (isLowValueVoltageLabel(haystack) || isLowValueVoltageLabel(attr.value))) return false;
       return patterns.some((pattern) => pattern.test(haystack)) && isLikelySpecText(attr.value) && isAvailableSpecValue(attr.value);
     })
     .sort((left, right) => attributeEvidenceScore(right) + normalizedFieldLabelScore(right, field) - attributeEvidenceScore(left) - normalizedFieldLabelScore(left, field))
@@ -559,6 +567,11 @@ function normalizedFieldLabelScore(attr: AttributeRecord, field?: keyof Normaliz
     if (/(?:^|\s)(?:power supply )?output voltage$/.test(label)) return 115;
     if (/rated ou?tput voltage|ou?tput voltage/.test(label)) return 115;
     if (/maximum operating voltage/.test(label)) return 100;
+    // Bare "Rated voltage" is the nameplate/certified value; prefer it over a bare "Operating
+    // voltage" reading (which without a min/max/maximum qualifier is often a tolerance or an
+    // internal electronics spec rather than the product's own rated supply voltage).
+    if (/\brated\s+voltage\b/.test(label)) return 110;
+    if (/(?:^|\s)operating\s+voltage$/.test(label)) return 60;
     if (/nominal voltage|continuous operating voltage/.test(label)) return 95;
     if (/rated control circuit voltage|control circuit voltage/.test(label)) return 80;
     if (/voltage protection level/.test(label)) return 65;
@@ -957,6 +970,11 @@ function deriveVoltageRangeFromMinMax(attributes: AttributeRecord[]): string | u
   const voltageAttributes = attributes.filter((attr) => {
     const label = `${attr.group ?? ""} ${attr.name}`;
     if (!/\bvoltage\b/i.test(label) || !/\b(?:min|max|minimum|maximum)\b/i.test(label)) return false;
+    // A loose "label: value" split can leave a disqualifying "... of test circuit" qualifier in
+    // the value instead of the label (e.g. name="min. Operating voltage", value="range of test
+    // circuit 150 V"). Check both so the RCD's own test-instrument voltage can't masquerade as a
+    // primary rated-voltage label just because the qualifier landed on the wrong side of the split.
+    if (isLowValueVoltageLabel(attr.value)) return false;
     if (isPrimaryVoltageLabel(label)) return true;
     if (hasPrimaryVoltage && isSecondaryVoltageLabel(label)) return false;
     return !isLowValueVoltageLabel(label);
@@ -991,7 +1009,16 @@ function isSecondaryVoltageLabel(label: string): boolean {
 }
 
 function isLowValueVoltageLabel(label: string): boolean {
-  return /\b(?:voltage drop|output voltage limits?|insulation voltage|impulse|withstand|protection level)\b/i.test(label);
+  // RCD/RCCB datasheets (e.g. Doepke) publish a "min./max. operating voltage range of test
+  // circuit" — the voltage the RCD's own trip-test button/instrument needs, not the product's
+  // rated supply voltage. Treating it as low-value keeps it out of the min/max voltage-range
+  // derivation below so it can't be mistaken for the product's rated voltage.
+  return /\b(?:voltage drop|output voltage limits?|insulation voltage|impulse|withstand|protection level)\b/i.test(label)
+    || /test\s+(?:circuit|device|equipment|instrument)|pr[üu]feinrichtung/i.test(label)
+    // RCD/RCBO datasheets (e.g. Doepke) also publish a per-sensitivity-type minimum, such as
+    // "Minimum rated operating voltage (Type A/AC operation)" / "(Type B operation)" — the supply
+    // floor for one specific detection mode's electronics, not the product's overall rated voltage.
+    || /\(type\s+[a-z]\+?(?:\/[a-z]+)?\s+operation\)/i.test(label);
 }
 
 function minMaxElectricalLabelBase(label: string): string {

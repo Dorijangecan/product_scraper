@@ -682,7 +682,7 @@ function buildGlobalTechnicalContext(text: string): string | undefined {
 
 function isGlobalTechnicalLine(line: string): boolean {
   return (
-    /\b(?:technical\s+(?:data|specifications?)|electrical\s+(?:data|ratings?)|input\s+voltage|output\s+voltage|operating\s+voltage|supply\s+voltage|rated\s+(?:operating\s+|operational\s+)?current|operating\s+current|rated\s+current|rated\s+power|power\s+dissipation|power\s+loss|degree\s+of\s+protection|operating\s+temperature|approvals?\s+and\s+certificates|ul\s+certificate|dimensions?|weight)\b/i.test(line) ||
+    /\b(?:technical\s+(?:data|specifications?)|electrical\s+(?:data|ratings?)|input\s+voltage|output\s+voltage|operating\s+voltage|supply\s+voltage|rated\s+voltage|rated\s+(?:operating\s+|operational\s+)?current|operating\s+current|rated\s+current|rated\s+power|power\s+dissipation|power\s+loss|degree\s+of\s+protection|protection\s+class|operating\s+temperature|storage\s+temperature|ambient\s+temperature|approvals?\s+and\s+certificates|certifications?|ul\s+certificate|dimensions?|weight|\bwidth\b|\bheight\b|\bdepth\b|housing\s+material)\b/i.test(line) ||
     /\b[A-Z0-9]{1,8}\s*[=:]\s*.*?\bIP\s*\d{2}[A-Z]?\b/i.test(line) ||
     /(?:\u6280\u672f\u53c2\u6570|\u6280\u672f\u89c4\u683c|\u53d8\u9891\u5668|\u53d8\u9891\u9a71\u52a8|\u9891\u7387\u8f6c\u6362\u5668|\u8f93\u5165\u7535\u538b|\u8f93\u51fa\u7535\u538b|\u989d\u5b9a\u7535\u6d41|\u989d\u5b9a\u529f\u7387|\u9632\u62a4\u7b49\u7ea7|\u5de5\u4f5c\u6e29\u5ea6|\u73af\u5883\u6e29\u5ea6|\u5c3a\u5bf8|\u91cd\u91cf)/.test(line)
   );

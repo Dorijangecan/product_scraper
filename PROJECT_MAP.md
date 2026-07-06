@@ -244,7 +244,7 @@ Politike u `ManufacturerConfig.scrapeRecipe`: `DiscoveryPolicyConfig`, `Interact
 | `tight-context.ts` | `buildTightContextForCatalog`, `buildVariantColumnContext` |
 
 ### `src/server/scrapers/` — konektori (svi imaju `<Name>Connector`)
-`abb.ts` `balluff.ts` `eaton.ts` `eta.ts` `fath.ts` `rockwell.ts` `sce.ts` `scame.ts` `schmersal.ts`
+`abb.ts` `balluff.ts` `doepke.ts` `eaton.ts` `eta.ts` `fath.ts` `rockwell.ts` `sce.ts` `scame.ts` `schmersal.ts`
 `schneider.ts` `siemens.ts` `spelsberg.ts` `turck.ts` — uz `parse<Vendor>ProductPage` helpere.
 Config-driven (bez fajla): `nvent`, `phoenix`.
 
