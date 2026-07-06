@@ -218,11 +218,14 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
   const explicitStandardsAttr = attributes.find(
     (attr) => /^standards?$/i.test(attr.name) && /\b(?:IEC|UL|CSA|CE|EN|ISO|DIN|VDE|JIS|UKCA)\b/.test(attr.value)
   );
+  const literalCertificateValues = literalCertificateAttributeValues(attributes);
   const certificateValues = [
-    ...attributes
-      .filter((attr) => fieldMatchesLabel("certificates", `${attr.group ?? ""} ${attr.name}`))
-      .flatMap((attr) => splitCertificateValues(normalizeCertificateValue(attr.value, true))),
-    ...(explicitStandardsAttr
+    ...(literalCertificateValues.length
+      ? literalCertificateValues
+      : attributes
+          .filter((attr) => fieldMatchesLabel("certificates", `${attr.group ?? ""} ${attr.name}`))
+          .flatMap((attr) => splitCertificateValues(normalizeCertificateValue(attr.value, true)))),
+    ...(explicitStandardsAttr || literalCertificateValues.length
       ? []
       : documents
           .filter(
@@ -232,11 +235,10 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
           )
           .flatMap((doc) => splitCertificateValues(normalizeDocumentCertificateValue(doc))))
   ];
-  const certificates = [
-    ...removeSubsumedCertificateTokens(
-      uniqueCertificateTokens(certificateValues)
-    ).sort(compareCertificateToken)
-  ].join(", "); // Comma-space matches the format used in manual PDTs (ABB: "IEC, UL"; Rockwell: "c-UL-us, FM, CE...").
+  const certificateTokens = literalCertificateValues.length
+    ? uniqueLiteralCertificateTokens(certificateValues)
+    : removeSubsumedCertificateTokens(uniqueCertificateTokens(certificateValues)).sort(compareCertificateToken);
+  const certificates = certificateTokens.join(", "); // Comma-space matches the format used in manual PDTs (ABB: "IEC, UL"; Rockwell: "c-UL-us, FM, CE...").
 
   const voltage =
     normalizeVoltageValue(deriveVoltageRangeFromMinMax(attributes)) ??
@@ -1687,6 +1689,26 @@ function normalizeCertificateValue(value: string, allowNotApplicable = false): s
   if (tokens.length > 0) return uniqueCertificateTokens(tokens).sort(compareCertificateToken).join("; ");
   if (/\b(certificate|declaration|conformity|listed|approved)\b/i.test(cleaned)) return cleaned;
   return "";
+}
+
+function literalCertificateAttributeValues(attributes: AttributeRecord[]): string[] {
+  return attributes
+    .filter((attr) => /^Industry Standards\s+-\s+\(IS\d+\)$/i.test(attr.group ?? "") && /^Standard$/i.test(attr.name))
+    .map((attr) => cleanCertificateResourceText(attr.value))
+    .filter(Boolean);
+}
+
+function uniqueLiteralCertificateTokens(values: string[]): string[] {
+  const seen = new Set<string>();
+  const unique: string[] = [];
+  for (const value of values) {
+    const cleaned = cleanText(value);
+    const compact = compactCertificateToken(cleaned);
+    if (!cleaned || seen.has(compact)) continue;
+    seen.add(compact);
+    unique.push(cleaned);
+  }
+  return unique;
 }
 
 function isGenericCertificatePlaceholder(value: string): boolean {

@@ -322,8 +322,8 @@ function parseDetailSectionAttributes($: cheerio.CheerioAPI, sourceUrl: string):
 
     const bodyWrap = $(section).children(".prod-info-body-wrap").first();
     const candidates = bodyWrap.length
-      ? bodyWrap.children(".prod-info-body, li, p")
-      : $(section).children(".prod-info-body, li, p").not(".prod-info-header");
+      ? bodyWrap.find(".prod-info-body, li, p")
+      : $(section).find(".prod-info-body, li, p").not(".prod-info-header");
     candidates.each((__, item) => {
       const text = cleanText($(item).text());
       if (!text || text === group || text.length > 1000 || /also bought|similar part|add to bill/i.test(text)) return;

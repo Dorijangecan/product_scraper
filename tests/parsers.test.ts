@@ -866,6 +866,18 @@ describe("manufacturer parsers", () => {
           <div class="prod-info-body-wrap"><p class="prod-info-body">ANSI-61 gray powder coating inside and out.</p></div>
         </div>
         <div class="prod-details-div">
+          <p class="prod-info-header">Industry Standards - (IS6)</p>
+          <div class="prod-info-body-wrap">
+            <ul>
+              <li>NEMA Type 3R, 4, 12 and Type 13</li>
+              <li>UL Listed Type 3R, 4 and 12</li>
+              <li>CSA Type 3R, 4 and 12</li>
+              <li>IEC 60529</li>
+              <li>IP 66</li>
+            </ul>
+          </div>
+        </div>
+        <div class="prod-details-div">
           <p class="prod-info-header">Accessories Included</p>
           <div class="prod-info-body-wrap">
             <div class="part-acc"><a href="/partnumber_info?n=SCE-HLPMFK"><p class="prod-float-link">SCE-HLPMFK <br>Mounting Foot Kit for HLP and SA LPPL Enc.</p></a></div>
@@ -908,6 +920,8 @@ describe("manufacturer parsers", () => {
     expect(result.attributes.some((attr) => attr.group === "Recommended Alternative" && attr.value.includes("SCE-16EL1206LP"))).toBe(true);
     expect(result.attributes.some((attr) => attr.group === "SCE Family Inference")).toBe(false);
     expect(result.attributes.some((attr) => attr.group === "Construction" && attr.value === "Construction")).toBe(false);
+    expect(result.attributes.some((attr) => attr.group === "Industry Standards - (IS6)" && attr.value === "NEMA Type 3R, 4, 12 and Type 13")).toBe(true);
+    expect(result.normalized.certificates).toBe("NEMA Type 3R, 4, 12 and Type 13, UL Listed Type 3R, 4 and 12, CSA Type 3R, 4 and 12, IEC 60529, IP 66");
     expect(result.documents.some((doc) => doc.type === "manual" && doc.url.includes("deadfrontel-hlp.pdf"))).toBe(true);
   });
 

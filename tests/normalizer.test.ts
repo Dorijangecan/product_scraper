@@ -664,6 +664,22 @@ describe("normalizer", () => {
     expect(normalized.certificates?.split(";").map((item) => item.trim())).not.toContain("CSA");
   });
 
+  it("keeps SCE industry standard certificate bullets literal", () => {
+    const normalized = normalizeFields(
+      [
+        { group: "Industry Standards - (IS4)", name: "Standard", value: "NEMA Type 3R, 4, 12 and Type 13" },
+        { group: "Industry Standards - (IS4)", name: "Standard", value: "UL Listed Type 3R, 4 and 12" },
+        { group: "Industry Standards - (IS4)", name: "Standard", value: "CSA Type 3R, 4 and 12" },
+        { group: "Industry Standards - (IS6)", name: "Standard", value: "IEC 60529" },
+        { group: "Industry Standards - (IS6)", name: "Standard", value: "IP 66" }
+      ],
+      []
+    );
+
+    expect(normalized.certificates).toBe("NEMA Type 3R, 4, 12 and Type 13, UL Listed Type 3R, 4 and 12, CSA Type 3R, 4 and 12, IEC 60529, IP 66");
+    expect(normalized.certificates).not.toContain("UL Listed Type 4X");
+  });
+
   it("keeps detailed SCE UL/cULus file certificates without redundant standalone UL", () => {
     const normalized = normalizeFields(
       [
