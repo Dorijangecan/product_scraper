@@ -11,6 +11,7 @@ import {
   ChevronsRight,
   CheckCircle2,
   Clock3,
+  Copy,
   Database,
   Download,
   FileCheck2,
@@ -31,6 +32,7 @@ import {
   Settings2,
   Trash2,
   Upload,
+  X,
   XCircle
 } from "lucide-react";
 import type {
@@ -133,6 +135,12 @@ const REQUIRED_COVERAGE_FIELDS = [
 ] as const;
 
 type CoverageKey = (typeof REQUIRED_COVERAGE_FIELDS)[number]["key"];
+// `key` is a CoverageKey for built-in tiles, or `custom:<id>` for a custom coverage tile.
+interface CoverageFocus {
+  key: string;
+  label: string;
+  state: "missing" | "not-applicable";
+}
 type RunItemFilter = "all" | "needs-check" | ItemStatus;
 type OpenFilePicker = (options: {
   id?: string;
@@ -231,6 +239,9 @@ export function App() {
   const [selectedItemDetail, setSelectedItemDetail] = useState<RunItemRecord | null>(null);
   const [runItemQuery, setRunItemQuery] = useState("");
   const [runItemFilter, setRunItemFilter] = useState<RunItemFilter>("all");
+  // Set by clicking a coverage tile (e.g. "Weight") — narrows the run-items list to items where
+  // that field is missing, or not-applicable. Combines (AND) with the text search and status filter.
+  const [coverageFocus, setCoverageFocus] = useState<CoverageFocus | null>(null);
   const [runItemPageSize, setRunItemPageSize] = useState<RunItemPageSize>(50);
   const [runItemPage, setRunItemPage] = useState(1);
   const [catalogListMessage, setCatalogListMessage] = useState("");
@@ -299,6 +310,7 @@ export function App() {
   useEffect(() => {
     setRunItemQuery("");
     setRunItemFilter("all");
+    setCoverageFocus(null);
     setRunItemPage(1);
     setSelectedItemId(null);
     setSelectedItemDetail(null);
@@ -892,6 +904,11 @@ export function App() {
     setRunItemPage(1);
   }
 
+  function handleCoverageFocusChange(value: CoverageFocus | null) {
+    setCoverageFocus(value);
+    setRunItemPage(1);
+  }
+
   function handleRunItemPageSizeChange(value: string) {
     if (value === "all") {
       setRunItemPageSize("all");
@@ -1079,7 +1096,10 @@ export function App() {
   const runTiming = useMemo(() => buildRunTiming(selectedRun, items, nowMs), [items, nowMs, selectedRun]);
   const progress = runTiming.progressPercent;
   const runItemFilterCounts = useMemo(() => buildRunItemFilterCounts(items), [items]);
-  const filteredItems = useMemo(() => filterRunItems(items, runItemQuery, runItemFilter), [items, runItemQuery, runItemFilter]);
+  const filteredItems = useMemo(
+    () => filterRunItems(items, runItemQuery, runItemFilter, coverageFocus),
+    [items, runItemQuery, runItemFilter, coverageFocus]
+  );
   const failedListItems = useMemo(() => items.filter((item) => item.status === "failed"), [items]);
   const missingImageListItems = useMemo(
     () => items.filter((item) => item.status !== "pending" && item.status !== "processing" && coverageState(item, "image") === "missing"),
@@ -1697,25 +1717,56 @@ export function App() {
                   </div>
                 </div>
                 <div className="coverage-grid">
-                  {coverage.map((row) => (
-                    <div
-                      className={`coverage-item${row.missing ? " coverage-item--missing" : ""}${row.notApplicable && !row.total ? " coverage-item--na" : ""}${row.isCustom ? " coverage-item--custom" : ""}`}
-                      key={row.key}
-                    >
-                      <span>{row.label}</span>
-                      <strong>{row.total ? `${row.count}/${row.total}` : row.notApplicable ? "N/A OK" : "0/0"}</strong>
-                      <small>
-                        {row.missing
-                          ? `${row.missing} missing`
-                          : row.notApplicable
-                            ? `${row.notApplicable} not applicable`
-                            : "Complete"}
-                      </small>
-                      <div className="mini-track" aria-hidden="true">
-                        <i style={{ width: `${row.percent}%` }} />
+                  {coverage.map((row) => {
+                    const isFocusedMissing = coverageFocus?.key === row.key && coverageFocus.state === "missing";
+                    const isFocusedNotApplicable = coverageFocus?.key === row.key && coverageFocus.state === "not-applicable";
+                    const isActive = isFocusedMissing || isFocusedNotApplicable;
+                    return (
+                      <div
+                        key={row.key}
+                        className={`coverage-item${row.missing ? " coverage-item--missing" : ""}${row.notApplicable && !row.total ? " coverage-item--na" : ""}${row.isCustom ? " coverage-item--custom" : ""}${isActive ? " coverage-item--active" : ""}`}
+                      >
+                        <span>{row.label}</span>
+                        <strong>{row.total ? `${row.count}/${row.total}` : row.notApplicable ? "N/A OK" : "0/0"}</strong>
+                        <div className="coverage-item-chips">
+                          {row.missing > 0 && (
+                            <button
+                              type="button"
+                              aria-pressed={isFocusedMissing}
+                              title={isFocusedMissing ? "Click to clear this filter" : `Show ${row.missing} item${row.missing === 1 ? "" : "s"} missing ${row.label}`}
+                              className={`coverage-chip coverage-chip--missing${isFocusedMissing ? " is-active" : ""}`}
+                              onClick={() =>
+                                handleCoverageFocusChange(
+                                  isFocusedMissing ? null : { key: row.key, label: row.label, state: "missing" }
+                                )
+                              }
+                            >
+                              {row.missing} missing
+                            </button>
+                          )}
+                          {row.notApplicable > 0 && (
+                            <button
+                              type="button"
+                              aria-pressed={isFocusedNotApplicable}
+                              title={isFocusedNotApplicable ? "Click to clear this filter" : `Show ${row.notApplicable} item${row.notApplicable === 1 ? "" : "s"} where ${row.label} is not applicable`}
+                              className={`coverage-chip coverage-chip--na${isFocusedNotApplicable ? " is-active" : ""}`}
+                              onClick={() =>
+                                handleCoverageFocusChange(
+                                  isFocusedNotApplicable ? null : { key: row.key, label: row.label, state: "not-applicable" }
+                                )
+                              }
+                            >
+                              {row.notApplicable} not applicable
+                            </button>
+                          )}
+                          {!row.missing && !row.notApplicable && <small>Complete</small>}
+                        </div>
+                        <div className="mini-track" aria-hidden="true">
+                          <i style={{ width: `${row.percent}%` }} />
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
                 {dashboardCoverageEditOpen && (
                   <div className="coverage-dashboard-editor">
@@ -1814,6 +1865,25 @@ export function App() {
 
               <div className="run-items-panel">
                 <div className="run-items-toolbar">
+                  {coverageFocus && (
+                    <div className="coverage-focus-group">
+                      <button type="button" className="coverage-focus-chip" onClick={() => handleCoverageFocusChange(null)}>
+                        {coverageFocus.label} is {coverageFocus.state === "missing" ? "missing" : "not applicable"}
+                        <X size={13} />
+                      </button>
+                      <button
+                        type="button"
+                        className="coverage-focus-copy"
+                        title="Copy the catalog numbers for this filtered list"
+                        disabled={filteredItems.length === 0}
+                        onClick={() => void handleCatalogListExport(`${coverageFocus.label}-${coverageFocus.state}`, filteredItems)}
+                      >
+                        <Copy size={13} />
+                        Copy list
+                        <strong>{uniqueCatalogNumbers(filteredItems).length}</strong>
+                      </button>
+                    </div>
+                  )}
                   <label className="run-search-field">
                     <Search size={16} />
                     <input
@@ -3753,10 +3823,32 @@ function buildRunItemFilterCounts(items: RunItemRecord[]): Record<RunItemFilter,
   return counts;
 }
 
-function filterRunItems(items: RunItemRecord[], query: string, filter: RunItemFilter): RunItemRecord[] {
+function filterRunItems(
+  items: RunItemRecord[],
+  query: string,
+  filter: RunItemFilter,
+  coverageFocus: CoverageFocus | null
+): RunItemRecord[] {
   const normalizedQuery = query.trim().toLowerCase();
-  if (!normalizedQuery && filter === "all") return items;
-  return items.filter((item) => runItemMatchesFilter(item, filter) && runItemMatchesQuery(item, normalizedQuery));
+  if (!normalizedQuery && filter === "all" && !coverageFocus) return items;
+  return items.filter(
+    (item) =>
+      runItemMatchesFilter(item, filter) &&
+      runItemMatchesQuery(item, normalizedQuery) &&
+      matchesCoverageFocus(item, coverageFocus)
+  );
+}
+
+function matchesCoverageFocus(item: RunItemRecord, focus: CoverageFocus | null): boolean {
+  if (!focus) return true;
+  if (focus.key.startsWith("custom:")) {
+    // Custom coverage fields are only ever "present"/"missing" server-side (see buildCoverage) —
+    // there's no "not-applicable" concept for them, so that state never matches.
+    if (focus.state === "not-applicable") return false;
+    const id = focus.key.slice("custom:".length);
+    return item.coverage?.customFields?.find((custom) => custom.id === id)?.state === "missing";
+  }
+  return coverageState(item, focus.key as CoverageKey) === focus.state;
 }
 
 function uniqueCatalogNumbers(items: RunItemRecord[]): string[] {

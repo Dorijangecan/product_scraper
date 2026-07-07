@@ -152,6 +152,7 @@ export class CachedHttpClient {
           timeoutMs: options.timeoutMs ?? 30000,
           cache: useCache,
           cacheTtlMs: options.cacheTtlMs,
+          maxAttempts: options.maxAttempts,
           signal: options.signal
         }, error);
       }
@@ -163,6 +164,7 @@ export class CachedHttpClient {
         timeoutMs: options.timeoutMs ?? 30000,
         cache: useCache,
         cacheTtlMs: options.cacheTtlMs,
+        maxAttempts: options.maxAttempts,
         signal: options.signal
       }, new Error(`HTTP ${response.status}`));
     }
@@ -319,6 +321,7 @@ $contentType = if ($response.Headers['Content-Type']) { [string]$response.Header
       timeoutMs?: number;
       cache?: boolean;
       cacheTtlMs?: number;
+      maxAttempts?: number;
       signal?: AbortSignal;
     } = {},
     cause?: unknown
@@ -357,7 +360,13 @@ $contentType = if ($response.Headers['Content-Type']) { [string]$response.Header
     const cachePath = path.join(this.cacheDir, `${cacheKey}.html`);
     const curl = process.platform === "win32" ? "curl.exe" : "curl";
     const timeoutSec = Math.max(5, Math.ceil((options.timeoutMs ?? 30000) / 1000));
-    const args = ["-L", "--fail", "--retry", "1", "--retry-delay", "1", "--max-time", String(timeoutSec)];
+    // Callers that pass maxAttempts:1 (fan out several likely-404 candidate URLs in parallel and
+    // want a hard, fast budget per URL) still hit this fallback whenever the primary fetch throws
+    // (e.g. the TLS-revocation-check hangs --ssl-no-revoke works around). Without this, curl's own
+    // "--retry 1" silently doubled the wall-clock time of every one of those probes regardless of
+    // what the caller asked for. Mirror the caller's attempt budget instead of a hardcoded retry.
+    const curlRetries = Math.max(0, (options.maxAttempts ?? 2) - 1);
+    const args = ["-L", "--fail", "--retry", String(curlRetries), "--retry-delay", "1", "--max-time", String(timeoutSec)];
     if (process.platform === "win32") args.push("--ssl-no-revoke");
     for (const [name, value] of Object.entries(headers)) {
       if (/^user-agent$/i.test(name)) args.push("-A", value);

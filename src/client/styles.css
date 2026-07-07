@@ -1258,10 +1258,76 @@ textarea:focus {
 
 .coverage-item {
   min-width: 0;
+  width: 100%;
   padding: 9px;
   border: 1px solid var(--border);
   border-radius: 8px;
   background: rgba(27, 34, 43, 0.78);
+  text-align: left;
+  font: inherit;
+  color: inherit;
+}
+
+.coverage-item--active {
+  border-color: rgba(100, 217, 133, 0.55) !important;
+  background: var(--accent-soft) !important;
+}
+
+.coverage-focus-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 34px;
+  border: 1px solid rgba(100, 217, 133, 0.46);
+  border-radius: 999px;
+  padding: 0 10px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 850;
+  white-space: nowrap;
+}
+
+.coverage-focus-chip:hover {
+  border-color: rgba(100, 217, 133, 0.7);
+}
+
+.coverage-focus-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.coverage-focus-copy {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  border: 1px solid rgba(110, 203, 255, 0.4);
+  border-radius: 999px;
+  padding: 0 10px;
+  background: none;
+  color: var(--cyan);
+  cursor: pointer;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 850;
+  white-space: nowrap;
+}
+
+.coverage-focus-copy:hover:not(:disabled) {
+  border-color: rgba(110, 203, 255, 0.7);
+  background: rgba(110, 203, 255, 0.08);
+}
+
+.coverage-focus-copy:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.coverage-focus-copy strong {
+  color: inherit;
 }
 
 .coverage-item span,
@@ -1283,10 +1349,16 @@ textarea:focus {
   font-size: 15px;
 }
 
-.coverage-item small {
-  display: block;
+.coverage-item-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
   min-height: 14px;
   margin-bottom: 7px;
+}
+
+.coverage-item-chips small {
+  display: block;
   overflow: hidden;
   color: var(--muted);
   font-size: 10px;
@@ -1296,20 +1368,39 @@ textarea:focus {
   white-space: nowrap;
 }
 
+.coverage-chip {
+  border: 1px solid transparent;
+  border-radius: 999px;
+  padding: 1px 7px;
+  background: none;
+  font: inherit;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.coverage-chip--missing {
+  color: #fbbf24;
+}
+
+.coverage-chip--na {
+  color: #7dd3fc;
+}
+
+.coverage-chip:hover,
+.coverage-chip.is-active {
+  border-color: currentColor;
+  background: rgba(255, 255, 255, 0.06);
+}
+
 .coverage-item--missing {
   border-color: rgba(245, 158, 11, 0.48);
 }
 
-.coverage-item--missing small {
-  color: #fbbf24;
-}
-
 .coverage-item--missing .mini-track i {
   background: linear-gradient(90deg, #f59e0b, var(--cyan));
-}
-
-.coverage-item--na small {
-  color: #7dd3fc;
 }
 
 .mini-track {

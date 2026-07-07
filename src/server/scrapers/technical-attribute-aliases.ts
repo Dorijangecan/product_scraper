@@ -115,6 +115,20 @@ export const GLOBAL_TECHNICAL_ATTRIBUTE_ALIASES: TechnicalAttributeAlias[] = [
   globalAlias("breakingCapacity", "Icw"),
   globalAlias("breakingCapacity", "AIC"),
 
+  // Doepke terminal/wiring rows have no colon, no known FIELD_REGISTRY entry, and only a single
+  // space before the value — every generic PDF label/value splitter (spaced-table, colon,
+  // registry-field) needs one of those cues, so these lines never became attributes at all
+  // without an exact-prefix KNOWN_LABELS entry. "per terminal" is the wrapped second half of "max.
+  // Connection C1 Number of conductors per terminal" (the datasheet wraps the label onto two lines
+  // before the value line) — listing it too lets `nextPdfLabelValue` skip past it as an
+  // already-known label and land on the real value instead of treating "per terminal" as the value.
+  globalAlias("conductorCrossSection", "Cross section AWG, solid"),
+  globalAlias("conductorCrossSection", "Cross section AWG, stranded"),
+  globalAlias("conductorCrossSection", "Cross section AWG, flexible"),
+  globalAlias("conductorCrossSection", "Cross section AWG, flexible with ferrule"),
+  globalAlias("connectionType", "max. Connection C1 Number of conductors"),
+  globalAlias("connectionType", "per terminal"),
+
   globalAlias("powerLoss", "Power loss"),
   globalAlias("powerLoss", "Power losses"),
   globalAlias("powerLoss", "Power dissipation"),

@@ -20,6 +20,7 @@ const DOEPKE_PRODEXT_FIXTURE = `
 <DIV ID="ART_Link_ges"><DIV ID="ART_Link_mark">&raquo;</DIV><DIV ID="ART_Link"><A target="_new" href="/uploads/tx_doepkeproducts/datenblatt/doepke_09144919_dbl_en.pdf" type="application/pdf" title="Data sheet DFS4 063-4/0,03-A KV R [893 KB]" class="vtip">Data sheet DFS4 063-4/0,03-A KV R</A></DIV></DIV>
 <DIV ID="ART_Link_ges"><DIV ID="ART_Link_mark">&raquo;</DIV><DIV ID="ART_Link"><A target="_new" href="/uploads/tx_doepkeproducts/bedienungsanleitung/web/doepke_3930298_dfs2dfs4_bed_web_ml.pdf" type="application/pdf" title="Operating instructions [201 KB]" class="vtip">Operating instructions</A></DIV></DIV>
 <DIV ID="ART_Link_ges"><DIV ID="ART_Link_mark">&raquo;</DIV><DIV ID="ART_Link"><A target="_new" href="/uploads/tx_doepkeproducts/software/Doepke_Etiketten_Setup.exe" title="Labelling software DFS / DLS [1727 KB]" class="vtip">Labelling software DFS / DLS</A></DIV></DIV>
+<DIV ID="ART_Link_ges"><DIV ID="ART_Link_mark">&raquo;</DIV><DIV ID="ART_Link"><A target="_new" href="/uploads/tx_doepkeproducts/anschlussschema/jpg/doepke_09112911_ans_ml.jpg" title="Wiring diagram [119 KB]" class="vtip">Wiring diagram</A></DIV></DIV>
 <DIV ID="ART_Link_ges"><DIV ID="ART_Link_mark">&raquo;</DIV><DIV ID="ART_Link"><A href="prodext.php?ARTNR=9200011&lang=en" title="9200011 " class="vtip"></A></DIV></DIV>
 <DIV ID="ART_EG">
 <DIV ID="ART_EG1">&nbsp;<b>Features:</b></DIV>
@@ -39,10 +40,19 @@ const DOEPKE_NOT_FOUND_FIXTURE = `
 <html><body>Unfortunately, we are not aware of any product with item no 00000000.</body></html>
 `;
 
+// The real German not-found page (e.g. prodext.php?ARTNR=09112633&lang=de) echoes the searched
+// article number back into its own "not found" sentence — a naive catalog-number-presence check
+// would treat this as a match. This wording ("ist uns leider nicht bekannt") differs from the
+// guessed "kein produkt mit der artikelnummer" phrasing that shipped originally.
+const DOEPKE_NOT_FOUND_DE_FIXTURE = `
+<html><body><h3>Ein Produkt mit der Artikelnummer 09112633 ist uns leider nicht bekannt.<br>Moeglicherweise ist die Artikelnummer fehlerhaft, oder das Produkt ist nicht mehr verfuegbar.</h3></body></html>
+`;
+
 describe("Doepke scraper helpers", () => {
-  it("matches a resolved prodext.php article page and rejects the not-found page", () => {
+  it("matches a resolved prodext.php article page and rejects the not-found page (EN and DE)", () => {
     expect(doepkePageMatches(DOEPKE_PRODEXT_FIXTURE, "09144919")).toBe(true);
     expect(doepkePageMatches(DOEPKE_NOT_FOUND_FIXTURE, "00000000")).toBe(false);
+    expect(doepkePageMatches(DOEPKE_NOT_FOUND_DE_FIXTURE, "09112633")).toBe(false);
   });
 
   it("extracts a clean title without the trailing nested datasheet-link div", () => {
@@ -88,5 +98,12 @@ describe("Doepke scraper helpers", () => {
     expect(urls.some((url) => url.endsWith(".exe"))).toBe(false);
     expect(urls.some((url) => url.includes("_dbl_en.pdf"))).toBe(false);
     expect(urls.some((url) => url.includes("ARTNR=9200011"))).toBe(false);
+  });
+
+  it("classifies the wiring diagram as a technical drawing, not a product photo", () => {
+    const $ = cheerio.load(DOEPKE_PRODEXT_FIXTURE);
+    const documents = doepkeDownloadDocuments($, "https://www.doepke.de/source/prodext.php?ARTNR=09144919&lang=en", "09144919");
+    const wiringDiagram = documents.find((doc) => doc.url.includes("anschlussschema"));
+    expect(wiringDiagram?.type).toBe("cad");
   });
 });

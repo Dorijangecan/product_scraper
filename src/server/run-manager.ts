@@ -1376,9 +1376,21 @@ export function shouldShortCircuitCustomerFirst(
   if (result.qualityGate?.identityConfirmed === false) return false;
   if (result.status === "failed") return false;
   const normalized = result.normalized;
-  const hasPhysicalCore = Boolean(normalized.weight && normalized.dimensions && normalized.material);
+  // "material" rarely applies to electronic devices (drives, relays, PSUs) and "dimensions"
+  // is frequently missing from a manufacturer's own feedback spreadsheet even when everything
+  // else is well-documented — requiring ALL of weight+dimensions+material meant this never
+  // fired for whole product categories no matter how complete the customer data was. One
+  // physical descriptor alongside weight is still a meaningful signal of real coverage.
+  const hasPhysicalCore = Boolean(normalized.weight && (normalized.dimensions || normalized.material));
   const hasDutySpec = Boolean(normalized.voltage || normalized.current) || extraction.attributes.some((attr) => /^(?:pressure|flow rate|flow|power)$/i.test(attr.name));
-  const hasDescriptiveIdentity = extraction.attributes.some((attr) => /^(?:product type|description|product short text|product name)$/i.test(attr.name));
+  // Was an exact-name match (^...$), so a real-world column header like "Product Description
+  // (English)" or "Product Category (English)" — the norm for manufacturer feedback sheets,
+  // which append a language/unit qualifier — never matched a bare "description"/"product
+  // type". Matching on substring instead keeps the same intent (some clearly descriptive
+  // field is present) without requiring the column to be named with surgical precision.
+  const hasDescriptiveIdentity = extraction.attributes.some((attr) =>
+    /\b(?:product\s*type|description|product\s*short\s*text|product\s*name|product\s*category)\b/i.test(attr.name)
+  );
   return hasPhysicalCore && hasDutySpec && hasDescriptiveIdentity;
 }
 

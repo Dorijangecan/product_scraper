@@ -17,6 +17,7 @@ import { extractDocumentTextAttributes } from "./document-enrichment.js";
 import { fieldMatchesLabel, FIELD_REGISTRY, type RegistryFieldKey } from "./field-registry.js";
 import { cleanText, normalizeFields } from "./normalizer.js";
 import { readPdfWithOptionalOcr } from "./pdf-ocr.js";
+import { identityAttributeLabelStrength } from "./product-identity.js";
 import { buildTightContextForCatalog } from "./tight-context.js";
 
 const MAX_CUSTOMER_PDF_PAGES = 400;
@@ -187,6 +188,7 @@ export async function extractCustomerDocumentAttributes(
   const parseFailures: string[] = [];
   const documentProcessing: DocumentProcessingDiagnostic[] = [];
   let titleSuggestion: string | undefined;
+  const identifierAliases = await collectIdentifierAliases(catalogNumber, customerDocuments, cache);
 
   for (let documentIndex = 0; documentIndex < customerDocuments.length; documentIndex += 1) {
     const doc = customerDocuments[documentIndex];
@@ -232,6 +234,21 @@ export async function extractCustomerDocumentAttributes(
         documentProcessing.push(customerDocumentProcessingRecord(doc, sourceUrl, "failed", message, message));
         onProgress({ kind: "parse-error", document: doc, message });
         continue;
+      }
+
+      // The requested catalog number may be an order/SKU number that this document never
+      // mentions at all — manufacturers often print a separate model/type code instead
+      // (see IDENTIFIER_ALIAS_HEADER_PATTERN). Retry with whatever aliases a sibling
+      // spreadsheet exposed for this same product before giving up on the document.
+      if (extracted.length === 0 && identifierAliases.length > 0) {
+        for (const alias of identifierAliases) {
+          const retried = await extractByAliasCatalogNumber(alias, doc, extension, cache);
+          if (retried.attributes.length > 0) {
+            extracted = retried.attributes;
+            docTitleHint ??= retried.titleHint;
+            break;
+          }
+        }
       }
       if (!titleSuggestion && docTitleHint) titleSuggestion = docTitleHint;
 
@@ -453,6 +470,67 @@ function normalizedKeysForRegistryField(field: RegistryFieldKey): Array<keyof Pr
   return [field as keyof ProductResult["normalized"]];
 }
 
+/**
+ * Re-runs extraction for one document using an alias identifier instead of the originally
+ * requested catalog number — mirrors the main dispatch in `extractCustomerDocumentAttributes`
+ * for the extension kinds that can match on free text (PDF/workbook/CSV/docx/plain text).
+ * No onProgress: this only fires as a fallback after the primary pass already reported
+ * progress for the document, and scanned-image PDFs are treated as a plain no-match here
+ * since the OCR fallback already ran (or was skipped) during the primary pass.
+ */
+async function extractByAliasCatalogNumber(
+  alias: string,
+  doc: CustomerDocumentRecord,
+  extension: string,
+  cache: CustomerDocumentParseCache
+): Promise<{ attributes: AttributeRecord[]; titleHint?: string }> {
+  const outcome = await extractByAliasCatalogNumberRaw(alias, doc, extension, cache);
+  return { attributes: stripAliasIdentityEcho(outcome.attributes, alias), titleHint: outcome.titleHint };
+}
+
+async function extractByAliasCatalogNumberRaw(
+  alias: string,
+  doc: CustomerDocumentRecord,
+  extension: string,
+  cache: CustomerDocumentParseCache
+): Promise<{ attributes: AttributeRecord[]; titleHint?: string }> {
+  if (extension === ".pdf") {
+    const outcome = await extractFromPdf(alias, doc, cache, () => undefined);
+    return outcome.scannedImageOnly ? { attributes: [] } : { attributes: outcome.attributes, titleHint: outcome.titleHint };
+  }
+  if (extension === ".xlsx" || extension === ".xls") {
+    return { attributes: await extractFromWorkbook(alias, doc, cache) };
+  }
+  if (extension === ".csv" || extension === ".tsv") {
+    let attributes = await extractFromCsv(alias, doc, cache);
+    if (attributes.length === 0) attributes = await extractFromTextDocument(alias, doc, extension, { requireCatalogMatch: true });
+    return { attributes };
+  }
+  if (extension === ".docx") {
+    return { attributes: await extractFromDocxDocument(alias, doc) };
+  }
+  if (isFreeTextCustomerDocumentExtension(extension)) {
+    return { attributes: await extractFromTextDocument(alias, doc, extension) };
+  }
+  return { attributes: [] };
+}
+
+/**
+ * Drops attributes that free-text/table extraction mislabeled as an identity field (a name
+ * matching STRONG/WEAK_IDENTITY_LABEL, e.g. "Catalog Number") but whose value is really just
+ * an echo of the ALIAS we searched with — not the customer's actually-requested catalog
+ * number. Left alone, `structuredIdentityConflict` reads that as a second, conflicting
+ * product identity and fails the whole item. The alias itself is already recorded correctly
+ * elsewhere under a non-identity label (e.g. the sibling spreadsheet's "Product Model" column).
+ */
+function stripAliasIdentityEcho(attributes: AttributeRecord[], alias: string): AttributeRecord[] {
+  return attributes.filter((attr) => {
+    const strength = identityAttributeLabelStrength(`${attr.group ?? ""} ${attr.name}`);
+    if (!strength) return true;
+    return !catalogTextMatches(attr.value, alias);
+  });
+}
+
 interface PdfExtractionOutcome {
   attributes: AttributeRecord[];
   titleHint?: string;
@@ -515,11 +593,25 @@ async function extractFromPdf(
   // a customer PDF's spec table for CBE04417 sits next to CBE04418, and the loose page-
   // wide window otherwise drags CBE04418's voltage/current into CBE04417's attribute set.
   const tightText = buildTightContextForCatalog(widePagesText, catalogNumber, { maxChars: MAX_CUSTOMER_PDF_TEXT_CHARS }) ?? widePagesText;
-  const attributes = extractDocumentTextAttributes({
+  const proseAttributes = extractDocumentTextAttributes({
     catalogNumber,
     document: { label: doc.originalName, type: "other", url: pathToFileUrl(doc.storedPath), localPath: doc.storedPath },
     text: tightText
   });
+  // Manufacturer PDFs (catalog-number selection tables, dimension tables) often print a
+  // genuine header + data-row table that pdf-parse preserves as tab-separated lines.
+  // The line-by-line prose extractor above reads those rows as noisy free text (a jumble
+  // of "Matched product row" / "Feature" attributes); running the same header-aware matrix
+  // parser used for customer Excel sheets against the tab-delimited blocks recovers clean,
+  // correctly-named attributes instead. Table-derived attributes go first so the normalizer's
+  // tie-breaker prefers them over the noisier prose attributes for the same field.
+  const tableAttributes = extractCustomerPdfTableAttributes(
+    catalogNumber,
+    doc.originalName,
+    pathToFileUrl(doc.storedPath),
+    widePagesText
+  );
+  const attributes = dedupeCustomerAttributes([...tableAttributes, ...proseAttributes]);
   const titleHint = guessTitleFromPdfText(widePagesText, catalogNumber);
   return {
     attributes: hasSubstantiveDocumentAttributes(attributes) ? attributes : [],
@@ -527,6 +619,63 @@ async function extractFromPdf(
     scannedImageOnly: false,
     pageCount: pages.length
   };
+}
+
+const MIN_TAB_TABLE_ROWS = 2;
+
+/**
+ * Finds tab-delimited "matrix" tables (catalog-number selection tables, dimension
+ * tables) inside PDF page text and extracts clean per-column attributes for whichever
+ * row matches the requested catalog number, using the same header-aware parser as
+ * customer Excel/CSV sheets. Exported for direct text-based testing, mirroring
+ * `extractCustomerFamilyPdfAttributes` above.
+ */
+export function extractCustomerPdfTableAttributes(
+  catalogNumber: string,
+  documentName: string,
+  sourceUrl: string,
+  text: string
+): AttributeRecord[] {
+  return extractTabDelimitedMatrices(text).flatMap((matrix) =>
+    attributesFromMatrix(matrix, catalogNumber, documentName, sourceUrl)
+  );
+}
+
+/**
+ * Carves contiguous runs of tab-separated lines with a stable column count out of PDF
+ * page text. pdf-parse keeps the original column tabs for real tables (catalog-number
+ * selection tables, dimension tables), so a run of same-width tab-delimited lines is a
+ * strong signal of a real table — as opposed to prose, which pdf-parse never emits with
+ * embedded tabs. Each run is handed to the same `attributesFromMatrix` parser used for
+ * customer Excel/CSV sheets so a header row like "Product number\tRated power (kW)"
+ * produces clean per-column attributes instead of one blob of free text.
+ */
+function extractTabDelimitedMatrices(text: string): string[][][] {
+  const matrices: string[][][] = [];
+  let current: string[][] = [];
+  let currentColumnCount = 0;
+  const flush = () => {
+    if (current.length >= MIN_TAB_TABLE_ROWS) matrices.push(current);
+    current = [];
+    currentColumnCount = 0;
+  };
+  for (const line of text.split(/\r?\n/)) {
+    if (!line.includes("\t")) {
+      flush();
+      continue;
+    }
+    const cells = line.split("\t").map((cell) => cleanText(cell));
+    const nonEmptyCount = cells.filter(Boolean).length;
+    if (cells.length < 2 || nonEmptyCount < 2) {
+      flush();
+      continue;
+    }
+    if (current.length > 0 && cells.length !== currentColumnCount) flush();
+    currentColumnCount = cells.length;
+    current.push(cells);
+  }
+  flush();
+  return matrices;
 }
 
 function extractFromOcrText(
@@ -576,24 +725,34 @@ export function extractCustomerFamilyPdfAttributes(
 ): AttributeRecord[] {
   const family = inferCatalogFamilyEvidence(catalogNumber, text);
   if (!family) return [];
-  const extracted = extractDocumentTextAttributes({
+  // The family match is a loose substring hit, not an exact catalog match — feeding the
+  // WHOLE document (up to 400k chars of safety warnings, table of contents, wiring-diagram
+  // labels) to the free-text extractor drowns the few genuinely relevant rows in hundreds of
+  // "Feature: <sentence>" attributes. Scope down to the lines that actually mention the
+  // matched family key first, same as the exact-match path does for the real catalog number.
+  // Narrower than the exact-match window (6/18): a family hit is a loose substring match, not
+  // a confirmed catalog mention, so we lean tighter to keep the free-text extractor away from
+  // unrelated prose that happens to fall within a wider line window.
+  const scopedText = buildTightContextForCatalog(text, family.displayKey, { maxChars: MAX_CUSTOMER_PDF_TEXT_CHARS, before: 2, after: 6 }) ?? text;
+  // Table extraction stays scoped to the matched ROW regardless of window size (attributesFromMatrix
+  // only ever emits the row that matches), so it can safely run against the full document — which
+  // matters here because the line-window above stops expanding at the very first sibling model's
+  // row, usually cutting off the column header a genuine selection table prints once at the top.
+  const tableAttributes = extractCustomerPdfTableAttributes(family.displayKey, documentName, sourceUrl, text);
+  const proseAttributes = extractDocumentTextAttributes({
     catalogNumber,
     document: { label: documentName, type: "other", url: sourceUrl },
-    text
+    text: scopedText
   });
   const familyTitle = familyTitleFromText(text);
   const attributes: AttributeRecord[] = [
     { group: "PDF Document", name: "Parsed document", value: cleanText(documentName), sourceUrl },
-    {
-      group: "Customer / Family document",
-      name: "Requested catalog number",
-      value: catalogNumber,
-      sourceUrl,
-      sourceType: "generated",
-      parser: "customer-family-pdf-inference",
-      stage: "customer-document-enrichment",
-      confidence: 0.55
-    },
+    // No "Requested catalog number" echo here (unlike other stages): this function's
+    // `catalogNumber` argument can be an ALIAS from a sibling document rather than the
+    // customer's actually-requested catalog number (see extractByAliasCatalogNumber), and
+    // restating it under a strong-identity label ("... catalog number ...") would make
+    // structuredIdentityConflict treat the manufacturer's own model code as a mismatched,
+    // conflicting product. The value itself is already visible on every attribute's sourceUrl.
     {
       group: "Customer / Family document",
       name: "Matched catalog family",
@@ -605,7 +764,7 @@ export function extractCustomerFamilyPdfAttributes(
       confidence: 0.58
     }
   ];
-  return dedupeCustomerAttributes([...attributes, ...extracted]);
+  return dedupeCustomerAttributes([...attributes, ...tableAttributes, ...proseAttributes]);
 }
 
 function inferCatalogFamilyEvidence(catalogNumber: string, text: string): { key: string; displayKey: string } | undefined {
@@ -782,12 +941,13 @@ function looksLikeTitleLine(line: string, catalogNumber: string): boolean {
 async function extractFromWorkbook(
   catalogNumber: string,
   doc: CustomerDocumentRecord,
-  cache: CustomerDocumentParseCache
+  cache: CustomerDocumentParseCache,
+  aliasSink?: Set<string>
 ): Promise<AttributeRecord[]> {
   const sheets = await cache.getWorkbookMatrices(doc);
   const attributes: AttributeRecord[] = [];
   for (const sheet of sheets) {
-    attributes.push(...attributesFromMatrix(sheet.rows, catalogNumber, `${doc.originalName} / ${sheet.sheet}`, pathToFileUrl(doc.storedPath)));
+    attributes.push(...attributesFromMatrix(sheet.rows, catalogNumber, `${doc.originalName} / ${sheet.sheet}`, pathToFileUrl(doc.storedPath), aliasSink));
   }
   return attributes;
 }
@@ -795,10 +955,11 @@ async function extractFromWorkbook(
 async function extractFromCsv(
   catalogNumber: string,
   doc: CustomerDocumentRecord,
-  cache: CustomerDocumentParseCache
+  cache: CustomerDocumentParseCache,
+  aliasSink?: Set<string>
 ): Promise<AttributeRecord[]> {
   const matrix = await cache.getCsvMatrix(doc);
-  return attributesFromMatrix(matrix, catalogNumber, doc.originalName, pathToFileUrl(doc.storedPath));
+  return attributesFromMatrix(matrix, catalogNumber, doc.originalName, pathToFileUrl(doc.storedPath), aliasSink);
 }
 
 async function extractFromTextDocument(
@@ -942,7 +1103,13 @@ function flattenCustomerJsonText(value: unknown, prefix = ""): string[] {
   return text ? [prefix ? `${prefix} ${text}` : text] : [];
 }
 
-function attributesFromMatrix(matrix: string[][], catalogNumber: string, group: string, sourceUrl: string): AttributeRecord[] {
+function attributesFromMatrix(
+  matrix: string[][],
+  catalogNumber: string,
+  group: string,
+  sourceUrl: string,
+  aliasSink?: Set<string>
+): AttributeRecord[] {
   if (matrix.length === 0) return [];
   const header = matrix[0].map((cell) => cleanText(cell || ""));
   const headerLooksLikeHeader = header.some((cell) => /[A-Za-z]/.test(cell)) && !header.every((cell) => catalogTextMatches(cell, catalogNumber));
@@ -959,6 +1126,7 @@ function attributesFromMatrix(matrix: string[][], catalogNumber: string, group: 
     const row = matrix[rowIndex];
     if (!row || !row.some((cell) => cleanText(cell || "").length > 0)) continue;
     if (!row.some((cell) => catalogTextMatches(cell || "", catalogNumber))) continue;
+    if (aliasSink) collectRowIdentifierAliases(row, header, headerLooksLikeHeader, catalogNumber, aliasSink);
 
     if (longFormat) {
       const name = cleanText(row[longFormat.nameCol] || "");
@@ -971,16 +1139,103 @@ function attributesFromMatrix(matrix: string[][], catalogNumber: string, group: 
     }
 
     for (let colIndex = 0; colIndex < row.length; colIndex += 1) {
-      const value = cleanText(row[colIndex] || "");
-      if (!value) continue;
+      const rawValue = cleanText(row[colIndex] || "");
+      if (!rawValue) continue;
       const columnName = headerLooksLikeHeader ? header[colIndex] || `Column ${colIndex + 1}` : `Column ${colIndex + 1}`;
-      if (catalogTextMatches(value, catalogNumber)) continue;
-      if (value.length > 600) continue;
+      if (catalogTextMatches(rawValue, catalogNumber)) continue;
+      if (rawValue.length > 600) continue;
+      const value = headerLooksLikeHeader ? attachHeaderUnitToBareNumber(rawValue, unitFromColumnHeader(columnName)) : rawValue;
       attributes.push({ group: `Customer / ${group}`, name: columnName, value, sourceUrl });
     }
   }
 
   return attributes;
+}
+
+const MAX_IDENTIFIER_ALIASES = 6;
+// Manufacturers routinely give one product two identifiers: an order/SKU number (what the
+// customer's spreadsheet and the official website key on) and a separate "product model" /
+// type code (what's printed on the device and inside PDF manuals/catalogs). A row that
+// matched on the requested catalog number is exactly where we can read off that product's
+// OTHER identifier, so later documents that never mention the requested number at all
+// (e.g. a manual keyed purely by model) can still be searched using the alias.
+const IDENTIFIER_ALIAS_HEADER_PATTERN = /\b(?:product\s*model|model(?:\s*(?:number|no\.?|code))?|type(?:\s*code)?|part\s*number|article(?:\s*number)?|catalog(?:ue)?\s*(?:number|no\.?)|order\s*number|sku)\b/i;
+
+function collectRowIdentifierAliases(
+  row: string[],
+  header: string[],
+  headerLooksLikeHeader: boolean,
+  catalogNumber: string,
+  sink: Set<string>
+): void {
+  for (let colIndex = 0; colIndex < row.length; colIndex += 1) {
+    if (sink.size >= MAX_IDENTIFIER_ALIASES) return;
+    const value = cleanText(row[colIndex] || "");
+    if (!value || catalogTextMatches(value, catalogNumber)) continue;
+    const headerLabel = headerLooksLikeHeader ? header[colIndex] || "" : "";
+    if (headerLooksLikeHeader && !IDENTIFIER_ALIAS_HEADER_PATTERN.test(headerLabel)) continue;
+    if (!looksLikeIdentifierValue(value)) continue;
+    sink.add(value);
+  }
+}
+
+function looksLikeIdentifierValue(value: string): boolean {
+  const trimmed = value.trim();
+  if (trimmed.length < 5 || trimmed.length > 40) return false;
+  if (/\s/.test(trimmed)) return false; // model/part numbers don't contain spaces
+  return /[A-Za-z]/.test(trimmed) && /\d/.test(trimmed);
+}
+
+/**
+ * Pre-scans every structured (workbook/CSV) customer document for a row matching the
+ * requested catalog number, and collects any sibling identifier values found on that row
+ * (see `IDENTIFIER_ALIAS_HEADER_PATTERN`). Cheap: matrices are cache-backed, so this reuses
+ * whatever the main extraction pass loads. PDFs/docx/text documents are not scanned here —
+ * they're the ones that benefit FROM the aliases, not the ones that produce them.
+ */
+async function collectIdentifierAliases(
+  catalogNumber: string,
+  customerDocuments: CustomerDocumentRecord[],
+  cache: CustomerDocumentParseCache
+): Promise<string[]> {
+  const aliases = new Set<string>();
+  for (const doc of customerDocuments) {
+    if (!doc.storedPath || aliases.size >= MAX_IDENTIFIER_ALIASES) continue;
+    let extension = path.extname(doc.originalName || doc.storedPath).toLowerCase();
+    if (!extension) extension = path.extname(doc.storedPath).toLowerCase();
+    try {
+      if (extension === ".xlsx" || extension === ".xls") {
+        await extractFromWorkbook(catalogNumber, doc, cache, aliases);
+      } else if (extension === ".csv" || extension === ".tsv") {
+        await extractFromCsv(catalogNumber, doc, cache, aliases);
+      }
+    } catch {
+      // Ignore here — the main extraction pass will surface a proper parse-failure diagnostic.
+    }
+  }
+  return [...aliases];
+}
+
+// Customer sheets routinely put the unit in the column header ("Weight (kg)",
+// "Maximum Power Loss (W)") and leave the cell as a bare number ("0.89"). The
+// normalizer's unit-aware parsers (normalizeWeightValue etc.) require the unit next to
+// the number and silently drop bare numbers, so without this the customer's cleanest,
+// most structured data (an explicit Excel column) was being discarded entirely.
+const HEADER_UNIT_PATTERN = /\(([^()]{1,8})\)\s*$/;
+const UNIT_TOKEN_CHARS = /^[a-zA-Zµ°%²³Ω/·-]+$/;
+const BARE_NUMBER_PATTERN = /^-?\d+(?:[.,]\d+)?$/;
+
+function unitFromColumnHeader(header: string): string | undefined {
+  const match = header.match(HEADER_UNIT_PATTERN);
+  if (!match) return undefined;
+  const token = match[1].trim();
+  if (!token || /\s/.test(token) || !UNIT_TOKEN_CHARS.test(token)) return undefined;
+  return token;
+}
+
+function attachHeaderUnitToBareNumber(value: string, unit: string | undefined): string {
+  if (!unit || !BARE_NUMBER_PATTERN.test(value)) return value;
+  return `${value} ${unit}`;
 }
 
 /**

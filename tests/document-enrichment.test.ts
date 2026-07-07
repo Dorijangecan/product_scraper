@@ -10,7 +10,8 @@ import { normalizeTechnicalAttributes } from "../src/server/scrapers/technical-a
 import {
   applyCustomerDocumentOverride,
   extractCustomerDocumentAttributes,
-  extractCustomerFamilyPdfAttributes
+  extractCustomerFamilyPdfAttributes,
+  extractCustomerPdfTableAttributes
 } from "../src/server/scrapers/customer-documents.js";
 import { classifyDeviceType } from "../src/server/scrapers/device-type.js";
 
@@ -767,6 +768,40 @@ Material glass-filled polyamide
     expect(classifyDeviceType(enriched).type).toBe("Hydraulic Actuator");
   });
 
+  it("attaches a customer spreadsheet's header unit to bare numeric cells so they normalize", async () => {
+    // Customer feedback sheets routinely put the unit in the column header ("Weight (kg)",
+    // "Maximum Power Loss (W)") and leave the cell as a bare number. Without reattaching the
+    // unit, normalizeWeightValue/normalizePowerLoss silently drop the bare number and the
+    // customer's cleanest, most structured column is discarded entirely.
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-customer-header-unit-"));
+    const storedPath = path.join(dir, "eaton-feedback.csv");
+    await fs.writeFile(
+      storedPath,
+      [
+        "Product Model,Order Number,Certification Information,Weight (kg),Maximum Power Loss (W)",
+        "DV1-342D5PB-C20AL1,CDV00301,CE,0.89,12.5"
+      ].join("\n"),
+      "utf8"
+    );
+
+    const extraction = await extractCustomerDocumentAttributes("DV1-342D5PB-C20AL1", [
+      {
+        id: "customer-doc-1",
+        originalName: path.basename(storedPath),
+        storedPath,
+        mimeType: "text/csv",
+        uploadedAt: "2026-06-02T00:00:00.000Z"
+      }
+    ]);
+    const normalized = normalizeFields(extraction.attributes, extraction.documents);
+
+    expect(extraction.attributes).toEqual(expect.arrayContaining([
+      expect.objectContaining({ name: "Weight (kg)", value: "0.89 kg" })
+    ]));
+    expect(normalized.weight).toBe("0.89 kg");
+    expect(normalized.certificates).toBe("CE");
+  });
+
   it("uses free-text customer documents as source-backed datasheets", async () => {
     const dir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-customer-text-docs-"));
     const storedPath = path.join(dir, "ABC-123-technical-datasheet.txt");
@@ -1035,14 +1070,13 @@ Catalogs planned for release
       `
     );
 
+    // No "Requested catalog number" attribute: this function's first argument can be an alias
+    // sourced from a sibling document rather than the customer's actually-requested catalog
+    // number, so echoing it back under a strong-identity label would make
+    // structuredIdentityConflict treat it as a second, conflicting product identity (see
+    // extractByAliasCatalogNumber / stripAliasIdentityEcho in customer-documents.ts).
+    expect(attributes.some((attr) => attr.name === "Requested catalog number")).toBe(false);
     expect(attributes).toEqual(expect.arrayContaining([
-      expect.objectContaining({
-        name: "Requested catalog number",
-        value: "5034-L9020TSXT",
-        sourceType: "generated",
-        parser: "customer-family-pdf-inference",
-        confidence: 0.55
-      }),
       expect.objectContaining({
         name: "Matched catalog family",
         value: expect.stringMatching(/^5034L9/),
@@ -1052,6 +1086,32 @@ Catalogs planned for release
       })
     ]));
     expect(attributes.some((attr) => attr.name === "Product Family")).toBe(false);
+  });
+
+  it("extracts clean per-column attributes from a tab-delimited catalog table in a customer PDF", () => {
+    // pdf-parse preserves the original column tabs for real PDF tables (as opposed to
+    // prose, which never contains embedded tabs). A manufacturer "quick start" manual's
+    // catalog-number selection table — header row + one data row per catalog number —
+    // should parse the same way a customer Excel/CSV sheet does, instead of falling
+    // through to the noisy line-by-line prose extractor.
+    const text = [
+      "Product number \tRated power (kW) \tRated current (A)",
+      "DV1-341D5NB-C20CX1 \t0.4 \t1.5",
+      "DV1-343D0NB-C20CX1 \t0.75 \t3"
+    ].join("\n");
+
+    const attributes = extractCustomerPdfTableAttributes(
+      "DV1-341D5NB-C20CX1",
+      "DV1X1 Quick Start Manual EN.pdf",
+      "file:///customer/DV1X1-manual.pdf",
+      text
+    );
+
+    expect(attributes).toEqual([
+      expect.objectContaining({ name: "Rated power (kW)", value: "0.4 kW" }),
+      expect.objectContaining({ name: "Rated current (A)", value: "1.5 A" })
+    ]);
+    expect(normalizeFields(attributes, []).current).toBe("1.5 A");
   });
 
   it("extracts generic catalog-row descriptions and memory from PDF text", () => {

@@ -20,7 +20,13 @@ const DOEPKE_PRODEXT_TEMPLATES = [
   "https://www.doepke.de/source/prodext.php?ARTNR={part}&lang=en",
   "https://www.doepke.de/source/prodext.php?ARTNR={part}&lang=de"
 ];
-const DOEPKE_NOT_FOUND_PATTERN = /not aware of any product|kein produkt mit der artikelnummer/i;
+// The real German not-found text is "Ein Produkt mit der Artikelnummer {ARTNR} ist uns leider
+// nicht bekannt." — a guessed "kein produkt..." phrasing never matched it, so a not-found DE page
+// (which echoes the searched article number back in its own text) passed catalogTextMatches as a
+// false-positive "found" result with 0 attributes/documents, then fell through to the generic
+// discovery fallback, which grabbed unrelated images (site logo, language flags, other products)
+// from whatever page it found next.
+const DOEPKE_NOT_FOUND_PATTERN = /not aware of any product|ist uns leider nicht bekannt/i;
 
 // The page is a shared, decades-old FrontPage-style template with mismatched-case tags
 // (`<div ...>...</DIV>`) and inline `javascript:` links. The generic understanding-engine
@@ -262,6 +268,11 @@ export function doepkeDownloadDocuments($: cheerio.CheerioAPI, baseUrl: string, 
  */
 function doepkeDocumentType(label: string, url: string): DocumentRecord["type"] {
   if (/^(?:technical information|prospectus)\b/i.test(label)) return "other";
+  // "Wiring diagram"/"Connection diagram" is a circuit schematic JPG, not a product photo — but
+  // `classifyDocument` falls through to its generic `.jpe?g` check and tags it "image" since its
+  // label doesn't contain "drawing" the way "Dimensional drawing" does. Left as "image" it competes
+  // with the real product photo for the image slot.
+  if (/^(?:wiring|connection)\s+diagram\b/i.test(label)) return "cad";
   return classifyDocument(label, url);
 }
 
