@@ -162,7 +162,15 @@ export function normalizePdtCellNumber(value: string, targetUnit: string | undef
   if (!target) return undefined;
 
   const values = extractUnitNumbers(value, target);
-  if (values.length === 0) return stripSingleNumber(value);
+  if (values.length === 0) {
+    // Don't fall back to "just grab any number" when the text is tagged with a DIFFERENT unit
+    // family (e.g. a temperature range read for a current column) — that means it describes an
+    // unrelated physical quantity, not this one written without its unit.
+    if (extractAllTaggedNumbers(value).some((entry) => entry.unit && UNIT_FAMILIES[entry.unit] !== UNIT_FAMILIES[target])) {
+      return undefined;
+    }
+    return stripSingleNumber(value);
+  }
 
   const normalized = values
     .map((entry) => convertUnitValue(entry, target))
@@ -195,7 +203,8 @@ export function splitTemperatureRange(value: string | undefined): { min?: string
   return {};
 }
 
-function extractUnitNumbers(raw: string, targetUnit: string): UnitNumber[] {
+/** Every number in the text tagged with a recognized unit, regardless of unit family. */
+function extractAllTaggedNumbers(raw: string): UnitNumber[] {
   const text = normalizeForParsing(raw);
   const exact = [...text.matchAll(/(-?\d+(?:\.\d+)?)\s*(mA|kA|A|mV|kV|V|mW|kW|W|MHz|kHz|Hz|kg|g|lb|lbs|mm|cm|m|°C|C)\b/gi)]
     .map((match) => ({ value: Number(match[1]), unit: normalizeUnit(match[2]) }))
@@ -220,8 +229,20 @@ function extractUnitNumbers(raw: string, targetUnit: string): UnitNumber[] {
     if (Number.isFinite(value)) imperialExact.push({ value, unit: "in" });
   }
 
-  const sameFamily = [...exact, ...flowExact, ...pressureExact, ...imperialExact].filter((entry) => entry.unit && UNIT_FAMILIES[entry.unit] === UNIT_FAMILIES[targetUnit]);
+  return [...exact, ...flowExact, ...pressureExact, ...imperialExact];
+}
+
+function extractUnitNumbers(raw: string, targetUnit: string): UnitNumber[] {
+  const text = normalizeForParsing(raw);
+  const allTagged = extractAllTaggedNumbers(raw);
+  const sameFamily = allTagged.filter((entry) => entry.unit && UNIT_FAMILIES[entry.unit] === UNIT_FAMILIES[targetUnit]);
   if (sameFamily.length > 0) return sameFamily;
+  // The text carries at least one recognized unit, just none in the target's family (e.g. a
+  // temperature range "-25 °C ... 40 °C" read for a current column). That means this text
+  // describes a different physical quantity entirely — falling through to the unit-less
+  // number/range regexes below would silently launder e.g. "40" out of "40 °C" as if it were
+  // amperes. Stop here instead of guessing.
+  if (allTagged.length > 0) return [];
 
   const range = text.match(/(-?\d+(?:\.\d+)?)\s*(?:\.\.\.|\.{2}|-|to|do)\s*\+?(-?\d+(?:\.\d+)?)/i);
   if (range) return [{ value: Number(range[1]) }, { value: Number(range[2]) }];

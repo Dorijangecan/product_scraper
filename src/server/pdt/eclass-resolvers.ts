@@ -1101,6 +1101,9 @@ function powerLossPerPole(ctx: ResolveContext): string | undefined {
     powerValue(ctx, /\bpower consumption,?\s*typical\b/i) ??
     powerValue(ctx, /\bpower consumption\b/i) ??
     powerValue(ctx, /\bpower dissipation\b/i) ??
+    // Doepke datasheets: "Current heat loss per current path" — same physical quantity, worded
+    // as "heat loss" instead of "power loss/dissipation".
+    powerValue(ctx, /\b(?:current\s+)?heat\s+loss(?:\s+per\s+(?:current\s+path|pole))?\b/i) ??
     powerValue(ctx, /\bwattage\b/i) ??
     rockwellCompact5000IoPowerLoss(ctx)
   );
@@ -2061,7 +2064,11 @@ function rockwellCompact5000IoPointCount(ctx: ResolveContext, direction: "input"
 
 function powerValue(ctx: ResolveContext, pattern: RegExp): string | undefined {
   const value = attr(ctx, pattern);
-  return numberWithUnit(value, "W") ?? numberWithUnit(value, "kW") ?? numberOf(value);
+  // No bare `numberOf(value)` fallback here: `numberWithUnit` already treats a plain, unit-less
+  // number as being in the target unit (via extractUnitNumbers' own bare-number fallback). A raw
+  // `numberOf` call bypasses the unit-family check entirely and would launder a number tagged
+  // with an unrelated unit (e.g. "40 °C") into a power reading.
+  return numberWithUnit(value, "W") ?? numberWithUnit(value, "kW");
 }
 
 function percentageValue(ctx: ResolveContext, pattern: RegExp): string | undefined {

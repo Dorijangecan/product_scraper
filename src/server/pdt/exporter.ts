@@ -860,7 +860,11 @@ function temperatureFactKeysForColumn(column: PdtColumn, ctx?: ResolveContext): 
     keys.some((key) => ["AAC821", "BAA039", "AAW302", "AAZ361", "AAB906", "AAF525", "AAB905", "AAQ341"].includes(key)) ||
     /\b(?:max(?:imum)?|upper limit)\b/i.test(description);
   const temperatureColumn =
-    /\b(?:ambient|operating|storage|cable outside|permissible cable|temperature|temp)\b/i.test(text) ||
+    /\b(?:ambient|storage|cable outside|permissible cable|temperature|temp)\b/i.test(text) ||
+    // Bare "operating" alone is too broad a trigger — "Max. rated operating current",
+    // "Operating voltage", "Operating altitude" etc. all contain it without being temperature
+    // columns. Only treat it as a temperature signal when "temp(erature)" also appears.
+    (/\boperating\b/i.test(text) && /\btemp(?:erature)?\b/i.test(text)) ||
     keys.some((key) =>
       [
         "AAC820",
@@ -971,7 +975,11 @@ function isLeakageCurrentColumn(column: PdtColumn): boolean {
 function powerFactKeysForColumn(column: PdtColumn): string[] {
   const keys = propertyKeysForColumn(column);
   const description = column.description;
-  if (keys.some((key) => ["AAB456", "AAB455", "AAS566", "AAS567"].includes(key))) return [];
+  // AAS574 ("Rated current [In] for the power loss specification") is a CURRENT column whose
+  // description references "power loss" only as context for which power-loss row it pairs with —
+  // the description regex below would otherwise misfile it as a power-loss target and let its
+  // value be overwritten by the power-loss fact instead of the rated current it actually asks for.
+  if (keys.some((key) => ["AAB456", "AAB455", "AAS566", "AAS567", "AAS574"].includes(key))) return [];
   if (keys.some((key) => ["AAS575", "AAS577", "ABF095", "BAA303"].includes(key)) || /\b(?:power loss|power dissipation|heat dissipation|watt loss)\b/i.test(description)) {
     return ["powerLoss", "powerConsumption", "power"];
   }

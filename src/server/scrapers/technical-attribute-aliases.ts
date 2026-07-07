@@ -125,6 +125,10 @@ export const GLOBAL_TECHNICAL_ATTRIBUTE_ALIASES: TechnicalAttributeAlias[] = [
   globalAlias("powerLoss", "Thermal dissipation"),
   globalAlias("powerLoss", "Heat dissipation"),
   globalAlias("powerLoss", "Heat loss"),
+  // Doepke datasheets (RCCB/RCBO): the full phrase must be listed verbatim so the PDF line
+  // "Current heat loss per current path 11.2 W" splits into a label/value pair at all — a bare
+  // "Heat loss" alias only matches lines that literally START with that shorter phrase.
+  globalAlias("powerLoss", "Current heat loss per current path"),
   globalAlias("powerLoss", "Total power loss"),
   globalAlias("powerLoss", "Internal power loss"),
   globalAlias("powerLoss", "Power loss [W] / maximum"),
