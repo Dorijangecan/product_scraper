@@ -695,7 +695,12 @@ function controlVoltageType(item: RunItemRecord): PdtRepair["voltageType"] {
 }
 
 function normalizedShortDescription(item: RunItemRecord): string | undefined {
-  const raw = attr(item, /\bcatalog description\b/i) ?? item.result?.title;
+  // Turck's <title> is always the bare manufacturer type designation (e.g. "NI30-K40SR-VN4X2"),
+  // never descriptive prose, and a numeric-order-id lookup resolves a page whose title differs
+  // from the input catalog number -- so it must never be used as a description fallback here
+  // (mirrors the same carve-out in pdt/facts.ts's pdtShortDescription).
+  const isTurck = item.result?.manufacturerId === "turck";
+  const raw = attr(item, /\bcatalog description\b/i) ?? (isTurck ? item.result?.description : item.result?.title);
   const text = cleanText(raw, 220);
   if (!text) return undefined;
   return normalizeElectricalDescription(text);

@@ -1211,9 +1211,18 @@ function pdtShortDescription(result: ProductResult, catalogNumber: string, devic
   if (sceShort) return sceShort;
   const structured = structuredEnclosureTitle(result, catalogNumber, deviceType);
   if (structured) return firstCommaSegment(structured);
-  // Prefer the page title, but when it is just the SKU (e.g. Turck's shop <title>) fall back to the
-  // descriptive product family so the short-description column carries "Inductive Sensor" instead of
-  // repeating the article number. Manual PDTs reuse the same family text for long and short.
+  // Turck's <title> is always the bare manufacturer type designation (e.g. "NI30-K40SR-VN4X2"),
+  // never descriptive prose -- and it does not necessarily match the input catalog number (a
+  // numeric order id looks up a page whose title is the *different* alphanumeric type code). Using
+  // it as a description fallback would duplicate the type code into the description column, so
+  // Turck always uses the descriptive product family in `result.description` ("Inductive Sensor")
+  // instead. Manual PDTs reuse the same family text for long and short.
+  if (result.manufacturerId === "turck") {
+    const turckValue = safeDescription(result.description, catalogNumber);
+    return compactFamilyShortDescription(turckValue) ?? turckValue;
+  }
+  // Prefer the page title, but when it is just the SKU fall back to the descriptive product family
+  // so the short-description column carries a real description instead of repeating the article number.
   const value = safeDescription(result.title, catalogNumber) ?? safeDescription(result.description, catalogNumber);
   return compactFamilyShortDescription(value) ?? value;
 }

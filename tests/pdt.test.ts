@@ -2618,6 +2618,51 @@ describe("PDT exporter", () => {
     expect(cleaned.getWorksheet("Cleaned PDT Input")).toBeTruthy();
   });
 
+  it("does not duplicate Turck's type code into the short description when they came from a numeric order-id lookup", async () => {
+    // Turck's <title> is the manufacturer's real type designation ("NI30-K40SR-VN4X2"), which
+    // differs from the numeric catalog/order id used to look the product up ("15758"). The type
+    // code column should carry that designation, and the description columns must carry the
+    // descriptive product family ("Inductive Sensor") -- never the type code duplicated a second time.
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-pdt-turck-typecode-"));
+    const templatePath = path.join(dir, "template.xlsx");
+    const outputPath = path.join(dir, "out.xlsx");
+    const wb = new ExcelJS.Workbook();
+    const material = wb.addWorksheet("Material Master Data");
+    material.getCell(6, 1).value = "ECLASS property";
+    material.getCell(7, 1).value = "Variable name (CNS internal)";
+    material.getCell(8, 1).value = "English variable description";
+    material.getCell(9, 1).value = "Units";
+    material.getCell(6, 2).value = "AAV774/AAO057";
+    material.getCell(7, 2).value = "CNSTYPECODE";
+    material.getCell(8, 2).value = "Typecode";
+    material.getCell(6, 3).value = "AAU734";
+    material.getCell(7, 3).value = "CNS_DESCRIPTION_LONG / AAU734";
+    material.getCell(8, 3).value = "Product description long";
+    material.getCell(6, 4).value = "CNS_DESCRIPTION_SHORT";
+    material.getCell(7, 4).value = "CNS_DESCRIPTION_SHORT";
+    material.getCell(8, 4).value = "Product description short";
+    wb.addWorksheet("Additional Documents");
+    await wb.xlsx.writeFile(templatePath);
+
+    const item = ctx(
+      {
+        manufacturerId: "turck",
+        title: "NI30-K40SR-VN4X2",
+        description: "Inductive Sensor",
+        attributes: [{ group: "Turck Product Data", name: "Type Code", value: "NI30-K40SR-VN4X2", sourceType: "official" }]
+      },
+      "15758"
+    ).item;
+    await exportRunPdt({ manufacturer, items: [item], templatePath, outputPath });
+
+    const out = new ExcelJS.Workbook();
+    await out.xlsx.readFile(outputPath);
+    const ws = out.getWorksheet("Material Master Data")!;
+    expect(ws.getCell(11, 2).value).toBe("NI30-K40SR-VN4X2");
+    expect(ws.getCell(11, 3).value).toBe("Inductive Sensor");
+    expect(ws.getCell(11, 4).value).toBe("Inductive Sensor");
+  });
+
   it("skips normalized product specs when no source-backed attribute supports the normalized value", async () => {
     const dir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-pdt-normalized-provenance-"));
     const templatePath = path.join(dir, "template.xlsx");

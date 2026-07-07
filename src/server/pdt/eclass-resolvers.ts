@@ -72,8 +72,8 @@ function isProsePlaceholderValue(value: string): boolean {
   return cleaned.split(/\s+/).length > 12 && /[.;:]/.test(cleaned);
 }
 
-function cleanDescriptionValue(value: string | undefined): string | undefined {
-  return cleanProductDescription(value);
+function cleanDescriptionValue(value: string | undefined, catalogNumber?: string): string | undefined {
+  return cleanProductDescription(value, catalogNumber);
 }
 
 /** First attribute whose name (or group) matches `pattern`, preferring official sources. */
@@ -485,13 +485,13 @@ const longDescription: Resolver = (ctx) => {
     const de =
       localizedDescriptionFactValue(ctx, "localizedLongDescriptionDe", ctx.result?.description) ??
       localizedGermanText(ctx.result?.localizedDescriptions?.de?.description, ctx.result?.description, ctx.item.catalogNumber);
-    const fallback = pdtFactValue(ctx, "longDescription") ?? cleanDescriptionValue(ctx.repair?.longDescription) ?? cleanDescriptionValue(ctx.result?.description) ?? cleanDescriptionValue(attr(ctx, /\b(long description|catalog description|invoice description)\b/i));
+    const fallback = pdtFactValue(ctx, "longDescription") ?? cleanDescriptionValue(ctx.repair?.longDescription, ctx.item.catalogNumber) ?? cleanDescriptionValue(ctx.result?.description, ctx.item.catalogNumber) ?? cleanDescriptionValue(attr(ctx, /\b(long description|catalog description|invoice description)\b/i), ctx.item.catalogNumber);
     const value = de ?? fallback;
     return ctx.result?.manufacturerId === "eaton" ? stripEatonCatalogPrefix(value, ctx.item.catalogNumber) : value;
   }
   const factValue = pdtFactValue(ctx, "longDescription");
   if (factValue) return ctx.result?.manufacturerId === "eaton" ? stripEatonCatalogPrefix(factValue, ctx.item.catalogNumber) : factValue;
-  const raw = cleanDescriptionValue(ctx.repair?.longDescription) ?? cleanDescriptionValue(ctx.result?.description) ?? cleanDescriptionValue(attr(ctx, /\b(long description|catalog description|invoice description)\b/i));
+  const raw = cleanDescriptionValue(ctx.repair?.longDescription, ctx.item.catalogNumber) ?? cleanDescriptionValue(ctx.result?.description, ctx.item.catalogNumber) ?? cleanDescriptionValue(attr(ctx, /\b(long description|catalog description|invoice description)\b/i), ctx.item.catalogNumber);
   return ctx.result?.manufacturerId === "eaton" ? stripEatonCatalogPrefix(raw, ctx.item.catalogNumber) : raw;
 };
 const shortDescription: Resolver = (ctx) => {
@@ -515,7 +515,7 @@ const shortDescription: Resolver = (ctx) => {
     const titleCandidate = cleanDescriptionValue(ctx.result?.title);
     const titleIsCatalog = titleCandidate && ctx.item.catalogNumber &&
       titleCandidate.replace(/\s+/g, "").toLowerCase() === ctx.item.catalogNumber.replace(/\s+/g, "").toLowerCase();
-    const fallback = pdtFactValue(ctx, "shortDescription") ?? cleanDescriptionValue(ctx.repair?.shortDescription) ?? (titleIsCatalog ? undefined : titleCandidate) ?? cleanDescriptionValue(attr(ctx, /\b(catalog description|display name|short description|product name)\b/i));
+    const fallback = pdtFactValue(ctx, "shortDescription") ?? cleanDescriptionValue(ctx.repair?.shortDescription, ctx.item.catalogNumber) ?? (titleIsCatalog ? undefined : titleCandidate) ?? cleanDescriptionValue(attr(ctx, /\b(catalog description|display name|short description|product name)\b/i), ctx.item.catalogNumber);
     const value = de ?? fallback;
     return ctx.result?.manufacturerId === "eaton" ? stripEatonCatalogPrefix(value, ctx.item.catalogNumber) : value;
   }
@@ -529,7 +529,7 @@ const shortDescription: Resolver = (ctx) => {
     const value = ctx.result?.manufacturerId === "eaton" ? stripEatonCatalogPrefix(factValue, ctx.item.catalogNumber) : factValue;
     return compactFamilyShortDescription(value) ?? value;
   }
-  const raw = cleanDescriptionValue(ctx.repair?.shortDescription) ?? (titleIsCatalog ? undefined : titleCandidate) ?? cleanDescriptionValue(attr(ctx, /\b(catalog description|display name|short description|product name)\b/i));
+  const raw = cleanDescriptionValue(ctx.repair?.shortDescription, ctx.item.catalogNumber) ?? (titleIsCatalog ? undefined : titleCandidate) ?? cleanDescriptionValue(attr(ctx, /\b(catalog description|display name|short description|product name)\b/i), ctx.item.catalogNumber);
   const value = ctx.result?.manufacturerId === "eaton" ? stripEatonCatalogPrefix(raw, ctx.item.catalogNumber) : raw;
   return compactFamilyShortDescription(value) ?? value;
 };

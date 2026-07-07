@@ -19,6 +19,12 @@ export type DeviceTypeElectricalField = "voltage" | "current";
 
 const SIGNAL_ECLASS = { code: "27143221", system: "13" };
 const ENCLOSURE_ECLASS = { code: "27180101", system: "13" };
+// Generic inductive-proximity-switch default for the "electronic sensor" sheet. The sheet's own
+// data-validation list offers twelve more specific codes (27-27-40-01..05, 27-27-41-01,
+// 27-27-42-01, 27-27-43-01..05) split by housing construction (cylindrical threaded/smooth,
+// rectangular, ring-shaped); picking the exact one needs per-product housing-shape data the
+// scraper does not extract, so this is the closest single generic fallback until that mapping exists.
+const INDUCTIVE_SENSOR_ECLASS = { code: "27274101", system: "13" };
 const MATERIAL_PHYSICAL_FACTS = ["weight", "material"];
 const ELECTRICAL_RATING_FACTS = ["ratedVoltage", "ratedCurrent"];
 const VOLTAGE_RATING_FACTS = ["ratedVoltage"];
@@ -94,7 +100,12 @@ export const DEVICE_TYPE_PROFILES: Record<string, DeviceTypePdtProfile> = {
 
   "Photoelectric Sensor": { sheets: ["optical sensor"], finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_ONLY },
   "Vision Sensor": { sheets: ["optical sensor"], finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_ONLY },
-  "Inductive Proximity Sensor": { sheets: ["electronic sensor"], finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_AND_CURRENT },
+  "Inductive Proximity Sensor": {
+    sheets: ["electronic sensor"],
+    eclassBySheet: { "electronic sensor": INDUCTIVE_SENSOR_ECLASS },
+    finalCompletenessFields: ACTIVE_FINAL_FIELDS,
+    electricalFields: VOLTAGE_AND_CURRENT
+  },
   "Capacitive Sensor": { sheets: ["electronic sensor"], finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_AND_CURRENT },
   "Ultrasonic Sensor": { sheets: ["electronic sensor"], finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_AND_CURRENT },
   "Magnetic Field Sensor": { sheets: ["electronic sensor"], finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_AND_CURRENT },

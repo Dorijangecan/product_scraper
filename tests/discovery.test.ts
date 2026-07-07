@@ -841,6 +841,19 @@ describe("official discovery scoring", () => {
               </body></html>`
             };
           }
+          if (url === "https://www.turck.com/de/de/shop/p/1581801") {
+            // The German order-id short link redirects to the real, natively-localized URL —
+            // translated category slugs included — unlike a naive /en/ -> /de/ substitution.
+            return {
+              requestedUrl: url,
+              effectiveUrl: "https://www.turck.com/de/de/shop/sensortechnik/induktive-sensoren/1581801",
+              statusCode: 200,
+              contentType: "text/html",
+              fetchedAt: "2026-01-01T00:00:00.000Z",
+              fromCache: false,
+              text: `<html><body><p>Order ID no. 1581801</p></body></html>`
+            };
+          }
           throw new Error(`Unexpected URL ${url}`);
         }
       },
@@ -856,17 +869,26 @@ describe("official discovery scoring", () => {
       "https://www.turck.com/de/en/shop/search?q=NI12U-EG18SK-VP4X",
       "https://www.turck.com/de/en/shop/sensors/inductive-sensors/1581801",
       "https://certificates.digital.aws.turck.com/documents/1581801",
-      "https://www.turck.pl/pl/product/1581801"
+      "https://www.turck.pl/pl/product/1581801",
+      "https://www.turck.com/de/de/shop/p/1581801"
     ]);
     expect(result.productUrl).toBe("https://www.turck.com/de/en/shop/sensors/inductive-sensors/1581801");
     expect(result.title).toBe("NI12U-EG18SK-VP4X");
     // The shop <title> is just the SKU; the descriptive family is promoted to the description so the
     // PDT description columns carry "Inductive Sensor" instead of the article number.
     expect(result.description).toBe("Inductive Sensor");
+    // The German URL comes from actually resolving the order-id short link, not from rewriting the
+    // English URL — the real German category slugs differ from the English ones.
+    expect(result.localizedUrls?.en).toBe("https://www.turck.com/de/en/shop/sensors/inductive-sensors/1581801");
+    expect(result.localizedUrls?.de).toBe("https://www.turck.com/de/de/shop/sensortechnik/induktive-sensoren/1581801");
     expect(result.attributes).toContainEqual(expect.objectContaining({ name: "Type Code", value: "NI12U-EG18SK-VP4X" }));
     expect(result.attributes).toContainEqual(expect.objectContaining({ name: "Order ID", value: "1581801" }));
     expect(result.attributes).toContainEqual(expect.objectContaining({ name: "EAN", value: "4047101126112" }));
-    expect(result.attributes).toContainEqual(expect.objectContaining({ name: "ECLASS 5.1.4", value: "27270101" }));
+    // The legacy page's eCl@ss v5.1.4 code is retained for reference but named so it never starts
+    // with "ECLASS" — it must never be mistaken by the PDT eclass resolver for a current, usable
+    // classification (that code no longer exists in the ECLASS versions the sheets are filled against).
+    expect(result.attributes).toContainEqual(expect.objectContaining({ name: "Legacy eCl@ss (v5.1.4, superseded)", value: "27270101" }));
+    expect(result.attributes.some((attribute) => /^eclass\b/i.test(attribute.name))).toBe(false);
     expect(result.attributes).toContainEqual(expect.objectContaining({ name: "Customs Tariff Number", value: "85365080000" }));
     expect(result.attributes).toContainEqual(expect.objectContaining({ name: "Country of Origin", value: "DE" }));
     expect(result.attributes).toContainEqual(expect.objectContaining({ name: "Weight", value: "70 g" }));
@@ -876,6 +898,27 @@ describe("official discovery scoring", () => {
     expect(result.normalized.material).toBe("Stainless steel");
     // Certificates are read from the document-management table and canonicalised.
     expect(result.normalized.certificates).toBe("CE, UKCA, CCC");
+  });
+
+  it("rejects a Turck search result whose numeric order id is merely a prefix of the catalog number's page", async () => {
+    // "15758" is a numeric prefix of the unrelated order id "1575807" — a page that mentions
+    // "15758" nearby (breadcrumbs, related-products widgets) must never be picked over requiring
+    // the candidate URL's own order id to match exactly.
+    const url = findTurckProductUrl(
+      `<main>
+        <article>
+          <a href="/de/en/shop/others/1575807">
+            <h3>BI25-G47SR-VN4X2-H1141</h3>
+            <span>Order ID no. 1575807</span>
+            <span>Related to 15758 series</span>
+          </a>
+        </article>
+      </main>`,
+      "https://www.turck.com/de/en/shop/search?q=15758",
+      "15758"
+    );
+
+    expect(url).toBeUndefined();
   });
 
   it("does not assume a fixed Turck product category path", async () => {

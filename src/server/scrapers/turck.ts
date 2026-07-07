@@ -11,6 +11,11 @@ const TURCK_PARSER = "turck-shop";
 const TURCK_PARSER_VERSION = "turck-v1";
 const TURCK_SEARCH_FALLBACK_TEMPLATE = "https://www.turck.com/de/en/shop/search?q={part}";
 const TURCK_DIRECT_ORDER_TEMPLATE = "https://www.turck.com/de/en/shop/p/{part}";
+// The German shop resolves this order-id short link to the real, natively-localized product URL
+// (category slugs translated, e.g. "sensortechnik/induktive-sensoren" rather than the English
+// "sensors/inductive-sensors"). Naively substituting /en/ for /de/ in the English URL keeps the
+// English category slugs and produces a URL that does not exist on the German site.
+const TURCK_DIRECT_ORDER_TEMPLATE_DE = "https://www.turck.com/de/de/shop/p/{part}";
 // The "Approvals/Declarations" panel on a Turck product page links to this document-management
 // endpoint, which server-renders a static HTML table (Type / Certificate # / Filename) of the
 // product's approval documents. This is the only online source of Turck certificate data.
@@ -128,10 +133,12 @@ async function withTurckMetadata(
   const description = result.description?.trim() ? result.description : productType;
   let certificates: TurckCertificates | undefined;
   let legacyProductData: TurckLegacyProductData | undefined;
+  let germanUrl: string | undefined;
   if (orderId) {
-    [certificates, legacyProductData] = await Promise.all([
+    [certificates, legacyProductData, germanUrl] = await Promise.all([
       fetchTurckCertificates(orderId, context),
-      fetchTurckLegacyProductData(orderId, context)
+      fetchTurckLegacyProductData(orderId, context),
+      fetchTurckGermanUrl(orderId, context)
     ]);
   }
   const attributes: AttributeRecord[] = [
@@ -150,7 +157,11 @@ async function withTurckMetadata(
     {
       group: "Turck Product Data",
       name: "Type Code",
-      value: catalogNumber,
+      // The shop <title> is the manufacturer's real type designation (e.g. "NI30-K40SR-VN4X2").
+      // It only equals the catalog number when the lookup was already keyed by that type code; a
+      // numeric order-id lookup (e.g. "15758") resolves a page whose title is the more informative,
+      // different alphanumeric designation, so prefer it over echoing the raw input.
+      value: title ?? catalogNumber,
       sourceUrl,
       sourceType: "official",
       parser: TURCK_PARSER,
@@ -211,7 +222,7 @@ async function withTurckMetadata(
     title,
     description,
     productUrl: sourceUrl,
-    localizedUrls: turckLocalizedUrls(sourceUrl),
+    localizedUrls: turckLocalizedUrls(sourceUrl, germanUrl),
     confidence: Math.max(result.confidence, 0.78),
     attributes: dedupedAttributes,
     documents,
@@ -333,6 +344,25 @@ async function fetchTurckCertificates(orderId: string, context: ScrapeContext): 
   }
 }
 
+/**
+ * Resolve the real German shop URL for an order id by following the German order-id short link
+ * rather than guessing it from the English URL. When the shop redirects it, `fetched.effectiveUrl`
+ * is the true, natively-localized German URL (translated category slugs); rejects anything that
+ * didn't actually resolve to this order id's own page — a non-2xx status (including an edge/bot
+ * challenge response, which can still carry a non-empty body) or a mismatched order id.
+ */
+async function fetchTurckGermanUrl(orderId: string, context: ScrapeContext): Promise<string | undefined> {
+  const url = fillCatalogTemplate(TURCK_DIRECT_ORDER_TEMPLATE_DE, orderId);
+  try {
+    const fetched = await fetchTurckText(url, context);
+    if (fetched.statusCode < 200 || fetched.statusCode >= 300) return undefined;
+    if (orderIdFromUrl(fetched.effectiveUrl) !== orderId && orderIdFromText(fetched.text) !== orderId) return undefined;
+    return fetched.effectiveUrl;
+  } catch {
+    return undefined;
+  }
+}
+
 async function fetchTurckLegacyProductData(orderId: string, context: ScrapeContext): Promise<TurckLegacyProductData | undefined> {
   const url = fillCatalogTemplate(TURCK_LEGACY_PRODUCT_TEMPLATE, orderId);
   try {
@@ -403,7 +433,18 @@ function mapTurckLegacyLabel(label: string, value: string): { group: string; nam
     case "ean":
       return { group: "Turck Product Data", name: "EAN", value: cleanedValue, confidence: 0.9 };
     case "kod ecl@ss (v5.1.4)":
-      return { group: "Turck Classifications", name: "ECLASS 5.1.4", value: cleanedValue.match(/\b\d{8}\b/)?.[0] ?? cleanedValue, confidence: 0.9 };
+      // Turck's legacy page only ever publishes the eCl@ss v5.1.4 code, which has since been
+      // renumbered/retired in the current ECLASS releases (v9-v14) the PDT sheets are filled
+      // against — e.g. sensor code "27270101" no longer exists in the sheet's offered ECLASS
+      // list. The name deliberately does not start with "ECLASS" so the PDT eclass resolver
+      // (which matches attribute names against /^eclass\b/i) never mistakes this stale code for a
+      // usable classification and always falls back to the device-type default instead.
+      return {
+        group: "Turck Classifications",
+        name: "Legacy eCl@ss (v5.1.4, superseded)",
+        value: cleanedValue.match(/\b\d{8}\b/)?.[0] ?? cleanedValue,
+        confidence: 0.9
+      };
     case "numer taryfy celnej":
       return { group: "Turck Product Data", name: "Customs Tariff Number", value: cleanedValue.match(/\b\d{6,12}\b/)?.[0] ?? cleanedValue, confidence: 0.9 };
     case "kraj pochodzenia":
@@ -481,10 +522,24 @@ export function findTurckProductUrl(html: string, baseUrl: string, catalogNumber
     /["'](?:href|url|path|productUrl|product_url|detailUrl|detail_url)["']\s*:\s*["']([^"']*\/(?:[a-z]{2}\/[a-z]{2}\/)?shop\/[^"']*\/\d{5,})(?:[?#][^"']*)?["']/gi
   ];
   const compactPart = compactCatalogNumber(catalogNumber);
+  // Turck's numeric order ids share prefixes (e.g. "15758" is a prefix of the unrelated
+  // "1575807"), so a fuzzy substring match against nearby page text ("breadcrumbs", "related
+  // products" widgets, ...) can pick a completely different product. When the catalog number is
+  // purely numeric, require the URL's own trailing order-id segment to equal it exactly instead
+  // of trusting text proximity.
+  const numericCatalog = /^\d+$/.test(catalogNumber);
   const candidates: Array<{ url: string; score: number }> = [];
   for (const pattern of urlPatterns) {
     for (const match of decoded.matchAll(pattern)) {
       const rawUrl = match[1];
+      const urlOrderId = rawUrl.match(/(\d{5,})$/)?.[1];
+      if (numericCatalog) {
+        if (urlOrderId !== catalogNumber) continue;
+        const url = absoluteTurckUrl(rawUrl, baseUrl);
+        if (!url) continue;
+        candidates.push({ url, score: 200 - url.length / 1000 });
+        continue;
+      }
       const index = match.index ?? 0;
       const context = decoded.slice(Math.max(0, index - 1600), Math.min(decoded.length, index + rawUrl.length + 1600));
       const exact = context.includes(catalogNumber);
@@ -533,13 +588,21 @@ function orderIdFromUrl(url: string): string | undefined {
   }
 }
 
-function turckLocalizedUrls(productUrl: string): LocalizedProductUrls {
+function turckLocalizedUrls(productUrl: string, germanUrl: string | undefined): LocalizedProductUrls {
   const urls: LocalizedProductUrls = { en: productUrl };
-  if (/\/de\/en\//i.test(productUrl)) {
-    urls.de = productUrl.replace(/\/de\/en\//i, "/de/de/");
-  } else if (/\/de\/de\//i.test(productUrl)) {
+  // The accepted product page was itself found via a German search template (already fetched and
+  // verified) — it's real, so derive the English counterpart the same way as before.
+  if (/\/de\/de\//i.test(productUrl)) {
     urls.de = productUrl;
     urls.en = productUrl.replace(/\/de\/de\//i, "/de/en/");
+    return urls;
+  }
+  // Otherwise the accepted page is English. The German shop uses translated category slugs (e.g.
+  // "sensortechnik/induktive-sensoren" instead of "sensors/inductive-sensors"), so the DE URL can
+  // only come from actually resolving the German order-id short link (fetchTurckGermanUrl) — never
+  // from rewriting the English URL, which would keep the English slugs and produce a dead link.
+  if (germanUrl && germanUrl.toLowerCase() !== productUrl.toLowerCase()) {
+    urls.de = germanUrl;
   }
   return urls;
 }
