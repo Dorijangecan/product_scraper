@@ -32,6 +32,20 @@ export class CachedHttpClient {
   private readonly hostPenaltyMs = new Map<string, number>();
   private hostMinIntervalMs = 350;
   private static readonly MAX_HOST_PENALTY_MS = 10000;
+  /**
+   * Circuit breaker for hosts that are entirely unreachable from this network — not merely
+   * rate-limiting (that's `hostPenaltyMs` above), but every request (native fetch AND the curl
+   * fallback) genuinely timing out with zero bytes received. Observed live: a manufacturer's
+   * main domain was unreachable for every one of ~10 locale/path variants tried across a single
+   * item, each still paying its own 5-38s timeout before giving up — several minutes wasted on
+   * a host that was never going to answer. After a few confirmed full failures, skip further
+   * live attempts to that host for a cooldown instead of re-discovering the same outage
+   * per-request. A single healthy response clears it immediately.
+   */
+  private readonly hostFailureStreak = new Map<string, number>();
+  private readonly hostDownUntil = new Map<string, number>();
+  private static readonly HOST_DOWN_THRESHOLD = 3;
+  private static readonly HOST_DOWN_COOLDOWN_MS = 90 * 1000;
 
   constructor(
     private readonly db: ScraperDb,
@@ -62,6 +76,38 @@ export class CachedHttpClient {
       const decayed = Math.floor(current / 2);
       if (decayed < 250) this.hostPenaltyMs.delete(host);
       else this.hostPenaltyMs.set(host, decayed);
+    }
+  }
+
+  /** Returns the hostname if it's currently circuit-broken (skip live attempts), else undefined. */
+  private hostCircuitOpenFor(url: string): string | undefined {
+    let host: string;
+    try {
+      host = new URL(url).hostname.toLowerCase();
+    } catch {
+      return undefined;
+    }
+    const downUntil = this.hostDownUntil.get(host);
+    return downUntil && Date.now() < downUntil ? host : undefined;
+  }
+
+  /** Feed a definitive reachability outcome (not an HTTP status — a real connect/timeout result). */
+  private recordHostReachability(url: string, reached: boolean): void {
+    let host: string;
+    try {
+      host = new URL(url).hostname.toLowerCase();
+    } catch {
+      return;
+    }
+    if (reached) {
+      if (this.hostFailureStreak.size) this.hostFailureStreak.delete(host);
+      if (this.hostDownUntil.size) this.hostDownUntil.delete(host);
+      return;
+    }
+    const streak = (this.hostFailureStreak.get(host) ?? 0) + 1;
+    this.hostFailureStreak.set(host, streak);
+    if (streak >= CachedHttpClient.HOST_DOWN_THRESHOLD) {
+      this.hostDownUntil.set(host, Date.now() + CachedHttpClient.HOST_DOWN_COOLDOWN_MS);
     }
   }
 
@@ -130,6 +176,11 @@ export class CachedHttpClient {
       }
     }
 
+    const brokenHost = this.hostCircuitOpenFor(url);
+    if (brokenHost) {
+      throw new Error(`Host ${brokenHost} has failed repeatedly this run and is temporarily skipped to avoid re-paying every request's timeout.`);
+    }
+
     await this.acquireHostSlot(url);
     let response: Response;
     let text: string;
@@ -145,6 +196,9 @@ export class CachedHttpClient {
         retryBackoffMs: options.retryBackoffMs,
         signal: options.signal
       }));
+      // A response of ANY status code means the host answered — that's what the breaker
+      // tracks (reachability), independent of `recordHostThrottleSignal`'s 429/503 politeness.
+      this.recordHostReachability(url, true);
     } catch (error) {
       if (method === "GET") {
         return this.fetchTextViaCurl(url, {
@@ -156,6 +210,7 @@ export class CachedHttpClient {
           signal: options.signal
         }, error);
       }
+      this.recordHostReachability(url, false);
       throw error;
     }
     if (method === "GET" && isRetryableStatus(response.status)) {
@@ -355,6 +410,11 @@ $contentType = if ($response.Headers['Content-Type']) { [string]$response.Header
       }
     }
 
+    const brokenHost = this.hostCircuitOpenFor(url);
+    if (brokenHost) {
+      throw new Error(`Host ${brokenHost} has failed repeatedly this run and is temporarily skipped to avoid re-paying every request's timeout.`);
+    }
+
     await fs.mkdir(this.cacheDir, { recursive: true });
     await this.acquireHostSlot(url);
     const cachePath = path.join(this.cacheDir, `${cacheKey}.html`);
@@ -381,6 +441,7 @@ $contentType = if ($response.Headers['Content-Type']) { [string]$response.Header
       });
       const text = await fs.readFile(cachePath, "utf8");
       if (!text.trim()) throw new Error(`Empty response body from ${url}`);
+      this.recordHostReachability(url, true);
       const fetchedAt = new Date().toISOString();
       if (useCache && shouldCacheTextResponse(200, text)) {
         this.db.setPageCache({
@@ -406,6 +467,11 @@ $contentType = if ($response.Headers['Content-Type']) { [string]$response.Header
       };
     } catch (error) {
       if (options.signal?.aborted) throw new Error("Cancelled by user.");
+      // A genuine curl failure (connection/timeout, not a user cancel) is the definitive
+      // "this host didn't answer" signal for the breaker — this is the last mile for every GET
+      // request that reaches here (both the native-fetch-failed path and the retryable-status
+      // path funnel through this function).
+      this.recordHostReachability(url, false);
       const message = error instanceof Error ? error.message : "curl fetch failed";
       const original = cause instanceof Error ? cause.message : undefined;
       throw new Error(original ? `${original}; curl fallback failed: ${message}` : message);

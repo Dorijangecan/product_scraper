@@ -14,6 +14,7 @@ import type {
 } from "../../shared/types.js";
 import { catalogTextMatches } from "./catalog-number.js";
 import { extractDocumentTextAttributes } from "./document-enrichment.js";
+import { extractNameplateVoltageClassSpecAttributes } from "./electrical-spec-miner.js";
 import { fieldMatchesLabel, FIELD_REGISTRY, type RegistryFieldKey } from "./field-registry.js";
 import { cleanText, normalizeFields } from "./normalizer.js";
 import { readPdfWithOptionalOcr } from "./pdf-ocr.js";
@@ -611,7 +612,18 @@ async function extractFromPdf(
     pathToFileUrl(doc.storedPath),
     widePagesText
   );
-  const attributes = dedupeCustomerAttributes([...tableAttributes, ...proseAttributes]);
+  // Shared page-level facts (e.g. a "three-phase 380V class machine" wiring-section header
+  // that applies to every model row in that page's table) sit further from a specific model's
+  // own row than the tight per-row line window reaches for anything but the first row in the
+  // table. Pull them from the exact pages where THIS catalog/alias's own row was matched
+  // (never a neighbour-only page) so every row in a multi-model table gets the shared fact,
+  // without risking borrowing a different page's different-family voltage class.
+  const matchedPagesText = pages
+    .filter((page) => matches.includes(page.num))
+    .map((page) => page.text)
+    .join("\n");
+  const namePlateVoltageAttributes = extractNameplateVoltageClassSpecAttributes(matchedPagesText, pathToFileUrl(doc.storedPath));
+  const attributes = dedupeCustomerAttributes([...tableAttributes, ...namePlateVoltageAttributes, ...proseAttributes]);
   const titleHint = guessTitleFromPdfText(widePagesText, catalogNumber);
   return {
     attributes: hasSubstantiveDocumentAttributes(attributes) ? attributes : [],
@@ -702,15 +714,31 @@ function extractFamilyPdf(
   pages: PdfPageEntry[]
 ): PdfExtractionOutcome | undefined {
   const text = pages.map((page) => page.text).join("\n").slice(0, MAX_CUSTOMER_PDF_TEXT_CHARS);
-  const attributes = extractCustomerFamilyPdfAttributes(
-    catalogNumber,
-    doc.originalName,
-    pathToFileUrl(doc.storedPath),
-    text
-  );
+  const sourceUrl = pathToFileUrl(doc.storedPath);
+  const attributes = extractCustomerFamilyPdfAttributes(catalogNumber, doc.originalName, sourceUrl, text);
   if (!hasSubstantiveDocumentAttributes(attributes)) return undefined;
+  // Same page-scoped nameplate-voltage recovery as the exact-match path (see there for why):
+  // find the pages that actually mention the matched FAMILY key (never merely neighbouring
+  // pages, which could belong to a sibling family with a different voltage class) and mine
+  // those for a shared "N-phase NNNV class machine" fact.
+  const family = inferCatalogFamilyEvidence(catalogNumber, text);
+  const familyMatchedPagesText = family
+    ? pages
+        .filter((page) => {
+          page.compactText ??= compactKey(page.text);
+          return page.compactText.includes(family.key);
+        })
+        .map((page) => page.text)
+        .join("\n")
+    : "";
+  const namePlateVoltageAttributes = familyMatchedPagesText
+    ? extractNameplateVoltageClassSpecAttributes(familyMatchedPagesText, sourceUrl)
+    : [];
+  const mergedAttributes = namePlateVoltageAttributes.length
+    ? dedupeCustomerAttributes([...attributes, ...namePlateVoltageAttributes])
+    : attributes;
   return {
-    attributes,
+    attributes: mergedAttributes,
     titleHint: guessTitleFromPdfText(text, catalogNumber) ?? familyTitleFromText(text),
     scannedImageOnly: false,
     pageCount: pages.length

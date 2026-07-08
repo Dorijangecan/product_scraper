@@ -273,7 +273,7 @@ export class EatonConnector implements ManufacturerConnector {
         }
         if (earlyOut) break;
       }
-      const documentResult = buildEatonDocumentSearchResult(partNumber, searchDocuments);
+      const documentResult = buildEatonDocumentSearchResult(partNumber, searchDocuments, context.manufacturer.localizedUrlTemplates);
       if (documentResult) result = mergeEatonResults(result, documentResult);
     };
 
@@ -427,12 +427,25 @@ export class EatonConnector implements ManufacturerConnector {
       return withEatonDiagnostics(result, diagnostics);
     }
 
-    const { result: fallback, discovery } = await scrapeDiscoveredFallback(partNumber, context, { idPrefix: this.id });
-    const recovered = withDiscoveryFallbackDiagnostics(
-      fallback ?? result ?? emptyResult("eaton", partNumber, "No Eaton product page could be fetched through Eaton-specific paths or generic official discovery."),
-      discovery
-    );
-    return withEatonDiagnostics(recovered, diagnostics);
+    try {
+      const { result: fallback, discovery } = await scrapeDiscoveredFallback(partNumber, context, { idPrefix: this.id });
+      const recovered = withDiscoveryFallbackDiagnostics(
+        fallback ?? result ?? emptyResult("eaton", partNumber, "No Eaton product page could be fetched through Eaton-specific paths or generic official discovery."),
+        discovery
+      );
+      return withEatonDiagnostics(recovered, diagnostics);
+    } catch (error) {
+      // scrapeDiscoveredFallback now bounds itself to a fixed time budget (see its own
+      // comment) instead of grinding through its full candidate sweep forever. Degrade to a
+      // normal empty result on that (or any other) failure so the item still gets full
+      // diagnostics (attempted URLs, discovered candidates) persisted, exactly like every
+      // other failure path here — only the reason differs.
+      diagnostics.notes?.push(`Eaton generic discovery fallback failed: ${error instanceof Error ? error.message : String(error)}`);
+      return withEatonDiagnostics(
+        result ?? emptyResult("eaton", partNumber, "No Eaton product page could be fetched through Eaton-specific paths or generic official discovery."),
+        diagnostics
+      );
+    }
   }
 }
 
@@ -725,9 +738,14 @@ function extractEatonSearchDocuments(text: string, baseUrl: string, catalogNumbe
     .slice(0, 6);
 }
 
-function buildEatonDocumentSearchResult(catalogNumber: string, documents: DocumentRecord[]): ProductResult | undefined {
+function buildEatonDocumentSearchResult(
+  catalogNumber: string,
+  documents: DocumentRecord[],
+  localizedUrlTemplates?: LocalizedUrlTemplate[]
+): ProductResult | undefined {
   const cleanDocuments = prioritizeEatonSearchDocuments(dedupeDocuments(documents)).slice(0, 6);
   if (!cleanDocuments.length) return undefined;
+  const productUrl = cleanDocuments[0].sourceUrl ?? cleanDocuments[0].url;
   const attributes: AttributeRecord[] = [
     {
       group: "Eaton Search",
@@ -745,7 +763,12 @@ function buildEatonDocumentSearchResult(catalogNumber: string, documents: Docume
     catalogNumber,
     status: "partial",
     confidence: 0.62,
-    productUrl: cleanDocuments[0].sourceUrl ?? cleanDocuments[0].url,
+    productUrl,
+    // This fallback never fetched a real SKU page (only search-result documents), so there is
+    // no rendered page to derive locale links from. Still generate the standard EN/DE guesses
+    // (buildLocalizedProductUrls) so the DE-link coverage check doesn't always read "missing"
+    // for every catalog number that only resolves through Eaton's document search.
+    localizedUrls: buildLocalizedProductUrls("eaton", catalogNumber, productUrl, localizedUrlTemplates),
     title: `${catalogNumber} - Eaton document search`,
     description: `Eaton search found source documents for ${catalogNumber}.`,
     normalized: normalizeFields(attributes, cleanDocuments),

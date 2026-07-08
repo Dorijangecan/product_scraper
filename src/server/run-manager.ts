@@ -46,6 +46,27 @@ export type DocumentDownloadProfile = SharedDocumentDownloadProfile;
 
 const INTERRUPTED_RUN_RESUME_WINDOW_MS = 5 * 60 * 1000;
 
+// Some connectors (e.g. Eaton, when a catalog number has no real product page) fall through a
+// long chain of discovery/reader/browser-render fallback stages. Under bot-mitigation or a slow
+// host, a single stage can hang well past its own stated timeout, stalling one of the run's
+// concurrency slots indefinitely — observed once as an 11+ minute freeze that required a manual
+// cancel. This bounds the WORST case only: 4 minutes comfortably covers every legitimate
+// fallback path's stated per-stage budgets, so a normal (even slow) scrape never gets cut off —
+// only a genuinely stuck one does, and it then fails gracefully instead of hanging the slot.
+const ITEM_SCRAPE_TIMEOUT_MS = 4 * 60 * 1000;
+
+// Resolves once `signal` aborts, using the same rejection message on the timeout path and the
+// parent-run-cancellation path so Promise.race always settles instead of leaving a scrape hung.
+function abortSignalRejection(signal: AbortSignal, message: string): Promise<never> {
+  return new Promise((_, reject) => {
+    if (signal.aborted) {
+      reject(new Error(message));
+      return;
+    }
+    signal.addEventListener("abort", () => reject(new Error(message)), { once: true });
+  });
+}
+
 interface LocalDownloadSelection {
   images: boolean;
   pdfs: boolean;
@@ -360,46 +381,70 @@ export class RunManager {
 
           if (!customerFirstShortCircuit) {
           this.updateItemStage(item.id, "official-source", "Scraping official source", { status: "processing", error: undefined });
-          const result = await connector.scrape(item.catalogNumber, {
-            http,
-            manufacturer,
-            runDir: layoutRef.runDir,
-            documentsDir: layoutRef.documentsDir,
-            signal: controller.signal,
-            browserRenderer,
-            downloadDocuments: documentDownloadsForEnrichmentEnabled,
-            saveDocuments: downloadDocumentsEnabled,
-            imageOnly: imageOnlyMode,
-            learnedEndpoints: {
-              list: (manufacturerId, limit) => this.db.listLearnedEndpoints(manufacturerId, limit),
-              upsert: (endpoint) => this.db.upsertLearnedEndpoint(endpoint)
-            },
-            learnedExtractors: {
-              list: (manufacturerId, host, limit) => this.db.listLearnedExtractors(manufacturerId, host, limit),
-              upsert: (extractor) => this.db.upsertLearnedExtractor(extractor)
-            },
-            targetHealth: {
-              record: (observation) => this.db.recordStageObservation(observation),
-              get: (manufacturerId, stage, host) => this.db.getTargetHealth(manufacturerId, stage, host)
-            },
-            fallback: {
-              scrape: (catalogNumber, sources) => fallback.scrape(catalogNumber, sources, controller.signal)
-            },
-            downloadDocument: (doc) =>
-              this.downloadDocument(
+          // Per-item scrape signal: aborts if the whole run is cancelled/paused (propagated from
+          // controller.signal) OR if this single item's official-source scrape runs past
+          // ITEM_SCRAPE_TIMEOUT_MS. Scoped to this item only — a slow/stuck catalog number can no
+          // longer stall its concurrency slot forever; it fails and the run moves on.
+          const itemScrapeController = new AbortController();
+          const onParentAbort = () => itemScrapeController.abort(controller.signal.reason);
+          if (controller.signal.aborted) itemScrapeController.abort(controller.signal.reason);
+          else controller.signal.addEventListener("abort", onParentAbort, { once: true });
+          const itemTimeoutHandle = setTimeout(
+            () => itemScrapeController.abort(new Error(`Official-source scrape timed out after ${Math.round(ITEM_SCRAPE_TIMEOUT_MS / 1000)}s`)),
+            ITEM_SCRAPE_TIMEOUT_MS
+          );
+          let result: ProductResult;
+          try {
+            result = await Promise.race([
+              connector.scrape(item.catalogNumber, {
                 http,
-                layout!.documentsDir,
-                layout!.cadDir,
-                layout!.imagesDir,
-                manufacturer.shortName,
-                item.catalogNumber,
-                doc,
-                localDownloads,
-                controller.signal,
-                undefined,
-                sharedDocumentDownloads
+                manufacturer,
+                runDir: layoutRef.runDir,
+                documentsDir: layoutRef.documentsDir,
+                signal: itemScrapeController.signal,
+                browserRenderer,
+                downloadDocuments: documentDownloadsForEnrichmentEnabled,
+                saveDocuments: downloadDocumentsEnabled,
+                imageOnly: imageOnlyMode,
+                learnedEndpoints: {
+                  list: (manufacturerId, limit) => this.db.listLearnedEndpoints(manufacturerId, limit),
+                  upsert: (endpoint) => this.db.upsertLearnedEndpoint(endpoint)
+                },
+                learnedExtractors: {
+                  list: (manufacturerId, host, limit) => this.db.listLearnedExtractors(manufacturerId, host, limit),
+                  upsert: (extractor) => this.db.upsertLearnedExtractor(extractor)
+                },
+                targetHealth: {
+                  record: (observation) => this.db.recordStageObservation(observation),
+                  get: (manufacturerId, stage, host) => this.db.getTargetHealth(manufacturerId, stage, host)
+                },
+                fallback: {
+                  scrape: (catalogNumber, sources) => fallback.scrape(catalogNumber, sources, itemScrapeController.signal)
+                },
+                downloadDocument: (doc) =>
+                  this.downloadDocument(
+                    http,
+                    layout!.documentsDir,
+                    layout!.cadDir,
+                    layout!.imagesDir,
+                    manufacturer.shortName,
+                    item.catalogNumber,
+                    doc,
+                    localDownloads,
+                    itemScrapeController.signal,
+                    undefined,
+                    sharedDocumentDownloads
+                  )
+              }),
+              abortSignalRejection(
+                itemScrapeController.signal,
+                `Official-source scrape for ${item.catalogNumber} timed out after ${Math.round(ITEM_SCRAPE_TIMEOUT_MS / 1000)}s`
               )
-          });
+            ]);
+          } finally {
+            clearTimeout(itemTimeoutHandle);
+            controller.signal.removeEventListener("abort", onParentAbort);
+          }
           if (this.db.isPauseRequested(run.id)) {
             await this.markItemPaused(run.id, item, layoutRef);
             return;

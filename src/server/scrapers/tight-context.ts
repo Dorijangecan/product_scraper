@@ -44,7 +44,15 @@ export function buildTightContextForCatalog(
     if (!tokens) return false;
     return tokens.some((token) => {
       const compactToken = compactKey(token);
-      return compactToken.length >= 4 && compactToken !== compactCatalog;
+      // A real catalog/type code always carries at least one digit (e.g. "EIS-40/1",
+      // "CBE04417", "DFS4-125"). Without this check, plain hyphenated English compound words
+      // that happen to fit the letters-plus-separator shape ("cross-section", "back-of-hand")
+      // false-positived as "a different product's model number," breaking the forward/backward
+      // window expansion early and orphaning the real value 1-2 lines further down a single-model
+      // datasheet (confirmed on Doepke's "max. Connection C1 Number of conductors per terminal" —
+      // the window broke on "cross-section" right before reaching the real value line, so a
+      // later, unrelated fact filled the gap once the window was re-sorted by line index).
+      return compactToken.length >= 4 && compactToken !== compactCatalog && /\d/.test(compactToken);
     });
   };
 

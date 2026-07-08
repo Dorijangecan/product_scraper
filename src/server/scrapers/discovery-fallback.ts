@@ -6,10 +6,36 @@ import { canonicalizeProductLocaleUrls } from "./localized-urls.js";
 import { normalizeFields } from "./normalizer.js";
 import type { ScrapeContext } from "./types.js";
 
+// This is the LAST-resort stage for ~15 connectors, reached only after every manufacturer-
+// specific path already failed. discoverOfficialProductCandidates walks many candidate URL
+// patterns mostly SEQUENTIALLY with no shared time budget, so on a catalog number with no real
+// product page it can grind for minutes with nothing to show for it (observed: 8+ minutes on a
+// live Eaton probe). Bounding it can only speed up an already-failing path — every legitimate
+// hit this stage produces already happens well inside this budget in normal operation.
+const DISCOVERY_FALLBACK_TIMEOUT_MS = 60 * 1000;
+
+function timeoutRejection(ms: number, message: string): Promise<never> {
+  return new Promise((_, reject) => setTimeout(() => reject(new Error(message)), ms));
+}
+
 export async function scrapeDiscoveredFallback(
   catalogNumber: string,
   context: ScrapeContext,
   options: { idPrefix?: string } = {}
+): Promise<{ result?: ProductResult; discovery: ProductDiscoveryResult }> {
+  return Promise.race([
+    runDiscoveredFallback(catalogNumber, context, options),
+    timeoutRejection(
+      DISCOVERY_FALLBACK_TIMEOUT_MS,
+      `Generic discovery fallback for ${catalogNumber} timed out after ${DISCOVERY_FALLBACK_TIMEOUT_MS / 1000}s`
+    )
+  ]);
+}
+
+async function runDiscoveredFallback(
+  catalogNumber: string,
+  context: ScrapeContext,
+  options: { idPrefix?: string }
 ): Promise<{ result?: ProductResult; discovery: ProductDiscoveryResult }> {
   const discovery = await discoverOfficialProductCandidates(catalogNumber, context);
   const discoveredSources = discoveryFallbackSources(discovery, context, options.idPrefix ?? context.manufacturer.id);

@@ -164,6 +164,53 @@ const ELECTRICAL_SPEC_DEFINITIONS: ElectricalSpecDefinition[] = [
 
 const NEXT_LABEL_PATTERNS = ELECTRICAL_SPEC_DEFINITIONS.flatMap((definition) => definition.labels);
 
+// Motor/drive manuals (e.g. Eaton PowerXL) often state the supply voltage as an informal
+// "class" designation next to a wiring-diagram section header — "three-phase 380V class
+// machine" / "single-phase 220V class machine" — instead of a "Rated/Input voltage: ..."
+// label. None of the definitions above fire because the number sits INSIDE the matched
+// phrase rather than after a recognized label, so this runs as a separate capture-group
+// pass instead of the shared label-then-value windowing used everywhere else.
+const NAMEPLATE_VOLTAGE_CLASS_PATTERN = /\b(single|two|double|three)[-\s]?phase\s+(\d{2,4})\s*V(?:AC|DC)?\s+class\b/gi;
+
+function extractNameplateVoltageClassAttributes(text: string, sourceUrl: string, group: string): AttributeRecord[] {
+  const attributes: AttributeRecord[] = [];
+  for (const match of text.matchAll(NAMEPLATE_VOLTAGE_CLASS_PATTERN)) {
+    const phase = normalizePhaseWord(match[1]);
+    attributes.push({
+      group,
+      name: "Rated voltage",
+      value: phase ? `${phase}~ ${match[2]} V` : `${match[2]} V`,
+      sourceUrl
+    });
+  }
+  return attributes;
+}
+
+function normalizePhaseWord(word: string): string | undefined {
+  const normalized = word.toLowerCase();
+  if (normalized === "single") return "1";
+  if (normalized === "two" || normalized === "double") return "2";
+  if (normalized === "three") return "3";
+  return undefined;
+}
+
+/**
+ * Public entry point for the nameplate "N-phase NNNV class machine" pattern, meant to run on
+ * text scoped to whichever PAGE(S) the target's own row/model actually appears on — NOT on a
+ * tight per-row line window. The voltage-class line is a shared fact for the whole page's
+ * table (e.g. "three-phase 380V class machine" sits once above 12 model rows), so a per-row
+ * line window only ever reaches it for the first row in the table; every later row falls
+ * outside that window and silently loses the shared fact. Scoping by "does this page contain
+ * my own model" instead of "is this line close enough to my own model's line" keeps the
+ * safety property that matters (never borrow a DIFFERENT model family's voltage class, e.g. the
+ * single-phase 220V table on an adjacent page) without the row-distance limitation.
+ */
+export function extractNameplateVoltageClassSpecAttributes(text: string, sourceUrl: string, group = "PDF Electrical Text"): AttributeRecord[] {
+  const normalized = normalizeSpecMiningText(text);
+  if (!normalized) return [];
+  return dedupeAttributes(extractNameplateVoltageClassAttributes(normalized, sourceUrl, group));
+}
+
 export function extractElectricalSpecAttributesFromText(input: {
   text: string;
   sourceUrl: string;
@@ -174,7 +221,7 @@ export function extractElectricalSpecAttributesFromText(input: {
   if (!normalized) return [];
   const group = input.group ?? "Electrical Spec Miner";
   const maxAttributes = input.maxAttributes ?? 80;
-  const attributes: AttributeRecord[] = [];
+  const attributes: AttributeRecord[] = [...extractNameplateVoltageClassAttributes(normalized, input.sourceUrl, group)];
 
   for (const definition of ELECTRICAL_SPEC_DEFINITIONS) {
     for (const labelPattern of definition.labels) {
