@@ -182,7 +182,34 @@ const BASE_KNOWN_LABELS = [
   "Width",
   "Wire cross-section",
   "Wire size",
-  "Tightening torque"
+  "Tightening torque",
+  // Doepke technical-data rows confirmed present in the datasheet but not reliably split into
+  // clean attributes without an exact-prefix KNOWN_LABELS entry (found via a full field-coverage
+  // audit across 340+ cached datasheets — see doepke-pdt-field-conventions memory).
+  "Tripping characteristic curve",
+  "Tripping characteristic",
+  "Climate resistance",
+  "Non-trip time",
+  "Tripping frequency",
+  "Internal consumption",
+  "min. Contact opening",
+  "Rated frequency",
+  "Thermal Backup-fuse OCPD",
+  "Short-circuit backup-fuse SCPD",
+  "Back-up fuse type",
+  "I2t strength",
+  "Screw-type terminal",
+  "Neutral conductor position",
+  "Operating position",
+  "mechanical endurance",
+  "electrical endurance",
+  "Shock resistance",
+  "Fatigue limit",
+  "sealable",
+  "Module widths",
+  "Degree of pollution",
+  "Housing type",
+  "Installation type"
 ];
 
 const KNOWN_LABELS = uniqueKnownLabels([
@@ -615,7 +642,8 @@ function cachedGlobalPdfTechnicalAttributes(text: string, lines: string[], sourc
     ...extractStackedDimensionTableRows(lines, sourceUrl),
     ...extractInlineDimensionText(lines, sourceUrl),
     ...extractContactRatingAttributes(lines, sourceUrl),
-    ...extractQualifiedTemperatureAttributes(lines, sourceUrl)
+    ...extractQualifiedTemperatureAttributes(lines, sourceUrl),
+    ...extractWrappedLabelValueAttributes(lines, sourceUrl)
   ];
   globalPdfTechnicalAttributeCache.set(cacheKey, attributes);
   trimMap(globalPdfTechnicalAttributeCache, 12);
@@ -682,7 +710,8 @@ function buildGlobalTechnicalContext(text: string): string | undefined {
 
 function isGlobalTechnicalLine(line: string): boolean {
   return (
-    /\b(?:technical\s+(?:data|specifications?)|electrical\s+(?:data|ratings?)|input\s+voltage|output\s+voltage|operating\s+voltage|supply\s+voltage|rated\s+voltage|rated\s+(?:operating\s+|operational\s+)?current|operating\s+current|rated\s+current|rated\s+power|power\s+dissipation|power\s+loss|heat\s+loss|degree\s+of\s+protection|protection\s+class|operating\s+temperature|storage\s+temperature|ambient\s+temperature|approvals?\s+and\s+certificates|certifications?|ul\s+certificate|dimensions?|weight|\bwidth\b|\bheight\b|\bdepth\b|housing\s+material|cross[-\s]?section|tightening\s+torque|number\s+of\s+conductors|conductors?\s+per\s+terminal|neutral\s+conductor|direct\s+contact)\b/i.test(line) ||
+    /\b(?:technical\s+(?:data|specifications?)|electrical\s+(?:data|ratings?)|input\s+voltage|output\s+voltage|operating\s+voltage|supply\s+voltage|rated\s+voltage|rated\s+(?:operating\s+|operational\s+)?current|operating\s+current|rated\s+current|rated\s+power|power\s+dissipation|power\s+loss|heat\s+loss|degree\s+of\s+protection|protection\s+class|operating\s+temperature|storage\s+temperature|ambient\s+temperature|approvals?\s+and\s+certificates|certifications?|ul\s+certificate|dimensions?|weight|\bwidth\b|\bheight\b|\bdepth\b|housing\s+material|cross[-\s]?section|tightening\s+torque|number\s+of\s+conductors|conductors?\s+per\s+terminal|neutral\s+conductor|direct\s+contact|tripping\s+characteristic|short-time\s+delayed|non-trip\s+time|tripping\s+frequency|disconnection\s+times?|internal\s+consumption|contact\s+opening|surge\s+current|switching\s+capacity|insulation\s+voltage|impulse\s+(?:withstand\s+)?voltage|withstand\s+voltage|rated\s+frequency|back[-\s]?up[-\s]?fuse|i2t\s+strength|dynamic\s+current\s+strength|screw[-\s]?type\s+terminal|degree\s+of\s+pollution|\bsealable\b|module\s+widths?|minimum\s+rated\s+operating\s+voltage|operating\s+altitude|operating\s+position|mechanical\s+endurance|electrical\s+endurance|shock\s+resistance|fatigue\s+limit|housing\s+type|installation\s+type)\b/i.test(line) ||
+    /^selective\s+(?:true|false)\b/i.test(line) ||
     /\b[A-Z0-9]{1,8}\s*[=:]\s*.*?\bIP\s*\d{2}[A-Z]?\b/i.test(line) ||
     /(?:\u6280\u672f\u53c2\u6570|\u6280\u672f\u89c4\u683c|\u53d8\u9891\u5668|\u53d8\u9891\u9a71\u52a8|\u9891\u7387\u8f6c\u6362\u5668|\u8f93\u5165\u7535\u538b|\u8f93\u51fa\u7535\u538b|\u989d\u5b9a\u7535\u6d41|\u989d\u5b9a\u529f\u7387|\u9632\u62a4\u7b49\u7ea7|\u5de5\u4f5c\u6e29\u5ea6|\u73af\u5883\u6e29\u5ea6|\u5c3a\u5bf8|\u91cd\u91cf)/.test(line)
   );
@@ -700,8 +729,9 @@ function globalTechnicalContinuationWindow(line: string): number {
   if (/(?:\bdimensions?\b|\bweight\b|\u5c3a\u5bf8|\u91cd\u91cf)/i.test(line)) return 28;
   // "max. Connection C1 Number of conductors" wraps its own label onto the next line ("per
   // terminal") before the value line \u2014 a window of 1 would only capture the label continuation
-  // and miss the value itself.
-  if (/number\s+of\s+conductors/i.test(line)) return 3;
+  // and miss the value itself. Same reach needed for every other label registered in
+  // WRAPPED_LABEL_SPECS below (e.g. "max. Operating altitude above" / "MSL" / "2000 m").
+  if (WRAPPED_LABEL_SPECS.some((spec) => spec.pattern.test(line))) return 3;
   return 1;
 }
 
@@ -1147,11 +1177,25 @@ function rangesOverlap(leftStart: number, leftEnd: number, rightStart: number, r
 function isLikelyInlineKnownValue(value: string): boolean {
   if (value.length > 180) return false;
   if (/^(?:-|n\/?a|not available|none)$/i.test(value)) return false;
+  // `parseMultipleKnownInlinePairs` matches a known label ANYWHERE in a line, not just at its
+  // start — a marketing sentence that happens to repeat the label mid-prose ("...offer protection
+  // over the entire tripping frequency range up to 20 kHz...") then gets the text up to the next
+  // matched label sliced out as if it were that label's value. A prose fragment starting with a
+  // lowercase grammatical continuation word is never a real spec value even if it contains a
+  // digit further in ("range up to 20 kHz"), unlike a real value that starts directly with the
+  // number/enum ("0 Hz ... 150 kHz", "type B").
+  if (/^(?:range|up|over|the|of|and|with|in|on|for|or|was|are|to|a|an|this|that|which|therefore|however|since|because|respectively)\b/i.test(value)) {
+    return false;
+  }
   return /\d|[A-Z]{2,}|steel|aluminum|aluminium|plastic|poly|powder|coating|paint|nema|ip\s*\d|ce|ul|csa|rohs|reach/i.test(value);
 }
 
 function isPdfLabelQualifierOnly(value: string): boolean {
-  return /^(?:xt|standard|std|safety|nse|conformal(?:ly)? coated|coated|non[-\s]?safety)$/i.test(cleanText(value));
+  // "with" catches a real Doepke case: "Cross section AWG, flexible with ferrule" sometimes wraps
+  // as "Cross section AWG, flexible with" / "ferrule" / value — the shorter registered label
+  // "Cross section AWG, flexible" then prefix-matches that first line with "with" left over as a
+  // dangling connector word, not a real value (WRAPPED_LABEL_SPECS handles the actual fact).
+  return /^(?:xt|standard|std|safety|nse|conformal(?:ly)? coated|coated|non[-\s]?safety|with)$/i.test(cleanText(value));
 }
 
 function isKnownLabelWithQualifierOnly(line: string): boolean {
@@ -1992,6 +2036,90 @@ function catalogMatchedRowsIndex(lines: string[], sourceUrl: string): CatalogMat
   catalogMatchedRowsCache.set(cacheKey, index);
   trimMap(catalogMatchedRowsCache, 8);
   return index;
+}
+
+interface WrappedLabelSpec {
+  // Matched anywhere in a line (not anchored) unless the pattern itself anchors with ^.
+  pattern: RegExp;
+  group: string;
+  // Fixed output name for facts with one physical meaning per datasheet. Omit for facts that
+  // repeat with a distinguishing qualifier baked into the label itself (e.g. "(Type A/AC
+  // operation)" vs "(Type B operation)") — those must use the joined raw label text instead, or
+  // the qualifier that makes each occurrence distinct would be lost.
+  canonicalName?: string;
+}
+
+/**
+ * Several Doepke datasheet labels wrap across a variable, inconsistent number of physical PDF
+ * lines depending on the surrounding page layout (device variant text elsewhere on the page
+ * shifts word-wrap points) — the exact same fact renders as "Number of conductors" / "per
+ * terminal" / value on one datasheet and "number of conductors per" / "terminal" / value on
+ * another; "max. operating altitude above MSL" sometimes stays on one line and sometimes splits
+ * "max. Operating altitude above" / "MSL" / value. Exact-string known-label matching
+ * (`isKnownLabelOnly`/`technical-attribute-aliases.ts`) only recognizes ONE specific wrap point per
+ * alias, so it silently missed every other wrap variant, and the generic per-line splitters treat
+ * a label's own trailing continuation fragment as if it were the value (producing garbage like
+ * name="Minimum rated operating voltage" value="(Type A/AC"). This scans loosely for each spec's
+ * anchor phrase anywhere in a line, then walks forward past short label-continuation fragments to
+ * the first line that actually starts with a digit (the real value), regardless of how many lines
+ * the label itself was split across.
+ */
+const WRAPPED_LABEL_SPECS: WrappedLabelSpec[] = [
+  {
+    pattern: /number\s+of\s+conductors/i,
+    group: "PDF Terminal Data",
+    canonicalName: "max. Connection C1 Number of conductors per terminal"
+  },
+  // No canonicalName: "(Type A/AC operation)" vs "(Type B operation)" are two distinct facts that
+  // must keep their own qualifier in the name.
+  { pattern: /^minimum\s+rated\s+operating\s+voltage\b/i, group: "PDF Terminal Data" },
+  { pattern: /operating\s+altitude/i, group: "PDF Environmental Data", canonicalName: "max. operating altitude above MSL" },
+  // "Cross section AWG, flexible with ferrule" — the wrap point sometimes lands mid-phrase
+  // ("...flexible with" / "ferrule" / value) instead of the whole label staying on one line.
+  { pattern: /awg,?\s*flexible\s+with\b/i, group: "PDF Terminal Data", canonicalName: "Cross section AWG, flexible with ferrule" }
+];
+
+function extractWrappedLabelValueAttributes(lines: string[], sourceUrl: string): AttributeRecord[] {
+  const attributes: AttributeRecord[] = [];
+  for (let index = 0; index < lines.length; index += 1) {
+    const line = cleanText(lines[index]);
+    const spec = WRAPPED_LABEL_SPECS.find((candidateSpec) => candidateSpec.pattern.test(line));
+    if (!spec) continue;
+
+    // Not every occurrence wraps — the same label/value sometimes stays on one line ("max.
+    // operating altitude above MSL 2000 m") depending on how much other page content shifted the
+    // word wrap. If a digit-starting token already appears on the anchor line itself, that's the
+    // value; only fall through to the multi-line walk when the line is label-only.
+    const tokens = line.split(/\s+/);
+    const sameLineValueIndex = tokens.findIndex((token) => /^-?\d/.test(token));
+    if (sameLineValueIndex > 0) {
+      attributes.push({
+        group: spec.group,
+        name: spec.canonicalName ?? cleanText(tokens.slice(0, sameLineValueIndex).join(" ")),
+        value: cleanText(tokens.slice(sameLineValueIndex).join(" ")),
+        sourceUrl
+      });
+      continue;
+    }
+
+    let label = line;
+    let value: string | undefined;
+    for (let offset = 1; offset <= 3 && index + offset < lines.length; offset += 1) {
+      const candidate = cleanText(lines[index + offset]);
+      if (!candidate) continue;
+      if (/^-?\d/.test(candidate)) {
+        value = candidate;
+        break;
+      }
+      // A real label continuation is a short fragment ("per terminal", "MSL"); anything longer is
+      // unrelated prose the value walk should not reach past.
+      if (candidate.split(/\s+/).length > 6) break;
+      label += ` ${candidate}`;
+    }
+    if (!value) continue;
+    attributes.push({ group: spec.group, name: spec.canonicalName ?? cleanText(label), value, sourceUrl });
+  }
+  return attributes;
 }
 
 function extractQualifiedTemperatureAttributes(lines: string[], sourceUrl: string): AttributeRecord[] {

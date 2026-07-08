@@ -273,6 +273,12 @@ function doepkeDocumentType(label: string, url: string): DocumentRecord["type"] 
   // label doesn't contain "drawing" the way "Dimensional drawing" does. Left as "image" it competes
   // with the real product photo for the image slot.
   if (/^(?:wiring|connection)\s+diagram\b/i.test(label)) return "cad";
+  // Tripping-characteristic/derating curve charts ("Characteristic B SK 30 mA", "Derating curve
+  // ...") live under `/tx_doepkeproducts/diagramm/` and are always JPGs — `classifyDocument`'s
+  // generic `.jpe?g` fallback tags them "image" the same as the real product photo, so
+  // run-manager's per-product image cap keeps BOTH as distinct "gallery images" and downloads the
+  // chart alongside (sometimes instead of) the actual product photo. These are graphs, not photos.
+  if (/\/tx_doepkeproducts\/diagramm\//i.test(url)) return "other";
   return classifyDocument(label, url);
 }
 
