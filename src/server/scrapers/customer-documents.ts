@@ -14,7 +14,7 @@ import type {
 } from "../../shared/types.js";
 import { catalogTextMatches } from "./catalog-number.js";
 import { extractDocumentTextAttributes } from "./document-enrichment.js";
-import { extractNameplateVoltageClassSpecAttributes } from "./electrical-spec-miner.js";
+import { extractInlineNameplateSpecAttributes, extractNameplateVoltageClassSpecAttributes } from "./electrical-spec-miner.js";
 import { fieldMatchesLabel, FIELD_REGISTRY, type RegistryFieldKey } from "./field-registry.js";
 import { cleanText, normalizeFields } from "./normalizer.js";
 import { readPdfWithOptionalOcr } from "./pdf-ocr.js";
@@ -1174,10 +1174,16 @@ function attributesFromMatrix(
       if (rawValue.length > 600) continue;
       const value = headerLooksLikeHeader ? attachHeaderUnitToBareNumber(rawValue, unitFromColumnHeader(columnName)) : rawValue;
       attributes.push({ group: `Customer / ${group}`, name: columnName, value, sourceUrl });
+      // Description cells routinely carry the product's nameplate ratings inline with no
+      // label — "3AC 230V, 5.5kW, 20A, Profibus DP". The column attribute above keeps that
+      // as one opaque blob ("Product Description"), which no field mapper can read, so the
+      // customer's own current/power silently vanished from the output. Mine the cell for
+      // pure unit-tagged segments and emit them as properly named spec attributes too.
+      attributes.push(...extractInlineNameplateSpecAttributes(rawValue, sourceUrl, `Customer / ${group}`));
     }
   }
 
-  return attributes;
+  return dedupeCustomerAttributes(attributes);
 }
 
 const MAX_IDENTIFIER_ALIASES = 6;

@@ -178,6 +178,30 @@ describe("technical attribute normalization", () => {
     }
   });
 
+  it("falls back to unit inference for labels no alias or synonym knows, at reduced confidence", () => {
+    const mapped = normalizeTechnicalAttributes("unknown-maker", [
+      { name: "Prąd znamionowy", value: "20 A", sourceType: "official" }, // Polish rated current
+      { name: "Straty mocy", value: "5 W", sourceType: "official" }, // Polish power loss
+      { name: "Napięcie izolacji", value: "690 V", sourceType: "official" } // insulation — must NOT be guessed
+    ]);
+
+    const current = mapped.find((item) => item.canonicalKey === "ratedCurrent");
+    expect(current).toBeDefined();
+    expect(current?.matchType).toBe("unit_inference");
+    expect(current?.quantities?.[0]).toMatchObject({ kind: "current", value: 20, unit: "A" });
+
+    const loss = mapped.find((item) => item.canonicalKey === "powerLoss");
+    expect(loss?.matchType).toBe("unit_inference");
+
+    expect(mapped.some((item) => item.originalName === "Napięcie izolacji")).toBe(false);
+
+    // Unit inference must rank below a real synonym hit for fact selection.
+    const synonymBased = normalizeTechnicalAttributes("unknown-maker", [
+      { name: "Rated current", value: "20 A", sourceType: "official" }
+    ]);
+    expect(current!.confidence).toBeLessThan(synonymBased[0]!.confidence);
+  });
+
   it("keeps the global alias catalog executable for any manufacturer", () => {
     const aliases = listTechnicalAttributeAliases().filter((alias) => alias.scope === "global");
 

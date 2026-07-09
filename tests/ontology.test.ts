@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { findUnmappedSpecLabels, matchProperty, understand } from "../src/server/scrapers/ontology.js";
+import { findUnmappedSpecLabels, inferPropertyFromQuantities, matchProperty, understand } from "../src/server/scrapers/ontology.js";
 
 describe("property ontology — general multilingual understanding", () => {
   it("maps multilingual labels to the same canonical property", () => {
@@ -10,6 +10,18 @@ describe("property ontology — general multilingual understanding", () => {
     expect(matchProperty("Schutzart")?.key).toBe("protection");
     expect(matchProperty("Gewicht")?.key).toBe("weight");
     expect(matchProperty("Werkstoff")?.key).toBe("material");
+  });
+
+  it("recognizes real-world manufacturer labels found via the unmapped-label audit", () => {
+    // German reverse-compound and input/output voltage variants ("Spannungsversorgung",
+    // "Eingangsspannung") — confirmed unmapped in production run history before this fix.
+    expect(matchProperty("Spannungsversorgung")?.key).toBe("ratedVoltage");
+    expect(matchProperty("Eingangsspannung, nom.")?.key).toBe("ratedVoltage");
+    expect(matchProperty("Ausgangsspannung")?.key).toBe("ratedVoltage");
+    // "Summenstrom" (total/sum current) — IO-Link/fieldbus sensor+actuator supply current.
+    expect(matchProperty("Summenstrom US, Sensor")?.key).toBe("ratedCurrent");
+    // Motor/transformer idle-running losses.
+    expect(matchProperty("Idle running losses")?.key).toBe("powerLoss");
   });
 
   it("prefers the most specific property", () => {
@@ -311,6 +323,42 @@ describe("property ontology — general multilingual understanding", () => {
     expect(matchProperty("PN16")?.key).not.toBe("power");
     // Bore is its own (cylinder) concept, not generic diameter
     expect(matchProperty("Bore")?.key).toBe("bore");
+  });
+
+  describe("unit-driven property inference (unknown-language labels)", () => {
+    it("infers the plain rated property from an unambiguous unit when the label is unknown", () => {
+      // Polish — a language the synonym lists don't cover
+      expect(inferPropertyFromQuantities("Prąd znamionowy", "20 A")?.property.key).toBe("ratedCurrent");
+      expect(inferPropertyFromQuantities("Napięcie zasilania", "400 V")?.property.key).toBe("ratedVoltage");
+      expect(inferPropertyFromQuantities("Częstotliwość", "50 Hz")?.property.key).toBe("frequency");
+      // Czech ambient-temperature range and weight
+      expect(inferPropertyFromQuantities("Teplota okolí", "-25...70 °C")?.property.key).toBe("operatingTemperature");
+      expect(inferPropertyFromQuantities("Hmotnost", "1.2 kg")?.property.key).toBe("weight");
+    });
+
+    it("reroutes qualifiers it understands to the specific property instead", () => {
+      expect(inferPropertyFromQuantities("Straty mocy", "5 W")?.property.key).toBe("powerLoss"); // PL power loss
+      expect(inferPropertyFromQuantities("Güç tüketimi", "10 W")?.property.key).toBe("powerConsumption"); // TR consumption
+      expect(inferPropertyFromQuantities("Skladovací teplota", "-40...85 °C")?.property.key).toBe("storageTemperature"); // CS storage
+    });
+
+    it("stays silent on dangerous qualifiers instead of guessing the rated property", () => {
+      expect(inferPropertyFromQuantities("Napięcie izolacji", "690 V")).toBeUndefined(); // insulation
+      expect(inferPropertyFromQuantities("Fusible recomendado", "20 A")).toBeUndefined(); // fuse
+      expect(inferPropertyFromQuantities("Eigenfrequenz", "50 Hz")).toBeUndefined(); // natural frequency
+      // a lone temperature could mean anything — only ranges read as environment ratings
+      expect(inferPropertyFromQuantities("Teplota", "70 °C")).toBeUndefined();
+      // mixed kinds in one value are ambiguous
+      expect(inferPropertyFromQuantities("Zasilanie", "230 V / 50 Hz")).toBeUndefined();
+      // switching frequencies in kHz are not the mains frequency
+      expect(inferPropertyFromQuantities("Frekvencja kluczowania", "4 kHz")).toBeUndefined();
+      // kA is a breaking capacity, kV an impulse/insulation level — never the plain rating
+      expect(inferPropertyFromQuantities("Prąd zwarciowy", "6 kA")).toBeUndefined();
+      expect(inferPropertyFromQuantities("Wytrzymałość udarowa", "6 kV")).toBeUndefined();
+      // prose that merely mentions a quantity is not a spec value
+      expect(inferPropertyFromQuantities("Opis", "SIMATIC IPC427E, 24 V DC industrial power supply")).toBeUndefined();
+      expect(inferPropertyFromQuantities("Product name", "24 V power supply")).toBeUndefined();
+    });
   });
 
   it("flags labels it does not understand (knowledge-base gaps), never guesses them", () => {

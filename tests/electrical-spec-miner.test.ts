@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { extractElectricalSpecAttributesFromText, extractOntologySpecAttributesFromText } from "../src/server/scrapers/electrical-spec-miner.js";
+import {
+  extractElectricalSpecAttributesFromText,
+  extractInlineNameplateSpecAttributes,
+  extractOntologySpecAttributesFromText
+} from "../src/server/scrapers/electrical-spec-miner.js";
 import { parseGenericProductPage } from "../src/server/scrapers/generic.js";
 import { normalizeTechnicalAttributes } from "../src/server/scrapers/technical-attributes.js";
 import type { FetchedText } from "../src/server/scrapers/http-client.js";
@@ -88,6 +92,178 @@ describe("electrical spec miner", () => {
 
     expect(technical.map((item) => item.canonicalKey)).toEqual(
       expect.arrayContaining(["ratedVoltage", "currentConsumption", "powerLoss", "ratedCurrent"])
+    );
+  });
+});
+
+describe("inline nameplate spec miner (extractInlineNameplateSpecAttributes)", () => {
+  const sourceUrl = "file:///feedback.xlsx";
+
+  it("extracts unlabeled comma-separated nameplate ratings from an English drive description", () => {
+    const attributes = extractInlineNameplateSpecAttributes(
+      "3AC 380VAC, 0.75KW, 3.0A, Panel,DI PNP，DO PNP，AI(4-20mA)，W/O EMC filter",
+      sourceUrl
+    );
+
+    expect(attributes).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ name: "Rated voltage", value: "3~ 380 V AC" }),
+        expect.objectContaining({ name: "Rated power", value: "0.75 kW" }),
+        expect.objectContaining({ name: "Rated current", value: "3.0 A" })
+      ])
+    );
+    // "AI(4-20mA)" is an analog-input signal range, not a rating — must never leak in.
+    expect(attributes.some((attr) => /mA/.test(attr.value))).toBe(false);
+  });
+
+  it("extracts ratings from a Chinese description with fullwidth separators", () => {
+    const attributes = extractInlineNameplateSpecAttributes(
+      "3AC 230V, 5.5kW, 20A, 无内置直流电抗器, 内置制动斩波器, Profibus DP",
+      sourceUrl
+    );
+
+    expect(attributes).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ name: "Rated voltage", value: "3~ 230 V" }),
+        expect.objectContaining({ name: "Rated power", value: "5.5 kW" }),
+        expect.objectContaining({ name: "Rated current", value: "20 A" })
+      ])
+    );
+  });
+
+  it("keeps decimal commas intact and accepts frequency segments", () => {
+    const attributes = extractInlineNameplateSpecAttributes("1AC 230V, 2,2kW, 50/60Hz, 12A", sourceUrl);
+
+    expect(attributes).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ name: "Rated voltage", value: "1~ 230 V" }),
+        expect.objectContaining({ name: "Rated power", value: "2,2 kW" }),
+        expect.objectContaining({ name: "Frequency", value: "50/60 Hz" }),
+        expect.objectContaining({ name: "Rated current", value: "12 A" })
+      ])
+    );
+  });
+
+  it("reads the 3x/phase-word/multiplication notations with tolerance, HP and IP extras", () => {
+    const attributes = extractInlineNameplateSpecAttributes("3x400V ±10%, 50/60Hz, 7.5HP, IP20", sourceUrl);
+
+    expect(attributes).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ name: "Rated voltage", value: "3~ 400 V ±10%" }),
+        expect.objectContaining({ name: "Frequency", value: "50/60 Hz" }),
+        expect.objectContaining({ name: "Rated power", value: "7.5 HP" }),
+        expect.objectContaining({ name: "Degree of protection", value: "IP20" })
+      ])
+    );
+  });
+
+  it("reads type-before-number DC notation", () => {
+    const attributes = extractInlineNameplateSpecAttributes("DC 24V, 2.5A, 60W", sourceUrl);
+
+    expect(attributes).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ name: "Rated voltage", value: "24 V DC" }),
+        expect.objectContaining({ name: "Rated current", value: "2.5 A" }),
+        expect.objectContaining({ name: "Rated power", value: "60 W" })
+      ])
+    );
+  });
+
+  it("reads Siemens-style ranges with the phase marker after the value", () => {
+    const attributes = extractInlineNameplateSpecAttributes("380-480 V 3 AC, 50/60 Hz, 11 kW", sourceUrl);
+
+    expect(attributes).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ name: "Rated voltage", value: "3~ 380...480 V" }),
+        expect.objectContaining({ name: "Rated power", value: "11 kW" })
+      ])
+    );
+  });
+
+  it("reads unit-on-both-ends ranges, dual voltages and voltage+frequency pairs", () => {
+    expect(extractInlineNameplateSpecAttributes("380V-480V, 18.5kW", sourceUrl)).toEqual(
+      expect.arrayContaining([expect.objectContaining({ name: "Rated voltage", value: "380...480 V" })])
+    );
+    // voltage + frequency alone is a credible nameplate even without current/power
+    expect(extractInlineNameplateSpecAttributes("230/400V, 50Hz", sourceUrl)).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ name: "Rated voltage", value: "230/400 V" }),
+        expect.objectContaining({ name: "Frequency", value: "50 Hz" })
+      ])
+    );
+  });
+
+  it("reads Chinese phase words plus temperature-range and weight extras", () => {
+    const attributes = extractInlineNameplateSpecAttributes(
+      "三相 380V, 15kW, 32A, IP54, -10~+50℃, 12kg",
+      sourceUrl
+    );
+
+    expect(attributes).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ name: "Rated voltage", value: "3~ 380 V" }),
+        expect.objectContaining({ name: "Rated power", value: "15 kW" }),
+        expect.objectContaining({ name: "Rated current", value: "32 A" }),
+        expect.objectContaining({ name: "Degree of protection", value: "IP54" }),
+        expect.objectContaining({ name: "Operating temperature", value: "-10...+50 °C" }),
+        expect.objectContaining({ name: "Weight", value: "12 kg" })
+      ])
+    );
+  });
+
+  it("reads pipe- and bullet-separated cells, as often used instead of commas in PDF tables", () => {
+    expect(extractInlineNameplateSpecAttributes("3AC 400V | 15kW | 32A | IP54", sourceUrl)).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ name: "Rated voltage", value: "3~ 400 V" }),
+        expect.objectContaining({ name: "Rated power", value: "15 kW" }),
+        expect.objectContaining({ name: "Rated current", value: "32 A" }),
+        expect.objectContaining({ name: "Degree of protection", value: "IP54" })
+      ])
+    );
+    expect(extractInlineNameplateSpecAttributes("230V • 50Hz • 16A", sourceUrl)).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ name: "Rated voltage", value: "230 V" }),
+        expect.objectContaining({ name: "Frequency", value: "50 Hz" }),
+        expect.objectContaining({ name: "Rated current", value: "16 A" })
+      ])
+    );
+  });
+
+  it("reads apparent power and duty-class parenthetical qualifiers", () => {
+    const attributes = extractInlineNameplateSpecAttributes("1AC 230V, 3kVA, 13A(HD)", sourceUrl);
+
+    expect(attributes).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ name: "Rated voltage", value: "1~ 230 V" }),
+        expect.objectContaining({ name: "Rated apparent power", value: "3 kVA" }),
+        expect.objectContaining({ name: "Rated current", value: "13 A" })
+      ])
+    );
+  });
+
+  it("requires at least two electrical ratings on the same line before emitting anything", () => {
+    expect(extractInlineNameplateSpecAttributes("The device draws 20 A, and is very robust", sourceUrl)).toEqual([]);
+    expect(extractInlineNameplateSpecAttributes("AI(4-20mA), AO(0-10V), Modbus RTU", sourceUrl)).toEqual([]);
+    // Signal levels below 10 V are I/O ranges, not supply ratings.
+    expect(extractInlineNameplateSpecAttributes("0-10V, 20A, relay output", sourceUrl)).toEqual([]);
+  });
+
+  it("ignores unit-like tokens glued inside catalog codes", () => {
+    expect(extractInlineNameplateSpecAttributes("DV1-342D5PB-C20AL1, CDV00301, accessories", sourceUrl)).toEqual([]);
+  });
+
+  it("runs as part of extractElectricalSpecAttributesFromText for document text", () => {
+    const attributes = extractElectricalSpecAttributesFromText({
+      sourceUrl,
+      text: "DF1-34020FB-C20 variable frequency drive\n3AC 230V, 5.5kW, 20A, Profibus DP\nSafety instructions apply."
+    });
+
+    expect(attributes).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ name: "Rated voltage", value: "3~ 230 V" }),
+        expect.objectContaining({ name: "Rated current", value: "20 A" }),
+        expect.objectContaining({ name: "Rated power", value: "5.5 kW" })
+      ])
     );
   });
 });

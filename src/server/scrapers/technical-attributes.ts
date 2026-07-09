@@ -8,7 +8,7 @@ import type {
 } from "../../shared/types.js";
 import { cleanText } from "./normalizer.js";
 import { matchTechnicalAttributeAlias, type TechnicalAttributeAliasMatch } from "./technical-attribute-aliases.js";
-import { matchProperty, PROPERTY_ONTOLOGY, type CanonicalProperty } from "./ontology.js";
+import { inferPropertyFromQuantities, matchProperty, PROPERTY_ONTOLOGY, type CanonicalProperty } from "./ontology.js";
 import { parseQuantities, type ParsedQuantity, type QuantityKind } from "./quantity.js";
 
 export function normalizeTechnicalAttributes(
@@ -27,9 +27,14 @@ export function normalizeTechnicalAttributes(
         ? undefined
         : matchTechnicalAttributeAlias(manufacturerId, attribute.name) ?? matchTechnicalAttributeAlias(manufacturerId, label);
       const aliasMatch = exactAlias ?? (shouldPreferFuzzyAlias(fuzzyAlias, ontologyProperty) ? fuzzyAlias : undefined);
-      const property = propertyForKnownAlias(aliasMatch?.alias.canonicalKey) ?? ontologyProperty;
+      // Last resort when neither aliases nor ontology synonyms know the label (a language /
+      // phrasing not taught yet): the value's UNIT still identifies the quantity. Clearly
+      // lower confidence than a synonym hit — see inferPropertyFromQuantities for the guards.
+      const knownProperty = propertyForKnownAlias(aliasMatch?.alias.canonicalKey) ?? ontologyProperty;
+      const inferred = knownProperty ? undefined : inferPropertyFromQuantities(label, attribute.value);
+      const property = knownProperty ?? inferred?.property;
       if (!property) return [];
-      const matchType = technicalAttributeMatchType(aliasMatch, ontologyProperty);
+      const matchType = inferred ? "unit_inference" as const : technicalAttributeMatchType(aliasMatch, ontologyProperty);
       const quantityText = quantityTextWithUnitHint(attribute, property.unitKind);
       const quantities = parseQuantities(quantityText, property.unitKind ? { kind: property.unitKind } : {}).map(toTechnicalQuantity);
       return [
@@ -163,6 +168,9 @@ function confidenceBaseForMatchType(matchType: TechnicalAttributeRecord["matchTy
   if (matchType === "fuzzy_manufacturer_alias") return 0.78;
   if (matchType === "fuzzy_global_alias") return 0.76;
   if (matchType === "fuzzy_cross_manufacturer_alias") return 0.72;
+  // Unit-only inference has no label evidence at all — keep it clearly below every
+  // synonym/alias tier so an explicit match always outranks it in fact selection.
+  if (matchType === "unit_inference") return 0.58;
   return 0.82;
 }
 
@@ -176,7 +184,11 @@ function technicalAttributeReason(
 ): string {
   const parts = aliasMatch
     ? [technicalAliasReason(aliasMatch, canonicalKey)]
-    : [`Label matched ontology key '${canonicalKey}'`];
+    : [
+        matchType === "unit_inference"
+          ? `Label unknown to ontology; inferred '${canonicalKey}' from its ${unitKind ?? "quantity"} value`
+          : `Label matched ontology key '${canonicalKey}'`
+      ];
   if (unitKind) parts.push(quantityCount ? `value parsed as ${unitKind}` : `expected ${unitKind} value not parsed`);
   if (matchType) parts.push(`match type ${matchType}`);
   if (attribute.sourceType) parts.push(`source ${attribute.sourceType}`);

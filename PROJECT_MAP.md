@@ -229,13 +229,13 @@ Politike u `ManufacturerConfig.scrapeRecipe`: `DiscoveryPolicyConfig`, `Interact
 | `catalog-number.ts` | `sameCatalogNumber`, `fillCatalogTemplate`, `catalogNumberVariants`, `buildConfiguredLocalizedUrls`, `compactCatalogNumber` |
 | `product-identity.ts` | `structuredIdentityConflict`, `hasMatchingStructuredIdentity`, `identityConflictReason` |
 | `marker-extractor.ts` | `extractMarkerData` |
-| `electrical-spec-miner.ts` | `extractElectricalSpecAttributesFromText` (hand-tuned voltage/current/power), `extractOntologySpecAttributesFromText` (same label+context-window engine driven by `ontology.ts`'s `PROPERTY_ONTOLOGY` — mines dimensions/weight/temperature/torque/pressure/etc. directly from PDF prose) |
+| `electrical-spec-miner.ts` | `extractElectricalSpecAttributesFromText` (hand-tuned voltage/current/power), `extractOntologySpecAttributesFromText` (same label+context-window engine driven by `ontology.ts`'s `PROPERTY_ONTOLOGY` — mines dimensions/weight/temperature/torque/pressure/etc. directly from PDF prose), `extractInlineNameplateSpecAttributes` (unlabeled comma-separated nameplate strings "3AC 230V, 5.5kW, 20A" / "3x400V ±10%, 50/60Hz, 7.5HP, IP20" — tokenizer čistih value+unit segmenata s fazom/AC-DC/tolerancijom/HP/kVA/IP/temp/kg; gate: ≥2 električna pogotka ili napon+frekvencija po liniji; koristi se i po ćeliji u customer xlsx/CSV matrici) |
 
 ### `src/server/scrapers/` — understanding engine
 | Fajl | Ključni exporti |
 | --- | --- |
 | `normalizer.ts` | `mergeResults`, `emptyResult`, `normalizeFields`, `cleanText`, `splitNameValue`, `classifyDocument` |
-| `ontology.ts` | `PROPERTY_ONTOLOGY`, `matchProperty`, `understand`, `findUnmappedSpecLabels` |
+| `ontology.ts` | `PROPERTY_ONTOLOGY`, `matchProperty`, `understand`, `findUnmappedSpecLabels`, `inferPropertyFromQuantities` (unit-driven fallback za labele koje nijedan sinonim ne zna: V/A/W/Hz/°C/kg vrijednost → ratedVoltage/ratedCurrent/power(Loss/Consumption)/frequency/operating-storageTemperature/weight, s višejezičnim blokadama opasnih kvalifikatora; koristi ga technical-attributes (`matchType:"unit_inference"`, niži confidence) i normalizer kao zadnji fallback za voltage/current/weight) |
 | `quantity.ts` | `parseQuantities`, `parseTemperatureRange`, `quantityMin/Max`, `ParsedQuantity` |
 | `technical-attributes.ts` | `normalizeTechnicalAttributes` |
 | `technical-attribute-aliases.ts` | `TECHNICAL_ATTRIBUTE_ALIASES`, `listTechnicalAttributeAliases`, `matchTechnicalAttributeAlias`, `suggestTechnicalAttributeAlias` (zadnji: prijedlog najbližeg kanonskog ključa za "Unmapped Labels") |

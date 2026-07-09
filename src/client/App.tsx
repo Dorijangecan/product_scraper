@@ -245,6 +245,7 @@ export function App() {
   const [runItemPageSize, setRunItemPageSize] = useState<RunItemPageSize>(50);
   const [runItemPage, setRunItemPage] = useState(1);
   const [catalogListMessage, setCatalogListMessage] = useState("");
+  const [copiedCatalogItemId, setCopiedCatalogItemId] = useState<number | null>(null);
   const [historyExpanded, setHistoryExpanded] = useState(false);
   const [downloadPdfs, setDownloadPdfs] = useState(false);
   const [downloadCad, setDownloadCad] = useState(false);
@@ -934,6 +935,15 @@ export function App() {
       if (body) downloadTextFile(fileName, body);
       setCatalogListMessage(body ? `${catalogNumbers.length} saved` : "No rows");
     }
+  }
+
+  async function handleCatalogNumberCopy(item: RunItemRecord) {
+    const copied = await copyTextToClipboard(item.catalogNumber).catch(() => false);
+    if (!copied) return;
+    setCopiedCatalogItemId(item.id);
+    window.setTimeout(() => {
+      setCopiedCatalogItemId((current) => (current === item.id ? null : current));
+    }, 1200);
   }
 
   function handleDistributorFallbackToggle(checked: boolean) {
@@ -2022,7 +2032,16 @@ export function App() {
                     {runItemPageItems.map((item) => (
                       <tr key={item.id} className={selectedItemId === item.id ? "active-row" : ""}>
                         <td>{item.rowIndex}</td>
-                        <td className="mono">{item.catalogNumber}</td>
+                        <td className="mono">
+                          <button
+                            type="button"
+                            className={copiedCatalogItemId === item.id ? "catalog-copy copied" : "catalog-copy"}
+                            title="Click to copy"
+                            onClick={() => { void handleCatalogNumberCopy(item); }}
+                          >
+                            {copiedCatalogItemId === item.id ? "Copied!" : item.catalogNumber}
+                          </button>
+                        </td>
                         <td>
                           <ItemBadge status={item.status} />
                         </td>
@@ -3129,6 +3148,11 @@ function HistoryRunButton({
         <span className="history-main">
           <strong>{runShortName}</strong>
           <span>{new Date(run.createdAt).toLocaleString()}</span>
+          {run.inputFileName && (
+            <span className="history-file-name" title={run.inputFileName}>
+              {run.inputFileName}
+            </span>
+          )}
         </span>
         <span className="history-tail">
           <StatusBadge status={run.status} />

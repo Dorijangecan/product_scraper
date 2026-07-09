@@ -518,7 +518,8 @@ export interface TechnicalAttributeRecord {
     | "ontology"
     | "fuzzy_manufacturer_alias"
     | "fuzzy_global_alias"
-    | "fuzzy_cross_manufacturer_alias";
+    | "fuzzy_cross_manufacturer_alias"
+    | "unit_inference";
   matchedAlias?: string;
   matchedAliasManufacturerId?: string;
   matchScore?: number;

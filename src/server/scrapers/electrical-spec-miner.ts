@@ -278,10 +278,209 @@ export function extractElectricalSpecAttributesFromText(input: {
   const maxAttributes = input.maxAttributes ?? 80;
   const attributes: AttributeRecord[] = [
     ...extractNameplateVoltageClassAttributes(normalized, input.sourceUrl, group),
+    // Runs on the RAW text: the inline pass needs the original line structure, which
+    // normalizeSpecMiningText collapses into one long line.
+    ...extractInlineNameplateSpecAttributes(input.text, input.sourceUrl, group),
     ...mineSpecDefinitions(normalized, ELECTRICAL_SPEC_DEFINITIONS, group, input.sourceUrl)
   ];
 
   return dedupeAttributes(attributes).slice(0, maxAttributes);
+}
+
+// --- Inline nameplate spec strings --------------------------------------------------------
+// Catalog descriptions and customer spreadsheets often write a product's core electrical
+// ratings as a bare comma-separated enumeration with no label anywhere near the values:
+//   "3AC 380VAC, 0.75KW, 3.0A, Panel, DI PNP, AI(4-20mA), W/O EMC filter"
+//   "3AC 230V, 5.5kW, 20A, 无内置直流电抗器, 内置制动斩波器, Profibus DP"
+//   "3x400V ±10%, 50/60Hz, 7.5HP, IP20, -10~+50℃"     (notation varies per manufacturer)
+// Every other extractor in this module is label-driven ("Rated current: 20 A") and cannot see
+// these, so this pass splits each line into comma/enumeration segments and accepts a segment
+// only when it consists of NOTHING BUT value+unit tokens (plus phase/AC-DC markers and
+// tolerances). A segment may hold several tokens ("230V/50Hz", "3 AC 380...480 V"); one
+// unrecognized word makes the whole segment impure, so prose like "with 20 A of headroom"
+// and glued tokens ("AI(4-20mA)", catalog codes like "C20AL1") never qualify.
+// A line must yield at least two distinct electrical ratings (voltage/current/power) — or a
+// voltage+frequency pair — before anything is emitted, so one incidental "230V" mention
+// never fabricates a nameplate. Non-electrical extras (IP, temperature range, weight) ride
+// along only once that gate passes.
+
+// Splits on ASCII comma only when NOT between two digits (protects decimal commas like
+// "5,5kW"), plus fullwidth/CJK enumeration separators, semicolons, and the pipe/bullet
+// separators PDF table cells commonly use instead of commas ("3AC 400V | 15kW | 32A").
+const INLINE_SEGMENT_SEPARATOR = /[，、;；|•]|,(?!\d)|(?<!\d),/;
+const INLINE_ELECTRICAL_NAMES = ["Rated voltage", "Rated current", "Rated power", "Rated apparent power"];
+
+// Token patterns, each anchored at the start of the remaining segment. Trailing
+// (?![A-Za-z0-9]) guards keep units from matching inside longer words/codes ("C20AL1", "Wh").
+const INLINE_PHASE_TOKEN = /^(?:([123])[\s-]*(?:AC(?![A-Za-z])|~|[x×]|ph(?:ase)?(?![A-Za-z]))|三相|单相|單相)/i;
+const INLINE_TYPE_TOKEN = /^(AC\s*\/\s*DC|AC|DC)(?![A-Za-z])/i;
+// The optional mid "V" accepts unit-on-both-ends ranges ("380V-480V"); for a plain "380V"
+// the required trailing unit wins via backtracking.
+const INLINE_VOLTAGE_TOKEN = /^(\d{1,4}(?:[.,]\d+)?(?:\s*\/\s*\d{1,4}(?:[.,]\d+)?)?)(?:\s*V)?(?:\s*(?:\.{2,3}|…|[-–~]|to\s+)\s*(\d{1,4}(?:[.,]\d+)?))?\s*(?:V(AC|DC)?|Volts?)(?![A-Za-z0-9])/i;
+const INLINE_CURRENT_TOKEN = /^(\d{1,4}(?:[.,]\d+)?(?:\s*\/\s*\d{1,4}(?:[.,]\d+)?)?)\s*(?:A|Amps?|Amperes?)(?![A-Za-z0-9])(?:\s*(AC|DC)(?![A-Za-z]))?/i;
+const INLINE_POWER_TOKEN = /^(\d{1,4}(?:[.,]\d+)?)\s*(kW|kVA|VA|W|HP|PS)(?![A-Za-z0-9])/i;
+const INLINE_FREQUENCY_TOKEN = /^(\d{2,3})(?:\s*([/–-])\s*(\d{2,3}))?\s*Hz(?![A-Za-z0-9])/i;
+const INLINE_TEMPERATURE_TOKEN = /^([+-]?\d{1,3}(?:[.,]\d+)?)\s*(?:\.{2,3}|…|[-–~]|to\s+)\s*([+-]?\d{1,3}(?:[.,]\d+)?)\s*(?:°\s*C|℃)(?![A-Za-z0-9])/i;
+const INLINE_PROTECTION_TOKEN = /^(?:IP\s*(\d{2}[A-Z]?)|NEMA(?:\s*Type)?\s*(\d{1,2}[A-Z]?))(?![A-Za-z0-9])/i;
+const INLINE_WEIGHT_TOKEN = /^(\d{1,4}(?:[.,]\d+)?)\s*kg(?![A-Za-z0-9])/i;
+const INLINE_TOLERANCE_TOKEN = /^\(?\s*[±+-]\s*\d{1,2}(?:[.,]\d+)?\s*%(?:\s*[~/–-]\s*[+-]?\d{1,2}(?:[.,]\d+)?\s*%)?\s*\)?/;
+// Short parenthetical qualifiers after a valid token — "(HD)", "(max)" — carry duty-class
+// nuance we can't attribute reliably; consume them so they don't reject the whole segment.
+const INLINE_IGNORABLE_TOKEN = /^\([^()]{1,12}\)/;
+
+export function extractInlineNameplateSpecAttributes(
+  text: string,
+  sourceUrl: string,
+  group = "Inline Nameplate Specs"
+): AttributeRecord[] {
+  const attributes: AttributeRecord[] = [];
+  for (const line of text.split(/\r?\n/)) {
+    if (!line.includes(",") && !/[，、;；|•]/.test(line)) continue;
+    const hits = new Map<string, string>();
+    for (const rawSegment of line.split(INLINE_SEGMENT_SEPARATOR)) {
+      const segment = cleanText(rawSegment);
+      if (!segment || segment.length > 48) continue;
+      for (const hit of inlineNameplateSegmentSpecs(segment)) {
+        // First occurrence per line wins — descriptions lead with the nameplate ratings.
+        if (!hits.has(hit.name)) hits.set(hit.name, hit.value);
+      }
+    }
+    const electricalHits = INLINE_ELECTRICAL_NAMES.filter((name) => hits.has(name)).length;
+    const voltageWithFrequency = hits.has("Rated voltage") && hits.has("Frequency");
+    if (electricalHits < 2 && !voltageWithFrequency) continue;
+    for (const [name, value] of hits) attributes.push({ group, name, value, sourceUrl });
+  }
+  return dedupeAttributes(attributes);
+}
+
+interface InlineNameplateHit {
+  name: string;
+  value: string;
+}
+
+/**
+ * Walks one comma segment token by token. Returns [] unless EVERY token is recognized —
+ * one leftover word means "this is prose/a feature code, not a nameplate value".
+ */
+function inlineNameplateSegmentSpecs(segment: string): InlineNameplateHit[] {
+  let rest = segment;
+  let phase: string | undefined;
+  let pendingType: string | undefined;
+  let tolerance: string | undefined;
+  const voltages: Array<{ core: string; type?: string }> = [];
+  const others: InlineNameplateHit[] = [];
+
+  while (true) {
+    rest = rest.replace(/^[\s/／+&]+/, "");
+    if (!rest) break;
+
+    const phaseMatch = rest.match(INLINE_PHASE_TOKEN);
+    if (phaseMatch) {
+      phase = phaseMatch[1] ?? (/^三相/.test(phaseMatch[0]) ? "3" : "1");
+      rest = rest.slice(phaseMatch[0].length);
+      continue;
+    }
+    const typeMatch = rest.match(INLINE_TYPE_TOKEN);
+    if (typeMatch) {
+      const type = typeMatch[1].replace(/\s*\/\s*/, "/").toUpperCase();
+      const open = voltages.find((entry) => !entry.type);
+      if (open) open.type = type;
+      else pendingType = type;
+      rest = rest.slice(typeMatch[0].length);
+      continue;
+    }
+    const voltageMatch = rest.match(INLINE_VOLTAGE_TOKEN);
+    if (voltageMatch) {
+      const low = inlineNumber(voltageMatch[1]);
+      const high = voltageMatch[2] !== undefined ? inlineNumber(voltageMatch[2]) : undefined;
+      // Below 10 V it's almost certainly an I/O signal level ("0-10V"), not a supply rating.
+      if (low < 10 || (high !== undefined && high < low)) return [];
+      const core = `${voltageMatch[1].replace(/\s*\/\s*/, "/")}${voltageMatch[2] !== undefined ? `...${voltageMatch[2]}` : ""}`;
+      voltages.push({ core, type: voltageMatch[3]?.toUpperCase() ?? pendingType });
+      pendingType = undefined;
+      rest = rest.slice(voltageMatch[0].length);
+      continue;
+    }
+    const currentMatch = rest.match(INLINE_CURRENT_TOKEN);
+    if (currentMatch) {
+      const amps = inlineNumber(currentMatch[1]);
+      if (amps <= 0 || amps > 10_000) return [];
+      const value = `${currentMatch[1].replace(/\s*\/\s*/, "/")} A${currentMatch[2] ? ` ${currentMatch[2].toUpperCase()}` : ""}`;
+      others.push({ name: "Rated current", value });
+      rest = rest.slice(currentMatch[0].length);
+      continue;
+    }
+    const powerMatch = rest.match(INLINE_POWER_TOKEN);
+    if (powerMatch) {
+      others.push(inlinePowerHit(powerMatch[1], powerMatch[2]));
+      rest = rest.slice(powerMatch[0].length);
+      continue;
+    }
+    const frequencyMatch = rest.match(INLINE_FREQUENCY_TOKEN);
+    if (frequencyMatch) {
+      const separator = frequencyMatch[2] === "/" ? "/" : "-";
+      const value = `${frequencyMatch[1]}${frequencyMatch[3] ? `${separator}${frequencyMatch[3]}` : ""} Hz`;
+      others.push({ name: "Frequency", value });
+      rest = rest.slice(frequencyMatch[0].length);
+      continue;
+    }
+    const temperatureMatch = rest.match(INLINE_TEMPERATURE_TOKEN);
+    if (temperatureMatch) {
+      const low = inlineNumber(temperatureMatch[1]);
+      const high = inlineNumber(temperatureMatch[2]);
+      if (low >= high || low < -100 || high > 300) return [];
+      others.push({ name: "Operating temperature", value: `${temperatureMatch[1]}...${temperatureMatch[2]} °C` });
+      rest = rest.slice(temperatureMatch[0].length);
+      continue;
+    }
+    const protectionMatch = rest.match(INLINE_PROTECTION_TOKEN);
+    if (protectionMatch) {
+      const value = protectionMatch[1] ? `IP${protectionMatch[1].toUpperCase()}` : `NEMA ${protectionMatch[2].toUpperCase()}`;
+      others.push({ name: "Degree of protection", value });
+      rest = rest.slice(protectionMatch[0].length);
+      continue;
+    }
+    const weightMatch = rest.match(INLINE_WEIGHT_TOKEN);
+    if (weightMatch) {
+      others.push({ name: "Weight", value: `${weightMatch[1]} kg` });
+      rest = rest.slice(weightMatch[0].length);
+      continue;
+    }
+    const toleranceMatch = rest.match(INLINE_TOLERANCE_TOKEN);
+    if (toleranceMatch) {
+      tolerance ??= cleanText(toleranceMatch[0].replace(/[()]/g, ""));
+      rest = rest.slice(toleranceMatch[0].length);
+      continue;
+    }
+    const ignorableMatch = rest.match(INLINE_IGNORABLE_TOKEN);
+    if (ignorableMatch && (voltages.length > 0 || others.length > 0)) {
+      rest = rest.slice(ignorableMatch[0].length);
+      continue;
+    }
+    return []; // unrecognized token — the segment is prose/a code, not nameplate values
+  }
+
+  if (voltages.length === 0) return others;
+  const voltageValue = voltages
+    .map((entry) => `${entry.core} V${entry.type ? ` ${entry.type}` : ""}`)
+    .join(" / ");
+  const value = cleanText(`${phase ? `${phase}~ ` : ""}${voltageValue}${tolerance ? ` ${tolerance}` : ""}`);
+  return [{ name: "Rated voltage", value }, ...others];
+}
+
+function inlinePowerHit(amount: string, unit: string): InlineNameplateHit {
+  const canonical = unit.toLowerCase();
+  if (canonical === "kva" || canonical === "va") {
+    return { name: "Rated apparent power", value: `${amount} ${canonical === "kva" ? "kVA" : "VA"}` };
+  }
+  if (canonical === "hp" || canonical === "ps") {
+    return { name: "Rated power", value: `${amount} ${canonical.toUpperCase()}` };
+  }
+  return { name: "Rated power", value: `${amount} ${canonical === "kw" ? "kW" : "W"}` };
+}
+
+function inlineNumber(raw: string): number {
+  return Number.parseFloat(raw.replace(",", "."));
 }
 
 /**

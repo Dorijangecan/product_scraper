@@ -41,6 +41,7 @@ import { BrowserRenderSession } from "./scrapers/browser-renderer.js";
 import type { AppPaths } from "./paths.js";
 import { buildRunOutputLayout, ensureRunOutputLayout, type RunOutputLayout } from "./run-output.js";
 import { documentUrlLooksRelevant, isPdfLikeDocument } from "./scrapers/document-url.js";
+import { isLikelySchematicImage } from "./scrapers/generic.js";
 
 export type DocumentDownloadProfile = SharedDocumentDownloadProfile;
 
@@ -1802,7 +1803,16 @@ function documentDownloadRank(doc: DocumentRecord): number {
   return rank;
 }
 
-const MAX_GALLERY_IMAGES = 5;
+// Only one photo of the device itself is wanted per item — not a gallery. Newer manufacturer
+// connectors mostly lean on the generic fallback for images (see isLikelySchematicImage) instead
+// of hand-picking a single product shot, so schematics/wiring/dimension drawings can otherwise
+// slip through as one of several "gallery" images. Excluding them here applies uniformly to
+// every connector, old and new, at the single choke point all image documents pass through.
+const MAX_GALLERY_IMAGES = 1;
+
+function isSchematicImageDocument(doc: DocumentRecord): boolean {
+  return isLikelySchematicImage(`${doc.label} ${doc.url}`.toLowerCase());
+}
 
 export function coalesceImageDocuments(documents: DocumentRecord[]): DocumentRecord[] {
   const images = documents.filter((doc) => doc.type === "image");
@@ -1831,9 +1841,11 @@ export function coalesceImageDocuments(documents: DocumentRecord[]): DocumentRec
     });
   }
 
-  // Rank distinct gallery images and cap how many we'll keep / download.
+  // Rank distinct gallery images and cap how many we'll keep / download. Prefer real product
+  // photos over schematics/drawings; only fall back to a schematic if it's the only image found.
   const rankedGroups = coalescedGroups.sort((left, right) => imageDocumentRank(left) - imageDocumentRank(right));
-  const kept = rankedGroups.slice(0, MAX_GALLERY_IMAGES);
+  const nonSchematic = rankedGroups.filter((doc) => !isSchematicImageDocument(doc));
+  const kept = (nonSchematic.length ? nonSchematic : rankedGroups).slice(0, MAX_GALLERY_IMAGES);
 
   return [...kept, ...documents.filter((doc) => doc.type !== "image")];
 }

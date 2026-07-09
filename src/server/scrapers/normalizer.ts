@@ -2,7 +2,7 @@ import type { AttributeRecord, DocumentRecord, NormalizedProductFields, ProductR
 import { dedupeAttributes as dedupeAttributesBase, dedupeDocuments as dedupeSharedDocuments } from "./dedupe.js";
 import { fieldMatchesLabel } from "./field-registry.js";
 import { isPlausibleTemperatureCelsius, parseTemperatureRange } from "./quantity.js";
-import { matchProperty } from "./ontology.js";
+import { inferPropertyFromQuantities, matchProperty } from "./ontology.js";
 import { cleanText, normalizeNumberSeparators } from "../text-util.js";
 
 // cleanText/entity decoding now live in the leaf text-util module so field-registry can
@@ -249,18 +249,20 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
     normalizeVoltageValue(deriveVoltageFromText(attributes)) ??
     // Last resort: the ontology recognises FR/IT/DE voltage labels that FIELD_LABEL_PATTERNS
     // (mostly EN/DE) miss. Most-specific matchProperty keeps insulation/impulse voltage out.
-    ontologyFieldValue(attributes, "ratedVoltage", normalizeVoltageValue);
+    ontologyFieldValue(attributes, "ratedVoltage", normalizeVoltageValue) ??
+    inferredOntologyFieldValue(attributes, "ratedVoltage", normalizeVoltageValue);
   const current =
     numericCurrentAttributeCurrent(attributes) ??
     bestNormalizedAttributeValue(attributes, FIELD_LABEL_PATTERNS.current, normalizeCurrentValue, "current") ??
     registryFieldValue(attributes, "current", normalizeCurrentValue) ??
     normalizeCurrentValue(deriveCurrentFromText(attributes)) ??
-    ontologyFieldValue(attributes, "ratedCurrent", normalizeCurrentValue);
+    ontologyFieldValue(attributes, "ratedCurrent", normalizeCurrentValue) ??
+    inferredOntologyFieldValue(attributes, "ratedCurrent", normalizeCurrentValue);
 
   const operatingTemperature = deriveOperatingTemperature(attributes);
 
   return {
-    weight: bestNormalizedAttributeValue(attributes, FIELD_LABEL_PATTERNS.weight, normalizeWeightValue, "weight") ?? registryFieldValue(attributes, "weight", normalizeWeightValue) ?? ontologyFieldValue(attributes, "weight", normalizeWeightValue),
+    weight: bestNormalizedAttributeValue(attributes, FIELD_LABEL_PATTERNS.weight, normalizeWeightValue, "weight") ?? registryFieldValue(attributes, "weight", normalizeWeightValue) ?? ontologyFieldValue(attributes, "weight", normalizeWeightValue) ?? inferredOntologyFieldValue(attributes, "weight", normalizeWeightValue),
     dimensions,
     material,
     wallThickness,
@@ -346,6 +348,29 @@ function ontologyFieldValue(
     // Same guard as shouldSkipRegistryFieldCandidate: a disqualifying "... of test circuit"
     // qualifier can end up in either the label or the value depending on how the PDF line split.
     if (key === "ratedVoltage" && (isLowValueVoltageLabel(`${attr.group ?? ""} ${attr.name}`) || isLowValueVoltageLabel(attr.value))) continue;
+    const value = normalize(attr.value);
+    if (value) return value;
+  }
+  return undefined;
+}
+
+/**
+ * Very-last-resort sibling of ontologyFieldValue for labels in languages/phrasings NO synonym
+ * list knows yet: classify by the VALUE's unit instead (see inferPropertyFromQuantities and
+ * its multilingual danger-qualifier blocklists). Only consulted for labels matchProperty
+ * cannot place at all, so an explicit synonym match always wins.
+ */
+function inferredOntologyFieldValue(
+  attributes: AttributeRecord[],
+  key: string,
+  normalize: (value: string) => string | undefined
+): string | undefined {
+  for (const attr of attributes) {
+    if (!attr.value || !isLikelySpecText(attr.value) || !isAvailableSpecValue(attr.value)) continue;
+    const label = `${attr.group ?? ""} ${attr.name}`;
+    if (matchProperty(label)) continue;
+    if (inferPropertyFromQuantities(label, attr.value)?.property.key !== key) continue;
+    if (key === "ratedVoltage" && (isLowValueVoltageLabel(label) || isLowValueVoltageLabel(attr.value))) continue;
     const value = normalize(attr.value);
     if (value) return value;
   }

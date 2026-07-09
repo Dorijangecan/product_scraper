@@ -1,4 +1,4 @@
-import { collapseWhitespaceOrUndefined as clean } from "../text-util.js";
+import { collapseWhitespaceOrUndefined as clean, normalizeNumberSeparators } from "../text-util.js";
 import type { AttributeRecord, DocumentRecord, ManufacturerConfig, ProductResult, RunItemRecord, SourceRecord } from "../../shared/types.js";
 import { getManufacturerConfig } from "../config/manufacturers.js";
 import { matchProperty, understand } from "../scrapers/ontology.js";
@@ -1068,9 +1068,11 @@ function unitNumbers(value: string, unit: "A" | "V", labelHint?: string): number
 }
 
 function firstWeightKg(value: string): number | undefined {
-  const match = value.match(/(-?\d+(?:[,.]\d+)?)\s*(kg|g|lb|lbs|oz)\b/i);
+  // Resolve thousands vs. decimal separators over the whole string first so "1,050.00 lbs"
+  // reads as 1050, not 1.05 (see normalizeNumberSeparators for the disambiguation rules).
+  const match = normalizeNumberSeparators(value).match(/(-?\d+(?:\.\d+)?)\s*(kg|g|lb|lbs|oz)\b/i);
   if (!match) return undefined;
-  const amount = Number(match[1].replace(",", "."));
+  const amount = Number(match[1]);
   if (!Number.isFinite(amount)) return undefined;
   const unit = match[2].toLowerCase();
   if (unit === "kg") return amount;

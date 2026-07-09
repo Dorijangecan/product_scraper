@@ -1796,6 +1796,26 @@ tbody tr:hover {
   font-weight: 850;
 }
 
+.catalog-copy {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.catalog-copy:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.catalog-copy.copied {
+  color: #34d399;
+}
+
 .activity-cell {
   display: grid;
   gap: 6px;
@@ -2037,6 +2057,10 @@ tbody tr:hover {
   align-items: center;
 }
 
+.history-main {
+  min-width: 0;
+}
+
 .history-main strong,
 .history-main span,
 .history-tail span {
@@ -2051,6 +2075,12 @@ tbody tr:hover {
 .history-tail span {
   color: var(--muted);
   font-size: 12px;
+}
+
+.history-file-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .history-tail {

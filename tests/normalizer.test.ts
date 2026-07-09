@@ -39,6 +39,25 @@ describe("normalizer", () => {
     expect(normalized.weight).toBe("0.5 kg");
   });
 
+  it("fills voltage/current/weight from completely unknown-language labels via unit inference", () => {
+    // Polish labels that neither FIELD_LABEL_PATTERNS nor the ontology synonyms cover —
+    // the value's unit is the only evidence, which inferPropertyFromQuantities classifies.
+    const normalized = normalizeFields(
+      [
+        { name: "Napięcie znamionowe", value: "400 V" },
+        { name: "Prąd znamionowy", value: "16 A" },
+        { name: "Masa netto", value: "0.5 kg" },
+        // dangerous qualifiers must stay OUT of the rated fields even when unmapped
+        { name: "Napięcie izolacji", value: "690 V" },
+        { name: "Prąd zwarciowy", value: "6 kA" }
+      ],
+      []
+    );
+    expect(normalized.voltage).toBe("400 V");
+    expect(normalized.current).toBe("16 A");
+    expect(normalized.weight).toBe("0.5 kg");
+  });
+
   it("uses the central field registry as a generic fallback for unfamiliar spec labels", () => {
     const normalized = normalizeFields(
       [

@@ -97,6 +97,9 @@ export const PROPERTY_ONTOLOGY: CanonicalProperty[] = [
       /betriebsspannung/i,
       /netzspannung/i,
       /versorgungsspannung/i,
+      /spannungsversorgung/i,                         // reverse compound word order ("voltage supply")
+      /eingangsspannung/i,                             // "input voltage"
+      /ausgangsspannung/i,                             // "output voltage"
       /\bspannung\b/i,
       /tension\s+(?:assign[ée]e|nominale|de\s+service|d['e]alimentation|du\s+r[ée]seau)/i,
       /\btension\b/i,
@@ -174,6 +177,7 @@ export const PROPERTY_ONTOLOGY: CanonicalProperty[] = [
       /bemessungsstrom/i,
       /bemessungsbetriebsstrom/i,                       // Siemens
       /dauerstrom/i,
+      /summenstrom/i,                                    // "total/sum current" (IO-Link/fieldbus sensor+actuator supply)
       /\bstrom\b/i,
       /courant\s+(?:assign[ée]|nominal|d['e]emploi|de\s+service|permanent|thermique)/i,
       /\bcourant\b/i,
@@ -330,6 +334,7 @@ export const PROPERTY_ONTOLOGY: CanonicalProperty[] = [
       /dissipated\s+power/i,
       /power\s+dissipated/i,
       /watts?\s+loss(?:es)?/i,
+      /(?:idle|no[-\s]?load)\s+running\s+loss(?:es)?/i,   // motor/transformer idle-running losses
       /\bP(?:_|-)?loss\b/i,
       /\bPv\b/,
       /\bPvs\b/,                                                          // Eaton static
@@ -2145,6 +2150,133 @@ export function understand(label: string, value: string): UnderstoodValue {
   const property = matchProperty(label);
   const quantities = parseQuantities(value, property?.unitKind ? { kind: property.unitKind } : {});
   return { property, quantities };
+}
+
+// --- Unit-driven property inference (future-proofing) -------------------------------------
+// When a label matches NO known synonym — a language or phrasing the ontology hasn't been
+// taught yet — the VALUE's unit still tells us what physical quantity this is: "Prąd
+// znamionowy 20 A" is a current no matter what the Polish label says. For a small set of
+// unambiguous unit kinds we name the property the label almost certainly means (rated
+// voltage/current, power, frequency, operating temperature, weight). Multilingual ROOT
+// blocklists keep the known-dangerous qualifiers (insulation, leakage, inrush, fuse,
+// storage, switching...) from being mislabeled as the plain rated property — for those we
+// stay silent rather than guess, per the deterministic principle. Qualifiers we DO
+// understand re-route instead (loss → powerLoss, consumption → powerConsumption,
+// storage → storageTemperature). Callers should treat these matches as lower-confidence
+// than a real synonym hit, and findUnmappedSpecLabels intentionally still reports these
+// labels so the audit keeps teaching the ontology proper synonyms.
+
+interface UnitInferenceRule {
+  kind: QuantityKind;
+  key: string;
+  /** Dangerous qualifiers (multilingual roots) — do not infer at all. */
+  skip?: RegExp;
+  /** Qualifiers we can interpret — map to a more specific canonical key instead. */
+  reroute?: Array<{ pattern: RegExp; key: string }>;
+  accept?: (quantities: ParsedQuantity[]) => boolean;
+}
+
+const UNIT_INFERENCE_RULES: UnitInferenceRule[] = [
+  {
+    kind: "voltage",
+    key: "ratedVoltage",
+    skip: /insul|isol|izol|impuls|surge|sto[sß]s?spannung|withstand|test|pr[üu]f|control|steuer|comando|upravlj|coil|spule|bobin|drop|abfall|caduta|ca[íi]da|chute|leak|aux|hilfs|residual|ripple|noise|threshold|schwell|напряжение изол/i,
+    // Rated supply voltage for this tool's product domain is quoted in plain volts; kV values
+    // are impulse/insulation/withstand ratings and mV values are signal levels.
+    accept: (quantities) => quantities.every((quantity) => quantity.unit === "V")
+  },
+  {
+    kind: "current",
+    key: "ratedCurrent",
+    skip: /leak|residual|differen|fehler|short|kurzschlu|corto|court|kratk|zwarc|zkrat|kortsluit|break|abschalt|interrup|consum|verbrauch|consomm|potro[sš]nj|draw|inrush|einschalt|spunto|arranque|d[ée]marrage|udarn|fuse|sicherung|fusible|osigura|standby|quiescent|ruhe|test|pr[üu]f|trip|ausl[öo]s/i,
+    // kA values are breaking/short-circuit capacities, never a continuous rated current.
+    accept: (quantities) => quantities.every((quantity) => quantity.unit === "A" || quantity.unit === "mA")
+  },
+  {
+    kind: "power",
+    key: "power",
+    skip: /apparent|schein|reactive|blind|kvar/i,
+    reroute: [
+      { pattern: /loss|verlust|perte|perdit|p[ée]rdid|verlies|gubit|strat|ztr[áa]t|потер|损耗|損失|损失|kay[ıi]p|f[öo]rlust|dissip|abw[äa]rme|w[äa]rme|heat/i, key: "powerLoss" },
+      { pattern: /consum|verbrauch|consomm|verbruik|potro[sš]nj|spot[řr]eb|zu[żz]yc|потребл|消耗|功耗|t[üu]ket|f[öo]rbruk|aufnahme|absorb/i, key: "powerConsumption" }
+    ]
+  },
+  {
+    kind: "frequency",
+    key: "frequency",
+    skip: /switch|schalt|pwm|commut|comuta|takt|clock|eigen|resonan|natural|cut-?off|grenz|sampling|abtast/i,
+    // Mains/supply frequency lives in 10..1000 Hz; kHz+ values are switching/response
+    // frequencies whose exact meaning we can't name from the unit alone.
+    accept: (quantities) =>
+      quantities.every(
+        (quantity) =>
+          quantity.unit === "Hz" &&
+          [quantity.value, quantity.min, quantity.max]
+            .filter((entry): entry is number => entry !== undefined)
+            .every((entry) => entry >= 10 && entry <= 1000)
+      )
+  },
+  {
+    kind: "temperature",
+    key: "operatingTemperature",
+    // \b on the löt root: German solder compounds START with it (Löttemperatur), while the
+    // bare root would false-match inside Czech/Slovak "teplota" (= temperature).
+    skip: /solder|\bl[öo]t|junction|sperrschicht/i,
+    reroute: [
+      { pattern: /storage|lager|stock|almacen|magazzin|sklad|przechow|склад|存储|储存|保存|保管/i, key: "storageTemperature" }
+    ],
+    // A single temperature could be anything (max ambient? test condition?); only a
+    // min...max range reads as an environment rating.
+    accept: (quantities) => quantities.some((quantity) => quantity.min !== undefined && quantity.max !== undefined)
+  },
+  {
+    kind: "mass",
+    key: "weight",
+    skip: /density|dichte|gustoć|densit/i
+  }
+];
+
+const UNIT_INFERENCE_MAX_VALUE_LENGTH = 60;
+// Identity/description labels hold prose that merely MENTIONS a quantity ("SIMATIC IPC427E,
+// 24 V DC industrial power supply") — never a spec cell worth inferring from. Inline
+// nameplate descriptions are handled by extractInlineNameplateSpecAttributes instead.
+const UNIT_INFERENCE_IDENTITY_LABEL = /\b(?:model|typ|type|description|bezeichnung|beschreibung|designation|artikel|article|product|name|title|order|sku|part|opis|omschrijving|denominazione|denominaci[oó]n|d[ée]signation|описание|型号|名称|描述)\b/i;
+// After removing the parsed quantities, a genuine spec value has almost nothing left ("20 A"
+// → ""; "24 V DC max." → "DC max"). Prose keeps whole sentences' worth of letters.
+const UNIT_INFERENCE_MAX_LEFTOVER_LETTERS = 8;
+
+export interface InferredProperty {
+  property: CanonicalProperty;
+  reason: string;
+}
+
+export function inferPropertyFromQuantities(label: string, value: string): InferredProperty | undefined {
+  const cleanLabel = label?.trim() ?? "";
+  const cleanValue = value?.trim() ?? "";
+  if (!cleanLabel || cleanLabel.length > 80) return undefined;
+  if (UNIT_INFERENCE_IDENTITY_LABEL.test(cleanLabel)) return undefined;
+  if (!cleanValue || cleanValue.length > UNIT_INFERENCE_MAX_VALUE_LENGTH || !/\d/.test(cleanValue)) return undefined;
+  const quantities = parseQuantities(cleanValue).filter((quantity) => quantity.unit);
+  if (quantities.length === 0) return undefined;
+  let leftover = cleanValue;
+  for (const quantity of quantities) {
+    if (quantity.raw) leftover = leftover.replace(quantity.raw, " ");
+  }
+  if ((leftover.match(/\p{L}/gu) ?? []).length > UNIT_INFERENCE_MAX_LEFTOVER_LETTERS) return undefined;
+  const kinds = new Set(quantities.map((quantity) => quantity.kind).filter(Boolean));
+  if (kinds.size !== 1) return undefined;
+  const kind = [...kinds][0];
+  const rule = UNIT_INFERENCE_RULES.find((entry) => entry.kind === kind);
+  if (!rule) return undefined;
+  if (rule.accept && !rule.accept(quantities)) return undefined;
+  if (rule.skip?.test(cleanLabel)) return undefined;
+  const key = rule.reroute?.find((entry) => entry.pattern.test(cleanLabel))?.key ?? rule.key;
+  const property = PROPERTY_ONTOLOGY.find((entry) => entry.key === key);
+  if (!property) return undefined;
+  return {
+    property,
+    reason: `Label '${cleanLabel}' unknown to the ontology; inferred '${key}' from its ${kind} value`
+  };
 }
 
 export interface LabelledValue {

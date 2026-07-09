@@ -81,6 +81,42 @@ describe("customer-documents alias cross-reference", () => {
   });
 });
 
+describe("customer workbook inline nameplate specs", () => {
+  it("extracts voltage/power/current buried in description cells as named spec attributes", async () => {
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-customer-inline-"));
+    const workbook = new ExcelJS.Workbook();
+    const sheet = workbook.addWorksheet("产品数据表格");
+    sheet.addRow(["Product Model", "Order Number", "Product Description (Chinese)", "Product Description (English)"]);
+    // Mirrors the real Eaton 伊顿-feedback DF1/DV1 sheet: the ratings exist ONLY inside the
+    // free-text description cells, never as their own labeled columns.
+    sheet.addRow([
+      "DF1-34020FB-C20",
+      "CDF00401",
+      "3AC 230V, 5.5kW, 20A, 无内置直流电抗器, 内置制动斩波器, Profibus DP",
+      "3AC 230V, 5.5kW, 20A, W/O DC choke, Brake chopper, Profibus DP"
+    ]);
+    const workbookPath = path.join(dir, "feedback.xlsx");
+    await workbook.xlsx.writeFile(workbookPath);
+
+    const documents: CustomerDocumentRecord[] = [
+      { id: "xlsx", originalName: "feedback.xlsx", storedPath: workbookPath, uploadedAt: new Date(0).toISOString() }
+    ];
+    const extraction = await extractCustomerDocumentAttributes("DF1-34020FB-C20", documents);
+
+    expect(extraction.attributes).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ name: "Rated voltage", value: "3~ 230 V" }),
+        expect.objectContaining({ name: "Rated power", value: "5.5 kW" }),
+        expect.objectContaining({ name: "Rated current", value: "20 A" })
+      ])
+    );
+    // The original description column must survive untouched next to the mined specs.
+    expect(extraction.attributes.some((attr) => attr.name === "Product Description (English)")).toBe(true);
+
+    await fs.rm(dir, { recursive: true, force: true });
+  });
+});
+
 describe("extractCustomerFamilyPdfAttributes", () => {
   const documentName = "DV1X1 Quick Start Manual.pdf";
   const sourceUrl = "file:///manual.pdf";
