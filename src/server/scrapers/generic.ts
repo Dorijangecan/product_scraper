@@ -23,7 +23,7 @@ import { extractMarkerData } from "./marker-extractor.js";
 import { discoverProductLinksWithDiagnostics, type ProductLinkDiscoveryResult } from "./link-discovery.js";
 import { documentUrlLooksDownloadable, documentUrlLooksRelevant } from "./document-url.js";
 import { listFieldRegistryDocumentLabels } from "./field-registry.js";
-import { extractElectricalSpecAttributesFromText } from "./electrical-spec-miner.js";
+import { extractElectricalSpecAttributesFromText, extractOntologySpecAttributesFromText } from "./electrical-spec-miner.js";
 
 const GENERIC_PARSER_VERSION = "generic-v3";
 
@@ -423,6 +423,11 @@ export function parseGenericProductPage(
     text: fetched.text,
     sourceUrl: fetched.effectiveUrl,
     group: "Electrical Text"
+  }));
+  attributes.push(...extractOntologySpecAttributesFromText({
+    text: fetched.text,
+    sourceUrl: fetched.effectiveUrl,
+    group: "Ontology Spec Text"
   }));
   documents.push(...extractPlainTextDocumentLinks(fetched.text, fetched.effectiveUrl, catalogNumber, options));
   documents.push(...extractHiddenDocumentLinks($, fetched.text, fetched.effectiveUrl, catalogNumber, options));

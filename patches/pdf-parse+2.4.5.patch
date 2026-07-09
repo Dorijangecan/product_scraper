@@ -1,0 +1,17 @@
+diff --git a/node_modules/pdf-parse/dist/pdf-parse/esm/geometry/Table.js b/node_modules/pdf-parse/dist/pdf-parse/esm/geometry/Table.js
+index aae2561..3a3fcf3 100644
+--- a/node_modules/pdf-parse/dist/pdf-parse/esm/geometry/Table.js
++++ b/node_modules/pdf-parse/dist/pdf-parse/esm/geometry/Table.js
+@@ -220,6 +220,12 @@ export class Table {
+             const xMiddle = (leftVLine.from.x + rightVLine.from.x) / 2;
+             const bottomHLineIndex = this.findBottomLineIndex(h2Index, xMiddle);
+             const bottomHLine = this.hLines[bottomHLineIndex];
++            if (!bottomHLine) {
++                // findBottomLineIndex returns -1 when no horizontal line closes this cell (an
++                // incomplete/malformed grid, e.g. a decorative border misdetected as a table) —
++                // skip the cell instead of crashing on `undefined.from`.
++                continue;
++            }
+             // minXY: {x:leftVLine.from.x,y:topHLine.from.y},
+             // maxXY: {x:rightVLine.from.x,y:bottomHLine.from.y},
+             const tableCell = {

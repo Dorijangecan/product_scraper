@@ -24,6 +24,13 @@ export interface CanonicalProperty {
   synonyms: RegExp[];
   /** Labels that must NOT be treated as this property (kills look-alikes, e.g. "colour temperature"). */
   exclude?: RegExp[];
+  /**
+   * Like `exclude`, but tested against a short peek of text AFTER the matched label instead of
+   * before/label itself — for trailing qualifiers that disqualify the match but sit past where
+   * `exclude`'s before-context window looks (e.g. "Minimum rated operating voltage (Type A/AC
+   * operation)" is a per-sensitivity-type floor, not the product's overall rated voltage).
+   */
+  excludeAfter?: RegExp[];
 }
 
 const COLOUR_TEMP = /colou?r\s*temp(?:erature)?|farbtemperatur/i;
@@ -114,7 +121,11 @@ export const PROPERTY_ONTOLOGY: CanonicalProperty[] = [
       /insulation/i, /impulse/i, /surge/i, /withstand/i, /control/i, /coil/i,
       /storage|test|drop|tolerance|range\s+across/i,
       /short[-\s]?circuit|magnetic|tripping/i
-    ]
+    ],
+    // RCD/RCBO datasheets (e.g. Doepke) publish a per-sensitivity-type minimum, such as "Minimum
+    // rated operating voltage (Type A/AC operation)" / "(Type B operation)" — the supply floor for
+    // one specific detection mode's electronics, not the product's overall rated voltage.
+    excludeAfter: [/\(type\s+[a-z]/i]
   },
   {
     key: "ratedCurrent",
@@ -128,6 +139,7 @@ export const PROPERTY_ONTOLOGY: CanonicalProperty[] = [
       /continuous\s+(?:ampere|amp)\s+rating/i,         // Eaton
       /(?:amperage|ampere|amp)\s+rating/i,             // Eaton "Amperage Rating"
       /thermal\s+current/i,
+      /thermal\s+test\s+current/i,
       /conventional\s+(?:free[-\s]?air\s+)?thermal\s+current/i,  // ABB/Schneider ConFreAirTheCur, Ith
       /nominal\s+current/i,
       /nominal\s+(?:input|output)\s+current/i,
@@ -138,6 +150,7 @@ export const PROPERTY_ONTOLOGY: CanonicalProperty[] = [
       /load\s+current/i,
       /base[-\s]?load\s+current/i,                      // Rockwell / Siemens drive base-load
       /(?:rated\s+)?uninterrupted\s+current/i,          // ABB Iu
+      /rat\.?\s*uni\.?\s*cur\b/i,                        // distributor API abbreviation "Rat Uni Cur"
       /rated\s+frame\s+current/i,                        // Schneider Inm
       /continuous\s+(?:rms\s+|output\s+)?current/i,      // ABB/Danfoss drives
       /intermittent\s+(?:output\s+)?current/i,           // Danfoss overload current
@@ -179,7 +192,10 @@ export const PROPERTY_ONTOLOGY: CanonicalProperty[] = [
     ],
     exclude: [
       // \binterrupt avoids matching "unINTERRUPTed current" (ABB Iu), which IS a rated current.
-      /short[-\s]?circuit|breaking|making|\binterrupt(?:ing)?|inrush|leakage|residual|test|fault/i,
+      // The bare "test" exclusion is meant for things like an RCD trip-test button/circuit, NOT
+      // "thermal test current" (IEC 60947 Ithe) — that IS a real rated-current concept, so the
+      // negative lookbehind carves it out without reopening the door to actual test-circuit noise.
+      /short[-\s]?circuit|breaking|making|\binterrupt(?:ing)?|inrush|leakage|residual|(?<!thermal\s)\btest\b|fault/i,
       /tripping|trip\s+current|magnetic/i,
       /transient|prospective/i,
       /consumption|standby|no[-\s]?load/i
@@ -203,6 +219,7 @@ export const PROPERTY_ONTOLOGY: CanonicalProperty[] = [
       /interrupt(?:ing)?\s+(?:rating|capacity)/i,                                  // Eaton "Interrupt rating"
       /maximum\s+interrupt(?:ing)?\s+rating/i,
       /rated\s+breaking\s+capacity/i,                                              // Mersen / Schneider Icn
+      /max\.?\s*bre\.?\s*cap\b/i,                                                  // distributor API abbreviation "Max Bre Cap"
       /rupture\s+capacity/i,                                                       // distributor wording
       /making\s+capacity/i,
       /energy\s+limiting\s+(?:class|category)/i,                                   // ABB
@@ -229,6 +246,25 @@ export const PROPERTY_ONTOLOGY: CanonicalProperty[] = [
       /kortsluit(?:vermogen|stroom)/i,
       /prekidna\s+mo[ćc]/i
     ]
+  },
+  {
+    key: "inrushCurrent",
+    label: "Inrush current",
+    unitKind: "current",
+    synonyms: [
+      /inrush\s+current(?:,?\s*(?:typical|max(?:imum)?|peak))?/i,
+      /(?:switch[-\s]?on|starting|peak)\s+current/i,
+      /surge\s+current/i,
+      /einschaltstrom/i,
+      /courant\s+(?:d['e]appel|de\s+d[ée]marrage)/i,
+      /corrente\s+di\s+spunto/i,
+      /corriente\s+de\s+arranque/i,
+      /inschakelstroom/i,
+      /udarna\s+struja/i
+    ],
+    // Distinct from ratedCurrent's continuous operating current — a transient turn-on spike, not
+    // the steady-state rating. Kept separate so the two never overwrite each other via matchProperty.
+    exclude: [/rated|continuous|nominal|thermal\s+test/i]
   },
   {
     key: "power",
@@ -348,6 +384,7 @@ export const PROPERTY_ONTOLOGY: CanonicalProperty[] = [
       /(?:operating|operational|ambient|working|surrounding|service|environmental|in[-\s]?use)\s+temperature/i,
       /(?:operating|ambient|surrounding|working|service)\s+air\s+temperature/i,    // Schneider/Rockwell "Ambient air temperature for operation"
       /ambient\s+(?:air\s+)?temperature(?:\s+(?:for\s+operation|in\s+operation))?/i,
+      /amb\.?\s*air\.?\s*tem\b/i,                                                   // distributor API abbreviation "Amb Air Tem"
       /surrounding\s+air\s+temperature(?:,?\s*(?:min|max))?/i,                      // Rockwell
       /temperature(?:\s*,)?\s+operating/i,                                          // Rockwell "Temperature, Operating"
       /temperature\s+(?:range|in\s+operation|of\s+(?:operation|use))/i,
@@ -394,6 +431,7 @@ export const PROPERTY_ONTOLOGY: CanonicalProperty[] = [
       /product\s+(?:net\s+)?weight/i,                           // ABB ProductNetWeight
       /pole\s+net\s+weight/i,                                   // ABB PoleNetWeight (multi-pole device, per pole)
       /package\s+(?:level\s*\d+\s+)?(?:gross|net)\s+weight/i,   // ABB PacLev1GroWei
+      /produktgewicht/i,                                        // German compound word (no \b before "gewicht")
       /shipping\s+weight/i,
       /est(?:imated)?\.?\s+ship(?:ping)?\s+weight/i,            // SCE
       /\bGEW\b/,                                                // Spelsberg Algolia key
@@ -471,6 +509,8 @@ export const PROPERTY_ONTOLOGY: CanonicalProperty[] = [
       /product\s+net\s+width/i,
       /enclosure\s+width/i,
       /outer\s+width/i,
+      /produktbreite/i,                                         // German compound word (no \b before "breite")
+      /modular\s+spacing/i,                                     // DIN-rail terminal/relay module pitch width
       /\bbreite\b/i,
       /au[ßs]enbreite/i,
       /innenbreite/i,
@@ -492,6 +532,7 @@ export const PROPERTY_ONTOLOGY: CanonicalProperty[] = [
       /enclosure\s+height/i,
       /outer\s+height/i,
       /overall\s+height/i,
+      /produkth[öo]he/i,                                        // German compound word (no \b before "höhe")
       /\bh[öo]he\b/i,
       /au[ßs]enh[öo]he/i,
       /innenh[öo]he/i,
@@ -509,6 +550,8 @@ export const PROPERTY_ONTOLOGY: CanonicalProperty[] = [
     unitKind: "length",
     synonyms: [
       /\bdepth\b/i,
+      /\blength\b/i,                                             // bare "Length" — this key doubles as the generic linear-length property
+      /package\s+(?:level\s*\d+\s+)?length/i,                    // ABB PacLev1Length — same package/product conflation precedent as weight's PacLev1GroWei above
       /product\s+net\s+depth(?:\s*\/\s*length)?/i,
       /enclosure\s+depth/i,
       /outer\s+depth/i,
@@ -548,6 +591,7 @@ export const PROPERTY_ONTOLOGY: CanonicalProperty[] = [
       /material\s+thickness/i,
       /sheet\s+thickness/i,
       /plate\s+thickness/i,
+      /\bthickness\b/i,                                          // bare distributor column header "Thickness"
       /wand(?:st[äa]rke|dicke)/i,
       /materialst[äa]rke/i,
       /blechst[äa]rke/i,
@@ -738,8 +782,13 @@ export const PROPERTY_ONTOLOGY: CanonicalProperty[] = [
       /\bREACH\s+declaration\b/i,                               // ABB REACH Declaration
       /\bRoHS\s+declaration\b/i,                                // ABB RoHS Declaration
       /environmental\s+product\s+declaration|\bEPD\b/i,         // ABB EPD
-      /(?:CE|UL|CSA|EAC|RCM|RoHS|REACH|FCC|ATEX|IECEx|UKCA|CCC|UL\s+listed|UL\s+recognized)\s*(?:mark|marking|certification|approval|listed|DOC|scheme)?/i,
-      /(?:UK\s+EX|UL\s+listed\s+hazardous|australian\s+RCM|china\s+CCC|morocco\s+DOC)\s*(?:certificate|approval)?/i,
+      // These short abbreviations MUST stay \b-anchored on both sides — without it "CE"/"UL"
+      // match as bare substrings inside completely unrelated words ("Ac[ce]ssories", "Pri[ce]",
+      // "S[CE]" as a manufacturer prefix, "Res[ul]t"), which was silently misclassifying tens of
+      // thousands of unrelated attributes (accessories, prices, dimensions) as "certificates" —
+      // found via a full historical audit (scripts/audit-unmapped-spec-labels.ts-adjacent check).
+      /\b(?:CE|UL|CSA|EAC|RCM|RoHS|REACH|FCC|ATEX|IECEx|UKCA|CCC|UL\s+listed|UL\s+recognized)\b\s*(?:mark|marking|certification|approval|listed|DOC|scheme)?/i,
+      /\b(?:UK\s+EX|UL\s+listed\s+hazardous|australian\s+RCM|china\s+CCC|morocco\s+DOC)\b\s*(?:certificate|approval)?/i,
       /homologa(?:tion|ci[óo]n)/i,
       /omologazion[ei]/i,
       /goedkeuring/i,
@@ -879,6 +928,7 @@ export const PROPERTY_ONTOLOGY: CanonicalProperty[] = [
   {
     key: "conductorCrossSection",
     label: "Conductor cross-section",
+    unitKind: "area",
     synonyms: [
       /conductor\s+cross[-\s]?section/i,
       /cross[-\s]?section/i,
@@ -891,6 +941,8 @@ export const PROPERTY_ONTOLOGY: CanonicalProperty[] = [
       /\bAWG(?:\/kcmil)?\b/,                                     // AWG / kcmil
       /cable\s+(?:cross[-\s]?section|size)/i,
       /terminal\s+capacity/i,
+      /connecting\s+capacity(?:\s+(?:main|control|auxiliary)\s+circuit)?/i,  // distributor API "Connecting Capacity (Main/Control/Auxiliary Circuit)"
+      /con\.?\s*cap\.?\s*con\.?\s*cir\b/i,                       // abbreviated "Con Cap Con Cir" variant
       /querschnitt/i,
       /leiterquerschnitt/i,
       /anschlussquerschnitt/i,                                   // Weidmüller
@@ -974,6 +1026,7 @@ export const PROPERTY_ONTOLOGY: CanonicalProperty[] = [
     label: "Mounting type",
     synonyms: [
       /mounting\s+(?:type|method|style|mode|hardware)/i,        // Eaton "Mounting hardware/Method"
+      /\bmounting\b/i,                                          // bare distributor column header "Mounting"
       /(?:fixing|mounting)\s+mode/i,                            // Schneider "Fixing mode"
       /(?:type\s+of\s+)?installation/i,
       /device\s+mounting/i,                                     // Rockwell
@@ -1395,6 +1448,7 @@ export const PROPERTY_ONTOLOGY: CanonicalProperty[] = [
     unitKind: "power",
     synonyms: [
       /power\s+consumption(?:,?\s+typical)?/i,                 // Eaton "Power consumption, typical"
+      /(?:input\s+power|power\s+input)(?:,?\s+max\.?)?/i,
       /no[-\s]?load\s+(?:power|loss)/i,
       /standby\s+(?:power|consumption)/i,
       /idle\s+power/i,
@@ -2048,8 +2102,18 @@ export const PROPERTY_ONTOLOGY: CanonicalProperty[] = [
 ];
 
 /** Map any spec label (any supported language) to the canonical property it MEANS. */
+// matchProperty is a pure function of `label` but scans every ontology property's synonym list
+// (~98 properties, several regexes each) on every call. Callers that process large historical
+// attribute sets (e.g. an audit script running findUnmappedSpecLabels over thousands of stored
+// run items) call it with the SAME label string over and over — memoize by exact input string to
+// turn that from O(occurrences × properties × synonyms) into O(distinct labels × ...).
+const MATCH_PROPERTY_CACHE_MAX_ENTRIES = 5000;
+const matchPropertyCache = new Map<string, CanonicalProperty | undefined>();
+
 export function matchProperty(label: string): CanonicalProperty | undefined {
   if (!label) return undefined;
+  if (matchPropertyCache.has(label)) return matchPropertyCache.get(label);
+
   let best: { property: CanonicalProperty; score: number } | undefined;
   for (const property of PROPERTY_ONTOLOGY) {
     if (property.exclude?.some((pattern) => pattern.test(label))) continue;
@@ -2061,7 +2125,14 @@ export function matchProperty(label: string): CanonicalProperty | undefined {
     // Most-specific match wins ("control voltage" beats the generic "voltage").
     if (matched > 0 && (!best || matched > best.score)) best = { property, score: matched };
   }
-  return best?.property;
+  const result = best?.property;
+
+  matchPropertyCache.set(label, result);
+  if (matchPropertyCache.size > MATCH_PROPERTY_CACHE_MAX_ENTRIES) {
+    const oldest = matchPropertyCache.keys().next().value;
+    if (oldest !== undefined) matchPropertyCache.delete(oldest);
+  }
+  return result;
 }
 
 export interface UnderstoodValue {
@@ -2086,13 +2157,22 @@ export interface LabelledValue {
  * Self-diagnosis (workstream I): spec attributes whose VALUE contains a recognizable quantity but
  * whose LABEL maps to no known property — i.e. a real knowledge-base gap to teach, not a guess to make.
  */
+// Real spec values are short ("24 V DC", "-25...70 °C", "5 kg") — a marketing/feature sentence
+// that happens to contain an incidental number ("Designed to offer protection ... from dust,
+// water, dirt, and oil.", "5. Small Equipment (No External Dimension More Than 50 cm)") is not a
+// spec value just because parseQuantities finds something inside it. Long values are almost
+// always descriptive prose, not a clean fact worth teaching the ontology.
+const UNMAPPED_SPEC_VALUE_MAX_LENGTH = 60;
+
 export function findUnmappedSpecLabels(attributes: LabelledValue[]): string[] {
   const unmapped = new Set<string>();
   for (const attribute of attributes) {
     const label = `${attribute.group ?? ""} ${attribute.name}`.trim();
     if (!label || matchProperty(label)) continue;
     if (matchTechnicalAttributeAlias("global", label, { includeCrossManufacturer: false })) continue;
-    if (parseQuantities(attribute.value).length === 0) continue;
+    const value = attribute.value?.trim() ?? "";
+    if (!value || value.length > UNMAPPED_SPEC_VALUE_MAX_LENGTH) continue;
+    if (parseQuantities(value).length === 0) continue;
     unmapped.add(attribute.name.trim());
   }
   return [...unmapped];

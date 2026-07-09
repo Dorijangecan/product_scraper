@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { extractElectricalSpecAttributesFromText } from "../src/server/scrapers/electrical-spec-miner.js";
+import { extractElectricalSpecAttributesFromText, extractOntologySpecAttributesFromText } from "../src/server/scrapers/electrical-spec-miner.js";
 import { parseGenericProductPage } from "../src/server/scrapers/generic.js";
 import { normalizeTechnicalAttributes } from "../src/server/scrapers/technical-attributes.js";
 import type { FetchedText } from "../src/server/scrapers/http-client.js";
@@ -89,6 +89,58 @@ describe("electrical spec miner", () => {
     expect(technical.map((item) => item.canonicalKey)).toEqual(
       expect.arrayContaining(["ratedVoltage", "currentConsumption", "powerLoss", "ratedCurrent"])
     );
+  });
+});
+
+describe("ontology spec miner (extractOntologySpecAttributesFromText)", () => {
+  it("mines non-electrical quantities directly from prose using the property ontology", () => {
+    const attributes = extractOntologySpecAttributesFromText({
+      sourceUrl: "https://example.test/datasheet",
+      text: [
+        "Mechanical data Weight 5 kg",
+        "Tightening torque 2.5 Nm",
+        "Operating temperature -25...70 °C"
+      ].join(" ")
+    });
+
+    expect(attributes).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ name: "Weight", value: "5 kg" }),
+        expect.objectContaining({ name: "Tightening torque", value: "2.5 Nm" }),
+        expect.objectContaining({ name: "Operating temperature", value: "-25...70 °C" })
+      ])
+    );
+  });
+
+  it("does not duplicate properties already covered by the hand-tuned electrical definitions", () => {
+    // ratedVoltage/ratedCurrent/powerLoss etc. are mined by extractElectricalSpecAttributesFromText
+    // already — the ontology pass must skip them to avoid conflicting/duplicate facts.
+    const attributes = extractOntologySpecAttributesFromText({
+      sourceUrl: "https://example.test/datasheet",
+      text: "Rated voltage 24 V DC. Rated current 2 A. Power loss 1.2 W."
+    });
+
+    expect(attributes.some((attr) => /voltage/i.test(attr.name))).toBe(false);
+    expect(attributes.some((attr) => /^rated current$/i.test(attr.name))).toBe(false);
+    expect(attributes.some((attr) => /power loss/i.test(attr.name))).toBe(false);
+  });
+
+  it("stops an electrical value at the boundary of an ontology-only label and vice versa", () => {
+    const text = "Rated voltage 24 V DC Weight 5 kg Tightening torque 2.5 Nm";
+    const electrical = extractElectricalSpecAttributesFromText({ sourceUrl: "https://example.test/datasheet", text });
+    const ontology = extractOntologySpecAttributesFromText({ sourceUrl: "https://example.test/datasheet", text });
+
+    expect(electrical).toEqual(expect.arrayContaining([expect.objectContaining({ name: "Rated voltage", value: "24 V DC" })]));
+    expect(ontology).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ name: "Weight", value: "5 kg" }),
+        expect.objectContaining({ name: "Tightening torque", value: "2.5 Nm" })
+      ])
+    );
+    // None of the values should have bled into a neighbouring label's text.
+    for (const attr of [...electrical, ...ontology]) {
+      expect(attr.value).not.toMatch(/Weight|Torque|Rated voltage/i);
+    }
   });
 });
 

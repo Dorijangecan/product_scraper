@@ -15,7 +15,7 @@ službene izvore, deterministički normalizira atribute, ocjenjuje kvalitetu i i
 + opcionalni PDT workbook.
 
 **Stack:** TypeScript (ESM, `"type":"module"`) · Node + **Express 5** · **React 19 + Vite** · **Electron**
-· **better-sqlite3** · **Playwright** · ExcelJS / csv-parse / pdf-parse / sharp · **Vitest**.
+· **better-sqlite3** · **Playwright** · ExcelJS / csv-parse / pdf-parse / sharp / tesseract.js · **Vitest**.
 Sve lokalno na `127.0.0.1:3001`, bez cloud key-a. Runtime LLM (PDT AI cleanup) je opt-in
 (`PDT_AI_CLEANUP=1`, lokalni Ollama/Qwen). Reader fallback (r.jina.ai — šalje URL trećoj strani) je
 također opt-in: `PRODUCT_SCRAPER_ALLOW_EXTERNAL_READER=1`. Princip: vrijednosti dolaze iz izvora — **nepoznato se ne pogađa**.
@@ -31,9 +31,10 @@ također opt-in: `PRODUCT_SCRAPER_ALLOW_EXTERNAL_READER=1`. Princip: vrijednosti
 | `src/client/` | React UI (`App.tsx` monolitan, `Dropdown.tsx`, `api.ts`, `main.tsx`, `styles.css`) |
 | `src/desktop/` | Electron `main.cjs` / `preload.cjs` |
 | `src/shared/` | `types.ts` (+ `product-requirements.ts`) — tipovi za client i server |
-| `tests/` | Vitest (33 fajla; 1 fajl ≈ 1 modul) |
+| `tests/` | Vitest (44 fajla; 1 fajl ≈ 1 modul) |
 | `scripts/` | audit / benchmark / probe / desktop-boot alati (`.ts`→tsx, `.cjs`→Node) |
 | `templates/` | `master_pdt.xlsx` — izvor istine za PDT |
+| `patches/` | `patch-package` patchevi za bugove u ovisnostima (npr. `pdf-parse` `getTable()` crash) — auto-primijenjeno `npm install` postinstall hookom, **ne brisati** |
 | `benchmarks/` | Fixture proizvodi + izvještaji |
 | `docs/` | `ARCHITECTURE.md`, prezentacije, normalizacijske bilješke |
 | `outputs/` `data/` `tmp/` | Runtime artefakti (DB, cache, workbookovi) — **ne uređivati ručno** |
@@ -220,15 +221,15 @@ Politike u `ManufacturerConfig.scrapeRecipe`: `DiscoveryPolicyConfig`, `Interact
 | `final-completeness.ts` | `evaluateFinalCompleteness`, `repairFinalCompletenessFromEvidence`, `finalNetworkRetryDecision`, `withFinalCompletenessPolicy` |
 | `evidence.ts` | `attachEvidence` (+ field candidate/resolution diagnostics) |
 | `dedupe.ts` | `dedupeAttributes`, `dedupeDocuments`, `dedupeSources`, `canonicalDocumentUrlKey` |
-| `document-enrichment.ts` | `enrichResultFromDownloadedDocuments`, `enrichResultFromRemoteDocuments`, `extractDocumentTextAttributes`, `documentAttributesAreSubstantive` |
+| `document-enrichment.ts` | `enrichResultFromDownloadedDocuments`, `enrichResultFromRemoteDocuments`, `extractDocumentTextAttributes` (now also takes `tables?: TableArray[]` from `pdf-parse`'s `getTable()` vector-grid table detection), `documentAttributesAreSubstantive` |
 | `document-url.ts` | `isPdfLikeDocument(Url)`, `documentUrlLooksRelevant`, `documentUrlLooksDownloadable` |
 | `source-document-discovery.ts` | `discoverSourceDocumentsWithDiagnostics` |
-| `pdf-ocr.ts` | `readPdfWithOptionalOcr` |
+| `pdf-ocr.ts` | `readPdfWithOptionalOcr` (pdftoppm+tesseract CLI first; falls back to pdf-parse's `getScreenshot()` + `tesseract.js` WASM OCR when those binaries aren't on PATH — always available, no install needed) |
 | `customer-documents.ts` | `extractCustomerDocumentAttributes`, `applyCustomerDocumentOverride`, `CustomerDocumentParseCache` |
 | `catalog-number.ts` | `sameCatalogNumber`, `fillCatalogTemplate`, `catalogNumberVariants`, `buildConfiguredLocalizedUrls`, `compactCatalogNumber` |
 | `product-identity.ts` | `structuredIdentityConflict`, `hasMatchingStructuredIdentity`, `identityConflictReason` |
 | `marker-extractor.ts` | `extractMarkerData` |
-| `electrical-spec-miner.ts` | `extractElectricalSpecAttributesFromText` |
+| `electrical-spec-miner.ts` | `extractElectricalSpecAttributesFromText` (hand-tuned voltage/current/power), `extractOntologySpecAttributesFromText` (same label+context-window engine driven by `ontology.ts`'s `PROPERTY_ONTOLOGY` — mines dimensions/weight/temperature/torque/pressure/etc. directly from PDF prose) |
 
 ### `src/server/scrapers/` — understanding engine
 | Fajl | Ključni exporti |
@@ -289,6 +290,7 @@ Config-driven (bez fajla): `nvent`, `phoenix`.
 | Scrape redoslijed / fallback | [deterministic-pipeline.ts](src/server/scrapers/deterministic-pipeline.ts), [smart-fallback.ts](src/server/scrapers/smart-fallback.ts) |
 | Discovery / URL nalaženje | [discovery.ts](src/server/scrapers/discovery.ts), [link-discovery.ts](src/server/scrapers/link-discovery.ts), [learned-endpoints.ts](src/server/scrapers/learned-endpoints.ts) |
 | Normalizacija / jedinice / značenja | [ontology.ts](src/server/scrapers/ontology.ts), [normalizer.ts](src/server/scrapers/normalizer.ts), [quantity.ts](src/server/scrapers/quantity.ts) |
+| Koje manufacturer-labele ontologija još ne prepoznaje | `npx tsx scripts/audit-unmapped-spec-labels.ts` — findUnmappedSpecLabels nad cijelom povijesti runova iz `data/scraper.db`, rangirano po učestalosti |
 | Ocjena found/partial/failed | [quality-gate.ts](src/server/scrapers/quality-gate.ts), [final-completeness.ts](src/server/scrapers/final-completeness.ts) |
 | Čitanje PDF/datasheet | [document-enrichment.ts](src/server/scrapers/document-enrichment.ts), [pdf-ocr.ts](src/server/scrapers/pdf-ocr.ts) |
 | Klasifikacija uređaja | [device-type.ts](src/server/scrapers/device-type.ts) |

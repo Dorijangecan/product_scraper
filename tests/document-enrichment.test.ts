@@ -1188,6 +1188,51 @@ Operating Temperature XT
     ]));
   });
 
+  it("maps getTable() vector-grid rows to catalog attributes (pdf-parse's own table detection, not the whitespace heuristics)", () => {
+    const attributes = extractDocumentTextAttributes({
+      catalogNumber: "ZX-200",
+      document: {
+        type: "datasheet",
+        label: "Ordering table PDF",
+        url: "https://example.test/zx-relay.pdf"
+      },
+      text: "See ordering table for details.",
+      tables: [
+        [
+          ["Catalog Number", "Description", "Weight [kg]", "Voltage"],
+          ["ZX-100", "Modular relay", "0.5", "24 V DC"],
+          ["ZX-200", "Modular relay XL", "0.8", "48 V DC"]
+        ]
+      ]
+    });
+
+    expect(attributes).toEqual(expect.arrayContaining([
+      expect.objectContaining({ group: "PDF Table (Grid)", name: "Catalog Number", value: "ZX-200" }),
+      expect.objectContaining({ group: "PDF Table (Grid)", name: "Description", value: "Modular relay XL" }),
+      expect.objectContaining({ group: "PDF Table (Grid)", name: "Weight", value: "0.8 kg" }),
+      expect.objectContaining({ group: "PDF Table (Grid)", name: "Voltage rating", value: "48 V DC" })
+    ]));
+    // The non-matching row (ZX-100) must not leak its own values onto the ZX-200 result.
+    expect(attributes).not.toEqual(expect.arrayContaining([
+      expect.objectContaining({ group: "PDF Table (Grid)", name: "Weight", value: "0.5 kg" })
+    ]));
+  });
+
+  it("ignores getTable() tables with no recognizable header row", () => {
+    const attributes = extractDocumentTextAttributes({
+      catalogNumber: "ZX-200",
+      document: {
+        type: "datasheet",
+        label: "Unrelated PDF",
+        url: "https://example.test/unrelated.pdf"
+      },
+      text: "No structured data here.",
+      tables: [[["Feature", "Notes"], ["Snap-action contact", "IP20"]]]
+    });
+
+    expect(attributes.some((attr) => attr.group === "PDF Table (Grid)")).toBe(false);
+  });
+
   it("records PDF parse failures without adding them as product attributes", async () => {
     const result = await enrichResultFromDownloadedDocuments(product({
       documents: [

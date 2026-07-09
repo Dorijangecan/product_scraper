@@ -3,8 +3,9 @@ import { uniqueStrings as uniqueStringsBase } from "../text-util.js";
 import type { AttributeRecord } from "../../shared/types.js";
 import { cleanText } from "./normalizer.js";
 import { parseQuantities, type ParsedQuantity, type QuantityKind } from "./quantity.js";
+import { PROPERTY_ONTOLOGY } from "./ontology.js";
 
-interface ElectricalSpecDefinition {
+interface SpecDefinition {
   name: string;
   kind: QuantityKind;
   labels: RegExp[];
@@ -15,7 +16,7 @@ interface ElectricalSpecDefinition {
   excludeAfter?: RegExp[];
 }
 
-const ELECTRICAL_SPEC_DEFINITIONS: ElectricalSpecDefinition[] = [
+const ELECTRICAL_SPEC_DEFINITIONS: SpecDefinition[] = [
   {
     name: "Control voltage",
     kind: "voltage",
@@ -164,6 +165,60 @@ const ELECTRICAL_SPEC_DEFINITIONS: ElectricalSpecDefinition[] = [
 
 const NEXT_LABEL_PATTERNS = ELECTRICAL_SPEC_DEFINITIONS.flatMap((definition) => definition.labels);
 
+// Properties already mined by ELECTRICAL_SPEC_DEFINITIONS above (hand-tuned with extra nuance
+// like negative lookaheads and excludeAfter rules for real edge cases) — skipped in the
+// ontology-driven pass below to avoid duplicate/conflicting facts for the same concept.
+const ONTOLOGY_KEYS_COVERED_BY_ELECTRICAL_DEFINITIONS = new Set([
+  "controlVoltage",
+  "ratedVoltage",
+  "ratedCurrent",
+  "breakingCapacity",
+  "powerLoss",
+  "powerConsumption",
+  "leakageCurrent",
+  "currentConsumption",
+  "voltageDrop",
+  "insulationVoltage",
+  "impulseVoltage"
+]);
+
+let ontologySpecDefinitionsCache: SpecDefinition[] | undefined;
+
+/**
+ * Mines the broader property ontology (dimensions, weight, temperature, torque, pressure,
+ * mounting, protection rating, etc. — ~80 canonical numeric properties with multilingual
+ * synonyms in ontology.ts) using the same label+value engine as the electrical definitions,
+ * instead of only matching properties AFTER a label:value pair already exists
+ * (ontology.ts's matchProperty/understand). Non-numeric properties (material, color,
+ * certificates...) have no `unitKind` and are skipped — this engine mines QUANTITIES.
+ */
+function ontologySpecDefinitions(): SpecDefinition[] {
+  if (!ontologySpecDefinitionsCache) {
+    ontologySpecDefinitionsCache = PROPERTY_ONTOLOGY
+      .filter((property) => property.unitKind && !ONTOLOGY_KEYS_COVERED_BY_ELECTRICAL_DEFINITIONS.has(property.key))
+      .map((property) => ({
+        name: property.label,
+        kind: property.unitKind as QuantityKind,
+        labels: property.synonyms,
+        exclude: property.exclude,
+        excludeAfter: property.excludeAfter
+      }));
+  }
+  return ontologySpecDefinitionsCache;
+}
+
+let combinedNextLabelPatternsCache: RegExp[] | undefined;
+
+// Value-boundary patterns combine BOTH definition sets so a mined value never bleeds into a
+// label recognized by the OTHER set (e.g. an electrical "Rated voltage" value must stop before
+// an ontology-only "Weight" label, and vice versa).
+function combinedNextLabelPatterns(): RegExp[] {
+  if (!combinedNextLabelPatternsCache) {
+    combinedNextLabelPatternsCache = [...NEXT_LABEL_PATTERNS, ...ontologySpecDefinitions().flatMap((definition) => definition.labels)];
+  }
+  return combinedNextLabelPatternsCache;
+}
+
 // Motor/drive manuals (e.g. Eaton PowerXL) often state the supply voltage as an informal
 // "class" designation next to a wiring-diagram section header — "three-phase 380V class
 // machine" / "single-phase 220V class machine" — instead of a "Rated/Input voltage: ..."
@@ -221,35 +276,87 @@ export function extractElectricalSpecAttributesFromText(input: {
   if (!normalized) return [];
   const group = input.group ?? "Electrical Spec Miner";
   const maxAttributes = input.maxAttributes ?? 80;
-  const attributes: AttributeRecord[] = [...extractNameplateVoltageClassAttributes(normalized, input.sourceUrl, group)];
+  const attributes: AttributeRecord[] = [
+    ...extractNameplateVoltageClassAttributes(normalized, input.sourceUrl, group),
+    ...mineSpecDefinitions(normalized, ELECTRICAL_SPEC_DEFINITIONS, group, input.sourceUrl)
+  ];
 
-  for (const definition of ELECTRICAL_SPEC_DEFINITIONS) {
+  return dedupeAttributes(attributes).slice(0, maxAttributes);
+}
+
+/**
+ * Public entry point for the ontology-driven pass — see `ontologySpecDefinitions` above for what
+ * it covers and why it's a separate pass from `extractElectricalSpecAttributesFromText`.
+ */
+export function extractOntologySpecAttributesFromText(input: {
+  text: string;
+  sourceUrl: string;
+  group?: string;
+  maxAttributes?: number;
+}): AttributeRecord[] {
+  const normalized = normalizeSpecMiningText(input.text);
+  if (!normalized) return [];
+  const group = input.group ?? "PDF Ontology Spec Miner";
+  const maxAttributes = input.maxAttributes ?? 120;
+  const attributes = mineSpecDefinitions(normalized, ontologySpecDefinitions(), group, input.sourceUrl);
+  return dedupeAttributes(attributes).slice(0, maxAttributes);
+}
+
+interface LabelSpan {
+  start: number;
+  end: number;
+  label: string;
+}
+
+function mineSpecDefinitions(normalized: string, definitions: SpecDefinition[], group: string, sourceUrl: string): AttributeRecord[] {
+  const attributes: AttributeRecord[] = [];
+  const boundaryPatterns = combinedNextLabelPatterns();
+
+  for (const definition of definitions) {
+    const spans: LabelSpan[] = [];
     for (const labelPattern of definition.labels) {
       for (const match of normalized.matchAll(globalPattern(labelPattern))) {
-        const label = cleanText(match[0]);
-        const index = match.index ?? 0;
-        const before = normalized.slice(Math.max(0, index - 40), index);
-        const after = normalized.slice(index + match[0].length, index + match[0].length + 220);
-        const labelContext = cleanText(`${before} ${label}`);
-        if (definition.exclude?.some((pattern) => pattern.test(labelContext))) continue;
-        if (definition.excludeAfter?.some((pattern) => pattern.test(cleanText(after.slice(0, 40))))) continue;
-
-        const valueWindow = trimValuePrefix(after);
-        const valueSlice = valueWindow.slice(0, nextLabelIndex(valueWindow));
-        const value = valueFromQuantity(valueSlice, definition.kind);
-        if (!value) continue;
-
-        attributes.push({
-          group,
-          name: labelForAttribute(definition, label),
-          value,
-          sourceUrl: input.sourceUrl
-        });
+        const start = match.index ?? 0;
+        spans.push({ start, end: start + match[0].length, label: cleanText(match[0]) });
       }
+    }
+
+    // A definition's OWN synonym list can nest (e.g. a bare "torque" synonym also matches inside
+    // the more specific "tightening torque" synonym for the SAME real occurrence) — keep only the
+    // longest match per overlapping span so one occurrence doesn't emit two attributes under two
+    // different names for the same value. Mirrors matchProperty's "most specific match wins" rule.
+    for (const { start, end, label } of longestNonOverlappingSpans(spans)) {
+      const before = normalized.slice(Math.max(0, start - 40), start);
+      const after = normalized.slice(end, end + 220);
+      const labelContext = cleanText(`${before} ${label}`);
+      if (definition.exclude?.some((pattern) => pattern.test(labelContext))) continue;
+      if (definition.excludeAfter?.some((pattern) => pattern.test(cleanText(after.slice(0, 40))))) continue;
+
+      const valueWindow = trimValuePrefix(after);
+      const valueSlice = valueWindow.slice(0, nextLabelIndex(valueWindow, boundaryPatterns));
+      const value = valueFromQuantity(valueSlice, definition.kind);
+      if (!value) continue;
+
+      attributes.push({
+        group,
+        name: labelForAttribute(definition, label),
+        value,
+        sourceUrl
+      });
     }
   }
 
-  return dedupeAttributes(attributes).slice(0, maxAttributes);
+  return attributes;
+}
+
+function longestNonOverlappingSpans(spans: LabelSpan[]): LabelSpan[] {
+  const byLength = [...spans].sort((left, right) => (right.end - right.start) - (left.end - left.start));
+  const kept: LabelSpan[] = [];
+  for (const candidate of byLength) {
+    if (kept.some((existing) => candidate.start >= existing.start && candidate.end <= existing.end)) continue;
+    kept.push(candidate);
+  }
+  return kept.sort((left, right) => left.start - right.start);
 }
 
 function normalizeSpecMiningText(text: string): string {
@@ -267,13 +374,17 @@ function normalizeSpecMiningText(text: string): string {
 }
 
 function trimValuePrefix(value: string): string {
+  // The dash is stripped only when it's a separator ("Label - 2 A"), not when it's the sign of a
+  // negative number directly after the label with no other separator ("Label -25 °C") — this
+  // matters most for temperature ranges, which are the common case of a value legitimately
+  // starting negative right after its label.
   return cleanText(value)
-    .replace(/^(?:[):=|,;./-]|\bis\b|\bare\b|\bof\b|\bvalue\b|\brange\b|\brated\s+value\b)\s*/i, "")
+    .replace(/^(?:[):=|,;.]|-(?!\d)|\bis\b|\bare\b|\bof\b|\bvalue\b|\brange\b|\brated\s+value\b)\s*/i, "")
     .trim();
 }
 
 function valueFromQuantity(text: string, kind: QuantityKind): string | undefined {
-  const cleaned = cleanText(text).replace(/^[,;:|/-]+/, "").trim();
+  const cleaned = cleanText(text).replace(/^[,;:|/]+/, "").replace(/^-+(?!\d)/, "").trim();
   if (!cleaned || cleaned.length > 180) return undefined;
   const quantities = parseQuantities(cleaned, { kind });
   const composite = compositeQuantityValue(cleaned, quantities, kind);
@@ -350,9 +461,9 @@ function safeLeadingQualifier(value: string): string | undefined {
   return qualifier ? cleanText(qualifier) : undefined;
 }
 
-function nextLabelIndex(text: string): number {
+function nextLabelIndex(text: string, patterns: RegExp[]): number {
   let best = text.length;
-  for (const pattern of NEXT_LABEL_PATTERNS) {
+  for (const pattern of patterns) {
     const match = globalPattern(pattern).exec(text);
     if (!match || match.index < 3) continue;
     best = Math.min(best, match.index);
@@ -362,7 +473,7 @@ function nextLabelIndex(text: string): number {
   return Math.max(0, best);
 }
 
-function labelForAttribute(definition: ElectricalSpecDefinition, matchedLabel: string): string {
+function labelForAttribute(definition: SpecDefinition, matchedLabel: string): string {
   const label = cleanText(matchedLabel)
     .replace(/\s+/g, " ")
     .replace(/^([a-z])/, (char) => char.toUpperCase());

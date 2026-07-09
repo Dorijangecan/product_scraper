@@ -3,6 +3,7 @@ import { uniqueStrings as uniqueStringsBase } from "../text-util.js";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { PDFParse } from "pdf-parse";
+import type { TableArray } from "pdf-parse";
 import type { AttributeRecord, DocumentProcessingDiagnostic, DocumentRecord, ProductResult, SourceRecord } from "../../shared/types.js";
 import { cleanText, normalizeFields, splitNameValue } from "./normalizer.js";
 import { catalogTextMatches } from "./catalog-number.js";
@@ -11,7 +12,7 @@ import { listTechnicalAttributeAliases } from "./technical-attribute-aliases.js"
 import { readPdfWithOptionalOcr } from "./pdf-ocr.js";
 import { isPdfLikeDocumentUrl } from "./document-url.js";
 import { fieldMatchesLabel, FIELD_REGISTRY, listFieldRegistryDocumentLabels } from "./field-registry.js";
-import { extractElectricalSpecAttributesFromText } from "./electrical-spec-miner.js";
+import { extractElectricalSpecAttributesFromText, extractOntologySpecAttributesFromText } from "./electrical-spec-miner.js";
 
 const MAX_PDF_PAGES = 30;
 const MAX_PDF_TEXT_CHARS = 250_000;
@@ -28,7 +29,12 @@ const PDF_TEXT_MIN_CHARS_FOR_PARSE = 80;
 const FULL_PDF_TEXT_CACHE_MAX_FILE_BYTES = 8 * 1024 * 1024;
 const FULL_PDF_TEXT_CACHE_MAX_ENTRIES = 16;
 
-const fullPdfTextCache = new Map<string, Promise<string>>();
+interface PdfDocumentText {
+  text: string;
+  tables: TableArray[];
+}
+
+const fullPdfTextCache = new Map<string, Promise<PdfDocumentText>>();
 const normalizedPdfLinesCache = new Map<string, string[]>();
 const globalPdfAttributeCache = new Map<string, AttributeRecord[]>();
 const globalPdfTechnicalAttributeCache = new Map<string, AttributeRecord[]>();
@@ -240,14 +246,15 @@ export async function enrichResultFromDownloadedDocuments(result: ProductResult)
       continue;
     }
     try {
-      const text = await readPdfText(doc.localPath!, result.catalogNumber, doc.url);
+      const { text, tables } = await readPdfText(doc.localPath!, result.catalogNumber, doc.url);
       // Multi-model PDFs need target scoping, but some catalogs keep shared technical
       // pages away from the catalog table. Keep both the target rows and global spec rows.
       const tightText = buildDocumentParseContext(text, result.catalogNumber);
       const attributes = extractDocumentTextAttributes({
         catalogNumber: result.catalogNumber,
         document: doc,
-        text: tightText
+        text: tightText,
+        tables
       });
       if (attributes.length > 0) {
         documentAttributes.push(...stampDocumentAttributes(attributes));
@@ -339,12 +346,13 @@ export async function enrichResultFromRemoteDocuments(
       const fetched = await fetchDocument(probeDoc);
       cleanup = fetched.cleanup;
       const parsedDoc = fetched.url ? { ...probeDoc, url: fetched.url } : probeDoc;
-      const text = await readPdfText(fetched.localPath, result.catalogNumber, parsedDoc.url);
+      const { text, tables } = await readPdfText(fetched.localPath, result.catalogNumber, parsedDoc.url);
       const tightText = buildDocumentParseContext(text, result.catalogNumber);
       const attributes = extractDocumentTextAttributes({
         catalogNumber: result.catalogNumber,
         document: parsedDoc,
-        text: tightText
+        text: tightText,
+        tables
       });
       if (attributes.length > 0) {
         documentAttributes.push(...stampDocumentAttributes(attributes));
@@ -501,6 +509,7 @@ export function extractDocumentTextAttributes(input: {
   catalogNumber: string;
   document: Pick<DocumentRecord, "label" | "type" | "url" | "localPath">;
   text: string;
+  tables?: TableArray[];
 }): AttributeRecord[] {
   const sourceUrl = input.document.url;
   const lines = cachedNormalizedPdfLines(input.text, sourceUrl);
@@ -515,12 +524,66 @@ export function extractDocumentTextAttributes(input: {
     ...cachedGlobalPdfTechnicalAttributes(input.text, lines, sourceUrl),
     ...extractPatternModelPhysicalRows(lines, input.catalogNumber, sourceUrl),
     ...(hasStructuredOrderingRow ? [] : extractGenericCatalogTableRows(lines, input.catalogNumber, sourceUrl)),
+    ...(hasStructuredOrderingRow ? [] : extractGetTableCatalogRows(input.tables ?? [], input.catalogNumber, sourceUrl)),
     ...(hasStructuredOrderingRow ? [] : extractCatalogDescriptionRows(lines, input.catalogNumber, sourceUrl)),
     ...extractCatalogSpecificRows(lines, input.catalogNumber, sourceUrl),
     ...(hasStructuredOrderingRow ? [] : extractCatalogFeatureAttributes(lines, input.catalogNumber, sourceUrl, input.document.type))
   ];
 
   return dedupeAttributes([...productSpecificAttributes, ...attributes]);
+}
+
+/**
+ * Same catalog-table concept as extractGenericCatalogTableRows, but sourced from getTable()'s
+ * vector-grid table detection instead of guessing column boundaries from whitespace in linear
+ * text — catches bordered ordering tables whose column widths vary enough to confuse the
+ * whitespace heuristic.
+ */
+function extractGetTableCatalogRows(tables: TableArray[], catalogNumber: string, sourceUrl: string): AttributeRecord[] {
+  const attributes: AttributeRecord[] = [];
+  const seen = new Set<string>();
+  const push = (name: string, value: string | undefined) => {
+    const cleaned = cleanText(value);
+    if (!cleaned) return;
+    const key = `${name}|${cleaned}`.toLowerCase();
+    if (seen.has(key)) return;
+    seen.add(key);
+    attributes.push({ group: "PDF Table (Grid)", name, value: cleaned, sourceUrl });
+  };
+
+  for (const table of tables) {
+    if (table.length < 2) continue;
+    const headerRowIndex = table.findIndex((row) => looksLikeCatalogTableHeader(row));
+    if (headerRowIndex < 0) continue;
+    const header = table[headerRowIndex].map(cleanText);
+    for (let rowIndex = headerRowIndex + 1; rowIndex < table.length; rowIndex += 1) {
+      const row = table[rowIndex].map(cleanText);
+      if (row.every((cell) => !cell)) continue;
+      const rowText = row.join(" ");
+      if (!catalogTextMatches(rowText, catalogNumber, { compact: true, ignoreCase: true })) continue;
+      const mapped = mapHeaderCellsToRow(header, row);
+      if (mapped.size < 2) continue;
+
+      push("Catalog Number", mapped.get("catalogNumber") ?? catalogNumber);
+      push("Description", mapped.get("description"));
+      push("Product Type", mapped.get("productType"));
+      push("Material", mapped.get("material"));
+      push("Weight", mapped.get("weight"));
+      push("Voltage rating", mapped.get("voltage"));
+      push("Current rating", mapped.get("current"));
+      push("Dimensions", genericRowDimensions(mapped));
+    }
+  }
+  return attributes.slice(0, 60);
+}
+
+function looksLikeCatalogTableHeader(row: string[]): boolean {
+  const cells = row.map(cleanText).filter(Boolean);
+  if (cells.length < 2) return false;
+  const headerText = cells.join(" ");
+  return /\b(?:catalog|cat(?:alog)?\.?\s*no|part\s*(?:number|no)|order\s*(?:number|no)|mlfb|type\s*code|description|material|weight|mass|width|height|depth|dimensions?|voltage|current)\b/i.test(
+    headerText
+  );
 }
 
 function parsedDocumentAttribute(
@@ -638,6 +701,11 @@ function cachedGlobalPdfTechnicalAttributes(text: string, lines: string[], sourc
       sourceUrl,
       group: "PDF Electrical Text"
     }),
+    ...extractOntologySpecAttributesFromText({
+      text,
+      sourceUrl,
+      group: "PDF Ontology Spec Miner"
+    }),
     ...extractLocalizedTechnicalRows(lines, sourceUrl),
     ...extractStackedDimensionTableRows(lines, sourceUrl),
     ...extractInlineDimensionText(lines, sourceUrl),
@@ -754,7 +822,7 @@ function mergePdfTextContexts(parts: Array<string | undefined>, maxChars: number
   return lines.join("\n").slice(0, maxChars);
 }
 
-async function readPdfText(filePath: string, catalogNumber?: string, cacheIdentity?: string): Promise<string> {
+async function readPdfText(filePath: string, catalogNumber?: string, cacheIdentity?: string): Promise<PdfDocumentText> {
   const cachedFullText = await readCachedFullPdfTextIfEligible(filePath, cacheIdentity);
   if (cachedFullText) return cachedFullText;
 
@@ -762,24 +830,29 @@ async function readPdfText(filePath: string, catalogNumber?: string, cacheIdenti
   const parser = new PDFParse({ data });
   try {
     let text = "";
+    let tables: TableArray[] = [];
     if (catalogNumber) {
       const targeted = await readTargetedPdfText(parser, catalogNumber);
-      if (targeted) text = targeted;
+      if (targeted) {
+        text = targeted.text;
+        tables = targeted.tables;
+      }
     }
     if (!text) {
       const parsed = await parser.getText({ first: MAX_PDF_PAGES });
       text = parsed.text;
+      tables = await safeGetTables(parser, parsed.pages.map((page) => page.num));
     }
-    if (text.trim().length >= PDF_TEXT_MIN_CHARS_FOR_PARSE) return text.slice(0, MAX_PDF_TEXT_CHARS);
+    if (text.trim().length >= PDF_TEXT_MIN_CHARS_FOR_PARSE) return { text: text.slice(0, MAX_PDF_TEXT_CHARS), tables };
   } finally {
     await parser.destroy().catch(() => undefined);
   }
   const ocr = await readPdfWithOptionalOcr(filePath, { maxPages: MAX_PDF_PAGES });
-  if (ocr.text.trim().length >= PDF_TEXT_MIN_CHARS_FOR_PARSE) return ocr.text.slice(0, MAX_PDF_TEXT_CHARS);
+  if (ocr.text.trim().length >= PDF_TEXT_MIN_CHARS_FOR_PARSE) return { text: ocr.text.slice(0, MAX_PDF_TEXT_CHARS), tables: [] };
   throw new Error(ocr.error ? `PDF has no extractable text and OCR failed: ${ocr.error}` : "PDF has no extractable text and OCR returned no text.");
 }
 
-async function readCachedFullPdfTextIfEligible(filePath: string, cacheIdentity?: string): Promise<string | undefined> {
+async function readCachedFullPdfTextIfEligible(filePath: string, cacheIdentity?: string): Promise<PdfDocumentText | undefined> {
   let stat;
   try {
     stat = await fs.stat(filePath);
@@ -800,18 +873,51 @@ async function readCachedFullPdfTextIfEligible(filePath: string, cacheIdentity?:
   return cached;
 }
 
-async function readFullPdfText(filePath: string): Promise<string> {
+async function readFullPdfText(filePath: string): Promise<PdfDocumentText> {
   const data = await fs.readFile(filePath);
   const parser = new PDFParse({ data });
   try {
     const parsed = await parser.getText();
-    if (parsed.text.trim().length >= PDF_TEXT_MIN_CHARS_FOR_PARSE) return parsed.text.slice(0, MAX_PDF_TEXT_CHARS);
+    if (parsed.text.trim().length >= PDF_TEXT_MIN_CHARS_FOR_PARSE) {
+      const tables = await safeGetTables(parser, parsed.pages.slice(0, MAX_PDF_PAGES).map((page) => page.num));
+      return { text: parsed.text.slice(0, MAX_PDF_TEXT_CHARS), tables };
+    }
   } finally {
     await parser.destroy().catch(() => undefined);
   }
   const ocr = await readPdfWithOptionalOcr(filePath, { maxPages: MAX_PDF_PAGES });
-  if (ocr.text.trim().length >= PDF_TEXT_MIN_CHARS_FOR_PARSE) return ocr.text.slice(0, MAX_PDF_TEXT_CHARS);
+  if (ocr.text.trim().length >= PDF_TEXT_MIN_CHARS_FOR_PARSE) return { text: ocr.text.slice(0, MAX_PDF_TEXT_CHARS), tables: [] };
   throw new Error(ocr.error ? `PDF has no extractable text and OCR failed: ${ocr.error}` : "PDF has no extractable text and OCR returned no text.");
+}
+
+const GET_TABLE_MAX_CONSECUTIVE_ERRORS = 3;
+let getTableConsecutiveErrors = 0;
+// Negative cache, same idea as pdf-ocr.ts's externalOcrToolsUnavailableReason: pdf-parse's
+// getTable() has real unguarded array-index bugs for some vector-drawing edge cases (confirmed
+// against real-world datasheets across several manufacturers — it throws "Cannot read
+// properties of undefined (reading 'from')" on documents whose grid geometry it can't normalize).
+// A THROWN error trips this; a legitimate empty result (most datasheets have no vector-grid
+// table at all) does not, since that's a valid outcome and must not disable the feature.
+let getTableDisabledReason: string | undefined;
+
+/**
+ * getTable() detects tables from vector-drawn grid lines (bordered ordering/catalog tables),
+ * independent of the whitespace/tab heuristics the rest of this file uses on linear text. Some
+ * PDFs have no such vector grid (most datasheets don't) — that's not an error, just no tables.
+ */
+async function safeGetTables(parser: InstanceType<typeof PDFParse>, pageNumbers: number[]): Promise<TableArray[]> {
+  if (!pageNumbers.length || getTableDisabledReason) return [];
+  try {
+    const result = await parser.getTable({ partial: pageNumbers });
+    getTableConsecutiveErrors = 0;
+    return result.mergedTables ?? [];
+  } catch (error) {
+    getTableConsecutiveErrors += 1;
+    if (getTableConsecutiveErrors >= GET_TABLE_MAX_CONSECUTIVE_ERRORS) {
+      getTableDisabledReason = `pdf-parse getTable() threw ${GET_TABLE_MAX_CONSECUTIVE_ERRORS}x in a row (${error instanceof Error ? error.message : String(error)}) — disabled for the rest of this run.`;
+    }
+    return [];
+  }
 }
 
 function trimFullPdfTextCache(): void {
@@ -833,7 +939,7 @@ function trimFullPdfTextCache(): void {
  * Returns undefined when the catalog number isn't found anywhere in the first
  * TARGETED_PDF_MAX_PAGES pages, letting the caller fall back to the first-N-pages reader.
  */
-async function readTargetedPdfText(parser: InstanceType<typeof PDFParse>, catalogNumber: string): Promise<string | undefined> {
+async function readTargetedPdfText(parser: InstanceType<typeof PDFParse>, catalogNumber: string): Promise<PdfDocumentText | undefined> {
   const compactCatalog = compactKey(catalogNumber);
   if (!compactCatalog) return undefined;
   const matches: number[] = [];
@@ -865,17 +971,19 @@ async function readTargetedPdfText(parser: InstanceType<typeof PDFParse>, catalo
     if (pages.length <= MAX_PDF_PAGES) return undefined;
     const technicalPages = new Set(selectGlobalTechnicalPages(pages, new Set<number>()));
     if (!technicalPages.size) return undefined;
-    return pages
-      .filter((page) => technicalPages.has(page.num))
-      .map((page) => page.text)
-      .join("\n");
+    const keptPageNumbers = [...technicalPages];
+    return {
+      text: pages.filter((page) => technicalPages.has(page.num)).map((page) => page.text).join("\n"),
+      tables: await safeGetTables(parser, keptPageNumbers)
+    };
   }
   const keepPages = expandWithNeighbours(matches, TARGETED_PDF_NEIGHBOUR_PAGES);
   for (const num of selectGlobalTechnicalPages(pages, keepPages)) keepPages.add(num);
-  return pages
-    .filter((page) => keepPages.has(page.num))
-    .map((page) => page.text)
-    .join("\n");
+  const keepPageNumbers = [...keepPages];
+  return {
+    text: pages.filter((page) => keepPages.has(page.num)).map((page) => page.text).join("\n"),
+    tables: await safeGetTables(parser, keepPageNumbers)
+  };
 }
 
 function selectGlobalTechnicalPages(pages: Array<{ num: number; text: string }>, alreadyKept: Set<number>): number[] {
