@@ -2,7 +2,7 @@ import ExcelJS from "exceljs";
 import fs from "node:fs/promises";
 import path from "node:path";
 import type { AttributeRecord, ManufacturerConfig, PdtSheetOverrides, RunItemRecord } from "../../shared/types.js";
-import { classifyDeviceType } from "../scrapers/device-type.js";
+import { classifyDeviceTypeCached as classifyDeviceType } from "../scrapers/device-type.js";
 import { loadTemplateWorkbook } from "./template.js";
 import { cellText, clearBody, describeSheet, firstDataRow, type PdtColumn, type SheetDescriptor } from "./sheet-descriptor.js";
 import { CONSTANT_SHEETS, targetSheets } from "./device-sheet-map.js";

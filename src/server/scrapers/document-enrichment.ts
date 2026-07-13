@@ -13,6 +13,7 @@ import { readPdfWithOptionalOcr } from "./pdf-ocr.js";
 import { isPdfLikeDocumentUrl } from "./document-url.js";
 import { fieldMatchesLabel, FIELD_REGISTRY, listFieldRegistryDocumentLabels } from "./field-registry.js";
 import { extractElectricalSpecAttributesFromText, extractOntologySpecAttributesFromText } from "./electrical-spec-miner.js";
+import { extractComplianceMatrixAttributes, textHasComplianceMatrixGlyphs } from "./pdf-compliance-matrix.js";
 
 const MAX_PDF_PAGES = 30;
 const MAX_PDF_TEXT_CHARS = 250_000;
@@ -250,12 +251,15 @@ export async function enrichResultFromDownloadedDocuments(result: ProductResult)
       // Multi-model PDFs need target scoping, but some catalogs keep shared technical
       // pages away from the catalog table. Keep both the target rows and global spec rows.
       const tightText = buildDocumentParseContext(text, result.catalogNumber);
-      const attributes = extractDocumentTextAttributes({
-        catalogNumber: result.catalogNumber,
-        document: doc,
-        text: tightText,
-        tables
-      });
+      const attributes = [
+        ...extractDocumentTextAttributes({
+          catalogNumber: result.catalogNumber,
+          document: doc,
+          text: tightText,
+          tables
+        }),
+        ...(await extractComplianceMatrixAttributesSafely(text, doc.localPath!, result.catalogNumber, doc.url))
+      ];
       if (attributes.length > 0) {
         documentAttributes.push(...stampDocumentAttributes(attributes));
         documentSources.push({
@@ -348,12 +352,15 @@ export async function enrichResultFromRemoteDocuments(
       const parsedDoc = fetched.url ? { ...probeDoc, url: fetched.url } : probeDoc;
       const { text, tables } = await readPdfText(fetched.localPath, result.catalogNumber, parsedDoc.url);
       const tightText = buildDocumentParseContext(text, result.catalogNumber);
-      const attributes = extractDocumentTextAttributes({
-        catalogNumber: result.catalogNumber,
-        document: parsedDoc,
-        text: tightText,
-        tables
-      });
+      const attributes = [
+        ...extractDocumentTextAttributes({
+          catalogNumber: result.catalogNumber,
+          document: parsedDoc,
+          text: tightText,
+          tables
+        }),
+        ...(await extractComplianceMatrixAttributesSafely(text, fetched.localPath, result.catalogNumber, parsedDoc.url))
+      ];
       if (attributes.length > 0) {
         documentAttributes.push(...stampDocumentAttributes(attributes));
         documentSources.push({
@@ -746,10 +753,17 @@ function trimMap<K, V>(map: Map<K, V>, maxEntries: number): void {
 }
 
 function buildDocumentParseContext(text: string, catalogNumber: string): string {
-  const scoped =
-    buildVariantColumnContext(text, catalogNumber, { maxChars: MAX_PDF_TEXT_CHARS }) ??
-    buildTightContextForCatalog(text, catalogNumber, { maxChars: MAX_PDF_TEXT_CHARS }) ??
-    text;
+  // buildVariantColumnContext already reconstructed exactly this catalog's own column from a
+  // multi-model comparison table (one column per catalog number). Trust it exclusively: merging
+  // in buildGlobalTechnicalContext's UNSCOPED sweep below would reintroduce the very cross-model
+  // contamination the column reconstruction exists to prevent — its "Dimensions"/"Weight"
+  // continuation window is 28 lines wide (WRAPPED_LABEL_SPECS), wide enough to sweep in
+  // neighboring, genuinely different models' dimensions/weight off the same shared page (e.g.
+  // Rockwell's 1606-XLB60BH's row picking up 1606-XLB120E's "39 x 124 x 124 mm" from many lines
+  // below, since both mention "Dimensions" and both are within the window).
+  const variantScoped = buildVariantColumnContext(text, catalogNumber, { maxChars: MAX_PDF_TEXT_CHARS });
+  if (variantScoped) return variantScoped;
+  const scoped = buildTightContextForCatalog(text, catalogNumber, { maxChars: MAX_PDF_TEXT_CHARS }) ?? text;
   const globalTechnical = buildGlobalTechnicalContext(text);
   return mergePdfTextContexts([scoped, globalTechnical, scoped === text ? "" : undefined], MAX_PDF_TEXT_CHARS);
 }
@@ -850,6 +864,29 @@ async function readPdfText(filePath: string, catalogNumber?: string, cacheIdenti
   const ocr = await readPdfWithOptionalOcr(filePath, { maxPages: MAX_PDF_PAGES });
   if (ocr.text.trim().length >= PDF_TEXT_MIN_CHARS_FOR_PARSE) return { text: ocr.text.slice(0, MAX_PDF_TEXT_CHARS), tables: [] };
   throw new Error(ocr.error ? `PDF has no extractable text and OCR failed: ${ocr.error}` : "PDF has no extractable text and OCR returned no text.");
+}
+
+/**
+ * Compliance-matrix certifications (checkmark glyphs, see pdf-compliance-matrix.ts) need the PDF's
+ * raw positioned text items, which `pdf-parse` (used by `readPdfText` above) doesn't expose — so
+ * this re-opens the file with `pdfjs-dist` directly. Gated behind a cheap plain-text scan first
+ * (`textHasComplianceMatrixGlyphs`) so that second parse only happens for the rare PDF that
+ * actually uses this layout; every other document pays no extra cost. Never throws — this is a
+ * best-effort enhancement on top of the normal text-based extraction, not a required step.
+ */
+async function extractComplianceMatrixAttributesSafely(
+  plainText: string,
+  filePath: string,
+  catalogNumber: string,
+  sourceUrl: string
+): Promise<AttributeRecord[]> {
+  if (!textHasComplianceMatrixGlyphs(plainText)) return [];
+  try {
+    const data = new Uint8Array(await fs.readFile(filePath));
+    return await extractComplianceMatrixAttributes(data, catalogNumber, sourceUrl);
+  } catch {
+    return [];
+  }
 }
 
 async function readCachedFullPdfTextIfEligible(filePath: string, cacheIdentity?: string): Promise<PdfDocumentText | undefined> {

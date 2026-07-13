@@ -1104,6 +1104,55 @@ describe("eclass resolvers", () => {
     expect(resolveProperty("CNS_DESCRIPTION_SHORT", "CNS_DESCRIPTION_SHORT", c)).toBe("DC-Output Module Hi-Density");
   });
 
+  it("rejects a Rockwell pdtCertificates fact that isn't an actual certificate list", () => {
+    // Real bug: Rockwell's 1606-td002 family datasheet's "Additional Resources" page links to
+    // "Product Certifications website ... Provides declarations of conformity, certificates, and
+    // other certification details." — a description of a WEBSITE, not this product's own
+    // certificates — which the generic normalizer's "certificates" field picked up and which used
+    // to be returned verbatim by rockwellCertifications() without ever passing through its own
+    // preferred-code allowlist.
+    const c = ctx({ manufacturerId: "rockwell" }, "1606-XLB240E");
+    c.manufacturer = { ...manufacturer, id: "rockwell" } as ManufacturerConfig;
+    const withFacts = {
+      ...c,
+      pdtFacts: {
+        facts: [],
+        byKey: new Map([
+          [
+            "pdtCertificates",
+            [
+              {
+                key: "pdtCertificates",
+                value: "and other certification details., certificates, Provides declarations of conformity",
+                sourceKind: "document",
+                confidence: 0.86,
+                reason: "test fact"
+              }
+            ]
+          ]
+        ])
+      } as NonNullable<ResolveContext["pdtFacts"]>
+    };
+
+    expect(resolveProperty("CERTIFICATION", "CERTIFICATION", withFacts)).toBeUndefined();
+  });
+
+  it("still trusts a Rockwell pdtCertificates fact holding a real, recognized certificate code", () => {
+    const c = ctx({ manufacturerId: "rockwell" }, "1606-XLB36EH");
+    c.manufacturer = { ...manufacturer, id: "rockwell" } as ManufacturerConfig;
+    const withFacts = {
+      ...c,
+      pdtFacts: {
+        facts: [],
+        byKey: new Map([
+          ["pdtCertificates", [{ key: "pdtCertificates", value: "ATEX", sourceKind: "document", confidence: 0.86, reason: "test fact" }]]
+        ])
+      } as NonNullable<ResolveContext["pdtFacts"]>
+    };
+
+    expect(resolveProperty("CERTIFICATION", "CERTIFICATION", withFacts)).toBe("ATEX");
+  });
+
   it("normalizes Rockwell 700-HB relay PDT descriptions, certificates, dimensions and operating temperatures", () => {
     const productUrl = "https://www.rockwellautomation.com/en-us/products/details.700-HB32A1-3-4.html";
     const c = ctx(
@@ -1144,6 +1193,42 @@ describe("eclass resolvers", () => {
     expect(resolveProperty("BAA020", "BAA020", c)).toBe("51.4");
     expect(resolveProperty("AAB906", "Max. operating temperature", c)).toBe("70");
     expect(resolveProperty("AAC022", "Min. operating temperature", c)).toBe("-40");
+  });
+
+  it("takes the MAX across ALL scraped AC Input Voltage fragments for Rockwell (AAF703)", () => {
+    // Real Rockwell 1606-XLB120E scenario: the datasheet's "AC Input Voltage" auto-select range
+    // ("AC 100...120V/200...240V") ends up split across two scraped attribute fragments (line
+    // wrapping in the source PDF) — one holding only the low end (100...120V) and one holding
+    // only the high end (200...240V). A naive "first matching attribute" pick would land on
+    // whichever fragment happens to come first and silently drop the true max.
+    const c = ctx(
+      {
+        manufacturerId: "rockwell",
+        attributes: [
+          { group: "PDF datasheet", name: "AC Input Voltage", value: "AC 100...120V/", sourceType: "official", parser: "pdf-table-extractor" },
+          { group: "PDF datasheet", name: "AC Input Voltage (cont.)", value: "200...240V auto-select", sourceType: "official", parser: "pdf-table-extractor" }
+        ]
+      },
+      "1606-XLB120E"
+    );
+    c.manufacturer = { ...manufacturer, id: "rockwell" } as ManufacturerConfig;
+
+    expect(resolveProperty("AAF703", "AAF703", c)).toBe("240");
+  });
+
+  it("keeps the single-attribute (non-Rockwell) behavior for AAF703 unchanged", () => {
+    const c = ctx(
+      {
+        manufacturerId: "generic-maker",
+        attributes: [
+          { group: "Electrical", name: "Input Voltage", value: "100...120V", sourceType: "official" },
+          { group: "Electrical", name: "Input Voltage (cont.)", value: "200...240V", sourceType: "official" }
+        ]
+      },
+      "GENERIC-1"
+    );
+
+    expect(resolveProperty("AAF703", "AAF703", c)).toBe("120");
   });
 
   it("normalizes Rockwell ArmorKinetix DSM family PDT values", () => {

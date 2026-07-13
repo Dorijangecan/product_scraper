@@ -2,7 +2,7 @@ import * as cheerio from "cheerio";
 import type { AttributeRecord, DocumentRecord, ProductResult, SourceRecord } from "../../shared/types.js";
 import type { FetchedText } from "./http-client.js";
 import type { ManufacturerConnector, ScrapeContext } from "./types.js";
-import { catalogTextMatches } from "./catalog-number.js";
+import { catalogTextMatches, compactCatalogNumber } from "./catalog-number.js";
 import { dedupeAttributes, dedupeDocuments } from "./dedupe.js";
 import { buildLocalizedProductUrls } from "./localized-urls.js";
 import { cleanText, emptyResult, mergeResults, normalizeFields, splitNameValue } from "./normalizer.js";
@@ -56,7 +56,13 @@ export class RockwellConnector implements ManufacturerConnector {
         extractionPolicy: context.manufacturer.scrapeRecipe?.extractionPolicy,
         confidence: 0.78
       });
-      if (parsed.status !== "failed") results.push(withRockwellConfidence(enrichRockwellParsedPage(parsed, fetched, catalogNumber, "rockwell-product-page"), 0.84));
+      // parseGenericProductPage's own identity gate is a plain (non-boundary-anchored) substring
+      // match, shared across every manufacturer — it would accept a sibling catalog's page (e.g.
+      // "1606-XLB120EH") as evidence for "1606-XLB120E" since the shorter number is a literal
+      // prefix. Re-verify with the boundary-anchored check before trusting this page at all.
+      if (parsed.status !== "failed" && matchesRockwellCatalogStrict(fetched.text, catalogNumber)) {
+        results.push(withRockwellConfidence(enrichRockwellParsedPage(parsed, fetched, catalogNumber, "rockwell-product-page"), 0.84));
+      }
     }
 
     const merged = mergeRockwellResults(results);
@@ -204,7 +210,7 @@ function enrichRockwellParsedPage(result: ProductResult, fetched: FetchedText, c
 }
 
 export function parseRockwellCutsheetPage(catalogNumber: string, fetched: FetchedText): ProductResult {
-  if (fetched.statusCode >= 400 || !catalogTextMatches(fetched.text, catalogNumber, { compact: true, ignoreCase: true })) {
+  if (fetched.statusCode >= 400 || !matchesRockwellCatalogStrict(fetched.text, catalogNumber)) {
     return emptyResult("rockwell", catalogNumber, "Rockwell cutsheet page did not contain the catalog number.");
   }
   const generic = parseGenericProductPage("rockwell", catalogNumber, fetched, "official", "rockwell-cutsheet", {
@@ -242,7 +248,7 @@ export function parseRockwellCutsheetPage(catalogNumber: string, fetched: Fetche
 }
 
 export function parseRockwellDrawingsPage(catalogNumber: string, fetched: FetchedText): ProductResult {
-  if (fetched.statusCode >= 400 || !catalogTextMatches(fetched.text, catalogNumber, { compact: true, ignoreCase: true })) {
+  if (fetched.statusCode >= 400 || !matchesRockwellCatalogStrict(fetched.text, catalogNumber)) {
     return emptyResult("rockwell", catalogNumber, "Rockwell drawings page did not contain the catalog number.");
   }
   const $ = cheerio.load(fetched.text);
@@ -771,7 +777,47 @@ function isRockwellProductDocument(context: string, url: string, catalogNumber: 
   if (/\.(?:pdf|zip|dwg|dxf|stp|step|wmf)(?:[?#]|$)/i.test(url)) return true;
   if (/\/api\/Product\/[^/]+\/cutsheet\b/i.test(url)) return true;
   if (/\/resources\/images\/productinfo\//i.test(url)) return true;
-  return catalogTextMatches(context, catalogNumber, { compact: true, ignoreCase: true });
+  return matchesRockwellCatalogStrict(context, catalogNumber);
+}
+
+/**
+ * Boundary-anchored catalog match, scoped to Rockwell's own page-identity checks (URL confirmation
+ * + document-link attribution). `catalogTextMatches`'s "compact" fallback is a plain substring test
+ * on punctuation-stripped text, so it treats "1606-XLB120E" as found inside "1606-XLB120EH" — a
+ * genuinely different, longer sibling catalog number (Rockwell's 1606-XLB power supply line ships
+ * ...90E / ...90EH / ...90EQ side by side, same prefix, different products). That false-positive
+ * lets a sibling SKU's page/link get attributed to the wrong catalog number. Requiring the match to
+ * not directly abut another alphanumeric character rejects that collision while still tolerating
+ * punctuation/case differences around a genuine match.
+ *
+ * Deliberately NOT a change to the shared `catalogTextMatches` in catalog-number.ts: other callers
+ * (e.g. the customer-document family-PDF fallback) intentionally rely on the looser prefix-tolerant
+ * substring match, so tightening it globally would break that unrelated, already-working behavior.
+ */
+function matchesRockwellCatalogStrict(text: string, catalogNumber: string): boolean {
+  if (!catalogTextMatches(text, catalogNumber, { compact: true, ignoreCase: true })) return false;
+  const needle = compactCatalogNumber(catalogNumber);
+  if (needle.length < 4) return true;
+  const haystack = text.toLowerCase();
+  const map: number[] = [];
+  let compact = "";
+  for (let i = 0; i < haystack.length; i += 1) {
+    if (/[a-z0-9]/i.test(haystack[i])) {
+      compact += haystack[i];
+      map.push(i);
+    }
+  }
+  let from = 0;
+  while (true) {
+    const index = compact.indexOf(needle, from);
+    if (index === -1) return false;
+    const startOrig = map[index];
+    const endOrig = map[index + needle.length - 1];
+    const before = startOrig > 0 ? haystack[startOrig - 1] : undefined;
+    const after = endOrig + 1 < haystack.length ? haystack[endOrig + 1] : undefined;
+    if (!/[a-z0-9]/i.test(before ?? "-") && !/[a-z0-9]/i.test(after ?? "-")) return true;
+    from = index + 1;
+  }
 }
 
 function classifyRockwellDocument(label: string, url: string): DocumentRecord["type"] {
@@ -877,7 +923,7 @@ function isCatalogConfirmedRockwellUrl(url: string | undefined, catalogNumber: s
     if (!/(^|\.)rockwellautomation\.com$/i.test(parsed.hostname)) return false;
     const full = decodeURIComponent(`${parsed.pathname}${parsed.search}`);
     if (/\/(?:search|site-search)(?:[/.?&]|$)|[?&](?:keyword|search|q)=/i.test(full)) return false;
-    return catalogTextMatches(full, catalogNumber, { compact: true, ignoreCase: true });
+    return matchesRockwellCatalogStrict(full, catalogNumber);
   } catch {
     return false;
   }
@@ -886,7 +932,7 @@ function isCatalogConfirmedRockwellUrl(url: string | undefined, catalogNumber: s
 function dppPayloadMatchesCatalog(payload: Record<string, unknown>, catalogNumber: string): boolean {
   const values = dppValuesByLabel(payload.elements, /^(?:registered id|catalog number|catalogue number)$/i);
   if (!values.length) return true;
-  return values.some((value) => catalogTextMatches(value, catalogNumber, { compact: true, ignoreCase: true }));
+  return values.some((value) => matchesRockwellCatalogStrict(value, catalogNumber));
 }
 
 function dppValuesByLabel(value: unknown, labelPattern: RegExp): string[] {

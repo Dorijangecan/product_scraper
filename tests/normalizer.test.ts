@@ -111,6 +111,29 @@ describe("normalizer", () => {
     expect(normalized.certificates).not.toContain("UL Recognized");
   });
 
+  it("recognizes DNV GL Marine, Class I Div 2, and NEC Class 2 certificate tokens", () => {
+    // Real Rockwell 1606-td002 "Standards Compliance and Certifications" checkmark-matrix
+    // values (see pdf-compliance-matrix.ts) — these column headers used to fall through every
+    // certificate-token regex in this file and get silently dropped.
+    const normalized = normalizeFields(
+      [
+        {
+          group: "PDF Compliance Matrix",
+          name: "Certifications",
+          value: "CE, UL 61010-2-201, IECEx, ATEX, Class I Div. 2 HazLoc, DNV GL Marine, EAC Registration, NEC Class 2",
+          sourceType: "official"
+        }
+      ],
+      []
+    );
+
+    expect(normalized.certificates).toContain("DNV GL Marine");
+    expect(normalized.certificates).toContain("Class I Div. 2 HazLoc");
+    expect(normalized.certificates).toContain("NEC Class 2");
+    expect(normalized.certificates).toContain("IECEx");
+    expect(normalized.certificates).toContain("ATEX");
+  });
+
   it("understands an operating temperature range into min/max", () => {
     const normalized = normalizeFields([{ name: "Operating temperature", value: "-40 to +80 °C" }], []);
     expect(normalized.operatingTemperatureMin).toBe("-40");

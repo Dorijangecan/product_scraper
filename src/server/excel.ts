@@ -10,7 +10,7 @@ import { requiredElectricalFields } from "../shared/product-requirements.js";
 import { AI_CLEANED_INPUT_SHEET, writeAiCleanedInputSheet } from "./pdt/ai-cleaned-input-sheet.js";
 import { buildPdtRepairResult } from "./pdt/ai-cleanup.js";
 import { electricalFieldsForDeviceType } from "./pdt/device-type-profiles.js";
-import { classifyDeviceType } from "./scrapers/device-type.js";
+import { classifyDeviceTypeCached as classifyDeviceType } from "./scrapers/device-type.js";
 import { buildLocalizedProductUrls } from "./scrapers/localized-urls.js";
 import { cleanText, normalizeFields } from "./scrapers/normalizer.js";
 import { listTechnicalAttributeAliases, suggestTechnicalAttributeAlias } from "./scrapers/technical-attribute-aliases.js";

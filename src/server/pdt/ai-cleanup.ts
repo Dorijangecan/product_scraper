@@ -1,5 +1,5 @@
 import type { ManufacturerConfig, RunItemRecord } from "../../shared/types.js";
-import { classifyDeviceType } from "../scrapers/device-type.js";
+import { classifyDeviceTypeCached as classifyDeviceType } from "../scrapers/device-type.js";
 import { deviceSheetsFor } from "./device-sheet-map.js";
 import { soleEclassDefaultForDeviceType, type DeviceTypeEclassDefault } from "./device-type-profiles.js";
 import { pdtExceptionEclassDefault } from "./pdt-exceptions.js";

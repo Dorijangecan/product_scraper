@@ -434,6 +434,26 @@ export function classifyDeviceType(result: ProductResult | undefined): DeviceTyp
   };
 }
 
+const deviceTypeClassificationCache = new WeakMap<ProductResult, DeviceTypeClassification>();
+
+/**
+ * Memoized `classifyDeviceType`, keyed by result object identity. `classifyDeviceType` runs every
+ * text candidate through the full `DEVICE_TYPE_RULES` table (100+ regexes) plus the family/URL/
+ * ECLASS channels, so it's expensive to call repeatedly. Only safe where `result` is a finalized,
+ * immutable snapshot — e.g. PDT export (`pdt/exporter.ts`, `pdt/ai-cleanup.ts`) re-classifies the
+ * same item's result many times over (routing, per-sheet writes, ECLASS defaulting, Qwen-patch
+ * verification). Mid-pipeline callers (quality-gate.ts, final-completeness.ts) still call
+ * `classifyDeviceType` directly since `result` there is still being enriched between calls.
+ */
+export function classifyDeviceTypeCached(result: ProductResult | undefined): DeviceTypeClassification {
+  if (!result) return classifyDeviceType(result);
+  const cached = deviceTypeClassificationCache.get(result);
+  if (cached) return cached;
+  const classification = classifyDeviceType(result);
+  deviceTypeClassificationCache.set(result, classification);
+  return classification;
+}
+
 /** Pull the manufacturer's type code (a.k.a. extended product type) from product attributes. */
 function typeCodeAttribute(result: ProductResult): string | undefined {
   const match = (result.attributes ?? []).find((a) =>

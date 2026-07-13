@@ -181,20 +181,100 @@ export function buildVariantColumnContext(
   }
   if (headerIndex < 0) return undefined;
 
+  const targetIndex = firstVariant + ourOrdinal;
+  // Number of variant (data) columns in this table — normally headerCellCount - firstVariant, but
+  // pdf-parse's own tab-insertion for the HEADER row specifically can under-count columns compared
+  // to the data rows below it (confirmed on Rockwell's 1606-td002: a 4-model header row extracts
+  // with only 2 of the 4 catalog numbers as separate cells, while every data row below correctly
+  // has all 4 values tab-separated). Track the widest cell count actually seen on a row that
+  // reached our own column and use THAT for the column count instead, since it reflects the real
+  // table shape; only fall back to the header's own count until a data row has been seen.
+  let maxObservedCellCount = headerCellCount;
+
   const out: string[] = [catalogNumber];
+  // A label whose own row has NO value cells at all (e.g. "Dimensions" / "W x H x D" above
+  // per-model "39 x 124 x 124 mm" / "(1.54 x 4.88 x 4.88 in.)" pairs) prints its per-column values
+  // as a flat run of bare continuation lines instead, one evenly-sized chunk per variant column, in
+  // column order. Track that run so we can slice out our own chunk once it ends.
+  let pendingLabel: string[] = [];
+  let pendingBlock: string[] = [];
+  let collectingBlock = false;
+
+  const flushPendingBlock = () => {
+    const columnCount = maxObservedCellCount - firstVariant;
+    if (pendingLabel.length && pendingBlock.length && columnCount > 0 && pendingBlock.length % columnCount === 0) {
+      const chunkSize = pendingBlock.length / columnCount;
+      const chunk = pendingBlock.slice(ourOrdinal * chunkSize, ourOrdinal * chunkSize + chunkSize);
+      if (chunk.length) out.push(`${pendingLabel.join(" ")}: ${chunk.join(" ")}`);
+    }
+    pendingLabel = [];
+    pendingBlock = [];
+    collectingBlock = false;
+  };
+
   for (let index = headerIndex + 1; index < lines.length; index += 1) {
     const cells = splitTableCells(lines[index]);
-    if (cells.length === 0) continue;
-    if (cells.length !== headerCellCount) {
-      // A second comparison table (>=2 variant tokens) ends this one; anything else is just skipped.
-      if (variantCellPositions(cells).length >= 2) break;
+    if (cells.length === 0) {
+      flushPendingBlock();
       continue;
     }
-    const label = cells.slice(0, firstVariant).join(" ").trim();
-    const value = cells[firstVariant + ourOrdinal];
-    if (!label || value === undefined || value === "") continue;
-    out.push(`${label}: ${value}`);
+
+    // A brand-new comparison table starting (>=2 variant-shaped tokens, each with a digit — a real
+    // catalog/model code always has one, unlike an ordinary hyphenated word such as "Push-in" that
+    // CATALOG_LIKE_TOKEN_PATTERN's shape alone would also match) ends this one. Checked BEFORE
+    // "does this row reach our column" below: a different table's own header row usually has the
+    // same or more cells as ours, so it would otherwise satisfy that check by coincidence and get
+    // absorbed as more of THIS table's data forever — e.g. Rockwell's 1606-td002 has half a dozen
+    // back-to-back comparison tables on the same page range, and without this ordering the scan for
+    // one model would run straight through every later table, the certifications matrix, and the
+    // document's own back-cover resource list, mislabeling all of it as this catalog's own spec rows.
+    if (variantCellPositions(cells).filter((position) => /\d/.test(cells[position])).length >= 2) {
+      flushPendingBlock();
+      break;
+    }
+
+    // Row still carries a usable value at our column's position — the common case. Accepted even
+    // when the row's total cell count falls short of the header's, since that just means some
+    // OTHER column's value overflowed onto extra lines; it doesn't affect our own cell here. (A
+    // stricter "cell count must match the header exactly" rule used to drop these rows outright.)
+    if (cells.length > targetIndex) {
+      flushPendingBlock();
+      maxObservedCellCount = Math.max(maxObservedCellCount, cells.length);
+      const label = cells.slice(0, firstVariant).join(" ").trim();
+      const value = cells[targetIndex];
+      if (label && value) out.push(`${label}: ${value}`);
+      continue;
+    }
+
+    // A genuine data row that reaches some OTHER column(s) but not ours (our column's value
+    // wrapped further down than theirs did) — still ends any pending value-block from the
+    // previous label; nothing to record here since our own cell isn't on this row.
+    if (cells.length > firstVariant) {
+      flushPendingBlock();
+      continue;
+    }
+
+    // A bare, single-cell line that doesn't reach any column at all: either more label text (no
+    // digits yet — "Dimensions", "W x H x D") or the start/continuation of the per-column value
+    // run (first line with a digit flips into collecting mode; every bare line after that belongs
+    // to the run, digits or not, so trailing non-numeric tokens like "auto-select" stay attached).
+    const line = cells.join(" ").trim();
+    if (!line) continue;
+    if (!collectingBlock && !/\d/.test(line)) {
+      pendingLabel.push(line);
+    } else if (pendingLabel.length > 0) {
+      // Only collect into a block when there's an actual label to attach it to — a bare digit
+      // line with no pending label is an orphaned continuation fragment for an already-flushed
+      // row (e.g. a per-model footnote like "Screw (-XLB60E)" wrapping below "Connection
+      // Terminals \tPush-in \tPush-in \t..." after that row was already accepted on its own tab-
+      // separated line). Treating it as the start of a NEW block would wrongly glue it — and
+      // "collecting" mode itself — onto whatever label comes next, discarding that label's own
+      // real values when the block's line count no longer divides evenly by the column count.
+      collectingBlock = true;
+      pendingBlock.push(line);
+    }
   }
+  flushPendingBlock();
 
   if (out.length <= 1) return undefined;
   const joined = out.join("\n");

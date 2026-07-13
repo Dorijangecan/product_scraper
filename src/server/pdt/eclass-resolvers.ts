@@ -1269,6 +1269,8 @@ function sanitizeSourceCertifications(raw: string | undefined): string | undefin
     ["cUL", /\bcUL\b/i],
     ["IECEx", /\bIECEx\b/i],
     ["UKCA", /\bUKCA\b/i],
+    ["Class I Div 2", /\bClass\s+I\s+Div\.?\s*2\b/i],
+    ["NEC Class 2", /\bNEC\s+Class\s+2\b/i],
     ["C-Tick", /\bC-?Tick\b/i],
     ["CCC", /\b(?:China\s+)?CCC\b/i],
     ["RCM", /\b(?:Australian\s+)?RCM\b/i],
@@ -1312,15 +1314,23 @@ function sanitizeSourceCertifications(raw: string | undefined): string | undefin
 }
 
 function rockwellCertifications(ctx: ResolveContext): string | undefined {
-  const pdtCertificates = pdtFactValue(ctx, "pdtCertificates");
-  if (pdtCertificates) return pdtCertificates;
   if (!isRockwell(ctx)) return undefined;
+  // Every candidate — fact-derived or attribute-derived — is run through the SAME preferred-code
+  // allowlist below before being trusted. The fact used to be returned verbatim, no allowlist
+  // applied: `addDocumentCertificateFacts` (facts.ts) seeds "pdtCertificates" from the generic
+  // normalizer's "certificates" field, which isn't Rockwell-aware and can pick up unrelated
+  // boilerplate — e.g. the 1606-td002 datasheet's "Additional Resources" page links to
+  // "Product Certifications website ... Provides declarations of conformity, certificates, and
+  // other certification details." (a description of a WEBSITE, not this product's actual
+  // certificates) — which then got emitted verbatim as the PDT Certificates cell.
+  const pdtCertificates = pdtFactValue(ctx, "pdtCertificates");
   const attributes = ctx.result?.attributes ?? [];
-  const certValues = attributes
+  const attributeCertValues = attributes
     .filter((candidate) => /\bcertification\b/i.test(`${candidate.group ?? ""} ${candidate.name ?? ""}`))
     .filter((candidate) => candidate.parser === "rockwell-product-page" || candidate.sourceType === "official")
     .map((candidate) => clean(candidate.value))
     .filter((value): value is string => Boolean(value));
+  const certValues = [pdtCertificates, ...attributeCertValues].filter((value): value is string => Boolean(value));
   if (!certValues.length) return undefined;
 
   const preferred: Array<[string, RegExp]> = [
@@ -2500,7 +2510,17 @@ const RESOLVERS: Record<string, Resolver> = {
   AAF680: attrYesNo(/\b(over voltage protection|overvoltage protection)\b/i),
   AAL377: attrYesNo(/\b(built[- ]in battery|integrated battery)\b/i),
   AAM119: attrFlag(/\bSNMP\b/i),
-  AAF703: (ctx) => voltageValue(ctx, /\b(max(?:imum)? input voltage|input voltage)\b/i),
+  // Rockwell power supplies print "AC Input Voltage" as a multi-range auto-select value (e.g.
+  // "AC 100...120V/200...240V auto-select") split across several scraped attribute fragments —
+  // `voltageValue` only reads the FIRST matching attribute (`attr()`'s single pick), so it can
+  // land on a fragment that only contains the low end of the range. Rockwell's own convention
+  // for this column is the MAX across the whole range regardless of which fragment holds it, so
+  // `maxVoltageOf` (which scans every matching attribute's every V-number) is used for Rockwell.
+  // Other manufacturers keep the original single-attribute behavior.
+  AAF703: (ctx) =>
+    isRockwell(ctx)
+      ? maxVoltageOf(ctx, /\b(max(?:imum)? input voltage|input voltage)\b/i)
+      : voltageValue(ctx, /\b(max(?:imum)? input voltage|input voltage)\b/i),
   AAF704: (ctx) => minVoltageOf(ctx, /\b(min(?:imum)? primary voltage|primary voltage|input voltage)\b/i),
   AAC079: (ctx) => voltageValue(ctx, /\b(primary voltage|input voltage)\b/i),
   AAC115: (ctx) => voltageValue(ctx, /\b(secondary voltage|output voltage)\b/i),
