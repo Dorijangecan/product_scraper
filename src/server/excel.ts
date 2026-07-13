@@ -479,13 +479,20 @@ export async function exportRunWorkbook(input: {
 
   const productRows: ProductExportRow[] = [];
 
-  for (const item of input.items) {
+  // Thumbnail generation (sharp resize + PNG encode) is CPU/IO-bound per image and was previously
+  // awaited one item at a time inside the row loop below — on a large run (hundreds/thousands of
+  // catalog numbers) that serialized cost alone can add many minutes to the final export step.
+  // Precompute every thumbnail concurrently up front so the row loop only does synchronous work.
+  await input.onActivity?.({ stage: "workbook-thumbnails", message: "Preparing product thumbnails." });
+  const thumbnails = await buildProductThumbnails(input.items);
+
+  for (const [itemIndex, item] of input.items.entries()) {
     const result = item.result;
     const rowData = productRow(input.manufacturer, item, result, { includeImages: input.run.options?.downloadImages !== false });
     productRows.push(rowData);
     lookup.addRow(lookupRow(rowData, result));
     const productExcelRow = products.addRow(rowData);
-    await addProductThumbnail(workbook, products, productExcelRow, result);
+    applyProductThumbnail(workbook, products, productExcelRow, thumbnails[itemIndex]);
     if (!result || result.status === "failed") {
       failures.addRow({
         manufacturer: input.manufacturer.canonicalName,
@@ -2712,30 +2719,50 @@ function measurementNumber(value: number | undefined): number | undefined {
   return Number((value + Number.EPSILON).toFixed(9));
 }
 
-async function addProductThumbnail(
-  workbook: ExcelJS.Workbook,
-  sheet: ExcelJS.Worksheet,
-  row: ExcelJS.Row,
-  result?: ProductResult
-) {
-  const image = primaryImageDocument(result);
-  if (!image?.localPath || !fs.existsSync(image.localPath)) return;
-  try {
-    const buffer = await sharp(image.localPath)
-      .resize(86, 86, { fit: "inside", withoutEnlargement: true })
-      .png()
-      .toBuffer();
-    const imageId = workbook.addImage({ base64: buffer.toString("base64"), extension: "png" });
-    const imageColumn = sheet.getColumn("image").number;
-    row.height = Math.max(row.height || 15, 68);
-    sheet.addImage(imageId, {
-      tl: { col: imageColumn - 1 + 0.15, row: row.number - 1 + 0.15 },
-      ext: { width: 86, height: 86 },
-      editAs: "oneCell"
-    });
-  } catch {
+type ProductThumbnail = { status: "ok"; buffer: Buffer } | { status: "error" } | undefined;
+
+// Bounded worker pool over a shared cursor (same pattern as run-manager's runWithConcurrency) so
+// N images resize/encode in parallel instead of one at a time.
+async function buildProductThumbnails(items: RunItemRecord[]): Promise<ProductThumbnail[]> {
+  const concurrency = 8;
+  const results: ProductThumbnail[] = new Array(items.length);
+  let cursor = 0;
+  const worker = async () => {
+    while (true) {
+      const index = cursor;
+      if (index >= items.length) return;
+      cursor += 1;
+      const image = primaryImageDocument(items[index].result);
+      if (!image?.localPath || !fs.existsSync(image.localPath)) continue;
+      try {
+        const buffer = await sharp(image.localPath)
+          .resize(86, 86, { fit: "inside", withoutEnlargement: true })
+          .png()
+          .toBuffer();
+        results[index] = { status: "ok", buffer };
+      } catch {
+        results[index] = { status: "error" };
+      }
+    }
+  };
+  await Promise.all(Array.from({ length: Math.min(concurrency, items.length) }, () => worker()));
+  return results;
+}
+
+function applyProductThumbnail(workbook: ExcelJS.Workbook, sheet: ExcelJS.Worksheet, row: ExcelJS.Row, thumbnail: ProductThumbnail) {
+  if (!thumbnail) return;
+  if (thumbnail.status === "error") {
     row.getCell("image").value = "Downloaded";
+    return;
   }
+  const imageId = workbook.addImage({ base64: thumbnail.buffer.toString("base64"), extension: "png" });
+  const imageColumn = sheet.getColumn("image").number;
+  row.height = Math.max(row.height || 15, 68);
+  sheet.addImage(imageId, {
+    tl: { col: imageColumn - 1 + 0.15, row: row.number - 1 + 0.15 },
+    ext: { width: 86, height: 86 },
+    editAs: "oneCell"
+  });
 }
 
 function primaryImageDocument(result?: ProductResult) {
