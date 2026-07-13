@@ -55,6 +55,51 @@ describe("multi-variant datasheet column selection", () => {
     expect(second).toContain("Weight: 540 g");
   });
 
+  it("recovers the LAST column's own value when it overflows onto bare continuation lines below the row (Rockwell 1606-XLB480E)", () => {
+    // Same real layout as above: "540 g" (2nd column) is missing its "(1.19 lb)" suffix on the row
+    // itself, and the 3rd column's whole value ("810 g (1.79 lb)") is bare-line-only. The first bare
+    // line completes the 2nd column (dropped, since we don't need it); only the remaining bare lines
+    // belong to our own (3rd) column.
+    const text = [
+      "Catalog Number \t1606-XLB120E \t1606-XLB240E \t1606-XLB480E",
+      "Output Power \t120 W \t240 W \t480 W",
+      "Weight \t370 g (0.82 lb) \t540 g",
+      "(1.19 lb)",
+      "810 g",
+      "(1.79 lb)",
+      "DC OK Relay Contact \tYes \tYes \tYes"
+    ].join("\n");
+
+    const out = buildVariantColumnContext(text, "1606-XLB480E");
+    expect(out).toContain("Weight: 810 g (1.79 lb)");
+    expect(out).not.toContain("(1.19 lb) 810 g");
+  });
+
+  it("finds the header column for a catalog whose name never appears tab-separated, only as its own bare line below a bare 'Catalog Number' label (Rockwell 1606-XLB 7-model table)", () => {
+    // Real layout: only the first 2 catalog names share a tab-separated line with "Catalog Number";
+    // the other 5 spill one per bare line before the data rows start. Near-identical siblings that
+    // differ only by a trailing suffix letter ("...60E" vs "...60EH") share one printed data column.
+    const text = [
+      "Catalog Number \t1606-XLB60BH \t1606-XLB36EH",
+      "1606-XLB60EH",
+      "1606-XLB60E",
+      "1606-XLB90EH",
+      "1606-XLB90E",
+      "1606-XLB90EQ",
+      "Output Voltage, Nom \t12V \t24V \t24V \t24V",
+      "Weight \t225 g (0.50 lb) \t140 g (0.31 lb) \t220 g (0.49 lb) \t270 g (0.60 lb)"
+    ].join("\n");
+
+    const bh = buildVariantColumnContext(text, "1606-XLB60BH");
+    expect(bh).toContain("Weight: 225 g (0.50 lb)");
+    const eh = buildVariantColumnContext(text, "1606-XLB60EH");
+    expect(eh).toContain("Weight: 220 g (0.49 lb)");
+    const e = buildVariantColumnContext(text, "1606-XLB60E");
+    expect(e).toContain("Weight: 220 g (0.49 lb)");
+    const ninetyQ = buildVariantColumnContext(text, "1606-XLB90EQ");
+    expect(ninetyQ).toContain("Weight: 270 g (0.60 lb)");
+  });
+
   it("reassembles a label whose value never fit the header row into evenly-sized per-column chunks", () => {
     // Real layout: "Dimensions" / "W x H x D" prints as a bare 2-line label, followed by one
     // metric+imperial line pair per variant column in column order, with no tabs at all.

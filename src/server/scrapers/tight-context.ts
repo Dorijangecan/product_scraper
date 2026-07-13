@@ -19,7 +19,11 @@ import { catalogTextMatches } from "./catalog-number.js";
  * wider window so we don't accidentally throw away ALL extraction).
  */
 const LINE_WINDOW_BEFORE_DEFAULT = 6;
-const LINE_WINDOW_AFTER_DEFAULT = 18;
+// Rockwell's single-model accessory tables (e.g. 1606-XLBRED20) wrap several fields across
+// multiple lines each (Output Current, Power Losses, Temperature) before reaching Weight/
+// Dimensions, pushing them past a shorter window; safe to extend since the catalog-boundary
+// break check below already stops expansion as soon as a DIFFERENT catalog's row appears.
+const LINE_WINDOW_AFTER_DEFAULT = 30;
 const CATALOG_LIKE_TOKEN_PATTERN = /\b[A-Z0-9]{2,}(?:[-:\/.][A-Z0-9]+)+\b|\b[A-Z]{2,}[0-9]{3,}\b/i;
 
 export function buildTightContextForCatalog(
@@ -110,6 +114,16 @@ function variantCellPositions(cells: string[]): number[] {
   return cells.map((cell, index) => (isVariantToken(cell) ? index : -1)).filter((index) => index >= 0);
 }
 
+/** Two catalog names belong to the same printed data column when one is a compact prefix of the
+ * other ("1606-XLB60E" / "1606-XLB60EH") — Rockwell's 1606-td002 merges such near-identical siblings
+ * into a single column (they share every spec except a footnoted detail like connector type) and
+ * only distinguishes them via later footnotes ("Push-in (-XLB60EH)" / "Screw (-XLB60E)"). */
+function tokensShareColumn(a: string, b: string): boolean {
+  const compactA = compactKey(a);
+  const compactB = compactKey(b);
+  return compactA.length > 0 && compactB.length > 0 && (compactA.startsWith(compactB) || compactB.startsWith(compactA));
+}
+
 function keepOrderingParentRatingRow(lines: string[], catalogIndex: number, kept: Set<number>) {
   const previous = lines[catalogIndex - 1];
   if (!previous || !isOrderingModelRow(previous) || orderingRowHasRatingPrefix(previous)) return;
@@ -175,22 +189,46 @@ export function buildVariantColumnContext(
     if (cells.length < 3) continue;
     const positions = variantCellPositions(cells);
     if (positions.length < 2) continue;
-    // Prefer an EXACT compact match over a loose substring one, and check every position instead
-    // of stopping at the first candidate — "1606-XLE480FP" is a strict prefix of the (different,
-    // real) sibling "1606-XLE480FP-D", so a plain first-match substring scan for "-D" always
-    // stopped one column early at "480FP" and silently reused its whole column for "-D" too.
-    const exactPosition = positions.find((position) => compactKey(cells[position]) === compactCatalog);
-    const matchedPosition =
-      exactPosition ??
-      positions.find((position) => {
-        const token = compactKey(cells[position]);
-        return token.length >= 3 && (token.includes(compactCatalog) || compactCatalog.includes(token));
-      });
-    if (matchedPosition === undefined) continue;
-    headerIndex = index;
+
+    // Some header rows list more catalog names than fit as tab-separated cells on one physical
+    // line; pdf-parse then wraps the rest onto their own bare lines immediately below (seen on
+    // Rockwell's 1606-td002 7-model tables: only the first two names print inline, the other five
+    // spill one per line before the real data rows start). Collect those as additional "slots",
+    // merging a wrapped name into the previous slot instead of starting a new one when it's a
+    // near-duplicate sibling sharing the same data column (see tokensShareColumn).
+    const slots: string[][] = positions.map((position) => [cells[position]]);
+    let lookahead = index + 1;
+    while (lookahead < lines.length) {
+      const bareLine = lines[lookahead].trim();
+      if (!bareLine || !isVariantToken(bareLine)) break;
+      const lastSlot = slots[slots.length - 1];
+      if (tokensShareColumn(bareLine, lastSlot[lastSlot.length - 1])) {
+        lastSlot.push(bareLine);
+      } else {
+        slots.push([bareLine]);
+      }
+      lookahead += 1;
+    }
+
+    // Prefer an EXACT compact match over a loose substring one, and check every slot instead of
+    // stopping at the first candidate — "1606-XLE480FP" is a strict prefix of the (different, real)
+    // sibling "1606-XLE480FP-D", so a plain first-match substring scan for "-D" always stopped one
+    // column early at "480FP" and silently reused its whole column for "-D" too.
+    const exactSlotOrdinal = slots.findIndex((slot) => slot.some((name) => compactKey(name) === compactCatalog));
+    const matchedSlotOrdinal =
+      exactSlotOrdinal >= 0
+        ? exactSlotOrdinal
+        : slots.findIndex((slot) =>
+            slot.some((name) => {
+              const token = compactKey(name);
+              return token.length >= 3 && (token.includes(compactCatalog) || compactCatalog.includes(token));
+            })
+          );
+    if (matchedSlotOrdinal < 0) continue;
+    headerIndex = lookahead - 1;
     headerCellCount = cells.length;
     firstVariant = positions[0];
-    ourOrdinal = positions.indexOf(matchedPosition);
+    ourOrdinal = matchedSlotOrdinal;
     break;
   }
   if (headerIndex < 0) return undefined;
@@ -213,17 +251,38 @@ export function buildVariantColumnContext(
   let pendingLabel: string[] = [];
   let pendingBlock: string[] = [];
   let collectingBlock = false;
+  // When a row already emitted its leftmost columns directly as tab-separated cells and only its
+  // TRAILING column(s) overflow onto bare continuation lines (Rockwell's Weight row: "Weight
+  // \t370 g (0.82 lb) \t540 g" then bare "(1.19 lb)" / "810 g" / "(1.79 lb)" for the 3rd column),
+  // the block only ever contains values for the columns AFTER this many already-known ones — both
+  // the chunk-count divisor and our own ordinal need to be shifted by it.
+  let pendingBlockKnownColumns = 0;
+  // Only the SINGLE bare line immediately after a row-overflow row is treated as completing the
+  // last already-known cell (see the skip branch below) — capped at one so a row with several
+  // short footnote-only annotations in a row (e.g. "Screw (-XLB60E)" / "Push-in (-XLB90EH)" /
+  // "Screw (-XLB90E, -XLB90EQ)", all lacking a leading digit) doesn't swallow the REAL value we
+  // need on the second or third line too.
+  let pendingBlockSkippedTrailingCompletion = false;
 
   const flushPendingBlock = () => {
-    const columnCount = maxObservedCellCount - firstVariant;
-    if (pendingLabel.length && pendingBlock.length && columnCount > 0 && pendingBlock.length % columnCount === 0) {
+    const columnCount = maxObservedCellCount - firstVariant - pendingBlockKnownColumns;
+    const relativeOrdinal = ourOrdinal - pendingBlockKnownColumns;
+    if (
+      pendingLabel.length &&
+      pendingBlock.length &&
+      columnCount > 0 &&
+      pendingBlock.length % columnCount === 0 &&
+      relativeOrdinal >= 0
+    ) {
       const chunkSize = pendingBlock.length / columnCount;
-      const chunk = pendingBlock.slice(ourOrdinal * chunkSize, ourOrdinal * chunkSize + chunkSize);
+      const chunk = pendingBlock.slice(relativeOrdinal * chunkSize, relativeOrdinal * chunkSize + chunkSize);
       if (chunk.length) out.push(`${pendingLabel.join(" ")}: ${chunk.join(" ")}`);
     }
     pendingLabel = [];
     pendingBlock = [];
     collectingBlock = false;
+    pendingBlockKnownColumns = 0;
+    pendingBlockSkippedTrailingCompletion = false;
   };
 
   for (let index = headerIndex + 1; index < lines.length; index += 1) {
@@ -267,11 +326,19 @@ export function buildVariantColumnContext(
       continue;
     }
 
-    // A genuine data row that reaches some OTHER column(s) but not ours (our column's value
-    // wrapped further down than theirs did) — still ends any pending value-block from the
-    // previous label; nothing to record here since our own cell isn't on this row.
+    // A genuine data row that reaches some OTHER column(s) but not ours — either our column's
+    // value wrapped further down than theirs did (nothing to do but end any pending block from the
+    // PREVIOUS label), or THIS row's own trailing column(s) — including ours — overflow onto bare
+    // continuation lines right below it. Start collecting for the latter case so those bare lines
+    // get attributed to this row's label instead of silently dropped.
     if (cells.length > firstVariant) {
       flushPendingBlock();
+      const label = cells.slice(0, firstVariant).join(" ").trim();
+      if (label && cells.length <= targetIndex) {
+        pendingLabel = [label];
+        pendingBlockKnownColumns = cells.length - firstVariant;
+        collectingBlock = true;
+      }
       continue;
     }
 
@@ -281,7 +348,7 @@ export function buildVariantColumnContext(
     // to the run, digits or not, so trailing non-numeric tokens like "auto-select" stay attached).
     const line = cells.join(" ").trim();
     if (!line) continue;
-    const knownColumnCount = maxObservedCellCount - firstVariant;
+    const knownColumnCount = maxObservedCellCount - firstVariant - pendingBlockKnownColumns;
     if (
       collectingBlock &&
       !/\d/.test(line) &&
@@ -298,6 +365,17 @@ export function buildVariantColumnContext(
       pendingLabel.push(line);
     } else if (!collectingBlock && !/\d/.test(line)) {
       pendingLabel.push(line);
+    } else if (
+      pendingBlockKnownColumns > 0 &&
+      !pendingBlockSkippedTrailingCompletion &&
+      pendingBlock.length === 0 &&
+      !/^\d/.test(line)
+    ) {
+      // The very first bare line right after a row that already emitted some columns directly
+      // ("Weight \t370 g (0.82 lb) \t540 g") completes THAT last known cell ("(1.19 lb)") rather
+      // than starting the overflow block for our own column — drop it so it doesn't get mistaken
+      // for the first chunk of our column's value. Capped at one drop (see the flag's declaration).
+      pendingBlockSkippedTrailingCompletion = true;
     } else if (pendingLabel.length > 0) {
       // Only collect into a block when there's an actual label to attach it to — a bare digit
       // line with no pending label is an orphaned continuation fragment for an already-flushed
