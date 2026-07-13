@@ -115,6 +115,70 @@ describe("multi-variant datasheet column selection", () => {
     expect(out).toContain("Weight: 140 g");
   });
 
+  it("does not mistake a decimal measurement-with-unit repeated across columns for a new table header", () => {
+    // Real bug: "22.5V" matches CATALOG_LIKE_TOKEN_PATTERN's shape (digits, a "." separator, then
+    // an alnum suffix) just like a real catalog code does, and it has a digit too — so the digit
+    // requirement alone doesn't rule it out. Confirmed on Rockwell's 1606-td002 "Buffer Modules /
+    // DC-UPS with Capacitor Storage" table: this row ends the scan early and drops Dimensions/Weight
+    // (several rows further down) for every column.
+    const text = [
+      "Catalog Number \t1606-XLSCAP24-6 \t1606-XLSCAP24-12",
+      "Buffer Current Max \t15 A \t15 A",
+      "Voltage in Buffer-mode \t22.5V \t22.5V",
+      "Dimensions, W x H x D \t126 x 124 x 117 mm \t198 x 124 x 117 mm",
+      "Weight \t1150 g \t1720 g"
+    ].join("\n");
+
+    const out = buildVariantColumnContext(text, "1606-XLSCAP24-12");
+    expect(out).toContain("Voltage in Buffer-mode: 22.5V");
+    expect(out).toContain("Weight: 1720 g");
+    expect(out).not.toContain("1150 g");
+  });
+
+  it("flushes a completed bare-continuation block before starting the next bare label with no row in between", () => {
+    // Real bug: Rockwell's 1606-XLE480FP-D table prints "Weight" as a bare label (no tabs, no
+    // value on its own line) immediately after a completed 2-line-per-column "Dimensions" block —
+    // with no tab-separated row between them to signal the switch. The old code kept
+    // "collecting" mode on, so "Weight" itself got swallowed as more Dimensions data and the real
+    // Weight values were lost entirely.
+    const text = [
+      "Catalog Number \t1606-XLE120F \t1606-XLE480FP",
+      "Output Power \t120 W \t480 W",
+      "Dimensions",
+      "W x H x D",
+      "32 x 124 x 102 mm",
+      "(1.26 x 4.88 x 4.02 in.)",
+      "48 x 124 x 127 mm",
+      "(2.56 x 4.88 x 5 in.)",
+      "Weight",
+      "440 g",
+      "(0.97 lb)",
+      "830 g",
+      "(2.20 lb)",
+      "DC-OK Relay Contact \tYes \tYes"
+    ].join("\n");
+
+    const out = buildVariantColumnContext(text, "1606-XLE480FP");
+    expect(out).toContain("Dimensions W x H x D: 48 x 124 x 127 mm (2.56 x 4.88 x 5 in.)");
+    expect(out).toContain("Weight: 830 g (2.20 lb)");
+    expect(out).not.toContain("440 g");
+  });
+
+  it("matches the EXACT catalog column, not the first sibling whose name is a prefix of it", () => {
+    // Real bug: "1606-XLE480FP" is a strict prefix of "1606-XLE480FP-D" (a different, real sibling
+    // column in the same table). The header-matching scan used to stop at the first substring hit
+    // in column order, so a query for "-D" silently reused the "480FP" column's values instead.
+    const text = [
+      "Catalog Number \t1606-XLE480FP \t1606-XLE480FP-D",
+      "Output Power \t480 W \t480 W",
+      "Weight \t830 g \t940 g"
+    ].join("\n");
+
+    const out = buildVariantColumnContext(text, "1606-XLE480FP-D");
+    expect(out).toContain("Weight: 940 g");
+    expect(out).not.toContain("830 g");
+  });
+
   it("drops an orphaned continuation fragment instead of corrupting the next label's value block", () => {
     // Real bug: a footnote-style wrapped continuation with no label of its own ("Screw (-XLB60E)"
     // clarifying which earlier column uses screw vs push-in terminals) used to flip on "collecting"

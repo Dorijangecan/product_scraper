@@ -99,6 +99,13 @@ function isVariantToken(cell: string): boolean {
   return new RegExp(`^(?:${CATALOG_LIKE_TOKEN_PATTERN.source})$`, "i").test(cell);
 }
 
+/** A decimal value with a unit suffix ("22.5V", "0.32 kWs") — CATALOG_LIKE_TOKEN_PATTERN's "digits,
+ * separator, alnum" shape also matches these (the decimal point counts as the separator), but they
+ * are spec data, not a model/catalog code. */
+function isMeasurementWithUnit(cell: string): boolean {
+  return /^-?\d+(?:\.\d+)?\s*(?:V|A|W|VA|Hz|kh|kWs|Wh|Ah|mm|cm|in|min|ms|°?[CF]|lb|kg|g)\b/i.test(cell.trim());
+}
+
 function variantCellPositions(cells: string[]): number[] {
   return cells.map((cell, index) => (isVariantToken(cell) ? index : -1)).filter((index) => index >= 0);
 }
@@ -168,10 +175,17 @@ export function buildVariantColumnContext(
     if (cells.length < 3) continue;
     const positions = variantCellPositions(cells);
     if (positions.length < 2) continue;
-    const matchedPosition = positions.find((position) => {
-      const token = compactKey(cells[position]);
-      return token.length >= 3 && (token === compactCatalog || token.includes(compactCatalog) || compactCatalog.includes(token));
-    });
+    // Prefer an EXACT compact match over a loose substring one, and check every position instead
+    // of stopping at the first candidate — "1606-XLE480FP" is a strict prefix of the (different,
+    // real) sibling "1606-XLE480FP-D", so a plain first-match substring scan for "-D" always
+    // stopped one column early at "480FP" and silently reused its whole column for "-D" too.
+    const exactPosition = positions.find((position) => compactKey(cells[position]) === compactCatalog);
+    const matchedPosition =
+      exactPosition ??
+      positions.find((position) => {
+        const token = compactKey(cells[position]);
+        return token.length >= 3 && (token.includes(compactCatalog) || compactCatalog.includes(token));
+      });
     if (matchedPosition === undefined) continue;
     headerIndex = index;
     headerCellCount = cells.length;
@@ -228,7 +242,14 @@ export function buildVariantColumnContext(
     // back-to-back comparison tables on the same page range, and without this ordering the scan for
     // one model would run straight through every later table, the certifications matrix, and the
     // document's own back-cover resource list, mislabeling all of it as this catalog's own spec rows.
-    if (variantCellPositions(cells).filter((position) => /\d/.test(cells[position])).length >= 2) {
+    // A decimal measurement-with-unit ("22.5V") also matches the pattern's shape (digits, a "."
+    // separator, then an alnum suffix) and has a digit too, so it's excluded explicitly — it's
+    // spec DATA repeated across columns (e.g. "Voltage in Buffer-mode"), not a model code.
+    if (
+      variantCellPositions(cells)
+        .filter((position) => /\d/.test(cells[position]) && !isMeasurementWithUnit(cells[position]))
+        .length >= 2
+    ) {
       flushPendingBlock();
       break;
     }
@@ -260,7 +281,22 @@ export function buildVariantColumnContext(
     // to the run, digits or not, so trailing non-numeric tokens like "auto-select" stay attached).
     const line = cells.join(" ").trim();
     if (!line) continue;
-    if (!collectingBlock && !/\d/.test(line)) {
+    const knownColumnCount = maxObservedCellCount - firstVariant;
+    if (
+      collectingBlock &&
+      !/\d/.test(line) &&
+      knownColumnCount > 0 &&
+      pendingBlock.length > 0 &&
+      pendingBlock.length % knownColumnCount === 0
+    ) {
+      // A no-digit bare line arriving exactly when the current block already divides evenly into
+      // the known column count is a NEW label starting (e.g. bare "Weight" immediately after a
+      // completed 2-line-per-column "Dimensions" block, with no tab-separated row in between to
+      // signal the switch) — not a trailing continuation of the value we just finished. Flush what
+      // we have under the OLD label first, then start fresh under this one.
+      flushPendingBlock();
+      pendingLabel.push(line);
+    } else if (!collectingBlock && !/\d/.test(line)) {
       pendingLabel.push(line);
     } else if (pendingLabel.length > 0) {
       // Only collect into a block when there's an actual label to attach it to — a bare digit

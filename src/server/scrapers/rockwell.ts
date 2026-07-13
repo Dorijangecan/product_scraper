@@ -77,9 +77,24 @@ export class RockwellConnector implements ManufacturerConnector {
     }
 
     const { result: fallback, discovery } = await scrapeDiscoveredFallback(catalogNumber, context, { idPrefix: "rockwell" });
-    const fallbackResult = fallback
+    let fallbackResult = fallback
       ? finalizeRockwellResult(fallback)
       : emptyResult("rockwell", catalogNumber, "No Rockwell Automation product data could be fetched through primary endpoints, official discovery, or configured fallback pages.");
+
+    // Some catalog numbers (accessories/special modules like 1606-XLSCAP24-12) have no live
+    // details.html page of their own at all — confirmed live — but their full spec (including
+    // weight/dimensions) still lives in the shared family datasheet other 1606-XL* models already
+    // pull documents from. Hand it to the normal document-enrichment pipeline as one more candidate
+    // rather than leaving the row with nothing; matchesRockwellCatalogStrict already guards this PDF
+    // against misattributing a sibling model's row (see its other call sites in this file).
+    const familyDatasheet = rockwellFamilySeriesDatasheetCandidate(catalogNumber);
+    if (familyDatasheet && !fallbackResult.documents.some((doc) => doc.url === familyDatasheet.url)) {
+      fallbackResult = {
+        ...fallbackResult,
+        status: fallbackResult.status === "failed" ? "partial" : fallbackResult.status,
+        documents: [...fallbackResult.documents, familyDatasheet]
+      };
+    }
 
     return withDiscoveryFallbackDiagnostics(
       {
@@ -970,6 +985,25 @@ function rockwellFamilyForCatalog(catalogNumber: string): RockwellFamilyPageRule
     };
   }
   return undefined;
+}
+
+/**
+ * The "1606-TD002" technical-data publication covers every 1606-XLS/XLE/XLD/XLP/XLB switched-mode
+ * power supply model AND their accessories (buffer/capacitor/battery/redundancy modules) in one
+ * shared, multi-column-per-model document. Several accessory catalog numbers have no
+ * details.html page of their own at all (confirmed live, e.g. 1606-XLSCAP24-12), so this is the
+ * only route to their spec data. Only used as a last-resort fallback candidate — see call site.
+ */
+function rockwellFamilySeriesDatasheetCandidate(catalogNumber: string): DocumentRecord | undefined {
+  if (!/^\s*1606-XL[SEDPB]/i.test(catalogNumber)) return undefined;
+  return {
+    type: "datasheet",
+    label: "1606 Switched Mode Power Supply Specifications (technical data)",
+    url: "https://literature.rockwellautomation.com/idc/groups/literature/documents/td/1606-td002_-en-p.pdf",
+    sourceType: "official-fallback",
+    parser: "rockwell-family-datasheet",
+    confidence: 0.6
+  };
 }
 
 function rockwellFamilyPageForCatalog(catalogNumber: string): string | undefined {

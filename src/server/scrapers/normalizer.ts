@@ -1742,7 +1742,13 @@ function normalizeCertificateValue(value: string, allowNotApplicable = false): s
     ...(cleaned.match(/\bCE\b/g) ?? [])
   ].map(cleanText);
   if (tokens.length > 0) return uniqueCertificateTokens(tokens).sort(compareCertificateToken).join("; ");
-  if (/\b(certificate|declaration|conformity|listed|approved)\b/i.test(cleaned)) return cleaned;
+  // Fallback for values that mention certification-flavored words but matched none of the specific
+  // codes above: safe for a genuinely short label ("UL Certificate", "Declaration of Conformity")
+  // but not for a full sentence — e.g. a resource-list blurb like "Product Certifications website
+  // ... Provides declarations of conformity, certificates, and other certification details."
+  // describes a WEBSITE, not this product's own certificates, and would otherwise leak into the
+  // Certificates field verbatim. Long, sentence-shaped text is dropped instead of guessed at.
+  if (cleaned.length <= 60 && /\b(certificate|declaration|conformity|listed|approved)\b/i.test(cleaned)) return cleaned;
   return "";
 }
 
