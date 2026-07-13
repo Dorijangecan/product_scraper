@@ -8,6 +8,7 @@ import { cleanProductDescription, compactFamilyShortDescription, isDecorativeAss
 import { isSignalDeviceType, soleEclassDefaultForDeviceType } from "./device-type-profiles.js";
 import { pdtProductUrlRule } from "./rules.js";
 import { splitTemperatureRange } from "./unit-cleanup.js";
+import { ROCKWELL_KNOWN_WEIGHTS_KG } from "./rockwell-known-weights.js";
 
 export type PdtFactSourceKind = "attribute" | "document" | "normalized" | "generated-rule" | "repair";
 
@@ -264,6 +265,7 @@ export function buildPdtFactIndex(input: PdtFactInput): PdtFactIndex {
   addRockwell1756L8ControllerFacts(facts, input);
   addRockwell1444DynamixFacts(facts, input);
   addRockwell700HbRelayFacts(facts, input);
+  addRockwellKnownWeightFacts(facts, input);
 
   addRepair(facts, "eclassCode", input.repair?.eclassCode, "pdt-repair", "Deterministic PDT cleanup produced an ECLASS code from scraped evidence.");
   addRepair(facts, "eclassSystemVersion", input.repair?.eclassSystemVersion, "pdt-repair", "Deterministic PDT cleanup produced an ECLASS system version.");
@@ -971,6 +973,25 @@ function rockwellIoCatalogPointCount(
     kind === "analogInput" ? analogInputPrefixes :
     analogOutputPrefixes;
   return expected.some((entry) => prefix.startsWith(entry)) ? count : undefined;
+}
+
+/** Customer-confirmed ground truth (see ROCKWELL_KNOWN_WEIGHTS_KG) beats both the DPP JSON API and
+ * the 1606-td002 datasheet PDF, which disagree with it — and with each other — for some catalogs by
+ * a small but real margin. Set unconditionally (not addTypeDefaultIfMissing) so it always wins:
+ * weight() in eclass-resolvers.ts reads pdtWeightKg before consulting any scraped attribute. */
+function addRockwellKnownWeightFacts(facts: PdtFact[], input: PdtFactInput): void {
+  if (!isRockwell(input)) return;
+  const catalog = clean(input.item.catalogNumber)?.toUpperCase();
+  if (!catalog) return;
+  const knownKg = ROCKWELL_KNOWN_WEIGHTS_KG[catalog];
+  if (knownKg === undefined) return;
+  addTypeDefault(
+    facts,
+    "pdtWeightKg",
+    String(knownKg),
+    "rockwell-known-weight-reference",
+    "Customer-provided Rockwell weight reference table overrides scraped/datasheet weight for this catalog number."
+  );
 }
 
 function isRockwell(input: PdtFactInput): boolean {

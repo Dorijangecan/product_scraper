@@ -562,6 +562,36 @@ describe("eclass resolvers", () => {
     expect(resolveProperty("BAA020", "BAA020", c)).toBe("106");
   });
 
+  it("prefers the customer-provided Rockwell weight reference table over a conflicting scraped/datasheet weight", () => {
+    const c = ctx(
+      {
+        manufacturerId: "rockwell",
+        attributes: [{ group: "Physical", name: "Weight", value: "0.81 kg", sourceType: "official" }],
+        normalized: { weight: "0.81 kg" }
+      },
+      "1606-XLB480E"
+    );
+    c.manufacturer = { ...manufacturer, id: "rockwell", canonicalName: "Rockwell Automation" } as ManufacturerConfig;
+
+    // The datasheet PDF says 810 g (0.81 kg) for this catalog, but the customer's own bulk export
+    // says 0.95 kg — the reference table must win.
+    expect(resolveProperty("AAF040", "AAF040", c)).toBe("0.95");
+  });
+
+  it("does not apply the Rockwell weight reference table to a catalog number it doesn't list", () => {
+    const c = ctx(
+      {
+        manufacturerId: "rockwell",
+        attributes: [{ group: "Physical", name: "Weight", value: "1.23 kg", sourceType: "official" }],
+        normalized: { weight: "1.23 kg" }
+      },
+      "1606-NOT-IN-TABLE"
+    );
+    c.manufacturer = { ...manufacturer, id: "rockwell", canonicalName: "Rockwell Automation" } as ManufacturerConfig;
+
+    expect(resolveProperty("AAF040", "AAF040", c)).toBe("1.23");
+  });
+
   it("does not write Rockwell SVG/CSS asset text into PDT description cells", async () => {
     const dir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-pdt-rockwell-1444-desc-"));
     const templatePath = path.join(dir, "template.xlsx");
