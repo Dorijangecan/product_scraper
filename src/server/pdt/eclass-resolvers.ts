@@ -1259,6 +1259,7 @@ function sanitizeSourceCertifications(raw: string | undefined): string | undefin
   const allow: Array<[string, RegExp]> = [
     ["ISO 9001", /\bISO\s*9001\b/i],
     ["EN 60947", /\bEN\s*60947\b/i],
+    ["UL Listed Hazardous", /\bUL\s+Listed\s+Hazardous\b/i],
     ["UL Listed", /\bUL\s+Listed\b/i],
     ["UL Recognized", /\bUL\s+(?:Component\s+)?Recognized\b/i],
     ["CSA Listed", /\bCSA\s+Listed\b/i],
@@ -1333,25 +1334,14 @@ function rockwellCertifications(ctx: ResolveContext): string | undefined {
   const certValues = [pdtCertificates, ...attributeCertValues].filter((value): value is string => Boolean(value));
   if (!certValues.length) return undefined;
 
-  const preferred: Array<[string, RegExp]> = [
-    ["CE", /^CE$/i],
-    ["CSA Listed", /\bCSA\s+Listed\b/i],
-    ["RINA", /\b(?:RINA|Registro\s+Italiano\s+Navale)\b/i],
-    ["UL Listed", /^UL\s+Listed$/i],
-    ["UL Recognized", /^UL\s+(?:Component\s+)?Recognized$/i],
-    ["CCC", /\bChina\s+CCC\b/i],
-    ["Morocco", /\bMOROCCO\s+DOC\b/i],
-    ["UKCA", /\bUKCA\s+DOC\b/i],
-    ["IECEx", /\bIECEx\s+Scheme\b/i],
-    ["ATEX", /^ATEX$/i],
-    ["UL Listed Hazardous", /\bUL\s+Listed\s+Hazardous\b/i],
-    ["RCM", /\bAustralian\s+RCM\b/i]
-  ];
-
-  const kept = preferred
-    .filter(([, pattern]) => certValues.some((value) => pattern.test(value)))
-    .map(([label]) => label);
-  return kept.length ? kept.join(", ") : undefined;
+  // Delegate to the shared allowlist (below) instead of maintaining a second, narrower one here —
+  // this function used to keep its own `preferred` list that recognized far fewer real Rockwell
+  // cert badges (no KC/EAC/VDE/TÜV/DNV/GOST/FCC/Class I Div 2/NEC Class 2/etc.) and required exact
+  // full phrases ("UKCA DOC", "Australian RCM") that no longer matched once the certification-icon
+  // extractor upstream (generic.ts's own certificateTokensFromText) had already canonicalized them
+  // down to bare "UKCA"/"RCM" — so a validly-extracted UKCA badge was silently dropped from the PDT
+  // Certificates cell instead of just being renamed.
+  return sanitizeSourceCertifications(certValues.join(", "));
 }
 
 function certificateApproval(ctx: ResolveContext): string | undefined {

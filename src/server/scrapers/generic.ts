@@ -3054,9 +3054,28 @@ function certificateTokensFromText(value: string): string[] {
     ...(value.match(/\bWEEE\b/gi) ?? []),
     ...(value.match(/\bCE\b/g) ?? []),
     ...(value.match(/\bcULus\b/g) ?? []),
+    ...(value.match(/\bcURus\b/g) ?? []),
+    ...(value.match(/\bcUL\b/g) ?? []),
     ...(value.match(/\bUL\b/g) ?? []),
     ...(value.match(/\bCSA\b/g) ?? []),
     ...(value.match(/\bUKCA\b/g) ?? []),
+    // Certification badge icons/links whose visible text is a country-qualified phrase rather than
+    // the bare code (confirmed live on Rockwell product pages: alt="Korean KC" / "Australian RCM" /
+    // "Eurasian Economic Community") — matched here so they don't fall through as unrecognized
+    // noise, and canonicalized to the bare code below to match the shared Rockwell cert allowlist
+    // (sanitizeSourceCertifications in eclass-resolvers.ts) that consumes this function's output.
+    ...(value.match(/\bKorean\s+KC\b/gi) ?? []),
+    ...(value.match(/\bAustralian\s+RCM\b/gi) ?? []),
+    ...(value.match(/\bEurasian\s+Economic\s+Community\b/gi) ?? []),
+    ...(value.match(/\bATEX\b/g) ?? []),
+    ...(value.match(/\bIECEx\b/gi) ?? []),
+    ...(value.match(/\bClass\s+I\s+Div\.?\s*2\b/gi) ?? []),
+    ...(value.match(/\bNEC\s+Class\s+2\b/gi) ?? []),
+    ...(value.match(/\bVDE\b/g) ?? []),
+    ...(value.match(/\bT(?:Ü|U)V\b/gi) ?? []),
+    ...(value.match(/\bDNV\b/g) ?? []),
+    ...(value.match(/\bGOST\b/gi) ?? []),
+    ...(value.match(/\bFCC\b/g) ?? []),
     ...(value.match(/\bPED\s+\d{4}\/\d+\/[A-Z]+/gi) ?? []),
     ...(value.match(/\bNEMA(?:\s+Type)?\s+[A-Z0-9, ]+/gi) ?? []),
     ...(value.match(/\bIEC\s+\d+(?:[-\s]\d+)?(?:\s+IP\s*\d{1,2}[A-Z]?)?/g) ?? []),
@@ -3074,7 +3093,20 @@ function canonicalCertificateToken(value: string): string {
   if (/^csa$/i.test(cleaned)) return "CSA";
   if (/^ukca$/i.test(cleaned)) return "UKCA";
   if (/^culus$/i.test(cleaned)) return "cULus";
+  if (/^curus$/i.test(cleaned)) return "cURus";
   if (/^cul$/i.test(cleaned)) return "cUL";
+  if (/^korean\s+kc$/i.test(cleaned)) return "KC";
+  if (/^australian\s+rcm$/i.test(cleaned)) return "RCM";
+  if (/^eurasian\s+economic\s+community$/i.test(cleaned)) return "EAC";
+  if (/^atex$/i.test(cleaned)) return "ATEX";
+  if (/^iecex$/i.test(cleaned)) return "IECEx";
+  if (/^class\s+i\s+div\.?\s*2$/i.test(cleaned)) return "Class I Div 2";
+  if (/^nec\s+class\s+2$/i.test(cleaned)) return "NEC Class 2";
+  if (/^vde$/i.test(cleaned)) return "VDE";
+  if (/^t(?:ü|u)v$/i.test(cleaned)) return "TÜV";
+  if (/^dnv$/i.test(cleaned)) return "DNV";
+  if (/^gost$/i.test(cleaned)) return "GOST";
+  if (/^fcc$/i.test(cleaned)) return "FCC";
   return cleaned;
 }
 

@@ -122,6 +122,35 @@ describe("manufacturer parsers", () => {
     expect(normalized.weight).toBe("0.408 kg");
   });
 
+  it("recognizes Rockwell's country-qualified certification badge icons (Korean KC, Australian RCM, Eurasian Economic Community) instead of silently dropping them", () => {
+    // Real layout confirmed live on rockwellautomation.com product pages: certification icons carry
+    // the full country-qualified name as alt text, not the bare code — certificateTokensFromText
+    // used to only recognize a short generic list (REACH/RoHS/WEEE/CE/UL family/CSA/UKCA/PED/NEMA/
+    // IEC/IP) and dropped every one of these real Rockwell badges entirely.
+    const result = parseGenericProductPage(
+      "rockwell",
+      "1606-XLB90EQ",
+      fetched(
+        `<html><body>
+          <div class="ra-product-new__certification-icons">
+            <a href="https://literature.rockwellautomation.com/idc/groups/literature/documents/ct/1606-ct050_-en-e.pdf"><img alt="Korean KC"/></a>
+            <a href="https://literature.rockwellautomation.com/idc/groups/literature/documents/ct/1606-ct049_-en-e.pdf"><img alt="Australian RCM"/></a>
+            <a href="https://literature.rockwellautomation.com/idc/groups/literature/documents/ct/1606-ct048_-en-e.pdf">CE</a>
+            <a href="https://literature.rockwellautomation.com/idc/groups/literature/documents/ct/ec-ct001_-ru-e.pdf"><img alt="Eurasian Economic Community"/></a>
+            <a href="https://literature.rockwellautomation.com/idc/groups/literature/documents/ct/1606-ct079_-en-e.pdf"><img alt="UKCA DOC"/></a>
+          </div>
+          1606-XLB90EQ
+        </body></html>`,
+        "https://www.rockwellautomation.com/en-us/products/details.1606-xlb90eq.html"
+      ),
+      "official",
+      "rockwell-product-page",
+      { confidence: 0.78 }
+    );
+    const certValues = result.attributes.filter((attr) => /certif/i.test(`${attr.group} ${attr.name}`)).map((attr) => attr.value);
+    expect(certValues.sort()).toEqual(["CE", "EAC", "KC", "RCM", "UKCA"]);
+  });
+
   it("extracts Rockwell cutsheet line-pair specs without injecting family-mapped literature", () => {
     const result = parseRockwellCutsheetPage(
       "1783-US5T",

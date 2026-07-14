@@ -1146,7 +1146,13 @@ describe("eclass resolvers", () => {
     );
     c.manufacturer = { ...manufacturer, id: "rockwell" } as ManufacturerConfig;
 
-    expect(resolveProperty("CERTIFICATION", "CERTIFICATION", c)).toBe("CE, UL Listed, CCC, Morocco, UKCA, IECEx, ATEX, UL Listed Hazardous, RCM");
+    // rockwellCertifications() now delegates to the shared sanitizeSourceCertifications allowlist
+    // (see [[rockwell-certification-allowlist-fix]]) instead of its own narrower duplicate, so a
+    // stray "UK EX CERTIFICATE" attribute value now surfaces as "Ex" instead of being silently
+    // dropped — the whole point of the fix is to stop losing real certifications like this one.
+    expect(resolveProperty("CERTIFICATION", "CERTIFICATION", c)).toBe(
+      "CCC, Morocco, UKCA, IECEx, UL Listed, Ex, ATEX, UL Listed Hazardous, RCM, CE"
+    );
     expect(resolveProperty("CNS_DESCRIPTION_SHORT", "CNS_DESCRIPTION_SHORT", c)).toBe("DC-Output Module Hi-Density");
   });
 
