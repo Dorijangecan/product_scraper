@@ -14,7 +14,7 @@ import { isPdfLikeDocumentUrl } from "./document-url.js";
 import { fieldMatchesLabel, FIELD_REGISTRY, listFieldRegistryDocumentLabels } from "./field-registry.js";
 import { extractElectricalSpecAttributesFromText, extractOntologySpecAttributesFromText } from "./electrical-spec-miner.js";
 import { extractComplianceMatrixAttributes, textHasComplianceMatrixGlyphs } from "./pdf-compliance-matrix.js";
-import { extractPositionedWeightAndDimensionsFromPdf } from "./pdf-positioned-table.js";
+import { extractPositionedTableRowsFromPdf } from "./pdf-positioned-table.js";
 
 const MAX_PDF_PAGES = 30;
 const MAX_PDF_TEXT_CHARS = 250_000;
@@ -892,14 +892,18 @@ async function extractComplianceMatrixAttributesSafely(
   }
 }
 
-/** Falls back to pdfjs-dist's raw positioned text items (see pdf-positioned-table.ts) for Weight/
- * Dimensions specifically, ONLY when the text-based extraction above didn't already find them —
- * this is a genuinely more expensive second PDF parse, so it's gated on actually being needed.
- * Exists for tables where several catalog names share one printed column via a merge that no
- * text/tab heuristic can reliably resolve (buildVariantColumnContext's sanity check now refuses
- * to guess those rather than risk a wrong value — see [[rockwell-xle120e-header-anchor-fix]] and
+/** Falls back to pdfjs-dist's raw positioned text items (see pdf-positioned-table.ts) ONLY when
+ * the text-based extraction above didn't already find Weight/Dimensions — this is a genuinely
+ * more expensive second PDF parse, so it's gated on actually being needed. Exists for tables where
+ * several catalog names share one printed column via a merge that no text/tab heuristic can
+ * reliably resolve (buildVariantColumnContext's sanity check now refuses to guess those rather
+ * than risk a wrong value — see [[rockwell-xle120e-header-anchor-fix]] and
  * [[rockwell-positioned-table-reader]]); position clustering recovers the true column layout
- * directly instead of guessing from text. */
+ * directly instead of guessing from text. Once triggered, harvests every row this reads for the
+ * catalog's column (Voltage, Current, Power, Efficiency, MTBF, Connection Terminals, ...), not
+ * just Weight/Dimensions — verified against the real datasheet to reach the exact right column
+ * for every field, including rows with per-model footnotes (e.g. Connection Terminals correctly
+ * distinguishes "Screw (-XLB90E)" from a merged sibling's "Push-in (-XLB90EH)"). */
 async function extractPositionedWeightDimensionsSafely(
   filePath: string,
   catalogNumber: string,
@@ -911,25 +915,17 @@ async function extractPositionedWeightDimensionsSafely(
   if (hasWeight && hasDimensions) return [];
   try {
     const data = new Uint8Array(await fs.readFile(filePath));
-    const result = await extractPositionedWeightAndDimensionsFromPdf(data, catalogNumber);
-    if (!result) return [];
+    const rows = await extractPositionedTableRowsFromPdf(data, catalogNumber);
+    if (!rows) return [];
+    const existingNames = new Set(existingAttributes.map((attr) => attr.name.toLowerCase()));
     const attributes: AttributeRecord[] = [];
-    if (!hasWeight && result.weight) {
+    for (const [label, value] of Object.entries(rows)) {
+      const name = /^w\s*x\s*h\s*x\s*d$/i.test(label) ? "Dimensions" : label;
+      if (existingNames.has(name.toLowerCase())) continue;
       attributes.push({
         group: "PDF Positioned Table",
-        name: "Weight",
-        value: result.weight,
-        sourceUrl,
-        sourceType: "official",
-        parser: "pdf-positioned-table",
-        confidence: 0.8
-      });
-    }
-    if (!hasDimensions && result.dimensions) {
-      attributes.push({
-        group: "PDF Positioned Table",
-        name: "Dimensions",
-        value: result.dimensions,
+        name,
+        value,
         sourceUrl,
         sourceType: "official",
         parser: "pdf-positioned-table",

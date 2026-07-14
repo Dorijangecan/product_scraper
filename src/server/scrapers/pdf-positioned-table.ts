@@ -192,6 +192,108 @@ export function extractPositionedWeightAndDimensions(
   return { weight, dimensions };
 }
 
+/** A label fragment is a bare, non-numeric line in the label column — excludes footnote markers
+ * ("(1) Output transient current"), catalog-shaped tokens, and units-only continuations. */
+function isLabelFragment(text: string): boolean {
+  const trimmed = text.trim();
+  if (!trimmed || /^catalog\s*number$/i.test(trimmed)) return false;
+  if (isVariantToken(trimmed)) return false;
+  if (/^\(\d+\)/.test(trimmed)) return false;
+  return /[a-z]/i.test(trimmed);
+}
+
+/** Merges label-column fragments within LABEL_MERGE_Y_GAP of each other into one logical row
+ * label — some labels wrap across 2 physical lines ("Temperature Range," / "Operating",
+ * "Ripple and Noise Max" / "[mVPP]"). */
+const LABEL_MERGE_Y_GAP = 6;
+
+function clusterLabelFragments(labelItems: PositionedTextItem[]): { text: string; minY: number; maxY: number }[] {
+  const sorted = [...labelItems].sort((left, right) => right.y - left.y);
+  const clusters: PositionedTextItem[][] = [];
+  for (const item of sorted) {
+    const last = clusters[clusters.length - 1];
+    if (last && last[last.length - 1].y - item.y <= LABEL_MERGE_Y_GAP) last.push(item);
+    else clusters.push([item]);
+  }
+  return clusters.map((cluster) => ({
+    text: cleanText(cluster.map((item) => item.text).join(" ")),
+    minY: Math.min(...cluster.map((item) => item.y)),
+    maxY: Math.max(...cluster.map((item) => item.y))
+  }));
+}
+
+/**
+ * General-purpose version of extractPositionedWeightAndDimensions: returns every row label found
+ * in the label column paired with this catalog's own column value, for whichever rows have one.
+ * Each label is looked up independently (not via sequential row reconstruction) specifically
+ * because label-vs-value vertical ordering is inconsistent in this document (a row's label sits
+ * ~4pt ABOVE its value in some rows, ~8pt BELOW it in others) — a per-row state machine can't
+ * reliably track that, but an independent per-label window search doesn't need to.
+ */
+export function extractPositionedTableRows(items: PositionedTextItem[], catalogNumber: string): Record<string, string> | undefined {
+  const meaningful = items.filter((item) => item.text.trim().length > 0);
+  const match = matchColumnForCatalog(meaningful, catalogNumber);
+  if (!match) return undefined;
+
+  const labelItems = meaningful.filter(
+    (item) =>
+      item.y < match.anchor.y &&
+      (!match.nextAnchor || item.y > match.nextAnchor.y) &&
+      Math.abs(item.x - match.anchor.x) <= LABEL_COLUMN_TOLERANCE &&
+      isLabelFragment(item.text)
+  );
+
+  const rows: Record<string, string> = {};
+  for (const cluster of clusterLabelFragments(labelItems)) {
+    if (!cluster.text || rows[cluster.text]) continue;
+    const valueItems = meaningful
+      .filter(
+        (item) =>
+          item.y >= cluster.minY - VALUE_Y_WINDOW &&
+          item.y <= cluster.maxY + VALUE_Y_WINDOW &&
+          nearestIndex(item.x, match.columnXs, COLUMN_X_TOLERANCE) === match.ourColumnIndex &&
+          Math.abs(item.x - match.ourColumnX) <= COLUMN_X_TOLERANCE
+      )
+      .sort((left, right) => right.y - left.y || left.x - right.x);
+    const value = cleanText(valueItems.map((item) => item.text).join(" "));
+    if (value) rows[cluster.text] = value;
+  }
+  return Object.keys(rows).length ? rows : undefined;
+}
+
+/**
+ * Loads a PDF with `pdfjs-dist` and runs `extractPositionedTableRows` against every page until one
+ * matches — the general-purpose counterpart to extractPositionedWeightAndDimensionsFromPdf below,
+ * returning every row label found for this catalog's column (Voltage, Current, Power, Efficiency,
+ * MTBF, Temperature Range, Connection Terminals, ... in addition to Weight/Dimensions).
+ */
+export async function extractPositionedTableRowsFromPdf(data: Uint8Array, catalogNumber: string): Promise<Record<string, string> | undefined> {
+  const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
+  const doc = await pdfjs.getDocument({ data, verbosity: 0 }).promise;
+  try {
+    for (let pageNumber = 1; pageNumber <= doc.numPages; pageNumber += 1) {
+      const page = await doc.getPage(pageNumber);
+      try {
+        const content = await page.getTextContent();
+        const items: PositionedTextItem[] = [];
+        for (const item of content.items) {
+          if (typeof (item as { str?: unknown }).str !== "string") continue;
+          const textItem = item as { str: string; transform: number[] };
+          items.push({ text: textItem.str, x: textItem.transform[4], y: textItem.transform[5] });
+        }
+        if (!items.some((item) => /^catalog\s*number$/i.test(item.text.trim()))) continue;
+        const result = extractPositionedTableRows(items, catalogNumber);
+        if (result) return result;
+      } finally {
+        page.cleanup();
+      }
+    }
+    return undefined;
+  } finally {
+    await doc.destroy();
+  }
+}
+
 /**
  * Loads a PDF with `pdfjs-dist` and runs `extractPositionedWeightAndDimensions` against every page
  * until one matches. Mirrors extractComplianceMatrixAttributes's loading pattern in
