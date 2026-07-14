@@ -305,6 +305,57 @@ describe("normalizer", () => {
     expect(normalized.dimensions).toBe("2 x 3 x 4 in (50.8 x 76.2 x 101.6 mm)");
   });
 
+  it("rejects a weight value that concatenates several different models' measurements and falls through to a clean candidate", () => {
+    const normalized = normalizeFields(
+      [
+        {
+          group: "PDF datasheet - Dimensions",
+          name: "Weight",
+          value: "930 g (2.05 lb) 440 g (0.97 lb) 620 g (1.37 lb) 620 g (1.37 lb) 900 g",
+          sourceType: "generated",
+          parser: "pdf-table-extractor"
+        },
+        {
+          group: "PDF Positioned Table",
+          name: "Weight",
+          value: "620 g (1.37 lb)",
+          sourceType: "official",
+          parser: "pdf-positioned-table"
+        }
+      ],
+      []
+    );
+
+    expect(normalized.weight).toBe("620 g (1.37 lb) (0.62 kg)");
+  });
+
+  it("rejects a weight with two same-unit readings glued together even without a separator", () => {
+    const normalized = normalizeFields(
+      [{ group: "PDF datasheet - Dimensions", name: "Weight", value: "600 g 700 g", sourceType: "generated", parser: "pdf-table-extractor" }],
+      []
+    );
+
+    expect(normalized.weight).toBeUndefined();
+  });
+
+  it("rejects dimensions that concatenate several different models' H x W x D triplets", () => {
+    const normalized = normalizeFields(
+      [
+        {
+          group: "PDF datasheet - Dimensions",
+          name: "Dimensions",
+          value: "90 x 106 x 70 mm 39 x 124 x 117 mm 65 x 124 x 127 mm",
+          sourceType: "generated",
+          parser: "pdf-table-extractor"
+        },
+        { group: "PDF Positioned Table", name: "Dimensions", value: "65 x 124 x 127 mm", sourceType: "official", parser: "pdf-positioned-table" }
+      ],
+      []
+    );
+
+    expect(normalized.dimensions).toBe("65 x 124 x 127 mm");
+  });
+
   it("prefers real Balluff DPP weight over certificate contact text", () => {
     const normalized = normalizeFields(
       [

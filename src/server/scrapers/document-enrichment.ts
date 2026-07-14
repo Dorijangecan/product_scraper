@@ -776,43 +776,146 @@ function buildDocumentParseContext(text: string, catalogNumber: string): string 
   const variantScoped = buildVariantColumnContext(text, catalogNumber, { maxChars: MAX_PDF_TEXT_CHARS });
   if (variantScoped) return variantScoped;
   const scoped = buildTightContextForCatalog(text, catalogNumber, { maxChars: MAX_PDF_TEXT_CHARS }) ?? text;
-  const globalTechnical = buildGlobalTechnicalContext(text);
+  const globalTechnical = buildGlobalTechnicalContext(text, catalogNumber);
   return mergePdfTextContexts([scoped, globalTechnical, scoped === text ? "" : undefined], MAX_PDF_TEXT_CHARS);
 }
 
-function buildGlobalTechnicalContext(text: string): string | undefined {
+/** A catalog/type-code-shaped token — digits plus a separator plus more alnum, or letters directly
+ * followed by 3+ digits. Mirrors tight-context.ts's own pattern; kept local since this file has no
+ * other need to import it and the two modules already use slightly different helper sets. */
+const GLOBAL_CONTEXT_CATALOG_LIKE_PATTERN = /\b[A-Z0-9]{2,}(?:[-:\/.][A-Z0-9]+)+\b|\b[A-Z]{2,}[0-9]{3,}\b/i;
+/** Fallback ownership-check window (lines) for documents with no page-footer markers to bound by
+ * (see pageBounds below) — narrower than a full page, but still enough to catch a nearby table. */
+const GLOBAL_CONTEXT_OWNERSHIP_WINDOW = 15;
+/** pdf-parse renders a page footer like "-- 33 of 42 --" between pages — used to bound the
+ * ownership check to the WHOLE page a candidate block sits on, since Rockwell's 1606-td002 (and
+ * similarly large multi-model datasheets) dedicates each page to one specific family/table; a
+ * fixed line-count window is too narrow to reliably tell "just this one nearby table" from "the
+ * network of tables covering this whole page", and too wide risks reaching into a DIFFERENT page's
+ * unrelated family instead. */
+const PDF_PAGE_FOOTER_PATTERN = /^--\s*\d+\s+of\s+\d+\s*--$/;
+
+function pageBounds(lines: string[], index: number): { from: number; to: number } {
+  let from = 0;
+  for (let cursor = index - 1; cursor >= 0; cursor -= 1) {
+    if (PDF_PAGE_FOOTER_PATTERN.test(lines[cursor].trim())) {
+      from = cursor + 1;
+      break;
+    }
+  }
+  let to = lines.length - 1;
+  for (let cursor = index + 1; cursor < lines.length; cursor += 1) {
+    if (PDF_PAGE_FOOTER_PATTERN.test(lines[cursor].trim())) {
+      to = cursor - 1;
+      break;
+    }
+  }
+  return { from, to };
+}
+
+/** A weight/dimension-shaped cell: a leading number followed by a unit, optionally with a
+ * parenthetical unit conversion — "930 g", "620 g (1.37 lb)", "39 x 124 x 117 mm". */
+const MULTI_COLUMN_VALUE_CELL_PATTERN = /^-?\d+(?:[.,]\d+)?(?:\s*[x×]\s*-?\d+(?:[.,]\d+)?){0,3}\s*(?:g|kg|lb|lbs|mm|cm|in|inch|inches)\b(?:\s*\([^)]*\))?$/i;
+
+/** Detects a table ROW with 2+ separate weight/dimension VALUE cells on one line (tab or 2+-space
+ * separated) — several different models' values side by side, not one model's single measurement
+ * plus its own unit conversion. */
+function looksLikeMultiColumnDataRow(line: string): boolean {
+  const cells = line
+    .split(/\t+|\s{2,}/)
+    .map((cell) => cell.trim())
+    .filter(Boolean);
+  const valueCellCount = cells.filter((cell) => MULTI_COLUMN_VALUE_CELL_PATTERN.test(cell)).length;
+  return valueCellCount >= 2;
+}
+
+function buildGlobalTechnicalContext(text: string, catalogNumber: string): string | undefined {
   const lines = text.split(/\r?\n/);
+  const compactCatalog = compact(catalogNumber);
   const kept = new Set<number>();
   for (let index = 0; index < lines.length; index += 1) {
     const line = cleanText(lines[index]);
     if (!line || !isGlobalTechnicalLine(line)) continue;
+    // A multi-column comparison-table ROW ("Weight \t930 g \t440 g \t620 g \t620 g \t900 g \t900 g")
+    // has several DIFFERENT models' values on one line — this sweep has no column awareness at all,
+    // so it would otherwise glue every value on the row into one string (that's the correct job of
+    // buildVariantColumnContext / the positioned-table reader instead, both of which resolve the
+    // ONE right column). The page-boundary ownership check above still lets this through whenever
+    // our own catalog is ALSO a column on the same page — which it usually is, since our catalog
+    // literally lives in the very table this row belongs to — so it needs its own, separate guard.
+    if (looksLikeMultiColumnDataRow(line)) continue;
+    const after = globalTechnicalContinuationWindow(line);
+    const blockEnd = (() => {
+      let end = index;
+      for (let offset = 1; offset <= after && index + offset < lines.length; offset += 1) {
+        const next = cleanText(lines[index + offset]);
+        if (!isGlobalTechnicalContinuation(next) && !isPatternModelTableLine(next)) {
+          if (offset > 2) break;
+          continue;
+        }
+        end = index + offset;
+      }
+      return end;
+    })();
+    // Multi-model documents (e.g. Rockwell's 1606-td002, 42 pages, dozens of power-supply
+    // families each with their own Dimensions/Weight rows) repeat these same keyword patterns for
+    // EVERY model — an unscoped sweep like this one has no way to tell whose block it's looking
+    // at, so it silently glued a totally unrelated model's Weight/Dimensions onto every OTHER
+    // catalog's context (confirmed live: several genuinely different Rockwell catalogs all
+    // resolved to the exact same "930 g / 440 g" and "90 x 106 x 70 mm" from one shared power-
+    // supply comparison table nowhere near any of them). If a DIFFERENT catalog-shaped token
+    // appears within this block or its immediate surroundings and OUR catalog does not, this
+    // block belongs to that other model — skip it instead of risking cross-contamination.
+    if (compactCatalog && blockOwnedByDifferentCatalog(lines, index, blockEnd, compactCatalog)) continue;
     kept.add(index);
     if (index > 0 && isGlobalTechnicalHeading(cleanText(lines[index - 1]))) kept.add(index - 1);
-    const after = globalTechnicalContinuationWindow(line);
-    for (let offset = 1; offset <= after && index + offset < lines.length; offset += 1) {
-      const next = cleanText(lines[index + offset]);
-      if (!isGlobalTechnicalContinuation(next) && !isPatternModelTableLine(next)) {
-        if (offset > 2) break;
-        continue;
-      }
-      kept.add(index + offset);
-    }
+    for (let lineIndex = index + 1; lineIndex <= blockEnd; lineIndex += 1) kept.add(lineIndex);
   }
   if (kept.size === 0) return undefined;
   return [...kept].sort((left, right) => left - right).map((index) => lines[index]).join("\n");
 }
 
+function blockOwnedByDifferentCatalog(lines: string[], blockStart: number, blockEnd: number, compactCatalog: string): boolean {
+  const page = pageBounds(lines, blockStart);
+  // A real page boundary reliably scopes the check to "this whole page's family" (see
+  // PDF_PAGE_FOOTER_PATTERN above); without one (no footer markers found at all — shorter, non-
+  // paginated documents), fall back to a fixed line window around the block itself.
+  const hasPageBounds = page.to - page.from < lines.length - 1;
+  const from = hasPageBounds ? page.from : Math.max(0, blockStart - GLOBAL_CONTEXT_OWNERSHIP_WINDOW);
+  const to = hasPageBounds ? page.to : Math.min(lines.length - 1, blockEnd + GLOBAL_CONTEXT_OWNERSHIP_WINDOW);
+  let sawOurCatalog = false;
+  let sawOtherCatalog = false;
+  for (let index = from; index <= to; index += 1) {
+    const tokens = lines[index].match(new RegExp(GLOBAL_CONTEXT_CATALOG_LIKE_PATTERN, "gi"));
+    if (!tokens) continue;
+    for (const token of tokens) {
+      const compactToken = compact(token);
+      if (compactToken.length < 4 || !/\d/.test(compactToken)) continue;
+      if (compactToken === compactCatalog) sawOurCatalog = true;
+      else sawOtherCatalog = true;
+    }
+  }
+  return sawOtherCatalog && !sawOurCatalog;
+}
+
+// Weight/dimensions/width/height/depth are deliberately EXCLUDED from this sweep: they're
+// per-model quantities that repeat, differently, for every family in a multi-model datasheet
+// (confirmed live on Rockwell's 1606-td002 \u2014 an unscoped sweep has no column/table awareness and
+// glued whichever OTHER model's row happened to be nearby onto every catalog's Weight attribute).
+// Dedicated, catalog-scoped readers (buildVariantColumnContext, buildTightContextForCatalog, the
+// positioned-table reader) already own these fields; this generic sweep is only safe for content
+// that's genuinely shared/global across a family's page (electrical ratings, certifications, etc).
 function isGlobalTechnicalLine(line: string): boolean {
   return (
-    /\b(?:technical\s+(?:data|specifications?)|electrical\s+(?:data|ratings?)|input\s+voltage|output\s+voltage|operating\s+voltage|supply\s+voltage|rated\s+voltage|rated\s+(?:operating\s+|operational\s+)?current|operating\s+current|rated\s+current|rated\s+power|power\s+dissipation|power\s+loss|heat\s+loss|degree\s+of\s+protection|protection\s+class|operating\s+temperature|storage\s+temperature|ambient\s+temperature|approvals?\s+and\s+certificates|certifications?|ul\s+certificate|dimensions?|weight|\bwidth\b|\bheight\b|\bdepth\b|housing\s+material|cross[-\s]?section|tightening\s+torque|number\s+of\s+conductors|conductors?\s+per\s+terminal|neutral\s+conductor|direct\s+contact|tripping\s+characteristic|short-time\s+delayed|non-trip\s+time|tripping\s+frequency|disconnection\s+times?|internal\s+consumption|contact\s+opening|surge\s+current|switching\s+capacity|insulation\s+voltage|impulse\s+(?:withstand\s+)?voltage|withstand\s+voltage|rated\s+frequency|back[-\s]?up[-\s]?fuse|i2t\s+strength|dynamic\s+current\s+strength|screw[-\s]?type\s+terminal|degree\s+of\s+pollution|\bsealable\b|module\s+widths?|minimum\s+rated\s+operating\s+voltage|operating\s+altitude|operating\s+position|mechanical\s+endurance|electrical\s+endurance|shock\s+resistance|fatigue\s+limit|housing\s+type|installation\s+type)\b/i.test(line) ||
+    /\b(?:technical\s+(?:data|specifications?)|electrical\s+(?:data|ratings?)|input\s+voltage|output\s+voltage|operating\s+voltage|supply\s+voltage|rated\s+voltage|rated\s+(?:operating\s+|operational\s+)?current|operating\s+current|rated\s+current|rated\s+power|power\s+dissipation|power\s+loss|heat\s+loss|degree\s+of\s+protection|protection\s+class|operating\s+temperature|storage\s+temperature|ambient\s+temperature|approvals?\s+and\s+certificates|certifications?|ul\s+certificate|housing\s+material|cross[-\s]?section|tightening\s+torque|number\s+of\s+conductors|conductors?\s+per\s+terminal|neutral\s+conductor|direct\s+contact|tripping\s+characteristic|short-time\s+delayed|non-trip\s+time|tripping\s+frequency|disconnection\s+times?|internal\s+consumption|contact\s+opening|surge\s+current|switching\s+capacity|insulation\s+voltage|impulse\s+(?:withstand\s+)?voltage|withstand\s+voltage|rated\s+frequency|back[-\s]?up[-\s]?fuse|i2t\s+strength|dynamic\s+current\s+strength|screw[-\s]?type\s+terminal|degree\s+of\s+pollution|\bsealable\b|module\s+widths?|minimum\s+rated\s+operating\s+voltage|operating\s+altitude|operating\s+position|mechanical\s+endurance|electrical\s+endurance|shock\s+resistance|fatigue\s+limit|housing\s+type|installation\s+type)\b/i.test(line) ||
     /^selective\s+(?:true|false)\b/i.test(line) ||
     /\b[A-Z0-9]{1,8}\s*[=:]\s*.*?\bIP\s*\d{2}[A-Z]?\b/i.test(line) ||
-    /(?:\u6280\u672f\u53c2\u6570|\u6280\u672f\u89c4\u683c|\u53d8\u9891\u5668|\u53d8\u9891\u9a71\u52a8|\u9891\u7387\u8f6c\u6362\u5668|\u8f93\u5165\u7535\u538b|\u8f93\u51fa\u7535\u538b|\u989d\u5b9a\u7535\u6d41|\u989d\u5b9a\u529f\u7387|\u9632\u62a4\u7b49\u7ea7|\u5de5\u4f5c\u6e29\u5ea6|\u73af\u5883\u6e29\u5ea6|\u5c3a\u5bf8|\u91cd\u91cf)/.test(line)
+    /(?:\u6280\u672f\u53c2\u6570|\u6280\u672f\u89c4\u683c|\u53d8\u9891\u5668|\u53d8\u9891\u9a71\u52a8|\u9891\u7387\u8f6c\u6362\u5668|\u8f93\u5165\u7535\u538b|\u8f93\u51fa\u7535\u538b|\u989d\u5b9a\u7535\u6d41|\u989d\u5b9a\u529f\u7387|\u9632\u62a4\u7b49\u7ea7|\u5de5\u4f5c\u6e29\u5ea6|\u73af\u5883\u6e29\u5ea6)/.test(line)
   );
 }
 
 function isGlobalTechnicalHeading(line: string): boolean {
-  return /\b(?:technical|specifications?|electrical|dimensions?|weight)\b/i.test(line) || /(?:\u6280\u672f|\u89c4\u683c|\u5c3a\u5bf8|\u91cd\u91cf)/.test(line);
+  return /\b(?:technical|specifications?|electrical)\b/i.test(line) || /(?:\u6280\u672f|\u89c4\u683c)/.test(line);
 }
 
 function isGlobalTechnicalContinuation(line: string): boolean {
@@ -820,7 +923,6 @@ function isGlobalTechnicalContinuation(line: string): boolean {
 }
 
 function globalTechnicalContinuationWindow(line: string): number {
-  if (/(?:\bdimensions?\b|\bweight\b|\u5c3a\u5bf8|\u91cd\u91cf)/i.test(line)) return 28;
   // "max. Connection C1 Number of conductors" wraps its own label onto the next line ("per
   // terminal") before the value line \u2014 a window of 1 would only capture the label continuation
   // and miss the value itself. Same reach needed for every other label registered in
@@ -913,24 +1015,45 @@ async function extractComplianceMatrixAttributesSafely(
  * just Weight/Dimensions — verified against the real datasheet to reach the exact right column
  * for every field, including rows with per-model footnotes (e.g. Connection Terminals correctly
  * distinguishes "Screw (-XLB90E)" from a merged sibling's "Push-in (-XLB90EH)"). */
+/** A single weight/dimensions measurement has ONE leading number (e.g. "270 g (0.60 lb)" —
+ * the "(0.60 lb)" part is a unit conversion of the SAME measurement, not a second one). Several
+ * genuinely different numbers glued together with "/" or "|" (e.g. "930 g / 440 g") indicates
+ * multiple different models' values got swept in and joined rather than resolved to one. */
+function isCleanSingleSpecValue(value: string): boolean {
+  if (/[/|]/.test(value)) return false;
+  const leadingNumbers = value.match(/\b\d+(?:\.\d+)?\s*(?:g|kg|lb|mm|cm|in)\b/gi) ?? [];
+  return leadingNumbers.length <= 2;
+}
+
 async function extractPositionedWeightDimensionsSafely(
   filePath: string,
   catalogNumber: string,
   sourceUrl: string,
   existingAttributes: AttributeRecord[]
 ): Promise<AttributeRecord[]> {
-  const hasWeight = existingAttributes.some((attr) => /\bweight\b/i.test(attr.name));
-  const hasDimensions = existingAttributes.some((attr) => /\bdimensions?\b/i.test(attr.name));
+  // A weight/dimensions attribute whose VALUE already looks like several different numbers
+  // concatenated together (" / " or " | " joining multiple "NNN g"/"NN x NN x NN" fragments) is
+  // itself a symptom of unscoped cross-model contamination (buildGlobalTechnicalContext sweeping
+  // in several DIFFERENT models' rows from the same page — confirmed live on Rockwell's
+  // multi-model families) — not a real, trustworthy value. Don't let its mere presence skip this
+  // more expensive but catalog-scoped fallback; only a genuinely single, clean value counts.
+  const hasWeight = existingAttributes.some((attr) => /\bweight\b/i.test(attr.name) && isCleanSingleSpecValue(attr.value));
+  const hasDimensions = existingAttributes.some((attr) => /\bdimensions?\b/i.test(attr.name) && isCleanSingleSpecValue(attr.value));
   if (hasWeight && hasDimensions) return [];
   try {
     const data = new Uint8Array(await fs.readFile(filePath));
     const rows = await extractPositionedTableRowsFromPdf(data, catalogNumber);
     if (!rows) return [];
-    const existingNames = new Set(existingAttributes.map((attr) => attr.name.toLowerCase()));
+    // Only skip a label the existing attributes already cover CLEANLY — a same-named but
+    // contaminated existing value (the exact case this fallback exists to correct) must not
+    // block the clean positioned-table reading from being added as a competing candidate.
+    const cleanExistingNames = new Set(
+      existingAttributes.filter((attr) => isCleanSingleSpecValue(attr.value)).map((attr) => attr.name.toLowerCase())
+    );
     const attributes: AttributeRecord[] = [];
     for (const [label, value] of Object.entries(rows)) {
       const name = /^w\s*x\s*h\s*x\s*d$/i.test(label) ? "Dimensions" : label;
-      if (existingNames.has(name.toLowerCase())) continue;
+      if (cleanExistingNames.has(name.toLowerCase())) continue;
       attributes.push({
         group: "PDF Positioned Table",
         name,
@@ -1264,7 +1387,14 @@ function parseTabbedPair(rawLine: string): { name: string; value: string } | und
     .filter(Boolean);
   if (cells.length < 2) return undefined;
   const name = cells[0];
-  const value = normalizePdfAttributeValue(joinUniquePipeCells(cells.slice(1)));
+  const values = cells.slice(1);
+  // A multi-column comparison-table ROW ("Weight \t930 g \t440 g \t620 g \t620 g \t900 g \t900 g")
+  // has one DIFFERENT model's value per cell — joinUniquePipeCells below is meant for a field with
+  // several genuinely valid values (e.g. a Feature listing multiple options), not several
+  // different products' measurements smashed into one "Weight: 930 g | 440 g | 620 g" string
+  // (confirmed live on several Rockwell multi-model families, see looksLikeMultiColumnDataRow).
+  if (values.length >= 2 && values.filter((cell) => MULTI_COLUMN_VALUE_CELL_PATTERN.test(cell)).length >= 2) return undefined;
+  const value = normalizePdfAttributeValue(joinUniquePipeCells(values));
   if (!isLikelyAttributeName(name) || !value) return undefined;
   return { name, value };
 }
@@ -1276,6 +1406,8 @@ function parseSpacedTablePair(rawLine: string): { name: string; value: string } 
     .filter(Boolean);
   if (cells.length < 2) return undefined;
   const [name, ...values] = cells;
+  // Same multi-column-row guard as parseTabbedPair above.
+  if (values.length >= 2 && values.filter((cell) => MULTI_COLUMN_VALUE_CELL_PATTERN.test(cell)).length >= 2) return undefined;
   const value = normalizePdfAttributeValue(joinUniquePipeCells(values));
   if (!isLikelyAttributeName(name) || !value || /^[-–—]+$/.test(value)) return undefined;
   if (!/[a-z]/i.test(name) || value.length > 300) return undefined;
@@ -2262,6 +2394,13 @@ function catalogMatchedRowsIndex(lines: string[], sourceUrl: string): CatalogMat
   for (const line of lines) {
     const cleaned = cleanText(line);
     if (!cleaned || cleaned.length > 500) continue;
+    // A multi-column comparison-table ROW ("Weight \t930 g \t440 g \t620 g \t620 g \t900 g \t900 g")
+    // stores fine as a "matched row" for whichever catalogs are literally named in it — but this
+    // whole line, unparsed, becomes a candidate value elsewhere for a text-derived Weight/
+    // Dimensions fallback that has no column awareness, so several DIFFERENT models' values ended
+    // up joined into one field for the catalog that's genuinely one of this row's own columns
+    // (confirmed live on several Rockwell multi-model families). Skip storing these verbatim.
+    if (looksLikeMultiColumnDataRow(cleaned)) continue;
     const tokens = cleaned.match(/[A-Z]{2,}[A-Z0-9-]{4,}/gi);
     if (!tokens) continue;
     for (const token of tokens) {

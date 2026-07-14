@@ -813,10 +813,52 @@ function joinDimensionParts(parts: Array<string | undefined>): string | undefine
   return `${parsed.map((match) => match?.[1]).join(" x ")} ${unit === `"` ? "in" : unit}`;
 }
 
+/** A clean single weight/dimension reading has at most 2 unit-bearing numbers — the metric value
+ * and its own imperial conversion (e.g. "270 g (0.60 lb)"), or 2 lengths for a bore/stroke pair.
+ * 3+ distinct matches means several DIFFERENT measurements got concatenated into one string —
+ * confirmed on Rockwell's large multi-model datasheets, where several generic "any line with a
+ * recognized label" parsers all independently glued a shared comparison-table ROW's several
+ * models' values into one "Weight"/"Dimensions" attribute for whichever catalog happened to be
+ * one of that row's own columns. Rejecting here (return undefined, letting the caller fall
+ * through to the next-best candidate) is a single, common backstop for every such parser instead
+ * of patching each one individually. */
+function hasTooManyDistinctMeasurements(value: string, unitPattern: RegExp): boolean {
+  const matches = value.match(unitPattern);
+  return Boolean(matches && matches.length > 2);
+}
+
+const WEIGHT_UNIT_MATCH_PATTERN = /\b\d+(?:[.,]\d+)?\s*(?:kg|g|lbs?|pounds?|oz|ounces?)\b/gi;
+const WEIGHT_UNIT_FAMILY_PATTERN = /\b(kg|g|lbs?|pounds?|oz|ounces?)\b/i;
+
+/** A clean weight string mentions each unit FAMILY (metric grams, imperial pounds, imperial ounces)
+ * at most once — e.g. "270 g (0.60 lb)" has one metric and one imperial mention. Two separate
+ * gram readings ("600 g 700 g") is the tell-tale sign of two different models' rows concatenated,
+ * even though the total match count (2) is too low for {@link hasTooManyDistinctMeasurements} to
+ * catch on its own. */
+function hasRepeatedWeightUnitFamily(value: string): boolean {
+  const matches = value.match(WEIGHT_UNIT_MATCH_PATTERN);
+  if (!matches || matches.length < 2) return false;
+  const families = matches.map((match) => {
+    const unit = match.match(WEIGHT_UNIT_FAMILY_PATTERN)?.[1]?.toLowerCase() ?? "";
+    if (unit === "kg" || unit === "g") return "metric";
+    if (unit.startsWith("lb") || unit.startsWith("pound")) return "lb";
+    return "oz";
+  });
+  return new Set(families).size !== families.length;
+}
+
+/** One "H x W x D unit" (or "H x W unit") group counts as a single measurement — a clean value has
+ * at most 2 (metric + its own imperial conversion). 3+ means multiple different models' dimensions
+ * got concatenated into one string. */
+const DIMENSION_TRIPLET_MATCH_PATTERN =
+  /\b\d+(?:[.,]\d+)?\s*[xX*]\s*\d+(?:[.,]\d+)?(?:\s*[xX*]\s*\d+(?:[.,]\d+)?)?\s*(?:mm|cm|m|in|inch|inches|")\b/gi;
+
 function normalizeWeightValue(value: string | undefined): string | undefined {
   if (!value) return undefined;
   const cleaned = normalizeHtmlSpecValue(value);
   if (!cleaned) return undefined;
+  if (hasTooManyDistinctMeasurements(cleaned, WEIGHT_UNIT_MATCH_PATTERN)) return undefined;
+  if (hasRepeatedWeightUnitFamily(cleaned)) return undefined;
   // Resolve decimal vs. thousands separators before reading the number so "1,050.00 lbs"
   // is 1050, not 1.05 (or 50). The original `cleaned` text is kept for display.
   const normalized = normalizeNumberSeparators(cleaned);
@@ -837,6 +879,7 @@ function normalizeDimensionValue(value: string | undefined): string | undefined 
   if (!value) return undefined;
   const cleaned = normalizeHtmlSpecValue(value);
   if (!cleaned) return undefined;
+  if (hasTooManyDistinctMeasurements(cleaned, DIMENSION_TRIPLET_MATCH_PATTERN)) return undefined;
   if (/\b\d+(?:[.,]\d+)?\s*[xX*]\s*\d+(?:[.,]\d+)?(?:\s*[xX*]\s*\d+(?:[.,]\d+)?)?\s*(?:mm|cm|m)\s*(?:²|2)/i.test(cleaned)) return undefined;
   const boreStroke = normalizeBoreStrokeDimensionValue(cleaned);
   if (boreStroke) return boreStroke;
