@@ -9,6 +9,7 @@ import {
   parseEatonProductPage
 } from "../src/server/scrapers/eaton.js";
 import { parseGenericProductPage } from "../src/server/scrapers/generic.js";
+import { mergeResults, normalizeFields } from "../src/server/scrapers/normalizer.js";
 import { parseSchneiderDatasheetReaderPage, parseSchneiderProductPage, parseTelemecaniqueProductPage } from "../src/server/scrapers/schneider.js";
 import { parseSiemensProductApiResponse } from "../src/server/scrapers/siemens.js";
 import { parseRockwellCutsheetPage, parseRockwellDpp, parseRockwellDrawingsPage, parseRockwellFamilyPage } from "../src/server/scrapers/rockwell.js";
@@ -76,6 +77,49 @@ describe("manufacturer parsers", () => {
     expect(dpp?.normalized.weight).toBe("10.0 g (0.01 kg)");
     expect(dpp?.normalized.dimensions).toBe("2.0 x 6.0 x 1.0 cm (20 x 60 x 10 mm)");
     expect(dpp?.documents.some((doc) => doc.type === "image")).toBe(true);
+  });
+
+  it("prefers the live product page's schema.org dimensions over DPP's likely-packaging dimensions, but keeps DPP's weight", () => {
+    // DPP's Length/Width/Height read like rounded packaging-box dimensions (confirmed live: exact
+    // quarter-inch cm conversions that don't match the printed datasheet), so they must lose to a
+    // higher-confidence competing "Height"/"Width"/"Depth" attribute the way the product page's own
+    // schema.org JSON-LD would supply (via parseGenericProductPage, boosted to 0.84 confidence) —
+    // while DPP's Weight, confirmed to agree with the customer's own reference table, keeps winning.
+    const dppPayload = {
+      elements: [
+        {
+          elementId: "dimensions",
+          elements: [
+            { name: [{ language: "en", value: "Weight" }], elementId: "weight", value: "0.408 KGM" },
+            { name: [{ language: "en", value: "Length" }], elementId: "length", value: "13.335 CMT" },
+            { name: [{ language: "en", value: "Width" }], elementId: "width", value: "13.97 CMT" },
+            { name: [{ language: "en", value: "Height" }], elementId: "height", value: "3.175 CMT" }
+          ]
+        }
+      ]
+    };
+    const dppJwt = `x.${Buffer.from(JSON.stringify(dppPayload)).toString("base64url")}.x`;
+    const dpp = parseRockwellDpp(
+      "1606-XLB120E",
+      fetched(
+        JSON.stringify({ verifiableCredential: { id: `data:application/vc+jwt,${dppJwt}` } }),
+        "https://www.rockwellautomation.com/bin/rockwell-automation/dpp?catalogNumber=1606-xlb120e&serialNumber="
+      )
+    )!;
+
+    const productPage = {
+      ...dpp,
+      attributes: [
+        { group: "Physical", name: "Height", value: "124 mm", sourceType: "official" as const, confidence: 0.84 },
+        { group: "Physical", name: "Width", value: "39 mm", sourceType: "official" as const, confidence: 0.84 },
+        { group: "Physical", name: "Depth", value: "124 mm", sourceType: "official" as const, confidence: 0.84 }
+      ]
+    };
+
+    const merged = mergeResults(dpp, productPage);
+    const normalized = normalizeFields(merged.attributes, merged.documents);
+    expect(normalized.dimensions).toBe("124 x 39 x 124 mm");
+    expect(normalized.weight).toBe("0.408 kg");
   });
 
   it("extracts Rockwell cutsheet line-pair specs without injecting family-mapped literature", () => {
