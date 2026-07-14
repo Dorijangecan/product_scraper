@@ -184,36 +184,56 @@ export function buildVariantColumnContext(
   let headerCellCount = 0;
   let firstVariant = 0;
   let ourOrdinal = -1;
+
+  // Phase 1: anchor on a literal "Catalog Number" label line. Rockwell's 1606-td002 splits a
+  // single table's header across an unpredictable mix of layouts — some names tab-separated on
+  // the label's own line, some one-per-bare-line below it, some several-per-bare-line — and a
+  // table can use any combination (confirmed on the 1606-XLE120E-family table: "Catalog Number
+  // \t1606-XLE120B" [1 inline], then five single-name bare lines, then a 3-name tab-joined bare
+  // line). Collecting names by "does THIS ONE line individually look like a header" (as phase 2
+  // below does) misses a name whenever its own line never happens to reach 2 tab-separated
+  // cells — which silently sent the search past the WHOLE table looking for a later one that
+  // mentions our catalog, occasionally finding an unrelated table and returning wrong values.
+  // Anchoring on the "Catalog Number" label itself and greedily absorbing every following line
+  // made ENTIRELY of catalog-shaped tokens (regardless of how many cells per line) sidesteps that
+  // failure mode: every name reaches the SAME flat, ordered list no matter how pdf-parse happened
+  // to break it across lines.
   for (let index = 0; index < lines.length; index += 1) {
     const cells = splitTableCells(lines[index]);
-    if (cells.length < 3) continue;
-    const positions = variantCellPositions(cells);
-    if (positions.length < 2) continue;
+    if (cells.length === 0 || !/^catalog\s*number$/i.test(cells[0])) continue;
 
-    // Some header rows list more catalog names than fit as tab-separated cells on one physical
-    // line; pdf-parse then wraps the rest onto their own bare lines immediately below (seen on
-    // Rockwell's 1606-td002 7-model tables: only the first two names print inline, the other five
-    // spill one per line before the real data rows start). Collect those as additional "slots",
-    // merging a wrapped name into the previous slot instead of starting a new one when it's a
-    // near-duplicate sibling sharing the same data column (see tokensShareColumn).
-    const slots: string[][] = positions.map((position) => [cells[position]]);
+    // Each name's own line matters: pdf-parse tab-separates genuinely distinct columns onto the
+    // SAME line (never two merged-sibling names together — confirmed on "1606-XLE480FP" vs the
+    // real, DIFFERENT sibling "1606-XLE480FP-D", which happen to share a compact prefix but print
+    // as their own columns with their own values). Merging into the previous slot only makes sense
+    // for a BARE, single-name continuation line — that's the only shape a wrapped merged-sibling
+    // name actually takes in this document. A line with multiple tab-separated names always starts
+    // one fresh slot per cell, no merge check at all.
+    const nameLines: string[][] = [cells.slice(1)];
     let lookahead = index + 1;
     while (lookahead < lines.length) {
-      const bareLine = lines[lookahead].trim();
-      if (!bareLine || !isVariantToken(bareLine)) break;
-      const lastSlot = slots[slots.length - 1];
-      if (tokensShareColumn(bareLine, lastSlot[lastSlot.length - 1])) {
-        lastSlot.push(bareLine);
-      } else {
-        slots.push([bareLine]);
-      }
+      const nextCells = splitTableCells(lines[lookahead]);
+      if (nextCells.length === 0 || !nextCells.every((cell) => isVariantToken(cell))) break;
+      nameLines.push(nextCells);
       lookahead += 1;
     }
+    const names = nameLines.flat();
+    if (names.length === 0) continue;
 
-    // Prefer an EXACT compact match over a loose substring one, and check every slot instead of
-    // stopping at the first candidate — "1606-XLE480FP" is a strict prefix of the (different, real)
-    // sibling "1606-XLE480FP-D", so a plain first-match substring scan for "-D" always stopped one
-    // column early at "480FP" and silently reused its whole column for "-D" too.
+    const slots: string[][] = [];
+    for (const nameLine of nameLines) {
+      if (nameLine.length > 1) {
+        // Multiple names tab-separated on one line: each is its own column, unconditionally.
+        for (const name of nameLine) slots.push([name]);
+        continue;
+      }
+      const [name] = nameLine;
+      if (!name) continue;
+      const lastSlot = slots[slots.length - 1];
+      if (lastSlot && tokensShareColumn(name, lastSlot[lastSlot.length - 1])) lastSlot.push(name);
+      else slots.push([name]);
+    }
+
     const exactSlotOrdinal = slots.findIndex((slot) => slot.some((name) => compactKey(name) === compactCatalog));
     const matchedSlotOrdinal =
       exactSlotOrdinal >= 0
@@ -225,11 +245,81 @@ export function buildVariantColumnContext(
             })
           );
     if (matchedSlotOrdinal < 0) continue;
+
+    // Sanity-check the slot count against the real number of data columns before trusting this
+    // merge. Some tables squeeze far more names into far fewer columns than tokensShareColumn's
+    // prefix heuristic can resolve — e.g. 1606-XLE120B/192BM/192BDM/80E/120E/120EC/120EL/120EH/
+    // 120ED/120EN/120EE (11 names) print as only 6 real data columns, with merges that DON'T share
+    // a compact prefix at all ("...192BM" / "...192BDM" diverge one character before the end) — so
+    // the slot list comes out as 10 slots, confidently wrong rather than merely incomplete. Peeking
+    // at the first genuine data row (more cells than firstVariant) gives the real column count.
+    const firstDataRow = lines
+      .slice(lookahead)
+      .map((line) => splitTableCells(line))
+      .find((cells) => cells.length > 1 && !isVariantToken(cells[0]));
+    const realColumnCount = firstDataRow ? firstDataRow.length - 1 : slots.length;
+    // Only reject when we have MORE slots than real columns (too many names for the merge
+    // heuristic to have reliably resolved). The opposite direction — fewer header names than real
+    // columns, e.g. pdf-parse's header row itself under-counting cells versus the data rows below
+    // it — is a separate, already-handled, legitimate pattern (maxObservedCellCount grows
+    // dynamically from data rows later in this function) and must NOT be rejected here.
+    if (slots.length > realColumnCount) {
+      // This table's own header names our catalog EXACTLY — it IS the right table, we just can't
+      // reliably reconstruct which column is ours. Stop here rather than let the search wander
+      // into a LATER table and match it via the loose substring fallback instead — that's exactly
+      // how "1606-XLE120E" used to silently match the different, real sibling "1606-XLE120E-2" in
+      // a table further down the document once this one was skipped. Silence beats a wrong value.
+      if (exactSlotOrdinal >= 0) return undefined;
+      continue;
+    }
+
     headerIndex = lookahead - 1;
-    headerCellCount = cells.length;
-    firstVariant = positions[0];
+    headerCellCount = 1 + names.length;
+    firstVariant = 1;
     ourOrdinal = matchedSlotOrdinal;
     break;
+  }
+
+  // Phase 2 (fallback): tables with no literal "Catalog Number" label line to anchor on — the
+  // original per-line detection, unchanged, only used when phase 1 finds nothing at all.
+  if (headerIndex < 0) {
+    for (let index = 0; index < lines.length; index += 1) {
+      const cells = splitTableCells(lines[index]);
+      if (cells.length < 3) continue;
+      const positions = variantCellPositions(cells);
+      if (positions.length < 2) continue;
+
+      const slots: string[][] = positions.map((position) => [cells[position]]);
+      let lookahead = index + 1;
+      while (lookahead < lines.length) {
+        const bareLine = lines[lookahead].trim();
+        if (!bareLine || !isVariantToken(bareLine)) break;
+        const lastSlot = slots[slots.length - 1];
+        if (tokensShareColumn(bareLine, lastSlot[lastSlot.length - 1])) {
+          lastSlot.push(bareLine);
+        } else {
+          slots.push([bareLine]);
+        }
+        lookahead += 1;
+      }
+
+      const exactSlotOrdinal = slots.findIndex((slot) => slot.some((name) => compactKey(name) === compactCatalog));
+      const matchedSlotOrdinal =
+        exactSlotOrdinal >= 0
+          ? exactSlotOrdinal
+          : slots.findIndex((slot) =>
+              slot.some((name) => {
+                const token = compactKey(name);
+                return token.length >= 3 && (token.includes(compactCatalog) || compactCatalog.includes(token));
+              })
+            );
+      if (matchedSlotOrdinal < 0) continue;
+      headerIndex = lookahead - 1;
+      headerCellCount = cells.length;
+      firstVariant = positions[0];
+      ourOrdinal = matchedSlotOrdinal;
+      break;
+    }
   }
   if (headerIndex < 0) return undefined;
 

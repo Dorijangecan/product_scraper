@@ -289,4 +289,67 @@ describe("multi-variant datasheet column selection", () => {
     expect(out).toContain("0.75");
     expect(out).toContain("CDVRL00001");
   });
+
+  it("anchors on a bare 'Catalog Number' label line and absorbs every following all-variant line regardless of how many names are on each one (Rockwell 1606-XLE480FP family)", () => {
+    // Real layout: the header label line itself carries only ONE name (not the 2+ the old
+    // per-line detection required), so it never qualified as a header candidate on its own —
+    // sending the search past the whole table looking for a LATER one that mentioned the catalog,
+    // which occasionally matched a wrong table instead.
+    const text = [
+      "Catalog Number \t1606-XLE120F",
+      "1606-XLE260F",
+      "1606-XLE480FP",
+      "Output Voltage, Nom \t48V \t48V \t48V",
+      "Weight \t600 g \t700 g \t830 g"
+    ].join("\n");
+
+    const out = buildVariantColumnContext(text, "1606-XLE480FP");
+    expect(out).toContain("Weight: 830 g");
+  });
+
+  it("refuses to guess a merged-column table it can't reliably reconstruct instead of returning a plausible-looking wrong value", () => {
+    // Real bug: 1606-XLE120B/192BM/192BDM/80E/120E/120EC/120EL/120EH/120ED/120EN/120EE (11 names)
+    // print as only 6 real data columns in Rockwell's 1606-td002 — and some of the real merges
+    // (e.g. "...192BM" / "...192BDM") don't share a compact prefix at all, so tokensShareColumn's
+    // heuristic can't resolve them and produces the wrong number of slots. Silence is safer than a
+    // value that looks plausible but belongs to the wrong catalog.
+    const text = [
+      "Catalog Number \t1606-XLE120B",
+      "1606-XLE192BM",
+      "1606-XLE192BDM \t1606-XLE80E",
+      "1606-XLE120E",
+      "1606-XLE120EC",
+      "1606-XLE120EL",
+      "1606-XLE120EH",
+      "1606-XLE120ED \t1606-XLE120EN \t1606-XLE120EE",
+      "Output Voltage, Nom \t12V \t12V \t24V \t24V \t24V \t24V",
+      "Weight \t600 g \t430 g \t440 g \t500 g \t500 g \t500 g"
+    ].join("\n");
+
+    expect(buildVariantColumnContext(text, "1606-XLE120EL")).toBeUndefined();
+    expect(buildVariantColumnContext(text, "1606-XLE192BDM")).toBeUndefined();
+  });
+
+  it("does not let an unreconstructable table's failure send the search into a later, wrong table via loose substring matching", () => {
+    // Real bug: once the ambiguous 1606-XLE120E-family table (above) gave up on "1606-XLE120E",
+    // the search used to keep scanning and land on a LATER table's "1606-XLE120E-2" column via the
+    // loose substring fallback ("1606-XLE120E" is a substring of "1606-XLE120E-2") — a different,
+    // real sibling product with different specs entirely.
+    const text = [
+      "Catalog Number \t1606-XLE120B",
+      "1606-XLE192BM",
+      "1606-XLE192BDM \t1606-XLE80E",
+      "1606-XLE120E",
+      "1606-XLE120EC",
+      "1606-XLE120EL",
+      "1606-XLE120EH",
+      "1606-XLE120ED \t1606-XLE120EN \t1606-XLE120EE",
+      "Output Voltage, Nom \t12V \t12V \t24V \t24V \t24V \t24V",
+      "Catalog Number \t1606-XLE96B-2 \t1606-XLE120E-2 \t1606-XLE240E-3",
+      "Output Voltage, Nom \t12V \t24V \t24V",
+      "Weight \t900 g \t950 g \t1000 g"
+    ].join("\n");
+
+    expect(buildVariantColumnContext(text, "1606-XLE120E")).toBeUndefined();
+  });
 });
