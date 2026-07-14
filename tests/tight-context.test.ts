@@ -352,4 +352,28 @@ describe("multi-variant datasheet column selection", () => {
 
     expect(buildVariantColumnContext(text, "1606-XLE120E")).toBeUndefined();
   });
+
+  it("reaches a table's shared header past several sibling rows that each name a DIFFERENT catalog (Rockwell 1606-XLS 'Battery Modules' table)", () => {
+    // Real bug: a simple one-catalog-per-row ordering table (unlike the multi-column comparison
+    // tables above) has EVERY intervening row mention its own, different catalog number — which
+    // normally makes the backward window stop right after the first sibling, long before reaching
+    // the header several rows further up (1606-XLSBATSEN sits 13 lines below its table's header).
+    const text = [
+      "Battery Modules for DC-UPS",
+      "Description \tDimensions \tCatalog Number",
+      "12V, 5 Ah battery replacement for 1606-XLS240-UPSC \t90 x 106 x 70 mm \t1606-XLSBAT5",
+      "12V, 7 Ah battery replacement for 1606-XLSBATASSY1 \t151 x 98 x 65 mm \t1606-XLSBAT1",
+      "12V, 7 Ah battery module for 1606-XLS2408-UPS_ \t155 x 124 x 112 mm \t1606-XLSBATASSY1",
+      "12V, 7 Ah battery module \t158 x 132 x 98 mm \t1606-XLSBATASSY1W",
+      "12V, 26 Ah battery module for 1606-XLS240-UPS_ \t214 x 179 x 158 mm \t1606-XLSBATASSY2",
+      "24V, 7 Ah battery module for 1606-XLS480-UPS_ \t137 x 186 x 143 mm \t1606-XLSBATASSY3",
+      "24V, 12 Ah battery module for 1606-XLS480-UPS_ \t203 x 186 x 143 mm \t1606-XLSBATASSY4",
+      "Same as 1606-XLSBATASSY1 battery module but without battery \t155 x 124 x 112 mm \t1606-XLSBATBR1",
+      "Sensor board with PT1000 temperature sensor \t23 x 15 x 110.5 mm \t1606-XLSBATSEN"
+    ].join("\n");
+
+    const out = buildTightContextForCatalog(text, "1606-XLSBATSEN");
+    expect(out).toContain("Description \tDimensions \tCatalog Number");
+    expect(out).toContain("1606-XLSBATSEN");
+  });
 });

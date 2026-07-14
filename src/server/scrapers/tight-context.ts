@@ -77,6 +77,7 @@ export function buildTightContextForCatalog(
       kept.add(target);
     }
     keepOrderingParentRatingRow(allLines, index, kept);
+    keepOrderingTableHeaderRow(allLines, index, kept);
   }
 
   if (kept.size === 0) return undefined;
@@ -133,6 +134,32 @@ function keepOrderingParentRatingRow(lines: string[], catalogIndex: number, kept
     kept.add(index);
     return;
   }
+}
+
+/** A "Description | Dimensions | Catalog Number"-style header line names its OWN column headers,
+ * not a catalog — but every intervening sibling row in a simple one-catalog-per-row ordering
+ * table (e.g. Rockwell's "Battery Modules for DC-UPS" table) has its own, DIFFERENT catalog
+ * number, which normally makes isDifferentCatalogLine break the backward window right after the
+ * first sibling — long before it ever reaches the shared header several rows further up
+ * (confirmed live: 1606-XLSBATSEN's own row sits 13 lines below its table's header, but every row
+ * in between mentions a different accessory's catalog number). Reached independently of the main
+ * loop's stop condition, the same way keepOrderingParentRatingRow reaches past one sibling row. */
+const CATALOG_TABLE_HEADER_MAX_LOOKBACK = 25;
+
+function keepOrderingTableHeaderRow(lines: string[], catalogIndex: number, kept: Set<number>) {
+  for (let index = catalogIndex - 1; index >= Math.max(0, catalogIndex - CATALOG_TABLE_HEADER_MAX_LOOKBACK); index -= 1) {
+    if (isSimpleCatalogTableHeaderRow(lines[index])) {
+      kept.add(index);
+      return;
+    }
+  }
+}
+
+function isSimpleCatalogTableHeaderRow(line: string): boolean {
+  const cells = splitTableCells(line);
+  if (cells.length < 2) return false;
+  const headerText = cells.join(" ");
+  return /\bcatalog\s*number\b/i.test(headerText) && /\b(?:description|weight|dimensions?)\b/i.test(headerText);
 }
 
 function isOrderingModelRow(line: string): boolean {

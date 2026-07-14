@@ -1233,6 +1233,56 @@ Operating Temperature XT
     expect(attributes.some((attr) => attr.group === "PDF Table (Grid)")).toBe(false);
   });
 
+  it("does not inherit a sibling row's dimensions when that row's OWN description merely cross-references our catalog (text-based table)", () => {
+    // Real bug (Rockwell 1606-td002 "Battery Modules for DC-UPS" table): 1606-XLSBAT1's own row
+    // reads "...battery replacement for 1606-XLSBATASSY1, -XLSBATASSY1W, and -XLSBATASSY3" in its
+    // OWN description column, before its OWN dimensions/catalog-number cells. A row-level text
+    // match on the whole row (not just the catalog-number cell) let a query for the cross-
+    // referenced sibling "1606-XLSBATASSY1" match THIS row and inherit 1606-XLSBAT1's dimensions.
+    const text = [
+      "Description \tDimensions \tCatalog Number",
+      "12V, 7 Ah battery replacement for 1606-XLSBATASSY1, -XLSBATASSY1W, and -XLSBATASSY3 \t151 x 98 x 65 mm (5.94 x 3.85 x 2.56 in.) \t1606-XLSBAT1",
+      "12V, 7 Ah battery module for 1606-XLS2408-UPS_ \t155 x 124 x 112 mm (6.10 x 4.88 x 4.41 in.) \t1606-XLSBATASSY1"
+    ].join("\n");
+
+    const attributes = extractDocumentTextAttributes({
+      catalogNumber: "1606-XLSBATASSY1",
+      document: { type: "datasheet", label: "1606-td002", url: "https://example.test/1606-td002.pdf" },
+      text
+    });
+
+    expect(attributes).toEqual(expect.arrayContaining([
+      expect.objectContaining({ group: "PDF Catalog Table Row", name: "Dimensions", value: "155 x 124 x 112 mm (6.10 x 4.88 x 4.41 in.)" })
+    ]));
+    expect(attributes).not.toEqual(expect.arrayContaining([
+      expect.objectContaining({ group: "PDF Catalog Table Row", value: expect.stringContaining("151 x 98 x 65") })
+    ]));
+  });
+
+  it("does not inherit a sibling row's dimensions when that row's OWN description merely cross-references our catalog (getTable() grid)", () => {
+    // Same bug as above, in extractGetTableCatalogRows (the vector-grid twin of the text-based
+    // table parser) — confirms both code paths were fixed, not just one.
+    const attributes = extractDocumentTextAttributes({
+      catalogNumber: "1606-XLSBATASSY1",
+      document: { type: "datasheet", label: "1606-td002", url: "https://example.test/1606-td002.pdf" },
+      text: "See table for details.",
+      tables: [
+        [
+          ["Description", "Dimensions", "Catalog Number"],
+          ["12V, 7 Ah battery replacement for 1606-XLSBATASSY1, -XLSBATASSY1W, and -XLSBATASSY3", "151 x 98 x 65 mm", "1606-XLSBAT1"],
+          ["12V, 7 Ah battery module for 1606-XLS2408-UPS_", "155 x 124 x 112 mm", "1606-XLSBATASSY1"]
+        ]
+      ]
+    });
+
+    expect(attributes).toEqual(expect.arrayContaining([
+      expect.objectContaining({ group: "PDF Table (Grid)", name: "Dimensions", value: "155 x 124 x 112 mm" })
+    ]));
+    expect(attributes).not.toEqual(expect.arrayContaining([
+      expect.objectContaining({ group: "PDF Table (Grid)", value: expect.stringContaining("151 x 98 x 65") })
+    ]));
+  });
+
   it("records PDF parse failures without adding them as product attributes", async () => {
     const result = await enrichResultFromDownloadedDocuments(product({
       documents: [

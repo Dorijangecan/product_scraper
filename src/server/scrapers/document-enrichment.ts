@@ -6,7 +6,7 @@ import { PDFParse } from "pdf-parse";
 import type { TableArray } from "pdf-parse";
 import type { AttributeRecord, DocumentProcessingDiagnostic, DocumentRecord, ProductResult, SourceRecord } from "../../shared/types.js";
 import { cleanText, normalizeFields, splitNameValue } from "./normalizer.js";
-import { catalogTextMatches } from "./catalog-number.js";
+import { catalogTextMatches, sameCatalogNumber } from "./catalog-number.js";
 import { buildTightContextForCatalog, buildVariantColumnContext } from "./tight-context.js";
 import { listTechnicalAttributeAliases } from "./technical-attribute-aliases.js";
 import { readPdfWithOptionalOcr } from "./pdf-ocr.js";
@@ -558,7 +558,10 @@ function extractGetTableCatalogRows(tables: TableArray[], catalogNumber: string,
     const key = `${name}|${cleaned}`.toLowerCase();
     if (seen.has(key)) return;
     seen.add(key);
-    attributes.push({ group: "PDF Table (Grid)", name, value: cleaned, sourceUrl });
+    // Same reasoning as extractGenericCatalogTableRows's confidence boost: this catalog is
+    // verified against its own header-mapped column, so it should outrank a catalog-agnostic
+    // text sweep (extractInlineDimensionText) that could otherwise win a confidence tie.
+    attributes.push({ group: "PDF Table (Grid)", name, value: cleaned, sourceUrl, confidence: 0.75 });
   };
 
   for (const table of tables) {
@@ -573,6 +576,12 @@ function extractGetTableCatalogRows(tables: TableArray[], catalogNumber: string,
       if (!catalogTextMatches(rowText, catalogNumber, { compact: true, ignoreCase: true })) continue;
       const mapped = mapHeaderCellsToRow(header, row);
       if (mapped.size < 2) continue;
+      // Same cross-reference bug as extractGenericCatalogTableRows above: the row-level match
+      // scans the WHOLE row including free-text description columns, so a sibling catalog
+      // cross-referenced in THIS row's own description ("...replacement for 1606-XLSBATASSY1...")
+      // would otherwise match a query for that sibling and inherit THIS row's values instead.
+      const mappedCatalogNumber = mapped.get("catalogNumber");
+      if (mappedCatalogNumber && !sameCatalogNumber(mappedCatalogNumber, catalogNumber, { compact: true, ignoreCase: true })) continue;
 
       push("Catalog Number", mapped.get("catalogNumber") ?? catalogNumber);
       push("Description", mapped.get("description"));
@@ -1209,7 +1218,19 @@ function stampDocumentAttributes(attributes: AttributeRecord[]): AttributeRecord
     sourceType: "generated",
     parser: "pdf-table-extractor",
     stage: "enrich-documents",
-    confidence: attr.group?.includes("Matched Rows") ? 0.66 : 0.78
+    // Real bug: this used to overwrite EVERY attribute's confidence to the same flat value
+    // regardless of source, silently erasing the very distinction extractGenericCatalogTableRows/
+    // extractGetTableCatalogRows rely on to outrank extractInlineDimensionText's catalog-agnostic
+    // text sweep (both ended up at 0.78, so whichever happened to be earlier in array order won
+    // ties — Rockwell's "Battery Modules" table kept several sibling rows in one scope, so the
+    // WRONG sibling's dimensions won for 1606-XLSBATASSY1 even after its own row was correctly,
+    // separately verified and extracted). Catalog-verified table-row attributes now keep a
+    // distinctly higher tier than the generic default.
+    confidence: attr.group?.includes("Matched Rows")
+      ? 0.66
+      : attr.group === "PDF Catalog Table Row" || attr.group === "PDF Table (Grid)"
+        ? 0.85
+        : 0.78
   }));
 }
 
@@ -1926,6 +1947,14 @@ function extractGenericCatalogTableRows(lines: string[], catalogNumber: string, 
     if (!header) continue;
     const mapped = mapHeaderCellsToRow(header, row);
     if (mapped.size < 2) continue;
+    // The row-level match above scans the WHOLE row text, including free-text description columns
+    // — Rockwell's battery-accessory rows cross-reference a DIFFERENT sibling catalog right in
+    // their own description ("...battery replacement for 1606-XLSBATASSY1..." on 1606-XLSBAT1's
+    // own row), so a query for that sibling would otherwise match here and silently inherit THIS
+    // row's dimensions instead. Once the header tells us which cell IS the catalog number, require
+    // that specific cell to actually be ours before trusting the row.
+    const mappedCatalogNumber = mapped.get("catalogNumber");
+    if (mappedCatalogNumber && !sameCatalogNumber(mappedCatalogNumber, catalogNumber, { compact: true, ignoreCase: true })) continue;
 
     const push = (name: string, value: string | undefined) => {
       const cleaned = cleanText(value);
@@ -1933,7 +1962,13 @@ function extractGenericCatalogTableRows(lines: string[], catalogNumber: string, 
       const key = `${name}|${cleaned}`.toLowerCase();
       if (seen.has(key)) return;
       seen.add(key);
-      attributes.push({ group: "PDF Catalog Table Row", name, value: cleaned, sourceUrl });
+      // Explicit confidence, not just the default: extractInlineDimensionText's catalog-agnostic
+      // sweep (elsewhere in this file) scores identically to an attribute with no confidence set,
+      // and being earlier in the combined attribute list let it silently win ties — e.g. it picked
+      // up a DIFFERENT accessory's dimensions from the same multi-row scoped text (Rockwell's
+      // "Battery Modules" table keeps several sibling rows in one scope). This row's own catalog
+      // number is verified above, so it's more trustworthy than an unscoped text sweep.
+      attributes.push({ group: "PDF Catalog Table Row", name, value: cleaned, sourceUrl, confidence: 0.75 });
     };
 
     push("Catalog Number", mapped.get("catalogNumber") ?? catalogNumber);
@@ -1949,7 +1984,11 @@ function extractGenericCatalogTableRows(lines: string[], catalogNumber: string, 
 }
 
 function nearestCatalogTableHeader(lines: string[], rowIndex: number, rowCellCount: number): string[] | undefined {
-  for (let index = rowIndex - 1; index >= Math.max(0, rowIndex - 8); index -= 1) {
+  // Wide enough to reach a table's header from its LAST data row, not just early ones — Rockwell's
+  // 1606-td002 "Battery Modules for DC-UPS" table has 13 data rows between its header and its last
+  // entry (1606-XLSBATSEN), well past the previous 8-line limit that only ever found the header for
+  // the first few rows of any such table.
+  for (let index = rowIndex - 1; index >= Math.max(0, rowIndex - 20); index -= 1) {
     const header = splitPdfTableCells(lines[index]);
     if (header.length < 3) continue;
     if (Math.abs(header.length - rowCellCount) > 2) continue;
@@ -1993,6 +2032,11 @@ function genericCatalogTableKey(header: string): string | undefined {
   if (/\b(?:product\s+type|device\s+type|type\s+description)\b/i.test(label)) return "productType";
   if (/\bmaterial\b/i.test(label)) return "material";
   if (/\b(?:weight|mass|wgt)\b|^\s*w\s*(?:\[|\(|$)/i.test(label)) return "weight";
+  // A bare "Dimensions" column header (as opposed to separate Width/Height/Depth columns) holds
+  // one already-combined "W x H x D" value per row — e.g. Rockwell's 1606-td002 "Battery Modules
+  // for DC-UPS" table ("Description | Dimensions | Catalog Number"). Checked before the width/
+  // height/depth cases below since "dimensions" doesn't match any of those individually.
+  if (/\bdimensions?\b/i.test(label)) return "dimensions";
   if (/\b(?:voltage|supply|input|output)\b/i.test(label) && /\b(?:v|voltage|supply)\b/i.test(label)) return "voltage";
   if (/\b(?:current|amp|load)\b/i.test(label)) return "current";
   if (/\b(?:width|breite)\b|^\s*w(?:idth)?\s*(?:\[|\(|$)/i.test(label)) return "width";
@@ -2013,6 +2057,8 @@ function valueWithHeaderUnit(value: string, header: string): string {
 }
 
 function genericRowDimensions(mapped: Map<string, string>): string | undefined {
+  const combined = mapped.get("dimensions");
+  if (combined) return combined;
   const ordered = [
     ["dn", "DN"],
     ["width", "W"],
@@ -2366,10 +2412,24 @@ function extractCatalogDescriptionRows(lines: string[], catalogNumber: string, s
   return attributes.slice(0, 20);
 }
 
+/** A row/table-cell shaped like a real catalog or type code — digits plus a separator plus more
+ * alnum, or letters directly followed by 3+ digits. Reused here only to detect a LATER mention on
+ * the same line (see parseCatalogDescriptionRow), not to validate the target catalog itself. */
+const DESCRIPTION_ROW_CATALOG_LIKE_PATTERN = /\b[A-Z0-9]{2,}(?:[-:\/.][A-Z0-9]+)+\b|\b[A-Z]{2,}[0-9]{3,}\b/i;
+
 function parseCatalogDescriptionRow(line: string, catalogNumber: string): { catalog: string; description: string } | undefined {
   const span = compactCatalogSpan(line, catalogNumber);
   if (!span) return undefined;
-  const description = cleanText(line.slice(span.end)).replace(/^[-:;,|]\s*/, "");
+  // Real bug: Rockwell's "1606-XLSBAT1" accessory row reads "...battery replacement for
+  // 1606-XLSBATASSY1, -XLSBATASSY1W, and -XLSBATASSY3 [dims] 1606-XLSBAT1" — querying for
+  // "1606-XLSBATASSY1" matched the cross-reference embedded in THIS row's own description, then
+  // took whatever followed (including a totally different accessory's dimensions) as if it
+  // described XLSBATASSY1 itself. When another catalog-shaped token follows our match on the same
+  // line, that later one is the row's real subject in this table style — treat our match here as
+  // an unreliable cross-reference and skip rather than misattribute.
+  const remainder = line.slice(span.end);
+  if (DESCRIPTION_ROW_CATALOG_LIKE_PATTERN.test(remainder)) return undefined;
+  const description = cleanText(remainder).replace(/^[-:;,|]\s*/, "");
   if (!description || description.length < 4 || !/[a-z]/i.test(description)) return undefined;
   return { catalog: catalogNumber, description };
 }
