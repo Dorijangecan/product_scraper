@@ -591,6 +591,72 @@ describe("manufacturer configuration", () => {
     expect(result.diagnostics?.discoveredCandidates?.some((candidate) => candidate.url === discoveredUrl)).toBe(true);
   });
 
+  it("takes the English title/description from Rockwell's own pagePersonalizationSummary, and the German one from the de-de page", async () => {
+    // Real layout confirmed live on rockwellautomation.com: window.pagePersonalizationSummary
+    // carries a clean short title + long description in the page's OWN locale on every
+    // details.*.html page - the schema.org JSON-LD title/description stays English even when
+    // fetched from the German URL, so the German page's own personalization summary is the only
+    // reliable source for a German description.
+    const manufacturer = listManufacturerConfigs().find((item) => item.id === "rockwell")!;
+    const connector = new RockwellConnector();
+    const catalogNumber = "1606-XLB90EQ";
+    const enUrl = "https://www.rockwellautomation.com/en-us/products/details.1606-XLB90EQ.html";
+    const deUrl = "https://www.rockwellautomation.com/de-de/products/details.1606-XLB90EQ.html";
+
+    const enHtml = `<html><body>
+      1606-XLB90EQ
+      <script>
+        window.pagePersonalizationSummary = {
+          "title": "XLB Power Supply 90W 24VDC 3.8A",
+          "description": "1606-XLB90EQ:Basic Power Supply, 24-28V DC, 90 W, 100-240V AC Input Voltage",
+          "isAiTranslated": false
+        }
+      </script>
+    </body></html>`;
+    const deHtml = `<html><body>
+      1606-XLB90EQ
+      <script>
+        window.pagePersonalizationSummary = {
+          "title": "XLB-Netzteil 90 W 24 V DC 3.8 A",
+          "description": "1606-XLB90EQ:Basisnetzteil, 24-28 V DC, 90 W, 100-240 V AC Eingangsspannung",
+          "isAiTranslated": true
+        }
+      </script>
+    </body></html>`;
+
+    const result = await connector.scrape(catalogNumber, {
+      manufacturer,
+      runDir: "",
+      documentsDir: "",
+      http: {
+        fetchText: async (url: string) => {
+          const html = url === enUrl || url.toLowerCase() === enUrl.toLowerCase() ? enHtml : url === deUrl ? deHtml : undefined;
+          if (!html) {
+            const err: any = new Error("not found");
+            err.statusCode = 404;
+            throw err;
+          }
+          return {
+            requestedUrl: url,
+            effectiveUrl: url,
+            statusCode: 200,
+            contentType: "text/html",
+            fetchedAt: "2026-01-01T00:00:00.000Z",
+            fromCache: false,
+            text: html
+          };
+        }
+      } as ScrapeContext["http"],
+      downloadDocument: async (doc) => doc,
+      fallback: { scrape: async () => undefined }
+    });
+
+    expect(result.title).toBe("XLB Power Supply 90W 24VDC 3.8A");
+    expect(result.description).toBe("1606-XLB90EQ:Basic Power Supply, 24-28V DC, 90 W, 100-240V AC Input Voltage");
+    expect(result.localizedDescriptions?.de?.title).toBe("XLB-Netzteil 90 W 24 V DC 3.8 A");
+    expect(result.localizedDescriptions?.de?.description).toBe("1606-XLB90EQ:Basisnetzteil, 24-28 V DC, 90 W, 100-240 V AC Eingangsspannung");
+  });
+
   it("uses generic official discovery for SCE when advanced search and direct URLs miss", async () => {
     const manufacturer = listManufacturerConfigs().find((item) => item.id === "sce")!;
     const connector = new SCEConnector();

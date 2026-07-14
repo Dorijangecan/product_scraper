@@ -67,8 +67,9 @@ export class RockwellConnector implements ManufacturerConnector {
 
     const merged = mergeRockwellResults(results);
     if (merged && merged.status !== "failed") {
+      const finalized = await enrichRockwellLocalizedDescriptions(finalizeRockwellResult(merged), catalogNumber, context);
       return {
-        ...finalizeRockwellResult(merged),
+        ...finalized,
         diagnostics: {
           ...merged.diagnostics,
           attemptedUrls: [...(merged.diagnostics?.attemptedUrls ?? []), ...attemptedUrls]
@@ -140,6 +141,43 @@ async function fetchRockwellOptional(url: string, context: ScrapeContext): Promi
     return fetched.statusCode < 400 ? fetched : undefined;
   } catch {
     return undefined;
+  }
+}
+
+/** Fetches Rockwell's de-de product page and pulls its own pagePersonalizationSummary title +
+ * description (German-translated by Rockwell itself, e.g. "XLB-Netzteil 90 W 24 V DC 3.8 A" /
+ * "1606-XLB90EQ:Basisnetzteil, 24-28 V DC, 90 W, 100-240 V AC Eingangsspannung") into
+ * localizedDescriptions.de — the English page's own schema.org JSON-LD stays English even when
+ * fetched from the German URL, so this is the only reliable per-locale German description source. */
+async function enrichRockwellLocalizedDescriptions(
+  result: ProductResult,
+  catalogNumber: string,
+  context: ScrapeContext
+): Promise<ProductResult> {
+  if (result.localizedDescriptions?.de?.title || result.localizedDescriptions?.de?.description) return result;
+  const germanUrl = result.localizedUrls?.de;
+  if (!germanUrl || sameRockwellUrl(germanUrl, result.productUrl)) return result;
+  const fetched = await fetchRockwellOptional(germanUrl, context);
+  if (!fetched || !matchesRockwellCatalogStrict(fetched.text, catalogNumber)) return result;
+  const summary = extractRockwellPersonalizationSummary(fetched.text);
+  if (!summary?.title && !summary?.description) return result;
+  return {
+    ...result,
+    localizedDescriptions: {
+      ...result.localizedDescriptions,
+      de: { title: summary.title, description: summary.description }
+    }
+  };
+}
+
+function sameRockwellUrl(left: string | undefined, right: string | undefined): boolean {
+  if (!left || !right) return false;
+  try {
+    const leftUrl = new URL(left);
+    const rightUrl = new URL(right);
+    return leftUrl.origin.toLowerCase() === rightUrl.origin.toLowerCase() && leftUrl.pathname.toLowerCase() === rightUrl.pathname.toLowerCase();
+  } catch {
+    return left.toLowerCase() === right.toLowerCase();
   }
 }
 
@@ -216,12 +254,46 @@ function enrichRockwellParsedPage(result: ProductResult, fetched: FetchedText, c
     ...result.documents,
     ...extractRockwellDocumentLinks($, catalogNumber, sourceUrl, parser)
   ]);
+  // Rockwell's own page-personalization JSON (window.pagePersonalizationSummary, present on every
+  // details.*.html page) carries a clean short title + long description in the page's own locale —
+  // e.g. "XLB Power Supply 90W 24VDC 3.8A" / "1606-XLB90EQ:Basic Power Supply, 24-28V DC, 90 W,
+  // 100-240V AC Input Voltage" on the English page, and the German-translated equivalents
+  // ("XLB-Netzteil..."/"...Basisnetzteil...") on the de-de page. Prefer it over whatever the
+  // generic HTML/JSON-LD title-guessing produced — that path has previously picked up raw SVG/CSS
+  // asset text on some Rockwell pages (see the 1444-DYN04 description bug fixed earlier).
+  const summary = extractRockwellPersonalizationSummary(fetched.text);
   return {
     ...result,
+    title: summary?.title || result.title,
+    description: summary?.description || result.description,
     normalized: normalizeFields(attributes, documents),
     attributes,
     documents
   };
+}
+
+/** Extracts { title, description } from Rockwell's `window.pagePersonalizationSummary = {...}`
+ * script block, present on every details.*.html product page in that page's own locale. Parsed
+ * field-by-field with escaped-quote-aware regexes (not JSON.parse on the whole object) since the
+ * object literal isn't followed by a clean statement terminator we can reliably slice at. */
+function extractRockwellPersonalizationSummary(html: string): { title?: string; description?: string } | undefined {
+  const blockStart = html.indexOf("pagePersonalizationSummary");
+  if (blockStart < 0) return undefined;
+  const block = html.slice(blockStart, blockStart + 1000);
+  const title = jsonStringField(block, "title");
+  const description = jsonStringField(block, "description");
+  if (!title && !description) return undefined;
+  return { title, description };
+}
+
+function jsonStringField(block: string, field: string): string | undefined {
+  const match = block.match(new RegExp(`"${field}"\\s*:\\s*"((?:[^"\\\\]|\\\\.)*)"`));
+  if (!match) return undefined;
+  try {
+    return cleanText(JSON.parse(`"${match[1]}"`));
+  } catch {
+    return undefined;
+  }
 }
 
 export function parseRockwellCutsheetPage(catalogNumber: string, fetched: FetchedText): ProductResult {
