@@ -1437,7 +1437,17 @@ export function shouldShortCircuitCustomerFirst(
   const hasDescriptiveIdentity = extraction.attributes.some((attr) =>
     /\b(?:product\s*type|description|product\s*short\s*text|product\s*name|product\s*category)\b/i.test(attr.name)
   );
-  return hasPhysicalCore && hasDutySpec && hasDescriptiveIdentity;
+  // Customer feedback sheets almost never carry the manufacturer's own product URL or a
+  // certifications list — both are still "Required Data Coverage" fields the exporter checks, and
+  // skipping the official site entirely means the row permanently shows "no link found" even
+  // though the manufacturer's page exists and would have supplied one (confirmed live for several
+  // Rockwell 1606-XL catalogs that were short-circuited this way — see
+  // [[rockwell-customer-first-short-circuit-fix]]). Only allow the short-circuit when the customer
+  // extraction has ALREADY supplied one of these two itself; otherwise fall through to the normal
+  // website scrape so it gets a real chance to fill them in.
+  const hasLinkOrCertificates =
+    Boolean(result.productUrl) || extraction.attributes.some((attr) => /\bcertificat/i.test(attr.name));
+  return hasPhysicalCore && hasDutySpec && hasDescriptiveIdentity && hasLinkOrCertificates;
 }
 
 type AttributeRecordLike = Pick<ProductResult["attributes"][number], "name">;

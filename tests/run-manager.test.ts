@@ -105,6 +105,7 @@ describe("run manager document downloads", () => {
   it("allows complete customer documents to short-circuit official lookup for unseen manufacturers", () => {
     const result = customerOnlyResult({
       manufacturerId: "unseen-maker",
+      productUrl: "https://unseen-maker.example/products/ABC-123",
       normalized: { weight: "1.2 kg", dimensions: "120 x 80 x 40 mm", material: "steel", voltage: "24 V DC" },
       qualityGate: { passed: true, identityConfirmed: true, score: 94, missing: [], reason: "customer complete", attempts: [] }
     });
@@ -118,6 +119,56 @@ describe("run manager document downloads", () => {
           { name: "Dimensions" },
           { name: "Material" },
           { name: "Voltage" }
+        ],
+        documents: [{ type: "datasheet", label: "Customer datasheet", url: "file:///customer/ABC-123.pdf" }]
+      })
+    ).toBe(true);
+  });
+
+  it("does NOT short-circuit an otherwise-complete customer document that has no product link or certificates", () => {
+    // Real bug: several Rockwell 1606-XL catalogs (e.g. 1606-XLBRED20, 1606-XLPRED) short-
+    // circuited on customer-doc data alone, permanently leaving productUrl empty and
+    // certificates missing — even though the manufacturer's own website has both and was never
+    // even tried. The old criteria only checked weight/dimensions/voltage/description, none of
+    // which cover "Required Data Coverage"'s Link/Certificates fields.
+    const result = customerOnlyResult({
+      manufacturerId: "unseen-maker",
+      normalized: { weight: "1.2 kg", dimensions: "120 x 80 x 40 mm", material: "steel", voltage: "24 V DC" },
+      qualityGate: { passed: true, identityConfirmed: true, score: 94, missing: [], reason: "customer complete", attempts: [] }
+    });
+
+    expect(
+      shouldShortCircuitCustomerFirst(result, {
+        attributes: [
+          { name: "Part Number" },
+          { name: "Description" },
+          { name: "Weight" },
+          { name: "Dimensions" },
+          { name: "Material" },
+          { name: "Voltage" }
+        ],
+        documents: [{ type: "datasheet", label: "Customer datasheet", url: "file:///customer/ABC-123.pdf" }]
+      })
+    ).toBe(false);
+  });
+
+  it("still short-circuits when the customer document itself supplied a certifications attribute", () => {
+    const result = customerOnlyResult({
+      manufacturerId: "unseen-maker",
+      normalized: { weight: "1.2 kg", dimensions: "120 x 80 x 40 mm", material: "steel", voltage: "24 V DC" },
+      qualityGate: { passed: true, identityConfirmed: true, score: 94, missing: [], reason: "customer complete", attempts: [] }
+    });
+
+    expect(
+      shouldShortCircuitCustomerFirst(result, {
+        attributes: [
+          { name: "Part Number" },
+          { name: "Description" },
+          { name: "Weight" },
+          { name: "Dimensions" },
+          { name: "Material" },
+          { name: "Voltage" },
+          { name: "Certifications" }
         ],
         documents: [{ type: "datasheet", label: "Customer datasheet", url: "file:///customer/ABC-123.pdf" }]
       })
