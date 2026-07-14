@@ -977,20 +977,27 @@ function rockwellIoCatalogPointCount(
 
 /** Customer-confirmed ground truth (see ROCKWELL_KNOWN_WEIGHTS_KG) beats both the DPP JSON API and
  * the 1606-td002 datasheet PDF, which disagree with it — and with each other — for some catalogs by
- * a small but real margin. Set unconditionally (not addTypeDefaultIfMissing) so it always wins:
- * weight() in eclass-resolvers.ts reads pdtWeightKg before consulting any scraped attribute. */
+ * a small but real margin. Set whenever no customer-uploaded document already supplied its own
+ * weight for this exact run (see addCustomerDocFact's parser === "customer-document" marker) — a
+ * document the user hands us for a specific product is more authoritative than a bulk reference
+ * table, so it must still win. Otherwise this wins outright: weight() in eclass-resolvers.ts reads
+ * pdtWeightKg before consulting any scraped attribute. */
 function addRockwellKnownWeightFacts(facts: PdtFact[], input: PdtFactInput): void {
   if (!isRockwell(input)) return;
   const catalog = clean(input.item.catalogNumber)?.toUpperCase();
   if (!catalog) return;
   const knownKg = ROCKWELL_KNOWN_WEIGHTS_KG[catalog];
   if (knownKg === undefined) return;
+  const hasCustomerDocWeight = (input.item.result?.attributes ?? []).some(
+    (attr) => attr.parser === "customer-document" && /\bweight\b/i.test(`${attr.group ?? ""} ${attr.name ?? ""}`) && clean(attr.value)
+  );
+  if (hasCustomerDocWeight) return;
   addTypeDefault(
     facts,
     "pdtWeightKg",
     String(knownKg),
     "rockwell-known-weight-reference",
-    "Customer-provided Rockwell weight reference table overrides scraped/datasheet weight for this catalog number."
+    "Customer-provided Rockwell weight reference table overrides scraped/datasheet weight for this catalog number (no customer document supplied its own weight)."
   );
 }
 

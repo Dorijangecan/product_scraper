@@ -592,6 +592,22 @@ describe("eclass resolvers", () => {
     expect(resolveProperty("AAF040", "AAF040", c)).toBe("1.23");
   });
 
+  it("lets a customer-uploaded document's own weight win over the Rockwell weight reference table", () => {
+    const c = ctx(
+      {
+        manufacturerId: "rockwell",
+        attributes: [{ group: "Physical", name: "Weight", value: "1.10 kg", sourceType: "official", parser: "customer-document" }],
+        normalized: { weight: "1.10 kg" }
+      },
+      "1606-XLB480E"
+    );
+    c.manufacturer = { ...manufacturer, id: "rockwell", canonicalName: "Rockwell Automation" } as ManufacturerConfig;
+
+    // The reference table says 0.95 kg for this catalog, but the user uploaded their own document
+    // with 1.10 kg for this specific product — the uploaded document must still win.
+    expect(resolveProperty("AAF040", "AAF040", c)).toBe("1.1");
+  });
+
   it("does not write Rockwell SVG/CSS asset text into PDT description cells", async () => {
     const dir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-pdt-rockwell-1444-desc-"));
     const templatePath = path.join(dir, "template.xlsx");
