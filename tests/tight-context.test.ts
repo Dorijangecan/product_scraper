@@ -330,6 +330,34 @@ describe("multi-variant datasheet column selection", () => {
     expect(buildVariantColumnContext(text, "1606-XLE192BDM")).toBeUndefined();
   });
 
+  it("does not return concatenated garbage for the LAST column of a merged-adjacent-value row (Rockwell 1606-XLS480G/240F/240F-D/480F/960F/960FE)", () => {
+    // Real bug: this table's real datasheet rows sometimes render two adjacent columns' IDENTICAL
+    // value as a single spanning cell during PDF layout (not a naming quirk like the tests above —
+    // the VALUES themselves collapse), producing one fewer tab-separated cell than there are real
+    // columns. "Output Voltage, Nom" below has only 5 values for 6 columns. For 1606-XLS960FE (the
+    // LAST/rightmost column), buildVariantColumnContext must not fabricate a value by reading past
+    // the row's real cells or gluing fragments together — silence is the correct, safe outcome here
+    // (the positioned-table reader in pdf-positioned-table.ts, which works from real X coordinates
+    // instead of sequential cell counting, is immune to this and is what document-enrichment.ts's
+    // extractPositionedWeightDimensionsSafely now falls back to for Voltage/Current).
+    const text = [
+      "Catalog Number \t1606-XLS480G \t1606-XLS240F \t1606-XLS240F-D \t1606-XLS480F \t1606-XLS960F \t1606-XLS960FE",
+      "Output Power \t120 W \t240 W \t240 W \t480 W \t960 W \t960 W",
+      "Output Voltage, Nom \t36V \t48V \t48V \t48V \t48V",
+      "Weight \t1200g \t900g \t1200g \t1900g \t1800g"
+    ].join("\n");
+
+    const out = buildVariantColumnContext(text, "1606-XLS960FE");
+    expect(out).toContain("Output Power: 960 W");
+    // No fabricated/duplicated Voltage or Weight value for the merged-away last column, and
+    // critically no concatenation of another column's or another row's text into one garbled value.
+    expect(out).not.toMatch(/Output Voltage, Nom:.*Output Voltage, Nom:/);
+    expect(out).not.toMatch(/Weight:.*Weight:/);
+    if (out?.includes("Output Voltage, Nom:")) {
+      expect(out).not.toMatch(/Output Voltage, Nom:\s*48V\s*48V/);
+    }
+  });
+
   it("does not let an unreconstructable table's failure send the search into a later, wrong table via loose substring matching", () => {
     // Real bug: once the ambiguous 1606-XLE120E-family table (above) gave up on "1606-XLE120E",
     // the search used to keep scanning and land on a LATER table's "1606-XLE120E-2" column via the

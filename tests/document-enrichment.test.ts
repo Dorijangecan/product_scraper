@@ -4,7 +4,7 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 import JSZip from "jszip";
 import type { ProductResult } from "../src/shared/types.js";
-import { documentAttributesAreSubstantive, enrichResultFromDownloadedDocuments, enrichResultFromRemoteDocuments, extractDocumentTextAttributes } from "../src/server/scrapers/document-enrichment.js";
+import { documentAttributesAreSubstantive, enrichResultFromDownloadedDocuments, enrichResultFromRemoteDocuments, extractDocumentTextAttributes, isCleanSingleSpecValue } from "../src/server/scrapers/document-enrichment.js";
 import { normalizeFields } from "../src/server/scrapers/normalizer.js";
 import { normalizeTechnicalAttributes } from "../src/server/scrapers/technical-attributes.js";
 import {
@@ -14,6 +14,29 @@ import {
   extractCustomerPdfTableAttributes
 } from "../src/server/scrapers/customer-documents.js";
 import { classifyDeviceType } from "../src/server/scrapers/device-type.js";
+
+describe("isCleanSingleSpecValue", () => {
+  it("accepts a single weight/dimension reading with its own unit conversion", () => {
+    expect(isCleanSingleSpecValue("270 g (0.60 lb)")).toBe(true);
+    expect(isCleanSingleSpecValue("32 x 124 x 102 mm (1.26 x 4.88 x 4.02 in.)")).toBe(true);
+  });
+
+  it("rejects several different weight/dimension readings joined with / or |", () => {
+    expect(isCleanSingleSpecValue("930 g / 440 g")).toBe(false);
+    expect(isCleanSingleSpecValue("90 x 106 x 70 mm | 120 x 90 x 60 mm")).toBe(false);
+  });
+
+  it("accepts a single, plausible electrical reading", () => {
+    expect(isCleanSingleSpecValue("48V")).toBe(true);
+    expect(isCleanSingleSpecValue("20 A")).toBe(true);
+  });
+
+  it("rejects a value that repeats its own label text (two rows concatenated into one string)", () => {
+    // Real reported symptom: a merged-column table row misaligned by buildVariantColumnContext's
+    // naive left-to-right cell counting glued two different rows' label+value pairs together.
+    expect(isCleanSingleSpecValue("Current 20 A Current 480 watt")).toBe(false);
+  });
+});
 
 describe("documentAttributesAreSubstantive", () => {
   const stub = { group: "PDF Document", name: "Parsed document", value: "datasheet.pdf" };
@@ -1339,6 +1362,33 @@ Operating Temperature XT
         stage: "remote-document-enrichment"
       })
     ]));
+  });
+
+  it("lets a freshly recomputed normalized field override a stale, wrong pre-enrichment value", async () => {
+    // Confirmed live on Rockwell's 1606-XLSBAT5: result.normalized was already populated (wrongly)
+    // BEFORE document enrichment ran (the digital product passport's Height/Width/Length read like
+    // packaging-box dimensions), and this merge used to spread that stale value LAST, letting it
+    // unconditionally win over the freshly recomputed value even though normalizeFields — given the
+    // FULL attribute union including the new document evidence — had already picked the better one.
+    const fixturePath = path.resolve("benchmarks", "live-check", "nvent-docs", "spec-00583.pdf");
+    const result = await enrichResultFromRemoteDocuments(
+      product({
+        catalogNumber: "NO-MATCH",
+        normalized: { protection: "IP-STALE-WRONG-VALUE" },
+        documents: [
+          {
+            type: "datasheet",
+            label: "Thermostat controller spec sheet",
+            url: "https://example.test/spec-00583.pdf",
+            downloadStatus: "skipped",
+            downloadError: "PDF downloads disabled for this run."
+          }
+        ]
+      }),
+      async () => ({ localPath: fixturePath })
+    );
+
+    expect(result.normalized.protection).toBe("IP20");
   });
 
   it("reads remote PDF-like query endpoints even when the URL has no .pdf suffix", async () => {

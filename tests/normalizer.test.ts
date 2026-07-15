@@ -1343,4 +1343,70 @@ describe("normalizer", () => {
 
     expect(normalized.current).toBe("10 A resistive / 4 A inductive @ AC 115 V");
   });
+
+  it("prefers a low-confidence-flagged Height/Width/Length assembly's rival combined 'Dimensions' attribute when it is better evidenced", () => {
+    // Mirrors Rockwell's 1606-XLSBAT5 live bug: the digital product passport's Height/Width/Length
+    // (dppAttributeConfidence in rockwell.ts deliberately drops these to 0.7 because they read like
+    // rounded PACKAGING-box dimensions, not the actual battery module) used to win outright and
+    // assemble into a full W x H x D string before a much better evidenced combined "Dimensions"
+    // attribute from the datasheet PDF's own catalog table (confidence 0.85) ever got a say.
+    const normalized = normalizeFields(
+      [
+        { group: "Rockwell Dimensions", name: "Height", value: "15.189 cm", confidence: 0.7, sourceType: "official" },
+        { group: "Rockwell Dimensions", name: "Length", value: "18.999 cm", confidence: 0.7, sourceType: "official" },
+        { group: "Rockwell Dimensions", name: "Weight", value: "2.062 kg", confidence: 0.92, sourceType: "official" },
+        { group: "Rockwell Dimensions", name: "Width", value: "15.697 cm", confidence: 0.7, sourceType: "official" },
+        {
+          group: "PDF Catalog Table Row",
+          name: "Dimensions",
+          value: "90 x 106 x 70 mm (3.54 x 4.17 x 2.76 in.)",
+          confidence: 0.85,
+          sourceType: "generated",
+          parser: "pdf-table-extractor"
+        }
+      ],
+      []
+    );
+
+    expect(normalized.dimensions).toBe("90 x 106 x 70 mm (3.54 x 4.17 x 2.76 in.)");
+  });
+
+  it("still assembles Height/Width/Length when neither side states an explicit confidence (unchanged default behavior)", () => {
+    const normalized = normalizeFields(
+      [
+        { group: "Product Table", name: "Height", value: "110 mm" },
+        { group: "Product Table", name: "Width", value: "50 mm" },
+        { group: "Product Table", name: "Depth", value: "85 mm" },
+        { group: "Product Table", name: "Dimensions", value: "some other combined reading 999 x 999 x 999 mm" }
+      ],
+      []
+    );
+
+    expect(normalized.dimensions).toBe("110 x 50 x 85 mm");
+  });
+
+  it("does not let an unrelated same-group attribute (e.g. Weight) masquerade as the combined 'Dimensions' reading", () => {
+    // "Rockwell Dimensions"/"Weight" sits in a dimensions-named GROUP but its own value is a weight
+    // reading, not a dimension — it must not out-score and steal the combined-attribute comparison
+    // from the genuine "PDF Catalog Table Row"/"Dimensions" attribute just because FIELD_LABEL_PATTERNS
+    // matches on group text too and a higher raw confidence happens to sit on the wrong attribute.
+    const normalized = normalizeFields(
+      [
+        { group: "Rockwell Dimensions", name: "Height", value: "15.189 cm", confidence: 0.7, sourceType: "official" },
+        { group: "Rockwell Dimensions", name: "Width", value: "15.697 cm", confidence: 0.7, sourceType: "official" },
+        { group: "Rockwell Dimensions", name: "Weight", value: "2.062 kg", confidence: 0.92, sourceType: "official" },
+        {
+          group: "PDF Catalog Table Row",
+          name: "Dimensions",
+          value: "90 x 106 x 70 mm (3.54 x 4.17 x 2.76 in.)",
+          confidence: 0.85,
+          sourceType: "generated",
+          parser: "pdf-table-extractor"
+        }
+      ],
+      []
+    );
+
+    expect(normalized.dimensions).toBe("90 x 106 x 70 mm (3.54 x 4.17 x 2.76 in.)");
+  });
 });

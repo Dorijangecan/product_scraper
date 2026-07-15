@@ -98,6 +98,26 @@ interface MatchedColumn {
   nextAnchor: PositionedTextItem | undefined;
 }
 
+/** A tolerant fallback for when a header's printed text isn't byte-for-byte identical to the
+ * catalog number (e.g. a trailing footnote marker like "1606-XLE120B(1)" compacts to
+ * "1606xle120b1", one digit longer than the catalog itself) — WITHOUT reopening the exact
+ * sibling-prefix collision this module exists to avoid. Confirmed live: "1606-XLE240ERL" has no
+ * header of its own on an EARLIER page that happens to also contain "1606-XLE240E" (a genuinely
+ * different, shorter sibling catalog and a strict prefix of "1606-XLE240ERL") — the old unconditional
+ * `token.includes(x) || x.includes(token)` check treated that prefix relationship as a match and
+ * returned that wrong page's WRONG column (Adjustment Range "24…28V" instead of the correct
+ * "Fixed", among others) before ever reaching the correct page later in the document where
+ * "1606-XLE240ERL" is an exact header. A genuine Rockwell sibling suffix is always alphabetic (EC,
+ * EL, EH, EN, EE, ERL, ...) — a footnote-marker remainder is always purely numeric — so only
+ * tolerate a purely-digit remainder between the shorter and longer compacted strings. */
+function isBoundarySafeFallbackMatch(token: string, compactCatalog: string): boolean {
+  if (token.length < 3) return false;
+  if (token === compactCatalog) return true;
+  const [shorter, longer] = token.length < compactCatalog.length ? [token, compactCatalog] : [compactCatalog, token];
+  if (!longer.startsWith(shorter)) return false;
+  return /^[0-9]*$/.test(longer.slice(shorter.length));
+}
+
 function matchColumnForCatalog(meaningful: PositionedTextItem[], catalogNumber: string): MatchedColumn | undefined {
   const compactCatalog = compactCatalogNumber(catalogNumber);
   if (!compactCatalog) return undefined;
@@ -129,12 +149,7 @@ function matchColumnForCatalog(meaningful: PositionedTextItem[], catalogNumber: 
     );
 
     const exactMatch = headerItems.find((item) => compactCatalogNumber(item.text) === compactCatalog);
-    const matchedItem =
-      exactMatch ??
-      headerItems.find((item) => {
-        const token = compactCatalogNumber(item.text);
-        return token.length >= 3 && (token.includes(compactCatalog) || compactCatalog.includes(token));
-      });
+    const matchedItem = exactMatch ?? headerItems.find((item) => isBoundarySafeFallbackMatch(compactCatalogNumber(item.text), compactCatalog));
     if (!matchedItem) continue;
 
     const ourColumnIndex = nearestIndex(matchedItem.x, columnXs, COLUMN_X_TOLERANCE);

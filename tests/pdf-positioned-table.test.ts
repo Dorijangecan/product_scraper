@@ -143,3 +143,44 @@ describe("extractPositionedTableRows", () => {
     expect(extractPositionedTableRows(ALL_ITEMS, "1606-XLB60E")).toBeUndefined();
   });
 });
+
+// Coordinates below mirror TWO real tables from 1606-td002.pdf: an EARLIER, unrelated
+// "100…240V AC/DC, Continued" table (page 22) whose header includes the shorter, genuinely
+// DIFFERENT sibling catalog "1606-XLE240E", followed by the LATER "Power Supplies with Integrated
+// Decoupling Function" table (page 25) where "1606-XLE240ERL" is its own exact header. Confirmed
+// live: matching "1606-XLE240ERL" against these tables used to silently accept the wrong, earlier
+// page's "1606-XLE240E" column via a boundary-unsafe substring fallback (compact "1606xle240e" is a
+// literal string-prefix of compact "1606xle240erl") and return that column's WRONG values
+// (Adjustment Range "24…28V" instead of the correct "Fixed") — a sibling-catalog collision of
+// exactly the kind [[rockwell-sibling-catalog-collision]] already fixed in rockwell.ts, but not in
+// this module's own header matcher.
+const WRONG_EARLIER_TABLE: PositionedTextItem[] = [
+  { text: "Catalog Number", x: 47, y: 700 },
+  { text: "1606-XLE240E", x: 150, y: 700 },
+  { text: "1606-XLE240EP", x: 148, y: 692 },
+  { text: "Adjustment Range", x: 47, y: 660 },
+  { text: "24…28V", x: 150, y: 656 }
+];
+const CORRECT_LATER_TABLE: PositionedTextItem[] = [
+  { text: "Catalog Number", x: 47, y: 620 },
+  { text: "1606-XLE240ERL", x: 150, y: 620 },
+  { text: "1606-XLE480ERL", x: 300, y: 620 },
+  { text: "Adjustment Range", x: 47, y: 580 },
+  { text: "Fixed", x: 150, y: 576 },
+  { text: "Fixed", x: 300, y: 576 }
+];
+
+describe("matchColumnForCatalog fallback (sibling-prefix collision safety)", () => {
+  it("does not let a shorter sibling catalog's column (a strict text-prefix of the real one) match via the fuzzy fallback", () => {
+    // The real reader would try the earlier table's page first and move on since no column of
+    // ITS OWN matches "1606-XLE240ERL" there; simulated directly here against just that table's
+    // items, matching extractPositionedTableRowsFromPdf's own per-page "first match wins" logic.
+    expect(extractPositionedTableRows(WRONG_EARLIER_TABLE, "1606-XLE240ERL")).toBeUndefined();
+  });
+
+  it("still finds the catalog's own exact column once it legitimately appears as its own header", () => {
+    expect(extractPositionedTableRows(CORRECT_LATER_TABLE, "1606-XLE240ERL")).toMatchObject({
+      "Adjustment Range": "Fixed"
+    });
+  });
+});

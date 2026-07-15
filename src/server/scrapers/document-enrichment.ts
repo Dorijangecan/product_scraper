@@ -300,9 +300,20 @@ export async function enrichResultFromDownloadedDocuments(result: ProductResult)
   }
 
   const attributes = dedupeAttributes([...result.attributes, ...documentAttributes]);
+  // normalizeFields(attributes, ...) already recomputes over attributes' FULL union (result.attributes
+  // + the new document-derived ones), so its own confidence-aware field arbitration (see
+  // normalizeFields in normalizer.ts) has already weighed a pre-existing value against anything the
+  // documents just added. Spreading the STALE result.normalized last used to let it unconditionally
+  // win over that recomputation whenever it was merely non-empty — confirmed live on Rockwell's
+  // 1606-XLSBAT5: result.normalized.dimensions was already set (wrong, packaging-box dims from the
+  // DPP) before document enrichment ran, so it kept overriding the freshly recomputed, CORRECT
+  // dimensions the datasheet PDF's own catalog table just supplied, even though normalizeFields
+  // itself had already picked the better one. Recomputed wins when it found something; the stale
+  // value is now only a fallback for whichever fields recomputation still left empty (e.g. any field
+  // set outside the `attributes` array entirely).
   const normalized = {
-    ...normalizeFields(attributes, documents),
-    ...nonEmptyNormalized(result.normalized)
+    ...nonEmptyNormalized(result.normalized),
+    ...nonEmptyNormalized(normalizeFields(attributes, documents))
   };
 
   return {
@@ -405,9 +416,20 @@ export async function enrichResultFromRemoteDocuments(
   }
 
   const attributes = dedupeAttributes([...result.attributes, ...documentAttributes]);
+  // normalizeFields(attributes, ...) already recomputes over attributes' FULL union (result.attributes
+  // + the new document-derived ones), so its own confidence-aware field arbitration (see
+  // normalizeFields in normalizer.ts) has already weighed a pre-existing value against anything the
+  // documents just added. Spreading the STALE result.normalized last used to let it unconditionally
+  // win over that recomputation whenever it was merely non-empty — confirmed live on Rockwell's
+  // 1606-XLSBAT5: result.normalized.dimensions was already set (wrong, packaging-box dims from the
+  // DPP) before document enrichment ran, so it kept overriding the freshly recomputed, CORRECT
+  // dimensions the datasheet PDF's own catalog table just supplied, even though normalizeFields
+  // itself had already picked the better one. Recomputed wins when it found something; the stale
+  // value is now only a fallback for whichever fields recomputation still left empty (e.g. any field
+  // set outside the `attributes` array entirely).
   const normalized = {
-    ...normalizeFields(attributes, documents),
-    ...nonEmptyNormalized(result.normalized)
+    ...nonEmptyNormalized(result.normalized),
+    ...nonEmptyNormalized(normalizeFields(attributes, documents))
   };
 
   return {
@@ -1018,11 +1040,25 @@ async function extractComplianceMatrixAttributesSafely(
 /** A single weight/dimensions measurement has ONE leading number (e.g. "270 g (0.60 lb)" —
  * the "(0.60 lb)" part is a unit conversion of the SAME measurement, not a second one). Several
  * genuinely different numbers glued together with "/" or "|" (e.g. "930 g / 440 g") indicates
- * multiple different models' values got swept in and joined rather than resolved to one. */
-function isCleanSingleSpecValue(value: string): boolean {
+ * multiple different models' values got swept in and joined rather than resolved to one.
+ *
+ * Also catches the electrical-spec counterpart of the same symptom: buildVariantColumnContext's
+ * left-to-right cell counting misaligns a row whenever two ADJACENT data columns render an
+ * identical value as one spanning cell (confirmed live on Rockwell's 1606-XLS480G/240F/240F-D/
+ * 480F/960F/960FE table — every later column's positional read silently shifts by one once that
+ * happens). A shifted-but-still-plausible single reading can't be told apart from a correct one by
+ * shape alone (see the broadened trigger in extractPositionedWeightDimensionsSafely below, which
+ * doesn't rely on this function to catch that case) — but the OTHER known failure mode, two
+ * different rows' label/value text getting concatenated into one string (e.g. "Current 20 A
+ * Current 480 watt"), always repeats an alphabetic word from its own label, which a genuine single
+ * reading never does. */
+export function isCleanSingleSpecValue(value: string): boolean {
   if (/[/|]/.test(value)) return false;
   const leadingNumbers = value.match(/\b\d+(?:\.\d+)?\s*(?:g|kg|lb|mm|cm|in)\b/gi) ?? [];
-  return leadingNumbers.length <= 2;
+  if (leadingNumbers.length > 2) return false;
+  const words = (value.match(/[a-z]{3,}/gi) ?? []).map((word) => word.toLowerCase());
+  if (new Set(words).size < words.length) return false;
+  return true;
 }
 
 async function extractPositionedWeightDimensionsSafely(
@@ -1039,21 +1075,53 @@ async function extractPositionedWeightDimensionsSafely(
   // more expensive but catalog-scoped fallback; only a genuinely single, clean value counts.
   const hasWeight = existingAttributes.some((attr) => /\bweight\b/i.test(attr.name) && isCleanSingleSpecValue(attr.value));
   const hasDimensions = existingAttributes.some((attr) => /\bdimensions?\b/i.test(attr.name) && isCleanSingleSpecValue(attr.value));
-  if (hasWeight && hasDimensions) return [];
+  // Voltage/Current are produced by the SAME naive left-to-right cell counting that Weight/
+  // Dimensions used to be, and are vulnerable to the identical merged-column misalignment (see
+  // isCleanSingleSpecValue's doc comment) — except a shifted electrical reading still LOOKS clean
+  // (it's shape-valid, just belongs to the wrong column), so shape alone can't gate this the way it
+  // does for Weight/Dimensions. Run this fallback whenever a Voltage/Current attribute exists AT
+  // ALL, regardless of how clean it looks, and let the normal attribute-ranking/confidence pipeline
+  // (not this function) pick the winner between the two candidates.
+  const hasVoltage = existingAttributes.some((attr) => /\bvoltage\b/i.test(attr.name));
+  const hasCurrent = existingAttributes.some((attr) => /\bcurrent\b/i.test(attr.name));
+  if (hasWeight && hasDimensions && !hasVoltage && !hasCurrent) return [];
   try {
     const data = new Uint8Array(await fs.readFile(filePath));
     const rows = await extractPositionedTableRowsFromPdf(data, catalogNumber);
     if (!rows) return [];
-    // Only skip a label the existing attributes already cover CLEANLY — a same-named but
-    // contaminated existing value (the exact case this fallback exists to correct) must not
-    // block the clean positioned-table reading from being added as a competing candidate.
-    const cleanExistingNames = new Set(
-      existingAttributes.filter((attr) => isCleanSingleSpecValue(attr.value)).map((attr) => attr.name.toLowerCase())
-    );
+    // Every row this reader returns is added as a COMPETING candidate — never gated behind "does an
+    // existing, shape-clean attribute of the SAME NAME already exist" (that would block a correction
+    // from ever competing at all). That existing-attribute gate used to apply to every label except
+    // Voltage/Current (added unconditionally because a shifted-but-plausible
+    // electrical reading still passes isCleanSingleSpecValue's shape check) — but the exact same
+    // "shifted column still looks shape-valid" failure mode applies to EVERY row a merged-column
+    // table can produce (Adjustment Range, Output Power, Output Current Range, Efficiency, Power
+    // Losses, MTBF, Lifetime, Derating, ...), not just those two. Confirmed live on Rockwell's
+    // 1606-XLS 100...240V AC/DC table (1606-XLS180B...1606-XLS240E-D, 10 catalog columns folded
+    // into as few as 6 printed value cells per row): buildVariantColumnContext's naive left-to-right
+    // cell counting silently shifted Adjustment Range/Output Power/Efficiency/MTBF onto the wrong
+    // neighboring catalog for several columns past the first merge point, and every shifted value
+    // still reads as a single clean number — the old skip let that WRONG value win by never letting
+    // the correct positioned-table row compete for it at all. Safe to add unconditionally because
+    // downstream ranking (bestAttribute/addAttributeFact in facts.ts) already sorts by confidence,
+    // and a text-derived attribute from splitNameValue/parseKnownInlinePair carries no explicit
+    // confidence (sorts as 0) — this reader's fixed 0.8 always wins the comparison already, so the
+    // per-name skip was only ever suppressing the fix, never protecting a genuinely better value.
+    // Confirmed live on the 1606-XLE120E-family table (1606-XLE120E/-EC/-EL/-EH/-ED genuinely share
+    // ONE physical column): several rows in that shared column (DC Input Voltage, Power Factor Typ,
+    // Connection Terminals, ...) carry FOOTNOTE-qualified sub-values that differ per sibling catalog
+    // within that same column (e.g. "— (-XLE120E, -XLE120EC) DC 110…150V (-XLE120EL, -XLE120EH) DC
+    // 110...300 V (-XLE120ED" — three siblings' distinct footnoted readings, all sitting in this
+    // reader's VALUE_Y_WINDOW for the same label, concatenated into one string). This reader has no
+    // way to tell which footnoted fragment belongs to THIS specific catalog, so the concatenation is
+    // never trustworthy — unlike Weight/Dimensions/Voltage/Current (verified correct for this exact
+    // table), which read as one clean measurement per column with no footnote branching. Reuse
+    // isCleanSingleSpecValue's shape check (repeated word = multiple concatenated fragments) to drop
+    // these rather than add a wrong value: silence beats a confidently wrong footnote-mangled string.
     const attributes: AttributeRecord[] = [];
     for (const [label, value] of Object.entries(rows)) {
+      if (!isCleanSingleSpecValue(value)) continue;
       const name = /^w\s*x\s*h\s*x\s*d$/i.test(label) ? "Dimensions" : label;
-      if (cleanExistingNames.has(name.toLowerCase())) continue;
       attributes.push({
         group: "PDF Positioned Table",
         name,
@@ -1349,11 +1417,23 @@ function stampDocumentAttributes(attributes: AttributeRecord[]): AttributeRecord
     // WRONG sibling's dimensions won for 1606-XLSBATASSY1 even after its own row was correctly,
     // separately verified and extracted). Catalog-verified table-row attributes now keep a
     // distinctly higher tier than the generic default.
+    // "PDF Positioned Table" (extractPositionedWeightDimensionsSafely, pdf-positioned-table.ts)
+    // needs the SAME distinct tier for the SAME reason: this stamping step used to flatten its
+    // 0.8 confidence down to the generic 0.78 as well, tying it with the very text-derived reading
+    // it exists to override — with a tie, Array#sort's stability in bestAttribute (facts.ts) let
+    // whichever was pushed first win, and the wrong buildVariantColumnContext-derived value is
+    // always pushed before this fallback runs. Confirmed live: a merged-identical-adjacent-value
+    // column shifts non-Weight/Dimensions/Voltage/Current rows (Efficiency, Adjustment Range,
+    // Output Power, MTBF, ...) exactly like it used to for those four fields, and the shifted
+    // reading still passes isCleanSingleSpecValue's shape check — so only a genuinely higher
+    // confidence tier, not just "being added as a candidate", makes the correct value win.
     confidence: attr.group?.includes("Matched Rows")
       ? 0.66
-      : attr.group === "PDF Catalog Table Row" || attr.group === "PDF Table (Grid)"
-        ? 0.85
-        : 0.78
+      : attr.group === "PDF Positioned Table"
+        ? 0.88
+        : attr.group === "PDF Catalog Table Row" || attr.group === "PDF Table (Grid)"
+          ? 0.85
+          : 0.78
   }));
 }
 

@@ -174,14 +174,66 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
     return bestAttributeValue(attributes, patterns);
   };
 
-  const height = bestDimensionAxisValue(attributes, "height");
-  const width = bestDimensionAxisValue(attributes, "width");
-  const depth = bestDimensionAxisValue(attributes, "depth");
-  const length = bestDimensionAxisValue(attributes, "length");
+  const heightAttr = bestDimensionAxisAttribute(attributes, "height");
+  const widthAttr = bestDimensionAxisAttribute(attributes, "width");
+  const depthAttr = bestDimensionAxisAttribute(attributes, "depth");
+  const lengthAttr = bestDimensionAxisAttribute(attributes, "length");
   const cableLengthDimension = bestCableLengthDimensionValue(attributes);
+  const axisAssembledDimensions = normalizeDimensionValue(
+    formatDimensions(heightAttr?.value, widthAttr?.value, depthAttr?.value, lengthAttr?.value)
+  );
+  const combinedDimensionsAttr = attributes
+    .filter((attr) => {
+      const haystack = `${attr.group ?? ""} ${attr.name}`.toLowerCase();
+      // FIELD_LABEL_PATTERNS.dimensions matches on GROUP text too (e.g. "Rockwell Dimensions"), so
+      // a bare single-axis attribute like name="Height" would otherwise ALSO qualify as a "combined
+      // Dimensions string" candidate purely because it sits in a dimensions-named group — stealing
+      // this arbitration's role from the genuine combined "H x W x D" attribute it's supposed to
+      // compete against (confirmed live: with an "official" sourceType bump, a bare 0.7-confidence
+      // "Height" attribute out-scored the real 0.85-confidence combined "Dimensions" attribute this
+      // way, defeating the whole point of comparing them). Single-axis attributes are already
+      // handled via bestDimensionAxisAttribute above; exclude them here.
+      if (/^(?:height|width|depth|length)$/i.test(attr.name.trim())) return false;
+      return FIELD_LABEL_PATTERNS.dimensions.some((pattern) => pattern.test(haystack)) && isLikelySpecText(attr.value) && isAvailableSpecValue(attr.value);
+    })
+    .sort((left, right) => dimensionsFieldScore(right) - dimensionsFieldScore(left))
+    // The GROUP-based match above still lets an unrelated same-group attribute through (e.g.
+    // "Rockwell Dimensions"/"Weight" — same group as the real Height/Width/Length entries, but its
+    // OWN value is a weight reading, not a dimension) — skip to the next-best-scored candidate
+    // whose value doesn't actually normalize as a dimension, mirroring how the old
+    // bestNormalizedAttributeValue(..., "dimensions") call already tolerated this via its own
+    // normalize-then-filter chain, rather than picking the top score unconditionally.
+    .find((attr) => normalizeDimensionValue(attr.value));
+  // Assembling H/W/D/L from separately-labeled axis attributes used to ALWAYS take priority over a
+  // single combined "Dimensions" string, regardless of which one is actually better evidenced —
+  // confirmed live on Rockwell's 1606-XLSBAT5: the digital product passport's Height/Width/Length
+  // (confidence deliberately dropped to 0.7 — see dppAttributeConfidence in rockwell.ts — because
+  // they read like rounded PACKAGING-box dimensions, not the product's own) had no competing
+  // Height/Width/Length from anywhere else to lose to, so they trivially "won" their own per-axis
+  // comparison and got assembled into a full W x H x D string BEFORE this function ever looked at
+  // the datasheet PDF's own, much better evidenced combined "Dimensions" attribute (0.85, "PDF
+  // Catalog Table Row") — even though that one is correct and the assembled one is wrong (90 x 106
+  // x 70 mm vs. an assembled ~152 x 157 x 190 mm).
+  //
+  // Compare raw `confidence` directly rather than the full attributeEvidenceScore/dimensionsFieldScore
+  // — those also weigh `sourceType`, and stampDocumentAttributes (document-enrichment.ts) marks
+  // EVERY document-sourced attribute (including this exact "PDF Catalog Table Row" one) as
+  // sourceType "generated" regardless of how well-verified its confidence is, which would otherwise
+  // swamp a 0.85-vs-0.7 confidence gap under a same-source-type-vs-different-source-type gap that
+  // has nothing to do with THIS arbitration. An attribute with no explicit confidence at all is
+  // treated as maximally trusted (1) so the many manufacturers/attributes that never set one keep
+  // today's unconditional axis-assembly-wins behavior unchanged — this only kicks in when the axis
+  // reading carries an explicit, lower self-reported confidence than a combined attribute that beats
+  // it outright.
+  const axisAttrs = [heightAttr, widthAttr, depthAttr ?? lengthAttr].filter((attr): attr is AttributeRecord => Boolean(attr));
+  const weakestAxisConfidence = axisAttrs.length ? Math.min(...axisAttrs.map((attr) => attr.confidence ?? 1)) : -Infinity;
+  const combinedDimensionsValue = combinedDimensionsAttr ? normalizeDimensionValue(combinedDimensionsAttr.value) : undefined;
+  const preferAxisAssembly =
+    Boolean(axisAssembledDimensions) && (!combinedDimensionsValue || weakestAxisConfidence >= (combinedDimensionsAttr?.confidence ?? 1));
   const dimensions =
-    normalizeDimensionValue(formatDimensions(height, width, depth, length)) ??
-    bestNormalizedAttributeValue(attributes, FIELD_LABEL_PATTERNS.dimensions, normalizeDimensionValue, "dimensions") ??
+    (preferAxisAssembly ? axisAssembledDimensions : undefined) ??
+    combinedDimensionsValue ??
+    axisAssembledDimensions ??
     registryFieldValue(attributes, "dimensions", normalizeDimensionValue) ??
     deriveDimensionsFromText(attributes) ??
     cableLengthDimension;
@@ -648,6 +700,13 @@ function attributeEvidenceScore(attr: AttributeRecord): number {
 }
 
 export function bestDimensionAxisValue(attributes: AttributeRecord[], axis: "height" | "width" | "depth" | "length"): string | undefined {
+  return bestDimensionAxisAttribute(attributes, axis)?.value;
+}
+
+/** Same selection as {@link bestDimensionAxisValue} but returns the winning attribute itself (not
+ * just its value) so callers can weigh its evidence score against a competing candidate — see the
+ * axis-vs-combined-"Dimensions"-attribute arbitration in normalizeFields. */
+function bestDimensionAxisAttribute(attributes: AttributeRecord[], axis: "height" | "width" | "depth" | "length"): AttributeRecord | undefined {
   return attributes
     .filter((attr) => {
       const label = `${attr.group ?? ""} ${attr.name}`.toLowerCase();
@@ -657,7 +716,14 @@ export function bestDimensionAxisValue(attributes: AttributeRecord[], axis: "hei
       const leftScore = attributeEvidenceScore(left) + dimensionAxisLabelScore(`${left.group ?? ""} ${left.name}`.toLowerCase(), axis);
       const rightScore = attributeEvidenceScore(right) + dimensionAxisLabelScore(`${right.group ?? ""} ${right.name}`.toLowerCase(), axis);
       return rightScore - leftScore;
-    })[0]?.value;
+    })[0];
+}
+
+/** Overall evidence quality of an attribute as a candidate for the combined "dimensions" field —
+ * used to arbitrate between an assembled height/width/depth/length reading and a single combined
+ * "Dimensions" string attribute (see normalizeFields), not just to rank within one axis. */
+function dimensionsFieldScore(attr: AttributeRecord): number {
+  return attributeEvidenceScore(attr) + normalizedFieldLabelScore(attr, "dimensions");
 }
 
 function isLikelyDimensionAxisValue(value: string): boolean {
