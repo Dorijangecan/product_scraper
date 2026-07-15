@@ -62,20 +62,47 @@ function clusterRows(items: PositionedTextItem[], tolerance = ROW_Y_TOLERANCE): 
 }
 
 /**
+ * Header items detected on ONE page's positioned items (not page-boundary aware) — every item that
+ * sits above the page's own checkmarks, to the right of the label column. Exposed separately from
+ * matchComplianceMatrixCertificates so a caller looping over pages can carry a page's own header
+ * row forward to a later page that has none of its own (see extractComplianceMatrixAttributes).
+ */
+export function extractComplianceMatrixHeaderItems(items: PositionedTextItem[]): PositionedTextItem[] {
+  const meaningful = items.filter((item) => item.text.trim().length > 0);
+  const checkmarks = meaningful.filter((item) => isGlyphCell(item.text));
+  if (!checkmarks.length) return [];
+  const maxCheckmarkY = Math.max(...checkmarks.map((item) => item.y));
+  return meaningful.filter(
+    (item) => !isGlyphCell(item.text) && item.x > HEADER_MIN_X && item.y > maxCheckmarkY + ROW_Y_TOLERANCE
+  );
+}
+
+/**
  * Pure matching logic (no PDF library involved) — given every positioned text item on a page and
  * a target catalog number, returns the header labels of every checked column on that catalog's
  * row. Returns `undefined` when the catalog's row isn't found on this page at all (caller should
  * try another page / fall back), or `[]` when the row is found but has no checked columns.
+ *
+ * `carriedHeaders` lets a caller supply a header row detected on an EARLIER page — Rockwell's
+ * 1606-td002 "Standards Compliance and Certifications" table prints its column headers once, at
+ * the top of the whole multi-page section, and does NOT repeat them on continuation pages (the
+ * checkmark rows just keep going). Without this, any catalog number whose row lands on such a
+ * continuation page always fails the `headers.length >= 2` check below and gets silently dropped.
+ * Column X positions are stable across pages of the same table (same PDF template repeating), and
+ * the final column match below only ever compares X, never Y — so reusing an earlier page's header
+ * items here is exactly as reliable as detecting them fresh on this page would be.
  */
-export function matchComplianceMatrixCertificates(items: PositionedTextItem[], catalogNumber: string): string[] | undefined {
+export function matchComplianceMatrixCertificates(
+  items: PositionedTextItem[],
+  catalogNumber: string,
+  carriedHeaders: PositionedTextItem[] = []
+): string[] | undefined {
   const meaningful = items.filter((item) => item.text.trim().length > 0);
   const checkmarks = meaningful.filter((item) => isGlyphCell(item.text));
   if (!checkmarks.length) return undefined;
 
-  const maxCheckmarkY = Math.max(...checkmarks.map((item) => item.y));
-  const headers = meaningful.filter(
-    (item) => !isGlyphCell(item.text) && item.x > HEADER_MIN_X && item.y > maxCheckmarkY + ROW_Y_TOLERANCE
-  );
+  const ownHeaders = extractComplianceMatrixHeaderItems(items);
+  const headers = ownHeaders.length >= 2 ? ownHeaders : carriedHeaders;
   if (headers.length < 2) return undefined;
 
   const targetCompact = compactCatalogNumber(catalogNumber);
@@ -122,6 +149,11 @@ export async function extractComplianceMatrixAttributes(
   const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
   const doc = await pdfjs.getDocument({ data, verbosity: 0 }).promise;
   try {
+    // Carries the last page's own header row forward to a continuation page that has none of its
+    // own (see matchComplianceMatrixCertificates's doc comment) — reset whenever a page has no
+    // checkmark glyphs at all, since that signals the compliance-matrix section has ended (or
+    // hasn't started yet), not merely that this particular page omitted a repeated header.
+    let carriedHeaders: PositionedTextItem[] = [];
     for (let pageNumber = 1; pageNumber <= doc.numPages; pageNumber += 1) {
       const page = await doc.getPage(pageNumber);
       try {
@@ -132,8 +164,13 @@ export async function extractComplianceMatrixAttributes(
           const textItem = item as { str: string; transform: number[] };
           items.push({ text: textItem.str, x: textItem.transform[4], y: textItem.transform[5] });
         }
-        if (!items.some((item) => isGlyphCell(item.text))) continue;
-        const labels = matchComplianceMatrixCertificates(items, catalogNumber);
+        if (!items.some((item) => isGlyphCell(item.text))) {
+          carriedHeaders = [];
+          continue;
+        }
+        const labels = matchComplianceMatrixCertificates(items, catalogNumber, carriedHeaders);
+        const ownHeaders = extractComplianceMatrixHeaderItems(items);
+        if (ownHeaders.length >= 2) carriedHeaders = ownHeaders;
         if (labels?.length) {
           return [
             {
