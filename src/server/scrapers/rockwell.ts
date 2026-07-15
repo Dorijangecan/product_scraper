@@ -478,14 +478,15 @@ function collectDppElements(
 }
 
 /** DPP's "dimensions" collection bundles Weight with Length/Width/Height under one confidence in
- * the raw payload, but only Weight has been confirmed to agree with the customer's own reference
- * data (see ROCKWELL_KNOWN_WEIGHTS_KG / [[rockwell-known-weight-override]]) — DPP's Length/Width/
- * Height look like rounded packaging-box dimensions (e.g. exact quarter-inch cm conversions) that
- * don't match the printed datasheet's precise product dimensions, while the live product page's
- * own schema.org JSON-LD ("Height"/"Width"/"Depth" additionalProperty entries, confidence 0.84 via
- * withRockwellConfidence) DOES match the datasheet exactly. Keep Weight at DPP's normal high
- * confidence; drop Length/Width/Height below 0.84 so the JSON-LD page (or, failing that, the
- * datasheet PDF) wins for Dimensions instead of DPP's likely-packaging numbers. */
+ * the raw payload. DPP's Length/Width/Height look like rounded packaging-box dimensions (e.g. exact
+ * quarter-inch cm conversions) that don't match the printed datasheet's precise product dimensions,
+ * while the live product page's own schema.org JSON-LD ("Height"/"Width"/"Depth" additionalProperty
+ * entries, confidence 0.84 via withRockwellConfidence) DOES match the datasheet exactly. Keep
+ * Weight at DPP's normal high confidence; drop Length/Width/Height below 0.84 so the JSON-LD page
+ * (or, failing that, the datasheet PDF) wins for Dimensions instead of DPP's likely-packaging
+ * numbers. (Weight itself no longer has a blanket customer-reference override at this layer —
+ * ROCKWELL_KNOWN_WEIGHTS_KG in facts.ts is now consulted only as a fallback when live extraction,
+ * including this DPP value, finds nothing at all; see addRockwellKnownWeightFacts.) */
 function dppAttributeConfidence(label: string): number {
   return /^(?:length|width|height|depth)$/i.test(label) ? 0.7 : 0.92;
 }

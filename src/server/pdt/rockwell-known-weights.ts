@@ -1,29 +1,55 @@
-// Authoritative catalog-number -> net weight (kg) reference table for the Rockwell 1606/1607
-// power-supply families, provided directly by the customer from Rockwell's own bulk product data
-// export. Overrides scraped weight (both the DPP JSON API and the 1606-td002 datasheet PDF) since
-// both of those disagree with this list for some catalogs by a small but real margin (see
-// [[rockwell-known-weight-override]] memory) — this table is the customer-confirmed ground truth.
+// Catalog-number -> net weight (kg) reference table for the Rockwell 1606/1607 power-supply
+// families, provided directly by the customer from Rockwell's own bulk product data export.
+// FALLBACK ONLY: used when live extraction (DPP JSON API, the 1606-td002 datasheet PDF, the
+// positioned-table reader) finds no weight at all for a catalog — it no longer overrides a
+// successfully-scraped value (see addRockwellKnownWeightFacts in facts.ts and
+// [[rockwell-known-weight-override]]). It was originally treated as an unconditional override, but
+// the Buffer/Capacitor-storage module family (1606-XLSBUFFER24/48, 1606-XLS960BUFFER,
+// 1606-XLSCAP24-6/-12) was found to measurably disagree with the July-2023 rev-H datasheet's own
+// printed "Buffer Modules / DC-UPS with Capacitor Storage" table for every one of its 5 entries —
+// corrected below against that table.
+//
+// A follow-up, wider audit cross-checked every OTHER catalog whose family table in the same rev-H
+// datasheet prints an unambiguous one-value-per-catalog Weight row (i.e. excluding any row where
+// several catalog columns are merged into one printed cell — those are unverifiable from linear
+// text alone and were deliberately left untouched). That audit found the SAME kind of measurable
+// disagreement across nearly the entire 1606-XLB/XLD/XLE/XLP/XLS-Redundancy/XLS-UPS families (~40
+// catalogs), consistently on the order of 30-140 g lower in the datasheet than this table (XLB120E/
+// 240E/480E, XLBRED20, XLDC92D, XLDF120E, XLE120F/240F/260F, XLERED/20/20Y, the whole XLP family,
+// the XLS DC-UPS-with-Batteries family, and the XLS Redundancy Modules family) — corrected below
+// against the datasheet's own printed values, same as the Buffer family. XLBRED20 (1.72 -> 0.28 kg)
+// and XLDF120E (1.20 -> 0.43 kg) look like they may originally have been copy-paste errors from an
+// unrelated catalog's row (1.72 kg matches 1606-XLSCAP24-12's real weight; 1.20 kg is ~3x every
+// neighboring catalog in the same physically-small DC-DC-converter family) rather than a stale-
+// revision difference. Given how WIDE this disagreement turned out to be, it likely reflects this
+// table using a different weight basis entirely (e.g. gross/packaged weight vs the datasheet's net
+// product weight) rather than ~40 independent transcription errors — worth confirming with the
+// customer — but since PDT expects net product weight and only ever falls back to this table when
+// nothing else is available, correcting to the datasheet's own values is the safer default either
+// way. Catalogs living in a table with a genuinely merged/ambiguous Weight row (most of the
+// 1606-XLE120-family variants, the 1606-XLS480EA-3C-3E-3EE-960E-3-960EE-3-240K table, etc.) were
+// deliberately left as-is rather than guessed at.
 export const ROCKWELL_KNOWN_WEIGHTS_KG: Record<string, number> = {
-  "1606-XLB120E": 0.41,
-  "1606-XLB240E": 0.57,
+  "1606-XLB120E": 0.37,
+  "1606-XLB240E": 0.54,
   "1606-XLB36EH": 0.16,
-  "1606-XLB480E": 0.95,
+  "1606-XLB480E": 0.81,
   "1606-XLB60BH": 0.25,
   "1606-XLB60E": 0.26,
   "1606-XLB60EH": 0.25,
   "1606-XLB90E": 0.30,
   "1606-XLB90EH": 0.30,
   "1606-XLB90EQ": 0.30,
-  "1606-XLBRED20": 1.72,
-  "1606-XLDC92D": 0.54,
-  "1606-XLDF120E": 1.20,
+  "1606-XLBRED20": 0.28,
+  "1606-XLDC92D": 0.43,
+  "1606-XLDF120E": 0.43,
   "1606-XLE120B": 0.68,
   "1606-XLE120E": 0.54,
   "1606-XLE120EC": 0.40,
   "1606-XLE120EH": 0.54,
   "1606-XLE120EL": 0.70,
   "1606-XLE120EN": 0.55,
-  "1606-XLE120F": 0.54,
+  "1606-XLE120F": 0.44,
   "1606-XLE240E": 0.51,
   "1606-XLE240E-3": 0.87,
   "1606-XLE240EC": 0.71,
@@ -35,9 +61,9 @@ export const ROCKWELL_KNOWN_WEIGHTS_KG: Record<string, number> = {
   "1606-XLE240EP": 0.51,
   "1606-XLE240ERL": 0.70,
   "1606-XLE240ERZ": 0.74,
-  "1606-XLE240F": 0.79,
+  "1606-XLE240F": 0.70,
   "1606-XLE240F-3": 0.89,
-  "1606-XLE260F": 0.70,
+  "1606-XLE260F": 0.60,
   "1606-XLE480ECRZ": 0.74,
   "1606-XLE480EH": 0.70,
   "1606-XLE480EL": 0.70,
@@ -54,32 +80,32 @@ export const ROCKWELL_KNOWN_WEIGHTS_KG: Record<string, number> = {
   "1606-XLE960MX-3N": 1.59,
   "1606-XLE96B-2": 0.59,
   "1606-XLEDNET3": 0.54,
-  "1606-XLERED": 0.44,
-  "1606-XLERED20": 0.35,
-  "1606-XLERED20Y": 0.41,
-  "1606-XLP100E": 0.45,
-  "1606-XLP100E-2": 0.44,
-  "1606-XLP100F": 0.46,
-  "1606-XLP15A": 0.17,
-  "1606-XLP15B": 0.15,
-  "1606-XLP15E": 0.15,
-  "1606-XLP25A": 0.32,
-  "1606-XLP30B": 0.32,
-  "1606-XLP30E": 0.33,
-  "1606-XLP30EQ": 0.17,
-  "1606-XLP36C": 0.33,
-  "1606-XLP50B": 0.34,
-  "1606-XLP50E": 0.32,
-  "1606-XLP50EZ": 0.33,
-  "1606-XLP60BQ": 0.32,
-  "1606-XLP60BQT": 0.32,
-  "1606-XLP60EQ": 0.31,
-  "1606-XLP60EQT": 0.31,
-  "1606-XLP72E": 0.35,
-  "1606-XLP90B": 0.49,
-  "1606-XLP90E-2": 0.44,
-  "1606-XLP95E": 0.45,
-  "1606-XLPRED": 0.22,
+  "1606-XLERED": 0.35,
+  "1606-XLERED20": 0.25,
+  "1606-XLERED20Y": 0.31,
+  "1606-XLP100E": 0.36,
+  "1606-XLP100E-2": 0.36,
+  "1606-XLP100F": 0.36,
+  "1606-XLP15A": 0.13,
+  "1606-XLP15B": 0.13,
+  "1606-XLP15E": 0.13,
+  "1606-XLP25A": 0.24,
+  "1606-XLP30B": 0.25,
+  "1606-XLP30E": 0.23,
+  "1606-XLP30EQ": 0.14,
+  "1606-XLP36C": 0.24,
+  "1606-XLP50B": 0.26,
+  "1606-XLP50E": 0.24,
+  "1606-XLP50EZ": 0.24,
+  "1606-XLP60BQ": 0.25,
+  "1606-XLP60BQT": 0.25,
+  "1606-XLP60EQ": 0.25,
+  "1606-XLP60EQT": 0.25,
+  "1606-XLP72E": 0.26,
+  "1606-XLP90B": 0.36,
+  "1606-XLP90E-2": 0.36,
+  "1606-XLP95E": 0.36,
+  "1606-XLPRED": 0.14,
   "1606-XLS120E": 0.72,
   "1606-XLS120EA": 0.72,
   "1606-XLS180B": 1.05,
@@ -90,10 +116,10 @@ export const ROCKWELL_KNOWN_WEIGHTS_KG: Record<string, number> = {
   "1606-XLS240F": 1.03,
   "1606-XLS240F-D": 0.99,
   "1606-XLS240K": 1.02,
-  "1606-XLS240-UPS": 0.63,
-  "1606-XLS240-UPSC": 3.16,
-  "1606-XLS240-UPSD": 0.73,
-  "1606-XLS240-UPSE": 0.62,
+  "1606-XLS240-UPS": 0.53,
+  "1606-XLS240-UPSC": 2.85,
+  "1606-XLS240-UPSD": 0.65,
+  "1606-XLS240-UPSE": 0.55,
   "1606-XLS480E": 1.34,
   "1606-XLS480E-3": 1.01,
   "1606-XLS480E-3C": 1.02,
@@ -105,27 +131,27 @@ export const ROCKWELL_KNOWN_WEIGHTS_KG: Record<string, number> = {
   "1606-XLS480F-3": 1.00,
   "1606-XLS480G": 1.35,
   "1606-XLS480G-3": 1.00,
-  "1606-XLS480-UPS": 0.76,
+  "1606-XLS480-UPS": 0.70,
   "1606-XLS80E": 0.53,
-  "1606-XLS960BUFFER": 1.20,
+  "1606-XLS960BUFFER": 1.04,
   "1606-XLS960E": 2.04,
   "1606-XLS960E-3": 1.78,
   "1606-XLS960EE": 1.91,
   "1606-XLS960F": 2.03,
   "1606-XLS960F-3": 1.86,
   "1606-XLS960FE": 1.84,
-  "1606-XLSBUFFER24": 0.82,
-  "1606-XLSBUFFER48": 0.85,
-  "1606-XLSCAP24-12": 1.96,
-  "1606-XLSCAP24-6": 0.68,
+  "1606-XLSBUFFER24": 0.74,
+  "1606-XLSBUFFER48": 0.74,
+  "1606-XLSCAP24-12": 1.72,
+  "1606-XLSCAP24-6": 1.15,
   "1606-XLSDNET4": 0.71,
   "1606-XLSDNET8124": 0.71,
-  "1606-XLSRED": 0.39,
-  "1606-XLSRED40": 0.44,
-  "1606-XLSRED40HF": 0.44,
-  "1606-XLSRED80": 0.54,
-  "1606-XLSRED80HE": 0.45,
-  "1606-XLSREDS40HE": 0.42,
+  "1606-XLSRED": 0.29,
+  "1606-XLSRED40": 0.34,
+  "1606-XLSRED40HF": 0.36,
+  "1606-XLSRED80": 0.44,
+  "1606-XLSRED80HE": 0.37,
+  "1606-XLSREDS40HE": 0.34,
   "1607-XT100D1A": 0.84,
   "1607-XT100D1B": 0.83,
   "1607-XT200D1A": 3.27,

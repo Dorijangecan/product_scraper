@@ -975,13 +975,18 @@ function rockwellIoCatalogPointCount(
   return expected.some((entry) => prefix.startsWith(entry)) ? count : undefined;
 }
 
-/** Customer-confirmed ground truth (see ROCKWELL_KNOWN_WEIGHTS_KG) beats both the DPP JSON API and
- * the 1606-td002 datasheet PDF, which disagree with it — and with each other — for some catalogs by
- * a small but real margin. Set whenever no customer-uploaded document already supplied its own
- * weight for this exact run (see addCustomerDocFact's parser === "customer-document" marker) — a
- * document the user hands us for a specific product is more authoritative than a bulk reference
- * table, so it must still win. Otherwise this wins outright: weight() in eclass-resolvers.ts reads
- * pdtWeightKg before consulting any scraped attribute. */
+/** Customer-supplied reference table (ROCKWELL_KNOWN_WEIGHTS_KG) — a FALLBACK for catalogs where
+ * live extraction (DPP JSON API, the 1606-td002 datasheet PDF's own tables, or the positioned-table
+ * reader) genuinely found no weight, not an override. It used to win unconditionally, but that
+ * table has since been found to disagree with the CURRENT datasheet revision for at least the
+ * Buffer/Capacitor-storage module family (1606-XLSBUFFER24/48, 1606-XLS960BUFFER,
+ * 1606-XLSCAP24-6/-12 — every entry measurably wrong against the July-2023 rev-H datasheet's own
+ * printed table), so a fresh, successfully-parsed scraped weight must win instead — see
+ * [[rockwell-known-weight-override]] (original design) and [[rockwell-cross-model-weight-dimensions-
+ * contamination]] et al. (why "successfully parsed" can be trusted here). Still set whenever no
+ * customer-uploaded document already supplied its own weight for this exact run (see
+ * addCustomerDocFact's parser === "customer-document" marker) — a document the user hands us for a
+ * specific product is more authoritative than either a bulk reference table or a scraped value. */
 function addRockwellKnownWeightFacts(facts: PdtFact[], input: PdtFactInput): void {
   if (!isRockwell(input)) return;
   const catalog = clean(input.item.catalogNumber)?.toUpperCase();
@@ -992,13 +997,27 @@ function addRockwellKnownWeightFacts(facts: PdtFact[], input: PdtFactInput): voi
     (attr) => attr.parser === "customer-document" && /\bweight\b/i.test(`${attr.group ?? ""} ${attr.name ?? ""}`) && clean(attr.value)
   );
   if (hasCustomerDocWeight) return;
+  // A freshly-scraped weight (datasheet PDF, DPP JSON, product page, ...) already parses to a
+  // number in normalized.weight — when it does, it wins and the reference table doesn't even get
+  // added as a fact, so weight() in eclass-resolvers.ts falls straight through to it.
+  if (hasParsableScrapedWeight(input.item.result?.normalized.weight)) return;
   addTypeDefault(
     facts,
     "pdtWeightKg",
     String(knownKg),
     "rockwell-known-weight-reference",
-    "Customer-provided Rockwell weight reference table overrides scraped/datasheet weight for this catalog number (no customer document supplied its own weight)."
+    "Customer-provided Rockwell weight reference table used as a fallback (no scraped/datasheet weight and no customer document supplied one for this catalog number)."
   );
+}
+
+/** Loose "does this look like a real measurement" check — mirrors the number half of
+ * eclass-resolvers.ts's parseWeightRaw without needing to import from it (that module already
+ * imports from this one; importing back would cycle). Deliberately permissive: this only decides
+ * whether live extraction found ANYTHING usable, not what unit it's in. */
+function hasParsableScrapedWeight(raw: string | undefined): boolean {
+  const cleanValue = clean(raw);
+  if (!cleanValue) return false;
+  return /\d/.test(normalizeNumberSeparators(cleanValue));
 }
 
 function isRockwell(input: PdtFactInput): boolean {

@@ -562,7 +562,7 @@ describe("eclass resolvers", () => {
     expect(resolveProperty("BAA020", "BAA020", c)).toBe("106");
   });
 
-  it("prefers the customer-provided Rockwell weight reference table over a conflicting scraped/datasheet weight", () => {
+  it("prefers a freshly-scraped/datasheet weight over the Rockwell weight reference table", () => {
     const c = ctx(
       {
         manufacturerId: "rockwell",
@@ -573,9 +573,26 @@ describe("eclass resolvers", () => {
     );
     c.manufacturer = { ...manufacturer, id: "rockwell", canonicalName: "Rockwell Automation" } as ManufacturerConfig;
 
-    // The datasheet PDF says 810 g (0.81 kg) for this catalog, but the customer's own bulk export
-    // says 0.95 kg — the reference table must win.
-    expect(resolveProperty("AAF040", "AAF040", c)).toBe("0.95");
+    // The reference table says 0.95 kg for this catalog, but the datasheet PDF/scraped value says
+    // 0.81 kg — live data wins now; the reference table is only a fallback for catalogs where live
+    // extraction finds nothing at all (see the next test).
+    expect(resolveProperty("AAF040", "AAF040", c)).toBe("0.81");
+  });
+
+  it("falls back to the Rockwell weight reference table when live extraction found no weight at all", () => {
+    const c = ctx(
+      {
+        manufacturerId: "rockwell",
+        attributes: []
+      },
+      "1606-XLB480E"
+    );
+    c.manufacturer = { ...manufacturer, id: "rockwell", canonicalName: "Rockwell Automation" } as ManufacturerConfig;
+
+    // No scraped/normalized weight at all for this catalog — the reference table's 0.81 kg fills
+    // the gap (corrected from a stale 0.95 kg against the rev-H datasheet's own unambiguous
+    // "1606-XLB120E/240E/480E" Weight row — see rockwell-known-weights.ts).
+    expect(resolveProperty("AAF040", "AAF040", c)).toBe("0.81");
   });
 
   it("does not apply the Rockwell weight reference table to a catalog number it doesn't list", () => {
@@ -603,7 +620,7 @@ describe("eclass resolvers", () => {
     );
     c.manufacturer = { ...manufacturer, id: "rockwell", canonicalName: "Rockwell Automation" } as ManufacturerConfig;
 
-    // The reference table says 0.95 kg for this catalog, but the user uploaded their own document
+    // The reference table says 0.81 kg for this catalog, but the user uploaded their own document
     // with 1.10 kg for this specific product — the uploaded document must still win.
     expect(resolveProperty("AAF040", "AAF040", c)).toBe("1.1");
   });
