@@ -1,0 +1,29 @@
+[
+  {
+    "manufacturerId": "gan",
+    "catalogNumber": "GN 449.5",
+    "caseType": "mechanical",
+    "riskTags": ["single-variant-family"],
+    "expectedOfficialUrlPatterns": ["ganternorm\\.com/en/products/"],
+    "requiredDocuments": ["datasheet"],
+    "expectedNormalizedFields": ["weight"]
+  },
+  {
+    "manufacturerId": "gan",
+    "catalogNumber": "GN 6336-32",
+    "caseType": "mechanical",
+    "riskTags": ["multi-variant-family", "row-matched-dimension"],
+    "expectedOfficialUrlPatterns": ["ganternorm\\.com/en/products/"],
+    "requiredDocuments": ["datasheet"],
+    "expectedNormalizedFields": ["weight", "material"]
+  },
+  {
+    "manufacturerId": "gan",
+    "catalogNumber": "GN 422.1",
+    "caseType": "mechanical",
+    "riskTags": ["disambiguation-page"],
+    "expectedOfficialUrlPatterns": ["ganternorm\\.com/en/products/"],
+    "requiredDocuments": ["datasheet"],
+    "expectedNormalizedFields": ["weight", "material"]
+  }
+]

@@ -509,8 +509,8 @@ const builtInManufacturerConfigs: Record<string, ManufacturerConfig> = {
     shortName: "SIE",
     // 1500/3 = 500ms per-host interval, matching Saginaw (was 1800 → 600ms).
     rateLimitMs: 1500,
-    officialBaseUrls: ["https://mall.industry.siemens.com"],
-    homepageUrl: "https://www.siemens.com/global/en/",
+    officialBaseUrls: ["https://mall.industry.siemens.com", "https://www.siemens.com/en-gb/"],
+    homepageUrl: "https://www.siemens.com/en-gb/",
     localizedUrlTemplates: [
       { locale: "en", urlTemplate: "https://mall.industry.siemens.com/mall/en/WW/Catalog/Product?mlfb={part}" },
       { locale: "de", urlTemplate: "https://mall.industry.siemens.com/mall/de/WW/Catalog/Product?mlfb={part}" }
@@ -550,6 +550,24 @@ const builtInManufacturerConfigs: Record<string, ManufacturerConfig> = {
         ]
       }
     ]
+  },
+  gan: {
+    id: "gan",
+    canonicalName: "Ganter Norm",
+    shortName: "GAN",
+    rateLimitMs: 1800,
+    concurrency: 2,
+    officialBaseUrls: ["https://www.ganternorm.com"],
+    homepageUrl: "https://www.ganternorm.com/en/home",
+    // Ganter's quick-finder (`/en/products/quick-finder?q=...`) redirects a bare family number
+    // ("GN 449.5") straight to the family's product page — it does not index full ordering codes
+    // with a variant suffix, so the connector always tries the family number as a fallback query.
+    fetchPolicy: {
+      timeoutMs: 15000,
+      acceptLanguage: "en-GB,en;q=0.9",
+      referer: "https://www.ganternorm.com/en/home"
+    },
+    fallbackSources: []
   }
 };
 
@@ -636,6 +654,15 @@ function attachBuiltInScrapeRecipes() {
       "https://mall.industry.siemens.com/mall/en/WW/Catalog/Product?mlfb={part}"
     ],
     canonicalParamDenylist: ["SiepCountryCode"],
+    // Recognized as official WITHOUT being added to officialBaseUrls: that list also drives
+    // discovery's per-origin sitemap crawl + URL-variant guessing (discovery.ts), and adding two
+    // more origins there pushed the generic discovery fallback past its 60s ceiling on a live
+    // fixture (confirmed via benchmark). sieportal.siemens.com is the SiemensConnector's own
+    // primary data source (OAuth-backed product API + detail page — see siemens.ts);
+    // support.industry.siemens.com (SIOS) is Siemens's official documentation/datasheet portal.
+    discoveryPolicy: {
+      allowedOfficialDomains: ["sieportal.siemens.com", "support.industry.siemens.com"]
+    },
     requiredAttributes: ["article number|mlfb|product short text|description|catalog number|product details|product type|type code|model code"],
     minAttributes: 3,
     minDocuments: 1,

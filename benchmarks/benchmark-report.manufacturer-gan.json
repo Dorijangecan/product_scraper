@@ -1,8 +1,8 @@
 {
-  "generatedAt": "2026-07-15T11:11:24.587Z",
-  "outputDir": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260715110941",
+  "generatedAt": "2026-07-15T11:57:18.006Z",
+  "outputDir": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260715115708",
   "filters": {
-    "manufacturer": "siemens"
+    "manufacturer": "gan"
   },
   "summary": {
     "foundRate": 100,
@@ -10,45 +10,43 @@
     "documentRate": 100,
     "pdtAuditRate": 100,
     "deviceTypeRate": 100,
-    "customerDocumentRate": 100,
+    "customerDocumentRate": 0,
     "wrongProducts": 0,
     "partialWithoutMissing": 0,
     "pdtUnprovenWritten": 0,
     "pdtUnexplainedRequiredFieldIssues": 0,
-    "pdtWriteIssues": 1,
+    "pdtWriteIssues": 0,
     "qualityAccepted": true,
     "fixtureCoverageAccepted": true,
     "fixtureCoverage": {
       "byManufacturer": {
-        "siemens": {
-          "total": 2,
+        "gan": {
+          "total": 3,
           "caseTypes": [
             "mechanical"
           ],
           "riskTags": [
-            "colon-catalog",
-            "customer-document-supported",
-            "module-carrier-frame-sheet-coverage",
-            "official-sieportal",
-            "siemens-partial",
-            "simatic-et200sp-baseunit"
+            "disambiguation-page",
+            "multi-variant-family",
+            "row-matched-dimension",
+            "single-variant-family"
           ]
         }
       },
       "byDeviceType": {
-        "Valve": {
+        "Cover / Door Accessory": {
           "total": 1,
           "manufacturers": [
-            "siemens"
+            "gan"
           ],
           "caseTypes": [
             "mechanical"
           ]
         },
-        "Module Carrier": {
+        "Enclosure": {
           "total": 1,
           "manufacturers": [
-            "siemens"
+            "gan"
           ],
           "caseTypes": [
             "mechanical"
@@ -56,22 +54,23 @@
         }
       },
       "byDeviceSheet": {
-        "ventil": {
-          "total": 1,
+        "cabinet.mechanical": {
+          "total": 2,
           "deviceTypes": [
-            "Valve"
+            "Cover / Door Accessory",
+            "Enclosure"
           ],
           "manufacturers": [
-            "siemens"
+            "gan"
           ]
         },
-        "module carrier frame": {
+        "cabinet": {
           "total": 1,
           "deviceTypes": [
-            "Module Carrier"
+            "Enclosure"
           ],
           "manufacturers": [
-            "siemens"
+            "gan"
           ]
         }
       },
@@ -86,9 +85,7 @@
         "RS232 interfaces",
         "Switch",
         "Wire ID Information",
-        "cabinet",
         "cabinet.airconditioning",
-        "cabinet.mechanical",
         "cabinet.rack",
         "cable",
         "cable ducts mounting rails",
@@ -104,6 +101,7 @@
         "fluid power",
         "generator",
         "int. ext. lightning protection",
+        "module carrier frame",
         "motor protection",
         "motors",
         "optical sensor",
@@ -115,7 +113,8 @@
         "sensor - fluid",
         "servo controller",
         "terminal",
-        "terminal endbracket"
+        "terminal endbracket",
+        "ventil"
       ],
       "missingDeviceSheetRecommendations": [
         {
@@ -261,66 +260,11 @@
           "examples": []
         },
         {
-          "sheetName": "cabinet",
-          "deviceTypes": [
-            "Enclosure"
-          ],
-          "examples": [
-            {
-              "manufacturerId": "eaton",
-              "pattern": "PSN",
-              "deviceType": "Enclosure",
-              "notes": "xEnergy ProfiSNAP enclosure panels/accessories"
-            },
-            {
-              "manufacturerId": "spelsberg",
-              "pattern": "ABOX",
-              "deviceType": "Enclosure",
-              "notes": "Spelsberg junction boxes / enclosures"
-            },
-            {
-              "manufacturerId": "spelsberg",
-              "pattern": "AK",
-              "deviceType": "Enclosure",
-              "notes": "Spelsberg junction boxes / enclosures"
-            }
-          ]
-        },
-        {
           "sheetName": "cabinet.airconditioning",
           "deviceTypes": [
             "Thermal Management"
           ],
           "examples": []
-        },
-        {
-          "sheetName": "cabinet.mechanical",
-          "deviceTypes": [
-            "Accessory",
-            "Cover / Door Accessory",
-            "Enclosure",
-            "Subpanel"
-          ],
-          "examples": [
-            {
-              "manufacturerId": "eaton",
-              "pattern": "PSN",
-              "deviceType": "Enclosure",
-              "notes": "xEnergy ProfiSNAP enclosure panels/accessories"
-            },
-            {
-              "manufacturerId": "spelsberg",
-              "pattern": "ABOX",
-              "deviceType": "Enclosure",
-              "notes": "Spelsberg junction boxes / enclosures"
-            },
-            {
-              "manufacturerId": "spelsberg",
-              "pattern": "AK",
-              "deviceType": "Enclosure",
-              "notes": "Spelsberg junction boxes / enclosures"
-            }
-          ]
         },
         {
           "sheetName": "cabinet.rack",
@@ -567,6 +511,26 @@
               "manufacturerId": "phoenix",
               "pattern": "VAL-MS",
               "deviceType": "Surge Protective Device"
+            }
+          ]
+        },
+        {
+          "sheetName": "module carrier frame",
+          "deviceTypes": [
+            "Module Carrier"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "siemens",
+              "pattern": "6ES7193",
+              "deviceType": "Module Carrier",
+              "notes": "SIMATIC ET 200SP BaseUnits / base carriers"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "BaseUnits",
+              "deviceType": "Module Carrier",
+              "notes": "SIMATIC ET 200SP BaseUnits / base carriers"
             }
           ]
         },
@@ -926,6 +890,13 @@
               "notes": "1492 end anchors / end retainers"
             }
           ]
+        },
+        {
+          "sheetName": "ventil",
+          "deviceTypes": [
+            "Valve"
+          ],
+          "examples": []
         }
       ],
       "deviceSheetCoverage": {
@@ -938,68 +909,93 @@
   },
   "reports": [
     {
-      "manufacturerId": "siemens",
-      "catalogNumber": "BPZ:VSG519K15-5",
+      "manufacturerId": "gan",
+      "catalogNumber": "GN 449.5",
       "caseType": "mechanical",
-      "expectedDeviceType": "Valve",
-      "actualDeviceType": "Valve",
+      "actualDeviceType": "Cover / Door Accessory",
       "deviceTypeMatched": true,
       "riskTags": [
-        "siemens-partial",
-        "colon-catalog",
-        "customer-document-supported"
+        "single-variant-family"
       ],
       "status": "found",
-      "confidence": 0.97,
-      "productUrl": "https://r.jina.ai/http://mall.industry.siemens.com/mall/en/b1/Catalog/Product/bpzvsg519k155",
+      "confidence": 0.85,
+      "productUrl": "https://www.ganternorm.com/en/products/3.3-Hinging-latching-locking-of-doors-and-covers/Latches-with-indexing-function/GN-449.5-Snap-Latches-Stainless-Steel-with-Gripping-Tray-with-and-without-Lock",
       "identityConfirmed": true,
       "wrongProduct": false,
       "officialUrlMatched": true,
       "requiredDocumentsMatched": true,
       "normalizedFieldsMatched": true,
       "pdtAuditMatched": true,
-      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260715110941\\pdt\\siemens-BPZ-VSG519K15-5-pdt_pdt-audit.json",
-      "pdtWrittenCells": 16,
-      "pdtBlankCells": 60,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260715115708\\pdt\\gan-GN-449.5-pdt_pdt-audit.json",
+      "pdtWrittenCells": 17,
+      "pdtBlankCells": 22,
       "pdtSkippedCells": 0,
       "pdtUnprovenSkipped": 0,
       "pdtUnprovenWritten": 0,
       "pdtWriteIssues": 0,
       "pdtRequiredFieldIssues": 0,
       "pdtUnexplainedRequiredFieldIssues": 0,
-      "customerDocumentsExpected": 1,
+      "customerDocumentsExpected": 0,
       "customerDocumentsMatched": true,
       "qualityMissing": []
     },
     {
-      "manufacturerId": "siemens",
-      "catalogNumber": "6ES7193-6BP00-0DA0",
+      "manufacturerId": "gan",
+      "catalogNumber": "GN 6336-32",
       "caseType": "mechanical",
-      "expectedDeviceType": "Module Carrier",
-      "actualDeviceType": "Module Carrier",
       "deviceTypeMatched": true,
       "riskTags": [
-        "simatic-et200sp-baseunit",
-        "module-carrier-frame-sheet-coverage",
-        "official-sieportal"
+        "multi-variant-family",
+        "row-matched-dimension"
       ],
       "status": "found",
-      "confidence": 0.55,
-      "productUrl": "https://r.jina.ai/http://mall.industry.siemens.com/mall/en/WW/Catalog/Product?mlfb=6ES7193-6BP00-0DA0",
+      "confidence": 0.85,
+      "productUrl": "https://www.ganternorm.com/en/products/quick-finder/GN-6336-Star-Knobs-Stainless-Steel-AISI-316?q=GN%206336",
       "identityConfirmed": true,
       "wrongProduct": false,
       "officialUrlMatched": true,
       "requiredDocumentsMatched": true,
       "normalizedFieldsMatched": true,
       "pdtAuditMatched": true,
-      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260715110941\\pdt\\siemens-6ES7193-6BP00-0DA0-pdt_pdt-audit.json",
-      "pdtWrittenCells": 12,
-      "pdtBlankCells": 39,
-      "pdtSkippedCells": 1,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260715115708\\pdt\\gan-GN-6336-32-pdt_pdt-audit.json",
+      "pdtWrittenCells": 16,
+      "pdtBlankCells": 23,
+      "pdtSkippedCells": 0,
       "pdtUnprovenSkipped": 0,
       "pdtUnprovenWritten": 0,
-      "pdtWriteIssues": 1,
+      "pdtWriteIssues": 0,
       "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": []
+    },
+    {
+      "manufacturerId": "gan",
+      "catalogNumber": "GN 422.1",
+      "caseType": "mechanical",
+      "actualDeviceType": "Enclosure",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "disambiguation-page"
+      ],
+      "status": "found",
+      "confidence": 0.85,
+      "productUrl": "https://www.ganternorm.com/en/products/1.2-Operating-by-using-machine-anddevicehandles/Cabinet-U-handles/GN-422.1-Cabinet-U-handles-Aluminum",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": false,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260715115708\\pdt\\gan-GN-422.1-pdt_pdt-audit.json",
+      "pdtWrittenCells": 28,
+      "pdtBlankCells": 61,
+      "pdtSkippedCells": 0,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 5,
       "pdtUnexplainedRequiredFieldIssues": 0,
       "customerDocumentsExpected": 0,
       "customerDocumentsMatched": true,

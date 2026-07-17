@@ -245,9 +245,18 @@ Politike u `ManufacturerConfig.scrapeRecipe`: `DiscoveryPolicyConfig`, `Interact
 | `tight-context.ts` | `buildTightContextForCatalog`, `buildVariantColumnContext` |
 
 ### `src/server/scrapers/` — konektori (svi imaju `<Name>Connector`)
-`abb.ts` `balluff.ts` `doepke.ts` `eaton.ts` `eta.ts` `fath.ts` `rockwell.ts` `sce.ts` `scame.ts` `schmersal.ts`
+`abb.ts` `balluff.ts` `doepke.ts` `eaton.ts` `eta.ts` `fath.ts` `gan.ts` `rockwell.ts` `sce.ts` `scame.ts` `schmersal.ts`
 `schneider.ts` `siemens.ts` `spelsberg.ts` `turck.ts` — uz `parse<Vendor>ProductPage` helpere.
 Config-driven (bez fajla): `nvent`, `phoenix`.
+`gan.ts` (Ganter Norm, standardni strojni elementi): `GanterNormConnector` — traži preko
+`/en/products/quick-finder?q=` (redirecta bare family broj, npr. "GN 449.5", ravno na product
+page; ako je family prefiks dijeljen s više obitelji vraća disambiguation listu — riješeno kad
+postoji točno jedan exact-match hit, inače fallback). Family stranica nikad ne sadrži pun
+customer ordering code (samo bare family), pa connector dodaje self-referentni "Catalog Number"
+atribut (isti razlog kao Doepke) da shared identity-check ne odbije ispravno riješen red kao
+"unidentified". Multi-row "Article options / Table" (Ganter Geometry grupa — namjerno bez riječi
+"dimensions" da ne kolidira s normalizeFields) rješava red preko variant-tokena iz kataloškog
+broja; ako je dvosmisleno, weight/dimenzije se ostave prazne umjesto nagađanja.
 
 ### `src/server/pdt/`
 | Fajl | Ključni exporti |
