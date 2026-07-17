@@ -853,6 +853,32 @@ describe("manufacturer parsers", () => {
     expect(result.documents.some((doc) => doc.type === "image" && doc.url.includes("sce-20el2010lp.png"))).toBe(true);
   });
 
+  it("prefers the official SCE product-specification description over page snippets", () => {
+    const detailHtml = `
+      <html><head><title>SCE-60RA19TH - Saginaw Control and Engineering</title></head>
+      <body>
+        <h1>SCE-60RA19TH</h1>
+        <div class="part-desc">Rack mounting accessory summary</div>
+        <div class="prod-specs">
+          <p class="prod-info-body"><strong>Part Number</strong>: SCE-60RA19TH</p>
+          <p class="prod-info-body"><strong>Description</strong>: <span itemprop="description">Angle, Rack</span></p>
+        </div>
+      </body></html>
+    `;
+
+    const result = parseSceProductPage(
+      "SCE-60RA19TH",
+      fetched(detailHtml, "https://www.saginawcontrol.com/partnumber_info/?n=SCE-60RA19TH")
+    );
+
+    expect(result.description).toBe("Angle, Rack");
+    expect(result.attributes).toContainEqual(expect.objectContaining({
+      group: "Product Specifications",
+      name: "Description",
+      value: "Angle, Rack"
+    }));
+  });
+
   it("scrapes SCE direct product pages when advanced search or fetch fails", async () => {
     const seenUrls: string[] = [];
     const detailHtml = `

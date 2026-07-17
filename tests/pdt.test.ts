@@ -344,6 +344,24 @@ describe("eclass resolvers", () => {
     expect(resolveProperty("CNS_DESCRIPTION_SHORT", "CNS_DESCRIPTION_SHORT", { ...c, language: "de" })).toBe("Gehaeuse");
   });
 
+  it.each([
+    ["SCE-60RA19TH", "Angle, Rack"],
+    ["SCE-60FSCPS", "Support, Center Panel"]
+  ])("uses the Saginaw product-spec description for %s in Material Master Data", (catalogNumber, description) => {
+    const c = ctx(
+      {
+        manufacturerId: "sce",
+        title: catalogNumber,
+        attributes: [{ group: "Product Specifications", name: "Description", value: description, sourceType: "official" }]
+      },
+      catalogNumber,
+      "Rack Cabinet"
+    );
+    c.manufacturer = { ...manufacturer, id: "sce" } as ManufacturerConfig;
+
+    expect(resolveProperty("CNS_DESCRIPTION_LONG", "CNS_DESCRIPTION_LONG", c)).toBe(description);
+  });
+
   it("uses exact Rockwell details URLs for unknown Rockwell families", () => {
     const c = ctx({ manufacturerId: "rockwell" }, "5094-IF8");
     c.manufacturer = { ...manufacturer, id: "rockwell" } as ManufacturerConfig;

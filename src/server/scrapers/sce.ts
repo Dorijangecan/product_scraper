@@ -250,7 +250,10 @@ export function parseSceProductPage(
     productUrl: detail.effectiveUrl,
     localizedUrls: buildLocalizedProductUrls("sce", catalogNumber, detail.effectiveUrl),
     title,
-    description: findDescription($, title, cleanAttributes),
+    // The value in Product Specifications is Saginaw's canonical per-part description. Prefer it
+    // over page-level snippets (such as search-result cards) so it consistently reaches the PDT
+    // Material Master Data description columns.
+    description: description ?? findDescription($, title, cleanAttributes),
     normalized,
     attributes: cleanAttributes,
     documents: cleanDocuments,
