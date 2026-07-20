@@ -521,6 +521,15 @@ const builtInManufacturerConfigs: Record<string, ManufacturerConfig> = {
     ],
     fallbackSources: [
       {
+        id: "siemens-mmpdata",
+        label: "Siemens Industry Mall product data",
+        enabled: true,
+        sourceType: "official-fallback",
+        directUrlTemplates: ["https://mall.industry.siemens.com/goos/catalog/Pages/mmpdata.ashx?MLFB1={part}&lang=en"],
+        confidence: 0.82,
+        fetchPolicy: { timeoutMs: 12000, maxAttempts: 1 }
+      },
+      {
         id: "siemens-industry-mall",
         label: "Siemens Industry Mall product page",
         enabled: true,
@@ -531,16 +540,6 @@ const builtInManufacturerConfigs: Record<string, ManufacturerConfig> = {
           "https://mall.industry.siemens.com/mall/en/us/Catalog/Product?SiepCountryCode=US&mlfb={partCompact}",
           "https://mall.industry.siemens.com/mall/en/WW/Catalog/Product?mlfb={partCompact}",
           "https://mall.industry.siemens.com/mall/en/us/Catalog/Product/{part}"
-        ]
-      },
-      {
-        id: "siemens-industry-mall-reader",
-        label: "Siemens Industry Mall readable product page",
-        enabled: true,
-        sourceType: "official-fallback",
-        directUrlTemplates: [
-          "https://r.jina.ai/http://mall.industry.siemens.com/mall/en/WW/Catalog/Product?mlfb={part}",
-          "https://r.jina.ai/http://mall.industry.siemens.com/mall/en/b1/Catalog/Product/{partCompact}"
         ]
       },
       {

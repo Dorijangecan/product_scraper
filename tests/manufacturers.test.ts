@@ -432,11 +432,11 @@ describe("manufacturer configuration", () => {
     expect(result.diagnostics?.discoveredCandidates?.some((candidate) => candidate.url === discoveredUrl)).toBe(true);
   });
 
-  it("uses the readable official Siemens Mall page before broad discovery when the API rejects a BPZ part", async () => {
+  it("uses the official Siemens product-data table before broad discovery when the API rejects an MLFB", async () => {
     const manufacturer = listManufacturerConfigs().find((item) => item.id === "siemens")!;
     const connector = new SiemensConnector();
-    const catalogNumber = "BPZ:VSG519K15-5";
-    const publicUrl = "https://r.jina.ai/http://mall.industry.siemens.com/mall/en/WW/Catalog/Product?mlfb=BPZ%3AVSG519K15-5";
+    const catalogNumber = "6ES7193-6BP00-0DA0";
+    const productDataUrl = "https://mall.industry.siemens.com/goos/catalog/Pages/mmpdata.ashx?MLFB1=6ES7193-6BP00-0DA0&lang=en";
 
     const result = await connector.scrape(catalogNumber, {
       manufacturer,
@@ -450,24 +450,24 @@ describe("manufacturer configuration", () => {
       downloadDocument: async (doc) => doc,
       fallback: {
         scrape: async (_catalogNumber, sources) =>
-          sources.some((source) => source.directUrlTemplates.some((template) => template.includes("r.jina.ai/http://mall.industry.siemens.com/mall/en/WW")))
+          sources.some((source) => source.directUrlTemplates.includes("https://mall.industry.siemens.com/goos/catalog/Pages/mmpdata.ashx?MLFB1={part}&lang=en"))
             ? {
                 manufacturerId: "siemens",
                 catalogNumber,
                 status: "found",
-                confidence: 0.76,
-                productUrl: publicUrl,
-                normalized: { dimensions: "254 x 100 x 9 mm", weight: "4.5 kg", material: "cast iron" },
-                attributes: [{ group: "Siemens Mall", name: "Article Number", value: catalogNumber }],
-                documents: [{ type: "datasheet", label: "Siemens datasheet", url: `${publicUrl}&download=pdf` }],
+                confidence: 0.82,
+                productUrl: productDataUrl,
+                normalized: { weight: "0.02 kg" },
+                attributes: [{ group: "Siemens product data", name: "Article number", value: catalogNumber }],
+                documents: [],
                 sources: []
               }
             : undefined
       }
     });
 
-    expect(result.productUrl).toBe(publicUrl);
-    expect(result.normalized.weight).toBe("4.5 kg");
+    expect(result.productUrl).toBe(productDataUrl);
+    expect(result.normalized.weight).toBe("0.02 kg");
   });
 
   it("uses generic official discovery when the Siemens API path cannot resolve a new product", async () => {

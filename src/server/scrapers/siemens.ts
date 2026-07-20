@@ -10,19 +10,13 @@ import { scrapeDiscoveredFallback, withDiscoveryFallbackDiagnostics } from "./di
 const SIEMENS_BASE = "https://sieportal.siemens.com";
 const SIEMENS_PRODUCT_API = `${SIEMENS_BASE}/api/mall/SearchApi/GetProductsDetails`;
 const SIEMENS_ENVIRONMENT_URL = `${SIEMENS_BASE}/assets/environments/environment.js`;
-const SIEMENS_PUBLIC_MALL_READER_SOURCE = {
-  id: "siemens-public-mall-reader-priority",
-  label: "Siemens Industry Mall readable product page",
+const SIEMENS_MMPDATA_SOURCE = {
+  id: "siemens-mmpdata",
+  label: "Siemens Industry Mall product data",
   enabled: true,
   sourceType: "official-fallback" as const,
-  // The public Mall/SiePortal endpoints currently reject unauthenticated server requests with
-  // 403. The readable official Mall representation is substantially faster than spending the
-  // generic discovery budget on those known-blocked endpoints, especially for BPZ part numbers.
-  directUrlTemplates: [
-    "https://r.jina.ai/http://mall.industry.siemens.com/mall/en/WW/Catalog/Product?mlfb={part}",
-    "https://r.jina.ai/http://mall.industry.siemens.com/mall/en/b1/Catalog/Product/{partCompact}"
-  ],
-  confidence: 0.76,
+  directUrlTemplates: ["https://mall.industry.siemens.com/goos/catalog/Pages/mmpdata.ashx?MLFB1={part}&lang=en"],
+  confidence: 0.82,
   fetchPolicy: { timeoutMs: 12000, maxAttempts: 1 }
 };
 
@@ -64,14 +58,15 @@ export class SiemensConnector implements ManufacturerConnector {
         return withDiscoveryFallbackDiagnostics(mergeResults(result, fallback), discovery);
       }
     } catch {
-      // Fall through to the readable official Mall representation and then generic discovery.
+      // Fall through to generic official discovery and configured public URL templates.
     }
 
-    // Try the known public product representation before broad discovery. It avoids a 60-second
-    // search/fallback chain when SiePortal's OAuth/API flow is unavailable, while retaining
-    // generic discovery for newly introduced products that the public Mall cannot resolve.
-    const publicMallResult = await context.fallback.scrape(catalogNumber, [SIEMENS_PUBLIC_MALL_READER_SOURCE]);
-    if (publicMallResult && publicMallResult.status !== "failed") return publicMallResult;
+    // The public product-data endpoint is a real rendered specification table, unlike the
+    // unauthenticated Mall product URL which can return a generic search shell. Use it before
+    // broad discovery for regular MLFB numbers; special lines without mmpdata remain unresolved
+    // until an identity-confirmed fallback or source document is available.
+    const mallDataResult = await context.fallback.scrape(catalogNumber, [SIEMENS_MMPDATA_SOURCE]);
+    if (mallDataResult && mallDataResult.status !== "failed") return mallDataResult;
 
     const { result, discovery } = await scrapeDiscoveredFallback(catalogNumber, context, { idPrefix: this.id });
     return withDiscoveryFallbackDiagnostics(

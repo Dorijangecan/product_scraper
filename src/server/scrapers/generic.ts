@@ -79,6 +79,7 @@ export class GenericFallbackScraper {
         const match = { ...this.manufacturer?.match, ...source.match };
         try {
           const fetched = await this.fetchTextWithFallback(url, source, signal);
+          if (isUnresolvedSiemensReaderPage(this.manufacturerId, catalogNumber, fetched)) continue;
           if ((match.requireCatalogNumber ?? true) && !catalogTextMatches(fetched.text, catalogNumber, match)) continue;
           const parsed = parseGenericProductPage(this.manufacturerId, catalogNumber, fetched, source.sourceType, source.label, {
             match,
@@ -183,6 +184,19 @@ function throwIfCancelled(signal?: AbortSignal) {
 
 function isCancellationError(error: unknown, signal?: AbortSignal): boolean {
   return signal?.aborted === true || (error instanceof Error && /cancelled by user/i.test(error.message));
+}
+
+function isUnresolvedSiemensReaderPage(
+  manufacturerId: ProductResult["manufacturerId"],
+  catalogNumber: string,
+  fetched: FetchedText
+): boolean {
+  if (manufacturerId !== "siemens" || !/r\.jina\.ai/i.test(`${fetched.requestedUrl} ${fetched.effectiveUrl}`)) return false;
+  // Siemens's reader representation can return its generic search or shell page with unrelated
+  // results. A catalog number merely appearing in the URL is not product evidence; accept it
+  // only when the rendered markdown has an actual product heading for the requested article.
+  const escapedCatalog = catalogNumber.replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/\s+/g, "\\s*");
+  return !new RegExp(`^#\\s+[^\\n]*${escapedCatalog}`, "im").test(fetched.text);
 }
 
 function withLinkDiagnostics(result: ProductResult, discovery: ProductLinkDiscoveryResult): ProductResult {
