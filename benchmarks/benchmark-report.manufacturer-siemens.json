@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-07-15T11:11:24.587Z",
-  "outputDir": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260715110941",
+  "generatedAt": "2026-07-20T09:07:35.419Z",
+  "outputDir": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260720090707",
   "filters": {
     "manufacturer": "siemens"
   },
@@ -958,7 +958,7 @@
       "requiredDocumentsMatched": true,
       "normalizedFieldsMatched": true,
       "pdtAuditMatched": true,
-      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260715110941\\pdt\\siemens-BPZ-VSG519K15-5-pdt_pdt-audit.json",
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260720090707\\pdt\\siemens-BPZ-VSG519K15-5-pdt_pdt-audit.json",
       "pdtWrittenCells": 16,
       "pdtBlankCells": 60,
       "pdtSkippedCells": 0,
@@ -984,7 +984,7 @@
         "official-sieportal"
       ],
       "status": "found",
-      "confidence": 0.55,
+      "confidence": 0.76,
       "productUrl": "https://r.jina.ai/http://mall.industry.siemens.com/mall/en/WW/Catalog/Product?mlfb=6ES7193-6BP00-0DA0",
       "identityConfirmed": true,
       "wrongProduct": false,
@@ -992,7 +992,7 @@
       "requiredDocumentsMatched": true,
       "normalizedFieldsMatched": true,
       "pdtAuditMatched": true,
-      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260715110941\\pdt\\siemens-6ES7193-6BP00-0DA0-pdt_pdt-audit.json",
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260720090707\\pdt\\siemens-6ES7193-6BP00-0DA0-pdt_pdt-audit.json",
       "pdtWrittenCells": 12,
       "pdtBlankCells": 39,
       "pdtSkippedCells": 1,

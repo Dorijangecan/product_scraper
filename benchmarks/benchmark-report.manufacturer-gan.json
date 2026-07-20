@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-07-15T11:57:18.006Z",
-  "outputDir": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260715115708",
+  "generatedAt": "2026-07-20T09:08:20.956Z",
+  "outputDir": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260720090811",
   "filters": {
     "manufacturer": "gan"
   },
@@ -926,7 +926,7 @@
       "requiredDocumentsMatched": true,
       "normalizedFieldsMatched": true,
       "pdtAuditMatched": true,
-      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260715115708\\pdt\\gan-GN-449.5-pdt_pdt-audit.json",
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260720090811\\pdt\\gan-GN-449.5-pdt_pdt-audit.json",
       "pdtWrittenCells": 17,
       "pdtBlankCells": 22,
       "pdtSkippedCells": 0,
@@ -957,7 +957,7 @@
       "requiredDocumentsMatched": true,
       "normalizedFieldsMatched": true,
       "pdtAuditMatched": true,
-      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260715115708\\pdt\\gan-GN-6336-32-pdt_pdt-audit.json",
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260720090811\\pdt\\gan-GN-6336-32-pdt_pdt-audit.json",
       "pdtWrittenCells": 16,
       "pdtBlankCells": 23,
       "pdtSkippedCells": 0,
@@ -988,7 +988,7 @@
       "requiredDocumentsMatched": true,
       "normalizedFieldsMatched": false,
       "pdtAuditMatched": true,
-      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260715115708\\pdt\\gan-GN-422.1-pdt_pdt-audit.json",
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260720090811\\pdt\\gan-GN-422.1-pdt_pdt-audit.json",
       "pdtWrittenCells": 28,
       "pdtBlankCells": 61,
       "pdtSkippedCells": 0,
