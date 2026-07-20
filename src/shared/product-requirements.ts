@@ -9,7 +9,12 @@ export interface ElectricalRequirementContext {
 export type ElectricalField = "voltage" | "current";
 
 const NON_ELECTRICAL_ACCESSORY_PATTERN =
-  /\b(cable\s+(?:gland|entry|fitting|duct|tray|tie|clamp|mount)|mount(?:ing)?\s+(?:kit|foot|bracket|plate|hardware)|sub\s*panel|subpanel|(?:rear|back)\s*(?:panel|wall)|dead\s*front|terminal\s+covers?|terminal\s+shrouds?|shrouds?|trip\s+unit\s+cover|key\s+locks?|padlocks?|interlocks?|lifting\s+plate|mounting\s+flange|support\s+(?:plate|bracket)|cover\s+(?:kit|plate|accessor(?:y|ies))|hinge|latch|gasket|window\s+kit|adapter\s+plate|shelf|rail|duct|wireway|enclosure\s+accessor(?:y|ies)|busbars?|busbar\s+supply|ekip\s+(?:busbars?|temperature|signaling|measuring|signalling|test|com|connect|hi-touch|touch|supply|com\s+r|com\s+actuator|com\s+ip|control)|temperature\s+(?:module|sensor\s+module|probe)|light\s+detectors?|hi-touch|signalling\s+module|signaling\s+module|measuring\s+module|test\s+(?:module|unit|connector)|backpanel|sub\s+frame|frame\s+(?:size|extension)|operating\s+handle\s+kit|handle\s+kit|extended\s+rotary\s+handle|sliding\s+bars?|sliding\s+contacts?|terminal\s+kit|connection\s+kit|battery\s+holder|holder\s+for\s+lithium|coin\s+cell\s+holder|memory\s+card\s+holder|sd\s+card\s+holder)\b/i;
+  /\b(cable\s+(?:gland|entry|fitting|duct|tray|tie|clamp|mount)|(?:base|mounting|support)\s+frame|mount(?:ing)?\s+(?:kit|foot|bracket|plate|hardware)|sub\s*panel|subpanel|(?:rear|back)\s*(?:panel|wall)|dead\s*front|terminal\s+covers?|terminal\s+shrouds?|shrouds?|trip\s+unit\s+cover|key\s+locks?|padlocks?|interlocks?|lifting\s+plate|mounting\s+flange|support\s+(?:plate|bracket)|cover\s+(?:kit|plate|accessor(?:y|ies))|hinge|latch|gasket|window\s+kit|adapter\s+plate|shelf|rail|duct|wireway|enclosure\s+accessor(?:y|ies)|busbars?|busbar\s+supply|ekip\s+(?:busbars?|temperature|signaling|measuring|signalling|test|com|connect|hi-touch|touch|supply|com\s+r|com\s+actuator|com\s+ip|control)|temperature\s+(?:module|sensor\s+module|probe)|light\s+detectors?|hi-touch|signalling\s+module|signaling\s+module|measuring\s+module|test\s+(?:module|unit|connector)|backpanel|sub\s+frame|frame\s+(?:size|extension)|operating\s+handle\s+kit|handle\s+kit|extended\s+rotary\s+handle|sliding\s+bars?|sliding\s+contacts?|terminal\s+kit|connection\s+kit|battery\s+holder|holder\s+for\s+lithium|coin\s+cell\s+holder|memory\s+card\s+holder|sd\s+card\s+holder)\b/i;
+
+// Eaton xEnergy model codes beginning with XLB are base frames. Some localized SKU pages only
+// publish the generic "LV switchgear" product name, so the description is unavailable when the
+// electrical-requirement decision is made. The model code remains a reliable product identity.
+const EATON_XENERGY_BASE_FRAME_MODEL_PATTERN = /\bxlb[0-9a-z-]*\b/i;
 
 const CURRENT_ONLY_DEVICE_PATTERN =
   /\b(current\s+sensor|homopolar\s+toroid|toroid\s+transformer|external\s+neutral|current\s+transformer)\b/i;
@@ -83,6 +88,7 @@ export function requiredElectricalFields(result: ProductResult, context: Electri
   const primaryText = productPrimaryRequirementText(result);
   const text = productRequirementText(result);
   if (!text) return [];
+  if (result.manufacturerId === "eaton" && EATON_XENERGY_BASE_FRAME_MODEL_PATTERN.test(text)) return [];
   if (NON_ELECTRICAL_ACCESSORY_PATTERN.test(primaryText)) return [];
   if (NON_ELECTRICAL_INDUSTRIAL_PRODUCT_PATTERN.test(primaryText)) return [];
   if (PASSIVE_PILOT_DEVICE_ACTUATOR_PATTERN.test(primaryText)) return [];

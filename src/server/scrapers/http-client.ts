@@ -564,7 +564,10 @@ $contentType = if ($response.Headers['Content-Type']) { [string]$response.Header
   async downloadImageAsPng(url: string | string[], outputPath: string, signal?: AbortSignal): Promise<string> {
     throwIfAborted(signal);
     await fs.mkdir(path.dirname(outputPath), { recursive: true });
-    const urls = [...new Set((Array.isArray(url) ? url : splitCandidateUrls(url)).map((item) => item.trim()).filter(Boolean))];
+    // A missing image is an export convenience, not a reason to hold an entire catalog row for
+    // minutes. Product pages often expose several equivalent CDN transformations; try only the
+    // preferred URL and leave a failed image visible for review if that URL is unavailable.
+    const urls = [...new Set((Array.isArray(url) ? url : splitCandidateUrls(url)).map((item) => item.trim()).filter(Boolean))].slice(0, 1);
     let lastError: unknown;
     for (const candidateUrl of urls) {
       try {
@@ -587,7 +590,7 @@ $contentType = if ($response.Headers['Content-Type']) { [string]$response.Header
           "user-agent": DEFAULT_USER_AGENT,
           accept: "image/avif,image/webp,image/png,image/jpeg,image/svg+xml,image/*,*/*;q=0.8"
         },
-        timeoutMs: 20000,
+        timeoutMs: 8000,
         signal
       });
       if (!result.response.ok) throw new Error(`Image download failed with HTTP ${result.response.status}`);
@@ -595,7 +598,7 @@ $contentType = if ($response.Headers['Content-Type']) { [string]$response.Header
     } catch (error) {
       if (signal?.aborted) throw new Error("Cancelled by user.");
       const temporaryPath = `${outputPath}.download`;
-      await this.downloadFileViaCurl(url, temporaryPath, signal, error);
+      await this.downloadFileViaCurl(url, temporaryPath, signal, error, { timeoutMs: 20000, maxTimeSeconds: 15 });
       buffer = await fs.readFile(temporaryPath);
       await fs.rm(temporaryPath, { force: true }).catch(() => {});
     }
@@ -604,7 +607,13 @@ $contentType = if ($response.Headers['Content-Type']) { [string]$response.Header
     return outputPath;
   }
 
-  private async downloadFileViaCurl(url: string, outputPath: string, signal?: AbortSignal, cause?: unknown): Promise<void> {
+  private async downloadFileViaCurl(
+    url: string,
+    outputPath: string,
+    signal?: AbortSignal,
+    cause?: unknown,
+    options: { timeoutMs?: number; maxTimeSeconds?: number } = {}
+  ): Promise<void> {
     const curl = process.platform === "win32" ? "curl.exe" : "curl";
     // On Windows, schannel often returns CRYPT_E_NO_REVOCATION_CHECK (0x80092012) when the OCSP
     // responder or CRL endpoint is unreachable (corp proxy, restricted firewall, slow DNS).
@@ -612,12 +621,14 @@ $contentType = if ($response.Headers['Content-Type']) { [string]$response.Header
     // assets.balluff.com, and other large CDNs. `--ssl-no-revoke` tells curl to skip the
     // revocation-status check (without weakening cert chain validation) which is the
     // documented workaround for this exact error code.
-    const args = ["-L", "--fail", "--retry", "2", "--retry-delay", "2", "--max-time", "120", "-A", DEFAULT_USER_AGENT];
+    const maxTimeSeconds = options.maxTimeSeconds ?? 120;
+    const timeoutMs = options.timeoutMs ?? 130000;
+    const args = ["-L", "--fail", "--retry", "2", "--retry-delay", "2", "--max-time", String(maxTimeSeconds), "-A", DEFAULT_USER_AGENT];
     if (process.platform === "win32") args.push("--ssl-no-revoke");
     args.push("-o", outputPath, url);
     try {
       await execFileAsync(curl, args, {
-        timeout: 130000,
+        timeout: timeoutMs,
         maxBuffer: 1024 * 1024,
         signal
       });

@@ -369,6 +369,41 @@ describe("quality gate", () => {
     expect(result.qualityGate?.missing).not.toContain("normalized:current");
   });
 
+  it("does not require voltage and current for an Eaton base frame", () => {
+    const result = finalizeQualityGate(
+      product({
+        manufacturerId: "eaton",
+        catalogNumber: "143352",
+        title: "143352 | Eaton xEnergy Light LV systems LV switchgear",
+        description: "Base frame for WxD=1350 x 400mm, grey",
+        attributes: [{ group: "Product Specifications", name: "Product Name", value: "Eaton xEnergy Light LV systems LV switchgear" }]
+      }),
+      productTypeAwareManufacturer
+    );
+
+    expect(result.status).toBe("found");
+    expect(result.qualityGate?.missing).not.toContain("normalized:voltage");
+    expect(result.qualityGate?.missing).not.toContain("normalized:current");
+  });
+
+  it("recognizes an Eaton XLB model code as a base frame when the localized page omits its description", () => {
+    const result = finalizeQualityGate(
+      product({
+        manufacturerId: "eaton",
+        catalogNumber: "284234",
+        title: "Eaton xEnergy Light LV systems LV switchgear",
+        attributes: [
+          { group: "Product Specifications", name: "Product Name", value: "Eaton xEnergy Light LV systems LV switchgear" },
+          { group: "Product Specifications", name: "Model Code", value: "XLB0604" }
+        ]
+      }),
+      productTypeAwareManufacturer
+    );
+
+    expect(result.qualityGate?.missing).not.toContain("normalized:voltage");
+    expect(result.qualityGate?.missing).not.toContain("normalized:current");
+  });
+
   it("does not require voltage and current for abbreviated SCE enclosure descriptions", () => {
     const sce = getManufacturerConfig("sce");
     expect(sce).toBeDefined();

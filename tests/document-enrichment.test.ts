@@ -1380,6 +1380,28 @@ Operating Temperature XT
     ]));
   });
 
+  it("prioritizes an exact Eaton SKU datasheet ahead of a family catalog", async () => {
+    const fixturePath = path.resolve("benchmarks", "live-check", "nvent-docs", "spec-00583.pdf");
+    const requestedUrls: string[] = [];
+    await enrichResultFromRemoteDocuments(
+      product({
+        manufacturerId: "eaton",
+        catalogNumber: "143352",
+        documents: [
+          { type: "datasheet", label: "Eaton product family catalog", url: "https://www.eaton.com/content/dam/eaton/products/xenergy-family-catalog.pdf" },
+          { type: "datasheet", label: "Eaton Specification Sheet - 143352", url: "https://www.eaton.com/us/en-us/skuPage.143352.pdf" }
+        ]
+      }),
+      async (document) => {
+        requestedUrls.push(document.url);
+        return { localPath: fixturePath };
+      },
+      { maxDocuments: 1 }
+    );
+
+    expect(requestedUrls).toEqual(["https://www.eaton.com/us/en-us/skuPage.143352.pdf"]);
+  });
+
   it("lets a freshly recomputed normalized field override a stale, wrong pre-enrichment value", async () => {
     // Confirmed live on Rockwell's 1606-XLSBAT5: result.normalized was already populated (wrongly)
     // BEFORE document enrichment ran (the digital product passport's Height/Width/Length read like

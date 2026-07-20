@@ -529,6 +529,22 @@ export class RunManager {
           this.updateItemStage(item.id, "document-enrichment", "Reading downloaded documents for missing values");
           enriched = finalizeQualityGate(await enrichFromDownloadedDocumentsIfPresent(withInitialDownloads), manufacturer);
           fallbackStages = enriched.diagnostics?.fallbackStages;
+          // Evidence repair is local and deterministic. Do it before opening any remote PDF so
+          // values already published on the Eaton SKU page (for example material or RoHS) do not
+          // trigger a slow catalog/manual probe just to rediscover the same fact.
+          if (!enriched.qualityGate?.passed) {
+            const preliminaryCompleteness = evaluateFinalCompleteness(enriched, manufacturer, finalCompletenessOptions);
+            const preliminaryRepair = repairFinalCompletenessFromEvidence(enriched, manufacturer, preliminaryCompleteness);
+            if (preliminaryRepair.repairedFields.length) {
+              enriched = finalizeQualityGate(preliminaryRepair.result, manufacturer);
+              fallbackStages = enriched.diagnostics?.fallbackStages;
+              await this.appendRunLog(layoutRef, "PRE_REMOTE_FIELD_REPAIR", {
+                catalogNumber: item.catalogNumber,
+                repairedFields: preliminaryRepair.repairedFields,
+                repairs: preliminaryRepair.records
+              });
+            }
+          }
           if (!enriched.qualityGate?.passed) {
             this.updateItemStage(item.id, "document-enrichment", "Reading datasheets/manuals for missing values");
             enriched = finalizeQualityGate(
@@ -604,8 +620,12 @@ export class RunManager {
             });
           }
           let afterRepairFinalCompleteness = evaluateFinalCompleteness(enriched, manufacturer, finalCompletenessOptions);
-          if (afterRepairFinalCompleteness.missing.length) {
-            const beforeRemoteMissing = afterRepairFinalCompleteness.missing;
+          // Remote document enrichment parses PDFs and manuals; it cannot recover a missing
+          // product image. Keep the image gap visible in final completeness, but never burn a
+          // document-download timeout trying to resolve it.
+          const remoteDocumentMissing = afterRepairFinalCompleteness.missing.filter((field) => field !== "image");
+          if (remoteDocumentMissing.length) {
+            const beforeRemoteMissing = remoteDocumentMissing;
             this.updateItemStage(item.id, "document-enrichment", `Reading datasheets/manuals for missing final fields: ${beforeRemoteMissing.join(", ")}`);
             enriched = finalizeQualityGate(
               await enrichFromRemoteDocumentsForMissingValues(enriched, http, beforeRemoteMissing, controller.signal),
@@ -1636,7 +1656,10 @@ async function enrichFromRemoteDocumentsForMissingValues(
         throw error;
       }
     },
-    { maxDocuments: 4 }
+    // Eaton product pages publish their own per-SKU specification sheet. Probing a family
+    // catalog after it is both slower and less precise; retain the page-derived values when the
+    // direct sheet cannot satisfy the quality gate instead of holding a worker on four PDFs.
+    { maxDocuments: result.manufacturerId === "eaton" ? 1 : 4 }
   );
 }
 

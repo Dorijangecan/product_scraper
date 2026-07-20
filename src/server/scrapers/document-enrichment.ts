@@ -1379,6 +1379,9 @@ function shouldSkipAfterStrongDocumentEvidence(doc: DocumentRecord, attributes: 
 function remoteProbeDocumentScore(doc: DocumentRecord): number {
   const text = `${doc.type} ${doc.label} ${doc.url}`.toLowerCase();
   let score = 0;
+  // The generated Eaton SKU PDF is the only document guaranteed to describe this exact
+  // catalog number. Prefer it over broad product-family catalogs and manuals.
+  if (/^https:\/\/www\.eaton\.com(?:\.cn)?\/[^?#]+\/skuPage\.[^/?#]+\.pdf(?:[?#]|$)/i.test(doc.url)) score += 500;
   if (doc.type === "datasheet") score += 90;
   if (doc.type === "manual") score += 70;
   if (/\b(?:data\s*sheet|datasheet|technical\s+data|technical\s+datasheet|spec(?:ification)?\s+sheet|cutsheet)\b/i.test(text)) score += 35;
