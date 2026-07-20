@@ -470,6 +470,38 @@ describe("manufacturer configuration", () => {
     expect(result.normalized.weight).toBe("0.02 kg");
   });
 
+  it("returns Building Technologies stock numbers quickly when Mall data is unavailable", async () => {
+    const manufacturer = listManufacturerConfigs().find((item) => item.id === "siemens")!;
+    const connector = new SiemensConnector();
+    const catalogNumber = "S55180-A179";
+    let fallbackCalls = 0;
+
+    const result = await connector.scrape(catalogNumber, {
+      manufacturer,
+      runDir: "",
+      documentsDir: "",
+      http: {
+        fetchText: async () => {
+          throw new Error("SiePortal denies this server-side request.");
+        }
+      } as unknown as ScrapeContext["http"],
+      downloadDocument: async (doc) => doc,
+      fallback: {
+        scrape: async () => {
+          fallbackCalls += 1;
+          return undefined;
+        }
+      }
+    });
+
+    expect(fallbackCalls).toBe(1);
+    expect(result.status).toBe("partial");
+    expect(result.productUrl).toContain("/mall/CZ/CZ/Catalog/Product/");
+    expect(result.attributes).toEqual(expect.arrayContaining([expect.objectContaining({ name: "Article Number", value: catalogNumber })]));
+    expect(result.documents).toEqual(expect.arrayContaining([expect.objectContaining({ type: "datasheet", url: expect.stringContaining(`prodId=${catalogNumber}`) })]));
+    expect(result.diagnostics?.notes?.join(" ")).toContain("60-second timeout");
+  });
+
   it("uses generic official discovery when the Siemens API path cannot resolve a new product", async () => {
     const manufacturer = listManufacturerConfigs().find((item) => item.id === "siemens")!;
     const connector = new SiemensConnector();

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { documentUrlLooksDownloadable, documentUrlLooksRelevant } from "../src/server/scrapers/document-url.js";
+import { documentUrlLooksDownloadable, documentUrlLooksRelevant, isPdfLikeDocumentUrl } from "../src/server/scrapers/document-url.js";
 
 describe("document URL classification", () => {
   it("recognizes PDF-like query endpoints without .pdf suffixes", () => {
@@ -12,6 +12,12 @@ describe("document URL classification", () => {
     expect(documentUrlLooksDownloadable("https://example.test/asset?file=%2Fdocs%2FABC-123_manual.pdf")).toBe(true);
     expect(documentUrlLooksDownloadable("https://example.test/resource?id=ABC-123&mime=application%2Fpdf")).toBe(true);
     expect(documentUrlLooksDownloadable("https://example.test/resource?id=ABC-123&extension=pdf")).toBe(true);
+  });
+
+  it("recognizes the Siemens Smart Infrastructure product datasheet endpoint", () => {
+    const url = "https://hit.sbt.siemens.com/RWD/AssetsByProduct.aspx?RC=WW&asset_type=Data%20Sheet%20for%20Product&lang=en&prodId=S55499-D348";
+    expect(isPdfLikeDocumentUrl(url)).toBe(true);
+    expect(documentUrlLooksDownloadable(url)).toBe(true);
   });
 
   it("recognizes additional CAD document extensions through the shared helper", () => {

@@ -78,9 +78,13 @@ export class GanterNormConnector implements ManufacturerConnector {
  */
 export function ganterSearchCandidates(catalogNumber: string): string[] {
   const trimmed = catalogNumber.trim();
-  const candidates = [trimmed];
   const family = extractGanterFamily(trimmed);
-  if (family && family.family.toUpperCase() !== trimmed.toUpperCase()) candidates.push(family.family);
+  // The quick-finder indexes the family page, not individual ordering-code variants.  Querying
+  // the full code first creates a different cache key for every row in a large BOM even though
+  // Ganter redirects all of them to the same family page.  Put the family first so GN 422-…
+  // batches share one official fetch; retain the literal code as a safe fallback for standards
+  // whose suffix may eventually become individually searchable.
+  const candidates = family && family.family.toUpperCase() !== trimmed.toUpperCase() ? [family.family, trimmed] : [trimmed];
   return [...new Set(candidates)].filter(Boolean);
 }
 

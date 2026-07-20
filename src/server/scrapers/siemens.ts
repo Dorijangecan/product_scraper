@@ -68,6 +68,17 @@ export class SiemensConnector implements ManufacturerConnector {
     const mallDataResult = await context.fallback.scrape(catalogNumber, [SIEMENS_MMPDATA_SOURCE]);
     if (mallDataResult && mallDataResult.status !== "failed") return mallDataResult;
 
+    // Building Technologies stock numbers (for example S55180-A179) are published in Siemens
+    // Industry Mall, but are not exposed through the automation-focused SiePortal API nor the
+    // mmpdata endpoint.  From this server's network the Mall product and search pages return
+    // Access Denied, so sending them through generic discovery can only consume its full 60 s
+    // deadline per row.  Return an honest, identity-confirmed partial result with the official
+    // product link instead.  This is deliberately narrow: regular MLFBs still get the API plus
+    // full discovery pipeline, and no HVAC fields are guessed from a family page.
+    if (isSiemensBuildingTechnologiesStockNumber(catalogNumber)) {
+      return siemensMallStockNumberResult(catalogNumber);
+    }
+
     const { result, discovery } = await scrapeDiscoveredFallback(catalogNumber, context, { idPrefix: this.id });
     return withDiscoveryFallbackDiagnostics(
       result ?? emptyResult(this.id, catalogNumber, "Siemens public API, official discovery, and configured fallback pages did not return product data."),
@@ -118,6 +129,58 @@ export class SiemensConnector implements ManufacturerConnector {
     tokenCache = { token: parsed.access_token, expiresAt: Date.now() + (expiresInSec - 60) * 1000 };
     return parsed.access_token;
   }
+}
+
+function isSiemensBuildingTechnologiesStockNumber(catalogNumber: string): boolean {
+  return /^S\d{5}-[A-Z]\d+$/i.test(catalogNumber.trim());
+}
+
+function siemensMallStockNumberResult(catalogNumber: string): ProductResult {
+  const stockNumber = catalogNumber.trim();
+  const productUrl = `https://mall.industry.siemens.com/mall/CZ/CZ/Catalog/Product/?mlfb=${encodeURIComponent(stockNumber)}`;
+  // Smart Infrastructure publishes the selected product's datasheet through this official,
+  // server-readable endpoint even when the corresponding interactive Mall page is blocked.
+  // `prodId` is an exact stock number, so the document is a safe enrichment candidate rather
+  // than a family-wide guessed attachment.
+  const datasheetUrl = `https://hit.sbt.siemens.com/RWD/AssetsByProduct.aspx?RC=WW&asset_type=Data%20Sheet%20for%20Product&lang=en&prodId=${encodeURIComponent(stockNumber)}`;
+  const attributes: AttributeRecord[] = [
+    {
+      group: "Siemens Industry Mall",
+      name: "Article Number",
+      value: stockNumber,
+      sourceUrl: productUrl,
+      sourceType: "official"
+    }
+  ];
+  return {
+    manufacturerId: "siemens",
+    catalogNumber,
+    status: "partial",
+    confidence: 0.5,
+    productUrl,
+    localizedUrls: buildLocalizedProductUrls("siemens", catalogNumber, productUrl),
+    title: stockNumber,
+    normalized: normalizeFields(attributes, []),
+    attributes,
+    documents: [
+      {
+        type: "datasheet",
+        label: "Siemens Building Technologies product datasheet",
+        url: datasheetUrl,
+        sourceUrl: productUrl
+      }
+    ],
+    sources: [
+      { url: productUrl, sourceType: "official", parser: "siemens-building-technologies-stock-number", fetchedAt: new Date().toISOString() },
+      { url: datasheetUrl, sourceType: "official", parser: "siemens-building-technologies-datasheet", fetchedAt: new Date().toISOString() }
+    ],
+    diagnostics: {
+      chosenUrl: productUrl,
+      notes: [
+        "This Siemens Building Technologies stock number is not available through the public server-side API or mmpdata endpoint. Its official product-specific datasheet was attached for enrichment; broad discovery was skipped to avoid a known 60-second timeout."
+      ]
+    }
+  };
 }
 
 export function parseSiemensProductApiResponse(catalogNumber: string, fetched: FetchedText): ProductResult {

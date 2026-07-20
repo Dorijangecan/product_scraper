@@ -1498,8 +1498,11 @@ function shouldDownloadForProfile(
 
 function shouldDownloadLocalDocument(doc: DocumentRecord): boolean {
   if (doc.type === "image") return true;
+  // A small number of official document handlers intentionally do not expose a `.pdf` suffix.
+  // Trust only the shared URL classifier (which contains explicit known endpoints and PDF query
+  // semantics), not merely the filename extension, so their response can be checked and parsed.
+  if (isDownloadablePdfDocument(doc) || isRelevantPdfDownloadCandidate(doc)) return true;
   const extension = documentExtension(doc.url, doc.type).toLowerCase();
-  if (extension === ".pdf") return isDownloadablePdfDocument(doc) || isRelevantPdfDownloadCandidate(doc);
   if (doc.type === "cad") {
     return [".bin", ".zip", ".dwg", ".dxf", ".stp", ".step", ".igs", ".iges", ".sat", ".x_t", ".x_b", ".3dxml", ".prt", ".sldprt"].includes(extension);
   }
