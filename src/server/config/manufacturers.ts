@@ -395,6 +395,10 @@ const builtInManufacturerConfigs: Record<string, ManufacturerConfig> = {
     canonicalName: "Eaton",
     shortName: "EAT",
     rateLimitMs: 1500,
+    // Eaton's connector fans each SKU lookup across a small, bounded group of official
+    // endpoints. Five workers retain a 300 ms per-host interval while avoiding the long
+    // idle gaps that made large, otherwise cacheable numeric-SKU imports take days.
+    concurrency: 5,
     officialBaseUrls: ["https://www.eaton.com", "https://www.eaton.com.cn"],
     // Matches MANUFACTURER_URL in the manual Eaton PDTs (CAD + manual variants).
     homepageUrl: "https://www.eaton.com/gb/en-gb.html",

@@ -511,6 +511,7 @@ export const PROPERTY_ONTOLOGY: CanonicalProperty[] = [
     unitKind: "length",
     synonyms: [
       /\bwidth\b/i,
+      /szeroko\u015b\u0107/i,
       /product\s+net\s+width/i,
       /enclosure\s+width/i,
       /outer\s+width/i,
@@ -533,6 +534,7 @@ export const PROPERTY_ONTOLOGY: CanonicalProperty[] = [
     unitKind: "length",
     synonyms: [
       /\bheight\b/i,
+      /wysoko\u015b\u0107/i,
       /product\s+net\s+height/i,
       /enclosure\s+height/i,
       /outer\s+height/i,
@@ -555,6 +557,7 @@ export const PROPERTY_ONTOLOGY: CanonicalProperty[] = [
     unitKind: "length",
     synonyms: [
       /\bdepth\b/i,
+      /d\u0142ugo\u015b\u0107\s*\/\s*g\u0142\u0119boko\u015b\u0107/i,
       /\blength\b/i,                                             // bare "Length" — this key doubles as the generic linear-length property
       /package\s+(?:level\s*\d+\s+)?length/i,                    // ABB PacLev1Length — same package/product conflation precedent as weight's PacLev1GroWei above
       /product\s+net\s+depth(?:\s*\/\s*length)?/i,

@@ -3699,6 +3699,7 @@ Product Weight
 
   it("keeps Eaton English title/description primary while adding German localized descriptions", async () => {
     const connector = new EatonConnector();
+    const requestedUrls: string[] = [];
     const englishHtml = `
       <html><head>
         <title>150482 | Eaton xEnergy Main LV switchgear | Eaton</title>
@@ -3756,6 +3757,7 @@ Product Weight
       },
       http: {
         fetchText: async (url: string) => {
+          requestedUrls.push(url);
           if (url === "https://www.eaton.com/us/en-us/skuPage.150482.html") return fetched(englishHtml, url);
           if (url === "https://www.eaton.com/de/de-de/skuPage.150482.html") return fetched(germanHtml, url);
           if (/skuPage\.150482\.pdf/i.test(url)) throw new Error(`PDF fetch is not part of this test ${url}`);
@@ -3785,6 +3787,11 @@ Product Weight
         url: "https://www.eaton.com/us/en-us/skuPage.150482.pdf"
       })
     );
+    expect(requestedUrls.some((url) => /r\.jina\.ai|site-search/i.test(url))).toBe(false);
+    expect(requestedUrls.slice(0, 2)).toEqual([
+      "https://www.eaton.com/us/en-us/skuPage.150482.html",
+      "https://www.eaton.com/de/de-de/skuPage.150482.html"
+    ]);
   });
 
   it("rejects Eaton soft-404 SKU pages so discovery can continue", () => {

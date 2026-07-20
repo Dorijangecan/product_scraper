@@ -325,6 +325,12 @@ describe("property ontology — general multilingual understanding", () => {
     expect(matchProperty("Bore")?.key).toBe("bore");
   });
 
+  it("maps Eaton's Polish localized product dimension labels", () => {
+    expect(matchProperty("Wysoko\u015b\u0107 produktu")?.key).toBe("height");
+    expect(matchProperty("Szeroko\u015b\u0107 produktu")?.key).toBe("width");
+    expect(matchProperty("D\u0142ugo\u015b\u0107/g\u0142\u0119boko\u015b\u0107 produktu")?.key).toBe("depth");
+  });
+
   describe("unit-driven property inference (unknown-language labels)", () => {
     it("infers the plain rated property from an unambiguous unit when the label is unknown", () => {
       // Polish — a language the synonym lists don't cover

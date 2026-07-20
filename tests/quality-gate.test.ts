@@ -352,6 +352,23 @@ describe("quality gate", () => {
     expect(result.qualityGate?.missing).not.toContain("normalized:current");
   });
 
+  it("does not require voltage and current for an Eaton rear-wall enclosure component", () => {
+    const result = finalizeQualityGate(
+      product({
+        manufacturerId: "eaton",
+        catalogNumber: "143417",
+        title: "143417 | Eaton xEnergy Light LV systems LV switchgear",
+        description: "Rear wall ventilated, for HxW = 2000 x 850 mm, IP31, grey",
+        attributes: [{ group: "Product Specifications", name: "Product Name", value: "Eaton xEnergy Light LV systems LV switchgear" }]
+      }),
+      productTypeAwareManufacturer
+    );
+
+    expect(result.status).toBe("found");
+    expect(result.qualityGate?.missing).not.toContain("normalized:voltage");
+    expect(result.qualityGate?.missing).not.toContain("normalized:current");
+  });
+
   it("does not require voltage and current for abbreviated SCE enclosure descriptions", () => {
     const sce = getManufacturerConfig("sce");
     expect(sce).toBeDefined();

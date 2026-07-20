@@ -296,7 +296,7 @@ export class EatonConnector implements ManufacturerConnector {
       if (entry.parsed.status === "failed") continue;
       result = mergeEatonResults(result, entry.parsed);
     }
-    if (result && result.status !== "failed" && isRichEatonResult(result)) {
+    if (result && result.status !== "failed" && isSufficientEatonDirectResult(result, partNumber)) {
       result = await enrichEatonLocalizedDescriptions(result, context, diagnostics);
       return withEatonDiagnostics(result, diagnostics);
     }
@@ -516,6 +516,16 @@ function isRichEatonResult(result: ProductResult): boolean {
   return false;
 }
 
+/**
+ * Static Eaton SKU pages for common numeric article numbers normally carry the full product
+ * identity, several physical/product attributes and a generated spec-sheet link. Treating them
+ * as incomplete merely because they lack three narrow electrical labels sends every SKU through
+ * the expensive reader/locale sweep. The quality gate still performs targeted enrichment later.
+ */
+function isSufficientEatonDirectResult(result: ProductResult, catalogNumber: string): boolean {
+  return isRichEatonResult(result) || (hasExactEatonIdentity(result, catalogNumber) && result.attributes.length >= 6);
+}
+
 const EATON_BROWSER_RECIPE = {
   interactionPolicy: {
     networkIdleTimeoutMs: 12000,
@@ -625,7 +635,19 @@ export function buildEatonProductUrlCandidates(catalogNumber: string, localizedU
     ),
     ...catalogNumbers.flatMap((part) => EATON_SKU_LOCALES.map((locale) => buildEatonSkuPageUrl(part, locale.localePath, locale.host)))
   ];
-  return [...new Set(urls.filter(isAllowedEatonProductUrl))];
+  return [...new Set(urls.filter(isAllowedEatonProductUrl))].sort(compareEatonProductUrlPriority);
+}
+
+function compareEatonProductUrlPriority(left: string, right: string): number {
+  return eatonProductUrlPriority(left) - eatonProductUrlPriority(right) || left.localeCompare(right);
+}
+
+function eatonProductUrlPriority(url: string): number {
+  if (/^https:\/\/www\.eaton\.com\/us\/en-us\/skuPage\./i.test(url)) return 0;
+  if (/^https:\/\/www\.eaton\.com\/de\/de-de\/skuPage\./i.test(url)) return 1;
+  if (/^https:\/\/www\.eaton\.com\/gb\/en-gb\/skuPage\./i.test(url)) return 2;
+  if (/^https:\/\/www\.eaton\.com\.cn\/cn\/zh-cn\/skuPage\./i.test(url)) return 3;
+  return 10;
 }
 
 export function buildEatonSearchApiUrl(catalogNumber: string, localePath = "us/en-us", host = EATON_PRODUCT_HOST): string {
@@ -639,7 +661,16 @@ export function buildEatonSearchApiUrlCandidates(catalogNumber: string, configur
     .filter(templateContainsCatalogPlaceholder)
     .map((template) => fillCatalogTemplate(template, partNumber));
   return [...new Set([...configured, ...EATON_SEARCH_LOCALES.map((locale) => buildEatonSearchApiUrl(partNumber, locale.localePath, locale.host))])]
-    .filter(isAllowedEatonProductUrl);
+    .filter(isAllowedEatonProductUrl)
+    .sort((left, right) => eatonSearchUrlPriority(left) - eatonSearchUrlPriority(right) || left.localeCompare(right));
+}
+
+function eatonSearchUrlPriority(url: string): number {
+  if (/\/us\/en-us\/site-search\//i.test(url)) return 0;
+  if (/\/de\/de-de\/site-search\//i.test(url)) return 1;
+  if (/\/gb\/en-gb\/site-search\//i.test(url)) return 2;
+  if (/www\.eaton\.com\.cn\/content\/eaton\/cn\/zh-cn\/site-search\//i.test(url)) return 3;
+  return 10;
 }
 
 export function extractEatonSearchCandidates(text: string, baseUrl: string, catalogNumber: string): EatonSearchCandidate[] {
@@ -1601,6 +1632,28 @@ function parseHtmlProductData(catalogNumber: string, fetched: FetchedText): {
     });
   }
 
+  // Some current Eaton SKU templates render the same specification data as definition lists
+  // or div cards instead of `tr.specification-row`. Keep this DOM path source-backed and only
+  // use it when the table layout above did not produce any attributes.
+  if (attributes.length === 0) {
+    $(".product-specification-item").each((_, section) => {
+      const group = cleanText($(section).find(".product-specification-item__title,h2,h3").first().text()) || "Product specifications";
+      if (isIgnoredAttributeSection(group)) return;
+      $(section).find("dt").each((__, term) => {
+        const name = cleanElementText($(term));
+        const value = cleanElementText($(term).nextAll("dd").first());
+        if (name && value) attributes.push({ group, name, value, sourceUrl: fetched.effectiveUrl });
+      });
+      $(section).find(".specification-title").each((__, titleElement) => {
+        if ($(titleElement).closest("tr").length) return;
+        const name = cleanElementText($(titleElement));
+        const container = $(titleElement).parent();
+        const value = cleanElementText(container.find(".specification-value").first()) || cleanElementText($(titleElement).next(".specification-value"));
+        if (name && value) attributes.push({ group, name, value, sourceUrl: fetched.effectiveUrl });
+      });
+    });
+  }
+
   return {
     title,
     description,
@@ -2286,6 +2339,10 @@ function looksLikeEatonProductImage(context: string, catalogNumber: string): boo
 
 function isEatonDocumentLink(label: string, url: string, catalogNumber: string): boolean {
   const combined = `${label} ${url}`;
+  // Legal/footer PDFs are present on many Eaton pages but never describe the SKU. Apart from
+  // polluting the workbook they can consume a document-enrichment slot ahead of the actual
+  // generated SKU datasheet.
+  if (/\b(?:terms?(?:\s+and\s+conditions)?|conditions\s+g[eé]n[eé]rales|privacy|cookie|accessibility|legal\s+notice)\b/i.test(combined)) return false;
   if (documentUrlLooksDownloadable(url)) return true;
   if (/\.(pdf|zip|dwg|dxf|stp|step|igs|iges)(?:[?#]|$)/i.test(url)) return true;
   if (/\b(catalog|brochure|manual|guide|instruction|data\s*sheet|datasheet|technical|specification|drawing|cad|ecad|mcad|3d model|2d model|curve|certificate|declaration|application note|service bulletin)\b|\bda-c[es]-/i.test(combined)) {

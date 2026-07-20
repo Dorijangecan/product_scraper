@@ -167,6 +167,22 @@ Surface finishing Powder coating
     expect(normalized.finish).toBe("Powder coating");
   });
 
+  it("reads wrapped German Eaton SKU-datasheet fields", () => {
+    const attributes = extractDocumentTextAttributes({
+      catalogNumber: "143417",
+      document: { type: "datasheet", label: "Eaton Specification Sheet - 143417", url: "https://www.eaton.com/de/de-de/skuPage.143417.pdf" },
+      text: ["Produkthöhe", "15 mm", "Produktbreite", "760 mm", "Produkt Länge/Tiefe", "1910 mm", "Produktgewicht", "26 kg"].join("\n")
+    });
+    const normalized = normalizeFields(attributes, []);
+
+    expect(attributes).toEqual(expect.arrayContaining([
+      expect.objectContaining({ name: "Produkthöhe", value: "15 mm" }),
+      expect.objectContaining({ name: "Produktgewicht", value: "26 kg" })
+    ]));
+    expect(normalized.dimensions).toBe("15 x 760 x 1910 mm");
+    expect(normalized.weight).toBe("26 kg");
+  });
+
   it("splits multiple known PDF label/value pairs from one extracted line", () => {
     const attributes = extractDocumentTextAttributes({
       catalogNumber: "ABC-123",

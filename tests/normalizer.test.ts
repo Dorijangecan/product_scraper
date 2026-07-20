@@ -58,6 +58,48 @@ describe("normalizer", () => {
     expect(normalized.weight).toBe("0.5 kg");
   });
 
+  it("assembles Eaton product dimensions from Polish localized SKU labels", () => {
+    const normalized = normalizeFields(
+      [
+        { name: "Wysoko\u015b\u0107 produktu", value: "2000 mm" },
+        { name: "Szeroko\u015b\u0107 produktu", value: "65.5 mm" },
+        { name: "D\u0142ugo\u015b\u0107/g\u0142\u0119boko\u015b\u0107 produktu", value: "40 mm" }
+      ],
+      []
+    );
+
+    expect(normalized.dimensions).toBe("2000 x 65.5 x 40 mm");
+  });
+
+  it("uses Eaton product dimensions instead of enclosure suitability and module-unit fields", () => {
+    const normalized = normalizeFields(
+      [
+        { name: "Number of height units", value: "0" },
+        { name: "Suitable for enclosure building width", value: "850 mm" },
+        { name: "Suitable for enclosure building length/depth", value: "2000 mm" },
+        { name: "Product Height", value: "15 mm" },
+        { name: "Product Width", value: "760 mm" },
+        { name: "Product Length/Depth", value: "1910 mm" }
+      ],
+      []
+    );
+
+    expect(normalized.dimensions).toBe("15 x 760 x 1910 mm");
+  });
+
+  it("maps German Eaton product dimension labels from the localized SKU page", () => {
+    const normalized = normalizeFields(
+      [
+        { name: "Produkthöhe", value: "15 mm" },
+        { name: "Produktbreite", value: "760 mm" },
+        { name: "Produkt Länge/Tiefe", value: "1910 mm" }
+      ],
+      []
+    );
+
+    expect(normalized.dimensions).toBe("15 x 760 x 1910 mm");
+  });
+
   it("uses the central field registry as a generic fallback for unfamiliar spec labels", () => {
     const normalized = normalizeFields(
       [

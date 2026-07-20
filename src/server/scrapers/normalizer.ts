@@ -735,23 +735,23 @@ function isLikelyDimensionAxisValue(value: string): boolean {
 
 function dimensionAxisLabelScore(label: string, axis: "height" | "width" | "depth" | "length"): number {
   if (
-    /package|packing|packaging|wire stripping|stripping length|cable length|bus length|tap links length|cable distance|operating distance|communication distance|serial link|modbus|ethernet|segment|pulse width|time delay|recovery time|power on delay|response time|reset time|duration|control signal|signal pulse|connecting capacity|conductor|terminal|focal length|back focal|object distance|minimum object distance|angle of view|sensor size|lens|mount/.test(
+    /package|packing|packaging|number of height units|height units|suitable for enclosure|wire stripping|stripping length|cable length|bus length|tap links length|cable distance|operating distance|communication distance|serial link|modbus|ethernet|segment|pulse width|time delay|recovery time|power on delay|response time|reset time|duration|control signal|signal pulse|connecting capacity|conductor|terminal|focal length|back focal|object distance|minimum object distance|angle of view|sensor size|lens|mount/.test(
       label
     )
   ) {
     return -200;
   }
   if (axis === "height") {
-    if (/product net height/.test(label)) return 140;
-    if (/\bheight\b|\baltezza\b/.test(label)) return 70;
+    if (/product\s+(?:net\s+)?height/.test(label)) return 140;
+    if (/\bheight\b|\baltezza\b|wysoko\u015b\u0107|produkth\u00f6he/.test(label)) return 70;
   }
   if (axis === "width") {
-    if (/product net width/.test(label)) return 140;
-    if (/\bwidth\b|\blarghezza\b/.test(label)) return 70;
+    if (/product\s+(?:net\s+)?width/.test(label)) return 140;
+    if (/\bwidth\b|\blarghezza\b|szeroko\u015b\u0107|produktbreite/.test(label)) return 70;
   }
   if (axis === "depth") {
-    if (/product net depth|product net .*length/.test(label)) return 140;
-    if (/\bdepth\b|\bprofond/.test(label)) return 75;
+    if (/product\s+(?:net\s+)?depth|product\s+(?:net\s+)?length\s*\/\s*depth/.test(label)) return 140;
+    if (/\bdepth\b|\bprofond|d\u0142ugo\u015b\u0107\s*\/\s*g\u0142\u0119boko\u015b\u0107|produkt\s+l\u00e4nge\s*\/\s*tiefe/.test(label)) return 75;
     if (/\blength\b/.test(label)) return 35;
   }
   if (axis === "length") {
