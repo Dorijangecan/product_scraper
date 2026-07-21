@@ -11,7 +11,7 @@ import {
 import { parseGenericProductPage } from "../src/server/scrapers/generic.js";
 import { mergeResults, normalizeFields } from "../src/server/scrapers/normalizer.js";
 import { parseSchneiderDatasheetReaderPage, parseSchneiderProductPage, parseTelemecaniqueProductPage } from "../src/server/scrapers/schneider.js";
-import { parseSiemensBuildingTechnologiesPview, parseSiemensProductApiResponse } from "../src/server/scrapers/siemens.js";
+import { extractSiemensTechnicalData, parseSiemensBuildingTechnologiesPview, parseSiemensProductApiResponse } from "../src/server/scrapers/siemens.js";
 import { parseRockwellCutsheetPage, parseRockwellDpp, parseRockwellDrawingsPage, parseRockwellFamilyPage } from "../src/server/scrapers/rockwell.js";
 import { SCEConnector, parseSceProductPage } from "../src/server/scrapers/sce.js";
 import { SpelsbergConnector } from "../src/server/scrapers/spelsberg.js";
@@ -5511,6 +5511,16 @@ IP degree of protection IP68 conforming to IEC 60529 IP69K conforming to DIN 400
     `<article><type>TechnicalData</type><label>TechnicalData</label><number>1</number><url>https://support.industry.siemens.com/cs/ww/en/ps/S55499-D820/td</url></article>` +
     `</articles><descriptionlong>Rotary air damper actuator 25 Nm, without spring return</descriptionlong>` +
     `<descriptionshort>GBB341.1E  Damper actuator</descriptionshort>` +
+    `<td><![CDATA[<html><body><table>` +
+    `<tr><td>Technical specifications</td></tr>` +
+    `<tr><td>Torque</td><td>25 Nm</td></tr>` +
+    `<tr><td>Operating voltage</td><td>AC 100...240 V</td></tr>` +
+    `<tr><td>Degree of protection</td><td>IP54</td></tr>` +
+    `<tr><td>Ambient temperature, operation</td><td>-32...55 &deg;C</td></tr>` +
+    `<tr><td>Dimensions (W x H x D)</td><td>100 x 300 x 67.5 mm</td></tr>` +
+    `<tr><td>Further information</td></tr>` +
+    `<tr><td>Product Catalog - HVAC</td><td>https://www.siemens.com/download?A6V14672355</td></tr>` +
+    `</table></body></html>]]></td>` +
     `<milestones>` +
     `<milestone><abbreviation>VF</abbreviation><label>Sales release</label><date/></milestone>` +
     `<milestone><abbreviation>LF</abbreviation><label>Delivery release</label><date>20250512</date></milestone>` +
@@ -5532,6 +5542,30 @@ IP degree of protection IP68 conforming to IEC 60529 IP69K conforming to DIN 400
     expect(result!.attributes.some((a) => a.name === "Article Number" && a.value === "S55499-D820")).toBe(true);
     expect(result!.attributes.some((a) => a.name === "Lifecycle Status" && a.value === "Delivery release (2025-05-12)")).toBe(true);
     expect(result!.documents.some((d) => d.type === "image" && d.url.includes("P_BT01_XX_08235I.jpg"))).toBe(true);
+    // Technical-specifications table mined from the embedded <td> HTML → normalized fields.
+    expect(result!.normalized.voltage).toBe("AC 100...240 V");
+    expect(result!.normalized.protection).toBe("IP54");
+    expect(result!.normalized.dimensions).toBe("100 x 300 x 67.5 mm");
+    expect(result!.normalized.operatingTemperatureMin).toBe("-32");
+    expect(result!.normalized.operatingTemperatureMax).toBe("55");
+    expect(result!.attributes.some((a) => a.group === "Siemens Technical Data" && a.name === "Torque" && a.value === "25 Nm")).toBe(true);
+    // The "Further information" catalog link must not leak in as a spec.
+    expect(result!.attributes.some((a) => /Product Catalog/i.test(a.name) || /siemens\.com\/download/i.test(a.value))).toBe(false);
+  });
+
+  it("extracts the Siemens technical-specifications table from the embedded pview <td> blob", () => {
+    const xml =
+      `<product><td><![CDATA[<html><body><table>` +
+      `<tr><td>Technical specifications</td></tr>` +
+      `<tr><td>Positioning force</td><td>300 N</td></tr>` +
+      `<tr><td>Operating voltage</td><td>195.5...264.5 V; 230 V</td></tr>` +
+      `<tr><td>Further information</td></tr>` +
+      `<tr><td>Product Catalog</td><td>https://www.siemens.com/download?A6V1</td></tr>` +
+      `</table></body></html>]]></td></product>`;
+    const attrs = extractSiemensTechnicalData(xml, "src");
+    expect(attrs.map((a) => a.name)).toEqual(["Positioning force", "Operating voltage"]);
+    expect(attrs.every((a) => a.group === "Siemens Technical Data")).toBe(true);
+    expect(extractSiemensTechnicalData("<product></product>", "src")).toEqual([]);
   });
 
   it("returns undefined for an Akamai access-denied / non-product Siemens response", () => {

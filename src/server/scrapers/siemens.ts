@@ -1,3 +1,4 @@
+import * as cheerio from "cheerio";
 import type { AttributeRecord, DocumentRecord, ProductResult, SourceRecord } from "../../shared/types.js";
 import type { FetchedText } from "./http-client.js";
 import { buildLocalizedProductUrls } from "./localized-urls.js";
@@ -42,6 +43,16 @@ export class SiemensConnector implements ManufacturerConnector {
   readonly id = "siemens";
 
   async scrape(catalogNumber: string, context: ScrapeContext): Promise<ProductResult> {
+    // Building Technologies stock numbers (S55…) belong to the Industry Online Support product view,
+    // not the SiePortal automation API. Route them there first: pview returns a clean technical-spec
+    // table (voltage / protection / dimensions / temperature / torque / power…) that the automation
+    // API + generic discovery cannot produce for these lines — and it sidesteps the mall Access-Denied
+    // discovery timeout. Fall through only if the view is unreachable.
+    if (isSiemensBuildingTechnologiesStockNumber(catalogNumber)) {
+      const btResult = await scrapeSiemensBuildingTechnologies(catalogNumber, context);
+      if (btResult) return btResult;
+    }
+
     try {
       const auth = await this.readAuthConfig(context);
       const token = await this.fetchAnonymousToken(auth, context);
@@ -76,18 +87,11 @@ export class SiemensConnector implements ManufacturerConnector {
     const mallDataResult = await context.fallback.scrape(catalogNumber, [SIEMENS_MMPDATA_SOURCE]);
     if (mallDataResult && mallDataResult.status !== "failed") return mallDataResult;
 
-    // Building Technologies stock numbers (for example S55180-A179) are published in Siemens
-    // Industry Mall, but are not exposed through the automation-focused SiePortal API nor the
-    // mmpdata endpoint.  From this server's network the Mall product and search pages return
-    // Access Denied, so sending them through generic discovery can only consume its full 60 s
-    // deadline per row.  Return an honest, identity-confirmed partial result with the official
-    // product link instead.  This is deliberately narrow: regular MLFBs still get the API plus
-    // full discovery pipeline, and no HVAC fields are guessed from a family page.
+    // Building Technologies stock numbers were already routed to the Online Support view at the top
+    // of scrape(); reaching here means that view was unreachable. Return an honest, identity-confirmed
+    // minimal partial (official link + product-specific datasheet) rather than sending them through
+    // generic discovery, whose Mall pages return Access Denied and burn the full 60 s per-row deadline.
     if (isSiemensBuildingTechnologiesStockNumber(catalogNumber)) {
-      const btResult = await scrapeSiemensBuildingTechnologies(catalogNumber, context);
-      if (btResult) return btResult;
-      // The Online Support view was unreachable — keep the previous minimal, identity-confirmed
-      // partial (official link + product-specific datasheet) rather than a slow generic discovery.
       return siemensMallStockNumberResult(catalogNumber);
     }
 
@@ -290,6 +294,10 @@ export function parseSiemensBuildingTechnologiesPview(catalogNumber: string, fet
     { group: "Siemens Industry Online Support", name: "Article Number", value: mlfb, sourceUrl, sourceType: "official" }
   ];
   if (name) attributes.push({ group: "Siemens Industry Online Support", name: "Product", value: name, sourceUrl, sourceType: "official" });
+  // The pview payload embeds a full, clean technical-specifications table (voltage, protection,
+  // dimensions, temperature, torque, power…) as an HTML blob in <td>. Mine it directly — it is far
+  // more reliable than parsing the datasheet PDF, and needs no download.
+  attributes.push(...extractSiemensTechnicalData(xml, sourceUrl));
 
   // Lifecycle: <actmilestone> is the current phase abbreviation; resolve it to its dated milestone.
   const currentPhase = pviewTag(xml, "actmilestone");
@@ -328,6 +336,42 @@ export function parseSiemensBuildingTechnologiesPview(catalogNumber: string, fet
       siemensSource(sourceUrl, "siemens-ios-pview-api", fetched)
     ]
   };
+}
+
+/**
+ * Extracts the technical-specifications table Siemens embeds as an HTML blob inside the pview `<td>`
+ * element (CDATA). Rows are label|value pairs under a "Technical specifications" heading; a trailing
+ * "Further information" section (catalog links) is skipped. These map cleanly to normalized voltage /
+ * protection / dimensions / operating temperature via normalizeFields, so no datasheet PDF is needed.
+ */
+export function extractSiemensTechnicalData(xml: string, sourceUrl: string): AttributeRecord[] {
+  const cdata = xml.match(/<td>\s*<!\[CDATA\[([\s\S]*?)\]\]>\s*<\/td>/i)?.[1];
+  if (!cdata) return [];
+  const $ = cheerio.load(cdata);
+  const attributes: AttributeRecord[] = [];
+  const seen = new Set<string>();
+  let inFurtherInfo = false;
+  $("tr").each((_, tr) => {
+    const cells = $(tr)
+      .find("td, th")
+      .toArray()
+      .map((cell) => cleanText($(cell).text()))
+      .filter(Boolean);
+    if (cells.length === 1) {
+      // Section headers: everything after "Further information" is catalog links, not specs.
+      if (/further information/i.test(cells[0])) inFurtherInfo = true;
+      return;
+    }
+    if (inFurtherInfo || cells.length !== 2) return;
+    const [label, value] = cells;
+    // Guard against the concatenated "Product Catalog … https://…" further-info row leaking in.
+    if (!label || !value || /https?:\/\//i.test(value) || label.length > 60) return;
+    const key = label.toLowerCase();
+    if (seen.has(key)) return;
+    seen.add(key);
+    attributes.push({ group: "Siemens Technical Data", name: label, value, sourceUrl, sourceType: "official" });
+  });
+  return attributes;
 }
 
 /** Siemens milestone dates are YYYYMMDD; format as YYYY-MM-DD, passing through anything else. */

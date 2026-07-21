@@ -270,7 +270,10 @@ klasični crtački simboli b/a/d/h/l1/t…; verbozni config stupci tipa "Connect
 (`parseSiemensProductApiResponse`) + mmpdata; **Building Technologies stock brojevi** (`S55…`, regex
 `/^S\d{5}-[A-Z]\d+$/`) idu preko **Industry Online Support pview API-ja** (`support.industry.siemens.com
 /webapp/pview/WW/en/<sn>$/`, `parseSiemensBuildingTechnologiesPview`) — daje ime/opis/lifecycle/sliku/
-canonical URL. Akamai edge traži **browser UA** (node UA → 403), pa `http-client.ts` `DEFAULT_USER_AGENT`
+canonical URL **+ punu tablicu tehničkih specifikacija** ugrađenu kao HTML u `<td>` CDATA
+(`extractSiemensTechnicalData`: voltage/protection/dimensions/temp/torque/power → normalized). BT brojevi
+se rutaju na pview PRVO (prije SiePortal automation API-ja, koji za njih nema ta polja). Akamai edge traži
+**browser UA** (node UA → 403), pa `http-client.ts` `DEFAULT_USER_AGENT`
 mora biti aktualni Chrome (Chrome/125 se odbija, Chrome/148 prolazi — bitno i za image download).
 Datasheet PDF: `hit.sbt.siemens.com` "Data Sheet for Product" (direktan PDF), priložen samo ako
 content-type preflight potvrdi PDF (neki BT proizvodi ga nemaju → bez mrtvog linka). BT brojevi su

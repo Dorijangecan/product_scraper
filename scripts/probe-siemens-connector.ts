@@ -3,6 +3,7 @@ import { fileURLToPath } from "node:url";
 import { getManufacturerConfig, initializeManufacturerConfig } from "../src/server/config/manufacturers.js";
 import { ScraperDb } from "../src/server/db.js";
 import { createAppPaths } from "../src/server/paths.js";
+import { BrowserRenderSession } from "../src/server/scrapers/browser-renderer.js";
 import { GenericFallbackScraper } from "../src/server/scrapers/generic.js";
 import { CachedHttpClient } from "../src/server/scrapers/http-client.js";
 import { getConnector } from "../src/server/scrapers/index.js";
@@ -16,9 +17,12 @@ initializeManufacturerConfig(appPaths.dataDir);
 const numbers = process.argv.slice(2);
 if (!numbers.length) numbers.push("S55180-A179", "S55499-D820");
 
-const manufacturer = getManufacturerConfig("siemens")!;
+const manufacturer = getManufacturerConfig("siemens");
+if (!manufacturer) throw new Error("siemens manufacturer not configured");
+
 const db = new ScraperDb(appPaths);
 const http = new CachedHttpClient(db, appPaths.cacheDir);
+const browserRenderer = new BrowserRenderSession();
 const fallback = new GenericFallbackScraper(manufacturer.id, http, manufacturer);
 const connector = getConnector(manufacturer.id);
 
@@ -30,18 +34,22 @@ try {
       runDir: rootDir,
       documentsDir: path.join(rootDir, "benchmarks", "output", "probe-siemens"),
       signal: undefined,
-      learnedEndpoints: { list: (id, limit) => db.listLearnedEndpoints(id, limit), upsert: (e) => db.upsertLearnedEndpoint(e) },
+      browserRenderer,
+      learnedEndpoints: {
+        list: (id, limit) => db.listLearnedEndpoints(id, limit),
+        upsert: (endpoint) => db.upsertLearnedEndpoint(endpoint)
+      },
       fallback: { scrape: (c, sources) => fallback.scrape(c, sources) },
       downloadDocument: async (doc) => doc
-    } as never);
+    });
     const r = finalizeQualityGate(scraped, manufacturer);
-    console.log(`\n### ${cn}  status=${r.status} conf=${r.confidence} gate=${r.qualityGate?.passed} missing=${JSON.stringify(r.qualityGate?.missing ?? [])}`);
+    const n = r.normalized;
+    console.log(`\n### ${cn}  status=${r.status} conf=${r.confidence} gate=${r.qualityGate?.passed} attrs=${r.attributes.length}`);
     console.log(`  title: ${r.title}`);
-    console.log(`  desc:  ${r.description ?? "(none)"}`);
-    console.log(`  url:   ${r.productUrl}`);
-    console.log(`  attrs(${r.attributes.length}): ${r.attributes.map((a) => `${a.name}=${a.value}`).join(" | ").slice(0, 200)}`);
-    console.log(`  docs(${r.documents.length}): ${r.documents.map((d) => `${d.type}:${d.url.slice(0, 60)}`).join(" | ")}`);
+    console.log(`  voltage: ${n.voltage} | protection: ${n.protection} | dims: ${n.dimensions} | temp: ${n.operatingTemperatureMin}/${n.operatingTemperatureMax} | weight: ${n.weight}`);
+    console.log(`  docs(${r.documents.length}): ${r.documents.map((d) => `${d.type}`).join(", ")}`);
   }
 } finally {
+  await browserRenderer.close();
   db.close();
 }
