@@ -1,4 +1,5 @@
 import fs from "node:fs/promises";
+import os from "node:os";
 import path from "node:path";
 import { ScraperDb } from "../src/server/db.js";
 import { createAppPaths } from "../src/server/paths.js";
@@ -31,23 +32,28 @@ async function main() {
   const runManager = new RunManager(db, appPaths);
 
   try {
+    // Downloads default OFF (mirrors the app when the user leaves PDF/image download unchecked).
+    // Set GAN_DOWNLOADS=1 to exercise the full download+enrichment path.
+    const downloads = process.env.GAN_DOWNLOADS === "1";
     const run = db.createRun({
       id: createRunId(),
       manufacturerId: "gan",
       inputFileName: path.basename(inputPath),
       catalogNumbers,
-      options: { downloadDocuments: true, downloadPdfs: true, downloadImages: true }
+      options: downloads
+        ? { downloadDocuments: true, downloadPdfs: true, downloadImages: true, generateExcel: true }
+        : { downloadDocuments: false, downloadPdfs: false, downloadImages: false, generateExcel: true }
     });
 
     console.log(`Started GAN run ${run.id} for ${catalogNumbers.length} products`);
     await runManager.processRun(run.id);
 
     const items = db.getRunItems(run.id);
-    await fs.writeFile(
-      path.resolve("scratch-gan-full.json"),
-      JSON.stringify(items.map((i) => i.result), null, 2),
-      "utf8"
-    );
+    // Dump full results to the OS temp dir (never the repo root) so this debugging artifact can't be
+    // accidentally committed.
+    const dumpPath = path.join(os.tmpdir(), `gan-full-${run.id}.json`);
+    await fs.writeFile(dumpPath, JSON.stringify(items.map((i) => i.result), null, 2), "utf8");
+    console.log(`Full results written to ${dumpPath}`);
 
     console.log(
       JSON.stringify(

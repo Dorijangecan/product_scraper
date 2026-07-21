@@ -567,6 +567,11 @@ const builtInManufacturerConfigs: Record<string, ManufacturerConfig> = {
     // with a variant suffix, so the connector always tries the family number as a fallback query.
     fetchPolicy: {
       timeoutMs: 15000,
+      // A single transient timeout on the quick-finder fetch otherwise drops the row into the slow
+      // generic discovery fallback (which re-crawls the site and can hit the 60s per-item cap).
+      // One retry lets the connector resolve the page itself instead.
+      maxAttempts: 2,
+      retryBackoffMs: 1000,
       acceptLanguage: "en-GB,en;q=0.9",
       referer: "https://www.ganternorm.com/en/home"
     },
@@ -927,17 +932,23 @@ function attachBuiltInScrapeRecipes() {
   builtInManufacturerConfigs.gan.scrapeRecipe = {
     // Ganter Norm pages are fully server-rendered and the dedicated connector already extracts every
     // published fact; the "standard sheet" PDFs are non-enrichable multi-variant catalogs (see
-    // gan.ts). When the quality gate flags a missing field — typically voltage/current for the "with
-    // electrical switching function" handle families, which Ganter simply does not publish in
-    // structured form — the reader/browser/distributor fallbacks cannot surface anything the
-    // connector missed. Running them only burns a slow Playwright render per row (and previously
-    // crashed inside generic parsing on Ganter's giant mega-menu <h2>). Disable them: an honest
-    // "partial" beats a multi-second no-op that fails 190 rows.
+    // gan.ts). Every network fallback here re-hits the SAME authoritative page and can never surface
+    // a field the connector left blank on purpose — it only burns time (and the browser render
+    // previously crashed inside generic parsing on Ganter's giant mega-menu <h2>).
+    qualityPolicy: {
+      // Weight/dimensions/material/protection/certificates come from the connector when Ganter
+      // publishes them structured; when it doesn't (e.g. dimensions for a multi-variant family it
+      // can't unambiguously resolve, or IP protection / certificates that only appear as prose in
+      // the family PDF), no discovery re-mine of the same page can fill them. Mark them preferred so
+      // a blank one does not force a fruitless, slow final-completeness network retry.
+      preferredFinalFields: ["weight", "dimensions", "material", "protection", "certificates", "color", "operatingTemperature"]
+    },
     fallbackPolicy: {
       officialFirst: true,
       readerOnQualityFailure: false,
       browserOnQualityFailure: false,
       distributorFallback: false,
+      skipPreferredFinalCompletenessRetry: true,
       maxReaderAttempts: 0,
       maxBrowserAttempts: 0
     }

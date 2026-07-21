@@ -88,6 +88,14 @@ export function requiredElectricalFields(result: ProductResult, context: Electri
   const primaryText = productPrimaryRequirementText(result);
   const text = productRequirementText(result);
   if (!text) return [];
+  // Ganter Norm is a mechanical standard-parts catalog (handles, knobs, clamps, hinges, levers).
+  // Even its "with electrical switching function" handle families are mechanical products with an
+  // electrical accessory, and Ganter never publishes structured rated voltage/current on its web
+  // pages or in machine-readable form — the values only ever appear as prose in the family PDF.
+  // Requiring those normalized fields makes every such row fail the quality gate, triggering a
+  // fruitless (and slow) discovery/fallback pass that can never fill them. Treat electrical fields
+  // as not-applicable for this vendor so an authoritative web-page result stays "found".
+  if (result.manufacturerId === "gan") return [];
   if (result.manufacturerId === "eaton" && EATON_XENERGY_BASE_FRAME_MODEL_PATTERN.test(text)) return [];
   if (NON_ELECTRICAL_ACCESSORY_PATTERN.test(primaryText)) return [];
   if (NON_ELECTRICAL_INDUSTRIAL_PRODUCT_PATTERN.test(primaryText)) return [];
