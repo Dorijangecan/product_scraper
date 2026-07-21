@@ -13,3 +13,6 @@ benchmarks/output/
 
 # Local test inputs the desktop app overwrites at runtime (caused git update conflicts)
 Testing PDT/
+
+# Local debugging dumps from scripts/run-*-test.ts
+scratch-*.json
