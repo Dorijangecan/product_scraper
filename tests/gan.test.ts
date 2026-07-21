@@ -101,3 +101,29 @@ describe("Ganter Norm specification parsing", () => {
     expect(de).not.toMatch(/elesa-ganter/);
   });
 });
+
+describe("Ganter Norm dimension synthesis", () => {
+  // A single-variant "Article options / Table" (Ganter Geometry) grid with classic drawing-symbol
+  // columns plus a configuration column that must be excluded from normalized dimensions.
+  const FIXTURE = `
+<html><body>
+<h1><span class="product-name__id">GN 422</span> <span class="product-name__label">Cabinet U-Handles</span></h1>
+<div id="product-table">
+  <table class="priority-table">
+    <thead><tr><th>b</th><th>d</th><th>h</th><th>l1</th><th>Connection type</th></tr></thead>
+    <tbody>
+      <tr class="priority-table__filters"><td><select></select></td><td></td><td></td><td></td><td></td></tr>
+      <tr><td>33</td><td>M 6</td><td>44</td><td>117</td><td>K2</td></tr>
+    </tbody>
+  </table>
+</div>
+</body></html>`;
+
+  it("fills normalized.dimensions from the resolved single row, keeping drawing symbols and dropping config columns", () => {
+    const $ = cheerio.load(FIXTURE);
+    const r = parseGanterProductPage("GN 422-33-TK-LK-K2-SW", fetched(FIXTURE), $);
+    expect(r.normalized.dimensions).toBe("b 33, d M 6, h 44, l1 117");
+    expect(r.normalized.dimensions).not.toContain("Connection type");
+    expect(r.normalized.dimensions).not.toContain("K2");
+  });
+});

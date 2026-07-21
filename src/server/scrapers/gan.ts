@@ -191,6 +191,21 @@ export function parseGanterProductPage(catalogNumber: string, fetched: FetchedTe
   const documents = dedupeDocuments(ganterDocuments($, sourceUrl));
   const normalized = normalizeFields(attributes, documents);
 
+  // The Ganter Geometry columns ARE the product's dimensional data (a symbolic drawing table), but
+  // their group name deliberately keeps normalizeFields from auto-combining them — it can't tell which
+  // single symbolic column is "the" dimension, and an unresolved multi-variant table would mix rows.
+  // When exactly one variant row was resolved, surface it verbatim as the normalized dimensions so
+  // coverage reflects the data we actually have (no L×W×H guessing, no cross-variant mix). Restrict to
+  // classic drawing-symbol columns (b, a, d, h, l1, t…) — some families interleave configuration
+  // columns ("Connection type", "Installation opening") in the same table that are not dimensions.
+  if (!normalized.dimensions && dimensionResolved && dimensionAttributes.length > 0) {
+    const combined = dimensionAttributes
+      .filter((attribute) => /^[a-z]{1,2}\d{0,2}$/i.test(attribute.name))
+      .map((attribute) => `${attribute.name} ${attribute.value}`)
+      .join(", ");
+    if (combined) normalized.dimensions = combined;
+  }
+
   const identityResolved = !family || variantTokens.length === 0 || dimensionResolved;
   const confidence = identityResolved ? 0.85 : 0.65;
 

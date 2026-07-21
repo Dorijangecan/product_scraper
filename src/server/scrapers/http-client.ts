@@ -880,8 +880,11 @@ export function delay(ms: number, signal?: AbortSignal): Promise<void> {
   });
 }
 
+// Keep this on a recent Chrome build: modern bot-mitigation edges (e.g. Akamai on
+// support.industry.siemens.com) now reject year-old User-Agents outright — Chrome/125 gets a 403
+// there while a current build is served normally, which silently broke image/asset downloads.
 const DEFAULT_USER_AGENT =
-  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0 Safari/537.36";
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36";
 
 // Above this declared content-length we refuse to buffer a download into memory (a single
 // oversized catalog brochure × concurrent items could otherwise exhaust RAM). Such files are

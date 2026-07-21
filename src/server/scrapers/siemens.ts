@@ -10,6 +10,14 @@ import { scrapeDiscoveredFallback, withDiscoveryFallbackDiagnostics } from "./di
 const SIEMENS_BASE = "https://sieportal.siemens.com";
 const SIEMENS_PRODUCT_API = `${SIEMENS_BASE}/api/mall/SearchApi/GetProductsDetails`;
 const SIEMENS_ENVIRONMENT_URL = `${SIEMENS_BASE}/assets/environments/environment.js`;
+// Siemens Industry Online Support hosts a public, unauthenticated product-view API that DOES index
+// Building Technologies stock numbers (S55… actuators, sensors, controllers) — unlike the SiePortal
+// automation API and the mmpdata endpoint, which only know MLFB automation parts. Its Akamai edge
+// rejects non-browser User-Agents with 403, so requests must present a browser UA (this stays a
+// public product-data lookup, no auth). `<sn>$/` is the exact-stock-number product view.
+const SIEMENS_IOS_BASE = "https://support.industry.siemens.com";
+const SIEMENS_BROWSER_UA =
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36";
 const SIEMENS_MMPDATA_SOURCE = {
   id: "siemens-mmpdata",
   label: "Siemens Industry Mall product data",
@@ -76,6 +84,10 @@ export class SiemensConnector implements ManufacturerConnector {
     // product link instead.  This is deliberately narrow: regular MLFBs still get the API plus
     // full discovery pipeline, and no HVAC fields are guessed from a family page.
     if (isSiemensBuildingTechnologiesStockNumber(catalogNumber)) {
+      const btResult = await scrapeSiemensBuildingTechnologies(catalogNumber, context);
+      if (btResult) return btResult;
+      // The Online Support view was unreachable — keep the previous minimal, identity-confirmed
+      // partial (official link + product-specific datasheet) rather than a slow generic discovery.
       return siemensMallStockNumberResult(catalogNumber);
     }
 
@@ -181,6 +193,147 @@ function siemensMallStockNumberResult(catalogNumber: string): ProductResult {
       ]
     }
   };
+}
+
+/**
+ * Resolves a Building Technologies stock number through the public Siemens Industry Online Support
+ * product-view API (`/webapp/pview/WW/en/<sn>$/`). Returns undefined when the view is unreachable so
+ * the caller can fall back to the minimal partial. The IOS API returns product name, description,
+ * lifecycle, image and document categories for exactly this stock number — no HVAC field is guessed.
+ */
+async function scrapeSiemensBuildingTechnologies(
+  catalogNumber: string,
+  context: ScrapeContext
+): Promise<ProductResult | undefined> {
+  const stockNumber = catalogNumber.trim();
+  const pviewUrl = `${SIEMENS_IOS_BASE}/webapp/pview/WW/en/${encodeURIComponent(stockNumber)}$/`;
+  let fetched: FetchedText;
+  try {
+    fetched = await context.http.fetchText(pviewUrl, {
+      timeoutMs: 15000,
+      maxAttempts: 2,
+      headers: {
+        "user-agent": SIEMENS_BROWSER_UA,
+        accept: "application/json, text/plain, */*",
+        "accept-language": "en-US,en;q=0.9"
+      },
+      signal: context.signal
+    });
+  } catch {
+    return undefined;
+  }
+  const parsed = parseSiemensBuildingTechnologiesPview(catalogNumber, fetched);
+  if (!parsed) return undefined;
+  const datasheet = await siemensBuildingTechnologiesDatasheet(stockNumber, context);
+  if (datasheet) {
+    parsed.documents = dedupeDocuments([datasheet, ...parsed.documents]);
+    parsed.sources = [
+      ...parsed.sources,
+      { url: datasheet.url, sourceType: "official", parser: "siemens-building-technologies-datasheet", fetchedAt: new Date().toISOString() }
+    ];
+  }
+  return parsed;
+}
+
+/**
+ * hit.sbt.siemens.com serves the per-article "Data Sheet for Product" PDF directly (no Akamai/JS)
+ * for most Building Technologies products, but returns an HTML "AssetNotFound" page for those that
+ * don't publish one. A content-type preflight attaches the datasheet only when a real PDF exists, so
+ * products without one (e.g. S55499-D820) don't get a dead link. The body is not downloaded here —
+ * document enrichment fetches it later when downloads are enabled.
+ */
+async function siemensBuildingTechnologiesDatasheet(
+  stockNumber: string,
+  context: ScrapeContext
+): Promise<DocumentRecord | undefined> {
+  const url = `https://hit.sbt.siemens.com/RWD/AssetsByProduct.aspx?RC=WW&asset_type=Data%20Sheet%20for%20Product&lang=en&prodId=${encodeURIComponent(stockNumber)}`;
+  try {
+    const response = await fetch(url, {
+      headers: { "user-agent": SIEMENS_BROWSER_UA, accept: "*/*" },
+      signal: context.signal
+    });
+    const contentType = response.headers.get("content-type") ?? "";
+    await response.body?.cancel().catch(() => undefined);
+    if (!/pdf/i.test(contentType)) return undefined;
+    return {
+      type: "datasheet",
+      label: "Siemens Building Technologies product datasheet",
+      url,
+      sourceUrl: `${SIEMENS_IOS_BASE}/cs/ww/en/pv/${encodeURIComponent(stockNumber)}/pi`
+    };
+  } catch {
+    return undefined;
+  }
+}
+
+/** Reads a single flat XML element's text content from the IOS pview payload. */
+function pviewTag(xml: string, tag: string): string {
+  const match = xml.match(new RegExp(`<${tag}>([^<]*)</${tag}>`, "i"));
+  return match ? cleanText(match[1]) : "";
+}
+
+export function parseSiemensBuildingTechnologiesPview(catalogNumber: string, fetched: FetchedText): ProductResult | undefined {
+  const xml = fetched.text;
+  // Akamai denial pages and non-product responses have no <product>/<descriptionshort>.
+  if (!/<product\b/i.test(xml)) return undefined;
+  const name = pviewTag(xml, "descriptionshort");
+  const description = pviewTag(xml, "descriptionlong");
+  const mlfb = pviewTag(xml, "mlfb") || catalogNumber.trim();
+  if (!name && !description) return undefined;
+
+  const productUrl =
+    pviewTag(xml, "producturl") ||
+    `${SIEMENS_IOS_BASE}/cs/ww/en/pv/${encodeURIComponent(catalogNumber.trim())}/pi`;
+  const sourceUrl = fetched.effectiveUrl || productUrl;
+
+  const attributes: AttributeRecord[] = [
+    { group: "Siemens Industry Online Support", name: "Article Number", value: mlfb, sourceUrl, sourceType: "official" }
+  ];
+  if (name) attributes.push({ group: "Siemens Industry Online Support", name: "Product", value: name, sourceUrl, sourceType: "official" });
+
+  // Lifecycle: <actmilestone> is the current phase abbreviation; resolve it to its dated milestone.
+  const currentPhase = pviewTag(xml, "actmilestone");
+  if (currentPhase) {
+    const milestone = [...xml.matchAll(/<milestone>\s*<abbreviation>([^<]*)<\/abbreviation>\s*<label>([^<]*)<\/label>\s*<date>([^<]*)<\/date>/gi)].find(
+      (m) => cleanText(m[1]).toUpperCase() === currentPhase.toUpperCase()
+    );
+    if (milestone) {
+      const label = cleanText(milestone[2]);
+      const value = milestone[3] ? `${label} (${formatSiemensDate(milestone[3])})` : label;
+      if (value) attributes.push({ group: "Siemens Industry Online Support", name: "Lifecycle Status", value, sourceUrl, sourceType: "official" });
+    }
+  }
+  const successor = pviewTag(xml, "successorproduct");
+  if (successor) attributes.push({ group: "Siemens Industry Online Support", name: "Successor Product", value: successor, sourceUrl, sourceType: "official" });
+
+  const documents: DocumentRecord[] = [];
+  const imageUrl = pviewTag(xml, "productimageurl");
+  if (imageUrl) documents.push({ type: "image", label: "Product image", url: imageUrl, sourceUrl });
+
+  const normalized = normalizeFields(attributes, documents);
+  return {
+    manufacturerId: "siemens",
+    catalogNumber,
+    status: "found",
+    confidence: 0.82,
+    productUrl,
+    localizedUrls: buildLocalizedProductUrls("siemens", catalogNumber, productUrl),
+    title: name || mlfb,
+    description: description || undefined,
+    normalized,
+    attributes: dedupeAttributes(attributes),
+    documents: dedupeDocuments(documents),
+    sources: [
+      { url: productUrl, sourceType: "official", parser: "siemens-ios-pview", fetchedAt: new Date().toISOString() },
+      siemensSource(sourceUrl, "siemens-ios-pview-api", fetched)
+    ]
+  };
+}
+
+/** Siemens milestone dates are YYYYMMDD; format as YYYY-MM-DD, passing through anything else. */
+function formatSiemensDate(raw: string): string {
+  const match = raw.trim().match(/^(\d{4})(\d{2})(\d{2})$/);
+  return match ? `${match[1]}-${match[2]}-${match[3]}` : raw.trim();
 }
 
 export function parseSiemensProductApiResponse(catalogNumber: string, fetched: FetchedText): ProductResult {

@@ -11,7 +11,7 @@ import {
 import { parseGenericProductPage } from "../src/server/scrapers/generic.js";
 import { mergeResults, normalizeFields } from "../src/server/scrapers/normalizer.js";
 import { parseSchneiderDatasheetReaderPage, parseSchneiderProductPage, parseTelemecaniqueProductPage } from "../src/server/scrapers/schneider.js";
-import { parseSiemensProductApiResponse } from "../src/server/scrapers/siemens.js";
+import { parseSiemensBuildingTechnologiesPview, parseSiemensProductApiResponse } from "../src/server/scrapers/siemens.js";
 import { parseRockwellCutsheetPage, parseRockwellDpp, parseRockwellDrawingsPage, parseRockwellFamilyPage } from "../src/server/scrapers/rockwell.js";
 import { SCEConnector, parseSceProductPage } from "../src/server/scrapers/sce.js";
 import { SpelsbergConnector } from "../src/server/scrapers/spelsberg.js";
@@ -5501,6 +5501,43 @@ IP degree of protection IP68 conforming to IEC 60529 IP69K conforming to DIN 400
     expect(result.documents.filter((doc) => doc.type === "image")).toHaveLength(1);
     expect(result.documents.find((doc) => doc.type === "image")?.label).toBe("Product image");
     expect(result.attributes.some((attr) => attr.name === "Country Of Origin" && attr.value === "DE")).toBe(true);
+  });
+
+  // Trimmed but structurally faithful excerpt of the real Industry Online Support product-view
+  // payload (`/webapp/pview/WW/en/S55499-D820$/`) for a Building Technologies stock number.
+  const SIEMENS_BT_PVIEW = `<product><actmilestone>LF</actmilestone><articles>` +
+    `<article><type>man</type><label>Manual</label><number>2</number><url>https://support.industry.siemens.com/cs/ww/en/ps/S55499-D820/man</url></article>` +
+    `<article><type>cert</type><label>Certificate</label><number>5</number><url>https://support.industry.siemens.com/cs/ww/en/ps/S55499-D820/cert</url></article>` +
+    `<article><type>TechnicalData</type><label>TechnicalData</label><number>1</number><url>https://support.industry.siemens.com/cs/ww/en/ps/S55499-D820/td</url></article>` +
+    `</articles><descriptionlong>Rotary air damper actuator 25 Nm, without spring return</descriptionlong>` +
+    `<descriptionshort>GBB341.1E  Damper actuator</descriptionshort>` +
+    `<milestones>` +
+    `<milestone><abbreviation>VF</abbreviation><label>Sales release</label><date/></milestone>` +
+    `<milestone><abbreviation>LF</abbreviation><label>Delivery release</label><date>20250512</date></milestone>` +
+    `</milestones><mlfb>S55499-D820</mlfb><mlfbId>1772103</mlfbId>` +
+    `<productimageurl>https://support.industry.siemens.com/cs/images/products/P_BT01_XX_08235I.jpg</productimageurl>` +
+    `<producturl>https://support.industry.siemens.com/cs/ww/en/pv/S55499-D820/pi</producturl>` +
+    `<successorproduct/></product>`;
+
+  it("parses a Siemens Building Technologies stock number from the Online Support product view", () => {
+    const result = parseSiemensBuildingTechnologiesPview(
+      "S55499-D820",
+      fetched(SIEMENS_BT_PVIEW, "https://support.industry.siemens.com/webapp/pview/WW/en/S55499-D820$/")
+    );
+    expect(result).toBeDefined();
+    expect(result!.status).toBe("found");
+    expect(result!.title).toBe("GBB341.1E Damper actuator");
+    expect(result!.description).toBe("Rotary air damper actuator 25 Nm, without spring return");
+    expect(result!.productUrl).toBe("https://support.industry.siemens.com/cs/ww/en/pv/S55499-D820/pi");
+    expect(result!.attributes.some((a) => a.name === "Article Number" && a.value === "S55499-D820")).toBe(true);
+    expect(result!.attributes.some((a) => a.name === "Lifecycle Status" && a.value === "Delivery release (2025-05-12)")).toBe(true);
+    expect(result!.documents.some((d) => d.type === "image" && d.url.includes("P_BT01_XX_08235I.jpg"))).toBe(true);
+  });
+
+  it("returns undefined for an Akamai access-denied / non-product Siemens response", () => {
+    expect(
+      parseSiemensBuildingTechnologiesPview("S55499-D820", fetched("<HTML><HEAD><TITLE>Access Denied</TITLE></HEAD></HTML>", "https://support.industry.siemens.com/x"))
+    ).toBeUndefined();
   });
 });
 

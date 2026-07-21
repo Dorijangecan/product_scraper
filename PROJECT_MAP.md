@@ -262,7 +262,20 @@ bez riječi "dimensions") rješava se preko variant-tokena; dvosmisleno → weig
 **Web stranica je izvor istine — svi Ganter PDF-ovi su `enrichable:false`** (link se čuva/skida, ali
 se NE minea): "standard sheet" je multi-varijantni + višejezični (EN/DE/FR/IT) print-katalog čija
 ekstrakcija truje čiste web podatke garbageom ("current: Cavo 4 A", "protection: voir tableau",
-"voltage: 24 V / 24 V / 120 V / 12 V"). Vidi `enrichable` flag na `DocumentRecord`.
+"voltage: 24 V / 24 V / 120 V / 12 V"). Vidi `enrichable` flag na `DocumentRecord`. Za jednoznačno
+riješen jedan redak, connector sintetizira `normalized.dimensions` iz Ganter Geometry stupaca (samo
+klasični crtački simboli b/a/d/h/l1/t…; verbozni config stupci tipa "Connection type" se izostave).
+
+`siemens.ts` (`SiemensConnector`): standardni MLFB automation dio ide preko SiePortal anon-token API-ja
+(`parseSiemensProductApiResponse`) + mmpdata; **Building Technologies stock brojevi** (`S55…`, regex
+`/^S\d{5}-[A-Z]\d+$/`) idu preko **Industry Online Support pview API-ja** (`support.industry.siemens.com
+/webapp/pview/WW/en/<sn>$/`, `parseSiemensBuildingTechnologiesPview`) — daje ime/opis/lifecycle/sliku/
+canonical URL. Akamai edge traži **browser UA** (node UA → 403), pa `http-client.ts` `DEFAULT_USER_AGENT`
+mora biti aktualni Chrome (Chrome/125 se odbija, Chrome/148 prolazi — bitno i za image download).
+Datasheet PDF: `hit.sbt.siemens.com` "Data Sheet for Product" (direktan PDF), priložen samo ako
+content-type preflight potvrdi PDF (neki BT proizvodi ga nemaju → bez mrtvog linka). BT brojevi su
+izuzeti od `requiredElectricalFields` (voltage/current nisu strukturirani na IOS-u; mall-discovery
+fallback = Access Denied/timeout).
 
 ### `src/server/pdt/`
 | Fajl | Ključni exporti |

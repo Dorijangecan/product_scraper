@@ -96,6 +96,13 @@ export function requiredElectricalFields(result: ProductResult, context: Electri
   // fruitless (and slow) discovery/fallback pass that can never fill them. Treat electrical fields
   // as not-applicable for this vendor so an authoritative web-page result stays "found".
   if (result.manufacturerId === "gan") return [];
+  // Siemens Building Technologies stock numbers (S55…: HVAC actuators, sensors, controllers) resolve
+  // through the Online Support product view, which publishes name/description/lifecycle but not
+  // machine-readable rated voltage/current — those live only in the product datasheet PDF. Requiring
+  // them would fail every such row and kick off the mall discovery fallback, which returns Access
+  // Denied for these products (a guaranteed per-row timeout). When PDF download is enabled the
+  // datasheet still fills voltage/current as a bonus; the gate must not demand them up front.
+  if (result.manufacturerId === "siemens" && /^S\d{5}-[A-Z]\d+$/i.test(result.catalogNumber.trim())) return [];
   if (result.manufacturerId === "eaton" && EATON_XENERGY_BASE_FRAME_MODEL_PATTERN.test(text)) return [];
   if (NON_ELECTRICAL_ACCESSORY_PATTERN.test(primaryText)) return [];
   if (NON_ELECTRICAL_INDUSTRIAL_PRODUCT_PATTERN.test(primaryText)) return [];
