@@ -2005,7 +2005,7 @@ function extractSemanticSpecAttributes($: cheerio.CheerioAPI, sourceUrl: string)
       attrs["data-property-value"] ??
       attrs["data-value"] ??
       attrs["data-display-value"] ??
-      cleanText($(element).text()).replace(new RegExp(`^${escapeRegex(cleanText(name ?? ""))}\\s*[:ďĽš]?\\s*`, "i"), "");
+      stripLeadingLabelPrefix(cleanText($(element).text()), name);
     push(name, value, semanticSpecGroup($, element));
   });
 
@@ -2510,8 +2510,28 @@ function cleanSpecPairLabel(label: string | undefined): string {
 
 function cleanSpecPairValue(value: string | undefined, label: string): string {
   let cleaned = cleanSectionValue(value ?? "").replace(/^[:ÄŹÄ˝Ĺˇ]\s*/, "");
-  if (label) cleaned = cleaned.replace(new RegExp(`^${escapeRegex(cleanText(label))}\\s*[:ÄŹÄ˝Ĺˇ]?\\s*`, "i"), "");
+  cleaned = stripLeadingLabelPrefix(cleaned, label);
   return cleanSectionValue(applyLabelUnitHintToSpecValue(label, cleaned));
+}
+
+/**
+ * Removes a leading duplicate of `label` from the start of `value` ("Weight Weight 12 kg" → "12 kg").
+ * Building `new RegExp("^" + escapeRegex(label) + ...)` from an arbitrary DOM-derived label is a
+ * crash risk: a heading/label that is really an entire navigation blob (thousands of chars — e.g.
+ * Ganter's mega-menu <h2> whose .text() is the whole category tree) escapes to a pattern that
+ * exceeds V8's compiled-regex size limit and throws "regular expression too large". Thrown from deep
+ * inside generic parsing during smart-fallback, that uncaught error failed the ENTIRE product. Real
+ * spec labels are short, so skip the prefix-strip for oversized labels and never let a pathological
+ * label take the whole item down.
+ */
+function stripLeadingLabelPrefix(value: string, label: string | undefined): string {
+  const trimmed = cleanText(label ?? "");
+  if (!trimmed || trimmed.length > 120) return value;
+  try {
+    return value.replace(new RegExp(`^${escapeRegex(trimmed)}\\s*[:ÄŹÄ˝Ĺˇ]?\\s*`, "i"), "");
+  } catch {
+    return value;
+  }
 }
 
 function applyLabelUnitHintToSpecValue(label: string, value: string): string {
@@ -2551,6 +2571,11 @@ function semanticSpecGroup($: cheerio.CheerioAPI, element: Parameters<cheerio.Ch
 }
 
 function isUsefulSpecLabel(label: string): boolean {
+  // A real spec label is short. The keyword test below only requires the keyword to appear ANYWHERE
+  // in the string, so a whole navigation/description blob that merely happens to contain "material"
+  // or "length" would otherwise qualify as a "label" — polluting output and (via the prefix-strip
+  // regex) risking a "regular expression too large" crash. Cap length before the keyword test.
+  if (label.length > 120) return false;
   return /classification|type|material|finish|colou?r|height|width|depth|length|diameter|weight|mass|voltage|current|power|temperature|ambient|storage|torque|frequency|pressure|flow|sensor|signal|display|enclosure|function|mounting|protection|rating|standard|certification|approval|ground|path|jacket|conductor|connection|channel|input|output|i\/o|package|brand|manufacturer|model|sku|mpn|gtin|upc|ean|catalog|order|part|item|article/i.test(label);
 }
 

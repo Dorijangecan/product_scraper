@@ -924,6 +924,25 @@ function attachBuiltInScrapeRecipes() {
     confidenceRules: { foundMinScore: 74, partialMaxConfidence: 0.74, distributorMaxConfidence: 0.4 }
   };
 
+  builtInManufacturerConfigs.gan.scrapeRecipe = {
+    // Ganter Norm pages are fully server-rendered and the dedicated connector already extracts every
+    // published fact; the "standard sheet" PDFs are non-enrichable multi-variant catalogs (see
+    // gan.ts). When the quality gate flags a missing field — typically voltage/current for the "with
+    // electrical switching function" handle families, which Ganter simply does not publish in
+    // structured form — the reader/browser/distributor fallbacks cannot surface anything the
+    // connector missed. Running them only burns a slow Playwright render per row (and previously
+    // crashed inside generic parsing on Ganter's giant mega-menu <h2>). Disable them: an honest
+    // "partial" beats a multi-second no-op that fails 190 rows.
+    fallbackPolicy: {
+      officialFirst: true,
+      readerOnQualityFailure: false,
+      browserOnQualityFailure: false,
+      distributorFallback: false,
+      maxReaderAttempts: 0,
+      maxBrowserAttempts: 0
+    }
+  };
+
   builtInManufacturerConfigs.turck.scrapeRecipe = {
     searchUrlTemplates: [
       "https://www.turck.com/de/en/shop/search?q={part}",
