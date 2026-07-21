@@ -31,6 +31,13 @@ const GAN_PRODUCT_FIXTURE = `
 <a class="cta--pdf" href="https://live-katalog.ganternorm.com/pdf/ganter/en/6284.pdf?dispositiontype=attachment"><svg><style>.cls-1{fill:#4e4e4d;}</style></svg>Standard sheet GN 6284</a>
 <a class="cta--pdf" href="https://live-katalog.ganternorm.com/pdf/ganter/en/bt-6284.pdf?dispositiontype=attachment"><svg><style>.cls-2{fill:#000;}</style></svg>Operating instruction GN 6284</a>
 <a class="cta--pdf" href="https://live-katalog.ganternorm.com/pdf/ganter/en/kunststoffe.pdf?dispositiontype=attachment"><svg><style>.cls-3{fill:#fff;}</style></svg>Plastic Characteristics</a>
+
+<h3 class="icon-globe">Language</h3>
+<ul>
+  <li><a class="lang-selector" href="https://www.ganternorm.com/de/produkte/1.2-Bedienen/Buegelgriffe/GN-6284-Buegelgriffe-Kunststoff-mit-Kabel">Deutsch</a></li>
+  <li><a class="lang-selector" href="https://www.ganternorm.com/fr/produits/1.2-Actionnement/GN-6284">Fran&ccedil;ais</a></li>
+  <li><a class="lang-selector" href="https://www.elesa-ganter.at">&Ouml;sterreich</a></li>
+</ul>
 </body></html>
 `;
 
@@ -79,5 +86,18 @@ describe("Ganter Norm specification parsing", () => {
   it("normalizes the operating temperature range from the self-labeled paragraph", () => {
     expect(result.normalized.operatingTemperatureMin).toBe("-20");
     expect(result.normalized.operatingTemperatureMax).toBe("50");
+  });
+
+  it("reads the German product URL from the page language switcher (slug is fully localized, not derivable)", () => {
+    expect(result.localizedUrls?.en).toBe("https://www.ganternorm.com/en/products/x/GN-6284");
+    expect(result.localizedUrls?.de).toBe(
+      "https://www.ganternorm.com/de/produkte/1.2-Bedienen/Buegelgriffe/GN-6284-Buegelgriffe-Kunststoff-mit-Kabel"
+    );
+  });
+
+  it("ignores non-German and partner-domain language-switcher links", () => {
+    const de = result.localizedUrls?.de ?? "";
+    expect(de).not.toMatch(/\/fr\//);
+    expect(de).not.toMatch(/elesa-ganter/);
   });
 });

@@ -3,7 +3,6 @@ import type { AttributeRecord, DocumentRecord, ProductResult, SourceRecord } fro
 import { dedupeAttributes, dedupeDocuments, dedupeSources } from "./dedupe.js";
 import { scrapeDiscoveredFallback, withDiscoveryFallbackDiagnostics } from "./discovery-fallback.js";
 import type { FetchedText } from "./http-client.js";
-import { buildLocalizedProductUrls } from "./localized-urls.js";
 import { cleanText, emptyResult, normalizeFields } from "./normalizer.js";
 import type { ManufacturerConnector, ScrapeContext } from "./types.js";
 
@@ -201,7 +200,7 @@ export function parseGanterProductPage(catalogNumber: string, fetched: FetchedTe
     status: attributes.length || documents.length ? "found" : "partial",
     confidence,
     productUrl: sourceUrl,
-    localizedUrls: buildLocalizedProductUrls("gan", catalogNumber, sourceUrl),
+    localizedUrls: ganterLocalizedUrls($, sourceUrl),
     title,
     description,
     normalized,
@@ -554,6 +553,31 @@ function ganterBreadcrumbCategory($: cheerio.CheerioAPI): string | undefined {
  * structured web product page already provides. For Ganter the web page — not the PDF — is the
  * source of truth (deterministic principle: a corrupted guess is worse than a blank field).
  */
+/**
+ * Ganter's product-page language switcher (`<a class="lang-selector">`) links to the fully localized
+ * equivalent of the current page. The German URL cannot be derived from the English one by swapping a
+ * locale segment — the entire path is translated (`/en/products/…/GN-422-Cabinet-U-Handles-…` becomes
+ * `/de/produkte/…/GN-422-Buegelgriffe-…`), so it must be read straight off the page. Only same-site
+ * ganternorm.com `/de/` links are kept; the switcher also lists other languages and partner-domain
+ * country sites (elesa-ganter.*, jwwinco.*) that are not per-article equivalents.
+ */
+function ganterLocalizedUrls($: cheerio.CheerioAPI, sourceUrl: string): { en?: string; de?: string } {
+  const urls: { en?: string; de?: string } = { en: sourceUrl };
+  $("a.lang-selector").each((_, a) => {
+    const href = absoluteGanterUrl($(a).attr("href"), sourceUrl);
+    if (!href) return;
+    try {
+      const parsed = new URL(href);
+      if (/(?:^|\.)ganternorm\.com$/i.test(parsed.hostname) && /^\/de\//i.test(parsed.pathname)) {
+        urls.de = href;
+      }
+    } catch {
+      /* ignore malformed switcher hrefs */
+    }
+  });
+  return urls;
+}
+
 export function ganterDocuments($: cheerio.CheerioAPI, sourceUrl: string): DocumentRecord[] {
   const documents: DocumentRecord[] = [];
   const seen = new Set<string>();
