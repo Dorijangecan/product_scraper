@@ -563,6 +563,13 @@ export interface DocumentRecord {
   parser?: string;
   stage?: string;
   confidence?: number;
+  // When explicitly false, the PDF-mining enrichment stages (downloaded + remote) skip this
+  // document entirely — the link is still recorded, downloaded and offered to the user, but no
+  // attributes are extracted from it. Used for documents that are genuine per-product datasheets
+  // in name only but whose content is a multi-variant / multi-language print catalog whose table
+  // extraction produces cross-variant, cross-language noise that corrupts cleaner web-page facts
+  // (e.g. Ganter Norm "standard sheets"). Undefined means "enrich as usual".
+  enrichable?: boolean;
 }
 
 export interface SourceRecord {

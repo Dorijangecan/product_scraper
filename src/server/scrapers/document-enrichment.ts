@@ -529,6 +529,7 @@ function normalizedFieldNames(normalized: ProductResult["normalized"]): string[]
 }
 
 function downloadedDocumentSkipReason(doc: DocumentRecord): string {
+  if (doc.enrichable === false) return "Skipped because the connector marked this document non-enrichable (link kept, but its content is a multi-variant/multi-language catalog that would corrupt web-page facts).";
   if (doc.downloadStatus && doc.downloadStatus !== "downloaded") return `Skipped because downloadStatus is '${doc.downloadStatus}': ${doc.downloadError ?? "no downloaded PDF available"}.`;
   if (!doc.localPath) return "Skipped because no local downloaded file path is available.";
   if (!/\.pdf$/i.test(doc.localPath) && !isPdfLikeDocumentUrl(doc.url)) return "Skipped because the downloaded local file is not a PDF.";
@@ -537,6 +538,7 @@ function downloadedDocumentSkipReason(doc: DocumentRecord): string {
 }
 
 function remoteDocumentSkipReason(doc: DocumentRecord): string {
+  if (doc.enrichable === false) return "Skipped because the connector marked this document non-enrichable (link kept, but its content is a multi-variant/multi-language catalog that would corrupt web-page facts).";
   if (doc.localPath || doc.parseStatus === "parsed") return "Skipped because the document is already local or already parsed.";
   if (doc.downloadStatus === "failed") return `Skipped because the document download previously failed: ${doc.downloadError ?? "unknown error"}.`;
   if (!["datasheet", "manual", "other"].includes(doc.type)) return `Skipped because document type '${doc.type}' is not a remote PDF enrichment candidate.`;
@@ -1326,6 +1328,7 @@ function expandWithNeighbours(pages: number[], window: number): Set<number> {
 }
 
 function shouldParsePdfDocument(doc: DocumentRecord): boolean {
+  if (doc.enrichable === false) return false;
   if (doc.downloadStatus && doc.downloadStatus !== "downloaded") return false;
   if (!doc.localPath) return false;
   if (!/\.pdf$/i.test(doc.localPath) && !isPdfLikeDocumentUrl(doc.url)) return false;
@@ -1337,6 +1340,7 @@ function shouldProbeRemotePdfDocument(doc: DocumentRecord): boolean {
 }
 
 function remoteProbeDocumentCandidate(doc: DocumentRecord): DocumentRecord | undefined {
+  if (doc.enrichable === false) return undefined;
   if (doc.localPath || doc.parseStatus === "parsed") return undefined;
   if (doc.downloadStatus === "failed") return undefined;
   if (!["datasheet", "manual", "other"].includes(doc.type)) return undefined;

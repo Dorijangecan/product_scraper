@@ -1348,6 +1348,65 @@ Operating Temperature XT
     expect(result.attributes).toEqual([]);
   });
 
+  it("skips a downloaded document marked enrichable:false without parsing it, keeping the link", async () => {
+    // A real per-product datasheet whose content is a multi-variant/multi-language catalog (Ganter
+    // Norm "standard sheets") is kept as a downloadable link but must never be mined for attributes:
+    // its extraction produces cross-variant, cross-language garbage that corrupts web-page facts.
+    const result = await enrichResultFromDownloadedDocuments(product({
+      documents: [
+        {
+          type: "datasheet",
+          label: "Standard sheet GN 422",
+          url: "https://example.test/422.pdf",
+          localPath: "D:/does-not-exist/should-never-be-opened.pdf",
+          downloadStatus: "downloaded",
+          enrichable: false
+        }
+      ]
+    }));
+
+    // Non-enrichable is skipped BEFORE the file is opened, so a bogus localPath does not surface as
+    // a parse failure — proof the parser was never invoked.
+    expect(result.documents[0].parseStatus).toBe("skipped");
+    expect(result.documents[0].url).toBe("https://example.test/422.pdf");
+    expect(result.attributes).toEqual([]);
+    expect(result.diagnostics?.documentParseFailures ?? []).toEqual([]);
+    expect(result.diagnostics?.documentProcessing).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        url: "https://example.test/422.pdf",
+        action: "skipped",
+        stage: "downloaded-document-enrichment",
+        reason: expect.stringContaining("non-enrichable")
+      })
+    ]));
+  });
+
+  it("does not probe a remote document marked enrichable:false", async () => {
+    let probed = false;
+    const result = await enrichResultFromRemoteDocuments(
+      product({
+        catalogNumber: "GN 422-33-LK-K2-SW",
+        documents: [
+          {
+            type: "datasheet",
+            label: "Standard sheet GN 422",
+            url: "https://example.test/422.pdf",
+            downloadStatus: "skipped",
+            enrichable: false
+          }
+        ]
+      }),
+      async () => {
+        probed = true;
+        return { localPath: "D:/does-not-exist/never.pdf" };
+      }
+    );
+
+    expect(probed).toBe(false);
+    expect(result.attributes).toEqual([]);
+    expect(result.documents[0].url).toBe("https://example.test/422.pdf");
+  });
+
   it("reads remote datasheet PDFs for missing values without retaining a local file path", async () => {
     const fixturePath = path.resolve("benchmarks", "live-check", "nvent-docs", "spec-00583.pdf");
     const result = await enrichResultFromRemoteDocuments(

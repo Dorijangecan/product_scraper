@@ -150,7 +150,9 @@ ProductResult {            // središnji objekt koji teče kroz cijeli pipeline;
                                           // voltage,current,protection,certificates,operatingTemp{Min,Max}
   attributes: AttributeRecord[];          // {group?,name,value,unit?,sourceUrl?,sourceType?,parser?,stage?,confidence?}
   documents: DocumentRecord[];            // {type:datasheet|certificate|manual|cad|image|other,label,url,
-                                          //  localPath?,downloadStatus?,parseStatus?,...}
+                                          //  localPath?,downloadStatus?,parseStatus?,enrichable?,...}
+                                          //  enrichable:false → link se čuva/skida ali PDF-mining
+                                          //  enrichment ga preskače (npr. Ganter multi-varijantni katalozi)
   sources: SourceRecord[];                // {url,sourceType:official|official-fallback|distributor|cache|generated,parser,...}
   qualityGate?; diagnostics?; evidence?: EvidenceRecord[];
   technicalAttributes?: TechnicalAttributeRecord[];   // ontologijom "shvaćeni" original label/value
@@ -249,14 +251,18 @@ Politike u `ManufacturerConfig.scrapeRecipe`: `DiscoveryPolicyConfig`, `Interact
 `schneider.ts` `siemens.ts` `spelsberg.ts` `turck.ts` — uz `parse<Vendor>ProductPage` helpere.
 Config-driven (bez fajla): `nvent`, `phoenix`.
 `gan.ts` (Ganter Norm, standardni strojni elementi): `GanterNormConnector` — traži preko
-`/en/products/quick-finder?q=` (redirecta bare family broj, npr. "GN 449.5", ravno na product
-page; ako je family prefiks dijeljen s više obitelji vraća disambiguation listu — riješeno kad
-postoji točno jedan exact-match hit, inače fallback). Family stranica nikad ne sadrži pun
-customer ordering code (samo bare family), pa connector dodaje self-referentni "Catalog Number"
-atribut (isti razlog kao Doepke) da shared identity-check ne odbije ispravno riješen red kao
-"unidentified". Multi-row "Article options / Table" (Ganter Geometry grupa — namjerno bez riječi
-"dimensions" da ne kolidira s normalizeFields) rješava red preko variant-tokena iz kataloškog
-broja; ako je dvosmisleno, weight/dimenzije se ostave prazne umjesto nagađanja.
+`/en/products/quick-finder?q=`. Quick-finder danas **301-redirecta puni ordering kod** (npr.
+"GN 422-33-TK-LK-K2-SW") ravno na točnu varijantnu stranicu (s `#fragmentom` koji kodira odabrane
+opcije), pa se disambiguacija između sibling-varijanti iste obitelji ("One/Two Function Elements",
+"with Cable"/"with Plug") rješava sama; bare family ("GN 422") vraća disambiguation listu i tretira
+se kao fallback (`uniqueExactFamilyHit` za jedini exact hit). Family stranica ne sadrži pun customer
+ordering code, pa connector dodaje self-referentni "Catalog Number" atribut (kao Doepke) da shared
+identity-check ne odbaci red. Multi-row "Article options / Table" (grupa **Ganter Geometry** — namjerno
+bez riječi "dimensions") rješava se preko variant-tokena; dvosmisleno → weight/dimenzije prazne.
+**Web stranica je izvor istine — svi Ganter PDF-ovi su `enrichable:false`** (link se čuva/skida, ali
+se NE minea): "standard sheet" je multi-varijantni + višejezični (EN/DE/FR/IT) print-katalog čija
+ekstrakcija truje čiste web podatke garbageom ("current: Cavo 4 A", "protection: voir tableau",
+"voltage: 24 V / 24 V / 120 V / 12 V"). Vidi `enrichable` flag na `DocumentRecord`.
 
 ### `src/server/pdt/`
 | Fajl | Ključni exporti |

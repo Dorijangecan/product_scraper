@@ -136,7 +136,7 @@ export function ganterVariantTokens(catalogNumber: string, family: GanterFamily 
     .filter(Boolean);
 }
 
-function parseGanterProductPage(catalogNumber: string, fetched: FetchedText, $: cheerio.CheerioAPI): ProductResult {
+export function parseGanterProductPage(catalogNumber: string, fetched: FetchedText, $: cheerio.CheerioAPI): ProductResult {
   const sourceUrl = fetched.effectiveUrl;
   const familyCode = cleanText($("h1 .product-name__id").first().text());
   const productLabel = cleanText($("h1 .product-name__label").first().text());
@@ -303,12 +303,24 @@ function parseGanterDescriptionBlock(
       }
       const hasBreak = $node.find("br").length > 0;
       if (!hasBreak) {
-        // No line break at all — the whole paragraph is one continuous phrase describing the base
-        // material, not a label:value pair (confirmed on GN 719: "<p><strong>Plastic</strong>,
-        // phenolic resin (PF)</p>" reads as "Plastic, phenolic resin (PF)"; splitting on </strong>
-        // previously produced a garbled name="Plastic" / value=", phenolic resin (PF)").
         const whole = cleanText($node.text());
-        if (whole && !/^rohs$/i.test(whole)) specAttributes.push(ganterAttribute("Ganter Specification", "Material", whole, sourceUrl, 0.85));
+        if (!whole || /^rohs$/i.test(whole)) continue;
+        // Some br-less spec paragraphs are self-labeled non-material facts sharing the same flat
+        // shape, most commonly the operating-temperature line ("Operating temperature -20 °C to
+        // +50 °C" on GN 6284 and siblings). Treating those as "Material" both mislabels them and
+        // masks the real material; record them under their own label so the ontology maps them to
+        // the correct normalized field instead.
+        const tempMatch = whole.match(/^operating\s+temperature\b[:\s]*(.+)$/i);
+        if (tempMatch) {
+          const value = cleanText(tempMatch[1]) || whole;
+          specAttributes.push(ganterAttribute("Ganter Specification", "Operating temperature", value, sourceUrl, 0.85));
+          continue;
+        }
+        // Otherwise the whole paragraph is one continuous phrase describing the base material, not a
+        // label:value pair (confirmed on GN 719: "<p><strong>Plastic</strong>, phenolic resin
+        // (PF)</p>" reads as "Plastic, phenolic resin (PF)"; splitting on </strong> previously
+        // produced a garbled name="Plastic" / value=", phenolic resin (PF)").
+        specAttributes.push(ganterAttribute("Ganter Specification", "Material", whole, sourceUrl, 0.85));
         continue;
       }
       const trailingText = cleanText($node.clone().find("strong").remove().end().text());
@@ -527,13 +539,22 @@ function ganterBreadcrumbCategory($: cheerio.CheerioAPI): string | undefined {
 }
 
 /**
- * The primary per-family PDF ("Standard sheet GN ...") is the only per-article datasheet; the
+ * The primary per-family PDF ("Standard sheet GN ...") is the per-article datasheet; the
  * "... Characteristics" material-properties PDF (e.g. "Stainless Steel Characteristics") is a
  * shared boilerplate sheet reused across every stainless-steel product family, so it is kept as
  * "other" rather than "datasheet" to avoid document-enrichment mixing generic material trivia into
  * per-article facts (the same reasoning Doepke's shared derating-curve bulletins use).
+ *
+ * Every Ganter PDF is marked `enrichable: false` — the link is kept, downloaded and offered to the
+ * user, but no attributes are mined from it. Ganter's PDFs are multi-variant, multi-language print
+ * catalogs (a single "standard sheet" tables every nominal size AND cross-references sibling
+ * families, with EN/DE/FR/IT columns side by side). Extracting them yields hundreds of cross-variant,
+ * cross-language garbage attributes ("current: Cavo 4 A", "protection: IP67, voir tableau",
+ * "voltage: 24 V / 24 V / 120 V / 12 V") that overwrite the clean, variant-resolved facts the
+ * structured web product page already provides. For Ganter the web page — not the PDF — is the
+ * source of truth (deterministic principle: a corrupted guess is worse than a blank field).
  */
-function ganterDocuments($: cheerio.CheerioAPI, sourceUrl: string): DocumentRecord[] {
+export function ganterDocuments($: cheerio.CheerioAPI, sourceUrl: string): DocumentRecord[] {
   const documents: DocumentRecord[] = [];
   const seen = new Set<string>();
 
@@ -548,7 +569,12 @@ function ganterDocuments($: cheerio.CheerioAPI, sourceUrl: string): DocumentReco
     // #4e4e4d; } ... Standard sheet GN 449.5"), which silently defeated the "^standard sheet"
     // datasheet-type check below on every single fixture.
     const label = cleanText($a.clone().find("style").remove().end().text()) || "Ganter document";
-    documents.push({ type: /^standard sheet\b/i.test(label) ? "datasheet" : "other", label, url, sourceUrl });
+    const type = /^standard sheet\b/i.test(label)
+      ? "datasheet"
+      : /^operat(?:ing|ion) instruction\b/i.test(label)
+        ? "manual"
+        : "other";
+    documents.push({ type, label, url, sourceUrl, enrichable: false });
   });
 
   $("img.product-technical-drawing__image").each((_, img) => {
