@@ -43,7 +43,7 @@ također opt-in: `PRODUCT_SCRAPER_ALLOW_EXTERNAL_READER=1`. Princip: vrijednosti
 
 - **API server:** [src/server/index.ts](src/server/index.ts) — sve `/api/*` rute. Sluša `127.0.0.1:${PORT||3001}`.
 - **Dev:** `npm run dev` (API watch + Vite). **Server only:** `npm run server`.
-- **Desktop:** `npm run desktop` → [scripts/start-desktop.cjs](scripts/start-desktop.cjs) → [src/desktop/main.cjs](src/desktop/main.cjs) → spawn server → BrowserWindow.
+- **Desktop:** `npm run desktop` → [scripts/start-desktop.cjs](scripts/start-desktop.cjs) → [src/desktop/main.cjs](src/desktop/main.cjs) → spawn server → BrowserWindow. `getServerRuntime()` **probira** kandidate (npm node → system node u Program Files → PATH node → bundlani `.runtime/node` → Electron-as-node) i bira **prvi koji stvarno može instancirati better-sqlite3** (`new Database(':memory:')`) — izbjegava NODE_MODULE_VERSION crash kad je native modul buildan za drugu Node verziju od runtimea (npr. stari portable v22 vs modul za v24).
 - **UI:** [src/client/main.tsx](src/client/main.tsx) → [App.tsx](src/client/App.tsx); API pozivi u [api.ts](src/client/api.ts).
 - **Scrape orkestracija:** [run-manager.ts](src/server/run-manager.ts) (`RunManager.processRun`).
 

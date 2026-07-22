@@ -3,7 +3,7 @@ const fs = require("node:fs");
 const http = require("node:http");
 const net = require("node:net");
 const path = require("node:path");
-const { spawn } = require("node:child_process");
+const { spawn, spawnSync } = require("node:child_process");
 
 const rootDir = path.resolve(__dirname, "../..");
 const dataDir = path.join(rootDir, "data");
@@ -134,36 +134,75 @@ async function startServer(port) {
   await waitForHealth(port, serverStartupTimeoutMs);
 }
 
+/**
+ * Verifies a candidate runtime can actually load the native addons the server needs. better-sqlite3
+ * lazy-loads its compiled `.node` on the first `new Database()` — a plain `require()` succeeds even on
+ * an ABI-mismatched runtime, so we must instantiate a DB to detect a NODE_MODULE_VERSION mismatch.
+ */
+function runtimeCanLoadNativeAddons(command, args, env) {
+  try {
+    const check = spawnSync(command, [...args, "-e", "new (require('better-sqlite3'))(':memory:').close()"], {
+      cwd: rootDir,
+      env: { ...process.env, ...env },
+      timeout: 20000,
+      stdio: "ignore"
+    });
+    return check.status === 0;
+  } catch {
+    return false;
+  }
+}
+
 function getServerRuntime() {
-  // When launched through npm, prefer the same Node executable that installed
-  // node_modules. Native packages such as better-sqlite3 are ABI-bound to that
-  // Node version; using the bundled fallback runtime first can make desktop
-  // startup fail with NODE_MODULE_VERSION mismatches.
-  if (process.env.npm_node_execpath && fs.existsSync(process.env.npm_node_execpath)) {
-    return { command: process.env.npm_node_execpath, args: [], env: {} };
-  }
-
-  const projectNode = path.join(rootDir, ".runtime", "node", "node.exe");
-  if (fs.existsSync(projectNode)) {
-    return { command: projectNode, args: [], env: {} };
-  }
-
-  const portableNode = path.join(rootDir, "runtime", "node", "node.exe");
-  if (fs.existsSync(portableNode)) {
-    return { command: portableNode, args: [], env: {} };
-  }
-
-  if (process.env.npm_node_execpath) {
-    return { command: process.env.npm_node_execpath, args: [], env: {} };
-  }
-
-  // Portable builds are launched through Electron directly. Electron can run as
-  // a Node runtime when this flag is set, so users do not need Node/npm installed.
-  return {
-    command: process.execPath,
-    args: [],
-    env: { ELECTRON_RUN_AS_NODE: "1" }
+  // The desktop server loads native modules (better-sqlite3) that are ABI-bound to a specific Node
+  // version. A stale bundled runtime — or an Electron whose Node ABI differs from the one node_modules
+  // was built against — otherwise crashes startup with a NODE_MODULE_VERSION mismatch. So instead of
+  // blindly taking the first available runtime, probe candidates in preference order and use the first
+  // that can actually open the database. This makes startup robust no matter how the app is launched
+  // (npm, bundled portable node, or Electron-as-node) or which Node version node_modules was built for.
+  const candidates = [];
+  const pushNode = (command, label, env = {}) => {
+    if (command && !candidates.some((c) => c.command === command) && (env.ELECTRON_RUN_AS_NODE || fs.existsSync(command))) {
+      candidates.push({ command, args: [], env, label });
+    }
   };
+  // 1. The Node that launched npm (set only for `npm run desktop`) — usually the freshly-installed one.
+  pushNode(process.env.npm_node_execpath, "npm node");
+  // 2. A system Node install (covers double-click / packaged launches where npm_node_execpath is unset,
+  //    and where the bundled runtime's ABI no longer matches a rebuilt node_modules).
+  for (const base of [process.env.ProgramFiles, process.env["ProgramFiles(x86)"], "C:\\Program Files"]) {
+    if (base) pushNode(path.join(base, "nodejs", "node.exe"), "system node");
+  }
+  try {
+    const resolved = spawnSync(process.platform === "win32" ? "where" : "which", ["node"], { encoding: "utf8" });
+    const first = (resolved.stdout || "").split(/\r?\n/).map((s) => s.trim()).find(Boolean);
+    if (first) pushNode(first, "PATH node");
+  } catch {
+    /* PATH lookup unavailable — rely on the other candidates. */
+  }
+  // 3. Bundled portable runtimes shipped with the app (for machines without Node installed).
+  pushNode(path.join(rootDir, ".runtime", "node", "node.exe"), ".runtime node");
+  pushNode(path.join(rootDir, "runtime", "node", "node.exe"), "portable node");
+  // 4. Electron itself as a Node runtime — last resort.
+  pushNode(process.execPath, "electron-as-node", { ELECTRON_RUN_AS_NODE: "1" });
+
+  for (const candidate of candidates) {
+    if (runtimeCanLoadNativeAddons(candidate.command, candidate.args, candidate.env)) {
+      appendLog(`Selected server runtime (${candidate.label}): ${candidate.command}\n`);
+      return { command: candidate.command, args: candidate.args, env: candidate.env };
+    }
+    appendLog(`Skipping server runtime (${candidate.label}) — cannot load native modules (ABI mismatch?): ${candidate.command}\n`);
+  }
+
+  // No candidate could open the DB (e.g. better-sqlite3 was built for a Node version not present here).
+  // Fall back to the first candidate so behavior is no worse than before, with an actionable log line —
+  // the fix is `npm rebuild better-sqlite3` under the runtime the app launches with.
+  const fallback = candidates[0];
+  appendLog(
+    `WARNING: no runtime could load better-sqlite3 (native ABI mismatch). Falling back to ${fallback.command}. ` +
+      `Run 'npm rebuild better-sqlite3' with that Node version to fix.\n`
+  );
+  return { command: fallback.command, args: fallback.args, env: fallback.env };
 }
 
 function normalizePickerKind(value) {
