@@ -11,7 +11,7 @@ import {
 import { parseGenericProductPage } from "../src/server/scrapers/generic.js";
 import { mergeResults, normalizeFields } from "../src/server/scrapers/normalizer.js";
 import { parseSchneiderDatasheetReaderPage, parseSchneiderProductPage, parseTelemecaniqueProductPage } from "../src/server/scrapers/schneider.js";
-import { extractSiemensTechnicalData, parseSiemensBuildingTechnologiesPview, parseSiemensProductApiResponse } from "../src/server/scrapers/siemens.js";
+import { extractSiemensTechnicalData, parseSiemensBuildingTechnologiesPview, parseSiemensProductApiResponse, siemensEuropeanWeightToDot } from "../src/server/scrapers/siemens.js";
 import { parseRockwellCutsheetPage, parseRockwellDpp, parseRockwellDrawingsPage, parseRockwellFamilyPage } from "../src/server/scrapers/rockwell.js";
 import { SCEConnector, parseSceProductPage } from "../src/server/scrapers/sce.js";
 import { SpelsbergConnector } from "../src/server/scrapers/spelsberg.js";
@@ -5538,7 +5538,11 @@ IP degree of protection IP68 conforming to IEC 60529 IP69K conforming to DIN 400
     expect(result!.status).toBe("found");
     expect(result!.title).toBe("GBB341.1E Damper actuator");
     expect(result!.description).toBe("Rotary air damper actuator 25 Nm, without spring return");
-    expect(result!.productUrl).toBe("https://support.industry.siemens.com/cs/ww/en/pv/S55499-D820/pi");
+    // Product URL must be the browser-renderable SiePortal catalog detail page, NOT the pview
+    // `/pv/<sn>/pi` API entry point (which only 302s to a generic Support landing → dead link).
+    expect(result!.productUrl).toBe("https://sieportal.siemens.com/en-ww/products-services/detail/S55499-D820");
+    // The pview API URL is still kept as a data source for provenance.
+    expect(result!.sources.some((s) => s.parser === "siemens-ios-pview-api" && s.url.includes("/webapp/pview/"))).toBe(true);
     expect(result!.attributes.some((a) => a.name === "Article Number" && a.value === "S55499-D820")).toBe(true);
     expect(result!.attributes.some((a) => a.name === "Lifecycle Status" && a.value === "Delivery release (2025-05-12)")).toBe(true);
     expect(result!.documents.some((d) => d.type === "image" && d.url.includes("P_BT01_XX_08235I.jpg"))).toBe(true);
@@ -5551,6 +5555,18 @@ IP degree of protection IP68 conforming to IEC 60529 IP69K conforming to DIN 400
     expect(result!.attributes.some((a) => a.group === "Siemens Technical Data" && a.name === "Torque" && a.value === "25 Nm")).toBe(true);
     // The "Further information" catalog link must not leak in as a spec.
     expect(result!.attributes.some((a) => /Product Catalog/i.test(a.name) || /siemens\.com\/download/i.test(a.value))).toBe(false);
+  });
+
+  it("converts SiePortal European-formatted net weight to canonical dot-decimal without misreading it as thousands", () => {
+    // The killer case: "1,866 Kg" is 1.866 kg — NOT 1866. A generic separator heuristic gets this wrong.
+    expect(siemensEuropeanWeightToDot("1,866 Kg")).toBe("1.866 Kg");
+    expect(siemensEuropeanWeightToDot("0,293 Kg")).toBe("0.293 Kg");
+    // Dot-thousands + comma-decimal European form.
+    expect(siemensEuropeanWeightToDot("1.234,5 Kg")).toBe("1234.5 Kg");
+    // No comma → already dot-decimal/integer, must pass through untouched.
+    expect(siemensEuropeanWeightToDot("12.5 Kg")).toBe("12.5 Kg");
+    expect(siemensEuropeanWeightToDot("15 Kg")).toBe("15 Kg");
+    expect(siemensEuropeanWeightToDot(undefined)).toBeUndefined();
   });
 
   it("extracts the Siemens technical-specifications table from the embedded pview <td> blob", () => {

@@ -272,7 +272,18 @@ klasični crtački simboli b/a/d/h/l1/t…; verbozni config stupci tipa "Connect
 /webapp/pview/WW/en/<sn>$/`, `parseSiemensBuildingTechnologiesPview`) — daje ime/opis/lifecycle/sliku/
 canonical URL **+ punu tablicu tehničkih specifikacija** ugrađenu kao HTML u `<td>` CDATA
 (`extractSiemensTechnicalData`: voltage/protection/dimensions/temp/torque/power → normalized). BT brojevi
-se rutaju na pview PRVO (prije SiePortal automation API-ja, koji za njih nema ta polja). Akamai edge traži
+se rutaju na pview PRVO (prije SiePortal automation API-ja, koji za njih nema ta polja).
+**`productUrl` = radna SiePortal katalog-detail stranica** (`sieportal.siemens.com/en-ww/products-services/detail/<sn>`,
+konstanta `SIEMENS_SIEPORTAL_DETAIL`) — NE pview `producturl` (`/pv/<sn>/pi`), koji je samo API-ulaz i u pregledniku
+302-redirecta na generičku "Support" landing (=mrtav link u exportu); pview URL ostaje samo kao data-source.
+Ista detail stranica nosi net weight — sada **popunjen** preko `enrichBuildingTechnologiesFromMall`:
+BT grana nakon pview zove `fetchSiemensProductApi` (isti anon-token `SearchApi/GetProductsDetails` kao
+automation; danas služi i BT — staro "404 za BT" je zastarjelo) i dodaje Net Weight + Product Number (MFN)
++ Country of Origin + Customs Commodity Code, pa renormalizira. **Dimenzije se NE uzimaju odatle** (API daje
+samo packaging dims → pokvario bi pview product W×H×D). Weight format-zamka: `uiNetWeightValue` je uvijek
+europski ("1,866 Kg" = 1.866), pa `normalizeNumberSeparators` heuristika krivo čita kao 1866 (tisućice) →
+koristi se `siemensEuropeanWeightToDot` (exported, testiran). Auth refaktoriran u modul-fn
+(`readSiemensAuthConfig`/`fetchSiemensAnonymousToken`/`fetchSiemensProductApi`). Akamai edge traži
 **browser UA** (node UA → 403), pa `http-client.ts` `DEFAULT_USER_AGENT`
 mora biti aktualni Chrome (Chrome/125 se odbija, Chrome/148 prolazi — bitno i za image download).
 Datasheet PDF: `hit.sbt.siemens.com` "Data Sheet for Product" (direktan PDF), priložen samo ako

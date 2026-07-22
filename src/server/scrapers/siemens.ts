@@ -17,6 +17,9 @@ const SIEMENS_ENVIRONMENT_URL = `${SIEMENS_BASE}/assets/environments/environment
 // rejects non-browser User-Agents with 403, so requests must present a browser UA (this stays a
 // public product-data lookup, no auth). `<sn>$/` is the exact-stock-number product view.
 const SIEMENS_IOS_BASE = "https://support.industry.siemens.com";
+// SiePortal catalog detail page — the working, browser-renderable product landing for both automation
+// MLFB parts and Building Technologies stock numbers. Append an (encoded) article/stock number.
+const SIEMENS_SIEPORTAL_DETAIL = "https://sieportal.siemens.com/en-ww/products-services/detail/";
 const SIEMENS_BROWSER_UA =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36";
 const SIEMENS_MMPDATA_SOURCE = {
@@ -54,23 +57,7 @@ export class SiemensConnector implements ManufacturerConnector {
     }
 
     try {
-      const auth = await this.readAuthConfig(context);
-      const token = await this.fetchAnonymousToken(auth, context);
-      const fetched = await context.http.fetchText(SIEMENS_PRODUCT_API, {
-        method: "POST",
-        body: JSON.stringify({
-          language: "en",
-          countryCode: "WW",
-          products: [{ itemId: "1", articleNumber: catalogNumber }]
-        }),
-        headers: {
-          accept: "application/json",
-          "content-type": "application/json",
-          authorization: `Bearer ${token}`
-        },
-        timeoutMs: 20000,
-        signal: context.signal
-      });
+      const fetched = await fetchSiemensProductApi(catalogNumber, context);
       const result = parseSiemensProductApiResponse(catalogNumber, fetched);
       if (result.status !== "failed") {
         const { result: fallback, discovery } = await scrapeDiscoveredFallback(catalogNumber, context, { idPrefix: this.id });
@@ -102,49 +89,76 @@ export class SiemensConnector implements ManufacturerConnector {
     );
   }
 
-  private async readAuthConfig(context: ScrapeContext): Promise<SiemensAuthConfig> {
-    const fetched = await context.http.fetchText(SIEMENS_ENVIRONMENT_URL, {
-      timeoutMs: 15000,
-      signal: context.signal
-    });
-    const text = fetched.text;
-    const authority = readEnvironmentString(text, "authority");
-    const anonymousTokenUrl = readEnvironmentString(text, "anonymousTokenUrl");
-    const clientId = readEnvironmentString(text, "client_id");
-    const clientSecret = readEnvironmentString(text, "client_secret");
-    if (!authority || !anonymousTokenUrl || !clientId || !clientSecret) {
-      throw new Error("Siemens public auth settings were not found.");
-    }
-    return { authority, anonymousTokenUrl, clientId, clientSecret };
-  }
+}
 
-  private async fetchAnonymousToken(auth: SiemensAuthConfig, context: ScrapeContext): Promise<string> {
-    // Reuse a cached token across catalog numbers when it still has >60s of life left.
-    if (tokenCache && tokenCache.expiresAt > Date.now() + 60_000) {
-      return tokenCache.token;
-    }
-    const tokenUrl = new URL(auth.anonymousTokenUrl, auth.authority).toString();
-    const fetched = await context.http.fetchText(tokenUrl, {
-      method: "POST",
-      body: new URLSearchParams({
-        grant_type: "client_credentials",
-        client_id: auth.clientId,
-        client_secret: auth.clientSecret
-      }),
-      headers: {
-        accept: "application/json",
-        "content-type": "application/x-www-form-urlencoded"
-      },
-      cache: false,
-      timeoutMs: 15000,
-      signal: context.signal
-    });
-    const parsed = JSON.parse(fetched.text) as { access_token?: string; error?: string; expires_in?: number };
-    if (!parsed.access_token) throw new Error(parsed.error || "Siemens anonymous token was not returned.");
-    const expiresInSec = typeof parsed.expires_in === "number" && parsed.expires_in > 60 ? parsed.expires_in : 300;
-    tokenCache = { token: parsed.access_token, expiresAt: Date.now() + (expiresInSec - 60) * 1000 };
-    return parsed.access_token;
+async function readSiemensAuthConfig(context: ScrapeContext): Promise<SiemensAuthConfig> {
+  const fetched = await context.http.fetchText(SIEMENS_ENVIRONMENT_URL, {
+    timeoutMs: 15000,
+    signal: context.signal
+  });
+  const text = fetched.text;
+  const authority = readEnvironmentString(text, "authority");
+  const anonymousTokenUrl = readEnvironmentString(text, "anonymousTokenUrl");
+  const clientId = readEnvironmentString(text, "client_id");
+  const clientSecret = readEnvironmentString(text, "client_secret");
+  if (!authority || !anonymousTokenUrl || !clientId || !clientSecret) {
+    throw new Error("Siemens public auth settings were not found.");
   }
+  return { authority, anonymousTokenUrl, clientId, clientSecret };
+}
+
+async function fetchSiemensAnonymousToken(auth: SiemensAuthConfig, context: ScrapeContext): Promise<string> {
+  // Reuse a cached token across catalog numbers when it still has >60s of life left.
+  if (tokenCache && tokenCache.expiresAt > Date.now() + 60_000) {
+    return tokenCache.token;
+  }
+  const tokenUrl = new URL(auth.anonymousTokenUrl, auth.authority).toString();
+  const fetched = await context.http.fetchText(tokenUrl, {
+    method: "POST",
+    body: new URLSearchParams({
+      grant_type: "client_credentials",
+      client_id: auth.clientId,
+      client_secret: auth.clientSecret
+    }),
+    headers: {
+      accept: "application/json",
+      "content-type": "application/x-www-form-urlencoded"
+    },
+    cache: false,
+    timeoutMs: 15000,
+    signal: context.signal
+  });
+  const parsed = JSON.parse(fetched.text) as { access_token?: string; error?: string; expires_in?: number };
+  if (!parsed.access_token) throw new Error(parsed.error || "Siemens anonymous token was not returned.");
+  const expiresInSec = typeof parsed.expires_in === "number" && parsed.expires_in > 60 ? parsed.expires_in : 300;
+  tokenCache = { token: parsed.access_token, expiresAt: Date.now() + (expiresInSec - 60) * 1000 };
+  return parsed.access_token;
+}
+
+/**
+ * Fetches the SiePortal Mall product-details payload (`SearchApi/GetProductsDetails`) for a single
+ * article. This anonymous-token endpoint serves BOTH automation MLFB parts and Building Technologies
+ * stock numbers (it returns net weight, packaging dimensions, market-facing number, country of origin,
+ * datasheet and image URLs), so it is reused by the automation path and by BT enrichment.
+ */
+async function fetchSiemensProductApi(catalogNumber: string, context: ScrapeContext): Promise<FetchedText> {
+  const auth = await readSiemensAuthConfig(context);
+  const token = await fetchSiemensAnonymousToken(auth, context);
+  return context.http.fetchText(SIEMENS_PRODUCT_API, {
+    method: "POST",
+    body: JSON.stringify({
+      language: "en",
+      countryCode: "WW",
+      products: [{ itemId: "1", articleNumber: catalogNumber }]
+    }),
+    headers: {
+      accept: "application/json",
+      "content-type": "application/json",
+      authorization: `Bearer ${token}`
+    },
+    timeoutMs: 20000,
+    signal: context.signal
+  });
 }
 
 function isSiemensBuildingTechnologiesStockNumber(catalogNumber: string): boolean {
@@ -153,7 +167,7 @@ function isSiemensBuildingTechnologiesStockNumber(catalogNumber: string): boolea
 
 function siemensMallStockNumberResult(catalogNumber: string): ProductResult {
   const stockNumber = catalogNumber.trim();
-  const productUrl = `https://mall.industry.siemens.com/mall/CZ/CZ/Catalog/Product/?mlfb=${encodeURIComponent(stockNumber)}`;
+  const productUrl = `${SIEMENS_SIEPORTAL_DETAIL}${encodeURIComponent(stockNumber)}`;
   // Smart Infrastructure publishes the selected product's datasheet through this official,
   // server-readable endpoint even when the corresponding interactive Mall page is blocked.
   // `prodId` is an exact stock number, so the document is a safe enrichment candidate rather
@@ -228,6 +242,10 @@ async function scrapeSiemensBuildingTechnologies(
   }
   const parsed = parseSiemensBuildingTechnologiesPview(catalogNumber, fetched);
   if (!parsed) return undefined;
+  // The pview technical-spec table has voltage/protection/dimensions/temperature but never net weight.
+  // The SiePortal Mall product-details API does carry it (plus MFN, country of origin) for BT lines —
+  // fill those gaps. Best-effort: never let this lose the pview result.
+  await enrichBuildingTechnologiesFromMall(parsed, catalogNumber, context);
   const datasheet = await siemensBuildingTechnologiesDatasheet(stockNumber, context);
   if (datasheet) {
     parsed.documents = dedupeDocuments([datasheet, ...parsed.documents]);
@@ -237,6 +255,67 @@ async function scrapeSiemensBuildingTechnologies(
     ];
   }
   return parsed;
+}
+
+/**
+ * Converts a SiePortal Mall `uiNetWeightValue` (European-formatted, e.g. "0,293 Kg" or "1.234,5 Kg")
+ * to canonical dot-decimal. Deterministic — commits to the field's known European locale rather than
+ * guessing: only touches strings that contain a comma (dot = thousands, comma = decimal); a value with
+ * no comma is already dot-decimal/integer and passes through untouched (so "12.5 Kg" is never mangled).
+ */
+export function siemensEuropeanWeightToDot(value: string | undefined): string | undefined {
+  const text = value ? cleanText(value) : "";
+  if (!text) return undefined;
+  if (!text.includes(",")) return text;
+  return text.replace(/\.(?=\d)/g, "").replace(",", ".");
+}
+
+/**
+ * Fills the gaps the pview technical-spec table leaves — most importantly **net weight** — from the
+ * SiePortal Mall product-details API (`SearchApi/GetProductsDetails`, the same endpoint the automation
+ * path uses; it now serves BT stock numbers too). Mutates `result` in place and re-normalizes so the
+ * weight surfaces in `normalized.weight`. Any failure is swallowed — the pview result must survive.
+ * Product dimensions are intentionally NOT taken from here: the API exposes only *packaging*
+ * dimensions, which would clobber pview's correct product W×H×D.
+ */
+async function enrichBuildingTechnologiesFromMall(
+  result: ProductResult,
+  catalogNumber: string,
+  context: ScrapeContext
+): Promise<void> {
+  let product: Record<string, unknown> | undefined;
+  try {
+    const fetched = await fetchSiemensProductApi(catalogNumber, context);
+    const parsed = JSON.parse(fetched.text) as unknown;
+    const products = isRecord(parsed) && Array.isArray(parsed.products) ? parsed.products.filter(isRecord) : [];
+    product = products.find((item) => sameCatalogNumber(item.articleNumber, catalogNumber)) ?? products[0];
+  } catch {
+    return;
+  }
+  if (!product) return;
+
+  const sourceUrl = result.productUrl ?? `${SIEMENS_SIEPORTAL_DETAIL}${encodeURIComponent(catalogNumber.trim())}`;
+  const group = "Siemens Industry Mall";
+  const extra: AttributeRecord[] = [];
+  const push = (name: string, value: string | undefined) => {
+    const text = value ? cleanText(value) : "";
+    if (text) extra.push({ group, name, value: text, sourceUrl, sourceType: "official" });
+  };
+  // The API reports weight in the SiePortal locale, which is ALWAYS European for this field
+  // ("0,293 Kg", "1,866 Kg" = 0.293 / 1.866 kg). The shared separator heuristic can't be used here —
+  // it misreads "1,866" as 1866 (thousands). Commit to the known European format instead.
+  push("Net Weight", siemensEuropeanWeightToDot(stringValue(product.uiNetWeightValue)));
+  push("Product Number", stringValue(product.marketFacingNumber));
+  push("Country of Origin", stringValue(product.countryOfOrigin));
+  push("Customs Commodity Code", stringValue(product.commodityCode));
+  if (!extra.length) return;
+
+  result.attributes = dedupeAttributes([...result.attributes, ...extra]);
+  result.normalized = normalizeFields(result.attributes, result.documents);
+  result.sources = [
+    ...result.sources,
+    { url: SIEMENS_PRODUCT_API, sourceType: "official", parser: "siemens-mall-product-details", fetchedAt: new Date().toISOString() }
+  ];
 }
 
 /**
@@ -285,10 +364,18 @@ export function parseSiemensBuildingTechnologiesPview(catalogNumber: string, fet
   const mlfb = pviewTag(xml, "mlfb") || catalogNumber.trim();
   if (!name && !description) return undefined;
 
-  const productUrl =
-    pviewTag(xml, "producturl") ||
-    `${SIEMENS_IOS_BASE}/cs/ww/en/pv/${encodeURIComponent(catalogNumber.trim())}/pi`;
-  const sourceUrl = fetched.effectiveUrl || productUrl;
+  const stockNumber = catalogNumber.trim();
+  // Human-facing product landing page. IMPORTANT: the pview `producturl` (/cs/ww/en/pv/<sn>/pi) is
+  // only an Online-Support API entry point — opened in a browser it 302-redirects to a GENERIC
+  // SiePortal "Support" landing page, NOT to the product (this is why the exported BT links looked
+  // dead). The page that actually renders the product — description, lifecycle, net weight, packaging
+  // dimensions and the datasheet — is the SiePortal catalog detail page: the same target the Industry
+  // Mall product link redirects to, and the URL the automation-MLFB path already uses. Route the
+  // product URL there; the pview API stays a data source only.
+  const productUrl = `${SIEMENS_SIEPORTAL_DETAIL}${encodeURIComponent(stockNumber)}`;
+  const pviewPageUrl =
+    pviewTag(xml, "producturl") || `${SIEMENS_IOS_BASE}/cs/ww/en/pv/${encodeURIComponent(stockNumber)}/pi`;
+  const sourceUrl = fetched.effectiveUrl || pviewPageUrl;
 
   const attributes: AttributeRecord[] = [
     { group: "Siemens Industry Online Support", name: "Article Number", value: mlfb, sourceUrl, sourceType: "official" }
@@ -332,7 +419,7 @@ export function parseSiemensBuildingTechnologiesPview(catalogNumber: string, fet
     attributes: dedupeAttributes(attributes),
     documents: dedupeDocuments(documents),
     sources: [
-      { url: productUrl, sourceType: "official", parser: "siemens-ios-pview", fetchedAt: new Date().toISOString() },
+      { url: productUrl, sourceType: "official", parser: "siemens-sieportal-detail", fetchedAt: new Date().toISOString() },
       siemensSource(sourceUrl, "siemens-ios-pview-api", fetched)
     ]
   };

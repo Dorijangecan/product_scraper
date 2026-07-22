@@ -496,7 +496,7 @@ describe("manufacturer configuration", () => {
 
     expect(fallbackCalls).toBe(1);
     expect(result.status).toBe("partial");
-    expect(result.productUrl).toContain("/mall/CZ/CZ/Catalog/Product/");
+    expect(result.productUrl).toBe(`https://sieportal.siemens.com/en-ww/products-services/detail/${catalogNumber}`);
     expect(result.attributes).toEqual(expect.arrayContaining([expect.objectContaining({ name: "Article Number", value: catalogNumber })]));
     expect(result.documents).toEqual(expect.arrayContaining([expect.objectContaining({ type: "datasheet", url: expect.stringContaining(`prodId=${catalogNumber}`) })]));
     expect(result.diagnostics?.notes?.join(" ")).toContain("60-second timeout");
