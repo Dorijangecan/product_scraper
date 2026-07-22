@@ -10,6 +10,11 @@ import { scrapeDiscoveredFallback, withDiscoveryFallbackDiagnostics } from "./di
 
 const SIEMENS_BASE = "https://sieportal.siemens.com";
 const SIEMENS_PRODUCT_API = `${SIEMENS_BASE}/api/mall/SearchApi/GetProductsDetails`;
+// A second, richer anonymous-token Mall endpoint. GetProductsDetails (above) never returns a GTIN for
+// BT lines (ean/upc are null there), but this one does (productIdentifiers.ean) — confirmed live to
+// match the GTIN shown on the HIT/SBT catalog page. Used only for its EAN; GetProductsDetails remains
+// the source for weight/MFN/country of origin (already tested), to avoid disturbing that path.
+const SIEMENS_PRODUCT_AND_PRICES_API = `${SIEMENS_BASE}/api/mall/ProductInformation/GetProductsAndPrices`;
 const SIEMENS_ENVIRONMENT_URL = `${SIEMENS_BASE}/assets/environments/environment.js`;
 // Siemens Industry Online Support hosts a public, unauthenticated product-view API that DOES index
 // Building Technologies stock numbers (S55… actuators, sensors, controllers) — unlike the SiePortal
@@ -161,6 +166,28 @@ async function fetchSiemensProductApi(catalogNumber: string, context: ScrapeCont
   });
 }
 
+/** Fetches `ProductInformation/GetProductsAndPrices` — see SIEMENS_PRODUCT_AND_PRICES_API for why. */
+async function fetchSiemensProductAndPricesApi(catalogNumber: string, context: ScrapeContext): Promise<FetchedText> {
+  const auth = await readSiemensAuthConfig(context);
+  const token = await fetchSiemensAnonymousToken(auth, context);
+  return context.http.fetchText(SIEMENS_PRODUCT_AND_PRICES_API, {
+    method: "POST",
+    body: JSON.stringify({
+      language: "en",
+      countryCode: "WW",
+      regionId: "WW",
+      products: [{ itemId: "1", articleNumber: catalogNumber }]
+    }),
+    headers: {
+      accept: "application/json",
+      "content-type": "application/json",
+      authorization: `Bearer ${token}`
+    },
+    timeoutMs: 20000,
+    signal: context.signal
+  });
+}
+
 function isSiemensBuildingTechnologiesStockNumber(catalogNumber: string): boolean {
   return /^S\d{5}-[A-Z]\d+$/i.test(catalogNumber.trim());
 }
@@ -271,6 +298,31 @@ export function siemensEuropeanWeightToDot(value: string | undefined): string | 
 }
 
 /**
+ * Reads the GTIN out of a `GetProductsAndPrices` response body (`productInformation.productIdentifiers.ean`).
+ * `GetProductsDetails` — the endpoint used for weight/MFN elsewhere in this file — always returns
+ * `ean: null` for Building Technologies lines; this richer, sibling Mall endpoint does carry it
+ * (verified live against the GTIN printed on the HIT/SBT catalog page). Returns undefined on any
+ * malformed/missing shape rather than throwing, since GTIN is a bonus field.
+ */
+export function extractSiemensProductAndPricesEan(responseText: string, catalogNumber: string): string | undefined {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(responseText);
+  } catch {
+    return undefined;
+  }
+  const products = isRecord(parsed) && Array.isArray(parsed.products) ? parsed.products.filter(isRecord) : [];
+  const productInfo = products
+    .map((item) => (isRecord(item.productInformation) ? item.productInformation : undefined))
+    .find(
+      (info): info is Record<string, unknown> =>
+        Boolean(info) && isRecord(info?.productIdentifiers) && sameCatalogNumber((info!.productIdentifiers as Record<string, unknown>).articleNumber, catalogNumber)
+    );
+  if (!productInfo || !isRecord(productInfo.productIdentifiers)) return undefined;
+  return stringValue((productInfo.productIdentifiers as Record<string, unknown>).ean);
+}
+
+/**
  * Fills the gaps the pview technical-spec table leaves — most importantly **net weight** — from the
  * SiePortal Mall product-details API (`SearchApi/GetProductsDetails`, the same endpoint the automation
  * path uses; it now serves BT stock numbers too). Mutates `result` in place and re-normalizes so the
@@ -308,14 +360,30 @@ async function enrichBuildingTechnologiesFromMall(
   push("Product Number", stringValue(product.marketFacingNumber));
   push("Country of Origin", stringValue(product.countryOfOrigin));
   push("Customs Commodity Code", stringValue(product.commodityCode));
-  if (!extra.length) return;
 
+  const sources: SourceRecord[] = [];
+  if (extra.length) {
+    sources.push({ url: SIEMENS_PRODUCT_API, sourceType: "official", parser: "siemens-mall-product-details", fetchedAt: new Date().toISOString() });
+  }
+
+  // GetProductsDetails (above) never returns a GTIN for BT lines (ean/upc are null there); a second,
+  // richer Mall endpoint does. Independent try/catch: its failure must not discard the weight/MFN
+  // attributes already collected above.
+  try {
+    const fetched = await fetchSiemensProductAndPricesApi(catalogNumber, context);
+    const ean = extractSiemensProductAndPricesEan(fetched.text, catalogNumber);
+    if (ean) {
+      extra.push({ group, name: "EAN", value: ean, sourceUrl, sourceType: "official" });
+      sources.push({ url: SIEMENS_PRODUCT_AND_PRICES_API, sourceType: "official", parser: "siemens-mall-products-and-prices", fetchedAt: new Date().toISOString() });
+    }
+  } catch {
+    // GTIN is a bonus field; its absence must not affect the rest of the enrichment.
+  }
+
+  if (!extra.length) return;
   result.attributes = dedupeAttributes([...result.attributes, ...extra]);
   result.normalized = normalizeFields(result.attributes, result.documents);
-  result.sources = [
-    ...result.sources,
-    { url: SIEMENS_PRODUCT_API, sourceType: "official", parser: "siemens-mall-product-details", fetchedAt: new Date().toISOString() }
-  ];
+  result.sources = [...result.sources, ...sources];
 }
 
 /**

@@ -2575,6 +2575,10 @@ function dimensionMeasurements(
     if (!output.width && /\bwidth\b|\bbreite\b|\blarghezza\b/i.test(label)) output.width = parseLengthMeasurement(attr.value);
     if (!output.depth && /\bdepth\b|\btiefe\b|\bprofond/i.test(label)) output.depth = parseLengthMeasurement(attr.value);
     if (depthLengthAlias) continue;
+    // "Cable length" (a lead-wire spec, not a housing axis) must never set output.length directly
+    // here — it only counts as the product's own Length via the gated bestCableLengthMeasurement
+    // fallback below, which requires no other housing dimension was found at all.
+    if (/\bcable\s*length\b/i.test(label)) continue;
     if (!output.length && /\blength\b|\blÃ¤nge\b|\blaenge\b|\blunghezza\b/i.test(label)) output.length = parseLengthMeasurement(attr.value);
   }
 
@@ -2591,7 +2595,15 @@ function dimensionMeasurements(
   output.width ??= parsed.width;
   output.depth ??= parsed.depth;
   output.length ??= parsed.length;
-  output.length ??= bestCableLengthMeasurement(attributes, fallback);
+  // Only trust a "cable length" attribute as the product's own Length when no other physical
+  // dimension was found at all — e.g. a bare cordset/cable assembly whose entire "size" IS its
+  // cable length. If height/width/depth were already found, the product has a real housing and
+  // its lead cable is a separate component, not a 4th axis of that housing: blending them produced
+  // a bogus "Length (mm)" for Siemens BT actuators (housing 100 x 300 x 67.5 mm dimensions plus an
+  // unrelated "Cable length: 0.9 m" attribute) that had nothing to do with the actuator's own size.
+  if (!output.height && !output.width && !output.depth) {
+    output.length ??= bestCableLengthMeasurement(attributes, fallback);
+  }
   return output;
 }
 

@@ -11,7 +11,7 @@ import {
 import { parseGenericProductPage } from "../src/server/scrapers/generic.js";
 import { mergeResults, normalizeFields } from "../src/server/scrapers/normalizer.js";
 import { parseSchneiderDatasheetReaderPage, parseSchneiderProductPage, parseTelemecaniqueProductPage } from "../src/server/scrapers/schneider.js";
-import { extractSiemensTechnicalData, parseSiemensBuildingTechnologiesPview, parseSiemensProductApiResponse, siemensEuropeanWeightToDot } from "../src/server/scrapers/siemens.js";
+import { extractSiemensProductAndPricesEan, extractSiemensTechnicalData, parseSiemensBuildingTechnologiesPview, parseSiemensProductApiResponse, siemensEuropeanWeightToDot } from "../src/server/scrapers/siemens.js";
 import { parseRockwellCutsheetPage, parseRockwellDpp, parseRockwellDrawingsPage, parseRockwellFamilyPage } from "../src/server/scrapers/rockwell.js";
 import { SCEConnector, parseSceProductPage } from "../src/server/scrapers/sce.js";
 import { SpelsbergConnector } from "../src/server/scrapers/spelsberg.js";
@@ -5555,6 +5555,25 @@ IP degree of protection IP68 conforming to IEC 60529 IP69K conforming to DIN 400
     expect(result!.attributes.some((a) => a.group === "Siemens Technical Data" && a.name === "Torque" && a.value === "25 Nm")).toBe(true);
     // The "Further information" catalog link must not leak in as a spec.
     expect(result!.attributes.some((a) => /Product Catalog/i.test(a.name) || /siemens\.com\/download/i.test(a.value))).toBe(false);
+  });
+
+  it("reads the GTIN out of a GetProductsAndPrices response, ignoring GetProductsDetails-shaped payloads that lack it", () => {
+    const body = JSON.stringify({
+      products: [
+        {
+          productInformation: {
+            productIdentifiers: { articleNumber: "S55180-A179", ean: "4047625031152", upc: null }
+          }
+        }
+      ]
+    });
+    expect(extractSiemensProductAndPricesEan(body, "S55180-A179")).toBe("4047625031152");
+    // Wrong catalog number in the response must not match.
+    expect(extractSiemensProductAndPricesEan(body, "S55499-D346")).toBeUndefined();
+    // Missing/null ean, malformed JSON, and unexpected shapes must degrade to undefined, not throw.
+    expect(extractSiemensProductAndPricesEan(JSON.stringify({ products: [{ productInformation: { productIdentifiers: { articleNumber: "S55180-A179", ean: null } } }] }), "S55180-A179")).toBeUndefined();
+    expect(extractSiemensProductAndPricesEan("not json", "S55180-A179")).toBeUndefined();
+    expect(extractSiemensProductAndPricesEan("{}", "S55180-A179")).toBeUndefined();
   });
 
   it("converts SiePortal European-formatted net weight to canonical dot-decimal without misreading it as thousands", () => {

@@ -282,8 +282,15 @@ automation; danas služi i BT — staro "404 za BT" je zastarjelo) i dodaje Net 
 + Country of Origin + Customs Commodity Code, pa renormalizira. **Dimenzije se NE uzimaju odatle** (API daje
 samo packaging dims → pokvario bi pview product W×H×D). Weight format-zamka: `uiNetWeightValue` je uvijek
 europski ("1,866 Kg" = 1.866), pa `normalizeNumberSeparators` heuristika krivo čita kao 1866 (tisućice) →
-koristi se `siemensEuropeanWeightToDot` (exported, testiran). Auth refaktoriran u modul-fn
-(`readSiemensAuthConfig`/`fetchSiemensAnonymousToken`/`fetchSiemensProductApi`). Akamai edge traži
+koristi se `siemensEuropeanWeightToDot` (exported, testiran). GTIN: `GetProductsDetails` uvijek vraća
+`ean:null` za BT, ali sestrinski `ProductInformation/GetProductsAndPrices` (`SIEMENS_PRODUCT_AND_PRICES_API`)
+ga ima (`productInformation.productIdentifiers.ean`) — dodan kao atribut `"EAN"` preko exportane
+`extractSiemensProductAndPricesEan` (neovisan try/catch, ne ruši weight ako padne). **Certifikati NE idu
+ovim putem** — istraženo i zaključeno blokirano: SiePortal "Documents & downloads" tab zove `POST
+/api/onesearch/search` (`documentTypes:4` = KnowledgeBaseEntries), koji vraća 403 na anonimni token bez
+obzira na `filters.networks` vrijednost — treba pravu prijavljenu sesiju, ne parametar-guessing.
+Auth refaktoriran u modul-fn (`readSiemensAuthConfig`/`fetchSiemensAnonymousToken`/`fetchSiemensProductApi`).
+Akamai edge traži
 **browser UA** (node UA → 403), pa `http-client.ts` `DEFAULT_USER_AGENT`
 mora biti aktualni Chrome (Chrome/125 se odbija, Chrome/148 prolazi — bitno i za image download).
 Datasheet PDF: `hit.sbt.siemens.com` "Data Sheet for Product" (direktan PDF), priložen samo ako

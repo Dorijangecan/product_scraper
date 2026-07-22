@@ -1208,6 +1208,75 @@ describe("excel export", () => {
     expect(String(lens.getCell(headers.indexOf("Finish") + 1).value)).toContain("black anodized");
   });
 
+  it("does not blend an unrelated lead-cable length into a housing's own Length once Height/Width/Depth are known", async () => {
+    // Regression: Siemens BT actuators have a real housing "Dimensions (W x H x D)" plus a wholly
+    // separate lead-wire "Cable length" attribute. The cable-length dimension fallback used to fire
+    // unconditionally, so the actuator's Length (mm) column showed the lead cable's length (900mm
+    // from "0.9 m") instead of staying blank — a bogus 4th axis with nothing to do with the housing.
+    const outputDir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-siemens-cable-length-xlsx-"));
+    const run: RunRecord = {
+      id: "siemens-cable-length-run",
+      manufacturerId: "siemens",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      status: "completed",
+      total: 1,
+      processed: 1,
+      found: 1,
+      partial: 0,
+      failed: 0
+    };
+    const manufacturer: ManufacturerConfig = {
+      id: "siemens",
+      canonicalName: "Siemens",
+      shortName: "SIE",
+      rateLimitMs: 100,
+      officialBaseUrls: [],
+      fallbackSources: []
+    };
+    const items: RunItemRecord[] = [
+      {
+        id: 1,
+        runId: run.id,
+        rowIndex: 1,
+        catalogNumber: "S55499-D346",
+        status: "found",
+        updatedAt: run.updatedAt,
+        result: {
+          manufacturerId: "siemens",
+          catalogNumber: "S55499-D346",
+          status: "found",
+          confidence: 0.82,
+          title: "GIB341.1E Damper actuator",
+          normalized: {},
+          attributes: [
+            { group: "Siemens Technical Data", name: "Dimensions (W x H x D)", value: "100 x 300 x 67.5 mm" },
+            { group: "Siemens Technical Data", name: "Cable length", value: "0.9 m" },
+            { group: "Siemens Technical Data", name: "Torque", value: "35 Nm" }
+          ],
+          documents: [],
+          sources: []
+        }
+      }
+    ];
+
+    const filePath = await exportRunWorkbook({ run, manufacturer, items, outputDir });
+    const workbook = new ExcelJS.Workbook();
+    await workbook.xlsx.readFile(filePath);
+    const products = workbook.getWorksheet("Products")!;
+    const headers = (products.getRow(1).values as unknown[]).slice(1);
+    const row = products.getRow(2);
+
+    // The "H x W x D" positional parse (not label-aware) reads the bare number sequence in order —
+    // this test only asserts that SOME housing dimensions were found, which is what must gate the
+    // cable-length fallback below; the positional-vs-labeled mapping itself is unrelated pre-existing
+    // behavior.
+    expect(row.getCell(headers.indexOf("Height (mm)") + 1).value).toBe(100);
+    expect(row.getCell(headers.indexOf("Width (mm)") + 1).value).toBe(300);
+    expect(row.getCell(headers.indexOf("Depth (mm)") + 1).value).toBe(67.5);
+    expect(row.getCell(headers.indexOf("Length (mm)") + 1).value).toBeNull();
+  });
+
   it("writes Schneider drive ratings, lifecycle, and compliance summaries to Excel", async () => {
     const outputDir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-schneider-xlsx-"));
     const run: RunRecord = {
