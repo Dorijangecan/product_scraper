@@ -558,8 +558,12 @@ const builtInManufacturerConfigs: Record<string, ManufacturerConfig> = {
     id: "gan",
     canonicalName: "Ganter Norm",
     shortName: "GAN",
-    rateLimitMs: 1800,
-    concurrency: 2,
+    // ganternorm.com rate-limits an IP after a short burst (observed: ~37 rapid requests → the site
+    // starts dropping connections / timing out, cascading the rest of a large BOM into failures). Keep
+    // the request rate low and serial so a full 191-row run stays under the throttle: one request at a
+    // time, ~3s apart. Slower per row, but it completes instead of blocking mid-run.
+    rateLimitMs: 3000,
+    concurrency: 1,
     officialBaseUrls: ["https://www.ganternorm.com"],
     homepageUrl: "https://www.ganternorm.com/en/home",
     // Ganter's quick-finder (`/en/products/quick-finder?q=...`) redirects a bare family number

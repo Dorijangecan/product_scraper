@@ -1,7 +1,6 @@
 import * as cheerio from "cheerio";
 import type { AttributeRecord, DocumentRecord, ProductResult, SourceRecord } from "../../shared/types.js";
 import { dedupeAttributes, dedupeDocuments, dedupeSources } from "./dedupe.js";
-import { scrapeDiscoveredFallback, withDiscoveryFallbackDiagnostics } from "./discovery-fallback.js";
 import type { FetchedText } from "./http-client.js";
 import { cleanText, emptyResult, normalizeFields } from "./normalizer.js";
 import type { ManufacturerConnector, ScrapeContext } from "./types.js";
@@ -26,6 +25,7 @@ export class GanterNormConnector implements ManufacturerConnector {
 
   async scrape(catalogNumber: string, context: ScrapeContext): Promise<ProductResult> {
     const attemptedUrls: string[] = [];
+    let lastFetchError: string | undefined;
 
     for (const query of ganterSearchCandidates(catalogNumber)) {
       const url = GAN_QUICKFINDER_URL.replace("{query}", encodeURIComponent(query));
@@ -50,23 +50,26 @@ export class GanterNormConnector implements ManufacturerConnector {
           const $hit = cheerio.load(hitFetched.text);
           if ($hit("h1 .product-name__id").first().text().trim()) return parseGanterProductPage(catalogNumber, hitFetched, $hit);
         }
-      } catch {
-        // Try the next candidate query (full code, then family-only).
+      } catch (error) {
+        // Network/throttle failure — remember it, then try the next candidate query.
+        lastFetchError = error instanceof Error ? error.message : String(error);
       }
     }
 
-    const { result: fallback, discovery } = await scrapeDiscoveredFallback(catalogNumber, context, { idPrefix: this.id });
-    const result = fallback ?? emptyResult("gan", catalogNumber, `Ganter Norm quick-finder did not resolve a product page for ${catalogNumber}.`);
-    return withDiscoveryFallbackDiagnostics(
-      {
-        ...result,
-        diagnostics: {
-          ...result.diagnostics,
-          attemptedUrls: [...new Set([...(result.diagnostics?.attemptedUrls ?? []), ...attemptedUrls])]
-        }
-      },
-      discovery
-    );
+    // Ganter's own quick-finder is the only reliable resolver: a bare family number redirects to the
+    // family page and a full ordering code redirects to the exact variant. The generic discovery
+    // fallback would only re-crawl the SAME site — futile when the code genuinely isn't found, and
+    // actively harmful when the site is rate-limiting us: it piles on more requests and burns the 60 s
+    // per-item deadline, turning one throttled row into a cascade of 60 s timeouts. Fail fast instead
+    // (an honest failed row the user can re-run once the throttle clears) and keep request volume low
+    // so the throttle recovers.
+    const reason = lastFetchError
+      ? `Ganter Norm quick-finder could not be reached for ${catalogNumber} (${lastFetchError}) — the site may be rate-limiting; re-run later.`
+      : `Ganter Norm quick-finder did not resolve a product page for ${catalogNumber}.`;
+    return {
+      ...emptyResult("gan", catalogNumber, reason),
+      diagnostics: { attemptedUrls: [...new Set(attemptedUrls)] }
+    };
   }
 }
 
