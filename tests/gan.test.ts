@@ -88,6 +88,17 @@ describe("Ganter Norm specification parsing", () => {
     expect(result.normalized.operatingTemperatureMax).toBe("50");
   });
 
+  it("uses the heading id+label as the short description (title), not the free-text prose block", () => {
+    expect(result.title).toBe("GN 6284 Cabinet U-Handles");
+  });
+
+  it("uses the heading (id+label, no format subtitle here) as the long description, ignoring the prose paragraph", () => {
+    // The fixture's <h1> has no product-name__format span, so the long description equals the short.
+    // Crucially it is NOT the free-text prose ("...have a button and RGB LED lighting.").
+    expect(result.description).toBe("GN 6284 Cabinet U-Handles");
+    expect(result.description).not.toMatch(/RGB LED/i);
+  });
+
   it("reads the German product URL from the page language switcher (slug is fully localized, not derivable)", () => {
     expect(result.localizedUrls?.en).toBe("https://www.ganternorm.com/en/products/x/GN-6284");
     expect(result.localizedUrls?.de).toBe(
@@ -107,7 +118,7 @@ describe("Ganter Norm dimension synthesis", () => {
   // columns plus a configuration column that must be excluded from normalized dimensions.
   const FIXTURE = `
 <html><body>
-<h1><span class="product-name__id">GN 422</span> <span class="product-name__label">Cabinet U-Handles</span></h1>
+<h1><span class="product-name__id">GN 422</span> <span class="product-name__label">Cabinet U-Handles</span><span class="product-name__format">Zinc die casting, with Electrical Switching Function / with Indicator Light, with Two Function Elements</span></h1>
 <div id="product-table">
   <table class="priority-table">
     <thead><tr><th>b</th><th>d</th><th>h</th><th>l1</th><th>Connection type</th></tr></thead>
@@ -125,5 +136,14 @@ describe("Ganter Norm dimension synthesis", () => {
     expect(r.normalized.dimensions).toBe("b 33, d M 6, h 44, l1 117");
     expect(r.normalized.dimensions).not.toContain("Connection type");
     expect(r.normalized.dimensions).not.toContain("K2");
+  });
+
+  it("builds the long description from the full heading incl. the product-name__format subtitle", () => {
+    const $ = cheerio.load(FIXTURE);
+    const r = parseGanterProductPage("GN 422-33-TK-LK-K2-SW", fetched(FIXTURE), $);
+    expect(r.title).toBe("GN 422 Cabinet U-Handles");
+    expect(r.description).toBe(
+      "GN 422 Cabinet U-Handles Zinc die casting, with Electrical Switching Function / with Indicator Light, with Two Function Elements"
+    );
   });
 });

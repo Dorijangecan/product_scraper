@@ -33,7 +33,9 @@ export class GanterNormConnector implements ManufacturerConnector {
       try {
         const fetched = await fetchGanterText(url, context);
         const $ = cheerio.load(fetched.text);
-        if ($("h1 .product-name__id").first().text().trim()) return parseGanterProductPage(catalogNumber, fetched, $);
+        if ($("h1 .product-name__id").first().text().trim()) {
+          return enrichGanterLocalizedDescriptions(parseGanterProductPage(catalogNumber, fetched, $), context);
+        }
 
         // Some family numbers ("GN 422") are a prefix shared by more than one distinct catalog
         // family ("GN 422", "GN 422.1", ...) — quick-finder answers with a disambiguation list
@@ -48,7 +50,9 @@ export class GanterNormConnector implements ManufacturerConnector {
           attemptedUrls.push(hitUrl);
           const hitFetched = await fetchGanterText(hitUrl, context);
           const $hit = cheerio.load(hitFetched.text);
-          if ($hit("h1 .product-name__id").first().text().trim()) return parseGanterProductPage(catalogNumber, hitFetched, $hit);
+          if ($hit("h1 .product-name__id").first().text().trim()) {
+            return enrichGanterLocalizedDescriptions(parseGanterProductPage(catalogNumber, hitFetched, $hit), context);
+          }
         }
       } catch (error) {
         // Network/throttle failure — remember it, then try the next candidate query.
@@ -140,15 +144,24 @@ export function ganterVariantTokens(catalogNumber: string, family: GanterFamily 
 
 export function parseGanterProductPage(catalogNumber: string, fetched: FetchedText, $: cheerio.CheerioAPI): ProductResult {
   const sourceUrl = fetched.effectiveUrl;
-  const familyCode = cleanText($("h1 .product-name__id").first().text());
-  const productLabel = cleanText($("h1 .product-name__label").first().text());
-  const title = [familyCode, productLabel].filter(Boolean).join(" ") || familyCode || catalogNumber;
+  const heading = ganterHeading($);
+  const familyCode = heading.id;
+  // Short description = family id + product name ("GN 422 Cabinet U-Handles"); long description =
+  // the full heading including the "format" subtitle line (material / function variant, e.g.
+  // "Zinc die casting, with Electrical Switching Function / with Indicator Light, with Two Function
+  // Elements"). Per the customer's PDT spec both come from the heading spans (product-name__id /
+  // __label / __format) — the free-text prose block below the heading is deliberately NOT used.
+  const title = heading.short || familyCode || catalogNumber;
+  const description = heading.long;
 
   const family = extractGanterFamily(catalogNumber);
   const variantTokens = ganterVariantTokens(catalogNumber, family).map((token) => token.toLowerCase());
 
   const descriptionContainer = $(".product-description__content[itemprop='description']").first();
-  const { description, specAttributes } = parseGanterDescriptionBlock($, descriptionContainer, sourceUrl, variantTokens);
+  // Only the specification ATTRIBUTES (material/finish/operating-temperature) are taken from this
+  // block; its prose description return value is intentionally discarded (the heading is the
+  // description now).
+  const { specAttributes } = parseGanterDescriptionBlock($, descriptionContainer, sourceUrl, variantTokens);
   const quickFactAttributes = parseGanterQuickFacts($, sourceUrl);
   const category = ganterBreadcrumbCategory($);
   const typeAttribute = ganterTypeAttribute($, sourceUrl, variantTokens);
@@ -236,6 +249,54 @@ export function parseGanterProductPage(catalogNumber: string, fetched: FetchedTe
         : {})
     }
   };
+}
+
+/**
+ * The product heading `<h1>` carries three spans that ARE the catalog's own short/long product
+ * descriptions (verified live on ganternorm.com, EN and DE alike):
+ *   `.product-name__id`      → family number, e.g. "GN 422"
+ *   `.product-name__label`   → product name, e.g. "Cabinet U-Handles" / "Bügelgriffe"
+ *   `.product-name__format`  → variant subtitle, e.g. "Zinc die casting, with Electrical Switching
+ *                              Function / with Indicator Light, with Two Function Elements"
+ * Short description = id + label; long description = id + label + format. The same extraction runs
+ * on the fully-translated German page, so the localized descriptions come from the identical spans.
+ */
+export function ganterHeading($: cheerio.CheerioAPI): { id: string; label: string; format: string; short?: string; long?: string } {
+  const id = cleanText($("h1 .product-name__id").first().text());
+  const label = cleanText($("h1 .product-name__label").first().text());
+  const format = cleanText($("h1 .product-name__format").first().text());
+  return {
+    id,
+    label,
+    format,
+    short: [id, label].filter(Boolean).join(" ") || undefined,
+    long: [id, label, format].filter(Boolean).join(" ") || undefined
+  };
+}
+
+/**
+ * Fills `localizedDescriptions.de` from the German product page's heading. The German short/long
+ * descriptions ("GN 422 Bügelgriffe" + the German format subtitle) are a full translation that
+ * cannot be derived from the English slug, so the localized page must actually be fetched — mirroring
+ * Eaton's localized-description enrichment. Best-effort: one extra fetch per resolved product through
+ * the throttled http client (gan is concurrency:1), and any throttle/timeout on the localized page is
+ * swallowed so it never fails the row or discards the already-resolved English result.
+ */
+async function enrichGanterLocalizedDescriptions(result: ProductResult, context: ScrapeContext): Promise<ProductResult> {
+  if (result.status === "failed") return result;
+  if (result.localizedDescriptions?.de?.title || result.localizedDescriptions?.de?.description) return result;
+  const germanUrl = result.localizedUrls?.de;
+  if (!germanUrl || germanUrl === result.productUrl) return result;
+  try {
+    const fetched = await fetchGanterText(germanUrl, context);
+    const { short, long } = ganterHeading(cheerio.load(fetched.text));
+    if (short || long) {
+      return { ...result, localizedDescriptions: { de: { title: short, description: long } } };
+    }
+  } catch {
+    /* localized descriptions are optional — keep the English result on any fetch failure */
+  }
+  return result;
 }
 
 /**

@@ -2914,19 +2914,32 @@ de https://www.company.com/de/product/{part}`}
                 />{" "}
                 Select all ({pdtRoutingSelected.size}/{pdtRoutingPreview.items.length})
               </label>
-              <span>→ Assign selected to sheet:</span>
+              <span>
+                → Assign{" "}
+                {pdtRoutingSelected.size > 0
+                  ? `selected (${pdtRoutingSelected.size})`
+                  : `all (${pdtRoutingPreview.items.length})`}{" "}
+                to sheet:
+              </span>
               <select
                 value={pdtRoutingBulkSheet}
                 onChange={(event) => {
                   const next = event.target.value;
                   setPdtRoutingBulkSheet(next);
-                  // Auto-apply on pick when there are already-selected rows. The Apply button
-                  // still exists as a safety net, but most users miss the second click and
-                  // expect the pick to take effect immediately — exactly what happens here.
-                  if (next && pdtRoutingSelected.size > 0) {
+                  // Auto-apply on pick. When rows are selected the choice targets those rows;
+                  // when NO rows are selected it targets EVERY item (an empty selection means
+                  // "all", not "none"). This closes the trap where picking a bulk sheet without
+                  // first ticking rows silently did nothing, so the export fell back to
+                  // auto-routing (e.g. Ganter U-handles → cabinet + cabinet.mechanical) even
+                  // though the user thought they'd reassigned the sheet.
+                  if (next) {
+                    const targetIds =
+                      pdtRoutingSelected.size > 0
+                        ? [...pdtRoutingSelected]
+                        : pdtRoutingPreview.items.map((it) => it.itemId);
                     setPdtRoutingOverrides((prev) => {
                       const updated = { ...prev };
-                      for (const id of pdtRoutingSelected) updated[id] = next;
+                      for (const id of targetIds) updated[id] = next;
                       return updated;
                     });
                   }
@@ -2942,12 +2955,18 @@ de https://www.company.com/de/product/{part}`}
               <button
                 type="button"
                 className="download-button secondary"
-                disabled={!pdtRoutingBulkSheet || pdtRoutingSelected.size === 0 || pdtBusy}
+                disabled={!pdtRoutingBulkSheet || pdtBusy}
                 onClick={() => {
                   if (!pdtRoutingBulkSheet) return;
+                  // Same "empty selection means all" rule as the dropdown, so the Apply button
+                  // is never a dead no-op just because no rows happen to be ticked.
+                  const targetIds =
+                    pdtRoutingSelected.size > 0
+                      ? [...pdtRoutingSelected]
+                      : pdtRoutingPreview.items.map((it) => it.itemId);
                   setPdtRoutingOverrides((prev) => {
                     const next = { ...prev };
-                    for (const id of pdtRoutingSelected) next[id] = pdtRoutingBulkSheet;
+                    for (const id of targetIds) next[id] = pdtRoutingBulkSheet;
                     return next;
                   });
                 }}
