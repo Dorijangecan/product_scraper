@@ -53,7 +53,7 @@ const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
 
   // --- Sensors (specific kinds first; generic "Sensor" is a fallback) ---
   rule("Photoelectric Sensor", /\b(?:photoelectric|photo\s*electric|through-?beam|retro[-\s]?reflective|diffuse\s+(?:reflective|sensor)|fork\s+(?:sensor|light barrier)|light barrier|light grid)\b/i, 880),
-  rule("Inductive Proximity Sensor", /\b(?:inductive\s+(?:proximity\s+)?sensor|inductive proximity|inductive switch|proximity switch)\b/i, 875),
+  rule("Inductive Proximity Sensor", /\b(?:inductive\s+(?:proximity\s+)?sensor|inductive proximity|inductive switch|proximity switch|n[äa]herungsschalter|n[äa]herungssensor)\b/i, 875),
   rule("Capacitive Sensor", /\bcapacitive\s+(?:(?:proximity|level)\s+)?(?:sensors?|switch(?:es)?)\b/i, 870),
   rule("Pressure Sensor", /\bpressure\s+(?:sensor|switch|transmitter|transducer)\b/i, 868),
   rule("Temperature Sensor", /\b(?:temperature\s+(?:sensor|probe|transmitter|transducer)|thermocouple|\brtd\b|pt100|pt1000)\b/i, 866),
@@ -70,27 +70,29 @@ const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
   // --- Protection & control (specific breakers/starters first) ---
   rule("Motor Circuit Breaker", /\bmotor\s+(?:protective\s+)?circuit[-\s]?breakers?|motor protection device|motor protection|manual motor (?:starter|protector)\b/i, 820),
   rule("Molded Case Circuit Breaker", /\b(?:molded|moulded)\s+case\s+circuit[-\s]?breakers?|\bmccbs?\b/i, 815),
-  rule("Miniature Circuit Breaker", /\bminiature\s+circuit[-\s]?breakers?|\bmcbs?\b/i, 814),
+  rule("Miniature Circuit Breaker", /\bminiature\s+circuit[-\s]?breakers?|\bmcbs?\b|leitungsschutzschalter|sicherungsautomat(?:en)?|\bls[-\s]?schalter\b/i, 814),
   rule("Residual Current Device", /\b(?:residual current device|residual current circuit[-\s]?breakers?|\brcd\b|\brccb\b|\brcbo\b|ground[-\s]?fault circuit[-\s]?interrupter|\bgfci\b|earth leakage)\b/i, 813),
-  rule("Circuit Breaker", /\b(?:air\s+circuit[-\s]?breakers?|thermal overcurrent circuit[-\s]?breakers?|overcurrent circuit[-\s]?breakers?|circuit[-\s]?breakers?|\bacbs?\b)\b/i, 805),
+  rule("Circuit Breaker", /\b(?:air\s+circuit[-\s]?breakers?|thermal overcurrent circuit[-\s]?breakers?|overcurrent circuit[-\s]?breakers?|circuit[-\s]?breakers?|\bacbs?\b|leistungsschalter|disjoncteur|interruttore automatico)\b/i, 805),
   rule("Safety Relay", /\b(?:safety relay|safety controller|safety module|emergency stop relay|e[-\s]?stop relay)\b/i, 803),
-  rule("Contactor", /\b(?:contactor|contactor relay|kontaktor|contact kit|contact tip kit|main contact kit|replacement contacts?)\b/i, 800),
+  // "schütz"/"schuetz" (contactor) must NOT match plain "schutz" (= protection, as in Schutzart) —
+  // require the umlaut (ü) or its ue transliteration.
+  rule("Contactor", /\b(?:contactor|contactor relay|kontaktor|sch(?:ü|ue)tz|contattore|contacteur|contact kit|contact tip kit|main contact kit|replacement contacts?)\b/i, 800),
   rule("Relay", /\b(?:interface relay|coupling relay|plug-?in relay|timer relay|monitoring relay|relais|relej|\brelay\b)\b/i, 790),
   rule("Soft Starter", /\bsoft[-\s]?starter\b/i, 785),
   rule("Variable Speed Drive", /\b(?:variable speed drive|variable frequency drive|\bvfd\b|frequency (?:converter|inverter)|\bvsd\b|servo drive|ac drive|motor drive|inverter drive)\b|(?:\u53d8\u9891\u5668|\u53d8\u9891\u9a71\u52a8|\u9891\u7387\u8f6c\u6362\u5668)/i, 780),
   rule("Motor Starter", /\b(?:motor starter|starter combination|reversing starter|direct[-\s]?on[-\s]?line starter|\bdol starter\b)\b/i, 775),
-  rule("Disconnect Switch", /\b(?:switch[-\s]?disconnector|disconnect(?:ing|or)?\s+switch|isolator switch|safety switch|rotary disconnect|main switch|load break switch)\b/i, 770),
+  rule("Disconnect Switch", /\b(?:switch[-\s]?disconnector|disconnect(?:ing|or)?\s+switch|isolator switch|safety switch|rotary disconnect|main switch|load break switch|last[-\s]?trennschalter|trennschalter|sectionneur|sezionatore)\b/i, 770),
   rule("Surge Protective Device", /\b(?:surge protective device|\bspd\b|surge arrester|surge protection|lightning arrester)\b/i, 765),
-  rule("Fuse", /\b(?:fuse holder|fuse base|fuse disconnect(?:or)?|fuse switch|fuse link|fuse carrier|nh fuse|d fuse|\bfuse\b)\b/i, 760),
-  rule("Switch", /\b(?:selector switch|cam switch|pushbutton switch|rotary switch|toggle switch|key[-\s]?operated switch|\bswitch\b)\b/i, 700),
+  rule("Fuse", /\b(?:fuse holder|fuse base|fuse disconnect(?:or)?|fuse switch|fuse link|fuse carrier|nh fuse|d fuse|\bfuse\b|sicherung(?:en)?|fusible|fusibile)\b/i, 760),
+  rule("Switch", /\b(?:selector switch|cam switch|pushbutton switch|rotary switch|toggle switch|key[-\s]?operated switch)\b/i, 700),
 
   // --- Power / electrical ---
   rule("UPS", /\b(?:\bups\b|uninterruptible power supply)\b/i, 760),
-  rule("Power Supply", /\b(?:power supply|power supply module|switched[-\s]?mode power supply|smps|regulated power supply|dc power supply|\bpsu\b)\b/i, 755),
-  rule("Transformer", /\b(?:control transformer|isolation transformer|step[-\s]?down transformer|step[-\s]?up transformer|toroidal transformer|\btransformer\b)\b/i, 750),
+  rule("Power Supply", /\b(?:power supply|power supply module|switched[-\s]?mode power supply|smps|regulated power supply|dc power supply|\bpsu\b|netzteil|stromversorgung|alimentation|alimentatore)\b/i, 755),
+  rule("Transformer", /\b(?:control transformer|isolation transformer|step[-\s]?down transformer|step[-\s]?up transformer|toroidal transformer|\btransformer\b|transformator|\btrafo\b|transformateur|trasformatore)\b/i, 750),
   rule("Current Sensor", /\b(?:current sensor|current transducer|current transformer|external neutral|homopolar toroid)\b/i, 745),
   rule("Generator", /\b(?:generator set|diesel generator|gas generator|standby generator|backup generator|\bgenerator\b)\b/i, 743),
-  rule("Motor", /\b(?:servo motor|stepper motor|asynchronous motor|synchronous motor|three[-\s]?phase motor|ac motor|dc motor|induction motor|gear motor|gearmotor|\bmotor\b)\b/i, 740),
+  rule("Motor", /\b(?:servo motor|stepper motor|asynchronous motor|synchronous motor|three[-\s]?phase motor|ac motor|dc motor|induction motor|gear motor|gearmotor)\b/i, 740),
   rule("Battery", /\b(?:battery pack|lithium battery|lead[-\s]?acid battery|\bnimh battery\b|\bnicd battery\b|energy storage module|traction battery|\bbattery\b)\b/i, 720),
 
   // --- Enclosures & mounting ---
@@ -110,11 +112,11 @@ const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
   rule("PCB Terminal Block", /\b(?:pcb terminal block|board[-\s]?mount terminal|printed[-\s]?circuit terminal|pluggable pcb terminal|pcb screw terminal)\b/i, 765),
   rule("PCB Connector", /\b(?:pin header|board[-\s]?to[-\s]?board connector|pcb connector|pcb header|board[-\s]?mount connector|edge connector|smt connector|socket strip|pcb plug|wire[-\s]?to[-\s]?board connector)\b/i, 760),
   rule("Wire Marker", /\b(?:wire marker|cable marker|wire label|cable label|cable tag|wire ferrule|terminal marker|terminal label|marking tag|marker card)\b/i, 750),
-  rule("Terminal Block", /\b(?:terminal block|power terminal|terminal strip|pluggable terminal|push[-\s]?in terminal|spring[-\s]?clamp terminal|screw terminal block)\b/i, 740),
+  rule("Terminal Block", /\b(?:terminal block|power terminal|terminal strip|pluggable terminal|push[-\s]?in terminal|spring[-\s]?clamp terminal|screw terminal block|reihenklemme(?:n)?|klemmenblock|\bklemme(?:n)?\b|bornier|morsetto)\b/i, 740),
   rule("Cable Gland", /\b(?:cable gland|\bgland\b|cord grip)\b/i, 735),
   rule("Optical Connector", /\b(?:optical connector|fiber[-\s]?optic connector|fibre[-\s]?optic connector|fiber optics?|fibre optics?|glass fibers?|plastic fibers?|\blc connector\b|\bsc connector\b|\bst connector\b|\bmpo connector\b|fc connector)\b/i, 732),
   rule("Connector", /\b(?:industrial connector|circular connector|m\d+ connector|connector\b|plug-?in\s+(?:plug|socket)|cordset|patch cord|programming port|port,\s*programming)\b/i, 720),
-  rule("Cable", /\b(?:cable assembly|control cable|power cable|signal cable|servo cable|motor cable|lead wire|patch cable|\bcable\b|\bcord\b)\b/i, 710),
+  rule("Cable", /\b(?:cable assembly|control cable|power cable|signal cable|servo cable|motor cable|lead wire|patch cable)\b/i, 710),
   rule("Busbar", /\b(?:busbars?|bus[-\s]?bars?|busway|busbar system)\b/i, 720),
 
   // --- Signaling ---
@@ -125,14 +127,29 @@ const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
 
   // --- Cooling / climate ---
   rule("Thermal Management", /\b(?:thermal management|filter fan|fan package|fan housing|filter kit|fan filter|exhaust filter|filter grille|enclosure fan|cabinet fan|cabinet heater|enclosure heater|thermostat|hygrostat|air conditioner|conditioner,\s*(?:ng\s+)?air|heat exchanger|dehumidifier|cooling unit|chiller)\b/i, 760),
-  rule("Filter", /\b(?:line filter|emc filter|emi filter|mains filter|harmonic filter|sine filter|du\/dt filter|output filter|input filter|\bfilter\b)\b/i, 740),
+  rule("Filter", /\b(?:line filter|emc filter|emi filter|mains filter|harmonic filter|sine filter|du\/dt filter|output filter|input filter)\b/i, 740),
 
   // --- Pneumatic / fluid (rare but available in template) ---
   rule("Hydraulic Actuator", /\b(?:hydraulic cylinder|hydraulic actuator|hydraulic ram|hydraulic power unit|hydraulic pump unit|hydraulic unit)\b/i, 738),
-  rule("Pump", /\b(?:centrifugal pump|gear pump|piston pump|hydraulic pump|metering pump|vacuum pump|\bpump\b)\b/i, 730),
+  rule("Pump", /\b(?:centrifugal pump|gear pump|piston pump|hydraulic pump|metering pump|vacuum pump)\b/i, 730),
   rule("Directional Control Valve", /\b(?:directional control valve|\b\d\/\d-?way valve\b|solenoid valve|pneumatic valve|spool valve)\b/i, 728),
-  rule("Valve", /\b(?:ball valve|check valve|gate valve|globe valve|butterfly valve|relief valve|pressure (?:relief|reducing|regulator) valve|differential pressure regulators?|diff\.?\s*press\.?\s*regulators?|pressure regulators?|needle valve|safety valve|shut[-\s]?off valve|non[-\s]?return valve|stop valve|\bvalve\b)\b/i, 724),
+  rule("Valve", /\b(?:ball valve|check valve|gate valve|globe valve|butterfly valve|relief valve|pressure (?:relief|reducing|regulator) valve|differential pressure regulators?|diff\.?\s*press\.?\s*regulators?|pressure regulators?|needle valve|safety valve|shut[-\s]?off valve|non[-\s]?return valve|stop valve)\b/i, 724),
   rule("Pneumatic Device", /\b(?:pneumatic device|pneumatic cylinder|air cylinder|pneumatic actuator|pneumatic gripper|fitting,\s*pneumatic|pneumatic fitting)\b/i, 720),
+
+  // --- Bare generic device nouns (multilingual): deliberately LOW priority (615) so a more-specific
+  // multi-word rule that references the same noun always wins. The text-channel winner is chosen by
+  // rule priority FIRST (see classifyDeviceType), so a bare token living in a HIGH-priority rule used
+  // to beat a specific multi-word phrase in a lower one — e.g. "motor cable" → Motor instead of
+  // Cable, "limit switch" → Switch instead of Sensor. Keeping the bare tokens down here fixes that
+  // while still letting them classify a product whose text names only the bare noun. German compounds
+  // like "Leitungsschutzschalter"/"Trennschalter" also contain "schalter" but are pulled up to their
+  // correct specific rules (MCB / Disconnect) below, which outrank this tier. ---
+  rule("Motor", /\b(?:motor|motoren|elektromotor)\b/i, 615),
+  rule("Switch", /\b(?:switch|schalter|interrupteur|interruttore)\b/i, 615),
+  rule("Cable", /\b(?:cable|cord|kabel|leitung|c[âa]ble|cavo)\b/i, 615),
+  rule("Valve", /\b(?:valve|ventil|vanne|valvola)\b/i, 615),
+  rule("Pump", /\b(?:pump|pumpe|pompe|pompa)\b/i, 615),
+  rule("Filter", /\b(?:filter|filtre|filtro)\b/i, 615),
 
   // --- Lower-specificity catch-alls (priority < 700 so they only win when nothing else matches) ---
   rule("Lock / Interlock", /\b(?:padlock|key[-\s]?lock|interlock|locking device|key switch)\b/i, 620),

@@ -34,6 +34,11 @@ export type QuantityKind =
   | "pressure"
   | "flowRate"
   | "resistance"
+  | "force"
+  | "speed"
+  | "soundLevel"
+  | "time"
+  | "ratio"
   | "unknown";
 
 export type QuantityQualifier = "min" | "max" | "nominal" | "range" | "point" | "alternatives";
@@ -70,7 +75,12 @@ interface UnitInfo {
   unit: string;
   kind: QuantityKind;
   currentType?: "AC" | "DC";
+  /** Converts the parsed number into the canonical `unit` (e.g. °F → °C), so downstream sanity
+   * bounds and PDT fields — which all assume the canonical unit — stay correct. */
+  convert?: (value: number) => number;
 }
+
+const fahrenheitToCelsius = (value: number): number => Math.round(((value - 32) * 5) / 9 * 10) / 10;
 
 // Lowercased, whitespace-stripped unit token -> canonical unit + kind.
 const UNIT_TABLE: Record<string, UnitInfo> = {
@@ -94,17 +104,27 @@ const UNIT_TABLE: Record<string, UnitInfo> = {
   kw: { unit: "kW", kind: "power" },
   mw: { unit: "mW", kind: "power" },
   nm: { unit: "Nm", kind: "torque" },
+  n: { unit: "N", kind: "force" },
+  kn: { unit: "kN", kind: "force" },
+  hp: { unit: "hp", kind: "power" },
   "°c": { unit: "°C", kind: "temperature" },
   degc: { unit: "°C", kind: "temperature" },
+  "°f": { unit: "°C", kind: "temperature", convert: fahrenheitToCelsius },
+  degf: { unit: "°C", kind: "temperature", convert: fahrenheitToCelsius },
   hz: { unit: "Hz", kind: "frequency" },
   khz: { unit: "kHz", kind: "frequency" },
   mhz: { unit: "MHz", kind: "frequency" },
   pa: { unit: "Pa", kind: "pressure" },
+  hpa: { unit: "hPa", kind: "pressure" },
   kpa: { unit: "kPa", kind: "pressure" },
   mpa: { unit: "MPa", kind: "pressure" },
   bar: { unit: "bar", kind: "pressure" },
   mbar: { unit: "mbar", kind: "pressure" },
   psi: { unit: "psi", kind: "pressure" },
+  atm: { unit: "atm", kind: "pressure" },
+  torr: { unit: "Torr", kind: "pressure" },
+  mmhg: { unit: "mmHg", kind: "pressure" },
+  inhg: { unit: "inHg", kind: "pressure" },
   "nl/min": { unit: "Nl/min", kind: "flowRate" },
   "l/min": { unit: "l/min", kind: "flowRate" },
   lpm: { unit: "l/min", kind: "flowRate" },
@@ -141,14 +161,27 @@ const UNIT_TABLE: Record<string, UnitInfo> = {
   "mm²": { unit: "mm²", kind: "area" },
   mm2: { unit: "mm²", kind: "area" },
   "cm²": { unit: "cm²", kind: "area" },
-  cm2: { unit: "cm²", kind: "area" }
+  cm2: { unit: "cm²", kind: "area" },
+  rpm: { unit: "rpm", kind: "speed" },
+  "r/min": { unit: "rpm", kind: "speed" },
+  "1/min": { unit: "rpm", kind: "speed" },
+  "min-1": { unit: "rpm", kind: "speed" },
+  "min⁻¹": { unit: "rpm", kind: "speed" },
+  db: { unit: "dB", kind: "soundLevel" },
+  "db(a)": { unit: "dB(A)", kind: "soundLevel" },
+  dba: { unit: "dB(A)", kind: "soundLevel" },
+  ms: { unit: "ms", kind: "time" },
+  "µs": { unit: "µs", kind: "time" },
+  us: { unit: "µs", kind: "time" },
+  s: { unit: "s", kind: "time" },
+  "%": { unit: "%", kind: "ratio" }
 };
 
 // Order matters: most specific / longest first so e.g. "kg" wins over "g".
 // Longest / most-specific tokens first within each overlap group, so e.g. "kVA" wins over "kV",
 // "mAh" over "mA", "kWh" over "kW", and "mm²" over "mm".
 const UNIT_PATTERN =
-  "VAC|VDC|kVA|VA|kvar|var|kV|mV|V|mAh|Ah|kA|mA|A|kWh|Wh|kW|mW|W|Nm|°\\s*C|degC|kHz|MHz|Hz|mbar|kPa|MPa|Pa|bar|psi|Nl\\s*/\\s*min|l\\s*/\\s*min|lpm|m3\\s*/\\s*h|m3\\s*/\\s*min|dm3\\s*/\\s*min|gpm|cfm|kg|mg|g|lb|oz|mm²|mm2|cm²|cm2|mm|cm|inches|inch|feet|ft|µm|um|MΩ|kΩ|Ω|ohm|amperes?|amps?|volts?|watts?";
+  "VAC|VDC|kVA|VA|kvar|var|kV|mV|V|mAh|Ah|kA|mA|A|kWh|Wh|kW|mW|W|Nm|kN|N|hp|°\\s*F|degF|°\\s*C|degC|kHz|MHz|Hz|hPa|mmHg|inHg|Torr|mbar|kPa|MPa|Pa|bar|psi|atm|Nl\\s*/\\s*min|l\\s*/\\s*min|lpm|m3\\s*/\\s*h|m3\\s*/\\s*min|dm3\\s*/\\s*min|gpm|cfm|rpm|r\\s*/\\s*min|1\\s*/\\s*min|min⁻¹|min-1|dB\\(A\\)|dBA|dB|kg|mg|g|lb|oz|mm²|mm2|cm²|cm2|mm|cm|inches|inch|feet|ft|µm|um|MΩ|kΩ|Ω|ohm|amperes?|amps?|volts?|watts?|%|µs|us|ms|s";
 
 const RANGE_SEP = "\\.{2,3}|…|\\bto\\b|\\bbis\\b|\\bdo\\b|~|/|-";
 
@@ -162,7 +195,7 @@ const QUANTITY_RE = new RegExp(
 );
 
 const CONDITION_RE = new RegExp(
-  `(?:\\bat\\b|@|\\bbei\\b|\\bper\\b|\\bpri\\b)\\s*[+-]?\\d+(?:\\.\\d+)?\\s*(?:°\\s*C|VAC|VDC|kV|mV|V|kA|mA|A|kW|mW|W|kHz|MHz|Hz|%|bar|kg|g)`,
+  `(?:\\bat\\b|@|\\bbei\\b|\\bper\\b|\\bpri\\b|\\bà\\b)\\s*[+-]?\\d+(?:\\.\\d+)?\\s*(?:°\\s*C|°\\s*F|degC|degF|VAC|VDC|kV|mV|V|kA|mA|A|kW|mW|W|kHz|MHz|Hz|%|bar|kg|g)`,
   "gi"
 );
 
@@ -271,7 +304,15 @@ export function parseQuantities(text: string, options: ParseQuantitiesOptions = 
   const condition = conditions.length ? conditions.join("; ") : undefined;
 
   const quantities: ParsedQuantity[] = [];
-  const matches = [...cleaned.matchAll(QUANTITY_RE)];
+  // A "%" immediately following a ± / +/- sign is a TOLERANCE clause (e.g. "24 V ±20%"), consumed by
+  // detectTolerance on the preceding quantity — not a standalone ratio reading. Drop it BEFORE the
+  // loop so it neither emits a bogus ratio quantity nor truncates the previous quantity's tolerance
+  // look-ahead window (which is bounded by the next match's index).
+  const matches = [...cleaned.matchAll(QUANTITY_RE)].filter((match) => {
+    if (canonicalUnit(match[3])?.kind !== "ratio") return true;
+    const before = cleaned.slice(Math.max(0, (match.index ?? 0) - 3), match.index ?? 0);
+    return !/(?:±|\+\/-|\+-)\s*$/.test(before);
+  });
   for (let matchIndex = 0; matchIndex < matches.length; matchIndex += 1) {
     const match = matches[matchIndex];
     const [, qualToken, numRaw, unitRaw] = match;
@@ -279,6 +320,18 @@ export function parseQuantities(text: string, options: ParseQuantitiesOptions = 
     if (!unitInfo) continue;
     const numeric = parseNumericExpr(numRaw);
     if (!numeric) continue;
+    if (unitInfo.convert) {
+      const convert = unitInfo.convert;
+      if (numeric.value !== undefined) numeric.value = convert(numeric.value);
+      if (numeric.min !== undefined) numeric.min = convert(numeric.min);
+      if (numeric.max !== undefined) numeric.max = convert(numeric.max);
+      if (numeric.values) numeric.values = numeric.values.map(convert);
+      // A converting unit may flip which bound is larger (rare for linear temp scales, but keep the
+      // invariant): re-order after conversion so min <= max.
+      if (numeric.min !== undefined && numeric.max !== undefined && numeric.min > numeric.max) {
+        [numeric.min, numeric.max] = [numeric.max, numeric.min];
+      }
+    }
 
     const matchEnd = (match.index ?? 0) + match[0].length;
     // Look ahead for a ± tolerance clause. The window is wider than the value's immediate suffix
@@ -433,7 +486,12 @@ export const SANITY_BOUNDS: Partial<Record<QuantityKind, { min: number; max: num
   reactivePower: { min: 0, max: 100_000_000 },
   charge: { min: 0, max: 1_000_000 },
   energy: { min: 0, max: 1_000_000_000 },
-  area: { min: 0, max: 1_000_000 }
+  area: { min: 0, max: 1_000_000 },
+  force: { min: 0, max: 10_000_000 },
+  speed: { min: 0, max: 2_000_000 },
+  soundLevel: { min: 0, max: 200 },
+  time: { min: 0, max: 100_000_000 },
+  ratio: { min: -100, max: 1_000_000 }
 };
 
 function quantityNumbers(quantity: ParsedQuantity): number[] {

@@ -244,3 +244,32 @@ describe("quantity grammar — real-world disambiguation set", () => {
     expect(parseTemperatureRange("-25 °C … +70 °C (operating)")).toEqual({ min: -25, max: 70 });
   });
 });
+
+describe("newly recognized units (Phase A1)", () => {
+  it("converts Fahrenheit to Celsius instead of silently reading the raw number as °C", () => {
+    const [temp] = parseQuantities("-40 to 185 °F", { kind: "temperature" });
+    expect(temp).toMatchObject({ kind: "temperature", unit: "°C", min: -40, max: 85 });
+    // The whole point of the fix: an operating-temp value stated in °F no longer lands as 185 °C.
+    expect(parseTemperatureRange("Operating temperature -40 to 185 °F")).toEqual({ min: -40, max: 85 });
+  });
+
+  it("parses speed, ratio, sound level, force, time and horsepower", () => {
+    expect(parseQuantities("1750 rpm")[0]).toMatchObject({ kind: "speed", unit: "rpm", value: 1750 });
+    expect(parseQuantities("Efficiency 94 %")[0]).toMatchObject({ kind: "ratio", unit: "%", value: 94 });
+    expect(parseQuantities("70 dB(A)")[0]).toMatchObject({ kind: "soundLevel", value: 70 });
+    expect(parseQuantities("1.5 kN")[0]).toMatchObject({ kind: "force", unit: "kN", value: 1.5 });
+    expect(parseQuantities("response 200 ms")[0]).toMatchObject({ kind: "time", unit: "ms", value: 200 });
+    expect(parseQuantities("3 HP")[0]).toMatchObject({ kind: "power", unit: "hp", value: 3 });
+    expect(parseQuantities("1013 hPa")[0]).toMatchObject({ kind: "pressure", unit: "hPa", value: 1013 });
+  });
+
+  it("does not turn a ± tolerance percentage into a standalone ratio quantity", () => {
+    const quantities = parseQuantities("24 V DC ±20%");
+    expect(quantities).toHaveLength(1);
+    expect(quantities[0]).toMatchObject({ kind: "voltage", value: 24, tolerance: { type: "percent", value: 20 } });
+  });
+
+  it("does not read a bare 'N' inside NO/NC contact wording as a force", () => {
+    expect(parseQuantities("2 NO", { kind: "force" })).toHaveLength(0);
+  });
+});

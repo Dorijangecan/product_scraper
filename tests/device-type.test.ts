@@ -975,4 +975,38 @@ describe("device type classifier — multi-signal voting and confidence", () => 
       "Classified as Cable but has switching-device signature attributes — verify."
     );
   });
+
+  describe("bare-token specificity collisions (Phase A3)", () => {
+    it("classifies 'motor cable' as Cable, not Motor", () => {
+      expect(classifyDeviceType(product([], "Motor cable, 5 m")).type).toBe("Cable");
+    });
+
+    it("classifies 'limit switch' as a Sensor, not a generic Switch", () => {
+      expect(classifyDeviceType(product([], "Inductive limit switch")).type).toBe("Sensor");
+    });
+
+    it("still classifies a bare 'motor' as Motor and a bare 'switch' as Switch", () => {
+      expect(classifyDeviceType(product([], "AC motor")).type).toBe("Motor");
+      expect(classifyDeviceType(product([], "Rotary switch")).type).toBe("Switch");
+    });
+  });
+
+  describe("multilingual device nouns (Phase A3)", () => {
+    it("classifies common German device nouns", () => {
+      expect(classifyDeviceType(product([], "Leitungsschutzschalter B16")).type).toBe("Miniature Circuit Breaker");
+      expect(classifyDeviceType(product([], "Schütz 3-polig")).type).toBe("Contactor");
+      expect(classifyDeviceType(product([], "Näherungsschalter M12")).type).toBe("Inductive Proximity Sensor");
+      expect(classifyDeviceType(product([], "Lasttrennschalter 63 A")).type).toBe("Disconnect Switch");
+      expect(classifyDeviceType(product([], "Reihenklemme 2,5 mm²")).type).toBe("Terminal Block");
+    });
+
+    it("does not mistake 'Schutzart' (degree of protection) for a Schütz contactor", () => {
+      expect(classifyDeviceType(product([], "Gehäuse mit Schutzart IP66")).type).not.toBe("Contactor");
+    });
+
+    it("classifies French / Italian device nouns", () => {
+      expect(classifyDeviceType(product([], "Disjoncteur 16 A")).type).toBe("Circuit Breaker");
+      expect(classifyDeviceType(product([], "Sezionatore 3P")).type).toBe("Disconnect Switch");
+    });
+  });
 });

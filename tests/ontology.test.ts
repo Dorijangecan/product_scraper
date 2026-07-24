@@ -12,6 +12,15 @@ describe("property ontology — general multilingual understanding", () => {
     expect(matchProperty("Werkstoff")?.key).toBe("material");
   });
 
+  it("maps only real NEMA enclosure type codes to protection, not arbitrary 'Type N' designations (Phase A5)", () => {
+    expect(matchProperty("Type 12")?.key).toBe("protection");
+    expect(matchProperty("Type 4X")?.key).toBe("protection");
+    expect(matchProperty("Type 3R")?.key).toBe("protection");
+    // Not NEMA type codes — must NOT be claimed as a protection rating.
+    expect(matchProperty("Type 20")?.key).not.toBe("protection");
+    expect(matchProperty("Type 7")?.key).not.toBe("protection");
+  });
+
   it("recognizes real-world manufacturer labels found via the unmapped-label audit", () => {
     // German reverse-compound and input/output voltage variants ("Spannungsversorgung",
     // "Eingangsspannung") — confirmed unmapped in production run history before this fix.

@@ -716,7 +716,10 @@ export const PROPERTY_ONTOLOGY: CanonicalProperty[] = [
       /schutzart\s*(?:IP|nach)/i,
       /\bnema\s+(?:type|rating|enclosure|\d)/i,
       /\bnema\s*type\s*[1-9][0-9]?[a-zR]?\b/i,              // NEMA Type 4, 4X, 12, 13, 3R
-      /\btype\s*[1-9][0-9]?[xrXR]?\b/i,                     // Type 4X, Type 12, Type 3R (US enclosure, case-insensitive)
+      // Constrained to the ACTUAL NEMA enclosure type codes (1, 2, 3/3R/3S/3X…, 4/4X, 5, 6/6P,
+      // 12/12K, 13) rather than any "Type <1-99>" — the old broad form claimed unrelated "Type N"
+      // designations (a product variant "Type 7", a mounting "Type 20", …) as a protection rating.
+      /\btype\s*(?:1|2|3[rsx]{0,2}|4x?|5|6p?|12k?|13)\b/i,  // NEMA enclosure types (case-insensitive)
       /\bUL\s*type\s*\d+[xrXR]?\b/i,
       /\u9632\u62a4\u7b49\u7ea7/i,
       /\u4fdd\u62a4\u7b49\u7ea7/i,

@@ -1,5 +1,26 @@
 import { describe, expect, it } from "vitest";
-import { classifyDocument, cleanText, normalizeFields } from "../src/server/scrapers/normalizer.js";
+import { classifyDocument, cleanText, normalizeFields, splitNameValue } from "../src/server/scrapers/normalizer.js";
+
+describe("splitNameValue (Phase A4)", () => {
+  it("splits on colon and equals", () => {
+    expect(splitNameValue("Weight: 1.2 kg")).toEqual({ name: "Weight", value: "1.2 kg" });
+    expect(splitNameValue("Weight = 1.2 kg")).toEqual({ name: "Weight", value: "1.2 kg" });
+    expect(splitNameValue("R = 10 Ω")).toEqual({ name: "R", value: "10 Ω" });
+  });
+
+  it("rejects value fragments masquerading as labels", () => {
+    expect(splitNameValue("120 W: something")).toBeUndefined();
+    expect(splitNameValue("(1.65 lb): x")).toBeUndefined();
+    expect(splitNameValue("6 kA: x")).toBeUndefined();
+  });
+
+  it("keeps a legitimate 'W x H x D' dimensions label", () => {
+    expect(splitNameValue("W x H x D: 39 x 124 x 117 mm")).toEqual({
+      name: "W x H x D",
+      value: "39 x 124 x 117 mm"
+    });
+  });
+});
 
 describe("normalizer", () => {
   it("decodes HTML entities while cleaning text", () => {
@@ -56,6 +77,41 @@ describe("normalizer", () => {
     expect(normalized.voltage).toBe("400 V");
     expect(normalized.current).toBe("16 A");
     expect(normalized.weight).toBe("0.5 kg");
+  });
+
+  it("does not let breaking/switching capacity or impulse voltage populate the rated current/voltage fields (Phase A2)", () => {
+    const normalized = normalizeFields(
+      [
+        { name: "Rated Current", value: "16 A" },
+        { name: "Rated operational voltage Ue", value: "400 V" },
+        { name: "Switching capacity", value: "6 kA" },
+        { name: "Rated short-circuit breaking capacity Icu", value: "10 kA" },
+        { name: "Rated impulse withstand voltage Uimp", value: "6 kV" },
+        { name: "Rated insulation voltage Ui", value: "690 V" }
+      ],
+      []
+    );
+    expect(normalized.current).toBe("16 A");
+    expect(normalized.voltage).toBe("400 V");
+  });
+
+  it("keeps rated current/voltage empty when ONLY surge/fault attributes exist (never wrong)", () => {
+    const normalized = normalizeFields(
+      [
+        { name: "Rated short-circuit breaking capacity Icu", value: "10 kA" },
+        { name: "Nominal discharge current In", value: "5 kA" },
+        { name: "Impulse current Iimp", value: "12.5 kA" },
+        { name: "Rated impulse withstand voltage Uimp", value: "6 kV" },
+        { name: "Rated insulation voltage Ui", value: "690 V" }
+      ],
+      []
+    );
+    // These surge/fault ratings must NOT be promoted into rated current/voltage.
+    expect(normalized.current).not.toBe("10 kA");
+    expect(normalized.current).not.toBe("5 kA");
+    expect(normalized.current).not.toBe("12.5 kA");
+    expect(normalized.voltage).not.toBe("6 kV");
+    expect(normalized.voltage).not.toBe("690 V");
   });
 
   it("assembles Eaton product dimensions from Polish localized SKU labels", () => {

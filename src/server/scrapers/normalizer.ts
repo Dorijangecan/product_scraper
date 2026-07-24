@@ -12,9 +12,32 @@ export { cleanText };
 export function splitNameValue(text: string): { name: string; value: string } | undefined {
   const cleaned = cleanText(text);
   if (!isLikelySpecText(cleaned)) return undefined;
-  const match = cleaned.match(/^([^:]{2,80}):\s*(.+)$/);
+  // Colon is the primary separator; also accept "=" (e.g. "R = 10 Ω", "Weight = 1.2 kg"). Colon is
+  // tried first so a value that itself contains "=" isn't torn at the wrong place. The label is
+  // capped at 80 chars so a whole prose sentence can't become a name. (Tab isn't handled here —
+  // cleanText has already collapsed whitespace by this point; tab-separated table cells are split
+  // upstream by splitPdfTableCells instead.)
+  const match = cleaned.match(/^([^:]{2,80}):\s*(.+)$/) ?? cleaned.match(/^([^=]{2,80})=\s*(.+)$/);
   if (!match) return undefined;
-  return { name: cleanText(match[1]), value: cleanText(match[2]) };
+  const name = cleanText(match[1]);
+  // A "name" that is itself a bare value (a measurement like "120 W" / "6 kA", a parenthetical unit
+  // conversion like "(1.65 lb)", or a lone number) is a mis-split value cell, not a label — emitting
+  // it produces junk attributes (confirmed in the unmapped-label audit). "W x H x D" is deliberately
+  // NOT rejected: it is a legitimate dimensions label.
+  if (isValueFragmentLabel(name)) return undefined;
+  return { name, value: cleanText(match[2]) };
+}
+
+/** True when a candidate label is actually a value fragment (measurement / parenthetical unit /
+ * bare number), which must never be stored as an attribute name. */
+export function isValueFragmentLabel(name: string): boolean {
+  const t = name.trim();
+  if (!t) return true;
+  if (/^\([^)]*\d[^)]*\)$/.test(t)) return true; // "(0.60 lb)", "(1.54 x 4.88 in.)"
+  if (/^[+-]?\d+(?:[.,]\d+)?$/.test(t)) return true; // pure number
+  // "120 W", "20 A", "6 kA", "-40 °C", "2.5 mm²" — a leading number followed only by a unit token
+  if (/^[+-]?\d+(?:[.,]\d+)?\s*[a-zµΩ°%/().²³]+$/i.test(t)) return true;
+  return false;
 }
 
 const FIELD_LABEL_PATTERNS: Record<keyof NormalizedProductFields, RegExp[]> = {
@@ -93,7 +116,11 @@ const FIELD_LABEL_PATTERNS: Record<keyof NormalizedProductFields, RegExp[]> = {
     /\bvoltage protection level\b/,
     /napon/,
     /\u7535\u538b/,
-    /\b(?:u[eirn]|u[abs]|uimp)\b/
+    // Ue/Un/Ur (operational/nominal/rated) and Ua/Ub/Us (output/supply) are real operating-voltage
+    // symbols. Ui (insulation voltage) and Uimp (impulse withstand voltage) are deliberately excluded
+    // \u2014 they are NOT the operating voltage and used to leak into it; the ontology keeps them as
+    // separate insulationVoltage / impulseVoltage properties.
+    /\b(?:u[ern]|u[abs])\b/
   ],
   current: [
     /\brated.*current\b/,
@@ -109,11 +136,17 @@ const FIELD_LABEL_PATTERNS: Record<keyof NormalizedProductFields, RegExp[]> = {
     /\bthermal protection adjustment range\b/,
     /\bcontinuous current\b/,
     /\bampere rating\b/,
+    // "Switching capacity"/"switching current" are kept: for a relay/thermostat/contactor these ARE
+    // the contact current rating in A (e.g. nVent thermostat "10 A resistive / 4 A inductive"), and
+    // the scoring below ranks them below a genuine "rated current" so a breaker that has both still
+    // prefers the real rated current.
     /\bswitching capacity\b/,
     /\bswitching current\b/,
-    /\bnominal discharge current\b/,
-    /\bimpulse current\b/,
-    /\bshort-?circuit.*(?:current|capacity|breaking)\b/,
+    // Deliberately EXCLUDED: nominal discharge current / impulse current / short-circuit
+    // (breaking|capacity|current). Those are kA fault/surge ratings, not the rated operational
+    // current, and used to overwrite `current` when they were the only current-shaped attribute
+    // (confirmed on breakers/SPDs). The ontology keeps them as separate breakingCapacity /
+    // inrushCurrent properties, so nothing is lost — only the mis-attribution.
     /\bshort-?time.*current\b/,
     /\bcurrent\b/,
     /\bstrom\b/,
@@ -400,6 +433,7 @@ function ontologyFieldValue(
     // Same guard as shouldSkipRegistryFieldCandidate: a disqualifying "... of test circuit"
     // qualifier can end up in either the label or the value depending on how the PDF line split.
     if (key === "ratedVoltage" && (isLowValueVoltageLabel(`${attr.group ?? ""} ${attr.name}`) || isLowValueVoltageLabel(attr.value))) continue;
+    if (key === "ratedCurrent" && isLowValueCurrentLabel(`${attr.group ?? ""} ${attr.name}`)) continue;
     const value = normalize(attr.value);
     if (value) return value;
   }
@@ -423,6 +457,7 @@ function inferredOntologyFieldValue(
     if (matchProperty(label)) continue;
     if (inferPropertyFromQuantities(label, attr.value)?.property.key !== key) continue;
     if (key === "ratedVoltage" && (isLowValueVoltageLabel(label) || isLowValueVoltageLabel(attr.value))) continue;
+    if (key === "ratedCurrent" && isLowValueCurrentLabel(label)) continue;
     const value = normalize(attr.value);
     if (value) return value;
   }
@@ -448,6 +483,7 @@ function registryFieldValue(
 function shouldSkipRegistryFieldCandidate(attr: AttributeRecord, key: keyof NormalizedProductFields): boolean {
   const label = `${attr.group ?? ""} ${attr.name}`.toLowerCase();
   if (key === "current" && /\b(?:inrush|starting|peak)\s+current\b/.test(label)) return true;
+  if (key === "current" && isLowValueCurrentLabel(label)) return true;
   // Check the value too, not just the label: a loose PDF "label: value" split can leave a
   // disqualifying "... of test circuit" qualifier in the value (see deriveVoltageRangeFromMinMax).
   if (key === "voltage" && (isLowValueVoltageLabel(label) || isLowValueVoltageLabel(attr.value))) return true;
@@ -543,6 +579,7 @@ function bestNormalizedAttributeValue(
     .filter((attr) => {
       const haystack = `${attr.group ?? ""} ${attr.name}`.toLowerCase();
       if (field === "current" && /\b(?:inrush|starting|peak)\s+current\b/.test(haystack)) return false;
+      if (field === "current" && isLowValueCurrentLabel(haystack)) return false;
       // A loose PDF "label: value" split can leave a disqualifying "... of test circuit"
       // qualifier in the value instead of the label — check both sides (see
       // deriveVoltageRangeFromMinMax for the same fix on the min/max-pairing path).
@@ -1140,6 +1177,22 @@ function isPrimaryVoltageLabel(label: string): boolean {
 
 function isSecondaryVoltageLabel(label: string): boolean {
   return /\b(?:output|discrete|relay|contact)\b/i.test(label);
+}
+
+// Surge / fault current ratings (SPD discharge current In/Iimp, short-circuit current Icc,
+// short-circuit breaking capacity Icu/Ics) are kA-level fault figures, NOT the product's rated
+// operational current — they used to leak into the current field via the catch-all /current/
+// pattern whenever they were the only current-shaped attribute (breakers, SPDs). "Switching
+// capacity"/"switching current" are deliberately NOT here: for a relay/thermostat those ARE the
+// contact current rating in A (see the nVent thermostat test).
+function isLowValueCurrentLabel(label: string): boolean {
+  return (
+    /\b(?:nominal\s+)?discharge\s+current\b/i.test(label) ||
+    /\bimpulse\s+current\b/i.test(label) ||
+    /\blightning\s+(?:impulse\s+)?current\b/i.test(label) ||
+    /\bshort-?circuit\b[^.;|]*\b(?:current|breaking|capacity)\b|\bcurrent\b[^.;|]*\bshort-?circuit\b/i.test(label) ||
+    /\bbreaking\s+capacity\b/i.test(label)
+  );
 }
 
 function isLowValueVoltageLabel(label: string): boolean {
