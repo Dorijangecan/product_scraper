@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { discoverOfficialProductCandidates, scoreDiscoveryCandidate } from "../src/server/scrapers/discovery.js";
+import { discoverOfficialProductCandidates, learnedEndpointRecencyPenalty, scoreDiscoveryCandidate } from "../src/server/scrapers/discovery.js";
 import { scrapeDiscoveredFallback } from "../src/server/scrapers/discovery-fallback.js";
 import { GenericFallbackScraper } from "../src/server/scrapers/generic.js";
 import { getConnector } from "../src/server/scrapers/index.js";
@@ -212,6 +212,31 @@ describe("official discovery scoring", () => {
     );
 
     expect(discovery.candidates.some((candidate) => candidate.url === "https://example.test/catalog/detail.aspx?ugly=true&id=ABC-123")).toBe(true);
+  });
+
+  it("follows a BreadcrumbList leaf to the canonical product page (Phase B3)", () => {
+    const discovery = discoverProductLinksWithDiagnostics(
+      `<script type="application/ld+json">
+        {"@type":"BreadcrumbList","itemListElement":[
+          {"@type":"ListItem","position":1,"name":"Home","item":"https://example.test/"},
+          {"@type":"ListItem","position":2,"name":"Controllers","item":"https://example.test/controllers"},
+          {"@type":"ListItem","position":3,"name":"ABC-123 compact controller","item":"https://example.test/products/ABC-123"}
+        ]}
+      </script>`,
+      "https://example.test/controllers",
+      "ABC-123"
+    );
+    expect(discovery.candidates.some((candidate) => candidate.url === "https://example.test/products/ABC-123")).toBe(true);
+  });
+
+  it("uses hreflang alternates as localized product-page candidates (Phase B3)", () => {
+    const discovery = discoverProductLinksWithDiagnostics(
+      `<h1>ABC-123 compact controller</h1>
+       <link rel="alternate" hreflang="de-de" href="https://example.test/de/produkte/ABC-123">`,
+      "https://example.test/en/products/ABC-123",
+      "ABC-123"
+    );
+    expect(discovery.candidates.some((candidate) => candidate.url === "https://example.test/de/produkte/ABC-123")).toBe(true);
   });
 
   it("uses surrounding inline context when the detail URL itself has no catalog number", () => {
@@ -1217,5 +1242,22 @@ describe("official discovery scoring", () => {
 
     expect(result.status).toBe("failed");
     expect(result.productUrl).toBeUndefined();
+  });
+});
+
+describe("learned endpoint recency decay (Phase B6)", () => {
+  const now = Date.parse("2026-07-24T00:00:00.000Z");
+  it("does not penalize a recently-successful endpoint", () => {
+    expect(learnedEndpointRecencyPenalty("2026-07-20T00:00:00.000Z", now)).toBe(0);
+  });
+  it("mildly penalizes an endpoint stale for 30-90 days", () => {
+    expect(learnedEndpointRecencyPenalty("2026-06-01T00:00:00.000Z", now)).toBe(8);
+  });
+  it("heavily penalizes an endpoint stale for over 90 days", () => {
+    expect(learnedEndpointRecencyPenalty("2026-01-01T00:00:00.000Z", now)).toBe(20);
+  });
+  it("returns 0 for a missing or invalid timestamp", () => {
+    expect(learnedEndpointRecencyPenalty(undefined, now)).toBe(0);
+    expect(learnedEndpointRecencyPenalty("not-a-date", now)).toBe(0);
   });
 });

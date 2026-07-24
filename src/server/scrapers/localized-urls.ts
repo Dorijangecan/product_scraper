@@ -93,9 +93,12 @@ export function buildLocalizedProductUrls(
       };
     }
     case "eta":
+      // ETA product-page URLs come from config-driven discovery and have no reliable, single
+      // locale-swap rule (their locale marker is an inconsistent "_en"/"2_en" path suffix, mostly on
+      // PDFs). The previous `de` was a literal no-op replace, so it emitted de === en — a duplicate
+      // that falsely implies a distinct German page. Emit only `en` until a real DE rule is known.
       return {
-        en: productUrl,
-        de: productUrl?.replace("https://www.e-t-a.com/", "https://www.e-t-a.com/")
+        en: productUrl
       };
     default:
       return {

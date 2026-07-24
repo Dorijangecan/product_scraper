@@ -32,5 +32,10 @@ describe("catalog number utilities", () => {
       en: "https://www.eaton.com/us/en-us/skuPage.P1-25%7B%7DI2%7B%7DSVB.html",
       de: "https://www.eaton.com/de/de-de/skuPage.P1-25%7B%7DI2%7B%7DSVB.html"
     });
+
+    // ETA: no reliable DE transform, so only `en` is emitted (never a de === en duplicate).
+    expect(buildLocalizedProductUrls("eta", "3120-F", "https://www.e-t-a.com/en/products/3120-F")).toEqual({
+      en: "https://www.e-t-a.com/en/products/3120-F"
+    });
   });
 });

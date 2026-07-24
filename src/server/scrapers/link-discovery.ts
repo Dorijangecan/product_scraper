@@ -57,6 +57,19 @@ export function discoverProductLinksWithDiagnostics(html: string, baseUrl: strin
       const context = cleanText([product.sku, product.mpn, product.name, product.description].map(String).join(" "));
       addCandidate(String(product.url ?? ""), context, "json-ld product url", 30);
     }
+    // A BreadcrumbList's LAST item is almost always the canonical product page — a strong PDP
+    // signal that a slug-based listing link (no catalog number in its own href) otherwise misses.
+    for (const leaf of readJsonLdBreadcrumbLeaves(raw)) {
+      addCandidate(leaf.url, leaf.name, "json-ld breadcrumb leaf", 28);
+    }
+  });
+
+  // Localized product-page variants: <link rel="alternate" hreflang=".." href="..">. When the
+  // current page is the PDP, its alternates are the same product in other locales.
+  $("link[rel='alternate'][hreflang][href]").each((_, element) => {
+    const rawUrl = $(element).attr("href");
+    const context = cleanText([$("h1").first().text(), $("title").first().text()].filter(Boolean).join(" "));
+    addCandidate(rawUrl, context, `hreflang alternate (${$(element).attr("hreflang")})`, 20);
   });
 
   $("link[rel='canonical'][href], meta[property='og:url'][content], meta[name='twitter:url'][content]").each((_, element) => {
@@ -250,6 +263,31 @@ function readJsonLdProducts(raw: string): Record<string, unknown>[] {
       const type = entry["@type"];
       return type === "Product" || (Array.isArray(type) && type.includes("Product"));
     });
+  } catch {
+    return [];
+  }
+}
+
+/** The deepest breadcrumb item (highest `position`, or last in document order) — its URL is the
+ * canonical product page the breadcrumb trail leads to, with the leaf name as matching context. */
+function readJsonLdBreadcrumbLeaves(raw: string): Array<{ url: string; name: string }> {
+  try {
+    const lists = flattenJsonLd(JSON.parse(raw) as unknown).filter((entry) => {
+      const type = entry["@type"];
+      return type === "BreadcrumbList" || (Array.isArray(type) && type.includes("BreadcrumbList"));
+    });
+    const leaves: Array<{ url: string; name: string }> = [];
+    for (const list of lists) {
+      const items = list.itemListElement;
+      if (!Array.isArray(items) || items.length === 0) continue;
+      const ordered = [...items].sort((left, right) => Number((left as Record<string, unknown>)?.position ?? 0) - Number((right as Record<string, unknown>)?.position ?? 0));
+      const last = ordered[ordered.length - 1] as Record<string, unknown> | undefined;
+      const item = last?.item;
+      const url = typeof item === "string" ? item : typeof (item as Record<string, unknown>)?.["@id"] === "string" ? String((item as Record<string, unknown>)["@id"]) : typeof (item as Record<string, unknown>)?.url === "string" ? String((item as Record<string, unknown>).url) : "";
+      const name = cleanText(String(last?.name ?? (item as Record<string, unknown>)?.name ?? ""));
+      if (url) leaves.push({ url, name });
+    }
+    return leaves;
   } catch {
     return [];
   }

@@ -99,7 +99,17 @@ const DEFAULT_EXPAND_SELECTORS = [
   "button:has-text('Classifications')",
   "button:has-text('Klassifizierungen')",
   "button:has-text('Technical data')",
-  "button:has-text('Technische Daten')"
+  "button:has-text('Technische Daten')",
+  // French / Italian / Spanish
+  "button:has-text('Voir plus')",
+  "button:has-text('Données techniques')",
+  "button:has-text('Documents')",
+  "button:has-text('Mostra altro')",
+  "button:has-text('Dati tecnici')",
+  "button:has-text('Documenti')",
+  "button:has-text('Ver más')",
+  "button:has-text('Datos técnicos')",
+  "button:has-text('Documentos')"
 ];
 
 // State-aware expanders only: these selectors stop matching once opened (`aria-expanded`
@@ -130,7 +140,14 @@ const PAGINATION_SELECTORS = [
   "a[rel='next']",
   "[aria-label='Next']",
   "[aria-label='Nächste Seite']",
-  "[aria-label='Next page']"
+  "[aria-label='Next page']",
+  // French / Italian / Spanish
+  "button:has-text('Charger plus')",
+  "a:has-text('Suivant')",
+  "button:has-text('Carica altro')",
+  "a:has-text('Successivo')",
+  "button:has-text('Cargar más')",
+  "a:has-text('Siguiente')"
 ];
 
 const OVERLAY_CLOSE_SELECTORS = [
@@ -144,6 +161,16 @@ const OVERLAY_CLOSE_SELECTORS = [
   "button[aria-label='Close']",
   "button[aria-label='Schliessen']",
   "button[aria-label='Schließen']",
+  // French / Italian / Spanish consent + close
+  "button:has-text('Tout accepter')",
+  "button:has-text('Accepter')",
+  "button:has-text('Accetta tutto')",
+  "button:has-text('Accetta')",
+  "button:has-text('Aceptar todo')",
+  "button:has-text('Aceptar')",
+  "button[aria-label='Fermer']",
+  "button[aria-label='Chiudi']",
+  "button[aria-label='Cerrar']",
   ".cookie button",
   "#onetrust-accept-btn-handler"
 ];

@@ -60,7 +60,39 @@ const TECHNICAL_TERMS = [
   "Alle anzeigen",
   "View all",
   "View more",
-  "Read more"
+  "Read more",
+  // French
+  "Données techniques",
+  "Caractéristiques",
+  "Spécifications",
+  "Détails du produit",
+  "Fiche technique",
+  "Documents",
+  "Télécharger",
+  "Homologations",
+  "Voir plus",
+  "En savoir plus",
+  // Italian
+  "Dati tecnici",
+  "Caratteristiche",
+  "Specifiche",
+  "Dettagli prodotto",
+  "Scheda tecnica",
+  "Documenti",
+  "Scarica",
+  "Approvazioni",
+  "Mostra altro",
+  // Spanish
+  "Datos técnicos",
+  "Características",
+  "Especificaciones",
+  "Detalles del producto",
+  "Ficha técnica",
+  "Documentos",
+  "Descargar",
+  "Homologaciones",
+  "Ver más",
+  "Más información"
 ];
 
 export function adaptiveInteractionSelectors(recipe: ScrapeRecipeConfig | undefined): string[] {

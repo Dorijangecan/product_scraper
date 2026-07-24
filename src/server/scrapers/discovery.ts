@@ -8,6 +8,19 @@ import { discoverProductLinksWithDiagnostics } from "./link-discovery.js";
 import { learnEndpointFromNetworkFetch, learnedEndpointUrls } from "./learned-endpoints.js";
 import { discoverSourceDocumentsWithDiagnostics } from "./source-document-discovery.js";
 
+/** Score penalty for a learned endpoint that hasn't succeeded recently. `lastSuccessAt` only
+ * advances on a real success, so a broken endpoint's timestamp freezes and ages out. Mild before
+ * 30 days, larger past 90, so a stale endpoint sinks below fresh direct templates over time.
+ * `now` is injectable for tests. */
+export function learnedEndpointRecencyPenalty(lastSuccessAt: string | undefined, now = Date.now()): number {
+  const at = lastSuccessAt ? Date.parse(lastSuccessAt) : NaN;
+  if (!Number.isFinite(at)) return 0;
+  const ageDays = (now - at) / 86_400_000;
+  if (ageDays > 90) return 20;
+  if (ageDays > 30) return 8;
+  return 0;
+}
+
 export interface ProductDiscoveryCandidate {
   url: string;
   score: number;
@@ -87,10 +100,14 @@ export async function discoverOfficialProductCandidates(catalogNumber: string, c
   }
 
   for (const learned of learnedEndpointUrls(manufacturer, catalogNumber, context.learnedEndpoints, Math.min(maxCandidates, 12))) {
+    const stalePenalty = learnedEndpointRecencyPenalty(learned.endpoint.lastSuccessAt);
     add({
       url: learned.url,
-      score: Math.min(96, 86 + Math.min(8, learned.endpoint.successCount)),
-      reason: `learned official ${learned.endpoint.parserKind} endpoint (${learned.endpoint.successCount} previous success${learned.endpoint.successCount === 1 ? "" : "es"})`,
+      // Success-recency decay: lastSuccessAt only advances on a real success, so a renamed/404'd
+      // endpoint's timestamp freezes and its score decays over time — it stops out-ranking fresh
+      // direct templates instead of sitting at the top forever.
+      score: Math.min(96, 86 + Math.min(8, learned.endpoint.successCount)) - stalePenalty,
+      reason: `learned official ${learned.endpoint.parserKind} endpoint (${learned.endpoint.successCount} previous success${learned.endpoint.successCount === 1 ? "" : "es"}${stalePenalty ? `, stale -${stalePenalty}` : ""})`,
       stage: "learned-endpoint",
       sourceType: "official-fallback"
     });
