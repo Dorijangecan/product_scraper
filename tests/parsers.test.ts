@@ -11,7 +11,7 @@ import {
 import { parseGenericProductPage } from "../src/server/scrapers/generic.js";
 import { mergeResults, normalizeFields } from "../src/server/scrapers/normalizer.js";
 import { parseSchneiderDatasheetReaderPage, parseSchneiderProductPage, parseTelemecaniqueProductPage } from "../src/server/scrapers/schneider.js";
-import { extractSiemensProductAndPricesEan, extractSiemensTechnicalData, parseSiemensBuildingTechnologiesPview, parseSiemensProductApiResponse, siemensEuropeanWeightToDot } from "../src/server/scrapers/siemens.js";
+import { extractSiemensProductAndPricesEan, extractSiemensTechnicalData, parseSiemensBuildingTechnologiesGermanDescriptions, parseSiemensBuildingTechnologiesPview, parseSiemensProductApiResponse, siemensEuropeanWeightToDot } from "../src/server/scrapers/siemens.js";
 import { parseRockwellCutsheetPage, parseRockwellDpp, parseRockwellDrawingsPage, parseRockwellFamilyPage } from "../src/server/scrapers/rockwell.js";
 import { SCEConnector, parseSceProductPage } from "../src/server/scrapers/sce.js";
 import { SpelsbergConnector } from "../src/server/scrapers/spelsberg.js";
@@ -934,6 +934,54 @@ describe("manufacturer parsers", () => {
     expect(seenUrls).toContain("fetch:https://www.saginawcontrol.com/advanced-part-search/");
     expect(seenUrls).toContain("fetch:https://www.saginawcontrol.com/partnumber_info/?n=SCE-60EL4812LPPL");
     expect(seenUrls).toContain("powershell:https://www.saginawcontrol.com/partnumber_info/?n=SCE-60EL4812LPPL");
+  });
+
+  it("reports a clean miss and skips discovery when SCE has no web-viewable part", async () => {
+    // SCE answers HTTP 200 and echoes the requested part in <title> even for parts that do not
+    // exist, so the miss must not slip through as a match and must not trigger the generic
+    // discovery fallback (which used to fabricate a product URL + the SCE logo as an image).
+    let fallbackCalled = false;
+    const errorHtml = `
+      <html><head><title>SCE-N80RXS2018SS - Saginaw Control and Engineering</title></head>
+      <body>
+        <img src="/images/logo.png" alt="Saginaw Control and Engineering" />
+        <p>Sorry, but this is not a web viewable part, or there was a problem with your request.</p>
+      </body></html>
+    `;
+    const context = {
+      manufacturer: {
+        id: "sce",
+        canonicalName: "Saginaw Control and Engineering",
+        shortName: "SCE",
+        rateLimitMs: 0,
+        officialBaseUrls: ["https://www.saginawcontrol.com"],
+        localizedUrlTemplates: [],
+        fallbackSources: []
+      },
+      http: {
+        fetchText: async (url: string) => {
+          if (url.includes("/advanced-part-search/")) return fetched("<html><body></body></html>", url);
+          return fetched(errorHtml, url);
+        },
+        fetchTextViaPowerShell: async (url: string) => fetched(errorHtml, url)
+      },
+      runDir: "",
+      documentsDir: "",
+      downloadDocument: async (doc: Parameters<ScrapeContext["downloadDocument"]>[0]) => doc,
+      fallback: {
+        scrape: async () => {
+          fallbackCalled = true;
+          return undefined;
+        }
+      }
+    } as unknown as ScrapeContext;
+
+    const result = await new SCEConnector().scrape("SCE-N80RXS2018SS", context);
+
+    expect(result.status).toBe("failed");
+    expect(result.productUrl).toBeUndefined();
+    expect(result.documents.some((doc) => doc.type === "image")).toBe(false);
+    expect(fallbackCalled).toBe(false);
   });
 
   it("parses SCE product specs, sections, accessories, and manuals", () => {
@@ -5606,6 +5654,30 @@ IP degree of protection IP68 conforming to IEC 60529 IP69K conforming to DIN 400
   it("returns undefined for an Akamai access-denied / non-product Siemens response", () => {
     expect(
       parseSiemensBuildingTechnologiesPview("S55499-D820", fetched("<HTML><HEAD><TITLE>Access Denied</TITLE></HEAD></HTML>", "https://support.industry.siemens.com/x"))
+    ).toBeUndefined();
+  });
+
+  it("extracts German short/long descriptions from the German pview view, keeping the leading MFN type designation", () => {
+    // Trimmed but faithful excerpt of `/webapp/pview/WW/de/S55180-A179$/`. The German short
+    // description leads with the type designation (MFN) "SSC331.09UT", exactly as the English view.
+    const deXml =
+      `<product><descriptionlong>Elektromotorischer Stellantrieb, 300 N, 1.2...6.5 mm, AC 230 V, 3-Punkt</descriptionlong>` +
+      `<descriptionshort>SSC331.09UT Ventilantrieb 300N</descriptionshort><mlfb>S55180-A179</mlfb></product>`;
+    const de = parseSiemensBuildingTechnologiesGermanDescriptions(
+      fetched(deXml, "https://support.industry.siemens.com/webapp/pview/WW/de/S55180-A179$/")
+    );
+    expect(de).toEqual({
+      title: "SSC331.09UT Ventilantrieb 300N",
+      description: "Elektromotorischer Stellantrieb, 300 N, 1.2...6.5 mm, AC 230 V, 3-Punkt"
+    });
+  });
+
+  it("returns undefined German descriptions for a denial / non-product German pview response", () => {
+    expect(
+      parseSiemensBuildingTechnologiesGermanDescriptions(fetched("<HTML><HEAD><TITLE>Access Denied</TITLE></HEAD></HTML>", "https://support.industry.siemens.com/x"))
+    ).toBeUndefined();
+    expect(
+      parseSiemensBuildingTechnologiesGermanDescriptions(fetched("<product></product>", "https://support.industry.siemens.com/x"))
     ).toBeUndefined();
   });
 });

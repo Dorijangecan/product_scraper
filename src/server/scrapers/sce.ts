@@ -38,6 +38,27 @@ export class SCEConnector implements ManufacturerConnector {
     try {
       const detailUrl = findExactDetailUrl(partNumber, search?.text ?? "") ?? buildSceProductUrl(partNumber);
       const detail = await fetchSceGet(context, detailUrl);
+      if (sceProductPageUnavailable(detail.text)) {
+        // SCE's partnumber_info endpoint answers HTTP 200 and echoes the requested part number in
+        // the <title> even for parts that do not exist ("...not a web viewable part..."). That
+        // title echo satisfies the catalog-match gate, so the miss used to slip through as
+        // "partial" and the generic discovery fallback then fabricated a product URL plus the SCE
+        // logo as a "product image". When SCE itself says the part isn't viewable, report a clean
+        // miss and skip the fallback — there is nothing to discover.
+        return {
+          ...emptyResult("sce", partNumber, "SCE has no web-viewable product for this catalog number."),
+          sources: [
+            {
+              url: detail.effectiveUrl,
+              sourceType: "official",
+              parser: "sce-product-page",
+              parserVersion: "sce-v2",
+              fetchedAt: detail.fetchedAt,
+              statusCode: detail.statusCode
+            }
+          ]
+        };
+      }
       const cad = context.downloadDocuments === false || context.imageOnly
         ? undefined
         : await fetchSceGet(context, `${SCE_BASE}/download-doc/?PartNumber=${encodeURIComponent(partNumber)}`).catch(() => undefined);
@@ -216,7 +237,7 @@ export function parseSceProductPage(
     }
   }
 
-  const matched = catalogTextMatches(detail.text, catalogNumber) && !/search yielded 0 results/i.test(detail.text);
+  const matched = !sceProductPageUnavailable(detail.text) && catalogTextMatches(detail.text, catalogNumber);
   if (!matched) {
     return {
       ...emptyResult("sce", catalogNumber, "SCE product page did not contain the catalog number."),
@@ -763,4 +784,11 @@ function filterSceMarkerDocuments(documents: DocumentRecord[], catalogNumber: st
 
 function catalogLike(value: string): boolean {
   return /^(?:SCE|P)-[A-Z0-9][A-Z0-9-]*$/i.test(value);
+}
+
+// SCE returns HTTP 200 with the requested part number echoed in <title> even when the part does
+// not exist, so the title echo alone is not proof of a real product. These are the site's own
+// "no viewable product" markers — the definitive signal that this catalog number is a miss.
+function sceProductPageUnavailable(html: string): boolean {
+  return /not a web viewable part|search yielded 0 results/i.test(html);
 }
