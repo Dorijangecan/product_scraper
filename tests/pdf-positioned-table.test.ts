@@ -170,6 +170,62 @@ const CORRECT_LATER_TABLE: PositionedTextItem[] = [
   { text: "Fixed", x: 300, y: 576 }
 ];
 
+// A generic family/comparison table from a NON-Rockwell datasheet: no literal "Catalog Number"
+// header at all — just a header row of two model codes and a left-hand row-label column. The
+// generalized anchor (variant-token header row + leftmost label column) must handle this.
+const GENERIC_NO_ID_LABEL: PositionedTextItem[] = [
+  { text: "ABC-100", x: 150, y: 500 },
+  { text: "ABC-200", x: 300, y: 500 },
+  { text: "W x H x D", x: 47, y: 430 },
+  { text: "10 x 20 x 30 mm", x: 150, y: 430 },
+  { text: "40 x 50 x 60 mm", x: 300, y: 430 },
+  { text: "Weight", x: 47, y: 460 },
+  { text: "1.5 kg", x: 152, y: 462 },
+  { text: "2.0 kg", x: 302, y: 462 }
+];
+
+// A German ordering table anchored on "Bestell-Nr." instead of "Catalog Number".
+const GERMAN_ID_LABEL: PositionedTextItem[] = [
+  { text: "Bestell-Nr.", x: 47, y: 500 },
+  { text: "XYZ-1", x: 150, y: 500 },
+  { text: "XYZ-2", x: 300, y: 500 },
+  { text: "Gewicht", x: 47, y: 460 },
+  { text: "0.5 kg", x: 150, y: 462 },
+  { text: "0.9 kg", x: 300, y: 462 }
+];
+
+// Our exact catalog printed in TWO different columns of the same header — genuinely ambiguous.
+const AMBIGUOUS_HEADER: PositionedTextItem[] = [
+  { text: "DUP-1", x: 150, y: 500 },
+  { text: "DUP-1", x: 300, y: 500 },
+  { text: "Weight", x: 47, y: 460 },
+  { text: "1.0 kg", x: 150, y: 462 },
+  { text: "2.0 kg", x: 300, y: 462 }
+];
+
+describe("generalized anchor (works beyond Rockwell's 'Catalog Number' header)", () => {
+  it("resolves a column with no id-label at all, via the variant-token header row + left label column", () => {
+    expect(extractPositionedWeightAndDimensions(GENERIC_NO_ID_LABEL, "ABC-100")).toEqual({
+      weight: "1.5 kg",
+      dimensions: "10 x 20 x 30 mm"
+    });
+    expect(extractPositionedWeightAndDimensions(GENERIC_NO_ID_LABEL, "ABC-200")).toEqual({
+      weight: "2.0 kg",
+      dimensions: "40 x 50 x 60 mm"
+    });
+  });
+
+  it("anchors on a German 'Bestell-Nr.' id label and returns rows keyed by their raw labels", () => {
+    expect(extractPositionedTableRows(GERMAN_ID_LABEL, "XYZ-1")).toMatchObject({ Gewicht: "0.5 kg" });
+    expect(extractPositionedTableRows(GERMAN_ID_LABEL, "XYZ-2")).toMatchObject({ Gewicht: "0.9 kg" });
+  });
+
+  it("refuses to guess when our catalog matches two genuinely different columns", () => {
+    expect(extractPositionedWeightAndDimensions(AMBIGUOUS_HEADER, "DUP-1")).toBeUndefined();
+    expect(extractPositionedTableRows(AMBIGUOUS_HEADER, "DUP-1")).toBeUndefined();
+  });
+});
+
 describe("matchColumnForCatalog fallback (sibling-prefix collision safety)", () => {
   it("does not let a shorter sibling catalog's column (a strict text-prefix of the real one) match via the fuzzy fallback", () => {
     // The real reader would try the earlier table's page first and move on since no column of

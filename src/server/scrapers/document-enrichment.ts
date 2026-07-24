@@ -15,6 +15,7 @@ import { fieldMatchesLabel, FIELD_REGISTRY, listFieldRegistryDocumentLabels } fr
 import { extractElectricalSpecAttributesFromText, extractOntologySpecAttributesFromText } from "./electrical-spec-miner.js";
 import { extractComplianceMatrixAttributes, textHasComplianceMatrixGlyphs } from "./pdf-compliance-matrix.js";
 import { extractPositionedTableRowsFromPdf } from "./pdf-positioned-table.js";
+import { catalogTableKeyFor, isCatalogTableHeaderText } from "./catalog-table-vocabulary.js";
 
 const MAX_PDF_PAGES = 30;
 const MAX_PDF_TEXT_CHARS = 250_000;
@@ -272,7 +273,7 @@ export async function enrichResultFromDownloadedDocuments(result: ProductResult)
         }),
         ...(await extractComplianceMatrixAttributesSafely(text, doc.localPath!, result.catalogNumber, doc.url))
       ];
-      attributes.push(...(await extractPositionedWeightDimensionsSafely(doc.localPath!, result.catalogNumber, doc.url, attributes)));
+      attributes.push(...(await extractPositionedWeightDimensionsSafely(doc.localPath!, result.catalogNumber, doc.url, attributes, looksLikeMultiVariantFamilyPage(text, result.catalogNumber))));
       if (attributes.length > 0) {
         documentAttributes.push(...stampDocumentAttributes(attributes));
         documentSources.push({
@@ -385,7 +386,7 @@ export async function enrichResultFromRemoteDocuments(
         }),
         ...(await extractComplianceMatrixAttributesSafely(text, fetched.localPath, result.catalogNumber, parsedDoc.url))
       ];
-      attributes.push(...(await extractPositionedWeightDimensionsSafely(fetched.localPath, result.catalogNumber, parsedDoc.url, attributes)));
+      attributes.push(...(await extractPositionedWeightDimensionsSafely(fetched.localPath, result.catalogNumber, parsedDoc.url, attributes, looksLikeMultiVariantFamilyPage(text, result.catalogNumber))));
       if (attributes.length > 0) {
         documentAttributes.push(...stampDocumentAttributes(attributes));
         documentSources.push({
@@ -634,10 +635,7 @@ function extractGetTableCatalogRows(tables: TableArray[], catalogNumber: string,
 function looksLikeCatalogTableHeader(row: string[]): boolean {
   const cells = row.map(cleanText).filter(Boolean);
   if (cells.length < 2) return false;
-  const headerText = cells.join(" ");
-  return /\b(?:catalog|cat(?:alog)?\.?\s*no|part\s*(?:number|no)|order\s*(?:number|no)|mlfb|type\s*code|description|material|weight|mass|width|height|depth|dimensions?|voltage|current)\b/i.test(
-    headerText
-  );
+  return isCatalogTableHeaderText(cells.join(" "));
 }
 
 function parsedDocumentAttribute(
@@ -1074,11 +1072,31 @@ export function isCleanSingleSpecValue(value: string): boolean {
   return true;
 }
 
+/** Cheap, no-extra-parse signal that a PDF is a multi-model comparison/family page whose per-model
+ * columns the positioned reader should own: some line prints OUR catalog next to at least one OTHER
+ * distinct catalog-shaped model code (a comparison header or ordering row). Single-product
+ * datasheets never match (only one catalog token), so the expensive positioned re-parse stays gated
+ * off for them — this only force-runs it where the tab-text heuristics are known to fill wrong,
+ * cross-model values that still LOOK clean. */
+export function looksLikeMultiVariantFamilyPage(text: string, catalogNumber: string): boolean {
+  const compactCatalog = compact(catalogNumber);
+  if (!compactCatalog) return false;
+  const catalogLike = /\b[A-Z0-9]{2,}(?:[-:\/.][A-Z0-9]+)+\b|\b[A-Z]{2,}[0-9]{3,}\b/gi;
+  for (const line of text.split(/\r?\n/)) {
+    const tokens = line.match(catalogLike);
+    if (!tokens) continue;
+    const distinct = new Set(tokens.map(compact).filter((token) => token.length >= 4 && /\d/.test(token)));
+    if (distinct.has(compactCatalog) && distinct.size >= 2) return true;
+  }
+  return false;
+}
+
 async function extractPositionedWeightDimensionsSafely(
   filePath: string,
   catalogNumber: string,
   sourceUrl: string,
-  existingAttributes: AttributeRecord[]
+  existingAttributes: AttributeRecord[],
+  forceRun = false
 ): Promise<AttributeRecord[]> {
   // A weight/dimensions attribute whose VALUE already looks like several different numbers
   // concatenated together (" / " or " | " joining multiple "NNN g"/"NN x NN x NN" fragments) is
@@ -1097,7 +1115,12 @@ async function extractPositionedWeightDimensionsSafely(
   // (not this function) pick the winner between the two candidates.
   const hasVoltage = existingAttributes.some((attr) => /\bvoltage\b/i.test(attr.name));
   const hasCurrent = existingAttributes.some((attr) => /\bcurrent\b/i.test(attr.name));
-  if (hasWeight && hasDimensions && !hasVoltage && !hasCurrent) return [];
+  // On a detected multi-model family page, run the positioned reader even when Weight+Dimensions
+  // already look clean and there's no Voltage/Current: the tab-text heuristics can fill a
+  // cross-model value that passes the shape check while belonging to a DIFFERENT model's column
+  // (confirmed on Rockwell 1606-XLS families). Position clustering owns the true per-model column,
+  // so let it compete regardless. Non-family PDFs never set forceRun, so their gate is unchanged.
+  if (!forceRun && hasWeight && hasDimensions && !hasVoltage && !hasCurrent) return [];
   try {
     const data = new Uint8Array(await fs.readFile(filePath));
     const rows = await extractPositionedTableRowsFromPdf(data, catalogNumber);
@@ -2222,10 +2245,7 @@ function nearestCatalogTableHeader(lines: string[], rowIndex: number, rowCellCou
     const header = splitPdfTableCells(lines[index]);
     if (header.length < 3) continue;
     if (Math.abs(header.length - rowCellCount) > 2) continue;
-    const headerText = header.join(" ");
-    if (!/\b(?:catalog|cat(?:alog)?\.?\s*no|part\s*(?:number|no)|order\s*(?:number|no)|mlfb|type\s*code|description|material|weight|mass|width|height|depth|dimensions?|voltage|current)\b/i.test(headerText)) {
-      continue;
-    }
+    if (!isCatalogTableHeaderText(header.join(" "))) continue;
     return header;
   }
   return undefined;
@@ -2256,26 +2276,9 @@ function mapHeaderCellsToRow(header: string[], row: string[]): Map<string, strin
 }
 
 function genericCatalogTableKey(header: string): string | undefined {
-  const label = cleanText(header);
-  if (/\b(?:catalog|cat(?:alog)?\.?\s*no|part\s*(?:number|no)|order\s*(?:number|no)|mlfb|type\s*code)\b/i.test(label)) return "catalogNumber";
-  if (/\b(?:description|product\s+(?:short\s+)?text|name)\b/i.test(label)) return "description";
-  if (/\b(?:product\s+type|device\s+type|type\s+description)\b/i.test(label)) return "productType";
-  if (/\bmaterial\b/i.test(label)) return "material";
-  if (/\b(?:weight|mass|wgt)\b|^\s*w\s*(?:\[|\(|$)/i.test(label)) return "weight";
-  // A bare "Dimensions" column header (as opposed to separate Width/Height/Depth columns) holds
-  // one already-combined "W x H x D" value per row — e.g. Rockwell's 1606-td002 "Battery Modules
-  // for DC-UPS" table ("Description | Dimensions | Catalog Number"). Checked before the width/
-  // height/depth cases below since "dimensions" doesn't match any of those individually.
-  if (/\bdimensions?\b/i.test(label)) return "dimensions";
-  if (/\b(?:voltage|supply|input|output)\b/i.test(label) && /\b(?:v|voltage|supply)\b/i.test(label)) return "voltage";
-  if (/\b(?:current|amp|load)\b/i.test(label)) return "current";
-  if (/\b(?:width|breite)\b|^\s*w(?:idth)?\s*(?:\[|\(|$)/i.test(label)) return "width";
-  if (/\b(?:height|hoehe|höhe)\b|^\s*h(?:eight)?\s*(?:\[|\(|$)/i.test(label)) return "height";
-  if (/\b(?:depth|tiefe)\b|^\s*d(?:epth)?\s*(?:\[|\(|$)/i.test(label)) return "depth";
-  if (/\b(?:length|lange|länge)\b|^\s*l(?:ength)?\s*(?:\[|\(|$)/i.test(label)) return "length";
-  if (/\b(?:diameter|dia\.?)\b|ø|^\s*d[ia]*\s*(?:\[|\()/i.test(label)) return "diameter";
-  if (/^dn\b/i.test(label)) return "dn";
-  return undefined;
+  // Delegates to the shared, multilingual vocabulary (catalog-table-vocabulary.ts) — kept as a
+  // thin local alias so this file's call sites read unchanged.
+  return catalogTableKeyFor(header);
 }
 
 function valueWithHeaderUnit(value: string, header: string): string {

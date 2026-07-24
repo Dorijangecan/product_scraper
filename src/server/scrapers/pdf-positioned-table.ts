@@ -1,5 +1,6 @@
 import { compactCatalogNumber } from "./catalog-number.js";
 import { cleanText } from "./normalizer.js";
+import { isCatalogIdHeaderCell } from "./catalog-table-vocabulary.js";
 
 /**
  * Recovers Weight and Dimensions for one catalog number from a "Catalog Number" multi-model
@@ -90,12 +91,76 @@ function nearestIndex(value: number, anchors: number[], maxDistance: number): nu
   return bestDistance <= maxDistance ? bestIndex : -1;
 }
 
+interface HeaderAnchor {
+  x: number;
+  y: number;
+}
+
 interface MatchedColumn {
   columnXs: number[];
   ourColumnIndex: number;
   ourColumnX: number;
-  anchor: PositionedTextItem;
-  nextAnchor: PositionedTextItem | undefined;
+  anchor: HeaderAnchor;
+  nextAnchor: HeaderAnchor | undefined;
+}
+
+/** Sibling variant tokens on one visual header row share a y within a couple of points of jitter. */
+const HEADER_ROW_Y_TOLERANCE = 3;
+
+function clusterItemsByY(items: PositionedTextItem[], tolerance: number): PositionedTextItem[][] {
+  const sorted = [...items].sort((left, right) => right.y - left.y);
+  const clusters: PositionedTextItem[][] = [];
+  for (const item of sorted) {
+    const last = clusters[clusters.length - 1];
+    if (last && last[last.length - 1].y - item.y <= tolerance) last.push(item);
+    else clusters.push([item]);
+  }
+  return clusters;
+}
+
+/** Leftmost row-label column x within (bottomY, topY) — the column where labels like "Weight",
+ * "W x H x D", "Spannung" live. Clusters candidate label x's and returns the leftmost cluster's
+ * mean. Value cells can also read as label fragments (they contain unit words like "g"/"lb"), but
+ * they sit further right than the real label column, so the leftmost cluster is still the labels. */
+function leftmostLabelColumnX(meaningful: PositionedTextItem[], topY: number, bottomY: number | undefined): number | undefined {
+  const labels = meaningful.filter(
+    (item) => item.y < topY && (bottomY === undefined || item.y > bottomY) && isLabelFragment(item.text)
+  );
+  if (!labels.length) return undefined;
+  const xs = clusterByCoordinate(
+    labels.map((item) => item.x),
+    COLUMN_X_TOLERANCE
+  );
+  return xs.length ? Math.min(...xs) : undefined;
+}
+
+/**
+ * Locates the header anchor(s) — {label-column x, header-row y} — for every ordering table on a
+ * page. A strong, unambiguous id-column label ("Catalog Number", "Bestell-Nr.", "Référence", ...)
+ * gives a precise anchor directly. Tables whose id column carries a weak/ambiguous label ("Type",
+ * "Model") or none at all instead get a SYNTHESIZED anchor: the header ROW is the y-cluster of >=2
+ * sibling variant tokens (a real comparison header always lists several model codes side by side),
+ * and the label column is the leftmost row-label column below it. This is what lets the positioned
+ * reader work for every manufacturer's family datasheet, not just those that happen to print the
+ * literal words "Catalog Number" (Rockwell) — the reader keys on data we always have (our own
+ * catalog number appearing as a column) rather than a vendor-specific header label.
+ */
+function candidateHeaderAnchors(meaningful: PositionedTextItem[]): HeaderAnchor[] {
+  const idLabels = meaningful.filter((item) => isCatalogIdHeaderCell(item.text)).sort((left, right) => right.y - left.y);
+  if (idLabels.length) return idLabels.map((item) => ({ x: item.x, y: item.y }));
+
+  const variantItems = meaningful.filter((item) => isVariantToken(item.text));
+  const rowYs = clusterItemsByY(variantItems, HEADER_ROW_Y_TOLERANCE)
+    .filter((cluster) => cluster.length >= 2)
+    .map((cluster) => Math.min(...cluster.map((item) => item.y)))
+    .sort((left, right) => right - left);
+  const anchors: HeaderAnchor[] = [];
+  for (let index = 0; index < rowYs.length; index += 1) {
+    const x = leftmostLabelColumnX(meaningful, rowYs[index], rowYs[index + 1]);
+    if (x === undefined) continue;
+    anchors.push({ x, y: rowYs[index] });
+  }
+  return anchors;
 }
 
 /** A tolerant fallback for when a header's printed text isn't byte-for-byte identical to the
@@ -122,9 +187,7 @@ function matchColumnForCatalog(meaningful: PositionedTextItem[], catalogNumber: 
   const compactCatalog = compactCatalogNumber(catalogNumber);
   if (!compactCatalog) return undefined;
 
-  const anchors = meaningful
-    .filter((item) => /^catalog\s*number$/i.test(item.text.trim()))
-    .sort((left, right) => right.y - left.y);
+  const anchors = candidateHeaderAnchors(meaningful);
 
   for (let anchorIndex = 0; anchorIndex < anchors.length; anchorIndex += 1) {
     const anchor = anchors[anchorIndex];
@@ -148,12 +211,22 @@ function matchColumnForCatalog(meaningful: PositionedTextItem[], catalogNumber: 
       COLUMN_X_TOLERANCE
     );
 
-    const exactMatch = headerItems.find((item) => compactCatalogNumber(item.text) === compactCatalog);
-    const matchedItem = exactMatch ?? headerItems.find((item) => isBoundarySafeFallbackMatch(compactCatalogNumber(item.text), compactCatalog));
-    if (!matchedItem) continue;
+    // Prefer exact header matches; only fall back to the boundary-safe fuzzy match when no header
+    // is byte-for-byte our catalog. Merged siblings printed at the same x collapse to ONE column
+    // index — expected. But if our catalog matches header names in TWO genuinely different columns,
+    // we cannot tell which is ours: refuse to guess (skip this anchor) rather than pick one and
+    // risk returning a wrong column's values. Silence beats a confidently wrong value.
+    const exactItems = headerItems.filter((item) => compactCatalogNumber(item.text) === compactCatalog);
+    const candidates = exactItems.length
+      ? exactItems
+      : headerItems.filter((item) => isBoundarySafeFallbackMatch(compactCatalogNumber(item.text), compactCatalog));
+    if (!candidates.length) continue;
 
-    const ourColumnIndex = nearestIndex(matchedItem.x, columnXs, COLUMN_X_TOLERANCE);
-    if (ourColumnIndex < 0) continue;
+    const columnIndices = new Set(
+      candidates.map((item) => nearestIndex(item.x, columnXs, COLUMN_X_TOLERANCE)).filter((index) => index >= 0)
+    );
+    if (columnIndices.size !== 1) continue;
+    const ourColumnIndex = [...columnIndices][0];
 
     return { columnXs, ourColumnIndex, ourColumnX: columnXs[ourColumnIndex], anchor, nextAnchor };
   }
@@ -211,7 +284,7 @@ export function extractPositionedWeightAndDimensions(
  * ("(1) Output transient current"), catalog-shaped tokens, and units-only continuations. */
 function isLabelFragment(text: string): boolean {
   const trimmed = text.trim();
-  if (!trimmed || /^catalog\s*number$/i.test(trimmed)) return false;
+  if (!trimmed || isCatalogIdHeaderCell(trimmed)) return false;
   if (isVariantToken(trimmed)) return false;
   if (/^\(\d+\)/.test(trimmed)) return false;
   return /[a-z]/i.test(trimmed);
@@ -276,6 +349,20 @@ export function extractPositionedTableRows(items: PositionedTextItem[], catalogN
   return Object.keys(rows).length ? rows : undefined;
 }
 
+/** Cheap page pre-filter: does this page mention our catalog as a table token at all? Replaces the
+ * old "does the page contain the literal words 'Catalog Number'" gate, which was Rockwell-specific
+ * and skipped every other manufacturer's comparison tables. Keying on our own catalog token is both
+ * cheaper and more precise — we only pay the full page reconstruction for pages that can match. */
+function pageMentionsCatalog(items: PositionedTextItem[], catalogNumber: string): boolean {
+  const compactCatalog = compactCatalogNumber(catalogNumber);
+  if (!compactCatalog) return false;
+  return items.some(
+    (item) =>
+      isVariantToken(item.text) &&
+      (compactCatalogNumber(item.text) === compactCatalog || isBoundarySafeFallbackMatch(compactCatalogNumber(item.text), compactCatalog))
+  );
+}
+
 /**
  * Loads a PDF with `pdfjs-dist` and runs `extractPositionedTableRows` against every page until one
  * matches — the general-purpose counterpart to extractPositionedWeightAndDimensionsFromPdf below,
@@ -296,7 +383,7 @@ export async function extractPositionedTableRowsFromPdf(data: Uint8Array, catalo
           const textItem = item as { str: string; transform: number[] };
           items.push({ text: textItem.str, x: textItem.transform[4], y: textItem.transform[5] });
         }
-        if (!items.some((item) => /^catalog\s*number$/i.test(item.text.trim()))) continue;
+        if (!pageMentionsCatalog(items, catalogNumber)) continue;
         const result = extractPositionedTableRows(items, catalogNumber);
         if (result) return result;
       } finally {
@@ -331,7 +418,7 @@ export async function extractPositionedWeightAndDimensionsFromPdf(
           const textItem = item as { str: string; transform: number[] };
           items.push({ text: textItem.str, x: textItem.transform[4], y: textItem.transform[5] });
         }
-        if (!items.some((item) => /^catalog\s*number$/i.test(item.text.trim()))) continue;
+        if (!pageMentionsCatalog(items, catalogNumber)) continue;
         const result = extractPositionedWeightAndDimensions(items, catalogNumber);
         if (result) return result;
       } finally {

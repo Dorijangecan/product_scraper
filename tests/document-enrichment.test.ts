@@ -4,7 +4,7 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 import JSZip from "jszip";
 import type { ProductResult } from "../src/shared/types.js";
-import { documentAttributesAreSubstantive, enrichResultFromDownloadedDocuments, enrichResultFromRemoteDocuments, extractDocumentTextAttributes, isCleanSingleSpecValue } from "../src/server/scrapers/document-enrichment.js";
+import { documentAttributesAreSubstantive, enrichResultFromDownloadedDocuments, enrichResultFromRemoteDocuments, extractDocumentTextAttributes, isCleanSingleSpecValue, looksLikeMultiVariantFamilyPage } from "../src/server/scrapers/document-enrichment.js";
 import { normalizeFields } from "../src/server/scrapers/normalizer.js";
 import { normalizeTechnicalAttributes } from "../src/server/scrapers/technical-attributes.js";
 import {
@@ -14,6 +14,23 @@ import {
   extractCustomerPdfTableAttributes
 } from "../src/server/scrapers/customer-documents.js";
 import { classifyDeviceType } from "../src/server/scrapers/device-type.js";
+
+describe("looksLikeMultiVariantFamilyPage", () => {
+  it("flags a page where our catalog sits next to another distinct model code", () => {
+    const text = ["Technical data", "Weight\t1606-XLE120B\t1606-XLE120E\t1606-XLE120EN", "930 g\t440 g\t500 g"].join("\n");
+    expect(looksLikeMultiVariantFamilyPage(text, "1606-XLE120E")).toBe(true);
+  });
+
+  it("does not flag a single-product datasheet mentioning only its own catalog", () => {
+    const text = ["Product XYZ-100", "Weight 1.2 kg", "Catalog number: XYZ-100"].join("\n");
+    expect(looksLikeMultiVariantFamilyPage(text, "XYZ-100")).toBe(false);
+  });
+
+  it("does not flag when our catalog is absent from the comparison row", () => {
+    const text = ["ABC-1\tABC-2\tABC-3", "1 kg\t2 kg\t3 kg"].join("\n");
+    expect(looksLikeMultiVariantFamilyPage(text, "ZZZ-9")).toBe(false);
+  });
+});
 
 describe("isCleanSingleSpecValue", () => {
   it("accepts a single weight/dimension reading with its own unit conversion", () => {
