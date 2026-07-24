@@ -346,10 +346,11 @@ describe("run manager document downloads", () => {
     expect(downloaded.localPath).toMatch(/ABC-123-datasheet/i);
   });
 
-  it("names SCE images from the requested catalog number with the preview suffix", () => {
+  it("names images from the requested catalog number with the preview suffix", () => {
     expect(imageFileName("SCE", "SCE-12P10GALV")).toBe("SCE.SCE-12P10GALV_preview.png");
     expect(imageFileName("SCE", "SCE-12P10GALV", 1)).toBe("SCE.SCE-12P10GALV_preview_2.png");
-    expect(imageFileName("BAL", "BCC039H")).toBe("BAL.BCC039H.png");
+    expect(imageFileName("BAL", "BCC039H")).toBe("BAL.BCC039H_preview.png");
+    expect(imageFileName("ETN", "XTCE009B10")).toBe("ETN.XTCE009B10_preview.png");
   });
 });
 

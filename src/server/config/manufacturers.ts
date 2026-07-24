@@ -393,7 +393,7 @@ const builtInManufacturerConfigs: Record<string, ManufacturerConfig> = {
   eaton: {
     id: "eaton",
     canonicalName: "Eaton",
-    shortName: "EAT",
+    shortName: "ETN",
     rateLimitMs: 1500,
     // Eaton's connector fans each SKU lookup across a small, bounded group of official
     // endpoints. Five workers retain a 300 ms per-host interval while avoiding the long
