@@ -203,7 +203,7 @@ Politike u `ManufacturerConfig.scrapeRecipe`: `DiscoveryPolicyConfig`, `Interact
 | --- | --- |
 | `index.ts` | `getConnector` |
 | `types.ts` | `ScrapeContext`, `ManufacturerConnector` |
-| `http-client.ts` | `CachedHttpClient`, `FetchedText`, `delay` |
+| `http-client.ts` | `CachedHttpClient`, `FetchedText`, `delay`, `DEFAULT_USER_AGENT` (aktualni Chrome UA; ABB/Siemens Akamai edge odbija stare verzije) |
 | `browser-renderer.ts` | `BrowserRenderSession`, `renderProductPage`, `RenderedPage`, `ModalSection`, `clickSafeSelectors`, `captureFrameFragments`, `captureShadowDomFragments` (zadnja tri exportana za testove: klik-petlja s re-scanom + iframe + shadow-DOM capture) |
 | `deterministic-pipeline.ts` | `runDeterministicScrapePipeline` |
 | `discovery.ts` | `discoverOfficialProductCandidates`, `scoreDiscoveryCandidate` |
@@ -223,8 +223,11 @@ Politike u `ManufacturerConfig.scrapeRecipe`: `DiscoveryPolicyConfig`, `Interact
 | `final-completeness.ts` | `evaluateFinalCompleteness`, `repairFinalCompletenessFromEvidence`, `finalNetworkRetryDecision`, `withFinalCompletenessPolicy` |
 | `evidence.ts` | `attachEvidence` (+ field candidate/resolution diagnostics) |
 | `dedupe.ts` | `dedupeAttributes`, `dedupeDocuments`, `dedupeSources`, `canonicalDocumentUrlKey` |
-| `document-enrichment.ts` | `enrichResultFromDownloadedDocuments`, `enrichResultFromRemoteDocuments`, `extractDocumentTextAttributes` (now also takes `tables?: TableArray[]` from `pdf-parse`'s `getTable()` vector-grid table detection), `documentAttributesAreSubstantive` |
+| `document-enrichment.ts` | `enrichResultFromDownloadedDocuments`, `enrichResultFromRemoteDocuments`, `extractDocumentTextAttributes` (now also takes `tables?: TableArray[]` from `pdf-parse`'s `getTable()` vector-grid table detection), `documentAttributesAreSubstantive`, `looksLikeMultiVariantFamilyPage` (jeftin, bez re-parsea: neka linija prints naš catalog uz ≥1 drugi distinct model-kod → familijska/usporedna stranica; force-runa positioned reader čak i kad W/D izgledaju čisto, jer tab-heuristika zna napuniti cross-model vrijednost koja *izgleda* čista) |
+| `pdf-positioned-table.ts` | `extractPositionedTableRows(FromPdf)`, `extractPositionedWeightAndDimensions(FromPdf)` — **strukturno pouzdan** tablični čitač: klasterira prave x/y iz `pdfjs-dist` → rekonstruira vizualne stupce (rješava merged-column tablice koje tekst/tab heuristika ne može). **Anchor generaliziran s Rockwell "Catalog Number" na BILO KOJI proizvođač:** `candidateHeaderAnchors` sidri na jaki id-label iz `catalog-table-vocabulary` (EN/DE/FR/IT), a ako ga nema — sintetizira anchor iz header-reda variant-tokena + najljevljeg label-stupca; page-gate (`pageMentionsCatalog`) veže se na NAŠ kataloški token, ne na literal. Refuse-to-guess: naš token u >1 x-klasteru → undefined |
+| `catalog-table-vocabulary.ts` | `catalogTableKeyFor` (header ćelija → kanonski ključ, EN/DE/FR/IT), `isCatalogIdHeaderCell` (jaki id-stupac label whole-cell), `isCatalogTableHeaderText` (broad header-row test) — **jedini izvor istine** za tablične headere; prije dupliciran regex u 3 funkcije `document-enrichment.ts` (draftao). Ne uvoditi lokalne kopije |
 | `document-url.ts` | `isPdfLikeDocument(Url)`, `documentUrlLooksRelevant`, `documentUrlLooksDownloadable` |
+| `document-viewer-resolver.ts` | `isDocumentViewerUrl`, `extractEmbeddedPdfAssetUrl`, `resolveViewerPdfUrl` — HTML PDF-viewer wrapper → pravi (potpisani) PDF asset. Konkretno ABB library `search.abb.com/library/Download.aspx?...&Action=Launch` vraća HTML s `<iframe src=library.e.abb.com/.../<id>_view.pdf?x-sign=…>`; run-manager (`resolvePdfDownloadPlan`) ga razriješi pri downloadu i skine PDF, a u exportu čuva stabilni Download.aspx link (potpisani URL brzo istekne) |
 | `source-document-discovery.ts` | `discoverSourceDocumentsWithDiagnostics` |
 | `pdf-ocr.ts` | `readPdfWithOptionalOcr` (pdftoppm+tesseract CLI first; falls back to pdf-parse's `getScreenshot()` + `tesseract.js` WASM OCR when those binaries aren't on PATH — always available, no install needed) |
 | `customer-documents.ts` | `extractCustomerDocumentAttributes`, `applyCustomerDocumentOverride`, `CustomerDocumentParseCache` |
@@ -236,13 +239,13 @@ Politike u `ManufacturerConfig.scrapeRecipe`: `DiscoveryPolicyConfig`, `Interact
 ### `src/server/scrapers/` — understanding engine
 | Fajl | Ključni exporti |
 | --- | --- |
-| `normalizer.ts` | `mergeResults`, `emptyResult`, `normalizeFields`, `cleanText`, `splitNameValue`, `classifyDocument` |
+| `normalizer.ts` | `mergeResults`, `emptyResult`, `normalizeFields`, `cleanText`, `splitNameValue` (dijeli na `:`/`=`, odbacuje value-fragment "labele" preko `isValueFragmentLabel` ali čuva "W x H x D"), `isValueFragmentLabel`, `classifyDocument`. **kA surge/fault (breaking capacity, discharge/impulse/short-circuit current) NE smiju u rated current** — `isLowValueCurrentLabel` gard u SVA 4 puta (bestNormalized/registry/ontology/inferred); `Ui`/`Uimp` isto preko `isLowValueVoltageLabel`. NB: 3 divergentna label-sustava (FIELD_LABEL_PATTERNS+FIELD_REGISTRY+ontology) → gard treba u svakom putu |
 | `ontology.ts` | `PROPERTY_ONTOLOGY`, `matchProperty`, `understand`, `findUnmappedSpecLabels`, `inferPropertyFromQuantities` (unit-driven fallback za labele koje nijedan sinonim ne zna: V/A/W/Hz/°C/kg vrijednost → ratedVoltage/ratedCurrent/power(Loss/Consumption)/frequency/operating-storageTemperature/weight, s višejezičnim blokadama opasnih kvalifikatora; koristi ga technical-attributes (`matchType:"unit_inference"`, niži confidence) i normalizer kao zadnji fallback za voltage/current/weight) |
-| `quantity.ts` | `parseQuantities`, `parseTemperatureRange`, `quantityMin/Max`, `ParsedQuantity` |
+| `quantity.ts` | `parseQuantities`, `parseTemperatureRange`, `quantityMin/Max`, `ParsedQuantity`. Jedinice uklj. **°F/degF→°C konverzija** (prije: "-40 to 185 °F" se čitao kao 185 °C), `%`,`rpm`,`hp`,`N/kN`,`dB`,`ms/s`,`hPa/mmHg/Torr/atm`; kind-ovi force/speed/soundLevel/time/ratio. Bare `N`/`s` zadnji u UNIT_PATTERN + `(?![a-zµ])` gard; `Nm` prije `N`. ± tolerancija `%` se filtrira iz matcheva prije petlje |
 | `technical-attributes.ts` | `normalizeTechnicalAttributes` |
 | `technical-attribute-aliases.ts` | `TECHNICAL_ATTRIBUTE_ALIASES`, `listTechnicalAttributeAliases`, `matchTechnicalAttributeAlias`, `suggestTechnicalAttributeAlias` (zadnji: prijedlog najbližeg kanonskog ključa za "Unmapped Labels") |
 | `field-registry.ts` | `FIELD_REGISTRY`, `fieldDefinition`, `findFieldSourceAttribute`, `buildFieldHealth` |
-| `device-type.ts` | `classifyDeviceType`, `knownDeviceTypes` |
+| `device-type.ts` | `classifyDeviceType`, `knownDeviceTypes`. Tekst-kanal pobjednik po `definitionPriority` PRVO → bare tokeni (`motor/switch/cable/valve/pump/filter`) su u niskom tieru (615, ispod Sensor 620) da "motor cable"→Cable, "limit switch"→Sensor; DE/FR/IT nazivi u specifičnim pravilima (Leitungsschutzschalter→MCB, Schütz≠Schutz→Contactor, Näherungsschalter, Trennschalter/sezionatore, disjoncteur, Reihenklemme, Netzteil, Transformator, Sicherung) |
 | `device-type-families.ts` / `device-type-urls.ts` | `familyTypeFor` / `urlTypeFor` |
 | `tight-context.ts` | `buildTightContextForCatalog`, `buildVariantColumnContext` |
 
@@ -276,6 +279,12 @@ se rutaju na pview PRVO (prije SiePortal automation API-ja, koji za njih nema ta
 **`productUrl` = radna SiePortal katalog-detail stranica** (`sieportal.siemens.com/en-ww/products-services/detail/<sn>`,
 konstanta `SIEMENS_SIEPORTAL_DETAIL`) — NE pview `producturl` (`/pv/<sn>/pi`), koji je samo API-ulaz i u pregledniku
 302-redirecta na generičku "Support" landing (=mrtav link u exportu); pview URL ostaje samo kao data-source.
+**Njemački opisi** (PDT "Description DE" stupci) puni `enrichBuildingTechnologiesGermanDescriptions`: BT grana
+uz EN pview dohvaća i **DE pview** (`/webapp/pview/WW/de/<sn>$/`, parser `parseSiemensBuildingTechnologiesGermanDescriptions`)
+i postavi `localizedDescriptions.de` (title/description). Prije toga su DE stupci ostajali prazni jer determinist.
+EN→DE fallback ne zna prevesti HVAC prozu ("Valve actuator"). Siemensov `descriptionshort` u OBA jezika počinje
+tipskom oznakom (MFN, npr. "SSC331.09UT Ventilantrieb 300N"), pa realni DE short ujedno nosi type-number koji je
+DE opisima nedostajao. Best-effort: pad ne ruši EN rezultat.
 Ista detail stranica nosi net weight — sada **popunjen** preko `enrichBuildingTechnologiesFromMall`:
 BT grana nakon pview zove `fetchSiemensProductApi` (isti anon-token `SearchApi/GetProductsDetails` kao
 automation; danas služi i BT — staro "404 za BT" je zastarjelo) i dodaje Net Weight + Product Number (MFN)

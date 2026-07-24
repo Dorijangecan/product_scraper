@@ -197,15 +197,24 @@ export function finalNetworkRetryDecision(
   if (!force) {
     const networkFields = fields.filter(isNetworkRetryField);
     if (networkFields.length === 0 && fields.length > 0) {
-      return {
-        shouldRetry: false,
-        fields,
-        reason: `Skipped network retry for final-only fields (${fields.join(", ")}); existing evidence repair already ran.`,
-        triedStages: triedFinalStages(result),
-        untriedStages: []
-      };
+      // Special case: a REQUIRED product image is the sole remaining blocker. A browser render of
+      // the official page (the retry runs the full discovery/browser pipeline, then downloads the
+      // image) commonly has it, so allow ONE network attempt for image alone — the cheapest
+      // partial→found win. A preferred-only image, or image bundled with typeCode, still skips.
+      const requiredImageOnly = fields.length === 1 && fields[0] === "image" && audit.requirements.image === "required";
+      if (!requiredImageOnly) {
+        return {
+          shouldRetry: false,
+          fields,
+          reason: `Skipped network retry for final-only fields (${fields.join(", ")}); existing evidence repair already ran.`,
+          triedStages: triedFinalStages(result),
+          untriedStages: []
+        };
+      }
+      fields = ["image"];
+    } else {
+      fields = networkFields;
     }
-    fields = networkFields;
   }
 
   // Honor the persisted "exhausted" cache: if a prior run already proved this catalog
@@ -629,23 +638,32 @@ function imageUrlsFromText(value: string, baseUrl?: string): string[] {
 function productImageUrlLooksRelevant(url: string, result: ProductResult, manufacturer?: ManufacturerConfig): boolean {
   const text = url.toLowerCase();
   if (/logo|icon|sprite|placeholder|loading/i.test(text)) return false;
+  // When the manufacturer is known, the image must live on an official (sub)domain. With none
+  // configured, host can't be checked, so fall back to accepting on other evidence.
+  const onOfficialHost = manufacturer ? imageUrlOnOfficialHost(url, manufacturer) : true;
   const compactPart = result.catalogNumber.toLowerCase().replace(/[^a-z0-9]/g, "");
-  if (compactPart && text.replace(/[^a-z0-9]/g, "").includes(compactPart)) return true;
-  // Tightened: only trust generic product/image/cdn keywords when the URL is hosted on a
-  // known official manufacturer domain. Random CDN URLs without catalog-number context were
-  // sneaking through and getting written as product images.
-  if (manufacturer && /product|image|gallery|zoom|media|assets|cdn/i.test(text)) {
-    try {
-      const host = new URL(url).hostname.replace(/^www\./, "").toLowerCase();
-      return manufacturer.officialBaseUrls.some((baseUrl) => {
-        const baseHost = officialHostname(baseUrl);
-        return baseHost ? host === baseHost || host.endsWith(`.${baseHost}`) : false;
-      });
-    } catch {
-      return false;
-    }
-  }
+  const hasCatalogInUrl = Boolean(compactPart) && text.replace(/[^a-z0-9]/g, "").includes(compactPart);
+  // The catalog number in the URL is strong product-identity evidence — but on a THIRD-PARTY host
+  // it can be a distributor's copy of the part (confirmed: off-domain CDN URLs containing the part
+  // number were being written as the official product image). Require the official host too when we
+  // know the manufacturer; the catalog-number-in-path alone is enough only when we don't.
+  if (hasCatalogInUrl && onOfficialHost) return true;
+  // Generic product/image/cdn keywords are only trusted on an official domain (never enough alone
+  // off-domain).
+  if (manufacturer && onOfficialHost && /product|image|gallery|zoom|media|assets|cdn/i.test(text)) return true;
   return false;
+}
+
+function imageUrlOnOfficialHost(url: string, manufacturer: ManufacturerConfig): boolean {
+  try {
+    const host = new URL(url).hostname.replace(/^www\./, "").toLowerCase();
+    return manufacturer.officialBaseUrls.some((baseUrl) => {
+      const baseHost = officialHostname(baseUrl);
+      return baseHost ? host === baseHost || host.endsWith(`.${baseHost}`) : false;
+    });
+  } catch {
+    return false;
+  }
 }
 
 function fieldLabelMatches(field: FinalCompletenessField, label: string): boolean {

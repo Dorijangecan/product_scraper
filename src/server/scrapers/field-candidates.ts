@@ -9,6 +9,7 @@ import type {
 } from "../../shared/types.js";
 import { FIELD_REGISTRY, fieldAttributeLabel, fieldMatchesLabel, type RegistryFieldKey } from "./field-registry.js";
 import { cleanText } from "./normalizer.js";
+import { isQuantityPlausible, parseQuantities, type QuantityKind } from "./quantity.js";
 
 const NORMALIZED_FIELDS = new Set<keyof NormalizedProductFields>([
   "weight",
@@ -129,12 +130,34 @@ const NUMERIC_FIELDS = new Set<string>([
   "operatingTemperatureMax"
 ]);
 
+// The expected physical-quantity kind(s) for each numeric field. A raw candidate must parse into a
+// plausible quantity of one of these kinds — a bare digit isn't enough ("24-month warranty",
+// "REACH 1907/2006", "5. Small equipment" all contain a digit but are not a rated value).
+const NUMERIC_FIELD_KINDS: Record<string, QuantityKind[]> = {
+  weight: ["mass"],
+  dimensions: ["length"],
+  wallThickness: ["length"],
+  voltage: ["voltage"],
+  current: ["current"],
+  operatingTemperature: ["temperature"],
+  operatingTemperatureMin: ["temperature"],
+  operatingTemperatureMax: ["temperature"]
+};
+
+function numericCandidateValueLooksValid(field: RegistryFieldKey, value: string | undefined): boolean {
+  const text = cleanText(value);
+  if (!text || !/\d/.test(text)) return false;
+  const kinds = NUMERIC_FIELD_KINDS[field];
+  if (!kinds) return true; // numeric field with no kind mapping — keep the loose digit check
+  return parseQuantities(text).some((quantity) => kinds.includes(quantity.kind) && isQuantityPlausible(quantity));
+}
+
 function attributeCandidates(attributes: AttributeRecord[], field: RegistryFieldKey, label: string): FieldCandidateRecord[] {
   if (field === "image" || field === "datasheetUrl" || field === "manualUrl" || field === "certificateUrl") return [];
   const requiresNumeric = NUMERIC_FIELDS.has(field);
   return attributes
     .filter((attribute) => !isNonSpecEvidenceAttribute(attribute))
-    .filter((attribute) => !requiresNumeric || /\d/.test(attribute.value ?? ""))
+    .filter((attribute) => !requiresNumeric || numericCandidateValueLooksValid(field, attribute.value))
     .filter((attribute) => fieldMatchesLabel(field, fieldAttributeLabel(attribute)))
     .filter((attribute) => cleanText(attribute.value))
     .map((attribute) => toCandidate({

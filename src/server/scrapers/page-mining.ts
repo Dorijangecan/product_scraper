@@ -18,6 +18,29 @@ export interface PageMiningOptions {
   method: PageMiningRecord["method"];
   sourceType?: SourceRecord["sourceType"];
   confidence?: number;
+  /** Extractor signals learned for this host on previous runs (see page-intelligence.ts). A
+   * previously-recorded "capped:<method>" signal means an earlier run hit that method's element cap
+   * and silently truncated a data-rich page — so this run raises that method's cap, turning the
+   * learning loop from a no-op into a real "this host needs deeper mining" hint. */
+  learnedPatterns?: string[];
+}
+
+// Per-method element caps guard against pathologically large pages; a learned "capped:<method>"
+// signal for the host raises the matching cap by this factor so a page we already know is deep in
+// that method isn't truncated again.
+const BASE_MINING_CAPS = { hiddenDom: 250, dataAttributes: 4000, keyValueTable: 1200, embeddedJson: 250 } as const;
+const LEARNED_CAP_BOOST = 4;
+
+function miningCaps(learnedPatterns: string[] | undefined): Record<keyof typeof BASE_MINING_CAPS, number> {
+  if (!learnedPatterns?.length) return BASE_MINING_CAPS;
+  const boost = (key: keyof typeof BASE_MINING_CAPS, signal: string) =>
+    learnedPatterns.includes(`capped:${signal}`) ? BASE_MINING_CAPS[key] * LEARNED_CAP_BOOST : BASE_MINING_CAPS[key];
+  return {
+    hiddenDom: boost("hiddenDom", "hidden-dom"),
+    dataAttributes: boost("dataAttributes", "data-attributes"),
+    keyValueTable: boost("keyValueTable", "key-value-table"),
+    embeddedJson: boost("embeddedJson", "embedded-json-scripts")
+  };
 }
 
 const PRODUCT_JSON_KEYS = /(?:product|sku|catalog|article|part|mpn|mlfb|technical|spec|attribute|characteristic|classification|document|download|resource|asset|image|media|datasheet|manual)/i;
@@ -103,12 +126,13 @@ export function minePage(fetched: FetchedText, options: PageMiningOptions): Page
     });
   };
 
-  mineHiddenDom($, pushAttribute, pushDocument, signals);
-  mineDataAttributes($, pushAttribute, pushDocument, signals);
+  const caps = miningCaps(options.learnedPatterns);
+  mineHiddenDom($, pushAttribute, pushDocument, signals, caps.hiddenDom);
+  mineDataAttributes($, pushAttribute, pushDocument, signals, caps.dataAttributes);
   mineImages($, pushDocument, signals);
-  mineSemanticKeyValueShapes($, pushAttribute, signals);
+  mineSemanticKeyValueShapes($, pushAttribute, signals, caps.keyValueTable);
   mineCatalogNeighborhood($, fetched.text, options.catalogNumber, pushAttribute, pushDocument, signals);
-  mineEmbeddedJson($, fetched.text, options.catalogNumber, pushAttribute, pushDocument, signals);
+  mineEmbeddedJson($, fetched.text, options.catalogNumber, pushAttribute, pushDocument, signals, caps.embeddedJson);
   mineUrlsInText(fetched.text, pushDocument, signals);
 
   const cleanAttributes = dedupeAttributes(attributes).slice(0, 240);
@@ -138,7 +162,8 @@ function mineHiddenDom(
   $: cheerio.CheerioAPI,
   pushAttribute: (group: string, name: string, value: string) => void,
   pushDocument: (url: string | undefined, label: string, context?: string) => void,
-  signals: Set<string>
+  signals: Set<string>,
+  cap: number = BASE_MINING_CAPS.hiddenDom
 ) {
   const selectors = [
     "template",
@@ -155,8 +180,8 @@ function mineHiddenDom(
     "[class*='modal' i]"
   ];
   const hidden = $(selectors.join(","));
-  if (hidden.length > 250) signals.add("capped:hidden-dom");
-  hidden.slice(0, 250).each((_, element) => {
+  if (hidden.length > cap) signals.add("capped:hidden-dom");
+  hidden.slice(0, cap).each((_, element) => {
     const text = cleanText($(element).text());
     if (!text || text.length < 8) return;
     signals.add("hidden-dom");
@@ -174,11 +199,12 @@ function mineDataAttributes(
   $: cheerio.CheerioAPI,
   pushAttribute: (group: string, name: string, value: string) => void,
   pushDocument: (url: string | undefined, label: string, context?: string) => void,
-  signals: Set<string>
+  signals: Set<string>,
+  cap: number = BASE_MINING_CAPS.dataAttributes
 ) {
   const allElements = $("*");
-  if (allElements.length > 4000) signals.add("capped:data-attributes");
-  allElements.slice(0, 4000).each((_, element) => {
+  if (allElements.length > cap) signals.add("capped:data-attributes");
+  allElements.slice(0, cap).each((_, element) => {
     const attrs = (element as unknown as { attribs?: Record<string, string> }).attribs ?? {};
     const context = cleanText($(element).text()).slice(0, 500);
     for (const [name, value] of Object.entries(attrs)) {
@@ -230,11 +256,12 @@ function mineImages(
 function mineSemanticKeyValueShapes(
   $: cheerio.CheerioAPI,
   pushAttribute: (group: string, name: string, value: string) => void,
-  signals: Set<string>
+  signals: Set<string>,
+  cap: number = BASE_MINING_CAPS.keyValueTable
 ) {
   const tableRows = $("tr");
-  if (tableRows.length > 1200) signals.add("capped:key-value-table");
-  tableRows.slice(0, 1200).each((_, element) => {
+  if (tableRows.length > cap) signals.add("capped:key-value-table");
+  tableRows.slice(0, cap).each((_, element) => {
     const cells = $(element).find("th,td").map((__, cell) => cleanText($(cell).text())).get().filter(Boolean);
     if (cells.length >= 2) {
       signals.add("key-value-table");
@@ -335,12 +362,13 @@ function mineEmbeddedJson(
   catalogNumber: string,
   pushAttribute: (group: string, name: string, value: string, parser?: string) => void,
   pushDocument: (url: string | undefined, label: string, context?: string) => void,
-  signals: Set<string>
+  signals: Set<string>,
+  cap: number = BASE_MINING_CAPS.embeddedJson
 ) {
   const chunks: string[] = [];
   const scripts = $("script");
-  if (scripts.length > 250) signals.add("capped:embedded-json-scripts");
-  scripts.slice(0, 250).each((_, element) => {
+  if (scripts.length > cap) signals.add("capped:embedded-json-scripts");
+  scripts.slice(0, cap).each((_, element) => {
     const type = String($(element).attr("type") ?? "");
     const id = String($(element).attr("id") ?? "");
     const text = $(element).html() ?? "";

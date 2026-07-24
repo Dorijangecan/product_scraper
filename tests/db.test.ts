@@ -168,6 +168,21 @@ describe("scraper db run items", () => {
       await fs.rm(rootDir, { recursive: true, force: true });
     }
   });
+
+  it("expires exhausted-field markings after the TTL (Phase C2)", async () => {
+    const { db, rootDir } = await createTempDb();
+    try {
+      db.markFieldExhausted("abb", "A1", "image", "test");
+      // Immediately after marking, the field is still exhausted.
+      expect(db.listExhaustedFields("abb", "A1").has("image")).toBe(true);
+      // Far enough in the future (100 days), the marking has expired and the field can retry again.
+      const future = Date.now() + 100 * 24 * 60 * 60 * 1000;
+      expect(db.listExhaustedFields("abb", "A1", future).has("image")).toBe(false);
+    } finally {
+      db.close();
+      await fs.rm(rootDir, { recursive: true, force: true });
+    }
+  });
 });
 
 async function createTempDb(): Promise<{ db: ScraperDb; rootDir: string }> {

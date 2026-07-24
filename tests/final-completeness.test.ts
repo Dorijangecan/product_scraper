@@ -52,6 +52,27 @@ describe("final completeness audit", () => {
     expect(audit.notApplicable).toContain("image");
   });
 
+  it("allows one network retry when a REQUIRED image is the sole missing field (Phase C3)", () => {
+    const result = product({
+      title: "ABC-123 steel enclosure",
+      normalized: {
+        weight: "1 kg",
+        dimensions: "10 x 20 x 30 mm",
+        material: "steel",
+        color: "grey",
+        protection: "IP66",
+        certificates: "CE"
+      },
+      attributes: [{ group: "Product", name: "Type code", value: "ABC-123" }],
+      documents: []
+    });
+    const audit = evaluateFinalCompleteness(result, manufacturer);
+    expect(audit.retryMissing).toEqual(["image"]);
+    const decision = finalNetworkRetryDecision(result, manufacturer, audit);
+    expect(decision.shouldRetry).toBe(true);
+    expect(decision.fields).toEqual(["image"]);
+  });
+
   it("retries required electrical fields for active products", () => {
     const audit = evaluateFinalCompleteness(
       product({

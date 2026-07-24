@@ -66,7 +66,8 @@ export async function runAdaptivePageIntelligence(
     current = mergeFetchedPageMining(current, fetched, catalogNumber, context, {
       stage: "adaptive-static-page-mining",
       method: "static-html",
-      sourceType: "official-fallback"
+      sourceType: "official-fallback",
+      learnedPatterns: learned.map((extractor) => extractor.pattern)
     });
     if (learned.length) {
       current = {
@@ -115,6 +116,7 @@ export function mergeFetchedPageMining(
     stage: string;
     method: "static-html" | "rendered-dom" | "browser-network" | "learned-extractor";
     sourceType?: SourceRecord["sourceType"];
+    learnedPatterns?: string[];
   }
 ): ProductResult {
   const mining = minePage(fetched, {
@@ -122,7 +124,8 @@ export function mergeFetchedPageMining(
     catalogNumber,
     stage: input.stage,
     method: input.method,
-    sourceType: input.sourceType ?? "official-fallback"
+    sourceType: input.sourceType ?? "official-fallback",
+    learnedPatterns: input.learnedPatterns
   });
   const next = mergeMiningResult(result, fetched, mining, context, input.stage);
   learnFromMining(context, fetched.effectiveUrl, mining, input.stage);

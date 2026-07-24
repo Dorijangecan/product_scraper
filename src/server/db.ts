@@ -11,6 +11,10 @@ import type {
 } from "../shared/types.js";
 import type { AppPaths } from "./paths.js";
 
+// How long a field stays "exhausted" (proven not-published for a catalog number) before it is
+// eligible for a fresh network retry again. Bounds the blast radius of a single bad run.
+const EXHAUSTED_FIELD_TTL_MS = 45 * 24 * 60 * 60 * 1000; // 45 days
+
 interface RunRow {
   id: string;
   manufacturer_id: ManufacturerId;
@@ -747,10 +751,15 @@ export class ScraperDb {
    * Returns the set of fields marked as definitively-unpublished for this catalog number,
    * based on prior runs that exhausted all available stages without finding them.
    */
-  listExhaustedFields(manufacturerId: ManufacturerId, catalogNumber: string): Set<string> {
+  listExhaustedFields(manufacturerId: ManufacturerId, catalogNumber: string, now = Date.now()): Set<string> {
+    // Time-boxed: an "exhausted" marking expires after EXHAUSTED_FIELD_TTL_MS so a single bad run
+    // (site down, bot-mitigation, transient timeout) can't permanently suppress a field's retry.
+    // marked_at is ISO-8601, which is lexicographically ordered, so a string comparison works.
+    // `now` is injectable for tests.
+    const cutoff = new Date(now - EXHAUSTED_FIELD_TTL_MS).toISOString();
     const rows = this.db
-      .prepare(`SELECT field FROM exhausted_fields WHERE manufacturer_id = ? AND catalog_number = ?`)
-      .all(manufacturerId, catalogNumber) as Array<{ field: string }>;
+      .prepare(`SELECT field FROM exhausted_fields WHERE manufacturer_id = ? AND catalog_number = ? AND marked_at >= ?`)
+      .all(manufacturerId, catalogNumber, cutoff) as Array<{ field: string }>;
     return new Set(rows.map((row) => row.field));
   }
 

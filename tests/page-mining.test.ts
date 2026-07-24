@@ -194,4 +194,26 @@ describe("adaptive page mining", () => {
     );
     expect(mined.record.signals).toContain("catalog-neighborhood");
   });
+
+  it("raises a method's element cap when a learned 'capped:' signal is supplied (Phase C1)", () => {
+    // 260 hidden pairs exceed the base hidden-dom cap of 250.
+    const hidden = Array.from({ length: 260 }, (_, i) => `<div hidden>Weight: ${i} kg</div>`).join("\n");
+    const fetched = {
+      requestedUrl: "https://example.test/p/X",
+      effectiveUrl: "https://example.test/p/X",
+      statusCode: 200,
+      contentType: "text/html",
+      fetchedAt: "2026-01-01T00:00:00.000Z",
+      fromCache: false,
+      text: `<html><body>${hidden}</body></html>`
+    };
+    const base = { manufacturerId: "test", catalogNumber: "X", stage: "t", method: "static-html" as const };
+
+    // Without the learned hint, the page is truncated at the base cap and flags "capped:hidden-dom".
+    expect(minePage(fetched, base).record.signals).toContain("capped:hidden-dom");
+    // With a previously-learned "capped:hidden-dom" signal, the cap is raised and truncation stops.
+    expect(minePage(fetched, { ...base, learnedPatterns: ["capped:hidden-dom"] }).record.signals).not.toContain(
+      "capped:hidden-dom"
+    );
+  });
 });

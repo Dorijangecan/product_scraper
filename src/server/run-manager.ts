@@ -41,6 +41,7 @@ import { BrowserRenderSession } from "./scrapers/browser-renderer.js";
 import type { AppPaths } from "./paths.js";
 import { buildRunOutputLayout, ensureRunOutputLayout, type RunOutputLayout } from "./run-output.js";
 import { documentUrlLooksRelevant, isPdfLikeDocument } from "./scrapers/document-url.js";
+import { isDocumentViewerUrl, resolveViewerPdfUrl } from "./scrapers/document-viewer-resolver.js";
 import { isLikelySchematicImage } from "./scrapers/generic.js";
 
 export type DocumentDownloadProfile = SharedDocumentDownloadProfile;
@@ -318,12 +319,14 @@ export class RunManager {
         if (this.db.isCancellationRequested(run.id) || controller.signal.aborted) return;
         await this.appendRunLog(layoutRef, "ITEM_START", { rowIndex: item.rowIndex, catalogNumber: item.catalogNumber });
         // layoutRef is captured via closure (declared above); avoid touching outer `layout` inside this hot path
+        // Declared OUTSIDE the try so the catch below can salvage whatever was extracted before a
+        // late-stage error (C4 partial-progress recovery).
+        let enriched: ProductResult | undefined;
         try {
           let customerExtractionFirst: Awaited<ReturnType<typeof extractCustomerDocumentAttributes>> | null = null;
           let customerExtractionEarly: Awaited<ReturnType<typeof extractCustomerDocumentAttributes>> | null = null;
           let customerFirstShortCircuit = false;
           let customerEarlyShortCircuit = false;
-          let enriched: ProductResult | undefined;
           let fallbackStages: string[] | undefined;
           let initialAttributeCount = 0;
 
@@ -745,20 +748,33 @@ export class RunManager {
             const stillMissingAfterRetry = afterFinalCompleteness.missing.filter(
               (field) => afterFinalCompleteness.requirements[field] !== "not-applicable"
             );
-            for (const field of stillMissingAfterRetry) {
-              this.db.markFieldExhausted(
-                manufacturer.id,
-                item.catalogNumber,
-                field,
-                `Exhausted stages ${networkRetry.triedStages.join(", ") || "(none)"} on ${new Date().toISOString()}`
-              );
-            }
-            if (stillMissingAfterRetry.length) {
-              await this.appendRunLog(layoutRef, "FIELDS_MARKED_EXHAUSTED", {
+            // Cause-aware: only conclude "the manufacturer doesn't publish this" when the retry
+            // actually reached the source cleanly. If it hit bot-mitigation / a timeout / a 5xx,
+            // the field may well exist — we just couldn't see it this time, so don't poison future
+            // runs (erring toward NOT marking is the safe direction; the TTL bounds it either way).
+            const transient = retryHitTransientFailure(enriched);
+            if (transient) {
+              await this.appendRunLog(layoutRef, "FIELDS_EXHAUSTED_SKIPPED_TRANSIENT", {
                 catalogNumber: item.catalogNumber,
                 fields: stillMissingAfterRetry,
-                reason: "Final retry exhausted all stages without finding these fields; future runs will skip the retry unless forceFinalRetry is set."
+                reason: `Final retry hit a transient/blocking failure (${transient}); not marking fields exhausted so a later run can try again.`
               });
+            } else {
+              for (const field of stillMissingAfterRetry) {
+                this.db.markFieldExhausted(
+                  manufacturer.id,
+                  item.catalogNumber,
+                  field,
+                  `Exhausted stages ${networkRetry.triedStages.join(", ") || "(none)"} on ${new Date().toISOString()}`
+                );
+              }
+              if (stillMissingAfterRetry.length) {
+                await this.appendRunLog(layoutRef, "FIELDS_MARKED_EXHAUSTED", {
+                  catalogNumber: item.catalogNumber,
+                  fields: stillMissingAfterRetry,
+                  reason: "Final retry exhausted all stages without finding these fields; future runs will skip the retry unless forceFinalRetry is set."
+                });
+              }
             }
           }
           if (beforeFinalCompleteness.missing.length || afterFinalCompleteness.missing.length) {
@@ -859,14 +875,54 @@ export class RunManager {
             await this.appendRunLog(layoutRef, "ITEM_CANCELLED", { catalogNumber: item.catalogNumber });
             return;
           }
-          this.updateItemStage(item.id, "failed", error instanceof Error ? error.message : "Unexpected scrape error", {
-            status: "failed",
-            error: error instanceof Error ? error.message : "Unexpected scrape error"
-          });
-          await this.appendRunLog(layoutRef, "ITEM_FAILED", {
-            catalogNumber: item.catalogNumber,
-            error: formatError(error)
-          });
+          const errorMessage = error instanceof Error ? error.message : "Unexpected scrape error";
+          // Salvage: if earlier stages already gathered real data before a LATER stage threw, keep it
+          // as `partial` instead of discarding everything as `failed`. A late enrichment/logging
+          // failure should never erase attributes/documents/URL we already scraped this run.
+          const salvageable =
+            enriched && (enriched.attributes.length > 0 || enriched.documents.length > 0 || Boolean(enriched.productUrl));
+          if (salvageable && enriched) {
+            let salvaged: ProductResult = {
+              ...enriched,
+              status: "partial",
+              error: errorMessage,
+              diagnostics: {
+                ...enriched.diagnostics,
+                notes: uniqueStrings([
+                  ...(enriched.diagnostics?.notes ?? []),
+                  `Pipeline error after partial extraction — kept ${enriched.attributes.length} attribute(s)/${enriched.documents.length} document(s) as partial: ${errorMessage}`
+                ]).slice(0, 50)
+              }
+            };
+            try {
+              salvaged = attachEvidence(salvaged);
+            } catch {
+              // attachEvidence is best-effort here; keep the un-evidenced salvage rather than fail.
+            }
+            this.updateItemStage(item.id, "complete", `Recovered partial data despite an error for ${item.catalogNumber}`, {
+              status: "partial",
+              title: salvaged.title,
+              productUrl: salvaged.productUrl,
+              confidence: salvaged.confidence,
+              error: errorMessage,
+              result: salvaged
+            });
+            await this.appendRunLog(layoutRef, "ITEM_PARTIAL_SALVAGED", {
+              catalogNumber: item.catalogNumber,
+              attributes: salvaged.attributes.length,
+              documents: salvaged.documents.length,
+              error: formatError(error)
+            });
+          } else {
+            this.updateItemStage(item.id, "failed", errorMessage, {
+              status: "failed",
+              error: errorMessage
+            });
+            await this.appendRunLog(layoutRef, "ITEM_FAILED", {
+              catalogNumber: item.catalogNumber,
+              error: formatError(error)
+            });
+          }
         }
         this.db.recountRun(run.id);
       };
@@ -1175,19 +1231,23 @@ export class RunManager {
         await http.downloadImageAsPng([doc.url, ...(doc.candidateUrls ?? [])], localPath, signal);
         return { ...doc, localPath, downloadStatus: "downloaded", downloadError: undefined };
       }
-      const urls = documentDownloadCandidateUrls(doc);
-      const extension = documentExtension(urls[0] ?? doc.url, doc.type);
+      const candidateUrls = documentDownloadCandidateUrls(doc);
+      const { urls, forcePdf } = await resolvePdfDownloadPlan(http, doc, candidateUrls, signal);
+      const extension = forcePdf ? ".pdf" : documentExtension(urls[0] ?? doc.url, doc.type);
       const suggestedName = `${catalogNumber}-${doc.type}-${safeLabel(doc.label)}${extension}`;
       const targetDir = doc.type === "cad" ? cadDir : documentsDir;
       const downloaded = await downloadDocumentFromCandidates(http, sharedDocumentDownloads, urls, targetDir, suggestedName, signal);
       const localPath = downloaded.localPath;
-      if (documentExtension(downloaded.url, doc.type).toLowerCase() === ".pdf") {
+      if (forcePdf || documentExtension(downloaded.url, doc.type).toLowerCase() === ".pdf") {
         await assertValidPdfFile(localPath);
       }
+      // Keep the stable viewer link in the workbook when we resolved through it — the signed asset
+      // URL we actually downloaded expires quickly and would be a dead link in the export.
+      const exportUrl = forcePdf ? doc.url : downloaded.url;
       return {
         ...doc,
-        url: downloaded.url,
-        candidateUrls: urls.filter((url) => url !== downloaded.url),
+        url: exportUrl,
+        candidateUrls: candidateUrls.filter((url) => url !== exportUrl),
         localPath,
         downloadStatus: "downloaded",
         downloadError: undefined
@@ -1381,6 +1441,29 @@ async function downloadDocumentFromCandidates(
 
 export function documentDownloadCandidateUrls(doc: DocumentRecord): string[] {
   return uniqueStrings([doc.url, ...(doc.candidateUrls ?? [])]).filter((url) => shouldDownloadLocalDocument({ ...doc, url }));
+}
+
+/**
+ * Some datasheet/certificate/manual links point at an HTML PDF-viewer wrapper (e.g. ABB's
+ * `search.abb.com/library/Download.aspx?...&Action=Launch`) rather than the PDF itself. Fetch the
+ * wrapper and resolve the embedded, signed PDF asset URL so the real PDF is what gets downloaded
+ * and enriched. Returns the download URL list (asset first when resolved) plus `forcePdf`, which
+ * tells the caller to name the file `.pdf` and validate the `%PDF-` header even though the
+ * viewer link's own path ended in `.aspx`. Best-effort — an unresolved viewer falls back to the
+ * original candidate URLs, preserving prior behaviour.
+ */
+async function resolvePdfDownloadPlan(
+  http: CachedHttpClient,
+  doc: DocumentRecord,
+  urls: string[],
+  signal?: AbortSignal
+): Promise<{ urls: string[]; forcePdf: boolean }> {
+  if (doc.type === "image" || doc.type === "cad") return { urls, forcePdf: false };
+  const primary = urls[0] ?? doc.url;
+  if (!primary || !isDocumentViewerUrl(primary)) return { urls, forcePdf: false };
+  const asset = await resolveViewerPdfUrl(http, primary, signal);
+  if (!asset) return { urls, forcePdf: false };
+  return { urls: uniqueStrings([asset, ...urls]), forcePdf: true };
 }
 
 function safeLabel(label: string): string {
@@ -1644,14 +1727,16 @@ async function enrichFromRemoteDocumentsForMissingValues(
     result,
     async (doc) => {
       const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-doc-probe-"));
-      const urls = documentDownloadCandidateUrls(doc);
-      const extension = documentExtension(urls[0] ?? doc.url, doc.type);
+      const candidateUrls = documentDownloadCandidateUrls(doc);
+      const { urls, forcePdf } = await resolvePdfDownloadPlan(http, doc, candidateUrls, signal);
+      const extension = forcePdf ? ".pdf" : documentExtension(urls[0] ?? doc.url, doc.type);
       const suggestedName = `${result.catalogNumber}-${doc.type}-${safeLabel(doc.label)}${extension}`;
       try {
         const downloaded = await downloadDocumentFromCandidates(http, undefined, urls.length ? urls : [doc.url], tempDir, suggestedName, signal);
         return {
           localPath: downloaded.localPath,
-          url: downloaded.url,
+          // Keep the stable viewer link as the parsed document's source URL, not the signed asset.
+          url: forcePdf ? doc.url : downloaded.url,
           cleanup: () => fs.rm(tempDir, { recursive: true, force: true })
         };
       } catch (error) {
@@ -1769,6 +1854,31 @@ function safeImagePart(value: string): string {
 function formatError(error: unknown): string {
   if (error instanceof Error) return error.stack ?? error.message;
   return String(error);
+}
+
+const TRANSIENT_FAILURE_PATTERN =
+  /timeout|timed?\s*out|\bbot\b|captcha|access denied|forbidden|\bblocked\b|rate.?limit|too many requests|\b(?:429|500|502|503|504)\b|ECONNRESET|ETIMEDOUT|ENOTFOUND|EAI_AGAIN|socket hang up|network error/i;
+
+/**
+ * Detects whether the final network retry reached the source cleanly or hit a transient/blocking
+ * failure (bot-mitigation, timeout, 5xx, rate-limit). Used to avoid marking a field "exhausted"
+ * (permanently skip its retry) when we merely failed to reach the site this time — the field may
+ * exist. Erring toward reporting transient (skip marking) is the safe direction; the exhausted-cache
+ * TTL bounds it regardless. Returns a short reason string when transient, else undefined.
+ */
+function retryHitTransientFailure(result: ProductResult): string | undefined {
+  const blocking = result.sources.find(
+    (source) => typeof source.statusCode === "number" && (source.statusCode === 403 || source.statusCode === 408 || source.statusCode === 429 || source.statusCode >= 500)
+  );
+  if (blocking) return `HTTP ${blocking.statusCode}`;
+  const failedIntel = (result.diagnostics?.pageIntelligence ?? []).find(
+    (entry) => entry.action === "failed" && Boolean(entry.reason) && TRANSIENT_FAILURE_PATTERN.test(entry.reason ?? "")
+  );
+  if (failedIntel?.reason) return `page-intelligence: ${failedIntel.reason}`;
+  const note = (result.diagnostics?.notes ?? []).find((entry) => TRANSIENT_FAILURE_PATTERN.test(entry));
+  if (note) return note;
+  if (result.error && TRANSIENT_FAILURE_PATTERN.test(result.error)) return result.error;
+  return undefined;
 }
 
 /**
