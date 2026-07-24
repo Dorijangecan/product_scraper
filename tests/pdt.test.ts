@@ -2790,6 +2790,38 @@ describe("PDT exporter", () => {
     expect(cleaned.getWorksheet("Cleaned PDT Input")).toBeTruthy();
   });
 
+  it("hides data columns that stay empty for the product set so horizontal scroll stays usable", async () => {
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-pdt-hidecols-"));
+    const templatePath = path.join(dir, "template.xlsx");
+    const outputPath = path.join(dir, "out.xlsx");
+    const wb = new ExcelJS.Workbook();
+    const material = wb.addWorksheet("Material Master Data");
+    material.getCell(6, 1).value = "ECLASS property";
+    material.getCell(7, 1).value = "Variable name (CNS internal)";
+    material.getCell(8, 1).value = "English variable description";
+    material.getCell(9, 1).value = "Units";
+    // col2: article number — always written (generated-rule) → must stay visible.
+    material.getCell(6, 2).value = "AAO676";
+    material.getCell(7, 2).value = "CNSORDERNO";
+    material.getCell(8, 2).value = "Articlenumber";
+    // col3: a property nothing resolves and that isn't required → must be hidden.
+    material.getCell(6, 3).value = "AAA900";
+    material.getCell(7, 3).value = "AAA900";
+    material.getCell(8, 3).value = "Operating pressure";
+    wb.addWorksheet("Additional Documents");
+    await wb.xlsx.writeFile(templatePath);
+
+    const item = ctx({}, "1SBL347060R1100").item;
+    await exportRunPdt({ manufacturer, items: [item], templatePath, outputPath });
+
+    const out = new ExcelJS.Workbook();
+    await out.xlsx.readFile(outputPath);
+    const ws = out.getWorksheet("Material Master Data")!;
+    expect(ws.getCell(11, 2).value).toBe("1SBL347060R1100");
+    expect(ws.getColumn(2).hidden).toBeFalsy();
+    expect(ws.getColumn(3).hidden).toBe(true);
+  });
+
   it("does not duplicate Turck's type code into the short description when they came from a numeric order-id lookup", async () => {
     // Turck's <title> is the manufacturer's real type designation ("NI30-K40SR-VN4X2"), which
     // differs from the numeric catalog/order id used to look the product up ("15758"). The type

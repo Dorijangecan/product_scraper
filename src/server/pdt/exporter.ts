@@ -343,6 +343,11 @@ function writeUniformSheet(
   }
   let row = firstDataRow(descriptor);
   let written = 0;
+  // Worksheet column indices (pre-splice) that ended up carrying something a reviewer needs to
+  // see — an actual written value or a red "required but missing" mark. Every other data column
+  // is a template placeholder that stays empty for this product set; we hide those at the end so
+  // the sheet isn't hundreds of empty coloured columns wide and horizontal scrolling stays usable.
+  const usedColumns = new Set<number>();
   for (const item of items) {
     const baseCtx: ResolveContext = {
       result: item.result,
@@ -433,6 +438,7 @@ function writeUniformSheet(
           ws.getCell(row, column.col).value = cellValueFor(column, value);
         }
         cellAuditRecords.push(auditRecord(ws.name, item, row, column, "written", resolved.provenance.reason, value, resolved.provenance));
+        usedColumns.add(column.col);
         if (isTrackedRequiredPdtColumn(ws.name, column, ctx)) writtenRequiredColumns.add(column.col);
         wroteCell = true;
       }
@@ -442,6 +448,7 @@ function writeUniformSheet(
         if (!isTrackedRequiredPdtColumn(ws.name, column, ctx)) continue;
         if (writtenRequiredColumns.has(column.col)) continue;
         markMissingRequiredCell(ws.getCell(row, column.col));
+        usedColumns.add(column.col);
         requiredFieldIssues.push({
           sheetName: ws.name,
           catalogNumber: item.catalogNumber,
@@ -458,8 +465,30 @@ function writeUniformSheet(
       }
     }
   }
-  removeTemplateLabelColumn(ws);
+  const labelColumnRemoved = removeTemplateLabelColumn(ws);
+  hideUnusedDataColumns(ws, descriptor, usedColumns, labelColumnRemoved);
   return written;
+}
+
+/**
+ * Hide every data column that never received a value or a required-missing mark for this product
+ * set. The template defines the full property catalogue per tab (often 100+ columns); most stay
+ * empty for any given run, and keeping their coloured headers visible makes horizontal scrolling
+ * unusable. Hiding (rather than deleting) preserves the column geometry, styling and any downstream
+ * re-import, while collapsing the empties out of the reviewer's way. `labelColumnRemoved` tells us
+ * whether column A was spliced out just before this call, which shifts every data column left by 1.
+ */
+function hideUnusedDataColumns(
+  ws: ExcelJS.Worksheet,
+  descriptor: SheetDescriptor,
+  usedColumns: Set<number>,
+  labelColumnRemoved: boolean
+): void {
+  for (const column of descriptor.columns) {
+    if (usedColumns.has(column.col)) continue;
+    const targetCol = labelColumnRemoved ? column.col - 1 : column.col;
+    if (targetCol >= 1) ws.getColumn(targetCol).hidden = true;
+  }
 }
 
 function additionalDeviceSheetsForItem(item: RunItemRecord, manufacturer: ManufacturerConfig, deviceType: string | undefined): string[] {
@@ -1746,11 +1775,12 @@ function columnLanguage(ws: ExcelJS.Worksheet, column: number, firstBodyRow: num
   return undefined;
 }
 
-function removeTemplateLabelColumn(ws: ExcelJS.Worksheet): void {
+function removeTemplateLabelColumn(ws: ExcelJS.Worksheet): boolean {
   const labels = ["classid", "priority", "type", "propertyid", "propertyname", "description", "unit", "body"];
   const hasLabelColumn = labels.every((label, index) => {
     const value = ws.getCell(index + 1, 1).value;
     return typeof value === "string" && value.trim().toLowerCase() === label;
   });
   if (hasLabelColumn) ws.spliceColumns(1, 1);
+  return hasLabelColumn;
 }

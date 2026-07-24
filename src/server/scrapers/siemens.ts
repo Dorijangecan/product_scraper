@@ -273,6 +273,10 @@ async function scrapeSiemensBuildingTechnologies(
   // The SiePortal Mall product-details API does carry it (plus MFN, country of origin) for BT lines —
   // fill those gaps. Best-effort: never let this lose the pview result.
   await enrichBuildingTechnologiesFromMall(parsed, catalogNumber, context);
+  // The German pview view carries the real German short/long descriptions (and the short leads with
+  // the type designation / MFN, e.g. "SSC331.09UT Ventilantrieb 300N"). Fill the PDT's German columns
+  // from the source rather than leaving them blank. Best-effort: never let this lose the pview result.
+  await enrichBuildingTechnologiesGermanDescriptions(parsed, stockNumber, context);
   const datasheet = await siemensBuildingTechnologiesDatasheet(stockNumber, context);
   if (datasheet) {
     parsed.documents = dedupeDocuments([datasheet, ...parsed.documents]);
@@ -282,6 +286,58 @@ async function scrapeSiemensBuildingTechnologies(
     ];
   }
   return parsed;
+}
+
+/**
+ * Fills `localizedDescriptions.de` from the German Industry Online Support product view
+ * (`/webapp/pview/WW/de/<sn>$/`). The BT branch otherwise only fetches the English view, so the PDT's
+ * "Description DE" columns were left blank: the deterministic English→German fallback can't translate
+ * HVAC prose like "Valve actuator", so `resolveGermanDescriptionCell` produced nothing. Siemens embeds
+ * the product's type designation (the MFN, e.g. "SSC331.09UT") as the leading token of
+ * `descriptionshort` in BOTH languages, so pulling the real German short description also carries the
+ * type number the German columns were missing. Mutates `result` in place; any failure leaves the
+ * English result untouched (the German columns just stay on their existing fallback).
+ */
+async function enrichBuildingTechnologiesGermanDescriptions(
+  result: ProductResult,
+  stockNumber: string,
+  context: ScrapeContext
+): Promise<void> {
+  const deUrl = `${SIEMENS_IOS_BASE}/webapp/pview/WW/de/${encodeURIComponent(stockNumber)}$/`;
+  let fetched: FetchedText;
+  try {
+    fetched = await context.http.fetchText(deUrl, {
+      timeoutMs: 15000,
+      maxAttempts: 2,
+      headers: {
+        "user-agent": SIEMENS_BROWSER_UA,
+        accept: "application/json, text/plain, */*",
+        "accept-language": "de-DE,de;q=0.9"
+      },
+      signal: context.signal
+    });
+  } catch {
+    return;
+  }
+  const de = parseSiemensBuildingTechnologiesGermanDescriptions(fetched);
+  if (!de) return;
+  result.localizedDescriptions = { ...(result.localizedDescriptions ?? {}), de };
+}
+
+/**
+ * Extracts the German short/long descriptions from a German pview payload. Returns undefined when the
+ * response is an Akamai denial / non-product page or carries no description, so the caller can leave
+ * the existing result untouched. Exported for tests.
+ */
+export function parseSiemensBuildingTechnologiesGermanDescriptions(
+  fetched: FetchedText
+): { title?: string; description?: string } | undefined {
+  const xml = fetched.text;
+  if (!/<product\b/i.test(xml)) return undefined;
+  const title = pviewTag(xml, "descriptionshort") || undefined;
+  const description = pviewTag(xml, "descriptionlong") || undefined;
+  if (!title && !description) return undefined;
+  return { title, description };
 }
 
 /**
