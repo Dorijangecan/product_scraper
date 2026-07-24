@@ -41,7 +41,6 @@ import { BrowserRenderSession } from "./scrapers/browser-renderer.js";
 import type { AppPaths } from "./paths.js";
 import { buildRunOutputLayout, ensureRunOutputLayout, type RunOutputLayout } from "./run-output.js";
 import { documentUrlLooksRelevant, isPdfLikeDocument } from "./scrapers/document-url.js";
-import { isDocumentViewerUrl, resolveViewerPdfUrl } from "./scrapers/document-viewer-resolver.js";
 import { isLikelySchematicImage } from "./scrapers/generic.js";
 
 export type DocumentDownloadProfile = SharedDocumentDownloadProfile;
@@ -1176,23 +1175,19 @@ export class RunManager {
         await http.downloadImageAsPng([doc.url, ...(doc.candidateUrls ?? [])], localPath, signal);
         return { ...doc, localPath, downloadStatus: "downloaded", downloadError: undefined };
       }
-      const candidateUrls = documentDownloadCandidateUrls(doc);
-      const { urls, forcePdf } = await resolvePdfDownloadPlan(http, doc, candidateUrls, signal);
-      const extension = forcePdf ? ".pdf" : documentExtension(urls[0] ?? doc.url, doc.type);
+      const urls = documentDownloadCandidateUrls(doc);
+      const extension = documentExtension(urls[0] ?? doc.url, doc.type);
       const suggestedName = `${catalogNumber}-${doc.type}-${safeLabel(doc.label)}${extension}`;
       const targetDir = doc.type === "cad" ? cadDir : documentsDir;
       const downloaded = await downloadDocumentFromCandidates(http, sharedDocumentDownloads, urls, targetDir, suggestedName, signal);
       const localPath = downloaded.localPath;
-      if (forcePdf || documentExtension(downloaded.url, doc.type).toLowerCase() === ".pdf") {
+      if (documentExtension(downloaded.url, doc.type).toLowerCase() === ".pdf") {
         await assertValidPdfFile(localPath);
       }
-      // Keep the stable viewer link in the workbook when we resolved through it — the signed asset
-      // URL we actually downloaded expires quickly and would be a dead link in the export.
-      const exportUrl = forcePdf ? doc.url : downloaded.url;
       return {
         ...doc,
-        url: exportUrl,
-        candidateUrls: candidateUrls.filter((url) => url !== exportUrl),
+        url: downloaded.url,
+        candidateUrls: urls.filter((url) => url !== downloaded.url),
         localPath,
         downloadStatus: "downloaded",
         downloadError: undefined
@@ -1386,29 +1381,6 @@ async function downloadDocumentFromCandidates(
 
 export function documentDownloadCandidateUrls(doc: DocumentRecord): string[] {
   return uniqueStrings([doc.url, ...(doc.candidateUrls ?? [])]).filter((url) => shouldDownloadLocalDocument({ ...doc, url }));
-}
-
-/**
- * Some datasheet/certificate/manual links point at an HTML PDF-viewer wrapper (e.g. ABB's
- * `search.abb.com/library/Download.aspx?...&Action=Launch`) rather than the PDF itself. Fetch the
- * wrapper and resolve the embedded, signed PDF asset URL so the real PDF is what gets downloaded
- * and enriched. Returns the download URL list (asset first when resolved) plus `forcePdf`, which
- * tells the caller to name the file `.pdf` and validate the `%PDF-` header even though the
- * viewer link's own path ended in `.aspx`. Best-effort — an unresolved viewer falls back to the
- * original candidate URLs, preserving prior behaviour.
- */
-async function resolvePdfDownloadPlan(
-  http: CachedHttpClient,
-  doc: DocumentRecord,
-  urls: string[],
-  signal?: AbortSignal
-): Promise<{ urls: string[]; forcePdf: boolean }> {
-  if (doc.type === "image" || doc.type === "cad") return { urls, forcePdf: false };
-  const primary = urls[0] ?? doc.url;
-  if (!primary || !isDocumentViewerUrl(primary)) return { urls, forcePdf: false };
-  const asset = await resolveViewerPdfUrl(http, primary, signal);
-  if (!asset) return { urls, forcePdf: false };
-  return { urls: uniqueStrings([asset, ...urls]), forcePdf: true };
 }
 
 function safeLabel(label: string): string {
@@ -1672,16 +1644,14 @@ async function enrichFromRemoteDocumentsForMissingValues(
     result,
     async (doc) => {
       const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-doc-probe-"));
-      const candidateUrls = documentDownloadCandidateUrls(doc);
-      const { urls, forcePdf } = await resolvePdfDownloadPlan(http, doc, candidateUrls, signal);
-      const extension = forcePdf ? ".pdf" : documentExtension(urls[0] ?? doc.url, doc.type);
+      const urls = documentDownloadCandidateUrls(doc);
+      const extension = documentExtension(urls[0] ?? doc.url, doc.type);
       const suggestedName = `${result.catalogNumber}-${doc.type}-${safeLabel(doc.label)}${extension}`;
       try {
         const downloaded = await downloadDocumentFromCandidates(http, undefined, urls.length ? urls : [doc.url], tempDir, suggestedName, signal);
         return {
           localPath: downloaded.localPath,
-          // Keep the stable viewer link as the parsed document's source URL, not the signed asset.
-          url: forcePdf ? doc.url : downloaded.url,
+          url: downloaded.url,
           cleanup: () => fs.rm(tempDir, { recursive: true, force: true })
         };
       } catch (error) {
