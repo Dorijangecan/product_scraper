@@ -81,6 +81,45 @@ describe("saginaw weight & dimension workbook", () => {
     expect(row.depth).toBe("3,00");
     expect(row.weight).toBe("5,00");
     expect(row.productUrl).toBe(FIXTURE_URL);
+    // Saginaw is US-only, so there is no German page — the column stays empty rather than
+    // repeating the English text.
+    expect(row.descriptionDe).toBeUndefined();
+  });
+
+  it("converts to mm and kg exactly, with no rounding or float drift", () => {
+    const [row] = buildSaginawWeightDimensionRows([sceItem([
+      { group: "Product Specifications", name: "Height", value: '59.94"' },
+      { group: "Product Specifications", name: "Width", value: '6.00"' },
+      { group: "Product Specifications", name: "Depth", value: '1.63"' },
+      { group: "Product Specifications", name: "Weight", value: "33.47 lbs" }
+    ])]);
+
+    // 59.94 x 25.4 = 1522.476 exactly; naive floating point yields 1522.4760000000001.
+    expect(row.heightMm).toBe("1522,476");
+    // Trailing zeros from the page's formatting are dropped — 6.00 x 25.4 = 152.4, not 152,400.
+    expect(row.widthMm).toBe("152,4");
+    expect(row.depthMm).toBe("41,402");
+    // 33.47 x 0.45359237 = 15.1817366239 exactly.
+    expect(row.weightKg).toBe("15,1817366239");
+  });
+
+  it("keeps whole-number metric results whole", () => {
+    const [row] = buildSaginawWeightDimensionRows([sceItem([
+      { group: "Product Specifications", name: "Height", value: '10.00"' },
+      { group: "Product Specifications", name: "Width", value: '5"' }
+    ])]);
+
+    expect(row.heightMm).toBe("254");
+    expect(row.widthMm).toBe("127");
+  });
+
+  it("fills Description DE from the German page when a vendor has one", () => {
+    const item = sceItem([{ group: "Product Specifications", name: "Description", value: "S.S. PB Enclosure" }]);
+    item.result!.localizedDescriptions = { de: { description: "Edelstahl-Drucktastengehäuse" } };
+
+    const [row] = buildSaginawWeightDimensionRows([item]);
+    expect(row.description).toBe("S.S. PB Enclosure");
+    expect(row.descriptionDe).toBe("Edelstahl-Drucktastengehäuse");
   });
 
   it("also strips the H/W/D suffix the dimension widget prints", () => {
@@ -93,6 +132,9 @@ describe("saginaw weight & dimension workbook", () => {
 
     expect([row.height, row.width, row.depth]).toEqual(["20,00", "16,00", "8,00"]);
     expect(row.weight).toBe("41");
+    expect([row.heightMm, row.widthMm, row.depthMm]).toEqual(["508", "406,4", "203,2"]);
+    // 41 x 0.45359237 = 18.59728717 exactly.
+    expect(row.weightKg).toBe("18,59728717");
   });
 
   it("drops values that are not a single bare number instead of guessing", () => {
@@ -103,6 +145,8 @@ describe("saginaw weight & dimension workbook", () => {
 
     expect(row.height).toBeUndefined();
     expect(row.weight).toBeUndefined();
+    expect(row.heightMm).toBeUndefined();
+    expect(row.weightKg).toBeUndefined();
   });
 
   it("leaves metric values out instead of printing them under inch/lbs headers", () => {
@@ -133,17 +177,25 @@ describe("saginaw weight & dimension workbook", () => {
       undefined,
       "Part Number",
       "Description",
+      "Description DE",
       "Height (in)",
       "Width (in)",
       "Depth (in)",
       "Est. Ship Weight (lbs)",
+      "Height (mm)",
+      "Width (mm)",
+      "Depth (mm)",
+      "Est. Ship Weight (kg)",
       "Product Page"
     ]);
     expect(sheet.getCell("A2").value).toBe("SCE-6PBSSI");
-    expect(sheet.getCell("C2").value).toBe("9,50");
-    expect(sheet.getCell("F2").value).toBe("5,00");
+    expect(sheet.getCell("D2").value).toBe("9,50");
+    expect(sheet.getCell("G2").value).toBe("5,00");
+    expect(sheet.getCell("H2").value).toBe("241,3");
+    expect(sheet.getCell("K2").value).toBe("2,26796185");
     // Text format, so Excel keeps 9,50 as typed instead of parsing it into a number.
-    expect(sheet.getCell("C2").numFmt).toBe("@");
+    expect(sheet.getCell("D2").numFmt).toBe("@");
+    expect(sheet.getCell("K2").numFmt).toBe("@");
 
     await fs.rm(dir, { recursive: true, force: true });
   });
