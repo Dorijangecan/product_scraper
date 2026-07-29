@@ -319,6 +319,7 @@ fallback = Access Denied/timeout).
 | `documents-sheet.ts` | `writeDocumentsSheet` |
 | `product-accessory-sheet.ts` | `writeProductAccessorySheet`, `CURATED_ACCESSORY_RULES` |
 | `ai-cleaned-input-sheet.ts` / `cleaned-input-workbook.ts` | `writeAiCleanedInputSheet` / `writeCleanedInputWorkbook` |
+| `saginaw-weight-dimension-workbook.ts` | `writeSaginawWeightDimensionWorkbook`, `buildSaginawWeightDimensionRows`, `saginawWorkbookPathForPdt`, `isSaginawManufacturer` — **samo `sce`**: prateći workbook uz PDT (`<runId>_PDT_saginaw-weight-dimensions.xlsx`) s kataloškim brojem, opisom, H/W/D u inčima i Est. Ship Weight u lbs. **Cifre su verbatim s njihove stranice** — bez konverzije u mm/kg i bez zaokruživanja; mijenja se samo prikaz: jedinica se skida (`9.50"`→`9,50`, `5.00 lbs`→`5,00`, jedinica ostaje u headeru) i decimalna točka postaje zarez. Ćelije su text (`numFmt "@"`) da Excel ne pojede `9,50` u `9,5`. Sve što nakon skidanja jedinice nije goli broj (ili je metričko) se **ispušta**, ne pogađa |
 | `ai-cleanup.ts` | `buildPdtRepairMap`, `buildPdtRepairResult` (opt-in Ollama/Qwen) |
 | `rules.ts` | `pdtSheetOverrideRule`, `additionalPdtSheetsRule`, `localizedPdtDocumentUrlRules` |
 | `pdt-compare.ts` | `comparePdtValues`, `valuesEquivalent` |

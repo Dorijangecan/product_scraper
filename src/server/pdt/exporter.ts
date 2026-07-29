@@ -12,6 +12,7 @@ import { writeDocumentsSheet } from "./documents-sheet.js";
 import { encodeEnumLabel, isEnumColumn } from "./enum-encode.js";
 import { buildPdtRepairResult, type PdtCleanupAudit, type PdtRepair } from "./ai-cleanup.js";
 import { writeCleanedInputWorkbook } from "./cleaned-input-workbook.js";
+import { writeSaginawWeightDimensionWorkbook } from "./saginaw-weight-dimension-workbook.js";
 import { normalizePdtCellNumber } from "./unit-cleanup.js";
 import { writeProductAccessorySheet } from "./product-accessory-sheet.js";
 import { bestFact, buildPdtFactIndex, factsMatchingValue, type PdtFact, type PdtFactIndex } from "./facts.js";
@@ -44,6 +45,8 @@ export interface PdtExportResult {
   cleanup: PdtCleanupSummary;
   cleanedInputPath?: string;
   pdtAuditPath?: string;
+  /** Saginaw only: companion workbook with the page's verbatim inch/lbs values (see its module). */
+  saginawWeightDimensionPath?: string;
   cellAudit: PdtCellAuditSummary;
 }
 
@@ -131,6 +134,7 @@ export async function exportRunPdt(input: {
   const cleanup = await buildPdtRepairResult(included, manufacturer, { aiCleanup: input.aiCleanup === true });
   const repairs = cleanup.repairs;
   const cleanedInputPath = await writeCleanedInputWorkbook(outputPath, cleanup.audit);
+  const saginawWeightDimensionPath = await writeSaginawWeightDimensionWorkbook(outputPath, manufacturer, included);
 
   // Pre-index every sheet by a canonical (case- and whitespace-insensitive) name so template
   // casing tweaks ("Switch" vs "switch", "PLC" vs "Plc") never silently drop products.
@@ -251,6 +255,7 @@ export async function exportRunPdt(input: {
     cleanup: cleanupSummary(cleanup.audit),
     cleanedInputPath,
     pdtAuditPath,
+    saginawWeightDimensionPath,
     cellAudit
   };
 }

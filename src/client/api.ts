@@ -140,6 +140,8 @@ export interface PdtImportStats {
   removedSheetCount: number;
   cleanedInputPath?: string;
   pdtAuditPath?: string;
+  /** Saginaw only: companion workbook with the page's verbatim inch/lbs values. */
+  saginawWeightDimensionPath?: string;
   cellAudit?: {
     auditPath?: string;
     written: number;
