@@ -1,0 +1,18 @@
+{
+  "_tier": "value-verified",
+  "_source": "page.html, Electrical and mechanical properties table: in the first three-column row the left cell prints the aligned labels Contacts, Contact material and Contact resistor; the adjacent value cell prints Changeover contact, slow-action contact, Silver alloy and 25 mΩ. These are separate published rows, not one concatenated property.",
+  "_notes": "The current generic result omits these facts because the span-aware reader compresses each multiline cell before deciding its row shape. This fixture requires the reader to retain only the unambiguous aligned label/value pairs; it does not ask it to infer the blank Button group heading or split the two-line voltage/current value.",
+  "attributesInclude": [
+    {
+      "name": "Contact material",
+      "valueContains": "Silver alloy"
+    },
+    {
+      "name": "Contact resistor",
+      "valueContains": "25 mΩ"
+    }
+  ],
+  "mustNotContain": [
+    "PUR cable with open stranded wires"
+  ]
+}

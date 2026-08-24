@@ -9,6 +9,7 @@ import type {
   DocumentDownloadProfile as SharedDocumentDownloadProfile,
   DocumentProcessingDiagnostic,
   DocumentRecord,
+  FinalCompletenessPolicyField,
   ManufacturerConfig,
   ManufacturerId,
   ProductResult,
@@ -25,6 +26,7 @@ import { getManufacturerConfig } from "./config/manufacturers.js";
 import type { ScraperDb } from "./db.js";
 import { CachedHttpClient, delay } from "./scrapers/http-client.js";
 import { getConnector } from "./scrapers/index.js";
+import type { ScrapeContext } from "./scrapers/types.js";
 import { emptyResult } from "./scrapers/normalizer.js";
 import { finalizeQualityGate } from "./scrapers/quality-gate.js";
 import {
@@ -42,7 +44,7 @@ import type { AppPaths } from "./paths.js";
 import { buildRunOutputLayout, ensureRunOutputLayout, type RunOutputLayout } from "./run-output.js";
 import { documentUrlLooksRelevant, isPdfLikeDocument } from "./scrapers/document-url.js";
 import { isDocumentViewerUrl, resolveViewerPdfUrl } from "./scrapers/document-viewer-resolver.js";
-import { isLikelySchematicImage } from "./scrapers/generic.js";
+import { isLikelyNonProductImage, isLikelySchematicImage } from "./scrapers/generic.js";
 
 export type DocumentDownloadProfile = SharedDocumentDownloadProfile;
 
@@ -113,6 +115,37 @@ export class RunManager {
       }
       void this.processRun(run.id);
     }
+  }
+
+  /**
+   * The three learning stores a ScrapeContext can reach, bound once.
+   *
+   * They used to be spelled out inline at each call site, and the two later passes — the
+   * quality-fallback pipeline and the final-completeness network retry — only ever listed
+   * `learnedEndpoints`. The omission silently disabled the rest of the learning loop on exactly the
+   * attempts that carry the most information about a hard target: `learnedExtractors.list` returned
+   * undefined so nothing was replayed, `learnFromMining` early-returned so nothing was recorded, and
+   * `recordTargetObservation` became a no-op — which in turn meant `sampleCount` never grew, so
+   * `driftFromTargetHealth` (threshold: 8 samples) could never fire at all.
+   *
+   * Binding them in one place is the actual fix: a fourth call site cannot forget two of the three.
+   */
+  private learningContext(): Pick<ScrapeContext, "learnedEndpoints" | "learnedExtractors" | "targetHealth"> {
+    return {
+      learnedEndpoints: {
+        list: (manufacturerId, limit) => this.db.listLearnedEndpoints(manufacturerId, limit),
+        upsert: (endpoint) => this.db.upsertLearnedEndpoint(endpoint),
+        recordFailure: (manufacturerId, method, urlTemplate) => this.db.recordLearnedEndpointFailure(manufacturerId, method, urlTemplate)
+      },
+      learnedExtractors: {
+        list: (manufacturerId, host, limit) => this.db.listLearnedExtractors(manufacturerId, host, limit),
+        upsert: (extractor) => this.db.upsertLearnedExtractor(extractor)
+      },
+      targetHealth: {
+        record: (observation) => this.db.recordStageObservation(observation),
+        get: (manufacturerId, stage, host) => this.db.getTargetHealth(manufacturerId, stage, host)
+      }
+    };
   }
 
   private isStaleInterruptedRun(run: RunRecord): boolean {
@@ -256,9 +289,10 @@ export class RunManager {
       // When the user disables document downloads, the quality gate must not demand non-image
       // documents (datasheet/manual/etc.) — otherwise it always "fails", spawning fallback work
       // that re-fetches and re-renders pages to look for a PDF we never intend to download.
-      const manufacturer = documentDownloadsForEnrichmentEnabled
-        ? rawManufacturer
-        : withoutNonImageRequiredDocuments(rawManufacturer);
+      const manufacturer = withNotApplicableFields(
+        documentDownloadsForEnrichmentEnabled ? rawManufacturer : withoutNonImageRequiredDocuments(rawManufacturer),
+        notApplicableFieldsFromHiddenCoverage(run.options?.hiddenCoverageFields)
+      );
       layout = buildRunOutputLayout(this.paths.outputDir, manufacturer, run);
       await ensureRunOutputLayout(layout);
       // Move any staged customer-provided documents into the run folder so the
@@ -384,6 +418,10 @@ export class RunManager {
           }
 
           if (!customerFirstShortCircuit) {
+          // One item can enter official discovery in its vendor connector, quality fallback and a
+          // final retry. Keep the evidence/result per catalog item so those stages do not repeat
+          // the same search-form, browser and sitemap work.
+          const discoveryMemo = new Map();
           this.updateItemStage(item.id, "official-source", "Scraping official source", { status: "processing", error: undefined });
           // Per-item scrape signal: aborts if the whole run is cancelled/paused (propagated from
           // controller.signal) OR if this single item's official-source scrape runs past
@@ -407,21 +445,11 @@ export class RunManager {
                 documentsDir: layoutRef.documentsDir,
                 signal: itemScrapeController.signal,
                 browserRenderer,
+                discoveryMemo,
                 downloadDocuments: documentDownloadsForEnrichmentEnabled,
                 saveDocuments: downloadDocumentsEnabled,
                 imageOnly: imageOnlyMode,
-                learnedEndpoints: {
-                  list: (manufacturerId, limit) => this.db.listLearnedEndpoints(manufacturerId, limit),
-                  upsert: (endpoint) => this.db.upsertLearnedEndpoint(endpoint)
-                },
-                learnedExtractors: {
-                  list: (manufacturerId, host, limit) => this.db.listLearnedExtractors(manufacturerId, host, limit),
-                  upsert: (extractor) => this.db.upsertLearnedExtractor(extractor)
-                },
-                targetHealth: {
-                  record: (observation) => this.db.recordStageObservation(observation),
-                  get: (manufacturerId, stage, host) => this.db.getTargetHealth(manufacturerId, stage, host)
-                },
+                ...this.learningContext(),
                 fallback: {
                   scrape: (catalogNumber, sources) => fallback.scrape(catalogNumber, sources, itemScrapeController.signal)
                 },
@@ -565,13 +593,11 @@ export class RunManager {
               documentsDir: layoutRef.documentsDir,
               signal: controller.signal,
               browserRenderer,
+              discoveryMemo,
               downloadDocuments: documentDownloadsForEnrichmentEnabled,
               saveDocuments: downloadDocumentsEnabled,
               imageOnly: imageOnlyMode,
-              learnedEndpoints: {
-                list: (manufacturerId, limit) => this.db.listLearnedEndpoints(manufacturerId, limit),
-                upsert: (endpoint) => this.db.upsertLearnedEndpoint(endpoint)
-              },
+              ...this.learningContext(),
               fallback: {
                 scrape: (catalogNumber, sources) => fallback.scrape(catalogNumber, sources, controller.signal)
               },
@@ -674,13 +700,11 @@ export class RunManager {
               documentsDir: layoutRef.documentsDir,
               signal: controller.signal,
               browserRenderer,
+              discoveryMemo,
               downloadDocuments: documentDownloadsForEnrichmentEnabled,
               saveDocuments: downloadDocumentsEnabled,
               imageOnly: imageOnlyMode,
-              learnedEndpoints: {
-                list: (manufacturerId, limit) => this.db.listLearnedEndpoints(manufacturerId, limit),
-                upsert: (endpoint) => this.db.upsertLearnedEndpoint(endpoint)
-              },
+              ...this.learningContext(),
               fallback: {
                 scrape: (catalogNumber, sources) => fallback.scrape(catalogNumber, sources, controller.signal)
               },
@@ -1308,10 +1332,12 @@ export class RunManager {
     const run = this.db.getRun(runId);
     const items = this.db.getRunItems(runId);
     const learnedEndpoints = run ? this.db.listLearnedEndpoints(run.manufacturerId, 50) : [];
+    const stageObservations = run ? this.db.listStageObservations(run.manufacturerId, undefined, 200) : [];
     const payload = {
       generatedAt: new Date().toISOString(),
       run,
       learnedEndpoints,
+      stageObservations,
       outputFolders: {
         run: layout.runDir,
         excel: layout.excelDir,
@@ -1928,6 +1954,54 @@ function withoutNonImageRequiredDocuments(manufacturer: ManufacturerConfig): Man
   };
 }
 
+/**
+ * A coverage tile switched off in the run's "coverage fields" editor is a statement that the user
+ * does not need that field. Until now it only hid the dashboard tile, so the pipeline kept
+ * requiring the field: rows stayed "partial" on, say, a missing voltage and each one paid for a
+ * full discovery/reader round trying to find it. Turning the hidden tiles into an explicit
+ * not-applicable policy stops the chase — same reasoning as `withoutNonImageRequiredDocuments`.
+ *
+ * `enUrl`/`deUrl` and `custom:` tiles are display-only concepts with no field requirement behind
+ * them, so they are ignored here.
+ */
+export function notApplicableFieldsFromHiddenCoverage(hiddenCoverageFields: string[] | undefined): FinalCompletenessPolicyField[] {
+  const policyFields: FinalCompletenessPolicyField[] = [
+    "image",
+    "weight",
+    "dimensions",
+    "material",
+    "certificates",
+    "voltage",
+    "current",
+    "color",
+    "protection",
+    "operatingTemperature",
+    "typeCode"
+  ];
+  const hidden = new Set((hiddenCoverageFields ?? []).map((field) => field.trim()));
+  return policyFields.filter((field) => hidden.has(field));
+}
+
+function withNotApplicableFields(
+  manufacturer: ManufacturerConfig,
+  notApplicableFields: FinalCompletenessPolicyField[]
+): ManufacturerConfig {
+  if (!notApplicableFields.length) return manufacturer;
+  const recipe = manufacturer.scrapeRecipe ?? {};
+  return {
+    ...manufacturer,
+    scrapeRecipe: {
+      ...recipe,
+      qualityPolicy: {
+        ...recipe.qualityPolicy,
+        notApplicableFields: [
+          ...new Set([...(recipe.qualityPolicy?.notApplicableFields ?? []), ...notApplicableFields])
+        ]
+      }
+    }
+  };
+}
+
 function documentDownloadRank(doc: DocumentRecord): number {
   const label = `${doc.type} ${doc.label} ${doc.url}`.toLowerCase();
   let rank = 100;
@@ -1955,13 +2029,13 @@ function documentDownloadRank(doc: DocumentRecord): number {
 // every connector, old and new, at the single choke point all image documents pass through.
 const MAX_GALLERY_IMAGES = 1;
 
-function isSchematicImageDocument(doc: DocumentRecord): boolean {
-  return isLikelySchematicImage(`${doc.label} ${doc.url}`.toLowerCase());
+function isRejectedImageDocument(doc: DocumentRecord): boolean {
+  const candidateText = [doc.url, ...(doc.candidateUrls ?? []), doc.label].join(" ").toLowerCase();
+  return isLikelySchematicImage(candidateText) || isLikelyNonProductImage(candidateText);
 }
 
 export function coalesceImageDocuments(documents: DocumentRecord[]): DocumentRecord[] {
   const images = documents.filter((doc) => doc.type === "image");
-  if (images.length <= 1 && !images.some((doc) => doc.candidateUrls?.length)) return documents;
 
   // Group by image identity (same product image at different sizes/qualities collapses into one;
   // distinct gallery images keep their own groups).
@@ -1986,11 +2060,11 @@ export function coalesceImageDocuments(documents: DocumentRecord[]): DocumentRec
     });
   }
 
-  // Rank distinct gallery images and cap how many we'll keep / download. Prefer real product
-  // photos over schematics/drawings; only fall back to a schematic if it's the only image found.
+  // Rank distinct gallery images and cap how many we'll keep / download. A drawing or stock
+  // "no image" asset is not an acceptable fallback: leaving the image empty is honest and stops
+  // every manufacturer connector from exporting one as its product photo.
   const rankedGroups = coalescedGroups.sort((left, right) => imageDocumentRank(left) - imageDocumentRank(right));
-  const nonSchematic = rankedGroups.filter((doc) => !isSchematicImageDocument(doc));
-  const kept = (nonSchematic.length ? nonSchematic : rankedGroups).slice(0, MAX_GALLERY_IMAGES);
+  const kept = rankedGroups.filter((doc) => !isRejectedImageDocument(doc)).slice(0, MAX_GALLERY_IMAGES);
 
   return [...kept, ...documents.filter((doc) => doc.type !== "image")];
 }

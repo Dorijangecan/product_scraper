@@ -3,6 +3,19 @@ import { summarizeRunItem } from "../src/server/run-item-summary.js";
 import type { RunItemRecord } from "../src/shared/types.js";
 
 describe("run item summaries", () => {
+  it("preserves field-health causal blockers in the compact UI coverage reason", () => {
+    const summary = summarizeRunItem({
+      id: 99, runId: "run-1", rowIndex: 1, catalogNumber: "ABC-123", status: "partial", updatedAt: "2026-01-01T00:00:00.000Z",
+      result: {
+        manufacturerId: "test", catalogNumber: "ABC-123", status: "partial", confidence: 0.4,
+        normalized: {}, attributes: [], documents: [], sources: [],
+        diagnostics: { fieldHealth: [{ field: "weight", label: "Weight", status: "missing", reasonCode: "document-not-parsed" }] }
+      }
+    } as RunItemRecord);
+
+    expect(summary.coverage?.reason).toContain("Weight: document-not-parsed");
+  });
+
   it("strips heavy result payload while preserving coverage signals", () => {
     const summary = summarizeRunItem({
       id: 1,

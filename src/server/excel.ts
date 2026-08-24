@@ -14,9 +14,9 @@ import { classifyDeviceTypeCached as classifyDeviceType } from "./scrapers/devic
 import { buildLocalizedProductUrls } from "./scrapers/localized-urls.js";
 import { cleanText, normalizeFields } from "./scrapers/normalizer.js";
 import { listTechnicalAttributeAliases, suggestTechnicalAttributeAlias } from "./scrapers/technical-attribute-aliases.js";
+import { proposeUnmappedLabelMappings, type UnmappedLabelTeachListEntry } from "./scrapers/llm-label-proposals.js";
+import { INCH_TO_MILLIMETER, OUNCE_TO_KILOGRAM, POUND_TO_KILOGRAM } from "./unit-conversion.js";
 
-const POUND_TO_KILOGRAM = 0.45359237;
-const INCH_TO_MILLIMETER = 25.4;
 const MISSING_IMPORTANT_FILL = "FFFEE2E2";
 const MISSING_IMPORTANT_FONT = "FF991B1B";
 
@@ -472,7 +472,14 @@ export async function exportRunWorkbook(input: {
   unmappedLabels.columns = [
     { header: "Spec Label", key: "label", width: 48 },
     { header: "Occurrences", key: "occurrences", width: 14 },
+    { header: "Value Kind", key: "valueKinds", width: 18 },
     { header: "Suggested Key (score)", key: "suggestedKey", width: 34 },
+    { header: "Local AI Proposed Key (review only)", key: "aiProposedKey", width: 38 },
+    { header: "Local AI Rationale (review only)", key: "aiRationale", width: 60 },
+    { header: "Reviewer Decision (never applied automatically)", key: "reviewDecision", width: 37 },
+    { header: "Reviewed By", key: "reviewedBy", width: 26 },
+    { header: "Evidence URL / fixture", key: "reviewEvidence", width: 54 },
+    { header: "Review Note", key: "reviewNote", width: 62 },
     { header: "Example Values", key: "exampleValues", width: 70 },
     { header: "Example Catalog Numbers", key: "exampleCatalogNumbers", width: 50 }
   ];
@@ -722,33 +729,61 @@ export async function exportRunWorkbook(input: {
   }
 
   // Aggregate unmapped spec labels across every item into a single ranked teach-list.
-  const unmappedAgg = new Map<string, { label: string; count: number; catalogs: Set<string>; values: Set<string> }>();
+  const unmappedAgg = new Map<string, { label: string; count: number; valueKinds: Set<"quantity" | "text">; catalogs: Set<string>; values: Set<string> }>();
   for (const item of input.items) {
     const result = item.result;
     const labels = result?.diagnostics?.unmappedSpecLabels;
     if (!result || !labels?.length) continue;
     for (const rawLabel of labels) {
-      const label = cleanText(rawLabel);
+      const label = cleanText(rawLabel.label);
       if (!label) continue;
       const key = label.toLowerCase();
-      const entry = unmappedAgg.get(key) ?? { label, count: 0, catalogs: new Set<string>(), values: new Set<string>() };
+      const entry = unmappedAgg.get(key) ?? { label, count: 0, valueKinds: new Set<"quantity" | "text">(), catalogs: new Set<string>(), values: new Set<string>() };
       entry.count += 1;
+      entry.valueKinds.add(rawLabel.valueKind);
       entry.catalogs.add(result.catalogNumber);
       const exampleValue = result.attributes.find((attr) => cleanText(attr.name).toLowerCase() === key)?.value;
       if (exampleValue) entry.values.add(cleanText(exampleValue).slice(0, 80));
       unmappedAgg.set(key, entry);
     }
   }
-  for (const entry of [...unmappedAgg.values()].sort((left, right) => right.count - left.count || left.label.localeCompare(right.label))) {
-    // Suggest the closest known canonical key so teaching the ontology is a review, not a hunt.
-    const suggestion = suggestTechnicalAttributeAlias(entry.label);
-    unmappedLabels.addRow({
+  const unmappedTeachList: UnmappedLabelTeachListEntry[] = [...unmappedAgg.values()]
+    .sort((left, right) => right.count - left.count || left.label.localeCompare(right.label))
+    .map((entry) => ({
       label: entry.label,
       occurrences: entry.count,
+      valueKinds: [...entry.valueKinds].sort(),
+      exampleValues: [...entry.values].slice(0, 5),
+      exampleCatalogNumbers: [...entry.catalogs].slice(0, 8)
+    }));
+  await input.onActivity?.({ stage: "label-proposals", message: "Preparing review-only unmapped-label proposals." });
+  const labelProposalBatch = await proposeUnmappedLabelMappings(unmappedTeachList);
+  const aiProposalByLabel = new Map(labelProposalBatch.proposals.map((proposal) => [proposal.label.toLowerCase(), proposal]));
+  for (const entry of unmappedTeachList) {
+    // Suggest the closest known canonical key so teaching the ontology is a review, not a hunt.
+    const suggestion = suggestTechnicalAttributeAlias(entry.label, { manufacturerId: input.manufacturer.id });
+    const aiProposal = aiProposalByLabel.get(entry.label.toLowerCase());
+    const reviewRow = unmappedLabels.addRow({
+      label: entry.label,
+      occurrences: entry.occurrences,
+      valueKinds: entry.valueKinds.join(", "),
       suggestedKey: suggestion ? `${suggestion.canonicalKey} (${suggestion.score.toFixed(2)})` : "",
-      exampleValues: [...entry.values].slice(0, 5).join(" | "),
-      exampleCatalogNumbers: [...entry.catalogs].slice(0, 8).join(", ")
+      aiProposedKey: aiProposal?.canonicalKey ?? "",
+      aiRationale: aiProposal?.rationale ?? "",
+      reviewDecision: "",
+      reviewedBy: "",
+      reviewEvidence: "",
+      reviewNote: "",
+      exampleValues: entry.exampleValues.join(" | "),
+      exampleCatalogNumbers: entry.exampleCatalogNumbers.join(", ")
     });
+    // Approval is a human audit trail, not a runtime configuration channel. The only allowed
+    // choices make a missing source/fixture visible; no code reads these cells back into aliases.
+    reviewRow.getCell("reviewDecision").dataValidation = {
+      type: "list",
+      allowBlank: true,
+      formulae: ['"approve,reject,needs-evidence"']
+    };
   }
 
   await input.onActivity?.({ stage: "cleaned-input", message: "Preparing cleaned PDT input sheet." });
@@ -2366,7 +2401,7 @@ function productRow(
     finalCompletenessCheck: finalCompletenessCheck(result),
     fieldHealthSummary: fieldHealthSummaryForExport(result),
     missingRequiredFields: missingRequiredFields(row),
-    unmappedSpecLabels: result?.diagnostics?.unmappedSpecLabels?.join("; "),
+    unmappedSpecLabels: result?.diagnostics?.unmappedSpecLabels?.map(({ label, valueKind }) => `${label} (${valueKind})`).join("; "),
     error: result?.error ?? item.error
   };
 }
@@ -2557,7 +2592,7 @@ function parseWeightMeasurement(value: string | undefined): WeightMeasurement | 
   if (unit === "kg") return { kg: number, lb: number / POUND_TO_KILOGRAM };
   if (unit === "g") return { kg: number / 1000, lb: number / 1000 / POUND_TO_KILOGRAM };
   if (/^lb|pound/.test(unit)) return { lb: number, kg: number * POUND_TO_KILOGRAM };
-  if (/^oz|ounce/.test(unit)) return { lb: number / 16, kg: number * 0.028349523125 };
+  if (/^oz|ounce/.test(unit)) return { lb: number / 16, kg: number * OUNCE_TO_KILOGRAM };
   return undefined;
 }
 

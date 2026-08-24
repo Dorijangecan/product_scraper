@@ -9,6 +9,14 @@ import { normalizeTechnicalAttributes } from "../src/server/scrapers/technical-a
 import type { FetchedText } from "../src/server/scrapers/http-client.js";
 
 describe("electrical spec miner", () => {
+  it("refuses a comparative table row until a catalog-aware table reader selects one column", () => {
+    const attributes = extractOntologySpecAttributesFromText({
+      sourceUrl: "https://example.test/family.pdf",
+      text: "Rated current\t4 A\t8 A\t12 A"
+    });
+    expect(attributes.some((attribute) => /current/i.test(attribute.name))).toBe(false);
+  });
+
   it("extracts electrical specs from dense prose without table markup", () => {
     const attributes = extractElectricalSpecAttributesFromText({
       sourceUrl: "https://example.test/datasheet",
@@ -331,3 +339,34 @@ function fetched(text: string): FetchedText {
     fromCache: false
   };
 }
+
+describe("canonicalization must not strip a disqualifying qualifier", () => {
+  const mine = (text: string) =>
+    extractOntologySpecAttributesFromText({ text, sourceUrl: "https://example.test/datasheet" });
+
+  it("does not rename a stripping length into the product's length", () => {
+    // The miner names its output after the definition, which is what makes "Bemessungsstrom" legible. The
+    // same rename used to destroy the qualifier: "Wire Strip Length 10 mm" became `Length = 10 mm` and was
+    // exported as the product's depth. Real occurrence — 30 times across the 220-document PDF corpus.
+    for (const text of ["Wire Strip Length 10 mm", "Stripping length 8 mm", "Abisolierlänge 10 mm"]) {
+      const names = mine(text).map((attribute) => attribute.name);
+      expect(names, text).not.toContain("Depth / length");
+      expect(names, text).not.toContain("Length");
+    }
+  });
+
+  it("still mines the property when the label carries no competing qualifier", () => {
+    // `labelForAttribute` shortens the property's display label, so the emitted name is "Length".
+    expect(mine("Length 120 mm").map((a) => a.name)).toContain("Length");
+    expect(mine("Weight 5 kg").map((a) => a.name)).toContain("Weight");
+  });
+
+  it("reads only qualifiers attached to the label, not the previous spec on the line", () => {
+    // The qualifier scan stops at the first digit or unit, so a dense line cannot make one spec's label
+    // answer for its neighbour's. Asking matchProperty about 40 characters of preceding text did exactly
+    // that, and cost a real `Weight = 5 kg` until the scan was narrowed.
+    const names = mine("Tightening torque 2.5 Nm Weight 5 kg").map((attribute) => attribute.name);
+    expect(names).toContain("Weight");
+    expect(names).toContain("Tightening torque");
+  });
+});

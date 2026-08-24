@@ -1,0 +1,21 @@
+{
+  "_source": "Values verified against the recorded page itself: it carries a `Product Net Weight` label with `0.22 kg`, and a `155 mm` dimension. Title is `EKIP BUSBARS SUPPLY E1.3...E6.3`.",
+
+  "normalized": {
+    "weight": { "number": 0.22, "unit": "kg" },
+    "dimensions": { "contains": "155" }
+  },
+
+  "mustNotContain": [
+    "font-weight",
+    "!important",
+    "500 !important"
+  ],
+
+  "allowMissing": ["material", "certificates"],
+
+  "_notes": {
+    "why": "Positive baseline for the generic HTML path — an ABB page that already works. Its job is regression protection: the weight/dimensions extraction here must not break when the generic parser is reworked in P1.1/P1.3.",
+    "mustNotContain": "The page's inline CSS contains `font-weight: 500 !important` and `font-weight: 400`. Those are the classic false positives for a weight extractor scanning raw page text, so they are pinned as forbidden."
+  }
+}

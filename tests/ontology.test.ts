@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { findUnmappedSpecLabels, inferPropertyFromQuantities, matchProperty, understand } from "../src/server/scrapers/ontology.js";
+import { findUnmappedSpecLabels, inferPropertyFromQuantities, looksLikeUnderstandableSpec, matchProperty, understand, isDisqualifiedForQuantityKind } from "../src/server/scrapers/ontology.js";
 
 describe("property ontology — general multilingual understanding", () => {
   it("maps multilingual labels to the same canonical property", () => {
@@ -376,14 +376,187 @@ describe("property ontology — general multilingual understanding", () => {
     });
   });
 
-  it("flags labels it does not understand (knowledge-base gaps), never guesses them", () => {
+  it("flags numeric and text spec labels it does not understand, with the value kind for review", () => {
     const gaps = findUnmappedSpecLabels([
       { name: "Nennstrom", value: "16 A" }, // mapped → not a gap
       { name: "Eigenfrequenz", value: "50 Hz" }, // recognizable quantity, unknown label → gap
-      { name: "Marketing blurb", value: "best in class" } // no quantity → not a gap
+      // A text-valued specification has no unit fallback, so hiding it makes the teach-list
+      // systematically blind to precisely the ontology gap an operator needs to review.
+      { group: "Technical Data", name: "Contact metallurgy", value: "Silver alloy" },
+      // Real historical review noise: captions, URL-bearing instructions and values emitted as
+      // labels are page furniture, even when a numeric token makes them look actionable.
+      { group: "Technical Data", name: "Table 36: Technical data of the", value: "230 V" },
+      { group: "Technical Data", name: "Install the accessory; see https://library.vendor.test/", value: "16 A" },
+      { group: "Technical Data", name: "220V", value: "24 V" },
+      { group: "Technical Data", name: "Push STOP to cancel the position selection", value: "16 A" },
+      { group: "Technical Data", name: "Premere STOP per annullare la selezione", value: "16 A" },
+      { group: "Technical Data", name: "STOPPEN drücken, um die Stellungswahl abzubrechen", value: "16 A" },
+      { group: "Technical Data", name: "Pulse PARO para cancelar la selección", value: "16 A" },
+      { group: "Technical Data", name: "switch set. In the example", value: "16 A" },
+      { group: "Technical Data", name: "dip configurado. En el ejemplo", value: "16 A" },
+      { group: "Technical Data", name: "按下 STOP 取消位置选择", value: "16 A" },
+      // A long technical property must remain reviewable; the noise filter cannot be a length cap.
+      { group: "Technical Data", name: "Electrostatic Discharge (ESD Immunity) acc. to IEC 61000-4-2", value: "8 kV" },
+      { name: "Marketing blurb", value: "best in class" },
+      { group: "Meta", name: "og:title", value: "ABC | Vendor" }
     ]);
-    expect(gaps).toContain("Eigenfrequenz");
-    expect(gaps).not.toContain("Nennstrom");
-    expect(gaps).not.toContain("Marketing blurb");
+    expect(gaps).toContainEqual({ label: "Eigenfrequenz", valueKind: "quantity" });
+    expect(gaps).toContainEqual({ label: "Contact metallurgy", valueKind: "text" });
+    expect(gaps).not.toContainEqual(expect.objectContaining({ label: "Nennstrom" }));
+    expect(gaps).not.toContainEqual(expect.objectContaining({ label: "Table 36: Technical data of the" }));
+    expect(gaps).not.toContainEqual(expect.objectContaining({ label: expect.stringContaining("library.vendor.test") }));
+    expect(gaps).not.toContainEqual(expect.objectContaining({ label: "220V" }));
+    expect(gaps).not.toContainEqual(expect.objectContaining({ label: expect.stringMatching(/^(?:Push|Premere|STOPPEN|Pulse|switch set|dip configurado|按下 STOP)/i) }));
+    expect(gaps).toContainEqual({ label: "Electrostatic Discharge (ESD Immunity) acc. to IEC 61000-4-2", valueKind: "quantity" });
+    expect(gaps).not.toContainEqual(expect.objectContaining({ label: "Marketing blurb" }));
+    expect(gaps).not.toContainEqual(expect.objectContaining({ label: "og:title" }));
+  });
+});
+
+/**
+ * The admission test that replaces hand-written English keyword lists. Every label below was missed by
+ * `isGlobalTechnicalLine`'s keyword list in document-enrichment.ts and is mapped correctly by the
+ * ontology — measured against Eaton's E6 catalogue (fixtures/eaton-cbe03319-family-catalog).
+ */
+describe("looksLikeUnderstandableSpec", () => {
+  it("recognises labels the English keyword lists missed", () => {
+    for (const label of [
+      "Casing protection degree",
+      "Design standard",
+      "Rated breaking capacity Icn",
+      "Terminal screw fastening torque",
+      "Mounting method",
+      "Pollution degree",
+      "Part number",
+      "Article number"
+    ]) {
+      expect(looksLikeUnderstandableSpec(label), label).toBe(true);
+    }
+  });
+
+  it("recognises non-English labels, which is the whole point", () => {
+    for (const label of ["Bemessungsstrom", "Corrente nominale", "Rango de temperatura de empleo", "Tension nominale"]) {
+      expect(looksLikeUnderstandableSpec(label), label).toBe(true);
+    }
+  });
+
+  it("falls back to unit inference when no synonym matches", () => {
+    // Label unknown, but the value's unit identifies the property.
+    expect(looksLikeUnderstandableSpec("Widerstandswert XYZ", "24 V")).toBe(true);
+    expect(looksLikeUnderstandableSpec("Widerstandswert XYZ")).toBe(false);
+  });
+
+  it("says no to text carrying no recognisable property", () => {
+    for (const label of ["Unit per package", "Terminal wiring capacity", "Ordering example", "See page 12"]) {
+      expect(looksLikeUnderstandableSpec(label), label).toBe(false);
+    }
+  });
+});
+
+/**
+ * P1.1b — precision. `matchProperty` takes the longest synonym matching ANYWHERE in the string, which is
+ * the right bias for admission and the wrong one for deciding WHICH property a label is. These pin the
+ * over-matches found while wiring the ontology into the admission gates.
+ */
+describe("ontology precision", () => {
+  it("does not read a selectivity class as a degree of protection", () => {
+    // Eaton E6 page 4: "Selective protection level 3". A selectivity class is not an IP rating, and
+    // letting it through would overwrite a real IP20 with "3".
+    expect(matchProperty("Selective protection level")?.key).not.toBe("protection");
+    expect(matchProperty("Selectivity level")?.key).not.toBe("protection");
+  });
+
+  it("still maps genuine protection labels", () => {
+    for (const label of [
+      "Degree of protection",
+      "Protection level",
+      "Protection class",
+      "Casing protection degree",
+      "Ingress protection",
+      "Schutzart"
+    ]) {
+      expect(matchProperty(label)?.key, label).toBe("protection");
+    }
+  });
+
+  it("does not read a sentence-initial 'In' as the nominal-current symbol", () => {
+    // "In" is the IEC symbol for nominal current, but also an English word. The synonym is
+    // case-sensitive, which already excludes "in"; these are the title-case traps that remain.
+    expect(matchProperty("In accordance with IEC 60947")?.key).not.toBe("ratedCurrent");
+    expect(matchProperty("In case of overload")?.key).not.toBe("ratedCurrent");
+  });
+
+  it("still maps the nominal-current symbol where it really is one", () => {
+    expect(matchProperty("In")?.key).toBe("ratedCurrent");
+    expect(matchProperty("In (A)")?.key).toBe("ratedCurrent");
+    expect(matchProperty("Rated current In")?.key).toBe("ratedCurrent");
+    expect(matchProperty("Bemessungsstrom In")?.key).toBe("ratedCurrent");
+  });
+});
+
+describe("synonyms must not fire inside unrelated words", () => {
+  it("does not read the English word 'definition' as the French word for finish", () => {
+    // `Definition List` is the group name the generic parser gives every <dl> spec block, and the
+    // ontology label it is matched against is `group + name`. With the French synonym unanchored, every
+    // page whose specs sit in a <dl> assigned that block's first value to the shipped `finish` column —
+    // 60 pages in the recorded corpus, across Turck, nVent and Doepke.
+    expect(matchProperty("Definition List Dimensions")?.key).not.toBe("finish");
+    expect(matchProperty("Definition List Weight")?.key).not.toBe("finish");
+    expect(matchProperty("High definition display")?.key).not.toBe("finish");
+  });
+
+  it("still maps the French and Italian finish vocabulary", () => {
+    expect(matchProperty("Finition")?.key).toBe("finish");
+    expect(matchProperty("Traitement de finition")?.key).toBe("finish");
+    expect(matchProperty("Finitions")?.key).toBe("finish");
+    expect(matchProperty("Finitura")?.key).toBe("finish");
+  });
+});
+
+describe("isDisqualifiedForQuantityKind — one owner for the kA/Ui vocabulary", () => {
+  it("rejects fault-level figures for the current field", () => {
+    for (const label of [
+      "Nominal discharge current In",
+      "Impulse current Iimp",
+      "Lightning impulse current",
+      "Rated short-circuit breaking capacity Icu",
+      "Breaking capacity",
+      "Inrush current",
+      "Starting current",
+      "Peak current"
+    ]) {
+      expect(isDisqualifiedForQuantityKind(label, "25 kA", "current"), label).toBe(true);
+    }
+  });
+
+  it("keeps switching capacity, which really is a contact current rating", () => {
+    // A relay or thermostat sells on this figure; the nVent thermostat test depends on it.
+    expect(isDisqualifiedForQuantityKind("Switching capacity", "10 A", "current")).toBe(false);
+    expect(isDisqualifiedForQuantityKind("Switching current", "10 A", "current")).toBe(false);
+    expect(isDisqualifiedForQuantityKind("Rated operational current Ie", "16 A", "current")).toBe(false);
+  });
+
+  it("rejects the RCD test-circuit and per-sensitivity voltages", () => {
+    expect(isDisqualifiedForQuantityKind("min. operating voltage", "range of test circuit 150 V", "voltage")).toBe(true);
+    expect(isDisqualifiedForQuantityKind("Minimum rated operating voltage (Type A/AC operation)", "110 V", "voltage")).toBe(true);
+    expect(isDisqualifiedForQuantityKind("Rated impulse withstand voltage Uimp", "8 kV", "voltage")).toBe(true);
+  });
+
+  it("checks the value as well as the label, since a PDF split can land the qualifier on either side", () => {
+    expect(isDisqualifiedForQuantityKind("Prüfeinrichtung", "", "voltage")).toBe(true);
+    expect(isDisqualifiedForQuantityKind("", "of test circuit 150 V", "voltage")).toBe(true);
+  });
+
+  it("keeps a standard's own scope out of both electrical fields", () => {
+    const label = "NEMA 250 Enclosures for Electrical Equipment (1000 Volts Maximum)";
+    expect(isDisqualifiedForQuantityKind(label, "1000 V", "voltage")).toBe(true);
+    expect(isDisqualifiedForQuantityKind(label, "1000 V", "current")).toBe(true);
+    // …and does not touch unrelated kinds.
+    expect(isDisqualifiedForQuantityKind(label, "5 kg", "mass")).toBe(false);
+  });
+
+  it("leaves non-electrical kinds alone", () => {
+    expect(isDisqualifiedForQuantityKind("Breaking capacity", "25 kA", "mass")).toBe(false);
+    expect(isDisqualifiedForQuantityKind("Weight", "0.3 kg", "mass")).toBe(false);
   });
 });

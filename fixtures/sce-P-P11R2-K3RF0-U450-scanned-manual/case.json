@@ -1,0 +1,13 @@
+{
+  "id": "sce-P-P11R2-K3RF0-U450-scanned-manual",
+  "manufacturerId": "sce",
+  "catalogNumber": "P-P11R2-K3RF0-U450",
+  "note": "One-page scanned official cutout-pattern manual. It is linked from this product run but visibly lists only other P-*-F3R3/K3RF3/M3RF3-U450 part numbers, so OCR must not borrow their dimensions.",
+  "documents": [
+    {
+      "path": "benchmarks/output/20260602104618/documents/P-P11R2-K3RF0-U450-manual-Convenience-Receptacles-&-Program-Ports.pdf",
+      "url": "https://www.saginawcontrol.com/docs/default-source/product-documents/convenience-receptacles-program-ports.pdf",
+      "type": "manual"
+    }
+  ]
+}

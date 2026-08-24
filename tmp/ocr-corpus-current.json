@@ -1,0 +1,176 @@
+{
+  "scannedFiles": 1487,
+  "uniquePdfs": 287,
+  "unreadableFiles": 0,
+  "sparsePdfCount": 12,
+  "candidates": [
+    {
+      "path": "benchmarks\\output\\20260529115444\\documents\\800F-X10-manual-800-um001_-en-p.pdf",
+      "pageCount": 48,
+      "sparsePages": [
+        {
+          "page": 3,
+          "nativeSample": "Table of Contents Important User Information . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 1 Preface This manual gives an overview of the Bulletin 800E/F DeviceNet™ Pendant Station and describes how to configure, ins"
+        },
+        {
+          "page": 4,
+          "nativeSample": "toc–ii Table of Contents Publication 800-UM001A-EN-P – June 2004 Chapter 3 Installation and Mounting Chapter Objectives. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 3-1 DeviceNet™ Guidelines . . . . . . . ."
+        },
+        {
+          "page": 5,
+          "nativeSample": "Table of Contents toc–iii Publication 800-UM001A-EN-P – June 2004 Input/Output . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . A-3 DeviceNet™ Connection. . . . . . . . . . . . . . . . . . . . . . . . . . "
+        },
+        {
+          "page": 47,
+          "nativeSample": ""
+        }
+      ]
+    },
+    {
+      "path": "benchmarks\\output\\20260529115444\\documents\\A12126T1PP-certificate-CERT-00045-655.6-KB-English.pdf",
+      "pageCount": 5,
+      "sparsePages": [
+        {
+          "page": 2,
+          "nativeSample": ""
+        },
+        {
+          "page": 3,
+          "nativeSample": ""
+        },
+        {
+          "page": 4,
+          "nativeSample": ""
+        },
+        {
+          "page": 5,
+          "nativeSample": ""
+        }
+      ]
+    },
+    {
+      "path": "benchmarks\\output\\20260529115444\\documents\\SCE-12EL1206LP-manual-Swing-Panel-Assembly-for-Enviroline-Enclosures.PDF",
+      "pageCount": 1,
+      "sparsePages": [
+        {
+          "page": 1,
+          "nativeSample": ""
+        }
+      ]
+    },
+    {
+      "path": "benchmarks\\output\\20260602072752\\documents\\800F-X10-cad-ABPFB020.pdf.pdf",
+      "pageCount": 1,
+      "sparsePages": [
+        {
+          "page": 1,
+          "nativeSample": ""
+        }
+      ]
+    },
+    {
+      "path": "benchmarks\\output\\20260602104022\\documents\\SCE-AC3400B120V-manual-Air-Conditioners---SCE-AC3400B120V.pdf",
+      "pageCount": 18,
+      "sparsePages": [
+        {
+          "page": 1,
+          "nativeSample": "B 1 SAGINAW CONTROL & ENGINEERING • A/C USER MANUAL User Manual SCE-AC3400B120V, SCE-AC3400B120VSS & SCE-AC3400B120VSS6 1. User Manual ............................................................................................ p. 2 2. Lega"
+        }
+      ]
+    },
+    {
+      "path": "benchmarks\\output\\20260602104618\\documents\\P-P11R2-K3RF0-U450-manual-Convenience-Receptacles-&-Program-Ports.pdf",
+      "pageCount": 1,
+      "sparsePages": [
+        {
+          "page": 1,
+          "nativeSample": ""
+        }
+      ]
+    },
+    {
+      "path": "benchmarks\\output\\20260602105558\\documents\\BCS01CY-other-Balluff-document.pdf",
+      "pageCount": 178,
+      "sparsePages": [
+        {
+          "page": 2,
+          "nativeSample": "www.balluff.com"
+        },
+        {
+          "page": 4,
+          "nativeSample": "www.balluff.com"
+        },
+        {
+          "page": 90,
+          "nativeSample": ""
+        },
+        {
+          "page": 92,
+          "nativeSample": "www.balluff.com"
+        }
+      ]
+    },
+    {
+      "path": "benchmarks\\output\\20260602110816\\documents\\1769-PB4-cad-ABION200.pdf.pdf",
+      "pageCount": 1,
+      "sparsePages": [
+        {
+          "page": 1,
+          "nativeSample": ""
+        }
+      ]
+    },
+    {
+      "path": "benchmarks\\output\\20260602111320\\documents\\2715P-T7CD-manual-User-Manual.pdf",
+      "pageCount": 112,
+      "sparsePages": [
+        {
+          "page": 3,
+          "nativeSample": "Rockwell Automation Publication 2715P-UM001C-EN-P - March 2019 3 Table of Contents Preface Summary of Changes . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 7 Package Contents . . . . . . . . . . . . ."
+        },
+        {
+          "page": 4,
+          "nativeSample": "4 Rockwell Automation Publication 2715P-UM001C-EN-P - March 2019 Table of Contents Chapter 3 Configure Terminal Settings Runtime Environment. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 43 Entering Data U"
+        },
+        {
+          "page": 5,
+          "nativeSample": "Rockwell Automation Publication 2715P-UM001C-EN-P - March 2019 5 Table of Contents Chapter 6 Update Firmware Before You Begin. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 87 Firmware Requirement"
+        },
+        {
+          "page": 111,
+          "nativeSample": ""
+        }
+      ]
+    },
+    {
+      "path": "benchmarks\\output\\20260602113459\\documents\\1492-J3-cad-ABTBM040.pdf.pdf",
+      "pageCount": 1,
+      "sparsePages": [
+        {
+          "page": 1,
+          "nativeSample": ""
+        }
+      ]
+    },
+    {
+      "path": "benchmarks\\output\\20260602120324\\documents\\PS1C1269B-datasheet-ProLine-S1-Cabinet-Spec-Sheet-3.28-MB-English.pdf",
+      "pageCount": 12,
+      "sparsePages": [
+        {
+          "page": 3,
+          "nativeSample": "Free-Stand CabinetS ProLine S1 Cabinet nVent.com/HOFFMAN SUBJECT TO CHANGE WITHOUT NOTICE networking 3 Spec-01242 L %\u0003\u0010\u0003 \u0015\u0011\u001a\u0019 \u001a\u0013 23(1,1* \u0003\u0003%\u0003\u0003 $\u0010 \u0017\u0011\u0013\u0013 \u0014\u0013\u0015 23(1,1* \u0003\u0003$\u0003\u0003 \u0003\u0014\u0011\u0016\u0013 \u0016\u0016 \u0003 1 3(5)25$7,21 23(1,1* 0 3(5)25$7,21 23(1,1* \u0003\u0014\u0011\u0017\u001a \u0016\u001a \u0003 = = \u0003"
+        }
+      ]
+    },
+    {
+      "path": "benchmarks\\output\\20260602135713\\documents\\1756-M02AE-cad-ABIOM380.pdf.pdf",
+      "pageCount": 1,
+      "sparsePages": [
+        {
+          "page": 1,
+          "nativeSample": ""
+        }
+      ]
+    }
+  ]
+}

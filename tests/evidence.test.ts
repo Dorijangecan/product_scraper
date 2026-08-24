@@ -3,6 +3,44 @@ import { attachEvidence } from "../src/server/scrapers/evidence.js";
 import type { ProductResult } from "../src/shared/types.js";
 
 describe("evidence model", () => {
+  it("reports machine-readable causal blockers for absent fields", () => {
+    const noSource = attachEvidence({
+      manufacturerId: "test", catalogNumber: "ABC-123", status: "failed", confidence: 0,
+      normalized: {}, attributes: [], documents: [], sources: []
+    } satisfies ProductResult);
+    const brokenDocument = attachEvidence({
+      manufacturerId: "test", catalogNumber: "ABC-123", status: "partial", confidence: 0.4,
+      normalized: {}, attributes: [],
+      documents: [{ type: "datasheet", label: "Broken", url: "https://example.test/a.pdf", parseStatus: "failed" }],
+      sources: [{ url: "https://example.test/a.pdf", sourceType: "official", parser: "pdf", fetchedAt: "2026-01-01T00:00:00.000Z" }]
+    } satisfies ProductResult);
+
+    expect(noSource.diagnostics?.fieldHealth?.find((field) => field.field === "weight")?.reasonCode).toBe("no-source-discovered");
+    expect(brokenDocument.diagnostics?.fieldHealth?.find((field) => field.field === "weight")?.reasonCode).toBe("document-not-parsed");
+  });
+
+  it("reports causal blockers for document URLs and confirmed unpublished fields", () => {
+    const fetchedWithoutDatasheet = attachEvidence({
+      manufacturerId: "test", catalogNumber: "ABC-123", status: "partial", confidence: 0.5,
+      normalized: {}, attributes: [], documents: [],
+      sources: [{ url: "https://example.test/products/ABC-123", sourceType: "official", parser: "generic", fetchedAt: "2026-01-01T00:00:00.000Z" }]
+    } satisfies ProductResult);
+    const weakDatasheet = attachEvidence({
+      manufacturerId: "test", catalogNumber: "ABC-123", status: "partial", confidence: 0.5,
+      normalized: {}, attributes: [],
+      documents: [{ type: "datasheet", label: "Datasheet", url: "https://example.test/ABC-123.pdf", confidence: 0.45 }], sources: []
+    } satisfies ProductResult);
+    const confirmedUnpublished = attachEvidence({
+      manufacturerId: "test", catalogNumber: "ABC-123", status: "partial", confidence: 0.5,
+      normalized: {}, attributes: [], documents: [], sources: [],
+      diagnostics: { finalCompleteness: { checkedAt: "2026-01-01T00:00:00.000Z", beforeMissing: ["weight"], retryMissing: [], afterMissing: ["weight"], notApplicable: [], records: [{ field: "weight", status: "not-published", requirement: "preferred" }] } }
+    } satisfies ProductResult);
+
+    expect(fetchedWithoutDatasheet.diagnostics?.fieldHealth?.find((field) => field.field === "datasheetUrl")?.reasonCode).toBe("source-fetched-no-label");
+    expect(weakDatasheet.diagnostics?.fieldHealth?.find((field) => field.field === "datasheetUrl")?.reasonCode).toBe("label-found-value-rejected");
+    expect(confirmedUnpublished.diagnostics?.fieldHealth?.find((field) => field.field === "weight")?.reasonCode).toBe("not-published");
+  });
+
   it("builds evidence records from attributes, documents, normalized fields, and sources", () => {
     const result = attachEvidence({
       manufacturerId: "test",

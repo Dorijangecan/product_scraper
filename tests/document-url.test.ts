@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { documentUrlLooksDownloadable, documentUrlLooksRelevant, isPdfLikeDocumentUrl } from "../src/server/scrapers/document-url.js";
+import { documentUrlLooksDownloadable, documentUrlLooksRelevant, isDocumentPlaceholderUrl, isPdfLikeDocumentUrl } from "../src/server/scrapers/document-url.js";
 
 describe("document URL classification", () => {
   it("recognizes PDF-like query endpoints without .pdf suffixes", () => {
@@ -29,5 +29,15 @@ describe("document URL classification", () => {
   it("uses label and path context for non-extension document links", () => {
     expect(documentUrlLooksRelevant("https://example.test/resources/ABC123", "ABC123 technical datasheet PDF", "datasheet")).toBe(true);
     expect(documentUrlLooksRelevant("https://example.test/about", "About us", "other")).toBe(false);
+  });
+
+  it("rejects upload-widget MIME/type tokens as document URLs", () => {
+    for (const token of ["table", "zip", "x-zip", "x-zip-compressed"]) {
+      const url = `https://www.rockwellautomation.com/${token}`;
+      expect(isDocumentPlaceholderUrl(url)).toBe(true);
+      expect(documentUrlLooksDownloadable(url)).toBe(false);
+      expect(documentUrlLooksRelevant(url, "Download file", "other")).toBe(false);
+    }
+    expect(isDocumentPlaceholderUrl("https://www.rockwellautomation.com/files/product.zip")).toBe(false);
   });
 });

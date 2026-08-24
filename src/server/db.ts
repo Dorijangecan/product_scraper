@@ -10,6 +10,7 @@ import type {
   RunStatus
 } from "../shared/types.js";
 import type { AppPaths } from "./paths.js";
+import { isTargetHealthDriftSuspected } from "./scrapers/target-health-policy.js";
 
 // How long a field stays "exhausted" (proven not-published for a catalog number) before it is
 // eligible for a fresh network retry again. Bounds the blast radius of a single bad run.
@@ -89,6 +90,8 @@ interface LearnedEndpointRow {
   parser_kind: string;
   success_count: number;
   last_success_at: string;
+  failure_count?: number;
+  last_failure_at?: string;
 }
 
 interface LearnedExtractorRow {
@@ -102,6 +105,11 @@ interface LearnedExtractorRow {
   success_count: number;
   last_success_at: string;
 }
+
+// A target can recover after a vendor repairs a page or API. Keep the write-side aggregate for
+// historical reporting, but drive adaptive mining from a bounded recent window instead of its
+// lifetime totals.
+const TARGET_HEALTH_WINDOW = 50;
 
 export class ScraperDb {
   private db: Database.Database;
@@ -180,6 +188,8 @@ export class ScraperDb {
         parser_kind TEXT NOT NULL,
         success_count INTEGER NOT NULL DEFAULT 1,
         last_success_at TEXT NOT NULL,
+        failure_count INTEGER NOT NULL DEFAULT 0,
+        last_failure_at TEXT,
         UNIQUE(manufacturer_id, method, url_template)
       );
 
@@ -257,6 +267,8 @@ export class ScraperDb {
     this.addColumnIfMissing("page_cache", "status_code", "INTEGER");
     this.addColumnIfMissing("page_cache", "content_type", "TEXT");
     this.addColumnIfMissing("page_cache", "effective_url", "TEXT");
+    this.addColumnIfMissing("learned_endpoints", "failure_count", "INTEGER NOT NULL DEFAULT 0");
+    this.addColumnIfMissing("learned_endpoints", "last_failure_at", "TEXT");
   }
 
   private addColumnIfMissing(table: string, column: string, definition: string) {
@@ -571,7 +583,9 @@ export class ScraperDb {
             discovered_from_url = excluded.discovered_from_url,
             parser_kind = excluded.parser_kind,
             success_count = learned_endpoints.success_count + 1,
-            last_success_at = excluded.last_success_at
+            last_success_at = excluded.last_success_at,
+            failure_count = 0,
+            last_failure_at = NULL
         `
       )
       .run({
@@ -657,45 +671,124 @@ export class ScraperDb {
     tx();
   }
 
+  recordLearnedEndpointFailure(manufacturerId: ManufacturerId, method: "GET" | "POST", urlTemplate: string) {
+    this.db.prepare(`UPDATE learned_endpoints
+      SET failure_count = failure_count + 1, last_failure_at = ?
+      WHERE manufacturer_id = ? AND method = ? AND url_template = ?`)
+      .run(new Date().toISOString(), manufacturerId, method, urlTemplate);
+  }
+
+  /** Raw observation history complements the aggregate target_health row: callers can inspect
+   * regressions, intermittent failures, and the evidence behind a learned decision rather than
+   * treating `stage_observations` as a write-only audit sink. */
+  listStageObservations(manufacturerId: ManufacturerId, host?: string, limit = 100) {
+    const safeLimit = Math.max(1, Math.min(Math.floor(limit), 1000));
+    const rows = host
+      ? this.db
+          .prepare(
+            `SELECT manufacturer_id, host, stage, status, quality_score, attribute_count, document_count, elapsed_ms, error, observed_at
+             FROM stage_observations WHERE manufacturer_id = ? AND host = ? ORDER BY id DESC LIMIT ?`
+          )
+          .all(manufacturerId, host, safeLimit)
+      : this.db
+          .prepare(
+            `SELECT manufacturer_id, host, stage, status, quality_score, attribute_count, document_count, elapsed_ms, error, observed_at
+             FROM stage_observations WHERE manufacturer_id = ? ORDER BY id DESC LIMIT ?`
+          )
+          .all(manufacturerId, safeLimit);
+    return (rows as Array<{
+      manufacturer_id: ManufacturerId;
+      host: string | null;
+      stage: string;
+      status: StageObservationInput["status"];
+      quality_score: number | null;
+      attribute_count: number | null;
+      document_count: number | null;
+      elapsed_ms: number | null;
+      error: string | null;
+      observed_at: string;
+    }>).map((row) => ({
+      manufacturerId: row.manufacturer_id,
+      host: row.host ?? undefined,
+      stage: row.stage,
+      status: row.status,
+      qualityScore: row.quality_score ?? undefined,
+      attributeCount: row.attribute_count ?? undefined,
+      documentCount: row.document_count ?? undefined,
+      elapsedMs: row.elapsed_ms ?? undefined,
+      error: row.error ?? undefined,
+      observedAt: row.observed_at
+    }));
+  }
+
   getTargetHealth(manufacturerId: ManufacturerId, stage?: string, host?: string) {
-    const row = this.db
+    const rows = this.db
       .prepare(
         `
-          SELECT *
-          FROM target_health
+          SELECT status, quality_score, attribute_count, document_count
+          FROM stage_observations
           WHERE manufacturer_id = ?
             AND stage = ?
             AND host = ?
+          ORDER BY id DESC
+          LIMIT ?
         `
       )
-      .get(manufacturerId, stage ?? "", host ?? "") as
-        | {
-            manufacturer_id: ManufacturerId;
-            host: string;
-            stage: string;
-            sample_count: number;
-            success_count: number;
-            quality_score_sum: number;
-            attribute_count_sum: number;
-            document_count_sum: number;
-          }
-        | undefined;
-    if (!row) return undefined;
-    const sampleCount = row.sample_count || 0;
+      .all(manufacturerId, stage ?? "", host ?? "", TARGET_HEALTH_WINDOW) as Array<{
+        status: StageObservationInput["status"];
+        quality_score: number | null;
+        attribute_count: number | null;
+        document_count: number | null;
+      }>;
+    if (!rows.length) return undefined;
+    const sampleCount = rows.length;
+    const successCount = rows.filter((row) => row.status === "passed").length;
+    const qualityScoreSum = rows.reduce((sum, row) => sum + (row.quality_score ?? 0), 0);
+    const attributeCountSum = rows.reduce((sum, row) => sum + (row.attribute_count ?? 0), 0);
+    const documentCountSum = rows.reduce((sum, row) => sum + (row.document_count ?? 0), 0);
+    const successRate = successCount / sampleCount;
+    const avgQualityScore = qualityScoreSum / sampleCount;
+    const driftSuspected = isTargetHealthDriftSuspected({ sampleCount, successRate, avgQualityScore });
     return {
-      manufacturerId: row.manufacturer_id,
-      host: row.host || undefined,
-      stage: row.stage || undefined,
+      manufacturerId,
+      host: host || undefined,
+      stage: stage || undefined,
       sampleCount,
-      successRate: sampleCount ? row.success_count / sampleCount : 0,
-      avgQualityScore: sampleCount ? row.quality_score_sum / sampleCount : undefined,
-      avgAttributeCount: sampleCount ? row.attribute_count_sum / sampleCount : undefined,
-      avgDocumentCount: sampleCount ? row.document_count_sum / sampleCount : undefined,
-      driftSuspected: sampleCount >= 8 && (row.success_count / sampleCount < 0.45 || row.quality_score_sum / sampleCount < 45),
-      reason: sampleCount >= 8 && (row.success_count / sampleCount < 0.45 || row.quality_score_sum / sampleCount < 45)
+      successRate,
+      avgQualityScore,
+      avgAttributeCount: attributeCountSum / sampleCount,
+      avgDocumentCount: documentCountSum / sampleCount,
+      driftSuspected,
+      reason: driftSuspected
         ? "Recent target health is below the adaptive mining threshold."
         : "Target health is within the normal range."
     };
+  }
+
+  /** Recent, per-target sliding windows for the manufacturer dashboard.  This reads the
+   * same bounded observation window as getTargetHealth rather than the lifetime aggregate. */
+  listTargetHealth(manufacturerId: ManufacturerId, limit = 20) {
+    const safeLimit = Math.max(1, Math.min(Math.floor(limit), 100));
+    const targets = this.db
+      .prepare(
+        `
+          SELECT host, stage, MAX(id) AS latest_id
+          FROM stage_observations
+          WHERE manufacturer_id = ?
+          GROUP BY host, stage
+          ORDER BY latest_id DESC
+          LIMIT ?
+        `
+      )
+      .all(manufacturerId, safeLimit) as Array<{ host: string | null; stage: string }>;
+    return targets
+      .map((target) => this.getTargetHealth(manufacturerId, target.stage, target.host ?? ""))
+      .filter((health): health is NonNullable<typeof health> => Boolean(health))
+      .sort((left, right) => {
+        if (Boolean(left.driftSuspected) !== Boolean(right.driftSuspected)) return left.driftSuspected ? -1 : 1;
+        if (left.successRate !== right.successRate) return left.successRate - right.successRate;
+        return (right.sampleCount - left.sampleCount) || `${left.host}/${left.stage}`.localeCompare(`${right.host}/${right.stage}`);
+      });
   }
 
   listLearnedExtractors(manufacturerId: ManufacturerId, host: string, limit = 20): LearnedExtractorRecord[] {
@@ -858,7 +951,9 @@ function mapLearnedEndpoint(row: LearnedEndpointRow): LearnedEndpointRecord {
     discoveredFromUrl: row.discovered_from_url,
     parserKind: row.parser_kind,
     successCount: row.success_count,
-    lastSuccessAt: row.last_success_at
+    lastSuccessAt: row.last_success_at,
+    failureCount: row.failure_count ?? 0,
+    lastFailureAt: row.last_failure_at
   };
 }
 

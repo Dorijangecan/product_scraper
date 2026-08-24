@@ -273,3 +273,76 @@ describe("newly recognized units (Phase A1)", () => {
     expect(parseQuantities("2 NO", { kind: "force" })).toHaveLength(0);
   });
 });
+
+/**
+ * Fahrenheit handling. UNIT_TABLE knows "°F" and "degF" but not a bare "F", so a US datasheet writing
+ * "(32 -140 F)" produced no temperature quantity and fell through to the bare-number reader, which
+ * treats bare numbers as Celsius — recording 32-140 °F (i.e. 0-60 °C) as 32-140 °C.
+ * Found via fixtures/nvent-spec00583-datasheet.
+ */
+describe("parseTemperatureRange — temperature scales", () => {
+  it("converts a bare-F range to Celsius", () => {
+    expect(parseTemperatureRange("Wide adjustable temperature range (32 -140 F)")).toEqual({ min: 0, max: 60 });
+    expect(parseTemperatureRange("Temperature range 40 to 140 F")).toEqual({ min: 4.4, max: 60 });
+  });
+
+  it("refuses a dual-scale clause whose numbers carry no unit", () => {
+    // Both scales stated and every number bare: nothing in the text says which number belongs to which
+    // scale. Silence beats recording Fahrenheit as Celsius.
+    expect(parseTemperatureRange("Temperature Set Point (adjustable) (°F/°C) 32/0 to 140/60")).toEqual({});
+    expect(parseTemperatureRange("Operating Temperature Range (°F/°C) -40 to 140/-40 to 60")).toEqual({});
+  });
+
+  it("resolves a dual-scale clause when a unit identifies the Celsius numbers", () => {
+    // This case used to be refused too. P1.1c narrowed the refusal: here the trailing "C" marks
+    // -20 to 80 as the Celsius column, so refusing was throwing away an unambiguous value. See the
+    // separable-dual-scale block below for the other resolvable shapes.
+    expect(parseTemperatureRange("Ambient Temperature (°F / °C) -4 to 176 F -20 to 80 C")).toEqual({ min: -20, max: 80 });
+  });
+
+  it("still reads ordinary Celsius ranges unchanged", () => {
+    expect(parseTemperatureRange("Operating temperature -40 to 70 °C")).toEqual({ min: -40, max: 70 });
+    expect(parseTemperatureRange("Ambient temperature range -25 °C to 70 °C")).toEqual({ min: -25, max: 70 });
+    expect(parseTemperatureRange("Temperature range -40 do 70")).toEqual({ min: -40, max: 70 });
+  });
+
+  it("does not treat a stray letter F as Fahrenheit", () => {
+    // A digit must precede the bare F, so product designations cannot trigger a conversion.
+    expect(parseTemperatureRange("Type F thermostat, temperature range -20 to 60")).toEqual({ min: -20, max: 60 });
+  });
+});
+
+/**
+ * P1.1c: refusing EVERY dual-scale clause was too blunt. Where the two scales can be separated, the
+ * Celsius side is unambiguous and must be read; where they cannot, refusal still stands.
+ */
+describe("parseTemperatureRange — separable dual-scale clauses", () => {
+  it("reads the Celsius side when each number carries its own unit", () => {
+    expect(parseTemperatureRange("Operating temperature range: -45 °C to 80 °C (-49 °F to 176 °F)")).toEqual({
+      min: -45,
+      max: 80
+    });
+  });
+
+  it("reads the Celsius side when a miner has joined the scales with slashes", () => {
+    // How the value actually reaches the normalizer from fixtures/nvent-87920846-datasheet.
+    expect(parseTemperatureRange("Operating temperature -45 °C / 80 °C / -49 °F / 176 °F")).toEqual({
+      min: -45,
+      max: 80
+    });
+  });
+
+  it("reads the Celsius column when the scales are separate cells", () => {
+    expect(parseTemperatureRange("Ambient Temperature\t-4 to 176 F\t-20 to 80 C")).toEqual({ min: -20, max: 80 });
+  });
+
+  it("still refuses bare paired numbers, where no unit identifies either scale", () => {
+    expect(parseTemperatureRange("Temperature Set Point (adjustable) (°F/°C) 32/0 to 140/60")).toEqual({});
+    expect(parseTemperatureRange("Operating Temperature Range (°F/°C) -40 to 140/-40 to 60")).toEqual({});
+  });
+
+  it("does not let the slash split reinterpret an ordinary alternatives value", () => {
+    // "230/400 V" is not a temperature at all, and the slash split only runs for dual-scale clauses.
+    expect(parseTemperatureRange("Rated voltage 230/400 V")).toEqual({});
+  });
+});

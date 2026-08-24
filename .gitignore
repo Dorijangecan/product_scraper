@@ -16,3 +16,6 @@ Testing PDT/
 
 # Local debugging dumps from scripts/run-*-test.ts
 scratch-*.json
+
+# Working material from `npm run eval --write-actual` (regenerated, never an assertion)
+fixtures/**/actual.json

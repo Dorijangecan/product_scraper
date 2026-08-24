@@ -1,0 +1,13 @@
+{
+  "id": "abb-1SDA126493R1-page",
+  "manufacturerId": "abb",
+  "catalogNumber": "1SDA126493R1",
+  "note": "Recorded ABB product page (HTML). Exercises the generic DOM understanding path — the page ships its specs in embedded JSON plus class-based key/value blocks rather than a plain <table>, which is the shape most unseen vendors use.",
+  "pages": [
+    {
+      "path": "page.html",
+      "url": "https://new.abb.com/products/1SDA126493R1",
+      "sourceType": "official"
+    }
+  ]
+}

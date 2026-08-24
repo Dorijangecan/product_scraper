@@ -9,6 +9,7 @@ import {
   documentExtension,
   imageFileName,
   isDownloadablePdfDocument,
+  notApplicableFieldsFromHiddenCoverage,
   RunManager,
   shouldShortCircuitCustomerFirst,
   shouldDownloadDocumentsForRun,
@@ -16,6 +17,21 @@ import {
 } from "../src/server/run-manager.js";
 import { getManufacturerConfig } from "../src/server/config/manufacturers.js";
 import type { DocumentRecord, ProductResult } from "../src/shared/types.js";
+
+describe("hidden coverage tiles become a not-applicable policy", () => {
+  it("maps the switched-off built-in tiles to field requirements", () => {
+    expect(notApplicableFieldsFromHiddenCoverage(["current", "voltage"])).toEqual(["voltage", "current"]);
+  });
+
+  it("ignores link tiles and custom tiles, which carry no field requirement", () => {
+    expect(notApplicableFieldsFromHiddenCoverage(["enUrl", "deUrl", "custom:pressure"])).toEqual([]);
+  });
+
+  it("returns nothing when the user hid no tile", () => {
+    expect(notApplicableFieldsFromHiddenCoverage(undefined)).toEqual([]);
+    expect(notApplicableFieldsFromHiddenCoverage([])).toEqual([]);
+  });
+});
 
 describe("run manager document downloads", () => {
   it("coalesces multiple image candidates into one primary image with fallbacks", () => {
@@ -70,6 +86,15 @@ describe("run manager document downloads", () => {
     const result = coalesceImageDocuments(documents);
 
     expect(result[0].url).toBe("https://assets.example.test/ABC-123-product_400x400.png");
+  });
+
+  it("rejects a lone drawing or no-image placeholder instead of exporting it as a product photo", () => {
+    const result = coalesceImageDocuments([
+      image("Dimension drawing", "https://assets.example.test/ABC-123-dimension-drawing_1000x1000.png"),
+      image("No image available", "https://assets.example.test/no-image-available.png")
+    ]);
+
+    expect(result.filter((doc) => doc.type === "image")).toHaveLength(0);
   });
 
   it("keeps Balluff datasheets in the download/enrichment path after quality passes", () => {

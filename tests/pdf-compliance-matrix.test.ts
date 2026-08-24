@@ -122,6 +122,25 @@ describe("extractComplianceMatrixHeaderItems", () => {
     const items = row("1606-XLB120E", 434.2, [135.4]);
     expect(extractComplianceMatrixHeaderItems(items)).toEqual([]);
   });
+
+  it("derives the label/data split from a narrow matrix instead of Rockwell's fixed x coordinate", () => {
+    // A compact PDF can place both its label column and certification columns left of x=100.
+    // The checkmarks bind the data band to the headers, so this must not depend on page scale.
+    const compactHeaders: PositionedTextItem[] = [
+      { text: "Catalog Number", x: 12, y: 600 },
+      { text: "CE", x: 49, y: 600 },
+      { text: "UL", x: 73, y: 600 }
+    ];
+    const items = [
+      ...compactHeaders,
+      { text: "COMPACT-1", x: 11, y: 500 },
+      { text: CHECK, x: 48, y: 497 },
+      { text: CHECK, x: 72, y: 497 }
+    ];
+
+    expect(extractComplianceMatrixHeaderItems(items).map((item) => item.text)).toEqual(["CE", "UL"]);
+    expect(matchComplianceMatrixCertificates(items, "COMPACT-1")).toEqual(["CE", "UL"]);
+  });
 });
 
 describe("textHasComplianceMatrixGlyphs", () => {

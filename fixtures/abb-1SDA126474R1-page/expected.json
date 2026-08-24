@@ -1,0 +1,12 @@
+{
+  "_tier": "value-verified",
+  "_source": "Recorded ABBlvp.no HTML in page.html: its title, breadcrumb and Yoast JSON-LD explicitly identify it as a SearchResultsPage for 1SDA126474R1.",
+  "_notes": "This is a search-result page containing navigation and a product card, not the product detail page. It must not contribute product specifications; link discovery may still use it to find the detail URL.",
+  "normalized": {
+    "voltage": { "absent": true },
+    "current": { "absent": true },
+    "weight": { "absent": true },
+    "dimensions": { "absent": true }
+  },
+  "mustNotContain": ["Legg i handlekurv", "Søkeresultater"]
+}

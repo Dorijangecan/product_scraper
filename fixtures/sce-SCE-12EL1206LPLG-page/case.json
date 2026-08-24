@@ -1,0 +1,13 @@
+{
+  "id": "sce-SCE-12EL1206LPLG-page",
+  "manufacturerId": "sce",
+  "catalogNumber": "SCE-12EL1206LPLG",
+  "note": "Recorded sce product page (51 kB), extracted from a past run's page cache. Guards the generic HTML understanding path for this vendor's page shape.",
+  "pages": [
+    {
+      "path": "page.html",
+      "url": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-12EL1206LPLG",
+      "sourceType": "official"
+    }
+  ]
+}

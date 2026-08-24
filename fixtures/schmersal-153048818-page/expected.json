@@ -1,0 +1,28 @@
+{
+  "_source": "Schmersal AZM150B-STL-10/02RA-024, article number 153048818, recorded official PDP. The page's published technical-data JSON states 24 VDC, 2 A, IP67/IP65, 204 x 40 x 48 mm, thermoplastic housing and -25...+55 °C. The visible product header separately states the product type and item number.",
+  "_tier": "value-verified. The official PDP has genuine embedded technical data but its visible product-header/card DOM also combines the model, item number, marketing bullets and cart controls into one large container.",
+  "normalized": {
+    "dimensions": { "contains": "204 x 40 x 48" },
+    "material": { "contains": "glass-fibre reinforced thermoplastic" },
+    "voltage": { "contains": "24" },
+    "current": { "number": 2, "unit": "A" },
+    "protection": { "contains": "IP67" },
+    "operatingTemperatureMin": { "number": -25 },
+    "operatingTemperatureMax": { "number": 55 }
+  },
+  "attributesInclude": [
+    { "name": "Product type description", "valueContains": "AZM150B-STL-10/02RA-024" },
+    { "name": "Article number (order number)", "valueContains": "153048818" },
+    { "name": "Rated control voltage", "valueContains": "24 VDC" }
+  ],
+  "mustNotContain": [
+    "Add to Cart",
+    "Add to watchlist",
+    "Product request",
+    "Product featuresconnector",
+    "Please log in to see prices"
+  ],
+  "_notes": {
+    "header_card_noise": "The product header's nested card contains valid identity text but also marketing bullets and commerce actions. A generic loose-pair fallback must not turn that whole card into an attribute merely because its descendant `Item number:` has a colon. The separately structured ordering-data attribute remains valid."
+  }
+}

@@ -1,4 +1,5 @@
 import { catalogTextMatches } from "./catalog-number.js";
+import { catalogTableKeyFor, isCatalogIdHeaderCell } from "./catalog-table-vocabulary.js";
 
 /**
  * Narrow a block of PDF text down to the lines that belong to ONE catalog number.
@@ -158,8 +159,13 @@ function keepOrderingTableHeaderRow(lines: string[], catalogIndex: number, kept:
 function isSimpleCatalogTableHeaderRow(line: string): boolean {
   const cells = splitTableCells(line);
   if (cells.length < 2) return false;
-  const headerText = cells.join(" ");
-  return /\bcatalog\s*number\b/i.test(headerText) && /\b(?:description|weight|dimensions?)\b/i.test(headerText);
+  return (
+    cells.some((cell) => isCatalogIdHeaderCell(cell)) &&
+    cells.some((cell) => {
+      const key = catalogTableKeyFor(cell);
+      return key !== undefined && key !== "catalogNumber";
+    })
+  );
 }
 
 function isOrderingModelRow(line: string): boolean {
@@ -212,7 +218,7 @@ export function buildVariantColumnContext(
   let firstVariant = 0;
   let ourOrdinal = -1;
 
-  // Phase 1: anchor on a literal "Catalog Number" label line. Rockwell's 1606-td002 splits a
+  // Phase 1: anchor on an identifier-column label line. Rockwell's 1606-td002 splits a
   // single table's header across an unpredictable mix of layouts — some names tab-separated on
   // the label's own line, some one-per-bare-line below it, some several-per-bare-line — and a
   // table can use any combination (confirmed on the 1606-XLE120E-family table: "Catalog Number
@@ -221,13 +227,13 @@ export function buildVariantColumnContext(
   // below does) misses a name whenever its own line never happens to reach 2 tab-separated
   // cells — which silently sent the search past the WHOLE table looking for a later one that
   // mentions our catalog, occasionally finding an unrelated table and returning wrong values.
-  // Anchoring on the "Catalog Number" label itself and greedily absorbing every following line
+  // Anchoring on that identifier label itself and greedily absorbing every following line
   // made ENTIRELY of catalog-shaped tokens (regardless of how many cells per line) sidesteps that
   // failure mode: every name reaches the SAME flat, ordered list no matter how pdf-parse happened
   // to break it across lines.
   for (let index = 0; index < lines.length; index += 1) {
     const cells = splitTableCells(lines[index]);
-    if (cells.length === 0 || !/^catalog\s*number$/i.test(cells[0])) continue;
+    if (cells.length === 0 || !isCatalogIdHeaderCell(cells[0])) continue;
 
     // Each name's own line matters: pdf-parse tab-separates genuinely distinct columns onto the
     // SAME line (never two merged-sibling names together — confirmed on "1606-XLE480FP" vs the

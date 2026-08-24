@@ -1,0 +1,14 @@
+{
+  "id": "rockwell-1606-XLE240ERL-family-datasheet",
+  "manufacturerId": "rockwell",
+  "catalogNumber": "1606-XLE240ERL",
+  "note": "Official 1606-TD002H family datasheet. The target's own integrated-decoupling table occurs after an earlier, different 1606-XLE240E table whose shorter catalog is a strict prefix of the target.",
+  "documents": [
+    {
+      "path": "outputs/RA/viktor.csv/2026-07-15_07-15-46_20260715051546-440bcde7/customer-documents/ce1422504bfb4a65-1606-td002_-en-p.pdf",
+      "url": "https://literature.rockwellautomation.com/idc/groups/literature/documents/td/1606-td002_-en-p.pdf",
+      "type": "datasheet",
+      "label": "1606-TD002H switched mode power supplies"
+    }
+  ]
+}

@@ -45,7 +45,13 @@ export function evaluateQualityGate(
     if (!hasMatchingDocument(result, String(pattern))) missing.add(`document:${pattern}`);
   }
 
+  // Fields the user switched off are never required — not by an explicit policy list and not by
+  // the device-type electrical heuristic. Without this the gate keeps failing on a field nobody
+  // asked for, and every such row pays for a full fallback/retry round chasing it.
+  const notApplicable = new Set<string>(recipe.qualityPolicy?.notApplicableFields ?? []);
+
   for (const field of recipe.qualityPolicy?.requiredNormalizedFields ?? []) {
+    if (notApplicable.has(field)) continue;
     if (!result.normalized[field]) missing.add(`normalized:${field}`);
   }
 
@@ -54,7 +60,7 @@ export function evaluateQualityGate(
     deviceType: classification.type,
     deviceTypeConfidence: classification.confidence,
     deviceTypeElectricalFields: electricalFieldsForDeviceType(classification.type)
-  });
+  }).filter((field) => !notApplicable.has(field));
   if (electricalFields.includes("voltage") && !result.normalized.voltage) {
     missing.add("normalized:voltage");
   }

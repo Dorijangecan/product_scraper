@@ -8,6 +8,18 @@ describe("isCatalogIdHeaderCell", () => {
     }
   });
 
+  it("recognizes a bare '#' as a No./Number stand-in, but only after an identifier keyword", () => {
+    // Real Saginaw/SCE floor-stand-kit datasheets header their ordering table "PART #" rather than
+    // "Part No."/"Part Number" (confirmed via raw positioned-text dump of a real installation
+    // manual PDF). A standalone "#" (a plain row-index column) must NOT qualify.
+    for (const cell of ["PART #", "part#", "Order #", "Catalog #", "Article #", "Item #", "Model #"]) {
+      expect(isCatalogIdHeaderCell(cell)).toBe(true);
+    }
+    for (const cell of ["#", "No. 2", "Part 2"]) {
+      expect(isCatalogIdHeaderCell(cell)).toBe(false);
+    }
+  });
+
   it("recognizes German / French / Italian id-column labels", () => {
     for (const cell of ["Bestell-Nr.", "Bestellnummer", "Artikelnummer", "Art.-Nr.", "Sachnummer", "Ident-Nr.", "Référence", "Réf.", "Codice", "Codice articolo"]) {
       expect(isCatalogIdHeaderCell(cell)).toBe(true);

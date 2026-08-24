@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { captureFrameFragments, captureShadowDomFragments, clickSafeSelectors } from "../src/server/scrapers/browser-renderer.js";
+import { captureFrameFragments, captureShadowDomFragments, clickSafeSelectors, submitSearchInput } from "../src/server/scrapers/browser-renderer.js";
 
 // Minimal PageLike/LocatorLike fakes. The renderer only uses locator().count/nth/click,
 // scrollIntoViewIfNeeded, waitForTimeout, waitForLoadState, and frames() from these in the
@@ -90,6 +90,33 @@ describe("clickSafeSelectors", () => {
     let total = 0;
     await clickSafeSelectors(fakePage(controls, { onClick: () => (total += 1) }) as never, ["button.x"], 3);
     expect(total).toBe(3);
+  });
+});
+
+describe("submitSearchInput", () => {
+  it("fills the first discovered search input and submits it with Enter", async () => {
+    const fills: string[] = [];
+    const keys: string[] = [];
+    const page = {
+      locator: (selector: string) => ({
+        count: async () => selector === "input[type='search']" ? 1 : 0,
+        nth: () => ({ fill: async (value: string) => fills.push(value) })
+      }),
+      keyboard: { press: async (key: string) => keys.push(key) }
+    };
+
+    await expect(submitSearchInput(page as never, "ZX-CTRL-24")).resolves.toBe(true);
+    expect(fills).toEqual(["ZX-CTRL-24"]);
+    expect(keys).toEqual(["Enter"]);
+  });
+
+  it("returns false when the rendered page has no usable search input", async () => {
+    const page = {
+      locator: () => ({ count: async () => 0, nth: () => ({}) }),
+      keyboard: { press: async () => { throw new Error("must not submit"); } }
+    };
+
+    await expect(submitSearchInput(page as never, "ZX-CTRL-24")).resolves.toBe(false);
   });
 });
 

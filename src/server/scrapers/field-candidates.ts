@@ -8,7 +8,8 @@ import type {
   SourceRecord
 } from "../../shared/types.js";
 import { FIELD_REGISTRY, fieldAttributeLabel, fieldMatchesLabel, type RegistryFieldKey } from "./field-registry.js";
-import { cleanText } from "./normalizer.js";
+import { evidenceConfidence } from "./evidence-score.js";
+import { cleanText, normalizeFields } from "./normalizer.js";
 import { isQuantityPlausible, parseQuantities, type QuantityKind } from "./quantity.js";
 
 const NORMALIZED_FIELDS = new Set<keyof NormalizedProductFields>([
@@ -30,21 +31,46 @@ export function applyFieldCandidateResolution(result: ProductResult): ProductRes
   const candidates = buildFieldCandidates(result);
   const resolutions = buildFieldResolutions(candidates);
   const normalized = { ...result.normalized };
+  const previousPenalty = result.diagnostics?.confidencePenalty ?? 0;
+  const conflictPenalty = Math.min(0.15, resolutions.reduce((sum, resolution) => sum + resolution.conflictCount * 0.02, 0));
+  // Resolution is invoked at multiple pipeline stages. Persist the largest known penalty so the
+  // same unresolved conflict cannot erode confidence again on every pass.
+  const confidencePenalty = Math.max(previousPenalty, conflictPenalty);
+  const confidence = Math.max(0, Math.round((result.confidence - (confidencePenalty - previousPenalty)) * 10_000) / 10_000);
 
   for (const resolution of resolutions) {
     if (!resolution.selectedValue || !isNormalizedField(resolution.field)) continue;
     const key = resolution.field as keyof NormalizedProductFields;
     if (normalized[key]) continue;
-    normalized[key] = resolution.selectedValue;
+    // Field candidates are raw evidence. Do not let a winning candidate bypass the canonical
+    // field validator just because it won a source-priority comparison (e.g. "24VDC" → "24 V DC").
+    const validated = normalizeFields([
+      {
+        // "Field candidate resolution" contains the word "resolution", which the voltage
+        // normalizer correctly treats as an unrelated electrical qualifier. Keep this synthetic
+        // group neutral so the selected label/value is evaluated on its own evidence.
+        group: "Resolved candidate",
+        name: resolution.label,
+        value: resolution.selectedValue,
+        sourceUrl: resolution.selectedSourceUrl,
+        sourceType: "generated",
+        parser: resolution.selectedParser ?? "field-candidate-resolution",
+        stage: resolution.selectedStage ?? "field-candidate-resolution",
+        confidence: resolution.confidence
+      }
+    ], [])[key];
+    if (validated) normalized[key] = validated;
   }
 
   return {
     ...result,
+    confidence,
     normalized,
     diagnostics: {
       ...result.diagnostics,
       fieldCandidates: candidates.slice(0, 300),
-      fieldResolutions: resolutions
+      fieldResolutions: resolutions,
+      confidencePenalty
     }
   };
 }
@@ -216,34 +242,26 @@ function sourcePriority(candidate: {
 }): { priority: number; reason: string } {
   const parser = candidate.parser ?? "";
   const stage = candidate.stage ?? "";
-  let priority = 100;
+  let priority = Math.round(evidenceConfidence(candidate) * 1000);
   let reason = "lowest-priority source";
   if (/customer-document/i.test(parser) || /customer/i.test(stage)) {
     priority = 1000;
     reason = "customer document priority";
   } else if (candidate.sourceType === "official" && /pdf|document|datasheet|manual/i.test(`${parser} ${stage}`)) {
-    priority = 900;
     reason = "official parsed document priority";
   } else if (candidate.sourceType === "official") {
-    priority = 860;
     reason = "official source priority";
   } else if (candidate.sourceType === "official-fallback" && /browser-network|api|json/i.test(`${parser} ${stage}`)) {
-    priority = 790;
     reason = "official network/API priority";
   } else if (candidate.sourceType === "official-fallback") {
-    priority = 730;
     reason = "official fallback priority";
   } else if (candidate.sourceType === "generated") {
-    priority = 630;
     reason = "generated normalizer priority";
   } else if (candidate.sourceType === "cache") {
-    priority = 520;
     reason = "cache priority";
   } else if (candidate.sourceType === "distributor") {
-    priority = 300;
     reason = "distributor fallback priority";
   }
-  priority += Math.round((candidate.confidence ?? 0) * 20);
   return { priority, reason };
 }
 

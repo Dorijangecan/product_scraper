@@ -1,0 +1,33 @@
+{
+  "_source": "Ground truth read directly out of the PDF: a 2-page installation instruction for a Hoffman enclosure temperature controller, in EN/FR/ES/DE. It has NO specification TABLE, but it does state specs in prose — `Operating temperature range: -45 °C to 80 °C (-49 °F to 176 °F)`, `Rango de temperatura de empleo -45 °C to 80 °C`, `Set point on adjustment knob: 16 C (61 F)`, `required minimum temperature in enclosure: 5 C (41 F)`, `Hysteresis of temperature control: + 11 K` — plus safety prose and the footer `PH 763 422 2211 • nVent.com/HOFFMAN | 87920845 | Rev. D | P/N 87920846`.",
+
+  "normalized": {
+    "voltage": { "absent": true },
+    "current": { "absent": true },
+    "weight": { "absent": true },
+    "dimensions": { "absent": true },
+    "material": { "absent": true },
+    "finish": { "absent": true },
+    "operatingTemperatureMin": { "number": -45 },
+    "operatingTemperatureMax": { "number": 80 }
+  },
+
+  "attributesInclude": [
+    { "name": "Operating temperature", "valueContains": "-45" }
+  ],
+
+  "mustNotContain": [
+    "against incidental contact is to be ensured",
+    "Hoffman Enclosures Inc.",
+    "L’installation du",
+    "PH 763 422 2211",
+    "only be installed by qualified"
+  ],
+
+  "_notes": {
+    "why": "Started as the pure negative fixture: a document with no spec table must not invent specs. It emitted 8 attributes, all garbage — a copyright footer parsed as `© 2018 Hoffman Enclosures Inc. = PH 763 422 2211 …`, and safety sentences split mid-clause (`The safety and protection = against incidental contact is to be ensured`). The spec-plausibility gate (P0.2#7/#8) removed those.",
+    "correction": "The original note here claimed the document contains no specifications at all. That was WRONG, and widening the admission gate to the ontology (P1.1) proved it: the document states its operating temperature range in four languages, and the English-only keyword gate was hiding every one of them — including the Spanish `Rango de temperatura de empleo`. The corpus must record what the source says, not what an earlier reading assumed.",
+    "temperature": "The document says -45 °C to 80 °C, and this now passes. It was a knownGap: the value reaches the normalizer as a dual-scale string (`-45 °C / 80 °C / -49 °F / 176 °F`, because an upstream miner joins alternatives with `/`) and parseTemperatureRange refused every clause stating both scales rather than risk reading Fahrenheit as Celsius (P0.2#9). P1.1c made that refusal precise: where the scales CAN be separated — each number carrying its own unit, or one column per scale — read the Celsius side; where they cannot (`Set Point (°F/°C) 32/0 to 140/60`, bare pairs) still refuse.",
+    "prose": "The remaining `Feature` entries are genuine prose specs (hysteresis, minimum enclosure temperature). Keeping them is right; they are source-backed facts, just not table rows."
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "_source": "Rockwell 1606-XLS120E power supply, recorded product page. Title `XLS Power Supply 120W 24VDC 5A`. Values VERIFIED in the page: `620 g` ×3, `IP20` ×3, `100...240` ×3 (input voltage), `1.4A` ×3 (input current).",
+
+  "_tier": "value-verified. The highest-yield HTML fixture in the corpus, chosen for promotion precisely because a high yield is where GARBAGE hides — the opposite failure mode from the low-yield fixtures.",
+
+  "normalized": {
+    "weight": { "number": 620 },
+    "dimensions": { "contains": "124 x 40 x 117" },
+    "voltage": { "contains": "24" },
+    "protection": { "contains": "IP20" },
+    "operatingTemperatureMin": { "number": -25 },
+    "operatingTemperatureMax": { "number": 40 }
+  },
+
+  "attributesInclude": [
+    { "name": "Input voltage", "valueContains": "100...240" },
+    { "name": "Input current", "valueContains": "1.4" },
+    { "name": "Output voltage", "valueContains": "24" }
+  ],
+
+  "mustNotContain": [
+    "ra-product-new__",
+    "aria-describedby",
+    "<details",
+    "<select",
+    "<textarea",
+    "ra-footer",
+    "<!--",
+    "-->",
+    "This field is required",
+    "Business Email Address",
+    "font-weight",
+    "!important",
+    "All rights reserved",
+    "Add to cart"
+  ],
+
+  "_notes": {
+    "raw_markup": "This fixture found P1.3d. `splitNameValue` splits on `=`, and an HTML tag is full of `=`, so tags that reach the text layer were torn into label/value pairs: `<details id` = `\"ra-product-new__documentation-table-mobile\" class=…`, `<ra-footer origin=\"https` = `//www.rockwellautomation.com\" …`, plus `<select`, `<textarea` and HTML COMMENTS (`<!-- <div class=…`). stripHtmlMarkup could not help: the splitter had already cut the tag, so no closing `>` remained to recognise. They are rejected on shape instead.",
+    "form_chrome": "Same page: `Environmental compliance inquiry …` = `Business Email Address* This field is required Company Name* …` — a contact form parsed as a specification. A form asks for input; a datasheet states facts.",
+    "measured": "230 → 172 attributes (58 pieces of noise removed) with all 8 normalized fields unchanged — the noise was pure overhead, not a source of any value.",
+    "known_remaining": "`Certification = Rockwell Automation N.V Pegasus Park De Kleet` is a company ADDRESS read as a certification (see P1.3e). It stays out of normalized.certificates (which is correctly `RCM`) but still reaches the Attributes sheet. Not asserted here yet — it is a separate, narrower fix in the certificate token allowlist.",
+    "output_current": "normalized.current is `5 A @ 24 V / -6 A @ 24 V / -3 A @ 24 V` — several rated outputs joined. Not asserted: it is plausible for a multi-rating power supply but not verified, and the harness must never encode a guess as ground truth."
+  }
+}

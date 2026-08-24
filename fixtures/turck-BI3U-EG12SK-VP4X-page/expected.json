@@ -1,0 +1,38 @@
+{
+  "_source": "Turck BI3U-EG12SK-VP4X inductive sensor, recorded product page (287 kB). Verified in the page: `IP68` ×5, `Stainless steel` ×5, `1.4301` ×5 (AISI 304 housing grade), `85` (max ambient). The page states ambient temperature as two SEPARATE rows with the unit in the label — `Ambient temperature min. (°C) = -30` and `Ambient temperature max. (°C) = 85`.",
+
+  "_tier": "value-verified. Chosen for promotion as the LOWEST-yield fixture in the corpus (27 attributes from a 287 kB page), on the theory that a low yield hides MISSED data — the opposite failure mode from the high-yield fixtures. It did.",
+
+  "normalized": {
+    "protection": { "contains": "IP68" },
+    "material": { "contains": "Stainless steel" },
+    "operatingTemperatureMin": { "number": -30 },
+    "operatingTemperatureMax": { "number": 85 }
+  },
+
+  "attributesInclude": [
+    { "name": "Housing quality", "valueContains": "1.4301" },
+    { "name": "Rated switching distance", "valueContains": "3" },
+    { "name": "Output function", "valueContains": "PNP" },
+    { "name": "Protection class", "valueContains": "IP68" }
+  ],
+
+  "mustNotContain": [
+    "Sign up to our Newsletter",
+    "add_shopping_cart",
+    "List Price",
+    "In Stock",
+    "Item Total",
+    "font-weight",
+    "!important",
+    "All rights reserved"
+  ],
+
+  "_notes": {
+    "temperature_min_max": "This fixture found P1.4a. Both temperature rows WERE extracted as attributes, yet operatingTemperatureMin/Max came out empty: `deriveOperatingTemperature` only ever looked for a range inside ONE value, and never paired two separate min/max rows. The unit lives in the label (`(°C)`) and the value is a bare number, which is the norm for sensor vendors (Turck, Balluff, IFM). The pairing reuses parseQuantities for the unit so °F rows convert rather than needing their own code path.",
+    "title": "This fixture also found P1.4b: `title` was `Sign up to our Newsletter` — a newsletter widget marked up as an h1 ahead of the product heading. Worse than cosmetic, because `confirmsIdentity` in quality-gate.ts looks for the catalog number IN THE TITLE, so page furniture there also weakens identity confirmation.",
+    "title_tradeoff": "Fixing it exposed a trade-off worth recording. Preferring the heading that NAMES the catalog number looked tidier but was worse — Rockwell's title became `1606-XLS120E` instead of `XLS Power Supply 120W 24VDC 5A`, trading a description a human can read for an identifier the row already carries in its own column. The vendor's own product heading wins; the catalog match is the fallback for when that heading is unusable, which is exactly this page.",
+    "commerce_chrome": "The `mustNotContain` price/stock/cart entries pin P1.1d, which this same page found earlier: `In StockPrice GroupE1List Price102,70 € … add_shopping_cartAdd to cart` had been emitted as a product attribute.",
+    "not_asserted": "`finish = Threaded barrel` is a housing DESIGN, not a surface finish — a mis-mapping, so it is deliberately left unasserted rather than blessed."
+  }
+}

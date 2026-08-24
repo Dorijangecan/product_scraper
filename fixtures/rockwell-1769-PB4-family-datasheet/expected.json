@@ -1,0 +1,18 @@
+{
+  "normalized": {
+    "voltage": "19.2...31.2 V DC"
+  },
+  "attributesInclude": [
+    { "name": "Input voltage, nom", "valueContains": "24V DC" },
+    { "name": "Current capacity @ 5V", "valueContains": "4.0 A" },
+    { "name": "Current capacity @ 24V", "valueContains": "1.7 A" }
+  ],
+  "mustNotContain": [
+    "85...265 V AC",
+    "2.0 A | 4.0 A",
+    "0.8 A | 2.0 A | 0.7 A | 1.7 A"
+  ],
+  "_tier": "value-verified",
+  "_source": "Official Rockwell Automation Publication 1769-TD008C-EN-P, p. 6, Technical Specifications - 1769 Compact I/O Power Supplies. The fourth header is `1769-PB4, 1769-PB4K`; its values are Input voltage range 19.2...31.2 V DC, Input voltage nom 24 V DC, Current capacity @ 5V 4.0 A and Current capacity @ 24V 1.7 A.",
+  "_notes": "PB4K shares the same printed column and is not a conflicting sibling for these values. PA2/PA4/PB2 values are other columns and must not be emitted for PB4."
+}

@@ -1,0 +1,14 @@
+{
+  "id": "rockwell-1492-J3-family-datasheet",
+  "manufacturerId": "rockwell",
+  "catalogNumber": "1492-J3",
+  "note": "Official three-column terminal-block specifications page. The page publishes separate 1492-J3, 1492-J4 and 1492-J6 columns; only the J3 column is target scope.",
+  "documents": [
+    {
+      "path": "benchmarks/output/20260602113459/documents/1492-J3-other-Specifications.pdf",
+      "url": "https://literature.rockwellautomation.com/idc/groups/literature/documents/ca/1492-ca001_-en-p.pdf",
+      "type": "datasheet",
+      "label": "Specifications"
+    }
+  ]
+}

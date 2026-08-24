@@ -1,0 +1,13 @@
+{
+  "id": "siemens-S55499-D820-page",
+  "manufacturerId": "siemens",
+  "catalogNumber": "S55499-D820",
+  "note": "Recorded siemens product page (30 kB), extracted from a past run's page cache. Guards the generic HTML understanding path for this vendor's page shape.",
+  "pages": [
+    {
+      "path": "page.html",
+      "url": "https://sieportal.siemens.com/en-ww/products-services/detail/S55499-D820",
+      "sourceType": "official"
+    }
+  ]
+}

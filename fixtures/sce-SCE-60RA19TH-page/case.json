@@ -1,0 +1,13 @@
+{
+  "id": "sce-SCE-60RA19TH-page",
+  "manufacturerId": "sce",
+  "catalogNumber": "SCE-60RA19TH",
+  "note": "Recorded sce product page (42 kB), extracted from a past run's page cache. Guards the generic HTML understanding path for this vendor's page shape.",
+  "pages": [
+    {
+      "path": "page.html",
+      "url": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-60RA19TH",
+      "sourceType": "official"
+    }
+  ]
+}

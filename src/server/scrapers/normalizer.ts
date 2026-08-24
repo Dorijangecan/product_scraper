@@ -1,8 +1,10 @@
 import type { AttributeRecord, DocumentRecord, NormalizedProductFields, ProductResult } from "../../shared/types.js";
+import { OUNCE_TO_KILOGRAM, POUND_TO_KILOGRAM } from "../unit-conversion.js";
 import { dedupeAttributes as dedupeAttributesBase, dedupeDocuments as dedupeSharedDocuments } from "./dedupe.js";
-import { fieldMatchesLabel } from "./field-registry.js";
-import { isPlausibleTemperatureCelsius, parseTemperatureRange } from "./quantity.js";
-import { inferPropertyFromQuantities, matchProperty } from "./ontology.js";
+import { evidenceConfidence } from "./evidence-score.js";
+import { fieldDefinition, fieldMatchesLabel, normalizerFieldLabelPatterns, registryFieldQuantityKind, type NormalizedRegistryFieldKey } from "./field-registry.js";
+import { isPlausibleTemperatureCelsius, parseQuantities, parseTemperatureRange } from "./quantity.js";
+import { inferPropertyFromQuantities, isDisqualifiedForQuantityKind, matchProperty } from "./ontology.js";
 import { cleanText, normalizeNumberSeparators } from "../text-util.js";
 
 // cleanText/entity decoding now live in the leaf text-util module so field-registry can
@@ -40,7 +42,9 @@ export function isValueFragmentLabel(name: string): boolean {
   return false;
 }
 
-const FIELD_LABEL_PATTERNS: Record<keyof NormalizedProductFields, RegExp[]> = {
+/* Historical pre-registry normalizer map retained in source comments only while reviewing this
+ * mechanical migration. Runtime normalization reads normalizerFieldLabelPatterns from field-registry. */
+/*
   weight: [
     /weight/,
     /\bmass\b/,
@@ -201,6 +205,7 @@ const FIELD_LABEL_PATTERNS: Record<keyof NormalizedProductFields, RegExp[]> = {
     /\u73af\u5883\u6e29\u5ea6/
   ]
 };
+*/
 
 export function normalizeFields(attributes: AttributeRecord[], documents: DocumentRecord[]): NormalizedProductFields {
   const findAttr = (...patterns: RegExp[]) => {
@@ -227,7 +232,7 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
       // way, defeating the whole point of comparing them). Single-axis attributes are already
       // handled via bestDimensionAxisAttribute above; exclude them here.
       if (/^(?:height|width|depth|length)$/i.test(attr.name.trim())) return false;
-      return FIELD_LABEL_PATTERNS.dimensions.some((pattern) => pattern.test(haystack)) && isLikelySpecText(attr.value) && isAvailableSpecValue(attr.value);
+      return normalizerFieldLabelPatterns("dimensions").some((pattern) => pattern.test(haystack)) && isLikelySpecText(attr.value) && isAvailableSpecValue(attr.value);
     })
     .sort((left, right) => dimensionsFieldScore(right) - dimensionsFieldScore(left))
     // The GROUP-based match above still lets an unrelated same-group attribute through (e.g.
@@ -276,19 +281,21 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
     deriveMaterialFromAttributes(attributes) ??
     ontologyFieldValue(attributes, "material", materialValueFromText);
   const finish =
-    normalizeFinishValue(bestAttributeValue(attributes, FIELD_LABEL_PATTERNS.finish)) ??
+    normalizeFinishValue(bestAttributeValue(attributes, normalizerFieldLabelPatterns("finish"))) ??
     registryFieldValue(attributes, "finish", (value) => finishPhraseFromText(value) ?? normalizeFinishValue(value)) ??
     deriveFinishFromAttributes(attributes) ??
     deriveFinishFromMaterial(material) ??
     ontologyFieldValue(attributes, "finish", (value) => finishPhraseFromText(value) ?? normalizeFinishValue(value));
+  const finishForColor = normalizeFinishValue(bestAttributeValue(attributes.filter((attr) => attr.scope !== "variant-option"), normalizerFieldLabelPatterns("finish")));
   const wallThickness = bestWallThicknessAttributeValue(attributes) ?? registryFieldValue(attributes, "wallThickness", normalizeWallThicknessValue) ?? deriveWallThicknessFromAttributes(attributes);
-  const color =
+  const color = withoutForeignQuantityKinds(
     findColorAttr(attributes) ??
-    registryFieldValue(attributes, "color", deriveColorFromFinish) ??
-    deriveColorFromFinish(finish) ??
-    deriveColorFromMaterial(material) ??
-    ontologyFieldValue(attributes, "color", deriveColorFromFinish) ??
-    deriveColorFromProseAttributes(attributes);
+      registryFieldValue(attributes, "color", deriveColorFromFinish) ??
+      deriveColorFromFinish(finishForColor) ??
+      deriveColorFromMaterial(material) ??
+      ontologyFieldValue(attributes, "color", deriveColorFromFinish) ??
+      deriveColorFromProseAttributes(attributes)
+  );
 
   const protectionFromAttr =
     collectProtectionValues(attributes) ??
@@ -325,29 +332,31 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
     : removeSubsumedCertificateTokens(uniqueCertificateTokens(certificateValues)).sort(compareCertificateToken);
   const certificates = certificateTokens.join(", "); // Comma-space matches the format used in manual PDTs (ABB: "IEC, UL"; Rockwell: "c-UL-us, FM, CE...").
 
-  const voltage =
+  const voltage = withoutMixedKindProse(
     normalizeVoltageValue(deriveVoltageRangeFromMinMax(attributes)) ??
     powerSupplyOutputVoltage(attributes) ??
     numericVoltAttributeVoltage(attributes) ??
-    bestNormalizedAttributeValue(attributes, FIELD_LABEL_PATTERNS.voltage, normalizeVoltageValue, "voltage") ??
+    bestNormalizedAttributeValue(attributes, normalizerFieldLabelPatterns("voltage"), normalizeVoltageValue, "voltage") ??
     registryFieldValue(attributes, "voltage", normalizeVoltageValue) ??
     normalizeVoltageValue(deriveVoltageFromText(attributes)) ??
     // Last resort: the ontology recognises FR/IT/DE voltage labels that FIELD_LABEL_PATTERNS
     // (mostly EN/DE) miss. Most-specific matchProperty keeps insulation/impulse voltage out.
-    ontologyFieldValue(attributes, "ratedVoltage", normalizeVoltageValue) ??
-    inferredOntologyFieldValue(attributes, "ratedVoltage", normalizeVoltageValue);
-  const current =
+      ontologyFieldValue(attributes, "ratedVoltage", normalizeVoltageValue) ??
+      inferredOntologyFieldValue(attributes, "ratedVoltage", normalizeVoltageValue)
+  );
+  const current = withoutMixedKindProse(
     numericCurrentAttributeCurrent(attributes) ??
-    bestNormalizedAttributeValue(attributes, FIELD_LABEL_PATTERNS.current, normalizeCurrentValue, "current") ??
-    registryFieldValue(attributes, "current", normalizeCurrentValue) ??
-    normalizeCurrentValue(deriveCurrentFromText(attributes)) ??
-    ontologyFieldValue(attributes, "ratedCurrent", normalizeCurrentValue) ??
-    inferredOntologyFieldValue(attributes, "ratedCurrent", normalizeCurrentValue);
+      bestNormalizedAttributeValue(attributes, normalizerFieldLabelPatterns("current"), normalizeCurrentValue, "current") ??
+      registryFieldValue(attributes, "current", normalizeCurrentValue) ??
+      normalizeCurrentValue(deriveCurrentFromText(attributes)) ??
+      ontologyFieldValue(attributes, "ratedCurrent", normalizeCurrentValue) ??
+      inferredOntologyFieldValue(attributes, "ratedCurrent", normalizeCurrentValue)
+  );
 
   const operatingTemperature = deriveOperatingTemperature(attributes);
 
   return {
-    weight: bestNormalizedAttributeValue(attributes, FIELD_LABEL_PATTERNS.weight, normalizeWeightValue, "weight") ?? registryFieldValue(attributes, "weight", normalizeWeightValue) ?? ontologyFieldValue(attributes, "weight", normalizeWeightValue) ?? inferredOntologyFieldValue(attributes, "weight", normalizeWeightValue),
+    weight: bestNormalizedAttributeValue(attributes, normalizerFieldLabelPatterns("weight"), normalizeWeightValue, "weight") ?? registryFieldValue(attributes, "weight", normalizeWeightValue) ?? ontologyFieldValue(attributes, "weight", normalizeWeightValue) ?? inferredOntologyFieldValue(attributes, "weight", normalizeWeightValue),
     dimensions,
     material,
     wallThickness,
@@ -378,7 +387,12 @@ function deriveOperatingTemperature(attributes: AttributeRecord[]): { min?: stri
     /\bumgebungstemperatur\b|\bbetriebstemperatur\b/i.test(label(attr)) ||
     fieldMatchesLabel("operatingTemperature", label(attr));
   const isExcludedLabel = (attr: AttributeRecord): boolean =>
-    /\b(current|strom|storage|lager|colou?r\s+temp(?:erature)?|color\s+temp)\b/i.test(label(attr));
+    /\b(current|strom|storage|lager|colou?r\s+temp(?:erature)?|color\s+temp)\b/i.test(label(attr)) ||
+    // A SET POINT is the temperature the device can be adjusted TO; the operating temperature is the
+    // ambient range it tolerates. Different properties entirely — a thermostat adjustable to 60 °C is
+    // not a thermostat rated for 60 °C ambient. Confirmed on nVent SPEC-00583, whose
+    // "Temperature Set Point (adjustable)" row was being recorded as the operating range.
+    /\b(set\s?point|setpoint|sollwert|consigne|adjustment\s+range|einstellbereich)\b/i.test(label(attr));
 
   const fromText = (text: string): { min?: string; max?: string } | undefined => {
     const range = parseTemperatureRange(text);
@@ -409,6 +423,71 @@ function deriveOperatingTemperature(attributes: AttributeRecord[]): { min?: stri
     const result = fromText(attr.value);
     if (result) return result;
   }
+
+  // 3) Separate min/max ROWS, the unit living in the label:
+  //      "Ambient temperature min. (°C)" = "-30"
+  //      "Ambient temperature max. (°C)" = "85"
+  // Neither row carries a range, so the two passes above see nothing at all. This layout is the norm for
+  // sensor vendors (found on a real Turck page, where both rows were extracted as attributes and the
+  // temperature fields still came out empty).
+  return temperatureFromSeparateMinMaxRows(attributes, isTemperatureLabel, isExcludedLabel);
+}
+
+/** Label without its min/max qualifier or its parenthesised unit, so the two rows can be paired. */
+function minMaxTemperatureLabelBase(label: string): string {
+  return cleanText(
+    label
+      .replace(/\([^)]*\)/g, " ")
+      .replace(/\b(?:min|max|minimum|maximum|minimal|maximal)\b\.?/gi, " ")
+      .replace(/[^\p{L}\p{N}\s]/gu, " ")
+  ).toLowerCase();
+}
+
+/** The unit a label declares in brackets — "(°C)", "(°F / °C)", "(C)". */
+function temperatureUnitFromLabel(label: string): string | undefined {
+  const group = /\(([^)]*)\)/.exec(label)?.[1] ?? "";
+  if (/℃|°\s*c\b|\bc\b/i.test(group) && !/°\s*f\b|\bf\b/i.test(group)) return "°C";
+  if (/°\s*f\b|\bf\b/i.test(group) && !/℃|°\s*c\b|\bc\b/i.test(group)) return "°F";
+  return undefined;
+}
+
+function temperatureFromSeparateMinMaxRows(
+  attributes: AttributeRecord[],
+  isTemperatureLabel: (attr: AttributeRecord) => boolean,
+  isExcludedLabel: (attr: AttributeRecord) => boolean
+): { min?: string; max?: string } {
+  const candidates = attributes.filter(
+    (attr) =>
+      attr.value &&
+      isTemperatureLabel(attr) &&
+      !isExcludedLabel(attr) &&
+      /\b(?:min|max|minimum|maximum|minimal|maximal)\b/i.test(`${attr.group ?? ""} ${attr.name}`)
+  );
+
+  const boundOf = (attr: AttributeRecord): number | undefined => {
+    const label = `${attr.group ?? ""} ${attr.name}`;
+    // The value is a bare number, so the unit has to come from the label. Feeding "-30 °C" through
+    // parseQuantities reuses the existing °F→°C conversion instead of duplicating it here.
+    const unit = temperatureUnitFromLabel(label) ?? "°C";
+    const [quantity] = parseQuantities(`${attr.value} ${unit}`, { kind: "temperature" });
+    const bound = quantity?.value ?? quantity?.min ?? quantity?.max;
+    return bound !== undefined && isPlausibleTemperatureCelsius(bound) ? bound : undefined;
+  };
+
+  for (const minAttr of candidates) {
+    const minLabel = `${minAttr.group ?? ""} ${minAttr.name}`;
+    if (!/\b(?:min|minimum|minimal)\b/i.test(minLabel)) continue;
+    const base = minMaxTemperatureLabelBase(minLabel);
+    const maxAttr = candidates.find((attr) => {
+      const maxLabel = `${attr.group ?? ""} ${attr.name}`;
+      return /\b(?:max|maximum|maximal)\b/i.test(maxLabel) && minMaxTemperatureLabelBase(maxLabel) === base;
+    });
+    if (!maxAttr) continue;
+    const min = boundOf(minAttr);
+    const max = boundOf(maxAttr);
+    if (min === undefined || max === undefined || min >= max) continue;
+    return { min: formatTemperatureBound(min), max: formatTemperatureBound(max) };
+  }
   return {};
 }
 
@@ -429,11 +508,12 @@ function ontologyFieldValue(
 ): string | undefined {
   for (const attr of attributes) {
     if (!attr.value || !isLikelySpecText(attr.value) || !isAvailableSpecValue(attr.value)) continue;
-    if (matchProperty(`${attr.group ?? ""} ${attr.name}`)?.key !== key) continue;
-    // Same guard as shouldSkipRegistryFieldCandidate: a disqualifying "... of test circuit"
-    // qualifier can end up in either the label or the value depending on how the PDF line split.
-    if (key === "ratedVoltage" && (isLowValueVoltageLabel(`${attr.group ?? ""} ${attr.name}`) || isLowValueVoltageLabel(attr.value))) continue;
-    if (key === "ratedCurrent" && isLowValueCurrentLabel(`${attr.group ?? ""} ${attr.name}`)) continue;
+    const label = `${attr.group ?? ""} ${attr.name}`;
+    const property = matchProperty(label);
+    if (property?.key !== key) continue;
+    // The ontology already knows what kind of quantity this property carries, so the guard needs no
+    // per-key condition here — see isDisqualifiedForQuantityKind.
+    if (property.unitKind && isDisqualifiedForQuantityKind(label, attr.value, property.unitKind)) continue;
     const value = normalize(attr.value);
     if (value) return value;
   }
@@ -455,9 +535,9 @@ function inferredOntologyFieldValue(
     if (!attr.value || !isLikelySpecText(attr.value) || !isAvailableSpecValue(attr.value)) continue;
     const label = `${attr.group ?? ""} ${attr.name}`;
     if (matchProperty(label)) continue;
-    if (inferPropertyFromQuantities(label, attr.value)?.property.key !== key) continue;
-    if (key === "ratedVoltage" && (isLowValueVoltageLabel(label) || isLowValueVoltageLabel(attr.value))) continue;
-    if (key === "ratedCurrent" && isLowValueCurrentLabel(label)) continue;
+    const inferred = inferPropertyFromQuantities(label, attr.value)?.property;
+    if (inferred?.key !== key) continue;
+    if (inferred.unitKind && isDisqualifiedForQuantityKind(label, attr.value, inferred.unitKind)) continue;
     const value = normalize(attr.value);
     if (value) return value;
   }
@@ -465,8 +545,10 @@ function inferredOntologyFieldValue(
 }
 
 function registryFieldValue(
+  // Not `keyof NormalizedProductFields`: two of those keys have no registry entry, and passing one used to
+  // compile and then return undefined forever. See NormalizedRegistryFieldKey.
   attributes: AttributeRecord[],
-  key: keyof NormalizedProductFields,
+  key: NormalizedRegistryFieldKey,
   normalize: (value: string) => string | undefined
 ): string | undefined {
   return attributes
@@ -482,20 +564,47 @@ function registryFieldValue(
 
 function shouldSkipRegistryFieldCandidate(attr: AttributeRecord, key: keyof NormalizedProductFields): boolean {
   const label = `${attr.group ?? ""} ${attr.name}`.toLowerCase();
-  if (key === "current" && /\b(?:inrush|starting|peak)\s+current\b/.test(label)) return true;
-  if (key === "current" && isLowValueCurrentLabel(label)) return true;
-  // Check the value too, not just the label: a loose PDF "label: value" split can leave a
-  // disqualifying "... of test circuit" qualifier in the value (see deriveVoltageRangeFromMinMax).
-  if (key === "voltage" && (isLowValueVoltageLabel(label) || isLowValueVoltageLabel(attr.value))) return true;
-  if ((key === "voltage" || key === "current") && isStandardsScopeElectricalLabel(label)) return true;
+  const kind = registryFieldQuantityKind(key);
+  if (kind && isDisqualifiedForQuantityKind(label, attr.value, kind)) return true;
+  if (registryFieldContradictsOntology(key, label)) return true;
   return normalizedFieldLabelScore(attr, key) < -50;
 }
 
-// Certificate/standard titles such as "NEMA 250 Enclosures for Electrical Equipment (1000 Volts
-// Maximum)" describe a standard's scope, not a product's electrical rating. Their stray "Volts"
-// token otherwise leaks into the voltage field of mechanical products like enclosures.
-function isStandardsScopeElectricalLabel(label: string): boolean {
-  return /\benclosures?\s+for\s+electrical\s+equipment\b/.test(label) || /\bnema\s*250\b/.test(label);
+/**
+ * The ontology decides WHICH field; the registry only widens the vocabulary that reaches it.
+ *
+ * The registry's aliases are deliberately loose — `/\blength\b/` for dimensions, `/\bmaterials?\b/` for
+ * material — so that an unfamiliar vendor phrasing still lands somewhere. The cost is that a loose alias
+ * also claims labels that name a different property entirely, and `audit:labels` section E enumerated 17 of
+ * them across the two systems' own vocabularies. The ones that would ship a wrong value:
+ *   "Rated residual current (RCD)"  → 30 mA into `current`, where the rating is 40 A
+ *   "Let-through current / I²t"     → a kA²s fault figure into `current`
+ *   "Leakage / off-state current"   → µA into `current`
+ *   "Stripping length" / "Stroke"   → a detail measurement into `dimensions`
+ *   "Material thickness"            → "1.5 mm" into the `material` TEXT column
+ *   "Enclosure protection"          → an IP rating into `material`
+ * None of these can be caught by the quantity-kind guard: some share the field's kind exactly (a residual
+ * current is still a current) and `material` has no kind at all.
+ *
+ * So when the ontology CAN place a label, and places it somewhere this field is not meant to carry, the
+ * registry defers. When the ontology cannot place it at all, the registry's guess stands — that is what the
+ * loose aliases are for, and it is what keeps unfamiliar vendors working.
+ */
+function registryFieldContradictsOntology(key: keyof NormalizedProductFields, label: string): boolean {
+  const expected = fieldDefinition(key)?.ontologyKeys;
+  if (!expected) return false;
+  const property = matchProperty(label);
+  if (!property || expected.includes(property.key)) return false;
+
+  // A CROSS-KIND mismatch is not a contradiction, it is an ambiguous label — and the value's own unit
+  // already settles those, so deferring here would throw away real data. "Input Power" resolves to the
+  // power property, yet SCE publishes "Input Power: 85 to 264 VDC"; the regression suite lost that voltage
+  // until this exception existed. What this rule is for is the SAME-kind sibling, where no unit can tell
+  // the two apart: a residual current and a rated current are both amperes, and only the label knows that
+  // 30 mA is the trip threshold of a 40 A device.
+  const fieldKind = registryFieldQuantityKind(key);
+  if (fieldKind && property.unitKind && property.unitKind !== fieldKind) return false;
+  return true;
 }
 
 function mergeLocalizedDescriptions(
@@ -563,7 +672,7 @@ function bestWallThicknessAttributeValue(attributes: AttributeRecord[]): string 
   const attr = attributes
     .filter((candidate) => {
       const haystack = `${candidate.group ?? ""} ${candidate.name}`.toLowerCase();
-      return FIELD_LABEL_PATTERNS.wallThickness.some((pattern) => pattern.test(haystack)) && isLikelySpecText(candidate.value) && isAvailableSpecValue(candidate.value);
+      return normalizerFieldLabelPatterns("wallThickness").some((pattern) => pattern.test(haystack)) && isLikelySpecText(candidate.value) && isAvailableSpecValue(candidate.value);
     })
     .sort(compareAttributeEvidence)[0];
   return attr ? normalizeWallThicknessValue(`${attr.name} ${attr.value}`) : undefined;
@@ -578,12 +687,14 @@ function bestNormalizedAttributeValue(
   return attributes
     .filter((attr) => {
       const haystack = `${attr.group ?? ""} ${attr.name}`.toLowerCase();
-      if (field === "current" && /\b(?:inrush|starting|peak)\s+current\b/.test(haystack)) return false;
-      if (field === "current" && isLowValueCurrentLabel(haystack)) return false;
-      // A loose PDF "label: value" split can leave a disqualifying "... of test circuit"
-      // qualifier in the value instead of the label — check both sides (see
-      // deriveVoltageRangeFromMinMax for the same fix on the min/max-pairing path).
-      if (field === "voltage" && (isLowValueVoltageLabel(haystack) || isLowValueVoltageLabel(attr.value))) return false;
+      const kind = field ? registryFieldQuantityKind(field) : undefined;
+      if (kind && isDisqualifiedForQuantityKind(haystack, attr.value, kind)) return false;
+      // `patterns` here is FIELD_LABEL_PATTERNS — a third label vocabulary, even looser than the
+      // registry's aliases (`/voltage/`, `/weight/` with no word boundary at all). It needs the same
+      // deference to the ontology, and measurement says so: with the check only in
+      // shouldSkipRegistryFieldCandidate, "Rated residual current 30 mA" still reached the current field
+      // through this path, because this path never consults the registry.
+      if (field && registryFieldContradictsOntology(field, haystack)) return false;
       return patterns.some((pattern) => pattern.test(haystack)) && isLikelySpecText(attr.value) && isAvailableSpecValue(attr.value);
     })
     .sort((left, right) => attributeEvidenceScore(right) + normalizedFieldLabelScore(right, field) - attributeEvidenceScore(left) - normalizedFieldLabelScore(left, field))
@@ -640,7 +751,7 @@ function isNumericElectricalSpecValue(value: string): boolean {
 }
 
 function formatNumericElectricalValue(value: string, unit: "V" | "A"): string | undefined {
-  const number = Number(cleanText(value).replace(",", "."));
+  const number = localizedNumber(cleanText(value));
   if (!Number.isFinite(number)) return undefined;
   return `${formatNumber(number)} ${unit}`;
 }
@@ -721,18 +832,14 @@ function compareAttributeEvidence(left: AttributeRecord, right: AttributeRecord)
 
 function attributeEvidenceScore(attr: AttributeRecord): number {
   const source = attr.sourceType ?? "generated";
-  let score = source === "official" ? 500 : source === "official-fallback" ? 430 : source === "generated" ? 320 : source === "cache" ? 250 : 100;
   const parser = `${attr.parser ?? ""} ${attr.stage ?? ""} ${attr.group ?? ""}`.toLowerCase();
-  if (/\bcatalog variant\b/.test(parser)) score += 90;
-  if (/pdf|document/.test(parser)) score += 140;
-  if (/browser-network|api/.test(parser)) score += 25;
+  let score = Math.round(evidenceConfidence({
+    sourceType: source,
+    parser,
+    confidence: attr.confidence
+  }) * 700);
   if (/browser-render/.test(parser)) score += 5;
   if (/reader|r\.jina/.test(parser)) score -= 20;
-  if ((source === "official" || source === "official-fallback") && !/(browser-network|api|pdf|document|reader|r\.jina)/.test(parser)) {
-    score += 60;
-  }
-  if (/meta|structured data/.test(parser)) score -= 15;
-  if (attr.confidence !== undefined) score += Math.round(attr.confidence * 20);
   return score;
 }
 
@@ -819,7 +926,7 @@ function extractCableLengthDimension(value: string | undefined): string | undefi
   if (!cleaned) return undefined;
   const match = cleaned.match(/\b(\d+(?:[.,]\d+)?)\s*(mm|cm|m|ft|feet|foot|in|inch|inches|")\b/i);
   if (!match) return undefined;
-  const number = Number(match[1].replace(",", "."));
+  const number = localizedNumber(match[1]);
   const unit = normalizeDimensionUnit(match[2]);
   if (!Number.isFinite(number) || !unit) return undefined;
   const original = `${formatNumber(number)} ${unit === "in" ? "in" : unit}`;
@@ -877,8 +984,21 @@ export function emptyResult(manufacturerId: ProductResult["manufacturerId"], cat
   };
 }
 
+/**
+ * A legal or policy document, not a product approval.
+ *
+ * `declaration` maps to "certificate" because of the declaration of conformity — but a vendor's footer
+ * also links a "Data Protection Declaration", and that matched too. The document's LABEL then flowed into
+ * `normalized.certificates`, so a Fath cable shipped with
+ * `certificates = "RoHS, Data Protection Declaration, REACH Regulation"`. Checked BEFORE the certificate
+ * branch, because these documents almost always carry a certificate keyword as well.
+ */
+const LEGAL_POLICY_DOCUMENT =
+  /\b(?:data.?protection|datenschutz|privacy|gdpr|dsgvo|cookie|imprint|impressum|terms|whistleblow|legal\s*notice|accessibility)\b/i;
+
 export function classifyDocument(label: string, url: string): DocumentRecord["type"] {
   const text = `${label} ${url}`.toLowerCase();
+  if (LEGAL_POLICY_DOCUMENT.test(text)) return "other";
   if (/\b(cert|certificate|certifications?|declaration|conformity|rohs|weee|reach|tsca|prop\s*65|culus|curus|cul|ul|ce|ukca|eac)\b|\bul-listed\b/.test(text)) return "certificate";
   if (/\b(?:data.?sheet|datasheet|tech(?:nical)?\s*data|technical\s+(?:sheet|information)|specification(?:s)? sheet|spec sheet)\b/i.test(label)) return "datasheet";
   if (/\b(?:manual|instruction|installation)\b/i.test(label)) return "manual";
@@ -973,8 +1093,8 @@ function normalizeWeightValue(value: string | undefined): string | undefined {
   if (unit === "kg") return cleaned;
   if (/\bkg\b/i.test(cleaned)) return cleaned;
   if (unit === "g") return `${cleaned} (${formatConvertedNumber(number / 1000)} kg)`;
-  if (/^lb|pound/.test(unit)) return `${cleaned} (${formatConvertedNumber(number * 0.45359237)} kg)`;
-  if (/^oz|ounce/.test(unit)) return `${cleaned} (${formatConvertedNumber(number * 0.0283495231)} kg)`;
+  if (/^lb|pound/.test(unit)) return `${cleaned} (${formatConvertedNumber(number * POUND_TO_KILOGRAM)} kg)`;
+  if (/^oz|ounce/.test(unit)) return `${cleaned} (${formatConvertedNumber(number * OUNCE_TO_KILOGRAM)} kg)`;
   return cleaned;
 }
 
@@ -1000,10 +1120,66 @@ function normalizeDimensionValue(value: string | undefined): string | undefined 
   if (unit === "mm") return cleaned;
   const values = [match[1], match[2], match[3]]
     .filter((part): part is string => Boolean(part))
-    .map((part) => Number(part.replace(",", ".")));
+    .map((part) => localizedNumber(part));
   if (values.some((number) => !Number.isFinite(number))) return cleaned;
   const millimeters = values.map((number) => convertDimensionToMillimeters(number, unit));
   return `${cleaned} (${millimeters.map(formatNumber).join(" x ")} mm)`;
+}
+
+/**
+ * Quantity kinds that a descriptive field (colour, material, finish) can never legitimately carry.
+ *
+ * The colour field on a real Ganter page came out as `24 V DC ± 10 % / 7 mA` — an electrical rating in a
+ * COLOUR. Six different sources feed `color`, so chasing which one produced it is whack-a-mole; the
+ * unit-kind check belongs at the boundary, exactly like the concatenated-measurement backstop above.
+ *
+ * Only kinds that are unambiguous are listed. Length is deliberately absent: "RAL 9005" carries no unit,
+ * but a finish legitimately can ("black anodised 20 µm").
+ */
+const FOREIGN_QUANTITY_KINDS_FOR_DESCRIPTIVE_FIELDS = new Set(["voltage", "current", "power", "frequency"]);
+
+function withoutForeignQuantityKinds(value: string | undefined): string | undefined {
+  if (!value) return value;
+  const foreign = parseQuantities(value).some((quantity) =>
+    FOREIGN_QUANTITY_KINDS_FOR_DESCRIPTIVE_FIELDS.has(quantity.kind)
+  );
+  return foreign ? undefined : value;
+}
+
+/**
+ * A prose paragraph that happens to contain ratings is not a rating.
+ *
+ * The same Ganter page put this in BOTH `voltage` and `current`:
+ *   "Changeover contact, snap contact silver alloy max. 125 V (plug) max. 240 V (cable) max. 3 A
+ *    106 switching cycles 50,000 switching cycles (under full load)"
+ * — a whole contact-specification paragraph, identical in two different fields.
+ *
+ * The tell is MIXED quantity kinds inside a long run of words. Same-kind multi-values are legitimate and
+ * must survive ("230/400 V", "1 A, 3 A, 6 A"), so kinds alone is not enough; and a terse mixed value is
+ * legitimate too ("24 V DC / 7 mA"), so the word count carries the decision. Twelve words is well above
+ * any real rating and well below this paragraph's twenty-five.
+ */
+const MIXED_KIND_PROSE_MIN_WORDS = 12;
+
+function withoutMixedKindProse(value: string | undefined): string | undefined {
+  if (!value) return value;
+  const wordCount = value.trim().split(/\s+/).filter(Boolean).length;
+  if (wordCount < MIXED_KIND_PROSE_MIN_WORDS) return value;
+  const kinds = new Set(parseQuantities(value).map((quantity) => quantity.kind));
+  return kinds.size >= 2 ? undefined : value;
+}
+
+/**
+ * Parse one number token that may use either separator convention.
+ *
+ * Replaces a bare `Number(token.replace(",", "."))`, which silently divided thousands-separated values
+ * by a thousand: the dimension regexes capture "1,200" as a single token, so a 1200 mm enclosure width
+ * became "1.2 mm". `normalizeNumberSeparators` is the project's single decision on this (see the
+ * number-separator note in text-util.ts) — it was already used for weight, and the dimension paths
+ * simply never adopted it.
+ */
+function localizedNumber(token: string): number {
+  return Number(normalizeNumberSeparators(token));
 }
 
 function normalizeRepeatedUnitDimensionChain(value: string): string | undefined {
@@ -1013,7 +1189,7 @@ function normalizeRepeatedUnitDimensionChain(value: string): string | undefined 
   if (!match) return undefined;
   const dimensionText = cleanText(match[1]).replace(/\*/g, "x");
   const parts = [...dimensionText.matchAll(/(\d+(?:[.,]\d+)?)\s*(mm|cm|m|inches|inch|in|")\b/gi)].map((part) => ({
-    value: Number(part[1].replace(",", ".")),
+    value: localizedNumber(part[1]),
     unit: normalizeDimensionUnit(part[2])
   }));
   if (parts.length < 2 || parts.some((part) => !Number.isFinite(part.value) || !part.unit)) return undefined;
@@ -1037,7 +1213,7 @@ function normalizeBoreStrokeDimensionValue(value: string): string | undefined {
 
 function formatDimensionQuantity(rawNumber: string, rawUnit: string | undefined): string {
   const unit = normalizeDimensionUnit(rawUnit) ?? "mm";
-  const number = Number(rawNumber.replace(",", "."));
+  const number = localizedNumber(rawNumber);
   return `${Number.isFinite(number) ? formatNumber(number) : cleanText(rawNumber)} ${unit}`;
 }
 
@@ -1052,14 +1228,14 @@ function parseLabeledDimensionParts(value: string): LabeledDimensionPart[] {
   const beforeValue = /\b([HWDL])\s*(\d+(?:[.,]\d+)?)\s*(in|inch|inches|"|mm|cm|m|ft|feet|foot)?\b/gi;
   let match: RegExpExecArray | null;
   while ((match = beforeValue.exec(value))) {
-    const number = Number(match[2].replace(",", "."));
+    const number = localizedNumber(match[2]);
     if (Number.isFinite(number)) parts.push({ label: match[1].toUpperCase() as LabeledDimensionPart["label"], value: number, unit: normalizeDimensionUnit(match[3]) });
   }
   if (parts.length >= 2) return parts;
 
   const afterValue = /\b(\d+(?:[.,]\d+)?)(?:\s*(in|inch|inches|"|mm|cm|m|ft|feet|foot))?\s*([HWDL])\b/gi;
   while ((match = afterValue.exec(value))) {
-    const number = Number(match[1].replace(",", "."));
+    const number = localizedNumber(match[1]);
     if (Number.isFinite(number)) parts.push({ label: match[3].toUpperCase() as LabeledDimensionPart["label"], value: number, unit: normalizeDimensionUnit(match[2]) ?? "in" });
   }
   return parts;
@@ -1145,10 +1321,10 @@ function deriveVoltageRangeFromMinMax(attributes: AttributeRecord[]): string | u
     // the value instead of the label (e.g. name="min. Operating voltage", value="range of test
     // circuit 150 V"). Check both so the RCD's own test-instrument voltage can't masquerade as a
     // primary rated-voltage label just because the qualifier landed on the wrong side of the split.
-    if (isLowValueVoltageLabel(attr.value)) return false;
+    if (isDisqualifiedForQuantityKind("", attr.value, "voltage")) return false;
     if (isPrimaryVoltageLabel(label)) return true;
     if (hasPrimaryVoltage && isSecondaryVoltageLabel(label)) return false;
-    return !isLowValueVoltageLabel(label);
+    return !isDisqualifiedForQuantityKind(label, "", "voltage");
   });
   for (const minAttr of voltageAttributes) {
     const minLabel = `${minAttr.group ?? ""} ${minAttr.name}`;
@@ -1169,7 +1345,7 @@ function deriveVoltageRangeFromMinMax(attributes: AttributeRecord[]): string | u
 
 function isPrimaryVoltageLabel(label: string): boolean {
   const normalized = label.toLowerCase();
-  if (isSecondaryVoltageLabel(normalized) || isLowValueVoltageLabel(normalized)) return false;
+  if (isSecondaryVoltageLabel(normalized) || isDisqualifiedForQuantityKind(normalized, "", "voltage")) return false;
   return /\[(?:us|ue|uc)\]\s+rated|rated supply voltage|supply voltage|rated input voltage|input voltage|input power|power input|rated operational voltage|operational voltage|operating voltage|nominal input voltage|rated control circuit voltage|control circuit voltage/.test(
     normalized
   );
@@ -1179,34 +1355,9 @@ function isSecondaryVoltageLabel(label: string): boolean {
   return /\b(?:output|discrete|relay|contact)\b/i.test(label);
 }
 
-// Surge / fault current ratings (SPD discharge current In/Iimp, short-circuit current Icc,
-// short-circuit breaking capacity Icu/Ics) are kA-level fault figures, NOT the product's rated
-// operational current — they used to leak into the current field via the catch-all /current/
-// pattern whenever they were the only current-shaped attribute (breakers, SPDs). "Switching
-// capacity"/"switching current" are deliberately NOT here: for a relay/thermostat those ARE the
-// contact current rating in A (see the nVent thermostat test).
-function isLowValueCurrentLabel(label: string): boolean {
-  return (
-    /\b(?:nominal\s+)?discharge\s+current\b/i.test(label) ||
-    /\bimpulse\s+current\b/i.test(label) ||
-    /\blightning\s+(?:impulse\s+)?current\b/i.test(label) ||
-    /\bshort-?circuit\b[^.;|]*\b(?:current|breaking|capacity)\b|\bcurrent\b[^.;|]*\bshort-?circuit\b/i.test(label) ||
-    /\bbreaking\s+capacity\b/i.test(label)
-  );
-}
-
-function isLowValueVoltageLabel(label: string): boolean {
-  // RCD/RCCB datasheets (e.g. Doepke) publish a "min./max. operating voltage range of test
-  // circuit" — the voltage the RCD's own trip-test button/instrument needs, not the product's
-  // rated supply voltage. Treating it as low-value keeps it out of the min/max voltage-range
-  // derivation below so it can't be mistaken for the product's rated voltage.
-  return /\b(?:voltage drop|output voltage limits?|insulation voltage|impulse|withstand|protection level)\b/i.test(label)
-    || /test\s+(?:circuit|device|equipment|instrument)|pr[üu]feinrichtung/i.test(label)
-    // RCD/RCBO datasheets (e.g. Doepke) also publish a per-sensitivity-type minimum, such as
-    // "Minimum rated operating voltage (Type A/AC operation)" / "(Type B operation)" — the supply
-    // floor for one specific detection mode's electronics, not the product's overall rated voltage.
-    || /\(type\s+[a-z]\+?(?:\/[a-z]+)?\s+operation\)/i.test(label);
-}
+// The kA/Ui/test-circuit vocabulary that used to live here now has one owner:
+// isDisqualifiedForQuantityKind in ontology.ts, keyed on the physical quantity rather than on either
+// label system's field names. See its comment for why.
 
 function minMaxElectricalLabelBase(label: string): string {
   return label
@@ -1354,7 +1505,7 @@ function extractCurrentValues(value: string, label: string): string[] {
 }
 
 function isPlausibleCurrentValue(value: string, context: string): boolean {
-  const firstNumber = Number(value.match(/\d+(?:[.,]\d+)?/)?.[0]?.replace(",", "."));
+  const firstNumber = localizedNumber(value.match(/\d+(?:[.,]\d+)?/)?.[0] ?? "");
   if (!Number.isFinite(firstNumber)) return false;
   if (/\b(current|rated|sensor|toroid|transformer|neutral|amp(?:ere|s)?|amperage|input|output|supply|power supply|starter|breaker|drive|contactor|push-?button|switch(?:ing)? capacity|switching current|iu|ie|i2n)\b/i.test(context)) {
     return true;
@@ -1366,7 +1517,7 @@ function isPlausibleCurrentValue(value: string, context: string): boolean {
 }
 
 function isPlausibleVoltageValue(value: string, context: string): boolean {
-  const firstNumber = Number(value.match(/\d+(?:[.,]\d+)?/)?.[0]?.replace(",", "."));
+  const firstNumber = localizedNumber(value.match(/\d+(?:[.,]\d+)?/)?.[0] ?? "");
   if (!Number.isFinite(firstNumber)) return false;
   if (/(?:v\s*(?:ac|dc)|vac|vdc|ac\/dc|ac-dc|\bvolts?\b)/i.test(value)) return true;
   return /\b(voltage|supply|power|input|output|operating|rated|operational|utilization|control circuit|u[eirn])\b/i.test(context);
@@ -1450,14 +1601,17 @@ function findColorAttr(attributes: AttributeRecord[]): string | undefined {
   const explicit = attributes
     .filter((attr) => {
       const haystack = `${attr.group ?? ""} ${attr.name}`.toLowerCase();
-      return FIELD_LABEL_PATTERNS.color.some((pattern) => pattern.test(haystack)) &&
+      return normalizerFieldLabelPatterns("color").some((pattern) => pattern.test(haystack)) &&
         !/\b(display|screen|lcd|tft)\b/.test(haystack) &&
         isLikelySpecText(attr.value) &&
         isAvailableSpecValue(attr.value);
     })
     .sort(compareAttributeEvidence)[0]?.value;
   if (explicit) return normalizeHtmlSpecValue(explicit);
-  return deriveColorFromFinish(bestAttributeValue(attributes, FIELD_LABEL_PATTERNS.finish));
+  // A selected ordering-code option may prove a finish (e.g. `SR → RAL 9006`) while not
+  // declaring a standalone product color. Do not invent `color` from that option's finish; an
+  // explicit target-scoped Color attribute above still wins normally.
+  return deriveColorFromFinish(bestAttributeValue(attributes.filter((attr) => attr.scope !== "variant-option"), normalizerFieldLabelPatterns("finish")));
 }
 
 function deriveColorFromFinish(value: string | undefined): string | undefined {
@@ -1597,7 +1751,7 @@ function normalizeWallThicknessValue(value: string | undefined): string | undefi
   if (!explicitlyThickness && isNonWallThicknessMeasurementContext(cleaned, match)) return undefined;
   const haystack = cleaned.toLowerCase();
   if (!/\b(thick(?:ness)?|gauge|steel|stainless|aluminum|aluminium|carbon|sheet|body|wall|door)\b/.test(haystack)) return undefined;
-  const number = Number(match[1].replace(",", "."));
+  const number = localizedNumber(match[1]);
   if (!Number.isFinite(number)) return undefined;
   const unit = normalizeDimensionUnit(match[2]) ?? match[2].toLowerCase();
   if (unit === "mm") return `${formatNumber(number)} mm`;
@@ -1614,8 +1768,14 @@ function isNonWallThicknessMeasurementContext(value: string, match: RegExpMatchA
 function collectProtectionValues(attributes: AttributeRecord[]): string | undefined {
   const values = attributes
     .filter((attr) => /\bip\b|nema|protection|environmental rating|\benclosure\b|industry standard|stupanj/i.test(`${attr.group ?? ""} ${attr.name}`))
-    .map((attr) => normalizeProtectionValue(attr.value))
-    .filter((value): value is string => Boolean(value && isLikelySpecText(value) && isAvailableSpecValue(value)));
+    .flatMap((attr) => {
+      const value = normalizeProtectionValue(attr.value);
+      if (!value || !isLikelySpecText(value) || !isAvailableSpecValue(value)) return [];
+      // Standards blocks commonly repeat a rating in multiple certification paragraphs. Their
+      // protection meaning is the published rating token, not the surrounding approval prose.
+      const label = `${attr.group ?? ""} ${attr.name}`;
+      return /\bindustry standards?\b/i.test(label) ? protectionTokens(value) : [value];
+    });
   const unique = uniqueProtectionValues(values);
   return unique.length ? unique.join("; ") : undefined;
 }
@@ -1693,8 +1853,12 @@ function protectionDedupeKey(value: string): string {
 }
 
 function protectionDedupeTokens(value: string): string[] {
-  const tokens = value.match(/\b(?:IP\s*\d{2}[A-Z]?|IK\s*\d{2}|NEMA\s*\d+[A-Z]?|Type\s+\d+[A-Z]?)\b/gi);
-  return tokens?.length ? tokens.map((token) => token.replace(/\s+/g, "").toUpperCase()) : [];
+  return protectionTokens(value).map((token) => token.toUpperCase());
+}
+
+function protectionTokens(value: string): string[] {
+  const tokens = value.match(/\b(?:IP\s*\d{2}[A-Z]?|IK\s*\d{2}|NEMA\s*\d+[A-Z]?|Type\s*\d+[A-Z]?)\b/gi);
+  return tokens?.length ? [...new Set(tokens.map((token) => token.replace(/\s+/g, "").replace(/^type/i, "Type")))] : [];
 }
 
 function deriveMaterialFromAttributes(attributes: AttributeRecord[]): string | undefined {
@@ -1875,7 +2039,6 @@ function normalizeCertificateValue(value: string, allowNotApplicable = false): s
     ...(cleaned.match(/\bDNV(?:\s+GL)?(?:\s+Marine)?\b/gi) ?? []),
     ...(cleaned.match(/\bIEC\s+\d+(?:[.-]\d+)*(?:\s+IP\s*\d{1,2}[A-Z]?)?/g) ?? []),
     ...(cleaned.match(/\bIEC\b/g) ?? []),
-    ...(cleaned.match(/\bIP\s*\d{1,2}[A-Z]?\b/g) ?? []),
     ...(cleaned.match(/\bcULus\b/g) ?? []),
     ...(cleaned.match(/\bcURus\b/g) ?? []),
     ...(cleaned.match(/\bcUL\b/g) ?? []),
@@ -1957,11 +2120,36 @@ function normalizeDocumentCertificateValue(doc: DocumentRecord): string {
 }
 
 function cleanCertificateResourceText(value: string): string {
-  return cleanText(value)
-    .replace(/\d+(?:[.,]\d+)?\s*(?:KB|MB|GB)(?:\s*(?:English|German|Deutsch|French|Spanish|Italian|Dutch|Polish|Czech|Danish|Swedish|Norwegian|Finnish|Portuguese|Chinese|Japanese|Korean))?\s*$/i, "")
-    .replace(/\b(?:English|German|Deutsch|French|Spanish|Italian|Dutch|Polish|Czech|Danish|Swedish|Norwegian|Finnish|Portuguese|Chinese|Japanese|Korean)\b\s*$/i, "")
-    .replace(/\s*[-,;:]\s*$/g, "")
-    .trim();
+  return collapseRepeatedPhrase(
+    cleanText(value)
+      // The size (and any language right after it) is stripped ANYWHERE, not just at the end: nVent
+      // writes "Declaration of Conformity 117 KB English Declaration of Conformity", with the download
+      // decoration in the MIDDLE, so the previously end-anchored rule never fired and the whole string
+      // shipped inside normalized.certificates.
+      .replace(
+        /\s*\d+(?:[.,]\d+)?\s*(?:KB|MB|GB)(?:\s*(?:English|German|Deutsch|French|Spanish|Italian|Dutch|Polish|Czech|Danish|Swedish|Norwegian|Finnish|Portuguese|Chinese|Japanese|Korean))?\s*/gi,
+        " "
+      )
+      // A bare language name is only stripped at the END. Doing it anywhere would damage real
+      // certification bodies whose names contain one — "Germanischer Lloyd", "German Lloyd".
+      .replace(/\b(?:English|German|Deutsch|French|Spanish|Italian|Dutch|Polish|Czech|Danish|Swedish|Norwegian|Finnish|Portuguese|Chinese|Japanese|Korean)\b\s*$/i, "")
+      .replace(/\s*[-,;:]\s*$/g, "")
+      .trim()
+  );
+}
+
+/**
+ * Collapse a phrase repeated back-to-back, which is what removing the decoration between two copies of a
+ * document's name leaves behind: "Declaration of Conformity Declaration of Conformity".
+ */
+function collapseRepeatedPhrase(value: string): string {
+  const words = value.split(/\s+/).filter(Boolean);
+  for (let size = Math.floor(words.length / 2); size >= 1; size -= 1) {
+    const head = words.slice(0, size).join(" ").toLowerCase();
+    const next = words.slice(size, size * 2).join(" ").toLowerCase();
+    if (head && head === next) return collapseRepeatedPhrase([...words.slice(0, size), ...words.slice(size * 2)].join(" "));
+  }
+  return value;
 }
 
 function stripCertificateLegalProse(value: string): string {

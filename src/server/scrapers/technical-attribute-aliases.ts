@@ -1,6 +1,7 @@
 import type { ManufacturerId } from "../../shared/types.js";
 
-export type ElectricalAliasManufacturerId = "abb" | "schneider" | "siemens" | "eaton" | "rockwell";
+// A new manufacturer must be able to carry a reviewed alias without changing this type first.
+export type ElectricalAliasManufacturerId = string;
 export type TechnicalAliasManufacturerId = ElectricalAliasManufacturerId | "global";
 export type TechnicalAttributeAliasScope = "global" | "manufacturer";
 export type TechnicalAttributeAliasMatchType =
@@ -382,23 +383,37 @@ export interface TechnicalAttributeAliasSuggestion {
   score: number;
 }
 
+export interface TechnicalAttributeAliasSuggestionOptions {
+  /** Include only global aliases plus evidence owned by this manufacturer. */
+  manufacturerId?: ManufacturerId;
+}
+
+const REVIEW_SUGGESTION_MIN_SCORE = 0.75;
+
 /**
  * Best-effort suggestion for an UNMAPPED label: the closest known alias by string similarity,
  * regardless of the auto-map threshold. Feeds the "Unmapped Labels" teach-list so a human can
  * decide whether to promote the label into the ontology/alias table. It NEVER auto-assigns a
  * value — the deterministic parser still owns every value.
  */
-export function suggestTechnicalAttributeAlias(originalName: string): TechnicalAttributeAliasSuggestion | undefined {
+export function suggestTechnicalAttributeAlias(
+  originalName: string,
+  options: TechnicalAttributeAliasSuggestionOptions = {}
+): TechnicalAttributeAliasSuggestion | undefined {
   const normalizedName = normalizeAliasName(originalName);
   if (!normalizedName) return undefined;
+  const manufacturerId = options.manufacturerId?.trim().toLowerCase();
+  const candidates = TECHNICAL_ATTRIBUTE_ALIASES.filter((candidate) =>
+    candidate.scope === "global" || (manufacturerId !== undefined && candidate.manufacturerId === manufacturerId)
+  );
   let best: TechnicalAttributeAliasSuggestion | undefined;
-  for (const candidate of TECHNICAL_ATTRIBUTE_ALIASES) {
+  for (const candidate of candidates) {
     const score = aliasSimilarity(normalizedName, normalizeAliasName(candidate.originalName));
     if (!best || score > best.score) {
       best = { canonicalKey: candidate.canonicalKey, matchedLabel: candidate.originalName, score: Number(score.toFixed(3)) };
     }
   }
-  return best && best.score > 0 ? best : undefined;
+  return best && best.score >= REVIEW_SUGGESTION_MIN_SCORE ? best : undefined;
 }
 
 function alias(

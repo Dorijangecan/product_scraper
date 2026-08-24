@@ -1,0 +1,14 @@
+{
+  "id": "rockwell-1769-PB4-family-datasheet",
+  "manufacturerId": "rockwell",
+  "catalogNumber": "1769-PB4",
+  "note": "Official Compact I/O family datasheet. The target is grouped with PB4K in the fourth explicit technical-data column; the three preceding columns belong to PA2/PA4/PB2 siblings.",
+  "documents": [
+    {
+      "path": "benchmarks/output/20260602110816/documents/1769-PB4-datasheet-1769-td008_-en-p.pdf",
+      "url": "https://literature.rockwellautomation.com/idc/groups/literature/documents/td/1769-td008_-en-p.pdf",
+      "type": "datasheet",
+      "label": "Specifications"
+    }
+  ]
+}

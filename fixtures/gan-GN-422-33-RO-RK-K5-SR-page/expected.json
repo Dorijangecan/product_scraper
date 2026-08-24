@@ -1,0 +1,39 @@
+{
+  "_source": "Ganter GN 422-33-RO-RK-K5-SR cabinet U-handle with electrical switching function, recorded product page. Title: `GN 422 Cabinet U-Handles Zinc die casting, with Electrical Switching Function / with Indicator Light, with Two Function Elements`. Verified in the page: `Zinc die casting` ×159, `RAL 9005` ×155, `Two Function Elements` ×157.",
+
+  "_tier": "value-verified. The ONLY fixture in the corpus with real HTML table structure worth the name — 8 tables and 40 colspan/rowspan attributes — so it is the detector for the multi-row option-table work (P1.3b). Ganter's own connector treats the web page as the source of truth and marks every Ganter PDF `enrichable:false`, which makes correct HTML reading load-bearing for this vendor.",
+
+  "normalized": {
+    "weight": { "number": 0.79, "unit": "kg" },
+    "material": { "contains": "Zinc" },
+    "finish": { "contains": "RAL 9006" },
+    "certificates": { "contains": "CE" },
+    "color": { "absent": true },
+    "voltage": { "absent": true },
+    "current": { "absent": true }
+  },
+
+  "mustNotContain": [
+    "Show / Hide columns",
+    "friendlycaptcha",
+    "Upcoming Trade Shows",
+    "Automation Expo",
+    "textured finish\">",
+    "font-weight",
+    "!important",
+    "Add to cart"
+  ],
+
+  "mustNotContain_extra_note": "RAL 9005 is deliberately NOT in mustNotContain: it is the sibling's colour and must not reach a FIELD, but the page legitimately mentions it, and the attribute list may still carry it in a correctly-labelled context.",
+
+  "_notes": {
+    "finish_IS_A_REAL_BUG": "Our catalog number ends in `-SR`, and the page states the option codes plainly: `SR - Silver, RAL 9006` (152×) and `SW - Black, RAL 9005` (154×). So OUR finish is RAL 9006 (silver) — and the generic path produces RAL 9005 (black), i.e. a SIBLING variant's value. It comes from a related-variant thumbnail's alt/title, and no gate can catch it: `Finish = SR - Silver, RAL 9006` is a perfectly ordinary pair. Resolving it needs the ordering-code suffix matched against the page's option codes (P1.3f); Ganter's dedicated connector does that separately.",
+    "how_this_was_nearly_missed": "This fixture FIRST asserted `RAL 9005` as correct — I trusted the extracted value instead of reading the source, which is exactly what fixtures/README.md forbids. The corpus would then have locked a contamination bug in as expected behaviour. Recorded here because the mistake is more instructive than the fix.",
+    "color": "Was `24 V DC ± 10 % / 7 mA` — an ELECTRICAL RATING in the colour field. Six different sources feed `color`, so the unit-kind check went in at the boundary (`withoutForeignQuantityKinds`) rather than into whichever one produced it. Same reasoning as the concatenated-measurement backstop already in normalizer.ts.",
+    "voltage_current": "Both were `Changeover contact, snap contact silver alloy max. 125 V (plug) max. 240 V (cable) max. 3 A 106 switching cycles 50,000 switching cycles (under full load)` — one contact-specification PARAGRAPH, identical in two different fields. Rejected by `withoutMixedKindProse`: mixed quantity kinds inside a long run of words. Same-kind multi-values survive (`230/400 V`, `1 A, 3 A, 6 A`) and so do terse mixed ones (`24 V DC / 7 mA`) — the word count carries the decision.",
+    "absent_is_correct": "voltage/current/color being EMPTY is the right answer here, not a gap. This handle's electrical ratings belong to the switching option chosen in the ordering code, and the generic path cannot tell which row of the option table is ours — so silence beats one of the other variants' numbers. Ganter's dedicated connector resolves the variant separately.",
+    "sibling_variant": "The pair `\"SR - Silver, RAL 9006, textured finish\"` = `\"SW - Black, RAL 9005, textured finish\"` was NOT a table problem, which is why checking beat assuming: that text lives in an IMAGE alt/title as escaped markup (`&lt;br /&gt;`) describing a SIBLING variant's thumbnail. A colspan/rowspan reader would never have touched it. Rejected instead by the same-shape pair rule — and deliberately on the PAIR, because Ganter's own standard sheets legitimately use the option string as a LABEL (`SW - Black, RAL 9005, textured finish` = `black`), and a label-only rule cost ten real values in the audit over live vendor documents.",
+    "mustNotContain_ral9006": "`RAL 9006` is the SIBLING variant's colour (silver); ours is RAL 9005 (black). Asserting the sibling's code is absent is the sharpest available contamination check for this page.",
+    "markup_residue": "`textured finish\">` is pinned because removing the bogus pair changed which source won `finish`, and the new winner carried the closing `\">` of the alt attribute it came from — a value that would have shipped to Excel with markup residue attached."
+  }
+}

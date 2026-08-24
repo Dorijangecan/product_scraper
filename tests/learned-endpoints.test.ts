@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { endpointTemplateFromUrl, learnEndpointFromNetworkFetch, learnedEndpointUrls } from "../src/server/scrapers/learned-endpoints.js";
+import { endpointTemplateFromUrl, learnEndpointFromNetworkFetch, learnedEndpointSuppressed, learnedEndpointUrls } from "../src/server/scrapers/learned-endpoints.js";
 import type { LearnedEndpointRecord, ManufacturerConfig } from "../src/shared/types.js";
 
 const manufacturer: ManufacturerConfig = {
@@ -72,5 +72,17 @@ describe("learned endpoints", () => {
     );
 
     expect(urls[0].url).toBe("https://example.test/api/product?sku=ABC-123");
+  });
+
+  it("suppresses only repeatedly and recently proven-bad endpoints", () => {
+    const endpoint: LearnedEndpointRecord = {
+      manufacturerId: "test", host: "example.test", method: "GET", urlTemplate: "https://example.test/api/product?sku={part}",
+      discoveredFromUrl: "https://example.test/products/ABC-123", parserKind: "browser-network", successCount: 2,
+      lastSuccessAt: "2026-01-01T00:00:00.000Z", failureCount: 3, lastFailureAt: "2026-08-16T00:00:00.000Z"
+    };
+    const now = Date.parse("2026-08-17T00:00:00.000Z");
+    expect(learnedEndpointSuppressed(endpoint, now)).toBe(true);
+    expect(learnedEndpointSuppressed({ ...endpoint, failureCount: 2 }, now)).toBe(false);
+    expect(learnedEndpointSuppressed({ ...endpoint, lastFailureAt: "2026-08-01T00:00:00.000Z" }, now)).toBe(false);
   });
 });

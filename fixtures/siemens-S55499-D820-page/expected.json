@@ -1,0 +1,29 @@
+{
+  "_source": "VERIFIED by reading the file: this cached page is an Angular SPA shell, not a product page. Title is `Siemens SiePortal`, the root element carries `data-beasties-container`, and the catalog number S55499-D820 appears ZERO times in the 31 kB of HTML — the real content is fetched by JavaScript from the SiePortal/pview APIs, which is why siemens.ts goes to those APIs instead of parsing this HTML.",
+
+  "_tier": "value-verified NEGATIVE case. Unlike the other extracted -page fixtures (noise-guard tier), this one asserts a specific, checked outcome.",
+
+  "normalized": {
+    "voltage": { "absent": true },
+    "current": { "absent": true },
+    "weight": { "absent": true },
+    "dimensions": { "absent": true },
+    "material": { "absent": true },
+    "finish": { "absent": true },
+    "protection": { "absent": true },
+    "certificates": { "absent": true }
+  },
+
+  "mustNotContain": [
+    "SiePortal",
+    "beasties",
+    "font-weight",
+    "!important",
+    "JavaScript is disabled"
+  ],
+
+  "_notes": {
+    "why": "A JS shell must yield NOTHING rather than scraps of application chrome. The generic parser already gets this right — `requireCatalogNumber` makes it bail with 'Fallback page did not contain the catalog number' — and this fixture pins that behaviour so a future widening of the admission gates cannot start mining an empty shell.",
+    "opportunity": "The pipeline learns nothing from this shape today. Recognising 'HTML shell + catalog number absent + framework markers present' as its own diagnosis would let discovery escalate straight to the browser or to a known API, instead of recording it as a page that simply failed to parse — see COLD-START-PLAN §2A and §3.2 (per-field causal blockers)."
+  }
+}

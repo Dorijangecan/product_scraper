@@ -1,0 +1,41 @@
+{
+  "_source": "Schmersal AZM 161CC-12/03RKA-024 safety interlock, recorded product page (1.2 MB). Values VERIFIED against the page: `IP67` appears 9×, `24 VAC/DC` 14×, `cULus`, `Ambient temperature`, the material string `glass-fibre reinforced thermoplastic`, and `419` (the weight) inside the page's embedded JSON. The specs live in a JSON blob rather than DOM tables — which is why this page is the one that exposed HTML markup leaking into attribute names.",
+
+  "_tier": "value-verified. The richest HTML fixture in the corpus: proper IEC labels (Uimp, Ui, utilisation categories AC-15/DC-13), so it guards the generic path's best-case behaviour.",
+
+  "normalized": {
+    "protection": { "contains": "IP67" },
+    "voltage": { "contains": "24" },
+    "current": { "number": 6, "unit": "A" },
+    "weight": { "number": 419 },
+    "dimensions": { "contains": "90 x 130 x 30" },
+    "material": { "contains": "glass-fibre reinforced thermoplastic" },
+    "operatingTemperatureMin": { "number": -30 },
+    "operatingTemperatureMax": { "number": 60 },
+    "certificates": { "contains": "cULus" }
+  },
+
+  "attributesInclude": [
+    { "name": "Ambient temperature", "valueContains": "-30" },
+    { "name": "Rated impulse withstand voltage", "valueContains": "4 kV" },
+    { "name": "Rated insulation voltage", "valueContains": "250" },
+    { "name": "Protection class", "valueContains": "II" }
+  ],
+
+  "mustNotContain": [
+    "<sub>",
+    "</sub>",
+    "&amp;",
+    "&nbsp;",
+    "font-weight",
+    "!important",
+    "All rights reserved",
+    "Add to cart"
+  ],
+
+  "_notes": {
+    "html_markup": "This fixture found P1.3c: attributes arrived as `Rated impulse withstand voltage U<sub>imp</sub>` and `Rated insulation voltage U<sub>i</sub>` — markup inside the attribute NAME, so the Excel export would have shown it literally. Grepping the HTML for `<sub>` finds nothing: the tags exist only inside the embedded JSON, whose strings never pass through cheerio's text extraction. The mustNotContain entries above pin the fix.",
+    "storage_vs_operating": "The page states BOTH `Ambient temperature -30 ... +60 °C` and `Storage and transport temperature -30 ... +85 °C`. operatingTemperatureMax must be 60, never 85 — so this fixture also guards the storage-temperature exclusion in deriveOperatingTemperature.",
+    "why_this_one": "Chosen for promotion because its yield looked suspiciously low for a 1.2 MB page. It was not low — 45 attributes and 9 normalized fields is a clean read — but checking that assumption is what surfaced the markup bug."
+  }
+}

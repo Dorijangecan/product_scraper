@@ -19,6 +19,7 @@ interface LocatorLike {
   count(): Promise<number>;
   nth(index: number): LocatorLike;
   click(options?: Record<string, unknown>): Promise<void>;
+  fill?(value: string, options?: Record<string, unknown>): Promise<void>;
   scrollIntoViewIfNeeded?(options?: Record<string, unknown>): Promise<void>;
 }
 
@@ -175,6 +176,42 @@ const OVERLAY_CLOSE_SELECTORS = [
   "#onetrust-accept-btn-handler"
 ];
 
+const SEARCH_INPUT_SELECTORS = [
+  "input[type='search']",
+  "input[name='q']",
+  "input[name='s']",
+  "input[name*='search' i]",
+  "input[name*='query' i]",
+  "input[name*='keyword' i]",
+  "input[name*='part' i]",
+  "input[name*='catalog' i]",
+  "input[name*='article' i]",
+  "input[placeholder*='search' i]",
+  "input[placeholder*='product' i]",
+  "input[aria-label*='search' i]",
+  "[role='search'] input"
+];
+
+/** Fill one visible-ish search control and submit it using the browser's normal Enter behaviour.
+ * This deliberately reports failure rather than guessing a click target: a form with no usable input
+ * must remain eligible for the static/POST/search-API paths instead of looking successfully searched. */
+export async function submitSearchInput(page: Pick<PageLike, "locator" | "keyboard">, catalogNumber: string): Promise<boolean> {
+  for (const selector of SEARCH_INPUT_SELECTORS) {
+    try {
+      const locator = page.locator(selector);
+      if (await locator.count() === 0) continue;
+      const input = locator.nth(0);
+      if (!input.fill) continue;
+      await input.fill(catalogNumber, { timeout: 5000 });
+      await page.keyboard.press("Enter");
+      return true;
+    } catch {
+      // A hidden/header duplicate can reject fill; keep looking for the next actual search box.
+    }
+  }
+  return false;
+}
+
 export async function renderProductPage(url: string, recipe: ScrapeRecipeConfig | undefined, signal?: AbortSignal): Promise<RenderedPage> {
   const session = new BrowserRenderSession();
   try {
@@ -209,6 +246,15 @@ export class BrowserRenderSession {
   }
 
   async renderProductPage(url: string, recipe: ScrapeRecipeConfig | undefined, signal?: AbortSignal): Promise<RenderedPage> {
+    return this.renderPage(url, recipe, signal);
+  }
+
+  /** Render a search page after entering the requested catalog number into its real UI control. */
+  async renderSearchPage(url: string, catalogNumber: string, recipe: ScrapeRecipeConfig | undefined, signal?: AbortSignal): Promise<RenderedPage> {
+    return this.renderPage(url, recipe, signal, catalogNumber);
+  }
+
+  private async renderPage(url: string, recipe: ScrapeRecipeConfig | undefined, signal?: AbortSignal, searchCatalogNumber?: string): Promise<RenderedPage> {
     if (signal?.aborted) throw new Error("Cancelled by user.");
     if (this.unavailableReason) {
       return {
@@ -245,6 +291,11 @@ export class BrowserRenderSession {
       }
       await page.waitForLoadState("networkidle", { timeout: recipe?.interactionPolicy?.networkIdleTimeoutMs ?? 12000 }).catch(() => undefined);
       await clickSafeSelectors(page, [...(recipe?.interactionPolicy?.closeOverlaySelectors ?? []), ...OVERLAY_CLOSE_SELECTORS], 5, signal);
+      if (searchCatalogNumber) {
+        await submitSearchInput(page, searchCatalogNumber);
+        await page.waitForLoadState("networkidle", { timeout: recipe?.interactionPolicy?.networkIdleTimeoutMs ?? 12000 }).catch(() => undefined);
+        await page.waitForTimeout(300);
+      }
       await clickSafeSelectors(page, recipe?.interactionPolicy?.localeSelectors ?? [], 4, signal);
       await waitForRecipeSelectors(page, recipe?.interactionPolicy?.waitForSelectors ?? [], signal);
       await scrollToBottom(page, recipe?.interactionPolicy?.scrollPasses ?? 2, signal);

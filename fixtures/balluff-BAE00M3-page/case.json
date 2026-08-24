@@ -1,0 +1,13 @@
+{
+  "id": "balluff-BAE00M3-page",
+  "manufacturerId": "balluff",
+  "catalogNumber": "BAE00M3",
+  "note": "Recorded balluff product page (428 kB), extracted from a past run's page cache. Guards the generic HTML understanding path for this vendor's page shape.",
+  "pages": [
+    {
+      "path": "page.html",
+      "url": "https://www.balluff.com/en-us/products/BAE00M3",
+      "sourceType": "official"
+    }
+  ]
+}

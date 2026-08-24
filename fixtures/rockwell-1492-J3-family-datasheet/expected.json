@@ -1,0 +1,24 @@
+{
+  "normalized": {
+    "color": "Grey"
+  },
+  "knownGaps": [
+    "normalized:color"
+  ],
+  "attributesInclude": [
+    { "name": "Maximum Current", "valueContains": "25 A" },
+    { "name": "Voltage Rating", "valueContains": "600V AC/DC" }
+  ],
+  "mustNotContain": [
+    "35 A",
+    "1492-J4",
+    "1492-J6"
+  ],
+  "_tier": "value-verified",
+  "_source": "Official Allen-Bradley Publication A117-CA001A-EN-P, p. 12-8. The target 1492-J3 is the first of three explicit variant columns; its Maximum Current row begins 25 A / 20 A / 24 A / 21 A, while 35 A begins the neighbouring 1492-J4 column.",
+  "_notes": {
+    "scope": "J4 and J6 product/ordering-code columns are sibling variants and must not be emitted for the target J3. An unscoped row that contains both target and sibling catalogues is suppressed rather than shown as a J3 attribute.",
+    "color": "The source's J3 ordering row says Grey, but the positioned reader does not yet reconstruct this row-oriented ordering block. `normalized:color` is an explicit known gap; outputting sibling J4/J6 codes is not acceptable.",
+    "voltage": "The J3 column publishes 600V AC/DC (plus certification-specific 800V and 550V values); this fixture only asserts the target's published 600V value."
+  }
+}

@@ -30,13 +30,14 @@ također opt-in: `PRODUCT_SCRAPER_ALLOW_EXTERNAL_READER=1`. Princip: vrijednosti
 | `src/server/config/` | `manufacturers.ts` — built-in profili + custom config |
 | `src/client/` | React UI (`App.tsx` monolitan, `Dropdown.tsx`, `api.ts`, `main.tsx`, `styles.css`) |
 | `src/desktop/` | Electron `main.cjs` / `preload.cjs` |
-| `src/shared/` | `types.ts` (+ `product-requirements.ts`) — tipovi za client i server |
+| `src/shared/` | `types.ts` (+ `product-requirements.ts`) — tipovi za client i server. `product-requirements.ts` (`requiredElectricalFields`) dijeli **dva korpusa**: "kakav je ovo uređaj" (bez tuđeg teksta — naslovi dokumenata, PDF proza, liste pribora) i "postoji li objavljeni rating" (SVE, dokumenti se računaju). Miješanje je dizalo napon na obično kućište (`hmi` iz naslova priručnika, `pressure` iz PDF proze) i gasilo ga PLC-u kojemu rating živi samo u PDF-u |
 | `tests/` | Vitest (44 fajla; 1 fajl ≈ 1 modul) |
 | `scripts/` | audit / benchmark / probe / desktop-boot alati (`.ts`→tsx, `.cjs`→Node) |
 | `templates/` | `master_pdt.xlsx` — izvor istine za PDT |
 | `patches/` | `patch-package` patchevi za bugove u ovisnostima (npr. `pdf-parse` `getTable()` crash) — auto-primijenjeno `npm install` postinstall hookom, **ne brisati** |
-| `benchmarks/` | Fixture proizvodi + izvještaji |
-| `docs/` | `ARCHITECTURE.md`, prezentacije, normalizacijske bilješke |
+| `benchmarks/` | Fixture proizvodi + izvještaji (**mrežni** live-check) |
+| `fixtures/` | **Offline eval korpus** — snimljeni HTML/PDF + `expected.json` s asertacijama na razini *vrijednosti* (`npm run eval`). Postoji jer je `benchmarks/` mrežni i tvrdi samo `Boolean(field)`, pa mu je klasa "vrijednost postoji ali je pogrešna" nevidljiva. Vidi [fixtures/README.md](fixtures/README.md) |
+| `docs/` | `ARCHITECTURE.md`, `COLD-START-PLAN.md` (analiza+plan za nepoznate vendore/datasheetove), `CLAUDE-HANDOFF.md` (zadnja točka rada i copy/paste prompt), prezentacije, normalizacijske bilješke |
 | `outputs/` `data/` `tmp/` | Runtime artefakti (DB, cache, workbookovi) — **ne uređivati ručno** |
 
 ## 3. Ulazne točke
@@ -47,7 +48,7 @@ također opt-in: `PRODUCT_SCRAPER_ALLOW_EXTERNAL_READER=1`. Princip: vrijednosti
 - **UI:** [src/client/main.tsx](src/client/main.tsx) → [App.tsx](src/client/App.tsx); API pozivi u [api.ts](src/client/api.ts).
 - **Scrape orkestracija:** [run-manager.ts](src/server/run-manager.ts) (`RunManager.processRun`).
 
-**API rute (sve u `index.ts`):** `GET/POST /api/manufacturers` (+`/inspect`,`/test`,`/:id/reset-override`)
+**API rute (sve u `index.ts`):** `GET/POST /api/manufacturers` (+`/:id/operational-summary` za read-only target-health/learned-endpoint pregled, `/inspect`,`/test`,`/:id/learned-extractors`,`/:id/reset-override`)
 · `POST /api/csv/preview` · `POST /api/runs` (multipart: CSV + customer docs) · `GET /api/runs[/:id]`
 (`?summary=1` → `summarizeRunItem`) · `PATCH /api/runs/:id/coverage-fields`
 · `POST /api/runs/:id/{cancel,pause,resume}` · `/files/{result,pdt,log,document}` (+`/open`)
@@ -186,15 +187,19 @@ Politike u `ManufacturerConfig.scrapeRecipe`: `DiscoveryPolicyConfig`, `Interact
 | Fajl | Ključni exporti |
 | --- | --- |
 | `index.ts` | (Express rute — vidi §3) |
-| `run-manager.ts` | `RunManager`, `documentDownloadProfile`, `shouldDownloadDocumentsForRun`, `documentDownloadCandidateUrls`, `imageFileName` |
-| `db.ts` | `ScraperDb` (svi DB upiti) |
+| `run-manager.ts` | `RunManager`, `documentDownloadProfile`, `shouldDownloadDocumentsForRun`, `documentDownloadCandidateUrls`, `imageFileName`; debug bundle uključuje learned endpoints i recent `stageObservations` |
+| `db.ts` | `ScraperDb` (svi DB upiti), uključujući `listStageObservations` za newest-first raw history i `listTargetHealth` za bounded per-host/stage dashboard prozore iza `target_health` agregata |
 | `csv.ts` | `previewCsv`, `extractCatalogNumbers` |
-| `excel.ts` | `exportRunWorkbook` |
-| `manufacturer-wizard.ts` | `inspectManufacturerDraft`, `testManufacturerDraft` |
+| `excel.ts` | `exportRunWorkbook` — izvozi `Unmapped Labels` teach-list s `quantity`/`text` kindom, deterministic/local-AI review prijedlozima i human review stupcima (approve/reject/needs-evidence, reviewer, source/fixture, note); workbook se nikad ne čita natrag u alias ili parser konfiguraciju |
+| `manufacturer-wizard.ts` | `inspectManufacturerDraft`, `testManufacturerDraft`, `confirmedLearnedExtractorSuggestions`, `wizardValidationKey`, `buildWizardAliasSuggestions`, `downloadWizardDocument`, `approveWizardLearnedExtractor`; save-gate zahtijeva 2/3 official identity-confirmed uzorka, UI nudi mined recipe za Save tek kada se isti strogi obrazac ponovi na dva takva uzorka, a server prihvaća approval samo uz svježi testni dokaz vezan uz isti ID/službene hostove. Potvrđeni PDP zapisuje reproducibilni HTML/case fixture pod wizard outputom, a do 8 enrichable službenih dokumenata prolazi isti PDF enrichment kao regularni run; nikad u curated korpus; API dopušta samo službeni HTTPS, host-matching `css:table-row:tr…`, `json:script:#id` ili strogi `html-table:header-column:table#id-or-class:encoded-header` recipe koji miner već zna replayati |
+| `scrapers/eaton-ordering-inference.ts` | Isključivo Eaton RapidLink offset/model-code adapter; shared `document-enrichment` predaje mu dokazanu baznu ordering-row funkciju, pa drugi proizvođači ne mogu naslijediti CDVRL/RASP5X pretpostavke |
+| `scrapers/pdf-positioned-table.ts` | Geometrijski PDF reader za comparison i ordering tablice; dominantno rotirane stranice normalizira cijele, a miješane stranice projicira samo dokazani vertikalni SKU-header sloj (≥2 variant tokena) |
+| `scrapers/llm-pdf-layout-proposals.ts` | Lokalni, po defaultu ugašen review helper: za već poznati PDF dopušta samo postojeći deterministic reader i bounded broj stranica; nema scraper import ni write-back put za vrijednosti, selektore, recepte ili konfiguraciju |
 | `config/manufacturers.ts` | `getManufacturerConfig`, `listManufacturerConfigs`, `saveManufacturerConfig`, `initializeManufacturerConfig`, `resetManufacturerOverride` |
 | `paths.ts` | `AppPaths`, `createAppPaths` |
 | `run-output.ts` | `buildRunOutputLayout`, `ensureRunOutputLayout`, `getAllowedRunOutputRoots`, `isPathInsideAny`, `findRunLogPath` |
 | `run-item-summary.ts` | `summarizeRunItem` |
+| `unit-conversion.ts` | `POUND_TO_KILOGRAM`, `POUND_TO_GRAM`, `OUNCE_TO_KILOGRAM`, `OUNCE_TO_GRAM`, `INCH_TO_MILLIMETER` — **leaf**, jedini izvor istine za imperijalne faktore (egzaktne definicije). Prije je pet modula imalo svoje kopije, tri odrezane (`0.453592`), pa je isti Saginaw kg izlazio različit iz products.xlsx i iz PDT resolvera. Ne deklarirati lokalne kopije.
 | `text-util.ts` | `cleanText`, `collapseWhitespace`, `collapseWhitespaceOrUndefined`, `uniqueStrings`, `slugify` — **leaf** text helpers (dependency sink; import from here, no local copies) |
 | `url-util.ts` | `sameNormalizedUrl`, `sameUrlIgnoringHash`, `sameUrlOriginAndPath` — **leaf** URL-equality helpers (3 distinct semantics — see file header) |
 
@@ -202,36 +207,42 @@ Politike u `ManufacturerConfig.scrapeRecipe`: `DiscoveryPolicyConfig`, `Interact
 | Fajl | Ključni exporti |
 | --- | --- |
 | `index.ts` | `getConnector` |
-| `types.ts` | `ScrapeContext`, `ManufacturerConnector` |
+| `types.ts` | `ScrapeContext` (uklj. per-item `discoveryMemo` koji connector/fallback/final retry dijele), `ManufacturerConnector` |
 | `http-client.ts` | `CachedHttpClient`, `FetchedText`, `delay`, `DEFAULT_USER_AGENT` (aktualni Chrome UA; ABB/Siemens Akamai edge odbija stare verzije) |
 | `browser-renderer.ts` | `BrowserRenderSession`, `renderProductPage`, `RenderedPage`, `ModalSection`, `clickSafeSelectors`, `captureFrameFragments`, `captureShadowDomFragments` (zadnja tri exportana za testove: klik-petlja s re-scanom + iframe + shadow-DOM capture) |
-| `deterministic-pipeline.ts` | `runDeterministicScrapePipeline` |
-| `discovery.ts` | `discoverOfficialProductCandidates`, `scoreDiscoveryCandidate` |
+| `deterministic-pipeline.ts` | `runDeterministicScrapePipeline` — nakon stvarnog quality-gate prolaza predaje potvrđeni službeni PDP u `learnEndpointFromNetworkFetch`, pa se samo dokazani `{part}` URL put sprema za iduće kataloge; connectorov i oba fallback pokušaja dijele itemov discovery memo |
+| `discovery.ts` | `discoverOfficialProductCandidates`, `scoreDiscoveryCandidate` — memoizira uspješan discovery samo unutar `ScrapeContext.discoveryMemo`; transient rejection se izbacuje da retry smije pokušati ponovno |
 | `discovery-fallback.ts` | `scrapeDiscoveredFallback`, `withDiscoveryFallbackDiagnostics` |
 | `link-discovery.ts` | `findBestProductLink`, `discoverProductLinks(WithDiagnostics)` |
 | `learned-endpoints.ts` | `LearnedEndpointStore`, `learnedEndpointUrls`, `learnEndpointFromNetworkFetch` |
 | `localized-urls.ts` | `buildLocalizedProductUrls`, `canonicalizeNventLocaleUrl`, `canonicalizeProductLocaleUrls` (collapse geo-locale `/en-xx/`→`/en-us/`) |
 | `generic.ts` | `parseGenericProductPage`, `GenericFallbackScraper`, `isUnresolvedSearchResultPage` |
+| `html-table-reader.ts` | Span-aware DOM table reader used by `generic.ts` and adaptive `page-mining.ts`: expands colspan/rowspan into a matrix, merges headers and selects the one catalog/ordering-code variant column; it also selects a unique ordering-code row in two-cell option lookups and target-labelled columns in a one-row interactive configurator. Repeated coordinates of the same colspan label cell are layout only and never echoed into its value; ambiguous selections emit nothing. It can replay a validated stable table plus actual header input, but still re-proves the requested catalog variant. |
+| `html-page-level.ts` | PDP-vs-family classifier for generic HTML: detects target-plus-sibling catalog codes in product content and requires variant scope before family-page values can fill variant fields. |
 | `smart-fallback.ts` | `runSmartFallbackPipeline` |
-| `page-intelligence.ts` | `runAdaptivePageIntelligence`, `mergeFetchedPageMining` |
-| `page-mining.ts` | `minePage`, `PageMiningResult`, `PageMiningOptions` |
+| `page-intelligence.ts` | `runAdaptivePageIntelligence`, `mergeFetchedPageMining` — u `learned_extractors` zapisuje samo replayable CSS-row, JSON-script i span-aware HTML-table recipeje te ograničene `capped:*` mine-budget hintove; dokazani recipeji se mogu predložiti wizardu, a tek operatorovo odobrenje na službenom hostu ih sprema za replay |
+| `page-mining.ts` | `minePage`, `PageMiningResult`, `PageMiningOptions`, `isPersistableLearnedPattern`; compactni inline `Label: value` tekst segmentira strogo preko ontološkog/registry label-prefixa, bez engleskog allowlista. `css:table-row:tr#id` / `tr.class`, `json:script:#id` i `html-table:header-column:table#id-or-class:encoded-header` learned recipeji su strogo whitelistani i replayaju se prije generičkog sweeepa; HTML recept ponovno bira traženi katalog kroz matrix reader, pa ne spaja sibling stupce. |
 | `interaction-explorer.ts` | `adaptiveInteractionSelectors` |
 | `field-candidates.ts` | `applyFieldCandidateResolution`, `buildFieldCandidates`, `buildFieldResolutions` |
 | `mission-control.ts` | `shouldRunAdaptiveMining`, `driftFromTargetHealth` |
+| `target-health-policy.ts` | zajednička policy za normalni 8-sample drift i strogi 3-sample catastrophic bootstrap; istu odluku koriste runtime adaptive mining i DB operational summary |
 | `target-health.ts` | `recordTargetObservation` |
-| `quality-gate.ts` | `evaluateQualityGate`, `applyQualityGate`, `finalizeQualityGate` |
-| `final-completeness.ts` | `evaluateFinalCompleteness`, `repairFinalCompletenessFromEvidence`, `finalNetworkRetryDecision`, `withFinalCompletenessPolicy` |
+| `quality-gate.ts` | `evaluateQualityGate`, `applyQualityGate`, `finalizeQualityGate`. **Opt-out:** `qualityPolicy.notApplicableFields` briše polje i iz `requiredNormalizedFields` liste i iz device-type električnog zahtjeva — bez toga gate vječno pada na polju koje korisnik ne traži i svaki takav red plati dodatni fallback krug |
+| `final-completeness.ts` | `evaluateFinalCompleteness`, `repairFinalCompletenessFromEvidence`, `finalNetworkRetryDecision`, `withFinalCompletenessPolicy`. `notApplicableFields` se u `finalFieldRequirement` provjerava **prvo** (prije profila i električne heuristike) → polje ne ulazi u `retryMissing`, pa nema mrežnog retryja |
 | `evidence.ts` | `attachEvidence` (+ field candidate/resolution diagnostics) |
 | `dedupe.ts` | `dedupeAttributes`, `dedupeDocuments`, `dedupeSources`, `canonicalDocumentUrlKey` |
-| `document-enrichment.ts` | `enrichResultFromDownloadedDocuments`, `enrichResultFromRemoteDocuments`, `extractDocumentTextAttributes` (now also takes `tables?: TableArray[]` from `pdf-parse`'s `getTable()` vector-grid table detection), `documentAttributesAreSubstantive`, `looksLikeMultiVariantFamilyPage` (jeftin, bez re-parsea: neka linija prints naš catalog uz ≥1 drugi distinct model-kod → familijska/usporedna stranica; force-runa positioned reader čak i kad W/D izgledaju čisto, jer tab-heuristika zna napuniti cross-model vrijednost koja *izgleda* čista) |
-| `pdf-positioned-table.ts` | `extractPositionedTableRows(FromPdf)`, `extractPositionedWeightAndDimensions(FromPdf)` — **strukturno pouzdan** tablični čitač: klasterira prave x/y iz `pdfjs-dist` → rekonstruira vizualne stupce (rješava merged-column tablice koje tekst/tab heuristika ne može). **Anchor generaliziran s Rockwell "Catalog Number" na BILO KOJI proizvođač:** `candidateHeaderAnchors` sidri na jaki id-label iz `catalog-table-vocabulary` (EN/DE/FR/IT), a ako ga nema — sintetizira anchor iz header-reda variant-tokena + najljevljeg label-stupca; page-gate (`pageMentionsCatalog`) veže se na NAŠ kataloški token, ne na literal. Refuse-to-guess: naš token u >1 x-klasteru → undefined |
+| `document-enrichment.ts` | `enrichResultFromDownloadedDocuments`, `enrichResultFromRemoteDocuments`, `extractDocumentTextAttributes` (now also takes `tables?: TableArray[]` from `pdf-parse`'s `getTable()` vector-grid table detection), `documentAttributesAreSubstantive`, `looksLikeMultiVariantFamilyPage` (jeftin, bez re-parsea: neka linija prints naš catalog uz ≥1 drugi distinct model-kod → familijska/usporedna stranica; force-runa positioned reader čak i kad W/D izgledaju čisto, jer tab-heuristika zna napuniti cross-model vrijednost koja *izgleda* čista). Family-prefix PDF evidence is stamped `matchLevel: family` and may retain only shared material/standard/certification attributes; product rows remain exact-only. |
+| `pdf-positioned-table.ts` | `extractPositionedTableRows(FromPdf)`, `extractPositionedWeightAndDimensions(FromPdf)`, `extractPositionedOrderingRow`, `normalizeDominantPageOrientation`, `derivePositionedTableGeometry` — **strukturno pouzdan** tablični čitač: klasterira prave x/y iz `pdfjs-dist` → rekonstruira vizualne stupce (rješava merged-column tablice koje tekst/tab heuristika ne može). X/Y tolerancije su medijan stvarnih SKU-stupaca i line baselinea (fallback su dokazani stari pragovi), pa uski susjedni stupci ne kolabiraju. Dominantno rotirana stranica vraća se u isti prostor iz `[a,b,c,d]` transformi prije prechecka i carry-overa; miješani vertikalni headeri se konzervativno ne miješaju. Uz catalog-in-header put, fallback `extractPositionedOrderingRow` čita row-orijentiranu tablicu: exact target-model red → headeri u istom x-stupcu (bez prefix-nagađanja). `extractPositionedTableRowsFromPdf` prenosi prethodni target-header samo na neposredno x/y-kompatibilnu continuation stranicu i resetira ga na prvom neuspješnom mapiranju. **Anchor generaliziran s Rockwell "Catalog Number" na BILO KOJI proizvođač:** `candidateHeaderAnchors` sidri na jaki id-label iz `catalog-table-vocabulary` (EN/DE/FR/IT), a ako ga nema — sintetizira anchor iz header-reda variant-tokena + najljevljeg label-stupca; page-gate (`pageMentionsCatalog`) veže se na NAŠ kataloški token, ne na literal. Refuse-to-guess: naš token u >1 x-klasteru → undefined |
+| `spec-plausibility.ts` | `isPlausibleSpecValue`, `isPlausibleSpecLabel`, `isPlausibleSpecPair`, `looksLikeHeaderRowValue`, `specPlausibilityGateDisabled` — **leaf** gate "je li ovo uopće specifikacija". Vezan na DVA choke pointa: `stampDocumentAttributes` (svi PDF čitači) i `parseGenericProductPage` prije capa (svi HTML ekstraktori). Odbacuje C0 kontrolne znakove (pokvaren font cmap), TOC dot-leadere, inline CSS, boilerplate/imprint, **instrukcije** (`should`/`must`/`be installed`), rečenične fragmente, nezatvorene zagrade, cijele rečenice i **header red parsiran kao podatak**. Jedno pravilo na granici umjesto zakrpa po ekstraktorima. **Zamka:** jedinice kolidiraju s funkcijskim riječima (`A`=amper vs član, `in`=inch, `F`/`K`) → fragment-pravila se primjenjuju samo na tekst BEZ cifara. Kill switch `PRODUCT_SCRAPER_DISABLE_SPEC_GATE=1` (call-time) za audit i kao operativni ventil |
 | `catalog-table-vocabulary.ts` | `catalogTableKeyFor` (header ćelija → kanonski ključ, EN/DE/FR/IT), `isCatalogIdHeaderCell` (jaki id-stupac label whole-cell), `isCatalogTableHeaderText` (broad header-row test) — **jedini izvor istine** za tablične headere; prije dupliciran regex u 3 funkcije `document-enrichment.ts` (draftao). Ne uvoditi lokalne kopije |
 | `document-url.ts` | `isPdfLikeDocument(Url)`, `documentUrlLooksRelevant`, `documentUrlLooksDownloadable` |
 | `document-viewer-resolver.ts` | `isDocumentViewerUrl`, `extractEmbeddedPdfAssetUrl`, `resolveViewerPdfUrl` — HTML PDF-viewer wrapper → pravi (potpisani) PDF asset. Konkretno ABB library `search.abb.com/library/Download.aspx?...&Action=Launch` vraća HTML s `<iframe src=library.e.abb.com/.../<id>_view.pdf?x-sign=…>`; run-manager (`resolvePdfDownloadPlan`) ga razriješi pri downloadu i skine PDF, a u exportu čuva stabilni Download.aspx link (potpisani URL brzo istekne) |
+| `discovery.ts` | `discoverOfficialProductCandidates`, `scoreDiscoveryCandidate`, `scoreFetchedDiscoveryEvidence` — URL score samo određuje redoslijed pokušaja; nakon fetch-a exact SKU mora biti na PDP identity surfaceu (`title`/`h1`/OG/Product JSON-LD) prije parsiranja i mergea. Search-result effective URL nije dokaz čak ni ako ponavlja SKU, **osim** kad službeni catalog-search HTTP redirect već završava na ne-search URL-u s exact SKU-om: tada se taj browser-observed PDP URL čuva kao kandidat, ne konstruira se. Kada lokalni homepage nema formu, najviše dva njegova službena `hreflang` alternata mogu biti dodatni locale ulazi za stvarni GET/POST search-form submit. |
 | `source-document-discovery.ts` | `discoverSourceDocumentsWithDiagnostics` |
-| `pdf-ocr.ts` | `readPdfWithOptionalOcr` (pdftoppm+tesseract CLI first; falls back to pdf-parse's `getScreenshot()` + `tesseract.js` WASM OCR when those binaries aren't on PATH — always available, no install needed) |
+| `pdf-ocr.ts` | `readPdfWithOptionalOcr`, `pdfPagesNeedingOcr`, `inferOcrLanguage`, `ocrLinesToPositionedItems` (pdftoppm+tesseract CLI first; falls back to pdf-parse's `getScreenshot()` + `tesseract.js` WASM OCR when those binaries aren't on PATH — always available, no install needed). OCR je per-page: samo sparse/glyph-noisy native stranice se renderiraju, rezultat prolazi quality gate, a lokalni jezik se bira samo iz ≥2 specifična native tehnička signala; nejasno ili bez paketa → `eng`. Pri JS OCR-u pouzdani line bboxovi ostaju y-up positioned items i prolaze kroz isti SKU-column dokaz `pdf-positioned-table.ts`; nisu slobodni tekstualni sweep |
 | `customer-documents.ts` | `extractCustomerDocumentAttributes`, `applyCustomerDocumentOverride`, `CustomerDocumentParseCache` |
-| `catalog-number.ts` | `sameCatalogNumber`, `fillCatalogTemplate`, `catalogNumberVariants`, `buildConfiguredLocalizedUrls`, `compactCatalogNumber` |
+| `catalog-number.ts` | `sameCatalogNumber`, `fillCatalogTemplate`, `catalogNumberVariants`, `buildConfiguredLocalizedUrls`, `compactCatalogNumber`, `findCatalogTextMatch` / `catalogMatchLevel` — strict boundary-safe exact identity plus explicit separator-bounded family level. Do not replace legacy tolerant `catalogTextMatches` globally. |
+| `ordering-code-legend.ts` | Generic `CODE = value` / declared-position ordering-code legend decoder. Only decodes a one-character option when the source declares its code position; `document-enrichment.ts` uses it before the legacy protection-specific fallback. |
 | `product-identity.ts` | `structuredIdentityConflict`, `hasMatchingStructuredIdentity`, `identityConflictReason` |
 | `marker-extractor.ts` | `extractMarkerData` |
 | `electrical-spec-miner.ts` | `extractElectricalSpecAttributesFromText` (hand-tuned voltage/current/power), `extractOntologySpecAttributesFromText` (same label+context-window engine driven by `ontology.ts`'s `PROPERTY_ONTOLOGY` — mines dimensions/weight/temperature/torque/pressure/etc. directly from PDF prose), `extractInlineNameplateSpecAttributes` (unlabeled comma-separated nameplate strings "3AC 230V, 5.5kW, 20A" / "3x400V ±10%, 50/60Hz, 7.5HP, IP20" — tokenizer čistih value+unit segmenata s fazom/AC-DC/tolerancijom/HP/kVA/IP/temp/kg; gate: ≥2 električna pogotka ili napon+frekvencija po liniji; koristi se i po ćeliji u customer xlsx/CSV matrici) |
@@ -240,11 +251,15 @@ Politike u `ManufacturerConfig.scrapeRecipe`: `DiscoveryPolicyConfig`, `Interact
 | Fajl | Ključni exporti |
 | --- | --- |
 | `normalizer.ts` | `mergeResults`, `emptyResult`, `normalizeFields`, `cleanText`, `splitNameValue` (dijeli na `:`/`=`, odbacuje value-fragment "labele" preko `isValueFragmentLabel` ali čuva "W x H x D"), `isValueFragmentLabel`, `classifyDocument`. **kA surge/fault (breaking capacity, discharge/impulse/short-circuit current) NE smiju u rated current** — `isLowValueCurrentLabel` gard u SVA 4 puta (bestNormalized/registry/ontology/inferred); `Ui`/`Uimp` isto preko `isLowValueVoltageLabel`. NB: 3 divergentna label-sustava (FIELD_LABEL_PATTERNS+FIELD_REGISTRY+ontology) → gard treba u svakom putu |
-| `ontology.ts` | `PROPERTY_ONTOLOGY`, `matchProperty`, `understand`, `findUnmappedSpecLabels`, `inferPropertyFromQuantities` (unit-driven fallback za labele koje nijedan sinonim ne zna: V/A/W/Hz/°C/kg vrijednost → ratedVoltage/ratedCurrent/power(Loss/Consumption)/frequency/operating-storageTemperature/weight, s višejezičnim blokadama opasnih kvalifikatora; koristi ga technical-attributes (`matchType:"unit_inference"`, niži confidence) i normalizer kao zadnji fallback za voltage/current/weight) |
+| `evidence-score.ts` | `evidenceTier`, `evidenceConfidence` — imenovani provenance tierovi (`official-document`, `official-page`, fallback, generated, cache, distributor) i zajednička ograničena 0..1 baza za rangiranje evidence izvora u normalizeru, field-candidate rezoluciji i final-field repairu; customer override i field-semantika ostaju izvan ovog leafa |
+| `evidence-audit.ts` | `auditResultEvidence` — zajednički offline dokaz provenance pokrivenosti za spremljeni rezultat: svaku atributnu/dokument/source činjenicu mapira u isti tier i score, nasljeđuje source metadata samo kada URL stvarno odgovara, te prijavljuje nerazriješiv URL ili raw confidence izvan 0..1; CLI `audit:confidence` radi nad najnovijim stvarnim rezultatima svakog konektora |
+| `llm-label-proposals.ts` | `proposeUnmappedLabelMappings` — eksplicitno opt-in lokalni Ollama batch za review-only `unmapped label → postojeći canonicalKey` prijedloge; validira točnu ulaznu oznaku i ontology allow-list te nikad ne dodaje alias, mijenja vrijednost ili ulazi u parser |
+| `ontology.ts` | `PROPERTY_ONTOLOGY`, `matchProperty`, `matchPropertyPrefix`, `understand`, `findUnmappedSpecLabels`, `inferPropertyFromQuantities` (unit-driven fallback za labele koje nijedan sinonim ne zna: V/A/W/Hz/°C/kg vrijednost → ratedVoltage/ratedCurrent/power(Loss/Consumption)/frequency/operating-storageTemperature/weight, s višejezičnim blokadama opasnih kvalifikatora; `findUnmappedSpecLabels` nosi review-only `{label,valueKind}` i za kratke tekstualne vrijednosti iz spec-konteksta, ali odbija meta/search/document šum; koristi ga technical-attributes (`matchType:"unit_inference"`, niži confidence) i normalizer kao zadnji fallback za voltage/current/weight) |
 | `quantity.ts` | `parseQuantities`, `parseTemperatureRange`, `quantityMin/Max`, `ParsedQuantity`. Jedinice uklj. **°F/degF→°C konverzija** (prije: "-40 to 185 °F" se čitao kao 185 °C), `%`,`rpm`,`hp`,`N/kN`,`dB`,`ms/s`,`hPa/mmHg/Torr/atm`; kind-ovi force/speed/soundLevel/time/ratio. Bare `N`/`s` zadnji u UNIT_PATTERN + `(?![a-zµ])` gard; `Nm` prije `N`. ± tolerancija `%` se filtrira iz matcheva prije petlje |
 | `technical-attributes.ts` | `normalizeTechnicalAttributes` |
-| `technical-attribute-aliases.ts` | `TECHNICAL_ATTRIBUTE_ALIASES`, `listTechnicalAttributeAliases`, `matchTechnicalAttributeAlias`, `suggestTechnicalAttributeAlias` (zadnji: prijedlog najbližeg kanonskog ključa za "Unmapped Labels") |
-| `field-registry.ts` | `FIELD_REGISTRY`, `fieldDefinition`, `findFieldSourceAttribute`, `buildFieldHealth` |
+| `technical-attribute-aliases.ts` | `TECHNICAL_ATTRIBUTE_ALIASES`, `listTechnicalAttributeAliases`, `matchTechnicalAttributeAlias`, `suggestTechnicalAttributeAlias` (zadnji: review prijedlog najbližeg kanonskog ključa za `Unmapped Labels`, ali tek od 0,75 i samo globalni + eksplicitno odabrani manufacturer aliasi; manufacturer ID je otvoreni string za nove vendore) |
+| `field-registry.ts` | `FIELD_REGISTRY`, `fieldDefinition`, `matchRegistryFieldLabelPrefix`, `findFieldSourceAttribute`, `buildFieldHealth`; health zadržava čitljiv `reason` i stabilni `reasonCode` za discovery/parse/scope/conflict/value-rejection blokatore |
+| `shared/run-diagnostics.ts` | `summarizeRunDiagnostics` — shared, payload-only agregat `reasonCode` blokatora, document procesa i discovery odbijanja za run dashboard; ne uvodi novu heuristiku niti zahtijeva raw result JSON |
 | `device-type.ts` | `classifyDeviceType`, `knownDeviceTypes`. Tekst-kanal pobjednik po `definitionPriority` PRVO → bare tokeni (`motor/switch/cable/valve/pump/filter`) su u niskom tieru (615, ispod Sensor 620) da "motor cable"→Cable, "limit switch"→Sensor; DE/FR/IT nazivi u specifičnim pravilima (Leitungsschutzschalter→MCB, Schütz≠Schutz→Contactor, Näherungsschalter, Trennschalter/sezionatore, disjoncteur, Reihenklemme, Netzteil, Transformator, Sicherung) |
 | `device-type-families.ts` / `device-type-urls.ts` | `familyTypeFor` / `urlTypeFor` |
 | `tight-context.ts` | `buildTightContextForCatalog`, `buildVariantColumnContext` |
@@ -349,7 +364,7 @@ fallback = Access Denied/timeout).
 | Scrape redoslijed / fallback | [deterministic-pipeline.ts](src/server/scrapers/deterministic-pipeline.ts), [smart-fallback.ts](src/server/scrapers/smart-fallback.ts) |
 | Discovery / URL nalaženje | [discovery.ts](src/server/scrapers/discovery.ts), [link-discovery.ts](src/server/scrapers/link-discovery.ts), [learned-endpoints.ts](src/server/scrapers/learned-endpoints.ts) |
 | Normalizacija / jedinice / značenja | [ontology.ts](src/server/scrapers/ontology.ts), [normalizer.ts](src/server/scrapers/normalizer.ts), [quantity.ts](src/server/scrapers/quantity.ts) |
-| Koje manufacturer-labele ontologija još ne prepoznaje | `npx tsx scripts/audit-unmapped-spec-labels.ts` — findUnmappedSpecLabels nad cijelom povijesti runova iz `data/scraper.db`, rangirano po učestalosti |
+| Koje manufacturer-labele ontologija još ne prepoznaje | `npx tsx scripts/audit-unmapped-spec-labels.ts` — findUnmappedSpecLabels nad cijelom povijesti runova iz `data/scraper.db`, rangirano po učestalosti i `quantity`/`text` kindu |
 | Ocjena found/partial/failed | [quality-gate.ts](src/server/scrapers/quality-gate.ts), [final-completeness.ts](src/server/scrapers/final-completeness.ts) |
 | Čitanje PDF/datasheet | [document-enrichment.ts](src/server/scrapers/document-enrichment.ts), [pdf-ocr.ts](src/server/scrapers/pdf-ocr.ts) |
 | Klasifikacija uređaja | [device-type.ts](src/server/scrapers/device-type.ts) |
@@ -362,12 +377,20 @@ fallback = Access Denied/timeout).
 | Playwright rendering | [browser-renderer.ts](src/server/scrapers/browser-renderer.ts) |
 | UI / dashboard | [client/App.tsx](src/client/App.tsx), [client/api.ts](src/client/api.ts) |
 | Electron boot | [scripts/start-desktop.cjs](scripts/start-desktop.cjs), [desktop/main.cjs](src/desktop/main.cjs) |
-| Benchmark / audit | `scripts/benchmark.ts`, `scripts/audit-*.ts` (`npm run benchmark`, `npm run audit:pdt`) |
+| Benchmark / audit | `scripts/benchmark.ts`, `scripts/audit-*.ts` (`npm run benchmark`, `npm run audit:pdt`); `npm run audit:page-attrs -- --limit 200` replaya generic HTML parser nad cacheom, `--trace` označava start/done svakog URL-a za izoliranje sporog oblika, a `--contains <text>` uz trace ispisuje točan URL/atribut koji nosi sumnjivu vrijednost; `npm run audit:ocr-corpus` deduplicira offline PDF korpus i izlistava samo native-sparse stranice koje eventualno mogu opravdati OCR fixture/pravilo |
+| Offline regresija ekstrakcije (vrijednosti, ne prisutnost) | [scripts/eval.ts](scripts/eval.ts) + [scripts/eval-core.ts](scripts/eval-core.ts) + [fixtures/](fixtures/README.md) (`npm run eval`) |
+| Mjerenje discoveryja offline (hit@1/hit@3 protiv `run_items` ground trutha) | [scripts/audit-discovery.ts](scripts/audit-discovery.ts) (`npm run audit:discovery -- --limit 40`) — replaya `discoverOfficialProductCandidates` protiv `page_cache`; apsolutne vrijednosti su donja granica, koristi za prije/poslije |
+| Vađenje HTML fixtura iz keša prošlih runova (~2600 stranica, 10 vendora) | [scripts/extract-page-fixtures.ts](scripts/extract-page-fixtures.ts) (`npm run fixtures:extract -- --list`) — joina `page_cache` + `run_items` iz `data/scraper.db`; piše samo `case.json`, `expected.json` je ljudski posao |
+| Provjera da izmjena ne šteti POSTOJEĆIM proizvođačima | [scripts/audit-spec-plausibility.ts](scripts/audit-spec-plausibility.ts) (`npm run audit:spec-gate`) — vrti pravi pipeline gated+ungated nad ~1300 stvarnih PDF-ova iz `benchmarks/output/`; **0 SUSPECT** izgubljenih vrijednosti je uvjet |
+| Plan za nepoznate vendore/datasheetove | [docs/COLD-START-PLAN.md](docs/COLD-START-PLAN.md) |
 
 ## 10. Komande
 
 `npm run dev` (API+UI) · `npm run desktop` (Electron) · `npm run server` · `npm run build` (`tsc --noEmit`+vite)
-· `npm test` (vitest) · `npm run benchmark` · `npm run audit:pdt` · `npm run clean:pdt-input`.
+· `npm test` (vitest) · **`npm run eval`** (offline value-level regresija nad `fixtures/`; `-- --case <id>`,
+`--write-actual`, `--json <path>`) · **`npm run audit:spec-gate`** (utjecaj na postojeće proizvođače nad
+stvarnim PDF-ovima; `-- --limit 220`) · `npm run benchmark` (mrežni) · `npm run audit:pdt` · `npm run clean:pdt-input`.
+`npm run review:pdf-layouts -- --input <json>` je lokalni opt-in, read-only PDF-layout review output; ne mijenja recipe ni rezultat scrapea. `npm run audit:ocr-corpus -- --json tmp/ocr-corpus.json` je read-only pregled kandidata za OCR kalibraciju; ne pokreće OCR i ne mijenja fixture, recipe ni rezultat scrapea.
 
 ---
 

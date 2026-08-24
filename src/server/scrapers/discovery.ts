@@ -1,12 +1,13 @@
 import { uniqueStrings } from "../text-util.js";
 import * as cheerio from "cheerio";
 import type { DocumentRecord, ManufacturerConfig, ScrapeDiagnostics, SourceRecord } from "../../shared/types.js";
-import { catalogTextMatches, compactCatalogNumber, fillCatalogTemplate, templateContainsCatalogPlaceholder } from "./catalog-number.js";
+import { catalogTextMatches, compactCatalogNumber, fillCatalogTemplate, findCatalogTextMatch, templateContainsCatalogPlaceholder } from "./catalog-number.js";
 import type { FetchedText } from "./http-client.js";
 import type { ScrapeContext } from "./types.js";
 import { discoverProductLinksWithDiagnostics } from "./link-discovery.js";
 import { learnEndpointFromNetworkFetch, learnedEndpointUrls } from "./learned-endpoints.js";
 import { discoverSourceDocumentsWithDiagnostics } from "./source-document-discovery.js";
+import { urlLooksCompressed } from "./gzip-text.js";
 
 /** Score penalty for a learned endpoint that hasn't succeeded recently. `lastSuccessAt` only
  * advances on a real success, so a broken endpoint's timestamp freezes and ages out. Mild before
@@ -35,7 +36,30 @@ export interface ProductDiscoveryResult {
   diagnostics: Pick<ScrapeDiagnostics, "attemptedUrls" | "discoveredCandidates" | "rejectedLinks" | "notes">;
 }
 
+interface SearchDiscoveryRequest {
+  url: string;
+  method: "GET" | "POST";
+  body?: URLSearchParams;
+}
+
 export async function discoverOfficialProductCandidates(catalogNumber: string, context: ScrapeContext): Promise<ProductDiscoveryResult> {
+  const memoKey = `${context.manufacturer.id}\u0000${compactCatalogNumber(catalogNumber) || catalogNumber.trim().toUpperCase()}`;
+  const existing = context.discoveryMemo?.get(memoKey);
+  if (existing) return existing;
+
+  const discovery = discoverOfficialProductCandidatesUncached(catalogNumber, context);
+  context.discoveryMemo?.set(memoKey, discovery);
+  try {
+    return await discovery;
+  } catch (error) {
+    // A transient network failure is not a learned negative result. Leave a later retry free to
+    // make a fresh attempt instead of replaying a rejected promise for the rest of the item.
+    if (context.discoveryMemo?.get(memoKey) === discovery) context.discoveryMemo.delete(memoKey);
+    throw error;
+  }
+}
+
+async function discoverOfficialProductCandidatesUncached(catalogNumber: string, context: ScrapeContext): Promise<ProductDiscoveryResult> {
   const candidates = new Map<string, ProductDiscoveryCandidate>();
   const attemptedUrls: string[] = [];
   const rejectedLinks: NonNullable<ScrapeDiagnostics["rejectedLinks"]> = [];
@@ -118,16 +142,37 @@ export async function discoverOfficialProductCandidates(catalogNumber: string, c
   const processedSearchUrls = new Set<string>();
   let searchedUrlCount = 0;
 
-  const processSearchUrls = async (urls: string[]): Promise<void> => {
-    for (const searchUrl of uniqueStrings(urls)) {
+  const processSearchRequests = async (requests: SearchDiscoveryRequest[]): Promise<void> => {
+    const uniqueRequests = new Map<string, SearchDiscoveryRequest>();
+    for (const request of requests) {
+      const key = `${request.method}\n${request.url}\n${request.body?.toString() ?? ""}`;
+      if (!uniqueRequests.has(key)) uniqueRequests.set(key, request);
+    }
+    for (const request of uniqueRequests.values()) {
       if (searchedUrlCount >= 28) break;
-      if (processedSearchUrls.has(searchUrl)) continue;
-      processedSearchUrls.add(searchUrl);
+      const requestKey = `${request.method}\n${request.url}\n${request.body?.toString() ?? ""}`;
+      if (processedSearchUrls.has(requestKey)) continue;
+      processedSearchUrls.add(requestKey);
       searchedUrlCount += 1;
-      attemptedUrls.push(searchUrl);
+      attemptedUrls.push(request.method === "GET" ? request.url : `${request.method} ${request.url}`);
       let discoveredCount = 0;
       try {
-        const fetched = await fetchDiscoveryText(searchUrl, context);
+        const fetched = await fetchDiscoveryText(request.url, context, request);
+        const redirectedProductUrl = exactOfficialProductRedirectUrl(fetched, request.url, catalogNumber, manufacturer);
+        if (redirectedProductUrl) {
+          // Some official catalogue searches (Fath is a real example) answer the exact SKU with a
+          // 30x straight to its PDP and no result anchors at all. The final URL is browser-observed
+          // evidence, not a constructed URL guess. Keep it so the deterministic pipeline fetches
+          // the PDP directly on the next step rather than treating the search endpoint as a product.
+          discoveredCount += 1;
+          add({
+            url: redirectedProductUrl,
+            score: scoreDiscoveryCandidate(redirectedProductUrl, catalogNumber, "search-result", manufacturer) + 12,
+            reason: "official catalog search redirected to exact product URL",
+            stage: "search-result",
+            sourceType: "official-fallback"
+          });
+        }
         const discovered = discoverProductLinksWithDiagnostics(fetched.text, fetched.effectiveUrl, catalogNumber);
         rejectedLinks.push(...discovered.rejected);
         const sourceDocuments = discoverSourceDocumentsWithDiagnostics(fetched.text, fetched.effectiveUrl, catalogNumber, {
@@ -148,28 +193,43 @@ export async function discoverOfficialProductCandidates(catalogNumber: string, c
           });
         }
       } catch (error) {
-        notes.push(`Search discovery failed for ${searchUrl}: ${formatError(error)}`);
+        notes.push(`Search discovery failed for ${request.method} ${request.url}: ${formatError(error)}`);
       }
-      if (discoveredCount === 0) renderedSearchCandidates.push(searchUrl);
+      if (discoveredCount === 0 && request.method === "GET") renderedSearchCandidates.push(request.url);
       if (configuredSearchUrls.length && searchedUrlCount >= configuredSearchUrls.length && hasSearchResultCandidate(candidates)) break;
     }
   };
 
   // Configured + generic search-URL templates first (cheap: no extra page fetch to find a form).
-  await processSearchUrls(searchTemplates(manufacturer).map((template) => fillCatalogTemplate(template, catalogNumber)));
+  await processSearchRequests(searchTemplates(manufacturer).map((template) => ({
+    url: fillCatalogTemplate(template, catalogNumber),
+    method: "GET" as const
+  })));
   // Fallback for EVERY connector: if templates surfaced no product, auto-discover the site’s real
   // search FORM from the homepage and submit the catalog number to it — i.e. "type it into their
   // search box". Previously this ran only when no search templates were configured, so a broken or
   // renamed configured endpoint disabled on-site search entirely; now it is a universal safety net.
   if (!hasSearchResultCandidate(candidates)) {
-    await processSearchUrls(await discoverSearchFormUrls(catalogNumber, context, attemptedUrls, notes));
+    const formRequests = await discoverSearchFormRequests(catalogNumber, context, attemptedUrls, notes);
+    const allowedFormRequests = formRequests.filter((request) => {
+      if (isAllowedOfficialUrl(request.url, manufacturer)) return true;
+      rejectedLinks.push({
+        url: request.url,
+        reason: `Rejected ${request.method} search-form action outside allowed official domains`
+      });
+      return false;
+    });
+    await processSearchRequests(allowedFormRequests);
   }
 
   if (!hasSearchResultCandidate(candidates) && shouldUseRenderedSearchDiscovery(context)) {
     for (const searchUrl of renderedSearchCandidates.slice(0, 4)) {
       attemptedUrls.push(`browser:${searchUrl}`);
       try {
-        const rendered = await context.browserRenderer!.renderProductPage(searchUrl, manufacturer.scrapeRecipe, context.signal);
+        // Older/injected renderers may only implement the original page method; production sessions
+        // use renderSearchPage to fill the actual site search box before collecting its XHR/results.
+        const rendered = await context.browserRenderer!.renderSearchPage?.(searchUrl, catalogNumber, manufacturer.scrapeRecipe, context.signal)
+          ?? await context.browserRenderer!.renderProductPage(searchUrl, manufacturer.scrapeRecipe, context.signal);
         const renderedTexts = [
           ...(rendered.fetched ? [rendered.fetched] : []),
           ...rendered.networkTexts.filter((fetched) => /search|suggest|product|catalog|sku|api|json/i.test(`${fetched.effectiveUrl} ${fetched.contentType}`)).slice(0, 8)
@@ -214,17 +274,16 @@ export async function discoverOfficialProductCandidates(catalogNumber: string, c
     }
   }
 
-  for (const url of officialVariantUrls(manufacturer, catalogNumber)) {
-    add({
-      url,
-      score: scoreDiscoveryCandidate(url, catalogNumber, "url-variant", manufacturer),
-      reason: "official URL variant",
-      stage: "url-variant",
-      sourceType: "official-fallback"
-    });
-  }
-
-  if ((policy?.enableRobotsSitemaps ?? true) && candidates.size < Math.max(4, maxCandidates / 2)) {
+  // Sitemaps run BEFORE URL guessing, and are gated on evidence rather than on a candidate count.
+  //
+  // Previously this block sat after `officialVariantUrls` and was gated on
+  // `candidates.size < max(4, maxCandidates / 2)`. Variant guessing inserts roughly 15 candidates
+  // (5 catalog-number variants x 3-4 URL shapes per base), so with the default maxCandidates of 12 the
+  // threshold of 6 was always already exceeded — meaning sitemap discovery effectively never ran, and
+  // never ran for exactly the site it helps most: a brand-new vendor with no templates, no learned
+  // endpoints and an unusable site search. A sitemap hit is also strictly better evidence than a
+  // guess, because the URL comes from the vendor's own index and therefore exists.
+  if ((policy?.enableRobotsSitemaps ?? true) && !hasEvidenceBackedCandidate(candidates)) {
     for (const url of await discoverFromSitemaps(catalogNumber, context, attemptedUrls, notes)) {
       add({
         url,
@@ -235,6 +294,16 @@ export async function discoverOfficialProductCandidates(catalogNumber: string, c
       });
       if (candidates.size >= maxCandidates) break;
     }
+  }
+
+  for (const url of officialVariantUrls(manufacturer, catalogNumber)) {
+    add({
+      url,
+      score: scoreDiscoveryCandidate(url, catalogNumber, "url-variant", manufacturer),
+      reason: "official URL variant",
+      stage: "url-variant",
+      sourceType: "official-fallback"
+    });
   }
 
   const sorted = [...candidates.values()]
@@ -280,8 +349,152 @@ export function scoreDiscoveryCandidate(
   if (manufacturer && isAllowedOfficialUrl(url, manufacturer)) score += 10;
   if (/[?&](?:q|query|search|term)=/i.test(url)) score -= 12;
   if (/\.(?:pdf|zip|dwg|dxf|stp|step|png|jpe?g|webp)(?:[?#]|$)/i.test(url)) score -= 45;
+  // A url-variant is SYNTHESISED — "{origin}/products/{part}" and friends — and is never checked for
+  // existence before being scored. The bonuses above are all about URL SHAPE, and a guess is built to
+  // have the ideal shape: catalog in the URL (+30), catalog as its own path segment (+35), a
+  // product-ish path token (+15), official host (+10). That took a pure guess to 130, clamped to 100 —
+  // above every evidence-backed stage, so guesses took rank #1 and pushed real hits out of the
+  // candidate budget the deterministic pipeline actually fetches.
+  //
+  // Measured by scripts/audit-discovery.ts replaying real cached pages: before this cap, the known-good
+  // PDP was ranked #1 for only 7.5% of catalog numbers, and in nearly every miss the #1 candidate was a
+  // synthesised "{origin}/product/{compactCatalog}" that does not exist.
+  //
+  // Guesses are still worth trying — they are cheap and sometimes right — but they must sort BELOW
+  // anything backed by evidence, so the cap sits under the search-result base of 58.
+  if (stage === "url-variant") return Math.max(0, Math.min(URL_VARIANT_MAX_SCORE, score));
   return Math.max(0, Math.min(100, score));
 }
+
+/**
+ * A search redirect is useful evidence only when it ends at an official, non-search URL that
+ * itself contains the exact requested catalog number. A redirected login, category, or another
+ * search route must remain just a discovery request, never become a PDP candidate.
+ */
+function exactOfficialProductRedirectUrl(
+  fetched: Pick<FetchedText, "effectiveUrl" | "statusCode" | "contentType" | "text">,
+  requestedUrl: string,
+  catalogNumber: string,
+  manufacturer: ManufacturerConfig
+): string | undefined {
+  if (fetched.statusCode < 200 || fetched.statusCode >= 300) return undefined;
+  const effectiveUrl = fetched.effectiveUrl?.trim();
+  if (!effectiveUrl || canonicalCandidateKey(effectiveUrl) === canonicalCandidateKey(requestedUrl)) return undefined;
+  if (!isAllowedOfficialUrl(effectiveUrl, manufacturer) || isSearchLikeUrl(effectiveUrl)) return undefined;
+  // An opaque/sluggified official PDP URL need not contain its SKU. A redirect is nevertheless
+  // evidence-backed when the returned non-search page identifies the exact requested catalog on a
+  // product identity surface (title/H1/OG/Product JSON-LD). Ganter's quick finder is the real
+  // case: its selected variant is in the page body while the destination slug names only GN 3310.
+  return findCatalogTextMatch(effectiveUrl, catalogNumber)?.level === "exact" || scoreFetchedDiscoveryEvidence(fetched, catalogNumber).catalogConfirmed
+    ? effectiveUrl
+    : undefined;
+}
+
+function isSearchLikeUrl(url: string): boolean {
+  return /\/(?:site-)?search(?:\/|$)|[?&](?:s|q|query|search|term|text|keyword|searchterm)=/i.test(url);
+}
+
+/** Evidence collected only AFTER a candidate URL has been fetched. URL shape is useful for deciding
+ * what to try, but it is not proof that a guessed / redirected address is the requested product.
+ * A page must identify the exact catalog in its own PDP identity surface (title, H1, OG title, or
+ * Product JSON-LD) before deterministic discovery merges its extracted fields. */
+export function scoreFetchedDiscoveryEvidence(
+  fetched: Pick<FetchedText, "effectiveUrl" | "statusCode" | "contentType" | "text">,
+  catalogNumber: string
+): { score: number; catalogConfirmed: boolean; reasons: string[] } {
+  const reasons: string[] = [];
+  let score = 0;
+  if (fetched.statusCode >= 200 && fetched.statusCode < 300) {
+    score += 15;
+    reasons.push(`HTTP ${fetched.statusCode}`);
+  } else {
+    reasons.push(`HTTP ${fetched.statusCode}`);
+  }
+
+  const effectiveUrlIsSearch = isSearchLikeUrl(fetched.effectiveUrl);
+  if (effectiveUrlIsSearch) {
+    score -= 45;
+    reasons.push("effective URL is a search page");
+  } else if (catalogTextMatches(fetched.effectiveUrl, catalogNumber, { compact: true, afterColon: true })) {
+    score += 12;
+    reasons.push("effective URL contains catalog");
+  }
+
+  const $ = cheerio.load(fetched.text);
+  const exact = (value: string | undefined) => Boolean(value && findCatalogTextMatch(value, catalogNumber)?.level === "exact");
+  const title = $("title").first().text();
+  const h1 = $("h1").first().text();
+  const ogTitle = $("meta[property='og:title']").attr("content");
+  const productJsonLd = $("script[type='application/ld+json']")
+    .toArray()
+    .some((element) => {
+      const json = $(element).text();
+      return /"@type"\s*:\s*"Product"/i.test(json) && exact(json);
+    });
+  const productJsonResponse = jsonResponseHasProductIdentity(fetched.text, fetched.contentType, catalogNumber);
+  const titleMatch = exact(title);
+  const h1Match = exact(h1);
+  const ogTitleMatch = exact(ogTitle);
+  if (titleMatch) {
+    score += 30;
+    reasons.push("catalog in document title");
+  }
+  if (h1Match) {
+    score += 38;
+    reasons.push("catalog in H1");
+  }
+  if (ogTitleMatch) {
+    score += 25;
+    reasons.push("catalog in OG title");
+  }
+  if (productJsonLd) {
+    score += 45;
+    reasons.push("catalog in Product JSON-LD");
+  }
+  if (productJsonResponse) {
+    score += 45;
+    reasons.push("catalog in Product JSON response");
+  }
+
+  // A search-results title commonly repeats the requested catalog, so it is deliberately not
+  // enough by itself. One product identity marker on a non-search effective URL is required.
+  const catalogConfirmed = !effectiveUrlIsSearch && (titleMatch || h1Match || ogTitleMatch || productJsonLd || productJsonResponse);
+  if (!catalogConfirmed) reasons.push("no exact catalog evidence on a product identity surface");
+  return { score: Math.max(0, Math.min(100, score)), catalogConfirmed, reasons };
+}
+
+/** A learned browser/network endpoint frequently returns JSON rather than an HTML PDP. The generic
+ * parser already accepts that payload, so evidence must accept it too — but only when an exact SKU
+ * occurs in an identity key and the same object looks product-shaped, never merely because a search
+ * response happens to echo the query. */
+function jsonResponseHasProductIdentity(text: string, contentType: string | undefined, catalogNumber: string): boolean {
+  if (!/json/i.test(contentType ?? "") && !/^\s*[\[{]/.test(text)) return false;
+  try {
+    return jsonValueHasProductIdentity(JSON.parse(text) as unknown, catalogNumber, 0);
+  } catch {
+    return false;
+  }
+}
+
+function jsonValueHasProductIdentity(value: unknown, catalogNumber: string, depth: number): boolean {
+  if (depth > 8 || !value || typeof value !== "object") return false;
+  if (Array.isArray(value)) return value.some((entry) => jsonValueHasProductIdentity(entry, catalogNumber, depth + 1));
+  const record = value as Record<string, unknown>;
+  const entries = Object.entries(record);
+  const exactIdentity = entries.some(([key, entry]) =>
+    /^(?:sku|mpn|product(?:id|number|code)?|catalog(?:number|no|id)?|article(?:number|no|id)?|model(?:number|code)?|part(?:number|no|id)?)$/i.test(key) &&
+    typeof entry === "string" && findCatalogTextMatch(entry, catalogNumber)?.level === "exact"
+  );
+  const productShape = entries.some(([key, entry]) =>
+    /^(?:@type|name|title|description|material|specifications?|attributes?|properties|weight|dimensions?)$/i.test(key) &&
+    (typeof entry === "string" || (entry && typeof entry === "object"))
+  );
+  if (exactIdentity && productShape) return true;
+  return entries.some(([, entry]) => jsonValueHasProductIdentity(entry, catalogNumber, depth + 1));
+}
+
+/** Ceiling for synthesised URL guesses — deliberately below the `search-result` base score (58). */
+const URL_VARIANT_MAX_SCORE = 55;
 
 function officialDirectTemplates(manufacturer: ManufacturerConfig): Array<{
   urlTemplate: string;
@@ -312,7 +525,7 @@ function officialDirectTemplates(manufacturer: ManufacturerConfig): Array<{
           stage: "direct-template" as const
         }))
       )
-  ].filter((template) => templateContainsCatalogPlaceholder(template.urlTemplate));
+  ].filter((template) => templateContainsCatalogPlaceholder(template.urlTemplate) && !isSearchLikeUrl(template.urlTemplate));
 }
 
 function searchTemplates(manufacturer: ManufacturerConfig): string[] {
@@ -323,8 +536,16 @@ function searchTemplates(manufacturer: ManufacturerConfig): string[] {
 function configuredSearchTemplates(manufacturer: ManufacturerConfig): string[] {
   return [
     ...(manufacturer.scrapeRecipe?.discoveryPolicy?.searchUrlTemplates ?? []),
-    ...(manufacturer.scrapeRecipe?.searchUrlTemplates ?? [])
-  ].filter(templateContainsCatalogPlaceholder);
+    ...(manufacturer.scrapeRecipe?.searchUrlTemplates ?? []),
+    // A localized URL template often records a vendor's best *entry point*, not necessarily an
+    // already-resolved PDP. Fath's /en/search?search={part} is the real example: treating it as a
+    // direct template skipped the one request whose HTTP redirect supplied the canonical product
+    // slug. Route any explicitly search-shaped localized/fallback template through the search path.
+    ...(manufacturer.localizedUrlTemplates ?? []).map((template) => template.urlTemplate),
+    ...manufacturer.fallbackSources
+      .filter((source) => source.enabled && source.sourceType === "official-fallback")
+      .flatMap((source) => source.directUrlTemplates)
+  ].filter((template) => templateContainsCatalogPlaceholder(template) && isSearchLikeUrl(template));
 }
 
 function genericOfficialSearchTemplates(manufacturer: ManufacturerConfig): string[] {
@@ -336,12 +557,16 @@ function genericOfficialSearchTemplates(manufacturer: ManufacturerConfig): strin
   }
 
   const templates: string[] = [];
-  const queryKeys = ["q", "query", "search", "text", "keyword", "searchTerm"];
-  for (const base of bases) {
-    const cleanBase = base.replace(/\/+$/g, "");
-    for (const key of queryKeys) {
+  // Interleave bases by parameter name so a locale-specific base gets the common keys too; the
+  // bounded discovery budget used to spend every slot on the bare origin before reaching /en-us/.
+  const cleanBases = [...bases].map((base) => base.replace(/\/+$/g, ""));
+  const queryKeys = ["q", "query", "search", "s", "text", "keyword", "searchTerm", "Ntt", "k", "article", "partNumber"];
+  for (const key of queryKeys) {
+    for (const cleanBase of cleanBases) {
       templates.push(`${cleanBase}/search?${key}={part}`);
     }
+  }
+  for (const cleanBase of cleanBases) {
     templates.push(`${cleanBase}/search/{part}`);
     templates.push(`${cleanBase}/site-search?q={part}`);
   }
@@ -361,6 +586,18 @@ function hasSearchResultCandidate(candidates: Map<string, ProductDiscoveryCandid
   return [...candidates.values()].some((candidate) => candidate.stage === "search-result");
 }
 
+/**
+ * Does any candidate rest on actual evidence rather than a guess?
+ *
+ * `url-variant` candidates are synthesised by pattern ({origin}/products/{part} and friends) and are
+ * never checked for existence before being scored, so their presence says nothing about whether we
+ * have found anything. Every other stage does rest on evidence: a configured or localized template, a
+ * learned endpoint that previously worked, or a link found on a fetched search-results page.
+ */
+function hasEvidenceBackedCandidate(candidates: Map<string, ProductDiscoveryCandidate>): boolean {
+  return [...candidates.values()].some((candidate) => candidate.stage !== "url-variant");
+}
+
 function shouldUseRenderedSearchDiscovery(context: ScrapeContext): boolean {
   if (!context.browserRenderer) return false;
   if (context.browserRenderer.isUnavailable?.()) return false;
@@ -369,23 +606,60 @@ function shouldUseRenderedSearchDiscovery(context: ScrapeContext): boolean {
   return true;
 }
 
-async function discoverSearchFormUrls(
+async function discoverSearchFormRequests(
   catalogNumber: string,
   context: ScrapeContext,
   attemptedUrls: string[],
   notes: string[]
-): Promise<string[]> {
-  const urls: string[] = [];
-  for (const pageUrl of searchFormProbePages(context.manufacturer).slice(0, 4)) {
+): Promise<SearchDiscoveryRequest[]> {
+  const requests: SearchDiscoveryRequest[] = [];
+  // The configured homepage is a locale entry point, not necessarily the locale that exposes a
+  // product lookup form. A homepage's hreflang alternates are vendor-declared equivalent entry
+  // points, so probe a small official-only extension of the initial set before falling back to
+  // URL-shaped guesses. This deliberately follows only alternates of probe pages (not arbitrary
+  // page links) and limits the total to six to keep discovery bounded for a new vendor.
+  const probeQueue = searchFormProbePages(context.manufacturer).slice(0, 4);
+  const queued = new Set(probeQueue.map(canonicalCandidateKey));
+  for (let index = 0; index < probeQueue.length && index < 6; index += 1) {
+    const pageUrl = probeQueue[index];
     attemptedUrls.push(pageUrl);
     try {
       const fetched = await fetchDiscoveryText(pageUrl, context);
-      urls.push(...searchUrlsFromForms(fetched.text, fetched.effectiveUrl, catalogNumber));
+      requests.push(...searchRequestsFromForms(fetched.text, fetched.effectiveUrl, catalogNumber));
+      for (const alternateUrl of hreflangProbeUrls(fetched.text, fetched.effectiveUrl)) {
+        if (!isAllowedOfficialUrl(alternateUrl, context.manufacturer)) continue;
+        const key = canonicalCandidateKey(alternateUrl);
+        if (queued.has(key) || probeQueue.length >= 6) continue;
+        queued.add(key);
+        probeQueue.push(alternateUrl);
+      }
     } catch (error) {
       notes.push(`Search form discovery failed for ${pageUrl}: ${formatError(error)}`);
     }
   }
-  return uniqueStrings(urls).slice(0, 10);
+  const uniqueRequests = new Map<string, SearchDiscoveryRequest>();
+  for (const request of requests) {
+    const key = `${request.method}\n${request.url}\n${request.body?.toString() ?? ""}`;
+    if (!uniqueRequests.has(key)) uniqueRequests.set(key, request);
+  }
+  return [...uniqueRequests.values()].slice(0, 10);
+}
+
+/** Vendor-declared locale entries only. Product-page alternates remain link-discovery's job. */
+function hreflangProbeUrls(html: string, baseUrl: string): string[] {
+  const $ = cheerio.load(html);
+  const urls = new Set<string>();
+  $("link[rel='alternate'][hreflang][href]").each((_, element) => {
+    const href = $(element).attr("href");
+    if (!href) return;
+    try {
+      const url = new URL(href, baseUrl);
+      if (/^https?:$/i.test(url.protocol)) urls.add(url.toString());
+    } catch {
+      // Broken alternate markup is no more trustworthy than a broken configured URL.
+    }
+  });
+  return [...urls];
 }
 
 function searchFormProbePages(manufacturer: ManufacturerConfig): string[] {
@@ -401,9 +675,9 @@ function searchFormProbePages(manufacturer: ManufacturerConfig): string[] {
   return [...pages].filter((url) => /^https?:\/\//i.test(url));
 }
 
-function searchUrlsFromForms(html: string, baseUrl: string, catalogNumber: string): string[] {
+function searchRequestsFromForms(html: string, baseUrl: string, catalogNumber: string): SearchDiscoveryRequest[] {
   const $ = cheerio.load(html);
-  const urls: string[] = [];
+  const requests: SearchDiscoveryRequest[] = [];
   $("form").each((_, form) => {
     const method = ($(form).attr("method") || "get").toLowerCase();
     if (method && method !== "get" && method !== "post") return;
@@ -417,17 +691,45 @@ function searchUrlsFromForms(html: string, baseUrl: string, catalogNumber: strin
     } catch {
       return;
     }
-    $(form)
-      .find("input[type='hidden'][name]")
-      .each((__, input) => {
-        const name = $(input).attr("name");
-        const value = $(input).attr("value");
-        if (name && value !== undefined && name !== queryName) target.searchParams.set(name, value);
-      });
-    target.searchParams.set(queryName, catalogNumber);
-    urls.push(target.toString());
+    const fields = successfulFormFields($, form, queryName, catalogNumber);
+    if (method === "post") {
+      requests.push({ url: target.toString(), method: "POST", body: fields });
+      return;
+    }
+    for (const [name, value] of fields) target.searchParams.append(name, value);
+    requests.push({ url: target.toString(), method: "GET" });
   });
-  return urls;
+  return requests;
+}
+
+/** Return browser-like successful form controls without submitting credentials, file inputs, or
+ * unselected checkboxes. This lets discovery preserve CSRF/scope/locale values for POST product
+ * lookup forms while keeping the submitted catalog number as the only user-provided value. */
+function successfulFormFields(
+  $: cheerio.CheerioAPI,
+  form: Parameters<cheerio.CheerioAPI>[0],
+  queryName: string,
+  catalogNumber: string
+): URLSearchParams {
+  const fields = new URLSearchParams();
+  $(form).find("input[name],select[name],textarea[name]").each((_, control) => {
+    const element = $(control);
+    const name = element.attr("name");
+    if (!name || element.is(":disabled") || name === queryName) return;
+    const tagName = control.tagName.toLowerCase();
+    const inputType = (element.attr("type") || "").toLowerCase();
+    if (tagName === "input" && /^(?:button|submit|reset|image|file)$/i.test(inputType)) return;
+    if (tagName === "input" && /^(?:checkbox|radio)$/i.test(inputType) && !element.is(":checked")) return;
+    if (tagName === "select") {
+      const selected = element.find("option:selected");
+      const options = selected.length ? selected : element.find("option").first();
+      options.each((__, option) => fields.append(name, $(option).attr("value") ?? $(option).text()));
+      return;
+    }
+    fields.append(name, element.attr("value") ?? "");
+  });
+  fields.set(queryName, catalogNumber);
+  return fields;
 }
 
 function cleanFormContext($: cheerio.CheerioAPI, form: Parameters<cheerio.CheerioAPI>[0]): string {
@@ -491,7 +793,10 @@ function officialUrlBases(manufacturer: ManufacturerConfig): Array<{
 }> {
   const bases: Array<{ origin: string; pathname: string; segments: string[]; hasCatalogPlaceholder: boolean }> = [];
   const seen = new Set<string>();
-  for (const baseUrl of manufacturer.officialBaseUrls) {
+  // `homepageUrl` is often the only configured locale entry point (for example `/en-us/`), while
+  // officialBaseUrls may deliberately stay at the bare origin for direct-product templates. It is
+  // equally official discovery evidence and must participate in search/form probing.
+  for (const baseUrl of uniqueStrings([...manufacturer.officialBaseUrls, manufacturer.homepageUrl])) {
     try {
       const parsed = new URL(baseUrl);
       const rawSegments = parsed.pathname.split("/").filter(Boolean).map((segment) => safeDecode(segment));
@@ -538,6 +843,29 @@ function urlVariantValues(catalogNumber: string, requested: Array<string> | unde
   return [...new Set(keys.map((key) => all[key]).filter(Boolean))];
 }
 
+/**
+ * Fetch a sitemap, transparently handling `sitemap.xml.gz`.
+ *
+ * The `.gz` in a sitemap URL is the FILE format, not a transport encoding, so `fetch` hands back raw
+ * deflate bytes and the plain text fetch yields mojibake — `extractSitemapLocs` then finds no `<loc>`
+ * and reports zero URLs with no error at all. Sitemap indexes are commonly gzipped, so this was a
+ * silent hole in the one discovery channel a brand-new vendor reliably offers.
+ *
+ * The binary path is used only when the URL looks compressed, and only when the client supports it —
+ * discovery is also driven by test stubs and by the offline replay audit, which implement `fetchText`
+ * alone. Falls back to the plain fetch on any failure: a sitemap is best-effort.
+ */
+async function fetchSitemapText(sitemapUrl: string, context: ScrapeContext): Promise<{ text: string }> {
+  if (urlLooksCompressed(sitemapUrl) && typeof context.http.fetchMaybeCompressedText === "function") {
+    try {
+      return await context.http.fetchMaybeCompressedText(sitemapUrl, { signal: context.signal });
+    } catch {
+      // fall through to the plain text fetch below
+    }
+  }
+  return fetchDiscoveryText(sitemapUrl, context);
+}
+
 async function discoverFromSitemaps(
   catalogNumber: string,
   context: ScrapeContext,
@@ -557,7 +885,7 @@ async function discoverFromSitemaps(
     const sitemapUrl = queue.shift()!;
     attemptedUrls.push(sitemapUrl);
     try {
-      const fetched = await fetchDiscoveryText(sitemapUrl, context);
+      const fetched = await fetchSitemapText(sitemapUrl, context);
       const locs = extractSitemapLocs(fetched.text);
       for (const loc of locs) {
         if (catalogTextMatches(loc, catalogNumber, { compact: true, afterColon: true }) || compactCatalogNumber(loc).includes(compactPart)) {
@@ -598,17 +926,20 @@ function isDiscoveryIndexUrl(url: string): boolean {
   return /\/sitemap[^/]*\.xml\b|\/robots\.txt\b|[?&](?:q|query|search|text|keyword|searchTerm)=|\/(?:site-)?search(?:\b|[/?])/i.test(url);
 }
 
-async function fetchDiscoveryText(url: string, context: ScrapeContext): Promise<FetchedText> {
+async function fetchDiscoveryText(url: string, context: ScrapeContext, request: Pick<SearchDiscoveryRequest, "method" | "body"> = { method: "GET" }): Promise<FetchedText> {
   const policy = context.manufacturer.fetchPolicy ?? {};
-  const indexOverride = isDiscoveryIndexUrl(url) ? DISCOVERY_INDEX_CACHE_TTL_MS : undefined;
+  const indexOverride = isDiscoveryIndexUrl(url) || request.method === "POST" ? DISCOVERY_INDEX_CACHE_TTL_MS : undefined;
   return context.http.fetchText(url, {
+    method: request.method,
+    body: request.body,
     timeoutMs: Math.min(policy.timeoutMs ?? 15000, 30000),
     cacheTtlMs: indexOverride ?? policy.cacheTtlMs,
     maxAttempts: 1,
     headers: {
       ...(policy.userAgent ? { "user-agent": policy.userAgent } : {}),
       ...(policy.acceptLanguage ? { "accept-language": policy.acceptLanguage } : {}),
-      ...(policy.referer ? { referer: policy.referer } : {})
+      ...(policy.referer ? { referer: policy.referer } : {}),
+      ...(request.method === "POST" ? { "content-type": "application/x-www-form-urlencoded;charset=UTF-8" } : {})
     },
     signal: context.signal
   });
@@ -646,7 +977,7 @@ function isAllowedOfficialUrl(url: string, manufacturer: ManufacturerConfig): bo
 }
 
 function officialOrigins(manufacturer: ManufacturerConfig): string[] {
-  return [...new Set(manufacturer.officialBaseUrls.flatMap((baseUrl) => {
+  return [...new Set(uniqueStrings([...manufacturer.officialBaseUrls, manufacturer.homepageUrl]).flatMap((baseUrl) => {
     try {
       return [new URL(baseUrl).origin];
     } catch {

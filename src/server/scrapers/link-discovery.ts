@@ -131,6 +131,17 @@ export function discoverProductLinksWithDiagnostics(html: string, baseUrl: strin
     const urlPattern = /https?:\/\/[^"'<>\s)]+|\/[a-z0-9][^"'<>\s)]*/gi;
     for (const match of decoded.matchAll(urlPattern)) {
       const rawUrl = match[0];
+      // The relative-path branch also matches an HTML closing tag's `/a` or `/div`. Its broad
+      // nearby context can contain a genuine catalog number, so identity scoring alone would turn
+      // that markup into a high-scoring product candidate. A real URL attribute is preceded by a
+      // quote, whitespace, or text — never the `<` that begins a closing tag.
+      if (rawUrl.startsWith("/") && match.index !== undefined && decoded[match.index - 1] === "<") continue;
+      // URLs in an HTML attribute already go through the DOM pass above, where their identity
+      // context is restricted to the element or its product-card ancestor. Re-reading them from
+      // raw source gives a footer/help link an arbitrary 520-character neighbourhood, which can
+      // include hidden SKU variants belonging to the preceding PDP. Keep this fallback for JSON,
+      // inline script values and literal response text; it is not a second attribute parser.
+      if (match.index !== undefined && isInsideHtmlTag(decoded, match.index)) continue;
       const context = inlineUrlContext(decoded, match.index ?? 0, rawUrl.length);
       if (!compactCatalogNumber(`${rawUrl} ${context}`).toLowerCase().includes(compactPart)) continue;
       addCandidate(rawUrl, context, "inline url", 10);
@@ -179,6 +190,10 @@ function isRootRelativePathWithoutSlash(value: string): boolean {
 
 function inlineUrlContext(text: string, index: number, length: number): string {
   return cleanText(text.slice(Math.max(0, index - 260), Math.min(text.length, index + length + 260)));
+}
+
+function isInsideHtmlTag(text: string, index: number): boolean {
+  return text.lastIndexOf("<", index) > text.lastIndexOf(">", index);
 }
 
 function candidateConfirmsCatalog(url: string, context: string, catalogNumber: string): boolean {

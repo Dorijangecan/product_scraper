@@ -1,0 +1,14 @@
+{
+  "id": "eaton-cbe03319-family-catalog",
+  "manufacturerId": "eaton",
+  "catalogNumber": "CBE03319",
+  "note": "2.9 MB multi-variant family catalog: every E6/ED6/ELD6/EIS variant lives in ONE PDF. Guards the exact cold-start case — one catalog number must be scoped out of a big family document without inheriting a sibling row's rated current, residual current or part number. Also the fixture that proves the targeted page reader actually runs (it was dead code for every PDF under 8 MB).",
+  "documents": [
+    {
+      "path": "PDFs and DOCs form customer/eaton-e6-catalogue-en-cn.pdf",
+      "url": "https://www.eaton.com/content/dam/eaton/products/eaton-e6-catalogue-en-cn.pdf",
+      "type": "datasheet",
+      "label": "E6 series catalogue"
+    }
+  ]
+}

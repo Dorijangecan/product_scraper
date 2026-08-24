@@ -16,12 +16,19 @@ export function learnedEndpointUrls(
   if (!store) return [];
   return store
     .list(manufacturer.id, limit)
+    .filter((endpoint) => !learnedEndpointSuppressed(endpoint))
     .filter((endpoint) => endpoint.method === "GET" && endpoint.urlTemplate.includes("{part"))
     .flatMap((endpoint) => {
       const url = fillCatalogTemplate(endpoint.urlTemplate, catalogNumber);
       if (!isAllowedOfficialHost(url, manufacturer)) return [];
       return [{ url, endpoint }];
     });
+}
+
+export function learnedEndpointSuppressed(endpoint: LearnedEndpointRecord, now = Date.now()): boolean {
+  if ((endpoint.failureCount ?? 0) < 3 || !endpoint.lastFailureAt) return false;
+  const ageDays = (now - Date.parse(endpoint.lastFailureAt)) / 86_400_000;
+  return Number.isFinite(ageDays) && ageDays >= 0 && ageDays < 7;
 }
 
 export function learnEndpointFromNetworkFetch(input: {

@@ -1,0 +1,17 @@
+{
+  "_source": "Official cached Saginaw Control PDP page.html, Product Specifications block: separate <p> elements state Part Number SCE-60RA19TH and Description Angle, Rack. Read directly from the recorded source; actual.json was not used as ground truth.",
+  "_tier": "value-verified",
+  "attributesInclude": [
+    { "name": "Part Number", "valueContains": "SCE-60RA19TH" },
+    { "name": "Description", "valueContains": "Angle, Rack" }
+  ],
+  "mustNotContain": [
+    "SCE-60RA19THDescription:",
+    "Description: Angle, Rack",
+    "Designed for",
+    "Angles']);\">Rack",
+    "RA - U Shape Rack",
+    "(IS17)"
+  ],
+  "_notes": "The generic HTML path previously created a false boundary-crossing pair `Part Number: SCE-60RA19TH = Description: Angle, Rack` even though the source has two distinct paragraph pairs. It also mined application prose and a JavaScript onclick string as Mounting/Type specs. The separate real pairs must remain."
+}

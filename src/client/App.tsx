@@ -39,6 +39,9 @@ import type {
   CsvPreview,
   FallbackSourceConfig,
   ManufacturerConfig,
+  ManufacturerAliasSuggestion,
+  ManufacturerOperationalSummary,
+  LearnedExtractorProposal,
   ManufacturerInspectResult,
   ManufacturerTestResult,
   MarkerExtractionRule,
@@ -48,11 +51,14 @@ import type {
   RunRecord,
   ScrapeRecipeConfig
 } from "../shared/types.js";
+import { summarizeRunDiagnostics } from "../shared/run-diagnostics.js";
 import { Dropdown } from "./Dropdown.js";
 import { requiredElectricalFields } from "../shared/product-requirements.js";
 import {
+  approveLearnedExtractor,
   cancelRun,
   getManufacturers,
+  getManufacturerOperationalSummary,
   getRun,
   getRunItem,
   inspectManufacturer,
@@ -228,12 +234,15 @@ export function App() {
   const [manufacturerEditorOpen, setManufacturerEditorOpen] = useState(false);
   const [manufacturerDraft, setManufacturerDraft] = useState<ManufacturerDraft>(() => emptyManufacturerDraft());
   const [manufacturerSaveBusy, setManufacturerSaveBusy] = useState(false);
+  const [manufacturerOperationalSummary, setManufacturerOperationalSummary] = useState<ManufacturerOperationalSummary | null>(null);
+  const [manufacturerOperationalBusy, setManufacturerOperationalBusy] = useState(false);
   const [editorMode, setEditorMode] = useState<"simple" | "advanced">("simple");
   const [wizardWebsiteUrl, setWizardWebsiteUrl] = useState("");
   const [wizardSamplesText, setWizardSamplesText] = useState("");
   const [wizardAllowDistributor, setWizardAllowDistributor] = useState(false);
   const [wizardInspectResult, setWizardInspectResult] = useState<ManufacturerInspectResult | null>(null);
   const [wizardTestResult, setWizardTestResult] = useState<ManufacturerTestResult | null>(null);
+  const [selectedWizardSelectors, setSelectedWizardSelectors] = useState<LearnedExtractorProposal[]>([]);
   const [wizardBusy, setWizardBusy] = useState<"inspect" | "test" | "reset" | null>(null);
   const [selectedItemId, setSelectedItemId] = useState<number | null>(null);
   const [selectedItemDetail, setSelectedItemDetail] = useState<RunItemRecord | null>(null);
@@ -297,6 +306,7 @@ export function App() {
   useEffect(() => {
     setRunCoverageFields(null);
     setRunHiddenCoverageFields([]);
+    setManufacturerOperationalSummary(null);
   }, [manufacturerId]);
 
   useEffect(() => {
@@ -964,6 +974,49 @@ export function App() {
     });
   }
 
+  async function showManufacturerOperations() {
+    if (!selectedManufacturer) return;
+    setManufacturerOperationalBusy(true);
+    setError(null);
+    try {
+      setManufacturerOperationalSummary(await getManufacturerOperationalSummary(selectedManufacturer.id));
+    } catch (err) {
+      setError(errorMessage(err));
+    } finally {
+      setManufacturerOperationalBusy(false);
+    }
+  }
+
+  function confirmWizardAliasSuggestion(suggestion: ManufacturerAliasSuggestion) {
+    setManufacturerDraft((current) => {
+      const existing = parseRecipeJsonLoose(current.scrapeRecipeJson);
+      return {
+        ...current,
+        scrapeRecipeJson: formatJson(mergeRecipeConfig(existing, {
+          extractionPolicy: {
+            ...existing.extractionPolicy,
+            labelAliases: {
+              ...existing.extractionPolicy?.labelAliases,
+              // The extractor maps raw labels to a reviewed published label, not an opaque key.
+              [suggestion.label]: suggestion.matchedLabel
+            }
+          }
+        }))
+      };
+    });
+    // A recipe change needs a new 2/3 validation before it can be saved.
+    setWizardTestResult(null);
+  }
+
+  function toggleWizardSelectorSuggestion(suggestion: LearnedExtractorProposal) {
+    setSelectedWizardSelectors((current) => {
+      const key = learnedExtractorProposalKey(suggestion);
+      return current.some((value) => learnedExtractorProposalKey(value) === key)
+        ? current.filter((value) => learnedExtractorProposalKey(value) !== key)
+        : [...current, suggestion];
+    });
+  }
+
   function addSourceDraft() {
     setManufacturerDraft((current) => ({
       ...current,
@@ -980,7 +1033,7 @@ export function App() {
 
   async function handleSaveManufacturer() {
     if (!wizardTestResult?.passed) {
-      setError("Run Test samples first. At least one sample must find an official product before saving.");
+      setError("Run three Test samples first. At least two must find an official product before saving.");
       return;
     }
     setManufacturerSaveBusy(true);
@@ -988,6 +1041,9 @@ export function App() {
     try {
       const payload = manufacturerDraftToConfig(manufacturerDraft);
       const data = await saveManufacturer(payload);
+      for (const proposal of selectedWizardSelectors) {
+        await approveLearnedExtractor({ manufacturerId: data.manufacturer.id, proposal });
+      }
       setManufacturers(data.manufacturers);
       setManufacturerId(data.manufacturer.id);
       setManufacturerEditorOpen(false);
@@ -1030,6 +1086,7 @@ export function App() {
         sampleCatalogNumbers: splitFlexibleList(wizardSamplesText)
       });
       setWizardTestResult(result);
+      setSelectedWizardSelectors([]);
       if (!result.passed) setError(result.warnings[0] ?? "No sample found an official product yet.");
     } catch (err) {
       setError(errorMessage(err));
@@ -1103,6 +1160,7 @@ export function App() {
     [items, activeCustomCoverageFields, activeHiddenCoverageFields]
   );
   const coverageTotal = items.filter((item) => item.result || item.coverage).length;
+  const runDiagnostics = useMemo(() => summarizeRunDiagnostics(items), [items]);
   const runTiming = useMemo(() => buildRunTiming(selectedRun, items, nowMs), [items, nowMs, selectedRun]);
   const progress = runTiming.progressPercent;
   const runItemFilterCounts = useMemo(() => buildRunItemFilterCounts(items), [items]);
@@ -1137,7 +1195,7 @@ export function App() {
   );
   const sampleCatalogNumbers = splitFlexibleList(wizardSamplesText);
   const canInspectManufacturer = Boolean(wizardWebsiteUrl.trim() && sampleCatalogNumbers.length > 0 && manufacturerDraft.canonicalName.trim());
-  const canTestManufacturer = Boolean(sampleCatalogNumbers.length > 0 && manufacturerDraft.officialBaseUrlsText.trim());
+  const canTestManufacturer = Boolean(sampleCatalogNumbers.length >= 3 && manufacturerDraft.officialBaseUrlsText.trim());
   const canSaveManufacturer = Boolean(wizardTestResult?.passed);
   const overrideActive = editorManufacturer?.origin === "override" || editorManufacturer?.hasOverride;
 
@@ -1214,6 +1272,10 @@ export function App() {
             </div>
           )}
           <div className="manufacturer-actions">
+            <button type="button" className="secondary-action" onClick={() => void showManufacturerOperations()} disabled={!selectedManufacturer || manufacturerOperationalBusy}>
+              <Activity size={15} />
+              {manufacturerOperationalBusy ? "Loading…" : "Operations"}
+            </button>
             <button type="button" className="secondary-action" onClick={openEditManufacturer} disabled={!selectedManufacturer}>
               <Pencil size={15} />
               Edit
@@ -1223,6 +1285,19 @@ export function App() {
               New
             </button>
           </div>
+          {manufacturerOperationalSummary && (
+            <details className="debug-section" open>
+              <summary>Manufacturer operations<span>{manufacturerOperationalSummary.targetHealth.length + manufacturerOperationalSummary.learnedEndpoints.length}</span></summary>
+              <div className="debug-list">
+                {manufacturerOperationalSummary.targetHealth.length ? manufacturerOperationalSummary.targetHealth.map((health) => (
+                  <code key={`${health.host}-${health.stage}`}>{health.driftSuspected ? "DRIFT " : ""}{health.host || "default"} / {health.stage || "default"}: {Math.round(health.successRate * 100)}% success, {health.sampleCount} recent samples{health.reason ? ` — ${health.reason}` : ""}</code>
+                )) : <span className="muted">No target-health observations yet.</span>}
+                {manufacturerOperationalSummary.learnedEndpoints.map((endpoint) => (
+                  <code key={`${endpoint.method}-${endpoint.urlTemplate}`}>Learned {endpoint.method} {endpoint.urlTemplate}: {endpoint.successCount} successes, {endpoint.failureCount ?? 0} failures</code>
+                ))}
+              </div>
+            </details>
+          )}
 
           <div
             className={`upload-zone${uploadDragActive ? " is-dragging" : ""}`}
@@ -1464,8 +1539,10 @@ export function App() {
             </summary>
             <div className="run-coverage-editor-body">
               <p className="muted-note">
-                Click a built-in tile to hide it. Add custom tiles below — each matches by attribute
-                name (regex, case-insensitive). Manufacturer default loaded; edits apply to this run only.
+                Click a built-in tile to switch it off: it is hidden here <em>and</em> no longer
+                required, so the scraper spends no fallback or retry looking for it. Add custom tiles
+                below — each matches by attribute name (regex, case-insensitive). Manufacturer default
+                loaded; edits apply to this run only.
               </p>
               <div className="coverage-builtin-toggles" role="group" aria-label="Built-in coverage tiles">
                 {REQUIRED_COVERAGE_FIELDS.map((field) => {
@@ -1778,10 +1855,21 @@ export function App() {
                     );
                   })}
                 </div>
+                {(runDiagnostics.fieldBlockers.length || runDiagnostics.documents.failed || runDiagnostics.documents.skipped || runDiagnostics.discovery.rejected) && (
+                  <details className="debug-section">
+                    <summary>Run blockers<span>{runDiagnostics.fieldBlockers.reduce((sum, entry) => sum + entry.count, 0) + runDiagnostics.documents.failed + runDiagnostics.discovery.rejected}</span></summary>
+                    <div className="debug-list">
+                      {runDiagnostics.fieldBlockers.slice(0, 8).map((entry) => <code key={entry.reasonCode}>{entry.reasonCode}: {entry.count}</code>)}
+                      {(runDiagnostics.documents.failed || runDiagnostics.documents.skipped) && <code>Documents: {runDiagnostics.documents.failed} failed, {runDiagnostics.documents.skipped} skipped, {runDiagnostics.documents.parsed} parsed</code>}
+                      {runDiagnostics.discovery.rejected > 0 && <code>Discovery: {runDiagnostics.discovery.rejected} rejected links, {runDiagnostics.discovery.rejectedDocuments} rejected documents</code>}
+                    </div>
+                  </details>
+                )}
                 {dashboardCoverageEditOpen && (
                   <div className="coverage-dashboard-editor">
                     <p className="muted-note">
-                      Click a built-in tile below to hide it on this dashboard. Add custom tiles
+                      Click a built-in tile below to switch it off on this dashboard; it also stops
+                      being required, so future runs spend no fallback chasing it. Add custom tiles
                       with regex patterns matched against attribute names. Saving re-evaluates
                       existing attributes — no re-scrape needed.
                     </p>
@@ -2205,7 +2293,7 @@ export function App() {
               <div>
                 <span className="section-label">Paste URL wizard</span>
                 <h3>Add a manufacturer without JSON</h3>
-                <p>Paste the official website, add two or three catalog numbers, auto-detect, then test. Saving unlocks only after one official product is confirmed.</p>
+                <p>Paste the official website, add three catalog numbers, auto-detect, then test. Saving unlocks only after two official products are confirmed.</p>
               </div>
               <span className={canSaveManufacturer ? "save-guard ok" : "save-guard"}>
                 {canSaveManufacturer ? "Ready to save" : "Sample test required"}
@@ -2246,7 +2334,7 @@ export function App() {
                 />
               </label>
               <label className="field wide-field">
-                <span>Sample catalog numbers</span>
+                <span>Three sample catalog numbers</span>
                 <textarea
                   rows={3}
                   value={wizardSamplesText}
@@ -2281,7 +2369,13 @@ ABC:12345`}
               </button>
             </div>
 
-            <ManufacturerWizardPreview inspectResult={wizardInspectResult} testResult={wizardTestResult} />
+            <ManufacturerWizardPreview
+              inspectResult={wizardInspectResult}
+              testResult={wizardTestResult}
+              onConfirmAliasSuggestion={confirmWizardAliasSuggestion}
+              selectedSelectorKeys={new Set(selectedWizardSelectors.map(learnedExtractorProposalKey))}
+              onToggleSelectorSuggestion={toggleWizardSelectorSuggestion}
+            />
           </section>
 
           <section className="coverage-editor" aria-label="Custom coverage tiles">
@@ -3613,7 +3707,19 @@ function formatClock(ms: number): string {
   return new Date(ms).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 }
 
-function ManufacturerWizardPreview({ inspectResult, testResult }: { inspectResult: ManufacturerInspectResult | null; testResult: ManufacturerTestResult | null }) {
+function ManufacturerWizardPreview({
+  inspectResult,
+  testResult,
+  onConfirmAliasSuggestion,
+  selectedSelectorKeys,
+  onToggleSelectorSuggestion
+}: {
+  inspectResult: ManufacturerInspectResult | null;
+  testResult: ManufacturerTestResult | null;
+  onConfirmAliasSuggestion: (suggestion: ManufacturerAliasSuggestion) => void;
+  selectedSelectorKeys: Set<string>;
+  onToggleSelectorSuggestion: (suggestion: LearnedExtractorProposal) => void;
+}) {
   if (!inspectResult && !testResult) {
     return (
       <div className="wizard-empty">
@@ -3656,7 +3762,7 @@ function ManufacturerWizardPreview({ inspectResult, testResult }: { inspectResul
           <div className="wizard-card-head">
             <div>
               <span className="section-label">Sample test</span>
-              <h4>{testResult.passed ? "Ready to save" : "Needs one official match"}</h4>
+              <h4>{testResult.passed ? "Ready to save" : "Needs two official matches"}</h4>
             </div>
             <span className={testResult.passed ? "test-pill pass" : "test-pill fail"}>
               {testResult.foundCount}/{testResult.sampleCount} passed
@@ -3675,6 +3781,7 @@ function ManufacturerWizardPreview({ inspectResult, testResult }: { inspectResul
                     {sample.productUrl}
                   </a>
                 )}
+                {sample.fixturePath && <code>Fixture: {sample.fixturePath}</code>}
                 <div className="sample-stats">
                   <span>{sample.attributes} attributes</span>
                   <span>{sample.documents} documents</span>
@@ -3683,13 +3790,56 @@ function ManufacturerWizardPreview({ inspectResult, testResult }: { inspectResul
                 </div>
                 <p>{sample.reason}</p>
                 {sample.missing.length > 0 && <code>Missing: {sample.missing.slice(0, 8).join("; ")}</code>}
+                {sample.aliasSuggestions && sample.aliasSuggestions.length > 0 && (
+                  <div className="sample-suggestions">
+                    <strong>Suggested label mappings (review only)</strong>
+                    {sample.aliasSuggestions.map((suggestion) => (
+                      <span className="wizard-alias-suggestion" key={`${suggestion.label}:${suggestion.canonicalKey}`}>
+                        <code>{suggestion.label} → {suggestion.canonicalKey} (like “{suggestion.matchedLabel}”, {Math.round(suggestion.score * 100)}%)</code>
+                        <button type="button" className="secondary-action compact-action" onClick={() => onConfirmAliasSuggestion(suggestion)}>
+                          Use mapping
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+                {sample.selectorSuggestions && sample.selectorSuggestions.length > 0 && (
+                  <div className="sample-suggestions">
+                    <strong>Observed replay recipes</strong>
+                    {sample.selectorSuggestions.map((suggestion) => (
+                      <span className="wizard-alias-suggestion" key={learnedExtractorProposalKey(suggestion)}>
+                        <code>{suggestion.pattern} from {suggestion.host}</code>
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
             ))}
           </div>
+          {testResult.confirmedSelectorSuggestions.length > 0 && (
+            <div className="sample-suggestions">
+              <strong>Replay recipes reproduced on two official samples (review before save)</strong>
+              {testResult.confirmedSelectorSuggestions.map((suggestion) => {
+                const selected = selectedSelectorKeys.has(learnedExtractorProposalKey(suggestion));
+                return (
+                  <span className="wizard-alias-suggestion" key={learnedExtractorProposalKey(suggestion)}>
+                    <code>{suggestion.pattern} from {suggestion.host}</code>
+                    <button type="button" className="secondary-action compact-action" onClick={() => onToggleSelectorSuggestion(suggestion)}>
+                      {selected ? "Selected for save" : "Use recipe"}
+                    </button>
+                  </span>
+                );
+              })}
+            </div>
+          )}
         </section>
       )}
     </div>
   );
+}
+
+function learnedExtractorProposalKey(proposal: LearnedExtractorProposal): string {
+  return `${proposal.host}|${proposal.kind}|${proposal.pattern}`.toLowerCase();
 }
 
 function WizardList({ title, items, tone, monospace = false }: { title: string; items: string[]; tone?: "warn"; monospace?: boolean }) {
@@ -3749,6 +3899,7 @@ function RunItemDrawer({ item, onClose }: { item: RunItemRecord; onClose: () => 
           <Metric label="Documents" value={result.documents.length} />
         </div>
 
+        <RunItemDiagnosticSummary item={item} />
         <DebugSection title="Quality missing" items={result.qualityGate?.missing ?? []} />
         <DebugSection title="Final missing after audit" items={diagnostics?.finalCompleteness?.afterMissing ?? []} />
         <DebugSection title="Final repaired fields" items={diagnostics?.finalCompleteness?.repairedFields ?? []} />
@@ -3761,6 +3912,39 @@ function RunItemDrawer({ item, onClose }: { item: RunItemRecord; onClose: () => 
         <DebugObjectSection title="Evidence" items={(result.evidence ?? []).slice(0, 80)} />
       </aside>
     </section>
+  );
+}
+
+/** Human-readable counterpart to the raw diagnostic JSON below it. The summary deliberately
+ * preserves the causal reason code so an operator can distinguish “not found” from “document
+ * failed” or “value rejected” before opening the detailed evidence. */
+function RunItemDiagnosticSummary({ item }: { item: RunItemRecord }) {
+  const diagnostics = item.result?.diagnostics;
+  const fieldHealth = diagnostics?.fieldHealth ?? [];
+  const documents = diagnostics?.documentProcessing ?? [];
+  const rejectedLinks = diagnostics?.rejectedLinks ?? [];
+  const pageMining = diagnostics?.pageMining ?? [];
+  const actionableFields = fieldHealth.filter((record) => record.status !== "found");
+  const failedDocuments = documents.filter((record) => record.action === "failed" || record.action === "skipped");
+  if (!actionableFields.length && !failedDocuments.length && !rejectedLinks.length && !pageMining.length) return null;
+  return (
+    <details className="debug-section" open>
+      <summary>What happened<span>{actionableFields.length + failedDocuments.length + rejectedLinks.length}</span></summary>
+      <div className="debug-list">
+        {actionableFields.slice(0, 12).map((record) => (
+          <code key={`field-${record.field}`}>{record.label || record.field}: {record.status}{record.reasonCode ? ` — ${record.reasonCode}` : record.reason ? ` — ${record.reason}` : ""}</code>
+        ))}
+        {failedDocuments.slice(0, 8).map((record, index) => (
+          <code key={`document-${record.url}-${index}`}>Document {record.label || record.type || record.url}: {record.action}{record.parseError ? ` — ${record.parseError}` : record.reason ? ` — ${record.reason}` : ""}</code>
+        ))}
+        {rejectedLinks.slice(0, 8).map((record, index) => (
+          <code key={`link-${record.url}-${index}`}>Discovery rejected {record.url}: {record.reason}</code>
+        ))}
+        {pageMining.slice(0, 4).map((record, index) => (
+          <code key={`mining-${record.stage}-${index}`}>Page mining {record.stage}: {record.attributeCount ?? 0} attributes, {record.documentCount ?? 0} documents{record.signals?.length ? ` — ${record.signals.join(", ")}` : ""}</code>
+        ))}
+      </div>
+    </details>
   );
 }
 
@@ -4104,7 +4288,7 @@ function itemReason(item: RunItemRecord): string {
     return item.stageMessage ?? item.error ?? "";
   }
   const missingCoverage = criticalMissingCoverage(item);
-  if (missingCoverage.length) return `Missing ${missingCoverage.join(", ")}`;
+  if (missingCoverage.length) return item.coverage?.reason ?? `Missing ${missingCoverage.join(", ")}`;
   if (result.qualityGate?.passed) return "quality ok";
   if (result.qualityGate?.missing.length) return result.qualityGate.missing.slice(0, 4).join("; ");
   return result.error ?? item.error ?? result.qualityGate?.reason ?? "";

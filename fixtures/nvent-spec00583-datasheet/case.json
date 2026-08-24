@@ -1,0 +1,14 @@
+{
+  "id": "nvent-spec00583-datasheet",
+  "manufacturerId": "nvent",
+  "catalogNumber": "SPEC-00583",
+  "note": "900 kB specification PDF already used by tests/pdf-ocr.test.ts. Kept here so the PDF text/OCR path has a committed fixture that does not depend on the gitignored benchmarks/output folder.",
+  "documents": [
+    {
+      "path": "benchmarks/live-check/nvent-docs/spec-00583.pdf",
+      "url": "https://www.nvent.com/en-us/documents/spec-00583.pdf",
+      "type": "datasheet",
+      "label": "Specification"
+    }
+  ]
+}

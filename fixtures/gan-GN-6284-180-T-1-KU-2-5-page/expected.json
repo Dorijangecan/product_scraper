@@ -1,0 +1,15 @@
+{
+  "_tier": "value-verified",
+  "_source": "page.html, Article options / Table: the selected part is GN 6284-180-T-1-KU-2,5 and its row gives Cable length l6 in meters = 2,5. The adjacent 5 m cell is a sibling variant. The hidden option list after the product content explicitly prints GN 6284-180-T-1-KU-2,5, GN 6284-180-T-2-KU-2,5, GN 6284-180-T-1-KU-5 and GN 6284-180-T-2-KU-5.",
+  "_notes": "The fixture targets the generic HTML table path. It preserves column-aware extraction of the selected ordering-code variant, rejects the prior flattened value that joined both cable lengths, and requires the HTML page-level classifier to expose that the URL is a multi-variant family page.",
+  "pageLevel": "family",
+  "attributesInclude": [
+    {
+      "name": "Cable length l6 in meters",
+      "valueContains": "2,5"
+    }
+  ],
+  "mustNotContain": [
+    "2,5 5"
+  ]
+}

@@ -1,4 +1,5 @@
 import { collapseWhitespaceOrUndefined as clean, normalizeNumberSeparators } from "../text-util.js";
+import { OUNCE_TO_GRAM, OUNCE_TO_KILOGRAM, POUND_TO_GRAM, POUND_TO_KILOGRAM } from "../unit-conversion.js";
 import type { ManufacturerConfig, ProductResult, RunItemRecord } from "../../shared/types.js";
 import type { PdtRepair } from "./ai-cleanup.js";
 import { cleanProductDescription, compactFamilyShortDescription, isDecorativeAssetText } from "./description-formatting.js";
@@ -172,9 +173,8 @@ function parseWeightRaw(raw: string | undefined): { kg?: number; g?: number } | 
   if (!Number.isFinite(value)) return undefined;
   const unit = (match[2] ?? "kg").toLowerCase();
   if (unit === "g") return { g: value, kg: value / 1000 };
-  if (unit === "lb" || unit === "lbs") return { kg: value * 0.453592, g: value * 453.592 };
-  // Ounces (avoirdupois): 1 oz = 28.3495 g.
-  if (unit === "oz" || unit === "ounce" || unit === "ounces") return { kg: value * 0.0283495, g: value * 28.3495 };
+  if (unit === "lb" || unit === "lbs") return { kg: value * POUND_TO_KILOGRAM, g: value * POUND_TO_GRAM };
+  if (unit === "oz" || unit === "ounce" || unit === "ounces") return { kg: value * OUNCE_TO_KILOGRAM, g: value * OUNCE_TO_GRAM };
   return { kg: value, g: value * 1000 };
 }
 

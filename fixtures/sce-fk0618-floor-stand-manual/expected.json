@@ -1,0 +1,34 @@
+{
+  "_source": "Ground truth read directly out of the PDF (raw pdfjs-dist text-content dump, page 1). The ordering table header row reads 'PART #' (x=298.8,y=618.8) / 'A' (x=364.2,y=618.8) / 'B' (x=400.9,y=618.8). The exact target row is 'SCE-FK0618' (x=290.7,y=569.4) / '6.00' (x=358.8,y=569.4) / '18.00' (x=393.8,y=569.4). Sibling rows in the same table include SCE-FK0608=6.00/8.00, SCE-FK0610=6.00/10.00, SCE-FK0612=6.00/12.00, SCE-FK0624=6.00/24.00, and a second block of SCE-FK12xx/FK15xx/FK18xx/FK24xx catalogs with their own A/B pairs. Page 1 also carries unrelated leg/diagram callouts (7-1/8, 4-1/4, 1-1/8, 6.25 TYP., 2.00, 2.87, 1.13, .56 TYP.) that are not this catalog's ordering-table cells.",
+
+  "_tier": "value-verified",
+
+  "normalized": {
+    "weight": { "absent": true },
+    "dimensions": { "absent": true },
+    "voltage": { "absent": true },
+    "current": { "absent": true },
+    "material": { "absent": true }
+  },
+
+  "attributesInclude": [
+    { "name": "A", "valueContains": "6.00" },
+    { "name": "B", "valueContains": "18.00" }
+  ],
+
+  "mustNotContain": [
+    "6.00 8.00",
+    "6.00 10.00",
+    "6.00 12.00",
+    "6.00 24.00",
+    "12.00 8.00",
+    "15.00 12.00",
+    "18.00 8.00",
+    "24.00 10.00"
+  ],
+
+  "_notes": {
+    "why": "Real Saginaw/SCE floor-stand-kit installation manual for a genuinely different catalog than the existing sce-P-P11R2-K3RF0-U450-scanned-manual fixture. The id-column header in this vendor's ordering table is 'PART #' — a hash sign instead of 'No.'/'Number' — which src/server/scrapers/catalog-table-vocabulary.ts's isCatalogIdHeaderCell did not recognize, so extractPositionedOrderingRow (src/server/scrapers/pdf-positioned-table.ts) silently found no header row at all and returned undefined for the whole table, even though the target catalog sits in an exact, unambiguous, single-row match.",
+    "AB": "Columns 'A' and 'B' are the floor-stand kit's two footprint dimensions (in inches, per the drawing's 'floor layout' section on the same page); the PDF does not label them beyond the bare letters, so the fixture asserts them as raw attribute names exactly as printed rather than inventing a semantic name."
+  }
+}

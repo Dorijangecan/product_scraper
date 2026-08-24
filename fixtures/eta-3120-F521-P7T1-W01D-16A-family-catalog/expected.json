@@ -1,0 +1,18 @@
+{
+  "_source": "The recorded E-T-A 3120-F PDF shows the F521 prefix in a preferred-types matrix and lists possible current ratings, but no page prints the full requested 3120-F521-P7T1-W01D-16A code or binds 16 A to it. A strict extractor must therefore retain no variant-sensitive normalized value from this family-only evidence.",
+  "_tier": "value-verified refusal. The source cannot identify the exact requested SKU, so silence for variant-sensitive fields is the verified result; it must also not export a sentence fragment as a family property.",
+  "normalized": {
+    "voltage": { "absent": true },
+    "current": { "absent": true },
+    "weight": { "absent": true },
+    "dimensions": { "absent": true },
+    "protection": { "absent": true }
+  },
+  "mustNotContain": [
+    "ratings and typical internal"
+  ],
+  "_notes": {
+    "scope": "The PDF's ratings matrix demonstrates possible family ratings, not the requested suffix. Decoding that suffix without a published positional legend would be guessing.",
+    "noise": "The rejected text is the tail of the heading 'Standard voltage ratings and typical internal resistance values', not a value for a property named Standard voltage."
+  }
+}

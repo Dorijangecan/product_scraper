@@ -1,0 +1,18 @@
+{
+  "attributesInclude": [
+    { "name": "Cable entry", "valueContains": "4 x M16 x 1,5" },
+    { "name": "Cable section, minimum", "valueContains": "0.25" },
+    { "name": "Rated insulation voltage Ui", "valueContains": "250 VAC" },
+    { "name": "Rated impulse withstand voltage Uimp", "valueContains": "4 kV" },
+    { "name": "Certificates", "valueContains": "CCC" }
+  ],
+  "mustNotContain": [
+    "Cable entry4 x M16 x 1,5TerminationScrew terminals",
+    "CertificatesCCCcULusIFA",
+    "Rated impulse withstand voltage Uimp; 4kV"
+  ],
+  "_notes": {
+    "why": "The official DOM renders Connection technique and insulation values as independent leaf rows. Their section heading and any adjacent rows must never be reconstructed into one artificial name/value attribute.",
+    "scope": "The target is explicitly identified on the official PDP as article number 101164207 (AZM 161SK-12/12RK-024)."
+  }
+}

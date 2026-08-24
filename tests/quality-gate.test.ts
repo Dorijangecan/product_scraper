@@ -35,6 +35,24 @@ const productTypeAwareManufacturer: ManufacturerConfig = {
 };
 
 describe("quality gate", () => {
+  it("carries an unmapped text specification to review diagnostics without assigning a field", () => {
+    const result = finalizeQualityGate(
+      product({
+        title: "ABC-123 enclosure",
+        attributes: [
+          { group: "Technical Data", name: "Voltage", value: "24 V", sourceUrl: "https://example.test/products/ABC-123" },
+          { group: "Technical Data", name: "Material", value: "Steel", sourceUrl: "https://example.test/products/ABC-123" },
+          { group: "Technical Data", name: "Contact metallurgy", value: "Silver alloy", sourceUrl: "https://example.test/products/ABC-123" }
+        ],
+        documents: [{ type: "datasheet", label: "ABC-123 datasheet", url: "https://example.test/ABC-123.pdf" }]
+      }),
+      manufacturer
+    );
+
+    expect(result.diagnostics?.unmappedSpecLabels).toContainEqual({ label: "Contact metallurgy", valueKind: "text" });
+    expect(result.normalized).not.toHaveProperty("contactMetallurgy");
+  });
+
   it("promotes only identity-confirmed complete product data to found", () => {
     const result = finalizeQualityGate(
       product({
@@ -350,6 +368,49 @@ describe("quality gate", () => {
     expect(result.status).toBe("found");
     expect(result.qualityGate?.missing).not.toContain("normalized:voltage");
     expect(result.qualityGate?.missing).not.toContain("normalized:current");
+  });
+
+  it("stops requiring a field the user switched off for the run", () => {
+    // A coverage tile turned off is an explicit "I do not need this". Without it honoured here the
+    // row stays partial forever and every one pays for a fallback round chasing the value.
+    const sensor = product({
+      title: "ABC-123 inductive proximity sensor",
+      description: "Inductive proximity sensor",
+      attributes: [{ group: "Technical Data", name: "Sensor type", value: "inductive" }]
+    });
+
+    expect(finalizeQualityGate(sensor, productTypeAwareManufacturer).qualityGate?.missing).toContain("normalized:voltage");
+
+    const withVoltageOff: ManufacturerConfig = {
+      ...productTypeAwareManufacturer,
+      scrapeRecipe: {
+        ...productTypeAwareManufacturer.scrapeRecipe,
+        qualityPolicy: { notApplicableFields: ["voltage", "current"] }
+      }
+    };
+    const relaxed = finalizeQualityGate(sensor, withVoltageOff);
+    expect(relaxed.qualityGate?.missing).not.toContain("normalized:voltage");
+    expect(relaxed.qualityGate?.missing).not.toContain("normalized:current");
+    expect(relaxed.status).toBe("found");
+  });
+
+  it("also drops an explicitly configured required field once the user switches it off", () => {
+    const withWeightRequiredButOff: ManufacturerConfig = {
+      ...productTypeAwareManufacturer,
+      scrapeRecipe: {
+        ...productTypeAwareManufacturer.scrapeRecipe,
+        qualityPolicy: { requiredNormalizedFields: ["weight"], notApplicableFields: ["weight"] }
+      }
+    };
+    const result = finalizeQualityGate(
+      product({
+        title: "ABC-123 steel enclosure",
+        attributes: [{ group: "Product Specifications", name: "Material", value: "Steel" }]
+      }),
+      withWeightRequiredButOff
+    );
+
+    expect(result.qualityGate?.missing).not.toContain("normalized:weight");
   });
 
   it("does not require voltage and current for an Eaton rear-wall enclosure component", () => {

@@ -2,7 +2,7 @@
  * Feedback loop for the property ontology (ontology.ts): runs findUnmappedSpecLabels against
  * every attribute ever scraped and stored in the local run history (data/scraper.db), not just
  * the small benchmarks/ fixture set. Reports the most frequent labels that carry a recognizable
- * numeric value but map to no known ontology property — a concrete worklist for adding new
+ * numeric or text value but map to no known ontology property — a concrete worklist for adding new
  * synonyms/properties, instead of guessing what's missing.
  *
  * Usage: npx tsx scripts/audit-unmapped-spec-labels.ts [--top N] [--limit-runs N]
@@ -29,7 +29,7 @@ const runLimit = argValue("--limit-runs", 100_000);
 const appPaths = createAppPaths(rootDir);
 const db = new ScraperDb(appPaths);
 
-const labelCounts = new Map<string, number>();
+const labelCounts = new Map<string, { count: number; valueKinds: Set<"quantity" | "text"> }>();
 let scannedRuns = 0;
 let scannedItems = 0;
 let scannedAttributes = 0;
@@ -46,8 +46,11 @@ try {
       if (!attributes?.length) continue;
       scannedItems += 1;
       scannedAttributes += attributes.length;
-      for (const label of findUnmappedSpecLabels(attributes)) {
-        labelCounts.set(label, (labelCounts.get(label) ?? 0) + 1);
+      for (const { label, valueKind } of findUnmappedSpecLabels(attributes)) {
+        const entry = labelCounts.get(label) ?? { count: 0, valueKinds: new Set<"quantity" | "text">() };
+        entry.count += 1;
+        entry.valueKinds.add(valueKind);
+        labelCounts.set(label, entry);
       }
     }
     const runElapsedMs = Date.now() - runStarted;
@@ -59,18 +62,18 @@ try {
   db.close();
 }
 
-const ranked = [...labelCounts.entries()].sort((left, right) => right[1] - left[1]);
+const ranked = [...labelCounts.entries()].sort((left, right) => right[1].count - left[1].count || left[0].localeCompare(right[0]));
 
 console.log("=== Unmapped spec label audit ===");
 console.log(`Scanned ${scannedRuns} run(s), ${scannedItems} item(s) with attributes, ${scannedAttributes} attribute(s) total.`);
-console.log(`Found ${ranked.length} distinct unmapped label(s) carrying a recognizable numeric value.\n`);
+console.log(`Found ${ranked.length} distinct unmapped label(s) carrying a short numeric or text value.\n`);
 
 if (ranked.length === 0) {
-  console.log("(clean — every numeric-shaped label maps to a known ontology property)");
+  console.log("(clean — every eligible label maps to a known ontology property)");
 } else {
-  console.log(`Top ${Math.min(topN, ranked.length)} by frequency (label -> occurrence count across stored run items):`);
-  for (const [label, count] of ranked.slice(0, topN)) {
-    console.log(`  ${count.toString().padStart(5)}  ${label}`);
+  console.log(`Top ${Math.min(topN, ranked.length)} by frequency (label [value kind] -> occurrence count across stored run items):`);
+  for (const [label, entry] of ranked.slice(0, topN)) {
+    console.log(`  ${entry.count.toString().padStart(5)}  [${[...entry.valueKinds].sort().join(",")}] ${label}`);
   }
   if (ranked.length > topN) {
     console.log(`  ... and ${ranked.length - topN} more (rerun with --top ${ranked.length} to see all)`);

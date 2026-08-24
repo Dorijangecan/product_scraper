@@ -29,6 +29,19 @@ describe("suggestTechnicalAttributeAlias (Phase 4 U4)", () => {
   it("returns undefined for an empty label", () => {
     expect(suggestTechnicalAttributeAlias("")).toBeUndefined();
   });
+
+  it("does not turn a weak or another vendor's alias into a review recommendation", () => {
+    // The old >0 threshold offered "Mystery field" as rated voltage with a meaningless 0.325
+    // similarity. Review is human-controlled, but low-quality prompts still waste review time.
+    expect(suggestTechnicalAttributeAlias("Mystery field")).toBeUndefined();
+    // This label is evidence-backed for Eaton, not a generic fact about an unseen manufacturer.
+    expect(suggestTechnicalAttributeAlias("Rated uninterrupted current Iu")).toBeUndefined();
+    expect(suggestTechnicalAttributeAlias("Rated uninterrupted current Iu", { manufacturerId: "eaton" })).toMatchObject({
+      canonicalKey: "ratedCurrent",
+      matchedLabel: "Rated uninterrupted current (Iu)",
+      score: 1
+    });
+  });
 });
 
 describe("technical attribute normalization", () => {

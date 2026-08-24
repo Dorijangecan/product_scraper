@@ -6,16 +6,20 @@ import { PDFParse } from "pdf-parse";
 import type { TableArray } from "pdf-parse";
 import type { AttributeRecord, DocumentProcessingDiagnostic, DocumentRecord, ProductResult, SourceRecord } from "../../shared/types.js";
 import { cleanText, normalizeFields, splitNameValue } from "./normalizer.js";
-import { catalogTextMatches, sameCatalogNumber } from "./catalog-number.js";
+import { catalogTextMatches, findCatalogTextMatch, sameCatalogNumber, type CatalogMatchLevel } from "./catalog-number.js";
 import { buildTightContextForCatalog, buildVariantColumnContext } from "./tight-context.js";
 import { listTechnicalAttributeAliases } from "./technical-attribute-aliases.js";
-import { readPdfWithOptionalOcr } from "./pdf-ocr.js";
+import { inferOcrLanguage, pdfPagesNeedingOcr, readPdfWithOptionalOcr, type OcrPositionedItem } from "./pdf-ocr.js";
 import { isPdfLikeDocumentUrl } from "./document-url.js";
-import { fieldMatchesLabel, FIELD_REGISTRY, listFieldRegistryDocumentLabels } from "./field-registry.js";
+import { fieldMatchesLabel, FIELD_REGISTRY, listFieldRegistryDocumentLabels, type RegistryFieldKey } from "./field-registry.js";
 import { extractElectricalSpecAttributesFromText, extractOntologySpecAttributesFromText } from "./electrical-spec-miner.js";
 import { extractComplianceMatrixAttributes, textHasComplianceMatrixGlyphs } from "./pdf-compliance-matrix.js";
-import { extractPositionedTableRowsFromPdf } from "./pdf-positioned-table.js";
-import { catalogTableKeyFor, isCatalogTableHeaderText } from "./catalog-table-vocabulary.js";
+import { extractPositionedTableRows, extractPositionedTableRowsFromPdf, type PositionedTextItem } from "./pdf-positioned-table.js";
+import { catalogTableKeyFor, isCatalogIdHeaderCell, isCatalogTableHeaderText } from "./catalog-table-vocabulary.js";
+import { orderingCodeLegendValue } from "./ordering-code-legend.js";
+import { inferEatonRapidLinkOrderingRows } from "./eaton-ordering-inference.js";
+import { isPlausibleSpecLabel, isPlausibleSpecValue, looksLikeHeaderRowValue, specPlausibilityGateDisabled } from "./spec-plausibility.js";
+import { looksLikeUnderstandableSpec } from "./ontology.js";
 
 const MAX_PDF_PAGES = 30;
 const MAX_PDF_TEXT_CHARS = 250_000;
@@ -28,6 +32,13 @@ const TARGETED_PDF_MAX_PAGES = 200;
 const TARGETED_PDF_NEIGHBOUR_PAGES = 1;
 const TARGETED_PDF_MAX_SECTION_PAGES = 12;
 const TARGETED_PDF_MAX_GLOBAL_TECHNICAL_PAGES = 6;
+/** How far from our catalog's own pages a shared technical page may sit and still be considered part
+ * of the same family section (see selectGlobalTechnicalPages). Kept tight on purpose: a family's own
+ * spec page is normally 1-3 pages from its ordering table, while the NEXT family's spec page is only
+ * a little further (Eaton's E6 catalogue: ours on 4, the next family's on 12, ordering table on 6).
+ * Erring narrow leaves a field empty; erring wide fills it with another family's value. */
+const TARGETED_PDF_TECHNICAL_PAGE_MAX_DISTANCE = 4;
+const TARGETED_PDF_NEAR_TECHNICAL_PAGES = 3;
 const PDF_TEXT_MIN_CHARS_FOR_PARSE = 80;
 const FULL_PDF_TEXT_CACHE_MAX_FILE_BYTES = 8 * 1024 * 1024;
 const FULL_PDF_TEXT_CACHE_MAX_ENTRIES = 16;
@@ -35,9 +46,34 @@ const FULL_PDF_TEXT_CACHE_MAX_ENTRIES = 16;
 interface PdfDocumentText {
   text: string;
   tables: TableArray[];
+  /** OCR bbox rows, preserved only when the OCR quality gate accepted the page. */
+  ocrPositionedItems?: PositionedTextItem[];
+  /** Page numbers the text was scoped to, for diagnostics. Undefined when the whole document was read. */
+  pagesUsed?: number[];
+  pageCount?: number;
+  /** True when MAX_PDF_TEXT_CHARS cut the text — otherwise "not in this document" and "truncated away" look identical. */
+  truncated?: boolean;
 }
 
-const fullPdfTextCache = new Map<string, Promise<PdfDocumentText>>();
+/**
+ * One PDF parsed once per file: per-page text plus per-page vector-grid tables.
+ *
+ * This replaced a whole-document text cache that returned BEFORE the targeted page reader ran, which
+ * made page targeting dead code for every PDF under 8 MB — i.e. for virtually every datasheet and
+ * most family catalogs (a 57-page, 2.9 MB catalog was read as one 250k-char blob, so the only defence
+ * against mixing variants was the line/column windows). Caching PAGES instead of joined text keeps
+ * the one-parse-per-file saving the cache was added for AND lets each catalog number pick its own
+ * pages out of the cached set.
+ */
+interface PdfPageSet {
+  pages: Array<{ num: number; text: string }>;
+  tablesByPage: Map<number, TableArray[]>;
+  ocrPositionedItemsByPage: Map<number, PositionedTextItem[]>;
+  /** OCR output has no reliable page structure, so targeting is skipped for it. */
+  fromOcr: boolean;
+}
+
+const pdfPageSetCache = new Map<string, Promise<PdfPageSet>>();
 const normalizedPdfLinesCache = new Map<string, string[]>();
 const globalPdfAttributeCache = new Map<string, AttributeRecord[]>();
 const globalPdfTechnicalAttributeCache = new Map<string, AttributeRecord[]>();
@@ -46,6 +82,14 @@ const patternModelPhysicalTableCache = new Map<string, PatternModelPhysicalIndex
 const catalogMatchedRowsCache = new Map<string, CatalogMatchedRowsIndex>();
 
 const BASE_KNOWN_LABELS = [
+  // Packaging quantity, as printed in ordering tables ("Unit per package 12"). Real vocabulary, so
+  // it is extracted rather than dropped — and it also completes the header-row detection in
+  // spec-plausibility.ts, which can only recognise a header row when it knows EVERY cell in it.
+  "Unit per package",
+  "Units per package",
+  "Packaging unit",
+  "Package quantity",
+  "Quantity per package",
   "Approximate shipping weight",
   "Approval/Conformity",
   "Cable jacket, material",
@@ -260,20 +304,26 @@ export async function enrichResultFromDownloadedDocuments(result: ProductResult)
       continue;
     }
     try {
-      const { text, tables } = await readPdfText(doc.localPath!, result.catalogNumber, doc.url);
+      const pdfText = await readPdfText(doc.localPath!, result.catalogNumber, doc.url);
+      const { text, tables } = pdfText;
       // Multi-model PDFs need target scoping, but some catalogs keep shared technical
       // pages away from the catalog table. Keep both the target rows and global spec rows.
-      const tightText = buildDocumentParseContext(text, result.catalogNumber);
-      const attributes = [
+      const scope = buildDocumentParseScope(text, result.catalogNumber);
+      let attributes = [
         ...extractDocumentTextAttributes({
           catalogNumber: result.catalogNumber,
           document: doc,
-          text: tightText,
-          tables
+          text: scope.text,
+          tables,
+          scopeUnresolved: !scope.resolved,
+          matchLevel: scope.match?.level
         }),
+        ...extractOcrPositionedTableAttributes(pdfText.ocrPositionedItems, result.catalogNumber, doc.url),
         ...(await extractComplianceMatrixAttributesSafely(text, doc.localPath!, result.catalogNumber, doc.url))
       ];
-      attributes.push(...(await extractPositionedWeightDimensionsSafely(doc.localPath!, result.catalogNumber, doc.url, attributes, looksLikeMultiVariantFamilyPage(text, result.catalogNumber))));
+      const positionedAttributes = await extractPositionedWeightDimensionsSafely(doc.localPath!, result.catalogNumber, doc.url, attributes, looksLikeMultiVariantFamilyPage(text, result.catalogNumber));
+      attributes.push(...positionedAttributes);
+      attributes = discardUnscopedFamilyTableCandidates(attributes, result.catalogNumber, positionedAttributes);
       if (attributes.length > 0) {
         documentAttributes.push(...stampDocumentAttributes(attributes));
         documentSources.push({
@@ -291,9 +341,15 @@ export async function enrichResultFromDownloadedDocuments(result: ProductResult)
         doc,
         "downloaded-document-enrichment",
         substantive ? "parsed" : "skipped",
-        substantive ? `Parsed ${attributes.length} attribute records from downloaded PDF.` : "Opened downloaded PDF, but no source-backed product attributes were extracted.",
+        (substantive
+          ? `Parsed ${attributes.length} attribute records from downloaded PDF.`
+          : "Opened downloaded PDF, but no source-backed product attributes were extracted.") +
+          describePdfScope(pdfText) +
+          (scope.resolved
+            ? ""
+            : " [multi-variant document; nothing in it locates this catalog number, so catalog-agnostic sweeps were suppressed]"),
         undefined,
-        documentExtractionMetrics(attributes, [doc], Date.now() - started)
+        documentExtractionMetrics(attributes, [doc], Date.now() - started, pdfText)
       ));
     } catch (error) {
       const parseError = error instanceof Error ? error.message : "PDF parse failed";
@@ -375,18 +431,24 @@ export async function enrichResultFromRemoteDocuments(
       const fetched = await fetchDocument(probeDoc);
       cleanup = fetched.cleanup;
       const parsedDoc = fetched.url ? { ...probeDoc, url: fetched.url } : probeDoc;
-      const { text, tables } = await readPdfText(fetched.localPath, result.catalogNumber, parsedDoc.url);
-      const tightText = buildDocumentParseContext(text, result.catalogNumber);
-      const attributes = [
+      const pdfText = await readPdfText(fetched.localPath, result.catalogNumber, parsedDoc.url);
+      const { text, tables } = pdfText;
+      const scope = buildDocumentParseScope(text, result.catalogNumber);
+      let attributes = [
         ...extractDocumentTextAttributes({
           catalogNumber: result.catalogNumber,
           document: parsedDoc,
-          text: tightText,
-          tables
+          text: scope.text,
+          tables,
+          scopeUnresolved: !scope.resolved,
+          matchLevel: scope.match?.level
         }),
+        ...extractOcrPositionedTableAttributes(pdfText.ocrPositionedItems, result.catalogNumber, parsedDoc.url),
         ...(await extractComplianceMatrixAttributesSafely(text, fetched.localPath, result.catalogNumber, parsedDoc.url))
       ];
-      attributes.push(...(await extractPositionedWeightDimensionsSafely(fetched.localPath, result.catalogNumber, parsedDoc.url, attributes, looksLikeMultiVariantFamilyPage(text, result.catalogNumber))));
+      const positionedAttributes = await extractPositionedWeightDimensionsSafely(fetched.localPath, result.catalogNumber, parsedDoc.url, attributes, looksLikeMultiVariantFamilyPage(text, result.catalogNumber));
+      attributes.push(...positionedAttributes);
+      attributes = discardUnscopedFamilyTableCandidates(attributes, result.catalogNumber, positionedAttributes);
       if (attributes.length > 0) {
         documentAttributes.push(...stampDocumentAttributes(attributes));
         documentSources.push({
@@ -513,13 +575,53 @@ function documentProcessingRecord(
 function documentExtractionMetrics(
   attributes: AttributeRecord[],
   documents: DocumentRecord[],
-  elapsedMs?: number
-): Pick<DocumentProcessingDiagnostic, "attributeCount" | "normalizedFields" | "elapsedMs"> {
+  elapsedMs?: number,
+  pdfText?: PdfDocumentText
+): Pick<DocumentProcessingDiagnostic, "attributeCount" | "normalizedFields" | "elapsedMs" | "pageCount"> {
   return {
     attributeCount: attributes.length,
     normalizedFields: normalizedFieldNames(normalizeFields(attributes, documents)),
-    ...(elapsedMs !== undefined ? { elapsedMs } : {})
+    ...(elapsedMs !== undefined ? { elapsedMs } : {}),
+    ...(pdfText?.pageCount !== undefined ? { pageCount: pdfText.pageCount } : {})
   };
+}
+
+/**
+ * Human-readable note about WHICH pages were read and whether text was cut.
+ *
+ * Without this, "the value isn't in this document" and "the value was on a page we never read" and
+ * "the text was truncated at MAX_PDF_TEXT_CHARS before we got there" all look identical in the
+ * diagnostics — three causes needing three completely different fixes.
+ */
+function describePdfScope(pdfText: PdfDocumentText): string {
+  const parts: string[] = [];
+  if (pdfText.pagesUsed?.length && pdfText.pageCount) {
+    parts.push(
+      pdfText.pagesUsed.length === pdfText.pageCount
+        ? `read all ${pdfText.pageCount} pages`
+        : `read ${pdfText.pagesUsed.length}/${pdfText.pageCount} pages (${summarizePageRanges(pdfText.pagesUsed)})`
+    );
+  }
+  if (pdfText.truncated) parts.push(`text truncated at ${MAX_PDF_TEXT_CHARS} chars`);
+  return parts.length ? ` [${parts.join("; ")}]` : "";
+}
+
+function summarizePageRanges(pages: number[]): string {
+  const sorted = [...pages].sort((left, right) => left - right);
+  const ranges: string[] = [];
+  let start = sorted[0];
+  let previous = sorted[0];
+  for (const page of sorted.slice(1)) {
+    if (page === previous + 1) {
+      previous = page;
+      continue;
+    }
+    ranges.push(start === previous ? `${start}` : `${start}-${previous}`);
+    start = page;
+    previous = page;
+  }
+  if (start !== undefined) ranges.push(start === previous ? `${start}` : `${start}-${previous}`);
+  return ranges.join(",");
 }
 
 function normalizedFieldNames(normalized: ProductResult["normalized"]): string[] {
@@ -556,27 +658,97 @@ export function extractDocumentTextAttributes(input: {
   document: Pick<DocumentRecord, "label" | "type" | "url" | "localPath">;
   text: string;
   tables?: TableArray[];
+  /**
+   * Set when nothing in the document actually locates this catalog number (see buildDocumentParseScope).
+   * The catalog-agnostic sweeps are then skipped: with no scope they attribute whatever the document
+   * happens to say to whichever product was asked for.
+   */
+  scopeUnresolved?: boolean;
+  /** A family prefix proves shared-document context, never a selected product row. */
+  matchLevel?: CatalogMatchLevel;
 }): AttributeRecord[] {
   const sourceUrl = input.document.url;
   const lines = cachedNormalizedPdfLines(input.text, sourceUrl);
   const orderingAttributes = extractCatalogOrderingTableRows(lines, input.catalogNumber, sourceUrl);
   const hasStructuredOrderingRow = orderingAttributes.some((attr) => attr.name === "Catalog Number");
-  const attributes = hasStructuredOrderingRow
-    ? [parsedDocumentAttribute(input.document, sourceUrl)]
-    : cachedGlobalPdfAttributes(input.document, input.text, lines, sourceUrl);
+  // With no resolved scope, the catalog-agnostic sweeps are the dangerous ones: they read the whole
+  // document and hand everything to whichever catalog number was asked for. The catalog-VERIFIED readers
+  // below still run — if one of them can find a row that is provably ours, that is exactly the evidence
+  // that was missing, and it is welcome.
+  const sweepsAllowed = !input.scopeUnresolved;
+  const familyOnly = input.matchLevel === "family";
+  const attributes =
+    hasStructuredOrderingRow || !sweepsAllowed
+      ? [parsedDocumentAttribute(input.document, sourceUrl)]
+      : cachedGlobalPdfAttributes(input.document, input.text, lines, sourceUrl);
 
   const productSpecificAttributes = [
-    ...orderingAttributes,
-    ...cachedGlobalPdfTechnicalAttributes(input.text, lines, sourceUrl),
-    ...extractPatternModelPhysicalRows(lines, input.catalogNumber, sourceUrl),
-    ...(hasStructuredOrderingRow ? [] : extractGenericCatalogTableRows(lines, input.catalogNumber, sourceUrl)),
-    ...(hasStructuredOrderingRow ? [] : extractGetTableCatalogRows(input.tables ?? [], input.catalogNumber, sourceUrl)),
-    ...(hasStructuredOrderingRow ? [] : extractCatalogDescriptionRows(lines, input.catalogNumber, sourceUrl)),
-    ...extractCatalogSpecificRows(lines, input.catalogNumber, sourceUrl),
-    ...(hasStructuredOrderingRow ? [] : extractCatalogFeatureAttributes(lines, input.catalogNumber, sourceUrl, input.document.type))
+    ...(familyOnly ? [] : orderingAttributes),
+    ...(sweepsAllowed ? cachedGlobalPdfTechnicalAttributes(input.text, lines, sourceUrl, input.catalogNumber) : []),
+    ...(familyOnly ? [] : extractPatternModelPhysicalRows(lines, input.catalogNumber, sourceUrl)),
+    // These two are NOT suppressed by a structured ordering row, unlike the sweeps below.
+    //
+    // `hasStructuredOrderingRow` only means the ordering reader recognised our catalog number — it does
+    // not mean it extracted any SPECS. On Eaton's E6 catalogue it found the row
+    // "1 | E6-1/1/B | CBE03319 | 12" and nothing else, yet it suppressed the one reader that maps the
+    // header ("Rated current In (A) | Part number | Article number | Unit per package") onto that row's
+    // cells and would have yielded the rated current of 1 A. The catalog number was found and the
+    // specification next to it was thrown away.
+    //
+    // Suppressing them was never about contamination either: both verify that the cell the HEADER calls
+    // the catalog number is actually ours (see extractGenericCatalogTableRows) before trusting the row,
+    // so they are the precise readers, not the risky ones. The unscoped sweeps below stay suppressed.
+    ...(familyOnly ? [] : extractGenericCatalogTableRows(lines, input.catalogNumber, sourceUrl)),
+    ...(familyOnly ? [] : extractGetTableCatalogRows(input.tables ?? [], input.catalogNumber, sourceUrl)),
+    ...(hasStructuredOrderingRow || familyOnly ? [] : extractCatalogDescriptionRows(lines, input.catalogNumber, sourceUrl)),
+    // Suppressed too when the scope is unresolved. This reader keeps whole lines keyed by any
+    // catalog-shaped token in them, so it is only "catalog-verified" in the weakest sense — on the
+    // nVent multi-product sheet it matched the page FOOTERS (the only places the document number
+    // appears) and emitted four of them as product rows. With no resolved scope it is as blind as a
+    // sweep; the header-mapped table readers above are the ones that genuinely verify a row.
+    ...(sweepsAllowed && !familyOnly ? extractCatalogSpecificRows(lines, input.catalogNumber, sourceUrl) : []),
+    ...(hasStructuredOrderingRow || !sweepsAllowed || familyOnly
+      ? []
+      : extractCatalogFeatureAttributes(lines, input.catalogNumber, sourceUrl, input.document.type))
   ];
 
-  return dedupeAttributes([...productSpecificAttributes, ...attributes]);
+  const combined = dedupeAttributes([...productSpecificAttributes, ...attributes]);
+  return familyOnly
+    ? combined.filter(isFamilyInvariantAttribute).map((attribute) => ({ ...attribute, scope: "family", matchLevel: "family" }))
+    : combined.map((attribute) => (input.matchLevel === "exact" ? { ...attribute, matchLevel: "exact" } : attribute));
+}
+
+/** Fields which can vary within a catalog family, even when their label also contains an invariant word.
+ *
+ * For example, the heading "Standard voltage ratings ..." contains "standard", but is still a
+ * voltage rating and therefore must not escape a family-only document as a product fact.
+ */
+const FAMILY_VARIANT_SENSITIVE_FIELD_KEYS = [
+  "weight",
+  "dimensions",
+  "wallThickness",
+  "finish",
+  "color",
+  "voltage",
+  "current",
+  "protection",
+  "operatingTemperature",
+  "typeCode"
+] as const satisfies readonly RegistryFieldKey[];
+
+/** A family-wide compliance claim needs a real published reference, not just a table fragment
+ * containing words such as "standard" or "approval". */
+const FAMILY_COMPLIANCE_REFERENCE = /\b(?:IEC|EN|DIN|ISO|UL|CSA|VDE|CE|UKCA|EAC|RoHS|REACH|ATEX|NEMA|NFPA|CCC|T[ÜU]V)\b/i;
+
+/** Family evidence may safely yield shared construction/compliance facts, never product ratings. */
+function isFamilyInvariantAttribute(attribute: AttributeRecord): boolean {
+  // Group names describe the PDF section, not this row. A material row under a "Dimensions"
+  // section is still family-invariant; conversely, "Standard voltage" remains a voltage row.
+  const name = cleanText(attribute.name);
+  if (FAMILY_VARIANT_SENSITIVE_FIELD_KEYS.some((field) => fieldMatchesLabel(field, name))) return false;
+  if (/\bmaterial\b/i.test(name)) return true;
+  return /\b(?:standard|norm|certif(?:icate|ication)|approval|compliance)\b/i.test(name) &&
+    FAMILY_COMPLIANCE_REFERENCE.test(cleanText(attribute.value));
 }
 
 /**
@@ -616,10 +788,9 @@ function extractGetTableCatalogRows(tables: TableArray[], catalogNumber: string,
       // scans the WHOLE row including free-text description columns, so a sibling catalog
       // cross-referenced in THIS row's own description ("...replacement for 1606-XLSBATASSY1...")
       // would otherwise match a query for that sibling and inherit THIS row's values instead.
-      const mappedCatalogNumber = mapped.get("catalogNumber");
-      if (mappedCatalogNumber && !sameCatalogNumber(mappedCatalogNumber, catalogNumber, { compact: true, ignoreCase: true })) continue;
+      if (!mappedCatalogCellMatches(mapped.get("catalogNumber"), catalogNumber)) continue;
 
-      push("Catalog Number", mapped.get("catalogNumber") ?? catalogNumber);
+      push("Catalog Number", ourCatalogCellValue(mapped.get("catalogNumber"), catalogNumber));
       push("Description", mapped.get("description"));
       push("Product Type", mapped.get("productType"));
       push("Material", mapped.get("material"));
@@ -743,8 +914,10 @@ function extractGlobalPdfAttributes(
   return attributes;
 }
 
-function cachedGlobalPdfTechnicalAttributes(text: string, lines: string[], sourceUrl: string): AttributeRecord[] {
-  const cacheKey = documentTextCacheKey(text, sourceUrl);
+function cachedGlobalPdfTechnicalAttributes(text: string, lines: string[], sourceUrl: string, catalogNumber: string): AttributeRecord[] {
+  // Some readers below select a catalog-labelled row. Do not let another SKU's
+  // result from the same family PDF leak through this otherwise document-level cache.
+  const cacheKey = `${documentTextCacheKey(text, sourceUrl)}|${compact(catalogNumber)}`;
   const cached = globalPdfTechnicalAttributeCache.get(cacheKey);
   if (cached) return cached.map((attr) => ({ ...attr }));
   const attributes = [
@@ -759,9 +932,9 @@ function cachedGlobalPdfTechnicalAttributes(text: string, lines: string[], sourc
       group: "PDF Ontology Spec Miner"
     }),
     ...extractLocalizedTechnicalRows(lines, sourceUrl),
-    ...extractStackedDimensionTableRows(lines, sourceUrl),
+    ...extractStackedDimensionTableRows(lines, sourceUrl, catalogNumber),
     ...extractInlineDimensionText(lines, sourceUrl),
-    ...extractContactRatingAttributes(lines, sourceUrl),
+    ...extractContactRatingAttributes(lines, sourceUrl, catalogNumber),
     ...extractQualifiedTemperatureAttributes(lines, sourceUrl),
     ...extractWrappedLabelValueAttributes(lines, sourceUrl)
   ];
@@ -785,8 +958,34 @@ function extractCatalogFeatureAttributes(lines: string[], catalogNumber: string,
   return attributes.slice(0, 40);
 }
 
+/**
+ * FNV-1a over the whole string. Cheap (one pass, no allocation) and, unlike a length + first/last-120
+ * fingerprint, it cannot collide for two texts that differ only in the middle.
+ */
+function textFingerprint(text: string): string {
+  let hash = 0x811c9dc5;
+  for (let index = 0; index < text.length; index += 1) {
+    hash ^= text.charCodeAt(index);
+    hash = Math.imul(hash, 0x01000193);
+  }
+  return (hash >>> 0).toString(36);
+}
+
+/**
+ * Cache identity for text-derived attribute lists.
+ *
+ * The text handed to these extractors is SCOPED PER CATALOG NUMBER (buildDocumentParseContext), and
+ * the old key was `url | length | first120 | last120`. In a uniform ordering table that is not unique:
+ * sibling rows have identical lengths ("1 E6-1/1/B CBE03319 12" vs "2 E6-2/1/B CBE03320 12") and their
+ * scoped windows share the same surrounding header/footer lines, so two different catalog numbers
+ * could produce the same key and one would be served the OTHER's attributes — a cross-catalog leak no
+ * downstream guard can detect, because the values look perfectly well-formed.
+ *
+ * Hashing the full text keeps cross-catalog reuse when the text genuinely IS identical, so nothing is
+ * lost by being correct here.
+ */
 function documentTextCacheKey(text: string, sourceUrl: string): string {
-  return `${sourceUrl}|${text.length}|${compact(text.slice(0, 120))}|${compact(text.slice(-120))}`;
+  return `${sourceUrl}|${text.length}|${textFingerprint(text)}`;
 }
 
 function trimMap<K, V>(map: Map<K, V>, maxEntries: number): void {
@@ -795,6 +994,82 @@ function trimMap<K, V>(map: Map<K, V>, maxEntries: number): void {
     if (oldest === undefined) return;
     map.delete(oldest);
   }
+}
+
+/**
+ * A running page header/footer, detected generically rather than by vendor.
+ *
+ * Two signals together, because either alone is unsafe: the line REPEATS across pages once page numbers
+ * are stripped, AND it carries imprint-shaped content (a domain, a phone number, a copyright, a
+ * legal disclaimer). A repeated spec line therefore cannot be mistaken for furniture, and a one-off
+ * imprint line does not disqualify a real page.
+ */
+const PAGE_FURNITURE_MARKER = /https?:\/\/|\bwww\.|\b[a-z0-9-]+\.(?:com|net|org|de|eu|co\.uk)\b|\b(?:ph|tel|phone|fax)\b\s*[:.]?\s*\+?[\d\s().-]{7,}|[©]|\ball rights reserved\b|\bsubject to change\b|\btechnische änderungen\b|\bsous r[ée]serve de modifications\b/i;
+const PAGE_FURNITURE_MIN_REPEATS = 3;
+
+function runningPageFurnitureForms(lines: string[]): Set<string> {
+  const counts = new Map<string, number>();
+  for (const line of lines) {
+    const form = pageFurnitureForm(line);
+    if (!form) continue;
+    counts.set(form, (counts.get(form) ?? 0) + 1);
+  }
+  const forms = new Set<string>();
+  for (const [form, count] of counts) if (count >= PAGE_FURNITURE_MIN_REPEATS) forms.add(form);
+  return forms;
+}
+
+/** Digit-stripped shape of a line, or undefined when the line carries no imprint marker. */
+function pageFurnitureForm(line: string): string | undefined {
+  const cleaned = cleanText(line);
+  if (!cleaned || !PAGE_FURNITURE_MARKER.test(cleaned)) return undefined;
+  return cleaned.replace(/\d+/g, "#").toLowerCase();
+}
+
+/**
+ * True when EVERY mention of our catalog number sits in a running header/footer.
+ *
+ * A document number printed in the footer of every page ("… SUBJECT TO CHANGE … Spec-00583") makes
+ * `catalogTextMatches` true and `buildTightContextForCatalog` return a window around each footer — on
+ * nVent's SPEC-00583 that was 8 windows totalling 3.5 kB, i.e. most of an 8-page multi-product sheet.
+ * The pipeline believed it had located the product eight times. It had located the document.
+ *
+ * Page furniture identifies the DOCUMENT, never the product, so a match there carries no scoping
+ * information at all.
+ */
+function catalogAppearsOnlyInPageFurniture(text: string, catalogNumber: string): boolean {
+  const lines = text.split(/\r?\n/);
+  const furniture = runningPageFurnitureForms(lines);
+  if (!furniture.size) return false;
+  let sawMention = false;
+  for (const line of lines) {
+    if (!catalogTextMatches(line, catalogNumber, { compact: true, afterColon: true })) continue;
+    sawMention = true;
+    const form = pageFurnitureForm(line);
+    if (!form || !furniture.has(form)) return false; // a real, non-furniture mention exists
+  }
+  return sawMention;
+}
+
+interface DocumentParseScope {
+  text: string;
+  /**
+   * False when nothing in the document actually locates THIS catalog number. Callers must then skip the
+   * catalog-agnostic sweeps: with no scope, those attribute whatever the document says to whichever
+   * product was asked for.
+   */
+  resolved: boolean;
+  match?: ReturnType<typeof findCatalogTextMatch>;
+}
+
+function buildDocumentParseScope(text: string, catalogNumber: string): DocumentParseScope {
+  const match = findCatalogTextMatch(text, catalogNumber, { compact: true, afterColon: true });
+  const contextText = buildDocumentParseContext(text, match?.candidate ?? catalogNumber);
+  // Only multi-variant documents are dangerous when unscoped: on a single-product datasheet "the whole
+  // document" IS the right scope, so widening there is correct and long-standing behaviour.
+  const unscopeable =
+    looksLikeMultiVariantFamilyPage(text, catalogNumber) && catalogAppearsOnlyInPageFurniture(text, catalogNumber);
+  return { text: contextText, resolved: !unscopeable, match };
 }
 
 function buildDocumentParseContext(text: string, catalogNumber: string): string {
@@ -817,6 +1092,57 @@ function buildDocumentParseContext(text: string, catalogNumber: string): string 
  * followed by 3+ digits. Mirrors tight-context.ts's own pattern; kept local since this file has no
  * other need to import it and the two modules already use slightly different helper sets. */
 const GLOBAL_CONTEXT_CATALOG_LIKE_PATTERN = /\b[A-Z0-9]{2,}(?:[-:\/.][A-Z0-9]+)+\b|\b[A-Z]{2,}[0-9]{3,}\b/i;
+/**
+ * A standards/norm reference, NOT a sibling catalog number.
+ *
+ * These are shaped exactly like catalog numbers to the pattern above ("IEC/EN60898.1" and
+ * "GB/T10963.1" both compact to letters-then-digits), and a family's shared "Technical Data" page
+ * essentially always cites a few. The ownership check below therefore used to conclude that such a
+ * page belonged to a DIFFERENT catalog number and threw the whole block away — losing the family's
+ * rated voltage, protection degree, temperature range and torque for every vendor that publishes a
+ * family catalog. Confirmed on Eaton's E6 catalogue, where page 4's design-standard line alone
+ * suppressed the entire technical table (fixtures/eaton-cbe03319-family-catalog).
+ */
+const STANDARD_REFERENCE_TOKEN_PATTERN =
+  /^(?:iecen|iec|en|gbt|gb|ul|csa|din|iso|vde|ansi|nema|nfpa|jis|bs|ieee|eac|tuv|etl|cei|nf|sae|astm|asme|ieccb)\d{2,6}[a-z]{0,2}(?:\d{1,3})?$/;
+
+export function isStandardReferenceToken(compactToken: string): boolean {
+  return STANDARD_REFERENCE_TOKEN_PATTERN.test(compactToken);
+}
+
+/** Unit suffixes that mark a token as a measured VALUE. Kept deliberately short: only units that
+ * realistically terminate an inline value, so a real catalog number ending in stray letters is not
+ * mistaken for a quantity. */
+const MEASUREMENT_UNIT_SUFFIX =
+  "v|a|ma|ka|w|kw|mw|va|kva|hz|khz|mm|cm|m|km|in|kg|g|mg|lb|lbs|nm|ncm|bar|pa|kpa|mpa|s|ms|min|h|db|rpm|hp|j|l|ml|k|c|f|%";
+/** digits/decimals joined by a separator ("230/400V", "50/60Hz", "1/0.03", "3x400") */
+const MEASUREMENT_COMPOUND_TOKEN_PATTERN = new RegExp(
+  `^[\\d.,]+(?:\\s*[\\/x×+±-]\\s*[\\d.,]+)+\\s*(?:°?\\s*(?:${MEASUREMENT_UNIT_SUFFIX}))?$`,
+  "i"
+);
+/** a single number carrying a unit ("400V", "6kA", "2.5Nm") */
+const MEASUREMENT_UNIT_TOKEN_PATTERN = new RegExp(`^[\\d.,]+\\s*°?\\s*(?:${MEASUREMENT_UNIT_SUFFIX})$`, "i");
+
+/**
+ * A measured value, NOT a sibling catalog number.
+ *
+ * `230/400V` and `50/60Hz` compact to "230400v" and "5060hz", which the catalog-like pattern happily
+ * accepted — so the ownership check below concluded that a family's Technical Data page belonged to
+ * some OTHER catalog number and discarded every block on it. A dual voltage and a dual frequency are
+ * the two most ordinary electrical values there are, so this silently deleted the shared technical
+ * table for essentially every vendor that publishes one. Confirmed on Eaton's E6 catalogue page 4
+ * (fixtures/eaton-cbe03319-family-catalog).
+ *
+ * Tested on the RAW token, not the compacted one: compacting throws away exactly the separators and
+ * unit letters that distinguish "230/400V" from a genuine code like "E6-1/1/B".
+ *
+ * A bare number with neither separator nor unit is deliberately NOT excluded — some vendors' catalog
+ * numbers really are plain digits (nVent's 87920846), and the guard must still notice those.
+ */
+export function isMeasurementLikeToken(rawToken: string): boolean {
+  const token = rawToken.trim();
+  return MEASUREMENT_COMPOUND_TOKEN_PATTERN.test(token) || MEASUREMENT_UNIT_TOKEN_PATTERN.test(token);
+}
 /** Fallback ownership-check window (lines) for documents with no page-footer markers to bound by
  * (see pageBounds below) — narrower than a full page, but still enough to catch a nearby table. */
 const GLOBAL_CONTEXT_OWNERSHIP_WINDOW = 15;
@@ -924,8 +1250,10 @@ function blockOwnedByDifferentCatalog(lines: string[], blockStart: number, block
     for (const token of tokens) {
       const compactToken = compact(token);
       if (compactToken.length < 4 || !/\d/.test(compactToken)) continue;
+      // Our own catalog number is matched FIRST, so a catalog that happens to be standard-shaped
+      // still registers as ours before the standards filter can discard it.
       if (compactToken === compactCatalog) sawOurCatalog = true;
-      else sawOtherCatalog = true;
+      else if (!isStandardReferenceToken(compactToken) && !isMeasurementLikeToken(token)) sawOtherCatalog = true;
     }
   }
   return sawOtherCatalog && !sawOurCatalog;
@@ -939,6 +1267,13 @@ function blockOwnedByDifferentCatalog(lines: string[], blockStart: number, block
 // positioned-table reader) already own these fields; this generic sweep is only safe for content
 // that's genuinely shared/global across a family's page (electrical ratings, certifications, etc).
 function isGlobalTechnicalLine(line: string): boolean {
+  // The ontology first: it is multilingual and already knows 98 properties, whereas the keyword list
+  // below is hand-maintained English and was silently deciding which lines even get read. Measured on
+  // Eaton's E6 catalogue, the list missed "Casing protection degree", "Design standard", "Rated
+  // breaking capacity Icn" and "Terminal screw fastening torque" — the ontology maps all four.
+  // The list is kept as an additional path (it encodes whole-line shapes the ontology has no synonym
+  // for, e.g. "selective true"), so this widens admission and never narrows it.
+  if (looksLikeUnderstandableSpec(line)) return true;
   return (
     /\b(?:technical\s+(?:data|specifications?)|electrical\s+(?:data|ratings?)|input\s+voltage|output\s+voltage|operating\s+voltage|supply\s+voltage|rated\s+voltage|rated\s+(?:operating\s+|operational\s+)?current|operating\s+current|rated\s+current|rated\s+power|power\s+dissipation|power\s+loss|heat\s+loss|degree\s+of\s+protection|protection\s+class|operating\s+temperature|storage\s+temperature|ambient\s+temperature|approvals?\s+and\s+certificates|certifications?|ul\s+certificate|housing\s+material|cross[-\s]?section|tightening\s+torque|number\s+of\s+conductors|conductors?\s+per\s+terminal|neutral\s+conductor|direct\s+contact|tripping\s+characteristic|short-time\s+delayed|non-trip\s+time|tripping\s+frequency|disconnection\s+times?|internal\s+consumption|contact\s+opening|surge\s+current|switching\s+capacity|insulation\s+voltage|impulse\s+(?:withstand\s+)?voltage|withstand\s+voltage|rated\s+frequency|back[-\s]?up[-\s]?fuse|i2t\s+strength|dynamic\s+current\s+strength|screw[-\s]?type\s+terminal|degree\s+of\s+pollution|\bsealable\b|module\s+widths?|minimum\s+rated\s+operating\s+voltage|operating\s+altitude|operating\s+position|mechanical\s+endurance|electrical\s+endurance|shock\s+resistance|fatigue\s+limit|housing\s+type|installation\s+type)\b/i.test(line) ||
     /^selective\s+(?:true|false)\b/i.test(line) ||
@@ -984,8 +1319,11 @@ function mergePdfTextContexts(parts: Array<string | undefined>, maxChars: number
 }
 
 async function readPdfText(filePath: string, catalogNumber?: string, cacheIdentity?: string): Promise<PdfDocumentText> {
-  const cachedFullText = await readCachedFullPdfTextIfEligible(filePath, cacheIdentity);
-  if (cachedFullText) return cachedFullText;
+  // Small/medium PDFs (the common case): parse once into a cached page set, then scope PER CATALOG
+  // NUMBER out of it. Large PDFs keep the streaming page-by-page walk below so we never hold a
+  // hundred-megabyte document's every page in memory at once.
+  const pageSet = await readCachedPdfPageSetIfEligible(filePath, cacheIdentity);
+  if (pageSet) return selectPdfTextFromPageSet(pageSet, catalogNumber);
 
   const data = await fs.readFile(filePath);
   const parser = new PDFParse({ data });
@@ -1009,7 +1347,8 @@ async function readPdfText(filePath: string, catalogNumber?: string, cacheIdenti
     await parser.destroy().catch(() => undefined);
   }
   const ocr = await readPdfWithOptionalOcr(filePath, { maxPages: MAX_PDF_PAGES });
-  if (ocr.text.trim().length >= PDF_TEXT_MIN_CHARS_FOR_PARSE) return { text: ocr.text.slice(0, MAX_PDF_TEXT_CHARS), tables: [] };
+  if (ocr.quality?.accepted && ocr.text.trim().length >= PDF_TEXT_MIN_CHARS_FOR_PARSE)
+    return { text: ocr.text.slice(0, MAX_PDF_TEXT_CHARS), tables: [] };
   throw new Error(ocr.error ? `PDF has no extractable text and OCR failed: ${ocr.error}` : "PDF has no extractable text and OCR returned no text.");
 }
 
@@ -1174,7 +1513,103 @@ async function extractPositionedWeightDimensionsSafely(
   }
 }
 
-async function readCachedFullPdfTextIfEligible(filePath: string, cacheIdentity?: string): Promise<PdfDocumentText | undefined> {
+/**
+ * A tab-text PDF reader cannot assign a left-to-right comparison row to one SKU: it may emit the
+ * target code together with sibling codes (for example `Grey | 1492-J3 | 100 | 1492-J4`). Once
+ * the positioned reader has proved a target column, keep neither that ambiguous row nor a weaker
+ * generic duplicate of a label the positioned reader scoped. Omitting an unassignable family row
+ * is safer than exposing a sibling value as the target's specification.
+ */
+function discardUnscopedFamilyTableCandidates(
+  attributes: AttributeRecord[],
+  catalogNumber: string,
+  positionedAttributes: AttributeRecord[]
+): AttributeRecord[] {
+  if (!positionedAttributes.length) return attributes;
+  const positionedNames = new Set(positionedAttributes.map((attribute) => compact(canonicalLabel(attribute.name))));
+  return attributes.filter((attribute) => {
+    if (attribute.group === "PDF Positioned Table" || attribute.group === "PDF OCR Positioned Table") return true;
+    // Electrical text mining reads an entire comparison row without x-coordinate scope. Once a
+    // positioned row proves this same label for our SKU, retaining that global electrical value
+    // merely keeps a known sibling candidate alive for normalization.
+    if (attribute.group === "PDF Electrical Text" && positionedNames.has(compact(canonicalLabel(attribute.name)))) return false;
+    if (hasMoreMeasurementsThanPositioned(attribute, positionedAttributes)) return false;
+    // `Feature` is the prose sweep's fallback name. If its text repeats a positioned table label,
+    // that table row has no independent target scope and the positioned row is the only evidence
+    // that may survive (e.g. a family-wide `Maximum Current ... 35 A ...` line).
+    if (attribute.name === "Feature" && [...positionedNames].some((name) => name.length >= 4 && compact(attribute.value).includes(name))) return false;
+    // Some catalog-row sweepers retain only the cell values (`Grey 100 1492-EAJ35`) and lose
+    // every column label. It is still an unstructured duplicate once the exact target SKU and at
+    // least two independently positioned values prove the same visual record.
+    if (attribute.name === "Feature" && containsTargetCatalog(attribute.value, catalogNumber)) {
+      const positionedValueHits = positionedAttributes.filter((positioned) => {
+        const value = compact(positioned.value);
+        return value.length >= 3 && compact(attribute.value).includes(value);
+      }).length;
+      if (positionedValueHits >= 2) return false;
+    }
+    return !containsTargetAndSiblingCatalog(`${attribute.name} ${attribute.value}`, catalogNumber);
+  });
+}
+
+function containsTargetCatalog(value: string, catalogNumber: string): boolean {
+  const compactTarget = compact(catalogNumber);
+  return compactTarget.length >= 4 && compact(value).includes(compactTarget);
+}
+
+/**
+ * A competing same-label candidate remains valuable when it is a single clean reading: it lets
+ * downstream confidence ranking correct an extractor without hiding diagnostic evidence. Drop it
+ * only when the generic reader flattened MORE measurements than the positioned target column — a
+ * structural proof of a multi-column family row, not merely a disagreeing value.
+ */
+function hasMoreMeasurementsThanPositioned(attribute: AttributeRecord, positionedAttributes: AttributeRecord[]): boolean {
+  const name = compact(canonicalLabel(attribute.name));
+  const scopedValues = positionedAttributes
+    .filter((positioned) => compact(canonicalLabel(positioned.name)) === name)
+    .map((positioned) => measurementCount(positioned.value));
+  if (!scopedValues.length) return false;
+  return measurementCount(attribute.value) > Math.max(...scopedValues);
+}
+
+function measurementCount(value: string): number {
+  return value.match(/\b\d+(?:[.,]\d+)?\s*(?:[kmunµ]?A|[kmunµ]?V|W|Hz|°[CF]|%|mm|cm|m|kg|g|lb)\b/gi)?.length ?? 0;
+}
+
+function containsTargetAndSiblingCatalog(value: string, catalogNumber: string): boolean {
+  const catalogLike = /\b[A-Z0-9]{2,}(?:[-:\/.][A-Z0-9]+)+\b|\b[A-Z]{2,}[0-9]{3,}\b/gi;
+  const candidates = value.match(catalogLike) ?? [];
+  const compactCatalog = compact(catalogNumber);
+  const targetPrefix = new RegExp(`^${catalogNumber.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(?:[-:\/.])`, "i");
+  const catalogTokens = candidates.filter((candidate) => compact(candidate).length >= 4 && /\d/.test(candidate));
+  const hasTarget = catalogTokens.some((candidate) => sameCatalogNumber(candidate, catalogNumber) || targetPrefix.test(candidate));
+  return hasTarget && catalogTokens.some((candidate) => !sameCatalogNumber(candidate, catalogNumber) && !targetPrefix.test(candidate));
+}
+
+/** OCR bbox rows must prove the same SKU column as vector PDF rows before yielding any value. */
+function extractOcrPositionedTableAttributes(
+  items: PositionedTextItem[] | undefined,
+  catalogNumber: string,
+  sourceUrl: string
+): AttributeRecord[] {
+  if (!items?.length) return [];
+  const rows = extractPositionedTableRows(items, catalogNumber);
+  if (!rows) return [];
+  return Object.entries(rows).flatMap(([label, value]) => {
+    if (!isCleanSingleSpecValue(value)) return [];
+    return [{
+      group: "PDF OCR Positioned Table",
+      name: /^w\s*x\s*h\s*x\s*d$/i.test(label) ? "Dimensions" : label,
+      value,
+      sourceUrl,
+      sourceType: "official" as const,
+      parser: "pdf-ocr-positioned-table",
+      confidence: 0.7
+    }];
+  });
+}
+
+async function readCachedPdfPageSetIfEligible(filePath: string, cacheIdentity?: string): Promise<PdfPageSet | undefined> {
   let stat;
   try {
     stat = await fs.stat(filePath);
@@ -1183,33 +1618,129 @@ async function readCachedFullPdfTextIfEligible(filePath: string, cacheIdentity?:
   }
   if (!stat.isFile() || stat.size > FULL_PDF_TEXT_CACHE_MAX_FILE_BYTES) return undefined;
   const cacheKey = cacheIdentity ? `source:${cacheIdentity}` : `${filePath}|${stat.size}|${Math.trunc(stat.mtimeMs)}`;
-  let cached = fullPdfTextCache.get(cacheKey);
+  let cached = pdfPageSetCache.get(cacheKey);
   if (!cached) {
-    cached = readFullPdfText(filePath).catch((error) => {
-      fullPdfTextCache.delete(cacheKey);
+    cached = readPdfPageSet(filePath).catch((error) => {
+      pdfPageSetCache.delete(cacheKey);
       throw error;
     });
-    fullPdfTextCache.set(cacheKey, cached);
-    trimFullPdfTextCache();
+    pdfPageSetCache.set(cacheKey, cached);
+    trimPdfPageSetCache();
   }
   return cached;
 }
 
-async function readFullPdfText(filePath: string): Promise<PdfDocumentText> {
+async function readPdfPageSet(filePath: string): Promise<PdfPageSet> {
   const data = await fs.readFile(filePath);
   const parser = new PDFParse({ data });
   try {
     const parsed = await parser.getText();
     if (parsed.text.trim().length >= PDF_TEXT_MIN_CHARS_FOR_PARSE) {
-      const tables = await safeGetTables(parser, parsed.pages.slice(0, MAX_PDF_PAGES).map((page) => page.num));
-      return { text: parsed.text.slice(0, MAX_PDF_TEXT_CHARS), tables };
+      const nativePages = parsed.pages.map((page) => ({ num: page.num, text: page.text }));
+      const pagesToOcr = pdfPagesNeedingOcr(nativePages).filter((page) => page <= MAX_PDF_PAGES);
+      let pages = nativePages;
+      const ocrPositionedItemsByPage = new Map<number, PositionedTextItem[]>();
+      if (pagesToOcr.length) {
+        const ocr = await readPdfWithOptionalOcr(filePath, {
+          maxPages: MAX_PDF_PAGES,
+          pageNumbers: pagesToOcr,
+          // Operational A/B valve: force a locally installed OCR language while investigating a
+          // document, but leave production on context-based selection. Invalid overrides safely
+          // fall back to English inside readPdfWithOptionalOcr.
+          language: process.env.PRODUCT_SCRAPER_OCR_LANGUAGE?.trim() || inferOcrLanguage(nativePages.map((page) => page.text).join("\n"))
+        });
+        const acceptedOcr = new Map((ocr.pages ?? [])
+          .filter((page) => page.quality?.accepted && page.text.trim().length >= PDF_TEXT_MIN_CHARS_FOR_PARSE)
+          .map((page) => [page.num, page]));
+        for (const page of acceptedOcr.values()) {
+          if (page.positionedItems?.length) ocrPositionedItemsByPage.set(page.num, page.positionedItems);
+        }
+        if (acceptedOcr.size) pages = nativePages.map((page) => ({ ...page, text: acceptedOcr.get(page.num)?.text ?? page.text }));
+      }
+      const tablesByPage = await safeGetTablesByPage(parser, pages.slice(0, MAX_PDF_PAGES).map((page) => page.num));
+      return { pages, tablesByPage, ocrPositionedItemsByPage, fromOcr: false };
     }
   } finally {
     await parser.destroy().catch(() => undefined);
   }
   const ocr = await readPdfWithOptionalOcr(filePath, { maxPages: MAX_PDF_PAGES });
-  if (ocr.text.trim().length >= PDF_TEXT_MIN_CHARS_FOR_PARSE) return { text: ocr.text.slice(0, MAX_PDF_TEXT_CHARS), tables: [] };
+  if (ocr.quality?.accepted && ocr.text.trim().length >= PDF_TEXT_MIN_CHARS_FOR_PARSE) {
+    return {
+      pages: [{ num: 1, text: ocr.text }],
+      tablesByPage: new Map(),
+      ocrPositionedItemsByPage: new Map((ocr.pages ?? []).flatMap((page) => page.positionedItems?.length ? [[page.num, page.positionedItems]] : [])),
+      fromOcr: true
+    };
+  }
   throw new Error(ocr.error ? `PDF has no extractable text and OCR failed: ${ocr.error}` : "PDF has no extractable text and OCR returned no text.");
+}
+
+/**
+ * Pick the pages relevant to ONE catalog number out of an already-parsed page set. Mirrors the
+ * page selection `readTargetedPdfText` does for oversized documents (catalog pages + a neighbour
+ * window + the technically densest shared pages), so both readers scope identically.
+ *
+ * The shared-technical-page part matters more than it looks: in a family catalog the per-variant
+ * ordering row and the family's "Technical Data" table are on different pages, and the technical
+ * page never names our catalog number — so without it, a correctly-scoped read returns the ordering
+ * row and nothing else.
+ */
+function selectPdfTextFromPageSet(pageSet: PdfPageSet, catalogNumber?: string): PdfDocumentText {
+  const { pages } = pageSet;
+  const pageCount = pages.length;
+  let keptPages: number[] | undefined;
+
+  if (!pageSet.fromOcr) {
+    const compactCatalog = catalogNumber ? compactKey(catalogNumber) : "";
+    const matches = compactCatalog
+      ? pages.filter((page) => compactKey(page.text).includes(compactCatalog)).map((page) => page.num).slice(0, TARGETED_PDF_MAX_SECTION_PAGES)
+      : [];
+    if (matches.length) {
+      const keep = expandWithNeighbours(matches, TARGETED_PDF_NEIGHBOUR_PAGES);
+      for (const num of selectGlobalTechnicalPages(pages, keep, matches)) keep.add(num);
+      keptPages = pages.filter((page) => keep.has(page.num)).map((page) => page.num);
+    } else if (pageCount > MAX_PDF_PAGES) {
+      // No page names the catalog number and the document is long: its first pages are usually a
+      // cover/TOC/intro, so read the technically densest pages rather than reading blind.
+      const technical = selectGlobalTechnicalPages(pages, new Set<number>());
+      if (technical.length) keptPages = technical;
+    }
+  }
+
+  const selected = keptPages
+    ? pages.filter((page) => keptPages!.includes(page.num) && !isUnrelatedCatalogTablePage(page, catalogNumber))
+    : pages.slice(0, MAX_PDF_PAGES);
+  const joined = selected.map((page) => page.text).join("\n");
+  const tables: TableArray[] = [];
+  const ocrPositionedItems = selected.flatMap((page) => pageSet.ocrPositionedItemsByPage.get(page.num) ?? []);
+  for (const page of selected) {
+    const pageTables = pageSet.tablesByPage.get(page.num);
+    if (pageTables?.length) tables.push(...pageTables);
+  }
+
+  return {
+    text: joined.slice(0, MAX_PDF_TEXT_CHARS),
+    tables,
+    ...(ocrPositionedItems.length ? { ocrPositionedItems } : {}),
+    pagesUsed: selected.map((page) => page.num),
+    pageCount,
+    truncated: joined.length > MAX_PDF_TEXT_CHARS
+  };
+}
+
+/**
+ * A one-page neighbour is useful when a target table continues without repeating its header, but
+ * it must not pull in the next (or previous) complete ordering/comparison table for other SKUs.
+ * Such a page is independently self-identifying: it starts a fresh catalog table and never names
+ * our catalog. Letting its raw tab-separated rows into the generic text pass turns a sibling's
+ * values into target attributes before the catalog-aware positioned reader can correct them.
+ */
+function isUnrelatedCatalogTablePage(page: { text: string }, catalogNumber?: string): boolean {
+  const target = compactKey(catalogNumber ?? "");
+  if (!target || compactKey(page.text).includes(target)) return false;
+  return page.text
+    .split(/\r?\n/)
+    .some((line) => line.split(/\t+/).map(cleanText).some((cell) => isCatalogIdHeaderCell(cell)));
 }
 
 const GET_TABLE_MAX_CONSECUTIVE_ERRORS = 3;
@@ -1242,11 +1773,39 @@ async function safeGetTables(parser: InstanceType<typeof PDFParse>, pageNumbers:
   }
 }
 
-function trimFullPdfTextCache(): void {
-  while (fullPdfTextCache.size > FULL_PDF_TEXT_CACHE_MAX_ENTRIES) {
-    const oldest = fullPdfTextCache.keys().next().value;
+/**
+ * Same call as `safeGetTables`, but keeps pdf-parse's per-page attribution instead of the flattened
+ * `mergedTables`. Needed so a page-scoped read hands the extractors only the tables that live on the
+ * pages it kept — passing every table from the first 30 pages alongside text scoped to pages 4-7
+ * would smuggle other variants' rows back in through the table channel.
+ */
+async function safeGetTablesByPage(
+  parser: InstanceType<typeof PDFParse>,
+  pageNumbers: number[]
+): Promise<Map<number, TableArray[]>> {
+  const byPage = new Map<number, TableArray[]>();
+  if (!pageNumbers.length || getTableDisabledReason) return byPage;
+  try {
+    const result = await parser.getTable({ partial: pageNumbers });
+    getTableConsecutiveErrors = 0;
+    for (const page of result.pages ?? []) {
+      if (page?.tables?.length) byPage.set(page.num, page.tables);
+    }
+    return byPage;
+  } catch (error) {
+    getTableConsecutiveErrors += 1;
+    if (getTableConsecutiveErrors >= GET_TABLE_MAX_CONSECUTIVE_ERRORS) {
+      getTableDisabledReason = `pdf-parse getTable() threw ${GET_TABLE_MAX_CONSECUTIVE_ERRORS}x in a row (${error instanceof Error ? error.message : String(error)}) — disabled for the rest of this run.`;
+    }
+    return byPage;
+  }
+}
+
+function trimPdfPageSetCache(): void {
+  while (pdfPageSetCache.size > FULL_PDF_TEXT_CACHE_MAX_ENTRIES) {
+    const oldest = pdfPageSetCache.keys().next().value;
     if (!oldest) return;
-    fullPdfTextCache.delete(oldest);
+    pdfPageSetCache.delete(oldest);
   }
 }
 
@@ -1300,21 +1859,51 @@ async function readTargetedPdfText(parser: InstanceType<typeof PDFParse>, catalo
     };
   }
   const keepPages = expandWithNeighbours(matches, TARGETED_PDF_NEIGHBOUR_PAGES);
-  for (const num of selectGlobalTechnicalPages(pages, keepPages)) keepPages.add(num);
-  const keepPageNumbers = [...keepPages];
+  for (const num of selectGlobalTechnicalPages(pages, keepPages, matches)) keepPages.add(num);
+  const keepPageNumbers = pages
+    .filter((page) => keepPages.has(page.num) && !isUnrelatedCatalogTablePage(page, catalogNumber))
+    .map((page) => page.num);
   return {
-    text: pages.filter((page) => keepPages.has(page.num)).map((page) => page.text).join("\n"),
+    text: pages.filter((page) => keepPageNumbers.includes(page.num)).map((page) => page.text).join("\n"),
     tables: await safeGetTables(parser, keepPageNumbers)
   };
 }
 
-function selectGlobalTechnicalPages(pages: Array<{ num: number; text: string }>, alreadyKept: Set<number>): number[] {
+/**
+ * Pages carrying shared technical data worth reading alongside our catalog's own pages.
+ *
+ * With `nearPages` set (we DID find our catalog), candidates are ranked by distance to the nearest
+ * of those pages and capped to a nearby window. This matters in a multi-family catalog: ranking the
+ * whole document by keyword density picks the OTHER families' technical pages, since they score just
+ * as high as ours. Confirmed on Eaton's E6 catalogue — reading the globally densest pages pulled in
+ * pages 12/26/30 (E6 Industry Standard, ED6, ELD6) and produced "6...40 A" as the rated current of a
+ * 1 A breaker. A family's shared spec page sits next to its own ordering table; a page twenty pages
+ * away belongs to somebody else.
+ *
+ * Without `nearPages` (catalog not found anywhere in a long document) the old behaviour stands: read
+ * the densest technical pages rather than reading blind.
+ */
+function selectGlobalTechnicalPages(
+  pages: Array<{ num: number; text: string }>,
+  alreadyKept: Set<number>,
+  nearPages?: number[]
+): number[] {
+  const anchors = nearPages?.length ? nearPages : undefined;
+  const distanceTo = (num: number): number =>
+    anchors ? Math.min(...anchors.map((anchor) => Math.abs(anchor - num))) : 0;
+
   const candidates = pages
     .filter((page) => !alreadyKept.has(page.num))
-    .map((page) => ({ num: page.num, score: globalTechnicalPageScore(page.text) }))
-    .filter((page) => page.score >= 6)
-    .sort((left, right) => right.score - left.score || left.num - right.num);
-  return candidates.slice(0, TARGETED_PDF_MAX_GLOBAL_TECHNICAL_PAGES).map((page) => page.num);
+    .map((page) => ({ num: page.num, score: globalTechnicalPageScore(page.text), distance: distanceTo(page.num) }))
+    .filter((page) => page.score >= 6 && (!anchors || page.distance <= TARGETED_PDF_TECHNICAL_PAGE_MAX_DISTANCE))
+    .sort((left, right) =>
+      anchors
+        ? left.distance - right.distance || right.score - left.score || left.num - right.num
+        : right.score - left.score || left.num - right.num
+    );
+
+  const limit = anchors ? TARGETED_PDF_NEAR_TECHNICAL_PAGES : TARGETED_PDF_MAX_GLOBAL_TECHNICAL_PAGES;
+  return candidates.slice(0, limit).map((page) => page.num);
 }
 
 function globalTechnicalPageScore(text: string): number {
@@ -1444,8 +2033,59 @@ function isUsefulTechnicalAliasPdfLabel(value: string): boolean {
   return /[\s,\/()[\]_-]/.test(label) || label.length >= 8;
 }
 
+/**
+ * Single choke point for everything the PDF readers produce, so the plausibility gate lives in ONE
+ * place instead of in each of the dozen extractors above. A pair that is prose, boilerplate, a
+ * table-of-contents leader run, control-character garbage from a broken font cmap, or the table's own
+ * header row parsed as data is dropped here rather than shipped to the Attributes sheet and PDT.
+ */
+function keepPlausibleDocumentAttributes(attributes: AttributeRecord[]): AttributeRecord[] {
+  if (specPlausibilityGateDisabled()) return attributes;
+  return attributes.filter((attr) => {
+    const value = String(attr.value ?? "");
+    // "Parsed document" is internal bookkeeping, not vendor data: its value IS the document's label by
+    // design, so the download-decoration rule fired on it ("CERT 00045 655.6 KB English") and quietly
+    // removed the marker. Exempt it entirely — the plausibility gate exists to judge extracted CONTENT.
+    if (/^Parsed document$/i.test(attr.name)) return true;
+    if (!isPlausibleSpecValue(value)) return false;
+    // "Feature" rows carry free text by design and have no label/value shape, so only their VALUE is
+    // gated — a label check would reject them wholesale.
+    if (!/^Feature$/i.test(attr.name) && !isPlausibleSpecLabel(attr.name)) return false;
+    return !looksLikeHeaderRowValue(value, isKnownDocumentLabel);
+  });
+}
+
+/**
+ * Is this cell a column LABEL? Used by the header-row test.
+ *
+ * Consults the ontology as well as the local list, because header-row detection can only fire when it
+ * recognises EVERY cell in the row: an Eaton ordering header survived as a bogus attribute purely
+ * because `Part number` and `Article number` are missing from `KNOWN_LABELS` — while the ontology maps
+ * both to `partNumber`. Padding the list per vendor is the pattern that caused the problem; asking the
+ * engine that already knows is the fix.
+ *
+ * Safe to widen: `looksLikeHeaderRowValue` additionally requires the row to carry no value digits and
+ * to consist of at least three labels, so a real data row cannot be mistaken for a header.
+ *
+ * The word cap on the ontology path is load-bearing. `matchProperty` matches a synonym ANYWHERE in the
+ * string, so without it a 5-word slice like "Rated current In Part number" matches on "Rated current"
+ * alone and the greedy segmentation in `looksLikeHeaderRowValue` swallows words belonging to the next
+ * label — which is exactly how the Eaton header row kept escaping detection. A header CELL is a short
+ * noun phrase; the exact-list path above still handles longer known labels.
+ */
+const ONTOLOGY_HEADER_CELL_MAX_WORDS = 3;
+
+function isKnownDocumentLabel(candidate: string): boolean {
+  const normalized = canonicalLabel(candidate).toLowerCase();
+  if (!normalized) return false;
+  if (KNOWN_LABELS.some((label) => label.toLowerCase() === normalized)) return true;
+  if (isCatalogTableHeaderText(candidate)) return true;
+  const wordCount = candidate.trim().split(/\s+/).filter(Boolean).length;
+  return wordCount <= ONTOLOGY_HEADER_CELL_MAX_WORDS && looksLikeUnderstandableSpec(candidate);
+}
+
 function stampDocumentAttributes(attributes: AttributeRecord[]): AttributeRecord[] {
-  return attributes.map((attr) => ({
+  return keepPlausibleDocumentAttributes(attributes).map((attr) => ({
     ...attr,
     sourceType: "generated",
     parser: "pdf-table-extractor",
@@ -1805,7 +2445,9 @@ function extractCatalogOrderingTableRows(lines: string[], catalogNumber: string,
   if (indexed?.length) return indexed.map((attr) => ({ ...attr })).slice(0, 60);
 
   if (!indexed?.length && options.allowInference !== false) {
-    return inferEatonRapidLink512CatalogRows(lines, catalogNumber, sourceUrl).slice(0, 60);
+    return inferEatonRapidLinkOrderingRows(lines, catalogNumber, sourceUrl, (baseCatalog, baseOptions) =>
+      extractCatalogOrderingTableRows(lines, baseCatalog, sourceUrl, baseOptions)
+    ).slice(0, 60);
   }
 
   return [];
@@ -1852,8 +2494,16 @@ function catalogOrderingIndex(lines: string[], sourceUrl: string): CatalogOrderi
   return tableIndex;
 }
 
+/**
+ * Cache identity for the three whole-document indexes (`catalogOrderingIndex`,
+ * `patternModelPhysicalIndex`, `catalogMatchedRowsIndex`). Those are keyed BY CATALOG internally, so
+ * sharing them across catalog numbers is correct by design — but only if the key really identifies the
+ * text, and `lineCount | firstLine | lastLine` does not: two catalogs' scoped windows routinely share
+ * the same first and last line and have the same line count, while differing in the middle. A stale
+ * index then simply lacks the row we ask for, so the symptom is a silently MISSING value.
+ */
 function catalogOrderingCacheKey(lines: string[], sourceUrl: string): string {
-  return `${sourceUrl}|${lines.length}|${compact(lines[0] ?? "")}|${compact(lines.at(-1) ?? "")}`;
+  return `${sourceUrl}|${lines.length}|${textFingerprint(lines.join("\n"))}`;
 }
 
 function trimCatalogOrderingTableCache(): void {
@@ -1876,103 +2526,6 @@ function compactOrderingAttributes(attributes: AttributeRecord[]): AttributeReco
     output.push({ ...attr, value: cleaned });
   }
   return output;
-}
-
-function inferEatonRapidLink512CatalogRows(lines: string[], catalogNumber: string, sourceUrl: string): AttributeRecord[] {
-  if (!eatonRapidLinkTextMentionsHanQ5(lines)) return [];
-  const match = cleanText(catalogNumber).match(/^CDVRL(\d{5})$/i);
-  if (!match) return [];
-  const targetNumber = Number(match[1]);
-  if (!Number.isFinite(targetNumber) || targetNumber <= 48) return [];
-  return inferEatonRapidLinkCatalogOffset(lines, catalogNumber, sourceUrl, {
-    offset: 48,
-    baseInference: false,
-    transformModel: (model) => model.replace(/-412/i, "-512"),
-    canTransformModel: (model) => /-412/i.test(model),
-    transformAttribute: (attr) => attr,
-    basis: (baseCatalog) => `Derived from ${baseCatalog} ordering row and Eaton RASP5X type-code legend: 512 = HAN Q5 lower entrance.`
-  }) ?? inferEatonRapidLinkCatalogOffset(lines, catalogNumber, sourceUrl, {
-    offset: 144,
-    baseInference: true,
-    applies: (targetNumber) => (targetNumber >= 20217 && targetNumber <= 20240) || (targetNumber >= 20649 && targetNumber <= 20672),
-    transformModel: (model) => model.replace(/-412/i, "-512"),
-    canTransformModel: (model) => /-412/i.test(model),
-    transformAttribute: (attr) => attr,
-    basis: (baseCatalog) => `Derived from ${baseCatalog} ordering row and Eaton RASP5X type-code legend: 512 = HAN Q5 lower entrance in the C2 option sub-block.`
-  }) ?? inferEatonRapidLinkCatalogOffset(lines, catalogNumber, sourceUrl, {
-    offset: 168,
-    baseInference: true,
-    applies: (targetNumber) =>
-      (targetNumber >= 20169 && targetNumber <= 20288) ||
-      (targetNumber >= 20601 && targetNumber <= 20720),
-    transformModel: (model) => model.replace(/-412/i, "-512"),
-    canTransformModel: (model) => /-412/i.test(model),
-    transformAttribute: (attr) => attr,
-    basis: (baseCatalog) => `Derived from ${baseCatalog} ordering row and Eaton RASP5X type-code legend: 512 = HAN Q5 lower entrance in the C2 option block.`
-  }) ?? inferEatonRapidLinkCatalogOffset(lines, catalogNumber, sourceUrl, {
-    offset: 10000,
-    baseInference: true,
-    transformModel: (model) => model.replace(/^RASP5G-/i, "RASP5A-"),
-    canTransformModel: (model) => /^RASP5G-[^-]+PNT-/i.test(model),
-    transformAttribute: (attr) => attr.name === "Degree of protection" ? { ...attr, value: "IP65" } : attr,
-    basis: (baseCatalog) => `Derived from ${baseCatalog} ordering row and Eaton RASP5X type-code legend: 5A = advanced IP65 variant of 5G PROFINET.`
-  }) ?? inferEatonRapidLinkCatalogOffset(lines, catalogNumber, sourceUrl, {
-    offset: 10000,
-    baseInference: true,
-    transformModel: (model) => model.replace(/(-(?:412|512)[R0][012])[01]([01]S1-)/i, (_match, prefix: string, suffix: string) => `${prefix}2${suffix}`),
-    canTransformModel: (model) => /^RASP5A-/i.test(model) && /-(?:412|512)[R0][012][01][01]S1-/i.test(model),
-    transformAttribute: (attr) => attr.name === "Degree of protection" ? { ...attr, value: "IP65" } : attr,
-    basis: (baseCatalog) => `Derived from ${baseCatalog} ordering row and Eaton RASP5X type-code legend: EMC option 2 = C2 filter variant.`
-  }) ?? [];
-}
-
-function inferEatonRapidLinkCatalogOffset(
-  lines: string[],
-  catalogNumber: string,
-  sourceUrl: string,
-  rule: {
-    offset: number;
-    baseInference: boolean;
-    applies?: (targetNumber: number) => boolean;
-    canTransformModel: (model: string) => boolean;
-    transformModel: (model: string) => string;
-    transformAttribute: (attr: AttributeRecord) => AttributeRecord;
-    basis: (baseCatalog: string) => string;
-  }
-): AttributeRecord[] | undefined {
-  const match = cleanText(catalogNumber).match(/^CDVRL(\d{5})$/i);
-  if (!match) return undefined;
-  const targetNumber = Number(match[1]);
-  if (rule.applies && !rule.applies(targetNumber)) return undefined;
-  const baseNumber = targetNumber - rule.offset;
-  if (!Number.isFinite(baseNumber) || baseNumber <= 0) return undefined;
-  const baseCatalog = `CDVRL${String(baseNumber).padStart(5, "0")}`;
-  const baseAttributes = extractCatalogOrderingTableRows(lines, baseCatalog, sourceUrl, { allowInference: rule.baseInference });
-  const baseModel = baseAttributes.find((attr) => attr.name === "Model Code")?.value;
-  if (!baseModel || !rule.canTransformModel(baseModel)) return undefined;
-  const inferredModel = rule.transformModel(baseModel);
-  return baseAttributes.map((baseAttr) => {
-    const attr = rule.transformAttribute(baseAttr);
-    if (attr.name === "Catalog Number") {
-      return { ...attr, group: "PDF Catalog Ordering Table Inferred", value: catalogNumber };
-    }
-    if (attr.name === "Model Code") {
-      return { ...attr, group: "PDF Catalog Ordering Table Inferred", value: inferredModel };
-    }
-    return { ...attr, group: "PDF Catalog Ordering Table Inferred" };
-  }).concat([
-    {
-      group: "PDF Catalog Ordering Table Inferred",
-      name: "Inference basis",
-      value: rule.basis(baseCatalog),
-      sourceUrl
-    }
-  ]);
-}
-
-function eatonRapidLinkTextMentionsHanQ5(lines: string[]): boolean {
-  const text = lines.slice(0, 220).map(cleanText).join(" ");
-  return /\b512\s*=\s*HAN\s*Q5\b/i.test(text) && /\b412\s*=\s*HAN\s*Q4\/2\b/i.test(text);
 }
 
 interface OrderingModelRow {
@@ -2036,6 +2589,9 @@ function orderingTableContext(lines: string[], catalogRowIndex: number): { prote
 }
 
 function protectionFromModelLegend(lines: string[], model: string | undefined): string | undefined {
+  const genericLegendValue = orderingCodeLegendValue(lines, model ?? "", /(?:degree of )?protection|enclosure/i);
+  const genericProtection = genericLegendValue?.match(/\bIP\s*\d{2}[A-Z]?\b/i)?.[0];
+  if (genericProtection) return genericProtection.replace(/\s+/g, "").toUpperCase();
   const compactModel = compact(model ?? "");
   if (!compactModel) return undefined;
   const candidates: Array<{ code: string; protection: string }> = [];
@@ -2206,8 +2762,7 @@ function extractGenericCatalogTableRows(lines: string[], catalogNumber: string, 
     // own row), so a query for that sibling would otherwise match here and silently inherit THIS
     // row's dimensions instead. Once the header tells us which cell IS the catalog number, require
     // that specific cell to actually be ours before trusting the row.
-    const mappedCatalogNumber = mapped.get("catalogNumber");
-    if (mappedCatalogNumber && !sameCatalogNumber(mappedCatalogNumber, catalogNumber, { compact: true, ignoreCase: true })) continue;
+    if (!mappedCatalogCellMatches(mapped.get("catalogNumber"), catalogNumber)) continue;
 
     const push = (name: string, value: string | undefined) => {
       const cleaned = cleanText(value);
@@ -2224,7 +2779,7 @@ function extractGenericCatalogTableRows(lines: string[], catalogNumber: string, 
       attributes.push({ group: "PDF Catalog Table Row", name, value: cleaned, sourceUrl, confidence: 0.75 });
     };
 
-    push("Catalog Number", mapped.get("catalogNumber") ?? catalogNumber);
+    push("Catalog Number", ourCatalogCellValue(mapped.get("catalogNumber"), catalogNumber));
     push("Description", mapped.get("description"));
     push("Product Type", mapped.get("productType"));
     push("Material", mapped.get("material"));
@@ -2275,6 +2830,38 @@ function mapHeaderCellsToRow(header: string[], row: string[]): Map<string, strin
   return mapped;
 }
 
+/**
+ * Ordering tables routinely carry TWO identifier columns — an internal type code and the orderable
+ * article number ("Part number" + "Article number", "Typ" + "Bestell-Nr.") — and both map to the same
+ * `catalogNumber` key, so `mapHeaderCellsToRow` merges them into one "A; B" cell.
+ *
+ * The row-trust check then compared that merged cell against our catalog number and failed:
+ * `sameCatalogNumber("E6-1/1/B; CBE03319", "CBE03319")` is false. The correct row was found and then
+ * discarded — on Eaton's E6 catalogue that silently cost the rated current sitting in the same row.
+ *
+ * Any one identifier column matching is enough: they identify the same product by construction.
+ */
+function mappedCatalogCellMatches(mergedCell: string | undefined, catalogNumber: string): boolean {
+  if (!mergedCell) return true; // the header named no identifier column — the row-level match stands
+  return splitMergedCatalogCell(mergedCell).some((part) =>
+    sameCatalogNumber(part, catalogNumber, { compact: true, ignoreCase: true })
+  );
+}
+
+/** The identifier from a merged cell that is actually ours, so exports show it rather than "A; B". */
+function ourCatalogCellValue(mergedCell: string | undefined, catalogNumber: string): string {
+  if (!mergedCell) return catalogNumber;
+  const parts = splitMergedCatalogCell(mergedCell);
+  return parts.find((part) => sameCatalogNumber(part, catalogNumber, { compact: true, ignoreCase: true })) ?? mergedCell;
+}
+
+function splitMergedCatalogCell(cell: string): string[] {
+  return cell
+    .split(/\s*;\s*/)
+    .map((part) => part.trim())
+    .filter(Boolean);
+}
+
 function genericCatalogTableKey(header: string): string | undefined {
   // Delegates to the shared, multilingual vocabulary (catalog-table-vocabulary.ts) — kept as a
   // thin local alias so this file's call sites read unchanged.
@@ -2316,12 +2903,17 @@ interface StackedPdfColumn {
   unit?: string;
 }
 
-function extractStackedDimensionTableRows(lines: string[], sourceUrl: string): AttributeRecord[] {
+function extractStackedDimensionTableRows(lines: string[], sourceUrl: string, catalogNumber: string): AttributeRecord[] {
   const attributes: AttributeRecord[] = [];
   const seen = new Set<string>();
   for (let index = 0; index < lines.length; index += 1) {
     const row = splitStackedDataCells(lines[index]);
     if (row.length < 4) continue;
+    // A stacked dimension table can have an explicit type/article cell in front
+    // of the numeric cells. If it names a different SKU, this row is evidence
+    // about that sibling only. Rows with no catalog-looking token retain the
+    // legacy single-product behaviour (e.g. Siemens' DN/D/B/L/W table).
+    if (stackedRowNamesDifferentCatalog(lines[index], catalogNumber)) continue;
     const columns = nearestStackedDimensionHeader(lines, index, row.length);
     if (!columns) continue;
     const values = alignStackedTableRow(columns, row);
@@ -2352,12 +2944,27 @@ function extractStackedDimensionTableRows(lines: string[], sourceUrl: string): A
     if (weight) push("Weight", weight);
   }
   if (!attributes.length) {
-    attributes.push(...extractStackedDimensionSectionFallback(lines, sourceUrl));
+    attributes.push(...extractStackedDimensionSectionFallback(lines, sourceUrl, catalogNumber));
   }
   return attributes.slice(0, 40);
 }
 
-function extractStackedDimensionSectionFallback(lines: string[], sourceUrl: string): AttributeRecord[] {
+function stackedRowNamesDifferentCatalog(line: string, catalogNumber: string): boolean {
+  const tokens = cleanText(line).match(/\b[A-Z]{2,}[A-Z0-9]*(?:[-/:.][A-Z0-9]+)+\b|\b[A-Z]{2,}\d{3,}[A-Z0-9-]*\b/gi) ?? [];
+  const candidates = tokens.filter((token) => !isStandardReferenceToken(compact(token)) && !isMeasurementLikeToken(token));
+  return candidates.length > 0 && !candidates.some((token) => sameCatalogNumber(token, catalogNumber, { compact: true, afterColon: true }));
+}
+
+function extractStackedDimensionSectionFallback(lines: string[], sourceUrl: string, catalogNumber: string): AttributeRecord[] {
+  const headingIndex = lines.findIndex((line) => /\bdimensions?\b/i.test(cleanText(line)));
+  if (headingIndex >= 0) {
+    const labelledPrefix = lines
+      .slice(Math.max(0, headingIndex - 8), headingIndex)
+      .filter((line) => /\b(?:product|catalog(?:ue)?|article|order(?:ing)?|model|part|sku|type)\b/i.test(cleanText(line)));
+    const section = lines.slice(headingIndex, Math.min(lines.length, headingIndex + 32));
+    const context = [...labelledPrefix, ...section].join("\n");
+    if (stackedSectionNamesDifferentCatalog(context, catalogNumber)) return [];
+  }
   const joined = lines.map(cleanText).join("\n");
   const block = joined.match(/\bDimensions\b[\s\S]{0,500}?\bDN\s+D\b[\s\S]{0,500}?\bW\s*\n\s*\[kg\]\s*\n\s*(\d+(?:[.,]\d+)?)\s+([A-Z])\s+([0-9ÂĽÂ˝Âľ\/]+)\s+(\d+(?:[.,]\d+)?)\s+(\d+(?:[.,]\d+)?)\s+(\d+(?:[.,]\d+)?)\s+(\d+(?:[.,]\d+)?)\s+(\d+(?:[.,]\d+)?)/i);
   if (!block) return [];
@@ -2785,16 +3392,22 @@ function inlineDimensionValue(line: string): string | undefined {
   return hasUnit && hasTwoNumbers ? value : undefined;
 }
 
-function extractContactRatingAttributes(lines: string[], sourceUrl: string): AttributeRecord[] {
+function extractContactRatingAttributes(lines: string[], sourceUrl: string, catalogNumber: string): AttributeRecord[] {
   const voltageRanges: string[] = [];
   const currents: string[] = [];
   let contactRatingWindow = 0;
+  let contactRatingOwned = false;
 
-  for (const rawLine of lines) {
+  for (let index = 0; index < lines.length; index += 1) {
+    const rawLine = lines[index];
     const line = cleanText(rawLine);
-    if (/contact rating/i.test(line)) contactRatingWindow = 35;
+    if (/contact rating/i.test(line)) {
+      contactRatingWindow = 35;
+      contactRatingOwned = contactRatingBelongsToCatalog(lines, index, catalogNumber);
+    }
     if (contactRatingWindow <= 0) continue;
     contactRatingWindow -= 1;
+    if (!contactRatingOwned) continue;
 
     const tabbed = line.split(/\t+/).map(cleanText).filter(Boolean);
     if (tabbed.length >= 2) {
@@ -2836,6 +3449,27 @@ function extractContactRatingAttributes(lines: string[], sourceUrl: string): Att
     });
   }
   return attributes;
+}
+
+function stackedSectionNamesDifferentCatalog(context: string, catalogNumber: string): boolean {
+  const tokens = context.match(/\b[A-Z]{2,}[A-Z0-9]*(?:[-/:.][A-Z0-9]+)+\b|\b[A-Z]{2,}\d{3,}[A-Z0-9-]*\b/gi) ?? [];
+  const candidates = tokens.filter((token) => !isStandardReferenceToken(compact(token)) && !isMeasurementLikeToken(token));
+  return candidates.length > 0 && !candidates.every((token) => sameCatalogNumber(token, catalogNumber, { compact: true, afterColon: true }));
+}
+
+/**
+ * A contact-rating heading has no product key of its own.  If its nearby context
+ * names a catalogue-shaped sibling, the numerical rows belong to that sibling,
+ * not to whichever SKU asked for this family PDF.  With no product-shaped token
+ * nearby we retain the established single-product/family-sheet behaviour.
+ */
+function contactRatingBelongsToCatalog(lines: string[], headingIndex: number, catalogNumber: string): boolean {
+  const context = lines.slice(Math.max(0, headingIndex - 30), Math.min(lines.length, headingIndex + 4)).join("\n");
+  const catalogTokens = [...context.matchAll(/\b[A-Z0-9]{2,}(?:[-:/.][A-Z0-9]+)+\b|\b[A-Z]{2,}\d{3,}\b/gi)]
+    .map((match) => match[0])
+    .filter((token) => /[a-z]/i.test(token) && /\d/.test(token) && !isStandardReferenceToken(compact(token)) && !isMeasurementLikeToken(token));
+  if (!catalogTokens.length) return true;
+  return catalogTokens.every((token) => Boolean(findCatalogTextMatch(token, catalogNumber, { compact: true, afterColon: true })));
 }
 
 function contactRatingVoltageRange(value: string): string | undefined {

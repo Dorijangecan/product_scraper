@@ -1,5 +1,14 @@
 import type { LocalizedProductUrls, LocalizedUrlTemplate, MatchPolicyConfig } from "../../shared/types.js";
 
+/** Exact product identity is deliberately distinct from a printed family prefix. */
+export type CatalogMatchLevel = "exact" | "family";
+
+export interface CatalogTextMatch {
+  level: CatalogMatchLevel;
+  /** The printed code that established the match, not necessarily the requested SKU. */
+  candidate: string;
+}
+
 export const CATALOG_PLACEHOLDER_PATTERN =
   /{part(?:Upper|Lower|Compact|Snake|Dash|SlashBraces|AfterColon|AfterColonLower|AfterColonCompact)?}/;
 
@@ -70,6 +79,52 @@ export function catalogTextMatches(text: string, catalogNumber: string, policy?:
   if (compactNeedles.length === 0) return false;
   const compactHaystack = compactCatalogNumber(text);
   return compactNeedles.some((candidate) => compactHaystack.includes(candidate));
+}
+
+/**
+ * Boundary-safe identity matching with an explicit family fallback.  The legacy
+ * `catalogTextMatches` remains tolerant for callers that intentionally need it;
+ * new extraction code should use this function before trusting a product row.
+ */
+export function findCatalogTextMatch(text: string, catalogNumber: string, policy?: MatchPolicyConfig): CatalogTextMatch | undefined {
+  const effectivePolicy = withDefaultMatchPolicy(policy);
+  const exactCandidates = catalogMatchCandidates(catalogNumber, effectivePolicy);
+  for (const candidate of exactCandidates) {
+    if (containsCatalogCandidate(text, candidate, effectivePolicy.ignoreCase)) return { level: "exact", candidate };
+  }
+  for (const candidate of exactCandidates.flatMap(catalogFamilyMatchCandidates)) {
+    if (containsCatalogCandidate(text, candidate, effectivePolicy.ignoreCase)) return { level: "family", candidate };
+  }
+  return undefined;
+}
+
+export function catalogMatchLevel(text: string, catalogNumber: string, policy?: MatchPolicyConfig): CatalogMatchLevel | undefined {
+  return findCatalogTextMatch(text, catalogNumber, policy)?.level;
+}
+
+/** Progressive separator-bound prefixes, from most specific family to broadest. */
+export function catalogFamilyMatchCandidates(catalogNumber: string): string[] {
+  const cleaned = catalogNumber.trim();
+  const separators = [...cleaned.matchAll(/[\s:/.-]+/g)];
+  const candidates: string[] = [];
+  for (let index = separators.length - 1; index >= 0; index -= 1) {
+    const candidate = cleaned.slice(0, separators[index].index).replace(/[\s:/.-]+$/, "").trim();
+    const compact = compactCatalogNumber(candidate);
+    if (compact.length >= 5 && /\d/.test(compact)) candidates.push(candidate);
+  }
+  return [...new Set(candidates)];
+}
+
+function containsCatalogCandidate(text: string, candidate: string, ignoreCase: boolean): boolean {
+  const compact = compactCatalogNumber(candidate);
+  if (compact.length < 4) return false;
+  // Punctuation can vary within a code, but adjacent alphanumerics would make it a sibling SKU.
+  const body = compact.split("").map(escapeRegExp).join("[^a-z0-9]*");
+  return new RegExp(`(^|[^a-z0-9])${body}(?=$|[^a-z0-9])`, ignoreCase ? "i" : "").test(text);
+}
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 export function sameCatalogNumber(left: unknown, right: string, policy?: MatchPolicyConfig): boolean {

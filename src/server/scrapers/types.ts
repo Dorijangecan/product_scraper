@@ -9,6 +9,7 @@ import type {
 } from "../../shared/types.js";
 import type { CachedHttpClient } from "./http-client.js";
 import type { BrowserRenderSession } from "./browser-renderer.js";
+import type { ProductDiscoveryResult } from "./discovery.js";
 
 export interface ScrapeContext {
   http: CachedHttpClient;
@@ -17,13 +18,20 @@ export interface ScrapeContext {
   documentsDir: string;
   signal?: AbortSignal;
   browserRenderer?: BrowserRenderSession;
+  /** Per-item discovery is shared between a connector's fallback and later deterministic retries.
+   * The run manager creates this map once per catalog so a second stage reuses the same evidence
+   * instead of repeating search/form/sitemap requests. */
+  discoveryMemo?: Map<string, Promise<ProductDiscoveryResult>>;
   learnedEndpoints?: {
     list: (manufacturerId: string, limit?: number) => LearnedEndpointRecord[];
     upsert: (endpoint: Omit<LearnedEndpointRecord, "id" | "successCount" | "lastSuccessAt">) => void;
+    recordFailure?: (manufacturerId: string, method: "GET" | "POST", urlTemplate: string) => void;
   };
   learnedExtractors?: {
     list: (manufacturerId: string, host: string, limit?: number) => LearnedExtractorRecord[];
-    upsert: (extractor: Omit<LearnedExtractorRecord, "id" | "successCount" | "lastSuccessAt">) => void;
+    /** Normal runs persist a demonstrated recipe; wizard validation can collect it for human review. */
+    upsert?: (extractor: Omit<LearnedExtractorRecord, "id" | "successCount" | "lastSuccessAt">) => void;
+    propose?: (extractor: Omit<LearnedExtractorRecord, "id" | "successCount" | "lastSuccessAt">) => void;
   };
   targetHealth?: {
     record: (observation: {

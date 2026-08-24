@@ -4,7 +4,7 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 import JSZip from "jszip";
 import type { ProductResult } from "../src/shared/types.js";
-import { documentAttributesAreSubstantive, enrichResultFromDownloadedDocuments, enrichResultFromRemoteDocuments, extractDocumentTextAttributes, isCleanSingleSpecValue, looksLikeMultiVariantFamilyPage } from "../src/server/scrapers/document-enrichment.js";
+import { documentAttributesAreSubstantive, enrichResultFromDownloadedDocuments, enrichResultFromRemoteDocuments, extractDocumentTextAttributes, isCleanSingleSpecValue, isMeasurementLikeToken, isStandardReferenceToken, looksLikeMultiVariantFamilyPage } from "../src/server/scrapers/document-enrichment.js";
 import { normalizeFields } from "../src/server/scrapers/normalizer.js";
 import { normalizeTechnicalAttributes } from "../src/server/scrapers/technical-attributes.js";
 import {
@@ -71,6 +71,26 @@ describe("documentAttributesAreSubstantive", () => {
 });
 
 describe("document enrichment", () => {
+  it("keeps only invariant fields when the document proved a family prefix, not the SKU", () => {
+    const attributes = extractDocumentTextAttributes({
+      catalogNumber: "GN 422-33-TK",
+      document: { type: "datasheet", label: "GN 422 family sheet", url: "https://example.test/gn-422.pdf" },
+      text: [
+        "Material: Stainless steel",
+        "Rated current: 8 A",
+        "Applicable standard: EN 60947-2",
+        // This is a malformed PDF heading, not a family-level standard or voltage value.
+        "Standard voltage ratings and typical internal resistance values"
+      ].join("\n"),
+      matchLevel: "family"
+    });
+    expect(attributes.some((attr) => /material/i.test(attr.name) && /stainless/i.test(`${attr.name} ${attr.value}`))).toBe(true);
+    expect(attributes.some((attr) => /applicable standard/i.test(attr.name) && /EN 60947-2/i.test(attr.value))).toBe(true);
+    expect(attributes.some((attr) => /current/i.test(attr.name))).toBe(false);
+    expect(attributes.some((attr) => /standard voltage/i.test(attr.name) && /ratings and typical internal/i.test(attr.value))).toBe(false);
+    expect(attributes.filter((attr) => attr.name !== "Parsed document").every((attr) => attr.matchLevel === "family" && attr.scope === "family")).toBe(true);
+  });
+
   it("extracts PDF table specs for datasheets", () => {
     const attributes = extractDocumentTextAttributes({
       catalogNumber: "BCC039H",
@@ -470,6 +490,29 @@ Circuits \tVoltage Range \tCurrent Range
     expect(normalized.current).toContain("0.4 A");
   });
 
+  it("refuses a contact-rating table that is locally labelled as a sibling SKU", () => {
+    const filler = Array.from({ length: 55 }, (_, index) => `filler line ${index}`).join("\n");
+    const attributes = extractDocumentTextAttributes({
+      catalogNumber: "REL-100-A",
+      document: {
+        type: "datasheet",
+        label: "Relay family datasheet",
+        url: "https://example.test/relay-family.pdf"
+      },
+      text: `
+Product REL-100-A
+Target product notes
+${filler}
+Product REL-200-B
+Table 22 - DC Contact Rating (Max per Pole)
+Voltage Range\tCurrent Range
+115…125\t0.4 A
+      `
+    });
+
+    expect(attributes.some((attr) => attr.group === "PDF Contact Rating")).toBe(false);
+  });
+
   it("extracts Siemens VSG dimensions and weight from dimension tables", () => {
     const attributes = extractDocumentTextAttributes({
       catalogNumber: "BPZ:VSG519K15-5",
@@ -507,6 +550,36 @@ W
     expect(normalized.weight).toBe("4.5 kg");
     expect(normalized.material).toBe("Valve body Spheroidal cast iron GJS-400-15");
     expect(normalized.certificates).toContain("CE");
+  });
+
+  it("does not use the stacked fallback for a sibling-only dimension table", () => {
+    const attributes = extractDocumentTextAttributes({
+      catalogNumber: "BPZ:VSG519K15-5",
+      document: {
+        type: "datasheet",
+        label: "VSG family datasheet",
+        url: "https://example.test/vsg-family.pdf"
+      },
+      text: `
+Product BPZ:VSG519K15-6
+Dimensions
+DN D
+[Inches]
+B
+[mm]
+L1
+[mm]
+L3
+[mm]
+H
+[mm]
+W
+[kg]
+20 G 1 12 110 280 120 6.0
+      `
+    });
+
+    expect(attributes.filter((attribute) => attribute.group === "PDF Dimension Table Row")).toEqual([]);
   });
 
   it("extracts source-backed fields from generic catalog table rows for unseen products", () => {
@@ -1640,3 +1713,173 @@ async function writeMinimalDocx(filePath: string, bodyXml: string): Promise<void
 </w:document>`);
   await fs.writeFile(filePath, await zip.generateAsync({ type: "nodebuffer" }));
 }
+
+/**
+ * These two predicates gate `blockOwnedByDifferentCatalog`, which decides whether a technical block
+ * in a multi-variant PDF belongs to our catalog number or to a sibling. Both were added after the
+ * offline eval corpus (fixtures/eaton-cbe03319-family-catalog) showed that a family's whole
+ * "Technical Data" page was being discarded — first because its norm references, then because its
+ * own dual-rating VALUES, were being counted as sibling catalog numbers.
+ */
+describe("ownership-check token classification", () => {
+  it("treats norm/standard references as standards, not sibling catalog numbers", () => {
+    // Compacted forms, as blockOwnedByDifferentCatalog sees them.
+    expect(isStandardReferenceToken("iecen608981")).toBe(true); // IEC/EN60898.1
+    expect(isStandardReferenceToken("gbt109631")).toBe(true); // GB/T10963.1
+    expect(isStandardReferenceToken("iec614392")).toBe(true);
+    expect(isStandardReferenceToken("en60947")).toBe(true);
+    expect(isStandardReferenceToken("ul508a")).toBe(true);
+    expect(isStandardReferenceToken("iso9001")).toBe(true);
+  });
+
+  it("does not mistake a real catalog number for a standard", () => {
+    expect(isStandardReferenceToken("cbe03319")).toBe(false);
+    expect(isStandardReferenceToken("e611b")).toBe(false);
+    expect(isStandardReferenceToken("1sda126493r1")).toBe(false);
+    expect(isStandardReferenceToken("1606xlb90eh")).toBe(false);
+  });
+
+  it("treats dual ratings and measured values as values, not sibling catalog numbers", () => {
+    // The two that silently deleted entire technical pages for every vendor publishing a family
+    // catalog: a dual voltage and a dual frequency.
+    expect(isMeasurementLikeToken("230/400V")).toBe(true);
+    expect(isMeasurementLikeToken("50/60Hz")).toBe(true);
+    expect(isMeasurementLikeToken("120/240V")).toBe(true);
+    expect(isMeasurementLikeToken("1/0.03")).toBe(true);
+    expect(isMeasurementLikeToken("6kA")).toBe(true);
+    expect(isMeasurementLikeToken("2.5Nm")).toBe(true);
+    expect(isMeasurementLikeToken("3x400")).toBe(true);
+  });
+
+  it("still treats genuine sibling catalog numbers as catalog numbers", () => {
+    expect(isMeasurementLikeToken("E6-1/1/B")).toBe(false);
+    expect(isMeasurementLikeToken("CBE03320")).toBe(false);
+    expect(isMeasurementLikeToken("1SDA126493R1")).toBe(false);
+    expect(isMeasurementLikeToken("1606-XLB90EH")).toBe(false);
+    expect(isMeasurementLikeToken("GB/T10963.1")).toBe(false); // a standard, handled by the other predicate
+  });
+
+  it("leaves a bare number alone, since some vendors' catalog numbers are plain digits", () => {
+    // nVent ships catalog numbers like 87920846; excluding bare digits would blind the guard to them.
+    expect(isMeasurementLikeToken("87920846")).toBe(false);
+    expect(isMeasurementLikeToken("10963")).toBe(false);
+  });
+});
+
+/**
+ * Ordering tables with TWO identifier columns — an internal type code plus the orderable article number
+ * — are the norm, not an edge case (Eaton "Part number" + "Article number", Doepke "Typ" + "Bestell-Nr.").
+ * Both map to the same `catalogNumber` key, so the header mapper merges them into one "A; B" cell, and the
+ * row-trust check then compared that merged cell against our catalog number and failed. The correct row
+ * was found and thrown away, taking the specs in it along.
+ */
+describe("ordering table with two identifier columns", () => {
+  const EATON_E6_TABLE = [
+    "E6 Series Miniature Circuit Breaker",
+    "6kA - Characteristics B",
+    "Rated current In (A) \tPart number \tArticle number \tUnit per package",
+    "1P",
+    "1 \tE6-1/1/B \tCBE03319 \t12",
+    "2 \tE6-2/1/B \tCBE03320 \t12",
+    "3 \tE6-3/1/B \tCBE03321 \t12"
+  ].join("\n");
+
+  const attributesFor = (catalogNumber: string) =>
+    extractDocumentTextAttributes({
+      catalogNumber,
+      document: { label: "E6 catalogue", type: "datasheet", url: "https://vendor.test/e6.pdf", localPath: "/tmp/e6.pdf" },
+      text: EATON_E6_TABLE,
+      tables: []
+    });
+
+  it("reads the spec column of the row identified by EITHER identifier", () => {
+    const byArticleNumber = attributesFor("CBE03319");
+    expect(byArticleNumber).toEqual(
+      expect.arrayContaining([expect.objectContaining({ name: "Current rating", value: "1 A" })])
+    );
+    // The header names the unit only in "(A)", so the bare "1" must be qualified from it.
+    const byPartNumber = attributesFor("E6-1/1/B");
+    expect(byPartNumber).toEqual(
+      expect.arrayContaining([expect.objectContaining({ name: "Current rating", value: "1 A" })])
+    );
+  });
+
+  it("exports OUR identifier rather than the merged 'A; B' cell", () => {
+    const catalogAttribute = attributesFor("CBE03319").find(
+      (attribute) => attribute.group === "PDF Catalog Table Row" && attribute.name === "Catalog Number"
+    );
+    expect(catalogAttribute?.value).toBe("CBE03319");
+  });
+
+  it("does not take a sibling row's value", () => {
+    const values = attributesFor("CBE03319").map((attribute) => String(attribute.value));
+    expect(values.join(" | ")).not.toContain("CBE03320");
+    expect(values.join(" | ")).not.toContain("E6-2/1/B");
+    // 2 A and 3 A belong to the siblings; only 1 A is ours.
+    const currents = attributesFor("CBE03319")
+      .filter((attribute) => attribute.name === "Current rating")
+      .map((attribute) => attribute.value);
+    expect(currents).toEqual(["1 A"]);
+  });
+
+  it("still refuses a row whose identifier column is a different catalog", () => {
+    const currents = attributesFor("CBE09999")
+      .filter((attribute) => attribute.name === "Current rating")
+      .map((attribute) => attribute.value);
+    expect(currents).toEqual([]);
+  });
+});
+
+/**
+ * P2.1a — a catalog number that appears ONLY in running page furniture does not locate the product.
+ *
+ * nVent's SPEC-00583 is a DOCUMENT number printed in the footer of all 8 pages of a multi-product spec
+ * sheet. `catalogTextMatches` was true and the tight context returned 3.5 kB of windows built around
+ * those footers, so the pipeline believed it had located the product eight times — and handed one
+ * product's ratings to another. Page furniture identifies the document, never the product.
+ */
+describe("catalog number only in page furniture", () => {
+  const footer = (page: number) =>
+    `nVent.com/Hoffman\tSUBJECT TO CHANGE WITHOUT NOTICE\tThermal Management\t${page}\tSpec-00583`;
+
+  const MULTI_PRODUCT_SHEET = [
+    "THERM16F Thermostat Controller",
+    "Operating temperature 32 to 140 F",
+    footer(1),
+    "THERM26C Hygrotherm",
+    "Operating temperature -20 to 80 C",
+    footer(2),
+    "THERM16C Thermostat",
+    "Rated voltage 115 V",
+    footer(3),
+    "THERM26F Controller",
+    "Rated current 2 A",
+    footer(4)
+  ].join("\n");
+
+  const attributesFor = (catalogNumber: string, text: string) =>
+    extractDocumentTextAttributes({
+      catalogNumber,
+      document: { label: "Specification", type: "datasheet", url: "https://vendor.test/spec.pdf", localPath: "/tmp/spec.pdf" },
+      text,
+      tables: [],
+      scopeUnresolved: true
+    });
+
+  it("emits no product specs when the scope is unresolved", () => {
+    const names = attributesFor("SPEC-00583", MULTI_PRODUCT_SHEET).map((attribute) => attribute.name);
+    // Only the "document was parsed" marker may remain — no ratings belonging to any of the four products.
+    expect(names.filter((name) => name !== "Parsed document")).toEqual([]);
+  });
+
+  it("still extracts normally when the scope IS resolved", () => {
+    // Same text, same reader: the difference is only whether the caller could locate the catalog number.
+    const attributes = extractDocumentTextAttributes({
+      catalogNumber: "SPEC-00583",
+      document: { label: "Specification", type: "datasheet", url: "https://vendor.test/spec.pdf", localPath: "/tmp/spec.pdf" },
+      text: MULTI_PRODUCT_SHEET,
+      tables: []
+    });
+    expect(attributes.filter((attribute) => attribute.name !== "Parsed document").length).toBeGreaterThan(0);
+  });
+});

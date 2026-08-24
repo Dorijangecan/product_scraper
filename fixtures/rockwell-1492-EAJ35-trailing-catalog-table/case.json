@@ -1,0 +1,14 @@
+{
+  "id": "rockwell-1492-EAJ35-trailing-catalog-table",
+  "manufacturerId": "rockwell",
+  "catalogNumber": "1492-EAJ35",
+  "note": "Official accessory table with properties first and Cat. No. in the final column; the target row must not be flattened into a sibling/furniture attribute.",
+  "documents": [
+    {
+      "path": "benchmarks/output/20260602123735/documents/1492-EAJ35-datasheet-1492-td015_-en-p.pdf",
+      "url": "https://literature.rockwellautomation.com/idc/groups/literature/documents/td/1492-td015_-en-p.pdf",
+      "type": "datasheet",
+      "label": "Terminal Block Specifications"
+    }
+  ]
+}

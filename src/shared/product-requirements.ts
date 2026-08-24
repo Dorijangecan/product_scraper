@@ -86,7 +86,13 @@ const PASSIVE_ENCLOSURE_ACCESSORY_PATTERN =
 
 export function requiredElectricalFields(result: ProductResult, context: ElectricalRequirementContext = {}): ElectricalField[] {
   const primaryText = productPrimaryRequirementText(result);
+  // Two different questions, two different corpora. `text` answers "what kind of device is this",
+  // so it excludes text that is not about this product (see requirementAttributes). `ratingText`
+  // answers "are electrical ratings published anywhere for it", where a datasheet absolutely counts
+  // — a Micro820 PLC's rated voltage lives only in its PDF, and reading that question off the
+  // filtered text made the controller look like an unrated family page.
   const text = productRequirementText(result);
+  const ratingText = productRatingEvidenceText(result);
   if (!text) return [];
   // Ganter Norm is a mechanical standard-parts catalog (handles, knobs, clamps, hinges, levers).
   // Even its "with electrical switching function" handle families are mechanical products with an
@@ -108,16 +114,16 @@ export function requiredElectricalFields(result: ProductResult, context: Electri
   if (NON_ELECTRICAL_INDUSTRIAL_PRODUCT_PATTERN.test(primaryText)) return [];
   if (PASSIVE_PILOT_DEVICE_ACTUATOR_PATTERN.test(primaryText)) return [];
   if (PASSIVE_MODULE_CARRIER_PATTERN.test(primaryText)) return [];
-  if (isFamilyOverviewWithoutPublishedElectricalRatings(result, text)) return [];
+  if (isFamilyOverviewWithoutPublishedElectricalRatings(result, ratingText)) return [];
   if (PASSIVE_FLUID_DEVICE_PATTERN.test(primaryText) && !ACTIVE_FLUID_DEVICE_PATTERN.test(primaryText)) return [];
   if (CURRENT_ONLY_DEVICE_PATTERN.test(text)) return ["current"];
   if (SWITCH_DISCONNECTOR_CURRENT_ONLY_PATTERN.test(text)) return ["current"];
   if (MECHANICAL_LIMIT_SWITCH_PATTERN.test(text)) {
-    return CURRENT_RATING_PRESENT_PATTERN.test(text) ? ["current"] : [];
+    return CURRENT_RATING_PRESENT_PATTERN.test(ratingText) ? ["current"] : [];
   }
   if (PASSIVE_SENSOR_ACCESSORY_PATTERN.test(primaryText)) return [];
   if (VOLTAGE_ONLY_DEVICE_PATTERN.test(text)) return ["voltage"];
-  if (PASSIVE_RFID_DEVICE_PATTERN.test(primaryText) && !CURRENT_RATING_PRESENT_PATTERN.test(text)) return [];
+  if (PASSIVE_RFID_DEVICE_PATTERN.test(primaryText) && !CURRENT_RATING_PRESENT_PATTERN.test(ratingText)) return [];
   if (SENSOR_AND_INDICATOR_VOLTAGE_ONLY_PATTERN.test(text)) {
     return ["voltage"];
   }
@@ -173,13 +179,68 @@ export function requiredElectricalFieldsForDeviceType(
   return deviceTypeElectricalFields ? [...new Set(deviceTypeElectricalFields)] : undefined;
 }
 
+// Text that is present on a product's page but does NOT describe the product itself. Feeding it
+// into the "what kind of device is this" decision promotes passive products to electrical ones:
+// a plain Saginaw "EL Enclosure" page links a manual titled "HMI Enclosure Reinforcement
+// Installation" (`hmi` → VOLTAGE_ONLY_DEVICE_PATTERN) and its washdown manual prose talks about
+// water `pressure` (→ SENSOR_AND_INDICATOR_VOLTAGE_ONLY_PATTERN), so voltage became "required" for
+// a steel box — permanently failing the quality gate and spending a full discovery/reader round per
+// row on a value that does not exist. Accessory lists are the same class of mistake: they are OTHER
+// products (enclosure pages list lights, fans and thermostats).
+const DOCUMENT_PROSE_GROUP_PATTERN = /^pdf\b/i;
+const DOCUMENT_REFERENCE_LABEL_PATTERN =
+  /\b(?:manual|installation|instruction|document|documentation|literature|datasheet|data\s+sheet|drawing|brochure|catalog(?:ue)?\s+page)\b/i;
+const OTHER_PRODUCT_LABEL_PATTERN =
+  /\b(?:accessor(?:y|ies)|alternative|similar\s+part|linked\s+part|related\s+purchase|also\s+bought|replacement|spare\s+part|companion|recommended)\b/i;
+
+type RequirementAttribute = ProductResult["attributes"][number];
+
+/** A document's own title/file name never describes the product ("HMI … Installation" manual). */
+function isDocumentReferenceAttribute(attr: RequirementAttribute): boolean {
+  return DOCUMENT_REFERENCE_LABEL_PATTERN.test(`${attr.group ?? ""} ${attr.name}`);
+}
+
+/** Prose mined out of a PDF — paragraphs of a shared manual, not this product's spec sheet. */
+function isDocumentProseAttribute(attr: RequirementAttribute): boolean {
+  return DOCUMENT_PROSE_GROUP_PATTERN.test(attr.group ?? "");
+}
+
+function isOtherProductAttribute(attr: RequirementAttribute): boolean {
+  return OTHER_PRODUCT_LABEL_PATTERN.test(`${attr.group ?? ""} ${attr.name}`);
+}
+
+/**
+ * The attributes allowed to answer "what kind of device is this".
+ *
+ * Document titles and neighbouring-product lists are always dropped. PDF prose is dropped only
+ * when the product also has page-derived attributes: for catalog-only products (an Eaton/ABB
+ * `CBE…` row that exists solely inside a catalogue PDF) the document IS the whole evidence base,
+ * and discarding it would silently declare every such switch-disconnector non-electrical.
+ */
+function requirementAttributes(result: ProductResult): RequirementAttribute[] {
+  const named = result.attributes.filter((attr) => !isDocumentReferenceAttribute(attr) && !isOtherProductAttribute(attr));
+  const pageDerived = named.filter((attr) => !isDocumentProseAttribute(attr));
+  return pageDerived.length ? pageDerived : named;
+}
+
 function productRequirementText(result: ProductResult): string {
-  const primaryText = productPrimaryRequirementText(result);
-  const attributeText = result.attributes
+  return joinRequirementText(result, requirementAttributes(result));
+}
+
+/**
+ * Everything we collected, documents included. Used only for "is a rating published anywhere"
+ * questions, never for deciding what kind of device this is.
+ */
+function productRatingEvidenceText(result: ProductResult): string {
+  return joinRequirementText(result, result.attributes);
+}
+
+function joinRequirementText(result: ProductResult, attributes: RequirementAttribute[]): string {
+  const attributeText = attributes
     .slice(0, 80)
     .map((attr) => `${attr.group ?? ""} ${attr.name} ${attr.value}`)
     .join(" ");
-  return [primaryText, attributeText].filter(Boolean).join(" ").toLowerCase();
+  return [productPrimaryRequirementText(result), attributeText].filter(Boolean).join(" ").toLowerCase();
 }
 
 function productPrimaryRequirementText(result: ProductResult): string {

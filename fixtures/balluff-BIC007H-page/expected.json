@@ -1,0 +1,34 @@
+{
+  "_source": "Balluff BIC007H (BIC 2B0-IT1A7-Q40KFU-SM4A5A) inductive coupler, recorded product page (426 kB). Verified in the page: `IP67` ×3, `PBTP` ×3 (housing material), `40 x 40 x 62` ×3 (dimensions), `1.7 A` ×3.",
+
+  "_tier": "value-verified. Highest-yield fixture left unpromoted (177 attributes), chosen on the theory that a high yield is where GARBAGE hides. It was: an Alpine.js/Tailwind front-end framework was leaking its conditional class bindings into the attribute list.",
+
+  "normalized": {
+    "protection": { "contains": "IP67" },
+    "material": { "contains": "PBTP" },
+    "dimensions": { "contains": "40 x 40 x 62" },
+    "voltage": { "contains": "24" },
+    "current": { "number": 1.7, "unit": "A" },
+    "operatingTemperatureMin": { "number": -5 },
+    "operatingTemperatureMax": { "number": 55 }
+  },
+
+  "mustNotContain": [
+    "menuOpenedId",
+    "searchOpen",
+    "hasScrolled",
+    "shadow-md",
+    "inset-x-0",
+    "font-weight",
+    "!important",
+    "All rights reserved",
+    "Add to cart"
+  ],
+
+  "_notes": {
+    "alpine_bindings": "This fixture found P1.4c. Alpine.js writes conditional classes as an object literal — `:class=\"{ 'shadow-md': !searchOpen && !mobileMenuOpen, 'w-0': menuOpenedId !== '0' }\"` — and splitting that on `:` produced attributes like `'shadow-md'` = `!searchOpen && !mobileMenuOpen`. The existing code-fragment rule missed them because they name no DOM global and call no method; `&&`, `||`, `!==`, `===` and a leading `!identifier` cannot occur in a specification value.",
+    "torn_quotes": "A second, subtler form: the split also lands on a colon INSIDE the class name, because that is Tailwind's responsive prefix. `'absolute inset-x-0 px-2 mx-2 lg:mx-0 …': searchOpen` became the label `'absolute inset-x-0 px-2 mx-2 lg` — an opening quote with no closing one. Rejected by shape, requiring the quote to be at the START and an object-literal `':` for the value form, so a real apostrophe (\"Manufacturer's data\") survives.",
+    "measured": "177 → 161 attributes with all 8 normalized fields unchanged, so the removed 16 were pure framework noise.",
+    "temperature": "-5 / 55 °C comes from the min/max row pairing added in P1.4a — Balluff uses the same two-row layout as Turck, which is why that fix pays off across vendors rather than for one page."
+  }
+}

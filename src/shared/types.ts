@@ -80,7 +80,35 @@ export interface ManufacturerTestSampleResult {
   evidence: number;
   missing: string[];
   attemptedUrls: string[];
+  /** Captured only after an official identity-confirmed wizard sample; stored under run output. */
+  fixturePath?: string;
+  /** Possible ontology mappings for previously-unmapped labels; never applied automatically. */
+  aliasSuggestions?: ManufacturerAliasSuggestion[];
+  /** Learned extractor recipes observed during this test; never persisted until separately approved. */
+  selectorSuggestions?: LearnedExtractorProposal[];
   reason: string;
+}
+
+export interface ManufacturerAliasSuggestion {
+  label: string;
+  canonicalKey: string;
+  matchedLabel: string;
+  score: number;
+}
+
+export interface LearnedExtractorProposal {
+  manufacturerId: ManufacturerId;
+  host: string;
+  kind: LearnedExtractorRecord["kind"];
+  pattern: string;
+  sourceUrl: string;
+  parserKind: string;
+}
+
+/** A human-approved learned recipe to persist after the manufacturer itself has been saved. */
+export interface LearnedExtractorApprovalRequest {
+  manufacturerId: ManufacturerId;
+  proposal: LearnedExtractorProposal;
 }
 
 export interface ManufacturerTestResult {
@@ -88,6 +116,8 @@ export interface ManufacturerTestResult {
   foundCount: number;
   sampleCount: number;
   samples: ManufacturerTestSampleResult[];
+  /** Strict recipe proposals reproduced by at least two identity-confirmed samples. */
+  confirmedSelectorSuggestions: LearnedExtractorProposal[];
   warnings: string[];
 }
 
@@ -208,6 +238,14 @@ export interface QualityPolicyConfig {
   requiredNormalizedFields?: Array<keyof NormalizedProductFields>;
   requiredFinalFields?: FinalCompletenessPolicyField[];
   preferredFinalFields?: FinalCompletenessPolicyField[];
+  /**
+   * Fields the user explicitly declared unnecessary (today: the coverage tiles switched off for a
+   * run). They are never required by the quality gate or final completeness, so no fallback,
+   * retry or browser render is spent chasing them. This is an explicit opt-out and therefore
+   * different from an absent `requiredNormalizedFields`, which only means "nothing extra is
+   * required" and leaves the device-type heuristics in charge.
+   */
+  notApplicableFields?: FinalCompletenessPolicyField[];
   typeCodeFallback?: "catalogNumber";
   rationales?: Partial<Record<"requiredFinalFields" | "preferredFinalFields" | "typeCodeFallback", string>>;
   minRawAttributes?: number;
@@ -275,6 +313,14 @@ export interface QualityGateResult {
   attempts: ScrapeAttemptRecord[];
 }
 
+/** A label the deterministic ontology could not map.  It is diagnostic/review data only: it never
+ * assigns a field or changes a scraped value. */
+export interface UnmappedSpecLabel {
+  label: string;
+  /** Numeric values can receive deterministic unit-based hints; text values need human teaching. */
+  valueKind: "quantity" | "text";
+}
+
 export interface ScrapeDiagnostics {
   attemptedUrls?: string[];
   chosenUrl?: string;
@@ -288,13 +334,15 @@ export interface ScrapeDiagnostics {
   documentProcessing?: DocumentProcessingDiagnostic[];
   documentParseFailures?: string[];
   sectionAttributeCounts?: Record<string, number>;
-  /** Self-diagnosis: spec labels with a recognizable value but no known meaning — knowledge-base gaps to teach, not guess. */
-  unmappedSpecLabels?: string[];
+  /** Self-diagnosis: spec labels with no known meaning — knowledge-base gaps to teach, not guess. */
+  unmappedSpecLabels?: UnmappedSpecLabel[];
   fieldHealth?: FieldHealthRecord[];
   pageMining?: PageMiningRecord[];
   pageIntelligence?: PageIntelligenceDiagnostic[];
   fieldCandidates?: FieldCandidateRecord[];
   fieldResolutions?: FieldResolutionRecord[];
+  /** Cumulative, capped confidence reduction for unresolved source-value conflicts. */
+  confidencePenalty?: number;
   targetHealth?: TargetHealthRecord;
   drift?: DriftDiagnostic;
   notes?: string[];
@@ -377,6 +425,14 @@ export interface TargetHealthRecord {
   reason?: string;
 }
 
+/** Read-only operational view used when onboarding or repairing a manufacturer.
+ * It deliberately exposes evidence and drift only; it cannot change runtime recipes. */
+export interface ManufacturerOperationalSummary {
+  manufacturerId: ManufacturerId;
+  targetHealth: TargetHealthRecord[];
+  learnedEndpoints: LearnedEndpointRecord[];
+}
+
 export interface DriftDiagnostic {
   suspected: boolean;
   reason: string;
@@ -430,6 +486,8 @@ export interface FieldHealthRecord {
     selected?: boolean;
   }>;
   reason?: string;
+  /** Machine-readable causal blocker for missing/review fields; `reason` remains human-readable. */
+  reasonCode?: "no-source-discovered" | "source-fetched-no-label" | "label-found-value-rejected" | "document-not-parsed" | "scoping-failed" | "conflicting-candidates" | "not-published";
   resolution?: string;
 }
 
@@ -479,6 +537,8 @@ export interface LearnedEndpointRecord {
   parserKind: string;
   successCount: number;
   lastSuccessAt: string;
+  failureCount?: number;
+  lastFailureAt?: string;
 }
 
 export interface EvidenceRecord {
@@ -546,6 +606,10 @@ export interface AttributeRecord {
   parser?: string;
   stage?: string;
   confidence?: number;
+  /** Whether extraction proved that this value belongs to the requested variant, rather than its family. */
+  scope?: "variant" | "variant-option" | "family" | "unscoped";
+  /** Identity evidence level when a source only printed a family prefix of the requested SKU. */
+  matchLevel?: "exact" | "family";
 }
 
 export interface DocumentRecord {
@@ -619,6 +683,8 @@ export interface ProductResult {
   catalogNumber: string;
   status: Exclude<ItemStatus, "pending" | "processing" | "cancelled">;
   confidence: number;
+  /** A selectable family page can contain one active SKU but still needs variant-scoped extraction. */
+  pageLevel?: "product" | "family";
   productUrl?: string;
   localizedUrls?: LocalizedProductUrls;
   /** Per-locale title/description captured from non-English official pages. Currently only `de`. */
@@ -734,6 +800,8 @@ export interface RunItemFieldHealthSummary {
   lowConfidence: number;
   conflicting: number;
   reviewFields: string[];
+  /** Stable causal blockers, aggregated from `FieldHealthRecord.reasonCode`. */
+  reasonCodes: Partial<Record<NonNullable<FieldHealthRecord["reasonCode"]>, number>>;
 }
 
 export interface RunItemDocumentProcessingSummary {

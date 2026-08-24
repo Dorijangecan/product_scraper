@@ -1,0 +1,13 @@
+{
+  "_source": "Extracted from a past run's page cache by scripts/extract-page-fixtures.ts so the generic HTML path has real, vendor-diverse regression cover. The PDF path had this from the start; the HTML path did not, which made changing its English admission gates riskier than changing the PDF ones.",
+  "_tier": "noise-guard only — the assertions here are UNIVERSAL truths about any product page, not values verified against this vendor's page. Promote to value assertions (normalized/attributesInclude) only after reading the source page; see fixtures/README.md.",
+  "mustNotContain": [
+    "font-weight",
+    "!important",
+    "All rights reserved",
+    "Accept all cookies",
+    "Privacy Policy",
+    "Add to cart",
+    "JavaScript is disabled"
+  ]
+}

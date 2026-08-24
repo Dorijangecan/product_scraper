@@ -1,0 +1,13 @@
+{
+  "_tier": "value-verified",
+  "_source": "Recorded official Schmersal PDP page.html for article 131029963: the product payload lists IP Degree of protection values [IP67, IP65], while the rendered technical-data row visibly lists IP65 and IP67 as separate spans.",
+  "_notes": "Both protection ratings and both relative-humidity notes are published for this exact PDP. They are multiple values, not one concatenated token; the generic parser must retain delimiters when it reads the responsive DOM row.",
+  "normalized": {
+    "protection": "IP67; IP65"
+  },
+  "attributesInclude": [
+    { "name": "IP Degree of protection", "valueContains": "IP67; IP65" },
+    { "name": "Note (Relative humidity)", "valueContains": "non-condensing; non-icing" }
+  ],
+  "mustNotContain": ["IP65IP67"]
+}

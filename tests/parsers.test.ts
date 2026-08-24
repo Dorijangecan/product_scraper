@@ -2517,6 +2517,61 @@ describe("manufacturer parsers", () => {
     expect(result.attributes.some((attr) => attr.name === "Downloads" && attr.value === "Download")).toBe(false);
   });
 
+  it("does not treat a nested product header card as a loose colon pair", () => {
+    const html = `
+      <html><head><title>HDR-24 safety switch</title></head><body>
+        <div class="product-card">
+          <div class="identity"><h1>HDR-24</h1><div><span>Item number:</span><span>HDR-24</span></div></div>
+          <div class="product-features"><h2>Product features</h2><p>Connector plug M12</p><button>Add to Cart</button><button>Add to watchlist</button></div>
+        </div>
+        <section class="technical-data"><h2>Technical data</h2><div><span>Rated voltage</span><span>24 V DC</span></div></section>
+      </body></html>
+    `;
+    const result = parseGenericProductPage(
+      "unseen-maker",
+      "HDR-24",
+      fetched(html, "https://example.test/products/HDR-24"),
+      "official-fallback",
+      "Unseen manufacturer page"
+    );
+
+    expect(result.attributes).toEqual(expect.arrayContaining([
+      expect.objectContaining({ name: "Item number", value: "HDR-24" }),
+      expect.objectContaining({ name: "Rated voltage", value: "24 V DC" })
+    ]));
+    expect(result.attributes.some((attr) => /Add to Cart|Add to watchlist|Product features/.test(attr.value))).toBe(false);
+  });
+
+  it("does not turn a section's parent layout grid into an extra spec pair", () => {
+    const html = `
+      <html><head><title>GRID-24 safety switch</title></head><body>
+        <section class="technical-data"><h2>Technical data</h2>
+          <h3 id="ordering-heading">Ordering data</h3>
+          <div class="spec-grid" aria-labelledby="ordering-heading">
+            <div class="spec-row"><span>Rated voltage</span><span>24 V DC</span></div>
+            <div class="spec-row"><span>Housing material</span><span>Glass-fibre reinforced thermoplastic</span></div>
+            <div class="spec-row"><span>Weight</span><span>275 g</span></div>
+          </div>
+        </section>
+      </body></html>
+    `;
+    const result = parseGenericProductPage(
+      "unseen-maker",
+      "GRID-24",
+      fetched(html, "https://example.test/products/GRID-24"),
+      "official-fallback",
+      "Unseen manufacturer page"
+    );
+
+    expect(result.attributes).toEqual(expect.arrayContaining([
+      expect.objectContaining({ name: "Rated voltage", value: "24 V DC" }),
+      expect.objectContaining({ name: "Housing material", value: "Glass-fibre reinforced thermoplastic" }),
+      expect.objectContaining({ name: "Weight", value: "275 g" })
+    ]));
+    expect(result.attributes.some((attr) => /^Rated voltage\s*24 V DC/i.test(attr.name))).toBe(false);
+    expect(result.attributes.some((attr) => attr.name === "Ordering data" && /Housing material.*Weight/i.test(attr.value))).toBe(false);
+  });
+
   it("extracts generic page-wide specs from product tables, loose pairs, responsive cells, and JSON-LD properties", () => {
     const html = `
       <html><head><title>PRD-55 module</title>
@@ -2785,6 +2840,50 @@ describe("manufacturer parsers", () => {
     expect(result.attributes.some((attr) => attr.value === "Plastic")).toBe(false);
     expect(result.normalized.weight).toBe("1.2 kg");
     expect(result.documents.some((doc) => doc.type === "datasheet" && doc.url === "https://example.test/downloads/ABC-123-datasheet.pdf")).toBe(true);
+  });
+
+  it("ranks target-scoped, registry-known specs before applying a small raw attribute budget", () => {
+    const html = `
+      <html><head><title>ABC-123 product</title></head><body>
+        <h1>ABC-123 product</h1>
+        <table><tbody>
+          <tr><th>Catalog number</th><td>ABC-123</td></tr>
+          <tr><th>Weight</th><td>1.2 kg</td></tr>
+          <tr><th>Dimensions</th><td>100 x 40 x 20 mm</td></tr>
+        </tbody></table>
+        <dl><dt>Marketing claim</dt><dd>Available worldwide</dd></dl>
+      </body></html>
+    `;
+    const result = parseGenericProductPage(
+      "custom",
+      "ABC-123",
+      fetched(html, "https://example.test/products/ABC-123"),
+      "official",
+      "budget-test",
+      { extractionPolicy: { maxRawAttributes: 2 } }
+    );
+    expect(result.attributes).toHaveLength(2);
+    expect(result.attributes).toEqual(expect.arrayContaining([
+      expect.objectContaining({ name: "Weight", value: "1.2 kg" }),
+      expect.objectContaining({ name: "Dimensions", value: "100 x 40 x 20 mm" })
+    ]));
+  });
+
+  it("admits a multilingual ontology-known embedded JSON key without adding another English keyword", () => {
+    const html = `
+      <html><head><title>ABC-123 product</title></head><body>
+        <h1>ABC-123 product</h1>
+        <script type="application/json">{"technicalData":{"Bemessungsstrom":"16 A"}}</script>
+      </body></html>
+    `;
+    const result = parseGenericProductPage(
+      "custom",
+      "ABC-123",
+      fetched(html, "https://example.test/products/ABC-123"),
+      "official",
+      "ontology-dynamic-key"
+    );
+    expect(result.attributes).toContainEqual(expect.objectContaining({ name: "Bemessungsstrom", value: "16 A" }));
   });
 
   it("keeps the real product photo and rejects schematics, dimension drawings and CAD previews", () => {
@@ -5679,6 +5778,32 @@ IP degree of protection IP68 conforming to IEC 60529 IP69K conforming to DIN 400
     expect(
       parseSiemensBuildingTechnologiesGermanDescriptions(fetched("<product></product>", "https://support.industry.siemens.com/x"))
     ).toBeUndefined();
+  });
+
+  it("reconstructs only aligned multiline table facts for the selected ordering option", () => {
+    const result = parseGenericProductPage(
+      "unseen-maker",
+      "GN 6284-180-T-1-SU",
+      fetched(`
+        <html><body><h1>GN 6284-180-T-1-SU</h1><table><tr>
+          <td colspan="3"><strong>Button</strong><br>Contacts<br>Contact material<br>Contact resistor<br>Contact voltages / current<br>Mech. contact lifespan<br><br>Lifespan<br>Actuation force / distance</td>
+          <td colspan="5"><br>Changeover contact, slow-action contact<br>Silver alloy<br>25 mΩ<br>Max. 30 V / 2,5 A (plug)<br>Max. 250 V / 4 A (cable)<br>3600 cycles/hour as per DIN EN 60947-5-1<br>10⁷ switching cycles<br>30N (IP67) / 5 mm</td>
+          <td colspan="4"><img alt="drawing"></td>
+        </tr><tr>
+          <td colspan="3">Connection type<br>Cable (KU)<br><br>Maximum bending radius<br>or<br>Plug (SU)<br>Protection class</td>
+          <td colspan="5"><br>PUR cable with open stranded wires (2.5 or 5 m)<br>&gt; 70 mm<br><br><br>8-pin plug M12x1<br>IP 67</td>
+        </tr></table></body></html>
+      `, "https://example.test/GN-6284"),
+      "official"
+    );
+
+    expect(result.attributes).toEqual(expect.arrayContaining([
+      expect.objectContaining({ name: "Contact material", value: "Silver alloy" }),
+      expect.objectContaining({ name: "Contact resistor", value: "25 mΩ" }),
+      expect.objectContaining({ name: "Plug (SU)", value: "8-pin plug M12x1" })
+    ]));
+    expect(result.attributes.some((attribute) => attribute.name === "Cable (KU)")).toBe(false);
+    expect(result.attributes.some((attribute) => attribute.name === "Mech. contact lifespan" && /250 V/i.test(attribute.value))).toBe(false);
   });
 });
 

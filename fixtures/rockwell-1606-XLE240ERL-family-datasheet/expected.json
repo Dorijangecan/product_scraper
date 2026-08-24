@@ -1,0 +1,18 @@
+{
+  "_tier": "value-verified",
+  "_source": "Rockwell Automation Publication 1606-TD002H-EN-P, July 2023, p. 25, table 'Power Supplies with Integrated Decoupling Function': the first target column is 1606-XLE240ERL and its row 'Adjustment Range' says 'Fixed'. Page 22 is a distinct 100…240V AC/DC continuation table containing only the shorter sibling 1606-XLE240E, where the row says '24…28V'.",
+  "normalized": {
+    "current": "10 A"
+  },
+  "attributesInclude": [
+    { "name": "Adjustment Range", "valueContains": "Fixed" }
+  ],
+  "mustNotContain": [
+    "Adjustment Range = 24…28V",
+    "1606-XLE120E-2"
+  ],
+  "_notes": {
+    "why": "A boundary-unsafe header match can accept the earlier 1606-XLE240E column as 1606-XLE240ERL and emit 24…28V before it reaches the target's own table. The value is wrong for this product, not merely a missing field. The target table also proves the first target column's Output Current, Nom is 10 A; an emitted `10 A / 20 A` is sibling-column contamination, not an admissible range.",
+    "scope": "The document is a real family datasheet, so every accepted table value must be bound to the exact catalog column. This fixture protects the positioned reader's exact-header and multi-page selection paths. The earlier unrelated three-phase row `1606-XLE120E-2` must not reach the exported Attributes sheet merely because its page lies near the target page."
+  }
+}

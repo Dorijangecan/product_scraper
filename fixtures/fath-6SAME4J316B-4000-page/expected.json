@@ -1,0 +1,35 @@
+{
+  "_source": "Fath 6SAME4J316B.4000 main power cable GST18i3 for Module F Line, recorded product page (299 kB). Verified in the page: `PVC` ×4, `250 V`, `16 A`, `IP20`, `1.5 mm²` (cable cross-section). Part number confirmed by the page's own `Part #` row.",
+
+  "_tier": "value-verified. Promoted for the fourth-highest yield; found the first noise that reached a SHIPPED FIELD rather than only the attribute list.",
+
+  "normalized": {
+    "material": { "contains": "PVC" },
+    "voltage": { "contains": "250" },
+    "current": { "contains": "16" },
+    "protection": { "contains": "IP20" },
+    "certificates": { "contains": "RoHS" }
+  },
+
+  "attributesInclude": [
+    { "name": "Part #", "valueContains": "6SAME4J316B.4000" },
+    { "name": "Cable Cross Section", "valueContains": "1.5 mm" }
+  ],
+
+  "mustNotContain": [
+    "Data Protection Declaration",
+    "product:price",
+    "baseSliderWrapperClass",
+    "font-weight",
+    "!important",
+    "All rights reserved",
+    "Add to cart"
+  ],
+
+  "_notes": {
+    "certificates_was_wrong": "This fixture found P1.4d, and it is the most consequential noise found so far because it reached a FIELD, not just the attribute list: `certificates` was `RoHS, Data Protection Declaration, REACH Regulation`. A GDPR notice is not a product approval.",
+    "root_cause_was_not_where_expected": "The value did not come through the attribute gate at all — there is no such attribute on the page. `classifyDocument` maps the word `declaration` to `certificate` (for the declaration of conformity), so the vendor's footer link 'Data Protection Declaration' became a CERTIFICATE DOCUMENT, and document labels feed normalized.certificates. Fixed by testing for legal/policy documents BEFORE the certificate branch, since such documents almost always carry a certificate keyword too.",
+    "other_noise": "Same page also produced `product:price:amount = 0` (commerce meta key as a label) and `baseSliderWrapperClass = modal-body` / `debug = false,` (JS config). Rejected by a commerce-meta label rule and a bare-boolean value rule.",
+    "current_value": "`current` is asserted as containing 16 rather than exactly `16 A`: the page states it as `Max. 16 A`, and the qualifier is part of what the vendor published — not something to normalise away in an assertion."
+  }
+}

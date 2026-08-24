@@ -1,0 +1,21 @@
+{
+  "_source": "Ground truth read directly out of the PDF. This is a MULTI-PRODUCT spec sheet (THERM16F / THERM26F / THERM16C / THERM26C plus Hygrotherm variants) and `SPEC-00583` is the DOCUMENT number, not a product — so no row can be scoped to our catalog number at all. Relevant lines: `Ambient Temperature (°F / °C) -4 to 176 F | -20 to 80 C`, `Operating Temperature Range (°F/°C) -40 to 140/-40 to 60`, `Temperature Set Point (adjustable) (°F/°C) 32/0 to 140/60`, `Unit Dimensions - H x W x D (in./mm) 2.64 x 1.97 x 1.50/67 x 50 x 38`.",
+
+  "normalized": {
+    "operatingTemperatureMin": { "absent": true },
+    "operatingTemperatureMax": { "absent": true },
+    "finish": { "absent": true }
+  },
+
+  "mustNotContain": [
+    "Laboratoire Central des Industries"
+  ],
+
+  "_notes": {
+    "p2_1a": "ZERO open gaps as of P2.1a. The root cause turned out to be sharper than 'scoping failed': SPEC-00583 appears 8 times in the document and ALL 8 are page footers ('nVent.com/HoFFmAn SUBJECT TO CHANGE WITHOUT NOTICE ThermAl mAnAgemenT 3 Spec-00583'). So catalogTextMatches was true and buildTightContextForCatalog returned 3.5 kB of windows built around FOOTERS — the pipeline believed it had located the product eight times when it had located the document. Page furniture identifies the DOCUMENT, never the product. Running headers/footers are now detected generically (a digit-stripped line repeating on 3+ pages AND carrying an imprint marker), and when every mention of the catalog number falls in furniture on a multi-variant document, the catalog-agnostic sweeps are suppressed. Attributes went from 110 (mostly other products') to 9.",
+    "temperature": "Was: operatingTemperatureMin=32, Max=140. Both wrong twice over — they are FAHRENHEIT numbers stored as Celsius, and they come from the adjustable SET POINT row, not from the Operating Temperature Range row. The document's real operating range is -40 to 60 °C. Because the document covers several products and cannot be scoped to SPEC-00583, the correct output is EMPTY, not -40/60: picking one variant's range would be a guess. See COLD-START-PLAN P0.2#9 and P2.1.",
+    "finish": "Today: finish = \"\\u0015\\u0011\\u0019\\u0017\\u0003 \\u0019\\u001a\\u0003PP\" — C0 control characters from a PDF whose font cmap does not decode. A value containing control characters is never a specification. Hard assertion (P0.2#8).",
+    "certificates": "Today certificates swallows the prose `Certificate LCIE (Laboratoire Central des Industries, File No. E249700, Listed` — a sentence truncated mid-clause, not a certificate list.",
+    "voltage/current/protection": "Left unasserted on purpose: 115 V / 230 V and 2 A and IP20 may be a genuine dual-rating or may be two variants' values joined. Not verified, so not asserted — the harness must never encode a guess as ground truth."
+  }
+}

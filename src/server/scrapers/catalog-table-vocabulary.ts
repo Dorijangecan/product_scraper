@@ -21,8 +21,13 @@ import { cleanText } from "./normalizer.js";
  * header anchor. Deliberately excludes bare ambiguous words like "Type" or "Model" (which routinely
  * appear as ordinary row labels) — those are handled structurally by variant-token clustering, not
  * by label text. */
+// "PART #" (a bare hash sign standing in for "No."/"Number") is a real Saginaw/SCE ordering-table
+// id header (floor-stand-kit installation manuals). The "#" alternative is added only where the
+// suffix word was already required after the base identifier keyword (part/order/article/item/
+// model) or already optional (catalog) — never as a bare/standalone alternative — so a plain row-
+// index column header ("#" alone) still does not qualify as an id header.
 const CATALOG_ID_CELL_RE =
-  /^(?:catalog(?:ue)?\s*(?:number|no\.?|nr\.?)?|cat\.?\s*no\.?|part\s*(?:number|no\.?)|order(?:ing)?\s*(?:code|number|no\.?)|article\s*(?:number|no\.?)|art\.?[-\s]*nr\.?|artikel(?:nummer|[-\s]*nr\.?)|bestell(?:nummer|[-\s]*nr\.?)|sach(?:nummer|[-\s]*nr\.?)|ident(?:[-\s]*nr\.?|\s*number)|type[-\s]*code|typ[-\s]*code|mlfb|r[ée]f(?:\.|[ée]rence)?|codice(?:\s*articolo)?|item\s*(?:number|no\.?)|model\s*(?:number|no\.?)|modell[-\s]*nr\.?)\s*[:.]?\s*$/i;
+  /^(?:catalog(?:ue)?\s*(?:number|no\.?|nr\.?|#)?|cat\.?\s*no\.?|part\s*(?:number|no\.?|#)|order(?:ing)?\s*(?:code|number|no\.?|#)|article\s*(?:number|no\.?|#)|art\.?[-\s]*nr\.?|artikel(?:nummer|[-\s]*nr\.?)|bestell(?:nummer|[-\s]*nr\.?)|sach(?:nummer|[-\s]*nr\.?)|ident(?:[-\s]*nr\.?|\s*number)|type[-\s]*code|typ[-\s]*code|mlfb|r[ée]f(?:\.|[ée]rence)?|codice(?:\s*articolo)?|item\s*(?:number|no\.?|#)|model\s*(?:number|no\.?|#)|modell[-\s]*nr\.?)\s*[:.]?\s*$/i;
 
 /** Broad "does this joined header-row text mention any ordering-table column keyword" test — id
  * column OR any recognized spec/description/dimension column. Used to decide whether a candidate

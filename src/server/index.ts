@@ -10,7 +10,7 @@ import { ScraperDb } from "./db.js";
 import { createAppPaths } from "./paths.js";
 import { RunManager } from "./run-manager.js";
 import { getManufacturerConfig, initializeManufacturerConfig, listManufacturerConfigs, resetManufacturerOverride, saveManufacturerConfig } from "./config/manufacturers.js";
-import type { CustomerDocumentRecord, ManufacturerId } from "../shared/types.js";
+import type { CustomerDocumentRecord, LearnedExtractorApprovalRequest, ManufacturerId, ManufacturerOperationalSummary, ManufacturerTestResult } from "../shared/types.js";
 import { buildRunOutputLayout, findRunLogPath, getAllowedRunOutputRoots, isPathInsideAny, runRootFromOutputPath } from "./run-output.js";
 import { CachedHttpClient } from "./scrapers/http-client.js";
 import { summarizeRunItem } from "./run-item-summary.js";
@@ -35,6 +35,8 @@ const runUpload = multer({
 });
 const app = express();
 const port = Number(process.env.PORT ?? 3001);
+const WIZARD_VALIDATION_TTL_MS = 30 * 60 * 1000;
+const wizardRecipeValidations = new Map<string, { result: ManufacturerTestResult; expiresAt: number }>();
 
 app.use(express.json({ limit: "1mb" }));
 
@@ -44,6 +46,20 @@ app.get("/api/health", (_req, res) => {
 
 app.get("/api/manufacturers", (_req, res) => {
   res.json(listManufacturerConfigs());
+});
+
+app.get("/api/manufacturers/:id/operational-summary", (req, res) => {
+  const manufacturer = getManufacturerConfig(req.params.id);
+  if (!manufacturer) {
+    res.status(404).json({ error: "Unknown manufacturer." });
+    return;
+  }
+  const summary: ManufacturerOperationalSummary = {
+    manufacturerId: manufacturer.id,
+    targetHealth: db.listTargetHealth(manufacturer.id),
+    learnedEndpoints: db.listLearnedEndpoints(manufacturer.id, 20)
+  };
+  res.json(summary);
 });
 
 app.post("/api/manufacturers", async (req, res) => {
@@ -67,11 +83,31 @@ app.post("/api/manufacturers/inspect", async (req, res) => {
 
 app.post("/api/manufacturers/test", async (req, res) => {
   try {
-    const { testManufacturerDraft } = await import("./manufacturer-wizard.js");
+    const { testManufacturerDraft, wizardValidationKey } = await import("./manufacturer-wizard.js");
     const http = new CachedHttpClient(db, appPaths.cacheDir);
-    res.json(await testManufacturerDraft(req.body, { db, http, paths: appPaths }));
+    const result = await testManufacturerDraft(req.body, { db, http, paths: appPaths });
+    wizardRecipeValidations.set(wizardValidationKey(req.body.manufacturer), { result, expiresAt: Date.now() + WIZARD_VALIDATION_TTL_MS });
+    res.json(result);
   } catch (error) {
     res.status(400).json({ error: error instanceof Error ? error.message : "Could not test manufacturer." });
+  }
+});
+
+app.post("/api/manufacturers/:id/learned-extractors", async (req, res) => {
+  try {
+    const manufacturer = getManufacturerConfig(req.params.id);
+    if (!manufacturer) throw new Error("Manufacturer must be saved before approving a learned recipe.");
+    const payload = req.body as LearnedExtractorApprovalRequest;
+    if (payload.manufacturerId !== manufacturer.id) throw new Error("The learned recipe belongs to a different manufacturer.");
+    const { approveWizardLearnedExtractor, wizardValidationKey } = await import("./manufacturer-wizard.js");
+    const validation = wizardRecipeValidations.get(wizardValidationKey(manufacturer));
+    if (!validation || validation.expiresAt < Date.now()) {
+      wizardRecipeValidations.delete(wizardValidationKey(manufacturer));
+      throw new Error("Run a confirmed three-sample wizard test before approving a learned recipe.");
+    }
+    res.status(201).json({ extractor: approveWizardLearnedExtractor(payload.proposal, manufacturer, db, validation.result) });
+  } catch (error) {
+    res.status(400).json({ error: error instanceof Error ? error.message : "Could not approve learned recipe." });
   }
 });
 

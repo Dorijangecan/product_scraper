@@ -192,7 +192,7 @@ function isSiemensBuildingTechnologiesStockNumber(catalogNumber: string): boolea
   return /^S\d{5}-[A-Z]\d+$/i.test(catalogNumber.trim());
 }
 
-function siemensMallStockNumberResult(catalogNumber: string): ProductResult {
+export function siemensMallStockNumberResult(catalogNumber: string): ProductResult {
   const stockNumber = catalogNumber.trim();
   const productUrl = `${SIEMENS_SIEPORTAL_DETAIL}${encodeURIComponent(stockNumber)}`;
   // Smart Infrastructure publishes the selected product's datasheet through this official,
@@ -224,7 +224,9 @@ function siemensMallStockNumberResult(catalogNumber: string): ProductResult {
         type: "datasheet",
         label: "Siemens Building Technologies product datasheet",
         url: datasheetUrl,
-        sourceUrl: productUrl
+        sourceUrl: datasheetUrl,
+        sourceType: "official",
+        parser: "siemens-building-technologies-datasheet"
       }
     ],
     sources: [
@@ -466,7 +468,9 @@ async function siemensBuildingTechnologiesDatasheet(
       type: "datasheet",
       label: "Siemens Building Technologies product datasheet",
       url,
-      sourceUrl: `${SIEMENS_IOS_BASE}/cs/ww/en/pv/${encodeURIComponent(stockNumber)}/pi`
+      sourceUrl: url,
+      sourceType: "official",
+      parser: "siemens-building-technologies-datasheet"
     };
   } catch {
     return undefined;

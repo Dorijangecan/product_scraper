@@ -1,0 +1,1051 @@
+{
+  "summary": {
+    "measured": 100,
+    "hitAt1": 47,
+    "hitAt3": 51,
+    "hit": 70,
+    "noCandidates": 0
+  },
+  "outcomes": [
+    {
+      "target": {
+        "manufacturerId": "abb",
+        "catalogNumber": "1SAP180400R0001",
+        "productUrl": "http://new.abb.com/products/pl/1SAP180400R0001/ta522"
+      },
+      "rank": 1,
+      "rankReason": "fetched-identity",
+      "candidateCount": 12,
+      "topUrl": "https://new.abb.com/smartlinks/en?ProductId=1SAP180400R0001&Language=en&PrintPreview=False&pid=1SAP180400R0001"
+    },
+    {
+      "target": {
+        "manufacturerId": "balluff",
+        "catalogNumber": "BAE00M3",
+        "productUrl": "https://www.balluff.com/en-us/products/BAE00M3"
+      },
+      "rank": 1,
+      "rankReason": "fetched-identity",
+      "candidateCount": 6,
+      "topUrl": "https://www.balluff.com/en-gb/products/BAE00M3"
+    },
+    {
+      "target": {
+        "manufacturerId": "eaton",
+        "catalogNumber": "106740",
+        "productUrl": "https://www.eaton.com/us/en-us/skuPage.106740.html"
+      },
+      "rank": 4,
+      "rankReason": "recorded-url",
+      "candidateCount": 12,
+      "topUrl": "https://www.eaton.com/gb/en-gb/skuPage.106740.html"
+    },
+    {
+      "target": {
+        "manufacturerId": "fath",
+        "catalogNumber": "6SACP3J316B.2000",
+        "productUrl": "https://www.fath24.com/en/Connection-Cable-GST18i3-for-Module-F-Line/6SACP3J316B.2000"
+      },
+      "candidateCount": 12,
+      "topUrl": "https://www.fath.com/en/6sacp3j316b2000"
+    },
+    {
+      "target": {
+        "manufacturerId": "gan",
+        "catalogNumber": "GN 3310-19-LK-K2",
+        "productUrl": "https://www.ganternorm.com/en/products/1.2-Operating-by-using-machine-anddevicehandles/Cabinet-U-handles/GN-3310-Switches-Indicator-Lights-Stainless-Steel-with-without-LED-Lightning"
+      },
+      "candidateCount": 8,
+      "topUrl": "https://www.ganternorm.com/product/gn331019lkk2"
+    },
+    {
+      "target": {
+        "manufacturerId": "nvent",
+        "catalogNumber": "A10R86HCR",
+        "productUrl": "https://www.nvent.com/en-bs/hoffman/products/enca10r86hcr"
+      },
+      "rank": 4,
+      "rankReason": "fetched-identity",
+      "candidateCount": 12,
+      "topUrl": "https://www.nvent.com/"
+    },
+    {
+      "target": {
+        "manufacturerId": "rockwell",
+        "catalogNumber": "1492-PDE1142",
+        "productUrl": "https://www.rockwellautomation.com/en-us/products/details.1492-PDE1142.html"
+      },
+      "rank": 1,
+      "rankReason": "recorded-url",
+      "candidateCount": 12,
+      "topUrl": "https://www.rockwellautomation.com/en-us/products/details.1492-PDE1142.html"
+    },
+    {
+      "target": {
+        "manufacturerId": "sce",
+        "catalogNumber": "SCE-10086CHNF",
+        "productUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-10086CHNF"
+      },
+      "rank": 1,
+      "rankReason": "recorded-url",
+      "candidateCount": 7,
+      "topUrl": "https://www.saginawcontrol.com/partnumber_info?n=SCE-10086CHNF"
+    },
+    {
+      "target": {
+        "manufacturerId": "schmersal",
+        "catalogNumber": "101010229",
+        "productUrl": "https://products.schmersal.com/en_US/tkm9024vdc-101010229"
+      },
+      "rank": 1,
+      "rankReason": "recorded-url",
+      "candidateCount": 10,
+      "topUrl": "https://products.schmersal.com/en_US/tkm9024vdc-101010229"
+    },
+    {
+      "target": {
+        "manufacturerId": "siemens",
+        "catalogNumber": "S55180-A179",
+        "productUrl": "https://mall.industry.siemens.com/mall/CZ/CZ/Catalog/Product/?mlfb=S55180-A179"
+      },
+      "candidateCount": 12,
+      "topUrl": "https://mall.industry.siemens.com/mall/en/WW/Catalog/Search?searchTerm=S55180-A179&tab=Product"
+    },
+    {
+      "target": {
+        "manufacturerId": "turck",
+        "catalogNumber": "15758",
+        "productUrl": "https://www.turck.com/de/en/shop/others/1575807"
+      },
+      "rank": 2,
+      "rankReason": "fetched-identity",
+      "candidateCount": 5,
+      "topUrl": "https://www.turck.com/en/sensors/inductive-sensors/15758/"
+    },
+    {
+      "target": {
+        "manufacturerId": "abb",
+        "catalogNumber": "1SBL347060R1100",
+        "productUrl": "http://new.abb.com/products/pl/1SBL347060R1100/af40b-30-00rt-11"
+      },
+      "rank": 1,
+      "rankReason": "fetched-identity",
+      "candidateCount": 12,
+      "topUrl": "https://new.abb.com/smartlinks/en?ProductId=1SBL347060R1100&Language=en&PrintPreview=False&pid=1SBL347060R1100"
+    },
+    {
+      "target": {
+        "manufacturerId": "balluff",
+        "catalogNumber": "BAM01LE",
+        "productUrl": "https://www.balluff.com/de-de/products/BAM01LE"
+      },
+      "rank": 1,
+      "rankReason": "fetched-identity",
+      "candidateCount": 6,
+      "topUrl": "https://www.balluff.com/en-gb/products/BAM01LE"
+    },
+    {
+      "target": {
+        "manufacturerId": "eaton",
+        "catalogNumber": "107987",
+        "productUrl": "https://www.eaton.com/no/no-no/skuPage.107987.html"
+      },
+      "candidateCount": 12,
+      "topUrl": "https://www.eaton.com/gb/en-gb/skuPage.107987.html"
+    },
+    {
+      "target": {
+        "manufacturerId": "fath",
+        "catalogNumber": "6SACP3J316B.4000",
+        "productUrl": "https://www.fath24.com/en/Connection-Cable-GST18i3-for-Module-F-Line/6SACP3J316B.4000"
+      },
+      "candidateCount": 12,
+      "topUrl": "https://www.fath.com/en/6sacp3j316b4000"
+    },
+    {
+      "target": {
+        "manufacturerId": "gan",
+        "catalogNumber": "GN 3310-19-LK-K5",
+        "productUrl": "https://www.ganternorm.com/en/products/1.2-Operating-by-using-machine-anddevicehandles/Cabinet-U-handles/GN-3310-Switches-Indicator-Lights-Stainless-Steel-with-without-LED-Lightning"
+      },
+      "candidateCount": 8,
+      "topUrl": "https://www.ganternorm.com/product/gn331019lkk5"
+    },
+    {
+      "target": {
+        "manufacturerId": "nvent",
+        "catalogNumber": "A12R106HCR",
+        "productUrl": "https://www.nvent.com/en-bs/hoffman/products/enca12r106hcr"
+      },
+      "rank": 4,
+      "rankReason": "fetched-identity",
+      "candidateCount": 12,
+      "topUrl": "https://www.nvent.com/"
+    },
+    {
+      "target": {
+        "manufacturerId": "rockwell",
+        "catalogNumber": "1492-PDE1183",
+        "productUrl": "https://www.rockwellautomation.com/en-us/products/details.1492-PDE1183.html"
+      },
+      "rank": 1,
+      "rankReason": "recorded-url",
+      "candidateCount": 12,
+      "topUrl": "https://www.rockwellautomation.com/en-us/products/details.1492-PDE1183.html"
+    },
+    {
+      "target": {
+        "manufacturerId": "sce",
+        "catalogNumber": "SCE-10086CHNFSS",
+        "productUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-10086CHNFSS"
+      },
+      "rank": 1,
+      "rankReason": "recorded-url",
+      "candidateCount": 7,
+      "topUrl": "https://www.saginawcontrol.com/partnumber_info?n=SCE-10086CHNFSS"
+    },
+    {
+      "target": {
+        "manufacturerId": "schmersal",
+        "catalogNumber": "101010237",
+        "productUrl": "https://products.schmersal.com/en_US/tkf9024vdc-101010237"
+      },
+      "rank": 1,
+      "rankReason": "recorded-url",
+      "candidateCount": 10,
+      "topUrl": "https://products.schmersal.com/en_US/tkf9024vdc-101010237"
+    },
+    {
+      "target": {
+        "manufacturerId": "siemens",
+        "catalogNumber": "S55180-A180",
+        "productUrl": "https://mall.industry.siemens.com/mall/CZ/CZ/Catalog/Product/?mlfb=S55180-A180"
+      },
+      "candidateCount": 12,
+      "topUrl": "https://mall.industry.siemens.com/mall/en/WW/Catalog/Search?searchTerm=S55180-A180&tab=Product"
+    },
+    {
+      "target": {
+        "manufacturerId": "turck",
+        "catalogNumber": "1581901",
+        "productUrl": "https://www.turck.com/de/en/shop/sensors/inductive-sensors/1581901"
+      },
+      "rank": 2,
+      "rankReason": "fetched-identity",
+      "candidateCount": 5,
+      "topUrl": "https://www.turck.com/en/sensors/inductive-sensors/1581901/"
+    },
+    {
+      "target": {
+        "manufacturerId": "abb",
+        "catalogNumber": "1SBL347060R1111",
+        "productUrl": "http://new.abb.com/products/pl/1SBL347060R1111/af40b-30-11rt-11"
+      },
+      "rank": 9,
+      "rankReason": "fetched-identity",
+      "candidateCount": 12,
+      "topUrl": "https://new.abb.com/smartlinks/en?ProductId=1SBL347060R1111&Language=en&PrintPreview=False&pid=1SBL347060R1111"
+    },
+    {
+      "target": {
+        "manufacturerId": "balluff",
+        "catalogNumber": "BCC00T8",
+        "productUrl": "https://www.balluff.com/en-gb/products/BCC00T8"
+      },
+      "rank": 1,
+      "rankReason": "recorded-url",
+      "candidateCount": 6,
+      "topUrl": "https://www.balluff.com/en-gb/products/BCC00T8"
+    },
+    {
+      "target": {
+        "manufacturerId": "eaton",
+        "catalogNumber": "107988",
+        "productUrl": "https://www.eaton.com/us/en-us/skuPage.107988.html"
+      },
+      "rank": 4,
+      "rankReason": "recorded-url",
+      "candidateCount": 12,
+      "topUrl": "https://www.eaton.com/gb/en-gb/skuPage.107988.html"
+    },
+    {
+      "target": {
+        "manufacturerId": "fath",
+        "catalogNumber": "6SACP5J516B.2000",
+        "productUrl": "https://www.fath24.com/en/Connection-Cable-GST15i5-for-Module-F-Line/6SACP5J516B.2000"
+      },
+      "candidateCount": 12,
+      "topUrl": "https://www.fath.com/en/6sacp5j516b2000"
+    },
+    {
+      "target": {
+        "manufacturerId": "gan",
+        "catalogNumber": "GN 3310-19-LK-S025",
+        "productUrl": "https://www.ganternorm.com/en/products/1.2-Operating-by-using-machine-anddevicehandles/Cabinet-U-handles/GN-3310-Switches-Indicator-Lights-Stainless-Steel-with-without-LED-Lightning"
+      },
+      "candidateCount": 8,
+      "topUrl": "https://www.ganternorm.com/product/gn331019lks025"
+    },
+    {
+      "target": {
+        "manufacturerId": "nvent",
+        "catalogNumber": "A12R1210HCR",
+        "productUrl": "https://www.nvent.com/en-bs/hoffman/products/enca12r1210hcr"
+      },
+      "rank": 4,
+      "rankReason": "fetched-identity",
+      "candidateCount": 12,
+      "topUrl": "https://www.nvent.com/"
+    },
+    {
+      "target": {
+        "manufacturerId": "rockwell",
+        "catalogNumber": "1492-PDE1C142",
+        "productUrl": "https://www.rockwellautomation.com/en-us/products/details.1492-PDE1C142.html"
+      },
+      "rank": 1,
+      "rankReason": "recorded-url",
+      "candidateCount": 12,
+      "topUrl": "https://www.rockwellautomation.com/en-us/products/details.1492-PDE1C142.html"
+    },
+    {
+      "target": {
+        "manufacturerId": "sce",
+        "catalogNumber": "SCE-10086CHNFSS6",
+        "productUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-10086CHNFSS6"
+      },
+      "rank": 1,
+      "rankReason": "recorded-url",
+      "candidateCount": 7,
+      "topUrl": "https://www.saginawcontrol.com/partnumber_info?n=SCE-10086CHNFSS6"
+    },
+    {
+      "target": {
+        "manufacturerId": "schmersal",
+        "catalogNumber": "101010240",
+        "productUrl": "https://products.schmersal.com/en_US/tkfs9024vdc-101010240"
+      },
+      "rank": 1,
+      "rankReason": "recorded-url",
+      "candidateCount": 10,
+      "topUrl": "https://products.schmersal.com/en_US/tkfs9024vdc-101010240"
+    },
+    {
+      "target": {
+        "manufacturerId": "siemens",
+        "catalogNumber": "S55499-D346",
+        "productUrl": "https://mall.industry.siemens.com/mall/CZ/CZ/Catalog/Product/?mlfb=S55499-D346"
+      },
+      "candidateCount": 12,
+      "topUrl": "https://mall.industry.siemens.com/mall/en/WW/Catalog/Search?searchTerm=S55499-D346&tab=Product"
+    },
+    {
+      "target": {
+        "manufacturerId": "turck",
+        "catalogNumber": "BI3U-EG12SK-VP4X",
+        "productUrl": "https://www.turck.com/de/en/shop/sensors/inductive-sensors/1580601"
+      },
+      "candidateCount": 10,
+      "topUrl": "https://www.turck.com/de/en/shop/all-products?q=BI3U-EG12SK-VP4X"
+    },
+    {
+      "target": {
+        "manufacturerId": "abb",
+        "catalogNumber": "1SBL347060R1200",
+        "productUrl": "http://new.abb.com/products/pl/1SBL347060R1200/af40b-30-00rt-12"
+      },
+      "rank": 1,
+      "rankReason": "fetched-identity",
+      "candidateCount": 12,
+      "topUrl": "https://new.abb.com/smartlinks/en?ProductId=1SBL347060R1200&Language=en&PrintPreview=False&pid=1SBL347060R1200"
+    },
+    {
+      "target": {
+        "manufacturerId": "balluff",
+        "catalogNumber": "BCC0312",
+        "productUrl": "https://www.balluff.com/en-us/products/BCC0312"
+      },
+      "rank": 1,
+      "rankReason": "fetched-identity",
+      "candidateCount": 6,
+      "topUrl": "https://www.balluff.com/en-gb/products/BCC0312"
+    },
+    {
+      "target": {
+        "manufacturerId": "eaton",
+        "catalogNumber": "113992",
+        "productUrl": "https://www.eaton.com/us/en-us/skuPage.113992.html"
+      },
+      "rank": 4,
+      "rankReason": "recorded-url",
+      "candidateCount": 12,
+      "topUrl": "https://www.eaton.com/gb/en-gb/skuPage.113992.html"
+    },
+    {
+      "target": {
+        "manufacturerId": "fath",
+        "catalogNumber": "6SACP5J516B.4000",
+        "productUrl": "https://www.fath24.com/en/Connection-Cable-GST15i5-for-Module-F-Line/6SACP5J516B.4000"
+      },
+      "candidateCount": 12,
+      "topUrl": "https://www.fath.com/en/6sacp5j516b4000"
+    },
+    {
+      "target": {
+        "manufacturerId": "gan",
+        "catalogNumber": "GN 3310-19-RK-K2",
+        "productUrl": "https://www.ganternorm.com/en/products/1.2-Operating-by-using-machine-anddevicehandles/Cabinet-U-handles/GN-3310-Switches-Indicator-Lights-Stainless-Steel-with-without-LED-Lightning"
+      },
+      "candidateCount": 8,
+      "topUrl": "https://www.ganternorm.com/product/gn331019rkk2"
+    },
+    {
+      "target": {
+        "manufacturerId": "nvent",
+        "catalogNumber": "A12R126HCR",
+        "productUrl": "https://www.nvent.com/en-bs/hoffman/products/enca12r126hcr"
+      },
+      "rank": 4,
+      "rankReason": "fetched-identity",
+      "candidateCount": 12,
+      "topUrl": "https://www.nvent.com/"
+    },
+    {
+      "target": {
+        "manufacturerId": "rockwell",
+        "catalogNumber": "1492-PDE1C183",
+        "productUrl": "https://www.rockwellautomation.com/en-us/products/details.1492-PDE1C183.html"
+      },
+      "rank": 1,
+      "rankReason": "recorded-url",
+      "candidateCount": 12,
+      "topUrl": "https://www.rockwellautomation.com/en-us/products/details.1492-PDE1C183.html"
+    },
+    {
+      "target": {
+        "manufacturerId": "sce",
+        "catalogNumber": "SCE-10086ELJ",
+        "productUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-10086ELJ"
+      },
+      "rank": 1,
+      "rankReason": "recorded-url",
+      "candidateCount": 7,
+      "topUrl": "https://www.saginawcontrol.com/partnumber_info?n=SCE-10086ELJ"
+    },
+    {
+      "target": {
+        "manufacturerId": "schmersal",
+        "catalogNumber": "101010257",
+        "productUrl": "https://products.schmersal.com/en_US/tkfs90230vac-101010257"
+      },
+      "rank": 1,
+      "rankReason": "recorded-url",
+      "candidateCount": 10,
+      "topUrl": "https://products.schmersal.com/en_US/tkfs90230vac-101010257"
+    },
+    {
+      "target": {
+        "manufacturerId": "siemens",
+        "catalogNumber": "S55499-D347",
+        "productUrl": "https://mall.industry.siemens.com/mall/CZ/CZ/Catalog/Product/?mlfb=S55499-D347"
+      },
+      "candidateCount": 12,
+      "topUrl": "https://mall.industry.siemens.com/mall/en/WW/Catalog/Search?searchTerm=S55499-D347&tab=Product"
+    },
+    {
+      "target": {
+        "manufacturerId": "turck",
+        "catalogNumber": "NI12U-EG18SK-VP4X",
+        "productUrl": "https://www.turck.com/de/en/shop/sensors/inductive-sensors/1581801"
+      },
+      "candidateCount": 10,
+      "topUrl": "https://www.turck.com/de/en/shop/all-products?q=NI12U-EG18SK-VP4X"
+    },
+    {
+      "target": {
+        "manufacturerId": "abb",
+        "catalogNumber": "1SBL347060R1211",
+        "productUrl": "http://new.abb.com/products/pl/1SBL347060R1211/af40b-30-11rt-12"
+      },
+      "rank": 9,
+      "rankReason": "fetched-identity",
+      "candidateCount": 12,
+      "topUrl": "https://new.abb.com/smartlinks/en?ProductId=1SBL347060R1211&Language=en&PrintPreview=False&pid=1SBL347060R1211"
+    },
+    {
+      "target": {
+        "manufacturerId": "balluff",
+        "catalogNumber": "BCC039H",
+        "productUrl": "https://www.balluff.com/en-us/products/BCC039H"
+      },
+      "rank": 1,
+      "rankReason": "fetched-identity",
+      "candidateCount": 6,
+      "topUrl": "https://www.balluff.com/en-gb/products/BCC039H"
+    },
+    {
+      "target": {
+        "manufacturerId": "eaton",
+        "catalogNumber": "119919",
+        "productUrl": "https://www.eaton.com/us/en-us/skuPage.119919.html"
+      },
+      "rank": 3,
+      "rankReason": "fetched-identity",
+      "candidateCount": 12,
+      "topUrl": "https://www.eaton.com/gb/en-gb/skuPage.119919.html"
+    },
+    {
+      "target": {
+        "manufacturerId": "fath",
+        "catalogNumber": "6SAKP3J316BS01",
+        "productUrl": "https://www.fath24.com/en/Connection-Coupling-GST18i3-for-Module-F-Line-Set/6SAKP3J316BS01"
+      },
+      "candidateCount": 7,
+      "topUrl": "https://www.fath.com/en/6SAKP3J316BS01"
+    },
+    {
+      "target": {
+        "manufacturerId": "gan",
+        "catalogNumber": "GN 3310-19-RK-K5",
+        "productUrl": "https://www.ganternorm.com/en/products/1.2-Operating-by-using-machine-anddevicehandles/Cabinet-U-handles/GN-3310-Switches-Indicator-Lights-Stainless-Steel-with-without-LED-Lightning"
+      },
+      "candidateCount": 8,
+      "topUrl": "https://www.ganternorm.com/product/gn331019rkk5"
+    },
+    {
+      "target": {
+        "manufacturerId": "nvent",
+        "catalogNumber": "A6R44HCR",
+        "productUrl": "https://www.nvent.com/en-bs/hoffman/products/enca6r44hcr"
+      },
+      "rank": 4,
+      "rankReason": "fetched-identity",
+      "candidateCount": 12,
+      "topUrl": "https://www.nvent.com/"
+    },
+    {
+      "target": {
+        "manufacturerId": "rockwell",
+        "catalogNumber": "1492-PDME1141",
+        "productUrl": "https://www.rockwellautomation.com/en-us/products/details.1492-PDME1141.html"
+      },
+      "rank": 1,
+      "rankReason": "recorded-url",
+      "candidateCount": 12,
+      "topUrl": "https://www.rockwellautomation.com/en-us/products/details.1492-PDME1141.html"
+    },
+    {
+      "target": {
+        "manufacturerId": "sce",
+        "catalogNumber": "SCE-10086ELJLG",
+        "productUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-10086ELJLG"
+      },
+      "rank": 1,
+      "rankReason": "recorded-url",
+      "candidateCount": 7,
+      "topUrl": "https://www.saginawcontrol.com/partnumber_info?n=SCE-10086ELJLG"
+    },
+    {
+      "target": {
+        "manufacturerId": "schmersal",
+        "catalogNumber": "101017921",
+        "productUrl": "https://products.schmersal.com/en_US/tkfsn9024vdc-101017921"
+      },
+      "rank": 1,
+      "rankReason": "recorded-url",
+      "candidateCount": 10,
+      "topUrl": "https://products.schmersal.com/en_US/tkfsn9024vdc-101017921"
+    },
+    {
+      "target": {
+        "manufacturerId": "siemens",
+        "catalogNumber": "S55499-D348",
+        "productUrl": "https://mall.industry.siemens.com/mall/CZ/CZ/Catalog/Product/?mlfb=S55499-D348"
+      },
+      "candidateCount": 12,
+      "topUrl": "https://mall.industry.siemens.com/mall/en/WW/Catalog/Search?searchTerm=S55499-D348&tab=Product"
+    },
+    {
+      "target": {
+        "manufacturerId": "abb",
+        "catalogNumber": "1SBL347060R1300",
+        "productUrl": "http://new.abb.com/products/pl/1SBL347060R1300/af40b-30-00rt-13"
+      },
+      "rank": 1,
+      "rankReason": "fetched-identity",
+      "candidateCount": 12,
+      "topUrl": "https://new.abb.com/smartlinks/en?ProductId=1SBL347060R1300&Language=en&PrintPreview=False&pid=1SBL347060R1300"
+    },
+    {
+      "target": {
+        "manufacturerId": "balluff",
+        "catalogNumber": "BCC039J",
+        "productUrl": "https://www.balluff.com/en-us/products/BCC039J"
+      },
+      "rank": 1,
+      "rankReason": "fetched-identity",
+      "candidateCount": 6,
+      "topUrl": "https://www.balluff.com/en-gb/products/BCC039J"
+    },
+    {
+      "target": {
+        "manufacturerId": "eaton",
+        "catalogNumber": "121448",
+        "productUrl": "https://www.eaton.com/de/de-de/skuPage.121448.html"
+      },
+      "rank": 2,
+      "rankReason": "recorded-url",
+      "candidateCount": 12,
+      "topUrl": "https://www.eaton.com/gb/en-gb/skuPage.121448.html"
+    },
+    {
+      "target": {
+        "manufacturerId": "fath",
+        "catalogNumber": "6SAKP5J516BS01",
+        "productUrl": "https://www.fath24.com/en/Connection-Coupling-GST15i5-for-Module-F-Line-Set/6SAKP5J516BS01"
+      },
+      "candidateCount": 7,
+      "topUrl": "https://www.fath.com/en/6SAKP5J516BS01"
+    },
+    {
+      "target": {
+        "manufacturerId": "gan",
+        "catalogNumber": "GN 3310-19-RK-S025",
+        "productUrl": "https://www.ganternorm.com/en/products/1.2-Operating-by-using-machine-anddevicehandles/Cabinet-U-handles/GN-3310-Switches-Indicator-Lights-Stainless-Steel-with-without-LED-Lightning"
+      },
+      "candidateCount": 8,
+      "topUrl": "https://www.ganternorm.com/product/gn331019rks025"
+    },
+    {
+      "target": {
+        "manufacturerId": "nvent",
+        "catalogNumber": "A6R64HCR",
+        "productUrl": "https://www.nvent.com/en-bs/hoffman/products/enca6r64hcr"
+      },
+      "rank": 4,
+      "rankReason": "fetched-identity",
+      "candidateCount": 12,
+      "topUrl": "https://www.nvent.com/"
+    },
+    {
+      "target": {
+        "manufacturerId": "rockwell",
+        "catalogNumber": "1606-XLB120E",
+        "productUrl": "https://www.rockwellautomation.com/en-us/products/details.1606-XLB120E.html"
+      },
+      "rank": 1,
+      "rankReason": "recorded-url",
+      "candidateCount": 12,
+      "topUrl": "https://www.rockwellautomation.com/en-us/products/details.1606-XLB120E.html"
+    },
+    {
+      "target": {
+        "manufacturerId": "sce",
+        "catalogNumber": "SCE-10086ELJSS",
+        "productUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-10086ELJSS"
+      },
+      "rank": 1,
+      "rankReason": "recorded-url",
+      "candidateCount": 7,
+      "topUrl": "https://www.saginawcontrol.com/partnumber_info?n=SCE-10086ELJSS"
+    },
+    {
+      "target": {
+        "manufacturerId": "schmersal",
+        "catalogNumber": "101022592",
+        "productUrl": "https://products.schmersal.com/en_US/tkm2toe9024vdc-101022592"
+      },
+      "rank": 1,
+      "rankReason": "recorded-url",
+      "candidateCount": 10,
+      "topUrl": "https://products.schmersal.com/en_US/tkm2toe9024vdc-101022592"
+    },
+    {
+      "target": {
+        "manufacturerId": "siemens",
+        "catalogNumber": "S55499-D820",
+        "productUrl": "https://mall.industry.siemens.com/mall/CZ/CZ/Catalog/Product/?mlfb=S55499-D820"
+      },
+      "candidateCount": 12,
+      "topUrl": "https://mall.industry.siemens.com/mall/en/WW/Catalog/Search?searchTerm=S55499-D820&tab=Product"
+    },
+    {
+      "target": {
+        "manufacturerId": "abb",
+        "catalogNumber": "1SBL347060R1311",
+        "productUrl": "http://new.abb.com/products/pl/1SBL347060R1311/af40b-30-11rt-13"
+      },
+      "rank": 9,
+      "rankReason": "fetched-identity",
+      "candidateCount": 12,
+      "topUrl": "https://new.abb.com/smartlinks/en?ProductId=1SBL347060R1311&Language=en&PrintPreview=False&pid=1SBL347060R1311"
+    },
+    {
+      "target": {
+        "manufacturerId": "balluff",
+        "catalogNumber": "BCC039L",
+        "productUrl": "https://www.balluff.com/en-us/products/BCC039L"
+      },
+      "rank": 1,
+      "rankReason": "fetched-identity",
+      "candidateCount": 6,
+      "topUrl": "https://www.balluff.com/en-gb/products/BCC039L"
+    },
+    {
+      "target": {
+        "manufacturerId": "eaton",
+        "catalogNumber": "121449",
+        "productUrl": "https://www.eaton.com/us/en-us/skuPage.121449.html"
+      },
+      "rank": 4,
+      "rankReason": "recorded-url",
+      "candidateCount": 12,
+      "topUrl": "https://www.eaton.com/gb/en-gb/skuPage.121449.html"
+    },
+    {
+      "target": {
+        "manufacturerId": "fath",
+        "catalogNumber": "6SAMB1J313B.2000",
+        "productUrl": "https://www.fath24.com/en/Main-Power-Cable-GST18i3-for-Module-F-Line/6SAMB1J313B.2000"
+      },
+      "candidateCount": 12,
+      "topUrl": "https://www.fath.com/en/6samb1j313b2000"
+    },
+    {
+      "target": {
+        "manufacturerId": "gan",
+        "catalogNumber": "GN 3310-19-RO-K2",
+        "productUrl": "https://www.ganternorm.com/en/products/1.2-Operating-by-using-machine-anddevicehandles/Cabinet-U-handles/GN-3310-Switches-Indicator-Lights-Stainless-Steel-with-without-LED-Lightning"
+      },
+      "candidateCount": 8,
+      "topUrl": "https://www.ganternorm.com/product/gn331019rok2"
+    },
+    {
+      "target": {
+        "manufacturerId": "nvent",
+        "catalogNumber": "A8R64HCR",
+        "productUrl": "https://www.nvent.com/en-bs/hoffman/products/enca8r64hcr"
+      },
+      "rank": 4,
+      "rankReason": "fetched-identity",
+      "candidateCount": 12,
+      "topUrl": "https://www.nvent.com/"
+    },
+    {
+      "target": {
+        "manufacturerId": "rockwell",
+        "catalogNumber": "1606-XLB240E",
+        "productUrl": "https://www.rockwellautomation.com/en-us/products/details.1606-XLB240E.html"
+      },
+      "rank": 1,
+      "rankReason": "recorded-url",
+      "candidateCount": 12,
+      "topUrl": "https://www.rockwellautomation.com/en-us/products/details.1606-XLB240E.html"
+    },
+    {
+      "target": {
+        "manufacturerId": "sce",
+        "catalogNumber": "SCE-10086ELJSS6",
+        "productUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-10086ELJSS6"
+      },
+      "rank": 1,
+      "rankReason": "recorded-url",
+      "candidateCount": 7,
+      "topUrl": "https://www.saginawcontrol.com/partnumber_info?n=SCE-10086ELJSS6"
+    },
+    {
+      "target": {
+        "manufacturerId": "schmersal",
+        "catalogNumber": "101029557",
+        "productUrl": "https://products.schmersal.com/en_US/tkml929024vdc-101029557"
+      },
+      "rank": 1,
+      "rankReason": "recorded-url",
+      "candidateCount": 10,
+      "topUrl": "https://products.schmersal.com/en_US/tkml929024vdc-101029557"
+    },
+    {
+      "target": {
+        "manufacturerId": "abb",
+        "catalogNumber": "1SBL347060R1400",
+        "productUrl": "http://new.abb.com/products/pl/1SBL347060R1400/af40b-30-00rt-14"
+      },
+      "rank": 1,
+      "rankReason": "fetched-identity",
+      "candidateCount": 12,
+      "topUrl": "https://new.abb.com/smartlinks/en?ProductId=1SBL347060R1400&Language=en&PrintPreview=False&pid=1SBL347060R1400"
+    },
+    {
+      "target": {
+        "manufacturerId": "balluff",
+        "catalogNumber": "BCC0AZZ",
+        "productUrl": "https://www.balluff.com/en-us/products/BCC0AZZ"
+      },
+      "rank": 1,
+      "rankReason": "fetched-identity",
+      "candidateCount": 6,
+      "topUrl": "https://www.balluff.com/en-gb/products/BCC0AZZ"
+    },
+    {
+      "target": {
+        "manufacturerId": "eaton",
+        "catalogNumber": "121453",
+        "productUrl": "https://www.eaton.com/ae/en-gb/skuPage.121453.html"
+      },
+      "candidateCount": 12,
+      "topUrl": "https://www.eaton.com/gb/en-gb/skuPage.121453.html"
+    },
+    {
+      "target": {
+        "manufacturerId": "fath",
+        "catalogNumber": "6SAMB1J313B.4000",
+        "productUrl": "https://www.fath24.com/en/Main-Power-Cable-GST18i3-for-Module-F-Line/6SAMB1J313B.4000"
+      },
+      "candidateCount": 12,
+      "topUrl": "https://www.fath.com/en/6samb1j313b4000"
+    },
+    {
+      "target": {
+        "manufacturerId": "gan",
+        "catalogNumber": "GN 3310-19-RO-K5",
+        "productUrl": "https://www.ganternorm.com/en/products/1.2-Operating-by-using-machine-anddevicehandles/Cabinet-U-handles/GN-3310-Switches-Indicator-Lights-Stainless-Steel-with-without-LED-Lightning"
+      },
+      "candidateCount": 8,
+      "topUrl": "https://www.ganternorm.com/product/gn331019rok5"
+    },
+    {
+      "target": {
+        "manufacturerId": "nvent",
+        "catalogNumber": "A8R86HCR",
+        "productUrl": "https://www.nvent.com/en-bs/hoffman/products/enca8r86hcr"
+      },
+      "rank": 4,
+      "rankReason": "fetched-identity",
+      "candidateCount": 12,
+      "topUrl": "https://www.nvent.com/"
+    },
+    {
+      "target": {
+        "manufacturerId": "rockwell",
+        "catalogNumber": "1606-XLB36EH",
+        "productUrl": "https://www.rockwellautomation.com/en-us/products/details.1606-XLB36EH.html"
+      },
+      "rank": 1,
+      "rankReason": "recorded-url",
+      "candidateCount": 12,
+      "topUrl": "https://www.rockwellautomation.com/en-us/products/details.1606-XLB36EH.html"
+    },
+    {
+      "target": {
+        "manufacturerId": "sce",
+        "catalogNumber": "SCE-10086ELJW",
+        "productUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-10086ELJW"
+      },
+      "rank": 1,
+      "rankReason": "recorded-url",
+      "candidateCount": 7,
+      "topUrl": "https://www.saginawcontrol.com/partnumber_info?n=SCE-10086ELJW"
+    },
+    {
+      "target": {
+        "manufacturerId": "schmersal",
+        "catalogNumber": "101030160",
+        "productUrl": "https://products.schmersal.com/en_US/tkm929024vdc-101030160"
+      },
+      "rank": 1,
+      "rankReason": "recorded-url",
+      "candidateCount": 10,
+      "topUrl": "https://products.schmersal.com/en_US/tkm929024vdc-101030160"
+    },
+    {
+      "target": {
+        "manufacturerId": "abb",
+        "catalogNumber": "1SBL347060R1411",
+        "productUrl": "http://new.abb.com/products/pl/1SBL347060R1411/af40b-30-11rt-14"
+      },
+      "rank": 9,
+      "rankReason": "fetched-identity",
+      "candidateCount": 12,
+      "topUrl": "https://new.abb.com/smartlinks/en?ProductId=1SBL347060R1411&Language=en&PrintPreview=False&pid=1SBL347060R1411"
+    },
+    {
+      "target": {
+        "manufacturerId": "balluff",
+        "catalogNumber": "BCC0C8J",
+        "productUrl": "https://www.balluff.com/en-us/products/BCC0C8J"
+      },
+      "rank": 1,
+      "rankReason": "fetched-identity",
+      "candidateCount": 6,
+      "topUrl": "https://www.balluff.com/en-gb/products/BCC0C8J"
+    },
+    {
+      "target": {
+        "manufacturerId": "eaton",
+        "catalogNumber": "132935",
+        "productUrl": "https://www.eaton.com/us/en-us/skuPage.132935.html"
+      },
+      "rank": 1,
+      "rankReason": "fetched-identity",
+      "candidateCount": 12,
+      "topUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.132935.html"
+    },
+    {
+      "target": {
+        "manufacturerId": "fath",
+        "catalogNumber": "6SAME4J316B.2000",
+        "productUrl": "https://www.fath24.com/en/Main-Power-Cable-GST18i3-for-Module-F-Line/6SAME4J316B.2000"
+      },
+      "candidateCount": 12,
+      "topUrl": "https://www.fath.com/en/6same4j316b2000"
+    },
+    {
+      "target": {
+        "manufacturerId": "gan",
+        "catalogNumber": "GN 3310-19-RO-S025",
+        "productUrl": "https://www.ganternorm.com/en/products/1.2-Operating-by-using-machine-anddevicehandles/Cabinet-U-handles/GN-3310-Switches-Indicator-Lights-Stainless-Steel-with-without-LED-Lightning"
+      },
+      "candidateCount": 8,
+      "topUrl": "https://www.ganternorm.com/product/gn331019ros025"
+    },
+    {
+      "target": {
+        "manufacturerId": "rockwell",
+        "catalogNumber": "1606-XLB480E",
+        "productUrl": "https://www.rockwellautomation.com/en-us/products/details.1606-XLB480E.html"
+      },
+      "rank": 1,
+      "rankReason": "recorded-url",
+      "candidateCount": 12,
+      "topUrl": "https://www.rockwellautomation.com/en-us/products/details.1606-XLB480E.html"
+    },
+    {
+      "target": {
+        "manufacturerId": "sce",
+        "catalogNumber": "SCE-10086ELJWSS",
+        "productUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-10086ELJWSS"
+      },
+      "rank": 1,
+      "rankReason": "recorded-url",
+      "candidateCount": 7,
+      "topUrl": "https://www.saginawcontrol.com/partnumber_info?n=SCE-10086ELJWSS"
+    },
+    {
+      "target": {
+        "manufacturerId": "schmersal",
+        "catalogNumber": "101117712",
+        "productUrl": "https://products.schmersal.com/en_US/azm-415-33zpdk-110vac-101117712"
+      },
+      "rank": 1,
+      "rankReason": "recorded-url",
+      "candidateCount": 10,
+      "topUrl": "https://products.schmersal.com/en_US/azm-415-33zpdk-110vac-101117712"
+    },
+    {
+      "target": {
+        "manufacturerId": "abb",
+        "catalogNumber": "1SBL347260R1100",
+        "productUrl": "http://new.abb.com/products/pl/1SBL347260R1100/af40b-40-00rt-11"
+      },
+      "rank": 9,
+      "rankReason": "fetched-identity",
+      "candidateCount": 12,
+      "topUrl": "https://new.abb.com/smartlinks/en?ProductId=1SBL347260R1100&Language=en&PrintPreview=False&pid=1SBL347260R1100"
+    },
+    {
+      "target": {
+        "manufacturerId": "balluff",
+        "catalogNumber": "BCC0FCE",
+        "productUrl": "https://www.balluff.com/en-gb/products/BCC0FCE"
+      },
+      "rank": 1,
+      "rankReason": "recorded-url",
+      "candidateCount": 6,
+      "topUrl": "https://www.balluff.com/en-gb/products/BCC0FCE"
+    },
+    {
+      "target": {
+        "manufacturerId": "eaton",
+        "catalogNumber": "132990",
+        "productUrl": "https://www.eaton.com/at/de-de/skuPage.132990.html"
+      },
+      "candidateCount": 12,
+      "topUrl": "https://www.eaton.com/gb/en-gb/skuPage.132990.html"
+    },
+    {
+      "target": {
+        "manufacturerId": "fath",
+        "catalogNumber": "6SAME4J316B.4000",
+        "productUrl": "https://www.fath24.com/en/Main-Power-Cable-GST18i3-for-Module-F-Line/6SAME4J316B.4000"
+      },
+      "rank": 4,
+      "rankReason": "recorded-url",
+      "candidateCount": 12,
+      "topUrl": "https://www.fath24.com/de/Netzkabel-GST18i3-fuer-Modul-F-Line/6SAME4J316B.4000"
+    },
+    {
+      "target": {
+        "manufacturerId": "gan",
+        "catalogNumber": "GN 3310-19-TO-K2",
+        "productUrl": "https://www.ganternorm.com/en/products/1.2-Operating-by-using-machine-anddevicehandles/Cabinet-U-handles/GN-3310-Switches-Indicator-Lights-Stainless-Steel-with-without-LED-Lightning"
+      },
+      "candidateCount": 8,
+      "topUrl": "https://www.ganternorm.com/product/gn331019tok2"
+    },
+    {
+      "target": {
+        "manufacturerId": "rockwell",
+        "catalogNumber": "1606-XLB60BH",
+        "productUrl": "https://www.rockwellautomation.com/en-us/products/details.1606-XLB60BH.html"
+      },
+      "rank": 1,
+      "rankReason": "recorded-url",
+      "candidateCount": 12,
+      "topUrl": "https://www.rockwellautomation.com/en-us/products/details.1606-XLB60BH.html"
+    },
+    {
+      "target": {
+        "manufacturerId": "sce",
+        "catalogNumber": "SCE-10086ELJWSS6",
+        "productUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-10086ELJWSS6"
+      },
+      "rank": 1,
+      "rankReason": "recorded-url",
+      "candidateCount": 7,
+      "topUrl": "https://www.saginawcontrol.com/partnumber_info?n=SCE-10086ELJWSS6"
+    },
+    {
+      "target": {
+        "manufacturerId": "schmersal",
+        "catalogNumber": "101117713",
+        "productUrl": "https://products.schmersal.com/en_US/azm-415-33zpdk-230vac-101117713"
+      },
+      "rank": 1,
+      "rankReason": "recorded-url",
+      "candidateCount": 10,
+      "topUrl": "https://products.schmersal.com/en_US/azm-415-33zpdk-230vac-101117713"
+    },
+    {
+      "target": {
+        "manufacturerId": "abb",
+        "catalogNumber": "1SBL347260R1200",
+        "productUrl": "http://new.abb.com/products/pl/1SBL347260R1200/af40b-40-00rt-12"
+      },
+      "rank": 9,
+      "rankReason": "fetched-identity",
+      "candidateCount": 12,
+      "topUrl": "https://new.abb.com/smartlinks/en?ProductId=1SBL347260R1200&Language=en&PrintPreview=False&pid=1SBL347260R1200"
+    },
+    {
+      "target": {
+        "manufacturerId": "balluff",
+        "catalogNumber": "BCC0FPL",
+        "productUrl": "https://www.balluff.com/en-us/products/BCC0FPL"
+      },
+      "rank": 1,
+      "rankReason": "fetched-identity",
+      "candidateCount": 6,
+      "topUrl": "https://www.balluff.com/en-gb/products/BCC0FPL"
+    }
+  ]
+}

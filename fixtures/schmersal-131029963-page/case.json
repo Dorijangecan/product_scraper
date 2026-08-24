@@ -1,0 +1,13 @@
+{
+  "id": "schmersal-131029963-page",
+  "manufacturerId": "schmersal",
+  "catalogNumber": "131029963",
+  "note": "Recorded official Schmersal PDP with responsive technical-data rows that render multiple values as separate inline leaves. Guards separator preservation and semantic duplicate removal in the generic HTML path.",
+  "pages": [
+    {
+      "path": "page.html",
+      "url": "https://products.schmersal.com/en_GB/azm190-1101rk-230vac-131029963",
+      "sourceType": "official"
+    }
+  ]
+}

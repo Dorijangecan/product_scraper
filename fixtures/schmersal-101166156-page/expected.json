@@ -1,0 +1,29 @@
+{
+  "_source": "Schmersal AZM 170-02ZKA-ST 230VAC, article number 101166156, recorded official PDP. The page's published technical-data payload gives 275 g, 75.5 x 90 x 30 mm, 24 VAC/DC, 4 A, IP67 and -25...+60 °C. Its Ordering data and technical groups visibly contain the separate leaf labels below.",
+  "_tier": "value-verified. This PDP renders each actual property as a leaf pair, but parent layout blocks repeat the same leaves; only the leaves are product attributes.",
+  "normalized": {
+    "weight": { "number": 275, "unit": "g" },
+    "dimensions": { "contains": "75.5 x 90 x 30" },
+    "voltage": { "contains": "24" },
+    "current": { "number": 4, "unit": "A" },
+    "protection": { "contains": "IP67" },
+    "operatingTemperatureMin": { "number": -25 },
+    "operatingTemperatureMax": { "number": 60 }
+  },
+  "attributesInclude": [
+    { "name": "Product type description", "valueContains": "AZM 170-02ZKA-ST 230VAC" },
+    { "name": "Article number (order number)", "valueContains": "101166156" },
+    { "name": "Housing material", "valueContains": "glass-fibre reinforced thermoplastic" },
+    { "name": "Length of sensor", "valueContains": "30 mm" }
+  ],
+  "mustNotContain": [
+    "Product type descriptionAZM 170-02ZKA-ST 230VACArticle number",
+    "Coding level according to EN ISO 14119Low",
+    "Number of actuating directions2",
+    "Width of sensor90mm",
+    "Article number (order number)101166156 | eCl@ss"
+  ],
+  "_notes": {
+    "parent_grid_noise": "The fake values are parent grids joining several already-emitted leaf properties. Suppressing them must retain the separate model, order number, housing material and dimensions rather than using a coarse Schmersal/vendor filter."
+  }
+}

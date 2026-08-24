@@ -1,0 +1,18 @@
+{
+  "_source": "Official one-page scanned Saginaw Control cutout-pattern sheet, visually reviewed at 150 DPI. It lists P-R2-F3R3-U450, P-Q7-F3R3-U450, P-Q9-F3R3-U450, P-B15-F3R3-U450, P-D4-H3R3-U450, P-R2-K3RF3-U450 and similar variants; it does not print P-P11R2-K3RF0-U450. Its dimensions therefore cannot be assigned to the requested product.",
+  "_tier": "value-verified negative. OCR is allowed to read the drawing, but no product field may be inferred without the target catalog identity.",
+  "normalized": {
+    "dimensions": { "absent": true },
+    "weight": { "absent": true },
+    "voltage": { "absent": true },
+    "current": { "absent": true }
+  },
+  "mustNotContain": [
+    "P-R2-F3R3-U450",
+    "P-Q7-F3R3-U450",
+    "P-R2-K3RF3-U450"
+  ],
+  "_notes": {
+    "scope": "This fixture deliberately protects refusal-to-guess, not a missing product fact. A future positive OCR table fixture needs its requested SKU visibly printed in the scanned source before it may assert a value."
+  }
+}

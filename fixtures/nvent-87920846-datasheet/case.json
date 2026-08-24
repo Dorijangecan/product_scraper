@@ -1,0 +1,14 @@
+{
+  "id": "nvent-87920846-datasheet",
+  "manufacturerId": "nvent",
+  "catalogNumber": "87920846",
+  "note": "Single-product datasheet PDF (274 kB). Baseline for the ordinary datasheet path: values must be read from prose/label pairs without a catalog table to anchor on.",
+  "documents": [
+    {
+      "path": "benchmarks/live-check/nvent-docs/87920846.pdf",
+      "url": "https://www.nvent.com/en-us/documents/87920846.pdf",
+      "type": "datasheet",
+      "label": "Product datasheet"
+    }
+  ]
+}

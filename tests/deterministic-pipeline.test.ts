@@ -1,10 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { runDeterministicScrapePipeline } from "../src/server/scrapers/deterministic-pipeline.js";
-import type { ManufacturerConfig, ProductResult } from "../src/shared/types.js";
+import type { LearnedEndpointRecord, ManufacturerConfig, ProductResult } from "../src/shared/types.js";
 
 describe("deterministic scrape pipeline", () => {
   it("repairs a passed result whose product URL is still an official search page", async () => {
     const fetchedUrls: string[] = [];
+    const learnedTemplates: string[] = [];
     const manufacturer: ManufacturerConfig = {
       id: "generic",
       canonicalName: "Generic Manufacturer",
@@ -60,12 +61,17 @@ describe("deterministic scrape pipeline", () => {
           }
           throw new Error(`not found: ${url}`);
         }
+      },
+      learnedEndpoints: {
+        list: () => [],
+        upsert: (endpoint: Omit<LearnedEndpointRecord, "id" | "successCount" | "lastSuccessAt">) => learnedTemplates.push(endpoint.urlTemplate)
       }
     } as never);
 
     expect(fetchedUrls).toContain("https://example.test/search?q=ABC-123");
     expect(repaired.productUrl).toBe("https://example.test/catalog/detail.aspx?ugly=true&id=ABC-123");
     expect(repaired.qualityGate?.passed).toBe(true);
+    expect(learnedTemplates).toContain("https://example.test/catalog/detail.aspx?ugly=true&id={part}");
   });
 
   it("recovers a failed custom-adapter result through generic official search discovery", async () => {

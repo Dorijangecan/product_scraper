@@ -35,6 +35,29 @@ describe("final completeness audit", () => {
     expect(audit.notApplicable).toEqual(["voltage", "current"]);
   });
 
+  it("marks a field the user switched off as not-applicable so no retry chases it", () => {
+    const sensor = product({
+      title: "ABC-123 inductive proximity sensor",
+      description: "Inductive proximity sensor",
+      attributes: [{ group: "Technical Data", name: "Sensor type", value: "inductive" }]
+    });
+
+    // Baseline: the device-type electrical check makes voltage required and retryable.
+    const before = evaluateFinalCompleteness(sensor, manufacturer);
+    expect(before.missing).toContain("voltage");
+    expect(before.retryMissing).toContain("voltage");
+
+    const withVoltageOff: ManufacturerConfig = {
+      ...manufacturer,
+      scrapeRecipe: { qualityPolicy: { notApplicableFields: ["voltage"] } }
+    };
+    const audit = evaluateFinalCompleteness(sensor, withVoltageOff);
+    expect(audit.requirements.voltage).toBe("not-applicable");
+    expect(audit.missing).not.toContain("voltage");
+    expect(audit.retryMissing).not.toContain("voltage");
+    expect(finalNetworkRetryDecision(sensor, withVoltageOff, audit).fields).not.toContain("voltage");
+  });
+
   it("does not require image when image output is disabled for the run", () => {
     const audit = evaluateFinalCompleteness(
       product({

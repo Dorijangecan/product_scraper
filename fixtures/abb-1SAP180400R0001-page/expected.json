@@ -1,0 +1,40 @@
+{
+  "_source": "Recorded ABB TA522 (1SAP180400R0001) battery-holder page. Title renders as `TA522`; the ordering code appears in the body, so the type code and the catalog number differ. The page publishes almost nothing technical — description `Battery holder. Without lithium battery for PM5xx and PM56xx (TA522)`, brand `ABB`, sku `1SAP180400R0001` — and that emptiness is what makes it valuable: it is the lowest-yield page in the corpus, so anything else that appears is noise.",
+
+  "_tier": "value-verified.",
+
+  "titleContains": "TA522",
+
+  "normalized": {
+    "finish": { "absent": true }
+  },
+
+  "attributesInclude": [
+    { "name": "sku", "valueContains": "1SAP180400R0001" },
+    { "name": "description", "valueContains": "Battery holder" }
+  ],
+
+  "mustNotContain": [
+    "createElement",
+    "dataLayer",
+    "j.async",
+    "text/javascript",
+    "offering expanded",
+    "managing large control",
+    "optimized for VFD operation",
+    "font-weight",
+    "!important",
+    "Add to cart"
+  ],
+
+  "allowMissing": ["weight", "dimensions", "material", "certificates"],
+
+  "_notes": {
+    "finish": "Was `finish = \"and\"`. A bare conjunction is never a surface finish — a stopword that survived because the finish extractor had no value sanity gate (P0.2#8). The assertion keeps the field empty until a real value is found.",
+    "why": "Second generic-path shape: identity must be confirmed on a page whose display name (TA522) is not the catalog number (1SAP180400R0001).",
+    "found_two_classes": "Promoting this fixture produced four garbage attributes, both classes new. (1) ABB's Google Tag Manager snippet reached the text layer whole and was split into `j=d.createElement(s),dl=l!='dataLayer'?'&l='+l` = `'';j.async=true;j.src=`. (2) Marketing prose from an unrelated ABB product family was chopped into fake spec pairs: `Mounting = options, offering expanded`, `Voltage = ranges and enhanced environmental`, `Voltage = ranges and are optimized for VFD operation with an internally mounted shaft grounding ring for bearing`.",
+    "route_was_the_bug": "The second class was not a gate problem. `extractDelimitedPlainTextSpecAttributes` is named for a delimiter it did not require — its pattern was `(label)\\s*(?::|-)?\\s+(value)`, delimiter optional — so any sentence containing two spec words became a pair. The value always ends right before the NEXT label word, which in prose is that phrase's head noun, so the captured value is structurally guaranteed to be a dangling modifier.",
+    "measured_before_changing": "Probed across the cached-page corpus, the undelimited branch produced SEVEN pairs and all seven were prose. Carrying digits did not redeem them — `Voltage = range (100-250 V 50/60 Hz and DC), managing large control` has four numbers in it, which is why the first rule tried (require a digit or a capital) was not enough.",
+    "regression_suite_caught_the_overreach": "The second attempt — reject any lowercase-initial undelimited value — broke Phoenix Contact, which legitimately publishes `Color white (RAL 9010)` with no delimiter. The rule that shipped tests sentence SHAPE instead (comma+gerund, full stop before a capital, digit-free clause joined by a function word): it rejects all seven prose pairs and keeps all four real values."
+  }
+}

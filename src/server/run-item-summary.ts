@@ -80,11 +80,18 @@ function fieldHealthSummary(result: ProductResult): RunItemCoverageSummary["fiel
   const missing = records.filter((record) => record.status === "missing").length;
   const lowConfidence = records.filter((record) => record.status === "low-confidence").length;
   const conflicting = records.filter((record) => record.status === "conflicting").length;
+  const reasonCodes: RunItemCoverageSummary["fieldHealth"] extends infer Summary
+    ? Summary extends { reasonCodes: infer Codes } ? Codes : never
+    : never = {};
+  for (const record of records) {
+    if (!record.reasonCode) continue;
+    reasonCodes[record.reasonCode] = (reasonCodes[record.reasonCode] ?? 0) + 1;
+  }
   const reviewFields = records
     .filter((record) => record.status === "missing" || record.status === "low-confidence" || record.status === "conflicting")
     .map((record) => record.label || record.field)
     .slice(0, 12);
-  return { found, missing, lowConfidence, conflicting, reviewFields };
+  return { found, missing, lowConfidence, conflicting, reviewFields, reasonCodes };
 }
 
 function documentProcessingSummary(result: ProductResult): RunItemCoverageSummary["documentProcessing"] | undefined {
@@ -223,7 +230,11 @@ function itemReason(
   const missingCustom = customFields.filter((field) => field.state === "missing").map((field) => field.label);
   if (criticalMissing.length || missingCustom.length) {
     const all = [...criticalMissing.map(coverageLabel), ...missingCustom];
-    return `Missing ${all.join(", ")}`;
+    const blockers = criticalMissing.flatMap((field) => {
+      const record = result.diagnostics?.fieldHealth?.find((candidate) => candidate.field === field);
+      return record?.reasonCode ? [`${coverageLabel(field)}: ${record.reasonCode}`] : [];
+    });
+    return `Missing ${all.join(", ")}${blockers.length ? ` — ${blockers.join("; ")}` : ""}`;
   }
   if (result.qualityGate?.passed) return "quality ok";
   if (result.qualityGate?.missing.length) return result.qualityGate.missing.slice(0, 4).join("; ");

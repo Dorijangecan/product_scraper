@@ -35,6 +35,21 @@ describe("multi-variant datasheet column selection", () => {
     expect(buildVariantColumnContext(single, "EIS-40/1")).toBeUndefined();
   });
 
+  it("uses a multilingual Bestell-Nr. header when variant names continue onto bare lines", () => {
+    // Same broken-header shape as the Rockwell table below, but from a German ordering table:
+    // the identifier label carries one model and the remaining column heading is a bare line.
+    // This must use the common header vocabulary, not an English-only Catalog Number literal.
+    const text = [
+      "Bestell-Nr.\tABC-100",
+      "ABC-200",
+      "Gewicht\t0.5 kg\t0.9 kg"
+    ].join("\n");
+
+    const out = buildVariantColumnContext(text, "ABC-200");
+    expect(out).toContain("Gewicht: 0.9 kg");
+    expect(out).not.toContain("0.5 kg");
+  });
+
   it("still picks up a row whose OTHER columns wrapped onto extra lines (Rockwell 1606-XLB datasheet)", () => {
     // Real layout from Rockwell's 1606-td002 family datasheet: "Weight" only has 3 tab cells on its
     // own line because the 3rd variant's value ("810 g") overflowed onto the next line — a strict

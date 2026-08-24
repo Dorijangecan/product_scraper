@@ -1,5 +1,6 @@
+import fs from "node:fs/promises";
 import { describe, expect, it } from "vitest";
-import { discoverOfficialProductCandidates, learnedEndpointRecencyPenalty, scoreDiscoveryCandidate } from "../src/server/scrapers/discovery.js";
+import { discoverOfficialProductCandidates, learnedEndpointRecencyPenalty, scoreDiscoveryCandidate, scoreFetchedDiscoveryEvidence } from "../src/server/scrapers/discovery.js";
 import { scrapeDiscoveredFallback } from "../src/server/scrapers/discovery-fallback.js";
 import { GenericFallbackScraper } from "../src/server/scrapers/generic.js";
 import { getConnector } from "../src/server/scrapers/index.js";
@@ -18,6 +19,41 @@ const manufacturer: ManufacturerConfig = {
 };
 
 describe("official discovery scoring", () => {
+  it("shares one discovery result across separate stages of the same catalog item", async () => {
+    const discoveryMemo = new Map();
+    let fetchCount = 0;
+    const memoManufacturer: ManufacturerConfig = {
+      id: "memo-vendor",
+      canonicalName: "Memo Vendor",
+      shortName: "MEM",
+      rateLimitMs: 100,
+      officialBaseUrls: ["https://memo.test"],
+      fallbackSources: [],
+      scrapeRecipe: { discoveryPolicy: { maxCandidates: 2, enableRobotsSitemaps: false } }
+    };
+    const http = {
+      fetchText: async (url: string) => {
+        fetchCount += 1;
+        return {
+          requestedUrl: url,
+          effectiveUrl: url,
+          statusCode: 200,
+          contentType: "text/html",
+          fetchedAt: "2026-01-01T00:00:00.000Z",
+          fromCache: false,
+          text: '<a href="/products/MEM-42">MEM-42 product</a>'
+        };
+      }
+    };
+    const first = await discoverOfficialProductCandidates("MEM-42", { manufacturer: memoManufacturer, http, discoveryMemo } as never);
+    const afterFirstStage = fetchCount;
+    const second = await discoverOfficialProductCandidates("MEM-42", { manufacturer: memoManufacturer, http, discoveryMemo } as never);
+
+    expect(afterFirstStage).toBeGreaterThan(0);
+    expect(fetchCount).toBe(afterFirstStage);
+    expect(second).toBe(first);
+  });
+
   it("scores exact official product candidates above search and document URLs", () => {
     const product = scoreDiscoveryCandidate("https://example.test/products/ABC-123", "ABC-123", "direct-template", manufacturer);
     const search = scoreDiscoveryCandidate("https://example.test/search?q=ABC-123", "ABC-123", "url-variant", manufacturer);
@@ -31,6 +67,62 @@ describe("official discovery scoring", () => {
     const score = scoreDiscoveryCandidate("https://example.test/products/BPZ-VSG519K15-5", "BPZ:VSG519K15-5", "sitemap", manufacturer);
 
     expect(score).toBeGreaterThanOrEqual(80);
+  });
+
+  it("requires catalog evidence from the fetched page, not merely a product-shaped candidate URL", async () => {
+    // Recorded Balluff PDP fixture: its own title and Product JSON-LD name/sku confirm BIC007H.
+    const productHtml = await fs.readFile(new URL("../fixtures/balluff-BIC007H-page/page.html", import.meta.url), "utf8");
+    const product = scoreFetchedDiscoveryEvidence(
+      { effectiveUrl: "https://www.balluff.com/en-us/products/BIC007H", statusCode: 200, contentType: "text/html", text: productHtml } as never,
+      "BIC007H"
+    );
+    const search = scoreFetchedDiscoveryEvidence(
+      {
+        effectiveUrl: "https://www.balluff.com/en-us/search?q=BIC007H",
+        statusCode: 200,
+        contentType: "text/html",
+        text: "<html><title>Search results for BIC007H</title><body>Products matching BIC007H</body></html>"
+      } as never,
+      "BIC007H"
+    );
+
+    expect(product.catalogConfirmed).toBe(true);
+    expect(product.score).toBeGreaterThan(search.score);
+    expect(search.catalogConfirmed).toBe(false);
+  });
+
+  it("never turns closing HTML tags into catalog-confirmed inline product URLs", async () => {
+    // Recorded Ganter PDP: broad inline context contains the target catalog near many `</a>` and
+    // `</div>` tags. Before the guard those became bogus /a and /div search-result candidates.
+    const html = await fs.readFile(new URL("../fixtures/gan-GN-3310-19-LK-K2-page/page.html", import.meta.url), "utf8");
+    const discovered = discoverProductLinksWithDiagnostics(html, "https://www.ganternorm.com/en/home", "GN 3310-19-LK-K2");
+
+    expect(discovered.candidates.some((candidate) => /\/(?:a|div|span|article|button|label|h2)$/i.test(candidate.url))).toBe(false);
+  });
+
+  it("does not promote a PDP footer service link from nearby hidden variant text", async () => {
+    // The recorded Ganter PDP places all selectable SKU variants in a hidden span immediately
+    // after its "special requests" footer link. Raw HTML URL scanning used that broad nearby text
+    // as identity evidence and ranked the generic service page above the real product page.
+    const html = await fs.readFile(new URL("../fixtures/gan-GN-3310-19-LK-K2-page/page.html", import.meta.url), "utf8");
+    const discovered = discoverProductLinksWithDiagnostics(html, "https://www.ganternorm.com/en/home", "GN 3310-19-LK-K2");
+
+    expect(discovered.candidates.some((candidate) => candidate.url === "https://www.ganternorm.com/en/productpages/special-requests")).toBe(false);
+  });
+
+  it("accepts a catalog-confirmed official product JSON response for learned API replay", () => {
+    const evidence = scoreFetchedDiscoveryEvidence(
+      {
+        effectiveUrl: "https://example.test/api/products?sku=ABC-123",
+        statusCode: 200,
+        contentType: "application/json",
+        text: JSON.stringify({ sku: "ABC-123", name: "ABC-123 compact controller", material: "Steel", specifications: { weight: "1 kg" } })
+      } as never,
+      "ABC-123"
+    );
+
+    expect(evidence.catalogConfirmed).toBe(true);
+    expect(evidence.reasons).toContain("catalog in Product JSON response");
   });
 
   it("uses official nVent/Chemelex search instead of hardcoded RAYCHEM family slug maps", async () => {
@@ -123,6 +215,81 @@ describe("official discovery scoring", () => {
     expect(discovered.candidates.some((candidate) => candidate.url === "https://example.test/en-us/catalog/detail.aspx?ugly=true&id=ABC-123")).toBe(true);
   });
 
+  it("keeps an exact official PDP URL when a catalog search redirects there without HTML result links", async () => {
+    const catalogNumber = "6SAME4J316B.4000";
+    const searchUrl = `https://example.test/en/search?search=${catalogNumber}`;
+    const productUrl = `https://example.test/en/Main-Power-Cable-GST18i3-for-Module-F-Line/${catalogNumber}`;
+    const discovered = await discoverOfficialProductCandidates(catalogNumber, {
+      manufacturer: {
+        id: "redirect-search",
+        canonicalName: "Redirect Search",
+        shortName: "RDS",
+        rateLimitMs: 100,
+        officialBaseUrls: ["https://example.test"],
+        localizedUrlTemplates: [{ locale: "en", urlTemplate: "https://example.test/en/search?search={part}" }],
+        fallbackSources: [],
+        scrapeRecipe: { discoveryPolicy: { maxCandidates: 12 } }
+      },
+      http: {
+        fetchText: async (url: string) => {
+          if (url !== searchUrl) throw new Error("unexpected discovery request");
+          return {
+            requestedUrl: url,
+            effectiveUrl: productUrl,
+            statusCode: 200,
+            contentType: "text/html",
+            fetchedAt: "2026-01-01T00:00:00.000Z",
+            fromCache: false,
+            text: "<main>Redirected product response without result anchors</main>"
+          };
+        }
+      }
+    } as never);
+
+    expect(discovered.candidates).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        url: productUrl,
+        stage: "search-result",
+        reason: expect.stringMatching(/redirected/i)
+      })
+    ]));
+    expect(discovered.candidates.some((candidate) => candidate.url === searchUrl)).toBe(false);
+  });
+
+  it("keeps a slug-only official redirect when the returned PDP itself proves the exact SKU", async () => {
+    const catalogNumber = "ABC-123";
+    const searchUrl = `https://example.test/en/search?search=${catalogNumber}`;
+    const productUrl = "https://example.test/en/products/compact-controller";
+    const discovered = await discoverOfficialProductCandidates(catalogNumber, {
+      manufacturer: {
+        id: "slug-redirect",
+        canonicalName: "Slug Redirect",
+        shortName: "SLG",
+        rateLimitMs: 100,
+        officialBaseUrls: ["https://example.test"],
+        localizedUrlTemplates: [{ locale: "en", urlTemplate: "https://example.test/en/search?search={part}" }],
+        fallbackSources: [],
+        scrapeRecipe: { discoveryPolicy: { maxCandidates: 12 } }
+      },
+      http: {
+        fetchText: async (url: string) => {
+          if (url !== searchUrl) throw new Error("unexpected discovery request");
+          return {
+            requestedUrl: url,
+            effectiveUrl: productUrl,
+            statusCode: 200,
+            contentType: "text/html",
+            fetchedAt: "2026-01-01T00:00:00.000Z",
+            fromCache: false,
+            text: '<script type="application/ld+json">{"@type":"Product","sku":"ABC-123","name":"Compact controller"}</script>'
+          };
+        }
+      }
+    } as never);
+
+    expect(discovered.candidates).toContainEqual(expect.objectContaining({ url: productUrl, stage: "search-result" }));
+  });
+
   it("records rejected discovered links outside allowed official domains", async () => {
     const discovered = await discoverOfficialProductCandidates("ABC-123", {
       manufacturer: {
@@ -200,6 +367,104 @@ describe("official discovery scoring", () => {
 
     expect(searchedUrls).toContain("https://example.test/search?q=ABC-123");
     expect(discovered.candidates.some((candidate) => candidate.url === "https://example.test/catalog/detail.aspx?id=987")).toBe(true);
+  });
+
+  it("uses the configured localized homepage as a discovery base when official product URLs are bare", async () => {
+    const searchedUrls: string[] = [];
+    const discovered = await discoverOfficialProductCandidates("ABC-123", {
+      manufacturer: {
+        id: "localized-home",
+        canonicalName: "Localized Home",
+        shortName: "LHM",
+        rateLimitMs: 100,
+        officialBaseUrls: ["https://example.test"],
+        homepageUrl: "https://example.test/en-us/",
+        fallbackSources: []
+      },
+      http: {
+        fetchText: async (url: string) => {
+          searchedUrls.push(url);
+          if (url === "https://example.test/en-us/search?q=ABC-123") {
+            return {
+              requestedUrl: url,
+              effectiveUrl: url,
+              statusCode: 200,
+              contentType: "text/html",
+              fetchedAt: "2026-01-01T00:00:00.000Z",
+              fromCache: false,
+              text: `<a href="/en-us/products/nonstandard?id=987">ABC-123 details</a>`
+            };
+          }
+          throw new Error("empty search page");
+        }
+      }
+    } as never);
+
+    expect(searchedUrls).toContain("https://example.test/en-us/search?q=ABC-123");
+    expect(discovered.candidates.some((candidate) => candidate.url === "https://example.test/en-us/products/nonstandard?id=987")).toBe(true);
+  });
+
+  it("follows an official homepage hreflang alternate to discover its localized search form", async () => {
+    const searchedUrls: string[] = [];
+    const postBodies: string[] = [];
+    const discovered = await discoverOfficialProductCandidates("ALT-42", {
+      manufacturer: {
+        id: "hreflang-home",
+        canonicalName: "Hreflang Home",
+        shortName: "HLH",
+        rateLimitMs: 100,
+        officialBaseUrls: ["https://example.test"],
+        homepageUrl: "https://example.test/en/",
+        fallbackSources: []
+      },
+      http: {
+        fetchText: async (url: string, options?: { method?: string; body?: URLSearchParams | string }) => {
+          searchedUrls.push(url);
+          if (url === "https://example.test/en/" || url === "https://example.test/en") {
+            return {
+              requestedUrl: url,
+              effectiveUrl: "https://example.test/en/",
+              statusCode: 200,
+              contentType: "text/html",
+              fetchedAt: "2026-01-01T00:00:00.000Z",
+              fromCache: false,
+              text: `<link rel="alternate" hreflang="de" href="/de/">`
+            };
+          }
+          if (url === "https://example.test/de/" || url === "https://example.test/de") {
+            return {
+              requestedUrl: url,
+              effectiveUrl: "https://example.test/de/",
+              statusCode: 200,
+              contentType: "text/html",
+              fetchedAt: "2026-01-01T00:00:00.000Z",
+              fromCache: false,
+              text: `<form action="/de/catalog-search" method="post">
+                <input type="hidden" name="locale" value="de" />
+                <input name="article" aria-label="Product search" />
+              </form>`
+            };
+          }
+          if (url === "https://example.test/de/catalog-search" && options?.method === "POST") {
+            postBodies.push(String(options.body));
+            return {
+              requestedUrl: url,
+              effectiveUrl: url,
+              statusCode: 200,
+              contentType: "text/html",
+              fetchedAt: "2026-01-01T00:00:00.000Z",
+              fromCache: false,
+              text: `<a href="/de/products/nonstandard?id=42">ALT-42 product</a>`
+            };
+          }
+          throw new Error("empty search page");
+        }
+      }
+    } as never);
+
+    expect(searchedUrls).toContain("https://example.test/de/");
+    expect(postBodies).toContain("locale=de&article=ALT-42");
+    expect(discovered.candidates.some((candidate) => candidate.url === "https://example.test/de/products/nonstandard?id=42")).toBe(true);
   });
 
   it("discovers ugly product links hidden in data attributes on search results", () => {
@@ -481,8 +746,9 @@ describe("official discovery scoring", () => {
     expect(discovered.candidates.some((candidate) => candidate.url === "https://example.test/en-us/catalog/detail.aspx?id=987")).toBe(true);
   });
 
-  it("uses POST search forms as GET probes when product pages use nonstandard detail URLs", async () => {
+  it("submits POST search forms with their successful controls when product pages use nonstandard detail URLs", async () => {
     const searchedUrls: string[] = [];
+    const postBodies: string[] = [];
     const discovered = await discoverOfficialProductCandidates("ZX-CTRL-24", {
       manufacturer: {
         id: "generic",
@@ -493,7 +759,7 @@ describe("official discovery scoring", () => {
         fallbackSources: []
       },
       http: {
-        fetchText: async (url: string) => {
+        fetchText: async (url: string, options?: { method?: string; body?: URLSearchParams | string }) => {
           searchedUrls.push(url);
           if (url === "https://example.test" || url === "https://example.test/") {
             return {
@@ -509,7 +775,8 @@ describe("official discovery scoring", () => {
               </form>`
             };
           }
-          if (url === "https://example.test/catalog/find/item?scope=products&term=ZX-CTRL-24") {
+          if (url === "https://example.test/catalog/find/item" && options?.method === "POST") {
+            postBodies.push(String(options.body));
             return {
               requestedUrl: url,
               effectiveUrl: url,
@@ -528,12 +795,14 @@ describe("official discovery scoring", () => {
       }
     } as never);
 
-    expect(searchedUrls).toContain("https://example.test/catalog/find/item?scope=products&term=ZX-CTRL-24");
+    expect(searchedUrls).toContain("https://example.test/catalog/find/item");
+    expect(postBodies).toContain("scope=products&term=ZX-CTRL-24");
     expect(discovered.candidates.some((candidate) => candidate.url === "https://example.test/catalog/detail.aspx?item=987")).toBe(true);
   });
 
   it("uses product lookup forms whose inputs are named by catalog semantics instead of search text", async () => {
     const searchedUrls: string[] = [];
+    const postBodies: string[] = [];
     const discovered = await discoverOfficialProductCandidates("PN-77X", {
       manufacturer: {
         id: "generic",
@@ -544,7 +813,7 @@ describe("official discovery scoring", () => {
         fallbackSources: []
       },
       http: {
-        fetchText: async (url: string) => {
+        fetchText: async (url: string, options?: { method?: string; body?: URLSearchParams | string }) => {
           searchedUrls.push(url);
           if (url === "https://example.test" || url === "https://example.test/") {
             return {
@@ -560,7 +829,8 @@ describe("official discovery scoring", () => {
               </form>`
             };
           }
-          if (url === "https://example.test/lookup/product?locale=en&partNumber=PN-77X") {
+          if (url === "https://example.test/lookup/product" && options?.method === "POST") {
+            postBodies.push(String(options.body));
             return {
               requestedUrl: url,
               effectiveUrl: url,
@@ -579,7 +849,8 @@ describe("official discovery scoring", () => {
       }
     } as never);
 
-    expect(searchedUrls).toContain("https://example.test/lookup/product?locale=en&partNumber=PN-77X");
+    expect(searchedUrls).toContain("https://example.test/lookup/product");
+    expect(postBodies).toContain("locale=en&partNumber=PN-77X");
     expect(discovered.candidates.some((candidate) => candidate.url === "https://example.test/products/nonstandard/details?record=4455")).toBe(true);
   });
 
@@ -1259,5 +1530,196 @@ describe("learned endpoint recency decay (Phase B6)", () => {
   it("returns 0 for a missing or invalid timestamp", () => {
     expect(learnedEndpointRecencyPenalty(undefined, now)).toBe(0);
     expect(learnedEndpointRecencyPenalty("not-a-date", now)).toBe(0);
+  });
+});
+
+/**
+ * Sitemap discovery used to sit AFTER url-variant guessing and was gated on a candidate COUNT
+ * (`candidates.size < max(4, maxCandidates/2)`). Guessing inserts ~15 candidates, so the gate was
+ * always already exceeded and sitemap discovery effectively never ran — for exactly the site it helps
+ * most: a new vendor with no templates, no learned endpoints and an unusable site search.
+ */
+describe("sitemap discovery gating", () => {
+  const bareVendor: ManufacturerConfig = {
+    id: "bare",
+    canonicalName: "Bare Vendor",
+    shortName: "BAR",
+    rateLimitMs: 0,
+    officialBaseUrls: ["https://bare.test"],
+    fallbackSources: []
+  };
+
+  const emptyPage = (url: string) => ({
+    requestedUrl: url,
+    effectiveUrl: url,
+    statusCode: 200,
+    contentType: "text/html",
+    text: "<html><body>nothing here</body></html>",
+    fetchedAt: new Date(0).toISOString(),
+    fromCache: false
+  });
+
+  const sitemapXml = (url: string, body: string) => ({
+    requestedUrl: url,
+    effectiveUrl: url,
+    statusCode: 200,
+    contentType: "application/xml",
+    text: body,
+    fetchedAt: new Date(0).toISOString(),
+    fromCache: false
+  });
+
+  it("runs when nothing but guesses have been collected, and finds the PDP in the vendor's own index", async () => {
+    const fetched: string[] = [];
+    const discovery = await discoverOfficialProductCandidates("ABC-123", {
+      manufacturer: bareVendor,
+      http: {
+        fetchText: async (url: string) => {
+          fetched.push(url);
+          if (url === "https://bare.test/sitemap.xml") {
+            return sitemapXml(
+              url,
+              `<urlset><url><loc>https://bare.test/en/catalogue/abc-123</loc></url>
+               <url><loc>https://bare.test/en/catalogue/zzz-999</loc></url></urlset>`
+            );
+          }
+          return emptyPage(url);
+        }
+      }
+    } as never);
+
+    expect(fetched).toContain("https://bare.test/sitemap.xml");
+    const sitemapHit = discovery.candidates.find((candidate) => candidate.stage === "sitemap");
+    expect(sitemapHit?.url).toBe("https://bare.test/en/catalogue/abc-123");
+    // The other product in the index must not be picked up.
+    expect(discovery.candidates.map((candidate) => candidate.url).join(" ")).not.toContain("zzz-999");
+  });
+
+  it("is skipped once a real search result exists, so a working search is not paid for twice", async () => {
+    const fetched: string[] = [];
+    await discoverOfficialProductCandidates("ABC-123", {
+      manufacturer: bareVendor,
+      http: {
+        fetchText: async (url: string) => {
+          fetched.push(url);
+          if (url.includes("q=ABC-123")) {
+            return {
+              ...emptyPage(url),
+              text: `<html><body><a href="https://bare.test/products/ABC-123">ABC-123 product</a></body></html>`
+            };
+          }
+          return emptyPage(url);
+        }
+      }
+    } as never);
+
+    expect(fetched).not.toContain("https://bare.test/sitemap.xml");
+  });
+});
+
+/**
+ * A synthesised URL guess must never outrank evidence.
+ *
+ * `scoreDiscoveryCandidate`'s bonuses are all about URL SHAPE, and a guess is CONSTRUCTED to have the
+ * ideal shape — so "{origin}/products/{part}" scored 40+30+35+15+10 = 130, clamped to 100, above every
+ * evidence-backed stage. Two consequences, both measured by scripts/audit-discovery.ts replaying real
+ * cached pages: guesses took rank #1, and they pushed genuine hits out of the maxCandidates slice
+ * entirely. Capping guesses lifted "known PDP ranked #1" from 7.5% to 20% and "found at all" from
+ * 22.5% to 40% over 40 real catalog numbers.
+ */
+describe("url-variant guesses rank below evidence", () => {
+  it("caps a perfectly-shaped guess below a search-result hit", () => {
+    const guess = scoreDiscoveryCandidate("https://example.test/products/ABC-123", "ABC-123", "url-variant", manufacturer);
+    const searchHit = scoreDiscoveryCandidate("https://example.test/products/ABC-123", "ABC-123", "search-result", manufacturer);
+    const template = scoreDiscoveryCandidate("https://example.test/products/ABC-123", "ABC-123", "direct-template", manufacturer);
+    const sitemapHit = scoreDiscoveryCandidate("https://example.test/products/ABC-123", "ABC-123", "sitemap", manufacturer);
+
+    expect(guess).toBeLessThan(searchHit);
+    expect(guess).toBeLessThan(template);
+    // A sitemap URL comes out of the vendor's own index, so it exists — better evidence than a guess.
+    expect(guess).toBeLessThan(sitemapHit);
+  });
+
+  it("still ranks a plausible guess above an obviously bad one", () => {
+    const plausible = scoreDiscoveryCandidate("https://example.test/products/ABC-123", "ABC-123", "url-variant", manufacturer);
+    const asset = scoreDiscoveryCandidate("https://example.test/files/ABC-123.pdf", "ABC-123", "url-variant", manufacturer);
+    const unrelated = scoreDiscoveryCandidate("https://example.test/support/contact", "ABC-123", "url-variant", manufacturer);
+
+    expect(plausible).toBeGreaterThan(asset);
+    expect(plausible).toBeGreaterThan(unrelated);
+  });
+});
+
+/**
+ * Gzipped sitemap, end to end. Proves discovery routes a `.gz` URL to the binary-capable fetch — the
+ * decoder itself is covered by tests/gzip-text.test.ts. The stub deliberately makes `fetchText` return
+ * mojibake for the archive, exactly as a real client would, so a regression that stops using
+ * `fetchMaybeCompressedText` fails here instead of silently finding zero URLs.
+ */
+describe("gzipped sitemap discovery", () => {
+  const bareVendor: ManufacturerConfig = {
+    id: "gzvendor",
+    canonicalName: "Gz Vendor",
+    shortName: "GZV",
+    rateLimitMs: 0,
+    officialBaseUrls: ["https://gz.test"],
+    fallbackSources: []
+  };
+
+  const SITEMAP_XML =
+    "<urlset><url><loc>https://gz.test/en/catalogue/abc-123</loc></url>" +
+    "<url><loc>https://gz.test/en/catalogue/zzz-999</loc></url></urlset>";
+
+  const reply = (url: string, text: string, contentType = "text/html") => ({
+    requestedUrl: url,
+    effectiveUrl: url,
+    statusCode: 200,
+    contentType,
+    text,
+    fetchedAt: new Date(0).toISOString(),
+    fromCache: false
+  });
+
+  it("finds the PDP inside a sitemap.xml.gz advertised by robots.txt", async () => {
+    const compressedFetches: string[] = [];
+    const discovery = await discoverOfficialProductCandidates("ABC-123", {
+      manufacturer: bareVendor,
+      http: {
+        fetchText: async (url: string) => {
+          if (url === "https://gz.test/robots.txt") {
+            return reply(url, "User-agent: *\nSitemap: https://gz.test/sitemap.xml.gz\n", "text/plain");
+          }
+          // A real client cannot decode the archive here — this is the mojibake that used to make
+          // extractSitemapLocs return nothing at all.
+          if (url.endsWith(".gz")) return reply(url, "\u001f\u008b\u0008\u0000garbled", "application/gzip");
+          return reply(url, "<html><body>nothing</body></html>");
+        },
+        fetchMaybeCompressedText: async (url: string) => {
+          compressedFetches.push(url);
+          return reply(url, SITEMAP_XML, "application/xml");
+        }
+      }
+    } as never);
+
+    expect(compressedFetches).toContain("https://gz.test/sitemap.xml.gz");
+    const sitemapHit = discovery.candidates.find((candidate) => candidate.stage === "sitemap");
+    expect(sitemapHit?.url).toBe("https://gz.test/en/catalogue/abc-123");
+  });
+
+  it("does not use the binary path for a plain sitemap.xml", async () => {
+    const compressedFetches: string[] = [];
+    await discoverOfficialProductCandidates("ABC-123", {
+      manufacturer: bareVendor,
+      http: {
+        fetchText: async (url: string) =>
+          url === "https://gz.test/sitemap.xml" ? reply(url, SITEMAP_XML, "application/xml") : reply(url, "<html></html>"),
+        fetchMaybeCompressedText: async (url: string) => {
+          compressedFetches.push(url);
+          return reply(url, "");
+        }
+      }
+    } as never);
+
+    expect(compressedFetches).toHaveLength(0);
   });
 });

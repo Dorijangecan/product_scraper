@@ -1,0 +1,13 @@
+{
+  "id": "sce-fk0618-floor-stand-manual",
+  "manufacturerId": "sce",
+  "catalogNumber": "SCE-FK0618",
+  "note": "Real 3-page floor-stand-kit installation manual. Page 1 has a genuine row-oriented ordering table (PART # / A / B) with 27 sibling floor-stand catalogs; SCE-FK0618 is one exact row. The id-column header is 'PART #' (hash sign), not 'Cat. No.'/'Part No.' — isCatalogIdHeaderCell did not recognize it, so extractPositionedOrderingRow silently returned nothing for the whole table.",
+  "documents": [
+    {
+      "path": "benchmarks/output/20260602104618/documents/SCE-FK0618-manual-Floor-Stand-Hole-Layout.pdf",
+      "url": "https://www.saginawcontrol.com/instman/floor-stand-hole-layout.pdf",
+      "type": "manual"
+    }
+  ]
+}

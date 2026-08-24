@@ -2655,6 +2655,21 @@ tbody tr:hover {
   font-size: 12px;
 }
 
+.sample-suggestions {
+  display: grid;
+  gap: 6px;
+}
+
+.wizard-alias-suggestion {
+  display: flex;
+  gap: 7px;
+  align-items: center;
+}
+
+.wizard-alias-suggestion code {
+  flex: 1;
+}
+
 .sample-stats {
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }

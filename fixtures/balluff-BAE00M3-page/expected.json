@@ -1,0 +1,18 @@
+{
+  "attributesInclude": [
+    { "name": "sku", "valueContains": "BAE00M3" },
+    { "name": "Output capacity max.", "valueContains": "720 W" }
+  ],
+  "mustNotContain": [
+    "Illuminate\\Support\\Collection",
+    "App\\Domains\\OfflineMode\\Enums\\BannerLocation",
+    "B6XnhCj70yJHwi3eRtmC",
+    "this.filteredSearchTerms.length - 1",
+    "rounded-xl max-h-screen lg:max-h-submenu-v2",
+    "Polish"
+  ],
+  "_notes": {
+    "why": "The official product page has Livewire component snapshots. PHP class names and UI state are framework serialization metadata, not product specifications.",
+    "scope": "The same official page identifies SKU BAE00M3 and publishes Output capacity max. 720 W in its visible product data."
+  }
+}

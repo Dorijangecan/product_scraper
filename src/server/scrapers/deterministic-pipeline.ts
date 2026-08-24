@@ -1,7 +1,8 @@
 import { uniqueStrings } from "../text-util.js";
 import type { AttributeRecord, DocumentRecord, ProductResult, ScrapeAttemptRecord } from "../../shared/types.js";
 import { dedupeDocuments } from "./dedupe.js";
-import { discoverOfficialProductCandidates } from "./discovery.js";
+import { discoverOfficialProductCandidates, scoreFetchedDiscoveryEvidence } from "./discovery.js";
+import { endpointTemplateFromUrl, learnEndpointFromNetworkFetch } from "./learned-endpoints.js";
 import { isUnresolvedSearchResultPage, parseGenericProductPage } from "./generic.js";
 import type { FetchedText } from "./http-client.js";
 import { canonicalizeProductLocaleUrls } from "./localized-urls.js";
@@ -36,10 +37,28 @@ export async function runDeterministicScrapePipeline(
     if (alreadyTried(current, candidate.url)) continue;
     try {
       const fetched = await fetchOfficialCandidate(candidate.url, context);
+      const fetchedEvidence = scoreFetchedDiscoveryEvidence(fetched, catalogNumber);
+      const postFetchScore = Math.round((candidate.score + fetchedEvidence.score) / 2);
+      if (!fetchedEvidence.catalogConfirmed) {
+        recordLearnedEndpointFailure(context, candidate.stage, candidate.url, catalogNumber);
+        attempts.push({
+          stage: candidate.stage,
+          url: fetched.effectiveUrl,
+          status: "failed",
+          score: postFetchScore,
+          reason: `Fetched candidate lacks exact PDP catalog evidence: ${fetchedEvidence.reasons.join("; ")}`,
+          sourceType: candidate.sourceType,
+          parser: `discovery-${candidate.stage}`,
+          statusCode: fetched.statusCode,
+          attributeCount: 0,
+          documentCount: 0
+        });
+        continue;
+      }
       const parsed = parseGenericProductPage(context.manufacturer.id, catalogNumber, fetched, candidate.sourceType, `discovery-${candidate.stage}`, {
         match: context.manufacturer.match,
         localizedUrlTemplates: context.manufacturer.localizedUrlTemplates,
-        confidence: Math.min(0.88, Math.max(0.55, candidate.score / 100)),
+        confidence: Math.min(0.88, Math.max(0.55, postFetchScore / 100)),
         markerRules: context.manufacturer.markerRules,
         extractionPolicy: context.manufacturer.scrapeRecipe?.extractionPolicy
       });
@@ -59,13 +78,14 @@ export async function runDeterministicScrapePipeline(
         });
         continue;
       }
-      attempts.push(attemptFromFetched(candidate.stage, fetched, staged, candidate.reason, candidate.score));
+      attempts.push(attemptFromFetched(candidate.stage, fetched, staged, `${candidate.reason}; post-fetch: ${fetchedEvidence.reasons.join(", ")}`, postFetchScore));
       const merged = preferDiscoveredProductUrl(mergeResults(current, staged), current, staged);
       current = applyQualityGate(
         merged,
         context.manufacturer,
         evaluateQualityGate(merged, context.manufacturer, catalogNumber, attempts)
       );
+      learnConfirmedProductPage(context, catalogNumber, fetched, candidate.url, candidate.stage, current);
     } catch (error) {
       attempts.push({
         stage: candidate.stage,
@@ -110,6 +130,37 @@ export async function runDeterministicScrapePipeline(
       applyQualityGate(current, context.manufacturer, evaluateQualityGate(current, context.manufacturer, catalogNumber, attempts))
     )
   );
+}
+
+function recordLearnedEndpointFailure(context: ScrapeContext, stage: string, url: string, catalogNumber: string) {
+  if (stage !== "learned-endpoint") return;
+  const template = endpointTemplateFromUrl(url, catalogNumber);
+  if (template) context.learnedEndpoints?.recordFailure?.(context.manufacturer.id, "GET", template);
+}
+
+/**
+ * A discovery candidate that passed the real quality gate is stronger evidence than an incidental
+ * browser-network response: it is an official PDP, it proves the exact requested catalog, and its
+ * parsed result survived all normal validation. Persist its catalog URL template so the next item
+ * can replay the demonstrated product-page route before broad discovery.
+ */
+function learnConfirmedProductPage(
+  context: ScrapeContext,
+  catalogNumber: string,
+  fetched: FetchedText,
+  discoveredFromUrl: string,
+  discoveryStage: string,
+  result: ProductResult
+) {
+  if (!result.qualityGate?.passed) return;
+  learnEndpointFromNetworkFetch({
+    manufacturer: context.manufacturer,
+    catalogNumber,
+    fetched,
+    discoveredFromUrl,
+    parserKind: `confirmed-pdp:${discoveryStage}`,
+    store: context.learnedEndpoints
+  });
 }
 
 function discoveryDocumentResult(catalogNumber: string, context: ScrapeContext, documents: DocumentRecord[]): ProductResult {
@@ -298,4 +349,3 @@ function attemptFromFetched(
     documentCount: result.documents.length
   };
 }
-

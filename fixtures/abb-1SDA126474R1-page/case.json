@@ -1,0 +1,13 @@
+{
+  "id": "abb-1SDA126474R1-page",
+  "manufacturerId": "abb",
+  "catalogNumber": "1SDA126474R1",
+  "note": "Recorded ABBlvp.no search-result page (672 kB), extracted from a past run's page cache. Guards that generic extraction rejects a search result while fallback link discovery may still use it.",
+  "pages": [
+    {
+      "path": "page.html",
+      "url": "https://abblvp.no/?s=1SDA126474R1",
+      "sourceType": "official"
+    }
+  ]
+}

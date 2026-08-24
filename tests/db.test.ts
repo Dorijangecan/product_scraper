@@ -8,6 +8,73 @@ import type { AppPaths } from "../src/server/paths.js";
 import type { ProductResult } from "../src/shared/types.js";
 
 describe("scraper db run items", () => {
+  it("reports the same catastrophic three-sample bootstrap that adaptive mining uses", async () => {
+    const { db, rootDir } = await createTempDb();
+    try {
+      for (let index = 0; index < 3; index += 1) {
+        db.recordStageObservation({ manufacturerId: "generic", host: "new-vendor.test", stage: "official-source", status: "failed", qualityScore: 0, attributeCount: 0, documentCount: 0 });
+      }
+      expect(db.getTargetHealth("generic", "official-source", "new-vendor.test")).toEqual(
+        expect.objectContaining({ sampleCount: 3, driftSuspected: true })
+      );
+    } finally {
+      db.close();
+      await fs.rm(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  it("lists recent target-health windows per host and stage for the manufacturer dashboard", async () => {
+    const { db, rootDir } = await createTempDb();
+    try {
+      for (let index = 0; index < 8; index += 1) {
+        db.recordStageObservation({ manufacturerId: "generic", host: "healthy.test", stage: "official-source", status: "passed", qualityScore: 92, attributeCount: 5, documentCount: 1 });
+        db.recordStageObservation({ manufacturerId: "generic", host: "drift.test", stage: "official-source", status: "failed", qualityScore: 10, attributeCount: 0, documentCount: 0 });
+      }
+
+      expect(db.listTargetHealth("generic")).toEqual([
+        expect.objectContaining({ host: "drift.test", stage: "official-source", sampleCount: 8, driftSuspected: true }),
+        expect.objectContaining({ host: "healthy.test", stage: "official-source", sampleCount: 8, successRate: 1, driftSuspected: false })
+      ]);
+    } finally {
+      db.close();
+      await fs.rm(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  it("calculates target health from the recent observation window, not lifetime failures", async () => {
+    const { db, rootDir } = await createTempDb();
+    try {
+      for (let index = 0; index < 50; index += 1) {
+        db.recordStageObservation({ manufacturerId: "generic", host: "example.test", stage: "official-source", status: "failed", qualityScore: 0, attributeCount: 0, documentCount: 0 });
+      }
+      for (let index = 0; index < 50; index += 1) {
+        db.recordStageObservation({ manufacturerId: "generic", host: "example.test", stage: "official-source", status: "passed", qualityScore: 90, attributeCount: 4, documentCount: 1 });
+      }
+
+      const health = db.getTargetHealth("generic", "official-source", "example.test");
+      expect(health).toEqual(expect.objectContaining({ sampleCount: 50, successRate: 1, driftSuspected: false }));
+    } finally {
+      db.close();
+      await fs.rm(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  it("returns recent stage observations for deterministic replay and diagnostics", async () => {
+    const { db, rootDir } = await createTempDb();
+    try {
+      db.recordStageObservation({ manufacturerId: "generic", host: "example.test", stage: "official-source", status: "failed", qualityScore: 12, attributeCount: 0, documentCount: 0, error: "404" });
+      db.recordStageObservation({ manufacturerId: "generic", host: "example.test", stage: "official-source", status: "passed", qualityScore: 91, attributeCount: 8, documentCount: 1 });
+
+      expect(db.listStageObservations("generic", "example.test")).toEqual([
+        expect.objectContaining({ status: "passed", qualityScore: 91, attributeCount: 8, documentCount: 1 }),
+        expect.objectContaining({ status: "failed", error: "404" })
+      ]);
+    } finally {
+      db.close();
+      await fs.rm(rootDir, { recursive: true, force: true });
+    }
+  });
+
   it("updates activity stage without clearing stored scrape results", async () => {
     const { db, rootDir } = await createTempDb();
     try {

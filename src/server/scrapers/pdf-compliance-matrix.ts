@@ -1,5 +1,6 @@
 import type { AttributeRecord } from "../../shared/types.js";
 import { compactCatalogNumber } from "./catalog-number.js";
+import { isCatalogIdHeaderCell } from "./catalog-table-vocabulary.js";
 import { cleanText } from "./normalizer.js";
 
 /**
@@ -18,9 +19,6 @@ const PUA_END = 0xf8ff;
 /** Same "same row, different rendering pass" vertical offset seen between a catalog-number label
  * and its checkmark row in the source PDF (~2.6pt) is well under a row's own height (~11-13pt). */
 const ROW_Y_TOLERANCE = 5;
-/** Header labels sit in the same X range as the checkmark columns, well to the right of the
- * leftmost "Catalog Number" label column (which starts at the page margin). */
-const HEADER_MIN_X = 100;
 
 export interface PositionedTextItem {
   text: string;
@@ -62,6 +60,28 @@ function clusterRows(items: PositionedTextItem[], tolerance = ROW_Y_TOLERANCE): 
 }
 
 /**
+ * Derive the label/data split from the matrix itself. A fixed page-space coordinate only fits
+ * the Rockwell source this reader started with: compact PDFs can put every column before x=100.
+ * Checkmarks bind the data band; an on-page catalog header makes the split stricter. Continuation
+ * pages reuse carried data headers, which still gives their catalog cells a deterministic edge.
+ */
+function matrixLabelDataBoundary(items: PositionedTextItem[], headers: PositionedTextItem[] = []): number | undefined {
+  const checkXs = items.filter((item) => isGlyphCell(item.text)).map((item) => item.x);
+  const dataXs = [...checkXs, ...headers.map((item) => item.x)];
+  if (!dataXs.length) return undefined;
+
+  const firstDataX = Math.min(...dataXs);
+  const catalogHeaderXs = items
+    .filter((item) => isCatalogIdHeaderCell(item.text) && item.x < firstDataX)
+    .map((item) => item.x);
+  const catalogHeaderX = catalogHeaderXs.length ? Math.max(...catalogHeaderXs) : undefined;
+
+  // A continuation page has no own catalog header. Keeping the boundary immediately left of the
+  // first data cell excludes checkmarks and relies on the exact catalog-number match below.
+  return catalogHeaderX === undefined ? firstDataX - 0.001 : (catalogHeaderX + firstDataX) / 2;
+}
+
+/**
  * Header items detected on ONE page's positioned items (not page-boundary aware) — every item that
  * sits above the page's own checkmarks, to the right of the label column. Exposed separately from
  * matchComplianceMatrixCertificates so a caller looping over pages can carry a page's own header
@@ -72,8 +92,10 @@ export function extractComplianceMatrixHeaderItems(items: PositionedTextItem[]):
   const checkmarks = meaningful.filter((item) => isGlyphCell(item.text));
   if (!checkmarks.length) return [];
   const maxCheckmarkY = Math.max(...checkmarks.map((item) => item.y));
+  const labelDataBoundary = matrixLabelDataBoundary(meaningful);
+  if (labelDataBoundary === undefined) return [];
   return meaningful.filter(
-    (item) => !isGlyphCell(item.text) && item.x > HEADER_MIN_X && item.y > maxCheckmarkY + ROW_Y_TOLERANCE
+    (item) => !isGlyphCell(item.text) && item.x > labelDataBoundary && item.y > maxCheckmarkY + ROW_Y_TOLERANCE
   );
 }
 
@@ -104,14 +126,15 @@ export function matchComplianceMatrixCertificates(
   const ownHeaders = extractComplianceMatrixHeaderItems(items);
   const headers = ownHeaders.length >= 2 ? ownHeaders : carriedHeaders;
   if (headers.length < 2) return undefined;
+  const labelDataBoundary = matrixLabelDataBoundary(meaningful, headers);
+  if (labelDataBoundary === undefined) return undefined;
 
   const targetCompact = compactCatalogNumber(catalogNumber);
   if (!targetCompact) return undefined;
 
   for (const row of clusterRows(meaningful)) {
-    // The row's catalog-number label is the leftmost, non-checkmark cell (well left of the
-    // checkmark/header column band).
-    const label = row.find((item) => !isGlyphCell(item.text) && item.x < HEADER_MIN_X);
+    // The catalog label sits left of this matrix's derived data/checkmark band.
+    const label = row.find((item) => !isGlyphCell(item.text) && item.x < labelDataBoundary);
     if (!label) continue;
     // Exact match (not substring): each label is its own isolated table cell here, so there's no
     // risk of a shorter catalog number matching as a false-positive prefix of a longer sibling

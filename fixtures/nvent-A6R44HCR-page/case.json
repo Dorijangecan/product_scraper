@@ -1,0 +1,13 @@
+{
+  "id": "nvent-A6R44HCR-page",
+  "manufacturerId": "nvent",
+  "catalogNumber": "A6R44HCR",
+  "note": "Recorded nvent product page (235 kB), extracted from a past run's page cache. Guards the generic HTML understanding path for this vendor's page shape.",
+  "pages": [
+    {
+      "path": "page.html",
+      "url": "https://www.nvent.com/en-us/hoffman/products/enca6r44hcr",
+      "sourceType": "official"
+    }
+  ]
+}

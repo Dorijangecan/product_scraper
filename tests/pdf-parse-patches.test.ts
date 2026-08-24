@@ -10,16 +10,14 @@ import { PDFParse } from "pdf-parse";
  * the patch for the root cause and fix. If this test ever fails, either the patch stopped being
  * applied (check `npm run postinstall` / `patches/`) or a pdf-parse upgrade changed this code path
  * and the patch needs to be regenerated against the new version.
+ *
+ * The PDF lives in `fixtures/_assets/` (committed). It used to be read out of `benchmarks/output/`,
+ * which is gitignored — so this canary silently failed for anyone who cloned the repo, i.e. exactly
+ * the people who needed to know the patch was missing.
  */
 describe("pdf-parse patches", () => {
   it("getTable() does not throw on a real PDF with an incomplete vector grid", async () => {
-    const fixturePath = path.resolve(
-      "benchmarks",
-      "output",
-      "20260529115444",
-      "documents",
-      "SCE-12EL1206LP-manual-Sub-Plate-Layout-&-Grounding-for-3-8-16.pdf"
-    );
+    const fixturePath = path.resolve("fixtures", "_assets", "sce-incomplete-vector-grid.pdf");
     const data = await fs.readFile(fixturePath);
     const parser = new PDFParse({ data });
     try {

@@ -1,4 +1,5 @@
 import { collapseWhitespaceOrUndefined as clean, normalizeNumberSeparators } from "../text-util.js";
+import { OUNCE_TO_KILOGRAM, POUND_TO_KILOGRAM } from "../unit-conversion.js";
 import type { AttributeRecord, DocumentRecord, ManufacturerConfig, ProductResult, RunItemRecord, SourceRecord } from "../../shared/types.js";
 import { getManufacturerConfig } from "../config/manufacturers.js";
 import { matchProperty, understand } from "../scrapers/ontology.js";
@@ -1124,8 +1125,8 @@ function firstWeightKg(value: string): number | undefined {
   const unit = match[2].toLowerCase();
   if (unit === "kg") return amount;
   if (unit === "g") return amount / 1000;
-  if (unit === "lb" || unit === "lbs") return amount * 0.453592;
-  if (unit === "oz") return amount * 0.0283495;
+  if (unit === "lb" || unit === "lbs") return amount * POUND_TO_KILOGRAM;
+  if (unit === "oz") return amount * OUNCE_TO_KILOGRAM;
   return undefined;
 }
 

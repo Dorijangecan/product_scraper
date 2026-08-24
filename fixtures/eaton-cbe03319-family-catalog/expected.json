@@ -1,0 +1,47 @@
+{
+  "_source": "Ground truth read directly out of the PDF: page 6 'Ordering guide' row `1 | E6-1/1/B | CBE03319 | 12` under headers `Rated current In (A) | Part number | Article number | Unit per package`, and page 4 'Technical Data' label/value table for the E6 family (tab-separated).",
+
+  "normalized": {
+    "voltage": { "contains": "230" },
+    "current": { "number": 1, "unit": "A" },
+    "protection": { "contains": "IP20" },
+    "operatingTemperatureMin": { "number": -25 },
+    "operatingTemperatureMax": { "number": 70 }
+  },
+
+  "attributesInclude": [
+    { "name": "Unit per package", "valueContains": "12" },
+    { "name": "Rated insulation voltage", "valueContains": "500" },
+    { "name": "Rated breaking capacity", "valueContains": "6" },
+    { "name": "Design standard", "valueContains": "IEC/EN60898" }
+  ],
+
+  "mustNotContain": [
+    "CBE03320",
+    "CBE03331",
+    "CBE03345",
+    "CBE03357",
+    "E6-2/1/B",
+    "E6-63/1/B",
+    "E6-25/2/B",
+    ". . . . . . . . . .",
+    "Part number | Article number"
+  ],
+
+  "allowMissing": ["weight", "dimensions", "material"],
+
+  "knownGaps": [],
+
+  "_notes": {
+    "voltage": "Page 4: `Rated voltage Un 230/400V`. Ui=500V must stay OUT of this field (isLowValueVoltageLabel).",
+    "current": "Page 6 ordering row: 1 A for CBE03319. `Rated breaking capacity Icn 6kA` must stay OUT of rated current (isLowValueCurrentLabel).",
+    "temperature": "Page 4: `Allowable ambient temperature range -25° C to 70° C`.",
+    "weight/dimensions/material": "Genuinely not published per variant in this catalog — page 4 has a 'Dimensions (mm)' heading followed by a drawing, not values.",
+    "p1_3": "ZERO open gaps as of P1.3. The last one, `normalized:current`, needed two fixes: (1) a structured ordering row was suppressing extractGenericCatalogTableRows — but `hasStructuredOrderingRow` only means the ordering reader recognised the catalog NUMBER, not that it extracted any specs, so the reader that maps the header onto the row's cells was blocked for no reason; (2) `Part number` and `Article number` both map to the `catalogNumber` key, so the header mapper merged them into `E6-1/1/B; CBE03319` and the row-trust check compared that merged cell against `CBE03319` and failed — finding the right row and then discarding it. Any one identifier column matching is now enough.",
+    "p1_1": "P1.1 (ontology as the admission gate) closed three more: `Casing protection degree` → IP20 and `Design standard` → IEC/EN60898 are both known to the ontology and were both missing from isGlobalTechnicalLine's English keyword list; and the header row is now detected because `Part number`/`Article number` map to partNumber in the ontology even though they are absent from KNOWN_LABELS. Only `normalized:current` remains — 1 A lives in the page-6 ordering TABLE, so it needs column-aware table reading (P1.3), not a prose sweep.",
+    "knownGaps": "Page-4 voltage, temperature range, insulation voltage and breaking capacity WERE unreachable and now pass — three fixes landed: the targeted page reader was dead code for PDFs under 8 MB (P0.2#1); norm references like GB/T10963.1 counted as sibling catalog numbers (P0.2#10); and the values 230/400V and 50/60Hz counted as sibling catalog numbers, which discarded the whole page (P0.2#11). The three that remain all need the English keyword allowlist replaced by the ontology (P1.1): `Casing protection degree` and `Design standard` are not in isGlobalTechnicalLine's list, and the 1 A rated current lives in the page-6 ordering table so it needs column-aware table reading, not a prose sweep.",
+    "dot-leaders": "The table-of-contents dot leaders on page 3 are currently emitted as five 'Technical data' attributes — noise that must never reach a spec value.",
+    "header-row": "The page-6 header row was emitted as `Rated current In (A) = Part number | Article number | Unit per package` — a header parsed as data. The label/value form is now gone (spec-plausibility's header-row detector), but it survives once as a `Feature` value because header-row detection can only fire when it recognises EVERY cell, and `Part number` / `Article number` are not in KNOWN_LABELS. Classified as a knownGap, not chased with more vocabulary entries: it is the same root cause as the three gaps above — a hand-maintained keyword list as the mechanism — and the fix is P1.1 (ontology as the admission gate). Note this is Attributes-sheet noise, not an invented product value; it populates no normalized field.",
+    "matched-product-row": "The `Matched product row` = `E6-1/1/B ... 12` text-blob attribute this fixture used to assert on is gone as of the P2.2 'PART #' id-header fix (see fixtures/sce-fk0618-floor-stand-manual): recognizing 'PART #' as an id-header cell also made extractPositionedTableRowsFromPdf's page-branching try the leading-id shape it previously skipped for pages with an id header it couldn't place at the trailing edge, so the page-6 ordering row now resolves through the SAME positioned reader that already proves Weight/Dimensions/Voltage/Current elsewhere, correctly scoped to CBE03319/E6-1/1/B. `discardUnscopedFamilyTableCandidates` then (correctly) drops the coarser text blob as superseded once a real positioned value exists for this record. `Unit per package = 12` is the exact ground-truth page-6 cell for our row (see `_source`), and is a MORE precise proof of correct family-catalog scoping than the old blob, not a loss of one."
+  }
+}

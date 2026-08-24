@@ -1,0 +1,13 @@
+{
+  "id": "balluff-BIC007H-page",
+  "manufacturerId": "balluff",
+  "catalogNumber": "BIC007H",
+  "note": "Recorded balluff product page (426 kB), extracted from a past run's page cache. Guards the generic HTML understanding path for this vendor's page shape.",
+  "pages": [
+    {
+      "path": "page.html",
+      "url": "https://www.balluff.com/en-us/products/BIC007H",
+      "sourceType": "official"
+    }
+  ]
+}

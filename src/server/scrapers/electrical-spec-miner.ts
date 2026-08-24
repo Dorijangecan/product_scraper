@@ -3,12 +3,18 @@ import { uniqueStrings as uniqueStringsBase } from "../text-util.js";
 import type { AttributeRecord } from "../../shared/types.js";
 import { cleanText } from "./normalizer.js";
 import { parseQuantities, type ParsedQuantity, type QuantityKind } from "./quantity.js";
-import { PROPERTY_ONTOLOGY } from "./ontology.js";
+import { matchProperty, PROPERTY_ONTOLOGY } from "./ontology.js";
 
 interface SpecDefinition {
   name: string;
   kind: QuantityKind;
   labels: RegExp[];
+  /**
+   * The ontology property this definition mines, when it came from one. Set so the miner can ask the
+   * ontology whether the label it found, read IN FULL, really names this property — see the
+   * canonicalization guard in mineSpecDefinitions.
+   */
+  ontologyKey?: string;
   exclude?: RegExp[];
   // Like `exclude`, but tested against a short peek of text AFTER the label instead of
   // before/label itself — for trailing qualifiers (e.g. "... voltage (Type A/AC operation)")
@@ -200,6 +206,7 @@ function ontologySpecDefinitions(): SpecDefinition[] {
         name: property.label,
         kind: property.unitKind as QuantityKind,
         labels: property.synonyms,
+        ontologyKey: property.key,
         exclude: property.exclude,
         excludeAfter: property.excludeAfter
       }));
@@ -530,6 +537,7 @@ function mineSpecDefinitions(normalized: string, definitions: SpecDefinition[], 
       const labelContext = cleanText(`${before} ${label}`);
       if (definition.exclude?.some((pattern) => pattern.test(labelContext))) continue;
       if (definition.excludeAfter?.some((pattern) => pattern.test(cleanText(after.slice(0, 40))))) continue;
+      if (canonicalizationWouldStripAQualifier(definition, qualifiedLabel(before, label))) continue;
 
       const valueWindow = trimValuePrefix(after);
       const valueSlice = valueWindow.slice(0, nextLabelIndex(valueWindow, boundaryPatterns));
@@ -548,6 +556,55 @@ function mineSpecDefinitions(normalized: string, definitions: SpecDefinition[], 
   return attributes;
 }
 
+/**
+ * Would emitting this match REPLACE a qualified vendor label with a canonical name that means something
+ * else?
+ *
+ * The miner names its output after the definition, not after the text it found — that is the point, since
+ * it is what turns "Bemessungsstrom" into a recognisable field. But the same rename can destroy the very
+ * word that disqualified the value. A page reading "Stripping length 10 mm" produced the attribute
+ * `Length = 10 mm`, and from there every downstream exclusion keyed on "stripping length" was blind: the
+ * qualifier no longer existed. The 10 mm went on to be exported as the product's dimensions.
+ *
+ * The check is to ask the ontology what the label means when read IN FULL. `matchProperty` already
+ * prefers the most specific synonym, so "stripping length" resolves to `strippingLength` and not to
+ * `depth` — and when the two answers disagree, the specific one is right and this definition must not
+ * claim the value. Definitions with no ontology key (the hand-written electrical set) are unaffected.
+ *
+ * This is a generic form of a per-case exclusion list: it covers cable length, packaging height and any
+ * other qualified measurement without naming them.
+ */
+function canonicalizationWouldStripAQualifier(definition: SpecDefinition, label: string): boolean {
+  if (!definition.ontologyKey) return false;
+  const resolved = matchProperty(label);
+  const stripped = Boolean(resolved && resolved.key !== definition.ontologyKey);
+  // Env-gated trace, kept because it is how this rule was verified rather than assumed: run
+  // `PRODUCT_SCRAPER_TRACE_CANONICALIZATION=1 npm run audit:spec-gate` and every skip is listed with the
+  // label that caused it. On the 220-document corpus that showed 30 skips, all of them wrong values —
+  // "Wire Strip Length" being exported as a product's depth on real terminal-block datasheets.
+  if (stripped && process.env.PRODUCT_SCRAPER_TRACE_CANONICALIZATION) {
+    console.error(`CANON-SKIP ${definition.name} <- "${label}" (ontology says ${resolved?.key})`);
+  }
+  return stripped;
+}
+
+/**
+ * The matched label plus any qualifier words directly attached in front of it — "stripping" in
+ * "Stripping length", "packaging" in "Packaging height".
+ *
+ * Deliberately NOT the `labelContext` used for the exclusion rules: that one carries 40 characters of
+ * preceding text, which on a dense datasheet line is the PREVIOUS spec's label and value. Feeding that to
+ * `matchProperty` made it answer about the neighbour instead — the regression suite caught it at once, with
+ * a real `Weight = 5 kg` disappearing because the text before it mentioned tightening torque.
+ *
+ * A qualifier is contiguous alphabetic text, so the scan stops at the first digit, unit or punctuation —
+ * which is exactly where the previous value ends.
+ */
+function qualifiedLabel(before: string, label: string): string {
+  const prefix = before.match(/(?:[A-Za-zÀ-ɏ]+[ \t-]{1,2}){0,2}$/)?.[0] ?? "";
+  return cleanText(`${prefix}${label}`);
+}
+
 function longestNonOverlappingSpans(spans: LabelSpan[]): LabelSpan[] {
   const byLength = [...spans].sort((left, right) => (right.end - right.start) - (left.end - left.start));
   const kept: LabelSpan[] = [];
@@ -559,7 +616,10 @@ function longestNonOverlappingSpans(spans: LabelSpan[]): LabelSpan[] {
 }
 
 function normalizeSpecMiningText(text: string): string {
-  return cleanText(text)
+  // Preserve PDF table boundaries until valueFromQuantity has had a chance to
+  // reject a multi-variant row. `cleanText` used to erase tabs here, after
+  // which `4 A\t8 A\t12 A` was indistinguishable from one composite value.
+  return text
     .replace(/<script[\s\S]*?<\/script>/gi, " ")
     .replace(/<style[\s\S]*?<\/style>/gi, " ")
     .replace(/<[^>]+>/g, " ")
@@ -568,7 +628,8 @@ function normalizeSpecMiningText(text: string): string {
     .replace(/&deg;/gi, "°")
     .replace(/["'{}[\]]/g, " ")
     .replace(/\s*[:=]\s*/g, ": ")
-    .replace(/\s+/g, " ")
+    .replace(/[^\S\r\n\t]+/g, " ")
+    .replace(/\r\n?/g, "\n")
     .trim();
 }
 
@@ -583,6 +644,7 @@ function trimValuePrefix(value: string): string {
 }
 
 function valueFromQuantity(text: string, kind: QuantityKind): string | undefined {
+  if (looksLikeMultiColumnQuantityRow(text, kind)) return undefined;
   const cleaned = cleanText(text).replace(/^[,;:|/]+/, "").replace(/^-+(?!\d)/, "").trim();
   if (!cleaned || cleaned.length > 180) return undefined;
   const quantities = parseQuantities(cleaned, { kind });
@@ -604,6 +666,20 @@ function valueFromQuantity(text: string, kind: QuantityKind): string | undefined
     .trim();
   if (!value || !/[0-9]/.test(value)) return undefined;
   return value.length <= 120 ? value : quantity.raw;
+}
+
+/** A tabular comparison row belongs to several variants unless a table reader selected its column. */
+function looksLikeMultiColumnQuantityRow(text: string, kind: QuantityKind): boolean {
+  if (!/\t| {2,}/.test(text)) return false;
+  const cells = text
+    .split(/\t+| {2,}/)
+    .map(cleanText)
+    .filter(Boolean);
+  const valueCells = cells.filter((cell) => {
+    const quantities = parseQuantities(cell, { kind });
+    return quantities.some((quantity) => quantity.value !== undefined && Boolean(quantity.unit));
+  });
+  return valueCells.length >= 2;
 }
 
 function compositeQuantityValue(text: string, quantities: ParsedQuantity[], kind: QuantityKind): string | undefined {

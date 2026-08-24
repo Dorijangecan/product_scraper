@@ -1,0 +1,14 @@
+{
+  "id": "eta-3120-F521-P7T1-W01D-16A-family-catalog",
+  "manufacturerId": "eta",
+  "catalogNumber": "3120-F521-P7T1-W01D-16A",
+  "note": "Recorded 16-page E-T-A 3120-F family datasheet. It prints the F521 prefix and a ratings matrix, but never the complete requested ordering code; this is a strict family-evidence refusal case.",
+  "documents": [
+    {
+      "path": "benchmarks/output/20260602075917/documents/3120-F521-P7T1-W01D-16A-datasheet-Thermal-Circuit-Breaker-3120-F.pdf",
+      "url": "https://www.e-t-a.com/fileadmin/user_upload/Produkte/3120-F.pdf",
+      "type": "datasheet",
+      "label": "Thermal Circuit Breaker 3120-F"
+    }
+  ]
+}

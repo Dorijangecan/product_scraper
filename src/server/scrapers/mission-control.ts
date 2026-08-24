@@ -1,5 +1,6 @@
 import type { DriftDiagnostic, ProductResult, TargetHealthRecord } from "../../shared/types.js";
 import type { ScrapeContext } from "./types.js";
+import { CATASTROPHIC_BOOTSTRAP_SAMPLE_MINIMUM, DRIFT_SAMPLE_MINIMUM, isCatastrophicTargetHealthBootstrap, isTargetHealthDriftSuspected } from "./target-health-policy.js";
 
 export interface AdaptiveMiningDecision {
   shouldMine: boolean;
@@ -32,7 +33,7 @@ export function shouldRunAdaptiveMining(result: ProductResult, context: ScrapeCo
 }
 
 export function driftFromTargetHealth(health: TargetHealthRecord | undefined): DriftDiagnostic {
-  if (!health || health.sampleCount < 8) {
+  if (!health || health.sampleCount < CATASTROPHIC_BOOTSTRAP_SAMPLE_MINIMUM) {
     return {
       suspected: false,
       reason: "Not enough target health samples for drift detection.",
@@ -40,7 +41,29 @@ export function driftFromTargetHealth(health: TargetHealthRecord | undefined): D
       stage: health?.stage
     };
   }
-  const suspected = health.successRate < 0.45 || (health.avgQualityScore ?? 100) < 45;
+  // A new vendor should not have to fail eight complete items before the adaptive path is allowed
+  // to investigate. This deliberately catches only an unambiguous outage: three or more attempts
+  // with no confirmed success and no usable quality. Mixed early data remains below the normal
+  // statistical threshold, so a single imperfect onboarding run cannot manufacture drift.
+  if (isCatastrophicTargetHealthBootstrap(health)) {
+    return {
+      suspected: true,
+      reason: `Target health bootstrap: ${health.sampleCount} consecutive outcomes had no success or usable quality.`,
+      manufacturerId: health.manufacturerId,
+      stage: health.stage,
+      successRate: health.successRate,
+      avgQualityScore: health.avgQualityScore
+    };
+  }
+  if (health.sampleCount < DRIFT_SAMPLE_MINIMUM) {
+    return {
+      suspected: false,
+      reason: "Not enough target health samples for drift detection.",
+      manufacturerId: health.manufacturerId,
+      stage: health.stage
+    };
+  }
+  const suspected = isTargetHealthDriftSuspected(health);
   return {
     suspected,
     reason: suspected

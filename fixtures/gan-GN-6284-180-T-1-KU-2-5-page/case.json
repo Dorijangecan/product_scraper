@@ -1,0 +1,13 @@
+{
+  "id": "gan-GN-6284-180-T-1-KU-2-5-page",
+  "manufacturerId": "gan",
+  "catalogNumber": "GN 6284-180-T-1-KU-2,5",
+  "note": "Ganter option matrix with a colspan header and two cable-length variant columns. The selected catalog number must resolve only the 2,5 m column, never the sibling 5 m value.",
+  "pages": [
+    {
+      "path": "page.html",
+      "url": "https://www.ganternorm.com/en/products/1.2-Operating-by-using-machine-anddevicehandles/Cabinet-U-handles/GN-6284-Cabinet-U-Handles-Plastic-with-Electrical-Switching-Function-LED-Illuminated-with-Cable",
+      "sourceType": "official"
+    }
+  ]
+}

@@ -2,11 +2,17 @@ import { uniqueStrings } from "../text-util.js";
 import type { ProductResult, SourceRecord } from "../../shared/types.js";
 import type { FetchedText } from "./http-client.js";
 import { applyFieldCandidateResolution } from "./field-candidates.js";
-import { minePage, type PageMiningResult } from "./page-mining.js";
+import { isPersistableLearnedPattern, minePage, type PageMiningResult } from "./page-mining.js";
 import { shouldRunAdaptiveMining } from "./mission-control.js";
 import { dedupeAttributes, dedupeDocuments, dedupeSources } from "./dedupe.js";
 import { normalizeFields } from "./normalizer.js";
 import type { ScrapeContext } from "./types.js";
+
+// Older databases can contain mining observations from before persistence was restricted to
+// replayable recipes. Load a small bounded window, discard those historical no-ops, then cap the
+// executable set so stale rows cannot hide a demonstrated recipe.
+const LEARNED_EXTRACTOR_LOOKUP_LIMIT = 40;
+const LEARNED_EXTRACTOR_REPLAY_LIMIT = 8;
 
 export async function runAdaptivePageIntelligence(
   result: ProductResult,
@@ -55,7 +61,11 @@ export async function runAdaptivePageIntelligence(
   }
 
   try {
-    const learned = context.learnedExtractors?.list(context.manufacturer.id, hostFromUrl(url) ?? "", 8) ?? [];
+    const learned = (context.learnedExtractors?.list(
+      context.manufacturer.id,
+      hostFromUrl(url) ?? "",
+      LEARNED_EXTRACTOR_LOOKUP_LIMIT
+    ) ?? []).filter((extractor) => isPersistableLearnedPattern(extractor.pattern)).slice(0, LEARNED_EXTRACTOR_REPLAY_LIMIT);
     const fetched = await context.http.fetchText(url, {
       timeoutMs: context.manufacturer.fetchPolicy?.timeoutMs ?? 25000,
       cacheTtlMs: context.manufacturer.fetchPolicy?.cacheTtlMs,
@@ -217,14 +227,17 @@ function learnFromMining(context: ScrapeContext, url: string, mining: PageMining
   const host = hostFromUrl(url);
   if (!host) return;
   for (const signal of mining.record.signals ?? []) {
-    context.learnedExtractors.upsert({
+    if (!isPersistableLearnedPattern(signal)) continue;
+    const extractor = {
       manufacturerId: context.manufacturer.id,
       host,
       kind: learnedKind(signal),
       pattern: signal,
       sourceUrl: url,
       parserKind: stage
-    });
+    };
+    if (context.learnedExtractors.propose) context.learnedExtractors.propose(extractor);
+    else context.learnedExtractors.upsert?.(extractor);
   }
 }
 

@@ -1,4 +1,5 @@
 import { normalizeNumberSeparators } from "../text-util.js";
+import { OUNCE_TO_GRAM, POUND_TO_GRAM } from "../unit-conversion.js";
 
 const UNIT_ALIASES: Record<string, string> = {
   a: "A",
@@ -95,8 +96,8 @@ const UNIT_FACTORS: Record<string, number> = {
   yd: 914.4,
   g: 1,
   kg: 1000,
-  lb: 453.59237,
-  oz: 28.349523125,
+  lb: POUND_TO_GRAM,
+  oz: OUNCE_TO_GRAM,
   "Nl/min": 1,
   "l/min": 1,
   "m3/h": 1000 / 60,

@@ -1515,12 +1515,18 @@ function sanitizeQualityPolicy(input: unknown): ScrapeRecipeConfig["qualityPolic
   const requiredDocumentTypes = Array.isArray(record.requiredDocumentTypes)
     ? record.requiredDocumentTypes.filter((item): item is RequiredDocumentType => typeof item === "string" && documentTypes.has(item))
     : [];
+  // Explicit "this field is not needed" opt-out. Kept through sanitisation so a saved override can
+  // carry it per manufacturer, the same way a run carries it via its hidden coverage tiles.
+  const notApplicableFields = Array.isArray(record.notApplicableFields)
+    ? record.notApplicableFields.filter((item): item is RequiredFinalField => typeof item === "string" && finalFields.has(item))
+    : [];
   const rationales = sanitizeStringRecord(record.rationales);
   const allowedRationales = pickRecord(rationales, ["requiredFinalFields", "preferredFinalFields", "typeCodeFallback"]);
   const policy: NonNullable<ScrapeRecipeConfig["qualityPolicy"]> = {
     ...(requiredNormalizedFields.length ? { requiredNormalizedFields: [...new Set(requiredNormalizedFields)] } : {}),
     ...(requiredFinalFields.length ? { requiredFinalFields: [...new Set(requiredFinalFields)] } : {}),
     ...(preferredFinalFields.length ? { preferredFinalFields: [...new Set(preferredFinalFields)] } : {}),
+    ...(notApplicableFields.length ? { notApplicableFields: [...new Set(notApplicableFields)] } : {}),
     ...(record.typeCodeFallback === "catalogNumber" ? { typeCodeFallback: "catalogNumber" } : {}),
     ...(Object.keys(allowedRationales).length ? { rationales: allowedRationales } : {}),
     ...(record.minRawAttributes !== undefined ? { minRawAttributes: clampInteger(Number(record.minRawAttributes), 0, 2000) } : {}),

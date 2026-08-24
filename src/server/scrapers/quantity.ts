@@ -412,6 +412,88 @@ function bareNumericRange(text: string): { min: number; max: number } | undefine
  * ("70 A at 40 °C") and current/power de-rating temperatures, preferring
  * operating/ambient over storage. Returns {} when only de-rating temps exist.
  */
+/**
+ * Temperature-scale detection for `parseTemperatureRange`.
+ *
+ * Two shapes matter, and they are detected separately:
+ *   - attached to a number — "140 F", "80 °C"
+ *   - declared as a column/unit header — "(°F/°C)", "Fahrenheit"
+ *
+ * `UNIT_TABLE` knows "°f" and "degf" but not a bare "F", so a US datasheet writing
+ * "temperature range (32 -140 F)" produced no temperature quantity at all and fell through to
+ * `bareNumericRange`, which reads bare numbers AS CELSIUS — so 32-140 °F (0-60 °C) was recorded as
+ * 32-140 °C. Requiring a digit before the bare "F" keeps "Type F" / "Form F" out of it.
+ */
+const NUMBER_FAHRENHEIT_RE = /\d\s*°?\s*F\b/i;
+const NUMBER_CELSIUS_RE = /\d\s*°?\s*C\b|\d\s*℃/i;
+const DECLARED_FAHRENHEIT_RE = /°\s*F\b|\bfahrenheit\b/i;
+const DECLARED_CELSIUS_RE = /°\s*C\b|\bcelsius\b|℃/i;
+
+function temperatureScales(clause: string): { fahrenheit: boolean; celsius: boolean } {
+  return {
+    fahrenheit: NUMBER_FAHRENHEIT_RE.test(clause) || DECLARED_FAHRENHEIT_RE.test(clause),
+    celsius: NUMBER_CELSIUS_RE.test(clause) || DECLARED_CELSIUS_RE.test(clause)
+  };
+}
+
+/**
+ * A Celsius-only reading of a clause that states BOTH scales, or undefined when the two cannot be
+ * separated.
+ *
+ * Refusing every dual-scale clause was too blunt. There are two common shapes, and only one is really
+ * ambiguous:
+ *
+ *   "-45 °C to 80 °C (-49 °F to 176 °F)"     → each number carries its own unit ⇒ resolvable
+ *   "Ambient (°F / °C)  -4 to 176 F | -20 to 80 C" → two columns, one per scale ⇒ resolvable
+ *   "Set Point (°F/°C) 32/0 to 140/60"       → bare paired numbers, no unit on either ⇒ NOT resolvable
+ *
+ * So: try the column split first (a tab, pipe or wide gap is a real cell boundary), then try dropping a
+ * parenthesised Fahrenheit aside. If neither yields a Celsius-only text, give up and let the caller
+ * refuse — a wrong temperature is worse than a missing one.
+ */
+function celsiusOnlyView(clause: string): string | undefined {
+  // FIRST drop parenthesised groups that mention Fahrenheit — both the imperial aside
+  // ("(-49 °F to 176 °F)") and the column-unit declaration ("(°F/°C)"). This has to come before any
+  // splitting: "(°F/°C)" contains a slash, so splitting first tears the declaration into a bogus "°C)"
+  // cell that then looks like a Celsius column and captures the Fahrenheit numbers next to it.
+  const withoutFahrenheitAside = clause.replace(/\([^)]*\)/g, (group) =>
+    temperatureScales(group).fahrenheit ? " " : group
+  );
+  const remaining = temperatureScales(withoutFahrenheitAside);
+  if (remaining.celsius && !remaining.fahrenheit) return withoutFahrenheitAside;
+
+  // Then split into cells. "/" is included because upstream miners join alternatives with it, which
+  // destroys the original column layout: nVent's "-45 °C to 80 °C (-49 °F to 176 °F)" reaches the
+  // normalizer as "-45 °C / 80 °C / -49 °F / 176 °F". Safe HERE — this runs only for dual-scale
+  // clauses and a cell is kept only if it carries an explicit Celsius unit, so an ordinary
+  // alternatives value like "230/400 V" can never be reinterpreted by this path.
+  const cells = withoutFahrenheitAside
+    .split(/\t+|\s*\|\s*|\s*\/\s*|\s{2,}/)
+    .map((cell) => cell.trim())
+    .filter(Boolean);
+  if (cells.length > 1) {
+    const celsiusCells = cells.filter((cell) => {
+      const scales = temperatureScales(cell);
+      return scales.celsius && !scales.fahrenheit;
+    });
+    if (celsiusCells.length) return celsiusCells.join(" ");
+  }
+
+  // Last resort: pull out the one range whose unit is explicitly Celsius. Needed because
+  // `normalizeForParsing` collapses whitespace before we get here, so a two-column layout
+  // ("Ambient Temperature <tab> -4 to 176 F <tab> -20 to 80 C") has already lost its cell boundaries
+  // and looks like one run of text. The trailing °C is then the only thing that still identifies which
+  // pair of numbers is the Celsius one.
+  const celsiusRange = CELSIUS_RANGE_RE.exec(withoutFahrenheitAside);
+  if (celsiusRange) return celsiusRange[0];
+
+  return undefined;
+}
+
+/** A min…max range terminated by an explicit Celsius unit. */
+const CELSIUS_RANGE_RE =
+  /[+-]?\d+(?:[.,]\d+)?\s*(?:°\s*C)?\s*(?:\.{2,3}|…|\bto\b|\bbis\b|\bdo\b|~|-)\s*\+?[+-]?\d+(?:[.,]\d+)?\s*°?\s*C\b/i;
+
 export function parseTemperatureRange(text: string): { min?: number; max?: number } {
   if (!text) return {};
   const normalized = normalizeForParsing(text);
@@ -430,9 +512,26 @@ export function parseTemperatureRange(text: string): { min?: number; max?: numbe
   const nonStorage = candidates.filter((clause) => !STORAGE_RE.test(clause));
   const ordered = uniqueStrings([...operating, ...nonStorage]);
 
-  for (const clause of ordered) {
-    const hasTempKeyword = TEMP_KEYWORD_RE.test(clause);
-    const hasDeratingContext = parseQuantities(clause).some((quantity) => DERATING_KINDS.includes(quantity.kind));
+  for (const rawClause of ordered) {
+    let clause = rawClause;
+    let scales = temperatureScales(clause);
+    // Dual-scale clauses state every number twice, once per scale. Where the two can be separated —
+    // each number carrying its own unit, or one column per scale — read the Celsius side. Where they
+    // cannot ("Set Point (°F/°C) 32/0 to 140/60", bare pairs), refuse: silence beats recording a
+    // Fahrenheit number as Celsius.
+    if (scales.fahrenheit && scales.celsius) {
+      const celsiusOnly = celsiusOnlyView(clause);
+      if (!celsiusOnly) continue;
+      clause = celsiusOnly;
+      scales = temperatureScales(clause);
+    }
+
+    // Keyword and de-rating context come from the ORIGINAL clause, not the Celsius-only view. The view
+    // exists to decide which NUMBERS to read; it usually drops the label along with the other scale
+    // ("Ambient Temperature -4 to 176 F -20 to 80 C" narrows to "-20 to 80 C"), and judging "is this
+    // even about temperature?" on that residue would throw away the very context that answers it.
+    const hasTempKeyword = TEMP_KEYWORD_RE.test(rawClause);
+    const hasDeratingContext = parseQuantities(rawClause).some((quantity) => DERATING_KINDS.includes(quantity.kind));
     // A bare °C reading next to a current/power value with no temperature label is
     // a de-rating condition, not an operating temperature — never read it as one.
     const trustTemps = hasTempKeyword || !hasDeratingContext;
@@ -449,7 +548,12 @@ export function parseTemperatureRange(text: string): { min?: number; max?: numbe
     // Temperature labelled but no explicit °C unit ("Temperature range -40 do 70").
     if (hasTempKeyword && !hasDeratingContext) {
       const bare = bareNumericRange(clause);
-      if (bare) return bare;
+      if (bare) {
+        // Bare numbers are Celsius unless the clause says Fahrenheit — see temperatureScales above.
+        return scales.fahrenheit
+          ? { min: fahrenheitToCelsius(bare.min), max: fahrenheitToCelsius(bare.max) }
+          : bare;
+      }
     }
   }
   return {};

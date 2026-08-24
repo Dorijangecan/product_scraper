@@ -1,0 +1,12 @@
+{
+  "attributesInclude": [
+    { "name": "Part Number", "valueContains": "SCE-12EL1206LPLG" }
+  ],
+  "mustNotContain": [
+    "(989) 799-4524"
+  ],
+  "_notes": {
+    "why": "The official PDP places this telephone/fax line in its contact footer. It is not a product specification and must not reach the Attributes output.",
+    "scope": "The same page explicitly publishes Part Number SCE-12EL1206LPLG."
+  }
+}

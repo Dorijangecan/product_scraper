@@ -1,0 +1,28 @@
+{
+  "_tier": "value-verified",
+  "_source": "page.html: the official Connection type lookup table explicitly maps K5 to 'Cable, end open, 5 m'. The priority-table header groups K2/K5 for d = 6 and separately labels S025 = 5.",
+  "_notes": "The cached official page is family-shaped, but the requested ordering-code segment is K5. This fixture proves that a handled table may retain its shared K2/K5 geometry while neither its S025 column nor the filter control that labels it becomes a K5 attribute.",
+  "normalized": {
+    "material": "Stainless Steel",
+    "weight": "0.126 kg",
+    "certificates": "CE"
+  },
+  "attributesInclude": [
+    {
+      "name": "Connection type",
+      "valueContains": "K5 - Cable, end open, 5 m"
+    },
+    {
+      "name": "d Connection type K2 / K5",
+      "valueContains": "6"
+    }
+  ],
+  "mustNotContain": [
+    "Cable with plug, 0,25 m",
+    "5-pin connector M12x1 with PUR cable 0.25 m",
+    "typo3.org",
+    "#4e4e4d;",
+    "many exciting ideas",
+    "Order free Catalogue"
+  ]
+}

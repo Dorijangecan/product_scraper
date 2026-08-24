@@ -1,5 +1,5 @@
 import { sameUrlIgnoringHash as sameUrl } from "../url-util.js";
-import { uniqueStrings as uniqueStringsBase } from "../text-util.js";
+import { stripHtmlMarkup, uniqueStrings as uniqueStringsBase } from "../text-util.js";
 import * as cheerio from "cheerio";
 import type {
   AttributeRecord,
@@ -17,13 +17,19 @@ import type {
 import type { CachedHttpClient, FetchedText } from "./http-client.js";
 import { classifyDocument, cleanText, emptyResult, mergeResults, normalizeFields, splitNameValue } from "./normalizer.js";
 import { buildLocalizedProductUrls } from "./localized-urls.js";
-import { catalogTextMatches, compactCatalogNumber, fillCatalogTemplate } from "./catalog-number.js";
+import { catalogTextMatches, compactCatalogNumber, fillCatalogTemplate, findCatalogTextMatch } from "./catalog-number.js";
 import { dedupeAttributes, dedupeDocuments } from "./dedupe.js";
 import { extractMarkerData } from "./marker-extractor.js";
 import { discoverProductLinksWithDiagnostics, type ProductLinkDiscoveryResult } from "./link-discovery.js";
 import { documentUrlLooksDownloadable, documentUrlLooksRelevant } from "./document-url.js";
 import { listFieldRegistryDocumentLabels } from "./field-registry.js";
 import { extractElectricalSpecAttributesFromText, extractOntologySpecAttributesFromText } from "./electrical-spec-miner.js";
+import { isForeignVariantOptionValue, isPlausibleSpecPair, specPlausibilityGateDisabled } from "./spec-plausibility.js";
+import { looksLikeUnderstandableSpec } from "./ontology.js";
+import { readHtmlTableAttributes } from "./html-table-reader.js";
+import { classifyHtmlPageLevel } from "./html-page-level.js";
+import { FIELD_REGISTRY, fieldMatchesLabel, type RegistryFieldKey } from "./field-registry.js";
+import { normalizeNumberSeparators } from "../text-util.js";
 
 const GENERIC_PARSER_VERSION = "generic-v3";
 
@@ -284,6 +290,105 @@ export function isUnresolvedSearchResultPage(url: string, title: string | undefi
   }
 }
 
+/** PARTcommunity's third-party-cookie wall has no product evidence but many expensive UI tables. */
+function isPartCommunityCookieWall(url: string, html: string): boolean {
+  try {
+    if (new URL(url).hostname.replace(/^www\./, "").toLowerCase() !== "abb-control-products.partcommunity.com") return false;
+  } catch {
+    return false;
+  }
+  return /No Third-party Cookies supported/i.test(html) && /enable cookies in your browser for PARTcommunity to work/i.test(html);
+}
+
+/** Preserve product fields that the cookie-wall response still exposes as locked rows. */
+function extractPartCommunityLockedFields($: cheerio.CheerioAPI, sourceUrl: string): AttributeRecord[] {
+  const attributes: AttributeRecord[] = [];
+  $("tr").each((_, row) => {
+    const name = cleanText($(row).find(".editable-part-header").first().text());
+    const value = cleanText($(row).find(".editable-part-input-column").first().text());
+    if (!name || !value || name.length > 80 || value.length > 300) return;
+    attributes.push({ group: "CAD Locked Product Fields", name, value, sourceUrl, scope: "variant" });
+  });
+  return attributes;
+}
+
+/**
+ * A PARTcommunity third-party-cookie response is a real, product-specific DOM wrapped in an unusable
+ * PrimeFaces application. Its locked product rows and `PCOM_CURRENT_PARTID` metadata are evidence; the
+ * hundreds of navigation/configurator nodes are not. Return before the generic sweep so an offline cache
+ * audit (or a real fallback) does not spend roughly a second per known cookie wall rediscovering that.
+ */
+function parsePartCommunityCookieWallPage(
+  manufacturerId: ProductResult["manufacturerId"],
+  catalogNumber: string,
+  fetched: FetchedText,
+  sourceType: SourceRecord["sourceType"],
+  parserLabel: string,
+  options: GenericParseOptions,
+  $: cheerio.CheerioAPI
+): ProductResult {
+  const sourceUrl = fetched.effectiveUrl;
+  const attributes = extractPartCommunityLockedFields($, sourceUrl);
+  const currentPartId = cleanText($("#PCOM_CURRENT_PARTID").first().text());
+  const partNumber = currentPartId.match(/(?:^|[,{])PN=([^,}]+)/i)?.[1];
+  const matchedPartNumber = partNumber
+    ? findCatalogTextMatch(cleanText(partNumber), catalogNumber, { compact: true, ignoreCase: true, afterColon: true })
+    : undefined;
+  if (matchedPartNumber?.level === "exact") {
+    attributes.push({
+      group: "Product Specifications",
+      name: "Order Number",
+      value: matchedPartNumber.candidate,
+      sourceUrl,
+      scope: "variant"
+    });
+  }
+
+  const plausibleAttributes = specPlausibilityGateDisabled()
+    ? dedupeAttributes(attributes)
+    : dedupeAttributes(attributes).filter(
+        (attribute) =>
+          isPlausibleSpecPair(attribute.name, String(attribute.value ?? "")) &&
+          !isForeignVariantOptionValue(String(attribute.value ?? ""), catalogNumber) &&
+          !isForeignVariantOptionLabel(attribute.name, catalogNumber)
+      );
+  const cleanAttributes = rankAttributesForBudget(applyExtractionPolicyToAttributes(plausibleAttributes, options.extractionPolicy))
+    .slice(0, options.extractionPolicy?.maxRawAttributes ?? 600)
+    .map((attribute) => ({
+      ...attribute,
+      sourceType: attribute.sourceType ?? sourceType,
+      parser: attribute.parser ?? parserLabel,
+      stage: attribute.stage ?? parserLabel,
+      confidence: attribute.confidence ?? confidenceForSource(sourceType, options.confidence)
+    }));
+  const normalized = normalizeFields(cleanAttributes, []);
+  return {
+    manufacturerId,
+    catalogNumber,
+    status: cleanAttributes.length ? "partial" : "failed",
+    confidence: cleanAttributes.length ? options.confidence ?? 0.55 : 0,
+    pageLevel: "product",
+    productUrl: sourceUrl,
+    localizedUrls: buildLocalizedProductUrls(manufacturerId, catalogNumber, sourceUrl, options.localizedUrlTemplates),
+    title: matchedPartNumber?.candidate,
+    description: cleanText($("meta[name='description']").attr("content") || $("meta[property='og:description']").attr("content")),
+    normalized,
+    attributes: cleanAttributes,
+    documents: [],
+    sources: [
+      {
+        url: sourceUrl,
+        sourceType,
+        parser: parserLabel,
+        parserVersion: GENERIC_PARSER_VERSION,
+        fetchedAt: fetched.fetchedAt,
+        statusCode: fetched.statusCode
+      }
+    ],
+    error: cleanAttributes.length ? undefined : "PARTcommunity cookie wall did not expose locked product fields."
+  };
+}
+
 export function parseGenericProductPage(
   manufacturerId: ProductResult["manufacturerId"],
   catalogNumber: string,
@@ -293,11 +398,23 @@ export function parseGenericProductPage(
   options: GenericParseOptions = {}
 ): ProductResult {
   const $ = cheerio.load(fetched.text);
-  const title = cleanProductTitle($);
+  if (isPartCommunityCookieWall(fetched.effectiveUrl, fetched.text)) {
+    return parsePartCommunityCookieWallPage(manufacturerId, catalogNumber, fetched, sourceType, parserLabel, options, $);
+  }
+  // Link discovery still runs over search pages in GenericFallbackScraper, but their product cards,
+  // prices and navigation must never be treated as the requested product. This also avoids running
+  // every generic extractor over the large WordPress/WooCommerce result page before discovery can
+  // follow its exact product link.
+  const documentTitle = cleanText($("title").first().text());
+  if (isUnresolvedSearchResultPage(fetched.effectiveUrl, documentTitle, false)) {
+    return emptyResult(manufacturerId, catalogNumber, "Fallback page was a search result, not a product page.");
+  }
+  const title = cleanProductTitle($, catalogNumber);
   if (isBlockedOrErrorPage(fetched, title)) {
     return emptyResult(manufacturerId, catalogNumber, `Official page could not be parsed: HTTP ${fetched.statusCode}${title ? ` (${title})` : ""}.`);
   }
   const description = cleanText($("meta[name='description']").attr("content") || $("meta[property='og:description']").attr("content"));
+  const pageClassification = classifyHtmlPageLevel($, catalogNumber);
   const attributes: AttributeRecord[] = [];
   const documents: DocumentRecord[] = [];
   const documentCandidates: NonNullable<ScrapeDiagnostics["documentCandidates"]> = [];
@@ -310,10 +427,11 @@ export function parseGenericProductPage(
         group: "Structured Data",
         name,
         value: cleanText(String(value)),
-        sourceUrl: fetched.effectiveUrl
+        sourceUrl: fetched.effectiveUrl,
+        scope: "variant"
       });
     }
-    attributes.push(...attributesFromJsonLdProduct(product, fetched.effectiveUrl));
+    attributes.push(...attributesFromJsonLdProduct(product, fetched.effectiveUrl).map((attribute) => ({ ...attribute, scope: "variant" as const })));
   }
   documents.push(...extractImageDocuments($, catalogNumber, fetched.effectiveUrl, jsonLdProducts, options.extractionPolicy));
   documents.push(...documentsFromJsonLdProducts(jsonLdProducts, fetched.effectiveUrl));
@@ -331,11 +449,11 @@ export function parseGenericProductPage(
   }
 
   const dynamicData = extractDynamicComponentData($, fetched.text, catalogNumber, fetched.effectiveUrl);
-  attributes.push(...dynamicData.attributes);
+  attributes.push(...dynamicData.attributes.map((attribute) => ({ ...attribute, scope: "variant" as const })));
   documents.push(...dynamicData.documents);
 
   const embeddedTableData = extractEmbeddedTableData(fetched.text, catalogNumber, fetched.effectiveUrl, options.extractionPolicy);
-  attributes.push(...embeddedTableData.attributes);
+  attributes.push(...embeddedTableData.attributes.map((attribute) => ({ ...attribute, scope: "variant" as const })));
   documents.push(...embeddedTableData.documents);
 
   const embeddedPropertyData = extractEmbeddedPropertyData(fetched.text, fetched.effectiveUrl);
@@ -344,7 +462,7 @@ export function parseGenericProductPage(
 
   $("[data-row-data]").each((_, element) => {
     for (const attr of parseDataRowAttributes($(element).attr("data-row-data"), fetched.effectiveUrl, catalogNumber)) {
-      attributes.push(attr);
+      attributes.push({ ...attr, scope: "variant" });
     }
   });
 
@@ -365,39 +483,17 @@ export function parseGenericProductPage(
   attributes.push(...extractCertificationAttributes($, fetched.effectiveUrl));
   attributes.push(...extractProductSectionAttributes($, fetched.effectiveUrl));
   attributes.push(...extractLabeledSpecAttributes($, fetched.effectiveUrl));
-  attributes.push(...extractSemanticSpecAttributes($, fetched.effectiveUrl));
+  const htmlTables = readHtmlTableAttributes($, catalogNumber, fetched.effectiveUrl);
+  attributes.push(...htmlTables.attributes);
+  // The table reader has already selected the one target column. Generic semantic fallbacks must
+  // not put an unselected sibling column back into the result afterwards.
+  attributes.push(...extractSemanticSpecAttributes($, fetched.effectiveUrl, catalogNumber, htmlTables.handledTables));
   attributes.push(...extractSchemaPropertyValueAttributes($, fetched.effectiveUrl));
+  attributes.push(...extractCatalogVariantOptionAttributes($, catalogNumber, fetched.effectiveUrl));
   attributes.push(...extractSectionAwareSpecAttributes($, fetched.effectiveUrl));
   attributes.push(...extractHeadingValueSpecAttributes($, fetched.effectiveUrl));
-  attributes.push(...extractPageWideSpecAttributes($, catalogNumber, fetched.effectiveUrl));
+  attributes.push(...extractPageWideSpecAttributes($, catalogNumber, fetched.effectiveUrl, htmlTables.handledTables));
   attributes.push(...extractSummaryAttributes(title, description, fetched.effectiveUrl));
-
-  $("tr").each((_, element) => {
-    const cells = $(element)
-      .find("th,td")
-      .map((__, cell) => cleanText($(cell).text()))
-      .get()
-      .filter(Boolean);
-    if (cells.length && cells.every((cell) => /^header\s+\d+$/i.test(cell))) return;
-    if (cells.length >= 2) {
-      const seen = new Set<string>();
-      const unique: string[] = [];
-      for (const cell of cells.slice(1)) {
-        const trimmed = cleanText(cell);
-        if (!trimmed) continue;
-        const key = trimmed.toLowerCase();
-        if (seen.has(key)) continue;
-        seen.add(key);
-        unique.push(trimmed);
-      }
-      attributes.push({
-        group: "Table",
-        name: cells[0],
-        value: unique.join(" | "),
-        sourceUrl: fetched.effectiveUrl
-      });
-    }
-  });
 
   $("dt").each((_, element) => {
     const name = cleanText($(element).text());
@@ -431,7 +527,9 @@ export function parseGenericProductPage(
     }
   });
 
-  attributes.push(...extractPlainTextAttributes(fetched.text, fetched.effectiveUrl));
+  attributes.push(
+    ...withoutSiblingListingRows(extractPlainTextAttributes(fetched.text, fetched.effectiveUrl), attributes)
+  );
   attributes.push(...extractKnownPlainTextSpecAttributes(fetched.text, fetched.effectiveUrl));
   attributes.push(...extractElectricalSpecAttributesFromText({
     text: fetched.text,
@@ -498,7 +596,65 @@ export function parseGenericProductPage(
     return emptyResult(manufacturerId, catalogNumber, "Fallback page did not contain the catalog number.");
   }
 
-  const cleanAttributes = applyExtractionPolicyToAttributes(dedupeAttributes(attributes), options.extractionPolicy).slice(
+  // Plausibility gate BEFORE the cap: the ~24 extractors above each decide independently what looks
+  // like a spec, and several happily emit page furniture — inline CSS declarations became product
+  // attributes on a real ABB page ("letter-spacing = normal !important;"), and bare function words
+  // became values ("finish = and"). Filtering here rather than in each extractor keeps it one rule,
+  // and doing it before maxRawAttributes means garbage can no longer push a real spec table past the
+  // 600-attribute cut.
+  // Strip markup BEFORE the plausibility filter and before the cap. Attributes sourced from embedded
+  // JSON never passed through cheerio's text extraction, so their labels can still carry HTML — a real
+  // Schmersal page yielded `Rated impulse withstand voltage U<sub>imp</sub>` as an attribute NAME.
+  // Cleaning here rather than in each JSON extractor keeps it one rule, and doing it before the filter
+  // means the gate judges the text a user would actually see.
+  const flattenedHandledTablePairs = new Set(
+    htmlTables.suppressedPairs.map((pair) => `${cleanText(pair.name).toLowerCase()}\u0000${cleanText(pair.value).toLowerCase()}`)
+  );
+  // Other generic extractors see only text and can still recreate the old flattened colspan value.
+  // The matrix reader has already tied this label to one selected catalog variant, so discard only
+  // the exact stale label/value pair — not broadly every attribute with the same label.
+  const tableAwareAttributes = flattenedHandledTablePairs.size
+    ? attributes.filter((attr) => !flattenedHandledTablePairs.has(`${cleanText(attr.name).toLowerCase()}\u0000${cleanText(String(attr.value ?? "")).toLowerCase()}`))
+    : attributes;
+  // A family selector proves that the page carries sibling models. Only an extractor that ties a
+  // value to our exact variant may fill a variant-sensitive field; the surviving family facts
+  // (material, standards/certificates, descriptions) remain useful and are not discarded.
+  const scopeSafeAttributes = pageClassification.pageLevel === "family"
+    ? tableAwareAttributes.filter(
+        (attribute) =>
+          ((attribute.scope === "variant" || attribute.scope === "variant-option") || !isFamilyVariantUnsafeAttribute(attribute)) &&
+          !isUnselectedFamilyOptionAttribute(attribute, tableAwareAttributes, catalogNumber)
+      )
+    : tableAwareAttributes;
+  const furnitureSafeAttributes = scopeSafeAttributes.filter((attr) => !isPageFurnitureAttribute(attr));
+  const cleanedAttributes = furnitureSafeAttributes.map((attr) => {
+    const name = stripHtmlMarkup(attr.name);
+    const value = stripHtmlMarkup(String(attr.value ?? ""));
+    return name === attr.name && value === attr.value ? attr : { ...attr, name, value };
+  });
+  // A group heading ("Ordering data", "Mechanical specifications") is context,
+  // not a product property. Multiple independent readers can reconstruct it as a
+  // name, so enforce this invariant once after every source has been normalized.
+  const nonGroupAttributes = cleanedAttributes.filter((attr) => !isGenericSpecGroupLabel(attr.name));
+  // Some responsive components expose the same unordered list twice: once in their
+  // structured product payload and once as separately rendered inline leaves. The
+  // DOM reader preserves the leaves' separator, but their display order need not
+  // match the authoritative payload. Collapse only the small, order-insensitive
+  // lists we explicitly recognize; dimensions, ranges and arbitrary prose retain
+  // their source order and remain distinct facts.
+  const uniqueAttributes = dedupeEquivalentUnorderedListAttributes(nonGroupAttributes);
+  const plausibleAttributes = specPlausibilityGateDisabled()
+    ? uniqueAttributes
+    : uniqueAttributes.filter(
+        (attr) =>
+          isPlausibleSpecPair(attr.name, String(attr.value ?? "")) &&
+          !containsHtmlAttributeLeak(String(attr.value ?? "")) &&
+          // Needs the catalog number, so it cannot live inside the leaf gate: a page that shows sibling
+          // variants lists every option code, and only the ordering number says which one is ours.
+          !isForeignVariantOptionValue(String(attr.value ?? ""), catalogNumber) &&
+          !isForeignVariantOptionLabel(attr.name, catalogNumber)
+      );
+  const cleanAttributes = rankAttributesForBudget(applyExtractionPolicyToAttributes(plausibleAttributes, options.extractionPolicy)).slice(
     0,
     options.extractionPolicy?.maxRawAttributes ?? 600
   ).map((attr) => ({
@@ -516,12 +672,23 @@ export function parseGenericProductPage(
     confidence: doc.confidence ?? confidenceForSource(sourceType, options.confidence)
   }));
   const normalized = normalizeFields(cleanAttributes, cleanDocuments);
+  // An ordering-code option can prove a finish (SR → RAL 9006) without asserting that the same
+  // code is a standalone product color. Preserve an explicit target-scoped Color field, otherwise
+  // do not manufacture normalized.color from a family configurator's finish option.
+  if (
+    pageClassification.pageLevel === "family" &&
+    !cleanAttributes.some((attribute) => attribute.scope === "variant" && fieldMatchesLabel("color", `${attribute.group ?? ""} ${attribute.name}`))
+  ) {
+    delete normalized.color;
+  }
   const confidence = options.confidence ?? 0.55;
+  const pageLevelConfidence = pageClassification.pageLevel === "family" ? Math.min(confidence, 0.45) : confidence;
   return {
     manufacturerId,
     catalogNumber,
     status: cleanAttributes.length || cleanDocuments.length ? "partial" : "failed",
-    confidence: cleanAttributes.length || cleanDocuments.length ? confidence : 0,
+    confidence: cleanAttributes.length || cleanDocuments.length ? pageLevelConfidence : 0,
+    pageLevel: pageClassification.pageLevel,
     productUrl: fetched.effectiveUrl,
     localizedUrls: buildLocalizedProductUrls(manufacturerId, catalogNumber, fetched.effectiveUrl, options.localizedUrlTemplates),
     title,
@@ -529,9 +696,12 @@ export function parseGenericProductPage(
     normalized,
     attributes: cleanAttributes,
     documents: cleanDocuments,
-    diagnostics: documentCandidates.length
+    diagnostics: documentCandidates.length || pageClassification.pageLevel === "family"
       ? {
-          documentCandidates: documentCandidates.slice(0, 120)
+          ...(documentCandidates.length ? { documentCandidates: documentCandidates.slice(0, 120) } : {}),
+          ...(pageClassification.pageLevel === "family"
+            ? { notes: [`HTML family page: selected catalog is listed with ${pageClassification.siblingCatalogNumbers.length} sibling model code(s).`] }
+            : {})
         }
       : undefined,
     sources: [
@@ -548,10 +718,52 @@ export function parseGenericProductPage(
   };
 }
 
-function cleanProductTitle($: cheerio.CheerioAPI): string {
-  const h1 = $("h1").first().clone();
-  h1.find("script,style,noscript,[aria-hidden='true'],.visually-hidden,.sr-only").remove();
-  return cleanText(h1.text() || $("title").first().text())
+/** Headings that belong to the page furniture rather than to the product. */
+const CHROME_HEADING_PATTERN =
+  /^(?:sign\s*up|subscribe|newsletter|cookie|search|menu|login|log\s*in|register|contact|share|follow us|downloads?|related products?)\b|\bnewsletter\b/i;
+
+/**
+ * The product's own title.
+ *
+ * Used to take the FIRST `<h1>` unconditionally, which on a real Turck page was "Sign up to our
+ * Newsletter" — a newsletter widget that happens to be marked up as an h1 before the product heading.
+ * That is worse than cosmetic: the title is exported, and `confirmsIdentity` in quality-gate.ts looks for
+ * the catalog number IN THE TITLE, so a chrome heading also weakens identity confirmation.
+ *
+ * Order: the first h1 that is not page furniture, then anything naming the catalog number, then `<title>`.
+ *
+ * The product heading comes FIRST on purpose. Preferring the catalog-number match instead looked tidier
+ * and was worse: Rockwell's title went from "XLS Power Supply 120W 24VDC 5A" to "1606-XLS120E", trading a
+ * description a human can read for an identifier the row already carries in its own column. The catalog
+ * match is the fallback for when the heading is unusable, which is exactly the Turck case.
+ */
+function cleanProductTitle($: cheerio.CheerioAPI, catalogNumber?: string): string {
+  const headingText = (element: Parameters<cheerio.CheerioAPI>[0]): string => {
+    const clone = $(element).clone();
+    clone.find("script,style,noscript,[aria-hidden='true'],.visually-hidden,.sr-only").remove();
+    return cleanText(clone.text());
+  };
+
+  // h1 ONLY. A first attempt also considered h2, and comparing across the corpus caught it regressing two
+  // titles that had been correct: cookie and site-wide headings ("We respect your privacy",
+  // "Ganter worldwide") sit earlier in the DOM than the product h1 and won. The product heading is an h1
+  // on every page in the corpus; h2 adds noise and no coverage.
+  const headings = $("h1")
+    .slice(0, 8)
+    .map((_, element) => headingText(element))
+    .get()
+    .filter(Boolean);
+  const documentTitle = cleanText($("title").first().text());
+  const openGraphTitle = cleanText($("meta[property='og:title']").attr("content"));
+
+  const firstProductHeading = headings.find((candidate) => !CHROME_HEADING_PATTERN.test(candidate));
+  const named = catalogNumber
+    ? [...headings, openGraphTitle, documentTitle].find(
+        (candidate) => candidate && catalogTextMatches(candidate, catalogNumber, { compact: true, afterColon: true })
+      )
+    : undefined;
+
+  return cleanText(firstProductHeading ?? named ?? documentTitle)
     .replace(/\s+The Quick Ship feature is designed to streamline[\s\S]*$/i, "")
     .replace(/\s+\|.+$/, "");
 }
@@ -573,8 +785,9 @@ function extractCatalogIdentityAttributes($: cheerio.CheerioAPI, catalogNumber: 
   const attributes: AttributeRecord[] = [];
   for (const match of bodyText.matchAll(/\b(?:Catalog#|Catalog Number|Part Number|SKU|MPN)\s*:?\s*([A-Z0-9][A-Z0-9._:\/-]{2,})/gi)) {
     const value = cleanText(match[1]);
-    if (!catalogTextMatches(value, catalogNumber, { compact: true, ignoreCase: true, afterColon: true })) continue;
-    attributes.push({ group: "Identity", name: "Catalog Number", value, sourceUrl });
+    const identity = findCatalogTextMatch(value, catalogNumber, { compact: true, ignoreCase: true, afterColon: true });
+    if (identity?.level !== "exact") continue;
+    attributes.push({ group: "Identity", name: "Catalog Number", value: identity.candidate, sourceUrl });
   }
   return dedupeAttributes(attributes).slice(0, 3);
 }
@@ -703,14 +916,24 @@ function toAbsoluteUrl(value: string, baseUrl: string): string | undefined {
 const SCHEMATIC_IMAGE_RE =
   /\b(?:schematic|schaltbild|diagram|diagramm|dimensional|ma(?:ss|ß)zeichnung|drawing|zeichnung|blueprint|exploded|cross[-\s]?section|line\s*art|cad)\b/i;
 const SCHEMATIC_FILE_RE = /\.(?:dwg|dxf|step|stp)(?:[?#]|$)/i;
+// These are the common vendor/CDN names for the stock asset served when no product photo exists.
+// Keep this separate from schematic detection: it is also used by run-manager, after dedicated
+// connectors have supplied their own DocumentRecord objects.
+const NON_PRODUCT_IMAGE_RE =
+  /(?:\b(?:logo|favicon|sprite|spinner|loader|social|flag|avatar|placeholder|spacer|transparent|bit\.gif|mobile[_-]?menu|illustration[_-]?footer|footer|faq|icon)\b|no[-_\s]*image|noimage|image[-_\s]*(?:not[-_\s]*)?available|not[-_\s]*available|coming[-_\s]*soon)/i;
 
 export function isLikelySchematicImage(combined: string): boolean {
   return SCHEMATIC_IMAGE_RE.test(combined) || SCHEMATIC_FILE_RE.test(combined);
 }
 
+/** True for stock UI/placeholder images, never a usable product photograph. */
+export function isLikelyNonProductImage(combined: string): boolean {
+  return NON_PRODUCT_IMAGE_RE.test(combined);
+}
+
 function looksLikeProductImage(url: string, context: string, compactPart: string): boolean {
   const combined = `${url} ${context}`.toLowerCase();
-  if (/(logo|favicon|sprite|spinner|loader|social|flag|avatar|placeholder|spacer|transparent|bit\.gif|mobile[_-]?menu|illustration[_-]?footer|footer|faq|icon)/i.test(combined)) return false;
+  if (isLikelyNonProductImage(combined)) return false;
   if (isLikelySchematicImage(combined)) return false;
   const compactCombined = compactKey(combined);
   if (compactPart && compactCombined.includes(compactPart)) return true;
@@ -722,7 +945,7 @@ const compactKey = compactCatalogNumber;
 
 function isLikelyImageUrl(url: string): boolean {
   if (/\/(?:bit|spacer|transparent)\.gif(?:[?#]|$)/i.test(url)) return false;
-  if (/(favicon|mobile[_-]?menu|illustration[_-]?footer|footer|logo|sprite|spinner|loader|social|placeholder|faq|icon)/i.test(url)) return false;
+  if (isLikelyNonProductImage(url)) return false;
   return /\.(?:png|jpe?g|webp|gif|avif|svg)(?:[?#]|$)/i.test(url) || /\/is\/image\/|\/mdmfiles\/|\/images?\/|\/api\/og\?|\/opengraph-image(?:[?#]|$)/i.test(url);
 }
 
@@ -798,7 +1021,7 @@ function extractSummaryAttributes(title: string, description: string | undefined
 
   const current = extractUniqueMatches(
     text,
-    /(?<![\w.-])\d+(?:[.,]\d+)?\s*(?:(?:\.{2,3}|\u2026|\u2013|\u2014|-|to)\s*\d+(?:[.,]\d+)?\s*)?(?:kA|mA|A|amps?|amperes?)\b(?![a-z0-9-])/gi
+    /(?<![\w.-])\d+(?:[.,]\d+)?\s*(?:(?:\.{2,3}|\u2026|\u2013|\u2014|-|to)\s*\d+(?:[.,]\d+)?\s*)?(?:kA|mA|A|amps?|amperes?)\b(?![a-z0-9-]|\s*keys?\b)/gi
   );
   if (current.length) push("Current", current.join("; "));
 
@@ -1158,7 +1381,7 @@ function extractProductDataFromUnknown(
         walk(parsedStringJson, path, depth + 1);
         return;
       }
-      if (text && !isSystemStatePath(path) && isUsefulDynamicKey(key) && isUsefulDynamicValue(text, compactPart)) {
+      if (text && !isSystemStatePath(path) && !isLivewireRuntimePath(group, path) && !isFrameworkSerializationValue(text) && isUsefulDynamicKey(key) && isUsefulDynamicValue(text, compactPart)) {
         attributes.push({ group, name: titleFromPath(path), value: text, sourceUrl });
       }
       maybeAddDocument(text, titleFromPath(path), sourceUrl, documents);
@@ -1171,7 +1394,7 @@ function extractProductDataFromUnknown(
       attributes.push(...dynamicSpecMapAttributes(record, path, sourceUrl));
     }
     const pair = dynamicNameValuePair(record);
-    if (pair && !isSystemStatePath(path) && isUsefulDynamicValue(pair.value, compactPart)) {
+    if (pair && !isGenericSpecGroupLabel(pair.name) && !isSystemStatePath(path) && isUsefulDynamicValue(pair.value, compactPart)) {
       attributes.push({ group, name: pair.name, value: pair.value, sourceUrl });
     }
 
@@ -1285,6 +1508,7 @@ function dynamicSpecMapAttributes(record: Record<string, unknown>, path: string[
   for (const [rawName, rawValue] of Object.entries(record).slice(0, 240)) {
     if (rawName.startsWith("_") || /^(?:id|uuid|url|href|link|links|image|images|documents?|downloads?|resources?)$/i.test(rawName)) continue;
     const name = cleanSpecPairLabel(titleFromDataKey(rawName));
+    if (isGenericSpecGroupLabel(name)) continue;
     const value = cleanSpecPairValue(valueTextFromUnknown(rawValue), name);
     if (!isUsefulSectionAwareSpecPair(name, value)) continue;
     attributes.push({ group, name, value, sourceUrl });
@@ -1522,7 +1746,13 @@ function dynamicScriptGroup(id: string | undefined): string {
 
 function isUsefulDynamicKey(key: string): boolean {
   const normalized = key.replace(/([a-z])([A-Z])/g, "$1 $2").replace(/[_-]+/g, " ");
-  return /(product|catalog|article|order|part|item|sku|mpn|model|brand|manufacturer|material|weight|height|width|depth|length|diameter|dimension|voltage|current|power|temperature|ambient|storage|torque|frequency|pressure|flow|protection|\bip\b|certificate|certification|approval|class|eclass|etim|unspsc|description|feature|connection|channel|input|output|cable|datasheet|document|download|\burl\b|image)/i.test(
+  if (isGenericSpecGroupLabel(normalized)) return false;
+  // Livewire/Alpine snapshots serialize CSS and PHP class metadata beside real product data.
+  // A bare `class`, `cssClass`, or `buttonClasses` names presentation/runtime state, never a
+  // product property. This is intentionally narrower than e.g. `protectionClass`, which can be
+  // a genuine field and remains eligible through the normal ontology/key checks below.
+  if (/^(?:css|button)?\s*classes?$/i.test(normalized)) return false;
+  return looksLikeUnderstandableSpec(normalized) || /(product|catalog|article|order|part|item|sku|mpn|model|brand|manufacturer|material|weight|height|width|depth|length|diameter|dimension|voltage|current|power|temperature|ambient|storage|torque|frequency|pressure|flow|protection|\bip\b|certificate|certification|approval|class|eclass|etim|unspsc|description|feature|connection|channel|input|output|cable|datasheet|document|download|\burl\b|image)/i.test(
     normalized
   );
 }
@@ -1973,24 +2203,42 @@ function extractLabeledSpecAttributes($: cheerio.CheerioAPI, sourceUrl: string):
   return dedupeAttributes(attributes).slice(0, 140);
 }
 
-function extractSemanticSpecAttributes($: cheerio.CheerioAPI, sourceUrl: string): AttributeRecord[] {
+function extractSemanticSpecAttributes(
+  $: cheerio.CheerioAPI,
+  sourceUrl: string,
+  catalogNumber: string,
+  handledTables: ReadonlySet<unknown> = new Set()
+): AttributeRecord[] {
   const attributes: AttributeRecord[] = [];
-  const push = (name: string | undefined, value: string | undefined, group = "Product Specifications") => {
+  const belongsToHandledTable = (element: Parameters<cheerio.CheerioAPI>[0]) => {
+    const table = $(element).closest("table").get(0);
+    return Boolean(table && handledTables.has(table));
+  };
+  const push = (name: string | undefined, value: string | undefined, group = "Product Specifications", scope?: AttributeRecord["scope"]) => {
     const cleanName = cleanText(name).replace(/[:ďĽš]\s*$/, "");
     const cleanValue = cleanText(value);
     if (!cleanName || !cleanValue) return;
     if (!isUsefulSpecLabel(cleanName) || !isUsefulDataRowValue(cleanValue)) return;
-    attributes.push({ group, name: cleanName, value: cleanValue, sourceUrl });
+    attributes.push({ group, name: cleanName, value: cleanValue, sourceUrl, scope });
   };
 
   $("[itemprop]").each((_, element) => {
+    if (belongsToHandledTable(element)) return;
     const prop = $(element).attr("itemprop");
     if (!prop || !isUsefulSpecLabel(prop)) return;
-    const value = cleanText($(element).attr("content") || $(element).attr("value") || $(element).text());
-    push(titleFromDataKey(prop), value, "Structured Properties");
+    const name = titleFromDataKey(prop);
+    const rawValue = stripLeadingLabelPrefix(cleanText($(element).attr("content") || $(element).attr("value") || $(element).text()), name);
+    const value = /^(?:weight|mass)$/i.test(name) ? normalizeNumberSeparators(rawValue) : rawValue;
+    push(
+      name,
+      value,
+      "Structured Properties",
+      elementHasTargetProductContext($, element, catalogNumber) || isDirectProductMicrodata($, element) ? "variant" : undefined
+    );
   });
 
   $("[data-label],[data-name],[data-title],[data-spec-name],[data-attribute-name],[data-property-name]").each((_, element) => {
+    if (belongsToHandledTable(element)) return;
     const attrs = element.attribs ?? {};
     const name =
       attrs["data-spec-name"] ??
@@ -2006,7 +2254,7 @@ function extractSemanticSpecAttributes($: cheerio.CheerioAPI, sourceUrl: string)
       attrs["data-value"] ??
       attrs["data-display-value"] ??
       stripLeadingLabelPrefix(cleanText($(element).text()), name);
-    push(name, value, semanticSpecGroup($, element));
+    push(name, value, semanticSpecGroup($, element), elementHasTargetProductContext($, element, catalogNumber) ? "variant" : undefined);
   });
 
   $("[aria-label]").each((_, element) => {
@@ -2017,6 +2265,162 @@ function extractSemanticSpecAttributes($: cheerio.CheerioAPI, sourceUrl: string)
   });
 
   return dedupeAttributes(attributes).slice(0, 180);
+}
+
+/** Livewire serializes PHP type metadata as values such as `Illuminate\\Support\\Collection` and
+ * `App\\Domains\\…`. They describe the server component, never the industrial product. */
+function isFrameworkSerializationValue(value: string): boolean {
+  return /^(?:Illuminate|App|Livewire|Filament)\\[A-Z]/.test(cleanText(value));
+}
+
+/** Component memo/children and UI switches are Livewire bookkeeping, not source-backed product
+ * facts. Keep product identity/document keys in the same snapshot available to the generic reader. */
+function isLivewireRuntimePath(group: string, path: string[]): boolean {
+  if (group !== "Livewire Snapshot") return false;
+  if (path.some((part) => /^(?:memo|children|scripts|assets|errors|listeners|isolate|lazyLoaded|lazyIsolated)$/i.test(part))) return true;
+  if (path.some((part) => /^datasheetLanguages$/i.test(part))) return true;
+  return /^(?:cssClass|buttonClasses|currentTab|productFinderUrl|datasheetLanguages|searchTerm|shouldSearch)$/i.test(path.at(-1) ?? "");
+}
+
+/**
+ * The cap is a safety valve, not a source-priority policy.  Preserve verified
+ * table/semantic values and registry-recognised labels before broad prose or
+ * embedded state blobs can exhaust it. Stable sorting keeps extraction order
+ * deterministic inside the same evidence tier.
+ */
+function rankAttributesForBudget(attributes: AttributeRecord[]): AttributeRecord[] {
+  return attributes
+    .map((attribute, index) => ({ attribute, index, score: attributeBudgetScore(attribute) }))
+    .sort((left, right) => right.score - left.score || left.index - right.index)
+    .map(({ attribute }) => attribute);
+}
+
+function attributeBudgetScore(attribute: AttributeRecord): number {
+  const evidence = cleanText(`${attribute.group ?? ""} ${attribute.parser ?? ""}`);
+  let score = 0;
+  if (attribute.scope === "variant" || attribute.scope === "variant-option") score += 500;
+  if (fieldMatchesLabel("weight", attribute.name) || fieldMatchesLabel("dimensions", attribute.name) || FIELD_REGISTRY.some((field) => fieldMatchesLabel(field.key, attribute.name))) score += 260;
+  if (/\b(?:html table|definition list|structured properties|schema|semantic|product specifications|specification)\b/i.test(evidence)) score += 180;
+  if (/\b(?:embedded|json|dynamic)\b/i.test(evidence)) score += 60;
+  if (/\b(?:text|summary|feature|description)\b/i.test(evidence)) score -= 80;
+  return score;
+}
+
+function elementHasTargetProductContext($: cheerio.CheerioAPI, element: Parameters<cheerio.CheerioAPI>[0], catalogNumber: string): boolean {
+  const target = compactCatalogNumber(catalogNumber);
+  if (!target) return false;
+  return $(element)
+    .add($(element).parents().slice(0, 10))
+    .toArray()
+    .some((container) =>
+      $(container)
+        .find("[itemprop='sku'],[itemprop='mpn'],input[name*='part' i],input[name*='article' i],input[name*='artikel' i],input[name*='catalog' i]")
+        .toArray()
+        .some((identity) => compactCatalogNumber(cleanText($(identity).attr("content") || $(identity).attr("value") || $(identity).text())) === target)
+    );
+}
+
+/** A semantic Product property (e.g. `<summary itemprop="weight">`) is more specific than a
+ * body-wide text sweep even on a URL with a variant selector. It is still not used for option
+ * labels: those are read separately against the requested ordering-code segment below. */
+function isDirectProductMicrodata($: cheerio.CheerioAPI, element: Parameters<cheerio.CheerioAPI>[0]): boolean {
+  return $(element).closest("[class*='product-'],[id*='product-'],[itemtype*='Product']").length > 0 &&
+    !$(element).closest("[role='tablist'],[class*='variant'],[class*='slider']").length;
+}
+
+/** Select an option label only when its prefix is a unique segment of the requested ordering code.
+ * This handles ordinary fieldset/radio configurators that are not tables, without treating the
+ * active visual thumbnail as the requested product. */
+function extractCatalogVariantOptionAttributes($: cheerio.CheerioAPI, catalogNumber: string, sourceUrl: string): AttributeRecord[] {
+  const segments = new Set(
+    catalogNumber
+      .split(/[\s,;:/._-]+/)
+      .map((segment) => segment.trim().toUpperCase())
+      .filter((segment) => segment.length >= 2)
+  );
+  if (!segments.size) return [];
+  const attributes: AttributeRecord[] = [];
+  $("fieldset").slice(0, 240).each((_, fieldset) => {
+    const name = cleanText($(fieldset).children("legend").first().text());
+    if (!name || !isUsefulSpecLabel(name)) return;
+    const matches = $(fieldset)
+      .find("label")
+      .map((__, label) => cleanText($(label).text()))
+      .get()
+      .filter((value) => {
+        const option = value.match(/^([A-Z0-9]{2,})\s*(?:-|–|:)/i)?.[1]?.toUpperCase();
+        return Boolean(option && segments.has(option));
+      });
+    if (matches.length !== 1) return;
+    attributes.push({ group: "Catalog variant option", name, value: normalizedVariantOptionValue(name, matches[0]), sourceUrl, scope: "variant-option" });
+  });
+  return dedupeAttributes(attributes).slice(0, 80);
+}
+
+function normalizedVariantOptionValue(name: string, value: string): string {
+  // `SR - Silver, RAL 9006` is a finish code, not an independent color assertion. Keep the
+  // manufacturer finish identifier while avoiding accidental `normalized.color = Silver`.
+  if (/^finish$/i.test(name)) return value.replace(/^[A-Z0-9]{2,}\s*-\s*(?:[A-Za-z]+\s*,\s*)?/i, "");
+  return value;
+}
+
+const FAMILY_VARIANT_FIELD_KEYS = ["weight", "dimensions", "wallThickness", "finish", "color", "voltage", "current", "protection", "operatingTemperature"] as const satisfies readonly RegistryFieldKey[];
+
+function isFamilyVariantUnsafeAttribute(attribute: AttributeRecord): boolean {
+  const label = `${attribute.group ?? ""} ${attribute.name}`;
+  return FAMILY_VARIANT_FIELD_KEYS.some((field) => fieldMatchesLabel(field, label));
+}
+
+/**
+ * A broad text sweep can rediscover every entry in a family configurator after the DOM reader has
+ * already proven one target option. Reject only a code-prefixed sibling whose field has that exact
+ * target-scoped option elsewhere on the page; this does not treat ordinary `CODE - description`
+ * text as variant evidence.
+ */
+function isUnselectedFamilyOptionAttribute(
+  attribute: AttributeRecord,
+  allAttributes: AttributeRecord[],
+  catalogNumber: string
+): boolean {
+  if (attribute.scope === "variant" || attribute.scope === "variant-option") return false;
+  const code = cleanText(String(attribute.value ?? "")).match(/^([A-Z][A-Z0-9]{0,8})\s*[-–—:]\s*\S/i)?.[1]?.toUpperCase();
+  if (!code) return false;
+  const ownCodes = new Set(catalogNumber.toUpperCase().split(/[^A-Z0-9]+/).filter((segment) => segment.length >= 2));
+  if (ownCodes.has(code)) return false;
+  const name = cleanText(attribute.name).toLowerCase();
+  return allAttributes.some(
+    (candidate) =>
+      candidate.scope === "variant-option" &&
+      cleanText(candidate.name).toLowerCase() === name &&
+      ownCodes.has(cleanText(String(candidate.value ?? "")).match(/^([A-Z][A-Z0-9]{0,8})\s*[-–—:]/i)?.[1]?.toUpperCase() ?? "")
+  );
+}
+
+/** A raw-HTML text fallback must never publish a serialised tag attribute as a product value. */
+function containsHtmlAttributeLeak(value: string): boolean {
+  return /\b(?:alt|class|href|id|src|style|data-[a-z0-9_-]+)\s*=/i.test(value);
+}
+
+/** A generic text sweep can mistake upload/paging controls and JS state for product properties. */
+function isPageFurnitureAttribute(attribute: AttributeRecord): boolean {
+  const name = cleanText(attribute.name);
+  const value = cleanText(String(attribute.value ?? ""));
+  if (/^size$/i.test(name) && /^\d+(?:[.,]\d+)?\s*(?:KB|MB|GB)\b/i.test(value)) return true;
+  if (/^items per page$/i.test(name) && /^\d+(?:\s+\d+){2,}$/.test(value)) return true;
+  return /^page$/i.test(name) && /^pageViewData$/i.test(value);
+}
+
+/**
+ * Variant selectors sometimes render sibling ordering codes as table/DOM labels. They are not
+ * properties, but the generic leaf sweep cannot tell that from a real label unless the label itself
+ * is treated as a catalog-shaped token. Keep the rule deliberately narrow: a standalone code with
+ * an internal separator is rejected only when it is not the requested exact ordering number.
+ */
+function isForeignVariantOptionLabel(name: string, catalogNumber: string): boolean {
+  const cleaned = cleanText(name).replace(/[\s:]+$/, "");
+  if (!/^[A-Z0-9]{5,}(?:[._/:\-][A-Z0-9]{1,})+$/i.test(cleaned)) return false;
+  if (/\b(?:eclass|erp|tariff|customs|product|article|part|model|sku|identifier|number|id)\b/i.test(cleaned)) return false;
+  return findCatalogTextMatch(cleaned, catalogNumber, { compact: true, ignoreCase: true, afterColon: true })?.level !== "exact";
 }
 
 function extractSchemaPropertyValueAttributes($: cheerio.CheerioAPI, sourceUrl: string): AttributeRecord[] {
@@ -2121,7 +2525,11 @@ function extractSectionAwareSpecAttributes($: cheerio.CheerioAPI, sourceUrl: str
       .children("div,li,p")
       .slice(0, 160)
       .each((__, row) => {
-        const pair = childElementSpecPair($, row) ?? splitNameValue($(row).text());
+        // A section's direct child can be a layout grid containing several real spec
+        // rows. Its concatenated text has no reliable label/value boundary, and the
+        // individual rows are visited by the class-hinted pass above. Do not turn that
+        // parent grid into a second, synthetic attribute.
+        const pair = childElementSpecPair($, row) ?? (hasNestedBlockContent($, row) ? undefined : splitNameValue($(row).text()));
         if (pair) push(pair.name, pair.value, group);
       });
   });
@@ -2139,7 +2547,9 @@ function extractHeadingValueSpecAttributes($: cheerio.CheerioAPI, sourceUrl: str
       if (!isUsefulSpecLabel(name) || isBroadSectionHeading(name)) return;
       const value = cleanSpecPairValue(nextHeadingValue($, heading), name);
       if (!isUsefulSectionAwareSpecPair(name, value)) return;
-      attributes.push({ group: loosePairGroup($, heading), name, value, sourceUrl });
+      const group = loosePairGroup($, heading);
+      if (group === "Page Evidence" && isPromotionalCataloguePair(name, value)) return;
+      attributes.push({ group, name, value, sourceUrl });
     });
   return dedupeAttributes(attributes).slice(0, 120);
 }
@@ -2153,12 +2563,19 @@ function nextHeadingValue($: cheerio.CheerioAPI, heading: Parameters<cheerio.Che
       node = node.next();
       continue;
     }
+    // A heading followed by independently labelled rows names the group, not
+    // one property whose value is the whole grid (even when the grid has only
+    // one responsive row).
+    if (hasNestedSpecGrid($, node.get(0)) || hasNestedLeafSpecRow($, node.get(0))) {
+      node = node.next();
+      continue;
+    }
     const text = cleanSectionValue(node.text());
     if (text && text.length <= 300) return text;
     node = node.next();
   }
   const parent = $(heading).parent();
-  if (parent.length && parent.children().length <= 6) {
+  if (parent.length && parent.children().length <= 6 && !hasNestedSpecGrid($, parent.get(0)) && !hasNestedLeafSpecRow($, parent.get(0))) {
     const clone = parent.clone();
     clone.children().first().remove();
     const text = cleanSectionValue(clone.text());
@@ -2170,22 +2587,39 @@ function nextHeadingValue($: cheerio.CheerioAPI, heading: Parameters<cheerio.Che
 function isBroadSectionHeading(value: string): boolean {
   return /^(?:features?|spec(?:ification)?s?|technical\s+(?:data|details?|spec(?:ification)?s?)|product\s+(?:details?|data|information|spec(?:ification)?s?)|documents?|downloads?|resources?|overview|description|related\s+products?)$/i.test(
     value
+  ) || isGenericSpecGroupLabel(value);
+}
+
+function isGenericSpecGroupLabel(value: string): boolean {
+  return /^(?:(?:ordering|general|technical|mechanical|electrical|ambient|environmental|functional|safety|product|device|connection|mounting|installation|transport|storage|operating)\s+)?(?:data|details?|spec(?:ification)?s?|characteristics?|properties|parameters|features)$/i.test(
+    cleanText(value)
   );
 }
 
-function extractPageWideSpecAttributes($: cheerio.CheerioAPI, catalogNumber: string, sourceUrl: string): AttributeRecord[] {
+function extractPageWideSpecAttributes(
+  $: cheerio.CheerioAPI,
+  catalogNumber: string,
+  sourceUrl: string,
+  handledTables: ReadonlySet<unknown> = new Set()
+): AttributeRecord[] {
   return dedupeAttributes([
-    ...extractHeaderMappedTableAttributes($, catalogNumber, sourceUrl),
+    ...extractHeaderMappedTableAttributes($, catalogNumber, sourceUrl, handledTables),
     ...extractLooseChildPairAttributes($, sourceUrl),
     ...extractAlternatingSpecGridAttributes($, sourceUrl),
-    ...extractResponsiveCellAttributes($, sourceUrl),
-    ...extractAriaReferencedAttributes($, sourceUrl)
+    ...extractResponsiveCellAttributes($, sourceUrl, handledTables),
+    ...extractAriaReferencedAttributes($, sourceUrl, handledTables)
   ]).slice(0, 240);
 }
 
-function extractHeaderMappedTableAttributes($: cheerio.CheerioAPI, catalogNumber: string, sourceUrl: string): AttributeRecord[] {
+function extractHeaderMappedTableAttributes(
+  $: cheerio.CheerioAPI,
+  catalogNumber: string,
+  sourceUrl: string,
+  handledTables: ReadonlySet<unknown>
+): AttributeRecord[] {
   const attributes: AttributeRecord[] = [];
   $("table").slice(0, 120).each((_, table) => {
+    if (handledTables.has(table)) return;
     const rows: string[][] = [];
     $(table).find("tr").slice(0, 80).each((__, row) => {
       const cells = $(row).find("th,td").map((___, cell) => cleanSectionValue($(cell).text())).get().filter(Boolean);
@@ -2220,14 +2654,33 @@ function extractLooseChildPairAttributes($: cheerio.CheerioAPI, sourceUrl: strin
     .slice(0, 1600)
     .each((_, row) => {
       if (isInsideTable($, row) || isNavigationLike($, row)) return;
-      const pair = childElementSpecPair($, row) ?? splitNameValue($(row).text());
+      // A broad product-card div can contain a perfectly valid descendant `Item number:`
+      // but also title, marketing bullets, price/login text and cart controls. Calling the
+      // text-only colon fallback on that ancestor turns the entire card into one attribute.
+      // Real element pairs are still handled by childElementSpecPair; bare `Label: value`
+      // text is only safe when the candidate has no nested block-level content of its own.
+      const pair = childElementSpecPair($, row) ?? (hasNestedBlockContent($, row) ? undefined : splitNameValue($(row).text()));
       if (!pair) return;
       const name = cleanSpecPairLabel(pair.name);
       const value = cleanSpecPairValue(pair.value, name);
       if (!isUsefulSectionAwareSpecPair(name, value)) return;
-      attributes.push({ group: loosePairGroup($, row), name, value, sourceUrl });
+      const group = loosePairGroup($, row);
+      // A Ganter marketing card uses the same `label: value` typography as a spec: "Ganter
+      // Catalogue: ... many exciting ideas ... Order free Catalogue". Without a technical
+      // container/heading it lands in Page Evidence, so reject only this CTA-shaped catalogue
+      // prose here; catalog numbers and actual catalogue/document labels stay eligible.
+      if (group === "Page Evidence" && isPromotionalCataloguePair(name, value)) return;
+      attributes.push({ group, name, value, sourceUrl });
     });
   return dedupeAttributes(attributes).slice(0, 160);
+}
+
+function isPromotionalCataloguePair(name: string, value: string): boolean {
+  return /\bcatalogue\b/i.test(name) && /\b(?:order\s+(?:now|free)|many\s+exciting\s+ideas|constructive\s+problem\s+solutions)\b/i.test(value);
+}
+
+function hasNestedBlockContent($: cheerio.CheerioAPI, element: Parameters<cheerio.CheerioAPI>[0]): boolean {
+  return $(element).find("div,section,article,p,li,table,dl,dt,dd,h1,h2,h3,h4,h5,h6,[role='row']").length > 0;
 }
 
 function extractAlternatingSpecGridAttributes($: cheerio.CheerioAPI, sourceUrl: string): AttributeRecord[] {
@@ -2259,6 +2712,15 @@ function extractAlternatingSpecGridAttributes($: cheerio.CheerioAPI, sourceUrl: 
   containers.slice(0, 700).each((_, container) => {
     if (isInsideTable($, container) || isNavigationLike($, container) || !isLikelySpecContainer($, container)) return;
     const cells = directTextCells($, container);
+    // A broad accordion/container can alternate a group heading with a nested
+    // grid. That grid already owns several label/value rows, so it cannot be
+    // the value for its preceding group heading.
+    if (cells.some((cell) => hasNestedSpecGrid($, cell.element))) return;
+    // A run of already-delimited paragraph pairs is not an alternating grid.  Cheerio's text()
+    // joins sibling <p> nodes without a separator, and pairing those cells by position would turn
+    // `Part Number: X` + `Description: Y` into the false `Part Number: X = Description: Y`.
+    // Their own element-level extractor handles the real pairs below/elsewhere.
+    if (cells.filter((cell) => splitNameValue(cell.text)).length >= 2) return;
     const pairs = alternatingSpecPairsFromTexts(cells.map((cell) => cell.text));
     if (pairs.length < 2) return;
     const group = sectionAwareSpecGroup($, container);
@@ -2270,14 +2732,14 @@ function extractAlternatingSpecGridAttributes($: cheerio.CheerioAPI, sourceUrl: 
   return dedupeAttributes(attributes).slice(0, 160);
 }
 
-function directTextCells($: cheerio.CheerioAPI, container: Parameters<cheerio.CheerioAPI>[0]): Array<{ text: string }> {
+function directTextCells($: cheerio.CheerioAPI, container: Parameters<cheerio.CheerioAPI>[0]): Array<{ element: Parameters<cheerio.CheerioAPI>[0]; text: string }> {
   return $(container)
     .children()
     .filter((_, child) => {
       const tagName = String(child.tagName ?? "").toLowerCase();
       return !/^(?:script|style|noscript|svg|img|picture|button|a|table|thead|tbody|tr|ul|ol|select|option)$/i.test(tagName);
     })
-    .map((_, child) => ({ text: cleanSectionValue($(child).text()) }))
+    .map((_, child) => ({ element: child, text: cleanSectionValue($(child).text()) }))
     .get()
     .filter((cell) => Boolean(cell.text) && cell.text.length <= 300);
 }
@@ -2307,11 +2769,13 @@ function looksLikeAnotherSpecLabel(value: string): boolean {
   return isUsefulSpecLabel(cleaned);
 }
 
-function extractResponsiveCellAttributes($: cheerio.CheerioAPI, sourceUrl: string): AttributeRecord[] {
+function extractResponsiveCellAttributes($: cheerio.CheerioAPI, sourceUrl: string, handledTables: ReadonlySet<unknown>): AttributeRecord[] {
   const attributes: AttributeRecord[] = [];
   $("td[data-label],td[data-title],td[headers],li[data-label],div[data-label]")
     .slice(0, 500)
     .each((_, element) => {
+      const table = $(element).closest("table").get(0);
+      if (table && handledTables.has(table)) return;
       const name = cleanSpecPairLabel($(element).attr("data-label") || $(element).attr("data-title") || $(element).attr("headers"));
       const value = cleanSpecPairValue($(element).text(), name);
       if (!isUsefulSectionAwareSpecPair(name, value)) return;
@@ -2320,12 +2784,22 @@ function extractResponsiveCellAttributes($: cheerio.CheerioAPI, sourceUrl: strin
   return dedupeAttributes(attributes).slice(0, 120);
 }
 
-function extractAriaReferencedAttributes($: cheerio.CheerioAPI, sourceUrl: string): AttributeRecord[] {
+function extractAriaReferencedAttributes(
+  $: cheerio.CheerioAPI,
+  sourceUrl: string,
+  handledTables: ReadonlySet<unknown> = new Set()
+): AttributeRecord[] {
   const attributes: AttributeRecord[] = [];
   $("[aria-labelledby],[aria-describedby]")
     .slice(0, 700)
     .each((_, element) => {
+      const table = $(element).closest("table").get(0);
+      if (table && handledTables.has(table)) return;
       if (isNavigationLike($, element)) return;
+      // Accordion panels commonly reference their heading via aria-labelledby.
+      // When the panel is itself a multi-row grid, that relationship names the
+      // group and must not manufacture `heading = every row in the panel`.
+      if (hasNestedSpecGrid($, element) || hasNestedLeafSpecRow($, element)) return;
       const labelText = referencedElementText($, $(element).attr("aria-labelledby"));
       const describedText = referencedElementText($, $(element).attr("aria-describedby"));
       const ownText = cleanSectionValue($(element).text());
@@ -2411,8 +2885,22 @@ function isLikelySpecContainer($: cheerio.CheerioAPI, element: Parameters<cheeri
       .filter(Boolean)
       .join(" ")
   );
-  return /\b(?:spec|technical|tech|electrical|mechanical|attribute|property|characteristic|parameter|feature|detail|data|rating)\b/i.test(context);
+  return SPEC_CONTAINER_CONTEXT_PATTERN.test(context);
 }
+
+/**
+ * Class names, ids and headings that mark a container as holding specifications.
+ *
+ * The English half of this was deciding, before any multilingual understanding ran, which containers
+ * even get looked at — so `class="technische-daten"` failed the `\btech\b` test and a German spec grid
+ * was skipped whole. The ontology cannot help here: "Technische Daten" is a section HEADING, not a
+ * property, so it has no synonym to match. The vocabulary itself has to be multilingual.
+ *
+ * DE/FR/IT/ES/NL/HR terms are the same set the ontology already covers for property labels, kept in the
+ * same order so the two stay comparable. Word boundaries keep "data" from matching "database" etc.
+ */
+const SPEC_CONTAINER_CONTEXT_PATTERN =
+  /\b(?:spec(?:s|ification)?|technical|tech|electrical|mechanical|attribute|property|characteristic|parameter|feature|detail|data|rating|technische|technisch|daten|merkmale|eigenschaften|kenngr[öo]ssen|kenndaten|technique|techniques|caract[ée]ristiques|donn[ée]es|tecnici|tecnico|caratteristiche|dati|t[ée]cnicos|caracter[ií]sticas|datos|technische[nr]?|specificaties|kenmerken|tehni[čc]k[ei]|karakteristike|podaci)\b/i;
 
 function classHintSpecPairs($: cheerio.CheerioAPI, container: Parameters<cheerio.CheerioAPI>[0]): Array<{ name: string; value: string }> {
   const pairs: Array<{ name: string; value: string }> = [];
@@ -2479,14 +2967,151 @@ function childElementSpecPair($: cheerio.CheerioAPI, row: Parameters<cheerio.Che
     .filter((_, child) => !/^(?:script|style|noscript|svg|img|picture|button|a)$/i.test(String(child.tagName ?? "")))
     .toArray();
   if (children.length < 2 || children.length > 8) return undefined;
+  // Two layout subtrees are not a label/value pair. A real row may use wrapper divs,
+  // but each wrapper remains an inline/leaf value surface; a nested product card has
+  // headings, paragraphs or further blocks beneath it.
+  if (children.some((child) => hasNestedBlockContent($, child))) return undefined;
+  // A parent grid has several children which are each valid label/value rows.
+  // Reading the first complete row as a label and all later rows as a value
+  // duplicates and corrupts the leaf facts. The individual rows are visited
+  // separately by the same DOM sweep.
+  if (hasRepeatedChildSpecRows($, row, children)) return undefined;
 
-  const texts = children.map((child) => cleanSectionValue($(child).text())).filter(Boolean);
+  const texts = children.map((child, index) => index === 0 ? cleanSectionValue($(child).text()) : inlineLeafListText($, child)).filter(Boolean);
   if (texts.length < 2) return undefined;
   if (alternatingSpecPairsFromTexts(texts).length >= 2) return undefined;
   const [name, ...valueParts] = texts;
   const value = valueParts.join(" | ");
   if (!isUsefulSectionAwareSpecPair(cleanSpecPairLabel(name), cleanSpecPairValue(value, name))) return undefined;
   return { name, value };
+}
+
+/**
+ * A responsive spec value may be rendered as sibling inline leaves. Cheerio's
+ * `.text()` joins those leaves without a separator (`IP65IP67`), which changes
+ * their meaning. This is intentionally used only for the value side of a
+ * recognized label/value row: a label can legitimately be styled with multiple
+ * spans and must retain its ordinary text rendering.
+ */
+function inlineLeafListText($: cheerio.CheerioAPI, element: Parameters<cheerio.CheerioAPI>[0]): string {
+  const fallback = cleanSectionValue($(element).text());
+  const children = $(element)
+    .children()
+    .filter((_, child) => /^(?:span|small|strong|em|b|i)$/i.test(String(child.tagName ?? "")))
+    .toArray();
+  const directText = cleanText(
+    $(element)
+      .contents()
+      .filter((_, node) => node.type === "text")
+      .text()
+  );
+  if (directText || children.length < 2 || children.length !== $(element).children().length) return fallback;
+  const values = children.map((child) => cleanSectionValue($(child).text())).filter(Boolean);
+  if (values.length < 2 || new Set(values.map((value) => value.toLowerCase())).size !== values.length) return fallback;
+  return values.join("; ");
+}
+
+function dedupeEquivalentUnorderedListAttributes(attributes: AttributeRecord[]): AttributeRecord[] {
+  const seen = new Set<string>();
+  return dedupeAttributes(attributes).filter((attribute) => {
+    const key = equivalentUnorderedListAttributeKey(attribute);
+    if (!key || !seen.has(key)) {
+      if (key) seen.add(key);
+      return true;
+    }
+    return false;
+  });
+}
+
+function equivalentUnorderedListAttributeKey(attribute: AttributeRecord): string | undefined {
+  const values = cleanText(String(attribute.value ?? ""))
+    .split(/\s*;\s*/)
+    .map(cleanText)
+    .filter(Boolean);
+  if (values.length < 2 || values.length > 8) return undefined;
+  const normalizedValues = [...new Set(values.map((value) => value.toLowerCase()))];
+  const protectionTokens = normalizedValues.every((value) => /^(?:ip\s*\d{2,3}[a-z]?|ik\s*\d{2}|nema\s*(?:type\s*)?\d+[a-z]?|type\s*\d+)$/i.test(value));
+  const humidityTokens = /^note\s*\(relative humidity\)$/i.test(cleanText(attribute.name)) &&
+    normalizedValues.every((value) => /^(?:non-condensing|non-icing)$/i.test(value));
+  if (!protectionTokens && !humidityTokens) return undefined;
+  return [cleanText(attribute.group ?? "").toLowerCase(), cleanText(attribute.name).toLowerCase(), ...normalizedValues.sort()].join("\u0000");
+}
+
+function hasRepeatedChildSpecRows(
+  $: cheerio.CheerioAPI,
+  element: Parameters<cheerio.CheerioAPI>[0] | undefined,
+  children?: Parameters<cheerio.CheerioAPI>[0][]
+): boolean {
+  if (!element) return false;
+  const candidates = children ?? $(element)
+    .children()
+    .filter((_, child) => !/^(?:script|style|noscript|svg|img|picture|button|a)$/i.test(String(child.tagName ?? "")))
+    .toArray();
+  // Two complete leaf rows are already a grid, not a label/value pair. Requiring
+  // three left a two-row responsive section (`Label A Value A`, `Label B Value B`)
+  // to be flattened into `Label AValue A = Label BValue B`.
+  if (candidates.length < 2) return false;
+  let childRows = 0;
+  for (const candidate of candidates) {
+    if (hasNestedBlockContent($, candidate)) continue;
+    const cells = $(candidate)
+      .children()
+      .filter((_, child) => !/^(?:script|style|noscript|svg|img|picture|button|a)$/i.test(String(child.tagName ?? "")))
+      .toArray();
+    if (cells.length < 2 || cells.length > 8 || cells.some((cell) => hasNestedBlockContent($, cell))) continue;
+    // This is solely a parent-grid detector. Do not require that every label
+    // belongs to today's ontology: the leaf reader must get the opportunity to
+    // assess each row, while a concatenated parent is never a spec pair.
+    if (cells.map((cell) => cleanSectionValue($(cell).text())).filter(Boolean).length >= 2) childRows += 1;
+  }
+  return childRows >= 2;
+}
+
+function hasNestedSpecGrid($: cheerio.CheerioAPI, element: Parameters<cheerio.CheerioAPI>[0] | undefined): boolean {
+  if (!element) return false;
+  if (hasRepeatedChildSpecRows($, element)) return true;
+  // A responsive component commonly puts the repeated rows behind two neutral layout wrappers:
+  // section → border container → alternating-row wrapper → rows. The old one-level look-through
+  // missed that shape and an aria-labelled section was emitted as one concatenated parent pair.
+  // Keep the descent deliberately shallow: we only need to recognize an immediate layout wrapper,
+  // not classify arbitrary descendants of a product page as a specification grid.
+  return $(element)
+    .children()
+    .toArray()
+    .some((child) =>
+      hasRepeatedChildSpecRows($, child) ||
+      $(child)
+        .children()
+        .toArray()
+        .some((grandchild) => hasRepeatedChildSpecRows($, grandchild))
+    );
+}
+
+/** A section heading may precede a single responsive row. It still names the group, not an
+ * attribute whose value is that row's concatenated label and value. Look through the two neutral
+ * layout wrappers used by responsive components, but require a real child label/value pair. */
+function hasNestedLeafSpecRow($: cheerio.CheerioAPI, element: Parameters<cheerio.CheerioAPI>[0] | undefined): boolean {
+  if (!element) return false;
+  let candidates = $(element).children().slice(0, 24).toArray();
+  // Responsive component libraries commonly put a panel and alternating-row
+  // wrapper between a section and its single label/value row. Descend through
+  // only those small, bounded layout layers; this is a structural guard, not a
+  // page-wide recursive scrape.
+  for (let depth = 0; depth < 4 && candidates.length; depth += 1) {
+    if (candidates.some((candidate) => Boolean(childElementSpecPair($, candidate)) || hasLeafSpecRowShape($, candidate))) return true;
+    candidates = candidates.flatMap((candidate) => $(candidate).children().slice(0, 24).toArray()).slice(0, 96);
+  }
+  return false;
+}
+
+function hasLeafSpecRowShape($: cheerio.CheerioAPI, element: Parameters<cheerio.CheerioAPI>[0]): boolean {
+  const children = $(element)
+    .children()
+    .filter((_, child) => !/^(?:script|style|noscript|svg|img|picture|button|a)$/i.test(String(child.tagName ?? "")))
+    .toArray();
+  if (children.length < 2 || children.length > 8 || children.some((child) => hasNestedBlockContent($, child))) return false;
+  const texts = children.map((child, index) => index === 0 ? cleanSectionValue($(child).text()) : inlineLeafListText($, child)).filter(Boolean);
+  return texts.length >= 2;
 }
 
 function sectionAwareSpecGroup($: cheerio.CheerioAPI, element: Parameters<cheerio.CheerioAPI>[0]): string {
@@ -2576,6 +3201,13 @@ function isUsefulSpecLabel(label: string): boolean {
   // or "length" would otherwise qualify as a "label" — polluting output and (via the prefix-strip
   // regex) risking a "regular expression too large" crash. Cap length before the keyword test.
   if (label.length > 120) return false;
+  // The ontology first: it is multilingual (98 properties across EN/DE/FR/IT/ES/NL/HR + partial
+  // PL/ZH) whereas the keyword list below is English-only, and it was running BEFORE the ontology was
+  // ever consulted — so `Bemessungsstrom` and `Corrente nominale` were discarded as "not a spec label"
+  // even though matchProperty resolves both. The keyword list is kept as an additional path because it
+  // also admits identity-ish labels the ontology has no property for (sku, gtin, order, article), so
+  // this only widens admission.
+  if (looksLikeUnderstandableSpec(label)) return true;
   return /classification|type|material|finish|colou?r|height|width|depth|length|diameter|weight|mass|voltage|current|power|temperature|ambient|storage|torque|frequency|pressure|flow|sensor|signal|display|enclosure|function|mounting|protection|rating|standard|certification|approval|ground|path|jacket|conductor|connection|channel|input|output|i\/o|package|brand|manufacturer|model|sku|mpn|gtin|upc|ean|catalog|order|part|item|article/i.test(label);
 }
 
@@ -2676,6 +3308,36 @@ function extractCertificationAttributes($: cheerio.CheerioAPI, sourceUrl: string
   }));
 }
 
+/**
+ * Removes rows that came from a RELATED-PRODUCTS table rather than a specification table.
+ *
+ * A vendor's "other products in this family" block renders as a two-column table of
+ * `| product name | brand |`, which the plain-text reader cannot tell from `| label | value |`. On a real
+ * ABB accessory page that yielded 49 attributes, every one of the form
+ *   `KLC-S key lock open N20007 E1.3 right` = `ABB`
+ *   `RRD Motor 110 - 220Vac/dc E1.3`        = `ABB`
+ * — sibling product names presented as specifications of THIS product. Found by `audit:page-attrs`, which
+ * showed the plain-text group on that page held 50 distinct pairs of which 49 were this and one was a
+ * leaked script line: no real data at all.
+ *
+ * The brand is the discriminator, and it is already known by this point from the page's own structured
+ * data. A row whose value is nothing but the manufacturer's name states no fact about the product, unless
+ * its label actually asks for the manufacturer — so those labels are kept.
+ */
+function withoutSiblingListingRows(candidates: AttributeRecord[], known: AttributeRecord[]): AttributeRecord[] {
+  const brands = new Set(
+    known
+      .filter((attribute) => /^(?:brand|manufacturer|company_brand|marke|hersteller)$/i.test(attribute.name))
+      .map((attribute) => cleanText(attribute.value).toLowerCase())
+      .filter((value) => value.length >= 2 && value.length <= 40)
+  );
+  if (brands.size === 0) return candidates;
+  return candidates.filter((attribute) => {
+    if (!brands.has(cleanText(attribute.value).toLowerCase())) return true;
+    return /\b(?:brand|manufacturer|marke|hersteller|marque|produttore|fabricante|supplier|vendor)\b/i.test(attribute.name);
+  });
+}
+
 function extractPlainTextAttributes(text: string, sourceUrl: string): AttributeRecord[] {
   const lines = text
     .split(/\r?\n/)
@@ -2693,7 +3355,7 @@ function extractPlainTextAttributes(text: string, sourceUrl: string): AttributeR
     }
     const pair = splitNameValue(line);
     if (pair) {
-      if (!isInlineSpecSummaryPair(pair)) {
+      if (!isInlineSpecSummaryPair(pair) && !isPlainTextContactDetailPair(pair) && !isPlainTextRuntimePair(pair)) {
         attributes.push({ group: "Plain Text", ...pair, sourceUrl });
       }
       continue;
@@ -2706,6 +3368,39 @@ function extractPlainTextAttributes(text: string, sourceUrl: string): AttributeR
   return dedupeAttributes(attributes).slice(0, 120);
 }
 
+/** Contact/footer pairs have the same colon grammar as a spec, but a telephone or fax number is
+ * never a property of the product. Restrict this to an explicit contact label plus a phone/email
+ * shaped value so electrical `Contact configuration: ...` remains a valid technical attribute. */
+function isPlainTextContactDetailPair(pair: { name: string; value: string }): boolean {
+  if (!/\b(?:tel(?:ephone)?|phone|fax|e-?mail)\b/i.test(pair.name)) return false;
+  const value = cleanText(pair.value);
+  return /@/.test(value) || /(?:\+?\d[\d()\s.-]{5,}\d)/.test(value);
+}
+
+/** A raw HTML fallback must not turn an inline JavaScript expression into a product property. */
+function isPlainTextRuntimePair(pair: { name: string; value: string }): boolean {
+  const name = cleanText(pair.name);
+  const value = cleanText(pair.value);
+  const combined = `${name} ${value}`;
+  if (/^(?:cookie(?:banner)?height|countrymismatchbannerheight|focusedindex|max(?:displayed|saved)searchterms|search[_\s-]?term|stickyfooterheight|settings[_\s-]?tolerance)$/i.test(name)) return true;
+  // VWO's page-hiding bootstrap serializes `hide_element` and an assignment-split
+  // `hide_element_style='opacity = ... !important` into raw name/value pairs. Neither is
+  // product data; matching the exact VWO key family avoids treating ordinary CSS text broadly.
+  if (/^hide[_\s-]?element(?:[_\s-]?style)?(?:[='"\s].*)?$/i.test(name)) return true;
+  // Typo3's live-refresh setting appears verbatim in otherwise normal product HTML as
+  // `wait_for_update: 500,`. It is a runtime interval, not a product property; retain the
+  // exact key so an underscored technical label cannot be rejected merely for its spelling.
+  if (/^wait[_\s-]?for[_\s-]?update$/i.test(name)) return true;
+  // A raw URL can be cut at `https:` by splitNameValue, leaving the scheme in the label and
+  // `//host/path` as a bogus value. This narrow shape is never a name/value specification.
+  if (/\bhttps?$/i.test(name) && /^\/\/[^\s/]+(?:\/|$)/.test(value)) return true;
+  // Inline SVG styling is a DOM presentation declaration, not an enclosure finish: real ABB and
+  // Ganter PDPs emitted `fill = #1f1f1f;` / `#4e4e4d;` through the raw-text fallback.
+  if (/^fill$/i.test(name) && /^#[0-9a-f]{3,8};$/i.test(value)) return true;
+  if (/\b(?:rounded|overflow|(?:min|max)-h|(?:sm|md|lg|xl|2xl):(?:max|min)-h|text-|bg-|hover:|focus:)\S*/i.test(value)) return true;
+  return /\b(?:this|window|document|event)\s*\./.test(combined) || /(?:=>|===|!==|\?\?|\bfunction\b|\breturn\b)/.test(combined);
+}
+
 function isInlineSpecSummaryPair(pair: { name: string; value: string }): boolean {
   return (
     pair.name.includes(",") &&
@@ -2715,8 +3410,9 @@ function isInlineSpecSummaryPair(pair: { name: string; value: string }): boolean
 
 function extractKnownPlainTextSpecAttributes(text: string, sourceUrl: string): AttributeRecord[] {
   const attributes: AttributeRecord[] = [];
-  const normalizedText = text
-    .split(/\r?\n/)
+  const isHtmlSource = /<\s*[a-z][^>]*>/i.test(text);
+  const plainTextBlocks = plainTextSpecBlocks(text, isHtmlSource);
+  const normalizedText = plainTextBlocks
     .map(cleanText)
     .filter(Boolean)
     .join(" ");
@@ -2728,7 +3424,13 @@ function extractKnownPlainTextSpecAttributes(text: string, sourceUrl: string): A
     attributes.push({ group: "Plain Text Specs", name, value, sourceUrl });
   }
 
-  attributes.push(...extractDelimitedPlainTextSpecAttributes(normalizedText, sourceUrl));
+  for (const block of plainTextBlocks) {
+    // Reader/Markdown content commonly publishes an undelimited stream (`Material Polyester`).
+    // On HTML admit that only for a compact, visibly technical/spec-like block with several known
+    // labels. An application paragraph with merely `Type` and `Mounting` must not become specs.
+    const requireDelimiter = isHtmlSource && !looksLikeUndelimitedHtmlSpecBlock(block);
+    attributes.push(...extractDelimitedPlainTextSpecAttributes(block, sourceUrl, requireDelimiter));
+  }
 
   const fixedPatterns: Array<{
     name: string | ((match: RegExpMatchArray) => string);
@@ -2829,6 +3531,29 @@ function extractKnownPlainTextSpecAttributes(text: string, sourceUrl: string): A
   return dedupeAttributes(attributes.filter((attr) => !looksLikeStructuredMarkupFragment(attr.value))).slice(0, 120);
 }
 
+function plainTextSpecBlocks(text: string, isHtmlSource: boolean): string[] {
+  if (!isHtmlSource) return [text];
+  const blockSeparator = "\u241E";
+  const visibleText = stripHtmlMarkup(
+    text
+      .replace(/<(?:script|style|noscript|template)\b[^>]*>[\s\S]*?<\/(?:script|style|noscript|template)>/gi, " ")
+      .replace(/<\/?(?:p|li|div|section|article|tr|h[1-6])\b[^>]*>|<br\b[^>]*>/gi, blockSeparator)
+  );
+  return visibleText.split(blockSeparator).map(cleanText).filter(Boolean);
+}
+
+function plainTextInlineLabelCount(text: string): number {
+  const labelPattern = plainTextInlineLabelPattern();
+  return [...text.matchAll(new RegExp(`(?:^|\\s)(?:${labelPattern})(?=\\s|:|-|$)`, "gi"))].length;
+}
+
+function looksLikeUndelimitedHtmlSpecBlock(text: string): boolean {
+  return (
+    plainTextInlineLabelCount(text) >= 3 &&
+    /\b(?:technical|specification|properties|characteristics|data|summary)\b/i.test(text)
+  );
+}
+
 /**
  * True when a value string carries JSON structural tokens (`":"`, `","`, an escaped quote, or a brace)
  * that only appear when a serialized JSON object leaks into a plain-text spec value. Legitimate spec
@@ -2847,17 +3572,20 @@ function isKnownInlineSpecLabel(name: string): boolean {
   return /^(?:rated|nominal)\s+(?:current|voltage)(?:\s*\([^)]{1,24}\))?$|^(?:nominal\s+)?cross\s+section$|^number\s+of\s+(?:potentials|positions(?:\s+per\s+row)?|solder\s+pins\s+per\s+potential)$|^contact\s+connection\s+type$|^pin\s+layout$|^solder\s+pin(?:\s*\[[^\]]+\])?$|^weight\s+per\s+piece(?:\s*\([^)]{1,40}\))?$/i.test(name);
 }
 
-function extractDelimitedPlainTextSpecAttributes(text: string, sourceUrl: string): AttributeRecord[] {
+function extractDelimitedPlainTextSpecAttributes(text: string, sourceUrl: string, requireDelimiter = false): AttributeRecord[] {
   const attributes: AttributeRecord[] = [];
   const labelPattern = plainTextInlineLabelPattern();
+  // The delimiter is captured, not skipped: without one this function is mining a bare run of words, and
+  // the value then has to earn its place (see isUsefulDelimitedPlainTextSpecValue).
   const pattern = new RegExp(
-    `(?:^|[\\s,;|])(${labelPattern})\\s*(?::|-)?\\s+(.{1,180}?)(?=\\s+(?:${labelPattern})\\s*(?::|-)?\\s+|$)`,
+    `(?:^|[\\s,;|])(${labelPattern})\\s*(:|-)?\\s+(.{1,180}?)(?=\\s+(?:${labelPattern})\\s*(?::|-)?\\s+|$)`,
     "gi"
   );
   for (const match of text.matchAll(pattern)) {
+    if (requireDelimiter && !match[2]) continue;
     const name = canonicalPlainTextInlineLabel(match[1]);
-    const value = cleanDelimitedPlainTextSpecValue(name, match[2]);
-    if (!name || !isUsefulDelimitedPlainTextSpecValue(name, value)) continue;
+    const value = cleanDelimitedPlainTextSpecValue(name, match[3]);
+    if (!name || !isUsefulDelimitedPlainTextSpecValue(name, value, Boolean(match[2]))) continue;
     attributes.push({ group: "Plain Text Specs", name, value, sourceUrl });
   }
   return attributes;
@@ -2876,11 +3604,71 @@ function normalizePlainTextSpecLabel(label: string): string {
   return cleanText(label).toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
 }
 
-function isUsefulDelimitedPlainTextSpecValue(name: string, value: string): boolean {
+/**
+ * Sentence shapes that a specification value cannot have. Used only on the UNDELIMITED branch below.
+ *
+ * Each was chosen against both sets at once — the seven prose pairs the corpus probe found, and the real
+ * undelimited values the regression suite already asserts (Phoenix Contact's reader text yields
+ * `Color white (RAL 9010)`, `Material Polyester`, `Weight 0.81 g` with no delimiter anywhere).
+ *  - a comma followed by a gerund is narrative, never a value: "options, offering expanded",
+ *    "variations, reducing panel energy", "…and DC), managing large control";
+ *  - a full stop followed by a capital is a sentence boundary: "a compact solution. AF contactors…";
+ *  - a digit-free clause of three or more words joined by a function word is prose: "ranges and enhanced
+ *    environmental", "ranges and are optimized for VFD operation with an internally mounted shaft…".
+ *
+ * The third rule is the only one with a real cost: an undelimited digit-free value like
+ * "Material zinc plated and passivated" would be dropped. That is silence rather than a wrong value, and
+ * no vendor in the corpus writes one — whereas all four prose examples above shipped as attributes.
+ */
+function looksLikeProseContinuation(value: string): boolean {
+  if (/,\s*\w+ing\b/.test(value)) return true;
+  if (/\.\s+[A-Z]/.test(value)) return true;
+  const words = value.split(/\s+/).filter(Boolean);
+  if (!/\d/.test(value) && words.length >= 3 && /\b(?:and|or|with|for|of|the|an?|is|are|und|oder|mit)\b/i.test(value)) {
+    return true;
+  }
+  return false;
+}
+
+/** Labels that name a measurable quantity — a value with no number is not a reading of one. */
+const QUANTITY_LABEL =
+  /\b(?:voltage|current|power|weight|temperature|frequency|torque|pressure|length|width|height|depth|diameter|cross\s+section|spannung|strom|leistung|gewicht|temperatur)\b/i;
+
+/**
+ * Is this a real spec value, or the middle of a sentence?
+ *
+ * `hadDelimiter` is the crux. With a `:` or `-` the vendor said "label, then value". Without one this
+ * function is guessing from a bare run of words, and on real pages that guess is wrong far more often
+ * than it is right: probed across the cached-page corpus, the undelimited branch produced SEVEN pairs and
+ * all seven were chopped-up marketing prose —
+ *   Mounting   = "options, offering expanded"
+ *   Voltage    = "range (100-250 V 50/60 Hz and DC), managing large control"
+ *   Protection = "is built-in, offering a compact solution. AF contactors have a block"
+ *   Current    = "Low"
+ * The reason is structural: the pattern ends a value right before the NEXT label word, and in prose that
+ * word is the head noun of the phrase, so the captured value is always a dangling modifier. Note that
+ * carrying digits does not redeem it — the Voltage line above has four numbers in it.
+ *
+ * Two rules kill all seven while keeping every real undelimited value the suite asserts:
+ *  - the value must not have a sentence shape (see looksLikeProseContinuation);
+ *  - a quantity label whose value contains no number is not a measurement ("Current = Low").
+ *
+ * A blunter first attempt — reject any lowercase-initial value — was wrong, and the regression suite said
+ * so immediately: Phoenix Contact publishes `Color white (RAL 9010)`.
+ */
+function isUsefulDelimitedPlainTextSpecValue(name: string, value: string, hadDelimiter: boolean): boolean {
   if (!value || value.length > 160) return false;
   if (/^(?:-|n\/?a|not applicable|none)$/i.test(value)) return false;
+  // `Industry Standards - (IS17)` is a section header plus an internal display code, not a
+  // standards value.  Keep actual standards (`IEC 60529`, `UL 508`, …), which are not a lone
+  // parenthetical identifier.
+  if (/^standards?$/i.test(name) && /^\([A-Za-z]{1,12}\d{1,12}\)$/.test(value)) return false;
   if (normalizePlainTextSpecLabel(name) === normalizePlainTextSpecLabel(value)) return false;
   if (PLAIN_TEXT_INLINE_LABELS.some((label) => normalizePlainTextSpecLabel(label) === normalizePlainTextSpecLabel(value))) return false;
+  if (!hadDelimiter) {
+    if (looksLikeProseContinuation(value)) return false;
+    if (QUANTITY_LABEL.test(name) && !/\d/.test(value)) return false;
+  }
   return /[A-Za-z0-9]/.test(value);
 }
 
@@ -3117,8 +3905,7 @@ function certificateTokensFromText(value: string): string[] {
     ...(value.match(/\bFCC\b/g) ?? []),
     ...(value.match(/\bPED\s+\d{4}\/\d+\/[A-Z]+/gi) ?? []),
     ...(value.match(/\bNEMA(?:\s+Type)?\s+[A-Z0-9, ]+/gi) ?? []),
-    ...(value.match(/\bIEC\s+\d+(?:[-\s]\d+)?(?:\s+IP\s*\d{1,2}[A-Z]?)?/g) ?? []),
-    ...(value.match(/\bIP\s*\d{1,2}[A-Z]?\b/g) ?? [])
+    ...(value.match(/\bIEC\s+\d+(?:[-\s]\d+)?(?:\s+IP\s*\d{1,2}[A-Z]?)?/g) ?? [])
   ].map(canonicalCertificateToken).map(cleanText));
 }
 

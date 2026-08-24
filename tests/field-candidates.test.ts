@@ -43,6 +43,11 @@ describe("field candidate resolver", () => {
     const selected = result.diagnostics?.fieldCandidates?.find((candidate) => candidate.field === "voltage" && candidate.selected);
     expect(selected?.value).toBe("24 V DC");
     expect(selected?.priorityReason).toContain("official parsed document priority");
+    expect(result.confidence).toBe(0.7);
+    expect(result.diagnostics?.confidencePenalty).toBe(0.02);
+
+    // Re-running resolution in another pipeline stage must not charge the same conflict twice.
+    expect(applyFieldCandidateResolution(result).confidence).toBe(0.7);
   });
 
   it("rejects a digit-bearing but non-quantity value from a numeric field (Phase C5)", () => {
@@ -72,5 +77,22 @@ describe("field candidate resolver", () => {
       ]
     } satisfies ProductResult);
     expect(good.diagnostics?.fieldCandidates?.some((c) => c.field === "weight" && c.value === "1.2 kg")).toBe(true);
+  });
+
+  it("normalizes a selected raw field candidate before publishing it", () => {
+    const result = applyFieldCandidateResolution({
+      manufacturerId: "test",
+      catalogNumber: "ABC-123",
+      status: "partial",
+      confidence: 0.72,
+      normalized: {},
+      attributes: [
+        { group: "Specs", name: "Rated voltage", value: "24 VDC", sourceUrl: "https://example.test/x", sourceType: "official", parser: "generic", confidence: 0.9 }
+      ],
+      documents: [],
+      sources: []
+    } satisfies ProductResult);
+
+    expect(result.normalized.voltage).toBe("24 V DC");
   });
 });

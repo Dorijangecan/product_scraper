@@ -1,0 +1,13 @@
+{
+  "id": "abb-1SDA126426R1-page",
+  "manufacturerId": "abb",
+  "catalogNumber": "1SDA126426R1",
+  "note": "Recorded abb product page (135 kB), extracted from a past run's page cache. Guards the generic HTML understanding path for this vendor's page shape.",
+  "pages": [
+    {
+      "path": "page.html",
+      "url": "https://abb-control-products.partcommunity.com/3d-cad-models/?catalog=abb_ww&part=1SDA126426R1",
+      "sourceType": "official"
+    }
+  ]
+}

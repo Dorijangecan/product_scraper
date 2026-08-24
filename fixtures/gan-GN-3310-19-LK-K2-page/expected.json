@@ -1,0 +1,34 @@
+{
+  "_tier": "value-verified",
+  "_source": "page.html, Electrical and mechanical properties table: the row headed 'Category of use (button)' lists AC/DC ratings and 'acc. to IEC 60947-5-1'; the heading is not part of its value. The interactive priority table has a 'd Connection type K2 / K5' column with value 6, while its separate 'Connection type S025' column has value 5.",
+  "_notes": "The cached official PDP is a family-shaped Ganter page. This fixture guards colspan expansion and target-column selection in an interactive configurator: a repeated matrix cell must not be echoed into its own value, and the S025 sibling column must not be assigned to the requested K2 variant. The shared Connection type row must also select K2/K5's cable-open value instead of leaking the S025 connector.",
+  "normalized": {
+    "material": "Stainless Steel",
+    "weight": "0.126 kg",
+    "certificates": "CE"
+  },
+  "attributesInclude": [
+    {
+      "name": "d Connection type K2 / K5",
+      "valueContains": "6"
+    },
+    {
+      "name": "Category of use (button)",
+      "valueContains": "AC 15: 24 V AC / 1 A"
+    },
+    {
+      "name": "Category of use (button)",
+      "valueContains": "acc. to IEC 60947-5-1"
+    }
+  ],
+  "mustNotContain": [
+    "Category of use (button) | AC 15: 24 V AC / 1 A",
+    "Cable with plug, 0,25 m",
+    "5-pin connector M12x1 with PUR cable 0.25 m",
+    "500,",
+    "typo3.org",
+    "#4e4e4d;",
+    "many exciting ideas",
+    "Order free Catalogue"
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "id": "abb-1SAP180400R0001-page",
+  "manufacturerId": "abb",
+  "catalogNumber": "1SAP180400R0001",
+  "note": "Recorded ABB TA522 product page (HTML). Second generic-path shape: the type code (TA522) and the ordering code (1SAP180400R0001) differ, so identity confirmation and label understanding must both work off a page where the catalog number is not the product's display name.",
+  "pages": [
+    {
+      "path": "page.html",
+      "url": "https://new.abb.com/products/1SAP180400R0001/ta522",
+      "sourceType": "official"
+    }
+  ]
+}

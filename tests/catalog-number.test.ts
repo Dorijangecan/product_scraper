@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { catalogTextMatches, fillCatalogTemplate, sameCatalogNumber } from "../src/server/scrapers/catalog-number.js";
+import { catalogFamilyMatchCandidates, catalogMatchLevel, catalogTextMatches, fillCatalogTemplate, findCatalogTextMatch, sameCatalogNumber } from "../src/server/scrapers/catalog-number.js";
 import { buildLocalizedProductUrls } from "../src/server/scrapers/localized-urls.js";
 
 describe("catalog number utilities", () => {
@@ -15,6 +15,13 @@ describe("catalog number utilities", () => {
   it("matches compact and after-colon catalog variants", () => {
     expect(catalogTextMatches("Part number VSG519K15 5 datasheet", "BPZ:VSG519K15-5")).toBe(true);
     expect(sameCatalogNumber("VSG519K15-5", "BPZ:VSG519K15-5")).toBe(true);
+  });
+
+  it("separates a strict exact SKU from a separator-bounded family prefix", () => {
+    expect(findCatalogTextMatch("Ordering table: GN 422-33", "GN 422-33-TK")).toEqual({ level: "family", candidate: "GN 422-33" });
+    expect(catalogMatchLevel("1606-XLB120EH", "1606-XLB120E")).toBeUndefined();
+    expect(catalogMatchLevel("1606 XLB120E; 24 V", "1606-XLB120E")).toBe("exact");
+    expect(catalogFamilyMatchCandidates("GN 422-33-TK")).toEqual(["GN 422-33", "GN 422"]);
   });
 
   it("builds configured localized product URLs", () => {

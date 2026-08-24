@@ -1,0 +1,30 @@
+{
+  "_source": "ABB 1SDA126404R1 key lock for Emax E1.3 circuit breaker, recorded product page. The page's own text: title `KLP-A Bl.Ins/Sez Castell E1.3 2aCh`, description `KEY LOCK CASTELL IN CONNECTED-ISOLATED P…`, productId `1SDA126404R1`, weight `0.3 kg`, dimensions `30 x 145 x 250 mm`.",
+
+  "_tier": "value-verified",
+
+  "normalized": {
+    "weight": { "number": 0.3, "unit": "kg" },
+    "dimensions": { "contains": "30 x 145 x 250" },
+    "current": { "absent": true }
+  },
+
+  "attributesInclude": [{ "name": "productId", "valueContains": "1SDA126404R1" }],
+
+  "mustNotContain": [
+    "a.async",
+    "a.src",
+    "text/javascript",
+    "textContent",
+    "font-weight",
+    "!important",
+    "Add to cart"
+  ],
+
+  "_notes": {
+    "current_is_wrong": "The product name and description contain `2aCh` / `POSITION 2a KEY`: this is a key-count/type phrase, not a current rating. The product is a key lock and publishes no current, so normalized `current` must remain empty.",
+    "current_fix_scope": "The parser rejects only a candidate immediately followed by the explicit noun `key` or `keys`; lowercase current values such as `16a` remain supported.",
+    "js_leakage": "This fixture found P1.4f: the page's inline scripts arrived as attributes — `a.async` = `true;`, `a.src` = `src;`, `a.type` = `'text/javascript';`, `heading.textContent` = `desired;`. The existing code-fragment rule missed them because they name no DOM global and call no method; a dotted lowercase label and a bare-identifier-plus-semicolon value are what identify them.",
+    "semicolon_care": "The value rule requires the semicolon to accompany a bare identifier, a quoted literal or a jQuery call. A semicolon ALONE is not a signal — the corpus asserts that `AC 100 V; 120 V; 230/240 V (50/60 Hz);` must survive."
+  }
+}

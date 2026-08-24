@@ -10,6 +10,7 @@
  * To teach it more, add entries/synonyms here (data), not new regexes scattered through scrapers.
  */
 import { uniqueStrings as uniqueStringsBase } from "../text-util.js";
+import type { UnmappedSpecLabel } from "../../shared/types.js";
 import { parseQuantities, type ParsedQuantity, type QuantityKind } from "./quantity.js";
 import { matchTechnicalAttributeAlias } from "./technical-attribute-aliases.js";
 
@@ -165,7 +166,11 @@ export const PROPERTY_ONTOLOGY: CanonicalProperty[] = [
       // ABB utilization-category currents: AC-1, AC-3, AC-3e, AC-15, AC-21A, AC-22A, AC-23A, DC-1, DC-3, DC-5, DC-13
       /rated\s+operational\s+current\s+(?:AC|DC)[-\s]?\d{1,2}[a-eA-E]?/i,
       /(?:AC|DC)[-\s]?\d{1,2}[a-eA-E]?\s+thermal\s+current/i,
-      /\bIn\b/,
+      // IEC symbol for nominal current. Case-SENSITIVE on purpose (lowercase "in" is an English word
+      // and the inch unit), plus a lookahead so a sentence-initial "In" cannot claim the label:
+      // "In accordance with IEC 60947" and "In case of overload" are not current specs. "In", "In (A)"
+      // and "Rated current In" all still match.
+      /\bIn\b(?!\s+[a-z])/,
       /\bIe\b/,
       /\bIu\b/,
       /\bIth\b/,
@@ -400,7 +405,10 @@ export const PROPERTY_ONTOLOGY: CanonicalProperty[] = [
       /einsatztemperatur/i,
       /temp[ée]rature\s+(?:de\s+(?:fonctionnement|service|travail)|ambiante|d['e]utilisation)/i,
       /temperatura\s+(?:di\s+(?:funzionamento|esercizio|lavoro)|ambiente|d['e]utilizzo)/i,
-      /temperatura\s+(?:de\s+(?:funcionamiento|servicio|trabajo|operaci[óo]n)|ambiente)/i,
+      // "de empleo" and the "rango de ..." prefix are nVent's Spanish phrasing, read off
+      // fixtures/nvent-87920846-datasheet — the previous ES synonyms missed both.
+      /temperatura\s+(?:de\s+(?:funcionamiento|servicio|trabajo|empleo|operaci[óo]n)|ambiente)/i,
+      /rango\s+de\s+temperatura/i,
       /(?:bedrijfs|omgevings|werk)temperatuur/i,
       /(?:radn|okoli[šs]n)a\s+temperatura/i
     ],
@@ -677,7 +685,10 @@ export const PROPERTY_ONTOLOGY: CanonicalProperty[] = [
       /beschichtung/i,
       /pulverbeschichtung/i,
       /lackierung/i,
-      /finition/i,
+      // Anchored on purpose: unanchored, the French word for finish fires inside the ENGLISH word
+      // "de-finition" — and "Definition List" is the group name our own parser gives every <dl> spec
+      // block, so every page with specs in a <dl> was assigning its first value to `finish`.
+      /\bfinitions?\b/i,
       /traitement\s+de\s+surface/i,
       /rev[êe]tement/i,
       /\bfinitura\b/i,
@@ -730,6 +741,15 @@ export const PROPERTY_ONTOLOGY: CanonicalProperty[] = [
       /beschermingsgraad/i,
       /stupanj\s+za[šs]tite/i,
       /\bza[šs]tita\b/i
+    ],
+    exclude: [
+      // "Selective protection level 3" (Eaton E6) is a SELECTIVITY class, not an ingress rating — the
+      // `protection level` synonym above matched it and would have overwritten a real IP20 with "3".
+      /\bselectiv(?:e|ity)\b/i,
+      /\bselektiv/i,
+      // Personal/electric-shock protection classes are a different property from ingress protection.
+      /\bshock\s+protection\b/i,
+      /\btouch\s+protection\b/i
     ]
   },
   {
@@ -2146,6 +2166,33 @@ export function matchProperty(label: string): CanonicalProperty | undefined {
   return result;
 }
 
+/**
+ * Match a property only when its synonym starts at the beginning of `label`.
+ *
+ * `matchProperty` intentionally finds a meaningful label anywhere in a longer string; that is
+ * useful for an admission check, but unsafe while splitting compact `Label: value Label: value`
+ * prose. The page miner uses this stricter form to locate the next label boundary without an
+ * English-only vocabulary.
+ */
+export function matchPropertyPrefix(label: string): { property: CanonicalProperty; length: number } | undefined {
+  const cleanLabel = label.trimStart();
+  if (!cleanLabel) return undefined;
+  let best: { property: CanonicalProperty; length: number } | undefined;
+  for (const property of PROPERTY_ONTOLOGY) {
+    if (property.exclude?.some((pattern) => pattern.test(cleanLabel))) continue;
+    for (const pattern of property.synonyms) {
+      // Do not reuse a global/sticky regex: its lastIndex would make parsing order-dependent.
+      const flags = pattern.flags.replace(/[gy]/g, "");
+      const anchored = new RegExp(`^(?:${pattern.source})`, flags);
+      const found = anchored.exec(cleanLabel);
+      if (found && (!best || found[0].length > best.length)) {
+        best = { property, length: found[0].length };
+      }
+    }
+  }
+  return best;
+}
+
 export interface UnderstoodValue {
   property?: CanonicalProperty;
   quantities: ParsedQuantity[];
@@ -2302,20 +2349,133 @@ export interface LabelledValue {
 // always descriptive prose, not a clean fact worth teaching the ontology.
 const UNMAPPED_SPEC_VALUE_MAX_LENGTH = 60;
 
-export function findUnmappedSpecLabels(attributes: LabelledValue[]): string[] {
-  const unmapped = new Set<string>();
+/**
+ * Does the understanding engine recognise this text as a specification?
+ *
+ * The admission test the extractors should use. Several of them currently decide "is this a spec?"
+ * with hand-written ENGLISH keyword lists that run BEFORE the multilingual ontology is ever consulted
+ * — so `class="technische-daten"` fails a `\btech\b` test and `Bemessungsstrom` fails an English label
+ * test, even though `matchProperty` resolves both. Measured against Eaton's E6 catalogue, the keyword
+ * list in `document-enrichment.ts`'s `isGlobalTechnicalLine` missed `Casing protection degree`,
+ * `Design standard`, `Rated breaking capacity Icn` and `Terminal screw fastening torque`, all four of
+ * which the ontology maps correctly.
+ *
+ * Deliberately used for ADMISSION only, never for assigning a value to a field. `matchProperty` takes
+ * the longest matching synonym anywhere in the string, which is the right bias for "is this a spec
+ * line" and the wrong bias for "which property is it" — e.g. it maps `Selective protection level` to
+ * `protection` (a selectivity class, not an IP rating) and `Electrical life` to `mechanicalLife`.
+ * Admitting such a line costs nothing; letting it overwrite a field would not.
+ */
+export function looksLikeUnderstandableSpec(label: string, value?: string): boolean {
+  const text = label?.trim();
+  if (!text) return false;
+  if (matchProperty(text)) return true;
+  if (matchTechnicalAttributeAlias("global", text, { includeCrossManufacturer: true })) return true;
+  return Boolean(value && inferPropertyFromQuantities(text, value));
+}
+
+// Text values are valuable only when they came from a product-spec surface. Metadata, search-result
+// cards and legacy marker blocks contain compact prose that looks harmless but is not a vocabulary
+// gap. Keep this intentionally specific so a new vendor's actual technical group is never excluded.
+const NON_SPEC_TEACH_LIST_GROUP = /^(?:meta|search result|title\/description inference|.*\blegacy markers)$/i;
+const NON_SPEC_TEACH_LIST_LABEL = /^(?:marketing\s+(?:blurb|copy)|(?:product\s+)?description|(?:extended\s+)?product\s+type|catalog\s+(?:page|description)|long\s+description|list\s+price|price\s+code|parsed\s+document|(?:optional|included)\s+accessor(?:y|ies)|related\s+purchase|similar\s+part|feature|og:[\w-]+|twitter:[\w-]+)$/i;
+const TEXT_TEACH_LIST_GROUP = /\b(?:spec(?:ification)?s?|technical(?:\s+(?:data|details))?|product\s+data|properties|construction|parameters?|html\s+table|table)\b/i;
+// These shapes are parser/page furniture, not candidate property names. They apply to numeric
+// observations too: otherwise one stray quantity turns a table caption or a manual instruction
+// into a high-frequency ontology task. Keep this narrow; a long technical label remains valid.
+const NON_SPEC_TEACH_LIST_LABEL_SHAPE = /(?:https?:\/\/|www\.)|^\s*table\s+\d+\s*[:.]/i;
+const VALUE_ONLY_TEACH_LIST_LABEL = /^\s*[<>≤≥]?\s*\d[\d\s.,/()×x*+-]*[a-zµΩ%°]+\s*$/i;
+// Exact imperative/caption forms found in historical multilingual PDF extraction. These are
+// anchored at the start so a genuine label mentioning a button, position or switch is retained.
+const MANUAL_INSTRUCTION_TEACH_LIST_LABEL = /^(?:push\s+stop\b|premere\s+stop\b|stoppen\s+drücken\b|pulse\s+paro\b|(?:switch\s+(?:set|settato)|dip\s+configurado)\b.*\b(?:in\s+the\s+example|nell.?esempio|en\s+el\s+ejemplo)\b|按下\s*STOP\b|在过程中按下\s*STOP\b)/i;
+
+/**
+ * Return unknown labels for human ontology review.  A text value is deliberately retained: unlike
+ * a numeric value it has no unit-inference fallback, so filtering it out makes the teach-list blind
+ * to material, contact, mounting and construction vocabulary on a new manufacturer's page.
+ */
+export function findUnmappedSpecLabels(attributes: LabelledValue[]): UnmappedSpecLabel[] {
+  const unmapped = new Map<string, UnmappedSpecLabel>();
   for (const attribute of attributes) {
     const label = `${attribute.group ?? ""} ${attribute.name}`.trim();
     if (!label || matchProperty(label)) continue;
     if (matchTechnicalAttributeAlias("global", label, { includeCrossManufacturer: false })) continue;
     const value = attribute.value?.trim() ?? "";
     if (!value || value.length > UNMAPPED_SPEC_VALUE_MAX_LENGTH) continue;
-    if (parseQuantities(value).length === 0) continue;
-    unmapped.add(attribute.name.trim());
+    const name = attribute.name.trim();
+    const valueKind = parseQuantities(value).length ? "quantity" : "text";
+    // The numeric path is the pre-existing audit behavior. Text values need the extra provenance
+    // guard because a short caption or URL otherwise becomes a false ontology task.
+    if (!name || NON_SPEC_TEACH_LIST_LABEL.test(name) || NON_SPEC_TEACH_LIST_LABEL_SHAPE.test(name) || VALUE_ONLY_TEACH_LIST_LABEL.test(name) || MANUAL_INSTRUCTION_TEACH_LIST_LABEL.test(name)) continue;
+    if (valueKind === "text" && (
+      NON_SPEC_TEACH_LIST_GROUP.test(attribute.group?.trim() ?? "") ||
+      /^(?:https?:\/\/|www\.)/i.test(value) ||
+      !/[\p{L}]/u.test(name) ||
+      !TEXT_TEACH_LIST_GROUP.test(attribute.group?.trim() ?? "")
+    )) continue;
+    const key = name.toLocaleLowerCase();
+    const prior = unmapped.get(key);
+    // A numeric observation is the more actionable diagnostic when the same label appears with
+    // both kinds, but retaining text-only labels is the essential P1.1 coverage fix.
+    if (!prior || (prior.valueKind === "text" && valueKind === "quantity")) unmapped.set(key, { label: name, valueKind });
   }
-  return [...unmapped];
+  return [...unmapped.values()];
 }
 
 function uniqueStrings(values: string[]): string[] {
   return uniqueStringsBase(values, { filterEmpty: false });
+}
+
+/**
+ * Is this label/value disqualified from carrying a value of the given PHYSICAL QUANTITY?
+ *
+ * One vocabulary, keyed on the quantity kind, because that is the only namespace the codebase's two
+ * label systems share. `normalizer.ts` has four independent paths that assign an electrical field — the
+ * registry path, the ontology-synonym path, the unit-inference path and the pattern path — and each used
+ * to hand-roll its own `key === "voltage"` / `key === "ratedVoltage"` condition. The registry paths speak
+ * `NormalizedProductFields` keys and the ontology paths speak ontology keys, so the SAME rule had to be
+ * spelled twice in two vocabularies, and adding a fifth path meant remembering to spell it again.
+ *
+ * `value` is checked as well as `label` because a loose PDF "label: value" split can leave the
+ * disqualifying qualifier on either side of the colon.
+ */
+export function isDisqualifiedForQuantityKind(label: string, value: string, kind: QuantityKind): boolean {
+  const text = `${label} ${value}`;
+  if (kind === "current") {
+    // Surge / fault current ratings (SPD discharge current In/Iimp, short-circuit current Icc,
+    // short-circuit breaking capacity Icu/Ics) are kA-level fault figures, NOT the product's rated
+    // operational current — they leak into the current field via any catch-all /current/ pattern
+    // whenever they are the only current-shaped attribute (breakers, SPDs). "Switching capacity" and
+    // "switching current" are deliberately NOT here: for a relay or thermostat those ARE the contact
+    // current rating in A (see the nVent thermostat test).
+    if (/\b(?:nominal\s+)?discharge\s+current\b/i.test(label)) return true;
+    if (/\bimpulse\s+current\b/i.test(label)) return true;
+    if (/\blightning\s+(?:impulse\s+)?current\b/i.test(label)) return true;
+    if (/\bshort-?circuit\b[^.;|]*\b(?:current|breaking|capacity)\b|\bcurrent\b[^.;|]*\bshort-?circuit\b/i.test(label)) return true;
+    if (/\bbreaking\s+capacity\b/i.test(label)) return true;
+    // An inrush or starting peak is a transient, not the rating the product is sold on.
+    if (/\b(?:inrush|starting|peak)\s+current\b/i.test(label)) return true;
+  }
+  if (kind === "voltage") {
+    if (/\b(?:voltage drop|output voltage limits?|insulation voltage|impulse|withstand|protection level)\b/i.test(text)) return true;
+    // RCD/RCCB datasheets (e.g. Doepke) publish a "min./max. operating voltage range of test circuit" —
+    // the voltage the RCD's own trip-test button needs, not the product's rated supply voltage.
+    if (/test\s+(?:circuit|device|equipment|instrument)|pr[üu]feinrichtung/i.test(text)) return true;
+    // The same datasheets publish a per-sensitivity-type minimum, "Minimum rated operating voltage
+    // (Type A/AC operation)" — the supply floor for one detection mode's electronics, not the product's.
+    if (/\(type\s+[a-z]\+?(?:\/[a-z]+)?\s+operation\)/i.test(text)) return true;
+  }
+  if (kind === "voltage" || kind === "current") {
+    // A standard's title describes its own scope, not a product rating: "NEMA 250 Enclosures for
+    // Electrical Equipment (1000 Volts Maximum)" otherwise leaks a voltage into mechanical products.
+    if (/\benclosures?\s+for\s+electrical\s+equipment\b/i.test(label) || /\bnema\s*250\b/i.test(label)) return true;
+    // An indicator lamp's own supply is a SUB-COMPONENT rating. A Ganter handle publishes "LED indicator
+    // light / LED ring lighting Operating voltage … 24 V DC ± 10 % / 7 mA", which is what the lamp inside
+    // one optional variant needs — not what the handle is rated for. The qualifier is required, so a
+    // product that IS a pilot light keeps its own bare "Operating voltage" row.
+    if (/\b(?:indicator|pilot|signal)\s+(?:light|lamp)\b|\bLED\s+(?:indicator|ring|status|display)\b|\bbacklight\b/i.test(label)) {
+      return true;
+    }
+  }
+  return false;
 }

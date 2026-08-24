@@ -1,0 +1,17 @@
+{
+  "_tier": "value-verified",
+  "_source": "Recorded official ABB PartCommunity CAD product page: heading and published product-information rows in page.html.",
+  "_notes": "This is an official CAD product page, not a generic search page. It verifies that the generic HTML table reader keeps exact identity and published accessory metadata without inventing electrical values.",
+  "attributesInclude": [
+    { "name": "Order Number", "valueContains": "1SDA126426R1" },
+    { "name": "Description", "valueContains": "DLP Door Lock" },
+    { "name": "GTIN", "valueContains": "8056221279253" },
+    { "name": "Product Class", "valueContains": "Accessory" }
+  ],
+  "normalized": {
+    "voltage": { "absent": true },
+    "current": { "absent": true },
+    "weight": { "absent": true },
+    "dimensions": { "absent": true }
+  }
+}

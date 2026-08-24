@@ -1,0 +1,13 @@
+{
+  "id": "turck-BI3U-EG12SK-VP4X-page",
+  "manufacturerId": "turck",
+  "catalogNumber": "BI3U-EG12SK-VP4X",
+  "note": "Recorded turck product page (287 kB), extracted from a past run's page cache. Guards the generic HTML understanding path for this vendor's page shape.",
+  "pages": [
+    {
+      "path": "page.html",
+      "url": "https://www.turck.com/de/en/shop/sensors/inductive-sensors/1580601",
+      "sourceType": "official"
+    }
+  ]
+}

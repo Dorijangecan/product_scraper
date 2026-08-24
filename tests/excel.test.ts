@@ -398,6 +398,15 @@ describe("excel export", () => {
     expect(specMatrix.getRow(2).getCell(matrixHeaders.indexOf("Product Type") + 1).value).toBe("KLP-D");
     expect(cellText(specMatrix.getRow(2).getCell(matrixHeaders.indexOf("Datasheet URL") + 1))).toContain("DocumentID=1SBC100214C0202");
 
+    const unmappedLabels = workbook.getWorksheet("Unmapped Labels")!;
+    const unmappedHeaders = (unmappedLabels.getRow(1).values as unknown[]).slice(1);
+    expect(unmappedHeaders).toEqual(expect.arrayContaining([
+      "Reviewer Decision (never applied automatically)",
+      "Reviewed By",
+      "Evidence URL / fixture",
+      "Review Note"
+    ]));
+
     const checks = workbook.getWorksheet("Checks")!;
     const checkValues = checks.getSheetValues().flat().map((value) => String(value ?? ""));
     expect(checkValues).toContain("Missing image");

@@ -1366,7 +1366,7 @@ describe("normalizer", () => {
     expect(classifyDocument("A12126T1PP 3D Step CAD File", "https://www.nvent.com/file.step")).toBe("cad");
   });
 
-  it("deduplicates nVent certificate tokens and ignores lowercase asset IDs that look like IP ratings", () => {
+  it("keeps nVent protection ratings out of certificate tokens and ignores lowercase asset IDs", () => {
     const normalized = normalizeFields(
       [
         { group: "Certifications", name: "Certification", value: "rohs", sourceType: "official-fallback" },
@@ -1381,8 +1381,9 @@ describe("normalizer", () => {
     expect(normalized.certificates).toContain("RoHS");
     expect(normalized.certificates?.match(/RoHS/g)).toHaveLength(1);
     expect(normalized.certificates).toContain("UL");
-    expect(normalized.certificates).toContain("IP30");
+    expect(normalized.certificates).not.toContain("IP30");
     expect(normalized.certificates).not.toContain("ip8062");
+    expect(normalized.protection).toContain("IP30");
   });
 
   it("cleans nVent compliance resource labels while preserving real standards", () => {

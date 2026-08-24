@@ -1,0 +1,19 @@
+{
+  "normalized": {
+    "dimensions": { "contains": "8 x 56 x 47 mm" }
+  },
+  "attributesInclude": [
+    { "name": "Color", "valueContains": "Grey" },
+    { "name": "Pkg Qty.", "valueContains": "100" },
+    { "name": "Torque", "valueContains": "4.4 lb" },
+    { "name": "Dimensions", "valueContains": "8 x 56 x 47 mm" }
+  ],
+  "mustNotContain": [
+    "Grey 100 1492-EAJ35",
+    "Current rating\tGrey",
+    "Voltage rating\t100; 1492-EAJ35"
+  ],
+  "_tier": "value-verified",
+  "_source": "Official Rockwell Automation Publication 1492-TD015A-EN-P, p. 43 (printed p. 44), IEC Terminal Block Accessories / End Barriers table. Target row: dimensions 0.31 x 2.20 x 1.85 in. (8 x 56 x 47 mm), tightening torque 4.4 lb-in (0.5 N-m), Color Grey, Pkg Qty. 100, Cat. No. 1492-EAJ35.",
+  "_notes": "This is a row-oriented table whose identification column is last, not first. Neighbour rows are EAHJ35, EAJ15 and ERL35; their values must not be inferred for the target."
+}

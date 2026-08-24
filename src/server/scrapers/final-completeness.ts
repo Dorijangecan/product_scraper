@@ -14,6 +14,7 @@ import { getManufacturerConfig } from "../config/manufacturers.js";
 import { electricalFieldsForDeviceType, finalCompletenessFieldsForDeviceType } from "../pdt/device-type-profiles.js";
 import { classifyDeviceType } from "./device-type.js";
 import { dedupeAttributes as dedupeAttributesBase, dedupeDocuments as dedupeSharedDocuments, dedupeSources } from "./dedupe.js";
+import { evidenceConfidence } from "./evidence-score.js";
 import { fieldMatchesLabel, type RegistryFieldKey } from "./field-registry.js";
 import { cleanText, normalizeFields } from "./normalizer.js";
 import { matchProperty } from "./ontology.js";
@@ -476,6 +477,10 @@ function finalFieldRequirement(
   options: FinalCompletenessOptions = {}
 ): FinalRequirement {
   if (field === "image" && options.requireImage === false) return "not-applicable";
+  // An explicit user opt-out (a coverage tile switched off for the run) wins over every heuristic
+  // below, including the device-type electrical check — otherwise the field stays "required",
+  // enters retryMissing and buys another discovery/reader round per row for nothing.
+  if (manufacturer.scrapeRecipe?.qualityPolicy?.notApplicableFields?.includes(field)) return "not-applicable";
   const profileRequirement = profileFinalFieldRequirement(field, manufacturer);
 
   // Voltage/current are decided by the device-type-aware electrical requirement, NOT by a
@@ -673,13 +678,16 @@ function fieldLabelMatches(field: FinalCompletenessField, label: string): boolea
 
 function repairAttributeScore(field: FinalCompletenessField, attr: AttributeRecord): number {
   const label = `${attr.group ?? ""} ${attr.name}`.toLowerCase();
-  let score = attr.sourceType === "official" ? 100 : attr.sourceType === "official-fallback" ? 85 : attr.sourceType === "generated" ? 75 : 45;
-  if (/pdf|document/.test(`${attr.parser ?? ""} ${attr.stage ?? ""} ${attr.group ?? ""}`.toLowerCase())) score += 25;
+  let score = Math.round(evidenceConfidence({
+    sourceType: attr.sourceType,
+    parser: `${attr.parser ?? ""} ${attr.group ?? ""}`,
+    stage: attr.stage,
+    confidence: attr.confidence
+  }) * 150);
   if (field === "weight" && /\b(product net weight|net weight|unit weight|product weight|mass)\b/.test(label)) score += 35;
   if (field === "weight" && /\b(package|packing|packaging|shipping|gross)\b/.test(label)) score -= 15;
   if (field === "dimensions" && /\b(package|packing|packaging)\b/.test(label)) score -= 60;
   if (field === "material" && /\b(housing|enclosure|body|base material)\b/.test(label)) score += 30;
-  if (attr.confidence !== undefined) score += Math.round(attr.confidence * 10);
   return score;
 }
 

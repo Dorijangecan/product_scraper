@@ -1,0 +1,41 @@
+{
+  "_source": "nVent Hoffman A6R44HCR hinge-cover drip-shield enclosure, recorded product page (235 kB). Title states the product plainly: `Hinge-Cover Small Drip-Shield Enclosure Type 3R, 6.00x4.00x4.00, Gray, Steel`, and the page's own rows give Material `Mild Steel`, Finish `Powder Coated`, Color `Gray` / Color Code `ANSI 61`, Height/Width/Depth in both in and mm, and Article Number 13402.",
+
+  "_tier": "value-verified. Promoted for the third-highest yield; found the SECOND case of noise reaching a shipped field, and via the same route as the first — document labels, not attributes.",
+
+  "normalized": {
+    "material": { "contains": "Mild Steel" },
+    "finish": { "contains": "Powder Coated" },
+    "color": { "contains": "Gray" },
+    "weight": { "contains": "1.63 kg" },
+    "dimensions": { "contains": "152.4 x 101.6 x 101.6" },
+    "protection": { "contains": "3R" },
+    "certificates": { "contains": "UL 50" }
+  },
+
+  "attributesInclude": [
+    { "name": "Color Code", "valueContains": "ANSI 61" },
+    { "name": "Article Number", "valueContains": "13402" },
+    { "name": "Knockout Pattern", "valueContains": "B-C-D" }
+  ],
+
+  "mustNotContain": [
+    "653 KB",
+    "117 KB",
+    "KB English",
+    "Declaration of Conformity Declaration of Conformity",
+    "font-weight",
+    "!important",
+    "Add to cart",
+    "500,"
+  ],
+
+  "_notes": {
+    "certificates_carried_file_metadata": "This fixture found P1.4e. The certificates field read `… RoHS, CERT-00070 653 KB English Declaration of Conformity, Declaration of Conformity 117 KB English Declaration of Conformity, …` — download-link decoration (file size, language) inside a shipped field, plus the document's name repeated twice.",
+    "already_existed_but_anchored": "`cleanCertificateResourceText` had stripped size and language since before this work — but only END-ANCHORED. nVent puts the decoration in the MIDDLE (`Declaration of Conformity 117 KB English Declaration of Conformity`), so the rule never fired. Un-anchoring the SIZE (and any language directly after it) fixes it; the bare-language strip stays end-anchored on purpose, because stripping a language name anywhere would damage real certification bodies — `Germanischer Lloyd`.",
+    "repeated_phrase": "Removing decoration from between two copies of a name leaves `Declaration of Conformity Declaration of Conformity`, so the cleanup now collapses a back-to-back repeated phrase.",
+    "route_lesson": "Second time in a row the fix did NOT belong in the attribute gate: certificates are assembled from DOCUMENT labels (normalizer.ts, the documents branch), so an attribute-level rule cannot see them. Worth remembering as a rule of its own — a wrong value in a field means asking which of the several routes into that field produced it, before writing any predicate.",
+    "weight_assertion": "Asserted with `contains` rather than a number: the value is legitimately dual-unit (`3.6lb (1.63 kg)`) and the harness's numeric matcher reads the FIRST number, which is the pounds. My first attempt asserted `{number: 1.63}` and failed — the assertion was wrong, not the extraction.",
+    "protection_and_certificates": "`IP32` is a protection rating, not an approval, and is excluded from `certificates`. Standards blocks are reduced to their published protection tokens, yielding the de-duplicated canonical protection value `Type3R; IP32`."
+  }
+}

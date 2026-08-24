@@ -1,8 +1,10 @@
 import type {
   CsvPreview,
+  LearnedExtractorApprovalRequest,
   ManufacturerConfig,
   ManufacturerInspectRequest,
   ManufacturerInspectResult,
+  ManufacturerOperationalSummary,
   ManufacturerTestRequest,
   ManufacturerTestResult,
   RunItemRecord,
@@ -11,6 +13,10 @@ import type {
 
 export async function getManufacturers(): Promise<ManufacturerConfig[]> {
   return request("/api/manufacturers");
+}
+
+export async function getManufacturerOperationalSummary(id: string): Promise<ManufacturerOperationalSummary> {
+  return request(`/api/manufacturers/${encodeURIComponent(id)}/operational-summary`);
 }
 
 export async function saveManufacturer(input: ManufacturerConfig): Promise<{ manufacturer: ManufacturerConfig; manufacturers: ManufacturerConfig[] }> {
@@ -31,6 +37,14 @@ export async function inspectManufacturer(input: ManufacturerInspectRequest): Pr
 
 export async function testManufacturer(input: ManufacturerTestRequest): Promise<ManufacturerTestResult> {
   return request("/api/manufacturers/test", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(input)
+  });
+}
+
+export async function approveLearnedExtractor(input: LearnedExtractorApprovalRequest): Promise<void> {
+  await request(`/api/manufacturers/${encodeURIComponent(input.manufacturerId)}/learned-extractors`, {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify(input)

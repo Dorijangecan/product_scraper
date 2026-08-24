@@ -20,6 +20,7 @@ export function isPdfLikeDocumentUrl(url: string): boolean {
 }
 
 export function documentUrlLooksDownloadable(url: string): boolean {
+  if (isDocumentPlaceholderUrl(url)) return false;
   return (
     isPdfLikeDocumentUrl(url) ||
     /\.(zip|dwg|dxf|stp|step|igs|iges)(?:[?#]|$)/i.test(url) ||
@@ -31,6 +32,7 @@ export function documentUrlLooksDownloadable(url: string): boolean {
 }
 
 export function documentUrlLooksRelevant(url: string, context: string, type: DocumentRecord["type"]): boolean {
+  if (isDocumentPlaceholderUrl(url)) return false;
   if (documentUrlLooksDownloadable(url)) return true;
   const text = `${context} ${url}`;
   if (!/\b(?:pdf|data\s*sheet|datasheet|manual|instruction|installation|certificate|declaration|conformity|technical\s+(?:data|sheet|information)|spec(?:ification)?\s*sheet|download)\b/i.test(text)) {
@@ -38,6 +40,16 @@ export function documentUrlLooksRelevant(url: string, context: string, type: Doc
   }
   if (type !== "other") return true;
   return /\/(?:download|downloads|files?|documents?|resources?|media|dam)(?:[/?#]|$)|[?&](?:doc|document|file|asset|media|download|p_Doc_Ref|p_enDocType)=/i.test(url);
+}
+
+/** MIME/type tokens emitted as hrefs by upload/document widgets are not documents. */
+export function isDocumentPlaceholderUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    return !parsed.search && /^\/(?:table|zip|x-zip|x-zip-compressed)\/?$/i.test(parsed.pathname);
+  } catch {
+    return false;
+  }
 }
 
 export function isPdfLikeDocument(doc: Pick<DocumentRecord, "url">): boolean {

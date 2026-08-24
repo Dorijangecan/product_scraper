@@ -6,6 +6,7 @@ import { promisify } from "node:util";
 import sanitize from "sanitize-filename";
 import sharp from "sharp";
 import type { ScraperDb } from "../db.js";
+import { decodeMaybeCompressedText } from "./gzip-text.js";
 
 const execFileAsync = promisify(execFile);
 const DEFAULT_CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
@@ -247,6 +248,42 @@ export class CachedHttpClient {
       statusCode: response.status,
       contentType,
       text,
+      fetchedAt,
+      fromCache: false
+    };
+  }
+
+  /**
+   * Like `fetchText`, but decompresses a gzip/zlib body.
+   *
+   * Needed for `sitemap.xml.gz`: there the `.gz` is the FILE format, not a transport encoding, so
+   * `fetch` does not decompress it and `fetchText` returns mojibake that no XML regex can read. Only
+   * used where a compressed body is plausible — see `urlLooksCompressed` — since it bypasses the
+   * normal text cache and buffers the body.
+   */
+  async fetchMaybeCompressedText(
+    url: string,
+    options: { headers?: Record<string, string>; timeoutMs?: number; signal?: AbortSignal } = {}
+  ): Promise<FetchedText> {
+    throwIfAborted(options.signal);
+    const fetchedAt = new Date().toISOString();
+    await this.acquireHostSlot(url);
+    const { response, buffer } = await this.fetchBufferWithRetry(url, {
+      method: "GET",
+      headers: {
+        "user-agent": DEFAULT_USER_AGENT,
+        accept: "application/xml,text/xml,application/gzip,application/x-gzip,*/*;q=0.5",
+        ...options.headers
+      },
+      timeoutMs: options.timeoutMs ?? 20000,
+      signal: options.signal
+    });
+    return {
+      requestedUrl: url,
+      effectiveUrl: response.url || url,
+      statusCode: response.status,
+      contentType: response.headers.get("content-type") ?? "",
+      text: decodeMaybeCompressedText(buffer),
       fetchedAt,
       fromCache: false
     };
