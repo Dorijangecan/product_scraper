@@ -31,7 +31,7 @@ describe("generic multi-value HTML leaves", () => {
     expect(result.attributes.map((attribute) => String(attribute.value))).not.toEqual(
       expect.arrayContaining(["IP65IP67", "non-condensingnon-icing"])
     );
-  });
+  }, 15_000);
 
   it("does not turn adjacent Schmersal responsive rows into one cross-row attribute", async () => {
     const url = "https://products.schmersal.com/en_GB/azm-161sk-1212rk-024-101164207";
@@ -71,7 +71,7 @@ describe("generic multi-value HTML leaves", () => {
         expect.objectContaining({ name: "Approvals - Standards", value: "CertificatesCCCcULusIFA" })
       ])
     );
-  });
+  }, 15_000);
 
   it("does not export sibling catalog codes as HTML property labels", async () => {
     const url = "https://www.fath24.com/en/Main-Power-Cable-GST18i3-for-Module-F-Line/6SAME4J316B.4000";

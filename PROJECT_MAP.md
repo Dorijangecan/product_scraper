@@ -156,6 +156,8 @@ ProductResult {            // središnji objekt koji teče kroz cijeli pipeline;
                                           //  enrichment ga preskače (npr. Ganter multi-varijantni katalozi)
   sources: SourceRecord[];                // {url,sourceType:official|official-fallback|distributor|cache|generated,parser,...}
   qualityGate?; diagnostics?; evidence?: EvidenceRecord[];
+  // diagnostics.terminal?.skipNetworkFallback marks an authoritative negative connector response:
+  // row stays failed, but run-manager skips remote-document/discovery/browser retries and moves on.
   technicalAttributes?: TechnicalAttributeRecord[];   // ontologijom "shvaćeni" original label/value
   error?;
 }

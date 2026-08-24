@@ -327,6 +327,8 @@ export interface ScrapeDiagnostics {
   discoveredCandidates?: Array<{ url: string; score: number; reason: string; stage?: string; sourceType?: SourceRecord["sourceType"] }>;
   rejectedLinks?: Array<{ url: string; score?: number; reason: string }>;
   fallbackStages?: string[];
+  /** A connector received an authoritative negative response; keep the row honest but do not re-run unrelated network fallbacks. */
+  terminal?: { reason: string; skipNetworkFallback?: boolean };
   finalCompleteness?: FinalCompletenessDiagnostics;
   browserNetwork?: BrowserNetworkRecord[];
   suggestedApiEndpoints?: string[];

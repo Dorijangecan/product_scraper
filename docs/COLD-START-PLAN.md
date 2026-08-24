@@ -3480,3 +3480,57 @@ kontaminacija); label audit A/C/D/E = 0.
 target-bound layout gap (samo ponovljeni `800F-X10` korumpirani PDF, nepovezano s ovim popravkom).
 Nisam širio `#`-alternativu na DE/FR/IT id-header sinonime (`Bestell-Nr.`, `Référence`, …) jer korpus
 nema dokaz za `#` u tim jezicima — samo EN `part`/`order`/`article`/`item`/`model`/`catalog` + `#`.
+
+### ✅ P1.2m — rated current iz provjerenog product opisa, za sve vendore
+
+Stvarni ABB PIS odgovor za `1SBL131001R5501` objavljuje `25 A (AC-1)` samo u `Long Description`, bez
+zasebnog current atributa. Postojeći normalizer taj je obrazac čitao samo kada je group nosio jedno od
+nekoliko unaprijed nabrojenih imena proizvođača; isti dokaz pod neutralnim `Manufacturer Product Data`
+groupom ostavljao je `normalized.current` praznim. Novi end-to-end PIS regression test i neutralni
+normalizer test najprije su pali na tom izlazu.
+
+`deriveCurrentFromText` sada osim postojećeg vendor-specifičnog puta prihvaća svaki product-shaped
+`name`/`title`/`type`/`description` atribut, ali samo ako se uz amper nalazi jasan rated/operational/
+AC-DC utilization kontekst ili tip uređaja kojemu je to nazivni podatak (npr. contactor, breaker,
+starter, drive, transformer, relay). Kratki spoj, breaking capacity, discharge/impulse/inrush/starting/
+peak current ostaju eksplicitno isključeni. Time se ne izmišlja broj iz marketinške proze niti se
+promovira kvarna struja; samo se već objavljeni nameplate podatak vraća kada nema strukturiranog polja.
+
+Ciljani testovi: TypeScript čist; `tests/parsers.test.ts` + `tests/normalizer.test.ts` **465/465**,
+uključujući negative fault-current case. Puni offline gate: root Vitest **2275/2275**; eval **35/35**,
+**367** provjera, 0 kontaminacija i 1 dokumentirani color gap; spec-gate **1694 → 1485**, **0 SUSPECT /
+0 garbage**; label audit A/C/D/E = 0.
+
+### ✅ P3.4a — autoritativni “nema kataloga” ne smije blokirati run
+
+UI je pokazao ABB `1SBL131005R5501` u `quality-fallback` već 11 min 23 s. Live provjera službenog
+`PisSearchApi` vraća HTTP 200 i `TotalResultsCount = 0`; točna obitelj `1SBL131005` postoji, ali nema
+`R5501`. Sličan, ali različit službeni katalog `1SBL131001R5501` jest `AFC09-30-01-55`. Dakle baš ovaj
+red nije dokaz “ne nalazimo postojeći URL”, nego pogrešan broj u ulazu — no takav negativan odgovor i
+dalje nikad ne smije držati cijeli red u discovery/browser/PDF repu.
+
+`ScrapeDiagnostics.terminal` sada je eksplicitni, shared signal za autoritativni negativni odgovor.
+ABB ga postavlja samo kada vlastiti PIS search eksplicitno vrati prazni skup; `RunManager` tada preskače
+remote-document, discovery, reader i browser fallback te odmah dovršava red kao `failed`. Customer
+dokument se i dalje skenira prije tog short-circuita, pa korisnikov izvor može popuniti proizvod.
+Običan failed rezultat bez terminalnog signala i dalje radi puni discovery path. Regresije pokrivaju oba
+slučaja, plus postojeći test PIS empty searcha.
+
+Isti `AbortSignal` sada živi cijelim per-item putem, ne samo tijekom početnog connector poziva: početni
+source, download dokumenata, remote PDF, deterministic discovery i završni retry svi dijele tvrdi budžet
+od 4 minute. Prije je timer bio očišćen odmah nakon official-source pokušaja, pa je `quality-fallback`
+mogao držati worker 11+ minuta. Timeout zadržava već pronađene podatke kao `partial`, ili uredno označi
+red kao failed, i concurrency slot se oslobodi za sljedeći kataloški broj.
+
+### ✅ P1.2n — AC-15 current mora pratiti stvarni napon kruga
+
+ABB-ova tehnička tablica za kontakt prikazuje `Main Circuit 690 V` te zasebno AC-15 parove
+`(500 V) 2 A`, `(690 V) 2 A`, `(24/27 V) 6 A`, `(220/240 V) 4 A`, `(400/440 V) 3 A` uz konvencionalnu
+toplinsku struju od 16 A. `normalized.current` sada bira AC-15 par tek kada se objavljeni operational
+napon (prednost ima `Main Circuit`) stvarno pojavljuje u istom paru; ne uzima prvu stavku tablice niti
+toplinsku struju. Ako nema para s istim naponom, pravilo šuti i standardno rangiranje odlučuje kao prije.
+Testovi pokrivaju stvarnu ABB tablicu i kontraprimjer gdje prva stavka (500 V / 9 A) ne smije pobijediti
+kasniji podudarni par (690 V / 2 A).
+
+Puni gate: TypeScript čist; root Vitest **2277/2277**; eval **35/35**, **367** provjera, 0 kontaminacija
+i 1 dokumentirani color gap; spec-gate **1694 → 1485**, **0 SUSPECT / 0 garbage**; label audit A/C/D/E = 0.

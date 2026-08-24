@@ -398,6 +398,29 @@ describe("manufacturer parsers", () => {
     ]);
   });
 
+  it("derives ABB rated current from an exact product long description when the PIS detail has no current field", () => {
+    // Captured by the ABB CSV detector: 1SBL131001R5501 is returned by the official PIS detail API
+    // with this description, but no explicit current attribute.
+    const catalogNumber = "1SBL131001R5501";
+    const html = `
+      <html><head><title>AFC09-30-01-55 | ABB</title></head><body>
+        ${catalogNumber}
+        <script>
+          var model = {"ProductViewModel":{"Product":{"productDetails":{"item":{"productId":"${catalogNumber}","attributes":{
+            "ProductId":{"type":"Text","attributeCode":"ProductId","attributeName":"Product ID","values":[{"text":"${catalogNumber}"}]},
+            "CatalogDescription":{"type":"Text","attributeCode":"CatalogDescription","attributeName":"Catalog Description","values":[{"text":"AFC09-30-01-55 500V50Hz 600V60Hz Contactor"}]},
+            "LongDescription":{"type":"Text","attributeCode":"LongDescription","attributeName":"Long Description","values":[{"text":"The AFC09-30-01-55 is a 3-pole - 690 V IEC or 600 V UL contactor with 1 N.C built-in auxiliary contact and Screw terminals, mainly controlling power circuits up to 4 kW / 400 V AC (AC-3) or 5 hp / 480 V AC UL and 25 A (AC-1) or 25 A UL general use."}]}
+          }}}}}};
+        </script>
+      </body></html>
+    `;
+
+    const result = parseAbbProductPage(catalogNumber, fetched(html, `https://new.abb.com/products/pl/${catalogNumber}/afc09-30-01-55`));
+
+    expect(result.status).toBe("found");
+    expect(result.normalized.current).toBe("25 A");
+  });
+
   it("does not copy ABB product-model weight from a sibling catalog payload", () => {
     const html = `
       <html><head>
@@ -809,6 +832,10 @@ describe("manufacturer parsers", () => {
     const result = await connector.scrape(catalogNumber, context);
 
     expect(result.status).toBe("failed");
+    expect(result.diagnostics?.terminal).toEqual({
+      reason: "official-catalog-not-found",
+      skipNetworkFallback: true
+    });
     expect(powerShellUrls).toHaveLength(0);
     expect(requestedUrls).toEqual([`https://new.abb.com/api/PisSearchApi?query=${catalogNumber}&pageNumber=1&pageSize=8&lang=en`]);
     expect(requestedUrls.filter((url) => url.includes(`/products/de/${catalogNumber}/product`))).toHaveLength(0);

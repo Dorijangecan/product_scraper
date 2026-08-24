@@ -44,6 +44,33 @@ describe("normalizer", () => {
     expect(normalized.certificates).toContain("Declaration of Conformity");
   });
 
+  it("derives a rated current from an explicit product description for any manufacturer", () => {
+    // Real ABB PIS wording for 1SBL131001R5501, deliberately under a neutral group: the
+    // fallback must be driven by the semantic description/current evidence, not the vendor name.
+    const normalized = normalizeFields(
+      [
+        {
+          group: "Manufacturer Product Data",
+          name: "Long Description",
+          value:
+            "The AFC09-30-01-55 is a 3-pole contactor, mainly controlling power circuits up to 4 kW / 400 V AC (AC-3) or 5 hp / 480 V AC UL and 25 A (AC-1) or 25 A UL general use."
+        }
+      ],
+      []
+    );
+
+    expect(normalized.current).toBe("25 A");
+  });
+
+  it("does not promote a fault-current-only product description into rated current", () => {
+    const normalized = normalizeFields(
+      [{ group: "Manufacturer Product Data", name: "Long Description", value: "Circuit breaker with short-circuit breaking capacity of 25 kA." }],
+      []
+    );
+
+    expect(normalized.current).toBeUndefined();
+  });
+
   it("fills voltage/current/weight from Italian labels via the multilingual ontology fallback (Phase 4 U1b)", () => {
     // These labels are not in FIELD_LABEL_PATTERNS (EN/DE); only the multilingual ontology
     // recognises them. Before wiring the ontology gap-fill for these fields, they stayed empty.
@@ -1304,6 +1331,39 @@ describe("normalizer", () => {
     );
 
     expect(normalized.current).toBe("(400 V) 16 A");
+  });
+
+  it("selects the AC-15 current paired with the product's main-circuit voltage", () => {
+    // Ground truth from ABB's product-data table: current must be read from the same voltage row,
+    // not from the first AC-15 entry or the conventional thermal-current line.
+    const normalized = normalizeFields(
+      [
+        { group: "ABB Product Data", name: "Rated Operational Voltage", value: "Auxiliary Circuit 690 V\nMain Circuit 690 V", sourceType: "official" },
+        { group: "ABB Product Data", name: "Conventional Free-air Thermal Current (Ith)", value: "acc. to IEC 60947-5-1, Θ = 40 °C 16 A", sourceType: "official" },
+        {
+          group: "ABB Product Data",
+          name: "Rated Operational Current AC-15 (Ie)",
+          value: "(500 V) 2 A; (690 V) 2 A; (24 / 27 V) 6 A; (220 / 240 V) 4 A; (400 / 440 V) 3 A",
+          sourceType: "official"
+        }
+      ],
+      []
+    );
+
+    expect(normalized.voltage).toContain("Main Circuit 690 V");
+    expect(normalized.current).toBe("2 A");
+  });
+
+  it("does not take the first AC-15 entry when it belongs to another voltage", () => {
+    const normalized = normalizeFields(
+      [
+        { group: "Product Data", name: "Rated Operational Voltage", value: "Main Circuit 690 V", sourceType: "official" },
+        { group: "Product Data", name: "Rated Operational Current AC-15", value: "(500 V) 9 A; (690 V) 2 A", sourceType: "official" }
+      ],
+      []
+    );
+
+    expect(normalized.current).toBe("2 A");
   });
 
   it("prefers ABB power-supply input/output voltage over insulation voltage", () => {

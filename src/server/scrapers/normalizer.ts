@@ -345,7 +345,8 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
       inferredOntologyFieldValue(attributes, "ratedVoltage", normalizeVoltageValue)
   );
   const current = withoutMixedKindProse(
-    numericCurrentAttributeCurrent(attributes) ??
+    voltageAlignedAc15Current(attributes, voltage) ??
+      numericCurrentAttributeCurrent(attributes) ??
       bestNormalizedAttributeValue(attributes, normalizerFieldLabelPatterns("current"), normalizeCurrentValue, "current") ??
       registryFieldValue(attributes, "current", normalizeCurrentValue) ??
       normalizeCurrentValue(deriveCurrentFromText(attributes)) ??
@@ -733,6 +734,55 @@ function numericVoltAttributeVoltage(attributes: AttributeRecord[]): string | un
 
 function numericCurrentAttributeCurrent(attributes: AttributeRecord[]): string | undefined {
   return bestNumericElectricalAttribute(attributes, /\b(?:max\.?\s*current|rated current|current ratings?|ampere rating|amperage|amps?|amperes?)\b/i, "A");
+}
+
+/**
+ * AC-15 is a table of paired operating points, not a single current.  A contact's 24 V AC-15
+ * current is often several times its 690 V value, so selecting the first value (or the nearby
+ * conventional thermal current) gives the wrong product rating.  Only promote an AC-15 value
+ * when the product's published operational voltage names the same voltage; an unmatched table is
+ * deliberately left to the ordinary ranking paths below.
+ */
+function voltageAlignedAc15Current(attributes: AttributeRecord[], normalizedVoltage: string | undefined): string | undefined {
+  const mainCircuitVoltages = attributes.flatMap((attr) => {
+    const label = `${attr.group ?? ""} ${attr.name}`;
+    if (!/\brated operational voltage\b/i.test(label)) return [];
+    return voltageNumbersFollowingLabel(attr.value, "main circuit");
+  });
+  const operatingVoltages = mainCircuitVoltages.length > 0 ? mainCircuitVoltages : voltageNumbers(normalizedVoltage ?? "");
+  if (operatingVoltages.length === 0) return undefined;
+
+  const candidates = attributes
+    .filter((attr) => /\brated (?:operational|operating) current\b[^|;]*\bAC[-\s]?15\b/i.test(`${attr.group ?? ""} ${attr.name}`))
+    .flatMap((attr) => currentValuesPairedWithVoltage(attr.value, operatingVoltages).map((value) => ({
+      value,
+      score: attributeEvidenceScore(attr) + normalizedFieldLabelScore(attr, "current")
+    })));
+  return candidates.sort((left, right) => right.score - left.score)[0]?.value;
+}
+
+function voltageNumbersFollowingLabel(value: string, label: string): number[] {
+  const matched = value.match(new RegExp(`\\b${label.replace(/\\s+/g, "\\\\s+")}\\b[^\\d]{0,30}((?:\\d+(?:[.,]\\d+)?\\s*(?:/|\\bor\\b|to|-)?\\s*)+)\\s*V\\b`, "i"));
+  return matched ? voltageNumbers(matched[1]) : [];
+}
+
+function voltageNumbers(value: string): number[] {
+  return [...value.matchAll(/\d+(?:[.,]\d+)?(?=\s*(?:V|VAC|VDC)\b)/gi)]
+    .map((match) => localizedNumber(match[0]))
+    .filter((number): number is number => Number.isFinite(number));
+}
+
+function currentValuesPairedWithVoltage(value: string, operatingVoltages: number[]): string[] {
+  const pairs = value.matchAll(/(?:\(|\b)\s*((?:\d+(?:[.,]\d+)?\s*(?:\/|\bor\b|to|-)?\s*)+)V\s*\)?\s*([^;\n\r]*)/gi);
+  const matches: string[] = [];
+  for (const pair of pairs) {
+    const pairedVoltages = voltageNumbers(`${pair[1]} V`);
+    if (!pairedVoltages.some((voltage) => operatingVoltages.some((operatingVoltage) => Math.abs(voltage - operatingVoltage) < 0.001))) continue;
+    const current = pair[2].match(/\b\d+(?:[.,]\d+)?\s*(?:mA|A|kA)\b/i)?.[0];
+    const normalized = normalizeCurrentValue(current);
+    if (normalized) matches.push(normalized);
+  }
+  return matches;
 }
 
 function bestNumericElectricalAttribute(attributes: AttributeRecord[], labelPattern: RegExp, unit: "V" | "A"): string | undefined {
@@ -1384,7 +1434,7 @@ function deriveVoltageFromText(attributes: AttributeRecord[]): string | undefine
 }
 
 function deriveCurrentFromText(attributes: AttributeRecord[]): string | undefined {
-  return bestDerivedElectricalValue(attributes, extractCurrentValues);
+  return bestDerivedElectricalValue(attributes, extractCurrentValues, isCurrentTextCandidate);
 }
 
 function deriveDimensionsFromText(attributes: AttributeRecord[]): string | undefined {
@@ -1420,10 +1470,11 @@ function extractDimensionValuesFromText(value: string): string[] {
 
 function bestDerivedElectricalValue(
   attributes: AttributeRecord[],
-  extractor: (value: string, label: string) => string[]
+  extractor: (value: string, label: string) => string[],
+  isCandidate: (attr: AttributeRecord) => boolean = isElectricalTextCandidate
 ): string | undefined {
   const candidates = attributes
-    .filter(isElectricalTextCandidate)
+    .filter(isCandidate)
     .flatMap((attr) => {
       const label = `${attr.group ?? ""} ${attr.name}`;
       return extractor(derivedSpecText(attr), label).map((value) => ({
@@ -1432,6 +1483,46 @@ function bestDerivedElectricalValue(
       }));
     });
   return candidates.sort((left, right) => right.score - left.score)[0]?.value;
+}
+
+/**
+ * Current is often published only in a product's long description.  The generic electrical-text
+ * allow-list predates that pattern and names individual manufacturers, so keep its established
+ * cases and add a cross-vendor path only for an explicitly product-shaped description with a
+ * rating context.  A bare `25 A` in prose is deliberately insufficient: it may be a component,
+ * accessory, or transient figure rather than the product's own rated current.
+ */
+function isCurrentTextCandidate(attr: AttributeRecord): boolean {
+  if (isElectricalTextCandidate(attr)) return true;
+
+  const label = `${attr.group ?? ""} ${attr.name}`;
+  const text = derivedSpecText(attr);
+  if (!isGenericProductDescriptionLabel(label) || !isLikelySpecText(text) || !isAvailableSpecValue(text)) return false;
+  // Descriptions which only state a fault/surge capability must never become the normal rated
+  // current.  This mirrors the structured-attribute guard, but must inspect the prose itself.
+  if (/\b(?:short-?circuit|breaking capacity|(?:nominal )?discharge current|(?:lightning )?impulse current|inrush current|starting current|peak current)\b/i.test(text)) {
+    return false;
+  }
+
+  return extractCurrentValues(text, label).some((value) => hasRatedCurrentDescriptionContext(text, value));
+}
+
+function isGenericProductDescriptionLabel(label: string): boolean {
+  if (/\b(plain text|script|style|console|image|url|document|download|certificate|approval|standard|classification|eclass|etim|unspsc)\b/i.test(label)) {
+    return false;
+  }
+  return /\b(?:product |catalog |item |short |long |technical )?(?:description|name|title|type|summary|overview|details?)\b/i.test(label);
+}
+
+function hasRatedCurrentDescriptionContext(text: string, value: string): boolean {
+  const index = text.toLowerCase().indexOf(value.toLowerCase());
+  if (index < 0) return false;
+  const nearby = text.slice(Math.max(0, index - 180), Math.min(text.length, index + value.length + 100));
+  // IEC utilization categories (e.g. "25 A (AC-1)") and explicit rating words are direct
+  // evidence.  The device vocabulary covers common descriptions such as contactors that state
+  // "25 A general use" without spelling out "rated current" next to the number.
+  return /\b(?:rated|nominal|operational|continuous|thermal|utili[sz]ation|general use|ac-[1-4]|dc-[1-5])\b/i.test(nearby) ||
+    /\b(?:contactor|contactor relay|circuit breaker|fuse(?:holder)?|motor starter|overload relay|power supply|drive|transformer|switch(?:-| )?disconnector|switchgear|relay|thermostat)\b/i.test(nearby);
 }
 
 function isElectricalTextCandidate(attr: AttributeRecord): boolean {

@@ -356,6 +356,9 @@ export class RunManager {
         // Declared OUTSIDE the try so the catch below can salvage whatever was extracted before a
         // late-stage error (C4 partial-progress recovery).
         let enriched: ProductResult | undefined;
+        let itemScrapeController: AbortController | undefined;
+        let onParentAbort: (() => void) | undefined;
+        let itemTimeoutHandle: ReturnType<typeof setTimeout> | undefined;
         try {
           let customerExtractionFirst: Awaited<ReturnType<typeof extractCustomerDocumentAttributes>> | null = null;
           let customerExtractionEarly: Awaited<ReturnType<typeof extractCustomerDocumentAttributes>> | null = null;
@@ -423,27 +426,26 @@ export class RunManager {
           // the same search-form, browser and sitemap work.
           const discoveryMemo = new Map();
           this.updateItemStage(item.id, "official-source", "Scraping official source", { status: "processing", error: undefined });
-          // Per-item scrape signal: aborts if the whole run is cancelled/paused (propagated from
-          // controller.signal) OR if this single item's official-source scrape runs past
-          // ITEM_SCRAPE_TIMEOUT_MS. Scoped to this item only — a slow/stuck catalog number can no
-          // longer stall its concurrency slot forever; it fails and the run moves on.
-          const itemScrapeController = new AbortController();
-          const onParentAbort = () => itemScrapeController.abort(controller.signal.reason);
+          // Per-item signal covers the entire website path — official source, document probes,
+          // discovery and browser fallback.  A later fallback used to outlive the official-source
+          // timer and could hold a worker for eleven minutes.
+          itemScrapeController = new AbortController();
+          onParentAbort = () => itemScrapeController?.abort(controller.signal.reason);
           if (controller.signal.aborted) itemScrapeController.abort(controller.signal.reason);
           else controller.signal.addEventListener("abort", onParentAbort, { once: true });
-          const itemTimeoutHandle = setTimeout(
-            () => itemScrapeController.abort(new Error(`Official-source scrape timed out after ${Math.round(ITEM_SCRAPE_TIMEOUT_MS / 1000)}s`)),
+          itemTimeoutHandle = setTimeout(
+            () => itemScrapeController?.abort(new Error(`Product scrape timed out after ${Math.round(ITEM_SCRAPE_TIMEOUT_MS / 1000)}s`)),
             ITEM_SCRAPE_TIMEOUT_MS
           );
+          const itemSignal = itemScrapeController.signal;
           let result: ProductResult;
-          try {
-            result = await Promise.race([
+          result = await Promise.race([
               connector.scrape(item.catalogNumber, {
                 http,
                 manufacturer,
                 runDir: layoutRef.runDir,
                 documentsDir: layoutRef.documentsDir,
-                signal: itemScrapeController.signal,
+                signal: itemSignal,
                 browserRenderer,
                 discoveryMemo,
                 downloadDocuments: documentDownloadsForEnrichmentEnabled,
@@ -451,7 +453,7 @@ export class RunManager {
                 imageOnly: imageOnlyMode,
                 ...this.learningContext(),
                 fallback: {
-                  scrape: (catalogNumber, sources) => fallback.scrape(catalogNumber, sources, itemScrapeController.signal)
+                  scrape: (catalogNumber, sources) => fallback.scrape(catalogNumber, sources, itemSignal)
                 },
                 downloadDocument: (doc) =>
                   this.downloadDocument(
@@ -463,7 +465,7 @@ export class RunManager {
                     item.catalogNumber,
                     doc,
                     localDownloads,
-                    itemScrapeController.signal,
+                    itemSignal,
                     undefined,
                     sharedDocumentDownloads
                   )
@@ -473,10 +475,6 @@ export class RunManager {
                 `Official-source scrape for ${item.catalogNumber} timed out after ${Math.round(ITEM_SCRAPE_TIMEOUT_MS / 1000)}s`
               )
             ]);
-          } finally {
-            clearTimeout(itemTimeoutHandle);
-            controller.signal.removeEventListener("abort", onParentAbort);
-          }
           if (this.db.isPauseRequested(run.id)) {
             await this.markItemPaused(run.id, item, layoutRef);
             return;
@@ -498,7 +496,7 @@ export class RunManager {
             manufacturer.shortName,
             initiallyGated,
             localDownloads,
-            controller.signal,
+            itemSignal,
             documentDownloadProfile(manufacturer, initiallyGated, { saveDocuments: downloadDocumentsEnabled }),
             item.catalogNumber,
             sharedDocumentDownloads
@@ -556,6 +554,13 @@ export class RunManager {
             fallbackStages = enriched.diagnostics?.fallbackStages;
           } else if (customerEarlyShortCircuit) {
             // Already populated above. Skip the entire enrichment / fallback / final-audit chain.
+          } else if (shouldSkipNetworkFallback(enriched)) {
+            fallbackStages = enriched.diagnostics?.fallbackStages;
+            await this.appendRunLog(layoutRef, "NETWORK_FALLBACK_SKIPPED_TERMINAL", {
+              catalogNumber: item.catalogNumber,
+              reason: enriched.diagnostics?.terminal?.reason,
+              message: "Connector received an authoritative negative product response; continuing with the next row."
+            });
           } else {
           this.updateItemStage(item.id, "document-enrichment", "Reading downloaded documents for missing values");
           enriched = finalizeQualityGate(await enrichFromDownloadedDocumentsIfPresent(withInitialDownloads), manufacturer);
@@ -579,7 +584,7 @@ export class RunManager {
           if (!enriched.qualityGate?.passed) {
             this.updateItemStage(item.id, "document-enrichment", "Reading datasheets/manuals for missing values");
             enriched = finalizeQualityGate(
-              await enrichFromRemoteDocumentsForMissingValues(enriched, http, enriched.qualityGate?.missing ?? [], controller.signal),
+              await enrichFromRemoteDocumentsForMissingValues(enriched, http, enriched.qualityGate?.missing ?? [], itemSignal),
               manufacturer
             );
             fallbackStages = enriched.diagnostics?.fallbackStages;
@@ -591,7 +596,7 @@ export class RunManager {
               manufacturer,
               runDir: layoutRef.runDir,
               documentsDir: layoutRef.documentsDir,
-              signal: controller.signal,
+              signal: itemSignal,
               browserRenderer,
               discoveryMemo,
               downloadDocuments: documentDownloadsForEnrichmentEnabled,
@@ -599,7 +604,7 @@ export class RunManager {
               imageOnly: imageOnlyMode,
               ...this.learningContext(),
               fallback: {
-                scrape: (catalogNumber, sources) => fallback.scrape(catalogNumber, sources, controller.signal)
+                scrape: (catalogNumber, sources) => fallback.scrape(catalogNumber, sources, itemSignal)
               },
               downloadDocument: (doc) =>
                 this.downloadDocument(
@@ -611,7 +616,7 @@ export class RunManager {
                   item.catalogNumber,
                   doc,
                   localDownloads,
-                  controller.signal,
+                  itemSignal,
                   undefined,
                   sharedDocumentDownloads
                 )
@@ -625,7 +630,7 @@ export class RunManager {
               manufacturer.shortName,
               withSmartFallbacks,
               localDownloads,
-              controller.signal,
+              itemSignal,
               documentDownloadProfile(manufacturer, withSmartFallbacks, { saveDocuments: downloadDocumentsEnabled }),
               item.catalogNumber,
               sharedDocumentDownloads
@@ -657,7 +662,7 @@ export class RunManager {
             const beforeRemoteMissing = remoteDocumentMissing;
             this.updateItemStage(item.id, "document-enrichment", `Reading datasheets/manuals for missing final fields: ${beforeRemoteMissing.join(", ")}`);
             enriched = finalizeQualityGate(
-              await enrichFromRemoteDocumentsForMissingValues(enriched, http, beforeRemoteMissing, controller.signal),
+              await enrichFromRemoteDocumentsForMissingValues(enriched, http, beforeRemoteMissing, itemSignal),
               manufacturer
             );
             fallbackStages = enriched.diagnostics?.fallbackStages;
@@ -698,7 +703,7 @@ export class RunManager {
               manufacturer: finalCompletenessManufacturer,
               runDir: layoutRef.runDir,
               documentsDir: layoutRef.documentsDir,
-              signal: controller.signal,
+              signal: itemSignal,
               browserRenderer,
               discoveryMemo,
               downloadDocuments: documentDownloadsForEnrichmentEnabled,
@@ -706,7 +711,7 @@ export class RunManager {
               imageOnly: imageOnlyMode,
               ...this.learningContext(),
               fallback: {
-                scrape: (catalogNumber, sources) => fallback.scrape(catalogNumber, sources, controller.signal)
+                scrape: (catalogNumber, sources) => fallback.scrape(catalogNumber, sources, itemSignal)
               },
               downloadDocument: (doc) =>
                 this.downloadDocument(
@@ -718,7 +723,7 @@ export class RunManager {
                 item.catalogNumber,
                 doc,
                 localDownloads,
-                controller.signal,
+                itemSignal,
                 undefined,
                 sharedDocumentDownloads
               )
@@ -732,7 +737,7 @@ export class RunManager {
               manufacturer.shortName,
               withFinalCompletenessFallbacks,
               localDownloads,
-              controller.signal,
+              itemSignal,
               documentDownloadProfile(manufacturer, withFinalCompletenessFallbacks, { saveDocuments: downloadDocumentsEnabled }),
               item.catalogNumber,
               sharedDocumentDownloads
@@ -947,6 +952,9 @@ export class RunManager {
               error: formatError(error)
             });
           }
+        } finally {
+          if (itemTimeoutHandle) clearTimeout(itemTimeoutHandle);
+          if (onParentAbort) controller.signal.removeEventListener("abort", onParentAbort);
         }
         this.db.recountRun(run.id);
       };
@@ -2032,6 +2040,10 @@ const MAX_GALLERY_IMAGES = 1;
 function isRejectedImageDocument(doc: DocumentRecord): boolean {
   const candidateText = [doc.url, ...(doc.candidateUrls ?? []), doc.label].join(" ").toLowerCase();
   return isLikelySchematicImage(candidateText) || isLikelyNonProductImage(candidateText);
+}
+
+export function shouldSkipNetworkFallback(result: ProductResult): boolean {
+  return result.diagnostics?.terminal?.skipNetworkFallback === true;
 }
 
 export function coalesceImageDocuments(documents: DocumentRecord[]): DocumentRecord[] {

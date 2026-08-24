@@ -11,6 +11,7 @@ import {
   isDownloadablePdfDocument,
   notApplicableFieldsFromHiddenCoverage,
   RunManager,
+  shouldSkipNetworkFallback,
   shouldShortCircuitCustomerFirst,
   shouldDownloadDocumentsForRun,
   withRemoteDocumentProbeSkippedDiagnostics
@@ -30,6 +31,39 @@ describe("hidden coverage tiles become a not-applicable policy", () => {
   it("returns nothing when the user hid no tile", () => {
     expect(notApplicableFieldsFromHiddenCoverage(undefined)).toEqual([]);
     expect(notApplicableFieldsFromHiddenCoverage([])).toEqual([]);
+  });
+});
+
+describe("authoritative terminal connector results", () => {
+  it("skips expensive network fallback after an official catalog-not-found response", () => {
+    expect(
+      shouldSkipNetworkFallback({
+        manufacturerId: "abb",
+        catalogNumber: "1SBL131005R5501",
+        status: "failed",
+        confidence: 0,
+        normalized: {},
+        attributes: [],
+        documents: [],
+        sources: [],
+        diagnostics: { terminal: { reason: "official-catalog-not-found", skipNetworkFallback: true } }
+      })
+    ).toBe(true);
+  });
+
+  it("does not suppress ordinary failed products that still need discovery", () => {
+    expect(
+      shouldSkipNetworkFallback({
+        manufacturerId: "abb",
+        catalogNumber: "1SBL131001R5501",
+        status: "failed",
+        confidence: 0,
+        normalized: {},
+        attributes: [],
+        documents: [],
+        sources: []
+      })
+    ).toBe(false);
   });
 });
 

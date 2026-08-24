@@ -1118,6 +1118,13 @@ type AbbSearchProductUrlLookup = {
 function abbOfficialMissingResult(catalogNumber: string, lookup: AbbSearchProductUrlLookup): ProductResult {
   return {
     ...emptyResult("abb", catalogNumber, `ABB official search did not return ${catalogNumber}; product is not listed on the ABB official site.`),
+    diagnostics: {
+      terminal: {
+        reason: "official-catalog-not-found",
+        skipNetworkFallback: true
+      },
+      notes: ["ABB official PIS search returned an explicit empty result; network fallback is intentionally skipped."]
+    },
     sources: lookup.fetched
       ? [
           {
