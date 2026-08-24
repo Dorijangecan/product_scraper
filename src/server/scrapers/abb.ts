@@ -13,6 +13,10 @@ import { scrapeDiscoveredFallback, withDiscoveryFallbackDiagnostics } from "./di
 const ABB_USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0 Safari/537.36";
 const ABB_PARTCOMMUNITY_BASE_URL = "https://abb-control-products.partcommunity.com/3d-cad-models/";
 const ABB_PARTCOMMUNITY_CATALOG = "abb_ww";
+const ABB_PIS_API_BASE_URL = "https://external.productinformation.abb.com/PisWebApi/v1";
+const ABB_PIS_COMPONENT_VERSION = "6.15.0";
+let abbPisApiToken: { value: string; expiresAt: number } | undefined;
+let abbPisApiTokenPromise: Promise<string | undefined> | undefined;
 const ABB_PARTCOMMUNITY_PROJECTS = [
   {
     path: "abb_ww/low_voltage/breakers/demo/emax2/emax2_asmtab.prj",
@@ -37,7 +41,9 @@ export class ABBConnector implements ManufacturerConnector {
     // upfront DE fetch was effectively adding 1–2 extra sequential new.abb.com round-trips
     // per product (the previous "parallel" implementation was an illusion under host throttling).
     const attachGerman = async (result: ProductResult): Promise<ProductResult> => {
-      if (context.imageOnly) return result;
+      // German localization is optional enrichment. In the normal Excel/image-only fast paths
+      // no document download is requested, so do not add another ABB page timeout just for DE text.
+      if (context.imageOnly || context.downloadDocuments === false) return result;
       if (result.localizedDescriptions?.de?.title || result.localizedDescriptions?.de?.description) return result;
       const de = await fetchAbbGermanDescription(catalogNumber, context).catch(() => undefined);
       if (!de || (!de.title && !de.description)) return result;
@@ -54,6 +60,19 @@ export class ABBConnector implements ManufacturerConnector {
     };
 
     const urls = searchLookup.urls.length ? searchLookup.urls : buildAbbOfficialUrls(catalogNumber);
+    let apiDefinitiveEmpty = false;
+    if (!context.imageOnly) {
+      const apiProductIds = searchLookup.productIds.length ? searchLookup.productIds : [catalogNumber];
+      const apiPrimary = await fetchAbbPisApiResult(catalogNumber, apiProductIds, urls[0], context);
+      if (apiPrimary && hasAbbPisData(apiPrimary)) return attachGerman(apiPrimary);
+      if (apiPrimary === null && searchLookup.urls.length === 0) {
+        apiDefinitiveEmpty = true;
+        // The official PIS API answered successfully but has no detail for this legacy ID.
+        // Keep one canonical HTML rescue (the page may still exist outside PIS), then avoid
+        // generic search/browser fan-out that previously turned this case into 1–2 minutes.
+        urls.splice(1);
+      }
+    }
     const officialResults: ProductResult[] = [];
     let lastError: unknown;
 
@@ -73,6 +92,10 @@ export class ABBConnector implements ManufacturerConnector {
         if (isRichAbbResult(parsed)) break;
       } catch (error) {
         lastError = error;
+        // With no exact PIS-search candidate there is only one canonical product route to
+        // rescue legacy/retired IDs. Do not fan that network timeout out over every locale and
+        // smartlink variant; when a candidate exists, keep the full ordered URL walk intact.
+        if (searchLookup.urls.length === 0) break;
       }
     }
 
@@ -94,8 +117,9 @@ export class ABBConnector implements ManufacturerConnector {
     // ProductNetDepth/Height/Width, etc. We only pay this cost when EN + PIS search both failed
     // to surface PIS data, so non-AEM products are not slowed down.
     let localeFallbackPrimary: ProductResult | undefined;
-    if (!hasAbbPisData(directPrimary) && !hasAbbPisData(searchPrimary) && (lastAemFetch || searchLookup.urls.length > 0 || searchUrls.length > 0)) {
-      localeFallbackPrimary = bestAbbResult(await fetchAbbLocaleFallbackResults(catalogNumber, context));
+    if (directPrimary && !hasAbbPisData(directPrimary) && !hasAbbPisData(searchPrimary) && (lastAemFetch || searchLookup.urls.length > 0 || searchUrls.length > 0)) {
+      // Do not pay a second timeout for a URL already attempted in the direct path.
+      localeFallbackPrimary = bestAbbResult(await fetchAbbLocaleFallbackResults(catalogNumber, context, new Set(urls)));
     }
 
     // AEM enrichment via ABB Library widget API, when document discovery is enabled.
@@ -121,6 +145,10 @@ export class ABBConnector implements ManufacturerConnector {
     const merged = mergeAbbResults(directPrimary, searchPrimary, localeFallbackPrimary, aemEnriched, browserPrimary, cadCatalogResult);
     if (merged && isRichAbbResult(merged)) return attachGerman(merged);
     if (merged && merged.status !== "failed") return attachGerman(merged);
+
+    if (apiDefinitiveEmpty) {
+      return directPrimary && directPrimary.status !== "failed" ? directPrimary : abbOfficialMissingResult(catalogNumber, searchLookup);
+    }
 
     const primary =
       merged ??
@@ -905,8 +933,8 @@ function abbResultScore(result: ProductResult): number {
 async function fetchAbbPage(url: string, context: ScrapeContext) {
   let lastFetched: FetchedText | undefined;
   let lastError: unknown;
-  // Try plain HTTP first (with retries — ABB occasionally returns HTTP/2 protocol errors
-  // or empty bodies under load, and a quick retry typically succeeds).
+  // Try plain HTTP first. Retry only retryable HTTP responses (5xx/empty bodies); a thrown
+  // native+curl timeout has already paid two timeout windows and must not be repeated.
   for (let attempt = 0; attempt < 3; attempt += 1) {
     try {
       const fetched = await context.http.fetchText(url, {
@@ -928,7 +956,11 @@ async function fetchAbbPage(url: string, context: ScrapeContext) {
       if (!shouldUsePowerShellForAbbFetch(fetched)) return fetched;
       break;
     } catch (error) {
+      // A native+curl timeout has already paid two timeout windows; retrying the same dead URL
+      // three times made one ABB catalog take minutes. HTTP 5xx/empty responses still use the
+      // bounded retry path above.
       lastError = error;
+      break;
     }
     if (attempt < 2 && context.manufacturer.rateLimitMs !== 0) {
       await delay(800 * (attempt + 1), context.signal);
@@ -944,6 +976,106 @@ async function fetchAbbPage(url: string, context: ScrapeContext) {
   if (lastFetched) return lastFetched;
   if (lastError instanceof Error) throw lastError;
   return context.http.fetchText(url, { timeoutMs: 8000, signal: context.signal });
+}
+
+async function fetchAbbPisApiResult(
+  catalogNumber: string,
+  productIds: string[],
+  sourceUrl: string | undefined,
+  context: ScrapeContext
+): Promise<ProductResult | null | undefined> {
+  const productId = productIds.find((candidate) => sameCatalogNumber(candidate, catalogNumber)) ?? productIds[0] ?? catalogNumber;
+  const token = await fetchAbbPisApiToken(context);
+  if (!token) return undefined;
+
+  const appSettings = {
+    appCode: "9AAG8556",
+    langCode: "en",
+    internalUser: false,
+    anonymousUser: false,
+    treeType: "Products",
+    productRelationshipFiltering: true
+  };
+  const body = {
+    appSettings,
+    dataTypes: [
+      "ProductDetails",
+      "AttributeGroups",
+      "ProductClassifications",
+      "ProductRelationships",
+      "InteractiveGuides",
+      "ProductVariantsSelector",
+      "ProductVariantsTable",
+      "ProductVariantsDropdown",
+      "RelatedLinks"
+    ],
+    search: { productId }
+  };
+
+  try {
+    const fetched = await context.http.fetchText(`${ABB_PIS_API_BASE_URL}/Products/Detail`, {
+      method: "POST",
+      body: JSON.stringify(body),
+      timeoutMs: 8000,
+      cacheTtlMs: 24 * 60 * 60 * 1000,
+      maxAttempts: 1,
+      signal: context.signal,
+      headers: {
+        accept: "application/json",
+        "content-type": "application/json",
+        authorization: `Bearer ${token}`,
+        "Component-Version": ABB_PIS_COMPONENT_VERSION
+      }
+    });
+    if (fetched.statusCode >= 400) return undefined;
+    const payload = JSON.parse(fetched.text) as Record<string, unknown>;
+    if (!isRecord(payload.productDetails)) return null;
+    const effectiveUrl = sourceUrl ?? buildAbbOfficialUrls(catalogNumber)[0];
+    const model = {
+      ProductViewModel: {
+        Product: payload,
+        AppSettings: appSettings,
+        ApiUrl: `${ABB_PIS_API_BASE_URL}/`
+      }
+    };
+    const syntheticHtml = `<script>var model = ${JSON.stringify(model).replace(/</g, "\\u003c")};</script>`;
+    return parseAbbProductPage(
+      catalogNumber,
+      { ...fetched, requestedUrl: effectiveUrl, effectiveUrl, text: syntheticHtml },
+      context.manufacturer.markerRules
+    );
+  } catch {
+    // The page/locale path remains the compatibility fallback when the PIS API is unavailable.
+    return undefined;
+  }
+}
+
+async function fetchAbbPisApiToken(context: ScrapeContext): Promise<string | undefined> {
+  if (abbPisApiToken && abbPisApiToken.expiresAt > Date.now() + 60_000) return abbPisApiToken.value;
+  if (abbPisApiTokenPromise) return abbPisApiTokenPromise;
+  abbPisApiTokenPromise = (async () => {
+    try {
+      const fetched = await context.http.fetchText("https://new.abb.com/api/PisSearchApi/Token", {
+        timeoutMs: 5000,
+        cache: false,
+        maxAttempts: 1,
+        signal: context.signal,
+        headers: { accept: "application/json,text/plain,*/*", "user-agent": ABB_USER_AGENT }
+      });
+      if (fetched.statusCode >= 400) return undefined;
+      const parsed = JSON.parse(fetched.text) as { Token?: unknown; ExpiresOn?: unknown };
+      const value = typeof parsed.Token === "string" && parsed.Token ? parsed.Token : undefined;
+      if (!value) return undefined;
+      const expiresAt = typeof parsed.ExpiresOn === "string" ? Date.parse(parsed.ExpiresOn) : Number.NaN;
+      abbPisApiToken = { value, expiresAt: Number.isFinite(expiresAt) ? expiresAt : Date.now() + 10 * 60_000 };
+      return value;
+    } catch {
+      return undefined;
+    } finally {
+      abbPisApiTokenPromise = undefined;
+    }
+  })();
+  return abbPisApiTokenPromise;
 }
 
 function shouldRetryAbbFetch(fetched: FetchedText): boolean {
@@ -979,6 +1111,7 @@ type AbbSearchProductUrlLookup = {
   searchUrl: string;
   fetched?: FetchedText;
   urls: string[];
+  productIds: string[];
   definitiveEmpty: boolean;
 };
 
@@ -1009,7 +1142,7 @@ function abbOfficialMissingResult(catalogNumber: string, lookup: AbbSearchProduc
  * slug itself, so a placeholder is enough — no PisSearchApi call needed. Only invoked when
  * neither the EN URLs nor the PIS search yielded PIS data, so non-AEM products aren't slowed.
  */
-async function fetchAbbLocaleFallbackResults(catalogNumber: string, context: ScrapeContext): Promise<ProductResult[]> {
+async function fetchAbbLocaleFallbackResults(catalogNumber: string, context: ScrapeContext, skipUrls = new Set<string>()): Promise<ProductResult[]> {
   const encoded = encodeURIComponent(catalogNumber);
   const urls = [
     `https://new.abb.com/products/pl/${encoded}/product`,
@@ -1022,6 +1155,7 @@ async function fetchAbbLocaleFallbackResults(catalogNumber: string, context: Scr
   // the first PIS hit — this is the fast path for the vast majority of ABB products.
   const results: ProductResult[] = [];
   for (const url of urls) {
+    if (skipUrls.has(url)) continue;
     try {
       const fetched = await fetchAbbPage(url, context);
       const parsed = parseAbbProductPage(catalogNumber, fetched, context.manufacturer.markerRules);
@@ -1141,7 +1275,7 @@ async function buildAbbSearchProductUrlLookup(catalogNumber: string, context: Sc
       headers: { accept: "application/json,text/plain,*/*", "user-agent": ABB_USER_AGENT }
     });
   } catch {
-    return { searchUrl, urls: [], definitiveEmpty: false };
+    return { searchUrl, urls: [], productIds: [], definitiveEmpty: false };
   }
 
   const searchItems = parseAbbSearchItems(fetched.text, catalogNumber);
@@ -1153,7 +1287,13 @@ async function buildAbbSearchProductUrlLookup(catalogNumber: string, context: Sc
     }
   }
   const definitiveEmpty = isDefinitiveEmptyAbbSearch(fetched.text, searchItems.length);
-  return { searchUrl, fetched, urls: [...new Set(urls)].slice(0, 24), definitiveEmpty };
+  return {
+    searchUrl,
+    fetched,
+    urls: [...new Set(urls)].slice(0, 24),
+    productIds: [...new Set(searchItems.map((item) => item.productId))],
+    definitiveEmpty
+  };
 }
 
 function isDefinitiveEmptyAbbSearch(text: string, matchingItems: number): boolean {

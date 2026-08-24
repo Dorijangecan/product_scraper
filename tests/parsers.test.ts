@@ -725,6 +725,51 @@ describe("manufacturer parsers", () => {
     expect(requestedUrls).not.toContain(`https://new.abb.com/products/${catalogNumber}`);
   });
 
+  it("does not repeat dead ABB product URLs or enter locale fallback after a network failure", async () => {
+    const connector = new ABBConnector();
+    const requestedUrls: string[] = [];
+    const catalogNumber = "1SBH131001R5522";
+    const searchJson = JSON.stringify({
+      Items: [{ ProductId: catalogNumber, CatalogDescription: `ABB contactor (${catalogNumber})` }],
+      TotalResultsCount: 1
+    });
+    const context = {
+      imageOnly: true,
+      downloadDocuments: false,
+      manufacturer: {
+        id: "abb",
+        canonicalName: "ABB",
+        shortName: "ABB",
+        rateLimitMs: 0,
+        officialBaseUrls: ["https://new.abb.com/products"],
+        localizedUrlTemplates: [],
+        fallbackSources: [],
+        markerRules: []
+      },
+      http: {
+        fetchText: async (url: string) => {
+          requestedUrls.push(url);
+          if (url.includes("/api/PisSearchApi?")) return fetched(searchJson, url, "application/json");
+          if (url.includes("new.abb.com/products/")) throw new Error("native request failed; curl fallback failed");
+          return fetched("<html><body>no catalog data</body></html>", url);
+        },
+        fetchTextViaPowerShell: async (url: string) => {
+          if (url.includes("new.abb.com/products/")) throw new Error("PowerShell request failed");
+          return fetched("<html><body>no catalog data</body></html>", url);
+        }
+      },
+      runDir: "",
+      documentsDir: "",
+      downloadDocument: async (doc: Parameters<ScrapeContext["downloadDocument"]>[0]) => doc,
+      fallback: { scrape: async () => undefined }
+    } as unknown as ScrapeContext;
+
+    await connector.scrape(catalogNumber, context);
+
+    const directUrl = `https://new.abb.com/products/pl/${catalogNumber}/${catalogNumber.toLowerCase()}`;
+    expect(requestedUrls.filter((url) => url === directUrl)).toHaveLength(1);
+  });
+
   it("does not spend ABB fallback retries on definite missing product pages", async () => {
     const connector = new ABBConnector();
     const requestedUrls: string[] = [];
@@ -769,6 +814,82 @@ describe("manufacturer parsers", () => {
     expect(requestedUrls.filter((url) => url.includes(`/products/de/${catalogNumber}/product`))).toHaveLength(0);
     expect(requestedUrls.filter((url) => url.includes(`/products/pl/${catalogNumber}/product`))).toHaveLength(0);
     expect(requestedUrls.filter((url) => url.includes(`/products/it/${catalogNumber}/product`))).toHaveLength(0);
+  });
+
+  it("uses the official ABB PIS detail API before the slow product HTML routes", async () => {
+    const connector = new ABBConnector();
+    const requestedUrls: string[] = [];
+    const catalogNumber = "1SBH131001R5522";
+    const searchJson = JSON.stringify({
+      Items: [{ ProductId: catalogNumber, CatalogDescription: "NFC22E-55 contactor relay" }],
+      TotalResultsCount: 1
+    });
+    const detailJson = JSON.stringify({
+      productDetails: {
+        item: {
+          productId: catalogNumber,
+          images: [{ url: "https://cdn.productimages.abb.com/9PAA00000030652_400x400.jpg" }],
+          attributes: {
+            ProductId: { type: "Text", attributeCode: "ProductId", attributeName: "Product ID", values: [{ text: catalogNumber }] },
+            CatalogDescription: { type: "Text", attributeCode: "CatalogDescription", attributeName: "Catalog Description", values: [{ text: "NFC22E-55 contactor relay" }] },
+            ProductNetWeight: { type: "Text", attributeCode: "ProductNetWeight", attributeName: "Product Net Weight", values: [{ text: "0.3 kg" }] }
+          }
+        }
+      },
+      attributeGroups: {
+        items: [{
+          code: "Dimensions",
+          description: "Dimensions",
+          attributes: {
+            ProductNetWidth: { type: "Text", attributeCode: "ProductNetWidth", attributeName: "Product Net Width", values: [{ text: "45 mm" }] },
+            ProductNetHeight: { type: "Text", attributeCode: "ProductNetHeight", attributeName: "Product Net Height", values: [{ text: "86 mm" }] },
+            ProductNetDepth: { type: "Text", attributeCode: "ProductNetDepth", attributeName: "Product Net Depth / Length", values: [{ text: "77 mm" }] }
+          }
+        }]
+      }
+    });
+    let detailCalls = 0;
+    const context = {
+      downloadDocuments: false,
+      manufacturer: {
+        id: "abb",
+        canonicalName: "ABB",
+        shortName: "ABB",
+        rateLimitMs: 0,
+        officialBaseUrls: ["https://new.abb.com/products"],
+        localizedUrlTemplates: [],
+        fallbackSources: [],
+        markerRules: []
+      },
+      http: {
+        fetchText: async (url: string, options?: { method?: string }) => {
+          requestedUrls.push(url);
+          if (url.includes("/api/PisSearchApi?")) return fetched(searchJson, url, "application/json");
+          if (url.endsWith("/api/PisSearchApi/Token")) return fetched(JSON.stringify({ Token: "test-token", ExpiresOn: "2099-01-01T00:00:00.000Z" }), url, "application/json");
+          if (url.endsWith("/v1/Products/Detail")) {
+            detailCalls += 1;
+            expect(options?.method).toBe("POST");
+            return fetched(detailJson, url, "application/json");
+          }
+          throw new Error(`HTML product route should not be used: ${url}`);
+        },
+        fetchTextViaPowerShell: async (url: string) => {
+          throw new Error(`PowerShell product route should not be used: ${url}`);
+        }
+      },
+      runDir: "",
+      documentsDir: "",
+      downloadDocument: async (doc: Parameters<ScrapeContext["downloadDocument"]>[0]) => doc,
+      fallback: { scrape: async () => undefined }
+    } as unknown as ScrapeContext;
+
+    const result = await connector.scrape(catalogNumber, context);
+
+    expect(result.status).toBe("found");
+    expect(detailCalls).toBe(1);
+    expect(result.normalized.weight).toBe("0.3 kg");
+    expect(result.normalized.dimensions).toBe("86 x 45 x 77 mm");
+    expect(requestedUrls.some((url) => url.includes("/products/pl/"))).toBe(false);
   });
 
   it("short-circuits ABB image-only runs once an official image is found", async () => {

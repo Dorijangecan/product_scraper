@@ -2,6 +2,22 @@
 
 Datum zadnjeg provjerenog checkpointa: 2026-08-24.
 
+## Najnoviji ABB performance checkpoint
+
+`src/server/scrapers/abb.ts` sada koristi službeni `PisWebApi/v1/Products/Detail` endpoint
+(token se kešira po procesu) prije sporih ABB HTML ruta. PIS payload se normalizira kroz postojeći
+`parseAbbProductPage`, pa ne postoji drugi parser ni nagađanje vrijednosti. HTML ostaje fallback,
+image-only put API namjerno preskače, a ponovljeni timeout na istom URL-u više se ne plaća tri puta.
+
+Mjereno na `Testing PDT/ABB SPEED TEST.csv`: 59/59 kataloga ispod 30 s, median 1,11 s, p95 26,7 s,
+max 26,9 s. 50 je `found`; devet `1SBL…005…` legacy ID-eva vraća prazan PIS detail i dobiva samo
+jedan HTML rescue. ABB regresije su u `tests/parsers.test.ts`; puni gate je zelen (Vitest 2270/2270,
+eval 35/35, 367 provjera, 0 contamination, spec-gate 0 SUSPECT, labels A/C/D/E 0).
+
+Ovaj checkpoint nije commitan ni pushan. Prije produkcijskog push-a treba potvrditi s kolegama žele
+li legacy `1SBL…005…` redove ostaviti kao `failed` nakon jednog rescue prozora ili dodati njihov stvarni
+službeni URL/fixture; nemoj ih označiti kao nepostojeće samo zato što PIS API nema zapis.
+
 ## Gdje je rad stao
 
 Rad je stao nakon zatvaranja checkpointa **P2.2n** u `docs/COLD-START-PLAN.md`:

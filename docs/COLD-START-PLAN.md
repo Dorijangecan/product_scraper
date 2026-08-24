@@ -63,7 +63,7 @@ Ova sekcija je namijenjena agentu koji nastavlja rad bez povijesti razgovora. Sv
 kodu, ne prepisano iz namjere.
 
 **Aktualni handoff za Claude:** [docs/CLAUDE-HANDOFF.md](CLAUDE-HANDOFF.md). Zadnji zatvoreni
-checkpoint je **P1.3x**; tamo su točni izmijenjeni fajlovi, metrike i copy/paste prvi prompt.
+checkpoint je **P2.2n + ABB performance**; tamo su točni izmijenjeni fajlovi, metrike i copy/paste prvi prompt.
 
 ### Trenutna točka zaustavljanja
 
@@ -3390,6 +3390,26 @@ samo izmišljeni heading par, dok `Certificates` ostaje.
 Puni gate: TypeScript čist; root Vitest **2260/2260**; eval **34/34**, **352** provjere, 0
 kontaminacija i 1 raniji dokumentirani color gap; spec-gate **1691 → 1482**, **0 SUSPECT / 0 garbage**;
 label audit A/C/D/E = 0.
+
+### ✅ ABB performance checkpoint — službeni PIS detail API, 2026-08-24
+
+Read-only speed probe je koristio stvarni `Testing PDT/ABB SPEED TEST.csv` (59 jedinstvenih ABB
+kataloga). Prvi katalog je prije popravka plaćao tri ponovljena native+curl timeouta na istoj
+postojećoj ABB stranici, zatim PowerShell i locale/generic fallbacke: **199,5 s**. ABB stranica
+ima službeni `PisWebApi/v1/Products/Detail` endpoint; connector sada uzima kratkotrajni token,
+traži puni PIS payload i predaje ga postojećem `parseAbbProductPage` parseru kroz isti `var model`
+oblik. HTML/PIS locale put ostaje fallback ako API nije dostupan; image-only put ga namjerno preskače.
+Network exception više ne ponavlja isti URL tri puta, a kad PIS API eksplicitno vrati prazan legacy
+ID, radi se samo jedan kanonski HTML rescue umjesto generičkog fan-outa.
+
+CSV rezultat: **59/59 < 30 s**, median **1,11 s**, p95 **26,7 s**, max **26,9 s**. 50 kataloga je
+`found` iz PIS API-ja; devet `1SBL…005…` legacy ID-eva PIS API vraća kao prazan detail i u ovom
+offline/network okruženju ostaju `failed` nakon jednog 8 s native + 8 s curl + 8 s PowerShell
+rescue prozora — nisu proglašeni nepostojećima na temelju HTML heuristike.
+
+Puni gate nakon izmjene: TypeScript čist; Vitest **2270/2270**; eval **35/35**, **367** provjera,
+0 kontaminacija i 1 dokumentirani color gap; spec-gate **1694 → 1485**, **0 SUSPECT / 0 garbage**;
+label audit A/C/D/E = 0. Izmjene: `src/server/scrapers/abb.ts` i regresije u `tests/parsers.test.ts`.
 
 ### ✅ Handoff checkpoint — P1.3x + document URL furniture
 
