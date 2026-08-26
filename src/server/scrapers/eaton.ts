@@ -468,16 +468,26 @@ function isEatonCdvrlCatalogNumber(catalogNumber: string): boolean {
 }
 
 function mergeEatonResults(primary: ProductResult | undefined, incoming: ProductResult): ProductResult {
-  if (!primary || primary.status === "failed") return incoming;
+  if (!primary || primary.status === "failed") return withEatonMergedDocuments(incoming);
   const primaryIsEnglish = hasEnglishEatonSource(primary);
   const incomingIsEnglish = hasEnglishEatonSource(incoming);
   if (primaryIsEnglish !== incomingIsEnglish) {
     const [base, addition] = primaryIsEnglish ? [primary, incoming] : [incoming, primary];
-    return mergeResults(base, addition);
+    return withEatonMergedDocuments(mergeResults(base, addition));
   }
   // Prefer attribute-richer result as the "primary" side of the merge so its title/description win.
   const [base, addition] = incoming.attributes.length > primary.attributes.length ? [incoming, primary] : [primary, incoming];
-  return mergeResults(base, addition);
+  return withEatonMergedDocuments(mergeResults(base, addition));
+}
+
+// mergeResults (normalizer.ts) only dedupes by exact URL, so it can't tell that
+// .../us/en-us/skuPage.132972.pdf and .../gb/en-gb/skuPage.132972.pdf are the same English
+// document fetched from two locales. Re-run the eaton-specific bucketed dedupe (image
+// camera-angle folding + englishSkuSpecSheetBucketKey) over the merged set so cross-locale
+// duplicates collapse the same way same-locale ones already do inside parseEatonProductPage.
+function withEatonMergedDocuments(result: ProductResult): ProductResult {
+  const documents = dedupeDocuments(result.documents);
+  return documents.length === result.documents.length ? result : { ...result, documents };
 }
 
 function hasEnglishEatonSource(result: ProductResult): boolean {
@@ -2343,6 +2353,13 @@ function isEatonDocumentLink(label: string, url: string, catalogNumber: string):
   // polluting the workbook they can consume a document-enrichment slot ahead of the actual
   // generated SKU datasheet.
   if (/\b(?:terms?(?:\s+and\s+conditions)?|conditions\s+g[eé]n[eé]rales|privacy|cookie|accessibility|legal\s+notice)\b/i.test(combined)) return false;
+  // Family-level marketing literature (a whole product-line catalog or brochure, sometimes tens
+  // of MB) lives under the same /content/dam/eaton/ path as the genuine per-SKU datasheet, so it
+  // would otherwise pass the blanket "any downloadable PDF" checks below unconditionally. Only
+  // admit it when the link text/URL actually names THIS catalog number — otherwise every SKU in
+  // the family gets the same generic catalog attached, indistinguishable from its real spec sheet
+  // (both end up typed "datasheet" via classifyEatonDocument).
+  if (/\b(?:catalog(?:ue)?s?|brochures?)\b/i.test(combined) && !catalogTextMatches(combined, catalogNumber)) return false;
   if (documentUrlLooksDownloadable(url)) return true;
   if (/\.(pdf|zip|dwg|dxf|stp|step|igs|iges)(?:[?#]|$)/i.test(url)) return true;
   if (/\b(catalog|brochure|manual|guide|instruction|data\s*sheet|datasheet|technical|specification|drawing|cad|ecad|mcad|3d model|2d model|curve|certificate|declaration|application note|service bulletin)\b|\bda-c[es]-/i.test(combined)) {
@@ -2476,9 +2493,22 @@ function dedupeDocuments(documents: DocumentRecord[]): DocumentRecord[] {
     // For dynamicmedia.eaton.com images, fold _C / _L / _R / _T / _B camera-angle variants into
     // a single bucket so we don't emit 3 near-identical photos per product. The "center" view
     // (suffix _C) is preferred; we score by view rank in dynamicMediaViewRank.
-    bucketKey: dynamicMediaImageBucketKey,
+    bucketKey: (doc) => dynamicMediaImageBucketKey(doc) ?? englishSkuSpecSheetBucketKey(doc),
     compare: compareEatonDocumentCandidates
   });
+}
+
+// The connector merges parsed results from every locale it fetches (US/DE/GB/CN, ...) because
+// non-English locales sometimes surface extra attributes — but that means EVERY English locale
+// (us, gb, ca, au, ae) that resolves also contributes its own "Eaton Specification Sheet - {sku}"
+// PDF, and those are the same English document at a different URL. Fold them into one bucket so
+// only the highest-priority English copy survives; DE/CN keep their own bucket since they're a
+// genuinely different language, not a duplicate.
+function englishSkuSpecSheetBucketKey(doc: DocumentRecord): string | undefined {
+  if (doc.type !== "datasheet") return undefined;
+  const match = doc.url.match(/\/skuPage\.([^/?#]+)\.pdf(?:[?#]|$)/i);
+  if (!match || !isEnglishEatonUrl(doc.url)) return undefined;
+  return `pdf:sku-en:${match[1].toLowerCase()}`;
 }
 
 const EATON_DYNAMIC_MEDIA_IMAGE_PATTERN = /\/is\/image\/eaton\/([^?#/]+?)(?:_(C|L|R|T|B|F))(?=[?#]|$)/i;
