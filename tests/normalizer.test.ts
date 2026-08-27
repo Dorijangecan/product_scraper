@@ -324,6 +324,31 @@ describe("normalizer", () => {
 
     expect(normalized.material).toBeUndefined();
   });
+
+  it("ignores a generic DIN/ISO thread-tolerance standard's steel-vs-plastic scope text as product material", () => {
+    // Real Ganter "Metric ISO Thread DIN 13" reference document: a shared bolt/nut thread tolerance
+    // table with NO catalog number anywhere in its text (confirmed via a raw pdftotext dump) —
+    // attached to many product pages, steel and plastic ones alike. Its "Feature" prose explains
+    // which thread TYPE the tolerance table covers, not this specific product's construction.
+    const normalized = normalizeFields(
+      [
+        {
+          name: "Feature",
+          value: "The metric steel / metal threads specified in this catalog are based on these tolerance fields.",
+          sourceType: "official"
+        },
+        {
+          name: "Feature",
+          value: "For threads in plastic standard parts (without steel or metallic thread insert), these tolerances can usually not be maintained.",
+          sourceType: "official"
+        }
+      ],
+      []
+    );
+
+    expect(normalized.material).toBeUndefined();
+  });
+
   it("understands German colours and RAL codes from finish text", () => {
     expect(normalizeFields([{ name: "Finish", value: "hellgrau pulverbeschichtet" }], []).color).toBe("light gray");
     expect(normalizeFields([{ name: "Finish", value: "powder coated, RAL 7035" }], []).color).toBe("RAL 7035");

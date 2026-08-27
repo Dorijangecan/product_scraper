@@ -816,17 +816,65 @@ function pageMentionsCatalog(items: PositionedTextItem[], catalogNumber: string)
  * MTBF, Temperature Range, Connection Terminals, ... in addition to Weight/Dimensions).
  */
 export async function extractPositionedTableRowsFromPdf(data: Uint8Array, catalogNumber: string): Promise<Record<string, string> | undefined> {
+  const pages = await loadPositionedPagesFromPdfBytes(data);
+  return extractPositionedTableRowsFromPages(pages, catalogNumber);
+}
+
+/**
+ * Same reader as `extractPositionedTableRowsFromPdf`, but for a caller that has ALREADY loaded this
+ * PDF's raw per-page text items elsewhere (e.g. `document-enrichment.ts`'s `readPdfPageSet`, which
+ * needs its own `pdfjs` pass for `pdf-parse`'s text/table extraction). Loading + parsing a PDF is the
+ * expensive part — confirmed live at ~30-45% of a document's total processing time on real Saginaw/SCE
+ * accessory manuals — so a caller that already has the raw items should never pay for a second
+ * `pdfjs.getDocument()` + per-page `getTextContent()` pass just to reach this reader.
+ */
+export function extractPositionedTableRowsFromPages(pages: PositionedTextItem[][], catalogNumber: string): Record<string, string> | undefined {
+  const rowSets: Array<Record<string, string> | undefined> = [];
+  // A comparison table commonly prints its multi-model header only on the first page. Keep it
+  // only for a page without a new catalog header; a non-matching page drops it immediately so
+  // an unrelated later table cannot inherit an old column assignment. In particular, a fresh
+  // `Catalog Number` header is structural evidence of a new table even when its page happens to
+  // have plausible data at the old x coordinates (Rockwell 1606-TD002H p.26+ follows the target
+  // table on p.25 with different product families and otherwise leaks their currents into it).
+  let carriedHeaderItems: PositionedTextItem[] = [];
+  for (const items of pages) {
+    const orientedItems = normalizeDominantPageOrientation(items);
+    const hasOwnTargetHeader = Boolean(matchColumnForCatalog(orientedItems, catalogNumber));
+    const hasNewCatalogHeader = orientedItems.some((item) => isComparisonMatrixLabelHeaderCell(item.text));
+    let result: Record<string, string> | undefined;
+    if (hasOwnTargetHeader) {
+      carriedHeaderItems = orientedItems;
+      result = extractPositionedTableRows(orientedItems, catalogNumber);
+    } else if (carriedHeaderItems.length && !hasNewCatalogHeader) {
+      result = extractPositionedTableRows(orientedItems, catalogNumber, carriedHeaderItems);
+      if (!result) carriedHeaderItems = [];
+    } else if (hasNewCatalogHeader) {
+      carriedHeaderItems = [];
+      // A row-oriented table may put its id column at either edge. The trailing shape needs
+      // extractPositionedOrderingRow directly; a leading id column (e.g. "PART #" / "Catalog
+      // Number" as the first column, one row per catalog) is the shape extractPositionedTableRows
+      // itself falls back to internally once matchColumnForCatalog's comparison-matrix search
+      // comes up empty, so route it there instead of silently producing nothing. Confirmed live
+      // on Saginaw/SCE's "PART # / A / B" floor-stand-kit ordering table: recognizing "PART #"
+      // as an id-header cell (needed for the trailing/"Cat. No." shape elsewhere) previously
+      // made this branch fire for the leading-id shape too, and it had no path for that case.
+      result = hasTrailingCatalogHeader(orientedItems)
+        ? extractPositionedOrderingRow(orientedItems, catalogNumber)
+        : extractPositionedTableRows(orientedItems, catalogNumber);
+    } else if (pageMentionsCatalog(items, catalogNumber)) {
+      result = extractPositionedTableRows(orientedItems, catalogNumber);
+    }
+    if (result) rowSets.push(result);
+  }
+  return mergePositionedTableRowSets(rowSets);
+}
+
+/** Loads a PDF with `pdfjs-dist` and returns each page's raw (un-normalized) positioned text items. */
+async function loadPositionedPagesFromPdfBytes(data: Uint8Array): Promise<PositionedTextItem[][]> {
   const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
   const doc = await pdfjs.getDocument({ data, verbosity: 0 }).promise;
   try {
-    const rowSets: Array<Record<string, string> | undefined> = [];
-    // A comparison table commonly prints its multi-model header only on the first page. Keep it
-    // only for a page without a new catalog header; a non-matching page drops it immediately so
-    // an unrelated later table cannot inherit an old column assignment. In particular, a fresh
-    // `Catalog Number` header is structural evidence of a new table even when its page happens to
-    // have plausible data at the old x coordinates (Rockwell 1606-TD002H p.26+ follows the target
-    // table on p.25 with different product families and otherwise leaks their currents into it).
-    let carriedHeaderItems: PositionedTextItem[] = [];
+    const pages: PositionedTextItem[][] = [];
     for (let pageNumber = 1; pageNumber <= doc.numPages; pageNumber += 1) {
       const page = await doc.getPage(pageNumber);
       try {
@@ -837,38 +885,12 @@ export async function extractPositionedTableRowsFromPdf(data: Uint8Array, catalo
           const textItem = item as { str: string; transform: number[] };
           items.push({ text: textItem.str, x: textItem.transform[4], y: textItem.transform[5], orientation: positionedItemOrientationFromTransform(textItem.transform) });
         }
-        const orientedItems = normalizeDominantPageOrientation(items);
-        const hasOwnTargetHeader = Boolean(matchColumnForCatalog(orientedItems, catalogNumber));
-        const hasNewCatalogHeader = orientedItems.some((item) => isComparisonMatrixLabelHeaderCell(item.text));
-        let result: Record<string, string> | undefined;
-        if (hasOwnTargetHeader) {
-          carriedHeaderItems = orientedItems;
-          result = extractPositionedTableRows(orientedItems, catalogNumber);
-        } else if (carriedHeaderItems.length && !hasNewCatalogHeader) {
-          result = extractPositionedTableRows(orientedItems, catalogNumber, carriedHeaderItems);
-          if (!result) carriedHeaderItems = [];
-        } else if (hasNewCatalogHeader) {
-          carriedHeaderItems = [];
-          // A row-oriented table may put its id column at either edge. The trailing shape needs
-          // extractPositionedOrderingRow directly; a leading id column (e.g. "PART #" / "Catalog
-          // Number" as the first column, one row per catalog) is the shape extractPositionedTableRows
-          // itself falls back to internally once matchColumnForCatalog's comparison-matrix search
-          // comes up empty, so route it there instead of silently producing nothing. Confirmed live
-          // on Saginaw/SCE's "PART # / A / B" floor-stand-kit ordering table: recognizing "PART #"
-          // as an id-header cell (needed for the trailing/"Cat. No." shape elsewhere) previously
-          // made this branch fire for the leading-id shape too, and it had no path for that case.
-          result = hasTrailingCatalogHeader(orientedItems)
-            ? extractPositionedOrderingRow(orientedItems, catalogNumber)
-            : extractPositionedTableRows(orientedItems, catalogNumber);
-        } else if (pageMentionsCatalog(items, catalogNumber)) {
-          result = extractPositionedTableRows(orientedItems, catalogNumber);
-        }
-        if (result) rowSets.push(result);
+        pages.push(items);
       } finally {
         page.cleanup();
       }
     }
-    return mergePositionedTableRowSets(rowSets);
+    return pages;
   } finally {
     await doc.destroy();
   }
@@ -883,35 +905,28 @@ export async function extractPositionedWeightAndDimensionsFromPdf(
   data: Uint8Array,
   catalogNumber: string
 ): Promise<{ weight?: string; dimensions?: string } | undefined> {
-  const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
-  const doc = await pdfjs.getDocument({ data, verbosity: 0 }).promise;
-  try {
-    const results: Array<{ weight?: string; dimensions?: string } | undefined> = [];
-    for (let pageNumber = 1; pageNumber <= doc.numPages; pageNumber += 1) {
-      const page = await doc.getPage(pageNumber);
-      try {
-        const content = await page.getTextContent();
-        const items: PositionedTextItem[] = [];
-        for (const item of content.items) {
-          if (typeof (item as { str?: unknown }).str !== "string") continue;
-          const textItem = item as { str: string; transform: number[] };
-          items.push({ text: textItem.str, x: textItem.transform[4], y: textItem.transform[5], orientation: positionedItemOrientationFromTransform(textItem.transform) });
-        }
-        if (!pageMentionsCatalog(items, catalogNumber)) continue;
-        const result = extractPositionedWeightAndDimensions(items, catalogNumber);
-        if (result) results.push(result);
-      } finally {
-        page.cleanup();
-      }
-    }
-    const rows = mergePositionedTableRowSets(
-      results.map((result) => result ? {
-        ...(result.weight ? { weight: result.weight } : {}),
-        ...(result.dimensions ? { dimensions: result.dimensions } : {})
-      } : undefined)
-    );
-    return rows ? { ...(rows.weight ? { weight: rows.weight } : {}), ...(rows.dimensions ? { dimensions: rows.dimensions } : {}) } : undefined;
-  } finally {
-    await doc.destroy();
+  const pages = await loadPositionedPagesFromPdfBytes(data);
+  return extractPositionedWeightAndDimensionsFromPages(pages, catalogNumber);
+}
+
+/** Same reader as `extractPositionedWeightAndDimensionsFromPdf`, for a caller that already has this
+ * PDF's raw per-page items loaded (see `extractPositionedTableRowsFromPages`'s doc comment — same
+ * "don't pay for a second full pdfjs parse" rationale). */
+export function extractPositionedWeightAndDimensionsFromPages(
+  pages: PositionedTextItem[][],
+  catalogNumber: string
+): { weight?: string; dimensions?: string } | undefined {
+  const results: Array<{ weight?: string; dimensions?: string } | undefined> = [];
+  for (const items of pages) {
+    if (!pageMentionsCatalog(items, catalogNumber)) continue;
+    const result = extractPositionedWeightAndDimensions(items, catalogNumber);
+    if (result) results.push(result);
   }
+  const rows = mergePositionedTableRowSets(
+    results.map((result) => result ? {
+      ...(result.weight ? { weight: result.weight } : {}),
+      ...(result.dimensions ? { dimensions: result.dimensions } : {})
+    } : undefined)
+  );
+  return rows ? { ...(rows.weight ? { weight: rows.weight } : {}), ...(rows.dimensions ? { dimensions: rows.dimensions } : {}) } : undefined;
 }

@@ -1,0 +1,13 @@
+{
+  "id": "gan-GN-3310-19-LK-K2-glued-value-page",
+  "manufacturerId": "gan",
+  "catalogNumber": "GN 3310-19-LK-K2",
+  "note": "Newer cached snapshot of the same GN 3310 PDP as fixtures/gan-GN-3310-19-LK-K2-page/, captured after Ganter's site template added an image-gallery caption div (class=\"product-image__caption\") that joins 'Contact type: ...<br />Connection type: ...' with no text between the two lines. Guards against that caption leaking into a real spec attribute.",
+  "pages": [
+    {
+      "path": "page.html",
+      "url": "https://www.ganternorm.com/en/products/1.2-Operating-by-using-machine-anddevicehandles/Cabinet-U-handles/GN-3310-Switches-Indicator-Lights-Stainless-Steel-with-without-LED-Lightning",
+      "sourceType": "official"
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "_source": "Ground truth read directly out of the cached zh-cn (Chinese-locale) page HTML: JSON-LD/Livewire structured data states `alternateName`/`productLabel` = \"BNN 520-UB-25\", `sku`/`mpn`/`orderCode` = \"BNN000W\", `Brand` = \"Balluff\". The page also renders a Livewire cookie-consent dialog with `aria-label=\"Cookie 设置\"` and a `<strong>Cookie 设置:</strong>` heading followed by a `<p>` whose Chinese consent text repeats the untranslated English loanword \"Cookie\" five times (`... Cookie 外 ... 其他 Cookie 及类似技术 ... Cookie 政策和隐私政策。 必要 Cookie 分析 功能 Cookie ...`).",
+
+  "_tier": "value-verified",
+
+  "attributesInclude": [
+    { "name": "alternateName", "valueContains": "BNN 520-UB-25" },
+    { "name": "sku", "valueContains": "BNN000W" },
+    { "name": "Brand", "valueContains": "Balluff" }
+  ],
+
+  "mustNotContain": [
+    "Cookie 设置",
+    "除技术上必需的",
+    "隐私政策",
+    "撤回同意"
+  ],
+
+  "allowMissing": ["weight", "dimensions", "voltage", "current", "material"],
+
+  "knownGaps": [],
+
+  "_notes": {
+    "why": "Real Balluff zh-cn (Chinese-locale) product page — the generic HTML sweep's `li,p` splitNameValue pass turned the page's Livewire cookie-consent dialog into a `Text` attribute named `Cookies Cookie 设置` with the full Chinese consent paragraph as its value. Existing English-only boilerplate filters (spec-plausibility.ts's `cookie (?:policy|notice|settings)`) never match because the Chinese banner translates \"settings\" to \"设置\" and only keeps the technical word \"Cookie\" itself untranslated — a real gap in the existing (English-keyword) guard, not covered by any prior fixture.",
+    "fix": "spec-plausibility.ts's boilerplate label/value check now also rejects text where the literal word \"Cookie\"/\"Cookies\" (case-insensitive, ASCII word-boundary — safe because the surrounding script is otherwise non-Latin) appears 2+ times, since this vendor's product domain (industrial connectors/sensors/cam belts) has no legitimate reason to mention the word even once, let alone repeatedly. A single incidental mention still passes."
+  }
+}

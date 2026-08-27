@@ -14,7 +14,7 @@ import { isPdfLikeDocumentUrl } from "./document-url.js";
 import { fieldMatchesLabel, FIELD_REGISTRY, listFieldRegistryDocumentLabels, type RegistryFieldKey } from "./field-registry.js";
 import { extractElectricalSpecAttributesFromText, extractOntologySpecAttributesFromText } from "./electrical-spec-miner.js";
 import { extractComplianceMatrixAttributes, textHasComplianceMatrixGlyphs } from "./pdf-compliance-matrix.js";
-import { extractPositionedTableRows, extractPositionedTableRowsFromPdf, type PositionedTextItem } from "./pdf-positioned-table.js";
+import { extractPositionedTableRows, extractPositionedTableRowsFromPages, extractPositionedTableRowsFromPdf, positionedItemOrientationFromTransform, type PositionedTextItem } from "./pdf-positioned-table.js";
 import { catalogTableKeyFor, isCatalogIdHeaderCell, isCatalogTableHeaderText } from "./catalog-table-vocabulary.js";
 import { orderingCodeLegendValue } from "./ordering-code-legend.js";
 import { inferEatonRapidLinkOrderingRows } from "./eaton-ordering-inference.js";
@@ -53,6 +53,17 @@ interface PdfDocumentText {
   pageCount?: number;
   /** True when MAX_PDF_TEXT_CHARS cut the text — otherwise "not in this document" and "truncated away" look identical. */
   truncated?: boolean;
+  /**
+   * Native (non-OCR) positioned text items for EVERY page of the source document (never scoped to
+   * `pagesUsed` — the positioned-table reader needs full-document page order for its
+   * carried-header/new-table-boundary logic, the same as it always has). Only present when this
+   * document went through the cached small/medium-file page-set path (`readCachedPdfPageSetIfEligible`);
+   * lets `extractPositionedWeightDimensionsSafely` reuse the SAME pdfjs parse `pdf-parse` already did
+   * instead of a second full `pdfjs.getDocument()` pass — confirmed live at ~30-45% of a document's
+   * total processing time on real Saginaw/SCE accessory manuals. Undefined is a safe, silent
+   * fallback to the old file-reopen behavior, never a correctness difference.
+   */
+  nativePositionedItemsByPage?: Map<number, PositionedTextItem[]>;
 }
 
 /**
@@ -69,6 +80,9 @@ interface PdfPageSet {
   pages: Array<{ num: number; text: string }>;
   tablesByPage: Map<number, TableArray[]>;
   ocrPositionedItemsByPage: Map<number, PositionedTextItem[]>;
+  /** See `PdfDocumentText.nativePositionedItemsByPage` — captured from the same pdfjs document
+   * `pdf-parse` already loaded for this page set, when that document could be recovered. */
+  nativePositionedItemsByPage?: Map<number, PositionedTextItem[]>;
   /** OCR output has no reliable page structure, so targeting is skipped for it. */
   fromOcr: boolean;
 }
@@ -284,60 +298,63 @@ const KNOWN_LABELS = uniqueKnownLabels([
     .filter(isUsefulTechnicalAliasPdfLabel)
 ]).sort((left, right) => right.length - left.length);
 
-export async function enrichResultFromDownloadedDocuments(result: ProductResult): Promise<ProductResult> {
-  const documentAttributes: AttributeRecord[] = [];
-  const documentSources: SourceRecord[] = [];
-  const documentParseFailures: string[] = [];
-  const documentProcessing: DocumentProcessingDiagnostic[] = [];
-  const documents: DocumentRecord[] = [];
+/**
+ * Documents in a batch are independent, CPU-bound PDF parses (no shared mutable state, no network
+ * side effects — that's remote document probing, handled separately). Real corpus evidence: a single
+ * Saginaw enclosure catalog with 11 accessory-manual PDFs took 10.1s sequential (`_tmp-bench-docs.ts`,
+ * `SCE-12EL1206LP`, none of them cross `shouldSkipAfterStrongDocumentEvidence`'s threshold, so all 11
+ * genuinely need to run). Batching bounds the parallelism instead of firing every document at once —
+ * catalogs already run with their own concurrency (default 3, up to 8), and each parallel catalog's
+ * documents stacking unbounded on top would oversubscribe the machine instead of speeding runs up.
+ */
+const DOWNLOADED_DOCUMENT_BATCH_SIZE = 3;
 
-  for (const doc of prioritizeDownloadedDocuments(result.documents)) {
-    const started = Date.now();
-    if (shouldSkipAfterStrongDocumentEvidence(doc, documentAttributes)) {
-      documentProcessing.push(documentProcessingRecord(doc, "downloaded-document-enrichment", "skipped", "Skipped lower-priority document because a datasheet/catalog already supplied strong product attributes."));
-      documents.push({ ...doc, parseStatus: doc.parseStatus ?? "skipped" });
-      continue;
-    }
-    if (!shouldParsePdfDocument(doc)) {
-      documentProcessing.push(documentProcessingRecord(doc, "downloaded-document-enrichment", "skipped", downloadedDocumentSkipReason(doc)));
-      documents.push({ ...doc, parseStatus: doc.parseStatus ?? (doc.localPath ? "skipped" : undefined) });
-      continue;
-    }
-    try {
-      const pdfText = await readPdfText(doc.localPath!, result.catalogNumber, doc.url);
-      const { text, tables } = pdfText;
-      // Multi-model PDFs need target scoping, but some catalogs keep shared technical
-      // pages away from the catalog table. Keep both the target rows and global spec rows.
-      const scope = buildDocumentParseScope(text, result.catalogNumber);
-      let attributes = [
-        ...extractDocumentTextAttributes({
-          catalogNumber: result.catalogNumber,
-          document: doc,
-          text: scope.text,
-          tables,
-          scopeUnresolved: !scope.resolved,
-          matchLevel: scope.match?.level
-        }),
-        ...extractOcrPositionedTableAttributes(pdfText.ocrPositionedItems, result.catalogNumber, doc.url),
-        ...(await extractComplianceMatrixAttributesSafely(text, doc.localPath!, result.catalogNumber, doc.url))
-      ];
-      const positionedAttributes = await extractPositionedWeightDimensionsSafely(doc.localPath!, result.catalogNumber, doc.url, attributes, looksLikeMultiVariantFamilyPage(text, result.catalogNumber));
-      attributes.push(...positionedAttributes);
-      attributes = discardUnscopedFamilyTableCandidates(attributes, result.catalogNumber, positionedAttributes);
-      if (attributes.length > 0) {
-        documentAttributes.push(...stampDocumentAttributes(attributes));
-        documentSources.push({
-          url: doc.url,
-          sourceType: "generated",
-          parser: "pdf-table-extractor",
-          stage: "enrich-documents",
-          reason: doc.type,
-          fetchedAt: new Date().toISOString()
-        });
-      }
-      const substantive = documentAttributesAreSubstantive(attributes);
-      documents.push({ ...doc, parseStatus: substantive ? "parsed" : "skipped", parseError: undefined });
-      documentProcessing.push(documentProcessingRecord(
+interface DownloadedDocumentOutcome {
+  doc: DocumentRecord;
+  attributes: AttributeRecord[];
+  source?: SourceRecord;
+  processing: DocumentProcessingDiagnostic;
+  parseFailure?: string;
+}
+
+async function processOneDownloadedDocument(doc: DocumentRecord, catalogNumber: string): Promise<DownloadedDocumentOutcome> {
+  const started = Date.now();
+  if (!shouldParsePdfDocument(doc)) {
+    return {
+      doc: { ...doc, parseStatus: doc.parseStatus ?? (doc.localPath ? "skipped" : undefined) },
+      attributes: [],
+      processing: documentProcessingRecord(doc, "downloaded-document-enrichment", "skipped", downloadedDocumentSkipReason(doc))
+    };
+  }
+  try {
+    const pdfText = await readPdfText(doc.localPath!, catalogNumber, doc.url);
+    const { text, tables } = pdfText;
+    // Multi-model PDFs need target scoping, but some catalogs keep shared technical
+    // pages away from the catalog table. Keep both the target rows and global spec rows.
+    const scope = buildDocumentParseScope(text, catalogNumber);
+    let attributes = [
+      ...extractDocumentTextAttributes({
+        catalogNumber,
+        document: doc,
+        text: scope.text,
+        tables,
+        scopeUnresolved: !scope.resolved,
+        matchLevel: scope.match?.level
+      }),
+      ...extractOcrPositionedTableAttributes(pdfText.ocrPositionedItems, catalogNumber, doc.url),
+      ...(await extractComplianceMatrixAttributesSafely(text, doc.localPath!, catalogNumber, doc.url))
+    ];
+    const positionedAttributes = await extractPositionedWeightDimensionsSafely(doc.localPath!, catalogNumber, doc.url, attributes, looksLikeMultiVariantFamilyPage(text, catalogNumber), pdfText.nativePositionedItemsByPage);
+    attributes.push(...positionedAttributes);
+    attributes = discardUnscopedFamilyTableCandidates(attributes, catalogNumber, positionedAttributes);
+    const substantive = documentAttributesAreSubstantive(attributes);
+    return {
+      doc: { ...doc, parseStatus: substantive ? "parsed" : "skipped", parseError: undefined },
+      attributes,
+      source: attributes.length > 0
+        ? { url: doc.url, sourceType: "generated", parser: "pdf-table-extractor", stage: "enrich-documents", reason: doc.type, fetchedAt: new Date().toISOString() }
+        : undefined,
+      processing: documentProcessingRecord(
         doc,
         "downloaded-document-enrichment",
         substantive ? "parsed" : "skipped",
@@ -350,12 +367,56 @@ export async function enrichResultFromDownloadedDocuments(result: ProductResult)
             : " [multi-variant document; nothing in it locates this catalog number, so catalog-agnostic sweeps were suppressed]"),
         undefined,
         documentExtractionMetrics(attributes, [doc], Date.now() - started, pdfText)
-      ));
-    } catch (error) {
-      const parseError = error instanceof Error ? error.message : "PDF parse failed";
-      documentParseFailures.push(`${doc.label || doc.url}: ${parseError}`);
-      documents.push({ ...doc, parseStatus: "failed", parseError });
-      documentProcessing.push(documentProcessingRecord(doc, "downloaded-document-enrichment", "failed", "Downloaded PDF parse failed.", parseError, { elapsedMs: Date.now() - started }));
+      )
+    };
+  } catch (error) {
+    const parseError = error instanceof Error ? error.message : "PDF parse failed";
+    return {
+      doc: { ...doc, parseStatus: "failed", parseError },
+      attributes: [],
+      processing: documentProcessingRecord(doc, "downloaded-document-enrichment", "failed", "Downloaded PDF parse failed.", parseError, { elapsedMs: Date.now() - started }),
+      parseFailure: `${doc.label || doc.url}: ${parseError}`
+    };
+  }
+}
+
+export async function enrichResultFromDownloadedDocuments(result: ProductResult): Promise<ProductResult> {
+  const documentAttributes: AttributeRecord[] = [];
+  const documentSources: SourceRecord[] = [];
+  const documentParseFailures: string[] = [];
+  const documentProcessing: DocumentProcessingDiagnostic[] = [];
+  const documents: DocumentRecord[] = [];
+
+  const prioritized = prioritizeDownloadedDocuments(result.documents);
+  for (let start = 0; start < prioritized.length; start += DOWNLOADED_DOCUMENT_BATCH_SIZE) {
+    const batch = prioritized.slice(start, start + DOWNLOADED_DOCUMENT_BATCH_SIZE);
+    // The strong-evidence skip is a real optimization (datasheet already covers everything, don't
+    // bother parsing ten accessory manuals) and stays evidence-so-far ordered: it is checked once per
+    // batch member against everything FULLY COMPLETED in earlier batches, same as the old one-at-a-
+    // time loop. The only behavior difference is bounded to inside a single batch: a document that
+    // would have been skipped because an earlier document IN THE SAME BATCH just crossed the
+    // threshold now still runs (parallel, so it cost no extra wall time) instead of being skipped —
+    // never a correctness issue (extra corroborating evidence, not conflicting data), only ever a
+    // few PDFs' worth of otherwise-idle CPU, bounded by DOWNLOADED_DOCUMENT_BATCH_SIZE.
+    const toProcess: DocumentRecord[] = [];
+    for (const doc of batch) {
+      if (shouldSkipAfterStrongDocumentEvidence(doc, documentAttributes)) {
+        documentProcessing.push(documentProcessingRecord(doc, "downloaded-document-enrichment", "skipped", "Skipped lower-priority document because a datasheet/catalog already supplied strong product attributes."));
+        documents.push({ ...doc, parseStatus: doc.parseStatus ?? "skipped" });
+      } else {
+        toProcess.push(doc);
+      }
+    }
+    if (!toProcess.length) continue;
+    const outcomes = await Promise.all(toProcess.map((doc) => processOneDownloadedDocument(doc, result.catalogNumber)));
+    for (const outcome of outcomes) {
+      documents.push(outcome.doc);
+      documentProcessing.push(outcome.processing);
+      if (outcome.parseFailure) documentParseFailures.push(outcome.parseFailure);
+      if (outcome.attributes.length > 0) {
+        documentAttributes.push(...stampDocumentAttributes(outcome.attributes));
+        if (outcome.source) documentSources.push(outcome.source);
+      }
     }
   }
 
@@ -446,7 +507,7 @@ export async function enrichResultFromRemoteDocuments(
         ...extractOcrPositionedTableAttributes(pdfText.ocrPositionedItems, result.catalogNumber, parsedDoc.url),
         ...(await extractComplianceMatrixAttributesSafely(text, fetched.localPath, result.catalogNumber, parsedDoc.url))
       ];
-      const positionedAttributes = await extractPositionedWeightDimensionsSafely(fetched.localPath, result.catalogNumber, parsedDoc.url, attributes, looksLikeMultiVariantFamilyPage(text, result.catalogNumber));
+      const positionedAttributes = await extractPositionedWeightDimensionsSafely(fetched.localPath, result.catalogNumber, parsedDoc.url, attributes, looksLikeMultiVariantFamilyPage(text, result.catalogNumber), pdfText.nativePositionedItemsByPage);
       attributes.push(...positionedAttributes);
       attributes = discardUnscopedFamilyTableCandidates(attributes, result.catalogNumber, positionedAttributes);
       if (attributes.length > 0) {
@@ -1435,7 +1496,8 @@ async function extractPositionedWeightDimensionsSafely(
   catalogNumber: string,
   sourceUrl: string,
   existingAttributes: AttributeRecord[],
-  forceRun = false
+  forceRun = false,
+  nativePositionedItemsByPage?: Map<number, PositionedTextItem[]>
 ): Promise<AttributeRecord[]> {
   // A weight/dimensions attribute whose VALUE already looks like several different numbers
   // concatenated together (" / " or " | " joining multiple "NNN g"/"NN x NN x NN" fragments) is
@@ -1461,8 +1523,17 @@ async function extractPositionedWeightDimensionsSafely(
   // so let it compete regardless. Non-family PDFs never set forceRun, so their gate is unchanged.
   if (!forceRun && hasWeight && hasDimensions && !hasVoltage && !hasCurrent) return [];
   try {
-    const data = new Uint8Array(await fs.readFile(filePath));
-    const rows = await extractPositionedTableRowsFromPdf(data, catalogNumber);
+    // Reuse the caller's already-loaded per-page items when available (see
+    // `nativePositionedItemsByPage`'s doc comment) instead of a second full pdfjs parse of the same
+    // file. The map may be missing PAGES the reader would otherwise reach (a capture failure fails
+    // the WHOLE map closed, never partial) — falling back to the file-reopen path there is always
+    // safe, just slower.
+    const rows = nativePositionedItemsByPage
+      ? extractPositionedTableRowsFromPages(
+          Array.from({ length: Math.max(0, ...nativePositionedItemsByPage.keys()) }, (_, index) => nativePositionedItemsByPage.get(index + 1) ?? []),
+          catalogNumber
+        )
+      : await extractPositionedTableRowsFromPdf(new Uint8Array(await fs.readFile(filePath)), catalogNumber);
     if (!rows) return [];
     // Every row this reader returns is added as a COMPETING candidate — never gated behind "does an
     // existing, shape-clean attribute of the SAME NAME already exist" (that would block a correction
@@ -1630,6 +1701,44 @@ async function readCachedPdfPageSetIfEligible(filePath: string, cacheIdentity?: 
   return cached;
 }
 
+/**
+ * Reaches into `pdf-parse`'s `PDFParse` instance for the `pdfjs-dist` document it already loaded, so
+ * the positioned-table reader can reuse it instead of a second full `pdfjs.getDocument()` parse of
+ * the same file (confirmed live at ~30-45% of a document's total processing time on real Saginaw/SCE
+ * accessory manuals). `doc` is a TypeScript-only `private` field — a plain runtime property, not a
+ * true ECMAScript `#private` field — so this is inherently coupled to pdf-parse's current internals.
+ * A future pdf-parse upgrade that renames or truly hides it fails CLOSED (returns undefined here),
+ * which safely falls back to the old file-reopen path: only ever a lost speed win, never a
+ * correctness risk, since every caller already handles "no cached items" today.
+ */
+async function capturePositionedPagesFromParser(parser: PDFParse, pageNumbers: number[]): Promise<Map<number, PositionedTextItem[]> | undefined> {
+  const doc = (parser as unknown as { doc?: { getPage(pageNumber: number): Promise<{ getTextContent(): Promise<{ items: unknown[] }>; cleanup(): void }> } }).doc;
+  if (!doc) return undefined;
+  const byPage = new Map<number, PositionedTextItem[]>();
+  try {
+    for (const pageNumber of pageNumbers) {
+      const page = await doc.getPage(pageNumber);
+      try {
+        const content = await page.getTextContent();
+        const items: PositionedTextItem[] = [];
+        for (const item of content.items) {
+          if (typeof (item as { str?: unknown }).str !== "string") continue;
+          const textItem = item as { str: string; transform: number[] };
+          items.push({ text: textItem.str, x: textItem.transform[4], y: textItem.transform[5], orientation: positionedItemOrientationFromTransform(textItem.transform) });
+        }
+        byPage.set(pageNumber, items);
+      } finally {
+        page.cleanup();
+      }
+    }
+  } catch {
+    // Fail closed on the WHOLE capture, not just the failing page: a partial map would silently
+    // under-scan for whichever pages didn't make it in, which is worse than no cache at all.
+    return undefined;
+  }
+  return byPage;
+}
+
 async function readPdfPageSet(filePath: string): Promise<PdfPageSet> {
   const data = await fs.readFile(filePath);
   const parser = new PDFParse({ data });
@@ -1658,7 +1767,13 @@ async function readPdfPageSet(filePath: string): Promise<PdfPageSet> {
         if (acceptedOcr.size) pages = nativePages.map((page) => ({ ...page, text: acceptedOcr.get(page.num)?.text ?? page.text }));
       }
       const tablesByPage = await safeGetTablesByPage(parser, pages.slice(0, MAX_PDF_PAGES).map((page) => page.num));
-      return { pages, tablesByPage, ocrPositionedItemsByPage, fromOcr: false };
+      // Full page range, not capped to MAX_PDF_PAGES: extractPositionedTableRowsFromPdf's own
+      // per-page loop has no such cap (a family catalog's target table can sit well past page 30 —
+      // confirmed on the 57-page eaton-cbe03319 catalog), and this capture must cover everything
+      // that reader would have scanned itself, or it would silently narrow coverage instead of just
+      // saving time.
+      const nativePositionedItemsByPage = await capturePositionedPagesFromParser(parser, nativePages.map((page) => page.num));
+      return { pages, tablesByPage, ocrPositionedItemsByPage, nativePositionedItemsByPage, fromOcr: false };
     }
   } finally {
     await parser.destroy().catch(() => undefined);
@@ -1724,7 +1839,11 @@ function selectPdfTextFromPageSet(pageSet: PdfPageSet, catalogNumber?: string): 
     ...(ocrPositionedItems.length ? { ocrPositionedItems } : {}),
     pagesUsed: selected.map((page) => page.num),
     pageCount,
-    truncated: joined.length > MAX_PDF_TEXT_CHARS
+    truncated: joined.length > MAX_PDF_TEXT_CHARS,
+    // Deliberately the FULL per-page map from the page set, not scoped to `selected`: the
+    // positioned-table reader needs every page in original document order for its own
+    // carried-header/new-table-boundary logic, exactly as it does when it opens the file itself.
+    ...(pageSet.nativePositionedItemsByPage ? { nativePositionedItemsByPage: pageSet.nativePositionedItemsByPage } : {})
   };
 }
 

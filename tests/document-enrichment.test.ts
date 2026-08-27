@@ -1438,6 +1438,34 @@ Operating Temperature XT
     expect(result.attributes).toEqual([]);
   });
 
+  it("processes every document exactly once when there are more than one batch's worth", async () => {
+    // Documents are now processed in bounded-concurrency batches (DOWNLOADED_DOCUMENT_BATCH_SIZE)
+    // instead of strictly one at a time — real corpus evidence (a Saginaw enclosure catalog with 11
+    // accessory-manual PDFs) showed the old fully-sequential loop taking 10+ seconds. Seven documents
+    // guarantees at least 3 batches at the current batch size, so a batch-boundary bug (a document
+    // silently dropped, duplicated, or misattributed to another document's failure) would show up as
+    // a wrong count or a wrong label here.
+    const documents = Array.from({ length: 7 }, (_, index) => ({
+      type: "datasheet" as const,
+      label: `Doc ${index + 1}`,
+      url: `https://example.test/doc-${index + 1}.pdf`,
+      localPath: `D:/does-not-exist/doc-${index + 1}.pdf`,
+      downloadStatus: "downloaded" as const
+    }));
+
+    const result = await enrichResultFromDownloadedDocuments(product({ documents }));
+
+    expect(result.documents).toHaveLength(7);
+    expect(result.documents.every((doc) => doc.parseStatus === "failed")).toBe(true);
+    expect(result.diagnostics?.documentParseFailures).toHaveLength(7);
+    for (let index = 1; index <= 7; index += 1) {
+      expect(result.diagnostics?.documentParseFailures?.some((failure) => failure.includes(`Doc ${index}`))).toBe(true);
+      expect(result.diagnostics?.documentProcessing).toEqual(expect.arrayContaining([
+        expect.objectContaining({ url: `https://example.test/doc-${index}.pdf`, action: "failed" })
+      ]));
+    }
+  });
+
   it("skips a downloaded document marked enrichable:false without parsing it, keeping the link", async () => {
     // A real per-product datasheet whose content is a multi-variant/multi-language catalog (Ganter
     // Norm "standard sheets") is kept as a downloadable link but must never be mined for attributes:

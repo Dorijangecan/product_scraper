@@ -1,0 +1,35 @@
+{
+  "_tier": "value-verified",
+  "_source": "Newer cached snapshot of the same GN 3310-19-LK-K2 PDP as fixtures/gan-GN-3310-19-LK-K2-page/ (same URL, same product data). Raw HTML now also has an image-gallery caption: `<div class=\"product-image__caption\">Contact type: LK - Indicator light LED, red / green (bi-color) (no switching function)<br />Connection type: K2 - Cable, end open, 2 m</div>` — a plain div whose only child markup is a `<br>`, so cheerio's `.text()` drops the tag with no separator and glues the two lines into one string. The real Contact type / Connection type facts are still published separately elsewhere on the page (electrical/mechanical properties table and the interactive priority table), same as in the sibling fixture.",
+  "_notes": "Guards a real Ganter template change: an image caption combining two 'Label: value' lines with only a <br> between them must not become one attribute whose value is 'first line's value' + 'second Label: value line' glued together with no separator.",
+  "normalized": {
+    "material": "Stainless Steel",
+    "weight": "0.126 kg",
+    "certificates": "CE"
+  },
+  "attributesInclude": [
+    {
+      "name": "d Connection type K2 / K5",
+      "valueContains": "6"
+    },
+    {
+      "name": "Category of use (button)",
+      "valueContains": "AC 15: 24 V AC / 1 A"
+    },
+    {
+      "name": "Contact type",
+      "valueContains": "LK - Indicator light LED"
+    }
+  ],
+  "mustNotContain": [
+    "no switching function)Connection type",
+    "no switching function)<br",
+    "Category of use (button) | AC 15: 24 V AC / 1 A",
+    "Cable with plug, 0,25 m",
+    "500,",
+    "typo3.org",
+    "#4e4e4d;",
+    "many exciting ideas",
+    "Order free Catalogue"
+  ]
+}

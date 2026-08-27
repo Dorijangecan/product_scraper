@@ -119,6 +119,22 @@ const LEGAL_DOCUMENT_PATTERN =
   /\b(?:data protection (?:declaration|notice|policy)|datenschutz(?:erkl[äa]rung)?|privacy (?:notice|policy|statement)|terms (?:and conditions|of (?:use|sale|service))|legal notice|imprint|impressum|gdpr|cookie (?:policy|notice|settings)|declaration of consent|whistleblow)/i;
 
 /**
+ * A cookie-consent dialog in a non-English locale. The keyword phrases above ("cookie settings", …)
+ * are English-only and never match a translated banner, because sites keep the technical word
+ * "Cookie" itself as an untranslated loanword while translating everything around it — confirmed live
+ * on Balluff's zh-cn product pages, whose Livewire dialog (`aria-label="Cookie 设置"`, `<strong>Cookie
+ * 设置:</strong>` + a Chinese consent paragraph) repeats "Cookie" five times with no other English
+ * word in reach of the phrase-based pattern above. No product in this domain (industrial connectors,
+ * sensors, cables) has a legitimate reason to mention "cookie" even once, so requiring 2+ repeats
+ * (never a single incidental mention) keeps this safe without needing every locale's translation.
+ */
+const REPEATED_COOKIE_MENTION_PATTERN = /\bcookies?\b/gi;
+
+function hasRepeatedCookieMention(text: string): boolean {
+  return (text.match(REPEATED_COOKIE_MENTION_PATTERN)?.length ?? 0) >= 2;
+}
+
+/**
  * A DOWNLOAD-LINK label, carrying the file's size and language rather than a specification.
  *
  * nVent decorates its certificate links with them, and the labels flowed into the certificates field:
@@ -478,7 +494,7 @@ export function isPlausibleSpecValue(value: string): boolean {
   if (COMMERCE_CHROME_PATTERN.test(text)) return false;
   if (RAW_MARKUP_FRAGMENT_PATTERN.test(text)) return false;
   if (FORM_CHROME_PATTERN.test(text)) return false;
-  if (LEGAL_DOCUMENT_PATTERN.test(text)) return false;
+  if (LEGAL_DOCUMENT_PATTERN.test(text) || hasRepeatedCookieMention(text)) return false;
   if (CODE_FRAGMENT_PATTERN.test(text) || CODE_ESCAPE_PATTERN.test(text) || JS_EXPRESSION_PATTERN.test(text) || JS_ASSIGNMENT_SEQUENCE.test(text) || LINE_COMMENT_PATTERN.test(text) || JS_METHOD_CALL_STATEMENT.test(text) || JS_CALL_WITH_STRING_ARGUMENT.test(text) || CAMEL_CASE_CODE_PATH.test(text)) return false;
   if (hasTornQuoteFragment(text)) return false;
   if (BOOLEAN_LITERAL_VALUE.test(text)) return false;
@@ -550,7 +566,7 @@ export function isPlausibleSpecLabel(label: string): boolean {
   if (COMMERCE_CHROME_PATTERN.test(text)) return false;
   if (RAW_MARKUP_FRAGMENT_PATTERN.test(text)) return false;
   if (FORM_CHROME_PATTERN.test(text)) return false;
-  if (LEGAL_DOCUMENT_PATTERN.test(text)) return false;
+  if (LEGAL_DOCUMENT_PATTERN.test(text) || hasRepeatedCookieMention(text)) return false;
   if (CODE_FRAGMENT_PATTERN.test(text) || CODE_ESCAPE_PATTERN.test(text) || JS_EXPRESSION_PATTERN.test(text) || JS_ASSIGNMENT_SEQUENCE.test(text) || LINE_COMMENT_PATTERN.test(text) || JS_METHOD_CALL_STATEMENT.test(text) || JS_CALL_WITH_STRING_ARGUMENT.test(text) || CAMEL_CASE_CODE_PATH.test(text)) return false;
 
   // A label split out of running prose keeps the sentence's opening bracket without its closer.

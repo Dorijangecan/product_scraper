@@ -1,0 +1,13 @@
+{
+  "id": "balluff-BNN000W-page",
+  "manufacturerId": "balluff",
+  "catalogNumber": "BNN000W",
+  "note": "Recorded balluff.com.cn zh-cn (Chinese-locale) product page. Guards against the site's Livewire cookie-consent dialog (aria-label=\"Cookie 设置\", literal borrowed English word \"Cookie\" repeated in the Chinese banner text) leaking into a generic Text label/value pair.",
+  "pages": [
+    {
+      "path": "page.html",
+      "url": "https://www.balluff.com.cn/zh-cn/products/BNN000W",
+      "sourceType": "official"
+    }
+  ]
+}

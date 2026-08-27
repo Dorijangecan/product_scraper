@@ -148,4 +148,37 @@ describe("generic multi-value HTML leaves", () => {
     ])
   );
 }, 20_000);
+
+  it("does not glue two <br>-separated caption lines into one attribute", async () => {
+    // Real Ganter (ganternorm.com) product-image gallery caption:
+    // `<div class="product-image__caption">Contact type: LK - ...(no switching function)<br />
+    // Connection type: K2 - Cable, end open, 2 m</div>`. cheerio's `.text()` drops the `<br>` with
+    // no separator, so the old text-only splitNameValue fallback glued the second line's whole
+    // "Label: value" onto the first line's value.
+    const url = "https://www.ganternorm.com/en/products/1.2-Operating-by-using-machine-anddevicehandles/Cabinet-U-handles/GN-3310-Switches-Indicator-Lights-Stainless-Steel-with-without-LED-Lightning";
+    const text = await readFile("fixtures/gan-GN-3310-19-LK-K2-glued-value-page/page.html", "utf8");
+    const result = parseGenericProductPage(
+      "gan",
+      "GN 3310-19-LK-K2",
+      {
+        requestedUrl: url,
+        effectiveUrl: url,
+        statusCode: 200,
+        contentType: "text/html",
+        fetchedAt: "2026-01-01T00:00:00.000Z",
+        fromCache: true,
+        text
+      },
+      "official"
+    );
+
+    expect(result.attributes).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ value: expect.stringContaining("no switching function)Connection type") })
+      ])
+    );
+    expect(result.attributes).toEqual(
+      expect.arrayContaining([expect.objectContaining({ name: "Contact type", value: expect.stringContaining("LK - Indicator light LED") })])
+    );
+  }, 15_000);
 });

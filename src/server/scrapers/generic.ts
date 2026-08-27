@@ -2529,7 +2529,7 @@ function extractSectionAwareSpecAttributes($: cheerio.CheerioAPI, sourceUrl: str
         // rows. Its concatenated text has no reliable label/value boundary, and the
         // individual rows are visited by the class-hinted pass above. Do not turn that
         // parent grid into a second, synthetic attribute.
-        const pair = childElementSpecPair($, row) ?? (hasNestedBlockContent($, row) ? undefined : splitNameValue($(row).text()));
+        const pair = childElementSpecPair($, row) ?? (hasNestedBlockContent($, row) || hasBrJoinedMultiColonLines($, row) ? undefined : splitNameValue($(row).text()));
         if (pair) push(pair.name, pair.value, group);
       });
   });
@@ -2659,7 +2659,7 @@ function extractLooseChildPairAttributes($: cheerio.CheerioAPI, sourceUrl: strin
       // text-only colon fallback on that ancestor turns the entire card into one attribute.
       // Real element pairs are still handled by childElementSpecPair; bare `Label: value`
       // text is only safe when the candidate has no nested block-level content of its own.
-      const pair = childElementSpecPair($, row) ?? (hasNestedBlockContent($, row) ? undefined : splitNameValue($(row).text()));
+      const pair = childElementSpecPair($, row) ?? (hasNestedBlockContent($, row) || hasBrJoinedMultiColonLines($, row) ? undefined : splitNameValue($(row).text()));
       if (!pair) return;
       const name = cleanSpecPairLabel(pair.name);
       const value = cleanSpecPairValue(pair.value, name);
@@ -2681,6 +2681,23 @@ function isPromotionalCataloguePair(name: string, value: string): boolean {
 
 function hasNestedBlockContent($: cheerio.CheerioAPI, element: Parameters<cheerio.CheerioAPI>[0]): boolean {
   return $(element).find("div,section,article,p,li,table,dl,dt,dd,h1,h2,h3,h4,h5,h6,[role='row']").length > 0;
+}
+
+/**
+ * A `<br>` is not a "nested block" element (see `hasNestedBlockContent` above), so a `<div>`/`<li>`/
+ * `<p>` whose only child markup is one or more `<br>` tags still falls through to the text-only
+ * `splitNameValue` fallback — but cheerio's `.text()` drops `<br>` with NO separator, so two
+ * genuinely independent "Label: value" lines joined by a `<br>` glue into one string with the
+ * second line's whole "Label: value" appended onto the first line's value. Confirmed live on a real
+ * Ganter (ganternorm.com) product-image gallery caption: `Contact type: LK - ...(no switching
+ * function)<br />Connection type: K2 - Cable, end open, 2 m` became one "Contact type" attribute
+ * whose value ends in "...Connection type: K2 - Cable, end open, 2 m". Two-or-more colons alongside
+ * a `<br>` is the signal: a normal single value legitimately containing one colon (a time, a ratio)
+ * stays untouched, since real values like that are exactly what this fallback exists to keep.
+ */
+function hasBrJoinedMultiColonLines($: cheerio.CheerioAPI, element: Parameters<cheerio.CheerioAPI>[0]): boolean {
+  if (!$(element).find("br").length) return false;
+  return ($(element).text().match(/:/g) ?? []).length >= 2;
 }
 
 function extractAlternatingSpecGridAttributes($: cheerio.CheerioAPI, sourceUrl: string): AttributeRecord[] {

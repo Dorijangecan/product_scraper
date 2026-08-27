@@ -1,0 +1,13 @@
+{
+  "_tier": "value-verified",
+  "_source": "Ground truth from a raw pdftotext dump of the PDF itself: it is a bolt-thread/nut-thread ISO/DIN 13 tolerance table (M2.5 through M24, 6g/6H tolerance fields) with explanatory prose 'The metric steel / metal threads specified in this catalog are based on these tolerance fields' and 'For threads in plastic standard parts (without steel or metallic thread insert), these tolerances can usually not be main[tained]...'. The catalog number GN-6336-32 does not appear anywhere in the PDF text (grep count 0) — this is a shared, catalog-agnostic engineering reference appendix, not a page about this specific product.",
+  "normalized": {
+    "material": { "absent": true }
+  },
+  "mustNotContain": [],
+  "allowMissing": ["material", "weight", "dimensions", "voltage", "current"],
+  "knownGaps": [],
+  "_notes": {
+    "why": "The prose explaining the tolerance table's SCOPE contrasts steel/metal threads against plastic ones ('without steel or metallic thread insert') to say which thread TYPE the table covers — it is not a statement that GN-6336-32 itself is made of steel. `normalizer.ts`'s `deriveMaterialFromAttributes` scans any attribute whose group/name matches /description|overview|application|finish|feature|detail|material|body|housing|enclosure/i (this document's rows are named 'Feature') through `materialValueFromText`, whose keyword regex matches the bare word 'steel' anywhere in the sentence with no check for this generic-standard shape. Confirmed live: `PRODUCT_SCRAPER_DISABLE_SPEC_GATE=1` reproduces `normalized.material = \"steel\"` from this exact document; the spec-plausibility gate happens to drop it (hence it never reached a real export), but the fix belongs at the inference source, not the gate — the gate dropping a genuinely-inferred-wrong value is not something to rely on, since a slightly different sentence could pass the gate's plausibility check while still being the wrong inference."
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "id": "gan-GN-6336-32-generic-thread-standard-datasheet",
+  "manufacturerId": "gan",
+  "catalogNumber": "GN-6336-32",
+  "note": "A Ganter product page's attached 'other' document is a generic DIN 13 / ISO metric thread tolerance table (bolt/nut thread tolerance fields M2.5...M24) with NO mention of the catalog number anywhere in the PDF (confirmed via pdftotext). Guards against its scope-explaining prose — contrasting steel/metal threads against plastic ones — being read as a material claim about this specific product.",
+  "documents": [
+    {
+      "path": "benchmarks/output/20260715112656/documents/GN-6336-32-other-Metric-ISO-Thread-DIN-13.pdf",
+      "url": "https://www.ganternorm.com/en/downloads/GN-6336-32-Metric-ISO-Thread-DIN-13.pdf",
+      "type": "other"
+    }
+  ]
+}

@@ -68,6 +68,18 @@ describe("isPlausibleSpecValue — rejects", () => {
   it("a complete prose sentence", () => {
     expect(isPlausibleSpecValue("Catalog numbers ending with “C” are Celsius Thermostat Controllers.")).toBe(false);
   });
+
+  it("a non-English cookie-consent banner that keeps 'Cookie' as an untranslated loanword", () => {
+    // Real Balluff zh-cn banner (see fixtures/balluff-BNN000W-page): "cookie (?:policy|notice|settings)"
+    // never matches because the site translates everything except the technical word "Cookie" itself.
+    expect(
+      isPlausibleSpecValue(
+        "除技术上必需的 Cookie 外，在征得您同意的情况下，我们还会使用其他 Cookie 及类似技术，用于分析目的、提升用户体验，以及提供个性化和非个性化广告。您可以随时撤回同意，该撤回仅对未来生效。详情请参阅 Cookie 政策和隐私政策。 必要 Cookie 分析 功能 Cookie 确认选择 全部同意"
+      )
+    ).toBe(false);
+    // A single incidental mention is not a consent banner and must still pass.
+    expect(isPlausibleSpecValue("Supplied with a Cookie-cutter mounting bracket")).toBe(true);
+  });
 });
 
 describe("isPlausibleSpecValue — keeps real specifications", () => {
@@ -127,6 +139,14 @@ describe("isPlausibleSpecLabel", () => {
     }
     // Two words starting with the same determiner is still the real severed-sentence shape.
     expect(isPlausibleSpecLabel("A remote")).toBe(false);
+  });
+
+  it("rejects a non-English cookie-consent label repeating the untranslated word 'Cookie'", () => {
+    // Real Balluff zh-cn page (fixtures/balluff-BNN000W-page): a `<button>Cookies</button>` next to a
+    // `<strong>Cookie 设置:</strong>` heading combine into one splitNameValue label. "Cookie" appears
+    // twice; no legitimate connector/sensor spec label mentions it even once.
+    expect(isPlausibleSpecLabel("Cookies Cookie 设置")).toBe(false);
+    expect(isPlausibleSpecLabel("Cookie type")).toBe(true);
   });
 
   it("keeps abbreviated labels — an abbreviation's period is not a sentence end", () => {

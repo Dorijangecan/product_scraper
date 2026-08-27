@@ -2006,6 +2006,23 @@ function isAccessoryOrderWarningMaterialText(value: string | undefined): boolean
   return false;
 }
 
+/**
+ * A DIN/ISO thread-TOLERANCE standard explains its own scope by contrasting steel/metal threads
+ * against plastic ones ("without steel or metallic thread insert", "metric steel / metal threads
+ * specified in this catalog are based on these tolerance fields") — that names which thread TYPE the
+ * tolerance table covers, not this specific product's construction. Confirmed live: Ganter's shared
+ * "Metric ISO Thread DIN 13" reference document names no catalog number anywhere in its text (it is
+ * a generic bolt/nut tolerance-field appendix attached to many product pages, steel and plastic ones
+ * alike), yet its "Feature" prose let `materialValueFromText`'s bare keyword scan for "steel" invent
+ * `material = steel` for whichever catalog the document happened to be attached to.
+ */
+function isGenericThreadToleranceStandardText(value: string | undefined): boolean {
+  const cleaned = normalizeHtmlSpecValue(value);
+  if (!cleaned) return false;
+  if (!/\btolerances?\b/i.test(cleaned) || !/\bthreads?\b/i.test(cleaned)) return false;
+  return /\bwithout\s+steel\s+or\s+metallic\s+thread\s+insert\b/i.test(cleaned) || /\bsteel\s*\/\s*metal\s+threads?\b/i.test(cleaned);
+}
+
 function isSecondaryComponentMaterialText(value: string): boolean {
   const cleaned = normalizeHtmlSpecValue(value);
   if (!cleaned) return false;
@@ -2019,6 +2036,7 @@ function materialValueFromText(value: string): string | undefined {
   const cleaned = normalizeHtmlSpecValue(value);
   if (!cleaned) return undefined;
   if (isAccessoryOrderWarningMaterialText(cleaned)) return undefined;
+  if (isGenericThreadToleranceStandardText(cleaned)) return undefined;
   if (/\b(?:stainless steel|carbon steel|mild steel|galvannealed steel|galvanized steel|steel|aluminum|aluminium)\s+(?:cleaner|cleaning|paint|label)\b/i.test(cleaned)) {
     return undefined;
   }
