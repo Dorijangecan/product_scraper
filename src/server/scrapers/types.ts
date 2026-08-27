@@ -18,6 +18,26 @@ export interface ScrapeContext {
   documentsDir: string;
   signal?: AbortSignal;
   browserRenderer?: BrowserRenderSession;
+  /**
+   * The item's time budget — a SOFT target and a HARD ceiling, per DISCOVERY-SPEED-PLAN §4 option (B).
+   *
+   * The distinction is the whole point, and it is deliberate: the hard ceiling is the existing
+   * per-item abort (nothing that finishes today gets killed), while the soft target only stops work
+   * that is SPECULATIVE — trying another URL guess, opening a browser for a page nobody has evidence
+   * for. Work that is on its way to evidence is never cut by the soft target, because the project's
+   * original complaint is "the data is missing or wrong", and a hard cut that drops data to save
+   * seconds works against that.
+   *
+   * Absent for callers with no budget (wizard validation, tests): then nothing is skipped.
+   */
+  deadline?: {
+    /** Milliseconds until the hard per-item abort. Clamp expensive timeouts to this. */
+    remainingMs: () => number;
+    /** Has the soft target passed? If so, stop speculating — but keep chasing evidence. */
+    softTargetPassed: () => boolean;
+    /** For diagnostics: how long this item has been running. */
+    elapsedMs: () => number;
+  };
   /** Per-item discovery is shared between a connector's fallback and later deterministic retries.
    * The run manager creates this map once per catalog so a second stage reuses the same evidence
    * instead of repeating search/form/sitemap requests. */

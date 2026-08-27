@@ -812,6 +812,15 @@ function localePathPrefix(segments: string[]): string | undefined {
  */
 const DISCOVERY_SEARCH_BUDGET_MS = 6000;
 
+/**
+ * Don't open a browser with less time left than a single page load can consume.
+ *
+ * `page.goto` alone defaults to 45 s, before any `networkidle` waits. Starting a rendered search with
+ * less than this left cannot produce evidence — it can only be killed halfway, having spent the rest
+ * of the item's budget.
+ */
+const RENDERED_SEARCH_MIN_BUDGET_MS = 50_000;
+
 /** The same idea for the homepage probes that look for the vendor's real search form. */
 const FORM_PROBE_BUDGET_MS = 3000;
 
@@ -877,6 +886,11 @@ function hasEvidenceBackedCandidate(candidates: Map<string, ProductDiscoveryCand
 
 function shouldUseRenderedSearchDiscovery(context: ScrapeContext): boolean {
   if (!context.browserRenderer) return false;
+  // Deliberately gated on the HARD budget only, never on the soft target. A rendered search is the
+  // one real chance a JS-only catalogue has of producing evidence — it is not speculation, so
+  // option (B) lets it overrun the 30 s target. What it must not do is start with less time left
+  // than one `page.goto` can take (45 s default), because then it can only ever be killed halfway.
+  if ((context.deadline?.remainingMs() ?? Number.POSITIVE_INFINITY) < RENDERED_SEARCH_MIN_BUDGET_MS) return false;
   if (context.browserRenderer.isUnavailable?.()) return false;
   if (context.manufacturer.scrapeRecipe?.fallbackPolicy?.browserOnQualityFailure === false) return false;
   if (context.manufacturer.scrapeRecipe?.fallbackPolicy?.maxBrowserAttempts === 0) return false;
@@ -1240,10 +1254,13 @@ function isDiscoveryIndexUrl(url: string): boolean {
 async function fetchDiscoveryText(url: string, context: ScrapeContext, request: Pick<SearchDiscoveryRequest, "method" | "body"> = { method: "GET" }): Promise<FetchedText> {
   const policy = context.manufacturer.fetchPolicy ?? {};
   const indexOverride = isDiscoveryIndexUrl(url) || request.method === "POST" ? DISCOVERY_INDEX_CACHE_TTL_MS : undefined;
+  // Never wait longer than the item has left: a 15 s request timeout inside an item with 4 s of
+  // budget remaining just guarantees the abort lands mid-request, with nothing to show for the wait.
+  const remainingMs = context.deadline?.remainingMs() ?? Number.POSITIVE_INFINITY;
   return context.http.fetchText(url, {
     method: request.method,
     body: request.body,
-    timeoutMs: Math.min(policy.timeoutMs ?? 15000, 30000),
+    timeoutMs: Math.max(2000, Math.min(policy.timeoutMs ?? 15000, 30000, remainingMs)),
     cacheTtlMs: indexOverride ?? policy.cacheTtlMs,
     maxAttempts: 1,
     headers: {

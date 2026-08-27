@@ -4075,3 +4075,44 @@ s CAD viewera. Uska provjera uzorka je zato ispravna, a generalizacija nije bila
 | **ukupno korpus** | 3153 zahtjeva | **1241 (−61 %)** |
 
 Puni gate: TypeScript čist; Vitest **2296/2296**; eval **38/38**, 0 kontaminacija; spec-gate **0 SUSPECT**.
+
+### ✅ D2b — budžet po artiklu: meki cilj koji zaustavlja NAGAĐANJE, tvrdi strop koji zaustavlja sve
+
+Odabrana je opcija **(B)** iz [DISCOVERY-SPEED-PLAN §4](DISCOVERY-SPEED-PLAN.md) — 30 s je cilj, ne
+giljotina. Opcija (A) (tvrdi 30 s za sve) kupuje predvidivo vrijeme runa bacanjem podatka na točno
+najtežim artiklima, što je obrnuto od svrhe projekta.
+
+Novi `ScrapeContext.deadline` s tri metode (`remainingMs`, `softTargetPassed`, `elapsedMs`), kreiran po
+artiklu u `run-manager.ts` uz **već postojeći** `itemScrapeController`. Tvrdi strop je nepromijenjen
+(4 min) — **ništa što danas završi ne počinje padati.** Novo je samo: nakon 30 s se prestaje
+*špekulirati*.
+
+| potrošač | ponašanje | zašto tako |
+| --- | --- | --- |
+| `deterministic-pipeline` | nakon mekog cilja **ne dohvaća više `url-variant` kandidate** | ta petlja prođe sve kandidate za artikl koji nikad ne potvrdi, a ~2/3 liste je nagađanje (5 varijanti kat. broja × 3–4 oblika URL-a). Dokaz (template, learned, search hit, sitemap) se pokušava do tvrdog stropa |
+| `discovery` (browser) | gate **samo na tvrdom stropu** (≥ 50 s), nikad na mekom cilju | rendered search je jedina prava šansa JS-only kataloga da proizvede dokaz — to nije špekulacija. Ali ne smije startati s manje vremena nego što jedan `page.goto` (45 s) može potrošiti, jer tada može samo biti prekinut na pola |
+| `fetchDiscoveryText` | `timeoutMs = min(policy, 30 s, preostalo)` | 15 s timeout u artiklu kojem je ostalo 4 s samo garantira da abort padne usred zahtjeva, bez ičega za pokazati |
+
+**Rez se uvijek objasni.** Preskočeni kandidat dobiva `ScrapeAttemptRecord` sa `status: "skipped"` i
+razlogom `budget-exhausted:url-variant-guess — Ns elapsed`, a search faza `budget-exhausted:search`.
+Artikl koji je odrezan mora reći gdje i zašto, inače „nema podatka" i „nismo stigli" postaju
+nerazlučivi — što je isti princip kao `FieldHealthRecord.reasonCode` iz P3.2.
+
+**Bez budžeta (wizard validacija, testovi) ništa se ne preskače** — `deadline` je opcionalan i
+`undefined` znači „neograničeno", pa se ponašanje van runa ne mijenja.
+
+**Iskreno o mjerenju:** ovo je arhitektura, i **korpus je ne može ocijeniti** — offline replay nema
+latenciju, pa `audit:discovery` pokazuje identične brojeve prije i poslije (1241 zahtjeva, hit 69,4 %,
+hit@1 59,4 %), što je ovdje dokaz *neregresije*, ne dobitka. Ponašanje je fiksirano s 5 novih testova
+(preskače nagađanja / ne preskače prije cilja / ne preskače bez budžeta / ne otvara browser s malo
+vremena / otvara ga preko cilja kad strop dopušta).
+
+**Što NIJE napravljeno, svjesno:** dokumenti. Jedan dokument može potrošiti do 90 s (in-memory) + curl
+fallback (`--max-time 120`, execFile timeout 130 s) = ~220 s, tj. gotovo cijeli strop. Tvrdi strop se
+provodi kroz `signal`, pa ne visi zauvijek, ali **jedan veliki PDF i dalje može pojesti budžet
+ostalima**. Ispravan popravak je proslijediti `deadline` do `downloadFile` i skratiti curl na ostatak;
+nisam to skratio naslijepo jer curl je *primarni* put za fajlove veće od in-memory capa (veliki
+family PDF-ovi, CAD), a offline ne mogu dokazati da 40 s nije regresija za njih.
+
+Puni gate: TypeScript čist; Vitest **2301/2301** (5 novih); eval **38/38**, 0 kontaminacija;
+`audit:discovery` nepromijenjen.

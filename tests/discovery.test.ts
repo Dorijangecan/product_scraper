@@ -1618,6 +1618,73 @@ describe("sitemap discovery gating", () => {
 });
 
 /**
+ * The item budget reaches discovery too — but it gates the browser on the HARD ceiling only.
+ *
+ * A rendered search is the one real chance a JS-only catalogue has of producing evidence, so option
+ * (B) lets it overrun the 30 s soft target. What it must not do is start with less time left than a
+ * single `page.goto` (45 s by default) can consume, because then it can only be killed halfway.
+ */
+describe("discovery respects the item time budget", () => {
+  const vendor: ManufacturerConfig = {
+    id: "budgeted",
+    canonicalName: "Budgeted Vendor",
+    shortName: "BDG",
+    rateLimitMs: 0,
+    officialBaseUrls: ["https://budgeted.test"],
+    fallbackSources: [],
+    scrapeRecipe: { discoveryPolicy: { enableRobotsSitemaps: false } }
+  };
+
+  const emptyPage = (url: string) => ({
+    requestedUrl: url,
+    effectiveUrl: url,
+    statusCode: 200,
+    contentType: "text/html",
+    text: "<html><body>no results</body></html>",
+    fetchedAt: new Date(0).toISOString(),
+    fromCache: false
+  });
+
+  function renderer(rendered: string[]) {
+    return {
+      renderSearchPage: async (url: string) => {
+        rendered.push(url);
+        return { fetched: emptyPage(url), networkTexts: [] };
+      },
+      renderProductPage: async (url: string) => {
+        rendered.push(url);
+        return { fetched: emptyPage(url), networkTexts: [] };
+      }
+    };
+  }
+
+  it("does not open a browser with less time left than one page load takes", async () => {
+    const rendered: string[] = [];
+    await discoverOfficialProductCandidates("ABC-123", {
+      manufacturer: vendor,
+      http: { fetchText: async (url: string) => emptyPage(url) },
+      browserRenderer: renderer(rendered),
+      deadline: { remainingMs: () => 8_000, softTargetPassed: () => true, elapsedMs: () => 60_000 }
+    } as never);
+
+    expect(rendered).toHaveLength(0);
+  });
+
+  it("still opens a browser past the soft target when the hard ceiling leaves room", async () => {
+    const rendered: string[] = [];
+    await discoverOfficialProductCandidates("ABC-123", {
+      manufacturer: vendor,
+      http: { fetchText: async (url: string) => emptyPage(url) },
+      browserRenderer: renderer(rendered),
+      // Past 30 s, but two minutes of hard budget left: chasing evidence is allowed to overrun.
+      deadline: { remainingMs: () => 120_000, softTargetPassed: () => true, elapsedMs: () => 45_000 }
+    } as never);
+
+    expect(rendered.length).toBeGreaterThan(0);
+  });
+});
+
+/**
  * A localized template is an alternate, not the primary route.
  *
  * Measured: Eaton's canonical `www.eaton.com/us/en-us/skuPage.{part}.html` sat at rank 4 behind its

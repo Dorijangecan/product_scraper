@@ -142,6 +142,96 @@ describe("deterministic scrape pipeline", () => {
   });
 });
 
+/**
+ * The item budget (DISCOVERY-SPEED-PLAN §4, option B): a soft target that stops SPECULATION, and a
+ * hard ceiling that stops everything. The distinction is the point — an item on its way to evidence
+ * is allowed to overrun 30 s, because dropping data to save seconds works against what this is for.
+ */
+describe("item time budget", () => {
+  const manufacturer: ManufacturerConfig = {
+    id: "budget",
+    canonicalName: "Budget Vendor",
+    shortName: "BGT",
+    rateLimitMs: 0,
+    // No {part} placeholder, so every candidate this produces is a url-variant guess.
+    officialBaseUrls: ["https://budget.test"],
+    fallbackSources: [],
+    scrapeRecipe: { discoveryPolicy: { enableRobotsSitemaps: false } }
+  };
+  const initial: ProductResult = {
+    manufacturerId: "budget",
+    catalogNumber: "ABC-123",
+    status: "partial",
+    confidence: 0.2,
+    normalized: {},
+    attributes: [],
+    documents: [],
+    sources: []
+  };
+
+  const nothingFound = (url: string) => html(url, "nothing here");
+
+  it("stops attempting URL guesses once the soft target has passed, and records why", async () => {
+    const fetched: string[] = [];
+    const result = await runDeterministicScrapePipeline({ ...initial }, "ABC-123", {
+      manufacturer,
+      http: {
+        fetchText: async (url: string) => {
+          fetched.push(url);
+          return nothingFound(url);
+        }
+      },
+      deadline: {
+        remainingMs: () => 120_000,
+        softTargetPassed: () => true,
+        elapsedMs: () => 45_000
+      }
+    } as never);
+
+    // Guessed product URLs are never fetched...
+    expect(fetched.some((url) => /\/(?:product|products)\/abc-123/i.test(url))).toBe(false);
+    // ...and the skip is visible, not silent.
+    const skipped = result.qualityGate?.attempts?.filter((attempt) => attempt.reason?.includes("budget-exhausted:url-variant-guess")) ?? [];
+    expect(skipped.length).toBeGreaterThan(0);
+    expect(skipped[0].status).toBe("skipped");
+  });
+
+  it("still attempts URL guesses while the soft target has not passed", async () => {
+    const fetched: string[] = [];
+    await runDeterministicScrapePipeline({ ...initial }, "ABC-123", {
+      manufacturer,
+      http: {
+        fetchText: async (url: string) => {
+          fetched.push(url);
+          return nothingFound(url);
+        }
+      },
+      deadline: {
+        remainingMs: () => 120_000,
+        softTargetPassed: () => false,
+        elapsedMs: () => 5_000
+      }
+    } as never);
+
+    expect(fetched.some((url) => /\/(?:product|products)\/abc-123/i.test(url))).toBe(true);
+  });
+
+  it("attempts URL guesses when there is no budget at all (wizard validation, tests)", async () => {
+    const fetched: string[] = [];
+    await runDeterministicScrapePipeline({ ...initial }, "ABC-123", {
+      manufacturer,
+      http: {
+        fetchText: async (url: string) => {
+          fetched.push(url);
+          return nothingFound(url);
+        }
+      }
+    } as never);
+
+    expect(fetched.some((url) => /\/(?:product|products)\/abc-123/i.test(url))).toBe(true);
+  });
+});
+
 function html(url: string, body: string) {
   return {
     requestedUrl: url,

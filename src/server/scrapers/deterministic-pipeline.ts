@@ -35,6 +35,26 @@ export async function runDeterministicScrapePipeline(
   for (const candidate of discovery.candidates) {
     if (current.qualityGate?.passed && !needsOfficialProductLinkRepair(current)) break;
     if (alreadyTried(current, candidate.url)) continue;
+    // Past the soft target, a URL GUESS is no longer worth its price. This loop walks every
+    // candidate for an item that never confirms, and roughly two thirds of that list is
+    // `url-variant` guessing (five catalog-number variants x three or four URL shapes). Evidence —
+    // a template, a learned endpoint, a search hit, a sitemap entry — keeps being tried right up to
+    // the hard ceiling; only the guessing stops, and it says so in the attempt record rather than
+    // vanishing silently.
+    if (candidate.stage === "url-variant" && context.deadline?.softTargetPassed()) {
+      attempts.push({
+        stage: candidate.stage,
+        url: candidate.url,
+        status: "skipped",
+        score: candidate.score,
+        reason: `budget-exhausted:url-variant-guess — ${Math.round((context.deadline.elapsedMs() ?? 0) / 1000)}s elapsed, guess candidates no longer attempted`,
+        sourceType: candidate.sourceType,
+        parser: `discovery-${candidate.stage}`,
+        attributeCount: 0,
+        documentCount: 0
+      });
+      continue;
+    }
     try {
       const fetched = await fetchOfficialCandidate(candidate.url, context);
       const fetchedEvidence = scoreFetchedDiscoveryEvidence(fetched, catalogNumber);

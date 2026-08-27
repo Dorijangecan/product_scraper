@@ -59,6 +59,17 @@ const INTERRUPTED_RUN_RESUME_WINDOW_MS = 5 * 60 * 1000;
 // only a genuinely stuck one does, and it then fails gracefully instead of hanging the slot.
 const ITEM_SCRAPE_TIMEOUT_MS = 4 * 60 * 1000;
 
+/**
+ * Soft per-item target (DISCOVERY-SPEED-PLAN §4, option B): 30 s is the goal, not a guillotine.
+ *
+ * Past this point the pipeline stops SPECULATING — no more URL-guess candidates, no browser
+ * escalation for a page nothing has confirmed — while anything already following real evidence keeps
+ * running until the hard ceiling above. Option (A), a hard 30 s for everything, was rejected on
+ * purpose: it buys predictable run time by throwing away data on exactly the hardest items, which is
+ * the opposite of what this project is for.
+ */
+const ITEM_SOFT_TARGET_MS = 30 * 1000;
+
 // Resolves once `signal` aborts, using the same rejection message on the timeout path and the
 // parent-run-cancellation path so Promise.race always settles instead of leaving a scrape hung.
 function abortSignalRejection(signal: AbortSignal, message: string): Promise<never> {
@@ -438,6 +449,15 @@ export class RunManager {
             ITEM_SCRAPE_TIMEOUT_MS
           );
           const itemSignal = itemScrapeController.signal;
+          // Soft target vs hard ceiling: see ScrapeContext.deadline. The ceiling is the abort above,
+          // unchanged, so nothing that completes today starts failing; the soft target only stops
+          // speculative work (URL guesses, browser escalation for a page with no evidence).
+          const itemStartedAt = Date.now();
+          const itemDeadline = {
+            remainingMs: () => Math.max(0, ITEM_SCRAPE_TIMEOUT_MS - (Date.now() - itemStartedAt)),
+            softTargetPassed: () => Date.now() - itemStartedAt > ITEM_SOFT_TARGET_MS,
+            elapsedMs: () => Date.now() - itemStartedAt
+          };
           let result: ProductResult;
           result = await Promise.race([
               connector.scrape(item.catalogNumber, {
@@ -446,6 +466,7 @@ export class RunManager {
                 runDir: layoutRef.runDir,
                 documentsDir: layoutRef.documentsDir,
                 signal: itemSignal,
+                deadline: itemDeadline,
                 browserRenderer,
                 discoveryMemo,
                 downloadDocuments: documentDownloadsForEnrichmentEnabled,
@@ -597,6 +618,7 @@ export class RunManager {
               runDir: layoutRef.runDir,
               documentsDir: layoutRef.documentsDir,
               signal: itemSignal,
+              deadline: itemDeadline,
               browserRenderer,
               discoveryMemo,
               downloadDocuments: documentDownloadsForEnrichmentEnabled,
@@ -704,6 +726,7 @@ export class RunManager {
               runDir: layoutRef.runDir,
               documentsDir: layoutRef.documentsDir,
               signal: itemSignal,
+              deadline: itemDeadline,
               browserRenderer,
               discoveryMemo,
               downloadDocuments: documentDownloadsForEnrichmentEnabled,
