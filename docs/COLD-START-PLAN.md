@@ -67,6 +67,11 @@ checkpoint je **P2.2n + ABB performance**; tamo su točni izmijenjeni fajlovi, m
 
 ### Trenutna točka zaustavljanja
 
+Najnoviji zatvoreni checkpoint je **P1.1r** (kineski cookie-consent banner na Balluff zh-cn stranici —
+puni opis u §0c). Prije njega zatvoren je i ABB PIS API performance checkpoint (`src/server/scrapers/abb.ts`,
+vidi zaseban odjeljak u `docs/CLAUDE-HANDOFF.md`), a prije toga P2.2n (opisan ispod, i dalje točan kao
+povijesni kontekst).
+
 P2.2n je zatvoren na novom value-verified fixtureu `fixtures/sce-fk0618-floor-stand-manual/`: realan
 Saginaw/SCE floor-stand-kit instalacijski PDF ima genuine row-oriented ordering tablicu čiji je
 id-header `PART #` (# umjesto `No.`/`Number`) — `isCatalogIdHeaderCell` ga nije prepoznavao, pa je
@@ -107,9 +112,14 @@ ISPRAVNIJE ponašanje (ne promocijom nagađanja):
 Kod je zadnje mijenjan u `catalog-table-vocabulary.ts` i `pdf-positioned-table.ts`; regresije/novi
 testovi su u `catalog-table-vocabulary.test.ts`, `pdf-positioned-table.test.ts`, `spec-plausibility.test.ts`.
 
-Zadnji puni gate: TypeScript čist; Vitest **2267/2267**; eval **35/35**, **367** provjera, 0
+Puni gate nakon P2.2n: TypeScript čist; Vitest **2267/2267**; eval **35/35**, **367** provjera, 0
 kontaminacija i 1 dokumentirani color gap; spec-gate **1694 → 1485**, 0 SUSPECT/0 garbage;
-label audit A/C/D/E = 0. Ne commitati.
+label audit A/C/D/E = 0.
+
+**Najnoviji puni gate (nakon P1.1r, trenutno stanje):** TypeScript čist; Vitest **2279/2279**; eval
+**36/36**, **374** provjere, 0 kontaminacija i 1 dokumentirani color gap; spec-gate **1694 → 1485**
+(nepromijenjen jer P1.1r popravak dira samo HTML put), 0 SUSPECT/0 garbage; label audit A/C/D/E = 0.
+Ne commitati.
 
 ### Pravila rada (nisu preporuke — svako je naučeno kroz pokvaren podatak)
 
@@ -3534,3 +3544,438 @@ kasniji podudarni par (690 V / 2 A).
 
 Puni gate: TypeScript čist; root Vitest **2277/2277**; eval **35/35**, **367** provjera, 0 kontaminacija
 i 1 dokumentirani color gap; spec-gate **1694 → 1485**, **0 SUSPECT / 0 garbage**; label audit A/C/D/E = 0.
+
+### ✅ P1.1r — kineski cookie-consent banner koji ne prevodi riječ "Cookie"
+
+Širi read-only `npm run audit:page-attrs -- --limit 700` (bez filtera, cijeli mješoviti korpus) tražio je
+sirove kontaminacijske potpise (zalijepljeni brojevi/jedinice, ponovljene riječi, `undefined`/`NaN`
+literal). Jedini stvaran hit u 700-stranačnom uzorku bio je `www.balluff.com.cn`: `Text` grupa je
+izvezla `Cookies Cookie 设置 = 除技术上必需的 Cookie 外，...` — cijeli tekst Livewire cookie-consent
+dijaloga na kineskoj (`zh-cn`) inačici Balluff PDP-a.
+
+Sirovi HTML dump potvrdio je uzrok: `<button aria-label="Cookie 设置">Cookies</button>` odmah pored
+`<strong>Cookie 设置:</strong><p>除技术上必需的 Cookie 外，...</p>` — `$("li,p")`'s `splitNameValue`
+prolaz je spojio gumb i naslov u label ("Cookies Cookie 设置") i paragraf u value. Postojeći
+`LEGAL_DOCUMENT_PATTERN` (`cookie (?:policy|notice|settings)`) nikad ne pogađa jer stranica prevodi sve
+OSIM tehničke riječi "Cookie" same — ona ostaje engleska posuđenica čak i na kineskoj stranici, dok se
+"settings" prevodi u "设置". Nova fixture `fixtures/balluff-BNN000W-page/` (izvučena preko
+`fixtures:extract`, katalog `BNN000W`, `zh-cn` locale koji dosad nije bio pokriven) prvo je pala na sve
+4 `mustNotContain` provjere.
+
+Popravak: `spec-plausibility.ts` sad odbija label/value koji sadrži riječ "cookie"/"cookies" **2 ili
+više puta** (`hasRepeatedCookieMention`, uz postojeći `LEGAL_DOCUMENT_PATTERN`) — jezično-neutralan
+signal jer nijedan proizvod u ovoj domeni (industrijski konektori/senzori/kablovi) legitimno ne
+spominje riječ "cookie" niti jednom, a ponavljanje 2+ puta je siguran prag koji jedan slučajan spomen
+(kontraprimjer testiran: "Cookie-cutter mounting bracket") ostavlja netaknutim. Popravak je namjerno
+jezično-neutralan (broji englesku riječ, ne prevodi je) umjesto da se doda još jedan hand-maintained
+prijevod po jeziku — isti root-cause obrazac kao P1.1 ontologija-kao-ulazna-vrata.
+
+Puni gate: TypeScript čist; root Vitest **2279/2279**; eval **36/36**, **374** provjere, 0 kontaminacija
+i 1 dokumentirani color gap; spec-gate **1694 → 1485** (nepromijenjen — popravak je čisto HTML-put,
+spec-gate audita samo PDF-ove), **0 SUSPECT / 0 garbage**; label audit A/C/D/E = 0.
+
+### ⚙️ Performance — bounded-batch dokument obrada + iskreni nalaz o Node single-thread limitu
+
+Na izričit zahtjev da se fokus prebaci na brzinu, prvi korak bio je read-only mjerenje umjesto
+nagađanja: `stage_observations` tablica u `data/scraper.db` ima samo 11 zapisa (nije opće mjerilo
+brzine, samo za `adaptive-static-page-mining` — neupotrebljivo za širu analizu), a sama baza je bila
+zaključana tijekom rada paralelne sesije, pa je upit za širu agregaciju napušten (`TaskStop`) umjesto
+da blokira dalje. Umjesto toga, stvarna evidencija je izvučena iz `benchmarks/output/*/documents`
+(imenska konvencija `<katalog>-<tip>-<label>.pdf` već grupira dokumente po katalogu): katalog
+`SCE-12EL1206LP` ima **12 dokumenata** (11 accessory-manual PDF-ova, 0 datasheet), i stvaran
+`enrichResultFromDownloadedDocuments` poziv nad njima izmjeren je na **10.1 s, potpuno sekvencijalno**
+(`for...of` petlja s `await` po dokumentu u `document-enrichment.ts`).
+
+Prije popravka provjeren je (i odbačen) naivan pristup: `Promise.all` nad svih 11 odjednom dalo je
+samo **~6.5% ubrzanja** (10128ms → 9464ms) — pravi razlog je da je Node.js jednonitni za JS izvršavanje,
+a `pdf-parse` (koji `readPdfText` koristi) je iznutra izgrađen na `pdfjs-dist` (potvrđeno u
+`node_modules/pdf-parse/dist/.../PDFParse.js`) i radi **sinkroni CPU-bound rad** — paralelno pokretanje
+takvog rada preko `Promise.all` samo isprepliće event loop, ne izvršava ga stvarno usporedno na više
+jezgri, pa se dobitak svodi na djelomično preklapanje diskovnog I/O-a, ne na stvarnu CPU paralelizaciju.
+Ovo je **iskren, izmjeren nalaz**, ne pretpostavka — bitno je zabilježiti ga da se ista greška ne
+ponovi.
+
+Ipak, uveden je **bounded-batch** pristup (`DOWNLOADED_DOCUMENT_BATCH_SIZE = 3`, isto grananje kao
+postojeći `manufacturer.concurrency` default) umjesto potpunog `Promise.all`-a, iz tri razloga koji
+i dalje vrijede unatoč gornjem nalazu: (1) OCR put (`pdf-ocr.ts`, `Tesseract.createWorker`) stvarno
+koristi Node `worker_threads` — za skenirane dokumente batch paralelizam donosi pravi, ne samo I/O,
+dobitak; (2) omeđena veličina batcha sprječava da paralelizam po dokumentu unutar jednog kataloga
+eksplodira preko postojećeg concurrency-a po katalogu (3–8) i preoptereti stroj; (3) čak i skromnih
+~6.5% na najgorem (čisto CPU-bound, bez OCR-a) slučaju je stvaran, nikad negativan dobitak, jer je
+veličina batcha omeđena.
+
+**Cijena:** `shouldSkipAfterStrongDocumentEvidence` (datasheet/certifikat nikad ne preskače, ostali
+tipovi preskaču kad se već skupi 8+ atributa s dovoljnom raznolikošću) i dalje se provjerava jednom po
+DOKUMENTU, ali sada protiv dokaza akumuliranog iz PRIJAŠNJIH BATCHEVA (ne prijašnjeg pojedinačnog
+dokumenta) — jedina razlika u ponašanju je omeđena na JEDAN batch: dokument koji bi prije bio preskočen
+zato što je dokument IZ ISTOG BATCHA upravo prešao prag sada se svejedno izvrši (paralelno, dakle bez
+dodatnog wall-time troška), umjesto da bude preskočen. Nikad regresija ispravnosti (dodatni potvrdni
+dokaz, ne konfliktni), samo do `DOWNLOADED_DOCUMENT_BATCH_SIZE - 1` dokumenata "nepotrebnog" rada u
+najgorem slučaju. Novi regresijski test (`tests/document-enrichment.test.ts`, "processes every document
+exactly once when there are more than one batch's worth") tjera 7 dokumenata kroz ≥3 batcha i potvrđuje
+da nijedan ne nestane, ne duplicira se i ne pripiše se krivom labelu na granici batcha.
+
+**Mjereno na istom `SCE-12EL1206LP` korpusu nakon popravka:** 187 atributa (identično), 6 normalized
+polja (identično) — ispravnost sačuvana, izmjereno atribut-po-atribut, ne samo brojem.
+
+**Preostali, veći nalaz (namjerno NIJE riješen u ovom prolazu):** `extractPositionedWeightDimensionsSafely`
+(pozvan iz istog dokumenta) otvara ISTI PDF DRUGI PUT preko `pdfjs-dist` izravno (komentar u kodu:
+"this re-opens the file with `pdfjs-dist` directly") kad god weight/dimensions nisu već nađeni prvim
+prolazom — a `pdf-parse` iznutra VEĆ radi pun `pdfjs.getDocument()` prolaz za `readPdfText`. To je
+stvarno, strukturno dupliciranje CPU rada (ne raspored/threading problem), i bio bi veći, ispravan
+dobitak brzine — ali zahtijeva ili izlaganje `pdf-parse`-ovog internog pdfjs dokumenta za ponovnu
+uporabu, ili reimplementaciju `readPdfText`-ove ekstrakcije izravno na `pdfjs-dist` (obje opcije su
+veći, rizičniji zahvat nego što ovaj prolaz opravdava — `readPdfText` ima godine hardeninga oko
+`buildVariantColumnContext` i sličnog). Preporuka: zaseban, namjenski zadatak, ne journal-stavka ovdje.
+
+Puni gate: TypeScript čist; root Vitest **2280/2280**; eval **36/36**, **374** provjere, 0 kontaminacija
+i 1 dokumentirani color gap; spec-gate **1694 → 1485**, **0 SUSPECT / 0 garbage** (identično baseline —
+popravak ne mijenja koju vrijednost dobivamo, samo koliko brzo); label audit A/C/D/E = 0.
+
+### ⚙️ Performance (nastavak) — dupli pdfjs parse stvarno uklonjen, s iskrenom korekcijom vlastite ranije procjene
+
+Nastavak prethodnog performance nalaza: `extractPositionedWeightDimensionsSafely` je otvarao ISTI PDF
+DRUGI PUT preko `pdfjs-dist` (`extractPositionedTableRowsFromPdf`), dok `pdf-parse` (koji `readPdfText`
+koristi) iznutra VEĆ radi pun `pdfjs.getDocument()` prolaz. Popravak:
+
+1. `pdf-positioned-table.ts`: `extractPositionedTableRowsFromPdf` i
+   `extractPositionedWeightAndDimensionsFromPdf` rastavljeni na (a) tanki file-loading wrapper i (b)
+   novu izvezenu čistu funkciju (`extractPositionedTableRowsFromPages` /
+   `extractPositionedWeightAndDimensionsFromPages`) koja prima već izvučene per-page `PositionedTextItem[]`
+   umjesto Uint8Array-a. Logika grananja (carried header, hasNewCatalogHeader, itd.) prekopirana
+   doslovno — nula promjene ponašanja, potvrđeno s 37/37 postojećih `pdf-positioned-table.test.ts`
+   testova bez izmjene.
+2. `document-enrichment.ts`: `PdfPageSet`/`PdfDocumentText` dobili novo polje
+   `nativePositionedItemsByPage`. `readPdfPageSet` (cache za datoteke ≤8 MB) sada nakon `pdf-parse`-ovog
+   `parser.getText()` poziva i `capturePositionedPagesFromParser` koji **posegne u `pdf-parse`-ov
+   privatni `doc`** (TypeScript-only `private`, obična runtime property, ne pravi `#private`) i ponovno
+   koristi VEĆ UČITANI pdfjs dokument za per-page `getTextContent()` — bez drugog `pdfjs.getDocument()`
+   poziva. Namjerno fail-closed: ako `doc` nije dostupan (buduća `pdf-parse` nadogradnja koja to
+   preimenuje/sakrije) ili capture baci grešku na BILO KOJOJ stranici, cijela mapa se odbacuje (nikad
+   djelomična) i `extractPositionedWeightDimensionsSafely` se tiho vraća na stari file-reopen put —
+   nikad regresija ispravnosti, samo izgubljen brzinski dobitak.
+3. Puni page-range (bez `MAX_PDF_PAGES` capa): `extractPositionedTableRowsFromPdf` nema takav cap
+   (target tablica u 57-straničnom eaton-cbe03319 katalogu zna biti iza stranice 30), pa capture mora
+   pokriti isto što bi taj reader sam skenirao, inače bi tiho suzio pokrivenost umjesto da samo uštedi
+   vrijeme.
+
+**Iskrena korekcija vlastite ranije procjene:** izolirani single-catalog benchmark (11 SCE manuala u
+SVJEŽEM Node procesu) prvotno je pokazao samo ~5% poboljšanja (9464 → 9005ms), daleko ispod očekivanih
+30-45%. Detaljnija instrumentacija (`PARSER_GETTEXT_MS`, `GETTABLE_MS`, `CAPTURE_MS` — sve unutar
+`readPdfPageSet`) pokazala je da `capturePositionedPagesFromParser` sam po sebi traje SVEGA 6-52ms po
+dokumentu (dokaz da je reuse stvarno radio), dok je zbroj sve tri instrumentirane faze bio ~2000ms —
+daleko manje od izmjerenih ~9000ms ukupno. Razlika je **jednokratni `pdfjs-dist` dynamic-import/WASM-init
+trošak** koji se plaća SAMO JEDNOM po Node procesu, ne po katalogu — u pravom, dugotrajnom serveru koji
+obrađuje mnogo dokumenata u ISTOM procesu, taj trošak se amortizira i ne ponavlja se za svaki novi PDF.
+Ponovljeno mjerenje u ZAGRIJANOM procesu (warm-up poziv pa 3 ponovljena mjerenja) dalo je čist A/B:
+**~2600ms (s cache reuse) nasuprot ~2850ms (bez, stari put)** — konzistentno kroz 3 ponovljena mjerenja
+svake varijante, ~9% stvarnog poboljšanja u realnom (zagrijanom) kontekstu, manje dramatično od
+prvotne procjene, ali stvarno i dosljedno, nikad negativno.
+
+**Ispravnost:** `npm run audit:spec-gate` (120 stvarnih vendor dokumenata, isti puni gate) daje
+IDENTIČNE brojeve prije/poslije (1694 → 1485, 0 SUSPECT/garbage) — najjači mogući dokaz da je
+refaktor ponašajno identičan kroz cijeli korpus, ne samo izolirani benchmark. `eval` 36/36 identično,
+uključujući `sce-fk0618-floor-stand-manual` koji upravo koristi pozicijski reader (PART # tablica).
+
+Puni gate: TypeScript čist; root Vitest **2280/2280**; eval **36/36**, **374** provjere, 0 kontaminacija
+i 1 dokumentirani color gap; spec-gate **1694 → 1485**, **0 SUSPECT / 0 garbage** (identično);
+label audit A/C/D/E = 0.
+
+### ✅ P1.1s — `<br>`-spojeni image-caption redovi nisu jedna specifikacija
+
+Nastavak read-only `npm run audit:page-attrs -- --limit 1200` (širi mješoviti korpus, bez filtera)
+tražio je nove kontaminacijske potpise. Jedan stvaran hit: `www.ganternorm.com` (grupa "Product Family
+Stainless Steel Quality Class 2", naslov-derivirano ime grupe iz `sectionAwareSpecGroup`) — atribut
+`Contact type = LK - Indicator light LED, red / green (bi-color) (no switching function)Connection
+type: K2 - Cable, end open, 2 m`.
+
+Sirovi HTML dump potvrdio je uzrok: `<div class="product-image__caption">Contact type: LK - ...(no
+switching function)<br />Connection type: K2 - Cable, end open, 2 m</div>` — dvije potpuno neovisne,
+ispravne "Label: value" linije spojene SAMO s `<br>`. `hasNestedBlockContent` (koji odlučuje smije li
+se `$(row).text()` poslati u `splitNameValue` fallback u `extractSectionAwareSpecAttributes` i
+`extractLooseChildPairAttributes`) provjerava `div,section,article,p,li,table,dl,dt,dd,h1-h6,[role='row']`
+— `<br>` nije na popisu, pa red prolazi kroz fallback, a cheerio-ov `.text()` briše `<br>` bez razmaka,
+lijepeći drugu liniju na vrijednost prve.
+
+Zanimljivo: cachirana stranica u `data/scraper.db` je NOVIJA snimka iste `GN 3310-19-LK-K2` PDP-a nego
+committani `fixtures/gan-GN-3310-19-LK-K2-page/page.html` (razlika ~1.3 kB uz nonce razlike) — Ganter
+je template dodao ovu image-gallery caption div OD zadnjeg snimka. Novi fixture
+`fixtures/gan-GN-3310-19-LK-K2-glued-value-page/` (ista URL, nova snimka) prvo je pao točno na ovoj
+kontaminaciji.
+
+Popravak: novi `hasBrJoinedMultiColonLines($, element)` u `generic.ts` — kad red ima barem jedan
+`<br>` I 2+ dvotočke u ukupnom tekstu, fallback se odbija (isto "silence over guessing" načelo kao
+susjedni kod). Jedna dvotočka (npr. vrijeme, omjer) i dalje prolazi neizmijenjena. Primijenjeno na OBA
+identična pojavljivanja istog obrasca (`extractSectionAwareSpecAttributes` i
+`extractLooseChildPairAttributes`) jer dijele točno isti kod i isti root cause, ne samo jedno.
+
+Mjerljivo: novi fixture **35 → 34** atributa (uklonjen samo lijepljeni redak; čisti "Contact type" iz
+prave elektro/mehaničke tablice ostaje). Postojeći sibling fixture (stariji snimak, bez caption diva)
+i dalje prolazi **14/14** provjera nepromijenjeno, ali njegov attribute count je također pao **35 →
+34** — popravak je uhvatio isti `<br>`-lijepljeni obrazac negdje i na STAROM snimku (nikakva postojeća
+asercija nije to tražila, pa nije bila vidljiva dok test nije napisan).
+
+Puni gate: TypeScript čist; root Vitest **2281/2281**; eval **37/37**, **389** provjera, 0 kontaminacija
+i 1 dokumentirani color gap; spec-gate **1694 → 1485**, **0 SUSPECT / 0 garbage** (nepromijenjeno —
+popravak je čisto HTML-put); label audit A/C/D/E = 0.
+
+### ✅ P2.4n — URL-guess grananje ne smije koristiti `homepageUrl`-ovu domenu kao katalog bazu
+
+Read-only `npm run audit:discovery` (offline replay, 100 poznatih kataloga nad 15298 cacheiranih
+URL-ova — postojeći mjerni alat, ne novi kod) našao je stvaran, ponovljiv obrazac: za `fath/*` katalog
+top "url-variant" kandidat je bio `https://www.fath.com/en/6sacp3j316b2000` — POGREŠNA domena
+(`fath.com`), dok je stvarni katalog na `fath24.com` (u `officialBaseUrls`). `homepageUrl` za FATH je
+konfiguriran kao `https://www.fath.com/en/` — DIFERENT apex domena, ne samo druga putanja/subdomena.
+
+Uzrok: `officialVariantUrls` (discovery.ts) generira guess-URL-ove preko `officialUrlBases(manufacturer)`,
+koja NAMJERNO uključuje i `officialBaseUrls` I `homepageUrl` kao baze — ali ta funkcija je izvorno
+namijenjena SAMO search/form probingu (dokumentirano u vlastitom komentaru), gdje je homepageUrl
+legitiman lokalizirani ulaz. `officialVariantUrls` je isti popis baza ponovno iskoristio i za DIREKTNO
+nagađanje product-URL oblika (`{base}/products/{variant}`, `/product/{variant}`, itd.) — što je
+ispravno samo za baze koje proizvođač stvarno deklarira kao katalog (`officialBaseUrls`), nikad za
+`homepageUrl` samu, jer ona može (kao za FATH) biti potpuno druga domena.
+
+Popravak: `officialVariantUrls` sad filtrira `officialUrlBases`'s rezultat na baze čija origin
+odgovara nekoj od `manufacturer.officialBaseUrls`-izvedenih origina — `officialUrlBases`'s ŠIRA
+uporaba (search/form probing) ostaje nepromijenjena, jer TA svrha stvarno treba homepageUrl. Nova
+regresija u `tests/discovery.test.ts` ("never guesses a direct product URL on homepageUrl's origin
+when it differs from officialBaseUrls") potvrđena je da PADA bez popravka (ručno privremeno uklonjen
+filter, test failao točno kao očekivano, filter vraćen) prije zapisivanja kao trajni test.
+
+Mjerljivo na istom `audit:discovery` replayu: `fath/*` top kandidat sad je `https://www.fath24.com/
+product/6sacp3j316b2000` — ISPRAVNA domena (i dalje pogrešan URL OBLIK, jer se puni opisni slug ne
+može izvesti iz bare kataloškog broja — to je zaseban, teži problem koji zahtijeva stvarni dokaz, ne
+nagađanje, i ostaje otvoren). Ukupne postotke (47%/51%/70% found) replay NE mijenja — očekivano, jer
+je ovo offline donja granica i domenska ispravka ne otključava puni URL oblik. `gan`/`siemens`/`eaton`
+top-kandidat neslaganja u istom izvještaju su ISTA domena kao `officialBaseUrls` (Ganter: URL OBLIK
+gap, ne domena; Siemens/Eaton: locale/search fallback, već poznato i namjerno odgođeno) — nisu novi
+nalaz, ostavljeni netaknuti.
+
+Puni gate: TypeScript čist; root Vitest **2282/2282**; eval **37/37**, **389** provjera, 0 kontaminacija
+i 1 dokumentirani color gap; spec-gate **1694 → 1485**, **0 SUSPECT / 0 garbage** (nepromijenjeno);
+label audit A/C/D/E = 0.
+
+### ✅ P1.2l — generička DIN/ISO thread-tolerance standard tekst ne smije postati product material
+
+Read-only `npm run audit:spec-gate -- --limit 500 --samples 40` (šira uzorka nego default 120-dokument
+prozor koji svaki puni gate ovog sessiona koristi) prvi put je pokrio dovoljno korpusa da nađe stvaran
+**SUSPECT** (audit alat: "only SUSPECT counts as a regression for an existing manufacturer") —
+`GN-6336-32-other-Metric-ISO-Thread-DIN-13.pdf :: material = "steel"`. Default 120-dokument prozor to
+NIJE hvatao; širi prozor je bio nužan da se nalaz uopće pojavi.
+
+Provjera pravog izvora (`pdftotext -layout`) potvrdila je: dokument je generička DIN 13 ISO metric
+thread tolerance tablica (bolt/nut tolerance fields M2,5...M24) — kataloški broj `GN-6336-32` se NE
+POJAVLJUJE nigdje u tekstu PDF-a (grep count 0). Tekst objašnjava OPSEG tablice kontrastirajući
+steel/metal thread s plastic thread ("For threads in plastic standard parts (without steel or
+metallic thread insert)...", "The metric steel / metal threads specified in this catalog are based
+on these tolerance fields.") — to je izjava o KOJI TIP navoja tablica pokriva, ne izjava da je
+GN-6336-32 od čelika.
+
+Uzrok: `normalizer.ts`'s `deriveMaterialFromAttributes` skenira svaki atribut čiji group/name
+odgovara `/description|overview|application|finish|feature|detail|material|body|housing|enclosure/i`
+(ovi retci su imenovani "Feature") kroz `materialValueFromText`, čiji regex hvata golu riječ "steel"
+bilo gdje u rečenici, bez provjere je li rečenica generička standard-scope izjava. Potvrđeno uživo:
+`PRODUCT_SCRAPER_DISABLE_SPEC_GATE=1` reproducira `normalized.material = "steel"` iz ovog dokumenta;
+spec-plausibility gate ga slučajno odbacuje (zato nikad nije stigao do stvarnog exporta u zadnjih 120
+dokumenata), ali popravak pripada IZVORU inferencije, ne gateu — gate koji slučajno odbaci pogrešnu
+vrijednost nije nešto na što se treba pouzdati, jer bi malo drugačija rečenica mogla proći plausibility
+provjeru i ostati pogrešna.
+
+Novi fixture `fixtures/gan-GN-6336-32-generic-thread-standard-datasheet/` (isti stvarni PDF iz
+`benchmarks/output/`) prvo je pokazao da gate SLUČAJNO hvata problem (eval.ts s gateom uključenim
+trivijalno prolazi), pa je stvarni dokaz kvara potvrđen preko ungated probe-a
+(`PRODUCT_SCRAPER_DISABLE_SPEC_GATE=1`) — `normalized.material` je bio `"steel"` prije popravka.
+Popravak: novi `isGenericThreadToleranceStandardText` u `normalizer.ts` (dodan pored postojećeg
+`isAccessoryOrderWarningMaterialText` uzorka) — traži i "tolerance(s)" I "thread(s)" ZAJEDNO s
+"without steel or metallic thread insert" ili "steel / metal threads", i tada odbija
+`materialValueFromText`. Novi unit test u `tests/normalizer.test.ts` potvrđeno PADA bez popravka
+(ručno provjereno, vraćen odmah) prije zapisivanja.
+
+Mjerljivo: ista `audit:spec-gate -- --limit 500 --samples 40` sad daje **0 SUSPECT / 24 garbage** (bilo
+1 SUSPECT / 24 garbage) — jedini SUSPECT je nestao, garbage broj (poznati page-furniture) nepromijenjen.
+Default 120-dokument `audit:spec-gate` i dalje **0 SUSPECT / 0 garbage**, nepromijenjeno.
+
+Puni gate: TypeScript čist; root Vitest **2283/2283**; eval **38/38**, **390** provjera, 0 kontaminacija
+i 1 dokumentirani color gap; spec-gate (120) **1694 → 1485**, **0 SUSPECT / 0 garbage**; spec-gate (500,
+širi uzorak) **0 SUSPECT / 24 garbage** (bilo 1/24); label audit A/C/D/E = 0.
+
+### ✅ D1 + D3 — discovery plaća 22 zahtjeva po artiklu da bi 79 % odgovora došlo besplatno
+
+**D1 (mjerni harness).** `scripts/audit-discovery.ts` mjerio je samo hit-rate; sad mjeri i **cijenu**:
+zahtjeva po kataloškom broju, modelirano throttle čekanje (`zahtjevi x max(100, rateLimitMs/concurrency)`),
+koja je faza stvarno dala odgovor, plus **tablica po proizvođaču** i `--compare <baseline.json>`.
+Bez toga se svaka tvrdnja o brzini svodi na procjenu — a §0b pravilo ovog repa je da se ubrzanje
+priznaje samo izmjereno.
+
+Prvi ispis (160 poznatih kataloških brojeva) odmah je dao središnji nalaz:
+
+| stage koji je dao odgovor | udio pogodaka | koliko zahtjeva ta faza košta |
+| --- | ---: | --- |
+| `localized-template` | 55,9 % | **0** |
+| `direct-template` | 12,6 % | **0** |
+| `url-variant` | 10,8 % | **0** |
+| `search-result` | 20,7 % | do 28 |
+
+**79 % odgovora dolazi iz faza koje ne koštaju nijedan zahtjev — a search se izvršavao PRVI i
+bezuvjetno**, medijan 22 zahtjeva po kataloškom broju.
+
+**D3 (potvrdi prije nego eskaliraš).** Prije search faze dohvati se najviše 2 najbolja
+configured/learned kandidata; ako stranica u vlastitoj PDP identity površini
+(`scoreFetchedDiscoveryEvidence`: title / H1 / OG / Product JSON-LD) potvrdi točan kataloški broj,
+**cijela search faza se preskače** (uklj. search-form i rendered put). Pokriveno testovima.
+
+Tri stvari koje ovo NAMJERNO ne radi:
+- **Ne probava `url-variant` nagađanja** i nagađanje nikad ne gejta search — nagađanje nije dokaz (P2.4n).
+- **Ne troši dodatni rad.** Pipeline je ionako sljedeće dohvaćao top kandidata; taj dohvat je sad
+  cache hit, a cache hit ne plaća throttle (`fetchText` vraća prije `acquireHostSlot`).
+- **Demotira mrtav template samo na 404/410 i samo za −12.** Prva verzija je radila −40 na svaki 4xx/5xx:
+  `rockwell/1606-XLB60E` je time **izgubljen** (pao ispod nagađanja i izvan `maxCandidates`), a 403/429/503
+  je bot-mitigacija, nikad dokaz da je URL pogrešan. Mjerenje je uhvatilo vlastitu regresiju istog dana.
+
+**Tri klase URL-a koje nikad ne mogu biti proizvod.** Sve tri su prije bile samo **kažnjene** bodovima,
+a kazna gubi od URL-a koji inače izgleda savršeno:
+1. **Search stranica kao kandidat za proizvod** — Siemensov `…/Catalog/Search?searchTerm=<kat>&tab=Product`
+   nosi točan kataloški broj u query parametru, pa je bio **#1 za 6/6** mjerenih brojeva. Kazna u
+   `link-discovery.ts` nije ni opalila: njen uzorak traži `search=`, a ovdje piše `searchTerm=`.
+2. **Slika** — `…/79181_v0_azurecdn_640x640_72dpi.png/` (Turck). Asset kazna traži da ekstenzija bude
+   na kraju URL-a; ovaj ima **kosu crtu iza `.png`**, pa kazna nikad nije opalila.
+3. **Login/SSO zid** — Siemensov Shibboleth s kataloškim brojem u `target` parametru.
+
+Nalaz #2 i #3 su izronili tek kad je #1 prestao maskirati — što je i argument zašto odbijanje na granici
+tuče kazne u bodovima.
+
+**Izmjereno (`npx tsx scripts/audit-discovery.ts --limit 160`, prije → poslije):**
+
+| mjerilo | prije | poslije |
+| --- | ---: | ---: |
+| zahtjeva po katalogu (medijan) | 22 | **11** |
+| ukupno zahtjeva (160 kataloga) | 3153 | **2125** (−33 %) |
+| modelirano throttle čekanje (medijan) | 9,0 s | **4,1 s** |
+| poznati PDP na #1 | 48,8 % | **50,6 %** |
+| poznati PDP u top 3 | 52,5 % | **57,5 %** |
+| poznati PDP nađen uopće | 69,4 % | **69,4 %** (nepromijenjeno) |
+
+Po proizvođaču (medijan zahtjeva → modelirano čekanje): `sce` 17 → **1** (8,5 s → 0,5 s),
+`rockwell` 22 → **1** (11,0 s → 0,5 s), `balluff` 22 → **1** (13,2 s → 0,6 s).
+
+**Što ovo NIJE riješilo, i zašto (iskreno):** `gan` je i dalje 29 zahtjeva × 3000 ms = **87 s** — nema
+template koji išta potvrdi, pa se probe ne aktivira i plaća se puni search. `fath` 27, `eaton` 30,
+`abb` 26. Za njih je potreban **D4** (zapamti vendorov radni search ključ; `gan` 18 → 1 pogodak) i
+**D2** (tvrdi rok po artiklu). Vidi [DISCOVERY-SPEED-PLAN.md](DISCOVERY-SPEED-PLAN.md).
+
+Puni gate: TypeScript čist; Vitest **2287/2287** (4 nova testa); eval **38/38**, 390 provjera,
+0 kontaminacija; spec-gate **0 SUSPECT / 0 garbage**; `audit:discovery` hit-rate nepromijenjen uz
+−33 % zahtjeva.
+
+### ✅ D4 — vendorov radni search ključ se nauči jednom, ne po svakom kataloškom broju
+
+Generički search ispaljuje do **18 oblika query ključa**, od kojih je **najviše jedan** stvarni endpoint
+tog vendora. Ostalih ~17 se plaćalo **po svakom kataloškom broju, u svakom runu, zauvijek**.
+
+- Novi `parserKind: "official-search-template"` u postojećoj `learned_endpoints` tablici (bez migracije).
+  Uči se kad search URL vrati **link koji nosi traženi kataloški broj** — `discoverProductLinksWithDiagnostics`
+  filtrira po katalogu, pa stranica puna nepovezanih proizvoda ne nauči ništa.
+- Naučeni oblik ide **prvi**, i pogodak na njemu **odmah zatvara** search fazu.
+- Ključa se po **hostu** i po proizvođaču (jedan vendor može imati različit ključ po lokalu/shopu).
+- **Odvojen od product kandidata.** `learnedEndpointUrls` sad eksplicitno izbacuje ovaj kind: search URL
+  je *ruta* do proizvoda, nikad proizvod. Bez toga bi naučeni search URL završio na listi kandidata za
+  proizvod — točno klasa pogreške koja je za Siemens bila #1.
+- **Negativna memorija:** naučeni endpoint koji prestane odgovarati dobiva `recordFailure`; tri promašaja
+  ga suspendiraju 7 dana (`learnedEndpointSuppressed`, već postojalo), pa preimenovan endpoint ne postaje
+  trajni porez.
+
+**Harness je morao naučiti da modelira učenje.** `audit-discovery.ts` je svakom kataloškom broju davao
+prazan learned store, čime je mjerio **hladni prvi artikl i to nazivao prosjekom** — i svaka promjena koja
+uči kroz artikle bila je strukturno nevidljiva. Sad replay ima in-memory `learned_endpoints` store s
+istim redoslijedom kao `db.ts` (`success_count DESC, last_success_at DESC`), determinističan (monotoni
+brojač, ne sat), uz `--no-learning` za usporedbu.
+
+**Izmjereno (160 kataloških brojeva, isti korpus):**
+
+| mjerilo | prije D1/D3 | nakon D3 | **nakon D4** |
+| --- | ---: | ---: | ---: |
+| zahtjeva po katalogu (medijan) | 22 | 11 | **3** |
+| ukupno zahtjeva | 3153 | 2125 | **1945** |
+| throttle čekanje (medijan) | 9,0 s | 4,1 s | **1,5 s** |
+| PDP na #1 | 48,8 % | 50,6 % | **50,6 %** |
+| PDP u top 3 | 52,5 % | 57,5 % | **57,5 %** |
+| PDP nađen | 69,4 % | 69,4 % | **69,4 %** |
+
+`schmersal` 11 → **1** zahtjev (4,1 s → 0,4 s), `turck` 6 → **2**.
+
+**Iskren limit ovog mjerenja:** `gan`, `fath`, `eaton` i `abb` su **nepromijenjeni** (29/27/30/26 zahtjeva),
+jer u offline korpusu njihov search ne vrati nijedan kandidat — nema što naučiti. Živi run bi kod njih
+naučio (`gan` search stvarno odgovara na pune ordering kodove), pa je stvarni dobitak **veći** od ovog
+medijana — ali to offline ne mogu dokazati i ne tvrdim da jesam. Za njih ostaje **D6** (poredak ključeva
+po dokazu) i **D2** (tvrdi rok).
+
+Puni gate: TypeScript čist; Vitest **2290/2290** (3 nova D4 testa); eval **38/38**, 0 kontaminacija;
+`audit:discovery` hit-rate nepromijenjen uz **−38 % zahtjeva** od početnog stanja.
+
+### ✅ D3b — homepage kao kandidat #1, i treći confirmation probe
+
+Dva nalaza iz iste mjerne tablice, oba u klasi „točan URL se nađe, ali ne na #1".
+
+**1. Bare origin nije stranica proizvoda.** `https://www.nvent.com/` je bio kandidat **#1 za 8/8**
+mjerenih nVent kataloških brojeva, a stvarni PDP na #2 — pipeline je prvi fetch trošio na stranicu koja
+ni u principu ne može identificirati jedan kataloški broj. Odbacuje se na granici (`isBareOriginUrl`:
+prazan path, bez query stringa), uz zapis u `rejectedLinks`, ne tiho.
+
+Nusposljedica koja se **mora** reći: homepage je prije zadovoljavao `hasSearchResultCandidate`, pa je
+lažno zatvarao search fazu ranije. Bez njega nVent je narastao 3 → 9 zahtjeva. To nije regresija nego
+naplata stvarnog rada — prije se štedjelo na lažno pozitivnom prekidu.
+
+**2. Treći probe se plaća sam.** nVentov template koji potvrđuje je **treći** u njegovoj listi
+kandidata, pa ga probe s limitom 2 nije dosegao i cijela search faza je ipak trčala. Na 3 probea:
+nVent 9 → **3** zahtjeva (4,5 s → 1,5 s), korpus ukupno 2010 → **1890**. Jedan probe više riskira
+1 zahtjev; potvrđen probe uštedi do 18.
+
+**Izmjereno (160 kataloških brojeva):**
+
+| mjerilo | nakon D4 | **nakon D3b** |
+| --- | ---: | ---: |
+| PDP na #1 | 50,6 % | **55,6 %** |
+| PDP nađen | 69,4 % | **69,4 %** |
+| zahtjeva ukupno | 1945 | **1890** |
+| throttle (medijan) | 1,5 s | **1,0 s** |
+
+`nvent` hit@1 **0 % → 100 %**.
+
+Puni gate: TypeScript čist; Vitest **2290/2290**; eval **38/38**, 0 kontaminacija.
+
+### ✅ D6 — poredak generičkih search oblika po dokazu, i jedan nedostupan oblik
+
+Novi read-only audit `npm run audit:search-shapes` ([scripts/audit-search-shapes.ts](../scripts/audit-search-shapes.ts))
+prolazi svaki search-oblikovan URL u `page_cache` i pita je li tijelo odgovora **stvarno vratilo link
+na traženi kataloški broj**:
+
+| oblik | odgovorio / probano | vendori koji su odgovorili |
+| --- | ---: | --- |
+| `?q=` | 71 / 459 | schmersal, turck, **ganternorm** |
+| `/search/{part}` | **182 / 184** | abb, saginaw |
+| `?s=` | 62 / 62 | abb (legacy), saginaw |
+| `?query=` | 546 / 969 | schmersal |
+| `?searchTerm=` | 28 / 56 | siemens |
+| `?search=` | 1 / 76 | fath |
+| `?text=` | 0 / 23 | — |
+| `?keyword=` | 0 / 29 | — |
+| `Ntt`, `k`, `article`, `partNumber`, `/site-search` | **nikad ni probano** | — |
+
+**Nalaz koji opravdava cijelu fazu:** `/search/{part}` je najuspješniji oblik u cijelom korpusu
+(182/184) i bio je **nedostupan svakom proizvođaču s dvije ili više URL baza** — stajao je iza svih 11
+query ključeva, a lista se reže na 18 ulaza. Koje oblike je vendor uopće *smio pokušati* ovisilo je o
+tome koliko baza slučajno ima u configu, ne o tome što radi. Iz istog razloga zadnja četiri ključa nisu
+u povijesti korpusa **nikad zatražena ni jednom**.
+
+Poredak je po **broju različitih vendora koji su odgovorili**, pa onda po volumenu — generička lista
+služi širini, a volumen je pristran (odražava koliko je naš kod što tražio). **Ništa nije uklonjeno**,
+samo prerangirano; neprovjereni oblici idu na kraj (ukloniti nikad-probani oblik bio bi tihi gubitak
+pokrivenosti, §7 pravilo plana).
+
+**Iskren nalaz o mjerenju:** korpusne metrike su **nepromijenjene** (1890 zahtjeva, hit 69,4 %,
+hit@1 55,6 %) i to je očekivano — novodostupni oblici nikad nisu bili zatraženi, pa ih u cacheu nema i
+offline se ponašaju kao 404. Dobitak D6 je **strukturno nevidljiv offline** i pokazat će se samo živo.
+Zato je zapisan kao „bez štete, uz dokaz iz korpusa", a ne kao izmjereno ubrzanje.
+
+Puni gate: TypeScript čist; Vitest **2291/2291** (novi test dokazuje da je `/search/{part}` dostupan pri
+dvije baze); eval **38/38**, 0 kontaminacija.

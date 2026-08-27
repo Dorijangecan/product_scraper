@@ -204,6 +204,12 @@ export interface DiscoveryPolicyConfig {
   urlVariants?: Array<"part" | "partUpper" | "partLower" | "partCompact" | "partSnake" | "partDash" | "partAfterColon" | "partAfterColonCompact">;
   allowedOfficialDomains?: string[];
   maxCandidates?: number;
+  /**
+   * Fetch the top configured/learned template candidate and, if the page identifies the exact
+   * catalog number, skip the search stage entirely (default: on). Turn off only for a vendor whose
+   * PDP identity is not present in the served HTML at all, where the probe can never confirm.
+   */
+  verifyTemplatesBeforeSearch?: boolean;
 }
 
 export interface InteractionPolicyConfig {

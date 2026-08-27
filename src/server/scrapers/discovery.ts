@@ -5,7 +5,7 @@ import { catalogTextMatches, compactCatalogNumber, fillCatalogTemplate, findCata
 import type { FetchedText } from "./http-client.js";
 import type { ScrapeContext } from "./types.js";
 import { discoverProductLinksWithDiagnostics } from "./link-discovery.js";
-import { learnEndpointFromNetworkFetch, learnedEndpointUrls } from "./learned-endpoints.js";
+import { endpointTemplateFromUrl, learnEndpointFromNetworkFetch, learnSearchTemplate, learnedEndpointUrls, learnedSearchTemplateUrls } from "./learned-endpoints.js";
 import { discoverSourceDocumentsWithDiagnostics } from "./source-document-discovery.js";
 import { urlLooksCompressed } from "./gzip-text.js";
 
@@ -78,6 +78,50 @@ async function discoverOfficialProductCandidatesUncached(catalogNumber: string, 
       });
       return;
     }
+    // A search page is never the product page.
+    //
+    // It reaches here as a "result link" that points back at the search itself. Siemens is the
+    // measured case: `…/Catalog/Search?searchTerm=S55180-A179&tab=Product` carries the exact catalog
+    // number in a query parameter, so every URL-shape signal reads as a perfect match and it ranked
+    // #1 for 6/6 measured catalog numbers — while link-discovery's search penalty never fired,
+    // because its pattern matches `search=` and not `searchTerm=`.
+    //
+    // Learned endpoints are exempt: those were observed returning product identity (a vendor's JSON
+    // search API answering one SKU is a legitimate product source), which is evidence, not shape.
+    if (candidate.stage !== "learned-endpoint" && isSearchLikeUrl(candidate.url)) {
+      rejectedLinks.push({
+        url: candidate.url,
+        score: candidate.score,
+        reason: `Rejected ${candidate.stage} candidate: the URL is a search page, not a product page`
+      });
+      return;
+    }
+    // Neither is an image asset or a login wall. Both were only ever PENALISED
+    // (`scoreDiscoveryCandidate`: -45 / -35), which loses to a URL that otherwise looks perfect —
+    // and both surfaced at rank #1 the moment the search-page rejection above stopped masking them:
+    // a Turck product photo (`…/79181_v0_azurecdn_640x640_72dpi.png/` — the asset penalty never even
+    // fired, because its pattern requires the extension to end the URL and this one has a trailing
+    // slash) and Siemens' Shibboleth SSO login carrying the catalog number in its `target` parameter.
+    // A penalty is the right tool for "probably worse"; these are categorically not product pages.
+    // Nor is the homepage. `https://www.nvent.com/` was ranked #1 for 8/8 measured nVent catalog
+    // numbers while the real PDP sat at #2 — so the pipeline spent its first fetch on a page that
+    // cannot, even in principle, identify one catalog number.
+    if (isBareOriginUrl(candidate.url)) {
+      rejectedLinks.push({
+        url: candidate.url,
+        score: candidate.score,
+        reason: `Rejected ${candidate.stage} candidate: bare site origin carries no product identity`
+      });
+      return;
+    }
+    if (isNonProductAssetUrl(candidate.url) || isAuthWallUrl(candidate.url)) {
+      rejectedLinks.push({
+        url: candidate.url,
+        score: candidate.score,
+        reason: `Rejected ${candidate.stage} candidate: ${isAuthWallUrl(candidate.url) ? "login/SSO wall" : "binary asset"}, not a product page`
+      });
+      return;
+    }
     const key = canonicalCandidateKey(candidate.url);
     const existing = candidates.get(key);
     if (!existing || candidate.score > existing.score) {
@@ -142,6 +186,12 @@ async function discoverOfficialProductCandidatesUncached(catalogNumber: string, 
   const processedSearchUrls = new Set<string>();
   let searchedUrlCount = 0;
 
+  // Search endpoints this vendor has already been observed answering. They go FIRST, and a hit on one
+  // ends the search stage immediately — that is the whole point: the vendor's real key is tried once
+  // instead of being rediscovered behind ~17 misses on every catalog number, in every run, forever.
+  const learnedSearchUrls = learnedSearchTemplateUrls(manufacturer, catalogNumber, context.learnedEndpoints);
+  const learnedSearchUrlSet = new Set(learnedSearchUrls.map((learned) => learned.url));
+
   const processSearchRequests = async (requests: SearchDiscoveryRequest[]): Promise<void> => {
     const uniqueRequests = new Map<string, SearchDiscoveryRequest>();
     for (const request of requests) {
@@ -192,24 +242,105 @@ async function discoverOfficialProductCandidatesUncached(catalogNumber: string, 
             sourceType: "official-fallback"
           });
         }
+        if (discoveredCount > 0 && request.method === "GET") {
+          // This URL shape answered with a link carrying the requested catalog number. Remember the
+          // shape so the next catalog number tries it first instead of rediscovering it.
+          const learnedTemplate = learnSearchTemplate({ manufacturer, catalogNumber, searchUrl: request.url, store: context.learnedEndpoints });
+          if (learnedTemplate) notes.push(`Learned working official search template: ${learnedTemplate}`);
+        }
       } catch (error) {
         notes.push(`Search discovery failed for ${request.method} ${request.url}: ${formatError(error)}`);
       }
       if (discoveredCount === 0 && request.method === "GET") renderedSearchCandidates.push(request.url);
+      if (learnedSearchUrlSet.has(request.url)) {
+        // A learned endpoint that still works ends the stage now — no reason to re-walk the generic
+        // key list. One that has stopped working takes a failure, and three of those suppress it for
+        // a week (`learnedEndpointSuppressed`), so a renamed endpoint does not become a permanent tax.
+        if (discoveredCount > 0) break;
+        context.learnedEndpoints?.recordFailure?.(manufacturer.id, "GET", endpointTemplateFromUrl(request.url, catalogNumber) ?? request.url);
+      }
       if (configuredSearchUrls.length && searchedUrlCount >= configuredSearchUrls.length && hasSearchResultCandidate(candidates)) break;
     }
   };
 
-  // Configured + generic search-URL templates first (cheap: no extra page fetch to find a form).
-  await processSearchRequests(searchTemplates(manufacturer).map((template) => ({
-    url: fillCatalogTemplate(template, catalogNumber),
-    method: "GET" as const
-  })));
+  // Confirm the cheapest high-confidence candidate BEFORE escalating to search.
+  //
+  // Measured with `npm run audit:discovery` over 160 known-good catalog numbers: 79 % of all hits
+  // are produced by direct/localized templates and learned endpoints — stages that cost zero
+  // requests — and yet the search stage ran first, unconditionally, at a median of 22 requests per
+  // catalog number (`gan`: 29 requests x 3000 ms per-host interval = 87 s of pure waiting, before a
+  // single byte is parsed). One fetch that confirms the template is strictly cheaper than 18 blind
+  // search probes that confirm nothing.
+  //
+  // This does not trade coverage for speed. Search is skipped ONLY when a fetched page identifies
+  // the exact catalog number in its own PDP identity surface (`scoreFetchedDiscoveryEvidence`) —
+  // the same evidence the deterministic pipeline demands later. A candidate that is merely
+  // URL-shaped (stage `url-variant`) is never probed and never gates search: a guess is not
+  // evidence (P2.4n). And the probe is largely work MOVED, not added — the pipeline was going to
+  // fetch the top candidate next anyway, and that fetch is now a cache hit, which pays no throttle.
+  let confirmedTemplateUrl: string | undefined;
+  if (policy?.verifyTemplatesBeforeSearch !== false) {
+    const probeTargets = [...candidates.values()]
+      .filter((candidate) => CONFIRMATION_PROBE_STAGES.has(candidate.stage))
+      .sort((left, right) => right.score - left.score || left.url.length - right.url.length)
+      .slice(0, MAX_CONFIRMATION_PROBES);
+    for (const candidate of probeTargets) {
+      attemptedUrls.push(candidate.url);
+      try {
+        const fetched = await fetchDiscoveryText(candidate.url, context);
+        const evidence = scoreFetchedDiscoveryEvidence(fetched, catalogNumber);
+        if (evidence.catalogConfirmed) {
+          confirmedTemplateUrl = fetched.effectiveUrl || candidate.url;
+          add({
+            url: confirmedTemplateUrl,
+            // Above every guess and every search result: this URL is not predicted to be the
+            // product, it has been observed to be it.
+            score: Math.max(candidate.score, 97),
+            reason: `${candidate.reason} confirmed by fetch (${evidence.reasons.join(", ")})`,
+            stage: candidate.stage,
+            sourceType: "official-fallback"
+          });
+          notes.push(`Skipped search discovery: ${confirmedTemplateUrl} already identifies ${catalogNumber}.`);
+          break;
+        }
+        if (fetched.statusCode === 404 || fetched.statusCode === 410) {
+          // A template the vendor answers with "not here" should not keep ranking first and being
+          // fetched first. Demote it in place — `add()` deliberately only ever raises a score, so
+          // this cannot go through `add()`.
+          //
+          // The demotion is deliberately SMALL, and only for 404/410. Two reasons, both measured:
+          // a 403/429/503 is bot mitigation or a rate limit, never evidence that the URL is wrong;
+          // and a single hard drop pushes a correct template below the URL guesses and out of the
+          // `maxCandidates` slice entirely (`rockwell/1606-XLB60E` was lost exactly that way at -40).
+          // Re-ordering against sibling templates is the goal; discarding the candidate is not.
+          const existing = candidates.get(canonicalCandidateKey(candidate.url));
+          if (existing) {
+            existing.score = Math.max(1, existing.score - 12);
+            existing.reason = `${existing.reason} (probe returned HTTP ${fetched.statusCode})`;
+          }
+        }
+      } catch (error) {
+        notes.push(`Template confirmation probe failed for ${candidate.url}: ${formatError(error)}`);
+      }
+    }
+  }
+
+  // Learned-working endpoint first, then configured + generic search-URL templates (cheap: no extra
+  // page fetch to find a form).
+  if (!confirmedTemplateUrl) {
+    await processSearchRequests([
+      ...learnedSearchUrls.map((learned) => ({ url: learned.url, method: "GET" as const })),
+      ...searchTemplates(manufacturer).map((template) => ({
+        url: fillCatalogTemplate(template, catalogNumber),
+        method: "GET" as const
+      }))
+    ]);
+  }
   // Fallback for EVERY connector: if templates surfaced no product, auto-discover the site’s real
   // search FORM from the homepage and submit the catalog number to it — i.e. "type it into their
   // search box". Previously this ran only when no search templates were configured, so a broken or
   // renamed configured endpoint disabled on-site search entirely; now it is a universal safety net.
-  if (!hasSearchResultCandidate(candidates)) {
+  if (!confirmedTemplateUrl && !hasSearchResultCandidate(candidates)) {
     const formRequests = await discoverSearchFormRequests(catalogNumber, context, attemptedUrls, notes);
     const allowedFormRequests = formRequests.filter((request) => {
       if (isAllowedOfficialUrl(request.url, manufacturer)) return true;
@@ -222,7 +353,7 @@ async function discoverOfficialProductCandidatesUncached(catalogNumber: string, 
     await processSearchRequests(allowedFormRequests);
   }
 
-  if (!hasSearchResultCandidate(candidates) && shouldUseRenderedSearchDiscovery(context)) {
+  if (!confirmedTemplateUrl && !hasSearchResultCandidate(candidates) && shouldUseRenderedSearchDiscovery(context)) {
     for (const searchUrl of renderedSearchCandidates.slice(0, 4)) {
       attemptedUrls.push(`browser:${searchUrl}`);
       try {
@@ -390,6 +521,27 @@ function exactOfficialProductRedirectUrl(
     : undefined;
 }
 
+/** The site root, with nothing identifying a product: no path, no query. */
+function isBareOriginUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    return (parsed.pathname === "/" || parsed.pathname === "") && !parsed.search;
+  } catch {
+    return false;
+  }
+}
+
+/** An image/style/script asset. Note the optional trailing slash: real vendor CDN URLs have one. */
+function isNonProductAssetUrl(url: string): boolean {
+  return /\.(?:png|jpe?g|webp|gif|svg|ico|css|js)(?:\/)?(?:[?#]|$)/i.test(url);
+}
+
+/** A sign-in page. It can carry the catalog number in its `target`/`redirect` parameter and so look
+ * like a perfect URL-shape match, but no product is ever extractable from it. */
+function isAuthWallUrl(url: string): boolean {
+  return /\/(?:login|signin|sign-in|logon|auth)(?:[/?#]|$)|\.sso\/|\/sso\/|auth0\.com/i.test(url);
+}
+
 function isSearchLikeUrl(url: string): boolean {
   return /\/(?:site-)?search(?:\/|$)|[?&](?:s|q|query|search|term|text|keyword|searchterm)=/i.test(url);
 }
@@ -548,6 +700,50 @@ function configuredSearchTemplates(manufacturer: ManufacturerConfig): string[] {
   ].filter((template) => templateContainsCatalogPlaceholder(template) && isSearchLikeUrl(template));
 }
 
+/**
+ * Generic search shapes, ordered by EVIDENCE from the cached corpus — nothing removed, only reordered.
+ *
+ * Measured over every search-shaped URL in `page_cache` (`tmp/analyze-query-keys.ts`), counting how
+ * often the cached body actually came back carrying a link to the requested catalog number:
+ *
+ * | shape            | answered / tried | vendors that answered            |
+ * | ---------------- | ---------------: | -------------------------------- |
+ * | `?q=`            |         71 / 459 | schmersal, turck, ganternorm     |
+ * | `/search/{part}` |       182 / 184  | abb, saginaw                     |
+ * | `?s=`            |         62 / 62  | abb (legacy), saginaw            |
+ * | `?query=`        |       546 / 969  | schmersal                        |
+ * | `?searchTerm=`   |         28 / 56  | siemens                          |
+ * | `?search=`       |          1 / 76  | fath                             |
+ * | `?text=`         |          0 / 23  | —                                |
+ * | `?keyword=`      |          0 / 29  | —                                |
+ * | `Ntt`,`k`,`article`,`partNumber`,`/site-search` | never even tried | — |
+ *
+ * Ordered by distinct answering vendors first, then by volume: a generic list's job is breadth, and
+ * the volume column is biased by how often our own code happened to request each shape.
+ *
+ * Two findings worth naming, both from that table:
+ * 1. `/search/{part}` answers 182 out of 184 times and was **unreachable** for any vendor with two or
+ *    more URL bases — it sat after all 11 query keys and `.slice(0, 18)` cut it off. Which shapes a
+ *    vendor got to try depended on how many bases it happened to have configured, not on evidence.
+ * 2. The last four keys have never been requested once in the whole corpus, for the same reason. They
+ *    are kept (removing an untried shape would be a silent coverage loss) but ranked last.
+ */
+const GENERIC_SEARCH_SHAPES = [
+  "/search?q={part}",
+  "/search/{part}",
+  "/search?s={part}",
+  "/search?query={part}",
+  "/search?searchTerm={part}",
+  "/search?search={part}",
+  "/search?text={part}",
+  "/search?keyword={part}",
+  "/search?Ntt={part}",
+  "/search?k={part}",
+  "/search?article={part}",
+  "/search?partNumber={part}",
+  "/site-search?q={part}"
+] as const;
+
 function genericOfficialSearchTemplates(manufacturer: ManufacturerConfig): string[] {
   const bases = new Set<string>();
   for (const base of officialUrlBases(manufacturer)) {
@@ -557,18 +753,13 @@ function genericOfficialSearchTemplates(manufacturer: ManufacturerConfig): strin
   }
 
   const templates: string[] = [];
-  // Interleave bases by parameter name so a locale-specific base gets the common keys too; the
-  // bounded discovery budget used to spend every slot on the bare origin before reaching /en-us/.
+  // Interleave bases by shape so a locale-specific base gets the common shapes too; the bounded
+  // discovery budget used to spend every slot on the bare origin before reaching /en-us/.
   const cleanBases = [...bases].map((base) => base.replace(/\/+$/g, ""));
-  const queryKeys = ["q", "query", "search", "s", "text", "keyword", "searchTerm", "Ntt", "k", "article", "partNumber"];
-  for (const key of queryKeys) {
+  for (const shape of GENERIC_SEARCH_SHAPES) {
     for (const cleanBase of cleanBases) {
-      templates.push(`${cleanBase}/search?${key}={part}`);
+      templates.push(`${cleanBase}${shape}`);
     }
-  }
-  for (const cleanBase of cleanBases) {
-    templates.push(`${cleanBase}/search/{part}`);
-    templates.push(`${cleanBase}/site-search?q={part}`);
   }
   return templates.slice(0, 18);
 }
@@ -581,6 +772,23 @@ function localePathPrefix(segments: string[]): string | undefined {
   if (/^[a-z]{2}$/i.test(first) && /^[a-z]{2}$/i.test(second ?? "")) return `${first}/${second}`;
   return undefined;
 }
+
+/** Stages worth spending one confirmation fetch on: configured or learned, never a bare guess. */
+const CONFIRMATION_PROBE_STAGES: ReadonlySet<ProductDiscoveryCandidate["stage"]> = new Set([
+  "learned-endpoint",
+  "direct-template",
+  "localized-template"
+]);
+
+/**
+ * Three probes at most. Beyond that the blind search stage is the cheaper bet again.
+ *
+ * Measured, not guessed: at 2 probes nVent paid 9 requests per catalog number because its confirming
+ * template sits third in its own candidate list, so the probe missed it and the full search stage ran.
+ * At 3 probes that fell to 3 requests (4,5 s -> 1,5 s of modelled throttle) and the corpus total went
+ * 2010 -> 1890 requests. One extra probe risks 1 request; a confirmed probe saves up to 18.
+ */
+const MAX_CONFIRMATION_PROBES = 3;
 
 function hasSearchResultCandidate(candidates: Map<string, ProductDiscoveryCandidate>): boolean {
   return [...candidates.values()].some((candidate) => candidate.stage === "search-result");
@@ -773,7 +981,24 @@ function searchQueryInputName($: cheerio.CheerioAPI, form: Parameters<cheerio.Ch
 function officialVariantUrls(manufacturer: ManufacturerConfig, catalogNumber: string): string[] {
   const urls: string[] = [];
   const variants = urlVariantValues(catalogNumber, manufacturer.scrapeRecipe?.discoveryPolicy?.urlVariants);
-  for (const parsed of officialUrlBases(manufacturer)) {
+  // Guessing a direct product URL must stay confined to origins the manufacturer actually declared
+  // as the catalog base (`officialBaseUrls`) — never `homepageUrl`'s origin on its own.
+  // `officialUrlBases` deliberately ALSO returns homepageUrl-derived bases, because ITS callers use
+  // them as a locale SEARCH entry point (see its own docstring) — but appending a slugified catalog
+  // number onto a bare homepage origin guesses a URL on a domain nobody declared hosts product
+  // pages at all. Confirmed live: FATH's `homepageUrl` is a DIFFERENT apex domain (fath.com; the real
+  // catalog is fath24.com), so this guessed `https://www.fath.com/en/{variant}` outranked the real
+  // fath24.com product URL in a real `npm run audit:discovery` replay.
+  const officialOrigins = new Set(
+    manufacturer.officialBaseUrls.flatMap((baseUrl) => {
+      try {
+        return [new URL(baseUrl).origin];
+      } catch {
+        return [];
+      }
+    })
+  );
+  for (const parsed of officialUrlBases(manufacturer).filter((base) => officialOrigins.has(base.origin))) {
     const base = `${parsed.origin}${parsed.pathname}`;
     for (const variant of variants.slice(0, 5)) {
       if (parsed.pathname) urls.push(`${base}/${encodeURIComponent(variant)}`);

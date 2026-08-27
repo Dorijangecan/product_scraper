@@ -23,6 +23,7 @@
     "preview": "npm run build && node --import tsx src/server/index.ts",
     "postinstall": "patch-package",
     "audit:discovery": "tsx scripts/audit-discovery.ts",
+    "audit:search-shapes": "tsx scripts/audit-search-shapes.ts",
     "audit:page-attrs": "tsx scripts/audit-page-attributes.ts",
     "audit:ocr-corpus": "tsx scripts/audit-ocr-corpus.ts",
     "audit:labels": "tsx scripts/audit-label-systems.ts",

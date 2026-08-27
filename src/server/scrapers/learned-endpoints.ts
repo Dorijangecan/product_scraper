@@ -7,6 +7,17 @@ export interface LearnedEndpointStore {
   upsert: (endpoint: Omit<LearnedEndpointRecord, "id" | "successCount" | "lastSuccessAt">) => void;
 }
 
+/**
+ * A search endpoint that demonstrably answers this vendor's catalog numbers.
+ *
+ * Kept as its own `parserKind` because a search URL is NOT a product URL: it must reorder the search
+ * stage without ever becoming a product candidate. Measured reason it exists at all: the generic
+ * search stage fires up to 18 query-key shapes per catalog number, of which at most one is the
+ * vendor's real endpoint — and the other ~17 were re-paid on every catalog number, in every run,
+ * forever (`gan`: 29 requests x 3000 ms per-host interval = 87 s of pure waiting).
+ */
+export const SEARCH_TEMPLATE_PARSER_KIND = "official-search-template";
+
 export function learnedEndpointUrls(
   manufacturer: ManufacturerConfig,
   catalogNumber: string,
@@ -17,12 +28,71 @@ export function learnedEndpointUrls(
   return store
     .list(manufacturer.id, limit)
     .filter((endpoint) => !learnedEndpointSuppressed(endpoint))
+    // A learned SEARCH endpoint is a route to the product, not the product. Letting it in here would
+    // put a search URL on the product-candidate list, which is exactly the class of wrong answer
+    // that ranked #1 for Siemens.
+    .filter((endpoint) => endpoint.parserKind !== SEARCH_TEMPLATE_PARSER_KIND)
     .filter((endpoint) => endpoint.method === "GET" && endpoint.urlTemplate.includes("{part"))
     .flatMap((endpoint) => {
       const url = fillCatalogTemplate(endpoint.urlTemplate, catalogNumber);
       if (!isAllowedOfficialHost(url, manufacturer)) return [];
       return [{ url, endpoint }];
     });
+}
+
+/** The search endpoints this vendor has already been observed answering, best-first. */
+export function learnedSearchTemplateUrls(
+  manufacturer: ManufacturerConfig,
+  catalogNumber: string,
+  store: LearnedEndpointStore | undefined,
+  limit = 20
+): Array<{ url: string; endpoint: LearnedEndpointRecord }> {
+  if (!store) return [];
+  return store
+    .list(manufacturer.id, limit)
+    .filter((endpoint) => endpoint.parserKind === SEARCH_TEMPLATE_PARSER_KIND)
+    .filter((endpoint) => !learnedEndpointSuppressed(endpoint))
+    .filter((endpoint) => endpoint.method === "GET" && endpoint.urlTemplate.includes("{part"))
+    .flatMap((endpoint) => {
+      const url = fillCatalogTemplate(endpoint.urlTemplate, catalogNumber);
+      if (!isAllowedOfficialHost(url, manufacturer)) return [];
+      return [{ url, endpoint }];
+    });
+}
+
+/**
+ * Remember a search URL shape that actually produced a product link for this catalog number.
+ *
+ * "Worked" is deliberately defined as *the vendor's own search answered with a link that carries the
+ * requested catalog number* — `discoverProductLinksWithDiagnostics` filters by the catalog, so a
+ * results page full of unrelated products yields nothing and teaches nothing. The template is keyed
+ * by host as well as manufacturer, because one vendor can use a different key per locale/shop.
+ */
+export function learnSearchTemplate(input: {
+  manufacturer: ManufacturerConfig;
+  catalogNumber: string;
+  searchUrl: string;
+  store?: LearnedEndpointStore;
+}): string | undefined {
+  if (!input.store) return undefined;
+  if (!isAllowedOfficialHost(input.searchUrl, input.manufacturer)) return undefined;
+  const urlTemplate = endpointTemplateFromUrl(input.searchUrl, input.catalogNumber);
+  if (!urlTemplate || urlTemplate === input.searchUrl) return undefined;
+  let host: string;
+  try {
+    host = new URL(input.searchUrl).hostname;
+  } catch {
+    return undefined;
+  }
+  input.store.upsert({
+    manufacturerId: input.manufacturer.id,
+    host,
+    method: "GET",
+    urlTemplate,
+    discoveredFromUrl: input.searchUrl,
+    parserKind: SEARCH_TEMPLATE_PARSER_KIND
+  });
+  return urlTemplate;
 }
 
 export function learnedEndpointSuppressed(endpoint: LearnedEndpointRecord, now = Date.now()): boolean {

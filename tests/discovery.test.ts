@@ -1618,6 +1618,321 @@ describe("sitemap discovery gating", () => {
 });
 
 /**
+ * The path-style search shape must be reachable even for a vendor with several URL bases.
+ *
+ * Corpus evidence (tmp/analyze-query-keys.ts over page_cache): `/search/{part}` answered 182 of 184
+ * times — the best-performing shape of all — and it was UNREACHABLE for any vendor with two or more
+ * bases, because it sat after all 11 query keys and the list is cut at 18 entries. Which shapes a
+ * vendor got to try depended on how many bases it happened to have, not on what works.
+ */
+describe("generic search shape reachability", () => {
+  it("tries the path-style search shape even when the vendor has two URL bases", async () => {
+    const twoBaseVendor: ManufacturerConfig = {
+      id: "twobase",
+      canonicalName: "Two Base Vendor",
+      shortName: "2BV",
+      rateLimitMs: 0,
+      officialBaseUrls: ["https://two.test/en-us/products", "https://shop.two.test"],
+      fallbackSources: [],
+      scrapeRecipe: { discoveryPolicy: { enableRobotsSitemaps: false } }
+    };
+    const fetched: string[] = [];
+    await discoverOfficialProductCandidates("ABC-123", {
+      manufacturer: twoBaseVendor,
+      http: {
+        fetchText: async (url: string) => {
+          fetched.push(url);
+          return {
+            requestedUrl: url,
+            effectiveUrl: url,
+            statusCode: 200,
+            contentType: "text/html",
+            text: "<html><body>no results</body></html>",
+            fetchedAt: new Date(0).toISOString(),
+            fromCache: false
+          };
+        }
+      }
+    } as never);
+
+    expect(fetched.some((url) => /\/search\/ABC-123$/.test(url))).toBe(true);
+  });
+});
+
+/**
+ * Learn the vendor's working search key once, not on every catalog number.
+ *
+ * The generic search stage fires up to 18 query-key shapes, of which at most one is the vendor's real
+ * endpoint — and the other ~17 were re-paid per catalog number, per run, forever. Measured with
+ * scripts/audit-discovery.ts (which now replays with an in-memory learned_endpoints store, so
+ * learning across items is visible at all): median requests per catalog 11 -> 3, `schmersal` 11 -> 1.
+ */
+describe("learned search templates (D4)", () => {
+  const searchVendor: ManufacturerConfig = {
+    id: "learn",
+    canonicalName: "Learn Vendor",
+    shortName: "LRN",
+    rateLimitMs: 0,
+    officialBaseUrls: ["https://learn.test"],
+    fallbackSources: [],
+    scrapeRecipe: { discoveryPolicy: { enableRobotsSitemaps: false } }
+  };
+
+  /** Only `?keyword=` answers — every other query-key shape returns an empty page. */
+  const onlyKeywordWorks = (url: string) => ({
+    requestedUrl: url,
+    effectiveUrl: url,
+    statusCode: 200,
+    contentType: "text/html",
+    text: /[?&]keyword=/i.test(url)
+      ? `<html><body><a href="https://learn.test/products/${new URL(url).searchParams.get("keyword")}">match</a></body></html>`
+      : "<html><body>no results</body></html>",
+    fetchedAt: new Date(0).toISOString(),
+    fromCache: false
+  });
+
+  function memoryStore() {
+    const records: LearnedEndpointRecord[] = [];
+    return {
+      records,
+      list: () => [...records].sort((left, right) => right.successCount - left.successCount),
+      upsert: (endpoint: Omit<LearnedEndpointRecord, "id" | "successCount" | "lastSuccessAt">) => {
+        const existing = records.find((record) => record.urlTemplate === endpoint.urlTemplate && record.method === endpoint.method);
+        if (existing) {
+          existing.successCount += 1;
+          existing.failureCount = 0;
+          return;
+        }
+        records.push({ ...endpoint, successCount: 1, lastSuccessAt: new Date(1).toISOString(), failureCount: 0 });
+      },
+      recordFailure: (_manufacturerId: string, _method: "GET" | "POST", urlTemplate: string) => {
+        const existing = records.find((record) => record.urlTemplate === urlTemplate);
+        if (existing) existing.failureCount = (existing.failureCount ?? 0) + 1;
+      }
+    };
+  }
+
+  it("remembers the one query key that answered, and the next catalog number tries only that", async () => {
+    const store = memoryStore();
+    const firstFetches: string[] = [];
+    await discoverOfficialProductCandidates("ABC-123", {
+      manufacturer: searchVendor,
+      http: {
+        fetchText: async (url: string) => {
+          firstFetches.push(url);
+          return onlyKeywordWorks(url);
+        }
+      },
+      learnedEndpoints: store
+    } as never);
+
+    const learned = store.records.filter((record) => record.parserKind === "official-search-template");
+    expect(learned).toHaveLength(1);
+    expect(learned[0].urlTemplate).toContain("keyword=");
+
+    const secondFetches: string[] = [];
+    const second = await discoverOfficialProductCandidates("XYZ-999", {
+      manufacturer: searchVendor,
+      http: {
+        fetchText: async (url: string) => {
+          secondFetches.push(url);
+          return onlyKeywordWorks(url);
+        }
+      },
+      learnedEndpoints: store
+    } as never);
+
+    // The whole point: the working key is first AND ends the stage, so the ~17 misses are not re-paid.
+    expect(secondFetches).toHaveLength(1);
+    expect(secondFetches[0]).toContain("keyword=XYZ-999");
+    expect(firstFetches.length).toBeGreaterThan(secondFetches.length);
+    expect(second.candidates.map((candidate) => candidate.url)).toContain("https://learn.test/products/XYZ-999");
+  });
+
+  it("never puts a learned search endpoint on the product-candidate list", async () => {
+    const store = memoryStore();
+    await discoverOfficialProductCandidates("ABC-123", {
+      manufacturer: searchVendor,
+      http: { fetchText: async (url: string) => onlyKeywordWorks(url) },
+      learnedEndpoints: store
+    } as never);
+
+    const second = await discoverOfficialProductCandidates("XYZ-999", {
+      manufacturer: searchVendor,
+      http: { fetchText: async (url: string) => onlyKeywordWorks(url) },
+      learnedEndpoints: store
+    } as never);
+
+    expect(second.candidates.some((candidate) => candidate.url.includes("keyword="))).toBe(false);
+    expect(second.candidates.some((candidate) => candidate.stage === "learned-endpoint")).toBe(false);
+  });
+
+  it("takes a failure when a learned endpoint stops answering, so a renamed one is not a permanent tax", async () => {
+    const store = memoryStore();
+    await discoverOfficialProductCandidates("ABC-123", {
+      manufacturer: searchVendor,
+      http: { fetchText: async (url: string) => onlyKeywordWorks(url) },
+      learnedEndpoints: store
+    } as never);
+
+    const dead = (url: string) => ({ ...onlyKeywordWorks(url), text: "<html><body>no results</body></html>" });
+    await discoverOfficialProductCandidates("XYZ-999", {
+      manufacturer: searchVendor,
+      http: { fetchText: async (url: string) => dead(url) },
+      learnedEndpoints: store
+    } as never);
+
+    const learned = store.records.find((record) => record.parserKind === "official-search-template");
+    expect(learned?.failureCount).toBe(1);
+  });
+});
+
+/**
+ * Three URL classes that are categorically not product pages.
+ *
+ * All three were only PENALISED before, and a penalty loses to a URL that otherwise looks perfect.
+ * Measured on real cached pages: Siemens' own search URL ranked #1 for 6/6 catalog numbers (it
+ * carries the exact catalog in `searchTerm=`), and once that was rejected a Shibboleth SSO login and
+ * a Turck product photo took its place at #1.
+ */
+describe("candidates that can never be a product page", () => {
+  const vendor: ManufacturerConfig = {
+    id: "junk",
+    canonicalName: "Junk Vendor",
+    shortName: "JNK",
+    rateLimitMs: 0,
+    officialBaseUrls: ["https://junk.test"],
+    fallbackSources: [],
+    scrapeRecipe: { discoveryPolicy: { enableRobotsSitemaps: false } }
+  };
+
+  const resultPage = (links: string[]) => (url: string) => ({
+    requestedUrl: url,
+    effectiveUrl: url,
+    statusCode: 200,
+    contentType: "text/html",
+    text: `<html><body>${links.map((href) => `<a href="${href}">ABC-123</a>`).join("")}</body></html>`,
+    fetchedAt: new Date(0).toISOString(),
+    fromCache: false
+  });
+
+  it("rejects a search page, an image asset, a login wall and the homepage, and keeps the real product link", async () => {
+    const page = resultPage([
+      "https://junk.test/Catalog/Search?searchTerm=ABC-123&tab=Product",
+      "https://junk.test/media/ABC-123_640x640.png/",
+      "https://junk.test/Shibboleth.sso/Login?target=https%3a%2f%2fjunk.test%2fABC-123",
+      "https://junk.test/",
+      "https://junk.test/products/ABC-123"
+    ]);
+    const discovery = await discoverOfficialProductCandidates("ABC-123", {
+      manufacturer: vendor,
+      http: { fetchText: async (url: string) => page(url) }
+    } as never);
+
+    const urls = discovery.candidates.map((candidate) => candidate.url);
+    expect(urls).toContain("https://junk.test/products/ABC-123");
+    expect(urls.some((url) => url.includes("searchTerm="))).toBe(false);
+    // The trailing slash is the point: the asset penalty's pattern required the extension to end the URL.
+    expect(urls.some((url) => url.includes(".png"))).toBe(false);
+    expect(urls.some((url) => /sso|login/i.test(url))).toBe(false);
+    // The homepage ranked #1 for 8/8 measured nVent catalog numbers, ahead of the real PDP.
+    expect(urls).not.toContain("https://junk.test/");
+    expect(urls).not.toContain("https://junk.test");
+  });
+});
+
+/**
+ * Confirm the cheap candidate before paying for search.
+ *
+ * Measured by scripts/audit-discovery.ts over 160 known-good catalog numbers: 79 % of hits came from
+ * template/learned stages that cost zero requests, while the search stage ran first and
+ * unconditionally at a median of 22 requests per catalog number. Probing the top template first cut
+ * that to 11 with the hit-rate unchanged (69.4 %) and better ranking (top-3 52.5 % -> 57.5 %).
+ */
+describe("template confirmation before search escalation", () => {
+  const templateVendor: ManufacturerConfig = {
+    id: "tpl",
+    canonicalName: "Template Vendor",
+    shortName: "TPL",
+    rateLimitMs: 0,
+    officialBaseUrls: ["https://tpl.test/products/{part}"],
+    fallbackSources: [],
+    scrapeRecipe: { discoveryPolicy: { enableRobotsSitemaps: false } }
+  };
+
+  const page = (url: string, text: string, statusCode = 200) => ({
+    requestedUrl: url,
+    effectiveUrl: url,
+    statusCode,
+    contentType: "text/html",
+    text,
+    fetchedAt: new Date(0).toISOString(),
+    fromCache: false
+  });
+
+  it("skips the whole search stage when the template page identifies the exact catalog number", async () => {
+    const fetched: string[] = [];
+    const discovery = await discoverOfficialProductCandidates("ABC-123", {
+      manufacturer: templateVendor,
+      http: {
+        fetchText: async (url: string) => {
+          fetched.push(url);
+          if (url === "https://tpl.test/products/ABC-123") return page(url, "<html><head><title>ABC-123</title></head><body><h1>ABC-123</h1></body></html>");
+          return page(url, "<html><body>nothing</body></html>");
+        }
+      }
+    } as never);
+
+    expect(fetched).toEqual(["https://tpl.test/products/ABC-123"]);
+    expect(fetched.some((url) => /[?&](?:q|query|search)=/i.test(url))).toBe(false);
+    expect(discovery.candidates[0]?.url).toBe("https://tpl.test/products/ABC-123");
+    expect(discovery.candidates[0]?.reason).toContain("confirmed by fetch");
+  });
+
+  it("still escalates to search when the template page does not identify the catalog number", async () => {
+    const fetched: string[] = [];
+    await discoverOfficialProductCandidates("ABC-123", {
+      manufacturer: templateVendor,
+      http: {
+        fetchText: async (url: string) => {
+          fetched.push(url);
+          return page(url, "<html><head><title>Page not found</title></head><body>nothing</body></html>", url.includes("/products/ABC-123") ? 404 : 200);
+        }
+      }
+    } as never);
+
+    expect(fetched).toContain("https://tpl.test/products/ABC-123");
+    expect(fetched.some((url) => /[?&](?:q|query|search)=/i.test(url))).toBe(true);
+  });
+
+  it("never spends a probe on a bare URL guess, because a guess is not evidence", async () => {
+    const guessVendor: ManufacturerConfig = {
+      id: "guess",
+      canonicalName: "Guess Vendor",
+      shortName: "GSS",
+      rateLimitMs: 0,
+      // No {part} placeholder: nothing here is a direct template, so everything is a url-variant guess.
+      officialBaseUrls: ["https://guess.test"],
+      fallbackSources: [],
+      scrapeRecipe: { discoveryPolicy: { enableRobotsSitemaps: false } }
+    };
+    const fetched: string[] = [];
+    await discoverOfficialProductCandidates("ABC-123", {
+      manufacturer: guessVendor,
+      http: {
+        fetchText: async (url: string) => {
+          fetched.push(url);
+          return page(url, "<html><body>nothing</body></html>");
+        }
+      }
+    } as never);
+
+    // Search must still have run: a guess can never gate it.
+    expect(fetched.some((url) => /[?&](?:q|query|search)=/i.test(url))).toBe(true);
+  });
+});
+
+/**
  * A synthesised URL guess must never outrank evidence.
  *
  * `scoreDiscoveryCandidate`'s bonuses are all about URL SHAPE, and a guess is CONSTRUCTED to have the
@@ -1647,6 +1962,36 @@ describe("url-variant guesses rank below evidence", () => {
 
     expect(plausible).toBeGreaterThan(asset);
     expect(plausible).toBeGreaterThan(unrelated);
+  });
+
+  it("never guesses a direct product URL on homepageUrl's origin when it differs from officialBaseUrls", async () => {
+    // Real FATH config: officialBaseUrls is fath24.com (the actual catalog), but homepageUrl is the
+    // DIFFERENT apex domain fath.com (the corporate site). A real `npm run audit:discovery` replay
+    // found the guessed `https://www.fath.com/en/{variant}` (homepageUrl's own origin + a slugified
+    // catalog number) outranking the real fath24.com product URL — a guess on a domain nobody
+    // declared hosts product pages can never be correct.
+    const offDomainHome: ManufacturerConfig = {
+      id: "off-domain-home",
+      canonicalName: "Off Domain Home",
+      shortName: "ODH",
+      rateLimitMs: 100,
+      officialBaseUrls: ["https://catalog.example"],
+      homepageUrl: "https://corporate.example/en/",
+      fallbackSources: []
+    };
+    const discovered = await discoverOfficialProductCandidates("ABC-123", {
+      manufacturer: offDomainHome,
+      http: {
+        fetchText: async () => {
+          throw new Error("no network in this test");
+        }
+      }
+    } as never);
+
+    const homepageOriginGuess = discovered.candidates.some((candidate) => new URL(candidate.url).origin === "https://corporate.example");
+    const officialOriginGuess = discovered.candidates.some((candidate) => new URL(candidate.url).origin === "https://catalog.example" && candidate.url.includes("abc123"));
+    expect(homepageOriginGuess).toBe(false);
+    expect(officialOriginGuess).toBe(true);
   });
 });
 
