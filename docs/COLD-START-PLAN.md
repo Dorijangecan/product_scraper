@@ -3979,3 +3979,58 @@ Zato je zapisan kao „bez štete, uz dokaz iz korpusa", a ne kao izmjereno ubrz
 
 Puni gate: TypeScript čist; Vitest **2291/2291** (novi test dokazuje da je `/search/{part}` dostupan pri
 dvije baze); eval **38/38**, 0 kontaminacija.
+
+### ✅ D2a — search budžet je VRIJEME, ne broj zahtjeva; i kataloški broj u kontakt formi
+
+Djelomični D2: rok još nije proslijeđen kroz sve faze, ali dvije granice unutar discoveryja sad su
+izražene u milisekundama, jer je broj zahtjeva **besmislena mjera** kad je cijena po zahtjevu 10× različita.
+
+**1. Cap od 28 zahtjeva je značio 8,4 s za `eaton` i 84 s za `gan`.** Isti broj, deseterostruka cijena.
+Sad se izvodi iz cijene: `DISCOVERY_SEARCH_BUDGET_MS / max(100, rateLimitMs/concurrency)`, uz `min 2`.
+`gan` dobiva 2 oblika umjesto 18 — a nakon D6 to su točno dva koja korpus kaže da odgovaraju
+(`?q=` je oblik na kojem je ganternorm.com odgovorio). Configured template su izuzeti: njih je malo i
+kurirani su, pa vendor čiji vlastiti endpoint nikad nije probaн bio bi gubitak pokrivenosti, ne ušteda.
+Kad rez nastupi, **zapiše se razlog** (`budget-exhausted:search — stopped after N (cap M at X ms)`) —
+„nema podatka" i „nismo stigli" ne smiju biti nerazlučivi.
+
+**2. Otkrivanje search forme je trošilo više od faze koju spašava.** Za `gan` je dohvaćalo **šest**
+varijanti homepagea (`/`, `/en`, `/en/home`, `/de/home`, `/fr/home`, `/es/home`) po 3000 ms — 18 s od 30 s
+— i nastavljalo *nakon* što je prva stranica već dala formu. Sad: prekid na prvoj formi, i broj sondi
+budžetiran istom formulom (`FORM_PROBE_BUDGET_MS`).
+
+**3. Inverzija prioriteta: nagađanja su pojela budžet vendorove PRAVE forme.** `gan` je potrošio cijeli
+search budžet na dva slijepa generička oblika, pa našao formu koju vendor sam deklarira — i nije imao
+čime je poslati. Form-derived pass sad ima **vlastiti dodatak** (`FORM_REQUEST_BUDGET_BOOST`): action
+pročitan s vendorove stranice je dokaz, generički query ključ je nagađanje.
+
+**4. Kataloški broj se slao u Ganterovu kontakt formu — dvaput po artiklu, prije prave forme.**
+Uzrok nije bio u prepoznavanju forme nego u pragu: `hasSearchContext` (tekst forme sadrži „find" —
+*„Find your sales partner"*) je **ukidao kvalitetni prag za POLJE** i svima davao +10, pa je
+`salespartner[__referrer][@extension]`, skriveno TYPO3 plumbing polje, izabrano kao search box. Sad polje
+mora zaslužiti mjesto **vlastitim** imenom/tipom/placeholderom; okolni tekst je kontekst za *formu*, nikad
+dokaz o *polju*. Nakon toga gan ide direktno na pravi `/en/products/quick-finder?q=…`.
+
+**Izmjereno (160 kataloških brojeva, od izvornog stanja):**
+
+| mjerilo | prije svega | **sad** |
+| --- | ---: | ---: |
+| zahtjeva po katalogu (medijan) | 22 | **3** |
+| ukupno zahtjeva | 3153 | **1241** (−61 %) |
+| throttle (medijan) | 9,0 s | **1,0 s** |
+| throttle (p95) | 87,0 s | **18,0 s** |
+| PDP na #1 | 48,8 % | **55,6 %** |
+| PDP u top 3 | 52,5 % | **57,5 %** |
+| PDP nađen | 69,4 % | **69,4 %** |
+
+`gan`: **29 → 6 zahtjeva, 87 s → 18 s.** `fath` 27 → 19, `abb` 27 → 23, `eaton` 31 → 28.
+
+**Potvrda da je gan-ov offline 0 % artefakt korpusa, ne koda:** cache pokazuje da quick-finder
+**stvarno redirecta** (`?q=GN 449.5` → `…/GN-449.5-Snap-Latches-…`), što `exactOfficialProductRedirectUrl`
+već obrađuje. Za `GN 3310-19-LK-K2` snimljeni odgovor nije redirectao, pa offline nema dokaza — živi put
+ide upravo kroz formu koju je ovaj popravak učinio 3× jeftinijom i čistijom.
+
+**Što još NIJE napravljeno:** pravi D2 (jedan rok po artiklu kroz PDP fetch, dokumente i enrichment)
+i sniženi per-request timeouti (30 s HTTP, 130 s curl, 45 s browser goto). Ovo je samo discovery.
+
+Puni gate: TypeScript čist; Vitest **2294/2294** (3 nova testa); eval **38/38**, 0 kontaminacija;
+spec-gate **0 SUSPECT**.

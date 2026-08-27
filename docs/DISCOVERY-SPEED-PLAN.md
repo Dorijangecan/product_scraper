@@ -275,7 +275,7 @@ Pravila naučena u ovom repou (COLD-START-PLAN §0b):
 | 1 | **D1** mjerni harness | ✅ **SLETIO** — mjeri zahtjeve, throttle, pobjednički stage, po proizvođaču, `--compare` | nema |
 | 2 | **D3** ne traži ako znaš | ✅ **SLETIO** — 22 → 11 zahtjeva medijan, −33 % ukupno, hit-rate isti, top-3 52,5 → 57,5 % | mali |
 | 3 | **D4** nauči search ključ | ✅ **SLETIO** — 11 → 3 zahtjeva medijan, `schmersal` 11 → 1; `gan`/`fath`/`eaton`/`abb` offline nepromijenjeni (nema što naučiti iz korpusa) | mali–srednji |
-| 4 | **D2** tvrdi rok + degradacija | **jedino što čini 30 s SLA-om** | srednji |
+| 4 | **D2** tvrdi rok + degradacija | ⏳ **DJELOMIČNO (D2a)** — search i form-probe granice su sad u ms, uz `budget-exhausted:search` razlog; `gan` 87 s → 18 s. Rok kroz PDP/dokumente/enrichment i sniženi per-request timeouti su OTVORENI | srednji |
 | 5 | **D5** run-level vendor cache | srednji | srednji |
 | 6 | **D6** rangiranje ključeva | ✅ **SLETIO** — `npm run audit:search-shapes` dao dokaz; `/search/{part}` (182/184) bio nedostupan pri 2+ baze. Dobitak nevidljiv offline | mali |
 | 7 | **D7** token bucket | srednji, per-vendor | **najveći** |

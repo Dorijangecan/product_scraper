@@ -192,14 +192,38 @@ async function discoverOfficialProductCandidatesUncached(catalogNumber: string, 
   const learnedSearchUrls = learnedSearchTemplateUrls(manufacturer, catalogNumber, context.learnedEndpoints);
   const learnedSearchUrlSet = new Set(learnedSearchUrls.map((learned) => learned.url));
 
-  const processSearchRequests = async (requests: SearchDiscoveryRequest[]): Promise<void> => {
+  // The blind-search cap is a TIME budget, not a request count.
+  //
+  // A flat cap of 28 requests means something completely different per vendor, because every request
+  // is serialised behind `max(100, rateLimitMs / concurrency)` ms on that host: 28 requests cost
+  // `eaton` 8,4 s and `gan` 84 s. The count was identical; the price was 10x. So derive the cap from
+  // the price — the discovery share of the per-item budget (DISCOVERY-SPEED-PLAN §2) divided by what
+  // one request costs this vendor. `gan` gets 2 shapes instead of 18, and after D6 those two are the
+  // two the corpus says actually answer (`?q=` is the shape ganternorm.com answered on).
+  //
+  // Configured templates are exempt: they are curated per vendor and few, and a vendor whose own
+  // configured endpoint is never tried is a coverage loss, not a saving.
+  const perRequestThrottleMs = Math.max(100, Math.floor((manufacturer.rateLimitMs ?? 1500) / Math.max(1, manufacturer.concurrency ?? 3)));
+  const searchRequestCap = Math.max(
+    configuredSearchUrls.length,
+    Math.min(28, Math.max(2, Math.floor(DISCOVERY_SEARCH_BUDGET_MS / perRequestThrottleMs)))
+  );
+
+  const processSearchRequests = async (requests: SearchDiscoveryRequest[], options: { budgetBoost?: number } = {}): Promise<void> => {
+    const requestCap = searchRequestCap + (options.budgetBoost ?? 0);
     const uniqueRequests = new Map<string, SearchDiscoveryRequest>();
     for (const request of requests) {
       const key = `${request.method}\n${request.url}\n${request.body?.toString() ?? ""}`;
       if (!uniqueRequests.has(key)) uniqueRequests.set(key, request);
     }
     for (const request of uniqueRequests.values()) {
-      if (searchedUrlCount >= 28) break;
+      if (searchedUrlCount >= requestCap) {
+        // Say WHY it stopped. "No data" and "we ran out of budget" must never be indistinguishable.
+        notes.push(
+          `budget-exhausted:search — stopped after ${searchedUrlCount} search requests (cap ${requestCap} at ${perRequestThrottleMs} ms per request on this host)`
+        );
+        break;
+      }
       const requestKey = `${request.method}\n${request.url}\n${request.body?.toString() ?? ""}`;
       if (processedSearchUrls.has(requestKey)) continue;
       processedSearchUrls.add(requestKey);
@@ -350,7 +374,7 @@ async function discoverOfficialProductCandidatesUncached(catalogNumber: string, 
       });
       return false;
     });
-    await processSearchRequests(allowedFormRequests);
+    await processSearchRequests(allowedFormRequests, { budgetBoost: FORM_REQUEST_BUDGET_BOOST });
   }
 
   if (!confirmedTemplateUrl && !hasSearchResultCandidate(candidates) && shouldUseRenderedSearchDiscovery(context)) {
@@ -773,6 +797,28 @@ function localePathPrefix(segments: string[]): string | undefined {
   return undefined;
 }
 
+/**
+ * Discovery's share of the per-item budget (DISCOVERY-SPEED-PLAN §2), spent on blind search.
+ *
+ * It bounds the throttle WAIT, not the request count, so it means the same thing for a vendor at
+ * 300 ms per request as for one at 3000 ms. Response latency sits on top of this — the figure is a
+ * floor, which is why it is generous relative to the 6 s the plan allocates to discovery overall.
+ */
+const DISCOVERY_SEARCH_BUDGET_MS = 6000;
+
+/** The same idea for the homepage probes that look for the vendor's real search form. */
+const FORM_PROBE_BUDGET_MS = 3000;
+
+/**
+ * Extra requests the form-derived pass may spend beyond the blind-search cap.
+ *
+ * Without it the priority is inverted: `gan` spent its whole search budget on two blind generic
+ * shapes, then found the vendor's declared form action and had nothing left to submit it with. A form
+ * action read off the vendor's own page is evidence; a generic query key is a guess. Evidence gets its
+ * own allowance rather than the guesses' leftovers.
+ */
+const FORM_REQUEST_BUDGET_BOOST = 3;
+
 /** Stages worth spending one confirmation fetch on: configured or learned, never a bare guess. */
 const CONFIRMATION_PROBE_STAGES: ReadonlySet<ProductDiscoveryCandidate["stage"]> = new Set([
   "learned-endpoint",
@@ -826,14 +872,26 @@ async function discoverSearchFormRequests(
   // points, so probe a small official-only extension of the initial set before falling back to
   // URL-shaped guesses. This deliberately follows only alternates of probe pages (not arbitrary
   // page links) and limits the total to six to keep discovery bounded for a new vendor.
+  //
+  // Both bounds below are budgeted the same way the search stage is, because this loop was measured
+  // spending more than the search stage it exists to rescue: for `gan` it fetched SIX homepage
+  // variants (`/`, `/en`, `/en/home`, `/de/home`, `/fr/home`, `/es/home`) at 3000 ms each — 18 s of a
+  // 30 s item — and kept going after the first page had already produced the form.
+  const perRequestThrottleMs = Math.max(
+    100,
+    Math.floor((context.manufacturer.rateLimitMs ?? 1500) / Math.max(1, context.manufacturer.concurrency ?? 3))
+  );
+  const maxProbePages = Math.max(1, Math.min(6, Math.floor(FORM_PROBE_BUDGET_MS / perRequestThrottleMs)));
   const probeQueue = searchFormProbePages(context.manufacturer).slice(0, 4);
   const queued = new Set(probeQueue.map(canonicalCandidateKey));
-  for (let index = 0; index < probeQueue.length && index < 6; index += 1) {
+  for (let index = 0; index < probeQueue.length && index < maxProbePages; index += 1) {
     const pageUrl = probeQueue[index];
     attemptedUrls.push(pageUrl);
     try {
       const fetched = await fetchDiscoveryText(pageUrl, context);
       requests.push(...searchRequestsFromForms(fetched.text, fetched.effectiveUrl, catalogNumber));
+      // The vendor's search form is in hand. Another locale's copy of the same form teaches nothing.
+      if (requests.length) break;
       for (const alternateUrl of hreflangProbeUrls(fetched.text, fetched.effectiveUrl)) {
         if (!isAllowedOfficialUrl(alternateUrl, context.manufacturer)) continue;
         const key = canonicalCandidateKey(alternateUrl);
@@ -967,11 +1025,16 @@ function searchQueryInputName($: cheerio.CheerioAPI, form: Parameters<cheerio.Ch
       if (/\b(?:catalog|catalogue|cat|part|partnumber|part-number|part_number|mpn|sku|article|article-no|articleno|article_number|item|item-no|itemno|product(?:code|id|number)?|model|mlfb)\b/i.test(haystack)) score += 45;
       if (/search/i.test($(input).attr("type") ?? "")) score += 30;
       if (/\b(search|suche|find|keyword|query|term|text)\b/i.test(haystack)) score += 20;
-      if (hasSearchContext) score += 10;
       if (/email|mail|zip|postal|country|language|csrf|token|session|password|login/i.test(haystack)) score -= 80;
-      return { name, score };
+      // The surrounding form text is context for the FORM, never evidence about this FIELD.
+      return { name, ownScore: score, score: score + (hasSearchContext ? 10 : 0) };
     })
-    .filter((item) => item.name && item.score > 0)
+    // A field must earn its place on its own name/type/placeholder. Ganter is the measured case: its
+    // sales-partner flyout says "find", which set hasSearchContext, which both handed every field a
+    // +10 and waived the 40-point bar below — so `salespartner[__referrer][@extension]`, a hidden
+    // TYPO3 plumbing field, was picked as the search box and the catalog number was submitted into a
+    // contact form. Twice per catalog number, ahead of the real quick-finder form.
+    .filter((item) => item.name && item.ownScore > 0)
     .sort((left, right) => right.score - left.score);
   if (!ranked[0]) return undefined;
   if (!hasSearchContext && ranked[0].score < 40) return undefined;

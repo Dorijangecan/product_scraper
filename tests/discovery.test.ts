@@ -1618,6 +1618,106 @@ describe("sitemap discovery gating", () => {
 });
 
 /**
+ * Blind search is bounded by TIME, and a contact form is not a search form.
+ *
+ * Both measured on the real Ganter corpus, where one catalog number cost 29 requests at 3000 ms of
+ * enforced spacing each — 87 s of pure waiting. A flat cap of 28 requests meant 8,4 s for `eaton` and
+ * 84 s for `gan`: same count, 10x the price.
+ */
+describe("discovery search budget and form quality", () => {
+  const slowVendor: ManufacturerConfig = {
+    id: "slow",
+    canonicalName: "Slow Vendor",
+    shortName: "SLW",
+    // 3000 / 1 = 3000 ms per request, exactly Ganter's configured politeness.
+    rateLimitMs: 3000,
+    concurrency: 1,
+    officialBaseUrls: ["https://slow.test"],
+    fallbackSources: [],
+    scrapeRecipe: { discoveryPolicy: { enableRobotsSitemaps: false } }
+  };
+
+  const html = (body: string) => (url: string) => ({
+    requestedUrl: url,
+    effectiveUrl: url,
+    statusCode: 200,
+    contentType: "text/html",
+    text: `<html><body>${body}</body></html>`,
+    fetchedAt: new Date(0).toISOString(),
+    fromCache: false
+  });
+
+  it("spends at most a time budget on blind search shapes, and says so in the diagnostics", async () => {
+    const searchFetches: string[] = [];
+    const discovery = await discoverOfficialProductCandidates("ABC-123", {
+      manufacturer: slowVendor,
+      http: {
+        fetchText: async (url: string) => {
+          if (/\/search/.test(url)) searchFetches.push(url);
+          return html("no results")(url);
+        }
+      }
+    } as never);
+
+    // 6000 ms budget / 3000 ms per request = 2 shapes, not 18.
+    expect(searchFetches).toHaveLength(2);
+    expect(discovery.diagnostics.notes?.some((note) => note.startsWith("budget-exhausted:search"))).toBe(true);
+  });
+
+  it("does not treat a hidden plumbing field in a 'find your dealer' form as the search box", async () => {
+    const submitted: string[] = [];
+    // Ganter's real shape: the form text says "find", every field is contact plumbing.
+    const dealerForm = `
+      <form action="/en/company/contact" method="get">
+        <p>Find your sales partner</p>
+        <input type="hidden" name="salespartner[__referrer][@extension]" value="">
+        <input type="hidden" name="salespartner[__trustedProperties]" value="x">
+        <input type="text" name="salespartner[zip]">
+        <select name="salespartner[country]"><option value="54">DE</option></select>
+      </form>
+      <form action="/en/products/quick-finder" method="get">
+        <input type="search" name="q" placeholder="Search products">
+      </form>`;
+    await discoverOfficialProductCandidates("ABC-123", {
+      manufacturer: slowVendor,
+      http: {
+        fetchText: async (url: string) => {
+          if (url.includes("contact") || url.includes("quick-finder")) submitted.push(url);
+          return html(dealerForm)(url);
+        }
+      }
+    } as never);
+
+    expect(submitted.some((url) => url.includes("quick-finder"))).toBe(true);
+    // Submitting a catalog number into a vendor's contact form is wrong twice over: it wastes the
+    // budget and it sends junk to an endpoint that was never a search.
+    expect(submitted.some((url) => url.includes("contact"))).toBe(false);
+  });
+
+  it("stops probing homepage locale variants once one of them yielded the search form", async () => {
+    const multiLocale: ManufacturerConfig = {
+      ...slowVendor,
+      id: "multi",
+      rateLimitMs: 1500,
+      concurrency: 3,
+      officialBaseUrls: ["https://multi.test/en", "https://multi.test/de"]
+    };
+    const homepageFetches: string[] = [];
+    await discoverOfficialProductCandidates("ABC-123", {
+      manufacturer: multiLocale,
+      http: {
+        fetchText: async (url: string) => {
+          if (!/\/search|\?/.test(url)) homepageFetches.push(url);
+          return html('<form action="/find" method="get"><input type="search" name="q"></form>')(url);
+        }
+      }
+    } as never);
+
+    expect(homepageFetches.length).toBeLessThanOrEqual(2);
+  });
+});
+
+/**
  * The path-style search shape must be reachable even for a vendor with several URL bases.
  *
  * Corpus evidence (tmp/analyze-query-keys.ts over page_cache): `/search/{part}` answered 182 of 184
