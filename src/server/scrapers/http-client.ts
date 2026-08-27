@@ -562,7 +562,24 @@ $contentType = if ($response.Headers['Content-Type']) { [string]$response.Header
     throw lastError instanceof Error ? lastError : new Error("Fetch failed");
   }
 
-  async downloadFile(url: string, targetDir: string, suggestedName?: string, signal?: AbortSignal): Promise<string> {
+  /**
+   * `budgetMs` is what the CALLING ITEM has left, not a guess about this file.
+   *
+   * Without it one document can spend 90 s buffering in memory and then up to another 130 s in the
+   * curl fallback — nearly the whole per-item ceiling, which starves every other document of the
+   * same item. With it, both attempts are clamped to the time that actually remains, and the curl
+   * retries (which multiply the wall time) are dropped once the window is too small for them to
+   * complete. The generous defaults are untouched when no budget is supplied, because curl is the
+   * PRIMARY path for anything above the in-memory cap — large family PDFs and CAD files — and
+   * shortening that blind would lose exactly the documents that are hardest to fetch.
+   */
+  async downloadFile(
+    url: string,
+    targetDir: string,
+    suggestedName?: string,
+    signal?: AbortSignal,
+    options: { budgetMs?: number } = {}
+  ): Promise<string> {
     throwIfAborted(signal);
     await fs.mkdir(targetDir, { recursive: true });
     const finalName = sanitizeFileName(suggestedName || filenameFromUrl(url));
@@ -582,7 +599,9 @@ $contentType = if ($response.Headers['Content-Type']) { [string]$response.Header
           "user-agent": DEFAULT_USER_AGENT,
           accept: "*/*"
         },
-        timeoutMs: 90000,
+        // Leave the curl fallback something to work with: at most half the remaining budget goes
+        // into the in-memory attempt, so a failure here does not consume the whole window.
+        timeoutMs: options.budgetMs ? Math.max(10_000, Math.min(90_000, Math.floor(options.budgetMs / 2))) : 90000,
         // Over this size we don't buffer into memory; the catch below streams to disk via curl.
         maxBytes: MAX_IN_MEMORY_DOWNLOAD_BYTES,
         signal
@@ -593,7 +612,7 @@ $contentType = if ($response.Headers['Content-Type']) { [string]$response.Header
       await fs.writeFile(outputPath, buffer);
     } catch (error) {
       if (signal?.aborted) throw new Error("Cancelled by user.");
-      await this.downloadFileViaCurl(url, outputPath, signal, error);
+      await this.downloadFileViaCurl(url, outputPath, signal, error, curlBudgetOptions(options.budgetMs));
     }
     return outputPath;
   }
@@ -649,7 +668,7 @@ $contentType = if ($response.Headers['Content-Type']) { [string]$response.Header
     outputPath: string,
     signal?: AbortSignal,
     cause?: unknown,
-    options: { timeoutMs?: number; maxTimeSeconds?: number } = {}
+    options: { timeoutMs?: number; maxTimeSeconds?: number; retries?: number } = {}
   ): Promise<void> {
     const curl = process.platform === "win32" ? "curl.exe" : "curl";
     // On Windows, schannel often returns CRYPT_E_NO_REVOCATION_CHECK (0x80092012) when the OCSP
@@ -660,7 +679,18 @@ $contentType = if ($response.Headers['Content-Type']) { [string]$response.Header
     // documented workaround for this exact error code.
     const maxTimeSeconds = options.maxTimeSeconds ?? 120;
     const timeoutMs = options.timeoutMs ?? 130000;
-    const args = ["-L", "--fail", "--retry", "2", "--retry-delay", "2", "--max-time", String(maxTimeSeconds), "-A", DEFAULT_USER_AGENT];
+    const args = [
+      "-L",
+      "--fail",
+      "--retry",
+      String(options.retries ?? 2),
+      "--retry-delay",
+      "2",
+      "--max-time",
+      String(maxTimeSeconds),
+      "-A",
+      DEFAULT_USER_AGENT
+    ];
     if (process.platform === "win32") args.push("--ssl-no-revoke");
     args.push("-o", outputPath, url);
     try {
@@ -925,5 +955,24 @@ export const DEFAULT_USER_AGENT =
 
 // Above this declared content-length we refuse to buffer a download into memory (a single
 // oversized catalog brochure × concurrent items could otherwise exhaust RAM). Such files are
+/**
+ * Turn "this is how much time the item has left" into curl's own limits.
+ *
+ * `--max-time` is per attempt, so `--retry 2` multiplies it: the shipped default of
+ * `--retry 2 --max-time 120` can run far past the 130 s process timeout that is supposed to bound it,
+ * which means the later attempts can never finish anyway. Inside a budget the retries are therefore
+ * dropped as soon as two attempts would not fit, rather than being started and killed.
+ */
+export function curlBudgetOptions(budgetMs: number | undefined): { timeoutMs?: number; maxTimeSeconds?: number; retries?: number } {
+  if (!budgetMs || !Number.isFinite(budgetMs)) return {};
+  const timeoutMs = Math.max(10_000, Math.min(130_000, budgetMs));
+  const seconds = Math.floor(timeoutMs / 1000);
+  // Two attempts plus curl's 2 s retry delay, or one attempt with the whole window when that
+  // does not fit.
+  const retries = seconds >= 44 ? 1 : 0;
+  const maxTimeSeconds = retries ? Math.floor((seconds - 2) / 2) : Math.max(8, seconds - 2);
+  return { timeoutMs, maxTimeSeconds, retries };
+}
+
 // instead streamed straight to disk by the curl fallback in downloadFile().
 const MAX_IN_MEMORY_DOWNLOAD_BYTES = 96 * 1024 * 1024;

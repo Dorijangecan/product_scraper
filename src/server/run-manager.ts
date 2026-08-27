@@ -488,7 +488,8 @@ export class RunManager {
                     localDownloads,
                     itemSignal,
                     undefined,
-                    sharedDocumentDownloads
+                    sharedDocumentDownloads,
+                    itemDeadline.remainingMs()
                   )
               }),
               abortSignalRejection(
@@ -520,7 +521,8 @@ export class RunManager {
             itemSignal,
             documentDownloadProfile(manufacturer, initiallyGated, { saveDocuments: downloadDocumentsEnabled }),
             item.catalogNumber,
-            sharedDocumentDownloads
+            sharedDocumentDownloads,
+            itemDeadline.remainingMs()
           );
           // In "Images only" mode the saved deliverable is just the PNG. Everything below this
           // line (PDF enrichment, fallback discovery, final completeness retry) exists only to
@@ -640,7 +642,8 @@ export class RunManager {
                   localDownloads,
                   itemSignal,
                   undefined,
-                  sharedDocumentDownloads
+                  sharedDocumentDownloads,
+                  itemDeadline.remainingMs()
                 )
             });
             this.updateItemStage(item.id, "downloads", "Downloading fallback images and documents");
@@ -655,7 +658,8 @@ export class RunManager {
               itemSignal,
               documentDownloadProfile(manufacturer, withSmartFallbacks, { saveDocuments: downloadDocumentsEnabled }),
               item.catalogNumber,
-              sharedDocumentDownloads
+              sharedDocumentDownloads,
+              itemDeadline.remainingMs()
             );
             this.updateItemStage(item.id, "document-enrichment", "Reading fallback documents for missing values");
             enriched = finalizeQualityGate(await enrichFromDownloadedDocumentsIfPresent(withFallbackDownloads), manufacturer);
@@ -748,7 +752,8 @@ export class RunManager {
                 localDownloads,
                 itemSignal,
                 undefined,
-                sharedDocumentDownloads
+                sharedDocumentDownloads,
+                itemDeadline.remainingMs()
               )
             });
             this.updateItemStage(item.id, "downloads", "Downloading final retry images and documents");
@@ -763,7 +768,8 @@ export class RunManager {
               itemSignal,
               documentDownloadProfile(manufacturer, withFinalCompletenessFallbacks, { saveDocuments: downloadDocumentsEnabled }),
               item.catalogNumber,
-              sharedDocumentDownloads
+              sharedDocumentDownloads,
+              itemDeadline.remainingMs()
             );
             this.updateItemStage(item.id, "document-enrichment", "Reading final retry documents for missing values");
             enriched = finalizeQualityGate(await enrichFromDownloadedDocumentsIfPresent(withFinalCompletenessDownloads), manufacturer);
@@ -1166,7 +1172,9 @@ export class RunManager {
     signal?: AbortSignal,
     profile: DocumentDownloadProfile = "full",
     catalogNumberForFiles: string = result.catalogNumber,
-    sharedDocumentDownloads?: Map<string, Promise<string>>
+    sharedDocumentDownloads?: Map<string, Promise<string>>,
+    /** Remaining item budget, threaded down so one document cannot starve the rest. */
+    budgetMs?: number
   ): Promise<ProductResult> {
     const documents: DocumentRecord[] = [];
     const maxDownloads = profile === "full" ? 200 : 8;
@@ -1235,7 +1243,8 @@ export class RunManager {
           selection,
           signal,
           indexForDoc,
-          sharedDocumentDownloads
+          sharedDocumentDownloads,
+          budgetMs
         )
       );
       if (doc.type === "image") imageIndex += 1;
@@ -1255,7 +1264,9 @@ export class RunManager {
     selection: LocalDownloadSelection,
     signal?: AbortSignal,
     imageIndex?: number,
-    sharedDocumentDownloads?: Map<string, Promise<string>>
+    sharedDocumentDownloads?: Map<string, Promise<string>>,
+    /** What the calling item has left, so one large PDF cannot starve the rest of its documents. */
+    budgetMs?: number
   ): Promise<DocumentRecord> {
     if (doc.localPath) return doc;
     if (doc.type === "image" && !selection.images) {
@@ -1291,7 +1302,7 @@ export class RunManager {
       const extension = forcePdf ? ".pdf" : documentExtension(urls[0] ?? doc.url, doc.type);
       const suggestedName = `${catalogNumber}-${doc.type}-${safeLabel(doc.label)}${extension}`;
       const targetDir = doc.type === "cad" ? cadDir : documentsDir;
-      const downloaded = await downloadDocumentFromCandidates(http, sharedDocumentDownloads, urls, targetDir, suggestedName, signal);
+      const downloaded = await downloadDocumentFromCandidates(http, sharedDocumentDownloads, urls, targetDir, suggestedName, signal, budgetMs);
       const localPath = downloaded.localPath;
       if (forcePdf || documentExtension(downloaded.url, doc.type).toLowerCase() === ".pdf") {
         await assertValidPdfFile(localPath);
@@ -1479,13 +1490,14 @@ async function downloadDocumentFromCandidates(
   urls: string[],
   targetDir: string,
   suggestedName: string,
-  signal?: AbortSignal
+  signal?: AbortSignal,
+  budgetMs?: number
 ): Promise<{ url: string; localPath: string }> {
   let lastError: unknown;
   for (const url of urls) {
     try {
       const localPath = await sharedDocumentDownload(sharedDocumentDownloads, url, targetDir, suggestedName, () =>
-        http.downloadFile(url, targetDir, suggestedName, signal)
+        http.downloadFile(url, targetDir, suggestedName, signal, { budgetMs })
       );
       return { url, localPath };
     } catch (error) {

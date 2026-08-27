@@ -4116,3 +4116,30 @@ family PDF-ovi, CAD), a offline ne mogu dokazati da 40 s nije regresija za njih.
 
 Puni gate: TypeScript čist; Vitest **2301/2301** (5 novih); eval **38/38**, 0 kontaminacija;
 `audit:discovery` nepromijenjen.
+
+### ✅ D2c — jedan dokument više ne može pojesti cijeli budžet artikla
+
+Zatvoren otvoreni dio iz D2b. Bez budžeta jedan fajl je mogao potrošiti 90 s (in-memory buffer) pa još
+do 130 s u curl fallbacku — gotovo cijeli strop artikla, čime **ostali dokumenti istog artikla ostaju
+bez vremena**. Tvrdi strop se provodi kroz `signal`, pa ništa nije visjelo zauvijek, ali raspodjela je
+bila „prvi dokument uzme sve".
+
+- `downloadFile` prima `{ budgetMs }` = **ono što pozivajući artikl ima preostalo**, ne procjena o
+  fajlu. In-memory pokušaj dobiva najviše **pola** ostatka, da curl fallback ima s čime raditi.
+- Nova `curlBudgetOptions(budgetMs)` prevodi ostatak u curlove granice.
+- `budgetMs` je proslijeđen kroz `downloadDocument` / `downloadDocuments` /
+  `downloadDocumentFromCandidates` na **6 poziva unutar per-item petlje** (`itemDeadline.remainingMs()`).
+
+**Nalaz uz put: shipani curl parametri su interno protuslovni.** `--max-time` je **po pokušaju**, pa
+`--retry 2 --max-time 120` može trajati daleko preko 130 s process timeouta koji ga treba ograničiti —
+što znači da kasniji pokušaji **nikad nisu mogli završiti**; startali su i bili ubijeni. Unutar budžeta
+se zato retry **izbaci** čim dva pokušaja ne stanu, umjesto da se startaju uzalud.
+
+**Zadani parametri su NAMJERNO nepromijenjeni kad budžeta nema.** curl je *primarni* put za fajlove
+veće od in-memory capa (veliki family PDF-ovi, CAD), a skraćivanje naslijepo izgubilo bi točno one
+dokumente koji su najteži za dohvat. Skraćuje samo stvarni ostatak vremena, ne pretpostavka.
+
+4 nova testa (bez budžeta = zadano; dva pokušaja stanu; retry se izbaci kad ne stane; nikad preko
+shipanog stropa).
+
+Puni gate: TypeScript čist; Vitest **2305/2305**; eval **38/38**, 0 kontaminacija.
