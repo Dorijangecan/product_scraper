@@ -4034,3 +4034,44 @@ i sniženi per-request timeouti (30 s HTTP, 130 s curl, 45 s browser goto). Ovo 
 
 Puni gate: TypeScript čist; Vitest **2294/2294** (3 nova testa); eval **38/38**, 0 kontaminacija;
 spec-gate **0 SUSPECT**.
+
+### ✅ D3c — lokalizirani template nije primarni put, i CAD portal nije PDP
+
+Oba nalaza iz traceanja najskupljih proizvođača (`tmp` skripta, po jedan artikl, s ispisom svakog zahtjeva).
+
+**1. Eatonov TOČAN URL je bio u listi — na 4. mjestu.** `www.eaton.com/us/en-us/skuPage.{part}.html`
+(iz `officialBaseUrls`, score 78) stajao je **ispod** tri lokalizirana alternativna templatea GB/DE/CN
+(score 82). Confirmation probe uzima top 3 → potrošio je sve tri na pogrešne lokale, nikad došao do
+prave stranice, i pokrenuo punu search fazu **za kataloški broj koji je već imao u ruci**.
+
+Uzrok je bio konceptualni: lokalizirani template je **alternativa** — jedno od jezičnih izdanja iste
+stranice — i ništa u njemu ne govori da je to *pravo* izdanje za ovaj artikl. Ocjene su zamijenjene
+(primarni `officialBaseUrls` 82, lokalizirani 78).
+
+**Izmjereno:** `eaton` hit@1 **33,3 % → 66,7 %**; globalno hit@1 55,6 % → **59,4 %**, top-3 57,5 % →
+**60,6 %**, nađeno nepromijenjeno 69,4 %. `rockwell`/`sce`/`balluff`, koji svi pobjeđuju preko
+lokaliziranog templatea, ostali su 100/100/94,4 % — oni nemaju konkurentni direct template.
+
+**2. ABB je prvi probe trošio na CAD viewer.** `abb-control-products.partcommunity.com/3d-cad-models/`
+stoji u ABB-ovim `officialBaseUrls` pored `new.abb.com`, pa je nakon zamjene ocjena iz nalaza #1
+nadglasao smartlink koji JE stranica proizvoda. Sad ima kaznu (`cadPortalPenalty`) i ostaje kandidat,
+ali ne ide prvi. ABB: **2 → 1 zahtjev**, prvi probe pogađa pravi PDP.
+
+**Neuspjeli pokušaj koji je mjerenje uhvatilo — vrijedi zapisati.** Prvo sam #2 riješio općenito:
+„kazni svaki template koji nije na vendorovom glavnom hostu". To je bila **regresija**: nVentov
+template koji potvrđuje živi na drugom, posve legitimnom hostu, pa je nVent pao hit@1 **100 % → 0 %** i
+narastao 3 → 10 zahtjeva. Mnogi vendori serviraju proizvode s više hostova; gotovo nitko ih ne servira
+s CAD viewera. Uska provjera uzorka je zato ispravna, a generalizacija nije bila.
+
+**Stanje po proizvođaču (medijan zahtjeva / modelirano čekanje / hit@1):**
+
+| | prije svega | sad |
+| --- | --- | --- |
+| `sce`, `rockwell`, `schmersal`, `balluff` | 17–22 / 4–13 s | **1 / 0,4–0,6 s** |
+| `nvent` | 1 / 0,5 s, hit@1 0 % | **3 / 1,5 s, hit@1 100 %** |
+| `abb` | 24 / 9,0 s | 23 / 8,6 s (traceani artikl: **1 zahtjev**) |
+| `eaton` | 28 / 8,4 s, hit@1 16,7 % | 28 / 8,4 s, **hit@1 66,7 %** |
+| `gan` | 29 / **87,0 s** | **6 / 18,0 s** |
+| **ukupno korpus** | 3153 zahtjeva | **1241 (−61 %)** |
+
+Puni gate: TypeScript čist; Vitest **2296/2296**; eval **38/38**, 0 kontaminacija; spec-gate **0 SUSPECT**.

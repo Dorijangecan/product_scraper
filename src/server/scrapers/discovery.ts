@@ -681,13 +681,19 @@ function officialDirectTemplates(manufacturer: ManufacturerConfig): Array<{
   return [
     ...(manufacturer.localizedUrlTemplates ?? []).map((template) => ({
       urlTemplate: template.urlTemplate,
-      score: 82,
+      // Below the vendor's own primary route. A localized template is an ALTERNATE — one of several
+      // language editions of the same page — and nothing about it says it is the right edition for
+      // this catalog number. Eaton is the measured case: its canonical
+      // `www.eaton.com/us/en-us/skuPage.{part}.html` sat at rank 4 behind the GB, DE and CN
+      // alternates, so the confirmation probe fetched three wrong locales, never reached the right
+      // page, and the full 20-request search stage ran for a catalog number already in hand.
+      score: 78 - cadPortalPenalty(template.urlTemplate),
       reason: `${template.locale.toUpperCase()} localized official template`,
       stage: "localized-template" as const
     })),
     ...manufacturer.officialBaseUrls.filter(templateContainsCatalogPlaceholder).map((urlTemplate) => ({
       urlTemplate,
-      score: 78,
+      score: 82 - cadPortalPenalty(urlTemplate),
       reason: "official URL template",
       stage: "direct-template" as const
     })),
@@ -696,7 +702,7 @@ function officialDirectTemplates(manufacturer: ManufacturerConfig): Array<{
       .flatMap((source) =>
         source.directUrlTemplates.map((urlTemplate) => ({
           urlTemplate,
-          score: source.confidence ? Math.round(source.confidence * 100) : 68,
+          score: (source.confidence ? Math.round(source.confidence * 100) : 68) - cadPortalPenalty(urlTemplate),
           reason: `official configured source: ${source.label}`,
           stage: "direct-template" as const
         }))
@@ -818,6 +824,23 @@ const FORM_PROBE_BUDGET_MS = 3000;
  * own allowance rather than the guesses' leftovers.
  */
 const FORM_REQUEST_BUDGET_BOOST = 3;
+
+/**
+ * A 3D/CAD viewer portal is not a product data sheet, so it must not be fetched ahead of one.
+ *
+ * ABB's `abb-control-products.partcommunity.com/3d-cad-models/?part={part}` sits in its
+ * `officialBaseUrls` next to `new.abb.com`, so it outranked the smartlink that IS the product page and
+ * took the first confirmation probe. It stays a candidate (the portal is a real ABB route and P1.1q
+ * already documents that its cookie wall is not a PDP) — it just stops going first.
+ *
+ * This is deliberately a narrow pattern rather than the "penalise every off-host template" rule I
+ * tried first: that generic version measured as a REGRESSION (nVent's confirming template lives on a
+ * second legitimate host, so nVent's hit@1 fell 100% -> 0% and its cost went 3 -> 10 requests).
+ * Plenty of vendors serve products from more than one host; almost none serve them from a CAD viewer.
+ */
+function cadPortalPenalty(urlTemplate: string): number {
+  return /partcommunity|cadenas|\b3d-cad|\/cad-models|ecadmodel/i.test(urlTemplate) ? 20 : 0;
+}
 
 /** Stages worth spending one confirmation fetch on: configured or learned, never a bare guess. */
 const CONFIRMATION_PROBE_STAGES: ReadonlySet<ProductDiscoveryCandidate["stage"]> = new Set([

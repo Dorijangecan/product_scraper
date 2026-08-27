@@ -1618,6 +1618,84 @@ describe("sitemap discovery gating", () => {
 });
 
 /**
+ * A localized template is an alternate, not the primary route.
+ *
+ * Measured: Eaton's canonical `www.eaton.com/us/en-us/skuPage.{part}.html` sat at rank 4 behind its
+ * GB, DE and CN alternates, so the confirmation probe spent all three of its fetches on wrong locales
+ * and the full 20-request search stage ran for a catalog number already in hand. Flipping the two
+ * scores lifted Eaton's "known PDP at #1" from 33% to 67% with the found-rate unchanged.
+ */
+describe("primary official template outranks its localized alternates", () => {
+  it("puts the officialBaseUrls template above localizedUrlTemplates", async () => {
+    const multiLocale: ManufacturerConfig = {
+      id: "locales",
+      canonicalName: "Locale Vendor",
+      shortName: "LOC",
+      rateLimitMs: 0,
+      officialBaseUrls: ["https://loc.test/us/en-us/skuPage.{part}.html"],
+      localizedUrlTemplates: [
+        { locale: "en", urlTemplate: "https://loc.test/gb/en-gb/skuPage.{part}.html" },
+        { locale: "de", urlTemplate: "https://loc.test/de/de-de/skuPage.{part}.html" }
+      ],
+      fallbackSources: [],
+      scrapeRecipe: { discoveryPolicy: { enableRobotsSitemaps: false } }
+    };
+    const probed: string[] = [];
+    await discoverOfficialProductCandidates("ABC-123", {
+      manufacturer: multiLocale,
+      http: {
+        fetchText: async (url: string) => {
+          if (url.includes("skuPage")) probed.push(url);
+          return {
+            requestedUrl: url,
+            effectiveUrl: url,
+            statusCode: 200,
+            contentType: "text/html",
+            text: "<html><body>nothing</body></html>",
+            fetchedAt: new Date(0).toISOString(),
+            fromCache: false
+          };
+        }
+      }
+    } as never);
+
+    expect(probed[0]).toBe("https://loc.test/us/en-us/skuPage.ABC-123.html");
+  });
+
+  it("does not fetch a 3D/CAD viewer portal ahead of the actual product page", async () => {
+    const cadVendor: ManufacturerConfig = {
+      id: "cad",
+      canonicalName: "CAD Vendor",
+      shortName: "CAD",
+      rateLimitMs: 0,
+      officialBaseUrls: ["https://cad.test/products/{part}", "https://vendor-products.partcommunity.com/3d-cad-models/?part={part}"],
+      fallbackSources: [],
+      scrapeRecipe: { discoveryPolicy: { enableRobotsSitemaps: false } }
+    };
+    const probed: string[] = [];
+    await discoverOfficialProductCandidates("ABC-123", {
+      manufacturer: cadVendor,
+      http: {
+        fetchText: async (url: string) => {
+          probed.push(url);
+          return {
+            requestedUrl: url,
+            effectiveUrl: url,
+            statusCode: 200,
+            contentType: "text/html",
+            text: "<html><body>nothing</body></html>",
+            fetchedAt: new Date(0).toISOString(),
+            fromCache: false
+          };
+        }
+      }
+    } as never);
+
+    expect(probed[0]).toBe("https://cad.test/products/ABC-123");
+  });
+});
+
+/**
  * Blind search is bounded by TIME, and a contact form is not a search form.
  *
  * Both measured on the real Ganter corpus, where one catalog number cost 29 requests at 3000 ms of
