@@ -1616,7 +1616,7 @@ function parseHtmlProductData(catalogNumber: string, fetched: FetchedText): {
   ).replace(/\s+\|\s+Eaton$/i, "");
   const description = cleanText($("meta[name='description']").attr("content") || $("meta[property='og:description']").attr("content"));
   const attributes: AttributeRecord[] = [];
-  const structured = extractHtmlStructuredProductData($, fetched.effectiveUrl);
+  const structured = extractHtmlStructuredProductData($, catalogNumber, fetched.effectiveUrl);
 
   $(".product-specification-item").each((_, section) => {
     const group = cleanText($(section).find(".product-specification-item__title,h2,h3").first().text()) || "Product specifications";
@@ -1688,6 +1688,7 @@ function cleanElementText(element: cheerio.Cheerio<any>): string {
 
 function extractHtmlStructuredProductData(
   $: cheerio.CheerioAPI,
+  catalogNumber: string,
   sourceUrl: string
 ): { attributes: AttributeRecord[]; documents: DocumentRecord[] } {
   const attributes: AttributeRecord[] = [];
@@ -1709,6 +1710,11 @@ function extractHtmlStructuredProductData(
     const parsed = parseJsonLdScript($(script).text());
     if (!parsed) return;
     for (const product of findJsonLdProducts(parsed)) {
+      // A SKU page can contain JSON-LD cards for accessories or suggested products.  Those
+      // cards look just like the page's Product object, but their image is not a photograph
+      // of the requested catalogue number.  A known conflicting identity is decisive; where
+      // the object has no identity at all, only trust it on the exact SKU page itself.
+      if (!isEatonStructuredProductForCatalog(product, catalogNumber, sourceUrl)) continue;
       addAttribute("Product Name", product.name);
       addAttribute("Description", product.description);
       addAttribute("SKU", product.sku);
@@ -1727,6 +1733,14 @@ function extractHtmlStructuredProductData(
   });
 
   return { attributes, documents };
+}
+
+function isEatonStructuredProductForCatalog(product: Record<string, unknown>, catalogNumber: string, sourceUrl: string): boolean {
+  const identities = [product.sku, product.mpn, product.productID, product.url]
+    .map((value) => cleanText(structuredText(value)))
+    .filter(Boolean);
+  if (identities.some((value) => sameCatalogNumber(value, catalogNumber, { compact: true, afterColon: true, ignoreCase: true }))) return true;
+  return identities.length === 0 && eatonSkuPathMatches(sourceUrl, catalogNumber);
 }
 
 function parseJsonLdScript(text: string): unknown | undefined {
@@ -2144,7 +2158,7 @@ function extractHtmlDocuments($: cheerio.CheerioAPI, catalogNumber: string, sour
     const absolute = rawUrl ? toAbsoluteUrl(rawUrl, sourceUrl) : undefined;
     if (!absolute) return;
     const context = `Product image ${absolute} ${$(element).attr("property") ?? ""} ${$(element).attr("name") ?? ""}`;
-    if (!looksLikeEatonProductImage(context, catalogNumber)) return;
+    if (!looksLikeEatonProductImage(context, catalogNumber, sourceUrl)) return;
     documents.push({ type: "image", label: "Product image", url: normalizeEatonImageUrl(absolute), sourceUrl });
   });
 
@@ -2164,7 +2178,7 @@ function extractHtmlDocuments($: cheerio.CheerioAPI, catalogNumber: string, sour
       .get()
       .join(" ");
     const context = `${label} ${absolute} ${$(element).attr("class") ?? ""} ${$(element).parent().attr("class") ?? ""} ${ancestorContext}`;
-    if (!looksLikeEatonProductImage(context, catalogNumber)) return;
+    if (!looksLikeEatonProductImage(context, catalogNumber, sourceUrl)) return;
     const normalizedUrl = normalizeEatonImageUrl(absolute);
     documents.push({
       type: "image",
@@ -2335,16 +2349,21 @@ function toAbsoluteUrl(value: string, baseUrl: string): string | undefined {
   }
 }
 
-function looksLikeEatonProductImage(context: string, catalogNumber: string): boolean {
+function looksLikeEatonProductImage(context: string, catalogNumber: string, sourceUrl: string): boolean {
   const haystack = context.toLowerCase();
-  if (/logo|icon|email|social|geolocation|cookie|support|knowledge|registration|myeaton|footer|spinner|loader|article-feature|getty|rol-byod|abstract/i.test(haystack)) return false;
-  if (/resources\/siteconfig|siteconfig\/360|\/360\.png|characteristic-curve|curve-|schematic|diagram/i.test(haystack)) return false;
+  if (/logo|icon|email|social|geolocation|cookie|support|knowledge|registration|myeaton|footer|spinner|loader|article-feature|getty|rol-byod|abstract|placeholder|no[-_\s]*image/i.test(haystack)) return false;
+  if (/resources\/siteconfig|siteconfig\/360|\/360\.png|characteristic-curve|curve-|schematic|diagram|drawing|dimensional|\bdimension\b|\bcad\b|\bline[-\s]?art\b|exploded/i.test(haystack)) return false;
   if (/\b(?:related-products|upsell-products|cross-sell|card-product-tiles)\b/i.test(haystack)) return false;
   if (/\.spin(?:[?#\s]|$)/i.test(haystack)) return false;
   const compactPart = compactCatalogNumber(catalogNumber);
   const compactHaystack = compactCatalogNumber(context);
   if (compactPart && compactHaystack.includes(compactPart)) return true;
-  return /\/mdmfiles\//i.test(haystack) && /product|sku|catalog|image|photo/i.test(haystack);
+  // Asset IDs normally do not include the order code.  In that case an image is still
+  // admissible only when it came from the exact SKU page and its DOM role identifies it as
+  // the product hero/gallery (not merely any MDM asset placed somewhere on the page).
+  if (!eatonSkuPathMatches(sourceUrl, catalogNumber)) return false;
+  if (!/\/(?:mdmfiles\/|is\/image\/eaton\/)/i.test(haystack)) return false;
+  return /(?:\bog:image\b|twitter:image|\bproduct[\s_-]?(?:image|hero|detail)|gallery-item-img|module-product-detail-card|product-detail-card|image-gallery|\bsku[\s_-]?page\b)/i.test(haystack);
 }
 
 function isEatonDocumentLink(label: string, url: string, catalogNumber: string): boolean {
@@ -2387,8 +2406,11 @@ function extractMarkdownImages(text: string, catalogNumber: string, sourceUrl: s
     const originalUrl = match[2];
     const url = normalizeEatonImageUrl(originalUrl);
     const haystack = `${label} ${originalUrl} ${url}`.toLowerCase();
-    if (!haystack.includes(catalogNumber.toLowerCase()) && !/\/mdmfiles\//i.test(originalUrl)) continue;
-    if (/logo|icon|email|social|geolocation|cookie/i.test(haystack)) continue;
+    // Reader output has lost DOM ancestry, so there is no reliable way to distinguish an
+    // accessory/card image from the primary photo except explicit catalogue identity.  Do not
+    // guess from an MDM path: a missing photo is preferable to a photo of another device.
+    if (!catalogTextMatches(`${label} ${originalUrl}`, catalogNumber)) continue;
+    if (/logo|icon|email|social|geolocation|cookie|placeholder|no[-_\s]*image|schematic|diagram|drawing|dimensional|\bdimension\b|\bcad\b|\bline[-\s]?art\b|exploded/i.test(haystack)) continue;
     documents.push({ type: "image", label, url, sourceUrl });
   }
   return documents.slice(0, 8);

@@ -5928,6 +5928,44 @@ IP degree of protection IP68 conforming to IEC 60529 IP69K conforming to DIN 400
     ).toBeUndefined();
   });
 
+  it("keeps only an identity-proven Eaton device image when page JSON and reader text include accessories", () => {
+    const html = `
+      <html><head>
+        <title>ABC-123 | Eaton control relay | Eaton</title>
+        <script type="application/ld+json">
+          [
+            {"@context":"https://schema.org","@type":"Product","sku":"ABC-123","name":"ABC-123 control relay","image":"https://www.eaton.com/mdmfiles/PDM1/ABC123_MAIN/500x500_72dpi"},
+            {"@context":"https://schema.org","@type":"Product","sku":"ACC-456","name":"Accessory","image":"https://www.eaton.com/mdmfiles/PDM2/ACC456_MAIN/500x500_72dpi"}
+          ]
+        </script>
+      </head><body>
+        <h1>ABC-123</h1>
+        <img class="product-gallery-image" src="https://www.eaton.com/mdmfiles/PDM1/ABC123_MAIN/500x500_72dpi" alt="ABC-123 control relay" />
+        <img class="product-gallery-image" src="https://www.eaton.com/mdmfiles/PDM2/ACC456_MAIN/500x500_72dpi" alt="Accessory" />
+      </body></html>
+    `;
+    const htmlResult = parseEatonProductPage(
+      "ABC-123",
+      fetched(html, "https://www.eaton.com/us/en-us/skuPage.ABC-123.html"),
+      "https://www.eaton.com/us/en-us/skuPage.ABC-123.html"
+    );
+    expect(htmlResult.documents.filter((doc) => doc.type === "image").map((doc) => doc.url)).toEqual([
+      "https://dynamicmedia.eaton.com/is/image/eaton/ABC123_MAIN?wid=500&hei=500"
+    ]);
+
+    const readerResult = parseEatonProductPage(
+      "ABC-123",
+      fetched(
+        `# ABC-123\n![ABC-123 control relay](https://www.eaton.com/mdmfiles/PDM1/ABC123_MAIN/500x500_72dpi)\n![Accessory](https://www.eaton.com/mdmfiles/PDM2/ACC456_MAIN/500x500_72dpi)`,
+        "https://r.jina.ai/http://www.eaton.com/us/en-us/skuPage.ABC-123.html"
+      ),
+      "https://www.eaton.com/us/en-us/skuPage.ABC-123.html"
+    );
+    expect(readerResult.documents.filter((doc) => doc.type === "image").map((doc) => doc.url)).toEqual([
+      "https://dynamicmedia.eaton.com/is/image/eaton/ABC123_MAIN?wid=500&hei=500"
+    ]);
+  });
+
   it("reconstructs only aligned multiline table facts for the selected ordering option", () => {
     const result = parseGenericProductPage(
       "unseen-maker",

@@ -1,16 +1,16 @@
 {
-  "generatedAt": "2026-06-25T10:04:31.718Z",
-  "outputDir": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260625100331",
+  "generatedAt": "2026-08-28T12:24:43.364Z",
+  "outputDir": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260828122116",
   "filters": {
     "manufacturer": "eaton",
     "limit": "3"
   },
   "summary": {
-    "foundRate": 0,
-    "officialUrlRate": 0,
-    "documentRate": 0,
-    "pdtAuditRate": 0,
-    "deviceTypeRate": 0,
+    "foundRate": 66.7,
+    "officialUrlRate": 66.7,
+    "documentRate": 66.7,
+    "pdtAuditRate": 66.7,
+    "deviceTypeRate": 66.7,
     "customerDocumentRate": 0,
     "wrongProducts": 0,
     "partialWithoutMissing": 0,
@@ -22,13 +22,18 @@
     "fixtureCoverage": {
       "byManufacturer": {
         "eaton": {
-          "total": 1,
+          "total": 3,
           "caseTypes": [
-            "electrical"
+            "electrical",
+            "mechanical"
           ],
           "riskTags": [
             "eaton-url-format",
-            "electrical-ratings"
+            "electrical-ratings",
+            "filter-element",
+            "filters-sheet-coverage",
+            "manual-motor-protector",
+            "motor-protection"
           ]
         }
       },
@@ -41,6 +46,24 @@
           "caseTypes": [
             "electrical"
           ]
+        },
+        "Motor Circuit Breaker": {
+          "total": 1,
+          "manufacturers": [
+            "eaton"
+          ],
+          "caseTypes": [
+            "electrical"
+          ]
+        },
+        "Filter": {
+          "total": 1,
+          "manufacturers": [
+            "eaton"
+          ],
+          "caseTypes": [
+            "mechanical"
+          ]
         }
       },
       "byDeviceSheet": {
@@ -52,11 +75,27 @@
           "manufacturers": [
             "eaton"
           ]
+        },
+        "motor protection": {
+          "total": 1,
+          "deviceTypes": [
+            "Motor Circuit Breaker"
+          ],
+          "manufacturers": [
+            "eaton"
+          ]
+        },
+        "filters": {
+          "total": 1,
+          "deviceTypes": [
+            "Filter"
+          ],
+          "manufacturers": [
+            "eaton"
+          ]
         }
       },
-      "thinManufacturers": [
-        "eaton"
-      ],
+      "thinManufacturers": [],
       "uncoveredDeviceSheets": [
         "Busbar",
         "Luminaire",
@@ -80,12 +119,10 @@
         "el. mesurement devices",
         "electronic sensor",
         "energy distribution system",
-        "filters",
         "fluid power",
         "generator",
         "int. ext. lightning protection",
         "module carrier frame",
-        "motor protection",
         "motors",
         "optical sensor",
         "panel (HMI)",
@@ -467,13 +504,6 @@
           "examples": []
         },
         {
-          "sheetName": "filters",
-          "deviceTypes": [
-            "Filter"
-          ],
-          "examples": []
-        },
-        {
           "sheetName": "fluid power",
           "deviceTypes": [
             "Hydraulic Actuator"
@@ -527,42 +557,6 @@
               "pattern": "BaseUnits",
               "deviceType": "Module Carrier",
               "notes": "SIMATIC ET 200SP BaseUnits / base carriers"
-            }
-          ]
-        },
-        {
-          "sheetName": "motor protection",
-          "deviceTypes": [
-            "Motor Circuit Breaker",
-            "Motor Starter"
-          ],
-          "examples": [
-            {
-              "manufacturerId": "abb",
-              "pattern": "MO",
-              "deviceType": "Motor Circuit Breaker",
-              "notes": "Manual motor starter"
-            },
-            {
-              "manufacturerId": "abb",
-              "pattern": "MS",
-              "deviceType": "Motor Circuit Breaker",
-              "notes": "Manual motor starter"
-            },
-            {
-              "manufacturerId": "eaton",
-              "pattern": "PKE",
-              "deviceType": "Motor Circuit Breaker"
-            },
-            {
-              "manufacturerId": "eaton",
-              "pattern": "PKZM",
-              "deviceType": "Motor Circuit Breaker"
-            },
-            {
-              "manufacturerId": "rockwell",
-              "pattern": "140M",
-              "deviceType": "Motor Circuit Breaker"
             }
           ]
         },
@@ -896,7 +890,7 @@
         }
       ],
       "deviceSheetCoverage": {
-        "covered": 1,
+        "covered": 3,
         "total": 41
       }
     },
@@ -909,10 +903,78 @@
       "catalogNumber": "P1-25/I2/SVB",
       "caseType": "electrical",
       "expectedDeviceType": "Disconnect Switch",
-      "deviceTypeMatched": false,
+      "actualDeviceType": "Disconnect Switch",
+      "deviceTypeMatched": true,
       "riskTags": [
         "eaton-url-format",
         "electrical-ratings"
+      ],
+      "status": "found",
+      "confidence": 0.72,
+      "productUrl": "https://www.eaton.com/us/en-us/skuPage.P1-25%7B%7DI2%7B%7DSVB.html",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260828122116\\pdt\\eaton-P1-25-I2-SVB-pdt_pdt-audit.json",
+      "pdtWrittenCells": 27,
+      "pdtBlankCells": 70,
+      "pdtSkippedCells": 0,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 8,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": []
+    },
+    {
+      "manufacturerId": "eaton",
+      "catalogNumber": "PKZM0-10",
+      "caseType": "electrical",
+      "expectedDeviceType": "Motor Circuit Breaker",
+      "actualDeviceType": "Motor Circuit Breaker",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "eaton-url-format",
+        "motor-protection",
+        "manual-motor-protector"
+      ],
+      "status": "found",
+      "confidence": 0.72,
+      "productUrl": "https://www.eaton.com/us/en-us/skuPage.PKZM0-10.html",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260828122116\\pdt\\eaton-PKZM0-10-pdt_pdt-audit.json",
+      "pdtWrittenCells": 26,
+      "pdtBlankCells": 71,
+      "pdtSkippedCells": 0,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 2,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": []
+    },
+    {
+      "manufacturerId": "eaton",
+      "catalogNumber": "222AS10051A",
+      "caseType": "mechanical",
+      "expectedDeviceType": "Filter",
+      "deviceTypeMatched": false,
+      "riskTags": [
+        "eaton-url-format",
+        "filter-element",
+        "filters-sheet-coverage"
       ],
       "status": "error",
       "confidence": 0,
@@ -936,7 +998,7 @@
         "error",
         "timeout"
       ],
-      "error": "Benchmark fixture timed out after 60000 ms."
+      "error": "Benchmark fixture timed out after 180000 ms."
     }
   ]
 }
