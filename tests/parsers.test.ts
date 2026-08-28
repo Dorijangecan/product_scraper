@@ -5928,6 +5928,28 @@ IP degree of protection IP68 conforming to IEC 60529 IP69K conforming to DIN 400
     ).toBeUndefined();
   });
 
+  it("uses the documented Eaton MV model route before SKU-page discovery", async () => {
+    const connector = new EatonConnector();
+    const context = {
+      manufacturer: { id: "eaton", canonicalName: "Eaton", shortName: "EAT", rateLimitMs: 0, officialBaseUrls: ["https://www.eaton.com"], localizedUrlTemplates: [], fallbackSources: [] },
+      http: { fetchText: async () => { throw new Error("MV model route must not request a SKU page"); } },
+      runDir: "",
+      documentsDir: "",
+      downloadDocument: async (doc: Parameters<ScrapeContext["downloadDocument"]>[0]) => doc,
+      fallback: { scrape: async () => undefined }
+    } as unknown as ScrapeContext;
+    const result = await connector.scrape("E-VAC12/T1250-31.5", context);
+
+    expect(result.status).toBe("found");
+    expect(result.attributes).toEqual(expect.arrayContaining([
+      expect.objectContaining({ name: "Rated voltage", value: "12 kV" }),
+      expect.objectContaining({ name: "Rated current", value: "1250 A" }),
+      expect.objectContaining({ name: "Rated short-circuit breaking current", value: "31.5 kA" })
+    ]));
+    expect(result.documents).toContainEqual(expect.objectContaining({ type: "datasheet", label: "Eaton E-VAC vacuum circuit breaker catalog" }));
+    expect(result.documents).toContainEqual(expect.objectContaining({ type: "image", label: "Eaton E-VAC product-series device image" }));
+  });
+
   it("keeps only an identity-proven Eaton device image when page JSON and reader text include accessories", () => {
     const html = `
       <html><head>

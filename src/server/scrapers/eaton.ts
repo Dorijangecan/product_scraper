@@ -230,6 +230,42 @@ function debugEaton(message: string): void {
   if (typeof process !== "undefined" && process.env?.DEBUG_EATON) console.warn(`[eaton] ${message}`);
 }
 
+// These MV designations are Eaton product-series/model codes, not SKU-page identifiers.  Sending
+// them through the SKU route produced 404s and, worse, let generic discovery attach catalogue
+// covers and unrelated documents.  Keep the small, documented set explicit: every emitted value
+// is either encoded in the requested model or printed by the linked Eaton publication.
+const EATON_MV_SOURCES = {
+  evacPage: "https://www.eaton.com/sg/en-us/catalog/medium-voltage-power-distribution-control-systems/eaton-e-vac-vacuum-circuit-breaker.html",
+  evacCatalog: "https://www.eaton.com/content/dam/eaton/products/medium-voltage-power-distribution-control-systems/e-vac-vacuum-circuit-breaker/eaton-e-vac-vacuum-circuit-breaker-catalog-en-east-asia.pdf",
+  evacInstructions: "https://www.eaton.com/content/dam/eaton/products/medium-voltage-power-distribution-control-systems/e-vac-vacuum-circuit-breaker/eaton-e-vac-vacuum-circuit-breaker-installation-instructions-en-east-asia.pdf",
+  wvaciPage: "https://www.eaton.com/my/en-us/catalog/medium-voltage-power-distribution-control-systems/eaton-w-vaci.html",
+  wvaci36Manual: "https://www.eaton.com/content/dam/eaton/products/medium-voltage-power-distribution-control-systems/iec-assemblies-mv-switchgear/power-xpert-ux-36/eaton-power-xpert-ux-36-user-manual-360w-vaci-iec-vacuum-circuit-breaker-mn131004en-150dpi-en-uk.pdf",
+  cooperCatalog: "https://www.eaton.com/content/dam/eaton/products/medium-voltage-power-distribution-control-systems/cooper-ningbo/cooper-vn3-12-indoor-mv-embedded-pole-insulated-vacuum-circuit-breaker/Cooper-Medium-voltage-distribution-circuit-breakers-and-contactors-Catalog-EN-US.pdf"
+} as const;
+
+function buildEatonMediumVoltageCatalogResult(catalogNumber: string): ProductResult | undefined {
+  const part = cleanText(catalogNumber);
+  const now = new Date().toISOString();
+  const make = (title: string, productUrl: string, attributes: Array<[string, string]>, documents: DocumentRecord[]): ProductResult => {
+    const source = { url: productUrl, sourceType: "official" as const, parser: "eaton-medium-voltage-catalog", parserVersion: "eaton-v3", stage: "mv-series", fetchedAt: now };
+    const records: AttributeRecord[] = [
+      ["Catalog Number", part],
+      ["Product Name", title],
+      ...attributes
+    ].map(([name, value]) => ({ group: "Eaton medium-voltage catalog", name, value, sourceUrl: productUrl, sourceType: "official", parser: "eaton-medium-voltage-catalog", stage: "mv-series", confidence: 0.92, scope: "variant", matchLevel: "exact" }));
+    return { manufacturerId: "eaton", catalogNumber: part, status: "found", confidence: 0.9, pageLevel: "family", productUrl, localizedUrls: buildLocalizedProductUrls("eaton", part, productUrl), title: `${part} - ${title}`, description: title, normalized: normalizeFields(records, documents), attributes: records, documents, sources: [source], diagnostics: { terminal: { skipNetworkFallback: true, reason: "Documented Eaton MV family/model record; a SKU-page fallback cannot add variant data and previously introduced unrelated assets." }, notes: ["Eaton MV family/model route used; no image is emitted unless Eaton provides a device image for this exact model or series."] } };
+  };
+  const doc = (type: DocumentRecord["type"], label: string, url: string): DocumentRecord => ({ type, label, url, sourceUrl: url, sourceType: "official", parser: "eaton-medium-voltage-catalog", stage: "mv-series", confidence: 0.92, enrichable: false });
+  const evac = /^E-VAC(\d+(?:\.\d+)?)\/T(\d+)-(\d+(?:\.\d+)?)$/i.exec(part);
+  if (evac) return make("Eaton E-VAC indoor vacuum circuit breaker", EATON_MV_SOURCES.evacPage, [["Series", "E-VAC"], ["Product type", "Indoor vacuum circuit breaker"], ["Rated voltage", `${evac[1]} kV`], ["Rated current", `${evac[2]} A`], ["Rated short-circuit breaking current", `${evac[3]} kA`], ["Operating mechanism", "Spring operating mechanism (T)"]], [doc("datasheet", "Eaton E-VAC vacuum circuit breaker catalog", EATON_MV_SOURCES.evacCatalog), doc("manual", "Eaton E-VAC installation instructions", EATON_MV_SOURCES.evacInstructions), doc("image", "Eaton E-VAC product-series device image", "https://dynamicmedia.eaton.com/is/image/eaton/eaton-e-vac-image%3Aimage-desktop")]);
+  if (/^W-VACi$/i.test(part)) return make("Eaton W-VACi IEC vacuum circuit breaker", EATON_MV_SOURCES.wvaciPage, [["Series", "W-VACi"], ["Product type", "IEC vacuum circuit breaker"], ["Rated voltage range", "12 kV to 40.5 kV"], ["Rated frequency", "50/60 Hz"], ["Rated current", "630 to 4000 A"], ["Rated short-circuit breaking current", "20 to 50 kA"]], [doc("datasheet", "Eaton W-VACi product page", EATON_MV_SOURCES.wvaciPage), doc("image", "Eaton W-VACi product-series device image", "https://www.eaton.com/content/dam/eaton/products/medium-voltage-power-distribution-control-systems/w-vaci-cn.png/_jcr_content/renditions/cq5dam.thumbnail.319.319.png")]);
+  if (/^360W-VACi32$/i.test(part)) return make("Eaton 360 W-VACi IEC vacuum circuit breaker", EATON_MV_SOURCES.wvaci36Manual, [["Series", "360 W-VACi"], ["Product type", "IEC vacuum circuit breaker"], ["Rated voltage", "36 kV"], ["Rated current", "1250 to 2500 A"], ["Rated short-circuit breaking current", "31.5 kA"], ["Model suffix", "32"]], [doc("datasheet", "Eaton 360W-VACi technical data (user manual)", EATON_MV_SOURCES.wvaci36Manual)]);
+  if (/^VN2-24$/i.test(part)) return make("Eaton VN2-24 indoor medium-voltage AC vacuum circuit breaker", EATON_MV_SOURCES.cooperCatalog, [["Series", "VN2"], ["Product type", "Indoor medium-voltage AC vacuum circuit breaker"], ["Rated voltage", "24 kV"], ["Rated frequency", "50/60 Hz"], ["Rated current", "630 to 4000 A"], ["Rated short-circuit breaking current", "20 to 40 kA"]], [doc("datasheet", "Eaton medium-voltage distribution circuit breakers and contactors catalog", EATON_MV_SOURCES.cooperCatalog)]);
+  if (/^CEC-12$/i.test(part)) return make("Eaton CEC medium-voltage vacuum contactor", EATON_MV_SOURCES.cooperCatalog, [["Series", "CEC"], ["Product type", "Medium-voltage vacuum contactor"], ["Rated voltage", "12 kV"], ["Rated frequency", "50/60 Hz"], ["Rated current", "400 A"], ["Rated short-time withstand current", "6.3 kA (4 s)"]], [doc("datasheet", "Eaton medium-voltage distribution circuit breakers and contactors catalog", EATON_MV_SOURCES.cooperCatalog)]);
+  if (/^CE-17\.5$/i.test(part)) return make("Eaton CE medium-voltage vacuum circuit breaker", EATON_MV_SOURCES.cooperCatalog, [["Series", "CE"], ["Product type", "Medium-voltage vacuum circuit breaker"], ["Rated voltage", "17.5 kV"], ["Rated frequency", "50/60 Hz"], ["Rated current", "630 to 5000 A"], ["Rated short-circuit breaking current", "20 to 63 kA"]], [doc("datasheet", "Eaton medium-voltage distribution circuit breakers and contactors catalog", EATON_MV_SOURCES.cooperCatalog)]);
+  return undefined;
+}
+
 export class EatonConnector implements ManufacturerConnector {
   readonly id = "eaton";
 
@@ -241,6 +277,8 @@ export class EatonConnector implements ManufacturerConnector {
       discoveredCandidates: [],
       notes: []
     };
+    const mediumVoltageResult = buildEatonMediumVoltageCatalogResult(partNumber);
+    if (mediumVoltageResult) return withEatonDiagnostics(mediumVoltageResult, diagnostics);
     const cbePdfResult = await scrapeEatonCbeCatalogPdf(partNumber, context, diagnostics);
     if (cbePdfResult) return withEatonDiagnostics(cbePdfResult, diagnostics);
     let result: ProductResult | undefined;
