@@ -8,16 +8,16 @@ one catalog number per isolated benchmark fixture.
 
 | Catalog number | Official family and manually checked data | Expected / extracted type | Identity and official URL | Documents / image | Duration | Result / fix |
 |---|---|---|---|---|---:|---|
-| SCE-6044SC | Screw-cover steel enclosure; 6.13 x 4 x 4 in; NEMA 3R/4/12/13, IP66 | Enclosure / Enclosure | exact / [PDP](https://www.saginawcontrol.com/partnumber_info/?n=SCE-6044SC) | screw-cover manual, CAD, image | 3,668 ms | PASS |
-| SCE-302412CHQRFG | Fiberglass quick-release enclosure; 32.19 x 26.19 x 12.29 in; IP66 | Enclosure / Enclosure | exact / [PDP](https://www.saginawcontrol.com/partnumber_info/?n=SCE-302412CHQRFG) | non-metallic-enclosure guide, CAD, image | 4,478 ms | PASS |
-| SCE-6P4 | Flat subpanel; 5 x 3 x 0.08 in; white powder coat | Subpanel / Subpanel | exact / [PDP](https://www.saginawcontrol.com/partnumber_info/?n=SCE-6P4) | sub-plate manual, CAD, image | 2,231 ms | PASS |
-| SCE-LF18NO | LED fixture without outlet; 2.75 x 18.18 x 4 in; 100–277 VAC | Luminaire / Luminaire | exact / [PDP](https://www.saginawcontrol.com/partnumber_info/?n=SCE-LF18NO) | LED-fixture manual, CAD, image | 3,154 ms | PASS |
-| SCE-20RMW | Removable wire cover; 6 x 35 x 20 in; powder-coated steel | Wireway / Wireway | exact / [PDP](https://www.saginawcontrol.com/partnumber_info/?n=SCE-20RMW) | removable-wire-cover manual, CAD, image | 3,690 ms | PASS |
-| SCE-72RA19TH | Type-RA rack angle; 61.25 in high; rack-mount hardware | Mounting Accessory / Mounting Accessory | exact / [PDP](https://www.saginawcontrol.com/partnumber_info/?n=SCE-72RA19TH) | rack-angles manual, CAD, image | 2,395 ms | PASS — added exact rack-angle rule |
-| SCE-7230SOF19 | Swing-out 19-in rack mounting frame; 72 x 30 in; pivots for rear access | Mounting Accessory / Mounting Accessory | exact / [PDP](https://www.saginawcontrol.com/partnumber_info/?n=SCE-7230SOF19) | swing-out-rack manual, CAD, image | 4,139 ms | PASS — added exact rack-frame rule |
-| SCE-PLKJIC | Padlock kit for junction boxes | Lock / Interlock / Lock / Interlock | exact / [PDP](https://www.saginawcontrol.com/partnumber_info/?n=SCE-PLKJIC) | padlock-kit manual, CAD, image | 2,465 ms | PASS |
-| SCE-FF44-24VDC | 24 VDC Type 3R/12 filter fan; 5.80 x 5.80 x 3.35 in; IP54 | Thermal Management / Thermal Management | exact / [PDP](https://www.saginawcontrol.com/partnumber_info/?n=SCE-FF44-24VDC) | fan/filter manual, CAD, image | 12,450 ms | PASS |
-| SCE-TEMNO | Normally-open thermostat; 30–140 F; 10 A 120–250 VAC resistive, 1.25 A 24 VDC | Thermal Management / Thermal Management | exact / [PDP](https://www.saginawcontrol.com/partnumber_info/?n=SCE-TEMNO) | thermostat manual, CAD, image | 8,241 ms | PASS |
+| SCE-6044SC | Screw-cover steel enclosure; 6.13 x 4 x 4 in; NEMA 3R/4/12/13, IP66 | Enclosure / Enclosure | exact / [PDP](https://www.saginawcontrol.com/partnumber_info/?n=SCE-6044SC) | screw-cover manual, CAD, image | 5,700 ms | PASS |
+| SCE-302412CHQRFG | Fiberglass quick-release enclosure; 32.19 x 26.19 x 12.29 in; IP66 | Enclosure / Enclosure | exact / [PDP](https://www.saginawcontrol.com/partnumber_info/?n=SCE-302412CHQRFG) | non-metallic-enclosure guide, CAD, image | 7,409 ms | PASS |
+| SCE-6P4 | Flat subpanel; 5 x 3 x 0.08 in; white powder coat | Subpanel / Subpanel | exact / [PDP](https://www.saginawcontrol.com/partnumber_info/?n=SCE-6P4) | sub-plate manual, CAD, image | 4,398 ms | PASS |
+| SCE-LF18NO | LED fixture without outlet; 2.75 x 18.18 x 4 in; 100–277 VAC | Luminaire / Luminaire | exact / [PDP](https://www.saginawcontrol.com/partnumber_info/?n=SCE-LF18NO) | LED-fixture manual, CAD, image | 5,810 ms | PASS |
+| SCE-20RMW | Removable wire cover; 6 x 35 x 20 in; powder-coated steel | Wireway / Wireway | exact / [PDP](https://www.saginawcontrol.com/partnumber_info/?n=SCE-20RMW) | removable-wire-cover manual, CAD, image | 6,923 ms | PASS |
+| SCE-72RA19TH | Type-RA rack angle; 61.25 in high; rack-mount hardware | Mounting Accessory / Mounting Accessory | exact / [PDP](https://www.saginawcontrol.com/partnumber_info/?n=SCE-72RA19TH) | rack-angles manual, CAD, image | 4,798 ms | PASS — added exact rack-angle rule |
+| SCE-7230SOF19 | Swing-out 19-in rack mounting frame; 72 x 30 in; pivots for rear access | Mounting Accessory / Mounting Accessory | exact / [PDP](https://www.saginawcontrol.com/partnumber_info/?n=SCE-7230SOF19) | swing-out-rack manual, CAD, image | 6,409 ms | PASS — added exact rack-frame rule |
+| SCE-PLKJIC | Padlock kit for junction boxes | Lock / Interlock / Lock / Interlock | exact / [PDP](https://www.saginawcontrol.com/partnumber_info/?n=SCE-PLKJIC) | padlock-kit manual, CAD, image | 4,500 ms | PASS |
+| SCE-FF44-24VDC | 24 VDC Type 3R/12 filter fan; 5.80 x 5.80 x 3.35 in; IP54 | Thermal Management / Thermal Management | exact / [PDP](https://www.saginawcontrol.com/partnumber_info/?n=SCE-FF44-24VDC) | fan/filter manual, CAD, image | 9,903 ms | PASS |
+| SCE-TEMNO | Normally-open thermostat; 30–140 F; 10 A 120–250 VAC resistive, 1.25 A 24 VDC | Thermal Management / Thermal Management | exact / [PDP](https://www.saginawcontrol.com/partnumber_info/?n=SCE-TEMNO) | thermostat manual, CAD, image | 8,219 ms | PASS |
 
 ## Reproduction and repair
 
