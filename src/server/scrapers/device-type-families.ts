@@ -143,7 +143,7 @@ export const DEVICE_TYPE_FAMILIES: Record<string, readonly FamilyEntry[]> = {
     { patterns: ["700S"], type: "Safety Relay", notes: "Allen-Bradley safety control relays" },
     { patterns: ["700-"], type: "Relay", notes: "Allen-Bradley control relays" },
     { patterns: ["140M"], type: "Motor Circuit Breaker" },
-    { patterns: ["140G"], type: "Circuit Breaker" },
+    { patterns: ["140G"], type: "Molded Case Circuit Breaker", notes: "Allen-Bradley 140G molded-case circuit breakers" },
     { patterns: ["1489-M"], type: "Miniature Circuit Breaker", notes: "Allen-Bradley miniature circuit breakers" },
     { patterns: ["1492-SP"], type: "Miniature Circuit Breaker", notes: "Allen-Bradley supplementary protectors" },
     { patterns: ["1492-FB"], type: "Fuse", notes: "Allen-Bradley fuse blocks" },

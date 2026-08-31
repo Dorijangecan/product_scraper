@@ -132,6 +132,13 @@ export function requiredElectricalFields(result: ProductResult, context: Electri
   // Schmersal BNS magnetic safety sensors are passive reed/magnetic switches; their PDP exposes
   // no supply voltage. Do not apply the generic active-sensor voltage heuristic to this family.
   if (result.manufacturerId === "schmersal" && /\bBNS\s+\d+/i.test(primaryText)) return [];
+  // Rockwell 440R Guardmaster safety relays publish the 24 V AC/DC power supply but do not
+  // publish a device input-current rating on the official PDP or its 440R technical data sheet.
+  if (result.manufacturerId === "rockwell" && context.deviceType === "Safety Relay") return ["voltage"];
+  // Rockwell 800T/800H operators are passive contact assemblies. Their official product pages
+  // publish contact ratings, not a device supply voltage; the shared active-pushbutton heuristic
+  // must not reject them for lacking a supply-voltage field.
+  if (result.manufacturerId === "rockwell" && /\b800[TH](?:[-\s]|$)/i.test(primaryText)) return [];
   if (VOLTAGE_ONLY_DEVICE_PATTERN.test(text)) return ["voltage"];
   if (PASSIVE_RFID_DEVICE_PATTERN.test(primaryText) && !CURRENT_RATING_PRESENT_PATTERN.test(ratingText)) return [];
   if (SENSOR_AND_INDICATOR_VOLTAGE_ONLY_PATTERN.test(text)) {

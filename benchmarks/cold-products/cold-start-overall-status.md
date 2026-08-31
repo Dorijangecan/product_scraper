@@ -14,11 +14,12 @@ ten new catalog numbers, official-source evidence, an audit table, and final iso
 | Schmersal | 10 | 10/10 found, identity, official URL, documents, type and PDT | `schmersal-audit.md` + ten individual reports |
 | SCAME | 10 | 10/10 found, identity, official URL, documents, type and PDT | `scame-audit.md` + ten individual reports |
 | Turck | 10 | 10/10 found, identity, official URL, documents, type and PDT | `turck-audit.md` + ten individual reports |
+| Rockwell | 10 | 10/10 found, identity, official URL, documents, type and PDT | `rockwell-audit.md` + ten individual reports |
 
 ## Remaining scope
 
 `all-manufacturers.json` also contains manufacturers with only two exploratory entries (for
-example Rockwell, ETA, Phoenix, Schneider, Siemens, Ganter and Nvent). Those are
+example ETA, Phoenix, Schneider, Siemens, Ganter and Nvent). Those are
 not counted as completed cold audits: each still needs ten previously unseen, officially verified
 items and the same individual rerun evidence. The global objective remains open until those sets
 are audited as well.
