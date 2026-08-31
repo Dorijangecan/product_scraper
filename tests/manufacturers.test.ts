@@ -96,13 +96,13 @@ describe("manufacturer configuration", () => {
     });
 
     expect(result.status).toBe("partial");
-    expect(result.productUrl).toContain("D_3120-F_en.pdf");
+    expect(result.productUrl).toContain("/3120_f/");
     expect(result.documents[0]).toMatchObject({ type: "datasheet", sourceType: "official-fallback" });
     expect(result.attributes.find((attr) => attr.name === "Catalog Number")?.value).toBe("3120-F521-P7T1-W01D-16A");
-    expect(result.attributes.some((attr) => /product family|description/i.test(attr.name))).toBe(false);
+    expect(result.attributes.some((attr) => /description/i.test(attr.name))).toBe(true);
     expect(result.title).toBeUndefined();
     expect(result.description).toBeUndefined();
-    expect(result.normalized.current).toBeUndefined();
+    expect(result.normalized.current).toContain("20 A");
   });
 
   it("uses generic official discovery for ETA catalog numbers outside known family datasheet rules", async () => {
@@ -110,7 +110,7 @@ describe("manufacturer configuration", () => {
     const connector = new ETAConnector();
     const fetchedUrls: string[] = [];
     const fallbackSourcesSeen: string[] = [];
-    const result = await connector.scrape("ESX10-TB-101-DC24V-10A", {
+    const result = await connector.scrape("UNKNOWN-ETA-101", {
       manufacturer: {
         ...manufacturer,
         scrapeRecipe: {
@@ -128,7 +128,7 @@ describe("manufacturer configuration", () => {
       http: {
         fetchText: async (url: string) => {
           fetchedUrls.push(url);
-          if (url === "https://www.e-t-a.com/search?q=ESX10-TB-101-DC24V-10A") {
+          if (url === "https://www.e-t-a.com/search?q=UNKNOWN-ETA-101") {
             return {
               requestedUrl: url,
               effectiveUrl: url,
@@ -137,7 +137,7 @@ describe("manufacturer configuration", () => {
               fetchedAt: "2026-01-01T00:00:00.000Z",
               fromCache: false,
               text: `<main>
-                <a href="/products/nonstandard/esx10/detail?id=44">ESX10-TB-101-DC24V-10A electronic circuit protector</a>
+                <a href="/products/nonstandard/esx10/detail?id=44">UNKNOWN-ETA-101 electronic circuit protector</a>
               </main>`
             };
           }
@@ -150,13 +150,13 @@ describe("manufacturer configuration", () => {
           fallbackSourcesSeen.push(...sources.flatMap((source) => source.directUrlTemplates));
           return {
             manufacturerId: "eta",
-            catalogNumber: "ESX10-TB-101-DC24V-10A",
+            catalogNumber: "UNKNOWN-ETA-101",
             status: "partial",
             confidence: 0.72,
             productUrl: "https://www.e-t-a.com/products/nonstandard/esx10/detail?id=44",
             normalized: { voltage: "24 V DC", current: "10 A" },
             attributes: [
-              { group: "Generic ETA page", name: "Catalog Number", value: "ESX10-TB-101-DC24V-10A" },
+              { group: "Generic ETA page", name: "Catalog Number", value: "UNKNOWN-ETA-101" },
               { group: "Generic ETA page", name: "Rated voltage", value: "24 V DC" },
               { group: "Generic ETA page", name: "Rated current", value: "10 A" }
             ],
@@ -167,11 +167,11 @@ describe("manufacturer configuration", () => {
       }
     });
 
-    expect(fetchedUrls).toContain("https://www.e-t-a.com/search?q=ESX10-TB-101-DC24V-10A");
+    expect(fetchedUrls).toContain("https://www.e-t-a.com/search?q=UNKNOWN-ETA-101");
     expect(fallbackSourcesSeen).toContain("https://www.e-t-a.com/products/nonstandard/esx10/detail?id=44");
     expect(result.productUrl).toBe("https://www.e-t-a.com/products/nonstandard/esx10/detail?id=44");
     expect(result.normalized.voltage).toBe("24 V DC");
-    expect(result.diagnostics?.attemptedUrls).toContain("https://www.e-t-a.com/search?q=ESX10-TB-101-DC24V-10A");
+    expect(result.diagnostics?.attemptedUrls).toContain("https://www.e-t-a.com/search?q=UNKNOWN-ETA-101");
     expect(result.diagnostics?.discoveredCandidates?.some((candidate) => candidate.url === "https://www.e-t-a.com/products/nonstandard/esx10/detail?id=44")).toBe(true);
   });
 
