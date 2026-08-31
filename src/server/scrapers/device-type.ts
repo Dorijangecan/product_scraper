@@ -129,7 +129,10 @@ const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
   rule("Terminal Block", /\b(?:terminal block|power terminal|terminal strip|pluggable terminal|push[-\s]?in terminal|spring[-\s]?clamp terminal|screw terminal block|reihenklemme(?:n)?|klemmenblock|\bklemme(?:n)?\b|bornier|morsetto)\b/i, 740),
   rule("Cable Gland", /\b(?:cable gland|\bgland\b|cord grip)\b/i, 735),
   rule("Optical Connector", /\b(?:optical connector|fiber[-\s]?optic connector|fibre[-\s]?optic connector|fiber optics?|fibre optics?|glass fibers?|plastic fibers?|\blc connector\b|\bsc connector\b|\bst connector\b|\bmpo connector\b|fc connector)\b/i, 732),
-  rule("Connector", /\b(?:industrial connector|circular connector|m\d+ connector|connector\b|plug-?in\s+(?:plug|socket)|cordset|patch cord|programming port|port,\s*programming)\b/i, 720),
+  // SCAME's official product records use bare catalogue nouns (PLUG, SOCKET,
+  // INTERLOCKED SOCKET, ONE-WAY ADAPTOR) rather than "industrial connector".
+  // Keep this below safety-device rules but above generic switch/lock catch-alls.
+  rule("Connector", /\b(?:industrial connector|circular connector|m\d+ connector|connector\b|plug-?in\s+(?:plug|socket)|cordset|patch cord|programming port|port,\s*programming|industrial plug|(?:surface|flush|interlocked|multi)[-\s]+mounting\s+socket|\bplug\b|\bsocket\b|one-way adaptor)\b/i, 735),
   rule("Cable", /\b(?:cable assembly|control cable|power cable|signal cable|servo cable|motor cable|lead wire|patch cable)\b/i, 710),
   rule("Busbar", /\b(?:busbars?|bus[-\s]?bars?|busway|busbar system)\b/i, 720),
 
