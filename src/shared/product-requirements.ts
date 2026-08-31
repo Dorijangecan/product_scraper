@@ -16,6 +16,12 @@ const NON_ELECTRICAL_ACCESSORY_PATTERN =
 // electrical-requirement decision is made. The model code remains a reliable product identity.
 const EATON_XENERGY_BASE_FRAME_MODEL_PATTERN = /\bxlb[0-9a-z-]*\b/i;
 
+// Eaton UPS and dry/control transformers publish voltage and VA/kVA, but do not publish a
+// catalog-level current rating. Do not treat the absent derived current as a scraper failure;
+// deriving A from VA/V would be an unverified value and would violate source-preserving output.
+const EATON_VA_RATED_NO_CURRENT_PATTERN =
+  /\b(?:ups|uninterruptible\s+power\s+supply|control\s+transformer|ventilated\s+transformer|non[-\s]?ventilated\s+transformer|dry[-\s]?type\s+(?:distribution\s+)?transformer)\b/i;
+
 const CURRENT_ONLY_DEVICE_PATTERN =
   /\b(current\s+sensor|homopolar\s+toroid|toroid\s+transformer|external\s+neutral|current\s+transformer)\b/i;
 
@@ -110,6 +116,7 @@ export function requiredElectricalFields(result: ProductResult, context: Electri
   // datasheet still fills voltage/current as a bonus; the gate must not demand them up front.
   if (result.manufacturerId === "siemens" && /^S\d{5}-[A-Z]\d+$/i.test(result.catalogNumber.trim())) return [];
   if (result.manufacturerId === "eaton" && EATON_XENERGY_BASE_FRAME_MODEL_PATTERN.test(text)) return [];
+  if (result.manufacturerId === "eaton" && EATON_VA_RATED_NO_CURRENT_PATTERN.test(primaryText) && result.normalized.voltage && !result.normalized.current) return ["voltage"];
   if (NON_ELECTRICAL_ACCESSORY_PATTERN.test(primaryText)) return [];
   if (NON_ELECTRICAL_INDUSTRIAL_PRODUCT_PATTERN.test(primaryText)) return [];
   if (PASSIVE_PILOT_DEVICE_ACTUATOR_PATTERN.test(primaryText)) return [];

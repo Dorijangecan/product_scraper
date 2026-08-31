@@ -64,7 +64,8 @@ export const DEVICE_TYPE_FAMILIES: Record<string, readonly FamilyEntry[]> = {
     { patterns: ["PKZM", "PKE", "MSP"], type: "Motor Circuit Breaker" },
     { patterns: ["DS7"], type: "Soft Starter" },
     { patterns: ["DG1", "DC1", "DA1", "DM1", "DE1"], type: "Variable Speed Drive", notes: "PowerXL" },
-    { patterns: ["FAZ", "WMZ"], type: "Miniature Circuit Breaker" },
+    { patterns: ["FAZ"], type: "Supplementary Protector", notes: "FAZ industrial miniature supplementary protector" },
+    { patterns: ["WMZ"], type: "Miniature Circuit Breaker" },
     { patterns: ["NZM"], type: "Molded Case Circuit Breaker" },
     { patterns: ["PSN"], type: "Enclosure", notes: "xEnergy ProfiSNAP enclosure panels/accessories" },
     // Rotary switch-disconnectors use Eaton's P1-/P3-/T0-/T3-/T5-/T6- pattern (always followed by
@@ -73,6 +74,7 @@ export const DEVICE_TYPE_FAMILIES: Record<string, readonly FamilyEntry[]> = {
     { patterns: ["P1-", "P3-", "T0-", "T3-", "T5-", "T6-"], type: "Disconnect Switch", notes: "Rotary switch-disconnector" },
     { patterns: ["EASY"], type: "Programmable Logic Controller", notes: "easyE" },
     { patterns: ["XV"], type: "HMI" },
+    { patterns: ["M22-WR"], type: "Selector Switch", notes: "M22 selector switch actuator" },
     { patterns: ["M22"], type: "Pushbutton / Operator", notes: "M22 control station" }
   ],
   siemens: [

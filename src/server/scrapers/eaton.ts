@@ -1495,7 +1495,12 @@ export function parseEatonProductPage(
         ...extractMarkdownLinks(text, catalogNumber, fetched.effectiveUrl)
       ]
     : [];
-  const attributes = dedupeAttributes([...htmlParsed.attributes, ...markdownAttributes]).map((attr) => ({
+  const descriptionVoltage = extractEatonDescriptionVoltage(htmlParsed.description, catalogNumber, fetched.effectiveUrl);
+  const attributes = dedupeAttributes([
+    ...htmlParsed.attributes,
+    ...markdownAttributes,
+    ...(descriptionVoltage ? [descriptionVoltage] : [])
+  ]).map((attr) => ({
     sourceType: "official-fallback" as const,
     parser: "eaton-product-page",
     stage: htmlParsed.attributes.length ? "static-html" : "reader",
@@ -1778,6 +1783,28 @@ function extractHtmlStructuredProductData(
   });
 
   return { attributes, documents };
+}
+
+function extractEatonDescriptionVoltage(description: string | undefined, catalogNumber: string, sourceUrl: string): AttributeRecord | undefined {
+  // Some Eaton SKU pages publish the rated supply voltage only in descriptionLabel (for example
+  // "... 480 V, FR7 ..."), while the structured specification table omits it. Preserve that
+  // explicit source fact; never derive voltage from VA/kVA or infer it from the family name.
+  if (!description) return undefined;
+  const match = description.match(/\b(\d{2,4}(?:[.,]\d+)?)\s*V(?:\s*(AC|DC))?\b/i);
+  if (!match || !catalogTextMatches(description, catalogNumber, { compact: true, afterColon: true, ignoreCase: true })) return undefined;
+  const value = `${match[1].replace(",", ".")} V${match[2] ? ` ${match[2].toUpperCase()}` : ""}`;
+  return {
+    group: "Eaton description",
+    name: "Voltage rating",
+    value,
+    sourceUrl,
+    sourceType: "official-fallback",
+    parser: "eaton-product-page",
+    stage: "description",
+    confidence: 0.86,
+    scope: "variant",
+    matchLevel: "exact"
+  };
 }
 
 function isEatonStructuredProductForCatalog(product: Record<string, unknown>, catalogNumber: string, sourceUrl: string): boolean {

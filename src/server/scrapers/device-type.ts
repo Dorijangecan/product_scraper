@@ -73,6 +73,7 @@ const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
   rule("Sensor", /\b(?:sensor|sensing|detector|limit switch|position switch|measuring range|measuring principle)\b/i, 620),
 
   // --- Protection & control (specific breakers/starters first) ---
+  rule("Supplementary Protector", /\b(?:supplementary protector|industrial miniature circuit breaker - supplementary protector)\b/i, 825),
   rule("Motor Circuit Breaker", /\bmotor\s+(?:protective\s+)?circuit[-\s]?breakers?|motor protection device|motor protection|manual motor (?:starter|protector)\b/i, 820),
   rule("Molded Case Circuit Breaker", /\b(?:molded|moulded)\s+case\s+circuit[-\s]?breakers?|\bmccbs?\b/i, 815),
   rule("Miniature Circuit Breaker", /\bminiature\s+circuit[-\s]?breakers?|\bmcbs?\b|leitungsschutzschalter|sicherungsautomat(?:en)?|\bls[-\s]?schalter\b/i, 814),
@@ -89,7 +90,8 @@ const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
   rule("Disconnect Switch", /\b(?:switch[-\s]?disconnector|disconnect(?:ing|or)?\s+switch|isolator switch|safety switch|rotary disconnect|main switch|load break switch|last[-\s]?trennschalter|trennschalter|sectionneur|sezionatore)\b/i, 770),
   rule("Surge Protective Device", /\b(?:surge protective device|\bspd\b|surge arrester|surge protection|lightning arrester)\b/i, 765),
   rule("Fuse", /\b(?:fuse holder|fuse base|fuse disconnect(?:or)?|fuse switch|fuse link|fuse carrier|nh fuse|d fuse|\bfuse\b|sicherung(?:en)?|fusible|fusibile)\b/i, 760),
-  rule("Switch", /\b(?:selector switch|cam switch|pushbutton switch|rotary switch|toggle switch|key[-\s]?operated switch)\b/i, 700),
+  rule("Selector Switch", /\b(?:selector switch|selector\s+switch\s+actuator|cam switch|toggle switch|key[-\s]?operated switch)\b/i, 790),
+  rule("Switch", /\b(?:pushbutton switch)\b/i, 700),
 
   // --- Power / electrical ---
   rule("UPS", /\b(?:\bups\b|uninterruptible power supply)\b/i, 760),
