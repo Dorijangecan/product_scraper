@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-08-31T12:40:25.061Z",
-  "outputDir": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260831124020",
+  "generatedAt": "2026-08-31T12:45:00.909Z",
+  "outputDir": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260831124455",
   "filters": {
     "manufacturer": "scame",
     "catalogNumber": "218.1634",
@@ -955,7 +955,7 @@
       ],
       "status": "found",
       "confidence": 0.69,
-      "elapsedMs": 4769,
+      "elapsedMs": 5069,
       "productUrl": "https://techsheet.scame.com/infodata/en/218.1634.pdf",
       "identityConfirmed": true,
       "wrongProduct": false,
@@ -963,7 +963,7 @@
       "requiredDocumentsMatched": true,
       "normalizedFieldsMatched": true,
       "pdtAuditMatched": true,
-      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260831124020\\pdt\\scame-218.1634-pdt_pdt-audit.json",
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260831124455\\pdt\\scame-218.1634-pdt_pdt-audit.json",
       "pdtWrittenCells": 24,
       "pdtBlankCells": 59,
       "pdtSkippedCells": 0,

@@ -128,7 +128,7 @@ const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
   rule("Wire Marker", /\b(?:wire marker|cable marker|wire label|cable label|cable tag|wire ferrule|terminal marker|terminal label|marking tag|marker card)\b/i, 750),
   rule("Terminal Block", /\b(?:terminal block|power terminal|terminal strip|pluggable terminal|push[-\s]?in terminal|spring[-\s]?clamp terminal|screw terminal block|reihenklemme(?:n)?|klemmenblock|\bklemme(?:n)?\b|bornier|morsetto)\b/i, 740),
   rule("Cable Gland", /\b(?:cable gland|\bgland\b|cord grip)\b/i, 735),
-  rule("Optical Connector", /\b(?:optical connector|fiber[-\s]?optic connector|fibre[-\s]?optic connector|fiber optics?|fibre optics?|glass fibers?|plastic fibers?|\blc connector\b|\bsc connector\b|\bst connector\b|\bmpo connector\b|fc connector)\b/i, 732),
+  rule("Optical Connector", /\b(?:optical connector|fiber[-\s]?optic connector|fibre[-\s]?optic connector|fiber optics?|fibre optics?|glass fibers?|plastic fibers?|\blc connector\b|\bsc connector\b|\bst connector\b|\bmpo connector\b|fc connector)\b/i, 750),
   // SCAME's official product records use bare catalogue nouns (PLUG, SOCKET,
   // INTERLOCKED SOCKET, ONE-WAY ADAPTOR) rather than "industrial connector".
   // Keep this below safety-device rules but above generic switch/lock catch-alls.
