@@ -763,15 +763,17 @@ export function extractEatonSearchCandidates(text: string, baseUrl: string, cata
     .slice(0, 12);
 }
 
-function extractEatonSearchDocuments(text: string, baseUrl: string, catalogNumber: string): DocumentRecord[] {
+export function extractEatonSearchDocuments(text: string, baseUrl: string, catalogNumber: string): DocumentRecord[] {
   const documents: DocumentRecord[] = [];
-  const baseUrlConfirmsCatalog = catalogTextMatches(baseUrl, catalogNumber, { compact: true, afterColon: true, ignoreCase: true });
   const push = (rawUrl: unknown, rawLabel: unknown, rawContext: unknown) => {
     const url = typeof rawUrl === "string" ? toAbsoluteUrl(rawUrl.trim().replace(/\\u002f/gi, "/").replace(/&amp;/gi, "&"), baseUrl) : undefined;
     if (!url) return;
     const label = cleanText(String(rawLabel ?? "")) || documentLabelFromEatonSearchUrl(url);
     const context = cleanText([label, rawContext, url].filter(Boolean).join(" "));
-    if (!catalogTextMatches(context, catalogNumber, { compact: true, afterColon: true, ignoreCase: true }) && !baseUrlConfirmsCatalog) return;
+    // A site-search endpoint necessarily contains the requested query in its URL. That is not
+    // product identity: treating it as one made arbitrary numbers inherit every document from a
+    // loose search response. Require the result/document itself to prove the catalog number.
+    if (!catalogTextMatches(context, catalogNumber, { compact: true, afterColon: true, ignoreCase: true })) return;
     if (!isEatonDocumentLink(context, url, catalogNumber)) return;
     documents.push({
       type: classifyEatonDocument(label || context, url),

@@ -6,6 +6,7 @@ import {
   buildEatonProductUrlCandidates,
   buildEatonSearchApiUrlCandidates,
   extractEatonSearchCandidates,
+  extractEatonSearchDocuments,
   parseEatonProductPage
 } from "../src/server/scrapers/eaton.js";
 import { parseGenericProductPage } from "../src/server/scrapers/generic.js";
@@ -19,6 +20,27 @@ import type { FetchedText } from "../src/server/scrapers/http-client.js";
 import type { ScrapeContext } from "../src/server/scrapers/types.js";
 
 describe("manufacturer parsers", () => {
+  it("does not treat an Eaton site-search query URL as proof for unrelated documents", () => {
+    const catalogNumber = "9999999999";
+    const searchUrl = "https://www.eaton.com.cn/content/eaton/cn/zh-cn/site-search/jcr:content/root/responsivegrid/search_results.searchTerm$9999999999.SortBy$relevance.json";
+    const documents = extractEatonSearchDocuments(
+      JSON.stringify({
+        siteSearchResults: [
+          {
+            title: "Eaton IQ6000 communication protocol",
+            description: "Power quality meter documentation",
+            contentType: "resource",
+            completeUrl: "https://www.eaton.com.cn/content/dam/eaton/products/power-meters/eaton-iq6000-communication-protocol-zh-cn.pdf"
+          }
+        ]
+      }),
+      searchUrl,
+      catalogNumber
+    );
+
+    expect(documents).toEqual([]);
+  });
+
   it("parses Rockwell cutsheet, drawings and digital product passport evidence", () => {
     const catalog = "800F-X10";
     const cutsheet = parseRockwellCutsheetPage(
