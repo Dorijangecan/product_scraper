@@ -3,6 +3,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import * as cheerio from "cheerio";
 import { PDFParse } from "pdf-parse";
+import { enrichResultFromDownloadedDocuments } from "./document-enrichment.js";
 import type { AttributeRecord, DocumentRecord, LocalizedUrlTemplate, ProductResult, ScrapeDiagnostics, SourceRecord } from "../../shared/types.js";
 import type { FetchedText } from "./http-client.js";
 import { buildLocalizedProductUrls } from "./localized-urls.js";
@@ -239,6 +240,7 @@ const EATON_MV_SOURCES = {
   evacCatalog: "https://www.eaton.com/content/dam/eaton/products/medium-voltage-power-distribution-control-systems/e-vac-vacuum-circuit-breaker/eaton-e-vac-vacuum-circuit-breaker-catalog-en-east-asia.pdf",
   evacInstructions: "https://www.eaton.com/content/dam/eaton/products/medium-voltage-power-distribution-control-systems/e-vac-vacuum-circuit-breaker/eaton-e-vac-vacuum-circuit-breaker-installation-instructions-en-east-asia.pdf",
   wvaciPage: "https://www.eaton.com/my/en-us/catalog/medium-voltage-power-distribution-control-systems/eaton-w-vaci.html",
+  wvaciBrochure: "https://www.eaton.com/content/dam/eaton/products/medium-voltage-power-distribution-control-systems/mv-primary-switchgear/power-xpert-ux/eaton-w-vaci-brochure-pg022060001u_emea-en.pdf",
   wvaci36Manual: "https://www.eaton.com/content/dam/eaton/products/medium-voltage-power-distribution-control-systems/iec-assemblies-mv-switchgear/power-xpert-ux-36/eaton-power-xpert-ux-36-user-manual-360w-vaci-iec-vacuum-circuit-breaker-mn131004en-150dpi-en-uk.pdf",
   cooperCatalog: "https://www.eaton.com/content/dam/eaton/products/medium-voltage-power-distribution-control-systems/cooper-ningbo/cooper-vn3-12-indoor-mv-embedded-pole-insulated-vacuum-circuit-breaker/Cooper-Medium-voltage-distribution-circuit-breakers-and-contactors-Catalog-EN-US.pdf",
   cooperBreakerPage: "https://www.eaton.com/us/en-us/products/electrical-circuit-protection/circuit-breakers/medium-voltage-circuit-breakers.html",
@@ -260,7 +262,7 @@ function buildEatonMediumVoltageCatalogResult(catalogNumber: string): ProductRes
   const doc = (type: DocumentRecord["type"], label: string, url: string): DocumentRecord => ({ type, label, url, sourceUrl: url, sourceType: "official", parser: "eaton-medium-voltage-catalog", stage: "mv-series", confidence: 0.92, enrichable: false });
   const evac = /^E-VAC(\d+(?:\.\d+)?)\/T(\d+)-(\d+(?:\.\d+)?)$/i.exec(part);
   if (evac) return make("Eaton E-VAC indoor vacuum circuit breaker", EATON_MV_SOURCES.evacPage, [["Series", "E-VAC"], ["Product type", "Indoor vacuum circuit breaker"], ["Rated voltage", `${evac[1]} kV`], ["Rated current", `${evac[2]} A`], ["Rated short-circuit breaking current", `${evac[3]} kA`], ["Operating mechanism", "Spring operating mechanism (T)"]], [doc("datasheet", "Eaton E-VAC vacuum circuit breaker catalog", EATON_MV_SOURCES.evacCatalog), doc("manual", "Eaton E-VAC installation instructions", EATON_MV_SOURCES.evacInstructions), doc("image", "Eaton E-VAC product-series device image", "https://dynamicmedia.eaton.com/is/image/eaton/eaton-e-vac-image%3Aimage-desktop")]);
-  if (/^W-VACi$/i.test(part)) return make("Eaton W-VACi IEC vacuum circuit breaker", EATON_MV_SOURCES.wvaciPage, [["Series", "W-VACi"], ["Product type", "IEC vacuum circuit breaker"], ["Rated voltage range", "12 kV to 40.5 kV"], ["Rated frequency", "50/60 Hz"], ["Rated current", "630 to 4000 A"], ["Rated short-circuit breaking current", "20 to 50 kA"]], [doc("datasheet", "Eaton W-VACi product page", EATON_MV_SOURCES.wvaciPage), doc("image", "Eaton W-VACi product-series device image", "https://www.eaton.com/content/dam/eaton/products/medium-voltage-power-distribution-control-systems/w-vaci-cn.png/_jcr_content/renditions/cq5dam.thumbnail.319.319.png")]);
+  if (/^W-VACi$/i.test(part)) return make("Eaton W-VACi IEC vacuum circuit breaker", EATON_MV_SOURCES.wvaciPage, [["Series", "W-VACi"], ["Product type", "IEC vacuum circuit breaker"], ["Rated voltage range", "12 kV to 40.5 kV"], ["Rated frequency", "50/60 Hz"], ["Rated current", "630 to 4000 A"], ["Rated short-circuit breaking current", "20 to 50 kA"]], [doc("datasheet", "Eaton W-VACi official brochure", EATON_MV_SOURCES.wvaciBrochure), doc("image", "Eaton W-VACi product-series device image", "https://www.eaton.com/content/dam/eaton/products/medium-voltage-power-distribution-control-systems/w-vaci-cn.png/_jcr_content/renditions/cq5dam.thumbnail.319.319.png")]);
   // The manual is evidence/documentation, not a product page. Keep it in documents but always
   // expose Eaton's official W-VACi product-series page as productUrl; a PDF URL is not a valid
   // product identity for downstream consumers.
@@ -269,6 +271,32 @@ function buildEatonMediumVoltageCatalogResult(catalogNumber: string): ProductRes
   if (/^CEC-12$/i.test(part)) return make("Eaton CEC medium-voltage vacuum contactor", EATON_MV_SOURCES.vacuumContactorsPage, [["Series", "CEC"], ["Product type", "Medium-voltage vacuum contactor"], ["Rated voltage", "12 kV"], ["Rated frequency", "50/60 Hz"], ["Rated current", "400 A"], ["Rated short-time withstand current", "6.3 kA (4 s)"]], [doc("datasheet", "Eaton medium-voltage distribution circuit breakers and contactors catalog", EATON_MV_SOURCES.cooperCatalog)]);
   if (/^CE-17\.5$/i.test(part)) return make("Eaton CE medium-voltage vacuum circuit breaker", EATON_MV_SOURCES.cooperBreakerPage, [["Series", "CE"], ["Product type", "Medium-voltage vacuum circuit breaker"], ["Rated voltage", "17.5 kV"], ["Rated frequency", "50/60 Hz"], ["Rated current", "630 to 5000 A"], ["Rated short-circuit breaking current", "20 to 63 kA"]], [doc("datasheet", "Eaton medium-voltage distribution circuit breakers and contactors catalog", EATON_MV_SOURCES.cooperCatalog)]);
   return undefined;
+}
+
+async function enrichEatonMediumVoltageDocuments(result: ProductResult, context: ScrapeContext): Promise<ProductResult> {
+  const sourceDocuments = result.documents.filter((doc) => doc.type === "datasheet" || doc.type === "manual").slice(0, 2);
+  const downloaded: DocumentRecord[] = [];
+  for (const doc of sourceDocuments) {
+    try {
+      const fetched = await context.downloadDocument(doc);
+      if (fetched.localPath) downloaded.push(fetched);
+    } catch {
+      // Keep the official URL and the source-backed catalogue facts when a publication is
+      // temporarily unavailable; the normal quality gate will retain the missing field rather
+      // than inventing a value.
+    }
+  }
+  if (!downloaded.length) return result;
+  const downloadedByUrl = new Map(downloaded.map((doc) => [doc.url, doc]));
+  const documents = result.documents.map((doc) => downloadedByUrl.get(doc.url) ?? doc);
+  const enriched = await enrichResultFromDownloadedDocuments({ ...result, documents });
+  return {
+    ...enriched,
+    diagnostics: {
+      ...enriched.diagnostics,
+      notes: [...new Set([...(enriched.diagnostics?.notes ?? []), "Official Eaton MV datasheet/manual opened for missing-field enrichment."])]
+    }
+  };
 }
 
 export class EatonConnector implements ManufacturerConnector {
@@ -283,7 +311,17 @@ export class EatonConnector implements ManufacturerConnector {
       notes: []
     };
     const mediumVoltageResult = buildEatonMediumVoltageCatalogResult(partNumber);
-    if (mediumVoltageResult) return withEatonDiagnostics(mediumVoltageResult, diagnostics);
+    if (mediumVoltageResult) {
+      // The MV route is intentionally source-backed, but the family page alone only carries the
+      // compact catalogue facts above. Always open the linked official datasheet/manual once so
+      // missing XML/PDT fields can be filled from the actual publication instead of being left
+      // blank or inferred. The document downloader still enforces the run's normal selection and
+      // per-item deadline; image-only runs remain cheap and skip PDF parsing.
+      const enriched = context.imageOnly
+        ? mediumVoltageResult
+        : await enrichEatonMediumVoltageDocuments(mediumVoltageResult, context);
+      return withEatonDiagnostics(enriched, diagnostics);
+    }
     const cbePdfResult = await scrapeEatonCbeCatalogPdf(partNumber, context, diagnostics);
     if (cbePdfResult) return withEatonDiagnostics(cbePdfResult, diagnostics);
     let result: ProductResult | undefined;
