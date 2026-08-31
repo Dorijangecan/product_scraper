@@ -647,7 +647,7 @@ export class RunManager {
                 )
             });
             this.updateItemStage(item.id, "downloads", "Downloading fallback images and documents");
-            const withFallbackDownloads = await this.downloadDocuments(
+            const downloadedFallbacks = await this.downloadDocuments(
               http,
               layoutRef.documentsDir,
               layoutRef.cadDir,
@@ -661,6 +661,17 @@ export class RunManager {
               sharedDocumentDownloads,
               itemDeadline.remainingMs()
             );
+            // A connector may perform a bounded, evidence-driven document download even
+            // when the user's local PDF checkbox is off (for example Eaton MV family
+            // datasheets needed to verify missing fields). Do not overwrite that concrete
+            // local evidence with the later selection-driven `skipped` marker.
+            const priorLocalDocuments = new Map(
+              withSmartFallbacks.documents.filter((doc) => doc.localPath).map((doc) => [doc.url, doc])
+            );
+            const withFallbackDownloads = {
+              ...downloadedFallbacks,
+              documents: downloadedFallbacks.documents.map((doc) => priorLocalDocuments.get(doc.url) ?? doc)
+            };
             this.updateItemStage(item.id, "document-enrichment", "Reading fallback documents for missing values");
             enriched = finalizeQualityGate(await enrichFromDownloadedDocumentsIfPresent(withFallbackDownloads), manufacturer);
             fallbackStages = enriched.diagnostics?.fallbackStages;
@@ -757,7 +768,7 @@ export class RunManager {
               )
             });
             this.updateItemStage(item.id, "downloads", "Downloading final retry images and documents");
-            const withFinalCompletenessDownloads = await this.downloadDocuments(
+            const downloadedFinalCompleteness = await this.downloadDocuments(
               http,
               layoutRef.documentsDir,
               layoutRef.cadDir,
@@ -771,6 +782,13 @@ export class RunManager {
               sharedDocumentDownloads,
               itemDeadline.remainingMs()
             );
+            const priorFinalLocalDocuments = new Map(
+              withFinalCompletenessFallbacks.documents.filter((doc) => doc.localPath).map((doc) => [doc.url, doc])
+            );
+            const withFinalCompletenessDownloads = {
+              ...downloadedFinalCompleteness,
+              documents: downloadedFinalCompleteness.documents.map((doc) => priorFinalLocalDocuments.get(doc.url) ?? doc)
+            };
             this.updateItemStage(item.id, "document-enrichment", "Reading final retry documents for missing values");
             enriched = finalizeQualityGate(await enrichFromDownloadedDocumentsIfPresent(withFinalCompletenessDownloads), manufacturer);
             const postNetworkRepair = repairFinalCompletenessFromEvidence(

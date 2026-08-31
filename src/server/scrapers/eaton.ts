@@ -259,7 +259,7 @@ function buildEatonMediumVoltageCatalogResult(catalogNumber: string): ProductRes
     ].map(([name, value]) => ({ group: "Eaton medium-voltage catalog", name, value, sourceUrl: productUrl, sourceType: "official", parser: "eaton-medium-voltage-catalog", stage: "mv-series", confidence: 0.92, scope: "variant", matchLevel: "exact" }));
     return { manufacturerId: "eaton", catalogNumber: part, status: "found", confidence: 0.9, pageLevel: "family", productUrl, localizedUrls: buildLocalizedProductUrls("eaton", part, productUrl), title: `${part} - ${title}`, description: title, normalized: normalizeFields(records, documents), attributes: records, documents, sources: [source], diagnostics: { terminal: { skipNetworkFallback: true, reason: "Documented Eaton MV family/model record; a SKU-page fallback cannot add variant data and previously introduced unrelated assets." }, notes: ["Eaton MV family/model route used; no image is emitted unless Eaton provides a device image for this exact model or series."] } };
   };
-  const doc = (type: DocumentRecord["type"], label: string, url: string): DocumentRecord => ({ type, label, url, sourceUrl: url, sourceType: "official", parser: "eaton-medium-voltage-catalog", stage: "mv-series", confidence: 0.92, enrichable: false });
+  const doc = (type: DocumentRecord["type"], label: string, url: string): DocumentRecord => ({ type, label, url, sourceUrl: url, sourceType: "official", parser: "eaton-medium-voltage-catalog", stage: "mv-series", confidence: 0.92, enrichable: type === "datasheet" || type === "manual" });
   const evac = /^E-VAC(\d+(?:\.\d+)?)\/T(\d+)-(\d+(?:\.\d+)?)$/i.exec(part);
   if (evac) return make("Eaton E-VAC indoor vacuum circuit breaker", EATON_MV_SOURCES.evacPage, [["Series", "E-VAC"], ["Product type", "Indoor vacuum circuit breaker"], ["Rated voltage", `${evac[1]} kV`], ["Rated current", `${evac[2]} A`], ["Rated short-circuit breaking current", `${evac[3]} kA`], ["Operating mechanism", "Spring operating mechanism (T)"]], [doc("datasheet", "Eaton E-VAC vacuum circuit breaker catalog", EATON_MV_SOURCES.evacCatalog), doc("manual", "Eaton E-VAC installation instructions", EATON_MV_SOURCES.evacInstructions), doc("image", "Eaton E-VAC product-series device image", "https://dynamicmedia.eaton.com/is/image/eaton/eaton-e-vac-image%3Aimage-desktop")]);
   if (/^W-VACi$/i.test(part)) return make("Eaton W-VACi IEC vacuum circuit breaker", EATON_MV_SOURCES.wvaciPage, [["Series", "W-VACi"], ["Product type", "IEC vacuum circuit breaker"], ["Rated voltage range", "12 kV to 40.5 kV"], ["Rated frequency", "50/60 Hz"], ["Rated current", "630 to 4000 A"], ["Rated short-circuit breaking current", "20 to 50 kA"]], [doc("datasheet", "Eaton W-VACi official brochure", EATON_MV_SOURCES.wvaciBrochure), doc("image", "Eaton W-VACi product-series device image", "https://www.eaton.com/content/dam/eaton/products/medium-voltage-power-distribution-control-systems/w-vaci-cn.png/_jcr_content/renditions/cq5dam.thumbnail.319.319.png")]);
@@ -278,7 +278,22 @@ async function enrichEatonMediumVoltageDocuments(result: ProductResult, context:
   const downloaded: DocumentRecord[] = [];
   for (const doc of sourceDocuments) {
     try {
-      const fetched = await context.downloadDocument(doc);
+      let fetched = await context.downloadDocument(doc);
+      // A normal Excel run may have PDF saving unchecked, but missing source data still has to be
+      // investigated. In that case the run-manager deliberately returns a skipped document;
+      // perform one bounded, targeted download here rather than silently accepting the family
+      // page as complete. This is limited to the two official MV publications, never discovery.
+      if (!fetched.localPath && context.saveDocuments !== true) {
+        const fileName = `${partSafe(result.catalogNumber)}-${doc.type}-eaton-mv.pdf`;
+        const localPath = await context.http.downloadFile(
+          doc.url,
+          context.documentsDir,
+          fileName,
+          context.signal,
+          { budgetMs: context.deadline?.remainingMs() }
+        );
+        fetched = { ...fetched, localPath, downloadStatus: "downloaded" };
+      }
       if (fetched.localPath) downloaded.push(fetched);
     } catch {
       // Keep the official URL and the source-backed catalogue facts when a publication is
@@ -290,13 +305,43 @@ async function enrichEatonMediumVoltageDocuments(result: ProductResult, context:
   const downloadedByUrl = new Map(downloaded.map((doc) => [doc.url, doc]));
   const documents = result.documents.map((doc) => downloadedByUrl.get(doc.url) ?? doc);
   const enriched = await enrichResultFromDownloadedDocuments({ ...result, documents });
+  const downloadedUrls = new Set(downloaded.map((doc) => doc.url));
+  // These MV publications are family catalogues, not variant-row datasheets. Keep only
+  // document facts that are explicitly family-safe (temperature/compliance/rating labels); reject
+  // dimension/material/finish rows that the PDF reader can associate with a neighbouring model.
+  const safeAttributes = enriched.attributes.filter((attribute) => {
+    if (!attribute.sourceUrl || !downloadedUrls.has(attribute.sourceUrl)) return true;
+    return /(?:rated\s+(?:voltage|current|frequency)|withstand|short[-\s]?circuit|compliance|certif|standard|iec\b)/i.test(attribute.name);
+  });
+  const safeNormalized = {
+    ...result.normalized,
+    ...normalizeFields(safeAttributes, enriched.documents)
+  };
   return {
     ...enriched,
+    attributes: safeAttributes,
+    normalized: safeNormalized,
+    documents: enriched.documents.map((doc) => {
+      const fetched = downloadedByUrl.get(doc.url);
+      // The PDF enrichment layer may normalize/clone the document URL. Preserve the
+      // concrete download evidence by keying off either the fetched URL or the local
+      // path already attached to the enriched document; never report a downloaded
+      // file as "skipped".
+      if (fetched?.localPath) return { ...doc, localPath: fetched.localPath, downloadStatus: "downloaded", downloadError: undefined };
+      if (doc.localPath && (doc.type === "datasheet" || doc.type === "manual")) {
+        return { ...doc, downloadStatus: "downloaded", downloadError: undefined };
+      }
+      return doc;
+    }),
     diagnostics: {
       ...enriched.diagnostics,
-      notes: [...new Set([...(enriched.diagnostics?.notes ?? []), "Official Eaton MV datasheet/manual opened for missing-field enrichment."])]
+      notes: [...new Set([...(enriched.diagnostics?.notes ?? []), "Official Eaton MV datasheet/manual opened for missing-field enrichment; unscoped variant-sensitive PDF rows were discarded."])]
     }
   };
+}
+
+function partSafe(value: string): string {
+  return value.replace(/[^a-z0-9._-]+/gi, "-").replace(/^-+|-+$/g, "").slice(0, 80) || "eaton-mv";
 }
 
 export class EatonConnector implements ManufacturerConnector {
