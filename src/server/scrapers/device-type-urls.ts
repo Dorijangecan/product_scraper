@@ -37,6 +37,10 @@ export const DEVICE_TYPE_URL_PATTERNS: UrlPatternEntry[] = [
   //     misclassified as a Cover/Door accessory by the page's category/description text. ---
   { host: /nvent\.com$/i, pattern: /\/products\/enc/i, type: "Enclosure" },
 
+  // Ganter Norm's machine-element catalog is mechanical standard hardware; its
+  // family pages do not expose an electrical ontology label in the URL.
+  { host: /ganternorm\.com$/i, pattern: /\/products\//i, type: "Mounting Accessory" },
+
   // --- Schneider Electric ---
   { host: /schneider-electric\.|se\.com$/i, pattern: /\/contactor/i, type: "Contactor" },
   { host: /schneider-electric\.|se\.com$/i, pattern: /\/(circuit-breaker|breaker)\//i, type: "Circuit Breaker" },
