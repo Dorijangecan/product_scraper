@@ -78,6 +78,8 @@ export const DEVICE_TYPE_FAMILIES: Record<string, readonly FamilyEntry[]> = {
     { patterns: ["M22"], type: "Pushbutton / Operator", notes: "M22 control station" }
   ],
   siemens: [
+    { patterns: ["6ES7132", "6ES7134"], type: "I/O Module", notes: "SIMATIC ET 200SP digital/analog I/O modules" },
+    { patterns: ["6GK"], type: "Switch", notes: "SCALANCE industrial Ethernet switches" },
     { patterns: ["3RT", "3TF"], type: "Contactor", notes: "SIRIUS contactor" },
     { patterns: ["3RH"], type: "Contactor", notes: "Auxiliary contactor" },
     { patterns: ["3RV", "3VA"], type: "Motor Circuit Breaker", notes: "SIRIUS MMSB / MCCB" },
