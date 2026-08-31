@@ -13,7 +13,6 @@ import { findBestProductLink } from "./link-discovery.js";
 import { renderProductPage, type ModalSection } from "./browser-renderer.js";
 import { scrapeDiscoveredFallback, withDiscoveryFallbackDiagnostics } from "./discovery-fallback.js";
 
-const BALLUFF_PRODUCT_LOCALES = ["en-gb", "en-us", "de-de", "en-de", "en-ca", "en-au", "en-in", "en-xi"];
 const BALLUFF_ACCEPT_LANGUAGE = "en-GB,en;q=0.9,en-US;q=0.8,de;q=0.6";
 const BALLUFF_REFERER = "https://www.balluff.com/en-gb/products";
 const BALLUFF_BOT_USER_AGENT = "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)";
@@ -188,6 +187,7 @@ export class BalluffConnector implements ManufacturerConnector {
     const candidates = buildBalluffProductUrls(catalogNumber);
     const partialResults: ProductResult[] = [];
     let lastError: unknown;
+    let blockedDirectCandidates = 0;
     const docsEnabled = context.downloadDocuments !== false;
     const imageOnly = context.imageOnly === true;
 
@@ -208,7 +208,10 @@ export class BalluffConnector implements ManufacturerConnector {
         ) {
           return primaryResult;
         }
+        // A blocked/absent PDP has no parseable product evidence.  Do not spend two supplemental
+        // requests and a browser modal pass on it before trying the next official locale.
         if (isTerminalBalluffHttpStatus(primary.statusCode)) {
+          if (primary.statusCode === 403) blockedDirectCandidates += 1;
           continue;
         }
         if (
@@ -287,6 +290,33 @@ export class BalluffConnector implements ManufacturerConnector {
       } catch (error) {
         lastError = error;
       }
+    }
+
+    // A uniform 403 across the bounded, exact product URLs is an access denial for the HTTP
+    // client, not necessarily for Chromium: Balluff currently serves the same PDP to the browser.
+    // Try that exact first PDP once, without opening any optional drawers.  Search and generic
+    // discovery still hit the protected origin and used to add tens of seconds with no evidence.
+    if (candidates.length > 0 && blockedDirectCandidates === candidates.length) {
+      if (context.browserRenderer) {
+        try {
+          const rendered = await scrapeBalluffExpandedSections(catalogNumber, candidates[0], context, { sections: [] });
+          if (rendered && rendered.status !== "failed") return rendered;
+          if (rendered) partialResults.push(rendered);
+        } catch (error) {
+          lastError = error;
+        }
+      }
+      const blocked = bestBalluffResult(partialResults) ?? emptyResult("balluff", catalogNumber, "Balluff official product endpoints returned HTTP 403.");
+      return {
+        ...blocked,
+        diagnostics: {
+          ...blocked.diagnostics,
+          terminal: {
+            reason: "Balluff official product endpoints returned HTTP 403 for every attempted locale; skipped same-origin search and discovery fallbacks because no official product payload was available.",
+            skipNetworkFallback: true
+          }
+        }
+      };
     }
 
     try {
@@ -431,14 +461,15 @@ export function parseBalluffProductPage(catalogNumber: string, fetched: FetchedT
   documents.push(...extractBalluffVideoDocuments($, sourceUrl));
   documents.push(...extractBalluffKnowledgeBaseDocuments($, sourceUrl));
 
+  // Livewire's last h2 is often the status message ("Verification successful. Waiting for
+  // www.balluff.com to respond"), not a product name.  The PDP's social title is the
+  // manufacturer-published, variant-specific heading and stays present in the rendered DOM.
   const title = cleanText(
-    [
-      catalogNumber,
-      product?.alternateName ? `(${String(product.alternateName)})` : "",
-      $("h2").last().text() || $("meta[property='product:plural_title']").attr("content") || $("title").text()
-    ]
-      .filter(Boolean)
-      .join(" ")
+    $("meta[property='og:title']").attr("content") ||
+      $("meta[property='product:plural_title']").attr("content") ||
+      $("h1").first().text() ||
+      (product?.alternateName ? `${catalogNumber} (${String(product.alternateName)})` : "") ||
+      $("title").text()
   );
   const description = cleanText($("meta[name='description']").attr("content") ?? $("meta[property='og:description']").attr("content") ?? "");
   const productUrl = sourceUrl;
@@ -466,6 +497,20 @@ export function parseBalluffProductPage(catalogNumber: string, fetched: FetchedT
   }
 
   const cleanAttributes = dedupeAttributes(attributes.filter(isUsefulBalluffAttribute));
+  // The product page has already passed an exact catalog-number match above, but modern Balluff
+  // pages do not consistently expose that value under JSON-LD's `sku`/`mpn` names.  Preserve the
+  // requested, source-confirmed code explicitly so the quality gate does not mistake a complete
+  // official PDP for an unidentifiable page and launch the expensive discovery/browser fallback.
+  cleanAttributes.unshift({
+    group: "Balluff Product Data",
+    name: "Catalog Number",
+    value: catalogNumber,
+    sourceUrl,
+    sourceType: "official",
+    parser: options.parser ?? "balluff-product-page",
+    stage: options.parser ?? "balluff-product-page",
+    confidence: 0.92
+  });
   const cleanDocuments = dedupeBalluffDocuments(documents);
   const pdtAttributes = withBalluffPdtDerivations(cleanAttributes, productUrl);
 
@@ -498,7 +543,11 @@ function buildBalluffProductUrls(catalogNumber: string): string[] {
   return balluffDirectProductCodes(catalogNumber).flatMap((code) => {
     const encoded = encodeURIComponent(code);
     return [
-      ...BALLUFF_PRODUCT_LOCALES.map((locale) => `https://www.balluff.com/${locale}/products/${encoded}`),
+      // The canonical English, US and German storefronts cover the normal global routes.  Other
+      // locales behaved as duplicate bot-wall requests for a cold part number and made one failed
+      // lookup pay for a full renderer pass per locale.  The CN routes remain because they are a
+      // demonstrably distinct official catalogue for some I/O products.
+      ...["en-gb", "en-us", "de-de"].map((locale) => `https://www.balluff.com/${locale}/products/${encoded}`),
       `https://www.balluff.com.cn/en-cn/products/${encoded}`,
       `https://www.balluff.com.cn/zh-cn/products/${encoded}`
     ];
@@ -634,7 +683,7 @@ async function scrapeBalluffExpandedSections(
     } else if (rendered.fetched) {
       const firstCount = balluffExpandedSectionCount(rendered.fetched.text);
       const hasAnyNetworkPayload = rendered.networkTexts.some((networkText) => isLikelyBalluffExpandedPayload(networkText.text));
-      if (firstCount === 0 && !hasAnyNetworkPayload) {
+      if (options.sections === undefined && firstCount === 0 && !hasAnyNetworkPayload) {
         console.warn(`[balluff] first render produced no expanded sections for ${catalogNumber}, retrying once...`);
         const retry = await renderOnce();
         if (retry.fetched && balluffExpandedSectionCount(retry.fetched.text) > firstCount) {
@@ -749,6 +798,10 @@ function mergeBalluffResults(primary: ProductResult, fallback: ProductResult): P
   const attributes = withBalluffPdtDerivations(merged.attributes, merged.productUrl);
   return {
     ...merged,
+    // Browser network fragments sometimes carry the document title "www.balluff.com".  Keep the
+    // official, variant-specific social title that was parsed from either the rendered PDP or a
+    // matching product payload instead of letting that generic fragment win merge order.
+    title: preferredBalluffTitle(attributes, primary.title, fallback.title, merged.title),
     attributes,
     documents,
     normalized: normalizeFields(attributes, documents),
@@ -759,6 +812,18 @@ function mergeBalluffResults(primary: ProductResult, fallback: ProductResult): P
         : "partial"
       : "failed"
   };
+}
+
+function preferredBalluffTitle(attributes: AttributeRecord[], ...candidates: Array<string | undefined>): string | undefined {
+  const metaTitle = ["og:title", "product:plural_title"]
+    .map((name) => attributes.find((attribute) => attribute.name.toLowerCase() === name)?.value)
+    .find(isUsefulBalluffTitle);
+  return metaTitle ?? candidates.find(isUsefulBalluffTitle) ?? candidates.find((value) => cleanText(value));
+}
+
+function isUsefulBalluffTitle(value: string | undefined): value is string {
+  const title = cleanText(value);
+  return Boolean(title) && !/^www\.balluff\.com$/i.test(title) && !/\bverification successful\.\s*waiting for www\.balluff\.com to respond\b/i.test(title);
 }
 
 /**
@@ -1129,7 +1194,7 @@ function balluffModalSectionsFor(result: ProductResult, html: string, docsEnable
 }
 
 function isTerminalBalluffHttpStatus(statusCode: number): boolean {
-  return statusCode === 404 || statusCode === 410;
+  return statusCode === 403 || statusCode === 404 || statusCode === 410;
 }
 
 function isCompleteBalluffResult(

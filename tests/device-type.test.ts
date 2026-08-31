@@ -65,6 +65,29 @@ describe("device type classifier", () => {
     ).toBe("Photoelectric Sensor");
   });
 
+  it("keeps condition-monitoring sensors from being classified as their cable connector", () => {
+    expect(
+      classifyDeviceType(
+        product(
+          [{ group: "Balluff Key features", name: "Connection", value: "Cable with connector, M12x1-Male, 3-pin", sourceType: "official" }],
+          "BCM0001 Condition monitoring sensors"
+        )
+      ).type
+    ).toBe("Sensor");
+  });
+
+  it("keeps an ABB emergency-stop enclosure as an enclosure rather than an operator", () => {
+    expect(
+      classifyDeviceType(product([], 'MEPY1-1190 Enclosure MEPY1-1190 1 pos yellow light grey marked "EMERGENCY STOP"')).type
+    ).toBe("Enclosure");
+  });
+
+  it("keeps an explicit ABB pushbutton above incidental distribution-board wording", () => {
+    expect(
+      classifyDeviceType(product([], "MP1-10R Pushbutton", { description: "Pushbutton for a distribution board" })).type
+    ).toBe("Pushbutton / Operator");
+  });
+
   it("leaves type empty when evidence is only a model code", () => {
     expect(
       classifyDeviceType(product([{ group: "Structured Data", name: "alternateName", value: "BOS 18M-PA-IE21-S4", sourceType: "official" }])).type
@@ -82,6 +105,14 @@ describe("device type classifier", () => {
     const classification = classifyDeviceType(result);
     expect(classification.type).toBe("Contactor");
     expect(classification.evidence).toContain("ECLASS");
+  });
+
+  it("uses ETIM's PLC CPU class over serial-interface wording", () => {
+    const result = product(
+      [{ group: "ABB External classifications", name: "Etim10", value: "EC000236 - PLC CPU-module", sourceType: "official" }],
+      "AC500 Processor module PM573-ETH with RS232/485 interfaces"
+    );
+    expect(classifyDeviceType(result).type).toBe("Programmable Logic Controller");
   });
 
   it("uses ECLASS classes for passive or terse Balluff products", () => {
@@ -989,6 +1020,17 @@ describe("device type classifier — multi-signal voting and confidence", () => 
       expect(classifyDeviceType(product([], "AC motor")).type).toBe("Motor");
       expect(classifyDeviceType(product([], "Rotary switch")).type).toBe("Switch");
     });
+  });
+
+  it("classifies SCE rack angles and swing-out mounting frames as mounting accessories", () => {
+    expect(classifyDeviceType(product([], "Angle, Rack")).type).toBe("Mounting Accessory");
+    expect(classifyDeviceType(product([], "Frame, Swing Out Rack Mounting")).type).toBe("Mounting Accessory");
+  });
+
+  it("classifies Doepke RCBO, time-relay, and residual-current monitor text", () => {
+    expect(classifyDeviceType(product([], "residual current operated circuit-breakers with integral overcurrent protection DRCBO 4")).type).toBe("Residual Current Device");
+    expect(classifyDeviceType(product([], "time relays RZM 128")).type).toBe("Relay");
+    expect(classifyDeviceType(product([], "Residual current monitor Type A")).type).toBe("Current Sensor");
   });
 
   describe("multilingual device nouns (Phase A3)", () => {

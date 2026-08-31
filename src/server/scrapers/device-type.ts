@@ -45,6 +45,7 @@ interface DeviceTypeCandidate {
 // quality (where the text came from + which source it came from) decides confidence.
 const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
   // --- Automation (very specific names — these win over generic "controller"/"module") ---
+  rule("Programmable Logic Controller", /\b(?:ac500|pm(?:57[2-3]|58[2-3]|59[0-2])(?:-eth)?)\b[\s\S]{0,80}\bprocessor module\b|\bprocessor module\b[\s\S]{0,80}\b(?:ac500|pm(?:57[2-3]|58[2-3]|59[0-2])(?:-eth)?)\b/i, 940),
   rule("Programmable Logic Controller", /\b(?:programmable logic controller|logic controller|controller cpu|cpu module|plc\s+(?:controller|module|processor|cpu|system)|(?:controller|module|processor|cpu|system)\s+plc|simatic\s+s7|modicon\s+(?:m\d+|m340|m580)|compactlogix|controllogix|micro8\d{2,3})\b/i, 920),
   rule("Communication Gateway", /\b(?:communication gateway|fieldbus gateway|fieldbus coupler|bus coupler|protocol converter|protocol gateway|serial gateway|modbus gateway|profibus gateway|profinet gateway|ethernet gateway|rs[-\s]?232(?:\s+(?:to|converter|interface|module))?|rs[-\s]?485(?:\s+(?:to|converter|interface|module))?|rs[-\s]?422|serial[-\s]?to[-\s]?ethernet|communication module|communication interface|industrial gateway|iiot gateway|edge gateway)\b/i, 905),
   rule("I/O Module", /\b(?:i\/o|io|input\/output)\s+(?:module|expansion|system|block|card|interface)|(?:analog|digital)\s+(?:input|output)s?\s+(?:module|card|expansion)|remote\s+i\/o|io-link\s+(?:master|hub|module)\b/i, 900),
@@ -57,6 +58,10 @@ const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
   rule("Capacitive Sensor", /\bcapacitive\s+(?:(?:proximity|level)\s+)?(?:sensors?|switch(?:es)?)\b/i, 870),
   rule("Pressure Sensor", /\bpressure\s+(?:sensor|switch|transmitter|transducer)\b/i, 868),
   rule("Temperature Sensor", /\b(?:temperature\s+(?:sensor|probe|transmitter|transducer)|thermocouple|\brtd\b|pt100|pt1000)\b/i, 866),
+  // A Balluff condition-monitoring product publishes its sensor family together with a
+  // "Cable with connector" connection detail.  The explicit family must outrank that
+  // accessory wording, otherwise the device is routed as a Connector.
+  rule("Sensor", /\bcondition\s+monitoring\s+sensors?\b/i, 865),
   rule("Ultrasonic Sensor", /\bultrasonic\s+(?:sensor|distance sensor|transducer)\b/i, 864),
   rule("Magnetic Field Sensor", /\bmagnetic\s+field\s+sensor|hall[-\s]?effect\s+sensor\b/i, 862),
   rule("Vision Sensor", /\b(?:vision\s+sensor|smart\s*camera|industrial camera|machine vision)\b/i, 860),
@@ -71,13 +76,13 @@ const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
   rule("Motor Circuit Breaker", /\bmotor\s+(?:protective\s+)?circuit[-\s]?breakers?|motor protection device|motor protection|manual motor (?:starter|protector)\b/i, 820),
   rule("Molded Case Circuit Breaker", /\b(?:molded|moulded)\s+case\s+circuit[-\s]?breakers?|\bmccbs?\b/i, 815),
   rule("Miniature Circuit Breaker", /\bminiature\s+circuit[-\s]?breakers?|\bmcbs?\b|leitungsschutzschalter|sicherungsautomat(?:en)?|\bls[-\s]?schalter\b/i, 814),
-  rule("Residual Current Device", /\b(?:residual current device|residual current circuit[-\s]?breakers?|\brcd\b|\brccb\b|\brcbo\b|ground[-\s]?fault circuit[-\s]?interrupter|\bgfci\b|earth leakage)\b/i, 813),
+  rule("Residual Current Device", /\b(?:residual current device|residual current circuit[-\s]?breakers?|residual current operated circuit[-\s]?breakers? with integral overcurrent protection|\brcd\b|\brccb\b|\brcbo\b|fi[-/\s]*ls[-\s]?kombination|ground[-\s]?fault circuit[-\s]?interrupter|\bgfci\b|earth leakage)\b/i, 813),
   rule("Circuit Breaker", /\b(?:air\s+circuit[-\s]?breakers?|thermal overcurrent circuit[-\s]?breakers?|overcurrent circuit[-\s]?breakers?|circuit[-\s]?breakers?|\bacbs?\b|leistungsschalter|disjoncteur|interruttore automatico)\b/i, 805),
   rule("Safety Relay", /\b(?:safety relay|safety controller|safety module|emergency stop relay|e[-\s]?stop relay)\b/i, 803),
   // "schütz"/"schuetz" (contactor) must NOT match plain "schutz" (= protection, as in Schutzart) —
   // require the umlaut (ü) or its ue transliteration.
   rule("Contactor", /\b(?:contactor|contactor relay|kontaktor|sch(?:ü|ue)tz|contattore|contacteur|contact kit|contact tip kit|main contact kit|replacement contacts?)\b/i, 800),
-  rule("Relay", /\b(?:interface relay|coupling relay|plug-?in relay|timer relay|monitoring relay|relais|relej|\brelay\b)\b/i, 790),
+  rule("Relay", /\b(?:interface relay|coupling relay|plug-?in relay|timer relay|time relays?|monitoring relay|relais|relej|\brelay\b)\b/i, 790),
   rule("Soft Starter", /\bsoft[-\s]?starter\b/i, 785),
   rule("Variable Speed Drive", /\b(?:variable speed drive|variable frequency drive|\bvfd\b|frequency (?:converter|inverter)|\bvsd\b|servo drive|ac drive|motor drive|inverter drive)\b|(?:\u53d8\u9891\u5668|\u53d8\u9891\u9a71\u52a8|\u9891\u7387\u8f6c\u6362\u5668)/i, 780),
   rule("Motor Starter", /\b(?:motor starter|starter combination|reversing starter|direct[-\s]?on[-\s]?line starter|\bdol starter\b)\b/i, 775),
@@ -90,13 +95,16 @@ const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
   rule("UPS", /\b(?:\bups\b|uninterruptible power supply)\b/i, 760),
   rule("Power Supply", /\b(?:power supply|power supply module|switched[-\s]?mode power supply|smps|regulated power supply|dc power supply|\bpsu\b|netzteil|stromversorgung|alimentation|alimentatore)\b/i, 755),
   rule("Transformer", /\b(?:control transformer|isolation transformer|step[-\s]?down transformer|step[-\s]?up transformer|toroidal transformer|\btransformer\b|transformator|\btrafo\b|transformateur|trasformatore)\b/i, 750),
-  rule("Current Sensor", /\b(?:current sensor|current transducer|current transformer|external neutral|homopolar toroid)\b/i, 745),
+  rule("Current Sensor", /\b(?:current sensor|current transducer|residual current monitor|current transformer|external neutral|homopolar toroid)\b/i, 745),
   rule("Generator", /\b(?:generator set|diesel generator|gas generator|standby generator|backup generator|\bgenerator\b)\b/i, 743),
   rule("Motor", /\b(?:servo motor|stepper motor|asynchronous motor|synchronous motor|three[-\s]?phase motor|ac motor|dc motor|induction motor|gear motor|gearmotor)\b/i, 740),
   rule("Battery", /\b(?:battery pack|lithium battery|lead[-\s]?acid battery|\bnimh battery\b|\bnicd battery\b|energy storage module|traction battery|\bbattery\b)\b/i, 720),
 
   // --- Enclosures & mounting ---
   rule("Loadcenter", /\b(?:loadcenter|load center|panelboard|distribution board|consumer unit|switchgear assembly)\b/i, 770),
+  // ABB MEPY emergency-stop stations are sold as enclosures. The safety legend describes their
+  // application, not the component type, so it must not turn the bare enclosure into an operator.
+  rule("Enclosure", /\benclosure\b[\s\S]{0,160}\b(?:emergency stop|e[-\s]?stop)\b|\b(?:emergency stop|e[-\s]?stop)\b[\s\S]{0,160}\benclosure\b/i, 790),
   rule(
     "Rack Cabinet",
     /\b(?:server rack|network rack|\brack cabinet\b|(?:communication\s+and\s+server|server|network)\s+cabinet|cabinet\b(?=[\s\S]{0,180}\b(?:servers?|network|rack[-\s]?mount|rack\s+(?:unit|spacing|angle)s?|\d+\s*u\b))|(?:rack[-\s]?mount|rack\s+(?:unit|spacing)s?|\d+\s*u\b)[\s\S]{0,180}\bcabinet\b)\b/i,
@@ -105,6 +113,9 @@ const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
   rule("Wireway", /\b(?:wireway|wire duct|cable duct|cable tray|cable channel|cable trunking)\b/i, 760),
   rule("Subpanel", /\b(?:subpanel|sub-panel|back[-\s]?panel|mounting panel|mounting plate)\b/i, 755),
   rule("Module Carrier", /\b(?:module carrier|carrier frame|backplane|module rack|subrack)\b/i, 753),
+  // SCE sells these separately from the enclosure: they support rack-mounted equipment but are
+  // neither a populated rack cabinet nor a generic enclosure.
+  rule("Mounting Accessory", /\b(?:angle,?\s*rack|rack(?:\s+mounting)?\s+angle|frame,?\s*swing[-\s]?out\s+rack\s+mounting|(?:swing[-\s]?out\s+)?rack mounting frame)\b/i, 752),
   rule("Enclosure", /\b(?:enc(?:losure)?\.?|wall[-\s]?mount(?:ed)? enclosure|floor[-\s]?stand(?:ing)? enclosure|junction box|control box|terminal box|\bcabinet\b)\b/i, 750),
 
   // --- Wiring & connectors ---
@@ -121,7 +132,9 @@ const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
 
   // --- Signaling ---
   rule("Stack Light / Beacon", /\b(?:stack light|signal tower|signal beacon|\bbeacon\b|warning light|horn|buzzer|sounder)\b/i, 760),
-  rule("Pushbutton / Operator", /\b(?:pushbutton|push[-\s]?button|emergency stop|e[-\s]?stop|selector head|pilot device|control station)\b/i, 755),
+  // An explicit product-name pushbutton is more specific than incidental distribution-board
+  // wording that can arrive in a vendor's related-product payload.
+  rule("Pushbutton / Operator", /\b(?:pushbutton|push[-\s]?button|emergency stop|e[-\s]?stop|selector head|pilot device|control station)\b/i, 780),
   rule("Pilot Light", /\b(?:pilot light|indicator light|signal lamp|indicator lamp|led indicator)\b/i, 750),
   rule("Luminaire", /\b(?:machine light|led light fixture|fixture,\s*led light|light fixture|luminaire|interior lamp|cabinet light)\b/i, 745),
 
@@ -239,6 +252,7 @@ interface EtimTypeEntry {
 const ETIM_TYPE_ENTRIES: EtimTypeEntry[] = [
   { code: "EC000030", type: "Sensor", notes: "Mechanical position / limit switch" },
   { code: "EC000232", type: "Luminaire", notes: "Machine light / smart light" },
+  { code: "EC000236", type: "Programmable Logic Controller", notes: "PLC CPU module" },
   { code: "EC001825", type: "Photoelectric Sensor", notes: "Photoelectric distance sensor" },
   { code: "EC001829", type: "Sensor", notes: "Mechanical position / limit switch" },
   { code: "EC001852", type: "Sensor", notes: "Inclination sensor" },

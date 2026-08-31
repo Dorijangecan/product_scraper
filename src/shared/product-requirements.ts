@@ -122,6 +122,9 @@ export function requiredElectricalFields(result: ProductResult, context: Electri
     return CURRENT_RATING_PRESENT_PATTERN.test(ratingText) ? ["current"] : [];
   }
   if (PASSIVE_SENSOR_ACCESSORY_PATTERN.test(primaryText)) return [];
+  // Schmersal BNS magnetic safety sensors are passive reed/magnetic switches; their PDP exposes
+  // no supply voltage. Do not apply the generic active-sensor voltage heuristic to this family.
+  if (result.manufacturerId === "schmersal" && /\bBNS\s+\d+/i.test(primaryText)) return [];
   if (VOLTAGE_ONLY_DEVICE_PATTERN.test(text)) return ["voltage"];
   if (PASSIVE_RFID_DEVICE_PATTERN.test(primaryText) && !CURRENT_RATING_PRESENT_PATTERN.test(ratingText)) return [];
   if (SENSOR_AND_INDICATOR_VOLTAGE_ONLY_PATTERN.test(text)) {

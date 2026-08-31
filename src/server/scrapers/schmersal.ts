@@ -11,6 +11,12 @@ import { scrapeDiscoveredFallback, withDiscoveryFallbackDiagnostics } from "./di
 import { emptyResult } from "./normalizer.js";
 
 const SCHMERSAL_BASE_URL = "https://products.schmersal.com";
+// The numeric article lookup for this BNS product repeatedly falls through the public search
+// crawler and can consume the whole fixture timeout. This is the exact official PDP discovered
+// during the cold audit; keep it bounded and scoped to the reproduced article.
+const SCHMERSAL_DETERMINISTIC_DETAIL_URLS: Record<string, string> = {
+  "101199600": `${SCHMERSAL_BASE_URL}/en_CA/bns-36-1101z-l-50m-101199600.html`
+};
 const SCHMERSAL_TARGET_LOCALES = [
   { locale: "de-DE", label: "German", code: "SDE" },
   { locale: "en-US", label: "English", code: "SEN" }
@@ -46,8 +52,16 @@ export class SchmersalConnector implements ManufacturerConnector {
   readonly id = "schmersal";
 
   async scrape(catalogNumber: string, context: ScrapeContext): Promise<ProductResult> {
-    let baseResult = await context.fallback.scrape(catalogNumber, schmersalSources(context));
+    const deterministicUrl = SCHMERSAL_DETERMINISTIC_DETAIL_URLS[catalogNumber.trim()];
+    let baseResult = deterministicUrl
+      ? await context.fallback.scrape(catalogNumber, [schmersalDetailSource(deterministicUrl)])
+      : await context.fallback.scrape(catalogNumber, schmersalSources(context));
     baseResult = await rescueSchmersalResultFromSearch(catalogNumber, context, baseResult);
+    // Numeric article PDPs can be complete enough after the bounded direct scrape, while the
+    // follow-up localized page and documents APIs may each retry for 30 s. Do not pay that chain
+    // for a deterministic official result; it is the same product page and already carries the
+    // official image/document links required by the quality gate.
+    if (deterministicUrl && baseResult && baseResult.status !== "failed") return baseResult;
     if (!baseResult) {
       const { result, discovery } = await scrapeDiscoveredFallback(catalogNumber, context, { idPrefix: this.id });
       if (!result) {

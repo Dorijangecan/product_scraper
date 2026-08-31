@@ -49,6 +49,8 @@ interface BenchmarkCaseReport {
   riskTags: string[];
   status: ProductResult["status"] | "error";
   confidence: number;
+  /** Wall-clock time for this isolated fixture, including bounded retries and exports. */
+  elapsedMs: number;
   productUrl?: string;
   identityConfirmed: boolean;
   wrongProduct: boolean;
@@ -89,7 +91,12 @@ const configuredManufacturerIds = new Set(listManufacturerConfigs().map((manufac
 
 const db = new ScraperDb(appPaths);
 const http = new CachedHttpClient(db, appPaths.cacheDir);
-const fixtures = selectFixtures(await readFixtures(path.join(benchmarkDir, "products")));
+// The regular suite protects known regression cases.  A separate directory lets us run a
+// genuinely cold sample (different catalog numbers and families) without diluting that baseline.
+// It is intentionally an environment switch rather than another npm script so every existing
+// benchmark option (manufacturer filter, limit and timeout) has exactly the same meaning.
+const fixtureDirectory = resolveFixtureDirectory();
+const fixtures = selectFixtures(await readFixtures(fixtureDirectory));
 const reports: BenchmarkCaseReport[] = [];
 const browserRenderer = new BrowserRenderSession();
 const fixtureTimeoutMs = envNumber("BENCHMARK_FIXTURE_TIMEOUT_MS", 180_000, 10_000, 900_000);
@@ -100,10 +107,11 @@ try {
     const startedAt = Date.now();
     console.log(`[benchmark] ${index + 1}/${fixtures.length} ${fixture.manufacturerId} ${fixture.catalogNumber} start`);
     const report = await runFixture(fixture, browserRenderer);
+    report.elapsedMs = Date.now() - startedAt;
     reports.push(report);
     console.log(
       `[benchmark] ${index + 1}/${fixtures.length} ${fixture.manufacturerId} ${fixture.catalogNumber} ${report.status}` +
-      ` pdt=${report.pdtAuditMatched ? "ok" : "issue"} device=${report.actualDeviceType ?? "unknown"} ${Date.now() - startedAt}ms`
+      ` pdt=${report.pdtAuditMatched ? "ok" : "issue"} device=${report.actualDeviceType ?? "unknown"} ${report.elapsedMs}ms`
     );
     if (report.qualityMissing.includes("timeout")) {
       console.log("[benchmark] stopping after fixture timeout so unfinished async work cannot overlap the next fixture");
@@ -209,6 +217,14 @@ async function runFixtureAttempt(
         }),
         manufacturer
       );
+  debugBenchmark(
+    `${fixture.manufacturerId} ${fixture.catalogNumber} initial status=${initial.status} identity=${initial.qualityGate?.identityConfirmed ?? false}` +
+      ` attrs=${initial.attributes.length} docs=${initial.documents.length} missing=${(initial.qualityGate?.missing ?? []).join(",") || "none"}`
+  );
+  debugBenchmark(
+    `${fixture.manufacturerId} ${fixture.catalogNumber} initial electrical attributes=` +
+      JSON.stringify(initial.attributes.filter((attribute) => /volt|supply|power/i.test(`${attribute.name} ${attribute.value}`)).slice(0, 8))
+  );
   const withDownloads = await stage("downloadDocuments.initial", () => downloadDocuments(manufacturer, fixture.catalogNumber, initial, signal));
   let result = finalizeQualityGate(await stage("enrich.initial", () => enrichResultFromDownloadedDocuments(withDownloads)), manufacturer);
   if (!result.qualityGate?.passed) {
@@ -379,6 +395,7 @@ function reportFromResult(fixture: BenchmarkFixture, manufacturer: ManufacturerC
     riskTags: fixture.riskTags ?? [],
     status: result.status,
     confidence: result.confidence,
+    elapsedMs: 0,
     productUrl: result.productUrl,
     identityConfirmed: result.qualityGate?.identityConfirmed ?? false,
     wrongProduct,
@@ -627,6 +644,7 @@ function errorReport(fixture: BenchmarkFixture, error: string): BenchmarkCaseRep
     riskTags: fixture.riskTags ?? [],
     status: "error",
     confidence: 0,
+    elapsedMs: 0,
     identityConfirmed: false,
     wrongProduct: false,
     officialUrlMatched: false,
@@ -706,7 +724,20 @@ function benchmarkFilters(): Record<string, string> {
   const limit = process.env.BENCHMARK_LIMIT?.trim();
   if (manufacturer) filters.manufacturer = manufacturer;
   if (limit) filters.limit = limit;
+  const catalogNumber = process.env.BENCHMARK_CATALOG_NUMBER?.trim();
+  if (catalogNumber) filters.catalogNumber = catalogNumber;
+  const fixtureDir = process.env.BENCHMARK_FIXTURE_DIR?.trim();
+  if (fixtureDir) filters.fixtureDir = fixtureDir;
   return filters;
+}
+
+function resolveFixtureDirectory(): string {
+  const configured = process.env.BENCHMARK_FIXTURE_DIR?.trim();
+  if (!configured) return path.join(benchmarkDir, "products");
+  const resolved = path.resolve(rootDir, configured);
+  // Fixture inputs are versioned test data.  Refusing a non-directory here prevents an accidental
+  // benchmark run from silently succeeding with zero cases because of a spelling mistake.
+  return resolved;
 }
 
 function benchmarkReportPath(): string {
@@ -763,10 +794,16 @@ function delay(ms: number): Promise<void> {
 
 function selectFixtures(fixtures: BenchmarkFixture[]): BenchmarkFixture[] {
   const manufacturerFilter = process.env.BENCHMARK_MANUFACTURER?.trim().toLowerCase();
+  const catalogNumberFilter = process.env.BENCHMARK_CATALOG_NUMBER?.trim().toLowerCase();
   const limit = envNumber("BENCHMARK_LIMIT", fixtures.length, 1, fixtures.length);
-  const filtered = manufacturerFilter
-    ? fixtures.filter((fixture) => fixture.manufacturerId.toLowerCase() === manufacturerFilter)
-    : fixtures;
+  const filtered = fixtures.filter(
+    (fixture) =>
+      (!manufacturerFilter || fixture.manufacturerId.toLowerCase() === manufacturerFilter) &&
+      (!catalogNumberFilter || fixture.catalogNumber.toLowerCase() === catalogNumberFilter)
+  );
+  if (catalogNumberFilter && filtered.length === 0) {
+    throw new Error(`No benchmark fixture matches BENCHMARK_CATALOG_NUMBER=${process.env.BENCHMARK_CATALOG_NUMBER}.`);
+  }
   return filtered.slice(0, limit);
 }
 

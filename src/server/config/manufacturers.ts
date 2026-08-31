@@ -606,12 +606,12 @@ function attachBuiltInScrapeRecipes() {
       "https://www.balluff.com/de-de/search?query={part}"
     ],
     canonicalParamDenylist: ["pm", "pf", "attrs"],
-    requiredSections: [
-      "summary features|key features|hauptmerkmale|component data|meta specs",
-      "classifications|klassifizierungen|approval|conformity|zulassung|konformitat|protection class"
-    ],
+    // Balluff exposes these areas as optional, product-family-specific modal dialogs.  Requiring
+    // both made otherwise identity-confirmed products (for example IO-Link masters) enter the
+    // generic fallback path merely because a particular PDP does not publish one of the dialogs.
+    // Concrete source-backed attributes and the datasheet remain the quality requirements.
     requiredAttributes: [
-      "sku|mpn|product id|product label|product variant|alternateName|artikelnummer",
+      "sku|mpn|product id|product label|product variant|catalog number|alternateName|artikelnummer",
       "product group|product family|series|style|principle|function|interface|dimension|measuring range|measuring length|range|connection|operating voltage|material",
       "eclass|etim|unspsc|approval|conformity|zulassung|konformitat|konformit"
     ],

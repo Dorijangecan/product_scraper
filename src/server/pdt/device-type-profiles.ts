@@ -111,7 +111,9 @@ export const DEVICE_TYPE_PROFILES: Record<string, DeviceTypePdtProfile> = {
   "Magnetic Field Sensor": { sheets: ["electronic sensor"], finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_AND_CURRENT },
   "RFID Device": { sheets: ["electronic sensor"], finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_AND_CURRENT },
   Encoder: { sheets: ["electronic sensor"], finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_AND_CURRENT },
-  "Safety Sensor": { sheets: ["safety sensor"], finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_ONLY },
+  // Some safety sensors (for example Schmersal BNS magnetic switches) are passive and publish no
+  // supply voltage; a voltage remains optional when the official source does not provide one.
+  "Safety Sensor": { sheets: ["safety sensor"], finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: NO_ELECTRICAL_FIELDS },
   Sensor: { sheets: ["electronic sensor"], finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_AND_CURRENT },
   "Pressure Sensor": { sheets: ["sensor - fluid"], finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_ONLY },
   "Temperature Sensor": { sheets: ["sensor - fluid"], finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_ONLY },

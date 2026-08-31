@@ -641,6 +641,20 @@ describe("manufacturer parsers", () => {
     expect(result.attributes).toContainEqual(expect.objectContaining({ name: "Catalog Number", value: "BES0608", sourceType: "official" }));
   });
 
+  it("uses Balluff's official product title instead of the rendered Livewire status heading", () => {
+    const html = `
+      <html><head>
+        <link rel="canonical" href="https://www.balluff.com/en-gb/products/BES00TM" />
+        <meta property="og:title" content="BES00TM (BES 516-343-E4-C-03) Inductive proximity switches - BALLUFF United Kingdom" />
+      </head><body>
+        <h1>BES00TM</h1><h2>Verification successful. Waiting for www.balluff.com to respond</h2><p>BES00TM</p>
+      </body></html>`;
+
+    const result = parseBalluffProductPage("BES00TM", fetched(html, "https://www.balluff.com/en-gb/products/BES00TM"));
+
+    expect(result.title).toBe("BES00TM (BES 516-343-E4-C-03) Inductive proximity switches - BALLUFF United Kingdom");
+  });
+
   it("canonicalizes ABB switch-disconnector PIS codes and summary ratings", () => {
     const html = `
       <html><head>
@@ -2453,6 +2467,94 @@ describe("manufacturer parsers", () => {
     expect(result.documents.some((doc) => doc.type === "other" && doc.label === "How to connect BCC039H")).toBe(true);
     expect(result.documents.some((doc) => doc.type === "datasheet")).toBe(true);
     expect(result.normalized.certificates).toContain("CE");
+  });
+
+  it("uses one rendered exact PDP when Balluff's HTTP client is access-blocked", async () => {
+    let renderCalls = 0;
+    let fallbackCalls = 0;
+    const renderedHtml = `
+      <html><head>
+        <link rel="canonical" href="https://www.balluff.com/en-us/products/BES00TM" />
+        <meta property="og:title" content="BES00TM (BES 516-343-E4-C-03) Inductive proximity switches - BALLUFF USA" />
+        <script type="application/ld+json">{"@context":"https://schema.org","@type":"Product","name":"BES00TM","sku":"BES00TM","mpn":"BES00TM","image":"https://assets.balluff.com/BES00TM.png"}</script>
+      </head><body>
+        <h1>BES00TM</h1><h2>Inductive proximity switches and proximity sensors</h2>
+        <div>Dimension</div><div>Ø 8 x 30 mm</div>
+        <div>Operating voltage Ub</div><div>10...30 VDC</div>
+        <div>IP rating</div><div>IP68</div>
+        <a href="https://publications.balluff.com/pdfengine/pdf?type=pdb&id=247296&con=en">Datasheet</a>
+      </body></html>`;
+    const connector = new BalluffConnector();
+    const context = {
+      manufacturer: {
+        id: "balluff", canonicalName: "Balluff", shortName: "BAL", rateLimitMs: 0,
+        officialBaseUrls: ["https://www.balluff.com/en-us/products"], fallbackSources: [], fetchPolicy: { minContentLength: 0 }
+      },
+      http: {
+        fetchText: async (url: string) => ({ ...fetched("<html><title>Just a moment...</title></html>", url), statusCode: 403 }),
+        fetchTextViaPowerShell: async (url: string) => ({ ...fetched("<html><title>Just a moment...</title></html>", url), statusCode: 403 })
+      },
+      runDir: "", documentsDir: "",
+      browserRenderer: {
+        renderProductPageWithModalSequence: async (url: string) => {
+          renderCalls += 1;
+          return { fetched: fetched(renderedHtml, url), networkTexts: [], networkDiagnostics: [], sectionFragments: [] };
+        }
+      },
+      fallback: { scrape: async () => { fallbackCalls += 1; return undefined; } }
+    } as unknown as ScrapeContext;
+
+    const result = await connector.scrape("BES00TM", context);
+
+    expect(renderCalls).toBe(1);
+    expect(fallbackCalls).toBe(0);
+    expect(result.status).toBe("found");
+    expect(result.title).toBe("BES00TM (BES 516-343-E4-C-03) Inductive proximity switches - BALLUFF USA");
+    expect(result.attributes.some((attr) => attr.name === "Catalog Number" && attr.value === "BES00TM")).toBe(true);
+    expect(result.normalized.voltage).toBe("10...30 V DC");
+    expect(result.documents.some((doc) => doc.type === "datasheet")).toBe(true);
+  });
+
+  it("stops after every exact Balluff product locale is access-blocked", async () => {
+    let fetchCalls = 0;
+    let fallbackCalls = 0;
+    const connector = new BalluffConnector();
+    const context = {
+      manufacturer: {
+        id: "balluff",
+        canonicalName: "Balluff",
+        shortName: "BAL",
+        rateLimitMs: 0,
+        officialBaseUrls: ["https://www.balluff.com/en-gb/products"],
+        fallbackSources: [],
+        fetchPolicy: { minContentLength: 0 }
+      },
+      http: {
+        fetchText: async (url: string) => {
+          fetchCalls += 1;
+          return { ...fetched("<html><title>Just a moment...</title></html>", url), statusCode: 403 };
+        },
+        fetchTextViaPowerShell: async (url: string) => ({ ...fetched("<html><title>Just a moment...</title></html>", url), statusCode: 403 })
+      },
+      runDir: "",
+      documentsDir: "",
+      fallback: {
+        scrape: async () => {
+          fallbackCalls += 1;
+          return undefined;
+        }
+      }
+    } as unknown as ScrapeContext;
+
+    const result = await connector.scrape("BNI004A", context);
+
+    expect(fetchCalls).toBeGreaterThan(1);
+    expect(fallbackCalls).toBe(0);
+    expect(result.status).toBe("failed");
+    expect(result.diagnostics?.terminal).toEqual({
+      skipNetworkFallback: true,
+      reason: expect.stringMatching(/HTTP 403.*every attempted locale/i)
+    });
   });
 
   it("skips Balluff Downloads modal during datasheet-only enrichment", async () => {
@@ -6072,6 +6174,24 @@ IP degree of protection IP68 conforming to IEC 60529 IP69K conforming to DIN 400
     ]));
     expect(result.documents).toContainEqual(expect.objectContaining({ type: "datasheet", label: "Eaton E-VAC vacuum circuit breaker catalog" }));
     expect(result.documents).toContainEqual(expect.objectContaining({ type: "image", label: "Eaton E-VAC product-series device image" }));
+  });
+
+  it("never exposes the 360W-VACi32 manual PDF as the product URL", async () => {
+    const connector = new EatonConnector();
+    const context = {
+      manufacturer: { id: "eaton", canonicalName: "Eaton", shortName: "EAT", rateLimitMs: 0, officialBaseUrls: ["https://www.eaton.com"], localizedUrlTemplates: [], fallbackSources: [] },
+      http: { fetchText: async () => { throw new Error("MV model route must not request a SKU page"); } },
+      runDir: "",
+      documentsDir: "",
+      downloadDocument: async (doc: Parameters<ScrapeContext["downloadDocument"]>[0]) => doc,
+      fallback: { scrape: async () => undefined }
+    } as unknown as ScrapeContext;
+    const result = await connector.scrape("360W-VACi32", context);
+
+    expect(result.status).toBe("found");
+    expect(result.productUrl).toBe("https://www.eaton.com/my/en-us/catalog/medium-voltage-power-distribution-control-systems/eaton-w-vaci.html");
+    expect(result.productUrl).not.toMatch(/\.pdf(?:$|[?#])/i);
+    expect(result.documents).toContainEqual(expect.objectContaining({ url: expect.stringMatching(/mn131004en.*\.pdf$/i) }));
   });
 
   it("keeps only an identity-proven Eaton device image when page JSON and reader text include accessories", () => {
