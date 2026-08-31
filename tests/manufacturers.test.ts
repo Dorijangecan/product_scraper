@@ -52,7 +52,7 @@ describe("manufacturer configuration", () => {
     expect(nvent?.canonicalName).toBe("nVent");
     expect(nvent?.officialBaseUrls).toContain("https://www.chemelex.com");
     expect(templates).toEqual(expect.arrayContaining([
-      "https://www.nvent.com/en-us/hoffman/products/enc{partLower}",
+      "https://www.nvent.com/en-us/hoffman/products/enc{partLower}/",
       "https://www.nvent.com/en-us/caddy/products/{partLower}",
       "https://www.nvent.com/en-us/erico/products/{partLower}",
       "https://www.nvent.com/en-us/eriflex/products/{partLower}",

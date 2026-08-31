@@ -11,6 +11,7 @@ const connectorLoaders: Record<string, () => Promise<ManufacturerConnector>> = {
   eta: async () => new (await import("./eta.js")).ETAConnector(),
   fath: async () => new (await import("./fath.js")).FathConnector(),
   gan: async () => new (await import("./gan.js")).GanterNormConnector(),
+  nvent: async () => new (await import("./nvent.js")).NventConnector(),
   rockwell: async () => new (await import("./rockwell.js")).RockwellConnector(),
   sce: async () => new (await import("./sce.js")).SCEConnector(),
   scame: async () => new (await import("./scame.js")).ScameConnector(),

@@ -20,11 +20,8 @@ ten new catalog numbers, official-source evidence, an audit table, and final iso
 | Schneider Electric | 10 | 10/10 found, identity, official URL, documents, type and PDT | `schneider-audit.md` + ten individual reports |
 | Siemens | 10 | 10/10 found, identity, official URL, documents, type and PDT | `siemens-audit.md` + ten individual reports |
 | Ganter Norm | 10 | 10/10 found, identity, official URL, documents, type and PDT | `ganter-audit.md` + ten individual reports |
+| nVent | 10 | 10/10 found, identity, official URL, documents, type and PDT | `nvent-audit.md` + ten individual reports |
 
-## Remaining scope
-
-`all-manufacturers.json` also contains manufacturers with only two exploratory entries (for
-example Nvent). Those are
-not counted as completed cold audits: each still needs ten previously unseen, officially verified
-items and the same individual rerun evidence. The global objective remains open until those sets
-are audited as well.
+All manufacturers in the cold-start scope now have ten previously unseen, officially verified
+items and final isolated rerun evidence. This report is complete for the current manufacturer
+scope.

@@ -175,10 +175,14 @@ export class GenericFallbackScraper {
       }
     }
 
+    // Keep the selected neutral fallback UA for the PowerShell rescue as well. Previously
+    // this path silently reverted to DEFAULT_USER_AGENT, so WAFs that rejected the primary
+    // request rejected the final rescue too (observed on nVent product pages).
+    const rescueUserAgent = policy.fallbackUserAgents?.[0] ?? policy.userAgent;
     return this.http.fetchTextViaPowerShell(url, {
         timeoutMs: policy.timeoutMs ? Math.max(policy.timeoutMs, 30000) : 30000,
         cacheTtlMs: policy.cacheTtlMs,
-        headers,
+        headers: fetchHeaders({ ...policy, ...(rescueUserAgent ? { userAgent: rescueUserAgent } : {}) }),
         signal
       });
   }
@@ -768,7 +772,7 @@ function cleanProductTitle($: cheerio.CheerioAPI, catalogNumber?: string, rawTex
       )
     : undefined;
 
-  return cleanText(firstProductHeading || named || documentTitle || readerTitle)
+  return cleanText(firstProductHeading || named || documentTitle || openGraphTitle || readerTitle)
     .replace(/\s+The Quick Ship feature is designed to streamline[\s\S]*$/i, "")
     .replace(/\s+\|.+$/, "");
 }
@@ -794,6 +798,15 @@ function extractCatalogIdentityAttributes($: cheerio.CheerioAPI, catalogNumber: 
     if (identity?.level !== "exact") continue;
     attributes.push({ group: "Identity", name: "Catalog Number", value: identity.candidate, sourceUrl });
   }
+  // nVent product pages publish the SKU only in Coveo metadata (the visible body is
+  // hydrated client-side). Treat that official metadata as identity evidence.
+  $("meta[property='coveo:product_item_sku'], meta[property='coveo:product_item_catalog_num']").each((_, element) => {
+    const raw = cleanText($(element).attr("content"));
+    const identity = findCatalogTextMatch(raw.replace(/^ENC_/i, ""), catalogNumber, { compact: true, ignoreCase: true });
+    if (identity?.level === "exact") {
+      attributes.push({ group: "Identity", name: "Catalog Number", value: identity.candidate, sourceUrl });
+    }
+  });
   return dedupeAttributes(attributes).slice(0, 3);
 }
 

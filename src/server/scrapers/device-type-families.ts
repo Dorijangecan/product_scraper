@@ -183,6 +183,10 @@ export const DEVICE_TYPE_FAMILIES: Record<string, readonly FamilyEntry[]> = {
     { patterns: ["1492-EAJ", "1492-EAH", "1492-EAP", "1492-ERL"], type: "Terminal Accessory", notes: "1492 end anchors / end retainers" },
     { patterns: ["1492"], type: "Terminal Block" }
   ],
+  nvent: [
+    { patterns: ["CP2020", "CSP2020", "P19SH8", "P2ACEGP", "23022-010"], type: "Mounting Accessory", notes: "nVent Hoffman/Schroff accessory items verified on official product pages" },
+    { patterns: ["P2C", "P2D", "P2B", "CSD", "P2KOD"], type: "Enclosure", notes: "nVent Hoffman enclosure families" }
+  ],
   eta: [
     { patterns: ["REX", "3120", "2210", "ESS"], type: "Circuit Breaker" }
   ],

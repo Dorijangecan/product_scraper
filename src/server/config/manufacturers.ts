@@ -167,7 +167,9 @@ const builtInManufacturerConfigs: Record<string, ManufacturerConfig> = {
       referer: "https://www.nvent.com/",
       minContentLength: 50000,
       fallbackUserAgents: [
-        "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)"
+        // nVent's WAF rejects the Googlebot UA used by the legacy profile; a
+        // neutral browser UA is accepted for the same official product page.
+        "Mozilla/5.0"
       ]
     },
     fallbackSources: [
@@ -181,7 +183,7 @@ const builtInManufacturerConfigs: Record<string, ManufacturerConfig> = {
         // multiplied sequential rate-limited fetches per part without adding coverage the brand
         // base templates don't already provide.
         directUrlTemplates: [
-          "https://www.nvent.com/en-us/hoffman/products/enc{partLower}",
+          "https://www.nvent.com/en-us/hoffman/products/enc{partLower}/",
           "https://hoffman.nvent.com/en-us/products/enc{partLower}",
           "https://www.nvent.com/en-us/hoffman/products/{partLower}",
           "https://www.nvent.com/en-us/caddy/products/{partLower}",
