@@ -1,9 +1,9 @@
 {
-  "generatedAt": "2026-08-31T12:22:45.665Z",
-  "outputDir": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260831122225",
+  "generatedAt": "2026-08-31T12:24:00.018Z",
+  "outputDir": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260831122350",
   "filters": {
     "manufacturer": "schmersal",
-    "catalogNumber": "101199600",
+    "catalogNumber": "101150376",
     "fixtureDir": "benchmarks/cold-products"
   },
   "summary": {
@@ -25,31 +25,31 @@
         "schmersal": {
           "total": 1,
           "caseTypes": [
-            "electrical"
+            "accessory"
           ],
           "riskTags": [
-            "bns36",
+            "azm161-mount",
             "cold",
-            "magnetic-safety-sensor"
+            "interlock-accessory"
           ]
         }
       },
       "byDeviceType": {
-        "Safety Sensor": {
+        "Mounting Accessory": {
           "total": 1,
           "manufacturers": [
             "schmersal"
           ],
           "caseTypes": [
-            "electrical"
+            "accessory"
           ]
         }
       },
       "byDeviceSheet": {
-        "safety sensor": {
+        "cable ducts mounting rails": {
           "total": 1,
           "deviceTypes": [
-            "Safety Sensor"
+            "Mounting Accessory"
           ],
           "manufacturers": [
             "schmersal"
@@ -74,7 +74,6 @@
         "cabinet.mechanical",
         "cabinet.rack",
         "cable",
-        "cable ducts mounting rails",
         "cable gland",
         "command and alarm device",
         "connector",
@@ -95,6 +94,7 @@
         "pneumatic handling",
         "power supply devices",
         "pump",
+        "safety sensor",
         "sensor - fluid",
         "servo controller",
         "terminal",
@@ -332,21 +332,6 @@
               "pattern": "889",
               "deviceType": "Cable",
               "notes": "Allen-Bradley cordsets and patchcords"
-            }
-          ]
-        },
-        {
-          "sheetName": "cable ducts mounting rails",
-          "deviceTypes": [
-            "Mounting Accessory",
-            "Wireway"
-          ],
-          "examples": [
-            {
-              "manufacturerId": "sce",
-              "pattern": "SCE-FK",
-              "deviceType": "Mounting Accessory",
-              "notes": "SCE floor stand / enclosure mounting kits"
             }
           ]
         },
@@ -782,6 +767,42 @@
           "examples": []
         },
         {
+          "sheetName": "safety sensor",
+          "deviceTypes": [
+            "Safety Relay",
+            "Safety Sensor",
+            "Solenoid Interlock"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "PLUTO",
+              "deviceType": "Safety Relay",
+              "notes": "Pluto safety controller"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "PSR",
+              "deviceType": "Safety Relay"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "PSRMINI",
+              "deviceType": "Safety Relay"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "440C",
+              "deviceType": "Safety Relay"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "440R",
+              "deviceType": "Safety Relay"
+            }
+          ]
+        },
+        {
           "sheetName": "sensor - fluid",
           "deviceTypes": [
             "Flow Sensor",
@@ -924,31 +945,31 @@
   "reports": [
     {
       "manufacturerId": "schmersal",
-      "catalogNumber": "101199600",
-      "caseType": "electrical",
-      "expectedDeviceType": "Safety Sensor",
-      "actualDeviceType": "Safety Sensor",
+      "catalogNumber": "101150376",
+      "caseType": "accessory",
+      "expectedDeviceType": "Mounting Accessory",
+      "actualDeviceType": "Mounting Accessory",
       "deviceTypeMatched": true,
       "riskTags": [
         "cold",
-        "bns36",
-        "magnetic-safety-sensor"
+        "azm161-mount",
+        "interlock-accessory"
       ],
       "status": "found",
-      "confidence": 0.53,
-      "elapsedMs": 19858,
-      "productUrl": "https://products.schmersal.com/nl_NL/bns-36-1101z-l-5-0m-101199600",
+      "confidence": 0.57,
+      "elapsedMs": 9656,
+      "productUrl": "https://products.schmersal.com/ja_JP/azm-161-p-101150376",
       "identityConfirmed": true,
       "wrongProduct": false,
       "officialUrlMatched": true,
       "requiredDocumentsMatched": true,
-      "normalizedFieldsMatched": false,
+      "normalizedFieldsMatched": true,
       "pdtAuditMatched": true,
-      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260831122225\\pdt\\schmersal-101199600-pdt_pdt-audit.json",
-      "pdtWrittenCells": 31,
-      "pdtBlankCells": 109,
-      "pdtSkippedCells": 10,
-      "pdtUnprovenSkipped": 1,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260831122350\\pdt\\schmersal-101150376-pdt_pdt-audit.json",
+      "pdtWrittenCells": 15,
+      "pdtBlankCells": 71,
+      "pdtSkippedCells": 0,
+      "pdtUnprovenSkipped": 0,
       "pdtUnprovenWritten": 0,
       "pdtWriteIssues": 0,
       "pdtRequiredFieldIssues": 0,

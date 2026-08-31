@@ -1,9 +1,9 @@
 {
-  "generatedAt": "2026-08-31T12:22:45.665Z",
-  "outputDir": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260831122225",
+  "generatedAt": "2026-08-31T12:23:47.403Z",
+  "outputDir": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260831122335",
   "filters": {
     "manufacturer": "schmersal",
-    "catalogNumber": "101199600",
+    "catalogNumber": "101209119",
     "fixtureDir": "benchmarks/cold-products"
   },
   "summary": {
@@ -17,7 +17,7 @@
     "partialWithoutMissing": 0,
     "pdtUnprovenWritten": 0,
     "pdtUnexplainedRequiredFieldIssues": 0,
-    "pdtWriteIssues": 0,
+    "pdtWriteIssues": 3,
     "qualityAccepted": true,
     "fixtureCoverageAccepted": true,
     "fixtureCoverage": {
@@ -28,14 +28,14 @@
             "electrical"
           ],
           "riskTags": [
-            "bns36",
-            "cold",
-            "magnetic-safety-sensor"
+            "asi-interlock",
+            "azm161",
+            "cold"
           ]
         }
       },
       "byDeviceType": {
-        "Safety Sensor": {
+        "Solenoid Interlock": {
           "total": 1,
           "manufacturers": [
             "schmersal"
@@ -49,7 +49,7 @@
         "safety sensor": {
           "total": 1,
           "deviceTypes": [
-            "Safety Sensor"
+            "Solenoid Interlock"
           ],
           "manufacturers": [
             "schmersal"
@@ -924,33 +924,33 @@
   "reports": [
     {
       "manufacturerId": "schmersal",
-      "catalogNumber": "101199600",
+      "catalogNumber": "101209119",
       "caseType": "electrical",
-      "expectedDeviceType": "Safety Sensor",
-      "actualDeviceType": "Safety Sensor",
+      "expectedDeviceType": "Solenoid Interlock",
+      "actualDeviceType": "Solenoid Interlock",
       "deviceTypeMatched": true,
       "riskTags": [
         "cold",
-        "bns36",
-        "magnetic-safety-sensor"
+        "azm161",
+        "asi-interlock"
       ],
       "status": "found",
-      "confidence": 0.53,
-      "elapsedMs": 19858,
-      "productUrl": "https://products.schmersal.com/nl_NL/bns-36-1101z-l-5-0m-101199600",
+      "confidence": 0.57,
+      "elapsedMs": 12087,
+      "productUrl": "https://products.schmersal.com/en_US/azm-161-bz-st1-as-r-101209119",
       "identityConfirmed": true,
       "wrongProduct": false,
       "officialUrlMatched": true,
       "requiredDocumentsMatched": true,
-      "normalizedFieldsMatched": false,
+      "normalizedFieldsMatched": true,
       "pdtAuditMatched": true,
-      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260831122225\\pdt\\schmersal-101199600-pdt_pdt-audit.json",
-      "pdtWrittenCells": 31,
-      "pdtBlankCells": 109,
-      "pdtSkippedCells": 10,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260831122335\\pdt\\schmersal-101209119-pdt_pdt-audit.json",
+      "pdtWrittenCells": 42,
+      "pdtBlankCells": 91,
+      "pdtSkippedCells": 17,
       "pdtUnprovenSkipped": 1,
       "pdtUnprovenWritten": 0,
-      "pdtWriteIssues": 0,
+      "pdtWriteIssues": 3,
       "pdtRequiredFieldIssues": 0,
       "pdtUnexplainedRequiredFieldIssues": 0,
       "customerDocumentsExpected": 0,

@@ -1,9 +1,9 @@
 {
-  "generatedAt": "2026-08-31T12:22:45.665Z",
-  "outputDir": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260831122225",
+  "generatedAt": "2026-08-31T12:23:32.498Z",
+  "outputDir": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260831122321",
   "filters": {
     "manufacturer": "schmersal",
-    "catalogNumber": "101199600",
+    "catalogNumber": "101150050",
     "fixtureDir": "benchmarks/cold-products"
   },
   "summary": {
@@ -17,7 +17,7 @@
     "partialWithoutMissing": 0,
     "pdtUnprovenWritten": 0,
     "pdtUnexplainedRequiredFieldIssues": 0,
-    "pdtWriteIssues": 0,
+    "pdtWriteIssues": 3,
     "qualityAccepted": true,
     "fixtureCoverageAccepted": true,
     "fixtureCoverage": {
@@ -28,9 +28,9 @@
             "electrical"
           ],
           "riskTags": [
-            "bns36",
+            "az16-coded",
             "cold",
-            "magnetic-safety-sensor"
+            "safety-switch"
           ]
         }
       },
@@ -924,33 +924,33 @@
   "reports": [
     {
       "manufacturerId": "schmersal",
-      "catalogNumber": "101199600",
+      "catalogNumber": "101150050",
       "caseType": "electrical",
       "expectedDeviceType": "Safety Sensor",
       "actualDeviceType": "Safety Sensor",
       "deviceTypeMatched": true,
       "riskTags": [
         "cold",
-        "bns36",
-        "magnetic-safety-sensor"
+        "az16-coded",
+        "safety-switch"
       ],
       "status": "found",
-      "confidence": 0.53,
-      "elapsedMs": 19858,
-      "productUrl": "https://products.schmersal.com/nl_NL/bns-36-1101z-l-5-0m-101199600",
+      "confidence": 0.57,
+      "elapsedMs": 10345,
+      "productUrl": "https://products.schmersal.com/en_US/az-16-12zib1-m16-101150050",
       "identityConfirmed": true,
       "wrongProduct": false,
       "officialUrlMatched": true,
       "requiredDocumentsMatched": true,
-      "normalizedFieldsMatched": false,
+      "normalizedFieldsMatched": true,
       "pdtAuditMatched": true,
-      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260831122225\\pdt\\schmersal-101199600-pdt_pdt-audit.json",
-      "pdtWrittenCells": 31,
-      "pdtBlankCells": 109,
-      "pdtSkippedCells": 10,
-      "pdtUnprovenSkipped": 1,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260831122321\\pdt\\schmersal-101150050-pdt_pdt-audit.json",
+      "pdtWrittenCells": 49,
+      "pdtBlankCells": 85,
+      "pdtSkippedCells": 16,
+      "pdtUnprovenSkipped": 0,
       "pdtUnprovenWritten": 0,
-      "pdtWriteIssues": 0,
+      "pdtWriteIssues": 3,
       "pdtRequiredFieldIssues": 0,
       "pdtUnexplainedRequiredFieldIssues": 0,
       "customerDocumentsExpected": 0,

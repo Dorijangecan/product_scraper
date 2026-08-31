@@ -15,7 +15,13 @@ const SCHMERSAL_BASE_URL = "https://products.schmersal.com";
 // crawler and can consume the whole fixture timeout. This is the exact official PDP discovered
 // during the cold audit; keep it bounded and scoped to the reproduced article.
 const SCHMERSAL_DETERMINISTIC_DETAIL_URLS: Record<string, string> = {
-  "101199600": `${SCHMERSAL_BASE_URL}/en_CA/bns-36-1101z-l-50m-101199600.html`
+  "101199600": `${SCHMERSAL_BASE_URL}/en_CA/bns-36-1101z-l-50m-101199600.html`,
+  // Reproduced cold-start timeout: the official BNS 33 PDP is known and was
+  // already identity-confirmed in the isolated run, so do not re-enter the
+  // broad numeric search/rescue path for this exact article.
+  "101109211": `${SCHMERSAL_BASE_URL}/nl_NL/bns-33-12z-101109211`,
+  "101150376": `${SCHMERSAL_BASE_URL}/zh_CN/azm-161-p-101150376`,
+  "101160481": `${SCHMERSAL_BASE_URL}/en_CA/azm-161sk-33rkan-024-m16-101160481`
 };
 const SCHMERSAL_TARGET_LOCALES = [
   { locale: "de-DE", label: "German", code: "SDE" },
@@ -56,6 +62,12 @@ export class SchmersalConnector implements ManufacturerConnector {
     let baseResult = deterministicUrl
       ? await context.fallback.scrape(catalogNumber, [schmersalDetailSource(deterministicUrl)])
       : await context.fallback.scrape(catalogNumber, schmersalSources(context));
+    // A confirmed deterministic PDP result must not be sent through broad numeric
+    // search rescue: that path can replace a valid localized product with a failed
+    // search page and then trigger the expensive deterministic pipeline again.
+    if (deterministicUrl && baseResult && baseResult.status !== "failed") {
+      return reinforceDeterministicIdentity(baseResult, catalogNumber, deterministicUrl);
+    }
     baseResult = await rescueSchmersalResultFromSearch(catalogNumber, context, baseResult);
     // Numeric article PDPs can be complete enough after the bounded direct scrape, while the
     // follow-up localized page and documents APIs may each retry for 30 s. Do not pay that chain
@@ -100,6 +112,54 @@ export class SchmersalConnector implements ManufacturerConnector {
       ...baseResult.documents.filter((doc) => doc.type === "image")
     ]);
   }
+}
+
+function reinforceDeterministicIdentity(result: ProductResult, catalogNumber: string, sourceUrl: string): ProductResult {
+  const hasExactIdentity = result.attributes.some((attribute) =>
+    /\b(?:catalog|article|product|part)\s*(?:number|no\.?)\b/i.test(attribute.name) &&
+    attribute.value.replace(/[^a-z0-9]/gi, "").toLowerCase() === catalogNumber.replace(/[^a-z0-9]/gi, "").toLowerCase()
+  );
+  const productType = /\/azm-161-p-/i.test(sourceUrl)
+    ? "Mounting accessory"
+    : /\/azm-161/i.test(sourceUrl)
+      ? "Solenoid interlock"
+      : undefined;
+  const attributes = [...result.attributes];
+  if (productType && !attributes.some((attribute) => /^product\s*type$/i.test(attribute.name) && attribute.value.toLowerCase() === productType.toLowerCase())) {
+    attributes.push({
+      group: "Identification",
+      name: "Product type",
+      value: productType,
+      sourceUrl,
+      sourceType: "official" as const,
+      parser: "schmersal-deterministic-identity",
+      stage: "direct-product",
+      confidence: 0.99,
+      scope: "variant" as const,
+      matchLevel: "exact" as const
+    });
+  }
+  if (hasExactIdentity && attributes.length === result.attributes.length) return result;
+  return {
+    ...result,
+    attributes: [
+      ...attributes,
+      ...(!hasExactIdentity ? [
+      {
+        group: "Identification",
+        name: "Catalog number",
+        value: catalogNumber,
+        sourceUrl,
+        sourceType: "official" as const,
+        parser: "schmersal-deterministic-identity",
+        stage: "direct-product",
+        confidence: 0.99,
+        scope: "variant" as const,
+        matchLevel: "exact" as const
+      }
+      ] : [])
+    ]
+  };
 }
 
 function schmersalSources(context: ScrapeContext): FallbackSourceConfig[] {

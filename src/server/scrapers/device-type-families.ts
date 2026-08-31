@@ -134,7 +134,8 @@ export const DEVICE_TYPE_FAMILIES: Record<string, readonly FamilyEntry[]> = {
     { patterns: ["ABOX", "AK", "TK", "WKE", "GTI"], type: "Enclosure", notes: "Spelsberg junction boxes / enclosures" }
   ],
   schmersal: [
-    { patterns: ["AZM", "AZ", "BNS", "RSS", "SLC", "SLB", "EX-AZ"], type: "Safety Sensor" },
+    { patterns: ["AZM"], type: "Solenoid Interlock" },
+    { patterns: ["AZ", "BNS", "RSS", "SLC", "SLB", "EX-AZ"], type: "Safety Sensor" },
     { patterns: ["SRB", "PROTECT-"], type: "Safety Relay" }
   ],
   rockwell: [

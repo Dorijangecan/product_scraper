@@ -69,6 +69,7 @@ const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
   rule("Flow Sensor", /\bflow\s+(?:sensor|meter|switch|transmitter)\b/i, 845),
   rule("Level Sensor", /\b(?:level\s+(?:sensor|switch|transmitter)|float switch)\b/i, 843),
   rule("Encoder", /\b(?:rotary encoders?|absolute encoders?|incremental encoders?|encoders?)\b/i, 840),
+  rule("Solenoid Interlock", /\b(?:solenoid interlock|electromechanical guard lock(?:ing)?|safety interlock with solenoid|electromagnetic interlock)\b/i, 950),
   rule("Safety Sensor", /\b(?:safety sensor|safety light curtain|light curtain|safety mat|safety scanner|laser scanner|safety edge|two[-\s]?hand control|safety switch|safety interlock|guard locking|guard[-\s]?lock(?:ing)? switch|safety door switch|door interlock)\b/i, 838),
   rule("Sensor", /\b(?:sensor|sensing|detector|limit switch|position switch|measuring range|measuring principle)\b/i, 620),
 

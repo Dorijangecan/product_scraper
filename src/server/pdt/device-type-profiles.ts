@@ -116,6 +116,9 @@ export const DEVICE_TYPE_PROFILES: Record<string, DeviceTypePdtProfile> = {
   // Some safety sensors (for example Schmersal BNS magnetic switches) are passive and publish no
   // supply voltage; a voltage remains optional when the official source does not provide one.
   "Safety Sensor": { sheets: ["safety sensor"], finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: NO_ELECTRICAL_FIELDS },
+  // Schmersal AZM products are solenoid interlocks, not generic sensors. They use
+  // the existing safety-sensor PDT tab while retaining their published voltage/current.
+  "Solenoid Interlock": { sheets: ["safety sensor"], finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_AND_CURRENT },
   Sensor: { sheets: ["electronic sensor"], finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_AND_CURRENT },
   "Pressure Sensor": { sheets: ["sensor - fluid"], finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_ONLY },
   "Temperature Sensor": { sheets: ["sensor - fluid"], finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_ONLY },

@@ -1,9 +1,9 @@
 {
-  "generatedAt": "2026-08-31T12:22:45.665Z",
-  "outputDir": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260831122225",
+  "generatedAt": "2026-08-31T12:23:03.251Z",
+  "outputDir": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260831122248",
   "filters": {
     "manufacturer": "schmersal",
-    "catalogNumber": "101199600",
+    "catalogNumber": "101196285",
     "fixtureDir": "benchmarks/cold-products"
   },
   "summary": {
@@ -28,14 +28,14 @@
             "electrical"
           ],
           "riskTags": [
-            "bns36",
+            "atex-safety-relay",
             "cold",
-            "magnetic-safety-sensor"
+            "srb101exi"
           ]
         }
       },
       "byDeviceType": {
-        "Safety Sensor": {
+        "Safety Relay": {
           "total": 1,
           "manufacturers": [
             "schmersal"
@@ -49,7 +49,7 @@
         "safety sensor": {
           "total": 1,
           "deviceTypes": [
-            "Safety Sensor"
+            "Safety Relay"
           ],
           "manufacturers": [
             "schmersal"
@@ -924,30 +924,30 @@
   "reports": [
     {
       "manufacturerId": "schmersal",
-      "catalogNumber": "101199600",
+      "catalogNumber": "101196285",
       "caseType": "electrical",
-      "expectedDeviceType": "Safety Sensor",
-      "actualDeviceType": "Safety Sensor",
+      "expectedDeviceType": "Safety Relay",
+      "actualDeviceType": "Safety Relay",
       "deviceTypeMatched": true,
       "riskTags": [
         "cold",
-        "bns36",
-        "magnetic-safety-sensor"
+        "srb101exi",
+        "atex-safety-relay"
       ],
       "status": "found",
       "confidence": 0.53,
-      "elapsedMs": 19858,
-      "productUrl": "https://products.schmersal.com/nl_NL/bns-36-1101z-l-5-0m-101199600",
+      "elapsedMs": 14546,
+      "productUrl": "https://products.schmersal.com/nl_NL/srb101exi-1a-101196285",
       "identityConfirmed": true,
       "wrongProduct": false,
       "officialUrlMatched": true,
       "requiredDocumentsMatched": true,
       "normalizedFieldsMatched": false,
       "pdtAuditMatched": true,
-      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260831122225\\pdt\\schmersal-101199600-pdt_pdt-audit.json",
-      "pdtWrittenCells": 31,
-      "pdtBlankCells": 109,
-      "pdtSkippedCells": 10,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260831122248\\pdt\\schmersal-101196285-pdt_pdt-audit.json",
+      "pdtWrittenCells": 25,
+      "pdtBlankCells": 124,
+      "pdtSkippedCells": 1,
       "pdtUnprovenSkipped": 1,
       "pdtUnprovenWritten": 0,
       "pdtWriteIssues": 0,
