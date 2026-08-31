@@ -236,6 +236,37 @@ describe("normalizer", () => {
     expect(normalized.certificates).not.toContain("UL Recognized");
   });
 
+  it("keeps prose mined out of a compliance-declaration PDF out of the certificates column", () => {
+    // `fieldMatchesLabel` matches on group + name, so EVERY attribute mined from a RoHS/REACH
+    // declaration PDF — group "PDF certificate" — qualified as a certificate whatever its name was.
+    // These are the real values that reached ABB 1SAP180400R0001's exported Certificates cell.
+    const normalized = normalizeFields(
+      [
+        { group: "PDF certificate", name: "Feature", value: "(w/w)" },
+        { group: "PDF certificate", name: ". RoHS", value: "compliance certificate" },
+        { group: "PDF certificate", name: "REACH SVHC-253", value: "declaration" },
+        { group: "PDF certificate", name: "Category", value: "II declaration" },
+        { group: "PDF certificate", name: "ATEX", value: "No declaration needed" },
+        { group: "PDF certificate", name: "Header", value: "CERTIFICATE Revision No" },
+        { group: "PDF certificate", name: "Feature", value: "except for some part types listed in Table 1 that" },
+        { group: "PDF certificate", name: ". REACH", value: "SVHC compliance certificate" },
+        { group: "PDF certificate", name: "Feature", value: "II declaration for Power Supplies" },
+        { group: "PDF certificate", name: "Marking", value: "CE" }
+      ],
+      []
+    );
+
+    // Only the one real mark in the batch survives.
+    expect(normalized.certificates).toBe("CE");
+  });
+
+  it("keeps marks that are spelled from roman-numeral letters, like CCC", () => {
+    // A numeral-shaped rejection eats a real certification mark; the bar is "names a mark", so CCC
+    // passes on its own while a bare "II declaration" fragment names nothing and does not.
+    expect(normalizeFields([{ name: "Certification", value: "CCC" }], []).certificates).toBe("CCC");
+    expect(normalizeFields([{ name: "Certification", value: "II declaration" }], []).certificates).toBeUndefined();
+  });
+
   it("recognizes DNV GL Marine, Class I Div 2, and NEC Class 2 certificate tokens", () => {
     // Real Rockwell 1606-td002 "Standards Compliance and Certifications" checkmark-matrix
     // values (see pdf-compliance-matrix.ts) — these column headers used to fall through every

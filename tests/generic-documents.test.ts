@@ -216,4 +216,39 @@ describe("generic document discovery", () => {
     expect(result.normalized.current).toBe("2.5 A");
     expect(result.normalized.material).toBe("polycarbonate");
   });
+
+  it("does not read an HTML closing tag as a relative document URL", () => {
+    // The text-scan pattern for relative links also matches inside "</div>", yielding "/div".
+    // Resolved against the page that becomes e.g. "https://new.abb.com/div", and because the 180
+    // characters of markup around it carry a heading, it was classified from that context and
+    // shipped as the product's datasheet. Real shape, from ABB's smartlinks page.
+    const result = parseGenericProductPage(
+      "generic",
+      "1SDA128409R1",
+      {
+        requestedUrl: "https://example.test/smartlinks/en?ProductId=1SDA128409R1",
+        effectiveUrl: "https://example.test/smartlinks/en?ProductId=1SDA128409R1",
+        statusCode: 200,
+        contentType: "text/html",
+        fetchedAt: "2026-01-01T00:00:00.000Z",
+        fromCache: false,
+        text: `
+          <html><body>
+            <h1>1SDA128409R1</h1>
+            <div class="tab clickable" data-ga-params="Tab widget;Tab clicked;Data Sheet">
+              <div class="textContainer headline">
+                <div class="header3">Data Sheet</div>
+              </div>
+              <div class="expand-arrow positioned down"></div>
+            </div>
+          </body></html>
+        `
+      },
+      "official",
+      "discovery-localized-template",
+      {}
+    );
+
+    expect(result.documents.some((doc) => /\/div$/.test(doc.url))).toBe(false);
+  });
 });

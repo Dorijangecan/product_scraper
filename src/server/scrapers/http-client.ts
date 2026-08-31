@@ -21,6 +21,25 @@ export interface FetchedText {
   fromCache: boolean;
 }
 
+/**
+ * `host/firstPathSegment` — the granularity the reachability circuit breaker tracks.
+ *
+ * Host granularity is wrong whenever one host serves both a healthy API and a dead HTML front, and
+ * that combination is common. See the breaker's own comment in `CachedHttpClient` for the ABB case
+ * that this fixes.
+ */
+export function endpointCircuitKey(url: string): string | undefined {
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  } catch {
+    return undefined;
+  }
+  const host = parsed.hostname.toLowerCase();
+  const segment = parsed.pathname.split("/").filter(Boolean)[0]?.toLowerCase() ?? "";
+  return segment ? `${host}/${segment}` : host;
+}
+
 export class CachedHttpClient {
   private readonly hostQueues = new Map<string, Promise<void>>();
   private readonly hostNextAvailable = new Map<string, number>();
@@ -34,14 +53,23 @@ export class CachedHttpClient {
   private hostMinIntervalMs = 350;
   private static readonly MAX_HOST_PENALTY_MS = 10000;
   /**
-   * Circuit breaker for hosts that are entirely unreachable from this network — not merely
+   * Circuit breaker for endpoints that are entirely unreachable from this network — not merely
    * rate-limiting (that's `hostPenaltyMs` above), but every request (native fetch AND the curl
    * fallback) genuinely timing out with zero bytes received. Observed live: a manufacturer's
    * main domain was unreachable for every one of ~10 locale/path variants tried across a single
    * item, each still paying its own 5-38s timeout before giving up — several minutes wasted on
    * a host that was never going to answer. After a few confirmed full failures, skip further
-   * live attempts to that host for a cooldown instead of re-discovering the same outage
+   * live attempts to that endpoint for a cooldown instead of re-discovering the same outage
    * per-request. A single healthy response clears it immediately.
+   *
+   * Keyed by host AND first path segment, because "the host is down" is often false at host
+   * granularity. ABB is the worked example: `new.abb.com/api/*` (PIS search + token) answers in
+   * under a second, while `new.abb.com/products/*` accepts the connection and never replies for
+   * any id it does not know. With a host-wide key, three dead `/products` guesses — easily
+   * produced by OTHER items running concurrently — opened the breaker on the whole host and the
+   * next item's healthy `/api` call was refused, failing a product whose data was one request
+   * away. Locale/path variants of one dead route still share a segment (`/products/pl`,
+   * `/products/de`, …), so the original protection is preserved.
    */
   private readonly hostFailureStreak = new Map<string, number>();
   private readonly hostDownUntil = new Map<string, number>();
@@ -80,35 +108,27 @@ export class CachedHttpClient {
     }
   }
 
-  /** Returns the hostname if it's currently circuit-broken (skip live attempts), else undefined. */
+  /** Returns the broken endpoint key if it's currently circuit-broken (skip live attempts), else undefined. */
   private hostCircuitOpenFor(url: string): string | undefined {
-    let host: string;
-    try {
-      host = new URL(url).hostname.toLowerCase();
-    } catch {
-      return undefined;
-    }
-    const downUntil = this.hostDownUntil.get(host);
-    return downUntil && Date.now() < downUntil ? host : undefined;
+    const key = endpointCircuitKey(url);
+    if (!key) return undefined;
+    const downUntil = this.hostDownUntil.get(key);
+    return downUntil && Date.now() < downUntil ? key : undefined;
   }
 
   /** Feed a definitive reachability outcome (not an HTTP status — a real connect/timeout result). */
   private recordHostReachability(url: string, reached: boolean): void {
-    let host: string;
-    try {
-      host = new URL(url).hostname.toLowerCase();
-    } catch {
-      return;
-    }
+    const key = endpointCircuitKey(url);
+    if (!key) return;
     if (reached) {
-      if (this.hostFailureStreak.size) this.hostFailureStreak.delete(host);
-      if (this.hostDownUntil.size) this.hostDownUntil.delete(host);
+      if (this.hostFailureStreak.size) this.hostFailureStreak.delete(key);
+      if (this.hostDownUntil.size) this.hostDownUntil.delete(key);
       return;
     }
-    const streak = (this.hostFailureStreak.get(host) ?? 0) + 1;
-    this.hostFailureStreak.set(host, streak);
+    const streak = (this.hostFailureStreak.get(key) ?? 0) + 1;
+    this.hostFailureStreak.set(key, streak);
     if (streak >= CachedHttpClient.HOST_DOWN_THRESHOLD) {
-      this.hostDownUntil.set(host, Date.now() + CachedHttpClient.HOST_DOWN_COOLDOWN_MS);
+      this.hostDownUntil.set(key, Date.now() + CachedHttpClient.HOST_DOWN_COOLDOWN_MS);
     }
   }
 
@@ -179,7 +199,7 @@ export class CachedHttpClient {
 
     const brokenHost = this.hostCircuitOpenFor(url);
     if (brokenHost) {
-      throw new Error(`Host ${brokenHost} has failed repeatedly this run and is temporarily skipped to avoid re-paying every request's timeout.`);
+      throw new Error(`Endpoint ${brokenHost} has failed repeatedly this run and is temporarily skipped to avoid re-paying every request's timeout.`);
     }
 
     await this.acquireHostSlot(url);
@@ -449,7 +469,7 @@ $contentType = if ($response.Headers['Content-Type']) { [string]$response.Header
 
     const brokenHost = this.hostCircuitOpenFor(url);
     if (brokenHost) {
-      throw new Error(`Host ${brokenHost} has failed repeatedly this run and is temporarily skipped to avoid re-paying every request's timeout.`);
+      throw new Error(`Endpoint ${brokenHost} has failed repeatedly this run and is temporarily skipped to avoid re-paying every request's timeout.`);
     }
 
     await fs.mkdir(this.cacheDir, { recursive: true });

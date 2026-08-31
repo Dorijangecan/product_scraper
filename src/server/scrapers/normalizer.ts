@@ -699,7 +699,13 @@ function bestNormalizedAttributeValue(
       return patterns.some((pattern) => pattern.test(haystack)) && isLikelySpecText(attr.value) && isAvailableSpecValue(attr.value);
     })
     .sort((left, right) => attributeEvidenceScore(right) + normalizedFieldLabelScore(right, field) - attributeEvidenceScore(left) - normalizedFieldLabelScore(left, field))
-    .map((attr) => normalize(attr.value))
+    // `voltage` and `current` run the winner through withoutMixedKindProse afterwards. Applying it
+    // here too is what makes that guard a candidate filter instead of a field killer: a top-ranked
+    // label whose value is a mixed V/A table (ABB prints "Rated Operational Current AC-21A" as
+    // "(380 ... 415 V) 1000 A; (500 V) 1000 A; ...") used to win the ranking, get voided, and take
+    // the whole field down with it — even with a clean "Conventional Thermal Current 1000 A" next
+    // in line. Scoped to the two fields that already have the outer guard, so nothing else moves.
+    .map((attr) => (field === "voltage" || field === "current" ? withoutMixedKindProse(normalize(attr.value)) : normalize(attr.value)))
     .find((value): value is string => Boolean(value));
 }
 
@@ -2320,6 +2326,7 @@ function uniqueCertificateTokens(values: string[]): string[] {
     if (/^(?:no certifications? needed|not applicable|n\/a)$/i.test(canonical)) {
       continue;
     }
+    if (!isRecognisedCertificateToken(canonical)) continue;
     const compact = compactCertificateToken(canonical);
     if (!canonical || seen.has(compact)) continue;
     seen.add(compact);
@@ -2327,6 +2334,50 @@ function uniqueCertificateTokens(values: string[]): string[] {
   }
   return unique;
 }
+
+/**
+ * Names of certification marks, standards bodies and standard families. A token has to carry one of
+ * these to read as a certificate to a person; "SVHC compliance certificate" and "II declaration for
+ * Power Supplies" describe paperwork and carry none.
+ */
+const CERTIFICATE_MARK_PATTERN =
+  /\b(?:IEC|EN|ISO|DIN|VDE|JIS|GB|NEC|NEMA|UL|cUL|cULus|cURus|c-?UL-?us|CSA|CE|CCC|CQC|UKCA|ATEX|IECEx|GOST|EAC|RCM|KCC|KC|PSE|SEMKO|FCC|FM|T(?:Ü|U)V|DNV|Lloyds?|BV|ABS|RINA|ClassNK|KR|NK|ODVA|WEEE|RoHS|REACH|TSCA|Prop\s*65|Morocco|CMim|EMC|LVD|ANATEL|C-?Tick|Class\s+I+\s+Div)\b/i;
+
+/**
+ * Document names the project treats as real published entries even though they name no mark. These
+ * are exact, curated shapes — anything looser lets declaration prose back in.
+ */
+const CERTIFICATE_KNOWN_DOCUMENT =
+  /^(?:(?:[\w-]+\s+)?declaration\s+of\s+conformity\b.*|[\w-]+\s+compliance\s+declaration|environmental\s+disclosure|circularity\s+profile|end\s+of\s+life\s+information|full\s+material\s+disclosure)$/i;
+
+/** Words that only ever appear mid-sentence — their presence proves the token is prose. */
+const CERTIFICATE_PROSE_CONNECTOR = /\b(?:that|which|there|except|because|however|listed\s+in)\b/i;
+
+/**
+ * Gate for the DERIVED certificates path (the literal, vendor-curated list is never filtered).
+ *
+ * Needed because `fieldMatchesLabel` matches on `group + name`, so every attribute mined out of a
+ * RoHS/REACH declaration PDF — group "PDF certificate" — qualified as a certificate no matter what
+ * its name was. That filled the exported Certificates column with things nobody would call a
+ * certificate: "(w/w)", "declaration", "II declaration", "compliance certificate", "CERTIFICATE
+ * Revision No", "SVHC compliance certificate", and a whole clause, "Declaration of Conformity - CE:
+ * 3ADR980151, except for some part types listed in Table 1 that". Filtering each way prose can
+ * arrive is whack-a-mole, so the token has to earn its place here, at the boundary.
+ *
+ * The bar is the one a person applies: name a mark, a standards body or a standard — or be one of
+ * the curated document names the catalogues really do publish.
+ */
+function isRecognisedCertificateToken(value: string): boolean {
+  const cleaned = cleanText(value);
+  if (!cleaned) return false;
+  if (CERTIFICATE_PROSE_CONNECTOR.test(cleaned)) return false;
+  // A sentence that happens to quote a mark is still a sentence.
+  if (cleaned.split(/\s+/).length > 8) return false;
+  if (CERTIFICATE_KNOWN_DOCUMENT.test(cleaned)) return true;
+  return CERTIFICATE_MARK_PATTERN.test(cleaned);
+}
+
+
 
 function canonicalCertificateToken(value: string): string {
   const cleaned = cleanText(value);

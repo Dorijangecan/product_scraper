@@ -3836,9 +3836,15 @@ function findDocumentUrlsInText(text: string, sourceUrl: string): Array<{ url: s
     const urlPattern = /https?:\/\/[^"'<>\s)]+|\/[a-z0-9][^"'<>\s)]*/gi;
     for (const match of decoded.matchAll(urlPattern)) {
       const rawUrl = match[0].replace(/[\\,.;]+$/g, "");
+      const index = match.index ?? 0;
+      // The relative-path half of the pattern also matches the inside of an HTML CLOSING TAG: given
+      // "</div>" it returns "/div", which resolves against the page to a URL like
+      // "https://new.abb.com/div". Since the surrounding 180 characters of markup often contain a
+      // heading, that fake link got classified from its context and shipped as the product's
+      // datasheet — observed on ABB's smartlinks page, where "Data Sheet" sits a few tags away.
+      if (index > 0 && decoded[index - 1] === "<") continue;
       const absolute = toAbsoluteUrl(rawUrl, sourceUrl);
       if (!absolute) continue;
-      const index = match.index ?? 0;
       const context = cleanText(decoded.slice(Math.max(0, index - 180), Math.min(decoded.length, index + rawUrl.length + 180)));
       const label = documentLabelFromContext(context, absolute);
       const type = classifyDocument(label, absolute);

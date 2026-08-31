@@ -601,6 +601,46 @@ describe("manufacturer parsers", () => {
     expect(result.documents.find((doc) => doc.type === "image")?.candidateUrls?.some((url) => url.includes("_master"))).toBe(true);
   });
 
+  it("names an ABB product from the PIS API payload, which ships no HTML heading", () => {
+    // This is the document `fetchAbbPisApiResult` synthesises: the authoritative PIS record wrapped
+    // in a bare <script> tag, with no <h1>, <title>, JSON-LD or meta description to read a name off.
+    // It is also the connector's fast path, so an empty Title/Description here meant every ABB
+    // product that resolved quickly exported blank identity columns.
+    const payload = {
+      productDetails: {
+        item: {
+          productId: "1SDA130199R1",
+          attributes: {
+            ProductId: abbAttribute("ProductId", "Product ID", "1SDA130199R1"),
+            ExtendedProductType: abbAttribute("ExtendedProductType", "Extended Product Type", "E4.3-A W FP Iu=2500 3p"),
+            CatalogDescription: abbAttribute("CatalogDescription", "Catalog Description", "SACE Emax 3 E4.3-A W FP Iu=2500 3p"),
+            LongDescription: abbAttribute("LongDescription", "Long Description", "FIXED PART WITHDRAWABLE FOR C.BREAKER SACE EMAX3"),
+            Ean: abbAttribute("Ean", "EAN", "8056221316286")
+          }
+        }
+      }
+    };
+    const model = { ProductViewModel: { Product: payload, AppSettings: { langCode: "en" }, ApiUrl: "https://external.productinformation.abb.com/PisWebApi/v1/" } };
+    const html = `<script>var model = ${JSON.stringify(model).replace(/</g, "\\u003c")};</script>`;
+
+    const result = parseAbbProductPage("1SDA130199R1", fetched(html, "https://new.abb.com/products/1SDA130199R1", "application/json"));
+
+    expect(result.title).toBe("SACE Emax 3 E4.3-A W FP Iu=2500 3p");
+    expect(result.description).toBe("FIXED PART WITHDRAWABLE FOR C.BREAKER SACE EMAX3");
+    // A payload whose own Product ID is the requested catalog number is identity-proven evidence,
+    // so it is not capped at the "no structured data" confidence.
+    expect(result.confidence).toBe(0.9);
+  });
+
+  it("keeps a source-confirmed Balluff catalog number as an identity attribute", () => {
+    const html = `
+      <html><head><link rel="canonical" href="https://www.balluff.com/en-gb/products/BES0608"></head>
+      <body><h1>BES0608 inductive sensor</h1><p>BES0608</p></body></html>`;
+    const result = parseBalluffProductPage("BES0608", fetched(html, "https://www.balluff.com/en-gb/products/BES0608"));
+
+    expect(result.attributes).toContainEqual(expect.objectContaining({ name: "Catalog Number", value: "BES0608", sourceType: "official" }));
+  });
+
   it("canonicalizes ABB switch-disconnector PIS codes and summary ratings", () => {
     const html = `
       <html><head>
@@ -632,10 +672,72 @@ describe("manufacturer parsers", () => {
     expect(result.status).toBe("found");
     expect(result.attributes.some((attr) => attr.name === "Rated Operational Current AC-23A" && attr.value.includes("250 A"))).toBe(true);
     expect(result.attributes.some((attr) => attr.name === "Maximum Operating Voltage UL/CSA" && attr.value === "600 V")).toBe(true);
-    expect(result.normalized.voltage).toBe("Main Circuit 1000 V");
+    // ABB prints the measuring condition in front of the magnitude ("Main Circuit 1000 V"). The
+    // condition belongs to the attribute, not to the exported rating, so only the magnitude lands
+    // in the normalized field.
+    expect(result.normalized.voltage).toBe("1000 V");
     expect(result.normalized.current).toBe("200 A");
     expect(result.normalized.weight).toBe("1.655 kg");
     expect(result.normalized.dimensions).toBe("150 x 205.5 x 101.5 mm");
+  });
+
+  it("retries a PIS detail answer that contradicts the PIS search instead of declaring the product absent", async () => {
+    // `200 {}` is how PIS answers for an id it has no record of — confirmed against both a retired
+    // ABB id and a made-up one — so it is normally the definitive "not in the catalogue" answer.
+    // Intermittently it comes back for a product the search just matched, and reading that as
+    // definitive silently costs the item its only complete data route: 1SVR340667R1000 came back
+    // with 28 attributes and no certificates in one run and 202 in the next, same code, same input.
+    const connector = new ABBConnector();
+    const detailCalls: string[] = [];
+    const searchJson = JSON.stringify({
+      Items: [{ ProductId: "1SVR340667R1000", CatalogDescription: "CP-S.3 24/10.0 Power supply" }],
+      TotalResultsCount: 1
+    });
+    const detailJson = JSON.stringify({
+      productDetails: {
+        item: {
+          productId: "1SVR340667R1000",
+          attributes: {
+            ProductId: abbAttribute("ProductId", "Product ID", "1SVR340667R1000"),
+            CatalogDescription: abbAttribute("CatalogDescription", "Catalog Description", "CP-S.3 24/10.0 Power supply"),
+            ProductNetWeight: abbAttribute("ProductNetWeight", "Product Net Weight", "0.85 kg")
+          }
+        }
+      }
+    });
+    const context = {
+      manufacturer: { id: "abb", canonicalName: "ABB", shortName: "ABB", rateLimitMs: 0, officialBaseUrls: [], localizedUrlTemplates: [], fallbackSources: [] },
+      http: {
+        fetchText: async (url: string) => {
+          if (url.includes("/api/PisSearchApi/Token")) {
+            return fetched(JSON.stringify({ Token: "test-token", ExpiresOn: new Date(Date.now() + 600_000).toISOString() }), url, "application/json");
+          }
+          if (url.includes("/api/PisSearchApi?")) return fetched(searchJson, url, "application/json");
+          if (url.includes("/Products/Detail")) {
+            detailCalls.push(url);
+            // First answer is the degenerate one; the retry gets the real record.
+            return fetched(detailCalls.length === 1 ? "{}" : detailJson, url, "application/json");
+          }
+          return fetched(`<html><body>not ${url}</body></html>`, url);
+        },
+        fetchTextViaPowerShell: async (url: string) => fetched(`<html><body>not ${url}</body></html>`, url)
+      },
+      runDir: "",
+      documentsDir: "",
+      imageOnly: false,
+      downloadDocuments: false,
+      downloadDocument: async (doc: Parameters<ScrapeContext["downloadDocument"]>[0]) => doc,
+      fallback: { scrape: async () => undefined }
+    } as unknown as ScrapeContext;
+
+    const result = await connector.scrape("1SVR340667R1000", context);
+
+    expect(detailCalls.length).toBeGreaterThanOrEqual(2);
+    expect(result.status).toBe("found");
+    expect(result.title).toBe("CP-S.3 24/10.0 Power supply");
+    expect(result.normalized.weight).toBe("0.85 kg");
+    // The item must NOT be reported as missing from the official catalogue.
+    expect(result.diagnostics?.terminal?.reason).not.toBe("official-catalog-not-found");
   });
 
   it("discovers ABB product IDs from the official PIS search API for commercial aliases", async () => {

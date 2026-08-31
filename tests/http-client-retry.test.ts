@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { curlBudgetOptions, isRetryableStatus, parseRetryAfterMs } from "../src/server/scrapers/http-client.js";
+import { curlBudgetOptions, endpointCircuitKey, isRetryableStatus, parseRetryAfterMs } from "../src/server/scrapers/http-client.js";
 
 describe("http retry policy", () => {
   it("retries on rate-limit and transient server statuses, not on success/client errors", () => {
@@ -62,5 +62,37 @@ describe("curl download budget", () => {
   it("never asks for longer than the shipped ceiling, however much budget is left", () => {
     const options = curlBudgetOptions(10 * 60_000);
     expect(options.timeoutMs).toBe(130_000);
+  });
+});
+
+/**
+ * The reachability breaker skips a target that has proven unreachable, so its key decides what
+ * "unreachable" covers. ABB is the case that forced this: `new.abb.com/api/*` answers in under a
+ * second while `new.abb.com/products/*` accepts the connection and never replies for an unknown id.
+ * At host granularity three dead `/products` guesses — easily produced by other items running
+ * concurrently — refused the next item's healthy `/api` call and failed a product whose data was
+ * one request away.
+ */
+describe("reachability circuit key", () => {
+  it("separates a healthy API route from a dead HTML route on the same host", () => {
+    expect(endpointCircuitKey("https://new.abb.com/api/PisSearchApi?query=X")).toBe("new.abb.com/api");
+    expect(endpointCircuitKey("https://new.abb.com/products/1SVR340667R1000")).toBe("new.abb.com/products");
+    expect(endpointCircuitKey("https://new.abb.com/api/PisSearchApi/Token")).not.toBe(
+      endpointCircuitKey("https://new.abb.com/products/de/1SVR340667R1000/product")
+    );
+  });
+
+  it("still groups locale and path variants of one dead route together", () => {
+    const variants = [
+      "https://new.abb.com/products/pl/1SDA124715R1/product",
+      "https://new.abb.com/products/de/1SDA124715R1/product",
+      "https://new.abb.com/products/it/1SDA124715R1"
+    ].map(endpointCircuitKey);
+    expect(new Set(variants).size).toBe(1);
+  });
+
+  it("falls back to the bare host for a root URL, and to undefined for a non-URL", () => {
+    expect(endpointCircuitKey("https://new.abb.com/")).toBe("new.abb.com");
+    expect(endpointCircuitKey("not a url")).toBeUndefined();
   });
 });

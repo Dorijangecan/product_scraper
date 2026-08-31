@@ -45,10 +45,20 @@ export class ABBConnector implements ManufacturerConnector {
       // no document download is requested, so do not add another ABB page timeout just for DE text.
       if (context.imageOnly || context.downloadDocuments === false) return result;
       if (result.localizedDescriptions?.de?.title || result.localizedDescriptions?.de?.description) return result;
-      const de = await fetchAbbGermanDescription(catalogNumber, context).catch(() => undefined);
+      const de =
+        (await fetchAbbGermanDescriptionFromPisApi(catalogNumber, searchLookup.productIds, context).catch(() => undefined)) ??
+        (await fetchAbbGermanDescription(catalogNumber, context).catch(() => undefined));
       if (!de || (!de.title && !de.description)) return result;
-      const title = localizedAbbText(de.title, result.title, catalogNumber);
-      const description = localizedAbbText(de.description, result.description, catalogNumber);
+      // Whether text identical to the English value may stand depends on WHERE it came from, and
+      // the two DE routes differ. The PIS API answers a request that names langCode "de", so a
+      // string it returns is the German catalogue's own entry even when ABB never translated it
+      // (true for the whole AF/AFC contactor range) — suppressing it blanks a column ABB did fill.
+      // The HTML walk has no such guarantee: an untranslated /products/de/ URL can serve the plain
+      // English page, and echoing that would invent a localization the source never made.
+      const englishTitle = de.fromLocalizedRecord ? undefined : result.title;
+      const englishDescription = de.fromLocalizedRecord ? undefined : result.description;
+      const title = localizedAbbText(de.title, englishTitle, catalogNumber);
+      const description = localizedAbbText(de.description, englishDescription, catalogNumber);
       if (!title && !description) return result;
       return {
         ...result,
@@ -61,9 +71,11 @@ export class ABBConnector implements ManufacturerConnector {
 
     const urls = searchLookup.urls.length ? searchLookup.urls : buildAbbOfficialUrls(catalogNumber);
     let apiDefinitiveEmpty = false;
+    let htmlTimeoutMs = 8000;
     if (!context.imageOnly) {
       const apiProductIds = searchLookup.productIds.length ? searchLookup.productIds : [catalogNumber];
-      const apiPrimary = await fetchAbbPisApiResult(catalogNumber, apiProductIds, urls[0], context);
+      const searchConfirmed = searchLookup.productIds.some((id) => sameCatalogNumber(id, catalogNumber));
+      const apiPrimary = await fetchAbbPisApiResult(catalogNumber, apiProductIds, urls[0], context, "en", searchConfirmed);
       if (apiPrimary && hasAbbPisData(apiPrimary)) return attachGerman(apiPrimary);
       if (apiPrimary === null && searchLookup.urls.length === 0) {
         apiDefinitiveEmpty = true;
@@ -71,6 +83,11 @@ export class ABBConnector implements ManufacturerConnector {
         // Keep one canonical HTML rescue (the page may still exist outside PIS), then avoid
         // generic search/browser fan-out that previously turned this case into 1–2 minutes.
         urls.splice(1);
+        // ABB's AEM front end does NOT 404 an unknown product id — it accepts the connection and
+        // never answers, so this rescue only ever costs its own timeout when the id is genuinely
+        // retired. A page that does exist answers in ~1.5 s, so a short budget keeps the rescue
+        // while cutting a confirmed-missing catalog number from ~16 s to ~7 s.
+        htmlTimeoutMs = 3500;
       }
     }
     const officialResults: ProductResult[] = [];
@@ -79,7 +96,7 @@ export class ABBConnector implements ManufacturerConnector {
     let lastAemFetch: FetchedText | undefined;
     for (const url of urls) {
       try {
-        const fetched = await fetchAbbPage(url, context);
+        const fetched = await fetchAbbPage(url, context, htmlTimeoutMs);
         const parsed = parseAbbProductPage(catalogNumber, fetched, context.manufacturer.markerRules);
         officialResults.push(parsed);
         // Remember the page body that looked like an AEM-CMS product page so we can enrich it
@@ -174,6 +191,36 @@ export class ABBConnector implements ManufacturerConnector {
 }
 
 /**
+ * German title/description straight from the PIS API (`langCode: "de"`), which is the same
+ * authoritative record the English path already uses and answers in well under a second.
+ *
+ * This replaced an unconditional walk over `new.abb.com/products/de/{id}[/product]`. Those HTML
+ * routes do not 404 for an unknown/retired id — they accept the connection and never answer, so
+ * every product paid 4 dead requests (native + curl + PowerShell, twice) worth roughly 49 s, which
+ * was ~96% of the connector's entire runtime. The HTML walk is kept below purely as a fallback for
+ * when the API is unavailable.
+ */
+async function fetchAbbGermanDescriptionFromPisApi(
+  catalogNumber: string,
+  productIds: string[],
+  context: ScrapeContext
+): Promise<AbbLocalizedText | undefined> {
+  const ids = productIds.length ? productIds : [catalogNumber];
+  const parsed = await fetchAbbPisApiResult(catalogNumber, ids, undefined, context, "de");
+  if (!parsed) return undefined;
+  const title = cleanText(parsed.title);
+  const description = cleanText(parsed.description);
+  if (!title && !description) return undefined;
+  return { title: title || undefined, description: description || undefined, fromLocalizedRecord: true };
+}
+
+/**
+ * `fromLocalizedRecord` marks text the source returned for an explicitly German request, as opposed
+ * to text scraped off a URL that merely has `/de/` in it and may have served English anyway.
+ */
+type AbbLocalizedText = { title?: string; description?: string; fromLocalizedRecord?: boolean };
+
+/**
  * Fetch the ABB DE locale product page and extract its title/description. This is best-effort —
  * if the page 404s or the parse fails we return undefined and the DE column stays blank rather
  * than echo English text. Uses the same parser as EN so any `var model = {...}` PIS blob with
@@ -182,7 +229,7 @@ export class ABBConnector implements ManufacturerConnector {
 async function fetchAbbGermanDescription(
   catalogNumber: string,
   context: ScrapeContext
-): Promise<{ title?: string; description?: string } | undefined> {
+): Promise<AbbLocalizedText | undefined> {
   const encoded = encodeURIComponent(catalogNumber);
   const urls = [
     `https://new.abb.com/products/de/${encoded}/product`,
@@ -930,7 +977,7 @@ function abbResultScore(result: ProductResult): number {
   return result.confidence * 100 + result.attributes.length + result.documents.length * 5 + abbProductDataCount * 4 + electricalScore + physicalScore;
 }
 
-async function fetchAbbPage(url: string, context: ScrapeContext) {
+async function fetchAbbPage(url: string, context: ScrapeContext, timeoutMs = 8000) {
   let lastFetched: FetchedText | undefined;
   let lastError: unknown;
   // Try plain HTTP first. Retry only retryable HTTP responses (5xx/empty bodies); a thrown
@@ -938,7 +985,7 @@ async function fetchAbbPage(url: string, context: ScrapeContext) {
   for (let attempt = 0; attempt < 3; attempt += 1) {
     try {
       const fetched = await context.http.fetchText(url, {
-        timeoutMs: 8000,
+        timeoutMs,
         signal: context.signal,
         headers: {
           "user-agent": ABB_USER_AGENT,
@@ -966,23 +1013,28 @@ async function fetchAbbPage(url: string, context: ScrapeContext) {
       await delay(800 * (attempt + 1), context.signal);
     }
   }
-  if (process.platform === "win32") {
+  // PowerShell exists to get past a bot wall (401/403/406/408/429) with a different TLS stack —
+  // it cannot rescue a host that simply never answers. Running it after a thrown timeout re-paid
+  // the whole timeout window a third time on URLs that were already proven dead.
+  if (process.platform === "win32" && lastFetched && shouldUsePowerShellForAbbFetch(lastFetched)) {
     try {
-      return await context.http.fetchTextViaPowerShell(url, { timeoutMs: 8000, signal: context.signal });
+      return await context.http.fetchTextViaPowerShell(url, { timeoutMs, signal: context.signal });
     } catch (error) {
       lastError = error;
     }
   }
   if (lastFetched) return lastFetched;
   if (lastError instanceof Error) throw lastError;
-  return context.http.fetchText(url, { timeoutMs: 8000, signal: context.signal });
+  return context.http.fetchText(url, { timeoutMs, signal: context.signal });
 }
 
 async function fetchAbbPisApiResult(
   catalogNumber: string,
   productIds: string[],
   sourceUrl: string | undefined,
-  context: ScrapeContext
+  context: ScrapeContext,
+  langCode = "en",
+  searchConfirmed = false
 ): Promise<ProductResult | null | undefined> {
   const productId = productIds.find((candidate) => sameCatalogNumber(candidate, catalogNumber)) ?? productIds[0] ?? catalogNumber;
   const token = await fetchAbbPisApiToken(context);
@@ -990,7 +1042,7 @@ async function fetchAbbPisApiResult(
 
   const appSettings = {
     appCode: "9AAG8556",
-    langCode: "en",
+    langCode,
     internalUser: false,
     anonymousUser: false,
     treeType: "Products",
@@ -1012,13 +1064,20 @@ async function fetchAbbPisApiResult(
     search: { productId }
   };
 
-  try {
-    const fetched = await context.http.fetchText(`${ABB_PIS_API_BASE_URL}/Products/Detail`, {
+  const requestDetail = async (useCache: boolean) =>
+    context.http.fetchText(`${ABB_PIS_API_BASE_URL}/Products/Detail`, {
       method: "POST",
       body: JSON.stringify(body),
       timeoutMs: 8000,
+      cache: useCache,
       cacheTtlMs: 24 * 60 * 60 * 1000,
-      maxAttempts: 1,
+      // This is the ONLY route that returns complete ABB data, and it answers in well under a
+      // second, so one transient 429/5xx must not end it. Giving up after a single attempt silently
+      // demoted a product to whatever thin HTML the discovery fallback could find: observed live as
+      // 1SDA126487R1 coming back with 28 attributes off a `smartlinks` page (and a mis-parsed
+      // "https://new.abb.com/div" datasheet) in one run and 347 in the next, same code, same input.
+      maxAttempts: 3,
+      retryBackoffMs: 400,
       signal: context.signal,
       headers: {
         accept: "application/json",
@@ -1027,8 +1086,28 @@ async function fetchAbbPisApiResult(
         "Component-Version": ABB_PIS_COMPONENT_VERSION
       }
     });
+
+  try {
+    let fetched = await requestDetail(true);
     if (fetched.statusCode >= 400) return undefined;
-    const payload = JSON.parse(fetched.text) as Record<string, unknown>;
+    let payload = JSON.parse(fetched.text) as Record<string, unknown>;
+    // `200 {}` — an empty JSON object with no keys at all — is how PIS answers for an id it does not
+    // have; verified against both a retired ABB id and a made-up one. So it normally IS the
+    // definitive "not in the catalogue" answer, and the fast path below depends on that.
+    //
+    // But a product the PIS SEARCH just matched cannot also be unknown to PIS. That contradiction
+    // happens intermittently, and reading it as definitive is expensive: the item silently loses the
+    // only complete route and comes back off a thin HTML page — 1SVR340667R1000 arrived with 28
+    // attributes and no certificates in one run and 202 in the next, same code, same input. Retry
+    // once, bypassing the cache so a stored empty answer cannot be re-served, and if it is still
+    // empty return `undefined` (unknown, keep trying) rather than `null` (definitively absent).
+    if (isEmptyAbbPisPayload(payload) && searchConfirmed) {
+      await delay(600, context.signal);
+      fetched = await requestDetail(false);
+      if (fetched.statusCode >= 400) return undefined;
+      payload = JSON.parse(fetched.text) as Record<string, unknown>;
+      if (isEmptyAbbPisPayload(payload)) return undefined;
+    }
     if (!isRecord(payload.productDetails)) return null;
     const effectiveUrl = sourceUrl ?? buildAbbOfficialUrls(catalogNumber)[0];
     const model = {
@@ -1050,6 +1129,11 @@ async function fetchAbbPisApiResult(
   }
 }
 
+/** `200 {}` with no keys — PIS's answer for an id it has no record of. */
+function isEmptyAbbPisPayload(payload: Record<string, unknown>): boolean {
+  return Object.keys(payload).length === 0;
+}
+
 async function fetchAbbPisApiToken(context: ScrapeContext): Promise<string | undefined> {
   if (abbPisApiToken && abbPisApiToken.expiresAt > Date.now() + 60_000) return abbPisApiToken.value;
   if (abbPisApiTokenPromise) return abbPisApiTokenPromise;
@@ -1058,7 +1142,10 @@ async function fetchAbbPisApiToken(context: ScrapeContext): Promise<string | und
       const fetched = await context.http.fetchText("https://new.abb.com/api/PisSearchApi/Token", {
         timeoutMs: 5000,
         cache: false,
-        maxAttempts: 1,
+        // Every product's data hangs off this one token; a single 429 here used to take the whole
+        // PIS path down for that item. Cheap call, so retry it rather than lose the product.
+        maxAttempts: 3,
+        retryBackoffMs: 400,
         signal: context.signal,
         headers: { accept: "application/json,text/plain,*/*", "user-agent": ABB_USER_AGENT }
       });
@@ -1504,10 +1591,17 @@ export function parseAbbProductPage(catalogNumber: string, fetched: FetchedText,
     });
   });
 
-  const title = cleanText(String(product?.name ?? $("h1").first().text() ?? $("title").text()));
-  const description = cleanText(
-    String(product?.description ?? $("meta[name='description']").attr("content") ?? $("meta[property='og:description']").attr("content") ?? "")
-  );
+  // The PIS API path builds a synthetic `<script>var model = …</script>` document: it carries the
+  // authoritative product record but has no <h1>, <title>, JSON-LD or meta tags. Without this
+  // fallback every product resolved through the (fast, preferred) API came out with an empty
+  // Title and Description column, and `deriveAbbElectricalAttributes` lost its text input too.
+  const pisDescriptors = abbPisDescriptors(embeddedAttributes, catalogNumber);
+  const title =
+    cleanText(String(product?.name ?? $("h1").first().text() ?? $("title").text())) || pisDescriptors.title || "";
+  const description =
+    cleanText(
+      String(product?.description ?? $("meta[name='description']").attr("content") ?? $("meta[property='og:description']").attr("content") ?? "")
+    ) || pisDescriptors.description || "";
   const productUrl = cleanText(String(product?.url ?? $("link[rel='canonical']").attr("href") ?? fetched.effectiveUrl));
   const matched =
     catalogTextMatches(fetched.text, catalogNumber) ||
@@ -1545,7 +1639,9 @@ export function parseAbbProductPage(catalogNumber: string, fetched: FetchedText,
     manufacturerId: "abb",
     catalogNumber,
     status: hasUsefulData ? "found" : "partial",
-    confidence: product ? 0.9 : 0.65,
+    // A PIS payload whose own Product ID equals the requested catalog number is stronger evidence
+    // than JSON-LD (which ABB also serves on family/shell pages), so it earns the same confidence.
+    confidence: product || pisDescriptors.identityMatched ? 0.9 : 0.65,
     productUrl,
     localizedUrls: buildLocalizedProductUrls("abb", catalogNumber, productUrl),
     title,
@@ -1564,6 +1660,41 @@ export function parseAbbProductPage(catalogNumber: string, fetched: FetchedText,
         statusCode: fetched.statusCode
       }
     ]
+  };
+}
+
+/**
+ * Reads the identity/description trio out of the PIS `item.attributes` block ("ABB Product Data").
+ * ABB publishes three descriptive strings per product and they are NOT interchangeable:
+ *   - Catalog Description  — the commercial one-liner, what the website prints as the heading
+ *   - Long Description     — the prose/ordering text
+ *   - Display Name / Extended Product Type — the type code, useful only as a last-resort heading
+ * `identityMatched` is true only when the payload's own Product ID is the catalog number we asked
+ * for, which is what makes the payload safe to treat as high-confidence evidence.
+ */
+function abbPisDescriptors(
+  attributes: AttributeRecord[],
+  catalogNumber: string
+): { title?: string; description?: string; identityMatched: boolean } {
+  const read = (name: string): string | undefined => {
+    const match = attributes.find((attr) => attr.group === "ABB Product Data" && attr.name === name);
+    const value = cleanText(match?.value);
+    return value || undefined;
+  };
+  const productId = read("Product ID");
+  const catalogDescription = read("Catalog Description");
+  const longDescription = read("Long Description");
+  const displayName = read("Display Name") ?? read("Extended Product Type");
+  const title = catalogDescription ?? displayName;
+  // Kept even when it repeats the heading: ABB publishes Catalog Description and Long Description
+  // as two separate fields and genuinely fills both with the same string for simple accessories.
+  // Blanking the duplicate would leave the export's long-description column empty for a value the
+  // vendor did publish — and the German record often carries different prose for the same product.
+  const description = longDescription;
+  return {
+    title,
+    description,
+    identityMatched: Boolean(productId && sameCatalogNumber(productId, catalogNumber))
   };
 }
 
@@ -2374,15 +2505,47 @@ function parseAbbAttributeValueObjects(items: unknown[]): string | undefined {
   for (const item of items) {
     if (isRecord(item)) {
       const text = abbValueText(item);
-      if (text) values.push(cleanAbbJsonValue(text));
+      if (text) values.push(stripAbbMeasurementQualifier(cleanAbbJsonValue(text)));
     } else {
       const text = firstStringOrNumber(item);
-      if (text) values.push(cleanAbbJsonValue(text));
+      if (text) values.push(stripAbbMeasurementQualifier(cleanAbbJsonValue(text)));
     }
   }
   const unique = uniqueStrings(values.map(cleanText).filter(Boolean));
   return unique.length ? unique.join("; ") : undefined;
 }
+
+/**
+ * ABB's PIS payload prints the measuring condition inline, in front of the magnitude:
+ *   "Rated Operational Voltage"     -> "Main Circuit 1000 V"
+ *   "Conventional Thermal Current"  -> "Fully Enclosed 1000 A"
+ * Left as-is, that whole string became the exported Voltage, and nothing downstream recognised a
+ * current at all, so a 1000 A switch-disconnector failed the quality gate for a missing current.
+ *
+ * Only a WORDS-ONLY qualifier is removed. A qualifier that carries its own numbers is exactly the
+ * pairing information other code depends on and must survive verbatim:
+ *   "(380 ... 415 V) 1000 A"  (voltage-paired utilisation-category table)
+ *   "Θ = 40 °C 1000 A" · "for 1 s 50 kA" · "acc. to IEC/EN 60664-1 1000 V"
+ */
+function stripAbbMeasurementQualifier(value: string): string {
+  const match = value.match(/^(.*\S)\s+(\d+(?:[.,]\d+)?\s*(?:kV|V|kA|mA|A|kW|W|Hz)\.?)$/);
+  if (!match) return value;
+  const qualifier = match[1];
+  // A qualifier that names its own electrical magnitude is pairing data, not noise: ABB prints the
+  // utilisation-category tables as "(380 ... 415 V) 1000 A", and the voltage in front is what tells
+  // downstream code which operating point the 1000 A belongs to. Everything else — a temperature
+  // ("Θ = 40 °C"), a duration ("for 1 s"), a standard ("acc. to IEC/EN 60664-1"), a plain condition
+  // ("Main Circuit", "Fully Enclosed") — is context that must not end up inside the exported value.
+  if (/\d\s*(?:kV|V|kA|mA|A)\b/i.test(qualifier)) return value;
+  // A range writes its lower bound without a unit ("380 ... 480 V", "24-48 V"), so the part in front
+  // of the magnitude is half of the value itself rather than a condition. Require a real word, and
+  // refuse anything ending in a range connector.
+  if (!/[A-Za-zÀ-ÿ]/.test(qualifier)) return value;
+  if (/(?:\.\.\.|…|-|\/|\bto|\bbis|\bor)\s*$/i.test(qualifier)) return value;
+  return match[2].replace(/\.$/, "");
+}
+
+
 
 function abbValueText(item: Record<string, unknown>): string | undefined {
   const rawText = firstStringOrNumber(item.text, item.value, item.displayValue, item.name);
