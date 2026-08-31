@@ -197,6 +197,11 @@ export const DEVICE_TYPE_FAMILIES: Record<string, readonly FamilyEntry[]> = {
     { patterns: ["KI", "KQ"], type: "Capacitive Sensor" },
     { patterns: ["UGT"], type: "Ultrasonic Sensor" },
     { patterns: ["AL"], type: "I/O Module", notes: "AL IO-Link master" }
+  ],
+  turck: [
+    { patterns: ["TBEN-L5-PLC", "TBEN-L4-PLC"], type: "Programmable Logic Controller", notes: "Turck TBEN compact PLC" },
+    { patterns: ["TBEN-L", "TBEN-S", "FEN20"], type: "I/O Module", notes: "Turck multiprotocol Ethernet I/O modules" },
+    { patterns: ["TBEN-L4-SE", "TBEN-L5-SE"], type: "Switch", notes: "Turck TBEN industrial Ethernet switches" }
   ]
 };
 
