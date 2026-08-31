@@ -1834,7 +1834,11 @@ async function enrichFromRemoteDocumentsForMissingValues(
     // Eaton product pages publish their own per-SKU specification sheet. Probing a family
     // catalog after it is both slower and less precise; retain the page-derived values when the
     // direct sheet cannot satisfy the quality gate instead of holding a worker on four PDFs.
-    { maxDocuments: result.manufacturerId === "eaton" ? 1 : 4 }
+    // Schneider product pages often expose several large PDFs (CAD, certificate,
+    // manual) alongside the datasheet. Parse only the highest-ranked document so a
+    // single oversized auxiliary PDF cannot consume the whole item timeout; the
+    // ranked datasheet remains available for missing-field fallback.
+    { maxDocuments: result.manufacturerId === "eaton" || result.manufacturerId === "schneider" ? 1 : 4 }
   );
 }
 

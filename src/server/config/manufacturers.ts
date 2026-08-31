@@ -504,6 +504,9 @@ const builtInManufacturerConfigs: Record<string, ManufacturerConfig> = {
         label: "Schneider Electric readable product page",
         enabled: true,
         sourceType: "official-fallback",
+        // se.com intermittently returns a bot challenge to the shared Chrome UA;
+        // the reader proxy serves the same official page with a neutral browser UA.
+        fetchPolicy: { timeoutMs: 30000, fallbackUserAgents: ["Mozilla/5.0"] },
         directUrlTemplates: [
           "https://r.jina.ai/http://www.se.com/us/en/product/{part}/",
           "https://r.jina.ai/http://www.se.com/ww/en/product/{part}/",
@@ -658,8 +661,10 @@ function attachBuiltInScrapeRecipes() {
     fallbackPolicy: {
       officialFirst: true,
       readerOnQualityFailure: true,
-      browserOnQualityFailure: true,
-      distributorFallback: true,
+      // se.com product pages are Cloudflare-protected; browser/distributor retries
+      // add minutes without improving the official reader result.
+      browserOnQualityFailure: false,
+      distributorFallback: false,
       distributorConfidenceCap: 0.45
     },
     confidenceRules: { foundMinScore: 78, partialMaxConfidence: 0.74, distributorMaxConfidence: 0.45 }
