@@ -466,7 +466,12 @@ const builtInManufacturerConfigs: Record<string, ManufacturerConfig> = {
           "https://www.phoenixcontact.com/en-us/products/{part}"
         ],
         confidence: 0.72,
-        fetchPolicy: { timeoutMs: 30000, minContentLength: 1000 }
+        fetchPolicy: {
+          timeoutMs: 30000,
+          minContentLength: 1000,
+          // Phoenix's reader proxy rejects the shared current-Chrome UA with HTTP 403.
+          fallbackUserAgents: ["Mozilla/5.0"]
+        }
       }
     ]
   },

@@ -117,6 +117,11 @@ export const DEVICE_TYPE_FAMILIES: Record<string, readonly FamilyEntry[]> = {
     { patterns: ["FL"], type: "Communication Gateway", notes: "FL switch / FL gateway" },
     { patterns: ["RAD"], type: "Communication Gateway", notes: "Radioline" },
     { patterns: ["PSR", "PSRMINI"], type: "Safety Relay" }
+    , { patterns: ["2981091"], type: "Safety Relay", notes: "Phoenix PSR-SPP-24DC/ESD/5X1/1X2/T10 item number" }
+    , { patterns: ["2961105"], type: "Relay", notes: "Phoenix REL-MR-24DC/21 item number" }
+    , { patterns: ["2865971"], type: "I/O Module", notes: "Phoenix MACX MCR-SL-IDSI-I signal conditioner item number" }
+    , { patterns: ["1524160"], type: "Mounting Accessory", notes: "Phoenix MCS-112X90-AP-7035 adapter plate item number" }
+    , { patterns: ["2702665"], type: "Switch", notes: "Phoenix FL SWITCH 2105 item number" }
   ],
   weidmuller: [
     { patterns: ["WPD", "WAD", "WTU"], type: "Power Supply" },

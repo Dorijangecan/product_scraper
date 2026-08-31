@@ -409,7 +409,7 @@ export function parseGenericProductPage(
   if (isUnresolvedSearchResultPage(fetched.effectiveUrl, documentTitle, false)) {
     return emptyResult(manufacturerId, catalogNumber, "Fallback page was a search result, not a product page.");
   }
-  const title = cleanProductTitle($, catalogNumber);
+  const title = cleanProductTitle($, catalogNumber, fetched.text);
   if (isBlockedOrErrorPage(fetched, title)) {
     return emptyResult(manufacturerId, catalogNumber, `Official page could not be parsed: HTTP ${fetched.statusCode}${title ? ` (${title})` : ""}.`);
   }
@@ -737,7 +737,7 @@ const CHROME_HEADING_PATTERN =
  * description a human can read for an identifier the row already carries in its own column. The catalog
  * match is the fallback for when the heading is unusable, which is exactly the Turck case.
  */
-function cleanProductTitle($: cheerio.CheerioAPI, catalogNumber?: string): string {
+function cleanProductTitle($: cheerio.CheerioAPI, catalogNumber?: string, rawText?: string): string {
   const headingText = (element: Parameters<cheerio.CheerioAPI>[0]): string => {
     const clone = $(element).clone();
     clone.find("script,style,noscript,[aria-hidden='true'],.visually-hidden,.sr-only").remove();
@@ -755,15 +755,20 @@ function cleanProductTitle($: cheerio.CheerioAPI, catalogNumber?: string): strin
     .filter(Boolean);
   const documentTitle = cleanText($("title").first().text());
   const openGraphTitle = cleanText($("meta[property='og:title']").attr("content"));
+  // Reader-backed official pages (notably Phoenix Contact) are returned as Markdown/plain text
+  // and may have no HTML <title>. Preserve the reader's explicit source title as product identity;
+  // it is source text, not a guessed value, and also lets summary normalization recover ratings
+  // embedded in titles such as "PSR-SPP-24DC/...".
+  const readerTitle = cleanText(rawText?.match(/^Title:\s*(.+)$/im)?.[1]);
 
   const firstProductHeading = headings.find((candidate) => !CHROME_HEADING_PATTERN.test(candidate));
   const named = catalogNumber
-    ? [...headings, openGraphTitle, documentTitle].find(
+    ? [...headings, openGraphTitle, documentTitle, readerTitle].find(
         (candidate) => candidate && catalogTextMatches(candidate, catalogNumber, { compact: true, afterColon: true })
       )
     : undefined;
 
-  return cleanText(firstProductHeading ?? named ?? documentTitle)
+  return cleanText(firstProductHeading || named || documentTitle || readerTitle)
     .replace(/\s+The Quick Ship feature is designed to streamline[\s\S]*$/i, "")
     .replace(/\s+\|.+$/, "");
 }
@@ -1017,6 +1022,12 @@ function extractSummaryAttributes(title: string, description: string | undefined
     text,
     /(?<![\w.])\d+(?:[.,]\d+)?\s*(?:v?\s*(?:(?:\.{2,3}|\u2026|\u2013|\u2014|-|to)\s*\d+(?:[.,]\d+)?\s*)?v(?:\s*(?:ac|dc)|ac|dc)?(?:\s*(?:\/|-)\s*dc)?|volts?)\b/gi
   );
+  // Reader-backed product titles often compact the suffix (`24DC`/`120AC`). Expand that
+  // source text before normalization so a published supply rating is not lost.
+  const compactVoltage = [...text.matchAll(/(?<![\w.])(\d+(?:[.,]\d+)?)\s*(AC|DC)\b/gi)].map(
+    (match) => `${match[1]} V ${match[2].toUpperCase()}`
+  );
+  for (const value of compactVoltage) if (!voltage.includes(value)) voltage.push(value);
   if (voltage.length) push("Voltage", voltage.join("; "));
 
   const current = extractUniqueMatches(

@@ -108,8 +108,10 @@ export const DEVICE_TYPE_URL_PATTERNS: UrlPatternEntry[] = [
   { host: /phoenixcontact\./i, pattern: /\/(terminal[-\s]?blocks?)/i, type: "Terminal Block" },
   { host: /phoenixcontact\./i, pattern: /\/(surge[-\s]?protection|plugtrab|valvetrab|val-)/i, type: "Surge Protective Device" },
   { host: /phoenixcontact\./i, pattern: /\/(io-link|axiocontrol|inline)/i, type: "I/O Module" },
+  { host: /phoenixcontact\./i, pattern: /\/(?:io-component|signal[-\s]?conditioner|output[-\s]?signal[-\s]?conditioner)/i, type: "I/O Module" },
   { host: /phoenixcontact\./i, pattern: /\/(network[-\s]?technology|managed[-\s]?switch|gateway)/i, type: "Communication Gateway" },
   { host: /phoenixcontact\./i, pattern: /\/(safety[-\s]?(relay|controller)|psr)/i, type: "Safety Relay" },
+  { host: /phoenixcontact\./i, pattern: /\/(?:single[-\s]?relay|interface[-\s]?relay|plug[-\s]?in[-\s]?relay)/i, type: "Relay" },
   { host: /phoenixcontact\./i, pattern: /\/(connector|circular)/i, type: "Connector" },
 
   // --- Weidmüller ---
