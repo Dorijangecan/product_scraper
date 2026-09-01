@@ -129,6 +129,18 @@ function uniqueExactFamilyHit($: cheerio.CheerioAPI, query: string): string | un
     const family = `${match[1].toUpperCase()} ${match[2].replace(",", ".")}`;
     if (family === targetFamily) hrefs.add(href);
   });
+  // A family search can list several exact-family product pages (for example GN 927 has
+  // internal-thread and threaded-stud variants). Prefer the first exact-family product page
+  // over the generic search result; the slug check excludes related families such as GN 927.3
+  // and GN 300 when the requested family is GN 927/GN 30.
+  const familyMatch = targetFamily.match(/^(?:GN|DIN|ISO|EN|VDI)\s*(.+)$/i)?.[1]?.replace(/\./g, "\\.");
+  if (familyMatch) {
+    const exactProduct = [...hrefs].find((href) => {
+      const slug = href.split("/en/products/quick-finder/")[1]?.split("?")[0] ?? "";
+      return new RegExp(`^(?:GN|DIN|ISO|EN|VDI)-${familyMatch}(?:-|$)`, "i").test(slug);
+    });
+    if (exactProduct) return exactProduct;
+  }
   return hrefs.size === 1 ? [...hrefs][0] : undefined;
 }
 
@@ -206,6 +218,13 @@ export function parseGanterProductPage(catalogNumber: string, fetched: FetchedTe
   ]);
   const documents = dedupeDocuments(ganterDocuments($, sourceUrl));
   const normalized = normalizeFields(attributes, documents);
+  // Ganter publishes the main part material in the product heading (for example
+  // "Lever Zinc Die Casting"), while the specification table also contains seal/screw
+  // materials. Prefer the heading's explicit material so a rubber seal cannot overwrite the
+  // material of the requested product itself.
+  const headingMaterial = ganterHeadingMaterial(`${title ?? ""} ${description ?? ""}`);
+  const pageMaterial = ganterPageMaterial($);
+  if (headingMaterial ?? pageMaterial) normalized.material = headingMaterial ?? pageMaterial;
 
   // The Ganter Geometry columns ARE the product's dimensional data (a symbolic drawing table), but
   // their group name deliberately keeps normalizeFields from auto-combining them — it can't tell which
@@ -220,6 +239,12 @@ export function parseGanterProductPage(catalogNumber: string, fetched: FetchedTe
       .map((attribute) => `${attribute.name} ${attribute.value}`)
       .join(", ");
     if (combined) normalized.dimensions = combined;
+  }
+  if (!normalized.dimensions && !dimensionResolved && dimensionAttributes.length > 0) {
+    // The family page exposes several legitimate size rows but no catalog suffix selecting one.
+    // Preserve the complete labeled table instead of silently dropping it or inventing a single
+    // variant's dimensions.
+    normalized.dimensions = dimensionAttributes.map((attribute) => `${attribute.name} ${attribute.value}`).join(", ");
   }
 
   const identityResolved = !family || variantTokens.length === 0 || dimensionResolved;
@@ -249,6 +274,17 @@ export function parseGanterProductPage(catalogNumber: string, fetched: FetchedTe
         : {})
     }
   };
+}
+
+function ganterHeadingMaterial(text: string): string | undefined {
+  const match = text.match(/\b(zinc\s+die\s+casting|stainless\s+steel|aluminum|aluminium|steel|plastic|polyamide|rubber)\b/i);
+  return match?.[1] ? cleanText(match[1]) : undefined;
+}
+
+function ganterPageMaterial($: cheerio.CheerioAPI): string | undefined {
+  const text = cleanText($("body").text());
+  const match = text.match(/\b(?:housing|lever|handle|connector\s+clamp|base\s+plate|type\s*\(base\))\b[^.]{0,80}?\b(zinc\s+die\s+casting|stainless\s+steel|aluminum|aluminium|steel|plastic|polyamide)\b/i);
+  return match?.[1] ? cleanText(match[1]) : undefined;
 }
 
 /**
@@ -590,7 +626,22 @@ function parseGanterDimensionTable(
       const firstCell = cleanText($(tr).find("td").first().text()).toLowerCase();
       return firstCell !== "" && variantTokens.includes(firstCell);
     });
-    if (matches.length !== 1) return { attributes: [], resolved: false, ambiguous: true };
+    if (matches.length !== 1) {
+      // No suffix in the requested family number identifies one row. Keep every labeled row
+      // with its nominal-size prefix so the complete official table remains available without
+      // pretending that one variant belongs to the family-level request.
+      const attributes: AttributeRecord[] = [];
+      for (const row of dataRows) {
+        const variant = cleanText($(row).find("td").first().text());
+        $(row).find("td").each((columnIndex, cell) => {
+          const header = headers[columnIndex];
+          const value = cleanText($(cell).text());
+          if (!header || !value) return;
+          attributes.push(ganterAttribute("Ganter Geometry", variant ? `${variant} ${header}` : header, value, sourceUrl, 0.75));
+        });
+      }
+      return { attributes, resolved: false, ambiguous: true };
+    }
     chosenRow = matches[0];
   }
 
