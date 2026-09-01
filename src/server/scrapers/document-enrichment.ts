@@ -332,13 +332,18 @@ async function processOneDownloadedDocument(doc: DocumentRecord, catalogNumber: 
     // Multi-model PDFs need target scoping, but some catalogs keep shared technical
     // pages away from the catalog table. Keep both the target rows and global spec rows.
     const scope = buildDocumentParseScope(text, catalogNumber);
+    // Balluff's exact product datasheets are addressed by a product-specific publication id,
+    // but often contain only the full type code (not the short catalog number used by the PDP,
+    // e.g. BIS00Z5). The URL is already selected from that exact official PDP, so allowing the
+    // normal technical sweep here is safe and preserves dimensions/weight from the authoritative PDF.
+    const balluffExactDatasheet = doc.type === "datasheet" && /(^|:)\/\/publications\.balluff\.com\/pdfengine\/pdf(?:[/?#]|$)/i.test(doc.url);
     let attributes = [
       ...extractDocumentTextAttributes({
         catalogNumber,
         document: doc,
-        text: scope.text,
+        text: balluffExactDatasheet ? text : scope.text,
         tables,
-        scopeUnresolved: !scope.resolved,
+          scopeUnresolved: !scope.resolved && !balluffExactDatasheet,
         matchLevel: scope.match?.level
       }),
       ...extractOcrPositionedTableAttributes(pdfText.ocrPositionedItems, catalogNumber, doc.url),
@@ -495,13 +500,14 @@ export async function enrichResultFromRemoteDocuments(
       const pdfText = await readPdfText(fetched.localPath, result.catalogNumber, parsedDoc.url);
       const { text, tables } = pdfText;
       const scope = buildDocumentParseScope(text, result.catalogNumber);
+      const balluffExactDatasheet = doc.type === "datasheet" && /(^|:)\/\/publications\.balluff\.com\/pdfengine\/pdf(?:[/?#]|$)/i.test(doc.url);
       let attributes = [
         ...extractDocumentTextAttributes({
           catalogNumber: result.catalogNumber,
           document: parsedDoc,
-          text: scope.text,
+          text: balluffExactDatasheet ? text : scope.text,
           tables,
-          scopeUnresolved: !scope.resolved,
+        scopeUnresolved: !scope.resolved && !balluffExactDatasheet,
           matchLevel: scope.match?.level
         }),
         ...extractOcrPositionedTableAttributes(pdfText.ocrPositionedItems, result.catalogNumber, parsedDoc.url),
