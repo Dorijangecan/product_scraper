@@ -48,7 +48,7 @@ export const DEVICE_TYPE_FAMILIES: Record<string, readonly FamilyEntry[]> = {
     { patterns: ["ATV"], type: "Variable Speed Drive", notes: "Altivar" },
     { patterns: ["ATS"], type: "Soft Starter", notes: "Altistart" },
     { patterns: ["ABL", "PSU"], type: "Power Supply" },
-    { patterns: ["XB4", "XB5", "XB6", "XB7", "ZBE"], type: "Pushbutton / Operator", notes: "Harmony" },
+    { patterns: ["XB4", "XB5", "XB6", "XB7", "ZBE", "ZB5AW035"], type: "Pushbutton / Operator", notes: "Harmony" },
     { patterns: ["XALD", "XALK"], type: "Pushbutton / Operator", notes: "Harmony control station" },
     { patterns: ["XVB", "XVR"], type: "Stack Light / Beacon" },
     { patterns: ["XS1", "XS2", "XS4", "XS5", "XS6", "XS7", "XS8"], type: "Inductive Proximity Sensor", notes: "OsiSense XS" },
