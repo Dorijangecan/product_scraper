@@ -2053,6 +2053,9 @@ function materialValueFromText(value: string): string | undefined {
   if (composite) return composite;
   if (/\bS\.?\s*S\.?\b/i.test(cleaned)) return "stainless steel";
   if (/^(?:PA|PC|POM|PBTP?|PETP?|PE|PP|PPS|PTFE|PUR|PVC|ABS|ASA|SAN|PMMA|PEEK|PEI|TPE|TPU|HDPE|LDPE)(?:\s*\d{1,2})?$/u.test(cleaned)) return cleaned;
+  // Phoenix Contact and other IEC datasheets use compact glass-fibre polymer codes such as PA-GF.
+  // Preserve the exact material designation instead of dropping it as an unknown bare token.
+  if (/^(?:PA|PBT|PC|POM)(?:[-\s]?GF(?:\s*\d{1,2})?)$/iu.test(cleaned)) return cleaned;
   const foreign = foreignMaterialSynonym(cleaned);
   if (foreign) return foreign;
   const match = cleaned.match(

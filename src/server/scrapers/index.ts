@@ -49,6 +49,14 @@ class ConfiguredManufacturerConnector implements ManufacturerConnector {
   constructor(readonly id: ManufacturerId) {}
 
   async scrape(catalogNumber: string, context: ScrapeContext) {
+    // Phoenix Contact has a stable official reader-backed product-number endpoint configured in
+    // fallbackSources. Try that exact source before the broad discovery crawler; discovery walks
+    // many unrelated Phoenix links sequentially and adds tens of seconds after a valid product page
+    // is already available. If the direct source fails, retain discovery as the safe fallback.
+    if (this.id === "phoenix" && context.manufacturer.fallbackSources.length) {
+      const direct = await context.fallback.scrape(catalogNumber, context.manufacturer.fallbackSources);
+      if (direct && direct.status !== "failed") return direct;
+    }
     const { result, discovery } = await scrapeDiscoveredFallback(catalogNumber, context);
     if (result) {
       return withDiscoveryFallbackDiagnostics(result, discovery);

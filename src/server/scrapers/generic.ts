@@ -95,8 +95,13 @@ export class GenericFallbackScraper {
             extractionPolicy: this.manufacturer?.scrapeRecipe?.extractionPolicy
           });
           const discovery = discoverProductLinksWithDiagnostics(fetched.text, fetched.effectiveUrl, catalogNumber);
-          let detailResolved = false;
-          for (const candidate of discovery.candidates.slice(0, 4)) {
+          // Phoenix Contact's official reader-backed product endpoint already resolves the exact
+          // article and contains its technical data. Its page also exposes many related links; probing
+          // four of them serially adds 20–40 seconds without improving the confirmed result. Keep
+          // discovery diagnostics, but do not re-fetch those candidates for this manufacturer.
+          const skipRedundantDetailDiscovery = this.manufacturerId === "phoenix";
+          let detailResolved = skipRedundantDetailDiscovery;
+          for (const candidate of skipRedundantDetailDiscovery ? [] : discovery.candidates.slice(0, 4)) {
             if (sameUrl(candidate.url, fetched.effectiveUrl)) continue;
             try {
               const detail = await this.fetchTextWithFallback(candidate.url, source, signal);
@@ -119,6 +124,9 @@ export class GenericFallbackScraper {
               if (isCancellationError(error, signal)) throw error;
               // Keep trying the next search/detail candidate.
             }
+          }
+          if (skipRedundantDetailDiscovery && parsed.status !== "failed") {
+            return withLinkDiagnostics(parsed, discovery);
           }
           if (isUnresolvedSearchResultPage(fetched.effectiveUrl, parsed.title, detailResolved)) continue;
           if (parsed.status !== "failed") {
@@ -693,8 +701,20 @@ export function parseGenericProductPage(
     status: cleanAttributes.length || cleanDocuments.length ? "partial" : "failed",
     confidence: cleanAttributes.length || cleanDocuments.length ? pageLevelConfidence : 0,
     pageLevel: pageClassification.pageLevel,
-    productUrl: fetched.effectiveUrl,
-    localizedUrls: buildLocalizedProductUrls(manufacturerId, catalogNumber, fetched.effectiveUrl, options.localizedUrlTemplates),
+    // Phoenix's reader endpoint is fetched through r.jina.ai because the public site blocks
+    // automated requests. Keep that URL in sources as evidence, but expose the canonical
+    // official product URL to callers; a proxy/reader URL is not a product link.
+    productUrl: manufacturerId === "phoenix"
+      ? `https://www.phoenixcontact.com/product/${encodeURIComponent(catalogNumber)}`
+      : fetched.effectiveUrl,
+    localizedUrls: buildLocalizedProductUrls(
+      manufacturerId,
+      catalogNumber,
+      manufacturerId === "phoenix"
+        ? `https://www.phoenixcontact.com/product/${encodeURIComponent(catalogNumber)}`
+        : fetched.effectiveUrl,
+      options.localizedUrlTemplates
+    ),
     title,
     description,
     normalized,
@@ -1077,6 +1097,7 @@ function extractSummaryAttributes(title: string, description: string | undefined
     "Nylon",
     "PVC",
     "PBT",
+    "PA-GF",
     "ABS"
   ]);
   if (material) push("Material", material);
@@ -3512,6 +3533,11 @@ function extractKnownPlainTextSpecAttributes(text: string, sourceUrl: string): A
       name: "Product type",
       value: (match) => match[1],
       pattern: /\bProduct type\s+([A-Za-z][A-Za-z0-9 /().,+-]{2,120}?)(?=\s+Product family\b|\s+Product line\b|\s+Type\b|\s+Number of\b|\s+Pitch\b|$)/gi
+    },
+    {
+      name: "Material",
+      value: (match) => match[1],
+      pattern: /\bMaterial(?:\s+Housing)?\s+(PA-GF)\b/gi
     },
     {
       name: "Product family",
