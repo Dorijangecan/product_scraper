@@ -710,6 +710,37 @@ function bestNormalizedAttributeValue(
     .find((value): value is string => Boolean(value));
 }
 
+/** ABB's master-data certificate column contains only compact certification names. */
+export function normalizeAbbFields(attributes: AttributeRecord[], documents: DocumentRecord[]): NormalizedProductFields {
+  const normalized = normalizeFields(attributes, documents);
+  const source = [
+    ...attributes
+      .filter((attr) => /certificate|certification|approval|standard/i.test(`${attr.group ?? ""} ${attr.name}`))
+      .map((attr) => attr.value),
+    normalized.certificates
+  ].filter((value): value is string => Boolean(value)).join("; ");
+  const certificates = compactAbbCertificateNames(source);
+  return { ...normalized, certificates: certificates || undefined };
+}
+
+function compactAbbCertificateNames(value: string): string {
+  const canonicalNames = [
+    "A2L", "ABS", "ATEX", "BV", "CB", "CCC", "CCS", "CE", "CSA", "DNV", "EAC", "IECEx", "IEC",
+    "KC", "KCC", "Lloyds", "ODVA", "RCM", "RINA", "TUV", "UKCA", "UL", "cULus", "cURus", "VDE"
+  ];
+  const seen = new Set<string>();
+  const result: string[] = [];
+  for (const match of value.matchAll(/\b(?:A2L|ABS|ATEX|BV|CB|CCC|CCS|CE|CSA|cULus|cURus|DNV(?:\s+GL)?|EAC|IECEx|IEC|KC|KCC|Lloyds?|ODVA|RCM|RINA|T(?:Ü|U)V|UKCA|UL|VDE)\b/gi)) {
+    const raw = match[0].replace(/TÜV/i, "TUV");
+    const canonical = canonicalNames.find((name) => name.toLowerCase() === raw.toLowerCase()) ?? raw;
+    if (!seen.has(canonical.toLowerCase())) {
+      seen.add(canonical.toLowerCase());
+      result.push(canonical);
+    }
+  }
+  return result.join(", ");
+}
+
 function isNonOperatingCurrentLabel(label: string): boolean {
   return /\b(?:fault|surge|nominal discharge|short[-\s]?circuit|interrupt|withstand|breaking)\s+current\b|\bcurrent\s+(?:fault|surge|short[-\s]?circuit|interrupt|withstand|breaking)\b/i.test(label);
 }
@@ -755,12 +786,20 @@ function numericCurrentAttributeCurrent(attributes: AttributeRecord[]): string |
  * deliberately left to the ordinary ranking paths below.
  */
 function voltageAlignedAc15Current(attributes: AttributeRecord[], normalizedVoltage: string | undefined): string | undefined {
-  const mainCircuitVoltages = attributes.flatMap((attr) => {
+  const ratedOperationalVoltages = attributes.flatMap((attr) => {
     const label = `${attr.group ?? ""} ${attr.name}`;
     if (!/\brated operational voltage\b/i.test(label)) return [];
-    return voltageNumbersFollowingLabel(attr.value, "main circuit");
+    return voltageNumbers(attr.value);
   });
-  const operatingVoltages = mainCircuitVoltages.length > 0 ? mainCircuitVoltages : voltageNumbers(normalizedVoltage ?? "");
+  const normalizedVoltages = voltageNumbers(normalizedVoltage ?? "");
+  const voltageFromRatedField = ratedOperationalVoltages.filter((voltage) =>
+    normalizedVoltages.some((normalized) => Math.abs(voltage - normalized) < 0.001)
+  );
+  const operatingVoltages = voltageFromRatedField.length > 0
+    ? voltageFromRatedField
+    : ratedOperationalVoltages.length > 0
+      ? ratedOperationalVoltages
+      : normalizedVoltages;
   if (operatingVoltages.length === 0) return undefined;
 
   const candidates = attributes

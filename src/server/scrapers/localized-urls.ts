@@ -50,8 +50,8 @@ export function buildLocalizedProductUrls(
   switch (manufacturerId) {
     case "abb":
       return {
-        en: abbSmartLink(catalogNumber, "en"),
-        de: abbSmartLink(catalogNumber, "de")
+        en: abbCatalogProductUrl(catalogNumber),
+        de: abbCatalogProductUrl(catalogNumber, true)
       };
     case "balluff":
       return {
@@ -107,14 +107,9 @@ export function buildLocalizedProductUrls(
   }
 }
 
-function abbSmartLink(catalogNumber: string, language: "en" | "de"): string {
-  const params = new URLSearchParams({
-    ProductId: catalogNumber,
-    Language: language,
-    PrintPreview: "False",
-    pid: catalogNumber
-  });
-  return `https://new.abb.com/smartlinks/${language}?${params.toString()}`;
+export function abbCatalogProductUrl(catalogNumber: string, german = false): string {
+  const locale = german ? "/de" : "";
+  return `https://new.abb.com/products${locale}/${encodeURIComponent(catalogNumber)}`;
 }
 
 function balluffProductUrl(catalogNumber: string, productUrl: string | undefined, locale: "en-us" | "de-de"): string {

@@ -3,7 +3,7 @@ import { OUNCE_TO_KILOGRAM, POUND_TO_KILOGRAM } from "../unit-conversion.js";
 import type { AttributeRecord, DocumentRecord, ManufacturerConfig, ProductResult, RunItemRecord, SourceRecord } from "../../shared/types.js";
 import { getManufacturerConfig } from "../config/manufacturers.js";
 import { matchProperty, understand } from "../scrapers/ontology.js";
-import { normalizeFields } from "../scrapers/normalizer.js";
+import { normalizeAbbFields, normalizeFields } from "../scrapers/normalizer.js";
 import type { PdtRepair } from "./ai-cleanup.js";
 import { cleanProductDescription, compactFamilyShortDescription, isDecorativeAssetText } from "./description-formatting.js";
 import { isSignalDeviceType, soleEclassDefaultForDeviceType } from "./device-type-profiles.js";
@@ -228,7 +228,10 @@ export function buildPdtFactIndex(input: PdtFactInput): PdtFactIndex {
   addNormalized(facts, result, "ratedVoltage", result.normalized.voltage);
   addNormalized(facts, result, "ratedCurrent", result.normalized.current);
   addNormalized(facts, result, "protection", result.normalized.protection);
-  addNormalized(facts, result, "certificates", result.normalized.certificates);
+  const normalizedCertificates = result.manufacturerId === "abb"
+    ? normalizeAbbFields(result.attributes, result.documents).certificates
+    : result.normalized.certificates;
+  addNormalized(facts, result, "certificates", normalizedCertificates);
   addSemanticNormalizedFacts(facts, result);
   addDocumentCertificateFacts(facts, result);
 
@@ -361,10 +364,13 @@ function addDocumentCertificateFacts(facts: PdtFact[], result: ProductResult): v
   if (facts.some((fact) => fact.key === "certificates" || fact.key === "pdtCertificates")) return;
   const certificateDoc = bestCertificateDocument(result.documents);
   if (!certificateDoc) return;
-  const value =
-    clean(normalizeFields(result.attributes, []).certificates) ??
-    clean(result.normalized.certificates) ??
-    clean(normalizeFields(result.attributes, result.documents).certificates);
+  const value = result.manufacturerId === "abb"
+    ? clean(normalizeAbbFields(result.attributes, result.documents).certificates) ??
+      clean(result.normalized.certificates) ??
+      clean(normalizeAbbFields(result.attributes, []).certificates)
+    : clean(result.normalized.certificates) ??
+      clean(normalizeFields(result.attributes, []).certificates) ??
+      clean(normalizeFields(result.attributes, result.documents).certificates);
   if (!value) return;
   const sourceType = certificateDoc.sourceType ?? "official";
   const confidence =

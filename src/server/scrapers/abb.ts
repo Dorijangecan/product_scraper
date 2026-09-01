@@ -3,8 +3,8 @@ import * as cheerio from "cheerio";
 import type { AttributeRecord, DocumentRecord, MarkerExtractionRule, ProductResult } from "../../shared/types.js";
 import type { ManufacturerConnector, ScrapeContext } from "./types.js";
 import { delay, type FetchedText } from "./http-client.js";
-import { classifyDocument, cleanText, emptyResult, mergeResults, normalizeFields, splitNameValue } from "./normalizer.js";
-import { buildLocalizedProductUrls } from "./localized-urls.js";
+import { classifyDocument, cleanText, emptyResult, mergeResults, normalizeAbbFields, splitNameValue } from "./normalizer.js";
+import { abbCatalogProductUrl, buildLocalizedProductUrls } from "./localized-urls.js";
 import { catalogTextMatches, sameCatalogNumber } from "./catalog-number.js";
 import { extractMarkerData } from "./marker-extractor.js";
 import { dedupeAttributes, dedupeDocuments } from "./dedupe.js";
@@ -392,11 +392,11 @@ function parseAbbPartcommunityDetailPage(catalogNumber: string, fetched: Fetched
     catalogNumber,
     status: cleanAttributes.length || cleanDocuments.length ? "found" : "partial",
     confidence: 0.86,
-    productUrl: sourceUrl,
+    productUrl: abbCatalogProductUrl(catalogNumber),
     localizedUrls: buildLocalizedProductUrls("abb", catalogNumber, sourceUrl),
     title,
     description,
-    normalized: normalizeFields(cleanAttributes, cleanDocuments),
+    normalized: normalizeAbbFields(cleanAttributes, cleanDocuments),
     attributes: cleanAttributes,
     documents: cleanDocuments,
     sources: [
@@ -510,11 +510,11 @@ function buildAbbPartcommunityProjectResult(
     catalogNumber,
     status: "found",
     confidence: 0.78,
-    productUrl: exactPartUrl,
+    productUrl: abbCatalogProductUrl(catalogNumber),
     localizedUrls: buildLocalizedProductUrls("abb", catalogNumber, exactPartUrl),
     title,
     description,
-    normalized: normalizeFields(cleanAttributes, cleanDocuments),
+    normalized: normalizeAbbFields(cleanAttributes, cleanDocuments),
     attributes: cleanAttributes,
     documents: cleanDocuments,
     sources: [
@@ -722,11 +722,11 @@ async function enrichFromAbbLibraryApi(
     catalogNumber,
     status: "found",
     confidence: 0.86,
-    productUrl: fetched.effectiveUrl,
+    productUrl: abbCatalogProductUrl(catalogNumber),
     localizedUrls: buildLocalizedProductUrls("abb", catalogNumber, fetched.effectiveUrl),
     title: "",
     description: "",
-    normalized: normalizeFields(attributes, documents),
+    normalized: normalizeAbbFields(attributes, documents),
     attributes,
     documents,
     sources: [
@@ -1610,7 +1610,7 @@ export function parseAbbProductPage(catalogNumber: string, fetched: FetchedText,
     cleanText(
       String(product?.description ?? $("meta[name='description']").attr("content") ?? $("meta[property='og:description']").attr("content") ?? "")
     ) || pisDescriptors.description || "";
-  const productUrl = cleanText(String(product?.url ?? $("link[rel='canonical']").attr("href") ?? fetched.effectiveUrl));
+  const productUrl = abbCatalogProductUrl(catalogNumber);
   const matched =
     catalogTextMatches(fetched.text, catalogNumber) ||
     sameCatalogNumber(String(product?.sku ?? product?.productID ?? ""), catalogNumber);
@@ -1634,7 +1634,7 @@ export function parseAbbProductPage(catalogNumber: string, fetched: FetchedText,
   attributes.push(...deriveAbbElectricalAttributes(attributes, title, description, fetched.effectiveUrl));
   const cleanAttributes = dedupeAttributes(attributes);
   const cleanDocuments = coalesceAbbImageDocuments(dedupeDocuments(documents));
-  const normalized = normalizeFields(cleanAttributes, cleanDocuments);
+  const normalized = normalizeAbbFields(cleanAttributes, cleanDocuments);
   const hasUsefulData = Boolean(product) || cleanAttributes.length > 0 || cleanDocuments.length > 0;
 
   // If this parse is of a DE locale URL, capture the German title/description directly so it

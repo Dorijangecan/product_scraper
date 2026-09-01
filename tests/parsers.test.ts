@@ -828,7 +828,7 @@ describe("manufacturer parsers", () => {
     const result = await connector.scrape("ACS580-01-039A-4", context);
 
     expect(result.status).toBe("found");
-    expect(result.productUrl).toBe("https://new.abb.com/products/pl/3AXD50000038962/acs580-01-039a-4");
+    expect(result.productUrl).toBe("https://new.abb.com/products/ACS580-01-039A-4");
     expect(result.attributes.some((attr) => attr.name === "Product ID" && attr.value === "3AXD50000038962")).toBe(true);
     expect(result.normalized.voltage).toBe("380...480 V");
     expect(result.normalized.current).toBe("38 A");

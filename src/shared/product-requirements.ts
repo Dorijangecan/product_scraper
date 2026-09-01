@@ -139,6 +139,13 @@ export function requiredElectricalFields(result: ProductResult, context: Electri
   // interface/module identity but no standalone voltage/current rating; do not inherit the
   // electrical requirements of the parent 193 overload-relay family.
   if (result.manufacturerId === "rockwell" && /^193-ECM-/i.test(result.catalogNumber.trim())) return [];
+  // Rockwell 2085 Micro800 expansion I/O modules publish signal ranges (for example +/-10 V
+  // and 0-20 mA) but not a standalone normalized supply-voltage rating on the product PDP.
+  if (result.manufacturerId === "rockwell" && /^2085-/i.test(result.catalogNumber.trim())) return [];
+  // Rockwell 1492-J terminal blocks and 889D cordsets are passive connection accessories; their
+  // family pages may mention conductor/test ratings, but they do not have product-level voltage
+  // and current fields required by the active-device quality heuristic.
+  if (result.manufacturerId === "rockwell" && /^(?:1492-J|889D-)/i.test(result.catalogNumber.trim())) return [];
   // Rockwell 800T/800H operators are passive contact assemblies. Their official product pages
   // publish contact ratings, not a device supply voltage; the shared active-pushbutton heuristic
   // must not reject them for lacking a supply-voltage field.

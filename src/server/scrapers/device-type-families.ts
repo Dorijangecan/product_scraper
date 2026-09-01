@@ -177,6 +177,7 @@ export const DEVICE_TYPE_FAMILIES: Record<string, readonly FamilyEntry[]> = {
     { patterns: ["1606"], type: "Power Supply", notes: "Allen-Bradley switched mode power supplies" },
     { patterns: ["1609"], type: "UPS", notes: "Allen-Bradley uninterruptible power supplies" },
     { patterns: ["20F", "20G", "22B", "25B", "25A"], type: "Variable Speed Drive", notes: "PowerFlex drives" },
+    { patterns: ["2094", "2198"], type: "Variable Speed Drive", notes: "Kinetix servo and power modules" },
     { patterns: ["2198"], type: "Variable Speed Drive", notes: "Kinetix servo drives" },
     { patterns: ["42EF", "42JS", "42JT", "42KL", "42KD", "45CRM", "45DMS", "45LMS"], type: "Photoelectric Sensor" },
     { patterns: ["836P"], type: "Pressure Sensor", notes: "Allen-Bradley pressure sensors" },

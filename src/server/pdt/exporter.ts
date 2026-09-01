@@ -1124,7 +1124,7 @@ function resolveGermanDescriptionCell(column: PdtColumn, ctx: ResolveContext, fa
     resolvePropertyByDescription(column, { ...ctx, language: undefined }) ??
     resolvePropertyByColumnMetadata(column, { ...ctx, language: undefined })
   );
-  const translated = translateDescriptionToGerman(englishValue);
+  const translated = translateDescriptionToGerman(englishValue, ctx.manufacturer.id === "abb");
   if (!translated || sameDescriptionText(translated, englishValue)) return undefined;
   return {
     value: translated,
@@ -1137,11 +1137,40 @@ function resolveGermanDescriptionCell(column: PdtColumn, ctx: ResolveContext, fa
   };
 }
 
-function translateDescriptionToGerman(value: string | undefined): string | undefined {
+function translateDescriptionToGerman(value: string | undefined, abbOnly = false): string | undefined {
   const source = cleanString(value);
   if (!source || isDecorativeAssetText(source)) return undefined;
   let translated = ` ${source} `;
   const replacements: Array<[RegExp, string]> = [
+    ...(abbOnly ? [
+      [/\bwith screw and push[- ]in spring terminals\b/gi, "mit Schraub- und Federklemmen"],
+      [/\bthree-position handheld device\b/gi, "Dreistellungs-Handgerät"],
+      [/\btop part\b/gi, "Oberteil"],
+      [/\bdummy block\b/gi, "Blindabdeckung"],
+      [/\bauxiliary circuit\b/gi, "Hilfsstromkreis"],
+      [/\bmain circuit\b/gi, "Hauptstromkreis"],
+      [/\brated operational voltage\b/gi, "Bemessungsbetriebsspannung"],
+      [/\brated operational current\b/gi, "Bemessungsbetriebsstrom"],
+      [/\boperational voltage\b/gi, "Betriebsspannung"],
+      [/\boperational current\b/gi, "Betriebsstrom"],
+      [/\bconventional free-air thermal current\b/gi, "Konventioneller thermischer Freibluftstrom"],
+      [/\bcontrol circuit\b/gi, "Steuerstromkreis"],
+      [/\bcontrol voltage\b/gi, "Steuerspannung"],
+      [/\bsurge protective device\b/gi, "Überspannungsschutzgerät"],
+      [/\bpower supply\b/gi, "Stromversorgung"],
+      [/\bpilot light\b/gi, "Kontrollleuchte"],
+      [/\bselector switch\b/gi, "Wahlschalter"],
+      [/\bdisconnect switch\b/gi, "Trennschalter"],
+      [/\bsafety relay\b/gi, "Sicherheitsrelais"],
+      [/\benclosure\b/gi, "Gehäuse"],
+      [/\bdevice\b/gi, "Gerät"],
+      [/\bwith\b/gi, "mit"],
+      [/\band\b/gi, "und"],
+      [/\bfor\b/gi, "für"],
+      [/\bscrew\b/gi, "Schraub"],
+      [/\bspring\b/gi, "Feder"],
+      [/\bterminals?\b/gi, "Klemmen"]
+    ] as Array<[RegExp, string]> : []),
     // Sensor family names (phrase-level, so they win over the generic word rules below). Turck and
     // other sensor vendors publish the family as the product description; the manual PDTs translate
     // it into the German column rather than leaving it blank.

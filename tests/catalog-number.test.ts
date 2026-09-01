@@ -44,5 +44,10 @@ describe("catalog number utilities", () => {
     expect(buildLocalizedProductUrls("eta", "3120-F", "https://www.e-t-a.com/en/products/3120-F")).toEqual({
       en: "https://www.e-t-a.com/en/products/3120-F"
     });
+
+    expect(buildLocalizedProductUrls("abb", "1SBL347060R1100")).toEqual({
+      en: "https://new.abb.com/products/1SBL347060R1100",
+      de: "https://new.abb.com/products/de/1SBL347060R1100"
+    });
   });
 });

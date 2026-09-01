@@ -249,7 +249,9 @@ function enrichRockwellParsedPage(result: ProductResult, fetched: FetchedText, c
   const $ = cheerio.load(fetched.text);
   const sourceUrl = fetched.effectiveUrl;
   const summary = extractRockwellPersonalizationSummary(fetched.text);
-  const descriptionVoltage = extractRockwellDescriptionVoltage(summary?.description);
+  const sourceDescription = summary?.description || result.description;
+  const descriptionVoltage = extractRockwellDescriptionVoltage(sourceDescription) ?? extractRockwellDescriptionSingleVoltage(sourceDescription, catalogNumber);
+  const descriptionCurrent = extractRockwellDescriptionCurrent(sourceDescription, catalogNumber);
   const attributes = dedupeAttributes([
     ...result.attributes,
     ...extractRockwellStructuredAttributes($, fetched.text, sourceUrl, catalogNumber, parser),
@@ -257,6 +259,15 @@ function enrichRockwellParsedPage(result: ProductResult, fetched: FetchedText, c
       group: "Rockwell Product Description",
       name: "Voltage",
       value: descriptionVoltage,
+      sourceUrl,
+      sourceType: "official" as const,
+      parser: "rockwell-product-description",
+      confidence: 0.9
+    }] : []),
+    ...(descriptionCurrent ? [{
+      group: "Rockwell Product Description",
+      name: "Current",
+      value: descriptionCurrent,
       sourceUrl,
       sourceType: "official" as const,
       parser: "rockwell-product-description",
@@ -289,6 +300,18 @@ function extractRockwellDescriptionVoltage(description: string | undefined): str
   if (!match) return undefined;
   const suffix = match[4] ? `${match[3].toUpperCase()}/${match[4].toUpperCase()}` : match[3].toUpperCase();
   return `${match[1]}-${match[2]} V ${suffix}`;
+}
+
+function extractRockwellDescriptionCurrent(description: string | undefined, catalogNumber: string): string | undefined {
+  if (!/^2094-/i.test(catalogNumber.trim())) return undefined;
+  const match = description?.match(/\b(\d+(?:\.\d+)?)\s*A\s+Inv\b/i);
+  return match ? `${match[1]} A` : undefined;
+}
+
+function extractRockwellDescriptionSingleVoltage(description: string | undefined, catalogNumber: string): string | undefined {
+  if (!/^2094-/i.test(catalogNumber.trim())) return undefined;
+  const match = description?.match(/\b(\d+(?:\.\d+)?)\s*V\s*(?:AC|DC)?\b/i);
+  return match ? `${match[1]} V` : undefined;
 }
 
 /** Extracts { title, description } from Rockwell's `window.pagePersonalizationSummary = {...}`

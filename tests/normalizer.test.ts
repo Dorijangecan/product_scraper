@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { classifyDocument, cleanText, normalizeFields, splitNameValue } from "../src/server/scrapers/normalizer.js";
+import { classifyDocument, cleanText, normalizeAbbFields, normalizeFields, splitNameValue } from "../src/server/scrapers/normalizer.js";
 
 describe("splitNameValue (Phase A4)", () => {
   it("splits on colon and equals", () => {
@@ -1420,6 +1420,25 @@ describe("normalizer", () => {
     );
 
     expect(normalized.current).toBe("2 A");
+  });
+
+  it("aligns ABB AC-15 current with the rated operational voltage field even without a main-circuit qualifier", () => {
+    const normalized = normalizeFields(
+      [
+        { group: "ABB Product Data", name: "Rated Operational Voltage", value: "Auxiliary Circuit 690 V", sourceType: "official" },
+        { group: "ABB Product Data", name: "Rated Operational Current AC-15", value: "(500 V) 9 A; (690 V) 2 A", sourceType: "official" }
+      ],
+      []
+    );
+    expect(normalized.current).toBe("2 A");
+  });
+
+  it("keeps ABB certificates as compact names only", () => {
+    const normalized = normalizeAbbFields(
+      [{ group: "Certificates and Declarations", name: "Certificates", value: "A2L Certificate; BV Certificate; CB Certificate; CCC Certificate; CCS Certificate; CE Declaration; UKCA Declaration; RoHS Declaration; REACH Declaration; WEEE", sourceType: "official" }],
+      []
+    );
+    expect(normalized.certificates).toBe("A2L, BV, CB, CCC, CCS, CE, UKCA");
   });
 
   it("prefers ABB power-supply input/output voltage over insulation voltage", () => {
