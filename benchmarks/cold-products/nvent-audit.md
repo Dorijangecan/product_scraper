@@ -13,7 +13,7 @@ All ten catalog numbers were new against the regression corpus/cache and were ve
 | P2ACEGP | Cable Entry Gland Plate / Mounting Accessory | Mounting Accessory | https://www.nvent.com/en-us/hoffman/products/encp2acegp | identity, title, dimensions, material | datasheet + image | 6.6s | PASS |
 | CSD20208ST | Concept sloped-top Type 4 / Enclosure | Enclosure | https://www.nvent.com/en-us/hoffman/products/concept-sloped-top-enclosure-type-4-0/pdf | identity, title, dimensions, material | datasheet + image | 12.9s | PASS |
 | P2KOD20126T3R | ProLine G2 industrial package Type 3R / Enclosure | Enclosure | https://www.nvent.com/en-us/hoffman/products/encp2kod20126t3r | identity, title, dimensions, material | datasheet + image | 7.3s | PASS |
-| 23022-010 | SCHROFF VMEbus test adapter / Mounting Accessory | Mounting Accessory | https://www.nvent.com/en-us/schroff/products/enc23022-010 | identity, title, dimensions, material | datasheet + image | 14.2s | PASS |
+| 23022-010 | SCHROFF VMEbus test adapter / Mounting Accessory | Mounting Accessory | https://www.nvent.com/en-us/schroff/products/enc23022-010 | identity, title, dimensions; material not published in official page/datasheet and left empty | datasheet + image | 14.2s | PASS |
 
 ## Reproduced defect and repair
 
