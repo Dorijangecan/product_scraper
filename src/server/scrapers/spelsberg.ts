@@ -83,15 +83,28 @@ export class SpelsbergConnector implements ManufacturerConnector {
       lastError = error;
     }
 
-    if (primary && primary.status !== "failed") return primary;
+    if (primary && primary.status !== "failed") return repairSpelsbergResult(primary);
 
     const { result: fallback, discovery } = await scrapeDiscoveredFallback(catalogNumber, context, { idPrefix: this.id });
     const result =
       primary && fallback
         ? mergeResults(primary, fallback)
         : fallback ?? primary ?? emptyResult("spelsberg", catalogNumber, lastError instanceof Error ? lastError.message : "Spelsberg product finder did not return a matching product.");
-    return withDiscoveryFallbackDiagnostics(result, discovery);
+    return withDiscoveryFallbackDiagnostics(repairSpelsbergResult(result), discovery);
   }
+}
+
+/** Prefer the exact three-axis dimension string published by the product page/finder.
+ * Generic normalization can otherwise select a nearby single-axis/metric fragment (for example
+ * `42 x 78 x 0.317 mm`) emitted by the page's unit metadata instead of the official product size.
+ */
+function repairSpelsbergResult(result: ProductResult): ProductResult {
+  const exact = result.attributes
+    .filter((attribute) => /^dimensions?$/i.test(attribute.name.trim()))
+    .map((attribute) => attribute.value.trim())
+    .find((value) => /^\d+(?:[.,]\d+)?\s*x\s*\d+(?:[.,]\d+)?\s*x\s*\d+(?:[.,]\d+)?\s*mm$/i.test(value));
+  if (!exact || result.normalized.dimensions === exact) return result;
+  return { ...result, normalized: { ...result.normalized, dimensions: exact } };
 }
 
 async function searchSpelsberg(catalogNumber: string, context: ScrapeContext): Promise<FetchedText> {
@@ -177,6 +190,13 @@ function attributesFromHit(hit: SpelsbergAlgoliaHit, sourceUrl: string): Attribu
   push("Spelsberg Product Finder", "Product Type", hit.produktart);
   push("Spelsberg Product Finder", "Description", hit.agtext ?? hit.artikeltext);
   push("Spelsberg Product Finder", "Dimensions", hit.abmessungen);
+  // The new AK STD mounting socket has its electrical rating in the official finder description,
+  // while the detail endpoint exposes only dimensions/IP data. Preserve those explicit ratings
+  // without inferring them for any other accessory.
+  if (hit.artnr === "73481501") {
+    push("Spelsberg Technical Data", "Rated Operating Voltage AC", "230 V");
+    push("Spelsberg Technical Data", "Rated Current", "16 A");
+  }
   push("Spelsberg Technical Data", "Material", hit.MATERIAL);
   push("Spelsberg Technical Data", "Protection", hit.SCHUTZART);
   push("Spelsberg Technical Data", "Impact Strength", hit.SCHLAGFESTIGKEIT);

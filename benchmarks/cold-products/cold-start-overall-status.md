@@ -1,4 +1,4 @@
-# Cold-start audit status — 2026-08-31
+# Cold-start audit status — 2026-09-01
 
 This is an interim status report, not a completion claim for the whole repository. It covers
 the manufacturers that currently have a dedicated ten-item cold corpus. Each listed corpus has
@@ -21,7 +21,9 @@ ten new catalog numbers, official-source evidence, an audit table, and final iso
 | Siemens | 10 | 10/10 found, identity, official URL, documents, type and PDT | `siemens-audit.md` + ten individual reports |
 | Ganter Norm | 10 | 10/10 found, identity, official URL, documents, type and PDT | `ganter-audit.md` + ten individual reports |
 | nVent | 10 | 10/10 found, identity, official URL, documents, type and PDT | `nvent-audit.md` + ten individual reports |
+| FATH | 10 | 10/10 found, identity, official product URL, documents/image, type, normalized fields and PDT | `fath-audit.md` + final isolated rerun |
+| Spelsberg | 10 | 10/10 found, identity, official product URL, datasheet/image, type, normalized fields and PDT | `spelsberg-audit.md` + final isolated rerun |
 
-All manufacturers in the cold-start scope now have ten previously unseen, officially verified
-items and final isolated rerun evidence. This report is complete for the current manufacturer
-scope.
+All 17 manufacturers in the cold-start scope now have ten previously unseen, officially verified
+items and final isolated rerun evidence. FATH and Spelsberg were added in the final pass on
+2026-09-01; their targeted fixes and full reruns are documented in their audit files.

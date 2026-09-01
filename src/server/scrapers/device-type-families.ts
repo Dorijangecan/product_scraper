@@ -138,7 +138,14 @@ export const DEVICE_TYPE_FAMILIES: Record<string, readonly FamilyEntry[]> = {
     { patterns: ["SK"], type: "Thermal Management", notes: "Climate control / filter fans" }
   ],
   spelsberg: [
-    { patterns: ["ABOX", "AK", "TK", "WKE", "GTI"], type: "Enclosure", notes: "Spelsberg junction boxes / enclosures" }
+    { patterns: ["ABOX", "AK", "TK", "WKE", "GTI"], type: "Enclosure", notes: "Spelsberg junction boxes / enclosures" },
+    { patterns: ["73361401"], type: "Enclosure", notes: "Spelsberg AK 14 Plus small distribution board" },
+    { patterns: ["89602001"], type: "Mounting Accessory", notes: "Spelsberg MABF 100-1 mast/pipe fixing set" },
+    { patterns: ["26013201"], type: "Cable Gland", notes: "Spelsberg DMS M32/w double-membrane seal" },
+    { patterns: ["73540003"], type: "Cover / Door Accessory", notes: "Spelsberg AK KF 03 hinged window" },
+    { patterns: ["59181001"], type: "Cable", notes: "Spelsberg Wallbox LL 7m Type 2 charging cable" },
+    { patterns: ["59181301"], type: "RFID Device", notes: "Spelsberg Wallbox RFID-C Polar chip" },
+    { patterns: ["73481501"], type: "Connector", notes: "Spelsberg AK STD 16 A mounting socket" }
   ],
   schmersal: [
     { patterns: ["AZM"], type: "Solenoid Interlock" },
@@ -220,7 +227,7 @@ export const DEVICE_TYPE_FAMILIES: Record<string, readonly FamilyEntry[]> = {
     { patterns: ["6SBEU14I.317", "6SAKP5J516BS01", "099DC08404090N08"], type: "Connector", notes: "FATH Module F Line and profile connectors" },
     { patterns: ["061CC42300.74"], type: "Cover / Door Accessory", notes: "FATH shelf-board cover cap" },
     { patterns: ["09308901S01", "6FG40ND80M695N08", "093W8451N10S", "6TP38X2030S01"], type: "Mounting Accessory", notes: "FATH workstation and profile mounting components" }
-  ]
+  ],
 };
 
 /**
