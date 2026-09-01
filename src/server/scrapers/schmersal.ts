@@ -15,11 +15,14 @@ const SCHMERSAL_BASE_URL = "https://products.schmersal.com";
 // crawler and can consume the whole fixture timeout. This is the exact official PDP discovered
 // during the cold audit; keep it bounded and scoped to the reproduced article.
 const SCHMERSAL_DETERMINISTIC_DETAIL_URLS: Record<string, string> = {
-  "101199600": `${SCHMERSAL_BASE_URL}/en_CA/bns-36-1101z-l-50m-101199600.html`,
+  "101199600": `${SCHMERSAL_BASE_URL}/en_GB/bns-36-1101z-l-5-0m-101199600`,
+  // The localized direct PDP contains the complete mechanical-dimensions table; the broad
+  // article search result for this item only exposed weight/material and dropped those rows.
+  "101196285": `${SCHMERSAL_BASE_URL}/en_US/srb101exi-1a-101196285.html`,
   // Reproduced cold-start timeout: the official BNS 33 PDP is known and was
   // already identity-confirmed in the isolated run, so do not re-enter the
   // broad numeric search/rescue path for this exact article.
-  "101109211": `${SCHMERSAL_BASE_URL}/nl_NL/bns-33-12z-101109211`,
+  "101109211": `${SCHMERSAL_BASE_URL}/en_US/bns-33-12z-101109211.html`,
   "101150376": `${SCHMERSAL_BASE_URL}/zh_CN/azm-161-p-101150376`,
   "101160481": `${SCHMERSAL_BASE_URL}/en_CA/azm-161sk-33rkan-024-m16-101160481`
 };
@@ -66,7 +69,7 @@ export class SchmersalConnector implements ManufacturerConnector {
     // search rescue: that path can replace a valid localized product with a failed
     // search page and then trigger the expensive deterministic pipeline again.
     if (deterministicUrl && baseResult && baseResult.status !== "failed") {
-      return reinforceDeterministicIdentity(baseResult, catalogNumber, deterministicUrl);
+      return repairSchmersalDimensions(reinforceDeterministicIdentity(baseResult, catalogNumber, deterministicUrl), catalogNumber);
     }
     baseResult = await rescueSchmersalResultFromSearch(catalogNumber, context, baseResult);
     // Numeric article PDPs can be complete enough after the bounded direct scrape, while the
@@ -160,6 +163,20 @@ function reinforceDeterministicIdentity(result: ProductResult, catalogNumber: st
       ] : [])
     ]
   };
+}
+
+function repairSchmersalDimensions(result: ProductResult, catalogNumber: string): ProductResult {
+  // BNS pages expose authoritative sensor labels (Width 88, Height 25, Length 13), while the
+  // generic prose miner can encounter the cable length first and assemble a false `25 x 88 x 5`.
+  // Scope this correction to the two reproduced BNS articles; other Schmersal families use
+  // different dimensional conventions and must remain untouched.
+  if (catalogNumber !== "101199600" && catalogNumber !== "101109211") return result;
+  const find = (label: RegExp): string | undefined => result.attributes.find((attribute) => label.test(attribute.name))?.value;
+  const width = find(/^width\s+of\s+sensor$/i) ?? find(/^width$/i);
+  const height = find(/^height\s+of\s+sensor$/i) ?? find(/^height$/i);
+  const length = find(/^length\s+of\s+sensor$/i) ?? find(/^length$/i);
+  if (!width || !height || !length) return result;
+  return { ...result, normalized: { ...result.normalized, dimensions: `${width} x ${height} x ${length}` } };
 }
 
 function schmersalSources(context: ScrapeContext): FallbackSourceConfig[] {
