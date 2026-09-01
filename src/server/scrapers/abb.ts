@@ -9,6 +9,7 @@ import { catalogTextMatches, sameCatalogNumber } from "./catalog-number.js";
 import { extractMarkerData } from "./marker-extractor.js";
 import { dedupeAttributes, dedupeDocuments } from "./dedupe.js";
 import { scrapeDiscoveredFallback, withDiscoveryFallbackDiagnostics } from "./discovery-fallback.js";
+import { isLikelyNonProductImage, isLikelySchematicImage } from "./generic.js";
 
 const ABB_USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0 Safari/537.36";
 const ABB_PARTCOMMUNITY_BASE_URL = "https://abb-control-products.partcommunity.com/3d-cad-models/";
@@ -966,7 +967,14 @@ function isUsefulAbbSearchResult(result: ProductResult): boolean {
 }
 
 function hasProductImage(result: ProductResult | undefined): boolean {
-  return Boolean(result?.documents.some((doc) => doc.type === "image" && Boolean(doc.url || doc.localPath || doc.candidateUrls?.length)));
+  return Boolean(
+    result?.documents.some(
+      (doc) =>
+        doc.type === "image" &&
+        [doc.url, ...(doc.candidateUrls ?? [])].some((url) => isUsableAbbImageUrl(url)) &&
+        !isLikelySchematicImage(`${doc.label} ${doc.url}`)
+    )
+  );
 }
 
 function abbResultScore(result: ProductResult): number {
@@ -1535,7 +1543,7 @@ export function parseAbbProductPage(catalogNumber: string, fetched: FetchedText,
   });
 
   const imageUrl = firstImageUrl(product?.image) ?? $("meta[property='og:image']").attr("content") ?? $("meta[name='image']").attr("content");
-  if (imageUrl) {
+  if (imageUrl && isUsableAbbImageUrl(imageUrl)) {
     documents.push({
       type: "image",
       label: "Product image",
@@ -1545,7 +1553,7 @@ export function parseAbbProductPage(catalogNumber: string, fetched: FetchedText,
   }
   $("img[src],img[data-master]").each((_, element) => {
     const rawUrl = $(element).attr("data-master") || $(element).attr("src");
-    if (!rawUrl || !/productimages\.abb\.com/i.test(rawUrl)) return;
+    if (!rawUrl || !/productimages\.abb\.com/i.test(rawUrl) || !isUsableAbbImageUrl(rawUrl)) return;
     documents.push({
       type: "image",
       label: cleanText($(element).attr("alt") || "Product image"),
@@ -2362,6 +2370,7 @@ function extractAbbEmbeddedImages(html: string, sourceUrl: string, productPayloa
   const imageUrlsByPath = new Map<string, string>();
   for (const match of html.matchAll(/https?:\\?\/\\?\/cdn\.productimages\.abb\.com\\?\/[^"')<\s]+/gi)) {
     const url = cleanAbbJsonValue(match[0]).replace(/\\\//g, "/");
+    if (!isUsableAbbImageUrl(url)) continue;
     const key = abbImageUrlKey(url);
     const existing = imageUrlsByPath.get(key);
     if (!existing || abbImageUrlRank(url) < abbImageUrlRank(existing)) imageUrlsByPath.set(key, url);
@@ -2386,7 +2395,7 @@ function extractAbbModelImages(html: string, sourceUrl: string, productPayloads 
       const candidates = uniqueStrings(
         [firstStringOrNumber(image.url), firstStringOrNumber(image.masterUrl), firstStringOrNumber(image.thumbnailUrl)]
           .map((url) => url?.replace(/\\\//g, "/"))
-          .filter((url): url is string => Boolean(url))
+          .filter((url): url is string => Boolean(url && isUsableAbbImageUrl(url)))
       ).sort((left, right) => abbImageUrlRank(left) - abbImageUrlRank(right));
       const primary = candidates[0];
       if (!primary) continue;
@@ -2428,6 +2437,12 @@ function imageLabelFromUrl(url: string): string {
   if (/_master\b|master\./.test(lower)) return "Product image master";
   if (/_100x100\b|thumbnail|thumb/.test(lower)) return "Product image thumbnail";
   return "Product image";
+}
+
+function isUsableAbbImageUrl(url: string): boolean {
+  const normalized = url.trim();
+  if (!normalized) return false;
+  return !isLikelyNonProductImage(normalized) && !isLikelySchematicImage(normalized) && !/\bno[_-]?image\b/i.test(normalized);
 }
 
 function coalesceAbbImageDocuments(documents: DocumentRecord[]): DocumentRecord[] {

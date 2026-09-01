@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-08-31T16:37:21.981Z",
-  "outputDir": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260831163714",
+  "generatedAt": "2026-09-01T05:15:26.960Z",
+  "outputDir": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260901051519",
   "filters": {
     "manufacturer": "nvent",
     "catalogNumber": "P2KOD20126T3R",
@@ -969,7 +969,7 @@
       ],
       "status": "found",
       "confidence": 0.4,
-      "elapsedMs": 7342,
+      "elapsedMs": 7479,
       "productUrl": "https://www.nvent.com/en-us/hoffman/products/encp2kod20126t3r",
       "identityConfirmed": true,
       "wrongProduct": false,
@@ -977,7 +977,7 @@
       "requiredDocumentsMatched": true,
       "normalizedFieldsMatched": true,
       "pdtAuditMatched": true,
-      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260831163714\\pdt\\nvent-P2KOD20126T3R-pdt_pdt-audit.json",
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260901051519\\pdt\\nvent-P2KOD20126T3R-pdt_pdt-audit.json",
       "pdtWrittenCells": 32,
       "pdtBlankCells": 54,
       "pdtSkippedCells": 3,

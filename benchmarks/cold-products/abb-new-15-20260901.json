@@ -1,0 +1,131 @@
+[
+  {
+    "manufacturerId": "abb",
+    "catalogNumber": "1SBL137501R1100",
+    "caseType": "electrical",
+    "expectedDeviceType": "Contactor",
+    "riskTags": ["cold", "af09", "contactor"],
+    "expectedOfficialUrlPatterns": ["new\\.abb\\.com"],
+    "expectedNormalizedFields": ["voltage", "current"]
+  },
+  {
+    "manufacturerId": "abb",
+    "catalogNumber": "1SBL237001R1100",
+    "caseType": "electrical",
+    "expectedDeviceType": "Contactor",
+    "riskTags": ["cold", "af26", "contactor"],
+    "expectedOfficialUrlPatterns": ["new\\.abb\\.com"],
+    "expectedNormalizedFields": ["voltage", "current"]
+  },
+  {
+    "manufacturerId": "abb",
+    "catalogNumber": "1SFA611200R1001",
+    "caseType": "electrical",
+    "expectedDeviceType": "Selector Switch",
+    "riskTags": ["cold", "m2ss", "selector-switch"],
+    "expectedOfficialUrlPatterns": ["new\\.abb\\.com"]
+  },
+  {
+    "manufacturerId": "abb",
+    "catalogNumber": "1SFA611811R1000",
+    "caseType": "mechanical",
+    "expectedDeviceType": "Enclosure",
+    "riskTags": ["cold", "mep", "enclosure"],
+    "expectedOfficialUrlPatterns": ["new\\.abb\\.com"]
+  },
+  {
+    "manufacturerId": "abb",
+    "catalogNumber": "1SFA619600R6002",
+    "caseType": "electrical",
+    "expectedDeviceType": "Stack Light / Beacon",
+    "riskTags": ["cold", "cb1", "buzzer"],
+    "expectedOfficialUrlPatterns": ["new\\.abb\\.com"]
+  },
+  {
+    "manufacturerId": "abb",
+    "catalogNumber": "1SFA611400R1001",
+    "caseType": "electrical",
+    "expectedDeviceType": "Pilot Light",
+    "riskTags": ["cold", "ml1", "pilot-light"],
+    "expectedOfficialUrlPatterns": ["new\\.abb\\.com"]
+  },
+  {
+    "manufacturerId": "abb",
+    "catalogNumber": "2TLA050220R0020",
+    "caseType": "electrical",
+    "expectedDeviceType": "Pushbutton / Operator",
+    "riskTags": ["cold", "estrongz", "emergency-stop"],
+    "expectedOfficialUrlPatterns": ["new\\.abb\\.com"]
+  },
+  {
+    "manufacturerId": "abb",
+    "catalogNumber": "2TLA020052R1000",
+    "caseType": "electrical",
+    "expectedDeviceType": "Safety Relay",
+    "riskTags": ["cold", "vital", "safety-controller"],
+    "expectedOfficialUrlPatterns": ["new\\.abb\\.com"]
+  },
+  {
+    "manufacturerId": "abb",
+    "catalogNumber": "1SVR405667R0000",
+    "caseType": "electrical",
+    "expectedDeviceType": "Relay",
+    "riskTags": ["cold", "cr-u", "timer-module"],
+    "expectedOfficialUrlPatterns": ["new\\.abb\\.com"],
+    "expectedNormalizedFields": ["voltage"]
+  },
+  {
+    "manufacturerId": "abb",
+    "catalogNumber": "1SVR405611R4000",
+    "caseType": "electrical",
+    "expectedDeviceType": "Relay",
+    "riskTags": ["cold", "cr-m", "interface-relay"],
+    "expectedOfficialUrlPatterns": ["new\\.abb\\.com"],
+    "expectedNormalizedFields": ["voltage", "current"]
+  },
+  {
+    "manufacturerId": "abb",
+    "catalogNumber": "1SVR340767R1000",
+    "caseType": "electrical",
+    "expectedDeviceType": "Power Supply",
+    "riskTags": ["cold", "cp-s", "power-supply"],
+    "expectedOfficialUrlPatterns": ["new\\.abb\\.com"],
+    "expectedNormalizedFields": ["voltage", "current"]
+  },
+  {
+    "manufacturerId": "abb",
+    "catalogNumber": "2CDS271001R0105",
+    "caseType": "electrical",
+    "expectedDeviceType": "Miniature Circuit Breaker",
+    "riskTags": ["cold", "s200m", "mcb"],
+    "expectedOfficialUrlPatterns": ["new\\.abb\\.com"],
+    "expectedNormalizedFields": ["voltage", "current"]
+  },
+  {
+    "manufacturerId": "abb",
+    "catalogNumber": "2CDS271103R0135",
+    "caseType": "electrical",
+    "expectedDeviceType": "Miniature Circuit Breaker",
+    "riskTags": ["cold", "s200m", "mcb-1pn"],
+    "expectedOfficialUrlPatterns": ["new\\.abb\\.com"],
+    "expectedNormalizedFields": ["voltage", "current"]
+  },
+  {
+    "manufacturerId": "abb",
+    "catalogNumber": "1SVR427033R3000",
+    "caseType": "electrical",
+    "expectedDeviceType": "Power Supply",
+    "riskTags": ["cold", "cp-e", "power-supply-5v"],
+    "expectedOfficialUrlPatterns": ["new\\.abb\\.com"],
+    "expectedNormalizedFields": ["voltage", "current"]
+  },
+  {
+    "manufacturerId": "abb",
+    "catalogNumber": "1SCA022823R9900",
+    "caseType": "electrical",
+    "expectedDeviceType": "Disconnect Switch",
+    "riskTags": ["cold", "eot", "enclosed-disconnect"],
+    "expectedOfficialUrlPatterns": ["new\\.abb\\.com"],
+    "expectedNormalizedFields": ["current"]
+  }
+]

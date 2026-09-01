@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-08-31T16:35:45.012Z",
-  "outputDir": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260831163538",
+  "generatedAt": "2026-09-01T05:14:03.757Z",
+  "outputDir": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260901051357",
   "filters": {
     "manufacturer": "nvent",
     "catalogNumber": "P19SH8",
@@ -1007,7 +1007,7 @@
       ],
       "status": "found",
       "confidence": 0.4,
-      "elapsedMs": 5841,
+      "elapsedMs": 5914,
       "productUrl": "https://www.nvent.com/en-us/hoffman/products/encp19sh8",
       "identityConfirmed": true,
       "wrongProduct": false,
@@ -1015,7 +1015,7 @@
       "requiredDocumentsMatched": true,
       "normalizedFieldsMatched": true,
       "pdtAuditMatched": true,
-      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260831163538\\pdt\\nvent-P19SH8-pdt_pdt-audit.json",
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260901051357\\pdt\\nvent-P19SH8-pdt_pdt-audit.json",
       "pdtWrittenCells": 26,
       "pdtBlankCells": 60,
       "pdtSkippedCells": 0,

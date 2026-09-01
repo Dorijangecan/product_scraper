@@ -690,6 +690,7 @@ function bestNormalizedAttributeValue(
       const haystack = `${attr.group ?? ""} ${attr.name}`.toLowerCase();
       const kind = field ? registryFieldQuantityKind(field) : undefined;
       if (kind && isDisqualifiedForQuantityKind(haystack, attr.value, kind)) return false;
+      if (field === "current" && isNonOperatingCurrentLabel(haystack)) return false;
       // `patterns` here is FIELD_LABEL_PATTERNS — a third label vocabulary, even looser than the
       // registry's aliases (`/voltage/`, `/weight/` with no word boundary at all). It needs the same
       // deference to the ontology, and measurement says so: with the check only in
@@ -707,6 +708,10 @@ function bestNormalizedAttributeValue(
     // in line. Scoped to the two fields that already have the outer guard, so nothing else moves.
     .map((attr) => (field === "voltage" || field === "current" ? withoutMixedKindProse(normalize(attr.value)) : normalize(attr.value)))
     .find((value): value is string => Boolean(value));
+}
+
+function isNonOperatingCurrentLabel(label: string): boolean {
+  return /\b(?:fault|surge|nominal discharge|short[-\s]?circuit|interrupt|withstand|breaking)\s+current\b|\bcurrent\s+(?:fault|surge|short[-\s]?circuit|interrupt|withstand|breaking)\b/i.test(label);
 }
 
 function powerSupplyOutputVoltage(attributes: AttributeRecord[]): string | undefined {

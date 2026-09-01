@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-08-31T16:37:11.770Z",
-  "outputDir": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260831163658",
+  "generatedAt": "2026-09-01T05:15:16.606Z",
+  "outputDir": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260901051503",
   "filters": {
     "manufacturer": "nvent",
     "catalogNumber": "CSD20208ST",
@@ -969,7 +969,7 @@
       ],
       "status": "found",
       "confidence": 0.4,
-      "elapsedMs": 12851,
+      "elapsedMs": 13048,
       "productUrl": "https://www.nvent.com/en-us/hoffman/products/enccsd20208st",
       "identityConfirmed": true,
       "wrongProduct": false,
@@ -977,7 +977,7 @@
       "requiredDocumentsMatched": true,
       "normalizedFieldsMatched": true,
       "pdtAuditMatched": true,
-      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260831163658\\pdt\\nvent-CSD20208ST-pdt_pdt-audit.json",
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260901051503\\pdt\\nvent-CSD20208ST-pdt_pdt-audit.json",
       "pdtWrittenCells": 38,
       "pdtBlankCells": 47,
       "pdtSkippedCells": 4,

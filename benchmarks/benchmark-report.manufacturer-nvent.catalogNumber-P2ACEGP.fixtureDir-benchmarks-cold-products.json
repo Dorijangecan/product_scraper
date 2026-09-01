@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-08-31T16:36:26.029Z",
-  "outputDir": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260831163619",
+  "generatedAt": "2026-09-01T05:15:00.890Z",
+  "outputDir": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260901051454",
   "filters": {
     "manufacturer": "nvent",
     "catalogNumber": "P2ACEGP",
@@ -1007,7 +1007,7 @@
       ],
       "status": "found",
       "confidence": 0.4,
-      "elapsedMs": 6621,
+      "elapsedMs": 6279,
       "productUrl": "https://www.nvent.com/en-us/hoffman/products/encp2acegp",
       "identityConfirmed": true,
       "wrongProduct": false,
@@ -1015,7 +1015,7 @@
       "requiredDocumentsMatched": true,
       "normalizedFieldsMatched": true,
       "pdtAuditMatched": true,
-      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260831163619\\pdt\\nvent-P2ACEGP-pdt_pdt-audit.json",
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260901051454\\pdt\\nvent-P2ACEGP-pdt_pdt-audit.json",
       "pdtWrittenCells": 32,
       "pdtBlankCells": 54,
       "pdtSkippedCells": 0,

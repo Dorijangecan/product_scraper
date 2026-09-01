@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-08-31T16:36:56.028Z",
-  "outputDir": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260831163649",
+  "generatedAt": "2026-09-01T05:13:55.194Z",
+  "outputDir": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260901051347",
   "filters": {
     "manufacturer": "nvent",
     "catalogNumber": "CSP2020",
@@ -1007,7 +1007,7 @@
       ],
       "status": "found",
       "confidence": 0.4,
-      "elapsedMs": 6052,
+      "elapsedMs": 7016,
       "productUrl": "https://www.nvent.com/en-us/hoffman/products/enccsp2020",
       "identityConfirmed": true,
       "wrongProduct": false,
@@ -1015,7 +1015,7 @@
       "requiredDocumentsMatched": true,
       "normalizedFieldsMatched": true,
       "pdtAuditMatched": true,
-      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260831163649\\pdt\\nvent-CSP2020-pdt_pdt-audit.json",
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260901051347\\pdt\\nvent-CSP2020-pdt_pdt-audit.json",
       "pdtWrittenCells": 30,
       "pdtBlankCells": 56,
       "pdtSkippedCells": 0,

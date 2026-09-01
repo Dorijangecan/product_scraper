@@ -1,45 +1,51 @@
 {
-  "generatedAt": "2026-08-31T10:21:12.867Z",
-  "outputDir": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260831101718",
+  "generatedAt": "2026-08-31T11:55:22.923Z",
+  "outputDir": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260831115110",
   "filters": {
     "manufacturer": "schmersal",
     "fixtureDir": "benchmarks/cold-products"
   },
   "summary": {
-    "foundRate": 75,
-    "officialUrlRate": 75,
-    "documentRate": 75,
-    "pdtAuditRate": 75,
-    "deviceTypeRate": 50,
+    "foundRate": 85.7,
+    "officialUrlRate": 85.7,
+    "documentRate": 85.7,
+    "pdtAuditRate": 85.7,
+    "deviceTypeRate": 71.4,
     "customerDocumentRate": 0,
     "wrongProducts": 0,
     "partialWithoutMissing": 0,
     "pdtUnprovenWritten": 0,
     "pdtUnexplainedRequiredFieldIssues": 0,
-    "pdtWriteIssues": 8,
+    "pdtWriteIssues": 11,
     "qualityAccepted": false,
     "fixtureCoverageAccepted": true,
     "fixtureCoverage": {
       "byManufacturer": {
         "schmersal": {
-          "total": 4,
+          "total": 7,
           "caseTypes": [
             "electrical"
           ],
           "riskTags": [
+            "atex-safety-relay",
             "az16",
+            "bns33",
             "bns36",
             "cold",
             "magnetic-safety-sensor",
+            "magnetic-sensor",
+            "safety-monitoring-module",
             "safety-sensor",
             "safety-switch",
-            "serial-diagnostics"
+            "serial-diagnostics",
+            "srb101exi",
+            "srb202ca"
           ]
         }
       },
       "byDeviceType": {
         "Safety Sensor": {
-          "total": 3,
+          "total": 4,
           "manufacturers": [
             "schmersal"
           ],
@@ -55,12 +61,22 @@
           "caseTypes": [
             "electrical"
           ]
+        },
+        "Safety Relay": {
+          "total": 2,
+          "manufacturers": [
+            "schmersal"
+          ],
+          "caseTypes": [
+            "electrical"
+          ]
         }
       },
       "byDeviceSheet": {
         "safety sensor": {
-          "total": 3,
+          "total": 6,
           "deviceTypes": [
+            "Safety Relay",
             "Safety Sensor"
           ],
           "manufacturers": [
@@ -251,9 +267,17 @@
           "sheetName": "Switch",
           "deviceTypes": [
             "Lock / Interlock",
+            "Selector Switch",
             "Switch"
           ],
-          "examples": []
+          "examples": [
+            {
+              "manufacturerId": "eaton",
+              "pattern": "M22-WR",
+              "deviceType": "Selector Switch",
+              "notes": "M22 selector switch actuator"
+            }
+          ]
         },
         {
           "sheetName": "Wire ID Information",
@@ -434,7 +458,8 @@
             "Miniature Circuit Breaker",
             "Molded Case Circuit Breaker",
             "Relay",
-            "Residual Current Device"
+            "Residual Current Device",
+            "Supplementary Protector"
           ],
           "examples": [
             {
@@ -903,7 +928,7 @@
       ],
       "status": "found",
       "confidence": 0.3,
-      "elapsedMs": 14306,
+      "elapsedMs": 10131,
       "productUrl": "https://products.schmersal.com/en_US/az-16-12zvrk-m16-101154221",
       "identityConfirmed": true,
       "wrongProduct": false,
@@ -911,14 +936,14 @@
       "requiredDocumentsMatched": true,
       "normalizedFieldsMatched": true,
       "pdtAuditMatched": true,
-      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260831101718\\pdt\\schmersal-AZ16-12ZVRK-M16-pdt_pdt-audit.json",
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260831115110\\pdt\\schmersal-AZ16-12ZVRK-M16-pdt_pdt-audit.json",
       "pdtWrittenCells": 31,
       "pdtBlankCells": 106,
       "pdtSkippedCells": 13,
       "pdtUnprovenSkipped": 1,
       "pdtUnprovenWritten": 0,
       "pdtWriteIssues": 3,
-      "pdtRequiredFieldIssues": 1,
+      "pdtRequiredFieldIssues": 0,
       "pdtUnexplainedRequiredFieldIssues": 0,
       "customerDocumentsExpected": 0,
       "customerDocumentsMatched": true,
@@ -938,7 +963,7 @@
       ],
       "status": "found",
       "confidence": 0.3,
-      "elapsedMs": 21043,
+      "elapsedMs": 13821,
       "productUrl": "https://products.schmersal.com/en_US/rss-36-i2-sd-st-101218833",
       "identityConfirmed": true,
       "wrongProduct": false,
@@ -946,7 +971,7 @@
       "requiredDocumentsMatched": true,
       "normalizedFieldsMatched": true,
       "pdtAuditMatched": true,
-      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260831101718\\pdt\\schmersal-RSS36-I2-SD-ST-pdt_pdt-audit.json",
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260831115110\\pdt\\schmersal-RSS36-I2-SD-ST-pdt_pdt-audit.json",
       "pdtWrittenCells": 42,
       "pdtBlankCells": 94,
       "pdtSkippedCells": 4,
@@ -973,7 +998,7 @@
       ],
       "status": "found",
       "confidence": 0.57,
-      "elapsedMs": 12700,
+      "elapsedMs": 8658,
       "productUrl": "https://products.schmersal.com/en_US/az-16-12zvrk-g24-101134000",
       "identityConfirmed": true,
       "wrongProduct": false,
@@ -981,7 +1006,7 @@
       "requiredDocumentsMatched": true,
       "normalizedFieldsMatched": true,
       "pdtAuditMatched": true,
-      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260831101718\\pdt\\schmersal-101134000-pdt_pdt-audit.json",
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260831115110\\pdt\\schmersal-101134000-pdt_pdt-audit.json",
       "pdtWrittenCells": 50,
       "pdtBlankCells": 84,
       "pdtSkippedCells": 16,
@@ -999,15 +1024,120 @@
       "catalogNumber": "101199600",
       "caseType": "electrical",
       "expectedDeviceType": "Safety Sensor",
-      "deviceTypeMatched": false,
+      "actualDeviceType": "Safety Sensor",
+      "deviceTypeMatched": true,
       "riskTags": [
         "cold",
         "bns36",
         "magnetic-safety-sensor"
       ],
+      "status": "found",
+      "confidence": 0.53,
+      "elapsedMs": 18204,
+      "productUrl": "https://products.schmersal.com/nl_NL/bns-36-1101z-l-5-0m-101199600",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": false,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260831115110\\pdt\\schmersal-101199600-pdt_pdt-audit.json",
+      "pdtWrittenCells": 31,
+      "pdtBlankCells": 109,
+      "pdtSkippedCells": 10,
+      "pdtUnprovenSkipped": 1,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": []
+    },
+    {
+      "manufacturerId": "schmersal",
+      "catalogNumber": "101196285",
+      "caseType": "electrical",
+      "expectedDeviceType": "Safety Relay",
+      "actualDeviceType": "Safety Relay",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "cold",
+        "srb101exi",
+        "atex-safety-relay"
+      ],
+      "status": "found",
+      "confidence": 0.53,
+      "elapsedMs": 13958,
+      "productUrl": "https://products.schmersal.com/nl_NL/srb101exi-1a-101196285",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": false,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260831115110\\pdt\\schmersal-101196285-pdt_pdt-audit.json",
+      "pdtWrittenCells": 25,
+      "pdtBlankCells": 124,
+      "pdtSkippedCells": 1,
+      "pdtUnprovenSkipped": 1,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": []
+    },
+    {
+      "manufacturerId": "schmersal",
+      "catalogNumber": "101176197",
+      "caseType": "electrical",
+      "expectedDeviceType": "Safety Relay",
+      "actualDeviceType": "Safety Relay",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "cold",
+        "srb202ca",
+        "safety-monitoring-module"
+      ],
+      "status": "found",
+      "confidence": 0.57,
+      "elapsedMs": 5286,
+      "productUrl": "https://products.schmersal.com/en_US/srb202ca-24vdc-101176197",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260831115110\\pdt\\schmersal-101176197-pdt_pdt-audit.json",
+      "pdtWrittenCells": 53,
+      "pdtBlankCells": 81,
+      "pdtSkippedCells": 16,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 3,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": []
+    },
+    {
+      "manufacturerId": "schmersal",
+      "catalogNumber": "101109211",
+      "caseType": "electrical",
+      "expectedDeviceType": "Safety Sensor",
+      "deviceTypeMatched": false,
+      "riskTags": [
+        "cold",
+        "bns33",
+        "magnetic-sensor"
+      ],
       "status": "error",
       "confidence": 0,
-      "elapsedMs": 184017,
+      "elapsedMs": 180019,
       "identityConfirmed": false,
       "wrongProduct": false,
       "officialUrlMatched": false,

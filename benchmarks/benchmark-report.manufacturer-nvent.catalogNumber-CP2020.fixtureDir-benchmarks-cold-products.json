@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-08-31T16:36:47.082Z",
-  "outputDir": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260831163636",
+  "generatedAt": "2026-09-01T05:13:45.513Z",
+  "outputDir": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260901051335",
   "filters": {
     "manufacturer": "nvent",
     "catalogNumber": "CP2020",
@@ -1007,7 +1007,7 @@
       ],
       "status": "found",
       "confidence": 0.4,
-      "elapsedMs": 9815,
+      "elapsedMs": 9924,
       "productUrl": "https://www.nvent.com/en-us/hoffman/products/enccp2020",
       "identityConfirmed": true,
       "wrongProduct": false,
@@ -1015,7 +1015,7 @@
       "requiredDocumentsMatched": true,
       "normalizedFieldsMatched": true,
       "pdtAuditMatched": true,
-      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260831163636\\pdt\\nvent-CP2020-pdt_pdt-audit.json",
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260901051335\\pdt\\nvent-CP2020-pdt_pdt-audit.json",
       "pdtWrittenCells": 32,
       "pdtBlankCells": 54,
       "pdtSkippedCells": 0,

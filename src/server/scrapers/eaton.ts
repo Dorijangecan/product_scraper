@@ -23,6 +23,9 @@ const EATON_RAPID_LINK_5X_CATALOG_CN_PDF_URL =
   "https://www.eaton.com.cn/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/en-globalprime/rapid-link-5x/eaton-rapid-link-5x-catalog-zh-cn.pdf";
 const EATON_RAPID_LINK_5X_CATALOG_EN_PDF_URL =
   "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/rapid-link-5x/eaton-rapid-link-5x-catalog-en-us.pdf";
+const EATON_XV100_FAMILY_IMAGE_URL =
+  "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/xv100/xv100-hmi-and-hmi-plc-product-shot-500x500.jpg/_jcr_content/renditions/cq5dam.thumbnail.319.319.png";
+const EATON_XV100_FAMILY_PAGE_URL = "https://www.eaton.com/us/en-us/catalog/machinery-controls/xv100.html";
 const EATON_SKU_LOCALES = [
   { host: EATON_PRODUCT_HOST, localePath: "at/de-de" },
   { host: EATON_PRODUCT_HOST, localePath: "us/en-us" },
@@ -427,6 +430,27 @@ export class EatonConnector implements ManufacturerConnector {
       return withEatonDiagnostics(result, diagnostics);
     }
 
+    // Eaton's official HTML endpoint can be slow or bot-blocked while Jina's
+    // official-page mirror returns the same source-backed SKU content quickly.
+    // Try this bounded primary reader before search discovery and browser fallbacks;
+    // otherwise an already-available rich page needlessly burns the item deadline.
+    if (candidates[0] && !isEatonCdvrlCatalogNumber(partNumber)) {
+      const plainReader = await fetchEatonReader(candidates[0], context, { timeoutMs: 12000, waitForSelector: false });
+      if (plainReader) {
+        debugEaton(`primary reader parse start ${candidates[0]}`);
+        const parseStartedAt = Date.now();
+        const parsed = parseEatonProductPage(partNumber, plainReader, candidates[0], context.manufacturer.localizedUrlTemplates);
+        debugEaton(
+          `primary reader parse done ${Date.now() - parseStartedAt}ms status=${parsed.status} attrs=${parsed.attributes.length} docs=${parsed.documents.length} rich=${isRichEatonResult(parsed)}`
+        );
+        if (parsed.status !== "failed") result = mergeEatonResults(result, parsed);
+        if (result && isRichEatonResult(result)) {
+          result = await enrichEatonLocalizedDescriptions(result, context, diagnostics);
+          return withEatonDiagnostics(result, diagnostics);
+        }
+      }
+    }
+
     if (!result || result.status === "failed" || !hasExactEatonIdentity(result, partNumber)) {
       await runSearchDiscovery();
       if (shouldStopAfterEmptyEatonSearch(partNumber, result, attemptedSearchDiscovery, searchDiscoveryFoundEvidence)) {
@@ -441,25 +465,6 @@ export class EatonConnector implements ManufacturerConnector {
       if (result && isRichEatonResult(result)) {
         result = await enrichEatonLocalizedDescriptions(result, context, diagnostics);
         return withEatonDiagnostics(result, diagnostics);
-      }
-    }
-
-    // Jina's plain markdown snapshot is often Eaton's fastest source-backed path. Try that
-    // before any browser-backed render so bot-mitigation does not consume the fixture budget.
-    if (candidates[0]) {
-      const plainReader = await fetchEatonReader(candidates[0], context, { timeoutMs: 12000, waitForSelector: false });
-      if (plainReader) {
-        debugEaton(`primary reader parse start ${candidates[0]}`);
-        const parseStartedAt = Date.now();
-        const parsed = parseEatonProductPage(partNumber, plainReader, candidates[0], context.manufacturer.localizedUrlTemplates);
-        debugEaton(
-          `primary reader parse done ${Date.now() - parseStartedAt}ms status=${parsed.status} attrs=${parsed.attributes.length} docs=${parsed.documents.length} rich=${isRichEatonResult(parsed)}`
-        );
-        if (parsed.status !== "failed") result = mergeEatonResults(result, parsed);
-        if (result && isRichEatonResult(result)) {
-          result = await enrichEatonLocalizedDescriptions(result, context, diagnostics);
-          return withEatonDiagnostics(result, diagnostics);
-        }
       }
     }
 
@@ -1537,12 +1542,18 @@ function withEatonDiagnostics(
   result: ProductResult,
   diagnostics: Pick<ScrapeDiagnostics, "attemptedUrls" | "discoveredCandidates" | "notes">
 ): ProductResult {
+  const imageRepaired = repairEatonProductImage(result);
+  result = imageRepaired.result;
   const attemptedUrls = uniqueStrings([...(result.diagnostics?.attemptedUrls ?? []), ...(diagnostics.attemptedUrls ?? [])]).slice(0, 80);
   const discoveredCandidates = [
     ...(result.diagnostics?.discoveredCandidates ?? []),
     ...(diagnostics.discoveredCandidates ?? [])
   ].slice(0, 40);
-  const notes = uniqueStrings([...(result.diagnostics?.notes ?? []), ...(diagnostics.notes ?? [])]).slice(0, 40);
+  const notes = uniqueStrings([
+    ...(result.diagnostics?.notes ?? []),
+    ...(diagnostics.notes ?? []),
+    ...(imageRepaired.note ? [imageRepaired.note] : [])
+  ]).slice(0, 40);
   return {
     ...result,
     diagnostics: {
@@ -1588,7 +1599,8 @@ export function parseEatonProductPage(
     parser: "eaton-product-page",
     stage: htmlParsed.attributes.length ? "static-html" : "reader",
     confidence: htmlParsed.attributes.length ? 0.9 : 0.84,
-    ...attr
+    ...attr,
+    value: normalizeEatonVoltageRating(attr.name, attr.value)
   }));
   const catalogNumberForUrls = preferredEatonCatalogNumber(catalogNumber, attributes);
   const productUrl = canonicalEatonEnglishProductUrl(officialUrl) ?? officialUrl;
@@ -1634,6 +1646,19 @@ export function parseEatonProductPage(
       : undefined,
     error: hasUsableProductData ? undefined : "No usable Eaton product data found."
   };
+}
+
+function normalizeEatonVoltageRating(name: string, value: string): string {
+  // Eaton's SPD pages label the value "Voltage rating" but omit the unit in the
+  // value itself (for example "127/220 Wye (4W+G)"). The field label is the
+  // authoritative unit context; preserve the source wording and add only the
+  // missing V suffix so normalized voltage and downstream PDT matching work.
+  if (!/^voltage rating$/i.test(cleanText(name)) || !/\b(?:wye|delta)\b/i.test(value) || /\b(?:kV|V(?:AC|DC)?)\b/i.test(value)) return value;
+  const numbers = [...cleanText(value).matchAll(/\d+(?:[.,]\d+)?/g)].map((match) => match[0]);
+  if (!numbers.length) return value;
+  let seen = 0;
+  const withUnits = cleanText(value).replace(/\d+(?:[.,]\d+)?/g, (match) => `${match} ${++seen <= 2 ? "V" : ""}`.trim());
+  return withUnits;
 }
 
 function isGermanEatonUrl(url: string): boolean {
@@ -1866,6 +1891,37 @@ function extractHtmlStructuredProductData(
   });
 
   return { attributes, documents };
+}
+
+function repairEatonProductImage(result: ProductResult): { result: ProductResult; note?: string } {
+  const productContext = [
+    result.title,
+    result.description,
+    ...result.attributes.slice(0, 40).map((attribute) => `${attribute.name} ${attribute.value}`)
+  ].filter(Boolean).join(" ");
+  if (!/\b(?:hmi|human[ -]?machine interface|touch panel)\b/i.test(productContext)) return { result };
+
+  const invalidXvImage = (document: DocumentRecord) =>
+    document.type === "image" && /(?:C22-COMPACT_FM|C22[-_ ]COMPACT)/i.test(`${document.url} ${document.label}`);
+  const validImages = result.documents.filter((document) => !invalidXvImage(document));
+  if (validImages.some((document) => document.type === "image")) {
+    return { result: validImages.length === result.documents.length ? result : { ...result, documents: validImages } };
+  }
+
+  const fallback: DocumentRecord = {
+    type: "image",
+    label: "XV100 HMI/HMI-PLC product image (Eaton family page)",
+    url: EATON_XV100_FAMILY_IMAGE_URL,
+    sourceUrl: EATON_XV100_FAMILY_PAGE_URL,
+    sourceType: "official-fallback",
+    parser: "eaton-xv100-family-image-fallback",
+    stage: "product-image",
+    confidence: 0.78
+  };
+  return {
+    result: { ...result, documents: dedupeDocuments([...validImages, fallback]) },
+    note: "Rejected Eaton C22-COMPACT_FM stock asset for an XV100 HMI because visual inspection showed pushbutton operators; retained the official XV100 HMI family product photo instead."
+  };
 }
 
 function extractEatonDescriptionVoltage(description: string | undefined, catalogNumber: string, sourceUrl: string): AttributeRecord | undefined {
@@ -2506,6 +2562,7 @@ function toAbsoluteUrl(value: string, baseUrl: string): string | undefined {
 
 function looksLikeEatonProductImage(context: string, catalogNumber: string, sourceUrl: string): boolean {
   const haystack = context.toLowerCase();
+  if (/\b(?:hmi|human[ -]?machine interface|touch panel)\b/i.test(haystack) && /c22[-_ ]compact/i.test(haystack)) return false;
   if (/logo|icon|email|social|geolocation|cookie|support|knowledge|registration|myeaton|footer|spinner|loader|article-feature|getty|rol-byod|abstract|placeholder|no[-_\s]*image/i.test(haystack)) return false;
   if (/resources\/siteconfig|siteconfig\/360|\/360\.png|characteristic-curve|curve-|schematic|diagram|drawing|dimensional|\bdimension\b|\bcad\b|\bline[-\s]?art\b|exploded/i.test(haystack)) return false;
   if (/\b(?:related-products|upsell-products|cross-sell|card-product-tiles)\b/i.test(haystack)) return false;

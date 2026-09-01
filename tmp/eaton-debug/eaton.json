@@ -1,0 +1,3 @@
+[
+  {"manufacturerId":"eaton","catalogNumber":"SPM100220Y3V","caseType":"electrical","expectedDeviceType":"Surge Protective Device","riskTags":["cold","SPD-Max","spd"],"expectedOfficialUrlPatterns":["eaton\\.com/.*/skuPage\\.SPM100220Y3V\\.html"],"requiredDocuments":["datasheet"],"expectedNormalizedFields":["voltage","dimensions","weight"]}
+]

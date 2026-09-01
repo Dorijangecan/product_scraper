@@ -1,0 +1,408 @@
+{
+  "cold": true,
+  "totalMs": 13793,
+  "rows": [
+    {
+      "catalogNumber": "1SAP180400R0001",
+      "ms": 2711,
+      "status": "found",
+      "confidence": 0.9,
+      "title": "Battery holder. Without lithium battery for PM5xx and PM56xx (TA522)",
+      "productUrl": "https://new.abb.com/products/pl/1SAP180400R0001/1sap180400r0001",
+      "attributes": 62,
+      "documents": 3,
+      "images": 1,
+      "description": "TA522:AC500 Battery holder for CPUfor CR2450 battery, delivered without lithium battery",
+      "germanTitle": "Batteriehalter, ohne Lithiumbatterie für PM5xx und PM56xx",
+      "fieldsPresent": 3,
+      "missingRequired": [
+        "voltage",
+        "current"
+      ],
+      "missingKeyAttributes": [
+        "customsTariff"
+      ],
+      "fields": {
+        "weight": "0.002 kg",
+        "dimensions": "50 x 25 x 8 mm",
+        "certificates": "Declaration of Conformity - CE: 3ADR980151, REACH Regulation"
+      },
+      "startedAt": 0,
+      "finishedAt": 2711,
+      "calls": [
+        "     11+    974ms  200 live  https://new.abb.com/api/PisSearchApi?query=1SAP180400R0001&pageNumber=1&pageSize=8&lang=en",
+        "    986+    300ms  200 live  https://new.abb.com/api/PisSearchApi/Token",
+        "   1286+    412ms  200 live  https://external.productinformation.abb.com/PisWebApi/v1/Products/Detail",
+        "   1287+    925ms  200 live  https://external.productinformation.abb.com/PisWebApi/v1/Products/Detail",
+        "   1625+    639ms  200 live  https://external.productinformation.abb.com/PisWebApi/v1/Products/Detail",
+        "   1825+    790ms  200 live  https://external.productinformation.abb.com/PisWebApi/v1/Products/Detail"
+      ]
+    },
+    {
+      "catalogNumber": "1SCA022871R9780",
+      "ms": 3041,
+      "status": "found",
+      "confidence": 0.9,
+      "title": "OTS1600G1L/4 TERMINAL SHROUD",
+      "productUrl": "https://new.abb.com/products/pl/1SCA022871R9780/1sca022871r9780",
+      "attributes": 52,
+      "documents": 7,
+      "images": 1,
+      "description": "OTS1600G1L/4 TERMINAL SHROUD",
+      "germanTitle": "Klemmenabdeckung Schnappbefestigung grauer Kunststoff IP3X grau lange Ausführung VPE 4",
+      "fieldsPresent": 3,
+      "missingRequired": [
+        "voltage",
+        "current"
+      ],
+      "missingKeyAttributes": [],
+      "fields": {
+        "weight": "0.8 kg",
+        "dimensions": "158.5 x 80 x 167 mm",
+        "certificates": "WEEE, RoHS, Environmental Disclosure, REACH Regulation"
+      },
+      "startedAt": 8,
+      "finishedAt": 3049,
+      "calls": [
+        "      3+   1233ms  200 live  https://new.abb.com/api/PisSearchApi?query=1SCA022871R9780&pageNumber=1&pageSize=8&lang=en",
+        "    978+    300ms  200 live  https://new.abb.com/api/PisSearchApi/Token",
+        "   1278+    412ms  200 live  https://external.productinformation.abb.com/PisWebApi/v1/Products/Detail",
+        "   1279+    925ms  200 live  https://external.productinformation.abb.com/PisWebApi/v1/Products/Detail",
+        "   1617+    639ms  200 live  https://external.productinformation.abb.com/PisWebApi/v1/Products/Detail",
+        "   1817+    790ms  200 live  https://external.productinformation.abb.com/PisWebApi/v1/Products/Detail",
+        "   2237+    760ms  200 live  https://external.productinformation.abb.com/PisWebApi/v1/Products/Detail"
+      ]
+    },
+    {
+      "catalogNumber": "1SCA022871R9510",
+      "ms": 3340,
+      "status": "found",
+      "confidence": 0.9,
+      "title": "OTS1600G1L/3 TERMINAL SHROUD",
+      "productUrl": "https://new.abb.com/products/pl/1SCA022871R9510/1sca022871r9510",
+      "attributes": 52,
+      "documents": 7,
+      "images": 1,
+      "description": "OTS1600G1L/3 TERMINAL SHROUD",
+      "germanTitle": "Klemmenabdeckung Schnappbefestigung grauer Kunststoff IP3X grau lange Ausführung VPE 3",
+      "fieldsPresent": 3,
+      "missingRequired": [
+        "voltage",
+        "current"
+      ],
+      "missingKeyAttributes": [],
+      "fields": {
+        "weight": "0.6 kg",
+        "dimensions": "158.5 x 80 x 167 mm",
+        "certificates": "WEEE, RoHS, Environmental Disclosure, REACH Regulation"
+      },
+      "startedAt": 8,
+      "finishedAt": 3348,
+      "calls": [
+        "    978+    300ms  200 live  https://new.abb.com/api/PisSearchApi/Token",
+        "      3+   1614ms  200 live  https://new.abb.com/api/PisSearchApi?query=1SCA022871R9510&pageNumber=1&pageSize=8&lang=en",
+        "   1278+    412ms  200 live  https://external.productinformation.abb.com/PisWebApi/v1/Products/Detail",
+        "   1279+    925ms  200 live  https://external.productinformation.abb.com/PisWebApi/v1/Products/Detail",
+        "   1617+    639ms  200 live  https://external.productinformation.abb.com/PisWebApi/v1/Products/Detail",
+        "   1817+    790ms  200 live  https://external.productinformation.abb.com/PisWebApi/v1/Products/Detail",
+        "   2237+    760ms  200 live  https://external.productinformation.abb.com/PisWebApi/v1/Products/Detail",
+        "   2273+   1032ms  200 live  https://external.productinformation.abb.com/PisWebApi/v1/Products/Detail"
+      ]
+    },
+    {
+      "catalogNumber": "1SCA022860R5850",
+      "ms": 1461,
+      "status": "found",
+      "confidence": 0.9,
+      "title": "OT1000E03 SWITCH-DISCONNECTOR",
+      "productUrl": "https://new.abb.com/products/pl/1SCA022860R5850/1sca022860r5850",
+      "attributes": 76,
+      "documents": 12,
+      "images": 1,
+      "description": "3-pole, front operated, base mounted switch-diconnector, handle and shaft are not included, terminal bolt kit included",
+      "germanTitle": "Lasttrennschalter 3-polig 1000 A, ohne Griff und Welle",
+      "fieldsPresent": 7,
+      "missingRequired": [],
+      "missingKeyAttributes": [],
+      "fields": {
+        "weight": "14.7 kg",
+        "dimensions": "306 x 334.5 x 145.5 mm",
+        "color": "Grey",
+        "voltage": "1000 V",
+        "current": "1000 A",
+        "protection": "Front IP00",
+        "certificates": "IEC 60947-3"
+      },
+      "startedAt": 2712,
+      "finishedAt": 4173,
+      "calls": [
+        "      0+    760ms  200 live  https://new.abb.com/api/PisSearchApi?query=1SCA022860R5850&pageNumber=1&pageSize=8&lang=en",
+        "    760+    281ms  200 live  https://external.productinformation.abb.com/PisWebApi/v1/Products/Detail",
+        "   1088+    302ms  200 live  https://external.productinformation.abb.com/PisWebApi/v1/Products/Detail"
+      ]
+    },
+    {
+      "catalogNumber": "1SDA130199R1",
+      "ms": 2203,
+      "status": "found",
+      "confidence": 0.9,
+      "title": "SACE Emax 3 E4.3-A W FP Iu=2500 3p w/o terminals UL",
+      "productUrl": "https://new.abb.com/products/pl/1SDA130199R1/1sda130199r1",
+      "attributes": 53,
+      "documents": 7,
+      "images": 1,
+      "description": "FIXED PART WITHDRAWABLE FOR C.BREAKER SACE EMAX3 E4.3-A 2500 THREE-POLE WITHOUT TERMINALS",
+      "germanTitle": "SACE Emax 3 E4.3-A W FP Iu=2500 3p w/o terminals UL",
+      "fieldsPresent": 5,
+      "missingRequired": [],
+      "missingKeyAttributes": [
+        "countryOfOrigin"
+      ],
+      "fields": {
+        "weight": "50 kg",
+        "dimensions": "630 x 590 x 710 mm",
+        "voltage": "600 V",
+        "current": "2500 A",
+        "certificates": "RoHS, Environmental Disclosure, REACH Regulation"
+      },
+      "startedAt": 3049,
+      "finishedAt": 5252,
+      "calls": [
+        "    423+    281ms  200 live  https://external.productinformation.abb.com/PisWebApi/v1/Products/Detail",
+        "      0+    780ms  200 live  https://new.abb.com/api/PisSearchApi?query=1SDA130199R1&pageNumber=1&pageSize=8&lang=en",
+        "    751+    302ms  200 live  https://external.productinformation.abb.com/PisWebApi/v1/Products/Detail",
+        "    780+    596ms  200 live  https://external.productinformation.abb.com/PisWebApi/v1/Products/Detail",
+        "   1219+    554ms  200 live  https://external.productinformation.abb.com/PisWebApi/v1/Products/Detail",
+        "   1391+    777ms  200 live  https://external.productinformation.abb.com/PisWebApi/v1/Products/Detail"
+      ]
+    },
+    {
+      "catalogNumber": "1SDA126493R1",
+      "ms": 1748,
+      "status": "found",
+      "confidence": 0.9,
+      "title": "SACE Emax 3 EKIP BUSBARS SUPPLY E1.3...E6.3",
+      "productUrl": "https://new.abb.com/products/pl/1SDA126493R1/1sda126493r1",
+      "attributes": 54,
+      "documents": 7,
+      "images": 1,
+      "description": "EKIP SUPPLY POWER SUPPLY MODULE DIRECT VOLTAGE E1.3...E6.3",
+      "germanTitle": "EKIP BUSBARS SUPPLY Modul Zubehör Emax 3",
+      "fieldsPresent": 3,
+      "missingRequired": [
+        "voltage",
+        "current"
+      ],
+      "missingKeyAttributes": [
+        "countryOfOrigin"
+      ],
+      "fields": {
+        "weight": "0.22 kg",
+        "dimensions": "155 x 120 x 190 mm",
+        "certificates": "IEC, UL"
+      },
+      "startedAt": 4173,
+      "finishedAt": 5921,
+      "calls": [
+        "     95+    554ms  200 live  https://external.productinformation.abb.com/PisWebApi/v1/Products/Detail",
+        "      0+    781ms  200 live  https://new.abb.com/api/PisSearchApi?query=1SDA126493R1&pageNumber=1&pageSize=8&lang=en",
+        "    267+    777ms  200 live  https://external.productinformation.abb.com/PisWebApi/v1/Products/Detail",
+        "    782+    565ms  200 live  https://external.productinformation.abb.com/PisWebApi/v1/Products/Detail",
+        "   1363+    333ms  200 live  https://external.productinformation.abb.com/PisWebApi/v1/Products/Detail"
+      ]
+    },
+    {
+      "catalogNumber": "1SDA126487R1",
+      "ms": 1762,
+      "status": "found",
+      "confidence": 0.9,
+      "title": "SACE Emax 3 EKIP TEMPERATURE 4T-1 E1.3...E6.3",
+      "productUrl": "https://new.abb.com/products/pl/1SDA126487R1/1sda126487r1",
+      "attributes": 55,
+      "documents": 7,
+      "images": 1,
+      "description": "EKIP SIGNALLING 4T-1 MODULE FOR 4 TEMPERATURE PROBES TYPE PT100/PT1000 E1.3...E6.3",
+      "germanTitle": "EKIP TEMPERATURE 4T-1 Modul Zubehör Emax 3",
+      "fieldsPresent": 3,
+      "missingRequired": [
+        "voltage",
+        "current"
+      ],
+      "missingKeyAttributes": [
+        "countryOfOrigin"
+      ],
+      "fields": {
+        "weight": "0.2 kg",
+        "dimensions": "50 x 200 x 200 mm",
+        "certificates": "IEC, UL"
+      },
+      "startedAt": 5252,
+      "finishedAt": 7014,
+      "calls": [
+        "    284+    333ms  200 live  https://external.productinformation.abb.com/PisWebApi/v1/Products/Detail",
+        "      0+   1028ms  200 live  https://new.abb.com/api/PisSearchApi?query=1SDA126487R1&pageNumber=1&pageSize=8&lang=en",
+        "   1028+    251ms  200 live  https://external.productinformation.abb.com/PisWebApi/v1/Products/Detail",
+        "   1292+    436ms  200 live  https://external.productinformation.abb.com/PisWebApi/v1/Products/Detail"
+      ]
+    },
+    {
+      "catalogNumber": "1SDA126492R1",
+      "ms": 1762,
+      "status": "found",
+      "confidence": 0.9,
+      "title": "SACE Emax 3 Light-Sense Detector E1.3...E6.3",
+      "productUrl": "https://new.abb.com/products/pl/1SDA126492R1/1sda126492r1",
+      "attributes": 55,
+      "documents": 7,
+      "images": 1,
+      "description": "ARC FLASH-SENSE LIGHT SENSOR E1.3...E6.3",
+      "germanTitle": "Light-Sense Detektor für E1.3...E6.3 Leistungsschalter Emax 3",
+      "fieldsPresent": 3,
+      "missingRequired": [
+        "voltage",
+        "current"
+      ],
+      "missingKeyAttributes": [
+        "countryOfOrigin"
+      ],
+      "fields": {
+        "weight": "0.22 kg",
+        "dimensions": "155 x 120 x 190 mm",
+        "certificates": "IEC, UL"
+      },
+      "startedAt": 5921,
+      "finishedAt": 7683,
+      "calls": [
+        "    359+    251ms  200 live  https://external.productinformation.abb.com/PisWebApi/v1/Products/Detail",
+        "      0+    764ms  200 live  https://new.abb.com/api/PisSearchApi?query=1SDA126492R1&pageNumber=1&pageSize=8&lang=en",
+        "    623+    436ms  200 live  https://external.productinformation.abb.com/PisWebApi/v1/Products/Detail",
+        "    764+    597ms  200 live  https://external.productinformation.abb.com/PisWebApi/v1/Products/Detail",
+        "   1383+    322ms  200 live  https://external.productinformation.abb.com/PisWebApi/v1/Products/Detail"
+      ]
+    },
+    {
+      "catalogNumber": "1SDA128409R1",
+      "ms": 1424,
+      "status": "found",
+      "confidence": 0.9,
+      "title": "SACE Emax 3 EKIP SUPPLY EVO M.TCP E1.3..E6.3SECURE",
+      "productUrl": "https://new.abb.com/products/1SDA128409R1",
+      "attributes": 56,
+      "documents": 7,
+      "images": 1,
+      "description": "EKIP COM COMMUNICATION MODULE FOR MODBUS TCP OR LINK OR REDUNDANCY 24...240V AC-DC E1.3...E6.3 COMPATIBLE WITH CYBERSECURE CIRCUIT-BREAKERS IEC62443-SL2 (1SDA126529R1)",
+      "germanTitle": "Zubehör für Leistungsschalter Emax3",
+      "fieldsPresent": 4,
+      "missingRequired": [
+        "current"
+      ],
+      "missingKeyAttributes": [
+        "countryOfOrigin"
+      ],
+      "fields": {
+        "weight": "0.22 kg",
+        "dimensions": "155 x 120 x 190 mm",
+        "voltage": "24...240 V AC-DC",
+        "certificates": "IEC, UL"
+      },
+      "startedAt": 7014,
+      "finishedAt": 8438,
+      "calls": [
+        "    290+    322ms  200 live  https://external.productinformation.abb.com/PisWebApi/v1/Products/Detail",
+        "      0+    722ms  200 live  https://new.abb.com/api/PisSearchApi?query=1SDA128409R1&pageNumber=1&pageSize=8&lang=en",
+        "    722+    270ms  200 live  https://external.productinformation.abb.com/PisWebApi/v1/Products/Detail",
+        "   1007+    390ms  200 live  https://external.productinformation.abb.com/PisWebApi/v1/Products/Detail"
+      ]
+    },
+    {
+      "catalogNumber": "1SVR340667R1000",
+      "ms": 1607,
+      "status": "found",
+      "confidence": 0.9,
+      "title": "CP-S.3 24/10.0 Power supply In:3x400-500VAC Out:DC 24V/10A",
+      "productUrl": "https://new.abb.com/products/pl/1SVR340667R1000/1svr340667r1000",
+      "attributes": 96,
+      "documents": 8,
+      "images": 1,
+      "description": "The CP-S.3 24/10.0 is a power supply from the new generation CP-S.3 range. The primary switch mode power supply offers a wide range input of 3 ~ 320 ... 575 V AC, rated input voltage is 3 ~ 400 ... 500 V AC. The rated output power is 240 W, rated output current is 10 A at an output voltage of 24 V DC. The output voltage is adjustable within a range of 24 to 28 V DC. The power supply provides a U/I output characteristic with a power reserve of up to 150 % for 5 s and allows parallel operation to increase capacity and to enable redundancy. Further features are: power factor correction acc. to EN 61000-3-2. Redundancy unit and buffer modules are available as accessories.",
+      "germanTitle": "Netzteil, In:3x400-500VAC Out:DC 24V/10A",
+      "fieldsPresent": 6,
+      "missingRequired": [],
+      "missingKeyAttributes": [
+        "countryOfOrigin"
+      ],
+      "fields": {
+        "weight": "0.85 kg",
+        "dimensions": "129.4 x 40 x 126.8 mm",
+        "voltage": "24 V DC",
+        "current": "10 A",
+        "protection": "Housing IP20",
+        "certificates": "IEC, CSA"
+      },
+      "startedAt": 7683,
+      "finishedAt": 9290,
+      "calls": [
+        "     53+    270ms  200 live  https://external.productinformation.abb.com/PisWebApi/v1/Products/Detail",
+        "    338+    390ms  200 live  https://external.productinformation.abb.com/PisWebApi/v1/Products/Detail",
+        "      0+    764ms  200 live  https://new.abb.com/api/PisSearchApi?query=1SVR340667R1000&pageNumber=1&pageSize=8&lang=en",
+        "    765+    348ms  200 live  https://external.productinformation.abb.com/PisWebApi/v1/Products/Detail",
+        "   1153+    375ms  200 live  https://external.productinformation.abb.com/PisWebApi/v1/Products/Detail"
+      ]
+    },
+    {
+      "catalogNumber": "1SDA124715R1",
+      "ms": 10444,
+      "status": "failed",
+      "confidence": 0,
+      "attributes": 0,
+      "documents": 0,
+      "images": 0,
+      "fieldsPresent": 0,
+      "missingRequired": [
+        "weight",
+        "dimensions",
+        "voltage",
+        "current",
+        "certificates"
+      ],
+      "missingKeyAttributes": [
+        "typeCode",
+        "ean",
+        "eclass",
+        "etim",
+        "netWeight",
+        "netWidth",
+        "netHeight",
+        "netDepth",
+        "customsTariff",
+        "countryOfOrigin"
+      ],
+      "fields": {},
+      "error": "Missing required product data: identity; attribute:product id|extended product type|catalog description|long description; document:image; minAttributes:3",
+      "startedAt": 3348,
+      "finishedAt": 13793,
+      "calls": [
+        "    124+    281ms  200 live  https://external.productinformation.abb.com/PisWebApi/v1/Products/Detail",
+        "    452+    302ms  200 live  https://external.productinformation.abb.com/PisWebApi/v1/Products/Detail",
+        "      0+    920ms  200 live  https://new.abb.com/api/PisSearchApi?query=1SDA124715R1&pageNumber=1&pageSize=8&lang=en",
+        "    481+    596ms  200 live  https://external.productinformation.abb.com/PisWebApi/v1/Products/Detail",
+        "    920+    554ms  200 live  https://external.productinformation.abb.com/PisWebApi/v1/Products/Detail",
+        "   1092+    777ms  200 live  https://external.productinformation.abb.com/PisWebApi/v1/Products/Detail",
+        "   1607+    565ms  200 live  https://external.productinformation.abb.com/PisWebApi/v1/Products/Detail",
+        "   2188+    333ms  200 live  https://external.productinformation.abb.com/PisWebApi/v1/Products/Detail",
+        "   2932+    251ms  200 live  https://external.productinformation.abb.com/PisWebApi/v1/Products/Detail",
+        "   3196+    436ms  200 live  https://external.productinformation.abb.com/PisWebApi/v1/Products/Detail",
+        "   3337+    597ms  200 live  https://external.productinformation.abb.com/PisWebApi/v1/Products/Detail",
+        "   3956+    322ms  200 live  https://external.productinformation.abb.com/PisWebApi/v1/Products/Detail",
+        "   4388+    270ms  200 live  https://external.productinformation.abb.com/PisWebApi/v1/Products/Detail",
+        "   4673+    390ms  200 live  https://external.productinformation.abb.com/PisWebApi/v1/Products/Detail",
+        "   5100+    348ms  200 live  https://external.productinformation.abb.com/PisWebApi/v1/Products/Detail",
+        "   5488+    375ms  200 live  https://external.productinformation.abb.com/PisWebApi/v1/Products/Detail",
+        "   1475+   8556ms   -1 live  https://new.abb.com/products/1SDA124715R1",
+        "  10031+      2ms  200 CACHE https://new.abb.com/api/PisSearchApi?query=1SDA124715R1&pageNumber=1&pageSize=8&lang=en",
+        "  10033+    131ms  403 live  https://abb-control-products.partcommunity.com/3d-cad-models/?catalog=abb_ww&part=1SDA124715R1",
+        "  10170+    271ms  403 live  https://abb-control-products.partcommunity.com/3d-cad-models/FileService/CatalogFile/abb_ww/low_voltage/breakers/demo/emax2/emax2_asmtab.prj"
+      ]
+    }
+  ]
+}

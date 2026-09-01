@@ -641,9 +641,10 @@ $contentType = if ($response.Headers['Content-Type']) { [string]$response.Header
     throwIfAborted(signal);
     await fs.mkdir(path.dirname(outputPath), { recursive: true });
     // A missing image is an export convenience, not a reason to hold an entire catalog row for
-    // minutes. Product pages often expose several equivalent CDN transformations; try only the
-    // preferred URL and leave a failed image visible for review if that URL is unavailable.
-    const urls = [...new Set((Array.isArray(url) ? url : splitCandidateUrls(url)).map((item) => item.trim()).filter(Boolean))].slice(0, 1);
+    // minutes. Product pages often expose several equivalent CDN transformations; try the
+    // bounded candidate list so a placeholder/low-resolution first URL can fall through to the
+    // real product-photo rendition.
+    const urls = [...new Set((Array.isArray(url) ? url : splitCandidateUrls(url)).map((item) => item.trim()).filter(Boolean))].slice(0, 4);
     let lastError: unknown;
     for (const candidateUrl of urls) {
       try {
@@ -679,7 +680,12 @@ $contentType = if ($response.Headers['Content-Type']) { [string]$response.Header
       await fs.rm(temporaryPath, { force: true }).catch(() => {});
     }
 
-    await sharp(buffer, { animated: false }).png().toFile(outputPath);
+    const image = sharp(buffer, { animated: false });
+    const metadata = await image.metadata();
+    if (!metadata.width || !metadata.height || metadata.width < 100 || metadata.height < 100) {
+      throw new Error(`Product image is too small (${metadata.width ?? 0}x${metadata.height ?? 0}); trying the next candidate.`);
+    }
+    await image.png().toFile(outputPath);
     return outputPath;
   }
 

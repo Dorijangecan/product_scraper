@@ -1,0 +1,414 @@
+{
+ "productDetails": {
+  "item": {
+   "inactive": false,
+   "images": [
+    {
+     "url": "https://cdn.productimages.abb.com/9PAA00000354257_400x400.png",
+     "thumbnailUrl": "https://cdn.productimages.abb.com/9PAA00000354257_100x100.png",
+     "masterUrl": "https://cdn.productimages.abb.com/9PAA00000354257_master.png"
+    },
+    {
+     "url": "https://cdn.productimages.abb.com/9PAA00000354259_400x400.png",
+     "thumbnailUrl": "https://cdn.productimages.abb.com/9PAA00000354259_100x100.png",
+     "masterUrl": "https://cdn.productimages.abb.com/9PAA00000354259_master.png"
+    },
+    {
+     "url": "https://cdn.productimages.abb.com/9PAA00000354258_400x400.png",
+     "thumbnailUrl": "https://cdn.productimages.abb.com/9PAA00000354258_100x100.png",
+     "masterUrl": "https://cdn.productimages.abb.com/9PAA00000354258_master.png"
+    }
+   ],
+   "published": true,
+   "variantsAvailable": false,
+   "productIdDomain": "ABB",
+   "sparePart": false,
+   "exactMatch": false,
+   "classifications": {
+    "classCids": [
+     "9AAC407625"
+    ],
+    "typeCids": [
+     "9AAF633893"
+    ],
+    "leafCids": [
+     "9AAF633893"
+    ],
+    "level0Cids": [
+     "9AAC910006"
+    ]
+   },
+   "productId": "2CSG273095R1000",
+   "attributes": {
+    "ExtendedProductType": {
+     "type": "Text",
+     "attributeCode": "ExtendedProductType",
+     "attributeName": "Extended Product Type",
+     "values": [
+      {
+       "text": "CT1M-C 100"
+      }
+     ],
+     "isInternal": false,
+     "internal": false,
+     "highlight": false
+    },
+    "ProductId": {
+     "type": "Text",
+     "attributeCode": "ProductId",
+     "attributeName": "Product ID",
+     "values": [
+      {
+       "text": "2CSG273095R1000"
+      }
+     ],
+     "isInternal": false,
+     "internal": false,
+     "highlight": false
+    },
+    "Ean": {
+     "type": "Text",
+     "attributeCode": "Ean",
+     "attributeName": "EAN",
+     "values": [
+      {
+       "text": "8012542730958"
+      }
+     ],
+     "isInternal": false,
+     "internal": false,
+     "highlight": false
+    },
+    "CatalogDescription": {
+     "type": "Text",
+     "attributeCode": "CatalogDescription",
+     "attributeName": "Catalog Description",
+     "values": [
+      {
+       "text": "CT1M-C 100"
+      }
+     ],
+     "isInternal": false,
+     "internal": false,
+     "highlight": false
+    },
+    "LongDescription": {
+     "type": "Text",
+     "attributeCode": "LongDescription",
+     "attributeName": "Long Description",
+     "values": [
+      {
+       "text": "CT1M-C is a split core current transformer range according to IEC 61869-2 standard, which is used to transform primary currents into secondary currents .../5 A to allow indirect measuring of electrical parameters of the network."
+      }
+     ],
+     "isInternal": false,
+     "internal": false,
+     "highlight": false
+    },
+    "#DisplayName": {
+     "type": "Text",
+     "attributeCode": "#DisplayName",
+     "attributeName": "Display Name",
+     "values": [
+      {
+       "text": "CT1M-C 100"
+      }
+     ],
+     "isInternal": false,
+     "internal": false,
+     "highlight": false
+    }
+   }
+  }
+ },
+ "attributeGroups": {
+  "items": [
+   {
+    "code": "MaterialCompliance",
+    "description": "Material Compliance",
+    "visible": true,
+    "attributes": {
+     "ConMinRepTem": {
+      "type": "Text",
+      "attributeCode": "ConMinRepTem",
+      "attributeName": "Conflict Minerals Reporting Template (CMRT)",
+      "values": [
+       {
+        "text": "9AKK108468A3363",
+        "link": {
+         "text": "9AKK108468A3363",
+         "documentId": "9AKK108468A3363",
+         "type": "Document"
+        }
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "WeeeCategory": {
+      "type": "Enum",
+      "attributeCode": "WeeeCategory",
+      "attributeName": "WEEE Category",
+      "values": [
+       {
+        "text": "5. Small Equipment (No External Dimension More Than 50 cm)",
+        "enumerationValueCode": "5SmallEquipment"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "WeeeB2cB2b": {
+      "type": "Enum",
+      "attributeCode": "WeeeB2cB2b",
+      "attributeName": "WEEE B2C / B2B",
+      "values": [
+       {
+        "text": "Business To Consumer",
+        "enumerationValueCode": "BusinessToConsumer"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     }
+    }
+   },
+   {
+    "code": "Dimensions",
+    "description": "Dimensions",
+    "visible": true,
+    "attributes": {
+     "ProductNetWidth": {
+      "type": "Text",
+      "attributeCode": "ProductNetWidth",
+      "attributeName": "Product Net Width",
+      "values": [
+       {
+        "text": "51.6 mm"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "tooltip": "Width of a single unpacked product",
+      "highlight": false
+     },
+     "ProductNetHeight": {
+      "type": "Text",
+      "attributeCode": "ProductNetHeight",
+      "attributeName": "Product Net Height",
+      "values": [
+       {
+        "text": "70.5 mm"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "tooltip": "Height of a single unpacked product",
+      "highlight": false
+     },
+     "ProductNetDepth": {
+      "type": "Text",
+      "attributeCode": "ProductNetDepth",
+      "attributeName": "Product Net Depth / Length",
+      "values": [
+       {
+        "text": "54.8 mm"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "tooltip": "Depth of a single unpacked product",
+      "highlight": false
+     },
+     "ProductNetWeight": {
+      "type": "Text",
+      "attributeCode": "ProductNetWeight",
+      "attributeName": "Product Net Weight",
+      "values": [
+       {
+        "text": "0.2 kg"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "tooltip": "Weight of a single unpacked product",
+      "highlight": false
+     }
+    }
+   },
+   {
+    "code": "Ordering",
+    "description": "Ordering",
+    "visible": true,
+    "attributes": {
+     "PackageLevel1Units": {
+      "type": "Text",
+      "attributeCode": "PackageLevel1Units",
+      "attributeName": "Package Level 1 Units",
+      "values": [
+       {
+        "text": "box 1 piece"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "PacLev1GroWei": {
+      "type": "Text",
+      "attributeCode": "PacLev1GroWei",
+      "attributeName": "Package Level 1 Gross Weight",
+      "values": [
+       {
+        "text": "0.289 kg"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "ENumberFI": {
+      "type": "Text",
+      "attributeCode": "ENumberFI",
+      "attributeName": "E-Number (Finland)",
+      "values": [
+       {
+        "text": "6719154"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     }
+    }
+   },
+   {
+    "code": "CerDec",
+    "description": "Certificates and Declarations",
+    "visible": true,
+    "attributes": {
+     "DecConCe": {
+      "type": "Text",
+      "attributeCode": "DecConCe",
+      "attributeName": "Declaration of Conformity - CE",
+      "values": [
+       {
+        "text": "9AKK108472A0953",
+        "link": {
+         "text": "9AKK108472A0953",
+         "documentId": "9AKK108472A0953",
+         "type": "Document"
+        }
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     }
+    }
+   },
+   {
+    "code": "Installation",
+    "description": "Installation",
+    "visible": true,
+    "attributes": {
+     "InsMan": {
+      "type": "Text",
+      "attributeCode": "InsMan",
+      "attributeName": "Instructions and Manuals",
+      "values": [
+       {
+        "text": "9AKK108471A2906",
+        "link": {
+         "text": "9AKK108471A2906",
+         "documentId": "9AKK108471A2906",
+         "type": "Document"
+        }
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     }
+    }
+   },
+   {
+    "code": "Classifications",
+    "description": "External Classifications and Standards",
+    "visible": true,
+    "attributes": {
+     "Etim9": {
+      "type": "Enum",
+      "attributeCode": "Etim9",
+      "attributeName": "ETIM 9",
+      "values": [
+       {
+        "text": "EC002048 - Current transformer",
+        "enumerationValueCode": "EC002048"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "Etim10": {
+      "type": "Enum",
+      "attributeCode": "Etim10",
+      "attributeName": "ETIM 10",
+      "values": [
+       {
+        "text": "EC002048 - Current transformer",
+        "enumerationValueCode": "EC002048"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     }
+    }
+   }
+  ],
+  "listCode": "ELSB_default_detail_page"
+ },
+ "productClassifications": {
+  "items": {
+   "Products": [
+    [
+     {
+      "cid": "ROOT",
+      "name": "Products",
+      "inactive": false
+     },
+     {
+      "cid": "9AAC910006",
+      "name": "Low Voltage Products and Systems",
+      "inactive": false
+     },
+     {
+      "cid": "9AAC100485",
+      "name": "Modular DIN Rail Products",
+      "inactive": false
+     },
+     {
+      "cid": "9AAC100486",
+      "name": "Energy Efficiency Devices",
+      "inactive": false
+     },
+     {
+      "cid": "9AAC407625",
+      "name": "Current Transformers",
+      "inactive": false
+     }
+    ]
+   ]
+  }
+ },
+ "productRelationships": {},
+ "relatedLinks": {},
+ "productVariantsSelector": {},
+ "productVariantsTable": {},
+ "productVariantsDropdown": {}
+}

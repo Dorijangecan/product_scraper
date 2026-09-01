@@ -1,0 +1,725 @@
+{
+ "productDetails": {
+  "item": {
+   "inactive": false,
+   "images": [
+    {
+     "url": "https://cdn.productimages.abb.com/9PAA00000249672_400x400.jpg",
+     "thumbnailUrl": "https://cdn.productimages.abb.com/9PAA00000249672_100x100.jpg",
+     "masterUrl": "https://cdn.productimages.abb.com/9PAA00000249672_master.jpg"
+    },
+    {
+     "url": "https://cdn.productimages.abb.com/9PAA00000249671_400x400.jpg",
+     "thumbnailUrl": "https://cdn.productimages.abb.com/9PAA00000249671_100x100.jpg",
+     "masterUrl": "https://cdn.productimages.abb.com/9PAA00000249671_master.jpg"
+    },
+    {
+     "url": "https://cdn.productimages.abb.com/9PAA00000249668_400x400.jpg",
+     "thumbnailUrl": "https://cdn.productimages.abb.com/9PAA00000249668_100x100.jpg",
+     "masterUrl": "https://cdn.productimages.abb.com/9PAA00000249668_master.jpg"
+    },
+    {
+     "url": "https://cdn.productimages.abb.com/9PAA00000222377_400x400.jpg",
+     "thumbnailUrl": "https://cdn.productimages.abb.com/9PAA00000222377_100x100.jpg",
+     "masterUrl": "https://cdn.productimages.abb.com/9PAA00000222377_master.gif"
+    }
+   ],
+   "published": true,
+   "variantsAvailable": false,
+   "productIdDomain": "ABB",
+   "sparePart": false,
+   "exactMatch": false,
+   "classifications": {
+    "classCids": [
+     "9AAC125913"
+    ],
+    "typeCids": [
+     "9AAF617140"
+    ],
+    "leafCids": [
+     "9AAF617140"
+    ],
+    "level0Cids": [
+     "9AAC910006"
+    ]
+   },
+   "productId": "2CCA183440R0001",
+   "attributes": {
+    "ExtendedProductType": {
+     "type": "Text",
+     "attributeCode": "ExtendedProductType",
+     "attributeName": "Extended Product Type",
+     "values": [
+      {
+       "text": "ZLS918"
+      }
+     ],
+     "isInternal": false,
+     "internal": false,
+     "highlight": false
+    },
+    "ProductId": {
+     "type": "Text",
+     "attributeCode": "ProductId",
+     "attributeName": "Product ID",
+     "values": [
+      {
+       "text": "2CCA183440R0001"
+      }
+     ],
+     "isInternal": false,
+     "internal": false,
+     "highlight": false
+    },
+    "Ean": {
+     "type": "Text",
+     "attributeCode": "Ean",
+     "attributeName": "EAN",
+     "values": [
+      {
+       "text": "7612271487027"
+      }
+     ],
+     "isInternal": false,
+     "internal": false,
+     "highlight": false
+    },
+    "CatalogDescription": {
+     "type": "Text",
+     "attributeCode": "CatalogDescription",
+     "attributeName": "Catalog Description",
+     "values": [
+      {
+       "text": "ZLS918 Busbar system accessory"
+      }
+     ],
+     "isInternal": false,
+     "internal": false,
+     "highlight": false
+    },
+    "LongDescription": {
+     "type": "Text",
+     "attributeCode": "LongDescription",
+     "attributeName": "Long Description",
+     "values": [
+      {
+       "text": "N terminal for additional socket SMISSLINE TP, for external busbars 0,75 mm2 up to 10 mm2 litz wire with ferrule  1 mm2 up to 10 mm2 strand  2 x 1,5 mm2 or 2 x 2,5 mm2 allowed, all other combinations it are only allowed with one wire"
+      }
+     ],
+     "isInternal": false,
+     "internal": false,
+     "highlight": false
+    },
+    "#DisplayName": {
+     "type": "Text",
+     "attributeCode": "#DisplayName",
+     "attributeName": "Display Name",
+     "values": [
+      {
+       "text": "ZLS918"
+      }
+     ],
+     "isInternal": false,
+     "internal": false,
+     "highlight": false
+    }
+   }
+  }
+ },
+ "attributeGroups": {
+  "items": [
+   {
+    "code": "Technical",
+    "description": "Technical",
+    "visible": true,
+    "attributes": {
+     "SuitableFor": {
+      "type": "Text",
+      "attributeCode": "SuitableFor",
+      "attributeName": "Suitable For",
+      "values": [
+       {
+        "text": "Suitable for SMISSLINE TP Plug in system additional socket"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "SuitableForClass": {
+      "type": "Text",
+      "attributeCode": "SuitableForClass",
+      "attributeName": "Suitable for Product Class",
+      "values": [
+       {
+        "text": "Suitable for SMISSLINE TP Plug in system additional socket"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "ModelNumber": {
+      "type": "Text",
+      "attributeCode": "ModelNumber",
+      "attributeName": "Model Number",
+      "values": [
+       {
+        "text": "Profile"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     }
+    }
+   },
+   {
+    "code": "Electrical",
+    "description": "Electrical",
+    "visible": true,
+    "attributes": {
+     "RatedCurrent": {
+      "type": "Text",
+      "attributeCode": "RatedCurrent",
+      "attributeName": "Rated Current (I<sub>n</sub>)",
+      "values": [
+       {
+        "text": "32 A"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     }
+    }
+   },
+   {
+    "code": "MaterialCompliance",
+    "description": "Material Compliance",
+    "visible": true,
+    "attributes": {
+     "RoHSInformation": {
+      "type": "Text",
+      "attributeCode": "RoHSInformation",
+      "attributeName": "RoHS Declaration",
+      "values": [
+       {
+        "text": "9AKK107991A9646",
+        "link": {
+         "text": "9AKK107991A9646",
+         "documentId": "9AKK107991A9646",
+         "type": "Document"
+        }
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "RoHSStatus": {
+      "type": "Enum",
+      "attributeCode": "RoHSStatus",
+      "attributeName": "RoHS Information",
+      "values": [
+       {
+        "text": "Following EU Directive 2011/65/EU and Amendment 2015/863 July 22, 2019",
+        "enumerationValueCode": "20190722"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "RoHSDate": {
+      "type": "Text",
+      "attributeCode": "RoHSDate",
+      "attributeName": "RoHS Date",
+      "values": [
+       {
+        "text": "20210407"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "ReachDeclaration": {
+      "type": "Text",
+      "attributeCode": "ReachDeclaration",
+      "attributeName": "REACH Declaration",
+      "values": [
+       {
+        "text": "9AKK108467A9561",
+        "link": {
+         "text": "9AKK108467A9561",
+         "documentId": "9AKK108467A9561",
+         "type": "Document"
+        }
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "ReachInformation": {
+      "type": "Enum",
+      "attributeCode": "ReachInformation",
+      "attributeName": "REACH Information",
+      "values": [
+       {
+        "text": "True - contains substances > 0.1 mass percentage",
+        "enumerationValueCode": "True"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "ReachDate": {
+      "type": "Text",
+      "attributeCode": "ReachDate",
+      "attributeName": "REACH Date",
+      "values": [
+       {
+        "text": "20230417"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "ConMinRepTem": {
+      "type": "Text",
+      "attributeCode": "ConMinRepTem",
+      "attributeName": "Conflict Minerals Reporting Template (CMRT)",
+      "values": [
+       {
+        "text": "9AKK108468A3363",
+        "link": {
+         "text": "9AKK108468A3363",
+         "documentId": "9AKK108468A3363",
+         "type": "Document"
+        }
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "WeeeCategory": {
+      "type": "Enum",
+      "attributeCode": "WeeeCategory",
+      "attributeName": "WEEE Category",
+      "values": [
+       {
+        "text": "5. Small Equipment (No External Dimension More Than 50 cm)",
+        "enumerationValueCode": "5SmallEquipment"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "WeeeB2cB2b": {
+      "type": "Enum",
+      "attributeCode": "WeeeB2cB2b",
+      "attributeName": "WEEE B2C / B2B",
+      "values": [
+       {
+        "text": "Business To Business",
+        "enumerationValueCode": "BusinessToBusiness"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     }
+    }
+   },
+   {
+    "code": "Environmental",
+    "description": "Environmental",
+    "visible": true,
+    "attributes": {
+     "EnvInf": {
+      "type": "Text",
+      "attributeCode": "EnvInf",
+      "attributeName": "Environmental Information",
+      "values": [
+       {
+        "text": "9AKK108467A9561",
+        "link": {
+         "text": "9AKK108467A9561",
+         "documentId": "9AKK108467A9561",
+         "type": "Document"
+        }
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     }
+    }
+   },
+   {
+    "code": "Dimensions",
+    "description": "Dimensions",
+    "visible": true,
+    "attributes": {
+     "ProductNetWidth": {
+      "type": "Text",
+      "attributeCode": "ProductNetWidth",
+      "attributeName": "Product Net Width",
+      "values": [
+       {
+        "text": "9 mm"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "tooltip": "Width of a single unpacked product",
+      "highlight": false
+     },
+     "ProductNetHeight": {
+      "type": "Text",
+      "attributeCode": "ProductNetHeight",
+      "attributeName": "Product Net Height",
+      "values": [
+       {
+        "text": "37 mm"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "tooltip": "Height of a single unpacked product",
+      "highlight": false
+     },
+     "ProductNetDepth": {
+      "type": "Text",
+      "attributeCode": "ProductNetDepth",
+      "attributeName": "Product Net Depth / Length",
+      "values": [
+       {
+        "text": "50 mm"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "tooltip": "Depth of a single unpacked product",
+      "highlight": false
+     },
+     "ProductNetWeight": {
+      "type": "Text",
+      "attributeCode": "ProductNetWeight",
+      "attributeName": "Product Net Weight",
+      "values": [
+       {
+        "text": "11 g"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "tooltip": "Weight of a single unpacked product",
+      "highlight": false
+     },
+     "DimensionDiagram": {
+      "type": "Text",
+      "attributeCode": "DimensionDiagram",
+      "attributeName": "Dimension Diagram",
+      "values": [
+       {
+        "text": "9AKK107492A6192",
+        "link": {
+         "text": "9AKK107492A6192",
+         "documentId": "9AKK107492A6192",
+         "type": "Document"
+        }
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     }
+    }
+   },
+   {
+    "code": "Engineering",
+    "description": "Engineering",
+    "visible": true,
+    "attributes": {
+     "EplanData": {
+      "type": "Text",
+      "attributeCode": "EplanData",
+      "attributeName": "EPLAN Data",
+      "values": [
+       {
+        "text": "9AAF617140_EPLAN",
+        "link": {
+         "text": "9AAF617140_EPLAN",
+         "documentId": "9AAF617140_EPLAN",
+         "type": "Document"
+        }
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     }
+    }
+   },
+   {
+    "code": "Ordering",
+    "description": "Ordering",
+    "visible": true,
+    "attributes": {
+     "PackageLevel1Units": {
+      "type": "Text",
+      "attributeCode": "PackageLevel1Units",
+      "attributeName": "Package Level 1 Units",
+      "values": [
+       {
+        "text": "bag 10 piece"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "PacLev1GroWei": {
+      "type": "Text",
+      "attributeCode": "PacLev1GroWei",
+      "attributeName": "Package Level 1 Gross Weight",
+      "values": [
+       {
+        "text": "168 g"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "ENumberSE": {
+      "type": "Text",
+      "attributeCode": "ENumberSE",
+      "attributeName": "E-Number (Sweden)",
+      "values": [
+       {
+        "text": "2101678"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "ENumberCH": {
+      "type": "Text",
+      "attributeCode": "ENumberCH",
+      "attributeName": "E-Number (Switzerland)",
+      "values": [
+       {
+        "text": "809997525"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     }
+    }
+   },
+   {
+    "code": "CerDec",
+    "description": "Certificates and Declarations",
+    "visible": true,
+    "attributes": {
+     "DecConCe": {
+      "type": "Text",
+      "attributeCode": "DecConCe",
+      "attributeName": "Declaration of Conformity - CE",
+      "values": [
+       {
+        "text": "9AKK107991A9646",
+        "link": {
+         "text": "9AKK107991A9646",
+         "documentId": "9AKK107991A9646",
+         "type": "Document"
+        }
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     }
+    }
+   },
+   {
+    "code": "Installation",
+    "description": "Installation",
+    "visible": true,
+    "attributes": {
+     "InsMan": {
+      "type": "Text",
+      "attributeCode": "InsMan",
+      "attributeName": "Instructions and Manuals",
+      "values": [
+       {
+        "text": "9AKK107680A2315",
+        "link": {
+         "text": "9AKK107680A2315",
+         "documentId": "9AKK107680A2315",
+         "type": "Document"
+        }
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     }
+    }
+   },
+   {
+    "code": "PopularDownloads",
+    "description": "Popular Downloads",
+    "visible": true,
+    "attributes": {
+     "DatSheTecInf": {
+      "type": "Text",
+      "attributeCode": "DatSheTecInf",
+      "attributeName": "Data Sheet, Technical Information",
+      "values": [
+       {
+        "text": "9AKK107492A6192",
+        "link": {
+         "text": "9AKK107492A6192",
+         "documentId": "9AKK107492A6192",
+         "type": "Document"
+        }
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     }
+    }
+   },
+   {
+    "code": "Classifications",
+    "description": "External Classifications and Standards",
+    "visible": true,
+    "attributes": {
+     "Etim9": {
+      "type": "Enum",
+      "attributeCode": "Etim9",
+      "attributeName": "ETIM 9",
+      "values": [
+       {
+        "text": "EC001522 - Busbar",
+        "enumerationValueCode": "EC001522"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "Etim10": {
+      "type": "Enum",
+      "attributeCode": "Etim10",
+      "attributeName": "ETIM 10",
+      "values": [
+       {
+        "text": "EC001522 - Busbar",
+        "enumerationValueCode": "EC001522"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "Unspsc": {
+      "type": "Text",
+      "attributeCode": "Unspsc",
+      "attributeName": "UNSPSC",
+      "values": [
+       {
+        "text": "39121117"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "Eclass": {
+      "type": "Text",
+      "attributeCode": "Eclass",
+      "attributeName": "eClass",
+      "values": [
+       {
+        "text": "V11.0 : 27370303"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "ObjClaCod": {
+      "type": "Text",
+      "attributeCode": "ObjClaCod",
+      "attributeName": "Object Classification Code",
+      "values": [
+       {
+        "text": "F"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     }
+    }
+   }
+  ],
+  "listCode": "ELSB_default_detail_page"
+ },
+ "productClassifications": {
+  "items": {
+   "Products": [
+    [
+     {
+      "cid": "ROOT",
+      "name": "Products",
+      "inactive": false
+     },
+     {
+      "cid": "9AAC910006",
+      "name": "Low Voltage Products and Systems",
+      "inactive": false
+     },
+     {
+      "cid": "9AAC100485",
+      "name": "Modular DIN Rail Products",
+      "inactive": false
+     },
+     {
+      "cid": "9AAF627566",
+      "name": "Plug-in Distribution Systems",
+      "inactive": false
+     },
+     {
+      "cid": "9AAC125913",
+      "name": "SMISSLINE TP Accessories",
+      "inactive": false
+     },
+     {
+      "cid": "9AAF617140",
+      "name": "Incoming Blocks and Terminals, Loose Accessories",
+      "inactive": false
+     }
+    ]
+   ]
+  }
+ },
+ "productRelationships": {},
+ "relatedLinks": {},
+ "productVariantsSelector": {},
+ "productVariantsTable": {},
+ "productVariantsDropdown": {}
+}

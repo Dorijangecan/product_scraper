@@ -1,0 +1,1698 @@
+{
+ "productDetails": {
+  "item": {
+   "inactive": false,
+   "images": [
+    {
+     "url": "https://cdn.productimages.abb.com/9IBA186399_400x400.png",
+     "thumbnailUrl": "https://cdn.productimages.abb.com/9IBA186399_100x100.png",
+     "masterUrl": "https://cdn.productimages.abb.com/9IBA186399_master.png"
+    }
+   ],
+   "published": true,
+   "allRelationships": [
+    {
+     "relationshipCode": "1SAP130300R0271_WhereUsed",
+     "relationshipType": "WhereUsed"
+    }
+   ],
+   "variantsAvailable": false,
+   "productIdDomain": "ABB",
+   "sparePart": true,
+   "exactMatch": false,
+   "classifications": {
+    "classCids": [
+     "9AAC177289"
+    ],
+    "typeCids": [
+     "9AAC177295"
+    ],
+    "leafCids": [
+     "9AAC177295"
+    ],
+    "level0Cids": [
+     "9AAC177033"
+    ]
+   },
+   "productId": "1SAP130300R0271",
+   "attributes": {
+    "ExtendedProductType": {
+     "type": "Text",
+     "attributeCode": "ExtendedProductType",
+     "attributeName": "Extended Product Type",
+     "values": [
+      {
+       "text": "PM573-ETH"
+      }
+     ],
+     "isInternal": false,
+     "internal": false,
+     "highlight": false
+    },
+    "ProductId": {
+     "type": "Text",
+     "attributeCode": "ProductId",
+     "attributeName": "Product ID",
+     "values": [
+      {
+       "text": "1SAP130300R0271"
+      }
+     ],
+     "isInternal": false,
+     "internal": false,
+     "highlight": false
+    },
+    "ABB.Type": {
+     "type": "Text",
+     "attributeCode": "ABB.Type",
+     "attributeName": "ABB Type Designation",
+     "values": [
+      {
+       "text": "PM573-ETH"
+      }
+     ],
+     "isInternal": false,
+     "internal": false,
+     "highlight": false
+    },
+    "Ean": {
+     "type": "Text",
+     "attributeCode": "Ean",
+     "attributeName": "EAN",
+     "values": [
+      {
+       "text": "4016779712378"
+      }
+     ],
+     "isInternal": false,
+     "internal": false,
+     "highlight": false
+    },
+    "CatalogDescription": {
+     "type": "Text",
+     "attributeCode": "CatalogDescription",
+     "attributeName": "Catalog Description",
+     "values": [
+      {
+       "text": "Processor module. Memory 512kB. Interfaces: Ethernet, 2x RS232/485, FBP. Display (PM573-ETH)"
+      }
+     ],
+     "isInternal": false,
+     "internal": false,
+     "highlight": false
+    },
+    "LongDescription": {
+     "type": "Text",
+     "attributeCode": "LongDescription",
+     "attributeName": "Long Description",
+     "values": [
+      {
+       "text": "PM573-ETH: AC500 Processor module. Memory 512kB. Interfaces: Ethernet, 2x RS232/485, FBP. Display."
+      }
+     ],
+     "isInternal": false,
+     "internal": false,
+     "highlight": false
+    },
+    "#DisplayName": {
+     "type": "Text",
+     "attributeCode": "#DisplayName",
+     "attributeName": "Display Name",
+     "values": [
+      {
+       "text": "PM573-ETH"
+      }
+     ],
+     "isInternal": false,
+     "internal": false,
+     "highlight": false
+    }
+   }
+  }
+ },
+ "attributeGroups": {
+  "items": [
+   {
+    "code": "PUCNIAB",
+    "description": "Supplier Information - CNIAB",
+    "visible": false,
+    "sparePartSupplier": "PUCNIAB",
+    "attributes": {
+     "ConfigurationOnly_PUCNIAB": {
+      "type": "Enum",
+      "attributeCode": "ConfigurationOnly_PUCNIAB",
+      "attributeName": "Configuration Only",
+      "values": [
+       {
+        "text": "No",
+        "enumerationValueCode": "N"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "CountryOfOrigin_PUCNIAB": {
+      "type": "Enum",
+      "attributeCode": "CountryOfOrigin_PUCNIAB",
+      "attributeName": "Country of Origin",
+      "values": [
+       {
+        "text": "China",
+        "enumerationValueCode": "CN"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "MadeToOrder_PUCNIAB": {
+      "type": "Enum",
+      "attributeCode": "MadeToOrder_PUCNIAB",
+      "attributeName": "Made To Order",
+      "values": [
+       {
+        "text": "No",
+        "enumerationValueCode": "N"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "ProductSalesStatus_PUCNIAB": {
+      "type": "Enum",
+      "attributeCode": "ProductSalesStatus_PUCNIAB",
+      "attributeName": "Product Sales Status",
+      "values": [
+       {
+        "text": "Active",
+        "enumerationValueCode": "A"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "QuoteOnly_PUCNIAB": {
+      "type": "Enum",
+      "attributeCode": "QuoteOnly_PUCNIAB",
+      "attributeName": "Quote Only",
+      "values": [
+       {
+        "text": "No",
+        "enumerationValueCode": "N"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "StockedAtWarehouses_PUCNIAB": {
+      "type": "Text",
+      "attributeCode": "StockedAtWarehouses_PUCNIAB",
+      "attributeName": "Stocked At Warehouses",
+      "values": [
+       {
+        "text": "CSB"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "NoWarrantyReturn_PUCNIAB": {
+      "type": "Enum",
+      "attributeCode": "NoWarrantyReturn_PUCNIAB",
+      "attributeName": "Warranty Return",
+      "values": [
+       {
+        "text": "Product under warranty must be returned",
+        "enumerationValueCode": "N"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     }
+    }
+   },
+   {
+    "code": "PUCNIAB001",
+    "description": "Supplier Information - CNIAB001",
+    "visible": false,
+    "sparePartSupplier": "PUCNIAB001",
+    "attributes": {
+     "Option_PUCNIAB001": {
+      "type": "Enum",
+      "attributeCode": "Option_PUCNIAB001",
+      "attributeName": "Note",
+      "values": [
+       {
+        "text": "No",
+        "enumerationValueCode": "0"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": true
+     },
+     "CountryOfOrigin_PUCNIAB001": {
+      "type": "Enum",
+      "attributeCode": "CountryOfOrigin_PUCNIAB001",
+      "attributeName": "Country of Origin",
+      "values": [
+       {
+        "text": "China",
+        "enumerationValueCode": "CN"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "Criticality_PUCNIAB001": {
+      "type": "Enum",
+      "attributeCode": "Criticality_PUCNIAB001",
+      "attributeName": "Criticality",
+      "values": [
+       {
+        "text": "No",
+        "enumerationValueCode": "0"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "LeadTime_PUCNIAB001": {
+      "type": "Text",
+      "attributeCode": "LeadTime_PUCNIAB001",
+      "attributeName": "Lead Time",
+      "values": [
+       {
+        "text": "0 day"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "MadeToOrder_PUCNIAB001": {
+      "type": "Enum",
+      "attributeCode": "MadeToOrder_PUCNIAB001",
+      "attributeName": "Made To Order",
+      "values": [
+       {
+        "text": "No",
+        "enumerationValueCode": "N"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "ProAvaCla_PUCNIAB001": {
+      "type": "Enum",
+      "attributeCode": "ProAvaCla_PUCNIAB001",
+      "attributeName": "Product Availability Class",
+      "values": [
+       {
+        "text": "Only for warranty purposes. Not available for normal sales",
+        "enumerationValueCode": "W"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "ProductSalesStatus_PUCNIAB001": {
+      "type": "Enum",
+      "attributeCode": "ProductSalesStatus_PUCNIAB001",
+      "attributeName": "Product Sales Status",
+      "values": [
+       {
+        "text": "Active",
+        "enumerationValueCode": "A"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "QuoteOnly_PUCNIAB001": {
+      "type": "Enum",
+      "attributeCode": "QuoteOnly_PUCNIAB001",
+      "attributeName": "Quote Only",
+      "values": [
+       {
+        "text": "No",
+        "enumerationValueCode": "N"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "StockedAtWarehouses_PUCNIAB001": {
+      "type": "Text",
+      "attributeCode": "StockedAtWarehouses_PUCNIAB001",
+      "attributeName": "Stocked At Warehouses",
+      "values": [
+       {
+        "text": "CNIAB001EXPU"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     }
+    }
+   },
+   {
+    "code": "PUDEAPR",
+    "description": "Supplier Information - DEAPR",
+    "visible": false,
+    "sparePartSupplier": "PUDEAPR",
+    "attributes": {
+     "CountryOfOrigin_PUDEAPR": {
+      "type": "Enum",
+      "attributeCode": "CountryOfOrigin_PUDEAPR",
+      "attributeName": "Country of Origin",
+      "values": [
+       {
+        "text": "Germany",
+        "enumerationValueCode": "DE"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "MadeToOrder_PUDEAPR": {
+      "type": "Enum",
+      "attributeCode": "MadeToOrder_PUDEAPR",
+      "attributeName": "Made To Order",
+      "values": [
+       {
+        "text": "No",
+        "enumerationValueCode": "N"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "ProductSalesStatus_PUDEAPR": {
+      "type": "Enum",
+      "attributeCode": "ProductSalesStatus_PUDEAPR",
+      "attributeName": "Product Sales Status",
+      "values": [
+       {
+        "text": "Active",
+        "enumerationValueCode": "A"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "QuoteOnly_PUDEAPR": {
+      "type": "Enum",
+      "attributeCode": "QuoteOnly_PUDEAPR",
+      "attributeName": "Quote Only",
+      "values": [
+       {
+        "text": "No",
+        "enumerationValueCode": "N"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "Saleable_PUDEAPR": {
+      "type": "Enum",
+      "attributeCode": "Saleable_PUDEAPR",
+      "attributeName": "Saleable",
+      "values": [
+       {
+        "text": "Yes",
+        "enumerationValueCode": "Y"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "StockedAtWarehouses_PUDEAPR": {
+      "type": "Text",
+      "attributeCode": "StockedAtWarehouses_PUDEAPR",
+      "attributeName": "Stocked At Warehouses",
+      "values": [
+       {
+        "text": "CSE"
+       },
+       {
+        "text": "DEAPREXPU"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "NoWarrantyReturn_PUDEAPR": {
+      "type": "Enum",
+      "attributeCode": "NoWarrantyReturn_PUDEAPR",
+      "attributeName": "Warranty Return",
+      "values": [
+       {
+        "text": "Product under warranty must be returned",
+        "enumerationValueCode": "N"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     }
+    }
+   },
+   {
+    "code": "PUINABB007",
+    "description": "Supplier Information - INABB007",
+    "visible": false,
+    "sparePartSupplier": "PUINABB007",
+    "attributes": {
+     "MaximumOrderQuantity_PUCNIAB001": {
+      "type": "Text",
+      "attributeCode": "MaximumOrderQuantity_PUCNIAB001",
+      "attributeName": "Maximum Order Quantity",
+      "values": [
+       {
+        "text": "0 piece"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "MaximumOrderQuantity_PUSGIND002": {
+      "type": "Text",
+      "attributeCode": "MaximumOrderQuantity_PUSGIND002",
+      "attributeName": "Maximum Order Quantity",
+      "values": [
+       {
+        "text": "0 piece"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "MaximumOrderQuantity_PUUSINY": {
+      "type": "Text",
+      "attributeCode": "MaximumOrderQuantity_PUUSINY",
+      "attributeName": "Maximum Order Quantity",
+      "values": [
+       {
+        "text": "0 piece"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "MaximumOrderQuantity_PUCNIAB": {
+      "type": "Text",
+      "attributeCode": "MaximumOrderQuantity_PUCNIAB",
+      "attributeName": "Maximum Order Quantity",
+      "values": [
+       {
+        "text": "0 piece"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "MaximumOrderQuantity_PUDEAPR": {
+      "type": "Text",
+      "attributeCode": "MaximumOrderQuantity_PUDEAPR",
+      "attributeName": "Maximum Order Quantity",
+      "values": [
+       {
+        "text": "0 piece"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     }
+    }
+   },
+   {
+    "code": "PUSGIND002",
+    "description": "Supplier Information - SGIND002",
+    "visible": false,
+    "sparePartSupplier": "PUSGIND002",
+    "attributes": {
+     "ConfigurationOnly_PUSGIND002": {
+      "type": "Enum",
+      "attributeCode": "ConfigurationOnly_PUSGIND002",
+      "attributeName": "Configuration Only",
+      "values": [
+       {
+        "text": "No",
+        "enumerationValueCode": "N"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "CountryOfOrigin_PUSGIND002": {
+      "type": "Enum",
+      "attributeCode": "CountryOfOrigin_PUSGIND002",
+      "attributeName": "Country of Origin",
+      "values": [
+       {
+        "text": "Germany",
+        "enumerationValueCode": "DE"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "MadeToOrder_PUSGIND002": {
+      "type": "Enum",
+      "attributeCode": "MadeToOrder_PUSGIND002",
+      "attributeName": "Made To Order",
+      "values": [
+       {
+        "text": "No",
+        "enumerationValueCode": "N"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "ProductSalesStatus_PUSGIND002": {
+      "type": "Enum",
+      "attributeCode": "ProductSalesStatus_PUSGIND002",
+      "attributeName": "Product Sales Status",
+      "values": [
+       {
+        "text": "Active",
+        "enumerationValueCode": "A"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "QuoteOnly_PUSGIND002": {
+      "type": "Enum",
+      "attributeCode": "QuoteOnly_PUSGIND002",
+      "attributeName": "Quote Only",
+      "values": [
+       {
+        "text": "No",
+        "enumerationValueCode": "N"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "StockedAtWarehouses_PUSGIND002": {
+      "type": "Text",
+      "attributeCode": "StockedAtWarehouses_PUSGIND002",
+      "attributeName": "Stocked At Warehouses",
+      "values": [
+       {
+        "text": "SGIND002EXPU"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "NoWarrantyReturn_PUSGIND002": {
+      "type": "Enum",
+      "attributeCode": "NoWarrantyReturn_PUSGIND002",
+      "attributeName": "Warranty Return",
+      "values": [
+       {
+        "text": "Product under warranty must be returned",
+        "enumerationValueCode": "N"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     }
+    }
+   },
+   {
+    "code": "PUUSINY",
+    "description": "Supplier Information - USINY",
+    "visible": false,
+    "sparePartSupplier": "PUUSINY",
+    "attributes": {
+     "LeadTime_PUUSINY": {
+      "type": "Text",
+      "attributeCode": "LeadTime_PUUSINY",
+      "attributeName": "Lead Time",
+      "values": [
+       {
+        "text": "207 day"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "MadeToOrder_PUUSINY": {
+      "type": "Enum",
+      "attributeCode": "MadeToOrder_PUUSINY",
+      "attributeName": "Made To Order",
+      "values": [
+       {
+        "text": "No",
+        "enumerationValueCode": "N"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "ProductSalesStatus_PUUSINY": {
+      "type": "Enum",
+      "attributeCode": "ProductSalesStatus_PUUSINY",
+      "attributeName": "Product Sales Status",
+      "values": [
+       {
+        "text": "Active",
+        "enumerationValueCode": "A"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "QuoteOnly_PUUSINY": {
+      "type": "Enum",
+      "attributeCode": "QuoteOnly_PUUSINY",
+      "attributeName": "Quote Only",
+      "values": [
+       {
+        "text": "No",
+        "enumerationValueCode": "N"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "StockedAtWarehouses_PUUSINY": {
+      "type": "Text",
+      "attributeCode": "StockedAtWarehouses_PUUSINY",
+      "attributeName": "Stocked At Warehouses",
+      "values": [
+       {
+        "text": "USSVCEXPU"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "NoWarrantyReturn_PUUSINY": {
+      "type": "Enum",
+      "attributeCode": "NoWarrantyReturn_PUUSINY",
+      "attributeName": "Warranty Return",
+      "values": [
+       {
+        "text": "Product under warranty must be returned",
+        "enumerationValueCode": "N"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     }
+    }
+   },
+   {
+    "code": "Ordering",
+    "description": "Ordering",
+    "visible": true,
+    "attributes": {
+     "Cn8": {
+      "type": "Text",
+      "attributeCode": "Cn8",
+      "attributeName": "CN8",
+      "values": [
+       {
+        "text": "85389091"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "InvoiceDescription": {
+      "type": "Text",
+      "attributeCode": "InvoiceDescription",
+      "attributeName": "Invoice Description",
+      "values": [
+       {
+        "text": "Processor module. Memory 512kB. Interfaces: Ethernet, 2x RS232/485, FBP. Display (PM573-ETH)"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "MadeToOrder": {
+      "type": "Enum",
+      "attributeCode": "MadeToOrder",
+      "attributeName": "Made To Order",
+      "values": [
+       {
+        "text": "No",
+        "enumerationValueCode": "N"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "MinimumOrderQuantity": {
+      "type": "Text",
+      "attributeCode": "MinimumOrderQuantity",
+      "attributeName": "Minimum Order Quantity",
+      "values": [
+       {
+        "text": "1 piece"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "OrderMultiple": {
+      "type": "Text",
+      "attributeCode": "OrderMultiple",
+      "attributeName": "Order Multiple",
+      "values": [
+       {
+        "text": "1 piece"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "SellingUnitOfMeasure": {
+      "type": "Enum",
+      "attributeCode": "SellingUnitOfMeasure",
+      "attributeName": "Selling Unit of Measure",
+      "values": [
+       {
+        "text": "piece",
+        "enumerationValueCode": "PCE"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     }
+    }
+   },
+   {
+    "code": "Dimensions",
+    "description": "Dimensions",
+    "visible": true,
+    "attributes": {
+     "ProductNetWeight": {
+      "type": "Text",
+      "attributeCode": "ProductNetWeight",
+      "attributeName": "Product Net Weight",
+      "values": [
+       {
+        "text": "0.135 kg"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "tooltip": "Weight of a single unpacked product",
+      "highlight": false
+     },
+     "ProductNetDepth": {
+      "type": "Text",
+      "attributeCode": "ProductNetDepth",
+      "attributeName": "Product Net Depth / Length",
+      "values": [
+       {
+        "text": "62 mm"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "tooltip": "Depth of a single unpacked product",
+      "highlight": false
+     },
+     "ProductNetHeight": {
+      "type": "Text",
+      "attributeCode": "ProductNetHeight",
+      "attributeName": "Product Net Height",
+      "values": [
+       {
+        "text": "76 mm"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "tooltip": "Height of a single unpacked product",
+      "highlight": false
+     },
+     "ProductNetWidth": {
+      "type": "Text",
+      "attributeCode": "ProductNetWidth",
+      "attributeName": "Product Net Width",
+      "values": [
+       {
+        "text": "67.5 mm"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "tooltip": "Width of a single unpacked product",
+      "highlight": false
+     },
+     "GrossWeight": {
+      "type": "Text",
+      "attributeCode": "GrossWeight",
+      "attributeName": "Gross Weight",
+      "values": [
+       {
+        "text": "0.159 kg"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "PackageLevel1Length": {
+      "type": "Text",
+      "attributeCode": "PackageLevel1Length",
+      "attributeName": "Package Level 1 Depth / Length",
+      "values": [
+       {
+        "text": "84 mm"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "PackageLevel1Height": {
+      "type": "Text",
+      "attributeCode": "PackageLevel1Height",
+      "attributeName": "Package Level 1 Height",
+      "values": [
+       {
+        "text": "72 mm"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "PackageLevel1Width": {
+      "type": "Text",
+      "attributeCode": "PackageLevel1Width",
+      "attributeName": "Package Level 1 Width",
+      "values": [
+       {
+        "text": "71 mm"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "PackageLevel1Units": {
+      "type": "Text",
+      "attributeCode": "PackageLevel1Units",
+      "attributeName": "Package Level 1 Units",
+      "values": [
+       {
+        "text": "carton 1 piece"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     }
+    }
+   },
+   {
+    "code": "CerDec",
+    "description": "Certificates and Declarations",
+    "visible": true,
+    "attributes": {
+     "DecConCe": {
+      "type": "Text",
+      "attributeCode": "DecConCe",
+      "attributeName": "Declaration of Conformity - CE",
+      "values": [
+       {
+        "text": "3ADR980140",
+        "link": {
+         "text": "3ADR980140",
+         "documentId": "3ADR980140",
+         "type": "Document"
+        }
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "ReachDate": {
+      "type": "Text",
+      "attributeCode": "ReachDate",
+      "attributeName": "REACH Date",
+      "values": [
+       {
+        "text": "20241206"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "ReachDeclaration": {
+      "type": "Text",
+      "attributeCode": "ReachDeclaration",
+      "attributeName": "REACH Declaration",
+      "values": [
+       {
+        "text": "3ADR980139",
+        "link": {
+         "text": "3ADR980139",
+         "documentId": "3ADR980139",
+         "type": "Document"
+        }
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "ReachInformation": {
+      "type": "Enum",
+      "attributeCode": "ReachInformation",
+      "attributeName": "REACH Information",
+      "values": [
+       {
+        "text": "True - contains substances > 0.1 mass percentage",
+        "enumerationValueCode": "True"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "Scip": {
+      "type": "Text",
+      "attributeCode": "Scip",
+      "attributeName": "SCIP",
+      "values": [
+       {
+        "text": "980039d3-8c07-4b81-ad58-e19374ce0fce Germany"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "RoHSInformation": {
+      "type": "Text",
+      "attributeCode": "RoHSInformation",
+      "attributeName": "RoHS Declaration",
+      "values": [
+       {
+        "text": "3ADR980140",
+        "link": {
+         "text": "3ADR980140",
+         "documentId": "3ADR980140",
+         "type": "Document"
+        }
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "RoHSStatus": {
+      "type": "Enum",
+      "attributeCode": "RoHSStatus",
+      "attributeName": "RoHS Information",
+      "values": [
+       {
+        "text": "Following EU Directive 2011/65/EU and Amendment 2015/863 July 22, 2019",
+        "enumerationValueCode": "20190722"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     }
+    }
+   },
+   {
+    "code": "Technical",
+    "description": "Technical",
+    "visible": true,
+    "attributes": {
+     "Function": {
+      "type": "Text",
+      "attributeCode": "Function",
+      "attributeName": "Function",
+      "values": [
+       {
+        "text": "Memory 512kB. Interfaces: Ethernet, 2x RS232/485, FBP. Display"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "ScreenColor": {
+      "type": "Enum",
+      "attributeCode": "ScreenColor",
+      "attributeName": "Screen Color Capability",
+      "values": [
+       {
+        "text": "Monochrome",
+        "enumerationValueCode": "Monochrome"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "DisplayType": {
+      "type": "Enum",
+      "attributeCode": "DisplayType",
+      "attributeName": "Display Type",
+      "values": [
+       {
+        "text": "LCD",
+        "enumerationValueCode": "Lcd"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "ComInt": {
+      "type": "Text",
+      "attributeCode": "ComInt",
+      "attributeName": "Communication Interface",
+      "values": [
+       {
+        "text": "Serial/FBP/Ethernet"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "NumOfHarInt": {
+      "type": "Text",
+      "attributeCode": "NumOfHarInt",
+      "attributeName": "Number of Hardware Interfaces",
+      "values": [
+       {
+        "text": "Industrial Ethernet 1"
+       },
+       {
+        "text": "Other 2"
+       },
+       {
+        "text": "Parallel 0"
+       },
+       {
+        "text": "RS-232 0"
+       },
+       {
+        "text": "RS-422 0"
+       },
+       {
+        "text": "RS-485 0"
+       },
+       {
+        "text": "Serial TTY 0"
+       },
+       {
+        "text": "USB 0"
+       },
+       {
+        "text": "Wireless 0"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "MemorySize": {
+      "type": "Text",
+      "attributeCode": "MemorySize",
+      "attributeName": "Memory Size",
+      "values": [
+       {
+        "text": "1024 kB"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "MemSizUseDat": {
+      "type": "Text",
+      "attributeCode": "MemSizUseDat",
+      "attributeName": "Memory Size User Data",
+      "values": [
+       {
+        "text": "512 kB"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "MemSizUsePro": {
+      "type": "Text",
+      "attributeCode": "MemSizUsePro",
+      "attributeName": "Memory Size User Program",
+      "values": [
+       {
+        "text": "512 kB"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "MemTypUseDat": {
+      "type": "Text",
+      "attributeCode": "MemTypUseDat",
+      "attributeName": "Memory Type User Data",
+      "values": [
+       {
+        "text": "RAM"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "ConProTim": {
+      "type": "Text",
+      "attributeCode": "ConProTim",
+      "attributeName": "Controller Processing Time",
+      "values": [
+       {
+        "text": "0.00006 ms"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "NumOfDigConIOs": {
+      "type": "Text",
+      "attributeCode": "NumOfDigConIOs",
+      "attributeName": "Number of Digital Configurable I/Os",
+      "values": [
+       {
+        "text": "0"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "DegreeOfProtection": {
+      "type": "Text",
+      "attributeCode": "DegreeOfProtection",
+      "attributeName": "Degree of Protection",
+      "values": [
+       {
+        "text": "IP20"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "RatedVoltage": {
+      "type": "Text",
+      "attributeCode": "RatedVoltage",
+      "attributeName": "Rated Voltage (U<sub>r</sub>)",
+      "values": [
+       {
+        "text": "24 V DC"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "SupplyVoltage": {
+      "type": "Text",
+      "attributeCode": "SupplyVoltage",
+      "attributeName": "Supply Voltage",
+      "values": [
+       {
+        "text": "20.4 … 28.8 V DC"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "AmbAirTem": {
+      "type": "Text",
+      "attributeCode": "AmbAirTem",
+      "attributeName": "Ambient Air Temperature",
+      "values": [
+       {
+        "text": "Operation 0 ... +60 °C"
+       },
+       {
+        "text": "Storage -40 ... +70 °C"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     }
+    }
+   },
+   {
+    "code": "AddInf",
+    "description": "Additional Information",
+    "visible": true,
+    "attributes": {
+     "ProductMainType": {
+      "type": "Text",
+      "attributeCode": "ProductMainType",
+      "attributeName": "Product Main Type",
+      "values": [
+       {
+        "text": "PM573"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "ProductName": {
+      "type": "Text",
+      "attributeCode": "ProductName",
+      "attributeName": "Product Name",
+      "values": [
+       {
+        "text": "Distributed Automation PLCs"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     }
+    }
+   },
+   {
+    "code": "Classifications",
+    "description": "External Classifications and Standards",
+    "visible": true,
+    "attributes": {
+     "Eclass": {
+      "type": "Text",
+      "attributeCode": "Eclass",
+      "attributeName": "eClass",
+      "values": [
+       {
+        "text": "27-24-22-07"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "Etim8": {
+      "type": "Enum",
+      "attributeCode": "Etim8",
+      "attributeName": "ETIM 8",
+      "values": [
+       {
+        "text": "EC000236 - PLC CPU-module",
+        "enumerationValueCode": "EC000236"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "Etim9": {
+      "type": "Enum",
+      "attributeCode": "Etim9",
+      "attributeName": "ETIM 9",
+      "values": [
+       {
+        "text": "EC000236 - PLC CPU-module",
+        "enumerationValueCode": "EC000236"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "Etim10": {
+      "type": "Enum",
+      "attributeCode": "Etim10",
+      "attributeName": "ETIM 10",
+      "values": [
+       {
+        "text": "EC000236 - PLC CPU-module",
+        "enumerationValueCode": "EC000236"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "Unspsc": {
+      "type": "Text",
+      "attributeCode": "Unspsc",
+      "attributeName": "UNSPSC",
+      "values": [
+       {
+        "text": "32151705"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     }
+    }
+   },
+   {
+    "code": "Environmental",
+    "description": "Environmental",
+    "visible": true,
+    "attributes": {
+     "WeeeB2cB2b": {
+      "type": "Enum",
+      "attributeCode": "WeeeB2cB2b",
+      "attributeName": "WEEE B2C / B2B",
+      "values": [
+       {
+        "text": "Business To Business",
+        "enumerationValueCode": "BusinessToBusiness"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "WeeeCategory": {
+      "type": "Enum",
+      "attributeCode": "WeeeCategory",
+      "attributeName": "WEEE Category",
+      "values": [
+       {
+        "text": "5. Small Equipment (No External Dimension More Than 50 cm)",
+        "enumerationValueCode": "5SmallEquipment"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     }
+    }
+   }
+  ],
+  "listCode": "PLC_eCommerce_Offerings_abb.com_MAG"
+ },
+ "productClassifications": {
+  "items": {
+   "Products": [
+    [
+     {
+      "cid": "ROOT",
+      "name": "Products",
+      "inactive": false
+     },
+     {
+      "cid": "9AAC177033",
+      "name": "PLC Automation",
+      "inactive": false
+     },
+     {
+      "cid": "9AAC177287",
+      "name": "Programmable Logic Controllers PLCs",
+      "inactive": false
+     },
+     {
+      "cid": "9AAC177288",
+      "name": "AC500",
+      "inactive": false
+     },
+     {
+      "cid": "9AAC177289",
+      "name": "CPUs",
+      "inactive": false
+     }
+    ]
+   ]
+  }
+ },
+ "productRelationships": {
+  "items": [
+   {
+    "code": "1SAP130300R0271_WhereUsed",
+    "description": "Where Used (as part of \"kit\")",
+    "type": "WhereUsed",
+    "table": {
+     "columns": [
+      {
+       "text": "Identifier",
+       "dataField": "Identifier"
+      },
+      {
+       "text": "Description",
+       "dataField": "Description"
+      },
+      {
+       "text": "Qty",
+       "dataField": "Quantity"
+      },
+      {
+       "text": "Unit Of Measure",
+       "dataField": "UnitOfMeasure"
+      }
+     ],
+     "rows": [
+      {
+       "values": {
+        "Identifier": [
+         {
+          "text": "1SAP182900R0001",
+          "link": {
+           "text": "1SAP182900R0001",
+           "productId": "1SAP182900R0001",
+           "type": "Detail"
+          }
+         }
+        ],
+        "Description": [
+         {
+          "text": "Training case. With: PM573-ETH, CM579-PNIO, CI502-PNIO, SM560-S, AI581-S, DI581-S, DX581-S, Case, Power adapter (TA514-SAFETY)"
+         }
+        ],
+        "Quantity": [
+         {
+          "text": "1"
+         }
+        ],
+        "UnitOfMeasure": [
+         {
+          "text": "piece"
+         }
+        ]
+       }
+      }
+     ],
+     "rowsTotalCount": 1
+    },
+    "userFields": [
+     {
+      "name": "Note",
+      "values": [
+       "Return Indicator used in case of Preventive Maintenance, Warranty and Exchange orders only"
+      ]
+     }
+    ],
+    "filters": [
+     {
+      "attributeCode": "DegreeOfProtection",
+      "attributeName": "Degree of Protection",
+      "attributeNameHtml": "Degree of Protection",
+      "hitCount": 1,
+      "isPromoted": false,
+      "promoted": false,
+      "internal": false
+     },
+     {
+      "attributeCode": "DestoEhg",
+      "attributeName": "DESTO EHG",
+      "attributeNameHtml": "DESTO EHG",
+      "hitCount": 1,
+      "isPromoted": false,
+      "promoted": false,
+      "internal": false
+     },
+     {
+      "attributeCode": "FrameSize",
+      "attributeName": "Frame Size",
+      "attributeNameHtml": "Frame Size",
+      "hitCount": 1,
+      "isPromoted": false,
+      "promoted": false,
+      "internal": false
+     },
+     {
+      "attributeCode": "Function",
+      "attributeName": "Function",
+      "attributeNameHtml": "Function",
+      "hitCount": 1,
+      "isPromoted": false,
+      "promoted": false,
+      "internal": false
+     },
+     {
+      "attributeCode": "GrossWeight",
+      "attributeName": "Gross Weight",
+      "attributeNameHtml": "Gross Weight",
+      "hitCount": 1,
+      "isPromoted": false,
+      "promoted": false,
+      "internal": false
+     },
+     {
+      "attributeCode": "MadeToOrder",
+      "attributeName": "Made To Order",
+      "attributeNameHtml": "Made To Order",
+      "hitCount": 1,
+      "isPromoted": false,
+      "promoted": false,
+      "internal": false
+     },
+     {
+      "attributeCode": "ModuleFunction",
+      "attributeName": "Module Function",
+      "attributeNameHtml": "Module Function",
+      "hitCount": 1,
+      "isPromoted": false,
+      "promoted": false,
+      "internal": false
+     },
+     {
+      "attributeCode": "PackageLevel1Units",
+      "attributeName": "Package Level 1 Units",
+      "attributeNameHtml": "Package Level 1 Units",
+      "hitCount": 1,
+      "isPromoted": false,
+      "promoted": false,
+      "internal": false
+     },
+     {
+      "attributeCode": "ProductMainType",
+      "attributeName": "Product Main Type",
+      "attributeNameHtml": "Product Main Type",
+      "hitCount": 1,
+      "isPromoted": false,
+      "promoted": false,
+      "internal": false
+     },
+     {
+      "attributeCode": "ProductName",
+      "attributeName": "Product Name",
+      "attributeNameHtml": "Product Name",
+      "hitCount": 1,
+      "isPromoted": false,
+      "promoted": false,
+      "internal": false
+     },
+     {
+      "attributeCode": "ProductNetDepth",
+      "attributeName": "Product Net Depth / Length",
+      "attributeNameHtml": "Product Net Depth / Length",
+      "hitCount": 1,
+      "isPromoted": false,
+      "promoted": false,
+      "internal": false
+     },
+     {
+      "attributeCode": "ProductNetHeight",
+      "attributeName": "Product Net Height",
+      "attributeNameHtml": "Product Net Height",
+      "hitCount": 1,
+      "isPromoted": false,
+      "promoted": false,
+      "internal": false
+     },
+     {
+      "attributeCode": "ProductNetWeight",
+      "attributeName": "Product Net Weight",
+      "attributeNameHtml": "Product Net Weight",
+      "hitCount": 1,
+      "isPromoted": false,
+      "promoted": false,
+      "internal": false
+     },
+     {
+      "attributeCode": "ProductNetWidth",
+      "attributeName": "Product Net Width",
+      "attributeNameHtml": "Product Net Width",
+      "hitCount": 1,
+      "isPromoted": false,
+      "promoted": false,
+      "internal": false
+     },
+     {
+      "attributeCode": "ProductType",
+      "attributeName": "Product Type",
+      "attributeNameHtml": "Product Type",
+      "hitCount": 1,
+      "isPromoted": false,
+      "promoted": false,
+      "internal": false
+     }
+    ]
+   }
+  ]
+ },
+ "relatedLinks": {},
+ "productVariantsSelector": {},
+ "productVariantsTable": {},
+ "productVariantsDropdown": {}
+}

@@ -25,6 +25,7 @@ import {
   extractCustomerDocumentAttributes
 } from "../src/server/scrapers/customer-documents.js";
 import { matchesExpectedOfficialUrl } from "./benchmark-utils.js";
+import { coalesceImageDocuments } from "../src/server/run-manager.js";
 
 interface BenchmarkFixture {
   manufacturerId: string;
@@ -293,12 +294,12 @@ async function benchmarkCustomerDocuments(fixture: BenchmarkFixture): Promise<Cu
 }
 
 async function downloadDocuments(manufacturer: ManufacturerConfig, catalogNumber: string, result: ProductResult, signal: AbortSignal): Promise<ProductResult> {
-  const ranked = benchmarkDocumentsToDownload(result.documents);
+  const ranked = benchmarkDocumentsToDownload(coalesceImageDocuments(result.documents));
   const downloaded = new Map<string, DocumentRecord>();
   for (const doc of ranked) downloaded.set(doc.url, await downloadDocument(manufacturer, catalogNumber, doc, signal));
   return {
     ...result,
-    documents: result.documents.map((doc) => downloaded.get(doc.url) ?? doc)
+    documents: coalesceImageDocuments(result.documents).map((doc) => downloaded.get(doc.url) ?? doc)
   };
 }
 

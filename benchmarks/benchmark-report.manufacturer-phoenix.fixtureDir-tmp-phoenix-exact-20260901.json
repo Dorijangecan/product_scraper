@@ -1,0 +1,1213 @@
+{
+  "generatedAt": "2026-09-01T07:02:17.176Z",
+  "outputDir": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260901070108",
+  "filters": {
+    "manufacturer": "phoenix",
+    "fixtureDir": "tmp/phoenix-exact-20260901"
+  },
+  "summary": {
+    "foundRate": 100,
+    "officialUrlRate": 100,
+    "documentRate": 100,
+    "pdtAuditRate": 100,
+    "deviceTypeRate": 100,
+    "customerDocumentRate": 0,
+    "wrongProducts": 0,
+    "partialWithoutMissing": 0,
+    "pdtUnprovenWritten": 0,
+    "pdtUnexplainedRequiredFieldIssues": 0,
+    "pdtWriteIssues": 8,
+    "qualityAccepted": true,
+    "fixtureCoverageAccepted": true,
+    "fixtureCoverage": {
+      "byManufacturer": {
+        "phoenix": {
+          "total": 10,
+          "caseTypes": [
+            "electrical",
+            "mechanical"
+          ],
+          "riskTags": [
+            "adapter-plate",
+            "axioline",
+            "cold",
+            "industrial-ethernet",
+            "macx",
+            "managed-switch",
+            "mcs",
+            "miniature-relay",
+            "plug-in",
+            "profinet-bus-coupler",
+            "psr",
+            "push-in",
+            "quint-power",
+            "sac",
+            "safety-relay",
+            "signal-conditioner",
+            "single-phase",
+            "surge-protection",
+            "terminal-block",
+            "type-2",
+            "valve-connector"
+          ]
+        }
+      },
+      "byDeviceType": {
+        "Terminal Block": {
+          "total": 1,
+          "manufacturers": [
+            "phoenix"
+          ],
+          "caseTypes": [
+            "electrical"
+          ]
+        },
+        "Power Supply": {
+          "total": 1,
+          "manufacturers": [
+            "phoenix"
+          ],
+          "caseTypes": [
+            "electrical"
+          ]
+        },
+        "Surge Protective Device": {
+          "total": 1,
+          "manufacturers": [
+            "phoenix"
+          ],
+          "caseTypes": [
+            "electrical"
+          ]
+        },
+        "Safety Relay": {
+          "total": 1,
+          "manufacturers": [
+            "phoenix"
+          ],
+          "caseTypes": [
+            "electrical"
+          ]
+        },
+        "Switch": {
+          "total": 1,
+          "manufacturers": [
+            "phoenix"
+          ],
+          "caseTypes": [
+            "electrical"
+          ]
+        },
+        "Communication Gateway": {
+          "total": 1,
+          "manufacturers": [
+            "phoenix"
+          ],
+          "caseTypes": [
+            "electrical"
+          ]
+        },
+        "Relay": {
+          "total": 1,
+          "manufacturers": [
+            "phoenix"
+          ],
+          "caseTypes": [
+            "electrical"
+          ]
+        },
+        "Connector": {
+          "total": 1,
+          "manufacturers": [
+            "phoenix"
+          ],
+          "caseTypes": [
+            "electrical"
+          ]
+        },
+        "I/O Module": {
+          "total": 1,
+          "manufacturers": [
+            "phoenix"
+          ],
+          "caseTypes": [
+            "electrical"
+          ]
+        },
+        "Mounting Accessory": {
+          "total": 1,
+          "manufacturers": [
+            "phoenix"
+          ],
+          "caseTypes": [
+            "mechanical"
+          ]
+        }
+      },
+      "byDeviceSheet": {
+        "terminal": {
+          "total": 1,
+          "deviceTypes": [
+            "Terminal Block"
+          ],
+          "manufacturers": [
+            "phoenix"
+          ]
+        },
+        "power supply devices": {
+          "total": 1,
+          "deviceTypes": [
+            "Power Supply"
+          ],
+          "manufacturers": [
+            "phoenix"
+          ]
+        },
+        "int. ext. lightning protection": {
+          "total": 1,
+          "deviceTypes": [
+            "Surge Protective Device"
+          ],
+          "manufacturers": [
+            "phoenix"
+          ]
+        },
+        "safety sensor": {
+          "total": 1,
+          "deviceTypes": [
+            "Safety Relay"
+          ],
+          "manufacturers": [
+            "phoenix"
+          ]
+        },
+        "Switch": {
+          "total": 1,
+          "deviceTypes": [
+            "Switch"
+          ],
+          "manufacturers": [
+            "phoenix"
+          ]
+        },
+        "PLC": {
+          "total": 2,
+          "deviceTypes": [
+            "Communication Gateway",
+            "I/O Module"
+          ],
+          "manufacturers": [
+            "phoenix"
+          ]
+        },
+        "RS232 interfaces": {
+          "total": 1,
+          "deviceTypes": [
+            "Communication Gateway"
+          ],
+          "manufacturers": [
+            "phoenix"
+          ]
+        },
+        "contactor a. fuses": {
+          "total": 1,
+          "deviceTypes": [
+            "Relay"
+          ],
+          "manufacturers": [
+            "phoenix"
+          ]
+        },
+        "connector": {
+          "total": 1,
+          "deviceTypes": [
+            "Connector"
+          ],
+          "manufacturers": [
+            "phoenix"
+          ]
+        },
+        "cable ducts mounting rails": {
+          "total": 1,
+          "deviceTypes": [
+            "Mounting Accessory"
+          ],
+          "manufacturers": [
+            "phoenix"
+          ]
+        }
+      },
+      "thinManufacturers": [],
+      "uncoveredDeviceSheets": [
+        "Busbar",
+        "Luminaire",
+        "Motion Controller",
+        "PCB connection system",
+        "PCB connection technology",
+        "Wire ID Information",
+        "cabinet",
+        "cabinet.airconditioning",
+        "cabinet.mechanical",
+        "cabinet.rack",
+        "cable",
+        "cable gland",
+        "command and alarm device",
+        "directional control valve",
+        "el. mesurement devices",
+        "electronic sensor",
+        "energy distribution system",
+        "filters",
+        "fluid power",
+        "generator",
+        "module carrier frame",
+        "motor protection",
+        "motors",
+        "optical sensor",
+        "panel (HMI)",
+        "pneumatic handling",
+        "pump",
+        "sensor - fluid",
+        "servo controller",
+        "terminal endbracket",
+        "ventil"
+      ],
+      "missingDeviceSheetRecommendations": [
+        {
+          "sheetName": "Busbar",
+          "deviceTypes": [
+            "Busbar"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "Luminaire",
+          "deviceTypes": [
+            "Luminaire"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "Motion Controller",
+          "deviceTypes": [
+            "Motion Controller"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1756-HYD",
+              "deviceType": "Motion Controller",
+              "notes": "ControlLogix integrated motion modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1756-M02",
+              "deviceType": "Motion Controller",
+              "notes": "ControlLogix integrated motion modules"
+            }
+          ]
+        },
+        {
+          "sheetName": "PCB connection system",
+          "deviceTypes": [
+            "PCB Connector"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "PCB connection technology",
+          "deviceTypes": [
+            "PCB Terminal Block"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "Wire ID Information",
+          "deviceTypes": [
+            "Wire Marker"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "cabinet",
+          "deviceTypes": [
+            "Enclosure"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PSN",
+              "deviceType": "Enclosure",
+              "notes": "xEnergy ProfiSNAP enclosure panels/accessories"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "P2C",
+              "deviceType": "Enclosure",
+              "notes": "nVent Hoffman enclosure families"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "P2D",
+              "deviceType": "Enclosure",
+              "notes": "nVent Hoffman enclosure families"
+            },
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "ABOX",
+              "deviceType": "Enclosure",
+              "notes": "Spelsberg junction boxes / enclosures"
+            },
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "AK",
+              "deviceType": "Enclosure",
+              "notes": "Spelsberg junction boxes / enclosures"
+            }
+          ]
+        },
+        {
+          "sheetName": "cabinet.airconditioning",
+          "deviceTypes": [
+            "Thermal Management"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "cabinet.mechanical",
+          "deviceTypes": [
+            "Accessory",
+            "Cover / Door Accessory",
+            "Enclosure",
+            "Subpanel"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PSN",
+              "deviceType": "Enclosure",
+              "notes": "xEnergy ProfiSNAP enclosure panels/accessories"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "P2C",
+              "deviceType": "Enclosure",
+              "notes": "nVent Hoffman enclosure families"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "P2D",
+              "deviceType": "Enclosure",
+              "notes": "nVent Hoffman enclosure families"
+            },
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "ABOX",
+              "deviceType": "Enclosure",
+              "notes": "Spelsberg junction boxes / enclosures"
+            },
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "AK",
+              "deviceType": "Enclosure",
+              "notes": "Spelsberg junction boxes / enclosures"
+            }
+          ]
+        },
+        {
+          "sheetName": "cabinet.rack",
+          "deviceTypes": [
+            "Rack Cabinet"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "cable",
+          "deviceTypes": [
+            "Cable"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "889",
+              "deviceType": "Cable",
+              "notes": "Allen-Bradley cordsets and patchcords"
+            }
+          ]
+        },
+        {
+          "sheetName": "cable gland",
+          "deviceTypes": [
+            "Cable Gland"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "command and alarm device",
+          "deviceTypes": [
+            "Pilot Light",
+            "Pushbutton / Operator",
+            "Stack Light / Beacon"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "eaton",
+              "pattern": "M22",
+              "deviceType": "Pushbutton / Operator",
+              "notes": "M22 control station"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "800F",
+              "deviceType": "Pushbutton / Operator"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "800H",
+              "deviceType": "Pushbutton / Operator"
+            },
+            {
+              "manufacturerId": "schneider",
+              "pattern": "XALD",
+              "deviceType": "Pushbutton / Operator",
+              "notes": "Harmony control station"
+            },
+            {
+              "manufacturerId": "schneider",
+              "pattern": "XALK",
+              "deviceType": "Pushbutton / Operator",
+              "notes": "Harmony control station"
+            }
+          ]
+        },
+        {
+          "sheetName": "directional control valve",
+          "deviceTypes": [
+            "Directional Control Valve"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "el. mesurement devices",
+          "deviceTypes": [
+            "Current Sensor"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "electronic sensor",
+          "deviceTypes": [
+            "Capacitive Sensor",
+            "Encoder",
+            "Inductive Proximity Sensor",
+            "Magnetic Field Sensor",
+            "RFID Device",
+            "Sensor",
+            "Ultrasonic Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BCS",
+              "deviceType": "Capacitive Sensor"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BDG",
+              "deviceType": "Encoder",
+              "notes": "Absolute encoder"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BTL",
+              "deviceType": "Encoder",
+              "notes": "Magnetostrictive linear encoder"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BES",
+              "deviceType": "Inductive Proximity Sensor"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BIS",
+              "deviceType": "Inductive Proximity Sensor"
+            }
+          ]
+        },
+        {
+          "sheetName": "energy distribution system",
+          "deviceTypes": [
+            "Loadcenter"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "filters",
+          "deviceTypes": [
+            "Filter"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "fluid power",
+          "deviceTypes": [
+            "Hydraulic Actuator"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "generator",
+          "deviceTypes": [
+            "Generator"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "module carrier frame",
+          "deviceTypes": [
+            "Module Carrier"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "siemens",
+              "pattern": "6ES7193",
+              "deviceType": "Module Carrier",
+              "notes": "SIMATIC ET 200SP BaseUnits / base carriers"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "BaseUnits",
+              "deviceType": "Module Carrier",
+              "notes": "SIMATIC ET 200SP BaseUnits / base carriers"
+            }
+          ]
+        },
+        {
+          "sheetName": "motor protection",
+          "deviceTypes": [
+            "Motor Circuit Breaker",
+            "Motor Starter"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "MO",
+              "deviceType": "Motor Circuit Breaker",
+              "notes": "Manual motor starter"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MS",
+              "deviceType": "Motor Circuit Breaker",
+              "notes": "Manual motor starter"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PKE",
+              "deviceType": "Motor Circuit Breaker"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PKZM",
+              "deviceType": "Motor Circuit Breaker"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "140M",
+              "deviceType": "Motor Circuit Breaker"
+            }
+          ]
+        },
+        {
+          "sheetName": "motors",
+          "deviceTypes": [
+            "Motor",
+            "Variable Speed Drive"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "M2A",
+              "deviceType": "Motor"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "TM",
+              "deviceType": "Motor"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "ACQ",
+              "deviceType": "Variable Speed Drive",
+              "notes": "ACS / ACQ / ACH drives"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "ACS",
+              "deviceType": "Variable Speed Drive",
+              "notes": "ACS / ACQ / ACH drives"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "DC1",
+              "deviceType": "Variable Speed Drive",
+              "notes": "PowerXL"
+            }
+          ]
+        },
+        {
+          "sheetName": "optical sensor",
+          "deviceTypes": [
+            "Photoelectric Sensor",
+            "Vision Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BOH",
+              "deviceType": "Photoelectric Sensor"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BOS",
+              "deviceType": "Photoelectric Sensor"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "42EF",
+              "deviceType": "Photoelectric Sensor"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "42JS",
+              "deviceType": "Photoelectric Sensor"
+            },
+            {
+              "manufacturerId": "schneider",
+              "pattern": "XU",
+              "deviceType": "Photoelectric Sensor",
+              "notes": "OsiSense XU"
+            }
+          ]
+        },
+        {
+          "sheetName": "panel (HMI)",
+          "deviceTypes": [
+            "HMI"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "CP6",
+              "deviceType": "HMI",
+              "notes": "CP6xx HMI panel"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "XV",
+              "deviceType": "HMI"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "2711",
+              "deviceType": "HMI",
+              "notes": "PanelView HMI"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "2711P",
+              "deviceType": "HMI",
+              "notes": "PanelView HMI"
+            },
+            {
+              "manufacturerId": "schneider",
+              "pattern": "HMI",
+              "deviceType": "HMI",
+              "notes": "Harmony HMI"
+            }
+          ]
+        },
+        {
+          "sheetName": "pneumatic handling",
+          "deviceTypes": [
+            "Pneumatic Device"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "pump",
+          "deviceTypes": [
+            "Pump"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "sensor - fluid",
+          "deviceTypes": [
+            "Flow Sensor",
+            "Level Sensor",
+            "Pressure Sensor",
+            "Temperature Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "839E",
+              "deviceType": "Flow Sensor",
+              "notes": "Allen-Bradley flow sensors"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "840E",
+              "deviceType": "Level Sensor",
+              "notes": "Allen-Bradley level sensors"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "836P",
+              "deviceType": "Pressure Sensor",
+              "notes": "Allen-Bradley pressure sensors"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "837T",
+              "deviceType": "Temperature Sensor",
+              "notes": "Allen-Bradley temperature sensors"
+            }
+          ]
+        },
+        {
+          "sheetName": "servo controller",
+          "deviceTypes": [
+            "Soft Starter",
+            "Variable Speed Drive"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "PSE",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "PSTX",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "DS7",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "schneider",
+              "pattern": "ATS",
+              "deviceType": "Soft Starter",
+              "notes": "Altistart"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "3RW",
+              "deviceType": "Soft Starter",
+              "notes": "SIRIUS soft starter"
+            }
+          ]
+        },
+        {
+          "sheetName": "terminal endbracket",
+          "deviceTypes": [
+            "Terminal Accessory"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "CLIPFIX",
+              "deviceType": "Terminal Accessory"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "E/UK",
+              "deviceType": "Terminal Accessory"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492-EAH",
+              "deviceType": "Terminal Accessory",
+              "notes": "1492 end anchors / end retainers"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492-EAJ",
+              "deviceType": "Terminal Accessory",
+              "notes": "1492 end anchors / end retainers"
+            }
+          ]
+        },
+        {
+          "sheetName": "ventil",
+          "deviceTypes": [
+            "Valve"
+          ],
+          "examples": []
+        }
+      ],
+      "deviceSheetCoverage": {
+        "covered": 10,
+        "total": 41
+      }
+    },
+    "fixtureCoverageRequired": false,
+    "accepted": true
+  },
+  "reports": [
+    {
+      "manufacturerId": "phoenix",
+      "catalogNumber": "3209510",
+      "caseType": "electrical",
+      "expectedDeviceType": "Terminal Block",
+      "actualDeviceType": "Terminal Block",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "cold",
+        "terminal-block",
+        "push-in"
+      ],
+      "status": "found",
+      "confidence": 0.57,
+      "elapsedMs": 22155,
+      "productUrl": "https://www.phoenixcontact.com/product/3209510",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260901070108\\pdt\\phoenix-3209510-pdt_pdt-audit.json",
+      "pdtWrittenCells": 37,
+      "pdtBlankCells": 28,
+      "pdtSkippedCells": 1,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 1,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": []
+    },
+    {
+      "manufacturerId": "phoenix",
+      "catalogNumber": "2866763",
+      "caseType": "electrical",
+      "expectedDeviceType": "Power Supply",
+      "actualDeviceType": "Power Supply",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "cold",
+        "quint-power",
+        "single-phase"
+      ],
+      "status": "found",
+      "confidence": 0.57,
+      "elapsedMs": 18400,
+      "productUrl": "https://www.phoenixcontact.com/product/2866763",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260901070108\\pdt\\phoenix-2866763-pdt_pdt-audit.json",
+      "pdtWrittenCells": 95,
+      "pdtBlankCells": 97,
+      "pdtSkippedCells": 5,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 4,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": []
+    },
+    {
+      "manufacturerId": "phoenix",
+      "catalogNumber": "2800492",
+      "caseType": "electrical",
+      "expectedDeviceType": "Surge Protective Device",
+      "actualDeviceType": "Surge Protective Device",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "cold",
+        "surge-protection",
+        "type-2"
+      ],
+      "status": "found",
+      "confidence": 0.57,
+      "elapsedMs": 1958,
+      "productUrl": "https://www.phoenixcontact.com/product/2800492",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260901070108\\pdt\\phoenix-2800492-pdt_pdt-audit.json",
+      "pdtWrittenCells": 57,
+      "pdtBlankCells": 91,
+      "pdtSkippedCells": 2,
+      "pdtUnprovenSkipped": 1,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 1,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": []
+    },
+    {
+      "manufacturerId": "phoenix",
+      "catalogNumber": "2981091",
+      "caseType": "electrical",
+      "expectedDeviceType": "Safety Relay",
+      "actualDeviceType": "Safety Relay",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "cold",
+        "safety-relay",
+        "psr"
+      ],
+      "status": "found",
+      "confidence": 0.57,
+      "elapsedMs": 1717,
+      "productUrl": "https://www.phoenixcontact.com/product/2981091",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260901070108\\pdt\\phoenix-2981091-pdt_pdt-audit.json",
+      "pdtWrittenCells": 36,
+      "pdtBlankCells": 105,
+      "pdtSkippedCells": 9,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": []
+    },
+    {
+      "manufacturerId": "phoenix",
+      "catalogNumber": "2702665",
+      "caseType": "electrical",
+      "expectedDeviceType": "Switch",
+      "actualDeviceType": "Switch",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "cold",
+        "industrial-ethernet",
+        "managed-switch"
+      ],
+      "status": "found",
+      "confidence": 0.57,
+      "elapsedMs": 3233,
+      "productUrl": "https://www.phoenixcontact.com/product/2702665",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260901070108\\pdt\\phoenix-2702665-pdt_pdt-audit.json",
+      "pdtWrittenCells": 29,
+      "pdtBlankCells": 50,
+      "pdtSkippedCells": 1,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": []
+    },
+    {
+      "manufacturerId": "phoenix",
+      "catalogNumber": "2701815",
+      "caseType": "electrical",
+      "expectedDeviceType": "Communication Gateway",
+      "actualDeviceType": "Communication Gateway",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "cold",
+        "axioline",
+        "profinet-bus-coupler"
+      ],
+      "status": "found",
+      "confidence": 0.57,
+      "elapsedMs": 1687,
+      "productUrl": "https://www.phoenixcontact.com/product/2701815",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260901070108\\pdt\\phoenix-2701815-pdt_pdt-audit.json",
+      "pdtWrittenCells": 41,
+      "pdtBlankCells": 57,
+      "pdtSkippedCells": 1,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 2,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": []
+    },
+    {
+      "manufacturerId": "phoenix",
+      "catalogNumber": "2961105",
+      "caseType": "electrical",
+      "expectedDeviceType": "Relay",
+      "actualDeviceType": "Relay",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "cold",
+        "miniature-relay",
+        "plug-in"
+      ],
+      "status": "found",
+      "confidence": 0.57,
+      "elapsedMs": 10866,
+      "productUrl": "https://www.phoenixcontact.com/product/2961105",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260901070108\\pdt\\phoenix-2961105-pdt_pdt-audit.json",
+      "pdtWrittenCells": 33,
+      "pdtBlankCells": 62,
+      "pdtSkippedCells": 2,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 2,
+      "pdtRequiredFieldIssues": 3,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": []
+    },
+    {
+      "manufacturerId": "phoenix",
+      "catalogNumber": "1534135",
+      "caseType": "electrical",
+      "expectedDeviceType": "Connector",
+      "actualDeviceType": "Connector",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "cold",
+        "valve-connector",
+        "sac"
+      ],
+      "status": "found",
+      "confidence": 0.62,
+      "elapsedMs": 1876,
+      "productUrl": "https://www.phoenixcontact.com/product/1534135",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260901070108\\pdt\\phoenix-1534135-pdt_pdt-audit.json",
+      "pdtWrittenCells": 24,
+      "pdtBlankCells": 59,
+      "pdtSkippedCells": 0,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": []
+    },
+    {
+      "manufacturerId": "phoenix",
+      "catalogNumber": "2865971",
+      "caseType": "electrical",
+      "expectedDeviceType": "I/O Module",
+      "actualDeviceType": "I/O Module",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "cold",
+        "macx",
+        "signal-conditioner"
+      ],
+      "status": "found",
+      "confidence": 0.58,
+      "elapsedMs": 1881,
+      "productUrl": "https://www.phoenixcontact.com/product/2865971",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260901070108\\pdt\\phoenix-2865971-pdt_pdt-audit.json",
+      "pdtWrittenCells": 28,
+      "pdtBlankCells": 59,
+      "pdtSkippedCells": 0,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 1,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": []
+    },
+    {
+      "manufacturerId": "phoenix",
+      "catalogNumber": "1524160",
+      "caseType": "mechanical",
+      "expectedDeviceType": "Mounting Accessory",
+      "actualDeviceType": "Mounting Accessory",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "cold",
+        "mcs",
+        "adapter-plate"
+      ],
+      "status": "found",
+      "confidence": 0.57,
+      "elapsedMs": 1958,
+      "productUrl": "https://www.phoenixcontact.com/product/1524160",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260901070108\\pdt\\phoenix-1524160-pdt_pdt-audit.json",
+      "pdtWrittenCells": 28,
+      "pdtBlankCells": 58,
+      "pdtSkippedCells": 0,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": []
+    }
+  ]
+}

@@ -1,0 +1,790 @@
+{
+ "productDetails": {
+  "item": {
+   "inactive": false,
+   "images": [
+    {
+     "url": "https://cdn.productimages.abb.com/9PAA00000139625_400x400.jpg",
+     "thumbnailUrl": "https://cdn.productimages.abb.com/9PAA00000139625_100x100.jpg",
+     "masterUrl": "https://cdn.productimages.abb.com/9PAA00000139625_master.jpg"
+    }
+   ],
+   "published": true,
+   "variantsAvailable": false,
+   "productIdDomain": "ABB",
+   "sparePart": false,
+   "exactMatch": false,
+   "classifications": {
+    "classCids": [
+     "9AAF601425"
+    ],
+    "typeCids": [
+     "9AAC184511"
+    ],
+    "leafCids": [
+     "9AAC184511"
+    ],
+    "level0Cids": [
+     "9AAC910006"
+    ]
+   },
+   "productId": "1SFA611199R1190",
+   "attributes": {
+    "ExtendedProductType": {
+     "type": "Text",
+     "attributeCode": "ExtendedProductType",
+     "attributeName": "Extended Product Type",
+     "values": [
+      {
+       "text": "MEPY1-1190"
+      }
+     ],
+     "isInternal": false,
+     "internal": false,
+     "highlight": false
+    },
+    "ProductId": {
+     "type": "Text",
+     "attributeCode": "ProductId",
+     "attributeName": "Product ID",
+     "values": [
+      {
+       "text": "1SFA611199R1190"
+      }
+     ],
+     "isInternal": false,
+     "internal": false,
+     "highlight": false
+    },
+    "Ean": {
+     "type": "Text",
+     "attributeCode": "Ean",
+     "attributeName": "EAN",
+     "values": [
+      {
+       "text": "7320500474822"
+      }
+     ],
+     "isInternal": false,
+     "internal": false,
+     "highlight": false
+    },
+    "CatalogDescription": {
+     "type": "Text",
+     "attributeCode": "CatalogDescription",
+     "attributeName": "Catalog Description",
+     "values": [
+      {
+       "text": "MEPY1-1190 Enclosure"
+      }
+     ],
+     "isInternal": false,
+     "internal": false,
+     "highlight": false
+    },
+    "LongDescription": {
+     "type": "Text",
+     "attributeCode": "LongDescription",
+     "attributeName": "Long Description",
+     "values": [
+      {
+       "text": "Enclosure MEPY1-1190  1 pos yellow light grey marked \"EMERGENCY STOP\""
+      }
+     ],
+     "isInternal": false,
+     "internal": false,
+     "highlight": false
+    },
+    "#DisplayName": {
+     "type": "Text",
+     "attributeCode": "#DisplayName",
+     "attributeName": "Display Name",
+     "values": [
+      {
+       "text": "MEPY1-1190"
+      }
+     ],
+     "isInternal": false,
+     "internal": false,
+     "highlight": false
+    }
+   }
+  }
+ },
+ "attributeGroups": {
+  "items": [
+   {
+    "code": "Ordering",
+    "description": "Ordering",
+    "visible": true,
+    "attributes": {
+     "MinimumOrderQuantity": {
+      "type": "Text",
+      "attributeCode": "MinimumOrderQuantity",
+      "attributeName": "Minimum Order Quantity",
+      "values": [
+       {
+        "text": "1 piece"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "CustomsTariffNumber": {
+      "type": "Text",
+      "attributeCode": "CustomsTariffNumber",
+      "attributeName": "Customs Tariff Number",
+      "values": [
+       {
+        "text": "8538909999"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "ProductMainType": {
+      "type": "Text",
+      "attributeCode": "ProductMainType",
+      "attributeName": "Product Main Type",
+      "values": [
+       {
+        "text": "MEPY1"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     }
+    }
+   },
+   {
+    "code": "PopularDownloads",
+    "description": "Popular Downloads",
+    "visible": true,
+    "attributes": {
+     "DatSheTecInf": {
+      "type": "Text",
+      "attributeCode": "DatSheTecInf",
+      "attributeName": "Data Sheet, Technical Information",
+      "values": [
+       {
+        "text": "1SFC151007C02__",
+        "link": {
+         "text": "1SFC151007C02__",
+         "documentId": "1SFC151007C02__",
+         "type": "Document"
+        }
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "InsMan": {
+      "type": "Text",
+      "attributeCode": "InsMan",
+      "attributeName": "Instructions and Manuals",
+      "values": [
+       {
+        "text": "1SFC151011M0201",
+        "link": {
+         "text": "1SFC151011M0201",
+         "documentId": "1SFC151011M0201",
+         "type": "Document"
+        }
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "CadDimensionalDrawing": {
+      "type": "Text",
+      "attributeCode": "CadDimensionalDrawing",
+      "attributeName": "CAD Dimensional Drawing",
+      "values": [
+       {
+        "text": "2CDC001079B0201",
+        "link": {
+         "text": "2CDC001079B0201",
+         "documentId": "2CDC001079B0201",
+         "type": "Document"
+        }
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     }
+    }
+   },
+   {
+    "code": "Dimensions",
+    "description": "Dimensions",
+    "visible": true,
+    "attributes": {
+     "ProductNetWidth": {
+      "type": "Text",
+      "attributeCode": "ProductNetWidth",
+      "attributeName": "Product Net Width",
+      "values": [
+       {
+        "text": "101 mm"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "tooltip": "Width of a single unpacked product",
+      "highlight": false
+     },
+     "ProductNetDepth": {
+      "type": "Text",
+      "attributeCode": "ProductNetDepth",
+      "attributeName": "Product Net Depth / Length",
+      "values": [
+       {
+        "text": "61 mm"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "tooltip": "Depth of a single unpacked product",
+      "highlight": false
+     },
+     "ProductNetHeight": {
+      "type": "Text",
+      "attributeCode": "ProductNetHeight",
+      "attributeName": "Product Net Height",
+      "values": [
+       {
+        "text": "75 mm"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "tooltip": "Height of a single unpacked product",
+      "highlight": false
+     },
+     "ProductNetWeight": {
+      "type": "Text",
+      "attributeCode": "ProductNetWeight",
+      "attributeName": "Product Net Weight",
+      "values": [
+       {
+        "text": "0.167 kg"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "tooltip": "Weight of a single unpacked product",
+      "highlight": false
+     }
+    }
+   },
+   {
+    "code": "Technical",
+    "description": "Technical",
+    "visible": true,
+    "attributes": {
+     "Color": {
+      "type": "Text",
+      "attributeCode": "Color",
+      "attributeName": "Color",
+      "values": [
+       {
+        "text": "Yellow/Light grey"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "DeviceMarking": {
+      "type": "Text",
+      "attributeCode": "DeviceMarking",
+      "attributeName": "Device Marking",
+      "values": [
+       {
+        "text": "Emergency Stop"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "EnclosureTypeNema": {
+      "type": "Enum",
+      "attributeCode": "EnclosureTypeNema",
+      "attributeName": "Enclosure Type NEMA",
+      "values": [
+       {
+        "text": "Type1",
+        "enumerationValueCode": "Type1"
+       },
+       {
+        "text": "Type12",
+        "enumerationValueCode": "Type12"
+       },
+       {
+        "text": "Type13",
+        "enumerationValueCode": "Type13"
+       },
+       {
+        "text": "Type3R",
+        "enumerationValueCode": "Type3R"
+       },
+       {
+        "text": "Type4",
+        "enumerationValueCode": "Type4"
+       },
+       {
+        "text": "Type4X",
+        "enumerationValueCode": "Type4X"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     }
+    }
+   },
+   {
+    "code": "Environmental",
+    "description": "Environmental",
+    "visible": true,
+    "attributes": {
+     "AmbAirTem": {
+      "type": "Text",
+      "attributeCode": "AmbAirTem",
+      "attributeName": "Ambient Air Temperature",
+      "values": [
+       {
+        "text": "Operation -25 ... +70 °C"
+       },
+       {
+        "text": "Storage -40 ... +85 °C"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "DegreeOfProtection": {
+      "type": "Text",
+      "attributeCode": "DegreeOfProtection",
+      "attributeName": "Degree of Protection",
+      "values": [
+       {
+        "text": "Front IP66"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     }
+    }
+   },
+   {
+    "code": "MaterialCompliance",
+    "description": "Material Compliance",
+    "visible": true,
+    "attributes": {
+     "ConMinRepTem": {
+      "type": "Text",
+      "attributeCode": "ConMinRepTem",
+      "attributeName": "Conflict Minerals Reporting Template (CMRT)",
+      "values": [
+       {
+        "text": "9AKK108467A5658",
+        "link": {
+         "text": "9AKK108467A5658",
+         "documentId": "9AKK108467A5658",
+         "type": "Document"
+        }
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "ReachDeclaration": {
+      "type": "Text",
+      "attributeCode": "ReachDeclaration",
+      "attributeName": "REACH Declaration",
+      "values": [
+       {
+        "text": "2CMT2022-006479",
+        "link": {
+         "text": "2CMT2022-006479",
+         "documentId": "2CMT2022-006479",
+         "type": "Document"
+        }
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "RoHSInformation": {
+      "type": "Text",
+      "attributeCode": "RoHSInformation",
+      "attributeName": "RoHS Declaration",
+      "values": [
+       {
+        "text": "2CMT2022-006498",
+        "link": {
+         "text": "2CMT2022-006498",
+         "documentId": "2CMT2022-006498",
+         "type": "Document"
+        }
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "RoHSStatus": {
+      "type": "Enum",
+      "attributeCode": "RoHSStatus",
+      "attributeName": "RoHS Information",
+      "values": [
+       {
+        "text": "Following EU Directive 2011/65/EU and Amendment 2015/863 July 22, 2019",
+        "enumerationValueCode": "20190722"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "ToxSubConAct": {
+      "type": "Text",
+      "attributeCode": "ToxSubConAct",
+      "attributeName": "Toxic Substances Control Act - TSCA",
+      "values": [
+       {
+        "text": "2CMT2023-006523",
+        "link": {
+         "text": "2CMT2023-006523",
+         "documentId": "2CMT2023-006523",
+         "type": "Document"
+        }
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "WeeeCategory": {
+      "type": "Enum",
+      "attributeCode": "WeeeCategory",
+      "attributeName": "WEEE Category",
+      "values": [
+       {
+        "text": "Product Not in WEEE Scope",
+        "enumerationValueCode": "ProNotInWeeSco"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     }
+    }
+   },
+   {
+    "code": "CerDec",
+    "description": "Certificates and Declarations",
+    "visible": true,
+    "attributes": {
+     "culusCertificate": {
+      "type": "Text",
+      "attributeCode": "culusCertificate",
+      "attributeName": "cULus Certificate",
+      "values": [
+       {
+        "text": "9AKK107046A9925",
+        "link": {
+         "text": "9AKK107046A9925",
+         "documentId": "9AKK107046A9925",
+         "type": "Document"
+        }
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "DecConCe": {
+      "type": "Text",
+      "attributeCode": "DecConCe",
+      "attributeName": "Declaration of Conformity - CE",
+      "values": [
+       {
+        "text": "2CMT2015-005444",
+        "link": {
+         "text": "2CMT2015-005444",
+         "documentId": "2CMT2015-005444",
+         "type": "Document"
+        }
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "DecConUkca": {
+      "type": "Text",
+      "attributeCode": "DecConUkca",
+      "attributeName": "Declaration of Conformity - UKCA",
+      "values": [
+       {
+        "text": "2CMT2020-006122",
+        "link": {
+         "text": "2CMT2020-006122",
+         "documentId": "2CMT2020-006122",
+         "type": "Document"
+        }
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "DnvGlCertificate": {
+      "type": "Text",
+      "attributeCode": "DnvGlCertificate",
+      "attributeName": "DNV GL Certificate",
+      "values": [
+       {
+        "text": "E-14107",
+        "link": {
+         "text": "E-14107",
+         "documentId": "E-14107",
+         "type": "Document"
+        }
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     }
+    }
+   },
+   {
+    "code": "ConInf",
+    "description": "Container Information",
+    "visible": true,
+    "attributes": {
+     "PackageLevel1Units": {
+      "type": "Text",
+      "attributeCode": "PackageLevel1Units",
+      "attributeName": "Package Level 1 Units",
+      "values": [
+       {
+        "text": "bag 1 piece"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "PackageLevel1Width": {
+      "type": "Text",
+      "attributeCode": "PackageLevel1Width",
+      "attributeName": "Package Level 1 Width",
+      "values": [
+       {
+        "text": "113 mm"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "PackageLevel1Length": {
+      "type": "Text",
+      "attributeCode": "PackageLevel1Length",
+      "attributeName": "Package Level 1 Depth / Length",
+      "values": [
+       {
+        "text": "129 mm"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "PackageLevel1Height": {
+      "type": "Text",
+      "attributeCode": "PackageLevel1Height",
+      "attributeName": "Package Level 1 Height",
+      "values": [
+       {
+        "text": "80 mm"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "PacLev1GroWei": {
+      "type": "Text",
+      "attributeCode": "PacLev1GroWei",
+      "attributeName": "Package Level 1 Gross Weight",
+      "values": [
+       {
+        "text": "0.28 kg"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "PackageLevel1Ean": {
+      "type": "Text",
+      "attributeCode": "PackageLevel1Ean",
+      "attributeName": "Package Level 1 EAN",
+      "values": [
+       {
+        "text": "7320500474822"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     }
+    }
+   },
+   {
+    "code": "Classifications",
+    "description": "External Classifications and Standards",
+    "visible": true,
+    "attributes": {
+     "Eclass": {
+      "type": "Text",
+      "attributeCode": "Eclass",
+      "attributeName": "eClass",
+      "values": [
+       {
+        "text": "V11.0 : 27371205"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "Etim6": {
+      "type": "Enum",
+      "attributeCode": "Etim6",
+      "attributeName": "ETIM 6",
+      "values": [
+       {
+        "text": "EC000200 - Enclosure for control circuit devices",
+        "enumerationValueCode": "EC000200"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "Etim7": {
+      "type": "Enum",
+      "attributeCode": "Etim7",
+      "attributeName": "ETIM 7",
+      "values": [
+       {
+        "text": "EC000200 - Enclosure for control circuit devices",
+        "enumerationValueCode": "EC000200"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "Etim8": {
+      "type": "Enum",
+      "attributeCode": "Etim8",
+      "attributeName": "ETIM 8",
+      "values": [
+       {
+        "text": "EC000200 - Enclosure for control circuit devices",
+        "enumerationValueCode": "EC000200"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "Etim9": {
+      "type": "Enum",
+      "attributeCode": "Etim9",
+      "attributeName": "ETIM 9",
+      "values": [
+       {
+        "text": "EC000200 - Enclosure for control circuit devices",
+        "enumerationValueCode": "EC000200"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "Unspsc": {
+      "type": "Text",
+      "attributeCode": "Unspsc",
+      "attributeName": "UNSPSC",
+      "values": [
+       {
+        "text": "39121326"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     }
+    }
+   }
+  ],
+  "listCode": "ELSP_PG3099_detail_page"
+ },
+ "productClassifications": {
+  "items": {
+   "Products": [
+    [
+     {
+      "cid": "ROOT",
+      "name": "Products",
+      "inactive": false
+     },
+     {
+      "cid": "9AAC910006",
+      "name": "Low Voltage Products and Systems",
+      "inactive": false
+     },
+     {
+      "cid": "9AAC100093",
+      "name": "Control Products",
+      "inactive": false
+     },
+     {
+      "cid": "9AAC100140",
+      "name": "Pilot Devices",
+      "inactive": false
+     },
+     {
+      "cid": "9AAF601425",
+      "name": "Enclosures and Assembled Stations",
+      "inactive": false
+     }
+    ]
+   ]
+  }
+ },
+ "productRelationships": {},
+ "relatedLinks": {},
+ "productVariantsSelector": {},
+ "productVariantsTable": {},
+ "productVariantsDropdown": {}
+}

@@ -1,0 +1,1465 @@
+{
+  "generatedAt": "2026-09-01T10:40:14.719Z",
+  "outputDir": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260901103824",
+  "filters": {
+    "manufacturer": "abb",
+    "limit": "15",
+    "fixtureDir": "tmp/abb-new-15b"
+  },
+  "summary": {
+    "foundRate": 100,
+    "officialUrlRate": 100,
+    "documentRate": 100,
+    "pdtAuditRate": 100,
+    "deviceTypeRate": 100,
+    "customerDocumentRate": 0,
+    "wrongProducts": 0,
+    "partialWithoutMissing": 0,
+    "pdtUnprovenWritten": 0,
+    "pdtUnexplainedRequiredFieldIssues": 0,
+    "pdtWriteIssues": 33,
+    "qualityAccepted": true,
+    "fixtureCoverageAccepted": true,
+    "fixtureCoverage": {
+      "byManufacturer": {
+        "abb": {
+          "total": 15,
+          "caseTypes": [
+            "electrical",
+            "mechanical"
+          ],
+          "riskTags": [
+            "buzzer",
+            "cb1",
+            "cold",
+            "cp-d",
+            "disconnect",
+            "dummy-block",
+            "enclosure",
+            "eot100",
+            "eot16",
+            "handheld-device",
+            "jshd4",
+            "m2ss",
+            "mdb2",
+            "mep2",
+            "mep3",
+            "ml1",
+            "ovr",
+            "pilot-light-green",
+            "pluto",
+            "power-supply",
+            "power-supply-24v",
+            "safety-controller",
+            "selector-switch",
+            "surge-protection"
+          ]
+        }
+      },
+      "byDeviceType": {
+        "Surge Protective Device": {
+          "total": 2,
+          "manufacturers": [
+            "abb"
+          ],
+          "caseTypes": [
+            "electrical"
+          ]
+        },
+        "Safety Relay": {
+          "total": 2,
+          "manufacturers": [
+            "abb"
+          ],
+          "caseTypes": [
+            "electrical"
+          ]
+        },
+        "Switch": {
+          "total": 1,
+          "manufacturers": [
+            "abb"
+          ],
+          "caseTypes": [
+            "electrical"
+          ]
+        },
+        "Power Supply": {
+          "total": 2,
+          "manufacturers": [
+            "abb"
+          ],
+          "caseTypes": [
+            "electrical"
+          ]
+        },
+        "Pilot Light": {
+          "total": 1,
+          "manufacturers": [
+            "abb"
+          ],
+          "caseTypes": [
+            "electrical"
+          ]
+        },
+        "Enclosure": {
+          "total": 2,
+          "manufacturers": [
+            "abb"
+          ],
+          "caseTypes": [
+            "mechanical"
+          ]
+        },
+        "Accessory": {
+          "total": 1,
+          "manufacturers": [
+            "abb"
+          ],
+          "caseTypes": [
+            "mechanical"
+          ]
+        },
+        "Selector Switch": {
+          "total": 1,
+          "manufacturers": [
+            "abb"
+          ],
+          "caseTypes": [
+            "electrical"
+          ]
+        },
+        "Stack Light / Beacon": {
+          "total": 1,
+          "manufacturers": [
+            "abb"
+          ],
+          "caseTypes": [
+            "electrical"
+          ]
+        },
+        "Disconnect Switch": {
+          "total": 2,
+          "manufacturers": [
+            "abb"
+          ],
+          "caseTypes": [
+            "electrical"
+          ]
+        }
+      },
+      "byDeviceSheet": {
+        "int. ext. lightning protection": {
+          "total": 2,
+          "deviceTypes": [
+            "Surge Protective Device"
+          ],
+          "manufacturers": [
+            "abb"
+          ]
+        },
+        "safety sensor": {
+          "total": 2,
+          "deviceTypes": [
+            "Safety Relay"
+          ],
+          "manufacturers": [
+            "abb"
+          ]
+        },
+        "Switch": {
+          "total": 2,
+          "deviceTypes": [
+            "Selector Switch",
+            "Switch"
+          ],
+          "manufacturers": [
+            "abb"
+          ]
+        },
+        "power supply devices": {
+          "total": 2,
+          "deviceTypes": [
+            "Power Supply"
+          ],
+          "manufacturers": [
+            "abb"
+          ]
+        },
+        "command and alarm device": {
+          "total": 2,
+          "deviceTypes": [
+            "Pilot Light",
+            "Stack Light / Beacon"
+          ],
+          "manufacturers": [
+            "abb"
+          ]
+        },
+        "cabinet": {
+          "total": 2,
+          "deviceTypes": [
+            "Enclosure"
+          ],
+          "manufacturers": [
+            "abb"
+          ]
+        },
+        "cabinet.mechanical": {
+          "total": 3,
+          "deviceTypes": [
+            "Accessory",
+            "Enclosure"
+          ],
+          "manufacturers": [
+            "abb"
+          ]
+        },
+        "contactor a. fuses": {
+          "total": 2,
+          "deviceTypes": [
+            "Disconnect Switch"
+          ],
+          "manufacturers": [
+            "abb"
+          ]
+        }
+      },
+      "thinManufacturers": [],
+      "uncoveredDeviceSheets": [
+        "Busbar",
+        "Luminaire",
+        "Motion Controller",
+        "PCB connection system",
+        "PCB connection technology",
+        "PLC",
+        "RS232 interfaces",
+        "Wire ID Information",
+        "cabinet.airconditioning",
+        "cabinet.rack",
+        "cable",
+        "cable ducts mounting rails",
+        "cable gland",
+        "connector",
+        "directional control valve",
+        "el. mesurement devices",
+        "electronic sensor",
+        "energy distribution system",
+        "filters",
+        "fluid power",
+        "generator",
+        "module carrier frame",
+        "motor protection",
+        "motors",
+        "optical sensor",
+        "panel (HMI)",
+        "pneumatic handling",
+        "pump",
+        "sensor - fluid",
+        "servo controller",
+        "terminal",
+        "terminal endbracket",
+        "ventil"
+      ],
+      "missingDeviceSheetRecommendations": [
+        {
+          "sheetName": "Busbar",
+          "deviceTypes": [
+            "Busbar"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "Luminaire",
+          "deviceTypes": [
+            "Luminaire"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SL0040I.953",
+              "deviceType": "Luminaire",
+              "notes": "FATH Module F Line LED lamp"
+            }
+          ]
+        },
+        {
+          "sheetName": "Motion Controller",
+          "deviceTypes": [
+            "Motion Controller"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1756-HYD",
+              "deviceType": "Motion Controller",
+              "notes": "ControlLogix integrated motion modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1756-M02",
+              "deviceType": "Motion Controller",
+              "notes": "ControlLogix integrated motion modules"
+            }
+          ]
+        },
+        {
+          "sheetName": "PCB connection system",
+          "deviceTypes": [
+            "PCB Connector"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "PCB connection technology",
+          "deviceTypes": [
+            "PCB Terminal Block"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "PLC",
+          "deviceTypes": [
+            "Communication Gateway",
+            "HMI",
+            "I/O Module",
+            "Programmable Logic Controller"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "FL",
+              "deviceType": "Communication Gateway",
+              "notes": "FL switch / FL gateway"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "RAD",
+              "deviceType": "Communication Gateway",
+              "notes": "Radioline"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENT",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENTR",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1783",
+              "deviceType": "Communication Gateway",
+              "notes": "Stratix industrial networking and communication modules"
+            }
+          ]
+        },
+        {
+          "sheetName": "RS232 interfaces",
+          "deviceTypes": [
+            "Communication Gateway"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "FL",
+              "deviceType": "Communication Gateway",
+              "notes": "FL switch / FL gateway"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "RAD",
+              "deviceType": "Communication Gateway",
+              "notes": "Radioline"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENT",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENTR",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1783",
+              "deviceType": "Communication Gateway",
+              "notes": "Stratix industrial networking and communication modules"
+            }
+          ]
+        },
+        {
+          "sheetName": "Wire ID Information",
+          "deviceTypes": [
+            "Wire Marker"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "cabinet.airconditioning",
+          "deviceTypes": [
+            "Thermal Management"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "cabinet.rack",
+          "deviceTypes": [
+            "Rack Cabinet"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "cable",
+          "deviceTypes": [
+            "Cable"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SAMB1J313B.4000",
+              "deviceType": "Cable",
+              "notes": "FATH Module F Line GST18i3 main power cable"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "889",
+              "deviceType": "Cable",
+              "notes": "Allen-Bradley cordsets and patchcords"
+            },
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "59181001",
+              "deviceType": "Cable",
+              "notes": "Spelsberg Wallbox LL 7m Type 2 charging cable"
+            }
+          ]
+        },
+        {
+          "sheetName": "cable ducts mounting rails",
+          "deviceTypes": [
+            "Mounting Accessory",
+            "Wireway"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "09308901S01",
+              "deviceType": "Mounting Accessory",
+              "notes": "FATH workstation and profile mounting components"
+            },
+            {
+              "manufacturerId": "fath",
+              "pattern": "6FG40ND80M695N08",
+              "deviceType": "Mounting Accessory",
+              "notes": "FATH workstation and profile mounting components"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "CP2020",
+              "deviceType": "Mounting Accessory",
+              "notes": "nVent Hoffman/Schroff accessory items verified on official product pages"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "CSP2020",
+              "deviceType": "Mounting Accessory",
+              "notes": "nVent Hoffman/Schroff accessory items verified on official product pages"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "1524160",
+              "deviceType": "Mounting Accessory",
+              "notes": "Phoenix MCS-112X90-AP-7035 adapter plate item number"
+            }
+          ]
+        },
+        {
+          "sheetName": "cable gland",
+          "deviceTypes": [
+            "Cable Gland"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "26013201",
+              "deviceType": "Cable Gland",
+              "notes": "Spelsberg DMS M32/w double-membrane seal"
+            }
+          ]
+        },
+        {
+          "sheetName": "connector",
+          "deviceTypes": [
+            "Connector",
+            "Optical Connector"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SAKP5J516BS01",
+              "deviceType": "Connector",
+              "notes": "FATH Module F Line and profile connectors"
+            },
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SBEU14I.317",
+              "deviceType": "Connector",
+              "notes": "FATH Module F Line and profile connectors"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "MCS",
+              "deviceType": "Connector"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VIP",
+              "deviceType": "Connector"
+            },
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "73481501",
+              "deviceType": "Connector",
+              "notes": "Spelsberg AK STD 16 A mounting socket"
+            }
+          ]
+        },
+        {
+          "sheetName": "directional control valve",
+          "deviceTypes": [
+            "Directional Control Valve"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "el. mesurement devices",
+          "deviceTypes": [
+            "Current Sensor"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "electronic sensor",
+          "deviceTypes": [
+            "Capacitive Sensor",
+            "Encoder",
+            "Inductive Proximity Sensor",
+            "Magnetic Field Sensor",
+            "RFID Device",
+            "Sensor",
+            "Ultrasonic Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BCS",
+              "deviceType": "Capacitive Sensor"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BDG",
+              "deviceType": "Encoder",
+              "notes": "Absolute encoder"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BTL",
+              "deviceType": "Encoder",
+              "notes": "Magnetostrictive linear encoder"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BES",
+              "deviceType": "Inductive Proximity Sensor"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BIS",
+              "deviceType": "Inductive Proximity Sensor"
+            }
+          ]
+        },
+        {
+          "sheetName": "energy distribution system",
+          "deviceTypes": [
+            "Loadcenter"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "filters",
+          "deviceTypes": [
+            "Filter"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "fluid power",
+          "deviceTypes": [
+            "Hydraulic Actuator"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "generator",
+          "deviceTypes": [
+            "Generator"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "module carrier frame",
+          "deviceTypes": [
+            "Module Carrier"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "siemens",
+              "pattern": "6ES7193",
+              "deviceType": "Module Carrier",
+              "notes": "SIMATIC ET 200SP BaseUnits / base carriers"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "BaseUnits",
+              "deviceType": "Module Carrier",
+              "notes": "SIMATIC ET 200SP BaseUnits / base carriers"
+            }
+          ]
+        },
+        {
+          "sheetName": "motor protection",
+          "deviceTypes": [
+            "Motor Circuit Breaker",
+            "Motor Starter"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "MO",
+              "deviceType": "Motor Circuit Breaker",
+              "notes": "Manual motor starter"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MS",
+              "deviceType": "Motor Circuit Breaker",
+              "notes": "Manual motor starter"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PKE",
+              "deviceType": "Motor Circuit Breaker"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PKZM",
+              "deviceType": "Motor Circuit Breaker"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "140M",
+              "deviceType": "Motor Circuit Breaker"
+            }
+          ]
+        },
+        {
+          "sheetName": "motors",
+          "deviceTypes": [
+            "Motor",
+            "Variable Speed Drive"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "M2A",
+              "deviceType": "Motor"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "TM",
+              "deviceType": "Motor"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "ACQ",
+              "deviceType": "Variable Speed Drive",
+              "notes": "ACS / ACQ / ACH drives"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "ACS",
+              "deviceType": "Variable Speed Drive",
+              "notes": "ACS / ACQ / ACH drives"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "DC1",
+              "deviceType": "Variable Speed Drive",
+              "notes": "PowerXL"
+            }
+          ]
+        },
+        {
+          "sheetName": "optical sensor",
+          "deviceTypes": [
+            "Photoelectric Sensor",
+            "Vision Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BOH",
+              "deviceType": "Photoelectric Sensor"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BOS",
+              "deviceType": "Photoelectric Sensor"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "42EF",
+              "deviceType": "Photoelectric Sensor"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "42JS",
+              "deviceType": "Photoelectric Sensor"
+            },
+            {
+              "manufacturerId": "schneider",
+              "pattern": "XU",
+              "deviceType": "Photoelectric Sensor",
+              "notes": "OsiSense XU"
+            }
+          ]
+        },
+        {
+          "sheetName": "panel (HMI)",
+          "deviceTypes": [
+            "HMI"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "CP6",
+              "deviceType": "HMI",
+              "notes": "CP6xx HMI panel"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "XV",
+              "deviceType": "HMI"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "2711",
+              "deviceType": "HMI",
+              "notes": "PanelView HMI"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "2711P",
+              "deviceType": "HMI",
+              "notes": "PanelView HMI"
+            },
+            {
+              "manufacturerId": "schneider",
+              "pattern": "HMI",
+              "deviceType": "HMI",
+              "notes": "Harmony HMI"
+            }
+          ]
+        },
+        {
+          "sheetName": "pneumatic handling",
+          "deviceTypes": [
+            "Pneumatic Device"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "pump",
+          "deviceTypes": [
+            "Pump"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "sensor - fluid",
+          "deviceTypes": [
+            "Flow Sensor",
+            "Level Sensor",
+            "Pressure Sensor",
+            "Temperature Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "839E",
+              "deviceType": "Flow Sensor",
+              "notes": "Allen-Bradley flow sensors"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "840E",
+              "deviceType": "Level Sensor",
+              "notes": "Allen-Bradley level sensors"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "836P",
+              "deviceType": "Pressure Sensor",
+              "notes": "Allen-Bradley pressure sensors"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "837T",
+              "deviceType": "Temperature Sensor",
+              "notes": "Allen-Bradley temperature sensors"
+            }
+          ]
+        },
+        {
+          "sheetName": "servo controller",
+          "deviceTypes": [
+            "Soft Starter",
+            "Variable Speed Drive"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "PSE",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "PSTX",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "DS7",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "schneider",
+              "pattern": "ATS",
+              "deviceType": "Soft Starter",
+              "notes": "Altistart"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "3RW",
+              "deviceType": "Soft Starter",
+              "notes": "SIRIUS soft starter"
+            }
+          ]
+        },
+        {
+          "sheetName": "terminal",
+          "deviceTypes": [
+            "Terminal Block"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "UK",
+              "deviceType": "Terminal Block"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "UT",
+              "deviceType": "Terminal Block"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492",
+              "deviceType": "Terminal Block"
+            }
+          ]
+        },
+        {
+          "sheetName": "terminal endbracket",
+          "deviceTypes": [
+            "Terminal Accessory"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "CLIPFIX",
+              "deviceType": "Terminal Accessory"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "E/UK",
+              "deviceType": "Terminal Accessory"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492-EAH",
+              "deviceType": "Terminal Accessory",
+              "notes": "1492 end anchors / end retainers"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492-EAJ",
+              "deviceType": "Terminal Accessory",
+              "notes": "1492 end anchors / end retainers"
+            }
+          ]
+        },
+        {
+          "sheetName": "ventil",
+          "deviceTypes": [
+            "Valve"
+          ],
+          "examples": []
+        }
+      ],
+      "deviceSheetCoverage": {
+        "covered": 8,
+        "total": 41
+      }
+    },
+    "fixtureCoverageRequired": false,
+    "accepted": true
+  },
+  "reports": [
+    {
+      "manufacturerId": "abb",
+      "catalogNumber": "7TCA085400R0313",
+      "caseType": "electrical",
+      "expectedDeviceType": "Surge Protective Device",
+      "actualDeviceType": "Surge Protective Device",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "cold",
+        "ovr",
+        "surge-protection"
+      ],
+      "status": "found",
+      "confidence": 0.75,
+      "elapsedMs": 7763,
+      "productUrl": "https://new.abb.com/products/pl/7TCA085400R0313/7tca085400r0313",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260901103824\\pdt\\abb-7TCA085400R0313-pdt_pdt-audit.json",
+      "pdtWrittenCells": 62,
+      "pdtBlankCells": 80,
+      "pdtSkippedCells": 8,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 8,
+      "pdtRequiredFieldIssues": 1,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": []
+    },
+    {
+      "manufacturerId": "abb",
+      "catalogNumber": "7TCA085400R0345",
+      "caseType": "electrical",
+      "expectedDeviceType": "Surge Protective Device",
+      "actualDeviceType": "Surge Protective Device",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "cold",
+        "ovr",
+        "surge-protection"
+      ],
+      "status": "found",
+      "confidence": 0.75,
+      "elapsedMs": 5192,
+      "productUrl": "https://new.abb.com/products/pl/7TCA085400R0345/7tca085400r0345",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260901103824\\pdt\\abb-7TCA085400R0345-pdt_pdt-audit.json",
+      "pdtWrittenCells": 62,
+      "pdtBlankCells": 80,
+      "pdtSkippedCells": 8,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 8,
+      "pdtRequiredFieldIssues": 1,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": []
+    },
+    {
+      "manufacturerId": "abb",
+      "catalogNumber": "2TLA020070R6600",
+      "caseType": "electrical",
+      "expectedDeviceType": "Safety Relay",
+      "actualDeviceType": "Safety Relay",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "cold",
+        "pluto",
+        "safety-controller"
+      ],
+      "status": "found",
+      "confidence": 0.75,
+      "elapsedMs": 7733,
+      "productUrl": "https://new.abb.com/products/pl/2TLA020070R6600/2tla020070r6600",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260901103824\\pdt\\abb-2TLA020070R6600-pdt_pdt-audit.json",
+      "pdtWrittenCells": 40,
+      "pdtBlankCells": 97,
+      "pdtSkippedCells": 13,
+      "pdtUnprovenSkipped": 1,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 3,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": []
+    },
+    {
+      "manufacturerId": "abb",
+      "catalogNumber": "2TLA020070R6400",
+      "caseType": "electrical",
+      "expectedDeviceType": "Safety Relay",
+      "actualDeviceType": "Safety Relay",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "cold",
+        "pluto",
+        "safety-controller"
+      ],
+      "status": "found",
+      "confidence": 0.75,
+      "elapsedMs": 7657,
+      "productUrl": "https://new.abb.com/products/pl/2TLA020070R6400/2tla020070r6400",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260901103824\\pdt\\abb-2TLA020070R6400-pdt_pdt-audit.json",
+      "pdtWrittenCells": 40,
+      "pdtBlankCells": 97,
+      "pdtSkippedCells": 13,
+      "pdtUnprovenSkipped": 1,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 3,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": []
+    },
+    {
+      "manufacturerId": "abb",
+      "catalogNumber": "2TLA020006R2100",
+      "caseType": "electrical",
+      "expectedDeviceType": "Switch",
+      "actualDeviceType": "Switch",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "cold",
+        "jshd4",
+        "handheld-device"
+      ],
+      "status": "found",
+      "confidence": 0.75,
+      "elapsedMs": 8352,
+      "productUrl": "https://new.abb.com/products/pl/2TLA020006R2100/2tla020006r2100",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260901103824\\pdt\\abb-2TLA020006R2100-pdt_pdt-audit.json",
+      "pdtWrittenCells": 41,
+      "pdtBlankCells": 39,
+      "pdtSkippedCells": 0,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": []
+    },
+    {
+      "manufacturerId": "abb",
+      "catalogNumber": "1SVR427043R0100",
+      "caseType": "electrical",
+      "expectedDeviceType": "Power Supply",
+      "actualDeviceType": "Power Supply",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "cold",
+        "cp-d",
+        "power-supply-24v"
+      ],
+      "status": "found",
+      "confidence": 0.75,
+      "elapsedMs": 11444,
+      "productUrl": "https://new.abb.com/products/pl/1SVR427043R0100/1svr427043r0100",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260901103824\\pdt\\abb-1SVR427043R0100-pdt_pdt-audit.json",
+      "pdtWrittenCells": 102,
+      "pdtBlankCells": 90,
+      "pdtSkippedCells": 5,
+      "pdtUnprovenSkipped": 2,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 3,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": []
+    },
+    {
+      "manufacturerId": "abb",
+      "catalogNumber": "1SFA611400R1002",
+      "caseType": "electrical",
+      "expectedDeviceType": "Pilot Light",
+      "actualDeviceType": "Pilot Light",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "cold",
+        "ml1",
+        "pilot-light-green"
+      ],
+      "status": "found",
+      "confidence": 0.59,
+      "elapsedMs": 8278,
+      "productUrl": "https://new.abb.com/products/pl/1SFA611400R1002/1sfa611400r1002",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260901103824\\pdt\\abb-1SFA611400R1002-pdt_pdt-audit.json",
+      "pdtWrittenCells": 41,
+      "pdtBlankCells": 39,
+      "pdtSkippedCells": 1,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 1,
+      "pdtRequiredFieldIssues": 3,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": []
+    },
+    {
+      "manufacturerId": "abb",
+      "catalogNumber": "1SFA611812R1000",
+      "caseType": "mechanical",
+      "expectedDeviceType": "Enclosure",
+      "actualDeviceType": "Enclosure",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "cold",
+        "mep2",
+        "enclosure"
+      ],
+      "status": "found",
+      "confidence": 0.75,
+      "elapsedMs": 8461,
+      "productUrl": "https://new.abb.com/products/pl/1SFA611812R1000/1sfa611812r1000",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260901103824\\pdt\\abb-1SFA611812R1000-pdt_pdt-audit.json",
+      "pdtWrittenCells": 41,
+      "pdtBlankCells": 46,
+      "pdtSkippedCells": 2,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 2,
+      "pdtRequiredFieldIssues": 2,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": []
+    },
+    {
+      "manufacturerId": "abb",
+      "catalogNumber": "1SFA611813R1000",
+      "caseType": "mechanical",
+      "expectedDeviceType": "Enclosure",
+      "actualDeviceType": "Enclosure",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "cold",
+        "mep3",
+        "enclosure"
+      ],
+      "status": "found",
+      "confidence": 0.75,
+      "elapsedMs": 6011,
+      "productUrl": "https://new.abb.com/products/pl/1SFA611813R1000/1sfa611813r1000",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260901103824\\pdt\\abb-1SFA611813R1000-pdt_pdt-audit.json",
+      "pdtWrittenCells": 41,
+      "pdtBlankCells": 46,
+      "pdtSkippedCells": 2,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 2,
+      "pdtRequiredFieldIssues": 2,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": []
+    },
+    {
+      "manufacturerId": "abb",
+      "catalogNumber": "1SFA611630R1002",
+      "caseType": "mechanical",
+      "expectedDeviceType": "Accessory",
+      "actualDeviceType": "Accessory",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "cold",
+        "mdb2",
+        "dummy-block"
+      ],
+      "status": "found",
+      "confidence": 0.75,
+      "elapsedMs": 6857,
+      "productUrl": "https://new.abb.com/products/pl/1SFA611630R1002/1sfa611630r1002",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260901103824\\pdt\\abb-1SFA611630R1002-pdt_pdt-audit.json",
+      "pdtWrittenCells": 25,
+      "pdtBlankCells": 14,
+      "pdtSkippedCells": 0,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": []
+    },
+    {
+      "manufacturerId": "abb",
+      "catalogNumber": "1SFA611200R1006",
+      "caseType": "electrical",
+      "expectedDeviceType": "Selector Switch",
+      "actualDeviceType": "Selector Switch",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "cold",
+        "m2ss",
+        "selector-switch"
+      ],
+      "status": "found",
+      "confidence": 0.75,
+      "elapsedMs": 5566,
+      "productUrl": "https://new.abb.com/products/pl/1SFA611200R1006/1sfa611200r1006",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260901103824\\pdt\\abb-1SFA611200R1006-pdt_pdt-audit.json",
+      "pdtWrittenCells": 28,
+      "pdtBlankCells": 52,
+      "pdtSkippedCells": 0,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": []
+    },
+    {
+      "manufacturerId": "abb",
+      "catalogNumber": "1SFA619600R6012",
+      "caseType": "electrical",
+      "expectedDeviceType": "Stack Light / Beacon",
+      "actualDeviceType": "Stack Light / Beacon",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "cold",
+        "cb1",
+        "buzzer"
+      ],
+      "status": "found",
+      "confidence": 0.75,
+      "elapsedMs": 5205,
+      "productUrl": "https://new.abb.com/products/pl/1SFA619600R6012/1sfa619600r6012",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260901103824\\pdt\\abb-1SFA619600R6012-pdt_pdt-audit.json",
+      "pdtWrittenCells": 44,
+      "pdtBlankCells": 37,
+      "pdtSkippedCells": 0,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 1,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": []
+    },
+    {
+      "manufacturerId": "abb",
+      "catalogNumber": "1SVR427041R1000",
+      "caseType": "electrical",
+      "expectedDeviceType": "Power Supply",
+      "actualDeviceType": "Power Supply",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "cold",
+        "cp-d",
+        "power-supply"
+      ],
+      "status": "found",
+      "confidence": 0.75,
+      "elapsedMs": 7795,
+      "productUrl": "https://new.abb.com/products/pl/1SVR427041R1000/1svr427041r1000",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260901103824\\pdt\\abb-1SVR427041R1000-pdt_pdt-audit.json",
+      "pdtWrittenCells": 102,
+      "pdtBlankCells": 90,
+      "pdtSkippedCells": 5,
+      "pdtUnprovenSkipped": 2,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 3,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": []
+    },
+    {
+      "manufacturerId": "abb",
+      "catalogNumber": "1SCA022823R6710",
+      "caseType": "electrical",
+      "expectedDeviceType": "Disconnect Switch",
+      "actualDeviceType": "Disconnect Switch",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "cold",
+        "eot16",
+        "disconnect"
+      ],
+      "status": "found",
+      "confidence": 0.75,
+      "elapsedMs": 4506,
+      "productUrl": "https://new.abb.com/products/pl/1SCA022823R6710/1sca022823r6710",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260901103824\\pdt\\abb-1SCA022823R6710-pdt_pdt-audit.json",
+      "pdtWrittenCells": 45,
+      "pdtBlankCells": 49,
+      "pdtSkippedCells": 3,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": []
+    },
+    {
+      "manufacturerId": "abb",
+      "catalogNumber": "1SCA022824R0230",
+      "caseType": "electrical",
+      "expectedDeviceType": "Disconnect Switch",
+      "actualDeviceType": "Disconnect Switch",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "cold",
+        "eot100",
+        "disconnect"
+      ],
+      "status": "found",
+      "confidence": 0.75,
+      "elapsedMs": 5206,
+      "productUrl": "https://new.abb.com/products/pl/1SCA022824R0230/1sca022824r0230",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260901103824\\pdt\\abb-1SCA022824R0230-pdt_pdt-audit.json",
+      "pdtWrittenCells": 50,
+      "pdtBlankCells": 44,
+      "pdtSkippedCells": 3,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": []
+    }
+  ]
+}

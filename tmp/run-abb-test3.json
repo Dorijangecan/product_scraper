@@ -1,0 +1,432 @@
+Started ABB run abb-test-20260831062938 for 11 products from D:\KATALOZI\SKRIPTE\product_scraper\Testing PDT\ABB test.csv
+{
+  "run": {
+    "id": "abb-test-20260831062938",
+    "manufacturerId": "abb",
+    "createdAt": "2026-08-31T06:29:38.671Z",
+    "updatedAt": "2026-08-31T06:33:34.393Z",
+    "status": "completed",
+    "inputFileName": "ABB test.csv",
+    "total": 11,
+    "processed": 11,
+    "found": 10,
+    "partial": 0,
+    "failed": 1,
+    "outputPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\outputs\\ABB\\ABB-test.csv\\2026-08-31_08-29-38_abb-test-20260831062938\\excel\\ABB.ABB-test.product-scrape-abb-test-20260831062938.xlsx",
+    "options": {
+      "downloadDocuments": true
+    },
+    "error": null
+  },
+  "items": [
+    {
+      "catalogNumber": "1SAP180400R0001",
+      "status": "found",
+      "title": "Battery holder. Without lithium battery for PM5xx and PM56xx (TA522)",
+      "productUrl": "https://new.abb.com/products/pl/1SAP180400R0001/1sap180400r0001",
+      "confidence": 0.75,
+      "stage": "complete",
+      "documents": 3,
+      "images": 1,
+      "downloadedImages": 1,
+      "attributes": 125,
+      "qualityGate": {
+        "passed": true,
+        "identityConfirmed": true,
+        "score": 100,
+        "missing": [],
+        "reason": "Quality gate passed.",
+        "attempts": [
+          {
+            "stage": "abb-product-page",
+            "url": "https://new.abb.com/products/pl/1SAP180400R0001/1sap180400r0001",
+            "status": "passed",
+            "score": 100,
+            "missing": [],
+            "reason": "Quality gate passed.",
+            "sourceType": "official",
+            "parser": "abb-product-page",
+            "statusCode": 200,
+            "attributeCount": 62,
+            "documentCount": 3,
+            "sectionAttributeCounts": {}
+          }
+        ]
+      },
+      "finalCompletenessAfterMissing": [
+        "material",
+        "operatingTemperature"
+      ]
+    },
+    {
+      "catalogNumber": "1SCA022871R9780",
+      "status": "found",
+      "title": "OTS1600G1L/4 TERMINAL SHROUD",
+      "productUrl": "https://new.abb.com/products/pl/1SCA022871R9780/1sca022871r9780",
+      "confidence": 0.75,
+      "stage": "complete",
+      "documents": 7,
+      "images": 1,
+      "downloadedImages": 1,
+      "attributes": 386,
+      "qualityGate": {
+        "passed": true,
+        "identityConfirmed": true,
+        "score": 100,
+        "missing": [],
+        "reason": "Quality gate passed.",
+        "attempts": [
+          {
+            "stage": "abb-product-page",
+            "url": "https://new.abb.com/products/pl/1SCA022871R9780/1sca022871r9780",
+            "status": "passed",
+            "score": 100,
+            "missing": [],
+            "reason": "Quality gate passed.",
+            "sourceType": "official",
+            "parser": "abb-product-page",
+            "statusCode": 200,
+            "attributeCount": 52,
+            "documentCount": 7,
+            "sectionAttributeCounts": {}
+          }
+        ]
+      }
+    },
+    {
+      "catalogNumber": "1SCA022871R9510",
+      "status": "found",
+      "title": "OTS1600G1L/3 TERMINAL SHROUD",
+      "productUrl": "https://new.abb.com/products/pl/1SCA022871R9510/1sca022871r9510",
+      "confidence": 0.75,
+      "stage": "complete",
+      "documents": 7,
+      "images": 1,
+      "downloadedImages": 1,
+      "attributes": 386,
+      "qualityGate": {
+        "passed": true,
+        "identityConfirmed": true,
+        "score": 100,
+        "missing": [],
+        "reason": "Quality gate passed.",
+        "attempts": [
+          {
+            "stage": "abb-product-page",
+            "url": "https://new.abb.com/products/pl/1SCA022871R9510/1sca022871r9510",
+            "status": "passed",
+            "score": 100,
+            "missing": [],
+            "reason": "Quality gate passed.",
+            "sourceType": "official",
+            "parser": "abb-product-page",
+            "statusCode": 200,
+            "attributeCount": 52,
+            "documentCount": 7,
+            "sectionAttributeCounts": {}
+          }
+        ]
+      }
+    },
+    {
+      "catalogNumber": "1SCA022860R5850",
+      "status": "found",
+      "title": "OT1000E03 SWITCH-DISCONNECTOR",
+      "productUrl": "https://new.abb.com/products/pl/1SCA022860R5850/1sca022860r5850",
+      "confidence": 0.75,
+      "stage": "complete",
+      "documents": 12,
+      "images": 1,
+      "downloadedImages": 1,
+      "attributes": 701,
+      "qualityGate": {
+        "passed": true,
+        "identityConfirmed": true,
+        "score": 100,
+        "missing": [],
+        "reason": "Quality gate passed.",
+        "attempts": [
+          {
+            "stage": "abb-product-page",
+            "url": "https://new.abb.com/products/pl/1SCA022860R5850/1sca022860r5850",
+            "status": "passed",
+            "score": 100,
+            "missing": [],
+            "reason": "Quality gate passed.",
+            "sourceType": "official",
+            "parser": "abb-product-page",
+            "statusCode": 200,
+            "attributeCount": 76,
+            "documentCount": 12,
+            "sectionAttributeCounts": {}
+          }
+        ]
+      }
+    },
+    {
+      "catalogNumber": "1SDA130199R1",
+      "status": "found",
+      "title": "SACE Emax 3 E4.3-A W FP Iu=2500 3p w/o terminals UL",
+      "productUrl": "https://new.abb.com/products/pl/1SDA130199R1/1sda130199r1",
+      "confidence": 0.75,
+      "stage": "complete",
+      "documents": 7,
+      "images": 1,
+      "downloadedImages": 1,
+      "attributes": 346,
+      "qualityGate": {
+        "passed": true,
+        "identityConfirmed": true,
+        "score": 100,
+        "missing": [],
+        "reason": "Quality gate passed.",
+        "attempts": [
+          {
+            "stage": "abb-product-page",
+            "url": "https://new.abb.com/products/pl/1SDA130199R1/1sda130199r1",
+            "status": "passed",
+            "score": 100,
+            "missing": [],
+            "reason": "Quality gate passed.",
+            "sourceType": "official",
+            "parser": "abb-product-page",
+            "statusCode": 200,
+            "attributeCount": 53,
+            "documentCount": 7,
+            "sectionAttributeCounts": {}
+          }
+        ]
+      },
+      "finalCompletenessAfterMissing": [
+        "operatingTemperature"
+      ]
+    },
+    {
+      "catalogNumber": "1SDA124715R1",
+      "status": "failed",
+      "confidence": 0,
+      "stage": "complete",
+      "error": "Missing required product data: identity; attribute:product id|extended product type|catalog description|long description; document:image; minAttributes:3",
+      "documents": 0,
+      "images": 0,
+      "downloadedImages": 0,
+      "attributes": 0,
+      "qualityGate": {
+        "passed": false,
+        "identityConfirmed": false,
+        "score": 0,
+        "missing": [
+          "identity",
+          "attribute:product id|extended product type|catalog description|long description",
+          "document:image",
+          "minAttributes:3"
+        ],
+        "reason": "Missing required product data: identity; attribute:product id|extended product type|catalog description|long description; document:image; minAttributes:3",
+        "attempts": [
+          {
+            "stage": "abb-pis-search",
+            "url": "https://new.abb.com/api/PisSearchApi?query=1SDA124715R1&pageNumber=1&pageSize=8&lang=en",
+            "status": "failed",
+            "score": 0,
+            "missing": [
+              "identity",
+              "attribute:product id|extended product type|catalog description|long description",
+              "document:image",
+              "minAttributes:3"
+            ],
+            "reason": "Missing required product data: identity; attribute:product id|extended product type|catalog description|long description; document:image; minAttributes:3",
+            "sourceType": "official",
+            "parser": "abb-pis-search",
+            "statusCode": 200,
+            "attributeCount": 0,
+            "documentCount": 0,
+            "sectionAttributeCounts": {}
+          }
+        ]
+      }
+    },
+    {
+      "catalogNumber": "1SDA126493R1",
+      "status": "found",
+      "title": "SACE Emax 3 EKIP BUSBARS SUPPLY E1.3...E6.3",
+      "productUrl": "https://new.abb.com/products/pl/1SDA126493R1/1sda126493r1",
+      "confidence": 0.75,
+      "stage": "complete",
+      "documents": 7,
+      "images": 1,
+      "downloadedImages": 1,
+      "attributes": 339,
+      "qualityGate": {
+        "passed": true,
+        "identityConfirmed": true,
+        "score": 100,
+        "missing": [],
+        "reason": "Quality gate passed.",
+        "attempts": [
+          {
+            "stage": "abb-product-page",
+            "url": "https://new.abb.com/products/pl/1SDA126493R1/1sda126493r1",
+            "status": "passed",
+            "score": 100,
+            "missing": [],
+            "reason": "Quality gate passed.",
+            "sourceType": "official",
+            "parser": "abb-product-page",
+            "statusCode": 200,
+            "attributeCount": 54,
+            "documentCount": 7,
+            "sectionAttributeCounts": {}
+          }
+        ]
+      }
+    },
+    {
+      "catalogNumber": "1SDA126487R1",
+      "status": "found",
+      "title": "EKIP TEMPERATURE 4T-1 E1.3...E6.3",
+      "productUrl": "https://new.abb.com/smartlinks/en?ProductId=1SDA126487R1&Language=en&PrintPreview=False&pid=1SDA126487R1",
+      "confidence": 0.66,
+      "stage": "complete",
+      "documents": 2,
+      "images": 1,
+      "downloadedImages": 1,
+      "attributes": 28,
+      "qualityGate": {
+        "passed": true,
+        "identityConfirmed": true,
+        "score": 100,
+        "missing": [],
+        "reason": "Quality gate passed.",
+        "attempts": [
+          {
+            "stage": "ABB EN localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in Product JSON-LD)",
+            "url": "https://new.abb.com/smartlinks/en?ProductId=1SDA126487R1&Language=en&PrintPreview=False&pid=1SDA126487R1",
+            "status": "passed",
+            "score": 100,
+            "missing": [],
+            "reason": "Quality gate passed.",
+            "sourceType": "official-fallback",
+            "parser": "ABB EN localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in Product JSON-LD)",
+            "statusCode": 200,
+            "attributeCount": 28,
+            "documentCount": 6,
+            "sectionAttributeCounts": {}
+          }
+        ]
+      },
+      "finalCompletenessAfterMissing": [
+        "material",
+        "certificates",
+        "operatingTemperature"
+      ]
+    },
+    {
+      "catalogNumber": "1SDA126492R1",
+      "status": "found",
+      "title": "SACE Emax 3 Light-Sense Detector E1.3...E6.3",
+      "productUrl": "https://new.abb.com/products/pl/1SDA126492R1/1sda126492r1",
+      "confidence": 0.75,
+      "stage": "complete",
+      "documents": 7,
+      "images": 1,
+      "downloadedImages": 1,
+      "attributes": 346,
+      "qualityGate": {
+        "passed": true,
+        "identityConfirmed": true,
+        "score": 100,
+        "missing": [],
+        "reason": "Quality gate passed.",
+        "attempts": [
+          {
+            "stage": "abb-product-page",
+            "url": "https://new.abb.com/products/pl/1SDA126492R1/1sda126492r1",
+            "status": "passed",
+            "score": 100,
+            "missing": [],
+            "reason": "Quality gate passed.",
+            "sourceType": "official",
+            "parser": "abb-product-page",
+            "statusCode": 200,
+            "attributeCount": 55,
+            "documentCount": 7,
+            "sectionAttributeCounts": {}
+          }
+        ]
+      }
+    },
+    {
+      "catalogNumber": "1SDA128409R1",
+      "status": "found",
+      "title": "SACE Emax 3 EKIP SUPPLY EVO M.TCP E1.3..E6.3SECURE",
+      "productUrl": "https://new.abb.com/products/1SDA128409R1",
+      "confidence": 0.75,
+      "stage": "complete",
+      "documents": 7,
+      "images": 1,
+      "downloadedImages": 1,
+      "attributes": 347,
+      "qualityGate": {
+        "passed": true,
+        "identityConfirmed": true,
+        "score": 100,
+        "missing": [],
+        "reason": "Quality gate passed.",
+        "attempts": [
+          {
+            "stage": "abb-product-page",
+            "url": "https://new.abb.com/products/1SDA128409R1",
+            "status": "passed",
+            "score": 100,
+            "missing": [],
+            "reason": "Quality gate passed.",
+            "sourceType": "official",
+            "parser": "abb-product-page",
+            "statusCode": 200,
+            "attributeCount": 56,
+            "documentCount": 7,
+            "sectionAttributeCounts": {}
+          }
+        ]
+      }
+    },
+    {
+      "catalogNumber": "1SVR340667R1000",
+      "status": "found",
+      "title": "CP-S.3 24/10.0 Power supply In:3x400-500VAC Out:DC 24V/10A",
+      "productUrl": "https://new.abb.com/products/pl/1SVR340667R1000/1svr340667r1000",
+      "confidence": 0.75,
+      "stage": "complete",
+      "documents": 8,
+      "images": 1,
+      "downloadedImages": 1,
+      "attributes": 202,
+      "qualityGate": {
+        "passed": true,
+        "identityConfirmed": true,
+        "score": 100,
+        "missing": [],
+        "reason": "Quality gate passed.",
+        "attempts": [
+          {
+            "stage": "abb-product-page",
+            "url": "https://new.abb.com/products/pl/1SVR340667R1000/1svr340667r1000",
+            "status": "passed",
+            "score": 100,
+            "missing": [],
+            "reason": "Quality gate passed.",
+            "sourceType": "official",
+            "parser": "abb-product-page",
+            "statusCode": 200,
+            "attributeCount": 96,
+            "documentCount": 8,
+            "sectionAttributeCounts": {}
+          }
+        ]
+      },
+      "finalCompletenessAfterMissing": [
+        "material"
+      ]
+    }
+  ]
+}

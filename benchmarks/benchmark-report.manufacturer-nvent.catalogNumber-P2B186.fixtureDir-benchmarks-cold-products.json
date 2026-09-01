@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-08-31T16:36:16.450Z",
-  "outputDir": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260831163608",
+  "generatedAt": "2026-09-01T05:14:51.774Z",
+  "outputDir": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260901051444",
   "filters": {
     "manufacturer": "nvent",
     "catalogNumber": "P2B186",
@@ -969,7 +969,7 @@
       ],
       "status": "found",
       "confidence": 0.4,
-      "elapsedMs": 7467,
+      "elapsedMs": 7169,
       "productUrl": "https://www.nvent.com/en-us/hoffman/products/encp2b186",
       "identityConfirmed": true,
       "wrongProduct": false,
@@ -977,7 +977,7 @@
       "requiredDocumentsMatched": true,
       "normalizedFieldsMatched": true,
       "pdtAuditMatched": true,
-      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260831163608\\pdt\\nvent-P2B186-pdt_pdt-audit.json",
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260901051444\\pdt\\nvent-P2B186-pdt_pdt-audit.json",
       "pdtWrittenCells": 34,
       "pdtBlankCells": 54,
       "pdtSkippedCells": 1,

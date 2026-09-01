@@ -1,0 +1,1257 @@
+{
+  "generatedAt": "2026-09-01T07:36:58.022Z",
+  "outputDir": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260901073256",
+  "filters": {
+    "manufacturer": "schneider",
+    "fixtureDir": "tmp/schneider-exact-20260901"
+  },
+  "summary": {
+    "foundRate": 100,
+    "officialUrlRate": 100,
+    "documentRate": 100,
+    "pdtAuditRate": 100,
+    "deviceTypeRate": 100,
+    "customerDocumentRate": 0,
+    "wrongProducts": 0,
+    "partialWithoutMissing": 0,
+    "pdtUnprovenWritten": 0,
+    "pdtUnexplainedRequiredFieldIssues": 0,
+    "pdtWriteIssues": 6,
+    "qualityAccepted": true,
+    "fixtureCoverageAccepted": true,
+    "fixtureCoverage": {
+      "byManufacturer": {
+        "schneider": {
+          "total": 10,
+          "caseTypes": [
+            "electrical"
+          ],
+          "riskTags": [
+            "acti9",
+            "cold",
+            "contactor",
+            "controller",
+            "harmony",
+            "harmony-xps",
+            "linergy",
+            "miniature-breaker",
+            "modicon-m221",
+            "modicon-m241",
+            "motor-protection",
+            "overload-relay",
+            "phaseo",
+            "power-supply",
+            "pushbutton",
+            "safety-module",
+            "terminal-block",
+            "tesys",
+            "tesys-deca"
+          ]
+        }
+      },
+      "byDeviceType": {
+        "Contactor": {
+          "total": 1,
+          "manufacturers": [
+            "schneider"
+          ],
+          "caseTypes": [
+            "electrical"
+          ]
+        },
+        "Motor Starter": {
+          "total": 1,
+          "manufacturers": [
+            "schneider"
+          ],
+          "caseTypes": [
+            "electrical"
+          ]
+        },
+        "Motor Circuit Breaker": {
+          "total": 1,
+          "manufacturers": [
+            "schneider"
+          ],
+          "caseTypes": [
+            "electrical"
+          ]
+        },
+        "Power Supply": {
+          "total": 1,
+          "manufacturers": [
+            "schneider"
+          ],
+          "caseTypes": [
+            "electrical"
+          ]
+        },
+        "Programmable Logic Controller": {
+          "total": 2,
+          "manufacturers": [
+            "schneider"
+          ],
+          "caseTypes": [
+            "electrical"
+          ]
+        },
+        "Pushbutton / Operator": {
+          "total": 1,
+          "manufacturers": [
+            "schneider"
+          ],
+          "caseTypes": [
+            "electrical"
+          ]
+        },
+        "Safety Relay": {
+          "total": 1,
+          "manufacturers": [
+            "schneider"
+          ],
+          "caseTypes": [
+            "electrical"
+          ]
+        },
+        "Miniature Circuit Breaker": {
+          "total": 1,
+          "manufacturers": [
+            "schneider"
+          ],
+          "caseTypes": [
+            "electrical"
+          ]
+        },
+        "Terminal Block": {
+          "total": 1,
+          "manufacturers": [
+            "schneider"
+          ],
+          "caseTypes": [
+            "electrical"
+          ]
+        }
+      },
+      "byDeviceSheet": {
+        "contactor a. fuses": {
+          "total": 2,
+          "deviceTypes": [
+            "Contactor",
+            "Miniature Circuit Breaker"
+          ],
+          "manufacturers": [
+            "schneider"
+          ]
+        },
+        "motor protection": {
+          "total": 2,
+          "deviceTypes": [
+            "Motor Circuit Breaker",
+            "Motor Starter"
+          ],
+          "manufacturers": [
+            "schneider"
+          ]
+        },
+        "power supply devices": {
+          "total": 1,
+          "deviceTypes": [
+            "Power Supply"
+          ],
+          "manufacturers": [
+            "schneider"
+          ]
+        },
+        "PLC": {
+          "total": 2,
+          "deviceTypes": [
+            "Programmable Logic Controller"
+          ],
+          "manufacturers": [
+            "schneider"
+          ]
+        },
+        "command and alarm device": {
+          "total": 1,
+          "deviceTypes": [
+            "Pushbutton / Operator"
+          ],
+          "manufacturers": [
+            "schneider"
+          ]
+        },
+        "safety sensor": {
+          "total": 1,
+          "deviceTypes": [
+            "Safety Relay"
+          ],
+          "manufacturers": [
+            "schneider"
+          ]
+        },
+        "terminal": {
+          "total": 1,
+          "deviceTypes": [
+            "Terminal Block"
+          ],
+          "manufacturers": [
+            "schneider"
+          ]
+        }
+      },
+      "thinManufacturers": [],
+      "uncoveredDeviceSheets": [
+        "Busbar",
+        "Luminaire",
+        "Motion Controller",
+        "PCB connection system",
+        "PCB connection technology",
+        "RS232 interfaces",
+        "Switch",
+        "Wire ID Information",
+        "cabinet",
+        "cabinet.airconditioning",
+        "cabinet.mechanical",
+        "cabinet.rack",
+        "cable",
+        "cable ducts mounting rails",
+        "cable gland",
+        "connector",
+        "directional control valve",
+        "el. mesurement devices",
+        "electronic sensor",
+        "energy distribution system",
+        "filters",
+        "fluid power",
+        "generator",
+        "int. ext. lightning protection",
+        "module carrier frame",
+        "motors",
+        "optical sensor",
+        "panel (HMI)",
+        "pneumatic handling",
+        "pump",
+        "sensor - fluid",
+        "servo controller",
+        "terminal endbracket",
+        "ventil"
+      ],
+      "missingDeviceSheetRecommendations": [
+        {
+          "sheetName": "Busbar",
+          "deviceTypes": [
+            "Busbar"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "Luminaire",
+          "deviceTypes": [
+            "Luminaire"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "Motion Controller",
+          "deviceTypes": [
+            "Motion Controller"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1756-HYD",
+              "deviceType": "Motion Controller",
+              "notes": "ControlLogix integrated motion modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1756-M02",
+              "deviceType": "Motion Controller",
+              "notes": "ControlLogix integrated motion modules"
+            }
+          ]
+        },
+        {
+          "sheetName": "PCB connection system",
+          "deviceTypes": [
+            "PCB Connector"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "PCB connection technology",
+          "deviceTypes": [
+            "PCB Terminal Block"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "RS232 interfaces",
+          "deviceTypes": [
+            "Communication Gateway"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "FL",
+              "deviceType": "Communication Gateway",
+              "notes": "FL switch / FL gateway"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "RAD",
+              "deviceType": "Communication Gateway",
+              "notes": "Radioline"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENT",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENTR",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1783",
+              "deviceType": "Communication Gateway",
+              "notes": "Stratix industrial networking and communication modules"
+            }
+          ]
+        },
+        {
+          "sheetName": "Switch",
+          "deviceTypes": [
+            "Lock / Interlock",
+            "Selector Switch",
+            "Switch"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "eaton",
+              "pattern": "M22-WR",
+              "deviceType": "Selector Switch",
+              "notes": "M22 selector switch actuator"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "2702665",
+              "deviceType": "Switch",
+              "notes": "Phoenix FL SWITCH 2105 item number"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "6GK",
+              "deviceType": "Switch",
+              "notes": "SCALANCE industrial Ethernet switches"
+            },
+            {
+              "manufacturerId": "turck",
+              "pattern": "TBEN-L4-SE",
+              "deviceType": "Switch",
+              "notes": "Turck TBEN industrial Ethernet switches"
+            },
+            {
+              "manufacturerId": "turck",
+              "pattern": "TBEN-L5-SE",
+              "deviceType": "Switch",
+              "notes": "Turck TBEN industrial Ethernet switches"
+            }
+          ]
+        },
+        {
+          "sheetName": "Wire ID Information",
+          "deviceTypes": [
+            "Wire Marker"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "cabinet",
+          "deviceTypes": [
+            "Enclosure"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PSN",
+              "deviceType": "Enclosure",
+              "notes": "xEnergy ProfiSNAP enclosure panels/accessories"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "P2C",
+              "deviceType": "Enclosure",
+              "notes": "nVent Hoffman enclosure families"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "P2D",
+              "deviceType": "Enclosure",
+              "notes": "nVent Hoffman enclosure families"
+            },
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "ABOX",
+              "deviceType": "Enclosure",
+              "notes": "Spelsberg junction boxes / enclosures"
+            },
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "AK",
+              "deviceType": "Enclosure",
+              "notes": "Spelsberg junction boxes / enclosures"
+            }
+          ]
+        },
+        {
+          "sheetName": "cabinet.airconditioning",
+          "deviceTypes": [
+            "Thermal Management"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "cabinet.mechanical",
+          "deviceTypes": [
+            "Accessory",
+            "Cover / Door Accessory",
+            "Enclosure",
+            "Subpanel"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PSN",
+              "deviceType": "Enclosure",
+              "notes": "xEnergy ProfiSNAP enclosure panels/accessories"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "P2C",
+              "deviceType": "Enclosure",
+              "notes": "nVent Hoffman enclosure families"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "P2D",
+              "deviceType": "Enclosure",
+              "notes": "nVent Hoffman enclosure families"
+            },
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "ABOX",
+              "deviceType": "Enclosure",
+              "notes": "Spelsberg junction boxes / enclosures"
+            },
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "AK",
+              "deviceType": "Enclosure",
+              "notes": "Spelsberg junction boxes / enclosures"
+            }
+          ]
+        },
+        {
+          "sheetName": "cabinet.rack",
+          "deviceTypes": [
+            "Rack Cabinet"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "cable",
+          "deviceTypes": [
+            "Cable"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "889",
+              "deviceType": "Cable",
+              "notes": "Allen-Bradley cordsets and patchcords"
+            }
+          ]
+        },
+        {
+          "sheetName": "cable ducts mounting rails",
+          "deviceTypes": [
+            "Mounting Accessory",
+            "Wireway"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "nvent",
+              "pattern": "CP2020",
+              "deviceType": "Mounting Accessory",
+              "notes": "nVent Hoffman/Schroff accessory items verified on official product pages"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "CSP2020",
+              "deviceType": "Mounting Accessory",
+              "notes": "nVent Hoffman/Schroff accessory items verified on official product pages"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "1524160",
+              "deviceType": "Mounting Accessory",
+              "notes": "Phoenix MCS-112X90-AP-7035 adapter plate item number"
+            },
+            {
+              "manufacturerId": "sce",
+              "pattern": "SCE-FK",
+              "deviceType": "Mounting Accessory",
+              "notes": "SCE floor stand / enclosure mounting kits"
+            }
+          ]
+        },
+        {
+          "sheetName": "cable gland",
+          "deviceTypes": [
+            "Cable Gland"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "connector",
+          "deviceTypes": [
+            "Connector",
+            "Optical Connector"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "MCS",
+              "deviceType": "Connector"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VIP",
+              "deviceType": "Connector"
+            }
+          ]
+        },
+        {
+          "sheetName": "directional control valve",
+          "deviceTypes": [
+            "Directional Control Valve"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "el. mesurement devices",
+          "deviceTypes": [
+            "Current Sensor"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "electronic sensor",
+          "deviceTypes": [
+            "Capacitive Sensor",
+            "Encoder",
+            "Inductive Proximity Sensor",
+            "Magnetic Field Sensor",
+            "RFID Device",
+            "Sensor",
+            "Ultrasonic Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BCS",
+              "deviceType": "Capacitive Sensor"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BDG",
+              "deviceType": "Encoder",
+              "notes": "Absolute encoder"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BTL",
+              "deviceType": "Encoder",
+              "notes": "Magnetostrictive linear encoder"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BES",
+              "deviceType": "Inductive Proximity Sensor"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BIS",
+              "deviceType": "Inductive Proximity Sensor"
+            }
+          ]
+        },
+        {
+          "sheetName": "energy distribution system",
+          "deviceTypes": [
+            "Loadcenter"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "filters",
+          "deviceTypes": [
+            "Filter"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "fluid power",
+          "deviceTypes": [
+            "Hydraulic Actuator"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "generator",
+          "deviceTypes": [
+            "Generator"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "int. ext. lightning protection",
+          "deviceTypes": [
+            "Surge Protective Device"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "OVR",
+              "deviceType": "Surge Protective Device"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VAL-CP",
+              "deviceType": "Surge Protective Device"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VAL-MS",
+              "deviceType": "Surge Protective Device"
+            }
+          ]
+        },
+        {
+          "sheetName": "module carrier frame",
+          "deviceTypes": [
+            "Module Carrier"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "siemens",
+              "pattern": "6ES7193",
+              "deviceType": "Module Carrier",
+              "notes": "SIMATIC ET 200SP BaseUnits / base carriers"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "BaseUnits",
+              "deviceType": "Module Carrier",
+              "notes": "SIMATIC ET 200SP BaseUnits / base carriers"
+            }
+          ]
+        },
+        {
+          "sheetName": "motors",
+          "deviceTypes": [
+            "Motor",
+            "Variable Speed Drive"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "M2A",
+              "deviceType": "Motor"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "TM",
+              "deviceType": "Motor"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "ACQ",
+              "deviceType": "Variable Speed Drive",
+              "notes": "ACS / ACQ / ACH drives"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "ACS",
+              "deviceType": "Variable Speed Drive",
+              "notes": "ACS / ACQ / ACH drives"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "DC1",
+              "deviceType": "Variable Speed Drive",
+              "notes": "PowerXL"
+            }
+          ]
+        },
+        {
+          "sheetName": "optical sensor",
+          "deviceTypes": [
+            "Photoelectric Sensor",
+            "Vision Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BOH",
+              "deviceType": "Photoelectric Sensor"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BOS",
+              "deviceType": "Photoelectric Sensor"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "42EF",
+              "deviceType": "Photoelectric Sensor"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "42JS",
+              "deviceType": "Photoelectric Sensor"
+            },
+            {
+              "manufacturerId": "schneider",
+              "pattern": "XU",
+              "deviceType": "Photoelectric Sensor",
+              "notes": "OsiSense XU"
+            }
+          ]
+        },
+        {
+          "sheetName": "panel (HMI)",
+          "deviceTypes": [
+            "HMI"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "CP6",
+              "deviceType": "HMI",
+              "notes": "CP6xx HMI panel"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "XV",
+              "deviceType": "HMI"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "2711",
+              "deviceType": "HMI",
+              "notes": "PanelView HMI"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "2711P",
+              "deviceType": "HMI",
+              "notes": "PanelView HMI"
+            },
+            {
+              "manufacturerId": "schneider",
+              "pattern": "HMI",
+              "deviceType": "HMI",
+              "notes": "Harmony HMI"
+            }
+          ]
+        },
+        {
+          "sheetName": "pneumatic handling",
+          "deviceTypes": [
+            "Pneumatic Device"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "pump",
+          "deviceTypes": [
+            "Pump"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "sensor - fluid",
+          "deviceTypes": [
+            "Flow Sensor",
+            "Level Sensor",
+            "Pressure Sensor",
+            "Temperature Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "839E",
+              "deviceType": "Flow Sensor",
+              "notes": "Allen-Bradley flow sensors"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "840E",
+              "deviceType": "Level Sensor",
+              "notes": "Allen-Bradley level sensors"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "836P",
+              "deviceType": "Pressure Sensor",
+              "notes": "Allen-Bradley pressure sensors"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "837T",
+              "deviceType": "Temperature Sensor",
+              "notes": "Allen-Bradley temperature sensors"
+            }
+          ]
+        },
+        {
+          "sheetName": "servo controller",
+          "deviceTypes": [
+            "Soft Starter",
+            "Variable Speed Drive"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "PSE",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "PSTX",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "DS7",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "schneider",
+              "pattern": "ATS",
+              "deviceType": "Soft Starter",
+              "notes": "Altistart"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "3RW",
+              "deviceType": "Soft Starter",
+              "notes": "SIRIUS soft starter"
+            }
+          ]
+        },
+        {
+          "sheetName": "terminal endbracket",
+          "deviceTypes": [
+            "Terminal Accessory"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "CLIPFIX",
+              "deviceType": "Terminal Accessory"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "E/UK",
+              "deviceType": "Terminal Accessory"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492-EAH",
+              "deviceType": "Terminal Accessory",
+              "notes": "1492 end anchors / end retainers"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492-EAJ",
+              "deviceType": "Terminal Accessory",
+              "notes": "1492 end anchors / end retainers"
+            }
+          ]
+        },
+        {
+          "sheetName": "ventil",
+          "deviceTypes": [
+            "Valve"
+          ],
+          "examples": []
+        }
+      ],
+      "deviceSheetCoverage": {
+        "covered": 7,
+        "total": 41
+      }
+    },
+    "fixtureCoverageRequired": false,
+    "accepted": true
+  },
+  "reports": [
+    {
+      "manufacturerId": "schneider",
+      "catalogNumber": "LC1D09BD",
+      "caseType": "electrical",
+      "expectedDeviceType": "Contactor",
+      "actualDeviceType": "Contactor",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "cold",
+        "tesys-deca",
+        "contactor"
+      ],
+      "status": "found",
+      "confidence": 0.71,
+      "elapsedMs": 16685,
+      "productUrl": "https://www.se.com/us/en/product/LC1D09BD/iec-contactor-tesys-deca-nonreversing-9a-5hp-at-480vac-up-to-100ka-sccr-3-phase-3-no-24vdc-coil-open-style/",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260901073256\\pdt\\schneider-LC1D09BD-pdt_pdt-audit.json",
+      "pdtWrittenCells": 29,
+      "pdtBlankCells": 65,
+      "pdtSkippedCells": 3,
+      "pdtUnprovenSkipped": 1,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 3,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": []
+    },
+    {
+      "manufacturerId": "schneider",
+      "catalogNumber": "LRD08",
+      "caseType": "electrical",
+      "expectedDeviceType": "Motor Starter",
+      "actualDeviceType": "Motor Starter",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "cold",
+        "tesys",
+        "overload-relay"
+      ],
+      "status": "found",
+      "confidence": 0.71,
+      "elapsedMs": 16923,
+      "productUrl": "https://www.se.com/us/en/product/LRD08/tesys-deca-thermal-overload-relay-2-5-to-4-a-class-10a/",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260901073256\\pdt\\schneider-LRD08-pdt_pdt-audit.json",
+      "pdtWrittenCells": 27,
+      "pdtBlankCells": 61,
+      "pdtSkippedCells": 9,
+      "pdtUnprovenSkipped": 1,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": []
+    },
+    {
+      "manufacturerId": "schneider",
+      "catalogNumber": "GV2ME10",
+      "caseType": "electrical",
+      "expectedDeviceType": "Motor Circuit Breaker",
+      "actualDeviceType": "Motor Circuit Breaker",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "cold",
+        "tesys",
+        "motor-protection"
+      ],
+      "status": "found",
+      "confidence": 0.59,
+      "elapsedMs": 25209,
+      "productUrl": "https://www.se.com/us/en/product/GV2ME10/tesys-deca-manual-starter-and-protector-thermal-magnetic-circuit-protector-push-buttons-4-to-6-3-a-screw-clamp/",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260901073256\\pdt\\schneider-GV2ME10-pdt_pdt-audit.json",
+      "pdtWrittenCells": 23,
+      "pdtBlankCells": 66,
+      "pdtSkippedCells": 8,
+      "pdtUnprovenSkipped": 1,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 1,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": []
+    },
+    {
+      "manufacturerId": "schneider",
+      "catalogNumber": "ABL8MEM24012",
+      "caseType": "electrical",
+      "expectedDeviceType": "Power Supply",
+      "actualDeviceType": "Power Supply",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "cold",
+        "phaseo",
+        "power-supply"
+      ],
+      "status": "found",
+      "confidence": 0.71,
+      "elapsedMs": 16174,
+      "productUrl": "https://www.se.com/us/en/product/ABL8MEM24012/regulated-power-supply-phaseo-100-to-240-v-24-v-1-2-a/",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260901073256\\pdt\\schneider-ABL8MEM24012-pdt_pdt-audit.json",
+      "pdtWrittenCells": 38,
+      "pdtBlankCells": 154,
+      "pdtSkippedCells": 5,
+      "pdtUnprovenSkipped": 1,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": []
+    },
+    {
+      "manufacturerId": "schneider",
+      "catalogNumber": "TM221CE16R",
+      "caseType": "electrical",
+      "expectedDeviceType": "Programmable Logic Controller",
+      "actualDeviceType": "Programmable Logic Controller",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "cold",
+        "modicon-m221",
+        "controller"
+      ],
+      "status": "found",
+      "confidence": 0.71,
+      "elapsedMs": 24110,
+      "productUrl": "https://www.se.com/us/en/product/TM221CE16R/logic-controller-modicon-m221-16-io-9-di-7-do-relay-ethernet/",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260901073256\\pdt\\schneider-TM221CE16R-pdt_pdt-audit.json",
+      "pdtWrittenCells": 37,
+      "pdtBlankCells": 48,
+      "pdtSkippedCells": 2,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 1,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": []
+    },
+    {
+      "manufacturerId": "schneider",
+      "catalogNumber": "TM241CE40R",
+      "caseType": "electrical",
+      "expectedDeviceType": "Programmable Logic Controller",
+      "actualDeviceType": "Programmable Logic Controller",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "cold",
+        "modicon-m241",
+        "controller"
+      ],
+      "status": "found",
+      "confidence": 0.71,
+      "elapsedMs": 23005,
+      "productUrl": "https://www.se.com/us/en/product/TM241CE40R/logic-controller-modicon-m241-40-io-relay-ethernet/",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260901073256\\pdt\\schneider-TM241CE40R-pdt_pdt-audit.json",
+      "pdtWrittenCells": 34,
+      "pdtBlankCells": 51,
+      "pdtSkippedCells": 2,
+      "pdtUnprovenSkipped": 1,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 1,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": []
+    },
+    {
+      "manufacturerId": "schneider",
+      "catalogNumber": "ZB5AA4",
+      "caseType": "electrical",
+      "expectedDeviceType": "Pushbutton / Operator",
+      "actualDeviceType": "Pushbutton / Operator",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "cold",
+        "harmony",
+        "pushbutton"
+      ],
+      "status": "found",
+      "confidence": 0.71,
+      "elapsedMs": 46364,
+      "productUrl": "https://www.se.com/us/en/product/ZB5AA4/head-for-non-illuminated-push-button-harmony-xb5-plastic-flush-red-22mm-spring-return-unmarked/",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": false,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260901073256\\pdt\\schneider-ZB5AA4-pdt_pdt-audit.json",
+      "pdtWrittenCells": 28,
+      "pdtBlankCells": 52,
+      "pdtSkippedCells": 1,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 1,
+      "pdtRequiredFieldIssues": 5,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": []
+    },
+    {
+      "manufacturerId": "schneider",
+      "catalogNumber": "XPSAC5121",
+      "caseType": "electrical",
+      "expectedDeviceType": "Safety Relay",
+      "actualDeviceType": "Safety Relay",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "cold",
+        "harmony-xps",
+        "safety-module"
+      ],
+      "status": "found",
+      "confidence": 0.59,
+      "elapsedMs": 24942,
+      "productUrl": "https://www.se.com/id/en/product/XPSAC5121/module-xpsac-emergency-stop-24-v-ac-dc/",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260901073256\\pdt\\schneider-XPSAC5121-pdt_pdt-audit.json",
+      "pdtWrittenCells": 56,
+      "pdtBlankCells": 90,
+      "pdtSkippedCells": 4,
+      "pdtUnprovenSkipped": 2,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 2,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": []
+    },
+    {
+      "manufacturerId": "schneider",
+      "catalogNumber": "A9F74116",
+      "caseType": "electrical",
+      "expectedDeviceType": "Miniature Circuit Breaker",
+      "actualDeviceType": "Miniature Circuit Breaker",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "cold",
+        "acti9",
+        "miniature-breaker"
+      ],
+      "status": "found",
+      "confidence": 0.71,
+      "elapsedMs": 20583,
+      "productUrl": "https://www.se.com/id/en/product/A9F74116/ic60n-miniature-circuit-breaker-1p-16a-c-curve/",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260901073256\\pdt\\schneider-A9F74116-pdt_pdt-audit.json",
+      "pdtWrittenCells": 46,
+      "pdtBlankCells": 50,
+      "pdtSkippedCells": 1,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 3,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": []
+    },
+    {
+      "manufacturerId": "schneider",
+      "catalogNumber": "NSYTRV42",
+      "caseType": "electrical",
+      "expectedDeviceType": "Terminal Block",
+      "actualDeviceType": "Terminal Block",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "cold",
+        "linergy",
+        "terminal-block"
+      ],
+      "status": "found",
+      "confidence": 0.71,
+      "elapsedMs": 24564,
+      "productUrl": "https://www.se.com/us/en/product/NSYTRV42/linergy-terminal-blocks-screw-terminal-feed-through-2-points-4-mm-wide-grey/",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260901073256\\pdt\\schneider-NSYTRV42-pdt_pdt-audit.json",
+      "pdtWrittenCells": 29,
+      "pdtBlankCells": 36,
+      "pdtSkippedCells": 1,
+      "pdtUnprovenSkipped": 1,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 2,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": []
+    }
+  ]
+}

@@ -1,0 +1,2156 @@
+{
+ "productDetails": {
+  "item": {
+   "inactive": false,
+   "images": [
+    {
+     "url": "https://cdn.productimages.abb.com/9PAA00000030650_400x400.jpg",
+     "thumbnailUrl": "https://cdn.productimages.abb.com/9PAA00000030650_100x100.jpg",
+     "masterUrl": "https://cdn.productimages.abb.com/9PAA00000030650_master.jpg"
+    }
+   ],
+   "published": true,
+   "variantsAvailable": false,
+   "productIdDomain": "ABB",
+   "sparePart": false,
+   "exactMatch": false,
+   "classifications": {
+    "classCids": [
+     "9AAC100109"
+    ],
+    "typeCids": [
+     "9AAC184308"
+    ],
+    "leafCids": [
+     "9AAC159656"
+    ],
+    "level0Cids": [
+     "9AAC910006"
+    ]
+   },
+   "productId": "1SBL131001R5501",
+   "attributes": {
+    "ExtendedProductType": {
+     "type": "Text",
+     "attributeCode": "ExtendedProductType",
+     "attributeName": "Typ",
+     "values": [
+      {
+       "text": "AFC09-30-01-55"
+      }
+     ],
+     "isInternal": false,
+     "internal": false,
+     "highlight": false
+    },
+    "ProductId": {
+     "type": "Text",
+     "attributeCode": "ProductId",
+     "attributeName": "Bestellnummer",
+     "values": [
+      {
+       "text": "1SBL131001R5501"
+      }
+     ],
+     "isInternal": false,
+     "internal": false,
+     "highlight": false
+    },
+    "Ean": {
+     "type": "Text",
+     "attributeCode": "Ean",
+     "attributeName": "EAN",
+     "values": [
+      {
+       "text": "3471525003451"
+      }
+     ],
+     "isInternal": false,
+     "internal": false,
+     "highlight": false
+    },
+    "CatalogDescription": {
+     "type": "Text",
+     "attributeCode": "CatalogDescription",
+     "attributeName": "Beschreibung",
+     "values": [
+      {
+       "text": "AFC09-30-01-55 500V50Hz 600V60Hz Contactor"
+      }
+     ],
+     "isInternal": false,
+     "internal": false,
+     "highlight": false
+    },
+    "LongDescription": {
+     "type": "Text",
+     "attributeCode": "LongDescription",
+     "attributeName": "Langbeschreibung",
+     "values": [
+      {
+       "text": "The AFC09-30-01-55 is a 3-pole - 690 V IEC or 600 V UL contactor with 1 N.C built-in auxiliary contact and Screw terminals, mainly controlling power circuits up to 4 kW / 400 V AC (AC-3) or 5 hp / 480 V AC UL and 25 A (AC-1) or 25 A UL general use. Within the AF platform, AFC contactors offer an optimized operating time for AC controlled applications with electromagnetic coil (control voltage : 500V50Hz 600V60Hz). AFC contactors have a block type design and can be easily extended with add-on auxiliary contact blocks and a wide range of additionnal accessories."
+      }
+     ],
+     "isInternal": false,
+     "internal": false,
+     "highlight": false
+    },
+    "#DisplayName": {
+     "type": "Text",
+     "attributeCode": "#DisplayName",
+     "attributeName": "Display Name",
+     "values": [
+      {
+       "text": "AFC09-30-01-55"
+      }
+     ],
+     "isInternal": false,
+     "internal": false,
+     "highlight": false
+    }
+   }
+  }
+ },
+ "attributeGroups": {
+  "items": [
+   {
+    "code": "Ordering",
+    "description": "Bestelldaten",
+    "visible": true,
+    "attributes": {
+     "MinimumOrderQuantity": {
+      "type": "Text",
+      "attributeCode": "MinimumOrderQuantity",
+      "attributeName": "Mindestbestellmenge",
+      "values": [
+       {
+        "text": "1 Stück"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "CustomsTariffNumber": {
+      "type": "Text",
+      "attributeCode": "CustomsTariffNumber",
+      "attributeName": "Zolltarifnummer",
+      "values": [
+       {
+        "text": "85364900"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     }
+    }
+   },
+   {
+    "code": "PopularDownloads",
+    "description": "Hauptdokumente",
+    "visible": true,
+    "attributes": {
+     "DatSheTecInf": {
+      "type": "Text",
+      "attributeCode": "DatSheTecInf",
+      "attributeName": "Datenblatt, technische Information",
+      "values": [
+       {
+        "text": "1SBC100219C0201",
+        "link": {
+         "text": "1SBC100219C0201",
+         "documentId": "1SBC100219C0201",
+         "type": "Document"
+        }
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "InsMan": {
+      "type": "Text",
+      "attributeCode": "InsMan",
+      "attributeName": "Montage- und Betriebsanleitung",
+      "values": [
+       {
+        "text": "1SBC101027M6801",
+        "link": {
+         "text": "1SBC101027M6801",
+         "documentId": "1SBC101027M6801",
+         "type": "Document"
+        }
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "InsManPar2": {
+      "type": "Text",
+      "attributeCode": "InsManPar2",
+      "attributeName": "Montage- und Betriebsanleitung Teil 2",
+      "values": [
+       {
+        "text": "1SAC200017M0002",
+        "link": {
+         "text": "1SAC200017M0002",
+         "documentId": "1SAC200017M0002",
+         "type": "Document"
+        }
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "CadDimensionalDrawing": {
+      "type": "Text",
+      "attributeCode": "CadDimensionalDrawing",
+      "attributeName": "CAD Maßzeichnung",
+      "values": [
+       {
+        "text": "2CDC001079B0201",
+        "link": {
+         "text": "2CDC001079B0201",
+         "documentId": "2CDC001079B0201",
+         "type": "Document"
+        }
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     }
+    }
+   },
+   {
+    "code": "Dimensions",
+    "description": "Abmessungen",
+    "visible": true,
+    "attributes": {
+     "ProductNetWidth": {
+      "type": "Text",
+      "attributeCode": "ProductNetWidth",
+      "attributeName": "Breite",
+      "values": [
+       {
+        "text": "45 mm"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "tooltip": "Width of a single unpacked product",
+      "highlight": false
+     },
+     "ProductNetDepth": {
+      "type": "Text",
+      "attributeCode": "ProductNetDepth",
+      "attributeName": "Tiefe/Länge",
+      "values": [
+       {
+        "text": "77 mm"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "tooltip": "Depth of a single unpacked product",
+      "highlight": false
+     },
+     "ProductNetHeight": {
+      "type": "Text",
+      "attributeCode": "ProductNetHeight",
+      "attributeName": "Höhe",
+      "values": [
+       {
+        "text": "86 mm"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "tooltip": "Height of a single unpacked product",
+      "highlight": false
+     },
+     "ProductNetWeight": {
+      "type": "Text",
+      "attributeCode": "ProductNetWeight",
+      "attributeName": "Nettogewicht",
+      "values": [
+       {
+        "text": "0.298 kg"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "tooltip": "Weight of a single unpacked product",
+      "highlight": false
+     }
+    }
+   },
+   {
+    "code": "Technical",
+    "description": "Technische Daten",
+    "visible": true,
+    "attributes": {
+     "NumMaiConNo": {
+      "type": "Text",
+      "attributeCode": "NumMaiConNo",
+      "attributeName": "Anzahl Hauptkontakte Schließer",
+      "values": [
+       {
+        "text": "3"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "NumMaiConNc": {
+      "type": "Text",
+      "attributeCode": "NumMaiConNc",
+      "attributeName": "Anzahl Hauptkontakte Öffner",
+      "values": [
+       {
+        "text": "0"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "NumAuxConNo": {
+      "type": "Text",
+      "attributeCode": "NumAuxConNo",
+      "attributeName": "Anzahl Hilfskontakte Schließer",
+      "values": [
+       {
+        "text": "0"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "NumAuxConNc": {
+      "type": "Text",
+      "attributeCode": "NumAuxConNc",
+      "attributeName": "Anzahl Hilfskontakte Öffner",
+      "values": [
+       {
+        "text": "1"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "NumberOfPoles": {
+      "type": "Enum",
+      "attributeCode": "NumberOfPoles",
+      "attributeName": "Anzahl Pole",
+      "values": [
+       {
+        "text": "3P",
+        "enumerationValueCode": "3"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "Standards": {
+      "type": "Text",
+      "attributeCode": "Standards",
+      "attributeName": "Normen",
+      "values": [
+       {
+        "text": "IEC/EN 60947-1, IEC/EN 60947-4-1, UL 60947-4-1, CSA C22.2 No. 60947-4-1, UL 60335-2-40 LZGH2 A2L"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "RatOpeVol": {
+      "type": "Text",
+      "attributeCode": "RatOpeVol",
+      "attributeName": "Bemessungsbetriebsspannung",
+      "values": [
+       {
+        "text": "Hilfsstromkreis 690 V"
+       },
+       {
+        "text": "Hauptstromkreis 690 V"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "RatedFrequency": {
+      "type": "Text",
+      "attributeCode": "RatedFrequency",
+      "attributeName": "Bemessungsfrequenz (f)",
+      "values": [
+       {
+        "text": "Hilfsstromkreis 50 / 60 Hz"
+       },
+       {
+        "text": "Steuerstromkreis 50 / 60 Hz"
+       },
+       {
+        "text": "Hauptstromkreis 50 / 60 Hz"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "ConFreAirTheCur": {
+      "type": "Text",
+      "attributeCode": "ConFreAirTheCur",
+      "attributeName": "Konventioneller thermischer Dauerstrom in freier Luft (I<sub>th</sub>)",
+      "values": [
+       {
+        "text": "(nach IEC 60947-4-1, offene Schütze q = 40 °C) 35 A"
+       },
+       {
+        "text": "(nach IEC 60947-5-1, q = 40 °C) 16 A"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "RatOpeCurAc1": {
+      "type": "Text",
+      "attributeCode": "RatOpeCurAc1",
+      "attributeName": "Bemessungsbetriebsstrom AC-1 (I<sub>e</sub>)",
+      "values": [
+       {
+        "text": "(690 V, 40 °C) 25 A"
+       },
+       {
+        "text": "(690 V, 60 °C) 25 A"
+       },
+       {
+        "text": "(690 V, 70 °C) 22 A"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "RatOpeCurAc3": {
+      "type": "Text",
+      "attributeCode": "RatOpeCurAc3",
+      "attributeName": "Bemessungsbetriebsstrom AC-3 (I<sub>e</sub>)",
+      "values": [
+       {
+        "text": "(415 V, 60 °C) 9 A"
+       },
+       {
+        "text": "(440 V, 60 °C) 9 A"
+       },
+       {
+        "text": "(500 V, 60 °C) 9.5 A"
+       },
+       {
+        "text": "(690 V, 60 °C) 7 A"
+       },
+       {
+        "text": "(380/400 V, 60 °C) 9 A"
+       },
+       {
+        "text": "(220/230/240 V, 60 °C) 9 A"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "RatOpeCurAc3e": {
+      "type": "Text",
+      "attributeCode": "RatOpeCurAc3e",
+      "attributeName": "Bemessungsbetriebsstrom AC-3e (I<sub>e</sub>)",
+      "values": [
+       {
+        "text": "(415 V, 60 °C) 9 A"
+       },
+       {
+        "text": "(440 V, 60 °C) 9 A"
+       },
+       {
+        "text": "(500 V, 60 °C) 9.5 A"
+       },
+       {
+        "text": "(690 V, 60 °C) 7 A"
+       },
+       {
+        "text": "(380/400 V, 60 °C) 9 A"
+       },
+       {
+        "text": "(220/230/240 V, 60 °C) 9 A"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "RatOpeCurAc15": {
+      "type": "Text",
+      "attributeCode": "RatOpeCurAc15",
+      "attributeName": "Bemessungsbetriebsstrom AC-15 (I<sub>e</sub>)",
+      "values": [
+       {
+        "text": "(500 V) 2 A"
+       },
+       {
+        "text": "(690 V) 2 A"
+       },
+       {
+        "text": "(24 / 127 V) 6 A"
+       },
+       {
+        "text": "(220 / 240 V) 4 A"
+       },
+       {
+        "text": "(400 / 440 V) 3 A"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "RatOpeCurDc1": {
+      "type": "Text",
+      "attributeCode": "RatOpeCurDc1",
+      "attributeName": "Bemessungsbetriebsstrom DC-1 (I<sub>e</sub>)",
+      "values": [
+       {
+        "text": "(110 V) 1-polig, 40 °C 10 A"
+       },
+       {
+        "text": "(110 V) 1-polig, 60°C 10 A"
+       },
+       {
+        "text": "(110 V) 1-polig, 70 °C 10 A"
+       },
+       {
+        "text": "(110 V) 2-polig in Reihe, 40 °C 25 A"
+       },
+       {
+        "text": "(110 V) 2-polig in Reihe, 60 °C 25 A"
+       },
+       {
+        "text": "(110 V) 2-polig in Reihe, 70 °C 22 A"
+       },
+       {
+        "text": "(110 V) 3-polig in Reihe, 40°C 25 A"
+       },
+       {
+        "text": "(110 V) 3-polig in Reihe, 60 °C 25 A"
+       },
+       {
+        "text": "(110 V) 3-polig in Reihe, 70 °C 22 A"
+       },
+       {
+        "text": "(220 V) 2-polig in Reihe, 40 °C 10 A"
+       },
+       {
+        "text": "(220 V) 2-polig in Reihe, 60 °C 10 A"
+       },
+       {
+        "text": "(220 V) 2-polig in Reihe, 70 °C 10 A"
+       },
+       {
+        "text": "(220 V) 3-polig in Reihe, 40 °C 25 A"
+       },
+       {
+        "text": "(220 V) 3-polig in Reihe, 60 °C 25 A"
+       },
+       {
+        "text": "(220 V) 3-polig in Reihe, 70 °C 22 A"
+       },
+       {
+        "text": "(72 V) 1-polig, 40 °C 25 A"
+       },
+       {
+        "text": "(72 V) 1-polig, 60°C 25 A"
+       },
+       {
+        "text": "(72 V) 1-polig, 70 °C 22 A"
+       },
+       {
+        "text": "(72 V) 2-polig in Reihe, 40°C 25 A"
+       },
+       {
+        "text": "(72 V) 2-polig in Reihe, 60 °C 25 A"
+       },
+       {
+        "text": "(72 V) 2-polig in Reihe, 70 °C 22 A"
+       },
+       {
+        "text": "(72 V) 3-polig in Reihe, 40°C 25 A"
+       },
+       {
+        "text": "(72 V) 3-polig in Reihe, 60 °C 25 A"
+       },
+       {
+        "text": "(72 V) 3-polig in Reihe, 70 °C 22 A"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "RatOpeCurDc3": {
+      "type": "Text",
+      "attributeCode": "RatOpeCurDc3",
+      "attributeName": "Bemessungsbetriebsstrom DC-3 (I<sub>e</sub>)",
+      "values": [
+       {
+        "text": "(110 V) 1-polig, 40 °C 6 A"
+       },
+       {
+        "text": "(110 V) 1-polig, 60°C 6 A"
+       },
+       {
+        "text": "(110 V) 1-polig, 70 °C 6 A"
+       },
+       {
+        "text": "(110 V) 2-polig in Reihe, 40 °C 25 A"
+       },
+       {
+        "text": "(110 V) 2-polig in Reihe, 60 °C 25 A"
+       },
+       {
+        "text": "(110 V) 2-polig in Reihe, 70 °C 22 A"
+       },
+       {
+        "text": "(110 V) 3-polig in Reihe, 40°C 25 A"
+       },
+       {
+        "text": "(110 V) 3-polig in Reihe, 60 °C 25 A"
+       },
+       {
+        "text": "(110 V) 3-polig in Reihe, 70 °C 22 A"
+       },
+       {
+        "text": "(220 V) 2-polig in Reihe, 40 °C 6 A"
+       },
+       {
+        "text": "(220 V) 2-polig in Reihe, 60 °C 6 A"
+       },
+       {
+        "text": "(220 V) 2-polig in Reihe, 70 °C 6 A"
+       },
+       {
+        "text": "(220 V) 3-polig in Reihe, 40 °C 25 A"
+       },
+       {
+        "text": "(220 V) 3-polig in Reihe, 60 °C 25 A"
+       },
+       {
+        "text": "(220 V) 3-polig in Reihe, 70 °C 22 A"
+       },
+       {
+        "text": "(72 V) 1-polig, 40 °C 25 A"
+       },
+       {
+        "text": "(72 V) 1-polig, 60°C 25 A"
+       },
+       {
+        "text": "(72 V) 1-polig, 70 °C 22 A"
+       },
+       {
+        "text": "(72 V) 2-polig in Reihe, 40°C 25 A"
+       },
+       {
+        "text": "(72 V) 2-polig in Reihe, 60 °C 25 A"
+       },
+       {
+        "text": "(72 V) 2-polig in Reihe, 70 °C 22 A"
+       },
+       {
+        "text": "(72 V) 3-polig in Reihe, 40°C 25 A"
+       },
+       {
+        "text": "(72 V) 3-polig in Reihe, 60 °C 25 A"
+       },
+       {
+        "text": "(72 V) 3-polig in Reihe, 70 °C 22 A"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "RatOpeCurDc5": {
+      "type": "Text",
+      "attributeCode": "RatOpeCurDc5",
+      "attributeName": "Bemessungsbetriebsstrom DC-5 (I<sub>e</sub>)",
+      "values": [
+       {
+        "text": "(110 V) 1-polig, 40 °C 4 A"
+       },
+       {
+        "text": "(110 V) 1-polig, 60°C 4 A"
+       },
+       {
+        "text": "(110 V) 1-polig, 70 °C 4 A"
+       },
+       {
+        "text": "(110 V) 2-polig in Reihe, 40 °C 10 A"
+       },
+       {
+        "text": "(110 V) 2-polig in Reihe, 60 °C 10 A"
+       },
+       {
+        "text": "(110 V) 2-polig in Reihe, 70 °C 10 A"
+       },
+       {
+        "text": "(110 V) 3-polig in Reihe, 40°C 25 A"
+       },
+       {
+        "text": "(110 V) 3-polig in Reihe, 60 °C 25 A"
+       },
+       {
+        "text": "(110 V) 3-polig in Reihe, 70 °C 22 A"
+       },
+       {
+        "text": "(220 V) 2-polig in Reihe, 40 °C 4 A"
+       },
+       {
+        "text": "(220 V) 2-polig in Reihe, 60 °C 4 A"
+       },
+       {
+        "text": "(220 V) 2-polig in Reihe, 70 °C 4 A"
+       },
+       {
+        "text": "(220 V) 3-polig in Reihe, 40 °C 9 A"
+       },
+       {
+        "text": "(220 V) 3-polig in Reihe, 60 °C 9 A"
+       },
+       {
+        "text": "(220 V) 3-polig in Reihe, 70 °C 9 A"
+       },
+       {
+        "text": "(72 V) 1-polig, 40 °C 9 A"
+       },
+       {
+        "text": "(72 V) 1-polig, 60°C 9 A"
+       },
+       {
+        "text": "(72 V) 1-polig, 70 °C 9 A"
+       },
+       {
+        "text": "(72 V) 2-polig in Reihe, 40°C 25 A"
+       },
+       {
+        "text": "(72 V) 2-polig in Reihe, 60 °C 25 A"
+       },
+       {
+        "text": "(72 V) 2-polig in Reihe, 70 °C 22 A"
+       },
+       {
+        "text": "(72 V) 3-polig in Reihe, 40°C 25 A"
+       },
+       {
+        "text": "(72 V) 3-polig in Reihe, 60 °C 25 A"
+       },
+       {
+        "text": "(72 V) 3-polig in Reihe, 70 °C 22 A"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "RatOpeCurDc13": {
+      "type": "Text",
+      "attributeCode": "RatOpeCurDc13",
+      "attributeName": "Bemessungsbetriebsstrom DC-13 (I<sub>e</sub>)",
+      "values": [
+       {
+        "text": "(24 V) 6 A / 144 W"
+       },
+       {
+        "text": "(48 V) 2.8 A / 134 W"
+       },
+       {
+        "text": "(72 V) 1 A / 72 W"
+       },
+       {
+        "text": "(110 V) 0.55 A / 60 W"
+       },
+       {
+        "text": "(125 V) 0.55 A / 69 W"
+       },
+       {
+        "text": "(220 V) 0.27 A / 60 W"
+       },
+       {
+        "text": "(250 V) 0.27 A / 68 W"
+       },
+       {
+        "text": "(400 V) 0.15 A / 60 W"
+       },
+       {
+        "text": "(500 V) 0.13 A / 65 W"
+       },
+       {
+        "text": "(600 V) 0.1 A / 60 W"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "RatOpePowAc3": {
+      "type": "Text",
+      "attributeCode": "RatOpePowAc3",
+      "attributeName": "Bemessungsbetriebsleistung AC-3 (P<sub>e</sub>)",
+      "values": [
+       {
+        "text": "(415 V) 4 kW"
+       },
+       {
+        "text": "(440 V) 4 kW"
+       },
+       {
+        "text": "(500 V) 5.5 kW"
+       },
+       {
+        "text": "(690 V) 5.5 kW"
+       },
+       {
+        "text": "(380/400 V) 4 kW"
+       },
+       {
+        "text": "(220/230/240 V) 2.2 kW"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "RatOpePowAc3e": {
+      "type": "Text",
+      "attributeCode": "RatOpePowAc3e",
+      "attributeName": "Bemessungsbetriebsleistung AC-3e (P<sub>e</sub>)",
+      "values": [
+       {
+        "text": "(415 V) 4 kW"
+       },
+       {
+        "text": "(440 V) 4 kW"
+       },
+       {
+        "text": "(500 V) 5.5 kW"
+       },
+       {
+        "text": "(690 V) 5.5 kW"
+       },
+       {
+        "text": "(380/400 V) 4 kW"
+       },
+       {
+        "text": "(220/230/240 V) 2.2 kW"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "RatOpePowAc6b": {
+      "type": "Text",
+      "attributeCode": "RatOpePowAc6b",
+      "attributeName": "Bemessungsbetriebsleistung AC-6b (P<sub>e</sub>)",
+      "values": [
+       {
+        "text": "(400 / 415 V) 40 °C, 50 / 60 Hz 8.5 kvar"
+       },
+       {
+        "text": "(400 / 415 V) 70 °C, 50 / 60 Hz 7 kvar"
+       },
+       {
+        "text": "(400 / 415 V) 55 °C, 50 / 60 Hz 8.5 kvar"
+       },
+       {
+        "text": "(440 V) 40 °C, 50 / 60 Hz 9 kvar"
+       },
+       {
+        "text": "(440 V) 55 °C, 50 / 60 Hz 9 kvar"
+       },
+       {
+        "text": "(440 V) 70 °C, 50 / 60 Hz 7.7 kvar"
+       },
+       {
+        "text": "(500 / 550 V), 40 °C, 50 / 60 Hz 10.5 kvar"
+       },
+       {
+        "text": "(500 / 550 V) 55 °C, 50 / 60 Hz 10.5 kvar"
+       },
+       {
+        "text": "(500 / 550 V) 70 °C, 50 / 60 Hz 9 kvar"
+       },
+       {
+        "text": "(690 V) 40 °C, 50 / 60 Hz 14.5 kvar"
+       },
+       {
+        "text": "(690 V) 55 °C, 50 / 60 Hz 14.5 kvar"
+       },
+       {
+        "text": "(690 V) 70 °C, 50 / 60 Hz 12 kvar"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "RatShoTimWitCur": {
+      "type": "Text",
+      "attributeCode": "RatShoTimWitCur",
+      "attributeName": "Bemessungskurzzeitstromfestigkeit (I<sub>cw</sub>)",
+      "values": [
+       {
+        "text": "(bei 40 °C Umgebungstemperatur, ungekapselt, bei Kaltstart 10 s) 150 A"
+       },
+       {
+        "text": "(bei 40 °C Umgebungstemperatur, ungekapselt, bei Kaltstart 15 min) 35 A"
+       },
+       {
+        "text": "(bei 40 °C Umgebungstemperatur, ungekapselt, bei Kaltstart 1 min) 60 A"
+       },
+       {
+        "text": "(bei 40 °C Umgebungstemperatur, ungekapselt, bei Kaltstart 1 s) 300 A"
+       },
+       {
+        "text": "(bei 40 °C Umgebungstemperatur, ungekapselt, bei Kaltstart 30 s) 80 A"
+       },
+       {
+        "text": "(für 0,1 s) 140 A"
+       },
+       {
+        "text": "(für 1 s) 100 A"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "MaxBreCap": {
+      "type": "Text",
+      "attributeCode": "MaxBreCap",
+      "attributeName": "Maximales Ausschaltvermögen",
+      "values": [
+       {
+        "text": "(cos phi=0.45 (cos phi=0.35 bei Ie > 100 A) bei 440 V) 250 A"
+       },
+       {
+        "text": "(cos phi=0.45 (cos phi=0.35 bei Ie > 100 A) bei 690 V) 106 A"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "RatInsVol": {
+      "type": "Text",
+      "attributeCode": "RatInsVol",
+      "attributeName": "Bemessungsisolationsspannung (U<sub>i</sub>)",
+      "values": [
+       {
+        "text": "gemäß IEC 60947-4-1 690 V"
+       },
+       {
+        "text": "gemäß IEC 60947-5-1 690 V"
+       },
+       {
+        "text": "(nach UL / CSA) 600 V"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "RatImpWitVol": {
+      "type": "Text",
+      "attributeCode": "RatImpWitVol",
+      "attributeName": "Bemessungsstoßspannungsfestigkeit (U<sub>imp</sub>)",
+      "values": [
+       {
+        "text": "6 kV"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "MaxElecSwiFre": {
+      "type": "Text",
+      "attributeCode": "MaxElecSwiFre",
+      "attributeName": "Maximale elektrische Schaltfrequenz",
+      "values": [
+       {
+        "text": "(AC-1) 600 Schaltspiele/Std"
+       },
+       {
+        "text": "(AC-15) 1200 Schaltspiele/Std"
+       },
+       {
+        "text": "(AC-2 / AC-4) 300 Schaltspiele/Std"
+       },
+       {
+        "text": "(AC-3) 1200 Schaltspiele/Std"
+       },
+       {
+        "text": "(DC-13) 900 Schaltspiele/Std"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "MaxMecSwiFre": {
+      "type": "Text",
+      "attributeCode": "MaxMecSwiFre",
+      "attributeName": "Maximale Schalthäufigkeit",
+      "values": [
+       {
+        "text": "3600 Schaltspiele/Std"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "RatConCirVol": {
+      "type": "Text",
+      "attributeCode": "RatConCirVol",
+      "attributeName": "Bemessungssteuerspannung (U<sub>c</sub>)",
+      "values": [
+       {
+        "text": "50 Hz 500 V"
+       },
+       {
+        "text": "60 Hz 600 V"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "CoilConsumption": {
+      "type": "Text",
+      "attributeCode": "CoilConsumption",
+      "attributeName": "Leistungsaufnahme der Spule",
+      "values": [
+       {
+        "text": "mittlerer Haltewert 50 / 60 Hz 8 V·A"
+       },
+       {
+        "text": "mittlerer Haltwert aus warmem Zustand 2.3 W"
+       },
+       {
+        "text": "mittlerer Anzugswert 50 Hz 70 V·A"
+       },
+       {
+        "text": "mittlerer Anzugswert 60 Hz 66 V·A"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "PowerLoss": {
+      "type": "Text",
+      "attributeCode": "PowerLoss",
+      "attributeName": "Verlustleistung",
+      "values": [
+       {
+        "text": "6 A pro Pol 0.1 W"
+       },
+       {
+        "text": "bei Bemessungsbedingungen AC-1 pro Pol 0.8 W"
+       },
+       {
+        "text": "bei Bemessungsbedingungen AC-3 pro Pol 0.1 W"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "OperateTime": {
+      "type": "Text",
+      "attributeCode": "OperateTime",
+      "attributeName": "Betriebszeit",
+      "values": [
+       {
+        "text": "zwischen Spulenentregung und Schließen des Öffnerkontakts 9 ... 20 ms"
+       },
+       {
+        "text": "zwischen Spulenentregung und Öffnen des Schließerkontakts 4 ... 18 ms"
+       },
+       {
+        "text": "zwischen Spulenerregung und Öffnen des Öffnerkontakts 7 ... 21 ms"
+       },
+       {
+        "text": "zwischen Spulenerregung und Schließen des Schließerkontakts 10 ... 26 ms"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "MountingOnDinRail": {
+      "type": "Enum",
+      "attributeCode": "MountingOnDinRail",
+      "attributeName": "Montage auf DIN-Schiene",
+      "values": [
+       {
+        "text": "TH35-15 (35 x 15 mm Tragschiene) nach IEC 60715",
+        "enumerationValueCode": "3515mm"
+       },
+       {
+        "text": "TH35-7.5 (35 x 7.5 mm Tragschiene) nach IEC 60715",
+        "enumerationValueCode": "3575mm"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "MountingByScrews": {
+      "type": "Enum",
+      "attributeCode": "MountingByScrews",
+      "attributeName": "Schraubmontage (nicht enthalten)",
+      "values": [
+       {
+        "text": "2 x M4 oder Schrauben diagonal angeordnet",
+        "enumerationValueCode": "2M4ScrPlaDia"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "ConCapMaiCon": {
+      "type": "Text",
+      "attributeCode": "ConCapMaiCon",
+      "attributeName": "Anschlussmöglichkeit-Hauptstromkreis",
+      "values": [
+       {
+        "text": "flexibel mit Aderendhülse 1/2x 0.75 ... 6 mm²"
+       },
+       {
+        "text": "flexibel mit isolierter Aderendhülse 1x 0.75 ... 4 mm²"
+       },
+       {
+        "text": "flexibel mit isolierter Aderendhülse 2x 0.75 ... 2.5 mm²"
+       },
+       {
+        "text": "starr massiv 1/2x 1 ... 4 mm²"
+       },
+       {
+        "text": "starr mehrdrähtig 1/2x 1 ... 6 mm²"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "ConCapAuxCon": {
+      "type": "Text",
+      "attributeCode": "ConCapAuxCon",
+      "attributeName": "Anschlussmöglichkeit-Hilfsstromkreis",
+      "values": [
+       {
+        "text": "flexibel mit Aderendhülse 1/2x 0.75 ... 2.5 mm²"
+       },
+       {
+        "text": "flexibel mit isolierter Aderendhülse 1x 0.75 ... 2.5 mm²"
+       },
+       {
+        "text": "flexibel mit isolierter Aderendhülse 2x 0.75 ... 1.5 mm²"
+       },
+       {
+        "text": "starr massiv 1/2x 1 ... 2.5 mm²"
+       },
+       {
+        "text": "starr mehrdrähtig 1/2x 1 ... 2.5 mm²"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "ConCapConCir": {
+      "type": "Text",
+      "attributeCode": "ConCapConCir",
+      "attributeName": "Anschlussmöglichkeit-Steuerstromkreis",
+      "values": [
+       {
+        "text": "flexibel mit Aderendhülse 1/2x 0.75 ... 2.5 mm²"
+       },
+       {
+        "text": "flexibel mit isolierter Aderendhülse 1x 0.75 ... 2.5 mm²"
+       },
+       {
+        "text": "flexibel mit isolierter Aderendhülse 2x 0.75 ... 1.5 mm²"
+       },
+       {
+        "text": "starr massiv 1/2x 1 ... 2.5 mm²"
+       },
+       {
+        "text": "starr mehrdrähtig 1/2x 1 ... 2.5 mm²"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "WirStrLen": {
+      "type": "Text",
+      "attributeCode": "WirStrLen",
+      "attributeName": "Abisolierlänge",
+      "values": [
+       {
+        "text": "Hilfsstromkreis 10 mm"
+       },
+       {
+        "text": "Steuerstromkreis 10 mm"
+       },
+       {
+        "text": "Hauptstromkreis 10 mm"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "DegreeOfProtection": {
+      "type": "Text",
+      "attributeCode": "DegreeOfProtection",
+      "attributeName": "Schutzart",
+      "values": [
+       {
+        "text": "(nach IEC 60529, IEC 60947-1, EN 60529 Hilfsanschlussklemmen) IP20"
+       },
+       {
+        "text": "(nach IEC 60529, IEC 60947-1, EN 60529 Spulenanschlussklemmen) IP20"
+       },
+       {
+        "text": "(nach IEC 60529, IEC 60947-1, EN 60529 Hauptanschlussklemmen) IP20"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "RecScrDri": {
+      "type": "Text",
+      "attributeCode": "RecScrDri",
+      "attributeName": "Empfohlener Schraubendreher",
+      "values": [
+       {
+        "text": "Pozidriv PZ"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "TighteningTorque": {
+      "type": "Text",
+      "attributeCode": "TighteningTorque",
+      "attributeName": "Anzugsdrehmoment",
+      "values": [
+       {
+        "text": "Hilfsstromkreis 1.2 N·m"
+       },
+       {
+        "text": "Steuerstromkreis 1.2 N·m"
+       },
+       {
+        "text": "Hauptstromkreis 1.5 N·m"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "TerminalType": {
+      "type": "Enum",
+      "attributeCode": "TerminalType",
+      "attributeName": "Anschlussart",
+      "values": [
+       {
+        "text": "Schraubklemme",
+        "enumerationValueCode": "Screw"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "ProductName": {
+      "type": "Text",
+      "attributeCode": "ProductName",
+      "attributeName": "Produktname",
+      "values": [
+       {
+        "text": "Block Contactor"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     }
+    }
+   },
+   {
+    "code": "TechnicalUlCsa",
+    "description": "Technische Daten UL/CSA",
+    "visible": true,
+    "attributes": {
+     "NemaSize": {
+      "type": "Enum",
+      "attributeCode": "NemaSize",
+      "attributeName": "NEMA Größe",
+      "values": [
+       {
+        "text": "00",
+        "enumerationValueCode": "00"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "ConCurRatNem": {
+      "type": "Text",
+      "attributeCode": "ConCurRatNem",
+      "attributeName": "Dauerstrombewertung NEMA",
+      "values": [
+       {
+        "text": "9 A"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "HorsePowerRatingNema": {
+      "type": "Text",
+      "attributeCode": "HorsePowerRatingNema",
+      "attributeName": "Nennleistung NEMA",
+      "values": [
+       {
+        "text": "(115 V AC) einphasig 1/3 Hp"
+       },
+       {
+        "text": "(200 V AC) dreiphasig 1-1/2 Hp"
+       },
+       {
+        "text": "(230 V AC) einphasig 1 Hp"
+       },
+       {
+        "text": "(230 V AC dreiphasig) 1-1/2 Hp"
+       },
+       {
+        "text": "(460 V AC dreiphasig) 2 Hp"
+       },
+       {
+        "text": "(575 V AC dreiphasig) 2 Hp"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "MaxOpeVolUlCsa": {
+      "type": "Text",
+      "attributeCode": "MaxOpeVolUlCsa",
+      "attributeName": "Maximale Betriebsspannung UL/CSA",
+      "values": [
+       {
+        "text": "Hauptstromkreis 600 V"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "GenUseRatUlCsa": {
+      "type": "Text",
+      "attributeCode": "GenUseRatUlCsa",
+      "attributeName": "Allgemeine Gebrauchsklasse UL/CSA",
+      "values": [
+       {
+        "text": "(600 V AC) 25 A"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "HorsePowerRating": {
+      "type": "Text",
+      "attributeCode": "HorsePowerRating",
+      "attributeName": "Nennleistung UL/CSA",
+      "values": [
+       {
+        "text": "(120 V AC einphasig) 3/4 hp"
+       },
+       {
+        "text": "(200 ... 208 V AC dreiphasig) 2 hp"
+       },
+       {
+        "text": "(220 ... 240 V AC dreiphasig) 2 hp"
+       },
+       {
+        "text": "(240 V AC einphasig) 1-1/2 hp"
+       },
+       {
+        "text": "(440 ... 480 V AC dreiphasig) 5 hp"
+       },
+       {
+        "text": "(550 ... 600 V AC dreiphasig) 7-1/2 hp"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "ConCapMaiCirUlCsa": {
+      "type": "Text",
+      "attributeCode": "ConCapMaiCirUlCsa",
+      "attributeName": "Anschlussmöglichkeit-Hauptstromkreis UL/CSA",
+      "values": [
+       {
+        "text": "starr massiv 1/2x 16-10 AWG"
+       },
+       {
+        "text": "starr mehrdrähtig 1/2x 16-10 AWG"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "ConCapAuxCirUlCsa": {
+      "type": "Text",
+      "attributeCode": "ConCapAuxCirUlCsa",
+      "attributeName": "Anschlussmöglichkeit-Hilfsstromkreis UL/CSA",
+      "values": [
+       {
+        "text": "starr massiv 1/2x 18-14 AWG"
+       },
+       {
+        "text": "starr mehrdrähtig 1/2x 18-14 AWG"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "ConCapConCirUlCsa": {
+      "type": "Text",
+      "attributeCode": "ConCapConCirUlCsa",
+      "attributeName": "Anschlussmöglichkeit-Steuerstromkreis UL/CSA",
+      "values": [
+       {
+        "text": "starr massiv 1/2x 18-14 AWG"
+       },
+       {
+        "text": "starr mehrdrähtig 1/2x 18-14 AWG"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "TigTorUlCsa": {
+      "type": "Text",
+      "attributeCode": "TigTorUlCsa",
+      "attributeName": "Anzugsdrehmoment UL/CSA",
+      "values": [
+       {
+        "text": "Hilfsstromkreis 11 in·lb"
+       },
+       {
+        "text": "Steuerstromkreis 11 in·lb"
+       },
+       {
+        "text": "Hauptstromkreis 13 in·lb"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "FulLoaAmpMotUse": {
+      "type": "Text",
+      "attributeCode": "FulLoaAmpMotUse",
+      "attributeName": "Strom bei Vollast (Motoren)",
+      "values": [
+       {
+        "text": "(120 V AC einphasig) 13.8 A"
+       },
+       {
+        "text": "(200 ... 208 V AC dreiphasig) 7.8 A"
+       },
+       {
+        "text": "(220 ... 240 V AC dreiphasig) 6.8 A"
+       },
+       {
+        "text": "(240 V AC einphasig) 10 A"
+       },
+       {
+        "text": "(440 ... 480 V AC dreiphasig) 7.6 A"
+       },
+       {
+        "text": "(550 ... 600 V AC dreiphasig) 9 A"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     }
+    }
+   },
+   {
+    "code": "Environmental",
+    "description": "Umgebungsbedingungen",
+    "visible": true,
+    "attributes": {
+     "AmbAirTem": {
+      "type": "Text",
+      "attributeCode": "AmbAirTem",
+      "attributeName": "Umgebungstemperatur",
+      "values": [
+       {
+        "text": "(in Schütznähe bei Betrieb mit thermischem Überlastrelais) -25 ... 60 °C"
+       },
+       {
+        "text": "(in Schütznähe bei Betrieb ohne thermisches Überlastrelais) -40 ... 70 °C"
+       },
+       {
+        "text": "(in Schütznähe bei Betrieb ohne thermisches Überlastrelais bei 0,85 - 1,1 Uc) -40 ... 60 °C"
+       },
+       {
+        "text": "(in Schütznähe bei Betrieb ohne thermisches Überlastrelais bei Uc) -40 ... 70 °C"
+       },
+       {
+        "text": "(in Schütznähe bei Lagerung) -60 ... +80 °C"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "ClimaticWithstand": {
+      "type": "Enum",
+      "attributeCode": "ClimaticWithstand",
+      "attributeName": "Klimafestigkeit",
+      "values": [
+       {
+        "text": "gemäß IEC 60947-1 Annex Q Kategorie B",
+        "enumerationValueCode": "CatBAccIec609471AnnQ"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "MaxOpeAltPer": {
+      "type": "Text",
+      "attributeCode": "MaxOpeAltPer",
+      "attributeName": "Höchstzulässige Betriebshöhenlage",
+      "values": [
+       {
+        "text": "ohne Derating 3000 m"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "ReToShAcToIe60068227": {
+      "type": "Text",
+      "attributeCode": "ReToShAcToIe60068227",
+      "attributeName": "Schockfestigkeit nach IEC/EN 60068-2-27",
+      "values": [
+       {
+        "text": "geschlossen, Schockrichtung B1: 25 g"
+       },
+       {
+        "text": "geöffnet, Stoßrichtung B1: 5 g"
+       },
+       {
+        "text": "Stoßrichtung A: 30 g"
+       },
+       {
+        "text": "Stoßrichtung B2: 15 g"
+       },
+       {
+        "text": "Stoßrichtung C1: 25 g"
+       },
+       {
+        "text": "Stoßrichtung C2: 25 g"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "ResVib": {
+      "type": "Text",
+      "attributeCode": "ResVib",
+      "attributeName": "Vibrationsfestigkeit nach IEC/EN 60068-2-6",
+      "values": [
+       {
+        "text": "4g (geschlossen) & 2g (offen) 5 ... 300 Hz"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "tooltip": "IEC 60668-2-6",
+      "highlight": false
+     },
+     "PollutionDegree": {
+      "type": "Enum",
+      "attributeCode": "PollutionDegree",
+      "attributeName": "Verschmutzungsgrad",
+      "values": [
+       {
+        "text": "3",
+        "enumerationValueCode": "3"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     }
+    }
+   },
+   {
+    "code": "MaterialCompliance",
+    "description": "Material Compliance",
+    "visible": true,
+    "attributes": {
+     "ConMinRepTem": {
+      "type": "Text",
+      "attributeCode": "ConMinRepTem",
+      "attributeName": "Konfliktmineralien-Berichtsvorlage (CMRT)",
+      "values": [
+       {
+        "text": "9AKK108467A5658",
+        "link": {
+         "text": "9AKK108467A5658",
+         "documentId": "9AKK108467A5658",
+         "type": "Document"
+        }
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "ReachDeclaration": {
+      "type": "Text",
+      "attributeCode": "ReachDeclaration",
+      "attributeName": "REACH Erklärung",
+      "values": [
+       {
+        "text": "2CMT2021-006202",
+        "link": {
+         "text": "2CMT2021-006202",
+         "documentId": "2CMT2021-006202",
+         "type": "Document"
+        }
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "RoHSInformation": {
+      "type": "Text",
+      "attributeCode": "RoHSInformation",
+      "attributeName": "RoHS Erklärung",
+      "values": [
+       {
+        "text": "2CMT2021-006277",
+        "link": {
+         "text": "2CMT2021-006277",
+         "documentId": "2CMT2021-006277",
+         "type": "Document"
+        }
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "RoHSStatus": {
+      "type": "Enum",
+      "attributeCode": "RoHSStatus",
+      "attributeName": "RoHS Information",
+      "values": [
+       {
+        "text": "nach EU Richtlinie 2011/65/EU und Ergänzungen 2015/863 22. Juli 2019",
+        "enumerationValueCode": "20190722"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "ToxSubConAct": {
+      "type": "Text",
+      "attributeCode": "ToxSubConAct",
+      "attributeName": "Gefahrstoff-Überwachungsgesetz - TSCA",
+      "values": [
+       {
+        "text": "2CMT2023-006525",
+        "link": {
+         "text": "2CMT2023-006525",
+         "documentId": "2CMT2023-006525",
+         "type": "Document"
+        }
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "WeeeB2cB2b": {
+      "type": "Enum",
+      "attributeCode": "WeeeB2cB2b",
+      "attributeName": "WEEE B2C / B2B",
+      "values": [
+       {
+        "text": "B2B",
+        "enumerationValueCode": "BusinessToBusiness"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "WeeeCategory": {
+      "type": "Enum",
+      "attributeCode": "WeeeCategory",
+      "attributeName": "WEEE Kategorie",
+      "values": [
+       {
+        "text": "5. Kleingeräte, bei denen keine der äußeren Abmessungen mehr als 50 cm beträgt",
+        "enumerationValueCode": "5SmallEquipment"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     }
+    }
+   },
+   {
+    "code": "CerDec",
+    "description": "Zertifikate und Deklarationen",
+    "visible": true,
+    "attributes": {
+     "A2LCertificateUl": {
+      "type": "Text",
+      "attributeCode": "A2LCertificateUl",
+      "attributeName": "A2L Zertifikat – UL",
+      "values": [
+       {
+        "text": "9AKK108469A4886",
+        "link": {
+         "text": "9AKK108469A4886",
+         "documentId": "9AKK108469A4886",
+         "type": "Document"
+        }
+       },
+       {
+        "text": "9AKK108469A4887",
+        "link": {
+         "text": "9AKK108469A4887",
+         "documentId": "9AKK108469A4887",
+         "type": "Document"
+        }
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "tooltip": "acc. to UL 60335-2-40",
+      "highlight": false
+     },
+     "BvCertificate": {
+      "type": "Text",
+      "attributeCode": "BvCertificate",
+      "attributeName": "BV Zertifikat",
+      "values": [
+       {
+        "text": "BV_2634H24898C1",
+        "link": {
+         "text": "BV_2634H24898C1",
+         "documentId": "BV_2634H24898C1",
+         "type": "Document"
+        }
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "CbCertificate": {
+      "type": "Text",
+      "attributeCode": "CbCertificate",
+      "attributeName": "CB Zertifikat",
+      "values": [
+       {
+        "text": "9AKK108471A9033",
+        "link": {
+         "text": "9AKK108471A9033",
+         "documentId": "9AKK108471A9033",
+         "type": "Document"
+        }
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "CcsCertificate": {
+      "type": "Text",
+      "attributeCode": "CcsCertificate",
+      "attributeName": "CCS Zertifikat",
+      "values": [
+       {
+        "text": "GZ23PTB00147",
+        "link": {
+         "text": "GZ23PTB00147",
+         "documentId": "GZ23PTB00147",
+         "type": "Document"
+        }
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "DecConCe": {
+      "type": "Text",
+      "attributeCode": "DecConCe",
+      "attributeName": "Konformitätserklärung - CE",
+      "values": [
+       {
+        "text": "1SBD250024U1000",
+        "link": {
+         "text": "1SBD250024U1000",
+         "documentId": "1SBD250024U1000",
+         "type": "Document"
+        }
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "DnvCertificate": {
+      "type": "Text",
+      "attributeCode": "DnvCertificate",
+      "attributeName": "DNV Zertifikat",
+      "values": [
+       {
+        "text": "9AKK108470A6934",
+        "link": {
+         "text": "9AKK108470A6934",
+         "documentId": "9AKK108470A6934",
+         "type": "Document"
+        }
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "RinaCertificate": {
+      "type": "Text",
+      "attributeCode": "RinaCertificate",
+      "attributeName": "RINA Zertifikat",
+      "values": [
+       {
+        "text": "9AKK108470A5006",
+        "link": {
+         "text": "9AKK108470A5006",
+         "documentId": "9AKK108470A5006",
+         "type": "Document"
+        }
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "UlCertificate": {
+      "type": "Text",
+      "attributeCode": "UlCertificate",
+      "attributeName": "UL Zertifikat",
+      "values": [
+       {
+        "text": "E312527-20231026",
+        "link": {
+         "text": "E312527-20231026",
+         "documentId": "E312527-20231026",
+         "type": "Document"
+        }
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     }
+    }
+   },
+   {
+    "code": "ConInf",
+    "description": "Verpackungsinformationen",
+    "visible": true,
+    "attributes": {
+     "PackageLevel1Units": {
+      "type": "Text",
+      "attributeCode": "PackageLevel1Units",
+      "attributeName": "Menge Verpackungseinheit 1",
+      "values": [
+       {
+        "text": "Box 1 Stück"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "PackageLevel1Width": {
+      "type": "Text",
+      "attributeCode": "PackageLevel1Width",
+      "attributeName": "Breite Verpackungseinheit 1",
+      "values": [
+       {
+        "text": "87 mm"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "PackageLevel1Length": {
+      "type": "Text",
+      "attributeCode": "PackageLevel1Length",
+      "attributeName": "Länge Verpackungseinheit 1",
+      "values": [
+       {
+        "text": "79 mm"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "PackageLevel1Height": {
+      "type": "Text",
+      "attributeCode": "PackageLevel1Height",
+      "attributeName": "Höhe Verpackungseinheit 1",
+      "values": [
+       {
+        "text": "47 mm"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "PacLev1GroWei": {
+      "type": "Text",
+      "attributeCode": "PacLev1GroWei",
+      "attributeName": "Bruttogewicht Verpackungseinheit 1",
+      "values": [
+       {
+        "text": "0.322 kg"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "PackageLevel1Ean": {
+      "type": "Text",
+      "attributeCode": "PackageLevel1Ean",
+      "attributeName": "EAN Verpackungseinheit 1",
+      "values": [
+       {
+        "text": "3471525003451"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     }
+    }
+   },
+   {
+    "code": "Classifications",
+    "description": "Externe Klassifizierungen und Normen",
+    "visible": true,
+    "attributes": {
+     "ObjClaCod": {
+      "type": "Text",
+      "attributeCode": "ObjClaCod",
+      "attributeName": "Kennbuchstabe (elektrische Betriebsmittel)",
+      "values": [
+       {
+        "text": "Q"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "Etim7": {
+      "type": "Enum",
+      "attributeCode": "Etim7",
+      "attributeName": "ETIM 7",
+      "values": [
+       {
+        "text": "EC000066 - Leistungsschütz zum Schalten von Wechselstrom",
+        "enumerationValueCode": "EC000066"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "Etim8": {
+      "type": "Enum",
+      "attributeCode": "Etim8",
+      "attributeName": "ETIM 8",
+      "values": [
+       {
+        "text": "EC000066 - Leistungsschütz zum Schalten von Wechselstrom",
+        "enumerationValueCode": "EC000066"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "Etim9": {
+      "type": "Enum",
+      "attributeCode": "Etim9",
+      "attributeName": "ETIM 9",
+      "values": [
+       {
+        "text": "EC000066 - Leistungsschütz zum Schalten von Wechselstrom",
+        "enumerationValueCode": "EC000066"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "Eclass": {
+      "type": "Text",
+      "attributeCode": "Eclass",
+      "attributeName": "eClass",
+      "values": [
+       {
+        "text": "V11.0 : 27371003"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "Unspsc": {
+      "type": "Text",
+      "attributeCode": "Unspsc",
+      "attributeName": "UNSPSC",
+      "values": [
+       {
+        "text": "39121529"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "IdeGraCatCod": {
+      "type": "Enum",
+      "attributeCode": "IdeGraCatCod",
+      "attributeName": "IDEA Granular Category Code (IGCC)",
+      "values": [
+       {
+        "text": "4755 >> Schützen",
+        "enumerationValueCode": "4755"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     }
+    }
+   }
+  ],
+  "listCode": "ELSP_Contactors_detail_page"
+ },
+ "productClassifications": {
+  "items": {
+   "Products": [
+    [
+     {
+      "cid": "ROOT",
+      "name": "Produkte",
+      "inactive": false
+     },
+     {
+      "cid": "9AAC910006",
+      "name": "Niederspannungsprodukte und Systeme",
+      "inactive": false
+     },
+     {
+      "cid": "9AAC100093",
+      "name": "Schalt- und Steuerungstechnik",
+      "inactive": false
+     },
+     {
+      "cid": "9AAC100107",
+      "name": "Schütze",
+      "inactive": false
+     },
+     {
+      "cid": "9AAC100109",
+      "name": "Blockschütze",
+      "inactive": false
+     },
+     {
+      "cid": "9AAC184308",
+      "name": "AF Schütze",
+      "inactive": false
+     },
+     {
+      "cid": "9AAC159656",
+      "name": "AF09",
+      "inactive": false
+     }
+    ]
+   ]
+  }
+ }
+}

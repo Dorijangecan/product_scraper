@@ -1,0 +1,1131 @@
+{
+ "productDetails": {
+  "item": {
+   "inactive": false,
+   "images": [
+    {
+     "url": "https://cdn.productimages.abb.com/1SCC301306V0015_400x400.jpg",
+     "thumbnailUrl": "https://cdn.productimages.abb.com/1SCC301306V0015_100x100.jpg",
+     "masterUrl": "https://cdn.productimages.abb.com/1SCC301306V0015_master.jpg"
+    }
+   ],
+   "published": true,
+   "variantsAvailable": false,
+   "productIdDomain": "ABB",
+   "sparePart": false,
+   "exactMatch": false,
+   "classifications": {
+    "classCids": [
+     "9AAC100796"
+    ],
+    "typeCids": [
+     "9AAC128882"
+    ],
+    "leafCids": [
+     "9AAC128882"
+    ],
+    "level0Cids": [
+     "9AAC910006"
+    ]
+   },
+   "productId": "1SCA022860R5850",
+   "attributes": {
+    "ExtendedProductType": {
+     "type": "Text",
+     "attributeCode": "ExtendedProductType",
+     "attributeName": "Extended Product Type",
+     "values": [
+      {
+       "text": "OT1000E03"
+      }
+     ],
+     "isInternal": false,
+     "internal": false,
+     "highlight": false
+    },
+    "ProductId": {
+     "type": "Text",
+     "attributeCode": "ProductId",
+     "attributeName": "Product ID",
+     "values": [
+      {
+       "text": "1SCA022860R5850"
+      }
+     ],
+     "isInternal": false,
+     "internal": false,
+     "highlight": false
+    },
+    "Ean": {
+     "type": "Text",
+     "attributeCode": "Ean",
+     "attributeName": "EAN",
+     "values": [
+      {
+       "text": "6417019309293"
+      }
+     ],
+     "isInternal": false,
+     "internal": false,
+     "highlight": false
+    },
+    "CatalogDescription": {
+     "type": "Text",
+     "attributeCode": "CatalogDescription",
+     "attributeName": "Catalog Description",
+     "values": [
+      {
+       "text": "OT1000E03 SWITCH-DISCONNECTOR"
+      }
+     ],
+     "isInternal": false,
+     "internal": false,
+     "highlight": false
+    },
+    "LongDescription": {
+     "type": "Text",
+     "attributeCode": "LongDescription",
+     "attributeName": "Long Description",
+     "values": [
+      {
+       "text": "3-pole, front operated, base mounted switch-diconnector, handle and shaft are not included, terminal bolt kit included"
+      }
+     ],
+     "isInternal": false,
+     "internal": false,
+     "highlight": false
+    },
+    "#DisplayName": {
+     "type": "Text",
+     "attributeCode": "#DisplayName",
+     "attributeName": "Display Name",
+     "values": [
+      {
+       "text": "OT1000E03"
+      }
+     ],
+     "isInternal": false,
+     "internal": false,
+     "highlight": false
+    }
+   }
+  }
+ },
+ "attributeGroups": {
+  "items": [
+   {
+    "code": "AbbEcoSolutions",
+    "description": "ABB EcoSolutions",
+    "visible": true,
+    "attributes": {
+     "EndOfLifDisIns": {
+      "type": "Text",
+      "attributeCode": "EndOfLifDisIns",
+      "attributeName": "End Of Life Disassembling Instructions",
+      "values": [
+       {
+        "text": "1SCC301120M0201",
+        "link": {
+         "text": "1SCC301120M0201",
+         "documentId": "1SCC301120M0201",
+         "type": "Document"
+        }
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "EnvInf": {
+      "type": "Text",
+      "attributeCode": "EnvInf",
+      "attributeName": "Environmental Information",
+      "values": [
+       {
+        "text": "1SCC301233D0201",
+        "link": {
+         "text": "1SCC301233D0201",
+         "documentId": "1SCC301233D0201",
+         "type": "Document"
+        }
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "EnvProDecEpd": {
+      "type": "Text",
+      "attributeCode": "EnvProDecEpd",
+      "attributeName": "Environmental Product Declaration - EPD",
+      "values": [
+       {
+        "text": "1SCC301300D0201",
+        "link": {
+         "text": "1SCC301300D0201",
+         "documentId": "1SCC301300D0201",
+         "type": "Document"
+        }
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     }
+    }
+   },
+   {
+    "code": "MaterialCompliance",
+    "description": "Material Compliance",
+    "visible": true,
+    "attributes": {
+     "ConMinRepTem": {
+      "type": "Text",
+      "attributeCode": "ConMinRepTem",
+      "attributeName": "Conflict Minerals Reporting Template (CMRT)",
+      "values": [
+       {
+        "text": "9AKK108467A5658",
+        "link": {
+         "text": "9AKK108467A5658",
+         "documentId": "9AKK108467A5658",
+         "type": "Document"
+        }
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "ReachDeclaration": {
+      "type": "Text",
+      "attributeCode": "ReachDeclaration",
+      "attributeName": "REACH Declaration",
+      "values": [
+       {
+        "text": "1SCC011021D0201",
+        "link": {
+         "text": "1SCC011021D0201",
+         "documentId": "1SCC011021D0201",
+         "type": "Document"
+        }
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "RoHSInformation": {
+      "type": "Text",
+      "attributeCode": "RoHSInformation",
+      "attributeName": "RoHS Declaration",
+      "values": [
+       {
+        "text": "1SCC011020D0201",
+        "link": {
+         "text": "1SCC011020D0201",
+         "documentId": "1SCC011020D0201",
+         "type": "Document"
+        }
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "RoHSStatus": {
+      "type": "Enum",
+      "attributeCode": "RoHSStatus",
+      "attributeName": "RoHS Information",
+      "values": [
+       {
+        "text": "Following EU Directive 2011/65/EU and Amendment 2015/863 July 22, 2019",
+        "enumerationValueCode": "20190722"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "ToxSubConAct": {
+      "type": "Text",
+      "attributeCode": "ToxSubConAct",
+      "attributeName": "Toxic Substances Control Act - TSCA",
+      "values": [
+       {
+        "text": "1SCC011025D0201",
+        "link": {
+         "text": "1SCC011025D0201",
+         "documentId": "1SCC011025D0201",
+         "type": "Document"
+        }
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     }
+    }
+   },
+   {
+    "code": "PopularDownloads",
+    "description": "Popular Downloads",
+    "visible": true,
+    "attributes": {
+     "DatSheTecInf": {
+      "type": "Text",
+      "attributeCode": "DatSheTecInf",
+      "attributeName": "Data Sheet, Technical Information",
+      "values": [
+       {
+        "text": "1SCC301020C0201",
+        "link": {
+         "text": "1SCC301020C0201",
+         "documentId": "1SCC301020C0201",
+         "type": "Document"
+        }
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "InsMan": {
+      "type": "Text",
+      "attributeCode": "InsMan",
+      "attributeName": "Instructions and Manuals",
+      "values": [
+       {
+        "text": "1SCC301047M0213",
+        "link": {
+         "text": "1SCC301047M0213",
+         "documentId": "1SCC301047M0213",
+         "type": "Document"
+        }
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "MechanicalDrawings": {
+      "type": "Text",
+      "attributeCode": "MechanicalDrawings",
+      "attributeName": "Mechanical Drawings",
+      "values": [
+       {
+        "text": "1SCC301492F0001",
+        "link": {
+         "text": "1SCC301492F0001",
+         "documentId": "1SCC301492F0001",
+         "type": "Document"
+        }
+       },
+       {
+        "text": "1SCC301491F0001",
+        "link": {
+         "text": "1SCC301491F0001",
+         "documentId": "1SCC301491F0001",
+         "type": "Document"
+        }
+       },
+       {
+        "text": "OT1250E03.igs",
+        "link": {
+         "text": "OT1250E03.igs",
+         "documentId": "OT1250E03.igs",
+         "type": "Document"
+        }
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     }
+    }
+   },
+   {
+    "code": "Environmental",
+    "description": "Environmental",
+    "visible": true,
+    "attributes": {
+     "DegreeOfProtection": {
+      "type": "Text",
+      "attributeCode": "DegreeOfProtection",
+      "attributeName": "Degree of Protection",
+      "values": [
+       {
+        "text": "Front IP00"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "PollutionDegree": {
+      "type": "Enum",
+      "attributeCode": "PollutionDegree",
+      "attributeName": "Pollution Degree",
+      "values": [
+       {
+        "text": "3",
+        "enumerationValueCode": "3"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     }
+    }
+   },
+   {
+    "code": "Ordering",
+    "description": "Ordering",
+    "visible": true,
+    "attributes": {
+     "MinimumOrderQuantity": {
+      "type": "Text",
+      "attributeCode": "MinimumOrderQuantity",
+      "attributeName": "Minimum Order Quantity",
+      "values": [
+       {
+        "text": "1 piece"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "CustomsTariffNumber": {
+      "type": "Text",
+      "attributeCode": "CustomsTariffNumber",
+      "attributeName": "Customs Tariff Number",
+      "values": [
+       {
+        "text": "85365080"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "CountryOfOrigin": {
+      "type": "Enum",
+      "attributeCode": "CountryOfOrigin",
+      "attributeName": "Country of Origin",
+      "values": [
+       {
+        "text": "Finland",
+        "enumerationValueCode": "FI"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     }
+    }
+   },
+   {
+    "code": "Dimensions",
+    "description": "Dimensions",
+    "visible": true,
+    "attributes": {
+     "ProductNetWidth": {
+      "type": "Text",
+      "attributeCode": "ProductNetWidth",
+      "attributeName": "Product Net Width",
+      "values": [
+       {
+        "text": "334.5 mm"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "tooltip": "Width of a single unpacked product",
+      "highlight": false
+     },
+     "ProductNetHeight": {
+      "type": "Text",
+      "attributeCode": "ProductNetHeight",
+      "attributeName": "Product Net Height",
+      "values": [
+       {
+        "text": "306 mm"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "tooltip": "Height of a single unpacked product",
+      "highlight": false
+     },
+     "ProductNetDepth": {
+      "type": "Text",
+      "attributeCode": "ProductNetDepth",
+      "attributeName": "Product Net Depth / Length",
+      "values": [
+       {
+        "text": "145.5 mm"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "tooltip": "Depth of a single unpacked product",
+      "highlight": false
+     },
+     "ProductNetWeight": {
+      "type": "Text",
+      "attributeCode": "ProductNetWeight",
+      "attributeName": "Product Net Weight",
+      "values": [
+       {
+        "text": "14.7 kg"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "tooltip": "Weight of a single unpacked product",
+      "highlight": false
+     }
+    }
+   },
+   {
+    "code": "ConInf",
+    "description": "Container Information",
+    "visible": true,
+    "attributes": {
+     "PackageLevel1Units": {
+      "type": "Text",
+      "attributeCode": "PackageLevel1Units",
+      "attributeName": "Package Level 1 Units",
+      "values": [
+       {
+        "text": "box 1 piece"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "PackageLevel1Width": {
+      "type": "Text",
+      "attributeCode": "PackageLevel1Width",
+      "attributeName": "Package Level 1 Width",
+      "values": [
+       {
+        "text": "400 mm"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "PackageLevel1Length": {
+      "type": "Text",
+      "attributeCode": "PackageLevel1Length",
+      "attributeName": "Package Level 1 Depth / Length",
+      "values": [
+       {
+        "text": "435 mm"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "PackageLevel1Height": {
+      "type": "Text",
+      "attributeCode": "PackageLevel1Height",
+      "attributeName": "Package Level 1 Height",
+      "values": [
+       {
+        "text": "170 mm"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "PacLev1GroWei": {
+      "type": "Text",
+      "attributeCode": "PacLev1GroWei",
+      "attributeName": "Package Level 1 Gross Weight",
+      "values": [
+       {
+        "text": "16 kg"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "PackageLevel1Ean": {
+      "type": "Text",
+      "attributeCode": "PackageLevel1Ean",
+      "attributeName": "Package Level 1 EAN",
+      "values": [
+       {
+        "text": "6417019309293"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     }
+    }
+   },
+   {
+    "code": "Technical",
+    "description": "Technical",
+    "visible": true,
+    "attributes": {
+     "Color": {
+      "type": "Text",
+      "attributeCode": "Color",
+      "attributeName": "Color",
+      "values": [
+       {
+        "text": "Grey"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "ConFreAirTheCur": {
+      "type": "Text",
+      "attributeCode": "ConFreAirTheCur",
+      "attributeName": "Conventional Free-air Thermal Current (I<sub>th</sub>)",
+      "values": [
+       {
+        "text": "Θ = 40 °C 1000 A"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "ConTheCur": {
+      "type": "Text",
+      "attributeCode": "ConTheCur",
+      "attributeName": "Conventional Thermal Current (I<sub>the</sub>)",
+      "values": [
+       {
+        "text": "Fully Enclosed 1000 A"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "DisBetPha": {
+      "type": "Text",
+      "attributeCode": "DisBetPha",
+      "attributeName": "Distance Between Phases",
+      "values": [
+       {
+        "text": "Standard"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "MechanicalDurability": {
+      "type": "Text",
+      "attributeCode": "MechanicalDurability",
+      "attributeName": "Mechanical Durability",
+      "values": [
+       {
+        "text": "6000"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "MountingType": {
+      "type": "Text",
+      "attributeCode": "MountingType",
+      "attributeName": "Mounting Type",
+      "values": [
+       {
+        "text": "Base mounting"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "NumberOfPoles": {
+      "type": "Enum",
+      "attributeCode": "NumberOfPoles",
+      "attributeName": "Number of Poles",
+      "values": [
+       {
+        "text": "3P",
+        "enumerationValueCode": "3"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "OperatingMode": {
+      "type": "Enum",
+      "attributeCode": "OperatingMode",
+      "attributeName": "Operating Mode",
+      "values": [
+       {
+        "text": "Front",
+        "enumerationValueCode": "Front"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "PosLinTer": {
+      "type": "Enum",
+      "attributeCode": "PosLinTer",
+      "attributeName": "Position of Line Terminals",
+      "values": [
+       {
+        "text": "Top In - Bottom Out",
+        "enumerationValueCode": "TopInBottomOut"
+       },
+       {
+        "text": "Bottom In - Top Out",
+        "enumerationValueCode": "BottomInTopOut"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "PowerLoss": {
+      "type": "Text",
+      "attributeCode": "PowerLoss",
+      "attributeName": "Power Loss",
+      "values": [
+       {
+        "text": "at Rated Operating Conditions per Pole 19 W"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "RatImpWitVol": {
+      "type": "Text",
+      "attributeCode": "RatImpWitVol",
+      "attributeName": "Rated Impulse Withstand Voltage (U<sub>imp</sub>)",
+      "values": [
+       {
+        "text": "12 kV"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "RatInsVol": {
+      "type": "Text",
+      "attributeCode": "RatInsVol",
+      "attributeName": "Rated Insulation Voltage (U<sub>i</sub>)",
+      "values": [
+       {
+        "text": "acc. to IEC/EN 60664-1 1000 V"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "RatOpeCurAc21a": {
+      "type": "Text",
+      "attributeCode": "RatOpeCurAc21a",
+      "attributeName": "Rated Operational Current AC-21A (I<sub>e</sub>)",
+      "values": [
+       {
+        "text": "(380 ... 415 V) 1000 A"
+       },
+       {
+        "text": "(500 V) 1000 A"
+       },
+       {
+        "text": "(690 V) 1000 A"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "RatOpeCurAc22a": {
+      "type": "Text",
+      "attributeCode": "RatOpeCurAc22a",
+      "attributeName": "Rated Operational Current AC-22A (I<sub>e</sub>)",
+      "values": [
+       {
+        "text": "(380 ... 415 V) 1000 A"
+       },
+       {
+        "text": "(500 V) 1000 A"
+       },
+       {
+        "text": "(690 V) 1000 A"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "RatOpeCurAc23a": {
+      "type": "Text",
+      "attributeCode": "RatOpeCurAc23a",
+      "attributeName": "Rated Operational Current AC-23A (I<sub>e</sub>)",
+      "values": [
+       {
+        "text": "(380 ... 415 V) 1000 A"
+       },
+       {
+        "text": "(500 V) 1000 A"
+       },
+       {
+        "text": "(690 V) 1000 A"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "RatOpePowAc23a": {
+      "type": "Text",
+      "attributeCode": "RatOpePowAc23a",
+      "attributeName": "Rated Operational Power AC-23A (P<sub>e</sub>)",
+      "values": [
+       {
+        "text": "(400 ... 415 V) 560 kW"
+       },
+       {
+        "text": "(500 V) 710 kW"
+       },
+       {
+        "text": "(690 V) 1000 kW"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "RatOpeVol": {
+      "type": "Text",
+      "attributeCode": "RatOpeVol",
+      "attributeName": "Rated Operational Voltage",
+      "values": [
+       {
+        "text": "Main Circuit 1000 V"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "RatShoCirMakCap": {
+      "type": "Text",
+      "attributeCode": "RatShoCirMakCap",
+      "attributeName": "Rated Short-Circuit Making Capacity (I<sub>cm</sub>)",
+      "values": [
+       {
+        "text": "(690 V) 110 kA"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "RatShoTimWitCur": {
+      "type": "Text",
+      "attributeCode": "RatShoTimWitCur",
+      "attributeName": "Rated Short-time Withstand Current Low Voltage (I<sub>cw</sub>)",
+      "values": [
+       {
+        "text": "for 1 s 50 kA"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "SpecialFunctions": {
+      "type": "Text",
+      "attributeCode": "SpecialFunctions",
+      "attributeName": "Special Functions",
+      "values": [
+       {
+        "text": "No"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "Standards": {
+      "type": "Text",
+      "attributeCode": "Standards",
+      "attributeName": "Standards",
+      "values": [
+       {
+        "text": "IEC 60947-3"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "OperatingMechanism": {
+      "type": "Enum",
+      "attributeCode": "OperatingMechanism",
+      "attributeName": "Switches Operating Mechanism",
+      "values": [
+       {
+        "text": "Mechanism at the End of the Switch",
+        "enumerationValueCode": "MecEndSwi"
+       },
+       {
+        "text": "03 (Left Side)",
+        "enumerationValueCode": "03LeftSide"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "TerminalType": {
+      "type": "Enum",
+      "attributeCode": "TerminalType",
+      "attributeName": "Terminal Type",
+      "values": [
+       {
+        "text": "Lug terminals",
+        "enumerationValueCode": "Lug"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "TighteningTorque": {
+      "type": "Text",
+      "attributeCode": "TighteningTorque",
+      "attributeName": "Tightening Torque",
+      "values": [
+       {
+        "text": "acc. IEC 60947-1 50 … 75 N·m"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     }
+    }
+   },
+   {
+    "code": "CerDec",
+    "description": "Certificates and Declarations",
+    "visible": true,
+    "attributes": {
+     "A2LCertificateIec": {
+      "type": "Text",
+      "attributeCode": "A2LCertificateIec",
+      "attributeName": "A2L Certificate – IEC",
+      "values": [
+       {
+        "text": "1SCC301338D0201",
+        "link": {
+         "text": "1SCC301338D0201",
+         "documentId": "1SCC301338D0201",
+         "type": "Document"
+        }
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "tooltip": "acc. to IEC 60335-2-40",
+      "highlight": false
+     },
+     "DecConCe": {
+      "type": "Text",
+      "attributeCode": "DecConCe",
+      "attributeName": "Declaration of Conformity - CE",
+      "values": [
+       {
+        "text": "1SCC301155D2704",
+        "link": {
+         "text": "1SCC301155D2704",
+         "documentId": "1SCC301155D2704",
+         "type": "Document"
+        }
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "DnvGlCertificate": {
+      "type": "Text",
+      "attributeCode": "DnvGlCertificate",
+      "attributeName": "DNV GL Certificate",
+      "values": [
+       {
+        "text": "1SCC301184D0203",
+        "link": {
+         "text": "1SCC301184D0203",
+         "documentId": "1SCC301184D0203",
+         "type": "Document"
+        }
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     }
+    }
+   },
+   {
+    "code": "Classifications",
+    "description": "External Classifications and Standards",
+    "visible": true,
+    "attributes": {
+     "ObjClaCod": {
+      "type": "Text",
+      "attributeCode": "ObjClaCod",
+      "attributeName": "Object Classification Code",
+      "values": [
+       {
+        "text": "Q"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "Etim9": {
+      "type": "Enum",
+      "attributeCode": "Etim9",
+      "attributeName": "ETIM 9",
+      "values": [
+       {
+        "text": "EC000216 - Switch disconnector (low voltage)",
+        "enumerationValueCode": "EC000216"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "Etim10": {
+      "type": "Enum",
+      "attributeCode": "Etim10",
+      "attributeName": "ETIM 10",
+      "values": [
+       {
+        "text": "EC000216 - Switch disconnector (AC)",
+        "enumerationValueCode": "EC000216"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "Unspsc": {
+      "type": "Text",
+      "attributeCode": "Unspsc",
+      "attributeName": "UNSPSC",
+      "values": [
+       {
+        "text": "39122221"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "Eclass": {
+      "type": "Text",
+      "attributeCode": "Eclass",
+      "attributeName": "eClass",
+      "values": [
+       {
+        "text": "V11.1 : 27371403"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "WeeeCategory": {
+      "type": "Enum",
+      "attributeCode": "WeeeCategory",
+      "attributeName": "WEEE Category",
+      "values": [
+       {
+        "text": "5. Small Equipment (No External Dimension More Than 50 cm)",
+        "enumerationValueCode": "5SmallEquipment"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "ENumberFI": {
+      "type": "Text",
+      "attributeCode": "ENumberFI",
+      "attributeName": "E-Number (Finland)",
+      "values": [
+       {
+        "text": "3661598"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     }
+    }
+   }
+  ],
+  "listCode": "EPPC_Switches_CableDistributionCabinets_DCDisconnectors_SolarPower_and_Enclosed_detail_page"
+ },
+ "productClassifications": {
+  "items": {
+   "Products": [
+    [
+     {
+      "cid": "ROOT",
+      "name": "Products",
+      "inactive": false
+     },
+     {
+      "cid": "9AAC910006",
+      "name": "Low Voltage Products and Systems",
+      "inactive": false
+     },
+     {
+      "cid": "9AAC100793",
+      "name": "Switches",
+      "inactive": false
+     },
+     {
+      "cid": "9AAC100796",
+      "name": "Switch Disconnectors",
+      "inactive": false
+     }
+    ]
+   ]
+  }
+ },
+ "productRelationships": {},
+ "relatedLinks": {},
+ "productVariantsSelector": {},
+ "productVariantsTable": {},
+ "productVariantsDropdown": {}
+}

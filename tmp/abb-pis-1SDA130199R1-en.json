@@ -1,0 +1,787 @@
+{
+ "productDetails": {
+  "item": {
+   "inactive": false,
+   "images": [
+    {
+     "url": "https://cdn.productimages.abb.com/9PAA00000374356_400x400.png",
+     "thumbnailUrl": "https://cdn.productimages.abb.com/9PAA00000374356_100x100.png",
+     "masterUrl": "https://cdn.productimages.abb.com/9PAA00000374356_master.png"
+    },
+    {
+     "url": "https://cdn.productimages.abb.com/9PAA00000374357_400x400.png",
+     "thumbnailUrl": "https://cdn.productimages.abb.com/9PAA00000374357_100x100.png",
+     "masterUrl": "https://cdn.productimages.abb.com/9PAA00000374357_master.png"
+    },
+    {
+     "url": "https://cdn.productimages.abb.com/9PAA00000374358_400x400.png",
+     "thumbnailUrl": "https://cdn.productimages.abb.com/9PAA00000374358_100x100.png",
+     "masterUrl": "https://cdn.productimages.abb.com/9PAA00000374358_master.png"
+    }
+   ],
+   "published": true,
+   "variantsAvailable": false,
+   "productIdDomain": "ABB",
+   "sparePart": false,
+   "exactMatch": false,
+   "classifications": {
+    "classCids": [
+     "9AAF629655"
+    ],
+    "typeCids": [],
+    "leafCids": [
+     "9AAF629655"
+    ],
+    "level0Cids": [
+     "9AAC910006"
+    ]
+   },
+   "productId": "1SDA130199R1",
+   "attributes": {
+    "ExtendedProductType": {
+     "type": "Text",
+     "attributeCode": "ExtendedProductType",
+     "attributeName": "Extended Product Type",
+     "values": [
+      {
+       "text": "E4.3-A W FP Iu=2500 3p w/o terminals UL"
+      }
+     ],
+     "isInternal": false,
+     "internal": false,
+     "highlight": false
+    },
+    "ProductId": {
+     "type": "Text",
+     "attributeCode": "ProductId",
+     "attributeName": "Product ID",
+     "values": [
+      {
+       "text": "1SDA130199R1"
+      }
+     ],
+     "isInternal": false,
+     "internal": false,
+     "highlight": false
+    },
+    "Ean": {
+     "type": "Text",
+     "attributeCode": "Ean",
+     "attributeName": "EAN",
+     "values": [
+      {
+       "text": "8056221316286"
+      }
+     ],
+     "isInternal": false,
+     "internal": false,
+     "highlight": false
+    },
+    "CatalogDescription": {
+     "type": "Text",
+     "attributeCode": "CatalogDescription",
+     "attributeName": "Catalog Description",
+     "values": [
+      {
+       "text": "SACE Emax 3 E4.3-A W FP Iu=2500 3p w/o terminals UL"
+      }
+     ],
+     "isInternal": false,
+     "internal": false,
+     "highlight": false
+    },
+    "LongDescription": {
+     "type": "Text",
+     "attributeCode": "LongDescription",
+     "attributeName": "Long Description",
+     "values": [
+      {
+       "text": "FIXED PART WITHDRAWABLE FOR C.BREAKER SACE EMAX3 E4.3-A 2500 THREE-POLE WITHOUT TERMINALS"
+      }
+     ],
+     "isInternal": false,
+     "internal": false,
+     "highlight": false
+    },
+    "#DisplayName": {
+     "type": "Text",
+     "attributeCode": "#DisplayName",
+     "attributeName": "Display Name",
+     "values": [
+      {
+       "text": "E4.3-A W FP Iu=2500 3p w/o terminals UL"
+      }
+     ],
+     "isInternal": false,
+     "internal": false,
+     "highlight": false
+    }
+   }
+  }
+ },
+ "attributeGroups": {
+  "items": [
+   {
+    "code": "MaterialCompliance",
+    "description": "Material Compliance",
+    "visible": true,
+    "attributes": {
+     "ReachDeclaration": {
+      "type": "Text",
+      "attributeCode": "ReachDeclaration",
+      "attributeName": "REACH Declaration",
+      "values": [
+       {
+        "text": "9AKK108466A1425",
+        "link": {
+         "text": "9AKK108466A1425",
+         "documentId": "9AKK108466A1425",
+         "type": "Document"
+        }
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "RoHSInformation": {
+      "type": "Text",
+      "attributeCode": "RoHSInformation",
+      "attributeName": "RoHS Declaration",
+      "values": [
+       {
+        "text": "9AKK108466A1424",
+        "link": {
+         "text": "9AKK108466A1424",
+         "documentId": "9AKK108466A1424",
+         "type": "Document"
+        }
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "RoHSStatus": {
+      "type": "Enum",
+      "attributeCode": "RoHSStatus",
+      "attributeName": "RoHS Information",
+      "values": [
+       {
+        "text": "Following EU Directive 2011/65/EU and Amendment 2015/863 July 22, 2019",
+        "enumerationValueCode": "20190722"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "ConMinRepTem": {
+      "type": "Text",
+      "attributeCode": "ConMinRepTem",
+      "attributeName": "Conflict Minerals Reporting Template (CMRT)",
+      "values": [
+       {
+        "text": "9AKK108467A5658",
+        "link": {
+         "text": "9AKK108467A5658",
+         "documentId": "9AKK108467A5658",
+         "type": "Document"
+        }
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "ToxSubConAct": {
+      "type": "Text",
+      "attributeCode": "ToxSubConAct",
+      "attributeName": "Toxic Substances Control Act - TSCA",
+      "values": [
+       {
+        "text": "9AKK108467A8326",
+        "link": {
+         "text": "9AKK108467A8326",
+         "documentId": "9AKK108467A8326",
+         "type": "Document"
+        }
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     }
+    }
+   },
+   {
+    "code": "Environmental",
+    "description": "Environmental",
+    "visible": true,
+    "attributes": {
+     "EnvInf": {
+      "type": "Text",
+      "attributeCode": "EnvInf",
+      "attributeName": "Environmental Information",
+      "values": [
+       {
+        "text": "9AKK108467A6707",
+        "link": {
+         "text": "9AKK108467A6707",
+         "documentId": "9AKK108467A6707",
+         "type": "Document"
+        }
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     }
+    }
+   },
+   {
+    "code": "Ordering",
+    "description": "Ordering",
+    "visible": true,
+    "attributes": {
+     "Ean": {
+      "type": "Text",
+      "attributeCode": "Ean",
+      "attributeName": "EAN",
+      "values": [
+       {
+        "text": "8056221316286"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "MinimumOrderQuantity": {
+      "type": "Text",
+      "attributeCode": "MinimumOrderQuantity",
+      "attributeName": "Minimum Order Quantity",
+      "values": [
+       {
+        "text": "1 piece"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "CustomsTariffNumber": {
+      "type": "Text",
+      "attributeCode": "CustomsTariffNumber",
+      "attributeName": "Customs Tariff Number",
+      "values": [
+       {
+        "text": "85389099"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     }
+    }
+   },
+   {
+    "code": "Dimensions",
+    "description": "Dimensions",
+    "visible": true,
+    "attributes": {
+     "ProductNetWidth": {
+      "type": "Text",
+      "attributeCode": "ProductNetWidth",
+      "attributeName": "Product Net Width",
+      "values": [
+       {
+        "text": "590 mm"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "tooltip": "Width of a single unpacked product",
+      "highlight": false
+     },
+     "ProductNetHeight": {
+      "type": "Text",
+      "attributeCode": "ProductNetHeight",
+      "attributeName": "Product Net Height",
+      "values": [
+       {
+        "text": "630 mm"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "tooltip": "Height of a single unpacked product",
+      "highlight": false
+     },
+     "ProductNetDepth": {
+      "type": "Text",
+      "attributeCode": "ProductNetDepth",
+      "attributeName": "Product Net Depth / Length",
+      "values": [
+       {
+        "text": "710 mm"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "tooltip": "Depth of a single unpacked product",
+      "highlight": false
+     },
+     "ProductNetWeight": {
+      "type": "Text",
+      "attributeCode": "ProductNetWeight",
+      "attributeName": "Product Net Weight",
+      "values": [
+       {
+        "text": "50 kg"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "tooltip": "Weight of a single unpacked product",
+      "highlight": false
+     },
+     "GrossWeight": {
+      "type": "Text",
+      "attributeCode": "GrossWeight",
+      "attributeName": "Gross Weight",
+      "values": [
+       {
+        "text": "62 kg"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     }
+    }
+   },
+   {
+    "code": "ConInf",
+    "description": "Container Information",
+    "visible": true,
+    "attributes": {
+     "PackageLevel1Units": {
+      "type": "Text",
+      "attributeCode": "PackageLevel1Units",
+      "attributeName": "Package Level 1 Units",
+      "values": [
+       {
+        "text": "box 1 piece"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "PackageLevel1Ean": {
+      "type": "Text",
+      "attributeCode": "PackageLevel1Ean",
+      "attributeName": "Package Level 1 EAN",
+      "values": [
+       {
+        "text": "8056221316286"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     }
+    }
+   },
+   {
+    "code": "AddInf",
+    "description": "Additional Information",
+    "visible": true,
+    "attributes": {
+     "CirBreTypToBeAss": {
+      "type": "Enum",
+      "attributeCode": "CirBreTypToBeAss",
+      "attributeName": "Circuit Breaker Type to be Associated",
+      "values": [
+       {
+        "text": "Power Distribution",
+        "enumerationValueCode": "PowerDistribution"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "ProductMainType": {
+      "type": "Text",
+      "attributeCode": "ProductMainType",
+      "attributeName": "Product Main Type",
+      "values": [
+       {
+        "text": "SACE Emax 3"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "ProductName": {
+      "type": "Text",
+      "attributeCode": "ProductName",
+      "attributeName": "Product Name",
+      "values": [
+       {
+        "text": "Accessory"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "ProductType": {
+      "type": "Text",
+      "attributeCode": "ProductType",
+      "attributeName": "Product Type",
+      "values": [
+       {
+        "text": "Fixed Part"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "SuitableFor": {
+      "type": "Text",
+      "attributeCode": "SuitableFor",
+      "attributeName": "Suitable For",
+      "values": [
+       {
+        "text": "E4.3"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "SuitableForClass": {
+      "type": "Text",
+      "attributeCode": "SuitableForClass",
+      "attributeName": "Suitable for Product Class",
+      "values": [
+       {
+        "text": "Emax 3"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "Version": {
+      "type": "Enum",
+      "attributeCode": "Version",
+      "attributeName": "Version",
+      "values": [
+       {
+        "text": "WFP",
+        "enumerationValueCode": "Wfp"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     }
+    }
+   },
+   {
+    "code": "Technical",
+    "description": "Technical",
+    "visible": true,
+    "attributes": {
+     "ConnectingCapacity": {
+      "type": "Text",
+      "attributeCode": "ConnectingCapacity",
+      "attributeName": "Connecting Capacity",
+      "values": [
+       {
+        "text": "2581 mm²"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "CurrentType": {
+      "type": "Text",
+      "attributeCode": "CurrentType",
+      "attributeName": "Current Type",
+      "values": [
+       {
+        "text": "AC"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "NumberOfPoles": {
+      "type": "Enum",
+      "attributeCode": "NumberOfPoles",
+      "attributeName": "Number of Poles",
+      "values": [
+       {
+        "text": "3P",
+        "enumerationValueCode": "3"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "RatedCurrent": {
+      "type": "Text",
+      "attributeCode": "RatedCurrent",
+      "attributeName": "Rated Current (I<sub>n</sub>)",
+      "values": [
+       {
+        "text": "2500 A"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "RatedVoltage": {
+      "type": "Text",
+      "attributeCode": "RatedVoltage",
+      "attributeName": "Rated Voltage (U<sub>r</sub>)",
+      "values": [
+       {
+        "text": "600 V"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "RecScrDri": {
+      "type": "Text",
+      "attributeCode": "RecScrDri",
+      "attributeName": "Recommended Screw Driver",
+      "values": [
+       {
+        "text": "M12"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "Standards": {
+      "type": "Text",
+      "attributeCode": "Standards",
+      "attributeName": "Standards",
+      "values": [
+       {
+        "text": "UL1066"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     }
+    }
+   },
+   {
+    "code": "CerDec",
+    "description": "Certificates and Declarations",
+    "visible": true,
+    "attributes": {
+     "AtexCertificate": {
+      "type": "Text",
+      "attributeCode": "AtexCertificate",
+      "attributeName": "ATEX Certificate",
+      "values": [
+       {
+        "text": "No certification needed",
+        "link": {
+         "text": "No certification needed",
+         "documentId": "No certification needed",
+         "type": "Document"
+        }
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "DatSheTecInf": {
+      "type": "Text",
+      "attributeCode": "DatSheTecInf",
+      "attributeName": "Data Sheet, Technical Information",
+      "values": [
+       {
+        "text": "1SDC220101D0201",
+        "link": {
+         "text": "1SDC220101D0201",
+         "documentId": "1SDC220101D0201",
+         "type": "Document"
+        }
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "VdeCertificate": {
+      "type": "Text",
+      "attributeCode": "VdeCertificate",
+      "attributeName": "VDE Certificate",
+      "values": [
+       {
+        "text": "No certification needed",
+        "link": {
+         "text": "No certification needed",
+         "documentId": "No certification needed",
+         "type": "Document"
+        }
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "InsMan": {
+      "type": "Text",
+      "attributeCode": "InsMan",
+      "attributeName": "Instructions and Manuals",
+      "values": [
+       {
+        "text": "1SDH002310A1820",
+        "link": {
+         "text": "1SDH002310A1820",
+         "documentId": "1SDH002310A1820",
+         "type": "Document"
+        }
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     }
+    }
+   },
+   {
+    "code": "Classifications",
+    "description": "External Classifications and Standards",
+    "visible": true,
+    "attributes": {
+     "Etim9": {
+      "type": "Enum",
+      "attributeCode": "Etim9",
+      "attributeName": "ETIM 9",
+      "values": [
+       {
+        "text": "EC002043 - Chassis part power circuit breaker",
+        "enumerationValueCode": "EC002043"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "Etim10": {
+      "type": "Enum",
+      "attributeCode": "Etim10",
+      "attributeName": "ETIM 10",
+      "values": [
+       {
+        "text": "EC002043 - Chassis part power circuit breaker",
+        "enumerationValueCode": "EC002043"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "WeeeCategory": {
+      "type": "Enum",
+      "attributeCode": "WeeeCategory",
+      "attributeName": "WEEE Category",
+      "values": [
+       {
+        "text": "5. Small Equipment (No External Dimension More Than 50 cm)",
+        "enumerationValueCode": "5SmallEquipment"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "Eclass": {
+      "type": "Text",
+      "attributeCode": "Eclass",
+      "attributeName": "eClass",
+      "values": [
+       {
+        "text": "V13.0 : 27370422"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     }
+    }
+   }
+  ],
+  "listCode": "ELSP_Default_US_Ordering_Codes_Breakers"
+ },
+ "productClassifications": {
+  "items": {
+   "Products": [
+    [
+     {
+      "cid": "ROOT",
+      "name": "Products",
+      "inactive": false
+     },
+     {
+      "cid": "9AAC910006",
+      "name": "Low Voltage Products and Systems",
+      "inactive": false
+     },
+     {
+      "cid": "9AAC100085",
+      "name": "Circuit Breakers",
+      "inactive": false
+     },
+     {
+      "cid": "9AAC100086",
+      "name": "Air Circuit Breakers",
+      "inactive": false
+     },
+     {
+      "cid": "9AAF629655",
+      "name": "Accessories for Emax 3",
+      "inactive": false
+     }
+    ]
+   ]
+  }
+ },
+ "productRelationships": {},
+ "relatedLinks": {
+  "items": [
+   {
+    "text": "2D & 3D Data E4.3-A W FP Iu=2500 3p w/o terminals UL",
+    "url": "https://abb-control-products.partcommunity.com?info=abb_ww%2Flow_voltage%2Fbreakers%2Fdemo%2Femax2%2Femax4_3_asmtab.prj&varset=%7BPN%3D1SDA130199R1%7D",
+    "image": "https://cdn.productimages.abb.com/9PAA00000154092_400x400.jpg",
+    "internal": false
+   }
+  ]
+ },
+ "productVariantsSelector": {},
+ "productVariantsTable": {},
+ "productVariantsDropdown": {}
+}

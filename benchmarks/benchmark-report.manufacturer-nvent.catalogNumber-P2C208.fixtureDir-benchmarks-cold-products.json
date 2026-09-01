@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-08-31T16:35:54.518Z",
-  "outputDir": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260831163547",
+  "generatedAt": "2026-09-01T05:14:13.715Z",
+  "outputDir": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260901051406",
   "filters": {
     "manufacturer": "nvent",
     "catalogNumber": "P2C208",
@@ -969,7 +969,7 @@
       ],
       "status": "found",
       "confidence": 0.4,
-      "elapsedMs": 6570,
+      "elapsedMs": 7370,
       "productUrl": "https://www.nvent.com/en-us/hoffman/products/encp2c208",
       "identityConfirmed": true,
       "wrongProduct": false,
@@ -977,7 +977,7 @@
       "requiredDocumentsMatched": true,
       "normalizedFieldsMatched": true,
       "pdtAuditMatched": true,
-      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260831163547\\pdt\\nvent-P2C208-pdt_pdt-audit.json",
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260901051406\\pdt\\nvent-P2C208-pdt_pdt-audit.json",
       "pdtWrittenCells": 33,
       "pdtBlankCells": 53,
       "pdtSkippedCells": 3,

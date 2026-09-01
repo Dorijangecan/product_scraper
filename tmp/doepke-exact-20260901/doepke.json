@@ -1,0 +1,12 @@
+[
+  {"manufacturerId":"doepke","catalogNumber":"09912076","caseType":"electrical","expectedDeviceType":"Miniature Circuit Breaker","riskTags":["cold","dc-mcb","dls-6hdc"],"expectedOfficialUrlPatterns":["doepke\\.de"],"expectedNormalizedFields":["voltage","current"]},
+  {"manufacturerId":"doepke","catalogNumber":"09949125","caseType":"electrical","expectedDeviceType":"Residual Current Device","riskTags":["cold","type-b-rcbo","drcbo"],"expectedOfficialUrlPatterns":["doepke\\.de"],"expectedNormalizedFields":["voltage","current"]},
+  {"manufacturerId":"doepke","catalogNumber":"09980410","caseType":"electrical","expectedDeviceType":"Contactor","riskTags":["cold","installation-contactor","hs2"],"expectedOfficialUrlPatterns":["doepke\\.de"],"expectedNormalizedFields":["voltage","current"]},
+  {"manufacturerId":"doepke","catalogNumber":"09980715","caseType":"electrical","expectedDeviceType":"Relay","riskTags":["cold","time-relay"],"expectedOfficialUrlPatterns":["doepke\\.de"]},
+  {"manufacturerId":"doepke","catalogNumber":"09920177","caseType":"accessory","expectedDeviceType":"Busbar","riskTags":["cold","fork-busbar","wiring-component"],"expectedOfficialUrlPatterns":["doepke\\.de"],"expectedNormalizedFields":["current"]},
+  {"manufacturerId":"doepke","catalogNumber":"09961302","caseType":"electrical","expectedDeviceType":"Switch","riskTags":["cold","afdd","fire-protection-switch"],"expectedOfficialUrlPatterns":["doepke\\.de"],"expectedNormalizedFields":["voltage","current"]},
+  {"manufacturerId":"doepke","catalogNumber":"09500153","caseType":"electrical","expectedDeviceType":"Switch","riskTags":["cold","impulse-switch","latching-relay"],"expectedOfficialUrlPatterns":["doepke\\.de"],"expectedNormalizedFields":["voltage","current"]},
+  {"manufacturerId":"doepke","catalogNumber":"09340250","caseType":"electrical","expectedDeviceType":"Current Sensor","riskTags":["cold","residual-current-monitor","drcm"],"expectedOfficialUrlPatterns":["doepke\\.de"],"expectedNormalizedFields":["voltage"]},
+  {"manufacturerId":"doepke","catalogNumber":"09340323","caseType":"electrical","expectedDeviceType":"Transformer","riskTags":["cold","residual-current-transformer","dct"],"expectedOfficialUrlPatterns":["doepke\\.de"]},
+  {"manufacturerId":"doepke","catalogNumber":"09146909","caseType":"electrical","expectedDeviceType":"Residual Current Device","riskTags":["cold","selective-rccb","dfs4-kv"],"expectedOfficialUrlPatterns":["doepke\\.de"],"expectedNormalizedFields":["voltage","current"]}
+]

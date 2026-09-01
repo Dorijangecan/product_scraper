@@ -1,0 +1,1552 @@
+{
+ "productDetails": {
+  "item": {
+   "inactive": false,
+   "images": [
+    {
+     "url": "https://cdn.productimages.abb.com/9PAA00000202855_400x400.jpg",
+     "thumbnailUrl": "https://cdn.productimages.abb.com/9PAA00000202855_100x100.jpg",
+     "masterUrl": "https://cdn.productimages.abb.com/9PAA00000202855_master.gif"
+    },
+    {
+     "url": "https://cdn.productimages.abb.com/9PAA00000090486_400x400.jpg",
+     "thumbnailUrl": "https://cdn.productimages.abb.com/9PAA00000090486_100x100.jpg",
+     "masterUrl": "https://cdn.productimages.abb.com/9PAA00000090486_master.jpg"
+    },
+    {
+     "url": "https://cdn.productimages.abb.com/9PAA00000090392_400x400.jpg",
+     "thumbnailUrl": "https://cdn.productimages.abb.com/9PAA00000090392_100x100.jpg",
+     "masterUrl": "https://cdn.productimages.abb.com/9PAA00000090392_master.jpg"
+    },
+    {
+     "url": "https://cdn.productimages.abb.com/9PAA00000090438_400x400.jpg",
+     "thumbnailUrl": "https://cdn.productimages.abb.com/9PAA00000090438_100x100.jpg",
+     "masterUrl": "https://cdn.productimages.abb.com/9PAA00000090438_master.jpg"
+    },
+    {
+     "url": "https://cdn.productimages.abb.com/9IBA181057_400x400.jpg",
+     "thumbnailUrl": "https://cdn.productimages.abb.com/9IBA181057_100x100.jpg",
+     "masterUrl": "https://cdn.productimages.abb.com/9IBA181057_master.jpg"
+    }
+   ],
+   "published": true,
+   "variantsAvailable": false,
+   "productIdDomain": "ABB",
+   "sparePart": true,
+   "exactMatch": false,
+   "classifications": {
+    "classCids": [
+     "9AAC100141",
+     "9AAF400065"
+    ],
+    "typeCids": [
+     "9AAC212134",
+     "9AAF622810"
+    ],
+    "leafCids": [
+     "9AAC212134",
+     "9AAF626992"
+    ],
+    "level0Cids": [
+     "9AAC910006",
+     "9AAC720001"
+    ]
+   },
+   "productId": "1SFA611100R1001",
+   "attributes": {
+    "ExtendedProductType": {
+     "type": "Text",
+     "attributeCode": "ExtendedProductType",
+     "attributeName": "Extended Product Type",
+     "values": [
+      {
+       "text": "MP1-10R"
+      }
+     ],
+     "isInternal": false,
+     "internal": false,
+     "highlight": false
+    },
+    "ProductId": {
+     "type": "Text",
+     "attributeCode": "ProductId",
+     "attributeName": "Product ID",
+     "values": [
+      {
+       "text": "1SFA611100R1001"
+      }
+     ],
+     "isInternal": false,
+     "internal": false,
+     "highlight": false
+    },
+    "Ean": {
+     "type": "Text",
+     "attributeCode": "Ean",
+     "attributeName": "EAN",
+     "values": [
+      {
+       "text": "7320500260975"
+      }
+     ],
+     "isInternal": false,
+     "internal": false,
+     "highlight": false
+    },
+    "CatalogDescription": {
+     "type": "Text",
+     "attributeCode": "CatalogDescription",
+     "attributeName": "Catalog Description",
+     "values": [
+      {
+       "text": "MP1-10R Pushbutton"
+      }
+     ],
+     "isInternal": false,
+     "internal": false,
+     "highlight": false
+    },
+    "LongDescription": {
+     "type": "Text",
+     "attributeCode": "LongDescription",
+     "attributeName": "Long Description",
+     "values": [
+      {
+       "text": "The MP1-10R Pushbutton is: Momentary - Flush - Red - Non-illuminated - Black Plastic - No contact block\nThis Pushbutton is part of ABB's modular plastic range, the most versatile range with a high level of flexibility and market-leading electrical ratings. Engineered for total reliability, longer lifetime, and highest mechanical durability. Self-cleaning contacts ensure reliable operation without the need for maintenance, increasing uptime. A high degree of protection guarantees reliability in extreme environments. The innovative design simplifies the entire process, from selection to easy and quick, tool-free installation. The perfect solution for every application."
+      }
+     ],
+     "isInternal": false,
+     "internal": false,
+     "highlight": false
+    },
+    "#DisplayName": {
+     "type": "Text",
+     "attributeCode": "#DisplayName",
+     "attributeName": "Display Name",
+     "values": [
+      {
+       "text": "MP1-10R"
+      }
+     ],
+     "isInternal": false,
+     "internal": false,
+     "highlight": false
+    }
+   }
+  }
+ },
+ "attributeGroups": {
+  "items": [
+   {
+    "code": "PUAETAD009",
+    "description": "Supplier Information - AETAD009",
+    "visible": false,
+    "sparePartSupplier": "PUAETAD009",
+    "attributes": {
+     "CountryOfOrigin_PUAETAD009": {
+      "type": "Enum",
+      "attributeCode": "CountryOfOrigin_PUAETAD009",
+      "attributeName": "Country of Origin",
+      "values": [
+       {
+        "text": "Sweden",
+        "enumerationValueCode": "SE"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "LeadTime_PUAETAD009": {
+      "type": "Text",
+      "attributeCode": "LeadTime_PUAETAD009",
+      "attributeName": "Lead Time",
+      "values": [
+       {
+        "text": "0 day"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "MadeToOrder_PUAETAD009": {
+      "type": "Enum",
+      "attributeCode": "MadeToOrder_PUAETAD009",
+      "attributeName": "Made To Order",
+      "values": [
+       {
+        "text": "No",
+        "enumerationValueCode": "N"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "NoWarrantyReturn_PUAETAD009": {
+      "type": "Enum",
+      "attributeCode": "NoWarrantyReturn_PUAETAD009",
+      "attributeName": "Warranty Return",
+      "values": [
+       {
+        "text": "Product under warranty must be returned",
+        "enumerationValueCode": "N"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "ProductSalesStatus_PUAETAD009": {
+      "type": "Enum",
+      "attributeCode": "ProductSalesStatus_PUAETAD009",
+      "attributeName": "Product Sales Status",
+      "values": [
+       {
+        "text": "Active",
+        "enumerationValueCode": "A"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "QuoteOnly_PUAETAD009": {
+      "type": "Enum",
+      "attributeCode": "QuoteOnly_PUAETAD009",
+      "attributeName": "Quote Only",
+      "values": [
+       {
+        "text": "No",
+        "enumerationValueCode": "N"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "StockedAtWarehouses_PUAETAD009": {
+      "type": "Text",
+      "attributeCode": "StockedAtWarehouses_PUAETAD009",
+      "attributeName": "Stocked At Warehouses",
+      "values": [
+       {
+        "text": "AETAD009EXPU"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     }
+    }
+   },
+   {
+    "code": "PUBRABB008",
+    "description": "Supplier Information - BRABB008",
+    "visible": false,
+    "sparePartSupplier": "PUBRABB008",
+    "attributes": {
+     "CountryOfOrigin_PUBRABB008": {
+      "type": "Enum",
+      "attributeCode": "CountryOfOrigin_PUBRABB008",
+      "attributeName": "Country of Origin",
+      "values": [
+       {
+        "text": "Sweden",
+        "enumerationValueCode": "SE"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "LeadTime_PUBRABB008": {
+      "type": "Text",
+      "attributeCode": "LeadTime_PUBRABB008",
+      "attributeName": "Lead Time",
+      "values": [
+       {
+        "text": "0 day"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "MadeToOrder_PUBRABB008": {
+      "type": "Enum",
+      "attributeCode": "MadeToOrder_PUBRABB008",
+      "attributeName": "Made To Order",
+      "values": [
+       {
+        "text": "No",
+        "enumerationValueCode": "N"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "NoWarrantyReturn_PUBRABB008": {
+      "type": "Enum",
+      "attributeCode": "NoWarrantyReturn_PUBRABB008",
+      "attributeName": "Warranty Return",
+      "values": [
+       {
+        "text": "Product under warranty must be returned",
+        "enumerationValueCode": "N"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "ProductSalesStatus_PUBRABB008": {
+      "type": "Enum",
+      "attributeCode": "ProductSalesStatus_PUBRABB008",
+      "attributeName": "Product Sales Status",
+      "values": [
+       {
+        "text": "Active",
+        "enumerationValueCode": "A"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "QuoteOnly_PUBRABB008": {
+      "type": "Enum",
+      "attributeCode": "QuoteOnly_PUBRABB008",
+      "attributeName": "Quote Only",
+      "values": [
+       {
+        "text": "No",
+        "enumerationValueCode": "N"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "StockedAtWarehouses_PUBRABB008": {
+      "type": "Text",
+      "attributeCode": "StockedAtWarehouses_PUBRABB008",
+      "attributeName": "Stocked At Warehouses",
+      "values": [
+       {
+        "text": "BRABB008EXPU"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     }
+    }
+   },
+   {
+    "code": "PUCHSEC006",
+    "description": "Supplier Information - CHSEC006",
+    "visible": false,
+    "sparePartSupplier": "PUCHSEC006",
+    "attributes": {
+     "CountryOfOrigin_PUCHSEC006": {
+      "type": "Enum",
+      "attributeCode": "CountryOfOrigin_PUCHSEC006",
+      "attributeName": "Country of Origin",
+      "values": [
+       {
+        "text": "Sweden",
+        "enumerationValueCode": "SE"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "LeadTime_PUCHSEC006": {
+      "type": "Text",
+      "attributeCode": "LeadTime_PUCHSEC006",
+      "attributeName": "Lead Time",
+      "values": [
+       {
+        "text": "0 day"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "MadeToOrder_PUCHSEC006": {
+      "type": "Enum",
+      "attributeCode": "MadeToOrder_PUCHSEC006",
+      "attributeName": "Made To Order",
+      "values": [
+       {
+        "text": "No",
+        "enumerationValueCode": "N"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "NoWarrantyReturn_PUCHSEC006": {
+      "type": "Enum",
+      "attributeCode": "NoWarrantyReturn_PUCHSEC006",
+      "attributeName": "Warranty Return",
+      "values": [
+       {
+        "text": "Product under warranty must be returned",
+        "enumerationValueCode": "N"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "ProductSalesStatus_PUCHSEC006": {
+      "type": "Enum",
+      "attributeCode": "ProductSalesStatus_PUCHSEC006",
+      "attributeName": "Product Sales Status",
+      "values": [
+       {
+        "text": "Active",
+        "enumerationValueCode": "A"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "QuoteOnly_PUCHSEC006": {
+      "type": "Enum",
+      "attributeCode": "QuoteOnly_PUCHSEC006",
+      "attributeName": "Quote Only",
+      "values": [
+       {
+        "text": "No",
+        "enumerationValueCode": "N"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "StockedAtWarehouses_PUCHSEC006": {
+      "type": "Text",
+      "attributeCode": "StockedAtWarehouses_PUCHSEC006",
+      "attributeName": "Stocked At Warehouses",
+      "values": [
+       {
+        "text": "CHSEC006EXPU"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     }
+    }
+   },
+   {
+    "code": "PUCNILX002",
+    "description": "Supplier Information - CNILX002",
+    "visible": false,
+    "sparePartSupplier": "PUCNILX002",
+    "attributes": {
+     "CountryOfOrigin_PUCNILX002": {
+      "type": "Enum",
+      "attributeCode": "CountryOfOrigin_PUCNILX002",
+      "attributeName": "Country of Origin",
+      "values": [
+       {
+        "text": "China",
+        "enumerationValueCode": "CN"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "LeadTime_PUCNILX002": {
+      "type": "Text",
+      "attributeCode": "LeadTime_PUCNILX002",
+      "attributeName": "Lead Time",
+      "values": [
+       {
+        "text": "28 day"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "MadeToOrder_PUCNILX002": {
+      "type": "Enum",
+      "attributeCode": "MadeToOrder_PUCNILX002",
+      "attributeName": "Made To Order",
+      "values": [
+       {
+        "text": "No",
+        "enumerationValueCode": "N"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "NoWarrantyReturn_PUCNILX002": {
+      "type": "Enum",
+      "attributeCode": "NoWarrantyReturn_PUCNILX002",
+      "attributeName": "Warranty Return",
+      "values": [
+       {
+        "text": "Product under warranty must be returned",
+        "enumerationValueCode": "N"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "ProductSalesStatus_PUCNILX002": {
+      "type": "Enum",
+      "attributeCode": "ProductSalesStatus_PUCNILX002",
+      "attributeName": "Product Sales Status",
+      "values": [
+       {
+        "text": "Inactive",
+        "enumerationValueCode": "I"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "QuoteOnly_PUCNILX002": {
+      "type": "Enum",
+      "attributeCode": "QuoteOnly_PUCNILX002",
+      "attributeName": "Quote Only",
+      "values": [
+       {
+        "text": "No",
+        "enumerationValueCode": "N"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     }
+    }
+   },
+   {
+    "code": "PUCZABB004",
+    "description": "Supplier Information - CZABB004",
+    "visible": false,
+    "sparePartSupplier": "PUCZABB004",
+    "attributes": {
+     "LeadTime_PUCZABB004": {
+      "type": "Text",
+      "attributeCode": "LeadTime_PUCZABB004",
+      "attributeName": "Lead Time",
+      "values": [
+       {
+        "text": "28 day"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "NoWarrantyReturn_PUCZABB004": {
+      "type": "Enum",
+      "attributeCode": "NoWarrantyReturn_PUCZABB004",
+      "attributeName": "Warranty Return",
+      "values": [
+       {
+        "text": "Product under warranty must be returned",
+        "enumerationValueCode": "N"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "StockedAtWarehouses_PUCZABB004": {
+      "type": "Text",
+      "attributeCode": "StockedAtWarehouses_PUCZABB004",
+      "attributeName": "Stocked At Warehouses",
+      "values": [
+       {
+        "text": "CZABB004EXPU"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "CountryOfOrigin_PUCZABB004": {
+      "type": "Enum",
+      "attributeCode": "CountryOfOrigin_PUCZABB004",
+      "attributeName": "Country of Origin",
+      "values": [
+       {
+        "text": "Sweden",
+        "enumerationValueCode": "SE"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "MadeToOrder_PUCZABB004": {
+      "type": "Enum",
+      "attributeCode": "MadeToOrder_PUCZABB004",
+      "attributeName": "Made To Order",
+      "values": [
+       {
+        "text": "No",
+        "enumerationValueCode": "N"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "ProductSalesStatus_PUCZABB004": {
+      "type": "Enum",
+      "attributeCode": "ProductSalesStatus_PUCZABB004",
+      "attributeName": "Product Sales Status",
+      "values": [
+       {
+        "text": "Active",
+        "enumerationValueCode": "A"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "QuoteOnly_PUCZABB004": {
+      "type": "Enum",
+      "attributeCode": "QuoteOnly_PUCZABB004",
+      "attributeName": "Quote Only",
+      "values": [
+       {
+        "text": "No",
+        "enumerationValueCode": "N"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     }
+    }
+   },
+   {
+    "code": "PUINABB015",
+    "description": "Supplier Information - INABB015",
+    "visible": false,
+    "sparePartSupplier": "PUINABB015",
+    "attributes": {
+     "CountryOfOrigin_PUINABB015": {
+      "type": "Enum",
+      "attributeCode": "CountryOfOrigin_PUINABB015",
+      "attributeName": "Country of Origin",
+      "values": [
+       {
+        "text": "India",
+        "enumerationValueCode": "IN"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "MadeToOrder_PUINABB015": {
+      "type": "Enum",
+      "attributeCode": "MadeToOrder_PUINABB015",
+      "attributeName": "Made To Order",
+      "values": [
+       {
+        "text": "No",
+        "enumerationValueCode": "N"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "NoWarrantyReturn_PUINABB015": {
+      "type": "Enum",
+      "attributeCode": "NoWarrantyReturn_PUINABB015",
+      "attributeName": "Warranty Return",
+      "values": [
+       {
+        "text": "Product under warranty must be returned",
+        "enumerationValueCode": "N"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "ProductSalesStatus_PUINABB015": {
+      "type": "Enum",
+      "attributeCode": "ProductSalesStatus_PUINABB015",
+      "attributeName": "Product Sales Status",
+      "values": [
+       {
+        "text": "Active",
+        "enumerationValueCode": "A"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "QuoteOnly_PUINABB015": {
+      "type": "Enum",
+      "attributeCode": "QuoteOnly_PUINABB015",
+      "attributeName": "Quote Only",
+      "values": [
+       {
+        "text": "No",
+        "enumerationValueCode": "N"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "StockedAtWarehouses_PUINABB015": {
+      "type": "Text",
+      "attributeCode": "StockedAtWarehouses_PUINABB015",
+      "attributeName": "Stocked At Warehouses",
+      "values": [
+       {
+        "text": "INABB015EXPU"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     }
+    }
+   },
+   {
+    "code": "Ordering",
+    "description": "Ordering",
+    "visible": true,
+    "attributes": {
+     "MinimumOrderQuantity": {
+      "type": "Text",
+      "attributeCode": "MinimumOrderQuantity",
+      "attributeName": "Minimum Order Quantity",
+      "values": [
+       {
+        "text": "10 piece"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "CustomsTariffNumber": {
+      "type": "Text",
+      "attributeCode": "CustomsTariffNumber",
+      "attributeName": "Customs Tariff Number",
+      "values": [
+       {
+        "text": "8536508000"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     }
+    }
+   },
+   {
+    "code": "PopularDownloads",
+    "description": "Popular Downloads",
+    "visible": true,
+    "attributes": {
+     "DatSheTecInf": {
+      "type": "Text",
+      "attributeCode": "DatSheTecInf",
+      "attributeName": "Data Sheet, Technical Information",
+      "values": [
+       {
+        "text": "1SFC151007C02__",
+        "link": {
+         "text": "1SFC151007C02__",
+         "documentId": "1SFC151007C02__",
+         "type": "Document"
+        }
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "InsMan": {
+      "type": "Text",
+      "attributeCode": "InsMan",
+      "attributeName": "Instructions and Manuals",
+      "values": [
+       {
+        "text": "1SFC151011M0201",
+        "link": {
+         "text": "1SFC151011M0201",
+         "documentId": "1SFC151011M0201",
+         "type": "Document"
+        }
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "MarketingVideo": {
+      "type": "Text",
+      "attributeCode": "MarketingVideo",
+      "attributeName": "Marketing Video",
+      "values": [
+       {
+        "text": "1SFC151037V0001",
+        "link": {
+         "text": "1SFC151037V0001",
+         "documentId": "1SFC151037V0001",
+         "type": "Document"
+        }
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     }
+    }
+   },
+   {
+    "code": "Dimensions",
+    "description": "Dimensions",
+    "visible": true,
+    "attributes": {
+     "ProductNetWidth": {
+      "type": "Text",
+      "attributeCode": "ProductNetWidth",
+      "attributeName": "Product Net Width",
+      "values": [
+       {
+        "text": "29 mm"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "tooltip": "Width of a single unpacked product",
+      "highlight": false
+     },
+     "ProductNetHeight": {
+      "type": "Text",
+      "attributeCode": "ProductNetHeight",
+      "attributeName": "Product Net Height",
+      "values": [
+       {
+        "text": "29 mm"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "tooltip": "Height of a single unpacked product",
+      "highlight": false
+     },
+     "ProductNetDepth": {
+      "type": "Text",
+      "attributeCode": "ProductNetDepth",
+      "attributeName": "Product Net Depth / Length",
+      "values": [
+       {
+        "text": "33 mm"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "tooltip": "Depth of a single unpacked product",
+      "highlight": false
+     },
+     "ProductNetWeight": {
+      "type": "Text",
+      "attributeCode": "ProductNetWeight",
+      "attributeName": "Product Net Weight",
+      "values": [
+       {
+        "text": "0.011 kg"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "tooltip": "Weight of a single unpacked product",
+      "highlight": false
+     }
+    }
+   },
+   {
+    "code": "Technical",
+    "description": "Technical",
+    "visible": true,
+    "attributes": {
+     "AmbAirTem": {
+      "type": "Text",
+      "attributeCode": "AmbAirTem",
+      "attributeName": "Ambient Air Temperature",
+      "values": [
+       {
+        "text": "Operation -25 ... +70 °C"
+       },
+       {
+        "text": "Storage -40 ... +85 °C"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "Color": {
+      "type": "Text",
+      "attributeCode": "Color",
+      "attributeName": "Color",
+      "values": [
+       {
+        "text": "Red"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "BezelMaterial": {
+      "type": "Enum",
+      "attributeCode": "BezelMaterial",
+      "attributeName": "Bezel Material",
+      "values": [
+       {
+        "text": "Plastic",
+        "enumerationValueCode": "Plastic"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "Illumination": {
+      "type": "Enum",
+      "attributeCode": "Illumination",
+      "attributeName": "Illumination",
+      "values": [
+       {
+        "text": "Non-illuminated",
+        "enumerationValueCode": "NonIlluminated"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "Function": {
+      "type": "Text",
+      "attributeCode": "Function",
+      "attributeName": "Function",
+      "values": [
+       {
+        "text": "Momentary"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "EnclosureTypeNema": {
+      "type": "Enum",
+      "attributeCode": "EnclosureTypeNema",
+      "attributeName": "Enclosure Type NEMA",
+      "values": [
+       {
+        "text": "Type1",
+        "enumerationValueCode": "Type1"
+       },
+       {
+        "text": "Type12",
+        "enumerationValueCode": "Type12"
+       },
+       {
+        "text": "Type13",
+        "enumerationValueCode": "Type13"
+       },
+       {
+        "text": "Type3R",
+        "enumerationValueCode": "Type3R"
+       },
+       {
+        "text": "Type4",
+        "enumerationValueCode": "Type4"
+       },
+       {
+        "text": "Type4X",
+        "enumerationValueCode": "Type4X"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "MechanicalDurability": {
+      "type": "Text",
+      "attributeCode": "MechanicalDurability",
+      "attributeName": "Mechanical Durability",
+      "values": [
+       {
+        "text": "2 million"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     }
+    }
+   },
+   {
+    "code": "Environmental",
+    "description": "Environmental",
+    "visible": true,
+    "attributes": {
+     "DegreeOfProtection": {
+      "type": "Text",
+      "attributeCode": "DegreeOfProtection",
+      "attributeName": "Degree of Protection",
+      "values": [
+       {
+        "text": "Front IP66"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     }
+    }
+   },
+   {
+    "code": "MaterialCompliance",
+    "description": "Material Compliance",
+    "visible": true,
+    "attributes": {
+     "ConMinRepTem": {
+      "type": "Text",
+      "attributeCode": "ConMinRepTem",
+      "attributeName": "Conflict Minerals Reporting Template (CMRT)",
+      "values": [
+       {
+        "text": "9AKK108467A5658",
+        "link": {
+         "text": "9AKK108467A5658",
+         "documentId": "9AKK108467A5658",
+         "type": "Document"
+        }
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "ReachDeclaration": {
+      "type": "Text",
+      "attributeCode": "ReachDeclaration",
+      "attributeName": "REACH Declaration",
+      "values": [
+       {
+        "text": "2CMT2022-006479",
+        "link": {
+         "text": "2CMT2022-006479",
+         "documentId": "2CMT2022-006479",
+         "type": "Document"
+        }
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "RoHSInformation": {
+      "type": "Text",
+      "attributeCode": "RoHSInformation",
+      "attributeName": "RoHS Declaration",
+      "values": [
+       {
+        "text": "2CMT2022-006498",
+        "link": {
+         "text": "2CMT2022-006498",
+         "documentId": "2CMT2022-006498",
+         "type": "Document"
+        }
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "RoHSStatus": {
+      "type": "Enum",
+      "attributeCode": "RoHSStatus",
+      "attributeName": "RoHS Information",
+      "values": [
+       {
+        "text": "Following EU Directive 2011/65/EU and Amendment 2015/863 July 22, 2019",
+        "enumerationValueCode": "20190722"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "ToxSubConAct": {
+      "type": "Text",
+      "attributeCode": "ToxSubConAct",
+      "attributeName": "Toxic Substances Control Act - TSCA",
+      "values": [
+       {
+        "text": "2CMT2023-006523",
+        "link": {
+         "text": "2CMT2023-006523",
+         "documentId": "2CMT2023-006523",
+         "type": "Document"
+        }
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "WeeeCategory": {
+      "type": "Enum",
+      "attributeCode": "WeeeCategory",
+      "attributeName": "WEEE Category",
+      "values": [
+       {
+        "text": "Product Not in WEEE Scope",
+        "enumerationValueCode": "ProNotInWeeSco"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     }
+    }
+   },
+   {
+    "code": "CerDec",
+    "description": "Certificates and Declarations",
+    "visible": true,
+    "attributes": {
+     "culusCertificate": {
+      "type": "Text",
+      "attributeCode": "culusCertificate",
+      "attributeName": "cULus Certificate",
+      "values": [
+       {
+        "text": "9AKK107046A9925",
+        "link": {
+         "text": "9AKK107046A9925",
+         "documentId": "9AKK107046A9925",
+         "type": "Document"
+        }
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "DecConCe": {
+      "type": "Text",
+      "attributeCode": "DecConCe",
+      "attributeName": "Declaration of Conformity - CE",
+      "values": [
+       {
+        "text": "2CMT2015-005452",
+        "link": {
+         "text": "2CMT2015-005452",
+         "documentId": "2CMT2015-005452",
+         "type": "Document"
+        }
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "DecConUkca": {
+      "type": "Text",
+      "attributeCode": "DecConUkca",
+      "attributeName": "Declaration of Conformity - UKCA",
+      "values": [
+       {
+        "text": "2CMT2020-006121",
+        "link": {
+         "text": "2CMT2020-006121",
+         "documentId": "2CMT2020-006121",
+         "type": "Document"
+        }
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "DnvGlCertificate": {
+      "type": "Text",
+      "attributeCode": "DnvGlCertificate",
+      "attributeName": "DNV GL Certificate",
+      "values": [
+       {
+        "text": "E-14107",
+        "link": {
+         "text": "E-14107",
+         "documentId": "E-14107",
+         "type": "Document"
+        }
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     }
+    }
+   },
+   {
+    "code": "ConInf",
+    "description": "Container Information",
+    "visible": true,
+    "attributes": {
+     "PackageLevel1Units": {
+      "type": "Text",
+      "attributeCode": "PackageLevel1Units",
+      "attributeName": "Package Level 1 Units",
+      "values": [
+       {
+        "text": "bag 1 piece"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "PackageLevel1Width": {
+      "type": "Text",
+      "attributeCode": "PackageLevel1Width",
+      "attributeName": "Package Level 1 Width",
+      "values": [
+       {
+        "text": "135 mm"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "PackageLevel1Length": {
+      "type": "Text",
+      "attributeCode": "PackageLevel1Length",
+      "attributeName": "Package Level 1 Depth / Length",
+      "values": [
+       {
+        "text": "145 mm"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "PackageLevel1Height": {
+      "type": "Text",
+      "attributeCode": "PackageLevel1Height",
+      "attributeName": "Package Level 1 Height",
+      "values": [
+       {
+        "text": "35 mm"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "PacLev1GroWei": {
+      "type": "Text",
+      "attributeCode": "PacLev1GroWei",
+      "attributeName": "Package Level 1 Gross Weight",
+      "values": [
+       {
+        "text": "0.014 kg"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "PackageLevel1Ean": {
+      "type": "Text",
+      "attributeCode": "PackageLevel1Ean",
+      "attributeName": "Package Level 1 EAN",
+      "values": [
+       {
+        "text": "7320500260975"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     }
+    }
+   },
+   {
+    "code": "Classifications",
+    "description": "External Classifications and Standards",
+    "visible": true,
+    "attributes": {
+     "ObjClaCod": {
+      "type": "Text",
+      "attributeCode": "ObjClaCod",
+      "attributeName": "Object Classification Code",
+      "values": [
+       {
+        "text": "S"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "Etim6": {
+      "type": "Enum",
+      "attributeCode": "Etim6",
+      "attributeName": "ETIM 6",
+      "values": [
+       {
+        "text": "EC000221 - Front element for push button",
+        "enumerationValueCode": "EC000221"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "Etim7": {
+      "type": "Enum",
+      "attributeCode": "Etim7",
+      "attributeName": "ETIM 7",
+      "values": [
+       {
+        "text": "EC000221 - Front element for push button",
+        "enumerationValueCode": "EC000221"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "Etim8": {
+      "type": "Enum",
+      "attributeCode": "Etim8",
+      "attributeName": "ETIM 8",
+      "values": [
+       {
+        "text": "EC000221 - Front element for push button",
+        "enumerationValueCode": "EC000221"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "Eclass": {
+      "type": "Text",
+      "attributeCode": "Eclass",
+      "attributeName": "eClass",
+      "values": [
+       {
+        "text": "V11.0 : 27371210"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "Unspsc": {
+      "type": "Text",
+      "attributeCode": "Unspsc",
+      "attributeName": "UNSPSC",
+      "values": [
+       {
+        "text": "39122216"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "IdeGraCatCod": {
+      "type": "Enum",
+      "attributeCode": "IdeGraCatCod",
+      "attributeName": "IDEA Granular Category Code (IGCC)",
+      "values": [
+       {
+        "text": "5212 >> Push button for distribution board",
+        "enumerationValueCode": "5212"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "ENumberFI": {
+      "type": "Text",
+      "attributeCode": "ENumberFI",
+      "attributeName": "E-Number (Finland)",
+      "values": [
+       {
+        "text": "2313600"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "ENumberNO": {
+      "type": "Text",
+      "attributeCode": "ENumberNO",
+      "attributeName": "E-Number (Norway)",
+      "values": [
+       {
+        "text": "4372001"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     },
+     "ENumberSE": {
+      "type": "Text",
+      "attributeCode": "ENumberSE",
+      "attributeName": "E-Number (Sweden)",
+      "values": [
+       {
+        "text": "3715001"
+       }
+      ],
+      "isInternal": false,
+      "internal": false,
+      "highlight": false
+     }
+    }
+   }
+  ],
+  "listCode": "ELSP_Pilot_Devices_detail_page"
+ },
+ "productClassifications": {
+  "items": {
+   "Products": [
+    [
+     {
+      "cid": "ROOT",
+      "name": "Products",
+      "inactive": false
+     },
+     {
+      "cid": "9AAC910006",
+      "name": "Low Voltage Products and Systems",
+      "inactive": false
+     },
+     {
+      "cid": "9AAC100093",
+      "name": "Control Products",
+      "inactive": false
+     },
+     {
+      "cid": "9AAC100140",
+      "name": "Pilot Devices",
+      "inactive": false
+     },
+     {
+      "cid": "9AAC100141",
+      "name": "Modular Plastic Range",
+      "inactive": false
+     },
+     {
+      "cid": "9AAC212134",
+      "name": "MP Pushbutton",
+      "inactive": false
+     }
+    ]
+   ],
+   "Parts": [
+    [
+     {
+      "cid": "ROOT",
+      "name": "Parts & Services",
+      "inactive": true
+     },
+     {
+      "cid": "9AAC720001",
+      "name": "Medium Voltage Products and Systems",
+      "inactive": true
+     },
+     {
+      "cid": "9AAF400001",
+      "name": "Service",
+      "inactive": true
+     },
+     {
+      "cid": "9AAF400065",
+      "name": "Spares and Consumables",
+      "inactive": true
+     },
+     {
+      "cid": "9AAF622810",
+      "name": "Parts",
+      "inactive": true
+     },
+     {
+      "cid": "9AAF626992",
+      "name": "All Spare Parts (Relays-SWG-CB)",
+      "inactive": true
+     }
+    ]
+   ]
+  }
+ },
+ "productRelationships": {},
+ "relatedLinks": {
+  "items": [
+   {
+    "text": "EPLAN DATA MP1-10R",
+    "url": "https://dataportal.eplan.com/parts/list?search=1SFA611100R1001",
+    "image": "https://www.eplan.es/typo3conf/ext/eplan_core/Resources/Public/Frontend/img/eplan-img-logo.svg",
+    "internal": false
+   },
+   {
+    "text": "2D & 3D Data MP1-10R",
+    "url": "https://abb-control-products.partcommunity.com?info=abb%5Fww%2Flow%5Fvoltage%2Fcontrol%2Fpilot%5Fdevices%2Foperators%2Fmodular%5Frange%2Fpushbutton%2Fmp1%2Eprj&varset=%7BPN%3D1SFA611100R1001%7D",
+    "image": "https://cdn.productimages.abb.com/9PAA00000154092_400x400.jpg",
+    "internal": false
+   },
+   {
+    "text": "2D & 3D Data MP1-10R",
+    "url": "https://abb-control-products.partcommunity.com?info=abb_ww%2Flow_voltage%2Fcontrol%2Fpilot_devices%2Foperators%2Fmodular_range%2Fpushbutton%2Fmp1.prj&varset=%7BPN%3D1SFA611100R1001%7D",
+    "image": "https://cdn.productimages.abb.com/9PAA00000154092_400x400.jpg",
+    "internal": false
+   }
+  ]
+ },
+ "productVariantsSelector": {},
+ "productVariantsTable": {},
+ "productVariantsDropdown": {}
+}

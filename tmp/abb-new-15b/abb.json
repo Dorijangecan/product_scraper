@@ -1,0 +1,17 @@
+[
+  {"manufacturerId":"abb","catalogNumber":"7TCA085400R0313","caseType":"electrical","expectedDeviceType":"Surge Protective Device","riskTags":["cold","ovr","surge-protection"],"expectedOfficialUrlPatterns":["new\\.abb\\.com"],"expectedNormalizedFields":["voltage"]},
+  {"manufacturerId":"abb","catalogNumber":"7TCA085400R0345","caseType":"electrical","expectedDeviceType":"Surge Protective Device","riskTags":["cold","ovr","surge-protection"],"expectedOfficialUrlPatterns":["new\\.abb\\.com"],"expectedNormalizedFields":["voltage"]},
+  {"manufacturerId":"abb","catalogNumber":"2TLA020070R6600","caseType":"electrical","expectedDeviceType":"Safety Relay","riskTags":["cold","pluto","safety-controller"],"expectedOfficialUrlPatterns":["new\\.abb\\.com"]},
+  {"manufacturerId":"abb","catalogNumber":"2TLA020070R6400","caseType":"electrical","expectedDeviceType":"Safety Relay","riskTags":["cold","pluto","safety-controller"],"expectedOfficialUrlPatterns":["new\\.abb\\.com"]},
+  {"manufacturerId":"abb","catalogNumber":"2TLA020006R2100","caseType":"electrical","expectedDeviceType":"Switch","riskTags":["cold","jshd4","handheld-device"],"expectedOfficialUrlPatterns":["new\\.abb\\.com"]},
+  {"manufacturerId":"abb","catalogNumber":"1SVR427043R0100","caseType":"electrical","expectedDeviceType":"Power Supply","riskTags":["cold","cp-d","power-supply-24v"],"expectedOfficialUrlPatterns":["new\\.abb\\.com"],"expectedNormalizedFields":["voltage","current"]},
+  {"manufacturerId":"abb","catalogNumber":"1SFA611400R1002","caseType":"electrical","expectedDeviceType":"Pilot Light","riskTags":["cold","ml1","pilot-light-green"],"expectedOfficialUrlPatterns":["new\\.abb\\.com"]},
+  {"manufacturerId":"abb","catalogNumber":"1SFA611812R1000","caseType":"mechanical","expectedDeviceType":"Enclosure","riskTags":["cold","mep2","enclosure"],"expectedOfficialUrlPatterns":["new\\.abb\\.com"]},
+  {"manufacturerId":"abb","catalogNumber":"1SFA611813R1000","caseType":"mechanical","expectedDeviceType":"Enclosure","riskTags":["cold","mep3","enclosure"],"expectedOfficialUrlPatterns":["new\\.abb\\.com"]},
+  {"manufacturerId":"abb","catalogNumber":"1SFA611630R1002","caseType":"mechanical","expectedDeviceType":"Accessory","riskTags":["cold","mdb2","dummy-block"],"expectedOfficialUrlPatterns":["new\\.abb\\.com"]},
+  {"manufacturerId":"abb","catalogNumber":"1SFA611200R1006","caseType":"electrical","expectedDeviceType":"Selector Switch","riskTags":["cold","m2ss","selector-switch"],"expectedOfficialUrlPatterns":["new\\.abb\\.com"]},
+  {"manufacturerId":"abb","catalogNumber":"1SFA619600R6012","caseType":"electrical","expectedDeviceType":"Stack Light / Beacon","riskTags":["cold","cb1","buzzer"],"expectedOfficialUrlPatterns":["new\\.abb\\.com"]},
+  {"manufacturerId":"abb","catalogNumber":"1SVR427041R1000","caseType":"electrical","expectedDeviceType":"Power Supply","riskTags":["cold","cp-d","power-supply"],"expectedOfficialUrlPatterns":["new\\.abb\\.com"],"expectedNormalizedFields":["voltage","current"]},
+  {"manufacturerId":"abb","catalogNumber":"1SCA022823R6710","caseType":"electrical","expectedDeviceType":"Disconnect Switch","riskTags":["cold","eot16","disconnect"],"expectedOfficialUrlPatterns":["new\\.abb\\.com"],"expectedNormalizedFields":["current"]},
+  {"manufacturerId":"abb","catalogNumber":"1SCA022824R0230","caseType":"electrical","expectedDeviceType":"Disconnect Switch","riskTags":["cold","eot100","disconnect"],"expectedOfficialUrlPatterns":["new\\.abb\\.com"],"expectedNormalizedFields":["current"]}
+]
