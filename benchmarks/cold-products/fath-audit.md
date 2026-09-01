@@ -1,0 +1,22 @@
+# FATH cold-start audit — 2026-09-01
+
+The ten catalog numbers below were selected from distinct FATH24 product families and were not present in the existing regression fixtures, cache references, or benchmark corpus. Each number was verified on an official FATH24 product page before scraping. FATH publishes CAD/images and product specifications for these items; no datasheet link was published on the checked pages, so the audit does not claim one.
+
+| Catalog number | Official family / verified type | Expected → extracted | Official product page | Key official data checked | Documents/image | Time | Result / repair |
+|---|---|---|---|---|---|---:|---|
+| 6SAMB1J313B.4000 | Module F Line / Main power cable GST18i3 | Cable → Cable | [FATH PDP](https://www.fath24.com/en/Main-Power-Cable-GST18i3-for-Module-F-Line/6SAMB1J313B.4000) | Type G BS1363, 4 m, PVC/PA, 250 V, max 13 A, IP20 | image + product specs | 22.4 s | PASS |
+| 6SBEU14I.317 | Module F Line / Power strip 317 4x with switch | Connector → Connector | [FATH PDP](https://www.fath24.com/en/Power-Strip-Module-F-Line-317-4x-with-Switch-for-Series-Connection/6SBEU14I.317) | 4 sockets, 317 mm, aluminium/PA, 230 V, max 16 A, IP20 | image + product specs | 19.5 s | PASS |
+| 6SL0040I.953 | Module F Line / LED lamp 953 | Luminaire → Luminaire | [FATH PDP](https://www.fath24.com/en/LED-Lamp-Module-F-Line-953-Dimmable/6SL0040I.953) | dimmable LED module, aluminium/polycarbonate housing, profile slot 8 | image + product specs | 38.9 s | PASS |
+| 6SAKP5J516BS01 | Module F Line / GST15i5 connection coupling set | Connector → Connector | [FATH PDP](https://www.fath24.com/en/Connection-Coupling-GST15i5-for-Module-F-Line-Set/6SAKP5J516BS01) | 5-pole coupling, PA connector, steel T-slot nut, M8 screws | image + product specs | 16.5 s | PASS |
+| 061CC42300.74 | Cover elements / Shelf Board AL 300 cover-cap set | Cover / Door Accessory → Cover / Door Accessory | [FATH PDP](https://www.fath24.com/en/Cover-Cap-for-Shelf-Board-AL-300-Set/061CC42300.74) | grey PA cover caps, left/right set, zinc-plated screws | image + product specs | 13.6 s | PASS |
+| 09308901S01 | Workstation components / Cup holder | Mounting Accessory → Mounting Accessory | [FATH PDP](https://www.fath24.com/en/Cup-Holder/09308901S01) | 360° workstation cup holder, PA/glass-fibre material, M5 fastening | image + product specs | 18.5 s | PASS |
+| 6FG40ND80M695N08 | Workstation components / Double system arm I40H 695 set | Mounting Accessory → Mounting Accessory | [FATH PDP](https://www.fath24.com/en/Double-System-Arm-I40H-695-Set/6FG40ND80M695N08) | 695 mm arm, aluminium/die-cast parts, friction joint, monitor-mount set | image + product specs | 19.5 s | PASS |
+| 099DC08404090N08 | Connecting systems / Direct connector I 90°, slot 8 | Connector → Connector | [FATH PDP](https://www.fath24.com/en/Direct-Connector-I-900-Slot-8/099DC08404090N08) | 90° profile connector, stainless steel, slot 8, M8 core-hole requirement | image + product specs | 18.6 s | PASS |
+| 093W8451N10S | Connecting systems / Gusseted connection angle AL | Mounting Accessory → Mounting Accessory | [FATH PDP](https://www.fath24.com/en/Gusseted-Connection-Angle-AL-4-Hole-1-Slot-Version/093W8451N10S) | aluminium, anodized, 4-hole/1-slot 45° profile brace | image + product specs | 20.3 s | PASS |
+| 6TP38X2030S01 | Workstation components / Broom holder FLEX FX 20–30 | Mounting Accessory → Mounting Accessory | [FATH PDP](https://www.fath24.com/en/Broom-Holder-FLEX-FX-20-30-for-Square-Holes-9-x-9-8.7-x-8.7/6TP38X2030S01) | 20–30 mm tool diameter, PA/TPE holder, 360° rotation, sheet up to 1.4 mm | image + product specs | 17.9 s | PASS |
+
+## Reproduction and repair
+
+The first isolated run confirmed exact official product URLs and complete page/document gates for all ten, but generic classification misidentified the main cable as Power Supply, returned unknown for the LED lamp/angle/broom holder, and assigned unrelated accessory classes to several workstation parts. A FATH-only exact family map was added in `src/server/scrapers/device-type-families.ts`. The FATH parser also now reads multiline `**Material:**` blocks from the official reader output; this restored material normalization for the power strip, system arm and broom holder without inventing values.
+
+After the repair, all ten were rerun individually. Final gates: **10/10 found, 10/10 identity, 10/10 official product URL, 10/10 documents/image, 10/10 device type, 10/10 normalized fields, 10/10 PDT audit; 0 wrong products**.

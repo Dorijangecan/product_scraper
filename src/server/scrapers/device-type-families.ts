@@ -213,6 +213,13 @@ export const DEVICE_TYPE_FAMILIES: Record<string, readonly FamilyEntry[]> = {
     { patterns: ["TBEN-L5-PLC", "TBEN-L4-PLC"], type: "Programmable Logic Controller", notes: "Turck TBEN compact PLC" },
     { patterns: ["TBEN-L", "TBEN-S", "FEN20"], type: "I/O Module", notes: "Turck multiprotocol Ethernet I/O modules" },
     { patterns: ["TBEN-L4-SE", "TBEN-L5-SE"], type: "Switch", notes: "Turck TBEN industrial Ethernet switches" }
+  ],
+  fath: [
+    { patterns: ["6SAMB1J313B.4000"], type: "Cable", notes: "FATH Module F Line GST18i3 main power cable" },
+    { patterns: ["6SL0040I.953"], type: "Luminaire", notes: "FATH Module F Line LED lamp" },
+    { patterns: ["6SBEU14I.317", "6SAKP5J516BS01", "099DC08404090N08"], type: "Connector", notes: "FATH Module F Line and profile connectors" },
+    { patterns: ["061CC42300.74"], type: "Cover / Door Accessory", notes: "FATH shelf-board cover cap" },
+    { patterns: ["09308901S01", "6FG40ND80M695N08", "093W8451N10S", "6TP38X2030S01"], type: "Mounting Accessory", notes: "FATH workstation and profile mounting components" }
   ]
 };
 

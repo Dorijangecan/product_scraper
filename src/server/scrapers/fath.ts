@@ -458,6 +458,23 @@ function extractFathAttributes(text: string, sourceUrl: string): AttributeRecord
   let inVariantsTable = false;
   for (let i = 0; i < lines.length; i += 1) {
     const line = lines[i].trim();
+    const boldLabel = line.match(/^\*\*([^*]+):\*\*$/);
+    if (boldLabel) {
+      const name = cleanText(boldLabel[1]);
+      const block: string[] = [];
+      let next = i + 1;
+      for (; next < lines.length; next += 1) {
+        const nested = lines[next].trim();
+        if (!nested || /^\*\*[^*]+:\*\*$/.test(nested) || /^#+\s*/.test(nested)) break;
+        block.push(nested.replace(/^[-*]\s+/, ""));
+      }
+      const value = cleanText(block.join(" "));
+      if (value && /^(?:material|surface|color|colour)$/i.test(name) && isUsableFathSpec(name, value)) {
+        attributes.push({ group, name, value, sourceUrl });
+      }
+      i = next - 1;
+      continue;
+    }
     const heading = line.match(/^#+\s*(.+)$/);
     if (heading) {
       group = cleanText(heading[1]);
