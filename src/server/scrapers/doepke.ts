@@ -100,6 +100,7 @@ function withDoepkeMetadata(catalogNumber: string, fetched: FetchedText, context
 
   const attributes: AttributeRecord[] = [
     ...doepkeFeatureAttributes($, sourceUrl),
+    ...doepkeDescriptionElectricalAttributes(description, sourceUrl),
     {
       group: "Doepke Product Data",
       name: "Catalog Number",
@@ -178,6 +179,28 @@ export function doepkeShortDescription($: cheerio.CheerioAPI): string | undefine
     if (node.type === "text") parts.push(node.data);
   }
   return cleanText(parts.join(" ")) || undefined;
+}
+
+/**
+ * Accessory pages such as fork busbars publish their rated current only in the short product
+ * description (for example "... 13,5 MW ..., 63 A"), not in the small Features table. This is
+ * still exact product-page evidence, so expose an explicit rated-current attribute for the shared
+ * normalizer instead of leaving the required current field blank.
+ */
+export function doepkeDescriptionElectricalAttributes(description: string | undefined, sourceUrl: string): AttributeRecord[] {
+  if (!description) return [];
+  const match = description.match(/(?:^|[,;])\s*(\d+(?:[.,]\d+)?)\s*A\b/i) ?? description.match(/\b(\d+(?:[.,]\d+)?)\s*A\b/i);
+  if (!match) return [];
+  return [{
+    group: "Doepke Product Data",
+    name: "Rated current",
+    value: `${match[1].replace(",", ".")} A`,
+    sourceUrl,
+    sourceType: "official",
+    parser: DOEPKE_PARSER,
+    stage: DOEPKE_PARSER,
+    confidence: 0.88
+  }];
 }
 
 /**

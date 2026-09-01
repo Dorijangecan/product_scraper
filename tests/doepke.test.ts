@@ -2,6 +2,7 @@ import * as cheerio from "cheerio";
 import { describe, expect, it } from "vitest";
 import {
   doepkeDatasheetLink,
+  doepkeDescriptionElectricalAttributes,
   doepkeDownloadDocuments,
   doepkeFeatureAttributes,
   doepkePageMatches,
@@ -63,6 +64,11 @@ describe("Doepke scraper helpers", () => {
   it("extracts the short language-independent description up to the first heading div", () => {
     const $ = cheerio.load(DOEPKE_PRODEXT_FIXTURE);
     expect(doepkeShortDescription($)).toBe("Residual current circuit-breakers, four-pole, 63 A, 0,03 A, Type A, short-time delayed, N right");
+  });
+
+  it("promotes a rated current published only in the product description", () => {
+    const attributes = doepkeDescriptionElectricalAttributes("Busbar, fork, 3-pole, 13,5 MW (module width), 63 A", "https://www.doepke.de/source/prodext.php?ARTNR=09920177&lang=en");
+    expect(attributes).toEqual([expect.objectContaining({ name: "Rated current", value: "63 A", sourceType: "official" })]);
   });
 
   it("reads the Features mini spec table into attributes", () => {
