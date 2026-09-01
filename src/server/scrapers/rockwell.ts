@@ -189,7 +189,9 @@ function mergeRockwellResults(results: ProductResult[]): ProductResult | undefin
 
 function finalizeRockwellResult(result: ProductResult): ProductResult {
   const attributes = dedupeAttributes(result.attributes);
-  const documents = dedupeDocuments(result.documents);
+  const documents = dedupeDocuments(result.documents).filter(
+    (document) => !/\bview[-_\s]+guidance\b/i.test(`${document.label} ${document.url}`)
+  );
   const normalized = normalizeFields(attributes, documents);
   const title = cleanText(result.title) || attrValue(attributes, /\b(product name|catalog description|description)\b/i);
   const description = preferredRockwellDescription(cleanText(result.description), title, attributes);
@@ -809,6 +811,11 @@ function extractRockwellDocumentLinks(
     for (const url of rockwellElementUrls(element, sourceUrl)) {
       if (isIgnoredRockwellUrl(url)) continue;
       const label = cleanText($(element).text() || $(element).attr("alt") || $(element).attr("title") || pathBaseName(url));
+      // Rockwell product pages expose a large "View Guidance" PDF alongside the actual cutsheet.
+      // It is navigation/help material (hundreds of pages), not a product datasheet; treating it as
+      // one makes document enrichment spend tens of seconds parsing irrelevant content and can
+      // obscure the exact cutsheet evidence.
+      if (/\bview\s+guidance\b/i.test(label)) continue;
       const context = cleanText(`${label} ${url} ${$(element).closest("tr,li,div").text()}`);
       if (!isRockwellProductDocument(context, url, catalogNumber)) continue;
       documents.push({
@@ -823,6 +830,7 @@ function extractRockwellDocumentLinks(
     }
   });
   for (const url of rockwellDocumentUrlsFromText($.root().html() ?? "", sourceUrl)) {
+    if (/\bview[-_\s]+guidance\b/i.test(url)) continue;
     if (isIgnoredRockwellUrl(url) || !isRockwellProductDocument(url, url, catalogNumber)) continue;
     documents.push({
       type: parser === "rockwell-drawings" ? "cad" : classifyRockwellDocument(pathBaseName(url), url),
@@ -947,7 +955,9 @@ function buildRockwellResult(
   confidence: number
 ): ProductResult {
   const cleanAttributes = dedupeAttributes(attributes).filter((attribute) => attribute.name && attribute.value);
-  const cleanDocuments = dedupeDocuments(documents);
+  const cleanDocuments = dedupeDocuments(documents).filter(
+    (document) => !/\bview[-_\s]+guidance\b/i.test(`${document.label} ${document.url}`)
+  );
   const normalized = normalizeFields(cleanAttributes, cleanDocuments);
   const sourceType: SourceRecord["sourceType"] = "official";
   return {

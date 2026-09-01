@@ -393,8 +393,15 @@ export async function enrichResultFromDownloadedDocuments(result: ProductResult)
   const documents: DocumentRecord[] = [];
 
   const prioritized = prioritizeDownloadedDocuments(result.documents);
-  for (let start = 0; start < prioritized.length; start += DOWNLOADED_DOCUMENT_BATCH_SIZE) {
-    const batch = prioritized.slice(start, start + DOWNLOADED_DOCUMENT_BATCH_SIZE);
+  // Parse an authoritative datasheet on its own before launching large manuals in parallel. A
+  // datasheet commonly contains the complete product specification; once it has supplied strong
+  // evidence, lower-priority manuals are skipped by shouldSkipAfterStrongDocumentEvidence. Keeping
+  // the first batch single-document preserves that optimization without slowing catalogs whose
+  // first document is not a datasheet or whose datasheet is genuinely incomplete.
+  let start = 0;
+  let batchSize = prioritized[0]?.type === "datasheet" ? 1 : DOWNLOADED_DOCUMENT_BATCH_SIZE;
+  while (start < prioritized.length) {
+    const batch = prioritized.slice(start, start + batchSize);
     // The strong-evidence skip is a real optimization (datasheet already covers everything, don't
     // bother parsing ten accessory manuals) and stays evidence-so-far ordered: it is checked once per
     // batch member against everything FULLY COMPLETED in earlier batches, same as the old one-at-a-
@@ -412,7 +419,11 @@ export async function enrichResultFromDownloadedDocuments(result: ProductResult)
         toProcess.push(doc);
       }
     }
-    if (!toProcess.length) continue;
+    if (!toProcess.length) {
+      start += batchSize;
+      batchSize = DOWNLOADED_DOCUMENT_BATCH_SIZE;
+      continue;
+    }
     const outcomes = await Promise.all(toProcess.map((doc) => processOneDownloadedDocument(doc, result.catalogNumber)));
     for (const outcome of outcomes) {
       documents.push(outcome.doc);
@@ -423,6 +434,8 @@ export async function enrichResultFromDownloadedDocuments(result: ProductResult)
         if (outcome.source) documentSources.push(outcome.source);
       }
     }
+    start += batchSize;
+    batchSize = DOWNLOADED_DOCUMENT_BATCH_SIZE;
   }
 
   if (!documentAttributes.length) {
