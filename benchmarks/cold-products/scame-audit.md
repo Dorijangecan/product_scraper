@@ -1,4 +1,4 @@
-# SCAME cold-start audit — 2026-08-31
+# SCAME cold-start audit — 2026-09-01
 
 These ten SCAME catalog numbers were selected after checking the existing fixtures,
 cache references and benchmark reports; neither prior control number (`512.3306`,
@@ -8,7 +8,7 @@ the classifier repair.
 
 | Catalog number | Official family / expected type | Extracted identity / type | Official source | Manually checked key data | Documents / image | Final duration | Result / fix |
 | --- | --- | --- | --- | --- | --- | ---: | --- |
-| 110.3100 | QUICK French/German plug / Connector | 2P+E 16 A plug / Connector | https://www.scame.com/web/scame-global/p/110.3100 | IP44; rubber; black; 0.057 kg | Techsheet, drawing, image | 4,659 ms | PASS |
+| 590.HGE2506 | OMNIA switch disconnector / Disconnect Switch | 6P Y3 switch disconnector / Disconnect Switch | https://www.scame.com/web/scame-global/p/590.HGE2506 | 690 V; 25 A; IP66; 6P; grey/black; 150×210×107 mm | Official techsheet, drawing, image | 6,614 ms | PASS; replaced 110.3100 because the official page and techsheet publish no rated voltage for that item |
 | 218.1634 | OPTIMA plug / Connector | 3P+E 16 A plug / Connector | https://techsheet.scame.com/infodata/en/218.1634.pdf | 200–250 V; 16 A; 9h; IP66/IP67/IP69; thermoplastic | Official techsheet PDF, drawing, image | 5,069 ms | PASS |
 | 214.1633 | XENIA plug / Connector | 2P+E 16 A plug / Connector | https://www.scame.com/web/scame-middle-east/p/214.1633 | 200–250 V; 16 A; 6h; IP44/IP54; thermoplastic | Techsheet, drawing, image | 4,650 ms | PASS |
 | 146.361 | BLUELINE one-way adaptor / Connector | One-way adaptor / Connector | https://www.scame.com/web/scame-global/p/146.361 | 2P+E 16 A; engineering plastic; white; 0.038 kg | Official product sheet, image | 4,755 ms | PASS |
@@ -24,5 +24,5 @@ the classifier repair.
 The post-fix isolated rerun passed all ten rows: found 10/10, official URL 10/10,
 identity 10/10, documents 10/10, expected device type 10/10, PDT audit 10/10,
 quality accepted for every row, wrong products 0, and no timeout. The initial run
-reproduced the missing-type/Lock-interlock errors; the only code change was a bounded
-SCAME vocabulary rule for plug/socket/adaptor product nouns.
+reproduced PDF URLs as product identities; the connector now exposes the canonical
+SCAME product page while retaining the official PDF as the technical evidence/document.

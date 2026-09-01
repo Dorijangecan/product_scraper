@@ -104,7 +104,10 @@ export class ScameConnector implements ManufacturerConnector {
     const cleanDocuments = dedupeDocuments(documents);
     const normalized = normalizeFields(cleanAttributes, cleanDocuments);
     const confidence = cleanAttributes.length >= 4 ? 0.84 : 0.66;
-    const productUrl = cleanDocuments.find((doc) => doc.type === "datasheet")?.url ?? cleanDocuments[0]?.url;
+    // The validated info-data PDF is the technical evidence/document, not the product identity
+    // link. SCAME exposes a canonical product page for every article under /web/scame-global/p/.
+    // Keep the PDF in documents/sources, but never publish it as productUrl.
+    const productUrl = `https://www.scame.com/web/scame-global/p/${encodeURIComponent(catalogNumber)}`;
 
     return {
       manufacturerId: "scame",

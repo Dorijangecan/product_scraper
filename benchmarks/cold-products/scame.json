@@ -1,5 +1,5 @@
 [
-  {"manufacturerId":"scame","catalogNumber":"110.3100","caseType":"electrical","expectedDeviceType":"Connector","riskTags":["cold","quick","plug","french-german"],"expectedOfficialUrlPatterns":["scame\\.com"],"expectedNormalizedFields":["voltage","current","material"]},
+  {"manufacturerId":"scame","catalogNumber":"590.HGE2506","caseType":"electrical","expectedDeviceType":"Disconnect Switch","riskTags":["cold","switch-disconnector","omnia"],"expectedOfficialUrlPatterns":["scame\\.com"],"expectedNormalizedFields":["voltage","current","material"]},
   {"manufacturerId":"scame","catalogNumber":"218.1634","caseType":"electrical","expectedDeviceType":"Connector","riskTags":["cold","optima","plug","3p-e"],"expectedOfficialUrlPatterns":["scame\\.com"],"expectedNormalizedFields":["voltage","current","material"]},
   {"manufacturerId":"scame","catalogNumber":"214.1633","caseType":"electrical","expectedDeviceType":"Connector","riskTags":["cold","xenia","plug","2p-e"],"expectedOfficialUrlPatterns":["scame\\.com"],"expectedNormalizedFields":["voltage","current","material"]},
   {"manufacturerId":"scame","catalogNumber":"146.361","caseType":"electrical","expectedDeviceType":"Connector","riskTags":["cold","blueline","one-way-adaptor"],"expectedOfficialUrlPatterns":["scame\\.com"],"expectedNormalizedFields":["current","material"]},
