@@ -35,7 +35,7 @@ također opt-in: `PRODUCT_SCRAPER_ALLOW_EXTERNAL_READER=1`. Princip: vrijednosti
 | `scripts/` | audit / benchmark / probe / desktop-boot alati (`.ts`→tsx, `.cjs`→Node) |
 | `templates/` | `master_pdt.xlsx` — izvor istine za PDT |
 | `patches/` | `patch-package` patchevi za bugove u ovisnostima (npr. `pdf-parse` `getTable()` crash) — auto-primijenjeno `npm install` postinstall hookom, **ne brisati** |
-| `benchmarks/` | Fixture proizvodi + izvještaji (**mrežni** live-check); `products/` je regresijski corpus, a `cold-products/` je odvojeni skup novih artikala/obitelji za otkrivanje endpoint-drifta |
+| `benchmarks/` | Fixture proizvodi + izvještaji (**mrežni** live-check); `products/` je regresijski corpus, `cold-products/` je odvojeni skup novih artikala/obitelji za otkrivanje endpoint-drifta, a proizvođački izolirani audit korpusi (npr. `rockwell-15-new/`, `rockwell-15-new-2/`) drže strogo odabrane cold-start uzorke |
 | `fixtures/` | **Offline eval korpus** — snimljeni HTML/PDF + `expected.json` s asertacijama na razini *vrijednosti* (`npm run eval`). Postoji jer je `benchmarks/` mrežni i tvrdi samo `Boolean(field)`, pa mu je klasa "vrijednost postoji ali je pogrešna" nevidljiva. Vidi [fixtures/README.md](fixtures/README.md) |
 | `docs/` | `ARCHITECTURE.md`, `COLD-START-PLAN.md` (analiza+plan za nepoznate vendore/datasheetove), `CLAUDE-HANDOFF.md` (zadnja točka rada i copy/paste prompt), prezentacije, normalizacijske bilješke |
 | `outputs/` `data/` `tmp/` | Runtime artefakti (DB, cache, workbookovi) — **ne uređivati ručno** |

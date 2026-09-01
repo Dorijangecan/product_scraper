@@ -248,9 +248,20 @@ function withRockwellConfidence(result: ProductResult, confidence: number): Prod
 function enrichRockwellParsedPage(result: ProductResult, fetched: FetchedText, catalogNumber: string, parser: string): ProductResult {
   const $ = cheerio.load(fetched.text);
   const sourceUrl = fetched.effectiveUrl;
+  const summary = extractRockwellPersonalizationSummary(fetched.text);
+  const descriptionVoltage = extractRockwellDescriptionVoltage(summary?.description);
   const attributes = dedupeAttributes([
     ...result.attributes,
-    ...extractRockwellStructuredAttributes($, fetched.text, sourceUrl, catalogNumber, parser)
+    ...extractRockwellStructuredAttributes($, fetched.text, sourceUrl, catalogNumber, parser),
+    ...(descriptionVoltage ? [{
+      group: "Rockwell Product Description",
+      name: "Voltage",
+      value: descriptionVoltage,
+      sourceUrl,
+      sourceType: "official" as const,
+      parser: "rockwell-product-description",
+      confidence: 0.9
+    }] : [])
   ]);
   const documents = dedupeDocuments([
     ...result.documents,
@@ -263,7 +274,6 @@ function enrichRockwellParsedPage(result: ProductResult, fetched: FetchedText, c
   // ("XLB-Netzteil..."/"...Basisnetzteil...") on the de-de page. Prefer it over whatever the
   // generic HTML/JSON-LD title-guessing produced — that path has previously picked up raw SVG/CSS
   // asset text on some Rockwell pages (see the 1444-DYN04 description bug fixed earlier).
-  const summary = extractRockwellPersonalizationSummary(fetched.text);
   return {
     ...result,
     title: summary?.title || result.title,
@@ -272,6 +282,13 @@ function enrichRockwellParsedPage(result: ProductResult, fetched: FetchedText, c
     attributes,
     documents
   };
+}
+
+function extractRockwellDescriptionVoltage(description: string | undefined): string | undefined {
+  const match = description?.match(/\b(\d+(?:\.\d+)?)\s*[-–]\s*(\d+(?:\.\d+)?)\s*V\s*(DC|AC)(?:\s*\/\s*(DC|AC))?\b/i);
+  if (!match) return undefined;
+  const suffix = match[4] ? `${match[3].toUpperCase()}/${match[4].toUpperCase()}` : match[3].toUpperCase();
+  return `${match[1]}-${match[2]} V ${suffix}`;
 }
 
 /** Extracts { title, description } from Rockwell's `window.pagePersonalizationSummary = {...}`

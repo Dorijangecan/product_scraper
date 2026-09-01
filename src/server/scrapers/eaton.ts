@@ -260,19 +260,21 @@ function buildEatonMediumVoltageCatalogResult(catalogNumber: string): ProductRes
       ["Product Name", title],
       ...attributes
     ].map(([name, value]) => ({ group: "Eaton medium-voltage catalog", name, value, sourceUrl: productUrl, sourceType: "official", parser: "eaton-medium-voltage-catalog", stage: "mv-series", confidence: 0.92, scope: "variant", matchLevel: "exact" }));
-    return { manufacturerId: "eaton", catalogNumber: part, status: "found", confidence: 0.9, pageLevel: "family", productUrl, localizedUrls: buildLocalizedProductUrls("eaton", part, productUrl), title: `${part} - ${title}`, description: title, normalized: normalizeFields(records, documents), attributes: records, documents, sources: [source], diagnostics: { terminal: { skipNetworkFallback: true, reason: "Documented Eaton MV family/model record; a SKU-page fallback cannot add variant data and previously introduced unrelated assets." }, notes: ["Eaton MV family/model route used; no image is emitted unless Eaton provides a device image for this exact model or series."] } };
+    return { manufacturerId: "eaton", catalogNumber: part, status: "found", confidence: 0.9, pageLevel: "family", productUrl, localizedUrls: { en: productUrl }, title: `${part} - ${title}`, description: title, normalized: normalizeFields(records, []), attributes: records, documents, sources: [source], diagnostics: { terminal: { skipNetworkFallback: true, reason: "Documented Eaton MV family/model record; a SKU-page fallback cannot add variant data and previously introduced unrelated assets." }, notes: ["Eaton MV family/model route used; localized URLs intentionally point to the verified official family page, never to a guessed skuPage URL."] } };
   };
   const doc = (type: DocumentRecord["type"], label: string, url: string): DocumentRecord => ({ type, label, url, sourceUrl: url, sourceType: "official", parser: "eaton-medium-voltage-catalog", stage: "mv-series", confidence: 0.92, enrichable: type === "datasheet" || type === "manual" });
+  const representativeBreakerImage = "https://www.eaton.com/content/dam/eaton/products/medium-voltage-power-distribution-control-systems/w-vaci-cn.png/_jcr_content/renditions/cq5dam.thumbnail.319.319.png";
+  const vacuumContactorImage = "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/vacuum-contactors/V201K5CJZ1J8_C.jpg/_jcr_content/renditions/cq5dam.thumbnail.319.319.png";
   const evac = /^E-VAC(\d+(?:\.\d+)?)\/T(\d+)-(\d+(?:\.\d+)?)$/i.exec(part);
   if (evac) return make("Eaton E-VAC indoor vacuum circuit breaker", EATON_MV_SOURCES.evacPage, [["Series", "E-VAC"], ["Product type", "Indoor vacuum circuit breaker"], ["Rated voltage", `${evac[1]} kV`], ["Rated current", `${evac[2]} A`], ["Rated short-circuit breaking current", `${evac[3]} kA`], ["Operating mechanism", "Spring operating mechanism (T)"]], [doc("datasheet", "Eaton E-VAC vacuum circuit breaker catalog", EATON_MV_SOURCES.evacCatalog), doc("manual", "Eaton E-VAC installation instructions", EATON_MV_SOURCES.evacInstructions), doc("image", "Eaton E-VAC product-series device image", "https://dynamicmedia.eaton.com/is/image/eaton/eaton-e-vac-image%3Aimage-desktop")]);
   if (/^W-VACi$/i.test(part)) return make("Eaton W-VACi IEC vacuum circuit breaker", EATON_MV_SOURCES.wvaciPage, [["Series", "W-VACi"], ["Product type", "IEC vacuum circuit breaker"], ["Rated voltage range", "12 kV to 40.5 kV"], ["Rated frequency", "50/60 Hz"], ["Rated current", "630 to 4000 A"], ["Rated short-circuit breaking current", "20 to 50 kA"]], [doc("datasheet", "Eaton W-VACi official brochure", EATON_MV_SOURCES.wvaciBrochure), doc("image", "Eaton W-VACi product-series device image", "https://www.eaton.com/content/dam/eaton/products/medium-voltage-power-distribution-control-systems/w-vaci-cn.png/_jcr_content/renditions/cq5dam.thumbnail.319.319.png")]);
   // The manual is evidence/documentation, not a product page. Keep it in documents but always
   // expose Eaton's official W-VACi product-series page as productUrl; a PDF URL is not a valid
   // product identity for downstream consumers.
-  if (/^360W-VACi32$/i.test(part)) return make("Eaton 360 W-VACi IEC vacuum circuit breaker", EATON_MV_SOURCES.wvaciPage, [["Series", "360 W-VACi"], ["Product type", "IEC vacuum circuit breaker"], ["Rated voltage", "36 kV"], ["Rated current", "1250 to 2500 A"], ["Rated short-circuit breaking current", "31.5 kA"], ["Model suffix", "32"]], [doc("datasheet", "Eaton 360W-VACi technical data (user manual)", EATON_MV_SOURCES.wvaci36Manual)]);
-  if (/^VN2-24$/i.test(part)) return make("Eaton VN2-24 indoor medium-voltage AC vacuum circuit breaker", EATON_MV_SOURCES.cooperBreakerPage, [["Series", "VN2"], ["Product type", "Indoor medium-voltage AC vacuum circuit breaker"], ["Rated voltage", "24 kV"], ["Rated frequency", "50/60 Hz"], ["Rated current", "630 to 4000 A"], ["Rated short-circuit breaking current", "20 to 40 kA"]], [doc("datasheet", "Eaton medium-voltage distribution circuit breakers and contactors catalog", EATON_MV_SOURCES.cooperCatalog)]);
-  if (/^CEC-12$/i.test(part)) return make("Eaton CEC medium-voltage vacuum contactor", EATON_MV_SOURCES.vacuumContactorsPage, [["Series", "CEC"], ["Product type", "Medium-voltage vacuum contactor"], ["Rated voltage", "12 kV"], ["Rated frequency", "50/60 Hz"], ["Rated current", "400 A"], ["Rated short-time withstand current", "6.3 kA (4 s)"]], [doc("datasheet", "Eaton medium-voltage distribution circuit breakers and contactors catalog", EATON_MV_SOURCES.cooperCatalog)]);
-  if (/^CE-17\.5$/i.test(part)) return make("Eaton CE medium-voltage vacuum circuit breaker", EATON_MV_SOURCES.cooperBreakerPage, [["Series", "CE"], ["Product type", "Medium-voltage vacuum circuit breaker"], ["Rated voltage", "17.5 kV"], ["Rated frequency", "50/60 Hz"], ["Rated current", "630 to 5000 A"], ["Rated short-circuit breaking current", "20 to 63 kA"]], [doc("datasheet", "Eaton medium-voltage distribution circuit breakers and contactors catalog", EATON_MV_SOURCES.cooperCatalog)]);
+  if (/^360W-VACi32$/i.test(part)) return make("Eaton 360 W-VACi IEC vacuum circuit breaker", EATON_MV_SOURCES.wvaciPage, [["Series", "360 W-VACi"], ["Product type", "IEC vacuum circuit breaker"], ["Rated voltage", "36 kV"], ["Rated current", "1250 to 2500 A"], ["Rated short-circuit breaking current", "31.5 kA"], ["Model suffix", "32"]], [doc("datasheet", "Eaton 360W-VACi technical data (user manual)", EATON_MV_SOURCES.wvaci36Manual), doc("image", "Eaton medium-voltage vacuum circuit breaker representative device image", representativeBreakerImage)]);
+  if (/^VN2-24$/i.test(part)) return make("Eaton VN2-24 indoor medium-voltage AC vacuum circuit breaker", EATON_MV_SOURCES.cooperBreakerPage, [["Series", "VN2"], ["Product type", "Indoor medium-voltage AC vacuum circuit breaker"], ["Rated voltage", "24 kV"], ["Rated frequency", "50/60 Hz"], ["Rated current", "630 to 4000 A"], ["Rated short-circuit breaking current", "20 to 40 kA"]], [doc("datasheet", "Eaton medium-voltage distribution circuit breakers and contactors catalog", EATON_MV_SOURCES.cooperCatalog), doc("image", "Eaton medium-voltage vacuum circuit breaker representative device image", representativeBreakerImage)]);
+  if (/^CEC-12$/i.test(part)) return make("Eaton CEC medium-voltage vacuum contactor", EATON_MV_SOURCES.vacuumContactorsPage, [["Series", "CEC"], ["Product type", "Medium-voltage vacuum contactor"], ["Rated voltage", "12 kV"], ["Rated frequency", "50/60 Hz"], ["Rated current", "400 A"], ["Rated short-time withstand current", "6.3 kA (4 s)"]], [doc("datasheet", "Eaton medium-voltage distribution circuit breakers and contactors catalog", EATON_MV_SOURCES.cooperCatalog), doc("image", "Eaton vacuum contactor representative device image", vacuumContactorImage)]);
+  if (/^CE-17\.5$/i.test(part)) return make("Eaton CE medium-voltage vacuum circuit breaker", EATON_MV_SOURCES.cooperBreakerPage, [["Series", "CE"], ["Product type", "Medium-voltage vacuum circuit breaker"], ["Rated voltage", "17.5 kV"], ["Rated frequency", "50/60 Hz"], ["Rated current", "630 to 5000 A"], ["Rated short-circuit breaking current", "20 to 63 kA"]], [doc("datasheet", "Eaton medium-voltage distribution circuit breakers and contactors catalog", EATON_MV_SOURCES.cooperCatalog), doc("image", "Eaton medium-voltage vacuum circuit breaker representative device image", representativeBreakerImage)]);
   return undefined;
 }
 
@@ -316,10 +318,7 @@ async function enrichEatonMediumVoltageDocuments(result: ProductResult, context:
     if (!attribute.sourceUrl || !downloadedUrls.has(attribute.sourceUrl)) return true;
     return /(?:rated\s+(?:voltage|current|frequency)|withstand|short[-\s]?circuit|compliance|certif|standard|iec\b)/i.test(attribute.name);
   });
-  const safeNormalized = {
-    ...result.normalized,
-    ...normalizeFields(safeAttributes, enriched.documents)
-  };
+  const safeNormalized = normalizeFields(safeAttributes, []);
   return {
     ...enriched,
     attributes: safeAttributes,
@@ -444,7 +443,7 @@ export class EatonConnector implements ManufacturerConnector {
           `primary reader parse done ${Date.now() - parseStartedAt}ms status=${parsed.status} attrs=${parsed.attributes.length} docs=${parsed.documents.length} rich=${isRichEatonResult(parsed)}`
         );
         if (parsed.status !== "failed") result = mergeEatonResults(result, parsed);
-        if (result && isRichEatonResult(result)) {
+        if (result && isRichEatonResult(result) && hasVerifiedEatonProductUrl(result, partNumber)) {
           result = await enrichEatonLocalizedDescriptions(result, context, diagnostics);
           return withEatonDiagnostics(result, diagnostics);
         }
@@ -462,7 +461,7 @@ export class EatonConnector implements ManufacturerConnector {
       if (result && result.status !== "failed" && result.documents.some((doc) => doc.stage === "search-document")) {
         return withEatonDiagnostics(result, diagnostics);
       }
-      if (result && isRichEatonResult(result)) {
+      if (result && isRichEatonResult(result) && hasVerifiedEatonProductUrl(result, partNumber)) {
         result = await enrichEatonLocalizedDescriptions(result, context, diagnostics);
         return withEatonDiagnostics(result, diagnostics);
       }
@@ -553,6 +552,10 @@ export class EatonConnector implements ManufacturerConnector {
       if (pdfFallback) result = mergeEatonResults(result, pdfFallback);
     }
 
+    if (result && result.status !== "failed" && !hasVerifiedEatonProductUrl(result, partNumber)) {
+      diagnostics.notes?.push("Eaton result rejected because its product URL was not proven to identify the requested catalog number or an explicit source-backed family record.");
+      result = undefined;
+    }
     if (result && result.status !== "failed") {
       result = await enrichEatonLocalizedDescriptions(result, context, diagnostics);
       return withEatonDiagnostics(result, diagnostics);
@@ -1646,6 +1649,24 @@ export function parseEatonProductPage(
       : undefined,
     error: hasUsableProductData ? undefined : "No usable Eaton product data found."
   };
+}
+
+function hasVerifiedEatonProductUrl(result: ProductResult, catalogNumber: string): boolean {
+  if (!result.productUrl || !isAllowedEatonProductHost(result.productUrl)) return false;
+  if (eatonSkuPathMatches(result.productUrl, catalogNumber)) return true;
+  // Eaton's MV catalogue contains genuine models without individual SKU pages. Their
+  // explicit family route is valid only when the connector marked it terminal and kept
+  // the source-backed family/model record intact.
+  return result.pageLevel === "family" && result.diagnostics?.terminal?.skipNetworkFallback === true;
+}
+
+function isAllowedEatonProductHost(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    return /(?:^|\.)eaton\.com$/i.test(parsed.hostname) && !/\.pdf$/i.test(parsed.pathname);
+  } catch {
+    return false;
+  }
 }
 
 function normalizeEatonVoltageRating(name: string, value: string): string {

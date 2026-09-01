@@ -2830,10 +2830,15 @@ function primaryImageDocument(result?: ProductResult) {
 function normalizedForExport(result?: ProductResult): ProductResult["normalized"] {
   if (!result) return {};
   const normalized = { ...result.normalized };
-  const computed = normalizeFields(result.attributes, documentsForExport(result));
+  // Eaton MV model records intentionally keep family publications as evidence only.  Those
+  // PDFs contain neighbouring-model tables and prose figure captions; re-normalizing them at
+  // export time can resurrect a false dimension even after the connector filtered it out.
+  const isEatonMvFamily = result.manufacturerId === "eaton" && result.pageLevel === "family" && result.diagnostics?.terminal?.skipNetworkFallback === true;
+  const computed = normalizeFields(result.attributes, isEatonMvFamily ? [] : documentsForExport(result));
   for (const key of Object.keys(computed) as Array<keyof ProductResult["normalized"]>) {
     if (computed[key] && !normalized[key]) normalized[key] = computed[key];
   }
+  if (isEatonMvFamily) normalized.dimensions = undefined;
   return normalized;
 }
 

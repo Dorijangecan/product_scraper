@@ -135,6 +135,10 @@ export function requiredElectricalFields(result: ProductResult, context: Electri
   // Rockwell 440R Guardmaster safety relays publish the 24 V AC/DC power supply but do not
   // publish a device input-current rating on the official PDP or its 440R technical data sheet.
   if (result.manufacturerId === "rockwell" && context.deviceType === "Safety Relay") return ["voltage"];
+  // Rockwell 193-ECM items are E300 communication modules. Their official PDPs publish the
+  // interface/module identity but no standalone voltage/current rating; do not inherit the
+  // electrical requirements of the parent 193 overload-relay family.
+  if (result.manufacturerId === "rockwell" && /^193-ECM-/i.test(result.catalogNumber.trim())) return [];
   // Rockwell 800T/800H operators are passive contact assemblies. Their official product pages
   // publish contact ratings, not a device supply voltage; the shared active-pushbutton heuristic
   // must not reject them for lacking a supply-voltage field.

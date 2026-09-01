@@ -162,7 +162,7 @@ export const DEVICE_TYPE_FAMILIES: Record<string, readonly FamilyEntry[]> = {
     { patterns: ["SRB", "PROTECT-"], type: "Safety Relay" }
   ],
   rockwell: [
-    { patterns: ["100-"], type: "Contactor", notes: "Allen-Bradley IEC contactors" },
+    { patterns: ["100-", "100S-"], type: "Contactor", notes: "Allen-Bradley IEC contactors and safety contactors" },
     { patterns: ["700S"], type: "Safety Relay", notes: "Allen-Bradley safety control relays" },
     { patterns: ["700-"], type: "Relay", notes: "Allen-Bradley control relays" },
     { patterns: ["140M"], type: "Motor Circuit Breaker" },
@@ -171,6 +171,7 @@ export const DEVICE_TYPE_FAMILIES: Record<string, readonly FamilyEntry[]> = {
     { patterns: ["1492-SP"], type: "Miniature Circuit Breaker", notes: "Allen-Bradley supplementary protectors" },
     { patterns: ["1492-FB"], type: "Fuse", notes: "Allen-Bradley fuse blocks" },
     { patterns: ["1492-CB"], type: "Circuit Breaker", notes: "Allen-Bradley circuit breakers" },
+    { patterns: ["193-ECM"], type: "Communication Gateway", notes: "E300 communication modules" },
     { patterns: ["193"], type: "Motor Starter", notes: "E1 Plus / overload relays" },
     { patterns: ["194E", "194L", "194R"], type: "Disconnect Switch", notes: "Allen-Bradley disconnect switches" },
     { patterns: ["1606"], type: "Power Supply", notes: "Allen-Bradley switched mode power supplies" },
@@ -188,7 +189,7 @@ export const DEVICE_TYPE_FAMILIES: Record<string, readonly FamilyEntry[]> = {
     { patterns: ["1756-M02", "1756-HYD"], type: "Motion Controller", notes: "ControlLogix integrated motion modules" },
     { patterns: ["1756-L", "1769-L", "5069-L", "2080-LC"], type: "Programmable Logic Controller", notes: "ControlLogix / CompactLogix / Micro800 controllers" },
     { patterns: ["1734-AENT", "1734-AENTR", "1734-APB", "1734-ACNR", "1756-EN", "1756-CN", "1756-DHRIO", "1756-RIO", "1756-RM", "5069-AEN"], type: "Communication Gateway", notes: "Rockwell communication adapters and bridge modules" },
-    { patterns: ["1734", "1756", "1769", "1794", "2085", "5069", "5094"], type: "I/O Module" },
+    { patterns: ["1732E", "1734", "1756", "1769", "1794", "2085", "5069", "5094"], type: "I/O Module" },
     { patterns: ["1783", "1788"], type: "Communication Gateway", notes: "Stratix industrial networking and communication modules" },
     { patterns: ["2711P", "2711", "2715P", "2715"], type: "HMI", notes: "PanelView HMI" },
     { patterns: ["800F", "800H", "800T"], type: "Pushbutton / Operator" },
