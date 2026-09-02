@@ -2161,6 +2161,14 @@ function expandImageCandidates(image: DocumentRecord): DocumentRecord[] {
 function imageIdentity(url: string): string {
   try {
     const parsed = new URL(url);
+    if (/\/[_]?next\/image$/i.test(parsed.pathname)) {
+      const inner = parsed.searchParams.get("url");
+      if (inner) return imageIdentity(inner);
+    }
+    if (/\/api\/og$/i.test(parsed.pathname)) {
+      const slug = parsed.searchParams.get("slug");
+      if (slug) return `og:${slug.toLowerCase()}`;
+    }
     const filename = parsed.pathname.split("/").pop() ?? parsed.pathname;
     let stem = filename.replace(/\.(?:png|jpe?g|webp|gif|avif|svg)$/i, "");
     let previous = "";
@@ -2177,6 +2185,7 @@ function imageIdentity(url: string): string {
 function imageDocumentRank(doc: DocumentRecord): number {
   const text = `${doc.label} ${doc.url}`.toLowerCase();
   let rank = documentDownloadRank(doc);
+  if (/\bprimary\s+product\s+image\b/.test(text)) rank -= 100;
   if (doc.localPath || doc.downloadStatus === "downloaded") rank -= 50;
   const dimensions = imageDimensionsFromUrl(doc.url);
   if (dimensions) {

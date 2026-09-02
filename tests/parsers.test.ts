@@ -17,10 +17,27 @@ import { extractSiemensProductAndPricesEan, extractSiemensTechnicalData, parseSi
 import { parseRockwellCutsheetPage, parseRockwellDpp, parseRockwellDrawingsPage, parseRockwellFamilyPage } from "../src/server/scrapers/rockwell.js";
 import { SCEConnector, parseSceProductPage } from "../src/server/scrapers/sce.js";
 import { SpelsbergConnector } from "../src/server/scrapers/spelsberg.js";
+import { filterNventProductImages } from "../src/server/scrapers/nvent.js";
 import type { FetchedText } from "../src/server/scrapers/http-client.js";
 import type { ScrapeContext } from "../src/server/scrapers/types.js";
 
 describe("manufacturer parsers", () => {
+  it("rejects nVent accessory, drawing, and sibling-SKU thumbnails as product images", () => {
+    const documents = [
+      { type: "image" as const, label: "Lift eyes product photo", url: "https://www.nvent.com/lift-eyes.png" },
+      { type: "image" as const, label: "HoleSeals Product Photo", url: "https://www.nvent.com/holeseals.png" },
+      { type: "image" as const, label: "DAH4002B Electric Heater", url: "https://www.nvent.com/dah4002b.png" },
+      { type: "image" as const, label: "Product photo", url: "https://www.nvent.com/real-device.png" }
+    ];
+    expect(filterNventProductImages("DAH8001B", documents)).toEqual([
+      expect.objectContaining({ url: "https://www.nvent.com/real-device.png" })
+    ]);
+    expect(filterNventProductImages("A48X2E7824", [
+      { type: "image", label: "A48X2E7810; A48X2E7818; A48X2E7824 photo rendering", url: "https://www.nvent.com/family.png" },
+      { type: "image", label: "A48X2E7810 photo rendering", url: "https://www.nvent.com/sibling.png" }
+    ]).map((document) => document.url)).toEqual(["https://www.nvent.com/family.png"]);
+  });
+
   it("removes an Eaton catalog number prefix from the exported description", () => {
     expect(
       stripEatonCatalogPrefix(

@@ -99,7 +99,9 @@ export class GenericFallbackScraper {
           // article and contains its technical data. Its page also exposes many related links; probing
           // four of them serially adds 20–40 seconds without improving the confirmed result. Keep
           // discovery diagnostics, but do not re-fetch those candidates for this manufacturer.
-          const skipRedundantDetailDiscovery = this.manufacturerId === "phoenix";
+          const skipRedundantDetailDiscovery =
+            this.manufacturerId === "phoenix" ||
+            (this.manufacturerId === "schmersal" && source.id === "schmersal-discovered-product");
           let detailResolved = skipRedundantDetailDiscovery;
           for (const candidate of skipRedundantDetailDiscovery ? [] : discovery.candidates.slice(0, 4)) {
             if (sameUrl(candidate.url, fetched.effectiveUrl)) continue;
@@ -867,6 +869,7 @@ function extractImageDocuments(
     if (
       absolute &&
       isLikelyImageUrl(absolute) &&
+      !(isSchmersalGeneratedOgImage(absolute) && domDocuments.length > 0) &&
       !matchesAnyPattern(absolute, extractionPolicy?.ignoredImageUrlPatterns) &&
       !isLikelySchematicImage(`${name} ${absolute}`.toLowerCase())
     ) {
@@ -886,8 +889,13 @@ function extractImageDocuments(
     if (!isLikelyImageUrl(absolute)) return;
     if (matchesAnyPattern(absolute, extractionPolicy?.ignoredImageUrlPatterns)) return;
     const context = imageContextForElement($, element);
-    if (!looksLikeProductImage(absolute, context, partKey)) return;
-    const label = cleanText($(element).attr("alt") || $(element).attr("title") || "Product image");
+    const primary = /^(?:high|eager)$/i.test($(element).attr("fetchpriority") ?? "") ||
+      /^(?:eager)$/i.test($(element).attr("loading") ?? "");
+    const isSchmersalPrimary = primary && /products\.schmersal\.com$/i.test(new URL(sourceUrl).hostname);
+    if (!isSchmersalPrimary && !looksLikeProductImage(absolute, context, partKey)) return;
+    const label = primary
+      ? "Primary product image"
+      : cleanText($(element).attr("alt") || $(element).attr("title") || "Product image");
     domDocuments.push({ type: "image", label, url: absolute, sourceUrl });
   });
 
@@ -917,6 +925,10 @@ function isUsefulMetaImageDocument(doc: DocumentRecord, domDocuments: DocumentRe
   if (compactPart && compactUrl.includes(compactPart)) return true;
   if (/product[_-]?and[_-]?sku|product[-_/]?image|sku[_-]?image/i.test(doc.url)) return true;
   return domDocuments.some((domDoc) => domDoc.url === doc.url || imageIdentity(domDoc.url) === imageIdentity(doc.url));
+}
+
+function isSchmersalGeneratedOgImage(url: string): boolean {
+  return /products\.schmersal\.com\/api\/og(?:[/?#]|$)/i.test(url);
 }
 
 function imageUrlsFromStructuredValue(value: unknown): string[] {
@@ -958,7 +970,7 @@ const SCHEMATIC_FILE_RE = /\.(?:dwg|dxf|step|stp)(?:[?#]|$)/i;
 // Keep this separate from schematic detection: it is also used by run-manager, after dedicated
 // connectors have supplied their own DocumentRecord objects.
 const NON_PRODUCT_IMAGE_RE =
-  /(?:\b(?:logo|favicon|sprite|spinner|loader|social|flag|avatar|placeholder|spacer|transparent|bit\.gif|mobile[_-]?menu|illustration[_-]?footer|footer|faq|icon)\b|no[-_\s]*image|noimage|image[-_\s]*(?:not[-_\s]*)?available|not[-_\s]*available|coming[-_\s]*soon)/i;
+  /(?:\b(?:logo|favicon|sprite|spinner|loader|social|flag|avatar|placeholder|spacer|transparent|bit\.gif|mobile[_-]?menu|illustration[_-]?footer|footer|faq|icon)\b|no[-_\s]*image|no[-_\s]*pic|noimage|image[-_\s]*(?:not[-_\s]*)?available|not[-_\s]*available|coming[-_\s]*soon)/i;
 
 export function isLikelySchematicImage(combined: string): boolean {
   return SCHEMATIC_IMAGE_RE.test(combined) || SCHEMATIC_FILE_RE.test(combined);
@@ -984,7 +996,7 @@ const compactKey = compactCatalogNumber;
 function isLikelyImageUrl(url: string): boolean {
   if (/\/(?:bit|spacer|transparent)\.gif(?:[?#]|$)/i.test(url)) return false;
   if (isLikelyNonProductImage(url)) return false;
-  return /\.(?:png|jpe?g|webp|gif|avif|svg)(?:[?#]|$)/i.test(url) || /\/is\/image\/|\/mdmfiles\/|\/images?\/|\/api\/og\?|\/opengraph-image(?:[?#]|$)/i.test(url);
+  return /\.(?:png|jpe?g|webp|gif|avif|svg)(?:[?#]|$)/i.test(url) || /\/[_]?next\/image(?:[?#]|$)|\/is\/image\/|\/mdmfiles\/|\/images?\/|\/api\/og\?|\/opengraph-image(?:[?#]|$)/i.test(url);
 }
 
 function isDocumentUrlWithContext(url: string, context: string, type: DocumentRecord["type"]): boolean {
@@ -1007,6 +1019,18 @@ function isUnrelatedPolicyDocument(
 function imageIdentity(url: string): string {
   try {
     const parsed = new URL(url);
+    // Next.js image optimization wraps the real CDN URL in `?url=...`; using the
+    // wrapper path (`/_next/image`) collapses every product into one image group.
+    if (/\/[_]?next\/image$/i.test(parsed.pathname)) {
+      const inner = parsed.searchParams.get("url");
+      if (inner) return imageIdentity(inner);
+    }
+    // Schmersal's generated OG endpoint also has a constant pathname; retain its
+    // product slug so it cannot replace another article's image.
+    if (/\/api\/og$/i.test(parsed.pathname)) {
+      const slug = parsed.searchParams.get("slug");
+      if (slug) return `og:${slug.toLowerCase()}`;
+    }
     return pathLikeBaseName(parsed.pathname)
       .replace(/\.(?:png|jpe?g|webp|gif|avif|svg)$/i, "")
       .replace(/[-_]\d{2,5}x\d{2,5}$/i, "")

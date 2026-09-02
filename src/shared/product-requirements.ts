@@ -108,6 +108,10 @@ export function requiredElectricalFields(result: ProductResult, context: Electri
   // fruitless (and slow) discovery/fallback pass that can never fill them. Treat electrical fields
   // as not-applicable for this vendor so an authoritative web-page result stays "found".
   if (result.manufacturerId === "gan") return [];
+  // nVent HOFFMAN AP36L44 is a passive pedestal/leg mounting accessory. The official
+  // product page publishes mechanical dimensions and material, not a supply rating;
+  // do not route it into the electrical fallback loop just because its page mentions HMI.
+  if (result.manufacturerId === "nvent" && /^AP36L44$/i.test(result.catalogNumber.trim())) return [];
   // Siemens Building Technologies stock numbers (S55…: HVAC actuators, sensors, controllers) resolve
   // through the Online Support product view, which publishes name/description/lifecycle but not
   // machine-readable rated voltage/current — those live only in the product datasheet PDF. Requiring
@@ -132,6 +136,11 @@ export function requiredElectricalFields(result: ProductResult, context: Electri
   // Schmersal BNS magnetic safety sensors are passive reed/magnetic switches; their PDP exposes
   // no supply voltage. Do not apply the generic active-sensor voltage heuristic to this family.
   if (result.manufacturerId === "schmersal" && /\bBNS\s+\d+/i.test(primaryText)) return [];
+  // Schmersal T4V/TV are passive mechanical position switches and BDF/BPS are passive
+  // operator/actuator components. Their official PDPs publish contact/mechanical data but no
+  // standalone supply voltage; requiring one sends every direct PDP through an expensive,
+  // fruitless browser/document retry and would invite guessed values.
+  if (result.manufacturerId === "schmersal" && /\b(?:T4V|T4VH|TV\d*S?|BDF|BPS|TESF)\b/i.test(primaryText)) return [];
   // Rockwell 440R Guardmaster safety relays publish the 24 V AC/DC power supply but do not
   // publish a device input-current rating on the official PDP or its 440R technical data sheet.
   if (result.manufacturerId === "rockwell" && context.deviceType === "Safety Relay") return ["voltage"];

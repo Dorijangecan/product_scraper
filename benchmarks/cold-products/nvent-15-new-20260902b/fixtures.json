@@ -1,0 +1,17 @@
+[
+  {"manufacturerId":"nvent","catalogNumber":"AEXGR275","caseType":"electrical","riskTags":["hoffman","filter-grille"],"expectedOfficialUrlPatterns":["nvent\\.com"],"requiredDocuments":["image"]},
+  {"manufacturerId":"nvent","catalogNumber":"PVT3F852EMC","caseType":"electrical","riskTags":["hoffman","fan-tray","emc"],"expectedOfficialUrlPatterns":["nvent\\.com"],"requiredDocuments":["image"]},
+  {"manufacturerId":"nvent","catalogNumber":"A12N124","caseType":"mechanical","riskTags":["hoffman","wall-mount","type-12"],"expectedOfficialUrlPatterns":["nvent\\.com"],"requiredDocuments":["image"]},
+  {"manufacturerId":"nvent","catalogNumber":"A72CPX7212SSLPN4","caseType":"mechanical","riskTags":["hoffman","disconnect","stainless"],"expectedOfficialUrlPatterns":["nvent\\.com"],"requiredDocuments":["image"]},
+  {"manufacturerId":"nvent","catalogNumber":"CDSC20228SS","caseType":"mechanical","riskTags":["hoffman","concept","disconnect"],"expectedOfficialUrlPatterns":["nvent\\.com"],"requiredDocuments":["image"]},
+  {"manufacturerId":"nvent","catalogNumber":"CP4836","caseType":"accessory","riskTags":["hoffman","concept-panel"],"expectedOfficialUrlPatterns":["nvent\\.com"],"requiredDocuments":["image"]},
+  {"manufacturerId":"nvent","catalogNumber":"20100-017","caseType":"accessory","riskTags":["schroff","busbar"],"expectedOfficialUrlPatterns":["nvent\\.com"],"requiredDocuments":["image"]},
+  {"manufacturerId":"nvent","catalogNumber":"20848-020","caseType":"accessory","riskTags":["schroff","front-panel","emc"],"expectedOfficialUrlPatterns":["nvent\\.com"],"requiredDocuments":["image"]},
+  {"manufacturerId":"nvent","catalogNumber":"34560-684","caseType":"accessory","riskTags":["schroff","horizontal-rail","light"],"expectedOfficialUrlPatterns":["nvent\\.com"],"requiredDocuments":["image"]},
+  {"manufacturerId":"nvent","catalogNumber":"10828-152","caseType":"mechanical","riskTags":["schroff","inpac","chassis"],"expectedOfficialUrlPatterns":["nvent\\.com"],"requiredDocuments":["image"]},
+  {"manufacturerId":"nvent","catalogNumber":"22127-093","caseType":"accessory","riskTags":["schroff","slide-rail-kit"],"expectedOfficialUrlPatterns":["nvent\\.com"],"requiredDocuments":["image"]},
+  {"manufacturerId":"nvent","catalogNumber":"20836-460","caseType":"accessory","riskTags":["schroff","plug-in-unit","pmc"],"expectedOfficialUrlPatterns":["nvent\\.com"],"requiredDocuments":["image"]},
+  {"manufacturerId":"nvent","catalogNumber":"20836-254","caseType":"accessory","riskTags":["schroff","plug-in-unit","fmc"],"expectedOfficialUrlPatterns":["nvent\\.com"],"requiredDocuments":["image"]},
+  {"manufacturerId":"nvent","catalogNumber":"26880-004","caseType":"mechanical","riskTags":["schroff","ip-pro","aluminum-case"],"expectedOfficialUrlPatterns":["nvent\\.com"],"requiredDocuments":["image"]},
+  {"manufacturerId":"nvent","catalogNumber":"703-1","caseType":"accessory","riskTags":["schroff","inserter-extractor"],"expectedOfficialUrlPatterns":["nvent\\.com"],"requiredDocuments":["image"]}
+]

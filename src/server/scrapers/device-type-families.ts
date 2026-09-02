@@ -157,6 +157,13 @@ export const DEVICE_TYPE_FAMILIES: Record<string, readonly FamilyEntry[]> = {
     { patterns: ["73481501"], type: "Connector", notes: "Spelsberg AK STD 16 A mounting socket" }
   ],
   schmersal: [
+    { patterns: ["EFM", "EFMH", "EFR"], type: "Switch", notes: "Schmersal foot switches" },
+    { patterns: ["SLC", "SLB"], type: "Safety Sensor", notes: "Schmersal safety light curtains and barriers" },
+    { patterns: ["TESF"], type: "Safety Sensor", notes: "Schmersal safety switches" },
+    { patterns: ["BDF"], type: "Pushbutton / Operator", notes: "BDF command and control devices" },
+    { patterns: ["BPS"], type: "Mounting Accessory", notes: "Schmersal actuators" },
+    { patterns: ["IFL"], type: "Inductive Proximity Sensor", notes: "Schmersal inductive sensors" },
+    { patterns: ["T4V", "T4VH", "TV"], type: "Safety Sensor", notes: "Schmersal position and safety switches" },
     { patterns: ["AZM"], type: "Solenoid Interlock" },
     { patterns: ["AZ", "BNS", "RSS", "SLC", "SLB", "EX-AZ"], type: "Safety Sensor" },
     { patterns: ["SRB", "PROTECT-"], type: "Safety Relay" }
@@ -202,8 +209,10 @@ export const DEVICE_TYPE_FAMILIES: Record<string, readonly FamilyEntry[]> = {
     { patterns: ["1492"], type: "Terminal Block" }
   ],
   nvent: [
-    { patterns: ["CP2020", "CSP2020", "P19SH8", "P2ACEGP", "23022-010"], type: "Mounting Accessory", notes: "nVent Hoffman/Schroff accessory items verified on official product pages" },
-    { patterns: ["P2C", "P2D", "P2B", "CSD", "P2KOD"], type: "Enclosure", notes: "nVent Hoffman enclosure families" }
+    { patterns: ["CP2020", "CSP2020", "P19SH8", "P2ACEGP", "23022-010", "AP36L44"], type: "Mounting Accessory", notes: "nVent Hoffman/Schroff accessory items verified on official product pages" },
+    { patterns: ["P2C", "P2D", "P2B", "CSD", "P2KOD"], type: "Enclosure", notes: "nVent Hoffman enclosure families" },
+    { patterns: ["DAH"], type: "Thermal Management", notes: "nVent HOFFMAN DAH enclosure heaters" },
+    { patterns: ["69001-"], type: "Connector", notes: "nVent SCHROFF DIN connectors" }
   ],
   eta: [
     { patterns: ["REX", "3120", "2210", "ESS"], type: "Circuit Breaker" }
