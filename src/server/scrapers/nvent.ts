@@ -92,7 +92,7 @@ export class NventConnector implements ManufacturerConnector {
         // candidates fail the exact-SKU identity gate, do not launch generic
         // discovery/fallback: that is both slow and unsafe because it can
         // replace a missing image with a sibling product image.
-        ...(parsed.identityConfirmed && !hasAcceptedImage
+        ...(!hasAcceptedImage
           ? {
               diagnostics: {
                 ...parsed.diagnostics,
