@@ -228,7 +228,11 @@ async function runFixtureAttempt(
   );
   const withDownloads = await stage("downloadDocuments.initial", () => downloadDocuments(manufacturer, fixture.catalogNumber, initial, signal));
   let result = finalizeQualityGate(await stage("enrich.initial", () => enrichResultFromDownloadedDocuments(withDownloads)), manufacturer);
-  if (!result.qualityGate?.passed) {
+  const skipSpeculativeFallback =
+    result.diagnostics?.terminal?.skipNetworkFallback === true ||
+    (fixture.manufacturerId.toLowerCase() === "nvent" &&
+      result.qualityGate?.missing?.includes("document:image") === true);
+  if (!result.qualityGate?.passed && !skipSpeculativeFallback) {
     result = await stage("deterministicPipeline", () => runDeterministicScrapePipeline(result, fixture.catalogNumber, context));
     result = await stage("customerDocuments.retry", () => applyBenchmarkCustomerDocuments(fixture, result, customerDocumentCache));
     const fallbackDownloads = await stage("downloadDocuments.retry", () => downloadDocuments(manufacturer, fixture.catalogNumber, result, signal));

@@ -577,6 +577,17 @@ export class RunManager {
             fallbackStages = enriched.diagnostics?.fallbackStages;
           } else if (customerEarlyShortCircuit) {
             // Already populated above. Skip the entire enrichment / fallback / final-audit chain.
+          } else if (
+            manufacturer.id.toLowerCase() === "nvent" &&
+            (enriched.qualityGate?.missing?.includes("document:image") === true ||
+              !enriched.documents.some((document) => document.type === "image"))
+          ) {
+            fallbackStages = enriched.diagnostics?.fallbackStages;
+            await this.appendRunLog(layoutRef, "NETWORK_FALLBACK_SKIPPED_NVENT_IMAGE_GATE", {
+              catalogNumber: item.catalogNumber,
+              reason: "The official nVent page did not provide an image document proven for the exact SKU.",
+              message: "Skipping speculative fallback to prevent sibling, schematic, macro, or logo images."
+            });
           } else if (shouldSkipNetworkFallback(enriched)) {
             fallbackStages = enriched.diagnostics?.fallbackStages;
             await this.appendRunLog(layoutRef, "NETWORK_FALLBACK_SKIPPED_TERMINAL", {

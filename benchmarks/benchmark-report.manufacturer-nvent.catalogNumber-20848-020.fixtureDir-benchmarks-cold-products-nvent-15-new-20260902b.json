@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-09-02T10:27:48.225Z",
-  "outputDir": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260902102617",
+  "generatedAt": "2026-09-02T10:42:33.264Z",
+  "outputDir": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260902104218",
   "filters": {
     "manufacturer": "nvent",
     "catalogNumber": "20848-020",
@@ -8,9 +8,9 @@
   },
   "summary": {
     "foundRate": 0,
-    "officialUrlRate": 0,
+    "officialUrlRate": 100,
     "documentRate": 0,
-    "pdtAuditRate": 0,
+    "pdtAuditRate": 100,
     "deviceTypeRate": 100,
     "customerDocumentRate": 0,
     "wrongProducts": 0,
@@ -34,8 +34,28 @@
           ]
         }
       },
-      "byDeviceType": {},
-      "byDeviceSheet": {},
+      "byDeviceType": {
+        "Connector": {
+          "total": 1,
+          "manufacturers": [
+            "nvent"
+          ],
+          "caseTypes": [
+            "accessory"
+          ]
+        }
+      },
+      "byDeviceSheet": {
+        "connector": {
+          "total": 1,
+          "deviceTypes": [
+            "Connector"
+          ],
+          "manufacturers": [
+            "nvent"
+          ]
+        }
+      },
       "thinManufacturers": [
         "nvent"
       ],
@@ -57,7 +77,6 @@
         "cable ducts mounting rails",
         "cable gland",
         "command and alarm device",
-        "connector",
         "contactor a. fuses",
         "directional control valve",
         "el. mesurement devices",
@@ -478,43 +497,6 @@
               "pattern": "BDF",
               "deviceType": "Pushbutton / Operator",
               "notes": "BDF command and control devices"
-            }
-          ]
-        },
-        {
-          "sheetName": "connector",
-          "deviceTypes": [
-            "Connector",
-            "Optical Connector"
-          ],
-          "examples": [
-            {
-              "manufacturerId": "fath",
-              "pattern": "6SAKP5J516BS01",
-              "deviceType": "Connector",
-              "notes": "FATH Module F Line and profile connectors"
-            },
-            {
-              "manufacturerId": "fath",
-              "pattern": "6SBEU14I.317",
-              "deviceType": "Connector",
-              "notes": "FATH Module F Line and profile connectors"
-            },
-            {
-              "manufacturerId": "nvent",
-              "pattern": "69001-",
-              "deviceType": "Connector",
-              "notes": "nVent SCHROFF DIN connectors"
-            },
-            {
-              "manufacturerId": "phoenix",
-              "pattern": "MCS",
-              "deviceType": "Connector"
-            },
-            {
-              "manufacturerId": "phoenix",
-              "pattern": "VIP",
-              "deviceType": "Connector"
             }
           ]
         },
@@ -1056,7 +1038,7 @@
         }
       ],
       "deviceSheetCoverage": {
-        "covered": 0,
+        "covered": 1,
         "total": 41
       }
     },
@@ -1068,23 +1050,26 @@
       "manufacturerId": "nvent",
       "catalogNumber": "20848-020",
       "caseType": "accessory",
+      "actualDeviceType": "Connector",
       "deviceTypeMatched": true,
       "riskTags": [
         "schroff",
         "front-panel",
         "emc"
       ],
-      "status": "error",
-      "confidence": 0,
-      "elapsedMs": 90001,
-      "identityConfirmed": false,
+      "status": "partial",
+      "confidence": 0.4,
+      "elapsedMs": 14804,
+      "productUrl": "https://www.nvent.com/en-us/schroff/products/enc20848-020",
+      "identityConfirmed": true,
       "wrongProduct": false,
-      "officialUrlMatched": false,
+      "officialUrlMatched": true,
       "requiredDocumentsMatched": false,
-      "normalizedFieldsMatched": false,
-      "pdtAuditMatched": false,
-      "pdtWrittenCells": 0,
-      "pdtBlankCells": 0,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260902104218\\pdt\\nvent-20848-020-pdt_pdt-audit.json",
+      "pdtWrittenCells": 30,
+      "pdtBlankCells": 53,
       "pdtSkippedCells": 0,
       "pdtUnprovenSkipped": 0,
       "pdtUnprovenWritten": 0,
@@ -1094,10 +1079,8 @@
       "customerDocumentsExpected": 0,
       "customerDocumentsMatched": true,
       "qualityMissing": [
-        "error",
-        "timeout"
-      ],
-      "error": "Benchmark fixture timed out after 90000 ms."
+        "document:image"
+      ]
     }
   ]
 }

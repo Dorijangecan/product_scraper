@@ -1,30 +1,32 @@
 {
-  "generatedAt": "2026-09-02T10:11:27.576Z",
-  "outputDir": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260902100833",
+  "generatedAt": "2026-09-02T10:48:22.110Z",
+  "outputDir": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260902104619",
   "filters": {
     "manufacturer": "nvent",
     "limit": "15",
     "fixtureDir": "benchmarks/cold-products/nvent-15-new-20260902"
   },
   "summary": {
-    "foundRate": 83.3,
-    "officialUrlRate": 83.3,
-    "documentRate": 83.3,
-    "pdtAuditRate": 83.3,
-    "deviceTypeRate": 83.3,
+    "foundRate": 46.7,
+    "officialUrlRate": 100,
+    "documentRate": 46.7,
+    "pdtAuditRate": 100,
+    "deviceTypeRate": 100,
     "customerDocumentRate": 0,
     "wrongProducts": 0,
     "partialWithoutMissing": 0,
     "pdtUnprovenWritten": 0,
     "pdtUnexplainedRequiredFieldIssues": 0,
-    "pdtWriteIssues": 8,
+    "pdtWriteIssues": 14,
     "qualityAccepted": false,
     "fixtureCoverageAccepted": true,
     "fixtureCoverage": {
       "byManufacturer": {
         "nvent": {
-          "total": 6,
+          "total": 15,
           "caseTypes": [
+            "accessory",
+            "electrical",
             "mechanical"
           ],
           "riskTags": [
@@ -33,9 +35,20 @@
             "a25",
             "a30",
             "a4sw3",
+            "aluminum",
+            "compact",
+            "concept",
+            "dah",
             "disconnect",
+            "five-door",
             "free-stand",
+            "heater",
+            "heavy-duty",
+            "hmi",
             "hoffman",
+            "low-profile",
+            "operator-interface",
+            "pedestal",
             "stainless",
             "type-1",
             "wall-mount"
@@ -44,18 +57,36 @@
       },
       "byDeviceType": {
         "Enclosure": {
-          "total": 6,
+          "total": 12,
           "manufacturers": [
             "nvent"
           ],
           "caseTypes": [
             "mechanical"
           ]
+        },
+        "Thermal Management": {
+          "total": 2,
+          "manufacturers": [
+            "nvent"
+          ],
+          "caseTypes": [
+            "electrical"
+          ]
+        },
+        "Mounting Accessory": {
+          "total": 1,
+          "manufacturers": [
+            "nvent"
+          ],
+          "caseTypes": [
+            "accessory"
+          ]
         }
       },
       "byDeviceSheet": {
         "cabinet": {
-          "total": 6,
+          "total": 12,
           "deviceTypes": [
             "Enclosure"
           ],
@@ -64,9 +95,27 @@
           ]
         },
         "cabinet.mechanical": {
-          "total": 6,
+          "total": 12,
           "deviceTypes": [
             "Enclosure"
+          ],
+          "manufacturers": [
+            "nvent"
+          ]
+        },
+        "cabinet.airconditioning": {
+          "total": 2,
+          "deviceTypes": [
+            "Thermal Management"
+          ],
+          "manufacturers": [
+            "nvent"
+          ]
+        },
+        "cable ducts mounting rails": {
+          "total": 1,
+          "deviceTypes": [
+            "Mounting Accessory"
           ],
           "manufacturers": [
             "nvent"
@@ -84,10 +133,8 @@
         "RS232 interfaces",
         "Switch",
         "Wire ID Information",
-        "cabinet.airconditioning",
         "cabinet.rack",
         "cable",
-        "cable ducts mounting rails",
         "cable gland",
         "command and alarm device",
         "connector",
@@ -283,10 +330,10 @@
               "notes": "Phoenix FL SWITCH 2105 item number"
             },
             {
-              "manufacturerId": "siemens",
-              "pattern": "6GK",
+              "manufacturerId": "schmersal",
+              "pattern": "EFM",
               "deviceType": "Switch",
-              "notes": "SCALANCE industrial Ethernet switches"
+              "notes": "Schmersal foot switches"
             }
           ]
         },
@@ -296,20 +343,6 @@
             "Wire Marker"
           ],
           "examples": []
-        },
-        {
-          "sheetName": "cabinet.airconditioning",
-          "deviceTypes": [
-            "Thermal Management"
-          ],
-          "examples": [
-            {
-              "manufacturerId": "nvent",
-              "pattern": "DAH",
-              "deviceType": "Thermal Management",
-              "notes": "nVent HOFFMAN DAH enclosure heaters"
-            }
-          ]
         },
         {
           "sheetName": "cabinet.rack",
@@ -341,45 +374,6 @@
               "pattern": "59181001",
               "deviceType": "Cable",
               "notes": "Spelsberg Wallbox LL 7m Type 2 charging cable"
-            }
-          ]
-        },
-        {
-          "sheetName": "cable ducts mounting rails",
-          "deviceTypes": [
-            "Mounting Accessory",
-            "Wireway"
-          ],
-          "examples": [
-            {
-              "manufacturerId": "fath",
-              "pattern": "09308901S01",
-              "deviceType": "Mounting Accessory",
-              "notes": "FATH workstation and profile mounting components"
-            },
-            {
-              "manufacturerId": "fath",
-              "pattern": "6FG40ND80M695N08",
-              "deviceType": "Mounting Accessory",
-              "notes": "FATH workstation and profile mounting components"
-            },
-            {
-              "manufacturerId": "nvent",
-              "pattern": "CP2020",
-              "deviceType": "Mounting Accessory",
-              "notes": "nVent Hoffman/Schroff accessory items verified on official product pages"
-            },
-            {
-              "manufacturerId": "nvent",
-              "pattern": "CSP2020",
-              "deviceType": "Mounting Accessory",
-              "notes": "nVent Hoffman/Schroff accessory items verified on official product pages"
-            },
-            {
-              "manufacturerId": "phoenix",
-              "pattern": "1524160",
-              "deviceType": "Mounting Accessory",
-              "notes": "Phoenix MCS-112X90-AP-7035 adapter plate item number"
             }
           ]
         },
@@ -1010,7 +1004,7 @@
         }
       ],
       "deviceSheetCoverage": {
-        "covered": 2,
+        "covered": 4,
         "total": 41
       }
     },
@@ -1032,7 +1026,7 @@
       ],
       "status": "found",
       "confidence": 0.4,
-      "elapsedMs": 9593,
+      "elapsedMs": 10044,
       "productUrl": "https://www.nvent.com/en-us/hoffman/products/enca363020lp",
       "identityConfirmed": true,
       "wrongProduct": false,
@@ -1040,7 +1034,7 @@
       "requiredDocumentsMatched": true,
       "normalizedFieldsMatched": true,
       "pdtAuditMatched": true,
-      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260902100833\\pdt\\nvent-A363020LP-pdt_pdt-audit.json",
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260902104619\\pdt\\nvent-A363020LP-pdt_pdt-audit.json",
       "pdtWrittenCells": 37,
       "pdtBlankCells": 48,
       "pdtSkippedCells": 4,
@@ -1067,7 +1061,7 @@
       ],
       "status": "found",
       "confidence": 0.4,
-      "elapsedMs": 6817,
+      "elapsedMs": 6979,
       "productUrl": "https://www.nvent.com/en-us/hoffman/products/enca483616lp",
       "identityConfirmed": true,
       "wrongProduct": false,
@@ -1075,7 +1069,7 @@
       "requiredDocumentsMatched": true,
       "normalizedFieldsMatched": true,
       "pdtAuditMatched": true,
-      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260902100833\\pdt\\nvent-A483616LP-pdt_pdt-audit.json",
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260902104619\\pdt\\nvent-A483616LP-pdt_pdt-audit.json",
       "pdtWrittenCells": 37,
       "pdtBlankCells": 48,
       "pdtSkippedCells": 4,
@@ -1101,8 +1095,8 @@
         "stainless"
       ],
       "status": "found",
-      "confidence": 0.53,
-      "elapsedMs": 47666,
+      "confidence": 0.4,
+      "elapsedMs": 6693,
       "productUrl": "https://www.nvent.com/en-us/hoffman/products/enca24h2408sslp3ptw",
       "identityConfirmed": true,
       "wrongProduct": false,
@@ -1110,7 +1104,7 @@
       "requiredDocumentsMatched": true,
       "normalizedFieldsMatched": true,
       "pdtAuditMatched": true,
-      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260902100833\\pdt\\nvent-A24H2408SSLP3PTW-pdt_pdt-audit.json",
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260902104619\\pdt\\nvent-A24H2408SSLP3PTW-pdt_pdt-audit.json",
       "pdtWrittenCells": 38,
       "pdtBlankCells": 48,
       "pdtSkippedCells": 3,
@@ -1137,7 +1131,7 @@
       ],
       "status": "found",
       "confidence": 0.4,
-      "elapsedMs": 9446,
+      "elapsedMs": 9454,
       "productUrl": "https://www.nvent.com/en-us/hoffman/products/enca42sa3808lppl",
       "identityConfirmed": true,
       "wrongProduct": false,
@@ -1145,7 +1139,7 @@
       "requiredDocumentsMatched": true,
       "normalizedFieldsMatched": true,
       "pdtAuditMatched": true,
-      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260902100833\\pdt\\nvent-A42SA3808LPPL-pdt_pdt-audit.json",
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260902104619\\pdt\\nvent-A42SA3808LPPL-pdt_pdt-audit.json",
       "pdtWrittenCells": 39,
       "pdtBlankCells": 48,
       "pdtSkippedCells": 2,
@@ -1170,17 +1164,17 @@
         "a1l",
         "type-1"
       ],
-      "status": "found",
-      "confidence": 0.53,
-      "elapsedMs": 38107,
+      "status": "partial",
+      "confidence": 0.4,
+      "elapsedMs": 6839,
       "productUrl": "https://www.nvent.com/en-us/hoffman/products/enca48n3613",
       "identityConfirmed": true,
       "wrongProduct": false,
       "officialUrlMatched": true,
-      "requiredDocumentsMatched": true,
+      "requiredDocumentsMatched": false,
       "normalizedFieldsMatched": true,
       "pdtAuditMatched": true,
-      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260902100833\\pdt\\nvent-A48N3613-pdt_pdt-audit.json",
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260902104619\\pdt\\nvent-A48N3613-pdt_pdt-audit.json",
       "pdtWrittenCells": 34,
       "pdtBlankCells": 54,
       "pdtSkippedCells": 1,
@@ -1191,30 +1185,362 @@
       "pdtUnexplainedRequiredFieldIssues": 0,
       "customerDocumentsExpected": 0,
       "customerDocumentsMatched": true,
-      "qualityMissing": []
+      "qualityMissing": [
+        "document:image"
+      ]
     },
     {
       "manufacturerId": "nvent",
       "catalogNumber": "A723024SSFSN4",
       "caseType": "mechanical",
       "expectedDeviceType": "Enclosure",
-      "deviceTypeMatched": false,
+      "actualDeviceType": "Enclosure",
+      "deviceTypeMatched": true,
       "riskTags": [
         "hoffman",
         "free-stand",
         "a30"
       ],
-      "status": "error",
-      "confidence": 0,
-      "elapsedMs": 61399,
-      "identityConfirmed": false,
+      "status": "found",
+      "confidence": 0.4,
+      "elapsedMs": 7236,
+      "productUrl": "https://www.nvent.com/en-us/hoffman/products/enca723024ssfsn4",
+      "identityConfirmed": true,
       "wrongProduct": false,
-      "officialUrlMatched": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260902104619\\pdt\\nvent-A723024SSFSN4-pdt_pdt-audit.json",
+      "pdtWrittenCells": 35,
+      "pdtBlankCells": 53,
+      "pdtSkippedCells": 1,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 1,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": []
+    },
+    {
+      "manufacturerId": "nvent",
+      "catalogNumber": "CCA332311",
+      "caseType": "mechanical",
+      "expectedDeviceType": "Enclosure",
+      "actualDeviceType": "Enclosure",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "hoffman",
+        "compact",
+        "aluminum"
+      ],
+      "status": "partial",
+      "confidence": 0.4,
+      "elapsedMs": 5949,
+      "productUrl": "https://www.nvent.com/en-us/hoffman/products/enccca332311",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": false,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260902104619\\pdt\\nvent-CCA332311-pdt_pdt-audit.json",
+      "pdtWrittenCells": 36,
+      "pdtBlankCells": 50,
+      "pdtSkippedCells": 3,
+      "pdtUnprovenSkipped": 2,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 1,
+      "pdtRequiredFieldIssues": 2,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": [
+        "document:image"
+      ]
+    },
+    {
+      "manufacturerId": "nvent",
+      "catalogNumber": "OICE48404021SS",
+      "caseType": "mechanical",
+      "expectedDeviceType": "Enclosure",
+      "actualDeviceType": "Enclosure",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "hoffman",
+        "hmi",
+        "operator-interface"
+      ],
+      "status": "partial",
+      "confidence": 0.4,
+      "elapsedMs": 3712,
+      "productUrl": "https://www.nvent.com/en-us/hoffman/products/encoice48404021ss",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": false,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260902104619\\pdt\\nvent-OICE48404021SS-pdt_pdt-audit.json",
+      "pdtWrittenCells": 34,
+      "pdtBlankCells": 51,
+      "pdtSkippedCells": 4,
+      "pdtUnprovenSkipped": 4,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 2,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": [
+        "document:image"
+      ]
+    },
+    {
+      "manufacturerId": "nvent",
+      "catalogNumber": "CP556018",
+      "caseType": "mechanical",
+      "expectedDeviceType": "Enclosure",
+      "actualDeviceType": "Enclosure",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "hoffman",
+        "hmi",
+        "concept"
+      ],
+      "status": "found",
+      "confidence": 0.4,
+      "elapsedMs": 6367,
+      "productUrl": "https://www.nvent.com/en-us/hoffman/products/enccp556018",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260902104619\\pdt\\nvent-CP556018-pdt_pdt-audit.json",
+      "pdtWrittenCells": 38,
+      "pdtBlankCells": 48,
+      "pdtSkippedCells": 3,
+      "pdtUnprovenSkipped": 2,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 1,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": []
+    },
+    {
+      "manufacturerId": "nvent",
+      "catalogNumber": "DAH4001B",
+      "caseType": "electrical",
+      "expectedDeviceType": "Thermal Management",
+      "actualDeviceType": "Thermal Management",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "hoffman",
+        "dah",
+        "heater"
+      ],
+      "status": "partial",
+      "confidence": 0.4,
+      "elapsedMs": 8708,
+      "productUrl": "https://www.nvent.com/en-us/hoffman/products/encdah4001b",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": false,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260902104619\\pdt\\nvent-DAH4001B-pdt_pdt-audit.json",
+      "pdtWrittenCells": 33,
+      "pdtBlankCells": 54,
+      "pdtSkippedCells": 5,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": [
+        "document:image"
+      ]
+    },
+    {
+      "manufacturerId": "nvent",
+      "catalogNumber": "DAH8001B",
+      "caseType": "electrical",
+      "expectedDeviceType": "Thermal Management",
+      "actualDeviceType": "Thermal Management",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "hoffman",
+        "dah",
+        "heater"
+      ],
+      "status": "partial",
+      "confidence": 0.4,
+      "elapsedMs": 4423,
+      "productUrl": "https://www.nvent.com/en-us/hoffman/products/encdah8001b",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": false,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260902104619\\pdt\\nvent-DAH8001B-pdt_pdt-audit.json",
+      "pdtWrittenCells": 33,
+      "pdtBlankCells": 54,
+      "pdtSkippedCells": 5,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": [
+        "document:image"
+      ]
+    },
+    {
+      "manufacturerId": "nvent",
+      "catalogNumber": "A48X2E7824",
+      "caseType": "mechanical",
+      "expectedDeviceType": "Enclosure",
+      "actualDeviceType": "Enclosure",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "hoffman",
+        "low-profile",
+        "disconnect"
+      ],
+      "status": "partial",
+      "confidence": 0.4,
+      "elapsedMs": 14533,
+      "productUrl": "https://www.nvent.com/en-us/hoffman/products/enca48x2e7824",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": false,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260902104619\\pdt\\nvent-A48X2E7824-pdt_pdt-audit.json",
+      "pdtWrittenCells": 38,
+      "pdtBlankCells": 50,
+      "pdtSkippedCells": 1,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 1,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": [
+        "document:image"
+      ]
+    },
+    {
+      "manufacturerId": "nvent",
+      "catalogNumber": "A60X5E19610",
+      "caseType": "mechanical",
+      "expectedDeviceType": "Enclosure",
+      "actualDeviceType": "Enclosure",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "hoffman",
+        "low-profile",
+        "five-door"
+      ],
+      "status": "partial",
+      "confidence": 0.4,
+      "elapsedMs": 3980,
+      "productUrl": "https://www.nvent.com/en-us/hoffman/products/enca60x5e19610",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": false,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260902104619\\pdt\\nvent-A60X5E19610-pdt_pdt-audit.json",
+      "pdtWrittenCells": 38,
+      "pdtBlankCells": 50,
+      "pdtSkippedCells": 1,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 1,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": [
+        "document:image"
+      ]
+    },
+    {
+      "manufacturerId": "nvent",
+      "catalogNumber": "A84XM4EW24FTCG",
+      "caseType": "mechanical",
+      "expectedDeviceType": "Enclosure",
+      "actualDeviceType": "Enclosure",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "hoffman",
+        "heavy-duty",
+        "disconnect"
+      ],
+      "status": "found",
+      "confidence": 0.4,
+      "elapsedMs": 22577,
+      "productUrl": "https://www.nvent.com/en-us/hoffman/products/enca84xm4ew24ftcg",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260902104619\\pdt\\nvent-A84XM4EW24FTCG-pdt_pdt-audit.json",
+      "pdtWrittenCells": 38,
+      "pdtBlankCells": 50,
+      "pdtSkippedCells": 1,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 1,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": []
+    },
+    {
+      "manufacturerId": "nvent",
+      "catalogNumber": "AP36L44",
+      "caseType": "accessory",
+      "expectedDeviceType": "Mounting Accessory",
+      "actualDeviceType": "Mounting Accessory",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "hoffman",
+        "hmi",
+        "pedestal"
+      ],
+      "status": "partial",
+      "confidence": 0.55,
+      "elapsedMs": 935,
+      "productUrl": "https://www.nvent.com/en-us/hoffman/products/encap36l44",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
       "requiredDocumentsMatched": false,
       "normalizedFieldsMatched": false,
-      "pdtAuditMatched": false,
-      "pdtWrittenCells": 0,
-      "pdtBlankCells": 0,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260902104619\\pdt\\nvent-AP36L44-pdt_pdt-audit.json",
+      "pdtWrittenCells": 19,
+      "pdtBlankCells": 67,
       "pdtSkippedCells": 0,
       "pdtUnprovenSkipped": 0,
       "pdtUnprovenWritten": 0,
@@ -1224,10 +1550,10 @@
       "customerDocumentsExpected": 0,
       "customerDocumentsMatched": true,
       "qualityMissing": [
-        "error",
-        "timeout"
-      ],
-      "error": "Benchmark fixture timed out after 60000 ms."
+        "document:image",
+        "minAttributes:6",
+        "minDocuments:1"
+      ]
     }
   ]
 }

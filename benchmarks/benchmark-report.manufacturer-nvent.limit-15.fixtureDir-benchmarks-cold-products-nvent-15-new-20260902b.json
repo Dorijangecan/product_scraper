@@ -1,45 +1,56 @@
 {
-  "generatedAt": "2026-09-02T10:22:05.072Z",
-  "outputDir": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260902101741",
+  "generatedAt": "2026-09-02T10:45:59.212Z",
+  "outputDir": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260902104424",
   "filters": {
     "manufacturer": "nvent",
     "limit": "15",
     "fixtureDir": "benchmarks/cold-products/nvent-15-new-20260902b"
   },
   "summary": {
-    "foundRate": 87.5,
-    "officialUrlRate": 87.5,
-    "documentRate": 87.5,
-    "pdtAuditRate": 87.5,
+    "foundRate": 66.7,
+    "officialUrlRate": 93.3,
+    "documentRate": 66.7,
+    "pdtAuditRate": 93.3,
     "deviceTypeRate": 100,
     "customerDocumentRate": 0,
     "wrongProducts": 0,
     "partialWithoutMissing": 0,
     "pdtUnprovenWritten": 0,
     "pdtUnexplainedRequiredFieldIssues": 0,
-    "pdtWriteIssues": 4,
+    "pdtWriteIssues": 5,
     "qualityAccepted": false,
     "fixtureCoverageAccepted": true,
     "fixtureCoverage": {
       "byManufacturer": {
         "nvent": {
-          "total": 8,
+          "total": 15,
           "caseTypes": [
             "accessory",
             "electrical",
             "mechanical"
           ],
           "riskTags": [
+            "aluminum-case",
             "busbar",
+            "chassis",
             "concept",
             "concept-panel",
             "disconnect",
             "emc",
             "fan-tray",
             "filter-grille",
+            "fmc",
             "front-panel",
             "hoffman",
+            "horizontal-rail",
+            "inpac",
+            "inserter-extractor",
+            "ip-pro",
+            "light",
+            "plug-in-unit",
+            "pmc",
             "schroff",
+            "slide-rail-kit",
             "stainless",
             "type-12",
             "wall-mount"
@@ -48,7 +59,7 @@
       },
       "byDeviceType": {
         "Enclosure": {
-          "total": 6,
+          "total": 7,
           "manufacturers": [
             "nvent"
           ],
@@ -66,11 +77,39 @@
           "caseTypes": [
             "accessory"
           ]
+        },
+        "Connector": {
+          "total": 2,
+          "manufacturers": [
+            "nvent"
+          ],
+          "caseTypes": [
+            "accessory"
+          ]
+        },
+        "Module Carrier": {
+          "total": 2,
+          "manufacturers": [
+            "nvent"
+          ],
+          "caseTypes": [
+            "accessory"
+          ]
+        },
+        "Mounting Accessory": {
+          "total": 2,
+          "manufacturers": [
+            "nvent"
+          ],
+          "caseTypes": [
+            "accessory",
+            "mechanical"
+          ]
         }
       },
       "byDeviceSheet": {
         "cabinet": {
-          "total": 6,
+          "total": 7,
           "deviceTypes": [
             "Enclosure"
           ],
@@ -79,7 +118,7 @@
           ]
         },
         "cabinet.mechanical": {
-          "total": 6,
+          "total": 7,
           "deviceTypes": [
             "Enclosure"
           ],
@@ -91,6 +130,33 @@
           "total": 1,
           "deviceTypes": [
             "Busbar"
+          ],
+          "manufacturers": [
+            "nvent"
+          ]
+        },
+        "connector": {
+          "total": 2,
+          "deviceTypes": [
+            "Connector"
+          ],
+          "manufacturers": [
+            "nvent"
+          ]
+        },
+        "module carrier frame": {
+          "total": 2,
+          "deviceTypes": [
+            "Module Carrier"
+          ],
+          "manufacturers": [
+            "nvent"
+          ]
+        },
+        "cable ducts mounting rails": {
+          "total": 2,
+          "deviceTypes": [
+            "Mounting Accessory"
           ],
           "manufacturers": [
             "nvent"
@@ -110,10 +176,8 @@
         "cabinet.airconditioning",
         "cabinet.rack",
         "cable",
-        "cable ducts mounting rails",
         "cable gland",
         "command and alarm device",
-        "connector",
         "contactor a. fuses",
         "directional control valve",
         "el. mesurement devices",
@@ -123,7 +187,6 @@
         "fluid power",
         "generator",
         "int. ext. lightning protection",
-        "module carrier frame",
         "motor protection",
         "motors",
         "optical sensor",
@@ -299,10 +362,10 @@
               "notes": "Phoenix FL SWITCH 2105 item number"
             },
             {
-              "manufacturerId": "siemens",
-              "pattern": "6GK",
+              "manufacturerId": "schmersal",
+              "pattern": "EFM",
               "deviceType": "Switch",
-              "notes": "SCALANCE industrial Ethernet switches"
+              "notes": "Schmersal foot switches"
             }
           ]
         },
@@ -361,45 +424,6 @@
           ]
         },
         {
-          "sheetName": "cable ducts mounting rails",
-          "deviceTypes": [
-            "Mounting Accessory",
-            "Wireway"
-          ],
-          "examples": [
-            {
-              "manufacturerId": "fath",
-              "pattern": "09308901S01",
-              "deviceType": "Mounting Accessory",
-              "notes": "FATH workstation and profile mounting components"
-            },
-            {
-              "manufacturerId": "fath",
-              "pattern": "6FG40ND80M695N08",
-              "deviceType": "Mounting Accessory",
-              "notes": "FATH workstation and profile mounting components"
-            },
-            {
-              "manufacturerId": "nvent",
-              "pattern": "CP2020",
-              "deviceType": "Mounting Accessory",
-              "notes": "nVent Hoffman/Schroff accessory items verified on official product pages"
-            },
-            {
-              "manufacturerId": "nvent",
-              "pattern": "CSP2020",
-              "deviceType": "Mounting Accessory",
-              "notes": "nVent Hoffman/Schroff accessory items verified on official product pages"
-            },
-            {
-              "manufacturerId": "phoenix",
-              "pattern": "1524160",
-              "deviceType": "Mounting Accessory",
-              "notes": "Phoenix MCS-112X90-AP-7035 adapter plate item number"
-            }
-          ]
-        },
-        {
           "sheetName": "cable gland",
           "deviceTypes": [
             "Cable Gland"
@@ -448,43 +472,6 @@
               "pattern": "BDF",
               "deviceType": "Pushbutton / Operator",
               "notes": "BDF command and control devices"
-            }
-          ]
-        },
-        {
-          "sheetName": "connector",
-          "deviceTypes": [
-            "Connector",
-            "Optical Connector"
-          ],
-          "examples": [
-            {
-              "manufacturerId": "fath",
-              "pattern": "6SAKP5J516BS01",
-              "deviceType": "Connector",
-              "notes": "FATH Module F Line and profile connectors"
-            },
-            {
-              "manufacturerId": "fath",
-              "pattern": "6SBEU14I.317",
-              "deviceType": "Connector",
-              "notes": "FATH Module F Line and profile connectors"
-            },
-            {
-              "manufacturerId": "nvent",
-              "pattern": "69001-",
-              "deviceType": "Connector",
-              "notes": "nVent SCHROFF DIN connectors"
-            },
-            {
-              "manufacturerId": "phoenix",
-              "pattern": "MCS",
-              "deviceType": "Connector"
-            },
-            {
-              "manufacturerId": "phoenix",
-              "pattern": "VIP",
-              "deviceType": "Connector"
             }
           ]
         },
@@ -635,26 +622,6 @@
               "manufacturerId": "phoenix",
               "pattern": "VAL-MS",
               "deviceType": "Surge Protective Device"
-            }
-          ]
-        },
-        {
-          "sheetName": "module carrier frame",
-          "deviceTypes": [
-            "Module Carrier"
-          ],
-          "examples": [
-            {
-              "manufacturerId": "siemens",
-              "pattern": "6ES7193",
-              "deviceType": "Module Carrier",
-              "notes": "SIMATIC ET 200SP BaseUnits / base carriers"
-            },
-            {
-              "manufacturerId": "siemens",
-              "pattern": "BaseUnits",
-              "deviceType": "Module Carrier",
-              "notes": "SIMATIC ET 200SP BaseUnits / base carriers"
             }
           ]
         },
@@ -1026,7 +993,7 @@
         }
       ],
       "deviceSheetCoverage": {
-        "covered": 3,
+        "covered": 6,
         "total": 41
       }
     },
@@ -1044,17 +1011,17 @@
         "hoffman",
         "filter-grille"
       ],
-      "status": "found",
-      "confidence": 0.53,
-      "elapsedMs": 36729,
+      "status": "partial",
+      "confidence": 0.4,
+      "elapsedMs": 5098,
       "productUrl": "https://www.nvent.com/en-us/hoffman/products/encaexgr275",
       "identityConfirmed": true,
       "wrongProduct": false,
       "officialUrlMatched": true,
-      "requiredDocumentsMatched": true,
+      "requiredDocumentsMatched": false,
       "normalizedFieldsMatched": true,
       "pdtAuditMatched": true,
-      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260902101741\\pdt\\nvent-AEXGR275-pdt_pdt-audit.json",
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260902104424\\pdt\\nvent-AEXGR275-pdt_pdt-audit.json",
       "pdtWrittenCells": 27,
       "pdtBlankCells": 60,
       "pdtSkippedCells": 2,
@@ -1065,7 +1032,9 @@
       "pdtUnexplainedRequiredFieldIssues": 0,
       "customerDocumentsExpected": 0,
       "customerDocumentsMatched": true,
-      "qualityMissing": []
+      "qualityMissing": [
+        "document:image"
+      ]
     },
     {
       "manufacturerId": "nvent",
@@ -1080,7 +1049,7 @@
       ],
       "status": "found",
       "confidence": 0.4,
-      "elapsedMs": 7358,
+      "elapsedMs": 3523,
       "productUrl": "https://www.nvent.com/en-us/hoffman/products/encpvt3f852emc",
       "identityConfirmed": true,
       "wrongProduct": false,
@@ -1088,7 +1057,7 @@
       "requiredDocumentsMatched": true,
       "normalizedFieldsMatched": true,
       "pdtAuditMatched": true,
-      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260902101741\\pdt\\nvent-PVT3F852EMC-pdt_pdt-audit.json",
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260902104424\\pdt\\nvent-PVT3F852EMC-pdt_pdt-audit.json",
       "pdtWrittenCells": 31,
       "pdtBlankCells": 55,
       "pdtSkippedCells": 3,
@@ -1114,7 +1083,7 @@
       ],
       "status": "found",
       "confidence": 0.4,
-      "elapsedMs": 10194,
+      "elapsedMs": 5512,
       "productUrl": "https://www.nvent.com/en-us/hoffman/products/enca12n124",
       "identityConfirmed": true,
       "wrongProduct": false,
@@ -1122,7 +1091,7 @@
       "requiredDocumentsMatched": true,
       "normalizedFieldsMatched": true,
       "pdtAuditMatched": true,
-      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260902101741\\pdt\\nvent-A12N124-pdt_pdt-audit.json",
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260902104424\\pdt\\nvent-A12N124-pdt_pdt-audit.json",
       "pdtWrittenCells": 40,
       "pdtBlankCells": 48,
       "pdtSkippedCells": 1,
@@ -1147,8 +1116,8 @@
         "stainless"
       ],
       "status": "found",
-      "confidence": 0.53,
-      "elapsedMs": 55096,
+      "confidence": 0.4,
+      "elapsedMs": 5404,
       "productUrl": "https://www.nvent.com/en-us/hoffman/products/enca72cpx7212sslpn4",
       "identityConfirmed": true,
       "wrongProduct": false,
@@ -1156,7 +1125,7 @@
       "requiredDocumentsMatched": true,
       "normalizedFieldsMatched": true,
       "pdtAuditMatched": true,
-      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260902101741\\pdt\\nvent-A72CPX7212SSLPN4-pdt_pdt-audit.json",
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260902104424\\pdt\\nvent-A72CPX7212SSLPN4-pdt_pdt-audit.json",
       "pdtWrittenCells": 35,
       "pdtBlankCells": 54,
       "pdtSkippedCells": 0,
@@ -1182,7 +1151,7 @@
       ],
       "status": "found",
       "confidence": 0.4,
-      "elapsedMs": 14849,
+      "elapsedMs": 9636,
       "productUrl": "https://www.nvent.com/en-us/hoffman/products/enccdsc20228ss",
       "identityConfirmed": true,
       "wrongProduct": false,
@@ -1190,7 +1159,7 @@
       "requiredDocumentsMatched": true,
       "normalizedFieldsMatched": true,
       "pdtAuditMatched": true,
-      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260902101741\\pdt\\nvent-CDSC20228SS-pdt_pdt-audit.json",
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260902104424\\pdt\\nvent-CDSC20228SS-pdt_pdt-audit.json",
       "pdtWrittenCells": 33,
       "pdtBlankCells": 53,
       "pdtSkippedCells": 3,
@@ -1215,7 +1184,7 @@
       ],
       "status": "found",
       "confidence": 0.4,
-      "elapsedMs": 10288,
+      "elapsedMs": 8534,
       "productUrl": "https://www.nvent.com/en-us/hoffman/products/enccp4836",
       "identityConfirmed": true,
       "wrongProduct": false,
@@ -1223,7 +1192,7 @@
       "requiredDocumentsMatched": true,
       "normalizedFieldsMatched": true,
       "pdtAuditMatched": true,
-      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260902101741\\pdt\\nvent-CP4836-pdt_pdt-audit.json",
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260902104424\\pdt\\nvent-CP4836-pdt_pdt-audit.json",
       "pdtWrittenCells": 33,
       "pdtBlankCells": 53,
       "pdtSkippedCells": 3,
@@ -1248,7 +1217,7 @@
       ],
       "status": "found",
       "confidence": 0.4,
-      "elapsedMs": 5276,
+      "elapsedMs": 4304,
       "productUrl": "https://www.nvent.com/en-us/schroff/products/enc20100-017",
       "identityConfirmed": true,
       "wrongProduct": false,
@@ -1256,7 +1225,7 @@
       "requiredDocumentsMatched": true,
       "normalizedFieldsMatched": true,
       "pdtAuditMatched": true,
-      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260902101741\\pdt\\nvent-20100-017-pdt_pdt-audit.json",
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260902104424\\pdt\\nvent-20100-017-pdt_pdt-audit.json",
       "pdtWrittenCells": 26,
       "pdtBlankCells": 56,
       "pdtSkippedCells": 0,
@@ -1273,20 +1242,262 @@
       "manufacturerId": "nvent",
       "catalogNumber": "20848-020",
       "caseType": "accessory",
+      "actualDeviceType": "Connector",
       "deviceTypeMatched": true,
       "riskTags": [
         "schroff",
         "front-panel",
         "emc"
       ],
-      "status": "error",
+      "status": "partial",
+      "confidence": 0.4,
+      "elapsedMs": 12063,
+      "productUrl": "https://www.nvent.com/en-us/schroff/products/enc20848-020",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": false,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260902104424\\pdt\\nvent-20848-020-pdt_pdt-audit.json",
+      "pdtWrittenCells": 30,
+      "pdtBlankCells": 53,
+      "pdtSkippedCells": 0,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": [
+        "document:image"
+      ]
+    },
+    {
+      "manufacturerId": "nvent",
+      "catalogNumber": "34560-684",
+      "caseType": "accessory",
+      "actualDeviceType": "Module Carrier",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "schroff",
+        "horizontal-rail",
+        "light"
+      ],
+      "status": "found",
+      "confidence": 0.4,
+      "elapsedMs": 4930,
+      "productUrl": "https://www.nvent.com/en-us/schroff/products/enc34560-684",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260902104424\\pdt\\nvent-34560-684-pdt_pdt-audit.json",
+      "pdtWrittenCells": 28,
+      "pdtBlankCells": 24,
+      "pdtSkippedCells": 0,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": []
+    },
+    {
+      "manufacturerId": "nvent",
+      "catalogNumber": "10828-152",
+      "caseType": "mechanical",
+      "actualDeviceType": "Mounting Accessory",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "schroff",
+        "inpac",
+        "chassis"
+      ],
+      "status": "found",
+      "confidence": 0.4,
+      "elapsedMs": 5219,
+      "productUrl": "https://www.nvent.com/en-us/schroff/products/enc10828-152",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260902104424\\pdt\\nvent-10828-152-pdt_pdt-audit.json",
+      "pdtWrittenCells": 33,
+      "pdtBlankCells": 53,
+      "pdtSkippedCells": 0,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": []
+    },
+    {
+      "manufacturerId": "nvent",
+      "catalogNumber": "22127-093",
+      "caseType": "accessory",
+      "actualDeviceType": "Mounting Accessory",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "schroff",
+        "slide-rail-kit"
+      ],
+      "status": "partial",
+      "confidence": 0.4,
+      "elapsedMs": 2705,
+      "productUrl": "https://www.nvent.com/en-us/schroff/products/enc22127-093",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": false,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260902104424\\pdt\\nvent-22127-093-pdt_pdt-audit.json",
+      "pdtWrittenCells": 25,
+      "pdtBlankCells": 61,
+      "pdtSkippedCells": 0,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": [
+        "document:image"
+      ]
+    },
+    {
+      "manufacturerId": "nvent",
+      "catalogNumber": "20836-460",
+      "caseType": "accessory",
+      "actualDeviceType": "Connector",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "schroff",
+        "plug-in-unit",
+        "pmc"
+      ],
+      "status": "found",
+      "confidence": 0.4,
+      "elapsedMs": 5218,
+      "productUrl": "https://www.nvent.com/en-us/schroff/products/enc20836-460",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260902104424\\pdt\\nvent-20836-460-pdt_pdt-audit.json",
+      "pdtWrittenCells": 31,
+      "pdtBlankCells": 52,
+      "pdtSkippedCells": 0,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": []
+    },
+    {
+      "manufacturerId": "nvent",
+      "catalogNumber": "20836-254",
+      "caseType": "accessory",
+      "actualDeviceType": "Module Carrier",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "schroff",
+        "plug-in-unit",
+        "fmc"
+      ],
+      "status": "found",
+      "confidence": 0.4,
+      "elapsedMs": 5647,
+      "productUrl": "https://www.nvent.com/en-us/schroff/products/enc20836-254",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260902104424\\pdt\\nvent-20836-254-pdt_pdt-audit.json",
+      "pdtWrittenCells": 29,
+      "pdtBlankCells": 23,
+      "pdtSkippedCells": 0,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": []
+    },
+    {
+      "manufacturerId": "nvent",
+      "catalogNumber": "26880-004",
+      "caseType": "mechanical",
+      "actualDeviceType": "Enclosure",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "schroff",
+        "ip-pro",
+        "aluminum-case"
+      ],
+      "status": "partial",
+      "confidence": 0.4,
+      "elapsedMs": 10737,
+      "productUrl": "https://www.nvent.com/en-us/schroff/products/enc26880-004",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": false,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20260902104424\\pdt\\nvent-26880-004-pdt_pdt-audit.json",
+      "pdtWrittenCells": 38,
+      "pdtBlankCells": 48,
+      "pdtSkippedCells": 3,
+      "pdtUnprovenSkipped": 2,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 1,
+      "pdtRequiredFieldIssues": 2,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": [
+        "document:image"
+      ]
+    },
+    {
+      "manufacturerId": "nvent",
+      "catalogNumber": "703-1",
+      "caseType": "accessory",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "schroff",
+        "inserter-extractor"
+      ],
+      "status": "failed",
       "confidence": 0,
-      "elapsedMs": 121156,
+      "elapsedMs": 2163,
       "identityConfirmed": false,
       "wrongProduct": false,
       "officialUrlMatched": false,
       "requiredDocumentsMatched": false,
-      "normalizedFieldsMatched": false,
+      "normalizedFieldsMatched": true,
       "pdtAuditMatched": false,
       "pdtWrittenCells": 0,
       "pdtBlankCells": 0,
@@ -1299,10 +1510,13 @@
       "customerDocumentsExpected": 0,
       "customerDocumentsMatched": true,
       "qualityMissing": [
-        "error",
-        "timeout"
-      ],
-      "error": "Benchmark fixture timed out after 120000 ms."
+        "identity",
+        "attribute:catalog|article|part|product|description|material|dimensions|weight|certification|approval",
+        "document:image",
+        "minAttributes:6",
+        "minDocuments:1",
+        "official-source"
+      ]
     }
   ]
 }

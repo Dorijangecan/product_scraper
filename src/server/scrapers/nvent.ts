@@ -32,7 +32,19 @@ export function filterNventProductImages(catalogNumber: string, documents: Docum
 
   return documents.map((document) => {
     if (document.type !== "image") return document;
-    const candidates = [document.url, ...(document.candidateUrls ?? [])].filter((url) => !isRejected(`${document.label} ${url}`));
+    const candidates = [document.url, ...(document.candidateUrls ?? [])].filter((url) => {
+      let stableUrl = url;
+      try {
+        const parsed = new URL(url);
+        // DAM cache tokens in query strings look like unrelated SKUs (for
+        // example `bwpzu4`) and must not influence product-image identity.
+        stableUrl = `${parsed.origin}${parsed.pathname}`;
+      } catch {
+        // Keep the original text for non-URL candidates; the caller will drop
+        // them later if they cannot be downloaded.
+      }
+      return !isRejected(`${document.label} ${stableUrl}`);
+    });
     if (!candidates.length) return undefined;
     return {
       ...document,
@@ -83,7 +95,31 @@ export class NventConnector implements ManufacturerConnector {
           .replace(/\/cdn-cgi\/challenge-platform/gi, "");
       }
       const parsed = parseGenericProductPage("nvent", catalogNumber, { ...fetched, text: sanitized }, "official", "nvent-direct");
-      const filteredDocuments = filterNventProductImages(catalogNumber, parsed.documents);
+      // nVent's current gallery uses a numeric DAM filename and a generic alt
+      // label (for example "front panel"). The generic image miner correctly
+      // rejects that as unproven outside nVent, so recover only the first real
+      // gallery image from this already identity-confirmed official page. The
+      // exact-SKU/sibling rejection below still applies before it is accepted.
+      const $page = cheerio.load(fetched.text);
+      const heroImage = $page("img.img, img[src*='product_and_sku_image'], img[data-src*='product_and_sku_image']").toArray().find((element) => {
+        const text = `${$page(element).attr("alt") ?? ""} ${$page(element).attr("title") ?? ""} ${$page(element).attr("class") ?? ""}`;
+        return !/logo|schematic|drawing|diagram|macro|rohs|chat/i.test(text);
+      });
+      const heroRawUrl = heroImage
+        ? $page(heroImage).attr("src") || $page(heroImage).attr("data-src") || $page(heroImage).attr("data-lazy-src")
+        : fetched.text.match(/(?:src|data-src)=["']([^"']*product_and_sku_image[^"']+)["']/i)?.[1];
+      const heroUrl = heroRawUrl ? new URL(heroRawUrl, url).toString() : undefined;
+      const galleryDocuments: DocumentRecord[] = heroUrl
+        ? [{
+            type: "image",
+            label: heroImage
+              ? $page(heroImage).attr("alt") || $page(heroImage).attr("title") || "Primary product image"
+              : "Primary product image",
+            url: heroUrl,
+            sourceUrl: url
+          }]
+        : [];
+      const filteredDocuments = filterNventProductImages(catalogNumber, [...galleryDocuments, ...parsed.documents]);
       const hasAcceptedImage = filteredDocuments.some((document) => document.type === "image");
       const result = {
         ...parsed,
