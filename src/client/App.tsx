@@ -336,12 +336,7 @@ export function App() {
     getRunItem(selectedRunId, selectedItemId)
       .then((item) => {
         if (ignore) return;
-        if (item.result) {
-          setSelectedItemDetail(item);
-          return;
-        }
-        setSelectedItemDetail(null);
-        setSelectedItemId(null);
+        setSelectedItemDetail(item);
       })
       .catch((err) => {
         if (!ignore) setError(errorMessage(err));
@@ -1187,7 +1182,7 @@ export function App() {
   );
   const runItemEndIndex = Math.min(runItemStartIndex + runItemPageItems.length, filteredItems.length);
   const selectedHistoryRun = selectedRun ?? runs[0] ?? null;
-  const selectedItem = selectedItemDetail?.result ? selectedItemDetail : null;
+  const selectedItem = selectedItemDetail;
   const recipeDraft = useMemo(() => parseRecipeJsonLoose(manufacturerDraft.scrapeRecipeJson), [manufacturerDraft.scrapeRecipeJson]);
   const editorManufacturer = useMemo(
     () => manufacturers.find((manufacturer) => manufacturer.id === manufacturerDraft.id) ?? null,
@@ -1778,8 +1773,8 @@ export function App() {
                 <div className="stat-row">
                   <Metric label="Processed" value={`${selectedRun.processed}/${selectedRun.total}`} />
                   <Metric label="Found" value={selectedRun.found} />
-                  <Metric label="Partial" value={selectedRun.partial} />
-                  <Metric label="Failed" value={selectedRun.failed} />
+                  <Metric label="Partial" value={selectedRun.partial} onClick={() => handleRunItemFilterChange("partial")} />
+                  <Metric label="Failed" value={selectedRun.failed} onClick={() => handleRunItemFilterChange("failed")} />
                 </div>
               </div>
 
@@ -2151,7 +2146,7 @@ export function App() {
                         <td>{itemReason(item)}</td>
                         <td>{item.confidence ? `${Math.round(item.confidence * 100)}%` : ""}</td>
                         <td>
-                          {item.result || item.coverage ? (
+                          {item.result || item.coverage || item.status === "failed" || item.status === "partial" ? (
                             <button type="button" className="icon-button" title="Open run item diagnostics" onClick={() => setSelectedItemId(item.id)}>
                               <FileText size={14} />
                             </button>
@@ -3224,12 +3219,19 @@ function StepState({ done, label, index }: { done: boolean; label: string; index
   );
 }
 
-function Metric({ label, value }: { label: string; value: string | number }) {
-  return (
-    <div className="metric">
+function Metric({ label, value, onClick }: { label: string; value: string | number; onClick?: () => void }) {
+  const content = (
+    <>
       <strong>{value}</strong>
       <span>{label}</span>
-    </div>
+    </>
+  );
+  return onClick ? (
+    <button type="button" className="metric metric-button" onClick={onClick} title={`Show ${label.toLowerCase()} items`}>
+      {content}
+    </button>
+  ) : (
+    <div className="metric">{content}</div>
   );
 }
 
@@ -3874,8 +3876,7 @@ function WizardLinkList({ title, items }: { title: string; items: string[] }) {
 
 function RunItemDrawer({ item, onClose }: { item: RunItemRecord; onClose: () => void }) {
   const result = item.result;
-  if (!result) return null;
-  const diagnostics = result.diagnostics;
+  const diagnostics = result?.diagnostics;
   return (
     <section className="drawer-shell" aria-label="Run item diagnostics">
       <div className="drawer-backdrop" onClick={onClose} />
@@ -3892,15 +3893,16 @@ function RunItemDrawer({ item, onClose }: { item: RunItemRecord; onClose: () => 
         </div>
 
         <div className="drawer-metrics">
-          <Metric label="Status" value={result.status} />
+          <Metric label="Status" value={item.status} />
           <Metric label="Stage" value={stageLabel(item.stage, item.status)} />
-          <Metric label="Quality" value={result.qualityGate?.score ?? 0} />
-          <Metric label="Attributes" value={result.attributes.length} />
-          <Metric label="Documents" value={result.documents.length} />
+          <Metric label="Quality" value={result?.qualityGate?.score ?? 0} />
+          <Metric label="Attributes" value={result?.attributes.length ?? 0} />
+          <Metric label="Documents" value={result?.documents.length ?? 0} />
         </div>
 
         <RunItemDiagnosticSummary item={item} />
-        <DebugSection title="Quality missing" items={result.qualityGate?.missing ?? []} />
+        {!result && <DebugSection title="Failure reason" items={[itemReason(item) || item.error || item.stageMessage || "No diagnostic reason was recorded."]} />}
+        <DebugSection title="Quality missing" items={result?.qualityGate?.missing ?? []} />
         <DebugSection title="Final missing after audit" items={diagnostics?.finalCompleteness?.afterMissing ?? []} />
         <DebugSection title="Final repaired fields" items={diagnostics?.finalCompleteness?.repairedFields ?? []} />
         <DebugObjectSection title="Final audit" items={diagnostics?.finalCompleteness?.records ?? []} defaultOpen />
@@ -3908,8 +3910,8 @@ function RunItemDrawer({ item, onClose }: { item: RunItemRecord; onClose: () => 
         <DebugObjectSection title="Discovered candidates" items={diagnostics?.discoveredCandidates ?? []} />
         <DebugObjectSection title="Rejected links" items={diagnostics?.rejectedLinks ?? []} />
         <DebugObjectSection title="Browser network" items={diagnostics?.browserNetwork ?? []} />
-        <DebugObjectSection title="Downloaded documents" items={result.documents.slice(0, 40)} />
-        <DebugObjectSection title="Evidence" items={(result.evidence ?? []).slice(0, 80)} />
+        <DebugObjectSection title="Downloaded documents" items={result?.documents.slice(0, 40) ?? []} />
+        <DebugObjectSection title="Evidence" items={(result?.evidence ?? []).slice(0, 80)} />
       </aside>
     </section>
   );

@@ -943,7 +943,9 @@ export class RunManager {
             await this.markItemPaused(run.id, item, layoutRef);
             return;
           }
-          if (controller.signal.aborted || this.db.isCancellationRequested(run.id)) {
+          const parentCancellation = controller.signal.aborted || this.db.isCancellationRequested(run.id);
+          const itemTimedOut = Boolean(itemScrapeController?.signal.aborted && !parentCancellation);
+          if (parentCancellation) {
             this.updateItemStage(item.id, "cancelled", "Cancelled by user.", {
               status: "cancelled",
               error: "Cancelled by user."
@@ -951,7 +953,11 @@ export class RunManager {
             await this.appendRunLog(layoutRef, "ITEM_CANCELLED", { catalogNumber: item.catalogNumber });
             return;
           }
-          const errorMessage = error instanceof Error ? error.message : "Unexpected scrape error";
+          const errorMessage = itemTimedOut
+            ? `Eaton item timed out after ${Math.round(ITEM_SCRAPE_TIMEOUT_MS / 1000)}s while downloading or validating official assets.`
+            : error instanceof Error
+              ? error.message
+              : "Unexpected scrape error";
           // Salvage: if earlier stages already gathered real data before a LATER stage threw, keep it
           // as `partial` instead of discarding everything as `failed`. A late enrichment/logging
           // failure should never erase attributes/documents/URL we already scraped this run.
@@ -1588,6 +1594,10 @@ export function documentDownloadProfile(
   options: { saveDocuments?: boolean } = {}
 ): DocumentDownloadProfile {
   if (options.saveDocuments === false) return "quality";
+  // Eaton SKU pages often merge the same specification sheet from several locales. Saving all
+  // regional duplicates can exhaust the per-item budget while the official URLs are still kept
+  // in the workbook. Download the highest-value subset so the run remains bounded.
+  if (manufacturer.id === "eaton") return "quality";
   if (options.saveDocuments === true) return "full";
   return manufacturer.scrapeRecipe?.fallbackPolicy?.documentDownloadProfile ?? "full";
 }

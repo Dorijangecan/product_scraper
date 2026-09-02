@@ -712,6 +712,18 @@ textarea:focus {
   background: rgba(27, 34, 43, 0.8);
 }
 
+.metric-button {
+  width: 100%;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.metric-button:hover {
+  border-color: rgba(110, 203, 255, 0.45);
+  background: var(--surface-hover);
+}
+
 .mini-summary strong,
 .metric strong {
   display: block;

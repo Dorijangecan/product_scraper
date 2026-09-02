@@ -7,7 +7,8 @@ import {
   buildEatonSearchApiUrlCandidates,
   extractEatonSearchCandidates,
   extractEatonSearchDocuments,
-  parseEatonProductPage
+  parseEatonProductPage,
+  stripEatonCatalogPrefix
 } from "../src/server/scrapers/eaton.js";
 import { parseGenericProductPage } from "../src/server/scrapers/generic.js";
 import { mergeResults, normalizeFields } from "../src/server/scrapers/normalizer.js";
@@ -20,6 +21,15 @@ import type { FetchedText } from "../src/server/scrapers/http-client.js";
 import type { ScrapeContext } from "../src/server/scrapers/types.js";
 
 describe("manufacturer parsers", () => {
+  it("removes an Eaton catalog number prefix from the exported description", () => {
+    expect(
+      stripEatonCatalogPrefix(
+        "166753 - Eaton xEnergy Main Niederspannungs-Systeme Niederspannungs-Schaltgeräte Montageset, IZMX40, 3/4p, fest montierte Ausführung, B=1000mm, grau",
+        "166753"
+      )
+    ).toBe("Eaton xEnergy Main Niederspannungs-Systeme Niederspannungs-Schaltgeräte Montageset, IZMX40, 3/4p, fest montierte Ausführung, B=1000mm, grau");
+  });
+
   it("does not treat an Eaton site-search query URL as proof for unrelated documents", () => {
     const catalogNumber = "9999999999";
     const searchUrl = "https://www.eaton.com.cn/content/eaton/cn/zh-cn/site-search/jcr:content/root/responsivegrid/search_results.searchTerm$9999999999.SortBy$relevance.json";

@@ -249,6 +249,7 @@ const EATON_MV_SOURCES = {
   cooperBreakerPage: "https://www.eaton.com/us/en-us/products/electrical-circuit-protection/circuit-breakers/medium-voltage-circuit-breakers.html",
   vacuumContactorsPage: "https://www.eaton.com/us/en-us/catalog/machinery-controls/vacuum-contactors.html"
 } as const;
+const EATON_KBC_VOLTAGE_SOURCE = "https://www.eaton.com/content/dam/eaton/products/electrical-circuit-protection/fuses/data-sheets/bus-ele-ds-720010-kbc-(35-800)a.pdf";
 
 function buildEatonMediumVoltageCatalogResult(catalogNumber: string): ProductResult | undefined {
   const part = cleanText(catalogNumber);
@@ -1593,10 +1594,24 @@ export function parseEatonProductPage(
       ]
     : [];
   const descriptionVoltage = extractEatonDescriptionVoltage(htmlParsed.description, catalogNumber, fetched.effectiveUrl);
+  const kbcVoltageFallback = /^KBC-(?:35|40|45|50|60|70|80|90|100|110|125|150|175|200|225|250|300|350|400|450|500|600|800)$/i.test(catalogNumber) &&
+    !htmlParsed.attributes.some((attr) => /^voltage rating$/i.test(cleanText(attr.name)) && /\b(?:V|kV)\b/i.test(attr.value))
+    ? [{
+        sourceType: "official-fallback" as const,
+        parser: "eaton-kbc-datasheet",
+        stage: "static-html",
+        confidence: 0.92,
+        group: "Eaton KBC official datasheet",
+        name: "Voltage rating",
+        value: "600 V",
+        sourceUrl: EATON_KBC_VOLTAGE_SOURCE
+      }]
+    : [];
   const attributes = dedupeAttributes([
     ...htmlParsed.attributes,
     ...markdownAttributes,
-    ...(descriptionVoltage ? [descriptionVoltage] : [])
+    ...(descriptionVoltage ? [descriptionVoltage] : []),
+    ...kbcVoltageFallback
   ]).map((attr) => ({
     sourceType: "official-fallback" as const,
     parser: "eaton-product-page",
@@ -1619,7 +1634,7 @@ export function parseEatonProductPage(
     ...doc
   }));
   const title = cleanText(htmlParsed.title || readMarkdownTitle(lines) || catalogNumber);
-  const description = htmlParsed.description || readDescription(lines, catalogNumber);
+  const description = stripEatonCatalogPrefix(htmlParsed.description || readDescription(lines, catalogNumber), catalogNumber);
   const normalized = normalizeFields(attributes, documents);
   const hasUsableProductData = hasUsableEatonProductData(attributes, documents);
   return {
@@ -1670,6 +1685,7 @@ function isAllowedEatonProductHost(url: string): boolean {
 }
 
 function normalizeEatonVoltageRating(name: string, value: string): string {
+  if (/^voltage rating$/i.test(cleanText(name))) value = value.replace(/^\s*[-–—]\s*/, "");
   // Eaton's SPD pages label the value "Voltage rating" but omit the unit in the
   // value itself (for example "127/220 Wye (4W+G)"). The field label is the
   // authoritative unit context; preserve the source wording and add only the
@@ -2722,6 +2738,21 @@ function readDescription(lines: string[], catalogNumber: string): string | undef
     });
   }
   return undefined;
+}
+
+/**
+ * Eaton sometimes repeats the article number at the beginning of the long
+ * description. The catalog number is already exported in its own column, so
+ * remove only that exact leading token and its separator; never alter the
+ * actual vendor description that follows it.
+ */
+export function stripEatonCatalogPrefix(value: string | undefined, catalogNumber: string): string | undefined {
+  const cleaned = cleanText(value);
+  if (!cleaned) return undefined;
+  const part = cleanText(catalogNumber);
+  if (!part) return cleaned;
+  const withoutPrefix = cleaned.replace(new RegExp(`^${escapeRegExp(part)}\\s*(?:[-–—:]\\s*)+`, "i"), "").trim();
+  return withoutPrefix || undefined;
 }
 
 function readMarkdownTitle(lines: string[]): string | undefined {
