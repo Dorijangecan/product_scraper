@@ -110,6 +110,42 @@ describe("run manager document downloads", () => {
     ]);
   });
 
+  it("does not promote an ABB master logo over the real product image", () => {
+    const result = coalesceImageDocuments([
+      {
+        type: "image",
+        label: "Product image 400x400",
+        url: "https://cdn.productimages.abb.com/1SBC101560V0014_400x400.png",
+        candidateUrls: [
+          "https://cdn.productimages.abb.com/9PAA00000125069_400x400.jpg",
+          "https://cdn.productimages.abb.com/9PAA00000125069_master.jpg",
+          "https://cdn.productimages.abb.com/9PAA00000125069_100x100.jpg"
+        ]
+      }
+    ]);
+
+    expect(result[0].url).toBe("https://cdn.productimages.abb.com/1SBC101560V0014_400x400.png");
+    expect(result[0].candidateUrls).toEqual([
+      "https://cdn.productimages.abb.com/9PAA00000125069_400x400.jpg",
+      "https://cdn.productimages.abb.com/9PAA00000125069_master.jpg",
+      "https://cdn.productimages.abb.com/9PAA00000125069_100x100.jpg"
+    ]);
+  });
+
+  it("does not reject a valid primary image because a fallback is a placeholder", () => {
+    const document = {
+      type: "image" as const,
+      label: "Product image",
+      url: "https://assets.example.test/ABC-123-product_400x400.png",
+      candidateUrls: ["https://assets.example.test/placeholder/no-image-available.png"]
+    };
+    const result = coalesceImageDocuments([document]);
+
+    expect(result.filter((doc) => doc.type === "image")).toHaveLength(1);
+    expect(result[0].url).toBe("https://assets.example.test/ABC-123-product_400x400.png");
+    expect(documentDownloadCandidateUrls(document)).toEqual([document.url]);
+  });
+
   it("keeps schematic and drawing image candidates behind real product photos", () => {
     const documents: DocumentRecord[] = [
       image("Wiring diagram", "https://assets.example.test/ABC-123-wiring-diagram_1000x1000.png"),

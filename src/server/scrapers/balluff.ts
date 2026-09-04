@@ -1360,7 +1360,7 @@ function isBalluffProductImageDocument(doc: DocumentRecord): boolean {
 }
 
 function balluffImageDocumentRank(doc: DocumentRecord): number {
-  const text = `${doc.label} ${doc.url} ${(doc.candidateUrls ?? []).join(" ")}`.toLowerCase();
+  const text = `${doc.label} ${doc.url}`.toLowerCase();
   // Look at just the primary URL filename for the "is this a drawing?" heuristic; the candidate
   // list often mixes photo + drawing variants and would mask the signal otherwise.
   const primaryFilename = (() => {

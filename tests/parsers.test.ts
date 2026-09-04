@@ -447,6 +447,39 @@ describe("manufacturer parsers", () => {
     ]);
   });
 
+  it("drops ABB's generic Eco Solutions logo from product image candidates", () => {
+    const catalogNumber = "1SBL137205R1100";
+    const model = {
+      ProductViewModel: {
+        Product: {
+          productDetails: {
+            item: {
+              productId: catalogNumber,
+              images: [
+                {
+                  url: "https://cdn.productimages.abb.com/1SBC101560V0014_400x400.png",
+                  masterUrl: "https://cdn.productimages.abb.com/9PAA00000125069_master.jpg",
+                  thumbnailUrl: "https://cdn.productimages.abb.com/9PAA00000125069_100x100.jpg"
+                }
+              ],
+              attributes: {
+                ProductId: abbAttribute("ProductId", "Product ID", catalogNumber),
+                CatalogDescription: abbAttribute("CatalogDescription", "Catalog Description", "AF09 contactor")
+              }
+            }
+          }
+        }
+      }
+    };
+    const html = `<html><head><title>AF09 | ABB</title></head><body>${catalogNumber}<script>var model = ${JSON.stringify(model)};</script></body></html>`;
+
+    const result = parseAbbProductPage(catalogNumber, fetched(html, `https://new.abb.com/products/${catalogNumber}/af09`));
+    const image = result.documents.find((doc) => doc.type === "image");
+
+    expect(image?.url).toBe("https://cdn.productimages.abb.com/1SBC101560V0014_400x400.png");
+    expect(image?.candidateUrls ?? []).not.toContain(expect.stringContaining("9PAA00000125069"));
+  });
+
   it("derives ABB rated current from an exact product long description when the PIS detail has no current field", () => {
     // Captured by the ABB CSV detector: 1SBL131001R5501 is returned by the official PIS detail API
     // with this description, but no explicit current attribute.

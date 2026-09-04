@@ -16,6 +16,9 @@ const ABB_PARTCOMMUNITY_BASE_URL = "https://abb-control-products.partcommunity.c
 const ABB_PARTCOMMUNITY_CATALOG = "abb_ww";
 const ABB_PIS_API_BASE_URL = "https://external.productinformation.abb.com/PisWebApi/v1";
 const ABB_PIS_COMPONENT_VERSION = "6.15.0";
+// This ABB CDN asset is the generic Eco Solutions logo, not a device photograph. It has valid
+// image dimensions and therefore cannot be safely rejected by an HTTP/content-type check alone.
+const ABB_KNOWN_NON_PRODUCT_IMAGE_RE = /\/9PAA00000125069(?:[_\-.]|$)/i;
 let abbPisApiToken: { value: string; expiresAt: number } | undefined;
 let abbPisApiTokenPromise: Promise<string | undefined> | undefined;
 const ABB_PARTCOMMUNITY_PROJECTS = [
@@ -2442,7 +2445,12 @@ function imageLabelFromUrl(url: string): string {
 function isUsableAbbImageUrl(url: string): boolean {
   const normalized = url.trim();
   if (!normalized) return false;
-  return !isLikelyNonProductImage(normalized) && !isLikelySchematicImage(normalized) && !/\bno[_-]?image\b/i.test(normalized);
+  return (
+    !ABB_KNOWN_NON_PRODUCT_IMAGE_RE.test(normalized) &&
+    !isLikelyNonProductImage(normalized) &&
+    !isLikelySchematicImage(normalized) &&
+    !/\bno[_-]?image\b/i.test(normalized)
+  );
 }
 
 function coalesceAbbImageDocuments(documents: DocumentRecord[]): DocumentRecord[] {

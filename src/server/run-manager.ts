@@ -1329,7 +1329,9 @@ export class RunManager {
     try {
       if (doc.type === "image") {
         const localPath = await uniquePath(path.join(imagesDir, imageFileName(manufacturerShortName, catalogNumber, imageIndex)));
-        await http.downloadImageAsPng([doc.url, ...(doc.candidateUrls ?? [])], localPath, signal);
+        const imageCandidates = documentDownloadCandidateUrls(doc);
+        if (!imageCandidates.length) throw new Error("No acceptable product-image download candidate URL was available");
+        await http.downloadImageAsPng(imageCandidates, localPath, signal);
         return { ...doc, localPath, downloadStatus: "downloaded", downloadError: undefined };
       }
       const candidateUrls = documentDownloadCandidateUrls(doc);
@@ -1544,7 +1546,13 @@ async function downloadDocumentFromCandidates(
 }
 
 export function documentDownloadCandidateUrls(doc: DocumentRecord): string[] {
-  return uniqueStrings([doc.url, ...(doc.candidateUrls ?? [])]).filter((url) => shouldDownloadLocalDocument({ ...doc, url }));
+  return uniqueStrings([doc.url, ...(doc.candidateUrls ?? [])]).filter((url) => {
+    const candidate = { ...doc, url };
+    if (!shouldDownloadLocalDocument(candidate)) return false;
+    // Validate image fallbacks independently. A failed primary image must not turn a drawing,
+    // logo, or stock placeholder into the exported product photo.
+    return doc.type !== "image" || !isRejectedImageDocument({ ...candidate, candidateUrls: undefined });
+  });
 }
 
 /**
@@ -2116,8 +2124,10 @@ function documentDownloadRank(doc: DocumentRecord): number {
 const MAX_GALLERY_IMAGES = 1;
 
 function isRejectedImageDocument(doc: DocumentRecord): boolean {
-  const candidateText = [doc.url, ...(doc.candidateUrls ?? []), doc.label].join(" ").toLowerCase();
-  return isLikelySchematicImage(candidateText) || isLikelyNonProductImage(candidateText);
+  // Fallback URLs are alternate downloads, not evidence about the primary asset. A valid
+  // product photo must not be rejected merely because one fallback is a drawing or placeholder.
+  const primaryText = `${doc.url} ${doc.label}`.toLowerCase();
+  return isLikelySchematicImage(primaryText) || isLikelyNonProductImage(primaryText);
 }
 
 export function shouldSkipNetworkFallback(result: ProductResult): boolean {
@@ -2195,6 +2205,10 @@ function imageIdentity(url: string): string {
 
 function imageDocumentRank(doc: DocumentRecord): number {
   const text = `${doc.label} ${doc.url}`.toLowerCase();
+  // Candidate URLs inherit the primary document's label. Do not let a label such as
+  // "Product image 400x400" make a different `_master` candidate outrank the actual
+  // 400x400 URL; ABB's master asset can be a generic Eco Solutions logo.
+  const urlText = doc.url.toLowerCase();
   let rank = documentDownloadRank(doc);
   if (/\bprimary\s+product\s+image\b/.test(text)) rank -= 100;
   if (doc.localPath || doc.downloadStatus === "downloaded") rank -= 50;
@@ -2207,9 +2221,9 @@ function imageDocumentRank(doc: DocumentRecord): number {
     const ratio = Math.max(dimensions.width / dimensions.height, dimensions.height / dimensions.width);
     if (ratio > 3) rank += 20;
   }
-  if (!dimensions && /_400x400\b|[?&](?:width|w)=400\b|400\s*x\s*400/.test(text)) rank -= 25;
-  if (/_master\b|master\./.test(text)) rank -= 15;
-  if (/thumbnail|thumb|_100x100\b|[?&](?:width|w)=100\b|100\s*x\s*100/.test(text)) rank += 30;
+  if (!dimensions && /_400x400\b|[?&](?:width|w)=400\b|400\s*x\s*400/.test(urlText)) rank -= 25;
+  if (/_master\b|master\./.test(urlText)) rank -= 15;
+  if (/thumbnail|thumb|_100x100\b|[?&](?:width|w)=100\b|100\s*x\s*100/.test(urlText)) rank += 30;
   if (/\b(?:schematic|wiring|diagram|drawing|dimension|dimensional|cad|2d|3d|technical|sketch)\b/.test(text)) rank += 70;
   return rank;
 }
