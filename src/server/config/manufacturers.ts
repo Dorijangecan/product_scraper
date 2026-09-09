@@ -590,6 +590,24 @@ const builtInManufacturerConfigs: Record<string, ManufacturerConfig> = {
       referer: "https://www.ganternorm.com/en/home"
     },
     fallbackSources: []
+  },
+  reer: {
+    id: "reer",
+    canonicalName: "ReeR Safety",
+    shortName: "REER",
+    rateLimitMs: 1200,
+    concurrency: 2,
+    officialBaseUrls: ["https://www.reersafety.com"],
+    homepageUrl: "https://www.reersafety.com/en/",
+    fetchPolicy: {
+      timeoutMs: 20000,
+      maxAttempts: 3,
+      retryBackoffMs: 500,
+      acceptLanguage: "en-US,en;q=0.9",
+      referer: "https://www.reersafety.com/en/",
+      minContentLength: 1000
+    },
+    fallbackSources: []
   }
 };
 
@@ -1078,6 +1096,39 @@ function attachBuiltInScrapeRecipes() {
       maxBrowserAttempts: 0
     },
     confidenceRules: { foundMinScore: 80, partialMaxConfidence: 0.76 }
+  };
+
+  builtInManufacturerConfigs.reer.scrapeRecipe = {
+    requiredAttributes: ["catalog number|product code|article|sku|product name|title", "description|function|safety|power supply|voltage|dimensions|range|resolution|protection|temperature|product"],
+    requiredDocuments: ["image"],
+    // ReeR accessory PDPs can legitimately publish only title, description, catalog number,
+    // product class and customs tariff. Requiring a sixth synthetic field sends exact passive
+    // products such as PI-SAFE through a 40+ second discovery/fallback crawl that cannot add
+    // source-backed data. Identity, description and the real product image remain mandatory.
+    minAttributes: 5,
+    minDocuments: 1,
+    dynamicFramework: ["embedded-json"],
+    discoveryPolicy: {
+      searchUrlTemplates: ["https://www.reersafety.com/wp-json/wp/v2/product?search={part}&per_page=20&_fields=link,slug,title,content"],
+      allowedOfficialDomains: ["reersafety.com"],
+      urlVariants: ["part", "partCompact"],
+      maxCandidates: 4,
+      verifyTemplatesBeforeSearch: false
+    },
+    extractionPolicy: {
+      ignoredImageUrlPatterns: ["logo|favicon|sprite|placeholder|icon|certificate|banner"],
+      maxDocuments: 80
+    },
+    fallbackPolicy: {
+      officialFirst: true,
+      readerOnQualityFailure: false,
+      browserOnQualityFailure: true,
+      documentDownloadProfile: "quality",
+      distributorFallback: false,
+      maxReaderAttempts: 0,
+      maxBrowserAttempts: 1
+    },
+    confidenceRules: { foundMinScore: 78, partialMaxConfidence: 0.74 }
   };
 
   builtInManufacturerConfigs.nvent.scrapeRecipe = {
