@@ -970,7 +970,7 @@ const SCHEMATIC_FILE_RE = /\.(?:dwg|dxf|step|stp)(?:[?#]|$)/i;
 // Keep this separate from schematic detection: it is also used by run-manager, after dedicated
 // connectors have supplied their own DocumentRecord objects.
 const NON_PRODUCT_IMAGE_RE =
-  /(?:\b(?:logo|favicon|sprite|spinner|loader|social|flag|avatar|placeholder|spacer|transparent|bit\.gif|mobile[_-]?menu|illustration[_-]?footer|footer|faq|icon)\b|no[-_\s]*image|no[-_\s]*pic|noimage|image[-_\s]*(?:not[-_\s]*)?available|not[-_\s]*available|coming[-_\s]*soon)/i;
+  /(?:\b(?:logo|favicon|sprite|spinner|loader|social|flag|avatar|placeholder|spacer|transparent|bit\.gif|mobile[_-]?menu|illustration[_-]?footer|footer|faq|icon|fonts?)\b|\.(?:woff2?|ttf|otf|eot)(?:[?#]|$)|certificate[-_]?images?|art\d+(?:hi)?\.gif|no[-_\s]*image|no[-_\s]*pic|noimage|image[-_\s]*(?:not[-_\s]*)?available|not[-_\s]*available|coming[-_\s]*soon)/i;
 
 export function isLikelySchematicImage(combined: string): boolean {
   return SCHEMATIC_IMAGE_RE.test(combined) || SCHEMATIC_FILE_RE.test(combined);

@@ -102,7 +102,8 @@ export const DEVICE_TYPE_FAMILIES: Record<string, readonly FamilyEntry[]> = {
     { patterns: ["6ES7193", "BaseUnits"], type: "Module Carrier", notes: "SIMATIC ET 200SP BaseUnits / base carriers" },
     { patterns: ["6ES7", "S7-1200", "S7-1500", "S7-300", "S7-400"], type: "Programmable Logic Controller", notes: "SIMATIC S7" },
     { patterns: ["6AV"], type: "HMI", notes: "SIMATIC HMI" },
-    { patterns: ["3SE", "3SU"], type: "Pushbutton / Operator" }
+    { patterns: ["3SE"], type: "Safety Sensor", notes: "SIRIUS position and safety switches" },
+    { patterns: ["3SU"], type: "Pushbutton / Operator", notes: "SIRIUS ACT command and signaling devices" }
   ],
   balluff: [
     { patterns: ["BOS", "BOH", "BLE", "BLS"], type: "Photoelectric Sensor" },
@@ -116,6 +117,10 @@ export const DEVICE_TYPE_FAMILIES: Record<string, readonly FamilyEntry[]> = {
     { patterns: ["BDG"], type: "Encoder", notes: "Absolute encoder" }
   ],
   sce: [
+    // SCE's EXD/EXR and NextGen NEXD/NEXR disconnect families are enclosure bodies.
+    // Their product descriptions often say only "External disconnect ..." and omit the
+    // word "Enclosure", so the text channel cannot classify them reliably on its own.
+    { patterns: ["SCE-NEXD", "SCE-NEXR", "SCE-EXD", "SCE-EXR"], type: "Enclosure", notes: "SCE external disconnect enclosure families" },
     { patterns: ["SCE-FK"], type: "Mounting Accessory", notes: "SCE floor stand / enclosure mounting kits" }
   ],
   phoenix: [

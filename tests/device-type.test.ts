@@ -806,10 +806,24 @@ describe("device type classifier — family / series signals", () => {
     expect(classifyDeviceType(result).type).toBe("Contactor");
   });
 
+  it("classifies Siemens 3SE position switches as safety sensors", () => {
+    const result = product([], "3SE5112-0AA00", { manufacturerId: "siemens", catalogNumber: "3SE5112-0AA00" });
+    expect(classifyDeviceType(result).type).toBe("Safety Sensor");
+  });
+
   it("classifies SCE floor stand kits via family even with bare catalog input", () => {
     const result = product([], "SCE-FK0618", { manufacturerId: "sce", catalogNumber: "SCE-FK0618" });
     expect(classifyDeviceType(result).type).toBe("Mounting Accessory");
   });
+
+  it.each(["SCE-EXD12", "SCE-EXR12-30T200", "SCE-NEXD12", "SCE-NEXR12"])(
+    "classifies SCE disconnect enclosure family %s as Enclosure",
+    (catalogNumber) => {
+      const classification = classifyDeviceType(product([], catalogNumber, { manufacturerId: "sce", catalogNumber }));
+      expect(classification.type).toBe("Enclosure");
+      expect(classification.evidence).toMatch(/Family SCE-/);
+    }
+  );
 
   it("classifies Rockwell 100-series contactors via family", () => {
     const result = product([], "100-C09D10", { manufacturerId: "rockwell", catalogNumber: "100-C09D10" });

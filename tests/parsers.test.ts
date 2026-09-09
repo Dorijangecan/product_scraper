@@ -13,7 +13,7 @@ import {
 import { parseGenericProductPage } from "../src/server/scrapers/generic.js";
 import { mergeResults, normalizeFields } from "../src/server/scrapers/normalizer.js";
 import { parseSchneiderDatasheetReaderPage, parseSchneiderProductPage, parseTelemecaniqueProductPage } from "../src/server/scrapers/schneider.js";
-import { extractSiemensProductAndPricesEan, extractSiemensTechnicalData, parseSiemensBuildingTechnologiesGermanDescriptions, parseSiemensBuildingTechnologiesPview, parseSiemensProductApiResponse, siemensEuropeanWeightToDot } from "../src/server/scrapers/siemens.js";
+import { extractSiemensProductAndPricesEan, extractSiemensTechnicalData, normalizeSiemensFields, parseSiemensBuildingTechnologiesGermanDescriptions, parseSiemensBuildingTechnologiesPview, parseSiemensProductApiResponse, siemensEuropeanWeightToDot } from "../src/server/scrapers/siemens.js";
 import { parseRockwellCutsheetPage, parseRockwellDpp, parseRockwellDrawingsPage, parseRockwellFamilyPage } from "../src/server/scrapers/rockwell.js";
 import { SCEConnector, parseSceProductPage } from "../src/server/scrapers/sce.js";
 import { SpelsbergConnector } from "../src/server/scrapers/spelsberg.js";
@@ -6082,6 +6082,18 @@ IP degree of protection IP68 conforming to IEC 60529 IP69K conforming to DIN 400
     expect(result.documents.filter((doc) => doc.type === "image")).toHaveLength(1);
     expect(result.documents.find((doc) => doc.type === "image")?.label).toBe("Product image");
     expect(result.attributes.some((attr) => attr.name === "Country Of Origin" && attr.value === "DE")).toBe(true);
+  });
+
+  it("prefers Siemens supply ratings over PLC output limits", () => {
+    const normalized = normalizeSiemensFields([
+      { group: "Electrical", name: "Output voltage", value: "20...0.1 V", sourceType: "official-fallback" },
+      { group: "Electrical", name: "Supply voltage", value: "24 V DC / 20.4 V / 28.8 V", sourceType: "official-fallback" },
+      { group: "Electrical", name: "Output current", value: "000 mA", sourceType: "official-fallback" },
+      { group: "Electrical", name: "Current consumption (rated value)", value: "400 mA; CPU only", sourceType: "official-fallback" }
+    ], []);
+
+    expect(normalized.voltage).toBe("24 V DC / 20.4 V / 28.8 V");
+    expect(normalized.current).toBe("400 mA");
   });
 
   // Trimmed but structurally faithful excerpt of the real Industry Online Support product-view

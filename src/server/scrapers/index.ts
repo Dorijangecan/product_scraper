@@ -13,6 +13,7 @@ const connectorLoaders: Record<string, () => Promise<ManufacturerConnector>> = {
   gan: async () => new (await import("./gan.js")).GanterNormConnector(),
   nvent: async () => new (await import("./nvent.js")).NventConnector(),
   rockwell: async () => new (await import("./rockwell.js")).RockwellConnector(),
+  reer: async () => new (await import("./reer.js")).ReerConnector(),
   sce: async () => new (await import("./sce.js")).SCEConnector(),
   scame: async () => new (await import("./scame.js")).ScameConnector(),
   schmersal: async () => new (await import("./schmersal.js")).SchmersalConnector(),

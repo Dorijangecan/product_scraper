@@ -459,7 +459,12 @@ export class EatonConnector implements ManufacturerConnector {
           diagnostics
         );
       }
-      if (result && result.status !== "failed" && result.documents.some((doc) => doc.stage === "search-document")) {
+      if (
+        result &&
+        result.status !== "failed" &&
+        result.documents.some((doc) => doc.stage === "search-document") &&
+        !isLikelyEatonMccbCatalogNumber(partNumber)
+      ) {
         return withEatonDiagnostics(result, diagnostics);
       }
       if (result && isRichEatonResult(result) && hasVerifiedEatonProductUrl(result, partNumber)) {
@@ -473,7 +478,14 @@ export class EatonConnector implements ManufacturerConnector {
     // approval codes). We keep the original coverage but run 4 in flight per batch, so the
     // wall-clock collapses from ~150s serial to ~12s per batch with the same merged output.
     // Bail only once the merged result is rich.
-    const skipSkuReaderSweep = (!result || result.status === "failed") && attemptedSearchDiscovery && !searchDiscoveryFoundEvidence;
+    // A failed search endpoint is not proof that the SKU page is absent. Eaton's search API and
+    // the locale SKU pages can fail independently; keep a bounded locale-reader retry for Power
+    // Defense MCCBs so one transient search outage cannot turn a valid product into an empty row.
+    const skipSkuReaderSweep =
+      (!result || result.status === "failed") &&
+      attemptedSearchDiscovery &&
+      !searchDiscoveryFoundEvidence &&
+      !isLikelyEatonMccbCatalogNumber(partNumber);
 
     if (!result || result.status === "failed") {
       await runSearchDiscovery();
@@ -483,7 +495,12 @@ export class EatonConnector implements ManufacturerConnector {
           diagnostics
         );
       }
-      if (result && result.status !== "failed" && result.documents.some((doc) => doc.stage === "search-document")) {
+      if (
+        result &&
+        result.status !== "failed" &&
+        result.documents.some((doc) => doc.stage === "search-document") &&
+        !isLikelyEatonMccbCatalogNumber(partNumber)
+      ) {
         return withEatonDiagnostics(result, diagnostics);
       }
     }
@@ -901,6 +918,41 @@ export function extractEatonSearchDocuments(text: string, baseUrl: string, catal
       push(item.completeUrl, item.title, context);
       push(item.url, item.title, context);
       for (const link of readSecondaryLinks(item)) push(link.url, link.text ?? item.title, context);
+
+      // Eaton's site-search JSON includes the exact SKU's MDM rendition even when the SKU page
+      // itself is temporarily unavailable. Preserve that official image as a bounded fallback;
+      // the old parser ignored `image`/`desktopRendition` entirely, leaving image-only runs empty.
+      if (
+        isLikelyEatonMccbCatalogNumber(catalogNumber) &&
+        /^sku$/i.test(String(item.contentType ?? "")) &&
+        sameCatalogNumber(item.title, catalogNumber, { compact: true, ignoreCase: true })
+      ) {
+        const productUrl = typeof item.completeUrl === "string"
+          ? normalizeEatonSearchProductUrl(item.completeUrl, baseUrl)
+          : undefined;
+        const imageSourceUrl = productUrl ?? baseUrl;
+        for (const rawImage of [item.image, item.desktopRendition, item.mobileRendition]) {
+          if (typeof rawImage !== "string") continue;
+          const absolute = toAbsoluteUrl(rawImage, baseUrl);
+          if (!absolute || !/\/(?:mdmfiles|is\/image\/eaton)\//i.test(absolute)) continue;
+          const normalizedUrl = normalizeEatonImageUrl(absolute);
+          documents.push({
+            type: "image",
+            label: `${cleanText(String(item.title)) || catalogNumber} - Product image`,
+            url: normalizedUrl,
+            ...(normalizedUrl !== absolute ? { candidateUrls: [absolute] } : {}),
+            sourceUrl: imageSourceUrl,
+            sourceType: "official-fallback",
+            parser: "eaton-search",
+            stage: "search-document",
+            confidence: 0.78
+          });
+        }
+        const generatedSpecSheet = productUrl ? eatonGeneratedSpecSheetUrl(productUrl) : undefined;
+        if (generatedSpecSheet) {
+          push(generatedSpecSheet, `Eaton Specification Sheet - ${catalogNumber}`, context);
+        }
+      }
     }
   } catch {
     const normalized = text.replace(/\\\//g, "/");
@@ -912,7 +964,7 @@ export function extractEatonSearchDocuments(text: string, baseUrl: string, catal
   }
 
   return dedupeDocuments(documents)
-    .filter((doc) => doc.type === "datasheet" || doc.type === "manual" || doc.type === "other")
+    .filter((doc) => doc.type === "image" || doc.type === "datasheet" || doc.type === "manual" || doc.type === "other")
     .slice(0, 6);
 }
 
@@ -1593,7 +1645,8 @@ export function parseEatonProductPage(
         ...extractMarkdownLinks(text, catalogNumber, fetched.effectiveUrl)
       ]
     : [];
-  const descriptionVoltage = extractEatonDescriptionVoltage(htmlParsed.description, catalogNumber, fetched.effectiveUrl);
+  const pageDescription = cleanText(htmlParsed.description || readDescription(lines, catalogNumber));
+  const descriptionVoltage = extractEatonDescriptionVoltage(pageDescription, catalogNumber, fetched.effectiveUrl);
   const kbcVoltageFallback = /^KBC-(?:35|40|45|50|60|70|80|90|100|110|125|150|175|200|225|250|300|350|400|450|500|600|800)$/i.test(catalogNumber) &&
     !htmlParsed.attributes.some((attr) => /^voltage rating$/i.test(cleanText(attr.name)) && /\b(?:V|kV)\b/i.test(attr.value))
     ? [{
@@ -1607,11 +1660,22 @@ export function parseEatonProductPage(
         sourceUrl: EATON_KBC_VOLTAGE_SOURCE
       }]
     : [];
-  const attributes = dedupeAttributes([
+  const baseAttributes = dedupeAttributes([
     ...htmlParsed.attributes,
     ...markdownAttributes,
     ...(descriptionVoltage ? [descriptionVoltage] : []),
     ...kbcVoltageFallback
+  ]);
+  // Power Defense descriptions publish the rated amperage in the product description (for
+  // example "PDG1, 2P, 30A, 18kA/480V") while some locale specification tables omit the
+  // Amperage Rating row. Limit this recovery to the explicit PD MCCB family; never turn arbitrary
+  // Eaton prose or a short-circuit kA value into the normalized operating current.
+  const descriptionCurrent = normalizeFields(baseAttributes, []).current
+    ? []
+    : extractEatonDescriptionCurrent(pageDescription, catalogNumber, fetched.effectiveUrl);
+  const attributes = dedupeAttributes([
+    ...baseAttributes,
+    ...descriptionCurrent
   ]).map((attr) => ({
     sourceType: "official-fallback" as const,
     parser: "eaton-product-page",
@@ -1634,7 +1698,7 @@ export function parseEatonProductPage(
     ...doc
   }));
   const title = cleanText(htmlParsed.title || readMarkdownTitle(lines) || catalogNumber);
-  const description = stripEatonCatalogPrefix(htmlParsed.description || readDescription(lines, catalogNumber), catalogNumber);
+  const description = stripEatonCatalogPrefix(pageDescription, catalogNumber);
   const normalized = normalizeFields(attributes, documents);
   const hasUsableProductData = hasUsableEatonProductData(attributes, documents);
   return {
@@ -1669,10 +1733,22 @@ export function parseEatonProductPage(
 function hasVerifiedEatonProductUrl(result: ProductResult, catalogNumber: string): boolean {
   if (!result.productUrl || !isAllowedEatonProductHost(result.productUrl)) return false;
   if (eatonSkuPathMatches(result.productUrl, catalogNumber)) return true;
+  // Model-code searches legitimately resolve to a numeric Eaton SKU page. Accept only an
+  // exact model code or the documented parenthesized variant form (for example
+  // `DILM9-10(12VDC)`), never a hyphenated sibling such as `XSFH20-I-D`.
+  if (result.attributes.some((attr) => /^model\s*code$/i.test(cleanText(attr.name)) && isEatonModelCodeVariant(attr.value, catalogNumber))) return true;
   // Eaton's MV catalogue contains genuine models without individual SKU pages. Their
   // explicit family route is valid only when the connector marked it terminal and kept
   // the source-backed family/model record intact.
   return result.pageLevel === "family" && result.diagnostics?.terminal?.skipNetworkFallback === true;
+}
+
+function isEatonModelCodeVariant(value: string, catalogNumber: string): boolean {
+  const actual = cleanText(value);
+  const requested = cleanText(catalogNumber);
+  if (!actual || !requested) return false;
+  if (sameCatalogNumber(actual, requested, { compact: true, afterColon: true, ignoreCase: true })) return true;
+  return new RegExp(`^${escapeRegExp(requested)}\\([^)]*\\)$`, "i").test(actual);
 }
 
 function isAllowedEatonProductHost(url: string): boolean {
@@ -1893,6 +1969,10 @@ function extractHtmlStructuredProductData(
     if (!text || text.length > 500) return;
     attributes.push({ group: "Structured Product Data", name, value: text, sourceUrl });
   };
+  const addMeasurement = (name: string, value: unknown) => {
+    const text = structuredMeasurementText(value);
+    if (text) addAttribute(name, text);
+  };
   const addImage = (value: unknown, label = "Product image") => {
     for (const rawUrl of structuredImageUrls(value)) {
       const absolute = toAbsoluteUrl(rawUrl, sourceUrl);
@@ -1919,6 +1999,18 @@ function extractHtmlStructuredProductData(
       addAttribute("Brand", structuredBrandName(product.brand));
       addAttribute("Category", product.category);
       addAttribute("Product URL", product.url);
+      addMeasurement("Product Weight", product.weight);
+      addMeasurement("Product Height", product.height);
+      addMeasurement("Product Width", product.width);
+      addMeasurement("Product Length/Depth", product.depth ?? product.length);
+      if (Array.isArray(product.additionalProperty)) {
+        for (const property of product.additionalProperty) {
+          if (!isRecord(property)) continue;
+          const name = cleanText(structuredText(property.name));
+          if (!name || !/weight|height|width|depth|length|dimension|current|amperage|voltage|certif|pole|frequency|interrupt|frame|trip/i.test(name)) continue;
+          addAttribute(name, property.value ?? property.valueReference);
+        }
+      }
       addImage(product.image, cleanText(structuredText(product.name)) || "Product image");
     }
 
@@ -1928,6 +2020,30 @@ function extractHtmlStructuredProductData(
   });
 
   return { attributes, documents };
+}
+
+function isLikelyEatonMccbCatalogNumber(catalogNumber: string): boolean {
+  return /^PD[DGFM]\d/i.test(cleanText(catalogNumber));
+}
+
+function extractEatonDescriptionCurrent(description: string | undefined, catalogNumber: string, sourceUrl: string): AttributeRecord[] {
+  if (!description || !isLikelyEatonMccbCatalogNumber(catalogNumber)) return [];
+  // The first explicit A token is the product rating in Eaton's MCCB descriptions. A fault
+  // rating such as 18kA cannot match this expression because the `k` sits between the number and A.
+  const match = description.match(/(?:^|[,;])\s*(\d{1,4}(?:[.,]\d+)?)\s*A\b/i) ?? description.match(/\b(\d{1,4}(?:[.,]\d+)?)\s*A\b/i);
+  if (!match) return [];
+  return [{
+    group: "Eaton description",
+    name: "Amperage Rating",
+    value: `${match[1].replace(",", ".")} A`,
+    sourceUrl,
+    sourceType: "official-fallback",
+    parser: "eaton-product-page",
+    stage: "description",
+    confidence: 0.86,
+    scope: "variant",
+    matchLevel: "exact"
+  }];
 }
 
 function repairEatonProductImage(result: ProductResult): { result: ProductResult; note?: string } {
@@ -2046,6 +2162,28 @@ function structuredText(value: unknown): string | undefined {
   if (Array.isArray(value)) return value.map(structuredText).filter(Boolean).join("; ");
   if (isRecord(value)) return structuredText(value.name ?? value.value ?? value.url);
   return undefined;
+}
+
+function structuredMeasurementText(value: unknown): string | undefined {
+  if (typeof value === "string") return cleanText(value) || undefined;
+  if (!isRecord(value)) return undefined;
+
+  const rawValue = value.value ?? value.amount ?? value.name;
+  const text = cleanText(structuredText(rawValue));
+  if (!text) return undefined;
+  const rawUnit = cleanText(structuredText(value.unitText ?? value.unitCode ?? value.unit));
+  if (!rawUnit || new RegExp(`(?:^|\\s)${escapeRegExp(rawUnit)}(?:$|\\s)`, "i").test(text)) return text;
+
+  const unit = ({
+    KGM: "kg",
+    GRM: "g",
+    MMT: "mm",
+    CMT: "cm",
+    MTR: "m",
+    INH: "in",
+    LBR: "lb"
+  } as Record<string, string>)[rawUnit.toUpperCase()] ?? rawUnit;
+  return cleanText(`${text} ${unit}`);
 }
 
 function structuredImageUrls(value: unknown): string[] {
@@ -2410,14 +2548,14 @@ function extractHtmlDocuments($: cheerio.CheerioAPI, catalogNumber: string, sour
     documents.push({ type: "image", label: "Product image", url: normalizeEatonImageUrl(absolute), sourceUrl });
   });
 
-  $("img[src],img[data-src],img[data-lazy-src],source[srcset]").each((_, element) => {
-    const rawUrl =
-      $(element).attr("src") ||
-      $(element).attr("data-src") ||
-      $(element).attr("data-lazy-src") ||
-      firstSrcsetUrl($(element).attr("srcset"));
-    const absolute = rawUrl ? toAbsoluteUrl(rawUrl, sourceUrl) : undefined;
-    if (!absolute) return;
+  $("img[src],img[data-src],img[data-lazy-src],img[srcset],source[srcset]").each((_, element) => {
+    const rawUrls = uniqueStrings([
+      $(element).attr("src"),
+      $(element).attr("data-src"),
+      $(element).attr("data-lazy-src"),
+      ...srcsetUrls($(element).attr("srcset"))
+    ], { normalize: "trim" });
+    if (rawUrls.length === 0) return;
     const label = cleanText($(element).attr("alt") || $(element).attr("title") || "Product image");
     const ancestorContext = $(element)
       .parents()
@@ -2425,16 +2563,20 @@ function extractHtmlDocuments($: cheerio.CheerioAPI, catalogNumber: string, sour
       .map((__, parent) => $(parent).attr("class") || (parent as { tagName?: string }).tagName || "")
       .get()
       .join(" ");
-    const context = `${label} ${absolute} ${$(element).attr("class") ?? ""} ${$(element).parent().attr("class") ?? ""} ${ancestorContext}`;
-    if (!looksLikeEatonProductImage(context, catalogNumber, sourceUrl)) return;
-    const normalizedUrl = normalizeEatonImageUrl(absolute);
-    documents.push({
-      type: "image",
-      label: label || "Product image",
-      url: normalizedUrl,
-      ...(normalizedUrl !== absolute ? { candidateUrls: [absolute, normalizedUrl] } : {}),
-      sourceUrl
-    });
+    for (const rawUrl of rawUrls) {
+      const absolute = toAbsoluteUrl(rawUrl, sourceUrl);
+      if (!absolute) continue;
+      const context = `${label} ${absolute} ${$(element).attr("class") ?? ""} ${$(element).parent().attr("class") ?? ""} ${ancestorContext}`;
+      if (!looksLikeEatonProductImage(context, catalogNumber, sourceUrl)) continue;
+      const normalizedUrl = normalizeEatonImageUrl(absolute);
+      documents.push({
+        type: "image",
+        label: label || "Product image",
+        url: normalizedUrl,
+        ...(normalizedUrl !== absolute ? { candidateUrls: [absolute, normalizedUrl] } : {}),
+        sourceUrl
+      });
+    }
   });
 
   $("a[href]").each((_, element) => {
@@ -2582,10 +2724,14 @@ function decodeUrlPart(value: string): string {
 }
 
 function firstSrcsetUrl(srcset: string | undefined): string | undefined {
-  return srcset
-    ?.split(",")
-    .map((entry) => entry.trim().split(/\s+/)[0])
-    .find(Boolean);
+  return srcsetUrls(srcset)[0];
+}
+
+function srcsetUrls(srcset: string | undefined): string[] {
+  return uniqueStrings(
+    (srcset ?? "").split(",").map((entry) => entry.trim().split(/\s+/)[0]),
+    { normalize: "trim" }
+  );
 }
 
 function toAbsoluteUrl(value: string, baseUrl: string): string | undefined {

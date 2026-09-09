@@ -38,6 +38,10 @@ describe("manufacturer configuration", () => {
     expect(byId.get("rockwell")?.scrapeRecipe?.fallbackPolicy?.skipPreferredFinalCompletenessRetry).toBe(true);
     expect(byId.get("rockwell")?.scrapeRecipe?.fallbackPolicy?.rationales?.skipPreferredFinalCompletenessRetry).toMatch(/official.*manual PDT/i);
     expect(byId.get("siemens")?.shortName).toBe("SIE");
+    expect(byId.get("siemens")?.scrapeRecipe?.qualityPolicy?.requiredDocumentTypes).toEqual(["datasheet", "image"]);
+    expect(byId.get("siemens")?.scrapeRecipe?.extractionPolicy?.ignoredDocumentUrlPatterns).toEqual(
+      expect.arrayContaining([expect.stringContaining("certificateimages"), expect.stringContaining("art\\d+")])
+    );
     expect(byId.get("phoenix")?.shortName).toBe("PHX");
     expect(byId.get("scame")?.shortName).toBe("SCA");
     expect(byId.get("scame")?.scrapeRecipe?.fallbackPolicy?.distributorFallback).toBe(false);

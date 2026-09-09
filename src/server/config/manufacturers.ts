@@ -710,6 +710,15 @@ function attachBuiltInScrapeRecipes() {
     minDocuments: 1,
     expandSelectors: accordionSelectors,
     dynamicFramework: ["api", "embedded-json"],
+    extractionPolicy: {
+      // Siemens exposes tiny certificate glyphs next to the real PDF. They are neither a
+      // datasheet nor a product image and must never become the primary document/photo.
+      ignoredDocumentUrlPatterns: ["(?:/|\\\\)certificateimages(?:/|\\\\)", "(?:/|\\\\)art\\d+(?:hi)?\\.gif(?:[?#]|$)"],
+      ignoredImageUrlPatterns: ["(?:/|\\\\)certificateimages(?:/|\\\\)", "(?:/|\\\\)art\\d+(?:hi)?\\.gif(?:[?#]|$)"]
+    },
+    qualityPolicy: {
+      requiredDocumentTypes: ["datasheet", "image"]
+    },
     fallbackPolicy: {
       officialFirst: true,
       readerOnQualityFailure: true,

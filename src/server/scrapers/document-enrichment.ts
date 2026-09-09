@@ -6,6 +6,7 @@ import { PDFParse } from "pdf-parse";
 import type { TableArray } from "pdf-parse";
 import type { AttributeRecord, DocumentProcessingDiagnostic, DocumentRecord, ProductResult, SourceRecord } from "../../shared/types.js";
 import { cleanText, normalizeFields, splitNameValue } from "./normalizer.js";
+import { normalizeSiemensFields } from "./siemens.js";
 import { catalogTextMatches, findCatalogTextMatch, sameCatalogNumber, type CatalogMatchLevel } from "./catalog-number.js";
 import { buildTightContextForCatalog, buildVariantColumnContext } from "./tight-context.js";
 import { listTechnicalAttributeAliases } from "./technical-attribute-aliases.js";
@@ -332,6 +333,7 @@ async function processOneDownloadedDocument(doc: DocumentRecord, catalogNumber: 
     // Multi-model PDFs need target scoping, but some catalogs keep shared technical
     // pages away from the catalog table. Keep both the target rows and global spec rows.
     const scope = buildDocumentParseScope(text, catalogNumber);
+    const exactSiemensDatasheet = isExactSiemensProductDatasheet(doc, text, catalogNumber);
     // Balluff's exact product datasheets are addressed by a product-specific publication id,
     // but often contain only the full type code (not the short catalog number used by the PDP,
     // e.g. BIS00Z5). The URL is already selected from that exact official PDP, so allowing the
@@ -341,9 +343,9 @@ async function processOneDownloadedDocument(doc: DocumentRecord, catalogNumber: 
       ...extractDocumentTextAttributes({
         catalogNumber,
         document: doc,
-        text: balluffExactDatasheet ? text : scope.text,
-        tables,
-          scopeUnresolved: !scope.resolved && !balluffExactDatasheet,
+          text: balluffExactDatasheet || exactSiemensDatasheet ? text : scope.text,
+          tables,
+          scopeUnresolved: !scope.resolved && !balluffExactDatasheet && !exactSiemensDatasheet,
         matchLevel: scope.match?.level
       }),
       ...extractOcrPositionedTableAttributes(pdfText.ocrPositionedItems, catalogNumber, doc.url),
@@ -460,7 +462,7 @@ export async function enrichResultFromDownloadedDocuments(result: ProductResult)
   // set outside the `attributes` array entirely).
   const normalized = {
     ...nonEmptyNormalized(result.normalized),
-    ...nonEmptyNormalized(normalizeFields(attributes, documents))
+    ...nonEmptyNormalized(result.manufacturerId === "siemens" ? normalizeSiemensFields(attributes, documents) : normalizeFields(attributes, documents))
   };
 
   return {
@@ -514,13 +516,14 @@ export async function enrichResultFromRemoteDocuments(
       const { text, tables } = pdfText;
       const scope = buildDocumentParseScope(text, result.catalogNumber);
       const balluffExactDatasheet = doc.type === "datasheet" && /(^|:)\/\/publications\.balluff\.com\/pdfengine\/pdf(?:[/?#]|$)/i.test(doc.url);
+      const exactSiemensDatasheet = isExactSiemensProductDatasheet(parsedDoc, text, result.catalogNumber);
       let attributes = [
         ...extractDocumentTextAttributes({
           catalogNumber: result.catalogNumber,
           document: parsedDoc,
-          text: balluffExactDatasheet ? text : scope.text,
+          text: balluffExactDatasheet || exactSiemensDatasheet ? text : scope.text,
           tables,
-        scopeUnresolved: !scope.resolved && !balluffExactDatasheet,
+        scopeUnresolved: !scope.resolved && !balluffExactDatasheet && !exactSiemensDatasheet,
           matchLevel: scope.match?.level
         }),
         ...extractOcrPositionedTableAttributes(pdfText.ocrPositionedItems, result.catalogNumber, parsedDoc.url),
@@ -583,7 +586,7 @@ export async function enrichResultFromRemoteDocuments(
   // set outside the `attributes` array entirely).
   const normalized = {
     ...nonEmptyNormalized(result.normalized),
-    ...nonEmptyNormalized(normalizeFields(attributes, documents))
+    ...nonEmptyNormalized(result.manufacturerId === "siemens" ? normalizeSiemensFields(attributes, documents) : normalizeFields(attributes, documents))
   };
 
   return {
@@ -1140,6 +1143,23 @@ interface DocumentParseScope {
    */
   resolved: boolean;
   match?: ReturnType<typeof findCatalogTextMatch>;
+}
+
+/**
+ * Siemens' encoded Mall datasheet endpoint is an exact-product document, not a family comparison
+ * sheet. Its one-page V20 datasheets place the article number near the top and the rated-current
+ * rows later on the same page; the generic tight-context window can stop before those rows. Use the
+ * complete page only when both the endpoint and the PDF's own article-number text prove exact
+ * identity, so this cannot turn a sibling/family PDF into target data.
+ */
+function isExactSiemensProductDatasheet(
+  document: Pick<DocumentRecord, "type" | "url">,
+  text: string,
+  catalogNumber: string
+): boolean {
+  return document.type === "datasheet" &&
+    /\/mall\/Document\/GetDocumentBasedOnCode(?:[/?#]|$)/i.test(document.url) &&
+    Boolean(findCatalogTextMatch(text, catalogNumber, { compact: true, afterColon: true }));
 }
 
 function buildDocumentParseScope(text: string, catalogNumber: string): DocumentParseScope {

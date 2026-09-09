@@ -20,6 +20,10 @@ describe("document URL classification", () => {
     expect(documentUrlLooksDownloadable(url)).toBe(true);
   });
 
+  it("recognizes the Siemens exact-product encoded PDF endpoint", () => {
+    expect(isPdfLikeDocumentUrl("https://mall.industry.siemens.com/mall/Document/GetDocumentBasedOnCode?code=encoded-exact-mlfb-pdf")).toBe(true);
+  });
+
   it("recognizes additional CAD document extensions through the shared helper", () => {
     expect(documentUrlLooksDownloadable("https://assets.example.test/cad/ABC-123.igs")).toBe(true);
     expect(documentUrlLooksDownloadable("https://assets.example.test/cad/ABC-123.iges?download=1")).toBe(true);

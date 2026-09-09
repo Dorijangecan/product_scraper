@@ -119,6 +119,16 @@ export function requiredElectricalFields(result: ProductResult, context: Electri
   // Denied for these products (a guaranteed per-row timeout). When PDF download is enabled the
   // datasheet still fills voltage/current as a bonus; the gate must not demand them up front.
   if (result.manufacturerId === "siemens" && /^S\d{5}-[A-Z]\d+$/i.test(result.catalogNumber.trim())) return [];
+  // ReeR mixes active safety controllers/sensors with passive accessories and enclosures. The
+  // official pages publish a supply voltage only for the active families, and generally do not
+  // publish a catalog-level current rating. Require voltage only when the exact product page
+  // actually publishes a power/supply-voltage row; never infer current from a model name such as
+  // "EOS4 151 A" or from an OSSD output current.
+  if (result.manufacturerId === "reer") {
+    return /\b(?:power supply|supply voltage|operating voltage|rated voltage)\b/i.test(ratingText) && !result.normalized.voltage
+      ? ["voltage"]
+      : [];
+  }
   if (result.manufacturerId === "eaton" && EATON_XENERGY_BASE_FRAME_MODEL_PATTERN.test(text)) return [];
   if (result.manufacturerId === "eaton" && EATON_VA_RATED_NO_CURRENT_PATTERN.test(primaryText) && result.normalized.voltage && !result.normalized.current) return ["voltage"];
   if (NON_ELECTRICAL_ACCESSORY_PATTERN.test(primaryText)) return [];

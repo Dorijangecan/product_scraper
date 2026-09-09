@@ -58,7 +58,7 @@ export class SiemensConnector implements ManufacturerConnector {
     // discovery timeout. Fall through only if the view is unreachable.
     if (isSiemensBuildingTechnologiesStockNumber(catalogNumber)) {
       const btResult = await scrapeSiemensBuildingTechnologies(catalogNumber, context);
-      if (btResult) return btResult;
+      if (btResult) return normalizeSiemensResult(btResult);
     }
 
     try {
@@ -66,7 +66,8 @@ export class SiemensConnector implements ManufacturerConnector {
       const result = parseSiemensProductApiResponse(catalogNumber, fetched);
       if (result.status !== "failed") {
         const { result: fallback, discovery } = await scrapeDiscoveredFallback(catalogNumber, context, { idPrefix: this.id });
-        return withDiscoveryFallbackDiagnostics(mergeResults(result, fallback), discovery);
+        const merged = preferExactSiemensDatasheet(mergeResults(result, fallback), result.documents);
+        return normalizeSiemensResult(withDiscoveryFallbackDiagnostics(merged, discovery));
       }
     } catch {
       // Fall through to generic official discovery and configured public URL templates.
@@ -77,21 +78,21 @@ export class SiemensConnector implements ManufacturerConnector {
     // broad discovery for regular MLFB numbers; special lines without mmpdata remain unresolved
     // until an identity-confirmed fallback or source document is available.
     const mallDataResult = await context.fallback.scrape(catalogNumber, [SIEMENS_MMPDATA_SOURCE]);
-    if (mallDataResult && mallDataResult.status !== "failed") return mallDataResult;
+    if (mallDataResult && mallDataResult.status !== "failed") return normalizeSiemensResult(mallDataResult);
 
     // Building Technologies stock numbers were already routed to the Online Support view at the top
     // of scrape(); reaching here means that view was unreachable. Return an honest, identity-confirmed
     // minimal partial (official link + product-specific datasheet) rather than sending them through
     // generic discovery, whose Mall pages return Access Denied and burn the full 60 s per-row deadline.
     if (isSiemensBuildingTechnologiesStockNumber(catalogNumber)) {
-      return siemensMallStockNumberResult(catalogNumber);
+      return normalizeSiemensResult(siemensMallStockNumberResult(catalogNumber));
     }
 
     const { result, discovery } = await scrapeDiscoveredFallback(catalogNumber, context, { idPrefix: this.id });
-    return withDiscoveryFallbackDiagnostics(
+    return normalizeSiemensResult(withDiscoveryFallbackDiagnostics(
       result ?? emptyResult(this.id, catalogNumber, "Siemens public API, official discovery, and configured fallback pages did not return product data."),
       discovery
-    );
+    ));
   }
 
 }
@@ -440,7 +441,7 @@ async function enrichBuildingTechnologiesFromMall(
 
   if (!extra.length) return;
   result.attributes = dedupeAttributes([...result.attributes, ...extra]);
-  result.normalized = normalizeFields(result.attributes, result.documents);
+  result.normalized = normalizeSiemensFields(result.attributes, result.documents);
   result.sources = [...result.sources, ...sources];
 }
 
@@ -533,8 +534,8 @@ export function parseSiemensBuildingTechnologiesPview(catalogNumber: string, fet
   const imageUrl = pviewTag(xml, "productimageurl");
   if (imageUrl) documents.push({ type: "image", label: "Product image", url: imageUrl, sourceUrl });
 
-  const normalized = normalizeFields(attributes, documents);
-  return {
+  const normalized = normalizeSiemensFields(attributes, documents);
+  return normalizeSiemensResult({
     manufacturerId: "siemens",
     catalogNumber,
     status: "found",
@@ -550,7 +551,7 @@ export function parseSiemensBuildingTechnologiesPview(catalogNumber: string, fet
       { url: productUrl, sourceType: "official", parser: "siemens-sieportal-detail", fetchedAt: new Date().toISOString() },
       siemensSource(sourceUrl, "siemens-ios-pview-api", fetched)
     ]
-  };
+  });
 }
 
 /**
@@ -604,8 +605,8 @@ export function parseSiemensProductApiResponse(catalogNumber: string, fetched: F
   }
 
   const products = isRecord(parsed) && Array.isArray(parsed.products) ? parsed.products.filter(isRecord) : [];
-  const product = products.find((item) => sameCatalogNumber(item.articleNumber, catalogNumber)) ?? products[0];
-  if (!product) return emptyResult("siemens", catalogNumber, "Siemens API response did not include a product.");
+  const product = products.find((item) => sameCatalogNumber(item.articleNumber, catalogNumber));
+  if (!product) return emptyResult("siemens", catalogNumber, "Siemens API response did not include an exact product match.");
 
   const productUrl = `https://sieportal.siemens.com/en-ww/products-services/detail/${encodeURIComponent(catalogNumber)}`;
   const attributes: AttributeRecord[] = [
@@ -613,11 +614,11 @@ export function parseSiemensProductApiResponse(catalogNumber: string, fetched: F
     ...flattenProductAttributes(product, fetched.effectiveUrl)
   ];
   const documents = siemensDocuments(product, fetched.effectiveUrl);
-  const normalized = normalizeFields(attributes, documents);
+  const normalized = normalizeSiemensFields(attributes, documents);
   const title = stringValue(product.materialShortText) || stringValue(product.articleNumber) || catalogNumber;
   const description = stringValue(product.description);
 
-  return {
+  return normalizeSiemensResult({
     manufacturerId: "siemens",
     catalogNumber,
     status: attributes.length || documents.length ? "found" : "failed",
@@ -634,7 +635,83 @@ export function parseSiemensProductApiResponse(catalogNumber: string, fetched: F
       siemensSource(fetched.effectiveUrl, "siemens-sieportal-api", fetched)
     ],
     error: attributes.length || documents.length ? undefined : "Siemens API product contained no extractable fields."
+  });
+}
+
+/**
+ * Siemens' mmpdata table mixes product supply ratings with signal/output limits and exposes
+ * navigation fragments as plain-text attributes. Keep the shared normalizer as the baseline, then
+ * select the Siemens-labelled operating quantities by meaning. This is deliberately label-driven:
+ * it applies to unseen MLFBs and never manufactures a value from the catalog-number pattern.
+ */
+export function normalizeSiemensFields(attributes: AttributeRecord[], documents: DocumentRecord[]) {
+  const normalized = normalizeFields(attributes, documents);
+  const voltage = selectSiemensVoltage(attributes) ?? normalized.voltage;
+  const current = selectSiemensCurrent(attributes) ?? normalized.current;
+  return { ...normalized, voltage, current };
+}
+
+export function normalizeSiemensResult(result: ProductResult): ProductResult {
+  const recomputed = normalizeSiemensFields(result.attributes, result.documents);
+  const normalized = { ...result.normalized };
+  for (const [field, value] of Object.entries(recomputed) as Array<[keyof typeof recomputed, string | undefined]>) {
+    if (value !== undefined) normalized[field] = value;
+  }
+  return {
+    ...result,
+    normalized
   };
+}
+
+function selectSiemensVoltage(attributes: AttributeRecord[]): string | undefined {
+  const powerSupply = attributes.some((attr) => /power suppl(?:y|ies)|sitop|psu\b/i.test(`${attr.name} ${attr.value}`));
+  return selectSiemensElectricalValue(attributes, "voltage", (label) => {
+    if (/\b(?:insulation|surge|impulse|withstand|protection|drop|residual|peak|test)\s+voltage\b|\bvoltage\s+(?:drop|protection|rating)\b/i.test(label)) return -1;
+    if (/\b(?:supply|load) voltage\b/i.test(label)) return 120;
+    if (/\b(?:control supply|rated supply) voltage\b/i.test(label)) return 115;
+    if (/\brated voltage\b/i.test(label)) return 105;
+    if (/\binput voltage\b/i.test(label)) return 95;
+    if (/\boperating voltage\b/i.test(label)) return 90;
+    if (powerSupply && /\b(?:rated|nominal)?\s*output voltage\b/i.test(label)) return 110;
+    return -1;
+  });
+}
+
+function selectSiemensCurrent(attributes: AttributeRecord[]): string | undefined {
+  const powerSupply = attributes.some((attr) => /power suppl(?:y|ies)|sitop|psu\b/i.test(`${attr.name} ${attr.value}`));
+  return selectSiemensElectricalValue(attributes, "current", (label) => {
+    if (/\b(?:inrush|residual|short[-\s]?circuit|fault|surge|interrupt|breaking|peak|withstand)\s+current\b|\bcurrent\s+(?:inrush|residual|short[-\s]?circuit|fault|surge|interrupt|breaking|peak)\b/i.test(label)) return -1;
+    if (/\bcurrent consumption\b.*\brated\b|\brated\b.*\bcurrent consumption\b/i.test(label)) return 140;
+    if (/\bconsumed current\b/i.test(label)) return 135;
+    if (/\brated current\b|\bfull[-\s]?load current\b/i.test(label)) return 125;
+    if (/\bcurrent consumption\b/i.test(label)) return 115;
+    if (/\b(?:input|supply) current\b/i.test(label)) return 105;
+    if (powerSupply && /\boutput current\b/i.test(label)) return 120;
+    if (/\brated operational current\b|\boperational current\b/i.test(label)) return 110;
+    if (/\bcontinuous current\b/i.test(label)) return 95;
+    if (/\bthermal current\b/i.test(label)) return 85;
+    if (/\boutput current\b/i.test(label)) return 75;
+    return -1;
+  });
+}
+
+function selectSiemensElectricalValue(
+  attributes: AttributeRecord[],
+  field: "voltage" | "current",
+  labelPriority: (label: string) => number
+): string | undefined {
+  return attributes
+    .map((attr, index) => {
+      const label = `${attr.group ?? ""} ${attr.name}`;
+      const priority = labelPriority(label.toLowerCase());
+      if (priority < 0) return undefined;
+      const candidate = normalizeFields([attr], [])[field];
+      if (!candidate) return undefined;
+      const sourceBonus = attr.sourceType === "official" ? 4 : attr.sourceType === "official-fallback" ? 3 : 0;
+      return { candidate, score: priority * 1000 + sourceBonus * 10 - index };
+    })
+    .filter((item): item is { candidate: string; score: number } => Boolean(item))
+    .sort((left, right) => right.score - left.score)[0]?.candidate;
 }
 
 function flattenProductAttributes(product: Record<string, unknown>, sourceUrl: string): AttributeRecord[] {
@@ -672,6 +749,28 @@ function siemensDocuments(product: Record<string, unknown>, sourceUrl: string): 
   addDocument(documents, "image", "Product thumbnail", stringValue(product.thumbnailUrl), sourceUrl);
   addDocument(documents, "datasheet", "Siemens datasheet", stringValue(product.pdfDatasheetUrl), sourceUrl);
   return documents;
+}
+
+/**
+ * The SiePortal API's exact-product PDF contains the complete rated-data table. The discovery
+ * fallback may also contribute the shorter `teddatasheet` document; keeping both lets the
+ * downloader select the weak one first by label and can hide rated current for unseen drives.
+ * If the API gave us its exact encoded PDF, retain that as the sole primary datasheet while
+ * preserving every other document type. The encoded URL is product-specific (the MLFB is inside
+ * the document-service payload), so this does not borrow a sibling-family document.
+ */
+function preferExactSiemensDatasheet(result: ProductResult, apiDocuments: DocumentRecord[]): ProductResult {
+  const apiDatasheets = apiDocuments.filter((doc) => doc.type === "datasheet" && isExactSiemensPdfUrl(doc.url));
+  if (!apiDatasheets.length) return result;
+  const preferredUrl = apiDatasheets[0].url;
+  return {
+    ...result,
+    documents: result.documents.filter((doc) => doc.type !== "datasheet" || doc.url === preferredUrl)
+  };
+}
+
+function isExactSiemensPdfUrl(url: string): boolean {
+  return /\/mall\/Document\/GetDocumentBasedOnCode(?:[/?#]|$)/i.test(url);
 }
 
 function addDocument(documents: DocumentRecord[], type: DocumentRecord["type"], label: string, url: string | undefined, sourceUrl: string) {

@@ -562,6 +562,11 @@ describe("quality gate", () => {
             type: "datasheet",
             label: "Download product data sheet",
             url: "https://mall.industry.siemens.com/teddatasheet/?format=PDF&mlfbs=6ES7193-6BP00-0DA0&language=en&caller=SiePortal"
+          },
+          {
+            type: "image",
+            label: "6ES7193-6BP00-0DA0 product image",
+            url: "https://mall.industry.siemens.com/images/products/6ES7193-6BP00-0DA0.jpg"
           }
         ],
         sources: [
@@ -598,7 +603,10 @@ describe("quality gate", () => {
           { group: "Page Mining", name: "Product Type", value: "Differential pressure regulator valve" },
           { group: "Page Mining", name: "Net weight", value: "4.5 kg" }
         ],
-        documents: [{ type: "datasheet", label: "BPZ:VSG519K15-5 datasheet", url: "file:///customer/siemens-vsg519k15-5-datasheet.csv" }],
+        documents: [
+          { type: "datasheet", label: "BPZ:VSG519K15-5 datasheet", url: "file:///customer/siemens-vsg519k15-5-datasheet.csv" },
+          { type: "image", label: "BPZ:VSG519K15-5 product image", url: "file:///customer/siemens-vsg519k15-5-product.png" }
+        ],
         sources: [
           {
             url: "https://r.jina.ai/http://mall.industry.siemens.com/mall/en/b1/Catalog/Product/bpzvsg519k155",

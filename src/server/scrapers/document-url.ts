@@ -10,6 +10,7 @@ export function isPdfLikeDocumentUrl(url: string): boolean {
     // Siemens Smart Infrastructure's product-specific Asset endpoint deliberately has an .aspx
     // path but responds with `application/pdf` for the exact `prodId` requested.
     /(?:^|[/.])hit\.sbt\.siemens\.com\/RWD\/AssetsByProduct\.aspx\?(?=[^#]*\basset_type=Data(?:%20|\+)Sheet(?:%20|\+)for(?:%20|\+)Product\b)(?=[^#]*\bprodId=[^&#]+)/i.test(url) ||
+    /\/mall\/Document\/GetDocumentBasedOnCode(?:[/?#]|$)/i.test(url) ||
     /\.pdf(?:[?#]|$)/i.test(url) ||
     /\/download-pdf(?:[/?#]|$)/i.test(url) ||
     /pdfengine\/pdf/i.test(url) ||

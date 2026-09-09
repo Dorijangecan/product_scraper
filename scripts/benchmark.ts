@@ -476,7 +476,9 @@ function summarizePdtAudit(pdt: PdtExportResult | undefined): Pick<
 
 function matchesRequiredDocuments(result: ProductResult, fixture: BenchmarkFixture): boolean {
   if (!fixture.requiredDocuments?.length) return true;
-  return fixture.requiredDocuments.every((type) => result.documents.some((doc) => doc.type === type));
+  return fixture.requiredDocuments.every((type) => result.documents.some((doc) =>
+    doc.type === type && (type !== "image" || (doc.downloadStatus === "downloaded" && Boolean(doc.localPath)))
+  ));
 }
 
 function matchesNormalizedFields(result: ProductResult, fixture: BenchmarkFixture): boolean {

@@ -188,6 +188,29 @@ describe("inline nameplate spec miner (extractInlineNameplateSpecAttributes)", (
     );
   });
 
+  it("reads Siemens exact-product datasheet rows with duty-class qualifiers", () => {
+    const attributes = extractElectricalSpecAttributesFromText({
+      sourceUrl: "https://mall.industry.siemens.com/mall/Document/GetDocumentBasedOnCode?code=exact",
+      text: [
+        "Data sheet for SINAMICS V20",
+        "Article No. : 6SL3210-5BB23-0UV1",
+        "Rated data",
+        "Line voltage 200 ... 240 V -15 % +10 %",
+        "Rated power (LO) 3.00 kW 4.00 hp",
+        "Rated power (HO) 3.00 kW 4.00 hp",
+        "Rated current (LO) 13.60 A 13.60 A",
+        "Rated current (HO) 13.60 A 13.60 A",
+        "Rated current (IN) 13.60 A"
+      ].join("\n")
+    });
+
+    expect(attributes).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ name: "Rated current", value: "13.60 A" })
+      ])
+    );
+  });
+
   it("reads unit-on-both-ends ranges, dual voltages and voltage+frequency pairs", () => {
     expect(extractInlineNameplateSpecAttributes("380V-480V, 18.5kW", sourceUrl)).toEqual(
       expect.arrayContaining([expect.objectContaining({ name: "Rated voltage", value: "380...480 V" })])
