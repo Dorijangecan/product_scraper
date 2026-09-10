@@ -35,6 +35,21 @@ describe("ReeR connector", () => {
     }, "1310002")).toBe(false);
   });
 
+  it("marks an authoritative REST miss as terminal so fallback crawling is skipped", async () => {
+    const manufacturer = getManufacturerConfig("reer")!;
+    const result = await new ReerConnector().scrape("does-not-exist", {
+      manufacturer,
+      runDir: "",
+      documentsDir: "",
+      http: { fetchText: async (url: string) => ({ requestedUrl: url, effectiveUrl: url, statusCode: 200, contentType: "application/json", text: "[]", fetchedAt: new Date().toISOString(), fromCache: false }) } as never,
+      downloadDocument: async (document) => document,
+      fallback: { scrape: async () => undefined }
+    } as ScrapeContext);
+
+    expect(result.status).toBe("failed");
+    expect(result.diagnostics?.terminal).toEqual({ reason: "official-catalog-not-found", skipNetworkFallback: true });
+  });
+
   it("resolves the canonical page through the REST endpoint and parses official HTML", async () => {
     const catalogNumber = "1310000";
     const apiUrl = "https://www.reersafety.com/wp-json/wp/v2/product?search=1310000&per_page=20&_fields=link,slug,title,content";

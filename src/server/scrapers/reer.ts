@@ -45,7 +45,12 @@ export class ReerConnector implements ManufacturerConnector {
         signal: context.signal
       });
       const item = selectExactReerApiItem(apiResponse.text, catalogNumber);
-      if (!item?.link) return withAttemptedUrls(emptyResult("reer", catalogNumber, `ReeR REST catalogue did not return an exact product for ${catalogNumber}.`), attemptedUrls);
+      if (!item?.link) {
+        return withAttemptedUrls(
+          terminalReerResult(catalogNumber, `ReeR REST catalogue did not return an exact product for ${catalogNumber}.`, "official-catalog-not-found"),
+          attemptedUrls
+        );
+      }
 
       const productUrl = canonicalReerProductUrl(item.link);
       attemptedUrls.push(productUrl);
@@ -62,7 +67,10 @@ export class ReerConnector implements ManufacturerConnector {
         signal: context.signal
       });
       if (!reerProductPageMatches(productPage, catalogNumber)) {
-        return withAttemptedUrls(emptyResult("reer", catalogNumber, "ReeR product page failed exact catalog-number identity validation."), attemptedUrls);
+        return withAttemptedUrls(
+          terminalReerResult(catalogNumber, "ReeR product page failed exact catalog-number identity validation.", "official-product-identity-failed"),
+          attemptedUrls
+        );
       }
 
       const parsed = parseGenericProductPage("reer", catalogNumber, productPage, "official", REER_PARSER, {
@@ -89,6 +97,16 @@ export class ReerConnector implements ManufacturerConnector {
       );
     }
   }
+}
+
+function terminalReerResult(catalogNumber: string, error: string, reason: string): ProductResult {
+  return {
+    ...emptyResult("reer", catalogNumber, error),
+    diagnostics: {
+      terminal: { reason, skipNetworkFallback: true },
+      notes: ["ReeR returned an authoritative negative result; unrelated network fallbacks were skipped."]
+    }
+  };
 }
 
 function curateReerPage(parsed: ProductResult, html: string, catalogNumber: string, sourceUrl: string, descriptionOverride?: string): {

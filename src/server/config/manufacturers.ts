@@ -595,14 +595,14 @@ const builtInManufacturerConfigs: Record<string, ManufacturerConfig> = {
     id: "reer",
     canonicalName: "ReeR Safety",
     shortName: "REER",
-    rateLimitMs: 1200,
-    concurrency: 2,
+    rateLimitMs: 1000,
+    concurrency: 5,
     officialBaseUrls: ["https://www.reersafety.com"],
     homepageUrl: "https://www.reersafety.com/en/",
     fetchPolicy: {
       timeoutMs: 20000,
-      maxAttempts: 3,
-      retryBackoffMs: 500,
+      maxAttempts: 2,
+      retryBackoffMs: 300,
       acceptLanguage: "en-US,en;q=0.9",
       referer: "https://www.reersafety.com/en/",
       minContentLength: 1000
