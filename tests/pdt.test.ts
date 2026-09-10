@@ -318,6 +318,44 @@ describe("eclass resolvers", () => {
     );
   });
 
+  it("writes the official ReeR Admiral AX 2B LR DB text to Description long", async () => {
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-pdt-reer-admiral-"));
+    const templatePath = path.join(dir, "template.xlsx");
+    const outputPath = path.join(dir, "out.xlsx");
+    const wb = new ExcelJS.Workbook();
+    const material = wb.addWorksheet("Material Master Data");
+    for (const [row, label] of ["ClassId", "Priority", "Type", "PropertyId", "PropertyName", "Description", "Unit", "Body"].entries()) {
+      material.getCell(row + 1, 1).value = label;
+    }
+    for (const [index, [code, description]] of [["AAO676", "Article number"], ["CNS_DESCRIPTION_LONG", "Description long"]].entries()) {
+      const col = index + 2;
+      material.getCell(4, col).value = code;
+      material.getCell(5, col).value = code;
+      material.getCell(6, col).value = description;
+    }
+    await wb.xlsx.writeFile(templatePath);
+
+    const c = ctx(
+      {
+        manufacturerId: "reer",
+        title: "ADMIRAL AX 2B LR DB",
+        description: "Access Control Safety Light Curtain with Automatic/Manual Restart and EDM. Long Range. Dual-Beam Technology"
+      },
+      "1334606"
+    );
+    c.manufacturer = { ...manufacturer, id: "reer", canonicalName: "ReeR Safety" } as ManufacturerConfig;
+
+    await exportRunPdt({ manufacturer: c.manufacturer, items: [c.item], templatePath, outputPath });
+
+    const out = new ExcelJS.Workbook();
+    await out.xlsx.readFile(outputPath);
+    const ws = out.getWorksheet("Material Master Data")!;
+    expect(ws.getCell(9, 1).value).toBe("1334606");
+    expect(ws.getCell(9, 2).value).toBe(
+      "Access Control Safety Light Curtain with Automatic/Manual Restart and EDM. Long Range. Dual-Beam Technology"
+    );
+  });
+
   it("uses partnumber_info/?n= for Saginaw product URLs (manual PDT format)", () => {
     const c = ctx({ manufacturerId: "sce" }, "SCE-12H2406LP");
     c.manufacturer = { ...manufacturer, id: "sce" } as ManufacturerConfig;

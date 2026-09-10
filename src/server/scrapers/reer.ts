@@ -71,9 +71,11 @@ export class ReerConnector implements ManufacturerConnector {
         confidence: 0.88,
         extractionPolicy: context.manufacturer.scrapeRecipe?.extractionPolicy
       });
-      const curated = curateReerPage(parsed, productPage.text, catalogNumber, productUrl);
+      const description = extractReerLongDescription(productPage.text) ?? parsed.description;
+      const curated = curateReerPage(parsed, productPage.text, catalogNumber, productUrl, description);
       return withAttemptedUrls({
         ...parsed,
+        description,
         normalized: curated.normalized,
         attributes: curated.attributes,
         documents: curated.documents,
@@ -89,12 +91,13 @@ export class ReerConnector implements ManufacturerConnector {
   }
 }
 
-function curateReerPage(parsed: ProductResult, html: string, catalogNumber: string, sourceUrl: string): {
+function curateReerPage(parsed: ProductResult, html: string, catalogNumber: string, sourceUrl: string, descriptionOverride?: string): {
   normalized: ProductResult["normalized"];
   attributes: AttributeRecord[];
   documents: DocumentRecord[];
 } {
   const $ = cheerio.load(html);
+  const description = descriptionOverride ?? parsed.description;
   const attributes: AttributeRecord[] = [
     {
       group: "ReeR Product Data", name: "Catalog Number", value: catalogNumber,
@@ -104,8 +107,11 @@ function curateReerPage(parsed: ProductResult, html: string, catalogNumber: stri
       group: "ReeR Product Data", name: "Product Name", value: parsed.title,
       sourceUrl, sourceType: "official" as const, parser: REER_PARSER, stage: REER_PARSER, confidence: 0.98
     }] : []),
-    ...(parsed.description ? [{
-      group: "ReeR Product Data", name: "Description", value: parsed.description,
+    ...(description ? [{
+      group: "ReeR Product Data", name: "Description", value: description,
+      sourceUrl, sourceType: "official" as const, parser: REER_PARSER, stage: REER_PARSER, confidence: 0.95
+    }, {
+      group: "ReeR Product Data", name: "Description long", value: description,
       sourceUrl, sourceType: "official" as const, parser: REER_PARSER, stage: REER_PARSER, confidence: 0.95
     }] : [])
   ];
@@ -156,6 +162,12 @@ function curateReerPage(parsed: ProductResult, html: string, catalogNumber: stri
     delete normalized.dimensions;
   }
   return { normalized, attributes, documents };
+}
+
+function extractReerLongDescription(html: string): string | undefined {
+  const $ = cheerio.load(html);
+  const value = cleanCell($(".product-short-description").first().text());
+  return value || undefined;
 }
 
 function curateReerDocuments(documents: DocumentRecord[], title: string | undefined): DocumentRecord[] {

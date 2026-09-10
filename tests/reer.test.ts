@@ -39,7 +39,8 @@ describe("ReeR connector", () => {
     const catalogNumber = "1310000";
     const apiUrl = "https://www.reersafety.com/wp-json/wp/v2/product?search=1310000&per_page=20&_fields=link,slug,title,content";
     const productUrl = "https://www.reersafety.com/en/product/eos4-151-a-1310000/";
-    const html = `<!doctype html><html><head><title>EOS4 151 A | ReeR</title><meta property="og:image" content="https://www.reersafety.com/reer-assets/eos4-151-a-1310000.jpg"></head><body>
+    const html = `<!doctype html><html><head><title>EOS4 151 A | ReeR</title><meta name="description" content="Visit ReeR Safety website and contact us"><meta property="og:image" content="https://www.reersafety.com/reer-assets/eos4-151-a-1310000.jpg"></head><body>
+      <div class="product-short-description"><p>Finger Detection Safety Light Curtain with Automatic Restart</p></div>
       <h1>EOS4 151 A</h1><p>Finger Detection Safety Light Curtain with Automatic Restart</p><table>
       <tr><th>Catalog number</th><td>1310000</td></tr><tr><th>Safety level</th><td>Type 4 - PL e</td></tr>
       <tr><th>Protected height (mm)</th><td>160</td></tr><tr><th>Resolution (mm)</th><td>14</td></tr>
@@ -57,7 +58,9 @@ describe("ReeR connector", () => {
     } as ScrapeContext);
 
     expect(result.productUrl).toBe(productUrl);
+    expect(result.description).toBe("Finger Detection Safety Light Curtain with Automatic Restart");
     expect(result.attributes.some((attribute) => attribute.value === catalogNumber)).toBe(true);
+    expect(result.attributes).toContainEqual(expect.objectContaining({ name: "Description long", value: "Finger Detection Safety Light Curtain with Automatic Restart", sourceType: "official" }));
     expect(result.documents.some((document) => document.type === "image")).toBe(true);
     expect(result.documents.filter((document) => document.type === "image")).toHaveLength(1);
     expect(result.documents.some((document) => document.type === "image" && /schematic/i.test(document.url))).toBe(false);
