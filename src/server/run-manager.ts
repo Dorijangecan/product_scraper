@@ -58,6 +58,12 @@ const INTERRUPTED_RUN_RESUME_WINDOW_MS = 5 * 60 * 1000;
 // fallback path's stated per-stage budgets, so a normal (even slow) scrape never gets cut off —
 // only a genuinely stuck one does, and it then fails gracefully instead of hanging the slot.
 const ITEM_SCRAPE_TIMEOUT_MS = 4 * 60 * 1000;
+// Last-resort worker guard. The per-item AbortSignal normally settles the pipeline at the same
+// deadline; this small grace period covers code that awaits a non-cooperative promise anyway.
+const ITEM_HARD_STOP_GRACE_MS = 15 * 1000;
+// Final workbook generation is outside the per-item deadline. Keep it bounded too, otherwise a
+// stalled ExcelJS/image/model operation leaves the whole run in `running` indefinitely.
+const DEFAULT_EXPORT_TIMEOUT_MS = 10 * 60 * 1000;
 
 /**
  * Soft per-item target (DISCOVERY-SPEED-PLAN §4, option B): 30 s is the goal, not a guillotine.
@@ -90,7 +96,6 @@ interface LocalDownloadSelection {
 
 export class RunManager {
   private activeRuns = new Map<string, AbortController>();
-  private instantlyCancelledRuns = new Set<string>();
   private pausedRuns = new Set<string>();
   private resumeAfterPauseRuns = new Set<string>();
 
@@ -172,7 +177,6 @@ export class RunManager {
 
     this.pausedRuns.delete(run.id);
     this.resumeAfterPauseRuns.delete(run.id);
-    this.instantlyCancelledRuns.add(run.id);
     this.db.updateRun(run.id, { status: "cancelled", error: "Cancelled by user." });
     this.db.cancelActiveRunItems(run.id);
     this.db.recountRun(run.id);
@@ -292,10 +296,17 @@ export class RunManager {
         downloadDocuments: downloadDocumentsEnabled,
         generateExcel: generateExcelEnabled
       });
-      // "Images only" mode: no Excel, no documents, just the PNGs. Treat the whole pipeline
-      // as a fast path — skip Playwright modal renders, fallback retries, and PDF
-      // enrichment, since none of those affect the saved images.
-      const imageOnlyMode = !generateExcelEnabled && !generateLinksFileEnabled && !downloadDocumentsEnabled && downloadImagesEnabled;
+      // "Images only" mode is a fast path for most manufacturers. Eaton is the exception: its
+      // SKU image is often exposed by search JSON or a locale reader while the primary page is
+      // transiently blocked, and the same page/description carries weight, dimensions and current.
+      // Let Eaton run its bounded fallback chain even when Excel/PDF output is disabled, otherwise
+      // a temporary first-request failure produces an empty image-only row.
+      const imageOnlyMode =
+        !generateExcelEnabled &&
+        !generateLinksFileEnabled &&
+        !downloadDocumentsEnabled &&
+        downloadImagesEnabled &&
+        run.manufacturerId.toLowerCase() !== "eaton";
       const linksOnlyMode = generateLinksFileEnabled && !generateExcelEnabled && !downloadImagesEnabled && !downloadDocumentsEnabled;
       // When the user disables document downloads, the quality gate must not demand non-image
       // documents (datasheet/manual/etc.) — otherwise it always "fails", spawning fallback work
@@ -314,7 +325,15 @@ export class RunManager {
       if (customerDocuments.length) {
         this.db.updateRunOptions(run.id, { customerDocuments });
       }
-      const assetOnlyMode = !generateExcelEnabled && customerDocuments.length === 0;
+      // Same treatment for an accessory matrix attached at run start (see RunOptions).
+      const stagedAccessoryMatrix = run.options?.accessoryMatrix;
+      if (stagedAccessoryMatrix) {
+        const [relocated] = await this.relocateCustomerDocuments([stagedAccessoryMatrix], layout.customerDocumentsDir);
+        if (relocated && relocated.storedPath !== stagedAccessoryMatrix.storedPath) {
+          this.db.updateRunOptions(run.id, { accessoryMatrix: relocated });
+        }
+      }
+      const assetOnlyMode = !generateExcelEnabled && customerDocuments.length === 0 && run.manufacturerId.toLowerCase() !== "eaton";
       await this.appendRunLog(layout, "RUN_START", {
         runId: run.id,
         manufacturer: manufacturer.shortName,
@@ -332,9 +351,7 @@ export class RunManager {
       });
       if (this.db.isCancellationRequested(run.id)) {
         this.db.cancelActiveRunItems(run.id);
-        if (!this.wasInstantlyCancelled(run.id)) {
-          await this.finalizeRun(run.id, "cancelled");
-        }
+        await this.finalizeRun(run.id, "cancelled");
         return;
       }
       if (this.db.isPauseRequested(run.id)) {
@@ -359,7 +376,7 @@ export class RunManager {
       const fallback = new GenericFallbackScraper(run.manufacturerId, http, manufacturer);
 
       const layoutRef = layout!;
-      const processItem = async (item: typeof pending[number]): Promise<void> => {
+      const processItemCore = async (item: typeof pending[number]): Promise<void> => {
         if (this.db.isPauseRequested(run.id)) return;
         if (this.db.isCancellationRequested(run.id) || controller.signal.aborted) return;
         await this.appendRunLog(layoutRef, "ITEM_START", { rowIndex: item.rowIndex, catalogNumber: item.catalogNumber });
@@ -367,9 +384,23 @@ export class RunManager {
         // Declared OUTSIDE the try so the catch below can salvage whatever was extracted before a
         // late-stage error (C4 partial-progress recovery).
         let enriched: ProductResult | undefined;
-        let itemScrapeController: AbortController | undefined;
-        let onParentAbort: (() => void) | undefined;
-        let itemTimeoutHandle: ReturnType<typeof setTimeout> | undefined;
+        // The deadline covers the whole item, not only connector.scrape(). A non-cooperative
+        // downloader/parser otherwise leaves a worker pending forever and blocks final Excel export.
+        const itemScrapeController = new AbortController();
+        const onParentAbort = () => itemScrapeController.abort(controller.signal.reason);
+        if (controller.signal.aborted) itemScrapeController.abort(controller.signal.reason);
+        else controller.signal.addEventListener("abort", onParentAbort, { once: true });
+        const itemStartedAt = Date.now();
+        const itemDeadline = {
+          remainingMs: () => Math.max(0, ITEM_SCRAPE_TIMEOUT_MS - (Date.now() - itemStartedAt)),
+          softTargetPassed: () => Date.now() - itemStartedAt > ITEM_SOFT_TARGET_MS,
+          elapsedMs: () => Date.now() - itemStartedAt
+        };
+        const itemTimeoutHandle = setTimeout(
+          () => itemScrapeController.abort(new Error(`Product processing timed out after ${Math.round(ITEM_SCRAPE_TIMEOUT_MS / 1000)}s`)),
+          ITEM_SCRAPE_TIMEOUT_MS
+        );
+        const itemSignal = itemScrapeController.signal;
         try {
           let customerExtractionFirst: Awaited<ReturnType<typeof extractCustomerDocumentAttributes>> | null = null;
           let customerExtractionEarly: Awaited<ReturnType<typeof extractCustomerDocumentAttributes>> | null = null;
@@ -437,27 +468,8 @@ export class RunManager {
           // the same search-form, browser and sitemap work.
           const discoveryMemo = new Map();
           this.updateItemStage(item.id, "official-source", "Scraping official source", { status: "processing", error: undefined });
-          // Per-item signal covers the entire website path — official source, document probes,
-          // discovery and browser fallback.  A later fallback used to outlive the official-source
-          // timer and could hold a worker for eleven minutes.
-          itemScrapeController = new AbortController();
-          onParentAbort = () => itemScrapeController?.abort(controller.signal.reason);
-          if (controller.signal.aborted) itemScrapeController.abort(controller.signal.reason);
-          else controller.signal.addEventListener("abort", onParentAbort, { once: true });
-          itemTimeoutHandle = setTimeout(
-            () => itemScrapeController?.abort(new Error(`Product scrape timed out after ${Math.round(ITEM_SCRAPE_TIMEOUT_MS / 1000)}s`)),
-            ITEM_SCRAPE_TIMEOUT_MS
-          );
-          const itemSignal = itemScrapeController.signal;
-          // Soft target vs hard ceiling: see ScrapeContext.deadline. The ceiling is the abort above,
-          // unchanged, so nothing that completes today starts failing; the soft target only stops
-          // speculative work (URL guesses, browser escalation for a page with no evidence).
-          const itemStartedAt = Date.now();
-          const itemDeadline = {
-            remainingMs: () => Math.max(0, ITEM_SCRAPE_TIMEOUT_MS - (Date.now() - itemStartedAt)),
-            softTargetPassed: () => Date.now() - itemStartedAt > ITEM_SOFT_TARGET_MS,
-            elapsedMs: () => Date.now() - itemStartedAt
-          };
+          // Soft target vs hard ceiling: see ScrapeContext.deadline. The ceiling now includes
+          // customer parsing, downloads and final enrichment as well as official scraping.
           let result: ProductResult;
           result = await Promise.race([
               connector.scrape(item.catalogNumber, {
@@ -508,6 +520,17 @@ export class RunManager {
           }
           this.updateItemStage(item.id, "quality-gate", "Checking required fields from official result");
           const initiallyGated = finalizeQualityGate(result, manufacturer);
+          // Persist the scrape result before any document/image download. If a later download
+          // stalls or times out, the attributes, URL and source documents already found remain
+          // available for partial Excel export instead of being lost with the in-flight stage.
+          enriched = initiallyGated;
+          this.updateItemStage(item.id, "quality-gate", "Official result saved; downloading assets", {
+            status: "processing",
+            title: initiallyGated.title,
+            productUrl: initiallyGated.productUrl,
+            confidence: initiallyGated.confidence,
+            result: initiallyGated
+          });
           initialAttributeCount = initiallyGated.attributes.length;
           this.updateItemStage(item.id, "downloads", "Downloading product images and documents");
           const withInitialDownloads = await this.downloadDocuments(
@@ -955,7 +978,7 @@ export class RunManager {
             return;
           }
           const parentCancellation = controller.signal.aborted || this.db.isCancellationRequested(run.id);
-          const itemTimedOut = Boolean(itemScrapeController?.signal.aborted && !parentCancellation);
+          const itemTimedOut = Boolean(itemSignal.aborted && !parentCancellation);
           if (parentCancellation) {
             this.updateItemStage(item.id, "cancelled", "Cancelled by user.", {
               status: "cancelled",
@@ -965,7 +988,7 @@ export class RunManager {
             return;
           }
           const errorMessage = itemTimedOut
-            ? `Eaton item timed out after ${Math.round(ITEM_SCRAPE_TIMEOUT_MS / 1000)}s while downloading or validating official assets.`
+            ? `Product item timed out after ${Math.round(ITEM_SCRAPE_TIMEOUT_MS / 1000)}s while scraping, downloading, or validating assets.`
             : error instanceof Error
               ? error.message
               : "Unexpected scrape error";
@@ -1017,10 +1040,44 @@ export class RunManager {
             });
           }
         } finally {
-          if (itemTimeoutHandle) clearTimeout(itemTimeoutHandle);
-          if (onParentAbort) controller.signal.removeEventListener("abort", onParentAbort);
+          clearTimeout(itemTimeoutHandle);
+          controller.signal.removeEventListener("abort", onParentAbort);
         }
         this.db.recountRun(run.id);
+      };
+
+      // Never let one connector/plugin promise hold the shared worker pool forever. The core
+      // pipeline aborts at ITEM_SCRAPE_TIMEOUT_MS; this outer guard is deliberately only a last
+      // resort for code that ignores AbortSignal and never settles its own promise.
+      const processItem = async (item: typeof pending[number]): Promise<void> => {
+        try {
+          await withTimeout(
+            processItemCore(item),
+            ITEM_SCRAPE_TIMEOUT_MS + ITEM_HARD_STOP_GRACE_MS,
+            `Product item hard-stopped after ${Math.round((ITEM_SCRAPE_TIMEOUT_MS + ITEM_HARD_STOP_GRACE_MS) / 1000)}s.`
+          );
+        } catch (error) {
+          const cancelled = this.db.isCancellationRequested(run.id) || controller.signal.aborted;
+          const message = cancelled
+            ? "Cancelled by user."
+            : error instanceof Error
+              ? error.message
+              : "Product item hard-stopped after the safety deadline.";
+          this.updateItemStage(item.id, cancelled ? "cancelled" : "failed", message, {
+            status: cancelled ? "cancelled" : "failed",
+            error: message
+          });
+          await withTimeout(
+            this.appendRunLog(layoutRef, cancelled ? "ITEM_CANCELLED" : "ITEM_TIMEOUT", {
+              catalogNumber: item.catalogNumber,
+              error: message,
+              hardStop: !cancelled
+            }),
+            10_000,
+            "Timed out while recording item hard-stop."
+          ).catch(() => undefined);
+          this.db.recountRun(run.id);
+        }
       };
 
       try {
@@ -1041,7 +1098,6 @@ export class RunManager {
       }
       const status = this.db.isCancellationRequested(run.id) || controller.signal.aborted ? "cancelled" : "completed";
       if (status === "cancelled") this.db.cancelActiveRunItems(run.id);
-      if (status === "cancelled" && this.wasInstantlyCancelled(run.id)) return;
       await this.finalizeRun(run.id, status);
     } catch (error) {
       if (this.db.isPauseRequested(runId) || this.pausedRuns.has(runId)) {
@@ -1050,9 +1106,7 @@ export class RunManager {
       }
       if (controller.signal.aborted || this.db.isCancellationRequested(runId)) {
         this.db.cancelActiveRunItems(runId);
-        if (!this.wasInstantlyCancelled(runId)) {
-          await this.finalizeRun(runId, "cancelled");
-        }
+        await this.finalizeRun(runId, "cancelled");
         return;
       }
       this.db.updateRun(runId, {
@@ -1066,7 +1120,6 @@ export class RunManager {
     } finally {
       const shouldResumeAfterPause = this.resumeAfterPauseRuns.has(runId) && this.db.getRun(runId)?.status === "paused";
       this.activeRuns.delete(runId);
-      this.instantlyCancelledRuns.delete(runId);
       this.pausedRuns.delete(runId);
       if (shouldResumeAfterPause) {
         this.resumeAfterPauseRuns.delete(runId);
@@ -1080,10 +1133,6 @@ export class RunManager {
         void this.processRun(runId);
       }
     }
-  }
-
-  private wasInstantlyCancelled(runId: string): boolean {
-    return this.instantlyCancelledRuns.has(runId) || this.db.getRun(runId)?.status === "cancelled";
   }
 
   private async markItemPaused(runId: string, item: RunItemRecord, layout: RunOutputLayout) {
@@ -1140,13 +1189,14 @@ export class RunManager {
       ? await (async () => {
           const { exportRunWorkbook } = await import("./excel.js");
           this.updateRunActivity(runId, "workbook-build", "Preparing final Excel workbook.");
-          return exportRunWorkbook({
+          const timeoutMs = exportTimeoutMs();
+          return withTimeout(exportRunWorkbook({
             run: this.db.getRun(runId)!,
             manufacturer,
             items: this.db.getRunItems(runId),
             outputDir: layout.excelDir,
             onActivity: (activity) => this.updateRunActivity(runId, activity.stage, activity.message)
-          });
+          }), timeoutMs, `Excel export exceeded the ${Math.round(timeoutMs / 60000)} minute safety limit.`);
         })()
       : undefined;
     const linksPath = shouldGenerateLinksFile
@@ -1267,20 +1317,23 @@ export class RunManager {
         profileTypeCounts.set(doc.type, (profileTypeCounts.get(doc.type) ?? 0) + 1);
       }
       documents.push(
-        await this.downloadDocument(
-          http,
-          documentsDir,
-          cadDir,
-          imagesDir,
-          manufacturerShortName,
-          catalogNumberForFiles,
-          doc,
-          selection,
-          signal,
-          indexForDoc,
-          sharedDocumentDownloads,
-          budgetMs
-        )
+        await Promise.race([
+          this.downloadDocument(
+            http,
+            documentsDir,
+            cadDir,
+            imagesDir,
+            manufacturerShortName,
+            catalogNumberForFiles,
+            doc,
+            selection,
+            signal,
+            indexForDoc,
+            sharedDocumentDownloads,
+            budgetMs
+          ),
+          ...(signal ? [abortSignalRejection(signal, `Document download timed out or was cancelled for ${catalogNumberForFiles}`)] : [])
+        ])
       );
       if (doc.type === "image") imageIndex += 1;
       downloadCount += 1;
@@ -2264,4 +2317,25 @@ async function runWithConcurrency<T>(
     }
   };
   await Promise.all(Array.from({ length: workerCount }, () => runOne()));
+}
+
+function exportTimeoutMs(): number {
+  const configured = Number(process.env.PRODUCT_SCRAPER_EXPORT_TIMEOUT_MS);
+  return Number.isFinite(configured) && configured >= 1_000
+    ? Math.min(configured, 30 * 60 * 1000)
+    : DEFAULT_EXPORT_TIMEOUT_MS;
+}
+
+async function withTimeout<T>(task: Promise<T>, timeoutMs: number, message: string): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      task,
+      new Promise<T>((_, reject) => {
+        timer = setTimeout(() => reject(new Error(message)), timeoutMs);
+      })
+    ]);
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
 }
