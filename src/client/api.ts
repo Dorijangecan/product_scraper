@@ -1,5 +1,6 @@
 import type {
   CsvPreview,
+  FieldCoverageMatrixResponse,
   LearnedExtractorApprovalRequest,
   ManufacturerConfig,
   ManufacturerInspectRequest,
@@ -17,6 +18,10 @@ export async function getManufacturers(): Promise<ManufacturerConfig[]> {
 
 export async function getManufacturerOperationalSummary(id: string): Promise<ManufacturerOperationalSummary> {
   return request(`/api/manufacturers/${encodeURIComponent(id)}/operational-summary`);
+}
+
+export async function getFieldCoverageMatrix(): Promise<FieldCoverageMatrixResponse> {
+  return request("/api/field-coverage-matrix");
 }
 
 export async function saveManufacturer(input: ManufacturerConfig): Promise<{ manufacturer: ManufacturerConfig; manufacturers: ManufacturerConfig[] }> {
@@ -62,9 +67,13 @@ export async function previewCsv(file: File): Promise<CsvPreview> {
 }
 
 export async function startRun(input: {
-  file: File;
+  /**
+   * Catalog CSV/XLSX. Optional when `accessoryMatrix` is given: the matrix's main parts are then
+   * the catalog numbers to scrape.
+   */
+  file?: File;
   manufacturerId: string;
-  columnName: string;
+  columnName?: string;
   downloadDocuments: boolean;
   downloadPdfs?: boolean;
   downloadCad?: boolean;
@@ -84,11 +93,17 @@ export async function startRun(input: {
    * numbers they mention.
    */
   customerDocuments?: File[];
+  /**
+   * Operator-authored accessory matrix workbook: which accessory sits on which connection point
+   * of which main product. Fills the PDT's Product Accessory and Connection Point Information
+   * tabs, and adds an "Accessory Conditions" sheet to the products workbook.
+   */
+  accessoryMatrix?: File;
 }): Promise<RunRecord> {
   const form = new FormData();
-  form.append("file", input.file);
+  if (input.file) form.append("file", input.file);
   form.append("manufacturerId", input.manufacturerId);
-  form.append("columnName", input.columnName);
+  if (input.columnName) form.append("columnName", input.columnName);
   form.append("downloadDocuments", String(input.downloadDocuments));
   form.append("downloadPdfs", String(input.downloadPdfs ?? input.downloadDocuments));
   form.append("downloadCad", String(input.downloadCad ?? input.downloadDocuments));
@@ -105,6 +120,7 @@ export async function startRun(input: {
   for (const customerDocument of input.customerDocuments ?? []) {
     form.append("customerDocuments", customerDocument);
   }
+  if (input.accessoryMatrix) form.append("accessoryMatrix", input.accessoryMatrix);
   return request("/api/runs", { method: "POST", body: form });
 }
 
@@ -156,6 +172,18 @@ export interface PdtImportStats {
   pdtAuditPath?: string;
   /** Saginaw only: companion workbook with the page's verbatim inch/lbs values. */
   saginawWeightDimensionPath?: string;
+  /** Present when an accessory matrix was applied to this export. */
+  accessoryMatrix?: {
+    fileName?: string;
+    accessoryRows: number;
+    connectionPointRows: number;
+    pointCount: number;
+    mainPartCount: number;
+    mainPartsNotInRun: string[];
+    conditionCount: number;
+    conditionsPath?: string;
+    warnings: string[];
+  };
   cellAudit?: {
     auditPath?: string;
     written: number;
@@ -209,6 +237,48 @@ export async function importRunPdt(
       sheetOverrides: options.sheetOverrides
     })
   });
+}
+
+export interface AccessoryMatrixPreview {
+  fileName: string;
+  /** Main part numbers in column A — the catalog numbers a matrix-only run scrapes. */
+  mainParts: string[];
+  points: string[];
+  accessoryRows: number;
+  conditionCount: number;
+  warnings: string[];
+}
+
+/** Read an accessory matrix before a run exists, to preview the main parts it would scrape. */
+export async function previewAccessoryMatrix(file: File): Promise<AccessoryMatrixPreview> {
+  const form = new FormData();
+  form.append("file", file);
+  return request("/api/accessory-matrix/preview", { method: "POST", body: form });
+}
+
+export interface AccessoryMatrixSummary {
+  fileName: string;
+  mainPartCount: number;
+  pointCount: number;
+  accessoryRows: number;
+  connectionPointRows: number;
+  conditionCount: number;
+  mainPartsNotInRun: string[];
+  warnings: string[];
+}
+
+/** Attach (or replace) the accessory matrix used by this run's next PDT export. */
+export async function uploadRunAccessoryMatrix(
+  id: string,
+  file: File
+): Promise<{ ok: true; accessoryMatrix: AccessoryMatrixSummary }> {
+  const form = new FormData();
+  form.append("file", file);
+  return request(`/api/runs/${id}/accessory-matrix`, { method: "POST", body: form });
+}
+
+export async function clearRunAccessoryMatrix(id: string): Promise<{ ok: true }> {
+  return request(`/api/runs/${id}/accessory-matrix`, { method: "DELETE" });
 }
 
 export async function getRunPdtRoutingPreview(id: string): Promise<import("../shared/types.js").PdtRoutingPreview> {

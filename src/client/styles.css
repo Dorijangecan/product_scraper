@@ -682,6 +682,47 @@ textarea:focus {
   color: var(--muted);
 }
 
+/* Accessory matrix pickers: one in the run form, one in the PDT action row. */
+.accessory-matrix-field {
+  display: grid;
+  grid-template-columns: auto auto;
+  justify-content: start;
+  align-items: center;
+  gap: 6px;
+  margin: -6px 0 14px;
+}
+
+.accessory-matrix-field small {
+  grid-column: 1 / -1;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.accessory-matrix-field input[type="file"],
+.accessory-matrix-control input[type="file"] {
+  display: none;
+}
+
+.accessory-matrix-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.accessory-matrix-field .download-button,
+.accessory-matrix-control .download-button {
+  max-width: 260px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.accessory-matrix-control .download-button.is-selected {
+  border-color: rgba(240, 192, 104, 0.55);
+  background: rgba(240, 192, 104, 0.1);
+}
+
 .mini-summary,
 .stat-row,
 .history-overview {
@@ -2915,6 +2956,71 @@ tbody tr:hover {
   line-height: 1.45;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
+}
+
+.field-coverage-matrix {
+  margin: 0 24px 14px;
+}
+
+.field-matrix-scroll {
+  overflow-x: auto;
+  padding: 0 12px 12px;
+}
+
+.field-matrix-table {
+  width: auto;
+  min-width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.field-matrix-table th,
+.field-matrix-table td {
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+  text-align: center;
+}
+
+.field-matrix-table th {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 850;
+  text-transform: uppercase;
+  text-align: center;
+}
+
+.field-matrix-table th:first-child,
+.field-matrix-row-label {
+  position: sticky;
+  left: 0;
+  text-align: left;
+  background: rgba(21, 26, 33, 0.98);
+}
+
+.field-matrix-row-label {
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.field-matrix-row-label small {
+  display: block;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: none;
+}
+
+.field-matrix-cell {
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.field-matrix-cell.is-drift {
+  color: #fecaca;
+  font-weight: 850;
 }
 
 .muted {

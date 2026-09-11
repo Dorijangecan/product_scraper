@@ -15,6 +15,9 @@ import { writeCleanedInputWorkbook } from "./cleaned-input-workbook.js";
 import { writeSaginawWeightDimensionWorkbook } from "./saginaw-weight-dimension-workbook.js";
 import { normalizePdtCellNumber } from "./unit-cleanup.js";
 import { writeProductAccessorySheet } from "./product-accessory-sheet.js";
+import { writeConnectionPointSheet } from "./connection-point-sheet.js";
+import { accessoryMatrixMainPartsNotInRun, loadAccessoryMatrix, type AccessoryMatrixPlan } from "./accessory-matrix.js";
+import { patchAccessoryConditionsIntoWorkbookFile } from "./accessory-conditions-sheet.js";
 import { bestFact, buildPdtFactIndex, factsMatchingValue, type PdtFact, type PdtFactIndex } from "./facts.js";
 import { additionalPdtSheetsRule, pdtColumnAllowRule, pdtSheetOverrideRule } from "./rules.js";
 import { compactFamilyShortDescription, isDecorativeAssetText } from "./description-formatting.js";
@@ -47,6 +50,8 @@ export interface PdtExportResult {
   pdtAuditPath?: string;
   /** Saginaw only: companion workbook with the page's verbatim inch/lbs values (see its module). */
   saginawWeightDimensionPath?: string;
+  /** Present when an accessory matrix workbook was applied to this export. */
+  accessoryMatrix?: PdtAccessoryMatrixSummary;
   cellAudit: PdtCellAuditSummary;
 }
 
@@ -68,6 +73,22 @@ export interface PdtRequiredFieldIssue {
   description: string;
   priority: string;
   reason: "required-missing";
+}
+
+export interface PdtAccessoryMatrixSummary {
+  fileName?: string;
+  /** Rows written to Product Accessory (blank group separators excluded). */
+  accessoryRows: number;
+  /** Rows written to Connection Point Information (blank group separators excluded). */
+  connectionPointRows: number;
+  pointCount: number;
+  mainPartCount: number;
+  /** Matrix main parts that were not scraped in this run — usually a typo in the matrix. */
+  mainPartsNotInRun: string[];
+  /** INLIST conditions written to the products workbook, and where they landed. */
+  conditionCount: number;
+  conditionsPath?: string;
+  warnings: string[];
 }
 
 export type PdtCleanupSummary = Omit<PdtCleanupAudit, "products"> & { productRows: number };
@@ -126,9 +147,24 @@ export async function exportRunPdt(input: {
   aiCleanup?: boolean;
   /** Optional user-chosen sheet routing (itemId → list of sheet names). Replaces auto-routing. */
   sheetOverrides?: PdtSheetOverrides;
+  /**
+   * Operator-authored accessory matrix workbook. When given it is the only source for the
+   * Product Accessory and Connection Point Information tabs, and its INLIST conditions are
+   * written to `productsWorkbookPath`.
+   */
+  accessoryMatrixPath?: string;
+  accessoryMatrixFileName?: string;
+  /** Products workbook (`products.xlsx`) that receives the matrix's "Accessory Conditions" sheet. */
+  productsWorkbookPath?: string;
 }): Promise<PdtExportResult> {
   const { manufacturer, items, templatePath, outputPath, sheetOverrides } = input;
   const workbook = await loadTemplateWorkbook(templatePath);
+
+  // Parse before anything expensive: a broken matrix should fail fast and loudly, not half-way
+  // through an export.
+  const accessoryMatrix: AccessoryMatrixPlan | undefined = input.accessoryMatrixPath
+    ? await loadAccessoryMatrix(input.accessoryMatrixPath)
+    : undefined;
 
   const included = items.filter((item) => item.result && (item.status === "found" || item.status === "partial"));
   const cleanup = await buildPdtRepairResult(included, manufacturer, { aiCleanup: input.aiCleanup === true });
@@ -194,17 +230,20 @@ export async function exportRunPdt(input: {
     missingSheets.add(DOCUMENTS_SHEET);
   }
 
-  // Fill connection points only for manufacturers with PDT-example-backed connection rules.
-
+  // Connection points are never derived from scraped data (they are CAD data) — the tab is filled
+  // only from an operator-supplied accessory matrix, and otherwise stays an empty placeholder.
+  let matrixConnectionPointRows = 0;
   const connectionPointsWs = workbook.getWorksheet(resolveSheetName("Connection Point Information") ?? "Connection Point Information");
   if (connectionPointsWs) {
-    clearConnectionPointTemplateBody(connectionPointsWs);
-    filledSheets[connectionPointsWs.name] = 0;
+    matrixConnectionPointRows = writeConnectionPointSheet(connectionPointsWs, accessoryMatrix);
+    filledSheets[connectionPointsWs.name] = matrixConnectionPointRows;
   }
 
+  let matrixAccessoryRows = 0;
   const productAccessoryWs = workbook.getWorksheet(resolveSheetName("Product Accessory") ?? "Product Accessory");
   if (productAccessoryWs) {
-    const accessoryRows = writeProductAccessorySheet(productAccessoryWs, included);
+    const accessoryRows = writeProductAccessorySheet(productAccessoryWs, included, accessoryMatrix);
+    if (accessoryMatrix) matrixAccessoryRows = accessoryRows;
     if (accessoryRows > 0) filledSheets[productAccessoryWs.name] = accessoryRows;
   }
 
@@ -222,6 +261,17 @@ export async function exportRunPdt(input: {
     }
   }
   await workbook.xlsx.writeFile(outputPath);
+
+  const accessoryMatrixSummary = accessoryMatrix
+    ? await summarizeAccessoryMatrix(accessoryMatrix, {
+        fileName: input.accessoryMatrixFileName,
+        accessoryRows: matrixAccessoryRows,
+        connectionPointRows: matrixConnectionPointRows,
+        catalogNumbers: items.map((item) => item.catalogNumber),
+        productsWorkbookPath: input.productsWorkbookPath
+      })
+    : undefined;
+
   const cellAudit = buildCellAuditSummary(cellAuditRecords);
   const pdtAuditPath = pdtAuditPathFor(outputPath);
   cellAudit.auditPath = pdtAuditPath;
@@ -256,6 +306,7 @@ export async function exportRunPdt(input: {
     cleanedInputPath,
     pdtAuditPath,
     saginawWeightDimensionPath,
+    accessoryMatrix: accessoryMatrixSummary,
     cellAudit
   };
 }
@@ -689,10 +740,56 @@ function uniformRowVariantsFor(_sheetName: string, _item: RunItemRecord, _ctx: R
   return [undefined];
 }
 
-function clearConnectionPointTemplateBody(ws: ExcelJS.Worksheet): void {
-  const descriptor = describeSheet(ws);
-  if (!descriptor) return;
-  clearBody(ws, descriptor.firstBodyRow);
+async function summarizeAccessoryMatrix(
+  matrix: AccessoryMatrixPlan,
+  context: {
+    fileName?: string;
+    accessoryRows: number;
+    connectionPointRows: number;
+    catalogNumbers: string[];
+    productsWorkbookPath?: string;
+  }
+): Promise<PdtAccessoryMatrixSummary> {
+  const warnings = [...matrix.warnings];
+  const mainPartsNotInRun = accessoryMatrixMainPartsNotInRun(matrix, context.catalogNumbers);
+  if (mainPartsNotInRun.length > 0) {
+    warnings.push(
+      `${mainPartsNotInRun.length} accessory matrix main part(s) were not in this run: ${mainPartsNotInRun.slice(0, 5).join(", ")}${mainPartsNotInRun.length > 5 ? ", …" : ""}. Their rows were still written.`
+    );
+  }
+
+  // The conditions belong to the products workbook, which at this point already exists on disk.
+  // A failure here (missing file, open in Excel) must not invalidate the PDT we just wrote.
+  let conditionsPath: string | undefined;
+  if (matrix.conditions.length > 0) {
+    if (!context.productsWorkbookPath) {
+      warnings.push("No products workbook for this run, so the INLIST accessory conditions were not written anywhere.");
+    } else {
+      try {
+        await patchAccessoryConditionsIntoWorkbookFile(context.productsWorkbookPath, matrix.conditions);
+        conditionsPath = context.productsWorkbookPath;
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        warnings.push(
+          /EBUSY|EPERM|resource busy or locked/i.test(message)
+            ? "Could not add the accessory conditions to the products workbook — close it in Excel and generate the PDT again."
+            : `Could not add the accessory conditions to the products workbook: ${message}`
+        );
+      }
+    }
+  }
+
+  return {
+    fileName: context.fileName,
+    accessoryRows: context.accessoryRows,
+    connectionPointRows: context.connectionPointRows,
+    pointCount: matrix.points.length,
+    mainPartCount: matrix.mainParts.length,
+    mainPartsNotInRun,
+    conditionCount: matrix.conditions.length,
+    conditionsPath,
+    warnings
+  };
 }
 
 function cellValueFor(column: { code: string; propName: string; unit?: string }, value: string): ExcelJS.CellValue {
@@ -1124,7 +1221,11 @@ function resolveGermanDescriptionCell(column: PdtColumn, ctx: ResolveContext, fa
     resolvePropertyByDescription(column, { ...ctx, language: undefined }) ??
     resolvePropertyByColumnMetadata(column, { ...ctx, language: undefined })
   );
-  const translated = translateDescriptionToGerman(englishValue, ctx.manufacturer.id === "abb");
+  const translated = translateDescriptionToGerman(
+    englishValue,
+    ctx.manufacturer.id === "abb",
+    ctx.manufacturer.id === "sce"
+  );
   if (!translated || sameDescriptionText(translated, englishValue)) return undefined;
   return {
     value: translated,
@@ -1137,11 +1238,26 @@ function resolveGermanDescriptionCell(column: PdtColumn, ctx: ResolveContext, fa
   };
 }
 
-function translateDescriptionToGerman(value: string | undefined, abbOnly = false): string | undefined {
+function translateDescriptionToGerman(value: string | undefined, abbOnly = false, sceOnly = false): string | undefined {
   const source = cleanString(value);
   if (!source || isDecorativeAssetText(source)) return undefined;
   let translated = ` ${source} `;
   const replacements: Array<[RegExp, string]> = [
+    ...(sceOnly ? [
+      // Saginaw's disconnect enclosure families frequently publish the product description
+      // without the word "enclosure" (for example "External disconnect 30/200 AMP"). The
+     // family classifier supplies the enclosure context; translate the official description
+     // into a deterministic German long description instead of leaving the PDT cell blank.
+      [/\bexternal\s+disconnect\s+enclosure\s+rotary\b/gi, "Drehbares externes Trennschaltergehaeuse"],
+      [/\brotary\s+external\s+disconnect\b/gi, "Drehbares externes Trennschaltergehaeuse"],
+      [/\bexternal\s+disconnect\s+enclosure\b/gi, "Externes Trennschaltergehaeuse"],
+      [/\bexternal\s+disconnect\b/gi, "Externes Trennschaltergehaeuse"],
+      [/\bS\.?\s*S\.?\s*/gi, "Edelstahl "],
+      [/\bstainless\s+steel\b/gi, "Edelstahl"],
+      [/\bcarbon\s+steel\b/gi, "Kohlenstoffstahl"],
+      [/\bto\b/gi, "bis"],
+      [/\b(?:AMP|AMPS?)\b/gi, "A"]
+    ] as Array<[RegExp, string]> : []),
     ...(abbOnly ? [
       [/\bwith screw and push[- ]in spring terminals\b/gi, "mit Schraub- und Federklemmen"],
       [/\bthree-position handheld device\b/gi, "Dreistellungs-Handgerät"],

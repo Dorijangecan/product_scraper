@@ -154,6 +154,122 @@ export function discoverProductLinksWithDiagnostics(html: string, baseUrl: strin
   };
 }
 
+/**
+ * How much does this text look like it is about the requested catalog number? (COLD-START-PLAN §6.2,
+ * P4.10.)
+ *
+ * Deliberately NOT part of `catalogTextMatches` / `findCatalogTextMatch`. Those two decide whether a
+ * value may be PUBLISHED and must stay exact; this one only decides which of a handful of result
+ * links is worth opening first. New name, new function, one caller — so a loosening here can never
+ * leak into a published value.
+ *
+ * The measure is token coverage, not edit distance: a catalog number is a sequence of alphanumeric
+ * runs (`CT-MFD.21` -> CT, MFD, 21) and a result card that prints two of the three is a near miss
+ * worth ranking above one that prints none. Runs of a single character are dropped — they match
+ * everything and rank nothing.
+ */
+export function fuzzyCatalogAffinity(text: string, catalogNumber: string): number {
+  const tokens = catalogNumber
+    .split(/[^A-Za-z0-9]+/)
+    .filter((token) => token.length >= 2)
+    .map((token) => token.toLowerCase());
+  if (!tokens.length) return 0;
+  const haystack = compactCatalogNumber(text);
+  if (!haystack) return 0;
+  const matched = tokens.filter((token) => haystack.includes(token)).length;
+  return matched / tokens.length;
+}
+
+/**
+ * Links from a search-results page that we could NOT identify — the P4.7 case.
+ *
+ * `discoverProductLinksWithDiagnostics` rejects every link without exact catalog identity in its URL
+ * or card text, which is correct for deciding what to publish and fatal for deciding what to LOOK at:
+ * when a vendor's result card prints only a marketing name and links to `/p/1348271`, nothing
+ * survives, and a human would simply have clicked the first result.
+ *
+ * This returns the few most promising product-shaped links regardless of identity, ranked by
+ * `fuzzyCatalogAffinity`. Nothing here decides anything: the caller fetches them, and the existing
+ * post-fetch gate (`scoreFetchedDiscoveryEvidence`) still demands an exact match on a product
+ * identity surface before any of them can become a result.
+ */
+export function discoverUnverifiedResultLinks(
+  html: string,
+  baseUrl: string,
+  catalogNumber: string,
+  limit = 3
+): ProductLinkCandidate[] {
+  if (!html || !baseUrl) return [];
+  const $ = cheerio.load(html);
+  const byUrl = new Map<string, ProductLinkCandidate & { order: number }>();
+  let order = 0;
+  $("a[href]").each((_, element) => {
+    const href = $(element).attr("href");
+    if (!href || !looksLikeProductResultHref(href)) return;
+    const url = normalizeCandidateUrl(href, baseUrl);
+    if (!url || url === normalizeCandidateUrl(baseUrl, baseUrl)) return;
+    const card = $(element).closest("tr,li,article,.product,.product-card,.product-list,.search-result,.result,.card");
+    const context = cleanText(
+      [$(element).text(), $(element).attr("title"), $(element).attr("aria-label"), $(element).find("img").attr("alt"), card.text()]
+        .filter(Boolean)
+        .join(" ")
+    );
+    const affinity = fuzzyCatalogAffinity(`${context} ${url}`, catalogNumber);
+    // A link sitting inside a recognisable result card is more likely a result than a nav item that
+    // happens to match the href shape. Small, because the card selectors are conventions, not rules.
+    const score = Math.round(affinity * 100) + (card.length ? 8 : 0);
+    const key = uniqueLinkKey(url);
+    const existing = byUrl.get(key);
+    if (!existing || score > existing.score) {
+      byUrl.set(key, {
+        url,
+        score,
+        order: existing?.order ?? order++,
+        reason: `unverified search result (token affinity ${affinity.toFixed(2)})`
+      });
+    }
+  });
+  // Tie-break by the vendor's OWN ordering, not by URL length.
+  //
+  // A results page is sorted by the vendor's relevance, and when every link scores the same — which is
+  // the normal case, since by definition none of them names the catalog number — that ordering is the
+  // only real information available. Sorting by URL length instead picked a "product-family" landing
+  // page over the actual first result in the live Ganter probe.
+  return [...byUrl.values()]
+    .sort((left, right) => right.score - left.score || left.order - right.order)
+    .map(({ url, score, reason }) => ({ url, score, reason }))
+    .slice(0, Math.max(0, limit));
+}
+
+/**
+ * How many distinct product-shaped links does this page offer, identity ignored?
+ *
+ * Shared on purpose. `searchResultVerdict` needs it to tell "the vendor listed products we could not
+ * name" from "we have no idea what this page is", and `audit:search-reachability` needs the same
+ * judgement to classify the corpus. When those two disagree, the audit measures something the runtime
+ * does not do — which is exactly how the Ganter quick-finder came to be classified as
+ * `search-hits-unidentified` offline while the live runtime called it `unknown` and skipped P4.7.
+ */
+export function countProductShapedLinks(html: string): number {
+  if (!html) return 0;
+  const hrefs = new Set<string>();
+  for (const match of html.matchAll(/<a\b[^>]*\bhref\s*=\s*["']([^"'#]+)["']/gi)) {
+    if (!looksLikeProductResultHref(match[1])) continue;
+    hrefs.add(match[1].replace(/\/+$/, "").toLowerCase());
+  }
+  return hrefs.size;
+}
+
+/** A path shape a product detail page actually uses. Conventions, so kept broad and cheap. */
+function looksLikeProductResultHref(href: string): boolean {
+  if (/^(?:javascript|mailto|tel|data):/i.test(href)) return false;
+  if (/\.(?:jpe?g|png|gif|svg|webp|css|js|zip|pdf|dwg|step?|stp)(?:$|[?#])/i.test(href)) return false;
+  return (
+    /\/(?:products?|produkte?|produkt|produit|prodotto|producto|item|artikel|article|detail(?:s)?|pdp|sku|p)\//i.test(href) ||
+    /\/\d{4,}(?:[/?#]|$)/.test(href)
+  );
+}
+
 function inlineStructuredUrlValues(text: string): Array<{ key: string; value: string; index: number }> {
   const values: Array<{ key: string; value: string; index: number }> = [];
   const pattern =

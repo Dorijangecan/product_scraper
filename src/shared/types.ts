@@ -226,6 +226,11 @@ export interface InteractionPolicyConfig {
   gotoTimeoutMs?: number;
   gotoWaitUntil?: "load" | "domcontentloaded" | "networkidle" | "commit";
   blockResourceTypes?: Array<"image" | "media" | "font" | "stylesheet" | "websocket" | "script">;
+  /**
+   * Opt-out escape hatch for the default-on ad/tracker domain block (see `ad-block-domains.ts`).
+   * Only needed if a manufacturer's own asset CDN ever collides with a vendored ad/tracker domain.
+   */
+  disableAdBlock?: boolean;
 }
 
 export interface ExtractionPolicyConfig {
@@ -354,6 +359,23 @@ export interface ScrapeDiagnostics {
   targetHealth?: TargetHealthRecord;
   drift?: DriftDiagnostic;
   notes?: string[];
+  /** Cross-record outlier flags from comparing this item against its own run's device-type cohort. */
+  cohortAnomalies?: CohortAnomalyDiagnostic[];
+}
+
+/**
+ * A single field on this item was statistically far from the rest of its run's device-type cohort
+ * (see `scrapers/cohort-anomaly.ts`). Review-only — the value itself is never touched.
+ */
+export interface CohortAnomalyDiagnostic {
+  field: string;
+  value: number;
+  unit: string;
+  cohortMedian: number;
+  cohortSize: number;
+  robustZScore: number;
+  deviceType: string;
+  reason: string;
 }
 
 export interface PageMiningRecord {
@@ -439,6 +461,25 @@ export interface ManufacturerOperationalSummary {
   manufacturerId: ManufacturerId;
   targetHealth: TargetHealthRecord[];
   learnedEndpoints: LearnedEndpointRecord[];
+}
+
+/** One manufacturer's row in the cross-manufacturer field-coverage health matrix (see scrapers/field-coverage-drift.ts). */
+export interface FieldCoverageMatrixRow {
+  manufacturerId: ManufacturerId;
+  canonicalName: string;
+  lastRunId: string;
+  lastRunAt: string;
+  sampleSize: number;
+  baselineRunCount: number;
+  fillRate: Record<string, number>;
+  baselineFillRate: Record<string, number>;
+  /** Field names currently flagged by detectFieldCoverageDrift for this manufacturer's latest run. */
+  driftFields: string[];
+}
+
+export interface FieldCoverageMatrixResponse {
+  fields: string[];
+  rows: FieldCoverageMatrixRow[];
 }
 
 export interface DriftDiagnostic {
@@ -547,6 +588,37 @@ export interface LearnedEndpointRecord {
   lastSuccessAt: string;
   failureCount?: number;
   lastFailureAt?: string;
+}
+
+/**
+ * A second name the vendor uses for the same product (COLD-START-PLAN §6.2, P4.8).
+ *
+ * The deepest reason a vendor's own search fails is that we ask with the ordering code
+ * (`1SVR405611R1000`) while their index is built on the type designation (`CT-MFD.21`), or the other
+ * way round. Every confirmed product page prints both, plus usually a GTIN — so the translation is
+ * free to collect and, on a run of 150 catalog numbers from one manufacturer, pays for itself from
+ * the third item onwards.
+ */
+export interface ProductAliasRecord {
+  id?: number;
+  manufacturerId: ManufacturerId;
+  /** The catalog number as the customer asked for it. */
+  catalogNumber: string;
+  /**
+   * What kind of second name this is. `type-designation` is frequently one-to-MANY (one type, many
+   * ordering codes), which is why `identityLevel` exists and why it is never sufficient on its own.
+   */
+  aliasKind: "type-designation" | "order-code" | "gtin" | "vendor-product-id";
+  aliasValue: string;
+  /**
+   * `exact` means this alias identifies THIS product and nothing else; `family` means it can only
+   * ever narrow to a group. A `family` alias may be used as a search QUERY and never as proof that a
+   * fetched page is the requested product.
+   */
+  identityLevel: "exact" | "family";
+  /** The confirmed product page the alias was read from — provenance, not decoration. */
+  provenanceUrl: string;
+  confirmedAt: string;
 }
 
 export interface EvidenceRecord {
@@ -778,6 +850,13 @@ export interface RunOptions {
    * source-of-truth.
    */
   customerDocuments?: CustomerDocumentRecord[];
+  /**
+   * Operator-authored accessory matrix workbook (see `pdt/accessory-matrix.ts`). When attached,
+   * the PDT export fills the Product Accessory and Connection Point Information tabs from it
+   * instead of from scraped data, and the products workbook gains an "Accessory Conditions" sheet.
+   * A matrix chosen later in the PDT panel replaces this one for that export.
+   */
+  accessoryMatrix?: CustomerDocumentRecord;
 }
 
 export interface CustomerDocumentRecord {

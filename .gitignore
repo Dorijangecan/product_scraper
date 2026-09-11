@@ -19,3 +19,8 @@ scratch-*.json
 
 # Working material from `npm run eval --write-actual` (regenerated, never an assertion)
 fixtures/**/actual.json
+
+# Scratch debugging material from probe/inspect scripts: page dumps, screenshots, db snapshots.
+# 1,6 GB at the time this was added, including a 1,4 GB eaton-db-snapshot.db that GitHub would
+# reject outright (>100 MB). Nothing here is needed to run or build the scraper.
+tmp/

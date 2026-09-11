@@ -4,6 +4,8 @@ import * as path from "node:path";
 import type { BrowserNetworkRecord, ScrapeRecipeConfig } from "../../shared/types.js";
 import type { FetchedText } from "./http-client.js";
 import { adaptiveInteractionSelectors } from "./interaction-explorer.js";
+import { isAdBlockedUrl } from "./ad-block-domains.js";
+import type { Browser as PlaywrightBrowser } from "playwright";
 
 interface BrowserLike {
   newContext(options?: Record<string, unknown>): Promise<BrowserContextLike>;
@@ -20,6 +22,8 @@ interface LocatorLike {
   nth(index: number): LocatorLike;
   click(options?: Record<string, unknown>): Promise<void>;
   fill?(value: string, options?: Record<string, unknown>): Promise<void>;
+  /** Real per-key typing. Required to wake typeahead widgets that listen for keydown — see `typeIntoSearchInput`. */
+  pressSequentially?(value: string, options?: Record<string, unknown>): Promise<void>;
   scrollIntoViewIfNeeded?(options?: Record<string, unknown>): Promise<void>;
 }
 
@@ -44,10 +48,12 @@ interface PageLike {
   keyboard: KeyboardLike;
   route(url: string | RegExp | ((url: URL) => boolean), handler: (route: RouteLike) => unknown): Promise<void>;
   frames?(): FrameLike[];
+  /** Where the page ACTUALLY ended up. Optional so injected test doubles need not implement it. */
+  url?(): string;
 }
 
 interface RouteLike {
-  request(): { resourceType(): string };
+  request(): { resourceType(): string; url(): string };
   abort(): Promise<void>;
   continue(): Promise<void>;
 }
@@ -84,6 +90,44 @@ export interface ModalSection {
 export interface RenderedModalSequence extends RenderedPage {
   /** Per-section HTML fragments captured while each modal was open. */
   sectionFragments: Array<{ label: string; html: string }>;
+}
+
+/**
+ * Registers one combined `page.route` handler per page: the recipe's opt-in resource-type
+ * block (unchanged behavior) plus a default-on ad/tracker domain block (`ad-block-domains.ts`).
+ * Kept as a single handler rather than two separate `page.route("**\/*", ...)` registrations —
+ * Playwright evaluates same-pattern routes last-registered-first, and stacking abort/continue
+ * handlers that way is easy to get subtly wrong. `disableAdBlock` is the escape hatch for the
+ * rare case where a manufacturer's own CDN collides with a vendored ad/tracker domain.
+ */
+async function applyRequestFiltering(page: PageLike, recipe: ScrapeRecipeConfig | undefined): Promise<void> {
+  const blockedResourceTypes = new Set(recipe?.interactionPolicy?.blockResourceTypes ?? []);
+  const adBlockEnabled = !recipe?.interactionPolicy?.disableAdBlock;
+  if (blockedResourceTypes.size === 0 && !adBlockEnabled) return;
+  await page.route("**/*", (route) => {
+    const request = route.request();
+    if (blockedResourceTypes.has(request.resourceType() as never)) return route.abort();
+    if (adBlockEnabled && isAdBlockedUrl(request.url())) return route.abort();
+    return route.continue();
+  }).catch(() => undefined);
+}
+
+/**
+ * Mirrors Scrapling's `_detect_cloudflare`/`_challenge_cleared`: Cloudflare's own challenge
+ * script embeds a `cType: '<mode>'` marker in the served HTML. The "non-interactive"/"managed"
+ * modes clear themselves once the browser's fingerprint passes — no click needed, just wait.
+ * Bounded (unlike waiting forever) because a challenge that never clears must not eat the whole
+ * per-item time budget. "interactive" (checkbox) challenges are deliberately NOT handled here —
+ * even Scrapling's own solver only reliably gives up gracefully on those in headless mode rather
+ * than solving them; build a real click-handler only once a manufacturer actually presents one.
+ */
+async function waitForNonInteractiveCloudflareChallenge(page: PageLike, budgetMs = 8000): Promise<void> {
+  const deadline = Date.now() + budgetMs;
+  do {
+    const html = await page.content().catch(() => "");
+    if (!/cType:\s*'(?:non-interactive|managed)'/.test(html)) return;
+    await page.waitForTimeout(1000);
+  } while (Date.now() < deadline);
 }
 
 const DEFAULT_EXPAND_SELECTORS = [
@@ -176,37 +220,161 @@ const OVERLAY_CLOSE_SELECTORS = [
   "#onetrust-accept-btn-handler"
 ];
 
+/**
+ * Where the site's own search box might be.
+ *
+ * Not English-only: the corpus is EN/DE/FR/IT/ES/NL, and an industrial catalogue names its box after
+ * the number you are about to type into it (`Artikelnummer`, `Bestellnummer`, `Typenschlüssel`,
+ * `référence`) at least as often as after the act of searching. A missing translation here reads
+ * downstream as "this vendor has no search", which is the single most common way we lose a product
+ * that is in fact perfectly findable (COLD-START-PLAN §6.2, P4.3).
+ *
+ * Ordered most-specific first: `input[type='search']` is unambiguous, a bare `input[name='s']` is not.
+ */
 const SEARCH_INPUT_SELECTORS = [
   "input[type='search']",
+  "[role='search'] input[type='text']",
+  "[role='search'] input",
   "input[name='q']",
   "input[name='s']",
   "input[name*='search' i]",
+  "input[name*='suche' i]",
   "input[name*='query' i]",
   "input[name*='keyword' i]",
   "input[name*='part' i]",
   "input[name*='catalog' i]",
   "input[name*='article' i]",
+  "input[name*='artikel' i]",
+  "input[name*='bestell' i]",
+  "input[name*='referenc' i]",
+  "input[name*='codice' i]",
   "input[placeholder*='search' i]",
+  "input[placeholder*='such' i]",
+  "input[placeholder*='recherch' i]",
+  "input[placeholder*='cerca' i]",
+  "input[placeholder*='ricerc' i]",
+  "input[placeholder*='busc' i]",
+  "input[placeholder*='zoek' i]",
   "input[placeholder*='product' i]",
+  "input[placeholder*='artikel' i]",
+  "input[placeholder*='typenschl' i]",
   "input[aria-label*='search' i]",
-  "[role='search'] input"
+  "input[aria-label*='such' i]",
+  "input[aria-label*='recherch' i]",
+  "input[aria-label*='cerca' i]",
+  "input[aria-label*='busc' i]",
+  // Headless-UI / design-system comboboxes are frequently not <input type=search> at all.
+  "[role='combobox'] input",
+  "input[role='combobox']"
 ];
 
-/** Fill one visible-ish search control and submit it using the browser's normal Enter behaviour.
- * This deliberately reports failure rather than guessing a click target: a form with no usable input
- * must remain eligible for the static/POST/search-API paths instead of looking successfully searched. */
-export async function submitSearchInput(page: Pick<PageLike, "locator" | "keyboard">, catalogNumber: string): Promise<boolean> {
+/**
+ * Controls that REVEAL the search box rather than being it.
+ *
+ * On a large share of industrial sites `input[type=search]` has `count() === 0` until the magnifier
+ * is clicked — so every selector above legitimately finds nothing, and the vendor looks searchless
+ * while its search works fine. Kept separate from `clickSafeSelectors` on purpose: that helper is for
+ * tabs and accordions and runs AFTER we would have looked for the input, whereas this must run
+ * before, and the input search must then be repeated.
+ */
+const SEARCH_OVERLAY_TOGGLE_SELECTORS = [
+  "button[aria-label*='search' i]",
+  "button[aria-label*='such' i]",
+  "button[aria-label*='recherch' i]",
+  "button[aria-label*='cerca' i]",
+  "button[aria-label*='busc' i]",
+  "a[aria-label*='search' i]",
+  "[role='button'][aria-label*='search' i]",
+  "button[title*='search' i]",
+  "button[title*='suche' i]",
+  "button[class*='search-toggle' i]",
+  "button[class*='searchtoggle' i]",
+  "button[class*='search-open' i]",
+  "button[class*='search-icon' i]",
+  "button[class*='icon-search' i]",
+  "[data-toggle='search']",
+  "[data-target*='search' i][role='button']"
+];
+
+/** How long a typeahead needs after the last keystroke before its suggest request goes out. */
+const SUGGEST_DEBOUNCE_MS = 700;
+/** How long an overlay needs to mount its input after the toggle is clicked. */
+const SEARCH_OVERLAY_SETTLE_MS = 400;
+/** Per-key delay. Fast enough not to dominate the render budget, slow enough to look like typing. */
+const TYPE_KEY_DELAY_MS = 40;
+
+type SearchCapablePage = Pick<PageLike, "locator" | "keyboard"> & Partial<Pick<PageLike, "waitForTimeout">>;
+
+/**
+ * Type the catalog number into one search control and submit it with the browser's normal Enter.
+ *
+ * Deliberately reports failure rather than guessing a click target: a page with no usable input must
+ * remain eligible for the static/POST/search-API paths instead of looking successfully searched.
+ *
+ * Two-pass by design — look for the box, and only if there is none, open the overlay that hides it and
+ * look again. Opening the overlay first would click a "search" link on sites that have a perfectly
+ * good inline box, navigating away from the page we were asked to search.
+ */
+export async function submitSearchInput(page: SearchCapablePage, catalogNumber: string): Promise<boolean> {
+  if (await typeIntoSearchInput(page, catalogNumber)) return true;
+  if (!(await openSearchOverlay(page))) return false;
+  await page.waitForTimeout?.(SEARCH_OVERLAY_SETTLE_MS);
+  return typeIntoSearchInput(page, catalogNumber);
+}
+
+async function typeIntoSearchInput(page: SearchCapablePage, catalogNumber: string): Promise<boolean> {
   for (const selector of SEARCH_INPUT_SELECTORS) {
     try {
       const locator = page.locator(selector);
-      if (await locator.count() === 0) continue;
+      if ((await locator.count()) === 0) continue;
       const input = locator.nth(0);
-      if (!input.fill) continue;
-      await input.fill(catalogNumber, { timeout: 5000 });
+      // `fill()` sets the value programmatically and emits a single input event. Typeahead widgets
+      // that listen for keydown — which is most of them — never fire their suggest request for it, and
+      // that request's JSON is the richest identity source these sites expose (exact PDP URL, type
+      // designation, often the EAN). `pressSequentially` is what makes it happen; `fill` stays as the
+      // fallback for locators that do not implement it.
+      if (input.pressSequentially) await input.pressSequentially(catalogNumber, { timeout: 5000, delay: TYPE_KEY_DELAY_MS });
+      else if (input.fill) await input.fill(catalogNumber, { timeout: 5000 });
+      else continue;
+      // Let the debounce elapse BEFORE Enter, so the suggest response is captured while the results
+      // page is still loading rather than being cancelled by the navigation.
+      await page.waitForTimeout?.(SUGGEST_DEBOUNCE_MS);
       await page.keyboard.press("Enter");
       return true;
     } catch {
-      // A hidden/header duplicate can reject fill; keep looking for the next actual search box.
+      // A hidden/header duplicate can reject typing; keep looking for the next actual search box.
+    }
+  }
+  return false;
+}
+
+/**
+ * Click at most ONE control that looks like it opens a search overlay.
+ *
+ * One, not all: these selectors can also match a link to a /search page, and clicking several in a row
+ * would navigate away and then keep clicking on whatever page we landed on. Returns whether anything
+ * was clicked, so the caller can tell "no overlay to open" from "opened, still no input".
+ */
+/** The page's own final URL, falling back to the requested one when the browser cannot name it. */
+export function finalRenderedUrl(page: Pick<PageLike, "url">, requestedUrl: string): string {
+  try {
+    const current = page.url?.()?.trim();
+    if (!current || current === "about:blank") return requestedUrl;
+    return current;
+  } catch {
+    return requestedUrl;
+  }
+}
+
+async function openSearchOverlay(page: SearchCapablePage): Promise<boolean> {
+  for (const selector of SEARCH_OVERLAY_TOGGLE_SELECTORS) {
+    try {
+      const locator = page.locator(selector);
+      if ((await locator.count()) === 0) continue;
+      await locator.nth(0).click({ timeout: 3000 });
+      return true;
+    } catch {
+      // Covered by an overlay, detached, or not clickable — try the next shape.
     }
   }
   return false;
@@ -274,13 +442,7 @@ export class BrowserRenderSession {
       page.on("response", (response) => {
         responseCaptures.push(captureResponse(response, captured, networkDiagnostics, captureState, signal));
       });
-      const blockedResourceTypes = new Set(recipe?.interactionPolicy?.blockResourceTypes ?? []);
-      if (blockedResourceTypes.size > 0) {
-        await page.route("**/*", (route) => {
-          if (blockedResourceTypes.has(route.request().resourceType() as never)) return route.abort();
-          return route.continue();
-        }).catch(() => undefined);
-      }
+      await applyRequestFiltering(page, recipe);
       const gotoWaitUntil = recipe?.interactionPolicy?.gotoWaitUntil ?? "domcontentloaded";
       const gotoTimeoutMs = recipe?.interactionPolicy?.gotoTimeoutMs ?? 45000;
       const response = await page.goto(url, { waitUntil: gotoWaitUntil, timeout: gotoTimeoutMs });
@@ -290,6 +452,7 @@ export class BrowserRenderSession {
         await page.waitForLoadState("domcontentloaded", { timeout: gotoTimeoutMs }).catch(() => undefined);
       }
       await page.waitForLoadState("networkidle", { timeout: recipe?.interactionPolicy?.networkIdleTimeoutMs ?? 12000 }).catch(() => undefined);
+      await waitForNonInteractiveCloudflareChallenge(page);
       await clickSafeSelectors(page, [...(recipe?.interactionPolicy?.closeOverlaySelectors ?? []), ...OVERLAY_CLOSE_SELECTORS], 5, signal);
       if (searchCatalogNumber) {
         await submitSearchInput(page, searchCatalogNumber);
@@ -328,7 +491,18 @@ export class BrowserRenderSession {
       return {
         fetched: {
           requestedUrl: url,
-          effectiveUrl: url,
+          // Where the page ACTUALLY ended up, not where we asked it to go.
+          //
+          // The most human path through a catalogue is: type the number into the search box, press
+          // Enter, and let the site redirect straight to the product page. The static path already
+          // treats that final URL as evidence (`exactOfficialProductRedirectUrl`); the rendered path
+          // reported the search URL back instead, throwing away the answer it had just been handed —
+          // and resolving every relative link on the results page against the wrong base.
+          //
+          // `|| url` covers a failed navigation leaving `about:blank`, and the caller still puts this
+          // URL through the official-domain / auth-wall / search-page rejections, so a consent or SSO
+          // gateway cannot become a product candidate by redirecting us to itself.
+          effectiveUrl: finalRenderedUrl(page, url),
           statusCode: response?.status() ?? 200,
           contentType: "text/html; rendered=playwright",
           text,
@@ -401,8 +575,10 @@ export class BrowserRenderSession {
       page.on("response", (response) => {
         responseCaptures.push(captureResponse(response, captured, networkDiagnostics, captureState, signal));
       });
+      await applyRequestFiltering(page, recipe);
       const response = await page.goto(url, { waitUntil: "domcontentloaded", timeout: 45000 });
       await page.waitForLoadState("networkidle", { timeout: Math.min(recipe?.interactionPolicy?.networkIdleTimeoutMs ?? 3000, 3000) }).catch(() => undefined);
+      await waitForNonInteractiveCloudflareChallenge(page);
       await clickSafeSelectors(page, [...(recipe?.interactionPolicy?.closeOverlaySelectors ?? []), ...OVERLAY_CLOSE_SELECTORS], 6, signal);
       await scrollToBottom(page, recipe?.interactionPolicy?.scrollPasses ?? 2, signal);
       await page.waitForLoadState("networkidle", { timeout: 1500 }).catch(() => undefined);
@@ -589,8 +765,9 @@ export class BrowserRenderSession {
     if (!launched) {
       this.launchFailureCount += 1;
       const friendlyHint =
-        "Playwright Chromium browser nije instaliran ili je blokiran. Pokreni: npx playwright install chromium " +
-        "(ili pokreni Start-ProductScraper.bat koji to radi automatski). Bez Chromium-a Balluff prosirene sekcije " +
+        "Chromium browser nije instaliran ili je blokiran. Pokreni: npx patchright install chromium " +
+        "(ili npx playwright install chromium ako i dalje ne radi; ili pokreni Start-ProductScraper.bat koji to " +
+        "radi automatski). Bez Chromium-a Balluff prosirene sekcije " +
         "(Key features, Downloads, Classifications, Digital Product Passport) ne mogu se skinuti.";
       // Only mark permanently unavailable after several consecutive failures — protects against
       // a first-product race where the cache is mid-install or AV scan momentarily locks the binary.
@@ -603,12 +780,34 @@ export class BrowserRenderSession {
     this.browser = launched;
     // Reset counters on success so a later transient failure doesn't immediately disable.
     this.launchFailureCount = 0;
-    this.context = await this.browser.newContext({
-      userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0 Safari/537.36",
-      locale: "en-US",
-      viewport: { width: 1440, height: 1200 }
-    });
+    this.context = await this.createFingerprintedContext(this.browser);
     return this.context;
+  }
+
+  /**
+   * Builds the browser context with a realistic, internally-consistent fingerprint (UA + Sec-CH-UA
+   * + viewport + hardwareConcurrency, generated together by `fingerprint-generator`/injected by
+   * `fingerprint-injector` — the same Apify data lineage Scrapling's own header generator draws
+   * from) instead of one hand-picked UA string. Falls back to the previous static UA/viewport if
+   * fingerprint injection fails for any reason, so a bad fingerprint profile can never take the
+   * whole browser fallback path down.
+   */
+  private async createFingerprintedContext(browser: BrowserLike): Promise<BrowserContextLike> {
+    try {
+      const { newInjectedContext } = await loadFingerprintInjector();
+      return await newInjectedContext(browser as unknown as PlaywrightBrowser, {
+        fingerprintOptions: { devices: ["desktop"], operatingSystems: ["windows"], browsers: [{ name: "chrome" }] },
+        newContextOptions: { locale: "en-US" }
+      }) as unknown as BrowserContextLike;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.warn(`[browser-renderer] fingerprint-injector unavailable, falling back to static UA/viewport: ${message}`);
+      return browser.newContext({
+        userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0 Safari/537.36",
+        locale: "en-US",
+        viewport: { width: 1440, height: 1200 }
+      });
+    }
   }
 }
 
@@ -660,8 +859,27 @@ function findCachedChromiumExecutable(): string | undefined {
   return undefined;
 }
 
+/**
+ * `patchright` is a drop-in Playwright fork (same API surface) that removes the CDP artefacts
+ * (`Runtime.enable` leak, `--enable-automation` flag, exposed closed shadow roots, ...) most
+ * bot-mitigation edges fingerprint an automated Chromium by. It's the same library Scrapling's
+ * own StealthyFetcher moved to after trying — and abandoning — Camoufox and rebrowser-playwright.
+ * Tried first, with a hard fallback to plain `playwright` so a patchright-specific problem (e.g.
+ * its bundled Chromium build not launching on this machine) degrades to the previous behavior
+ * instead of disabling the whole browser fallback path. `PRODUCT_SCRAPER_STEALTH_BROWSER=0` opts
+ * back out to plain playwright unconditionally, for a fast rollback while this is rolling out.
+ */
 async function loadPlaywright(): Promise<{ chromium: ChromiumLike }> {
   const importer = new Function("specifier", "return import(specifier)") as (specifier: string) => Promise<unknown>;
+  if (process.env.PRODUCT_SCRAPER_STEALTH_BROWSER !== "0") {
+    try {
+      const loaded = await importer("patchright") as { chromium?: ChromiumLike };
+      if (loaded.chromium) return { chromium: loaded.chromium };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.warn(`[browser-renderer] patchright unavailable, falling back to playwright: ${message}`);
+    }
+  }
   try {
     const loaded = await importer("playwright") as { chromium?: ChromiumLike };
     if (!loaded.chromium) throw new Error("Playwright is installed but Chromium launcher is unavailable.");
@@ -675,6 +893,16 @@ async function loadPlaywright(): Promise<{ chromium: ChromiumLike }> {
     }
     throw error;
   }
+}
+
+async function loadFingerprintInjector(): Promise<{
+  newInjectedContext: (browser: PlaywrightBrowser, options?: Record<string, unknown>) => Promise<unknown>;
+}> {
+  const importer = new Function("specifier", "return import(specifier)") as (specifier: string) => Promise<unknown>;
+  const loaded = await importer("fingerprint-injector") as {
+    newInjectedContext: (browser: PlaywrightBrowser, options?: Record<string, unknown>) => Promise<unknown>;
+  };
+  return loaded;
 }
 
 async function clickLocator(page: PageLike, selector: string, index: number, signal?: AbortSignal): Promise<boolean> {

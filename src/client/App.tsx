@@ -30,6 +30,7 @@ import {
   Save,
   Search,
   Settings2,
+  Table2,
   Trash2,
   Upload,
   X,
@@ -38,6 +39,7 @@ import {
 import type {
   CsvPreview,
   FallbackSourceConfig,
+  FieldCoverageMatrixResponse,
   ManufacturerConfig,
   ManufacturerAliasSuggestion,
   ManufacturerOperationalSummary,
@@ -57,6 +59,7 @@ import { requiredElectricalFields } from "../shared/product-requirements.js";
 import {
   approveLearnedExtractor,
   cancelRun,
+  getFieldCoverageMatrix,
   getManufacturers,
   getManufacturerOperationalSummary,
   getRun,
@@ -68,14 +71,19 @@ import {
   updateRunCoverageFields,
   openRunWorkbook,
   importRunPdt,
+  uploadRunAccessoryMatrix,
+  clearRunAccessoryMatrix,
   openRunPdt,
   getRunPdtRoutingPreview,
   previewCsv,
+  previewAccessoryMatrix,
   resetManufacturerOverride,
   resumeRun,
   saveManufacturer,
   startRun,
   testManufacturer,
+  type AccessoryMatrixPreview,
+  type AccessoryMatrixSummary,
   type PdtImportStats
 } from "./api.js";
 
@@ -197,7 +205,28 @@ function pdtImportWarning(stats: PdtImportStats): string | null {
   if ((stats.cellAudit?.unprovenSkipped ?? 0) > 0) {
     warnings.push(`unproven PDT values skipped: ${stats.cellAudit!.unprovenSkipped}`);
   }
+  for (const warning of stats.accessoryMatrix?.warnings ?? []) {
+    warnings.push(`accessory matrix: ${warning}`);
+  }
   return warnings.length ? `PDT generated with warnings: ${warnings.join("; ")}.` : null;
+}
+
+/** Plain-language recap of what an attached accessory matrix contributed to the PDT. */
+function accessoryMatrixNotice(stats: PdtImportStats): string | null {
+  const matrix = stats.accessoryMatrix;
+  if (!matrix) return null;
+  const parts = [
+    `Accessory matrix${matrix.fileName ? ` (${matrix.fileName})` : ""}: ${matrix.accessoryRows} accessory row${matrix.accessoryRows === 1 ? "" : "s"}`,
+    `${matrix.connectionPointRows} connection point row${matrix.connectionPointRows === 1 ? "" : "s"}`
+  ];
+  if (matrix.conditionCount > 0) {
+    parts.push(
+      matrix.conditionsPath
+        ? `${matrix.conditionCount} INLIST condition${matrix.conditionCount === 1 ? "" : "s"} added to the products workbook`
+        : `${matrix.conditionCount} INLIST condition${matrix.conditionCount === 1 ? "" : "s"} not written`
+    );
+  }
+  return `${parts.join(", ")}.`;
 }
 
 function formatShortList(values: string[], max = 8): string {
@@ -219,6 +248,11 @@ export function App() {
   // overrides anything scraped from the manufacturer website — the customer is the
   // authoritative source. Drag-drop works across every manufacturer config.
   const [customerDocuments, setCustomerDocuments] = useState<File[]>([]);
+  // Accessory matrix: which accessory sits on which connection point of which main product.
+  // Can be attached with the run (below) or swapped in later from the PDT panel.
+  const [accessoryMatrix, setAccessoryMatrix] = useState<File | null>(null);
+  const [accessoryMatrixPreview, setAccessoryMatrixPreview] = useState<AccessoryMatrixPreview | null>(null);
+  const accessoryMatrixInputRef = useRef<HTMLInputElement>(null);
   const [customerDragActive, setCustomerDragActive] = useState(false);
   const [runs, setRuns] = useState<RunRecord[]>([]);
   const [selectedRunId, setSelectedRunId] = useState<string | null>(null);
@@ -236,6 +270,7 @@ export function App() {
   const [manufacturerSaveBusy, setManufacturerSaveBusy] = useState(false);
   const [manufacturerOperationalSummary, setManufacturerOperationalSummary] = useState<ManufacturerOperationalSummary | null>(null);
   const [manufacturerOperationalBusy, setManufacturerOperationalBusy] = useState(false);
+  const [fieldCoverageMatrix, setFieldCoverageMatrix] = useState<FieldCoverageMatrixResponse | null>(null);
   const [editorMode, setEditorMode] = useState<"simple" | "advanced">("simple");
   const [wizardWebsiteUrl, setWizardWebsiteUrl] = useState("");
   const [wizardSamplesText, setWizardSamplesText] = useState("");
@@ -263,6 +298,9 @@ export function App() {
   const [generateLinksFile, setGenerateLinksFile] = useState(false);
   const [forceFinalRetry, setForceFinalRetry] = useState(false);
   const [pdtAiCleanup, setPdtAiCleanup] = useState(false);
+  const [runAccessoryMatrix, setRunAccessoryMatrix] = useState<AccessoryMatrixSummary | null>(null);
+  const [runAccessoryMatrixBusy, setRunAccessoryMatrixBusy] = useState(false);
+  const runAccessoryMatrixInputRef = useRef<HTMLInputElement>(null);
   const downloadDocuments = downloadPdfs || downloadCad;
   const setDownloadDocuments = (enabled: boolean) => {
     setDownloadPdfs(enabled);
@@ -311,6 +349,7 @@ export function App() {
 
   useEffect(() => {
     void refreshBootstrap();
+    void refreshFieldCoverageMatrix();
   }, []);
 
   useEffect(() => {
@@ -319,6 +358,9 @@ export function App() {
   }, [selectedRunId]);
 
   useEffect(() => {
+    // The upload summary belongs to one run; the attached file itself is read back from
+    // the run record (`options.accessoryMatrix`), so switching runs only drops the summary.
+    setRunAccessoryMatrix(null);
     setRunItemQuery("");
     setRunItemFilter("all");
     setCoverageFocus(null);
@@ -370,6 +412,16 @@ export function App() {
     }
   }
 
+  async function refreshFieldCoverageMatrix() {
+    // Best-effort dashboard widget — a failure here (e.g. no completed runs yet anywhere) should
+    // never block the rest of the app or surface as a blocking error banner.
+    try {
+      setFieldCoverageMatrix(await getFieldCoverageMatrix());
+    } catch {
+      setFieldCoverageMatrix(null);
+    }
+  }
+
   async function refreshRuns() {
     try {
       setRuns(await listRuns());
@@ -401,6 +453,28 @@ export function App() {
       setPreview(data);
       setColumnName(data.detectedColumn ?? data.columns[0] ?? "");
     } catch (err) {
+      setError(errorMessage(err));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  /**
+   * Reading the matrix up front does two things: it rejects a wrong file immediately, and it
+   * yields the main part numbers — which stand in for the catalog CSV when none is uploaded.
+   */
+  async function handleRunFormAccessoryMatrix(nextFile: File | null) {
+    setAccessoryMatrix(nextFile);
+    setAccessoryMatrixPreview(null);
+    setError(null);
+    if (!nextFile) return;
+    setBusy(true);
+    try {
+      const preview = await previewAccessoryMatrix(nextFile);
+      setAccessoryMatrixPreview(preview);
+      if (preview.warnings.length > 0) setError(preview.warnings.join(" "));
+    } catch (err) {
+      setAccessoryMatrix(null);
       setError(errorMessage(err));
     } finally {
       setBusy(false);
@@ -602,7 +676,7 @@ export function App() {
   }
 
   async function handleStart() {
-    if (!file || !columnName) return;
+    if (!(file && columnName) && !accessoryMatrix) return;
     setBusy(true);
     setError(null);
     try {
@@ -615,9 +689,9 @@ export function App() {
               .map((field) => ({ id: field.id, label: field.label.trim(), pattern: field.pattern.trim() }))
               .filter((field) => field.label && field.pattern);
       const run = await startRun({
-        file,
+        file: file ?? undefined,
         manufacturerId,
-        columnName,
+        columnName: columnName || undefined,
         downloadDocuments: downloadPdfs || downloadCad,
         downloadPdfs,
         downloadCad,
@@ -627,7 +701,8 @@ export function App() {
         customCoverageFields,
         hiddenCoverageFields: runHiddenCoverageFields.length > 0 ? runHiddenCoverageFields : undefined,
         forceFinalRetry,
-        customerDocuments: customerDocuments.length > 0 ? customerDocuments : undefined
+        customerDocuments: customerDocuments.length > 0 ? customerDocuments : undefined,
+        accessoryMatrix: accessoryMatrix ?? undefined
       });
       setSelectedRunId(run.id);
       // Reset the override after each run so the next one re-inherits the (possibly updated)
@@ -637,6 +712,8 @@ export function App() {
       // Clear customer documents — they're now persisted in the run folder. The next run
       // starts fresh and the user re-attaches whatever's needed.
       setCustomerDocuments([]);
+      setAccessoryMatrix(null);
+      setAccessoryMatrixPreview(null);
       await refreshRuns();
       await refreshSelectedRun(run.id);
     } catch (err) {
@@ -766,7 +843,7 @@ export function App() {
         sheetOverrides: Object.keys(payload).length > 0 ? payload : undefined
       });
       await refreshSelectedRun(selectedRun.id);
-      const warnings = [pdtImportWarning(result.stats)].filter(Boolean) as string[];
+      const warnings = [accessoryMatrixNotice(result.stats), pdtImportWarning(result.stats)].filter(Boolean) as string[];
       if (result.stats.cleanup && ["qwen_unavailable", "qwen_no_valid_output"].includes(result.stats.cleanup.status)) {
         warnings.push(`PDT AI cleanup: ${result.stats.cleanup.message}`);
       }
@@ -775,6 +852,43 @@ export function App() {
       setError(errorMessage(err));
     } finally {
       setPdtBusy(false);
+    }
+  }
+
+  async function handleAccessoryMatrixUpload(file: File | null | undefined) {
+    if (!selectedRun || !file) return;
+    setRunAccessoryMatrixBusy(true);
+    setError(null);
+    try {
+      const result = await uploadRunAccessoryMatrix(selectedRun.id, file);
+      setRunAccessoryMatrix(result.accessoryMatrix);
+      await refreshSelectedRun(selectedRun.id);
+      const notes = [...result.accessoryMatrix.warnings];
+      if (result.accessoryMatrix.mainPartsNotInRun.length > 0) {
+        notes.push(
+          `${result.accessoryMatrix.mainPartsNotInRun.length} matrix main part(s) are not in this run: ${formatShortList(result.accessoryMatrix.mainPartsNotInRun, 5)}. Their rows are still written.`
+        );
+      }
+      if (notes.length > 0) setError(notes.join(" "));
+    } catch (err) {
+      setError(errorMessage(err));
+    } finally {
+      setRunAccessoryMatrixBusy(false);
+    }
+  }
+
+  async function handleClearAccessoryMatrix() {
+    if (!selectedRun) return;
+    setRunAccessoryMatrixBusy(true);
+    setError(null);
+    try {
+      await clearRunAccessoryMatrix(selectedRun.id);
+      setRunAccessoryMatrix(null);
+      await refreshSelectedRun(selectedRun.id);
+    } catch (err) {
+      setError(errorMessage(err));
+    } finally {
+      setRunAccessoryMatrixBusy(false);
     }
   }
 
@@ -1112,7 +1226,9 @@ export function App() {
   }
 
   const hasSelectedOutput = generateExcel || downloadImages || downloadPdfs || downloadCad || generateLinksFile;
-  const readyToRun = Boolean(file && preview && columnName && selectedManufacturer && hasSelectedOutput);
+  // A catalog CSV with a chosen column, or an accessory matrix whose main parts we can scrape.
+  const hasRunInput = Boolean((file && preview && columnName) || accessoryMatrixPreview);
+  const readyToRun = Boolean(hasRunInput && selectedManufacturer && hasSelectedOutput);
   const canPause = selectedRun?.status === "queued" || selectedRun?.status === "running";
   const canResume = selectedRun?.status === "paused" || selectedRun?.status === "pausing";
   const canCancel =
@@ -1126,6 +1242,8 @@ export function App() {
   // outputPath is the cleanest signal that a workbook actually exists on disk.
   const hasWorkbook = runFinished && Boolean(selectedRun?.outputPath);
   const hasPdt = runFinished && Boolean(selectedRun?.pdtPath);
+  const attachedAccessoryMatrixName =
+    runAccessoryMatrix?.fileName ?? selectedRun?.options?.accessoryMatrix?.originalName;
   const hasOutputFolder = runFinished;
   const historyCount = runs.length;
   const activeRunCount = runs.filter((run) => ["queued", "running", "pausing"].includes(run.status)).length;
@@ -1225,6 +1343,8 @@ export function App() {
         </div>
       </header>
 
+      <FieldCoverageMatrixPanel matrix={fieldCoverageMatrix} />
+
       {error && (
         <div className="alert">
           <AlertCircle size={18} />
@@ -1239,7 +1359,7 @@ export function App() {
 
           <div className="workflow-steps" aria-label="Run setup steps">
             <StepState done={Boolean(selectedManufacturer)} label="Manufacturer" index="01" />
-            <StepState done={Boolean(preview)} label="Input file" index="02" />
+            <StepState done={hasRunInput} label="Input file" index="02" />
             <StepState done={readyToRun} label="Run" index="03" />
           </div>
 
@@ -1412,6 +1532,42 @@ export function App() {
               ))}
             </ul>
           )}
+
+          <div className="accessory-matrix-field">
+            <button
+              type="button"
+              className="download-button secondary"
+              onClick={() => accessoryMatrixInputRef.current?.click()}
+            >
+              <Table2 size={16} />
+              {accessoryMatrix ? accessoryMatrix.name : "Accessory matrix (optional)"}
+            </button>
+            {accessoryMatrix && (
+              <button
+                type="button"
+                className="cancel-button compact-action"
+                onClick={() => void handleRunFormAccessoryMatrix(null)}
+                aria-label="Remove accessory matrix"
+              >
+                <XCircle size={14} />
+              </button>
+            )}
+            <small>
+              {accessoryMatrixPreview
+                ? `${accessoryMatrixPreview.mainParts.length} main part${accessoryMatrixPreview.mainParts.length === 1 ? "" : "s"} and ${accessoryMatrixPreview.points.length} connection point${accessoryMatrixPreview.points.length === 1 ? "" : "s"}. Without a catalog CSV these main parts are what gets scraped.`
+                : "XLSX whose first sheet maps accessories to connection points (row 2 = point names, row 3 = descriptions, main parts in column A from row 4). Fills the PDT's Product Accessory and Connection Point Information tabs — and can replace the catalog CSV, scraping its main parts directly."}
+            </small>
+            <input
+              ref={accessoryMatrixInputRef}
+              type="file"
+              accept=".xlsx,.xlsm,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+              onChange={(event) => {
+                const nextFile = event.currentTarget.files?.[0] ?? null;
+                event.currentTarget.value = "";
+                void handleRunFormAccessoryMatrix(nextFile);
+              }}
+            />
+          </div>
 
           <fieldset className="run-option-group">
             <legend>Outputs</legend>
@@ -1695,6 +1851,45 @@ export function App() {
                   />
                   AI clean
                 </label>
+              )}
+              {hasWorkbook && (
+                <span className="accessory-matrix-control">
+                  <button
+                    type="button"
+                    className={`download-button secondary${attachedAccessoryMatrixName ? " is-selected" : ""}`}
+                    onClick={() => runAccessoryMatrixInputRef.current?.click()}
+                    disabled={pdtBusy || runAccessoryMatrixBusy}
+                    title={
+                      attachedAccessoryMatrixName
+                        ? `Accessory matrix: ${attachedAccessoryMatrixName}`
+                        : "Attach an accessory matrix workbook for the Product Accessory and Connection Point tabs"
+                    }
+                  >
+                    {runAccessoryMatrixBusy ? <Loader2 className="spin" size={16} /> : <Table2 size={16} />}
+                    {attachedAccessoryMatrixName ?? "Matrix"}
+                  </button>
+                  {attachedAccessoryMatrixName && (
+                    <button
+                      type="button"
+                      className="cancel-button compact-action"
+                      onClick={() => void handleClearAccessoryMatrix()}
+                      disabled={pdtBusy || runAccessoryMatrixBusy}
+                      aria-label="Remove accessory matrix"
+                    >
+                      <XCircle size={14} />
+                    </button>
+                  )}
+                  <input
+                    ref={runAccessoryMatrixInputRef}
+                    type="file"
+                    accept=".xlsx,.xlsm,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                    onChange={(event) => {
+                      const file = event.currentTarget.files?.[0];
+                      event.currentTarget.value = "";
+                      void handleAccessoryMatrixUpload(file);
+                    }}
+                  />
+                </span>
               )}
               {hasWorkbook && (
                 <button
@@ -3217,6 +3412,77 @@ function StepState({ done, label, index }: { done: boolean; label: string; index
       <strong>{label}</strong>
     </div>
   );
+}
+
+/**
+ * Cross-manufacturer "site x field" health matrix (see field-coverage-drift.ts on the server):
+ * at a glance, which manufacturer/field combinations look degraded across recent runs, without
+ * opening each manufacturer's Operations panel and reading raw diagnostics one row at a time.
+ */
+function FieldCoverageMatrixPanel({ matrix }: { matrix: FieldCoverageMatrixResponse | null }) {
+  if (!matrix || matrix.rows.length === 0) return null;
+  const driftCount = matrix.rows.reduce((sum, row) => sum + row.driftFields.length, 0);
+  return (
+    <details className="debug-section field-coverage-matrix" open={driftCount > 0}>
+      <summary>
+        <span>
+          <Table2 size={14} /> Field coverage health
+        </span>
+        <span>{driftCount ? `${driftCount} field${driftCount === 1 ? "" : "s"} drifted` : `${matrix.rows.length} manufacturer${matrix.rows.length === 1 ? "" : "s"} tracked`}</span>
+      </summary>
+      <div className="field-matrix-scroll">
+        <table className="field-matrix-table">
+          <thead>
+            <tr>
+              <th>Manufacturer</th>
+              {matrix.fields.map((field) => (
+                <th key={field}>{fieldCoverageLabel(field)}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {matrix.rows.map((row) => (
+              <tr key={row.manufacturerId}>
+                <td className="field-matrix-row-label">
+                  {row.canonicalName}
+                  <small>{row.baselineRunCount ? `baseline: ${row.baselineRunCount} runs` : "no baseline yet"}</small>
+                </td>
+                {matrix.fields.map((field) => {
+                  const rate = row.fillRate[field] ?? 0;
+                  const isDrift = row.driftFields.includes(field);
+                  const baseline = row.baselineFillRate[field] ?? 0;
+                  return (
+                    <td
+                      key={field}
+                      className={isDrift ? "field-matrix-cell is-drift" : "field-matrix-cell"}
+                      style={{ background: fieldCoverageCellColor(rate, isDrift) }}
+                      title={isDrift ? `${Math.round(rate * 100)}% now vs ${Math.round(baseline * 100)}% baseline (${row.baselineRunCount} runs)` : `${Math.round(rate * 100)}% of this run's rows have ${fieldCoverageLabel(field).toLowerCase()}`}
+                    >
+                      {Math.round(rate * 100)}%
+                    </td>
+                  );
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </details>
+  );
+}
+
+function fieldCoverageLabel(field: string): string {
+  return field
+    .replace(/([A-Z])/g, " $1")
+    .replace(/^./, (char) => char.toUpperCase())
+    .trim();
+}
+
+function fieldCoverageCellColor(rate: number, isDrift: boolean): string {
+  if (isDrift) return "rgba(239, 68, 68, 0.32)";
+  if (rate >= 0.8) return "rgba(100, 217, 133, 0.2)";
+  if (rate >= 0.5) return "rgba(245, 158, 11, 0.18)";
+  return "rgba(255, 255, 255, 0.05)";
 }
 
 function Metric({ label, value, onClick }: { label: string; value: string | number; onClick?: () => void }) {

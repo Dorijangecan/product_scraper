@@ -1,11 +1,23 @@
 import { uniqueStrings } from "../text-util.js";
 import * as cheerio from "cheerio";
 import type { DocumentRecord, ManufacturerConfig, ScrapeDiagnostics, SourceRecord } from "../../shared/types.js";
-import { catalogTextMatches, compactCatalogNumber, fillCatalogTemplate, findCatalogTextMatch, templateContainsCatalogPlaceholder } from "./catalog-number.js";
+import {
+  catalogTextMatches,
+  compactCatalogNumber,
+  fillCatalogTemplate,
+  findCatalogTextMatch,
+  searchQueryVariants,
+  templateContainsCatalogPlaceholder,
+  type SearchQueryVariant
+} from "./catalog-number.js";
 import type { FetchedText } from "./http-client.js";
 import type { ScrapeContext } from "./types.js";
-import { discoverProductLinksWithDiagnostics } from "./link-discovery.js";
+import { discoverProductLinksWithDiagnostics, discoverUnverifiedResultLinks } from "./link-discovery.js";
+import { aliasSearchTerms } from "./product-aliases.js";
+import { externalSearchEnabled, externalSearchUrl, parseExternalSearchResults } from "./external-search.js";
 import { endpointTemplateFromUrl, learnEndpointFromNetworkFetch, learnSearchTemplate, learnedEndpointUrls, learnedSearchTemplateUrls } from "./learned-endpoints.js";
+import { fillOpenSearchTemplate, openSearchDescriptionUrls, openSearchTemplates } from "./opensearch.js";
+import { searchResultVerdict, type SearchResultVerdict } from "./search-results.js";
 import { discoverSourceDocumentsWithDiagnostics } from "./source-document-discovery.js";
 import { urlLooksCompressed } from "./gzip-text.js";
 
@@ -26,7 +38,15 @@ export interface ProductDiscoveryCandidate {
   url: string;
   score: number;
   reason: string;
-  stage: "direct-template" | "localized-template" | "learned-endpoint" | "search-result" | "sitemap" | "url-variant";
+  stage:
+    | "direct-template"
+    | "localized-template"
+    | "learned-endpoint"
+    | "search-result"
+    /** A result link we could NOT identify, opened so the post-fetch gate can decide (P4.7). */
+    | "search-result-unverified"
+    | "sitemap"
+    | "url-variant";
   sourceType: SourceRecord["sourceType"];
 }
 
@@ -122,6 +142,16 @@ async function discoverOfficialProductCandidatesUncached(catalogNumber: string, 
       });
       return;
     }
+    // The ceiling for an unverified result belongs HERE, not only in `scoreDiscoveryCandidate`.
+    //
+    // Callers add their own bonuses on top of the scored value (`+ min(20, link.score / 5)` for a
+    // search result), so a stage ceiling applied inside the scorer is not a ceiling at all: the live
+    // Ganter probe showed 45 + 20 = 65, back above the sitemap base of 52 that the cap exists to stay
+    // under. Clamping at the single point where every candidate enters makes it hold whatever a caller
+    // adds.
+    if (candidate.stage === "search-result-unverified") {
+      candidate = { ...candidate, score: Math.min(candidate.score, UNVERIFIED_RESULT_MAX_SCORE) };
+    }
     const key = canonicalCandidateKey(candidate.url);
     const existing = candidates.get(key);
     if (!existing || candidate.score > existing.score) {
@@ -185,6 +215,28 @@ async function discoverOfficialProductCandidatesUncached(catalogNumber: string, 
   const renderedSearchCandidates: string[] = [];
   const processedSearchUrls = new Set<string>();
   let searchedUrlCount = 0;
+  let verdictNoteCount = 0;
+  /**
+   * Did the blind-shape walk stop because it ran OUT OF BUDGET, rather than because it finished?
+   *
+   * This decides whether re-asking (P4.6/P4.8) may have a budget of its own. On a host where one
+   * request costs three seconds the cap is two requests, and both were already spent guessing —
+   * spending four more to re-ask would quietly undo the whole D2b speed result. When the walk
+   * finished inside its budget, the endpoint answered cheaply and re-asking is worth its price.
+   */
+  let searchBudgetExhausted = false;
+  /**
+   * Search URLs the vendor demonstrably ANSWERED while producing nothing we could use — the input
+   * for re-asking (P4.6/P4.8). Both verdicts qualify and for different reasons: `zero` means the
+   * query was wrong, and `hits` with nothing identified can mean the vendor indexes this product
+   * under a different name entirely. Either way the endpoint works, which is what makes re-asking
+   * worth a request when a blind new shape would not be.
+   */
+  const answeredSearchUrls: string[] = [];
+  /** Result pages that listed products we could not name — the P4.7 input. Bounded: HTML is large. */
+  const unidentifiedResultPages: Array<{ url: string; html: string }> = [];
+  /** Which reformulated query produced a given URL, so a family answer cannot rank like an exact one. */
+  const reformulationLevels = new Map<string, SearchQueryVariant>();
 
   // Search endpoints this vendor has already been observed answering. They go FIRST, and a hit on one
   // ends the search stage immediately — that is the whole point: the vendor's real key is tried once
@@ -219,6 +271,7 @@ async function discoverOfficialProductCandidatesUncached(catalogNumber: string, 
     for (const request of uniqueRequests.values()) {
       if (searchedUrlCount >= requestCap) {
         // Say WHY it stopped. "No data" and "we ran out of budget" must never be indistinguishable.
+        searchBudgetExhausted = true;
         notes.push(
           `budget-exhausted:search — stopped after ${searchedUrlCount} search requests (cap ${requestCap} at ${perRequestThrottleMs} ms per request on this host)`
         );
@@ -230,6 +283,7 @@ async function discoverOfficialProductCandidatesUncached(catalogNumber: string, 
       searchedUrlCount += 1;
       attemptedUrls.push(request.method === "GET" ? request.url : `${request.method} ${request.url}`);
       let discoveredCount = 0;
+      let searchVerdict: SearchResultVerdict | undefined;
       try {
         const fetched = await fetchDiscoveryText(request.url, context, request);
         const redirectedProductUrl = exactOfficialProductRedirectUrl(fetched, request.url, catalogNumber, manufacturer);
@@ -256,26 +310,97 @@ async function discoverOfficialProductCandidatesUncached(catalogNumber: string, 
         });
         addDocuments(sourceDocuments.documents);
         rejectedLinks.push(...sourceDocuments.rejected);
+        // A result reached by asking for the FAMILY is not the same evidence as one reached by asking
+        // for the product. It can only ever land on a family page, so it must not outrank an exact
+        // answer — and it must say so, because a reader of the diagnostics has to know which question
+        // produced the URL. Publishing is unaffected either way: the post-fetch gate demands an exact
+        // identity match, and `html-page-level` gates family pages independently.
+        // A result obtained by asking a DIFFERENT question is not evidence about the one we asked.
+        //
+        // The live Ganter probe made this concrete and it is the sharpest edge in P4.6: re-asking the
+        // quick-finder with the compact form `gn331019lkk2` returned GN-228 handwheels, and they
+        // entered as `search-result` at score 103 — above everything real — because the page echoes the
+        // query back, and the compact echo IS the compact catalog number, so every card's surrounding
+        // text "confirmed" the identity. Page furniture supplying the identity is the same defect P2.1a
+        // fixed for PDFs, arriving here through a new door.
+        //
+        // So a re-asked result enters as `search-result-unverified`: still fetched, still decided by the
+        // post-fetch gate, but unable to outrank real evidence or to be mistaken for it. A variant query
+        // that genuinely finds the product still wins — the gate confirms it and it is promoted there.
+        const variant = reformulationLevels.get(request.url);
+        const variantPenalty = variant?.level === "family" ? FAMILY_QUERY_SCORE_PENALTY : 0;
+        const variantReason = variant ? ` (query variant: ${variant.reason})` : "";
+        const resultStage: ProductDiscoveryCandidate["stage"] = variant ? "search-result-unverified" : "search-result";
         for (const link of discovered.candidates) {
           discoveredCount += 1;
           add({
             url: link.url,
-            score: scoreDiscoveryCandidate(link.url, catalogNumber, "search-result", manufacturer) + Math.min(20, Math.round(link.score / 5)),
-            reason: `official search result: ${link.reason}`,
-            stage: "search-result",
+            score:
+              scoreDiscoveryCandidate(link.url, catalogNumber, resultStage, manufacturer) +
+              Math.min(20, Math.round(link.score / 5)) -
+              variantPenalty,
+            reason: `official search result: ${link.reason}${variantReason}`,
+            stage: resultStage,
             sourceType: "official-fallback"
           });
         }
-        if (discoveredCount > 0 && request.method === "GET") {
+        // Never learn a template from a re-asked query.
+        //
+        // `learnSearchTemplate` derives the template by finding the catalog number inside the URL, so a
+        // re-ask would teach `?q={partCompact}` — a shape that answered a question we did not ask. The
+        // live Ganter probe learned exactly that from a page of wrong products, which would then be
+        // tried FIRST for every later catalog number of the run.
+        if (discoveredCount > 0 && request.method === "GET" && !reformulationLevels.has(request.url)) {
           // This URL shape answered with a link carrying the requested catalog number. Remember the
           // shape so the next catalog number tries it first instead of rediscovering it.
           const learnedTemplate = learnSearchTemplate({ manufacturer, catalogNumber, searchUrl: request.url, store: context.learnedEndpoints });
           if (learnedTemplate) notes.push(`Learned working official search template: ${learnedTemplate}`);
         }
+        // What did the page itself SAY? (P4.5.) Until now a search that answered "no results" and one
+        // that answered with a list we could not name were indistinguishable — both were simply
+        // `discoveredCount === 0`, and both took the same next step. The verdict makes the difference
+        // visible in diagnostics, and it steers the single most expensive resource in the pipeline.
+        searchVerdict = searchResultVerdict({ html: fetched.text, statusCode: fetched.statusCode, candidateCount: discoveredCount });
+        if (discoveredCount === 0 && searchVerdict.kind !== "unknown" && verdictNoteCount < SEARCH_VERDICT_NOTE_LIMIT) {
+          verdictNoteCount += 1;
+          notes.push(`Search ${request.url} answered ${searchVerdict.kind}: ${searchVerdict.evidence}`);
+        }
+        // Keep what the later stages need. A `zero` is the vendor saying the QUERY is wrong, which is
+        // the one case where asking again differently is worth a request (P4.6). A `hits` page with
+        // nothing identified is the opposite: the query was right and the CARDS are unreadable (P4.7).
+        // Both re-asking and opening results work off the response body, not the request method, so a
+        // POST form search qualifies for them exactly as a GET does. Only the browser-render queue
+        // below is GET-only, because re-rendering needs a URL to navigate to.
+        if (discoveredCount === 0) {
+          // Re-asking stays GET-only: it works by substituting the term INSIDE the URL, and a POST
+          // endpoint keeps its term in the body — replaying it as a GET would send the vendor a
+          // request they never advertised.
+          if (
+            request.method === "GET" &&
+            (searchVerdict.kind === "zero" || searchVerdict.kind === "hits") &&
+            answeredSearchUrls.length < REFORMULATION_SOURCE_LIMIT
+          ) {
+            answeredSearchUrls.push(request.url);
+          }
+          if (searchVerdict.kind === "hits" && unidentifiedResultPages.length < UNVERIFIED_RESULT_PAGE_LIMIT) {
+            unidentifiedResultPages.push({ url: fetched.effectiveUrl || request.url, html: fetched.text });
+          }
+        }
       } catch (error) {
         notes.push(`Search discovery failed for ${request.method} ${request.url}: ${formatError(error)}`);
       }
-      if (discoveredCount === 0 && request.method === "GET") renderedSearchCandidates.push(request.url);
+      if (discoveredCount === 0 && request.method === "GET") {
+        // Spend the browser where it can actually change the answer.
+        //
+        // Every zero-yield search URL used to queue for a Playwright render — up to four of them, each
+        // able to spend a 45 s `page.goto`. A page that printed "no results" in its own HTML will print
+        // exactly the same thing in a browser, so rendering it buys nothing; a client-rendered shell is
+        // the opposite case, and is the entire reason the browser path exists. This re-orders and
+        // trims the queue. It never removes a page whose verdict is uncertain — `unknown` still
+        // queues, because not knowing is not a reason to stop looking.
+        if (searchVerdict?.kind === "js-only") renderedSearchCandidates.unshift(request.url);
+        else if (searchVerdict?.kind !== "zero") renderedSearchCandidates.push(request.url);
+      }
       if (learnedSearchUrlSet.has(request.url)) {
         // A learned endpoint that still works ends the stage now — no reason to re-walk the generic
         // key list. One that has stopped working takes a failure, and three of those suppress it for
@@ -351,6 +476,20 @@ async function discoverOfficialProductCandidatesUncached(catalogNumber: string, 
 
   // Learned-working endpoint first, then configured + generic search-URL templates (cheap: no extra
   // page fetch to find a form).
+  // Ordering note, kept so the next reader does not re-run the experiment: putting the blind shapes
+  // BEHIND the directed form/OpenSearch route on expensive hosts was tried and reverted.
+  //
+  // The premise was that two draws from fourteen shapes cannot work on a 3000 ms/request host. The live
+  // probe (`npm run probe:vendor-search -- --vendor gan`) disproved it: Ganter's quick-finder is a
+  // CONFIGURED template and was already being tried first. What had actually gone missing there was the
+  // page VERDICT, not the ordering — see `countProductShapedLinks` in `search-results.ts`.
+  //
+  // Honest note on the cost measurement that accompanied the revert: `gan` did move from 6 to 16
+  // requests in `audit:discovery` around the same time, and it was briefly attributed to this reorder.
+  // It was not. Reverting did not bring it back down. The cause is that the live probe CACHED Ganter's
+  // real quick-finder response, so the new stages (verdict -> re-ask -> opening unidentified results)
+  // finally engage in the replay where they previously could not. That cost is real but it is the cost
+  // of the stages working, and in a real run the item deadline bounds it — the replay has no deadline.
   if (!confirmedTemplateUrl) {
     await processSearchRequests([
       ...learnedSearchUrls.map((learned) => ({ url: learned.url, method: "GET" as const })),
@@ -377,6 +516,7 @@ async function discoverOfficialProductCandidatesUncached(catalogNumber: string, 
     await processSearchRequests(allowedFormRequests, { budgetBoost: FORM_REQUEST_BUDGET_BOOST });
   }
 
+
   if (!confirmedTemplateUrl && !hasSearchResultCandidate(candidates) && shouldUseRenderedSearchDiscovery(context)) {
     for (const searchUrl of renderedSearchCandidates.slice(0, 4)) {
       attemptedUrls.push(`browser:${searchUrl}`);
@@ -385,6 +525,23 @@ async function discoverOfficialProductCandidatesUncached(catalogNumber: string, 
         // use renderSearchPage to fill the actual site search box before collecting its XHR/results.
         const rendered = await context.browserRenderer!.renderSearchPage?.(searchUrl, catalogNumber, manufacturer.scrapeRecipe, context.signal)
           ?? await context.browserRenderer!.renderProductPage(searchUrl, manufacturer.scrapeRecipe, context.signal);
+        // Typing the catalog number into the site's own box and being redirected straight to the PDP
+        // is the most human path there is, and until the renderer started reporting its final URL
+        // (`finalRenderedUrl`) this branch could not see it at all. Same helper, same evidence bar as
+        // the static path: official domain, not a search page, and the destination must identify the
+        // exact catalog number.
+        const renderedRedirectUrl = rendered.fetched
+          ? exactOfficialProductRedirectUrl(rendered.fetched, searchUrl, catalogNumber, manufacturer)
+          : undefined;
+        if (renderedRedirectUrl) {
+          add({
+            url: renderedRedirectUrl,
+            score: scoreDiscoveryCandidate(renderedRedirectUrl, catalogNumber, "search-result", manufacturer) + 12,
+            reason: "rendered official site search redirected to exact product URL",
+            stage: "search-result",
+            sourceType: "official-fallback"
+          });
+        }
         const renderedTexts = [
           ...(rendered.fetched ? [rendered.fetched] : []),
           ...rendered.networkTexts.filter((fetched) => /search|suggest|product|catalog|sku|api|json/i.test(`${fetched.effectiveUrl} ${fetched.contentType}`)).slice(0, 8)
@@ -425,6 +582,110 @@ async function discoverOfficialProductCandidatesUncached(catalogNumber: string, 
         if (hasSearchResultCandidate(candidates)) break;
       } catch (error) {
         notes.push(`Rendered search discovery failed for ${searchUrl}: ${formatError(error)}`);
+      }
+    }
+  }
+
+  // Ask again, differently — the thing a person does when the search says "nothing found" (P4.6).
+  //
+  // Paid ONLY against an endpoint the vendor has already answered on, and only when it answered with
+  // an explicit zero. The alternative — every query variant against every generic shape — is 5 x 14
+  // requests per catalog number, which would eat the whole item budget to re-ask a question that was
+  // already answered.
+  if (!confirmedTemplateUrl && !hasSearchResultCandidate(candidates) && answeredSearchUrls.length) {
+    // Learned second names go FIRST, and a GTIN leads them: a vendor search that accepts one answers
+    // with exactly one product (P4.8/P4.9). Only then the mechanical variants of the code we were
+    // given. Both lists are capped together, because the budget is a number of requests, not a number
+    // of good ideas.
+    const aliasTerms = aliasSearchTerms(context.productAliases?.list(manufacturer.id, catalogNumber, 6) ?? []).map((alias) => ({
+      term: alias.term,
+      level: alias.level,
+      reason: alias.reason
+    }));
+    const variants = [...aliasTerms, ...searchQueryVariants(catalogNumber).slice(1)].slice(0, REFORMULATION_VARIANT_LIMIT);
+    const reformulated: SearchDiscoveryRequest[] = [];
+    for (const sourceUrl of answeredSearchUrls) {
+      for (const variant of variants) {
+        const url = replaceQueryTerm(sourceUrl, catalogNumber, variant.term);
+        if (!url || processedSearchUrls.has(`GET\n${url}\n`)) continue;
+        reformulated.push({ url, method: "GET" });
+        reformulationLevels.set(url, variant);
+      }
+    }
+    if (reformulated.length) {
+      // Blind shapes running out of budget says nothing about the value of ONE directed follow-up to an
+      // endpoint that demonstrably answered. The live Ganter probe is the case: its quick-finder replied
+      // with eleven products, and re-asking it was skipped purely because fourteen blind shapes had
+      // already spent a two-request cap. So an exhausted budget shrinks this to a single request rather
+      // than cancelling it — the D2b result is about not SPECULATING, and this is the opposite of that.
+      const boost = searchBudgetExhausted ? 1 : REFORMULATION_BUDGET_BOOST;
+      notes.push(
+        `Re-asking ${answeredSearchUrls.length} answering search endpoint(s) with ${variants.length} query variant(s)` +
+          `${aliasTerms.length ? `, ${aliasTerms.length} of them learned aliases` : ""}.`
+      );
+      await processSearchRequests(reformulated, { budgetBoost: boost });
+    }
+  }
+
+  // Open the first few results even though no card carried the catalog number (P4.7).
+  //
+  // This changes WHAT WE MAY LOOK AT, never what may be published: every URL here is fetched by the
+  // deterministic pipeline and must still pass `scoreFetchedDiscoveryEvidence`, which demands an exact
+  // catalog match on a product identity surface. Gated on the soft target for the same reason
+  // `url-variant` is (DISCOVERY-SPEED-PLAN D2b): past it, stop spending on maybes.
+  if (
+    !confirmedTemplateUrl &&
+    !hasSearchResultCandidate(candidates) &&
+    unidentifiedResultPages.length &&
+    !context.deadline?.softTargetPassed()
+  ) {
+    let opened = 0;
+    for (const page of unidentifiedResultPages) {
+      for (const link of discoverUnverifiedResultLinks(page.html, page.url, catalogNumber, UNVERIFIED_RESULT_LINK_LIMIT)) {
+        if (opened >= UNVERIFIED_RESULT_LINK_LIMIT) break;
+        opened += 1;
+        add({
+          url: link.url,
+          score: scoreDiscoveryCandidate(link.url, catalogNumber, "search-result-unverified", manufacturer),
+          reason: `${link.reason} from ${page.url}`,
+          stage: "search-result-unverified",
+          sourceType: "official-fallback"
+        });
+      }
+      if (opened >= UNVERIFIED_RESULT_LINK_LIMIT) break;
+    }
+    if (opened) notes.push(`Opened ${opened} unidentified search result(s) for post-fetch verification.`);
+  }
+
+  // The last resort, and only if the operator switched it on (P4.12).
+  //
+  // Placed here on purpose: after every route of our own has been tried, so it can never mask their
+  // failures, and before URL guessing, because a search engine's answer is at least an observed URL
+  // while a guess is not. Still not proof of anything — it goes through the same official-domain guard
+  // as every other candidate and is then verified by the post-fetch identity gate.
+  if (!confirmedTemplateUrl && !hasEvidenceBackedCandidate(candidates) && externalSearchEnabled()) {
+    const bridgeUrl = externalSearchUrl(officialOrigins(manufacturer).map(hostOfOrigin).filter(Boolean) as string[], catalogNumber);
+    if (bridgeUrl) {
+      attemptedUrls.push(bridgeUrl);
+      try {
+        const fetched = await fetchDiscoveryText(bridgeUrl, context);
+        let accepted = 0;
+        for (const url of parseExternalSearchResults(fetched, EXTERNAL_SEARCH_RESULT_LIMIT)) {
+          if (!isAllowedOfficialUrl(url, manufacturer)) continue;
+          accepted += 1;
+          add({
+            url,
+            // Between a sitemap entry (the vendor's own index) and a pure guess: observed to exist,
+            // but observed by a third party rather than by the vendor.
+            score: scoreDiscoveryCandidate(url, catalogNumber, "search-result-unverified", manufacturer) + 6,
+            reason: "external search bridge result (opt-in)",
+            stage: "search-result-unverified",
+            sourceType: "official-fallback"
+          });
+        }
+        notes.push(`External search bridge returned ${accepted} official-domain candidate(s). Enabled via ${"PRODUCT_SCRAPER_ALLOW_EXTERNAL_SEARCH"}.`);
+      } catch (error) {
+        notes.push(`External search bridge failed: ${formatError(error)}`);
       }
     }
   }
@@ -495,6 +756,11 @@ export function scoreDiscoveryCandidate(
       ? 70
       : stage === "search-result"
         ? 58
+        // Below every evidence-backed stage AND below a sitemap entry: this link is not known to
+        // be about the requested product at all, it is only the best of what the results page
+        // offered. It earns its rank from the post-fetch gate or not at all.
+        : stage === "search-result-unverified"
+          ? 30
         : stage === "sitemap"
           ? 52
           : 40;
@@ -517,6 +783,12 @@ export function scoreDiscoveryCandidate(
   //
   // Guesses are still worth trying — they are cheap and sometimes right — but they must sort BELOW
   // anything backed by evidence, so the cap sits under the search-result base of 58.
+  // The base is only half the story: the URL-SHAPE bonuses below it (+15 product-ish path, +10
+  // official host) lifted an unverified result to 55 in the live Ganter probe — level with a url-variant
+  // guess and ABOVE a sitemap entry's base of 52. That inverts the whole point of the stage, so it gets
+  // a ceiling of its own, exactly as url-variant does and for the identical reason: shape bonuses must
+  // not let a maybe outrank the vendor's own index.
+  if (stage === "search-result-unverified") return Math.max(0, Math.min(UNVERIFIED_RESULT_MAX_SCORE, score));
   if (stage === "url-variant") return Math.max(0, Math.min(URL_VARIANT_MAX_SCORE, score));
   return Math.max(0, Math.min(100, score));
 }
@@ -543,6 +815,36 @@ function exactOfficialProductRedirectUrl(
   return findCatalogTextMatch(effectiveUrl, catalogNumber)?.level === "exact" || scoreFetchedDiscoveryEvidence(fetched, catalogNumber).catalogConfirmed
     ? effectiveUrl
     : undefined;
+}
+
+/**
+ * Re-ask the same endpoint with a different query term (P4.6).
+ *
+ * Substitution, not construction: the vendor's own URL is kept exactly as it answered, and only the
+ * term inside it changes. That is why this works for a query parameter and a path segment alike
+ * without knowing which the vendor used — and why it refuses when the term is not actually in the URL,
+ * rather than inventing a parameter the vendor never named.
+ */
+function replaceQueryTerm(searchUrl: string, catalogNumber: string, term: string): string | undefined {
+  if (!term || term === catalogNumber) return undefined;
+  // Vendors encode the same term differently in path and query (`%20` vs `+`), so try the encodings
+  // we actually emit before giving up.
+  const encodings = [encodeURIComponent(catalogNumber), encodeURIComponent(catalogNumber).replace(/%20/g, "+"), catalogNumber];
+  for (const encoded of encodings) {
+    if (!searchUrl.includes(encoded)) continue;
+    const replacement = encoded.includes("+") ? encodeURIComponent(term).replace(/%20/g, "+") : encodeURIComponent(term);
+    const next = searchUrl.split(encoded).join(replacement);
+    if (next !== searchUrl) return next;
+  }
+  return undefined;
+}
+
+function hostOfOrigin(origin: string): string | undefined {
+  try {
+    return new URL(origin).host;
+  } catch {
+    return undefined;
+  }
 }
 
 /** The site root, with nothing identifying a product: no path, no query. */
@@ -834,6 +1136,38 @@ const FORM_PROBE_BUDGET_MS = 3000;
  */
 const FORM_REQUEST_BUDGET_BOOST = 3;
 
+/** At most one description document per probe page: a site publishes one, not a catalogue of them. */
+const OPEN_SEARCH_DESCRIPTION_LIMIT = 1;
+/** Results page + suggest endpoint is the whole useful set; more would be locale duplicates. */
+const OPEN_SEARCH_REQUEST_LIMIT = 2;
+
+/** Diagnostics, not a log: a handful of verdicts explains the stage, 28 of them buries it. */
+const SEARCH_VERDICT_NOTE_LIMIT = 4;
+
+/** How many zero-answering endpoints are worth re-asking. One working endpoint is the normal case. */
+const REFORMULATION_SOURCE_LIMIT = 2;
+/** Query variants past the literal catalog number: compact, dashed, after-colon, family. */
+const REFORMULATION_VARIANT_LIMIT = 4;
+/** Reformulation is evidence-chasing, not guessing, so it gets its own small budget like forms do. */
+const REFORMULATION_BUDGET_BOOST = 4;
+/** Result pages kept in memory for P4.7. Search HTML is large; two is enough to try. */
+const UNVERIFIED_RESULT_PAGE_LIMIT = 2;
+/** How many unidentified results a person would realistically click before giving up. */
+const UNVERIFIED_RESULT_LINK_LIMIT = 3;
+/** A person scanning search results gives up well before the fifth one. */
+const EXTERNAL_SEARCH_RESULT_LIMIT = 5;
+
+/** Bounded so one enormous vendor sitemap cannot turn the local database into a copy of their site. */
+const SITEMAP_INDEX_MAX_URLS = 20_000;
+/** 30 days: long enough to pay for itself across runs, short enough to notice a new product line. */
+const SITEMAP_INDEX_TTL_MS = 30 * 24 * 60 * 60 * 1000;
+
+/** Under the sitemap base of 52: the vendor's own index always beats a link nobody identified. */
+const UNVERIFIED_RESULT_MAX_SCORE = 45;
+
+/** A family-prefix query can only reach the family page; it must sort below an exact-query answer. */
+const FAMILY_QUERY_SCORE_PENALTY = 18;
+
 /**
  * A 3D/CAD viewer portal is not a product data sheet, so it must not be fetched ahead of one.
  *
@@ -877,11 +1211,21 @@ function hasSearchResultCandidate(candidates: Map<string, ProductDiscoveryCandid
  *
  * `url-variant` candidates are synthesised by pattern ({origin}/products/{part} and friends) and are
  * never checked for existence before being scored, so their presence says nothing about whether we
- * have found anything. Every other stage does rest on evidence: a configured or localized template, a
- * learned endpoint that previously worked, or a link found on a fetched search-results page.
+ * have found anything. Most other stages do rest on evidence: a configured or localized template, a
+ * learned endpoint that previously worked, or a link found on a fetched search-results page that
+ * actually carried the catalog number.
+ *
+ * `search-result-unverified` is the exception that has to be spelled out, because it is the one stage
+ * whose name could mislead a later reader into thinking it belongs on the evidence side. Nothing about
+ * it says the link is about the requested product — it is only the best of what a results page
+ * offered, and the post-fetch gate has not run yet. Counting it here would let ONE unidentified link
+ * (or, worse, an opt-in external search hit) suppress sitemap discovery, which reads the vendor's own
+ * index and is strictly better evidence than either.
  */
 function hasEvidenceBackedCandidate(candidates: Map<string, ProductDiscoveryCandidate>): boolean {
-  return [...candidates.values()].some((candidate) => candidate.stage !== "url-variant");
+  return [...candidates.values()].some(
+    (candidate) => candidate.stage !== "url-variant" && candidate.stage !== "search-result-unverified"
+  );
 }
 
 function shouldUseRenderedSearchDiscovery(context: ScrapeContext): boolean {
@@ -926,6 +1270,10 @@ async function discoverSearchFormRequests(
     attemptedUrls.push(pageUrl);
     try {
       const fetched = await fetchDiscoveryText(pageUrl, context);
+      // The site's OWN declared search URL, read out of the page we already have (P4.4). It goes
+      // ahead of the inferred form requests because a vendor-published template is evidence, while a
+      // form we picked by scoring its inputs is an inference.
+      requests.unshift(...(await openSearchRequests(fetched.text, fetched.effectiveUrl, catalogNumber, context, attemptedUrls, notes)));
       requests.push(...searchRequestsFromForms(fetched.text, fetched.effectiveUrl, catalogNumber));
       // The vendor's search form is in hand. Another locale's copy of the same form teaches nothing.
       if (requests.length) break;
@@ -946,6 +1294,51 @@ async function discoverSearchFormRequests(
     if (!uniqueRequests.has(key)) uniqueRequests.set(key, request);
   }
   return [...uniqueRequests.values()].slice(0, 10);
+}
+
+/**
+ * Turn a page's OpenSearch autodiscovery link into real search requests (P4.4).
+ *
+ * Costs at most ONE extra fetch — the description document itself — and only on a page we were going
+ * to fetch anyway. The suggest template is included because it is the same typeahead JSON the browser
+ * path exists to capture, and here it needs no browser at all.
+ *
+ * Two guards, both the same ones every other discovery input passes:
+ *   - the description document and every template it yields must live on an allowed official domain,
+ *     because `href` may legitimately point at a CDN that is NOT the vendor;
+ *   - an unresolvable template is dropped rather than sent half-filled (`fillOpenSearchTemplate`).
+ */
+async function openSearchRequests(
+  html: string,
+  baseUrl: string,
+  catalogNumber: string,
+  context: ScrapeContext,
+  attemptedUrls: string[],
+  notes: string[]
+): Promise<SearchDiscoveryRequest[]> {
+  const descriptionUrls = openSearchDescriptionUrls(html, baseUrl)
+    .filter((url) => isAllowedOfficialUrl(url, context.manufacturer))
+    .slice(0, OPEN_SEARCH_DESCRIPTION_LIMIT);
+  const requests: SearchDiscoveryRequest[] = [];
+  for (const descriptionUrl of descriptionUrls) {
+    attemptedUrls.push(descriptionUrl);
+    try {
+      const fetched = await fetchDiscoveryText(descriptionUrl, context);
+      if (fetched.statusCode < 200 || fetched.statusCode >= 300) continue;
+      const templates = openSearchTemplates(fetched.text, fetched.effectiveUrl || descriptionUrl);
+      // HTML results page first, then the suggest endpoint: the results page is what the rest of the
+      // pipeline is built to read, and suggestions are a bonus source, not a replacement.
+      for (const template of [...templates.html, ...templates.suggestions]) {
+        const url = fillOpenSearchTemplate(template, catalogNumber);
+        if (!url || !isAllowedOfficialUrl(url, context.manufacturer)) continue;
+        requests.push({ url, method: "GET" });
+      }
+      if (requests.length) notes.push(`Vendor declares its own search via OpenSearch: ${descriptionUrl}`);
+    } catch (error) {
+      notes.push(`OpenSearch description fetch failed for ${descriptionUrl}: ${formatError(error)}`);
+    }
+  }
+  return requests.slice(0, OPEN_SEARCH_REQUEST_LIMIT);
 }
 
 /** Vendor-declared locale entries only. Product-page alternates remain link-discovery's job. */
@@ -1203,27 +1596,68 @@ async function discoverFromSitemaps(
     ...(await robotsSitemapUrls(context, attemptedUrls, notes))
   ];
   const found = new Set<string>();
-  const queue = [...new Set(sitemapUrls)].slice(0, 8);
   const compactPart = compactCatalogNumber(catalogNumber);
 
-  while (queue.length && found.size < 12) {
+  // The index is built ONCE per manufacturer, not re-walked per catalog number (P4.11).
+  //
+  // A real run is 150 numbers from one vendor, and the walk below costs up to eight sitemap fetches
+  // every single time — for a result that does not depend on the catalog number at all. The index
+  // turns that into one local lookup. It is also strictly more complete than the old behaviour: the
+  // walk used to keep only the dozen URLs matching the current number and throw the rest away.
+  const indexStatus = context.sitemapIndex?.status(manufacturer.id);
+  if (indexStatus?.count && !sitemapIndexIsStale(indexStatus.indexedAt)) {
+    for (const url of context.sitemapIndex!.lookup(manufacturer.id, compactPart, 12)) found.add(url);
+    notes.push(`Sitemap index hit ${found.size}/${indexStatus.count} indexed URLs (indexed ${indexStatus.indexedAt ?? "unknown"}).`);
+    return [...found].filter((url) => isAllowedOfficialUrl(url, manufacturer));
+  }
+
+  const queue = [...new Set(sitemapUrls)].slice(0, 8);
+  /** Everything the walk saw, not just what matched — that is what makes it an index. */
+  const indexed = new Map<string, string>();
+
+  while (queue.length && (found.size < 12 || indexed.size < SITEMAP_INDEX_MAX_URLS)) {
     const sitemapUrl = queue.shift()!;
     attemptedUrls.push(sitemapUrl);
     try {
       const fetched = await fetchSitemapText(sitemapUrl, context);
       const locs = extractSitemapLocs(fetched.text);
       for (const loc of locs) {
+        const isNestedSitemap = /sitemap/i.test(loc) && /\b(product|catalog|sku|pim|en|de)\b/i.test(loc);
+        if (!isNestedSitemap && indexed.size < SITEMAP_INDEX_MAX_URLS) indexed.set(loc, compactCatalogNumber(loc));
         if (catalogTextMatches(loc, catalogNumber, { compact: true, afterColon: true }) || compactCatalogNumber(loc).includes(compactPart)) {
           found.add(loc);
           continue;
         }
-        if (queue.length < 8 && /sitemap/i.test(loc) && /\b(product|catalog|sku|pim|en|de)\b/i.test(loc)) queue.push(loc);
+        if (queue.length < 8 && isNestedSitemap) queue.push(loc);
       }
     } catch (error) {
       notes.push(`Sitemap discovery failed for ${sitemapUrl}: ${formatError(error)}`);
     }
   }
+
+  if (context.sitemapIndex && indexed.size) {
+    try {
+      context.sitemapIndex.replace(
+        manufacturer.id,
+        [...indexed.entries()].map(([url, compactUrl]) => ({ url, compactUrl }))
+      );
+      notes.push(`Indexed ${indexed.size} sitemap URLs for ${manufacturer.id}; later catalog numbers look them up locally.`);
+    } catch (error) {
+      // An index is an optimisation for the next item, never a reason to fail this one.
+      notes.push(`Sitemap index write failed: ${formatError(error)}`);
+    }
+  }
   return [...found].filter((url) => isAllowedOfficialUrl(url, manufacturer));
+}
+
+/**
+ * A vendor adds and renames products. A month-old index still saves eight fetches per item and is
+ * re-walked on the next run; a year-old one would quietly stop finding new products.
+ */
+function sitemapIndexIsStale(indexedAt: string | undefined, now = Date.now()): boolean {
+  const at = indexedAt ? Date.parse(indexedAt) : NaN;
+  if (!Number.isFinite(at)) return true;
+  return now - at > SITEMAP_INDEX_TTL_MS;
 }
 
 async function robotsSitemapUrls(context: ScrapeContext, attemptedUrls: string[], notes: string[]): Promise<string[]> {

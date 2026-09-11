@@ -4,6 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import {
   coalesceImageDocuments,
+  cohortAnomalyPatchesForRun,
   documentDownloadCandidateUrls,
   documentDownloadProfile,
   documentExtension,
@@ -17,7 +18,7 @@ import {
   withRemoteDocumentProbeSkippedDiagnostics
 } from "../src/server/run-manager.js";
 import { getManufacturerConfig } from "../src/server/config/manufacturers.js";
-import type { DocumentRecord, ProductResult } from "../src/shared/types.js";
+import type { DocumentRecord, ProductResult, RunItemRecord } from "../src/shared/types.js";
 
 describe("hidden coverage tiles become a not-applicable policy", () => {
   it("maps the switched-off built-in tiles to field requirements", () => {
@@ -64,6 +65,57 @@ describe("authoritative terminal connector results", () => {
         sources: []
       })
     ).toBe(false);
+  });
+});
+
+describe("cohortAnomalyPatchesForRun", () => {
+  function runItem(id: number, catalogNumber: string, weight: string | undefined): RunItemRecord {
+    return {
+      id,
+      runId: "run-1",
+      rowIndex: id,
+      catalogNumber,
+      status: "found",
+      result: {
+        manufacturerId: "test",
+        catalogNumber,
+        status: "found",
+        confidence: 0.9,
+        normalized: { weight },
+        attributes: [{ group: "General", name: "Product Type", value: "Contactor", sourceType: "official" }],
+        documents: [],
+        sources: []
+      },
+      updatedAt: new Date().toISOString()
+    };
+  }
+
+  it("returns a patch only for the outlier item, carrying its cohort context", () => {
+    const weights = [1.2, 1.3, 1.25, 1.28, 1.22, 1.31, 1.27, 1.24, 120];
+    const items = weights.map((kg, index) => runItem(index, `CAT-${index}`, `${kg} kg`));
+
+    const patches = cohortAnomalyPatchesForRun(items);
+
+    expect(patches).toHaveLength(1);
+    expect(patches[0].item.catalogNumber).toBe("CAT-8");
+    expect(patches[0].cohortAnomalies).toHaveLength(1);
+    expect(patches[0].cohortAnomalies[0]).toMatchObject({ field: "weight", value: 120, deviceType: "Contactor" });
+  });
+
+  it("skips runs with fewer than 3 resulted items entirely", () => {
+    const items = [runItem(0, "CAT-0", "1.2 kg"), runItem(1, "CAT-1", "900 kg")];
+    expect(cohortAnomalyPatchesForRun(items)).toEqual([]);
+  });
+
+  it("produces no patches when nothing is anomalous", () => {
+    const weights = [1.2, 1.3, 1.25, 1.28, 1.22, 1.31, 1.27, 1.24];
+    const items = weights.map((kg, index) => runItem(index, `CAT-${index}`, `${kg} kg`));
+    expect(cohortAnomalyPatchesForRun(items)).toEqual([]);
+  });
+
+  it("ignores items with no result", () => {
+    const items = [runItem(0, "CAT-0", "1.2 kg"), runItem(1, "CAT-1", "1.3 kg"), { ...runItem(2, "CAT-2", undefined), result: undefined }];
+    expect(cohortAnomalyPatchesForRun(items)).toEqual([]);
   });
 });
 

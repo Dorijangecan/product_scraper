@@ -1,7 +1,8 @@
 import ExcelJS from "exceljs";
 import type { AttributeRecord, RunItemRecord } from "../../shared/types.js";
 import { getManufacturerConfig } from "../config/manufacturers.js";
-import { cellText, clearBody, describeSheet, firstDataRow } from "./sheet-descriptor.js";
+import type { AccessoryMatrixPlan } from "./accessory-matrix.js";
+import { cellText, clearBody, describeSheet, firstDataRow, type PdtColumn, type SheetDescriptor } from "./sheet-descriptor.js";
 
 interface AccessoryRow {
   parentCatalog: string;
@@ -36,10 +37,27 @@ export const CURATED_ACCESSORY_RULES: CuratedAccessoryRule[] = [
   }
 ];
 
-export function writeProductAccessorySheet(ws: ExcelJS.Worksheet, items: RunItemRecord[]): number {
+/**
+ * Fill the Product Accessory tab.
+ *
+ * With an accessory matrix attached the matrix is the only source: it is operator-authored and
+ * authoritative, so scraped and curated accessory rows are not mixed in (see the module docs of
+ * `accessory-matrix.ts`). Without one, behaviour is unchanged.
+ */
+export function writeProductAccessorySheet(
+  ws: ExcelJS.Worksheet,
+  items: RunItemRecord[],
+  matrix?: AccessoryMatrixPlan
+): number {
   const descriptor = describeSheet(ws);
   if (!descriptor) return 0;
   clearBody(ws, descriptor.firstBodyRow);
+
+  if (matrix) {
+    const written = writeMatrixAccessoryRows(ws, descriptor, matrix);
+    removeTemplateLabelColumn(ws);
+    return written;
+  }
 
   const itemsByCatalog = new Map<string, RunItemRecord>();
   for (const item of items) {
@@ -60,6 +78,74 @@ export function writeProductAccessorySheet(ws: ExcelJS.Worksheet, items: RunItem
   }
   removeTemplateLabelColumn(ws);
   return rows.length;
+}
+
+interface MatrixAccessoryColumns {
+  mainPart: number;
+  point: number;
+  accessory: number;
+  relation: number;
+  variant: number;
+}
+
+function writeMatrixAccessoryRows(
+  ws: ExcelJS.Worksheet,
+  descriptor: SheetDescriptor,
+  matrix: AccessoryMatrixPlan
+): number {
+  const columns = resolveMatrixAccessoryColumns(descriptor);
+  let rowNumber = firstDataRow(descriptor);
+  let written = 0;
+  for (const entry of matrix.accessoryRows) {
+    if (entry.kind === "separator") {
+      // Mirror the manual sheet: one blank row between main-part groups.
+      rowNumber += 1;
+      continue;
+    }
+    ws.getCell(rowNumber, columns.mainPart).value = entry.mainPart;
+    ws.getCell(rowNumber, columns.point).value = entry.point;
+    ws.getCell(rowNumber, columns.accessory).value = entry.accessory;
+    ws.getCell(rowNumber, columns.relation).value = entry.relation;
+    ws.getCell(rowNumber, columns.variant).value = entry.variantIndex;
+    rowNumber += 1;
+    written += 1;
+  }
+  return written;
+}
+
+/**
+ * Locate the five matrix target columns by their PDT property ids rather than by position, so a
+ * template that gains or loses a column keeps working. A missing column means the template no
+ * longer matches this writer — fail loudly instead of writing the matrix into the wrong cells.
+ */
+function resolveMatrixAccessoryColumns(descriptor: SheetDescriptor): MatrixAccessoryColumns {
+  const point = findColumn(descriptor, ["CNS_PARENT_CLS_ID_INST_ID", "00004D001"], /connection point name/);
+  const accessory = findColumn(descriptor, ["AAO676", "000059001"], /articlenumber accessory/);
+  const relation = findColumn(descriptor, ["AAN350", "000054001"], /part relation to the main device/);
+  const variant = findColumn(descriptor, ["AAN553", "CNS_ASSOCIATED_PART_VARIANT_NAME"], /accessory variant name/);
+  const mainPart =
+    findColumn(descriptor, [], /^articlenumber main product/) ??
+    descriptor.columns.find((column) => column.col === 2)?.col;
+
+  const missing = Object.entries({ mainPart, point, accessory, relation, variant })
+    .filter(([, col]) => !col)
+    .map(([name]) => name);
+  if (missing.length > 0) {
+    throw new Error(
+      `The PDT template's Product Accessory tab is missing the accessory matrix target column(s): ${missing.join(", ")}.`
+    );
+  }
+  return { mainPart: mainPart!, point: point!, accessory: accessory!, relation: relation!, variant: variant! };
+}
+
+function findColumn(descriptor: SheetDescriptor, codes: string[], description: RegExp): number | undefined {
+  const wanted = codes.map((code) => code.trim().toUpperCase());
+  const matches = (column: PdtColumn): boolean => {
+    const keys = [column.code, column.propName].map((key) => key.trim().toUpperCase());
+    if (wanted.some((code) => keys.includes(code))) return true;
+    return description.test(column.description.trim().toLowerCase());
+  };
+  return descriptor.columns.find(matches)?.col;
 }
 
 function accessoryRowsForItem(item: RunItemRecord): AccessoryRow[] {

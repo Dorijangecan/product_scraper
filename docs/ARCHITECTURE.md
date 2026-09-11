@@ -230,6 +230,30 @@ Key modules:
 | [`eclass-resolvers.ts`](../src/server/pdt/eclass-resolvers.ts) | Resolves normalized attributes into PDT columns |
 | [`documents-sheet.ts`](../src/server/pdt/documents-sheet.ts) | Adds downloaded/customer document references |
 | [`ai-cleanup.ts`](../src/server/pdt/ai-cleanup.ts) | Optional local Ollama/Qwen cleanup, off by default |
+| [`accessory-matrix.ts`](../src/server/pdt/accessory-matrix.ts) | Parses the operator's accessory matrix workbook into accessory rows, connection point rows and INLIST conditions |
+| [`connection-point-sheet.ts`](../src/server/pdt/connection-point-sheet.ts) | Fills Connection Point Information — from the matrix only |
+| [`accessory-conditions-sheet.ts`](../src/server/pdt/accessory-conditions-sheet.ts) | Writes the matrix's INLIST conditions into the products workbook |
+
+### Accessory Matrix
+
+Which accessory sits on which connection point of which main product is not published data — the
+operator maintains it in a small workbook (first sheet: row 2 = point names, row 3 = descriptions,
+main parts in column A from row 4). It used to be turned into three staging sheets by a VBA macro
+and copy/pasted into the PDT by hand; the matrix modules do that deterministically instead.
+
+- Attach it with the run (`RunOptions.accessoryMatrix`) or later from the PDT panel
+  (`POST /api/runs/:id/accessory-matrix`, which replaces the run's matrix for the next export).
+- **It can replace the catalog CSV.** With a manufacturer picked and only a matrix attached, the
+  run scrapes the matrix's main parts (column A) — `POST /api/runs` no longer requires `file`, and
+  `accessoryMatrixCatalogNumbers` normalizes them exactly like a CSV column. The accessory part
+  numbers are not scraped: the PDT's accessory rows come from the matrix verbatim.
+- While attached it is the **only** source for the Product Accessory and Connection Point
+  Information tabs: it is hand-authored and authoritative, so scraped and curated accessory rows
+  are not mixed in. Every matrix row is written even when its main part was not scraped in the
+  run — unknown main parts are reported as a warning, since they are usually typos.
+- Target columns are resolved by PDT property id, never by position.
+- The INLIST conditions are not part of the PDT: they land in the products workbook as an
+  "Accessory Conditions" sheet.
 
 `npm run audit:pdt` validates the template, resolver coverage, profile mapping,
 ontology facts and benchmark fixtures.

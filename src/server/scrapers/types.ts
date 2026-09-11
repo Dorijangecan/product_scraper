@@ -9,6 +9,7 @@ import type {
 } from "../../shared/types.js";
 import type { CachedHttpClient } from "./http-client.js";
 import type { BrowserRenderSession } from "./browser-renderer.js";
+import type { ProductAliasStore } from "./product-aliases.js";
 import type { ProductDiscoveryResult } from "./discovery.js";
 
 export interface ScrapeContext {
@@ -46,6 +47,20 @@ export interface ScrapeContext {
     list: (manufacturerId: string, limit?: number) => LearnedEndpointRecord[];
     upsert: (endpoint: Omit<LearnedEndpointRecord, "id" | "successCount" | "lastSuccessAt">) => void;
     recordFailure?: (manufacturerId: string, method: "GET" | "POST", urlTemplate: string) => void;
+  };
+  /**
+   * The vendor's other names for a catalog number (P4.8). Read to ASK the vendor's search a question
+   * it can answer; never read to decide that a fetched page is the requested product.
+   */
+  productAliases?: ProductAliasStore;
+  /**
+   * The manufacturer's sitemap URL index (P4.11), built once instead of re-walked per catalog number.
+   * Absent for callers with no database (wizard validation, tests): discovery then walks as before.
+   */
+  sitemapIndex?: {
+    status: (manufacturerId: string) => { count: number; indexedAt?: string };
+    lookup: (manufacturerId: string, compactPart: string, limit?: number) => string[];
+    replace: (manufacturerId: string, entries: Array<{ url: string; compactUrl: string }>) => void;
   };
   learnedExtractors?: {
     list: (manufacturerId: string, host: string, limit?: number) => LearnedExtractorRecord[];

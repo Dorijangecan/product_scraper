@@ -5,10 +5,12 @@ import os from "node:os";
 import path from "node:path";
 import sanitize from "sanitize-filename";
 import type {
+  CohortAnomalyDiagnostic,
   CustomerDocumentRecord,
   DocumentDownloadProfile as SharedDocumentDownloadProfile,
   DocumentProcessingDiagnostic,
   DocumentRecord,
+  FieldCoverageMatrixRow,
   FinalCompletenessPolicyField,
   ManufacturerConfig,
   ManufacturerId,
@@ -45,6 +47,8 @@ import { buildRunOutputLayout, ensureRunOutputLayout, type RunOutputLayout } fro
 import { documentUrlLooksRelevant, isPdfLikeDocument } from "./scrapers/document-url.js";
 import { isDocumentViewerUrl, resolveViewerPdfUrl } from "./scrapers/document-viewer-resolver.js";
 import { isLikelyNonProductImage, isLikelySchematicImage } from "./scrapers/generic.js";
+import { detectCohortAnomalies } from "./scrapers/cohort-anomaly.js";
+import { buildFieldCoverageMatrixRow, detectFieldCoverageDrift, fieldCoverageSnapshot } from "./scrapers/field-coverage-drift.js";
 
 export type DocumentDownloadProfile = SharedDocumentDownloadProfile;
 
@@ -146,8 +150,20 @@ export class RunManager {
    *
    * Binding them in one place is the actual fix: a fourth call site cannot forget two of the three.
    */
-  private learningContext(): Pick<ScrapeContext, "learnedEndpoints" | "learnedExtractors" | "targetHealth"> {
+  private learningContext(): Pick<
+    ScrapeContext,
+    "learnedEndpoints" | "learnedExtractors" | "targetHealth" | "productAliases" | "sitemapIndex"
+  > {
     return {
+      sitemapIndex: {
+        status: (manufacturerId) => this.db.sitemapIndexStatus(manufacturerId),
+        lookup: (manufacturerId, compactPart, limit) => this.db.lookupSitemapUrls(manufacturerId, compactPart, limit),
+        replace: (manufacturerId, entries) => this.db.replaceSitemapUrls(manufacturerId, entries)
+      },
+      productAliases: {
+        list: (manufacturerId, catalogNumber, limit) => this.db.listProductAliases(manufacturerId, catalogNumber, limit),
+        upsert: (alias) => this.db.upsertProductAlias(alias)
+      },
       learnedEndpoints: {
         list: (manufacturerId, limit) => this.db.listLearnedEndpoints(manufacturerId, limit),
         upsert: (endpoint) => this.db.upsertLearnedEndpoint(endpoint),
@@ -1174,6 +1190,35 @@ export class RunManager {
     }
   }
 
+  /**
+   * Cross-record outlier check across the whole run, right before export: per-item gates can only
+   * judge a value in isolation, so a row whose weight/voltage/current/temperature is statistically
+   * far from the rest of its own device-type cohort in this run would otherwise pass silently (see
+   * cohort-anomaly.ts for why this catches a bug class per-item checks structurally cannot). Mutates
+   * each flagged item's `result.diagnostics.cohortAnomalies` in place (both in `items` and in the DB)
+   * so the flags reach the Excel export and persist for any later re-export of the same run.
+   */
+  private applyCohortAnomalyDiagnostics(items: RunItemRecord[]) {
+    for (const { item, cohortAnomalies } of cohortAnomalyPatchesForRun(items)) {
+      item.result = { ...item.result!, diagnostics: { ...item.result!.diagnostics, cohortAnomalies } };
+      this.db.updateRunItem(item.id, { result: item.result });
+    }
+  }
+
+  /**
+   * Shape-level drift check: this run's per-field fill rate against a rolling baseline of the same
+   * manufacturer's recent completed runs (see field-coverage-drift.ts for why a single run can't see
+   * this on its own). Read-only/computed-at-export-time — not persisted, so it never goes stale on
+   * its own and costs nothing when a manufacturer has no completed history yet.
+   */
+  private computeFieldCoverageDrift(manufacturerId: ManufacturerId, runId: string, currentItems: RunItemRecord[]) {
+    const currentSnapshot = fieldCoverageSnapshot(currentItems.map((item) => item.result).filter((result): result is ProductResult => Boolean(result)));
+    const historicalSnapshots = this.db
+      .listCompletedRunsByManufacturer(manufacturerId, runId)
+      .map((run) => fieldCoverageSnapshot(this.db.getRunItems(run.id).map((item) => item.result).filter((result): result is ProductResult => Boolean(result))));
+    return detectFieldCoverageDrift(currentSnapshot, historicalSnapshots);
+  }
+
   private async finalizeRun(runId: string, status: "completed" | "cancelled") {
     const finalRun = this.db.getRun(runId);
     if (!finalRun) return;
@@ -1182,6 +1227,9 @@ export class RunManager {
     this.db.recountRun(runId);
     const layout = buildRunOutputLayout(this.paths.outputDir, manufacturer, finalRun);
     await ensureRunOutputLayout(layout);
+    const runItems = this.db.getRunItems(runId);
+    if (status === "completed") this.applyCohortAnomalyDiagnostics(runItems);
+    const fieldCoverageDrift = status === "completed" ? this.computeFieldCoverageDrift(finalRun.manufacturerId, runId, runItems) : [];
     // "Images only" mode skips workbook generation; everything else still produces one.
     const shouldGenerateExcel = finalRun.options?.generateExcel !== false;
     const shouldGenerateLinksFile = finalRun.options?.generateLinksFile === true;
@@ -1193,7 +1241,8 @@ export class RunManager {
           return withTimeout(exportRunWorkbook({
             run: this.db.getRun(runId)!,
             manufacturer,
-            items: this.db.getRunItems(runId),
+            items: runItems,
+            fieldCoverageDrift,
             outputDir: layout.excelDir,
             onActivity: (activity) => this.updateRunActivity(runId, activity.stage, activity.message)
           }), timeoutMs, `Excel export exceeded the ${Math.round(timeoutMs / 60000)} minute safety limit.`);
@@ -2111,6 +2160,49 @@ function withoutNonImageRequiredDocuments(manufacturer: ManufacturerConfig): Man
  * `enUrl`/`deUrl` and `custom:` tiles are display-only concepts with no field requirement behind
  * them, so they are ignored here.
  */
+/**
+ * Pure computation of which run items need a `cohortAnomalies` diagnostic patch — split out from
+ * `applyCohortAnomalyDiagnostics` so the grouping/flagging logic is testable without a DB. Requires
+ * at least 3 items with a result; `detectCohortAnomalies` itself further gates per field/cohort.
+ */
+export function cohortAnomalyPatchesForRun(
+  items: RunItemRecord[]
+): Array<{ item: RunItemRecord; cohortAnomalies: CohortAnomalyDiagnostic[] }> {
+  const results = items.filter((item): item is RunItemRecord & { result: ProductResult } => Boolean(item.result)).map((item) => item.result);
+  if (results.length < 3) return [];
+
+  const flagsByCatalog = new Map<string, CohortAnomalyDiagnostic[]>();
+  for (const flag of detectCohortAnomalies(results)) {
+    const { catalogNumber, ...diagnostic } = flag;
+    const bucket = flagsByCatalog.get(catalogNumber);
+    if (bucket) bucket.push(diagnostic);
+    else flagsByCatalog.set(catalogNumber, [diagnostic]);
+  }
+  if (!flagsByCatalog.size) return [];
+
+  return items
+    .filter((item) => item.result && flagsByCatalog.has(item.catalogNumber))
+    .map((item) => ({ item, cohortAnomalies: flagsByCatalog.get(item.catalogNumber)! }));
+}
+
+/**
+ * Cross-manufacturer field-coverage health matrix for the dashboard: one row per manufacturer with
+ * completed run history, comparing its most recent completed run against the completed runs right
+ * before it (same baseline logic as `computeFieldCoverageDrift`, just for whichever run is currently
+ * "latest" rather than one specific in-flight run). Read-only, computed on demand — nothing here is
+ * persisted, so the matrix is always as fresh as the DB itself.
+ */
+export function buildFieldCoverageMatrix(db: ScraperDb): FieldCoverageMatrixRow[] {
+  const rows = db.listManufacturerIdsWithCompletedRuns().flatMap((manufacturerId): FieldCoverageMatrixRow[] => {
+    const [lastRun, ...baselineRuns] = db.listCompletedRunsByManufacturer(manufacturerId, "", 6);
+    if (!lastRun) return [];
+    const snapshotFor = (run: RunRecord) => fieldCoverageSnapshot(db.getRunItems(run.id).map((item) => item.result).filter((result): result is ProductResult => Boolean(result)));
+    const canonicalName = getManufacturerConfig(manufacturerId)?.canonicalName ?? manufacturerId;
+    return [buildFieldCoverageMatrixRow(manufacturerId, canonicalName, lastRun.id, lastRun.updatedAt, snapshotFor(lastRun), baselineRuns.map(snapshotFor))];
+  });
+  return rows.sort((a, b) => a.canonicalName.localeCompare(b.canonicalName));
+}
+
 export function notApplicableFieldsFromHiddenCoverage(hiddenCoverageFields: string[] | undefined): FinalCompletenessPolicyField[] {
   const policyFields: FinalCompletenessPolicyField[] = [
     "image",

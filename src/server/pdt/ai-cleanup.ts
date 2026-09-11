@@ -99,6 +99,10 @@ const DEFAULT_OLLAMA_HOST = "http://127.0.0.1:11434";
 const DEFAULT_OLLAMA_MODEL = "qwen3:4b";
 const DEFAULT_OLLAMA_HEALTH_TIMEOUT_MS = 5000;
 const DEFAULT_OLLAMA_GENERATE_TIMEOUT_MS = 180000;
+// A per-batch timeout alone is not enough: a large run can contain many batches and keep the
+// final Excel export apparently busy for an unbounded amount of time.  Deterministic cleanup is
+// already available, so the optional local-model pass must have a finite run-level budget.
+const DEFAULT_QWEN_TOTAL_TIMEOUT_MS = 10 * 60 * 1000;
 const DEFAULT_QWEN_BATCH_SIZE = 4;
 const REPAIR_FIELDS = [
   "eclassCode",
@@ -158,6 +162,7 @@ export async function buildPdtRepairResult(
   const host = (process.env.OLLAMA_HOST?.trim() || DEFAULT_OLLAMA_HOST).replace(/\/+$/, "");
   const healthTimeoutMs = envTimeoutMs("PDT_AI_HEALTH_TIMEOUT_MS", DEFAULT_OLLAMA_HEALTH_TIMEOUT_MS);
   const generateTimeoutMs = envTimeoutMs("PDT_AI_GENERATE_TIMEOUT_MS", DEFAULT_OLLAMA_GENERATE_TIMEOUT_MS);
+  const totalTimeoutMs = envTimeoutMs("PDT_AI_TOTAL_TIMEOUT_MS", DEFAULT_QWEN_TOTAL_TIMEOUT_MS);
   const batchSize = envNumber("PDT_AI_BATCH_SIZE", DEFAULT_QWEN_BATCH_SIZE, 1, 8);
   const aiCleanupEnabled =
     options.aiCleanup !== false &&
@@ -214,7 +219,20 @@ export async function buildPdtRepairResult(
   let patchCount = 0;
   const errors: string[] = [];
   const batches = chunks(items, batchSize);
+  const totalDeadline = Date.now() + totalTimeoutMs;
   for (const [index, chunk] of batches.entries()) {
+    if (Date.now() >= totalDeadline) {
+      errors.push(`Qwen cleanup total timeout reached after ${totalTimeoutMs} ms; remaining batches were skipped.`);
+      await options.onProgress?.({
+        stage: "unavailable",
+        message: `Qwen cleanup time limit reached (${Math.round(totalTimeoutMs / 1000)} s); continuing with deterministic values.`,
+        batchIndex: index + 1,
+        batchCount: batches.length,
+        itemCount: items.length,
+        model
+      });
+      break;
+    }
     await options.onProgress?.({
       stage: "qwen-batch",
       message: `Qwen cleanup batch ${index + 1}/${batches.length} (${chunk.length} products).`,

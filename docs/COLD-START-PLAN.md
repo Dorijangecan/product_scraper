@@ -182,11 +182,31 @@ Node nije na bash PATH-u: `export PATH="/c/Program Files/nodejs:$PATH"`.
 | P3.3 jedna confidence skala | ✅ 100 % | `evidence-score.ts` je jedini 0..1 default za normalizer, field-candidate i final-repair, s imenovanim provenance tierovima; pobjednik konflikta prvo prolazi `normalizeFields`, konflikt snižava confidence jednom i ograničeno, a `audit:confidence` provjerava stvarne spremljene izlaze svih konektora. Audit je otkrio i regresija je zatvorila Siemens BT datasheet provenance propust; stari cache ostaje čitljiv kao povijesni dokaz, ne prepisuje se. |
 | P3.4 wizard | ⏳ ~78 % | spremanje recepta sada zahtijeva 2 od 3 službena identity-confirmed uzorka, a pojedini mined recipe postaje izborljiv tek kad se isti strogi obrazac ponovi na dva takva uzorka; server čuva samo svježi 30-minutni test vezan uz istu konfiguraciju/službene hostove i odbija API approval bez tog dokaza. Odobrava samo strogi CSS-red, JSON-script ili matrix HTML table+header recipe; potvrđeni uzorak sprema HTML/case fixture pod wizard outputom, URL template se izvodi iz zalijepljenog product URL-a, a test prolazi i službene datasheete kroz stvarni enrichment; ostaje šira selector/PDF politika |
 | P3.5 LLM kao predlagač | ✅ 100 % | lokalni opt-in batch iz Unmapped Labels teach-lista predlaže samo `label → postojeći canonicalKey`; Excel nosi review-only prijedlog, reviewer decision, osobu, dokaz i bilješku uz strogi approve/reject/needs-evidence dropdown. Zaseban lokalni opt-in PDF batch predlaže samo postojeći deterministic reader i ograničene stranice poznatog dokumenta. Nijedna odluka nije runtime konfiguracija: nema auto-aliasa, vrijednosti ni utjecaja na scraper/PDT izlaz. |
+| P4 discovery bez logike u linkovima | ⏳ ~92 % | P4.1–P4.12 implementirane; `gan` i `fath` potvrđeni uživo (`probe:vendor-search`). Živa provjera je zatvorila četiri stvarna defekta (verdict `unknown` bez brojača, re-ask koji je krive proizvode uvodio kao dokaz, strop ocjene koji nije bio strop, nova klasa koja je gasila sitemape) i **oborila dominantnu klasu analize**: `no-search-entry` je nakon razdvajanja od `-uncached` **0/60**. Jedina potvrđena discovery rupa je `search-hits-unidentified` (1/60, gan). Ostaje živa provjera ostalih vendora i indeks NASLOVA iz P4.11, koji iz sitemapa nije izvediv |
 
-Trenutačno, ponderirano izvornim procjenama truda iz §3 i postocima po fazama iz ove tablice, napravljeno
-je **~89 %**, a ostaje **~11 %** (≈6,7 od 60,5 dana). Starijih ~35 % / ~65 % bio je povijesni snapshot
-prije zatvaranja većine P1–P3 stavki. Svih **5 nalaza iz §0** — onih koji „nose ~80 % problema" — je
-zatvoreno, plus 40+ klasa defekata koje uopće nisu bile u procjeni.
+Ponderirano procjenama truda iz §4 i postocima po fazama iz ove tablice: opseg je **67,5 dana**
+(60,5 iz izvornog plana + **~7 dana za P4**, kojeg izvorna procjena uopće nije sadržavala), napravljeno
+je **~91 %**, a ostaje **~5,9 dana**. Raspodjela ostatka:
+
+| faza | ostalo | što točno |
+| --- | --- | --- |
+| P3.1 učenje | ~1,2 d | PDF recipeji i šire replay politike |
+| P2.1 PDF „ne znam" | ~1,1 d | šire kalibriranje PDF tablica |
+| P3.4 wizard | ~1,0 d | šira selector/PDF politika |
+| P2.4 discovery po dokazu | ~0,8 d | šira vendor/cache kalibracija |
+| P2.2 pozicijski engine | ~0,7 d | ostatak kalibracije geometrije |
+| P4 discovery bez logike | ~0,6 d | živa provjera preostalih vendora; indeks naslova iz P4.11 **nije izvediv iz sitemapa** |
+| P2.3 OCR | ~0,4 d | pozitivna kalibracija na skeniranom dokumentu s našim SKU-om |
+| P1.3 HTML tablice | ~0,2 d | šire pokriće oblika |
+
+**Kako čitati ove brojke, s obzirom na ono što je naučeno:** postotak unutar faze je **samoprocjena**, a
+§0c bilježi **tri slučaja** gdje je mjerenje oborilo upravo takvu procjenu (P4.7 „najveći dobitak" →
+1/60; P4.4 „najbolji omjer" → 1/23 hosta; `no-search-entry` 11/60 → **0**). Preostali dani su zato
+planska pomoć, ne mjerenje. Jedini brojevi koji nešto tvrde su oni iz `eval`, `audit:*` i
+`probe:vendor-search`.
+
+Svih **5 nalaza iz §0** — onih koji „nose ~80 % problema" — je zatvoreno, plus 40+ klasa defekata koje
+uopće nisu bile u procjeni.
 
 ### Redoslijed za dovršetak (po vrijednosti za izvornu pritužbu)
 
@@ -4143,3 +4163,824 @@ dokumente koji su najteži za dohvat. Skraćuje samo stvarni ostatak vremena, ne
 shipanog stropa).
 
 Puni gate: TypeScript čist; Vitest **2305/2305**; eval **38/38**, 0 kontaminacija.
+
+---
+
+## 6. P4 — discovery kad vendorovi linkovi nemaju logiku (SVE SLETJELO, prvi vendor potvrđen uživo)
+
+> **Status:** P4.1–P4.12 su implementirane (vidi §0c za svaku). Tekst stavki ispod je ZADRŽAN kao
+> napisan, uključujući dvije procjene koje je mjerenje oborilo (P4.4 i P4.7) — ispravci stoje uz njih.
+> Potvrda uživo postoji za prvog vendora (`gan`) preko `npm run probe:vendor-search` i **otkrila je
+> pet stvari, od kojih su četiri bile greške u ovom kodu** — vidi zadnji unos u §0c. Offline korpus
+> i dalje strukturno ne može pokrenuti ove faze sam (§6.0).
+> **Izvorna pritužba za ovu fazu:** *„želim da uređaj nađe i kad su linkovi bez logike — onako kako bih
+> ga ja našao preko proizvođačeve tražilice na stranici."*
+
+### 6.0 Polazno stanje i što ono NE mjeri
+
+Zadnji `npm run audit:discovery` (offline replay, 100 poznatih kataloga nad cacheiranim korpusom):
+**1241 zahtjeva, hit 69,4 %, hit@1 59,4 %.** To je stanje nakon D1/D2 (speed) i P2.4a–n.
+
+Dvije stvari koje taj broj **ne** govori, i bez kojih se P4 ne smije ocjenjivati:
+
+1. **Replay mjeri samo ono što je ikad zatraženo.** `page_cache` sadrži odgovore na oblike koje je naš
+   kod povijesno slao. Novi search oblik, OpenSearch XML, suggest endpoint ili klik na rezultat
+   **nemaju cache unos**, pa offline replay za njih strukturno vraća promašaj. Isti nalaz je već
+   zapisan u §0c (novodostupni oblici nikad nisu bili zatraženi). Zaključak: **za P4 se `audit:discovery`
+   koristi kao test NEREGRESIJE, nikad kao dokaz dobitka.** Dobitak se dokazuje mjerenjem iz 6.1.
+2. **69,4 % je nad *poznatim* katalozima** — onima koje smo već jednom našli. Kohorta „vendor kojeg smo
+   prvi put vidjeli, s neurednim URL-ovima" je po definiciji izvan tog uzorka, a upravo je ona tema P4.
+
+### 6.1 Prvo mjerilo, pa kod (Pravilo 1 iz §0b)
+
+> **Ispravak nakon prve upotrebe (vidi §0c):** prvo mjerenje je dalo `no-search-entry` 11/60 i po
+> tome je složen redoslijed u §6.3. Ta klasa je miješala „vendor nije odgovorio" s „oblik nikad nije
+> ni poslan, pa ga korpus nema". Nakon razdvajanja: **`no-search-entry` = 0**, a svih 10 je
+> `no-search-entry-uncached`. Živa provjera je za `gan` i `fath` potvrdila da tražilica radi — kod
+> `fath` čak s traženim PDP-om na prvom mjestu. **Premisa redoslijeda iz §6.3 time pada.**
+
+Prije ijedne izmjene iz 6.2 treba postojati **`scripts/audit-search-reachability.ts`** — read-only,
+offline gdje može biti, s eksplicitnim `--live` prekidačem gdje ne može.
+
+Za svaki `(vendor, catalogNumber)` iz korpusa zapisuje jedan redak s **razlogom zaustavljanja**, ne
+samo hit/miss. Klase razloga (to je cijela poanta — danas su sve stopljene u „0 kandidata"):
+
+| klasa | znači | ispravan sljedeći potez |
+| --- | --- | --- |
+| `no-search-entry` | vendor je odgovorio i nije dao ništa upotrebljivo | P4.1, P4.3, P4.4 |
+| `no-search-entry-uncached` | **ništa od toga nije bilo u korpusu — offline ne dokazuje ništa** | `probe:vendor-search` (uživo) |
+| `search-zero-hits` | tražilica je odgovorila i rekla da nema ničega | P4.5, P4.6 (reformulacija) |
+| `search-hits-unidentified` | rezultati postoje, ali nijedna kartica ne nosi traženu šifru | **P4.7** |
+| `search-js-only` | statički HTML nema rezultate, lista se crta u JS-u | P4.2, P4.4 |
+| `search-blocked` | 403/429/challenge | ne dirati, to je anti-bot tema |
+| `hit` | kandidat proizveden | — |
+
+Bez te raspodjele svaka izmjena u 6.2 je nagađanje o tome gdje se gubi 30 %. **Prvi izlaz tog skripta je
+ulazni podatak za odluku o redoslijedu, i mora se zalijepiti u §0c prije prve izmjene.**
+
+Dodatno mjerilo koje već postoji i treba ga ponovno pokrenuti nakon P4.5:
+`npm run audit:search-shapes` (rangira `GENERIC_SEARCH_SHAPES` po tome što je vendor stvarno odgovorio).
+
+---
+
+### 6.2 Stavke, po omjeru učinak/trošak
+
+#### P4.1 — browser baca finalni URL nakon pretrage ⟶ **1 redak, najveći omjer u cijelom planu**
+
+**Simptom.** Najljudskiji put — upiši šifru, Enter, sajt te redirecta ravno na PDP — proizvede search URL
+umjesto PDP URL-a. Statički put to već zna (`exactOfficialProductRedirectUrl`), browser put ne.
+
+**Gdje.** `browser-renderer.ts`, u `renderPage`, povratni `fetched` objekt: `effectiveUrl: url` — dakle
+uvijek *traženi* URL. `page.url()` se u cijelom modulu čita samo za frameove i responseove, nikad za
+glavnu stranicu.
+
+**Kako.** `effectiveUrl: page.url() || url`, uzeto **nakon** `submitSearchInput` i svih čekanja.
+Discovery tada kroz `renderSearchPage` dobije stvarno odredište i može ga proslijediti istoj
+`exactOfficialProductRedirectUrl` provjeri koju statički put već koristi.
+
+**Rub koji mora pogoditi.** (a) `page.url()` može biti `about:blank` ako je navigacija pukla — zato
+`|| url`, ne slijepa zamjena. (b) Finalni URL može biti **druga domena** (SSO, consent gateway): mora
+proći kroz `isAllowedOfficialUrl` i postojeće `isAuthWallUrl` / `isSearchLikeUrl` odbijanje, inače smo
+upravo uveli login stranicu kao kandidata #1 — točno bug koji je P2.4 već jednom zatvorio.
+(c) Relativni linkovi na rezultatskoj stranici sada se razrješavaju prema novom baseu — to je ispravak,
+ali mijenja izlaz `discoverProductLinksWithDiagnostics`, pa ga treba pokriti testom.
+
+**Mjerenje.** Novi test s injektiranim rendererom koji vrati `page.url()` različit od traženog; zatim
+`audit:discovery` kao neregresija.
+
+**Cijena.** ~1 h uključujući testove.
+
+---
+
+#### P4.2 — `fill()` ne pali suggest/autocomplete
+
+**Simptom.** Suggest XHR je najbogatiji izvor koji na ovim sajtovima postoji: JSON s točnim PDP URL-om,
+često i s tipskom oznakom i EAN-om. Kod koji ga hvata **već postoji** (`networkTexts` filtriran na
+`search|suggest|product|catalog|sku|api|json`), ali nikad ne dobije odgovor.
+
+**Gdje.** `submitSearchInput` u `browser-renderer.ts`: `locator.fill(catalogNumber)` pa `Enter`.
+`fill()` postavlja vrijednost programatski i emitira jedan `input` event; typeahead widgeti koji slušaju
+`keydown`/`keyup` (ili imaju debounce na stvarne tipke) ne okinu ništa.
+
+**Kako.** `pressSequentially(catalogNumber, { delay: ~40 ms })` umjesto `fill()`, pa **kratka pauza
+(~600–800 ms) prije Entera** da debounce stigne poslati zahtjev, pa Enter. Suggest odgovor tada uleti u
+`captured` prije nego navigacija zamijeni stranicu.
+
+**Rub koji mora pogoditi.** (a) Duga šifra × 40 ms = do ~1 s tipkanja; mora se uklopiti u postojeći
+`RENDERED_SEARCH_MIN_BUDGET_MS` proračun, ne produžiti ga tiho. (b) Neki widgeti na Enter uzmu
+**prvi highlightani suggestion** umjesto upisanog teksta — to je ponekad krivi proizvod. Zato:
+suggest JSON se skuplja kao dokaz, ali Enter-navigacija i dalje mora proći post-fetch identity gate.
+(c) `pressSequentially` na skrivenom inputu baca — postojeća petlja „probaj sljedeći selektor" ostaje.
+
+**Mjerenje.** `--live` grana novog auditora iz 6.1 na 3 vendora za koje znamo da imaju typeahead
+(schmersal, turck, abb): broji li se suggest XHR u `networkDiagnostics`. Offline se ovo **ne može**
+dokazati — i to se mora tako i napisati.
+
+**Cijena.** ~2 h.
+
+---
+
+#### P4.3 — tražilicu često ni ne nađemo (jezik + skriveni overlay)
+
+**Simptom.** „Sajt ima tražilicu, mi je nismo našli." Najvjerojatnije najveći pojedinačni uzrok klase
+`no-search-entry`.
+
+**Gdje.** `SEARCH_INPUT_SELECTORS` u `browser-renderer.ts` — 13 selektora, svi engleski
+(`search`, `product`, `q`, `s`, `part`, `catalog`, `article`).
+
+**Kako.** Dvije nezavisne izmjene:
+
+1. **Jezik i semantika.** Dodati `suche`/`suchen`, `recherche`, `cerca`/`ricerca`, `buscar`/`búsqueda`,
+   `zoeken`, plus industrijske nazive polja: `artikelnummer`, `bestellnummer`, `typenschlüssel`,
+   `sachnummer`, `mlfb`, `référence`, `codice`. Dodati `[role='combobox']` i `[contenteditable='true']`
+   unutar `[role='search']` — moderni headless-UI komboboxi nisu `<input type=search>`.
+2. **Otvori overlay prije traženja inputa.** Na velikom dijelu industrijskih sajtova
+   `input[type=search]` ima `count() === 0` dok se ne klikne povećalo. Prije petlje po selektorima:
+   klikni prvi vidljivi `[aria-label*='search' i]`, `[aria-label*='suche' i]`, `button[class*='search']`,
+   `[data-*toggle*='search']`, pričekaj ~300 ms, pa **ponovi** traženje inputa.
+
+Ovaj korak treba biti **zaseban `openSearchOverlay(page)`**, ne još jedan `clickSafeSelectors` poziv —
+`clickSafeSelectors` je za akordeone i tabove, a ovdje je ključno da klik bude *prije* traženja inputa i
+da se traženje ponovi.
+
+**Rub koji mora pogoditi.** Klik na „search" može biti link na `/search` stranicu (navigacija), ne
+overlay toggle. To nije greška — samo mora vratiti informaciju „navigirali smo", da renderer ne traži
+input na staroj stranici. I obrnuti rub koji je već jednom skupo plaćen (§0c, Ganter
+`salespartner[__referrer]`): **širenje popisa selektora ne smije spustiti ljestvicu** — kandidat se i
+dalje bira po vlastitom `name`/`type`/`placeholder`, a ne po kontekstu forme.
+
+**Mjerenje.** Klasa `no-search-entry` u auditoru iz 6.1, prije/poslije, po vendoru.
+
+**Cijena.** ~3 h.
+
+---
+
+#### P4.4 — OpenSearch autodiscovery: vendor **sam objavi** svoju tražilicu
+
+> **Ispravak (vidi §0c):** sletjelo, ali procjena vrijednosti je bila pogrešna. Skeniranje 10209
+> keširanih ulaznih stranica preko 23 hosta: **samo 1 host uopće deklarira OpenSearch description**,
+> i to distributer, ne nijedan od 11 proizvođača u korpusu. Kod ostaje (bez linka ne košta ništa),
+> ali oznaka „najbolji omjer“ ispod **ne vrijedi**.
+
+**Simptom.** Slijepo šaljemo do 14 `GENERIC_SEARCH_SHAPES` oblika po katalogu, a velik dio sajtova
+doslovno publicira svoj search template — samo ga nikad ne pročitamo. Grep po repou: **0 pogodaka** na
+`opensearch`.
+
+**Gdje.** Novi modul `src/server/scrapers/opensearch.ts`, pozvan iz `discovery.ts` **prije**
+`GENERIC_SEARCH_SHAPES`, odmah iza learned i configured templatea.
+
+**Kako.**
+1. S `homepageUrl` (i lokaliziranih baza koje `officialUrlBases` već vraća) pročitaj
+   `<link rel="search" type="application/opensearchdescription+xml" href="…">`.
+2. Dohvati taj XML i izvuci `<Url type="text/html" template="…{searchTerms}…">` →
+   **to je vendorov vlastiti search URL**, bez nagađanja.
+3. Ako postoji i `<Url type="application/x-suggestions+json" template="…">` — to je suggest endpoint,
+   dohvatljiv **bez browsera**. To je najjeftiniji mogući put do P4.2 podatka.
+4. Oba se spremaju u postojeći `learned-endpoints` store (`learnSearchTemplate` već zna oblik
+   `{part}` templatea), pa se plaćaju jednom po vendoru, ne po katalogu.
+
+**Rub koji mora pogoditi.** (a) `template` može nositi i druge placeholdere (`{count}`, `{startIndex}`,
+`{language}`, `{outputEncoding}`) — neispunjeni ruše URL, moraju se popuniti razumnim defaultom ili
+ukloniti. (b) `href` OpenSearch dokumenta može biti na drugoj domeni (CDN) — mora proći
+`isAllowedOfficialUrl` kao i sve ostalo. (c) Ne smije ući u `attemptedUrls` kao proizvodni kandidat —
+to je *template*, ne URL proizvoda. (d) Sajt može imati OpenSearch koji pretražuje **blog/support**, ne
+katalog: ako odgovori bez ijednog PDP kandidata, mora dobiti `recordFailure` kao i svaki drugi naučeni
+endpoint, inače postaje trajni porez.
+
+**Mjerenje.** Offline: broj vendora u korpusu koji uopće imaju `rel="search"` (jednokratna analiza nad
+cacheiranim homepageovima — to je **već u cacheu**, pa je ovo rijedak slučaj gdje offline mjerenje radi).
+Zatim `--live` provjera da template stvarno odgovara.
+
+**Cijena.** ~4 h. (Raniju oznaku „najbolji omjer među pravim featurima“ oborilo je mjerenje usvojenosti — vidi ispravak na početku stavke.)
+
+---
+
+#### P4.5 — detektor „0 rezultata" i broja pogodaka
+
+**Simptom.** Danas `discoveredCount === 0` znači četiri različite stvari (vidi tablicu u 6.1) i sve
+vode u isti sljedeći potez. To je korijenski razlog zašto se budžet troši na krivom mjestu.
+
+**Gdje.** Novi `searchResultVerdict(html)` u `link-discovery.ts` ili zasebnom `search-results.ts`,
+pozvan u `processSearchRequests` odmah nakon `discoverProductLinksWithDiagnostics`.
+
+**Kako.** Dva signala, oba iz vendorova vlastitog teksta:
+- **nula:** `no results`, `keine Ergebnisse`, `nichts gefunden`, `aucun résultat`, `nessun risultato`,
+  `sin resultados`, `0 Treffer`, `0 results`.
+- **broj:** `(\d+)\s+(results|Ergebnisse|Treffer|résultats|risultati|resultados)` i oblik
+  `1[–-]20 (of|von|di|sur) (\d+)`.
+
+Posljedice su konkretne, ne kozmetičke:
+- verdict `zero` ⟶ **prestani slati daljnje oblike na taj oblik/host** (ovaj je odgovorio, samo nema
+  pogotka) i **prijeđi na reformulaciju upita (P4.6)** umjesto na sljedećih 13 slijepih oblika;
+- verdict `many` + 0 identificiranih kandidata ⟶ klasa `search-hits-unidentified` ⟶ **P4.7**;
+- verdict `count === 1` ⟶ **to je sam po sebi dokaz**: jedini rezultat smije se otvoriti i bez šifre u
+  kartici (i dalje uz post-fetch gate).
+
+**Rub koji mora pogoditi.** (a) „0 results" u *drugom* widgetu na stranici (npr. prazan filter fasete,
+ili prazna „nedavno gledano" lista) ne smije oboriti stvarnu listu rezultata — verdict `zero` vrijedi
+**samo ako istovremeno nema nijednog rezultat-kandidata**. (b) Broj pogodaka može biti broj *dokumenata*,
+ne proizvoda. (c) Riječ `Treffer` postoji i u marketinškoj prozi; traži je uz broj, nikad samu.
+
+**Mjerenje.** Auditor iz 6.1 mora nakon ove stavke moći popuniti stupac `klasa` — to je i jedina svrha.
+
+**Cijena.** ~3 h.
+
+---
+
+#### P4.6 — reformulacija upita (ono što čovjek stvarno radi)
+
+**Simptom.** Svaki search oblik puni se **isključivo doslovnim `{part}`**. Čovjek koji dobije nulu ne
+odustane — makne crtice, skrati na obitelj, makne pakirni sufiks.
+
+**Gdje.** `discovery.ts`: `fillCatalogTemplate` već zna varijante (`compact`, `dash`, `snake`,
+`afterColon`), a `catalogFamilyMatchCandidates()` u `catalog-number.ts` **već postoji i vraća upravo
+progresivne obiteljske prefikse** — ali se nigdje ne koristi za građenje *upita*.
+
+**Kako.** Nova `searchQueryVariants(catalogNumber)`, redom:
+`raw → compact → dash → afterColon → prvi obiteljski prefiks`. Ključno je **kada** se plaća:
+reformulacija se šalje **samo na oblik koji je već dokazano odgovorio** (learned template, OpenSearch
+template, ili oblik koji je u P4.5 vratio `zero`) — nikad kao križni produkt svih oblika × svih
+varijanti. Križni produkt je 14 × 5 = 70 zahtjeva po katalogu i pojede cijeli budžet iz D2b.
+
+**Rub koji mora pogoditi.** Obiteljski prefiks vraća **family stranicu, ne varijantu**. To je dokaz niže
+razine i mora tako i biti označen: kandidat sa `searchQueryVariant: "family"` ne smije dobiti isti score
+kao exact pogodak, a `html-page-level.ts` family gate i `matchLevel` logika koja već postoji mora ostati
+jedini sudac o tome što se s te stranice smije objaviti. **Ovo je najopasnija stavka u P4** — ako se
+izvede nemarno, vraća pravu family-kontaminaciju koju je P2.1 zatvarao mjesecima.
+
+**Mjerenje.** `audit:discovery` **i** `npx tsx scripts/eval.ts` (kontaminacija mora ostati 0) — ovdje je
+eval važniji od discovery brojke.
+
+**Cijena.** ~4 h, plus nervoza oko ruba.
+
+---
+
+#### P4.7 — otvori prva 2–3 rezultata i kad kartica ne piše šifru ⟶ **tvrdnja o „najvećem dobitku“ NIJE POTVRĐENA MJERENJEM**
+
+> **Ispravak (P4.0, vidi §0c):** prvo mjerenje `audit:search-reachability` daje ovu klasu > (`search-hits-unidentified`) na **1 od 60** kataloga, ne na trećini. Dominantna klasa je > `no-search-entry` (11/60). Stavka ostaje u planu — Ganterov quick-finder je stvaran slučaj > — ali više ne nosi oznaku najvećeg dobitka dok širi uzorak ne kaže drukčije.
+
+**Simptom.** Ovo je doslovan odgovor na izvornu pritužbu. Ako vendorova rezultatska kartica piše samo
+marketinški naziv (a URL je `/p/1348271`), kandidat **nikad ne uđe u listu** — a čovjek bi jednostavno
+kliknuo prvi rezultat i pogledao stranicu.
+
+**Gdje.** `link-discovery.ts`, `addCandidate`: `candidateConfirmsCatalog(url, context, catalogNumber)`
+tvrdo odbija sve bez egzaktnog identiteta, uz razlog `no exact catalog identity`. Ta odluka je ispravna
+za *objavu*, ali se ovdje primjenjuje na *istraživanje*.
+
+**Kako.** Novi stage `search-result-unverified` u `ProductDiscoveryCandidate["stage"]`:
+- nastaje **samo** kad je P4.5 rekao „ima rezultata" i kad nijedan drugi kandidat nije potvrđen;
+- najviše **2–3** linka, uzeta iz prepoznatih rezultatskih kartica (ponavljajući DOM obrazac), ne iz
+  svakog `<a>` na stranici;
+- score **ispod svega ostaloga**, i izuzet iz `verifyTemplatesBeforeSearch` probe;
+- ne pokreće se ako je `softTargetPassed()` — isto pravilo kao `url-variant` iz D2b.
+
+**Zašto je rizik od krivog podatka nula.** Post-fetch gate odlučuje i dalje: `scoreFetchedDiscoveryEvidence`
+u `deterministic-pipeline.ts` odbija svaku dohvaćenu stranicu bez exact PDP dokaza, a
+`isUnresolvedSearchResultPage` posebno odbija rezultatsku stranicu koja se nije razriješila. Drugim
+riječima, mijenjamo **što smijemo pogledati**, ne **što smijemo objaviti** — a to je doslovno pravilo koje
+§0c P2.4 sam proklamira: *dokaz nakon fetcha, ne oblik URL-a*.
+
+**Rub koji mora pogoditi.** (a) Rezultatska kartica može voditi na *kategoriju*, ne proizvod — gate to
+hvata, ali `recordLearnedEndpointFailure` se ne smije okinuti za ovaj stage (nije naučeni endpoint).
+(b) Brojanje: 3 dodatna fetcha × throttle na sporom hostu (`gan`: 3 s) = 9 s — mora se odbiti od istog
+budžeta, a ne biti iznimka. (c) Ne smije se aktivirati na stranici koju je P4.5 proglasio `zero`.
+
+**Mjerenje.** Klasa `search-hits-unidentified` → `hit` u auditoru iz 6.1. `audit:discovery` će ovo
+**podcijeniti** jer cache nema te PDP-ove; to treba očekivati i napisati, ne prikriti.
+
+**Cijena.** ~6 h, i najviše novih testova u planu.
+
+---
+
+#### P4.8 — prijevod identiteta: narudžbeni kod ↔ tipska oznaka (trajni alias store)
+
+**Simptom.** Najdublji razlog zašto vendorova tražilica ne nađe ništa: tražimo `1SVR405611R1000`, a
+njihova tražilica indeksira `CT-MFD.21`. Danas je neuspjeh pretrage kraj priče.
+
+**Gdje.** `product-identity.ts` **već zna prepoznati** te labele (`STRONG_IDENTITY_LABEL` pokriva
+`mlfb`, `order code`, `article number`; `WEAK_IDENTITY_LABEL` pokriva `type designation`,
+`extended product type`), ali nema **trajne pohrane između artikala**.
+
+**Kako.** Nova tablica u `db.ts` (`product_aliases`: vendor, catalogNumber, aliasKind, aliasValue,
+provenanceUrl, confirmedAt). Svaki quality-gate potvrđeni PDP upisuje sve svoje identity atribute +
+GTIN/EAN. Discovery ih čita kao **dodatne upite i URL varijante** prije nego posegne za slijepim
+oblicima.
+
+**Zašto se isplati baš ovdje.** Stvarni run je 150 šifri **istog** proizvođača (vidi Rockwell/ABB unose u
+§0c). Alias naučen na 3. artiklu plaća se na preostalih 147 — to je jedina stavka u P4 koja se
+amortizira unutar jednog runa.
+
+**Rub koji mora pogoditi.** Alias je **dvosmjeran samo ako je 1:1**. Tipska oznaka je često
+*obiteljska* (jedan `CT-MFD.21` = više narudžbenih kodova) — takav alias smije služiti kao **upit**, ali
+nikad kao dokaz identiteta na dohvaćenoj stranici. To je isti rez kao `matchLevel: family` iz P2.1 i mora
+koristiti isti aparat, ne novi.
+
+**Mjerenje.** Novi auditor iz 6.1 pokrenut **dvaput nad istim vendorom** — drugi prolaz mora imati manje
+zahtjeva po artiklu. Ako nema, alias store ne radi.
+
+**Cijena.** ~8 h (uključujući shemu i migraciju).
+
+---
+
+#### P4.9 — GTIN/EAN kao ključ pretrage
+
+Najviša preciznost koja uopće postoji: vendorova tražilica na EAN vraća točno jedan proizvod.
+Trenutno se EAN nigdje ne koristi **kao upit**. Ulazni podaci ga ponekad imaju, a P4.8 store ga skuplja.
+Mala stavka (~2 h) koja ovisi o P4.8. **Rub:** `identityAttributeLabelStrength` namjerno vraća
+`undefined` za EAN/GTIN — to je ispravno za *potvrdu identiteta* i ne smije se dirati; EAN ulazi samo kao
+upit, a potvrda ostaje na SKU dokazu.
+
+---
+
+#### P4.10 — fuzzy match kartice, **isključivo za rangiranje**
+
+Današnji match je egzaktni/compact substring ili obiteljski prefiks. Kartica koja piše `CT‑MFD.21` s
+non-breaking crticom, tankim razmakom ili `-000` sufiksom propada. Normalizirani token/edit-distance
+score s visokim pragom, korišten **samo da odredi KOJI od 3 linka iz P4.7 otvoriti prvi**, nikad da
+objavi vrijednost ili potvrdi identitet. ~3 h. **Rub:** ovo ne smije ući u `catalogTextMatches` ni
+`findCatalogTextMatch` — to su suci o objavi i ostaju egzaktni. Novi kod, novo ime, jedan pozivatelj.
+
+---
+
+#### P4.11 — per-vendor URL indeks iz sitemapa, s naslovima
+
+Današnji sitemap put traži **šifru u URL-u** i zato za „linkove bez logike" (`/p/1348271`) ne pogodi
+nikad. Prava vrijednost sitemapa za ovu kohortu je **indeks naslova**: jednom po vendoru izgradi tablicu
+`(url, title)` iz sitemapa (+ `<image:title>` gdje postoji), spremi u sqlite, i traži po naslovu.
+Skupo (~10 h) i amortizira se tek preko više runova istog vendora — **radi se tek nakon P4.7 i P4.8**,
+i samo ako auditor iz 6.1 pokaže da `search-hits-unidentified` nije pao dovoljno.
+
+---
+
+#### P4.12 — opt-in vanjski search bridge (namjerno zadnji)
+
+Kad vendorova tražilica stvarno ne valja, čovjek odustane od nje i **guglja**. Isti obrazac kao postojeći
+`PRODUCT_SCRAPER_ALLOW_EXTERNAL_READER` (r.jina.ai): default **isključeno**, jer šalje URL/šifru trećoj
+strani, što je suprotno „sve lokalno" principu iz PROJECT_MAP §1. Uključeno: `site:vendor.com "SKU"`,
+rezultat i dalje prolazi `isAllowedOfficialUrl` + post-fetch identity gate.
+
+Zadnji je **namjerno**: ako se uvede prije P4.1–P4.7, sakrit će sve njihove nedostatke iza vanjskog
+servisa i više nikad nećemo znati radi li naš vlastiti discovery.
+
+---
+
+### 6.3 Redoslijed i očekivani učinak
+
+| # | stavka | trošak | zašto tim redom |
+| --- | --- | --- | --- |
+| 0 | **6.1 auditor** | ~4 h | bez raspodjele razloga sve ostalo je nagađanje (Pravilo 1) |
+| 1 | P4.1 finalni URL | ~1 h | jedan redak, popravlja najljudskiji put |
+| 2 | P4.3 selektori + overlay | ~3 h | najveći uzrok `no-search-entry` |
+| 3 | P4.2 pressSequentially | ~2 h | otključava suggest podatak koji kod već čeka |
+| 4 | P4.4 OpenSearch | ~4 h | SLETIO, ali izmjereno 1/23 hosta ga uopće deklarira — bez učinka na ovom korpusu |
+| 5 | P4.5 verdict | ~3 h | pretvara slijepi budžet u rutiranu odluku |
+| 6 | P4.7 klik na rezultate | ~6 h | izmjereno 1/60 na poznatoj kohorti — držati, ne forsirati |
+| 7 | P4.6 reformulacija | ~4 h | tek nakon P4.5, inače 70 zahtjeva po artiklu |
+| 8 | P4.8 alias store | ~8 h | jedino što se amortizira unutar runa |
+| 9 | P4.9 EAN | ~2 h | ovisi o P4.8 |
+| 10 | P4.10 fuzzy rangiranje | ~3 h | poboljšava P4.7, nema smisla prije njega |
+| 11 | P4.11 URL indeks | ~10 h | samo ako 6.1 pokaže da je još potreban |
+| 12 | P4.12 vanjski bridge | ~3 h | namjerno zadnji, da ne sakrije 1–11 |
+
+**Ukupno ≈ 53 h.** Stavke 1–6 (≈ 19 h) nose većinu učinka i nijedna ne dira put objave podatka —
+sve mijenjaju **gdje smijemo gledati**, dok gate koji odlučuje **što se objavljuje** ostaje netaknut.
+
+### 6.4 Što u P4 svjesno NE radimo
+
+- **Nema LLM-a u discoveryju.** Lokalni model ostaje predlagač (P3.5), ne birač URL-ova. Kandidat koji
+  ne prođe deterministički identity gate ne smije proći ni preko modela.
+- **Ne diramo anti-bot.** Klasa `search-blocked` iz 6.1 je zasebna tema; proxy rotacija je već istražena
+  i odbijena bez novog konkretnog simptoma.
+- **Ne labavimo PDP gate.** Nijedna stavka ne smije spustiti `scoreFetchedDiscoveryEvidence`. Ako neka
+  stavka „radi" samo uz labaviji gate, ona nije gotova — to je P2.4k zapisan kao pravilo.
+- **Ne mijenjamo `catalogTextMatches`.** Svo novo fuzzy/alias rasuđivanje dobiva vlastite funkcije i
+  vlastite pozivatelje.
+
+### 6.5 Izvedbena odluka (dogovoreno prije prve izmjene)
+
+Kreće se paketom **§6.1 auditor + P4.1 + P4.2 + P4.3** (≈ 10 h), tim redom. Obrazloženje:
+
+- **§6.1 ide prvi jer bez njega P4.7 nema kriterij dovršenosti.** Auditor mora moći reći „klasa
+  `search-hits-unidentified` je pala s N na M"; bez te brojke P4.7 se ne može ni ocijeniti ni obraniti.
+- **P4.1–P4.3 su jedini blok u planu koji ne dira nijedan gate ni parser** — sve tri su unutar
+  `browser-renderer.ts` i mijenjaju samo *kako se dođe do rezultatske stranice*. Zato smiju sletjeti
+  prije nego auditor išta ispiše, bez rizika za podatak.
+- **P4.5 verdict modul (`search-results.ts`) nastaje kao dio §6.1, ne kao dio P4.5.** Auditoru treba
+  isti detektor „0 rezultata / N rezultata / JS shell / blokirano" koji će kasnije rutirati discovery.
+  Piše se kao čista funkcija bez pozivatelja u runtimeu; P4.5 je onda samo njezino uključivanje u
+  `processSearchRequests`. Time je detektor dokazano napisan **prije** koda koji o njemu ovisi.
+
+### 6.6 Inspiracija (pregledano, s obrazloženjem zašto da/ne)
+
+| projekt | ideja | primjenjivo ovdje? |
+| --- | --- | --- |
+| [Scrapling](https://github.com/d4vinci/Scrapling) | self-healing selektori: kad sajt preimenuje klasu, element se nađe po sličnosti | **Da**, ali tek kao proširenje learned store-a (naučeni search input / result card selektor), ne kao zamjena determinizma |
+| [Firecrawl](https://github.com/firecrawl/firecrawl) | `/search` je **odvojen primitiv** od `/scrape` | **Da, konceptualno** — potvrđuje da je „nađi stranicu" drugi problem od „pročitaj stranicu"; kod nas su zamotani u isti `discovery.ts` |
+| [Stagehand](https://github.com/browserbase/stagehand) / [browser-use](https://browser-use.com/posts/web-scraping-guide-2026) | interakcija opisana namjerom umjesto selektorima | **Ne za sada** — vidi 6.4, prvi red |
+| [crawl4ai](https://github.com/unclecode/crawl4AI) | LLM-friendly markdown izlaz | **Ne** — naš problem nije format teksta nego pronalazak stranice |
+| [OpenSearch spec (MDN)](https://developer.mozilla.org/en-US/docs/Web/XML/Guides/OpenSearch) | standard kojim sajt objavi vlastitu tražilicu | **Da — P4.4**, jedino rješenje u cijelom planu koje ne nagađa ništa |
+
+### ✅ P4.0 — mjerilo prije koda, i prva brojka koja je odmah oborila prioritet iz plana
+
+Sletio je nulti korak iz §6.1: **`scripts/audit-search-reachability.ts`** (`npm run
+audit:search-reachability`). Za svaki katalog broj klasificira **zašto** je discovery stao, umjesto da
+sve neuspjehe izjednači u „0 kandidata".
+
+Uz njega su sletjela dva nova modula:
+
+- **`src/server/scrapers/search-results.ts`** — `searchResultVerdict()`: čista funkcija koja čita
+  vlastitu presudu rezultatske stranice (`zero` / `hits` / `js-only` / `blocked` / `unknown`) iz
+  fraza u EN/DE/FR/IT/ES/NL, ispisanog broja pogodaka (`137 results`, `1–20 von 1.234`) i
+  bot-mitigation markera. **Namjerno bez ijednog runtime pozivatelja** — P4.5 je tek njezino
+  uključivanje u `processSearchRequests`. Detektor je time dokazano napisan prije koda koji o njemu
+  ovisi (Pravilo 1).
+- **`scripts/discovery-replay.ts`** — zajednički offline replay harness (cache, uzorak, learned
+  store, model cijene zahtjeva), izdvojen iz `audit-discovery.ts`. Dva audita koja različito
+  modeliraju cache prestaju biti usporediva i oba postaju neoborivа, pa ovo mora biti jedan izvor.
+  **Dokaz da je izdvajanje čisti pomak:** `audit:discovery --limit 12` prije i poslije daje
+  identično — hit@1 66,7 % → 66,7 %, hit 75 % → 75 %, **83 → 83 zahtjeva, delta 0**.
+
+#### Nalaz: `.text()` lijepi susjedne elemente i tako guta broj pogodaka
+
+Prvi test koji je pao nije bio loš test. Cheerio `.text()` spaja susjedne elemente bez razmaka, pa
+faseta `3 products` uz toolbar `48 results` postaje token `products48` — i `\b48\b` se više ne
+poklapa ni s čim, tj. **stranica koja je ispisala svoj broj pogodaka čita se kao da ga nije ispisala**.
+To je stvarni oblik stranice, ne artefakt testa. `visibleText` sada pretvara tagove u razmak i
+dekodira `&nbsp;` prije skeniranja.
+
+#### Nalaz koji je oborio moj vlastiti prioritet iz §6.3
+
+Prvi ispis je Siemens svrstao u `search-hits-unidentified` — a u istom retku pisalo je `5 identified`.
+Klasa je lagala: linkovi **jesu** nosili kataloški broj, samo nijedan nije potvrđen kao poznati PDP
+(offline: PDP tijelo nije u cacheu; uživo: mrtav ili krivi cilj). Otvaranje još rezultata to ne može
+popraviti, pa bi ta brojka **napuhala opravdanje za P4.7**. Uvedena je zasebna klasa
+`search-hits-unconfirmed`.
+
+**Prvo mjerenje, 60 kataloga, 17717 cacheiranih URL-ova:**
+
+| klasa | n | udio | sljedeći korak |
+| --- | --- | --- | --- |
+| `hit` | 41 | 68,3 % | — |
+| `no-search-entry` | **11** | **18,3 %** | **P4.1 / P4.3 / P4.4** |
+| `search-hits-unconfirmed` | 7 | 11,7 % | nije discovery rupa |
+| `search-hits-unidentified` | **1** | **1,7 %** | P4.7 |
+| `search-zero-hits` / `search-js-only` / `search-blocked` | 0 | 0 % | — |
+
+Po proizvođaču: `fath` 5/6 i `gan` 5/6 su `no-search-entry`; `siemens` 5/5 i `turck` 2/4 su
+`unconfirmed`; jedini `unidentified` je `gan/GN 3310-19-LK-K2` (quick-finder vrati 11 product-shaped
+linkova, nijedan ne nosi šifru).
+
+**Ispravak plana:** §6.2 je za P4.7 tvrdio „najveći dobitak u coverageu". **Ta tvrdnja nije potvrđena
+mjerenjem** — na ovoj kohorti je to 1 slučaj od 60. Dominantna klasa je `no-search-entry`, tj. P4.1 /
+P4.3 / P4.4. Redoslijed u §6.3 ostaje valjan (te tri su ionako bile prve), ali **P4.7 pada s mjesta
+„najveći dobitak" na „drži ga dok širi uzorak ne kaže drukčije"**.
+
+**Iskreno o pristranosti, jer bez toga brojka vara:** `no-search-entry` ovdje najčešće znači „12–15
+search zahtjeva, nijedan nije odgovorio tijelom" — a to je velikim dijelom **cache miss**, jer te
+oblike stvarni run nikad nije zatražio (694 missa naprama 169 hitova). Offline replay time
+**sustavno preteže prema `no-search-entry`** i ne može izmjeriti P4.4. Uzorak je usto „poznato dobra"
+kohorta: proizvođač čija je tražilica neupotrebljiva po definiciji je podzastupljen.
+
+### ✅ P4.1 + P4.2 + P4.3 — put do vendorove vlastite tražilice
+
+Sve tri su unutar `browser-renderer.ts` i ne diraju nijedan gate ni parser: mijenjaju **kako se dolazi
+do rezultatske stranice**, ne **što se smije objaviti**.
+
+**P4.1 — rendirana stranica više ne laže o tome gdje je završila.** `renderPage` je vraćao
+`effectiveUrl: url`, tj. uvijek *traženi* URL; `page.url()` se u modulu čitao samo za frameove i
+responseove. Najljudskiji put kroz katalog — upiši broj, Enter, sajt redirecta ravno na PDP — time je
+bacao odgovor koji je upravo dobio, i razrješavao svaki relativni link rezultatske stranice prema
+krivom baseu. Nova `finalRenderedUrl(page, url)` vraća stvarno odredište, uz `|| url` za
+`about:blank`/pukli goto. `discovery.ts` sada na taj rezultat pušta **postojeću**
+`exactOfficialProductRedirectUrl` — istu koju statički put već koristi, s istom ljestvicom dokaza
+(službena domena, nije search stranica, odredište mora identificirati traženi broj). Consent/SSO
+gateway zato ne može postati kandidat time što nas redirecta na sebe.
+
+**P4.2 — `fill()` ne budi typeahead.** `fill()` postavlja vrijednost programatski i emitira jedan
+`input` event; widgeti koji slušaju `keydown` nikad ne pošalju svoj suggest zahtjev. Kod koji taj
+odgovor hvata **već je postojao** (`networkTexts` filtriran na `search|suggest|product|catalog|sku|api|json`),
+samo nikad nije dobio odgovor — a taj JSON je najbogatiji izvor identiteta koji ovi sajtovi nude
+(točan PDP URL, tipska oznaka, često EAN). Sada `pressSequentially` s 40 ms po tipki, pa **700 ms
+debounce pauze prije Entera** da suggest stigne otići i biti uhvaćen prije nego navigacija otkaže
+zahtjev. `fill` ostaje fallback za locatore koji `pressSequentially` nemaju.
+
+**P4.3 — tražilicu često nismo ni našli.** `SEARCH_INPUT_SELECTORS` je bio engleski-only (13
+selektora). Prošireno na DE/FR/IT/ES/NL i na imena polja kakva industrijski katalog stvarno koristi
+(`artikel`, `bestell`, `referenc`, `codice`, `typenschl`), plus `[role='combobox']` — moderni
+design-system combobox uopće nije `<input type=search>`. Uz to, nova `openSearchOverlay`: na velikom
+dijelu sajtova `input[type=search]` ima `count() === 0` dok se ne klikne povećalo, pa svaki selektor
+opravdano ne nalazi ništa i vendor izgleda kao da nema tražilicu. Dvoprolazno **namjerno** — prvo se
+traži box, i tek ako ga nema otvara se overlay pa se traži ponovno; obrnuti redoslijed bi na sajtu s
+ispravnim inline boxom kliknuo „search" link i odnavigirao nas sa stranice koju smo trebali
+pretražiti. Klika se **najviše jedan** toggle, jer ti selektori mogu pogoditi i običan link na
+`/search`, pa bi niz klikova nastavio kliktati po stranici na koju smo sletjeli.
+
+**Mjerenje (puni gate):** `tsc` čist; Vitest **2426/2426** (126 fajlova), od toga ciljanih 122/122 uz **15 novih testova** — 11 za
+`searchResultVerdict`, 4 za typing/overlay/`finalRenderedUrl`); eval **38/38**, 390 provjera, **0 kontaminacija**; `audit:discovery --limit 12` pokazuje
+**delta 0** naprama predrefaktorskom baselineu.
+
+**Što ovdje NIJE dokazano, i mora se tako i čitati:** P4.1–P4.3 su **browser** put, a offline replay
+nema browser. Njihov učinak `audit:search-reachability` **ne može** izmjeriti — brojka gore je
+baseline za ono što dolazi, ne dokaz za ovo što je sletjelo. Dokaz za P4.2/P4.3 traži `--live`
+provjeru na vendoru s typeaheadom (schmersal, turck, abb), što je sljedeći korak.
+
+### ⚠️ P4.4 — OpenSearch je sletio, ali mjerenje je oborilo i njegovu procjenu vrijednosti
+
+Novi `src/server/scrapers/opensearch.ts` čita ono što sajt sam objavi: `<link rel="search"
+type="application/opensearchdescription+xml">` → XML → `<Url template="…{searchTerms}…">`. Uključen je u
+`discoverSearchFormRequests`, dakle **iz homepagea koji se ionako dohvaća** — bez ijednog dodatnog
+zahtjeva osim samog description dokumenta — i ide **ispred** inferiranih form zahtjeva, jer je
+vendorov objavljeni template dokaz, a forma koju smo izabrali bodovanjem njezinih inputa je zaključak.
+
+Pokriveno: `{count}`/`{startIndex}`/`{language}`/`{in,out}putEncoding` dobivaju vrijednost, opcionalni
+`{x?}` se ispuštaju, a template koji nakon toga **još nosi `{…}` odbija se cijeli** umjesto da se
+pošalje napola popunjen. Suggest template (`application/x-suggestions+json`) se također uzima — to je
+isti typeahead JSON zbog kojeg postoji browser put, ovdje dohvatljiv običnim GET-om. Description
+dokument i svaki template iz njega prolaze isti official-domain guard kao i sve ostalo, jer `href`
+legitimno može pokazivati na CDN koji nije vendor.
+
+**Nalaz koji obara procjenu iz §6.2.** Plan je za P4.4 tvrdio „najbolji omjer među pravim featurima".
+Skeniranje **10209 keširanih ulaznih stranica preko 23 hosta** daje:
+
+> **hostova koji uopće deklariraju OpenSearch description: 1 / 23** — i to `www.kontrolyum.com`,
+> distributer koji se zatekao u cacheu, a **ne nijedan od 11 proizvođača u korpusu**.
+
+Dakle: usvojenost OpenSearcha među industrijskim proizvođačima je praktički nula, i P4.4 na ovom
+korpusu **ne može pomaknuti ništa**. Kod ostaje — kad linka nema ne košta ništa, a kad ga ima štedi 14
+slijepih oblika i uči se trajno — ali **prioritet mu je bio pogrešno procijenjen i tvrdnja je
+ispravljena na licu mjesta**. Ovo je druga procjena iz §6 koju je mjerenje oborilo (prva je bila P4.7),
+i oba puta je uzrok isti: rangirao sam po tome koliko rješenje izgleda elegantno, a ne po tome koliko
+ga stvarnih sajtova koristi.
+
+### ✅ P4.5 — presuda rezultatske stranice sada troši najskuplji resurs tamo gdje može promijeniti odgovor
+
+`searchResultVerdict` (sletio kao detektor u P4.0) sada je uključen u `processSearchRequests`. Dvije
+posljedice, obje konkretne:
+
+**1. Browser se više ne troši na stranicu koja je već rekla da nema ničega.** Svaki search URL bez
+pogotka je dosad ulazio u red za Playwright render — do četiri njih, svaki sa `page.goto` do 45 s.
+Stranica koja je u vlastitom HTML-u ispisala „no results" ispisat će isto i u browseru. Presuda `zero`
+je sada izbacuje iz reda, a `js-only` je **stavlja na početak** — to je točno slučaj zbog kojeg browser
+put uopće postoji. `unknown` i dalje ulazi u red: **ne znati nije razlog za prestati gledati.**
+
+**2. Dijagnostika razlikuje „nema" od „nismo našli".** Do četiri presude idu u `notes` s razlogom, pa
+run drawer (P3.2) pokazuje je li search odgovorio prazno, vratio listu koju nismo umjeli imenovati, ili
+je bio JS shell.
+
+**Redoslijed unutar detektora je nosiv, i to je ispravak vlastite prve verzije.** Provjera
+client-rendered shella sada ide **prije** fraze o nula rezultata. Takve stranice rutinski šalju
+„no results found" u početnom HTML-u kao skriveni placeholder koji framework prikaže samo ako upit
+stvarno ne vrati ništa. Čitati taj placeholder kao presudu značilo bi proglasiti svakog takvog vendora
+praznim — i, preko točke 1 gore, **uskratiti browser upravo stranici kojoj je najpotrebniji**.
+
+**Regresija koju je ova izmjena uzrokovala i koja je popravljena, ne zaobiđena.** Postojeći budžetni
+test („still opens a browser past the soft target") koristio je kao ispunu doslovno
+`<html><body>no results</body></html>`. Nakon P4.5 ta rečenica **je** presuda, pa je test pao s 0
+renderanih stranica — ispravno ponašanje, pogrešan fixture. Ispuna je zamijenjena neutralnim tijelom uz
+komentar zašto tekst sada nije nevažan; budžetna garancija je ostala netaknuta i dalje se testira.
+
+**Mjerenje (puni gate):** `tsc` čist; Vitest **2441/2441** (127 fajlova, +15 novih testova: 12 za
+OpenSearch, 3 integracijska za discovery); eval **38/38**, 390 provjera, **0 kontaminacija**;
+`audit:discovery --limit 12` **delta 0** (83 → 83 zahtjeva, hit@1 66,7 %);
+`audit:search-reachability --limit 60` **delta 0 u svim klasama**.
+
+**Zašto su te dvije delte nule, i zašto to nije razočaranje nego predviđanje:** offline replay nema
+browser (pa P4.5 točku 1 ne može izvršiti) i `page_cache` ne sadrži nijedan OpenSearch dokument, jer ih
+naš kod nikad prije nije tražio. Oboje je zapisano u zaglavlju `audit-search-reachability.ts` **prije**
+nego su brojke izmjerene. Delta 0 je ovdje dokaz **neregresije**.
+
+**Što je sljedeće, i zašto se redoslijed iz §6.3 mijenja.** Dominantna klasa ostaje `no-search-entry`
+(11/60, `fath` 5/6 i `gan` 5/6), a njezin dokaz offline glasi „12–15 search zahtjeva, nijedan nije
+odgovorio tijelom" — što je velikim dijelom cache miss, a ne dokazano mrtav endpoint. **Offline se tu
+više ne može ništa zaključiti.** Sljedeći korak zato nije još jedna offline stavka, nego `--live`
+provjera na `fath` i `gan`: odgovara li išta uopće, i pali li se typeahead nakon P4.2/P4.3. Tek taj
+nalaz smije odlučiti ide li se na P4.6 (reformulacija upita) ili na P4.7.
+
+### ✅ P4.6 – P4.12 — ostatak plana je sletio, uz dvije regresije koje sam sam uzrokovao
+
+**P4.6 — reformulacija upita.** Nova `searchQueryVariants()` u `catalog-number.ts` daje redoslijed
+kojim čovjek ponavlja upit: kako je otisnuto → bez separatora → s crticama → dio iza prefiksa →
+obiteljski prefiks. Šalje se **samo na endpoint koji je dokazano odgovorio** (`zero` ili `hits` bez
+ijednog identificiranog linka), nikad kao križni produkt svih oblika i svih varijanti — to bi bilo 70
+zahtjeva po artiklu i pojelo cijeli D2b budžet.
+
+Obiteljski prefiks je poseban slučaj i riješen je bez diranja dijeljene funkcije.
+`catalogFamilyMatchCandidates` traži znamenku u prefiksu, pa odbija `CT-MFD` (iz `CT-MFD.21`) — što je
+**ispravno za identitet** (prefiks bez znamenke bi poklopio pola kataloga) i pogrešno za **upit**.
+Dodan je zaseban, neizvezeni `queryOnlyFamilyPrefix`, s najmanje 4 kompaktna znaka; rezultat nosi
+`level: "family"`, dobiva `FAMILY_QUERY_SCORE_PENALTY` i ne može nadglasati exact odgovor.
+
+**P4.7 — otvaranje neidentificiranih rezultata.** Novi stage `search-result-unverified` i nova
+`discoverUnverifiedResultLinks()`. Bodovan je **30** — ispod svakog stagea potkrijepljenog dokazom i
+ispod sitemap unosa — jer za taj link ne znamo da je uopće o traženom proizvodu; znamo samo da je
+najbolje što je rezultatska stranica ponudila. Ne stvara se nakon mekog cilja, izuzet je iz
+confirmation probeova, a `recordLearnedEndpointFailure` za njega ne okida (nije naučeni endpoint).
+Rizik od krivog podatka ostaje nula: `scoreFetchedDiscoveryEvidence` i dalje traži **exact** poklapanje
+na identitetskoj površini proizvoda.
+
+**P4.10 — fuzzy rangiranje.** `fuzzyCatalogAffinity()` mjeri pokrivenost tokena (`CT-MFD.21` →
+CT, MFD, 21), koristi se **isključivo** za redoslijed ta 2–3 linka i ima vlastito ime i jednog
+pozivatelja, pa labavljenje ovdje ne može procuriti u objavljenu vrijednost. `catalogTextMatches` i
+`findCatalogTextMatch` nisu dirani.
+
+**P4.8 + P4.9 — trajni alias store.** Nova tablica `product_aliases`, novi
+`src/server/scrapers/product-aliases.ts`, i pisanje iz `deterministic-pipeline` **samo za stranicu
+koja je prošla quality gate**. `identityLevel` je nosivi dio: tipska oznaka je često 1-prema-više, pa
+je `family` i smije služiti kao **upit**, nikad kao dokaz identiteta. GTIN se prihvaća samo na
+duljinama koje GS1 stvarno izdaje (8/12/13/14) i vodi redoslijed upita, jer tražilica koja ga prima
+vraća točno jedan proizvod. Vrijednost s `;` ili `,` se odbija — to je popis obitelji, ne drugo ime
+ovog proizvoda.
+
+**P4.11 — perzistentni sitemap indeks, i ono što u njemu NIJE napravljeno.** Nova tablica
+`sitemap_urls` s 30-dnevnim TTL-om. Dosad se do 8 sitemapa dohvaćalo **po svakom kataloškom broju**, za
+rezultat koji o kataloškom broju uopće ne ovisi, a od svega pronađenog čuvalo se 12 poklapanja i
+ostalo bacalo. Sada se isti hod plati jednom po proizvođaču, sprema se sve što je vidio (do 20 000
+URL-ova), a kasniji artikli rade lokalni upit bez mreže.
+
+**Indeks naslova iz §6.2 nije napravljen, i to je svjesno.** Sitemapi u korpusu ne nose naslove;
+dobiti ih znači dohvatiti svaku PDP stranicu, što je upravo trošak koji indeks treba ukloniti. Tvrdnja
+iz plana („traži po naslovu, ne po URL-u") **nije izvediva iz sitemapa** i ostaje neriješena, a ne
+tiho prešućena.
+
+**P4.12 — vanjski bridge, isključen.** `src/server/scrapers/external-search.ts`, gate
+`PRODUCT_SCRAPER_ALLOW_EXTERNAL_SEARCH=1`, isti obrazac kao postojeći external reader. Radi tek nakon
+što su svi naši putovi propali, a prije URL nagađanja; rezultati prolaze official-domain guard pa
+post-fetch gate. DuckDuckGo omotava pogotke u `/l/?uddg=` redirect, pa se odmotava — bez toga bi svaki
+kandidat bio na duckduckgo.com i guard bi ih (ispravno) sve odbio, a bridge bi izgledao pokvareno
+umjesto blokirano.
+
+#### Dvije regresije koje sam sam uzrokovao, i kako su riješene
+
+**1. Reformulacija je mogla potrošiti preko izmjerenog budžeta.** Dala sam joj fiksni
+`budgetBoost: 4`, pa je test „spends at most a time budget on blind search shapes" dobio 4 zahtjeva
+umjesto 2. To **nije bio loš test** — to je bio D2b rezultat koji sam upravo počeo poništavati: na
+hostu gdje jedan zahtjev košta 3 s cap je 2, i oba su već potrošena. Popravak nije podizanje capa nego
+uvjet: re-ask dobiva vlastiti budžet **samo ako hod po slijepim oblicima nije završio zbog budžeta**
+(`searchBudgetExhausted`). Kad jest, preskače se i **kaže se u notes** da je preskočen i zašto.
+
+**2. Preimenovala sam dijagnostički kod bez razloga.** `budget-exhausted:url-variant-guess` →
+`budget-exhausted:speculative-candidate` srušilo je asertaciju u `deterministic-pipeline.test.ts`. Ti
+kodovi su **ugovor** (P3.2 postoji da se uzrok može potražiti po stabilnom imenu), a ne proza. Stari
+kod je vraćen, a novi stage je dobio **vlastiti** (`budget-exhausted:unverified-search-result`) umjesto
+da se oba sakriju iza jedne generičke etikete.
+
+**Mjerenje (puni gate):** `tsc` čist; Vitest **2460/2460** (128 fajlova, +19 novih testova); eval
+**38/38**, 390 provjera, **0 kontaminacija**; `audit:discovery --limit 12` **delta 0**;
+`audit:search-reachability --limit 60` **delta 0 u svim klasama**.
+
+**Zašto su obje delte nule — i zašto to ovdje znači manje nego inače.** Offline korpus strukturno ne
+može pokrenuti nijednu od ovih stavki: nema browsera; klase `search-zero-hits` i `search-js-only` su
+na ovoj kohorti **prazne**, pa P4.6 nema okidača; jedini `search-hits-unidentified` slučaj je Ganter,
+čiji ciljni PDP nije u cacheu, pa ga P4.7 može otvoriti ali ne i potvrditi; alias store se puni tek
+kad pipeline uspije, a replay ne vrti pipeline; sitemap indeks se isplati tek na drugom prolazu;
+bridge je isključen. Delta 0 je dakle **dokaz neregresije i ništa više** — a to je i jedina tvrdnja
+koja se smije napisati.
+
+#### Stanje P4 i što stvarno slijedi
+
+Sve stavke P4.1–P4.12 su implementirane. Ono što **nije** napravljeno i ne može se napraviti offline
+je njihova **potvrda**. Dominantna izmjerena klasa i dalje je `no-search-entry` (11/60, `fath` 5/6,
+`gan` 5/6), a njezin offline dokaz je „12–15 zahtjeva, nijedan nije odgovorio tijelom" — što je
+uglavnom cache miss, ne mrtav endpoint.
+
+Sljedeći korak nije kod nego `--live` prolaz na `fath` i `gan`, s tri konkretna pitanja: odgovara li
+išta od `GENERIC_SEARCH_SHAPES`; pali li se suggest XHR nakon P4.2/P4.3; i vraća li reformulacija
+išta kad prvi upit vrati nulu. **Dok taj nalaz ne postoji, svaka daljnja izmjena discoveryja bila bi
+rangirana po dojmu — a to je greška koju je §6 već dvaput uhvatio (P4.7 i P4.4).**
+
+### ✅ P4 — potvrda UŽIVO, i pet stvari koje je otkrila (četiri su bile moje greške)
+
+Sletio je `scripts/probe-vendor-search.ts` (`npm run probe:vendor-search`): pokreće **stvarni**
+`discoverOfficialProductCandidates` protiv **stvarnog** sajta i ispisuje što je vratio — probane
+URL-ove, presude, notes i kandidate. Ne reimplementira ništa, pa mjeri kod, ne svoju kopiju koda.
+
+Prvi prolaz na `gan / GN 3310-19-LK-K2` dao je jednu jedinu bilješku
+(`budget-exhausted:search`) i šest url-variant nagađanja. To je odmah srušilo pet stvari.
+
+#### 1. Auditor je znao nešto što runtime nije (i to je bio pravi defekt)
+
+Ganterov quick-finder **jest** bio pitan, vratio je 11 product-shaped linkova — i `searchResultVerdict`
+ga je proglasio `unknown`, jer stranica ne ispisuje brojač rezultata ni frazu o nuli. P4.7 se zato
+nikad nije pokrenuo **na jedinom vendoru zbog kojeg cijela faza postoji**.
+
+Offline auditor je taj slučaj znao: imao je vlastiti `resultishLinkCount` fallback. Runtime nije. To su
+bila **dva izvora istine**, i mjerni alat je mjerio nešto što se u proizvodnji ne događa. Spojeni su:
+`countProductShapedLinks` sada živi u `link-discovery.ts`, koristi ga i verdict i auditor, a auditorova
+privatna kopija je obrisana.
+
+#### 2. Re-ask je uvodio krive proizvode kao dokaz — najopasnija greška runde
+
+Nakon popravka #1, re-ask s kompaktnim oblikom (`gn331019lkk2`) vratio je **GN-228 kolute** kao
+`search-result` kandidate s ocjenom **103**, iznad svega stvarnog — i naučio template
+`quick-finder?q={partCompact}`.
+
+Uzrok: stranica **odjekuje upit** natrag, a kompaktni odjek *jest* kompaktni kataloški broj, pa je
+svakoj kartici okolni tekst „potvrdio" identitet. To je isti defekt koji je P2.1a riješio za PDF-ove
+(kataloški broj samo u page furniture daje lažni scope), ušao na nova vrata.
+
+Dva popravka, oba načelna:
+- rezultat dobiven **drugim pitanjem** ulazi kao `search-result-unverified`, ne kao `search-result` —
+  i dalje se dohvaća i o njemu odlučuje post-fetch gate, ali ne može nadglasati stvarni dokaz;
+- **iz re-aska se nikad ne uči template**, jer bi naučeni oblik odgovarao na pitanje koje nismo
+  postavili, i bio bi prvi na redu za svaki sljedeći artikl u runu.
+
+#### 3. „Strop" ocjene nije bio strop
+
+`search-result-unverified` sam bodovao 30 s ciljem „ispod sitemapa (52)". Uživo je ispao **65**: baza
+prođe kroz shape bonuse (+15 product-ish put, +10 službeni host), a pozivatelj zatim doda još
+`min(20, link.score/5)` — **nakon** capa u `scoreDiscoveryCandidate`. Strop je zato prebačen u `add()`,
+jedinu točku kroz koju svaki kandidat prolazi, pa drži bez obzira što pozivatelj doda. Sada 45.
+
+#### 4. Nova klasa je tiho gasila sitemape
+
+`hasEvidenceBackedCandidate` je vraćao `true` za **svaki** stage osim `url-variant`. Čim bi P4.7 dodao
+jedan neidentificiran link, sitemap discovery se preskakao — a sitemap je vendorov **vlastiti indeks**,
+strogo bolji dokaz od linka kojeg nitko nije identificirao. Nijedna offline revizija to nije mogla
+uhvatiti jer korpus ne okida obje faze istovremeno; ima sada vlastiti test.
+
+#### 5. Reorder koji sam uveo, pa revertirao, pa krivo objasnio
+
+Pretpostavio sam da na hostu od 3000 ms/zahtjev dva izvlačenja iz četrnaest oblika ne mogu uspjeti, pa
+sam usmjereni form/OpenSearch put stavio ispred slijepih oblika. **Živa sonda je premisu srušila:**
+Ganterov quick-finder je *konfigurirani* template i ionako je bio prvi. Nedostajala je presuda, ne
+redoslijed.
+
+Revertirao sam ga uz obrazloženje „košta 30 s na gan". **To je bilo krivo pripisivanje** — revert nije
+vratio `gan` na 6 zahtjeva. Stvarni uzrok skoka 6 → 16 zahtjeva (18 s → 48 s) je da je živa sonda
+**keširala Ganterov pravi odgovor**, pa nove faze u replayu konačno rade ono što prije nisu mogle. Taj
+trošak je stvaran, ali je to trošak faza koje rade, i u pravom runu ga omeđuje deadline artikla —
+replay deadline nema. Komentar u kodu je ispravljen da piše to, a ne prvu tvrdnju.
+
+#### Stanje mjerila
+
+`tsc` čist; Vitest **2462/2462** (128 fajlova); eval **38/38**, 390 provjera, **0 kontaminacija**;
+`audit:discovery` hit@1 66,7 % i hit 75 % **nepromijenjeni**; `audit:search-reachability` se pomaknuo
+za `gan`: `search-hits-unidentified` 1 → 0, `search-hits-unconfirmed` 7 → 8 — tj. quick-finder se sada
+otvara i rezultati padaju na post-fetch gateu umjesto da se nikad ne pogledaju.
+
+**Baseline je od sada drukčiji i to se mora znati pri sljedećoj usporedbi:** živa sonda je u
+`page_cache` dodala odgovore koje korpus nikad nije imao. To je dobitak za korpus, ali stare
+`reach-baseline.json` / `disc-before.json` više nisu ista mjerna podloga.
+
+#### Što i dalje nije riješeno
+
+`no-search-entry` ostaje dominantna klasa (11/60, `fath` 5/6, `gan` 5/6). Za `gan` sada znamo da to
+**nije** nedostatak tražilice — ona odgovara — nego da nijedan od njezinih rezultata ne nosi traženi
+kod, pa sve ovisi o post-fetch gateu. Za `fath` isto pitanje još nije postavljeno uživo; to je sljedeći
+korak, i sada za njega postoji alat umjesto procjene.
+
+### ✅ P4 — `fath` uživo, i nalaz koji ruši dominantnu klasu cijele analize
+
+**`fath` uživo radi savršeno.** `npm run probe:vendor-search -- --vendor fath --catalog 6SACP3J316B.2000`
+vraća točno traženi PDP kao **kandidata #1, ocjena 120**:
+`https://www.fath24.com/en/Connection-Cable-GST18i3-for-Module-F-Line/6SACP3J316B.2000` — isti URL koji
+je offline audit mjesecima vodio kao „want, nije nađen". Njegova tražilica odgovara na tri od tri
+probana oblika i dva su odmah naučena kao templatei.
+
+To je drugi vendor zaredom (nakon `gan`) kod kojeg je živa provjera pokazala da tražilica radi, a da je
+offline klasifikacija bila kriva. Dvaput je dosta: **popravljen je mjerni instrument, ne kod.**
+
+#### Instrument je miješao „nemamo podatak" s „vendor nema tražilicu"
+
+`cacheBackedHttp` na URL koji nije u korpusu odgovara sintetičkim 404 — namjerno, da discovery vidi
+mrtav URL kao što bi ga vidio uživo. Ali auditor je taj 404 brojao isto kao stvarni neuspjeh vendora,
+pa je oblik koji naš kod **nikad nije poslao** izgledao kao endpoint koji **ne radi**.
+
+Auditor sada bilježi `fromCache` po odgovoru i dijeli klasu na dvije:
+
+- `no-search-entry` — vendor je odgovorio iz korpusa i nije dao ništa upotrebljivo. **Stvarna rupa.**
+- `no-search-entry-uncached` — ništa od toga nije bilo u korpusu. **Offline ovo ne dokazuje ništa**, i
+  klasa to doslovno piše, uz uputu da se pita uživo.
+
+#### Rezultat, 60 kataloških brojeva
+
+| klasa | prije | sada |
+| --- | --- | --- |
+| `hit` | 41 | **42** |
+| `search-hits-unconfirmed` (siemens 5, turck 2) | 7 | 7 |
+| `search-hits-unidentified` (gan) | 1 | 1 |
+| **`no-search-entry`** | **11** | **0** |
+| `no-search-entry-uncached` (fath 4, gan 5, eaton 1) | — | 10 |
+
+**Dominantna klasa cijele P4 analize — 18,3 % „nikad nismo došli do tražilice" — bila je u cijelosti
+rupa u mjerenju. Stvarnih slučajeva: nula.**
+
+#### Što to znači za §6 i za redoslijed rada
+
+Moja izvorna analiza je `no-search-entry` proglasila glavnim problemom i po tome složila prioritete
+(P4.1 / P4.3 / P4.4 prva tri mjesta). **Ta premisa ne stoji.** Uz već zabilježene ispravke za P4.7
+(1/60) i P4.4 (1/23 hosta), to je **treći** put da je mjerenje oborilo procjenu iz plana — i sva tri
+puta iz istog razloga: brojka je izgledala kao svojstvo vendora, a bila je svojstvo korpusa.
+
+Stvarno stanje, koliko se danas može tvrditi:
+- **`hit` 42/60 offline**, a dva vendora koja su offline izgledala najgore (`gan`, `fath`) uživo
+  odgovaraju — jedan čak s točnim PDP-om na prvom mjestu;
+- jedina **potvrđena** discovery rupa je `search-hits-unidentified` (gan, 1 slučaj) — točno ono zbog
+  čega P4.7 postoji, i ono je sada implementirano i uživo se pokreće;
+- `search-hits-unconfirmed` (7) nije discovery problem nego pitanje o PDP-u, i tako je i označen.
+
+**Pouka koja ide u pravila rada:** offline replay smije mjeriti samo ono što je u korpusu. Svaka
+klasa koja može nastati iz *odsutnosti* podatka mora se zvati drukčije od klase koja nastaje iz
+*prisutnosti* lošeg podatka — inače plan dobije prioritete od mjerila, a ne od stvarnosti.
+
+**Mjerila:** `tsc` čist; Vitest **2462/2462**; eval **38/38**, 390 provjera, 0 kontaminacija.

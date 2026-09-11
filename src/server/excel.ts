@@ -5,9 +5,12 @@ import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import sharp from "sharp";
+import type { FieldCoverageDriftFlag } from "./scrapers/field-coverage-drift.js";
 import type { FinalCompletenessRecord, ManufacturerConfig, ProductResult, RunItemRecord, RunRecord } from "../shared/types.js";
 import { requiredElectricalFields } from "../shared/product-requirements.js";
 import { AI_CLEANED_INPUT_SHEET, writeAiCleanedInputSheet } from "./pdt/ai-cleaned-input-sheet.js";
+import { loadAccessoryMatrix } from "./pdt/accessory-matrix.js";
+import { writeAccessoryConditionsSheet } from "./pdt/accessory-conditions-sheet.js";
 import { buildPdtRepairResult } from "./pdt/ai-cleanup.js";
 import { electricalFieldsForDeviceType } from "./pdt/device-type-profiles.js";
 import { classifyDeviceTypeCached as classifyDeviceType } from "./scrapers/device-type.js";
@@ -25,6 +28,8 @@ export async function exportRunWorkbook(input: {
   manufacturer: ManufacturerConfig;
   items: RunItemRecord[];
   outputDir: string;
+  /** Computed at run-finalize time against this manufacturer's recent completed runs; see field-coverage-drift.ts. */
+  fieldCoverageDrift?: FieldCoverageDriftFlag[];
   onActivity?: (activity: { stage: string; message: string }) => void | Promise<void>;
 }): Promise<string> {
   await input.onActivity?.({ stage: "workbook-build", message: "Preparing workbook sheets." });
@@ -852,6 +857,23 @@ export async function exportRunWorkbook(input: {
   }
   applyWorkbookUsability(workbook);
 
+  // An accessory matrix attached at run start contributes its INLIST conditions here; one chosen
+  // later in the PDT panel is patched into this workbook by the PDT export instead. A broken
+  // matrix must not cost the operator the whole products workbook, so failure is logged, not fatal.
+  const accessoryMatrixPath = input.run.options?.accessoryMatrix?.storedPath;
+  if (accessoryMatrixPath) {
+    await input.onActivity?.({ stage: "accessory-matrix", message: "Reading accessory matrix conditions." });
+    try {
+      const matrix = await loadAccessoryMatrix(accessoryMatrixPath);
+      writeAccessoryConditionsSheet(workbook, matrix.conditions);
+    } catch (error) {
+      await input.onActivity?.({
+        stage: "accessory-matrix",
+        message: `Could not read the accessory matrix: ${error instanceof Error ? error.message : String(error)}`
+      });
+    }
+  }
+
   const inputNamePart = input.run.inputFileName ? safeWorkbookPart(path.parse(input.run.inputFileName).name) : "";
   const outputName = [
     safeWorkbookPart(input.manufacturer.shortName),
@@ -890,6 +912,7 @@ function populateRunSummarySheet(
     manufacturer: ManufacturerConfig;
     items: RunItemRecord[];
     outputDir: string;
+    fieldCoverageDrift?: FieldCoverageDriftFlag[];
   },
   productRows: ProductExportRow[]
 ) {
@@ -930,6 +953,21 @@ function populateRunSummarySheet(
   row = addSummaryMetric(sheet, row, "Review rows", reviewCount, readiness.reviewDetail, reviewCount ? internalSheetHyperlink("Needs Review") : internalSheetHyperlink("Clean Export"));
   row = addSummaryMetric(sheet, row, "Ready-only export tab", "Import Ready", "Use this sheet when importing only rows with no review blockers.", internalSheetHyperlink("Import Ready"));
   row = addSummaryMetric(sheet, row, "Full clean export tab", "Clean Export", "Use this sheet when you need all rows with import/review/exclude decisions.", internalSheetHyperlink("Clean Export"));
+
+  const driftFlags = input.fieldCoverageDrift ?? [];
+  if (driftFlags.length) {
+    row += 1;
+    row = addSummarySection(sheet, row, "⚠ Coverage drift vs recent runs");
+    for (const flag of driftFlags) {
+      row = addSummaryMetric(
+        sheet,
+        row,
+        flag.field,
+        `${Math.round(flag.currentFillRate * 100)}% now vs ${Math.round(flag.baselineFillRate * 100)}% baseline`,
+        `Baseline from ${flag.baselineRunCount} recent ${input.manufacturer.canonicalName} runs — likely a site change, not fewer products lacking this field.`
+      );
+    }
+  }
 
   row += 1;
   row = addSummarySection(sheet, row, "Decision legend");
@@ -1062,6 +1100,7 @@ function populateCleanExportSheet(
     { header: "Confidence", key: "confidence", width: 12, style: { numFmt: "0%" } },
     { header: "Quality Tier", key: "qualityTier", width: 14 },
     { header: "Missing Key Fields", key: "missingKeyFields", width: 42 },
+    { header: "Cohort Anomaly", key: "cohortAnomalySummary", width: 60 },
     { header: "Manufacturer", key: "manufacturer", width: 18 },
     { header: "Product Type", key: "productType", width: 32 },
     { header: "Title", key: "title", width: 46 },
@@ -1118,6 +1157,7 @@ function populateCleanExportSheet(
       confidence: row.confidence,
       qualityTier: qualityTier(coverage.score),
       missingKeyFields: coverage.missing.join("; ") || undefined,
+      cohortAnomalySummary: row.cohortAnomalySummary,
       manufacturer: row.manufacturer,
       productType: row.productType,
       title: row.title,
@@ -1747,6 +1787,7 @@ function reviewReason(row: ProductExportRow): string | undefined {
     imageExpected(row) && !row.imageUrl ? "Missing image" : undefined,
     !hasDocumentSummaryType(row.downloads, "Datasheet") ? "Missing datasheet" : undefined,
     row.missingRequiredFields ? `Missing: ${row.missingRequiredFields}` : undefined,
+    row.cohortAnomalySummary ? `Cohort outlier: ${row.cohortAnomalySummary}` : undefined,
     row.error ? "Has error" : undefined
   ].filter((value): value is string => Boolean(value));
   return reasons.join("; ") || undefined;
@@ -1761,6 +1802,7 @@ function reviewPriorityScore(row: ProductExportRow): number {
   if (row.error) score += 60;
   if (row.qualityPassed === false) score += 45;
   if (row.missingRequiredFields) score += 35;
+  if (row.cohortAnomalySummary) score += 25;
   if (coverage.score < 0.6) score += 30;
   if (confidence > 0 && confidence < 0.65) score += 20;
   if (row.attributeCount === 0) score += 15;
@@ -1883,6 +1925,7 @@ function suggestedActionForIssueType(issueType: string): string {
   if (normalized === "partial scrape") return "Review source pages and fill missing product fields before import.";
   if (normalized === "scrape error") return "Inspect run logs, source pages, and connector parsing for affected rows.";
   if (normalized === "missing required fields") return "Fill required fields manually or confirm they are not applicable.";
+  if (normalized === "cohort outlier") return "Compare against sibling catalog numbers in this run — likely a wrong table column, unit mix-up, or cross-model contamination, not a real value.";
   if (normalized === "low coverage") return "Open Field Coverage and prioritize high-value missing fields.";
   if (normalized === "quality gate") return "Review quality missing fields and source evidence.";
   if (normalized === "low confidence") return "Verify catalog/product match against the official product page.";
@@ -2001,6 +2044,7 @@ function reviewIssueType(row: ProductExportRow): string | undefined {
     row.status === "partial" ? "Partial scrape" : undefined,
     row.error ? "Scrape error" : undefined,
     row.missingRequiredFields ? "Missing required fields" : undefined,
+    row.cohortAnomalySummary ? "Cohort outlier" : undefined,
     coverage.score < 0.6 ? "Low coverage" : undefined,
     row.qualityPassed === false ? "Quality gate" : undefined,
     confidence > 0 && confidence < 0.65 ? "Low confidence" : undefined,
@@ -2020,6 +2064,7 @@ function reviewSuggestedAction(row: ProductExportRow): string | undefined {
   if (row.error) return "Inspect the run log and source page, then rerun or correct the row manually.";
   if (!row.productUrlEn && !row.productUrl) return "Find and confirm the official product URL.";
   if (row.missingRequiredFields) return `Fill or confirm required fields: ${row.missingRequiredFields}.`;
+  if (row.cohortAnomalySummary) return `Check against sibling rows in this run — ${row.cohortAnomalySummary}.`;
   if (row.qualityPassed === false) return "Review quality missing fields and source evidence.";
   if (coverage.score < 0.6) return "Open Field Coverage and fill the highest-value missing fields.";
   if (!hasDocumentSummaryType(row.downloads, "Datasheet")) return "Add a datasheet URL or confirm the manufacturer does not publish one.";
@@ -2402,12 +2447,19 @@ function productRow(
     fieldHealthSummary: fieldHealthSummaryForExport(result),
     missingRequiredFields: missingRequiredFields(row),
     unmappedSpecLabels: result?.diagnostics?.unmappedSpecLabels?.map(({ label, valueKind }) => `${label} (${valueKind})`).join("; "),
+    cohortAnomalySummary: cohortAnomalySummaryForExport(result),
     error: result?.error ?? item.error
   };
 }
 
 function imageExpected(row: ProductExportRow): boolean {
   return row.imageExpected !== false;
+}
+
+function cohortAnomalySummaryForExport(result: ProductResult | undefined): string | undefined {
+  const flags = result?.diagnostics?.cohortAnomalies;
+  if (!flags?.length) return undefined;
+  return flags.map((flag) => `${flag.field}: ${flag.value} ${flag.unit} vs ${flag.deviceType} median ${flag.cohortMedian} ${flag.unit} (n=${flag.cohortSize})`).join("; ");
 }
 
 function fieldHealthSummaryForExport(result: ProductResult | undefined): string | undefined {
@@ -2956,6 +3008,8 @@ function specificationSummaryForExport(result: ProductResult | undefined, normal
     firstAttributeValue(attributes, [/^product main type$/i]) ??
     firstAttributeValue(attributes, [/^product or component type$/i]) ??
     firstAttributeValue(attributes, [/^sensor type$/i]) ??
+    firstAttributeValue(attributes, [/^product type designation$/i]) ??
+    firstAttributeValue(attributes, [/^product designation$/i]) ??
     firstAttributeValue(attributes, [/^product type$/i]) ??
     firstAttributeValue(attributes, [/^alternateName$/i, /^product label$/i]) ??
     firstAttributeValue(attributes, [/^device short name$/i]) ??
@@ -4183,7 +4237,7 @@ function firstAttributeValue(attributes: ProductResult["attributes"], namePatter
 
 function usefulSummaryValue(value: string | undefined): boolean {
   const cleaned = cleanText(value);
-  return Boolean(cleaned && cleaned !== "-" && !/^n\/?a$/i.test(cleaned));
+  return Boolean(cleaned && cleaned !== "-" && !/^n\/?a$/i.test(cleaned) && !/^&lang=/i.test(cleaned));
 }
 
 function compactSpecValue(value: string | undefined, maxLength = 260): string | undefined {
@@ -4376,29 +4430,79 @@ function styleSheet(sheet: ExcelJS.Worksheet) {
     if (rowNumber > 1 && rowNumber % 2 === 0) {
       row.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF8FAFC" } };
     }
+    // Do these cell decorations during the existing row pass. Separate full-sheet scans for
+    // hyperlinks and OK/Missing markers were a measurable cost on large audit sheets.
+    if (rowNumber === 1) return;
+    row.eachCell((cell) => {
+      if (cell.hyperlink) {
+        cell.font = { ...(cell.font ?? {}), color: { argb: "FF2563EB" }, underline: true };
+      }
+      const value = cleanText(cell.text || String(cell.value ?? ""));
+      if (value !== "OK" && value !== "Missing") return;
+      cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: value === "OK" ? "FFDCFCE7" : "FFFEE2E2" } };
+      cell.font = { ...(cell.font ?? {}), bold: true, color: { argb: "FF111827" } };
+      cell.alignment = { vertical: "middle", horizontal: "center" };
+    });
   });
 }
 
+/**
+ * Single fused row pass instead of ~15 independent full-sheet scans (one per styled column) —
+ * each of those used to call `headerColumnNumber` + walk every row on its own, so a 2000-row
+ * export re-touched the same rows repeatedly. Column numbers are resolved once up front; per-row
+ * work below preserves the exact original call order for columns two passes both touch (only
+ * "Fix Needed": the review-workflow dropdown fill must still be written before the Yes/No color
+ * fill overwrites it, matching the old `applyReviewWorkflowFormatting` → `styleYesNoColumn` order).
+ */
 function applyUsabilityFormatting(sheet: ExcelJS.Worksheet) {
   linkifyWorksheet(sheet);
-  styleHyperlinkObjects(sheet);
-  styleStatusColumn(sheet);
-  styleExportDecisionColumn(sheet);
-  styleReviewPriorityColumn(sheet);
-  styleSeverityColumn(sheet);
-  styleActionColumn(sheet, "Action Needed");
-  styleActionColumn(sheet, "Suggested Action");
-  applyReviewWorkflowFormatting(sheet);
-  styleYesNoColumn(sheet, "Import Ready");
-  styleYesNoColumn(sheet, "Document Ready");
-  styleYesNoColumn(sheet, "Fix Needed");
-  styleYesNoColumn(sheet, "Primary");
-  styleBooleanColumn(sheet, "Quality Gate Passed");
-  styleCoverageScoreColumn(sheet);
-  styleConfidenceColumn(sheet);
-  styleQualityTierColumn(sheet);
-  styleOkMissingCells(sheet);
-  styleImportantMissingFieldCells(sheet);
+
+  const statusColumn = headerColumnNumber(sheet, "Status");
+  const exportDecisionColumn = headerColumnNumber(sheet, "Export Decision");
+  const reviewPriorityColumn = headerColumnNumber(sheet, "Review Priority");
+  const severityColumn = headerColumnNumber(sheet, "Severity");
+  const actionNeededColumn = headerColumnNumber(sheet, "Action Needed");
+  const suggestedActionColumn = headerColumnNumber(sheet, "Suggested Action");
+  const workflowColumns = {
+    statusColumn: headerColumnNumber(sheet, "Review Status"),
+    fixColumn: headerColumnNumber(sheet, "Fix Needed"),
+    reviewerColumn: headerColumnNumber(sheet, "Reviewed By"),
+    notesColumn: headerColumnNumber(sheet, "Review Notes")
+  };
+  const importReadyColumn = headerColumnNumber(sheet, "Import Ready");
+  const documentReadyColumn = headerColumnNumber(sheet, "Document Ready");
+  const fixNeededColumn = headerColumnNumber(sheet, "Fix Needed");
+  const primaryColumn = headerColumnNumber(sheet, "Primary");
+  const qualityGatePassedColumn = headerColumnNumber(sheet, "Quality Gate Passed");
+  const coverageScoreColumn = headerColumnNumber(sheet, "Coverage Score");
+  const confidenceColumn = headerColumnNumber(sheet, "Confidence");
+  const qualityTierColumn = headerColumnNumber(sheet, "Quality Tier");
+
+  const fieldColumns = importantFieldColumns(sheet);
+  const missingRequiredColumn = headerColumnNumber(sheet, "Missing Required Fields");
+  const finalCompletenessColumn = headerColumnNumber(sheet, "Final Completeness Check");
+  const missingKeyColumn = headerColumnNumber(sheet, "Missing Key Fields");
+
+  const lastRow = sheet.rowCount;
+  for (let rowNumber = 2; rowNumber <= lastRow; rowNumber += 1) {
+    const row = sheet.getRow(rowNumber);
+    if (statusColumn) styleStatusCell(row.getCell(statusColumn));
+    if (exportDecisionColumn) styleExportDecisionCell(row.getCell(exportDecisionColumn));
+    if (reviewPriorityColumn) styleReviewPriorityCell(row.getCell(reviewPriorityColumn));
+    if (severityColumn) styleSeverityCell(row.getCell(severityColumn));
+    if (actionNeededColumn) styleActionCell(row.getCell(actionNeededColumn));
+    if (suggestedActionColumn) styleActionCell(row.getCell(suggestedActionColumn));
+    applyReviewWorkflowRow(row, workflowColumns);
+    if (importReadyColumn) styleYesNoCell(row.getCell(importReadyColumn));
+    if (documentReadyColumn) styleYesNoCell(row.getCell(documentReadyColumn));
+    if (fixNeededColumn) styleYesNoCell(row.getCell(fixNeededColumn));
+    if (primaryColumn) styleYesNoCell(row.getCell(primaryColumn));
+    if (qualityGatePassedColumn) styleBooleanCell(row.getCell(qualityGatePassedColumn));
+    if (coverageScoreColumn) styleCoverageScoreCell(row.getCell(coverageScoreColumn));
+    if (confidenceColumn) styleConfidenceCell(row.getCell(confidenceColumn));
+    if (qualityTierColumn) styleQualityTierCell(row.getCell(qualityTierColumn));
+    styleImportantMissingFieldsRow(row, fieldColumns, missingRequiredColumn, finalCompletenessColumn, missingKeyColumn);
+  }
 }
 
 function applyWorkbookUsability(workbook: ExcelJS.Workbook) {
@@ -4421,15 +4525,6 @@ function sheetTabColor(sheetName: string): string | undefined {
   if (["Products", "Attributes", "Documents", "Sources", "Evidence", "Failures"].includes(sheetName)) return "FF64748B";
   if (sheetName === "XLOOKUP" || sheetName === "Field Coverage" || sheetName === "Spec Matrix") return "FF7C3AED";
   return undefined;
-}
-
-function styleHyperlinkObjects(sheet: ExcelJS.Worksheet) {
-  sheet.eachRow((row) => {
-    row.eachCell((cell) => {
-      if (!cell.hyperlink) return;
-      cell.font = { ...(cell.font ?? {}), color: { argb: "FF2563EB" }, underline: true };
-    });
-  });
 }
 
 function linkifyWorksheet(sheet: ExcelJS.Worksheet) {
@@ -4462,177 +4557,126 @@ function singleCellHyperlinkTarget(value: string): string | undefined {
   return undefined;
 }
 
-function styleStatusColumn(sheet: ExcelJS.Worksheet) {
-  const statusColumn = headerColumnNumber(sheet, "Status");
-  if (!statusColumn) return;
-  for (let rowNumber = 2; rowNumber <= sheet.rowCount; rowNumber += 1) {
-    const cell = sheet.getRow(rowNumber).getCell(statusColumn);
-    const status = cleanText(cell.text || String(cell.value ?? "")).toLowerCase();
-    if (!status) continue;
-    const color =
-      status === "found" || status === "completed"
-        ? "FFDCFCE7"
-        : status === "partial" || status === "running"
-          ? "FFFEF3C7"
-          : status === "failed" || status === "cancelled"
-            ? "FFFEE2E2"
-            : undefined;
-    if (!color) continue;
-    cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: color } };
-    cell.font = { ...(cell.font ?? {}), bold: true, color: { argb: "FF111827" } };
-    cell.alignment = { vertical: "middle", horizontal: "center" };
+function styleStatusCell(cell: ExcelJS.Cell) {
+  const status = cleanText(cell.text || String(cell.value ?? "")).toLowerCase();
+  if (!status) return;
+  const color =
+    status === "found" || status === "completed"
+      ? "FFDCFCE7"
+      : status === "partial" || status === "running"
+        ? "FFFEF3C7"
+        : status === "failed" || status === "cancelled"
+          ? "FFFEE2E2"
+          : undefined;
+  if (!color) return;
+  cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: color } };
+  cell.font = { ...(cell.font ?? {}), bold: true, color: { argb: "FF111827" } };
+  cell.alignment = { vertical: "middle", horizontal: "center" };
+}
+
+function styleExportDecisionCell(cell: ExcelJS.Cell) {
+  const value = cleanText(cell.text || String(cell.value ?? ""));
+  const color = value === "Import" ? "FFDCFCE7" : value === "Review" ? "FFFEF3C7" : value === "Exclude" ? "FFFEE2E2" : undefined;
+  if (!color) return;
+  cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: color } };
+  cell.font = { ...(cell.font ?? {}), bold: true, color: { argb: "FF111827" } };
+  cell.alignment = { vertical: "middle", horizontal: "center" };
+}
+
+function styleBooleanCell(cell: ExcelJS.Cell) {
+  if (cell.value !== true && cell.value !== false) return;
+  cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: cell.value ? "FFDCFCE7" : "FFFEE2E2" } };
+  cell.font = { ...(cell.font ?? {}), bold: true, color: { argb: "FF111827" } };
+  cell.alignment = { vertical: "middle", horizontal: "center" };
+}
+
+function styleReviewPriorityCell(cell: ExcelJS.Cell) {
+  const value = cleanText(cell.text || String(cell.value ?? ""));
+  const color = value === "High" ? "FFFEE2E2" : value === "Medium" ? "FFFEF3C7" : value === "Low" ? "FFDCFCE7" : undefined;
+  if (!color) return;
+  cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: color } };
+  cell.font = { ...(cell.font ?? {}), bold: true, color: { argb: "FF111827" } };
+  cell.alignment = { vertical: "middle", horizontal: "center" };
+}
+
+function styleYesNoCell(cell: ExcelJS.Cell) {
+  const value = cleanText(cell.text || String(cell.value ?? ""));
+  if (value !== "Yes" && value !== "No") return;
+  cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: value === "Yes" ? "FFDCFCE7" : "FFFEE2E2" } };
+  cell.font = { ...(cell.font ?? {}), bold: true, color: { argb: "FF111827" } };
+  cell.alignment = { vertical: "middle", horizontal: "center" };
+}
+
+function styleSeverityCell(cell: ExcelJS.Cell) {
+  const value = cleanText(cell.text || String(cell.value ?? ""));
+  const color = value === "High" ? "FFFEE2E2" : value === "Medium" ? "FFFEF3C7" : value === "Low" ? "FFE0F2FE" : value === "Info" ? "FFE2E8F0" : undefined;
+  if (!color) return;
+  cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: color } };
+  cell.font = { ...(cell.font ?? {}), bold: true, color: { argb: "FF111827" } };
+  cell.alignment = { vertical: "middle", horizontal: "center" };
+}
+
+function styleActionCell(cell: ExcelJS.Cell) {
+  const value = cleanText(cell.text || String(cell.value ?? ""));
+  if (!value) return;
+  const ready = value === "Ready";
+  cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: ready ? "FFDCFCE7" : "FFFFF7ED" } };
+  cell.font = { ...(cell.font ?? {}), color: { argb: "FF111827" }, bold: ready };
+}
+
+interface ReviewWorkflowColumns {
+  statusColumn: number | undefined;
+  fixColumn: number | undefined;
+  reviewerColumn: number | undefined;
+  notesColumn: number | undefined;
+}
+
+function applyReviewWorkflowRow(row: ExcelJS.Row, columns: ReviewWorkflowColumns) {
+  const { statusColumn, fixColumn, reviewerColumn, notesColumn } = columns;
+  if (statusColumn) {
+    const cell = row.getCell(statusColumn);
+    cell.dataValidation = {
+      type: "list",
+      allowBlank: true,
+      formulae: ['"Open,Checked,Needs manual lookup,Ignore"']
+    };
+    cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF8FAFC" } };
+  }
+  if (fixColumn) {
+    const cell = row.getCell(fixColumn);
+    cell.dataValidation = {
+      type: "list",
+      allowBlank: true,
+      formulae: ['"Yes,No,Maybe"']
+    };
+    cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF8FAFC" } };
+  }
+  for (const columnNumber of [reviewerColumn, notesColumn].filter((value): value is number => Boolean(value))) {
+    row.getCell(columnNumber).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF8FAFC" } };
   }
 }
 
-function styleExportDecisionColumn(sheet: ExcelJS.Worksheet) {
-  const columnNumber = headerColumnNumber(sheet, "Export Decision");
-  if (!columnNumber) return;
-  for (let rowNumber = 2; rowNumber <= sheet.rowCount; rowNumber += 1) {
-    const cell = sheet.getRow(rowNumber).getCell(columnNumber);
-    const value = cleanText(cell.text || String(cell.value ?? ""));
-    const color = value === "Import" ? "FFDCFCE7" : value === "Review" ? "FFFEF3C7" : value === "Exclude" ? "FFFEE2E2" : undefined;
-    if (!color) continue;
-    cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: color } };
-    cell.font = { ...(cell.font ?? {}), bold: true, color: { argb: "FF111827" } };
-    cell.alignment = { vertical: "middle", horizontal: "center" };
-  }
-}
-
-function styleBooleanColumn(sheet: ExcelJS.Worksheet, headerName: string) {
-  const columnNumber = headerColumnNumber(sheet, headerName);
-  if (!columnNumber) return;
-  for (let rowNumber = 2; rowNumber <= sheet.rowCount; rowNumber += 1) {
-    const cell = sheet.getRow(rowNumber).getCell(columnNumber);
-    if (cell.value !== true && cell.value !== false) continue;
-    cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: cell.value ? "FFDCFCE7" : "FFFEE2E2" } };
-    cell.font = { ...(cell.font ?? {}), bold: true, color: { argb: "FF111827" } };
-    cell.alignment = { vertical: "middle", horizontal: "center" };
-  }
-}
-
-function styleReviewPriorityColumn(sheet: ExcelJS.Worksheet) {
-  const columnNumber = headerColumnNumber(sheet, "Review Priority");
-  if (!columnNumber) return;
-  for (let rowNumber = 2; rowNumber <= sheet.rowCount; rowNumber += 1) {
-    const cell = sheet.getRow(rowNumber).getCell(columnNumber);
-    const value = cleanText(cell.text || String(cell.value ?? ""));
-    const color = value === "High" ? "FFFEE2E2" : value === "Medium" ? "FFFEF3C7" : value === "Low" ? "FFDCFCE7" : undefined;
-    if (!color) continue;
-    cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: color } };
-    cell.font = { ...(cell.font ?? {}), bold: true, color: { argb: "FF111827" } };
-    cell.alignment = { vertical: "middle", horizontal: "center" };
-  }
-}
-
-function styleYesNoColumn(sheet: ExcelJS.Worksheet, headerName: string) {
-  const columnNumber = headerColumnNumber(sheet, headerName);
-  if (!columnNumber) return;
-  for (let rowNumber = 2; rowNumber <= sheet.rowCount; rowNumber += 1) {
-    const cell = sheet.getRow(rowNumber).getCell(columnNumber);
-    const value = cleanText(cell.text || String(cell.value ?? ""));
-    if (value !== "Yes" && value !== "No") continue;
-    cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: value === "Yes" ? "FFDCFCE7" : "FFFEE2E2" } };
-    cell.font = { ...(cell.font ?? {}), bold: true, color: { argb: "FF111827" } };
-    cell.alignment = { vertical: "middle", horizontal: "center" };
-  }
-}
-
-function styleSeverityColumn(sheet: ExcelJS.Worksheet) {
-  const columnNumber = headerColumnNumber(sheet, "Severity");
-  if (!columnNumber) return;
-  for (let rowNumber = 2; rowNumber <= sheet.rowCount; rowNumber += 1) {
-    const cell = sheet.getRow(rowNumber).getCell(columnNumber);
-    const value = cleanText(cell.text || String(cell.value ?? ""));
-    const color = value === "High" ? "FFFEE2E2" : value === "Medium" ? "FFFEF3C7" : value === "Low" ? "FFE0F2FE" : value === "Info" ? "FFE2E8F0" : undefined;
-    if (!color) continue;
-    cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: color } };
-    cell.font = { ...(cell.font ?? {}), bold: true, color: { argb: "FF111827" } };
-    cell.alignment = { vertical: "middle", horizontal: "center" };
-  }
-}
-
-function styleActionColumn(sheet: ExcelJS.Worksheet, headerName: string) {
-  const columnNumber = headerColumnNumber(sheet, headerName);
-  if (!columnNumber) return;
-  for (let rowNumber = 2; rowNumber <= sheet.rowCount; rowNumber += 1) {
-    const cell = sheet.getRow(rowNumber).getCell(columnNumber);
-    const value = cleanText(cell.text || String(cell.value ?? ""));
-    if (!value) continue;
-    const ready = value === "Ready";
-    cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: ready ? "FFDCFCE7" : "FFFFF7ED" } };
-    cell.font = { ...(cell.font ?? {}), color: { argb: "FF111827" }, bold: ready };
-  }
-}
-
-function applyReviewWorkflowFormatting(sheet: ExcelJS.Worksheet) {
-  const statusColumn = headerColumnNumber(sheet, "Review Status");
-  const fixColumn = headerColumnNumber(sheet, "Fix Needed");
-  const reviewerColumn = headerColumnNumber(sheet, "Reviewed By");
-  const notesColumn = headerColumnNumber(sheet, "Review Notes");
-  if (!statusColumn && !fixColumn && !reviewerColumn && !notesColumn) return;
-
-  const lastRow = sheet.rowCount;
-  for (let rowNumber = 2; rowNumber <= lastRow; rowNumber += 1) {
-    if (statusColumn) {
-      const cell = sheet.getRow(rowNumber).getCell(statusColumn);
-      cell.dataValidation = {
-        type: "list",
-        allowBlank: true,
-        formulae: ['"Open,Checked,Needs manual lookup,Ignore"']
-      };
-      cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF8FAFC" } };
-    }
-    if (fixColumn) {
-      const cell = sheet.getRow(rowNumber).getCell(fixColumn);
-      cell.dataValidation = {
-        type: "list",
-        allowBlank: true,
-        formulae: ['"Yes,No,Maybe"']
-      };
-      cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF8FAFC" } };
-    }
-    for (const columnNumber of [reviewerColumn, notesColumn].filter((value): value is number => Boolean(value))) {
-      sheet.getRow(rowNumber).getCell(columnNumber).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF8FAFC" } };
-    }
-  }
-}
-
-function styleOkMissingCells(sheet: ExcelJS.Worksheet) {
-  sheet.eachRow((row, rowNumber) => {
-    if (rowNumber === 1) return;
-    row.eachCell((cell) => {
-      const value = cleanText(cell.text || String(cell.value ?? ""));
-      if (value !== "OK" && value !== "Missing") return;
-      cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: value === "OK" ? "FFDCFCE7" : "FFFEE2E2" } };
-      cell.font = { ...(cell.font ?? {}), bold: true, color: { argb: "FF111827" } };
-      cell.alignment = { vertical: "middle", horizontal: "center" };
-    });
-  });
-}
-
-function styleImportantMissingFieldCells(sheet: ExcelJS.Worksheet) {
-  const fieldColumns = importantFieldColumns(sheet);
+function styleImportantMissingFieldsRow(
+  row: ExcelJS.Row,
+  fieldColumns: Array<{ field: string; columns: number[] }>,
+  missingRequiredColumn: number | undefined,
+  finalCompletenessColumn: number | undefined,
+  missingKeyColumn: number | undefined
+) {
   if (!fieldColumns.length) return;
-  const missingRequiredColumn = headerColumnNumber(sheet, "Missing Required Fields");
-  const finalCompletenessColumn = headerColumnNumber(sheet, "Final Completeness Check");
-  const missingKeyColumn = headerColumnNumber(sheet, "Missing Key Fields");
+  const missing = importantMissingFields(
+    cleanText(missingRequiredColumn ? row.getCell(missingRequiredColumn).text || String(row.getCell(missingRequiredColumn).value ?? "") : ""),
+    cleanText(finalCompletenessColumn ? row.getCell(finalCompletenessColumn).text || String(row.getCell(finalCompletenessColumn).value ?? "") : ""),
+    cleanText(missingKeyColumn ? row.getCell(missingKeyColumn).text || String(row.getCell(missingKeyColumn).value ?? "") : "")
+  );
+  if (!missing.size) return;
 
-  for (let rowNumber = 2; rowNumber <= sheet.rowCount; rowNumber += 1) {
-    const row = sheet.getRow(rowNumber);
-    const missing = importantMissingFields(
-      cleanText(missingRequiredColumn ? row.getCell(missingRequiredColumn).text || String(row.getCell(missingRequiredColumn).value ?? "") : ""),
-      cleanText(finalCompletenessColumn ? row.getCell(finalCompletenessColumn).text || String(row.getCell(finalCompletenessColumn).value ?? "") : ""),
-      cleanText(missingKeyColumn ? row.getCell(missingKeyColumn).text || String(row.getCell(missingKeyColumn).value ?? "") : "")
-    );
-    if (!missing.size) continue;
-
-    for (const { field, columns } of fieldColumns) {
-      if (!missing.has(field)) continue;
-      for (const column of columns) {
-        const cell = row.getCell(column);
-        if (cellHasUsefulValue(cell)) continue;
-        markMissingImportantCell(cell);
-      }
+  for (const { field, columns } of fieldColumns) {
+    if (!missing.has(field)) continue;
+    for (const column of columns) {
+      const cell = row.getCell(column);
+      if (cellHasUsefulValue(cell)) continue;
+      markMissingImportantCell(cell);
     }
   }
 }
@@ -4711,57 +4755,42 @@ function markMissingImportantCell(cell: ExcelJS.Cell) {
   cell.font = { ...(cell.font ?? {}), color: { argb: MISSING_IMPORTANT_FONT }, bold: true };
 }
 
-function styleCoverageScoreColumn(sheet: ExcelJS.Worksheet) {
-  const columnNumber = headerColumnNumber(sheet, "Coverage Score");
-  if (!columnNumber) return;
-  for (let rowNumber = 2; rowNumber <= sheet.rowCount; rowNumber += 1) {
-    const cell = sheet.getRow(rowNumber).getCell(columnNumber);
-    const value = typeof cell.value === "number" ? cell.value : Number(cell.value);
-    if (!Number.isFinite(value)) continue;
-    const color = value >= 0.8 ? "FFDCFCE7" : value >= 0.6 ? "FFFEF3C7" : "FFFEE2E2";
-    cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: color } };
-    cell.font = { ...(cell.font ?? {}), bold: true, color: { argb: "FF111827" } };
-    cell.alignment = { vertical: "middle", horizontal: "center" };
-    cell.numFmt = "0%";
-  }
+function styleCoverageScoreCell(cell: ExcelJS.Cell) {
+  const value = typeof cell.value === "number" ? cell.value : Number(cell.value);
+  if (!Number.isFinite(value)) return;
+  const color = value >= 0.8 ? "FFDCFCE7" : value >= 0.6 ? "FFFEF3C7" : "FFFEE2E2";
+  cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: color } };
+  cell.font = { ...(cell.font ?? {}), bold: true, color: { argb: "FF111827" } };
+  cell.alignment = { vertical: "middle", horizontal: "center" };
+  cell.numFmt = "0%";
 }
 
-function styleConfidenceColumn(sheet: ExcelJS.Worksheet) {
-  const columnNumber = headerColumnNumber(sheet, "Confidence");
-  if (!columnNumber) return;
-  for (let rowNumber = 2; rowNumber <= sheet.rowCount; rowNumber += 1) {
-    const cell = sheet.getRow(rowNumber).getCell(columnNumber);
-    const value = typeof cell.value === "number" ? cell.value : Number(cell.value);
-    if (!Number.isFinite(value)) continue;
-    const color = value >= 0.85 ? "FFDCFCE7" : value >= 0.65 ? "FFFEF3C7" : "FFFEE2E2";
-    cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: color } };
-    cell.font = { ...(cell.font ?? {}), bold: true, color: { argb: "FF111827" } };
-    cell.alignment = { vertical: "middle", horizontal: "center" };
-    cell.numFmt = "0%";
-  }
+function styleConfidenceCell(cell: ExcelJS.Cell) {
+  const value = typeof cell.value === "number" ? cell.value : Number(cell.value);
+  if (!Number.isFinite(value)) return;
+  const color = value >= 0.85 ? "FFDCFCE7" : value >= 0.65 ? "FFFEF3C7" : "FFFEE2E2";
+  cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: color } };
+  cell.font = { ...(cell.font ?? {}), bold: true, color: { argb: "FF111827" } };
+  cell.alignment = { vertical: "middle", horizontal: "center" };
+  cell.numFmt = "0%";
 }
 
-function styleQualityTierColumn(sheet: ExcelJS.Worksheet) {
-  const columnNumber = headerColumnNumber(sheet, "Quality Tier");
-  if (!columnNumber) return;
-  for (let rowNumber = 2; rowNumber <= sheet.rowCount; rowNumber += 1) {
-    const cell = sheet.getRow(rowNumber).getCell(columnNumber);
-    const value = cleanText(cell.text || String(cell.value ?? ""));
-    const color =
-      value === "Complete" || value === "Good"
-        ? "FFDCFCE7"
-        : value === "Usable"
-          ? "FFFEF3C7"
-          : value === "Sparse"
-            ? "FFFFEDD5"
-            : value === "No data"
-              ? "FFFEE2E2"
-              : undefined;
-    if (!color) continue;
-    cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: color } };
-    cell.font = { ...(cell.font ?? {}), bold: true, color: { argb: "FF111827" } };
-    cell.alignment = { vertical: "middle", horizontal: "center" };
-  }
+function styleQualityTierCell(cell: ExcelJS.Cell) {
+  const value = cleanText(cell.text || String(cell.value ?? ""));
+  const color =
+    value === "Complete" || value === "Good"
+      ? "FFDCFCE7"
+      : value === "Usable"
+        ? "FFFEF3C7"
+        : value === "Sparse"
+          ? "FFFFEDD5"
+          : value === "No data"
+            ? "FFFEE2E2"
+            : undefined;
+  if (!color) return;
+  cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: color } };
+  cell.font = { ...(cell.font ?? {}), bold: true, color: { argb: "FF111827" } };
+  cell.alignment = { vertical: "middle", horizontal: "center" };
 }
 
 function headerColumnNumber(sheet: ExcelJS.Worksheet, headerName: string): number | undefined {

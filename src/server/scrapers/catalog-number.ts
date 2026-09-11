@@ -173,6 +173,74 @@ export function catalogNumberVariants(catalogNumber: string): {
   };
 }
 
+/** A query string to type into a vendor's search box, and how much it narrows the answer. */
+export interface SearchQueryVariant {
+  term: string;
+  /** `exact` still identifies one product; `family` can only ever reach the family page. */
+  level: CatalogMatchLevel;
+  reason: string;
+}
+
+/**
+ * What a human types next when the vendor's search returns nothing (COLD-START-PLAN §6.2, P4.6).
+ *
+ * Every generic search shape is filled with the literal catalog number and nothing else, so a vendor
+ * whose index stores `1SVR405611R1000` without separators, or who only indexes the family, is simply
+ * unreachable. A person does not stop there — they drop the separators, then the suffix.
+ *
+ * The `family` entry is deliberately last and deliberately labelled. It cannot identify a variant,
+ * and the caller must score it below an exact term; publishing is unaffected either way, because
+ * `scoreFetchedDiscoveryEvidence` demands an EXACT catalog match on a product identity surface before
+ * any fetched page becomes a candidate, and `html-page-level` independently gates family pages.
+ */
+export function searchQueryVariants(catalogNumber: string): SearchQueryVariant[] {
+  const raw = catalogNumber.trim();
+  if (!raw) return [];
+  const variants = catalogNumberVariants(raw);
+  const seen = new Set<string>();
+  const out: SearchQueryVariant[] = [];
+  const push = (term: string, level: CatalogMatchLevel, reason: string) => {
+    const cleaned = term.trim();
+    // A variant that differs from the original only by case is the same query to every search engine
+    // we have ever measured, and costs a full request to prove it.
+    const key = cleaned.toLowerCase();
+    if (!cleaned || cleaned.length < 3 || seen.has(key)) return;
+    seen.add(key);
+    out.push({ term: cleaned, level, reason });
+  };
+  push(raw, "exact", "catalog number as printed");
+  push(variants.compact, "exact", "separators removed");
+  push(variants.dash, "exact", "separators normalised to dashes");
+  if (variants.afterColon !== raw) push(variants.afterColon, "exact", "part after the prefix separator");
+  // Most specific family first — `catalogFamilyMatchCandidates` already returns them that way.
+  //
+  // That function requires a digit in the prefix, which is right for IDENTITY (a letters-only prefix
+  // would match half the catalogue) and wrong for a QUERY: `CT-MFD.21` has the family `CT-MFD`, which
+  // is exactly what a person types, and the digit rule rejects it. So fall back to the prefix before
+  // the last separator — a query, not a claim. It is still labelled `family`, so the caller scores it
+  // below every exact term, and `scoreFetchedDiscoveryEvidence` still demands an exact identity match
+  // before anything it finds can become a result.
+  const family = catalogFamilyMatchCandidates(raw)[0] ?? queryOnlyFamilyPrefix(raw);
+  if (family) push(family, "family", "family prefix");
+  return out;
+}
+
+/**
+ * The prefix before the last separator, used ONLY as a search query (see `searchQueryVariants`).
+ *
+ * Deliberately not exported and deliberately not part of `catalogFamilyMatchCandidates`: that one
+ * answers "may this printed code stand for the requested product", and loosening it would let a
+ * letters-only prefix authorise a value. Four compact characters is the floor — below that the query
+ * returns the whole catalogue and the request is wasted.
+ */
+function queryOnlyFamilyPrefix(catalogNumber: string): string | undefined {
+  const separators = [...catalogNumber.matchAll(/[\s:/.-]+/g)];
+  const last = separators.at(-1);
+  if (!last || last.index === undefined) return undefined;
+  const prefix = catalogNumber.slice(0, last.index).replace(/[\s:/.-]+$/, "").trim();
+  return compactCatalogNumber(prefix).length >= 4 ? prefix : undefined;
+}
+
 export function encodeSlashBraceCatalogPart(catalogNumber: string): string {
   return catalogNumber.split("/").map(encodeURIComponent).join("%7B%7D");
 }

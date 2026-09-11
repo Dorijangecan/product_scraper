@@ -382,6 +382,47 @@ describe("eclass resolvers", () => {
     expect(resolveProperty("CNS_DESCRIPTION_SHORT", "CNS_DESCRIPTION_SHORT", { ...c, language: "de" })).toBe("Gehaeuse");
   });
 
+  it("translates Saginaw disconnect enclosure descriptions into German long descriptions", async () => {
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-pdt-sce-german-disconnect-"));
+    const templatePath = path.join(dir, "template.xlsx");
+    const outputPath = path.join(dir, "out.xlsx");
+    const wb = new ExcelJS.Workbook();
+    const material = wb.addWorksheet("Material Master Data");
+    for (const [row, label] of ["ClassId", "Priority", "Type", "PropertyId", "PropertyName", "Description", "Unit", "Body"].entries()) {
+      material.getCell(row + 1, 1).value = label;
+    }
+    const columns = [
+      ["AAO676", "Article number"],
+      ["CNS_DESCRIPTION_LONG", "Description long"]
+    ] as const;
+    material.getCell(2, 3).value = "Description DE";
+    for (const [index, [code, description]] of columns.entries()) {
+      const col = index + 2;
+      material.getCell(4, col).value = code;
+      material.getCell(5, col).value = code;
+      material.getCell(6, col).value = description;
+    }
+    await wb.xlsx.writeFile(templatePath);
+
+    const item = ctx(
+      {
+        manufacturerId: "sce",
+        title: "SCE-NEXD12",
+        description: "External disconnect 30/200 AMP",
+        attributes: [{ group: "Product Specifications", name: "Description", value: "External disconnect 30/200 AMP", sourceType: "official" }]
+      },
+      "SCE-NEXD12",
+      "Enclosure"
+    ).item;
+    await exportRunPdt({ manufacturer: { ...manufacturer, id: "sce" } as ManufacturerConfig, items: [item], templatePath, outputPath });
+
+    const out = new ExcelJS.Workbook();
+    await out.xlsx.readFile(outputPath);
+    const ws = out.getWorksheet("Material Master Data")!;
+    expect(ws.getCell(9, 1).value).toBe("SCE-NEXD12");
+    expect(ws.getCell(9, 2).value).toBe("Externes Trennschaltergehaeuse 30/200 A");
+  });
+
   it.each([
     ["SCE-60RA19TH", "Angle, Rack"],
     ["SCE-60FSCPS", "Support, Center Panel"]

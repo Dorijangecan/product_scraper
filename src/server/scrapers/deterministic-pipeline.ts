@@ -9,9 +9,16 @@ import { canonicalizeProductLocaleUrls } from "./localized-urls.js";
 import { mergeResults } from "./normalizer.js";
 import { runAdaptivePageIntelligence } from "./page-intelligence.js";
 import { applyQualityGate, evaluateQualityGate } from "./quality-gate.js";
+import { harvestProductAliases } from "./product-aliases.js";
 import { recordTargetObservation } from "./target-health.js";
 import { runSmartFallbackPipeline } from "./smart-fallback.js";
 import type { ScrapeContext } from "./types.js";
+
+/**
+ * Candidates that are a MAYBE rather than evidence, and are therefore dropped once the soft target
+ * passes: a synthesised URL guess, and a search result nothing identified as ours.
+ */
+const SPECULATIVE_STAGES = new Set(["url-variant", "search-result-unverified"]);
 
 export async function runDeterministicScrapePipeline(
   result: ProductResult,
@@ -41,13 +48,22 @@ export async function runDeterministicScrapePipeline(
     // a template, a learned endpoint, a search hit, a sitemap entry — keeps being tried right up to
     // the hard ceiling; only the guessing stops, and it says so in the attempt record rather than
     // vanishing silently.
-    if (candidate.stage === "url-variant" && context.deadline?.softTargetPassed()) {
+    // `search-result-unverified` joins `url-variant` here for the same reason and with the same
+    // caveat: it is a maybe, not evidence. Discovery already refuses to CREATE one past the soft
+    // target, but a memoised discovery result is replayed by later stages of the same item, by which
+    // time the target may well have passed — so the spend is gated where it is actually paid.
+    if (SPECULATIVE_STAGES.has(candidate.stage) && context.deadline?.softTargetPassed()) {
       attempts.push({
         stage: candidate.stage,
         url: candidate.url,
         status: "skipped",
         score: candidate.score,
-        reason: `budget-exhausted:url-variant-guess — ${Math.round((context.deadline.elapsedMs() ?? 0) / 1000)}s elapsed, guess candidates no longer attempted`,
+        // The reason code is a contract, not prose: P3.2 exists so a cause can be looked up by a
+        // stable name. `url-variant-guess` keeps its code, and the new stage gets its own instead of
+        // both hiding behind one generic label.
+        reason:
+          `budget-exhausted:${candidate.stage === "url-variant" ? "url-variant-guess" : "unverified-search-result"} — ` +
+          `${Math.round((context.deadline.elapsedMs() ?? 0) / 1000)}s elapsed, speculative candidates no longer attempted`,
         sourceType: candidate.sourceType,
         parser: `discovery-${candidate.stage}`,
         attributeCount: 0,
@@ -106,6 +122,7 @@ export async function runDeterministicScrapePipeline(
         evaluateQualityGate(merged, context.manufacturer, catalogNumber, attempts)
       );
       learnConfirmedProductPage(context, catalogNumber, fetched, candidate.url, candidate.stage, current);
+      learnProductAliases(context, catalogNumber, fetched.effectiveUrl, current);
     } catch (error) {
       attempts.push({
         stage: candidate.stage,
@@ -150,6 +167,24 @@ export async function runDeterministicScrapePipeline(
       applyQualityGate(current, context.manufacturer, evaluateQualityGate(current, context.manufacturer, catalogNumber, attempts))
     )
   );
+}
+
+/**
+ * Record the second names this confirmed page printed, so the NEXT catalog number of the same run can
+ * ask the vendor's search a question it is able to answer (P4.8).
+ *
+ * Gated on the quality gate, not on the fetch: a page that merely mentioned the catalog number is not
+ * evidence that its other identifiers belong to this product.
+ */
+function learnProductAliases(context: ScrapeContext, catalogNumber: string, productUrl: string, result: ProductResult): void {
+  if (!context.productAliases?.upsert || !result.qualityGate?.passed) return;
+  for (const alias of harvestProductAliases(result, context.manufacturer.id, catalogNumber, productUrl)) {
+    try {
+      context.productAliases.upsert(alias);
+    } catch {
+      // An alias is an optimisation for the next item, never a reason to fail this one.
+    }
+  }
 }
 
 function recordLearnedEndpointFailure(context: ScrapeContext, stage: string, url: string, catalogNumber: string) {

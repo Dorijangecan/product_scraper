@@ -4,6 +4,7 @@ import type {
   LearnedExtractorRecord,
   LearnedEndpointRecord,
   ManufacturerId,
+  ProductAliasRecord,
   ProductResult,
   RunItemRecord,
   RunRecord,
@@ -92,6 +93,17 @@ interface LearnedEndpointRow {
   last_success_at: string;
   failure_count?: number;
   last_failure_at?: string;
+}
+
+interface ProductAliasRow {
+  id: number;
+  manufacturer_id: ManufacturerId;
+  catalog_number: string;
+  alias_kind: ProductAliasRecord["aliasKind"];
+  alias_value: string;
+  identity_level: ProductAliasRecord["identityLevel"];
+  provenance_url: string;
+  confirmed_at: string;
 }
 
 interface LearnedExtractorRow {
@@ -193,6 +205,26 @@ export class ScraperDb {
         UNIQUE(manufacturer_id, method, url_template)
       );
 
+      CREATE TABLE IF NOT EXISTS sitemap_urls (
+        manufacturer_id TEXT NOT NULL,
+        url TEXT NOT NULL,
+        compact_url TEXT NOT NULL,
+        indexed_at TEXT NOT NULL,
+        PRIMARY KEY (manufacturer_id, url)
+      );
+
+      CREATE TABLE IF NOT EXISTS product_aliases (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        manufacturer_id TEXT NOT NULL,
+        catalog_number TEXT NOT NULL,
+        alias_kind TEXT NOT NULL,
+        alias_value TEXT NOT NULL,
+        identity_level TEXT NOT NULL DEFAULT 'exact',
+        provenance_url TEXT NOT NULL,
+        confirmed_at TEXT NOT NULL,
+        UNIQUE(manufacturer_id, catalog_number, alias_kind, alias_value)
+      );
+
       CREATE TABLE IF NOT EXISTS exhausted_fields (
         manufacturer_id TEXT NOT NULL,
         catalog_number TEXT NOT NULL,
@@ -246,6 +278,8 @@ export class ScraperDb {
       CREATE INDEX IF NOT EXISTS idx_run_items_run_id ON run_items(run_id, row_index);
       CREATE INDEX IF NOT EXISTS idx_page_cache_url ON page_cache(url);
       CREATE INDEX IF NOT EXISTS idx_learned_endpoints_manufacturer ON learned_endpoints(manufacturer_id, success_count DESC, last_success_at DESC);
+      CREATE INDEX IF NOT EXISTS idx_product_aliases_lookup ON product_aliases(manufacturer_id, catalog_number);
+      CREATE INDEX IF NOT EXISTS idx_sitemap_urls_lookup ON sitemap_urls(manufacturer_id, compact_url);
       CREATE INDEX IF NOT EXISTS idx_stage_observations_target ON stage_observations(manufacturer_id, host, stage, observed_at DESC);
       CREATE INDEX IF NOT EXISTS idx_learned_extractors_target ON learned_extractors(manufacturer_id, host, success_count DESC, last_success_at DESC);
     `);
@@ -327,6 +361,22 @@ export class ScraperDb {
     const placeholders = statuses.map(() => "?").join(",");
     const rows = this.db.prepare(`SELECT * FROM runs WHERE status IN (${placeholders}) ORDER BY created_at`).all(...statuses) as RunRow[];
     return rows.map(mapRun);
+  }
+
+  /** Most recent completed runs for one manufacturer, excluding `excludeRunId` — the baseline pool for field-coverage drift detection. */
+  listCompletedRunsByManufacturer(manufacturerId: string, excludeRunId: string, limit = 5): RunRecord[] {
+    const rows = this.db
+      .prepare("SELECT * FROM runs WHERE manufacturer_id = ? AND status = 'completed' AND id != ? ORDER BY created_at DESC LIMIT ?")
+      .all(manufacturerId, excludeRunId, limit) as RunRow[];
+    return rows.map(mapRun);
+  }
+
+  /** Every manufacturer id with at least one completed run — the row set for the field-coverage health matrix. */
+  listManufacturerIdsWithCompletedRuns(): string[] {
+    const rows = this.db.prepare("SELECT DISTINCT manufacturer_id AS manufacturerId FROM runs WHERE status = 'completed'").all() as Array<{
+      manufacturerId: string;
+    }>;
+    return rows.map((row) => row.manufacturerId);
   }
 
   getRun(id: string): RunRecord | undefined {
@@ -593,6 +643,100 @@ export class ScraperDb {
         headersJson: endpoint.headers ? JSON.stringify(endpoint.headers) : undefined,
         now
       });
+  }
+
+  /**
+   * Second names for one catalog number, most recently confirmed first.
+   *
+   * Read by discovery to ASK the vendor's search a question it can answer. Never used to decide that
+   * a fetched page is the requested product — that stays with `scoreFetchedDiscoveryEvidence`, which
+   * demands an exact match on a product identity surface.
+   */
+  listProductAliases(manufacturerId: ManufacturerId, catalogNumber: string, limit = 12): ProductAliasRecord[] {
+    const rows = this.db
+      .prepare(
+        `
+          SELECT *
+          FROM product_aliases
+          WHERE manufacturer_id = ? AND catalog_number = ?
+          ORDER BY confirmed_at DESC
+          LIMIT ?
+        `
+      )
+      .all(manufacturerId, catalogNumber, limit) as ProductAliasRow[];
+    return rows.map(mapProductAlias);
+  }
+
+  upsertProductAlias(alias: Omit<ProductAliasRecord, "id" | "confirmedAt">) {
+    const now = new Date().toISOString();
+    this.db
+      .prepare(
+        `
+          INSERT INTO product_aliases (
+            manufacturer_id,
+            catalog_number,
+            alias_kind,
+            alias_value,
+            identity_level,
+            provenance_url,
+            confirmed_at
+          )
+          VALUES (@manufacturerId, @catalogNumber, @aliasKind, @aliasValue, @identityLevel, @provenanceUrl, @now)
+          ON CONFLICT(manufacturer_id, catalog_number, alias_kind, alias_value) DO UPDATE SET
+            identity_level = excluded.identity_level,
+            provenance_url = excluded.provenance_url,
+            confirmed_at = excluded.confirmed_at
+        `
+      )
+      .run({ ...alias, now });
+  }
+
+  /**
+   * How fresh is this manufacturer's sitemap index, and how big? (COLD-START-PLAN §6.2, P4.11.)
+   *
+   * The walk that builds it costs up to eight sitemap fetches. Paying that once per manufacturer
+   * instead of once per catalog number is the whole point — a real run is 150 numbers from one vendor.
+   */
+  sitemapIndexStatus(manufacturerId: ManufacturerId): { count: number; indexedAt?: string } {
+    const row = this.db
+      .prepare("SELECT COUNT(*) AS count, MAX(indexed_at) AS indexedAt FROM sitemap_urls WHERE manufacturer_id = ?")
+      .get(manufacturerId) as { count: number; indexedAt?: string };
+    return { count: row?.count ?? 0, indexedAt: row?.indexedAt ?? undefined };
+  }
+
+  /** URLs whose separator-stripped form contains the separator-stripped catalog number. */
+  lookupSitemapUrls(manufacturerId: ManufacturerId, compactPart: string, limit = 12): string[] {
+    if (!compactPart) return [];
+    const rows = this.db
+      .prepare(
+        `
+          SELECT url
+          FROM sitemap_urls
+          WHERE manufacturer_id = ? AND compact_url LIKE '%' || ? || '%'
+          ORDER BY LENGTH(url)
+          LIMIT ?
+        `
+      )
+      .all(manufacturerId, compactPart, limit) as Array<{ url: string }>;
+    return rows.map((row) => row.url);
+  }
+
+  replaceSitemapUrls(manufacturerId: ManufacturerId, entries: Array<{ url: string; compactUrl: string }>) {
+    const now = new Date().toISOString();
+    const insert = this.db.prepare(
+      `
+        INSERT INTO sitemap_urls (manufacturer_id, url, compact_url, indexed_at)
+        VALUES (?, ?, ?, ?)
+        ON CONFLICT(manufacturer_id, url) DO UPDATE SET compact_url = excluded.compact_url, indexed_at = excluded.indexed_at
+      `
+    );
+    const write = this.db.transaction((rows: Array<{ url: string; compactUrl: string }>) => {
+      // Replace, not append: a vendor that renames its URL scheme must not keep answering from the
+      // old one forever.
+      this.db.prepare("DELETE FROM sitemap_urls WHERE manufacturer_id = ?").run(manufacturerId);
+      for (const row of rows) insert.run(manufacturerId, row.url, row.compactUrl, now);
+    });
+    write(entries);
   }
 
   recordStageObservation(observation: StageObservationInput) {
@@ -954,6 +1098,19 @@ function mapLearnedEndpoint(row: LearnedEndpointRow): LearnedEndpointRecord {
     lastSuccessAt: row.last_success_at,
     failureCount: row.failure_count ?? 0,
     lastFailureAt: row.last_failure_at
+  };
+}
+
+function mapProductAlias(row: ProductAliasRow): ProductAliasRecord {
+  return {
+    id: row.id,
+    manufacturerId: row.manufacturer_id,
+    catalogNumber: row.catalog_number,
+    aliasKind: row.alias_kind,
+    aliasValue: row.alias_value,
+    identityLevel: row.identity_level,
+    provenanceUrl: row.provenance_url,
+    confirmedAt: row.confirmed_at
   };
 }
 

@@ -484,6 +484,150 @@ describe("excel export", () => {
     expect(row.getCell(headers.indexOf("Material") + 1).fill).not.toMatchObject({ fgColor: { argb: redFill } });
   });
 
+  it("surfaces a cohort-anomaly diagnostic as a review flag without touching the value itself", async () => {
+    const outputDir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-xlsx-cohort-"));
+    const run: RunRecord = {
+      id: "cohort-anomaly-run",
+      manufacturerId: "abb",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      status: "completed",
+      total: 1,
+      processed: 1,
+      found: 1,
+      partial: 0,
+      failed: 0
+    };
+    const manufacturer: ManufacturerConfig = {
+      id: "abb",
+      canonicalName: "ABB",
+      shortName: "ABB",
+      rateLimitMs: 100,
+      officialBaseUrls: [],
+      fallbackSources: []
+    };
+    const item: RunItemRecord = {
+      id: 1,
+      runId: run.id,
+      rowIndex: 1,
+      catalogNumber: "AF120-30-10",
+      status: "found",
+      updatedAt: run.updatedAt,
+      result: {
+        manufacturerId: "abb",
+        catalogNumber: "AF120-30-10",
+        status: "found",
+        confidence: 0.9,
+        title: "AF120 contactor",
+        normalized: { weight: "120 kg" },
+        attributes: [{ group: "ABB Product Data", name: "Catalog Description", value: "AF120 contactor", sourceType: "official" }],
+        documents: [],
+        sources: [],
+        diagnostics: {
+          cohortAnomalies: [
+            {
+              field: "weight",
+              value: 120,
+              unit: "kg",
+              cohortMedian: 1.25,
+              cohortSize: 8,
+              robustZScore: 42.1,
+              deviceType: "Contactor",
+              reason: "weight (120 kg) is far from this run's Contactor cohort median (1.25 kg, n=8)"
+            }
+          ]
+        }
+      }
+    };
+
+    const filePath = await exportRunWorkbook({ run, manufacturer, items: [item], outputDir });
+    const workbook = new ExcelJS.Workbook();
+    await workbook.xlsx.readFile(filePath);
+
+    const clean = workbook.getWorksheet("Clean Export")!;
+    const cleanHeaders = (clean.getRow(1).values as unknown[]).slice(1);
+    expect(cleanHeaders).toContain("Cohort Anomaly");
+    const cohortCell = cellText(clean.getRow(2).getCell(cleanHeaders.indexOf("Cohort Anomaly") + 1));
+    expect(cohortCell).toContain("weight: 120 kg vs Contactor median 1.25 kg");
+    expect(cellText(clean.getRow(2).getCell(cleanHeaders.indexOf("Review Reason") + 1))).toContain("Cohort outlier");
+    expect(clean.getRow(2).getCell(cleanHeaders.indexOf("Export Decision") + 1).value).toBe("Review");
+
+    // The value itself must survive untouched — this is a review flag, never a rejection.
+    const products = workbook.getWorksheet("Products")!;
+    const productHeaders = (products.getRow(1).values as unknown[]).slice(1);
+    expect(products.getRow(2).getCell(productHeaders.indexOf("Weight (kg)") + 1).value).toBe(120);
+
+    const needsReview = workbook.getWorksheet("Needs Review")!;
+    const reviewHeaders = (needsReview.getRow(1).values as unknown[]).slice(1);
+    expect(cellText(needsReview.getRow(2).getCell(reviewHeaders.indexOf("Issue Type") + 1))).toContain("Cohort outlier");
+  });
+
+  it("renders a field-coverage-drift warning in Run Summary when the run manager supplies one", async () => {
+    const outputDir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-xlsx-drift-"));
+    const run: RunRecord = {
+      id: "drift-run",
+      manufacturerId: "abb",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      status: "completed",
+      total: 1,
+      processed: 1,
+      found: 1,
+      partial: 0,
+      failed: 0
+    };
+    const manufacturer: ManufacturerConfig = {
+      id: "abb",
+      canonicalName: "ABB",
+      shortName: "ABB",
+      rateLimitMs: 100,
+      officialBaseUrls: [],
+      fallbackSources: []
+    };
+    const item: RunItemRecord = {
+      id: 1,
+      runId: run.id,
+      rowIndex: 1,
+      catalogNumber: "AF09-30-10",
+      status: "found",
+      updatedAt: run.updatedAt,
+      result: {
+        manufacturerId: "abb",
+        catalogNumber: "AF09-30-10",
+        status: "found",
+        confidence: 0.9,
+        title: "AF09 contactor",
+        normalized: {},
+        attributes: [],
+        documents: [],
+        sources: []
+      }
+    };
+
+    const filePath = await exportRunWorkbook({
+      run,
+      manufacturer,
+      items: [item],
+      outputDir,
+      fieldCoverageDrift: [
+        {
+          field: "weight",
+          currentFillRate: 0,
+          baselineFillRate: 0.9,
+          baselineRunCount: 4,
+          reason: "weight coverage dropped to 0% from a 4-run baseline of 90% for this manufacturer — check whether the site changed before assuming products stopped publishing it"
+        }
+      ]
+    });
+    const workbook = new ExcelJS.Workbook();
+    await workbook.xlsx.readFile(filePath);
+    const summarySheet = workbook.getWorksheet("Run Summary")!;
+    const summaryValues = summarySheet.getSheetValues().flat().map((value) => String(value ?? ""));
+    expect(summaryValues.some((value) => value.includes("Coverage drift"))).toBe(true);
+    expect(summaryValues.some((value) => value === "weight")).toBe(true);
+    expect(summaryValues.some((value) => value.includes("0% now vs 90% baseline"))).toBe(true);
+  });
+
   it("writes Qwen-prepared values to the scraped workbook AI sheet only", async () => {
     const outputDir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-ai-input-xlsx-"));
     const run: RunRecord = {

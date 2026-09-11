@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { captureFrameFragments, captureShadowDomFragments, clickSafeSelectors, submitSearchInput } from "../src/server/scrapers/browser-renderer.js";
+import { captureFrameFragments, captureShadowDomFragments, clickSafeSelectors, finalRenderedUrl, submitSearchInput } from "../src/server/scrapers/browser-renderer.js";
 
 // Minimal PageLike/LocatorLike fakes. The renderer only uses locator().count/nth/click,
 // scrollIntoViewIfNeeded, waitForTimeout, waitForLoadState, and frames() from these in the
@@ -164,5 +164,121 @@ describe("captureShadowDomFragments (Phase 5 P7)", () => {
     const nonArray = { evaluate: async () => "oops" };
     expect(await captureShadowDomFragments(throwing as never)).toEqual([]);
     expect(await captureShadowDomFragments(nonArray as never)).toEqual([]);
+  });
+});
+
+// --- P4.1 / P4.2 / P4.3 (COLD-START-PLAN §6.2): reaching the vendor's own search like a human ---
+
+describe("submitSearchInput — typing, suggest debounce and hidden search overlays", () => {
+  // The whole point of P4.2: fill() sets the value programmatically and typeahead widgets that listen
+  // for keydown never fire their suggest request for it. That request's JSON is the richest identity
+  // source these sites expose, so real typing is not a stylistic preference.
+  it("types key by key when the locator supports it, and waits for the suggest debounce before Enter", async () => {
+    const order: string[] = [];
+    const page = {
+      locator: (selector: string) => ({
+        count: async () => (selector === "input[type='search']" ? 1 : 0),
+        nth: () => ({
+          pressSequentially: async (value: string) => {
+            order.push(`type:${value}`);
+          },
+          fill: async () => {
+            order.push("fill");
+          }
+        })
+      }),
+      waitForTimeout: async () => {
+        order.push("wait");
+      },
+      keyboard: { press: async (key: string) => order.push(`key:${key}`) }
+    };
+
+    await expect(submitSearchInput(page as never, "ZX-CTRL-24")).resolves.toBe(true);
+    expect(order).toEqual(["type:ZX-CTRL-24", "wait", "key:Enter"]);
+  });
+
+  // On a large share of industrial sites input[type=search] does not exist until the magnifier is
+  // clicked, so every selector legitimately finds nothing and the vendor looks searchless.
+  it("opens the search overlay when no input exists yet, then uses the input it reveals", async () => {
+    let overlayOpen = false;
+    const typed: string[] = [];
+    const page = {
+      locator: (selector: string) => ({
+        count: async () => {
+          if (selector === "button[aria-label*='search' i]") return 1;
+          if (selector === "input[type='search']") return overlayOpen ? 1 : 0;
+          return 0;
+        },
+        nth: () => ({
+          click: async () => {
+            overlayOpen = true;
+          },
+          pressSequentially: async (value: string) => typed.push(value)
+        })
+      }),
+      waitForTimeout: async () => undefined,
+      keyboard: { press: async () => undefined }
+    };
+
+    await expect(submitSearchInput(page as never, "ZX-CTRL-24")).resolves.toBe(true);
+    expect(typed).toEqual(["ZX-CTRL-24"]);
+  });
+
+  // These selectors can also match a link to a /search page. Clicking several in a row would navigate
+  // away and then keep clicking on whatever page we landed on.
+  it("clicks at most one overlay toggle", async () => {
+    let clicks = 0;
+    const page = {
+      locator: (selector: string) => ({
+        count: async () => (selector.startsWith("button[aria-label") || selector.startsWith("button[title") ? 1 : 0),
+        nth: () => ({
+          click: async () => {
+            clicks += 1;
+          }
+        })
+      }),
+      waitForTimeout: async () => undefined,
+      keyboard: { press: async () => { throw new Error("must not submit"); } }
+    };
+
+    await expect(submitSearchInput(page as never, "ZX-CTRL-24")).resolves.toBe(false);
+    expect(clicks).toBe(1);
+  });
+
+  it("still reports failure when there is neither a search input nor an overlay toggle", async () => {
+    const page = {
+      locator: () => ({ count: async () => 0, nth: () => ({}) }),
+      waitForTimeout: async () => undefined,
+      keyboard: { press: async () => { throw new Error("must not submit"); } }
+    };
+
+    await expect(submitSearchInput(page as never, "ZX-CTRL-24")).resolves.toBe(false);
+  });
+});
+
+describe("finalRenderedUrl", () => {
+  it("reports where the page actually ended up", () => {
+    const page = { url: () => "https://vendor.test/en/products/ct-mfd-21" };
+    expect(finalRenderedUrl(page as never, "https://vendor.test/search?q=CT-MFD.21")).toBe(
+      "https://vendor.test/en/products/ct-mfd-21"
+    );
+  });
+
+  // A failed navigation must not be reported as the product's location.
+  it("falls back to the requested URL for about:blank, an empty value, or a page that cannot answer", () => {
+    const requested = "https://vendor.test/search?q=CT-MFD.21";
+    expect(finalRenderedUrl({ url: () => "about:blank" } as never, requested)).toBe(requested);
+    expect(finalRenderedUrl({ url: () => "  " } as never, requested)).toBe(requested);
+    expect(finalRenderedUrl({} as never, requested)).toBe(requested);
+    expect(
+      finalRenderedUrl(
+        {
+          url: () => {
+            throw new Error("page closed");
+          }
+        } as never,
+        requested
+      )
+    ).toBe(requested);
   });
 });

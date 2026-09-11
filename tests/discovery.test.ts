@@ -1640,7 +1640,10 @@ describe("discovery respects the item time budget", () => {
     effectiveUrl: url,
     statusCode: 200,
     contentType: "text/html",
-    text: "<html><body>no results</body></html>",
+    // Deliberately NOT the words "no results": since P4.5 that sentence is a verdict, not filler.
+    // A page that says it has nothing is no longer queued for a browser render, which would make
+    // these budget assertions pass or fail for a reason that has nothing to do with the budget.
+    text: "<html><body><div class='page'></div></body></html>",
     fetchedAt: new Date(0).toISOString(),
     fromCache: false
   });
@@ -1804,9 +1807,18 @@ describe("discovery search budget and form quality", () => {
       }
     } as never);
 
-    // 6000 ms budget / 3000 ms per request = 2 shapes, not 18.
-    expect(searchFetches).toHaveLength(2);
+    // 6000 ms budget / 3000 ms per request = 2 BLIND shapes, not 18. Blind shapes are the ones still
+    // asking with the catalog number exactly as given.
+    const blindShapes = searchFetches.filter((url) => url.includes("ABC-123"));
+    expect(blindShapes).toHaveLength(2);
     expect(discovery.diagnostics.notes?.some((note) => note.startsWith("budget-exhausted:search"))).toBe(true);
+
+    // Past that, exactly ONE directed follow-up is allowed: the page said "no results", so the endpoint
+    // demonstrably works and only the QUERY was wrong (P4.6). That is the opposite of the speculation
+    // D2b caps — re-asking a known-good endpoint once is the highest-value request left on a slow host,
+    // and it stays bounded at one so the 18-shape walk this test exists to prevent cannot return by the
+    // back door.
+    expect(searchFetches.length).toBeLessThanOrEqual(3);
   });
 
   it("does not treat a hidden plumbing field in a 'find your dealer' form as the search box", async () => {
@@ -2311,5 +2323,156 @@ describe("gzipped sitemap discovery", () => {
     } as never);
 
     expect(compressedFetches).toHaveLength(0);
+  });
+});
+
+// --- P4.4 / P4.5 (COLD-START-PLAN §6.2): the vendor's declared search, and reading its verdict ---
+
+describe("OpenSearch autodiscovery (P4.4)", () => {
+  const openSearchVendor: ManufacturerConfig = {
+    id: "os-vendor",
+    canonicalName: "OpenSearch Vendor",
+    shortName: "OSV",
+    rateLimitMs: 100,
+    homepageUrl: "https://os.test/en/",
+    officialBaseUrls: ["https://os.test"],
+    fallbackSources: [],
+    scrapeRecipe: { discoveryPolicy: { maxCandidates: 6, enableRobotsSitemaps: false } }
+  };
+
+  const page = (text: string, url: string, statusCode = 200, contentType = "text/html") => ({
+    requestedUrl: url,
+    effectiveUrl: url,
+    statusCode,
+    contentType,
+    fetchedAt: "2026-01-01T00:00:00.000Z",
+    fromCache: false,
+    text
+  });
+
+  it("uses the site's own declared search template instead of guessing URL shapes", async () => {
+    const requested: string[] = [];
+    const discovery = await discoverOfficialProductCandidates("OSV-9001", {
+      manufacturer: openSearchVendor,
+      http: {
+        fetchText: async (url: string) => {
+          requested.push(url);
+          // searchFormProbePages derives `https://os.test` and `https://os.test/en` from the
+          // configured bases; answer the homepage in whichever of those shapes it asks for.
+          if (/^https:\/\/os\.test(?:\/en)?\/?$/.test(url)) {
+            return page(
+              `<html><head><link rel="search" type="application/opensearchdescription+xml" href="/opensearch.xml"></head><body></body></html>`,
+              url
+            );
+          }
+          if (url === "https://os.test/opensearch.xml") {
+            return page(
+              `<OpenSearchDescription xmlns="http://a9.com/-/spec/opensearch/1.1/">
+                 <Url type="text/html" template="https://os.test/en/catalogue?partNo={searchTerms}&amp;n={count}"/>
+               </OpenSearchDescription>`,
+              url,
+              200,
+              "application/opensearchdescription+xml"
+            );
+          }
+          if (url.startsWith("https://os.test/en/catalogue?partNo=OSV-9001")) {
+            return page(`<ul><li><a href="/en/p/44812">OSV-9001 safety relay</a></li></ul>`, url);
+          }
+          return page("", url, 404);
+        }
+      }
+    } as never);
+
+    expect(requested).toContain("https://os.test/opensearch.xml");
+    // {count} is filled from the spec default, and the declared endpoint is what actually answered.
+    expect(requested).toContain("https://os.test/en/catalogue?partNo=OSV-9001&n=10");
+    expect(discovery.candidates.map((candidate) => candidate.url)).toContain("https://os.test/en/p/44812");
+  });
+
+  // `href` may legitimately point at a CDN that is not the vendor. A description document is an input
+  // like any other and passes the same official-domain guard.
+  it("refuses a description document on a domain the manufacturer does not declare", async () => {
+    const requested: string[] = [];
+    await discoverOfficialProductCandidates("OSV-9001", {
+      manufacturer: openSearchVendor,
+      http: {
+        fetchText: async (url: string) => {
+          requested.push(url);
+          if (/^https:\/\/os\.test(?:\/en)?\/?$/.test(url)) {
+            return page(
+              `<link rel="search" type="application/opensearchdescription+xml" href="https://cdn.elsewhere.test/opensearch.xml">`,
+              url
+            );
+          }
+          return page("", url, 404);
+        }
+      }
+    } as never);
+
+    expect(requested).not.toContain("https://cdn.elsewhere.test/opensearch.xml");
+  });
+});
+
+describe("search result verdict steers the browser budget (P4.5)", () => {
+  const vendor: ManufacturerConfig = {
+    id: "verdict-vendor",
+    canonicalName: "Verdict Vendor",
+    shortName: "VDV",
+    rateLimitMs: 100,
+    homepageUrl: "https://verdict.test/",
+    officialBaseUrls: ["https://verdict.test"],
+    fallbackSources: [],
+    scrapeRecipe: {
+      discoveryPolicy: {
+        maxCandidates: 4,
+        enableRobotsSitemaps: false,
+        searchUrlTemplates: ["https://verdict.test/empty?q={part}", "https://verdict.test/shell?q={part}"]
+      }
+    }
+  };
+
+  const renderedUrls: string[] = [];
+  const browserRenderer = {
+    isUnavailable: () => false,
+    renderSearchPage: async (url: string) => {
+      renderedUrls.push(url);
+      return { networkTexts: [], networkDiagnostics: [] };
+    },
+    renderProductPage: async (url: string) => {
+      renderedUrls.push(url);
+      return { networkTexts: [], networkDiagnostics: [] };
+    }
+  };
+
+  it("does not spend a browser render on a page that already said there are no results, and puts the JS shell first", async () => {
+    renderedUrls.length = 0;
+    const discovery = await discoverOfficialProductCandidates("VDV-1", {
+      manufacturer: vendor,
+      browserRenderer,
+      http: {
+        fetchText: async (url: string) => {
+          const body = url.includes("/empty")
+            ? "<main><h1>Search</h1><p>No results found for VDV-1.</p></main>"
+            : url.includes("/shell")
+              ? `<main><div class="search-results"></div></main><script id="__NEXT_DATA__">{}</script>`
+              : "";
+          return {
+            requestedUrl: url,
+            effectiveUrl: url,
+            statusCode: url.includes("/empty") || url.includes("/shell") ? 200 : 404,
+            contentType: "text/html",
+            fetchedAt: "2026-01-01T00:00:00.000Z",
+            fromCache: false,
+            text: body
+          };
+        }
+      }
+    } as never);
+
+    expect(renderedUrls).not.toContain("https://verdict.test/empty?q=VDV-1");
+    expect(renderedUrls[0]).toBe("https://verdict.test/shell?q=VDV-1");
+    // The verdict is diagnostics too — "nothing found" and "we never looked" must stay distinguishable.
+    expect(discovery.diagnostics.notes?.some((note) => note.includes("answered zero"))).toBe(true);
+    expect(discovery.diagnostics.notes?.some((note) => note.includes("answered js-only"))).toBe(true);
   });
 });

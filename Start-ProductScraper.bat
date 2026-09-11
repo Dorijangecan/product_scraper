@@ -190,7 +190,11 @@ if not exist "node_modules\electron\path.txt" (
     )
 )
 
-:: Provjeri jesu li Playwright (Chromium) browseri instalirani - potrebno za Balluff expanded sections
+:: Provjeri jesu li Chromium browseri instalirani - potrebno za Balluff expanded sections.
+:: Zeljeni engine je patchright (stealth Playwright fork, isti ms-playwright cache/naming kao
+:: obicni playwright), s fallbackom na obicni playwright ako patchright ikad zakaze na runtimeu
+:: (vidi PRODUCT_SCRAPER_STEALTH_BROWSER=0 u browser-renderer.ts). Instaliramo bas patchrightovim
+:: CLI-jem da se skine revizija koju patchright ocekuje, ne ona koju ocekuje obicni playwright.
 set "PW_CACHE=%LOCALAPPDATA%\ms-playwright"
 set "PW_NEEDED=0"
 if not exist "%PW_CACHE%" set "PW_NEEDED=1"
@@ -200,16 +204,22 @@ if "%PW_NEEDED%"=="0" (
 )
 if "%PW_NEEDED%"=="1" (
     echo.
-    echo  Instaliram Playwright Chromium ^(potrebno za Balluff Key features/Downloads/Classifications/Digital Product Passport^)...
+    echo  Instaliram Chromium ^(potrebno za Balluff Key features/Downloads/Classifications/Digital Product Passport^)...
     echo.
-    call npx --yes playwright install chromium
+    call npx --yes patchright install chromium
     if errorlevel 1 (
         echo.
-        echo  UPOZORENJE: Playwright Chromium instalacija nije uspjela.
-        echo  Balluff prosireni podaci ^(Weight, Key features, Classifications, DPP^) nece se moci skinuti.
-        echo  Mozes pokrenuti rucno: npx playwright install chromium
+        echo  UPOZORENJE: patchright Chromium instalacija nije uspjela, probam obicni playwright...
         echo.
-        pause
+        call npx --yes playwright install chromium
+        if errorlevel 1 (
+            echo.
+            echo  UPOZORENJE: Chromium instalacija nije uspjela.
+            echo  Balluff prosireni podaci ^(Weight, Key features, Classifications, DPP^) nece se moci skinuti.
+            echo  Mozes pokrenuti rucno: npx patchright install chromium
+            echo.
+            pause
+        )
     )
 )
 

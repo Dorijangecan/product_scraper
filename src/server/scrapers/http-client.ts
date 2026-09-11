@@ -5,6 +5,7 @@ import path from "node:path";
 import { promisify } from "node:util";
 import sanitize from "sanitize-filename";
 import sharp from "sharp";
+import { gotScraping } from "got-scraping";
 import type { ScraperDb } from "../db.js";
 import { decodeMaybeCompressedText } from "./gzip-text.js";
 
@@ -38,6 +39,69 @@ export function endpointCircuitKey(url: string): string | undefined {
   const host = parsed.hostname.toLowerCase();
   const segment = parsed.pathname.split("/").filter(Boolean)[0]?.toLowerCase() ?? "";
   return segment ? `${host}/${segment}` : host;
+}
+
+/**
+ * Minimal structural subset of both the WHATWG `Response` (native `fetch`) and our got-scraping
+ * adapter's return value, shared by `parseRetryAfterMs`/`retryDelayMs` so callers on either
+ * transport can use them unchanged.
+ */
+interface RetryAfterSource {
+  headers: { get(name: string): string | null };
+}
+
+/** Same minimal shape, extended with what `fetchTextWithRetry`'s own callers read. */
+interface ResponseLike extends RetryAfterSource {
+  status: number;
+  url: string;
+}
+
+/**
+ * The primary text-fetch transport: got-scraping instead of native `fetch`. got-scraping wraps
+ * `got` with browser-realistic TLS cipher/ALPN and HTTP/2 SETTINGS-frame ordering (the actual
+ * request fingerprint a passive TLS/HTTP2 check like Akamai/Cloudflare sees) — the same problem
+ * Scrapling's own primary `Fetcher` solves with curl_cffi, just via Node's own ecosystem instead
+ * of porting a Python C-extension. `useHeaderGenerator: false` keeps our own explicit headers
+ * (including `DEFAULT_USER_AGENT`) verbatim rather than letting got-scraping pick a fresh random
+ * profile per request — this cache's request hash is derived from the header set, so a
+ * non-deterministic UA would silently defeat `page_cache` reuse across requests within a run.
+ * `retry: { limit: 0 }` hands all retry/backoff control to our own loop in `fetchTextWithRetry`,
+ * and `throwHttpErrors: false` keeps non-2xx responses flowing through as data (matching native
+ * `fetch`'s behavior) instead of being thrown as exceptions.
+ */
+async function fetchViaGotScraping(
+  url: string,
+  options: {
+    method: "GET" | "POST";
+    body?: URLSearchParams | string;
+    headers: Record<string, string>;
+    signal: AbortSignal;
+  }
+): Promise<{ response: ResponseLike; text: string }> {
+  const bodyValue = options.body instanceof URLSearchParams ? options.body.toString() : options.body;
+  const gotResponse = await gotScraping({
+    url,
+    method: options.method,
+    body: options.method === "GET" ? undefined : bodyValue,
+    headers: options.headers,
+    throwHttpErrors: false,
+    followRedirect: true,
+    retry: { limit: 0 },
+    useHeaderGenerator: false,
+    responseType: "text",
+    signal: options.signal
+  });
+  const response: ResponseLike = {
+    status: gotResponse.statusCode,
+    url: gotResponse.url,
+    headers: { get: (name: string) => normalizeGotHeaderValue(gotResponse.headers[name.toLowerCase()]) }
+  };
+  return { response, text: gotResponse.body };
+}
+
+function normalizeGotHeaderValue(value: string | string[] | undefined): string | null {
+  if (value === undefined) return null;
+  return Array.isArray(value) ? value.join(", ") : value;
 }
 
 export class CachedHttpClient {
@@ -203,7 +267,7 @@ export class CachedHttpClient {
     }
 
     await this.acquireHostSlot(url);
-    let response: Response;
+    let response: ResponseLike;
     let text: string;
     try {
       ({ response, text } = await this.fetchTextWithRetry(url, {
@@ -546,7 +610,7 @@ $contentType = if ($response.Headers['Content-Type']) { [string]$response.Header
       retryBackoffMs?: number;
       signal?: AbortSignal;
     }
-  ): Promise<{ response: Response; text: string }> {
+  ): Promise<{ response: ResponseLike; text: string }> {
     let lastError: unknown;
     const maxAttempts = options.maxAttempts ?? 2;
     const retryBackoffMs = options.retryBackoffMs ?? 750;
@@ -554,14 +618,12 @@ $contentType = if ($response.Headers['Content-Type']) { [string]$response.Header
       throwIfAborted(options.signal);
       const request = createRequestAbort(options.timeoutMs, options.signal);
       try {
-        const response = await fetch(url, {
+        const { response, text } = await fetchViaGotScraping(url, {
           method: options.method,
           body: options.body,
           headers: options.headers,
-          redirect: "follow",
           signal: request.signal
         });
-        const text = await response.text();
         this.recordHostThrottleSignal(url, response.status);
         if (isRetryableStatus(response.status) && attempt < maxAttempts) {
           await delay(retryDelayMs(response, retryBackoffMs, attempt), options.signal);
@@ -810,7 +872,7 @@ export function isRetryableStatus(status: number): boolean {
  * when present, otherwise exponential backoff with jitter. Capped so a misbehaving header
  * can't stall a run for minutes.
  */
-function retryDelayMs(response: Response, baseBackoffMs: number, attempt: number): number {
+function retryDelayMs(response: RetryAfterSource, baseBackoffMs: number, attempt: number): number {
   const MAX_RETRY_DELAY_MS = 30000;
   const retryAfter = parseRetryAfterMs(response);
   if (retryAfter !== undefined) return Math.min(retryAfter, MAX_RETRY_DELAY_MS);
@@ -819,7 +881,7 @@ function retryDelayMs(response: Response, baseBackoffMs: number, attempt: number
   return Math.min(exponential + jitter, MAX_RETRY_DELAY_MS);
 }
 
-export function parseRetryAfterMs(response: Response): number | undefined {
+export function parseRetryAfterMs(response: RetryAfterSource): number | undefined {
   const header = response.headers.get("retry-after");
   if (!header) return undefined;
   const seconds = Number(header);

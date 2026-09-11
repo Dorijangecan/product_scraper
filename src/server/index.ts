@@ -8,11 +8,19 @@ import { fileURLToPath } from "node:url";
 import { previewCsv, extractCatalogNumbers } from "./csv.js";
 import { ScraperDb } from "./db.js";
 import { createAppPaths } from "./paths.js";
-import { RunManager } from "./run-manager.js";
+import { buildFieldCoverageMatrix, RunManager } from "./run-manager.js";
 import { getManufacturerConfig, initializeManufacturerConfig, listManufacturerConfigs, resetManufacturerOverride, saveManufacturerConfig } from "./config/manufacturers.js";
-import type { CustomerDocumentRecord, LearnedExtractorApprovalRequest, ManufacturerId, ManufacturerOperationalSummary, ManufacturerTestResult } from "../shared/types.js";
+import type {
+  CustomerDocumentRecord,
+  FieldCoverageMatrixResponse,
+  LearnedExtractorApprovalRequest,
+  ManufacturerId,
+  ManufacturerOperationalSummary,
+  ManufacturerTestResult
+} from "../shared/types.js";
 import { buildRunOutputLayout, findRunLogPath, getAllowedRunOutputRoots, isPathInsideAny, runRootFromOutputPath } from "./run-output.js";
 import { CachedHttpClient } from "./scrapers/http-client.js";
+import { TRACKED_COVERAGE_FIELDS } from "./scrapers/field-coverage-drift.js";
 import { summarizeRunItem } from "./run-item-summary.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -36,6 +44,7 @@ const runUpload = multer({
 const app = express();
 const port = Number(process.env.PORT ?? 3001);
 const WIZARD_VALIDATION_TTL_MS = 30 * 60 * 1000;
+const DEFAULT_PDT_EXPORT_TIMEOUT_MS = 10 * 60 * 1000;
 const wizardRecipeValidations = new Map<string, { result: ManufacturerTestResult; expiresAt: number }>();
 
 app.use(express.json({ limit: "1mb" }));
@@ -46,6 +55,11 @@ app.get("/api/health", (_req, res) => {
 
 app.get("/api/manufacturers", (_req, res) => {
   res.json(listManufacturerConfigs());
+});
+
+app.get("/api/field-coverage-matrix", (_req, res) => {
+  const response: FieldCoverageMatrixResponse = { fields: TRACKED_COVERAGE_FIELDS, rows: buildFieldCoverageMatrix(db) };
+  res.json(response);
 });
 
 app.get("/api/manufacturers/:id/operational-summary", (req, res) => {
@@ -132,18 +146,50 @@ app.post("/api/csv/preview", upload.single("file"), async (req, res) => {
   }
 });
 
+/**
+ * Preview an accessory matrix before a run exists: lists the main parts it declares, which can be
+ * scraped directly instead of uploading a separate catalog CSV.
+ */
+app.post("/api/accessory-matrix/preview", customerDocUpload.single("file"), async (req, res) => {
+  const file = req.file;
+  if (!file) {
+    res.status(400).json({ error: "Accessory matrix file is required." });
+    return;
+  }
+  if (!isAccessoryMatrixFileName(file.originalname)) {
+    res.status(400).json({ error: "The accessory matrix must be an .xlsx or .xlsm workbook." });
+    return;
+  }
+  try {
+    const { parseAccessoryMatrixBuffer, accessoryMatrixCatalogNumbers } = await import("./pdt/accessory-matrix.js");
+    const plan = await parseAccessoryMatrixBuffer(file.buffer);
+    res.json({
+      fileName: file.originalname,
+      mainParts: accessoryMatrixCatalogNumbers(plan),
+      points: plan.points.map((point) => point.name),
+      accessoryRows: plan.accessoryRows.filter((row) => row.kind === "accessory").length,
+      conditionCount: plan.conditions.length,
+      warnings: plan.warnings
+    });
+  } catch (error) {
+    res.status(400).json({ error: error instanceof Error ? error.message : "Could not read the accessory matrix." });
+  }
+});
+
 app.post(
   "/api/runs",
   runUpload.fields([
     { name: "file", maxCount: 1 },
-    { name: "customerDocuments", maxCount: 20 }
+    { name: "customerDocuments", maxCount: 20 },
+    { name: "accessoryMatrix", maxCount: 1 }
   ]),
   async (req, res) => {
   const filesMap = (req.files ?? {}) as Record<string, Express.Multer.File[]>;
   const inputFile = filesMap.file?.[0];
   const customerFiles = filesMap.customerDocuments ?? [];
-  if (!inputFile) {
-    res.status(400).json({ error: "CSV file is required." });
+  const accessoryMatrixFile = filesMap.accessoryMatrix?.[0];
+  if (!inputFile && !accessoryMatrixFile) {
+    res.status(400).json({ error: "A catalog CSV/XLSX or an accessory matrix is required." });
     return;
   }
   const manufacturerId = String(req.body.manufacturerId ?? "") as ManufacturerId;
@@ -182,20 +228,34 @@ app.post(
     res.status(400).json({ error: "Unknown manufacturer." });
     return;
   }
-  if (!columnName) {
+  if (inputFile && !columnName) {
     res.status(400).json({ error: "CSV column is required." });
     return;
   }
+  if (accessoryMatrixFile && !isAccessoryMatrixFileName(accessoryMatrixFile.originalname)) {
+    res.status(400).json({ error: "The accessory matrix must be an .xlsx or .xlsm workbook." });
+    return;
+  }
   try {
-    const catalogNumbers = await extractCatalogNumbers(inputFile.buffer, columnName);
+    // Without a catalog CSV the accessory matrix is the input: its main parts are the catalog
+    // numbers to scrape. The accessory part numbers themselves are not scraped — the PDT's
+    // accessory rows come from the matrix verbatim.
+    const catalogNumbers = inputFile
+      ? await extractCatalogNumbers(inputFile.buffer, columnName)
+      : await accessoryMatrixCatalogNumbersFromUpload(accessoryMatrixFile!.buffer);
     if (catalogNumbers.length === 0) {
-      res.status(400).json({ error: "No catalog numbers found in selected column." });
+      res.status(400).json({
+        error: inputFile
+          ? "No catalog numbers found in selected column."
+          : "The accessory matrix declares no main part numbers in column A."
+      });
       return;
     }
     const customerDocuments = await persistCustomerDocuments(customerFiles);
+    const [accessoryMatrix] = accessoryMatrixFile ? await persistCustomerDocuments([accessoryMatrixFile]) : [];
     const run = runManager.createRun({
       manufacturerId,
-      inputFileName: inputFile.originalname,
+      inputFileName: (inputFile ?? accessoryMatrixFile)!.originalname,
       catalogNumbers,
       options: {
         downloadDocuments,
@@ -207,7 +267,8 @@ app.post(
         forceFinalRetry,
         ...(customCoverageFields !== undefined ? { customCoverageFields } : {}),
         ...(hiddenCoverageFields !== undefined ? { hiddenCoverageFields } : {}),
-        ...(customerDocuments.length > 0 ? { customerDocuments } : {})
+        ...(customerDocuments.length > 0 ? { customerDocuments } : {}),
+        ...(accessoryMatrix ? { accessoryMatrix } : {})
       }
     });
     res.status(201).json(run);
@@ -425,6 +486,77 @@ app.get("/api/runs/:id/pdt-routing-preview", async (req, res) => {
   }
 });
 
+/**
+ * Attach (or replace) the accessory matrix used by the next PDT export of this run. Kept separate
+ * from POST /api/runs/:id/pdt so that route stays a plain JSON call. The matrix is parsed here so
+ * a wrong file is rejected while the operator is still looking at the file picker.
+ */
+app.post("/api/runs/:id/accessory-matrix", customerDocUpload.single("file"), async (req, res) => {
+  const run = db.getRun(String(req.params.id));
+  if (!run) {
+    res.status(404).json({ error: "Run not found." });
+    return;
+  }
+  const file = req.file;
+  if (!file) {
+    res.status(400).json({ error: "Accessory matrix file is required." });
+    return;
+  }
+  if (!isAccessoryMatrixFileName(file.originalname)) {
+    res.status(400).json({ error: "The accessory matrix must be an .xlsx or .xlsm workbook." });
+    return;
+  }
+  try {
+    const [record] = await persistCustomerDocuments([file]);
+    const { loadAccessoryMatrix, accessoryMatrixMainPartsNotInRun } = await import("./pdt/accessory-matrix.js");
+    let plan: Awaited<ReturnType<typeof loadAccessoryMatrix>>;
+    try {
+      plan = await loadAccessoryMatrix(record.storedPath);
+    } catch (error) {
+      await fs.promises.unlink(record.storedPath).catch(() => undefined);
+      await fs.promises.rmdir(path.dirname(record.storedPath)).catch(() => undefined);
+      res.status(400).json({ error: error instanceof Error ? error.message : "Could not read the accessory matrix." });
+      return;
+    }
+    db.updateRunOptions(run.id, { accessoryMatrix: record });
+    res.json({
+      ok: true,
+      accessoryMatrix: {
+        fileName: record.originalName,
+        mainPartCount: plan.mainParts.length,
+        pointCount: plan.points.length,
+        accessoryRows: plan.accessoryRows.filter((row) => row.kind === "accessory").length,
+        connectionPointRows: plan.connectionPointRows.filter((row) => row.kind === "point").length,
+        conditionCount: plan.conditions.length,
+        mainPartsNotInRun: accessoryMatrixMainPartsNotInRun(
+          plan,
+          db.getRunItems(run.id).map((item) => item.catalogNumber)
+        ),
+        warnings: plan.warnings
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ error: error instanceof Error ? error.message : "Could not store the accessory matrix." });
+  }
+});
+
+app.delete("/api/runs/:id/accessory-matrix", async (req, res) => {
+  const run = db.getRun(String(req.params.id));
+  if (!run) {
+    res.status(404).json({ error: "Run not found." });
+    return;
+  }
+  const detached = run.options?.accessoryMatrix;
+  db.updateRunOptions(run.id, { accessoryMatrix: undefined });
+  // Only clean up while the upload still sits in the staging area. Once a run has relocated it
+  // into its own output folder it is part of that run's record and stays on disk.
+  if (detached?.storedPath && isPathInsideAny(detached.storedPath, [appPaths.customerUploadsDir])) {
+    await fs.promises.unlink(detached.storedPath).catch(() => undefined);
+    await fs.promises.rmdir(path.dirname(detached.storedPath)).catch(() => undefined);
+  }
+  res.json({ ok: true });
+});
+
 app.post("/api/runs/:id/pdt", async (req, res) => {
   const run = db.getRun(req.params.id);
   if (!run) {
@@ -452,14 +584,20 @@ app.post("/api/runs/:id/pdt", async (req, res) => {
     }
     const outputPath = path.join(baseDir, `${run.id}_PDT.xlsx`);
     const sheetOverrides = parseSheetOverrides(req.body?.sheetOverrides);
-    const result = await exportRunPdt({
+    const accessoryMatrix = run.options?.accessoryMatrix;
+    const accessoryMatrixPath =
+      accessoryMatrix?.storedPath && fs.existsSync(accessoryMatrix.storedPath) ? accessoryMatrix.storedPath : undefined;
+    const result = await withTimeout(exportRunPdt({
       manufacturer,
       items: db.getRunItems(run.id),
       templatePath,
       outputPath,
       aiCleanup: req.body?.aiCleanup === true,
-      sheetOverrides
-    });
+      sheetOverrides,
+      accessoryMatrixPath,
+      accessoryMatrixFileName: accessoryMatrixPath ? accessoryMatrix?.originalName : undefined,
+      productsWorkbookPath: run.outputPath && fs.existsSync(run.outputPath) ? run.outputPath : undefined
+    }), pdtExportTimeoutMs(), `PDT export exceeded the ${Math.round(pdtExportTimeoutMs() / 60000)} minute safety limit.`);
     if (result.productCount === 0) {
       res.status(400).json({ error: "No found or partial products to import into the PDT." });
       return;
@@ -634,6 +772,17 @@ function parseSheetOverrides(raw: unknown): import("../shared/types.js").PdtShee
   return Object.keys(out).length > 0 ? out : undefined;
 }
 
+/** Main part numbers of an uploaded accessory matrix, normalized like a catalog CSV's column. */
+async function accessoryMatrixCatalogNumbersFromUpload(buffer: Uint8Array): Promise<string[]> {
+  const { parseAccessoryMatrixBuffer, accessoryMatrixCatalogNumbers } = await import("./pdt/accessory-matrix.js");
+  return accessoryMatrixCatalogNumbers(await parseAccessoryMatrixBuffer(buffer));
+}
+
+/** The accessory matrix is read with ExcelJS, so only real Excel workbooks are accepted. */
+function isAccessoryMatrixFileName(name: string | undefined): boolean {
+  return /\.(xlsx|xlsm)$/i.test((name ?? "").trim());
+}
+
 function sanitizeCustomerFileName(name: string): string {
   const cleaned = name.replace(/[<>:"/\\|?*\x00-\x1F]/g, "-").replace(/\s+/g, "-").slice(0, 120).replace(/^-+|-+$/g, "");
   return cleaned || "customer-document";
@@ -667,4 +816,25 @@ function openLocalFile(filePath: string) {
     console.error(`[openLocalFile] failed to open ${resolved}: ${error.message}`);
   });
   child.unref();
+}
+
+function pdtExportTimeoutMs(): number {
+  const configured = Number(process.env.PRODUCT_SCRAPER_EXPORT_TIMEOUT_MS);
+  return Number.isFinite(configured) && configured >= 1_000
+    ? Math.min(configured, 30 * 60 * 1000)
+    : DEFAULT_PDT_EXPORT_TIMEOUT_MS;
+}
+
+async function withTimeout<T>(task: Promise<T>, timeoutMs: number, message: string): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      task,
+      new Promise<T>((_, reject) => {
+        timer = setTimeout(() => reject(new Error(message)), timeoutMs);
+      })
+    ]);
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
 }
