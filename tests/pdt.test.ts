@@ -448,6 +448,44 @@ describe("eclass resolvers", () => {
     expect(resolveProperty("AAY811", "AAY811", c)).toBe("https://www.rockwellautomation.com/en-us/products/details.5094-IF8.html");
   });
 
+  it("publishes the Rockwell product page's heading and Description block verbatim as the PDT short/long descriptions", () => {
+    // rockwellautomation.com/en-us/products/details.2198-DSM016-ERS2-A0751E-CK12AA.html: the
+    // heading under the catalog number is the short description, the Description block the long
+    // one — even when a cleanup repair or an attribute suggests something else.
+    const title = "16 Amp Peak ArmorKinetix DSM";
+    const description =
+      "2198 ArmorKinetix,Distributed Servo Motor 16A peak, Standard Safety, 200V Class, 75mm Bolt Circle Frame Size, 1 Stack, 3500 RPM, Single Turn DSL 35mm, Smooth Shaft Extension, SpeedTec Right Angle DIN, No Brake, IEC Metric Mounting Flange, Standard Seal";
+    const c = ctx(
+      {
+        manufacturerId: "rockwell",
+        title,
+        description,
+        localizedDescriptions: { en: { title, description } },
+        attributes: [{ group: "Rockwell", name: "Catalog Description", value: "Servo motor", sourceType: "official" }]
+      },
+      "2198-DSM016-ERS2-A0751E-CK12AA"
+    );
+    c.manufacturer = { ...manufacturer, id: "rockwell" } as ManufacturerConfig;
+    c.repair = { shortDescription: "Distributed Servo Motor", longDescription: "Rewritten by cleanup" } as ResolveContext["repair"];
+
+    expect(resolveProperty("CNS_DESCRIPTION_SHORT", "CNS_DESCRIPTION_SHORT", c)).toBe(title);
+    expect(resolveProperty("CNS_DESCRIPTION_LONG", "CNS_DESCRIPTION_LONG", c)).toBe(description);
+
+    // German cells fall back to the English wording when Rockwell has no de-de text...
+    expect(resolveProperty("CNS_DESCRIPTION_SHORT", "CNS_DESCRIPTION_SHORT", { ...c, language: "de" })).toBe(title);
+    // ...and use Rockwell's own German page wording when it exists.
+    const withGerman = {
+      ...c,
+      language: "de" as const,
+      result: {
+        ...c.result!,
+        localizedDescriptions: { en: { title, description }, de: { title: "16 A Spitzenstrom ArmorKinetix DSM", description: "2198 ArmorKinetix, verteilter Servomotor" } }
+      }
+    };
+    expect(resolveProperty("CNS_DESCRIPTION_SHORT", "CNS_DESCRIPTION_SHORT", withGerman)).toBe("16 A Spitzenstrom ArmorKinetix DSM");
+    expect(resolveProperty("CNS_DESCRIPTION_LONG", "CNS_DESCRIPTION_LONG", withGerman)).toBe("2198 ArmorKinetix, verteilter Servomotor");
+  });
+
   it("fills IEC 81346 class identifiers only from the IEC identifiers table", () => {
     expect(resolveProperty("AAC314", "AAC314", ctx({}, "CAB-1", "Cable"))).toBe("W");
     expect(resolveProperty("AAC314", "AAC314", ctx({}, "BUS-1", "Busbar"))).toBe("U");

@@ -198,7 +198,7 @@ npx madge --extensions ts --ts-config tsconfig.json --circular src/server       
 ```ts
 ProductResult {            // središnji objekt koji teče kroz cijeli pipeline; serijaliziran u run_items
   manufacturerId; catalogNumber; status: "found"|"partial"|"failed"; confidence;
-  productUrl?; localizedUrls?{en,de}; localizedDescriptions?; title?; description?;
+  productUrl?; localizedUrls?{en,de}; localizedDescriptions?{de,en}; title?; description?;
   normalized: NormalizedProductFields;   // weight,dimensions,material,wallThickness,finish,color,
                                           // voltage,current,protection,certificates,operatingTemp{Min,Max}
   attributes: AttributeRecord[];          // {group?,name,value,unit?,sourceUrl?,sourceType?,parser?,stage?,confidence?}
@@ -346,6 +346,14 @@ ekstrakcija truje čiste web podatke garbageom ("current: Cavo 4 A", "protection
 "voltage: 24 V / 24 V / 120 V / 12 V"). Vidi `enrichable` flag na `DocumentRecord`. Za jednoznačno
 riješen jedan redak, connector sintetizira `normalized.dimensions` iz Ganter Geometry stupaca (samo
 klasični crtački simboli b/a/d/h/l1/t…; verbozni config stupci tipa "Connection type" se izostave).
+
+`rockwell.ts` (`RockwellConnector`) — **opisi**: svaka `details.*.html` stranica nosi
+`window.pagePersonalizationSummary` s `title` (naslov ispod kataloškog broja, npr. "16 Amp Peak
+ArmorKinetix DSM") i `description` (blok "Description"). `enrichRockwellParsedPage` ih sprema i u
+`localizedDescriptions.en`, `finalizeRockwellResult` ih više ne smije pregaziti atributom, a
+`rockwellPageDescription` u `eclass-resolvers.ts` ih vraća **doslovno** kao PDT
+`CNS_DESCRIPTION_SHORT` / `CNS_DESCRIPTION_LONG` (bez rezanja na prvi zarez, bez AI-repaira i bez
+generated-rule zamjene). DE stupci uzimaju de-de tekst kad postoji, inače EN kao placeholder.
 
 `siemens.ts` (`SiemensConnector`): standardni MLFB automation dio ide preko SiePortal anon-token API-ja
 (`parseSiemensProductApiResponse`) + mmpdata; **Building Technologies stock brojevi** (`S55…`, regex

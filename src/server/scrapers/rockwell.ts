@@ -193,8 +193,12 @@ function finalizeRockwellResult(result: ProductResult): ProductResult {
     (document) => !/\bview[-_\s]+guidance\b/i.test(`${document.label} ${document.url}`)
   );
   const normalized = normalizeFields(attributes, documents);
-  const title = cleanText(result.title) || attrValue(attributes, /\b(product name|catalog description|description)\b/i);
-  const description = preferredRockwellDescription(cleanText(result.description), title, attributes);
+  // The product page's own heading and Description block win outright when we captured them —
+  // they are what the PDT short/long descriptions must publish, so no attribute may replace them.
+  const pageTitle = cleanText(result.localizedDescriptions?.en?.title);
+  const pageDescription = cleanText(result.localizedDescriptions?.en?.description);
+  const title = pageTitle || cleanText(result.title) || attrValue(attributes, /\b(product name|catalog description|description)\b/i);
+  const description = pageDescription || preferredRockwellDescription(cleanText(result.description), title, attributes);
   const productUrl = preferredRockwellProductUrl(result);
   const richEnough = attributes.length >= 8 || documents.some((doc) => doc.type === "datasheet" || doc.type === "cad" || doc.type === "image");
   return {
@@ -285,10 +289,19 @@ function enrichRockwellParsedPage(result: ProductResult, fetched: FetchedText, c
   // ("XLB-Netzteil..."/"...Basisnetzteil...") on the de-de page. Prefer it over whatever the
   // generic HTML/JSON-LD title-guessing produced — that path has previously picked up raw SVG/CSS
   // asset text on some Rockwell pages (see the 1444-DYN04 description bug fixed earlier).
+  // Keep the English page's own wording in `localizedDescriptions.en` as well: the PDT export
+  // publishes the page heading as the short description and this Description block as the long
+  // one verbatim, so it must survive result merging and the generic description heuristics.
+  const englishSummary = summary && !/\/de-de\//i.test(sourceUrl ?? "") && (summary.title || summary.description)
+    ? { title: summary.title, description: summary.description }
+    : undefined;
   return {
     ...result,
     title: summary?.title || result.title,
     description: summary?.description || result.description,
+    localizedDescriptions: englishSummary
+      ? { ...result.localizedDescriptions, en: englishSummary }
+      : result.localizedDescriptions,
     normalized: normalizeFields(attributes, documents),
     attributes,
     documents

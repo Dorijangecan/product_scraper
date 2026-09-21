@@ -729,6 +729,10 @@ describe("manufacturer configuration", () => {
     expect(result.description).toBe("1606-XLB90EQ:Basic Power Supply, 24-28V DC, 90 W, 100-240V AC Input Voltage");
     expect(result.localizedDescriptions?.de?.title).toBe("XLB-Netzteil 90 W 24 V DC 3.8 A");
     expect(result.localizedDescriptions?.de?.description).toBe("1606-XLB90EQ:Basisnetzteil, 24-28 V DC, 90 W, 100-240 V AC Eingangsspannung");
+    // The English page wording is kept separately so the PDT export can publish it verbatim
+    // (heading -> short description, Description block -> long description).
+    expect(result.localizedDescriptions?.en?.title).toBe("XLB Power Supply 90W 24VDC 3.8A");
+    expect(result.localizedDescriptions?.en?.description).toBe("1606-XLB90EQ:Basic Power Supply, 24-28V DC, 90 W, 100-240V AC Input Voltage");
   });
 
   it("uses generic official discovery for SCE when advanced search and direct URLs miss", async () => {

@@ -463,7 +463,33 @@ function isSceEnclosure(ctx: ResolveContext): boolean {
   return /\benclosure\b/i.test(text);
 }
 
+/**
+ * Rockwell publishes both PDT description cells on the product page itself: the heading under the
+ * catalog number ("16 Amp Peak ArmorKinetix DSM") is the short description and the "Description"
+ * block ("2198 ArmorKinetix,Distributed Servo Motor 16A peak, ...") is the long one. Per the
+ * operator's rule these are used verbatim — no comma trimming, no AI-repair rewrite, no attribute
+ * or generated-rule substitution. German cells keep the Rockwell-translated de-de wording when the
+ * German page provided it, otherwise they fall back to the English text as a translation
+ * placeholder (blank DE cells silently ship English into the catalog).
+ */
+function rockwellPageDescription(ctx: ResolveContext, kind: "short" | "long"): string | undefined {
+  if ((ctx.result?.manufacturerId ?? ctx.manufacturer.id) !== "rockwell") return undefined;
+  const en = ctx.result?.localizedDescriptions?.en;
+  const english = cleanDescriptionValue(kind === "short" ? en?.title : en?.description, ctx.item.catalogNumber);
+  if (!english) return undefined;
+  if (ctx.language !== "de") return english;
+  const key = kind === "short" ? "localizedShortDescriptionDe" : "localizedLongDescriptionDe";
+  const de = ctx.result?.localizedDescriptions?.de;
+  return (
+    localizedDescriptionFactValue(ctx, key, english) ??
+    localizedGermanText(kind === "short" ? de?.title : de?.description, english, ctx.item.catalogNumber) ??
+    english
+  );
+}
+
 const longDescription: Resolver = (ctx) => {
+  const rockwellPageLong = rockwellPageDescription(ctx, "long");
+  if (rockwellPageLong) return rockwellPageLong;
   const sceDescription = sceProductSpecificationDescription(ctx);
   if (sceDescription) return sceDescription;
   const structuredTitle = structuredTitleDescription(ctx);
@@ -495,6 +521,8 @@ const longDescription: Resolver = (ctx) => {
   return ctx.result?.manufacturerId === "eaton" ? stripEatonCatalogPrefix(raw, ctx.item.catalogNumber) : raw;
 };
 const shortDescription: Resolver = (ctx) => {
+  const rockwellPageShort = rockwellPageDescription(ctx, "short");
+  if (rockwellPageShort) return rockwellPageShort;
   if (isSceEnclosure(ctx)) return ctx.language === "de" ? "Gehaeuse" : "Enclosure";
   const structuredTitle = structuredTitleDescription(ctx);
   if (structuredTitle) {

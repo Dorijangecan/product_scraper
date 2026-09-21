@@ -614,7 +614,7 @@ function mergeLocalizedDescriptions(
 ): ProductResult["localizedDescriptions"] {
   if (!primary && !fallback) return undefined;
   const result: NonNullable<ProductResult["localizedDescriptions"]> = {};
-  const locales: Array<"de"> = ["de"];
+  const locales: Array<"de" | "en"> = ["de", "en"];
   for (const locale of locales) {
     const p = primary?.[locale];
     const f = fallback?.[locale];

@@ -756,6 +756,10 @@ export interface LocalizedDescription {
 
 export interface LocalizedDescriptions {
   de?: LocalizedDescription;
+  /** English title/description taken verbatim from the manufacturer's own English product page
+   * (as opposed to the generically guessed `title`/`description`), so the PDT export can prefer
+   * the page's wording over heuristics. */
+  en?: LocalizedDescription;
 }
 
 export interface ProductResult {
