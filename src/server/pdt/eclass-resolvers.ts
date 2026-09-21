@@ -787,12 +787,47 @@ const eanOrGtinForEanColumn = (ctx: ResolveContext) => {
 };
 
 function pdtProductUrl(ctx: ResolveContext): string | undefined {
-  const rule = pdtProductUrlRule({
-    manufacturerId: ctx.result?.manufacturerId ?? ctx.manufacturer.id,
-    catalogNumber: ctx.item.catalogNumber
-  });
+  const manufacturerId = ctx.result?.manufacturerId ?? ctx.manufacturer.id;
+  const rule = pdtProductUrlRule({ manufacturerId, catalogNumber: ctx.item.catalogNumber });
+  if (manufacturerId === "rockwell") {
+    // The product link must open the product itself. A details page the scraper really fetched
+    // for this catalog number beats every deterministic family rule, and a search-results URL is
+    // never an acceptable answer (it drops the operator on a keyword list, not on the product).
+    const fetchedDetails = fetchedRockwellDetailsUrl(ctx);
+    if (fetchedDetails) return fetchedDetails;
+    if (rule && !isSearchResultsUrl(rule.value)) return rule.value;
+    const scraped = clean(ctx.result?.productUrl ?? ctx.item.productUrl);
+    if (scraped && !isSearchResultsUrl(scraped)) return scraped;
+    return `https://www.rockwellautomation.com/en-us/products/details.${encodeURIComponent(clean(ctx.item.catalogNumber) ?? ctx.item.catalogNumber)}.html`;
+  }
   if (rule) return rule.value;
   return ctx.result?.productUrl ?? ctx.item.productUrl;
+}
+
+/** True for keyword/search-results pages, which are never a product link. */
+function isSearchResultsUrl(url: string | undefined): boolean {
+  if (!url) return false;
+  try {
+    const parsed = new URL(url);
+    return /(^|\/)(?:search|site-search)(?:\.html?)?$/i.test(parsed.pathname.replace(/\/$/, "")) ||
+      ["keyword", "q", "query", "search"].some((key) => parsed.searchParams.has(key));
+  } catch {
+    return /[?&](?:keyword|q|query|search)=/i.test(url);
+  }
+}
+
+/** The Rockwell details page the scraper actually fetched for this catalog number — as opposed to
+ * the canonical `details.<catalog>.html` address it falls back to when nothing was found, which
+ * may well 404 (e.g. 2080-LC20 controllers live only on their family page). */
+function fetchedRockwellDetailsUrl(ctx: ResolveContext): string | undefined {
+  const url = clean(ctx.result?.productUrl);
+  if (!url || !/\/products\/details\./i.test(url)) return undefined;
+  if (!comparableText(url).includes(comparableText(ctx.item.catalogNumber))) return undefined;
+  const samePage = (candidate: string | undefined) => Boolean(candidate && comparableText(candidate) === comparableText(url));
+  const fetched =
+    (ctx.result?.sources ?? []).some((source) => samePage(source.url) && (source.statusCode ?? 200) < 400) ||
+    (ctx.result?.attributes ?? []).some((attribute) => samePage(attribute.sourceUrl));
+  return fetched ? url : undefined;
 }
 
 function abbPdtProductUrl(catalogNumber: string): string {

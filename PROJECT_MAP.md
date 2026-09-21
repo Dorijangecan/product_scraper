@@ -354,6 +354,13 @@ ArmorKinetix DSM") i `description` (blok "Description"). `enrichRockwellParsedPa
 `rockwellPageDescription` u `eclass-resolvers.ts` ih vraća **doslovno** kao PDT
 `CNS_DESCRIPTION_SHORT` / `CNS_DESCRIPTION_LONG` (bez rezanja na prvi zarez, bez AI-repaira i bez
 generated-rule zamjene). DE stupci uzimaju de-de tekst kad postoji, inače EN kao placeholder.
+**Link (AAQ326/AAY811) mora otvoriti sam proizvod**: `pdtProductUrl` za Rockwell prvo uzima
+details stranicu koju je scraper stvarno dohvatio (`fetchedRockwellDetailsUrl` — provjera preko
+`sources`/`sourceUrl`, jer se canonical `details.<kat>.html` fabricira i kad ništa nije nađeno),
+pa tek onda deterministic pravilo, i **nikad** search-rezultate (`isSearchResultsUrl`). Stara
+manual-PDT keyword-search pravila (2715P, 1756-L9, 1492-PDE/PDME, 2198-DSM) su maknuta — uživo
+provjereno da svaki od tih kataloga ima vlastitu details stranicu. Ostaje samo Micro820
+family stranica za `2080-LC20-` (njihov details URL stvarno 404-a).
 
 `siemens.ts` (`SiemensConnector`): standardni MLFB automation dio ide preko SiePortal anon-token API-ja
 (`parseSiemensProductApiResponse`) + mmpdata; **Building Technologies stock brojevi** (`S55…`, regex

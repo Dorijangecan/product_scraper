@@ -170,34 +170,11 @@ export function pdtProductUrlRule(ctx: PdtUrlContext): AppliedPdtRule<string> | 
         value: `https://www.rockwellautomation.com/en-us/products/details.${encodeURIComponent(catalog)}.html`
       };
     }
-    if (/^\s*2715P-/i.test(ctx.catalogNumber)) {
-      return {
-        name: "rockwell-panelview-5510-pdt-search-url",
-        rationale: "Rockwell manual PDTs use the PanelView 5510 family search URL for 2715P variants.",
-        value: "https://www.rockwellautomation.com/en-us/search.html?keyword=2715P&tab=all"
-      };
-    }
-    if (/^\s*1756-L9/i.test(ctx.catalogNumber)) {
-      return {
-        name: "rockwell-controllogix-l9-pdt-search-url",
-        rationale: "Rockwell ControlLogix L9 manual PDTs use the 1756-L9 family search URL for processor variants.",
-        value: "https://www.rockwellautomation.com/en-us/search.html?keyword=1756-L9&tab=all"
-      };
-    }
-    if (/^\s*1492-PD(?:E|ME)/i.test(ctx.catalogNumber)) {
-      return {
-        name: "rockwell-1492-pde-pdt-search-url",
-        rationale: "Rockwell 1492-PDE/PDME manual PDTs use the 1492-PDE family search URL for enclosed power distribution terminal blocks.",
-        value: "https://www.rockwellautomation.com/en-us/search.html?keyword=1492-PDE&tab=all"
-      };
-    }
-    if (/^\s*2198-DSM/i.test(ctx.catalogNumber)) {
-      return {
-        name: "rockwell-armorkinetix-dsm-pdt-search-url",
-        rationale: "Rockwell manual PDTs use the ArmorKinetix DSM family search URL for 2198-DSM variants.",
-        value: "https://www.rockwellautomation.com/en-us/search.html?keyword=armorkinetix+DSM&tab=all"
-      };
-    }
+    // 2715P (PanelView 5510), 1756-L9 (ControlLogix), 1492-PDE/PDME and 2198-DSM (ArmorKinetix)
+    // used to copy the old manual PDTs' keyword-search URLs. Verified live 2026-09-21 that every
+    // one of those catalogs has its own details page (e.g. details.2715P-T19CD.html,
+    // details.1492-PDE1142.html, details.2198-DSM016-ERS2-A0751E-CK12AA.html), so they fall through
+    // to the details-page default below — the link must open the product, never a result list.
     {
       const catalog = clean(ctx.catalogNumber) ?? ctx.catalogNumber;
       return {

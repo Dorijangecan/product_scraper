@@ -448,6 +448,34 @@ describe("eclass resolvers", () => {
     expect(resolveProperty("AAY811", "AAY811", c)).toBe("https://www.rockwellautomation.com/en-us/products/details.5094-IF8.html");
   });
 
+  it("never publishes a Rockwell keyword-search URL as the product link", () => {
+    // Verified live 2026-09-21: details.<catalog>.html exists for each of these families, so the
+    // old manual-PDT search URLs ("...search.html?keyword=armorkinetix+DSM&tab=all") are gone.
+    for (const catalogNumber of ["2198-DSM016-ERS2-A0751E-CK12AA", "2715P-T19CD", "1756-L902TSXT", "1492-PDE1142"]) {
+      const c = ctx({ manufacturerId: "rockwell" }, catalogNumber);
+      c.manufacturer = { ...manufacturer, id: "rockwell" } as ManufacturerConfig;
+      expect(resolveProperty("AAQ326", "AAQ326", c)).toBe(
+        `https://www.rockwellautomation.com/en-us/products/details.${catalogNumber}.html`
+      );
+    }
+
+    // A search URL that reached the result (discovery fallback) is replaced, not exported.
+    const fromSearch = ctx(
+      { manufacturerId: "rockwell", productUrl: "https://www.rockwellautomation.com/en-us/search.html?keyword=armorkinetix+DSM&tab=all" },
+      "2198-DSM016-ERS2-A0751E-CK12AA"
+    );
+    fromSearch.manufacturer = { ...manufacturer, id: "rockwell" } as ManufacturerConfig;
+    expect(resolveProperty("AAQ326", "AAQ326", fromSearch)).toBe(
+      "https://www.rockwellautomation.com/en-us/products/details.2198-DSM016-ERS2-A0751E-CK12AA.html"
+    );
+
+    // 2080-LC20 controllers genuinely have no details page (404 live), so their family page —
+    // still a product page — stays.
+    const micro820 = ctx({ manufacturerId: "rockwell" }, "2080-LC20-20QWB");
+    micro820.manufacturer = { ...manufacturer, id: "rockwell" } as ManufacturerConfig;
+    expect(resolveProperty("AAQ326", "AAQ326", micro820)).toContain("micro820-controllers.html");
+  });
+
   it("publishes the Rockwell product page's heading and Description block verbatim as the PDT short/long descriptions", () => {
     // rockwellautomation.com/en-us/products/details.2198-DSM016-ERS2-A0751E-CK12AA.html: the
     // heading under the catalog number is the short description, the Description block the long
@@ -1542,7 +1570,7 @@ describe("eclass resolvers", () => {
     );
     c.manufacturer = { ...manufacturer, id: "rockwell" } as ManufacturerConfig;
 
-    expect(resolveProperty("AAQ326", "AAQ326", c)).toBe("https://www.rockwellautomation.com/en-us/search.html?keyword=1756-L9&tab=all");
+    expect(resolveProperty("AAQ326", "AAQ326", c)).toBe("https://www.rockwellautomation.com/en-us/products/details.1756-L902TSXT.html");
     expect(resolveProperty("CNS_DESCRIPTION_SHORT", "CNS_DESCRIPTION_SHORT", c)).toBe("ControlLogix 5590 XT Controller");
     expect(resolveProperty("CNS_DESCRIPTION_LONG", "CNS_DESCRIPTION_LONG", c)).toBe("ControlLogix 5590 XT Controller");
     expect(resolveProperty("CERTIFICATION", "CERTIFICATION", c)).toBe("c-UL-us, FM, CE, RCM, ATEX, IECEx, UKCA, KC, CCC, TÜV, Morocco");
@@ -1581,7 +1609,7 @@ describe("eclass resolvers", () => {
     );
     c.manufacturer = { ...manufacturer, id: "rockwell" } as ManufacturerConfig;
 
-    expect(resolveProperty("AAQ326", "AAQ326", c)).toBe("https://www.rockwellautomation.com/en-us/search.html?keyword=1492-PDE&tab=all");
+    expect(resolveProperty("AAQ326", "AAQ326", c)).toBe("https://www.rockwellautomation.com/en-us/products/details.1492-PDE1142.html");
     expect(resolveProperty("CNS_DESCRIPTION_SHORT", "CNS_DESCRIPTION_SHORT", c)).toBe("200 A Enclosed Power Distribution Block");
     expect(resolveProperty("CNS_DESCRIPTION_LONG", "CNS_DESCRIPTION_LONG", c)).toBe("200 A Enclosed Power Distribution Block");
     expect(resolveProperty("CERTIFICATION", "CERTIFICATION", c)).toBe("UL Listed, Morocco");
