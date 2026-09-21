@@ -12,6 +12,12 @@ import { scrapeDiscoveredFallback, withDiscoveryFallbackDiagnostics } from "./di
 const ROCKWELL_USER_AGENT =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0 Safari/537.36";
 const ROCKWELL_CACHE_TTL_MS = 1000 * 60 * 60 * 24 * 7;
+const ROCKWELL_SEARCH_API = "https://api.rockwellautomation.com/ra-eapi-cx-public-dashboard-vpcprod/api/v1/rockwell/search";
+// These are the public browser-search client credentials embedded by Rockwell in its search page.
+// They are not an authentication secret; the API still returns only public catalog search data.
+const ROCKWELL_SEARCH_CLIENT_ID = "fb000cbbe476420b9e70be741abd7a63";
+const ROCKWELL_SEARCH_CLIENT_SECRET = "Db420ae8BAdD47ADA4E12cE90Fb1b747";
+const ROCKWELL_SEARCH_CORRELATION_ID = "prod_ra_com_search";
 
 export class RockwellConnector implements ManufacturerConnector {
   readonly id = "rockwell";
@@ -62,6 +68,27 @@ export class RockwellConnector implements ManufacturerConnector {
       // prefix. Re-verify with the boundary-anchored check before trusting this page at all.
       if (parsed.status !== "failed" && matchesRockwellCatalogStrict(fetched.text, catalogNumber)) {
         results.push(withRockwellConfidence(enrichRockwellParsedPage(parsed, fetched, catalogNumber, "rockwell-product-page"), 0.84));
+      }
+    }
+
+    // Rockwell's current search page resolves many real PDPs through its product index rather
+    // than through the simple details.<SKU>.html pattern. Ask that official index before generic
+    // discovery; only exact catalogNumber records are accepted and the returned PDP is fetched and
+    // identity-checked before it can contribute a result.
+    const indexedUrls = results.length ? [] : await rockwellSearchProductUrls(catalogNumber, context);
+    for (const url of indexedUrls) {
+      if (attemptedUrls.includes(url)) continue;
+      attemptedUrls.push(url);
+      const fetched = await fetchRockwellOptional(url, context);
+      if (!fetched || !matchesRockwellCatalogStrict(fetched.text, catalogNumber)) continue;
+      const parsed = parseGenericProductPage("rockwell", catalogNumber, fetched, "official", "rockwell-search-api-product-page", {
+        localizedUrlTemplates: context.manufacturer.localizedUrlTemplates,
+        markerRules: context.manufacturer.markerRules,
+        extractionPolicy: context.manufacturer.scrapeRecipe?.extractionPolicy,
+        confidence: 0.9
+      });
+      if (parsed.status !== "failed") {
+        results.push(withRockwellConfidence(enrichRockwellParsedPage(parsed, fetched, catalogNumber, "rockwell-search-api-product-page"), 0.9));
       }
     }
 
@@ -187,7 +214,7 @@ function mergeRockwellResults(results: ProductResult[]): ProductResult | undefin
   return usable.reduce((merged, result) => mergeResults(merged, result));
 }
 
-function finalizeRockwellResult(result: ProductResult): ProductResult {
+export function finalizeRockwellResult(result: ProductResult): ProductResult {
   const attributes = dedupeAttributes(result.attributes);
   const documents = dedupeDocuments(result.documents).filter(
     (document) => !/\bview[-_\s]+guidance\b/i.test(`${document.label} ${document.url}`)
@@ -199,14 +226,21 @@ function finalizeRockwellResult(result: ProductResult): ProductResult {
   const pageDescription = cleanText(result.localizedDescriptions?.en?.description);
   const title = pageTitle || cleanText(result.title) || attrValue(attributes, /\b(product name|catalog description|description)\b/i);
   const description = pageDescription || preferredRockwellDescription(cleanText(result.description), title, attributes);
+  // Never manufacture a Rockwell PDP link merely from the catalog number.  A details URL can
+  // look perfect while being a 404, a search shell, or a sibling page returned by generic
+  // discovery.  The URL is published only when this result also carries exact product-identity
+  // evidence from the fetched page (or an explicitly supported family-page mapping).
   const productUrl = preferredRockwellProductUrl(result);
+  const localizedUrls = productUrl
+    ? rockwellLocalizedUrls(result.catalogNumber, productUrl)
+    : undefined;
   const richEnough = attributes.length >= 8 || documents.some((doc) => doc.type === "datasheet" || doc.type === "cad" || doc.type === "image");
   return {
     ...result,
     status: richEnough ? "found" : result.status,
     confidence: richEnough ? Math.max(result.confidence, 0.86) : result.confidence,
     productUrl,
-    localizedUrls: buildLocalizedProductUrls("rockwell", result.catalogNumber, productUrl, result.localizedUrls ? undefined : undefined),
+    localizedUrls,
     title,
     description,
     normalized,
@@ -1075,8 +1109,75 @@ function canonicalRockwellProductUrl(catalogNumber: string): string | undefined 
 }
 
 function preferredRockwellProductUrl(result: ProductResult): string | undefined {
-  if (isCatalogConfirmedRockwellUrl(result.productUrl, result.catalogNumber)) return result.productUrl;
-  return canonicalRockwellProductUrl(result.catalogNumber) ?? result.productUrl;
+  const exactIdentity = rockwellResultHasExactIdentity(result);
+  const trustedRockwellParser = result.sources.some((source) =>
+    /rockwell-(?:product-page|digital-product-passport|cutsheet|drawings|family-page)/i.test(`${source.parser ?? ""} ${source.stage ?? ""}`)
+  );
+  if (isCatalogConfirmedRockwellUrl(result.productUrl, result.catalogNumber) && (exactIdentity || trustedRockwellParser)) {
+    return result.productUrl;
+  }
+  const familyUrl = rockwellFamilyPageForCatalog(result.catalogNumber);
+  if (familyUrl && sameRockwellUrl(result.productUrl, familyUrl) && exactIdentity) return familyUrl;
+  return undefined;
+}
+
+async function rockwellSearchProductUrls(catalogNumber: string, context: ScrapeContext): Promise<string[]> {
+  const query = new URLSearchParams({
+    query: catalogNumber,
+    tab: "products",
+    from: "0",
+    size: "100",
+    locale: "en-US"
+  });
+  const fetched = await context.http.fetchText(`${ROCKWELL_SEARCH_API}?${query.toString()}`, {
+    timeoutMs: 15000,
+    cacheTtlMs: ROCKWELL_CACHE_TTL_MS,
+    maxAttempts: 1,
+    signal: context.signal,
+    headers: {
+      "user-agent": ROCKWELL_USER_AGENT,
+      accept: "application/json,text/plain,*/*;q=0.8",
+      "client_id": ROCKWELL_SEARCH_CLIENT_ID,
+      "client_secret": ROCKWELL_SEARCH_CLIENT_SECRET,
+      correlation_id: ROCKWELL_SEARCH_CORRELATION_ID
+    }
+  }).catch(() => undefined);
+  if (!fetched || fetched.statusCode >= 400) return [];
+  try {
+    const payload = JSON.parse(fetched.text) as { docs?: unknown };
+    if (!Array.isArray(payload.docs)) return [];
+    return payload.docs
+      .filter(isRecord)
+      .filter((doc) => typeof doc.catalogNumber === "string" && matchesRockwellCatalogStrict(doc.catalogNumber, catalogNumber))
+      .map((doc) => typeof doc.url === "string" ? doc.url : undefined)
+      .filter((url): url is string => Boolean(url && /^https?:\/\/(?:www\.)?rockwellautomation\.com\//i.test(url)))
+      .slice(0, 5);
+  } catch {
+    return [];
+  }
+}
+
+function rockwellLocalizedUrls(catalogNumber: string, productUrl: string) {
+  // A family page is a deliberate fallback for families without a per-SKU PDP.  Do not turn it
+  // into synthetic details.<SKU>.html links: those are exactly the bogus links this guard is meant
+  // to prevent.
+  if (rockwellFamilyPageForCatalog(catalogNumber) && sameRockwellUrl(productUrl, rockwellFamilyPageForCatalog(catalogNumber))) {
+    return { en: productUrl };
+  }
+  return buildLocalizedProductUrls("rockwell", catalogNumber, productUrl);
+}
+
+function rockwellResultHasExactIdentity(result: ProductResult): boolean {
+  const catalogNumber = result.catalogNumber;
+  const surfaces = [
+    result.title,
+    result.localizedDescriptions?.en?.title,
+    result.localizedDescriptions?.de?.title,
+    ...result.attributes
+      .filter((attribute) => /(?:catalog|catalogue|article|part|product|model|registered)\s*(?:number|no\.?|code|id|identifier)?/i.test(`${attribute.group ?? ""} ${attribute.name}`))
+      .map((attribute) => attribute.value)
+  ];
+  return surfaces.some((value) => Boolean(value && matchesRockwellCatalogStrict(value, catalogNumber)));
 }
 
 function isCatalogConfirmedRockwellUrl(url: string | undefined, catalogNumber: string): boolean {
