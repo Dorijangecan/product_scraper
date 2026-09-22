@@ -234,7 +234,7 @@ ItemStatus = pending|processing|found|partial|failed|cancelled
 Politike u `ManufacturerConfig.scrapeRecipe`: `DiscoveryPolicyConfig`, `InteractionPolicyConfig`,
 `ExtractionPolicyConfig`, `QualityPolicyConfig`, `FallbackPolicyConfig`, `FetchPolicyConfig`, `ConfidenceRulesConfig`.
 
-**DB tablice** (`db.ts`, klasa `ScraperDb`): `runs`, `run_items`, `page_cache`, `learned_endpoints`,
+**DB tablice** (`db.ts`, klasa `ScraperDb`): `runs`, `run_items`, `run_checkpoints` (terminalni item, Excel-block i PDT checkpointi), `page_cache`, `learned_endpoints`,
 `learned_extractors`, `stage_observations`, `target_health`, `exhausted_fields`.
 
 ## 7. API indeks — ključni exporti po modulu (zamjena za grep/otvaranje)

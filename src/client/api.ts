@@ -239,6 +239,11 @@ export async function importRunPdt(
   });
 }
 
+/** Retry only the derived Excel workbook; the completed scrape results are reused. */
+export async function retryRunExcel(id: string): Promise<{ ok: true; path: string }> {
+  return request(`/api/runs/${id}/excel`, { method: "POST" });
+}
+
 export interface AccessoryMatrixPreview {
   fileName: string;
   /** Main part numbers in column A — the catalog numbers a matrix-only run scrapes. */

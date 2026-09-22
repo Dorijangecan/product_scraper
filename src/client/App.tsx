@@ -70,6 +70,7 @@ import {
   pauseRun,
   updateRunCoverageFields,
   openRunWorkbook,
+  retryRunExcel,
   importRunPdt,
   uploadRunAccessoryMatrix,
   clearRunAccessoryMatrix,
@@ -780,6 +781,21 @@ export function App() {
     } catch (err) {
       setError(errorMessage(err));
       window.location.href = `/api/runs/${selectedRun.id}/files/result`;
+    } finally {
+      setOpenWorkbookBusy(false);
+    }
+  }
+
+  async function handleRetryWorkbook() {
+    if (!selectedRun) return;
+    setOpenWorkbookBusy(true);
+    setError(null);
+    try {
+      await retryRunExcel(selectedRun.id);
+      await refreshRuns();
+      await refreshSelectedRun(selectedRun.id);
+    } catch (err) {
+      setError(errorMessage(err));
     } finally {
       setOpenWorkbookBusy(false);
     }
@@ -1841,6 +1857,12 @@ export function App() {
                   {openWorkbookBusy ? "Opening" : "Excel"}
                 </button>
               )}
+              {runFinished && !hasWorkbook && (
+                <button type="button" className="download-button" onClick={() => void handleRetryWorkbook()} disabled={openWorkbookBusy}>
+                  {openWorkbookBusy ? <Loader2 className="spin" size={16} /> : <FileSpreadsheet size={16} />}
+                  {openWorkbookBusy ? "Resuming Excel" : "Retry Excel"}
+                </button>
+              )}
               {hasWorkbook && (
                 <label className="inline-toggle">
                   <input
@@ -1891,7 +1913,7 @@ export function App() {
                   />
                 </span>
               )}
-              {hasWorkbook && (
+              {runFinished && (
                 <button
                   type="button"
                   className="download-button secondary"

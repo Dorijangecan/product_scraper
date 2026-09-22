@@ -52,8 +52,6 @@ import { buildFieldCoverageMatrixRow, detectFieldCoverageDrift, fieldCoverageSna
 
 export type DocumentDownloadProfile = SharedDocumentDownloadProfile;
 
-const INTERRUPTED_RUN_RESUME_WINDOW_MS = 5 * 60 * 1000;
-
 // Some connectors (e.g. Eaton, when a catalog number has no real product page) fall through a
 // long chain of discovery/reader/browser-render fallback stages. Under bot-mitigation or a slow
 // host, a single stage can hang well past its own stated timeout, stalling one of the run's
@@ -65,9 +63,8 @@ const ITEM_SCRAPE_TIMEOUT_MS = 4 * 60 * 1000;
 // Last-resort worker guard. The per-item AbortSignal normally settles the pipeline at the same
 // deadline; this small grace period covers code that awaits a non-cooperative promise anyway.
 const ITEM_HARD_STOP_GRACE_MS = 15 * 1000;
-// Final workbook generation is outside the per-item deadline. Keep it bounded too, otherwise a
-// stalled ExcelJS/image/model operation leaves the whole run in `running` indefinitely.
-const DEFAULT_EXPORT_TIMEOUT_MS = 10 * 60 * 1000;
+// Excel/PDT exports are deliberately not time-limited: once scraping is durably complete they
+// must be allowed to finish, even for a large catalog or a slow ExcelJS/PDT operation.
 
 /**
  * Soft per-item target (DISCOVERY-SPEED-PLAN §4, option B): 30 s is the goal, not a guillotine.
@@ -121,18 +118,14 @@ export class RunManager {
   }
 
   resumeInterruptedRuns() {
-    const resumable = this.db.listRunsByStatus(["queued", "running", "pausing", "cancelling"]);
+    const resumable = this.db.listRunsByStatus(["queued", "running", "pausing"]);
     for (const run of resumable) {
       if (run.status === "pausing") {
         void this.finalizePausedRun(run.id);
         continue;
       }
-      if (this.isStaleInterruptedRun(run)) {
-        this.db.cancelActiveRunItems(run.id);
-        this.db.recountRun(run.id);
-        this.db.updateRun(run.id, { status: "cancelled", error: "Interrupted while app was closed." });
-        continue;
-      }
+      // A process restart is recoverable state, not a user cancellation. Completed rows remain
+      // durable in SQLite; only pending/processing rows returned by getPendingRunItems are retried.
       void this.processRun(run.id);
     }
   }
@@ -178,12 +171,6 @@ export class RunManager {
         get: (manufacturerId, stage, host) => this.db.getTargetHealth(manufacturerId, stage, host)
       }
     };
-  }
-
-  private isStaleInterruptedRun(run: RunRecord): boolean {
-    const updatedAt = Date.parse(run.updatedAt);
-    if (!Number.isFinite(updatedAt)) return false;
-    return Date.now() - updatedAt > INTERRUPTED_RUN_RESUME_WINDOW_MS;
   }
 
   async cancelRun(runId: string): Promise<RunRecord | undefined> {
@@ -1233,27 +1220,103 @@ export class RunManager {
     // "Images only" mode skips workbook generation; everything else still produces one.
     const shouldGenerateExcel = finalRun.options?.generateExcel !== false;
     const shouldGenerateLinksFile = finalRun.options?.generateLinksFile === true;
-    const outputPath = shouldGenerateExcel
-      ? await (async () => {
-          const { exportRunWorkbook } = await import("./excel.js");
-          this.updateRunActivity(runId, "workbook-build", "Preparing final Excel workbook.");
-          const timeoutMs = exportTimeoutMs();
-          return withTimeout(exportRunWorkbook({
-            run: this.db.getRun(runId)!,
-            manufacturer,
-            items: runItems,
-            fieldCoverageDrift,
-            outputDir: layout.excelDir,
-            onActivity: (activity) => this.updateRunActivity(runId, activity.stage, activity.message)
-          }), timeoutMs, `Excel export exceeded the ${Math.round(timeoutMs / 60000)} minute safety limit.`);
-        })()
-      : undefined;
-    const linksPath = shouldGenerateLinksFile
-      ? await this.writeDeviceLinksFile(layout, this.db.getRunItems(runId))
-      : undefined;
+
+    // The scrape lifecycle ends when every run item has been durably persisted. Excel/PDT are
+    // derived artifacts and must never keep the run in `running` or turn a successful scrape
+    // into `failed` if a workbook is slow, locked, or interrupted by app shutdown.
+    const persistedRun = this.db.getRun(runId);
+    this.db.updateRun(runId, {
+      status,
+      processed: persistedRun?.processed ?? runItems.length,
+      found: persistedRun?.found,
+      partial: persistedRun?.partial,
+      failed: persistedRun?.failed,
+      activityStage: undefined,
+      activityMessage: undefined,
+      activityStartedAt: undefined,
+      error: status === "cancelled" ? "Cancelled by user." : undefined
+    });
+    await this.appendRunLog(layout, "RUN_DATA_FINALIZED", {
+      status,
+      processed: runItems.length,
+      found: runItems.filter((item) => item.status === "found").length,
+      partial: runItems.filter((item) => item.status === "partial").length,
+      failed: runItems.filter((item) => item.status === "failed").length,
+      message: "All run items are persisted; derived workbook exports continue independently."
+    }).catch(() => undefined);
+
+    let outputPath: string | undefined;
+    let pdtPath: string | undefined;
+    let exportWarning: string | undefined;
+    // PDT is derived from the durable SQLite snapshot. Start it independently so Excel export
+    // can be slow or locked without delaying the PDT artifact.
+    const pdtPromise = (async () => {
+      try {
+        const [{ exportRunPdt }, { resolveTemplatePath }] = await Promise.all([
+          import("./pdt/exporter.js"),
+          import("./pdt/template.js")
+        ]);
+        const result = await exportRunPdt({
+          manufacturer,
+          items: this.db.getRunItems(runId),
+          templatePath: resolveTemplatePath(),
+          outputPath: path.join(layout.excelDir, `${runId}_PDT.xlsx`),
+          accessoryMatrixPath: finalRun.options?.accessoryMatrix?.storedPath,
+          accessoryMatrixFileName: finalRun.options?.accessoryMatrix?.originalName
+        });
+        pdtPath = result.outputPath;
+        this.db.updateRun(runId, { pdtPath });
+        this.db.saveRunCheckpoint(runId, "pdt", "final", {
+          path: pdtPath,
+          productCount: result.productCount,
+          completedAt: new Date().toISOString()
+        });
+        await this.appendRunLog(layout, "PDT_CHECKPOINT", { productCount: result.productCount, path: pdtPath }).catch(() => undefined);
+      } catch (error) {
+        await this.appendRunLog(layout, "RUN_EXPORT_WARNING", {
+          artifact: "PDT",
+          error: error instanceof Error ? error.message : "PDT export failed."
+        }).catch(() => undefined);
+      }
+    })();
+    if (shouldGenerateExcel) {
+      try {
+        const { exportRunWorkbook } = await import("./excel.js");
+        this.updateRunActivity(runId, "workbook-build", "Preparing final Excel workbook.");
+        outputPath = await exportRunWorkbook({
+          run: this.db.getRun(runId)!,
+          manufacturer,
+          items: runItems,
+          fieldCoverageDrift,
+          outputDir: layout.excelDir,
+          onActivity: (activity) => this.updateRunActivity(runId, activity.stage, activity.message),
+          onCheckpoint: (checkpoint) => {
+            this.db.saveRunCheckpoint(runId, "excel-block", String(checkpoint.blockIndex), checkpoint);
+          }
+        });
+      } catch (error) {
+        // Scraping is already complete at this point. A slow/locked workbook must not turn a
+        // successful catalog run into RUN_FAILED or prevent the operator from generating PDT.
+        exportWarning = error instanceof Error ? error.message : "Excel export failed.";
+        await this.appendRunLog(layout, "RUN_EXPORT_WARNING", { error: exportWarning, itemCount: runItems.length }).catch(() => undefined);
+      }
+    }
+    await pdtPromise;
+    let linksPath: string | undefined;
+    if (shouldGenerateLinksFile) {
+      try {
+        linksPath = await this.writeDeviceLinksFile(layout, this.db.getRunItems(runId));
+      } catch (error) {
+        await this.appendRunLog(layout, "RUN_EXPORT_WARNING", {
+          artifact: "device-links.csv",
+          error: error instanceof Error ? error.message : "Device links export failed."
+        }).catch(() => undefined);
+      }
+    }
     this.db.updateRun(runId, {
       status,
       ...(outputPath ? { outputPath } : {}),
+      ...(pdtPath ? { pdtPath } : {}),
       activityStage: undefined,
       activityMessage: undefined,
       activityStartedAt: undefined,
@@ -1271,7 +1334,18 @@ export class RunManager {
       logPath: layout.logPath,
       debugJsonPath: layout.debugJsonPath
     });
-    await this.writeRunDebugBundle(layout, runId);
+    if (exportWarning) {
+      await this.appendRunLog(layout, "RUN_EXPORT_WARNING", {
+        error: exportWarning,
+        message: "Run completed; generate the PDT from the completed run or retry the products workbook export."
+      }).catch(() => undefined);
+    }
+    await this.writeRunDebugBundle(layout, runId).catch((error) =>
+      this.appendRunLog(layout, "RUN_EXPORT_WARNING", {
+        artifact: "debug-bundle",
+        error: error instanceof Error ? error.message : "Debug bundle write failed."
+      }).catch(() => undefined)
+    );
   }
 
   private async writeDeviceLinksFile(layout: RunOutputLayout, items: RunItemRecord[]): Promise<string> {
@@ -2411,15 +2485,11 @@ async function runWithConcurrency<T>(
   await Promise.all(Array.from({ length: workerCount }, () => runOne()));
 }
 
-function exportTimeoutMs(): number {
-  const configured = Number(process.env.PRODUCT_SCRAPER_EXPORT_TIMEOUT_MS);
-  return Number.isFinite(configured) && configured >= 1_000
-    ? Math.min(configured, 30 * 60 * 1000)
-    : DEFAULT_EXPORT_TIMEOUT_MS;
-}
-
 async function withTimeout<T>(task: Promise<T>, timeoutMs: number, message: string): Promise<T> {
   let timer: ReturnType<typeof setTimeout> | undefined;
+  // The timeout is a guard for lifecycle control. Consume a late rejection from a
+  // non-cooperative exporter so it cannot become an unhandled rejection after finalization.
+  void task.catch(() => undefined);
   try {
     return await Promise.race([
       task,

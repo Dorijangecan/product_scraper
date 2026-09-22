@@ -44,7 +44,6 @@ const runUpload = multer({
 const app = express();
 const port = Number(process.env.PORT ?? 3001);
 const WIZARD_VALIDATION_TTL_MS = 30 * 60 * 1000;
-const DEFAULT_PDT_EXPORT_TIMEOUT_MS = 10 * 60 * 1000;
 const wizardRecipeValidations = new Map<string, { result: ManufacturerTestResult; expiresAt: number }>();
 
 app.use(express.json({ limit: "1mb" }));
@@ -557,6 +556,39 @@ app.delete("/api/runs/:id/accessory-matrix", async (req, res) => {
   res.json({ ok: true });
 });
 
+app.post("/api/runs/:id/excel", async (req, res) => {
+  const run = db.getRun(req.params.id);
+  if (!run) {
+    res.status(404).json({ error: "Run not found." });
+    return;
+  }
+  const manufacturer = getManufacturerConfig(run.manufacturerId);
+  if (!manufacturer) {
+    res.status(404).json({ error: "Manufacturer not found." });
+    return;
+  }
+  if (!["completed", "cancelled"].includes(run.status)) {
+    res.status(409).json({ error: "The run must finish before its Excel export can be retried." });
+    return;
+  }
+  try {
+    const { exportRunWorkbook } = await import("./excel.js");
+    const layout = buildRunOutputLayout(appPaths.outputDir, manufacturer, run);
+    await fs.promises.mkdir(layout.excelDir, { recursive: true });
+    const items = db.getRunItems(run.id);
+    const outputPath = await exportRunWorkbook({
+      run,
+      manufacturer,
+      items,
+      outputDir: layout.excelDir
+    });
+    db.updateRun(run.id, { outputPath, error: undefined });
+    res.json({ ok: true, path: outputPath });
+  } catch (error) {
+    res.status(500).json({ error: error instanceof Error ? error.message : "Could not generate Excel workbook." });
+  }
+});
+
 app.post("/api/runs/:id/pdt", async (req, res) => {
   const run = db.getRun(req.params.id);
   if (!run) {
@@ -587,9 +619,10 @@ app.post("/api/runs/:id/pdt", async (req, res) => {
     const accessoryMatrix = run.options?.accessoryMatrix;
     const accessoryMatrixPath =
       accessoryMatrix?.storedPath && fs.existsSync(accessoryMatrix.storedPath) ? accessoryMatrix.storedPath : undefined;
-    const result = await withTimeout(exportRunPdt({
+    const items = db.getRunItems(run.id);
+    const result = await exportRunPdt({
       manufacturer,
-      items: db.getRunItems(run.id),
+      items,
       templatePath,
       outputPath,
       aiCleanup: req.body?.aiCleanup === true,
@@ -597,7 +630,7 @@ app.post("/api/runs/:id/pdt", async (req, res) => {
       accessoryMatrixPath,
       accessoryMatrixFileName: accessoryMatrixPath ? accessoryMatrix?.originalName : undefined,
       productsWorkbookPath: run.outputPath && fs.existsSync(run.outputPath) ? run.outputPath : undefined
-    }), pdtExportTimeoutMs(), `PDT export exceeded the ${Math.round(pdtExportTimeoutMs() / 60000)} minute safety limit.`);
+    });
     if (result.productCount === 0) {
       res.status(400).json({ error: "No found or partial products to import into the PDT." });
       return;
@@ -816,25 +849,4 @@ function openLocalFile(filePath: string) {
     console.error(`[openLocalFile] failed to open ${resolved}: ${error.message}`);
   });
   child.unref();
-}
-
-function pdtExportTimeoutMs(): number {
-  const configured = Number(process.env.PRODUCT_SCRAPER_EXPORT_TIMEOUT_MS);
-  return Number.isFinite(configured) && configured >= 1_000
-    ? Math.min(configured, 30 * 60 * 1000)
-    : DEFAULT_PDT_EXPORT_TIMEOUT_MS;
-}
-
-async function withTimeout<T>(task: Promise<T>, timeoutMs: number, message: string): Promise<T> {
-  let timer: ReturnType<typeof setTimeout> | undefined;
-  try {
-    return await Promise.race([
-      task,
-      new Promise<T>((_, reject) => {
-        timer = setTimeout(() => reject(new Error(message)), timeoutMs);
-      })
-    ]);
-  } finally {
-    if (timer) clearTimeout(timer);
-  }
 }

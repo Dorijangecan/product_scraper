@@ -22,6 +22,7 @@ import { INCH_TO_MILLIMETER, OUNCE_TO_KILOGRAM, POUND_TO_KILOGRAM } from "./unit
 
 const MISSING_IMPORTANT_FILL = "FFFEE2E2";
 const MISSING_IMPORTANT_FONT = "FF991B1B";
+const DEFAULT_EXPORT_BLOCK_SIZE = 50;
 
 export async function exportRunWorkbook(input: {
   run: RunRecord;
@@ -31,7 +32,17 @@ export async function exportRunWorkbook(input: {
   /** Computed at run-finalize time against this manufacturer's recent completed runs; see field-coverage-drift.ts. */
   fieldCoverageDrift?: FieldCoverageDriftFlag[];
   onActivity?: (activity: { stage: string; message: string }) => void | Promise<void>;
+  onCheckpoint?: (checkpoint: { blockIndex: number; blockStart: number; blockEnd: number; total: number }) => void | Promise<void>;
 }): Promise<string> {
+  const inputNamePart = input.run.inputFileName ? safeWorkbookPart(path.parse(input.run.inputFileName).name) : "";
+  const outputName = [
+    safeWorkbookPart(input.manufacturer.shortName),
+    inputNamePart,
+    `product-scrape-${input.run.id}`
+  ].filter(Boolean).join(".");
+  const outputPath = path.join(input.outputDir, `${outputName}.xlsx`);
+  const checkpointDir = path.join(input.outputDir, `.${outputName}.checkpoint`);
+
   await input.onActivity?.({ stage: "workbook-build", message: "Preparing workbook sheets." });
   const workbook = new ExcelJS.Workbook();
   workbook.creator = "Product Scraper";
@@ -496,9 +507,45 @@ export async function exportRunWorkbook(input: {
   // catalog numbers) that serialized cost alone can add many minutes to the final export step.
   // Precompute every thumbnail concurrently up front so the row loop only does synchronous work.
   await input.onActivity?.({ stage: "workbook-thumbnails", message: "Preparing product thumbnails." });
-  const thumbnails = await buildProductThumbnails(input.items);
+  const thumbnails = await buildProductThumbnails(input.items, checkpointDir);
 
-  for (const [itemIndex, item] of input.items.entries()) {
+  // Keep a durable block manifest beside the thumbnail cache. The workbook is published only
+  // after every block has been processed; if ExcelJS/Node is interrupted, the next export can
+  // prove which blocks were reached and continue with the same DB snapshot without scraping.
+  const blockSize = Math.max(1, Math.min(Number(process.env.PRODUCT_SCRAPER_EXPORT_BLOCK_SIZE ?? DEFAULT_EXPORT_BLOCK_SIZE) || DEFAULT_EXPORT_BLOCK_SIZE, 500));
+  const blockManifestPath = path.join(checkpointDir, "blocks.json");
+  let completedBlocks = new Set<number>();
+  try {
+    const manifest = JSON.parse(await fs.promises.readFile(blockManifestPath, "utf8")) as { itemCount?: number; blockSize?: number; completedBlocks?: number[] };
+    if (manifest.itemCount === input.items.length && manifest.blockSize === blockSize) {
+      completedBlocks = new Set((manifest.completedBlocks ?? []).filter((value) => Number.isInteger(value) && value >= 0));
+    }
+  } catch {
+    // A missing or torn manifest is safe: thumbnails remain independently checkpointed and the
+    // workbook is rebuilt from SQLite's immutable run_items snapshot.
+  }
+  const persistBlockCheckpoint = async (blockIndex: number) => {
+    completedBlocks.add(blockIndex);
+    const tempPath = `${blockManifestPath}.part`;
+    await fs.promises.writeFile(tempPath, JSON.stringify({
+      version: 1,
+      itemCount: input.items.length,
+      blockSize,
+      completedBlocks: [...completedBlocks].sort((a, b) => a - b),
+      updatedAt: new Date().toISOString()
+    }, null, 2), "utf8");
+    await fs.promises.rename(tempPath, blockManifestPath);
+  };
+
+  for (let blockStart = 0; blockStart < input.items.length; blockStart += blockSize) {
+    const blockIndex = Math.floor(blockStart / blockSize);
+    const blockItems = input.items.slice(blockStart, blockStart + blockSize);
+    await input.onActivity?.({
+      stage: "workbook-block",
+      message: `Writing Excel block ${blockIndex + 1} (${blockItems.length} items).`
+    });
+    for (const [blockItemIndex, item] of blockItems.entries()) {
+    const itemIndex = blockStart + blockItemIndex;
     const result = item.result;
     const rowData = productRow(input.manufacturer, item, result, { includeImages: input.run.options?.downloadImages !== false });
     productRows.push(rowData);
@@ -731,6 +778,14 @@ export async function exportRunWorkbook(input: {
         });
       }
     }
+    }
+    await persistBlockCheckpoint(blockIndex);
+    await input.onCheckpoint?.({
+      blockIndex,
+      blockStart,
+      blockEnd: Math.min(input.items.length, blockStart + blockSize),
+      total: input.items.length
+    });
   }
 
   // Aggregate unmapped spec labels across every item into a single ranked teach-list.
@@ -874,15 +929,15 @@ export async function exportRunWorkbook(input: {
     }
   }
 
-  const inputNamePart = input.run.inputFileName ? safeWorkbookPart(path.parse(input.run.inputFileName).name) : "";
-  const outputName = [
-    safeWorkbookPart(input.manufacturer.shortName),
-    inputNamePart,
-    `product-scrape-${input.run.id}`
-  ].filter(Boolean).join(".");
-  const outputPath = path.join(input.outputDir, `${outputName}.xlsx`);
   await input.onActivity?.({ stage: "workbook-write", message: "Writing Excel workbook to disk." });
-  await workbook.xlsx.writeFile(outputPath);
+  // Never expose a partially written ZIP as the final workbook. Keep the checkpoint directory
+  // until the atomic publish succeeds so a retry can reuse completed thumbnail work.
+  const partPath = `${outputPath}.part`;
+  await fs.promises.rm(partPath, { force: true });
+  await workbook.xlsx.writeFile(partPath);
+  await fs.promises.rm(outputPath, { force: true });
+  await fs.promises.rename(partPath, outputPath);
+  await fs.promises.rm(checkpointDir, { recursive: true, force: true });
   return outputPath;
 }
 
@@ -2822,30 +2877,103 @@ type ProductThumbnail = { status: "ok"; buffer: Buffer } | { status: "error" } |
 
 // Bounded worker pool over a shared cursor (same pattern as run-manager's runWithConcurrency) so
 // N images resize/encode in parallel instead of one at a time.
-async function buildProductThumbnails(items: RunItemRecord[]): Promise<ProductThumbnail[]> {
+interface ThumbnailCheckpoint {
+  version: 1;
+  entries: Array<{ key: string; status: "ok" | "error" | "none"; file?: string }>;
+}
+
+async function buildProductThumbnails(items: RunItemRecord[], checkpointDir: string): Promise<ProductThumbnail[]> {
   const concurrency = 8;
   const results: ProductThumbnail[] = new Array(items.length);
+  await fs.promises.mkdir(checkpointDir, { recursive: true });
+  const manifestPath = path.join(checkpointDir, "manifest.json");
+  let manifest: ThumbnailCheckpoint = { version: 1, entries: [] };
+  try {
+    const parsed = JSON.parse(await fs.promises.readFile(manifestPath, "utf8")) as ThumbnailCheckpoint;
+    if (parsed.version === 1 && Array.isArray(parsed.entries)) manifest = parsed;
+  } catch {
+    // No checkpoint yet, or an interrupted manifest write. Individual entries will be rebuilt.
+  }
+
+  const itemKeys = items.map(thumbnailCheckpointKey);
+  const pendingManifest: ThumbnailCheckpoint = {
+    version: 1,
+    entries: items.map((_, index) => manifest.entries[index]?.key === itemKeys[index] ? manifest.entries[index] : { key: itemKeys[index], status: "none" })
+  };
+  const persistManifest = async () => {
+    const tempPath = `${manifestPath}.part`;
+    await fs.promises.writeFile(tempPath, JSON.stringify(pendingManifest), "utf8");
+    await fs.promises.rm(manifestPath, { force: true });
+    await fs.promises.rename(tempPath, manifestPath);
+  };
+  let persistQueue = Promise.resolve();
+  const queueManifestPersist = () => {
+    persistQueue = persistQueue.then(persistManifest);
+    return persistQueue;
+  };
+
+  for (let index = 0; index < items.length; index += 1) {
+    const cached = pendingManifest.entries[index];
+    if (cached.status === "ok" && cached.file) {
+      try {
+        results[index] = { status: "ok", buffer: await fs.promises.readFile(path.join(checkpointDir, cached.file)) };
+      } catch {
+        pendingManifest.entries[index] = { key: itemKeys[index], status: "none" };
+      }
+    } else if (cached.status === "error") {
+      results[index] = { status: "error" };
+    }
+  }
   let cursor = 0;
   const worker = async () => {
     while (true) {
       const index = cursor;
       if (index >= items.length) return;
       cursor += 1;
+      if (results[index]) continue;
       const image = primaryImageDocument(items[index].result);
-      if (!image?.localPath || !fs.existsSync(image.localPath)) continue;
+      if (!image?.localPath || !fs.existsSync(image.localPath)) {
+        pendingManifest.entries[index] = { key: itemKeys[index], status: "none" };
+        await queueManifestPersist();
+        continue;
+      }
       try {
         const buffer = await sharp(image.localPath)
           .resize(86, 86, { fit: "inside", withoutEnlargement: true })
           .png()
           .toBuffer();
         results[index] = { status: "ok", buffer };
+        const file = `thumb-${index}.png`;
+        const filePath = path.join(checkpointDir, file);
+        const tempPath = `${filePath}.part`;
+        await fs.promises.writeFile(tempPath, buffer);
+        await fs.promises.rm(filePath, { force: true });
+        await fs.promises.rename(tempPath, filePath);
+        pendingManifest.entries[index] = { key: itemKeys[index], status: "ok", file };
       } catch {
         results[index] = { status: "error" };
+        pendingManifest.entries[index] = { key: itemKeys[index], status: "error" };
       }
+      await queueManifestPersist();
     }
   };
   await Promise.all(Array.from({ length: Math.min(concurrency, items.length) }, () => worker()));
+  await persistQueue;
   return results;
+}
+
+function thumbnailCheckpointKey(item: RunItemRecord): string {
+  const image = primaryImageDocument(item.result);
+  let fileStamp = "";
+  if (image?.localPath) {
+    try {
+      const stat = fs.statSync(image.localPath);
+      fileStamp = `${stat.size}:${stat.mtimeMs}`;
+    } catch {
+      fileStamp = "missing";
+    }
+  }
+  return [item.id, item.catalogNumber, item.status, item.updatedAt, image?.localPath ?? "", fileStamp].join("|");
 }
 
 function applyProductThumbnail(workbook: ExcelJS.Workbook, sheet: ExcelJS.Worksheet, row: ExcelJS.Row, thumbnail: ProductThumbnail) {

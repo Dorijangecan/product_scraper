@@ -67,6 +67,15 @@ interface ItemRow {
   updated_at: string;
 }
 
+export interface RunCheckpointRecord {
+  runId: string;
+  kind: "item" | "excel-block" | "pdt";
+  checkpointKey: string;
+  payload?: Record<string, unknown>;
+  createdAt: string;
+  updatedAt: string;
+}
+
 interface PageCacheRow {
   cache_key: string;
   method: string;
@@ -274,6 +283,16 @@ export class ScraperDb {
         UNIQUE(manufacturer_id, host, kind, pattern)
       );
 
+      CREATE TABLE IF NOT EXISTS run_checkpoints (
+        run_id TEXT NOT NULL REFERENCES runs(id) ON DELETE CASCADE,
+        kind TEXT NOT NULL,
+        checkpoint_key TEXT NOT NULL,
+        payload_json TEXT,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL,
+        PRIMARY KEY (run_id, kind, checkpoint_key)
+      );
+
       CREATE INDEX IF NOT EXISTS idx_runs_created_at ON runs(created_at DESC);
       CREATE INDEX IF NOT EXISTS idx_run_items_run_id ON run_items(run_id, row_index);
       CREATE INDEX IF NOT EXISTS idx_page_cache_url ON page_cache(url);
@@ -282,6 +301,7 @@ export class ScraperDb {
       CREATE INDEX IF NOT EXISTS idx_sitemap_urls_lookup ON sitemap_urls(manufacturer_id, compact_url);
       CREATE INDEX IF NOT EXISTS idx_stage_observations_target ON stage_observations(manufacturer_id, host, stage, observed_at DESC);
       CREATE INDEX IF NOT EXISTS idx_learned_extractors_target ON learned_extractors(manufacturer_id, host, success_count DESC, last_success_at DESC);
+      CREATE INDEX IF NOT EXISTS idx_run_checkpoints_run ON run_checkpoints(run_id, kind, checkpoint_key);
     `);
     this.addColumnIfMissing("runs", "options_json", "TEXT");
     this.addColumnIfMissing("runs", "output_path", "TEXT");
@@ -541,6 +561,58 @@ export class ScraperDb {
         rawJson: hasPatch("result") ? (patch.result ? JSON.stringify(patch.result) : null) : current.raw_json ?? null,
         updatedAt
       });
+    if (patch.status && ["found", "partial", "failed", "cancelled"].includes(patch.status)) {
+      this.saveRunCheckpoint(current.run_id, "item", String(current.row_index), {
+        itemId: current.id,
+        rowIndex: current.row_index,
+        catalogNumber: current.catalog_number,
+        status: patch.status,
+        updatedAt
+      });
+    }
+  }
+
+  saveRunCheckpoint(
+    runId: string,
+    kind: RunCheckpointRecord["kind"],
+    checkpointKey: string,
+    payload?: Record<string, unknown>
+  ) {
+    const now = new Date().toISOString();
+    this.db.prepare(`
+      INSERT INTO run_checkpoints (run_id, kind, checkpoint_key, payload_json, created_at, updated_at)
+      VALUES (@runId, @kind, @checkpointKey, @payloadJson, @now, @now)
+      ON CONFLICT(run_id, kind, checkpoint_key) DO UPDATE SET
+        payload_json = excluded.payload_json,
+        updated_at = excluded.updated_at
+    `).run({
+      runId,
+      kind,
+      checkpointKey,
+      payloadJson: payload ? JSON.stringify(payload) : null,
+      now
+    });
+  }
+
+  listRunCheckpoints(runId: string, kind?: RunCheckpointRecord["kind"]): RunCheckpointRecord[] {
+    const rows = (kind
+      ? this.db.prepare("SELECT * FROM run_checkpoints WHERE run_id = ? AND kind = ? ORDER BY checkpoint_key").all(runId, kind)
+      : this.db.prepare("SELECT * FROM run_checkpoints WHERE run_id = ? ORDER BY kind, checkpoint_key").all(runId)) as Array<{
+        run_id: string;
+        kind: RunCheckpointRecord["kind"];
+        checkpoint_key: string;
+        payload_json?: string | null;
+        created_at: string;
+        updated_at: string;
+      }>;
+    return rows.map((row) => ({
+      runId: row.run_id,
+      kind: row.kind,
+      checkpointKey: row.checkpoint_key,
+      payload: row.payload_json ? JSON.parse(row.payload_json) as Record<string, unknown> : undefined,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at
+    }));
   }
 
   recountRun(runId: string) {
