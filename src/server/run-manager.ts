@@ -1463,7 +1463,32 @@ export class RunManager {
       if (doc.type === "image") imageIndex += 1;
       downloadCount += 1;
     }
-    return { ...result, documents };
+    const downloadedResult = { ...result, documents };
+    const sceImages = documents.filter((document) => document.type === "image");
+    if (
+      result.manufacturerId.toLowerCase() === "sce" &&
+      selection.images &&
+      sceImages.length > 0 &&
+      !sceImages.some((document) => document.localPath || document.downloadStatus === "downloaded")
+    ) {
+      return {
+        ...downloadedResult,
+        // Failed remote image links must not flow into Excel's Image URL or image gallery
+        // columns as if SCE had supplied a usable product image.
+        documents: documents.filter((document) => document.type !== "image"),
+        status: "partial",
+        error: "SCE listed an image URL, but no product image could be downloaded.",
+        diagnostics: {
+          ...result.diagnostics,
+          terminal: {
+            skipNetworkFallback: true,
+            reason: "SCE image candidates were checked but none produced a downloadable product image."
+          },
+          notes: [...(result.diagnostics?.notes ?? []), "No downloadable SCE product image was verified."]
+        }
+      };
+    }
+    return downloadedResult;
   }
 
   private async downloadDocument(

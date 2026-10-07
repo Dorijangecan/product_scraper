@@ -36,8 +36,33 @@ export class SCEConnector implements ManufacturerConnector {
     }
 
     try {
-      const detailUrl = findExactDetailUrl(partNumber, search?.text ?? "") ?? buildSceProductUrl(partNumber);
+      const exactSearchUrl = findExactDetailUrl(partNumber, search?.text ?? "");
+      const detailUrl = exactSearchUrl ?? buildSceProductUrl(partNumber);
       const detail = await fetchSceGet(context, detailUrl);
+      if (detail.statusCode >= 400) {
+        // Keep the exact SCE URL we checked for review, but do not turn an HTTP error page or
+        // the generic discovery result into a product image (often the SCE logo).
+        return {
+          ...emptyResult("sce", partNumber, `SCE product page returned HTTP ${detail.statusCode}; product image could not be verified.`),
+          ...(exactSearchUrl ? { productUrl: detail.effectiveUrl } : {}),
+          diagnostics: {
+            terminal: {
+              skipNetworkFallback: true,
+              reason: `Exact SCE product URL returned HTTP ${detail.statusCode}; do not infer a product or image from generic discovery.`
+            }
+          },
+          sources: [
+            {
+              url: detail.effectiveUrl,
+              sourceType: "official",
+              parser: "sce-product-page",
+              parserVersion: "sce-v2",
+              fetchedAt: detail.fetchedAt,
+              statusCode: detail.statusCode
+            }
+          ]
+        };
+      }
       if (sceProductPageUnavailable(detail.text)) {
         // SCE's partnumber_info endpoint answers HTTP 200 and echoes the requested part number in
         // the <title> even for parts that do not exist ("...not a web viewable part..."). That
@@ -47,6 +72,7 @@ export class SCEConnector implements ManufacturerConnector {
         // miss and skip the fallback — there is nothing to discover.
         return {
           ...emptyResult("sce", partNumber, "SCE has no web-viewable product for this catalog number."),
+          ...(exactSearchUrl ? { productUrl: detail.effectiveUrl } : {}),
           sources: [
             {
               url: detail.effectiveUrl,
@@ -63,7 +89,29 @@ export class SCEConnector implements ManufacturerConnector {
         ? undefined
         : await fetchSceGet(context, `${SCE_BASE}/download-doc/?PartNumber=${encodeURIComponent(partNumber)}`).catch(() => undefined);
       const primary = parseSceProductPage(partNumber, detail, search, cad, context.manufacturer.markerRules);
+      if (primary.productUrl && !primary.documents.some((document) => document.type === "image")) {
+        // The exact SCE page confirms this catalog number but exposes no product image. Treat
+        // that as a terminal image miss: broad discovery can otherwise attach the company logo
+        // or a family asset and incorrectly report image coverage.
+        return {
+          ...primary,
+          status: "partial",
+          error: `SCE confirms ${partNumber}, but its exact product page does not provide a product image.`,
+          diagnostics: {
+            ...primary.diagnostics,
+            terminal: {
+              skipNetworkFallback: true,
+              reason: "Exact SCE product page confirmed the catalog number but contained no SKU-specific product image."
+            },
+            notes: [...(primary.diagnostics?.notes ?? []), "No SKU-specific product image was present on the exact SCE product page."]
+          }
+        };
+      }
       if (primary.status !== "failed" && primary.status !== "partial") return primary;
+
+      // An exact product page is authoritative. Do not try broad discovery when that page is
+      // partial; doing so can replace a true missing-image result with a logo or sibling asset.
+      if (primary.productUrl) return primary;
 
       return mergeSceDiscoveryFallback(primary, partNumber, context);
     } catch (error) {
