@@ -25,6 +25,10 @@ export async function runDeterministicScrapePipeline(
   catalogNumber: string,
   context: ScrapeContext
 ): Promise<ProductResult> {
+  // Connectors commonly run this pipeline after parsing their primary product page. If its
+  // requested-SKU image is already present, don't launch discovery, adaptive mining, or fallback
+  // stages that exist to fill technical fields for Excel.
+  if (context.imageOnly && result.documents.some((document) => document.type === "image")) return result;
   const attempts: ScrapeAttemptRecord[] = [...(result.qualityGate?.attempts ?? [])];
   const initial = repairProductUrlFromSources(result);
   let current = applyQualityGate(

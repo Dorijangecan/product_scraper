@@ -360,18 +360,28 @@ export class EatonConnector implements ManufacturerConnector {
     };
     const mediumVoltageResult = buildEatonMediumVoltageCatalogResult(partNumber);
     if (mediumVoltageResult) {
+      if (context.imageOnly) {
+        // The special MV rows point to family-level representative images, which are not proof
+        // of an exact-SKU image. Do not return or download one for an image-only request.
+        return withEatonDiagnostics(
+          emptyResult("eaton", partNumber, "No exact-SKU product image was found for this Eaton medium-voltage family row."),
+          diagnostics
+        );
+      }
       // The MV route is intentionally source-backed, but the family page alone only carries the
       // compact catalogue facts above. Always open the linked official datasheet/manual once so
       // missing XML/PDT fields can be filled from the actual publication instead of being left
       // blank or inferred. The document downloader still enforces the run's normal selection and
       // per-item deadline; image-only runs remain cheap and skip PDF parsing.
-      const enriched = context.imageOnly
-        ? mediumVoltageResult
-        : await enrichEatonMediumVoltageDocuments(mediumVoltageResult, context);
+      const enriched = await enrichEatonMediumVoltageDocuments(mediumVoltageResult, context);
       return withEatonDiagnostics(enriched, diagnostics);
     }
-    const cbePdfResult = await scrapeEatonCbeCatalogPdf(partNumber, context, diagnostics);
-    if (cbePdfResult) return withEatonDiagnostics(cbePdfResult, diagnostics);
+    // A catalogue PDF is useful for technical-data runs, but it cannot satisfy an image-only
+    // request. Avoid opening/parsing it and continue only through the SKU page image paths below.
+    if (!context.imageOnly) {
+      const cbePdfResult = await scrapeEatonCbeCatalogPdf(partNumber, context, diagnostics);
+      if (cbePdfResult) return withEatonDiagnostics(cbePdfResult, diagnostics);
+    }
     let result: ProductResult | undefined;
     let attemptedSearchDiscovery = false;
     let searchDiscoveryFoundEvidence = false;
@@ -425,8 +435,11 @@ export class EatonConnector implements ManufacturerConnector {
       if (entry.parsed.status === "failed") continue;
       result = mergeEatonResults(result, entry.parsed);
     }
+    if (context.imageOnly && result?.documents.some((doc) => doc.type === "image")) {
+      return withEatonDiagnostics(result, diagnostics);
+    }
     if (result && result.status !== "failed" && isSufficientEatonDirectResult(result, partNumber)) {
-      result = await enrichEatonLocalizedDescriptions(result, context, diagnostics);
+      if (!context.imageOnly) result = await enrichEatonLocalizedDescriptions(result, context, diagnostics);
       return withEatonDiagnostics(result, diagnostics);
     }
 
@@ -444,11 +457,24 @@ export class EatonConnector implements ManufacturerConnector {
           `primary reader parse done ${Date.now() - parseStartedAt}ms status=${parsed.status} attrs=${parsed.attributes.length} docs=${parsed.documents.length} rich=${isRichEatonResult(parsed)}`
         );
         if (parsed.status !== "failed") result = mergeEatonResults(result, parsed);
+        if (context.imageOnly && result?.documents.some((doc) => doc.type === "image")) {
+          return withEatonDiagnostics(result, diagnostics);
+        }
         if (result && isRichEatonResult(result) && hasVerifiedEatonProductUrl(result, partNumber)) {
-          result = await enrichEatonLocalizedDescriptions(result, context, diagnostics);
+          if (!context.imageOnly) result = await enrichEatonLocalizedDescriptions(result, context, diagnostics);
           return withEatonDiagnostics(result, diagnostics);
         }
       }
+    }
+
+    // In image-only mode, the bounded direct SKU-page and reader requests above are the whole
+    // search. Search APIs, locale sweeps and browser fallbacks primarily gather product fields
+    // and can multiply request time for every catalog number.
+    if (context.imageOnly) {
+      return withEatonDiagnostics(
+        result ?? emptyResult("eaton", partNumber, "No product image was found on the bounded official SKU-page checks."),
+        diagnostics
+      );
     }
 
     if (!result || result.status === "failed" || !hasExactEatonIdentity(result, partNumber)) {

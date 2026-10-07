@@ -299,17 +299,13 @@ export class RunManager {
         downloadDocuments: downloadDocumentsEnabled,
         generateExcel: generateExcelEnabled
       });
-      // "Images only" mode is a fast path for most manufacturers. Eaton is the exception: its
-      // SKU image is often exposed by search JSON or a locale reader while the primary page is
-      // transiently blocked, and the same page/description carries weight, dimensions and current.
-      // Let Eaton run its bounded fallback chain even when Excel/PDF output is disabled, otherwise
-      // a temporary first-request failure produces an empty image-only row.
+      // In images-only mode every connector gets the same strict fast-path signal. It must not
+      // spend time on specs, PDF enrichment, or fallback work that only improves workbook data.
       const imageOnlyMode =
         !generateExcelEnabled &&
         !generateLinksFileEnabled &&
         !downloadDocumentsEnabled &&
-        downloadImagesEnabled &&
-        run.manufacturerId.toLowerCase() !== "eaton";
+        downloadImagesEnabled;
       const linksOnlyMode = generateLinksFileEnabled && !generateExcelEnabled && !downloadImagesEnabled && !downloadDocumentsEnabled;
       // When the user disables document downloads, the quality gate must not demand non-image
       // documents (datasheet/manual/etc.) — otherwise it always "fails", spawning fallback work
@@ -1215,8 +1211,14 @@ export class RunManager {
     const layout = buildRunOutputLayout(this.paths.outputDir, manufacturer, finalRun);
     await ensureRunOutputLayout(layout);
     const runItems = this.db.getRunItems(runId);
-    if (status === "completed") this.applyCohortAnomalyDiagnostics(runItems);
-    const fieldCoverageDrift = status === "completed" ? this.computeFieldCoverageDrift(finalRun.manufacturerId, runId, runItems) : [];
+    const imageOnlyRun =
+      finalRun.options?.generateExcel === false &&
+      finalRun.options?.generateLinksFile !== true &&
+      finalRun.options?.downloadImages !== false &&
+      !(finalRun.options?.downloadPdfs ?? finalRun.options?.downloadDocuments ?? false) &&
+      !(finalRun.options?.downloadCad ?? finalRun.options?.downloadDocuments ?? false);
+    if (status === "completed" && !imageOnlyRun) this.applyCohortAnomalyDiagnostics(runItems);
+    const fieldCoverageDrift = status === "completed" && !imageOnlyRun ? this.computeFieldCoverageDrift(finalRun.manufacturerId, runId, runItems) : [];
     // "Images only" mode skips workbook generation; everything else still produces one.
     const shouldGenerateExcel = finalRun.options?.generateExcel !== false;
     const shouldGenerateLinksFile = finalRun.options?.generateLinksFile === true;
@@ -1250,7 +1252,7 @@ export class RunManager {
     let exportWarning: string | undefined;
     // PDT is derived from the durable SQLite snapshot. Start it independently so Excel export
     // can be slow or locked without delaying the PDT artifact.
-    const pdtPromise = (async () => {
+    const pdtPromise = imageOnlyRun ? Promise.resolve() : (async () => {
       try {
         const [{ exportRunPdt }, { resolveTemplatePath }] = await Promise.all([
           import("./pdt/exporter.js"),
