@@ -129,6 +129,7 @@ export const DEVICE_TYPE_PROFILES: Record<string, DeviceTypePdtProfile> = {
   "I/O Module": { sheets: ["PLC"], eclassBySheet: { plc: { code: "27242604", system: "14" } }, criticalFactsBySheet: { PLC: [...VOLTAGE_RATING_FACTS] }, finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_ONLY },
   HMI: { sheets: ["PLC", "panel (HMI)"], criticalFactsBySheet: { PLC: [...VOLTAGE_RATING_FACTS], "panel (HMI)": [...VOLTAGE_RATING_FACTS] }, finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_ONLY },
   "Communication Gateway": { sheets: ["PLC", "RS232 interfaces"], eclassBySheet: { plc: { code: "27242201", system: "13" } }, criticalFactsBySheet: { PLC: [...VOLTAGE_RATING_FACTS] }, finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_ONLY },
+  "Power Meter": { sheets: ["el. mesurement devices"], criticalFactsBySheet: { "el. mesurement devices": [...ELECTRICAL_RATING_FACTS] }, electricalFields: VOLTAGE_AND_CURRENT },
 
   "Pushbutton / Operator": {
     sheets: ["command and alarm device"],

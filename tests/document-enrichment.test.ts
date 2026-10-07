@@ -4,7 +4,7 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 import JSZip from "jszip";
 import type { ProductResult } from "../src/shared/types.js";
-import { documentAttributesAreSubstantive, enrichResultFromDownloadedDocuments, enrichResultFromRemoteDocuments, extractDocumentTextAttributes, isCleanSingleSpecValue, isMeasurementLikeToken, isStandardReferenceToken, looksLikeMultiVariantFamilyPage } from "../src/server/scrapers/document-enrichment.js";
+import { documentAttributesAreSubstantive, enrichResultFromDownloadedDocuments, enrichResultFromRemoteDocuments, extractDocumentTextAttributes, isCleanSingleSpecValue, isMeasurementLikeToken, isStandardReferenceToken, looksLikeMultiVariantFamilyPage, shouldSkipEnvironmentalDeclarationSpecMining } from "../src/server/scrapers/document-enrichment.js";
 import { normalizeFields } from "../src/server/scrapers/normalizer.js";
 import { normalizeTechnicalAttributes } from "../src/server/scrapers/technical-attributes.js";
 import {
@@ -71,6 +71,64 @@ describe("documentAttributesAreSubstantive", () => {
 });
 
 describe("document enrichment", () => {
+  it("extracts Schneider drive ratings from tabular datasheet labels past generic feature limits", () => {
+    const attributes = extractDocumentTextAttributes({
+      catalogNumber: "ATV630D15N4",
+      document: { type: "datasheet", label: "Product data sheet", url: "https://www.se.com/us/en/product/download-pdf/ATV630D15N4" },
+      text: [
+        "ATV630D15N4",
+        "[Us] rated supply voltage\t380...480 V",
+        "nominal output current\t31.7 A",
+        ...Array.from({ length: 45 }, (_, index) => `Feature ${index + 1}\t${index + 1} mA`),
+        "Minimum switching current\tRelay output R1, R2, R3 5 mA 24 V DC"
+      ].join("\n")
+    });
+
+    expect(attributes).toContainEqual(expect.objectContaining({ name: "Nominal output current", value: "31.7 A" }));
+    expect(attributes).toContainEqual(expect.objectContaining({ name: "Rated supply voltage", value: "380...480 V" }));
+  });
+
+  it("does not mine technical ratings from environmental declarations classified as certificates", () => {
+    expect(shouldSkipEnvironmentalDeclarationSpecMining({
+      type: "certificate",
+      label: "PEP ecopassport environmental disclosure",
+      url: "https://download.schneider-electric.com/files?p_enDocType=Environmental+Disclosure&p_Doc_Ref=ENVPEP1103008EN"
+    })).toBe(true);
+    expect(shouldSkipEnvironmentalDeclarationSpecMining({
+      type: "certificate",
+      label: "ENVPEP1601004EN.pdf",
+      url: "https://www.se.com/us/en/product/download-pdf/RM35JA32MW?filename=ENVPEP1601004EN.pdf"
+    })).toBe(true);
+    expect(shouldSkipEnvironmentalDeclarationSpecMining({
+      type: "datasheet",
+      label: "Product data sheet",
+      url: "https://download.schneider-electric.com/files?p_Doc_Ref=A9C20842"
+    })).toBe(false);
+  });
+
+  it("skips OCR for downloaded environmental disclosures that cannot supply product specifications", async () => {
+    const result = await enrichResultFromDownloadedDocuments(product({
+      manufacturerId: "schneider",
+      catalogNumber: "RM35JA32MW",
+      documents: [{
+        type: "certificate",
+        label: "Environmental Disclosure ENVPEP1601004EN.pdf",
+        url: "https://download.schneider-electric.com/files?p_enDocType=Environmental+Disclosure&p_Doc_Ref=ENVPEP1601004EN",
+        localPath: "D:/does-not-exist/environmental-disclosure.pdf",
+        downloadStatus: "downloaded"
+      }]
+    }));
+
+    expect(result.documents[0]?.parseStatus).toBe("skipped");
+    expect(result.diagnostics?.documentProcessing).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        action: "skipped",
+        stage: "downloaded-document-enrichment",
+        reason: "Skipped environmental disclosure rather than parsing a non-technical PDF."
+      })
+    ]));
+  });
+
   it("keeps only invariant fields when the document proved a family prefix, not the SKU", () => {
     const attributes = extractDocumentTextAttributes({
       catalogNumber: "GN 422-33-TK",

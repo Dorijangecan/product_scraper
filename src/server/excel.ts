@@ -2708,11 +2708,14 @@ function dimensionMeasurements(
   fallback?: string
 ): { height?: LengthMeasurement; width?: LengthMeasurement; depth?: LengthMeasurement; length?: LengthMeasurement } {
   const output: { height?: LengthMeasurement; width?: LengthMeasurement; depth?: LengthMeasurement; length?: LengthMeasurement } = {};
+  const safeFallback = isNonPhysicalDimensionAttribute(fallback ?? "") ? undefined : fallback;
+  const hasPackageDimensions = attributes.some((attr) => /\bpackage\s+\d+\s+(?:height|width|depth|length)\b/i.test(attr.name));
   for (const attr of [...attributes].sort((left, right) => measurementAttributeScore(right) - measurementAttributeScore(left))) {
     const label = `${attr.group ?? ""} ${attr.name}`;
     const depthLengthAlias = /\b(?:depth|length)\s*\/\s*(?:depth|length)\b/i.test(label);
     if (isPackagingMeasurementAttribute(attr)) continue;
-    if (isNonPhysicalDimensionAttribute(label)) continue;
+    if (hasPackageDimensions && /pdf ontology spec miner/i.test(attr.group ?? "")) continue;
+    if (isNonPhysicalDimensionAttribute(`${label} ${attr.value}`)) continue;
     if (!output.height && /\bheight\b|\bhöhe\b|\bhoehe\b|\baltezza\b/i.test(label)) output.height = parseLengthMeasurement(attr.value);
     if (!output.width && /\bwidth\b|\bbreite\b|\blarghezza\b/i.test(label)) output.width = parseLengthMeasurement(attr.value);
     if (!output.depth && /\bdepth\b|\btiefe\b|\bprofond/i.test(label)) output.depth = parseLengthMeasurement(attr.value);
@@ -2725,13 +2728,13 @@ function dimensionMeasurements(
   }
 
   const dimensionText = attributes
-    .filter((attr) => !isPackagingMeasurementAttribute(attr) && /dimension|height|width|depth|length|abmess/i.test(`${attr.group ?? ""} ${attr.name}`))
+    .filter((attr) => !isPackagingMeasurementAttribute(attr) && !(hasPackageDimensions && /pdf ontology spec miner/i.test(attr.group ?? "")) && !isNonPhysicalDimensionAttribute(`${attr.group ?? ""} ${attr.name} ${attr.value}`) && /dimension|height|width|depth|length|abmess/i.test(`${attr.group ?? ""} ${attr.name}`))
     .sort((left, right) => measurementAttributeScore(right) - measurementAttributeScore(left))
     .map((attr) => attr.value)
     .find((value) => {
       const parsed = parseDimensionText(value);
       return parsed.height || parsed.width || parsed.depth || parsed.length;
-    }) ?? fallback;
+    }) ?? safeFallback;
   const parsed = parseDimensionText(dimensionText);
   output.height ??= parsed.height;
   output.width ??= parsed.width;
@@ -2744,7 +2747,7 @@ function dimensionMeasurements(
   // a bogus "Length (mm)" for Siemens BT actuators (housing 100 x 300 x 67.5 mm dimensions plus an
   // unrelated "Cable length: 0.9 m" attribute) that had nothing to do with the actuator's own size.
   if (!output.height && !output.width && !output.depth) {
-    output.length ??= bestCableLengthMeasurement(attributes, fallback);
+    output.length ??= bestCableLengthMeasurement(attributes, safeFallback);
   }
   return output;
 }
@@ -2754,7 +2757,7 @@ function isPackagingMeasurementAttribute(attr: ProductResult["attributes"][numbe
 }
 
 function isNonPhysicalDimensionAttribute(label: string): boolean {
-  return /\b(?:focal length|back focal|object distance|minimum object distance|angle of view|sensor size|lens|wire stripping|terminal|conductor|bus length|tap links length|communication distance|operating distance|pulse width|time delay|response time|process data|segment)\b/i.test(
+  return /\b(?:threaded length|focal length|back focal|object distance|minimum object distance|angle of view|sensor size|lens|wire stripping|terminal|conductor|bus length|tap links length|communication distance|operating distance|pulse width|time delay|response time|process data|segment|only possible with .*rack|rack clearance)\b/i.test(
     label
   );
 }
@@ -3014,8 +3017,15 @@ function normalizedForExport(result?: ProductResult): ProductResult["normalized"
   // PDFs contain neighbouring-model tables and prose figure captions; re-normalizing them at
   // export time can resurrect a false dimension even after the connector filtered it out.
   const isEatonMvFamily = result.manufacturerId === "eaton" && result.pageLevel === "family" && result.diagnostics?.terminal?.skipNetworkFallback === true;
-  const computed = normalizeFields(result.attributes, isEatonMvFamily ? [] : documentsForExport(result));
+  const computed = normalizeFields(result.attributes, isEatonMvFamily ? [] : documentsForExport(result), result.manufacturerId);
   for (const key of Object.keys(computed) as Array<keyof ProductResult["normalized"]>) {
+    // Schneider's first connector result can be formed before its SKU datasheet is mined.
+    // Recompute its dimensions from the full evidence set so later exact product lengths replace
+    // stale package/threaded-length axes; normalizer.ts rejects those ambiguous candidates.
+    if (result.manufacturerId === "schneider" && key === "dimensions" && computed[key]) {
+      normalized[key] = computed[key];
+      continue;
+    }
     if (computed[key] && !normalized[key]) normalized[key] = computed[key];
   }
   if (isEatonMvFamily) normalized.dimensions = undefined;

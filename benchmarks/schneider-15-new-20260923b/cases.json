@@ -1,0 +1,168 @@
+[
+  {
+    "requiredDocuments": [
+      "image"
+    ],
+    "manufacturerId": "schneider",
+    "expectedOfficialUrlPatterns": [
+      "se\\.com/.*/product/METSEPM5560(/|$)"
+    ],
+    "catalogNumber": "METSEPM5560",
+    "caseType": "electrical",
+    "expectedDeviceType": "Power Meter"
+  },
+  {
+    "requiredDocuments": [
+      "image"
+    ],
+    "manufacturerId": "schneider",
+    "expectedOfficialUrlPatterns": [
+      "telemecaniquesensors\\.com/.*/product/reference/XS630B1PAM12(/|$)"
+    ],
+    "catalogNumber": "XS630B1PAM12",
+    "caseType": "electrical"
+  },
+  {
+    "requiredDocuments": [
+      "image"
+    ],
+    "manufacturerId": "schneider",
+    "expectedOfficialUrlPatterns": [
+      "se\\.com/.*/product/LC1D12BD(/|$)"
+    ],
+    "catalogNumber": "LC1D12BD",
+    "caseType": "electrical"
+  },
+  {
+    "requiredDocuments": [
+      "image"
+    ],
+    "manufacturerId": "schneider",
+    "expectedOfficialUrlPatterns": [
+      "se\\.com/.*/product/A9F74220(/|$)"
+    ],
+    "catalogNumber": "A9F74220",
+    "caseType": "electrical"
+  },
+  {
+    "requiredDocuments": [
+      "image"
+    ],
+    "manufacturerId": "schneider",
+    "expectedOfficialUrlPatterns": [
+      "se\\.com/.*/product/ATV630D15N4(/|$)"
+    ],
+    "catalogNumber": "ATV630D15N4",
+    "caseType": "electrical"
+  },
+  {
+    "requiredDocuments": [
+      "image"
+    ],
+    "manufacturerId": "schneider",
+    "expectedOfficialUrlPatterns": [
+      "se\\.com/.*/product/BMXCPS3500(/|$)"
+    ],
+    "catalogNumber": "BMXCPS3500",
+    "caseType": "electrical"
+  },
+  {
+    "requiredDocuments": [
+      "image"
+    ],
+    "manufacturerId": "schneider",
+    "expectedOfficialUrlPatterns": [
+      "se\\.com/.*/product/LV429630(/|$)"
+    ],
+    "catalogNumber": "LV429630",
+    "caseType": "electrical"
+  },
+  {
+    "requiredDocuments": [
+      "image"
+    ],
+    "manufacturerId": "schneider",
+    "expectedOfficialUrlPatterns": [
+      "se\\.com/.*/product/XB5AD21(/|$)"
+    ],
+    "catalogNumber": "XB5AD21",
+    "caseType": "electrical"
+  },
+  {
+    "requiredDocuments": [
+      "image"
+    ],
+    "manufacturerId": "schneider",
+    "expectedOfficialUrlPatterns": [
+      "se\\.com/.*/product/GV2ME20(/|$)"
+    ],
+    "catalogNumber": "GV2ME20",
+    "caseType": "electrical"
+  },
+  {
+    "requiredDocuments": [
+      "image"
+    ],
+    "manufacturerId": "schneider",
+    "expectedOfficialUrlPatterns": [
+      "se\\.com/.*/product/NSYCRN64200(/|$)"
+    ],
+    "catalogNumber": "NSYCRN64200",
+    "caseType": "mechanical"
+  },
+  {
+    "requiredDocuments": [
+      "image"
+    ],
+    "manufacturerId": "schneider",
+    "expectedOfficialUrlPatterns": [
+      "se\\.com/.*/product/ABL8RPS24100(/|$)"
+    ],
+    "catalogNumber": "ABL8RPS24100",
+    "caseType": "electrical"
+  },
+  {
+    "requiredDocuments": [
+      "image"
+    ],
+    "manufacturerId": "schneider",
+    "expectedOfficialUrlPatterns": [
+      "se\\.com/.*/product/RM35JA32MW(/|$)"
+    ],
+    "catalogNumber": "RM35JA32MW",
+    "caseType": "electrical"
+  },
+  {
+    "requiredDocuments": [
+      "image"
+    ],
+    "manufacturerId": "schneider",
+    "expectedOfficialUrlPatterns": [
+      "se\\.com/.*/product/TM3DI16(/|$)"
+    ],
+    "catalogNumber": "TM3DI16",
+    "caseType": "electrical"
+  },
+  {
+    "requiredDocuments": [
+      "image"
+    ],
+    "manufacturerId": "schneider",
+    "expectedOfficialUrlPatterns": [
+      "se\\.com/.*/product/XALD01(/|$)"
+    ],
+    "catalogNumber": "XALD01",
+    "caseType": "accessory"
+  },
+  {
+    "requiredDocuments": [
+      "image"
+    ],
+    "manufacturerId": "schneider",
+    "expectedOfficialUrlPatterns": [
+      "se\\.com/.*/product/ATS130N2D65LT(/|$)"
+    ],
+    "catalogNumber": "ATS130N2D65LT",
+    "caseType": "electrical"
+  }
+]

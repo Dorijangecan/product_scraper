@@ -23,6 +23,17 @@ describe("splitNameValue (Phase A4)", () => {
 });
 
 describe("normalizer", () => {
+  it("prefers explicit product ratings in official descriptions over generic parsed PDF values", () => {
+    const normalized = normalizeFields([
+      { group: "Product Page", name: "Long Description", value: "This power supply has a rated output current of 10 A at 24 V DC.", sourceType: "official" },
+      { group: "PDF table", name: "Current", value: "5 A", sourceType: "generated", parser: "pdf-table-extractor" },
+      { group: "Product Page", name: "Description", value: "Rated supply voltage is 100...500 V AC.", sourceType: "official" },
+      { group: "PDF table", name: "Voltage", value: "24 V DC", sourceType: "generated", parser: "pdf-table-extractor" }
+    ], []);
+    expect(normalized.current).toBe("10 A");
+    expect(normalized.voltage).toBe("100...500 V AC");
+  });
+
   it("decodes HTML entities while cleaning text", () => {
     expect(cleanText("Switch- &amp; Controlgear&nbsp;Enclosure &#40;IP66&#41; &micro;m &sup2;")).toBe("Switch- & Controlgear Enclosure (IP66) \u00b5m \u00b2");
   });
@@ -1123,6 +1134,20 @@ describe("normalizer", () => {
     expect(pushButton.wallThickness).toBeUndefined();
   });
 
+  it("does not turn package dimensions or threaded length into the product's dimensions", () => {
+    const normalized = normalizeFields([
+      { group: "PDF datasheet", name: "Length", value: "74 mm", sourceType: "generated" },
+      { group: "PDF datasheet", name: "Threaded length", value: "52 mm", sourceType: "generated" },
+      { group: "PDF datasheet", name: "Package 1 Height", value: "4.700 cm", sourceType: "generated" },
+      { group: "PDF datasheet", name: "Package 1 Width", value: "5.900 cm", sourceType: "generated" },
+      { group: "PDF datasheet", name: "Package 1 Length", value: "10.200 cm", sourceType: "generated" },
+      { group: "PDF Ontology Spec Miner", name: "Height", value: "4.700 cm", sourceType: "generated" },
+      { group: "PDF Ontology Spec Miner", name: "Width", value: "5.900 cm", sourceType: "generated" },
+      { group: "PDF Ontology Spec Miner", name: "Length", value: "52 mm", sourceType: "generated" }
+    ], [], "schneider");
+    expect(normalized.dimensions).toBe("L 74 mm");
+  });
+
   it("does not treat Schneider HMI display colour or inrush current as product color/current", () => {
     const normalized = normalizeFields(
       [
@@ -1164,6 +1189,7 @@ describe("normalizer", () => {
   it("prefers Schneider supply voltage over secondary output voltage labels", () => {
     const servo = normalizeFields(
       [
+        { group: "Schneider Product Info", name: "Description", value: "This drive works at a rated supply voltage from 380V to 480V AC." , sourceType: "official" },
         { group: "Schneider Main", name: "Product or Component Type", value: "Servo drive", sourceType: "official" },
         { group: "Schneider Main", name: "[Us] rated supply voltage", value: "200...240 V; 380...480 V", sourceType: "official" },
         { group: "Schneider Complementary", name: "Discrete output voltage", value: "<= 30 V DC", sourceType: "official" },
@@ -1192,6 +1218,7 @@ describe("normalizer", () => {
     const normalized = normalizeFields(
       [
         { group: "Schneider Main", name: "Product or Component Type", value: "Power supply", sourceType: "official-fallback", parser: "schneider-datasheet-reader" },
+        { group: "Schneider Main", name: "Rated supply voltage", value: "100...500 V AC", sourceType: "official" },
         { group: "Schneider Main", name: "Nominal input voltage", value: "100...240 V AC", sourceType: "official-fallback", parser: "schneider-datasheet-reader" },
         { group: "Schneider Main", name: "Output voltage", value: "24 V DC", sourceType: "official-fallback", parser: "schneider-datasheet-reader" }
       ],
@@ -1199,6 +1226,67 @@ describe("normalizer", () => {
     );
 
     expect(normalized.voltage).toBe("24 V DC");
+  });
+
+  it("prefers a Schneider contactor's operational current to its thermal test current", () => {
+    const normalized = normalizeFields(
+      [
+        { group: "Schneider Main", name: "Product or Component Type", value: "Contactor", sourceType: "official" },
+        { group: "Schneider Main", name: "[Ie] rated operational current", value: "12 A", sourceType: "official" },
+        { group: "Schneider Complementary", name: "[Ith] conventional free air thermal current", value: "25 A", sourceType: "official" }
+      ],
+      []
+    );
+
+    expect(normalized.current).toBe("12 A");
+  });
+
+  it("uses the Schneider contactor AC-3 motor rating when an AC-1 rating is also present", () => {
+    const normalized = normalizeFields(
+      [
+        { group: "PDF datasheet", name: "Product or Component Type", value: "Contactor", sourceType: "generated" },
+        { group: "PDF datasheet", name: "[Ie] rated operational current", value: "25 A at <= 440 V AC AC-1", sourceType: "generated" },
+        { group: "Schneider Product Info", name: "Description", value: "Contactor for motor control applications up to 12A/690V AC-3/3e.", sourceType: "official" }
+      ],
+      []
+    );
+
+    expect(normalized.current).toBe("12 A");
+  });
+
+  it("keeps Schneider terminal and certificate materials out of the device material field", () => {
+    const normalized = normalizeFields([
+      { group: "Schneider Main", name: "Product or Component Type", value: "Miniature circuit breaker", sourceType: "official" },
+      { group: "PDF datasheet - Specifications", name: "Connections - terminals", value: "Single terminal, rigid copper conductor", sourceType: "generated" },
+      { group: "PDF certificate", name: "Material", value: "1,28E+01 1,28E+01 0* 0* 0*", sourceType: "generated" }
+    ], [], "schneider");
+    expect(normalized.material).toBeUndefined();
+  });
+
+  it("preserves a Schneider power module's complete rated voltage range", () => {
+    const normalized = normalizeFields([
+      { group: "Schneider Main", name: "Product or Component Type", value: "Power supply module", sourceType: "official" },
+      { group: "PDF datasheet", name: "Rated voltage", value: "100...240 V AC", sourceType: "generated" }
+    ], [], "schneider");
+    expect(normalized.voltage).toBe("100...240 V AC");
+  });
+
+  it("uses a Schneider soft starter's power circuit rating ahead of its 24 V control rating", () => {
+    const normalized = normalizeFields([
+      { group: "Schneider Main", name: "Product or Component Type", value: "Soft starter", sourceType: "official" },
+      { group: "PDF datasheet", name: "[Uc] control circuit voltage", value: "24 V DC", sourceType: "generated" },
+      { group: "PDF datasheet", name: "Ue power supply voltage", value: "200...480 V - 15...10 %", sourceType: "generated" }
+    ], [], "schneider");
+    expect(normalized.voltage).toContain("200...480 V");
+  });
+
+  it("uses a power supply module's available secondary current, not its input current", () => {
+    const normalized = normalizeFields([
+      { group: "Schneider Main", name: "Product or Component Type", value: "Power supply module", sourceType: "official" },
+      { group: "PDF datasheet", name: "Current at secondary voltage", value: "0.9 A 24 V DC sensor power supply", sourceType: "generated" },
+      { group: "PDF datasheet", name: "Input current", value: "0.52 A / 1.04 A", sourceType: "generated" }
+    ], [], "schneider");
+    expect(normalized.current).toBe("0.9 A");
   });
 
   it("does not treat Schneider communication bus length as a physical product dimension", () => {
@@ -1420,6 +1508,34 @@ describe("normalizer", () => {
     );
 
     expect(normalized.current).toBe("2 A");
+  });
+
+  it("prefers a Schneider drive's nominal output current over relay contact ratings", () => {
+    const normalized = normalizeFields(
+      [
+        { group: "Schneider Main", name: "[Us] rated supply voltage", value: "380...480 V", sourceType: "generated" },
+        { group: "PDF datasheet - Explicit ratings", name: "Nominal output current", value: "31.7 A", sourceType: "generated" },
+        { group: "PDF datasheet", name: "Minimum switching current", value: "Relay output R1, R2, R3 5 mA 24 V DC", sourceType: "generated" }
+      ],
+      []
+    );
+
+    expect(normalized.voltage).toBe("380...480 V");
+    expect(normalized.current).toBe("31.7 A");
+  });
+
+  it("extracts labeled dimensions and weight from an exact Schneider product description", () => {
+    const normalized = normalizeFields(
+      [{
+        group: "Schneider Product Info",
+        name: "Description",
+        value: "This drive weighs 13.6kg and its dimensions are, 211mm wide, 546mm high, 232mm deep."
+      }],
+      []
+    );
+
+    expect(normalized.weight).toBe("13.6 kg");
+    expect(normalized.dimensions).toBe("546 x 211 x 232 mm");
   });
 
   it("aligns ABB AC-15 current with the rated operational voltage field even without a main-circuit qualifier", () => {

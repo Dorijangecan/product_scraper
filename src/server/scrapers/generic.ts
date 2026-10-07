@@ -375,7 +375,7 @@ function parsePartCommunityCookieWallPage(
       stage: attribute.stage ?? parserLabel,
       confidence: attribute.confidence ?? confidenceForSource(sourceType, options.confidence)
     }));
-  const normalized = normalizeFields(cleanAttributes, []);
+  const normalized = normalizeFields(cleanAttributes, [], manufacturerId === "rittal" ? "rittal" : undefined);
   return {
     manufacturerId,
     catalogNumber,
@@ -685,7 +685,7 @@ export function parseGenericProductPage(
     stage: doc.stage ?? parserLabel,
     confidence: doc.confidence ?? confidenceForSource(sourceType, options.confidence)
   }));
-  const normalized = normalizeFields(cleanAttributes, cleanDocuments);
+  const normalized = normalizeFields(cleanAttributes, cleanDocuments, manufacturerId === "rittal" ? "rittal" : undefined);
   // An ordering-code option can prove a finish (SR → RAL 9006) without asserting that the same
   // code is a standalone product color. Preserve an explicit target-scoped Color field, otherwise
   // do not manufacture normalized.color from a family configurator's finish option.
@@ -803,10 +803,10 @@ function isBlockedOrErrorPage(fetched: FetchedText, title: string): boolean {
   if (fetched.statusCode >= 400) return true;
   const compactTitle = cleanText(title).toLowerCase();
   if (/^(just a moment|access denied|attention required|forbidden|not found|are you a robot|verify you are human)$/i.test(compactTitle)) return true;
-  // Bot-wall / anti-automation challenge markers. Returning true here makes the generic parser
-  // emit an empty result, so the quality gate fails and the pipeline escalates to the browser
-  // renderer instead of mistaking the challenge HTML for product data.
-  if (/cf-browser-verification|challenge-platform|cf-challenge|cdn-cgi\/challenge-platform/i.test(fetched.text)) return true;
+  // Explicit Cloudflare challenge markup. A bare `/cdn-cgi/challenge-platform` reference is
+  // commonly present in the site's normal shared JavaScript (including on Rittal PDPs), so it
+  // cannot by itself distinguish an interstitial from a product page.
+  if (/cf-browser-verification|cf-challenge/i.test(fetched.text)) return true;
   const challengeText = cleanText(fetched.text).slice(0, 4000).toLowerCase();
   return /\b(?:verify you are human|are you a robot|enable javascript (?:and cookies )?to continue|please complete the (?:security|captcha) check|request (?:was )?blocked|unusual traffic from your|access to this page has been denied|px-captcha|hcaptcha|g-recaptcha)\b/i.test(challengeText);
 }
@@ -996,7 +996,7 @@ const compactKey = compactCatalogNumber;
 function isLikelyImageUrl(url: string): boolean {
   if (/\/(?:bit|spacer|transparent)\.gif(?:[?#]|$)/i.test(url)) return false;
   if (isLikelyNonProductImage(url)) return false;
-  return /\.(?:png|jpe?g|webp|gif|avif|svg)(?:[?#]|$)/i.test(url) || /\/[_]?next\/image(?:[?#]|$)|\/is\/image\/|\/mdmfiles\/|\/images?\/|\/api\/og\?|\/opengraph-image(?:[?#]|$)/i.test(url);
+  return /\.(?:png|jpe?g|webp|gif|avif|svg)(?:[?#]|$)/i.test(url) || /\/[_]?next\/image(?:[?#]|$)|\/is\/image\/|\/mdmfiles\/|\/images?\/|\/api\/og\?|\/opengraph-image(?:[?#]|$)|\/imf\/x\d+\//i.test(url);
 }
 
 function isDocumentUrlWithContext(url: string, context: string, type: DocumentRecord["type"]): boolean {

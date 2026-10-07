@@ -43,6 +43,21 @@ describe("required electrical fields", () => {
     expect(requiredElectricalFields(product({ description: "EL Enclosure", attributes }))).toEqual([]);
   });
 
+  it("does not require electrical ratings for Schneider empty stations or enclosure panelsets", () => {
+    for (const description of [
+      "Empty control station Harmony XALD, empty lid for push buttons",
+      "Panelset CRN plain door, without mounting plate"
+    ]) {
+      const result = product({
+        manufacturerId: "schneider",
+        description,
+        title: description,
+        attributes: [{ group: "Product Page", name: "Description", value: `${description}; accessories include push buttons and switchgear` }]
+      });
+      expect(requiredElectricalFields(result, { deviceType: "Enclosure", deviceTypeConfidence: 0.99, deviceTypeElectricalFields: ["voltage", "current"] })).toEqual([]);
+    }
+  });
+
   it("still requires ratings for a thermal device even though it lives in an enclosure catalog", () => {
     const result = product({
       description: "Fan Heater w/ Thermostat",
@@ -50,6 +65,19 @@ describe("required electrical fields", () => {
     });
 
     expect(requiredElectricalFields(result)).toEqual(["voltage"]);
+  });
+
+  it("does not invent a standalone voltage for a rack-powered Schneider CPU with no published rating", () => {
+    const result = product({
+      manufacturerId: "schneider",
+      catalogNumber: "BMXP342020",
+      title: "Processor module M340",
+      description: "Modicon M340 central processing unit for programmable logic controller",
+      attributes: [{ group: "Schneider Main", name: "Product or Component Type", value: "Processor module" }],
+      documents: [{ type: "datasheet", label: "Product Datasheet", url: "https://www.se.com/product/BMXP342020.pdf" }]
+    });
+
+    expect(requiredElectricalFields(result)).toEqual([]);
   });
 
   it("uses document evidence when the catalog PDF is the only thing describing the product", () => {

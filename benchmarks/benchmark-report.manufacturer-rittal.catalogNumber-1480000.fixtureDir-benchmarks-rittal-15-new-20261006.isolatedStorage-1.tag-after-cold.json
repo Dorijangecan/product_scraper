@@ -1,0 +1,3612 @@
+{
+  "generatedAt": "2026-10-06T10:02:51.837Z",
+  "outputDir": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261006100238",
+  "filters": {
+    "manufacturer": "rittal",
+    "catalogNumber": "1480000",
+    "fixtureDir": "benchmarks/rittal-15-new-20261006",
+    "isolatedStorage": "1",
+    "tag": "after-cold"
+  },
+  "summary": {
+    "foundRate": 100,
+    "officialUrlRate": 100,
+    "documentRate": 100,
+    "pdtAuditRate": 100,
+    "deviceTypeRate": 100,
+    "customerDocumentRate": 0,
+    "wrongProducts": 0,
+    "partialWithoutMissing": 0,
+    "pdtUnprovenWritten": 0,
+    "pdtUnexplainedRequiredFieldIssues": 0,
+    "pdtWriteIssues": 6,
+    "qualityAccepted": true,
+    "fixtureCoverageAccepted": true,
+    "fixtureCoverage": {
+      "byManufacturer": {
+        "rittal": {
+          "total": 1,
+          "caseTypes": [],
+          "riskTags": []
+        }
+      },
+      "byDeviceType": {
+        "Enclosure": {
+          "total": 1,
+          "manufacturers": [
+            "rittal"
+          ],
+          "caseTypes": []
+        }
+      },
+      "byDeviceSheet": {
+        "cabinet": {
+          "total": 1,
+          "deviceTypes": [
+            "Enclosure"
+          ],
+          "manufacturers": [
+            "rittal"
+          ]
+        },
+        "cabinet.mechanical": {
+          "total": 1,
+          "deviceTypes": [
+            "Enclosure"
+          ],
+          "manufacturers": [
+            "rittal"
+          ]
+        }
+      },
+      "thinManufacturers": [
+        "rittal"
+      ],
+      "uncoveredDeviceSheets": [
+        "Busbar",
+        "Luminaire",
+        "Motion Controller",
+        "PCB connection system",
+        "PCB connection technology",
+        "PLC",
+        "RS232 interfaces",
+        "Switch",
+        "Wire ID Information",
+        "cabinet.airconditioning",
+        "cabinet.rack",
+        "cable",
+        "cable ducts mounting rails",
+        "cable gland",
+        "command and alarm device",
+        "connector",
+        "contactor a. fuses",
+        "directional control valve",
+        "el. mesurement devices",
+        "electronic sensor",
+        "energy distribution system",
+        "filters",
+        "fluid power",
+        "generator",
+        "int. ext. lightning protection",
+        "module carrier frame",
+        "motor protection",
+        "motors",
+        "optical sensor",
+        "panel (HMI)",
+        "pneumatic handling",
+        "power supply devices",
+        "pump",
+        "safety sensor",
+        "sensor - fluid",
+        "servo controller",
+        "terminal",
+        "terminal endbracket",
+        "ventil"
+      ],
+      "missingDeviceSheetRecommendations": [
+        {
+          "sheetName": "Busbar",
+          "deviceTypes": [
+            "Busbar"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "Luminaire",
+          "deviceTypes": [
+            "Luminaire"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SL0040I.953",
+              "deviceType": "Luminaire",
+              "notes": "FATH Module F Line LED lamp"
+            }
+          ]
+        },
+        {
+          "sheetName": "Motion Controller",
+          "deviceTypes": [
+            "Motion Controller"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1756-HYD",
+              "deviceType": "Motion Controller",
+              "notes": "ControlLogix integrated motion modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1756-M02",
+              "deviceType": "Motion Controller",
+              "notes": "ControlLogix integrated motion modules"
+            }
+          ]
+        },
+        {
+          "sheetName": "PCB connection system",
+          "deviceTypes": [
+            "PCB Connector"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "PCB connection technology",
+          "deviceTypes": [
+            "PCB Terminal Block"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "PLC",
+          "deviceTypes": [
+            "Communication Gateway",
+            "HMI",
+            "I/O Module",
+            "Programmable Logic Controller"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "FL",
+              "deviceType": "Communication Gateway",
+              "notes": "FL switch / FL gateway"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "RAD",
+              "deviceType": "Communication Gateway",
+              "notes": "Radioline"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENT",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENTR",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1783",
+              "deviceType": "Communication Gateway",
+              "notes": "Stratix industrial networking and communication modules"
+            }
+          ]
+        },
+        {
+          "sheetName": "RS232 interfaces",
+          "deviceTypes": [
+            "Communication Gateway"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "FL",
+              "deviceType": "Communication Gateway",
+              "notes": "FL switch / FL gateway"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "RAD",
+              "deviceType": "Communication Gateway",
+              "notes": "Radioline"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENT",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENTR",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1783",
+              "deviceType": "Communication Gateway",
+              "notes": "Stratix industrial networking and communication modules"
+            }
+          ]
+        },
+        {
+          "sheetName": "Switch",
+          "deviceTypes": [
+            "Lock / Interlock",
+            "Selector Switch",
+            "Switch"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "M2SS",
+              "deviceType": "Selector Switch",
+              "notes": "M2SS selector switches"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "M22-WR",
+              "deviceType": "Selector Switch",
+              "notes": "M22 selector switch actuator"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "JSHD",
+              "deviceType": "Switch",
+              "notes": "JSHD three-position handheld devices"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "2702665",
+              "deviceType": "Switch",
+              "notes": "Phoenix FL SWITCH 2105 item number"
+            },
+            {
+              "manufacturerId": "schmersal",
+              "pattern": "EFM",
+              "deviceType": "Switch",
+              "notes": "Schmersal foot switches"
+            }
+          ]
+        },
+        {
+          "sheetName": "Wire ID Information",
+          "deviceTypes": [
+            "Wire Marker"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "cabinet.airconditioning",
+          "deviceTypes": [
+            "Thermal Management"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "nvent",
+              "pattern": "DAH",
+              "deviceType": "Thermal Management",
+              "notes": "nVent HOFFMAN DAH enclosure heaters"
+            },
+            {
+              "manufacturerId": "rittal",
+              "pattern": "SK",
+              "deviceType": "Thermal Management",
+              "notes": "Climate control / filter fans"
+            }
+          ]
+        },
+        {
+          "sheetName": "cabinet.rack",
+          "deviceTypes": [
+            "Rack Cabinet"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rittal",
+              "pattern": "DK",
+              "deviceType": "Rack Cabinet"
+            }
+          ]
+        },
+        {
+          "sheetName": "cable",
+          "deviceTypes": [
+            "Cable"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SAMB1J313B.4000",
+              "deviceType": "Cable",
+              "notes": "FATH Module F Line GST18i3 main power cable"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "889",
+              "deviceType": "Cable",
+              "notes": "Allen-Bradley cordsets and patchcords"
+            },
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "59181001",
+              "deviceType": "Cable",
+              "notes": "Spelsberg Wallbox LL 7m Type 2 charging cable"
+            }
+          ]
+        },
+        {
+          "sheetName": "cable ducts mounting rails",
+          "deviceTypes": [
+            "Mounting Accessory",
+            "Wireway"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "09308901S01",
+              "deviceType": "Mounting Accessory",
+              "notes": "FATH workstation and profile mounting components"
+            },
+            {
+              "manufacturerId": "fath",
+              "pattern": "6FG40ND80M695N08",
+              "deviceType": "Mounting Accessory",
+              "notes": "FATH workstation and profile mounting components"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "CP2020",
+              "deviceType": "Mounting Accessory",
+              "notes": "nVent Hoffman/Schroff accessory items verified on official product pages"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "CSP2020",
+              "deviceType": "Mounting Accessory",
+              "notes": "nVent Hoffman/Schroff accessory items verified on official product pages"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "1524160",
+              "deviceType": "Mounting Accessory",
+              "notes": "Phoenix MCS-112X90-AP-7035 adapter plate item number"
+            }
+          ]
+        },
+        {
+          "sheetName": "cable gland",
+          "deviceTypes": [
+            "Cable Gland"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "26013201",
+              "deviceType": "Cable Gland",
+              "notes": "Spelsberg DMS M32/w double-membrane seal"
+            }
+          ]
+        },
+        {
+          "sheetName": "command and alarm device",
+          "deviceTypes": [
+            "Pilot Light",
+            "Pushbutton / Operator",
+            "Stack Light / Beacon"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "ML1",
+              "deviceType": "Pilot Light",
+              "notes": "ML1 pilot lights"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "M22",
+              "deviceType": "Pushbutton / Operator",
+              "notes": "M22 control station"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "800F",
+              "deviceType": "Pushbutton / Operator"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "800H",
+              "deviceType": "Pushbutton / Operator"
+            },
+            {
+              "manufacturerId": "schmersal",
+              "pattern": "BDF",
+              "deviceType": "Pushbutton / Operator",
+              "notes": "BDF command and control devices"
+            }
+          ]
+        },
+        {
+          "sheetName": "connector",
+          "deviceTypes": [
+            "Connector",
+            "Optical Connector"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SAKP5J516BS01",
+              "deviceType": "Connector",
+              "notes": "FATH Module F Line and profile connectors"
+            },
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SBEU14I.317",
+              "deviceType": "Connector",
+              "notes": "FATH Module F Line and profile connectors"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "69001-",
+              "deviceType": "Connector",
+              "notes": "nVent SCHROFF DIN connectors"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "MCS",
+              "deviceType": "Connector"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VIP",
+              "deviceType": "Connector"
+            }
+          ]
+        },
+        {
+          "sheetName": "contactor a. fuses",
+          "deviceTypes": [
+            "Circuit Breaker",
+            "Contactor",
+            "Disconnect Switch",
+            "Fuse",
+            "Miniature Circuit Breaker",
+            "Molded Case Circuit Breaker",
+            "Relay",
+            "Residual Current Device",
+            "Supplementary Protector"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "eta",
+              "pattern": "3120",
+              "deviceType": "Circuit Breaker"
+            },
+            {
+              "manufacturerId": "eta",
+              "pattern": "REX",
+              "deviceType": "Circuit Breaker"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492-CB",
+              "deviceType": "Circuit Breaker",
+              "notes": "Allen-Bradley circuit breakers"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "A",
+              "deviceType": "Contactor",
+              "notes": "AF / A / AL / AX series IEC contactors"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "AF",
+              "deviceType": "Contactor",
+              "notes": "AF / A / AL / AX series IEC contactors"
+            }
+          ]
+        },
+        {
+          "sheetName": "directional control valve",
+          "deviceTypes": [
+            "Directional Control Valve"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "el. mesurement devices",
+          "deviceTypes": [
+            "Current Sensor",
+            "Power Meter"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "electronic sensor",
+          "deviceTypes": [
+            "Capacitive Sensor",
+            "Encoder",
+            "Inductive Proximity Sensor",
+            "Magnetic Field Sensor",
+            "RFID Device",
+            "Sensor",
+            "Ultrasonic Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BCS",
+              "deviceType": "Capacitive Sensor"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BDG",
+              "deviceType": "Encoder",
+              "notes": "Absolute encoder"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BTL",
+              "deviceType": "Encoder",
+              "notes": "Magnetostrictive linear encoder"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BES",
+              "deviceType": "Inductive Proximity Sensor"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BIS",
+              "deviceType": "Inductive Proximity Sensor"
+            }
+          ]
+        },
+        {
+          "sheetName": "energy distribution system",
+          "deviceTypes": [
+            "Loadcenter"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "filters",
+          "deviceTypes": [
+            "Filter"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "fluid power",
+          "deviceTypes": [
+            "Hydraulic Actuator"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "generator",
+          "deviceTypes": [
+            "Generator"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "int. ext. lightning protection",
+          "deviceTypes": [
+            "Surge Protective Device"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "OVR",
+              "deviceType": "Surge Protective Device"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VAL-CP",
+              "deviceType": "Surge Protective Device"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VAL-MS",
+              "deviceType": "Surge Protective Device"
+            }
+          ]
+        },
+        {
+          "sheetName": "module carrier frame",
+          "deviceTypes": [
+            "Module Carrier"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "siemens",
+              "pattern": "6ES7193",
+              "deviceType": "Module Carrier",
+              "notes": "SIMATIC ET 200SP BaseUnits / base carriers"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "BaseUnits",
+              "deviceType": "Module Carrier",
+              "notes": "SIMATIC ET 200SP BaseUnits / base carriers"
+            }
+          ]
+        },
+        {
+          "sheetName": "motor protection",
+          "deviceTypes": [
+            "Motor Circuit Breaker",
+            "Motor Starter"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "MO",
+              "deviceType": "Motor Circuit Breaker",
+              "notes": "Manual motor starter"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MS",
+              "deviceType": "Motor Circuit Breaker",
+              "notes": "Manual motor starter"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PKE",
+              "deviceType": "Motor Circuit Breaker"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PKZM",
+              "deviceType": "Motor Circuit Breaker"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "140M",
+              "deviceType": "Motor Circuit Breaker"
+            }
+          ]
+        },
+        {
+          "sheetName": "motors",
+          "deviceTypes": [
+            "Motor",
+            "Variable Speed Drive"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "M2A",
+              "deviceType": "Motor"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "TM",
+              "deviceType": "Motor"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "ACQ",
+              "deviceType": "Variable Speed Drive",
+              "notes": "ACS / ACQ / ACH drives"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "ACS",
+              "deviceType": "Variable Speed Drive",
+              "notes": "ACS / ACQ / ACH drives"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "DC1",
+              "deviceType": "Variable Speed Drive",
+              "notes": "PowerXL"
+            }
+          ]
+        },
+        {
+          "sheetName": "optical sensor",
+          "deviceTypes": [
+            "Photoelectric Sensor",
+            "Vision Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BOH",
+              "deviceType": "Photoelectric Sensor"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BOS",
+              "deviceType": "Photoelectric Sensor"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "42EF",
+              "deviceType": "Photoelectric Sensor"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "42JS",
+              "deviceType": "Photoelectric Sensor"
+            },
+            {
+              "manufacturerId": "schneider",
+              "pattern": "XU",
+              "deviceType": "Photoelectric Sensor",
+              "notes": "OsiSense XU"
+            }
+          ]
+        },
+        {
+          "sheetName": "panel (HMI)",
+          "deviceTypes": [
+            "HMI"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "CP6",
+              "deviceType": "HMI",
+              "notes": "CP6xx HMI panel"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "XV",
+              "deviceType": "HMI"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "2711",
+              "deviceType": "HMI",
+              "notes": "PanelView HMI"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "2711P",
+              "deviceType": "HMI",
+              "notes": "PanelView HMI"
+            },
+            {
+              "manufacturerId": "schneider",
+              "pattern": "HMI",
+              "deviceType": "HMI",
+              "notes": "Harmony HMI"
+            }
+          ]
+        },
+        {
+          "sheetName": "pneumatic handling",
+          "deviceTypes": [
+            "Pneumatic Device"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "power supply devices",
+          "deviceTypes": [
+            "Battery",
+            "Power Supply",
+            "Transformer",
+            "UPS"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "CP-E",
+              "deviceType": "Power Supply",
+              "notes": "CP-T / CP-E DIN-rail PSUs"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "CP-T",
+              "deviceType": "Power Supply",
+              "notes": "CP-T / CP-E DIN-rail PSUs"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "QUINT",
+              "deviceType": "Power Supply"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "TRIO",
+              "deviceType": "Power Supply"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1606",
+              "deviceType": "Power Supply",
+              "notes": "Allen-Bradley switched mode power supplies"
+            }
+          ]
+        },
+        {
+          "sheetName": "pump",
+          "deviceTypes": [
+            "Pump"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "safety sensor",
+          "deviceTypes": [
+            "Safety Relay",
+            "Safety Sensor",
+            "Solenoid Interlock"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "PLUTO",
+              "deviceType": "Safety Relay",
+              "notes": "Pluto safety controller"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "2981091",
+              "deviceType": "Safety Relay",
+              "notes": "Phoenix PSR-SPP-24DC/ESD/5X1/1X2/T10 item number"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "PSR",
+              "deviceType": "Safety Relay"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "PSRMINI",
+              "deviceType": "Safety Relay"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "440C",
+              "deviceType": "Safety Relay"
+            }
+          ]
+        },
+        {
+          "sheetName": "sensor - fluid",
+          "deviceTypes": [
+            "Flow Sensor",
+            "Level Sensor",
+            "Pressure Sensor",
+            "Temperature Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "839E",
+              "deviceType": "Flow Sensor",
+              "notes": "Allen-Bradley flow sensors"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "840E",
+              "deviceType": "Level Sensor",
+              "notes": "Allen-Bradley level sensors"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "836P",
+              "deviceType": "Pressure Sensor",
+              "notes": "Allen-Bradley pressure sensors"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "837T",
+              "deviceType": "Temperature Sensor",
+              "notes": "Allen-Bradley temperature sensors"
+            }
+          ]
+        },
+        {
+          "sheetName": "servo controller",
+          "deviceTypes": [
+            "Soft Starter",
+            "Variable Speed Drive"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "PSE",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "PSTX",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "DS7",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "schneider",
+              "pattern": "ATS",
+              "deviceType": "Soft Starter",
+              "notes": "Altistart"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "3RW",
+              "deviceType": "Soft Starter",
+              "notes": "SIRIUS soft starter"
+            }
+          ]
+        },
+        {
+          "sheetName": "terminal",
+          "deviceTypes": [
+            "Terminal Block"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "UK",
+              "deviceType": "Terminal Block"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "UT",
+              "deviceType": "Terminal Block"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492",
+              "deviceType": "Terminal Block"
+            }
+          ]
+        },
+        {
+          "sheetName": "terminal endbracket",
+          "deviceTypes": [
+            "Terminal Accessory"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "CLIPFIX",
+              "deviceType": "Terminal Accessory"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "E/UK",
+              "deviceType": "Terminal Accessory"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492-EAH",
+              "deviceType": "Terminal Accessory",
+              "notes": "1492 end anchors / end retainers"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492-EAJ",
+              "deviceType": "Terminal Accessory",
+              "notes": "1492 end anchors / end retainers"
+            }
+          ]
+        },
+        {
+          "sheetName": "ventil",
+          "deviceTypes": [
+            "Valve"
+          ],
+          "examples": []
+        }
+      ],
+      "deviceSheetCoverage": {
+        "covered": 2,
+        "total": 41
+      }
+    },
+    "fixtureCoverageRequired": false,
+    "accepted": true
+  },
+  "reports": [
+    {
+      "manufacturerId": "rittal",
+      "catalogNumber": "1480000",
+      "expectedDeviceType": "Enclosure",
+      "actualDeviceType": "Enclosure",
+      "deviceTypeMatched": true,
+      "riskTags": [],
+      "status": "found",
+      "confidence": 0.71,
+      "elapsedMs": 12309,
+      "productUrl": "https://www.rittal.com/ro-ro/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261006100238\\pdt\\rittal-1480000-pdt_pdt-audit.json",
+      "pdtWrittenCells": 36,
+      "pdtBlankCells": 47,
+      "pdtSkippedCells": 6,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 6,
+      "pdtRequiredFieldIssues": 1,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": [],
+      "resultEvidence": {
+        "title": "Plastic enclosures AX without viewing window",
+        "description": "AX plastic enclosures are ideal for applications in challenging situations. Numerous mounting bosses inside the enclosure allow individual interior configuration on a 25 mm pitch pattern, e.g. with punched sections and rails.",
+        "productUrl": "https://www.rittal.com/ro-ro/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+        "normalized": {
+          "weight": "38,2 kg",
+          "dimensions": "1000 x 800 x 300 mm",
+          "material": "Plastic",
+          "wallThickness": "3 mm",
+          "finish": "Ähnlich RAL 7035",
+          "color": "Similar to RAL 7035",
+          "protection": "NEMA 1; IP 66; – NEMA 4X",
+          "certificates": "UL 746, Negative Certificate EN"
+        },
+        "requiredElectricalFields": [],
+        "attributes": [
+          {
+            "group": "Definition List",
+            "name": "Abmessung",
+            "value": "Breite: 800 mmHöhe: 1.000 mmTiefe: 300 mm",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Abmessungen Montageplatte (B x H)",
+            "value": "705 mm x 925 mm",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Anzahl Verschlüsse",
+            "value": "3",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Approbationen",
+            "value": "DNV EN",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Aprobări",
+            "value": "DNV EN",
+            "sourceUrl": "https://www.rittal.com/ro-ro/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Articolul nr.:",
+            "value": "AX 1480000",
+            "sourceUrl": "https://www.rittal.com/ro-ro/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Artikel-Nr.:",
+            "value": "AX 1480000",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Assembly instruction",
+            "value": "Interior installation screws are required to secure components inside the enclosure",
+            "sourceUrl": "https://www.rittal.com/ro-ro/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Ausführung",
+            "value": "ohne Sichtscheibe",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Basic material",
+            "value": "Plastic",
+            "sourceUrl": "https://www.rittal.com/ro-ro/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Bruttogewicht",
+            "value": "38,68 kg",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Certificate",
+            "value": "Negative Certificate EN",
+            "sourceUrl": "https://www.rittal.com/ro-ro/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Colour",
+            "value": "Similar to RAL 7035",
+            "sourceUrl": "https://www.rittal.com/ro-ro/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Customs tariff number",
+            "value": "94037000",
+            "sourceUrl": "https://www.rittal.com/ro-ro/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Datenblätter",
+            "value": "Technik im Detail DE EN",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Declarații",
+            "value": "Declaration of conformity CS DE, EN EN, SK",
+            "sourceUrl": "https://www.rittal.com/ro-ro/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Dimensions mounting plate (W x H)",
+            "value": "705 mm x 925 mm",
+            "sourceUrl": "https://www.rittal.com/ro-ro/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Documentație",
+            "value": "Additional instructions US",
+            "sourceUrl": "https://www.rittal.com/ro-ro/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Dokumentationen",
+            "value": "Anleitung DE EN FR PL RU",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Door opening angle",
+            "value": "130°",
+            "sourceUrl": "https://www.rittal.com/ro-ro/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "EAN",
+            "value": "4028177007086",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "EAN",
+            "value": "4028177007086",
+            "sourceUrl": "https://www.rittal.com/ro-ro/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "ECLASS 8.0",
+            "value": "27180101",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "ECLASS 8.0",
+            "value": "27180101",
+            "sourceUrl": "https://www.rittal.com/ro-ro/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Erklärungen",
+            "value": "Konformitätserklärung CS DE, EN EN, SK",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "ETIM 8",
+            "value": "EC000261",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "ETIM 8",
+            "value": "EC000261",
+            "sourceUrl": "https://www.rittal.com/ro-ro/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "ETIM 9",
+            "value": "EC000261",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "ETIM 9",
+            "value": "EC000261",
+            "sourceUrl": "https://www.rittal.com/ro-ro/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Farbe",
+            "value": "Ähnlich RAL 7035",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Foi de date",
+            "value": "Technical details DE EN",
+            "sourceUrl": "https://www.rittal.com/ro-ro/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Gross weight",
+            "value": "38,68 kg",
+            "sourceUrl": "https://www.rittal.com/ro-ro/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Grundmaterial",
+            "value": "Kunststoff",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "IK Code",
+            "value": "IK09",
+            "sourceUrl": "https://www.rittal.com/ro-ro/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "IK-Code",
+            "value": "IK09",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Lieferumfang",
+            "value": "Gehäuse mit scharnierter Tür, rundum geschlossen, 3 mm Doppelbart-VerschlussTüranschlag rechts, auf links wechselbarMontageplatteDoppelte Abdichtung an Türober- und -unterkante als integrierte Regenschutzleiste",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Material",
+            "value": "Enclosure and door: Fibreglass-reinforced unsaturated polyesterDoor: All-round foamed-in PU sealMounting plate: Sheet steelFire protection corresponding to UL 94-V0Halogen free",
+            "sourceUrl": "https://www.rittal.com/ro-ro/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Material thickness of mounting plate",
+            "value": "3 mm",
+            "sourceUrl": "https://www.rittal.com/ro-ro/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Materialstärke Montageplatte",
+            "value": "3 mm",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Montagehinweis",
+            "value": "Zur Befestigung von Komponenten im Gehäuse werden die Schrauben für Innenausbau benötig",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Net weight",
+            "value": "38,2 kg",
+            "sourceUrl": "https://www.rittal.com/ro-ro/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Nettogewicht",
+            "value": "38,2 kg",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Normen",
+            "value": "Erfüllt das F1 Outdoor-Rating nach UL 746C",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Number of locks",
+            "value": "3",
+            "sourceUrl": "https://www.rittal.com/ro-ro/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Oberfläche",
+            "value": "Gehäuse und Tür: nicht nachbehandelt, Kunststoff eingefärbtMontageplatte: verzinkt",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Product description",
+            "value": "AX Plastic enclosure, WHD: 800x1000x300 mm, without viewing window",
+            "sourceUrl": "https://www.rittal.com/ro-ro/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Produktbeschreibung",
+            "value": "AX Kunststoff-Schaltschrank, BHT: 800x1000x300 mm, ohne Sichtscheibe",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Protection category NEMA",
+            "value": "NEMA 1",
+            "sourceUrl": "https://www.rittal.com/ro-ro/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Protection category to IEC 60 529",
+            "value": "IP 66",
+            "sourceUrl": "https://www.rittal.com/ro-ro/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Protection class",
+            "value": "II (at 1000 V AC)",
+            "sourceUrl": "https://www.rittal.com/ro-ro/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Schutzart IP nach EN 60 529",
+            "value": "IP 66",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Schutzart NEMA",
+            "value": "NEMA 1",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Schutzklasse",
+            "value": "II (bei 1000 V AC)",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Standards",
+            "value": "Meets the F1 outdoor rating to UL 746C",
+            "sourceUrl": "https://www.rittal.com/ro-ro/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Supply includes",
+            "value": "Enclosure with hinged door, of all-round solid construction, 3 mm double-bit lockDoor hinged on the right, may be swapped to the leftMounting plateTwin seal on the top and bottom edges of the door as integral rain protection strip",
+            "sourceUrl": "https://www.rittal.com/ro-ro/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Surface finish",
+            "value": "Enclosure and door: Dyed plastic with no after-treatmentMounting plate: Zinc-plated",
+            "sourceUrl": "https://www.rittal.com/ro-ro/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Türöffnungswinkel",
+            "value": "130°",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Type rating nach UL 50E",
+            "value": "Type 1",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Type rating to UL 50E",
+            "value": "Type 1",
+            "sourceUrl": "https://www.rittal.com/ro-ro/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Verpackungseinheit",
+            "value": "1 Stück",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Zertifikate",
+            "value": "Negativbescheinigung EN",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Zolltarifnummer",
+            "value": "94037000",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Kunststoff-Schaltschränke AX ohne Sichtscheibe",
+            "name": "Artikel-Nr.",
+            "value": "AX 1480000",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Kunststoff-Schaltschränke AX ohne Sichtscheibe",
+            "name": "Bruttogewicht",
+            "value": "38,68 kg",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Kunststoff-Schaltschränke AX ohne Sichtscheibe",
+            "name": "EAN",
+            "value": "4028177007086",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Kunststoff-Schaltschränke AX ohne Sichtscheibe",
+            "name": "Farbe",
+            "value": "hnlich RAL 7035",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Kunststoff-Schaltschränke AX ohne Sichtscheibe",
+            "name": "Grundmaterial",
+            "value": "Kunststoff",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Kunststoff-Schaltschränke AX ohne Sichtscheibe",
+            "name": "IK-Code",
+            "value": "IK09",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Kunststoff-Schaltschränke AX ohne Sichtscheibe",
+            "name": "Materialstärke Montageplatte",
+            "value": "3 mm",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Kunststoff-Schaltschränke AX ohne Sichtscheibe",
+            "name": "Nettogewicht",
+            "value": "38,2 kg",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Kunststoff-Schaltschränke AX ohne Sichtscheibe",
+            "name": "Normen",
+            "value": "Erfüllt das F1 Outdoor-Rating nach UL 746C",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Kunststoff-Schaltschränke AX ohne Sichtscheibe",
+            "name": "Oberfläche",
+            "value": "Gehäuse und Tür: nicht nachbehandelt, Kunststoff eingefärbtMontageplatte: verzinkt",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Kunststoff-Schaltschränke AX ohne Sichtscheibe",
+            "name": "Schutzart IP nach EN 60 529",
+            "value": "IP 66",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Kunststoff-Schaltschränke AX ohne Sichtscheibe",
+            "name": "Schutzklasse",
+            "value": "II (bei 1000 V AC)",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Kunststoff-Schaltschränke AX ohne Sichtscheibe",
+            "name": "Türarretierung für AX Kunststoff, Ex-Gehäuse Kunststoff",
+            "value": "Mehr Details",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Kunststoff-Schaltschränke AX ohne Sichtscheibe",
+            "name": "Türöffnungswinkel",
+            "value": "130°",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Kunststoff-Schaltschränke AX ohne Sichtscheibe",
+            "name": "Türpositionsschalter für Systemleuchte LED",
+            "value": "Produkte anzeigen",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Breite",
+            "value": "800 mm / 1.000 mm",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Bruttogewicht",
+            "value": "38.68 kg",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Depth",
+            "value": "300 mm",
+            "sourceUrl": "https://www.rittal.com/ro-ro/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Gross weight",
+            "value": "38.68 kg",
+            "sourceUrl": "https://www.rittal.com/ro-ro/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Height",
+            "value": "1000 mm",
+            "sourceUrl": "https://www.rittal.com/ro-ro/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Material thickness",
+            "value": "3 mm / 705 mm / 925 mm",
+            "sourceUrl": "https://www.rittal.com/ro-ro/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Net weight",
+            "value": "38.2 kg",
+            "sourceUrl": "https://www.rittal.com/ro-ro/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Nettogewicht",
+            "value": "38.2 kg",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Tiefe",
+            "value": "300 mm / 3 mm / 705 mm / 925 mm",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Width",
+            "value": "800 mm",
+            "sourceUrl": "https://www.rittal.com/ro-ro/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Plain Text",
+            "name": "api",
+            "value": "2020.09",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Plain Text",
+            "name": "api",
+            "value": "2020.09",
+            "sourceUrl": "https://www.rittal.com/ro-ro/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Plain Text",
+            "name": "AX Kunststoff-Schaltschrank, BHT",
+            "value": "800x1000x300 mm, ohne Sichtscheibe",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Plain Text",
+            "name": "AX Plastic enclosure, WHD",
+            "value": "800x1000x300 mm, without viewing window",
+            "sourceUrl": "https://www.rittal.com/ro-ro/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Plain Text",
+            "name": "Breite",
+            "value": "800 mm H&ouml;he: 1.000 mm Tiefe: 300 mm",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Plain Text",
+            "name": "Einsatz im Umgebungstemperaturbereich",
+            "value": "-30 °C...+75 °C Die angegebenen Temperaturen k&ouml;nnen durch die eingebauten Ger&auml;te begrenzt werden",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Plain Text",
+            "name": "Enclosure and door",
+            "value": "Fibreglass-reinforced unsaturated polyester Door: All-round foamed-in PU seal Mounting plate: Sheet steel Fire protection corresponding to UL 94-V0 Halogen free",
+            "sourceUrl": "https://www.rittal.com/ro-ro/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Plain Text",
+            "name": "Enclosure and door",
+            "value": "Dyed plastic with no after-treatment Mounting plate: Zinc-plated",
+            "sourceUrl": "https://www.rittal.com/ro-ro/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Plain Text",
+            "name": "Geh&auml;use und T&uuml;r",
+            "value": "nicht nachbehandelt, Kunststoff eingef&auml;rbt Montageplatte: verzinkt",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Plain Text",
+            "name": "is=\"vue",
+            "value": "ProductHeader\"",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Plain Text",
+            "name": "is=\"vue",
+            "value": "ProductHeader\"",
+            "sourceUrl": "https://www.rittal.com/ro-ro/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "Customs tariff number",
+            "value": "94037000",
+            "sourceUrl": "https://www.rittal.com/ro-ro/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "Depth",
+            "value": "300 mm",
+            "sourceUrl": "https://www.rittal.com/ro-ro/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "ETIM 8",
+            "value": "EC000261",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "ETIM 8",
+            "value": "EC000261",
+            "sourceUrl": "https://www.rittal.com/ro-ro/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "ETIM 9",
+            "value": "EC000261",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "ETIM 9",
+            "value": "EC000261",
+            "sourceUrl": "https://www.rittal.com/ro-ro/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "Height",
+            "value": "1,000 mm",
+            "sourceUrl": "https://www.rittal.com/ro-ro/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "Material",
+            "value": "Geh&auml",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "Material",
+            "value": "gem&auml;&szlig; UL 94 V-0",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Plastic enclosures AX without viewing window",
+            "name": "Basic material",
+            "value": "Plastic",
+            "sourceUrl": "https://www.rittal.com/ro-ro/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Plastic enclosures AX without viewing window",
+            "name": "Colour",
+            "value": "Similar to RAL 7035",
+            "sourceUrl": "https://www.rittal.com/ro-ro/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Plastic enclosures AX without viewing window",
+            "name": "Dimensions mounting plate (W x H)",
+            "value": "705 mm x 925 mm",
+            "sourceUrl": "https://www.rittal.com/ro-ro/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Plastic enclosures AX without viewing window",
+            "name": "Door stay for AX plastic, Ex enclosures plastic",
+            "value": "Mai multe detalii",
+            "sourceUrl": "https://www.rittal.com/ro-ro/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Plastic enclosures AX without viewing window",
+            "name": "EAN",
+            "value": "4028177007086",
+            "sourceUrl": "https://www.rittal.com/ro-ro/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Plastic enclosures AX without viewing window",
+            "name": "Gross weight",
+            "value": "38,68 kg",
+            "sourceUrl": "https://www.rittal.com/ro-ro/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Plastic enclosures AX without viewing window",
+            "name": "IK Code",
+            "value": "IK09",
+            "sourceUrl": "https://www.rittal.com/ro-ro/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Plastic enclosures AX without viewing window",
+            "name": "Material",
+            "value": "Enclosure and door: Fibreglass-reinforced unsaturated polyesterDoor: All-round foamed-in PU sealMounting plate: Sheet steelFire protection corresponding to UL 94-V0Halogen free",
+            "sourceUrl": "https://www.rittal.com/ro-ro/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Plastic enclosures AX without viewing window",
+            "name": "Material thickness of mounting plate",
+            "value": "3 mm",
+            "sourceUrl": "https://www.rittal.com/ro-ro/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Plastic enclosures AX without viewing window",
+            "name": "Net weight",
+            "value": "38,2 kg",
+            "sourceUrl": "https://www.rittal.com/ro-ro/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Plastic enclosures AX without viewing window",
+            "name": "Pole clamp for AX, KX, AX plastic, AX IT, CS wall-mounted enclosures",
+            "value": "Mai multe detalii",
+            "sourceUrl": "https://www.rittal.com/ro-ro/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Plastic enclosures AX without viewing window",
+            "name": "Protection category to IEC 60 529",
+            "value": "IP 66",
+            "sourceUrl": "https://www.rittal.com/ro-ro/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Plastic enclosures AX without viewing window",
+            "name": "Protection class",
+            "value": "II (at 1000 V AC)",
+            "sourceUrl": "https://www.rittal.com/ro-ro/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Plastic enclosures AX without viewing window",
+            "name": "Screws for interior installation for AX plastic",
+            "value": "Mai multe detalii",
+            "sourceUrl": "https://www.rittal.com/ro-ro/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Plastic enclosures AX without viewing window",
+            "name": "Standards",
+            "value": "Meets the F1 outdoor rating to UL 746C",
+            "sourceUrl": "https://www.rittal.com/ro-ro/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Plastic enclosures AX without viewing window",
+            "name": "Surface finish",
+            "value": "Enclosure and door: Dyed plastic with no after-treatmentMounting plate: Zinc-plated",
+            "sourceUrl": "https://www.rittal.com/ro-ro/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Plastic enclosures AX without viewing window",
+            "name": "Universal bracket for AX plastic, Ex enclosures plastic",
+            "value": "Mai multe detalii",
+            "sourceUrl": "https://www.rittal.com/ro-ro/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Plastic enclosures AX without viewing window",
+            "name": "Wall mounting bracket for AX plastic",
+            "value": "Mai multe detalii",
+            "sourceUrl": "https://www.rittal.com/ro-ro/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "1432.000, 1479.000, 1480.000",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_8224/1480000_Technical_details_DE",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "1480.000 800 795,9 726,6 654 675 744,3 750 – 1000 976,4 950,6 878 900 944,3 950 – 300 276,5 266 705 675 925 900 3 ◾ –",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_8224/1480000_Technical_details_DE",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Document",
+            "name": "Parsed document",
+            "value": "1480000_Technical_details_DE",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_8224/1480000_Technical_details_DE",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "1480.000",
+            "value": "800 795,9 726,6 654 675 744,3 750 – | 1000 976,4 950,6 878 900 944,3 950 – 300 276,5 266 705 675 925 900 3 | ◾ | –",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_8224/1480000_Technical_details_DE",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "B1",
+            "value": "Gehäusebreite (Gesamtbreite)",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_8224/1480000_Technical_details_DE",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "B2",
+            "value": "Türbreite",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_8224/1480000_Technical_details_DE",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "B3",
+            "value": "Lichte Breite Gehäuseöffnung",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_8224/1480000_Technical_details_DE",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "B4",
+            "value": "Lichte Breite zwischen Türverstärkung",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_8224/1480000_Technical_details_DE",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "B5",
+            "value": "Befestigungsabstand Türverstärkung",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_8224/1480000_Technical_details_DE",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "B6",
+            "value": "Breiten-Befestigungsabstand Gehäuse",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_8224/1480000_Technical_details_DE",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "B7",
+            "value": "Befestigungsabstand lichte",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_8224/1480000_Technical_details_DE",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "H1",
+            "value": "Gehäusehöhe (Gesamthöhe)",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_8224/1480000_Technical_details_DE",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "H2",
+            "value": "Türhöhe",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_8224/1480000_Technical_details_DE",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "H3",
+            "value": "Lichte Höhe Gehäuseöffnung",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_8224/1480000_Technical_details_DE",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "H4",
+            "value": "Lichte Höhe zwischen Türverstärkung",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_8224/1480000_Technical_details_DE",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "H5",
+            "value": "Befestigungsabstand Türverstärkung",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_8224/1480000_Technical_details_DE",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "H6",
+            "value": "Höhen-Befestigungsabstand Gehäuse",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_8224/1480000_Technical_details_DE",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "H7",
+            "value": "Befestigungsabstand lichte",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_8224/1480000_Technical_details_DE",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "H8",
+            "value": "Sichtbare Höhe bei Ausführung",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_8224/1480000_Technical_details_DE",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "T1",
+            "value": "Gesamttiefe",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_8224/1480000_Technical_details_DE",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "T2",
+            "value": "Gehäusetiefe",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_8224/1480000_Technical_details_DE",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "T3",
+            "value": "Einbautiefe (Abstand Türinnenseite",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_8224/1480000_Technical_details_DE",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "F1",
+            "value": "Montageplattenbreite",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_8224/1480000_Technical_details_DE",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "F2",
+            "value": "Mittenabstand der",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_8224/1480000_Technical_details_DE",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "G1",
+            "value": "Montageplattenhöhe",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_8224/1480000_Technical_details_DE",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Rückseite",
+            "value": "Innenansicht der Tür",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_8224/1480000_Technical_details_DE",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "B1",
+            "value": "B2 | B3 | B4 B5 | B6 | B7 B8 | H1 | H2 | H3 | H4 H5 | H6 | H7 H8 T1 | T2 | T3 F1 F2 G1 G2 M | Ohne | Mit",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_8224/1480000_Technical_details_DE",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "1432.000",
+            "value": "250 245,9 176,6 104 125 202,2 200 – | 350 326,4 300,6 228 250 302,2 300 – 150 126,5 116 155 125 275 250 2,5 | ◾ | –",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_8224/1480000_Technical_details_DE",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "M",
+            "value": "Montageplattenstärke",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_8224/1480000_Technical_details_DE",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Feature",
+            "value": "19 AX Fiberglass Reinforced Polyester enclosures AX Further technical information available on the Internet.",
+            "sourceUrl": "https://www.rittal.com/imf/none/21_2452/1480000_Additional_instructions_US",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual - Enclosure",
+            "name": "Feature",
+            "value": "protection rating",
+            "sourceUrl": "https://www.rittal.com/imf/none/21_2452/1480000_Additional_instructions_US",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual - Enclosure",
+            "name": "Feature",
+            "value": "7 AX Fiberglass Reinforced Polyester enclosures AX",
+            "sourceUrl": "https://www.rittal.com/imf/none/21_2452/1480000_Additional_instructions_US",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual - Enclosure",
+            "name": "Feature",
+            "value": "– Mounting plate: Sheet steel",
+            "sourceUrl": "https://www.rittal.com/imf/none/21_2452/1480000_Additional_instructions_US",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual - Enclosure",
+            "name": "Feature",
+            "value": "– IP 66",
+            "sourceUrl": "https://www.rittal.com/imf/none/21_2452/1480000_Additional_instructions_US",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual - Enclosure",
+            "name": "Feature",
+            "value": "Protection category NEMA:",
+            "sourceUrl": "https://www.rittal.com/imf/none/21_2452/1480000_Additional_instructions_US",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual - Enclosure",
+            "name": "Feature",
+            "value": "– NEMA 4X",
+            "sourceUrl": "https://www.rittal.com/imf/none/21_2452/1480000_Additional_instructions_US",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual - Enclosure",
+            "name": "Feature",
+            "value": "– UL",
+            "sourceUrl": "https://www.rittal.com/imf/none/21_2452/1480000_Additional_instructions_US",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual - Enclosure",
+            "name": "Feature",
+            "value": "Thanks to its high UV resistance – confirmed by an F1 rating to UL 746C – alongside further",
+            "sourceUrl": "https://www.rittal.com/imf/none/21_2452/1480000_Additional_instructions_US",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Document",
+            "name": "Parsed document",
+            "value": "1480000_Additional_instructions_US",
+            "sourceUrl": "https://www.rittal.com/imf/none/21_2452/1480000_Additional_instructions_US",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Width (B) mm",
+            "value": "Packs of | 250 | 300 | 400 | 500 | 600 | 800 | Page",
+            "sourceUrl": "https://www.rittal.com/imf/none/21_2452/1480000_Additional_instructions_US",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Height (H) mm",
+            "value": "350 | 400 | 600 | 500 | 800 | 1000",
+            "sourceUrl": "https://www.rittal.com/imf/none/21_2452/1480000_Additional_instructions_US",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Depth (T) mm",
+            "value": "150 | 200 | 300",
+            "sourceUrl": "https://www.rittal.com/imf/none/21_2452/1480000_Additional_instructions_US",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Mounting plate width (F) mm",
+            "value": "155 | 205 | 305 | 405 | 505 | 705",
+            "sourceUrl": "https://www.rittal.com/imf/none/21_2452/1480000_Additional_instructions_US",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Mounting plate height (G) mm",
+            "value": "275 | 325 | 525 | 425 | 725 | 925",
+            "sourceUrl": "https://www.rittal.com/imf/none/21_2452/1480000_Additional_instructions_US",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Mounting plate thickness mm",
+            "value": "2.5 | 3.0",
+            "sourceUrl": "https://www.rittal.com/imf/none/21_2452/1480000_Additional_instructions_US",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Weight kg",
+            "value": "4.4 | 6.3 | 7.8 | 11.1 | 13.1 | 15.5 | 22.4 | 34.2",
+            "sourceUrl": "https://www.rittal.com/imf/none/21_2452/1480000_Additional_instructions_US",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Cam lock",
+            "value": "1 | 2 | 3",
+            "sourceUrl": "https://www.rittal.com/imf/none/21_2452/1480000_Additional_instructions_US",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "19 AX Fiberglass Reinforced Polyester enclosures AX",
+            "value": "Further technical information available on the Internet.",
+            "sourceUrl": "https://www.rittal.com/imf/none/21_2452/1480000_Additional_instructions_US",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual - Enclosure",
+            "name": "B1 = Enclosure width",
+            "value": "(overall width)",
+            "sourceUrl": "https://www.rittal.com/imf/none/21_2452/1480000_Additional_instructions_US",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual - Enclosure",
+            "name": "B2",
+            "value": "Door width",
+            "sourceUrl": "https://www.rittal.com/imf/none/21_2452/1480000_Additional_instructions_US",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual - Enclosure",
+            "name": "B3 = Clearance width,",
+            "value": "enclosure opening",
+            "sourceUrl": "https://www.rittal.com/imf/none/21_2452/1480000_Additional_instructions_US",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual - Enclosure",
+            "name": "B4 = Clearance width",
+            "value": "between door",
+            "sourceUrl": "https://www.rittal.com/imf/none/21_2452/1480000_Additional_instructions_US",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual - Enclosure",
+            "name": "B5",
+            "value": "Distance between door reinforcement",
+            "sourceUrl": "https://www.rittal.com/imf/none/21_2452/1480000_Additional_instructions_US",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual - Enclosure",
+            "name": "B6 = Width",
+            "value": "spacing of enclosure",
+            "sourceUrl": "https://www.rittal.com/imf/none/21_2452/1480000_Additional_instructions_US",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual - Enclosure",
+            "name": "Mounting",
+            "value": "points",
+            "sourceUrl": "https://www.rittal.com/imf/none/21_2452/1480000_Additional_instructions_US",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual - Enclosure",
+            "name": "B7 = Clear enclosure width",
+            "value": "between",
+            "sourceUrl": "https://www.rittal.com/imf/none/21_2452/1480000_Additional_instructions_US",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual - Enclosure",
+            "name": "B8 = Visible width for",
+            "value": "versions with",
+            "sourceUrl": "https://www.rittal.com/imf/none/21_2452/1480000_Additional_instructions_US",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual - Enclosure",
+            "name": "H1 = Enclosure height",
+            "value": "(overall height)",
+            "sourceUrl": "https://www.rittal.com/imf/none/21_2452/1480000_Additional_instructions_US",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual - Enclosure",
+            "name": "H2",
+            "value": "Door height",
+            "sourceUrl": "https://www.rittal.com/imf/none/21_2452/1480000_Additional_instructions_US",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual - Enclosure",
+            "name": "H3 = Clearance height,",
+            "value": "enclosure opening",
+            "sourceUrl": "https://www.rittal.com/imf/none/21_2452/1480000_Additional_instructions_US",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual - Enclosure",
+            "name": "H4 = Clearance height",
+            "value": "between door",
+            "sourceUrl": "https://www.rittal.com/imf/none/21_2452/1480000_Additional_instructions_US",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual - Enclosure",
+            "name": "H5",
+            "value": "Distance between door reinforcement",
+            "sourceUrl": "https://www.rittal.com/imf/none/21_2452/1480000_Additional_instructions_US",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual - Enclosure",
+            "name": "H6 = Height",
+            "value": "spacing of enclosure",
+            "sourceUrl": "https://www.rittal.com/imf/none/21_2452/1480000_Additional_instructions_US",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual - Enclosure",
+            "name": "H7 = Clear enclosure height",
+            "value": "between",
+            "sourceUrl": "https://www.rittal.com/imf/none/21_2452/1480000_Additional_instructions_US",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual - Enclosure",
+            "name": "H8 = Visible height for",
+            "value": "versions with",
+            "sourceUrl": "https://www.rittal.com/imf/none/21_2452/1480000_Additional_instructions_US",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual - Enclosure",
+            "name": "T1 = Overall",
+            "value": "depth",
+            "sourceUrl": "https://www.rittal.com/imf/none/21_2452/1480000_Additional_instructions_US",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual - Enclosure",
+            "name": "T2",
+            "value": "Enclosure depth",
+            "sourceUrl": "https://www.rittal.com/imf/none/21_2452/1480000_Additional_instructions_US",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual - Enclosure",
+            "name": "protection rating",
+            "value": "7 AX Fiberglass Reinforced Polyester enclosures AX",
+            "sourceUrl": "https://www.rittal.com/imf/none/21_2452/1480000_Additional_instructions_US",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual - Enclosure",
+            "name": "to UL",
+            "value": "94 V-0",
+            "sourceUrl": "https://www.rittal.com/imf/none/21_2452/1480000_Additional_instructions_US",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual - Enclosure",
+            "name": "– Mounting plate",
+            "value": "Sheet steel",
+            "sourceUrl": "https://www.rittal.com/imf/none/21_2452/1480000_Additional_instructions_US",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual - Enclosure",
+            "name": "– Mounting plate",
+            "value": "Zinc-plated",
+            "sourceUrl": "https://www.rittal.com/imf/none/21_2452/1480000_Additional_instructions_US",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual - Enclosure",
+            "name": "– Similar to RAL",
+            "value": "7035",
+            "sourceUrl": "https://www.rittal.com/imf/none/21_2452/1480000_Additional_instructions_US",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual - Enclosure",
+            "name": "Protection",
+            "value": "class:",
+            "sourceUrl": "https://www.rittal.com/imf/none/21_2452/1480000_Additional_instructions_US",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual - Enclosure",
+            "name": "– IP",
+            "value": "66",
+            "sourceUrl": "https://www.rittal.com/imf/none/21_2452/1480000_Additional_instructions_US",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual - Enclosure",
+            "name": "Protection",
+            "value": "category NEMA:",
+            "sourceUrl": "https://www.rittal.com/imf/none/21_2452/1480000_Additional_instructions_US",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual - Enclosure",
+            "name": "– NEMA",
+            "value": "4X",
+            "sourceUrl": "https://www.rittal.com/imf/none/21_2452/1480000_Additional_instructions_US",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual - Enclosure",
+            "name": "– Interior installation",
+            "value": "screws",
+            "sourceUrl": "https://www.rittal.com/imf/none/21_2452/1480000_Additional_instructions_US",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual - Enclosure",
+            "name": "Wall mounting bracket",
+            "value": "4 pc(s). 1485.400 1485.400 1485.400 1485.400 1485.400 1485.400 1485.400 1485.400 | 11",
+            "sourceUrl": "https://www.rittal.com/imf/none/21_2452/1480000_Additional_instructions_US",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual - Enclosure",
+            "name": "Pole clamp",
+            "value": "2 pc(s). 2584.100 2584.100 2584.100 2584.100 2584.100 2584.100 2584.100 | – | 12",
+            "sourceUrl": "https://www.rittal.com/imf/none/21_2452/1480000_Additional_instructions_US",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual - Enclosure",
+            "name": "Screw for interior installation",
+            "value": "50 pc(s). 1485.300 1485.300 1485.300 1485.300 1485.300 1485.300 1485.300 1485.300 | 12",
+            "sourceUrl": "https://www.rittal.com/imf/none/21_2452/1480000_Additional_instructions_US",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual - Enclosure",
+            "name": "Wiring plan pocket",
+            "value": "1 pc(s). | – | 4116.500 4116.500 4118.500 | 14",
+            "sourceUrl": "https://www.rittal.com/imf/none/21_2452/1480000_Additional_instructions_US",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual - Enclosure",
+            "name": "B1",
+            "value": "B2 | B3 | B4 B5 | B6 | B7 B8 | H1 | H2 | H3 H4 H5 | H6 H7 H8 T1 | T2 | T3 F1 F2 G1 G2 M Without | With",
+            "sourceUrl": "https://www.rittal.com/imf/none/21_2452/1480000_Additional_instructions_US",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual - Enclosure",
+            "name": "1432.000",
+            "value": "250 245.9 176.6 104 125 202.2 200 – | 350 326.4 300.6 228 250 302.2 300 – 150 126.5 116 155 125 275 250 2.5 | ◾ | –",
+            "sourceUrl": "https://www.rittal.com/imf/none/21_2452/1480000_Additional_instructions_US",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Positioned Table",
+            "name": "Weight kg",
+            "value": "34.2",
+            "sourceUrl": "https://www.rittal.com/imf/none/21_2452/1480000_Additional_instructions_US",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "confidence": 0.88,
+            "stage": "enrich-documents"
+          },
+          {
+            "group": "PDF Positioned Table",
+            "name": "Product-specific scope of supply",
+            "value": "34.2",
+            "sourceUrl": "https://www.rittal.com/imf/none/21_2452/1480000_Additional_instructions_US",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "confidence": 0.88,
+            "stage": "enrich-documents"
+          },
+          {
+            "group": "PDF Positioned Table",
+            "name": "Cam lock",
+            "value": "3",
+            "sourceUrl": "https://www.rittal.com/imf/none/21_2452/1480000_Additional_instructions_US",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "confidence": 0.88,
+            "stage": "enrich-documents"
+          },
+          {
+            "group": "PDF Positioned Table",
+            "name": "Accessories",
+            "value": "3",
+            "sourceUrl": "https://www.rittal.com/imf/none/21_2452/1480000_Additional_instructions_US",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "confidence": 0.88,
+            "stage": "enrich-documents"
+          },
+          {
+            "group": "PDF Positioned Table",
+            "name": "Wall mounting bracket 4 pc(s).",
+            "value": "1485.400",
+            "sourceUrl": "https://www.rittal.com/imf/none/21_2452/1480000_Additional_instructions_US",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "confidence": 0.88,
+            "stage": "enrich-documents"
+          },
+          {
+            "group": "PDF Positioned Table",
+            "name": "Pole clamp 2 pc(s).",
+            "value": "1485.400",
+            "sourceUrl": "https://www.rittal.com/imf/none/21_2452/1480000_Additional_instructions_US",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "confidence": 0.88,
+            "stage": "enrich-documents"
+          },
+          {
+            "group": "PDF Positioned Table",
+            "name": "Universal bracket 4 pc(s).",
+            "value": "1485.200",
+            "sourceUrl": "https://www.rittal.com/imf/none/21_2452/1480000_Additional_instructions_US",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "confidence": 0.88,
+            "stage": "enrich-documents"
+          },
+          {
+            "group": "PDF Positioned Table",
+            "name": "Door stay 2 pc(s).",
+            "value": "1485.100",
+            "sourceUrl": "https://www.rittal.com/imf/none/21_2452/1480000_Additional_instructions_US",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "confidence": 0.88,
+            "stage": "enrich-documents"
+          },
+          {
+            "group": "PDF Positioned Table",
+            "name": "LED system light",
+            "value": "2500.110",
+            "sourceUrl": "https://www.rittal.com/imf/none/21_2452/1480000_Additional_instructions_US",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "confidence": 0.88,
+            "stage": "enrich-documents"
+          },
+          {
+            "group": "PDF Positioned Table",
+            "name": "Mini-comfort handle AX 1 pc(s).",
+            "value": "1485.600",
+            "sourceUrl": "https://www.rittal.com/imf/none/21_2452/1480000_Additional_instructions_US",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "confidence": 0.88,
+            "stage": "enrich-documents"
+          },
+          {
+            "group": "PDF Positioned Table",
+            "name": "Cable gland",
+            "value": "see page",
+            "sourceUrl": "https://www.rittal.com/imf/none/21_2452/1480000_Additional_instructions_US",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "confidence": 0.88,
+            "stage": "enrich-documents"
+          },
+          {
+            "group": "PDF Positioned Table",
+            "name": "Screw for interior installation 50 pc(s).",
+            "value": "1485.300",
+            "sourceUrl": "https://www.rittal.com/imf/none/21_2452/1480000_Additional_instructions_US",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "confidence": 0.88,
+            "stage": "enrich-documents"
+          },
+          {
+            "group": "PDF Positioned Table",
+            "name": "Wiring plan pocket 1 pc(s).",
+            "value": "4118.500",
+            "sourceUrl": "https://www.rittal.com/imf/none/21_2452/1480000_Additional_instructions_US",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "confidence": 0.88,
+            "stage": "enrich-documents"
+          },
+          {
+            "group": "PDF Positioned Table",
+            "name": "Punched section with mounting flange 23 x 64 mm,",
+            "value": "8617.150",
+            "sourceUrl": "https://www.rittal.com/imf/none/21_2452/1480000_Additional_instructions_US",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "confidence": 0.88,
+            "stage": "enrich-documents"
+          },
+          {
+            "group": "PDF Positioned Table",
+            "name": "installation in the height",
+            "value": "8617.150",
+            "sourceUrl": "https://www.rittal.com/imf/none/21_2452/1480000_Additional_instructions_US",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "confidence": 0.88,
+            "stage": "enrich-documents"
+          },
+          {
+            "group": "PDF Positioned Table",
+            "name": "installation in the width",
+            "value": "8617.140",
+            "sourceUrl": "https://www.rittal.com/imf/none/21_2452/1480000_Additional_instructions_US",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "confidence": 0.88,
+            "stage": "enrich-documents"
+          },
+          {
+            "group": "PDF Positioned Table",
+            "name": "Support strips, installation in the door 20 pc(s).",
+            "value": "4598.000",
+            "sourceUrl": "https://www.rittal.com/imf/none/21_2452/1480000_Additional_instructions_US",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "confidence": 0.88,
+            "stage": "enrich-documents"
+          },
+          {
+            "group": "PDF Positioned Table",
+            "name": "Punched section with mounting flange 14 x 39 mm,",
+            "value": "8619.730",
+            "sourceUrl": "https://www.rittal.com/imf/none/21_2452/1480000_Additional_instructions_US",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "confidence": 0.88,
+            "stage": "enrich-documents"
+          },
+          {
+            "group": "PDF Positioned Table",
+            "name": "installation in the door",
+            "value": "8619.730",
+            "sourceUrl": "https://www.rittal.com/imf/none/21_2452/1480000_Additional_instructions_US",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "confidence": 0.88,
+            "stage": "enrich-documents"
+          },
+          {
+            "group": "PDF Positioned Table",
+            "name": "dimensions",
+            "value": "– 300 276.5 266 705 675 925 900",
+            "sourceUrl": "https://www.rittal.com/imf/none/21_2452/1480000_Additional_instructions_US",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "confidence": 0.88,
+            "stage": "enrich-documents"
+          },
+          {
+            "group": "PDF Positioned Table",
+            "name": "Viewing window",
+            "value": "3 ◾",
+            "sourceUrl": "https://www.rittal.com/imf/none/21_2452/1480000_Additional_instructions_US",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "confidence": 0.88,
+            "stage": "enrich-documents"
+          }
+        ],
+        "documents": [
+          {
+            "type": "datasheet",
+            "label": "1480000_Technical_details_DE",
+            "url": "https://www.rittal.com/imf/none/3_8224/1480000_Technical_details_DE",
+            "sourceUrl": "https://www.rittal.com/ro-ro/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86,
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261006100238\\documents\\1480000-datasheet-1480000_Technical_details_DE.pdf",
+            "downloadStatus": "downloaded",
+            "parseStatus": "parsed"
+          },
+          {
+            "type": "datasheet",
+            "label": "1480000_Technical_details_EN",
+            "url": "https://www.rittal.com/imf/none/3_8321/1480000_Technical_details_EN",
+            "sourceUrl": "https://www.rittal.com/ro-ro/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "type": "manual",
+            "label": "1480000_Additional_instructions_US",
+            "url": "https://www.rittal.com/imf/none/21_2452/1480000_Additional_instructions_US",
+            "sourceUrl": "https://www.rittal.com/ro-ro/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86,
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261006100238\\documents\\1480000-manual-1480000_Additional_instructions_US.pdf",
+            "downloadStatus": "downloaded",
+            "parseStatus": "parsed"
+          },
+          {
+            "type": "manual",
+            "label": "1480000_Instructions_DE",
+            "url": "https://www.rittal.com/imf/none/3_8369/1480000_Instructions_DE",
+            "sourceUrl": "https://www.rittal.com/ro-ro/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "type": "manual",
+            "label": "1480000_Instructions_EN",
+            "url": "https://www.rittal.com/imf/none/3_8370/1480000_Instructions_EN",
+            "sourceUrl": "https://www.rittal.com/ro-ro/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "type": "manual",
+            "label": "1480000_Instructions_FR",
+            "url": "https://www.rittal.com/imf/none/3_8371/1480000_Instructions_FR",
+            "sourceUrl": "https://www.rittal.com/ro-ro/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "type": "manual",
+            "label": "1480000_Instructions_PL",
+            "url": "https://www.rittal.com/imf/none/3_8372/1480000_Instructions_PL",
+            "sourceUrl": "https://www.rittal.com/ro-ro/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "type": "manual",
+            "label": "1480000_Instructions_RU",
+            "url": "https://www.rittal.com/imf/none/3_9269/1480000_Instructions_RU",
+            "sourceUrl": "https://www.rittal.com/ro-ro/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "type": "manual",
+            "label": "1480000_Safety_instructions_DE_EN_ES_FI_FR_IT_NL_PL_RU_SV",
+            "url": "https://www.rittal.com/imf/none/3_8072/1480000_Safety_instructions_DE_EN_ES_FI_FR_IT_NL_PL_RU_SV",
+            "sourceUrl": "https://www.rittal.com/ro-ro/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "type": "image",
+            "label": "og:image",
+            "url": "https://www.rittal.com/imf/x1200/78_3469/",
+            "sourceUrl": "https://www.rittal.com/ro-ro/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86,
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261006100238\\images\\RIT.1480000.png",
+            "downloadStatus": "downloaded",
+            "parseStatus": "skipped"
+          }
+        ],
+        "sources": [
+          {
+            "url": "https://www.rittal.com/ro-ro/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "parserVersion": "generic-v3",
+            "fetchedAt": "2026-10-06T10:02:40.301Z",
+            "statusCode": 200
+          },
+          {
+            "url": "https://www.rittal.com/de-de/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "parserVersion": "generic-v3",
+            "fetchedAt": "2026-10-06T10:02:39.569Z",
+            "statusCode": 200
+          },
+          {
+            "url": "https://www.rittal.com/imf/none/3_8224/1480000_Technical_details_DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "reason": "datasheet",
+            "fetchedAt": "2026-10-06T10:02:45.442Z"
+          },
+          {
+            "url": "https://www.rittal.com/imf/none/21_2452/1480000_Additional_instructions_US",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "reason": "manual",
+            "fetchedAt": "2026-10-06T10:02:48.566Z"
+          }
+        ],
+        "qualityGate": {
+          "passed": true,
+          "identityConfirmed": true,
+          "score": 100,
+          "missing": [],
+          "reason": "Quality gate passed.",
+          "attempts": [
+            {
+              "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+              "url": "https://www.rittal.com/ro-ro/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+              "status": "passed",
+              "score": 100,
+              "missing": [],
+              "reason": "Quality gate passed.",
+              "sourceType": "official-fallback",
+              "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+              "statusCode": 200,
+              "attributeCount": 125,
+              "documentCount": 10,
+              "sectionAttributeCounts": {}
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

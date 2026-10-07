@@ -318,7 +318,7 @@ interface DownloadedDocumentOutcome {
   parseFailure?: string;
 }
 
-async function processOneDownloadedDocument(doc: DocumentRecord, catalogNumber: string): Promise<DownloadedDocumentOutcome> {
+async function processOneDownloadedDocument(doc: DocumentRecord, catalogNumber: string, manufacturerId?: string): Promise<DownloadedDocumentOutcome> {
   const started = Date.now();
   if (!shouldParsePdfDocument(doc)) {
     return {
@@ -334,24 +334,28 @@ async function processOneDownloadedDocument(doc: DocumentRecord, catalogNumber: 
     // pages away from the catalog table. Keep both the target rows and global spec rows.
     const scope = buildDocumentParseScope(text, catalogNumber);
     const exactSiemensDatasheet = isExactSiemensProductDatasheet(doc, text, catalogNumber);
+    const exactSchneiderDatasheet = isExactSchneiderCatalogDatasheet(doc, catalogNumber);
+    const skipTechnicalSpecMining = shouldSkipEnvironmentalDeclarationSpecMining(doc);
     // Balluff's exact product datasheets are addressed by a product-specific publication id,
     // but often contain only the full type code (not the short catalog number used by the PDP,
     // e.g. BIS00Z5). The URL is already selected from that exact official PDP, so allowing the
     // normal technical sweep here is safe and preserves dimensions/weight from the authoritative PDF.
     const balluffExactDatasheet = doc.type === "datasheet" && /(^|:)\/\/publications\.balluff\.com\/pdfengine\/pdf(?:[/?#]|$)/i.test(doc.url);
     let attributes = [
-      ...extractDocumentTextAttributes({
+      ...(skipTechnicalSpecMining ? [] : extractDocumentTextAttributes({
         catalogNumber,
         document: doc,
-          text: balluffExactDatasheet || exactSiemensDatasheet ? text : scope.text,
+          text: balluffExactDatasheet || exactSiemensDatasheet || exactSchneiderDatasheet ? text : scope.text,
           tables,
-          scopeUnresolved: !scope.resolved && !balluffExactDatasheet && !exactSiemensDatasheet,
+          scopeUnresolved: !scope.resolved && !balluffExactDatasheet && !exactSiemensDatasheet && !exactSchneiderDatasheet,
         matchLevel: scope.match?.level
-      }),
-      ...extractOcrPositionedTableAttributes(pdfText.ocrPositionedItems, catalogNumber, doc.url),
+      })),
+      ...(skipTechnicalSpecMining ? [] : extractOcrPositionedTableAttributes(pdfText.ocrPositionedItems, catalogNumber, doc.url)),
       ...(await extractComplianceMatrixAttributesSafely(text, doc.localPath!, catalogNumber, doc.url))
     ];
-    const positionedAttributes = await extractPositionedWeightDimensionsSafely(doc.localPath!, catalogNumber, doc.url, attributes, looksLikeMultiVariantFamilyPage(text, catalogNumber), pdfText.nativePositionedItemsByPage);
+    const positionedAttributes = skipTechnicalSpecMining
+      ? []
+      : await extractPositionedWeightDimensionsSafely(doc.localPath!, catalogNumber, doc.url, attributes, looksLikeMultiVariantFamilyPage(text, catalogNumber), pdfText.nativePositionedItemsByPage);
     attributes.push(...positionedAttributes);
     attributes = discardUnscopedFamilyTableCandidates(attributes, catalogNumber, positionedAttributes);
     const substantive = documentAttributesAreSubstantive(attributes);
@@ -373,7 +377,7 @@ async function processOneDownloadedDocument(doc: DocumentRecord, catalogNumber: 
             ? ""
             : " [multi-variant document; nothing in it locates this catalog number, so catalog-agnostic sweeps were suppressed]"),
         undefined,
-        documentExtractionMetrics(attributes, [doc], Date.now() - started, pdfText)
+        documentExtractionMetrics(attributes, [doc], Date.now() - started, pdfText, manufacturerId)
       )
     };
   } catch (error) {
@@ -426,7 +430,7 @@ export async function enrichResultFromDownloadedDocuments(result: ProductResult)
       batchSize = DOWNLOADED_DOCUMENT_BATCH_SIZE;
       continue;
     }
-    const outcomes = await Promise.all(toProcess.map((doc) => processOneDownloadedDocument(doc, result.catalogNumber)));
+    const outcomes = await Promise.all(toProcess.map((doc) => processOneDownloadedDocument(doc, result.catalogNumber, result.manufacturerId)));
     for (const outcome of outcomes) {
       documents.push(outcome.doc);
       documentProcessing.push(outcome.processing);
@@ -460,10 +464,12 @@ export async function enrichResultFromDownloadedDocuments(result: ProductResult)
   // itself had already picked the better one. Recomputed wins when it found something; the stale
   // value is now only a fallback for whichever fields recomputation still left empty (e.g. any field
   // set outside the `attributes` array entirely).
+  const recomputedNormalized = result.manufacturerId === "siemens" ? normalizeSiemensFields(attributes, documents) : normalizeFields(attributes, documents, result.manufacturerId);
   const normalized = {
     ...nonEmptyNormalized(result.normalized),
-    ...nonEmptyNormalized(result.manufacturerId === "siemens" ? normalizeSiemensFields(attributes, documents) : normalizeFields(attributes, documents))
+    ...nonEmptyNormalized(recomputedNormalized)
   };
+  if (result.manufacturerId === "rittal" && !recomputedNormalized.current) delete normalized.current;
 
   return {
     ...result,
@@ -551,7 +557,7 @@ export async function enrichResultFromRemoteDocuments(
         substantive ? "parsed" : "skipped",
         substantive ? `Fetched and parsed ${attributes.length} attribute records from remote PDF.` : "Fetched remote PDF, but no source-backed product attributes were extracted.",
         undefined,
-        documentExtractionMetrics(attributes, [parsedDoc], Date.now() - started)
+        documentExtractionMetrics(attributes, [parsedDoc], Date.now() - started, undefined, result.manufacturerId)
       ));
       parsedDocuments += 1;
     } catch (error) {
@@ -584,10 +590,12 @@ export async function enrichResultFromRemoteDocuments(
   // itself had already picked the better one. Recomputed wins when it found something; the stale
   // value is now only a fallback for whichever fields recomputation still left empty (e.g. any field
   // set outside the `attributes` array entirely).
+  const recomputedNormalized = result.manufacturerId === "siemens" ? normalizeSiemensFields(attributes, documents) : normalizeFields(attributes, documents, result.manufacturerId);
   const normalized = {
     ...nonEmptyNormalized(result.normalized),
-    ...nonEmptyNormalized(result.manufacturerId === "siemens" ? normalizeSiemensFields(attributes, documents) : normalizeFields(attributes, documents))
+    ...nonEmptyNormalized(recomputedNormalized)
   };
+  if (result.manufacturerId === "rittal" && !recomputedNormalized.current) delete normalized.current;
 
   return {
     ...result,
@@ -659,11 +667,12 @@ function documentExtractionMetrics(
   attributes: AttributeRecord[],
   documents: DocumentRecord[],
   elapsedMs?: number,
-  pdfText?: PdfDocumentText
+  pdfText?: PdfDocumentText,
+  manufacturerId?: string
 ): Pick<DocumentProcessingDiagnostic, "attributeCount" | "normalizedFields" | "elapsedMs" | "pageCount"> {
   return {
     attributeCount: attributes.length,
-    normalizedFields: normalizedFieldNames(normalizeFields(attributes, documents)),
+    normalizedFields: normalizedFieldNames(normalizeFields(attributes, documents, manufacturerId)),
     ...(elapsedMs !== undefined ? { elapsedMs } : {}),
     ...(pdfText?.pageCount !== undefined ? { pageCount: pdfText.pageCount } : {})
   };
@@ -719,6 +728,7 @@ function downloadedDocumentSkipReason(doc: DocumentRecord): string {
   if (doc.downloadStatus && doc.downloadStatus !== "downloaded") return `Skipped because downloadStatus is '${doc.downloadStatus}': ${doc.downloadError ?? "no downloaded PDF available"}.`;
   if (!doc.localPath) return "Skipped because no local downloaded file path is available.";
   if (!/\.pdf$/i.test(doc.localPath) && !isPdfLikeDocumentUrl(doc.url)) return "Skipped because the downloaded local file is not a PDF.";
+  if (shouldSkipEnvironmentalDeclarationSpecMining(doc)) return "Skipped environmental disclosure rather than parsing a non-technical PDF.";
   if (!["datasheet", "certificate", "manual", "other"].includes(doc.type)) return `Skipped because document type '${doc.type}' is not parsed by PDF enrichment.`;
   return "Skipped by PDF enrichment policy.";
 }
@@ -766,6 +776,7 @@ export function extractDocumentTextAttributes(input: {
       : cachedGlobalPdfAttributes(input.document, input.text, lines, sourceUrl);
 
   const productSpecificAttributes = [
+    ...extractCatalogScopedExplicitRatings(input.text, lines, input.catalogNumber, sourceUrl),
     ...(familyOnly ? [] : orderingAttributes),
     ...(sweepsAllowed ? cachedGlobalPdfTechnicalAttributes(input.text, lines, sourceUrl, input.catalogNumber) : []),
     ...(familyOnly ? [] : extractPatternModelPhysicalRows(lines, input.catalogNumber, sourceUrl)),
@@ -994,6 +1005,58 @@ function extractGlobalPdfAttributes(
     const colonPair = splitNameValue(line);
     if (colonPair) attributes.push({ group, ...colonPair, sourceUrl });
   }
+  // Preserve explicit ratings from Schneider product data sheets even when the PDF
+  // table reader fails to recognize the label (these rows can otherwise be buried
+  // beyond the generic feature-line limit and a relay contact rating may win).
+  attributes.push(...extractExplicitRatingRows(lines, documentGroup, sourceUrl));
+  return attributes;
+}
+
+function isExactSchneiderCatalogDatasheet(document: Pick<DocumentRecord, "type" | "url">, catalogNumber: string): boolean {
+  if (document.type !== "datasheet") return false;
+  try {
+    const url = new URL(document.url);
+    if (!/(?:^|\.)(?:se\.com|telemecaniquesensors\.com)$/i.test(url.hostname)) return false;
+    const match = url.pathname.match(/\/product\/(?:download-pdf|reference)\/([^/]+)\/?$/i);
+    if (match && sameCatalogNumber(decodeURIComponent(match[1]), catalogNumber)) return true;
+    // Telemecanique hosts its exact SKU sheets under /dam/datasheets/.../{SKU}_EN.pdf;
+    // those filenames are variant-specific even though the URL has no /product/{SKU} segment.
+    const filename = decodeURIComponent(url.pathname.split("/").pop() ?? "").replace(/\.pdf$/i, "");
+    return sameCatalogNumber(filename.replace(/_(?:en|fr|de|es|it|zh|pt)$/i, ""), catalogNumber);
+  } catch {
+    return false;
+  }
+}
+
+function extractCatalogScopedExplicitRatings(text: string, lines: string[], catalogNumber: string, sourceUrl: string): AttributeRecord[] {
+  // This narrow reader remains available when a PDF's broad scope is unresolved. It
+  // only trusts the ratings when the same extracted text names the requested SKU.
+  if (!catalogTextMatches(text, catalogNumber, { compact: true, ignoreCase: true })) return [];
+  return extractExplicitRatingRows(lines, "PDF datasheet - Catalog-verified ratings", sourceUrl).map((attribute) => ({
+    ...attribute,
+    scope: "variant",
+    matchLevel: "exact",
+    confidence: 0.98
+  }));
+}
+
+function extractExplicitRatingRows(lines: string[], group: string, sourceUrl: string): AttributeRecord[] {
+  const labels = new Map([
+    ["nominal output current", "Nominal output current"],
+    ["continuous output current", "Continuous output current"],
+    ["rated output current", "Rated output current"],
+    ["rated supply voltage", "Rated supply voltage"],
+    ["[us] rated supply voltage", "Rated supply voltage"]
+  ]);
+  const attributes: AttributeRecord[] = [];
+  for (const rawLine of lines) {
+    const [rawName, ...rawValues] = rawLine.split(/\t+/);
+    const name = cleanText(rawName ?? "").toLowerCase();
+    const canonicalName = labels.get(name);
+    if (!canonicalName || !rawValues.length) continue;
+    const value = normalizePdfAttributeValue(rawValues.map(cleanText).filter(Boolean).join(" | "));
+    if (value) attributes.push({ group: `${group} - Explicit ratings`, name: canonicalName, value, sourceUrl });
+  }
   return attributes;
 }
 
@@ -1004,6 +1067,7 @@ function cachedGlobalPdfTechnicalAttributes(text: string, lines: string[], sourc
   const cached = globalPdfTechnicalAttributeCache.get(cacheKey);
   if (cached) return cached.map((attr) => ({ ...attr }));
   const attributes = [
+    ...extractExplicitRatingRows(lines, "PDF Datasheet", sourceUrl),
     ...extractElectricalSpecAttributesFromText({
       text,
       sourceUrl,
@@ -1143,6 +1207,13 @@ interface DocumentParseScope {
    */
   resolved: boolean;
   match?: ReturnType<typeof findCatalogTextMatch>;
+}
+
+export function shouldSkipEnvironmentalDeclarationSpecMining(document: Pick<DocumentRecord, "type" | "label" | "url">): boolean {
+  if (document.type !== "certificate") return false;
+  return /environmental\s+disclosure|environmental\s+product\s+declaration|eco.?passport|\bPEP\b|\bENVPEP\d*|circularity\s+profile/i.test(
+    `${document.label} ${document.url}`
+  );
 }
 
 /**
@@ -2102,6 +2173,10 @@ function shouldParsePdfDocument(doc: DocumentRecord): boolean {
   if (doc.downloadStatus && doc.downloadStatus !== "downloaded") return false;
   if (!doc.localPath) return false;
   if (!/\.pdf$/i.test(doc.localPath) && !isPdfLikeDocumentUrl(doc.url)) return false;
+  // Environmental disclosures are retained as certificates, but their one-page image PDFs do
+  // not contain device specifications. Sending them through text extraction/OCR wasted ~10 s per
+  // product and could only produce environmental declarations, which are already excluded below.
+  if (shouldSkipEnvironmentalDeclarationSpecMining(doc)) return false;
   return ["datasheet", "certificate", "manual", "other"].includes(doc.type);
 }
 

@@ -58,7 +58,7 @@ export function applyFieldCandidateResolution(result: ProductResult): ProductRes
         stage: resolution.selectedStage ?? "field-candidate-resolution",
         confidence: resolution.confidence
       }
-    ], [])[key];
+    ], [], result.manufacturerId)[key];
     if (validated) normalized[key] = validated;
   }
 
@@ -78,7 +78,7 @@ export function applyFieldCandidateResolution(result: ProductResult): ProductRes
 export function buildFieldCandidates(result: ProductResult): FieldCandidateRecord[] {
   const candidates: FieldCandidateRecord[] = [];
   for (const field of FIELD_REGISTRY) {
-    candidates.push(...attributeCandidates(result.attributes, field.key, field.label));
+    candidates.push(...attributeCandidates(result.attributes, field.key, field.label, result.manufacturerId));
     candidates.push(...documentCandidates(result.documents, field.key, field.label));
     const normalized = normalizedFieldValue(result.normalized, field.key);
     if (normalized) {
@@ -178,11 +178,16 @@ function numericCandidateValueLooksValid(field: RegistryFieldKey, value: string 
   return parseQuantities(text).some((quantity) => kinds.includes(quantity.kind) && isQuantityPlausible(quantity));
 }
 
-function attributeCandidates(attributes: AttributeRecord[], field: RegistryFieldKey, label: string): FieldCandidateRecord[] {
+function attributeCandidates(attributes: AttributeRecord[], field: RegistryFieldKey, label: string, manufacturerId: ProductResult["manufacturerId"]): FieldCandidateRecord[] {
   if (field === "image" || field === "datasheetUrl" || field === "manualUrl" || field === "certificateUrl") return [];
   const requiresNumeric = NUMERIC_FIELDS.has(field);
   return attributes
     .filter((attribute) => !isNonSpecEvidenceAttribute(attribute))
+    // Rittal family descriptions and linked manuals often mention values for the installed system
+    // (e.g. copper busbars, fan IP ratings, or the UI label "Farbe: Status"). Keep those raw rows,
+    // but do not promote them into product-level fields without an official PDP attribute.
+    .filter((attribute) => manufacturerId !== "rittal" || !["material", "color", "finish", "protection", "current"].includes(field) || attribute.sourceType === "official" || attribute.sourceType === "official-fallback")
+    .filter((attribute) => manufacturerId !== "rittal" || field !== "current" || !/\b\d[\d.,]*\s*kA\b/i.test(attribute.value))
     .filter((attribute) => !requiresNumeric || numericCandidateValueLooksValid(field, attribute.value))
     .filter((attribute) => fieldMatchesLabel(field, fieldAttributeLabel(attribute)))
     .filter((attribute) => cleanText(attribute.value))

@@ -1,0 +1,228 @@
+[
+  {
+    "manufacturerId": "rittal",
+    "catalogNumber": "1038000",
+    "family": "AX compact enclosure, carbon steel",
+    "expectedDeviceType": "Enclosure",
+    "officialSourceUrl": "https://www.rittal.com/com-en/products/PG20231215SCH101/PG20231512SCH301/PRO70743?variantId=1038000",
+    "validityEvidence": "Official Rittal PDP states Article no. AX 1038000 and gives dimensions 380 x 600 x 210 mm, sheet-steel material and IP66.",
+    "noveltyEvidence": "Verified before baseline: data/scraper.db contains 0 prior Rittal runs and 0 run_items matching this order number across manufacturers; prior benchmark report records and fixture files contain 0 exact order-number matches. No pre-existing Rittal fixture corpus/connectors.",
+    "expectedOfficialUrlPatterns": [
+      "rittal.com/",
+      "/products/",
+      "variantId=1038000"
+    ],
+    "expectedClassifierType": "Enclosure"
+  },
+  {
+    "manufacturerId": "rittal",
+    "catalogNumber": "1480000",
+    "family": "AX plastic enclosure",
+    "expectedDeviceType": "Enclosure",
+    "officialSourceUrl": "https://www.rittal.com/com-en/products/PG20231215SCH101/PG20231512SCH301/PRO107964?variantId=1480000",
+    "validityEvidence": "Official Rittal PDP states Article no. AX 1480000 and identifies a glass-fibre-reinforced polyester enclosure, 800 x 1000 x 300 mm, IP66.",
+    "noveltyEvidence": "Verified before baseline: data/scraper.db contains 0 prior Rittal runs and 0 run_items matching this order number across manufacturers; prior benchmark report records and fixture files contain 0 exact order-number matches. No pre-existing Rittal fixture corpus/connectors.",
+    "expectedOfficialUrlPatterns": [
+      "rittal.com/",
+      "/products/",
+      "variantId=1480000"
+    ],
+    "expectedClassifierType": "Enclosure"
+  },
+  {
+    "manufacturerId": "rittal",
+    "catalogNumber": "8617200",
+    "family": "VX system chassis / punched section with mounting flange",
+    "expectedDeviceType": "Enclosure Accessory",
+    "officialSourceUrl": "https://www.rittal.com/com-en/products/PG20231215POW101/PG20240417STR001/PG20240417STR004/PRO85283?variantId=8617200",
+    "validityEvidence": "Official Rittal PDP states Article no. VX 8617200, active lifecycle, zinc-plated sheet steel and pack size 4.",
+    "noveltyEvidence": "Verified before baseline: data/scraper.db contains 0 prior Rittal runs and 0 run_items matching this order number across manufacturers; prior benchmark report records and fixture files contain 0 exact order-number matches. No pre-existing Rittal fixture corpus/connectors.",
+    "expectedOfficialUrlPatterns": [
+      "rittal.com/",
+      "/products/",
+      "variantId=8617200"
+    ],
+    "expectedClassifierType": "Mounting Accessory"
+  },
+  {
+    "manufacturerId": "rittal",
+    "catalogNumber": "9340050",
+    "family": "RiLine60 flat copper busbar support",
+    "expectedDeviceType": "Busbar Accessory",
+    "officialSourceUrl": "https://www.rittal.com/com-en/products/PG20231215POW101/PG20240417STR201/PG20240418STR203/PG20250927STR101/PRO0442?variantId=9340050",
+    "validityEvidence": "Official Rittal PDP states Article no. SV 9340050, 3-pole, 1000 V AC / 1500 V DC, and compatibility with RiLine60 busbars.",
+    "noveltyEvidence": "Verified before baseline: data/scraper.db contains 0 prior Rittal runs and 0 run_items matching this order number across manufacturers; prior benchmark report records and fixture files contain 0 exact order-number matches. No pre-existing Rittal fixture corpus/connectors.",
+    "expectedOfficialUrlPatterns": [
+      "rittal.com/",
+      "/products/",
+      "variantId=9340050"
+    ],
+    "expectedClassifierType": "Busbar"
+  },
+  {
+    "manufacturerId": "rittal",
+    "catalogNumber": "3486937",
+    "family": "Blue e+ Dynamic wall-mounted cooling unit",
+    "expectedDeviceType": "Cooling Unit",
+    "officialSourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+    "validityEvidence": "Official Rittal PDP states Article no. SK 3486937 and publishes wall-mounted Blue e+ Dynamic cooling output, voltage and dimensions.",
+    "noveltyEvidence": "Verified before baseline: data/scraper.db contains 0 prior Rittal runs and 0 run_items matching this order number across manufacturers; prior benchmark report records and fixture files contain 0 exact order-number matches. No pre-existing Rittal fixture corpus/connectors.",
+    "expectedOfficialUrlPatterns": [
+      "rittal.com/",
+      "/products/",
+      "variantId=3486937"
+    ],
+    "expectedClassifierType": "Thermal Management"
+  },
+  {
+    "manufacturerId": "rittal",
+    "catalogNumber": "3334300",
+    "family": "Blue e+ chiller",
+    "expectedDeviceType": "Chiller",
+    "officialSourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI104/PG20240718KLI005/PRO71339?variantId=3334300",
+    "validityEvidence": "Official Rittal PDP states Article no. SK 3334300 and publishes 4 kW cooling output, 380-480 V ratings and technical data.",
+    "noveltyEvidence": "Verified before baseline: data/scraper.db contains 0 prior Rittal runs and 0 run_items matching this order number across manufacturers; prior benchmark report records and fixture files contain 0 exact order-number matches. No pre-existing Rittal fixture corpus/connectors.",
+    "expectedOfficialUrlPatterns": [
+      "rittal.com/",
+      "/products/",
+      "variantId=3334300"
+    ],
+    "expectedClassifierType": "Thermal Management"
+  },
+  {
+    "manufacturerId": "rittal",
+    "catalogNumber": "2500200",
+    "family": "SZ LED system light",
+    "expectedDeviceType": "Enclosure Light",
+    "officialSourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+    "validityEvidence": "Official Rittal PDP states Article no. SZ 2500200 and publishes 900 lm, 11 W, 100-230 V and product dimensions.",
+    "noveltyEvidence": "Verified before baseline: data/scraper.db contains 0 prior Rittal runs and 0 run_items matching this order number across manufacturers; prior benchmark report records and fixture files contain 0 exact order-number matches. No pre-existing Rittal fixture corpus/connectors.",
+    "expectedOfficialUrlPatterns": [
+      "rittal.com/",
+      "/products/",
+      "variantId=2500200"
+    ],
+    "expectedClassifierType": "Luminaire"
+  },
+  {
+    "manufacturerId": "rittal",
+    "catalogNumber": "3105380",
+    "family": "SK enclosure heater with fan",
+    "expectedDeviceType": "Enclosure Heater",
+    "officialSourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1007/PRO0308?variantId=3105380",
+    "validityEvidence": "Official Rittal PDP states Article no. SK 3105.380 and publishes 250-265 W continuous thermal output, 230 V and dimensions.",
+    "noveltyEvidence": "Verified before baseline: data/scraper.db contains 0 prior Rittal runs and 0 run_items matching this order number across manufacturers; prior benchmark report records and fixture files contain 0 exact order-number matches. No pre-existing Rittal fixture corpus/connectors.",
+    "expectedOfficialUrlPatterns": [
+      "rittal.com/",
+      "/products/",
+      "variantId=3105380"
+    ],
+    "expectedClassifierType": "Thermal Management"
+  },
+  {
+    "manufacturerId": "rittal",
+    "catalogNumber": "7955401",
+    "family": "DK PDU international, managed",
+    "expectedDeviceType": "Rack Power Distribution Unit",
+    "officialSourceUrl": "https://www.rittal.com/com-en/products/PG20231215ITI101/PG20240403ITI201/PG20240913ITI001/PG20240925ZUB101/PRO31241?variantId=7955401",
+    "validityEvidence": "Official Rittal PDP states Article no. DK 7955401 and describes a managed rack PDU with individually monitored/switched outlets and technical data.",
+    "noveltyEvidence": "Verified before baseline: data/scraper.db contains 0 prior Rittal runs and 0 run_items matching this order number across manufacturers; prior benchmark report records and fixture files contain 0 exact order-number matches. No pre-existing Rittal fixture corpus/connectors.",
+    "expectedOfficialUrlPatterns": [
+      "rittal.com/",
+      "/products/",
+      "variantId=7955401"
+    ],
+    "expectedClassifierType": "Power Distribution Unit"
+  },
+  {
+    "manufacturerId": "rittal",
+    "catalogNumber": "3209100",
+    "family": "Roof-mounted air/water heat exchanger",
+    "expectedDeviceType": "Air-Water Heat Exchanger",
+    "officialSourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI104/PG20240718KLI006/PRO0285?variantId=3209100",
+    "validityEvidence": "Official Rittal PDP states Article no. SK 3209100 and publishes 2.5 kW cooling output, 230 V, dimensions and IP55.",
+    "noveltyEvidence": "Verified before baseline: data/scraper.db contains 0 prior Rittal runs and 0 run_items matching this order number across manufacturers; prior benchmark report records and fixture files contain 0 exact order-number matches. No pre-existing Rittal fixture corpus/connectors.",
+    "expectedOfficialUrlPatterns": [
+      "rittal.com/",
+      "/products/",
+      "variantId=3209100"
+    ],
+    "expectedClassifierType": "Thermal Management"
+  },
+  {
+    "manufacturerId": "rittal",
+    "catalogNumber": "7320530",
+    "family": "CMC III access sensor",
+    "expectedDeviceType": "Access Sensor",
+    "officialSourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240405ZUB001/PG20240405ZUB002/PRO23678?variantId=7320530",
+    "validityEvidence": "Official Rittal PDP states Article no. DK 7320530, Access sensor, Reed-contact/magnet principle, RJ12 interface and dimensions.",
+    "noveltyEvidence": "Verified before baseline: data/scraper.db contains 0 prior Rittal runs and 0 run_items matching this order number across manufacturers; prior benchmark report records and fixture files contain 0 exact order-number matches. No pre-existing Rittal fixture corpus/connectors.",
+    "expectedOfficialUrlPatterns": [
+      "rittal.com/",
+      "/products/",
+      "variantId=7320530"
+    ],
+    "expectedClassifierType": "Access Sensor",
+    "classifierEvidence": "The exact official PDP has Design = Access sensor and Measuring technique = Reed contact, magnet; Access Sensor is the expected functional classifier."
+  },
+  {
+    "manufacturerId": "rittal",
+    "catalogNumber": "3173120",
+    "family": "Pleated filter for fan/filter units and cooling devices",
+    "expectedDeviceType": "Filter Accessory",
+    "officialSourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO136417?variantId=3173120",
+    "validityEvidence": "Official Rittal PDP states Article no. SK 3173120, pleated filter material, 280 x 282 x 21 mm and applicable filter families.",
+    "noveltyEvidence": "Verified before baseline: data/scraper.db contains 0 prior Rittal runs and 0 run_items matching this order number across manufacturers; prior benchmark report records and fixture files contain 0 exact order-number matches. No pre-existing Rittal fixture corpus/connectors.",
+    "expectedOfficialUrlPatterns": [
+      "rittal.com/",
+      "/products/",
+      "variantId=3173120"
+    ],
+    "expectedClassifierType": "Filter"
+  },
+  {
+    "manufacturerId": "rittal",
+    "catalogNumber": "3243080",
+    "family": "Stainless-steel hose-proof hood for fan/filter units",
+    "expectedDeviceType": "Fan Accessory",
+    "officialSourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1007/PRO0305?variantId=3243080",
+    "validityEvidence": "Official Rittal PDP states Article no. SK 3243080, stainless-steel construction, dimensions and IP56 when installed with the matching fan/filter unit.",
+    "noveltyEvidence": "Verified before baseline: data/scraper.db contains 0 prior Rittal runs and 0 run_items matching this order number across manufacturers; prior benchmark report records and fixture files contain 0 exact order-number matches. No pre-existing Rittal fixture corpus/connectors.",
+    "expectedOfficialUrlPatterns": [
+      "rittal.com/",
+      "/products/",
+      "variantId=3243080"
+    ],
+    "expectedClassifierType": "Cover / Door Accessory"
+  },
+  {
+    "manufacturerId": "rittal",
+    "catalogNumber": "2485100",
+    "family": "Plastic handle version C",
+    "expectedDeviceType": "Enclosure Handle Accessory",
+    "officialSourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+    "validityEvidence": "Official Rittal PDP states Article no. SZ 2485100 and publishes handle design, colour, fitment and weight.",
+    "noveltyEvidence": "Verified before baseline: data/scraper.db contains 0 prior Rittal runs and 0 run_items matching this order number across manufacturers; prior benchmark report records and fixture files contain 0 exact order-number matches. No pre-existing Rittal fixture corpus/connectors.",
+    "expectedOfficialUrlPatterns": [
+      "rittal.com/",
+      "/products/",
+      "variantId=2485100"
+    ],
+    "expectedClassifierType": "Cover / Door Accessory"
+  },
+  {
+    "manufacturerId": "rittal",
+    "catalogNumber": "3173100",
+    "family": "Chopped-fibre filter mat",
+    "expectedDeviceType": "Filter Accessory",
+    "officialSourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO0303?variantId=3173100",
+    "validityEvidence": "Official Rittal PDP states Article no. SK 3173100, replacement filter mat, G3 filter class, dimensions and compatible filter series.",
+    "noveltyEvidence": "Verified before baseline: data/scraper.db contains 0 prior Rittal runs and 0 run_items matching this order number across manufacturers; prior benchmark report records and fixture files contain 0 exact order-number matches. No pre-existing Rittal fixture corpus/connectors.",
+    "expectedOfficialUrlPatterns": [
+      "rittal.com/",
+      "/products/",
+      "variantId=3173100"
+    ],
+    "expectedClassifierType": "Filter"
+  }
+]

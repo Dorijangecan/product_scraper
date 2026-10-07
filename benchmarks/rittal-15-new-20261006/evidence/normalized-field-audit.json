@@ -1,0 +1,889 @@
+{
+  "reportFile": "benchmark-report.manufacturer-rittal.fixtureDir-benchmarks-rittal-15-new-20261006.isolatedStorage-1.tag-final-cold-v7.json",
+  "description": "Present normalized fields are checked against official attributes from that exact productUrl. Operating temperature bounds are checked against the exact PDP Operating temperature range row. Any value without such evidence is explicitly marked UNVERIFIED.",
+  "items": [
+    {
+      "catalogNumber": "1038000",
+      "fields": [
+        {
+          "field": "weight",
+          "value": "14.2 kg",
+          "sourceLabel": "Net weight",
+          "sourceValue": "14.2 kg",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215SCH101/PG20231512SCH301/PRO70743?variantId=1038000",
+          "status": "PASS: exact official product-page evidence"
+        },
+        {
+          "field": "dimensions",
+          "value": "600 x 380 x 210 mm",
+          "sourceLabel": "Depth",
+          "sourceValue": "210 mm",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215SCH101/PG20231512SCH301/PRO70743?variantId=1038000",
+          "status": "PASS: exact official product-page evidence"
+        },
+        {
+          "field": "material",
+          "value": "Enclosure: Sheet steel; Door: Sheet steel, all-round foamed-in PU seal",
+          "sourceLabel": "Material",
+          "sourceValue": "Enclosure: Sheet steelDoor: Sheet steel, all-round foamed-in PU seal",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215SCH101/PG20231512SCH301/PRO70743?variantId=1038000",
+          "status": "PASS: exact official product-page evidence"
+        },
+        {
+          "field": "wallThickness",
+          "value": "1.5 mm",
+          "sourceLabel": "Material thickness - door",
+          "sourceValue": "1.5 mm",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215SCH101/PG20231512SCH301/PRO70743?variantId=1038000",
+          "status": "PASS: exact official product-page evidence"
+        },
+        {
+          "field": "finish",
+          "value": "Enclosure and door: Dipcoat primed, powder-coated on the outside, textured paint; Mounting plate: Zinc-plated",
+          "sourceLabel": "Surface finish",
+          "sourceValue": "Enclosure and door: Dipcoat primed, powder-coated on the outside, textured paintMounting plate: Zinc-plated",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215SCH101/PG20231512SCH301/PRO70743?variantId=1038000",
+          "status": "PASS: exact official product-page evidence"
+        },
+        {
+          "field": "color",
+          "value": "RAL 7035",
+          "sourceLabel": "Colour",
+          "sourceValue": "RAL 7035",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215SCH101/PG20231512SCH301/PRO70743?variantId=1038000",
+          "status": "PASS: exact official product-page evidence"
+        },
+        {
+          "field": "protection",
+          "value": "NEMA 1; IP 66; IK10",
+          "sourceLabel": "Protection category NEMA",
+          "sourceValue": "NEMA 1",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215SCH101/PG20231512SCH301/PRO70743?variantId=1038000",
+          "status": "PASS: exact official product-page evidence"
+        },
+        {
+          "field": "certificates",
+          "value": "Declaration of conformity CS DE, EN EN PL",
+          "sourceLabel": "Declarations",
+          "sourceValue": "Declaration of conformity CS DE, EN EN PL",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215SCH101/PG20231512SCH301/PRO70743?variantId=1038000",
+          "status": "PASS: exact official product-page evidence"
+        }
+      ]
+    },
+    {
+      "catalogNumber": "1480000",
+      "fields": [
+        {
+          "field": "weight",
+          "value": "38.2 kg",
+          "sourceLabel": "Net weight",
+          "sourceValue": "38.2 kg",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215SCH101/PG20240221SCH003/PRO107964?variantId=1480000",
+          "status": "PASS: exact official product-page evidence"
+        },
+        {
+          "field": "dimensions",
+          "value": "1,000 x 800 x 300 mm",
+          "sourceLabel": "Depth",
+          "sourceValue": "300 mm",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215SCH101/PG20240221SCH003/PRO107964?variantId=1480000",
+          "status": "PASS: exact official product-page evidence"
+        },
+        {
+          "field": "material",
+          "value": "Enclosure and door: Fibreglass-reinforced unsaturated polyester; Door: All-round foamed-in PU seal; Mounting plate: Sheet steel",
+          "sourceLabel": "Material",
+          "sourceValue": "Enclosure and door: Fibreglass-reinforced unsaturated polyesterDoor: All-round foamed-in PU sealMounting plate: Sheet steelFire protection corresponding to UL 94-V0Halogen free",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215SCH101/PG20240221SCH003/PRO107964?variantId=1480000",
+          "status": "PASS: exact official product-page evidence"
+        },
+        {
+          "field": "wallThickness",
+          "value": "3 mm",
+          "sourceLabel": "Material thickness of mounting plate",
+          "sourceValue": "3 mm",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215SCH101/PG20240221SCH003/PRO107964?variantId=1480000",
+          "status": "PASS: exact official product-page evidence"
+        },
+        {
+          "field": "finish",
+          "value": "Enclosure and door: Dyed plastic with no after-treatment; Mounting plate: Zinc-plated",
+          "sourceLabel": "Surface finish",
+          "sourceValue": "Enclosure and door: Dyed plastic with no after-treatmentMounting plate: Zinc-plated",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215SCH101/PG20240221SCH003/PRO107964?variantId=1480000",
+          "status": "PASS: exact official product-page evidence"
+        },
+        {
+          "field": "color",
+          "value": "Similar to RAL 7035",
+          "sourceLabel": "Colour",
+          "sourceValue": "Similar to RAL 7035",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215SCH101/PG20240221SCH003/PRO107964?variantId=1480000",
+          "status": "PASS: exact official product-page evidence"
+        },
+        {
+          "field": "protection",
+          "value": "NEMA 1; IP 66",
+          "sourceLabel": "Protection category NEMA",
+          "sourceValue": "NEMA 1",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215SCH101/PG20240221SCH003/PRO107964?variantId=1480000",
+          "status": "PASS: exact official product-page evidence"
+        },
+        {
+          "field": "certificates",
+          "value": "UL 746, Declaration of conformity CS DE, EN EN, Negative Certificate EN",
+          "sourceLabel": "Certificates",
+          "sourceValue": "Negative Certificate EN",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215SCH101/PG20240221SCH003/PRO107964?variantId=1480000",
+          "status": "PASS: exact official product-page evidence"
+        }
+      ]
+    },
+    {
+      "catalogNumber": "8617200",
+      "fields": [
+        {
+          "field": "weight",
+          "value": "7.56 kg",
+          "sourceLabel": "Net weight",
+          "sourceValue": "7.56 kg",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215POW101/PG20240417STR001/PG20240417STR004/PRO85283?variantId=8617200",
+          "status": "PASS: exact official product-page evidence"
+        },
+        {
+          "field": "dimensions",
+          "value": "H 2000 mm x D 2,000 mm",
+          "sourceLabel": "Depth",
+          "sourceValue": "2,000 mm",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215POW101/PG20240417STR001/PG20240417STR004/PRO85283?variantId=8617200",
+          "status": "PASS: exact official product-page evidence"
+        },
+        {
+          "field": "material",
+          "value": "Sheet steel",
+          "sourceLabel": "Material",
+          "sourceValue": "Sheet steel",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215POW101/PG20240417STR001/PG20240417STR004/PRO85283?variantId=8617200",
+          "status": "PASS: exact official product-page evidence"
+        },
+        {
+          "field": "finish",
+          "value": "Zinc-plated",
+          "sourceLabel": "Surface finish",
+          "sourceValue": "Zinc-plated",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215POW101/PG20240417STR001/PG20240417STR004/PRO85283?variantId=8617200",
+          "status": "PASS: exact official product-page evidence"
+        },
+        {
+          "field": "certificates",
+          "value": "PCF-declaration DE EN",
+          "sourceLabel": "Declarations",
+          "sourceValue": "PCF-declaration DE EN",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215POW101/PG20240417STR001/PG20240417STR004/PRO85283?variantId=8617200",
+          "status": "PASS: exact official product-page evidence"
+        }
+      ]
+    },
+    {
+      "catalogNumber": "9340050",
+      "fields": [
+        {
+          "field": "weight",
+          "value": "0.668 kg",
+          "sourceLabel": "Net weight",
+          "sourceValue": "0.668 kg",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215POW101/PG20240417STR201/PG20240418STR203/PG20250927STR101/PRO0442?variantId=9340050",
+          "status": "PASS: exact official product-page evidence"
+        },
+        {
+          "field": "dimensions",
+          "value": "W 20 mm x D 190 mm",
+          "sourceLabel": "Width",
+          "sourceValue": "20 mm",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215POW101/PG20240417STR201/PG20240418STR203/PG20250927STR101/PRO0442?variantId=9340050",
+          "status": "PASS: exact official product-page evidence"
+        },
+        {
+          "field": "material",
+          "value": "Polyamide",
+          "sourceLabel": "Material",
+          "sourceValue": "PolyamideFire protection corresponding to UL 94-V0",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215POW101/PG20240417STR201/PG20240418STR203/PG20250927STR101/PRO0442?variantId=9340050",
+          "status": "PASS: exact official product-page evidence"
+        },
+        {
+          "field": "color",
+          "value": "RAL 7035",
+          "sourceLabel": "Colour",
+          "sourceValue": "RAL 7035",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215POW101/PG20240417STR201/PG20240418STR203/PG20250927STR101/PRO0442?variantId=9340050",
+          "status": "PASS: exact official product-page evidence"
+        },
+        {
+          "field": "voltage",
+          "value": "1000 V, 3~ | 1500 V (DC)",
+          "sourceLabel": "Rated operating voltage",
+          "sourceValue": "1000 V, 3~ | 1500 V (DC)",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215POW101/PG20240417STR201/PG20240418STR203/PG20250927STR101/PRO0442?variantId=9340050",
+          "status": "PASS: exact official product-page evidence"
+        },
+        {
+          "field": "certificates",
+          "value": "Declaration of conformity DE",
+          "sourceLabel": "Declarations",
+          "sourceValue": "Declaration of conformity DE",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215POW101/PG20240417STR201/PG20240418STR203/PG20250927STR101/PRO0442?variantId=9340050",
+          "status": "PASS: exact official product-page evidence"
+        }
+      ]
+    },
+    {
+      "catalogNumber": "3486937",
+      "fields": [
+        {
+          "field": "weight",
+          "value": "62 kg",
+          "sourceLabel": "Net weight",
+          "sourceValue": "62 kg",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+          "status": "PASS: exact official product-page evidence"
+        },
+        {
+          "field": "dimensions",
+          "value": "1,600 x 433 x 294 mm",
+          "sourceLabel": "Depth",
+          "sourceValue": "294 mm",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+          "status": "PASS: exact official product-page evidence"
+        },
+        {
+          "field": "material",
+          "value": "Sheet steel",
+          "sourceLabel": "Material",
+          "sourceValue": "Sheet steel",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+          "status": "PASS: exact official product-page evidence"
+        },
+        {
+          "field": "color",
+          "value": "RAL 7035",
+          "sourceLabel": "Colour",
+          "sourceValue": "RAL 7035",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+          "status": "PASS: exact official product-page evidence"
+        },
+        {
+          "field": "voltage",
+          "value": "110 V - 240 V, 1~, 50 Hz/60 Hz | 380 V - 480 V, 3~, 50 Hz/60 Hz",
+          "sourceLabel": "Rated operating voltage",
+          "sourceValue": "110 V - 240 V, 1~, 50 Hz/60 Hz | 380 V - 480 V, 3~, 50 Hz/60 Hz",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+          "status": "PASS: exact official product-page evidence"
+        },
+        {
+          "field": "protection",
+          "value": "Internal circuit IP 55",
+          "sourceLabel": "Protection category to IEC 60 529",
+          "sourceValue": "Internal circuit IP 55",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+          "status": "PASS: exact official product-page evidence"
+        },
+        {
+          "field": "certificates",
+          "value": "Declaration of conformity DE, EN",
+          "sourceLabel": "Declarations",
+          "sourceValue": "Declaration of conformity DE, EN",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+          "status": "PASS: exact official product-page evidence"
+        },
+        {
+          "field": "operatingTemperatureMin",
+          "value": "-20",
+          "sourceLabel": "Operating temperature range",
+          "sourceValue": "-20 °C...60 °C",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+          "status": "PASS: exact official product-page evidence"
+        },
+        {
+          "field": "operatingTemperatureMax",
+          "value": "60",
+          "sourceLabel": "Operating temperature range",
+          "sourceValue": "-20 °C...60 °C",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+          "status": "PASS: exact official product-page evidence"
+        }
+      ]
+    },
+    {
+      "catalogNumber": "3334300",
+      "fields": [
+        {
+          "field": "weight",
+          "value": "90 kg",
+          "sourceLabel": "Net weight",
+          "sourceValue": "90 kg",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI104/PG20240718KLI005/PRO71339?variantId=3334300",
+          "status": "PASS: exact official product-page evidence"
+        },
+        {
+          "field": "dimensions",
+          "value": "820 x 450 x 710 mm",
+          "sourceLabel": "Depth",
+          "sourceValue": "710 mm",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI104/PG20240718KLI005/PRO71339?variantId=3334300",
+          "status": "PASS: exact official product-page evidence"
+        },
+        {
+          "field": "material",
+          "value": "PE plastic",
+          "sourceLabel": "Material",
+          "sourceValue": "PE plastic Volume: 12 l",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI104/PG20240718KLI005/PRO71339?variantId=3334300",
+          "status": "PASS: exact official product-page evidence"
+        },
+        {
+          "field": "color",
+          "value": "Textured RAL 7035",
+          "sourceLabel": "Colour",
+          "sourceValue": "Textured RAL 7035",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI104/PG20240718KLI005/PRO71339?variantId=3334300",
+          "status": "PASS: exact official product-page evidence"
+        },
+        {
+          "field": "voltage",
+          "value": "380 V - 415 V, 3~, 50 Hz | 440 V - 480 V, 3~, 60 Hz",
+          "sourceLabel": "Rated operating voltage",
+          "sourceValue": "380 V - 415 V, 3~, 50 Hz | 440 V - 480 V, 3~, 60 Hz",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI104/PG20240718KLI005/PRO71339?variantId=3334300",
+          "status": "PASS: exact official product-page evidence"
+        },
+        {
+          "field": "current",
+          "value": "4.0 / 3.8 A",
+          "sourceLabel": "Rated current",
+          "sourceValue": "4.0 / 3.8 A",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI104/PG20240718KLI005/PRO71339?variantId=3334300",
+          "status": "PASS: exact official product-page evidence"
+        },
+        {
+          "field": "protection",
+          "value": "IP 24; IP 24 | IP 54 (electrics)",
+          "sourceLabel": "Protection category to IEC 60 529",
+          "sourceValue": "IP 24",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI104/PG20240718KLI005/PRO71339?variantId=3334300",
+          "status": "PASS: exact official product-page evidence"
+        },
+        {
+          "field": "certificates",
+          "value": "Declaration of conformity DE, EN",
+          "sourceLabel": "Declarations",
+          "sourceValue": "Declaration of conformity DE, EN",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI104/PG20240718KLI005/PRO71339?variantId=3334300",
+          "status": "PASS: exact official product-page evidence"
+        },
+        {
+          "field": "operatingTemperatureMin",
+          "value": "-5",
+          "sourceLabel": "Operating temperature range",
+          "sourceValue": "-5 °C...50 °C",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI104/PG20240718KLI005/PRO71339?variantId=3334300",
+          "status": "PASS: exact official product-page evidence"
+        },
+        {
+          "field": "operatingTemperatureMax",
+          "value": "50",
+          "sourceLabel": "Operating temperature range",
+          "sourceValue": "-5 °C...50 °C",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI104/PG20240718KLI005/PRO71339?variantId=3334300",
+          "status": "PASS: exact official product-page evidence"
+        }
+      ]
+    },
+    {
+      "catalogNumber": "2500200",
+      "fields": [
+        {
+          "field": "weight",
+          "value": "0.426 kg",
+          "sourceLabel": "Net weight",
+          "sourceValue": "0.426 kg",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+          "status": "PASS: exact official product-page evidence"
+        },
+        {
+          "field": "dimensions",
+          "value": "75 x 437 x 23 mm",
+          "sourceLabel": "Depth",
+          "sourceValue": "23 mm",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+          "status": "PASS: exact official product-page evidence"
+        },
+        {
+          "field": "material",
+          "value": "Light body: Extruded aluminium; Light cover: Polycarbonate; Light ends: PC-ABS",
+          "sourceLabel": "Material",
+          "sourceValue": "Light body: Extruded aluminiumLight cover: PolycarbonateLight ends: PC-ABS",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+          "status": "PASS: exact official product-page evidence"
+        },
+        {
+          "field": "color",
+          "value": "Enclosure: RAL 7016",
+          "sourceLabel": "Colour",
+          "sourceValue": "Enclosure: RAL 7016",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+          "status": "PASS: exact official product-page evidence"
+        },
+        {
+          "field": "voltage",
+          "value": "100 V - 230 V, 1~, 50 Hz/60 Hz",
+          "sourceLabel": "Rated operating voltage",
+          "sourceValue": "100 V - 230 V, 1~, 50 Hz/60 Hz",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+          "status": "PASS: exact official product-page evidence"
+        },
+        {
+          "field": "protection",
+          "value": "IP 20",
+          "sourceLabel": "IP protection category to IEC 60 529",
+          "sourceValue": "IP 20",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+          "status": "PASS: exact official product-page evidence"
+        },
+        {
+          "field": "certificates",
+          "value": "Declaration of conformity DE, EN",
+          "sourceLabel": "Declarations",
+          "sourceValue": "Declaration of conformity DE, EN",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+          "status": "PASS: exact official product-page evidence"
+        },
+        {
+          "field": "operatingTemperatureMin",
+          "value": "-20",
+          "sourceLabel": "Operating temperature range",
+          "sourceValue": "-20 °C...55 °C",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+          "status": "PASS: exact official product-page evidence"
+        },
+        {
+          "field": "operatingTemperatureMax",
+          "value": "55",
+          "sourceLabel": "Operating temperature range",
+          "sourceValue": "-20 °C...55 °C",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+          "status": "PASS: exact official product-page evidence"
+        }
+      ]
+    },
+    {
+      "catalogNumber": "3105380",
+      "fields": [
+        {
+          "field": "weight",
+          "value": "0.96 kg",
+          "sourceLabel": "Net weight",
+          "sourceValue": "0.96 kg",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1007/PRO0308?variantId=3105380",
+          "status": "PASS: exact official product-page evidence"
+        },
+        {
+          "field": "dimensions",
+          "value": "200 x 103 x 103 mm",
+          "sourceLabel": "Depth",
+          "sourceValue": "103 mm",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1007/PRO0308?variantId=3105380",
+          "status": "PASS: exact official product-page evidence"
+        },
+        {
+          "field": "material",
+          "value": "Aluminium, anodised",
+          "sourceLabel": "Material",
+          "sourceValue": "Aluminium, anodised",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1007/PRO0308?variantId=3105380",
+          "status": "PASS: exact official product-page evidence"
+        },
+        {
+          "field": "voltage",
+          "value": "230 V, 1~, 50 Hz/60 Hz",
+          "sourceLabel": "Rated operating voltage",
+          "sourceValue": "230 V, 1~, 50 Hz/60 Hz",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1007/PRO0308?variantId=3105380",
+          "status": "PASS: exact official product-page evidence"
+        },
+        {
+          "field": "protection",
+          "value": "IP 20",
+          "sourceLabel": "IP protection category to IEC 60 529",
+          "sourceValue": "IP 20",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1007/PRO0308?variantId=3105380",
+          "status": "PASS: exact official product-page evidence"
+        },
+        {
+          "field": "certificates",
+          "value": "Declaration of conformity DE, EN",
+          "sourceLabel": "Declarations",
+          "sourceValue": "Declaration of conformity DE, EN",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1007/PRO0308?variantId=3105380",
+          "status": "PASS: exact official product-page evidence"
+        },
+        {
+          "field": "operatingTemperatureMin",
+          "value": "-33",
+          "sourceLabel": "Operating temperature range",
+          "sourceValue": "-33 °C...65 °C",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1007/PRO0308?variantId=3105380",
+          "status": "PASS: exact official product-page evidence"
+        },
+        {
+          "field": "operatingTemperatureMax",
+          "value": "65",
+          "sourceLabel": "Operating temperature range",
+          "sourceValue": "-33 °C...65 °C",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1007/PRO0308?variantId=3105380",
+          "status": "PASS: exact official product-page evidence"
+        }
+      ]
+    },
+    {
+      "catalogNumber": "7955401",
+      "fields": [
+        {
+          "field": "weight",
+          "value": "2.67 kg",
+          "sourceLabel": "Net weight",
+          "sourceValue": "2.67 kg",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ITI101/PG20240403ITI201/PG20240913ITI001/PG20240925ZUB101/PRO31241?variantId=7955401",
+          "status": "PASS: exact official product-page evidence"
+        },
+        {
+          "field": "dimensions",
+          "value": "775 x 44 x 85 mm",
+          "sourceLabel": "Depth",
+          "sourceValue": "85 mm",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ITI101/PG20240403ITI201/PG20240913ITI001/PG20240925ZUB101/PRO31241?variantId=7955401",
+          "status": "PASS: exact official product-page evidence"
+        },
+        {
+          "field": "material",
+          "value": "Aluminium section, black anodised",
+          "sourceLabel": "Material",
+          "sourceValue": "Aluminium section, black anodised",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ITI101/PG20240403ITI201/PG20240913ITI001/PG20240925ZUB101/PRO31241?variantId=7955401",
+          "status": "PASS: exact official product-page evidence"
+        },
+        {
+          "field": "voltage",
+          "value": "90 V / 250 V AC",
+          "sourceLabel": "Input voltage range",
+          "sourceValue": "90 V / 250 V AC",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ITI101/PG20240403ITI201/PG20240913ITI001/PG20240925ZUB101/PRO31241?variantId=7955401",
+          "status": "PASS: exact official product-page evidence"
+        },
+        {
+          "field": "current",
+          "value": "16 A",
+          "sourceLabel": "Rated current (max.)",
+          "sourceValue": "16 A",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ITI101/PG20240403ITI201/PG20240913ITI001/PG20240925ZUB101/PRO31241?variantId=7955401",
+          "status": "PASS: exact official product-page evidence"
+        },
+        {
+          "field": "certificates",
+          "value": "CE",
+          "sourceLabel": "Conformity",
+          "sourceValue": "CE",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ITI101/PG20240403ITI201/PG20240913ITI001/PG20240925ZUB101/PRO31241?variantId=7955401",
+          "status": "PASS: exact official product-page evidence"
+        },
+        {
+          "field": "operatingTemperatureMin",
+          "value": "0",
+          "sourceLabel": "Operating temperature range",
+          "sourceValue": "0 °C...45 °C",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ITI101/PG20240403ITI201/PG20240913ITI001/PG20240925ZUB101/PRO31241?variantId=7955401",
+          "status": "PASS: exact official product-page evidence"
+        },
+        {
+          "field": "operatingTemperatureMax",
+          "value": "45",
+          "sourceLabel": "Operating temperature range",
+          "sourceValue": "0 °C...45 °C",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ITI101/PG20240403ITI201/PG20240913ITI001/PG20240925ZUB101/PRO31241?variantId=7955401",
+          "status": "PASS: exact official product-page evidence"
+        }
+      ]
+    },
+    {
+      "catalogNumber": "3209100",
+      "fields": [
+        {
+          "field": "weight",
+          "value": "33.25 kg",
+          "sourceLabel": "Net weight",
+          "sourceValue": "33.25 kg",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI104/PG20240718KLI006/PRO0285?variantId=3209100",
+          "status": "PASS: exact official product-page evidence"
+        },
+        {
+          "field": "dimensions",
+          "value": "417 x 597 x 475 mm",
+          "sourceLabel": "Depth",
+          "sourceValue": "475 mm",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI104/PG20240718KLI006/PRO0285?variantId=3209100",
+          "status": "PASS: exact official product-page evidence"
+        },
+        {
+          "field": "color",
+          "value": "RAL 7035",
+          "sourceLabel": "Colour",
+          "sourceValue": "RAL 7035",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI104/PG20240718KLI006/PRO0285?variantId=3209100",
+          "status": "PASS: exact official product-page evidence"
+        },
+        {
+          "field": "voltage",
+          "value": "230 V, 1~, 50 Hz/60 Hz",
+          "sourceLabel": "Rated operating voltage",
+          "sourceValue": "230 V, 1~, 50 Hz/60 Hz",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI104/PG20240718KLI006/PRO0285?variantId=3209100",
+          "status": "PASS: exact official product-page evidence"
+        },
+        {
+          "field": "current",
+          "value": "0.4 A At 50 Hz; At 60 Hz / 0.48 A At 50 Hz",
+          "sourceLabel": "Rated current",
+          "sourceValue": "0.4 A At 50 Hz; At 60 Hz / 0.48 A At 50 Hz; At 60 Hz",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI104/PG20240718KLI006/PRO0285?variantId=3209100",
+          "status": "PASS: exact official product-page evidence"
+        },
+        {
+          "field": "protection",
+          "value": "IP 55",
+          "sourceLabel": "Protection category to IEC 60 529",
+          "sourceValue": "IP 55",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI104/PG20240718KLI006/PRO0285?variantId=3209100",
+          "status": "PASS: exact official product-page evidence"
+        },
+        {
+          "field": "certificates",
+          "value": "Declaration of conformity DE, EN",
+          "sourceLabel": "Declarations",
+          "sourceValue": "Declaration of conformity DE, EN",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI104/PG20240718KLI006/PRO0285?variantId=3209100",
+          "status": "PASS: exact official product-page evidence"
+        },
+        {
+          "field": "operatingTemperatureMin",
+          "value": "1",
+          "sourceLabel": "Operating temperature range",
+          "sourceValue": "1 °C...70 °C",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI104/PG20240718KLI006/PRO0285?variantId=3209100",
+          "status": "PASS: exact official product-page evidence"
+        },
+        {
+          "field": "operatingTemperatureMax",
+          "value": "70",
+          "sourceLabel": "Operating temperature range",
+          "sourceValue": "1 °C...70 °C",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI104/PG20240718KLI006/PRO0285?variantId=3209100",
+          "status": "PASS: exact official product-page evidence"
+        }
+      ]
+    },
+    {
+      "catalogNumber": "7320530",
+      "fields": [
+        {
+          "field": "weight",
+          "value": "0.4 kg",
+          "sourceLabel": "Net weight",
+          "sourceValue": "0.4 kg",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240405ZUB001/PG20240405ZUB002/PRO23678?variantId=7320530",
+          "status": "PASS: exact official product-page evidence"
+        },
+        {
+          "field": "dimensions",
+          "value": "20 x 78 x 18 mm",
+          "sourceLabel": "Depth",
+          "sourceValue": "18 mm",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240405ZUB001/PG20240405ZUB002/PRO23678?variantId=7320530",
+          "status": "PASS: exact official product-page evidence"
+        },
+        {
+          "field": "material",
+          "value": "Plastic; Front: Smooth; Enclosure: Textured",
+          "sourceLabel": "Material",
+          "sourceValue": "PlasticFront: SmoothEnclosure: Textured",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240405ZUB001/PG20240405ZUB002/PRO23678?variantId=7320530",
+          "status": "PASS: exact official product-page evidence"
+        },
+        {
+          "field": "color",
+          "value": "Enclosure: transparent",
+          "sourceLabel": "Colour",
+          "sourceValue": "Enclosure: transparent",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240405ZUB001/PG20240405ZUB002/PRO23678?variantId=7320530",
+          "status": "PASS: exact official product-page evidence"
+        },
+        {
+          "field": "certificates",
+          "value": "Declaration of conformity DE, EN",
+          "sourceLabel": "Declarations",
+          "sourceValue": "Declaration of conformity DE, EN",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240405ZUB001/PG20240405ZUB002/PRO23678?variantId=7320530",
+          "status": "PASS: exact official product-page evidence"
+        },
+        {
+          "field": "operatingTemperatureMin",
+          "value": "5",
+          "sourceLabel": "Operating temperature range",
+          "sourceValue": "5 °C...45 °C",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240405ZUB001/PG20240405ZUB002/PRO23678?variantId=7320530",
+          "status": "PASS: exact official product-page evidence"
+        },
+        {
+          "field": "operatingTemperatureMax",
+          "value": "45",
+          "sourceLabel": "Operating temperature range",
+          "sourceValue": "5 °C...45 °C",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240405ZUB001/PG20240405ZUB002/PRO23678?variantId=7320530",
+          "status": "PASS: exact official product-page evidence"
+        }
+      ]
+    },
+    {
+      "catalogNumber": "3173120",
+      "fields": [
+        {
+          "field": "weight",
+          "value": "0.51 kg",
+          "sourceLabel": "Net weight",
+          "sourceValue": "0.51 kg",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO136417?variantId=3173120",
+          "status": "PASS: exact official product-page evidence"
+        },
+        {
+          "field": "dimensions",
+          "value": "282 x 280 x 21 mm",
+          "sourceLabel": "Depth",
+          "sourceValue": "21 mm",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO136417?variantId=3173120",
+          "status": "PASS: exact official product-page evidence"
+        },
+        {
+          "field": "material",
+          "value": "PET",
+          "sourceLabel": "Material",
+          "sourceValue": "PET",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO136417?variantId=3173120",
+          "status": "PASS: exact official product-page evidence"
+        },
+        {
+          "field": "color",
+          "value": "White",
+          "sourceLabel": "Colour",
+          "sourceValue": "White",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO136417?variantId=3173120",
+          "status": "PASS: exact official product-page evidence"
+        },
+        {
+          "field": "protection",
+          "value": "IP 54 in fan-and-filter units/roof-mounted fans/outlet filters",
+          "sourceLabel": "IP protection category to IEC 60 529",
+          "sourceValue": "IP 54 in fan-and-filter units/roof-mounted fans/outlet filters",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO136417?variantId=3173120",
+          "status": "PASS: exact official product-page evidence"
+        }
+      ]
+    },
+    {
+      "catalogNumber": "3243080",
+      "fields": [
+        {
+          "field": "weight",
+          "value": "3.8 kg",
+          "sourceLabel": "Net weight",
+          "sourceValue": "3.8 kg",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1007/PRO0305?variantId=3243080",
+          "status": "PASS: exact official product-page evidence"
+        },
+        {
+          "field": "dimensions",
+          "value": "480 x 350 x 110 mm",
+          "sourceLabel": "Depth",
+          "sourceValue": "110 mm",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1007/PRO0305?variantId=3243080",
+          "status": "PASS: exact official product-page evidence"
+        },
+        {
+          "field": "material",
+          "value": "Stainless steel AISI304 - 1.4301 (V2A)Silicone",
+          "sourceLabel": "Material",
+          "sourceValue": "Stainless steel AISI304 - 1.4301 (V2A)Silicone",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1007/PRO0305?variantId=3243080",
+          "status": "PASS: exact official product-page evidence"
+        },
+        {
+          "field": "protection",
+          "value": "NEMA 1; IP 56 when fitted over fan-and-filter unit/outlet filter with filter mat",
+          "sourceLabel": "Protection category NEMA",
+          "sourceValue": "NEMA 1",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1007/PRO0305?variantId=3243080",
+          "status": "PASS: exact official product-page evidence"
+        }
+      ]
+    },
+    {
+      "catalogNumber": "2485100",
+      "fields": [
+        {
+          "field": "weight",
+          "value": "0.039 kg",
+          "sourceLabel": "Net weight",
+          "sourceValue": "0.039 kg",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+          "status": "PASS: exact official product-page evidence"
+        },
+        {
+          "field": "color",
+          "value": "RAL 9011",
+          "sourceLabel": "Colour",
+          "sourceValue": "RAL 9011",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+          "status": "PASS: exact official product-page evidence"
+        }
+      ]
+    },
+    {
+      "catalogNumber": "3173100",
+      "fields": [
+        {
+          "field": "weight",
+          "value": "0.1 kg",
+          "sourceLabel": "Net weight",
+          "sourceValue": "0.1 kg",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO0303?variantId=3173100",
+          "status": "PASS: exact official product-page evidence"
+        },
+        {
+          "field": "dimensions",
+          "value": "289 x 289 x 17 mm",
+          "sourceLabel": "Depth",
+          "sourceValue": "17 mm",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO0303?variantId=3173100",
+          "status": "PASS: exact official product-page evidence"
+        },
+        {
+          "field": "material",
+          "value": "Chemical fibres",
+          "sourceLabel": "Material",
+          "sourceValue": "Chemical fibres",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO0303?variantId=3173100",
+          "status": "PASS: exact official product-page evidence"
+        }
+      ]
+    }
+  ]
+}

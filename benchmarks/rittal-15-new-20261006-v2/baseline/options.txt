@@ -1,0 +1,7 @@
+BENCHMARK_MANUFACTURER=rittal
+BENCHMARK_FIXTURE_DIR=benchmarks/rittal-15-new-20261006-v2/input
+BENCHMARK_ISOLATED_STORAGE=1
+DEBUG_BENCHMARK=1
+PRODUCT_SCRAPER_ALLOW_EXTERNAL_SEARCH=unset (disabled)
+Manufacturer concurrency=2; configured rateLimitMs=1500 ms; effective per-host minimum interval=750 ms (run-manager rateLimitMs/concurrency).
+Each pass used a fresh isolated SQLite database and HTTP cache; fixture files supplied only the 15 catalog-number inputs, not product responses. Learned endpoints were 0; customer documents were absent.

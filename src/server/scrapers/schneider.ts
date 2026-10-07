@@ -324,27 +324,46 @@ export class SchneiderConnector implements ManufacturerConnector {
     const allUrls = buildSchneiderOfficialUrls(catalogNumber);
     const psCounter = { count: 0 };
 
-    // Parallelize the first 5 locales — first rich result wins; the rest are discarded but their cache writes persist.
+    // Try the preferred canonical locale first. The old eager five-locale Promise.all made every
+    // normal SKU wait for the slowest regional mirror, even when the first page was complete.
+    // Probe the remaining locales in parallel only when the preferred page is missing or thin.
     const headBatch = allUrls.slice(0, 5);
     const tailBatch = allUrls.slice(5);
-    const headFetched = await Promise.all(headBatch.map((url) => fetchSchneiderProductPage(url, context, psCounter)));
-
     let richFound = false;
-    for (let i = 0; i < headBatch.length; i++) {
-      const fetched = headFetched[i];
-      if (!fetched) continue;
-      const officialUrl = headBatch[i];
-      const result = isTelemecaniqueProductUrl(officialUrl, fetched.effectiveUrl)
-        ? parseTelemecaniqueProductPage(catalogNumber, fetched)
-        : parseSchneiderProductPage(catalogNumber, fetched);
+
+    const preferredUrl = headBatch[0];
+    const preferredFetched = preferredUrl ? await fetchSchneiderProductPage(preferredUrl, context, psCounter) : undefined;
+    if (preferredFetched && preferredUrl) {
+      const result = isTelemecaniqueProductUrl(preferredUrl, preferredFetched.effectiveUrl)
+        ? parseTelemecaniqueProductPage(catalogNumber, preferredFetched)
+        : parseSchneiderProductPage(catalogNumber, preferredFetched);
       if (result.status !== "failed") {
         officialResults.push(result);
-        if (isRichSchneiderResult(result)) {
-          richFound = true;
-          break;
-        }
+        richFound = isRichSchneiderResult(result);
       } else {
-        firstFailure ??= result;
+        firstFailure = result;
+      }
+    }
+
+    if (!richFound) {
+      const remainingHead = headBatch.slice(1);
+      const remainingFetched = await Promise.all(remainingHead.map((url) => fetchSchneiderProductPage(url, context, psCounter)));
+      for (let i = 0; i < remainingHead.length; i++) {
+        const fetched = remainingFetched[i];
+        if (!fetched) continue;
+        const officialUrl = remainingHead[i];
+        const result = isTelemecaniqueProductUrl(officialUrl, fetched.effectiveUrl)
+        ? parseTelemecaniqueProductPage(catalogNumber, fetched)
+        : parseSchneiderProductPage(catalogNumber, fetched);
+        if (result.status !== "failed") {
+          officialResults.push(result);
+          if (isRichSchneiderResult(result)) {
+            richFound = true;
+            break;
+          }
+        } else {
+          firstFailure ??= result;
+        }
       }
     }
 
@@ -423,7 +442,9 @@ async function fetchSchneiderProductPage(
 function shouldFetchSchneiderDatasheetReader(result: ProductResult | undefined): boolean {
   if (!result) return true;
   if (!result.documents.some((doc) => doc.type === "datasheet")) return true;
-  return result.attributes.length < 30;
+  // A complete official PDP plus the subsequent exact PDF download is cheaper and more reliable
+  // than querying four locale-specific Jina Reader mirrors. Reserve the reader for truly sparse PDPs.
+  return result.attributes.length < 12;
 }
 
 async function fetchSchneiderDatasheetReader(catalogNumber: string, context: ScrapeContext): Promise<ProductResult | undefined> {
@@ -524,7 +545,7 @@ export function parseSchneiderProductPage(catalogNumber: string, fetched: Fetche
   const documents = stampSchneiderDocuments(
     dedupeDocuments([
       ...structuredDocuments,
-      ...extractImageDocuments(decoded, catalogNumber, sourceUrl),
+      ...extractImageDocuments($, decoded, catalogNumber, sourceUrl),
       ...extractLinkedDocuments(decoded, sourceUrl)
     ])
   );
@@ -535,7 +556,7 @@ export function parseSchneiderProductPage(catalogNumber: string, fetched: Fetche
     };
   }
 
-  const normalized = normalizeFields(attributes, documents);
+  const normalized = normalizeFields(attributes, documents, "schneider");
 
   return {
     manufacturerId: "schneider",
@@ -591,7 +612,7 @@ export function parseSchneiderDatasheetReaderPage(catalogNumber: string, fetched
       sourceUrl
     }
   ]);
-  const normalized = normalizeFields(attributes, documents);
+  const normalized = normalizeFields(attributes, documents, "schneider");
 
   return {
     manufacturerId: "schneider",
@@ -665,7 +686,7 @@ export function parseTelemecaniqueProductPage(catalogNumber: string, fetched: Fe
     };
   }
 
-  const normalized = normalizeFields(attributes, documents);
+  const normalized = normalizeFields(attributes, documents, "schneider");
   return {
     manufacturerId: "schneider",
     catalogNumber,
@@ -687,8 +708,11 @@ function isRichSchneiderResult(result: ProductResult): boolean {
   const hasDatasheet = result.documents.some((doc) => doc.type === "datasheet");
   const hasProductImage = result.documents.some((doc) => doc.type === "image");
   const isTelemecanique = result.sources.some((source) => source.parser === TELEMECANIQUE_PARSER);
-  const hasStructuredSpecs = result.attributes.some((attr) => /^schneider (?:main|complementary|environment)$/i.test(attr.group ?? ""));
-  return result.attributes.length >= 20 && hasStructuredSpecs && hasDatasheet && (hasProductImage || isTelemecanique);
+  const exactProductUrl = Boolean(result.productUrl && catalogTextMatches(result.productUrl, result.catalogNumber));
+  // A confirmed product page with its exact datasheet and device image is enough to stop locale
+  // discovery. The previous attribute-count threshold kept walking every region when specs lived
+  // in the attached PDF, even though the next pipeline stage downloads and parses that exact PDF.
+  return exactProductUrl && hasDatasheet && (hasProductImage || isTelemecanique);
 }
 
 function isTelemecaniqueProductUrl(requestedUrl: string, effectiveUrl: string): boolean {
@@ -1328,6 +1352,7 @@ function addProductMediaImages(documents: DocumentRecord[], media: JsonObject | 
 function addStructuredImage(documents: DocumentRecord[], url: string | undefined, label: string, sourceUrl: string): void {
   const absolute = absoluteUrl(url, sourceUrl);
   if (!absolute || !isImageUrl(absolute)) return;
+  if (isNonProductSchneiderImage(`${label} ${absolute}`)) return;
   documents.push({ type: "image", label: cleanText(label) || "Product image", url: absolute, sourceUrl });
 }
 
@@ -1355,22 +1380,63 @@ function extractSustainabilityCharacteristics(decoded: string, sourceUrl: string
   return attributes;
 }
 
-function extractImageDocuments(decoded: string, catalogNumber: string, sourceUrl: string): DocumentRecord[] {
+function extractImageDocuments(
+  $: cheerio.CheerioAPI,
+  decoded: string,
+  catalogNumber: string,
+  sourceUrl: string
+): DocumentRecord[] {
   const part = catalogNumber.toLowerCase();
   const documents: DocumentRecord[] = [];
   for (const url of extractDownloadUrls(decoded, sourceUrl)) {
     if (!/p_File_Type=rendition_/i.test(url)) continue;
     const params = readUrlParams(url);
     const ref = cleanText(params.get("p_Doc_Ref") ?? "");
-    if (!ref.toLowerCase().includes(part)) continue;
+    if (isNonProductSchneiderImage(`${ref} ${url}`)) continue;
+    if (ref.toLowerCase().includes(part)) {
+      documents.push({
+        type: "image",
+        label: imageLabelFromRef(ref),
+        url,
+        sourceUrl
+      });
+      continue;
+    }
+
+    // Some Schneider PDPs use a shared document reference (for example PB104472_IoP-Default
+    // or PF130230) for the product image. Accept it only when the nearby product-media label
+    // names this exact catalog number and explicitly calls it a product picture/image.
+    const urlIndex = decoded.indexOf(url);
+    const context = urlIndex >= 0 ? decoded.slice(Math.max(0, urlIndex - 500), urlIndex + 200) : "";
+    if (!isSchneiderExactProductImageContext(context, catalogNumber)) continue;
     documents.push({
       type: "image",
-      label: imageLabelFromRef(ref),
+      label: `${catalogNumber} Product picture`,
       url,
       sourceUrl
     });
   }
+
+  // A few localized pages expose the primary gallery as ordinary image tags rather than
+  // structured productMedia JSON. The exact SKU in the alt/title and an explicit product-image
+  // label are required so logos, diagrams, and recommendation tiles are never promoted.
+  $("img").each((_, element) => {
+    const image = $(element);
+    const label = cleanText(image.attr("alt") || image.attr("title") || image.attr("aria-label") || "");
+    const rawUrl = image.attr("src") || image.attr("data-src") || image.attr("data-original") || "";
+    const url = absoluteUrl(rawUrl, sourceUrl);
+    if (!url || !catalogTextMatches(label, catalogNumber) || !/product\s+(?:picture|image)/i.test(label)) return;
+    if (!isImageUrl(url) || /(?:logo|schematic|diagram|dimension|drawing|macro)/i.test(`${label} ${url}`)) return;
+    documents.push({ type: "image", label, url, sourceUrl });
+  });
+
   return documents.sort((left, right) => imageRank(left.url) - imageRank(right.url)).slice(0, 8);
+}
+
+function isSchneiderExactProductImageContext(context: string, catalogNumber: string): boolean {
+  if (!catalogTextMatches(context, catalogNumber) || !/picture|image/i.test(context)) return false;
+  const escaped = catalogNumber.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return new RegExp(`title[^,{}]{0,180}${escaped}[^,{}]{0,80}(?:product\\s+)?(?:picture|image)`, "i").test(context);
 }
 
 function extractLinkedDocuments(decoded: string, sourceUrl: string): DocumentRecord[] {
@@ -1423,9 +1489,16 @@ function imageLabelFromRef(ref: string): string {
 }
 
 function imageRank(url: string): number {
-  if (/iopmain|main/i.test(url)) return 0;
-  if (/dimension/i.test(url)) return 1;
-  return 2;
+  if (isNonProductSchneiderImage(url)) return 100;
+  const mainImage = /iopmain|_main(?:_|\b)|product.?image/i.test(url) ? 0 : 10;
+  if (/rendition_1500_(?:jpg|png)/i.test(url)) return mainImage;
+  if (/rendition_(?:520|369)_(?:jpg|png)/i.test(url)) return mainImage + 1;
+  if (/rendition_64_gif/i.test(url)) return mainImage + 20;
+  return mainImage + 5;
+}
+
+function isNonProductSchneiderImage(value: string): boolean {
+  return /(?:dimension|schematic|diagram|wiring|macro|exploded|outline|drawing|logo|icon)/i.test(value);
 }
 
 function readJsonString(decoded: string, pattern: RegExp): string | undefined {

@@ -207,15 +207,25 @@ export function isValueFragmentLabel(name: string): boolean {
 };
 */
 
-export function normalizeFields(attributes: AttributeRecord[], documents: DocumentRecord[]): NormalizedProductFields {
+export function normalizeFields(attributes: AttributeRecord[], documents: DocumentRecord[], manufacturerId?: string): NormalizedProductFields {
+  const rittalPdpAttributes = manufacturerId === "rittal"
+    ? attributes.filter((attribute) => attribute.sourceType === "official" || attribute.sourceType === "official-fallback")
+    : attributes;
+  // Rittal's localized PDPs can label a kA short-circuit withstand figure "Rated current".
+  // Also keep accessory prose (for example, NEMA type "3R/4, 12 a NEMA 4X") out of electrical
+  // current normalization. Title/description inferences and document-table text are not product-level
+  // current evidence; retain them as raw attributes, but normalize current only from official PDP rows.
+  const currentAttributes = manufacturerId === "rittal"
+    ? rittalPdpAttributes.filter(isRittalCurrentEvidence)
+    : attributes;
   const findAttr = (...patterns: RegExp[]) => {
     return bestAttributeValue(attributes, patterns);
   };
 
-  const heightAttr = bestDimensionAxisAttribute(attributes, "height");
-  const widthAttr = bestDimensionAxisAttribute(attributes, "width");
-  const depthAttr = bestDimensionAxisAttribute(attributes, "depth");
-  const lengthAttr = bestDimensionAxisAttribute(attributes, "length");
+  const heightAttr = bestDimensionAxisAttribute(attributes, "height", manufacturerId);
+  const widthAttr = bestDimensionAxisAttribute(attributes, "width", manufacturerId);
+  const depthAttr = bestDimensionAxisAttribute(attributes, "depth", manufacturerId);
+  const lengthAttr = bestDimensionAxisAttribute(attributes, "length", manufacturerId);
   const cableLengthDimension = bestCableLengthDimensionValue(attributes);
   const axisAssembledDimensions = normalizeDimensionValue(
     formatDimensions(heightAttr?.value, widthAttr?.value, depthAttr?.value, lengthAttr?.value)
@@ -274,21 +284,31 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
     axisAssembledDimensions ??
     registryFieldValue(attributes, "dimensions", normalizeDimensionValue) ??
     deriveDimensionsFromText(attributes) ??
+    schneiderDescriptionDimensions(attributes) ??
     cableLengthDimension;
-  const material =
-    findMaterialAttr(attributes) ??
-    registryFieldValue(attributes, "material", materialValueFromText) ??
-    deriveMaterialFromAttributes(attributes) ??
-    ontologyFieldValue(attributes, "material", materialValueFromText);
-  const finish =
+  const material = manufacturerId === "rittal"
+    ? rittalExplicitLabelValue(rittalPdpAttributes, /^materials?$/i, rittalMaterialValue)
+    : manufacturerId === "schneider"
+    ? schneiderPrimaryMaterial(attributes)
+    : findMaterialAttr(attributes) ??
+      registryFieldValue(attributes, "material", materialValueFromText) ??
+      deriveMaterialFromAttributes(attributes) ??
+      ontologyFieldValue(attributes, "material", materialValueFromText);
+  const finish = manufacturerId === "rittal"
+    ? rittalExplicitLabelValue(rittalPdpAttributes, /^(?:surface\s+)?(?:finish|finishing|treatment|coating)$/i, rittalSpecText)
+    :
     normalizeFinishValue(bestAttributeValue(attributes, normalizerFieldLabelPatterns("finish"))) ??
     registryFieldValue(attributes, "finish", (value) => finishPhraseFromText(value) ?? normalizeFinishValue(value)) ??
     deriveFinishFromAttributes(attributes) ??
     deriveFinishFromMaterial(material) ??
     ontologyFieldValue(attributes, "finish", (value) => finishPhraseFromText(value) ?? normalizeFinishValue(value));
-  const finishForColor = normalizeFinishValue(bestAttributeValue(attributes.filter((attr) => attr.scope !== "variant-option"), normalizerFieldLabelPatterns("finish")));
+  const finishForColor = manufacturerId === "rittal"
+    ? undefined
+    : normalizeFinishValue(bestAttributeValue(attributes.filter((attr) => attr.scope !== "variant-option"), normalizerFieldLabelPatterns("finish")));
   const wallThickness = bestWallThicknessAttributeValue(attributes) ?? registryFieldValue(attributes, "wallThickness", normalizeWallThicknessValue) ?? deriveWallThicknessFromAttributes(attributes);
-  const color = withoutForeignQuantityKinds(
+  const color = manufacturerId === "rittal"
+    ? rittalExplicitLabelValue(rittalPdpAttributes, /^(?:colou?r)$/i, (value) => findColorAttr([{ name: "Colour", value }]))
+    : withoutForeignQuantityKinds(
     findColorAttr(attributes) ??
       registryFieldValue(attributes, "color", deriveColorFromFinish) ??
       deriveColorFromFinish(finishForColor) ??
@@ -297,11 +317,15 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
       deriveColorFromProseAttributes(attributes)
   );
 
-  const protectionFromAttr =
-    collectProtectionValues(attributes) ??
-    deriveProtectionFromText(attributes) ??
-    registryFieldValue(attributes, "protection", normalizeProtectionValue) ??
-    ontologyFieldValue(attributes, "protection", normalizeProtectionValue);
+  const protectionAttributes = manufacturerId === "rittal"
+    ? rittalPdpAttributes.filter((attribute) => /\b(?:protection|degree|type\s+rating|ik\s+code|nema|ip\s+(?:class|rating|protection))\b/i.test(attribute.name))
+    : attributes;
+  const protectionFromAttr = manufacturerId === "rittal"
+    ? collectProtectionValues(protectionAttributes)
+    : collectProtectionValues(protectionAttributes) ??
+      deriveProtectionFromText(attributes) ??
+      registryFieldValue(attributes, "protection", normalizeProtectionValue) ??
+      ontologyFieldValue(attributes, "protection", normalizeProtectionValue);
   // If the manufacturer publishes an explicit "Standards" attribute (e.g. ABB's "Standards: IEC/UL"),
   // that IS the curated certification list — don't pollute it with document-derived RoHS / REACH
   // declarations, which aren't certifications in the same sense and only appear because the
@@ -332,9 +356,11 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
     : removeSubsumedCertificateTokens(uniqueCertificateTokens(certificateValues)).sort(compareCertificateToken);
   const certificates = certificateTokens.join(", "); // Comma-space matches the format used in manual PDTs (ABB: "IEC, UL"; Rockwell: "c-UL-us, FM, CE...").
 
-  const voltage = withoutMixedKindProse(
+  const rittalVoltageModes = manufacturerId === "rittal" ? rittalMultipleVoltageRanges(attributes) : undefined;
+  const voltage = rittalVoltageModes ?? withoutMixedKindProse(
+      powerSupplyOutputVoltage(attributes) ??
     normalizeVoltageValue(deriveVoltageRangeFromMinMax(attributes)) ??
-    powerSupplyOutputVoltage(attributes) ??
+    explicitRatedVoltageFromText(attributes) ??
     numericVoltAttributeVoltage(attributes) ??
     bestNormalizedAttributeValue(attributes, normalizerFieldLabelPatterns("voltage"), normalizeVoltageValue, "voltage") ??
     registryFieldValue(attributes, "voltage", normalizeVoltageValue) ??
@@ -345,19 +371,22 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
       inferredOntologyFieldValue(attributes, "ratedVoltage", normalizeVoltageValue)
   );
   const current = withoutMixedKindProse(
-    voltageAlignedAc15Current(attributes, voltage) ??
-      numericCurrentAttributeCurrent(attributes) ??
-      bestNormalizedAttributeValue(attributes, normalizerFieldLabelPatterns("current"), normalizeCurrentValue, "current") ??
-      registryFieldValue(attributes, "current", normalizeCurrentValue) ??
-      normalizeCurrentValue(deriveCurrentFromText(attributes)) ??
-      ontologyFieldValue(attributes, "ratedCurrent", normalizeCurrentValue) ??
-      inferredOntologyFieldValue(attributes, "ratedCurrent", normalizeCurrentValue)
+    powerSupplyOutputCurrent(currentAttributes) ??
+      schneiderContactorAc3Current(currentAttributes) ??
+      explicitRatedCurrentFromText(currentAttributes) ??
+      voltageAlignedAc15Current(currentAttributes, voltage) ??
+      numericCurrentAttributeCurrent(currentAttributes) ??
+      bestNormalizedAttributeValue(currentAttributes, normalizerFieldLabelPatterns("current"), normalizeCurrentValue, "current") ??
+      registryFieldValue(currentAttributes, "current", normalizeCurrentValue) ??
+      normalizeCurrentValue(deriveCurrentFromText(currentAttributes)) ??
+      ontologyFieldValue(currentAttributes, "ratedCurrent", normalizeCurrentValue) ??
+      inferredOntologyFieldValue(currentAttributes, "ratedCurrent", normalizeCurrentValue)
   );
 
   const operatingTemperature = deriveOperatingTemperature(attributes);
 
   return {
-    weight: bestNormalizedAttributeValue(attributes, normalizerFieldLabelPatterns("weight"), normalizeWeightValue, "weight") ?? registryFieldValue(attributes, "weight", normalizeWeightValue) ?? ontologyFieldValue(attributes, "weight", normalizeWeightValue) ?? inferredOntologyFieldValue(attributes, "weight", normalizeWeightValue),
+    weight: bestNormalizedAttributeValue(attributes, normalizerFieldLabelPatterns("weight"), normalizeWeightValue, "weight") ?? registryFieldValue(attributes, "weight", normalizeWeightValue) ?? ontologyFieldValue(attributes, "weight", normalizeWeightValue) ?? inferredOntologyFieldValue(attributes, "weight", normalizeWeightValue) ?? schneiderDescriptionWeight(attributes),
     dimensions,
     material,
     wallThickness,
@@ -633,10 +662,11 @@ export function mergeResults(primary: ProductResult, fallback?: ProductResult): 
   const attributes = sortAttributesStable(dedupeAttributes([...primary.attributes, ...fallback.attributes]));
   const documents = dedupeDocuments([...primary.documents, ...fallback.documents]);
   const normalized = mergeNormalizedFields(
-    normalizeFields(attributes, documents),
+    normalizeFields(attributes, documents, primary.manufacturerId === "rittal" ? "rittal" : undefined),
     primary.normalized,
     fallback.normalized,
-    attributes
+    attributes,
+    primary.manufacturerId === "rittal" ? "rittal" : undefined
   );
   const hasFallbackAdditions = fallback.status !== "failed" && (fallback.attributes.length > 0 || fallback.documents.length > 0);
   return {
@@ -755,6 +785,22 @@ function powerSupplyOutputVoltage(attributes: AttributeRecord[]): string | undef
     .sort(compareAttributeEvidence)
     .map((attr) => normalizeVoltageValue(attr.value))
     .find((value): value is string => Boolean(value));
+}
+
+function powerSupplyOutputCurrent(attributes: AttributeRecord[]): string | undefined {
+  if (!isPowerSupplyProduct(attributes)) return undefined;
+  const candidates = attributes
+    .filter((attr) => {
+      const label = `${attr.group ?? ""} ${attr.name}`.toLowerCase();
+      return /\b(?:output current|current at secondary voltage|power supply output current)\b/.test(label) &&
+        !/\b(?:input|inrush|package|short[- ]circuit)\b/.test(label) && isLikelySpecText(attr.value) && isAvailableSpecValue(attr.value);
+    })
+    .sort(compareAttributeEvidence);
+  for (const attr of candidates) {
+    const value = extractCurrentValues(attr.value, `${attr.group ?? ""} ${attr.name}`)[0];
+    if (value) return value;
+  }
+  return undefined;
 }
 
 function isPowerSupplyProduct(attributes: AttributeRecord[]): boolean {
@@ -950,10 +996,16 @@ export function bestDimensionAxisValue(attributes: AttributeRecord[], axis: "hei
 /** Same selection as {@link bestDimensionAxisValue} but returns the winning attribute itself (not
  * just its value) so callers can weigh its evidence score against a competing candidate — see the
  * axis-vs-combined-"Dimensions"-attribute arbitration in normalizeFields. */
-function bestDimensionAxisAttribute(attributes: AttributeRecord[], axis: "height" | "width" | "depth" | "length"): AttributeRecord | undefined {
+function bestDimensionAxisAttribute(attributes: AttributeRecord[], axis: "height" | "width" | "depth" | "length", manufacturerId?: string): AttributeRecord | undefined {
+  // PDF ontology mining can drop the "Package 1/2" prefix from headings and turn shipping
+  // carton dimensions into plain Height/Width/Length rows. If the same datasheet has explicit
+  // packing-unit rows, do not promote its unscoped ontology copies to product dimensions.
+  const hasPackageDimensions = attributes.some((attr) => /\bpackage\s+\d+\s+(?:height|width|depth|length)\b/i.test(attr.name));
   return attributes
     .filter((attr) => {
       const label = `${attr.group ?? ""} ${attr.name}`.toLowerCase();
+      if (manufacturerId === "schneider" && hasPackageDimensions && /pdf ontology spec miner/i.test(attr.group ?? "")) return false;
+      if (manufacturerId === "schneider" && axis === "depth" && /\blength\b/.test(label) && !/(?:length\s*\/\s*depth|depth\s*\/\s*length)/.test(label)) return false;
       return dimensionAxisLabelScore(label, axis) > -100 && isLikelyDimensionAxisValue(attr.value) && isLikelySpecText(attr.value) && isAvailableSpecValue(attr.value);
     })
     .sort((left, right) => {
@@ -979,7 +1031,7 @@ function isLikelyDimensionAxisValue(value: string): boolean {
 
 function dimensionAxisLabelScore(label: string, axis: "height" | "width" | "depth" | "length"): number {
   if (
-    /package|packing|packaging|number of height units|height units|suitable for enclosure|wire stripping|stripping length|cable length|bus length|tap links length|cable distance|operating distance|communication distance|serial link|modbus|ethernet|segment|pulse width|time delay|recovery time|power on delay|response time|reset time|duration|control signal|signal pulse|connecting capacity|conductor|terminal|focal length|back focal|object distance|minimum object distance|angle of view|sensor size|lens|mount/.test(
+    /package|packing|packaging|threaded length|number of height units|height units|suitable for enclosure|wire stripping|stripping length|cable length|bus length|tap links length|cable distance|operating distance|communication distance|serial link|modbus|ethernet|segment|pulse width|time delay|recovery time|power on delay|response time|reset time|duration|control signal|signal pulse|connecting capacity|conductor|terminal|focal length|back focal|object distance|minimum object distance|angle of view|sensor size|lens|mount/.test(
       label
     )
   ) {
@@ -1038,17 +1090,20 @@ function mergeNormalizedFields(
   computed: NormalizedProductFields,
   primary: NormalizedProductFields,
   fallback: NormalizedProductFields,
-  attributes: AttributeRecord[]
+  attributes: AttributeRecord[],
+  manufacturerId?: string
 ): NormalizedProductFields {
   const merged: NormalizedProductFields = { ...computed };
   for (const field of Object.keys(computed) as Array<keyof NormalizedProductFields>) {
     if (merged[field]) continue;
+    if (manufacturerId === "rittal" && field === "current" && !computed.current) continue;
     merged[field] = primary[field] ?? fallback[field];
   }
 
   for (const field of Object.keys(primary) as Array<keyof NormalizedProductFields>) {
     const primaryValue = primary[field];
     if (!primaryValue) continue;
+    if (manufacturerId === "rittal" && field === "current" && !computed.current) continue;
     const computedValue = merged[field];
     if (!computedValue) {
       merged[field] = primaryValue;
@@ -1060,6 +1115,60 @@ function mergeNormalizedFields(
   }
 
   return Object.fromEntries(Object.entries(merged).filter(([, value]) => value !== undefined && value !== "")) as NormalizedProductFields;
+}
+
+function isRittalCurrentEvidence(attr: AttributeRecord): boolean {
+  const label = `${attr.group ?? ""} ${attr.name}`;
+  if (!/\b(?:current|strom|amperage|amperes?|amps?)\b/i.test(label)) return false;
+  // Rittal uses this source label for short-circuit withstand capacity; retain its raw evidence,
+  // but do not claim it is the device's operating current.
+  return !/\b\d[\d.,]*\s*kA\b/i.test(attr.value);
+}
+
+function rittalExplicitLabelValue<T>(
+  attributes: AttributeRecord[],
+  labelPattern: RegExp,
+  normalize: (value: string) => T | undefined
+): T | undefined {
+  const candidates = attributes
+    .filter((attribute) => labelPattern.test(attribute.name.trim()))
+    .sort(compareAttributeEvidence);
+  for (const attribute of candidates) {
+    const value = normalize(attribute.value);
+    if (value) return value;
+  }
+  return undefined;
+}
+
+function rittalMaterialValue(value: string): string | undefined {
+  // The Rittal page parser flattens adjacent spec cells (for example, "PolyamideFire protection…"
+  // or "Light body: AluminiumLight cover: Polycarbonate"). Preserve the named material parts,
+  // restore their separators, and drop adjoining fire-protection/halogen notes that are separate
+  // properties. Do not infer a material from a busbar description or a linked manual.
+  const cleaned = (normalizeHtmlSpecValue(value) ?? "")
+    .replace(/(?:Fire\s+protection\s+corresponding\s+to|Halogen[-\s]?free).*/i, "")
+    .replace(/\bVolume\s*:\s*\d+(?:[.,]\d+)?\s*(?:l|L)\b.*$/i, "")
+    .replace(/([^\s;])(?=(?:enclosure|door|mounting\s+plate|light\s+(?:body|cover|ends)|front)\s*:\s*)/gi, "$1; ")
+    .trim();
+  return cleaned || undefined;
+}
+
+function rittalSpecText(value: string): string | undefined {
+  const cleaned = (normalizeHtmlSpecValue(value) ?? "")
+    .replace(/([^\s;])(?=(?:enclosure|door|mounting\s+plate|light\s+(?:body|cover|ends)|front)\s*:\s*)/gi, "$1; ")
+    .trim();
+  return cleaned || undefined;
+}
+
+function rittalMultipleVoltageRanges(attributes: AttributeRecord[]): string | undefined {
+  const candidates = attributes
+    .filter((attr) => /voltage/i.test(attr.name) && /\b\d[\d.,]*\s*V\b/i.test(attr.value))
+    .sort(compareAttributeEvidence);
+  for (const candidate of candidates) {
+    const modes = candidate.value.split(/\s*[|;]\s*/).filter((part) => /\b\d[\d.,]*\s*V\b/i.test(part));
+    if (modes.length >= 2) return normalizeHtmlSpecValue(candidate.value);
+  }
+  return undefined;
 }
 
 function valueHasOfficialEvidence(attributes: AttributeRecord[], value: string): boolean {
@@ -1397,6 +1506,7 @@ function normalizeVoltageValue(value: string | undefined): string | undefined {
 }
 
 function normalizeCurrentValue(value: string | undefined): string | undefined {
+  if (value && /\|/.test(value) && /\bA-\d/i.test(value)) return undefined;
   const cleaned = trimElectricalSegments(normalizeElectricalValue(value), /\b\d+(?:[.,]\d+)?\s*(?:\.\.\.\s*\d+(?:[.,]\d+)?\s*)?(?:kA|mA|A)\b/i);
   if (!cleaned || !/\b\d+(?:[.,]\d+)?\s*(?:\.\.\.\s*\d+(?:[.,]\d+)?\s*)?(?:kA|mA|A)\b/i.test(cleaned)) return undefined;
   return cleaned;
@@ -1446,7 +1556,7 @@ function deriveVoltageRangeFromMinMax(attributes: AttributeRecord[]): string | u
 function isPrimaryVoltageLabel(label: string): boolean {
   const normalized = label.toLowerCase();
   if (isSecondaryVoltageLabel(normalized) || isDisqualifiedForQuantityKind(normalized, "", "voltage")) return false;
-  return /\[(?:us|ue|uc)\]\s+rated|rated supply voltage|supply voltage|rated input voltage|input voltage|input power|power input|rated operational voltage|operational voltage|operating voltage|nominal input voltage|rated control circuit voltage|control circuit voltage/.test(
+  return /\[(?:us|ue|uc)\]\s+rated|rated supply voltage|supply voltage|rated input voltage|input voltage|input power|power input|rated operational voltage|operational voltage|operating voltage|nominal input voltage|primary voltage|rated control circuit voltage|control circuit voltage|\brated voltage\b/.test(
     normalized
   );
 }
@@ -1487,6 +1597,77 @@ function deriveCurrentFromText(attributes: AttributeRecord[]): string | undefine
   return bestDerivedElectricalValue(attributes, extractCurrentValues, isCurrentTextCandidate);
 }
 
+function schneiderContactorAc3Current(attributes: AttributeRecord[]): string | undefined {
+  const isSchneiderRecord = attributes.some((attr) => /\bschneider\b/i.test(attr.group ?? ""));
+  const isContactor = isSchneiderRecord && attributes.some((attr) =>
+    /^(?:product or component type|product type)$/i.test(attr.name.trim()) && /\bcontactor\b/i.test(attr.value)
+  );
+  if (!isContactor) return undefined;
+  for (const attr of attributes) {
+    if (!/\bschneider\b/i.test(attr.group ?? "")) continue;
+    const text = `${attr.name} ${attr.value}`;
+    if (!/\bAC-3(?:e)?\b/i.test(text)) continue;
+    const current = text.match(/\b(\d+(?:[.,]\d+)?)\s*A\b[^.;|]{0,70}\bAC-3(?:e)?\b/i)?.[1];
+    if (current) return normalizeCurrentValue(`${current} A`);
+  }
+  return undefined;
+}
+
+/** Prefer explicitly stated product ratings in official descriptions/spec strings over generic
+ * PDF-mined values that can describe an analog input, relay output, or a sibling variant. */
+function explicitRatedCurrentFromText(attributes: AttributeRecord[]): string | undefined {
+  const candidates: Array<{ value: string; score: number }> = [];
+  for (const attr of attributes) {
+    const text = derivedSpecText(attr);
+    const matches = text.matchAll(/(?<![\w.-])\d+(?:[.,]\d+)?\s*(?:(?:\.{2,3}|\u2026|\u2013|\u2014|\-|to)\s*\d+(?:[.,]\d+)?\s*)?(?:kA|mA|A|amps?|amperes?)\b(?![a-z0-9-])/gi);
+    for (const match of matches) {
+      const start = match.index ?? 0;
+      const context = text.slice(Math.max(0, start - 100), Math.min(text.length, start + match[0].length + 45));
+      if (!/\b(?:rated|nominal|operational|continuous)\b[^.;|]{0,65}\bcurrent\b|\bcurrent\b[^.;|]{0,65}\b(?:rated|nominal|operational|continuous)\b/i.test(context)) continue;
+      if (/\b(?:current consumption|inrush|starting|peak|relay output|analog(?:ue)? input|discrete output|switching current|coil current)\b/i.test(context)) continue;
+      const value = normalizeCurrentValue(match[0]);
+      if (!value) continue;
+      const label = `${attr.group ?? ""} ${attr.name}`;
+      const score = attributeEvidenceScore(attr) + 250 + (/\b(?:rated operational current|rated output current|nominal output current)\b|\[ie\]/i.test(label) ? 1000 : 0) + (attr.scope === "variant" ? 120 : 0);
+      candidates.push({ value, score });
+    }
+  }
+  return candidates.sort((a, b) => b.score - a.score)[0]?.value;
+}
+
+function explicitRatedVoltageFromText(attributes: AttributeRecord[]): string | undefined {
+  const labeledRatings = attributes
+    .filter((attr) => isPrimaryVoltageLabel(`${attr.group ?? ""} ${attr.name}`))
+    .map((attr) => ({ value: normalizeVoltageValue(attr.value), label: `${attr.group ?? ""} ${attr.name}`, score: attributeEvidenceScore(attr) + (attr.scope === "variant" ? 120 : 0) }))
+    .filter((candidate): candidate is { value: string; label: string; score: number } => Boolean(candidate.value))
+    .sort((left, right) => right.score - left.score);
+  const primaryRatings = labeledRatings.filter((candidate) => !/\b(?:control circuit|control supply|control voltage)\b/i.test(candidate.label));
+  // The main product input/supply rating outranks its separate control voltage.
+  const supplyRatings = primaryRatings.filter((candidate) => /\b(?:supply voltage|input voltage|primary voltage|operational voltage|operating voltage)\b/i.test(candidate.label));
+  const selectedRatings = supplyRatings.length ? supplyRatings : primaryRatings.length ? primaryRatings : labeledRatings;
+  if (selectedRatings[0]) return selectedRatings[0].value;
+  const candidates: Array<{ value: string; score: number }> = [];
+  for (const attr of attributes) {
+    const text = derivedSpecText(attr);
+    const matches = text.matchAll(/(?<![\w.])\d+(?:[.,]\d+)?\s*(?:(?:\.{2,3}|\u2026|\u2013|\u2014|\-|to)\s*\d+(?:[.,]\d+)?\s*)?(?:kV|V|volts?)\b(?:\s*(?:AC|DC))?/gi);
+    for (const match of matches) {
+      const start = match.index ?? 0;
+      const context = text.slice(Math.max(0, start - 100), Math.min(text.length, start + match[0].length + 45));
+      if (!/\b(?:rated|nominal|operational|supply)\b[^.;|]{0,65}\bvoltage\b|\bvoltage\b[^.;|]{0,65}\b(?:rated|nominal|operational|supply)\b/i.test(context)) continue;
+      if (/\b(?:insulation|impulse|withstand|voltage drop|analog(?:ue)? input|relay output|control circuit)\b/i.test(context)) continue;
+      const value = normalizeVoltageValue(match[0]);
+      if (!value) continue;
+      const label = `${attr.group ?? ""} ${attr.name}`;
+      // A label-keyed rating from a product datasheet beats a prose sentence in the
+      // product description. Both may be accurate, but the table value preserves the
+      // full operating range and should survive later text-derived 380 V candidates.
+      const score = attributeEvidenceScore(attr) + 250 + (/\b(?:rated supply voltage|rated operational voltage|input voltage)\b/i.test(label) ? 1000 : 0) + (attr.scope === "variant" ? 120 : 0);
+      candidates.push({ value, score });
+    }
+  }
+  return candidates.sort((a, b) => b.score - a.score)[0]?.value;
+}
+
 function deriveDimensionsFromText(attributes: AttributeRecord[]): string | undefined {
   const candidates = attributes
     .filter(isDimensionTextCandidate)
@@ -1497,6 +1678,29 @@ function deriveDimensionsFromText(attributes: AttributeRecord[]): string | undef
       }))
     );
   return candidates.sort((left, right) => right.score - left.score)[0]?.value;
+}
+
+function schneiderDescriptionDimensions(attributes: AttributeRecord[]): string | undefined {
+  for (const attr of attributes) {
+    if (!/\bschneider\b/i.test(attr.group ?? "") || !/^description$/i.test(attr.name.trim())) continue;
+    const value = cleanText(attr.value);
+    const width = value.match(/\b(\d+(?:[.,]\d+)?)\s*(mm|cm|in|inch|inches)\s*(?:wide|in width)\b/i);
+    const height = value.match(/\b(\d+(?:[.,]\d+)?)\s*(mm|cm|in|inch|inches)\s*(?:high|in height)\b/i);
+    const depth = value.match(/\b(\d+(?:[.,]\d+)?)\s*(mm|cm|in|inch|inches)\s*(?:deep|in depth)\b/i);
+    if (width && height && depth && width[2].toLowerCase() === height[2].toLowerCase() && width[2].toLowerCase() === depth[2].toLowerCase()) {
+      return normalizeDimensionValue(`${height[1]} x ${width[1]} x ${depth[1]} ${height[2]}`);
+    }
+  }
+  return undefined;
+}
+
+function schneiderDescriptionWeight(attributes: AttributeRecord[]): string | undefined {
+  for (const attr of attributes) {
+    if (!/\bschneider\b/i.test(attr.group ?? "") || !/^description$/i.test(attr.name.trim())) continue;
+    const match = cleanText(attr.value).match(/\bweighs\s+(\d+(?:[.,]\d+)?)\s*(kg|g|lb|lbs)\b/i);
+    if (match) return normalizeWeightValue(`${match[1]} ${match[2]}`);
+  }
+  return undefined;
 }
 
 function isDimensionTextCandidate(attr: AttributeRecord): boolean {
@@ -1695,6 +1899,19 @@ function findMaterialAttr(attributes: AttributeRecord[]): string | undefined {
     });
   }
   return candidates.sort((left, right) => right.score - left.score)[0]?.value;
+}
+
+function schneiderPrimaryMaterial(attributes: AttributeRecord[]): string | undefined {
+  // Schneider PDFs include connector, terminal, wire, and environmental-composition materials
+  // alongside product specs. Those are not the material of the requested device. Keep only an
+  // exact product material row or a clearly scoped body/housing/enclosure/case material row.
+  const primary = attributes.filter((attr) => {
+    const name = cleanText(attr.name).toLowerCase();
+    const group = cleanText(attr.group ?? "").toLowerCase();
+    if (/certificate|compliance|declaration|environment|substance|packaging|terminal|contact|wire|cable|connector|accessor/i.test(`${group} ${name}`)) return false;
+    return name === "material" || /\b(?:housing|enclosure|body|case) material\b/.test(name);
+  });
+  return findMaterialAttr(primary) ?? deriveMaterialFromAttributes(primary);
 }
 
 function normalizeFinishValue(value: string | undefined): string | undefined {

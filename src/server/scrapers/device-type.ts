@@ -44,10 +44,14 @@ interface DeviceTypeCandidate {
 // (e.g. "Sensor", 620) whenever both match the same product. Within a single tier, evidence
 // quality (where the text came from + which source it came from) decides confidence.
 const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
+  rule("Power Distribution Unit", /\b(?:power distribution units?|managed\s+pdus?|pdus?)\b/i, 905),
   // --- Automation (very specific names — these win over generic "controller"/"module") ---
   rule("Programmable Logic Controller", /\b(?:ac500|pm(?:57[2-3]|58[2-3]|59[0-2])(?:-eth)?)\b[\s\S]{0,80}\bprocessor module\b|\bprocessor module\b[\s\S]{0,80}\b(?:ac500|pm(?:57[2-3]|58[2-3]|59[0-2])(?:-eth)?)\b/i, 940),
   rule("Programmable Logic Controller", /\b(?:programmable logic controller|logic controller|controller cpu|cpu module|plc\s+(?:controller|module|processor|cpu|system)|(?:controller|module|processor|cpu|system)\s+plc|simatic\s+s7|modicon\s+(?:m\d+|m340|m580)|compactlogix|controllogix|micro8\d{2,3})\b/i, 920),
   rule("Communication Gateway", /\b(?:communication gateway|fieldbus gateway|fieldbus coupler|bus coupler|protocol converter|protocol gateway|serial gateway|modbus gateway|profibus gateway|profinet gateway|ethernet gateway|rs[-\s]?232(?:\s+(?:to|converter|interface|module))?|rs[-\s]?485(?:\s+(?:to|converter|interface|module))?|rs[-\s]?422|serial[-\s]?to[-\s]?ethernet|communication module|communication interface|industrial gateway|iiot gateway|edge gateway)\b/i, 905),
+  // Meter product descriptions often mention a gateway as one application alongside monitoring;
+  // classify the product by its explicit power-meter type instead of that secondary use case.
+  rule("Power Meter", /\b(?:power\s+meter|energy\s+meter|multifunction\s+meter|multi[-\s]?function\s+meter)\b/i, 935),
   rule("I/O Module", /\b(?:i\/o|io|input\/output)\s+(?:module|expansion|system|block|card|interface)|(?:analog|digital)\s+(?:input|output)s?\s+(?:module|card|expansion)|remote\s+i\/o|io-link\s+(?:master|hub|module)\b/i, 900),
   rule("HMI", /\b(?:hmi|human[\s-]?machine[\s-]?interface|operator panel|touch panel|touchscreen panel|display terminal|graphic terminal)\b/i, 890),
   rule("Motion Controller", /\b(?:motion controller|motion control(?:ler)? module|motion module|integrated motion module|analog servo module|servo module|\d+\s*[- ]?axis servo|axis servo,\s*analog|servo,\s*analog\/enc|cnc controller|servo controller)\b/i, 930),
@@ -62,6 +66,10 @@ const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
   // "Cable with connector" connection detail.  The explicit family must outrank that
   // accessory wording, otherwise the device is routed as a Connector.
   rule("Sensor", /\bcondition\s+monitoring\s+sensors?\b/i, 865),
+  // The CMC III CAN bus access is a door-access monitoring unit whose integral sensor detects
+  // door status; the generic word "door" must not turn it into a cabinet-cover accessory.
+  rule("Access Sensor", /\bCMC\s*III\s+CAN[-\s]?bus\s+access\b/i, 885),
+  rule("Access Sensor", /\baccess\s+sensors?\b/i, 858),
   rule("Ultrasonic Sensor", /\bultrasonic\s+(?:sensor|distance sensor|transducer)\b/i, 864),
   rule("Magnetic Field Sensor", /\bmagnetic\s+field\s+sensor|hall[-\s]?effect\s+sensor\b/i, 862),
   rule("Vision Sensor", /\b(?:vision\s+sensor|smart\s*camera|industrial camera|machine vision)\b/i, 860),
@@ -71,7 +79,7 @@ const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
   rule("Encoder", /\b(?:rotary encoders?|absolute encoders?|incremental encoders?|encoders?)\b/i, 840),
   rule("Solenoid Interlock", /\b(?:solenoid interlock|electromechanical guard lock(?:ing)?|safety interlock with solenoid|electromagnetic interlock)\b/i, 950),
   rule("Safety Sensor", /\b(?:safety sensor|safety light curtain|light curtain|safety mat|safety scanner|laser scanner|safety edge|two[-\s]?hand control|safety switch|safety interlock|guard locking|guard[-\s]?lock(?:ing)? switch|safety door switch|door interlock)\b/i, 838),
-  rule("Sensor", /\b(?:sensor|sensing|detector|limit switch|position switch|measuring range|measuring principle)\b/i, 620),
+  rule("Sensor", /\b(?:sensors?|sensing|detector|limit switch|position switch|measuring range|measuring principle)\b/i, 620),
 
   // --- Protection & control (specific breakers/starters first) ---
   rule("Supplementary Protector", /\b(?:supplementary protector|industrial miniature circuit breaker - supplementary protector)\b/i, 825),
@@ -115,6 +123,7 @@ const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
   ),
   rule("Wireway", /\b(?:wireway|wire duct|cable duct|cable tray|cable channel|cable trunking)\b/i, 760),
   rule("Subpanel", /\b(?:subpanel|sub-panel|back[-\s]?panel|mounting panel|mounting plate)\b/i, 755),
+  rule("Mounting Accessory", /\bmounting plate attachment\b/i, 825),
   rule("Module Carrier", /\b(?:module carrier|carrier frame|backplane|module rack|subrack)\b/i, 753),
   // SCE sells these separately from the enclosure: they support rack-mounted equipment but are
   // neither a populated rack cabinet nor a generic enclosure.
@@ -127,7 +136,10 @@ const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
   rule("PCB Connector", /\b(?:pin header|board[-\s]?to[-\s]?board connector|pcb connector|pcb header|board[-\s]?mount connector|edge connector|smt connector|socket strip|pcb plug|wire[-\s]?to[-\s]?board connector)\b/i, 760),
   rule("Wire Marker", /\b(?:wire marker|cable marker|wire label|cable label|cable tag|wire ferrule|terminal marker|terminal label|marking tag|marker card)\b/i, 750),
   rule("Terminal Block", /\b(?:terminal block|power terminal|terminal strip|pluggable terminal|push[-\s]?in terminal|spring[-\s]?clamp terminal|screw terminal block|reihenklemme(?:n)?|klemmenblock|\bklemme(?:n)?\b|bornier|morsetto)\b/i, 740),
-  rule("Cable Gland", /\b(?:cable gland|\bgland\b|cord grip)\b/i, 735),
+  rule("Cable Gland", /\b(?:cable gland|\bgland\b|cord grip|multi[-\s]?entry(?: system)?)\b/i, 735),
+  // These Rittal components route/secure cables; they are mounting accessories, not electrical
+  // cable products that need voltage/current ratings.
+  rule("Mounting Accessory", /\b(?:section for cable entry|cable link)\b/i, 825),
   rule("Optical Connector", /\b(?:optical connector|fiber[-\s]?optic connector|fibre[-\s]?optic connector|fiber optics?|fibre optics?|glass fibers?|plastic fibers?|\blc connector\b|\bsc connector\b|\bst connector\b|\bmpo connector\b|fc connector)\b/i, 750),
   // SCAME's official product records use bare catalogue nouns (PLUG, SOCKET,
   // INTERLOCKED SOCKET, ONE-WAY ADAPTOR) rather than "industrial connector".
@@ -142,7 +154,7 @@ const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
   // wording that can arrive in a vendor's related-product payload.
   rule("Pushbutton / Operator", /\b(?:pushbutton|push[-\s]?button|emergency stop|e[-\s]?stop|selector head|pilot device|control station)\b/i, 780),
   rule("Pilot Light", /\b(?:pilot light|indicator light|signal lamp|indicator lamp|led indicator)\b/i, 750),
-  rule("Luminaire", /\b(?:machine light|led light fixture|fixture,\s*led light|light fixture|luminaire|interior lamp|cabinet light)\b/i, 745),
+  rule("Luminaire", /\b(?:machine light|led light fixture|fixture,\s*led light|light fixture|luminaire|interior lamp|cabinet light|led system light)\b/i, 745),
 
   // --- Cooling / climate ---
   rule("Thermal Management", /\b(?:thermal management|filter fan|fan package|fan housing|filter kit|fan filter|exhaust filter|filter grille|enclosure fan|cabinet fan|cabinet heater|enclosure heater|thermostat|hygrostat|air conditioner|conditioner,\s*(?:ng\s+)?air|heat exchanger|dehumidifier|cooling unit|chiller)\b/i, 760),
@@ -171,9 +183,9 @@ const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
   rule("Filter", /\b(?:filter|filtre|filtro)\b/i, 615),
 
   // --- Lower-specificity catch-alls (priority < 700 so they only win when nothing else matches) ---
-  rule("Lock / Interlock", /\b(?:padlock|key[-\s]?lock|interlock|locking device|key switch)\b/i, 620),
-  rule("Mounting Accessory", /\b(?:mounting accessory|mounting kit|mounting bracket|mounting foot|mounting plate|adapter plate|anti[-\s]?slip plate|level(?:ing|ling) feet?|pivot feet?|bell feet?|din rail|\brail\b|\bbracket\b)\b/i, 610),
-  rule("Cover / Door Accessory", /\b(?:cover|door|hinge|latch|handle|gasket|window kit)\b/i, 600),
+  rule("Lock / Interlock", /\b(?:safety lock|padlock|key[-\s]?lock|interlock|locking device|key switch)\b/i, 825),
+  rule("Mounting Accessory", /\b(?:mounting accessory|mounting kit|mounting bracket|mounting foot|mounting plate|mounting flange|punched section|adapter plate|anti[-\s]?slip plate|level(?:ing|ling) feet?|pivot feet?|bell feet?|positioning tool|assembly tool|din rail|\brail\b|\bbracket\b)\b/i, 610),
+  rule("Cover / Door Accessory", /\b(?:cover|door|hinge|latch|handle|gasket|window kit|spray[-\s]?water hood|hose[-\s]?proof hood)\b/i, 600),
   rule("Accessory", /\b(?:accessory|spare part|replacement part|cleaner|\bkit\b)\b/i, 560)
 ];
 
@@ -595,7 +607,7 @@ function deviceTypeCandidates(result: ProductResult): DeviceTypeCandidate[] {
   const attributes = result.attributes ?? [];
   const candidates: DeviceTypeCandidate[] = [];
   for (const attr of attributes) {
-    const priority = attributeDeviceTypePriority(attr);
+    const priority = attributeDeviceTypePriority(attr, result.manufacturerId);
     if (!priority) continue;
     addCandidate(candidates, {
       label: attr.name,
@@ -607,14 +619,17 @@ function deviceTypeCandidates(result: ProductResult): DeviceTypeCandidate[] {
     });
   }
 
-  addCandidate(candidates, { label: "Title", value: result.title, text: result.title, priority: 610 });
+  // Rittal's exact official PDP title names the ordered product variant, while the description and
+  // attributes commonly mention broader enclosure/chiller systems it can be used with. Give that
+  // title enough weight to keep a filter, enclosure, or accessory from inheriting the host system's type.
+  addCandidate(candidates, { label: "Title", value: result.title, text: result.title, priority: result.manufacturerId === "rittal" ? 900 : 610 });
   addCandidate(candidates, { label: "Description", value: result.description, text: result.description, priority: 590 });
   return candidates;
 }
 
 function combinedDeviceTypeText(result: ProductResult): string {
   const attributeText = (result.attributes ?? [])
-    .filter((attr) => attributeDeviceTypePriority(attr) || isRackCabinetSignalAttribute(attr))
+    .filter((attr) => attributeDeviceTypePriority(attr, result.manufacturerId) || isRackCabinetSignalAttribute(attr))
     .slice(0, 80)
     .map((attr) => `${attr.group ?? ""} ${attr.name} ${attr.value}`)
     .join(" ");
@@ -644,9 +659,17 @@ function isRackCabinetSignalAttribute(attr: AttributeRecord): boolean {
   );
 }
 
-function attributeDeviceTypePriority(attr: AttributeRecord): number | undefined {
+function attributeDeviceTypePriority(attr: AttributeRecord, manufacturerId?: string): number | undefined {
   const label = `${attr.group ?? ""} ${attr.name}`.toLowerCase();
   if (/\b(?:recommended alternative|similar part|related part|accessory|used with|spare part)\b/.test(label)) return undefined;
+  // Rittal uses a direct "Design" PDP field for the functional subtype of CMC products
+  // (for example "Access sensor"). Only promote it when the value itself matches a known
+  // device-type rule, so enclosure construction/door design prose cannot become type evidence.
+  if (
+    manufacturerId === "rittal" &&
+    /^design$/i.test(attr.name.trim()) &&
+    DEVICE_TYPE_RULES.some((definition) => definition.pattern.test(attr.value ?? ""))
+  ) return 820;
   if (/\b(?:product or component type|product main type|product type|sensor type|type description)\b/.test(label)) return 760;
   if (/\b(?:principle of operation|principle of optical operation|operating principle|product category|category|product group|product family|product class|classification path|products path|range of product|range)\b/.test(label)) return 720;
   if (/\b(?:product name|item name|display name|catalog description|long description|short description|description)\b/.test(label)) return 650;

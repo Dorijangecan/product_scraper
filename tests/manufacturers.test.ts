@@ -4,6 +4,7 @@ import { ABBConnector } from "../src/server/scrapers/abb.js";
 import { BalluffConnector } from "../src/server/scrapers/balluff.js";
 import { EatonConnector } from "../src/server/scrapers/eaton.js";
 import { ETAConnector } from "../src/server/scrapers/eta.js";
+import { LappConnector, parseLappProduct } from "../src/server/scrapers/lapp.js";
 import { RockwellConnector } from "../src/server/scrapers/rockwell.js";
 import { SCEConnector } from "../src/server/scrapers/sce.js";
 import { ScameConnector } from "../src/server/scrapers/scame.js";
@@ -19,7 +20,7 @@ describe("manufacturer configuration", () => {
     const byId = new Map(manufacturers.map((manufacturer) => [manufacturer.id, manufacturer]));
 
     expect([...byId.keys()]).toEqual(
-      expect.arrayContaining(["abb", "balluff", "sce", "nvent", "rockwell", "eaton", "eta", "phoenix", "schmersal", "schneider", "siemens", "spelsberg", "scame"])
+      expect.arrayContaining(["abb", "balluff", "sce", "nvent", "rockwell", "eaton", "eta", "lapp", "phoenix", "schmersal", "schneider", "siemens", "spelsberg", "scame"])
     );
     expect(byId.get("balluff")?.shortName).toBe("BAL");
     expect(byId.get("balluff")?.concurrency).toBe(2);
@@ -47,6 +48,36 @@ describe("manufacturer configuration", () => {
     expect(byId.get("scame")?.scrapeRecipe?.fallbackPolicy?.distributorFallback).toBe(false);
     expect(byId.get("scame")?.scrapeRecipe?.fallbackPolicy?.documentDownloadProfile).toBe("quality");
     expect(byId.get("eta")?.fallbackSources[0]?.directUrlTemplates.some((template) => template.includes("{partSnake}"))).toBe(true);
+    expect(byId.get("lapp")?.shortName).toBe("LAPP");
+    expect(byId.get("lapp")?.homepageUrl).toBe("https://www.lapp.com");
+    expect(byId.get("lapp")?.officialBaseUrls).toEqual(["https://www.lapp.com", "https://api-shop.lapp.com", "https://contentmedia.lappcdn.com"]);
+    expect(byId.get("lapp")?.scrapeRecipe?.searchUrlTemplates).toContain("https://www.lapp.com/en/search/?text={part}");
+    expect(byId.get("lapp")?.scrapeRecipe?.discoveryPolicy?.allowedOfficialDomains).toContain("lapp.com");
+  });
+
+  it("uses the LAPP exact article API connector", async () => {
+    const connector = new LappConnector();
+    expect(connector.id).toBe("lapp");
+    const apiFixture = {
+      requestedUrl: "https://api-shop.lapp.com/occ/v2/us/products/381167245?fields=FULL",
+      effectiveUrl: "https://api-shop.lapp.com/occ/v2/us/products/381167245?fields=FULL",
+      statusCode: 200,
+      contentType: "application/xml",
+      text: "<product><code>381167245</code><name>EPIC H-EEE 040 MC</name><description>Number of contacts: 40 + PE</description><canonicalUrl>/epic-h-eee-40/p/381167245</canonicalUrl><categoryLevelNames>Rectangular connector inserts</categoryLevelNames><categoryLevelNames>Rectangular connectors</categoryLevelNames><images><altText>EPIC H-EEE 040 MC</altText><format>product</format><imageType>GALLERY</imageType><url>https://contentmedia.lappcdn.com/e/lapp/product-image</url></images><documents><altText>Data sheet</altText><url>https://contentmedia.lappcdn.com/e/lapp/DB381167245EN.pdf</url></documents><classifications><features><name>Product type</name><featureValues><value>Insert</value></featureValues></features></classifications></product>",
+      fetchedAt: new Date(0).toISOString(),
+      fromCache: false
+    };
+    const parsed = parseLappProduct("381167245", apiFixture);
+    expect(parsed.status).toBe("found");
+    expect(parsed.productUrl).toMatch(/\/p\/381167245$/);
+    expect(parsed.documents.filter((document) => document.type === "image")).toHaveLength(1);
+    expect(parsed.documents.find((document) => document.type === "image")?.url).toContain("contentmedia.lappcdn.com");
+    expect(parsed.attributes).toEqual(expect.arrayContaining([
+      expect.objectContaining({ name: "Catalog Number", value: "381167245", matchLevel: "exact" }),
+      expect.objectContaining({ name: "Product type", value: "Insert" }),
+      expect.objectContaining({ name: "Classification Path", value: "Rectangular connector inserts > Rectangular connectors" })
+    ]));
+    expect(parseLappProduct("381167246", apiFixture).status).toBe("failed");
   });
 
   it("configures nVent discovery beyond HOFFMAN-only product URLs", () => {

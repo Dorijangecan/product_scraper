@@ -88,7 +88,7 @@ const ENCLOSURE_THERMAL_VOLTAGE_DEVICE_PATTERN =
   /\b(fan\s*\/\s*heater|heater(?:\s+w\/?\s*thermostat)?|touch\s+safe\s+heater|fan\s+heater|filter\s+fan|fan\s+package|blower|blower\s+package|air\s+conditioner|conditioner,\s*ng\s+air|heat\s+exchanger|exchanger,\s*heat|dehumidifier|light\s+fixture|fixture,\s*led\s+light|led\s+light\s+fixture|thermostat|ethernet\s+converter|converter\s+kit|remote\s+display)\b/i;
 
 const PASSIVE_ENCLOSURE_ACCESSORY_PATTERN =
-  /\b(enc(?:losure)?\.?|cabinet|box|junction\s+box|panel|sub\s*panel|subpanel|back\s*panel|dead\s*front|accessor(?:y|ies)|mount(?:ing)?|kit|door|cover|bar|strap|shield|shelf|port|programming\s+port|connection\s+cord|cord|connector|cable|vortex\s+cooler|grounding|latch|hinge|adapter|plate)\b/i;
+  /\b(enc(?:losure)?\.?|cabinet|box|junction\s+box|panelset|panel\s*set|empty\s+control\s+station|panel|sub\s*panel|subpanel|back\s*panel|dead\s*front|accessor(?:y|ies)|mount(?:ing)?|kit|door|cover|bar|strap|shield|shelf|port|programming\s+port|connection\s+cord|cord|connector|cable|vortex\s+cooler|grounding|latch|hinge|adapter|plate)\b/i;
 
 export function requiredElectricalFields(result: ProductResult, context: ElectricalRequirementContext = {}): ElectricalField[] {
   const primaryText = productPrimaryRequirementText(result);
@@ -100,6 +100,13 @@ export function requiredElectricalFields(result: ProductResult, context: Electri
   const text = productRequirementText(result);
   const ratingText = productRatingEvidenceText(result);
   if (!text) return [];
+  // Rittal CMC III reed-contact access sensors connect to the CMC controller over RJ12;
+  // the exact PDP identifies the design and measuring principle but publishes no supply rating.
+  // Do not require standalone voltage/current fields for this passive sensor subtype.
+  const rittalPassiveAccessSensor = result.manufacturerId === "rittal" &&
+    result.attributes.some((attr) => /^design$/i.test(attr.name.trim()) && /\baccess sensor\b/i.test(attr.value)) &&
+    result.attributes.some((attr) => /\bmeasuring technique\b/i.test(attr.name) && /\breed contact\b/i.test(attr.value));
+  if (rittalPassiveAccessSensor) return [];
   // Ganter Norm is a mechanical standard-parts catalog (handles, knobs, clamps, hinges, levers).
   // Even its "with electrical switching function" handle families are mechanical products with an
   // electrical accessory, and Ganter never publishes structured rated voltage/current on its web
@@ -108,6 +115,11 @@ export function requiredElectricalFields(result: ProductResult, context: Electri
   // fruitless (and slow) discovery/fallback pass that can never fill them. Treat electrical fields
   // as not-applicable for this vendor so an authoritative web-page result stays "found".
   if (result.manufacturerId === "gan") return [];
+  // LAPP cable glands, multi-entry systems, conduits and assembly/positioning tools are passive
+  // mechanical products. Their pages can mention cable voltage/current in application prose, but
+  // those are not ratings of the requested article. Do not route an exact OCC API result into a
+  // speculative electrical fallback merely because a generic classifier has no family rule yet.
+  if (result.manufacturerId === "lapp" && /\b(?:cable\s+gland|multi[-\s]?entry|protective\s+(?:cable\s+)?conduit|positioning\s+tool|assembly\s+tool)\b/i.test(primaryText)) return [];
   // nVent HOFFMAN AP36L44 is a passive pedestal/leg mounting accessory. The official
   // product page publishes mechanical dimensions and material, not a supply rating;
   // do not route it into the electrical fallback loop just because its page mentions HMI.
@@ -119,6 +131,21 @@ export function requiredElectricalFields(result: ProductResult, context: Electri
   // Denied for these products (a guaranteed per-row timeout). When PDF download is enabled the
   // datasheet still fills voltage/current as a bonus; the gate must not demand them up front.
   if (result.manufacturerId === "siemens" && /^S\d{5}-[A-Z]\d+$/i.test(result.catalogNumber.trim())) return [];
+  // Schneider rack-mounted CPU/processor modules receive their power through the M340 rack.
+  // If the exact product page and its downloaded datasheet publish no product-level voltage,
+  // voltage is not an applicable standalone field; do not invent a rack supply rating.
+  if (
+    result.manufacturerId === "schneider" &&
+    /\b(?:processor module|central processing unit)\b/i.test(primaryText) &&
+    /\bmodicon\s+m340\b/i.test(primaryText) &&
+    !/\b(?:rated|nominal|operating|supply|input)\s+voltage\b/i.test(ratingText)
+  ) return [];
+  // An empty Harmony control station or a CRN panelset has no installed electrical
+  // switching/control element; generic page accessories can mention pushbuttons and switchgear.
+  if (
+    result.manufacturerId === "schneider" &&
+    /\b(?:empty\s+control\s+station|panel\s*set|panelset)\b/i.test(`${primaryText} ${result.title ?? ""} ${result.description ?? ""}`)
+  ) return [];
   // ReeR mixes active safety controllers/sensors with passive accessories and enclosures. The
   // official pages publish a supply voltage only for the active families, and generally do not
   // publish a catalog-level current rating. Require voltage only when the exact product page

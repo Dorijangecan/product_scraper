@@ -2814,5 +2814,6 @@ describe("excel export", () => {
     expect(String(byCatalog.get("EVH4S03N2")?.getCell(headers.indexOf("Key Specifications") + 1).value)).toContain("Connection to the vehicle: Socket-outlet T2 front face");
     expect(String(byCatalog.get("EVH4S03N2")?.getCell(headers.indexOf("Electrical Ratings") + 1).value)).toContain("Max power: 3.7 kW 16 A 230 V");
     expect(String(byCatalog.get("EVH4S03N2")?.getCell(headers.indexOf("Electrical Ratings") + 1).value)).toContain("Maximum supply current: 16 A");
+
   });
 });

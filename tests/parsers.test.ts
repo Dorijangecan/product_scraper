@@ -5576,6 +5576,39 @@ Terminal capacity
     expect(result.documents.some((doc) => doc.type === "cad")).toBe(true);
   });
 
+  it("accepts Schneider gallery images labeled for the exact SKU when the asset ref is shared", () => {
+    const html = `
+      <html><body>
+        &quot;productId&quot;:&quot;A9R11240&quot;
+        <img alt="A9R11240 Product picture Schneider Electric"
+          src="https://download.schneider-electric.com/files?p_Doc_Ref=PB104472_IoP-Default&amp;p_File_Type=rendition_369_jpg" />
+        <img alt="A9R11240 Product diagram Schneider Electric"
+          src="https://download.schneider-electric.com/files?p_Doc_Ref=A9R11240_diagram&amp;p_File_Type=rendition_369_jpg" />
+      </body></html>
+    `;
+    const result = parseSchneiderProductPage("A9R11240", fetched(html, "https://www.se.com/id/en/product/A9R11240/"));
+
+    expect(result.documents.filter((doc) => doc.type === "image")).toEqual([
+      expect.objectContaining({
+        label: "A9R11240 Product picture Schneider Electric",
+        url: expect.stringContaining("PB104472_IoP-Default")
+      })
+    ]);
+  });
+
+  it("accepts Schneider productMedia pictures whose shared asset ref is linked to the exact SKU", () => {
+    const html = `
+      <html><body>
+        &quot;productId&quot;:&quot;TM221CE24T&quot;,
+        &quot;productMedia&quot;:{&quot;zoomPictureDesktop&quot;:{&quot;title&quot;:&quot;Schneider Electric TM221CE24T Picture&quot;,
+        &quot;url&quot;:&quot;https://download.schneider-electric.com/files?p_Doc_Ref=PF130230&amp;p_File_Type=rendition_1500_jpg&quot;}}
+      </body></html>
+    `;
+    const result = parseSchneiderProductPage("TM221CE24T", fetched(html, "https://www.se.com/us/en/product/TM221CE24T/"));
+
+    expect(result.documents.some((doc) => doc.type === "image" && doc.url.includes("PF130230"))).toBe(true);
+  });
+
   it("rejects blocked Schneider pages before catalog-only extraction", () => {
     const html = `<html><head><title>Access Denied</title></head><body>Access Denied for /us/en/product/NSYS3D3215/</body></html>`;
     const result = parseSchneiderProductPage(

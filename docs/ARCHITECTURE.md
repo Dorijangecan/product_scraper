@@ -11,7 +11,7 @@ checked against the current codebase; avoid treating it as marketing copy.
   documents.
 - Runtime LLM use is off by default. The optional PDT AI cleanup only runs when
   `PDT_AI_CLEANUP=1` and a local Ollama/Qwen setup is available.
-- There are 14 built-in manufacturer profiles today. 12 have dedicated connector
+- There are 15 built-in manufacturer profiles today. 13 have dedicated connector
   modules; `nvent` and `phoenix` use the config-driven fallback connector.
 - Interrupted runs are auto-resumed only within the current safety window
   (`5 minutes` in `src/server/run-manager.ts`). Older interrupted runs are
@@ -112,6 +112,7 @@ Config-driven built-ins:
 | --- | --- | --- |
 | nVent / Hoffman | `nvent` | Built-in profile using configured URL templates/fallbacks |
 | Phoenix Contact | `phoenix` | Built-in profile using configured URL templates/fallbacks |
+| Rittal | `rittal` | Direct `/products/show/{orderNumber}` resolver, generic PDP parser, then shared discovery fallback; external search remains opt-in |
 
 Custom manufacturers are saved in `data/manufacturers.json` and use the same
 configured fallback connector. Their config can define URL templates, localized

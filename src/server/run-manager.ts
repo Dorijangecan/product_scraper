@@ -2431,6 +2431,13 @@ function imageDocumentRank(doc: DocumentRecord): number {
   let rank = documentDownloadRank(doc);
   if (/\bprimary\s+product\s+image\b/.test(text)) rank -= 100;
   if (doc.localPath || doc.downloadStatus === "downloaded") rank -= 50;
+  const schneiderRendition = urlText.match(/rendition_(\d+)_(jpg|png|gif)\b/i);
+  if (schneiderRendition) {
+    const size = Number(schneiderRendition[1]);
+    if (size >= 300) rank -= 20;
+    else if (size <= 100) rank += 35;
+    if (schneiderRendition[2].toLowerCase() === "gif") rank += 3;
+  }
   const dimensions = imageDimensionsFromUrl(doc.url);
   if (dimensions) {
     const area = dimensions.width * dimensions.height;

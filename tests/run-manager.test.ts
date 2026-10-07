@@ -139,6 +139,17 @@ describe("run manager document downloads", () => {
     expect(result.some((doc) => doc.type === "other")).toBe(true);
   });
 
+  it("ranks Schneider photo renditions ahead of tiny gallery thumbnails", () => {
+    const result = coalesceImageDocuments([
+      image("ATV320U07M2C Product picture", "https://download.schneider-electric.com/files?p_Doc_Ref=ATV320U0xM2C_rear&p_File_Type=rendition_64_gif"),
+      image("ATV320U07M2C Product picture", "https://download.schneider-electric.com/files?p_Doc_Ref=ATV320U0xM2C_front&p_File_Type=rendition_369_jpg")
+    ]);
+
+    expect(result.filter((doc) => doc.type === "image")).toHaveLength(1);
+    expect(result[0].url).toContain("rendition_369_jpg");
+    expect(result[0].candidateUrls?.[0]).toContain("rendition_64_gif");
+  });
+
   it("promotes higher quality candidate URLs before downloading an image", () => {
     const documents: DocumentRecord[] = [
       {

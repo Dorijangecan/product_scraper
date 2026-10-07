@@ -1,0 +1,3407 @@
+{
+  "generatedAt": "2026-10-06T10:14:36.863Z",
+  "outputDir": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261006101421",
+  "filters": {
+    "manufacturer": "rittal",
+    "catalogNumber": "3243080",
+    "fixtureDir": "benchmarks/rittal-15-new-20261006",
+    "isolatedStorage": "1",
+    "tag": "after-cold"
+  },
+  "summary": {
+    "foundRate": 100,
+    "officialUrlRate": 100,
+    "documentRate": 100,
+    "pdtAuditRate": 100,
+    "deviceTypeRate": 0,
+    "customerDocumentRate": 0,
+    "wrongProducts": 0,
+    "partialWithoutMissing": 0,
+    "pdtUnprovenWritten": 0,
+    "pdtUnexplainedRequiredFieldIssues": 0,
+    "pdtWriteIssues": 1,
+    "qualityAccepted": false,
+    "fixtureCoverageAccepted": true,
+    "fixtureCoverage": {
+      "byManufacturer": {
+        "rittal": {
+          "total": 1,
+          "caseTypes": [],
+          "riskTags": []
+        }
+      },
+      "byDeviceType": {
+        "Filter": {
+          "total": 1,
+          "manufacturers": [
+            "rittal"
+          ],
+          "caseTypes": []
+        }
+      },
+      "byDeviceSheet": {
+        "filters": {
+          "total": 1,
+          "deviceTypes": [
+            "Filter"
+          ],
+          "manufacturers": [
+            "rittal"
+          ]
+        }
+      },
+      "thinManufacturers": [
+        "rittal"
+      ],
+      "uncoveredDeviceSheets": [
+        "Busbar",
+        "Luminaire",
+        "Motion Controller",
+        "PCB connection system",
+        "PCB connection technology",
+        "PLC",
+        "RS232 interfaces",
+        "Switch",
+        "Wire ID Information",
+        "cabinet",
+        "cabinet.airconditioning",
+        "cabinet.mechanical",
+        "cabinet.rack",
+        "cable",
+        "cable ducts mounting rails",
+        "cable gland",
+        "command and alarm device",
+        "connector",
+        "contactor a. fuses",
+        "directional control valve",
+        "el. mesurement devices",
+        "electronic sensor",
+        "energy distribution system",
+        "fluid power",
+        "generator",
+        "int. ext. lightning protection",
+        "module carrier frame",
+        "motor protection",
+        "motors",
+        "optical sensor",
+        "panel (HMI)",
+        "pneumatic handling",
+        "power supply devices",
+        "pump",
+        "safety sensor",
+        "sensor - fluid",
+        "servo controller",
+        "terminal",
+        "terminal endbracket",
+        "ventil"
+      ],
+      "missingDeviceSheetRecommendations": [
+        {
+          "sheetName": "Busbar",
+          "deviceTypes": [
+            "Busbar"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "Luminaire",
+          "deviceTypes": [
+            "Luminaire"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SL0040I.953",
+              "deviceType": "Luminaire",
+              "notes": "FATH Module F Line LED lamp"
+            }
+          ]
+        },
+        {
+          "sheetName": "Motion Controller",
+          "deviceTypes": [
+            "Motion Controller"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1756-HYD",
+              "deviceType": "Motion Controller",
+              "notes": "ControlLogix integrated motion modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1756-M02",
+              "deviceType": "Motion Controller",
+              "notes": "ControlLogix integrated motion modules"
+            }
+          ]
+        },
+        {
+          "sheetName": "PCB connection system",
+          "deviceTypes": [
+            "PCB Connector"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "PCB connection technology",
+          "deviceTypes": [
+            "PCB Terminal Block"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "PLC",
+          "deviceTypes": [
+            "Communication Gateway",
+            "HMI",
+            "I/O Module",
+            "Programmable Logic Controller"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "FL",
+              "deviceType": "Communication Gateway",
+              "notes": "FL switch / FL gateway"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "RAD",
+              "deviceType": "Communication Gateway",
+              "notes": "Radioline"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENT",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENTR",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1783",
+              "deviceType": "Communication Gateway",
+              "notes": "Stratix industrial networking and communication modules"
+            }
+          ]
+        },
+        {
+          "sheetName": "RS232 interfaces",
+          "deviceTypes": [
+            "Communication Gateway"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "FL",
+              "deviceType": "Communication Gateway",
+              "notes": "FL switch / FL gateway"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "RAD",
+              "deviceType": "Communication Gateway",
+              "notes": "Radioline"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENT",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENTR",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1783",
+              "deviceType": "Communication Gateway",
+              "notes": "Stratix industrial networking and communication modules"
+            }
+          ]
+        },
+        {
+          "sheetName": "Switch",
+          "deviceTypes": [
+            "Lock / Interlock",
+            "Selector Switch",
+            "Switch"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "M2SS",
+              "deviceType": "Selector Switch",
+              "notes": "M2SS selector switches"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "M22-WR",
+              "deviceType": "Selector Switch",
+              "notes": "M22 selector switch actuator"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "JSHD",
+              "deviceType": "Switch",
+              "notes": "JSHD three-position handheld devices"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "2702665",
+              "deviceType": "Switch",
+              "notes": "Phoenix FL SWITCH 2105 item number"
+            },
+            {
+              "manufacturerId": "schmersal",
+              "pattern": "EFM",
+              "deviceType": "Switch",
+              "notes": "Schmersal foot switches"
+            }
+          ]
+        },
+        {
+          "sheetName": "Wire ID Information",
+          "deviceTypes": [
+            "Wire Marker"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "cabinet",
+          "deviceTypes": [
+            "Enclosure"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEP",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEPY",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PSN",
+              "deviceType": "Enclosure",
+              "notes": "xEnergy ProfiSNAP enclosure panels/accessories"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "P2C",
+              "deviceType": "Enclosure",
+              "notes": "nVent Hoffman enclosure families"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "P2D",
+              "deviceType": "Enclosure",
+              "notes": "nVent Hoffman enclosure families"
+            }
+          ]
+        },
+        {
+          "sheetName": "cabinet.airconditioning",
+          "deviceTypes": [
+            "Thermal Management"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "nvent",
+              "pattern": "DAH",
+              "deviceType": "Thermal Management",
+              "notes": "nVent HOFFMAN DAH enclosure heaters"
+            },
+            {
+              "manufacturerId": "rittal",
+              "pattern": "SK",
+              "deviceType": "Thermal Management",
+              "notes": "Climate control / filter fans"
+            }
+          ]
+        },
+        {
+          "sheetName": "cabinet.mechanical",
+          "deviceTypes": [
+            "Accessory",
+            "Cover / Door Accessory",
+            "Enclosure",
+            "Subpanel"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "MDB",
+              "deviceType": "Accessory",
+              "notes": "MDB dummy blocks and operator accessories"
+            },
+            {
+              "manufacturerId": "fath",
+              "pattern": "061CC42300.74",
+              "deviceType": "Cover / Door Accessory",
+              "notes": "FATH shelf-board cover cap"
+            },
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "73540003",
+              "deviceType": "Cover / Door Accessory",
+              "notes": "Spelsberg AK KF 03 hinged window"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEP",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEPY",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            }
+          ]
+        },
+        {
+          "sheetName": "cabinet.rack",
+          "deviceTypes": [
+            "Rack Cabinet"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rittal",
+              "pattern": "DK",
+              "deviceType": "Rack Cabinet"
+            }
+          ]
+        },
+        {
+          "sheetName": "cable",
+          "deviceTypes": [
+            "Cable"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SAMB1J313B.4000",
+              "deviceType": "Cable",
+              "notes": "FATH Module F Line GST18i3 main power cable"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "889",
+              "deviceType": "Cable",
+              "notes": "Allen-Bradley cordsets and patchcords"
+            },
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "59181001",
+              "deviceType": "Cable",
+              "notes": "Spelsberg Wallbox LL 7m Type 2 charging cable"
+            }
+          ]
+        },
+        {
+          "sheetName": "cable ducts mounting rails",
+          "deviceTypes": [
+            "Mounting Accessory",
+            "Wireway"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "09308901S01",
+              "deviceType": "Mounting Accessory",
+              "notes": "FATH workstation and profile mounting components"
+            },
+            {
+              "manufacturerId": "fath",
+              "pattern": "6FG40ND80M695N08",
+              "deviceType": "Mounting Accessory",
+              "notes": "FATH workstation and profile mounting components"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "CP2020",
+              "deviceType": "Mounting Accessory",
+              "notes": "nVent Hoffman/Schroff accessory items verified on official product pages"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "CSP2020",
+              "deviceType": "Mounting Accessory",
+              "notes": "nVent Hoffman/Schroff accessory items verified on official product pages"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "1524160",
+              "deviceType": "Mounting Accessory",
+              "notes": "Phoenix MCS-112X90-AP-7035 adapter plate item number"
+            }
+          ]
+        },
+        {
+          "sheetName": "cable gland",
+          "deviceTypes": [
+            "Cable Gland"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "26013201",
+              "deviceType": "Cable Gland",
+              "notes": "Spelsberg DMS M32/w double-membrane seal"
+            }
+          ]
+        },
+        {
+          "sheetName": "command and alarm device",
+          "deviceTypes": [
+            "Pilot Light",
+            "Pushbutton / Operator",
+            "Stack Light / Beacon"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "ML1",
+              "deviceType": "Pilot Light",
+              "notes": "ML1 pilot lights"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "M22",
+              "deviceType": "Pushbutton / Operator",
+              "notes": "M22 control station"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "800F",
+              "deviceType": "Pushbutton / Operator"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "800H",
+              "deviceType": "Pushbutton / Operator"
+            },
+            {
+              "manufacturerId": "schmersal",
+              "pattern": "BDF",
+              "deviceType": "Pushbutton / Operator",
+              "notes": "BDF command and control devices"
+            }
+          ]
+        },
+        {
+          "sheetName": "connector",
+          "deviceTypes": [
+            "Connector",
+            "Optical Connector"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SAKP5J516BS01",
+              "deviceType": "Connector",
+              "notes": "FATH Module F Line and profile connectors"
+            },
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SBEU14I.317",
+              "deviceType": "Connector",
+              "notes": "FATH Module F Line and profile connectors"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "69001-",
+              "deviceType": "Connector",
+              "notes": "nVent SCHROFF DIN connectors"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "MCS",
+              "deviceType": "Connector"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VIP",
+              "deviceType": "Connector"
+            }
+          ]
+        },
+        {
+          "sheetName": "contactor a. fuses",
+          "deviceTypes": [
+            "Circuit Breaker",
+            "Contactor",
+            "Disconnect Switch",
+            "Fuse",
+            "Miniature Circuit Breaker",
+            "Molded Case Circuit Breaker",
+            "Relay",
+            "Residual Current Device",
+            "Supplementary Protector"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "eta",
+              "pattern": "3120",
+              "deviceType": "Circuit Breaker"
+            },
+            {
+              "manufacturerId": "eta",
+              "pattern": "REX",
+              "deviceType": "Circuit Breaker"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492-CB",
+              "deviceType": "Circuit Breaker",
+              "notes": "Allen-Bradley circuit breakers"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "A",
+              "deviceType": "Contactor",
+              "notes": "AF / A / AL / AX series IEC contactors"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "AF",
+              "deviceType": "Contactor",
+              "notes": "AF / A / AL / AX series IEC contactors"
+            }
+          ]
+        },
+        {
+          "sheetName": "directional control valve",
+          "deviceTypes": [
+            "Directional Control Valve"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "el. mesurement devices",
+          "deviceTypes": [
+            "Current Sensor",
+            "Power Meter"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "electronic sensor",
+          "deviceTypes": [
+            "Capacitive Sensor",
+            "Encoder",
+            "Inductive Proximity Sensor",
+            "Magnetic Field Sensor",
+            "RFID Device",
+            "Sensor",
+            "Ultrasonic Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BCS",
+              "deviceType": "Capacitive Sensor"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BDG",
+              "deviceType": "Encoder",
+              "notes": "Absolute encoder"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BTL",
+              "deviceType": "Encoder",
+              "notes": "Magnetostrictive linear encoder"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BES",
+              "deviceType": "Inductive Proximity Sensor"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BIS",
+              "deviceType": "Inductive Proximity Sensor"
+            }
+          ]
+        },
+        {
+          "sheetName": "energy distribution system",
+          "deviceTypes": [
+            "Loadcenter"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "fluid power",
+          "deviceTypes": [
+            "Hydraulic Actuator"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "generator",
+          "deviceTypes": [
+            "Generator"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "int. ext. lightning protection",
+          "deviceTypes": [
+            "Surge Protective Device"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "OVR",
+              "deviceType": "Surge Protective Device"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VAL-CP",
+              "deviceType": "Surge Protective Device"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VAL-MS",
+              "deviceType": "Surge Protective Device"
+            }
+          ]
+        },
+        {
+          "sheetName": "module carrier frame",
+          "deviceTypes": [
+            "Module Carrier"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "siemens",
+              "pattern": "6ES7193",
+              "deviceType": "Module Carrier",
+              "notes": "SIMATIC ET 200SP BaseUnits / base carriers"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "BaseUnits",
+              "deviceType": "Module Carrier",
+              "notes": "SIMATIC ET 200SP BaseUnits / base carriers"
+            }
+          ]
+        },
+        {
+          "sheetName": "motor protection",
+          "deviceTypes": [
+            "Motor Circuit Breaker",
+            "Motor Starter"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "MO",
+              "deviceType": "Motor Circuit Breaker",
+              "notes": "Manual motor starter"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MS",
+              "deviceType": "Motor Circuit Breaker",
+              "notes": "Manual motor starter"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PKE",
+              "deviceType": "Motor Circuit Breaker"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PKZM",
+              "deviceType": "Motor Circuit Breaker"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "140M",
+              "deviceType": "Motor Circuit Breaker"
+            }
+          ]
+        },
+        {
+          "sheetName": "motors",
+          "deviceTypes": [
+            "Motor",
+            "Variable Speed Drive"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "M2A",
+              "deviceType": "Motor"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "TM",
+              "deviceType": "Motor"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "ACQ",
+              "deviceType": "Variable Speed Drive",
+              "notes": "ACS / ACQ / ACH drives"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "ACS",
+              "deviceType": "Variable Speed Drive",
+              "notes": "ACS / ACQ / ACH drives"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "DC1",
+              "deviceType": "Variable Speed Drive",
+              "notes": "PowerXL"
+            }
+          ]
+        },
+        {
+          "sheetName": "optical sensor",
+          "deviceTypes": [
+            "Photoelectric Sensor",
+            "Vision Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BOH",
+              "deviceType": "Photoelectric Sensor"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BOS",
+              "deviceType": "Photoelectric Sensor"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "42EF",
+              "deviceType": "Photoelectric Sensor"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "42JS",
+              "deviceType": "Photoelectric Sensor"
+            },
+            {
+              "manufacturerId": "schneider",
+              "pattern": "XU",
+              "deviceType": "Photoelectric Sensor",
+              "notes": "OsiSense XU"
+            }
+          ]
+        },
+        {
+          "sheetName": "panel (HMI)",
+          "deviceTypes": [
+            "HMI"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "CP6",
+              "deviceType": "HMI",
+              "notes": "CP6xx HMI panel"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "XV",
+              "deviceType": "HMI"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "2711",
+              "deviceType": "HMI",
+              "notes": "PanelView HMI"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "2711P",
+              "deviceType": "HMI",
+              "notes": "PanelView HMI"
+            },
+            {
+              "manufacturerId": "schneider",
+              "pattern": "HMI",
+              "deviceType": "HMI",
+              "notes": "Harmony HMI"
+            }
+          ]
+        },
+        {
+          "sheetName": "pneumatic handling",
+          "deviceTypes": [
+            "Pneumatic Device"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "power supply devices",
+          "deviceTypes": [
+            "Battery",
+            "Power Supply",
+            "Transformer",
+            "UPS"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "CP-E",
+              "deviceType": "Power Supply",
+              "notes": "CP-T / CP-E DIN-rail PSUs"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "CP-T",
+              "deviceType": "Power Supply",
+              "notes": "CP-T / CP-E DIN-rail PSUs"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "QUINT",
+              "deviceType": "Power Supply"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "TRIO",
+              "deviceType": "Power Supply"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1606",
+              "deviceType": "Power Supply",
+              "notes": "Allen-Bradley switched mode power supplies"
+            }
+          ]
+        },
+        {
+          "sheetName": "pump",
+          "deviceTypes": [
+            "Pump"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "safety sensor",
+          "deviceTypes": [
+            "Safety Relay",
+            "Safety Sensor",
+            "Solenoid Interlock"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "PLUTO",
+              "deviceType": "Safety Relay",
+              "notes": "Pluto safety controller"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "2981091",
+              "deviceType": "Safety Relay",
+              "notes": "Phoenix PSR-SPP-24DC/ESD/5X1/1X2/T10 item number"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "PSR",
+              "deviceType": "Safety Relay"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "PSRMINI",
+              "deviceType": "Safety Relay"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "440C",
+              "deviceType": "Safety Relay"
+            }
+          ]
+        },
+        {
+          "sheetName": "sensor - fluid",
+          "deviceTypes": [
+            "Flow Sensor",
+            "Level Sensor",
+            "Pressure Sensor",
+            "Temperature Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "839E",
+              "deviceType": "Flow Sensor",
+              "notes": "Allen-Bradley flow sensors"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "840E",
+              "deviceType": "Level Sensor",
+              "notes": "Allen-Bradley level sensors"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "836P",
+              "deviceType": "Pressure Sensor",
+              "notes": "Allen-Bradley pressure sensors"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "837T",
+              "deviceType": "Temperature Sensor",
+              "notes": "Allen-Bradley temperature sensors"
+            }
+          ]
+        },
+        {
+          "sheetName": "servo controller",
+          "deviceTypes": [
+            "Soft Starter",
+            "Variable Speed Drive"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "PSE",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "PSTX",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "DS7",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "schneider",
+              "pattern": "ATS",
+              "deviceType": "Soft Starter",
+              "notes": "Altistart"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "3RW",
+              "deviceType": "Soft Starter",
+              "notes": "SIRIUS soft starter"
+            }
+          ]
+        },
+        {
+          "sheetName": "terminal",
+          "deviceTypes": [
+            "Terminal Block"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "UK",
+              "deviceType": "Terminal Block"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "UT",
+              "deviceType": "Terminal Block"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492",
+              "deviceType": "Terminal Block"
+            }
+          ]
+        },
+        {
+          "sheetName": "terminal endbracket",
+          "deviceTypes": [
+            "Terminal Accessory"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "CLIPFIX",
+              "deviceType": "Terminal Accessory"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "E/UK",
+              "deviceType": "Terminal Accessory"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492-EAH",
+              "deviceType": "Terminal Accessory",
+              "notes": "1492 end anchors / end retainers"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492-EAJ",
+              "deviceType": "Terminal Accessory",
+              "notes": "1492 end anchors / end retainers"
+            }
+          ]
+        },
+        {
+          "sheetName": "ventil",
+          "deviceTypes": [
+            "Valve"
+          ],
+          "examples": []
+        }
+      ],
+      "deviceSheetCoverage": {
+        "covered": 1,
+        "total": 41
+      }
+    },
+    "fixtureCoverageRequired": false,
+    "accepted": false
+  },
+  "reports": [
+    {
+      "manufacturerId": "rittal",
+      "catalogNumber": "3243080",
+      "expectedDeviceType": "Fan Accessory",
+      "actualDeviceType": "Filter",
+      "deviceTypeMatched": false,
+      "riskTags": [],
+      "status": "found",
+      "confidence": 0.55,
+      "elapsedMs": 11616,
+      "productUrl": "https://www.rittal.com/tw-zh/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO0305?variantId=3243080",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261006101421\\pdt\\rittal-3243080-pdt_pdt-audit.json",
+      "pdtWrittenCells": 25,
+      "pdtBlankCells": 30,
+      "pdtSkippedCells": 1,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 1,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": [],
+      "resultEvidence": {
+        "title": "防喷水罩 用于提高防护等级",
+        "description": "尤其在食品行业应用领域中需要使用防喷水罩防止潮气的侵入。与标准过滤器结合使用可实现防护等级 IP 56。",
+        "productUrl": "https://www.rittal.com/tw-zh/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO0305?variantId=3243080",
+        "normalized": {
+          "weight": "3.8 kg",
+          "dimensions": "Breite: 350 mmHöhe: 480 mmTiefe: 110 mm",
+          "material": "Stainless steel AISI304 - 1.4301 (V2A)Silicone",
+          "protection": "IP 56 when fitted over fan-and-filter unit/outlet filter with filter mat; NEMA 1; 54/IP 55/IP 56, UL typ",
+          "current": "3R/4, 12 a NEMA 4X."
+        },
+        "requiredElectricalFields": [],
+        "attributes": [
+          {
+            "group": "Definition List",
+            "name": "Abmessung",
+            "value": "Breite: 350 mmHöhe: 480 mmTiefe: 110 mm",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Approbationen",
+            "value": "CSA EN",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Approvals",
+            "value": "CSA EN",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1007/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Definition List",
+            "name": "Article no.:",
+            "value": "SK 3243080",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1007/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Definition List",
+            "name": "Artikel-Nr.:",
+            "value": "SK 3243080",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Bruttogewicht",
+            "value": "4,102 kg",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Customs tariff number",
+            "value": "73269098",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1007/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Definition List",
+            "name": "Data sheets",
+            "value": "Technical system catalogue CS DE EN ES JA PL",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1007/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Definition List",
+            "name": "Datenblätter",
+            "value": "Technisches Systemhandbuch CS DE EN ES JA PL",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Documentation",
+            "value": "Info sheet Global",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1007/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Definition List",
+            "name": "Dokumentationen",
+            "value": "Einlegezettel global",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "EAN",
+            "value": "4028177652095",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1007/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Definition List",
+            "name": "EAN",
+            "value": "4028177652095",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "EAN",
+            "value": "4028177652095",
+            "sourceUrl": "https://www.rittal.com/tw-zh/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "ECLASS 8.0",
+            "value": "27182405",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1007/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Definition List",
+            "name": "ECLASS 8.0",
+            "value": "27182405",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "ECLASS 8.0",
+            "value": "27182405",
+            "sourceUrl": "https://www.rittal.com/tw-zh/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "ETIM 8",
+            "value": "EC000744",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1007/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Definition List",
+            "name": "ETIM 8",
+            "value": "EC000744",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "ETIM 8",
+            "value": "EC000744",
+            "sourceUrl": "https://www.rittal.com/tw-zh/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "ETIM 9",
+            "value": "EC000744",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1007/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Definition List",
+            "name": "ETIM 9",
+            "value": "EC000744",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "ETIM 9",
+            "value": "EC000744",
+            "sourceUrl": "https://www.rittal.com/tw-zh/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Gross weight",
+            "value": "4.102 kg",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1007/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Definition List",
+            "name": "IP protection category to IEC 60 529",
+            "value": "IP 56 when fitted over fan-and-filter unit/outlet filter with filter mat",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1007/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Definition List",
+            "name": "Material",
+            "value": "Stainless steel AISI304 - 1.4301 (V2A)Silicone",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1007/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Definition List",
+            "name": "Material",
+            "value": "Edelstahl AISI304 - 1.4301 (V2A)Silikon",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Net weight",
+            "value": "3.8 kg",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1007/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Definition List",
+            "name": "Nettogewicht",
+            "value": "3,8 kg",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Product description",
+            "value": "SK hose-proof hood, for SK 3243…/3244…, WHD: 350 x 480 x 110 mm",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1007/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Definition List",
+            "name": "Produktbeschreibung",
+            "value": "Für Filterlüfter und Austrittsfilter. Leichte Reinigung durch außenliegende, lebensmittelechte Silikondichtung.",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Produktbeschreibung",
+            "value": "SK Strahlwasserhaube, für SK 3243…./3244…. BHT: 350 x 480 x 110 mm",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Protection category NEMA",
+            "value": "NEMA 1",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1007/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Definition List",
+            "name": "Schutzart IP nach IEC 60 529",
+            "value": "IP 56 bei Montage über Filterlüfter/Austrittsfilter mit Filtermatte",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Schutzart NEMA",
+            "value": "NEMA 1",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Verpackungseinheit",
+            "value": "1 Stück",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Zolltarifnummer",
+            "value": "73269098",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "产品描述",
+            "value": "因过滤器风扇和排风过滤器外部装有适用于食品业的硅酮密封件，所以清洗简便。",
+            "sourceUrl": "https://www.rittal.com/tw-zh/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "产品描述",
+            "value": "SK 防雨罩 用于3243",
+            "sourceUrl": "https://www.rittal.com/tw-zh/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "净重",
+            "value": "3.8 kg",
+            "sourceUrl": "https://www.rittal.com/tw-zh/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "包装单元",
+            "value": "1 件",
+            "sourceUrl": "https://www.rittal.com/tw-zh/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "型号:",
+            "value": "SK 3243080",
+            "sourceUrl": "https://www.rittal.com/tw-zh/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "尺寸",
+            "value": "宽度: 350 mm高度: 480 mm深度: 110 mm",
+            "sourceUrl": "https://www.rittal.com/tw-zh/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "数据页",
+            "value": "技术系统目录 CS DE EN ES JA PL",
+            "sourceUrl": "https://www.rittal.com/tw-zh/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "材料",
+            "value": "不锈钢 AISI304 - 1.4301 (V2A)硅酮",
+            "sourceUrl": "https://www.rittal.com/tw-zh/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "毛重",
+            "value": "4.102 kg",
+            "sourceUrl": "https://www.rittal.com/tw-zh/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "税率号",
+            "value": "73269098",
+            "sourceUrl": "https://www.rittal.com/tw-zh/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "认证",
+            "value": "CSA EN",
+            "sourceUrl": "https://www.rittal.com/tw-zh/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "资料",
+            "value": "信息表 全球",
+            "sourceUrl": "https://www.rittal.com/tw-zh/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "防护等级 IP，符合 IEC 60 529 标准",
+            "value": "IP 56，当安装在过滤器风扇/带过滤垫的输出过滤器上时",
+            "sourceUrl": "https://www.rittal.com/tw-zh/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "防护等级 NEMA",
+            "value": "NEMA 1",
+            "sourceUrl": "https://www.rittal.com/tw-zh/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Hose-proof hood to increase the protection category",
+            "name": "Article no.",
+            "value": "SK 3243080",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1007/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Hose-proof hood to increase the protection category",
+            "name": "EAN",
+            "value": "4028177652095",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1007/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Hose-proof hood to increase the protection category",
+            "name": "Gross weight",
+            "value": "4.102 kg",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1007/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Hose-proof hood to increase the protection category",
+            "name": "IP protection category to IEC 60 529",
+            "value": "IP 56 when fitted over fan-and-filter unit/outlet filter with filter mat",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1007/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Hose-proof hood to increase the protection category",
+            "name": "Material",
+            "value": "Stainless steel AISI304 - 1.4301 (V2A)Silicone",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1007/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Hose-proof hood to increase the protection category",
+            "name": "Net weight",
+            "value": "3.8 kg",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1007/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Meta",
+            "name": "description",
+            "value": "Insbesondere in den Einsatzbereichen der Lebensmittelindustrie vermeidet die Strahlwasserhaube das Eindringen von Nässe. Die Schutzart IP 56 wird in Verbindung mit dem Standard-Filter erreicht.",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Meta",
+            "name": "description",
+            "value": "尤其在食品行业应用领域中需要使用防喷水罩防止潮气的侵入。与标准过滤器结合使用可实现防护等级 IP 56。",
+            "sourceUrl": "https://www.rittal.com/tw-zh/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Breite",
+            "value": "350 mm / 480 mm",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Bruttogewicht",
+            "value": "4102 kg",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Gross weight",
+            "value": "4.102 kg",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1007/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Height",
+            "value": "480 mm",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1007/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Net weight",
+            "value": "3.8 kg",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1007/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Nettogewicht",
+            "value": "3.8 kg",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Width",
+            "value": "350 mm",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1007/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Plain Text",
+            "name": "api",
+            "value": "2020.09",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1007/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Plain Text",
+            "name": "api",
+            "value": "2020.09",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Plain Text",
+            "name": "api",
+            "value": "2020.09",
+            "sourceUrl": "https://www.rittal.com/tw-zh/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Plain Text",
+            "name": "Breite",
+            "value": "350 mm H&ouml;he: 480 mm Tiefe: 110 mm",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Plain Text",
+            "name": "is=\"vue",
+            "value": "ProductHeader\"",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1007/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Plain Text",
+            "name": "is=\"vue",
+            "value": "ProductHeader\"",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Plain Text",
+            "name": "is=\"vue",
+            "value": "ProductHeader\"",
+            "sourceUrl": "https://www.rittal.com/tw-zh/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Plain Text",
+            "name": "SK hose-proof hood, for SK 3243&hellip;/3244&hellip;, WHD",
+            "value": "350 x 480 x 110 mm",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1007/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Plain Text",
+            "name": "宽度",
+            "value": "350 mm 高度: 480 mm 深度: 110 mm",
+            "sourceUrl": "https://www.rittal.com/tw-zh/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "Customs tariff number",
+            "value": "73269098",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1007/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "Depth",
+            "value": "110 mm",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1007/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "ETIM 8",
+            "value": "EC000744",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1007/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "ETIM 8",
+            "value": "EC000744",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "ETIM 8",
+            "value": "EC000744",
+            "sourceUrl": "https://www.rittal.com/tw-zh/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "ETIM 9",
+            "value": "EC000744",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1007/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "ETIM 9",
+            "value": "EC000744",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "ETIM 9",
+            "value": "EC000744",
+            "sourceUrl": "https://www.rittal.com/tw-zh/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "Height",
+            "value": "480 mm",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1007/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Strahlwasserhaube zur Erhöhung der Schutzart",
+            "name": "Artikel-Nr.",
+            "value": "SK 3243080",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Strahlwasserhaube zur Erhöhung der Schutzart",
+            "name": "Bruttogewicht",
+            "value": "4,102 kg",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Strahlwasserhaube zur Erhöhung der Schutzart",
+            "name": "EAN",
+            "value": "4028177652095",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Strahlwasserhaube zur Erhöhung der Schutzart",
+            "name": "Material",
+            "value": "Edelstahl AISI304 - 1.4301 (V2A)Silikon",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Strahlwasserhaube zur Erhöhung der Schutzart",
+            "name": "Nettogewicht",
+            "value": "3,8 kg",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Strahlwasserhaube zur Erhöhung der Schutzart",
+            "name": "Schutzart IP nach IEC 60 529",
+            "value": "IP 56 bei Montage über Filterlüfter/Austrittsfilter mit Filtermatte",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "防喷水罩 用于提高防护等级",
+            "name": "EAN",
+            "value": "4028177652095",
+            "sourceUrl": "https://www.rittal.com/tw-zh/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "防喷水罩 用于提高防护等级",
+            "name": "防护等级 IP，符合 IEC 60 529 标准",
+            "value": "IP 56，当安装在过滤器风扇/带过滤垫的输出过滤器上时",
+            "sourceUrl": "https://www.rittal.com/tw-zh/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "výrobě. Během své životnosti ušetří podstatně více CO₂, než se uvolnilo při jejich výrobě.",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "◾ IP 54 standardně (až do 855 m³/h)",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "◾ Bezešvý design analogický k vertikální lamelové mřížce",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "◾ Nižší tlaková ztráta umožňuje ventilátoru dodat o 40 % více",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "s filtrem z netkané textilie, IP 54",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "se skládaným filtrem, IP 54",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "s filtrem z netkané textilie, IP 51",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "se skládaným filtrem, IP 51",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "Střešní odvětrání, IP 51",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "(IP 54)",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "◾ Standardně IP 54 díky propracovanému labyrintovému",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "Objemový průtok s více ventilátory",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "Hlučnost s více ventilátory a při různých rychlostech",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "dosaženo stupně krytí IP 54 podle IEC 60 529",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "Krytí: IP 54/IP 55/IP 56, UL typ",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "3R/4, 12 a NEMA 4X.",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Document",
+            "name": "Parsed document",
+            "value": "3243080_Technical_system_catalogue_CS",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "ROZVÁDECE",
+            "value": "ROZVOD PROUDU | KLIMATIZACE | IT INFRASTRUKTURA | SOFTWARE & SLUŽBY",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Technický systémový katalog Rittal / Chlazení okolním vzduchem",
+            "value": "3",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Průměrně",
+            "value": "75%",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Technický systémový katalog Rittal / Chlazení okolním vzduchem",
+            "value": "5",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "výrobě. Během své životnosti ušetří podstatně více",
+            "value": "CO₂, než se uvolnilo při jejich výrobě.",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Technický systémový katalog Rittal / Chlazení okolním vzduchem",
+            "value": "7",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Spolehlivost a účinnost s výměníky tepla vzduch/vzduch",
+            "value": "díky samostatným vzduchovým okruhům",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "◾ IP",
+            "value": "54 standardně (až do 855 m³/h)",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "RAL",
+            "value": "7035 a",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "RAL",
+            "value": "9005",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Technický systémový katalog Rittal / Chlazení okolním vzduchem",
+            "value": "9",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "◾ Bezšroubová pružinová svorka pro elektrické připojení",
+            "value": "bez",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "◾ Připojovací",
+            "value": "napětí 100 – 240 V, 1~, 50/60 Hz podporuje",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Technický systémový katalog Rittal / Chlazení okolním vzduchem",
+            "value": "11",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "f",
+            "value": "3,2 m³ · K/Wh pro h = (100 až 250)",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "f",
+            "value": "3,3 m³ · K/Wh pro h = (250 až 500)",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "f",
+            "value": "3,4 m³ · K/Wh pro h = (500 až 750)",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "f",
+            "value": "3,5 m³ · K/Wh pro h = (750 až 1000)",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "f",
+            "value": "Kompenzační faktor",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "h",
+            "value": "Nadmořská výška [m]",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "",
+            "value": "f · V",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "",
+            "value": "Objemový průtok (m3 /h)",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "∆Pst",
+            "value": "Rozdíl statických tlaků (Pa)",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "s filtrem z netkané textilie, IP",
+            "value": "54",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "se skládaným filtrem, IP",
+            "value": "54",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "s filtrem z netkané textilie, IP",
+            "value": "51",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "se skládaným filtrem, IP",
+            "value": "51",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Střešní odvětrání, IP",
+            "value": "51",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Technický systémový katalog Rittal / Chlazení okolním vzduchem",
+            "value": "13",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "(ΔT)max.",
+            "value": "V",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "S",
+            "value": "A · k · ΔT (Watt)",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "v",
+            "value": "Ztrátové teplo instalované v rozváděči [W]",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": " s",
+            "value": "Teplo sdílené povrchem rozváděče [W]",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "s > 0",
+            "value": "Vyzařování (Ti > Tu)",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "s < 0",
+            "value": "Pohlcování (Ti < T u)",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "E",
+            "value": "Potřebný chladicí výkon chladicí jednotky [W]",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "H",
+            "value": "Potřebný topný výkon topné jednotky [W]",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "qw",
+            "value": "Měrný tepelný výkon výměníku tepla [W/K]",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "",
+            "value": "Požadovaný objemový průtok vzduchu ventilátoru s filtrem",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "ΔT",
+            "value": "T i – T u = Max. přípustný rozdíl teplot [K]",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "A",
+            "value": "Efektivní plocha rozváděče pro sdílení tepla",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "k",
+            "value": "Součinitel prostupu tepla [W/m²K]",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "pro ocelový plech k",
+            "value": "5,5 W/m²K",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Upozornění",
+            "value": "Stínění / útlum je garantován pouze při použití",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "EN 61587-3",
+            "value": "2013",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Hladiny útlumu podle EN 61587-3",
+            "value": "2013",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Požadovaná hladina",
+            "value": "Rozsah frekvencí",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "EM kód pro požadovanou hladinu 1 je",
+            "value": "EMxxx210x",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "EM kód pro požadovanou hladinu 2 je",
+            "value": "EMxxx430x",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "EM kód pro požadovanou hladinu 3 je",
+            "value": "EMxxx650x",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Rittal",
+            "value": "Horizontální útlum",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Rittal",
+            "value": "Vertikální útlum",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Technický systémový katalog Rittal / Chlazení okolním vzduchem",
+            "value": "15",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Zapojené moduly připravené",
+            "value": "k použití vybavené radiálními ventilátory pro četné platformy",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Technický systémový katalog Rittal / Chlazení okolním vzduchem",
+            "value": "17",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "◾ Standardně IP",
+            "value": "54 díky propracovanému labyrintovému",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "RAL",
+            "value": "9005 a",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "RAL",
+            "value": "7035",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Technický systémový katalog Rittal / Chlazení okolním vzduchem",
+            "value": "19",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Objemový průtok s více",
+            "value": "ventilátory",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "pfs [Pa]",
+            "value": "Tlak",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "qv [m³/h]",
+            "value": "Objemový průtok",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "LpA [dB(A)]",
+            "value": "Hladina akustického tlaku",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Hlučnost s více",
+            "value": "ventilátory a při různých rychlostech",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Technický systémový katalog Rittal / Chlazení okolním vzduchem",
+            "value": "21",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Technický systémový katalog Rittal / Chlazení okolním vzduchem",
+            "value": "23",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "◾ Možnosti instalace vodícího rámu",
+            "value": "přímo, s pomocí dvou",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "◾ Průtok vzduchu 320 m³/h, 2 U",
+            "value": "díky vysokému průtoku",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Technický systémový katalog Rittal / Chlazení okolním vzduchem",
+            "value": "25",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "dosaženo stupně krytí IP",
+            "value": "54 podle IEC 60 529",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Top kvalita",
+            "value": "garantovaná ochrana vaší elektroniky",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "ΔT",
+            "value": "Rozdíl teplot (K)",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "v",
+            "value": "Tepelné ztráty (W)",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "q w",
+            "value": "Měrný tepelný výkon (W/K)",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "A",
+            "value": "Efektivní povrch rozváděče podle IEC 890 (m²)",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "k",
+            "value": "Součinitel prostupu tepla (W/m²K)",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "v",
+            "value": "Ztrátové teplo (W)",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "qw",
+            "value": "V – (A · ΔT · k)",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Technický systémový katalog Rittal / Chlazení okolním vzduchem",
+            "value": "27",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Technický systémový katalog Rittal / Chladicí jednotky",
+            "value": "29",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Krytí: IP",
+            "value": "54/IP 55/IP 56, UL typ",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "3R/4, 12 a NEMA",
+            "value": "4X.",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "provoz s nastavením teploty Ti",
+            "value": "35 °C.",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "W",
+            "value": "Množství vody v g",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "V",
+            "value": "Objem rozváděče v m³",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "r",
+            "value": "Hustota vzduchu kg/m³",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Dx",
+            "value": "Rozdíl v obsahu vody v g/kg suchého vzduchu",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "V",
+            "value": "Š · V · H = 0,6 m · 2 m · 0,5 m",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "V",
+            "value": "0,6 m³",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "W",
+            "value": "V · r · Dx",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "W",
+            "value": "7,92 g ≙ 8 ml",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "připevnění zobrazovacích",
+            "value": "prvků k povrchům rozváděče vedou",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "E",
+            "value": "V – k · A · ΔT",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Pd",
+            "value": "Parciální tlak vodních par (mbar)",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "T",
+            "value": "Teplota vzduchu (°C)",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "x",
+            "value": "Obsah vody (g/kg suchého vzduchu)",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "",
+            "value": "Relativní vlhkost",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "x2",
+            "value": "x1 | 30 | 35 | 40",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "W",
+            "value": "V · ρ · Δx",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          }
+        ],
+        "documents": [
+          {
+            "type": "datasheet",
+            "label": "3243080_Technical_system_catalogue_CS",
+            "url": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1007/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8,
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261006101421\\documents\\3243080-datasheet-3243080_Technical_system_catalogue_CS.pdf",
+            "downloadStatus": "downloaded",
+            "parseStatus": "parsed"
+          },
+          {
+            "type": "datasheet",
+            "label": "3243080_Technical_system_catalogue_DE",
+            "url": "https://www.rittal.com/imf/none/3_6104/3243080_Technical_system_catalogue_DE",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1007/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "type": "datasheet",
+            "label": "3243080_Technical_system_catalogue_EN",
+            "url": "https://www.rittal.com/imf/none/3_8419/3243080_Technical_system_catalogue_EN",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1007/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "type": "datasheet",
+            "label": "3243080_Technical_system_catalogue_ES",
+            "url": "https://www.rittal.com/imf/none/3_13783/3243080_Technical_system_catalogue_ES",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1007/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "type": "datasheet",
+            "label": "3243080_Technical_system_catalogue_JA",
+            "url": "https://www.rittal.com/imf/none/3_8420/3243080_Technical_system_catalogue_JA",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1007/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "type": "datasheet",
+            "label": "3243080_Technical_system_catalogue_PL",
+            "url": "https://www.rittal.com/imf/none/3_14263/3243080_Technical_system_catalogue_PL",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1007/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "type": "image",
+            "label": "og:image",
+            "url": "https://www.rittal.com/imf/x1200/78_421/",
+            "sourceUrl": "https://www.rittal.com/tw-zh/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86,
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261006101421\\images\\RIT.3243080.png",
+            "downloadStatus": "downloaded",
+            "parseStatus": "skipped"
+          }
+        ],
+        "sources": [
+          {
+            "url": "https://www.rittal.com/tw-zh/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "parserVersion": "generic-v3",
+            "fetchedAt": "2026-10-06T10:14:25.776Z",
+            "statusCode": 200
+          },
+          {
+            "url": "https://www.rittal.com/de-de/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "parserVersion": "generic-v3",
+            "fetchedAt": "2026-10-06T10:14:24.901Z",
+            "statusCode": 200
+          },
+          {
+            "url": "https://www.rittal.com/de-de/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "parserVersion": "generic-v3",
+            "fetchedAt": "2026-10-06T10:14:24.704Z",
+            "statusCode": 200,
+            "stage": "localized-template",
+            "reason": "DE localized official template"
+          },
+          {
+            "url": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1007/PRO0305?variantId=3243080",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "parserVersion": "generic-v3",
+            "fetchedAt": "2026-10-06T10:14:27.468Z",
+            "statusCode": 200,
+            "stage": "localized-template",
+            "reason": "EN localized official template"
+          },
+          {
+            "url": "https://www.rittal.com/imf/none/3_13209/3243080_Technical_system_catalogue_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "reason": "datasheet",
+            "fetchedAt": "2026-10-06T10:14:33.101Z"
+          }
+        ],
+        "qualityGate": {
+          "passed": true,
+          "identityConfirmed": true,
+          "score": 100,
+          "missing": [],
+          "reason": "Quality gate passed.",
+          "attempts": [
+            {
+              "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+              "url": "https://www.rittal.com/tw-zh/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO0305?variantId=3243080",
+              "status": "failed",
+              "score": 0,
+              "missing": [
+                "identity"
+              ],
+              "reason": "Missing required product data: identity",
+              "sourceType": "official-fallback",
+              "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+              "statusCode": 200,
+              "attributeCount": 59,
+              "documentCount": 1,
+              "sectionAttributeCounts": {}
+            },
+            {
+              "stage": "localized-template",
+              "url": "https://www.rittal.com/de-de/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO0305?variantId=3243080",
+              "status": "partial",
+              "score": 80,
+              "reason": "DE localized official template; post-fetch: HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title",
+              "sourceType": "official-fallback",
+              "parser": "discovery-localized-template",
+              "statusCode": 200,
+              "attributeCount": 33,
+              "documentCount": 1
+            },
+            {
+              "stage": "localized-template",
+              "url": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1007/PRO0305?variantId=3243080",
+              "status": "partial",
+              "score": 80,
+              "reason": "EN localized official template; post-fetch: HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title",
+              "sourceType": "official-fallback",
+              "parser": "discovery-localized-template",
+              "statusCode": 200,
+              "attributeCount": 33,
+              "documentCount": 7
+            },
+            {
+              "stage": "localized-template",
+              "url": "https://www.rittal.com/com-en/products/show/3243080",
+              "status": "failed",
+              "score": 78,
+              "reason": "EN localized official template",
+              "error": "Missing named parameter \"bodyTemplate\""
+            },
+            {
+              "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+              "url": "https://www.rittal.com/tw-zh/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO0305?variantId=3243080",
+              "status": "passed",
+              "score": 100,
+              "missing": [],
+              "reason": "Quality gate passed.",
+              "sourceType": "official-fallback",
+              "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+              "statusCode": 200,
+              "attributeCount": 92,
+              "documentCount": 7,
+              "sectionAttributeCounts": {}
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

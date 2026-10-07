@@ -1,0 +1,1065 @@
+{
+  "conditions": {
+    "manufacturerConcurrency": 2,
+    "perHostMinimumIntervalMs": 1500,
+    "freshIsolatedSQLiteAndHttpCachePerRun": true,
+    "fixtureResponsesUsed": false,
+    "learnedEndpointsAvailable": 0,
+    "externalSearch": false,
+    "same15OrderNumbers": true
+  },
+  "initial": {
+    "count": 15,
+    "itemElapsedMsSum": 121891,
+    "meanItemElapsedMs": 8126.1,
+    "medianItemElapsedMs": 5780,
+    "minItemElapsedMs": 1672,
+    "maxItemElapsedMs": 32053,
+    "batchWallMs": 127773,
+    "accepted": false,
+    "foundRate": 100,
+    "officialUrlRate": 100,
+    "deviceTypeRate": 26.7,
+    "pdtAuditRate": 100,
+    "freshCacheEntries": 30,
+    "learnedEndpoints": 0
+  },
+  "final": {
+    "count": 15,
+    "itemElapsedMsSum": 118509,
+    "meanItemElapsedMs": 7900.6,
+    "medianItemElapsedMs": 4510,
+    "minItemElapsedMs": 2124,
+    "maxItemElapsedMs": 33602,
+    "batchWallMs": 124029,
+    "accepted": true,
+    "foundRate": 100,
+    "officialUrlRate": 100,
+    "deviceTypeRate": 100,
+    "pdtAuditRate": 100,
+    "freshCacheEntries": 30,
+    "learnedEndpoints": 0
+  },
+  "retrievals": {
+    "initialCachedHtmlResponses": 30,
+    "finalCachedHtmlResponses": 30,
+    "finalSuccessfulDocumentAndImageDownloads": 31,
+    "finalMinimumSuccessfulRetrievalCount": 61,
+    "retryCount": "not instrumented by benchmark/http-client diagnostics",
+    "throttleWaitDuration": "not instrumented by benchmark/http-client diagnostics"
+  },
+  "requiredFields": {
+    "passed": 4,
+    "total": 4,
+    "allApplicableElectricalFieldsDirectlySupported": true
+  },
+  "items": [
+    {
+      "orderNumber": "3245800",
+      "expectedFamily": "Blue e+ filter fan EMC",
+      "expectedFunctionalType": "Thermal Management",
+      "expectedClassifierType": "Thermal Management",
+      "foundTitle": "Blue e+ filter fan EMC",
+      "foundClassifierType": "Thermal Management",
+      "identityStatus": "PASS",
+      "identityProofUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI102/PG20240718KLI001/PRO136518?variantId=3245800",
+      "identityProofFile": "benchmarks\\rittal-15-new-20261006-v2\\evidence\\official-pdp-3245800.html",
+      "productUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI102/PG20240718KLI001/PRO136518?variantId=3245800",
+      "requiredFields": [
+        {
+          "field": "voltage",
+          "normalizedValue": "200 V - 240 V, 1~, 50 Hz/60 Hz",
+          "sourceAttribute": "Rated operating voltage",
+          "sourceValue": "200 V - 240 V, 1~, 50 Hz/60 Hz",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI102/PG20240718KLI001/PRO136518?variantId=3245800",
+          "status": "PASS"
+        }
+      ],
+      "image": {
+        "status": "PASS",
+        "url": "https://www.rittal.com/imf/x1200/2_54814/",
+        "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261006115707\\images\\RIT.3245800.png",
+        "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI102/PG20240718KLI001/PRO136518?variantId=3245800",
+        "visualReview": "PASS: actual product/accessory image visually inspected in image-contact-sheet.png"
+      },
+      "localizedDescriptions": {
+        "en": {
+          "title": "Blue e+ filter fan EMC",
+          "description": "Complete fan unit with EMC shielding for tool-free mounting on surfaces. Air throughput from 20 – 900 m³/h"
+        },
+        "de": {
+          "title": "Blue e+ Filterlüfter EMV",
+          "description": "Komplette Lüftereinheit mit EMV-Schirmung zur werkzeuglosen Montage in Flächen. Luftleistung von 20 - 900 m³/h"
+        }
+      },
+      "downloadedFilesCount": 3,
+      "elapsedMsInitial": 32053,
+      "elapsedMsFinal": 33602,
+      "scrapeMsFinal": 1296,
+      "downloadDocumentsInitialMsFinal": 1658,
+      "enrichInitialMsFinal": 27748,
+      "identityOk": true,
+      "deviceTypeMatched": true,
+      "qualityMissing": [],
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "stageTimingsInitialMs": {
+        "customerDocuments.first": 0,
+        "scrape": 1057,
+        "customerDocuments.initial": 1057,
+        "downloadDocuments.initial": 2278,
+        "enrich.initial": 25438,
+        "writeWorkbook": 738,
+        "exportPdt": 1195
+      },
+      "stageTimingsFinalMs": {
+        "customerDocuments.first": 0,
+        "scrape": 1296,
+        "customerDocuments.initial": 1296,
+        "downloadDocuments.initial": 1658,
+        "enrich.initial": 27748,
+        "writeWorkbook": 527,
+        "exportPdt": 938
+      }
+    },
+    {
+      "orderNumber": "8618800",
+      "expectedFamily": "VX cable entry section",
+      "expectedFunctionalType": "Enclosure Accessory",
+      "expectedClassifierType": "Mounting Accessory",
+      "foundTitle": "Section for cable entry, centre",
+      "foundClassifierType": "Mounting Accessory",
+      "identityStatus": "PASS",
+      "identityProofUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240405ZUB003/PG20240405ZUB007/PRO82563?variantId=8618800",
+      "identityProofFile": "benchmarks\\rittal-15-new-20261006-v2\\evidence\\official-pdp-8618800.html",
+      "productUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240405ZUB003/PG20240405ZUB007/PRO82563?variantId=8618800",
+      "requiredFields": [],
+      "image": {
+        "status": "PASS",
+        "url": "https://www.rittal.com/imf/x1200/78_939/",
+        "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261006115707\\images\\RIT.8618800.png",
+        "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240405ZUB003/PG20240405ZUB007/PRO82563?variantId=8618800",
+        "visualReview": "PASS: actual product/accessory image visually inspected in image-contact-sheet.png"
+      },
+      "localizedDescriptions": {
+        "en": {
+          "title": "Section for cable entry, centre",
+          "description": "The section is fitted directly onto the gland plates. In this way, when installing the mounting plate in the forward mounting position, the cables may be routed directly onto a cable clamp rail without large bending radii. In conjunction with the cable clamp rail, this enables optimum adjustment between the cable entry and mounting plate."
+        },
+        "de": {
+          "title": "Profil zur Kabeleinführung, mittig",
+          "description": "Das Profil wird direkt an den Bodenblechen aufgesteckt. Damit können beim Einbau der Montageplatte in einer vorgezogenen Einbaustellung die Kabel ohne größere Biegeradien direkt auf eine Kabelabfangschiene geführt werden. In Kombination mit der Kabelabfangschiene kann eine optimale Anpassung zwischen Kabeleinführung und Montageplatte hergestellt werden."
+        }
+      },
+      "downloadedFilesCount": 1,
+      "elapsedMsInitial": 2989,
+      "elapsedMsFinal": 2329,
+      "scrapeMsFinal": 658,
+      "downloadDocumentsInitialMsFinal": 706,
+      "enrichInitialMsFinal": 0,
+      "identityOk": true,
+      "deviceTypeMatched": true,
+      "qualityMissing": [],
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "stageTimingsInitialMs": {
+        "customerDocuments.first": 0,
+        "scrape": 662,
+        "customerDocuments.initial": 663,
+        "downloadDocuments.initial": 584,
+        "enrich.initial": 1,
+        "writeWorkbook": 235,
+        "exportPdt": 1288
+      },
+      "stageTimingsFinalMs": {
+        "customerDocuments.first": 0,
+        "scrape": 658,
+        "customerDocuments.initial": 658,
+        "downloadDocuments.initial": 706,
+        "enrich.initial": 0,
+        "writeWorkbook": 170,
+        "exportPdt": 633
+      }
+    },
+    {
+      "orderNumber": "7030200",
+      "expectedFamily": "CMC III CAN bus access",
+      "expectedFunctionalType": "Access Sensor",
+      "expectedClassifierType": "Access Sensor",
+      "foundTitle": "CMC III CAN bus access",
+      "foundClassifierType": "Access Sensor",
+      "identityStatus": "PASS",
+      "identityProofUrl": "https://www.rittal.com/com-en/products/PG20231215ITI101/PG20240408ITI301/PG20240913ITI006/PG20240925ITI004/PRO37142?variantId=7030200",
+      "identityProofFile": "benchmarks\\rittal-15-new-20261006-v2\\evidence\\official-pdp-7030200.html",
+      "productUrl": "https://www.rittal.com/com-en/products/PG20231215ITI101/PG20240408ITI301/PG20240913ITI006/PG20240925ITI004/PRO37142?variantId=7030200",
+      "requiredFields": [],
+      "image": {
+        "status": "PASS",
+        "url": "https://www.rittal.com/imf/x1200/2_37871/",
+        "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261006115707\\images\\RIT.7030200.png",
+        "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ITI101/PG20240408ITI301/PG20240913ITI006/PG20240925ITI004/PRO37142?variantId=7030200",
+        "visualReview": "PASS: actual product/accessory image visually inspected in image-contact-sheet.png"
+      },
+      "localizedDescriptions": {
+        "en": {
+          "title": "CMC III CAN bus access",
+          "description": "For connecting one handle and one reader unit to monitor a door."
+        },
+        "de": {
+          "title": "CMC III CAN-Bus Access",
+          "description": "Zur Anbindung von einem Griff und einem Lesegerät zur Überwachung einer Tür."
+        }
+      },
+      "downloadedFilesCount": 1,
+      "elapsedMsInitial": 3186,
+      "elapsedMsFinal": 2185,
+      "scrapeMsFinal": 681,
+      "downloadDocumentsInitialMsFinal": 402,
+      "enrichInitialMsFinal": 0,
+      "identityOk": true,
+      "deviceTypeMatched": true,
+      "qualityMissing": [],
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "stageTimingsInitialMs": {
+        "customerDocuments.first": 1,
+        "scrape": 749,
+        "customerDocuments.initial": 749,
+        "downloadDocuments.initial": 383,
+        "enrich.initial": 0,
+        "writeWorkbook": 857,
+        "exportPdt": 844
+      },
+      "stageTimingsFinalMs": {
+        "customerDocuments.first": 0,
+        "scrape": 681,
+        "customerDocuments.initial": 681,
+        "downloadDocuments.initial": 402,
+        "enrich.initial": 0,
+        "writeWorkbook": 223,
+        "exportPdt": 593
+      }
+    },
+    {
+      "orderNumber": "9350075",
+      "expectedFamily": "RiLine60 busbar connector",
+      "expectedFunctionalType": "Busbar Accessory",
+      "expectedClassifierType": "Busbar",
+      "foundTitle": "Busbar connector",
+      "foundClassifierType": "Busbar",
+      "identityStatus": "PASS",
+      "identityProofUrl": "https://www.rittal.com/com-en/products/PG20231215POW101/PG20240417STR201/PG20240418STR203/PG20250927STR101/PRO0566?variantId=9350075",
+      "identityProofFile": "benchmarks\\rittal-15-new-20261006-v2\\evidence\\official-pdp-9350075.html",
+      "productUrl": "https://www.rittal.com/com-en/products/PG20231215POW101/PG20240417STR201/PG20240418STR203/PG20250927STR101/PRO0566?variantId=9350075",
+      "requiredFields": [],
+      "image": {
+        "status": "PASS",
+        "url": "https://www.rittal.com/imf/x1200/2_36065/",
+        "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261006115707\\images\\RIT.9350075.png",
+        "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215POW101/PG20240417STR201/PG20240418STR203/PG20250927STR101/PRO0566?variantId=9350075",
+        "visualReview": "PASS: actual product/accessory image visually inspected in image-contact-sheet.png"
+      },
+      "localizedDescriptions": {
+        "en": {
+          "title": "Busbar connector",
+          "description": "For connecting busbars, no drilling required."
+        },
+        "de": {
+          "title": "Schienenverbinder",
+          "description": "Zum bohrungslosen Verbinden von Sammelschienen."
+        }
+      },
+      "downloadedFilesCount": 3,
+      "elapsedMsInitial": 6489,
+      "elapsedMsFinal": 7335,
+      "scrapeMsFinal": 628,
+      "downloadDocumentsInitialMsFinal": 1368,
+      "enrichInitialMsFinal": 3419,
+      "identityOk": true,
+      "deviceTypeMatched": true,
+      "qualityMissing": [],
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "stageTimingsInitialMs": {
+        "customerDocuments.first": 0,
+        "scrape": 683,
+        "customerDocuments.initial": 683,
+        "downloadDocuments.initial": 1460,
+        "enrich.initial": 3106,
+        "writeWorkbook": 351,
+        "exportPdt": 575
+      },
+      "stageTimingsFinalMs": {
+        "customerDocuments.first": 0,
+        "scrape": 628,
+        "customerDocuments.initial": 628,
+        "downloadDocuments.initial": 1368,
+        "enrich.initial": 3419,
+        "writeWorkbook": 224,
+        "exportPdt": 1359
+      }
+    },
+    {
+      "orderNumber": "9665785",
+      "expectedFamily": "Cable entry gland for roof plate",
+      "expectedFunctionalType": "Enclosure Accessory",
+      "expectedClassifierType": "Cable Gland",
+      "foundTitle": "Cable entry gland for roof plate",
+      "foundClassifierType": "Cable Gland",
+      "identityStatus": "PASS",
+      "identityProofUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240411ZUB102/PG20240328ZUB101/PRO13714?variantId=9665785",
+      "identityProofFile": "benchmarks\\rittal-15-new-20261006-v2\\evidence\\official-pdp-9665785.html",
+      "productUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240411ZUB102/PG20240328ZUB101/PRO13714?variantId=9665785",
+      "requiredFields": [],
+      "image": {
+        "status": "PASS",
+        "url": "https://www.rittal.com/imf/x1200/2_37141/",
+        "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261006115707\\images\\RIT.9665785.png",
+        "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240411ZUB102/PG20240328ZUB101/PRO13714?variantId=9665785",
+        "visualReview": "PASS: actual product/accessory image visually inspected in image-contact-sheet.png"
+      },
+      "localizedDescriptions": {
+        "en": {
+          "title": "Cable entry gland for roof plate",
+          "description": "Cable entry glands for roof plates, with metric knockouts, sealing membranes, entry glands, or sealed."
+        },
+        "de": {
+          "title": "Kabeleinführungsflansch für Dachblech",
+          "description": "Kabeleinführungsflansche für Dachbleche, mit metrischen Vorprägungen, Dichtmembranen, Einführungsstutzen, oder geschlossen."
+        }
+      },
+      "downloadedFilesCount": 1,
+      "elapsedMsInitial": 2327,
+      "elapsedMsFinal": 3390,
+      "scrapeMsFinal": 624,
+      "downloadDocumentsInitialMsFinal": 1887,
+      "enrichInitialMsFinal": 1,
+      "identityOk": true,
+      "deviceTypeMatched": true,
+      "qualityMissing": [],
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "stageTimingsInitialMs": {
+        "customerDocuments.first": 0,
+        "scrape": 600,
+        "customerDocuments.initial": 600,
+        "downloadDocuments.initial": 810,
+        "enrich.initial": 0,
+        "writeWorkbook": 160,
+        "exportPdt": 603
+      },
+      "stageTimingsFinalMs": {
+        "customerDocuments.first": 1,
+        "scrape": 624,
+        "customerDocuments.initial": 624,
+        "downloadDocuments.initial": 1887,
+        "enrich.initial": 1,
+        "writeWorkbook": 160,
+        "exportPdt": 567
+      }
+    },
+    {
+      "orderNumber": "7888626",
+      "expectedFamily": "TX CableNet network rack",
+      "expectedFunctionalType": "Network Cabinet",
+      "expectedClassifierType": "Rack Cabinet",
+      "foundTitle": "Network rack TX CableNet with glazed door",
+      "foundClassifierType": "Rack Cabinet",
+      "identityStatus": "PASS",
+      "identityProofUrl": "https://www.rittal.com/com-en/products/PG20231215ITI101/PG20240402ITI203/PRO125564?variantId=7888626",
+      "identityProofFile": "benchmarks\\rittal-15-new-20261006-v2\\evidence\\official-pdp-7888626.html",
+      "productUrl": "https://www.rittal.com/com-en/products/PG20231215ITI101/PG20240402ITI203/PRO125564?variantId=7888626",
+      "requiredFields": [],
+      "image": {
+        "status": "PASS",
+        "url": "https://www.rittal.com/imf/x1200/2_55019/",
+        "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261006115707\\images\\RIT.7888626.png",
+        "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ITI101/PG20240402ITI203/PRO125564?variantId=7888626",
+        "visualReview": "PASS: actual product/accessory image visually inspected in image-contact-sheet.png"
+      },
+      "localizedDescriptions": {
+        "en": {
+          "title": "Network rack TX CableNet with glazed door",
+          "description": "The TX CableNet – places extra space at your disposal by avoiding the problem of unnecessarily wide or deep IT racks. This IT network rack is thus also suitable for use in smaller IT environments and is already optimally prepared for individual interior installation."
+        },
+        "de": {
+          "title": "Netzwerkschrank TX CableNet mit Sichttür",
+          "description": "Der TX CableNet – Verbesserter Raumgewinn durch IT-Racks ohne überdimensionale Breite oder Tiefe. Dieser IT-Netzwerkschrank ist daher auch für den Einsatz in kleineren IT-Netzwerkstrukturen geeignet und für den individuellen Innenausbau bereits optimal vorbereitet."
+        }
+      },
+      "downloadedFilesCount": 2,
+      "elapsedMsInitial": 5734,
+      "elapsedMsFinal": 4510,
+      "scrapeMsFinal": 2291,
+      "downloadDocumentsInitialMsFinal": 495,
+      "enrichInitialMsFinal": 298,
+      "identityOk": true,
+      "deviceTypeMatched": true,
+      "qualityMissing": [],
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "stageTimingsInitialMs": {
+        "customerDocuments.first": 0,
+        "scrape": 1399,
+        "customerDocuments.initial": 1402,
+        "downloadDocuments.initial": 1874,
+        "enrich.initial": 329,
+        "writeWorkbook": 1040,
+        "exportPdt": 649
+      },
+      "stageTimingsFinalMs": {
+        "customerDocuments.first": 0,
+        "scrape": 2291,
+        "customerDocuments.initial": 2292,
+        "downloadDocuments.initial": 495,
+        "enrich.initial": 298,
+        "writeWorkbook": 205,
+        "exportPdt": 866
+      }
+    },
+    {
+      "orderNumber": "7979313",
+      "expectedFamily": "PDU switched",
+      "expectedFunctionalType": "Power Distribution Unit",
+      "expectedClassifierType": "Power Distribution Unit",
+      "foundTitle": "PDU switched",
+      "foundClassifierType": "Power Distribution Unit",
+      "identityStatus": "PASS",
+      "identityProofUrl": "https://www.rittal.com/com-en/products/PG20231215ITI101/PG20240403ITI201/PG20240913ITI001/PG20240925ZUB101/PRO115365?variantId=7979313",
+      "identityProofFile": "benchmarks\\rittal-15-new-20261006-v2\\evidence\\official-pdp-7979313.html",
+      "productUrl": "https://www.rittal.com/com-en/products/PG20231215ITI101/PG20240403ITI201/PG20240913ITI001/PG20240925ZUB101/PRO115365?variantId=7979313",
+      "requiredFields": [
+        {
+          "field": "voltage",
+          "normalizedValue": "230 V (AC)",
+          "sourceAttribute": "Rated operating voltage",
+          "sourceValue": "230 V (AC)",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ITI101/PG20240403ITI201/PG20240913ITI001/PG20240925ZUB101/PRO115365?variantId=7979313",
+          "status": "PASS"
+        },
+        {
+          "field": "current",
+          "normalizedValue": "32 A",
+          "sourceAttribute": "Rated current (max.)",
+          "sourceValue": "32 A",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ITI101/PG20240403ITI201/PG20240913ITI001/PG20240925ZUB101/PRO115365?variantId=7979313",
+          "status": "PASS"
+        }
+      ],
+      "image": {
+        "status": "PASS",
+        "url": "https://www.rittal.com/imf/x1200/78_2777/",
+        "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261006115707\\images\\RIT.7979313.png",
+        "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ITI101/PG20240403ITI201/PG20240913ITI001/PG20240925ZUB101/PRO115365?variantId=7979313",
+        "visualReview": "PASS: actual product/accessory image visually inspected in image-contact-sheet.png"
+      },
+      "localizedDescriptions": {
+        "en": {
+          "title": "PDU switched",
+          "description": "High-end IT rack power distribution: Smart PDU with measurement function per phase and individually switchable output slots."
+        },
+        "de": {
+          "title": "PDU switched",
+          "description": "High-End IT-Rack-Stromverteilung: Intelligente PDU mit Messfunktion je Phase sowie einzeln schaltbare Ausgangssteckplätze."
+        }
+      },
+      "downloadedFilesCount": 3,
+      "elapsedMsInitial": 11524,
+      "elapsedMsFinal": 10649,
+      "scrapeMsFinal": 791,
+      "downloadDocumentsInitialMsFinal": 2315,
+      "enrichInitialMsFinal": 3754,
+      "identityOk": true,
+      "deviceTypeMatched": true,
+      "qualityMissing": [],
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "stageTimingsInitialMs": {
+        "customerDocuments.first": 0,
+        "scrape": 2319,
+        "customerDocuments.initial": 2319,
+        "downloadDocuments.initial": 1594,
+        "enrich.initial": 4277,
+        "writeWorkbook": 533,
+        "exportPdt": 696
+      },
+      "stageTimingsFinalMs": {
+        "customerDocuments.first": 0,
+        "scrape": 791,
+        "customerDocuments.initial": 791,
+        "downloadDocuments.initial": 2315,
+        "enrich.initial": 3754,
+        "writeWorkbook": 601,
+        "exportPdt": 972
+      }
+    },
+    {
+      "orderNumber": "2500100",
+      "expectedFamily": "LED system light",
+      "expectedFunctionalType": "Luminaire",
+      "expectedClassifierType": "Luminaire",
+      "foundTitle": "LED system light",
+      "foundClassifierType": "Luminaire",
+      "identityStatus": "PASS",
+      "identityProofUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500100",
+      "identityProofFile": "benchmarks\\rittal-15-new-20261006-v2\\evidence\\official-pdp-2500100.html",
+      "productUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500100",
+      "requiredFields": [],
+      "image": {
+        "status": "PASS",
+        "url": "https://www.rittal.com/imf/x1200/2_46555/",
+        "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261006115707\\images\\RIT.2500100.png",
+        "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500100",
+        "visualReview": "PASS: actual product/accessory image visually inspected in image-contact-sheet.png"
+      },
+      "localizedDescriptions": {
+        "en": {
+          "title": "LED system light",
+          "description": "LED system light – the first light especially for enclosures! Highly innovative LED technology for even more light into the very last corner."
+        },
+        "de": {
+          "title": "Systemleuchte LED",
+          "description": "Systemleuchte LED - die erste Leuchte speziell für den Schaltschrank! Innovativste LED-Technik sorgt für noch mehr Licht bis in den letzten Winkel."
+        }
+      },
+      "downloadedFilesCount": 3,
+      "elapsedMsInitial": 13931,
+      "elapsedMsFinal": 15316,
+      "scrapeMsFinal": 1187,
+      "downloadDocumentsInitialMsFinal": 1622,
+      "enrichInitialMsFinal": 10632,
+      "identityOk": true,
+      "deviceTypeMatched": true,
+      "qualityMissing": [],
+      "pdtRequiredFieldIssues": 1,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "stageTimingsInitialMs": {
+        "customerDocuments.first": 0,
+        "scrape": 641,
+        "customerDocuments.initial": 641,
+        "downloadDocuments.initial": 2273,
+        "enrich.initial": 9576,
+        "writeWorkbook": 292,
+        "exportPdt": 615
+      },
+      "stageTimingsFinalMs": {
+        "customerDocuments.first": 0,
+        "scrape": 1187,
+        "customerDocuments.initial": 1187,
+        "downloadDocuments.initial": 1622,
+        "enrich.initial": 10632,
+        "writeWorkbook": 418,
+        "exportPdt": 807
+      }
+    },
+    {
+      "orderNumber": "3336460",
+      "expectedFamily": "Blue e chiller, 30.8/36.9 kW",
+      "expectedFunctionalType": "Thermal Management",
+      "expectedClassifierType": "Thermal Management",
+      "foundTitle": "Chillers Blue e 8 - 48 kW",
+      "foundClassifierType": "Thermal Management",
+      "identityStatus": "PASS",
+      "identityProofUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI104/PG20240718KLI005/PRO85465?variantId=3336460",
+      "identityProofFile": "benchmarks\\rittal-15-new-20261006-v2\\evidence\\official-pdp-3336460.html",
+      "productUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI104/PG20240718KLI005/PRO85465?variantId=3336460",
+      "requiredFields": [
+        {
+          "field": "voltage",
+          "normalizedValue": "400 V, 3~, 50 Hz | 460 V, 3~, 60 Hz",
+          "sourceAttribute": "Rated operating voltage",
+          "sourceValue": "400 V, 3~, 50 Hz",
+          "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI104/PG20240718KLI005/PRO85465?variantId=3336460",
+          "status": "PASS"
+        }
+      ],
+      "image": {
+        "status": "PASS",
+        "url": "https://www.rittal.com/imf/x1200/2_53906/",
+        "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261006115707\\images\\RIT.3336460.png",
+        "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI104/PG20240718KLI005/PRO85465?variantId=3336460",
+        "visualReview": "PASS: actual product/accessory image visually inspected in image-contact-sheet.png"
+      },
+      "localizedDescriptions": {
+        "en": {
+          "title": "Chillers Blue e 8 - 48 kW",
+          "description": "The Blue e chiller in the floor standing enclosure provides centralised, efficient cooling of the cooling water. The microchannel technology reduces the volume of refrigerant required. Intuitive operation via touch display and intelligent communications interfaces ensure user-friendly operation and analysis. Integral safety functions, included as standard, ensure maximum safety. Delivery times are also shortened, thanks to pre-defined option packages."
+        },
+        "de": {
+          "title": "Chiller Blue e 8 - 48 kW",
+          "description": "Die Blue e Chiller im Standgehäuse bieten eine zentrale und wirtschaftliche Abkühlung des Kühlwassers. Durch die Microchannel Technologie wird eine Reduzierung des Kältemittels erreicht. Intuitive Bedienung über Touch-Display sowie intelligente Kommunikations-Schnittstellen machen die Bedienung und Analyse komfortabel. Integrierte Sicherheitsfunktionen im Standard erzielen maximale Sicherheit. Ebenfalls wird die Lieferzeit durch vordefinierte Optionspakete verkürzt."
+        }
+      },
+      "downloadedFilesCount": 3,
+      "elapsedMsInitial": 15410,
+      "elapsedMsFinal": 16938,
+      "scrapeMsFinal": 726,
+      "downloadDocumentsInitialMsFinal": 1627,
+      "enrichInitialMsFinal": 10602,
+      "identityOk": true,
+      "deviceTypeMatched": true,
+      "qualityMissing": [],
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "stageTimingsInitialMs": {
+        "customerDocuments.first": 0,
+        "scrape": 682,
+        "customerDocuments.initial": 682,
+        "downloadDocuments.initial": 1883,
+        "enrich.initial": 9294,
+        "writeWorkbook": 1775,
+        "exportPdt": 662
+      },
+      "stageTimingsFinalMs": {
+        "customerDocuments.first": 0,
+        "scrape": 726,
+        "customerDocuments.initial": 726,
+        "downloadDocuments.initial": 1627,
+        "enrich.initial": 10602,
+        "writeWorkbook": 1938,
+        "exportPdt": 713
+      }
+    },
+    {
+      "orderNumber": "4532000",
+      "expectedFamily": "TS mounting plate",
+      "expectedFunctionalType": "Enclosure Accessory",
+      "expectedClassifierType": "Subpanel",
+      "foundTitle": "Mounting plate",
+      "foundClassifierType": "Subpanel",
+      "identityStatus": "PASS",
+      "identityProofUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB102/PG20240403ZUB107/PRO14242?variantId=4532000",
+      "identityProofFile": "benchmarks\\rittal-15-new-20261006-v2\\evidence\\official-pdp-4532000.html",
+      "productUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB102/PG20240403ZUB107/PRO14242?variantId=4532000",
+      "requiredFields": [],
+      "image": {
+        "status": "PASS",
+        "url": "https://www.rittal.com/imf/x1200/2_36470/",
+        "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261006115707\\images\\RIT.4532000.png",
+        "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB102/PG20240403ZUB107/PRO14242?variantId=4532000",
+        "visualReview": "PASS: actual product/accessory image visually inspected in image-contact-sheet.png"
+      },
+      "localizedDescriptions": {
+        "en": {
+          "title": "Mounting plate",
+          "description": "The mounting plates may be used for additional configuration options inside the enclosure."
+        },
+        "de": {
+          "title": "Montageplatine",
+          "description": "Die Montageplantinen können für weitere Ausbaumöglichkeiten im Schrank genutzt werden."
+        }
+      },
+      "downloadedFilesCount": 2,
+      "elapsedMsInitial": 3185,
+      "elapsedMsFinal": 2927,
+      "scrapeMsFinal": 608,
+      "downloadDocumentsInitialMsFinal": 1020,
+      "enrichInitialMsFinal": 387,
+      "identityOk": true,
+      "deviceTypeMatched": true,
+      "qualityMissing": [],
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "stageTimingsInitialMs": {
+        "customerDocuments.first": 1,
+        "scrape": 582,
+        "customerDocuments.initial": 582,
+        "downloadDocuments.initial": 995,
+        "enrich.initial": 369,
+        "writeWorkbook": 185,
+        "exportPdt": 854
+      },
+      "stageTimingsFinalMs": {
+        "customerDocuments.first": 0,
+        "scrape": 608,
+        "customerDocuments.initial": 608,
+        "downloadDocuments.initial": 1020,
+        "enrich.initial": 387,
+        "writeWorkbook": 185,
+        "exportPdt": 513
+      }
+    },
+    {
+      "orderNumber": "8611020",
+      "expectedFamily": "Comfort handle",
+      "expectedFunctionalType": "Enclosure Accessory",
+      "expectedClassifierType": "Cover / Door Accessory",
+      "foundTitle": "Comfort handle for TS, TS IT, VX SE, PC, IW",
+      "foundClassifierType": "Cover / Door Accessory",
+      "identityStatus": "PASS",
+      "identityProofUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14540?variantId=8611020",
+      "identityProofFile": "benchmarks\\rittal-15-new-20261006-v2\\evidence\\official-pdp-8611020.html",
+      "productUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14540?variantId=8611020",
+      "requiredFields": [],
+      "image": {
+        "status": "PASS",
+        "url": "https://www.rittal.com/imf/x1200/2_37180/",
+        "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261006115707\\images\\RIT.8611020.png",
+        "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14540?variantId=8611020",
+        "visualReview": "PASS: actual product/accessory image visually inspected in image-contact-sheet.png"
+      },
+      "localizedDescriptions": {
+        "en": {
+          "title": "Comfort handle for TS, TS IT, VX SE, PC, IW",
+          "description": "Thanks to its folding action, the handle does not take up any swing space, thus maximising the door surface area available for installed equipment. Simple assembly, thanks to the snap-mounted handle system."
+        },
+        "de": {
+          "title": "Komfortgriff für TS, TS IT, VX SE, PC, IW",
+          "description": "Durch die Klapptechnik beansprucht der Griff keinen Schwenkbereich, dadurch kann die Türfläche optimal für Einbauten genutzt werden. Einfache Montage durch aufrastbares Griffsystem."
+        }
+      },
+      "downloadedFilesCount": 2,
+      "elapsedMsInitial": 5284,
+      "elapsedMsFinal": 2592,
+      "scrapeMsFinal": 572,
+      "downloadDocumentsInitialMsFinal": 823,
+      "enrichInitialMsFinal": 323,
+      "identityOk": true,
+      "deviceTypeMatched": true,
+      "qualityMissing": [],
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "stageTimingsInitialMs": {
+        "customerDocuments.first": 0,
+        "scrape": 583,
+        "customerDocuments.initial": 584,
+        "downloadDocuments.initial": 2043,
+        "enrich.initial": 371,
+        "writeWorkbook": 343,
+        "exportPdt": 1800
+      },
+      "stageTimingsFinalMs": {
+        "customerDocuments.first": 0,
+        "scrape": 572,
+        "customerDocuments.initial": 572,
+        "downloadDocuments.initial": 823,
+        "enrich.initial": 323,
+        "writeWorkbook": 205,
+        "exportPdt": 518
+      }
+    },
+    {
+      "orderNumber": "5302042",
+      "expectedFamily": "19-inch cable link, depth-variable",
+      "expectedFunctionalType": "Cable Management",
+      "expectedClassifierType": "Mounting Accessory",
+      "foundTitle": "482.6 mm (19\") cable link, depth-variable",
+      "foundClassifierType": "Mounting Accessory",
+      "identityStatus": "PASS",
+      "identityProofUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240408ZUB101/PG20240408ZUB103/PRO136670?variantId=5302042",
+      "identityProofFile": "benchmarks\\rittal-15-new-20261006-v2\\evidence\\official-pdp-5302042.html",
+      "productUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240408ZUB101/PG20240408ZUB103/PRO136670?variantId=5302042",
+      "requiredFields": [],
+      "image": {
+        "status": "PASS",
+        "url": "https://www.rittal.com/imf/x1200/2_57136/",
+        "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261006115707\\images\\RIT.5302042.png",
+        "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240408ZUB101/PG20240408ZUB103/PRO136670?variantId=5302042",
+        "visualReview": "PASS: actual product/accessory image visually inspected in image-contact-sheet.png"
+      },
+      "localizedDescriptions": {
+        "en": {
+          "title": "482.6 mm (19\") cable link, depth-variable",
+          "description": "User-friendly solution for protected, tidy cable routing – versatile and can be used with any type of enclosure."
+        },
+        "de": {
+          "title": "19\"-Kabelbrücke, tiefenvariabel",
+          "description": "Die Kabelbrücke bietet innerhalb der 19\"-Montageebene eine integrierte Möglichkeit der Kabelführung, zwischen vorderer und hinterer Montageebene innerhalb eines Schrankes."
+        }
+      },
+      "downloadedFilesCount": 1,
+      "elapsedMsInitial": 1672,
+      "elapsedMsFinal": 2124,
+      "scrapeMsFinal": 650,
+      "downloadDocumentsInitialMsFinal": 554,
+      "enrichInitialMsFinal": 0,
+      "identityOk": true,
+      "deviceTypeMatched": true,
+      "qualityMissing": [],
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "stageTimingsInitialMs": {
+        "customerDocuments.first": 0,
+        "scrape": 758,
+        "customerDocuments.initial": 758,
+        "downloadDocuments.initial": 168,
+        "enrich.initial": 0,
+        "writeWorkbook": 146,
+        "exportPdt": 461
+      },
+      "stageTimingsFinalMs": {
+        "customerDocuments.first": 0,
+        "scrape": 650,
+        "customerDocuments.initial": 650,
+        "downloadDocuments.initial": 554,
+        "enrich.initial": 0,
+        "writeWorkbook": 160,
+        "exportPdt": 600
+      }
+    },
+    {
+      "orderNumber": "8617353",
+      "expectedFamily": "VX mounting plate attachment Type A",
+      "expectedFunctionalType": "Enclosure Accessory",
+      "expectedClassifierType": "Mounting Accessory",
+      "foundTitle": "Mounting plate attachment Type A, for VX",
+      "foundClassifierType": "Mounting Accessory",
+      "identityStatus": "PASS",
+      "identityProofUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB102/PG20240403ZUB105/PRO86680?variantId=8617353",
+      "identityProofFile": "benchmarks\\rittal-15-new-20261006-v2\\evidence\\official-pdp-8617353.html",
+      "productUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB102/PG20240403ZUB105/PRO86680?variantId=8617353",
+      "requiredFields": [],
+      "image": {
+        "status": "PASS",
+        "url": "https://www.rittal.com/imf/x1200/2_51415/",
+        "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261006115707\\images\\RIT.8617353.png",
+        "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB102/PG20240403ZUB105/PRO86680?variantId=8617353",
+        "visualReview": "PASS: actual product/accessory image visually inspected in image-contact-sheet.png"
+      },
+      "localizedDescriptions": {
+        "en": {
+          "title": "Mounting plate attachment Type A, for VX",
+          "description": "For additional clamping and to reduce potential vibration of the mounting plate."
+        },
+        "de": {
+          "title": "Montageplatten-Fixierung Typ A, für VX",
+          "description": "Zum zusätzlichen Abfangen und zum Reduzieren von möglichen Schwingungen der Montageplatte."
+        }
+      },
+      "downloadedFilesCount": 2,
+      "elapsedMsInitial": 6142,
+      "elapsedMsFinal": 4882,
+      "scrapeMsFinal": 623,
+      "downloadDocumentsInitialMsFinal": 846,
+      "enrichInitialMsFinal": 891,
+      "identityOk": true,
+      "deviceTypeMatched": true,
+      "qualityMissing": [],
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "stageTimingsInitialMs": {
+        "customerDocuments.first": 0,
+        "scrape": 691,
+        "customerDocuments.initial": 692,
+        "downloadDocuments.initial": 3502,
+        "enrich.initial": 1015,
+        "writeWorkbook": 170,
+        "exportPdt": 474
+      },
+      "stageTimingsFinalMs": {
+        "customerDocuments.first": 0,
+        "scrape": 623,
+        "customerDocuments.initial": 623,
+        "downloadDocuments.initial": 846,
+        "enrich.initial": 891,
+        "writeWorkbook": 1200,
+        "exportPdt": 950
+      }
+    },
+    {
+      "orderNumber": "4127210",
+      "expectedFamily": "Door-operated switch",
+      "expectedFunctionalType": "Electrical Accessory",
+      "expectedClassifierType": "Switch",
+      "foundTitle": "Door-operated switch",
+      "foundClassifierType": "Switch",
+      "identityStatus": "PASS",
+      "identityProofUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB003/PRO15576?variantId=4127210",
+      "identityProofFile": "benchmarks\\rittal-15-new-20261006-v2\\evidence\\official-pdp-4127210.html",
+      "productUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB003/PRO15576?variantId=4127210",
+      "requiredFields": [],
+      "image": {
+        "status": "PASS",
+        "url": "https://www.rittal.com/imf/x1200/2_36588/",
+        "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261006115707\\images\\RIT.4127210.png",
+        "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB003/PRO15576?variantId=4127210",
+        "visualReview": "PASS: actual product/accessory image visually inspected in image-contact-sheet.png"
+      },
+      "localizedDescriptions": {
+        "en": {
+          "title": "Door-operated switch",
+          "description": "with mounting accessories, with or without connection cable."
+        },
+        "de": {
+          "title": "Türpositionsschalter",
+          "description": "mit Einbauzubehör, mit oder ohne Anschlussleitung."
+        }
+      },
+      "downloadedFilesCount": 2,
+      "elapsedMsInitial": 6185,
+      "elapsedMsFinal": 4017,
+      "scrapeMsFinal": 605,
+      "downloadDocumentsInitialMsFinal": 566,
+      "enrichInitialMsFinal": 1763,
+      "identityOk": true,
+      "deviceTypeMatched": true,
+      "qualityMissing": [],
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "stageTimingsInitialMs": {
+        "customerDocuments.first": 1,
+        "scrape": 589,
+        "customerDocuments.initial": 589,
+        "downloadDocuments.initial": 3151,
+        "enrich.initial": 1695,
+        "writeWorkbook": 147,
+        "exportPdt": 463
+      },
+      "stageTimingsFinalMs": {
+        "customerDocuments.first": 0,
+        "scrape": 605,
+        "customerDocuments.initial": 605,
+        "downloadDocuments.initial": 566,
+        "enrich.initial": 1763,
+        "writeWorkbook": 364,
+        "exportPdt": 556
+      }
+    },
+    {
+      "orderNumber": "2418000",
+      "expectedFamily": "Safety lock",
+      "expectedFunctionalType": "Safety Accessory",
+      "expectedClassifierType": "Lock / Interlock",
+      "foundTitle": "Safety lock",
+      "foundClassifierType": "Lock / Interlock",
+      "identityStatus": "PASS",
+      "identityProofUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB101/PRO14664?variantId=2418000",
+      "identityProofFile": "benchmarks\\rittal-15-new-20261006-v2\\evidence\\official-pdp-2418000.html",
+      "productUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB101/PRO14664?variantId=2418000",
+      "requiredFields": [],
+      "image": {
+        "status": "PASS",
+        "url": "https://www.rittal.com/imf/x1200/78_3344/",
+        "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261006115707\\images\\RIT.2418000.png",
+        "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB101/PRO14664?variantId=2418000",
+        "visualReview": "PASS: actual product/accessory image visually inspected in image-contact-sheet.png"
+      },
+      "localizedDescriptions": {
+        "en": {
+          "title": "Safety lock",
+          "description": "Fitted to doors, to protect against contact with live electrical equipment whilst the master switch is ON."
+        },
+        "de": {
+          "title": "Sicherheitsverriegelung",
+          "description": "Für Türen, zum Schutz vor Berührung spannungsführender elektrischer Betriebsmittel bei eingeschaltetem Hauptschalter."
+        }
+      },
+      "downloadedFilesCount": 2,
+      "elapsedMsInitial": 5780,
+      "elapsedMsFinal": 5713,
+      "scrapeMsFinal": 563,
+      "downloadDocumentsInitialMsFinal": 1153,
+      "enrichInitialMsFinal": 2613,
+      "identityOk": true,
+      "deviceTypeMatched": true,
+      "qualityMissing": [],
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "stageTimingsInitialMs": {
+        "customerDocuments.first": 0,
+        "scrape": 593,
+        "customerDocuments.initial": 593,
+        "downloadDocuments.initial": 1638,
+        "enrich.initial": 2364,
+        "writeWorkbook": 255,
+        "exportPdt": 495
+      },
+      "stageTimingsFinalMs": {
+        "customerDocuments.first": 0,
+        "scrape": 563,
+        "customerDocuments.initial": 563,
+        "downloadDocuments.initial": 1153,
+        "enrich.initial": 2613,
+        "writeWorkbook": 294,
+        "exportPdt": 614
+      }
+    }
+  ],
+  "pdtNote": "One optional PDT row for 2500100 (rated permanent current Iu) had no source value on the official product page and was left blank; benchmark records it as one known requiredFieldIssue, priority Optional, zero unexplained required field issues and no unproven writes.",
+  "stageTimingSummaryMs": {
+    "initial": {
+      "scrape": {
+        "count": 15,
+        "sumMs": 12588,
+        "meanMs": 839.2,
+        "medianMs": 682,
+        "minMs": 582,
+        "maxMs": 2319
+      },
+      "downloadDocuments.initial": {
+        "count": 15,
+        "sumMs": 24636,
+        "meanMs": 1642.4,
+        "medianMs": 1638,
+        "minMs": 168,
+        "maxMs": 3502
+      },
+      "enrich.initial": {
+        "count": 15,
+        "sumMs": 57835,
+        "meanMs": 3855.7,
+        "medianMs": 1015,
+        "minMs": 0,
+        "maxMs": 25438
+      },
+      "writeWorkbook": {
+        "count": 15,
+        "sumMs": 7227,
+        "meanMs": 481.8,
+        "medianMs": 292,
+        "minMs": 146,
+        "maxMs": 1775
+      },
+      "exportPdt": {
+        "count": 15,
+        "sumMs": 11674,
+        "meanMs": 778.3,
+        "medianMs": 649,
+        "minMs": 461,
+        "maxMs": 1800
+      }
+    },
+    "final": {
+      "scrape": {
+        "count": 15,
+        "sumMs": 12503,
+        "meanMs": 833.5,
+        "medianMs": 650,
+        "minMs": 563,
+        "maxMs": 2291
+      },
+      "downloadDocuments.initial": {
+        "count": 15,
+        "sumMs": 17042,
+        "meanMs": 1136.1,
+        "medianMs": 1020,
+        "minMs": 402,
+        "maxMs": 2315
+      },
+      "enrich.initial": {
+        "count": 15,
+        "sumMs": 62431,
+        "meanMs": 4162.1,
+        "medianMs": 891,
+        "minMs": 0,
+        "maxMs": 27748
+      },
+      "writeWorkbook": {
+        "count": 15,
+        "sumMs": 6874,
+        "meanMs": 458.3,
+        "medianMs": 224,
+        "minMs": 160,
+        "maxMs": 1938
+      },
+      "exportPdt": {
+        "count": 15,
+        "sumMs": 11199,
+        "meanMs": 746.6,
+        "medianMs": 633,
+        "minMs": 513,
+        "maxMs": 1359
+      }
+    }
+  }
+}

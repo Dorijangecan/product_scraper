@@ -23,6 +23,18 @@ function product(
 }
 
 describe("device type classifier", () => {
+  it("classifies a power meter by its product type despite gateway application wording", () => {
+    const result = classifyDeviceType(product(
+      [
+        { group: "General", name: "Product Type", value: "Power meter", sourceType: "official" },
+        { group: "Main", name: "Device application", value: "Gateway; WAGES metering; Power monitoring", sourceType: "official" }
+      ],
+      "Power meter PowerLogic PM5560"
+    ));
+    expect(result.type).toBe("Power Meter");
+    expect(deviceSheetsFor(result.type)).toContain("el. mesurement devices");
+  });
+
   it("recognizes every known device type when the vendor provides the exact category label", () => {
     const missed = knownDeviceTypes()
       .map((type) => ({

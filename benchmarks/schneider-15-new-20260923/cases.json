@@ -1,0 +1,167 @@
+[
+  {
+    "manufacturerId": "schneider",
+    "catalogNumber": "A9F74216",
+    "caseType": "electrical",
+    "expectedOfficialUrlPatterns": [
+      "se\\.com/.*/product/A9F74216(/|$)"
+    ],
+    "requiredDocuments": [
+      "image"
+    ]
+  },
+  {
+    "manufacturerId": "schneider",
+    "catalogNumber": "A9R11240",
+    "caseType": "electrical",
+    "expectedOfficialUrlPatterns": [
+      "se\\.com/.*/product/A9R11240(/|$)"
+    ],
+    "requiredDocuments": [
+      "image"
+    ]
+  },
+  {
+    "manufacturerId": "schneider",
+    "catalogNumber": "LC1D09BD",
+    "caseType": "electrical",
+    "expectedOfficialUrlPatterns": [
+      "se\\.com/.*/product/LC1D09BD(/|$)"
+    ],
+    "requiredDocuments": [
+      "image"
+    ]
+  },
+  {
+    "manufacturerId": "schneider",
+    "catalogNumber": "ATV320U07M2C",
+    "caseType": "electrical",
+    "expectedOfficialUrlPatterns": [
+      "se\\.com/.*/product/ATV320U07M2C(/|$)"
+    ],
+    "requiredDocuments": [
+      "image"
+    ]
+  },
+  {
+    "manufacturerId": "schneider",
+    "catalogNumber": "XB5AA31",
+    "caseType": "electrical",
+    "expectedOfficialUrlPatterns": [
+      "se\\.com/.*/product/XB5AA31(/|$)"
+    ],
+    "requiredDocuments": [
+      "image"
+    ]
+  },
+  {
+    "manufacturerId": "schneider",
+    "catalogNumber": "XCKM115",
+    "caseType": "electrical",
+    "expectedOfficialUrlPatterns": [
+      "se\\.com/.*/product/XCKM115(/|$)"
+    ],
+    "requiredDocuments": [
+      "image"
+    ]
+  },
+  {
+    "manufacturerId": "schneider",
+    "catalogNumber": "TM221CE24T",
+    "caseType": "electrical",
+    "expectedOfficialUrlPatterns": [
+      "se\\.com/.*/product/TM221CE24T(/|$)"
+    ],
+    "requiredDocuments": [
+      "image"
+    ]
+  },
+  {
+    "manufacturerId": "schneider",
+    "catalogNumber": "BMXP342020",
+    "caseType": "electrical",
+    "expectedOfficialUrlPatterns": [
+      "se\\.com/.*/product/BMXP342020(/|$)"
+    ],
+    "requiredDocuments": [
+      "image"
+    ]
+  },
+  {
+    "manufacturerId": "schneider",
+    "catalogNumber": "GV2ME14",
+    "caseType": "electrical",
+    "expectedOfficialUrlPatterns": [
+      "se\\.com/.*/product/GV2ME14(/|$)"
+    ],
+    "requiredDocuments": [
+      "image"
+    ]
+  },
+  {
+    "manufacturerId": "schneider",
+    "catalogNumber": "NSYCRN43200",
+    "caseType": "mechanical",
+    "expectedOfficialUrlPatterns": [
+      "se\\.com/.*/product/NSYCRN43200(/|$)"
+    ],
+    "requiredDocuments": [
+      "image"
+    ]
+  },
+  {
+    "manufacturerId": "schneider",
+    "catalogNumber": "ABL8RPS24030",
+    "caseType": "electrical",
+    "expectedOfficialUrlPatterns": [
+      "se\\.com/.*/product/ABL8RPS24030(/|$)"
+    ],
+    "requiredDocuments": [
+      "image"
+    ]
+  },
+  {
+    "manufacturerId": "schneider",
+    "catalogNumber": "ZB5AZ009",
+    "caseType": "accessory",
+    "expectedOfficialUrlPatterns": [
+      "se\\.com/.*/product/ZB5AZ009(/|$)"
+    ],
+    "requiredDocuments": [
+      "image"
+    ]
+  },
+  {
+    "manufacturerId": "schneider",
+    "catalogNumber": "A9C20842",
+    "caseType": "electrical",
+    "expectedOfficialUrlPatterns": [
+      "se\\.com/.*/product/A9C20842(/|$)"
+    ],
+    "requiredDocuments": [
+      "image"
+    ]
+  },
+  {
+    "manufacturerId": "schneider",
+    "catalogNumber": "RXM2AB2BD",
+    "caseType": "electrical",
+    "expectedOfficialUrlPatterns": [
+      "se\\.com/.*/product/RXM2AB2BD(/|$)"
+    ],
+    "requiredDocuments": [
+      "image"
+    ]
+  },
+  {
+    "manufacturerId": "schneider",
+    "catalogNumber": "VW3A1101",
+    "caseType": "accessory",
+    "expectedOfficialUrlPatterns": [
+      "se\\.com/.*/product/VW3A1101(/|$)"
+    ],
+    "requiredDocuments": [
+      "image"
+    ]
+  }
+]

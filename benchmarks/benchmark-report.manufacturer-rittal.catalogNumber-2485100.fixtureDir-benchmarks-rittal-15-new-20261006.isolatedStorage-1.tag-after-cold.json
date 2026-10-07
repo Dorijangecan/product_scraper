@@ -1,0 +1,2101 @@
+{
+  "generatedAt": "2026-10-06T10:15:34.433Z",
+  "outputDir": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261006101527",
+  "filters": {
+    "manufacturer": "rittal",
+    "catalogNumber": "2485100",
+    "fixtureDir": "benchmarks/rittal-15-new-20261006",
+    "isolatedStorage": "1",
+    "tag": "after-cold"
+  },
+  "summary": {
+    "foundRate": 100,
+    "officialUrlRate": 100,
+    "documentRate": 100,
+    "pdtAuditRate": 100,
+    "deviceTypeRate": 0,
+    "customerDocumentRate": 0,
+    "wrongProducts": 0,
+    "partialWithoutMissing": 0,
+    "pdtUnprovenWritten": 0,
+    "pdtUnexplainedRequiredFieldIssues": 0,
+    "pdtWriteIssues": 0,
+    "qualityAccepted": false,
+    "fixtureCoverageAccepted": true,
+    "fixtureCoverage": {
+      "byManufacturer": {
+        "rittal": {
+          "total": 1,
+          "caseTypes": [],
+          "riskTags": []
+        }
+      },
+      "byDeviceType": {
+        "Cover / Door Accessory": {
+          "total": 1,
+          "manufacturers": [
+            "rittal"
+          ],
+          "caseTypes": []
+        }
+      },
+      "byDeviceSheet": {
+        "cabinet.mechanical": {
+          "total": 1,
+          "deviceTypes": [
+            "Cover / Door Accessory"
+          ],
+          "manufacturers": [
+            "rittal"
+          ]
+        }
+      },
+      "thinManufacturers": [
+        "rittal"
+      ],
+      "uncoveredDeviceSheets": [
+        "Busbar",
+        "Luminaire",
+        "Motion Controller",
+        "PCB connection system",
+        "PCB connection technology",
+        "PLC",
+        "RS232 interfaces",
+        "Switch",
+        "Wire ID Information",
+        "cabinet",
+        "cabinet.airconditioning",
+        "cabinet.rack",
+        "cable",
+        "cable ducts mounting rails",
+        "cable gland",
+        "command and alarm device",
+        "connector",
+        "contactor a. fuses",
+        "directional control valve",
+        "el. mesurement devices",
+        "electronic sensor",
+        "energy distribution system",
+        "filters",
+        "fluid power",
+        "generator",
+        "int. ext. lightning protection",
+        "module carrier frame",
+        "motor protection",
+        "motors",
+        "optical sensor",
+        "panel (HMI)",
+        "pneumatic handling",
+        "power supply devices",
+        "pump",
+        "safety sensor",
+        "sensor - fluid",
+        "servo controller",
+        "terminal",
+        "terminal endbracket",
+        "ventil"
+      ],
+      "missingDeviceSheetRecommendations": [
+        {
+          "sheetName": "Busbar",
+          "deviceTypes": [
+            "Busbar"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "Luminaire",
+          "deviceTypes": [
+            "Luminaire"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SL0040I.953",
+              "deviceType": "Luminaire",
+              "notes": "FATH Module F Line LED lamp"
+            }
+          ]
+        },
+        {
+          "sheetName": "Motion Controller",
+          "deviceTypes": [
+            "Motion Controller"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1756-HYD",
+              "deviceType": "Motion Controller",
+              "notes": "ControlLogix integrated motion modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1756-M02",
+              "deviceType": "Motion Controller",
+              "notes": "ControlLogix integrated motion modules"
+            }
+          ]
+        },
+        {
+          "sheetName": "PCB connection system",
+          "deviceTypes": [
+            "PCB Connector"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "PCB connection technology",
+          "deviceTypes": [
+            "PCB Terminal Block"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "PLC",
+          "deviceTypes": [
+            "Communication Gateway",
+            "HMI",
+            "I/O Module",
+            "Programmable Logic Controller"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "FL",
+              "deviceType": "Communication Gateway",
+              "notes": "FL switch / FL gateway"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "RAD",
+              "deviceType": "Communication Gateway",
+              "notes": "Radioline"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENT",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENTR",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1783",
+              "deviceType": "Communication Gateway",
+              "notes": "Stratix industrial networking and communication modules"
+            }
+          ]
+        },
+        {
+          "sheetName": "RS232 interfaces",
+          "deviceTypes": [
+            "Communication Gateway"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "FL",
+              "deviceType": "Communication Gateway",
+              "notes": "FL switch / FL gateway"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "RAD",
+              "deviceType": "Communication Gateway",
+              "notes": "Radioline"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENT",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENTR",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1783",
+              "deviceType": "Communication Gateway",
+              "notes": "Stratix industrial networking and communication modules"
+            }
+          ]
+        },
+        {
+          "sheetName": "Switch",
+          "deviceTypes": [
+            "Lock / Interlock",
+            "Selector Switch",
+            "Switch"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "M2SS",
+              "deviceType": "Selector Switch",
+              "notes": "M2SS selector switches"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "M22-WR",
+              "deviceType": "Selector Switch",
+              "notes": "M22 selector switch actuator"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "JSHD",
+              "deviceType": "Switch",
+              "notes": "JSHD three-position handheld devices"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "2702665",
+              "deviceType": "Switch",
+              "notes": "Phoenix FL SWITCH 2105 item number"
+            },
+            {
+              "manufacturerId": "schmersal",
+              "pattern": "EFM",
+              "deviceType": "Switch",
+              "notes": "Schmersal foot switches"
+            }
+          ]
+        },
+        {
+          "sheetName": "Wire ID Information",
+          "deviceTypes": [
+            "Wire Marker"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "cabinet",
+          "deviceTypes": [
+            "Enclosure"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEP",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEPY",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PSN",
+              "deviceType": "Enclosure",
+              "notes": "xEnergy ProfiSNAP enclosure panels/accessories"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "P2C",
+              "deviceType": "Enclosure",
+              "notes": "nVent Hoffman enclosure families"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "P2D",
+              "deviceType": "Enclosure",
+              "notes": "nVent Hoffman enclosure families"
+            }
+          ]
+        },
+        {
+          "sheetName": "cabinet.airconditioning",
+          "deviceTypes": [
+            "Thermal Management"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "nvent",
+              "pattern": "DAH",
+              "deviceType": "Thermal Management",
+              "notes": "nVent HOFFMAN DAH enclosure heaters"
+            },
+            {
+              "manufacturerId": "rittal",
+              "pattern": "SK",
+              "deviceType": "Thermal Management",
+              "notes": "Climate control / filter fans"
+            }
+          ]
+        },
+        {
+          "sheetName": "cabinet.rack",
+          "deviceTypes": [
+            "Rack Cabinet"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rittal",
+              "pattern": "DK",
+              "deviceType": "Rack Cabinet"
+            }
+          ]
+        },
+        {
+          "sheetName": "cable",
+          "deviceTypes": [
+            "Cable"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SAMB1J313B.4000",
+              "deviceType": "Cable",
+              "notes": "FATH Module F Line GST18i3 main power cable"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "889",
+              "deviceType": "Cable",
+              "notes": "Allen-Bradley cordsets and patchcords"
+            },
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "59181001",
+              "deviceType": "Cable",
+              "notes": "Spelsberg Wallbox LL 7m Type 2 charging cable"
+            }
+          ]
+        },
+        {
+          "sheetName": "cable ducts mounting rails",
+          "deviceTypes": [
+            "Mounting Accessory",
+            "Wireway"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "09308901S01",
+              "deviceType": "Mounting Accessory",
+              "notes": "FATH workstation and profile mounting components"
+            },
+            {
+              "manufacturerId": "fath",
+              "pattern": "6FG40ND80M695N08",
+              "deviceType": "Mounting Accessory",
+              "notes": "FATH workstation and profile mounting components"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "CP2020",
+              "deviceType": "Mounting Accessory",
+              "notes": "nVent Hoffman/Schroff accessory items verified on official product pages"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "CSP2020",
+              "deviceType": "Mounting Accessory",
+              "notes": "nVent Hoffman/Schroff accessory items verified on official product pages"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "1524160",
+              "deviceType": "Mounting Accessory",
+              "notes": "Phoenix MCS-112X90-AP-7035 adapter plate item number"
+            }
+          ]
+        },
+        {
+          "sheetName": "cable gland",
+          "deviceTypes": [
+            "Cable Gland"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "26013201",
+              "deviceType": "Cable Gland",
+              "notes": "Spelsberg DMS M32/w double-membrane seal"
+            }
+          ]
+        },
+        {
+          "sheetName": "command and alarm device",
+          "deviceTypes": [
+            "Pilot Light",
+            "Pushbutton / Operator",
+            "Stack Light / Beacon"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "ML1",
+              "deviceType": "Pilot Light",
+              "notes": "ML1 pilot lights"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "M22",
+              "deviceType": "Pushbutton / Operator",
+              "notes": "M22 control station"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "800F",
+              "deviceType": "Pushbutton / Operator"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "800H",
+              "deviceType": "Pushbutton / Operator"
+            },
+            {
+              "manufacturerId": "schmersal",
+              "pattern": "BDF",
+              "deviceType": "Pushbutton / Operator",
+              "notes": "BDF command and control devices"
+            }
+          ]
+        },
+        {
+          "sheetName": "connector",
+          "deviceTypes": [
+            "Connector",
+            "Optical Connector"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SAKP5J516BS01",
+              "deviceType": "Connector",
+              "notes": "FATH Module F Line and profile connectors"
+            },
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SBEU14I.317",
+              "deviceType": "Connector",
+              "notes": "FATH Module F Line and profile connectors"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "69001-",
+              "deviceType": "Connector",
+              "notes": "nVent SCHROFF DIN connectors"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "MCS",
+              "deviceType": "Connector"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VIP",
+              "deviceType": "Connector"
+            }
+          ]
+        },
+        {
+          "sheetName": "contactor a. fuses",
+          "deviceTypes": [
+            "Circuit Breaker",
+            "Contactor",
+            "Disconnect Switch",
+            "Fuse",
+            "Miniature Circuit Breaker",
+            "Molded Case Circuit Breaker",
+            "Relay",
+            "Residual Current Device",
+            "Supplementary Protector"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "eta",
+              "pattern": "3120",
+              "deviceType": "Circuit Breaker"
+            },
+            {
+              "manufacturerId": "eta",
+              "pattern": "REX",
+              "deviceType": "Circuit Breaker"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492-CB",
+              "deviceType": "Circuit Breaker",
+              "notes": "Allen-Bradley circuit breakers"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "A",
+              "deviceType": "Contactor",
+              "notes": "AF / A / AL / AX series IEC contactors"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "AF",
+              "deviceType": "Contactor",
+              "notes": "AF / A / AL / AX series IEC contactors"
+            }
+          ]
+        },
+        {
+          "sheetName": "directional control valve",
+          "deviceTypes": [
+            "Directional Control Valve"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "el. mesurement devices",
+          "deviceTypes": [
+            "Current Sensor",
+            "Power Meter"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "electronic sensor",
+          "deviceTypes": [
+            "Capacitive Sensor",
+            "Encoder",
+            "Inductive Proximity Sensor",
+            "Magnetic Field Sensor",
+            "RFID Device",
+            "Sensor",
+            "Ultrasonic Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BCS",
+              "deviceType": "Capacitive Sensor"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BDG",
+              "deviceType": "Encoder",
+              "notes": "Absolute encoder"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BTL",
+              "deviceType": "Encoder",
+              "notes": "Magnetostrictive linear encoder"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BES",
+              "deviceType": "Inductive Proximity Sensor"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BIS",
+              "deviceType": "Inductive Proximity Sensor"
+            }
+          ]
+        },
+        {
+          "sheetName": "energy distribution system",
+          "deviceTypes": [
+            "Loadcenter"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "filters",
+          "deviceTypes": [
+            "Filter"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "fluid power",
+          "deviceTypes": [
+            "Hydraulic Actuator"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "generator",
+          "deviceTypes": [
+            "Generator"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "int. ext. lightning protection",
+          "deviceTypes": [
+            "Surge Protective Device"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "OVR",
+              "deviceType": "Surge Protective Device"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VAL-CP",
+              "deviceType": "Surge Protective Device"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VAL-MS",
+              "deviceType": "Surge Protective Device"
+            }
+          ]
+        },
+        {
+          "sheetName": "module carrier frame",
+          "deviceTypes": [
+            "Module Carrier"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "siemens",
+              "pattern": "6ES7193",
+              "deviceType": "Module Carrier",
+              "notes": "SIMATIC ET 200SP BaseUnits / base carriers"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "BaseUnits",
+              "deviceType": "Module Carrier",
+              "notes": "SIMATIC ET 200SP BaseUnits / base carriers"
+            }
+          ]
+        },
+        {
+          "sheetName": "motor protection",
+          "deviceTypes": [
+            "Motor Circuit Breaker",
+            "Motor Starter"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "MO",
+              "deviceType": "Motor Circuit Breaker",
+              "notes": "Manual motor starter"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MS",
+              "deviceType": "Motor Circuit Breaker",
+              "notes": "Manual motor starter"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PKE",
+              "deviceType": "Motor Circuit Breaker"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PKZM",
+              "deviceType": "Motor Circuit Breaker"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "140M",
+              "deviceType": "Motor Circuit Breaker"
+            }
+          ]
+        },
+        {
+          "sheetName": "motors",
+          "deviceTypes": [
+            "Motor",
+            "Variable Speed Drive"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "M2A",
+              "deviceType": "Motor"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "TM",
+              "deviceType": "Motor"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "ACQ",
+              "deviceType": "Variable Speed Drive",
+              "notes": "ACS / ACQ / ACH drives"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "ACS",
+              "deviceType": "Variable Speed Drive",
+              "notes": "ACS / ACQ / ACH drives"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "DC1",
+              "deviceType": "Variable Speed Drive",
+              "notes": "PowerXL"
+            }
+          ]
+        },
+        {
+          "sheetName": "optical sensor",
+          "deviceTypes": [
+            "Photoelectric Sensor",
+            "Vision Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BOH",
+              "deviceType": "Photoelectric Sensor"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BOS",
+              "deviceType": "Photoelectric Sensor"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "42EF",
+              "deviceType": "Photoelectric Sensor"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "42JS",
+              "deviceType": "Photoelectric Sensor"
+            },
+            {
+              "manufacturerId": "schneider",
+              "pattern": "XU",
+              "deviceType": "Photoelectric Sensor",
+              "notes": "OsiSense XU"
+            }
+          ]
+        },
+        {
+          "sheetName": "panel (HMI)",
+          "deviceTypes": [
+            "HMI"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "CP6",
+              "deviceType": "HMI",
+              "notes": "CP6xx HMI panel"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "XV",
+              "deviceType": "HMI"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "2711",
+              "deviceType": "HMI",
+              "notes": "PanelView HMI"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "2711P",
+              "deviceType": "HMI",
+              "notes": "PanelView HMI"
+            },
+            {
+              "manufacturerId": "schneider",
+              "pattern": "HMI",
+              "deviceType": "HMI",
+              "notes": "Harmony HMI"
+            }
+          ]
+        },
+        {
+          "sheetName": "pneumatic handling",
+          "deviceTypes": [
+            "Pneumatic Device"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "power supply devices",
+          "deviceTypes": [
+            "Battery",
+            "Power Supply",
+            "Transformer",
+            "UPS"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "CP-E",
+              "deviceType": "Power Supply",
+              "notes": "CP-T / CP-E DIN-rail PSUs"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "CP-T",
+              "deviceType": "Power Supply",
+              "notes": "CP-T / CP-E DIN-rail PSUs"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "QUINT",
+              "deviceType": "Power Supply"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "TRIO",
+              "deviceType": "Power Supply"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1606",
+              "deviceType": "Power Supply",
+              "notes": "Allen-Bradley switched mode power supplies"
+            }
+          ]
+        },
+        {
+          "sheetName": "pump",
+          "deviceTypes": [
+            "Pump"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "safety sensor",
+          "deviceTypes": [
+            "Safety Relay",
+            "Safety Sensor",
+            "Solenoid Interlock"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "PLUTO",
+              "deviceType": "Safety Relay",
+              "notes": "Pluto safety controller"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "2981091",
+              "deviceType": "Safety Relay",
+              "notes": "Phoenix PSR-SPP-24DC/ESD/5X1/1X2/T10 item number"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "PSR",
+              "deviceType": "Safety Relay"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "PSRMINI",
+              "deviceType": "Safety Relay"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "440C",
+              "deviceType": "Safety Relay"
+            }
+          ]
+        },
+        {
+          "sheetName": "sensor - fluid",
+          "deviceTypes": [
+            "Flow Sensor",
+            "Level Sensor",
+            "Pressure Sensor",
+            "Temperature Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "839E",
+              "deviceType": "Flow Sensor",
+              "notes": "Allen-Bradley flow sensors"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "840E",
+              "deviceType": "Level Sensor",
+              "notes": "Allen-Bradley level sensors"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "836P",
+              "deviceType": "Pressure Sensor",
+              "notes": "Allen-Bradley pressure sensors"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "837T",
+              "deviceType": "Temperature Sensor",
+              "notes": "Allen-Bradley temperature sensors"
+            }
+          ]
+        },
+        {
+          "sheetName": "servo controller",
+          "deviceTypes": [
+            "Soft Starter",
+            "Variable Speed Drive"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "PSE",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "PSTX",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "DS7",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "schneider",
+              "pattern": "ATS",
+              "deviceType": "Soft Starter",
+              "notes": "Altistart"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "3RW",
+              "deviceType": "Soft Starter",
+              "notes": "SIRIUS soft starter"
+            }
+          ]
+        },
+        {
+          "sheetName": "terminal",
+          "deviceTypes": [
+            "Terminal Block"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "UK",
+              "deviceType": "Terminal Block"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "UT",
+              "deviceType": "Terminal Block"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492",
+              "deviceType": "Terminal Block"
+            }
+          ]
+        },
+        {
+          "sheetName": "terminal endbracket",
+          "deviceTypes": [
+            "Terminal Accessory"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "CLIPFIX",
+              "deviceType": "Terminal Accessory"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "E/UK",
+              "deviceType": "Terminal Accessory"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492-EAH",
+              "deviceType": "Terminal Accessory",
+              "notes": "1492 end anchors / end retainers"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492-EAJ",
+              "deviceType": "Terminal Accessory",
+              "notes": "1492 end anchors / end retainers"
+            }
+          ]
+        },
+        {
+          "sheetName": "ventil",
+          "deviceTypes": [
+            "Valve"
+          ],
+          "examples": []
+        }
+      ],
+      "deviceSheetCoverage": {
+        "covered": 1,
+        "total": 41
+      }
+    },
+    "fixtureCoverageRequired": false,
+    "accepted": false
+  },
+  "reports": [
+    {
+      "manufacturerId": "rittal",
+      "catalogNumber": "2485100",
+      "expectedDeviceType": "Enclosure Handle Accessory",
+      "actualDeviceType": "Cover / Door Accessory",
+      "deviceTypeMatched": false,
+      "riskTags": [],
+      "status": "found",
+      "confidence": 0.62,
+      "elapsedMs": 5925,
+      "productUrl": "https://www.rittal.com/hr-hr/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261006101527\\pdt\\rittal-2485100-pdt_pdt-audit.json",
+      "pdtWrittenCells": 19,
+      "pdtBlankCells": 20,
+      "pdtSkippedCells": 0,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": [],
+      "resultEvidence": {
+        "title": "Plastic handles",
+        "description": "Alternative to the standard lock insert with or without lock cylinder insert.",
+        "productUrl": "https://www.rittal.com/hr-hr/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+        "normalized": {
+          "weight": "0,039 kg",
+          "material": "stainless steel",
+          "finish": "RAL 9011",
+          "color": "RAL 9011"
+        },
+        "requiredElectricalFields": [],
+        "attributes": [
+          {
+            "group": "Definition List",
+            "name": "Article no.:",
+            "value": "SZ 2485100",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Definition List",
+            "name": "Artikel-Nr.:",
+            "value": "SZ 2485100",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Ausführung",
+            "value": "C",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Br. artikla:",
+            "value": "SZ 2485100",
+            "sourceUrl": "https://www.rittal.com/hr-hr/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Bruttogewicht",
+            "value": "0,046 kg",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Colour",
+            "value": "RAL 9011",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Definition List",
+            "name": "Colour",
+            "value": "RAL 9011",
+            "sourceUrl": "https://www.rittal.com/hr-hr/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Customs tariff number",
+            "value": "39269097",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Definition List",
+            "name": "Customs tariff number",
+            "value": "39269097",
+            "sourceUrl": "https://www.rittal.com/hr-hr/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Design",
+            "value": "C",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Definition List",
+            "name": "Design",
+            "value": "C",
+            "sourceUrl": "https://www.rittal.com/hr-hr/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Documentation",
+            "value": "Info sheet DE, EN",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Definition List",
+            "name": "Dokumentacija",
+            "value": "Info sheet DE, EN",
+            "sourceUrl": "https://www.rittal.com/hr-hr/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Dokumentationen",
+            "value": "Einlegezettel DE, EN",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "EAN",
+            "value": "4028177440968",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Definition List",
+            "name": "EAN",
+            "value": "4028177440968",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "EAN",
+            "value": "4028177440968",
+            "sourceUrl": "https://www.rittal.com/hr-hr/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "ECLASS 8.0",
+            "value": "27409217",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Definition List",
+            "name": "ECLASS 8.0",
+            "value": "27409217",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "ECLASS 8.0",
+            "value": "27409217",
+            "sourceUrl": "https://www.rittal.com/hr-hr/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "ETIM 8",
+            "value": "EC000327",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Definition List",
+            "name": "ETIM 8",
+            "value": "EC000327",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "ETIM 8",
+            "value": "EC000327",
+            "sourceUrl": "https://www.rittal.com/hr-hr/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "ETIM 9",
+            "value": "EC000327",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Definition List",
+            "name": "ETIM 9",
+            "value": "EC000327",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "ETIM 9",
+            "value": "EC000327",
+            "sourceUrl": "https://www.rittal.com/hr-hr/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Farbe",
+            "value": "RAL 9011",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Gross weight",
+            "value": "0.046 kg",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Definition List",
+            "name": "Gross weight",
+            "value": "0,046 kg",
+            "sourceUrl": "https://www.rittal.com/hr-hr/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Hinweis zur Artikel-Nr.",
+            "value": "nicht geeignet für AE 1018.600",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Lock",
+            "value": "Lock insert: without lock cylinder insert",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Definition List",
+            "name": "Lock",
+            "value": "Lock insert: without lock cylinder insert",
+            "sourceUrl": "https://www.rittal.com/hr-hr/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Net weight",
+            "value": "0.039 kg",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Definition List",
+            "name": "Net weight",
+            "value": "0,039 kg",
+            "sourceUrl": "https://www.rittal.com/hr-hr/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Nettogewicht",
+            "value": "0,039 kg",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Note on Model No.",
+            "value": "Not suitable for AE 1018.600",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Definition List",
+            "name": "Note on Model No.",
+            "value": "Not suitable for AE 1018.600",
+            "sourceUrl": "https://www.rittal.com/hr-hr/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Passend für Gehäusetyp",
+            "value": "AE mit Vorreiber Edelstahl",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Product description",
+            "value": "SZ Plastic handle, version C, without lock cylinder insert",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Definition List",
+            "name": "Product description",
+            "value": "SZ Plastic handle, version C, without lock cylinder insert",
+            "sourceUrl": "https://www.rittal.com/hr-hr/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Produktbeschreibung",
+            "value": "SZ Kunststoff-Handgriff, Ausführung C, ohne Sicherheitszylinder-Einsatz",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "To fit enclosure type",
+            "value": "AE with stainless steel cam",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Definition List",
+            "name": "To fit enclosure type",
+            "value": "AE with stainless steel cam",
+            "sourceUrl": "https://www.rittal.com/hr-hr/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Verpackungseinheit",
+            "value": "1 Stück",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Verschluss",
+            "value": "Verschluss-Einsatz: ohne Sicherheitszylinder-Einsatz",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Zolltarifnummer",
+            "value": "39269097",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Kunststoff-Handgriffe",
+            "name": "Artikel-Nr.",
+            "value": "SZ 2485100",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Kunststoff-Handgriffe",
+            "name": "Bruttogewicht",
+            "value": "0,046 kg",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Kunststoff-Handgriffe",
+            "name": "EAN",
+            "value": "4028177440968",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Kunststoff-Handgriffe",
+            "name": "Farbe",
+            "value": "RAL 9011",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Kunststoff-Handgriffe",
+            "name": "Hinweis zur Artikel-Nr.",
+            "value": "nicht geeignet für AE 1018.600",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Kunststoff-Handgriffe",
+            "name": "Nettogewicht",
+            "value": "0,039 kg",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Meta",
+            "name": "description",
+            "value": "Alternative to the standard lock insert with or without lock cylinder insert.",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Meta",
+            "name": "description",
+            "value": "Alternative zum Standard-Verschlusseinsatz mit oder ohne Sicherheitszylinder-Einsatz.",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Meta",
+            "name": "description",
+            "value": "Alternative to the standard lock insert with or without lock cylinder insert.",
+            "sourceUrl": "https://www.rittal.com/hr-hr/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Bruttogewicht",
+            "value": "0.046 kg",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Gross weight",
+            "value": "0.046 kg",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Gross weight",
+            "value": "0.046 kg",
+            "sourceUrl": "https://www.rittal.com/hr-hr/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Net weight",
+            "value": "0.039 kg",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Net weight",
+            "value": "0.039 kg",
+            "sourceUrl": "https://www.rittal.com/hr-hr/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Nettogewicht",
+            "value": "0.039 kg",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Plain Text",
+            "name": "api",
+            "value": "2020.09",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Plain Text",
+            "name": "api",
+            "value": "2020.09",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Plain Text",
+            "name": "api",
+            "value": "2020.09",
+            "sourceUrl": "https://www.rittal.com/hr-hr/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Plain Text",
+            "name": "is=\"vue",
+            "value": "ProductHeader\"",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Plain Text",
+            "name": "is=\"vue",
+            "value": "ProductHeader\"",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Plain Text",
+            "name": "is=\"vue",
+            "value": "ProductHeader\"",
+            "sourceUrl": "https://www.rittal.com/hr-hr/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "Customs tariff number",
+            "value": "39269097",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "Customs tariff number",
+            "value": "39269097",
+            "sourceUrl": "https://www.rittal.com/hr-hr/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "ETIM 8",
+            "value": "EC000327",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "ETIM 8",
+            "value": "EC000327",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "ETIM 8",
+            "value": "EC000327",
+            "sourceUrl": "https://www.rittal.com/hr-hr/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "ETIM 9",
+            "value": "EC000327",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "ETIM 9",
+            "value": "EC000327",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "ETIM 9",
+            "value": "EC000327",
+            "sourceUrl": "https://www.rittal.com/hr-hr/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Plastic handles",
+            "name": "Article no.",
+            "value": "SZ 2485100",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Plastic handles",
+            "name": "Colour",
+            "value": "RAL 9011",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Plastic handles",
+            "name": "Colour",
+            "value": "RAL 9011",
+            "sourceUrl": "https://www.rittal.com/hr-hr/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Plastic handles",
+            "name": "EAN",
+            "value": "4028177440968",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Plastic handles",
+            "name": "EAN",
+            "value": "4028177440968",
+            "sourceUrl": "https://www.rittal.com/hr-hr/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Plastic handles",
+            "name": "Gross weight",
+            "value": "0.046 kg",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Plastic handles",
+            "name": "Gross weight",
+            "value": "0,046 kg",
+            "sourceUrl": "https://www.rittal.com/hr-hr/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Plastic handles",
+            "name": "Net weight",
+            "value": "0.039 kg",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Plastic handles",
+            "name": "Net weight",
+            "value": "0,039 kg",
+            "sourceUrl": "https://www.rittal.com/hr-hr/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Plastic handles",
+            "name": "Note on Model No.",
+            "value": "Not suitable for AE 1018.600",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Plastic handles",
+            "name": "Note on Model No.",
+            "value": "Not suitable for AE 1018.600",
+            "sourceUrl": "https://www.rittal.com/hr-hr/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Plastic handles",
+            "name": "To fit enclosure type",
+            "value": "AE with stainless steel cam | Based on AE with stainless steel cam | One-piece console - stainless steel console cover",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Plastic handles",
+            "name": "To fit enclosure type",
+            "value": "AE with stainless steel cam | Based on AE with stainless steel cam | One-piece console - stainless steel console cover",
+            "sourceUrl": "https://www.rittal.com/hr-hr/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          }
+        ],
+        "documents": [
+          {
+            "type": "image",
+            "label": "og:image",
+            "url": "https://www.rittal.com/imf/x1200/2_35993/",
+            "sourceUrl": "https://www.rittal.com/hr-hr/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86,
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261006101527\\images\\RIT.2485100.png",
+            "downloadStatus": "downloaded",
+            "parseStatus": "skipped"
+          }
+        ],
+        "sources": [
+          {
+            "url": "https://www.rittal.com/hr-hr/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "parserVersion": "generic-v3",
+            "fetchedAt": "2026-10-06T10:15:29.063Z",
+            "statusCode": 200
+          },
+          {
+            "url": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "parserVersion": "generic-v3",
+            "fetchedAt": "2026-10-06T10:15:28.228Z",
+            "statusCode": 200
+          },
+          {
+            "url": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "parserVersion": "generic-v3",
+            "fetchedAt": "2026-10-06T10:15:28.060Z",
+            "statusCode": 200,
+            "stage": "localized-template",
+            "reason": "DE localized official template"
+          },
+          {
+            "url": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "parserVersion": "generic-v3",
+            "fetchedAt": "2026-10-06T10:15:32.245Z",
+            "statusCode": 200,
+            "stage": "localized-template",
+            "reason": "EN localized official template"
+          }
+        ],
+        "qualityGate": {
+          "passed": true,
+          "identityConfirmed": true,
+          "score": 100,
+          "missing": [],
+          "reason": "Quality gate passed.",
+          "attempts": [
+            {
+              "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+              "url": "https://www.rittal.com/hr-hr/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+              "status": "failed",
+              "score": 0,
+              "missing": [
+                "identity"
+              ],
+              "reason": "Missing required product data: identity",
+              "sourceType": "official-fallback",
+              "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+              "statusCode": 200,
+              "attributeCount": 58,
+              "documentCount": 1,
+              "sectionAttributeCounts": {}
+            },
+            {
+              "stage": "localized-template",
+              "url": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+              "status": "partial",
+              "score": 80,
+              "reason": "DE localized official template; post-fetch: HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title",
+              "sourceType": "official-fallback",
+              "parser": "discovery-localized-template",
+              "statusCode": 200,
+              "attributeCount": 29,
+              "documentCount": 1
+            },
+            {
+              "stage": "localized-template",
+              "url": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+              "status": "partial",
+              "score": 80,
+              "reason": "EN localized official template; post-fetch: HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title",
+              "sourceType": "official-fallback",
+              "parser": "discovery-localized-template",
+              "statusCode": 200,
+              "attributeCount": 30,
+              "documentCount": 1
+            },
+            {
+              "stage": "localized-template",
+              "url": "https://www.rittal.com/com-en/products/show/2485100",
+              "status": "failed",
+              "score": 78,
+              "reason": "EN localized official template",
+              "error": "Missing named parameter \"bodyTemplate\""
+            },
+            {
+              "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+              "url": "https://www.rittal.com/hr-hr/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB102/PRO14599?variantId=2485100",
+              "status": "passed",
+              "score": 100,
+              "missing": [],
+              "reason": "Quality gate passed.",
+              "sourceType": "official-fallback",
+              "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+              "statusCode": 200,
+              "attributeCount": 88,
+              "documentCount": 1,
+              "sectionAttributeCounts": {}
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

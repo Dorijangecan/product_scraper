@@ -1,0 +1,3760 @@
+{
+  "generatedAt": "2026-10-06T10:08:21.486Z",
+  "outputDir": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261006100759",
+  "filters": {
+    "manufacturer": "rittal",
+    "catalogNumber": "2500200",
+    "fixtureDir": "benchmarks/rittal-15-new-20261006",
+    "isolatedStorage": "1",
+    "tag": "after-cold"
+  },
+  "summary": {
+    "foundRate": 100,
+    "officialUrlRate": 100,
+    "documentRate": 100,
+    "pdtAuditRate": 100,
+    "deviceTypeRate": 0,
+    "customerDocumentRate": 0,
+    "wrongProducts": 0,
+    "partialWithoutMissing": 0,
+    "pdtUnprovenWritten": 0,
+    "pdtUnexplainedRequiredFieldIssues": 0,
+    "pdtWriteIssues": 0,
+    "qualityAccepted": false,
+    "fixtureCoverageAccepted": true,
+    "fixtureCoverage": {
+      "byManufacturer": {
+        "rittal": {
+          "total": 1,
+          "caseTypes": [],
+          "riskTags": []
+        }
+      },
+      "byDeviceType": {
+        "Enclosure Light": {
+          "total": 1,
+          "manufacturers": [
+            "rittal"
+          ],
+          "caseTypes": []
+        }
+      },
+      "byDeviceSheet": {},
+      "thinManufacturers": [
+        "rittal"
+      ],
+      "uncoveredDeviceSheets": [
+        "Busbar",
+        "Luminaire",
+        "Motion Controller",
+        "PCB connection system",
+        "PCB connection technology",
+        "PLC",
+        "RS232 interfaces",
+        "Switch",
+        "Wire ID Information",
+        "cabinet",
+        "cabinet.airconditioning",
+        "cabinet.mechanical",
+        "cabinet.rack",
+        "cable",
+        "cable ducts mounting rails",
+        "cable gland",
+        "command and alarm device",
+        "connector",
+        "contactor a. fuses",
+        "directional control valve",
+        "el. mesurement devices",
+        "electronic sensor",
+        "energy distribution system",
+        "filters",
+        "fluid power",
+        "generator",
+        "int. ext. lightning protection",
+        "module carrier frame",
+        "motor protection",
+        "motors",
+        "optical sensor",
+        "panel (HMI)",
+        "pneumatic handling",
+        "power supply devices",
+        "pump",
+        "safety sensor",
+        "sensor - fluid",
+        "servo controller",
+        "terminal",
+        "terminal endbracket",
+        "ventil"
+      ],
+      "missingDeviceSheetRecommendations": [
+        {
+          "sheetName": "Busbar",
+          "deviceTypes": [
+            "Busbar"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "Luminaire",
+          "deviceTypes": [
+            "Luminaire"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SL0040I.953",
+              "deviceType": "Luminaire",
+              "notes": "FATH Module F Line LED lamp"
+            }
+          ]
+        },
+        {
+          "sheetName": "Motion Controller",
+          "deviceTypes": [
+            "Motion Controller"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1756-HYD",
+              "deviceType": "Motion Controller",
+              "notes": "ControlLogix integrated motion modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1756-M02",
+              "deviceType": "Motion Controller",
+              "notes": "ControlLogix integrated motion modules"
+            }
+          ]
+        },
+        {
+          "sheetName": "PCB connection system",
+          "deviceTypes": [
+            "PCB Connector"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "PCB connection technology",
+          "deviceTypes": [
+            "PCB Terminal Block"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "PLC",
+          "deviceTypes": [
+            "Communication Gateway",
+            "HMI",
+            "I/O Module",
+            "Programmable Logic Controller"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "FL",
+              "deviceType": "Communication Gateway",
+              "notes": "FL switch / FL gateway"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "RAD",
+              "deviceType": "Communication Gateway",
+              "notes": "Radioline"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENT",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENTR",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1783",
+              "deviceType": "Communication Gateway",
+              "notes": "Stratix industrial networking and communication modules"
+            }
+          ]
+        },
+        {
+          "sheetName": "RS232 interfaces",
+          "deviceTypes": [
+            "Communication Gateway"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "FL",
+              "deviceType": "Communication Gateway",
+              "notes": "FL switch / FL gateway"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "RAD",
+              "deviceType": "Communication Gateway",
+              "notes": "Radioline"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENT",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENTR",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1783",
+              "deviceType": "Communication Gateway",
+              "notes": "Stratix industrial networking and communication modules"
+            }
+          ]
+        },
+        {
+          "sheetName": "Switch",
+          "deviceTypes": [
+            "Lock / Interlock",
+            "Selector Switch",
+            "Switch"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "M2SS",
+              "deviceType": "Selector Switch",
+              "notes": "M2SS selector switches"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "M22-WR",
+              "deviceType": "Selector Switch",
+              "notes": "M22 selector switch actuator"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "JSHD",
+              "deviceType": "Switch",
+              "notes": "JSHD three-position handheld devices"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "2702665",
+              "deviceType": "Switch",
+              "notes": "Phoenix FL SWITCH 2105 item number"
+            },
+            {
+              "manufacturerId": "schmersal",
+              "pattern": "EFM",
+              "deviceType": "Switch",
+              "notes": "Schmersal foot switches"
+            }
+          ]
+        },
+        {
+          "sheetName": "Wire ID Information",
+          "deviceTypes": [
+            "Wire Marker"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "cabinet",
+          "deviceTypes": [
+            "Enclosure"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEP",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEPY",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PSN",
+              "deviceType": "Enclosure",
+              "notes": "xEnergy ProfiSNAP enclosure panels/accessories"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "P2C",
+              "deviceType": "Enclosure",
+              "notes": "nVent Hoffman enclosure families"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "P2D",
+              "deviceType": "Enclosure",
+              "notes": "nVent Hoffman enclosure families"
+            }
+          ]
+        },
+        {
+          "sheetName": "cabinet.airconditioning",
+          "deviceTypes": [
+            "Thermal Management"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "nvent",
+              "pattern": "DAH",
+              "deviceType": "Thermal Management",
+              "notes": "nVent HOFFMAN DAH enclosure heaters"
+            },
+            {
+              "manufacturerId": "rittal",
+              "pattern": "SK",
+              "deviceType": "Thermal Management",
+              "notes": "Climate control / filter fans"
+            }
+          ]
+        },
+        {
+          "sheetName": "cabinet.mechanical",
+          "deviceTypes": [
+            "Accessory",
+            "Cover / Door Accessory",
+            "Enclosure",
+            "Subpanel"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "MDB",
+              "deviceType": "Accessory",
+              "notes": "MDB dummy blocks and operator accessories"
+            },
+            {
+              "manufacturerId": "fath",
+              "pattern": "061CC42300.74",
+              "deviceType": "Cover / Door Accessory",
+              "notes": "FATH shelf-board cover cap"
+            },
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "73540003",
+              "deviceType": "Cover / Door Accessory",
+              "notes": "Spelsberg AK KF 03 hinged window"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEP",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEPY",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            }
+          ]
+        },
+        {
+          "sheetName": "cabinet.rack",
+          "deviceTypes": [
+            "Rack Cabinet"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rittal",
+              "pattern": "DK",
+              "deviceType": "Rack Cabinet"
+            }
+          ]
+        },
+        {
+          "sheetName": "cable",
+          "deviceTypes": [
+            "Cable"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SAMB1J313B.4000",
+              "deviceType": "Cable",
+              "notes": "FATH Module F Line GST18i3 main power cable"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "889",
+              "deviceType": "Cable",
+              "notes": "Allen-Bradley cordsets and patchcords"
+            },
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "59181001",
+              "deviceType": "Cable",
+              "notes": "Spelsberg Wallbox LL 7m Type 2 charging cable"
+            }
+          ]
+        },
+        {
+          "sheetName": "cable ducts mounting rails",
+          "deviceTypes": [
+            "Mounting Accessory",
+            "Wireway"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "09308901S01",
+              "deviceType": "Mounting Accessory",
+              "notes": "FATH workstation and profile mounting components"
+            },
+            {
+              "manufacturerId": "fath",
+              "pattern": "6FG40ND80M695N08",
+              "deviceType": "Mounting Accessory",
+              "notes": "FATH workstation and profile mounting components"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "CP2020",
+              "deviceType": "Mounting Accessory",
+              "notes": "nVent Hoffman/Schroff accessory items verified on official product pages"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "CSP2020",
+              "deviceType": "Mounting Accessory",
+              "notes": "nVent Hoffman/Schroff accessory items verified on official product pages"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "1524160",
+              "deviceType": "Mounting Accessory",
+              "notes": "Phoenix MCS-112X90-AP-7035 adapter plate item number"
+            }
+          ]
+        },
+        {
+          "sheetName": "cable gland",
+          "deviceTypes": [
+            "Cable Gland"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "26013201",
+              "deviceType": "Cable Gland",
+              "notes": "Spelsberg DMS M32/w double-membrane seal"
+            }
+          ]
+        },
+        {
+          "sheetName": "command and alarm device",
+          "deviceTypes": [
+            "Pilot Light",
+            "Pushbutton / Operator",
+            "Stack Light / Beacon"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "ML1",
+              "deviceType": "Pilot Light",
+              "notes": "ML1 pilot lights"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "M22",
+              "deviceType": "Pushbutton / Operator",
+              "notes": "M22 control station"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "800F",
+              "deviceType": "Pushbutton / Operator"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "800H",
+              "deviceType": "Pushbutton / Operator"
+            },
+            {
+              "manufacturerId": "schmersal",
+              "pattern": "BDF",
+              "deviceType": "Pushbutton / Operator",
+              "notes": "BDF command and control devices"
+            }
+          ]
+        },
+        {
+          "sheetName": "connector",
+          "deviceTypes": [
+            "Connector",
+            "Optical Connector"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SAKP5J516BS01",
+              "deviceType": "Connector",
+              "notes": "FATH Module F Line and profile connectors"
+            },
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SBEU14I.317",
+              "deviceType": "Connector",
+              "notes": "FATH Module F Line and profile connectors"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "69001-",
+              "deviceType": "Connector",
+              "notes": "nVent SCHROFF DIN connectors"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "MCS",
+              "deviceType": "Connector"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VIP",
+              "deviceType": "Connector"
+            }
+          ]
+        },
+        {
+          "sheetName": "contactor a. fuses",
+          "deviceTypes": [
+            "Circuit Breaker",
+            "Contactor",
+            "Disconnect Switch",
+            "Fuse",
+            "Miniature Circuit Breaker",
+            "Molded Case Circuit Breaker",
+            "Relay",
+            "Residual Current Device",
+            "Supplementary Protector"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "eta",
+              "pattern": "3120",
+              "deviceType": "Circuit Breaker"
+            },
+            {
+              "manufacturerId": "eta",
+              "pattern": "REX",
+              "deviceType": "Circuit Breaker"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492-CB",
+              "deviceType": "Circuit Breaker",
+              "notes": "Allen-Bradley circuit breakers"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "A",
+              "deviceType": "Contactor",
+              "notes": "AF / A / AL / AX series IEC contactors"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "AF",
+              "deviceType": "Contactor",
+              "notes": "AF / A / AL / AX series IEC contactors"
+            }
+          ]
+        },
+        {
+          "sheetName": "directional control valve",
+          "deviceTypes": [
+            "Directional Control Valve"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "el. mesurement devices",
+          "deviceTypes": [
+            "Current Sensor",
+            "Power Meter"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "electronic sensor",
+          "deviceTypes": [
+            "Capacitive Sensor",
+            "Encoder",
+            "Inductive Proximity Sensor",
+            "Magnetic Field Sensor",
+            "RFID Device",
+            "Sensor",
+            "Ultrasonic Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BCS",
+              "deviceType": "Capacitive Sensor"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BDG",
+              "deviceType": "Encoder",
+              "notes": "Absolute encoder"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BTL",
+              "deviceType": "Encoder",
+              "notes": "Magnetostrictive linear encoder"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BES",
+              "deviceType": "Inductive Proximity Sensor"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BIS",
+              "deviceType": "Inductive Proximity Sensor"
+            }
+          ]
+        },
+        {
+          "sheetName": "energy distribution system",
+          "deviceTypes": [
+            "Loadcenter"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "filters",
+          "deviceTypes": [
+            "Filter"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "fluid power",
+          "deviceTypes": [
+            "Hydraulic Actuator"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "generator",
+          "deviceTypes": [
+            "Generator"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "int. ext. lightning protection",
+          "deviceTypes": [
+            "Surge Protective Device"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "OVR",
+              "deviceType": "Surge Protective Device"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VAL-CP",
+              "deviceType": "Surge Protective Device"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VAL-MS",
+              "deviceType": "Surge Protective Device"
+            }
+          ]
+        },
+        {
+          "sheetName": "module carrier frame",
+          "deviceTypes": [
+            "Module Carrier"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "siemens",
+              "pattern": "6ES7193",
+              "deviceType": "Module Carrier",
+              "notes": "SIMATIC ET 200SP BaseUnits / base carriers"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "BaseUnits",
+              "deviceType": "Module Carrier",
+              "notes": "SIMATIC ET 200SP BaseUnits / base carriers"
+            }
+          ]
+        },
+        {
+          "sheetName": "motor protection",
+          "deviceTypes": [
+            "Motor Circuit Breaker",
+            "Motor Starter"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "MO",
+              "deviceType": "Motor Circuit Breaker",
+              "notes": "Manual motor starter"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MS",
+              "deviceType": "Motor Circuit Breaker",
+              "notes": "Manual motor starter"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PKE",
+              "deviceType": "Motor Circuit Breaker"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PKZM",
+              "deviceType": "Motor Circuit Breaker"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "140M",
+              "deviceType": "Motor Circuit Breaker"
+            }
+          ]
+        },
+        {
+          "sheetName": "motors",
+          "deviceTypes": [
+            "Motor",
+            "Variable Speed Drive"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "M2A",
+              "deviceType": "Motor"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "TM",
+              "deviceType": "Motor"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "ACQ",
+              "deviceType": "Variable Speed Drive",
+              "notes": "ACS / ACQ / ACH drives"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "ACS",
+              "deviceType": "Variable Speed Drive",
+              "notes": "ACS / ACQ / ACH drives"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "DC1",
+              "deviceType": "Variable Speed Drive",
+              "notes": "PowerXL"
+            }
+          ]
+        },
+        {
+          "sheetName": "optical sensor",
+          "deviceTypes": [
+            "Photoelectric Sensor",
+            "Vision Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BOH",
+              "deviceType": "Photoelectric Sensor"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BOS",
+              "deviceType": "Photoelectric Sensor"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "42EF",
+              "deviceType": "Photoelectric Sensor"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "42JS",
+              "deviceType": "Photoelectric Sensor"
+            },
+            {
+              "manufacturerId": "schneider",
+              "pattern": "XU",
+              "deviceType": "Photoelectric Sensor",
+              "notes": "OsiSense XU"
+            }
+          ]
+        },
+        {
+          "sheetName": "panel (HMI)",
+          "deviceTypes": [
+            "HMI"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "CP6",
+              "deviceType": "HMI",
+              "notes": "CP6xx HMI panel"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "XV",
+              "deviceType": "HMI"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "2711",
+              "deviceType": "HMI",
+              "notes": "PanelView HMI"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "2711P",
+              "deviceType": "HMI",
+              "notes": "PanelView HMI"
+            },
+            {
+              "manufacturerId": "schneider",
+              "pattern": "HMI",
+              "deviceType": "HMI",
+              "notes": "Harmony HMI"
+            }
+          ]
+        },
+        {
+          "sheetName": "pneumatic handling",
+          "deviceTypes": [
+            "Pneumatic Device"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "power supply devices",
+          "deviceTypes": [
+            "Battery",
+            "Power Supply",
+            "Transformer",
+            "UPS"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "CP-E",
+              "deviceType": "Power Supply",
+              "notes": "CP-T / CP-E DIN-rail PSUs"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "CP-T",
+              "deviceType": "Power Supply",
+              "notes": "CP-T / CP-E DIN-rail PSUs"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "QUINT",
+              "deviceType": "Power Supply"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "TRIO",
+              "deviceType": "Power Supply"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1606",
+              "deviceType": "Power Supply",
+              "notes": "Allen-Bradley switched mode power supplies"
+            }
+          ]
+        },
+        {
+          "sheetName": "pump",
+          "deviceTypes": [
+            "Pump"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "safety sensor",
+          "deviceTypes": [
+            "Safety Relay",
+            "Safety Sensor",
+            "Solenoid Interlock"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "PLUTO",
+              "deviceType": "Safety Relay",
+              "notes": "Pluto safety controller"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "2981091",
+              "deviceType": "Safety Relay",
+              "notes": "Phoenix PSR-SPP-24DC/ESD/5X1/1X2/T10 item number"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "PSR",
+              "deviceType": "Safety Relay"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "PSRMINI",
+              "deviceType": "Safety Relay"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "440C",
+              "deviceType": "Safety Relay"
+            }
+          ]
+        },
+        {
+          "sheetName": "sensor - fluid",
+          "deviceTypes": [
+            "Flow Sensor",
+            "Level Sensor",
+            "Pressure Sensor",
+            "Temperature Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "839E",
+              "deviceType": "Flow Sensor",
+              "notes": "Allen-Bradley flow sensors"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "840E",
+              "deviceType": "Level Sensor",
+              "notes": "Allen-Bradley level sensors"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "836P",
+              "deviceType": "Pressure Sensor",
+              "notes": "Allen-Bradley pressure sensors"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "837T",
+              "deviceType": "Temperature Sensor",
+              "notes": "Allen-Bradley temperature sensors"
+            }
+          ]
+        },
+        {
+          "sheetName": "servo controller",
+          "deviceTypes": [
+            "Soft Starter",
+            "Variable Speed Drive"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "PSE",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "PSTX",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "DS7",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "schneider",
+              "pattern": "ATS",
+              "deviceType": "Soft Starter",
+              "notes": "Altistart"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "3RW",
+              "deviceType": "Soft Starter",
+              "notes": "SIRIUS soft starter"
+            }
+          ]
+        },
+        {
+          "sheetName": "terminal",
+          "deviceTypes": [
+            "Terminal Block"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "UK",
+              "deviceType": "Terminal Block"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "UT",
+              "deviceType": "Terminal Block"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492",
+              "deviceType": "Terminal Block"
+            }
+          ]
+        },
+        {
+          "sheetName": "terminal endbracket",
+          "deviceTypes": [
+            "Terminal Accessory"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "CLIPFIX",
+              "deviceType": "Terminal Accessory"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "E/UK",
+              "deviceType": "Terminal Accessory"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492-EAH",
+              "deviceType": "Terminal Accessory",
+              "notes": "1492 end anchors / end retainers"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492-EAJ",
+              "deviceType": "Terminal Accessory",
+              "notes": "1492 end anchors / end retainers"
+            }
+          ]
+        },
+        {
+          "sheetName": "ventil",
+          "deviceTypes": [
+            "Valve"
+          ],
+          "examples": []
+        }
+      ],
+      "deviceSheetCoverage": {
+        "covered": 0,
+        "total": 41
+      }
+    },
+    "fixtureCoverageRequired": false,
+    "accepted": false
+  },
+  "reports": [
+    {
+      "manufacturerId": "rittal",
+      "catalogNumber": "2500200",
+      "expectedDeviceType": "Enclosure Light",
+      "deviceTypeMatched": false,
+      "riskTags": [],
+      "status": "found",
+      "confidence": 0.55,
+      "elapsedMs": 20226,
+      "productUrl": "https://www.rittal.com/ca-fr/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261006100759\\pdt\\rittal-2500200-pdt_pdt-audit.json",
+      "pdtWrittenCells": 20,
+      "pdtBlankCells": 19,
+      "pdtSkippedCells": 0,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": [],
+      "resultEvidence": {
+        "title": "Lampe à diodes",
+        "description": "Lampe à diodes - le premier éclairage spécialement conçu pour les armoires électriques ! Cette technologie à diodes la plus innovante apporte encore plus de lumière jusque dans le moindre recoin.",
+        "productUrl": "https://www.rittal.com/ca-fr/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+        "normalized": {
+          "weight": "0.426 kg",
+          "dimensions": "Breite: 437 mmHöhe: 75 mmTiefe: 23 mm",
+          "material": "Light body: Extruded aluminiumLight cover: PolycarbonateLight ends: PC-ABS",
+          "finish": "Gehäuse: RAL 7016",
+          "color": "Gehäuse: RAL 7016",
+          "voltage": "100 V - 230 V, 1~, 50 Hz/60 Hz",
+          "protection": "IP 20",
+          "certificates": "Declaration of conformity DE, EN",
+          "operatingTemperatureMin": "-20",
+          "operatingTemperatureMax": "55"
+        },
+        "requiredElectricalFields": [],
+        "attributes": [
+          {
+            "group": "Definition List",
+            "name": "Abmessung",
+            "value": "Breite: 437 mmHöhe: 75 mmTiefe: 23 mm",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Anschlussmöglichkeiten",
+            "value": "Einspeisung, 3-polig",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Approbationen",
+            "value": "CCC exception letter ZH",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Approvals",
+            "value": "30 - KC Korea EN, KO",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Definition List",
+            "name": "Article no.:",
+            "value": "SZ 2500200",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Definition List",
+            "name": "Artikel-Nr.:",
+            "value": "SZ 2500200",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Ausführung",
+            "value": "ohne Steckdose",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Avantages",
+            "value": "Éclairage optimal dans l'ensemble de l'armoire électrique",
+            "sourceUrl": "https://www.rittal.com/ca-fr/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Bemessungsbetriebsspannung",
+            "value": "100 V - 230 V, 1~, 50 Hz/60 Hz",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Bemessungsisolationsspannung",
+            "value": "300 V AC",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Bemessungsstoßspannungsfestigkeit Phase zu Erde",
+            "value": "2500 V AC",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Benefits",
+            "value": "Optimum illumination of the entire enclosure",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Definition List",
+            "name": "Betriebstemperaturbereich",
+            "value": "-20 °C...55 °C",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Bruttogewicht",
+            "value": "0,56 kg",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Classe de protection",
+            "value": "II (à double isolation)",
+            "sourceUrl": "https://www.rittal.com/ca-fr/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Colour",
+            "value": "Enclosure: RAL 7016",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Definition List",
+            "name": "Composition de la livraison",
+            "value": "Vis incluses",
+            "sourceUrl": "https://www.rittal.com/ca-fr/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Connection options",
+            "value": "Infeed, 3-pole",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Definition List",
+            "name": "Couleur",
+            "value": "Armoire : RAL 7016",
+            "sourceUrl": "https://www.rittal.com/ca-fr/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Couleur de lumière",
+            "value": "4000 K (blanc neutre)",
+            "sourceUrl": "https://www.rittal.com/ca-fr/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Customs tariff number",
+            "value": "94054940",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Definition List",
+            "name": "Data sheets",
+            "value": "General technical information DE, EN",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Definition List",
+            "name": "Datenblätter",
+            "value": "Allgemeine technische Informationen DE, EN",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Declarations",
+            "value": "Declaration of conformity DE, EN",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Definition List",
+            "name": "Déclarations",
+            "value": "Déclaration de conformité DE, EN",
+            "sourceUrl": "https://www.rittal.com/ca-fr/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Description produit",
+            "value": "SZ Lampes à diodes, 900 lumen, longueur : 437 mm, 100-230 V",
+            "sourceUrl": "https://www.rittal.com/ca-fr/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Design",
+            "value": "Without socket",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Definition List",
+            "name": "Dimensions",
+            "value": "Largeur: 437 mmHauteur: 75 mmProfondeur: 23 mm( Largeur: 17,2 ˝Hauteur: 2,95 ˝Profondeur: 0,91 ˝ )",
+            "sourceUrl": "https://www.rittal.com/ca-fr/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Documentation",
+            "value": "Energy efficiency label EN",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Definition List",
+            "name": "Documentations",
+            "value": "Consigne de sécurité CS, DA, DE, EN, ES, FI, FR, HU, IT, NL, PL, PT, RO, RU, SK, SV, ZH",
+            "sourceUrl": "https://www.rittal.com/ca-fr/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Dokumentationen",
+            "value": "Anleitung CS DE, EN, FR RU ZH",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "EAN",
+            "value": "4028177806955",
+            "sourceUrl": "https://www.rittal.com/ca-fr/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "EAN",
+            "value": "4028177806955",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Definition List",
+            "name": "EAN",
+            "value": "4028177806955",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "ECLASS 8.0",
+            "value": "27189241",
+            "sourceUrl": "https://www.rittal.com/ca-fr/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "ECLASS 8.0",
+            "value": "27189241",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Definition List",
+            "name": "ECLASS 8.0",
+            "value": "27189241",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Einbaumöglichkeiten",
+            "value": "Direkt am Schrankprofil mit 25 mm-Maßraster",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Empreinte carbone/UE (sortie d'usine)",
+            "value": "13,2",
+            "sourceUrl": "https://www.rittal.com/ca-fr/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Erklärungen",
+            "value": "Konformitätserklärung DE, EN",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "ETIM 8",
+            "value": "EC000321",
+            "sourceUrl": "https://www.rittal.com/ca-fr/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "ETIM 8",
+            "value": "EC000321",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Definition List",
+            "name": "ETIM 8",
+            "value": "EC000321",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "ETIM 9",
+            "value": "EC000321",
+            "sourceUrl": "https://www.rittal.com/ca-fr/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "ETIM 9",
+            "value": "EC000321",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Definition List",
+            "name": "ETIM 9",
+            "value": "EC000321",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Farbe",
+            "value": "Gehäuse: RAL 7016",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Fiches techniques",
+            "value": "Informations techniques générales DE, EN",
+            "sourceUrl": "https://www.rittal.com/ca-fr/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Flux lumineux",
+            "value": "900 lm",
+            "sourceUrl": "https://www.rittal.com/ca-fr/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Gross weight",
+            "value": "0.56 kg",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Definition List",
+            "name": "Hinweis",
+            "value": "Anschlusszubehör separat bestellen",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Homologations",
+            "value": "30 - KC Korea EN, KO",
+            "sourceUrl": "https://www.rittal.com/ca-fr/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Indice de protection IP selon la norme CEI 60 529",
+            "value": "IP 20",
+            "sourceUrl": "https://www.rittal.com/ca-fr/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Installation options",
+            "value": "Directly onto the enclosure section with 25 mm pitch pattern",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Definition List",
+            "name": "IP protection category to IEC 60 529",
+            "value": "IP 20",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Definition List",
+            "name": "Lichtfarbe",
+            "value": "4000 K (neutralweiß)",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Lichtstrom",
+            "value": "900 lm",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Lieferumfang",
+            "value": "Inkl. Befestigungsschrauben",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Light – installation type",
+            "value": "Screw-fastening",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Definition List",
+            "name": "Light colour",
+            "value": "4000 K (neutral white)",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Definition List",
+            "name": "Luminous flux",
+            "value": "900 lm",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Definition List",
+            "name": "Material",
+            "value": "Light body: Extruded aluminiumLight cover: PolycarbonateLight ends: PC-ABS",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Definition List",
+            "name": "Material",
+            "value": "Leuchtenkorpus: stranggepresstes AluminiumLeuchtenabdeckung: PolycarbonatLeuchtenenden: PC-ABS",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Matériau",
+            "value": "Corps de la lampe : aluminium extrudéEnveloppe protectrice de la lampe : polycarbonateExtrémités de lampe : PC-ABS",
+            "sourceUrl": "https://www.rittal.com/ca-fr/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Modèle",
+            "value": "sans prise de courant",
+            "sourceUrl": "https://www.rittal.com/ca-fr/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Nennleistung",
+            "value": "11 W",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Net weight",
+            "value": "0.426 kg",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Definition List",
+            "name": "Nettogewicht",
+            "value": "0,426 kg",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Numéro du tarif douanier",
+            "value": "94054940",
+            "sourceUrl": "https://www.rittal.com/ca-fr/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Nutzen",
+            "value": "Optimale Ausleuchtung im gesamten Schaltschrank",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Operating temperature range",
+            "value": "-20 °C...55 °C",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Definition List",
+            "name": "Overvoltage category",
+            "value": "II",
+            "sourceUrl": "https://www.rittal.com/ca-fr/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Overvoltage category",
+            "value": "II",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Definition List",
+            "name": "PCF per pack (cradle-to-gate)",
+            "value": "13.2",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Definition List",
+            "name": "PCF/VE (Cradle-to-Gate)",
+            "value": "13,2",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Plage de température de fonctionnement",
+            "value": "-20 °C...55 °C( -4 °F...131 °F )",
+            "sourceUrl": "https://www.rittal.com/ca-fr/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Poids brut",
+            "value": "0,56 kg",
+            "sourceUrl": "https://www.rittal.com/ca-fr/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Poids net",
+            "value": "0,426 kg",
+            "sourceUrl": "https://www.rittal.com/ca-fr/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Possibilités de montage",
+            "value": "Directement sur le profilé d'armoire au pas de fixation de 25 mm",
+            "sourceUrl": "https://www.rittal.com/ca-fr/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Possibilités de raccordement",
+            "value": "Alimentation 3 pôles",
+            "sourceUrl": "https://www.rittal.com/ca-fr/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Power consumption",
+            "value": "11 W",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Definition List",
+            "name": "Product description",
+            "value": "SZ LED system light, 900 lumens, L: 437 mm, 100-230 V",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Definition List",
+            "name": "Produktbeschreibung",
+            "value": "SZ Systemleuchte LED, 900 Lumen, L: 437 mm, 100-230 V",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Protection class",
+            "value": "II (all-insulated)",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Definition List",
+            "name": "Puissance nominale",
+            "value": "11 W",
+            "sourceUrl": "https://www.rittal.com/ca-fr/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Rated impulse withstand voltage, phase to earth",
+            "value": "2500 V AC",
+            "sourceUrl": "https://www.rittal.com/ca-fr/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Rated impulse withstand voltage, phase to earth",
+            "value": "2500 V AC",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Definition List",
+            "name": "Rated insulation voltage",
+            "value": "300 V AC",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Definition List",
+            "name": "Rated operating voltage",
+            "value": "100 V - 230 V, 1~, 50 Hz/60 Hz",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Definition List",
+            "name": "Référence:",
+            "value": "SZ 2500200",
+            "sourceUrl": "https://www.rittal.com/ca-fr/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Remarque",
+            "value": "Accessoires de raccordement à commander séparément",
+            "sourceUrl": "https://www.rittal.com/ca-fr/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Schutzart IP nach IEC 60 529",
+            "value": "IP 20",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Schutzklasse",
+            "value": "II (schutzisoliert)",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Schutzklasse Überspannungsschutz",
+            "value": "II",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Supply includes",
+            "value": "Assembly screws",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Definition List",
+            "name": "Tension nominale",
+            "value": "100 V - 230 V, 1~, 50 Hz/60 Hz",
+            "sourceUrl": "https://www.rittal.com/ca-fr/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Tension nominale d’isolation",
+            "value": "300 V AC",
+            "sourceUrl": "https://www.rittal.com/ca-fr/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Type de montage des lampes",
+            "value": "A visser",
+            "sourceUrl": "https://www.rittal.com/ca-fr/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Unité d'emballage",
+            "value": "1 p.",
+            "sourceUrl": "https://www.rittal.com/ca-fr/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Verpackungseinheit",
+            "value": "1 Stück",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Zolltarifnummer",
+            "value": "94054940",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Electrical Text",
+            "name": "Operating voltage",
+            "value": "100 V / 230 V",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Electrical Text",
+            "name": "Rated impulse withstand voltage",
+            "value": "2500 V AC",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Lampe à diodes",
+            "name": "Classe de protection",
+            "value": "II (à double isolation)",
+            "sourceUrl": "https://www.rittal.com/ca-fr/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Lampe à diodes",
+            "name": "Couleur",
+            "value": "Armoire : RAL 7016",
+            "sourceUrl": "https://www.rittal.com/ca-fr/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Lampe à diodes",
+            "name": "Couleur de lumière",
+            "value": "4000 K (blanc neutre)",
+            "sourceUrl": "https://www.rittal.com/ca-fr/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Lampe à diodes",
+            "name": "EAN",
+            "value": "4028177806955",
+            "sourceUrl": "https://www.rittal.com/ca-fr/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Lampe à diodes",
+            "name": "Indice de protection IP selon la norme CEI 60 529",
+            "value": "IP 20",
+            "sourceUrl": "https://www.rittal.com/ca-fr/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Lampe à diodes",
+            "name": "Matériau",
+            "value": "Corps de la lampe : aluminium extrudéEnveloppe protectrice de la lampe : polycarbonateExtrémités de lampe : PC-ABS",
+            "sourceUrl": "https://www.rittal.com/ca-fr/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Lampe à diodes",
+            "name": "Overvoltage category",
+            "value": "II",
+            "sourceUrl": "https://www.rittal.com/ca-fr/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Lampe à diodes",
+            "name": "Plage de température de fonctionnement",
+            "value": "-20 °C...55 °C( -4 °F...131 °F )",
+            "sourceUrl": "https://www.rittal.com/ca-fr/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Lampe à diodes",
+            "name": "Poids brut",
+            "value": "0,56 kg",
+            "sourceUrl": "https://www.rittal.com/ca-fr/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Lampe à diodes",
+            "name": "Poids net",
+            "value": "0,426 kg",
+            "sourceUrl": "https://www.rittal.com/ca-fr/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Lampe à diodes",
+            "name": "Puissance nominale",
+            "value": "11 W",
+            "sourceUrl": "https://www.rittal.com/ca-fr/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Lampe à diodes",
+            "name": "Rated impulse withstand voltage, phase to earth",
+            "value": "2500 V AC",
+            "sourceUrl": "https://www.rittal.com/ca-fr/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Lampe à diodes",
+            "name": "Tension nominale",
+            "value": "100 V - 230 V, 1~, 50 Hz/60 Hz",
+            "sourceUrl": "https://www.rittal.com/ca-fr/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Lampe à diodes",
+            "name": "Tension nominale d’isolation",
+            "value": "300 V AC",
+            "sourceUrl": "https://www.rittal.com/ca-fr/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Lampe à diodes",
+            "name": "Type de montage des lampes",
+            "value": "A visser | Fixation par clip | Fixation magnétique (accessoires)",
+            "sourceUrl": "https://www.rittal.com/ca-fr/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "LED system light",
+            "name": "Article no.",
+            "value": "SZ 2500200",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "LED system light",
+            "name": "Colour",
+            "value": "Enclosure: RAL 7016",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "LED system light",
+            "name": "Connection options",
+            "value": "Infeed, 3-pole | Through-wiring, 3-pole | Door-operated switch",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "LED system light",
+            "name": "EAN",
+            "value": "4028177806955",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "LED system light",
+            "name": "Gross weight",
+            "value": "0.56 kg",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "LED system light",
+            "name": "Installation options",
+            "value": "Directly onto the enclosure section with 25 mm pitch pattern",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "LED system light",
+            "name": "IP protection category to IEC 60 529",
+            "value": "IP 20",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "LED system light",
+            "name": "Light – installation type",
+            "value": "Screw-fastening | Clip attachment | Magnetic attachment (accessory)",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "LED system light",
+            "name": "Light colour",
+            "value": "4000 K (neutral white)",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "LED system light",
+            "name": "Material",
+            "value": "Light body: Extruded aluminiumLight cover: PolycarbonateLight ends: PC-ABS",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "LED system light",
+            "name": "Net weight",
+            "value": "0.426 kg",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "LED system light",
+            "name": "Operating temperature range",
+            "value": "-20 °C...55 °C",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "LED system light",
+            "name": "Overvoltage category",
+            "value": "II",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "LED system light",
+            "name": "Power consumption",
+            "value": "11 W",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "LED system light",
+            "name": "Protection class",
+            "value": "II (all-insulated)",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "LED system light",
+            "name": "Rated impulse withstand voltage, phase to earth",
+            "value": "2500 V AC",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "LED system light",
+            "name": "Rated insulation voltage",
+            "value": "300 V AC",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "LED system light",
+            "name": "Rated operating voltage",
+            "value": "100 V - 230 V, 1~, 50 Hz/60 Hz",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Meta",
+            "name": "description",
+            "value": "Lampe à diodes - le premier éclairage spécialement conçu pour les armoires électriques ! Cette technologie à diodes la plus innovante apporte encore plus de lumière jusque dans le moindre recoin.",
+            "sourceUrl": "https://www.rittal.com/ca-fr/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Meta",
+            "name": "description",
+            "value": "LED system light – the first light especially for enclosures! Highly innovative LED technology for even more light into the very last corner.",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Meta",
+            "name": "description",
+            "value": "Systemleuchte LED - die erste Leuchte speziell für den Schaltschrank! Innovativste LED-Technik sorgt für noch mehr Licht bis in den letzten Winkel.",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Betriebstemperatur",
+            "value": "-20 °C / 55 °C",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Breite",
+            "value": "437 mm / 75 mm",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Bruttogewicht",
+            "value": "0.56 kg",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Depth",
+            "value": "23 mm",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Gross weight",
+            "value": "0.56 kg",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Hauteur",
+            "value": "75 mm",
+            "sourceUrl": "https://www.rittal.com/ca-fr/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Height",
+            "value": "75 mm",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Largeur",
+            "value": "437 mm",
+            "sourceUrl": "https://www.rittal.com/ca-fr/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Net weight",
+            "value": "0.426 kg",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Nettogewicht",
+            "value": "0.426 kg",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Operating temperature",
+            "value": "-20 °C / 55 °C",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Poids brut",
+            "value": "0.56 kg",
+            "sourceUrl": "https://www.rittal.com/ca-fr/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Poids net",
+            "value": "0.426 kg",
+            "sourceUrl": "https://www.rittal.com/ca-fr/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Profondeur",
+            "value": "23 mm",
+            "sourceUrl": "https://www.rittal.com/ca-fr/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Temperature range",
+            "value": "-20 °C / 55 °C",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Tiefe",
+            "value": "23 mm",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Width",
+            "value": "437 mm",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Plain Text",
+            "name": "api",
+            "value": "2020.09",
+            "sourceUrl": "https://www.rittal.com/ca-fr/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Plain Text",
+            "name": "api",
+            "value": "2020.09",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Plain Text",
+            "name": "api",
+            "value": "2020.09",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Plain Text",
+            "name": "Armoire",
+            "value": "RAL 7016",
+            "sourceUrl": "https://www.rittal.com/ca-fr/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Plain Text",
+            "name": "Breite",
+            "value": "437 mm H&ouml;he: 75 mm Tiefe: 23 mm",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Plain Text",
+            "name": "Corps de la lampe",
+            "value": "aluminium extrud&eacute; Enveloppe protectrice de la lampe : polycarbonate Extr&eacute;mit&eacute;s de lampe : PC-ABS",
+            "sourceUrl": "https://www.rittal.com/ca-fr/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Plain Text",
+            "name": "Enclosure",
+            "value": "RAL 7016",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Plain Text",
+            "name": "Geh&auml;use",
+            "value": "RAL 7016",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Plain Text",
+            "name": "is=\"vue",
+            "value": "ProductHeader\"",
+            "sourceUrl": "https://www.rittal.com/ca-fr/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Plain Text",
+            "name": "is=\"vue",
+            "value": "ProductHeader\"",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Plain Text",
+            "name": "is=\"vue",
+            "value": "ProductHeader\"",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Plain Text",
+            "name": "Largeur",
+            "value": "437 mm Hauteur: 75 mm Profondeur: 23 mm ( Largeur: 17,2 ˝ Hauteur: 2,95 ˝ Profondeur: 0,91 ˝ )",
+            "sourceUrl": "https://www.rittal.com/ca-fr/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Plain Text",
+            "name": "Leuchtenkorpus",
+            "value": "stranggepresstes Aluminium Leuchtenabdeckung: Polycarbonat Leuchtenenden: PC-ABS",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Plain Text",
+            "name": "Light body",
+            "value": "Extruded aluminium Light cover: Polycarbonate Light ends: PC-ABS",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Plain Text",
+            "name": "SZ Lampes &agrave; diodes, 900 lumen, longueur",
+            "value": "437 mm, 100-230 V",
+            "sourceUrl": "https://www.rittal.com/ca-fr/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Plain Text",
+            "name": "SZ LED system light, 900 lumens, L",
+            "value": "437 mm, 100-230 V",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Plain Text",
+            "name": "SZ Systemleuchte LED, 900 Lumen, L",
+            "value": "437 mm, 100-230 V",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "Customs tariff number",
+            "value": "94054940",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "Depth",
+            "value": "23 mm",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "ETIM 8",
+            "value": "EC000321",
+            "sourceUrl": "https://www.rittal.com/ca-fr/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "ETIM 8",
+            "value": "EC000321",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "ETIM 8",
+            "value": "EC000321",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "ETIM 9",
+            "value": "EC000321",
+            "sourceUrl": "https://www.rittal.com/ca-fr/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "ETIM 9",
+            "value": "EC000321",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "ETIM 9",
+            "value": "EC000321",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "Height",
+            "value": "75 mm",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "group": "Systemleuchte LED",
+            "name": "Artikel-Nr.",
+            "value": "SZ 2500200",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Systemleuchte LED",
+            "name": "Bemessungsbetriebsspannung",
+            "value": "100 V - 230 V, 1~, 50 Hz/60 Hz",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Systemleuchte LED",
+            "name": "Bemessungsisolationsspannung",
+            "value": "300 V AC",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Systemleuchte LED",
+            "name": "Bemessungsstoßspannungsfestigkeit Phase zu Erde",
+            "value": "2500 V AC",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Systemleuchte LED",
+            "name": "Betriebstemperaturbereich",
+            "value": "-20 °C...55 °C",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Systemleuchte LED",
+            "name": "Bruttogewicht",
+            "value": "0,56 kg",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Systemleuchte LED",
+            "name": "EAN",
+            "value": "4028177806955",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Systemleuchte LED",
+            "name": "Farbe",
+            "value": "Gehäuse: RAL 7016",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Systemleuchte LED",
+            "name": "Material",
+            "value": "Leuchtenkorpus: stranggepresstes AluminiumLeuchtenabdeckung: PolycarbonatLeuchtenenden: PC-ABS",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Systemleuchte LED",
+            "name": "Nennleistung",
+            "value": "11 W",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Systemleuchte LED",
+            "name": "Nettogewicht",
+            "value": "0,426 kg",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Systemleuchte LED",
+            "name": "Schutzart IP nach IEC 60 529",
+            "value": "IP 20",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Systemleuchte LED",
+            "name": "Schutzklasse",
+            "value": "II (schutzisoliert)",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Systemleuchte LED",
+            "name": "Schutzklasse Überspannungsschutz",
+            "value": "II",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "PDF Electrical Text",
+            "name": "Operating voltage range",
+            "value": "100 V / 230 V",
+            "sourceUrl": "https://www.rittal.com/imf/none/20_2429/2500200_General_technical_information_DE_EN",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Electrical Text",
+            "name": "Voltage range",
+            "value": "90 V / 253 V",
+            "sourceUrl": "https://www.rittal.com/imf/none/20_2429/2500200_General_technical_information_DE_EN",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "technical data sheets with an operating voltage range of 100 V - 230 V, 50 Hz/60 Hz",
+            "sourceUrl": "https://www.rittal.com/imf/none/20_2429/2500200_General_technical_information_DE_EN",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "have been tested in all approval tests in a voltage range of 90 V - 253 V, 50 Hz/60 Hz",
+            "sourceUrl": "https://www.rittal.com/imf/none/20_2429/2500200_General_technical_information_DE_EN",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Document",
+            "name": "Parsed document",
+            "value": "2500200_General_technical_information_DE_EN",
+            "sourceUrl": "https://www.rittal.com/imf/none/20_2429/2500200_General_technical_information_DE_EN",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "technical data",
+            "value": "sheets with an operating voltage range of 100 V - 230 V, 50 Hz/60 Hz",
+            "sourceUrl": "https://www.rittal.com/imf/none/20_2429/2500200_General_technical_information_DE_EN",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "have been tested in all approval",
+            "value": "tests in a voltage range of 90 V - 253 V, 50 Hz/60 Hz",
+            "sourceUrl": "https://www.rittal.com/imf/none/20_2429/2500200_General_technical_information_DE_EN",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Ontology Spec Miner",
+            "name": "Nennleistung",
+            "value": "13 W / 11 W",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_6122/2500200_Instructions_CS",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Ontology Spec Miner",
+            "name": "Rated output",
+            "value": "13 W / 11 W",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_6122/2500200_Instructions_CS",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Ontology Spec Miner",
+            "name": "Enclosure width",
+            "value": "600 mm / ≥ 800 mm",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_6122/2500200_Instructions_CS",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Ontology Spec Miner",
+            "name": "Enclosure width",
+            "value": "≥ 800 mm",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_6122/2500200_Instructions_CS",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Feature",
+            "value": "SZ 2500.200",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_6122/2500200_Instructions_CS",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Feature",
+            "value": "Ce produit sert à éclairer des coffrets et armoires de distribution électrique, de commande, de mesure et de régulation ainsi que des baies IT à",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_6122/2500200_Instructions_CS",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Feature",
+            "value": "Rated voltage",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_6122/2500200_Instructions_CS",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Feature",
+            "value": "Rated current at 100 V AC/230 V AC",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_6122/2500200_Instructions_CS",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Feature",
+            "value": "Operating temperature",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_6122/2500200_Instructions_CS",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Feature",
+            "value": "Storage temperature",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_6122/2500200_Instructions_CS",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Document",
+            "name": "Parsed document",
+            "value": "2500200_Instructions_CS",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_6122/2500200_Instructions_CS",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "EN",
+            "value": "CZ | D",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_6122/2500200_Instructions_CS",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "5,5 x 13",
+            "value": "2",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_6122/2500200_Instructions_CS",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Ce produit",
+            "value": "sert à éclairer des coffrets et armoires de distribution électrique, de commande, de mesure et de régulation ainsi que des baies IT à",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_6122/2500200_Instructions_CS",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "1.3",
+            "value": "1.2",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_6122/2500200_Instructions_CS",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "MD",
+            "value": "4 Nm",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_6122/2500200_Instructions_CS",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "M D",
+            "value": "4 Nm",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_6122/2500200_Instructions_CS",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Enclosure width",
+            "value": "600 mm",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_6122/2500200_Instructions_CS",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Enclosure width",
+            "value": "≥ 800 mm",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_6122/2500200_Instructions_CS",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "13 W, 1200 lm",
+            "value": "11 W, 900 lm",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_6122/2500200_Instructions_CS",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Nennspannung",
+            "value": "Jmenovité napětí",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_6122/2500200_Instructions_CS",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Rated voltage",
+            "value": "Jmenovité napětí",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_6122/2500200_Instructions_CS",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "10. Technical data",
+            "value": "18",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_6122/2500200_Instructions_CS",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "11. Warranty",
+            "value": "19",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_6122/2500200_Instructions_CS",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Nennstrom",
+            "value": "bei 100 V AC/230 V AC",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_6122/2500200_Instructions_CS",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Protection",
+            "value": "class/Stupeň krytí a třída ochrany",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_6122/2500200_Instructions_CS",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Mass",
+            "value": "Betriebstemperatur",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_6122/2500200_Instructions_CS",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Operating temperature",
+            "value": "rel. Luftfeuchtigkeit/rel. humidity/relativní vlhkost nicht",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_6122/2500200_Instructions_CS",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Storage temperature",
+            "value": "Service HUB China",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_6122/2500200_Instructions_CS",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Positioned Table",
+            "name": "Obj. číslo SZ",
+            "value": "2500.200",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_6122/2500200_Instructions_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "confidence": 0.88,
+            "stage": "enrich-documents"
+          },
+          {
+            "group": "PDF Positioned Table",
+            "name": "Headquarter Deutschland Service-HUB Brasilien",
+            "value": "Service-HUB Indien",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_6122/2500200_Instructions_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "confidence": 0.88,
+            "stage": "enrich-documents"
+          },
+          {
+            "group": "PDF Positioned Table",
+            "name": "Headquarters Germany Service HUB Brazil",
+            "value": "Service HUB India",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_6122/2500200_Instructions_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "confidence": 0.88,
+            "stage": "enrich-documents"
+          },
+          {
+            "group": "PDF Positioned Table",
+            "name": "Siège en Allemagne Plateforme de service au Brésil",
+            "value": "Plateforme de service en Inde",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_6122/2500200_Instructions_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "confidence": 0.88,
+            "stage": "enrich-documents"
+          },
+          {
+            "group": "PDF Positioned Table",
+            "name": "D-35745 Herborn Vila Jaguara",
+            "value": "Industrial Area Veerapura",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_6122/2500200_Instructions_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "confidence": 0.88,
+            "stage": "enrich-documents"
+          },
+          {
+            "group": "PDF Positioned Table",
+            "name": "Service-HUB USA",
+            "value": "E-mail: service@rittal-india.com",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_6122/2500200_Instructions_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "confidence": 0.88,
+            "stage": "enrich-documents"
+          },
+          {
+            "group": "PDF Positioned Table",
+            "name": "Service HUB USA Service-HUB China",
+            "value": "E-mail: service@rittal-india.com",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_6122/2500200_Instructions_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "confidence": 0.88,
+            "stage": "enrich-documents"
+          }
+        ],
+        "documents": [
+          {
+            "type": "datasheet",
+            "label": "2500200_General_technical_information_DE_EN",
+            "url": "https://www.rittal.com/imf/none/20_2429/2500200_General_technical_information_DE_EN",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8,
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261006100759\\documents\\2500200-datasheet-2500200_General_technical_information_DE_EN.pdf",
+            "downloadStatus": "downloaded",
+            "parseStatus": "parsed"
+          },
+          {
+            "type": "manual",
+            "label": "2500200_Instructions_CS",
+            "url": "https://www.rittal.com/imf/none/3_6122/2500200_Instructions_CS",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8,
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261006100759\\documents\\2500200-manual-2500200_Instructions_CS.pdf",
+            "downloadStatus": "downloaded",
+            "parseStatus": "parsed"
+          },
+          {
+            "type": "manual",
+            "label": "2500200_Instructions_DE_EN_FR",
+            "url": "https://www.rittal.com/imf/none/3_6032/2500200_Instructions_DE_EN_FR",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "type": "manual",
+            "label": "2500200_Instructions_RU",
+            "url": "https://www.rittal.com/imf/none/3_6585/2500200_Instructions_RU",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "type": "manual",
+            "label": "2500200_Instructions_ZH",
+            "url": "https://www.rittal.com/imf/none/3_6033/2500200_Instructions_ZH",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "type": "manual",
+            "label": "2500200_Safety_instructions_CS_DA_DE_EN_ES_FI_FR_HU_IT_NL_PL_PT_RO_RU_SK_SV_ZH",
+            "url": "https://www.rittal.com/imf/none/3_7143/2500200_Safety_instructions_CS_DA_DE_EN_ES_FI_FR_HU_IT_NL_PL_PT_RO_RU_SK_SV_ZH",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "stage": "discovery-localized-template",
+            "confidence": 0.8
+          },
+          {
+            "type": "image",
+            "label": "og:image",
+            "url": "https://www.rittal.com/imf/x1200/2_46388/",
+            "sourceUrl": "https://www.rittal.com/ca-fr/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86,
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261006100759\\images\\RIT.2500200.png",
+            "downloadStatus": "downloaded",
+            "parseStatus": "skipped"
+          }
+        ],
+        "sources": [
+          {
+            "url": "https://www.rittal.com/ca-fr/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "parserVersion": "generic-v3",
+            "fetchedAt": "2026-10-06T10:08:01.829Z",
+            "statusCode": 200
+          },
+          {
+            "url": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "parserVersion": "generic-v3",
+            "fetchedAt": "2026-10-06T10:08:01.222Z",
+            "statusCode": 200
+          },
+          {
+            "url": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "parserVersion": "generic-v3",
+            "fetchedAt": "2026-10-06T10:08:01.096Z",
+            "statusCode": 200,
+            "stage": "localized-template",
+            "reason": "DE localized official template"
+          },
+          {
+            "url": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+            "sourceType": "official-fallback",
+            "parser": "discovery-localized-template",
+            "parserVersion": "generic-v3",
+            "fetchedAt": "2026-10-06T10:08:02.895Z",
+            "statusCode": 200,
+            "stage": "localized-template",
+            "reason": "EN localized official template"
+          },
+          {
+            "url": "https://www.rittal.com/imf/none/20_2429/2500200_General_technical_information_DE_EN",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "reason": "datasheet",
+            "fetchedAt": "2026-10-06T10:08:13.770Z"
+          },
+          {
+            "url": "https://www.rittal.com/imf/none/3_6122/2500200_Instructions_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "reason": "manual",
+            "fetchedAt": "2026-10-06T10:08:18.668Z"
+          }
+        ],
+        "qualityGate": {
+          "passed": true,
+          "identityConfirmed": true,
+          "score": 100,
+          "missing": [],
+          "reason": "Quality gate passed.",
+          "attempts": [
+            {
+              "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+              "url": "https://www.rittal.com/ca-fr/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+              "status": "failed",
+              "score": 0,
+              "missing": [
+                "identity",
+                "normalized:current"
+              ],
+              "reason": "Missing required product data: identity; normalized:current",
+              "sourceType": "official-fallback",
+              "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+              "statusCode": 200,
+              "attributeCount": 126,
+              "documentCount": 1,
+              "sectionAttributeCounts": {}
+            },
+            {
+              "stage": "localized-template",
+              "url": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+              "status": "partial",
+              "score": 80,
+              "reason": "DE localized official template; post-fetch: HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title",
+              "sourceType": "official-fallback",
+              "parser": "discovery-localized-template",
+              "statusCode": 200,
+              "attributeCount": 62,
+              "documentCount": 1
+            },
+            {
+              "stage": "localized-template",
+              "url": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+              "status": "partial",
+              "score": 80,
+              "reason": "EN localized official template; post-fetch: HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title",
+              "sourceType": "official-fallback",
+              "parser": "discovery-localized-template",
+              "statusCode": 200,
+              "attributeCount": 70,
+              "documentCount": 7
+            },
+            {
+              "stage": "localized-template",
+              "url": "https://www.rittal.com/com-en/products/show/2500200",
+              "status": "failed",
+              "score": 78,
+              "reason": "EN localized official template",
+              "error": "Missing named parameter \"bodyTemplate\""
+            },
+            {
+              "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+              "url": "https://www.rittal.com/ca-fr/products/PG20231215ZUB101/PG20240403ZUB001/PRO64749?variantId=2500200",
+              "status": "passed",
+              "score": 100,
+              "missing": [],
+              "reason": "Quality gate passed.",
+              "sourceType": "official-fallback",
+              "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+              "statusCode": 200,
+              "attributeCount": 196,
+              "documentCount": 7,
+              "sectionAttributeCounts": {}
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

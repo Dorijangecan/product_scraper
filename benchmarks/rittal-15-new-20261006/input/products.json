@@ -1,0 +1,167 @@
+[
+  {
+    "manufacturerId": "rittal",
+    "catalogNumber": "1038000",
+    "expectedDeviceType": "Enclosure",
+    "expectedClassifierType": "Enclosure",
+    "expectedOfficialUrlPatterns": [
+      "rittal.com/",
+      "/products/",
+      "variantId=1038000"
+    ]
+  },
+  {
+    "manufacturerId": "rittal",
+    "catalogNumber": "1480000",
+    "expectedDeviceType": "Enclosure",
+    "expectedClassifierType": "Enclosure",
+    "expectedOfficialUrlPatterns": [
+      "rittal.com/",
+      "/products/",
+      "variantId=1480000"
+    ]
+  },
+  {
+    "manufacturerId": "rittal",
+    "catalogNumber": "8617200",
+    "expectedDeviceType": "Enclosure Accessory",
+    "expectedClassifierType": "Mounting Accessory",
+    "expectedOfficialUrlPatterns": [
+      "rittal.com/",
+      "/products/",
+      "variantId=8617200"
+    ]
+  },
+  {
+    "manufacturerId": "rittal",
+    "catalogNumber": "9340050",
+    "expectedDeviceType": "Busbar Accessory",
+    "expectedClassifierType": "Busbar",
+    "expectedOfficialUrlPatterns": [
+      "rittal.com/",
+      "/products/",
+      "variantId=9340050"
+    ]
+  },
+  {
+    "manufacturerId": "rittal",
+    "catalogNumber": "3486937",
+    "expectedDeviceType": "Cooling Unit",
+    "expectedClassifierType": "Thermal Management",
+    "expectedOfficialUrlPatterns": [
+      "rittal.com/",
+      "/products/",
+      "variantId=3486937"
+    ]
+  },
+  {
+    "manufacturerId": "rittal",
+    "catalogNumber": "3334300",
+    "expectedDeviceType": "Chiller",
+    "expectedClassifierType": "Thermal Management",
+    "expectedOfficialUrlPatterns": [
+      "rittal.com/",
+      "/products/",
+      "variantId=3334300"
+    ]
+  },
+  {
+    "manufacturerId": "rittal",
+    "catalogNumber": "2500200",
+    "expectedDeviceType": "Enclosure Light",
+    "expectedClassifierType": "Luminaire",
+    "expectedOfficialUrlPatterns": [
+      "rittal.com/",
+      "/products/",
+      "variantId=2500200"
+    ]
+  },
+  {
+    "manufacturerId": "rittal",
+    "catalogNumber": "3105380",
+    "expectedDeviceType": "Enclosure Heater",
+    "expectedClassifierType": "Thermal Management",
+    "expectedOfficialUrlPatterns": [
+      "rittal.com/",
+      "/products/",
+      "variantId=3105380"
+    ]
+  },
+  {
+    "manufacturerId": "rittal",
+    "catalogNumber": "7955401",
+    "expectedDeviceType": "Rack Power Distribution Unit",
+    "expectedClassifierType": "Power Distribution Unit",
+    "expectedOfficialUrlPatterns": [
+      "rittal.com/",
+      "/products/",
+      "variantId=7955401"
+    ]
+  },
+  {
+    "manufacturerId": "rittal",
+    "catalogNumber": "3209100",
+    "expectedDeviceType": "Air-Water Heat Exchanger",
+    "expectedClassifierType": "Thermal Management",
+    "expectedOfficialUrlPatterns": [
+      "rittal.com/",
+      "/products/",
+      "variantId=3209100"
+    ]
+  },
+  {
+    "manufacturerId": "rittal",
+    "catalogNumber": "7320530",
+    "expectedDeviceType": "Access Sensor",
+    "expectedClassifierType": "Access Sensor",
+    "expectedOfficialUrlPatterns": [
+      "rittal.com/",
+      "/products/",
+      "variantId=7320530"
+    ]
+  },
+  {
+    "manufacturerId": "rittal",
+    "catalogNumber": "3173120",
+    "expectedDeviceType": "Filter Accessory",
+    "expectedClassifierType": "Filter",
+    "expectedOfficialUrlPatterns": [
+      "rittal.com/",
+      "/products/",
+      "variantId=3173120"
+    ]
+  },
+  {
+    "manufacturerId": "rittal",
+    "catalogNumber": "3243080",
+    "expectedDeviceType": "Fan Accessory",
+    "expectedClassifierType": "Cover / Door Accessory",
+    "expectedOfficialUrlPatterns": [
+      "rittal.com/",
+      "/products/",
+      "variantId=3243080"
+    ]
+  },
+  {
+    "manufacturerId": "rittal",
+    "catalogNumber": "2485100",
+    "expectedDeviceType": "Enclosure Handle Accessory",
+    "expectedClassifierType": "Cover / Door Accessory",
+    "expectedOfficialUrlPatterns": [
+      "rittal.com/",
+      "/products/",
+      "variantId=2485100"
+    ]
+  },
+  {
+    "manufacturerId": "rittal",
+    "catalogNumber": "3173100",
+    "expectedDeviceType": "Filter Accessory",
+    "expectedClassifierType": "Filter",
+    "expectedOfficialUrlPatterns": [
+      "rittal.com/",
+      "/products/",
+      "variantId=3173100"
+    ]
+  }
+]

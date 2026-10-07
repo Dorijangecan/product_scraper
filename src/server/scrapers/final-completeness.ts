@@ -143,10 +143,12 @@ export function repairFinalCompletenessFromEvidence(
 
   const nextAttributes = dedupeAttributes([...result.attributes, ...attributes]);
   const nextDocuments = dedupeDocuments([...result.documents, ...documents]);
+  const recomputedNormalized = normalizeFields(nextAttributes, nextDocuments, result.manufacturerId);
   const normalized = {
-    ...normalizeFields(nextAttributes, nextDocuments),
+    ...recomputedNormalized,
     ...nonEmptyNormalized(result.normalized)
   };
+  if (result.manufacturerId === "rittal" && !recomputedNormalized.current) delete normalized.current;
   const sources = dedupeSources([
     ...result.sources,
     {

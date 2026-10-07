@@ -78,7 +78,7 @@ playwright ako patchright ikad zakaže na nekoj mašini.
 | `scripts/` | audit / benchmark / probe / desktop-boot alati (`.ts`→tsx, `.cjs`→Node) |
 | `templates/` | `master_pdt.xlsx` — izvor istine za PDT |
 | `patches/` | `patch-package` patchevi za bugove u ovisnostima (npr. `pdf-parse` `getTable()` crash) — auto-primijenjeno `npm install` postinstall hookom, **ne brisati** |
-| `benchmarks/` | Fixture proizvodi + izvještaji (**mrežni** live-check); `products/` je regresijski corpus, `cold-products/` je odvojeni skup novih artikala/obitelji za otkrivanje endpoint-drifta, a proizvođački izolirani audit korpusi (npr. `rockwell-15-new/`, `rockwell-15-new-2/`) drže strogo odabrane cold-start uzorke |
+| `benchmarks/` | Fixture proizvodi + izvještaji (**mrežni** live-check); `products/` je regresijski corpus, `cold-products/` je odvojeni skup novih artikala/obitelji za otkrivanje endpoint-drifta, a proizvođački izolirani audit korpusi (npr. `rockwell-15-new/`, `rockwell-15-new-2/`, `rittal-15-new-20261006/`, `rittal-15-new-20261006-v2/`) drže manifest, SKU-only cold-start ulaze, izvještaje/logove i dokazne snimke bez odgovora koji bi glumili benchmark rezultate |
 | `fixtures/` | **Offline eval korpus** — snimljeni HTML/PDF + `expected.json` s asertacijama na razini *vrijednosti* (`npm run eval`). Postoji jer je `benchmarks/` mrežni i tvrdi samo `Boolean(field)`, pa mu je klasa "vrijednost postoji ali je pogrešna" nevidljiva. Vidi [fixtures/README.md](fixtures/README.md) |
 | `docs/` | `ARCHITECTURE.md`, `COLD-START-PLAN.md` (analiza+plan za nepoznate vendore/datasheetove), `CLAUDE-HANDOFF.md` (zadnja točka rada i copy/paste prompt), prezentacije, normalizacijske bilješke |
 | `outputs/` `data/` `tmp/` | Runtime artefakti (DB, cache, workbookovi) — **ne uređivati ručno** |
@@ -330,7 +330,9 @@ Politike u `ManufacturerConfig.scrapeRecipe`: `DiscoveryPolicyConfig`, `Interact
 ### `src/server/scrapers/` — konektori (svi imaju `<Name>Connector`)
 `abb.ts` `balluff.ts` `doepke.ts` `eaton.ts` `eta.ts` `fath.ts` `gan.ts` `rockwell.ts` `sce.ts` `scame.ts` `schmersal.ts`
 `schneider.ts` `siemens.ts` `spelsberg.ts` `turck.ts` — uz `parse<Vendor>ProductPage` helpere.
-Config-driven (bez fajla): `nvent`, `phoenix`.
+`rittal.ts` koristi službeni `/products/show/{orderNumber}` resolver prvo, generički PDP parser
+zatim zajednički discovery fallback. `nvent` i `phoenix` ostaju config-driven. Vanjska web-pretraga
+za Rittal ostaje opt-in preko `PRODUCT_SCRAPER_ALLOW_EXTERNAL_SEARCH=1`.
 `gan.ts` (Ganter Norm, standardni strojni elementi): `GanterNormConnector` — traži preko
 `/en/products/quick-finder?q=`. Quick-finder danas **301-redirecta puni ordering kod** (npr.
 "GN 422-33-TK-LK-K2-SW") ravno na točnu varijantnu stranicu (s `#fragmentom` koji kodira odabrane

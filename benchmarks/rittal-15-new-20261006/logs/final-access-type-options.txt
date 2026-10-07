@@ -1,0 +1,8 @@
+BENCHMARK_FIXTURE_DIR=benchmarks/rittal-15-new-20261006/input
+BENCHMARK_MANUFACTURER=rittal
+BENCHMARK_LIMIT=15
+BENCHMARK_ISOLATED_STORAGE=1
+Concurrency=2
+RateLimitMs=1500
+External search disabled
+Fresh isolated SQLite and HTTP cache; fixture files contain order numbers and evidence-based expectations only.

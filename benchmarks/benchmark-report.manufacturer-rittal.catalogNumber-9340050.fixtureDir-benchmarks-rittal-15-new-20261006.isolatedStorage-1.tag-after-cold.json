@@ -1,0 +1,2166 @@
+{
+  "generatedAt": "2026-10-06T10:04:54.784Z",
+  "outputDir": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261006100447",
+  "filters": {
+    "manufacturer": "rittal",
+    "catalogNumber": "9340050",
+    "fixtureDir": "benchmarks/rittal-15-new-20261006",
+    "isolatedStorage": "1",
+    "tag": "after-cold"
+  },
+  "summary": {
+    "foundRate": 100,
+    "officialUrlRate": 100,
+    "documentRate": 100,
+    "pdtAuditRate": 100,
+    "deviceTypeRate": 0,
+    "customerDocumentRate": 0,
+    "wrongProducts": 0,
+    "partialWithoutMissing": 0,
+    "pdtUnprovenWritten": 0,
+    "pdtUnexplainedRequiredFieldIssues": 0,
+    "pdtWriteIssues": 0,
+    "qualityAccepted": false,
+    "fixtureCoverageAccepted": true,
+    "fixtureCoverage": {
+      "byManufacturer": {
+        "rittal": {
+          "total": 1,
+          "caseTypes": [],
+          "riskTags": []
+        }
+      },
+      "byDeviceType": {
+        "Busbar Accessory": {
+          "total": 1,
+          "manufacturers": [
+            "rittal"
+          ],
+          "caseTypes": []
+        }
+      },
+      "byDeviceSheet": {},
+      "thinManufacturers": [
+        "rittal"
+      ],
+      "uncoveredDeviceSheets": [
+        "Busbar",
+        "Luminaire",
+        "Motion Controller",
+        "PCB connection system",
+        "PCB connection technology",
+        "PLC",
+        "RS232 interfaces",
+        "Switch",
+        "Wire ID Information",
+        "cabinet",
+        "cabinet.airconditioning",
+        "cabinet.mechanical",
+        "cabinet.rack",
+        "cable",
+        "cable ducts mounting rails",
+        "cable gland",
+        "command and alarm device",
+        "connector",
+        "contactor a. fuses",
+        "directional control valve",
+        "el. mesurement devices",
+        "electronic sensor",
+        "energy distribution system",
+        "filters",
+        "fluid power",
+        "generator",
+        "int. ext. lightning protection",
+        "module carrier frame",
+        "motor protection",
+        "motors",
+        "optical sensor",
+        "panel (HMI)",
+        "pneumatic handling",
+        "power supply devices",
+        "pump",
+        "safety sensor",
+        "sensor - fluid",
+        "servo controller",
+        "terminal",
+        "terminal endbracket",
+        "ventil"
+      ],
+      "missingDeviceSheetRecommendations": [
+        {
+          "sheetName": "Busbar",
+          "deviceTypes": [
+            "Busbar"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "Luminaire",
+          "deviceTypes": [
+            "Luminaire"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SL0040I.953",
+              "deviceType": "Luminaire",
+              "notes": "FATH Module F Line LED lamp"
+            }
+          ]
+        },
+        {
+          "sheetName": "Motion Controller",
+          "deviceTypes": [
+            "Motion Controller"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1756-HYD",
+              "deviceType": "Motion Controller",
+              "notes": "ControlLogix integrated motion modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1756-M02",
+              "deviceType": "Motion Controller",
+              "notes": "ControlLogix integrated motion modules"
+            }
+          ]
+        },
+        {
+          "sheetName": "PCB connection system",
+          "deviceTypes": [
+            "PCB Connector"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "PCB connection technology",
+          "deviceTypes": [
+            "PCB Terminal Block"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "PLC",
+          "deviceTypes": [
+            "Communication Gateway",
+            "HMI",
+            "I/O Module",
+            "Programmable Logic Controller"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "FL",
+              "deviceType": "Communication Gateway",
+              "notes": "FL switch / FL gateway"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "RAD",
+              "deviceType": "Communication Gateway",
+              "notes": "Radioline"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENT",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENTR",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1783",
+              "deviceType": "Communication Gateway",
+              "notes": "Stratix industrial networking and communication modules"
+            }
+          ]
+        },
+        {
+          "sheetName": "RS232 interfaces",
+          "deviceTypes": [
+            "Communication Gateway"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "FL",
+              "deviceType": "Communication Gateway",
+              "notes": "FL switch / FL gateway"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "RAD",
+              "deviceType": "Communication Gateway",
+              "notes": "Radioline"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENT",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENTR",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1783",
+              "deviceType": "Communication Gateway",
+              "notes": "Stratix industrial networking and communication modules"
+            }
+          ]
+        },
+        {
+          "sheetName": "Switch",
+          "deviceTypes": [
+            "Lock / Interlock",
+            "Selector Switch",
+            "Switch"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "M2SS",
+              "deviceType": "Selector Switch",
+              "notes": "M2SS selector switches"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "M22-WR",
+              "deviceType": "Selector Switch",
+              "notes": "M22 selector switch actuator"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "JSHD",
+              "deviceType": "Switch",
+              "notes": "JSHD three-position handheld devices"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "2702665",
+              "deviceType": "Switch",
+              "notes": "Phoenix FL SWITCH 2105 item number"
+            },
+            {
+              "manufacturerId": "schmersal",
+              "pattern": "EFM",
+              "deviceType": "Switch",
+              "notes": "Schmersal foot switches"
+            }
+          ]
+        },
+        {
+          "sheetName": "Wire ID Information",
+          "deviceTypes": [
+            "Wire Marker"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "cabinet",
+          "deviceTypes": [
+            "Enclosure"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEP",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEPY",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PSN",
+              "deviceType": "Enclosure",
+              "notes": "xEnergy ProfiSNAP enclosure panels/accessories"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "P2C",
+              "deviceType": "Enclosure",
+              "notes": "nVent Hoffman enclosure families"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "P2D",
+              "deviceType": "Enclosure",
+              "notes": "nVent Hoffman enclosure families"
+            }
+          ]
+        },
+        {
+          "sheetName": "cabinet.airconditioning",
+          "deviceTypes": [
+            "Thermal Management"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "nvent",
+              "pattern": "DAH",
+              "deviceType": "Thermal Management",
+              "notes": "nVent HOFFMAN DAH enclosure heaters"
+            },
+            {
+              "manufacturerId": "rittal",
+              "pattern": "SK",
+              "deviceType": "Thermal Management",
+              "notes": "Climate control / filter fans"
+            }
+          ]
+        },
+        {
+          "sheetName": "cabinet.mechanical",
+          "deviceTypes": [
+            "Accessory",
+            "Cover / Door Accessory",
+            "Enclosure",
+            "Subpanel"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "MDB",
+              "deviceType": "Accessory",
+              "notes": "MDB dummy blocks and operator accessories"
+            },
+            {
+              "manufacturerId": "fath",
+              "pattern": "061CC42300.74",
+              "deviceType": "Cover / Door Accessory",
+              "notes": "FATH shelf-board cover cap"
+            },
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "73540003",
+              "deviceType": "Cover / Door Accessory",
+              "notes": "Spelsberg AK KF 03 hinged window"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEP",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEPY",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            }
+          ]
+        },
+        {
+          "sheetName": "cabinet.rack",
+          "deviceTypes": [
+            "Rack Cabinet"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rittal",
+              "pattern": "DK",
+              "deviceType": "Rack Cabinet"
+            }
+          ]
+        },
+        {
+          "sheetName": "cable",
+          "deviceTypes": [
+            "Cable"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SAMB1J313B.4000",
+              "deviceType": "Cable",
+              "notes": "FATH Module F Line GST18i3 main power cable"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "889",
+              "deviceType": "Cable",
+              "notes": "Allen-Bradley cordsets and patchcords"
+            },
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "59181001",
+              "deviceType": "Cable",
+              "notes": "Spelsberg Wallbox LL 7m Type 2 charging cable"
+            }
+          ]
+        },
+        {
+          "sheetName": "cable ducts mounting rails",
+          "deviceTypes": [
+            "Mounting Accessory",
+            "Wireway"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "09308901S01",
+              "deviceType": "Mounting Accessory",
+              "notes": "FATH workstation and profile mounting components"
+            },
+            {
+              "manufacturerId": "fath",
+              "pattern": "6FG40ND80M695N08",
+              "deviceType": "Mounting Accessory",
+              "notes": "FATH workstation and profile mounting components"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "CP2020",
+              "deviceType": "Mounting Accessory",
+              "notes": "nVent Hoffman/Schroff accessory items verified on official product pages"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "CSP2020",
+              "deviceType": "Mounting Accessory",
+              "notes": "nVent Hoffman/Schroff accessory items verified on official product pages"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "1524160",
+              "deviceType": "Mounting Accessory",
+              "notes": "Phoenix MCS-112X90-AP-7035 adapter plate item number"
+            }
+          ]
+        },
+        {
+          "sheetName": "cable gland",
+          "deviceTypes": [
+            "Cable Gland"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "26013201",
+              "deviceType": "Cable Gland",
+              "notes": "Spelsberg DMS M32/w double-membrane seal"
+            }
+          ]
+        },
+        {
+          "sheetName": "command and alarm device",
+          "deviceTypes": [
+            "Pilot Light",
+            "Pushbutton / Operator",
+            "Stack Light / Beacon"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "ML1",
+              "deviceType": "Pilot Light",
+              "notes": "ML1 pilot lights"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "M22",
+              "deviceType": "Pushbutton / Operator",
+              "notes": "M22 control station"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "800F",
+              "deviceType": "Pushbutton / Operator"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "800H",
+              "deviceType": "Pushbutton / Operator"
+            },
+            {
+              "manufacturerId": "schmersal",
+              "pattern": "BDF",
+              "deviceType": "Pushbutton / Operator",
+              "notes": "BDF command and control devices"
+            }
+          ]
+        },
+        {
+          "sheetName": "connector",
+          "deviceTypes": [
+            "Connector",
+            "Optical Connector"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SAKP5J516BS01",
+              "deviceType": "Connector",
+              "notes": "FATH Module F Line and profile connectors"
+            },
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SBEU14I.317",
+              "deviceType": "Connector",
+              "notes": "FATH Module F Line and profile connectors"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "69001-",
+              "deviceType": "Connector",
+              "notes": "nVent SCHROFF DIN connectors"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "MCS",
+              "deviceType": "Connector"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VIP",
+              "deviceType": "Connector"
+            }
+          ]
+        },
+        {
+          "sheetName": "contactor a. fuses",
+          "deviceTypes": [
+            "Circuit Breaker",
+            "Contactor",
+            "Disconnect Switch",
+            "Fuse",
+            "Miniature Circuit Breaker",
+            "Molded Case Circuit Breaker",
+            "Relay",
+            "Residual Current Device",
+            "Supplementary Protector"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "eta",
+              "pattern": "3120",
+              "deviceType": "Circuit Breaker"
+            },
+            {
+              "manufacturerId": "eta",
+              "pattern": "REX",
+              "deviceType": "Circuit Breaker"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492-CB",
+              "deviceType": "Circuit Breaker",
+              "notes": "Allen-Bradley circuit breakers"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "A",
+              "deviceType": "Contactor",
+              "notes": "AF / A / AL / AX series IEC contactors"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "AF",
+              "deviceType": "Contactor",
+              "notes": "AF / A / AL / AX series IEC contactors"
+            }
+          ]
+        },
+        {
+          "sheetName": "directional control valve",
+          "deviceTypes": [
+            "Directional Control Valve"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "el. mesurement devices",
+          "deviceTypes": [
+            "Current Sensor",
+            "Power Meter"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "electronic sensor",
+          "deviceTypes": [
+            "Capacitive Sensor",
+            "Encoder",
+            "Inductive Proximity Sensor",
+            "Magnetic Field Sensor",
+            "RFID Device",
+            "Sensor",
+            "Ultrasonic Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BCS",
+              "deviceType": "Capacitive Sensor"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BDG",
+              "deviceType": "Encoder",
+              "notes": "Absolute encoder"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BTL",
+              "deviceType": "Encoder",
+              "notes": "Magnetostrictive linear encoder"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BES",
+              "deviceType": "Inductive Proximity Sensor"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BIS",
+              "deviceType": "Inductive Proximity Sensor"
+            }
+          ]
+        },
+        {
+          "sheetName": "energy distribution system",
+          "deviceTypes": [
+            "Loadcenter"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "filters",
+          "deviceTypes": [
+            "Filter"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "fluid power",
+          "deviceTypes": [
+            "Hydraulic Actuator"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "generator",
+          "deviceTypes": [
+            "Generator"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "int. ext. lightning protection",
+          "deviceTypes": [
+            "Surge Protective Device"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "OVR",
+              "deviceType": "Surge Protective Device"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VAL-CP",
+              "deviceType": "Surge Protective Device"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VAL-MS",
+              "deviceType": "Surge Protective Device"
+            }
+          ]
+        },
+        {
+          "sheetName": "module carrier frame",
+          "deviceTypes": [
+            "Module Carrier"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "siemens",
+              "pattern": "6ES7193",
+              "deviceType": "Module Carrier",
+              "notes": "SIMATIC ET 200SP BaseUnits / base carriers"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "BaseUnits",
+              "deviceType": "Module Carrier",
+              "notes": "SIMATIC ET 200SP BaseUnits / base carriers"
+            }
+          ]
+        },
+        {
+          "sheetName": "motor protection",
+          "deviceTypes": [
+            "Motor Circuit Breaker",
+            "Motor Starter"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "MO",
+              "deviceType": "Motor Circuit Breaker",
+              "notes": "Manual motor starter"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MS",
+              "deviceType": "Motor Circuit Breaker",
+              "notes": "Manual motor starter"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PKE",
+              "deviceType": "Motor Circuit Breaker"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PKZM",
+              "deviceType": "Motor Circuit Breaker"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "140M",
+              "deviceType": "Motor Circuit Breaker"
+            }
+          ]
+        },
+        {
+          "sheetName": "motors",
+          "deviceTypes": [
+            "Motor",
+            "Variable Speed Drive"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "M2A",
+              "deviceType": "Motor"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "TM",
+              "deviceType": "Motor"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "ACQ",
+              "deviceType": "Variable Speed Drive",
+              "notes": "ACS / ACQ / ACH drives"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "ACS",
+              "deviceType": "Variable Speed Drive",
+              "notes": "ACS / ACQ / ACH drives"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "DC1",
+              "deviceType": "Variable Speed Drive",
+              "notes": "PowerXL"
+            }
+          ]
+        },
+        {
+          "sheetName": "optical sensor",
+          "deviceTypes": [
+            "Photoelectric Sensor",
+            "Vision Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BOH",
+              "deviceType": "Photoelectric Sensor"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BOS",
+              "deviceType": "Photoelectric Sensor"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "42EF",
+              "deviceType": "Photoelectric Sensor"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "42JS",
+              "deviceType": "Photoelectric Sensor"
+            },
+            {
+              "manufacturerId": "schneider",
+              "pattern": "XU",
+              "deviceType": "Photoelectric Sensor",
+              "notes": "OsiSense XU"
+            }
+          ]
+        },
+        {
+          "sheetName": "panel (HMI)",
+          "deviceTypes": [
+            "HMI"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "CP6",
+              "deviceType": "HMI",
+              "notes": "CP6xx HMI panel"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "XV",
+              "deviceType": "HMI"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "2711",
+              "deviceType": "HMI",
+              "notes": "PanelView HMI"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "2711P",
+              "deviceType": "HMI",
+              "notes": "PanelView HMI"
+            },
+            {
+              "manufacturerId": "schneider",
+              "pattern": "HMI",
+              "deviceType": "HMI",
+              "notes": "Harmony HMI"
+            }
+          ]
+        },
+        {
+          "sheetName": "pneumatic handling",
+          "deviceTypes": [
+            "Pneumatic Device"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "power supply devices",
+          "deviceTypes": [
+            "Battery",
+            "Power Supply",
+            "Transformer",
+            "UPS"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "CP-E",
+              "deviceType": "Power Supply",
+              "notes": "CP-T / CP-E DIN-rail PSUs"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "CP-T",
+              "deviceType": "Power Supply",
+              "notes": "CP-T / CP-E DIN-rail PSUs"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "QUINT",
+              "deviceType": "Power Supply"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "TRIO",
+              "deviceType": "Power Supply"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1606",
+              "deviceType": "Power Supply",
+              "notes": "Allen-Bradley switched mode power supplies"
+            }
+          ]
+        },
+        {
+          "sheetName": "pump",
+          "deviceTypes": [
+            "Pump"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "safety sensor",
+          "deviceTypes": [
+            "Safety Relay",
+            "Safety Sensor",
+            "Solenoid Interlock"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "PLUTO",
+              "deviceType": "Safety Relay",
+              "notes": "Pluto safety controller"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "2981091",
+              "deviceType": "Safety Relay",
+              "notes": "Phoenix PSR-SPP-24DC/ESD/5X1/1X2/T10 item number"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "PSR",
+              "deviceType": "Safety Relay"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "PSRMINI",
+              "deviceType": "Safety Relay"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "440C",
+              "deviceType": "Safety Relay"
+            }
+          ]
+        },
+        {
+          "sheetName": "sensor - fluid",
+          "deviceTypes": [
+            "Flow Sensor",
+            "Level Sensor",
+            "Pressure Sensor",
+            "Temperature Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "839E",
+              "deviceType": "Flow Sensor",
+              "notes": "Allen-Bradley flow sensors"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "840E",
+              "deviceType": "Level Sensor",
+              "notes": "Allen-Bradley level sensors"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "836P",
+              "deviceType": "Pressure Sensor",
+              "notes": "Allen-Bradley pressure sensors"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "837T",
+              "deviceType": "Temperature Sensor",
+              "notes": "Allen-Bradley temperature sensors"
+            }
+          ]
+        },
+        {
+          "sheetName": "servo controller",
+          "deviceTypes": [
+            "Soft Starter",
+            "Variable Speed Drive"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "PSE",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "PSTX",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "DS7",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "schneider",
+              "pattern": "ATS",
+              "deviceType": "Soft Starter",
+              "notes": "Altistart"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "3RW",
+              "deviceType": "Soft Starter",
+              "notes": "SIRIUS soft starter"
+            }
+          ]
+        },
+        {
+          "sheetName": "terminal",
+          "deviceTypes": [
+            "Terminal Block"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "UK",
+              "deviceType": "Terminal Block"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "UT",
+              "deviceType": "Terminal Block"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492",
+              "deviceType": "Terminal Block"
+            }
+          ]
+        },
+        {
+          "sheetName": "terminal endbracket",
+          "deviceTypes": [
+            "Terminal Accessory"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "CLIPFIX",
+              "deviceType": "Terminal Accessory"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "E/UK",
+              "deviceType": "Terminal Accessory"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492-EAH",
+              "deviceType": "Terminal Accessory",
+              "notes": "1492 end anchors / end retainers"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492-EAJ",
+              "deviceType": "Terminal Accessory",
+              "notes": "1492 end anchors / end retainers"
+            }
+          ]
+        },
+        {
+          "sheetName": "ventil",
+          "deviceTypes": [
+            "Valve"
+          ],
+          "examples": []
+        }
+      ],
+      "deviceSheetCoverage": {
+        "covered": 0,
+        "total": 41
+      }
+    },
+    "fixtureCoverageRequired": false,
+    "accepted": false
+  },
+  "reports": [
+    {
+      "manufacturerId": "rittal",
+      "catalogNumber": "9340050",
+      "expectedDeviceType": "Busbar Accessory",
+      "deviceTypeMatched": false,
+      "riskTags": [],
+      "status": "found",
+      "confidence": 0.71,
+      "elapsedMs": 6580,
+      "productUrl": "https://www.rittal.com/kr-ko/products/PG20231215POW101/PG20240417STR201/PG20240418STR203/PG20250927STR101/PRO0442?variantId=9340050",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261006100447\\pdt\\rittal-9340050-pdt_pdt-audit.json",
+      "pdtWrittenCells": 15,
+      "pdtBlankCells": 24,
+      "pdtSkippedCells": 0,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": [],
+      "resultEvidence": {
+        "title": "버스바 홀더 평강 구리바용",
+        "description": "최대 800A 평강 구리바용.",
+        "productUrl": "https://www.rittal.com/kr-ko/products/PG20231215POW101/PG20240417STR201/PG20240418STR203/PG20250927STR101/PRO0442?variantId=9340050",
+        "normalized": {
+          "weight": "0,72 kg",
+          "finish": "RAL 7035",
+          "color": "RAL 7035",
+          "voltage": "1000 V, 3~",
+          "current": "800 A"
+        },
+        "requiredElectricalFields": [],
+        "attributes": [
+          {
+            "group": "Definition List",
+            "name": "Approbationen",
+            "value": "ABS EN",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215POW101/PG20240417STR201/PG20240418STR203/PG20250927STR101/PRO0442?variantId=9340050",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Artikel-Nr.:",
+            "value": "SV 9340050",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215POW101/PG20240417STR201/PG20240418STR203/PG20250927STR101/PRO0442?variantId=9340050",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Ausführung",
+            "value": "UL-zertifiziert",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215POW101/PG20240417STR201/PG20240418STR203/PG20250927STR101/PRO0442?variantId=9340050",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Bemessungsbetriebsspannung",
+            "value": "1000 V, 3~",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215POW101/PG20240417STR201/PG20240418STR203/PG20250927STR101/PRO0442?variantId=9340050",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Bruttogewicht",
+            "value": "0,72 kg",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215POW101/PG20240417STR201/PG20240418STR203/PG20250927STR101/PRO0442?variantId=9340050",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Datenblätter",
+            "value": "Kurzschlussfestigkeitsdiagramm DE EN",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215POW101/PG20240417STR201/PG20240418STR203/PG20250927STR101/PRO0442?variantId=9340050",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Dokumentationen",
+            "value": "Anleitung DE, EN, FR",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215POW101/PG20240417STR201/PG20240418STR203/PG20250927STR101/PRO0442?variantId=9340050",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "EAN",
+            "value": "4028177525573",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215POW101/PG20240417STR201/PG20240418STR203/PG20250927STR101/PRO0442?variantId=9340050",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "EAN",
+            "value": "4028177525573",
+            "sourceUrl": "https://www.rittal.com/kr-ko/products/PG20231215POW101/PG20240417STR201/PG20240418STR203/PG20250927STR101/PRO0442?variantId=9340050",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "ECLASS 8.0",
+            "value": "27400607",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215POW101/PG20240417STR201/PG20240418STR203/PG20250927STR101/PRO0442?variantId=9340050",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "ECLASS 8.0",
+            "value": "27400607",
+            "sourceUrl": "https://www.rittal.com/kr-ko/products/PG20231215POW101/PG20240417STR201/PG20240418STR203/PG20250927STR101/PRO0442?variantId=9340050",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Elektrische Werte UL (SCCR)",
+            "value": "14 kA - 600 V, Halterabstand 500 mm, Sammelschienen 12 x 5/10 mm",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215POW101/PG20240417STR201/PG20240418STR203/PG20250927STR101/PRO0442?variantId=9340050",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Erklärungen",
+            "value": "Konformitätserklärung DE",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215POW101/PG20240417STR201/PG20240418STR203/PG20250927STR101/PRO0442?variantId=9340050",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "ETIM 9",
+            "value": "EC001166",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215POW101/PG20240417STR201/PG20240418STR203/PG20250927STR101/PRO0442?variantId=9340050",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "ETIM 9",
+            "value": "EC001166",
+            "sourceUrl": "https://www.rittal.com/kr-ko/products/PG20231215POW101/PG20240417STR201/PG20240418STR203/PG20250927STR101/PRO0442?variantId=9340050",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Farbe",
+            "value": "RAL 7035",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215POW101/PG20240417STR201/PG20240418STR203/PG20250927STR101/PRO0442?variantId=9340050",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Hinweis zur Artikel-Nr.",
+            "value": "Für UL-Anwendungen ist der Einsatz der Bodenwanne erforderlich",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215POW101/PG20240417STR201/PG20240418STR203/PG20250927STR101/PRO0442?variantId=9340050",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Marktrelevante Produktänderungen",
+            "value": "Aufgrund von Lieferengpässen für Kunststoff-Additive kommt es aktuell zu langen Lieferzeiten. Als Gegenmaßnahme wurden Alternativmaterialien geprüft und zertifiziert, um die Lieferfähigkeit zu verbessern. Bedingt hierdurch werden die Produkte zukünftig teilweise in der Farbe Schwarz (ähnlich RAL 9005) ausgeliefert. Die geschilderte Maßnahme hat keinerlei Einfluss auf die weiteren technischen Eigenschaften, Zulassungen und Approbationen.",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215POW101/PG20240417STR201/PG20240418STR203/PG20250927STR101/PRO0442?variantId=9340050",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Material",
+            "value": "PolyamidBrandverhalten gemäß UL 94-V0",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215POW101/PG20240417STR201/PG20240418STR203/PG20250927STR101/PRO0442?variantId=9340050",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Mit Innenbefestigung",
+            "value": "Ja",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215POW101/PG20240417STR201/PG20240418STR203/PG20250927STR101/PRO0442?variantId=9340050",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Mittenabstand der Sammelschienen",
+            "value": "60 mm",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215POW101/PG20240417STR201/PG20240418STR203/PG20250927STR101/PRO0442?variantId=9340050",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Nettogewicht",
+            "value": "0,668 kg",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215POW101/PG20240417STR201/PG20240418STR203/PG20250927STR101/PRO0442?variantId=9340050",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Passend für Artikel-Nr.",
+            "value": "3580000",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215POW101/PG20240417STR201/PG20240418STR203/PG20250927STR101/PRO0442?variantId=9340050",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Passend für Sammelschienen",
+            "value": "12 x 5 - 30 x 10 mm",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215POW101/PG20240417STR201/PG20240418STR203/PG20250927STR101/PRO0442?variantId=9340050",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Polzahl",
+            "value": "3-polig",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215POW101/PG20240417STR201/PG20240418STR203/PG20250927STR101/PRO0442?variantId=9340050",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Produktbeschreibung",
+            "value": "SV Sammelschienenhalter, 3-polig, 60 mm Schienenmittenabstand, für Sammelschiene BH: 12x5-30x10 mm, UL-Ausführung",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215POW101/PG20240417STR201/PG20240418STR203/PG20250927STR101/PRO0442?variantId=9340050",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Verpackungseinheit",
+            "value": "4 Stück",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215POW101/PG20240417STR201/PG20240418STR203/PG20250927STR101/PRO0442?variantId=9340050",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "Zolltarifnummer",
+            "value": "85469010",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215POW101/PG20240417STR201/PG20240418STR203/PG20250927STR101/PRO0442?variantId=9340050",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "관세 번호",
+            "value": "85469010",
+            "sourceUrl": "https://www.rittal.com/kr-ko/products/PG20231215POW101/PG20240417STR201/PG20240418STR203/PG20250927STR101/PRO0442?variantId=9340050",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "극수",
+            "value": "3극",
+            "sourceUrl": "https://www.rittal.com/kr-ko/products/PG20231215POW101/PG20240417STR201/PG20240418STR203/PG20250927STR101/PRO0442?variantId=9340050",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "내부 고정을 통해",
+            "value": "있음",
+            "sourceUrl": "https://www.rittal.com/kr-ko/products/PG20231215POW101/PG20240417STR201/PG20240418STR203/PG20250927STR101/PRO0442?variantId=9340050",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "데이터 시트",
+            "value": "Short-circuit resistance diagram DE EN",
+            "sourceUrl": "https://www.rittal.com/kr-ko/products/PG20231215POW101/PG20240417STR201/PG20240418STR203/PG20250927STR101/PRO0442?variantId=9340050",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "문서화",
+            "value": "Safety instructions 글로벌",
+            "sourceUrl": "https://www.rittal.com/kr-ko/products/PG20231215POW101/PG20240417STR201/PG20240418STR203/PG20250927STR101/PRO0442?variantId=9340050",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "버스바에 적합",
+            "value": "12 x 5 ~ 30 x 10 mm",
+            "sourceUrl": "https://www.rittal.com/kr-ko/products/PG20231215POW101/PG20240417STR201/PG20240418STR203/PG20250927STR101/PRO0442?variantId=9340050",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "버스바의 중심 간격",
+            "value": "60 mm",
+            "sourceUrl": "https://www.rittal.com/kr-ko/products/PG20231215POW101/PG20240417STR201/PG20240418STR203/PG20250927STR101/PRO0442?variantId=9340050",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "색상",
+            "value": "RAL 7035",
+            "sourceUrl": "https://www.rittal.com/kr-ko/products/PG20231215POW101/PG20240417STR201/PG20240418STR203/PG20250927STR101/PRO0442?variantId=9340050",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "설명",
+            "value": "적합성 인증 DE",
+            "sourceUrl": "https://www.rittal.com/kr-ko/products/PG20231215POW101/PG20240417STR201/PG20240418STR203/PG20250927STR101/PRO0442?variantId=9340050",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "순 중량",
+            "value": "0.668 kg",
+            "sourceUrl": "https://www.rittal.com/kr-ko/products/PG20231215POW101/PG20240417STR201/PG20240418STR203/PG20250927STR101/PRO0442?variantId=9340050",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "인증",
+            "value": "ABS EN",
+            "sourceUrl": "https://www.rittal.com/kr-ko/products/PG20231215POW101/PG20240417STR201/PG20240418STR203/PG20250927STR101/PRO0442?variantId=9340050",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "재료",
+            "value": "폴리아미드UL 94-V0 에 준하는 화재 방지 등급",
+            "sourceUrl": "https://www.rittal.com/kr-ko/products/PG20231215POW101/PG20240417STR201/PG20240418STR203/PG20250927STR101/PRO0442?variantId=9340050",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "적합한 품목 번호",
+            "value": "3580000",
+            "sourceUrl": "https://www.rittal.com/kr-ko/products/PG20231215POW101/PG20240417STR201/PG20240418STR203/PG20250927STR101/PRO0442?variantId=9340050",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "전기 사양 UL(SCCR)",
+            "value": "14kA - 600V, 홀더 간격 500mm, 버스바 12 x 5/10mm",
+            "sourceUrl": "https://www.rittal.com/kr-ko/products/PG20231215POW101/PG20240417STR201/PG20240418STR203/PG20250927STR101/PRO0442?variantId=9340050",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "정격 작동 전압",
+            "value": "1000 V, 3~",
+            "sourceUrl": "https://www.rittal.com/kr-ko/products/PG20231215POW101/PG20240417STR201/PG20240418STR203/PG20250927STR101/PRO0442?variantId=9340050",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "제품 설명",
+            "value": "SV 버스바 홀더, 3극, 60mm 버스바 중심 간격, 버스바 WH: 12x5~30x10mm용, UL 버전",
+            "sourceUrl": "https://www.rittal.com/kr-ko/products/PG20231215POW101/PG20240417STR201/PG20240418STR203/PG20250927STR101/PRO0442?variantId=9340050",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "주문 번호:",
+            "value": "SV 9340050",
+            "sourceUrl": "https://www.rittal.com/kr-ko/products/PG20231215POW101/PG20240417STR201/PG20240418STR203/PG20250927STR101/PRO0442?variantId=9340050",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "총 무게",
+            "value": "0.72 kg",
+            "sourceUrl": "https://www.rittal.com/kr-ko/products/PG20231215POW101/PG20240417STR201/PG20240418STR203/PG20250927STR101/PRO0442?variantId=9340050",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "포장 단위",
+            "value": "4 개",
+            "sourceUrl": "https://www.rittal.com/kr-ko/products/PG20231215POW101/PG20240417STR201/PG20240418STR203/PG20250927STR101/PRO0442?variantId=9340050",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Definition List",
+            "name": "품목 번호 관련 참고 사항:",
+            "value": "UL 애플리케이션을 위해 바닥 트레이의 사용이 필요합니다",
+            "sourceUrl": "https://www.rittal.com/kr-ko/products/PG20231215POW101/PG20240417STR201/PG20240418STR203/PG20250927STR101/PRO0442?variantId=9340050",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Meta",
+            "name": "description",
+            "value": "Für Flachkupferschienen bis 800 A.",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215POW101/PG20240417STR201/PG20240418STR203/PG20250927STR101/PRO0442?variantId=9340050",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Meta",
+            "name": "description",
+            "value": "최대 800A 평강 구리바용.",
+            "sourceUrl": "https://www.rittal.com/kr-ko/products/PG20231215POW101/PG20240417STR201/PG20240418STR203/PG20250927STR101/PRO0442?variantId=9340050",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Bruttogewicht",
+            "value": "0.72 kg",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215POW101/PG20240417STR201/PG20240418STR203/PG20250927STR101/PRO0442?variantId=9340050",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Nettogewicht",
+            "value": "0.668 kg",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215POW101/PG20240417STR201/PG20240418STR203/PG20250927STR101/PRO0442?variantId=9340050",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Plain Text",
+            "name": "api",
+            "value": "2020.09",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215POW101/PG20240417STR201/PG20240418STR203/PG20250927STR101/PRO0442?variantId=9340050",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Plain Text",
+            "name": "api",
+            "value": "2020.09",
+            "sourceUrl": "https://www.rittal.com/kr-ko/products/PG20231215POW101/PG20240417STR201/PG20240418STR203/PG20250927STR101/PRO0442?variantId=9340050",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Plain Text",
+            "name": "is=\"vue",
+            "value": "ProductHeader\"",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215POW101/PG20240417STR201/PG20240418STR203/PG20250927STR101/PRO0442?variantId=9340050",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Plain Text",
+            "name": "is=\"vue",
+            "value": "ProductHeader\"",
+            "sourceUrl": "https://www.rittal.com/kr-ko/products/PG20231215POW101/PG20240417STR201/PG20240418STR203/PG20250927STR101/PRO0442?variantId=9340050",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Plain Text",
+            "name": "SV 버스바 홀더, 3극, 60mm 버스바 중심 간격, 버스바 WH",
+            "value": "12x5~30x10mm용, UL 버전",
+            "sourceUrl": "https://www.rittal.com/kr-ko/products/PG20231215POW101/PG20240417STR201/PG20240418STR203/PG20250927STR101/PRO0442?variantId=9340050",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "ETIM 9",
+            "value": "EC001166",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215POW101/PG20240417STR201/PG20240418STR203/PG20250927STR101/PRO0442?variantId=9340050",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "ETIM 9",
+            "value": "EC001166",
+            "sourceUrl": "https://www.rittal.com/kr-ko/products/PG20231215POW101/PG20240417STR201/PG20240418STR203/PG20250927STR101/PRO0442?variantId=9340050",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Sammelschienenhalter für Flachkupferschienen",
+            "name": "Artikel-Nr.",
+            "value": "SV 9340050",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215POW101/PG20240417STR201/PG20240418STR203/PG20250927STR101/PRO0442?variantId=9340050",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Sammelschienenhalter für Flachkupferschienen",
+            "name": "Bemessungsbetriebsspannung",
+            "value": "1000 V, 3~ | 1500 V (DC)",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215POW101/PG20240417STR201/PG20240418STR203/PG20250927STR101/PRO0442?variantId=9340050",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Sammelschienenhalter für Flachkupferschienen",
+            "name": "Bruttogewicht",
+            "value": "0,72 kg",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215POW101/PG20240417STR201/PG20240418STR203/PG20250927STR101/PRO0442?variantId=9340050",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Sammelschienenhalter für Flachkupferschienen",
+            "name": "EAN",
+            "value": "4028177525573",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215POW101/PG20240417STR201/PG20240418STR203/PG20250927STR101/PRO0442?variantId=9340050",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Sammelschienenhalter für Flachkupferschienen",
+            "name": "Farbe",
+            "value": "RAL 7035",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215POW101/PG20240417STR201/PG20240418STR203/PG20250927STR101/PRO0442?variantId=9340050",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Sammelschienenhalter für Flachkupferschienen",
+            "name": "Hinweis zur Artikel-Nr.",
+            "value": "Für UL-Anwendungen ist der Einsatz der Bodenwanne erforderlich",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215POW101/PG20240417STR201/PG20240418STR203/PG20250927STR101/PRO0442?variantId=9340050",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Sammelschienenhalter für Flachkupferschienen",
+            "name": "Material",
+            "value": "PolyamidBrandverhalten gemäß UL 94-V0",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215POW101/PG20240417STR201/PG20240418STR203/PG20250927STR101/PRO0442?variantId=9340050",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Sammelschienenhalter für Flachkupferschienen",
+            "name": "Nettogewicht",
+            "value": "0,668 kg",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215POW101/PG20240417STR201/PG20240418STR203/PG20250927STR101/PRO0442?variantId=9340050",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Sammelschienenhalter für Flachkupferschienen",
+            "name": "Polzahl",
+            "value": "3-polig",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215POW101/PG20240417STR201/PG20240418STR203/PG20250927STR101/PRO0442?variantId=9340050",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Title/Description Inference",
+            "name": "Current",
+            "value": "800 A",
+            "sourceUrl": "https://www.rittal.com/de-de/products/PG20231215POW101/PG20240417STR201/PG20240418STR203/PG20250927STR101/PRO0442?variantId=9340050",
+            "sourceType": "generated",
+            "parser": "summary-inference",
+            "stage": "summary-inference",
+            "confidence": 0.45
+          },
+          {
+            "group": "Title/Description Inference",
+            "name": "Current",
+            "value": "800A",
+            "sourceUrl": "https://www.rittal.com/kr-ko/products/PG20231215POW101/PG20240417STR201/PG20240418STR203/PG20250927STR101/PRO0442?variantId=9340050",
+            "sourceType": "generated",
+            "parser": "summary-inference",
+            "stage": "summary-inference",
+            "confidence": 0.45
+          },
+          {
+            "group": "버스바 홀더 평강 구리바용",
+            "name": "EAN",
+            "value": "4028177525573",
+            "sourceUrl": "https://www.rittal.com/kr-ko/products/PG20231215POW101/PG20240417STR201/PG20240418STR203/PG20250927STR101/PRO0442?variantId=9340050",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86
+          },
+          {
+            "group": "PDF manual",
+            "name": "Feature",
+            "value": "The intended use of this component(s) is in low-voltage installations",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_5819/9340050_Safety_instructions___",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Feature",
+            "value": "within the scope of the Low Voltage Directive 2014/35/EU and",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_5819/9340050_Safety_instructions___",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Feature",
+            "value": "L'utilisation conforme de ce(s) produit(s) est prévue avec le système",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_5819/9340050_Safety_instructions___",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Feature",
+            "value": "Wskazówki bezpieczeństwa dotyczące obudowy:",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_5819/9340050_Safety_instructions___",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Feature",
+            "value": "Wskazówki dotyczące prac przy instalacjach elektrycznych:",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_5819/9340050_Safety_instructions___",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Feature",
+            "value": "◾ Osłonić lub odgrodzić sąsiednie elementy znajdujące się pod",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_5819/9340050_Safety_instructions___",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Feature",
+            "value": "Práce na elektrických zařízeních smí provádět pouze osoba znalá",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_5819/9340050_Safety_instructions___",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Feature",
+            "value": "Pokyny pro práce na elektrických zařízeních:",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_5819/9340050_Safety_instructions___",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Feature",
+            "value": "Práce na elektrických zariadeniach smie vykonávať iba kvalifikovaný",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_5819/9340050_Safety_instructions___",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Feature",
+            "value": "Pokyny pre práce na elektrických zariadeniach:",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_5819/9340050_Safety_instructions___",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Document",
+            "name": "Parsed document",
+            "value": "9340050_Safety_instructions___",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_5819/9340050_Safety_instructions___",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "within the scope of the Low Voltage",
+            "value": "Directive 2014/35/EU and",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_5819/9340050_Safety_instructions___",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Housing-specific safety",
+            "value": "instructions:",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_5819/9340050_Safety_instructions___",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "L'utilisation conforme de ce(s)",
+            "value": "produit(s) est prévue avec le système",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_5819/9340050_Safety_instructions___",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "◾ Mettre l'installation",
+            "value": "hors tension et la déconnecter du réseau sur",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_5819/9340050_Safety_instructions___",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "◾ Kontroller, at der ikke",
+            "value": "er spænding på produkterne.",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_5819/9340050_Safety_instructions___",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Wskazówki bezpieczeństwa dotyczące",
+            "value": "obudowy:",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_5819/9340050_Safety_instructions___",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Wskazówki dotyczące",
+            "value": "prac przy instalacjach elektrycznych:",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_5819/9340050_Safety_instructions___",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "◾ Osłonić lub odgrodzić sąsiednie elementy znajdujące",
+            "value": "się pod",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_5819/9340050_Safety_instructions___",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Práce na",
+            "value": "elektrických zařízeních smí provádět pouze osoba znalá",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_5819/9340050_Safety_instructions___",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "proti převrácení a sklouznutí – POZOR",
+            "value": "Posunutí těžiště!",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_5819/9340050_Safety_instructions___",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Pokyny pro práce",
+            "value": "na elektrických zařízeních:",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_5819/9340050_Safety_instructions___",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "◾ Lülitage seadmed välja ja ühendage need kõikidest",
+            "value": "poolustest",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_5819/9340050_Safety_instructions___",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Práce na",
+            "value": "elektrických zariadeniach smie vykonávať iba kvalifikovaný",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_5819/9340050_Safety_instructions___",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Pokyny pre práce",
+            "value": "na elektrických zariadeniach:",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_5819/9340050_Safety_instructions___",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          }
+        ],
+        "documents": [
+          {
+            "type": "manual",
+            "label": "9340050_Safety_instructions___",
+            "url": "https://www.rittal.com/imf/none/3_5819/9340050_Safety_instructions___",
+            "sourceUrl": "https://www.rittal.com/kr-ko/products/PG20231215POW101/PG20240417STR201/PG20240418STR203/PG20250927STR101/PRO0442?variantId=9340050",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86,
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261006100447\\documents\\9340050-manual-9340050_Safety_instructions___.pdf",
+            "downloadStatus": "downloaded",
+            "parseStatus": "parsed"
+          },
+          {
+            "type": "image",
+            "label": "og:image",
+            "url": "https://www.rittal.com/imf/x1200/2_38038/",
+            "sourceUrl": "https://www.rittal.com/kr-ko/products/PG20231215POW101/PG20240417STR201/PG20240418STR203/PG20250927STR101/PRO0442?variantId=9340050",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "confidence": 0.86,
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261006100447\\images\\RIT.9340050.png",
+            "downloadStatus": "downloaded",
+            "parseStatus": "skipped"
+          }
+        ],
+        "sources": [
+          {
+            "url": "https://www.rittal.com/kr-ko/products/PG20231215POW101/PG20240417STR201/PG20240418STR203/PG20250927STR101/PRO0442?variantId=9340050",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "parserVersion": "generic-v3",
+            "fetchedAt": "2026-10-06T10:04:48.626Z",
+            "statusCode": 200
+          },
+          {
+            "url": "https://www.rittal.com/de-de/products/PG20231215POW101/PG20240417STR201/PG20240418STR203/PG20250927STR101/PRO0442?variantId=9340050",
+            "sourceType": "official-fallback",
+            "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+            "parserVersion": "generic-v3",
+            "fetchedAt": "2026-10-06T10:04:48.170Z",
+            "statusCode": 200
+          },
+          {
+            "url": "https://www.rittal.com/imf/none/3_5819/9340050_Safety_instructions___",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "reason": "manual",
+            "fetchedAt": "2026-10-06T10:04:52.908Z"
+          }
+        ],
+        "qualityGate": {
+          "passed": true,
+          "identityConfirmed": true,
+          "score": 100,
+          "missing": [],
+          "reason": "Quality gate passed.",
+          "attempts": [
+            {
+              "stage": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+              "url": "https://www.rittal.com/kr-ko/products/PG20231215POW101/PG20240417STR201/PG20240418STR203/PG20250927STR101/PRO0442?variantId=9340050",
+              "status": "passed",
+              "score": 100,
+              "missing": [],
+              "reason": "Quality gate passed.",
+              "sourceType": "official-fallback",
+              "parser": "RIT DE localized official template confirmed by fetch (HTTP 200, effective URL contains catalog, catalog in document title, catalog in OG title)",
+              "statusCode": 200,
+              "attributeCount": 71,
+              "documentCount": 2,
+              "sectionAttributeCounts": {}
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

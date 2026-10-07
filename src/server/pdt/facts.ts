@@ -350,7 +350,7 @@ function addNormalized(facts: PdtFact[], result: ProductResult, key: string, val
 }
 
 function addSemanticNormalizedFacts(facts: PdtFact[], result: ProductResult): void {
-  const normalized = normalizeFields(result.attributes, result.documents);
+  const normalized = normalizeFields(result.attributes, result.documents, result.manufacturerId);
   if (!clean(result.normalized.weight)) addSemanticNormalizedIfMissing(facts, result, "weight", normalized.weight);
   if (!clean(result.normalized.dimensions)) addSemanticNormalizedIfMissing(facts, result, "dimensions", normalized.dimensions);
   if (!clean(result.normalized.material)) addSemanticNormalizedIfMissing(facts, result, "material", normalized.material);
@@ -369,8 +369,8 @@ function addDocumentCertificateFacts(facts: PdtFact[], result: ProductResult): v
       clean(result.normalized.certificates) ??
       clean(normalizeAbbFields(result.attributes, []).certificates)
     : clean(result.normalized.certificates) ??
-      clean(normalizeFields(result.attributes, []).certificates) ??
-      clean(normalizeFields(result.attributes, result.documents).certificates);
+      clean(normalizeFields(result.attributes, [], result.manufacturerId).certificates) ??
+      clean(normalizeFields(result.attributes, result.documents, result.manufacturerId).certificates);
   if (!value) return;
   const sourceType = certificateDoc.sourceType ?? "official";
   const confidence =
@@ -811,7 +811,7 @@ function attributeValue(result: ProductResult, pattern: RegExp): string | undefi
 function voltageNumberForPdt(result: ProductResult): string | undefined {
   return (
     firstNumberWithUnit(result.normalized.voltage, "V") ??
-    firstNumberWithUnit(normalizeFields(result.attributes, result.documents).voltage, "V") ??
+    firstNumberWithUnit(normalizeFields(result.attributes, result.documents, result.manufacturerId).voltage, "V") ??
     firstNumberWithUnit(attributeValue(result, /\b(rated voltage|operating voltage|supply voltage|voltage)\b/i), "V")
   );
 }
@@ -831,7 +831,7 @@ function signalColor(result: ProductResult): string | undefined {
   return (
     attributeValue(result, /\b(lens colou?r|lamp colou?r|light colou?r|color of lamp|colour of lamp|cover colou?r|covering colou?r)\b/i) ??
     clean(result.normalized.color) ??
-    normalizeFields(result.attributes, result.documents).color
+    normalizeFields(result.attributes, result.documents, result.manufacturerId).color
   );
 }
 
@@ -839,7 +839,7 @@ function signalDiameter(result: ProductResult): string | undefined {
   return (
     firstNumberWithUnit(attributeValue(result, /\b(diameter|outer diameter|outside diameter|lens diameter)\b/i), "mm") ??
     firstDimensionNumber(result.normalized.dimensions) ??
-    firstDimensionNumber(normalizeFields(result.attributes, result.documents).dimensions)
+    firstDimensionNumber(normalizeFields(result.attributes, result.documents, result.manufacturerId).dimensions)
   );
 }
 

@@ -1,0 +1,24 @@
+[
+  {
+    "manufacturerId": "schneider",
+    "catalogNumber": "RXM2AB2BD",
+    "caseType": "accessory",
+    "expectedOfficialUrlPatterns": [
+      "se\\.com/.*/product/RXM2AB2BD(/|$)"
+    ],
+    "requiredDocuments": [
+      "image"
+    ]
+  },
+  {
+    "manufacturerId": "schneider",
+    "catalogNumber": "VW3A1101",
+    "caseType": "accessory",
+    "expectedOfficialUrlPatterns": [
+      "se\\.com/.*/product/VW3A1101(/|$)"
+    ],
+    "requiredDocuments": [
+      "image"
+    ]
+  }
+]

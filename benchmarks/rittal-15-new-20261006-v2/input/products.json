@@ -1,0 +1,17 @@
+[
+  {"manufacturerId":"rittal","catalogNumber":"3245800","expectedDeviceType":"Thermal Management","expectedClassifierType":"Thermal Management","expectedOfficialUrlPatterns":["rittal.com/","/products/","variantId=3245800"]},
+  {"manufacturerId":"rittal","catalogNumber":"8618800","expectedDeviceType":"Mounting Accessory","expectedClassifierType":"Mounting Accessory","expectedOfficialUrlPatterns":["rittal.com/","/products/","variantId=8618800"]},
+  {"manufacturerId":"rittal","catalogNumber":"7030200","expectedDeviceType":"Access Sensor","expectedClassifierType":"Access Sensor","expectedOfficialUrlPatterns":["rittal.com/","/products/","variantId=7030200"]},
+  {"manufacturerId":"rittal","catalogNumber":"9350075","expectedDeviceType":"Busbar","expectedClassifierType":"Busbar","expectedOfficialUrlPatterns":["rittal.com/","/products/","variantId=9350075"]},
+  {"manufacturerId":"rittal","catalogNumber":"9665785","expectedDeviceType":"Cable Gland","expectedClassifierType":"Cable Gland","expectedOfficialUrlPatterns":["rittal.com/","/products/","variantId=9665785"]},
+  {"manufacturerId":"rittal","catalogNumber":"7888626","expectedDeviceType":"Rack Cabinet","expectedClassifierType":"Rack Cabinet","expectedOfficialUrlPatterns":["rittal.com/","/products/","variantId=7888626"]},
+  {"manufacturerId":"rittal","catalogNumber":"7979313","expectedDeviceType":"Power Distribution Unit","expectedClassifierType":"Power Distribution Unit","expectedOfficialUrlPatterns":["rittal.com/","/products/","variantId=7979313"]},
+  {"manufacturerId":"rittal","catalogNumber":"2500100","expectedDeviceType":"Luminaire","expectedClassifierType":"Luminaire","expectedOfficialUrlPatterns":["rittal.com/","/products/","variantId=2500100"]},
+  {"manufacturerId":"rittal","catalogNumber":"3336460","expectedDeviceType":"Thermal Management","expectedClassifierType":"Thermal Management","expectedOfficialUrlPatterns":["rittal.com/","/products/","variantId=3336460"]},
+  {"manufacturerId":"rittal","catalogNumber":"4532000","expectedDeviceType":"Subpanel","expectedClassifierType":"Subpanel","expectedOfficialUrlPatterns":["rittal.com/","/products/","variantId=4532000"]},
+  {"manufacturerId":"rittal","catalogNumber":"8611020","expectedDeviceType":"Cover / Door Accessory","expectedClassifierType":"Cover / Door Accessory","expectedOfficialUrlPatterns":["rittal.com/","/products/","variantId=8611020"]},
+  {"manufacturerId":"rittal","catalogNumber":"5302042","expectedDeviceType":"Mounting Accessory","expectedClassifierType":"Mounting Accessory","expectedOfficialUrlPatterns":["rittal.com/","/products/","variantId=5302042"]},
+  {"manufacturerId":"rittal","catalogNumber":"8617353","expectedDeviceType":"Mounting Accessory","expectedClassifierType":"Mounting Accessory","expectedOfficialUrlPatterns":["rittal.com/","/products/","variantId=8617353"]},
+  {"manufacturerId":"rittal","catalogNumber":"4127210","expectedDeviceType":"Switch","expectedClassifierType":"Switch","expectedOfficialUrlPatterns":["rittal.com/","/products/","variantId=4127210"]},
+  {"manufacturerId":"rittal","catalogNumber":"2418000","expectedDeviceType":"Lock / Interlock","expectedClassifierType":"Lock / Interlock","expectedOfficialUrlPatterns":["rittal.com/","/products/","variantId=2418000"]}
+]

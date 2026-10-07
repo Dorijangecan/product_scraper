@@ -195,6 +195,45 @@ const builtInManufacturerConfigs: Record<string, ManufacturerConfig> = {
       }
     ]
   },
+  rittal: {
+    id: "rittal",
+    canonicalName: "Rittal",
+    shortName: "RIT",
+    rateLimitMs: 1500,
+    concurrency: 2,
+    officialBaseUrls: ["https://www.rittal.com/com-en"],
+    homepageUrl: "https://www.rittal.com/com-en/",
+    localizedUrlTemplates: [
+      { locale: "en", urlTemplate: "https://www.rittal.com/com-en/products/show/{part}" },
+      { locale: "de", urlTemplate: "https://www.rittal.com/de-de/products/show/{part}" }
+    ],
+    fetchPolicy: {
+      timeoutMs: 30000,
+      acceptLanguage: "en-GB,en;q=0.9,de;q=0.7",
+      referer: "https://www.rittal.com/com-en/",
+      minContentLength: 1000
+    },
+    fallbackSources: [],
+    scrapeRecipe: {
+      discoveryPolicy: {
+        allowedOfficialDomains: ["rittal.com"],
+        enableRobotsSitemaps: true,
+        maxCandidates: 16
+      },
+      extractionPolicy: {
+        maxRawAttributes: 160,
+        maxDocuments: 80
+      },
+      fallbackPolicy: {
+        documentDownloadProfile: "quality"
+      },
+      confidenceRules: {
+        foundMinScore: 76,
+        partialMaxConfidence: 0.72,
+        distributorMaxConfidence: 0.45
+      }
+    }
+  },
   schmersal: {
     id: "schmersal",
     canonicalName: "Schmersal",

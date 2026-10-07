@@ -1,0 +1,90 @@
+{
+  "generatedAt": "2026-10-06T11:23:58.517Z",
+  "skuCount": 15,
+  "baselineBeforeConnector": {
+    "benchmarkReport": "benchmark-report.manufacturer-rittal.fixtureDir-benchmarks-rittal-15-new-20261006.json",
+    "result": "15/15 unsupported: unknown manufacturer; no useful duration comparison",
+    "htmlRequests": 0,
+    "fixtureAnswers": 0,
+    "externalSearch": "not a valid product-discovery baseline"
+  },
+  "preFixCold": {
+    "benchmarkReport": "15 per-SKU *tag-after-cold.json reports",
+    "result": "15/15 found by shared discovery before dedicated direct resolver and quality fixes",
+    "fixtureAnswers": 0,
+    "externalSearch": false,
+    "storage": "one clean isolated DB/cache per SKU",
+    "totalItemElapsedMs": 207509,
+    "meanMs": 13833.93,
+    "medianMs": 12264,
+    "minMs": 5289,
+    "maxMs": 33016
+  },
+  "finalCold": {
+    "benchmarkReport": "benchmark-report.manufacturer-rittal.fixtureDir-benchmarks-rittal-15-new-20261006.isolatedStorage-1.tag-final-cold-v7.json",
+    "log": "logs/final-cold-batch-v7.log",
+    "result": "15/15",
+    "fixtureAnswers": 0,
+    "externalSearch": false,
+    "storage": "fresh isolated DB/cache for full batch; unique exact page per SKU",
+    "fixtureExecution": "serial, 1 active fixture; benchmark delay 250 ms between fixtures; manufacturer config concurrency=2, rateLimitMs=1500",
+    "htmlRequests": 15,
+    "successfulAssetDownloads": 40.0,
+    "images": 15,
+    "totalItemElapsedMs": 156177.0,
+    "meanMs": 10411.8,
+    "medianMs": 9258,
+    "minMs": 1476,
+    "maxMs": 29725,
+    "retryCount": "not instrumented",
+    "waitMs": "not instrumented",
+    "stages": [
+      {
+        "phase": "downloadDocuments.initial",
+        "count": 15,
+        "sumMs": 38526.0,
+        "meanMs": 2568.4,
+        "medianMs": 1670,
+        "minMs": 589,
+        "maxMs": 7614
+      },
+      {
+        "phase": "enrich.initial",
+        "count": 15,
+        "sumMs": 87020.0,
+        "meanMs": 5801.3,
+        "medianMs": 3866,
+        "minMs": 0,
+        "maxMs": 19163
+      },
+      {
+        "phase": "exportPdt",
+        "count": 15,
+        "sumMs": 8120.0,
+        "meanMs": 541.3,
+        "medianMs": 511,
+        "minMs": 423,
+        "maxMs": 699
+      },
+      {
+        "phase": "scrape",
+        "count": 15,
+        "sumMs": 6561.0,
+        "meanMs": 437.4,
+        "medianMs": 330,
+        "minMs": 185,
+        "maxMs": 1750
+      },
+      {
+        "phase": "writeWorkbook",
+        "count": 15,
+        "sumMs": 6268.0,
+        "meanMs": 417.9,
+        "medianMs": 305,
+        "minMs": 136,
+        "maxMs": 1659
+      }
+    ]
+  },
+  "comparison": "Same 15 SKUs, no fixture answers, external search off, and no cached product response. The earlier run used one isolated store per SKU and the shared discovery route; final used one new isolated store for the serial full batch and dedicated exact Rittal resolver. Aggregate timings are reported; do not treat the calculated difference as a controlled concurrency benchmark."
+}

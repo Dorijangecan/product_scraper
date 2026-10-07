@@ -1,0 +1,4757 @@
+{
+  "generatedAt": "2026-10-06T10:48:27.291Z",
+  "outputDir": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261006104813",
+  "filters": {
+    "manufacturer": "rittal",
+    "catalogNumber": "3486937",
+    "fixtureDir": "benchmarks/rittal-15-new-20261006",
+    "isolatedStorage": "1",
+    "tag": "current-debug"
+  },
+  "summary": {
+    "foundRate": 100,
+    "officialUrlRate": 100,
+    "documentRate": 100,
+    "pdtAuditRate": 100,
+    "deviceTypeRate": 100,
+    "customerDocumentRate": 0,
+    "wrongProducts": 0,
+    "partialWithoutMissing": 0,
+    "pdtUnprovenWritten": 0,
+    "pdtUnexplainedRequiredFieldIssues": 0,
+    "pdtWriteIssues": 1,
+    "qualityAccepted": true,
+    "fixtureCoverageAccepted": true,
+    "fixtureCoverage": {
+      "byManufacturer": {
+        "rittal": {
+          "total": 1,
+          "caseTypes": [],
+          "riskTags": []
+        }
+      },
+      "byDeviceType": {
+        "Thermal Management": {
+          "total": 1,
+          "manufacturers": [
+            "rittal"
+          ],
+          "caseTypes": []
+        }
+      },
+      "byDeviceSheet": {
+        "cabinet.airconditioning": {
+          "total": 1,
+          "deviceTypes": [
+            "Thermal Management"
+          ],
+          "manufacturers": [
+            "rittal"
+          ]
+        }
+      },
+      "thinManufacturers": [
+        "rittal"
+      ],
+      "uncoveredDeviceSheets": [
+        "Busbar",
+        "Luminaire",
+        "Motion Controller",
+        "PCB connection system",
+        "PCB connection technology",
+        "PLC",
+        "RS232 interfaces",
+        "Switch",
+        "Wire ID Information",
+        "cabinet",
+        "cabinet.mechanical",
+        "cabinet.rack",
+        "cable",
+        "cable ducts mounting rails",
+        "cable gland",
+        "command and alarm device",
+        "connector",
+        "contactor a. fuses",
+        "directional control valve",
+        "el. mesurement devices",
+        "electronic sensor",
+        "energy distribution system",
+        "filters",
+        "fluid power",
+        "generator",
+        "int. ext. lightning protection",
+        "module carrier frame",
+        "motor protection",
+        "motors",
+        "optical sensor",
+        "panel (HMI)",
+        "pneumatic handling",
+        "power supply devices",
+        "pump",
+        "safety sensor",
+        "sensor - fluid",
+        "servo controller",
+        "terminal",
+        "terminal endbracket",
+        "ventil"
+      ],
+      "missingDeviceSheetRecommendations": [
+        {
+          "sheetName": "Busbar",
+          "deviceTypes": [
+            "Busbar"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "Luminaire",
+          "deviceTypes": [
+            "Luminaire"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SL0040I.953",
+              "deviceType": "Luminaire",
+              "notes": "FATH Module F Line LED lamp"
+            }
+          ]
+        },
+        {
+          "sheetName": "Motion Controller",
+          "deviceTypes": [
+            "Motion Controller"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1756-HYD",
+              "deviceType": "Motion Controller",
+              "notes": "ControlLogix integrated motion modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1756-M02",
+              "deviceType": "Motion Controller",
+              "notes": "ControlLogix integrated motion modules"
+            }
+          ]
+        },
+        {
+          "sheetName": "PCB connection system",
+          "deviceTypes": [
+            "PCB Connector"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "PCB connection technology",
+          "deviceTypes": [
+            "PCB Terminal Block"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "PLC",
+          "deviceTypes": [
+            "Communication Gateway",
+            "HMI",
+            "I/O Module",
+            "Programmable Logic Controller"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "FL",
+              "deviceType": "Communication Gateway",
+              "notes": "FL switch / FL gateway"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "RAD",
+              "deviceType": "Communication Gateway",
+              "notes": "Radioline"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENT",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENTR",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1783",
+              "deviceType": "Communication Gateway",
+              "notes": "Stratix industrial networking and communication modules"
+            }
+          ]
+        },
+        {
+          "sheetName": "RS232 interfaces",
+          "deviceTypes": [
+            "Communication Gateway"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "FL",
+              "deviceType": "Communication Gateway",
+              "notes": "FL switch / FL gateway"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "RAD",
+              "deviceType": "Communication Gateway",
+              "notes": "Radioline"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENT",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENTR",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1783",
+              "deviceType": "Communication Gateway",
+              "notes": "Stratix industrial networking and communication modules"
+            }
+          ]
+        },
+        {
+          "sheetName": "Switch",
+          "deviceTypes": [
+            "Lock / Interlock",
+            "Selector Switch",
+            "Switch"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "M2SS",
+              "deviceType": "Selector Switch",
+              "notes": "M2SS selector switches"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "M22-WR",
+              "deviceType": "Selector Switch",
+              "notes": "M22 selector switch actuator"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "JSHD",
+              "deviceType": "Switch",
+              "notes": "JSHD three-position handheld devices"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "2702665",
+              "deviceType": "Switch",
+              "notes": "Phoenix FL SWITCH 2105 item number"
+            },
+            {
+              "manufacturerId": "schmersal",
+              "pattern": "EFM",
+              "deviceType": "Switch",
+              "notes": "Schmersal foot switches"
+            }
+          ]
+        },
+        {
+          "sheetName": "Wire ID Information",
+          "deviceTypes": [
+            "Wire Marker"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "cabinet",
+          "deviceTypes": [
+            "Enclosure"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEP",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEPY",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PSN",
+              "deviceType": "Enclosure",
+              "notes": "xEnergy ProfiSNAP enclosure panels/accessories"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "P2C",
+              "deviceType": "Enclosure",
+              "notes": "nVent Hoffman enclosure families"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "P2D",
+              "deviceType": "Enclosure",
+              "notes": "nVent Hoffman enclosure families"
+            }
+          ]
+        },
+        {
+          "sheetName": "cabinet.mechanical",
+          "deviceTypes": [
+            "Accessory",
+            "Cover / Door Accessory",
+            "Enclosure",
+            "Subpanel"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "MDB",
+              "deviceType": "Accessory",
+              "notes": "MDB dummy blocks and operator accessories"
+            },
+            {
+              "manufacturerId": "fath",
+              "pattern": "061CC42300.74",
+              "deviceType": "Cover / Door Accessory",
+              "notes": "FATH shelf-board cover cap"
+            },
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "73540003",
+              "deviceType": "Cover / Door Accessory",
+              "notes": "Spelsberg AK KF 03 hinged window"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEP",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEPY",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            }
+          ]
+        },
+        {
+          "sheetName": "cabinet.rack",
+          "deviceTypes": [
+            "Rack Cabinet"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rittal",
+              "pattern": "DK",
+              "deviceType": "Rack Cabinet"
+            }
+          ]
+        },
+        {
+          "sheetName": "cable",
+          "deviceTypes": [
+            "Cable"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SAMB1J313B.4000",
+              "deviceType": "Cable",
+              "notes": "FATH Module F Line GST18i3 main power cable"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "889",
+              "deviceType": "Cable",
+              "notes": "Allen-Bradley cordsets and patchcords"
+            },
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "59181001",
+              "deviceType": "Cable",
+              "notes": "Spelsberg Wallbox LL 7m Type 2 charging cable"
+            }
+          ]
+        },
+        {
+          "sheetName": "cable ducts mounting rails",
+          "deviceTypes": [
+            "Mounting Accessory",
+            "Wireway"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "09308901S01",
+              "deviceType": "Mounting Accessory",
+              "notes": "FATH workstation and profile mounting components"
+            },
+            {
+              "manufacturerId": "fath",
+              "pattern": "6FG40ND80M695N08",
+              "deviceType": "Mounting Accessory",
+              "notes": "FATH workstation and profile mounting components"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "CP2020",
+              "deviceType": "Mounting Accessory",
+              "notes": "nVent Hoffman/Schroff accessory items verified on official product pages"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "CSP2020",
+              "deviceType": "Mounting Accessory",
+              "notes": "nVent Hoffman/Schroff accessory items verified on official product pages"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "1524160",
+              "deviceType": "Mounting Accessory",
+              "notes": "Phoenix MCS-112X90-AP-7035 adapter plate item number"
+            }
+          ]
+        },
+        {
+          "sheetName": "cable gland",
+          "deviceTypes": [
+            "Cable Gland"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "26013201",
+              "deviceType": "Cable Gland",
+              "notes": "Spelsberg DMS M32/w double-membrane seal"
+            }
+          ]
+        },
+        {
+          "sheetName": "command and alarm device",
+          "deviceTypes": [
+            "Pilot Light",
+            "Pushbutton / Operator",
+            "Stack Light / Beacon"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "ML1",
+              "deviceType": "Pilot Light",
+              "notes": "ML1 pilot lights"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "M22",
+              "deviceType": "Pushbutton / Operator",
+              "notes": "M22 control station"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "800F",
+              "deviceType": "Pushbutton / Operator"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "800H",
+              "deviceType": "Pushbutton / Operator"
+            },
+            {
+              "manufacturerId": "schmersal",
+              "pattern": "BDF",
+              "deviceType": "Pushbutton / Operator",
+              "notes": "BDF command and control devices"
+            }
+          ]
+        },
+        {
+          "sheetName": "connector",
+          "deviceTypes": [
+            "Connector",
+            "Optical Connector"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SAKP5J516BS01",
+              "deviceType": "Connector",
+              "notes": "FATH Module F Line and profile connectors"
+            },
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SBEU14I.317",
+              "deviceType": "Connector",
+              "notes": "FATH Module F Line and profile connectors"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "69001-",
+              "deviceType": "Connector",
+              "notes": "nVent SCHROFF DIN connectors"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "MCS",
+              "deviceType": "Connector"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VIP",
+              "deviceType": "Connector"
+            }
+          ]
+        },
+        {
+          "sheetName": "contactor a. fuses",
+          "deviceTypes": [
+            "Circuit Breaker",
+            "Contactor",
+            "Disconnect Switch",
+            "Fuse",
+            "Miniature Circuit Breaker",
+            "Molded Case Circuit Breaker",
+            "Relay",
+            "Residual Current Device",
+            "Supplementary Protector"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "eta",
+              "pattern": "3120",
+              "deviceType": "Circuit Breaker"
+            },
+            {
+              "manufacturerId": "eta",
+              "pattern": "REX",
+              "deviceType": "Circuit Breaker"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492-CB",
+              "deviceType": "Circuit Breaker",
+              "notes": "Allen-Bradley circuit breakers"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "A",
+              "deviceType": "Contactor",
+              "notes": "AF / A / AL / AX series IEC contactors"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "AF",
+              "deviceType": "Contactor",
+              "notes": "AF / A / AL / AX series IEC contactors"
+            }
+          ]
+        },
+        {
+          "sheetName": "directional control valve",
+          "deviceTypes": [
+            "Directional Control Valve"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "el. mesurement devices",
+          "deviceTypes": [
+            "Current Sensor",
+            "Power Meter"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "electronic sensor",
+          "deviceTypes": [
+            "Capacitive Sensor",
+            "Encoder",
+            "Inductive Proximity Sensor",
+            "Magnetic Field Sensor",
+            "RFID Device",
+            "Sensor",
+            "Ultrasonic Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BCS",
+              "deviceType": "Capacitive Sensor"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BDG",
+              "deviceType": "Encoder",
+              "notes": "Absolute encoder"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BTL",
+              "deviceType": "Encoder",
+              "notes": "Magnetostrictive linear encoder"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BES",
+              "deviceType": "Inductive Proximity Sensor"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BIS",
+              "deviceType": "Inductive Proximity Sensor"
+            }
+          ]
+        },
+        {
+          "sheetName": "energy distribution system",
+          "deviceTypes": [
+            "Loadcenter"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "filters",
+          "deviceTypes": [
+            "Filter"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "fluid power",
+          "deviceTypes": [
+            "Hydraulic Actuator"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "generator",
+          "deviceTypes": [
+            "Generator"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "int. ext. lightning protection",
+          "deviceTypes": [
+            "Surge Protective Device"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "OVR",
+              "deviceType": "Surge Protective Device"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VAL-CP",
+              "deviceType": "Surge Protective Device"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VAL-MS",
+              "deviceType": "Surge Protective Device"
+            }
+          ]
+        },
+        {
+          "sheetName": "module carrier frame",
+          "deviceTypes": [
+            "Module Carrier"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "siemens",
+              "pattern": "6ES7193",
+              "deviceType": "Module Carrier",
+              "notes": "SIMATIC ET 200SP BaseUnits / base carriers"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "BaseUnits",
+              "deviceType": "Module Carrier",
+              "notes": "SIMATIC ET 200SP BaseUnits / base carriers"
+            }
+          ]
+        },
+        {
+          "sheetName": "motor protection",
+          "deviceTypes": [
+            "Motor Circuit Breaker",
+            "Motor Starter"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "MO",
+              "deviceType": "Motor Circuit Breaker",
+              "notes": "Manual motor starter"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MS",
+              "deviceType": "Motor Circuit Breaker",
+              "notes": "Manual motor starter"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PKE",
+              "deviceType": "Motor Circuit Breaker"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PKZM",
+              "deviceType": "Motor Circuit Breaker"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "140M",
+              "deviceType": "Motor Circuit Breaker"
+            }
+          ]
+        },
+        {
+          "sheetName": "motors",
+          "deviceTypes": [
+            "Motor",
+            "Variable Speed Drive"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "M2A",
+              "deviceType": "Motor"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "TM",
+              "deviceType": "Motor"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "ACQ",
+              "deviceType": "Variable Speed Drive",
+              "notes": "ACS / ACQ / ACH drives"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "ACS",
+              "deviceType": "Variable Speed Drive",
+              "notes": "ACS / ACQ / ACH drives"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "DC1",
+              "deviceType": "Variable Speed Drive",
+              "notes": "PowerXL"
+            }
+          ]
+        },
+        {
+          "sheetName": "optical sensor",
+          "deviceTypes": [
+            "Photoelectric Sensor",
+            "Vision Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BOH",
+              "deviceType": "Photoelectric Sensor"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BOS",
+              "deviceType": "Photoelectric Sensor"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "42EF",
+              "deviceType": "Photoelectric Sensor"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "42JS",
+              "deviceType": "Photoelectric Sensor"
+            },
+            {
+              "manufacturerId": "schneider",
+              "pattern": "XU",
+              "deviceType": "Photoelectric Sensor",
+              "notes": "OsiSense XU"
+            }
+          ]
+        },
+        {
+          "sheetName": "panel (HMI)",
+          "deviceTypes": [
+            "HMI"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "CP6",
+              "deviceType": "HMI",
+              "notes": "CP6xx HMI panel"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "XV",
+              "deviceType": "HMI"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "2711",
+              "deviceType": "HMI",
+              "notes": "PanelView HMI"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "2711P",
+              "deviceType": "HMI",
+              "notes": "PanelView HMI"
+            },
+            {
+              "manufacturerId": "schneider",
+              "pattern": "HMI",
+              "deviceType": "HMI",
+              "notes": "Harmony HMI"
+            }
+          ]
+        },
+        {
+          "sheetName": "pneumatic handling",
+          "deviceTypes": [
+            "Pneumatic Device"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "power supply devices",
+          "deviceTypes": [
+            "Battery",
+            "Power Supply",
+            "Transformer",
+            "UPS"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "CP-E",
+              "deviceType": "Power Supply",
+              "notes": "CP-T / CP-E DIN-rail PSUs"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "CP-T",
+              "deviceType": "Power Supply",
+              "notes": "CP-T / CP-E DIN-rail PSUs"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "QUINT",
+              "deviceType": "Power Supply"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "TRIO",
+              "deviceType": "Power Supply"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1606",
+              "deviceType": "Power Supply",
+              "notes": "Allen-Bradley switched mode power supplies"
+            }
+          ]
+        },
+        {
+          "sheetName": "pump",
+          "deviceTypes": [
+            "Pump"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "safety sensor",
+          "deviceTypes": [
+            "Safety Relay",
+            "Safety Sensor",
+            "Solenoid Interlock"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "PLUTO",
+              "deviceType": "Safety Relay",
+              "notes": "Pluto safety controller"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "2981091",
+              "deviceType": "Safety Relay",
+              "notes": "Phoenix PSR-SPP-24DC/ESD/5X1/1X2/T10 item number"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "PSR",
+              "deviceType": "Safety Relay"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "PSRMINI",
+              "deviceType": "Safety Relay"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "440C",
+              "deviceType": "Safety Relay"
+            }
+          ]
+        },
+        {
+          "sheetName": "sensor - fluid",
+          "deviceTypes": [
+            "Flow Sensor",
+            "Level Sensor",
+            "Pressure Sensor",
+            "Temperature Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "839E",
+              "deviceType": "Flow Sensor",
+              "notes": "Allen-Bradley flow sensors"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "840E",
+              "deviceType": "Level Sensor",
+              "notes": "Allen-Bradley level sensors"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "836P",
+              "deviceType": "Pressure Sensor",
+              "notes": "Allen-Bradley pressure sensors"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "837T",
+              "deviceType": "Temperature Sensor",
+              "notes": "Allen-Bradley temperature sensors"
+            }
+          ]
+        },
+        {
+          "sheetName": "servo controller",
+          "deviceTypes": [
+            "Soft Starter",
+            "Variable Speed Drive"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "PSE",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "PSTX",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "DS7",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "schneider",
+              "pattern": "ATS",
+              "deviceType": "Soft Starter",
+              "notes": "Altistart"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "3RW",
+              "deviceType": "Soft Starter",
+              "notes": "SIRIUS soft starter"
+            }
+          ]
+        },
+        {
+          "sheetName": "terminal",
+          "deviceTypes": [
+            "Terminal Block"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "UK",
+              "deviceType": "Terminal Block"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "UT",
+              "deviceType": "Terminal Block"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492",
+              "deviceType": "Terminal Block"
+            }
+          ]
+        },
+        {
+          "sheetName": "terminal endbracket",
+          "deviceTypes": [
+            "Terminal Accessory"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "CLIPFIX",
+              "deviceType": "Terminal Accessory"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "E/UK",
+              "deviceType": "Terminal Accessory"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492-EAH",
+              "deviceType": "Terminal Accessory",
+              "notes": "1492 end anchors / end retainers"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492-EAJ",
+              "deviceType": "Terminal Accessory",
+              "notes": "1492 end anchors / end retainers"
+            }
+          ]
+        },
+        {
+          "sheetName": "ventil",
+          "deviceTypes": [
+            "Valve"
+          ],
+          "examples": []
+        }
+      ],
+      "deviceSheetCoverage": {
+        "covered": 1,
+        "total": 41
+      }
+    },
+    "fixtureCoverageRequired": false,
+    "accepted": true
+  },
+  "reports": [
+    {
+      "manufacturerId": "rittal",
+      "catalogNumber": "3486937",
+      "expectedDeviceType": "Cooling Unit",
+      "actualDeviceType": "Thermal Management",
+      "expectedClassifierType": "Thermal Management",
+      "deviceTypeMatched": true,
+      "riskTags": [],
+      "status": "found",
+      "confidence": 0.73,
+      "elapsedMs": 12018,
+      "productUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261006104813\\pdt\\rittal-3486937-pdt_pdt-audit.json",
+      "pdtWrittenCells": 42,
+      "pdtBlankCells": 49,
+      "pdtSkippedCells": 1,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 1,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": [],
+      "resultEvidence": {
+        "title": "Wall-mounted cooling unit Blue e+ Dynamic 1.0 kW – 2.6 kW",
+        "description": "The Blue e+ Dynamic series of cooling units is designed specifically for use in dynamic applications. The devices are tested to DNV-CG-0339 and are therefore ideal for use on board ships (e.g. enclosures in the engine room). Their exceptionally stable mechanical design makes these cooling units suitable for any application that creates high vibration levels on the device, such as applications in ports (cranes), logistics (storage and retrieval systems) and airports (baggage handling systems).",
+        "productUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+        "localizedUrls": {
+          "en": "https://www.rittal.com/com-en/products/show/3486937",
+          "de": "https://www.rittal.com/de-de/products/show/3486937"
+        },
+        "deviceTypeClassification": {
+          "type": "Thermal Management",
+          "confidence": 0.98,
+          "evidence": "Title: Wall-mounted cooling unit Blue e+ Dynamic 1.0 kW – 2.6 kW",
+          "scoreMargin": 1660
+        },
+        "normalized": {
+          "weight": "62 kg",
+          "dimensions": "1,600 x 433 x 294 mm",
+          "material": "Sheet steel",
+          "color": "RAL 7035",
+          "voltage": "110 V - 240 V, 1~, 50 Hz/60 Hz | 380 V - 480 V, 3~, 50 Hz/60 Hz",
+          "protection": "Internal circuit IP 55",
+          "certificates": "Declaration of conformity DE, EN",
+          "operatingTemperatureMin": "-20",
+          "operatingTemperatureMax": "60",
+          "current": "20 kA"
+        },
+        "requiredElectricalFields": [
+          "voltage"
+        ],
+        "attributes": [
+          {
+            "group": "Definition List",
+            "name": "Material",
+            "value": "Sheet steel",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "Colour",
+            "value": "RAL 7035",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "Rated operating voltage",
+            "value": "110 V - 240 V, 1~, 50 Hz/60 Hz",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "Rated power input",
+            "value": "0.73 kW",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "Protection category to IEC 60 529",
+            "value": "Internal circuit IP 55",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "Operating temperature range",
+            "value": "-20 °C...60 °C",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "Storage temperature range",
+            "value": "-40 °C...70 °C",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "Operating temperature range of refrigerant circuit (active)",
+            "value": "3 °C...60 °C",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "Heat pipe operating temperature range",
+            "value": "-20 °C...45 °C",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "Net weight",
+            "value": "62 kg",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "Gross weight",
+            "value": "72 kg",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "Declarations",
+            "value": "Declaration of conformity DE, EN",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Wall-mounted cooling unit Blue e+ Dynamic 1.0 kW – 2.6 kW",
+            "name": "Material",
+            "value": "Sheet steel",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Wall-mounted cooling unit Blue e+ Dynamic 1.0 kW – 2.6 kW",
+            "name": "Colour",
+            "value": "RAL 7035",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Wall-mounted cooling unit Blue e+ Dynamic 1.0 kW – 2.6 kW",
+            "name": "Rated operating voltage",
+            "value": "110 V - 240 V, 1~, 50 Hz/60 Hz | 380 V - 480 V, 3~, 50 Hz/60 Hz",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Wall-mounted cooling unit Blue e+ Dynamic 1.0 kW – 2.6 kW",
+            "name": "Rated power input",
+            "value": "0.73 kW",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Wall-mounted cooling unit Blue e+ Dynamic 1.0 kW – 2.6 kW",
+            "name": "Protection category to IEC 60 529",
+            "value": "Internal circuit IP 55",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Wall-mounted cooling unit Blue e+ Dynamic 1.0 kW – 2.6 kW",
+            "name": "Operating temperature range",
+            "value": "-20 °C...60 °C",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Wall-mounted cooling unit Blue e+ Dynamic 1.0 kW – 2.6 kW",
+            "name": "Storage temperature range",
+            "value": "-40 °C...70 °C",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Wall-mounted cooling unit Blue e+ Dynamic 1.0 kW – 2.6 kW",
+            "name": "Operating temperature range of refrigerant circuit (active)",
+            "value": "3 °C...60 °C",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Wall-mounted cooling unit Blue e+ Dynamic 1.0 kW – 2.6 kW",
+            "name": "Heat pipe operating temperature range",
+            "value": "-20 °C...45 °C",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Wall-mounted cooling unit Blue e+ Dynamic 1.0 kW – 2.6 kW",
+            "name": "Net weight",
+            "value": "62 kg",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Wall-mounted cooling unit Blue e+ Dynamic 1.0 kW – 2.6 kW",
+            "name": "Gross weight",
+            "value": "72 kg",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Title/Description Inference",
+            "name": "Color",
+            "value": "Blue",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "generated",
+            "parser": "summary-inference",
+            "stage": "summary-inference",
+            "confidence": 0.45
+          },
+          {
+            "group": "Definition List",
+            "name": "Article no.:",
+            "value": "SK 3486937",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "Design",
+            "value": "wall-mountedDynamic",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "Supply includes",
+            "value": "Condenser with hydrophobic RiNano coatingIntegral electric condensate evaporationAssembly partsFully wired ready for connection (plug-in terminal strip)",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "Total cooling output to DIN EN 14511",
+            "value": "Cooling output L35 L35/50 Hz: 2 kWCooling output L35 L35/60 Hz: 2 kWCooling output L35 L50/50 Hz: 1.29 kWCooling output L35 L50/60 Hz: 1.29 kW",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "Hint Construction",
+            "value": "Partial installation not supported",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "Air throughput (unimpeded air flow)",
+            "value": "External circuit: 1,250 m³/hInternal circuit: 1,250 m³/h",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "Energy efficiency ratio (EER) 50/60 Hz L35 L35",
+            "value": "Refrigeration factor L35 L35 (EER) 50 Hz: 3.23Refrigeration factor L35 L35 (EER) 60 Hz: 3.23",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "Seasonal energy efficiency ratio (SEER) 50/60 Hz",
+            "value": "7.6",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "Required mounting cut-out",
+            "value": "Cut-out width: 433 mmCut-out height: 1,579 mm",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "Temperature control",
+            "value": "e+ controller (factory setting +35 °C)",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "Setting range",
+            "value": "20 °C...50 °C",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "Permissible operating pressure (p. max.)",
+            "value": "24 bar",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "PCF per pack (cradle-to-gate)",
+            "value": "273.35 kg CO2 eq (Cat B)",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "Note on PCF category",
+            "value": "Category B: PCF value (cradle-to-gate) based on the product weight, approximately calculated and self-declared",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "Customs tariff number",
+            "value": "84158200",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "Product description",
+            "value": "SK Blue e+ cooling unit, wall-mounted, dynamic, 2.0 kW, R-1234yf, 110-240 V, 1~, 380-480 V, 3~, 50-60 Hz, sheet steel, WxHxD: 450 x 1600 x 294 mm",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "Documentation",
+            "value": "Further instructions CS DE EN",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "Data sheets",
+            "value": "Safety data sheet refrigerant CS DE EN ES FI FR IT JA NL NO PL PT SK SV ZH",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "Software",
+            "value": "Licence condition DE EN",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Plain Text",
+            "name": "Cut-out width",
+            "value": "433 mm Cut-out height: 1,579 mm",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "height",
+            "value": "1579 mm Sheet steel RAL 7035 Refrigeration factor L35 L35 (EER) 50/ 60 Hz: 3.23 Refrigerant / Quantity:Refrigerant: R-1234yf",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "Height",
+            "value": "1,600 mm",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "Depth",
+            "value": "294 mm",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "Width",
+            "value": "433 mm",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "Height",
+            "value": "1,579 mm",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "Conformity",
+            "value": "F-gas regulation",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "Width",
+            "value": "433 mm,",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "Height",
+            "value": "1579 mm",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "Temperature range",
+            "value": "-40 °C to 70 °C",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "Weight",
+            "value": "55.2 kg",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Electrical Text",
+            "name": "Rated voltage",
+            "value": "110...240 V",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Electrical Text",
+            "name": "Control voltage",
+            "value": "275 V",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Electrical Text",
+            "name": "Control voltage",
+            "value": "385 V",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Electrical Text",
+            "name": "Operating voltage",
+            "value": "< 460 V",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Electrical Text",
+            "name": "Operating voltage",
+            "value": "> 460 V",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Electrical Text",
+            "name": "Rated current",
+            "value": "20 kA",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Electrical Text",
+            "name": "Power input",
+            "value": "0.73 kW",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Operating temperature",
+            "value": "-20 °C / 60 °C",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Temperature range",
+            "value": "-20 °C / 60 °C",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Operating temperature",
+            "value": "3 °C / 60 °C",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Temperature range",
+            "value": "3 °C / 60 °C",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Operating temperature",
+            "value": "-20 °C / 45 °C / 20 °C / 50 °C",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Temperature range",
+            "value": "-20 °C / 45 °C / 20 °C / 50 °C",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Operating temperature",
+            "value": "-20 °C / 60 °C / 20 °C / 50 °C",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Temperature range",
+            "value": "-20 °C / 60 °C / 20 °C / 50 °C",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Net weight",
+            "value": "62 kg",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Gross weight",
+            "value": "72 kg / 273.35 kg",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Weight",
+            "value": "55.2 kg",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Width",
+            "value": "450 mm",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Width",
+            "value": "433 mm",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Height",
+            "value": "1600 mm",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Height",
+            "value": "1579 mm",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Depth",
+            "value": "294 mm",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Wall-mounted cooling unit Blue e+ Dynamic 1.0 kW – 2.6 kW",
+            "name": "Article no.",
+            "value": "SK 3486937",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Wall-mounted cooling unit Blue e+ Dynamic 1.0 kW – 2.6 kW",
+            "name": "Total cooling output to DIN EN 14511",
+            "value": "Cooling output L35 L35/50 Hz: 2 kWCooling output L35 L35/60 Hz: 2 kWCooling output L35 L50/50 Hz: 1.29 kWCooling output L35 L50/60 Hz: 1.29 kW",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Wall-mounted cooling unit Blue e+ Dynamic 1.0 kW – 2.6 kW",
+            "name": "Air throughput (unimpeded air flow)",
+            "value": "External circuit: 1,250 m³/hInternal circuit: 1,250 m³/h",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Wall-mounted cooling unit Blue e+ Dynamic 1.0 kW – 2.6 kW",
+            "name": "Energy efficiency ratio (EER) 50/60 Hz L35 L35",
+            "value": "Refrigeration factor L35 L35 (EER) 50 Hz: 3.23Refrigeration factor L35 L35 (EER) 60 Hz: 3.23",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Wall-mounted cooling unit Blue e+ Dynamic 1.0 kW – 2.6 kW",
+            "name": "Seasonal energy efficiency ratio (SEER) 50/60 Hz",
+            "value": "7.6",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Wall-mounted cooling unit Blue e+ Dynamic 1.0 kW – 2.6 kW",
+            "name": "Required mounting cut-out",
+            "value": "Cut-out width: 433 mmCut-out height: 1,579 mm",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Wall-mounted cooling unit Blue e+ Dynamic 1.0 kW – 2.6 kW",
+            "name": "Temperature control",
+            "value": "e+ controller (factory setting +35 °C)",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Wall-mounted cooling unit Blue e+ Dynamic 1.0 kW – 2.6 kW",
+            "name": "Permissible operating pressure (p. max.)",
+            "value": "24 bar",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Title/Description Inference",
+            "name": "Power",
+            "value": "1.0 kW; 2.6 kW",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "generated",
+            "parser": "summary-inference",
+            "stage": "summary-inference",
+            "confidence": 0.45
+          },
+          {
+            "group": "Plain Text",
+            "name": "is=\"vue",
+            "value": "ProductHeader\"",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Plain Text",
+            "name": "More efficiency",
+            "value": "Exceptional seasonal energy efficiency ratio (SEER) > 6.2",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Plain Text",
+            "name": "More flexibility",
+            "value": "Suitable for versatile use in dynamic applications without expensive infrastructure measures. Easily retro-fitted too.",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Plain Text",
+            "name": "Enhanced reliability",
+            "value": "Maximum reliability, less maintenance-intensive and ready to use at short notice",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Plain Text",
+            "name": "Added simplicity",
+            "value": "Effortless planning, operation and installation",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Plain Text",
+            "name": "Cooling output L35 L35/50 Hz",
+            "value": "2 kW Cooling output L35 L35/60 Hz: 2 kW Cooling output L35 L50/50 Hz: 1.29 kW Cooling output L35 L50/60 Hz: 1.29 kW",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Plain Text",
+            "name": "Tolerance",
+            "value": "110 V -10% (99 V) and 240 V +10% (264 V) / 380 V -10% (342 V) and 480 V +6% (509 V)",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Plain Text",
+            "name": "External circuit",
+            "value": "1,250 m³/h Internal circuit: 1,250 m³/h",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Plain Text",
+            "name": "Refrigeration factor L35 L35 (EER) 50 Hz",
+            "value": "3.23 Refrigeration factor L35 L35 (EER) 60 Hz: 3.23",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Plain Text",
+            "name": "Category B",
+            "value": "PCF value (cradle-to-gate) based on the product weight, approximately calculated and self-declared",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Plain Text",
+            "name": "api",
+            "value": "2020.09",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "Customs tariff number",
+            "value": "84158200",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Electrical Text",
+            "name": "Rated power",
+            "value": "2.0 kW",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Electrical Text",
+            "name": "Frequency",
+            "value": "50-60 Hz",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Electrical Text",
+            "name": "Power consumption",
+            "value": "0.62 kW",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Electrical Text",
+            "name": "Power consumption",
+            "value": "0.6 kW",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Rated power",
+            "value": "0.73 kW",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Power",
+            "value": "0.62 kW",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Power",
+            "value": "0.6 kW",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Storage temperature",
+            "value": "-40 °C / 70 °C",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Permissible operating pressure",
+            "value": "24 bar",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Cooling output",
+            "value": "2 kW",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Cooling output",
+            "value": "1.29 kW",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "registrační číslo REACH : 01-0000019665-61",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "činnosti podle REACH článek 57(f) nebo nařízení Komise (EU) s delegovanou pravomocí 2017/2100",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "REACH",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "No.190 7/2006 (REACH), článek 57.",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Document",
+            "name": "Parsed document",
+            "value": "3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "ODDÍL 1",
+            "value": "Identifikace látky/směsi a společnosti/podniku",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Název výrobku",
+            "value": "Solstice® yf Refrigerant (R-1234yf)",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "BL-Číslo",
+            "value": "000000011078",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Typ produktu",
+            "value": "Látky",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Poznámky",
+            "value": "Bezpečnostní list v souladu se článkem 31 nařízení ES č.",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Chemický název",
+            "value": "2,3,3,3-Tetrafluoroprop-1-ene",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Č. CAS",
+            "value": "754-12-1",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "registrační číslo REACH",
+            "value": ": 01-0000019665-61",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Použití látky nebo směsi",
+            "value": "Chladicí činidlo",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Firma",
+            "value": "SOLSTICE ADVANCED",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "MATERIALS",
+            "value": "IRELAND LIMITED",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Telefon",
+            "value": "+353 1 447 9350",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Toxikologické informační středisko Česko",
+            "value": "+420224919293;",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "ODDÍL 2",
+            "value": "Identifikace nebezpečnosti",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Signálním slovem",
+            "value": "Nebezpečí",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "P377 Požár unikajícího plynu",
+            "value": "Nehaste, nelze-",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "činnosti podle REACH",
+            "value": "článek 57(f) nebo nařízení Komise (EU) s delegovanou pravomocí 2017/2100",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "ODDÍL 3",
+            "value": "Složení/informace o složkách",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "ODDÍL 4",
+            "value": "Pokyny pro první pomoc",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "ODDÍL 5",
+            "value": "Opatření pro hašení požáru",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Použijte postřik",
+            "value": "vodou, pěnu vhodnou k hašení alkoholu, práškový hasicí prostředek nebo oxid uhličitý.",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Osoby odveďte do bezpečí.Požár unikajícího plynu",
+            "value": "Nehaste, nelze-li únik bezpečně zastavit.Odstraňte",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "ODDÍL 6",
+            "value": "Opatření v případě náhodného úniku",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "zadušení. Zajistěte, aby obsah kyslíku byl >",
+            "value": "19,5 %.",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "ODDÍL 7",
+            "value": "Zacházení a skladování",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "ODDÍL 8",
+            "value": "Omezování expozice / osobní ochranné prostředky",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "2,3,3,3-Tetrafluoroprop-1-ene Sladká voda",
+            "value": "0,1 mg/l",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "2,3,3,3-Tetrafluoroprop-1-ene Mořská voda",
+            "value": "0,01 mg/l",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "2,3,3,3-Tetrafluoroprop-1-ene Sladkovodní sediment",
+            "value": "1,51 mg/kg",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "2,3,3,3-Tetrafluoroprop-1-ene Mořský sediment",
+            "value": "0,151 mg/kg",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "2,3,3,3-Tetrafluoroprop-1-ene Půda",
+            "value": "1,49 mg/kg",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Osobní ochranné prostředky musí být v souladu se standardy EN",
+            "value": "respirátor EN 136, 140, 149;",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "ochranné brýle EN 166; ochranný oblek",
+            "value": "EN 340, 463, 468, 943-1, 943-2; rukavice EN 374, 511;",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "ODDÍL 9",
+            "value": "Fyzikální a chemické vlastnosti",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "(a)_Skupenství",
+            "value": "plynný",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "(b)_Barva",
+            "value": "bezbarvý",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "(c)_Zápach",
+            "value": "slabý osobitý zápach",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "(d)_Bod tání / bod tuhnutí",
+            "value": "Nevztahuje se, jelikož je tento produkt plynem.",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "(f)_Hořlavost",
+            "value": "Hořlavý plyn.",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Metoda",
+            "value": "Hořlavost (plyny)",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Metoda",
+            "value": "ASTM E681-04",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "(h)_Bod vzplanutí",
+            "value": "Nevztahuje se, jelikož je tento produkt plynem.",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "(i)_Teplota samovznícení",
+            "value": "405 °C",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "(j)_Teplota rozkladu",
+            "value": "Za normálních podmínek stabilní.",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "(k)_pH",
+            "value": "Nevztahuje se, jelikož je tento produkt plynem.",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "(l)_Kinematická viskozita",
+            "value": "Nevztahuje se, jelikož je tento produkt plynem.",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "(m)_Rozpustnost",
+            "value": "Rozpustnost ve vodě:",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Metoda",
+            "value": "92/69/EEC, A.6",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Metoda",
+            "value": "92/69/EEC, A.8",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "(o)_Tlak páry",
+            "value": "6.067 hPa",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "(q)_Relativní hustota par",
+            "value": "4",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "(r)_Velikost částic",
+            "value": "Údaje nejsou k dispozici",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Oxidační vlastnosti",
+            "value": "Nelze použít: Podle teoretického hodnocení se neočekává, že",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Rychlost odpařování",
+            "value": "Nevztahuje se, jelikož je tento produkt plynem.",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Dynamická viskozita",
+            "value": "Nevztahuje se, jelikož je tento produkt plynem.",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "ODDÍL 10",
+            "value": "Stálost a reaktivita",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Nádobka je pod tlakem",
+            "value": "nevystavujte slunečnímu záření a teplotám nad 50 °C.",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "ODDÍL 11",
+            "value": "Toxikologické informace",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Druh",
+            "value": "Potkan",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Hodnota",
+            "value": "> 400000 ppm",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Doba expozice",
+            "value": "4 h",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Metoda",
+            "value": "Směrnice OECD 403 pro testování",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Způsob použití",
+            "value": "Kožní",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Zkušební metoda",
+            "value": "Test podle Amese",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Výsledek",
+            "value": "20% och högre, positiv för TA100 och E. coli WP2 uvrA, negativ för TA98, TA100 och",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Metoda",
+            "value": "Směrnice OECD 471 pro testování",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Zkušební metoda",
+            "value": "Test na chromozomální aberaci in vitro",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Buněčný typ",
+            "value": "Lidské lymfocyty",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Výsledek",
+            "value": "negativní",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Metoda",
+            "value": "Směrnice OECD 473 pro testování",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Poznámka",
+            "value": "Dávka - 760 000 ppm",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Druh",
+            "value": "Myš",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Buněčný typ",
+            "value": "Micronucleus",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Dávka",
+            "value": "až 200.000 ppm (4 hodiny)",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Metoda",
+            "value": "Směrnice OECD 474 pro testování",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Zkušební metoda",
+            "value": "Unscheduled DNA synthesis",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Dávka",
+            "value": "až 50 000 ppm (4 týdny)",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Metoda",
+            "value": "zkušební směrnice OECD 486",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Test Type",
+            "value": "Dvougenerační studie",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Method",
+            "value": "Směrnice OECD 416 pro testování",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Průběh podávání",
+            "value": ": Vdechnutí",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Všeobecná toxicita rodičů",
+            "value": "NOAEC: 50.000 ppm",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Všeobecná toxicita F1",
+            "value": "NOAEC: 50.000 ppm",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Method",
+            "value": "Směrnice OECD 414 pro testování",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Průběh podávání",
+            "value": ": vdechování (plyn)",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Všeobecná toxicita matek",
+            "value": "NOAEL: 50.000 ppm",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Vývojová toxicita",
+            "value": "NOAEL: 50.000 ppm",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Druh",
+            "value": "Králík",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Všeobecná toxicita matek",
+            "value": "LOAEC: 2.500 ppm",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Toxicita pro zárodečné buňky",
+            "value": "NOAEC: 4.000 ppm",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Poznámky",
+            "value": "Při koncentracích toxických pro matku byla pozorována embryofetální toxicita",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Způsob provedení",
+            "value": "Vdechnutí",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Doba expozice",
+            "value": "2 Weeks",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "NOEL",
+            "value": "50000",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Metoda",
+            "value": "Směrnice OECD 412 pro testování",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Doba expozice",
+            "value": "4 Weeks",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "NOAEL",
+            "value": "50000 ppm",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Doba expozice",
+            "value": "13 Weeks",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Metoda",
+            "value": "Směrnice OECD 413 pro testování",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Druh",
+            "value": "Králík, samčí (mužský)",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Doba expozice",
+            "value": "28 d",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "NOEL",
+            "value": "500",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Poznámka",
+            "value": "Nelze použít: Podle teoretického hodnocení se neočekává, že by látka měla oxidační",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Druh",
+            "value": "Králík, samičí (ženský)",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "NOEL",
+            "value": "1000",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Druh",
+            "value": "Miniprase",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "NOAEL",
+            "value": "10000 ppm",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Poznámka",
+            "value": "nejvyšší expozice zkoušeny",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Srdeční citlivost (u psů)",
+            "value": "bez následků při působení až do koncentrace 12 % (120 189 ppm).",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "ODDÍL 12",
+            "value": "Ekologické informace",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Druh",
+            "value": "Cyprinus carpio (kapr)",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Hodnota",
+            "value": "> 197 mg/l",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Doba expozice",
+            "value": "96 h",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Metoda",
+            "value": "Směrnice OECD 203 pro testování",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Druh",
+            "value": "Scenedesmus capricornutum (sladkovodní řasy)",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Hodnota",
+            "value": "> 100 mg/l",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Metoda",
+            "value": "Směrnice OECD 201 pro testování",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Druh",
+            "value": "Daphnia magna (perloočka velká)",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Hodnota",
+            "value": "> 83 mg/l",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Doba expozice",
+            "value": "48 h",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Metoda",
+            "value": "Směrnice OECD 202 pro testování",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Výsledek",
+            "value": "Látka nesnadno biologicky odbouratelná.",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Metoda",
+            "value": "zkušební směrnice OECD 301F",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "ODDÍL 13",
+            "value": "Pokyny pro odstraňování",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "ODDÍL 14",
+            "value": "Informace pro přepravu",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "ADR/RID",
+            "value": "3161 IMDG:3161 IATA:3161",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "ADR/RID",
+            "value": "PLYN ZKAPALNĚNÝ, HOŘLAVÝ, J.N.( R-1234yf)",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "IMDG",
+            "value": "LIQUEFIED GAS, FLAMMABLE, N.O.S.( R-1234yf)",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "IATA",
+            "value": "Liquefied gas, flammable, n.o.s.( R-1234yf)",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "ADR/RID",
+            "value": "2.1 IMDG: 2.1 IATA: 2.1",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "ADR/RID",
+            "value": "ne Látka znečišťující moře: ne",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "ODDÍL 15",
+            "value": "Informace o předpisech",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "množství",
+            "value": "10 t",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "množství",
+            "value": "50 t",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "No.190 7/2006 (REACH),",
+            "value": "článek 57.",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Number in Regulation",
+            "value": "40",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "ODDÍL 16",
+            "value": "Další informace",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Feature",
+            "value": "obsahující hořlavá chladiva dle UL 60335-2-40, příloha DD",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14516/3486937_Further_instructions_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Feature",
+            "value": "– Bezpečnostní kontroly před zahájením práce",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14516/3486937_Further_instructions_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Feature",
+            "value": "pu v oboru. Práce musí být prováděny v souladu se",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14516/3486937_Further_instructions_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Feature",
+            "value": "jením práce",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14516/3486937_Further_instructions_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Feature",
+            "value": "ce, kterou mají provádět.",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14516/3486937_Further_instructions_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Feature",
+            "value": "Analýza rizik: Před zahájením práce zkontrolujte pro-",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14516/3486937_Further_instructions_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Feature",
+            "value": "Veškeré údržbářské a servisní práce musí být provádě-",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14516/3486937_Further_instructions_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Feature",
+            "value": "7.2 Práce s živým systémem",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14516/3486937_Further_instructions_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Feature",
+            "value": "profesionální provedení práce:",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14516/3486937_Further_instructions_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Feature",
+            "value": "práce.",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14516/3486937_Further_instructions_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Document",
+            "name": "Parsed document",
+            "value": "3486937_Further_instructions_CS",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14516/3486937_Further_instructions_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "obsahující hořlavá chladiva dle UL",
+            "value": "60335-2-40, příloha DD",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14516/3486937_Further_instructions_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "– Je nutné dodržovat předpisy pro připojení",
+            "value": "přísluš-",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14516/3486937_Further_instructions_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "ve všech případech připojen",
+            "value": "k oběma konektorům.",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14516/3486937_Further_instructions_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "– Blue e+/Blue e+ S/ Blue e+ Outdoor",
+            "value": "Během",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14516/3486937_Further_instructions_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "– Blue e+/Blue e+ S/Blue e+ Outdoor",
+            "value": "Při montáži",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14516/3486937_Further_instructions_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "– Blue e+/Blue e+ Outdoor",
+            "value": "Při okolních teplotách",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14516/3486937_Further_instructions_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "– Blue e+ Outdoor",
+            "value": "Stabilita chladicí jednotky je zaru-",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14516/3486937_Further_instructions_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "– Blue e+/Blue e+ S",
+            "value": "Neodstraňujte z připojovacího",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14516/3486937_Further_instructions_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "– Blue e+/Blue e+ S",
+            "value": "Pin 4 na signálním konektoru by",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14516/3486937_Further_instructions_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "ným relé a připojením",
+            "value": "dveřního kontaktu.",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14516/3486937_Further_instructions_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "– Blue e+/Blue e+ S/ Blue e+ Outdoor",
+            "value": "Pokud",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14516/3486937_Further_instructions_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Příloha k Návodu k montáži, instalaci a obsluze",
+            "value": "3",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14516/3486937_Further_instructions_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "– Blue e+ střešní",
+            "value": "Není dovoleno provozovat jednot-",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14516/3486937_Further_instructions_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "– Blue e+ střešní",
+            "value": "Posun těžiště může způsobit",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14516/3486937_Further_instructions_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "– Blue e+ střešní",
+            "value": "Pokyny pro práci s rozváděčem",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14516/3486937_Further_instructions_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "– Blue e+ střešní",
+            "value": "Před spuštěním se ujistěte, že",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14516/3486937_Further_instructions_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Štítek na obalu",
+            "value": "Hořlavé, varování",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14516/3486937_Further_instructions_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Štítek poblíž typového štítku",
+            "value": "Nízká",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14516/3486937_Further_instructions_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "3.1",
+            "value": "Maximální množství chladiva",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14516/3486937_Further_instructions_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "3.2",
+            "value": "Zpracování informací",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14516/3486937_Further_instructions_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "3.3",
+            "value": "Pokyny k údržbě",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14516/3486937_Further_instructions_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "3.4",
+            "value": "Kvalifikace personálu",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14516/3486937_Further_instructions_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Bezpečnostně důležité práce",
+            "value": "na zařízení (například",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14516/3486937_Further_instructions_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "4.1",
+            "value": "Obecné pracovní prostředí",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14516/3486937_Further_instructions_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Pokyny",
+            "value": "Všichni pracovníci údržby a osoby vstupující",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14516/3486937_Further_instructions_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "ce, kterou",
+            "value": "mají provádět.",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14516/3486937_Further_instructions_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Minimalizujte stísněné prostory",
+            "value": "Práci v uzavřených",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14516/3486937_Further_instructions_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "4.2",
+            "value": "Kontrola chladiva",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14516/3486937_Further_instructions_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Vhodné vybavení",
+            "value": "Použitý detektor úniku musí být",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14516/3486937_Further_instructions_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Povědomí o nebezpečí",
+            "value": "Technici musí být dobře",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14516/3486937_Further_instructions_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "4.3",
+            "value": "Ujistěte se, že je k dispozici hasicí pří-",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14516/3486937_Further_instructions_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Dostupnost při práci při vysokých teplotách",
+            "value": "Při",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14516/3486937_Further_instructions_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Doporučené typy",
+            "value": "Práškové nebo CO₂ hasicí přístroje",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14516/3486937_Further_instructions_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "4.4",
+            "value": "Omezení zdrojů ohně",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14516/3486937_Further_instructions_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Žádný otevřený oheň",
+            "value": "Při práci na odkrytém potrubí",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14516/3486937_Further_instructions_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Zákaz kouření",
+            "value": "Kouření a používání jiných zdrojů ohně",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14516/3486937_Further_instructions_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Analýza rizik: Před zahájením práce",
+            "value": "zkontrolujte pro-",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14516/3486937_Further_instructions_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Označení",
+            "value": "Po celou dobu prací by měly být jasně",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14516/3486937_Further_instructions_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "5.1",
+            "value": "Výměna elektrických komponent",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14516/3486937_Further_instructions_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "5.2",
+            "value": "Dodržování pokynů výrobce",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14516/3486937_Further_instructions_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Veškeré údržbářské a servisní práce",
+            "value": "musí být provádě-",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14516/3486937_Further_instructions_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "6.1",
+            "value": "Bezpečnostní kontroly a prohlídka kom-",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14516/3486937_Further_instructions_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "6.2",
+            "value": "Řešení chyb relevantních pro bezpeč-",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14516/3486937_Further_instructions_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "6.3",
+            "value": "Počáteční kontrola před uvedením do",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14516/3486937_Further_instructions_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "7.1",
+            "value": "Elektrické zatížení",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14516/3486937_Further_instructions_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "K obvodu nesmí být připojeny",
+            "value": "žádné trvalé indukční ani",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14516/3486937_Further_instructions_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "7.2",
+            "value": "Práce s živým systémem",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14516/3486937_Further_instructions_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "7.3",
+            "value": "Výměna komponent",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14516/3486937_Further_instructions_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "7.4",
+            "value": "Kontrola kabeláže",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14516/3486937_Further_instructions_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "7.5",
+            "value": "Berte v úvahu stárnutí a vibrace",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14516/3486937_Further_instructions_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "8.1",
+            "value": "Zákaz všech zápalných zdrojů",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14516/3486937_Further_instructions_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Příloha k Návodu k montáži, instalaci a obsluze",
+            "value": "5",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14516/3486937_Further_instructions_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "8.2",
+            "value": "Použití elektronického zařízení pro de-",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14516/3486937_Further_instructions_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "8.3",
+            "value": "Použití kapalin pro detekci úniku chla-",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14516/3486937_Further_instructions_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "8.4",
+            "value": "Co dělat při podezření na únik",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14516/3486937_Further_instructions_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "8.5",
+            "value": "Nezbytné opravy",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14516/3486937_Further_instructions_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "9.1",
+            "value": "Obecné pokyny",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14516/3486937_Further_instructions_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "9.2",
+            "value": "Bezpečné odstranění",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14516/3486937_Further_instructions_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "9.3",
+            "value": "Odstranění chladiva",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14516/3486937_Further_instructions_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "9.4",
+            "value": "Zvláštní požadavky na konkrétní chla-",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14516/3486937_Further_instructions_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "9.5",
+            "value": "Bezpečnostní opatření pro odsávání",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14516/3486937_Further_instructions_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Příloha k Návodu k montáži, instalaci a obsluze",
+            "value": "7",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14516/3486937_Further_instructions_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "E-mail",
+            "value": "info@rittal.de · www.rittal.com · www.rittal.cz",
+            "sourceUrl": "https://www.rittal.com/imf/none/3_14516/3486937_Further_instructions_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          }
+        ],
+        "documents": [
+          {
+            "type": "datasheet",
+            "label": "3486937_Safety_data_sheet_refrigerant_CS",
+            "url": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88,
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261006104813\\documents\\3486937-datasheet-3486937_Safety_data_sheet_refrigerant_CS.pdf",
+            "downloadStatus": "downloaded",
+            "parseStatus": "parsed"
+          },
+          {
+            "type": "datasheet",
+            "label": "3486937_Safety_data_sheet_refrigerant_DE",
+            "url": "https://www.rittal.com/imf/none/3_14071/3486937_Safety_data_sheet_refrigerant_DE",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "type": "datasheet",
+            "label": "3486937_Safety_data_sheet_refrigerant_EN",
+            "url": "https://www.rittal.com/imf/none/3_14067/3486937_Safety_data_sheet_refrigerant_EN",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "type": "datasheet",
+            "label": "3486937_Safety_data_sheet_refrigerant_ES",
+            "url": "https://www.rittal.com/imf/none/3_14061/3486937_Safety_data_sheet_refrigerant_ES",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "type": "datasheet",
+            "label": "3486937_Safety_data_sheet_refrigerant_FI",
+            "url": "https://www.rittal.com/imf/none/3_14065/3486937_Safety_data_sheet_refrigerant_FI",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "type": "datasheet",
+            "label": "3486937_Safety_data_sheet_refrigerant_FR",
+            "url": "https://www.rittal.com/imf/none/3_14060/3486937_Safety_data_sheet_refrigerant_FR",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "type": "datasheet",
+            "label": "3486937_Safety_data_sheet_refrigerant_IT",
+            "url": "https://www.rittal.com/imf/none/3_14059/3486937_Safety_data_sheet_refrigerant_IT",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "type": "datasheet",
+            "label": "3486937_Safety_data_sheet_refrigerant_JA",
+            "url": "https://www.rittal.com/imf/none/3_14068/3486937_Safety_data_sheet_refrigerant_JA",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "type": "datasheet",
+            "label": "3486937_Safety_data_sheet_refrigerant_NL",
+            "url": "https://www.rittal.com/imf/none/3_14064/3486937_Safety_data_sheet_refrigerant_NL",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "type": "datasheet",
+            "label": "3486937_Safety_data_sheet_refrigerant_NO",
+            "url": "https://www.rittal.com/imf/none/3_14066/3486937_Safety_data_sheet_refrigerant_NO",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "type": "datasheet",
+            "label": "3486937_Safety_data_sheet_refrigerant_PL",
+            "url": "https://www.rittal.com/imf/none/3_14069/3486937_Safety_data_sheet_refrigerant_PL",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "type": "datasheet",
+            "label": "3486937_Safety_data_sheet_refrigerant_PT",
+            "url": "https://www.rittal.com/imf/none/3_14063/3486937_Safety_data_sheet_refrigerant_PT",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "type": "datasheet",
+            "label": "3486937_Safety_data_sheet_refrigerant_SK",
+            "url": "https://www.rittal.com/imf/none/3_14072/3486937_Safety_data_sheet_refrigerant_SK",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "type": "datasheet",
+            "label": "3486937_Safety_data_sheet_refrigerant_SV",
+            "url": "https://www.rittal.com/imf/none/3_14062/3486937_Safety_data_sheet_refrigerant_SV",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "type": "datasheet",
+            "label": "3486937_Safety_data_sheet_refrigerant_ZH",
+            "url": "https://www.rittal.com/imf/none/3_14073/3486937_Safety_data_sheet_refrigerant_ZH",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "type": "manual",
+            "label": "3486937_Further_instructions_CS",
+            "url": "https://www.rittal.com/imf/none/3_14516/3486937_Further_instructions_CS",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88,
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261006104813\\documents\\3486937-manual-3486937_Further_instructions_CS.pdf",
+            "downloadStatus": "downloaded",
+            "parseStatus": "parsed"
+          },
+          {
+            "type": "manual",
+            "label": "3486937_Further_instructions_DE",
+            "url": "https://www.rittal.com/imf/none/3_14042/3486937_Further_instructions_DE",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "type": "manual",
+            "label": "3486937_Further_instructions_EN",
+            "url": "https://www.rittal.com/imf/none/3_14043/3486937_Further_instructions_EN",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "type": "manual",
+            "label": "3486937_Instructions_R_1234yf__CS",
+            "url": "https://www.rittal.com/imf/none/3_15016/3486937_Instructions_R_1234yf__CS",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "type": "manual",
+            "label": "3486937_Instructions_R_1234yf__DE",
+            "url": "https://www.rittal.com/imf/none/3_14364/3486937_Instructions_R_1234yf__DE",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "type": "manual",
+            "label": "3486937_Instructions_R_1234yf__EN",
+            "url": "https://www.rittal.com/imf/none/3_14520/3486937_Instructions_R_1234yf__EN",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "type": "manual",
+            "label": "3486937_Instructions_R_1234yf__ES",
+            "url": "https://www.rittal.com/imf/none/3_15022/3486937_Instructions_R_1234yf__ES",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "type": "manual",
+            "label": "3486937_Instructions_R_1234yf__FR",
+            "url": "https://www.rittal.com/imf/none/3_15018/3486937_Instructions_R_1234yf__FR",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "type": "manual",
+            "label": "3486937_Instructions_R_1234yf__IT",
+            "url": "https://www.rittal.com/imf/none/3_15020/3486937_Instructions_R_1234yf__IT",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "type": "manual",
+            "label": "3486937_Instructions_R_1234yf__JA",
+            "url": "https://www.rittal.com/imf/none/3_15071/3486937_Instructions_R_1234yf__JA",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "type": "manual",
+            "label": "3486937_Instructions_R_1234yf__NL",
+            "url": "https://www.rittal.com/imf/none/3_15019/3486937_Instructions_R_1234yf__NL",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "type": "manual",
+            "label": "3486937_Instructions_R_1234yf__PL",
+            "url": "https://www.rittal.com/imf/none/3_15072/3486937_Instructions_R_1234yf__PL",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "type": "manual",
+            "label": "3486937_Instructions_R_1234yf__PT",
+            "url": "https://www.rittal.com/imf/none/3_15073/3486937_Instructions_R_1234yf__PT",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "type": "manual",
+            "label": "3486937_Instructions_R_1234yf__SV",
+            "url": "https://www.rittal.com/imf/none/3_15017/3486937_Instructions_R_1234yf__SV",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "type": "manual",
+            "label": "3486937_Instructions_R_1234yf__ZH",
+            "url": "https://www.rittal.com/imf/none/3_15021/3486937_Instructions_R_1234yf__ZH",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "type": "image",
+            "label": "og:image",
+            "url": "https://www.rittal.com/imf/x1200/78_5929/",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88,
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261006104813\\images\\RIT.3486937.png",
+            "downloadStatus": "downloaded",
+            "parseStatus": "skipped"
+          }
+        ],
+        "sources": [
+          {
+            "url": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "parserVersion": "generic-v3",
+            "fetchedAt": "2026-10-06T10:48:14.686Z",
+            "statusCode": 200
+          },
+          {
+            "url": "https://www.rittal.com/imf/none/3_14070/3486937_Safety_data_sheet_refrigerant_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "reason": "datasheet",
+            "fetchedAt": "2026-10-06T10:48:20.405Z"
+          },
+          {
+            "url": "https://www.rittal.com/imf/none/3_14516/3486937_Further_instructions_CS",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "reason": "manual",
+            "fetchedAt": "2026-10-06T10:48:23.129Z"
+          }
+        ],
+        "qualityGate": {
+          "passed": true,
+          "identityConfirmed": true,
+          "score": 100,
+          "missing": [],
+          "reason": "Quality gate passed.",
+          "attempts": [
+            {
+              "stage": "rittal-order-resolver",
+              "url": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI103/PRO136621?variantId=3486937",
+              "status": "passed",
+              "score": 100,
+              "missing": [],
+              "reason": "Quality gate passed.",
+              "sourceType": "official",
+              "parser": "rittal-order-resolver",
+              "statusCode": 200,
+              "attributeCount": 109,
+              "documentCount": 31,
+              "sectionAttributeCounts": {}
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

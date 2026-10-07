@@ -26,12 +26,15 @@ import {
 } from "../src/server/scrapers/customer-documents.js";
 import { matchesExpectedOfficialUrl } from "./benchmark-utils.js";
 import { coalesceImageDocuments } from "../src/server/run-manager.js";
+import { requiredElectricalFields } from "../src/shared/product-requirements.js";
+import { electricalFieldsForDeviceType } from "../src/server/pdt/device-type-profiles.js";
 
 interface BenchmarkFixture {
   manufacturerId: string;
   catalogNumber: string;
   caseType?: "electrical" | "mechanical" | "accessory" | "edge";
   expectedDeviceType?: string;
+  expectedClassifierType?: string;
   riskTags?: string[];
   expectedOfficialUrlPatterns?: string[];
   requiredDocuments?: DocumentRecord["type"][];
@@ -45,6 +48,7 @@ interface BenchmarkCaseReport {
   catalogNumber: string;
   caseType?: BenchmarkFixture["caseType"];
   expectedDeviceType?: string;
+  expectedClassifierType?: string;
   actualDeviceType?: string;
   deviceTypeMatched: boolean;
   riskTags: string[];
@@ -71,19 +75,49 @@ interface BenchmarkCaseReport {
   customerDocumentsExpected: number;
   customerDocumentsMatched: boolean;
   qualityMissing: string[];
+  resultEvidence: {
+    title?: string;
+    description?: string;
+    productUrl?: string;
+    localizedUrls?: ProductResult["localizedUrls"];
+    localizedDescriptions?: ProductResult["localizedDescriptions"];
+    deviceTypeClassification: ReturnType<typeof classifyDeviceType>;
+    normalized: ProductResult["normalized"];
+    requiredElectricalFields: string[];
+    attributes: ProductResult["attributes"];
+    documents: ProductResult["documents"];
+    sources: ProductResult["sources"];
+    qualityGate?: ProductResult["qualityGate"];
+  };
   error?: string;
 }
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, "..");
-const appPaths = createAppPaths(rootDir);
 const benchmarkDir = path.join(rootDir, "benchmarks");
-const outputDir = path.join(benchmarkDir, "output", timestamp());
+const benchmarkRunId = timestamp();
+const outputDir = path.join(benchmarkDir, "output", benchmarkRunId);
+const baseAppPaths = createAppPaths(rootDir);
+const isolatedStorage = process.env.BENCHMARK_ISOLATED_STORAGE === "1";
+const isolatedDataDir = path.join(outputDir, "runtime", "data");
+const appPaths = isolatedStorage
+  ? {
+      ...baseAppPaths,
+      dataDir: isolatedDataDir,
+      cacheDir: path.join(isolatedDataDir, "cache"),
+      customerUploadsDir: path.join(isolatedDataDir, "customer-uploads"),
+      dbPath: path.join(isolatedDataDir, "scraper.db")
+    }
+  : baseAppPaths;
 const documentsDir = path.join(outputDir, "documents");
 const imagesDir = path.join(outputDir, "images");
 const pdtDir = path.join(outputDir, "pdt");
 const pdtTemplatePath = path.join(rootDir, "templates", "master_pdt.xlsx");
 
+if (isolatedStorage) {
+  await fs.mkdir(appPaths.cacheDir, { recursive: true });
+  await fs.mkdir(appPaths.customerUploadsDir, { recursive: true });
+}
 initializeManufacturerConfig(appPaths.dataDir);
 await fs.mkdir(documentsDir, { recursive: true });
 await fs.mkdir(imagesDir, { recursive: true });
@@ -222,12 +256,14 @@ async function runFixtureAttempt(
     `${fixture.manufacturerId} ${fixture.catalogNumber} initial status=${initial.status} identity=${initial.qualityGate?.identityConfirmed ?? false}` +
       ` attrs=${initial.attributes.length} docs=${initial.documents.length} missing=${(initial.qualityGate?.missing ?? []).join(",") || "none"}`
   );
+  debugBenchmark(`${fixture.manufacturerId} ${fixture.catalogNumber} normalized after initial=${JSON.stringify(initial.normalized)}`);
   debugBenchmark(
     `${fixture.manufacturerId} ${fixture.catalogNumber} initial electrical attributes=` +
       JSON.stringify(initial.attributes.filter((attribute) => /volt|supply|power/i.test(`${attribute.name} ${attribute.value}`)).slice(0, 8))
   );
   const withDownloads = await stage("downloadDocuments.initial", () => downloadDocuments(manufacturer, fixture.catalogNumber, initial, signal));
   let result = finalizeQualityGate(await stage("enrich.initial", () => enrichResultFromDownloadedDocuments(withDownloads)), manufacturer);
+  debugBenchmark(`${fixture.manufacturerId} ${fixture.catalogNumber} normalized after enrich=${JSON.stringify(result.normalized)}`);
   const skipSpeculativeFallback =
     result.diagnostics?.terminal?.skipNetworkFallback === true ||
     (fixture.manufacturerId.toLowerCase() === "nvent" &&
@@ -239,8 +275,11 @@ async function runFixtureAttempt(
     result = finalizeQualityGate(await stage("enrich.retry", () => enrichResultFromDownloadedDocuments(fallbackDownloads)), manufacturer);
   }
   result = attachEvidence(result);
+  debugBenchmark(`${fixture.manufacturerId} ${fixture.catalogNumber} normalized before exports=${JSON.stringify(result.normalized)}`);
   await stage("writeWorkbook", () => writeSingleResultWorkbook(manufacturer, fixture, result));
+  debugBenchmark(`${fixture.manufacturerId} ${fixture.catalogNumber} normalized after workbook=${JSON.stringify(result.normalized)}`);
   const pdt = await stage("exportPdt", () => exportSingleResultPdt(manufacturer, fixture, result));
+  debugBenchmark(`${fixture.manufacturerId} ${fixture.catalogNumber} normalized after exports=${JSON.stringify(result.normalized)}`);
   return reportFromResult(fixture, manufacturer, result, pdt);
 }
 
@@ -389,14 +428,25 @@ function runItemFromResult(fixture: BenchmarkFixture, result: ProductResult): Ru
 function reportFromResult(fixture: BenchmarkFixture, manufacturer: ManufacturerConfig, result: ProductResult, pdt: PdtExportResult | undefined): BenchmarkCaseReport {
   const wrongProduct = result.status !== "failed" && result.qualityGate?.identityConfirmed === false;
   const pdtAudit = summarizePdtAudit(pdt);
-  const actualDeviceType = classifyDeviceType(result).type;
+  const classification = classifyDeviceType(result);
+  const actualDeviceType = classification.type;
+  const requiredFields = requiredElectricalFields(result, {
+    deviceType: classification.type,
+    deviceTypeConfidence: classification.confidence,
+    deviceTypeElectricalFields: electricalFieldsForDeviceType(classification.type)
+  });
   return {
     manufacturerId: fixture.manufacturerId,
     catalogNumber: fixture.catalogNumber,
     caseType: fixture.caseType,
     expectedDeviceType: fixture.expectedDeviceType,
     actualDeviceType,
-    deviceTypeMatched: fixture.expectedDeviceType ? actualDeviceType === fixture.expectedDeviceType : true,
+    expectedClassifierType: fixture.expectedClassifierType,
+    deviceTypeMatched: fixture.expectedClassifierType
+      ? actualDeviceType === fixture.expectedClassifierType
+      : fixture.expectedDeviceType
+        ? actualDeviceType === fixture.expectedDeviceType
+        : true,
     riskTags: fixture.riskTags ?? [],
     status: result.status,
     confidence: result.confidence,
@@ -410,7 +460,21 @@ function reportFromResult(fixture: BenchmarkFixture, manufacturer: ManufacturerC
     ...pdtAudit,
     customerDocumentsExpected: fixture.customerDocuments?.length ?? 0,
     customerDocumentsMatched: matchesCustomerDocuments(result, fixture),
-    qualityMissing: result.qualityGate?.missing ?? []
+    qualityMissing: result.qualityGate?.missing ?? [],
+    resultEvidence: {
+      title: result.title,
+      description: result.description,
+      productUrl: result.productUrl,
+      localizedUrls: result.localizedUrls,
+      localizedDescriptions: result.localizedDescriptions,
+      deviceTypeClassification: classification,
+      normalized: result.normalized,
+      requiredElectricalFields: requiredFields,
+      attributes: result.attributes,
+      documents: result.documents,
+      sources: result.sources,
+      qualityGate: result.qualityGate
+    }
   };
 }
 
@@ -646,6 +710,7 @@ function errorReport(fixture: BenchmarkFixture, error: string): BenchmarkCaseRep
     catalogNumber: fixture.catalogNumber,
     caseType: fixture.caseType,
     expectedDeviceType: fixture.expectedDeviceType,
+    expectedClassifierType: fixture.expectedClassifierType,
     actualDeviceType: undefined,
     deviceTypeMatched: fixture.expectedDeviceType ? false : true,
     riskTags: fixture.riskTags ?? [],
@@ -669,6 +734,14 @@ function errorReport(fixture: BenchmarkFixture, error: string): BenchmarkCaseRep
     customerDocumentsExpected: fixture.customerDocuments?.length ?? 0,
     customerDocumentsMatched: !fixture.customerDocuments?.length,
     qualityMissing: ["error"],
+    resultEvidence: {
+      deviceTypeClassification: {},
+      normalized: {},
+      requiredElectricalFields: [],
+      attributes: [],
+      documents: [],
+      sources: []
+    },
     error
   };
 }
@@ -735,6 +808,10 @@ function benchmarkFilters(): Record<string, string> {
   if (catalogNumber) filters.catalogNumber = catalogNumber;
   const fixtureDir = process.env.BENCHMARK_FIXTURE_DIR?.trim();
   if (fixtureDir) filters.fixtureDir = fixtureDir;
+  if (process.env.BENCHMARK_ISOLATED_STORAGE === "1") filters.isolatedStorage = "1";
+  if (process.env.PRODUCT_SCRAPER_ALLOW_EXTERNAL_SEARCH === "1") filters.externalSearch = "1";
+  const reportTag = process.env.BENCHMARK_REPORT_TAG?.trim();
+  if (reportTag) filters.tag = reportTag;
   return filters;
 }
 
