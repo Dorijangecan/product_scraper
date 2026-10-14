@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
-import { ABBConnector, parseAbbProductPage } from "../src/server/scrapers/abb.js";
+import { describe, expect, it, vi } from "vitest";
+import { ABBConnector, parseAbbGlobalSearchProductUrls, parseAbbProductPage } from "../src/server/scrapers/abb.js";
 import { BalluffConnector, parseBalluffProductPage } from "../src/server/scrapers/balluff.js";
 import {
   EatonConnector,
@@ -22,6 +22,16 @@ import type { FetchedText } from "../src/server/scrapers/http-client.js";
 import type { ScrapeContext } from "../src/server/scrapers/types.js";
 
 describe("manufacturer parsers", () => {
+  it("keeps only the exact ABB product linked by global search", () => {
+    const html = `
+      <a href="https://new.abb.com/products/1STQ005365B0000">IS2 blind door 1STQ005365B0000</a>
+      <a href="https://new.abb.com/products/1STQ005315B0000">Internal kit 1STQ005315B0000</a>
+      <a href="https://example.com/products/1STQ005365B0000">Non-ABB result</a>
+    `;
+    expect(parseAbbGlobalSearchProductUrls("1STQ005365B0000", html, "https://www.abb.com/global/en/search?q=1STQ005365B0000"))
+      .toEqual(["https://new.abb.com/products/1STQ005365B0000"]);
+  });
+
   it("rejects nVent accessory, drawing, and sibling-SKU thumbnails as product images", () => {
     const documents = [
       { type: "image" as const, label: "Lift eyes product photo", url: "https://www.nvent.com/lift-eyes.png" },
@@ -687,6 +697,29 @@ describe("manufacturer parsers", () => {
 
     expect(result.title).toBe("SACE Emax 3 E4.3-A W FP Iu=2500 3p");
     expect(result.description).toBe("FIXED PART WITHDRAWABLE FOR C.BREAKER SACE EMAX3");
+    const germanPayload = {
+      productDetails: {
+        item: {
+          productId: "1SDA130199R1",
+          attributes: {
+            ProductId: abbAttribute("ProductId", "Product ID", "1SDA130199R1"),
+            CatalogDescription: abbAttribute("CatalogDescription", "Catalog Description", "Leistungsschalter SACE Emax 3 E4.3"),
+            LongDescription: abbAttribute("LongDescription", "Long Description", "Ausfahrbarer Leistungsschalter mit fester Ausführung")
+          }
+        }
+      }
+    };
+    const germanModel = { ProductViewModel: { Product: germanPayload, AppSettings: { langCode: "de" }, ApiUrl: "https://external.productinformation.abb.com/PisWebApi/v1/" } };
+    const germanHtml = `<script>var model = ${JSON.stringify(germanModel).replace(/</g, "\\u003c")};</script>`;
+    const germanResult = parseAbbProductPage(
+      "1SDA130199R1",
+      fetched(germanHtml, "https://new.abb.com/products/de/1SDA130199R1/e4-3", "application/json")
+    );
+
+    expect(germanResult.localizedDescriptions?.de).toEqual({
+      title: "Leistungsschalter SACE Emax 3 E4.3",
+      description: "Ausfahrbarer Leistungsschalter mit fester Ausführung"
+    });
     // A payload whose own Product ID is the requested catalog number is identity-proven evidence,
     // so it is not capped at the "no structured data" confidence.
     expect(result.confidence).toBe(0.9);
@@ -763,9 +796,11 @@ describe("manufacturer parsers", () => {
     // with 28 attributes and no certificates in one run and 202 in the next, same code, same input.
     const connector = new ABBConnector();
     const detailCalls: string[] = [];
-    const searchJson = JSON.stringify({
-      Items: [{ ProductId: "1SVR340667R1000", CatalogDescription: "CP-S.3 24/10.0 Power supply" }],
-      TotalResultsCount: 1
+    const globalSearchJson = JSON.stringify({
+      search_results: {
+        total: 1,
+        results: [{ url: "https://new.abb.com/products/1SVR340667R1000/cp-s-3-24-10-0" }]
+      }
     });
     const detailJson = JSON.stringify({
       productDetails: {
@@ -783,14 +818,15 @@ describe("manufacturer parsers", () => {
       manufacturer: { id: "abb", canonicalName: "ABB", shortName: "ABB", rateLimitMs: 0, officialBaseUrls: [], localizedUrlTemplates: [], fallbackSources: [] },
       http: {
         fetchText: async (url: string) => {
-          if (url.includes("/api/PisSearchApi/Token")) {
-            return fetched(JSON.stringify({ Token: "test-token", ExpiresOn: new Date(Date.now() + 600_000).toISOString() }), url, "application/json");
+          if (url.endsWith("/pis/access-token.json")) {
+            return fetched(JSON.stringify({ accessToken: "test-token", expiresIn: 3600 }), url, "application/json");
           }
-          if (url.includes("/api/PisSearchApi?")) return fetched(searchJson, url, "application/json");
+          if (url.includes("/api/es/search/searchgeneric")) return fetched(globalSearchJson, url, "application/json");
           if (url.includes("/Products/Detail")) {
             detailCalls.push(url);
-            // First answer is the degenerate one; the retry gets the real record.
-            return fetched(detailCalls.length === 1 ? "{}" : detailJson, url, "application/json");
+            // The initial direct lookup is not search-confirmed. The exact global search result
+            // then confirms the SKU, so PIS must retry the contradictory empty detail response.
+            return fetched(detailCalls.length <= 2 ? "{}" : detailJson, url, "application/json");
           }
           return fetched(`<html><body>not ${url}</body></html>`, url);
         },
@@ -941,7 +977,7 @@ describe("manufacturer parsers", () => {
     expect(result.status).toBe("found");
     expect(result.attributes.length).toBeGreaterThanOrEqual(25);
     expect(result.normalized.weight).toBe("0.8 kg");
-    expect(requestedUrls[0]).toBe(`https://new.abb.com/api/PisSearchApi?query=${catalogNumber}&pageNumber=1&pageSize=8&lang=en`);
+    expect(requestedUrls).toContain(`https://new.abb.com/api/PisSearchApi?query=${catalogNumber}&pageNumber=1&pageSize=8&lang=en`);
     expect(requestedUrls).toContain(`https://new.abb.com/products/pl/${catalogNumber}/${catalogNumber.toLowerCase()}`);
     expect(requestedUrls).not.toContain(`https://new.abb.com/products/${catalogNumber}`);
   });
@@ -991,6 +1027,45 @@ describe("manufacturer parsers", () => {
     expect(requestedUrls.filter((url) => url === directUrl)).toHaveLength(1);
   });
 
+  it("fails ABB closed after search and canonical PDP time out instead of repeating PIS and generic discovery", async () => {
+    const connector = new ABBConnector();
+    const requestedUrls: string[] = [];
+    const catalogNumber = "1STQ005365B0000";
+    const fallbackScrape = vi.fn(async () => undefined);
+    const context = {
+      manufacturer: {
+        id: "abb",
+        canonicalName: "ABB",
+        shortName: "ABB",
+        rateLimitMs: 0,
+        officialBaseUrls: ["https://new.abb.com/products"],
+        localizedUrlTemplates: [],
+        fallbackSources: [],
+        markerRules: []
+      },
+      http: {
+        fetchText: async (url: string) => {
+          requestedUrls.push(url);
+          throw new Error("ABB request timed out");
+        }
+      },
+      runDir: "",
+      documentsDir: "",
+      downloadDocument: async (doc: Parameters<ScrapeContext["downloadDocument"]>[0]) => doc,
+      fallback: { scrape: fallbackScrape }
+    } as unknown as ScrapeContext;
+
+    const result = await connector.scrape(catalogNumber, context);
+
+    expect(result.status).toBe("failed");
+    expect(result.diagnostics?.terminal).toEqual({ reason: "official-source-unavailable", skipNetworkFallback: true });
+    expect(requestedUrls).toContain("https://www.abb.com/api/es/search/searchgeneric");
+    expect(requestedUrls).toContain(`https://new.abb.com/api/PisSearchApi?query=${catalogNumber}&pageNumber=1&pageSize=8&lang=en`);
+    expect(requestedUrls.some((url) => url.endsWith("/v1/Products/Detail") || url.endsWith("/pis/access-token.json"))).toBe(true);
+    expect(fallbackScrape).not.toHaveBeenCalled();
+    expect(result.documents.filter((document) => document.type === "image")).toHaveLength(0);
+  });
+
   it("does not spend ABB fallback retries on definite missing product pages", async () => {
     const connector = new ABBConnector();
     const requestedUrls: string[] = [];
@@ -1011,7 +1086,9 @@ describe("manufacturer parsers", () => {
       http: {
         fetchText: async (url: string) => {
           requestedUrls.push(url);
-          if (url.includes("/api/PisSearchApi?")) return fetched(JSON.stringify({ Items: [], TotalResultsCount: 0 }), url, "application/json");
+          if (url.includes("/api/es/search/searchgeneric")) return fetched(JSON.stringify({ search_results: { total: 0, results: [] } }), url, "application/json");
+          if (url.endsWith("/pis/access-token.json")) return fetched(JSON.stringify({ accessToken: "test-token", expiresIn: 3600 }), url, "application/json");
+          if (url.endsWith("/v1/Products/Detail")) return fetched("{}", url, "application/json");
           return { ...fetched(notFoundHtml, url), statusCode: 404 };
         },
         fetchTextViaPowerShell: async (url: string) => {
@@ -1035,19 +1112,19 @@ describe("manufacturer parsers", () => {
       skipNetworkFallback: true
     });
     expect(powerShellUrls).toHaveLength(0);
-    expect(requestedUrls).toEqual([`https://new.abb.com/api/PisSearchApi?query=${catalogNumber}&pageNumber=1&pageSize=8&lang=en`]);
+    expect(requestedUrls).toContain("https://www.abb.com/api/es/search/searchgeneric");
+    expect(requestedUrls).toContain(`https://new.abb.com/api/PisSearchApi?query=${catalogNumber}&pageNumber=1&pageSize=8&lang=en`);
     expect(requestedUrls.filter((url) => url.includes(`/products/de/${catalogNumber}/product`))).toHaveLength(0);
     expect(requestedUrls.filter((url) => url.includes(`/products/pl/${catalogNumber}/product`))).toHaveLength(0);
     expect(requestedUrls.filter((url) => url.includes(`/products/it/${catalogNumber}/product`))).toHaveLength(0);
   });
 
-  it("uses the official ABB PIS detail API before the slow product HTML routes", async () => {
+  it("uses the exact ABB PIS detail API before global search for a known catalog number", async () => {
     const connector = new ABBConnector();
     const requestedUrls: string[] = [];
     const catalogNumber = "1SBH131001R5522";
     const searchJson = JSON.stringify({
-      Items: [{ ProductId: catalogNumber, CatalogDescription: "NFC22E-55 contactor relay" }],
-      TotalResultsCount: 1
+      search_results: { total: 1, results: [{ url: `https://www.abb.com/products/${catalogNumber}` }] }
     });
     const detailJson = JSON.stringify({
       productDetails: {
@@ -1068,7 +1145,10 @@ describe("manufacturer parsers", () => {
           attributes: {
             ProductNetWidth: { type: "Text", attributeCode: "ProductNetWidth", attributeName: "Product Net Width", values: [{ text: "45 mm" }] },
             ProductNetHeight: { type: "Text", attributeCode: "ProductNetHeight", attributeName: "Product Net Height", values: [{ text: "86 mm" }] },
-            ProductNetDepth: { type: "Text", attributeCode: "ProductNetDepth", attributeName: "Product Net Depth / Length", values: [{ text: "77 mm" }] }
+            ProductNetDepth: { type: "Text", attributeCode: "ProductNetDepth", attributeName: "Product Net Depth / Length", values: [{ text: "77 mm" }] },
+            ReferenceWidth: { type: "Text", attributeCode: "ReferenceWidth", attributeName: "Reference Width", values: [{ text: "400 mm" }] },
+            ReferenceHeight: { type: "Text", attributeCode: "ReferenceHeight", attributeName: "Reference Height", values: [{ text: "1800 mm" }] },
+            ReferenceDepthLength: { type: "Text", attributeCode: "ReferenceDepthLength", attributeName: "Reference Depth/Length", values: [{ text: "500 mm" }] }
           }
         }]
       }
@@ -1089,8 +1169,8 @@ describe("manufacturer parsers", () => {
       http: {
         fetchText: async (url: string, options?: { method?: string }) => {
           requestedUrls.push(url);
-          if (url.includes("/api/PisSearchApi?")) return fetched(searchJson, url, "application/json");
-          if (url.endsWith("/api/PisSearchApi/Token")) return fetched(JSON.stringify({ Token: "test-token", ExpiresOn: "2099-01-01T00:00:00.000Z" }), url, "application/json");
+          if (url.endsWith("/api/es/search/searchgeneric")) return fetched(searchJson, url, "application/json");
+          if (url.endsWith("/pis/access-token.json")) return fetched(JSON.stringify({ accessToken: "test-token", expiresIn: 3600 }), url, "application/json");
           if (url.endsWith("/v1/Products/Detail")) {
             detailCalls += 1;
             expect(options?.method).toBe("POST");
@@ -1111,9 +1191,14 @@ describe("manufacturer parsers", () => {
     const result = await connector.scrape(catalogNumber, context);
 
     expect(result.status).toBe("found");
-    expect(detailCalls).toBe(1);
+    expect(detailCalls).toBe(2); // EN + DE PIS records are fetched directly, without HTML page walks.
     expect(result.normalized.weight).toBe("0.3 kg");
     expect(result.normalized.dimensions).toBe("86 x 45 x 77 mm");
+    expect(result.attributes).toEqual(expect.arrayContaining([
+      expect.objectContaining({ name: "Product Net Depth / Length", value: "77 mm" }),
+      expect.objectContaining({ name: "Reference Depth/Length", value: "500 mm" })
+    ]));
+    expect(requestedUrls.some((url) => url.endsWith("/api/es/search/searchgeneric"))).toBe(false);
     expect(requestedUrls.some((url) => url.includes("/products/pl/"))).toBe(false);
   });
 
@@ -1160,10 +1245,11 @@ describe("manufacturer parsers", () => {
 
     expect(result.status).toBe("found");
     expect(result.documents.some((doc) => doc.type === "image")).toBe(true);
-    expect(requestedUrls).toEqual([
-      `https://new.abb.com/api/PisSearchApi?query=${catalogNumber}&pageNumber=1&pageSize=8&lang=en`,
-      `https://new.abb.com/products/${catalogNumber}`
-    ]);
+    expect(requestedUrls).toContain("https://www.abb.com/api/es/search/searchgeneric");
+    expect(requestedUrls).toContain(`https://new.abb.com/api/PisSearchApi?query=${catalogNumber}&pageNumber=1&pageSize=8&lang=en`);
+    expect(requestedUrls).toContain(`https://new.abb.com/products/${catalogNumber}`);
+    expect(requestedUrls.some((url) => url.includes("/Products/Detail"))).toBe(false);
+    expect(requestedUrls.some((url) => url.includes("/products/de/"))).toBe(false);
   });
 
   it("parses SCE detail and CAD download links", () => {

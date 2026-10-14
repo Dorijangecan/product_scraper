@@ -1428,7 +1428,11 @@ function factKeysForColumn(column: PdtColumn, ctx: ResolveContext): string[] {
   for (const fact of specificLengthFactKeysForColumn(column)) add(fact);
   for (const fact of powerFactKeysForColumn(column)) add(fact);
   if (keys.includes("CNS_CTN") || keys.includes("AAD931")) add("customsTariff");
-  if (keys.includes("AAO663") || keys.includes("CNS_EAN") || keys.includes("AAN743")) add("eanOrGtin");
+  // Keep the barcode fact aligned with the manufacturer-specific resolver rules. Otherwise the
+  // shared fact fallback bypasses those rules and writes ABB's GTIN to both AAO663 and CNS_EAN.
+  const manufacturerId = ctx.result?.manufacturerId ?? ctx.manufacturer.id;
+  if (keys.includes("AAO663") && manufacturerId !== "eaton") add("eanOrGtin");
+  if ((keys.includes("CNS_EAN") || keys.includes("AAN743")) && manufacturerId !== "abb") add("eanOrGtin");
   if (keys.includes("AAU731")) add("productFamily");
   if (keys.includes("AAW338")) add("productDesignation");
   if (keys.includes("AAU734") || keys.includes("CNS_DESCRIPTION_LONG")) add(ctx.language === "de" ? "localizedLongDescriptionDe" : "longDescription");

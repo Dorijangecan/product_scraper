@@ -12,6 +12,9 @@ import { scrapeDiscoveredFallback, withDiscoveryFallbackDiagnostics } from "./di
 import { isLikelyNonProductImage, isLikelySchematicImage } from "./generic.js";
 
 const ABB_USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0 Safari/537.36";
+const ABB_GLOBAL_HOME_URL = "https://www.abb.com/global/en";
+const ABB_GLOBAL_SEARCH_GENERIC_URL = "https://www.abb.com/api/es/search/searchgeneric";
+const ABB_PIS_TOKEN_URL = "https://www.abb.com/conf/abbcommon/services/pis/access-token.json";
 const ABB_PARTCOMMUNITY_BASE_URL = "https://abb-control-products.partcommunity.com/3d-cad-models/";
 const ABB_PARTCOMMUNITY_CATALOG = "abb_ww";
 const ABB_PIS_API_BASE_URL = "https://external.productinformation.abb.com/PisWebApi/v1";
@@ -32,9 +35,47 @@ export class ABBConnector implements ManufacturerConnector {
   id = "abb";
 
   async scrape(catalogNumber: string, context: ScrapeContext): Promise<ProductResult> {
-    const searchLookup = await buildAbbSearchProductUrlLookup(catalogNumber, context, 2500);
-    if (searchLookup.definitiveEmpty) {
+    // Exact catalog numbers can go straight to ABB's PIS detail API. It returns Product ID, which
+    // is the identity proof; the global search request is only needed for aliases or when PIS has
+    // no exact record. This removes one serialized network round-trip from the common SKU path.
+    const directApi = context.imageOnly
+      ? undefined
+      : await fetchAbbPisApiResult(
+          catalogNumber,
+          [catalogNumber],
+          buildAbbOfficialUrls(catalogNumber)[0],
+          context,
+          "en"
+        );
+    const directProductId = directApi?.attributes.find((attribute) =>
+      attribute.group === "ABB Product Data" && /^Product ID$/i.test(attribute.name)
+    )?.value;
+    if (directApi && hasAbbPisData(directApi) && sameCatalogNumber(directProductId ?? "", catalogNumber)) {
+      return attachAbbGermanDescription(directApi, catalogNumber, [catalogNumber], context);
+    }
+
+    // Use the search API configured by the page the user supplied. It returns the same exact
+    // product links as the rendered search page without loading its heavy UI in a browser. This
+    // remains the fallback for commercial aliases and direct PIS misses.
+    const globalSearch = await fetchAbbGlobalSearchProduct(catalogNumber, context);
+    const exactGlobalSearch = globalSearch && !globalSearch.definitiveEmpty ? globalSearch : undefined;
+    const searchLookup = exactGlobalSearch
+      ? {
+          searchUrl: exactGlobalSearch.searchUrl,
+          fetched: exactGlobalSearch.fetched,
+          urls: exactGlobalSearch.urls,
+          productIds: exactGlobalSearch.productIds,
+          definitiveEmpty: exactGlobalSearch.definitiveEmpty
+        }
+      : await buildAbbSearchProductUrlLookup(catalogNumber, context, 2500);
+    if (searchLookup.definitiveEmpty && !exactGlobalSearch) {
       return abbOfficialMissingResult(catalogNumber, searchLookup);
+    }
+    if (!exactGlobalSearch && !searchLookup.fetched && !context.imageOnly) {
+      return {
+        ...emptyResult("abb", catalogNumber, "ABB official product search did not respond."),
+        diagnostics: { terminal: { reason: "official-source-unavailable", skipNetworkFallback: true } }
+      };
     }
 
     // Lazy DE rescue: only fetch the DE product page if the rest of the pipeline did NOT
@@ -44,43 +85,52 @@ export class ABBConnector implements ManufacturerConnector {
     // CachedHttpClient serializes per-host requests with a ~350 ms gap, so an unconditional
     // upfront DE fetch was effectively adding 1–2 extra sequential new.abb.com round-trips
     // per product (the previous "parallel" implementation was an illusion under host throttling).
-    const attachGerman = async (result: ProductResult): Promise<ProductResult> => {
-      // German localization is optional enrichment. In the normal Excel/image-only fast paths
-      // no document download is requested, so do not add another ABB page timeout just for DE text.
-      if (context.imageOnly || context.downloadDocuments === false) return result;
-      if (result.localizedDescriptions?.de?.title || result.localizedDescriptions?.de?.description) return result;
-      const de =
-        (await fetchAbbGermanDescriptionFromPisApi(catalogNumber, searchLookup.productIds, context).catch(() => undefined)) ??
-        (await fetchAbbGermanDescription(catalogNumber, context).catch(() => undefined));
-      if (!de || (!de.title && !de.description)) return result;
-      // Whether text identical to the English value may stand depends on WHERE it came from, and
-      // the two DE routes differ. The PIS API answers a request that names langCode "de", so a
-      // string it returns is the German catalogue's own entry even when ABB never translated it
-      // (true for the whole AF/AFC contactor range) — suppressing it blanks a column ABB did fill.
-      // The HTML walk has no such guarantee: an untranslated /products/de/ URL can serve the plain
-      // English page, and echoing that would invent a localization the source never made.
-      const englishTitle = de.fromLocalizedRecord ? undefined : result.title;
-      const englishDescription = de.fromLocalizedRecord ? undefined : result.description;
-      const title = localizedAbbText(de.title, englishTitle, catalogNumber);
-      const description = localizedAbbText(de.description, englishDescription, catalogNumber);
-      if (!title && !description) return result;
-      return {
-        ...result,
-        localizedDescriptions: {
-          ...(result.localizedDescriptions ?? {}),
-          de: { title, description }
-        }
-      };
-    };
+    const attachGerman = (result: ProductResult) => context.imageOnly
+      ? Promise.resolve(result)
+      : attachAbbGermanDescription(result, catalogNumber, searchLookup.productIds, context);
 
     const urls = searchLookup.urls.length ? searchLookup.urls : buildAbbOfficialUrls(catalogNumber);
     let apiDefinitiveEmpty = false;
     let htmlTimeoutMs = 8000;
-    if (!context.imageOnly) {
+    if (exactGlobalSearch) {
+      const globalProductIds = exactGlobalSearch.productIds.length ? exactGlobalSearch.productIds : [catalogNumber];
+      const apiPrimary = await fetchAbbPisApiResult(
+        catalogNumber,
+        globalProductIds,
+        exactGlobalSearch.urls[0] ?? buildAbbOfficialUrls(catalogNumber)[0],
+        context,
+        "en",
+        exactGlobalSearch.productIds.length > 0
+      );
+      const productId = apiPrimary?.attributes.find((attribute) =>
+        attribute.group === "ABB Product Data" && /^Product ID$/i.test(attribute.name)
+      )?.value;
+      if (apiPrimary && hasAbbPisData(apiPrimary) && sameCatalogNumber(productId ?? "", catalogNumber)) {
+        return attachGerman(apiPrimary);
+      }
+      return {
+        ...emptyResult("abb", catalogNumber, `ABB's official product record did not confirm the exact catalog number ${catalogNumber}.`),
+        diagnostics: {
+          terminal: {
+            reason: apiPrimary === null ? "official-product-not-found" : "official-product-incomplete",
+            skipNetworkFallback: true
+          },
+          notes: [
+            exactGlobalSearch.urls.length
+              ? "The exact ABB global search result was found, but its PIS record did not confirm the requested Product ID."
+              : "ABB global search returned no exact SKU result; a direct exact-ID PIS lookup was attempted and failed identity validation."
+          ]
+        }
+      };
+    }
+    // If ABB's PIS search itself did not answer, a PIS detail request starts by asking the same
+    // unavailable ABB token endpoint and only repeats the timeout. Keep the canonical PDP rescue
+    // below, then fail closed if that page also does not answer.
+    if (!exactGlobalSearch && !context.imageOnly && searchLookup.fetched) {
       const apiProductIds = searchLookup.productIds.length ? searchLookup.productIds : [catalogNumber];
       const searchConfirmed = searchLookup.productIds.some((id) => sameCatalogNumber(id, catalogNumber));
       const apiPrimary = await fetchAbbPisApiResult(catalogNumber, apiProductIds, urls[0], context, "en", searchConfirmed);
-      if (apiPrimary && hasAbbPisData(apiPrimary)) return attachGerman(apiPrimary);
+      if (apiPrimary && hasAbbPisData(apiPrimary) && abbResultMatchesCatalogNumber(apiPrimary, catalogNumber)) return attachGerman(apiPrimary);
       if (apiPrimary === null && searchLookup.urls.length === 0) {
         apiDefinitiveEmpty = true;
         // The official PIS API answered successfully but has no detail for this legacy ID.
@@ -101,7 +151,22 @@ export class ABBConnector implements ManufacturerConnector {
     for (const url of urls) {
       try {
         const fetched = await fetchAbbPage(url, context, htmlTimeoutMs);
-        const parsed = parseAbbProductPage(catalogNumber, fetched, context.manufacturer.markerRules);
+        let parsed = parseAbbProductPage(catalogNumber, fetched, context.manufacturer.markerRules);
+        if (
+          exactGlobalSearch &&
+          context.browserRenderer &&
+          !context.browserRenderer.isUnavailable?.() &&
+          parsed.status !== "failed" &&
+          (!isRichAbbResult(parsed) || (context.imageOnly && !hasProductImage(parsed)))
+        ) {
+          const rendered = await context.browserRenderer.renderProductPage(url, ABB_GLOBAL_PRODUCT_RECIPE, context.signal);
+          if (rendered.fetched) {
+            const renderedParsed = parseAbbProductPage(catalogNumber, rendered.fetched, context.manufacturer.markerRules);
+            if (renderedParsed.status !== "failed" && (isRichAbbResult(renderedParsed) || hasProductImage(renderedParsed))) {
+              parsed = renderedParsed;
+            }
+          }
+        }
         officialResults.push(parsed);
         // Remember the page body that looked like an AEM-CMS product page so we can enrich it
         // afterwards by hitting the ds.library.abb.com widget API the page would call client-side.
@@ -113,6 +178,19 @@ export class ABBConnector implements ManufacturerConnector {
         if (isRichAbbResult(parsed)) break;
       } catch (error) {
         lastError = error;
+        // The global ABB search and PDP are client-rendered. If the direct HTTP client cannot
+        // reach the linked PDP, render that exact official result in the existing browser session.
+        if (exactGlobalSearch && context.browserRenderer && !context.browserRenderer.isUnavailable?.()) {
+          const rendered = await context.browserRenderer.renderProductPage(url, ABB_GLOBAL_PRODUCT_RECIPE, context.signal);
+          if (rendered.fetched) {
+            const parsed = parseAbbProductPage(catalogNumber, rendered.fetched, context.manufacturer.markerRules);
+            if (parsed.status !== "failed") {
+              officialResults.push(parsed);
+              if (context.imageOnly && hasProductImage(parsed)) break;
+              if (isRichAbbResult(parsed)) break;
+            }
+          }
+        }
         // With no exact PIS-search candidate there is only one canonical product route to
         // rescue legacy/retired IDs. Do not fan that network timeout out over every locale and
         // smartlink variant; when a candidate exists, keep the full ordered URL walk intact.
@@ -121,6 +199,18 @@ export class ABBConnector implements ManufacturerConnector {
     }
 
     const directPrimary = bestAbbResult(officialResults);
+    if (!searchLookup.fetched && (!directPrimary || directPrimary.status === "failed")) {
+      return {
+        ...emptyResult("abb", catalogNumber, "ABB's official product search and canonical product page did not respond."),
+        diagnostics: {
+          terminal: {
+            reason: "official-source-unavailable",
+            skipNetworkFallback: true
+          },
+          notes: ["ABB PIS search timed out; the canonical ABB product page was tried once. Non-ABB discovery was skipped."]
+        }
+      };
+    }
     // For AEM-style pages (PLCs, drives, robotics), the English /products/{id} URL serves a thin
     // AEM page and the full PIS data is only available under /products/{locale}/{id}/{slug}.
     // Only run search resolution when direct URLs did not already provide rich PIS data. This
@@ -138,7 +228,7 @@ export class ABBConnector implements ManufacturerConnector {
     // ProductNetDepth/Height/Width, etc. We only pay this cost when EN + PIS search both failed
     // to surface PIS data, so non-AEM products are not slowed down.
     let localeFallbackPrimary: ProductResult | undefined;
-    if (directPrimary && !hasAbbPisData(directPrimary) && !hasAbbPisData(searchPrimary) && (lastAemFetch || searchLookup.urls.length > 0 || searchUrls.length > 0)) {
+    if (!context.imageOnly && directPrimary && !hasAbbPisData(directPrimary) && !hasAbbPisData(searchPrimary) && (lastAemFetch || searchLookup.urls.length > 0 || searchUrls.length > 0)) {
       // Do not pay a second timeout for a URL already attempted in the direct path.
       localeFallbackPrimary = bestAbbResult(await fetchAbbLocaleFallbackResults(catalogNumber, context, new Set(urls)));
     }
@@ -194,6 +284,131 @@ export class ABBConnector implements ManufacturerConnector {
   }
 }
 
+async function fetchAbbGlobalSearchProduct(
+  catalogNumber: string,
+  context: ScrapeContext
+): Promise<{ searchUrl: string; fetched: FetchedText; urls: string[]; productIds: string[]; definitiveEmpty: boolean } | undefined> {
+  const searchUrl = `${ABB_GLOBAL_HOME_URL}/search?q=${encodeURIComponent(catalogNumber)}`;
+  try {
+    // These POST fields and endpoint are the ones configured by the official global search page.
+    // A catalog number is explicitly searched in the product index; no browser UI or sibling
+    // result is treated as proof that the requested product exists.
+    const fetched = await context.http.fetchText(ABB_GLOBAL_SEARCH_GENERIC_URL, {
+      method: "POST",
+      body: JSON.stringify({
+        usertext: catalogNumber,
+        classification_intent: "product_search",
+        from: 0,
+        size: 10,
+        contentlanguage: ["en"],
+        country: ["global"]
+      }),
+      timeoutMs: 2500,
+      maxAttempts: 1,
+      cacheTtlMs: 24 * 60 * 60 * 1000,
+      signal: context.signal,
+      headers: { accept: "application/json", "content-type": "application/json", referer: `${ABB_GLOBAL_HOME_URL}/search` }
+    });
+    if (fetched.statusCode < 200 || fetched.statusCode >= 300) return undefined;
+    const payload = JSON.parse(fetched.text) as {
+      search_results?: { total?: number; results?: Array<{ url?: string }> };
+    };
+    const candidates = Array.isArray(payload.search_results?.results) ? payload.search_results.results : [];
+    const urls: string[] = [];
+    const productIds: string[] = [];
+    for (const candidate of candidates) {
+      if (!candidate.url) continue;
+      try {
+        const url = new URL(candidate.url, ABB_GLOBAL_HOME_URL);
+        if (!/(?:^|\.)abb\.com$/i.test(url.hostname)) continue;
+        const parts = url.pathname.split("/").filter(Boolean);
+        const productsIndex = parts.findIndex((part) => part.toLowerCase() === "products");
+        const productId = parts[productsIndex + 1];
+        if (!productId || !sameCatalogNumber(decodeURIComponent(productId), catalogNumber)) continue;
+        urls.push(url.toString());
+        productIds.push(decodeURIComponent(productId));
+      } catch {
+        // Ignore malformed and non-product search results.
+      }
+    }
+    return {
+      searchUrl,
+      fetched,
+      urls: [...new Set(urls)],
+      productIds: [...new Set(productIds)],
+      definitiveEmpty: candidates.length === 0 || urls.length === 0
+    };
+  } catch {
+    return undefined;
+  }
+}
+
+export function parseAbbGlobalSearchProductUrls(catalogNumber: string, html: string, sourceUrl: string): string[] {
+  const $ = cheerio.load(html);
+  const urls: string[] = [];
+  $("a[href]").each((_, element) => {
+    const href = $(element).attr("href");
+    if (!href) return;
+    let absolute: URL;
+    try {
+      absolute = new URL(href, sourceUrl);
+    } catch {
+      return;
+    }
+    if (!/(?:^|\.)abb\.com$/i.test(absolute.hostname)) return;
+    const segments = absolute.pathname.split("/").filter(Boolean);
+    const productIndex = segments.findIndex((segment) => segment.toLowerCase() === "products");
+    const productId = productIndex >= 0 ? segments[productIndex + 1] : undefined;
+    if (!productId || !sameCatalogNumber(decodeURIComponent(productId), catalogNumber)) return;
+    urls.push(absolute.toString());
+  });
+  return [...new Set(urls)];
+}
+
+const ABB_GLOBAL_PRODUCT_RECIPE = {
+  interactionPolicy: {
+    gotoWaitUntil: "domcontentloaded" as const,
+    gotoTimeoutMs: 15000,
+    networkIdleTimeoutMs: 5000,
+    scrollPasses: 0,
+    maxClicks: 0,
+    expandSelectors: []
+  }
+};
+
+async function attachAbbGermanDescription(
+  result: ProductResult,
+  catalogNumber: string,
+  productIds: string[],
+  context: ScrapeContext
+): Promise<ProductResult> {
+  // German descriptions are requested master-data fields, so fetch them even when PDF/CAD
+  // downloads are disabled. Image-only runs remain the sole path that skips language text.
+  if (result.localizedDescriptions?.de?.title || result.localizedDescriptions?.de?.description) return result;
+  const de =
+    (await fetchAbbGermanDescriptionFromPisApi(catalogNumber, productIds, context).catch(() => undefined)) ??
+    (await fetchAbbGermanDescription(
+      catalogNumber,
+      context,
+      result.localizedUrls?.de ?? result.sources?.find((source) => source.sourceType === "official")?.url
+    ).catch(() => undefined));
+  if (!de || (!de.title && !de.description)) return result;
+  // PIS requested with langCode "de" is a German catalogue record, even if ABB never translated
+  // that product; HTML can simply echo English, so only the latter is compared with English text.
+  const englishTitle = de.fromLocalizedRecord ? undefined : result.title;
+  const englishDescription = de.fromLocalizedRecord ? undefined : result.description;
+  const title = localizedAbbText(de.title, englishTitle, catalogNumber);
+  const description = localizedAbbText(de.description, englishDescription, catalogNumber);
+  if (!title && !description) return result;
+  return {
+    ...result,
+    localizedDescriptions: {
+      ...(result.localizedDescriptions ?? {}),
+      de: { title, description }
+    }
+  };
+}
+
 /**
  * German title/description straight from the PIS API (`langCode: "de"`), which is the same
  * authoritative record the English path already uses and answers in well under a second.
@@ -232,13 +447,16 @@ type AbbLocalizedText = { title?: string; description?: string; fromLocalizedRec
  */
 async function fetchAbbGermanDescription(
   catalogNumber: string,
-  context: ScrapeContext
+  context: ScrapeContext,
+  englishProductUrl?: string
 ): Promise<AbbLocalizedText | undefined> {
   const encoded = encodeURIComponent(catalogNumber);
-  const urls = [
+  const localizedUrl = abbGermanProductUrl(catalogNumber, englishProductUrl);
+  const urls = [...new Set([
+    ...(localizedUrl ? [localizedUrl] : []),
     `https://new.abb.com/products/de/${encoded}/product`,
     `https://new.abb.com/products/de/${encoded}`
-  ];
+  ])];
   for (const url of urls) {
     try {
       const fetched = await fetchAbbPage(url, context);
@@ -252,6 +470,29 @@ async function fetchAbbGermanDescription(
     }
   }
   return undefined;
+}
+
+function abbGermanProductUrl(catalogNumber: string, englishProductUrl?: string): string | undefined {
+  if (!englishProductUrl) return undefined;
+  try {
+    const url = new URL(englishProductUrl);
+    const parts = url.pathname.split("/").filter(Boolean);
+    const productsIndex = parts.findIndex((part) => part.toLowerCase() === "products");
+    if (productsIndex < 0) return undefined;
+    const productIdIndex = productsIndex + 1;
+    if (parts[productIdIndex]?.toLowerCase() === "de") {
+      const germanId = parts[productIdIndex + 1];
+      if (!germanId || !sameCatalogNumber(decodeURIComponent(germanId), catalogNumber)) return undefined;
+      return url.toString();
+    }
+    const productId = parts[productIdIndex];
+    if (!productId || !sameCatalogNumber(decodeURIComponent(productId), catalogNumber)) return undefined;
+    const slugIndex = productIdIndex + 1;
+    const slug = parts[slugIndex] && parts[slugIndex].toLowerCase() !== "product" ? parts[slugIndex] : undefined;
+    return `https://new.abb.com/products/de/${encodeURIComponent(productId)}${slug ? `/${slug}` : ""}`;
+  } catch {
+    return undefined;
+  }
 }
 
 function localizedAbbText(value: string | undefined, englishValue: string | undefined, catalogNumber: string): string | undefined {
@@ -955,6 +1196,14 @@ function isRichAbbResult(result: ProductResult | undefined): boolean {
   return Boolean(result && result.status === "found" && result.attributes.some((attr) => attr.group === "ABB Product Data") && result.attributes.length >= 25);
 }
 
+function abbResultMatchesCatalogNumber(result: ProductResult, catalogNumber: string): boolean {
+  const identityAttributes = result.attributes.filter((attribute) =>
+    attribute.group === "ABB Product Data" &&
+    /^(?:Product ID|Global Commercial Alias|Extended Product Type|ABB Type)$/i.test(attribute.name)
+  );
+  return identityAttributes.some((attribute) => sameCatalogNumber(attribute.value, catalogNumber));
+}
+
 function isUsefulAbbSearchResult(result: ProductResult): boolean {
   if (isRichAbbResult(result)) return true;
   if (result.status !== "found" || !hasAbbPisData(result)) return false;
@@ -1052,12 +1301,9 @@ async function fetchAbbPisApiResult(
   if (!token) return undefined;
 
   const appSettings = {
-    appCode: "9AAG8556",
+    appCode: "9AAG028817",
     langCode,
-    internalUser: false,
-    anonymousUser: false,
-    treeType: "Products",
-    productRelationshipFiltering: true
+    countryCode: "global"
   };
   const body = {
     appSettings,
@@ -1150,22 +1396,26 @@ async function fetchAbbPisApiToken(context: ScrapeContext): Promise<string | und
   if (abbPisApiTokenPromise) return abbPisApiTokenPromise;
   abbPisApiTokenPromise = (async () => {
     try {
-      const fetched = await context.http.fetchText("https://new.abb.com/api/PisSearchApi/Token", {
-        timeoutMs: 5000,
+      const fetched = await context.http.fetchText(ABB_PIS_TOKEN_URL, {
+        method: "POST",
+        body: "{}",
+        timeoutMs: 2500,
         cache: false,
-        // Every product's data hangs off this one token; a single 429 here used to take the whole
-        // PIS path down for that item. Cheap call, so retry it rather than lose the product.
-        maxAttempts: 3,
-        retryBackoffMs: 400,
+        maxAttempts: 1,
         signal: context.signal,
-        headers: { accept: "application/json,text/plain,*/*", "user-agent": ABB_USER_AGENT }
+        headers: {
+          accept: "application/json",
+          "content-type": "application/json",
+          "user-agent": ABB_USER_AGENT,
+          referer: ABB_GLOBAL_HOME_URL
+        }
       });
       if (fetched.statusCode >= 400) return undefined;
-      const parsed = JSON.parse(fetched.text) as { Token?: unknown; ExpiresOn?: unknown };
-      const value = typeof parsed.Token === "string" && parsed.Token ? parsed.Token : undefined;
+      const parsed = JSON.parse(fetched.text) as { accessToken?: unknown; expiresIn?: unknown };
+      const value = typeof parsed.accessToken === "string" && parsed.accessToken ? parsed.accessToken : undefined;
       if (!value) return undefined;
-      const expiresAt = typeof parsed.ExpiresOn === "string" ? Date.parse(parsed.ExpiresOn) : Number.NaN;
-      abbPisApiToken = { value, expiresAt: Number.isFinite(expiresAt) ? expiresAt : Date.now() + 10 * 60_000 };
+      const expiresIn = typeof parsed.expiresIn === "number" && Number.isFinite(parsed.expiresIn) ? parsed.expiresIn : 600;
+      abbPisApiToken = { value, expiresAt: Date.now() + Math.max(60, expiresIn - 60) * 1000 };
       return value;
     } catch {
       return undefined;
@@ -1391,7 +1641,7 @@ async function buildAbbSearchProductUrlLookup(catalogNumber: string, context: Sc
       if (group[priority]) urls.push(group[priority]);
     }
   }
-  const definitiveEmpty = isDefinitiveEmptyAbbSearch(fetched.text, searchItems.length);
+  const definitiveEmpty = fetched.statusCode === 404 || isDefinitiveEmptyAbbSearch(fetched.text, searchItems.length);
   return {
     searchUrl,
     fetched,
@@ -1645,6 +1895,9 @@ export function parseAbbProductPage(catalogNumber: string, fetched: FetchedText,
   const localizedDescriptions = isAbbDeLocaleUrl(fetched.effectiveUrl)
     ? buildAbbDeLocalizedDescriptions(title, description, catalogNumber)
     : undefined;
+  const localizedUrls = buildLocalizedProductUrls("abb", catalogNumber, productUrl);
+  const germanPageUrl = extractAbbGermanProductUrl($, catalogNumber, fetched.effectiveUrl);
+  if (germanPageUrl) localizedUrls.de = germanPageUrl;
 
   return {
     manufacturerId: "abb",
@@ -1654,7 +1907,7 @@ export function parseAbbProductPage(catalogNumber: string, fetched: FetchedText,
     // than JSON-LD (which ABB also serves on family/shell pages), so it earns the same confidence.
     confidence: product || pisDescriptors.identityMatched ? 0.9 : 0.65,
     productUrl,
-    localizedUrls: buildLocalizedProductUrls("abb", catalogNumber, productUrl),
+    localizedUrls,
     title,
     description,
     localizedDescriptions,
@@ -1672,6 +1925,23 @@ export function parseAbbProductPage(catalogNumber: string, fetched: FetchedText,
       }
     ]
   };
+}
+
+function extractAbbGermanProductUrl($: cheerio.CheerioAPI, catalogNumber: string, sourceUrl: string): string | undefined {
+  const rawUrl = $("[data-value='de'][data-url], [data-value='de'][href]").first().attr("data-url") ??
+    $("[data-value='de'][href]").first().attr("href");
+  if (!rawUrl) return undefined;
+  try {
+    const url = new URL(rawUrl, sourceUrl);
+    if (!/(?:^|\.)abb\.com$/i.test(url.hostname)) return undefined;
+    const segments = url.pathname.split("/").filter(Boolean);
+    const productsIndex = segments.findIndex((segment) => segment.toLowerCase() === "products");
+    if (productsIndex < 0 || segments[productsIndex + 1]?.toLowerCase() !== "de") return undefined;
+    const productId = segments[productsIndex + 2];
+    return productId && sameCatalogNumber(decodeURIComponent(productId), catalogNumber) ? url.toString() : undefined;
+  } catch {
+    return undefined;
+  }
 }
 
 /**

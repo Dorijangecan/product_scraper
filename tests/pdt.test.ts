@@ -318,6 +318,39 @@ describe("eclass resolvers", () => {
     );
   });
 
+  it("maps ABB cabinet Catalog Description to short and Long Description to long", () => {
+    const c = ctx(
+      {
+        manufacturerId: "abb",
+        title: "CABINET WITH SINGLE BLIND DOOR 1400X600X500 MM",
+        description: "IS2 blind door HxWxD 1400x600x500",
+        localizedDescriptions: {
+          de: {
+            title: "IS2 mit Stahlblechtür HxBxT 1400X600X500",
+            description: "Gehäuse aus Metall für die Realisierung von angereihten Schaltschränken."
+          }
+        },
+        attributes: [
+          { group: "ABB Product Data", name: "Product ID", value: "1STQ005357B0000", sourceType: "official" },
+          { group: "ABB Product Data", name: "EAN", value: "8015646859136", sourceType: "official" },
+          { group: "ABB Product Data", name: "Extended Product Type", value: "ES1455K", sourceType: "official" }
+        ]
+      },
+      "1STQ005357B0000",
+      "Enclosure"
+    );
+    c.manufacturer = { ...manufacturer, id: "abb", canonicalName: "ABB" } as ManufacturerConfig;
+
+    expect(resolveProperty("CNS_DESCRIPTION_SHORT", "CNS_DESCRIPTION_SHORT", c)).toBe("CABINET WITH SINGLE BLIND DOOR 1400X600X500 MM");
+    expect(resolveProperty("CNS_DESCRIPTION_LONG", "CNS_DESCRIPTION_LONG", c)).toBe("IS2 blind door HxWxD 1400x600x500");
+    expect(resolveProperty("CNS_DESCRIPTION_SHORT", "CNS_DESCRIPTION_SHORT", { ...c, language: "de" })).toBe("IS2 mit Stahlblechtür HxBxT 1400X600X500");
+    expect(resolveProperty("CNS_DESCRIPTION_LONG", "CNS_DESCRIPTION_LONG", { ...c, language: "de" })).toBe("Gehäuse aus Metall für die Realisierung von angereihten Schaltschränken.");
+    expect(resolveProperty("AAO676", "AAO676", c)).toBe("1STQ005357B0000");
+    expect(resolveProperty("CNSTYPECODE", "CNSTYPECODE", c)).toBe("ES1455K");
+    expect(resolveProperty("AAO663", "AAO663", c)).toBe("8015646859136");
+    expect(resolveProperty("CNS_EAN", "CNS_EAN", c)).toBeUndefined();
+  });
+
   it("writes the official ReeR Admiral AX 2B LR DB text to Description long", async () => {
     const dir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-pdt-reer-admiral-"));
     const templatePath = path.join(dir, "template.xlsx");
@@ -860,6 +893,60 @@ describe("eclass resolvers", () => {
     expect(resolveProperty("BAF016", "BAF016", c)).toBe("25");
     expect(resolveProperty("BAA020", "BAA020", c)).toBe("50");
     expect(resolveProperty("BAB577", "BAB577", c)).toBe("8");
+  });
+
+  it("promotes ABB Product Net dimensions ahead of reference dimensions in PDT facts and cells", async () => {
+    const c = ctx({
+      manufacturerId: "abb",
+      attributes: [
+        // Deliberately put reference values first to guard against API ordering changes.
+        { name: "Reference Depth/Length", value: "500 mm", sourceType: "official" },
+        { name: "Reference Height", value: "1600 mm", sourceType: "official" },
+        { name: "Reference Width", value: "600 mm", sourceType: "official" },
+        { name: "Product Net Depth / Length", value: "540 mm", sourceType: "official" },
+        { name: "Product Net Height", value: "1705 mm", sourceType: "official" },
+        { name: "Product Net Width", value: "610 mm", sourceType: "official" }
+      ]
+    }, "1STQ005378B0000");
+    const facts = buildPdtFactIndex({ item: c.item, manufacturer: { ...manufacturer, id: "abb" } as ManufacturerConfig, deviceType: "Enclosure" });
+    expect(bestFact(facts, "pdtDepthMm")?.value).toBe("540");
+    expect(bestFact(facts, "pdtWidthMm")?.value).toBe("610");
+    expect(bestFact(facts, "pdtHeightMm")?.value).toBe("1705");
+    expect(resolveProperty("BAB577", "BAB577", c)).toBe("540");
+    expect(resolveProperty("BAF016", "BAF016", c)).toBe("610");
+    expect(resolveProperty("BAA020", "BAA020", c)).toBe("1705");
+
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-pdt-abb-net-dimensions-"));
+    const templatePath = path.join(dir, "template.xlsx");
+    const outputPath = path.join(dir, "out.xlsx");
+    const wb = new ExcelJS.Workbook();
+    const material = wb.addWorksheet("Material Master Data");
+    material.getCell(6, 1).value = "ECLASS property";
+    material.getCell(7, 1).value = "Variable name (CNS internal)";
+    material.getCell(8, 1).value = "English variable description";
+    material.getCell(9, 1).value = "Units";
+    for (const [column, code, label] of [[3, "BAB577", "Depth"], [4, "BAF016", "Width"], [5, "BAA020", "Height"]] as const) {
+      material.getCell(6, column).value = code;
+      material.getCell(7, column).value = code;
+      material.getCell(8, column).value = label;
+      material.getCell(9, column).value = "mm";
+    }
+    wb.addWorksheet("Additional Documents");
+    await wb.xlsx.writeFile(templatePath);
+    const exported = await exportRunPdt({
+      manufacturer: { ...manufacturer, id: "abb" } as ManufacturerConfig,
+      items: [c.item],
+      templatePath,
+      outputPath
+    });
+    const out = new ExcelJS.Workbook();
+    await out.xlsx.readFile(outputPath);
+    const sheet = out.getWorksheet("Material Master Data")!;
+    expect(sheet.getCell(11, 3).value).toBe(540);
+    expect(sheet.getCell(11, 4).value).toBe(610);
+    expect(sheet.getCell(11, 5).value).toBe(1705);
+    expect(exported.cellAudit.records.filter((record) => ["BAB577", "BAF016", "BAA020"].includes(record.code)).map((record) => [record.code, record.value, record.status]))
+      .toEqual([["BAB577", "540", "written"], ["BAF016", "610", "written"], ["BAA020", "1705", "written"]]);
   });
 
   it("uses the manufacturer homepage for MANUFACTURER_URL, falling back to the base origin", () => {
@@ -2933,6 +3020,43 @@ describe("PDT exporter", () => {
     const cleaned = new ExcelJS.Workbook();
     await cleaned.xlsx.readFile(result.cleanedInputPath!);
     expect(cleaned.getWorksheet("Cleaned PDT Input")).toBeTruthy();
+  });
+
+  it("writes ABB EAN only to the GTIN column in the exported PDT", async () => {
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-pdt-abb-ean-column-"));
+    const templatePath = path.join(dir, "template.xlsx");
+    const outputPath = path.join(dir, "out.xlsx");
+    const wb = new ExcelJS.Workbook();
+    const material = wb.addWorksheet("Material Master Data");
+    material.getCell(6, 1).value = "ECLASS property";
+    material.getCell(7, 1).value = "Variable name (CNS internal)";
+    material.getCell(8, 1).value = "English variable description";
+    material.getCell(9, 1).value = "Units";
+    for (const [column, code, name] of [[2, "AAO676", "CNSORDERNO"], [3, "AAO663", "AAO663"], [4, "AAN743", "CNS_EAN"]] as const) {
+      material.getCell(6, column).value = code;
+      material.getCell(7, column).value = name;
+    }
+    wb.addWorksheet("Additional Documents");
+    await wb.xlsx.writeFile(templatePath);
+
+    const item = ctx({
+      manufacturerId: "abb",
+      attributes: [{ name: "EAN", value: "8015646859297", sourceType: "official" }]
+    }, "1STQ005379B0000").item;
+    const result = await exportRunPdt({
+      manufacturer: { ...manufacturer, id: "abb" } as ManufacturerConfig,
+      items: [item],
+      templatePath,
+      outputPath
+    });
+
+    const out = new ExcelJS.Workbook();
+    await out.xlsx.readFile(outputPath);
+    const sheet = out.getWorksheet("Material Master Data")!;
+    expect(sheet.getCell(11, 3).value).toBe("8015646859297");
+    expect(sheet.getCell(11, 4).value).toBeNull();
+    expect(result.cellAudit.records.some((record) => record.code === "AAO663" && record.status === "written")).toBe(true);
+    expect(result.cellAudit.records.some((record) => record.code === "AAN743" && record.status === "written")).toBe(false);
   });
 
   it("hides data columns that stay empty for the product set so horizontal scroll stays usable", async () => {

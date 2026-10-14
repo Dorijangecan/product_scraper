@@ -330,6 +330,10 @@ Politike u `ManufacturerConfig.scrapeRecipe`: `DiscoveryPolicyConfig`, `Interact
 ### `src/server/scrapers/` — konektori (svi imaju `<Name>Connector`)
 `abb.ts` `balluff.ts` `doepke.ts` `eaton.ts` `eta.ts` `fath.ts` `gan.ts` `rockwell.ts` `sce.ts` `scame.ts` `schmersal.ts`
 `schneider.ts` `siemens.ts` `spelsberg.ts` `turck.ts` — uz `parse<Vendor>ProductPage` helpere.
+ABB tok za točan kataloški broj prvo dohvaća službeni PIS zapis i prihvaća ga samo ako `Product ID`
+odgovara ulazu; globalna ABB pretraga i PIS pretraga rezervni su put za komercijalne nazive i kada
+izravni PIS nema zapis. Njemački opis uzima se iz PIS zapisa, a PDT fizičke mjere daju prednost `Product Net` nad
+referentnim mjerama.
 `rittal.ts` koristi službeni `/products/show/{orderNumber}` resolver prvo, generički PDP parser
 zatim zajednički discovery fallback. `nvent` i `phoenix` ostaju config-driven. Vanjska web-pretraga
 za Rittal ostaje opt-in preko `PRODUCT_SCRAPER_ALLOW_EXTERNAL_SEARCH=1`.

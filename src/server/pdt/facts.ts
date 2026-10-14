@@ -167,14 +167,15 @@ export function buildPdtFactIndex(input: PdtFactInput): PdtFactIndex {
   // Mirror the EN rule: only when the EN title is the structured enclosure name does the German
   // long description become the (translated) title and the short its first comma segment.
   const enclosureDescription = Boolean(structuredEnclosureTitle(result, input.item.catalogNumber, input.deviceType));
+  const abbProductDescriptions = result.manufacturerId === "abb";
   addGenerated(
     facts,
     "localizedShortDescriptionDe",
-    sceEnclosureShortDescriptionDe(result, input.deviceType) ?? (enclosureDescription ? firstCommaSegment(deTitle) : deTitle),
+    abbProductDescriptions ? deTitle : sceEnclosureShortDescriptionDe(result, input.deviceType) ?? (enclosureDescription ? firstCommaSegment(deTitle) : deTitle),
     "localized-product-title",
     "German product title scraped from localized page."
   );
-  addGenerated(facts, "localizedLongDescriptionDe", enclosureDescription ? deTitle ?? deDescription : deDescription, "localized-product-description", "German product description scraped from localized page.");
+  addGenerated(facts, "localizedLongDescriptionDe", abbProductDescriptions ? deDescription : enclosureDescription ? deTitle ?? deDescription : deDescription, "localized-product-description", "German product description scraped from localized page.");
 
   // nVent publishes a numeric "Article Number" on the product page (e.g. 13402) distinct from the
   // orderable catalog number. The PDT type code should carry that web article number, so add it as
@@ -629,12 +630,27 @@ function bestSource(sources: SourceRecord[]): SourceRecord | undefined {
 
 function addMetricLengthPdtFact(facts: PdtFact[], result: ProductResult, key: "pdtDepthMm" | "pdtWidthMm" | "pdtHeightMm", pattern: RegExp): void {
   if (hasAttributeFact(facts, key)) return;
-  const attr = bestAttribute(result.attributes, pattern);
+  const candidates = result.attributes.filter((candidate) => pattern.test(`${candidate.group ?? ""} ${candidate.name}`) && clean(candidate.value));
+  // ABB publishes both reference (cut-out) dimensions and larger Product Net dimensions. A
+  // generic source/confidence sort can pick the reference row first when the API changes order;
+  // PDT physical dimensions must use the physical product's net size whenever it is available.
+  candidates.sort((left, right) =>
+    dimensionAttributeRank(right.name) - dimensionAttributeRank(left.name) ||
+    sourceRank(right.sourceType) - sourceRank(left.sourceType) ||
+    (right.confidence ?? 0) - (left.confidence ?? 0)
+  );
+  const attr = candidates[0];
   const valueWithUnit = lengthValueWithUnit(attr);
   if (!attr || !valueWithUnit || !isSafeLengthMeasurement(valueWithUnit) || !/\bmm\b/i.test(valueWithUnit)) return;
   const value = firstNumberWithUnit(valueWithUnit, "mm");
   if (!value) return;
   facts.push(factFromAttribute(key, { ...attr, value }, `Physical attribute "${attr.name}" promoted to PDT ${key}.`));
+}
+
+function dimensionAttributeRank(name: string): number {
+  if (/\bproduct\s+net\b/i.test(name)) return 2;
+  if (/\bnet\b/i.test(name)) return 1;
+  return 0;
 }
 
 function hasAttributeFact(facts: PdtFact[], key: string): boolean {
@@ -1263,6 +1279,7 @@ function firstCommaSegment(value: string | undefined): string | undefined {
 function pdtShortDescription(result: ProductResult, catalogNumber: string, deviceType?: string): string | undefined {
   const known = knownPdtDescription(result, catalogNumber)?.short;
   if (known) return known;
+  if (result.manufacturerId === "abb") return abbPageDescription(result, catalogNumber, "short");
   const sceShort = sceEnclosureShortDescription(result, deviceType);
   if (sceShort) return sceShort;
   const structured = structuredEnclosureTitle(result, catalogNumber, deviceType);
@@ -1286,12 +1303,20 @@ function pdtShortDescription(result: ProductResult, catalogNumber: string, devic
 function pdtLongDescription(result: ProductResult, catalogNumber: string, deviceType?: string): string | undefined {
   const known = knownPdtDescription(result, catalogNumber)?.long;
   if (known) return known;
+  if (result.manufacturerId === "abb") return abbPageDescription(result, catalogNumber, "long");
   const sceDescription = sceProductSpecificationDescription(result, catalogNumber);
   if (sceDescription) return sceDescription;
   const structured = structuredEnclosureTitle(result, catalogNumber, deviceType);
   if (structured) return structured;
   const current = safeDescription(result.description, catalogNumber);
   return betterLongDescription(result, current, catalogNumber) ?? current;
+}
+
+function abbPageDescription(result: ProductResult, catalogNumber: string, kind: "short" | "long"): string | undefined {
+  const exactDescription = kind === "short" ? result.title : result.description;
+  const attributeName = kind === "short" ? /^catalog description$/i : /^long description$/i;
+  const attributeDescription = result.attributes.find((attr) => attributeName.test(attr.name))?.value;
+  return safeDescription(exactDescription, catalogNumber) ?? safeDescription(attributeDescription, catalogNumber);
 }
 
 function sceProductSpecificationDescription(result: ProductResult, catalogNumber: string): string | undefined {
@@ -1324,6 +1349,7 @@ function knownPdtDescription(result: ProductResult, catalogNumber: string): { sh
 function repairShortDescription(input: PdtFactInput): string | undefined {
   const known = input.item.result ? knownPdtDescription(input.item.result, input.item.catalogNumber)?.short : undefined;
   if (known) return known;
+  if (input.item.result?.manufacturerId === "abb") return abbPageDescription(input.item.result, input.item.catalogNumber, "short");
   // Enclosure structured-title rule wins over the repaired prose (the repair fact outranks the
   // generated one), so keep both consistent: short = title up to the first comma.
   const structured = input.item.result ? structuredEnclosureTitle(input.item.result, input.item.catalogNumber, input.deviceType) : undefined;
@@ -1336,6 +1362,7 @@ function repairShortDescription(input: PdtFactInput): string | undefined {
 function repairLongDescription(input: PdtFactInput): string | undefined {
   const known = input.item.result ? knownPdtDescription(input.item.result, input.item.catalogNumber)?.long : undefined;
   if (known) return known;
+  if (input.item.result?.manufacturerId === "abb") return abbPageDescription(input.item.result, input.item.catalogNumber, "long");
   const structured = input.item.result ? structuredEnclosureTitle(input.item.result, input.item.catalogNumber, input.deviceType) : undefined;
   if (structured) return structured;
   const value = cleanProductDescription(input.repair?.longDescription, input.item.catalogNumber);

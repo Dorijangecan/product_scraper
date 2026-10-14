@@ -179,6 +179,8 @@ function parseWeightRaw(raw: string | undefined): { kg?: number; g?: number } | 
 }
 
 function exactWeightValue(ctx: ResolveContext, target: "kg" | "g"): string | undefined {
+  const isAbb = ctx.result?.manufacturerId === "abb" || ctx.manufacturer?.id === "abb";
+  if (isAbb && abbWeightIdentityMismatch(ctx)) return undefined;
   const raw = ctx.result?.normalized.weight;
   const match = raw && normalizeNumberSeparators(raw).match(/(\d+(?:\.\d+)?)\s*(kg|g|lb|lbs|oz|ounce|ounces)\b/i);
   if (!match) {
@@ -512,6 +514,21 @@ const longDescription: Resolver = (ctx) => {
   if (rockwellPageLong) return rockwellPageLong;
   const sceDescription = sceProductSpecificationDescription(ctx);
   if (sceDescription) return sceDescription;
+  if ((ctx.result?.manufacturerId ?? ctx.manufacturer.id) === "abb") {
+    // ABB's cabinet title is its Catalog Description (short); the page separately publishes a
+    // Long Description. The generic enclosure title rule would otherwise copy Catalog Description
+    // into both PDT description columns and discard ABB's actual long text.
+    const english =
+      cleanDescriptionValue(pdtFactValue(ctx, "longDescription"), ctx.item.catalogNumber) ??
+      cleanDescriptionValue(ctx.result?.description, ctx.item.catalogNumber) ??
+      cleanDescriptionValue(attr(ctx, /^long description$/i), ctx.item.catalogNumber);
+    if (ctx.language !== "de") return english;
+    return (
+      localizedDescriptionFactValue(ctx, "localizedLongDescriptionDe", english) ??
+      localizedGermanText(ctx.result?.localizedDescriptions?.de?.description, english, ctx.item.catalogNumber) ??
+      english
+    );
+  }
   const structuredTitle = structuredTitleDescription(ctx);
   if (structuredTitle) {
     if (ctx.language === "de") {
@@ -544,6 +561,18 @@ const shortDescription: Resolver = (ctx) => {
   const rockwellPageShort = rockwellPageDescription(ctx, "short");
   if (rockwellPageShort) return rockwellPageShort;
   if (isSceEnclosure(ctx)) return ctx.language === "de" ? "Gehaeuse" : "Enclosure";
+  if ((ctx.result?.manufacturerId ?? ctx.manufacturer.id) === "abb") {
+    const english =
+      cleanDescriptionValue(pdtFactValue(ctx, "shortDescription"), ctx.item.catalogNumber) ??
+      cleanDescriptionValue(ctx.result?.title, ctx.item.catalogNumber) ??
+      cleanDescriptionValue(attr(ctx, /^catalog description$/i), ctx.item.catalogNumber);
+    if (ctx.language !== "de") return english;
+    return (
+      localizedDescriptionFactValue(ctx, "localizedShortDescriptionDe", english) ??
+      localizedGermanText(ctx.result?.localizedDescriptions?.de?.title, english, ctx.item.catalogNumber) ??
+      english
+    );
+  }
   const structuredTitle = structuredTitleDescription(ctx);
   if (structuredTitle) {
     if (ctx.language === "de") {
