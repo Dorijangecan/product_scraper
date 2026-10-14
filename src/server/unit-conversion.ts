@@ -25,3 +25,28 @@ export const OUNCE_TO_GRAM = 28.349523125;
 
 /** 1 in = 25.4 mm, exactly. */
 export const INCH_TO_MILLIMETER = 25.4;
+
+/** Multiply finite decimal text by an exact decimal factor without binary-float rounding. */
+export function multiplyDecimalExactly(value: string, factor: string): string | undefined {
+  const parse = (raw: string): { digits: bigint; scale: number; negative: boolean } | undefined => {
+    const match = raw.trim().match(/^([+-]?)(\d+)(?:\.(\d+))?$/);
+    if (!match) return undefined;
+    const fraction = match[3] ?? "";
+    return {
+      digits: BigInt(`${match[2]}${fraction}`),
+      scale: fraction.length,
+      negative: match[1] === "-"
+    };
+  };
+  const left = parse(value);
+  const right = parse(factor);
+  if (!left || !right) return undefined;
+
+  const product = left.digits * right.digits;
+  const negative = left.negative !== right.negative && product !== 0n;
+  const scale = left.scale + right.scale;
+  const padded = product.toString().padStart(scale + 1, "0");
+  const whole = scale ? padded.slice(0, -scale) : padded;
+  const fraction = scale ? padded.slice(-scale).replace(/0+$/, "") : "";
+  return `${negative ? "-" : ""}${whole}${fraction ? `.${fraction}` : ""}`;
+}

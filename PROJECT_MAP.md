@@ -92,7 +92,7 @@ playwright ako patchright ikad zakaže na nekoj mašini.
 - **Scrape orkestracija:** [run-manager.ts](src/server/run-manager.ts) (`RunManager.processRun`).
 
 **API rute (sve u `index.ts`):** `GET/POST /api/manufacturers` (+`/:id/operational-summary` za read-only target-health/learned-endpoint pregled, `/inspect`,`/test`,`/:id/learned-extractors`,`/:id/reset-override`)
-· `GET /api/field-coverage-matrix` (site×field health matrica preko SVIH proizvođača — `run-manager.ts` `buildFieldCoverageMatrix`, renderano u `App.tsx` `FieldCoverageMatrixPanel`, uvijek expanded kad postoji drift)
+· `GET /api/field-coverage-matrix` (site×field health matrica preko SVIH proizvođača — `run-manager.ts` `buildFieldCoverageMatrix`, renderano u `App.tsx` `FieldCoverageMatrixPanel`, po zadanim postavkama skupljeno; korisnik ga može otvoriti)
 · `POST /api/csv/preview` · `POST /api/runs` (multipart: CSV + customer docs) · `GET /api/runs[/:id]`
 (`?summary=1` → `summarizeRunItem`) · `PATCH /api/runs/:id/coverage-fields`
 · `POST /api/runs/:id/{cancel,pause,resume}` · `/files/{result,pdt,log,document}` (+`/open`)

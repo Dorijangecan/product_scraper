@@ -1,0 +1,3853 @@
+{
+  "generatedAt": "2026-10-12T06:35:35.888Z",
+  "outputDir": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261012063510",
+  "filters": {
+    "manufacturer": "eaton",
+    "catalogNumber": "183283",
+    "fixtureDir": "benchmarks/eaton-speed-optimization-20261012/group-a",
+    "isolatedStorage": "1",
+    "tag": "20261012-baseline-a-183283"
+  },
+  "summary": {
+    "foundRate": 100,
+    "officialUrlRate": 100,
+    "documentRate": 100,
+    "pdtAuditRate": 100,
+    "deviceTypeRate": 100,
+    "customerDocumentRate": 0,
+    "wrongProducts": 0,
+    "partialWithoutMissing": 0,
+    "pdtUnprovenWritten": 0,
+    "pdtUnexplainedRequiredFieldIssues": 0,
+    "pdtWriteIssues": 4,
+    "qualityAccepted": true,
+    "fixtureCoverageAccepted": true,
+    "fixtureCoverage": {
+      "byManufacturer": {
+        "eaton": {
+          "total": 1,
+          "caseTypes": [
+            "electrical"
+          ],
+          "riskTags": [
+            "cold",
+            "rmq-m30"
+          ]
+        }
+      },
+      "byDeviceType": {
+        "Pilot Light": {
+          "total": 1,
+          "manufacturers": [
+            "eaton"
+          ],
+          "caseTypes": [
+            "electrical"
+          ]
+        }
+      },
+      "byDeviceSheet": {
+        "command and alarm device": {
+          "total": 1,
+          "deviceTypes": [
+            "Pilot Light"
+          ],
+          "manufacturers": [
+            "eaton"
+          ]
+        }
+      },
+      "thinManufacturers": [
+        "eaton"
+      ],
+      "uncoveredDeviceSheets": [
+        "Busbar",
+        "Luminaire",
+        "Motion Controller",
+        "PCB connection system",
+        "PCB connection technology",
+        "PLC",
+        "RS232 interfaces",
+        "Switch",
+        "Wire ID Information",
+        "cabinet",
+        "cabinet.airconditioning",
+        "cabinet.mechanical",
+        "cabinet.rack",
+        "cable",
+        "cable ducts mounting rails",
+        "cable gland",
+        "connector",
+        "contactor a. fuses",
+        "directional control valve",
+        "el. mesurement devices",
+        "electronic sensor",
+        "energy distribution system",
+        "filters",
+        "fluid power",
+        "generator",
+        "int. ext. lightning protection",
+        "module carrier frame",
+        "motor protection",
+        "motors",
+        "optical sensor",
+        "panel (HMI)",
+        "pneumatic handling",
+        "power supply devices",
+        "pump",
+        "safety sensor",
+        "sensor - fluid",
+        "servo controller",
+        "terminal",
+        "terminal endbracket",
+        "ventil"
+      ],
+      "missingDeviceSheetRecommendations": [
+        {
+          "sheetName": "Busbar",
+          "deviceTypes": [
+            "Busbar"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "Luminaire",
+          "deviceTypes": [
+            "Luminaire"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SL0040I.953",
+              "deviceType": "Luminaire",
+              "notes": "FATH Module F Line LED lamp"
+            }
+          ]
+        },
+        {
+          "sheetName": "Motion Controller",
+          "deviceTypes": [
+            "Motion Controller"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1756-HYD",
+              "deviceType": "Motion Controller",
+              "notes": "ControlLogix integrated motion modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1756-M02",
+              "deviceType": "Motion Controller",
+              "notes": "ControlLogix integrated motion modules"
+            }
+          ]
+        },
+        {
+          "sheetName": "PCB connection system",
+          "deviceTypes": [
+            "PCB Connector"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "PCB connection technology",
+          "deviceTypes": [
+            "PCB Terminal Block"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "PLC",
+          "deviceTypes": [
+            "Communication Gateway",
+            "HMI",
+            "I/O Module",
+            "Programmable Logic Controller"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "FL",
+              "deviceType": "Communication Gateway",
+              "notes": "FL switch / FL gateway"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "RAD",
+              "deviceType": "Communication Gateway",
+              "notes": "Radioline"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENT",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENTR",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1783",
+              "deviceType": "Communication Gateway",
+              "notes": "Stratix industrial networking and communication modules"
+            }
+          ]
+        },
+        {
+          "sheetName": "RS232 interfaces",
+          "deviceTypes": [
+            "Communication Gateway"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "FL",
+              "deviceType": "Communication Gateway",
+              "notes": "FL switch / FL gateway"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "RAD",
+              "deviceType": "Communication Gateway",
+              "notes": "Radioline"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENT",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENTR",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1783",
+              "deviceType": "Communication Gateway",
+              "notes": "Stratix industrial networking and communication modules"
+            }
+          ]
+        },
+        {
+          "sheetName": "Switch",
+          "deviceTypes": [
+            "Lock / Interlock",
+            "Selector Switch",
+            "Switch"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "M2SS",
+              "deviceType": "Selector Switch",
+              "notes": "M2SS selector switches"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "M22-WR",
+              "deviceType": "Selector Switch",
+              "notes": "M22 selector switch actuator"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "JSHD",
+              "deviceType": "Switch",
+              "notes": "JSHD three-position handheld devices"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "2702665",
+              "deviceType": "Switch",
+              "notes": "Phoenix FL SWITCH 2105 item number"
+            },
+            {
+              "manufacturerId": "schmersal",
+              "pattern": "EFM",
+              "deviceType": "Switch",
+              "notes": "Schmersal foot switches"
+            }
+          ]
+        },
+        {
+          "sheetName": "Wire ID Information",
+          "deviceTypes": [
+            "Wire Marker"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "cabinet",
+          "deviceTypes": [
+            "Enclosure"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEP",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEPY",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PSN",
+              "deviceType": "Enclosure",
+              "notes": "xEnergy ProfiSNAP enclosure panels/accessories"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "P2C",
+              "deviceType": "Enclosure",
+              "notes": "nVent Hoffman enclosure families"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "P2D",
+              "deviceType": "Enclosure",
+              "notes": "nVent Hoffman enclosure families"
+            }
+          ]
+        },
+        {
+          "sheetName": "cabinet.airconditioning",
+          "deviceTypes": [
+            "Thermal Management"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "nvent",
+              "pattern": "DAH",
+              "deviceType": "Thermal Management",
+              "notes": "nVent HOFFMAN DAH enclosure heaters"
+            },
+            {
+              "manufacturerId": "rittal",
+              "pattern": "SK",
+              "deviceType": "Thermal Management",
+              "notes": "Climate control / filter fans"
+            }
+          ]
+        },
+        {
+          "sheetName": "cabinet.mechanical",
+          "deviceTypes": [
+            "Accessory",
+            "Cover / Door Accessory",
+            "Enclosure",
+            "Subpanel"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "MDB",
+              "deviceType": "Accessory",
+              "notes": "MDB dummy blocks and operator accessories"
+            },
+            {
+              "manufacturerId": "fath",
+              "pattern": "061CC42300.74",
+              "deviceType": "Cover / Door Accessory",
+              "notes": "FATH shelf-board cover cap"
+            },
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "73540003",
+              "deviceType": "Cover / Door Accessory",
+              "notes": "Spelsberg AK KF 03 hinged window"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEP",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEPY",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            }
+          ]
+        },
+        {
+          "sheetName": "cabinet.rack",
+          "deviceTypes": [
+            "Rack Cabinet"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rittal",
+              "pattern": "DK",
+              "deviceType": "Rack Cabinet"
+            }
+          ]
+        },
+        {
+          "sheetName": "cable",
+          "deviceTypes": [
+            "Cable"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SAMB1J313B.4000",
+              "deviceType": "Cable",
+              "notes": "FATH Module F Line GST18i3 main power cable"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "889",
+              "deviceType": "Cable",
+              "notes": "Allen-Bradley cordsets and patchcords"
+            },
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "59181001",
+              "deviceType": "Cable",
+              "notes": "Spelsberg Wallbox LL 7m Type 2 charging cable"
+            }
+          ]
+        },
+        {
+          "sheetName": "cable ducts mounting rails",
+          "deviceTypes": [
+            "Mounting Accessory",
+            "Wireway"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "09308901S01",
+              "deviceType": "Mounting Accessory",
+              "notes": "FATH workstation and profile mounting components"
+            },
+            {
+              "manufacturerId": "fath",
+              "pattern": "6FG40ND80M695N08",
+              "deviceType": "Mounting Accessory",
+              "notes": "FATH workstation and profile mounting components"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "CP2020",
+              "deviceType": "Mounting Accessory",
+              "notes": "nVent Hoffman/Schroff accessory items verified on official product pages"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "CSP2020",
+              "deviceType": "Mounting Accessory",
+              "notes": "nVent Hoffman/Schroff accessory items verified on official product pages"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "1524160",
+              "deviceType": "Mounting Accessory",
+              "notes": "Phoenix MCS-112X90-AP-7035 adapter plate item number"
+            }
+          ]
+        },
+        {
+          "sheetName": "cable gland",
+          "deviceTypes": [
+            "Cable Gland"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "26013201",
+              "deviceType": "Cable Gland",
+              "notes": "Spelsberg DMS M32/w double-membrane seal"
+            }
+          ]
+        },
+        {
+          "sheetName": "connector",
+          "deviceTypes": [
+            "Connector",
+            "Optical Connector"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SAKP5J516BS01",
+              "deviceType": "Connector",
+              "notes": "FATH Module F Line and profile connectors"
+            },
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SBEU14I.317",
+              "deviceType": "Connector",
+              "notes": "FATH Module F Line and profile connectors"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "69001-",
+              "deviceType": "Connector",
+              "notes": "nVent SCHROFF DIN connectors"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "MCS",
+              "deviceType": "Connector"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VIP",
+              "deviceType": "Connector"
+            }
+          ]
+        },
+        {
+          "sheetName": "contactor a. fuses",
+          "deviceTypes": [
+            "Circuit Breaker",
+            "Contactor",
+            "Disconnect Switch",
+            "Fuse",
+            "Miniature Circuit Breaker",
+            "Molded Case Circuit Breaker",
+            "Relay",
+            "Residual Current Device",
+            "Supplementary Protector"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "eta",
+              "pattern": "3120",
+              "deviceType": "Circuit Breaker"
+            },
+            {
+              "manufacturerId": "eta",
+              "pattern": "REX",
+              "deviceType": "Circuit Breaker"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492-CB",
+              "deviceType": "Circuit Breaker",
+              "notes": "Allen-Bradley circuit breakers"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "A",
+              "deviceType": "Contactor",
+              "notes": "AF / A / AL / AX series IEC contactors"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "AF",
+              "deviceType": "Contactor",
+              "notes": "AF / A / AL / AX series IEC contactors"
+            }
+          ]
+        },
+        {
+          "sheetName": "directional control valve",
+          "deviceTypes": [
+            "Directional Control Valve"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "el. mesurement devices",
+          "deviceTypes": [
+            "Current Sensor",
+            "Power Meter"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "electronic sensor",
+          "deviceTypes": [
+            "Capacitive Sensor",
+            "Encoder",
+            "Inductive Proximity Sensor",
+            "Magnetic Field Sensor",
+            "RFID Device",
+            "Sensor",
+            "Ultrasonic Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BCS",
+              "deviceType": "Capacitive Sensor"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BDG",
+              "deviceType": "Encoder",
+              "notes": "Absolute encoder"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BTL",
+              "deviceType": "Encoder",
+              "notes": "Magnetostrictive linear encoder"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BES",
+              "deviceType": "Inductive Proximity Sensor"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BIS",
+              "deviceType": "Inductive Proximity Sensor"
+            }
+          ]
+        },
+        {
+          "sheetName": "energy distribution system",
+          "deviceTypes": [
+            "Loadcenter"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "filters",
+          "deviceTypes": [
+            "Filter"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "fluid power",
+          "deviceTypes": [
+            "Hydraulic Actuator"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "generator",
+          "deviceTypes": [
+            "Generator"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "int. ext. lightning protection",
+          "deviceTypes": [
+            "Surge Protective Device"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "OVR",
+              "deviceType": "Surge Protective Device"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VAL-CP",
+              "deviceType": "Surge Protective Device"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VAL-MS",
+              "deviceType": "Surge Protective Device"
+            }
+          ]
+        },
+        {
+          "sheetName": "module carrier frame",
+          "deviceTypes": [
+            "Module Carrier"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "siemens",
+              "pattern": "6ES7193",
+              "deviceType": "Module Carrier",
+              "notes": "SIMATIC ET 200SP BaseUnits / base carriers"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "BaseUnits",
+              "deviceType": "Module Carrier",
+              "notes": "SIMATIC ET 200SP BaseUnits / base carriers"
+            }
+          ]
+        },
+        {
+          "sheetName": "motor protection",
+          "deviceTypes": [
+            "Motor Circuit Breaker",
+            "Motor Starter"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "MO",
+              "deviceType": "Motor Circuit Breaker",
+              "notes": "Manual motor starter"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MS",
+              "deviceType": "Motor Circuit Breaker",
+              "notes": "Manual motor starter"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PKE",
+              "deviceType": "Motor Circuit Breaker"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PKZM",
+              "deviceType": "Motor Circuit Breaker"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "140M",
+              "deviceType": "Motor Circuit Breaker"
+            }
+          ]
+        },
+        {
+          "sheetName": "motors",
+          "deviceTypes": [
+            "Motor",
+            "Variable Speed Drive"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "M2A",
+              "deviceType": "Motor"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "TM",
+              "deviceType": "Motor"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "ACQ",
+              "deviceType": "Variable Speed Drive",
+              "notes": "ACS / ACQ / ACH drives"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "ACS",
+              "deviceType": "Variable Speed Drive",
+              "notes": "ACS / ACQ / ACH drives"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "DC1",
+              "deviceType": "Variable Speed Drive",
+              "notes": "PowerXL"
+            }
+          ]
+        },
+        {
+          "sheetName": "optical sensor",
+          "deviceTypes": [
+            "Photoelectric Sensor",
+            "Vision Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BOH",
+              "deviceType": "Photoelectric Sensor"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BOS",
+              "deviceType": "Photoelectric Sensor"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "42EF",
+              "deviceType": "Photoelectric Sensor"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "42JS",
+              "deviceType": "Photoelectric Sensor"
+            },
+            {
+              "manufacturerId": "schneider",
+              "pattern": "XU",
+              "deviceType": "Photoelectric Sensor",
+              "notes": "OsiSense XU"
+            }
+          ]
+        },
+        {
+          "sheetName": "panel (HMI)",
+          "deviceTypes": [
+            "HMI"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "CP6",
+              "deviceType": "HMI",
+              "notes": "CP6xx HMI panel"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "XV",
+              "deviceType": "HMI"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "2711",
+              "deviceType": "HMI",
+              "notes": "PanelView HMI"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "2711P",
+              "deviceType": "HMI",
+              "notes": "PanelView HMI"
+            },
+            {
+              "manufacturerId": "schneider",
+              "pattern": "HMI",
+              "deviceType": "HMI",
+              "notes": "Harmony HMI"
+            }
+          ]
+        },
+        {
+          "sheetName": "pneumatic handling",
+          "deviceTypes": [
+            "Pneumatic Device"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "power supply devices",
+          "deviceTypes": [
+            "Battery",
+            "Power Supply",
+            "Transformer",
+            "UPS"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "CP-E",
+              "deviceType": "Power Supply",
+              "notes": "CP-T / CP-E DIN-rail PSUs"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "CP-T",
+              "deviceType": "Power Supply",
+              "notes": "CP-T / CP-E DIN-rail PSUs"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "QUINT",
+              "deviceType": "Power Supply"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "TRIO",
+              "deviceType": "Power Supply"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1606",
+              "deviceType": "Power Supply",
+              "notes": "Allen-Bradley switched mode power supplies"
+            }
+          ]
+        },
+        {
+          "sheetName": "pump",
+          "deviceTypes": [
+            "Pump"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "safety sensor",
+          "deviceTypes": [
+            "Safety Relay",
+            "Safety Sensor",
+            "Solenoid Interlock"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "PLUTO",
+              "deviceType": "Safety Relay",
+              "notes": "Pluto safety controller"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "2981091",
+              "deviceType": "Safety Relay",
+              "notes": "Phoenix PSR-SPP-24DC/ESD/5X1/1X2/T10 item number"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "PSR",
+              "deviceType": "Safety Relay"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "PSRMINI",
+              "deviceType": "Safety Relay"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "440C",
+              "deviceType": "Safety Relay"
+            }
+          ]
+        },
+        {
+          "sheetName": "sensor - fluid",
+          "deviceTypes": [
+            "Flow Sensor",
+            "Level Sensor",
+            "Pressure Sensor",
+            "Temperature Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "839E",
+              "deviceType": "Flow Sensor",
+              "notes": "Allen-Bradley flow sensors"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "840E",
+              "deviceType": "Level Sensor",
+              "notes": "Allen-Bradley level sensors"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "836P",
+              "deviceType": "Pressure Sensor",
+              "notes": "Allen-Bradley pressure sensors"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "837T",
+              "deviceType": "Temperature Sensor",
+              "notes": "Allen-Bradley temperature sensors"
+            }
+          ]
+        },
+        {
+          "sheetName": "servo controller",
+          "deviceTypes": [
+            "Soft Starter",
+            "Variable Speed Drive"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "PSE",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "PSTX",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "DS7",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "schneider",
+              "pattern": "ATS",
+              "deviceType": "Soft Starter",
+              "notes": "Altistart"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "3RW",
+              "deviceType": "Soft Starter",
+              "notes": "SIRIUS soft starter"
+            }
+          ]
+        },
+        {
+          "sheetName": "terminal",
+          "deviceTypes": [
+            "Terminal Block"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "UK",
+              "deviceType": "Terminal Block"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "UT",
+              "deviceType": "Terminal Block"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492",
+              "deviceType": "Terminal Block"
+            }
+          ]
+        },
+        {
+          "sheetName": "terminal endbracket",
+          "deviceTypes": [
+            "Terminal Accessory"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "CLIPFIX",
+              "deviceType": "Terminal Accessory"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "E/UK",
+              "deviceType": "Terminal Accessory"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492-EAH",
+              "deviceType": "Terminal Accessory",
+              "notes": "1492 end anchors / end retainers"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492-EAJ",
+              "deviceType": "Terminal Accessory",
+              "notes": "1492 end anchors / end retainers"
+            }
+          ]
+        },
+        {
+          "sheetName": "ventil",
+          "deviceTypes": [
+            "Valve"
+          ],
+          "examples": []
+        }
+      ],
+      "deviceSheetCoverage": {
+        "covered": 1,
+        "total": 41
+      }
+    },
+    "fixtureCoverageRequired": false,
+    "accepted": true
+  },
+  "reports": [
+    {
+      "manufacturerId": "eaton",
+      "catalogNumber": "183283",
+      "caseType": "electrical",
+      "expectedDeviceType": "Pilot Light",
+      "actualDeviceType": "Pilot Light",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "cold",
+        "rmq-m30"
+      ],
+      "status": "found",
+      "confidence": 0.67,
+      "elapsedMs": 24202,
+      "productUrl": "https://www.eaton.com/us/en-us/skuPage.183283.html",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261012063510\\pdt\\eaton-183283-pdt_pdt-audit.json",
+      "pdtWrittenCells": 36,
+      "pdtBlankCells": 41,
+      "pdtSkippedCells": 4,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 4,
+      "pdtRequiredFieldIssues": 5,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": [],
+      "resultEvidence": {
+        "title": "183283 | Eaton Moeller® series M30 indicator light",
+        "description": "Eaton Moeller® series M30 Indicator light, RMQ-Titan, Flat, green, Metal bezel",
+        "productUrl": "https://www.eaton.com/us/en-us/skuPage.183283.html",
+        "localizedUrls": {
+          "en": "https://www.eaton.com/gb/en-gb/skuPage.183283.html",
+          "de": "https://www.eaton.com/de/de-de/skuPage.183283.html"
+        },
+        "localizedDescriptions": {
+          "de": {
+            "title": "183283 | Eaton Moeller® series M30 Leuchtmelder",
+            "description": "Eaton Moeller® series M30 Leuchtmelder, RMQ-Titan, flach, grün, Frontring Metall"
+          }
+        },
+        "deviceTypeClassification": {
+          "type": "Pilot Light",
+          "confidence": 0.98,
+          "evidence": "Product Type: Indicator light",
+          "scoreMargin": 1580
+        },
+        "normalized": {
+          "weight": "0.035 kg",
+          "dimensions": "32 x 46 x 36 mm",
+          "finish": "Chrom",
+          "color": "Chrome",
+          "protection": "NEMA 4X, 13; IP67/IP69K",
+          "certificates": "IEC, RoHS, VDE",
+          "operatingTemperatureMin": "-25",
+          "operatingTemperatureMax": "70"
+        },
+        "requiredElectricalFields": [],
+        "attributes": [
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Actuator",
+            "name": "Bezel color",
+            "value": "Chrome",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Actuator",
+            "name": "Bezel material",
+            "value": "Metal",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Actuator",
+            "name": "Design",
+            "value": "Flat",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Actuator",
+            "name": "Fitted with:",
+            "value": "Front ring",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Actuator",
+            "name": "Lens color",
+            "value": "Green",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Actuator",
+            "name": "Lens type",
+            "value": "Flat Round",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Allgemeine Informationen",
+            "name": "Bemessungsstoßspannungsfestigkeit (Uimp)",
+            "value": "4.000 V AC",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Allgemeine Informationen",
+            "name": "Einbaulage",
+            "value": "beliebig",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Allgemeine Informationen",
+            "name": "Größe",
+            "value": "Frontabmessung: Ø 36 mm",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Allgemeine Informationen",
+            "name": "Öffnungsdurchmesser",
+            "value": "30 mm",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Allgemeine Informationen",
+            "name": "Produktkategorie",
+            "value": "RMQ-Titan",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Allgemeine Informationen",
+            "name": "Schutzart",
+            "value": "NEMA 4 X, 13",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Allgemeine Informationen",
+            "name": "Schutzart (Vorderseite)",
+            "value": "IP67/IP69K",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Allgemeine Informationen",
+            "name": "Typ",
+            "value": "Leuchtmelder",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Allgemeine Informationen",
+            "name": "Überspannungskategorie",
+            "value": "III",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Allgemeine Informationen",
+            "name": "Verschmutzungsgrad",
+            "value": "3",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Allgemeine Spezifikation",
+            "name": "EAN",
+            "value": "4015081782246",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Allgemeine Spezifikation",
+            "name": "Katalognummer",
+            "value": "183283",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Allgemeine Spezifikation",
+            "name": "Modellcode",
+            "value": "M30C-FL-G",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Allgemeine Spezifikation",
+            "name": "Produkt Länge/Tiefe",
+            "value": "36 mm",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Allgemeine Spezifikation",
+            "name": "Produktbreite",
+            "value": "46 mm",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Allgemeine Spezifikation",
+            "name": "Produktgewicht",
+            "value": "0.035 kg",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Allgemeine Spezifikation",
+            "name": "Produkthöhe",
+            "value": "32 mm",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Allgemeine Spezifikation",
+            "name": "Produktname",
+            "value": "Eaton Moeller® series M30 Leuchtmelder",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Allgemeine Spezifikation",
+            "name": "Zertifikat(e)",
+            "value": "IEC/EN 60947 VDE 0660",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Anschlussquerschnitte",
+            "name": "Anschlussquerschnitte",
+            "value": "0,5 - 1,5 mm², mehrdrähtig 0,5 - 1,5 mm², eindrähtig",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Bemessungswerte",
+            "name": "Bemessungsisolationsspannung (Ui)",
+            "value": "250 V",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Betätigungselement",
+            "name": "Ausstattung:",
+            "value": "Frontring",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Betätigungselement",
+            "name": "Design",
+            "value": "Senkkopf",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Betätigungselement",
+            "name": "Farbe der Lünette",
+            "value": "Chrom",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Betätigungselement",
+            "name": "Frontringmaterial",
+            "value": "Metall",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Betätigungselement",
+            "name": "Linsenfarbe",
+            "value": "Grün",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Betätigungselement",
+            "name": "Linsentyp",
+            "value": "Senkkopf Rundkopf",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Climatic environmental conditions",
+            "name": "Ambient operating temperature - max",
+            "value": "70 °C",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Climatic environmental conditions",
+            "name": "Ambient operating temperature - min",
+            "value": "-25 °C",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Climatic environmental conditions",
+            "name": "Climatic proofing",
+            "value": "Damp heat, constant, to IEC 60068-2-78 Damp heat, cyclic, to IEC 60068-2-30",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Communication",
+            "name": "Connection to SmartWire-DT",
+            "value": "Yes With SWD-RMQ connections",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "216375 - 60379249 Eaton Moeller® series M22 Adapter, large packaging (https://www.eaton.com.cn/cn/zh-cn/skuPage.216375.html)",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "180796 - 60379253 Eaton Moeller® series M22 LED element, Flat Rear, blue, front mounting (https://www.eaton.com.cn/cn/zh-cn/skuPage.180796.html)",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "197141 - 60379253 Eaton Moeller® series M22 LED element, Flat Rear, white, front mounting, High Performance (https://www.eaton.com.cn/cn/zh-cn/skuPage.197141.html)",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "180800 - 60379253 Eaton Moeller® series M22 LED element, Flat Rear, red/green/blue, front mounting (https://www.eaton.com.cn/cn/zh-cn/skuPage.180800.html)",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "197143 - 60379253 Eaton Moeller® series M22 LED element, Flat Rear, green, front mounting, High Performance (https://www.eaton.com.cn/cn/zh-cn/skuPage.197143.html)",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "197145 - 60379253 Eaton Moeller® series M22 LED element, Flat Rear, blue, front mounting, High Performance (https://www.eaton.com.cn/cn/zh-cn/skuPage.197145.html)",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "180799 - 60379253 Eaton Moeller® series M22 LED element, Flat Rear, red/green, front mounting (https://www.eaton.com.cn/cn/zh-cn/skuPage.180799.html)",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "288852 - 60379249 Eaton Moeller® series M22 Threaded ring, wall thickness 7mm (https://www.eaton.com.cn/cn/zh-cn/skuPage.288852.html)",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "180798 - 60379253 Eaton Moeller® series M22 LED element, Flat Rear, red, front mounting (https://www.eaton.com.cn/cn/zh-cn/skuPage.180798.html)",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "180797 - 60379253 Eaton Moeller® series M22 LED element, Flat Rear, green, front mounting (https://www.eaton.com.cn/cn/zh-cn/skuPage.180797.html)",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "180796 - 60379253 Eaton Moeller® series M22 LED-Element, Flat Rear, blau, Front-Einbau (https://www.eaton.com/de/de-de/skuPage.180796.html)",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "197141 - 60379253 Eaton Moeller® series M22 LED-Element, Flat Rear, weiß, Front-Einbau, Hochleistungsfähig (https://www.eaton.com/de/de-de/skuPage.197141.html)",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "197143 - 60379253 Eaton Moeller® series M22 LED-Element, Flat Rear, grün, Front-Einbau, Hochleistungsfähig (https://www.eaton.com/de/de-de/skuPage.197143.html)",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "180800 - 60379253 Eaton Moeller® series M22 LED-Element, Flat Rear, rot/grün/blau, Front-Einbau (https://www.eaton.com/de/de-de/skuPage.180800.html)",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "197145 - 60379253 Eaton Moeller® series M22 LED-Element, Flat Rear, blau, Front-Einbau, Hochleistungsfähig (https://www.eaton.com/de/de-de/skuPage.197145.html)",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "180799 - 60379253 Eaton Moeller® series M22 LED-Element, Flat Rear, rot/grün, Front-Einbau (https://www.eaton.com/de/de-de/skuPage.180799.html)",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "288852 - 60379249 Eaton Moeller® series M22 Gewindering, Wanddicke 7 mm (https://www.eaton.com/de/de-de/skuPage.288852.html)",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "180798 - 60379253 Eaton Moeller® series M22 LED-Element, Flat Rear, rot, Front-Einbau (https://www.eaton.com/de/de-de/skuPage.180798.html)",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "180797 - 60379253 Eaton Moeller® series M22 LED-Element, Flat Rear, grün, Front-Einbau (https://www.eaton.com/de/de-de/skuPage.180797.html)",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "216402 - 60379249 Eaton Moeller® series M22 Montageschlüssel (https://www.eaton.com/de/de-de/skuPage.216402.html)",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "216375 - 60379249 Eaton Moeller® series M22 Adapter, large packaging (https://www.eaton.com/gb/en-gb/skuPage.216375.html)",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "180796 - 60379253 Eaton Moeller® series M22 LED element, Flat Rear, blue, front mounting (https://www.eaton.com/gb/en-gb/skuPage.180796.html)",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "197141 - 60379253 Eaton Moeller® series M22 LED element, Flat Rear, white, front mounting, High Performance (https://www.eaton.com/gb/en-gb/skuPage.197141.html)",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "197143 - 60379253 Eaton Moeller® series M22 LED element, Flat Rear, green, front mounting, High Performance (https://www.eaton.com/gb/en-gb/skuPage.197143.html)",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "180800 - 60379253 Eaton Moeller® series M22 LED element, Flat Rear, red/green/blue, front mounting (https://www.eaton.com/gb/en-gb/skuPage.180800.html)",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "197145 - 60379253 Eaton Moeller® series M22 LED element, Flat Rear, blue, front mounting, High Performance (https://www.eaton.com/gb/en-gb/skuPage.197145.html)",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "180799 - 60379253 Eaton Moeller® series M22 LED element, Flat Rear, red/green, front mounting (https://www.eaton.com/gb/en-gb/skuPage.180799.html)",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "288852 - 60379249 Eaton Moeller® series M22 Threaded ring, wall thickness 7mm (https://www.eaton.com/gb/en-gb/skuPage.288852.html)",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "180798 - 60379253 Eaton Moeller® series M22 LED element, Flat Rear, red, front mounting (https://www.eaton.com/gb/en-gb/skuPage.180798.html)",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "180797 - 60379253 Eaton Moeller® series M22 LED element, Flat Rear, green, front mounting (https://www.eaton.com/gb/en-gb/skuPage.180797.html)",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "216375 - 60379249 Eaton Moeller® series M22 Adapter, large packaging (https://www.eaton.com/us/en-us/skuPage.216375.html)",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "180800 - 60379253 Eaton Moeller® series M22 LED element, Flat Rear, red/green/blue, front mounting (https://www.eaton.com/us/en-us/skuPage.180800.html)",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "180796 - 60379253 Eaton Moeller® series M22 LED element, Flat Rear, blue, front mounting (https://www.eaton.com/us/en-us/skuPage.180796.html)",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "197141 - 60379253 Eaton Moeller® series M22 LED element, Flat Rear, white, front mounting, High Performance (https://www.eaton.com/us/en-us/skuPage.197141.html)",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "197143 - 60379253 Eaton Moeller® series M22 LED element, Flat Rear, green, front mounting, High Performance (https://www.eaton.com/us/en-us/skuPage.197143.html)",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "216402 - 60379249 Eaton Moeller® series M22 Mounting ring tool (https://www.eaton.com/us/en-us/skuPage.216402.html)",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "180795 - 60379253 Eaton Moeller® series M22 LED element, Flat Rear, white, front mounting (https://www.eaton.com/us/en-us/skuPage.180795.html)",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "180797 - 60379253 Eaton Moeller® series M22 LED element, Flat Rear, green, front mounting (https://www.eaton.com/us/en-us/skuPage.180797.html)",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "216374 - 60379249 Eaton Moeller® series M22 Adapter (https://www.eaton.com/us/en-us/skuPage.216374.html)",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "216398 - 60379249 Eaton Moeller® series M22 Telescopic clip (https://www.eaton.com/us/en-us/skuPage.216398.html)",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Channel",
+            "value": "web",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Channel",
+            "value": "web",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Channel",
+            "value": "web",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Channel",
+            "value": "web",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Country",
+            "value": "cn",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Country",
+            "value": "de",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Country",
+            "value": "gb",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Country",
+            "value": "us",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Domain",
+            "value": "www.eaton.com.cn",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Domain",
+            "value": "www.eaton.com",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Domain",
+            "value": "www.eaton.com",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Domain",
+            "value": "www.eaton.com",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Language",
+            "value": "zh-cn",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Language",
+            "value": "de-de",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Language",
+            "value": "en-gb",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Language",
+            "value": "en-us",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Page Type",
+            "value": "product sku",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Page Type",
+            "value": "product sku",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Page Type",
+            "value": "product sku",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Page Type",
+            "value": "product sku",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Product Family",
+            "value": "sku page",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Product Family",
+            "value": "Flache 30-mm-M30-Drucktaster",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Product Family",
+            "value": "Flat 30mm M30 pushbuttons​",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Product Family",
+            "value": "sku page",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Product Name",
+            "value": "M30",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Product Name",
+            "value": "M30",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Product Name",
+            "value": "M30",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Product Name",
+            "value": "M30",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Product SKU",
+            "value": "183283",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Product SKU",
+            "value": "183283",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Product SKU",
+            "value": "183283",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Product SKU",
+            "value": "183283",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Electrical rating",
+            "name": "Rated insulation voltage (Ui)",
+            "value": "250 V",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General information",
+            "name": "Degree of protection",
+            "value": "NEMA 4X, 13",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General information",
+            "name": "Degree of protection (front side)",
+            "value": "IP67/IP69K",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General information",
+            "name": "Mounting position",
+            "value": "As required",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General information",
+            "name": "Opening diameter",
+            "value": "30 mm",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General information",
+            "name": "Overvoltage category",
+            "value": "III",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General information",
+            "name": "Pollution degree",
+            "value": "3",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General information",
+            "name": "Product category",
+            "value": "RMQ-Titan",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General information",
+            "name": "Rated impulse withstand voltage (Uimp)",
+            "value": "4000 V AC",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General information",
+            "name": "Size",
+            "value": "Front dimensions: Ø 36 mm",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General information",
+            "name": "Type",
+            "value": "Indicator lights",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General specifications",
+            "name": "Catalog Number",
+            "value": "183283",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General specifications",
+            "name": "Catalog Number",
+            "value": "183283",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General specifications",
+            "name": "Certifications",
+            "value": "IEC/EN 60947 VDE 0660",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General specifications",
+            "name": "Certifications",
+            "value": "IEC/EN 60947 VDE 0660",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General specifications",
+            "name": "EAN",
+            "value": "4015081782246",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General specifications",
+            "name": "EAN",
+            "value": "4015081782246",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General specifications",
+            "name": "Global Catalog",
+            "value": "183283",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General specifications",
+            "name": "Model Code",
+            "value": "M30C-FL-G",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General specifications",
+            "name": "Model Code",
+            "value": "M30C-FL-G",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General specifications",
+            "name": "Product Height",
+            "value": "32 mm",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General specifications",
+            "name": "Product Height",
+            "value": "32 mm",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General specifications",
+            "name": "Product Length/Depth",
+            "value": "36 mm",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General specifications",
+            "name": "Product Length/Depth",
+            "value": "36 mm",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General specifications",
+            "name": "Product Name",
+            "value": "Eaton Moeller® series M30 indicator light",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General specifications",
+            "name": "Product Name",
+            "value": "Eaton Moeller® series M30 indicator light",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General specifications",
+            "name": "Product Type",
+            "value": "Indicator light",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General specifications",
+            "name": "Product Weight",
+            "value": "0.035 kg",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General specifications",
+            "name": "Product Weight",
+            "value": "0.035 kg",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General specifications",
+            "name": "Product Width",
+            "value": "46 mm",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General specifications",
+            "name": "Product Width",
+            "value": "46 mm",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Klimatische Umweltbedingungen",
+            "name": "Klimafestigkeit",
+            "value": "Feuchte Wärme, konstant, nach IEC 60068-2-78 Feuchte Wärme, zyklisch, nach IEC 60068-2-30",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Klimatische Umweltbedingungen",
+            "name": "Umgebungsbetriebstemperatur - max.",
+            "value": "70 °C",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Klimatische Umweltbedingungen",
+            "name": "Umgebungsbetriebstemperatur - min.",
+            "value": "-25 °C",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Kommunikation",
+            "name": "Anbindung an SmartWire-DT",
+            "value": "Ja Mit SWD-RMQ-Anschaltungen",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Page metadata",
+            "name": "Canonical URL",
+            "value": "https://www.eaton.com.cn/cn/zh-cn/skuPage.183283.html",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Page metadata",
+            "name": "Canonical URL",
+            "value": "https://www.eaton.com/de/de-de/skuPage.183283.html",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Page metadata",
+            "name": "Canonical URL",
+            "value": "https://www.eaton.com/gb/en-gb/skuPage.183283.html",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Page metadata",
+            "name": "Canonical URL",
+            "value": "https://www.eaton.com/us/en-us/skuPage.183283.html",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Page metadata",
+            "name": "Open Graph Description",
+            "value": "183283 | Eaton Moeller® series M30 Indicator light, RMQ-Titan, Flat, green, Metal bezel",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Page metadata",
+            "name": "Open Graph Description",
+            "value": "183283 - Eaton Moeller® series M30 Leuchtmelder, RMQ-Titan, flach, grün, Frontring Metall",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Page metadata",
+            "name": "Open Graph Description",
+            "value": "183283 - Eaton Moeller® series M30 Indicator light, RMQ-Titan, Flat, green, Metal bezel",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Page metadata",
+            "name": "Open Graph Description",
+            "value": "183283 - Eaton Moeller® series M30 Indicator light, RMQ-Titan, Flat, green, Metal bezel",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Page metadata",
+            "name": "Open Graph Title",
+            "value": "Eaton Moeller® series M30 indicator light | 183283 概述 | 伊顿中国",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Page metadata",
+            "name": "Open Graph Title",
+            "value": "183283 | Eaton Moeller® series M30 Leuchtmelder | Eaton",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Page metadata",
+            "name": "Open Graph Title",
+            "value": "183283 | Eaton Moeller® series M30 indicator light | Eaton",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Page metadata",
+            "name": "Open Graph Title",
+            "value": "183283 | Eaton Moeller® series M30 indicator light | Eaton",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Page metadata",
+            "name": "Open Graph Type",
+            "value": "product",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Page metadata",
+            "name": "Open Graph Type",
+            "value": "product",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Page metadata",
+            "name": "Open Graph Type",
+            "value": "product",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Page metadata",
+            "name": "Open Graph Type",
+            "value": "product",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Page metadata",
+            "name": "Open Graph URL",
+            "value": "https://www.eaton.com.cn/cn/zh-cn/skuPage.183283.html",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Page metadata",
+            "name": "Open Graph URL",
+            "value": "https://www.eaton.com/de/de-de/skuPage.183283.html",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Page metadata",
+            "name": "Open Graph URL",
+            "value": "https://www.eaton.com/gb/en-gb/skuPage.183283.html",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Page metadata",
+            "name": "Open Graph URL",
+            "value": "https://www.eaton.com/us/en-us/skuPage.183283.html",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Ambient operating temperature - max",
+            "value": "70 °C",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Ambient operating temperature - min",
+            "value": "-25 °C",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Bezel color",
+            "value": "Chrome",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Bezel material",
+            "value": "Metal",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Climatic proofing",
+            "value": "Damp heat, constant, to IEC 60068-2-78 Damp heat, cyclic, to IEC 60068-2-30",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Connection to SmartWire-DT",
+            "value": "Yes With SWD-RMQ connections",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Degree of protection",
+            "value": "NEMA 4X, 13",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Degree of protection (front side)",
+            "value": "IP67/IP69K",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Design",
+            "value": "Flat",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Fitted with:",
+            "value": "Front ring",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Force for positive opening - min",
+            "value": "0 N",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Lens color",
+            "value": "Green",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Lens type",
+            "value": "Flat Round",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Mounting position",
+            "value": "As required",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Opening diameter",
+            "value": "30 mm",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Opening height",
+            "value": "30 mm",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Overvoltage category",
+            "value": "III",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Pollution degree",
+            "value": "3",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Product category",
+            "value": "RMQ-Titan",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Rated impulse withstand voltage (Uimp)",
+            "value": "4000 V AC",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Rated insulation voltage (Ui)",
+            "value": "250 V",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Shock resistance",
+            "value": "Not planned",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Size",
+            "value": "Front dimensions: Ø 36 mm",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Suitable for number of built-in signal lights",
+            "value": "1",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Terminal capacity",
+            "value": "0.5 - 1.5 mm², stranded 0.5 - 1.5 mm², solid",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Type",
+            "value": "Indicator lights",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Structured Product Data",
+            "name": "Brand",
+            "value": "Eaton",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Structured Product Data",
+            "name": "Brand",
+            "value": "Eaton",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Structured Product Data",
+            "name": "Brand",
+            "value": "Eaton",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Structured Product Data",
+            "name": "Brand",
+            "value": "Eaton",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Structured Product Data",
+            "name": "Description",
+            "value": "Eaton Moeller® series M30 Indicator light, RMQ-Titan, Flat, green, Metal bezel",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Structured Product Data",
+            "name": "Description",
+            "value": "Eaton Moeller® series M30 Leuchtmelder, RMQ-Titan, flach, grün, Frontring Metall",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Structured Product Data",
+            "name": "Description",
+            "value": "Eaton Moeller® series M30 Indicator light, RMQ-Titan, Flat, green, Metal bezel",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Structured Product Data",
+            "name": "Description",
+            "value": "Eaton Moeller® series M30 Indicator light, RMQ-Titan, Flat, green, Metal bezel",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Structured Product Data",
+            "name": "Product Name",
+            "value": "Eaton Moeller® series M30 indicator light",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Structured Product Data",
+            "name": "Product Name",
+            "value": "Eaton Moeller® series M30 Leuchtmelder",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Structured Product Data",
+            "name": "Product Name",
+            "value": "Eaton Moeller® series M30 indicator light",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Structured Product Data",
+            "name": "Product Name",
+            "value": "Eaton Moeller® series M30 indicator light",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Structured Product Data",
+            "name": "SKU",
+            "value": "183283",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Structured Product Data",
+            "name": "SKU",
+            "value": "183283",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Structured Product Data",
+            "name": "SKU",
+            "value": "183283",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Structured Product Data",
+            "name": "SKU",
+            "value": "183283",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Terminal capacities",
+            "name": "Terminal capacity",
+            "value": "0.5 - 1.5 mm², stranded 0.5 - 1.5 mm², solid",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "产品规格",
+            "name": "Ambient operating temperature - max",
+            "value": "70 °C",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "产品规格",
+            "name": "Ambient operating temperature - min",
+            "value": "-25 °C",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "产品规格",
+            "name": "Bezel color",
+            "value": "Chrome",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "产品规格",
+            "name": "Bezel material",
+            "value": "Metal",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "产品规格",
+            "name": "Climatic proofing",
+            "value": "Damp heat, constant, to IEC 60068-2-78 Damp heat, cyclic, to IEC 60068-2-30",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "产品规格",
+            "name": "Connection to SmartWire-DT",
+            "value": "Yes With SWD-RMQ connections",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "产品规格",
+            "name": "Degree of protection",
+            "value": "NEMA 4X, 13",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "产品规格",
+            "name": "Degree of protection (front side)",
+            "value": "IP67/IP69K",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "产品规格",
+            "name": "Design",
+            "value": "Flat",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "产品规格",
+            "name": "Fitted with:",
+            "value": "Front ring",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "产品规格",
+            "name": "Force for positive opening - min",
+            "value": "0 N",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "产品规格",
+            "name": "Lens color",
+            "value": "Green",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "产品规格",
+            "name": "Lens type",
+            "value": "Flat Round",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "产品规格",
+            "name": "Mounting position",
+            "value": "As required",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "产品规格",
+            "name": "Opening diameter",
+            "value": "30 mm",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "产品规格",
+            "name": "Opening height",
+            "value": "30 mm",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "产品规格",
+            "name": "Overvoltage category",
+            "value": "III",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "产品规格",
+            "name": "Pollution degree",
+            "value": "3",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "产品规格",
+            "name": "Product category",
+            "value": "RMQ-Titan",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "产品规格",
+            "name": "Rated impulse withstand voltage (Uimp)",
+            "value": "4000 V AC",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "产品规格",
+            "name": "Rated insulation voltage (Ui)",
+            "value": "250 V",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "产品规格",
+            "name": "Shock resistance",
+            "value": "Not planned",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "产品规格",
+            "name": "Size",
+            "value": "Front dimensions: Ø 36 mm",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "产品规格",
+            "name": "Suitable for number of built-in signal lights",
+            "value": "1",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "产品规格",
+            "name": "Terminal capacity",
+            "value": "0.5 - 1.5 mm², stranded 0.5 - 1.5 mm², solid",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "产品规格",
+            "name": "Type",
+            "value": "Indicator lights",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "常用规格",
+            "name": "Catalog Number",
+            "value": "183283",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "常用规格",
+            "name": "Certifications",
+            "value": "IEC/EN 60947 VDE 0660",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "常用规格",
+            "name": "Product Height",
+            "value": "32 mm",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "常用规格",
+            "name": "Product Length/Depth",
+            "value": "36 mm",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "常用规格",
+            "name": "Product Name",
+            "value": "Eaton Moeller® series M30 indicator light",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "常用规格",
+            "name": "Product Weight",
+            "value": "0.035 kg",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "常用规格",
+            "name": "Product Width",
+            "value": "46 mm",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.183283.html"
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "183283",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/germany/eaton-Sortimentkatalog-Befehlen-und-Signalisieren-Katalog-CA047003DE-de-de.pdf.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Document",
+            "name": "Parsed document",
+            "value": "eaton-Sortimentkatalog-Befehlen-und-Signalisieren-Katalog-CA047003DE-de-de.pdf (Kataloge)",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/germany/eaton-Sortimentkatalog-Befehlen-und-Signalisieren-Katalog-CA047003DE-de-de.pdf.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Positioned Table",
+            "name": "Artikel-Nr.",
+            "value": "188044",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/germany/eaton-Sortimentkatalog-Befehlen-und-Signalisieren-Katalog-CA047003DE-de-de.pdf.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "confidence": 0.88,
+            "stage": "enrich-documents"
+          },
+          {
+            "group": "PDF certificate",
+            "name": "Feature",
+            "value": "Low voltage directive 2014/35/EU",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/pushbuttons-and-signal-tower/rmq-titan-m30-pilot-devices/declaration-of-conformity/eaton-illuminated-pushbutton-declaration-of-conformity-eu251546en.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF certificate",
+            "name": "Feature",
+            "value": "RoHS directive 2011/65/EU + 2015/863",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/pushbuttons-and-signal-tower/rmq-titan-m30-pilot-devices/declaration-of-conformity/eaton-illuminated-pushbutton-declaration-of-conformity-eu251546en.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Document",
+            "name": "Parsed document",
+            "value": "eaton-illuminated-pushbutton-declaration-of-conformity-eu251546en.pdf (Declarations of conformity)",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/pushbuttons-and-signal-tower/rmq-titan-m30-pilot-devices/declaration-of-conformity/eaton-illuminated-pushbutton-declaration-of-conformity-eu251546en.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF certificate",
+            "name": "specifications and relevant installation",
+            "value": "instructions are observed and the products are installed, maintained, and used",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/pushbuttons-and-signal-tower/rmq-titan-m30-pilot-devices/declaration-of-conformity/eaton-illuminated-pushbutton-declaration-of-conformity-eu251546en.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF certificate",
+            "name": "Low voltage",
+            "value": "directive 2014/35/EU",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/pushbuttons-and-signal-tower/rmq-titan-m30-pilot-devices/declaration-of-conformity/eaton-illuminated-pushbutton-declaration-of-conformity-eu251546en.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF certificate",
+            "name": "RoHS directive",
+            "value": "2011/65/EU + 2015/863",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/pushbuttons-and-signal-tower/rmq-titan-m30-pilot-devices/declaration-of-conformity/eaton-illuminated-pushbutton-declaration-of-conformity-eu251546en.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF certificate",
+            "name": "EN 60947-1",
+            "value": "2007 + A1:2011 + A2:2014",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/pushbuttons-and-signal-tower/rmq-titan-m30-pilot-devices/declaration-of-conformity/eaton-illuminated-pushbutton-declaration-of-conformity-eu251546en.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF certificate",
+            "name": "EN 60947-5-1",
+            "value": "2017 + AC:2020",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/pushbuttons-and-signal-tower/rmq-titan-m30-pilot-devices/declaration-of-conformity/eaton-illuminated-pushbutton-declaration-of-conformity-eu251546en.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF certificate",
+            "name": "EN IEC 63000",
+            "value": "2018",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/pushbuttons-and-signal-tower/rmq-titan-m30-pilot-devices/declaration-of-conformity/eaton-illuminated-pushbutton-declaration-of-conformity-eu251546en.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          }
+        ],
+        "documents": [
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "type": "datasheet",
+            "label": "Eaton Specification Sheet - 183283",
+            "url": "https://www.eaton.com/us/en-us/skuPage.183283.pdf",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "type": "datasheet",
+            "label": "Produktspezifikationen",
+            "url": "https://www.eaton.com/de/de-de/skuPage.183283.pdf",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "type": "datasheet",
+            "label": "产品规格",
+            "url": "https://www.eaton.com.cn/cn/zh-cn/skuPage.183283.pdf",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "type": "datasheet",
+            "label": "eaton-operating-devices-m30-rmq-titan-flat-front-il047019zu.pdf (PEP Eco-passport)",
+            "url": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/il/pushbuttons-and-signal-towers/eaton-operating-devices-m30-rmq-titan-flat-front-il047019zu.pdf",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "type": "datasheet",
+            "label": "eaton-Sortimentkatalog-Befehlen-und-Signalisieren-Katalog-CA047003DE-de-de.pdf (Kataloge)",
+            "url": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/germany/eaton-Sortimentkatalog-Befehlen-und-Signalisieren-Katalog-CA047003DE-de-de.pdf.pdf",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.183283.html",
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261012063510\\documents\\183283-datasheet-eaton-Sortimentkatalog-Befehlen-und-Signalisieren-Katalog-CA047003DE-de-de.pdf-(.pdf",
+            "downloadStatus": "downloaded",
+            "parseStatus": "parsed"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "type": "image",
+            "label": "183283 - Flache 30-mm-M30-Drucktaster",
+            "url": "https://dynamicmedia.eaton.com/is/image/eaton/183283_C?wid=500&hei=500",
+            "candidateUrls": [
+              "https://www.eaton.com/mdmfiles/contentId/183283_C/90x90_96dpi"
+            ],
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.183283.html",
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261012063510\\images\\ETN.183283.png",
+            "downloadStatus": "downloaded",
+            "parseStatus": "skipped"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "type": "cad",
+            "label": "eaton-operating-m30-indicator-light-3d-drawing.eps (Drawings)",
+            "url": "https://www.eaton.com/content/dam/eaton/products/control-drives-automation-sensors/pushbuttons-stacklights/rmq-titan/eaton-operating-m30-indicator-light-3d-drawing.eps.thumb.580.580.png",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.183283.html",
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261012063510\\documents\\183283-cad-eaton-operating-m30-indicator-light-3d-drawing.eps-(Drawings).png",
+            "downloadStatus": "downloaded",
+            "parseStatus": "skipped"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "type": "cad",
+            "label": "ETN.183283.edz (eCAD model)",
+            "url": "https://www.eaton.com/content/dam/eaton/cad/ecad/edz/edz04/ETN.183283.edz",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "type": "cad",
+            "label": "DA-CS-leuchtmelder_flach_flatfront (mCAD model)",
+            "url": "https://www.eaton.com/content/dam/eaton/cad/mcad/step/leuchtmelder_flach_flatfront.stp",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "type": "cad",
+            "label": "eaton-indicating-lights-mcad-drawings-flach-flatfront.dwg (mCAD model)",
+            "url": "https://www.eaton.com/content/dam/eaton/cad/mcad/dwg/dwg03/eaton-indicating-lights-mcad-drawings-flach-flatfront.dwg",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.183283.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "type": "certificate",
+            "label": "eaton-illuminated-pushbutton-declaration-of-conformity-eu251546en.pdf (Declarations of conformity)",
+            "url": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/pushbuttons-and-signal-tower/rmq-titan-m30-pilot-devices/declaration-of-conformity/eaton-illuminated-pushbutton-declaration-of-conformity-eu251546en.pdf",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.183283.html",
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261012063510\\documents\\183283-certificate-eaton-illuminated-pushbutton-declaration-of-conformity-eu251546en.pdf-(Declarati.pdf",
+            "downloadStatus": "downloaded",
+            "parseStatus": "parsed"
+          }
+        ],
+        "sources": [
+          {
+            "url": "https://www.eaton.com/us/en-us/skuPage.183283.html",
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "parserVersion": "eaton-v2",
+            "fetchedAt": "2026-10-12T06:35:15.533Z",
+            "statusCode": 200
+          },
+          {
+            "url": "https://www.eaton.com/de/de-de/skuPage.183283.html",
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "parserVersion": "eaton-v2",
+            "fetchedAt": "2026-10-12T06:35:11.763Z",
+            "statusCode": 200
+          },
+          {
+            "url": "https://www.eaton.com/gb/en-gb/skuPage.183283.html",
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "parserVersion": "eaton-v2",
+            "fetchedAt": "2026-10-12T06:35:12.118Z",
+            "statusCode": 200
+          },
+          {
+            "url": "https://www.eaton.com.cn/cn/zh-cn/skuPage.183283.html",
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "parserVersion": "eaton-v2",
+            "fetchedAt": "2026-10-12T06:35:19.826Z",
+            "statusCode": 200
+          },
+          {
+            "url": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/germany/eaton-Sortimentkatalog-Befehlen-und-Signalisieren-Katalog-CA047003DE-de-de.pdf.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "reason": "datasheet",
+            "fetchedAt": "2026-10-12T06:35:32.469Z"
+          },
+          {
+            "url": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/pushbuttons-and-signal-tower/rmq-titan-m30-pilot-devices/declaration-of-conformity/eaton-illuminated-pushbutton-declaration-of-conformity-eu251546en.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "reason": "certificate",
+            "fetchedAt": "2026-10-12T06:35:32.901Z"
+          }
+        ],
+        "qualityGate": {
+          "passed": true,
+          "identityConfirmed": true,
+          "score": 100,
+          "missing": [],
+          "reason": "Quality gate passed.",
+          "attempts": [
+            {
+              "stage": "eaton-product-page",
+              "url": "https://www.eaton.com/us/en-us/skuPage.183283.html",
+              "status": "passed",
+              "score": 100,
+              "missing": [],
+              "reason": "Quality gate passed.",
+              "sourceType": "official-fallback",
+              "parser": "eaton-product-page",
+              "statusCode": 200,
+              "attributeCount": 240,
+              "documentCount": 11,
+              "sectionAttributeCounts": {}
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

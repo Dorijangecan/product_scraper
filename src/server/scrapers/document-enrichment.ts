@@ -335,6 +335,7 @@ async function processOneDownloadedDocument(doc: DocumentRecord, catalogNumber: 
     const scope = buildDocumentParseScope(text, catalogNumber);
     const exactSiemensDatasheet = isExactSiemensProductDatasheet(doc, text, catalogNumber);
     const exactSchneiderDatasheet = isExactSchneiderCatalogDatasheet(doc, catalogNumber);
+    const isolatedEatonAutovarTable = isEatonAutovarTechnicalDataSheet(doc);
     const skipTechnicalSpecMining = shouldSkipEnvironmentalDeclarationSpecMining(doc);
     // Balluff's exact product datasheets are addressed by a product-specific publication id,
     // but often contain only the full type code (not the short catalog number used by the PDP,
@@ -342,7 +343,8 @@ async function processOneDownloadedDocument(doc: DocumentRecord, catalogNumber: 
     // normal technical sweep here is safe and preserves dimensions/weight from the authoritative PDF.
     const balluffExactDatasheet = doc.type === "datasheet" && /(^|:)\/\/publications\.balluff\.com\/pdfengine\/pdf(?:[/?#]|$)/i.test(doc.url);
     let attributes = [
-      ...(skipTechnicalSpecMining ? [] : extractDocumentTextAttributes({
+      ...extractEatonAutovarRatedCurrent(catalogNumber, doc, text),
+      ...(skipTechnicalSpecMining || isolatedEatonAutovarTable ? [] : extractDocumentTextAttributes({
         catalogNumber,
         document: doc,
           text: balluffExactDatasheet || exactSiemensDatasheet || exactSchneiderDatasheet ? text : scope.text,
@@ -350,14 +352,18 @@ async function processOneDownloadedDocument(doc: DocumentRecord, catalogNumber: 
           scopeUnresolved: !scope.resolved && !balluffExactDatasheet && !exactSiemensDatasheet && !exactSchneiderDatasheet,
         matchLevel: scope.match?.level
       })),
-      ...(skipTechnicalSpecMining ? [] : extractOcrPositionedTableAttributes(pdfText.ocrPositionedItems, catalogNumber, doc.url)),
-      ...(await extractComplianceMatrixAttributesSafely(text, doc.localPath!, catalogNumber, doc.url))
+      ...(skipTechnicalSpecMining || isolatedEatonAutovarTable ? [] : extractOcrPositionedTableAttributes(pdfText.ocrPositionedItems, catalogNumber, doc.url)),
+      ...(isolatedEatonAutovarTable ? [] : await extractComplianceMatrixAttributesSafely(text, doc.localPath!, catalogNumber, doc.url))
     ];
-    const positionedAttributes = skipTechnicalSpecMining
+    const positionedAttributes = skipTechnicalSpecMining || isolatedEatonAutovarTable
       ? []
       : await extractPositionedWeightDimensionsSafely(doc.localPath!, catalogNumber, doc.url, attributes, looksLikeMultiVariantFamilyPage(text, catalogNumber), pdfText.nativePositionedItemsByPage);
     attributes.push(...positionedAttributes);
     attributes = discardUnscopedFamilyTableCandidates(attributes, catalogNumber, positionedAttributes);
+    // Eaton's exact SP1 page links a family publication with a model-keyed electrical table.
+    // The generic family-table policy intentionally suppresses unscoped voltage/current facts;
+    // recover only this explicit row after that policy, and only when it names this PDP's model.
+    attributes.push(...extractEatonSp1NominalDischargeCurrent(catalogNumber, doc, text));
     const substantive = documentAttributesAreSubstantive(attributes);
     return {
       doc: { ...doc, parseStatus: substantive ? "parsed" : "skipped", parseError: undefined },
@@ -389,6 +395,108 @@ async function processOneDownloadedDocument(doc: DocumentRecord, catalogNumber: 
       parseFailure: `${doc.label || doc.url}: ${parseError}`
     };
   }
+}
+
+/** Extract the nominal discharge-current entry from Eaton's PDP-linked SP1 family table.
+ * Each current group lists the exact model tokens it covers, so no value is inferred from an
+ * adjacent variant. The exact SKU page URL and this parser tag are attached only for a verified
+ * Eaton SP1 surge-device PDP. */
+export function extractEatonSp1NominalDischargeCurrent(
+  catalogNumber: string,
+  document: DocumentRecord,
+  text: string
+): AttributeRecord[] {
+  const expectedUrl = "https://www.eaton.com/content/dam/eaton/products/backup-power-ups-surge-it-power-distribution/surge/sp-series/eaton-sp-series-brochure-pa01005006e.pdf";
+  if (document.type !== "datasheet" || document.parser !== "eaton-sp1-family-source" || document.url !== expectedUrl) return [];
+  let source: URL;
+  try {
+    source = new URL(document.sourceUrl ?? "");
+  } catch {
+    return [];
+  }
+  const sourceSku = source.pathname.match(/\/skuPage\.([^/]+?)\.html$/i)?.[1];
+  if (!sourceSku || !sameCatalogNumber(decodeURIComponent(sourceSku), catalogNumber, { compact: true, ignoreCase: true })) return [];
+  if (!/^www\.eaton\.com$/i.test(source.hostname)) return [];
+
+  const targetToken = cleanText(catalogNumber).match(/(?:^|-)([^-]+)$/)?.[1]?.toUpperCase();
+  if (!targetToken || targetToken.length < 3) return [];
+  // Skip narrative bullets such as "20 kA nominal discharge current rating"; use the
+  // following table label that carries the In symbol and model-keyed rows.
+  const heading = /nominal\s+discharge\s+current\s*\(\s*i\b/i.exec(text);
+  if (!heading) return [];
+  const tableText = text.slice(heading.index, heading.index + 700).replace(/\s+/g, " ");
+  const groups = [...tableText.matchAll(/(\d+(?:[.,]\d+)?)\s*kA\s+for\s+([^;]+?)(?=\s+\d+(?:[.,]\d+)?\s*kA\s+for|$)/gi)];
+  const exactGroup = groups.find((match) => match[2].toUpperCase().split(/[^A-Z0-9]+/).includes(targetToken));
+  if (!exactGroup) return [];
+  return [{
+    group: "PDF table - Eaton SP1 nominal discharge current",
+    name: "Nominal discharge current",
+    value: `${exactGroup[1]} kA for ${targetToken}`,
+    sourceUrl: document.url,
+    sourceType: "generated",
+    parser: "pdf-table-extractor",
+    confidence: 0.95,
+    matchLevel: "exact",
+    scope: "variant"
+  }];
+}
+
+/**
+ * Eaton's AUTOVAR 300 technical-data table lists the base product code while a separate legend
+ * defines trailing option letters. Join those only when the source is Eaton's linked technical
+ * datasheet, the requested model has the documented code shape, every suffix letter appears in
+ * the document's option legend, and the table has an unambiguous catalog-number row.
+ */
+export function extractEatonAutovarRatedCurrent(
+  catalogNumber: string,
+  document: DocumentRecord,
+  text: string
+): AttributeRecord[] {
+  if (document.type !== "datasheet" || !/eaton\.com/i.test(document.url) || !/TD157004EN\.pdf(?:[?#]|$)/i.test(document.url)) return [];
+  let sourceUrl: URL;
+  try {
+    sourceUrl = new URL(document.sourceUrl ?? "");
+  } catch {
+    return [];
+  }
+  const sourceSku = sourceUrl.pathname.match(/\/skuPage\.([^/]+?)\.html$/i)?.[1];
+  if (!sourceSku || !sameCatalogNumber(decodeURIComponent(sourceSku), catalogNumber, { compact: true, ignoreCase: true })) return [];
+
+  const code = catalogNumber.match(/^(\d{2,3}MCSR\d{3})([A-Z]*)$/i);
+  if (!code) return [];
+  const [, baseCode, suffix] = code;
+  const optionsHeading = text.search(/\bOptions\b/i);
+  const tableHeading = text.search(/\bTable\s+2\b/i);
+  if (optionsHeading < 0 || tableHeading <= optionsHeading) return [];
+  const optionsText = text.slice(optionsHeading, tableHeading);
+  const documentedOptions = new Set([...optionsText.matchAll(/(?:^|\s)([A-Z])\s*=\s*(?=\S)/gim)].map((match) => match[1].toUpperCase()));
+  if ([...suffix].some((option) => !documentedOptions.has(option.toUpperCase()))) return [];
+
+  const escapedCode = baseCode.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const rowPattern = new RegExp(`(?:^|\\n)\\s*(\\d{2,3})\\s+5\\s*x\\s*\\d+\\s+(\\d{1,4})\\s+\\d{2,4}\\s*\\([\\d.]+\\)\\s+${escapedCode}(?=\\s|$)`, "i");
+  const row = text.match(rowPattern);
+  if (!row) return [];
+  const current = Number(row[2]);
+  if (!Number.isFinite(current) || current <= 0) return [];
+
+  return [{
+    group: `Eaton AUTOVAR 300 technical data table (${baseCode}${suffix})`,
+    name: "Rated current",
+    value: `${current} A`,
+    sourceUrl: document.url,
+    sourceType: "generated",
+    parser: "pdf-table-extractor",
+    confidence: 0.9,
+    scope: "variant-option",
+    matchLevel: "exact"
+  }];
+}
+
+function isEatonAutovarTechnicalDataSheet(document: DocumentRecord): boolean {
+  return document.type === "datasheet" &&
+    /eaton\.com/i.test(document.url) &&
+    /TD157004EN\.pdf(?:[?#]|$)/i.test(document.url) &&
+    /\/skuPage\.[^/]+?\.html$/i.test(document.sourceUrl ?? "");
 }
 
 export async function enrichResultFromDownloadedDocuments(result: ProductResult): Promise<ProductResult> {
@@ -470,6 +578,7 @@ export async function enrichResultFromDownloadedDocuments(result: ProductResult)
     ...nonEmptyNormalized(recomputedNormalized)
   };
   if (result.manufacturerId === "rittal" && !recomputedNormalized.current) delete normalized.current;
+  if (result.manufacturerId === "eaton") clearUnprovenElectricalFallbacks(normalized, recomputedNormalized);
 
   return {
     ...result,
@@ -480,6 +589,17 @@ export async function enrichResultFromDownloadedDocuments(result: ProductResult)
     documents,
     sources: dedupeSources([...result.sources, ...documentSources])
   };
+}
+
+function clearUnprovenElectricalFallbacks(
+  normalized: ProductResult["normalized"],
+  recomputed: ProductResult["normalized"]
+): void {
+  // Eaton connector/title fallbacks can carry voltage/current into normalized before exact PDP
+  // extraction completes. If the final, evidence-scoped normalization cannot support those fields,
+  // do not retain the stale fallback as if it were model-level data.
+  if (!recomputed.voltage) delete normalized.voltage;
+  if (!recomputed.current) delete normalized.current;
 }
 
 export async function enrichResultFromRemoteDocuments(
@@ -596,6 +716,7 @@ export async function enrichResultFromRemoteDocuments(
     ...nonEmptyNormalized(recomputedNormalized)
   };
   if (result.manufacturerId === "rittal" && !recomputedNormalized.current) delete normalized.current;
+  if (result.manufacturerId === "eaton") clearUnprovenElectricalFallbacks(normalized, recomputedNormalized);
 
   return {
     ...result,

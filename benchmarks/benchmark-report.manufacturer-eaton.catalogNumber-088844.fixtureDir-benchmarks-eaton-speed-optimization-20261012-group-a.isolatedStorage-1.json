@@ -1,0 +1,4462 @@
+{
+  "generatedAt": "2026-10-12T06:51:44.156Z",
+  "outputDir": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261012065133",
+  "filters": {
+    "manufacturer": "eaton",
+    "catalogNumber": "088844",
+    "fixtureDir": "benchmarks/eaton-speed-optimization-20261012/group-a",
+    "isolatedStorage": "1"
+  },
+  "summary": {
+    "foundRate": 100,
+    "officialUrlRate": 100,
+    "documentRate": 100,
+    "pdtAuditRate": 100,
+    "deviceTypeRate": 100,
+    "customerDocumentRate": 0,
+    "wrongProducts": 0,
+    "partialWithoutMissing": 0,
+    "pdtUnprovenWritten": 0,
+    "pdtUnexplainedRequiredFieldIssues": 0,
+    "pdtWriteIssues": 0,
+    "qualityAccepted": true,
+    "fixtureCoverageAccepted": true,
+    "fixtureCoverage": {
+      "byManufacturer": {
+        "eaton": {
+          "total": 1,
+          "caseTypes": [
+            "electrical"
+          ],
+          "riskTags": [
+            "cold",
+            "pkzm0"
+          ]
+        }
+      },
+      "byDeviceType": {
+        "Motor Circuit Breaker": {
+          "total": 1,
+          "manufacturers": [
+            "eaton"
+          ],
+          "caseTypes": [
+            "electrical"
+          ]
+        }
+      },
+      "byDeviceSheet": {
+        "motor protection": {
+          "total": 1,
+          "deviceTypes": [
+            "Motor Circuit Breaker"
+          ],
+          "manufacturers": [
+            "eaton"
+          ]
+        }
+      },
+      "thinManufacturers": [
+        "eaton"
+      ],
+      "uncoveredDeviceSheets": [
+        "Busbar",
+        "Luminaire",
+        "Motion Controller",
+        "PCB connection system",
+        "PCB connection technology",
+        "PLC",
+        "RS232 interfaces",
+        "Switch",
+        "Wire ID Information",
+        "cabinet",
+        "cabinet.airconditioning",
+        "cabinet.mechanical",
+        "cabinet.rack",
+        "cable",
+        "cable ducts mounting rails",
+        "cable gland",
+        "command and alarm device",
+        "connector",
+        "contactor a. fuses",
+        "directional control valve",
+        "el. mesurement devices",
+        "electronic sensor",
+        "energy distribution system",
+        "filters",
+        "fluid power",
+        "generator",
+        "int. ext. lightning protection",
+        "module carrier frame",
+        "motors",
+        "optical sensor",
+        "panel (HMI)",
+        "pneumatic handling",
+        "power supply devices",
+        "pump",
+        "safety sensor",
+        "sensor - fluid",
+        "servo controller",
+        "terminal",
+        "terminal endbracket",
+        "ventil"
+      ],
+      "missingDeviceSheetRecommendations": [
+        {
+          "sheetName": "Busbar",
+          "deviceTypes": [
+            "Busbar"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "Luminaire",
+          "deviceTypes": [
+            "Luminaire"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SL0040I.953",
+              "deviceType": "Luminaire",
+              "notes": "FATH Module F Line LED lamp"
+            }
+          ]
+        },
+        {
+          "sheetName": "Motion Controller",
+          "deviceTypes": [
+            "Motion Controller"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1756-HYD",
+              "deviceType": "Motion Controller",
+              "notes": "ControlLogix integrated motion modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1756-M02",
+              "deviceType": "Motion Controller",
+              "notes": "ControlLogix integrated motion modules"
+            }
+          ]
+        },
+        {
+          "sheetName": "PCB connection system",
+          "deviceTypes": [
+            "PCB Connector"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "PCB connection technology",
+          "deviceTypes": [
+            "PCB Terminal Block"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "PLC",
+          "deviceTypes": [
+            "Communication Gateway",
+            "HMI",
+            "I/O Module",
+            "Programmable Logic Controller"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "FL",
+              "deviceType": "Communication Gateway",
+              "notes": "FL switch / FL gateway"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "RAD",
+              "deviceType": "Communication Gateway",
+              "notes": "Radioline"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENT",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENTR",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1783",
+              "deviceType": "Communication Gateway",
+              "notes": "Stratix industrial networking and communication modules"
+            }
+          ]
+        },
+        {
+          "sheetName": "RS232 interfaces",
+          "deviceTypes": [
+            "Communication Gateway"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "FL",
+              "deviceType": "Communication Gateway",
+              "notes": "FL switch / FL gateway"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "RAD",
+              "deviceType": "Communication Gateway",
+              "notes": "Radioline"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENT",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENTR",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1783",
+              "deviceType": "Communication Gateway",
+              "notes": "Stratix industrial networking and communication modules"
+            }
+          ]
+        },
+        {
+          "sheetName": "Switch",
+          "deviceTypes": [
+            "Lock / Interlock",
+            "Selector Switch",
+            "Switch"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "M2SS",
+              "deviceType": "Selector Switch",
+              "notes": "M2SS selector switches"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "M22-WR",
+              "deviceType": "Selector Switch",
+              "notes": "M22 selector switch actuator"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "JSHD",
+              "deviceType": "Switch",
+              "notes": "JSHD three-position handheld devices"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "2702665",
+              "deviceType": "Switch",
+              "notes": "Phoenix FL SWITCH 2105 item number"
+            },
+            {
+              "manufacturerId": "schmersal",
+              "pattern": "EFM",
+              "deviceType": "Switch",
+              "notes": "Schmersal foot switches"
+            }
+          ]
+        },
+        {
+          "sheetName": "Wire ID Information",
+          "deviceTypes": [
+            "Wire Marker"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "cabinet",
+          "deviceTypes": [
+            "Enclosure"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEP",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEPY",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PSN",
+              "deviceType": "Enclosure",
+              "notes": "xEnergy ProfiSNAP enclosure panels/accessories"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "P2C",
+              "deviceType": "Enclosure",
+              "notes": "nVent Hoffman enclosure families"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "P2D",
+              "deviceType": "Enclosure",
+              "notes": "nVent Hoffman enclosure families"
+            }
+          ]
+        },
+        {
+          "sheetName": "cabinet.airconditioning",
+          "deviceTypes": [
+            "Thermal Management"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "nvent",
+              "pattern": "DAH",
+              "deviceType": "Thermal Management",
+              "notes": "nVent HOFFMAN DAH enclosure heaters"
+            },
+            {
+              "manufacturerId": "rittal",
+              "pattern": "SK",
+              "deviceType": "Thermal Management",
+              "notes": "Climate control / filter fans"
+            }
+          ]
+        },
+        {
+          "sheetName": "cabinet.mechanical",
+          "deviceTypes": [
+            "Accessory",
+            "Cover / Door Accessory",
+            "Enclosure",
+            "Subpanel"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "MDB",
+              "deviceType": "Accessory",
+              "notes": "MDB dummy blocks and operator accessories"
+            },
+            {
+              "manufacturerId": "fath",
+              "pattern": "061CC42300.74",
+              "deviceType": "Cover / Door Accessory",
+              "notes": "FATH shelf-board cover cap"
+            },
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "73540003",
+              "deviceType": "Cover / Door Accessory",
+              "notes": "Spelsberg AK KF 03 hinged window"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEP",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEPY",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            }
+          ]
+        },
+        {
+          "sheetName": "cabinet.rack",
+          "deviceTypes": [
+            "Rack Cabinet"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rittal",
+              "pattern": "DK",
+              "deviceType": "Rack Cabinet"
+            }
+          ]
+        },
+        {
+          "sheetName": "cable",
+          "deviceTypes": [
+            "Cable"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SAMB1J313B.4000",
+              "deviceType": "Cable",
+              "notes": "FATH Module F Line GST18i3 main power cable"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "889",
+              "deviceType": "Cable",
+              "notes": "Allen-Bradley cordsets and patchcords"
+            },
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "59181001",
+              "deviceType": "Cable",
+              "notes": "Spelsberg Wallbox LL 7m Type 2 charging cable"
+            }
+          ]
+        },
+        {
+          "sheetName": "cable ducts mounting rails",
+          "deviceTypes": [
+            "Mounting Accessory",
+            "Wireway"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "09308901S01",
+              "deviceType": "Mounting Accessory",
+              "notes": "FATH workstation and profile mounting components"
+            },
+            {
+              "manufacturerId": "fath",
+              "pattern": "6FG40ND80M695N08",
+              "deviceType": "Mounting Accessory",
+              "notes": "FATH workstation and profile mounting components"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "CP2020",
+              "deviceType": "Mounting Accessory",
+              "notes": "nVent Hoffman/Schroff accessory items verified on official product pages"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "CSP2020",
+              "deviceType": "Mounting Accessory",
+              "notes": "nVent Hoffman/Schroff accessory items verified on official product pages"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "1524160",
+              "deviceType": "Mounting Accessory",
+              "notes": "Phoenix MCS-112X90-AP-7035 adapter plate item number"
+            }
+          ]
+        },
+        {
+          "sheetName": "cable gland",
+          "deviceTypes": [
+            "Cable Gland"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "26013201",
+              "deviceType": "Cable Gland",
+              "notes": "Spelsberg DMS M32/w double-membrane seal"
+            }
+          ]
+        },
+        {
+          "sheetName": "command and alarm device",
+          "deviceTypes": [
+            "Pilot Light",
+            "Pushbutton / Operator",
+            "Stack Light / Beacon"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "ML1",
+              "deviceType": "Pilot Light",
+              "notes": "ML1 pilot lights"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "M22",
+              "deviceType": "Pushbutton / Operator",
+              "notes": "M22 control station"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "800F",
+              "deviceType": "Pushbutton / Operator"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "800H",
+              "deviceType": "Pushbutton / Operator"
+            },
+            {
+              "manufacturerId": "schmersal",
+              "pattern": "BDF",
+              "deviceType": "Pushbutton / Operator",
+              "notes": "BDF command and control devices"
+            }
+          ]
+        },
+        {
+          "sheetName": "connector",
+          "deviceTypes": [
+            "Connector",
+            "Optical Connector"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SAKP5J516BS01",
+              "deviceType": "Connector",
+              "notes": "FATH Module F Line and profile connectors"
+            },
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SBEU14I.317",
+              "deviceType": "Connector",
+              "notes": "FATH Module F Line and profile connectors"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "69001-",
+              "deviceType": "Connector",
+              "notes": "nVent SCHROFF DIN connectors"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "MCS",
+              "deviceType": "Connector"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VIP",
+              "deviceType": "Connector"
+            }
+          ]
+        },
+        {
+          "sheetName": "contactor a. fuses",
+          "deviceTypes": [
+            "Circuit Breaker",
+            "Contactor",
+            "Disconnect Switch",
+            "Fuse",
+            "Miniature Circuit Breaker",
+            "Molded Case Circuit Breaker",
+            "Relay",
+            "Residual Current Device",
+            "Supplementary Protector"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "eta",
+              "pattern": "3120",
+              "deviceType": "Circuit Breaker"
+            },
+            {
+              "manufacturerId": "eta",
+              "pattern": "REX",
+              "deviceType": "Circuit Breaker"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492-CB",
+              "deviceType": "Circuit Breaker",
+              "notes": "Allen-Bradley circuit breakers"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "A",
+              "deviceType": "Contactor",
+              "notes": "AF / A / AL / AX series IEC contactors"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "AF",
+              "deviceType": "Contactor",
+              "notes": "AF / A / AL / AX series IEC contactors"
+            }
+          ]
+        },
+        {
+          "sheetName": "directional control valve",
+          "deviceTypes": [
+            "Directional Control Valve"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "el. mesurement devices",
+          "deviceTypes": [
+            "Current Sensor",
+            "Power Meter"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "electronic sensor",
+          "deviceTypes": [
+            "Capacitive Sensor",
+            "Encoder",
+            "Inductive Proximity Sensor",
+            "Magnetic Field Sensor",
+            "RFID Device",
+            "Sensor",
+            "Ultrasonic Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BCS",
+              "deviceType": "Capacitive Sensor"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BDG",
+              "deviceType": "Encoder",
+              "notes": "Absolute encoder"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BTL",
+              "deviceType": "Encoder",
+              "notes": "Magnetostrictive linear encoder"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BES",
+              "deviceType": "Inductive Proximity Sensor"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BIS",
+              "deviceType": "Inductive Proximity Sensor"
+            }
+          ]
+        },
+        {
+          "sheetName": "energy distribution system",
+          "deviceTypes": [
+            "Loadcenter"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "filters",
+          "deviceTypes": [
+            "Filter"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "fluid power",
+          "deviceTypes": [
+            "Hydraulic Actuator"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "generator",
+          "deviceTypes": [
+            "Generator"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "int. ext. lightning protection",
+          "deviceTypes": [
+            "Surge Protective Device"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "OVR",
+              "deviceType": "Surge Protective Device"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VAL-CP",
+              "deviceType": "Surge Protective Device"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VAL-MS",
+              "deviceType": "Surge Protective Device"
+            }
+          ]
+        },
+        {
+          "sheetName": "module carrier frame",
+          "deviceTypes": [
+            "Module Carrier"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "siemens",
+              "pattern": "6ES7193",
+              "deviceType": "Module Carrier",
+              "notes": "SIMATIC ET 200SP BaseUnits / base carriers"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "BaseUnits",
+              "deviceType": "Module Carrier",
+              "notes": "SIMATIC ET 200SP BaseUnits / base carriers"
+            }
+          ]
+        },
+        {
+          "sheetName": "motors",
+          "deviceTypes": [
+            "Motor",
+            "Variable Speed Drive"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "M2A",
+              "deviceType": "Motor"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "TM",
+              "deviceType": "Motor"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "ACQ",
+              "deviceType": "Variable Speed Drive",
+              "notes": "ACS / ACQ / ACH drives"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "ACS",
+              "deviceType": "Variable Speed Drive",
+              "notes": "ACS / ACQ / ACH drives"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "DC1",
+              "deviceType": "Variable Speed Drive",
+              "notes": "PowerXL"
+            }
+          ]
+        },
+        {
+          "sheetName": "optical sensor",
+          "deviceTypes": [
+            "Photoelectric Sensor",
+            "Vision Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BOH",
+              "deviceType": "Photoelectric Sensor"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BOS",
+              "deviceType": "Photoelectric Sensor"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "42EF",
+              "deviceType": "Photoelectric Sensor"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "42JS",
+              "deviceType": "Photoelectric Sensor"
+            },
+            {
+              "manufacturerId": "schneider",
+              "pattern": "XU",
+              "deviceType": "Photoelectric Sensor",
+              "notes": "OsiSense XU"
+            }
+          ]
+        },
+        {
+          "sheetName": "panel (HMI)",
+          "deviceTypes": [
+            "HMI"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "CP6",
+              "deviceType": "HMI",
+              "notes": "CP6xx HMI panel"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "XV",
+              "deviceType": "HMI"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "2711",
+              "deviceType": "HMI",
+              "notes": "PanelView HMI"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "2711P",
+              "deviceType": "HMI",
+              "notes": "PanelView HMI"
+            },
+            {
+              "manufacturerId": "schneider",
+              "pattern": "HMI",
+              "deviceType": "HMI",
+              "notes": "Harmony HMI"
+            }
+          ]
+        },
+        {
+          "sheetName": "pneumatic handling",
+          "deviceTypes": [
+            "Pneumatic Device"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "power supply devices",
+          "deviceTypes": [
+            "Battery",
+            "Power Supply",
+            "Transformer",
+            "UPS"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "CP-E",
+              "deviceType": "Power Supply",
+              "notes": "CP-T / CP-E DIN-rail PSUs"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "CP-T",
+              "deviceType": "Power Supply",
+              "notes": "CP-T / CP-E DIN-rail PSUs"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "QUINT",
+              "deviceType": "Power Supply"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "TRIO",
+              "deviceType": "Power Supply"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1606",
+              "deviceType": "Power Supply",
+              "notes": "Allen-Bradley switched mode power supplies"
+            }
+          ]
+        },
+        {
+          "sheetName": "pump",
+          "deviceTypes": [
+            "Pump"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "safety sensor",
+          "deviceTypes": [
+            "Safety Relay",
+            "Safety Sensor",
+            "Solenoid Interlock"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "PLUTO",
+              "deviceType": "Safety Relay",
+              "notes": "Pluto safety controller"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "2981091",
+              "deviceType": "Safety Relay",
+              "notes": "Phoenix PSR-SPP-24DC/ESD/5X1/1X2/T10 item number"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "PSR",
+              "deviceType": "Safety Relay"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "PSRMINI",
+              "deviceType": "Safety Relay"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "440C",
+              "deviceType": "Safety Relay"
+            }
+          ]
+        },
+        {
+          "sheetName": "sensor - fluid",
+          "deviceTypes": [
+            "Flow Sensor",
+            "Level Sensor",
+            "Pressure Sensor",
+            "Temperature Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "839E",
+              "deviceType": "Flow Sensor",
+              "notes": "Allen-Bradley flow sensors"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "840E",
+              "deviceType": "Level Sensor",
+              "notes": "Allen-Bradley level sensors"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "836P",
+              "deviceType": "Pressure Sensor",
+              "notes": "Allen-Bradley pressure sensors"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "837T",
+              "deviceType": "Temperature Sensor",
+              "notes": "Allen-Bradley temperature sensors"
+            }
+          ]
+        },
+        {
+          "sheetName": "servo controller",
+          "deviceTypes": [
+            "Soft Starter",
+            "Variable Speed Drive"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "PSE",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "PSTX",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "DS7",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "schneider",
+              "pattern": "ATS",
+              "deviceType": "Soft Starter",
+              "notes": "Altistart"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "3RW",
+              "deviceType": "Soft Starter",
+              "notes": "SIRIUS soft starter"
+            }
+          ]
+        },
+        {
+          "sheetName": "terminal",
+          "deviceTypes": [
+            "Terminal Block"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "UK",
+              "deviceType": "Terminal Block"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "UT",
+              "deviceType": "Terminal Block"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492",
+              "deviceType": "Terminal Block"
+            }
+          ]
+        },
+        {
+          "sheetName": "terminal endbracket",
+          "deviceTypes": [
+            "Terminal Accessory"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "CLIPFIX",
+              "deviceType": "Terminal Accessory"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "E/UK",
+              "deviceType": "Terminal Accessory"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492-EAH",
+              "deviceType": "Terminal Accessory",
+              "notes": "1492 end anchors / end retainers"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492-EAJ",
+              "deviceType": "Terminal Accessory",
+              "notes": "1492 end anchors / end retainers"
+            }
+          ]
+        },
+        {
+          "sheetName": "ventil",
+          "deviceTypes": [
+            "Valve"
+          ],
+          "examples": []
+        }
+      ],
+      "deviceSheetCoverage": {
+        "covered": 1,
+        "total": 41
+      }
+    },
+    "fixtureCoverageRequired": false,
+    "accepted": true
+  },
+  "reports": [
+    {
+      "manufacturerId": "eaton",
+      "catalogNumber": "088844",
+      "caseType": "electrical",
+      "expectedDeviceType": "Motor Circuit Breaker",
+      "actualDeviceType": "Motor Circuit Breaker",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "cold",
+        "pkzm0"
+      ],
+      "status": "found",
+      "confidence": 0.67,
+      "elapsedMs": 10384,
+      "productUrl": "https://www.eaton.com/us/en-us/skuPage.088844.html",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261012065133\\pdt\\eaton-088844-pdt_pdt-audit.json",
+      "pdtWrittenCells": 39,
+      "pdtBlankCells": 50,
+      "pdtSkippedCells": 8,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": [],
+      "resultEvidence": {
+        "title": "088844 | Eaton Moeller® series PKZM0 Motor-protective circuit-breaker",
+        "description": "Eaton Moeller® series PKZM0 Motor-protective circuit-breaker, 3p+1N/O+1N/C, Ir=2.5-4A, screw connection, large packaging PKZM0-4/NHI-E-11-GVP2",
+        "productUrl": "https://www.eaton.com/us/en-us/skuPage.088844.html",
+        "localizedUrls": {
+          "en": "https://www.eaton.com/gb/en-gb/skuPage.088844.html",
+          "de": "https://www.eaton.com/de/de-de/skuPage.088844.html"
+        },
+        "localizedDescriptions": {
+          "de": {
+            "title": "088844 | Eaton Moeller® series PKZM0 Motorschutzschalter",
+            "description": "Eaton Moeller® series PKZM0 Motorschutzschalter, 3p+1S+1Ö, Ir=2,5-4A, Schraubanschluss, Großpackung PKZM0-4/NHI-E-11-GVP2"
+          }
+        },
+        "deviceTypeClassification": {
+          "type": "Motor Circuit Breaker",
+          "confidence": 0.99,
+          "evidence": "Product Family: PKZ motor protection circuit breaker",
+          "alternatives": [
+            {
+              "type": "Circuit Breaker",
+              "score": 1635,
+              "channels": [
+                "text"
+              ]
+            },
+            {
+              "type": "Motor",
+              "score": 1445,
+              "channels": [
+                "text"
+              ]
+            }
+          ],
+          "scoreMargin": 1905
+        },
+        "normalized": {
+          "weight": "0.284 kg",
+          "dimensions": "93 x 45 x 76 mm",
+          "voltage": "690...690 V",
+          "current": "4 A",
+          "protection": "IP20",
+          "certificates": "CE, RoHS"
+        },
+        "requiredElectricalFields": [
+          "voltage",
+          "current"
+        ],
+        "attributes": [
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Allgemeine Informationen",
+            "name": "Anschlusstechnik",
+            "value": "Schraub­­klemmen",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Allgemeine Informationen",
+            "name": "Schutzart",
+            "value": "IP20",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Allgemeine Spezifikation",
+            "name": "EAN",
+            "value": "4015080888444",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Allgemeine Spezifikation",
+            "name": "Katalognummer",
+            "value": "088844",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Allgemeine Spezifikation",
+            "name": "Modellcode",
+            "value": "PKZM0-4/NHI-E-11-GVP2",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Allgemeine Spezifikation",
+            "name": "Produkt Länge/Tiefe",
+            "value": "76 mm",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Allgemeine Spezifikation",
+            "name": "Produktbreite",
+            "value": "45 mm",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Allgemeine Spezifikation",
+            "name": "Produktgewicht",
+            "value": "0.284 kg",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Allgemeine Spezifikation",
+            "name": "Produkthöhe",
+            "value": "93 mm",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Allgemeine Spezifikation",
+            "name": "Produktname",
+            "value": "Eaton Moeller® series PKZM0 Motorschutzschalter",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Allgemeine Spezifikation",
+            "name": "Zertifikat(e)",
+            "value": "CE",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Anschlussquerschnitte",
+            "name": "Anschlussquerschnitte (ein-/mehrdrähtig AWG)",
+            "value": "18 – 10 18 - 16",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Anschlussquerschnitte",
+            "name": "Anschlussquerschnitte (feindrähtig mit Aderendhülse)",
+            "value": "1 x (1 - 6) mm², Hauptleiter 2 x (1 - 6) mm², Hauptleiter 1 x (0,75 - 1,5) mm², Steuerstromleitungen 2 x (0,75 - 1,5) mm², Steuerstromleitungen",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Anschlussquerschnitte",
+            "name": "Anzugsdrehmoment",
+            "value": "1 Nm, Schraubklemmen, Steuerstromleitungen 1,7 Nm, Schraubklemmen, Hauptleiter",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Auslöserblöcke",
+            "name": "Überlastauslösestromeinstellung - max.",
+            "value": "4 A",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Auslöserblöcke",
+            "name": "Überlastauslösestromeinstellung - min.",
+            "value": "2.5 A",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Bemessungswerte",
+            "name": "Bemessungsbetriebsleistung bei AC-3e, 220/230 V, 50 Hz",
+            "value": "0.75 kW",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Bemessungswerte",
+            "name": "Bemessungsbetriebsleistung bei AC-3e, 380/400 V, 50 Hz",
+            "value": "1.5 kW",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Bemessungswerte",
+            "name": "Bemessungsbetriebsspannung (Ue) - max.",
+            "value": "690 V",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Bemessungswerte",
+            "name": "Bemessungsbetriebsspannung (Ue) - min.",
+            "value": "690 V",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Bemessungswerte",
+            "name": "Bemessungsdauerstrom (Iu)",
+            "value": "4 A",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "106133 - 60377506 Eaton Moeller® series PKZ0 Door coupling handle, suitable for emergency stop (https://www.eaton.com.cn/cn/zh-cn/skuPage.106133.html)",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "219654 - 60377455 Eaton Moeller® series CI-K Insulated enclosure, for PKZ0, 160 x 100 x 130 mm, +rotary handle, black/grey (https://www.eaton.com.cn/cn/zh-cn/skuPage.219654.html)",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "101481 - 60377672 Eaton Moeller® series BBA Busbar adapter, 45 mm, 25 A, DIN rail: 2 (https://www.eaton.com.cn/cn/zh-cn/skuPage.101481.html)",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "101451 - 60377672 Eaton Moeller® series BBA Busbar adapter, 45 mm, 25 A, DIN rail: 1 BBA0-25 (https://www.eaton.com.cn/cn/zh-cn/skuPage.101451.html)",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "072896 - 60377506 Eaton Moeller® series NHI Standard auxiliary contact, 1 N/O, 1 NC, Can be retrofitted on the right side of motor-protective circuit-breakers, Screw terminals (https://www.eaton.com.cn/cn/zh-cn/skuPage.072896.html)",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "101452 - 60377672 Eaton Moeller® series BBA Busbar adapter, 45 mm, 32 A, DIN rail: 2 BBA0-32 (https://www.eaton.com.cn/cn/zh-cn/skuPage.101452.html)",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "032720 - 60377485 Eaton Moeller® series PKZ Extension terminal, 3p, 25mm² BK25/3-PKZ0 (https://www.eaton.com.cn/cn/zh-cn/skuPage.032720.html)",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "063961 - 60377506 Eaton Moeller® series B3 Three-phase busbar link, Circuit-breaker: 2, 90 mm, For PKZM0-... or PKE12, PKE32 without side mounted auxiliary contacts or voltage releases (https://www.eaton.com.cn/cn/zh-cn/skuPage.063961.html)",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "072894 - 60377506 Eaton Moeller® series NHI Standard auxiliary contact, 2N/O+1N/C, screw connection (https://www.eaton.com.cn/cn/zh-cn/skuPage.072894.html)",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "082882 - 60377506 Eaton Moeller® series NHI Standard auxiliary contact, NHI-E, 1 N/O, 1 NC, Can be fitted to the front, Screw terminals (https://www.eaton.com.cn/cn/zh-cn/skuPage.082882.html)",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "106133 - 60377506 Eaton Moeller® series PKZ0 Türkupplungsgriff, geeignet für Not-Aus (https://www.eaton.com/de/de-de/skuPage.106133.html)",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "219654 - 60377455 Eaton Moeller® series CI-K Isoliertes Gehäuse, für PKZ0, 160 x 100 x 130 mm, +Drehgriff, Schwarz/grau (https://www.eaton.com/de/de-de/skuPage.219654.html)",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "101481 - 60377672 Eaton Moeller® series BBA Sammelschienenadapter, 45 mm, 25 A, Tragschiene: 2 (https://www.eaton.com/de/de-de/skuPage.101481.html)",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "101451 - 60377672 Eaton Moeller® series BBA Sammelschienenadapter, 45 mm, 25 A, Tragschiene: 1 BBA0-25 (https://www.eaton.com/de/de-de/skuPage.101451.html)",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "072896 - 60377506 Eaton Moeller® series NHI Standard Hilfskontakt, 1 S, 1 Ö, Rechtsseitig anbaubar an Motorschutzschalter, Schraubklemmen (https://www.eaton.com/de/de-de/skuPage.072896.html)",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "101452 - 60377672 Eaton Moeller® series BBA Sammelschienenadapter, 45 mm, 32 A, Tragschiene: 2 BBA0-32 (https://www.eaton.com/de/de-de/skuPage.101452.html)",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "032720 - 60377485 Eaton Moeller® series PKZ Anschlusswinkel, 3p, 25 mm² BK25/3-PKZ0 (https://www.eaton.com/de/de-de/skuPage.032720.html)",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "063961 - 60377506 Eaton Moeller® series B3 Drehstromschienenblock, Schutzschalter: 2, 90 mm, Für PKZM0-... oder PKE12, PKE32 ohne seitlich angebaute Hilfskontakte oder Spannungsauslöser (https://www.eaton.com/de/de-de/skuPage.063961.html)",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "082882 - 60377506 Eaton Moeller® series NHI Standard Hilfskontakt, NHI-E, 1 S, 1 Ö, frontseitig anbaubar, Schraubklemmen (https://www.eaton.com/de/de-de/skuPage.082882.html)",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "072894 - 60377506 Eaton Moeller® series NHI Standard Hilfskontakt, 2S+1Ö, Schraubanschluss (https://www.eaton.com/de/de-de/skuPage.072894.html)",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "106133 - 60377506 Eaton Moeller® series PKZ0 Door coupling handle, suitable for emergency stop (https://www.eaton.com/gb/en-gb/skuPage.106133.html)",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "219654 - 60377455 Eaton Moeller® series CI-K Insulated enclosure, for PKZ0, 160 x 100 x 130 mm, +rotary handle, black/grey (https://www.eaton.com/gb/en-gb/skuPage.219654.html)",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "101481 - 60377672 Eaton Moeller® series BBA Busbar adapter, 45 mm, 25 A, DIN rail: 2 (https://www.eaton.com/gb/en-gb/skuPage.101481.html)",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "101451 - 60377672 Eaton Moeller® series BBA Busbar adapter, 45 mm, 25 A, DIN rail: 1 BBA0-25 (https://www.eaton.com/gb/en-gb/skuPage.101451.html)",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "072896 - 60377506 Eaton Moeller® series NHI Standard auxiliary contact, 1 N/O, 1 NC, Can be retrofitted on the right side of motor-protective circuit-breakers, Screw terminals (https://www.eaton.com/gb/en-gb/skuPage.072896.html)",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "101452 - 60377672 Eaton Moeller® series BBA Busbar adapter, 45 mm, 32 A, DIN rail: 2 BBA0-32 (https://www.eaton.com/gb/en-gb/skuPage.101452.html)",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "032720 - 60377485 Eaton Moeller® series PKZ Extension terminal, 3p, 25mm² BK25/3-PKZ0 (https://www.eaton.com/gb/en-gb/skuPage.032720.html)",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "063961 - 60377506 Eaton Moeller® series B3 Three-phase busbar link, Circuit-breaker: 2, 90 mm, For PKZM0-... or PKE12, PKE32 without side mounted auxiliary contacts or voltage releases (https://www.eaton.com/gb/en-gb/skuPage.063961.html)",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "072894 - 60377506 Eaton Moeller® series NHI Standard auxiliary contact, 2N/O+1N/C, screw connection (https://www.eaton.com/gb/en-gb/skuPage.072894.html)",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "082882 - 60377506 Eaton Moeller® series NHI Standard auxiliary contact, NHI-E, 1 N/O, 1 NC, Can be fitted to the front, Screw terminals (https://www.eaton.com/gb/en-gb/skuPage.082882.html)",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "106133 - 60377506 Eaton Moeller® series PKZ0 Door coupling handle, suitable for emergency stop (https://www.eaton.com/us/en-us/skuPage.106133.html)",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "219654 - 60377455 Eaton Moeller® series CI-K Insulated enclosure, for PKZ0, 160 x 100 x 130 mm, +rotary handle, black/grey (https://www.eaton.com/us/en-us/skuPage.219654.html)",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "101481 - 60377672 Eaton Moeller® series BBA Busbar adapter, 45 mm, 25 A, DIN rail: 2 (https://www.eaton.com/us/en-us/skuPage.101481.html)",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "101451 - 60377672 Eaton Moeller® series BBA Busbar adapter, 45 mm, 25 A, DIN rail: 1 BBA0-25 (https://www.eaton.com/us/en-us/skuPage.101451.html)",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "072896 - 60377506 Eaton Moeller® series NHI Standard auxiliary contact, 1 N/O, 1 NC, Can be retrofitted on the right side of motor-protective circuit-breakers, Screw terminals (https://www.eaton.com/us/en-us/skuPage.072896.html)",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "101452 - 60377672 Eaton Moeller® series BBA Busbar adapter, 45 mm, 32 A, DIN rail: 2 BBA0-32 (https://www.eaton.com/us/en-us/skuPage.101452.html)",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "032720 - 60377485 Eaton Moeller® series PKZ Extension terminal, 3p, 25mm² BK25/3-PKZ0 (https://www.eaton.com/us/en-us/skuPage.032720.html)",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "063961 - 60377506 Eaton Moeller® series B3 Three-phase busbar link, Circuit-breaker: 2, 90 mm, For PKZM0-... or PKE12, PKE32 without side mounted auxiliary contacts or voltage releases (https://www.eaton.com/us/en-us/skuPage.063961.html)",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "072894 - 60377506 Eaton Moeller® series NHI Standard auxiliary contact, 2N/O+1N/C, screw connection (https://www.eaton.com/us/en-us/skuPage.072894.html)",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "082882 - 60377506 Eaton Moeller® series NHI Standard auxiliary contact, NHI-E, 1 N/O, 1 NC, Can be fitted to the front, Screw terminals (https://www.eaton.com/us/en-us/skuPage.082882.html)",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Channel",
+            "value": "web",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Channel",
+            "value": "web",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Channel",
+            "value": "web",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Channel",
+            "value": "web",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Country",
+            "value": "cn",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Country",
+            "value": "de",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Country",
+            "value": "gb",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Country",
+            "value": "us",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Domain",
+            "value": "www.eaton.com.cn",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Domain",
+            "value": "www.eaton.com",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Domain",
+            "value": "www.eaton.com",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Domain",
+            "value": "www.eaton.com",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Language",
+            "value": "zh-cn",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Language",
+            "value": "de-de",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Language",
+            "value": "en-gb",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Language",
+            "value": "en-us",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Page Type",
+            "value": "product sku",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Page Type",
+            "value": "product sku",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Page Type",
+            "value": "product sku",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Page Type",
+            "value": "product sku",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Product Family",
+            "value": "sku page",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Product Family",
+            "value": "Motorschutzschalter PKZ",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Product Family",
+            "value": "PKZ motor protection circuit breaker",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Product Family",
+            "value": "sku page",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Product Name",
+            "value": "PKZM0",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Product Name",
+            "value": "PKZM0",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Product Name",
+            "value": "PKZM0",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Product Name",
+            "value": "PKZM0",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Product SKU",
+            "value": "088844",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Product SKU",
+            "value": "088844",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Product SKU",
+            "value": "088844",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Product SKU",
+            "value": "088844",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Electrical rating",
+            "name": "Rated operational power at AC-3e, 220/230 V, 50 Hz",
+            "value": "0.75 kW",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Electrical rating",
+            "name": "Rated operational power at AC-3e, 380/400 V, 50 Hz",
+            "value": "1.5 kW",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Electrical rating",
+            "name": "Rated operational voltage (Ue) - max",
+            "value": "690 V",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Electrical rating",
+            "name": "Rated operational voltage (Ue) - min",
+            "value": "690 V",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Electrical rating",
+            "name": "Rated uninterrupted current (Iu)",
+            "value": "4 A",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Features & functions",
+            "name": "Actuator type",
+            "value": "Turn button",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Features & functions",
+            "name": "Fitted with:",
+            "value": "Auxiliary switch",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Features & functions",
+            "name": "Functions",
+            "value": "Phase failure sensitive",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Features & functions",
+            "name": "Number of poles",
+            "value": "Three-pole",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General information",
+            "name": "Connection",
+            "value": "Screw terminals",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General information",
+            "name": "Degree of protection",
+            "value": "IP20",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General specifications",
+            "name": "Catalog Number",
+            "value": "088844",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General specifications",
+            "name": "Catalog Number",
+            "value": "088844",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General specifications",
+            "name": "Certifications",
+            "value": "CE",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General specifications",
+            "name": "Certifications",
+            "value": "CE",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General specifications",
+            "name": "EAN",
+            "value": "4015080888444",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General specifications",
+            "name": "EAN",
+            "value": "4015080888444",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General specifications",
+            "name": "Global Catalog",
+            "value": "088844",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General specifications",
+            "name": "Model Code",
+            "value": "PKZM0-4/NHI-E-11-GVP2",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General specifications",
+            "name": "Model Code",
+            "value": "PKZM0-4/NHI-E-11-GVP2",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General specifications",
+            "name": "Product Height",
+            "value": "93 mm",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General specifications",
+            "name": "Product Height",
+            "value": "93 mm",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General specifications",
+            "name": "Product Length/Depth",
+            "value": "76 mm",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General specifications",
+            "name": "Product Length/Depth",
+            "value": "76 mm",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General specifications",
+            "name": "Product Name",
+            "value": "Eaton Moeller® series PKZM0 Motor-protective circuit-breaker",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General specifications",
+            "name": "Product Name",
+            "value": "Eaton Moeller® series PKZM0 Motor-protective circuit-breaker",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General specifications",
+            "name": "Product Type",
+            "value": "Motor-protective circuit-breaker",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General specifications",
+            "name": "Product Weight",
+            "value": "0.284 kg",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General specifications",
+            "name": "Product Weight",
+            "value": "0.284 kg",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General specifications",
+            "name": "Product Width",
+            "value": "45 mm",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General specifications",
+            "name": "Product Width",
+            "value": "45 mm",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Kurzschlussfestigkeit",
+            "name": "Bemessungskurzschlussausschaltvermögen Ics bei 400 V AC",
+            "value": "150 kA",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Kurzschlussfestigkeit",
+            "name": "Bemessungskurzschlussausschaltvermögen Ics bei 440 V AC",
+            "value": "150 kA",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Kurzschlussfestigkeit",
+            "name": "Bemessungskurzschlussausschaltvermögen Ics bei 500 V AC",
+            "value": "150 kA",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Kurzschlussfestigkeit",
+            "name": "Bemessungskurzschlussausschaltvermögen Ics bei 690 V AC",
+            "value": "3 kA",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Kurzschlussfestigkeit",
+            "name": "Bemessungskurzschlussausschaltvermögen Icu bei 400 V AC",
+            "value": "150 kA",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Kurzschlussfestigkeit",
+            "name": "Bemessungskurzschlussausschaltvermögen Icu bei 440 V AC",
+            "value": "150 kA",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Kurzschlussfestigkeit",
+            "name": "Bemessungskurzschlussausschaltvermögen Icu bei 500 V AC",
+            "value": "150 kA",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Kurzschlussfestigkeit",
+            "name": "Bemessungskurzschlussausschaltvermögen Icu bei 690 V AC",
+            "value": "3 kA",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Kurzschlussfestigkeit",
+            "name": "Bemessungskurzschlussstrom (Gruppenschutz)",
+            "value": "50 kA, 600 V hoher Fehlerstrom, Sicherung, SCCR (UL/CSA) mit 600 A, 600 V hoher Fehlerstrom, Sicherung, SCCR (UL/CSA) 50 kA, 600 V hoher Fehlerstrom, CB, SCCR (UL/CSA) mit 600 A, 600 V hoher Fehlerstrom, CB, SCCR (UL/CSA)",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Merkmale und funktionen",
+            "name": "Ausstattung:",
+            "value": "Hilfsschalter",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Merkmale und funktionen",
+            "name": "Betätigertyp",
+            "value": "Drehknopf",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Merkmale und funktionen",
+            "name": "Funktionen",
+            "value": "Phasenausfallempfindlichkeit",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Merkmale und funktionen",
+            "name": "Polzahl",
+            "value": "3-polig",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Page metadata",
+            "name": "Canonical URL",
+            "value": "https://www.eaton.com.cn/cn/zh-cn/skuPage.088844.html",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Page metadata",
+            "name": "Canonical URL",
+            "value": "https://www.eaton.com/de/de-de/skuPage.088844.html",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Page metadata",
+            "name": "Canonical URL",
+            "value": "https://www.eaton.com/gb/en-gb/skuPage.088844.html",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Page metadata",
+            "name": "Canonical URL",
+            "value": "https://www.eaton.com/us/en-us/skuPage.088844.html",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Page metadata",
+            "name": "Open Graph Description",
+            "value": "088844 | Eaton Moeller® series PKZM0 Motor-protective circuit-breaker, 3p+1N/O+1N/C, Ir=2.5-4A, screw connection, large packaging PKZM0-4/NHI-E-11-GVP2",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Page metadata",
+            "name": "Open Graph Description",
+            "value": "088844 - Eaton Moeller® series PKZM0 Motorschutzschalter, 3p+1S+1Ö, Ir=2,5-4A, Schraubanschluss, Großpackung PKZM0-4/NHI-E-11-GVP2",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Page metadata",
+            "name": "Open Graph Description",
+            "value": "088844 - Eaton Moeller® series PKZM0 Motor-protective circuit-breaker, 3p+1N/O+1N/C, Ir=2.5-4A, screw connection, large packaging PKZM0-4/NHI-E-11-GVP2",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Page metadata",
+            "name": "Open Graph Description",
+            "value": "088844 - Eaton Moeller® series PKZM0 Motor-protective circuit-breaker, 3p+1N/O+1N/C, Ir=2.5-4A, screw connection, large packaging PKZM0-4/NHI-E-11-GVP2",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Page metadata",
+            "name": "Open Graph Title",
+            "value": "Eaton Moeller® series PKZM0 Motor-protective circuit-breaker | 088844 概述 | 伊顿中国",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Page metadata",
+            "name": "Open Graph Title",
+            "value": "088844 | Eaton Moeller® series PKZM0 Motorschutzschalter | Eaton",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Page metadata",
+            "name": "Open Graph Title",
+            "value": "088844 | Eaton Moeller® series PKZM0 Motor-protective circuit-breaker | Eaton",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Page metadata",
+            "name": "Open Graph Title",
+            "value": "088844 | Eaton Moeller® series PKZM0 Motor-protective circuit-breaker | Eaton",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Page metadata",
+            "name": "Open Graph Type",
+            "value": "product",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Page metadata",
+            "name": "Open Graph Type",
+            "value": "product",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Page metadata",
+            "name": "Open Graph Type",
+            "value": "product",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Page metadata",
+            "name": "Open Graph Type",
+            "value": "product",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Page metadata",
+            "name": "Open Graph URL",
+            "value": "https://www.eaton.com.cn/cn/zh-cn/skuPage.088844.html",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Page metadata",
+            "name": "Open Graph URL",
+            "value": "https://www.eaton.com/de/de-de/skuPage.088844.html",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Page metadata",
+            "name": "Open Graph URL",
+            "value": "https://www.eaton.com/gb/en-gb/skuPage.088844.html",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Page metadata",
+            "name": "Open Graph URL",
+            "value": "https://www.eaton.com/us/en-us/skuPage.088844.html",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Actuator type",
+            "value": "Turn button",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Adjustment range undelayed short-circuit release - max",
+            "value": "62 A",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Adjustment range undelayed short-circuit release - min",
+            "value": "62 A",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Connection",
+            "value": "Screw terminals",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Degree of protection",
+            "value": "IP20",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Device construction",
+            "value": "Built-in device fixed built-in technique",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Electrical connection type of main circuit",
+            "value": "Screw connection",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Fitted with:",
+            "value": "Auxiliary switch",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Functions",
+            "value": "Phase failure sensitive",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Number of poles",
+            "value": "Three-pole",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Overload release current setting - max",
+            "value": "4 A",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Overload release current setting - min",
+            "value": "2.5 A",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Power loss",
+            "value": "5.33 W",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Rated operational power at AC-3e, 220/230 V, 50 Hz",
+            "value": "0.75 kW",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Rated operational power at AC-3e, 380/400 V, 50 Hz",
+            "value": "1.5 kW",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Rated operational voltage (Ue) - max",
+            "value": "690 V",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Rated operational voltage (Ue) - min",
+            "value": "690 V",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Rated short-circuit breaking capacity Ics at 400 V AC",
+            "value": "150 kA",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Rated short-circuit breaking capacity Ics at 440 V AC",
+            "value": "150 kA",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Rated short-circuit breaking capacity Ics at 500 V AC",
+            "value": "150 kA",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Rated short-circuit breaking capacity Ics at 690 V AC",
+            "value": "3 kA",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Rated short-circuit breaking capacity Icu at 400 V AC",
+            "value": "150 kA",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Rated short-circuit breaking capacity Icu at 440 V AC",
+            "value": "150 kA",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Rated short-circuit breaking capacity Icu at 500 V AC",
+            "value": "150 kA",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Rated short-circuit breaking capacity Icu at 690 V AC",
+            "value": "3 kA",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Rated uninterrupted current (Iu)",
+            "value": "4 A",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Short-circuit current rating (group protection)",
+            "value": "50 kA, 600 V High Fault, Fuse, SCCR (UL/CSA) with 600 A, 600 V High Fault, Fuse, SCCR (UL/CSA) 50 kA, 600 V High Fault, CB, SCCR (UL/CSA) with 600 A, 600 V High Fault, CB, SCCR (UL/CSA)",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Switch off technique",
+            "value": "Thermomagnetic",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Terminal capacity (flexible with ferrule)",
+            "value": "1 x (1 - 6) mm², Main circuit cables 2 x (1 - 6) mm², Main circuit cables 1 x (0.75 - 1.5) mm², Control circuit cables 2 x (0.75 - 1.5) mm², Control circuit cables",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Terminal capacity (solid/stranded AWG)",
+            "value": "18 - 10 18 - 16",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Tightening torque",
+            "value": "1 Nm, Screw terminals, Control circuit cables 1.7 Nm, Screw terminals, Main cable",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Short-circuit rating",
+            "name": "Rated short-circuit breaking capacity Ics at 400 V AC",
+            "value": "150 kA",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Short-circuit rating",
+            "name": "Rated short-circuit breaking capacity Ics at 440 V AC",
+            "value": "150 kA",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Short-circuit rating",
+            "name": "Rated short-circuit breaking capacity Ics at 500 V AC",
+            "value": "150 kA",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Short-circuit rating",
+            "name": "Rated short-circuit breaking capacity Ics at 690 V AC",
+            "value": "3 kA",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Short-circuit rating",
+            "name": "Rated short-circuit breaking capacity Icu at 400 V AC",
+            "value": "150 kA",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Short-circuit rating",
+            "name": "Rated short-circuit breaking capacity Icu at 440 V AC",
+            "value": "150 kA",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Short-circuit rating",
+            "name": "Rated short-circuit breaking capacity Icu at 500 V AC",
+            "value": "150 kA",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Short-circuit rating",
+            "name": "Rated short-circuit breaking capacity Icu at 690 V AC",
+            "value": "3 kA",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Short-circuit rating",
+            "name": "Short-circuit current rating (group protection)",
+            "value": "50 kA, 600 V High Fault, Fuse, SCCR (UL/CSA) with 600 A, 600 V High Fault, Fuse, SCCR (UL/CSA) 50 kA, 600 V High Fault, CB, SCCR (UL/CSA) with 600 A, 600 V High Fault, CB, SCCR (UL/CSA)",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Structured Product Data",
+            "name": "Brand",
+            "value": "Eaton",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Structured Product Data",
+            "name": "Brand",
+            "value": "Eaton",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Structured Product Data",
+            "name": "Brand",
+            "value": "Eaton",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Structured Product Data",
+            "name": "Brand",
+            "value": "Eaton",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Structured Product Data",
+            "name": "Description",
+            "value": "Eaton Moeller® series PKZM0 Motor-protective circuit-breaker, 3p+1N/O+1N/C, Ir=2.5-4A, screw connection, large packaging PKZM0-4/NHI-E-11-GVP2",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Structured Product Data",
+            "name": "Description",
+            "value": "Eaton Moeller® series PKZM0 Motorschutzschalter, 3p+1S+1Ö, Ir=2,5-4A, Schraubanschluss, Großpackung PKZM0-4/NHI-E-11-GVP2",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Structured Product Data",
+            "name": "Description",
+            "value": "Eaton Moeller® series PKZM0 Motor-protective circuit-breaker, 3p+1N/O+1N/C, Ir=2.5-4A, screw connection, large packaging PKZM0-4/NHI-E-11-GVP2",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Structured Product Data",
+            "name": "Description",
+            "value": "Eaton Moeller® series PKZM0 Motor-protective circuit-breaker, 3p+1N/O+1N/C, Ir=2.5-4A, screw connection, large packaging PKZM0-4/NHI-E-11-GVP2",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Structured Product Data",
+            "name": "Product Name",
+            "value": "Eaton Moeller® series PKZM0 Motor-protective circuit-breaker",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Structured Product Data",
+            "name": "Product Name",
+            "value": "Eaton Moeller® series PKZM0 Motorschutzschalter",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Structured Product Data",
+            "name": "Product Name",
+            "value": "Eaton Moeller® series PKZM0 Motor-protective circuit-breaker",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Structured Product Data",
+            "name": "Product Name",
+            "value": "Eaton Moeller® series PKZM0 Motor-protective circuit-breaker",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Structured Product Data",
+            "name": "SKU",
+            "value": "088844",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Structured Product Data",
+            "name": "SKU",
+            "value": "088844",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Structured Product Data",
+            "name": "SKU",
+            "value": "088844",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Structured Product Data",
+            "name": "SKU",
+            "value": "088844",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Terminal capacities",
+            "name": "Terminal capacity (flexible with ferrule)",
+            "value": "1 x (1 - 6) mm², Main circuit cables 2 x (1 - 6) mm², Main circuit cables 1 x (0.75 - 1.5) mm², Control circuit cables 2 x (0.75 - 1.5) mm², Control circuit cables",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Terminal capacities",
+            "name": "Terminal capacity (solid/stranded AWG)",
+            "value": "18 - 10 18 - 16",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Terminal capacities",
+            "name": "Tightening torque",
+            "value": "1 Nm, Screw terminals, Control circuit cables 1.7 Nm, Screw terminals, Main cable",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Trip blocks",
+            "name": "Overload release current setting - max",
+            "value": "4 A",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Trip blocks",
+            "name": "Overload release current setting - min",
+            "value": "2.5 A",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "产品规格",
+            "name": "Actuator type",
+            "value": "Turn button",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "产品规格",
+            "name": "Adjustment range undelayed short-circuit release - max",
+            "value": "62 A",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "产品规格",
+            "name": "Adjustment range undelayed short-circuit release - min",
+            "value": "62 A",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "产品规格",
+            "name": "Connection",
+            "value": "Screw terminals",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "产品规格",
+            "name": "Degree of protection",
+            "value": "IP20",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "产品规格",
+            "name": "Device construction",
+            "value": "Built-in device fixed built-in technique",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "产品规格",
+            "name": "Electrical connection type of main circuit",
+            "value": "Screw connection",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "产品规格",
+            "name": "Fitted with:",
+            "value": "Auxiliary switch",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "产品规格",
+            "name": "Functions",
+            "value": "Phase failure sensitive",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "产品规格",
+            "name": "Number of poles",
+            "value": "Three-pole",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "产品规格",
+            "name": "Overload release current setting - max",
+            "value": "4 A",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "产品规格",
+            "name": "Overload release current setting - min",
+            "value": "2.5 A",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "产品规格",
+            "name": "Power loss",
+            "value": "5.33 W",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "产品规格",
+            "name": "Rated operational power at AC-3e, 220/230 V, 50 Hz",
+            "value": "0.75 kW",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "产品规格",
+            "name": "Rated operational power at AC-3e, 380/400 V, 50 Hz",
+            "value": "1.5 kW",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "产品规格",
+            "name": "Rated operational voltage (Ue) - max",
+            "value": "690 V",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "产品规格",
+            "name": "Rated operational voltage (Ue) - min",
+            "value": "690 V",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "产品规格",
+            "name": "Rated short-circuit breaking capacity Ics at 400 V AC",
+            "value": "150 kA",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "产品规格",
+            "name": "Rated short-circuit breaking capacity Ics at 440 V AC",
+            "value": "150 kA",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "产品规格",
+            "name": "Rated short-circuit breaking capacity Ics at 500 V AC",
+            "value": "150 kA",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "产品规格",
+            "name": "Rated short-circuit breaking capacity Ics at 690 V AC",
+            "value": "3 kA",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "产品规格",
+            "name": "Rated short-circuit breaking capacity Icu at 400 V AC",
+            "value": "150 kA",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "产品规格",
+            "name": "Rated short-circuit breaking capacity Icu at 440 V AC",
+            "value": "150 kA",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "产品规格",
+            "name": "Rated short-circuit breaking capacity Icu at 500 V AC",
+            "value": "150 kA",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "产品规格",
+            "name": "Rated short-circuit breaking capacity Icu at 690 V AC",
+            "value": "3 kA",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "产品规格",
+            "name": "Rated uninterrupted current (Iu)",
+            "value": "4 A",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "产品规格",
+            "name": "Short-circuit current rating (group protection)",
+            "value": "50 kA, 600 V High Fault, Fuse, SCCR (UL/CSA) with 600 A, 600 V High Fault, Fuse, SCCR (UL/CSA) 50 kA, 600 V High Fault, CB, SCCR (UL/CSA) with 600 A, 600 V High Fault, CB, SCCR (UL/CSA)",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "产品规格",
+            "name": "Switch off technique",
+            "value": "Thermomagnetic",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "产品规格",
+            "name": "Terminal capacity (flexible with ferrule)",
+            "value": "1 x (1 - 6) mm², Main circuit cables 2 x (1 - 6) mm², Main circuit cables 1 x (0.75 - 1.5) mm², Control circuit cables 2 x (0.75 - 1.5) mm², Control circuit cables",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "产品规格",
+            "name": "Terminal capacity (solid/stranded AWG)",
+            "value": "18 - 10 18 - 16",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "产品规格",
+            "name": "Tightening torque",
+            "value": "1 Nm, Screw terminals, Control circuit cables 1.7 Nm, Screw terminals, Main cable",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "常用规格",
+            "name": "Catalog Number",
+            "value": "088844",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "常用规格",
+            "name": "Certifications",
+            "value": "CE",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "常用规格",
+            "name": "Product Height",
+            "value": "93 mm",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "常用规格",
+            "name": "Product Length/Depth",
+            "value": "76 mm",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "常用规格",
+            "name": "Product Name",
+            "value": "Eaton Moeller® series PKZM0 Motor-protective circuit-breaker",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "常用规格",
+            "name": "Product Weight",
+            "value": "0.284 kg",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "常用规格",
+            "name": "Product Width",
+            "value": "45 mm",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.088844.html"
+          },
+          {
+            "group": "PDF Ontology Spec Miner",
+            "name": "Overall height",
+            "value": "25 mm",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/contactors---starters/msc-motor-starters-combinations/marketing-assets/eaton-link-module-for-motor-starters-pkz-flyer-fl034003en-en-us.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "15 kW power rating consisting of",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/contactors---starters/msc-motor-starters-combinations/marketing-assets/eaton-link-module-for-motor-starters-pkz-flyer-fl034003en-en-us.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "DS7 16 A to 32 A power rating",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/contactors---starters/msc-motor-starters-combinations/marketing-assets/eaton-link-module-for-motor-starters-pkz-flyer-fl034003en-en-us.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Feature",
+            "value": "IP20 finger-safe in the connection area",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/contactors---starters/msc-motor-starters-combinations/marketing-assets/eaton-link-module-for-motor-starters-pkz-flyer-fl034003en-en-us.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Document",
+            "name": "Parsed document",
+            "value": "eaton-link-module-for-motor-starters-pkz-flyer-fl034003en-en-us.pdf (Sales notes)",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/contactors---starters/msc-motor-starters-combinations/marketing-assets/eaton-link-module-for-motor-starters-pkz-flyer-fl034003en-en-us.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "30 mm reduction in overall",
+            "value": "height and 25",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/contactors---starters/msc-motor-starters-combinations/marketing-assets/eaton-link-module-for-motor-starters-pkz-flyer-fl034003en-en-us.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "mm reduction in overall",
+            "value": "depth",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/contactors---starters/msc-motor-starters-combinations/marketing-assets/eaton-link-module-for-motor-starters-pkz-flyer-fl034003en-en-us.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "IP20",
+            "value": "finger-safe in the connection area",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/contactors---starters/msc-motor-starters-combinations/marketing-assets/eaton-link-module-for-motor-starters-pkz-flyer-fl034003en-en-us.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "otee:",
+            "value": "N | When using the DILM32-XRL",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/contactors---starters/msc-motor-starters-combinations/marketing-assets/eaton-link-module-for-motor-starters-pkz-flyer-fl034003en-en-us.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Connection technologye",
+            "value": "Motor starter with a rotational direction",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/contactors---starters/msc-motor-starters-combinations/marketing-assets/eaton-link-module-for-motor-starters-pkz-flyer-fl034003en-en-us.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Name",
+            "value": "MVS-LBM0-EM | PKZM0-XDM15ME | PKZM0-XDM12 | PKZM0-XM32DE | PKZM0-XDM32ME",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/contactors---starters/msc-motor-starters-combinations/marketing-assets/eaton-link-module-for-motor-starters-pkz-flyer-fl034003en-en-us.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "SAP no.:",
+            "value": "220219 | 179646 | 283149 | 239349 | 190312",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/contactors---starters/msc-motor-starters-combinations/marketing-assets/eaton-link-module-for-motor-starters-pkz-flyer-fl034003en-en-us.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "protection",
+            "value": "PKZM0, (PKZM01) PKZM0, PKE12, PKE32 PKZM0, PKE12, PKE32 PKZM0, PKE12, PKE32 PKZM0, PKE12, PKE32",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/contactors---starters/msc-motor-starters-combinations/marketing-assets/eaton-link-module-for-motor-starters-pkz-flyer-fl034003en-en-us.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "PKZM0, (PKZM01)",
+            "value": "PKZM0, PKE12, PKE32",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/contactors---starters/msc-motor-starters-combinations/marketing-assets/eaton-link-module-for-motor-starters-pkz-flyer-fl034003en-en-us.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Contactor",
+            "value": "DIL(E)M | DILM7…DILM15 | DILM(C)7…15 | DILM17….32 | DILM17…38",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/contactors---starters/msc-motor-starters-combinations/marketing-assets/eaton-link-module-for-motor-starters-pkz-flyer-fl034003en-en-us.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "small contactors Screw connector",
+            "value": "Pluggable connector",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/contactors---starters/msc-motor-starters-combinations/marketing-assets/eaton-link-module-for-motor-starters-pkz-flyer-fl034003en-en-us.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "low overall",
+            "value": "height Motor starter on top-hat",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/contactors---starters/msc-motor-starters-combinations/marketing-assets/eaton-link-module-for-motor-starters-pkz-flyer-fl034003en-en-us.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Connection technologye",
+            "value": "Motor starter with two rotational directions",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/contactors---starters/msc-motor-starters-combinations/marketing-assets/eaton-link-module-for-motor-starters-pkz-flyer-fl034003en-en-us.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Name",
+            "value": "PKZM0-XRM12 | PKZM0-XRM32",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/contactors---starters/msc-motor-starters-combinations/marketing-assets/eaton-link-module-for-motor-starters-pkz-flyer-fl034003en-en-us.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "SAP no.:",
+            "value": "283185 | 283189 | 190312, 283109, 281227",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/contactors---starters/msc-motor-starters-combinations/marketing-assets/eaton-link-module-for-motor-starters-pkz-flyer-fl034003en-en-us.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "protection PKZM0, PKE12, PKE32",
+            "value": "PKZM0, PKE12, PKE32",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/contactors---starters/msc-motor-starters-combinations/marketing-assets/eaton-link-module-for-motor-starters-pkz-flyer-fl034003en-en-us.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Contactor",
+            "value": "DILM7…15 | DILM17…32 | DILM17….38",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/contactors---starters/msc-motor-starters-combinations/marketing-assets/eaton-link-module-for-motor-starters-pkz-flyer-fl034003en-en-us.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Special feature",
+            "value": "Pluggable connector with cable",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/contactors---starters/msc-motor-starters-combinations/marketing-assets/eaton-link-module-for-motor-starters-pkz-flyer-fl034003en-en-us.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Application",
+            "value": "Motor starter on top-hat",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/contactors---starters/msc-motor-starters-combinations/marketing-assets/eaton-link-module-for-motor-starters-pkz-flyer-fl034003en-en-us.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Part no.",
+            "value": "191980",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/contactors---starters/msc-motor-starters-combinations/marketing-assets/eaton-link-module-for-motor-starters-pkz-flyer-fl034003en-en-us.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF certificate",
+            "name": "Feature",
+            "value": "Low voltage directive 2014/35/EU",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/electrical-circuit-protection/circuit-breakers/declaration-of-conformity/eaton-motor-protective-circuit-breakers-declaration-of-conformity-eu250688en.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF certificate",
+            "name": "Feature",
+            "value": "RoHS directive 2011/65/EU + 2015/863",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/electrical-circuit-protection/circuit-breakers/declaration-of-conformity/eaton-motor-protective-circuit-breakers-declaration-of-conformity-eu250688en.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Document",
+            "name": "Parsed document",
+            "value": "eaton-motor-protective-circuit-breakers-declaration-of-conformity-eu250688en.pdf (Declarations of conformity)",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/electrical-circuit-protection/circuit-breakers/declaration-of-conformity/eaton-motor-protective-circuit-breakers-declaration-of-conformity-eu250688en.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF certificate",
+            "name": "specifications and relevant installation",
+            "value": "instructions are observed and the products are installed, maintained, and used",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/electrical-circuit-protection/circuit-breakers/declaration-of-conformity/eaton-motor-protective-circuit-breakers-declaration-of-conformity-eu250688en.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF certificate",
+            "name": "Low voltage",
+            "value": "directive 2014/35/EU",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/electrical-circuit-protection/circuit-breakers/declaration-of-conformity/eaton-motor-protective-circuit-breakers-declaration-of-conformity-eu250688en.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF certificate",
+            "name": "RoHS directive",
+            "value": "2011/65/EU + 2015/863",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/electrical-circuit-protection/circuit-breakers/declaration-of-conformity/eaton-motor-protective-circuit-breakers-declaration-of-conformity-eu250688en.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF certificate",
+            "name": "EN 50495",
+            "value": "2010",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/electrical-circuit-protection/circuit-breakers/declaration-of-conformity/eaton-motor-protective-circuit-breakers-declaration-of-conformity-eu250688en.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF certificate",
+            "name": "EN 60947-1",
+            "value": "2007 + A1:2011 + A2:2014",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/electrical-circuit-protection/circuit-breakers/declaration-of-conformity/eaton-motor-protective-circuit-breakers-declaration-of-conformity-eu250688en.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF certificate",
+            "name": "EN 60947-2",
+            "value": "2017 + A1:2020",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/electrical-circuit-protection/circuit-breakers/declaration-of-conformity/eaton-motor-protective-circuit-breakers-declaration-of-conformity-eu250688en.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF certificate",
+            "name": "EN 60947-5-1",
+            "value": "2017 + AC:2020",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/electrical-circuit-protection/circuit-breakers/declaration-of-conformity/eaton-motor-protective-circuit-breakers-declaration-of-conformity-eu250688en.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF certificate",
+            "name": "EN 61508-1",
+            "value": "2010",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/electrical-circuit-protection/circuit-breakers/declaration-of-conformity/eaton-motor-protective-circuit-breakers-declaration-of-conformity-eu250688en.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF certificate",
+            "name": "EN 61508-2",
+            "value": "2010",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/electrical-circuit-protection/circuit-breakers/declaration-of-conformity/eaton-motor-protective-circuit-breakers-declaration-of-conformity-eu250688en.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF certificate",
+            "name": "EN 61508-5",
+            "value": "2010",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/electrical-circuit-protection/circuit-breakers/declaration-of-conformity/eaton-motor-protective-circuit-breakers-declaration-of-conformity-eu250688en.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF certificate",
+            "name": "EN 61508-6",
+            "value": "2010",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/electrical-circuit-protection/circuit-breakers/declaration-of-conformity/eaton-motor-protective-circuit-breakers-declaration-of-conformity-eu250688en.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF certificate",
+            "name": "EN IEC 60079-0",
+            "value": "2018",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/electrical-circuit-protection/circuit-breakers/declaration-of-conformity/eaton-motor-protective-circuit-breakers-declaration-of-conformity-eu250688en.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF certificate",
+            "name": "EN IEC 60947-4-1",
+            "value": "2019 + AC:2021",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/electrical-circuit-protection/circuit-breakers/declaration-of-conformity/eaton-motor-protective-circuit-breakers-declaration-of-conformity-eu250688en.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF certificate",
+            "name": "EN IEC 63000",
+            "value": "2018",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/electrical-circuit-protection/circuit-breakers/declaration-of-conformity/eaton-motor-protective-circuit-breakers-declaration-of-conformity-eu250688en.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF certificate",
+            "name": "EN ISO 13849-1",
+            "value": "2015",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/electrical-circuit-protection/circuit-breakers/declaration-of-conformity/eaton-motor-protective-circuit-breakers-declaration-of-conformity-eu250688en.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          }
+        ],
+        "documents": [
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "type": "datasheet",
+            "label": "Eaton Specification Sheet - 088844",
+            "url": "https://www.eaton.com/us/en-us/skuPage.088844.pdf",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "type": "datasheet",
+            "label": "Produktspezifikationen",
+            "url": "https://www.eaton.com/de/de-de/skuPage.088844.pdf",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "type": "datasheet",
+            "label": "产品规格",
+            "url": "https://www.eaton.com.cn/cn/zh-cn/skuPage.088844.pdf",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "type": "datasheet",
+            "label": "eaton-push-in-technology-product-overview-brochure-br034012-en-us.pdf (Brochures)",
+            "url": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/en-globalprime/eaton-push-in-technology-product-overview-brochure-br034012-en-us.pdf",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "type": "datasheet",
+            "label": "eaton-motor-starters-system-xstart-brochure-br03407001en-en-us.pdf (Brochures)",
+            "url": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/motor-protection-and-overload-relays/marketing-assets/eaton-motor-starters-system-xstart-brochure-br03407001en-en-us.pdf",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "type": "datasheet",
+            "label": "eaton-product-overview-for-machinery-catalogue-ca08103003zen-en-us.pdf (Catalogs)",
+            "url": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/marketing-assets/eaton-product-overview-machine-building-catalog-ca08103003z-en-us.pdf",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "type": "datasheet",
+            "label": "IL03402034Z (Installationsanleitung)",
+            "url": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/il/IL03402034Z2021_06.pdf",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "type": "datasheet",
+            "label": "eaton-motor-protection-pkzm0-mn03402003z-de-de-en-us.pdf (Manuals and user guides)",
+            "url": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mn/eaton-motor-protection-pkzm0-mn03402003z-de-de-en-us.pdf",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "type": "datasheet",
+            "label": "eaton-link-module-for-motor-starters-pkz-flyer-fl034003en-en-us.pdf (Sales notes)",
+            "url": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/contactors---starters/msc-motor-starters-combinations/marketing-assets/eaton-link-module-for-motor-starters-pkz-flyer-fl034003en-en-us.pdf",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.088844.html",
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261012065133\\documents\\088844-datasheet-eaton-link-module-for-motor-starters-pkz-flyer-fl034003en-en-us.pdf-(Sales-notes.pdf",
+            "downloadStatus": "downloaded",
+            "parseStatus": "parsed"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "type": "manual",
+            "label": "eaton-manual-motor-starters-characteristic-characteristic-curve-009.eps (Characteristic curve)",
+            "url": "https://www.eaton.com/content/dam/eaton/products/control-drives-automation-sensors/motor-overload-and-protective-relays/motor-protective-circuit-breaker-pkz/eaton-manual-motor-starters-characteristic-characteristic-curve-009.eps.thumb.580.580.png",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.088844.html",
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261012065133\\documents\\088844-manual-eaton-manual-motor-starters-characteristic-characteristic-curve-009.eps-(Charact.png",
+            "downloadStatus": "downloaded",
+            "parseStatus": "skipped"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "type": "manual",
+            "label": "eaton-manual-motor-starters-characteristic-characteristic-curve-011.eps (Characteristic curve)",
+            "url": "https://www.eaton.com/content/dam/eaton/products/control-drives-automation-sensors/motor-overload-and-protective-relays/motor-protective-circuit-breaker-pkz/eaton-manual-motor-starters-characteristic-characteristic-curve-011.eps.thumb.580.580.png",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "type": "manual",
+            "label": "eaton-manual-motor-starters-characteristic-characteristic-curve-008.eps (Characteristic curve)",
+            "url": "https://www.eaton.com/content/dam/eaton/products/control-drives-automation-sensors/motor-overload-and-protective-relays/motor-protective-circuit-breaker-pkz/eaton-manual-motor-starters-characteristic-characteristic-curve-008.eps.thumb.580.580.png",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "type": "manual",
+            "label": "eaton-manual-motor-starters-pkz-dimensions.eps (Drawings)",
+            "url": "https://www.eaton.com/content/dam/eaton/products/control-drives-automation-sensors/motor-overload-and-protective-relays/motor-protective-circuit-breaker-pkz/eaton-manual-motor-starters-pkz-dimensions.eps/_jcr_content/renditions/cq5dam.thumbnail.2400.2400.jpg",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "type": "manual",
+            "label": "eaton-manual-motor-starters-pkz-dimensions-003.eps (Drawings)",
+            "url": "https://www.eaton.com/content/dam/eaton/products/control-drives-automation-sensors/motor-overload-and-protective-relays/motor-protective-circuit-breaker-pkz/eaton-manual-motor-starters-pkz-dimensions-003.eps/_jcr_content/renditions/cq5dam.thumbnail.2400.2400.jpg",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "type": "manual",
+            "label": "eaton-manual-motor-starters-pkz-dimensions-002.eps (Drawings)",
+            "url": "https://www.eaton.com/content/dam/eaton/products/control-drives-automation-sensors/motor-overload-and-protective-relays/motor-protective-circuit-breaker-pkz/eaton-manual-motor-starters-pkz-dimensions-002.eps/_jcr_content/renditions/cq5dam.thumbnail.2400.2400.jpg",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "type": "cad",
+            "label": "eaton-manual-motor-starters-mounting-3d-drawing-002.eps (Drawings)",
+            "url": "https://www.eaton.com/content/dam/eaton/products/control-drives-automation-sensors/motor-overload-and-protective-relays/motor-protective-circuit-breaker-pkz/eaton-manual-motor-starters-mounting-3d-drawing-002.eps.thumb.580.580.png",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.088844.html",
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261012065133\\documents\\088844-cad-eaton-manual-motor-starters-mounting-3d-drawing-002.eps-(Drawings).png",
+            "downloadStatus": "downloaded",
+            "parseStatus": "skipped"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "type": "cad",
+            "label": "eaton-manual-motor-starters-pkzm0-3d-drawing-008.eps (Drawings)",
+            "url": "https://www.eaton.com/content/dam/eaton/products/control-drives-automation-sensors/motor-overload-and-protective-relays/motor-protective-circuit-breaker-pkz/eaton-manual-motor-starters-pkzm0-3d-drawing-008.eps.thumb.580.580.png",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "type": "image",
+            "label": "088844 - Motorschutzschalter PKZ",
+            "url": "https://dynamicmedia.eaton.com/is/image/eaton/088839_C?wid=500&hei=500",
+            "candidateUrls": [
+              "https://www.eaton.com/mdmfiles/contentId/088839_C/90x90_96dpi"
+            ],
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.088844.html",
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261012065133\\images\\ETN.088844.png",
+            "downloadStatus": "downloaded",
+            "parseStatus": "skipped"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "type": "cad",
+            "label": "ETN.088844.edz (eCAD model)",
+            "url": "https://www.eaton.com/content/dam/eaton/cad/ecad/edz/edz02/ETN.088844.edz",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "type": "cad",
+            "label": "pkzm0_16_nhi_e_11.stp (mCAD model)",
+            "url": "https://www.eaton.com/content/dam/eaton/cad/mcad/step/pkzm0_16_nhi_e_11.stp",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "type": "cad",
+            "label": "eaton-breakers-mcad-drawings-pkzm0-016-nhi-e-11.dwg (mCAD model)",
+            "url": "https://www.eaton.com/content/dam/eaton/cad/mcad/dwg/dwg02/eaton-breakers-mcad-drawings-pkzm0-016-nhi-e-11.dwg",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.088844.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "type": "certificate",
+            "label": "eaton-motor-protective-circuit-breakers-declaration-of-conformity-eu250688en.pdf (Declarations of conformity)",
+            "url": "https://www.eaton.com/content/dam/eaton/products/electrical-circuit-protection/circuit-breakers/declaration-of-conformity/eaton-motor-protective-circuit-breakers-declaration-of-conformity-eu250688en.pdf",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.088844.html",
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261012065133\\documents\\088844-certificate-eaton-motor-protective-circuit-breakers-declaration-of-conformity-eu250688en.pdf.pdf",
+            "downloadStatus": "downloaded",
+            "parseStatus": "parsed"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "type": "certificate",
+            "label": "eaton-motor-protective-circuit-breakers-declaration-of-conformity-uk251171en.pdf (Declarations of conformity)",
+            "url": "https://www.eaton.com/content/dam/eaton/products/electrical-circuit-protection/circuit-breakers/declaration-of-conformity/eaton-motor-protective-circuit-breakers-declaration-of-conformity-uk251171en.pdf",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.088844.html"
+          }
+        ],
+        "sources": [
+          {
+            "url": "https://www.eaton.com/us/en-us/skuPage.088844.html",
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "parserVersion": "eaton-v2",
+            "fetchedAt": "2026-10-12T06:51:33.764Z",
+            "statusCode": 200
+          },
+          {
+            "url": "https://www.eaton.com/de/de-de/skuPage.088844.html",
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "parserVersion": "eaton-v2",
+            "fetchedAt": "2026-10-12T06:51:34.278Z",
+            "statusCode": 200
+          },
+          {
+            "url": "https://www.eaton.com/gb/en-gb/skuPage.088844.html",
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "parserVersion": "eaton-v2",
+            "fetchedAt": "2026-10-12T06:51:34.577Z",
+            "statusCode": 200
+          },
+          {
+            "url": "https://www.eaton.com.cn/cn/zh-cn/skuPage.088844.html",
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "parserVersion": "eaton-v2",
+            "fetchedAt": "2026-10-12T06:51:37.547Z",
+            "statusCode": 200
+          },
+          {
+            "url": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/contactors---starters/msc-motor-starters-combinations/marketing-assets/eaton-link-module-for-motor-starters-pkz-flyer-fl034003en-en-us.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "reason": "datasheet",
+            "fetchedAt": "2026-10-12T06:51:40.466Z"
+          },
+          {
+            "url": "https://www.eaton.com/content/dam/eaton/products/electrical-circuit-protection/circuit-breakers/declaration-of-conformity/eaton-motor-protective-circuit-breakers-declaration-of-conformity-eu250688en.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "reason": "certificate",
+            "fetchedAt": "2026-10-12T06:51:40.875Z"
+          }
+        ],
+        "qualityGate": {
+          "passed": true,
+          "identityConfirmed": true,
+          "score": 100,
+          "missing": [],
+          "reason": "Quality gate passed.",
+          "attempts": [
+            {
+              "stage": "eaton-product-page",
+              "url": "https://www.eaton.com/us/en-us/skuPage.088844.html",
+              "status": "passed",
+              "score": 100,
+              "missing": [],
+              "reason": "Quality gate passed.",
+              "sourceType": "official-fallback",
+              "parser": "eaton-product-page",
+              "statusCode": 200,
+              "attributeCount": 256,
+              "documentCount": 23,
+              "sectionAttributeCounts": {}
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

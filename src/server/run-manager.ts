@@ -1393,6 +1393,7 @@ export class RunManager {
     let imageIndex = 0;
     let nonImageDownloadCount = 0;
     const profileTypeCounts = new Map<DocumentRecord["type"], number>();
+    const downloadPlan: Array<{ documentIndex: number; doc: DocumentRecord; indexForDoc?: number }> = [];
     for (const doc of rankedDocuments) {
       if (signal?.aborted) throw new Error("Cancelled by user.");
       if (doc.type === "image" && !selection.images) {
@@ -1441,8 +1442,19 @@ export class RunManager {
         nonImageDownloadCount += 1;
         profileTypeCounts.set(doc.type, (profileTypeCounts.get(doc.type) ?? 0) + 1);
       }
-      documents.push(
-        await Promise.race([
+      downloadPlan.push({ documentIndex: documents.length, doc, indexForDoc });
+      documents.push(doc);
+      if (doc.type === "image") imageIndex += 1;
+      downloadCount += 1;
+    }
+    // Preserve the full selected-document set and ordering while overlapping two independent
+    // network transfers. The bounded pool avoids changing Eaton's per-host request pressure or
+    // letting a large image/document gallery flood a manufacturer's host.
+    await runWithConcurrency(
+      downloadPlan,
+      2,
+      async ({ documentIndex, doc, indexForDoc }) => {
+        documents[documentIndex] = await Promise.race([
           this.downloadDocument(
             http,
             documentsDir,
@@ -1458,11 +1470,10 @@ export class RunManager {
             budgetMs
           ),
           ...(signal ? [abortSignalRejection(signal, `Document download timed out or was cancelled for ${catalogNumberForFiles}`)] : [])
-        ])
-      );
-      if (doc.type === "image") imageIndex += 1;
-      downloadCount += 1;
-    }
+        ]);
+      },
+      () => Boolean(signal?.aborted)
+    );
     const downloadedResult = { ...result, documents };
     const sceImages = documents.filter((document) => document.type === "image");
     if (
@@ -1885,6 +1896,10 @@ function shouldDownloadForProfile(
   if (profile === "images-only") return false;
   if (nonImageDownloadCount >= 4) return false;
   const countForType = typeCounts.get(doc.type) ?? 0;
+  // The exact SP1 SKU page links one technical family table that names each supported model
+  // explicitly. Keep it as a third, targeted sheet after the exact SKU PDF and translated source;
+  // the normalizer still requires the matched row to print the requested model token.
+  if (doc.type === "datasheet" && doc.parser === "eaton-sp1-family-source") return countForType < 3;
   // Documents arrive pre-sorted by documentDownloadRank (best first — real PDFs beat HTML
   // stubs of the same type), so the first 1-2 kept per type are the highest-value ones.
   // Allow two datasheets/manuals: a "technical data" sheet and a dimensional/installation
@@ -2354,6 +2369,15 @@ function documentDownloadRank(doc: DocumentRecord): number {
   if (/certificate|declaration|conformity|rohs|weee|ul|ce\b/.test(label)) rank -= 5;
   if (/main|primary|product|iopmain|zoom|gallery/.test(label)) rank -= 4;
   if (/terms|privacy|warranty|brochure|catalogue|catalog\b/.test(label)) rank += 30;
+  // When the exact SKU sheet is incomplete, a linked technical data sheet can contain the
+  // product's catalog-number row. Rank that source ahead of generic design guides so the quality
+  // profile's second datasheet slot is spent on specifications with a chance to fill missing fields.
+  if (/\btechnical\s+data\s+(?:sheet|datasheet)\b/.test(label)) rank -= 12;
+  // This exact-page-linked Eaton table explicitly lists the SP1 model rows needed for surge
+  // ratings. Prioritize it over generic catalogs and design guides so bounded downloads can
+  // reach the row parser without expanding the global document budget.
+  if (doc.parser === "eaton-sp1-family-source") rank = -100;
+  if (/\bdesign\s+it\s+right\b/.test(label)) rank += 8;
   // Real PDFs beat HTML stand-ins that share the same type tag (e.g. Rockwell's
   // configurator /cutsheet endpoint is HTML but gets tagged as "datasheet" so the
   // workbook can link to it). When the quality profile only downloads one datasheet

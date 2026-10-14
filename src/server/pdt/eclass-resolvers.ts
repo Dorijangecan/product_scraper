@@ -1,5 +1,5 @@
 import { collapseWhitespaceOrUndefined as clean, normalizeNumberSeparators } from "../text-util.js";
-import { OUNCE_TO_GRAM, OUNCE_TO_KILOGRAM, POUND_TO_GRAM, POUND_TO_KILOGRAM } from "../unit-conversion.js";
+import { multiplyDecimalExactly, OUNCE_TO_GRAM, OUNCE_TO_KILOGRAM, POUND_TO_GRAM, POUND_TO_KILOGRAM } from "../unit-conversion.js";
 import type { ManufacturerConfig, ProductResult, RunItemRecord } from "../../shared/types.js";
 import type { PdtRepair } from "./ai-cleanup.js";
 import { cleanProductDescription, compactFamilyShortDescription, isDecorativeAssetText } from "./description-formatting.js";
@@ -176,6 +176,26 @@ function parseWeightRaw(raw: string | undefined): { kg?: number; g?: number } | 
   if (unit === "lb" || unit === "lbs") return { kg: value * POUND_TO_KILOGRAM, g: value * POUND_TO_GRAM };
   if (unit === "oz" || unit === "ounce" || unit === "ounces") return { kg: value * OUNCE_TO_KILOGRAM, g: value * OUNCE_TO_GRAM };
   return { kg: value, g: value * 1000 };
+}
+
+function exactWeightValue(ctx: ResolveContext, target: "kg" | "g"): string | undefined {
+  const raw = ctx.result?.normalized.weight;
+  const match = raw && normalizeNumberSeparators(raw).match(/(\d+(?:\.\d+)?)\s*(kg|g|lb|lbs|oz|ounce|ounces)\b/i);
+  if (!match) {
+    const value = weight(ctx)[target];
+    return value === undefined || !Number.isFinite(value) ? undefined : String(value);
+  }
+  const amount = match[1];
+  const unit = match[2].toLowerCase();
+  if (unit === target) return amount;
+  const factor = unit === "kg"
+    ? target === "g" ? "1000" : "1"
+    : unit === "g"
+      ? target === "kg" ? "0.001" : "1"
+      : unit === "lb" || unit === "lbs"
+        ? target === "kg" ? "0.45359237" : "453.59237"
+        : target === "kg" ? "0.028349523125" : "28.349523125";
+  return multiplyDecimalExactly(amount, factor);
 }
 
 function round(value: number | undefined, digits: number): string | undefined {
@@ -705,21 +725,19 @@ function dimensionMm(ctx: ResolveContext, dims: string[]): string | undefined {
  *   - explicit unit in value: "30 in", "30 inch", "30\"", "762 mm", "0.5 m", "10 cm", "5 ft"
  *   - explicit unit in attribute name: "Width (inch)", "Depth [in]", "Height (mm)"
  *   - bare numbers: treated as mm (the legacy default for all metric manufacturers)
- * Returns the converted mm value as a string (rounded to 2 decimals when fractional).
+ * Returns the converted mm value as an exact decimal string.
  */
 function parseDimensionToMm(rawValue: string | undefined, attrName: string | undefined): string | undefined {
   const text = clean(rawValue);
   if (!text || !isLikelyLengthMeasurement(text)) return undefined;
-  const numMatch = text.replace(/,/g, ".").match(/-?\d+(?:\.\d+)?/);
+  const numMatch = normalizeNumberSeparators(text).match(/-?\d+(?:\.\d+)?/);
   if (!numMatch) return undefined;
   const value = Number(numMatch[0]);
   if (!Number.isFinite(value)) return undefined;
   const tail = text.slice(numMatch.index! + numMatch[0].length);
   const unit = detectLengthUnit(tail) ?? detectLengthUnit(attrName ?? "") ?? "mm";
-  const mm = convertLengthToMm(value, unit);
-  if (mm === undefined) return undefined;
-  // Preserve integer cleanliness when conversion lands on a whole number, otherwise keep 2 decimals.
-  return Number.isInteger(mm) ? String(mm) : String(Number(mm.toFixed(2)));
+  const factor = unit === "mm" ? "1" : unit === "cm" ? "10" : unit === "m" ? "1000" : unit === "ft" ? "304.8" : "25.4";
+  return multiplyDecimalExactly(numMatch[0].replace(",", "."), factor);
 }
 
 function isLikelyLengthMeasurement(value: string | undefined): boolean {
@@ -741,15 +759,6 @@ function detectLengthUnit(text: string): "mm" | "cm" | "m" | "in" | "ft" | undef
   return undefined;
 }
 
-function convertLengthToMm(value: number, unit: "mm" | "cm" | "m" | "in" | "ft"): number | undefined {
-  switch (unit) {
-    case "mm": return value;
-    case "cm": return value * 10;
-    case "m":  return value * 1000;
-    case "in": return value * 25.4;
-    case "ft": return value * 304.8;
-  }
-}
 // Type code = manufacturer's type designation. We deliberately do NOT match a generic
 // "product type" attribute here — that holds the device category (e.g. "Enclosure"), which
 // belongs in the ECLASS product-type field, not the typecode. Fall back to the catalog number.
@@ -2266,9 +2275,9 @@ const RESOLVERS: Record<string, Resolver> = {
   CNS_CTN: customsTariff,
   AAD931: customsTariff,
   CNS_ELECTRO_MATERIAL: genericMaterial,
-  CNS_MASSEXACT: (ctx) => round(weight(ctx).kg, 3),
-  AAF040: (ctx) => round(weight(ctx).kg, 3),
-  BAD875: (ctx) => round(weight(ctx).g, 0),
+  CNS_MASSEXACT: (ctx) => exactWeightValue(ctx, "kg"),
+  AAF040: (ctx) => exactWeightValue(ctx, "kg"),
+  BAD875: (ctx) => exactWeightValue(ctx, "g"),
   AAY811: productUrl, // URI of the product
   AAW338: productDesignation, // Manufacturer product designation
   AAY812: gln, // GLN of manufacturer
@@ -2937,7 +2946,7 @@ const RESOLVERS: Record<string, Resolver> = {
   ABC465: attrValue(/\b(signal status display|status display)\b/i),
   ABC468: attrValue(/\b(pilot medium)\b/i),
   ABC469: attrValue(/\blap\b/i),
-  ABC474: (ctx) => round(weight(ctx).kg, 3),
+  ABC474: (ctx) => exactWeightValue(ctx, "kg"),
   ABC475: attrValue(/\b(unit of measure)\b/i),
   ABC476: attrNumber(/\b(relative duty cycle|duty cycle)\b/i),
   ABC477: (ctx) => powerValue(ctx, /\b(max(?:imum)? electrical power consumption|electrical power consumption)\b/i),

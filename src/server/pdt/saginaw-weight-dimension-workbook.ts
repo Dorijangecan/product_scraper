@@ -7,9 +7,8 @@ import { collapseWhitespaceOrUndefined as clean } from "../text-util.js";
  * Saginaw-only companion workbook that ships next to the PDT.
  *
  * Saginaw publishes Height/Width/Depth in inches and "Est. Ship Weight" in pounds on every
- * product page. The PDT (and the products workbook) carry the normalised, rounded values, so the
- * customer asked for a second, deliberately dumb sheet that repeats Saginaw's own numbers plus
- * their metric equivalents — with **no rounding anywhere**.
+ * product page. The PDT and products workbook also preserve the converted decimal values; this
+ * companion repeats Saginaw's own source numbers alongside their exact metric equivalents.
  *
  * Imperial columns: the page's digits are copied one-for-one; only the unit marker is dropped
  * (`9.50"` → `9.50`, `5.00 lbs` → `5.00`; the unit lives in the column header) and the decimal

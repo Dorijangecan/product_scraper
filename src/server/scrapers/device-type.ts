@@ -2,6 +2,7 @@ import type { AttributeRecord, ProductResult, SourceRecord } from "../../shared/
 import { cleanText } from "./normalizer.js";
 import { familyTypeFor } from "./device-type-families.js";
 import { urlTypeFor } from "./device-type-urls.js";
+import { sameCatalogNumber } from "./catalog-number.js";
 
 export interface DeviceTypeAlternative {
   type: string;
@@ -44,14 +45,21 @@ interface DeviceTypeCandidate {
 // (e.g. "Sensor", 620) whenever both match the same product. Within a single tier, evidence
 // quality (where the text came from + which source it came from) decides confidence.
 const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
+  rule("ATS Power Distribution Unit", /\b(?:automatic transfer switch|ats)\s+(?:rack\s+)?pdus?\b|\bats\s+power distribution units?\b/i, 940),
   rule("Power Distribution Unit", /\b(?:power distribution units?|managed\s+pdus?|pdus?)\b/i, 905),
+  rule("Capacitor Bank", /\b(?:capacitor bank|switched capacitor bank)\b/i, 900),
+  rule("Potentiometer", /\bpotentiometers?\b/i, 880),
+  rule("Key-operated Actuator", /\bkey[-\s]?operated actuator\b/i, 880),
+  rule("Surge Protective Device", /\bsurge protectors?\b/i, 800),
+  rule("Fire Alarm Power Supply", /\b(?:fire alarm|notification appliance circuit|nac)\b[\s\S]{0,80}\bpower supply\b|\bpower supply\b[\s\S]{0,80}\b(?:fire alarm|notification appliance circuit|nac)\b/i, 900),
+  rule("Control Relay", /\bcontrol relays?\b/i, 820),
   // --- Automation (very specific names — these win over generic "controller"/"module") ---
   rule("Programmable Logic Controller", /\b(?:ac500|pm(?:57[2-3]|58[2-3]|59[0-2])(?:-eth)?)\b[\s\S]{0,80}\bprocessor module\b|\bprocessor module\b[\s\S]{0,80}\b(?:ac500|pm(?:57[2-3]|58[2-3]|59[0-2])(?:-eth)?)\b/i, 940),
   rule("Programmable Logic Controller", /\b(?:programmable logic controller|logic controller|controller cpu|cpu module|plc\s+(?:controller|module|processor|cpu|system)|(?:controller|module|processor|cpu|system)\s+plc|simatic\s+s7|modicon\s+(?:m\d+|m340|m580)|compactlogix|controllogix|micro8\d{2,3})\b/i, 920),
   rule("Communication Gateway", /\b(?:communication gateway|fieldbus gateway|fieldbus coupler|bus coupler|protocol converter|protocol gateway|serial gateway|modbus gateway|profibus gateway|profinet gateway|ethernet gateway|rs[-\s]?232(?:\s+(?:to|converter|interface|module))?|rs[-\s]?485(?:\s+(?:to|converter|interface|module))?|rs[-\s]?422|serial[-\s]?to[-\s]?ethernet|communication module|communication interface|industrial gateway|iiot gateway|edge gateway)\b/i, 905),
   // Meter product descriptions often mention a gateway as one application alongside monitoring;
   // classify the product by its explicit power-meter type instead of that secondary use case.
-  rule("Power Meter", /\b(?:power\s+meter|energy\s+meter|multifunction\s+meter|multi[-\s]?function\s+meter)\b/i, 935),
+  rule("Power Meter", /\b(?:power\s+(?:xpert\s+)?meter|energy\s+meter|multifunction\s+meter|multi[-\s]?function\s+meter)\b/i, 935),
   rule("I/O Module", /\b(?:i\/o|io|input\/output)\s+(?:module|expansion|system|block|card|interface)|(?:analog|digital)\s+(?:input|output)s?\s+(?:module|card|expansion)|remote\s+i\/o|io-link\s+(?:master|hub|module)\b/i, 900),
   rule("HMI", /\b(?:hmi|human[\s-]?machine[\s-]?interface|operator panel|touch panel|touchscreen panel|display terminal|graphic terminal)\b/i, 890),
   rule("Motion Controller", /\b(?:motion controller|motion control(?:ler)? module|motion module|integrated motion module|analog servo module|servo module|\d+\s*[- ]?axis servo|axis servo,\s*analog|servo,\s*analog\/enc|cnc controller|servo controller)\b/i, 930),
@@ -60,7 +68,8 @@ const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
   rule("Photoelectric Sensor", /\b(?:photoelectric|photo\s*electric|through-?beam|retro[-\s]?reflective|diffuse\s+(?:reflective|sensor)|fork\s+(?:sensor|light barrier)|light barrier|light grid)\b/i, 880),
   rule("Inductive Proximity Sensor", /\b(?:inductive\s+(?:proximity\s+)?sensor|inductive proximity|inductive switch|proximity switch|n[äa]herungsschalter|n[äa]herungssensor)\b/i, 875),
   rule("Capacitive Sensor", /\bcapacitive\s+(?:(?:proximity|level)\s+)?(?:sensors?|switch(?:es)?)\b/i, 870),
-  rule("Pressure Sensor", /\bpressure\s+(?:sensor|switch|transmitter|transducer)\b/i, 868),
+  rule("Pressure Switch", /\bpressure\s+switch\b/i, 870),
+  rule("Pressure Sensor", /\bpressure\s+(?:sensor|transmitter|transducer)\b/i, 868),
   rule("Temperature Sensor", /\b(?:temperature\s+(?:sensor|probe|transmitter|transducer)|thermocouple|\brtd\b|pt100|pt1000)\b/i, 866),
   // A Balluff condition-monitoring product publishes its sensor family together with a
   // "Cable with connector" connection detail.  The explicit family must outrank that
@@ -78,7 +87,7 @@ const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
   rule("Level Sensor", /\b(?:level\s+(?:sensor|switch|transmitter)|float switch)\b/i, 843),
   rule("Encoder", /\b(?:rotary encoders?|absolute encoders?|incremental encoders?|encoders?)\b/i, 840),
   rule("Solenoid Interlock", /\b(?:solenoid interlock|electromechanical guard lock(?:ing)?|safety interlock with solenoid|electromagnetic interlock)\b/i, 950),
-  rule("Safety Sensor", /\b(?:safety sensor|safety light curtain|light curtain|safety mat|safety scanner|laser scanner|safety edge|two[-\s]?hand control|safety switch|safety interlock|guard locking|guard[-\s]?lock(?:ing)? switch|safety door switch|door interlock)\b/i, 838),
+  rule("Safety Sensor", /\b(?:safety sensor|safety light curtain|light curtain|safety mat|safety scanner|laser scanner|safety edge|two[-\s]?hand control|safety interlock|guard locking|guard[-\s]?lock(?:ing)? switch|safety door switch|door interlock)\b/i, 838),
   rule("Sensor", /\b(?:sensors?|sensing|detector|limit switch|position switch|measuring range|measuring principle)\b/i, 620),
 
   // --- Protection & control (specific breakers/starters first) ---
@@ -87,8 +96,10 @@ const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
   rule("Molded Case Circuit Breaker", /\b(?:molded|moulded)\s+case\s+circuit[-\s]?breakers?|\bmccbs?\b/i, 815),
   rule("Miniature Circuit Breaker", /\bminiature\s+circuit[-\s]?breakers?|\bmcbs?\b|leitungsschutzschalter|sicherungsautomat(?:en)?|\bls[-\s]?schalter\b/i, 814),
   rule("Residual Current Device", /\b(?:residual current device|residual current circuit[-\s]?breakers?|residual current operated circuit[-\s]?breakers? with integral overcurrent protection|\brcd\b|\brccb\b|\brcbo\b|fi[-/\s]*ls[-\s]?kombination|ground[-\s]?fault circuit[-\s]?interrupter|\bgfci\b|earth leakage)\b/i, 813),
-  rule("Circuit Breaker", /\b(?:air\s+circuit[-\s]?breakers?|thermal overcurrent circuit[-\s]?breakers?|overcurrent circuit[-\s]?breakers?|circuit[-\s]?breakers?|\bacbs?\b|leistungsschalter|disjoncteur|interruttore automatico)\b/i, 805),
+  rule("Circuit Breaker", /\b(?:air\s+circuit[-\s]?breakers?|thermal overcurrent circuit[-\s]?breakers?|overcurrent circuit[-\s]?breakers?|circuit[-\s]?breakers?|(?:smart\s+)?breaker\s+chargers?|\bacbs?\b|leistungsschalter|disjoncteur|interruttore automatico)\b/i, 805),
   rule("Safety Relay", /\b(?:safety relay|safety controller|safety module|emergency stop relay|e[-\s]?stop relay)\b/i, 803),
+  rule("Overload Relay", /\boverload relays?\b/i, 801),
+  rule("Protective Relay", /\b(?:protective relay|overcurrent protective relay|ground overcurrent relay)\b/i, 802),
   // "schütz"/"schuetz" (contactor) must NOT match plain "schutz" (= protection, as in Schutzart) —
   // require the umlaut (ü) or its ue transliteration.
   rule("Contactor", /\b(?:contactor|contactor relay|kontaktor|sch(?:ü|ue)tz|contattore|contacteur|contact kit|contact tip kit|main contact kit|replacement contacts?)\b/i, 800),
@@ -97,6 +108,10 @@ const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
   rule("Variable Speed Drive", /\b(?:variable speed drive|variable frequency drive|\bvfd\b|frequency (?:converter|inverter)|\bvsd\b|servo drive|ac drive|motor drive|inverter drive)\b|(?:\u53d8\u9891\u5668|\u53d8\u9891\u9a71\u52a8|\u9891\u7387\u8f6c\u6362\u5668)/i, 780),
   rule("Motor Starter", /\b(?:motor starter|starter combination|reversing starter|direct[-\s]?on[-\s]?line starter|\bdol starter\b)\b/i, 775),
   rule("Disconnect Switch", /\b(?:switch[-\s]?disconnector|disconnect(?:ing|or)?\s+switch|isolator switch|safety switch|rotary disconnect|main switch|load break switch|last[-\s]?trennschalter|trennschalter|sectionneur|sezionatore)\b/i, 770),
+  // Eaton and other switch vendors sell the flexible shaft/handle operator separately from the
+  // electrical switch body. Classify the mechanical operator as an accessory before the broad
+  // "switch" term can make it look like a current-rated switch.
+  rule("Accessory", /\b(?:flex(?:ible)?\s+)?shaft\s+handle\s+operator\b/i, 825),
   rule("Surge Protective Device", /\b(?:surge protective device|\bspd\b|surge arrester|surge protection|lightning arrester)\b/i, 765),
   rule("Fuse", /\b(?:fuse holder|fuse base|fuse disconnect(?:or)?|fuse switch|fuse link|fuse carrier|nh fuse|d fuse|\bfuse\b|sicherung(?:en)?|fusible|fusibile)\b/i, 760),
   rule("Selector Switch", /\b(?:selector switch|selector\s+switch\s+actuator|cam switch|toggle switch|key[-\s]?operated switch)\b/i, 790),
@@ -184,6 +199,8 @@ const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
 
   // --- Lower-specificity catch-alls (priority < 700 so they only win when nothing else matches) ---
   rule("Lock / Interlock", /\b(?:safety lock|padlock|key[-\s]?lock|interlock|locking device|key switch)\b/i, 825),
+  // Shaft-handle operators are mechanical accessories, not the electrical switch body they actuate.
+  rule("Cover / Door Accessory", /\b(?:flex(?:ible)?\s+)?shaft\s+handle\s+operator\b/i, 825),
   rule("Mounting Accessory", /\b(?:mounting accessory|mounting kit|mounting bracket|mounting foot|mounting plate|mounting flange|punched section|adapter plate|anti[-\s]?slip plate|level(?:ing|ling) feet?|pivot feet?|bell feet?|positioning tool|assembly tool|din rail|\brail\b|\bbracket\b)\b/i, 610),
   rule("Cover / Door Accessory", /\b(?:cover|door|hinge|latch|handle|gasket|window kit|spray[-\s]?water hood|hose[-\s]?proof hood)\b/i, 600),
   rule("Accessory", /\b(?:accessory|spare part|replacement part|cleaner|\bkit\b)\b/i, 560)
@@ -606,8 +623,9 @@ export function knownDeviceTypes(): string[] {
 function deviceTypeCandidates(result: ProductResult): DeviceTypeCandidate[] {
   const attributes = result.attributes ?? [];
   const candidates: DeviceTypeCandidate[] = [];
+  const exactEatonPdp = result.manufacturerId === "eaton" && isExactEatonSkuPage(result.productUrl ?? result.localizedUrls?.en, result.catalogNumber);
   for (const attr of attributes) {
-    const priority = attributeDeviceTypePriority(attr, result.manufacturerId);
+    const priority = attributeDeviceTypePriority(attr, result.manufacturerId, result);
     if (!priority) continue;
     addCandidate(candidates, {
       label: attr.name,
@@ -622,14 +640,22 @@ function deviceTypeCandidates(result: ProductResult): DeviceTypeCandidate[] {
   // Rittal's exact official PDP title names the ordered product variant, while the description and
   // attributes commonly mention broader enclosure/chiller systems it can be used with. Give that
   // title enough weight to keep a filter, enclosure, or accessory from inheriting the host system's type.
-  addCandidate(candidates, { label: "Title", value: result.title, text: result.title, priority: result.manufacturerId === "rittal" ? 900 : 610 });
-  addCandidate(candidates, { label: "Description", value: result.description, text: result.description, priority: 590 });
+  addCandidate(candidates, { label: "Title", value: result.title, text: result.title, priority: result.manufacturerId === "rittal" ? 900 : exactEatonPdp ? 930 : 610 });
+  const exactEatonShaftOperatorDescription = exactEatonPdp && /\b(?:flex(?:ible)?\s+)?shaft\s+handle\s+operator\b/i.test(result.description ?? "");
+  addCandidate(candidates, {
+    label: exactEatonShaftOperatorDescription ? "Exact PDP component description" : "Description",
+    value: result.description,
+    text: result.description,
+    // Eaton's family title/type can describe the switch body while this exact-SKU description
+    // names the separately ordered handle operator. Prefer the SKU-level component description.
+    priority: exactEatonShaftOperatorDescription ? 1_250 : 590
+  });
   return candidates;
 }
 
 function combinedDeviceTypeText(result: ProductResult): string {
   const attributeText = (result.attributes ?? [])
-    .filter((attr) => attributeDeviceTypePriority(attr, result.manufacturerId) || isRackCabinetSignalAttribute(attr))
+    .filter((attr) => attributeDeviceTypePriority(attr, result.manufacturerId, result) || isRackCabinetSignalAttribute(attr))
     .slice(0, 80)
     .map((attr) => `${attr.group ?? ""} ${attr.name} ${attr.value}`)
     .join(" ");
@@ -659,9 +685,39 @@ function isRackCabinetSignalAttribute(attr: AttributeRecord): boolean {
   );
 }
 
-function attributeDeviceTypePriority(attr: AttributeRecord, manufacturerId?: string): number | undefined {
+function attributeDeviceTypePriority(attr: AttributeRecord, manufacturerId?: string, result?: ProductResult): number | undefined {
   const label = `${attr.group ?? ""} ${attr.name}`.toLowerCase();
   if (/\b(?:recommended alternative|similar part|related part|accessory|used with|spare part)\b/.test(label)) return undefined;
+  if (
+    manufacturerId === "eaton" &&
+    result &&
+    attr.parser === "eaton-product-page" &&
+    isExactEatonSkuPage(result.productUrl ?? result.localizedUrls?.en, result.catalogNumber) &&
+    isExactEatonSkuPage(attr.sourceUrl, result.catalogNumber) &&
+    (/^(?:product type|product name)$/i.test(attr.name.trim()) ||
+      (/^(?:type|product category)$/i.test(attr.name.trim()) && DEVICE_TYPE_RULES.some((definition) => definition.pattern.test(attr.value ?? ""))))
+  ) {
+    // Eaton's exact SKU page labels the product type/name directly, and sometimes gives a more
+    // specific sub-type under "Type" or "Product Category". Prefer that item-level evidence over family prefixes and
+    // SEO prose, while still parsing only values published for this exact catalog number.
+    // Eaton's exact SKU-level Product Type is the ordered item type. A broader category can
+    // describe the product's application/family instead (for example a power supply in the
+    // easyE4 control-relay category); let category wording win only when it names a more
+    // specific type, which the type-rule specificity ranking handles independently.
+    if (/^product type$/i.test(attr.name.trim())) {
+      const value = cleanText(attr.value);
+      // A bare class such as "Relay" is intentionally less specific than an exact SKU
+      // category that says "protective relay". A concrete ordered item name such as "Power
+      // supply unit" takes precedence over a broad family/category that happens to match a
+      // different type rule.
+      return /^(?:relay|control relay|switch|sensor|circuit breaker|power supply|contactor)$/i.test(value)
+        ? 1_100
+        : 1_250;
+    }
+    if (/^product category$/i.test(attr.name.trim())) return 1_120;
+    if (/^type$/i.test(attr.name.trim())) return 1_080;
+    return 980;
+  }
   // Rittal uses a direct "Design" PDP field for the functional subtype of CMC products
   // (for example "Access sensor"). Only promote it when the value itself matches a known
   // device-type rule, so enclosure construction/door design prose cannot become type evidence.
@@ -675,6 +731,18 @@ function attributeDeviceTypePriority(attr: AttributeRecord, manufacturerId?: str
   if (/\b(?:product name|item name|display name|catalog description|long description|short description|description)\b/.test(label)) return 650;
   if (/\b(?:alternateName|product label|device short name|model code|model number|extended product type)\b/i.test(attr.name)) return 500;
   return undefined;
+}
+
+function isExactEatonSkuPage(url: string | undefined, catalogNumber: string): boolean {
+  if (!url || !catalogNumber) return false;
+  try {
+    const parsed = new URL(url);
+    if (!/(?:^|\.)eaton\.com$/i.test(parsed.hostname)) return false;
+    const match = parsed.pathname.match(/\/skuPage\.([^/]+?)\.html$/i);
+    return Boolean(match?.[1] && sameCatalogNumber(decodeURIComponent(match[1]), catalogNumber, { compact: true, ignoreCase: true }));
+  } catch {
+    return false;
+  }
 }
 
 function addCandidate(candidates: DeviceTypeCandidate[], candidate: Omit<DeviceTypeCandidate, "value" | "text"> & { value?: string; text?: string }) {

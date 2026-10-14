@@ -1,0 +1,333 @@
+[
+  {
+    "manufacturerId": "eaton",
+    "catalogNumber": "9PX3000RTN",
+    "caseType": "electrical",
+    "expectedDeviceType": "UPS",
+    "riskTags": [
+      "cold",
+      "ups",
+      "rack"
+    ],
+    "expectedOfficialUrlPatterns": [
+      "eaton\\.com/.*/skuPage\\.9PX3000RTN\\.html"
+    ],
+    "requiredDocuments": [
+      "datasheet"
+    ],
+    "expectedNormalizedFields": [
+      "voltage",
+      "dimensions",
+      "weight"
+    ]
+  },
+  {
+    "manufacturerId": "eaton",
+    "catalogNumber": "XV-102-A0-35TQRB-1E4",
+    "caseType": "electrical",
+    "expectedDeviceType": "Programmable Logic Controller",
+    "riskTags": [
+      "cold",
+      "plc",
+      "easyE4",
+      "remote-display"
+    ],
+    "expectedOfficialUrlPatterns": [
+      "eaton\\.com/.*/skuPage\\.XV-102-A0-35TQRB-1E4\\.html"
+    ],
+    "requiredDocuments": [
+      "datasheet"
+    ],
+    "expectedNormalizedFields": [
+      "dimensions",
+      "weight"
+    ]
+  },
+  {
+    "manufacturerId": "eaton",
+    "catalogNumber": "277268",
+    "caseType": "electrical",
+    "expectedDeviceType": "Contactor",
+    "riskTags": [
+      "cold",
+      "contactor",
+      "dilm"
+    ],
+    "expectedOfficialUrlPatterns": [
+      "eaton\\.com/.*/skuPage\\.277268\\.html"
+    ],
+    "requiredDocuments": [
+      "datasheet"
+    ],
+    "expectedNormalizedFields": [
+      "current",
+      "voltage",
+      "dimensions",
+      "weight"
+    ]
+  },
+  {
+    "manufacturerId": "eaton",
+    "catalogNumber": "118969",
+    "caseType": "electrical",
+    "expectedDeviceType": "Molded Case Circuit Breaker",
+    "riskTags": [
+      "cold",
+      "mccb",
+      "breaker"
+    ],
+    "expectedOfficialUrlPatterns": [
+      "eaton\\.com/.*/skuPage\\.118969\\.html"
+    ],
+    "requiredDocuments": [
+      "datasheet"
+    ],
+    "expectedNormalizedFields": [
+      "current",
+      "voltage",
+      "dimensions",
+      "weight"
+    ]
+  },
+  {
+    "manufacturerId": "eaton",
+    "catalogNumber": "DS7-340SX004N0-N",
+    "caseType": "electrical",
+    "expectedDeviceType": "Soft Starter",
+    "riskTags": [
+      "cold",
+      "soft-starter",
+      "ds7"
+    ],
+    "expectedOfficialUrlPatterns": [
+      "eaton\\.com/.*/skuPage\\.DS7-340SX004N0-N\\.html"
+    ],
+    "requiredDocuments": [
+      "datasheet"
+    ],
+    "expectedNormalizedFields": [
+      "current",
+      "dimensions",
+      "weight"
+    ]
+  },
+  {
+    "manufacturerId": "eaton",
+    "catalogNumber": "DG1-32012FB-C21C",
+    "caseType": "electrical",
+    "expectedDeviceType": "Variable Speed Drive",
+    "riskTags": [
+      "cold",
+      "vfd",
+      "dg1"
+    ],
+    "expectedOfficialUrlPatterns": [
+      "eaton\\.com/.*/skuPage\\.DG1-32012FB-C21C\\.html"
+    ],
+    "requiredDocuments": [
+      "datasheet"
+    ],
+    "expectedNormalizedFields": [
+      "current",
+      "voltage",
+      "dimensions",
+      "weight"
+    ]
+  },
+  {
+    "manufacturerId": "eaton",
+    "catalogNumber": "102087",
+    "caseType": "electrical",
+    "expectedDeviceType": "Miniature Circuit Breaker",
+    "riskTags": [
+      "cold",
+      "mcb",
+      "faz"
+    ],
+    "expectedOfficialUrlPatterns": [
+      "eaton\\.com/.*/skuPage\\.102087\\.html"
+    ],
+    "requiredDocuments": [
+      "datasheet"
+    ],
+    "expectedNormalizedFields": [
+      "current",
+      "voltage",
+      "dimensions",
+      "weight"
+    ]
+  },
+  {
+    "manufacturerId": "eaton",
+    "catalogNumber": "PXM3000MA15",
+    "caseType": "electrical",
+    "expectedDeviceType": "Power Meter",
+    "riskTags": [
+      "cold",
+      "power-meter",
+      "pxm3000"
+    ],
+    "expectedOfficialUrlPatterns": [
+      "eaton\\.com/.*/skuPage\\.PXM3000MA15\\.html"
+    ],
+    "requiredDocuments": [
+      "datasheet"
+    ],
+    "expectedNormalizedFields": [
+      "voltage",
+      "dimensions",
+      "weight"
+    ]
+  },
+  {
+    "manufacturerId": "eaton",
+    "catalogNumber": "170M7671",
+    "caseType": "electrical",
+    "expectedDeviceType": "Fuse",
+    "riskTags": [
+      "cold",
+      "fuse",
+      "bussmann"
+    ],
+    "expectedOfficialUrlPatterns": [
+      "eaton\\.com/.*/skuPage\\.170M7671\\.html"
+    ],
+    "requiredDocuments": [
+      "datasheet"
+    ],
+    "expectedNormalizedFields": [
+      "current",
+      "voltage",
+      "dimensions",
+      "weight"
+    ]
+  },
+  {
+    "manufacturerId": "eaton",
+    "catalogNumber": "M22-D-R",
+    "caseType": "electrical",
+    "expectedDeviceType": "Pushbutton / Operator",
+    "riskTags": [
+      "cold",
+      "pushbutton",
+      "m22"
+    ],
+    "expectedOfficialUrlPatterns": [
+      "eaton\\.com/.*/skuPage\\.M22-D-R\\.html"
+    ],
+    "requiredDocuments": [
+      "datasheet"
+    ]
+  },
+  {
+    "manufacturerId": "eaton",
+    "catalogNumber": "SP1-240S",
+    "caseType": "electrical",
+    "expectedDeviceType": "Surge Protective Device",
+    "riskTags": [
+      "cold",
+      "spd",
+      "sp1"
+    ],
+    "expectedOfficialUrlPatterns": [
+      "eaton\\.com/.*/skuPage\\.SP1-240S\\.html"
+    ],
+    "requiredDocuments": [
+      "datasheet"
+    ],
+    "expectedNormalizedFields": [
+      "voltage",
+      "dimensions",
+      "weight"
+    ]
+  },
+  {
+    "manufacturerId": "eaton",
+    "catalogNumber": "184775",
+    "caseType": "electrical",
+    "expectedDeviceType": "Relay",
+    "riskTags": [
+      "cold",
+      "monitoring-relay",
+      "emr6"
+    ],
+    "expectedOfficialUrlPatterns": [
+      "eaton\\.com/.*/skuPage\\.184775\\.html"
+    ],
+    "requiredDocuments": [
+      "datasheet"
+    ],
+    "expectedNormalizedFields": [
+      "voltage",
+      "dimensions",
+      "weight"
+    ]
+  },
+  {
+    "manufacturerId": "eaton",
+    "catalogNumber": "C0350E2A",
+    "caseType": "electrical",
+    "expectedDeviceType": "Transformer",
+    "riskTags": [
+      "cold",
+      "control-transformer",
+      "mte"
+    ],
+    "expectedOfficialUrlPatterns": [
+      "eaton\\.com/.*/skuPage\\.C0350E2A\\.html"
+    ],
+    "requiredDocuments": [
+      "datasheet"
+    ],
+    "expectedNormalizedFields": [
+      "voltage",
+      "dimensions",
+      "weight"
+    ]
+  },
+  {
+    "manufacturerId": "eaton",
+    "catalogNumber": "XTOE020CCSS",
+    "caseType": "electrical",
+    "expectedDeviceType": "Relay",
+    "riskTags": [
+      "cold",
+      "overload-relay",
+      "c440"
+    ],
+    "expectedOfficialUrlPatterns": [
+      "eaton\\.com/.*/skuPage\\.XTOE020CCSS\\.html"
+    ],
+    "requiredDocuments": [
+      "datasheet"
+    ],
+    "expectedNormalizedFields": [
+      "current",
+      "dimensions",
+      "weight"
+    ]
+  },
+  {
+    "manufacturerId": "eaton",
+    "catalogNumber": "072738",
+    "caseType": "electrical",
+    "expectedDeviceType": "Motor Circuit Breaker",
+    "riskTags": [
+      "cold",
+      "motor-protection",
+      "pkzm0"
+    ],
+    "expectedOfficialUrlPatterns": [
+      "eaton\\.com/.*/skuPage\\.072738\\.html"
+    ],
+    "requiredDocuments": [
+      "datasheet"
+    ],
+    "expectedNormalizedFields": [
+      "current",
+      "voltage",
+      "dimensions",
+      "weight"
+    ]
+  }
+]

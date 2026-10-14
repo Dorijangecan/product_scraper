@@ -751,7 +751,7 @@ function unitAlreadyPresent(value: string, kind: "current" | "voltage" | "temper
 }
 
 function formatFactNumber(value: number): string {
-  return String(Number(value.toFixed(6)));
+  return String(value);
 }
 
 function ensureUnit(value: string, unit: "V" | "A", labelHint: string): string {

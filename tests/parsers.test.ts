@@ -4196,6 +4196,42 @@ Motor Control Renewal Parts- Contact Kit, A201, Model K, Three-pole
     expect(result.documents.some((doc) => doc.type === "datasheet")).toBe(true);
   });
 
+  it("normalizes built-in Eaton LED ratings from the exact Accessories row", () => {
+    const sku = "257064";
+    const url = `https://www.eaton.com/us/en-us/skuPage.${sku}.html`;
+    const markdown = `
+Title: ${sku} | Eaton RMQ16 emergency stop pushbutton | Eaton
+URL Source: ${url}
+# ${sku}
+Eaton RMQ16 emergency-stop illuminated pushbutton
+## General specifications
+Product Name
+Eaton RMQ16 emergency stop pushbutton
+Catalog Number
+${sku}
+Product Type
+Emergency stop/emergency switching off pushbutton
+## Product specifications
+**Accessories**With built-in multiple LED, 24 V DC, Ie = 15 mA
+`;
+    const result = parseEatonProductPage(sku, fetched(markdown, `https://r.jina.ai/${url}`), url);
+
+    expect(result.normalized.voltage).toBe("24 V DC");
+    expect(result.normalized.current).toBe("15 mA");
+    expect(result.attributes).toContainEqual(expect.objectContaining({
+      group: "Included built-in LED",
+      name: "LED voltage",
+      value: "24 V DC",
+      sourceUrl: url
+    }));
+    expect(result.attributes).toContainEqual(expect.objectContaining({
+      group: "Included built-in LED",
+      name: "LED rated current",
+      value: "15 mA",
+      sourceUrl: url
+    }));
+  });
+
   it("keeps Eaton markdown PDF URLs with parentheses intact", () => {
     const markdown = `
 Title: M030-151 | Eaton 5A split core current sensor | Eaton
@@ -4255,6 +4291,58 @@ Product Weight
         url: "https://www.eaton.com/us/en-us/skuPage.ABC-123.pdf"
       })
     );
+  });
+
+  it("keeps an exact Eaton PDP linked family catalog for exact-row PDF enrichment", () => {
+    const url = "https://www.eaton.com/us/en-us/skuPage.1173A-100.html";
+    const html = `
+      <html><head><title>1173A-100 | Eaton 70 series photoelectric sensor</title></head>
+      <body>
+        <h1>1173A-100</h1>
+        <p>Eaton 70 Series Photoelectric Sensor Head</p>
+        <div>
+          <a aria-label="Go to Sensing Solutions, Legacy Sensor Products catalog, Volume 8, Tab 11"
+             href="https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/legacy-sensor-products-ca08100010e.pdf">
+            Sensing Solutions, Legacy Sensor Products, Volume 8, Tab 11
+          </a>
+        </div>
+      </body></html>`;
+    const result = parseEatonProductPage("1173A-100", fetched(html, url), url);
+
+    expect(result.productUrl).toBe(url);
+    expect(result.documents).toContainEqual(expect.objectContaining({
+      type: "datasheet",
+      label: expect.stringContaining("Sensing Solutions, Legacy Sensor Products"),
+      url: "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/legacy-sensor-products-ca08100010e.pdf"
+    }));
+  });
+
+  it("reads an Eaton PDU input current from the exact SKU description, not its breaker rating", () => {
+    const url = "https://www.eaton.com/us/en-us/skuPage.TPC2234-3866.html";
+    const markdown = `
+Title: TPC2234-3866 | Eaton ATS PDU | Eaton
+URL Source: ${url}
+# TPC2234-3866
+Eaton ATS rack PDU, (2) C20 input, (8) C13 output, Flush mounting, 1U orientation, 1.92 kVA max, 200-240V input voltage, 16A, Spike/surge suppression, Single-phase, 50-60 Hz, (2) two-pole 15A breaker
+## General specifications
+Product Name
+Eaton ATS PDU
+Catalog Number
+TPC2234-3866
+Product Type
+ATS PDU
+Product Weight
+15 lb
+`;
+    const result = parseEatonProductPage("TPC2234-3866", fetched(markdown, url), url);
+
+    expect(result.normalized.current).toBe("16 A");
+    expect(result.attributes).toContainEqual(expect.objectContaining({
+      name: "Amperage Rating",
+      value: "16 A",
+      sourceUrl: url,
+      matchLevel: "exact"
+    }));
   });
 
   it("canonicalizes Eaton search SKU hits to the English product URL", () => {
@@ -5262,12 +5350,12 @@ Terminal capacity
     expect(result.normalized.current).toBe("60 A");
     expect(result.attributes.some((attr) => attr.group === "Delivery program" && attr.name === "Amperage Rating")).toBe(true);
     expect(result.attributes.find((attr) => attr.name === "Certifications")?.value).toContain("UL 489");
-    expect(result.documents.some((doc) => doc.type === "image" && doc.url.includes("dynamicmedia.eaton.com/is/image/eaton/PDG23P0225TFFN_BK"))).toBe(true);
+    expect(result.documents.some((doc) => doc.type === "image" && doc.url.includes("dynamicmedia.eaton.com/is/image/eaton/PDG23P0225TFFN_BK"))).toBe(false);
     expect(result.documents.some((doc) => doc.type === "datasheet")).toBe(true);
     expect(result.documents.some((doc) => doc.type === "cad")).toBe(true);
   });
 
-  it("keeps Eaton related-product images separate while exporting related products", () => {
+  it("rejects an Eaton sibling gallery image while preserving related-product metadata", () => {
     const html = `
       <html><head>
         <title>002242 | Eaton xEffect Ci Enclosures Switch- & Controlgear Enclosure | Eaton</title>
@@ -5307,8 +5395,7 @@ Terminal capacity
     );
 
     const images = result.documents.filter((doc) => doc.type === "image");
-    expect(images).toHaveLength(1);
-    expect(images[0]?.url).toContain("VT50213_L");
+    expect(images).toHaveLength(0);
     expect(result.documents.some((doc) => doc.type === "other" && doc.label.includes("characteristic curve"))).toBe(true);
     expect(result.attributes.some((attr) => attr.group === "Designed to work together" && attr.name === "Related Product" && attr.value.includes("057621"))).toBe(true);
     expect(result.attributes.some((attr) => attr.name === "Related Product" && attr.value.includes("Cable clamp"))).toBe(true);
@@ -6335,6 +6422,189 @@ IP degree of protection IP68 conforming to IEC 60529 IP69K conforming to DIN 400
     expect(readerResult.documents.filter((doc) => doc.type === "image").map((doc) => doc.url)).toEqual([
       "https://dynamicmedia.eaton.com/is/image/eaton/ABC123_MAIN?wid=500&hei=500"
     ]);
+  });
+
+  it("rejects an Eaton exact-SKU gallery explicitly marked as a representative photo", () => {
+    const sku = "XV-303-15-C00-A00-1D";
+    const url = `https://www.eaton.com/us/en-us/skuPage.${sku}.html`;
+    const result = parseEatonProductPage(
+      sku,
+      fetched(`
+        <html><head><title>${sku} | Eaton HMI</title></head><body>
+          <p>Photo is representative</p>
+          <h1>${sku}</h1>
+          <p>Eaton XV303 human machine interface</p>
+          <img class="product-gallery-image" src="https://www.eaton.com/mdmfiles/PDM1/XV30315_C/500x500_72dpi" alt="${sku} - XV300 HMI" />
+          <table><tr><th>Catalog Number</th><td>${sku}</td></tr><tr><th>Product Type</th><td>HMI</td></tr></table>
+        </body></html>
+      `, url),
+      url
+    );
+
+    expect(result.productUrl).toBe(url);
+    expect(result.documents.filter((doc) => doc.type === "image")).toEqual([]);
+    expect(result.diagnostics?.notes).toContain("Eaton marked the PDP gallery photo as representative; omitted it as exact-device image evidence.");
+  });
+
+  it("rejects representative Eaton images when a localized page uses the German notice", () => {
+    const sku = "5FTCKIT";
+    const url = `https://www.eaton.com/de/de-de/skuPage.${sku}.html`;
+    const result = parseEatonProductPage(
+      sku,
+      fetched(`
+        <html><head><title>${sku} | Eaton</title></head><body>
+          <p>Foto ist repräsentativ</p>
+          <h1>${sku}</h1><p>Flex Shaft Handle Operator 60</p>
+          <img src="https://www.eaton.com/mdmfiles/PDM1/OLI362FDJB-DOVP_C/500x500_72dpi" alt="${sku} - sku page" />
+          <table><tr><th>Katalognummer</th><td>${sku}</td></tr></table>
+        </body></html>
+      `, url),
+      url
+    );
+
+    expect(result.documents.filter((doc) => doc.type === "image")).toEqual([]);
+    expect(result.diagnostics?.notes).toContain("Eaton marked the PDP gallery photo as representative; omitted it as exact-device image evidence.");
+  });
+
+  it("rejects representative Eaton images when a localized page uses the Chinese notice", () => {
+    const sku = "5FTCKIT";
+    const url = `https://www.eaton.com.cn/cn/zh-cn/skuPage.${sku}.html`;
+    const result = parseEatonProductPage(
+      sku,
+      fetched(`
+        <html><head><title>${sku} | Eaton</title></head><body>
+          <p>图片仅供参考</p>
+          <h1>${sku}</h1><p>Flex Shaft Handle Operator 60</p>
+          <img src="https://www.eaton.com/mdmfiles/PDM1/OLI362FDJB-DOVP_C/500x500_72dpi" alt="${sku} - sku page" />
+          <table><tr><th>Catalog Number</th><td>${sku}</td></tr></table>
+        </body></html>
+      `, url),
+      url
+    );
+
+    expect(result.documents.filter((doc) => doc.type === "image")).toEqual([]);
+    expect(result.diagnostics?.notes).toContain("Eaton marked the PDP gallery photo as representative; omitted it as exact-device image evidence.");
+  });
+
+  it("does not restore an Eaton family image after rejecting a representative HMI gallery", async () => {
+    const sku = "XV-303-15-C00-A00-1D";
+    const url = `https://www.eaton.com/us/en-us/skuPage.${sku}.html`;
+    const page = fetched(`
+      <html><head><title>${sku} | Eaton HMI</title></head><body>
+        <p>Photo is representative</p>
+        <h1>${sku}</h1>
+        <p>Eaton XV303 human machine interface</p>
+        <img class="product-gallery-image" src="https://www.eaton.com/mdmfiles/PDM1/XV30315_C/500x500_72dpi" alt="${sku} - XV300 HMI" />
+        <table><tr><th>Catalog Number</th><td>${sku}</td></tr><tr><th>Product Type</th><td>HMI</td></tr></table>
+      </body></html>
+    `, url);
+    const connector = new EatonConnector();
+    const context = {
+      manufacturer: { id: "eaton", canonicalName: "Eaton", shortName: "EAT", rateLimitMs: 0, officialBaseUrls: ["https://www.eaton.com"], localizedUrlTemplates: [], fallbackSources: [] },
+      http: { fetchText: async () => page },
+      runDir: "",
+      documentsDir: "",
+      downloadDocument: async (doc: Parameters<ScrapeContext["downloadDocument"]>[0]) => doc,
+      fallback: { scrape: async () => undefined }
+    } as unknown as ScrapeContext;
+
+    const result = await connector.scrape(sku, context);
+
+    expect(result.productUrl).toBe(url);
+    expect(result.documents.filter((doc) => doc.type === "image")).toEqual([]);
+    expect(result.diagnostics?.notes).toContain("Eaton marked the PDP gallery photo as representative; omitted it as exact-device image evidence.");
+  });
+
+  it("uses an Eaton alternate SKU only when EAN and the exact requested model code both match", async () => {
+    const sku = "XV-303-15-C00-A00-1D";
+    const exactUrl = `https://www.eaton.com/us/en-us/skuPage.${sku}.html`;
+    const aliasUrl = "https://www.eaton.com/cr/es-mx/skuPage.191077.html";
+    const exactPage = fetched(`
+      <html><head><title>${sku} | Eaton XV300 HMI</title></head><body>
+        <p>Photo is representative</p><h1>${sku}</h1><p>Eaton XV303 HMI</p>
+        <table>
+          <tr><th>Catalog Number</th><td>${sku}</td></tr>
+          <tr><th>EAN</th><td>7640130099166</td></tr>
+          <tr><th>Product Type</th><td>Advanced human machine interface (HMI)</td></tr>
+          <tr><th>Product Height</th><td>4 in</td></tr><tr><th>Product Width</th><td>10 in</td></tr>
+          <tr><th>Product Length/Depth</th><td>16 in</td></tr><tr><th>Product Weight</th><td>5 lb</td></tr>
+        </table>
+        <img class="product-gallery-image" src="https://www.eaton.com/mdmfiles/PDM1/XV30315_C/500x500_72dpi" alt="${sku}" />
+      </body></html>
+    `, exactUrl);
+    const aliasPage = fetched(`
+      <html><head><title>191077 | Eaton XV-303 HMI</title></head><body>
+        <h1>191077</h1><p>Eaton XV-303 User interface, 24VDC</p>
+        <table><tr><th>Catalog Number</th><td>191077</td></tr>
+          <tr><th>EAN</th><td>7640130099166</td></tr>
+          <tr><th>Supply voltage at AC, 50 Hz - min</th><td>0 VAC</td></tr>
+          <tr><th>Supply voltage at AC, 50 Hz - max</th><td>0 VAC</td></tr>
+          <tr><th>Rated operational voltage</th><td>24 V DC</td></tr></table>
+        <p>eCAD model: DA-CE-ETN.${sku}</p>
+      </body></html>
+    `, aliasUrl);
+    const searchUrl = buildEatonSearchApiUrlCandidates("7640130099166").find((url) => /\/us\/en-us\/site-search\//i.test(url));
+    const connector = new EatonConnector();
+    const context = {
+      manufacturer: { id: "eaton", canonicalName: "Eaton", shortName: "EAT", rateLimitMs: 0, officialBaseUrls: ["https://www.eaton.com"], localizedUrlTemplates: [], fallbackSources: [] },
+      http: { fetchText: async (url: string) => {
+        if (url === searchUrl) return fetched(JSON.stringify({ siteSearchResults: [{
+          contentType: "SKU",
+          completeUrl: aliasUrl,
+          title: "191077 | Eaton XV-303 HMI 7640130099166"
+        }] }), url, "application/json");
+        return url.includes("skuPage.191077.html") ? aliasPage : exactPage;
+      } },
+      runDir: "",
+      documentsDir: "",
+      downloadDocument: async (doc: Parameters<ScrapeContext["downloadDocument"]>[0]) => doc,
+      fallback: { scrape: async () => undefined }
+    } as unknown as ScrapeContext;
+
+    const result = await connector.scrape(sku, context);
+    const voltageAttribute = result.attributes.find((attribute) => attribute.name === "Rated operational voltage");
+
+    expect(result.productUrl).toBe(exactUrl);
+    expect(result.normalized.voltage).toBe("24 V DC");
+    expect(voltageAttribute).toEqual(expect.objectContaining({
+      value: "24 V DC",
+      sourceUrl: aliasUrl,
+      parser: "eaton-ean-crossreference",
+      stage: "ean-cross-reference",
+      matchLevel: "exact"
+    }));
+    expect(result.documents.filter((document) => document.type === "image")).toEqual([]);
+  });
+
+  it("rejects Eaton EAN aliases that do not repeat the requested model code", async () => {
+    const sku = "XV-303-15-C00-A00-1D";
+    const exactUrl = `https://www.eaton.com/us/en-us/skuPage.${sku}.html`;
+    const aliasUrl = "https://www.eaton.com/us/en-us/skuPage.191077.html";
+    const exactPage = fetched(`<html><body><h1>${sku}</h1><table>
+      <tr><th>Catalog Number</th><td>${sku}</td></tr><tr><th>EAN</th><td>7640130099166</td></tr>
+      <tr><th>Product Type</th><td>HMI</td></tr><tr><th>Product Height</th><td>4 in</td></tr>
+      <tr><th>Product Width</th><td>10 in</td></tr><tr><th>Product Length/Depth</th><td>16 in</td></tr>
+      <tr><th>Product Weight</th><td>5 lb</td></tr></table></body></html>`, exactUrl);
+    const aliasPage = fetched(`<html><body><h1>191077</h1><table>
+      <tr><th>Catalog Number</th><td>191077</td></tr><tr><th>EAN</th><td>7640130099166</td></tr>
+      <tr><th>Rated operational voltage</th><td>24 V DC</td></tr></table></body></html>`, aliasUrl);
+    const searchUrl = buildEatonSearchApiUrlCandidates("7640130099166").find((url) => /\/us\/en-us\/site-search\//i.test(url));
+    const connector = new EatonConnector();
+    const context = {
+      manufacturer: { id: "eaton", canonicalName: "Eaton", shortName: "EAT", rateLimitMs: 0, officialBaseUrls: ["https://www.eaton.com"], localizedUrlTemplates: [], fallbackSources: [] },
+      http: { fetchText: async (url: string) => url === searchUrl
+        ? fetched(JSON.stringify({ siteSearchResults: [{ contentType: "SKU", completeUrl: aliasUrl, title: "191077 7640130099166" }] }), url, "application/json")
+        : url.includes("skuPage.191077.html") ? aliasPage : exactPage },
+      runDir: "",
+      documentsDir: "",
+      downloadDocument: async (doc: Parameters<ScrapeContext["downloadDocument"]>[0]) => doc,
+      fallback: { scrape: async () => undefined }
+    } as unknown as ScrapeContext;
+
+    const result = await connector.scrape(sku, context);
+
+    expect(result.normalized.voltage).toBeUndefined();
+    expect(result.attributes.some((attribute) => attribute.parser === "eaton-ean-crossreference")).toBe(false);
   });
 
   it("reconstructs only aligned multiline table facts for the selected ordering option", () => {

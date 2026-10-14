@@ -1,0 +1,4197 @@
+{
+  "generatedAt": "2026-10-12T10:40:02.002Z",
+  "outputDir": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261012103942",
+  "filters": {
+    "manufacturer": "eaton",
+    "catalogNumber": "232233",
+    "fixtureDir": "benchmarks/eaton-speed-optimization-20261012/group-b",
+    "isolatedStorage": "1",
+    "tag": "20261012-post-source-rules-B-232233"
+  },
+  "summary": {
+    "foundRate": 100,
+    "officialUrlRate": 100,
+    "documentRate": 100,
+    "pdtAuditRate": 100,
+    "deviceTypeRate": 100,
+    "customerDocumentRate": 0,
+    "wrongProducts": 0,
+    "partialWithoutMissing": 0,
+    "pdtUnprovenWritten": 0,
+    "pdtUnexplainedRequiredFieldIssues": 0,
+    "pdtWriteIssues": 0,
+    "qualityAccepted": true,
+    "fixtureCoverageAccepted": true,
+    "fixtureCoverage": {
+      "byManufacturer": {
+        "eaton": {
+          "total": 1,
+          "caseTypes": [
+            "electrical"
+          ],
+          "riskTags": [
+            "cold",
+            "m22-potentiometer"
+          ]
+        }
+      },
+      "byDeviceType": {
+        "Potentiometer": {
+          "total": 1,
+          "manufacturers": [
+            "eaton"
+          ],
+          "caseTypes": [
+            "electrical"
+          ]
+        }
+      },
+      "byDeviceSheet": {},
+      "thinManufacturers": [
+        "eaton"
+      ],
+      "uncoveredDeviceSheets": [
+        "Busbar",
+        "Luminaire",
+        "Motion Controller",
+        "PCB connection system",
+        "PCB connection technology",
+        "PLC",
+        "RS232 interfaces",
+        "Switch",
+        "Wire ID Information",
+        "cabinet",
+        "cabinet.airconditioning",
+        "cabinet.mechanical",
+        "cabinet.rack",
+        "cable",
+        "cable ducts mounting rails",
+        "cable gland",
+        "command and alarm device",
+        "connector",
+        "contactor a. fuses",
+        "directional control valve",
+        "el. mesurement devices",
+        "electronic sensor",
+        "energy distribution system",
+        "filters",
+        "fluid power",
+        "generator",
+        "int. ext. lightning protection",
+        "module carrier frame",
+        "motor protection",
+        "motors",
+        "optical sensor",
+        "panel (HMI)",
+        "pneumatic handling",
+        "power supply devices",
+        "pump",
+        "safety sensor",
+        "sensor - fluid",
+        "servo controller",
+        "terminal",
+        "terminal endbracket",
+        "ventil"
+      ],
+      "missingDeviceSheetRecommendations": [
+        {
+          "sheetName": "Busbar",
+          "deviceTypes": [
+            "Busbar"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "Luminaire",
+          "deviceTypes": [
+            "Luminaire"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SL0040I.953",
+              "deviceType": "Luminaire",
+              "notes": "FATH Module F Line LED lamp"
+            }
+          ]
+        },
+        {
+          "sheetName": "Motion Controller",
+          "deviceTypes": [
+            "Motion Controller"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1756-HYD",
+              "deviceType": "Motion Controller",
+              "notes": "ControlLogix integrated motion modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1756-M02",
+              "deviceType": "Motion Controller",
+              "notes": "ControlLogix integrated motion modules"
+            }
+          ]
+        },
+        {
+          "sheetName": "PCB connection system",
+          "deviceTypes": [
+            "PCB Connector"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "PCB connection technology",
+          "deviceTypes": [
+            "PCB Terminal Block"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "PLC",
+          "deviceTypes": [
+            "Communication Gateway",
+            "HMI",
+            "I/O Module",
+            "Programmable Logic Controller"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "FL",
+              "deviceType": "Communication Gateway",
+              "notes": "FL switch / FL gateway"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "RAD",
+              "deviceType": "Communication Gateway",
+              "notes": "Radioline"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENT",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENTR",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1783",
+              "deviceType": "Communication Gateway",
+              "notes": "Stratix industrial networking and communication modules"
+            }
+          ]
+        },
+        {
+          "sheetName": "RS232 interfaces",
+          "deviceTypes": [
+            "Communication Gateway"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "FL",
+              "deviceType": "Communication Gateway",
+              "notes": "FL switch / FL gateway"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "RAD",
+              "deviceType": "Communication Gateway",
+              "notes": "Radioline"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENT",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENTR",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1783",
+              "deviceType": "Communication Gateway",
+              "notes": "Stratix industrial networking and communication modules"
+            }
+          ]
+        },
+        {
+          "sheetName": "Switch",
+          "deviceTypes": [
+            "Lock / Interlock",
+            "Selector Switch",
+            "Switch"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "M2SS",
+              "deviceType": "Selector Switch",
+              "notes": "M2SS selector switches"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "M22-WR",
+              "deviceType": "Selector Switch",
+              "notes": "M22 selector switch actuator"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "JSHD",
+              "deviceType": "Switch",
+              "notes": "JSHD three-position handheld devices"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "2702665",
+              "deviceType": "Switch",
+              "notes": "Phoenix FL SWITCH 2105 item number"
+            },
+            {
+              "manufacturerId": "schmersal",
+              "pattern": "EFM",
+              "deviceType": "Switch",
+              "notes": "Schmersal foot switches"
+            }
+          ]
+        },
+        {
+          "sheetName": "Wire ID Information",
+          "deviceTypes": [
+            "Wire Marker"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "cabinet",
+          "deviceTypes": [
+            "Enclosure"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEP",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEPY",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PSN",
+              "deviceType": "Enclosure",
+              "notes": "xEnergy ProfiSNAP enclosure panels/accessories"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "P2C",
+              "deviceType": "Enclosure",
+              "notes": "nVent Hoffman enclosure families"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "P2D",
+              "deviceType": "Enclosure",
+              "notes": "nVent Hoffman enclosure families"
+            }
+          ]
+        },
+        {
+          "sheetName": "cabinet.airconditioning",
+          "deviceTypes": [
+            "Thermal Management"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "nvent",
+              "pattern": "DAH",
+              "deviceType": "Thermal Management",
+              "notes": "nVent HOFFMAN DAH enclosure heaters"
+            },
+            {
+              "manufacturerId": "rittal",
+              "pattern": "SK",
+              "deviceType": "Thermal Management",
+              "notes": "Climate control / filter fans"
+            }
+          ]
+        },
+        {
+          "sheetName": "cabinet.mechanical",
+          "deviceTypes": [
+            "Accessory",
+            "Cover / Door Accessory",
+            "Enclosure",
+            "Subpanel"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "MDB",
+              "deviceType": "Accessory",
+              "notes": "MDB dummy blocks and operator accessories"
+            },
+            {
+              "manufacturerId": "fath",
+              "pattern": "061CC42300.74",
+              "deviceType": "Cover / Door Accessory",
+              "notes": "FATH shelf-board cover cap"
+            },
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "73540003",
+              "deviceType": "Cover / Door Accessory",
+              "notes": "Spelsberg AK KF 03 hinged window"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEP",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEPY",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            }
+          ]
+        },
+        {
+          "sheetName": "cabinet.rack",
+          "deviceTypes": [
+            "Rack Cabinet"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rittal",
+              "pattern": "DK",
+              "deviceType": "Rack Cabinet"
+            }
+          ]
+        },
+        {
+          "sheetName": "cable",
+          "deviceTypes": [
+            "Cable"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SAMB1J313B.4000",
+              "deviceType": "Cable",
+              "notes": "FATH Module F Line GST18i3 main power cable"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "889",
+              "deviceType": "Cable",
+              "notes": "Allen-Bradley cordsets and patchcords"
+            },
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "59181001",
+              "deviceType": "Cable",
+              "notes": "Spelsberg Wallbox LL 7m Type 2 charging cable"
+            }
+          ]
+        },
+        {
+          "sheetName": "cable ducts mounting rails",
+          "deviceTypes": [
+            "Mounting Accessory",
+            "Wireway"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "09308901S01",
+              "deviceType": "Mounting Accessory",
+              "notes": "FATH workstation and profile mounting components"
+            },
+            {
+              "manufacturerId": "fath",
+              "pattern": "6FG40ND80M695N08",
+              "deviceType": "Mounting Accessory",
+              "notes": "FATH workstation and profile mounting components"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "CP2020",
+              "deviceType": "Mounting Accessory",
+              "notes": "nVent Hoffman/Schroff accessory items verified on official product pages"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "CSP2020",
+              "deviceType": "Mounting Accessory",
+              "notes": "nVent Hoffman/Schroff accessory items verified on official product pages"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "1524160",
+              "deviceType": "Mounting Accessory",
+              "notes": "Phoenix MCS-112X90-AP-7035 adapter plate item number"
+            }
+          ]
+        },
+        {
+          "sheetName": "cable gland",
+          "deviceTypes": [
+            "Cable Gland"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "26013201",
+              "deviceType": "Cable Gland",
+              "notes": "Spelsberg DMS M32/w double-membrane seal"
+            }
+          ]
+        },
+        {
+          "sheetName": "command and alarm device",
+          "deviceTypes": [
+            "Pilot Light",
+            "Pushbutton / Operator",
+            "Stack Light / Beacon"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "ML1",
+              "deviceType": "Pilot Light",
+              "notes": "ML1 pilot lights"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "M22",
+              "deviceType": "Pushbutton / Operator",
+              "notes": "M22 control station"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "800F",
+              "deviceType": "Pushbutton / Operator"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "800H",
+              "deviceType": "Pushbutton / Operator"
+            },
+            {
+              "manufacturerId": "schmersal",
+              "pattern": "BDF",
+              "deviceType": "Pushbutton / Operator",
+              "notes": "BDF command and control devices"
+            }
+          ]
+        },
+        {
+          "sheetName": "connector",
+          "deviceTypes": [
+            "Connector",
+            "Optical Connector"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SAKP5J516BS01",
+              "deviceType": "Connector",
+              "notes": "FATH Module F Line and profile connectors"
+            },
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SBEU14I.317",
+              "deviceType": "Connector",
+              "notes": "FATH Module F Line and profile connectors"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "69001-",
+              "deviceType": "Connector",
+              "notes": "nVent SCHROFF DIN connectors"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "MCS",
+              "deviceType": "Connector"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VIP",
+              "deviceType": "Connector"
+            }
+          ]
+        },
+        {
+          "sheetName": "contactor a. fuses",
+          "deviceTypes": [
+            "Circuit Breaker",
+            "Contactor",
+            "Disconnect Switch",
+            "Fuse",
+            "Miniature Circuit Breaker",
+            "Molded Case Circuit Breaker",
+            "Relay",
+            "Residual Current Device",
+            "Supplementary Protector"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "eta",
+              "pattern": "3120",
+              "deviceType": "Circuit Breaker"
+            },
+            {
+              "manufacturerId": "eta",
+              "pattern": "REX",
+              "deviceType": "Circuit Breaker"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492-CB",
+              "deviceType": "Circuit Breaker",
+              "notes": "Allen-Bradley circuit breakers"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "A",
+              "deviceType": "Contactor",
+              "notes": "AF / A / AL / AX series IEC contactors"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "AF",
+              "deviceType": "Contactor",
+              "notes": "AF / A / AL / AX series IEC contactors"
+            }
+          ]
+        },
+        {
+          "sheetName": "directional control valve",
+          "deviceTypes": [
+            "Directional Control Valve"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "el. mesurement devices",
+          "deviceTypes": [
+            "Current Sensor",
+            "Power Meter"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "electronic sensor",
+          "deviceTypes": [
+            "Capacitive Sensor",
+            "Encoder",
+            "Inductive Proximity Sensor",
+            "Magnetic Field Sensor",
+            "RFID Device",
+            "Sensor",
+            "Ultrasonic Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BCS",
+              "deviceType": "Capacitive Sensor"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BDG",
+              "deviceType": "Encoder",
+              "notes": "Absolute encoder"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BTL",
+              "deviceType": "Encoder",
+              "notes": "Magnetostrictive linear encoder"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BES",
+              "deviceType": "Inductive Proximity Sensor"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BIS",
+              "deviceType": "Inductive Proximity Sensor"
+            }
+          ]
+        },
+        {
+          "sheetName": "energy distribution system",
+          "deviceTypes": [
+            "Loadcenter"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "filters",
+          "deviceTypes": [
+            "Filter"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "fluid power",
+          "deviceTypes": [
+            "Hydraulic Actuator"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "generator",
+          "deviceTypes": [
+            "Generator"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "int. ext. lightning protection",
+          "deviceTypes": [
+            "Surge Protective Device"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "OVR",
+              "deviceType": "Surge Protective Device"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VAL-CP",
+              "deviceType": "Surge Protective Device"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VAL-MS",
+              "deviceType": "Surge Protective Device"
+            }
+          ]
+        },
+        {
+          "sheetName": "module carrier frame",
+          "deviceTypes": [
+            "Module Carrier"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "siemens",
+              "pattern": "6ES7193",
+              "deviceType": "Module Carrier",
+              "notes": "SIMATIC ET 200SP BaseUnits / base carriers"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "BaseUnits",
+              "deviceType": "Module Carrier",
+              "notes": "SIMATIC ET 200SP BaseUnits / base carriers"
+            }
+          ]
+        },
+        {
+          "sheetName": "motor protection",
+          "deviceTypes": [
+            "Motor Circuit Breaker",
+            "Motor Starter"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "MO",
+              "deviceType": "Motor Circuit Breaker",
+              "notes": "Manual motor starter"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MS",
+              "deviceType": "Motor Circuit Breaker",
+              "notes": "Manual motor starter"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PKE",
+              "deviceType": "Motor Circuit Breaker"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PKZM",
+              "deviceType": "Motor Circuit Breaker"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "140M",
+              "deviceType": "Motor Circuit Breaker"
+            }
+          ]
+        },
+        {
+          "sheetName": "motors",
+          "deviceTypes": [
+            "Motor",
+            "Variable Speed Drive"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "M2A",
+              "deviceType": "Motor"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "TM",
+              "deviceType": "Motor"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "ACQ",
+              "deviceType": "Variable Speed Drive",
+              "notes": "ACS / ACQ / ACH drives"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "ACS",
+              "deviceType": "Variable Speed Drive",
+              "notes": "ACS / ACQ / ACH drives"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "DC1",
+              "deviceType": "Variable Speed Drive",
+              "notes": "PowerXL"
+            }
+          ]
+        },
+        {
+          "sheetName": "optical sensor",
+          "deviceTypes": [
+            "Photoelectric Sensor",
+            "Vision Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BOH",
+              "deviceType": "Photoelectric Sensor"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BOS",
+              "deviceType": "Photoelectric Sensor"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "42EF",
+              "deviceType": "Photoelectric Sensor"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "42JS",
+              "deviceType": "Photoelectric Sensor"
+            },
+            {
+              "manufacturerId": "schneider",
+              "pattern": "XU",
+              "deviceType": "Photoelectric Sensor",
+              "notes": "OsiSense XU"
+            }
+          ]
+        },
+        {
+          "sheetName": "panel (HMI)",
+          "deviceTypes": [
+            "HMI"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "CP6",
+              "deviceType": "HMI",
+              "notes": "CP6xx HMI panel"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "XV",
+              "deviceType": "HMI"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "2711",
+              "deviceType": "HMI",
+              "notes": "PanelView HMI"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "2711P",
+              "deviceType": "HMI",
+              "notes": "PanelView HMI"
+            },
+            {
+              "manufacturerId": "schneider",
+              "pattern": "HMI",
+              "deviceType": "HMI",
+              "notes": "Harmony HMI"
+            }
+          ]
+        },
+        {
+          "sheetName": "pneumatic handling",
+          "deviceTypes": [
+            "Pneumatic Device"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "power supply devices",
+          "deviceTypes": [
+            "Battery",
+            "Power Supply",
+            "Transformer",
+            "UPS"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "CP-E",
+              "deviceType": "Power Supply",
+              "notes": "CP-T / CP-E DIN-rail PSUs"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "CP-T",
+              "deviceType": "Power Supply",
+              "notes": "CP-T / CP-E DIN-rail PSUs"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "QUINT",
+              "deviceType": "Power Supply"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "TRIO",
+              "deviceType": "Power Supply"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1606",
+              "deviceType": "Power Supply",
+              "notes": "Allen-Bradley switched mode power supplies"
+            }
+          ]
+        },
+        {
+          "sheetName": "pump",
+          "deviceTypes": [
+            "Pump"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "safety sensor",
+          "deviceTypes": [
+            "Safety Relay",
+            "Safety Sensor",
+            "Solenoid Interlock"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "PLUTO",
+              "deviceType": "Safety Relay",
+              "notes": "Pluto safety controller"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "2981091",
+              "deviceType": "Safety Relay",
+              "notes": "Phoenix PSR-SPP-24DC/ESD/5X1/1X2/T10 item number"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "PSR",
+              "deviceType": "Safety Relay"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "PSRMINI",
+              "deviceType": "Safety Relay"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "440C",
+              "deviceType": "Safety Relay"
+            }
+          ]
+        },
+        {
+          "sheetName": "sensor - fluid",
+          "deviceTypes": [
+            "Flow Sensor",
+            "Level Sensor",
+            "Pressure Sensor",
+            "Temperature Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "839E",
+              "deviceType": "Flow Sensor",
+              "notes": "Allen-Bradley flow sensors"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "840E",
+              "deviceType": "Level Sensor",
+              "notes": "Allen-Bradley level sensors"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "836P",
+              "deviceType": "Pressure Sensor",
+              "notes": "Allen-Bradley pressure sensors"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "837T",
+              "deviceType": "Temperature Sensor",
+              "notes": "Allen-Bradley temperature sensors"
+            }
+          ]
+        },
+        {
+          "sheetName": "servo controller",
+          "deviceTypes": [
+            "Soft Starter",
+            "Variable Speed Drive"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "PSE",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "PSTX",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "DS7",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "schneider",
+              "pattern": "ATS",
+              "deviceType": "Soft Starter",
+              "notes": "Altistart"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "3RW",
+              "deviceType": "Soft Starter",
+              "notes": "SIRIUS soft starter"
+            }
+          ]
+        },
+        {
+          "sheetName": "terminal",
+          "deviceTypes": [
+            "Terminal Block"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "UK",
+              "deviceType": "Terminal Block"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "UT",
+              "deviceType": "Terminal Block"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492",
+              "deviceType": "Terminal Block"
+            }
+          ]
+        },
+        {
+          "sheetName": "terminal endbracket",
+          "deviceTypes": [
+            "Terminal Accessory"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "CLIPFIX",
+              "deviceType": "Terminal Accessory"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "E/UK",
+              "deviceType": "Terminal Accessory"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492-EAH",
+              "deviceType": "Terminal Accessory",
+              "notes": "1492 end anchors / end retainers"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492-EAJ",
+              "deviceType": "Terminal Accessory",
+              "notes": "1492 end anchors / end retainers"
+            }
+          ]
+        },
+        {
+          "sheetName": "ventil",
+          "deviceTypes": [
+            "Valve"
+          ],
+          "examples": []
+        }
+      ],
+      "deviceSheetCoverage": {
+        "covered": 0,
+        "total": 41
+      }
+    },
+    "fixtureCoverageRequired": false,
+    "accepted": true
+  },
+  "reports": [
+    {
+      "manufacturerId": "eaton",
+      "catalogNumber": "232233",
+      "caseType": "electrical",
+      "expectedDeviceType": "Potentiometer",
+      "actualDeviceType": "Potentiometer",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "cold",
+        "m22-potentiometer"
+      ],
+      "status": "found",
+      "confidence": 0.67,
+      "elapsedMs": 17181,
+      "productUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261012103942\\pdt\\eaton-232233-pdt_pdt-audit.json",
+      "pdtWrittenCells": 26,
+      "pdtBlankCells": 13,
+      "pdtSkippedCells": 0,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": [],
+      "resultEvidence": {
+        "title": "232233 | Eaton Moeller® series M22 potentiometer",
+        "description": "Eaton Moeller® series M22 Potentiometer, Classical, M22, 22.5 mm, R 10 kΩ, P 0.5 W, Bezel: black",
+        "productUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html",
+        "localizedUrls": {
+          "en": "https://www.eaton.com/gb/en-gb/skuPage.232233.html",
+          "de": "https://www.eaton.com/de/de-de/skuPage.232233.html"
+        },
+        "localizedDescriptions": {
+          "de": {
+            "title": "232233 | Eaton Moeller® series M22 Potentiometer",
+            "description": "Eaton Moeller® series M22 Potentiometer, klassisch, M22, 22,5 mm, R 10 kΩ, P 0,5 W, Frontring schwarz"
+          }
+        },
+        "deviceTypeClassification": {
+          "type": "Potentiometer",
+          "confidence": 0.98,
+          "evidence": "Product Type: Potentiometer",
+          "scoreMargin": 2050
+        },
+        "normalized": {
+          "weight": "0.034 kg",
+          "dimensions": "29 x 29 x 70 mm",
+          "finish": "Schwarz",
+          "color": "Black",
+          "current": "0 A",
+          "protection": "IP66 NEMA Other",
+          "certificates": "IEC, UL 508, CSA, CE, RoHS, VDE",
+          "operatingTemperatureMin": "-25",
+          "operatingTemperatureMax": "70"
+        },
+        "requiredElectricalFields": [],
+        "attributes": [
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Actuator",
+            "name": "Bezel color",
+            "value": "Black",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Actuator",
+            "name": "Design",
+            "value": "Classical",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Actuator",
+            "name": "Electric connection type",
+            "value": "Screw connection",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Actuator",
+            "name": "Fitted with:",
+            "value": "3 individual screw terminals",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Allgemeine Informationen",
+            "name": "Bemessungsstoßspannungsfestigkeit (Uimp)",
+            "value": "4.000 V AC",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Allgemeine Informationen",
+            "name": "Benutzt mit",
+            "value": "Modulare Drucktaste",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Allgemeine Informationen",
+            "name": "Einbaulage",
+            "value": "Nach Bedarf",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Allgemeine Informationen",
+            "name": "Lebensdauer, mechanisch",
+            "value": "25.000 Schaltvorgänge",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Allgemeine Informationen",
+            "name": "Öffnungsdurchmesser",
+            "value": "22.5 mm",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Allgemeine Informationen",
+            "name": "Schutzart",
+            "value": "IP66 NEMA sonstige",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Allgemeine Informationen",
+            "name": "Typ",
+            "value": "Potentiometer",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Allgemeine Informationen",
+            "name": "Überspannungskategorie",
+            "value": "III",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Allgemeine Informationen",
+            "name": "Verschmutzungsgrad",
+            "value": "3",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Allgemeine Spezifikation",
+            "name": "EAN",
+            "value": "4015082322335",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Allgemeine Spezifikation",
+            "name": "Einhaltung(en)",
+            "value": "RoHS-konform",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Allgemeine Spezifikation",
+            "name": "Katalognummer",
+            "value": "232233",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Allgemeine Spezifikation",
+            "name": "Modellcode",
+            "value": "M22S-R10K",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Allgemeine Spezifikation",
+            "name": "Produkt Länge/Tiefe",
+            "value": "70 mm",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Allgemeine Spezifikation",
+            "name": "Produktbreite",
+            "value": "29 mm",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Allgemeine Spezifikation",
+            "name": "Produktgewicht",
+            "value": "0.034 kg",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Allgemeine Spezifikation",
+            "name": "Produkthöhe",
+            "value": "29 mm",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Allgemeine Spezifikation",
+            "name": "Produktname",
+            "value": "Eaton Moeller® series M22 Potentiometer",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Allgemeine Spezifikation",
+            "name": "Zertifikat(e)",
+            "value": "CSA File No.: 012528 CSA Class No.: 3211-03 IEC/EN 60947 VDE 0660 IEC/EN 60947-5-1 CSA-22.2 No. 14-05 UL UL File No.: E29184 CE UL 508 UL Category Control No.: NKCR CSA",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Anschlussquerschnitte",
+            "name": "Anschlussquerschnitte (eindrähtig)",
+            "value": "0,5 - 1,5 mm²",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Anschlussquerschnitte",
+            "name": "Anschlussquerschnitte (mehrdrähtig)",
+            "value": "0,5 - 1,5 mm²",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Anschlussquerschnitte",
+            "name": "Anzugsdrehmoment",
+            "value": "0,5 Nm, Schraubklemmen",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Bauartnachweis",
+            "name": "10.10 Erwärmung",
+            "value": "Die Erwärmungsberechnung liegt in der Verantwortung des Schaltanlagenbauers. Eaton stellt Verlustleistungsdaten der Geräte bereit.",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Bauartnachweis",
+            "name": "10.11 Kurzschlussfestigkeit",
+            "value": "Liegt in der Verantwortung des Schaltanlagenbauers. Die Spezifikationen für die Schaltgeräte müssen beachtet werden.",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Bauartnachweis",
+            "name": "10.12 Elektromagnetische Verträglichkeit",
+            "value": "Liegt in der Verantwortung des Schaltanlagenbauers. Die Spezifikationen für die Schaltgeräte müssen beachtet werden.",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Bauartnachweis",
+            "name": "10.13 Mechanische Funktion",
+            "value": "Das Gerät erfüllt die Anforderungen, soweit die Angaben in der Montageanweisung beachtet werden.",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Bauartnachweis",
+            "name": "10.2.2 Korrosionsbeständigkeit",
+            "value": "Die Anforderungen der Produktnorm sind erfüllt.",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Bauartnachweis",
+            "name": "10.2.3.1 Wärmebeständigkeit von Umhüllung",
+            "value": "Die Anforderungen der Produktnorm sind erfüllt.",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Bauartnachweis",
+            "name": "10.2.3.2 Widerstandsfähigkeit Isolierstoffe gewöhnliche Wärme",
+            "value": "Die Anforderungen der Produktnorm sind erfüllt.",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Bauartnachweis",
+            "name": "10.2.3.3 Widerst. Isolierstoffe abnorm. Wärme/Feuer durch int. elektr. Auswirk.",
+            "value": "Die Anforderungen der Produktnorm sind erfüllt.",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Bauartnachweis",
+            "name": "10.2.4 Beständigkeit gegen UV-Strahlung",
+            "value": "Bitte anfragen",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Bauartnachweis",
+            "name": "10.2.5 Heben",
+            "value": "Nicht zutreffend, da die gesamte Schaltanlage bewertet werden muss.",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Bauartnachweis",
+            "name": "10.2.6 Schlagprüfung",
+            "value": "Nicht zutreffend, da die gesamte Schaltanlage bewertet werden muss.",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Bauartnachweis",
+            "name": "10.2.7 Beschriftungen",
+            "value": "Die Anforderungen der Produktnorm sind erfüllt.",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Bauartnachweis",
+            "name": "10.3 Schutzart von Baugruppen",
+            "value": "Nicht zutreffend, da die gesamte Schaltanlage bewertet werden muss.",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Bauartnachweis",
+            "name": "10.4 Luft- und Kriechstrecken",
+            "value": "Die Anforderungen der Produktnorm sind erfüllt.",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Bauartnachweis",
+            "name": "10.5 Schutz gegen elektrischen Schlag",
+            "value": "Nicht zutreffend, da die gesamte Schaltanlage bewertet werden muss.",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Bauartnachweis",
+            "name": "10.6 Einbau von Betriebsmitteln",
+            "value": "Nicht zutreffend, da die gesamte Schaltanlage bewertet werden muss.",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Bauartnachweis",
+            "name": "10.7 Innere Stromkreise und Verbindungen",
+            "value": "Liegt in der Verantwortung des Schaltanlagenbauers.",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Bauartnachweis",
+            "name": "10.8 Anschlüsse für von außen eingeführte Leiter",
+            "value": "Liegt in der Verantwortung des Schaltanlagenbauers.",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Bauartnachweis",
+            "name": "10.9.2 Betriebsfrequente Spannungsfestigkeit",
+            "value": "Liegt in der Verantwortung des Schaltanlagenbauers.",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Bauartnachweis",
+            "name": "10.9.3 Stoßspannungsfestigkeit",
+            "value": "Liegt in der Verantwortung des Schaltanlagenbauers.",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Bauartnachweis",
+            "name": "10.9.4 Prüfung von Umhüllungen aus Isolierstoff",
+            "value": "Liegt in der Verantwortung des Schaltanlagenbauers.",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Bauartnachweis",
+            "name": "Bemessungsbetriebsstrom zur Verlustleistungsangabe (In)",
+            "value": "0 A",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Bauartnachweis",
+            "name": "Geräteverlustleistung, stromabhängig pvid",
+            "value": "0 W",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Bauartnachweis",
+            "name": "Statische Verlustleistung, stromunabhängig PVS",
+            "value": "0.5 W",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Bauartnachweis",
+            "name": "Verlustleistung pro Pol, stromabhängig, Pvid",
+            "value": "0 W",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Bauartnachweis",
+            "name": "Verlustleistungskapazität Pdiss",
+            "value": "0 W",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Bemessungswerte",
+            "name": "Bemessungsisolationsspannung (Ui)",
+            "value": "250 V",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Bemessungswerte",
+            "name": "Bemessungsleistung",
+            "value": "0.5 VA",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Bemessungswerte",
+            "name": "Leistungsaufnahme",
+            "value": "0,5 W",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Bemessungswerte",
+            "name": "Widerstand",
+            "value": "10.000 Ohm",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Betätigungselement",
+            "name": "Ausstattung:",
+            "value": "3 einzelne Schraubklemmen",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Betätigungselement",
+            "name": "Design",
+            "value": "klassisch",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Betätigungselement",
+            "name": "Elektrische Anschlussart",
+            "value": "Schraubanschluss",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Betätigungselement",
+            "name": "Farbe der Lünette",
+            "value": "Schwarz",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Climatic environmental conditions",
+            "name": "Ambient operating temperature - max",
+            "value": "70 °C",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Climatic environmental conditions",
+            "name": "Ambient operating temperature - min",
+            "value": "-25 °C",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Climatic environmental conditions",
+            "name": "Climatic proofing",
+            "value": "Damp heat, cyclic, to IEC 60068-2-30 Damp heat, constant, to IEC 60068-2-78",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Communication",
+            "name": "Connection to SmartWire-DT",
+            "value": "No",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Design verification",
+            "name": "10.10 Temperature rise",
+            "value": "The panel builder is responsible for the temperature rise calculation. Eaton will provide heat dissipation data for the devices.",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Design verification",
+            "name": "10.11 Short-circuit rating",
+            "value": "Is the panel builder's responsibility. The specifications for the switchgear must be observed.",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Design verification",
+            "name": "10.12 Electromagnetic compatibility",
+            "value": "Is the panel builder's responsibility. The specifications for the switchgear must be observed.",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Design verification",
+            "name": "10.13 Mechanical function",
+            "value": "The device meets the requirements, provided the information in the instruction leaflet (IL) is observed.",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Design verification",
+            "name": "10.2.2 Corrosion resistance",
+            "value": "Meets the product standard's requirements.",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Design verification",
+            "name": "10.2.3.1 Verification of thermal stability of enclosures",
+            "value": "Meets the product standard's requirements.",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Design verification",
+            "name": "10.2.3.2 Verification of resistance of insulating materials to normal heat",
+            "value": "Meets the product standard's requirements.",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Design verification",
+            "name": "10.2.3.3 Resist. of insul. mat. to abnormal heat/fire by internal elect. effects",
+            "value": "Meets the product standard's requirements.",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Design verification",
+            "name": "10.2.4 Resistance to ultra-violet (UV) radiation",
+            "value": "Please enquire",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Design verification",
+            "name": "10.2.5 Lifting",
+            "value": "Does not apply, since the entire switchgear needs to be evaluated.",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Design verification",
+            "name": "10.2.6 Mechanical impact",
+            "value": "Does not apply, since the entire switchgear needs to be evaluated.",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Design verification",
+            "name": "10.2.7 Inscriptions",
+            "value": "Meets the product standard's requirements.",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Design verification",
+            "name": "10.3 Degree of protection of assemblies",
+            "value": "Does not apply, since the entire switchgear needs to be evaluated.",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Design verification",
+            "name": "10.4 Clearances and creepage distances",
+            "value": "Meets the product standard's requirements.",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Design verification",
+            "name": "10.5 Protection against electric shock",
+            "value": "Does not apply, since the entire switchgear needs to be evaluated.",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Design verification",
+            "name": "10.6 Incorporation of switching devices and components",
+            "value": "Does not apply, since the entire switchgear needs to be evaluated.",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Design verification",
+            "name": "10.7 Internal electrical circuits and connections",
+            "value": "Is the panel builder's responsibility.",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Design verification",
+            "name": "10.8 Connections for external conductors",
+            "value": "Is the panel builder's responsibility.",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Design verification",
+            "name": "10.9.2 Power-frequency electric strength",
+            "value": "Is the panel builder's responsibility.",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Design verification",
+            "name": "10.9.3 Impulse withstand voltage",
+            "value": "Is the panel builder's responsibility.",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Design verification",
+            "name": "10.9.4 Testing of enclosures made of insulating material",
+            "value": "Is the panel builder's responsibility.",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Design verification",
+            "name": "Equipment heat dissipation, current-dependent Pvid",
+            "value": "0 W",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Design verification",
+            "name": "Heat dissipation capacity Pdiss",
+            "value": "0 W",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Design verification",
+            "name": "Heat dissipation per pole, current-dependent Pvid",
+            "value": "0 W",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Design verification",
+            "name": "Rated operational current for specified heat dissipation (In)",
+            "value": "0 A",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Design verification",
+            "name": "Static heat dissipation, non-current-dependent Pvs",
+            "value": "0.5 W",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "216538 - 60379251 Eaton Moeller® series M22 Aufbaugehäuse, 3 Einbaustellen (https://www.eaton.com/de/de-de/skuPage.216538.html)",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "216392 - 60379249 Eaton Moeller® series M22 Schildträger, ohne Etikett, schwarz (https://www.eaton.com/de/de-de/skuPage.216392.html)",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "216540 - 60379251 Eaton Moeller® series M22 Aufbaugehäuse, 6 Einbaustellen (https://www.eaton.com/de/de-de/skuPage.216540.html)",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "216535 - 60379251 Eaton Moeller® series M22 Aufbaugehäuse, 1 Montageort (https://www.eaton.com/de/de-de/skuPage.216535.html)",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "216493 - 60379249 Eaton Moeller® series M22 Fahrgestell, +Kennzeichnung, HAND 0 AUTO (https://www.eaton.com/de/de-de/skuPage.216493.html)",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "222688 - 60379251 Eaton Moeller® series M22 Aufbaugehäuse, 12 Einbaustellen (https://www.eaton.com/de/de-de/skuPage.222688.html)",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "216543 - 60379249 Eaton Moeller® series M22 Einbauplatte, 2 Einbaustellen (https://www.eaton.com/de/de-de/skuPage.216543.html)",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "216542 - 60379249 Eaton Moeller® series M22 Einbauplatte, gelb, 1 Einbaustelle (https://www.eaton.com/de/de-de/skuPage.216542.html)",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "216544 - 60379249 Eaton Moeller® series M22 Einbauplatte, 3 Einbaustellen (https://www.eaton.com/de/de-de/skuPage.216544.html)",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "216393 - 60379249 Eaton Moeller® series M22 Schlüssel-Ergänzungsetikettenhalter ohne Etikett, Großpackung (https://www.eaton.com/de/de-de/skuPage.216393.html)",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "216493 - 60379249 Eaton Moeller® series M22 Carrier, +label, HAND 0 AUTO (https://www.eaton.com/gb/en-gb/skuPage.216493.html)",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "222688 - 60379251 Eaton Moeller® series M22 Surface mounting enclosure, 12 mounting locations (https://www.eaton.com/gb/en-gb/skuPage.222688.html)",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "216537 - 60379251 Eaton Moeller® series M22 Surface mounting enclosure, 2 mounting locations (https://www.eaton.com/gb/en-gb/skuPage.216537.html)",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "216536 - 60379251 Eaton Moeller® series M22 Surface mounting enclosure, yellow, 1 mounting location (https://www.eaton.com/gb/en-gb/skuPage.216536.html)",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "216550 - 60379249 Eaton Moeller® series M22 Shroud, for flush mounting plate, 3 mounting locations (https://www.eaton.com/gb/en-gb/skuPage.216550.html)",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "216545 - 60379249 Eaton Moeller® series M22 Flush mounting plate, 4 mounting locations (https://www.eaton.com/gb/en-gb/skuPage.216545.html)",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "216485 - 60379249 Eaton Moeller® series M22 Carrier, +label, 0 I (https://www.eaton.com/gb/en-gb/skuPage.216485.html)",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "216547 - 60379249 Eaton Moeller® series M22 Flush mounting plate, 6 mounting locations (https://www.eaton.com/gb/en-gb/skuPage.216547.html)",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "216541 - 60379249 Eaton Moeller® series M22 Flush mounting plate, 1 mounting location (https://www.eaton.com/gb/en-gb/skuPage.216541.html)",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "216549 - 60379249 Eaton Moeller® series M22 Shroud, for flush mounting plate, 2 mounting locations (https://www.eaton.com/gb/en-gb/skuPage.216549.html)",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "216538 - 60379251 Eaton Moeller® series M22 Surface mounting enclosure, 3 mounting locations (https://www.eaton.com/us/en-us/skuPage.216538.html)",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "216392 - 60379249 Eaton Moeller® series M22 Label mount, without label, black (https://www.eaton.com/us/en-us/skuPage.216392.html)",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "216540 - 60379251 Eaton Moeller® series M22 Surface mounting enclosure, 6 mounting locations (https://www.eaton.com/us/en-us/skuPage.216540.html)",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "216544 - 60379249 Eaton Moeller® series M22 Flush mounting plate, 3 mounting locations (https://www.eaton.com/us/en-us/skuPage.216544.html)",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "216393 - 60379249 Eaton Moeller® series M22 Key supplement label mount without label, large packaging (https://www.eaton.com/us/en-us/skuPage.216393.html)",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "216543 - 60379249 Eaton Moeller® series M22 Flush mounting plate, 2 mounting locations (https://www.eaton.com/us/en-us/skuPage.216543.html)",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "216542 - 60379249 Eaton Moeller® series M22 Flush mounting plate, yellow, 1 mounting location (https://www.eaton.com/us/en-us/skuPage.216542.html)",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "216535 - 60379251 Eaton Moeller® series M22 Surface mounting enclosure, 1 mounting location (https://www.eaton.com/us/en-us/skuPage.216535.html)",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "216493 - 60379249 Eaton Moeller® series M22 Carrier, +label, HAND 0 AUTO (https://www.eaton.com/us/en-us/skuPage.216493.html)",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "222688 - 60379251 Eaton Moeller® series M22 Surface mounting enclosure, 12 mounting locations (https://www.eaton.com/us/en-us/skuPage.222688.html)",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Channel",
+            "value": "web",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Channel",
+            "value": "web",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Channel",
+            "value": "web",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Country",
+            "value": "de",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Country",
+            "value": "gb",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Country",
+            "value": "us",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Domain",
+            "value": "www.eaton.com",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Domain",
+            "value": "www.eaton.com",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Domain",
+            "value": "www.eaton.com",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Language",
+            "value": "de-de",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Language",
+            "value": "en-gb",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Language",
+            "value": "en-us",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Page Type",
+            "value": "product sku",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Page Type",
+            "value": "product sku",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Page Type",
+            "value": "product sku",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Product Family",
+            "value": "Standard-Drucktaster M22 mit 22 mm",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Product Family",
+            "value": "Standard 22mm M22 pushbuttons",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Product Family",
+            "value": "sku page",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Product Name",
+            "value": "M22",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Product Name",
+            "value": "M22",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Product Name",
+            "value": "M22",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Product SKU",
+            "value": "232233",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Product SKU",
+            "value": "232233",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Product SKU",
+            "value": "232233",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Electrical rating",
+            "name": "Power consumption",
+            "value": "0.5 W",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Electrical rating",
+            "name": "Rated insulation voltage (Ui)",
+            "value": "250 V",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Electrical rating",
+            "name": "Rated power",
+            "value": "0.5 VA",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Electrical rating",
+            "name": "Resistance",
+            "value": "10000 Ohm",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General information",
+            "name": "Degree of protection",
+            "value": "IP66 NEMA Other",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General information",
+            "name": "Lifespan, mechanical",
+            "value": "25,000 Operations",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General information",
+            "name": "Mounting position",
+            "value": "As required",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General information",
+            "name": "Opening diameter",
+            "value": "22.5 mm",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General information",
+            "name": "Overvoltage category",
+            "value": "III",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General information",
+            "name": "Pollution degree",
+            "value": "3",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General information",
+            "name": "Rated impulse withstand voltage (Uimp)",
+            "value": "4000 V AC",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General information",
+            "name": "Type",
+            "value": "Potentiometer",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General information",
+            "name": "Used with",
+            "value": "Modular pushbutton",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General specifications",
+            "name": "Catalog Number",
+            "value": "232233",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General specifications",
+            "name": "Catalog Number",
+            "value": "232233",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General specifications",
+            "name": "Certifications",
+            "value": "CSA File No.: 012528 CSA Class No.: 3211-03 IEC/EN 60947 VDE 0660 IEC/EN 60947-5-1 CSA-22.2 No. 14-05 UL UL File No.: E29184 CE UL 508 UL Category Control No.: NKCR CSA",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General specifications",
+            "name": "Certifications",
+            "value": "CSA File No.: 012528 CSA Class No.: 3211-03 IEC/EN 60947 VDE 0660 IEC/EN 60947-5-1 CSA-22.2 No. 14-05 UL UL File No.: E29184 CE UL 508 UL Category Control No.: NKCR CSA",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General specifications",
+            "name": "Compliances",
+            "value": "RoHS Compliant",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General specifications",
+            "name": "Compliances",
+            "value": "RoHS Compliant",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General specifications",
+            "name": "EAN",
+            "value": "4015082322335",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General specifications",
+            "name": "EAN",
+            "value": "4015082322335",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General specifications",
+            "name": "Global Catalog",
+            "value": "232233",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General specifications",
+            "name": "Model Code",
+            "value": "M22S-R10K",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General specifications",
+            "name": "Model Code",
+            "value": "M22S-R10K",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General specifications",
+            "name": "Product Height",
+            "value": "29 mm",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General specifications",
+            "name": "Product Height",
+            "value": "29 mm",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General specifications",
+            "name": "Product Length/Depth",
+            "value": "70 mm",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General specifications",
+            "name": "Product Length/Depth",
+            "value": "70 mm",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General specifications",
+            "name": "Product Name",
+            "value": "Eaton Moeller® series M22 potentiometer",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General specifications",
+            "name": "Product Name",
+            "value": "Eaton Moeller® series M22 potentiometer",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General specifications",
+            "name": "Product Type",
+            "value": "Potentiometer",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General specifications",
+            "name": "Product Weight",
+            "value": "0.034 kg",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General specifications",
+            "name": "Product Weight",
+            "value": "0.034 kg",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General specifications",
+            "name": "Product Width",
+            "value": "29 mm",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General specifications",
+            "name": "Product Width",
+            "value": "29 mm",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Klimatische Umweltbedingungen",
+            "name": "Klimafestigkeit",
+            "value": "Feuchte Wärme, zyklisch, nach IEC 60068-2-30 Feuchte Wärme, konstant, nach IEC 60068-2-78",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Klimatische Umweltbedingungen",
+            "name": "Umgebungsbetriebstemperatur - max.",
+            "value": "70 °C",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Klimatische Umweltbedingungen",
+            "name": "Umgebungsbetriebstemperatur - min.",
+            "value": "-25 °C",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Kommunikation",
+            "name": "Anbindung an SmartWire-DT",
+            "value": "Nein",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Page metadata",
+            "name": "Canonical URL",
+            "value": "https://www.eaton.com/de/de-de/skuPage.232233.html",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Page metadata",
+            "name": "Canonical URL",
+            "value": "https://www.eaton.com/gb/en-gb/skuPage.232233.html",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Page metadata",
+            "name": "Canonical URL",
+            "value": "https://www.eaton.com/us/en-us/skuPage.232233.html",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Page metadata",
+            "name": "Open Graph Description",
+            "value": "232233 - Eaton Moeller® series M22 Potentiometer, klassisch, M22, 22,5 mm, R 10 kΩ, P 0,5 W, Frontring schwarz",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Page metadata",
+            "name": "Open Graph Description",
+            "value": "232233 - Eaton Moeller® series M22 Potentiometer, Classical, M22, 22.5 mm, R 10 kΩ, P 0.5 W, Bezel: black",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Page metadata",
+            "name": "Open Graph Description",
+            "value": "232233 - Eaton Moeller® series M22 Potentiometer, Classical, M22, 22.5 mm, R 10 kΩ, P 0.5 W, Bezel: black",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Page metadata",
+            "name": "Open Graph Title",
+            "value": "232233 | Eaton Moeller® series M22 Potentiometer | Eaton",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Page metadata",
+            "name": "Open Graph Title",
+            "value": "232233 | Eaton Moeller® series M22 potentiometer | Eaton",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Page metadata",
+            "name": "Open Graph Title",
+            "value": "232233 | Eaton Moeller® series M22 potentiometer | Eaton",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Page metadata",
+            "name": "Open Graph Type",
+            "value": "product",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Page metadata",
+            "name": "Open Graph Type",
+            "value": "product",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Page metadata",
+            "name": "Open Graph Type",
+            "value": "product",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Page metadata",
+            "name": "Open Graph URL",
+            "value": "https://www.eaton.com/de/de-de/skuPage.232233.html",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Page metadata",
+            "name": "Open Graph URL",
+            "value": "https://www.eaton.com/gb/en-gb/skuPage.232233.html",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Page metadata",
+            "name": "Open Graph URL",
+            "value": "https://www.eaton.com/us/en-us/skuPage.232233.html",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "10.10 Temperature rise",
+            "value": "The panel builder is responsible for the temperature rise calculation. Eaton will provide heat dissipation data for the devices.",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "10.11 Short-circuit rating",
+            "value": "Is the panel builder's responsibility. The specifications for the switchgear must be observed.",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "10.12 Electromagnetic compatibility",
+            "value": "Is the panel builder's responsibility. The specifications for the switchgear must be observed.",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "10.13 Mechanical function",
+            "value": "The device meets the requirements, provided the information in the instruction leaflet (IL) is observed.",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "10.2.2 Corrosion resistance",
+            "value": "Meets the product standard's requirements.",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "10.2.3.1 Verification of thermal stability of enclosures",
+            "value": "Meets the product standard's requirements.",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "10.2.3.2 Verification of resistance of insulating materials to normal heat",
+            "value": "Meets the product standard's requirements.",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "10.2.3.3 Resist. of insul. mat. to abnormal heat/fire by internal elect. effects",
+            "value": "Meets the product standard's requirements.",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "10.2.4 Resistance to ultra-violet (UV) radiation",
+            "value": "Please enquire",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "10.2.5 Lifting",
+            "value": "Does not apply, since the entire switchgear needs to be evaluated.",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "10.2.6 Mechanical impact",
+            "value": "Does not apply, since the entire switchgear needs to be evaluated.",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "10.2.7 Inscriptions",
+            "value": "Meets the product standard's requirements.",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "10.3 Degree of protection of assemblies",
+            "value": "Does not apply, since the entire switchgear needs to be evaluated.",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "10.4 Clearances and creepage distances",
+            "value": "Meets the product standard's requirements.",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "10.5 Protection against electric shock",
+            "value": "Does not apply, since the entire switchgear needs to be evaluated.",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "10.6 Incorporation of switching devices and components",
+            "value": "Does not apply, since the entire switchgear needs to be evaluated.",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "10.7 Internal electrical circuits and connections",
+            "value": "Is the panel builder's responsibility.",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "10.8 Connections for external conductors",
+            "value": "Is the panel builder's responsibility.",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "10.9.2 Power-frequency electric strength",
+            "value": "Is the panel builder's responsibility.",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "10.9.3 Impulse withstand voltage",
+            "value": "Is the panel builder's responsibility.",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "10.9.4 Testing of enclosures made of insulating material",
+            "value": "Is the panel builder's responsibility.",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Accuracy",
+            "value": "± 10 % (linear), Resistance value",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Ambient operating temperature - max",
+            "value": "70 °C",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Ambient operating temperature - min",
+            "value": "-25 °C",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Bezel",
+            "value": "Black",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Bezel color",
+            "value": "Black",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Climatic proofing",
+            "value": "Damp heat, cyclic, to IEC 60068-2-30 Damp heat, constant, to IEC 60068-2-78",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Connection to SmartWire-DT",
+            "value": "No",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Degree of protection",
+            "value": "IP66 NEMA Other",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Design",
+            "value": "Classical",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Electric connection type",
+            "value": "Screw connection",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Equipment heat dissipation, current-dependent Pvid",
+            "value": "0 W",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Fitted with:",
+            "value": "3 individual screw terminals",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Heat dissipation capacity Pdiss",
+            "value": "0 W",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Heat dissipation per pole, current-dependent Pvid",
+            "value": "0 W",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Lifespan, mechanical",
+            "value": "25,000 Operations",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Mounting position",
+            "value": "As required",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Number of revolutions - max",
+            "value": "1",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Number of revolutions - min",
+            "value": "1",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Opening diameter",
+            "value": "22.5 mm",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Overvoltage category",
+            "value": "III",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Pollution degree",
+            "value": "3",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Power consumption",
+            "value": "0.5 W",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Rated impulse withstand voltage (Uimp)",
+            "value": "4000 V AC",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Rated insulation voltage (Ui)",
+            "value": "250 V",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Rated operational current for specified heat dissipation (In)",
+            "value": "0 A",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Rated power",
+            "value": "0.5 VA",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Resistance",
+            "value": "10000 Ohm",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Shock resistance",
+            "value": "Mechanical, According to IEC/EN 60068-2-27 30 g, Mechanical, According to IEC/EN 60068-2-27, Sinusoidal shock 11 ms",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Static heat dissipation, non-current-dependent Pvs",
+            "value": "0.5 W",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Terminal capacity (solid)",
+            "value": "0.5 - 1.5 mm²",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Terminal capacity (stranded)",
+            "value": "0.5 - 1.5 mm²",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Tightening torque",
+            "value": "0.5 Nm, Screw terminals",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Type",
+            "value": "Potentiometer",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Used with",
+            "value": "Modular pushbutton",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Structured Product Data",
+            "name": "Brand",
+            "value": "Eaton",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Structured Product Data",
+            "name": "Brand",
+            "value": "Eaton",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Structured Product Data",
+            "name": "Brand",
+            "value": "Eaton",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Structured Product Data",
+            "name": "Description",
+            "value": "Eaton Moeller® series M22 Potentiometer, klassisch, M22, 22,5 mm, R 10 kΩ, P 0,5 W, Frontring schwarz",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Structured Product Data",
+            "name": "Description",
+            "value": "Eaton Moeller® series M22 Potentiometer, Classical, M22, 22.5 mm, R 10 kΩ, P 0.5 W, Bezel: black",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Structured Product Data",
+            "name": "Description",
+            "value": "Eaton Moeller® series M22 Potentiometer, Classical, M22, 22.5 mm, R 10 kΩ, P 0.5 W, Bezel: black",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Structured Product Data",
+            "name": "Product Name",
+            "value": "Eaton Moeller® series M22 Potentiometer",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Structured Product Data",
+            "name": "Product Name",
+            "value": "Eaton Moeller® series M22 potentiometer",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Structured Product Data",
+            "name": "Product Name",
+            "value": "Eaton Moeller® series M22 potentiometer",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Structured Product Data",
+            "name": "SKU",
+            "value": "232233",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Structured Product Data",
+            "name": "SKU",
+            "value": "232233",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Structured Product Data",
+            "name": "SKU",
+            "value": "232233",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Terminal capacities",
+            "name": "Terminal capacity (solid)",
+            "value": "0.5 - 1.5 mm²",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Terminal capacities",
+            "name": "Terminal capacity (stranded)",
+            "value": "0.5 - 1.5 mm²",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Terminal capacities",
+            "name": "Tightening torque",
+            "value": "0.5 Nm, Screw terminals",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.232233.html"
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "Y7-232233 M22S-R10K",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/pushbuttons-and-signal-tower/pep-ecopassport/eaton-potentiometers-pep-eato-00324-v0101-en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "Y7-232233 M22S-R10K All Phase 1.00",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/pushbuttons-and-signal-tower/pep-ecopassport/eaton-potentiometers-pep-eato-00324-v0101-en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "Y7-232233 M22S-R10K 0.5 1",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/pushbuttons-and-signal-tower/pep-ecopassport/eaton-potentiometers-pep-eato-00324-v0101-en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Document",
+            "name": "Parsed document",
+            "value": "eaton-potentiometers-pep-eato-00324-v0101-en.pdf (PEP Eco-passport)",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/pushbuttons-and-signal-tower/pep-ecopassport/eaton-potentiometers-pep-eato-00324-v0101-en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Positioned Table",
+            "name": "Product Description",
+            "value": "M22S",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/pushbuttons-and-signal-tower/pep-ecopassport/eaton-potentiometers-pep-eato-00324-v0101-en.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "confidence": 0.88,
+            "stage": "enrich-documents"
+          },
+          {
+            "group": "PDF Positioned Table",
+            "name": "Extrapolation",
+            "value": "1",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/pushbuttons-and-signal-tower/pep-ecopassport/eaton-potentiometers-pep-eato-00324-v0101-en.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "confidence": 0.88,
+            "stage": "enrich-documents"
+          },
+          {
+            "group": "PDF certificate",
+            "name": "Feature",
+            "value": "Low voltage directive 2014/35/EU",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/pushbuttons-and-signal-tower/rmq-titan-m30-pilot-devices/declaration-of-conformity/eaton-potentiometer-declaration-of-conformity-eu251540en.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF certificate",
+            "name": "Feature",
+            "value": "RoHS directive 2011/65/EU + 2015/863",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/pushbuttons-and-signal-tower/rmq-titan-m30-pilot-devices/declaration-of-conformity/eaton-potentiometer-declaration-of-conformity-eu251540en.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Document",
+            "name": "Parsed document",
+            "value": "eaton-potentiometer-declaration-of-conformity-eu251540en.pdf (Declarations of conformity)",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/pushbuttons-and-signal-tower/rmq-titan-m30-pilot-devices/declaration-of-conformity/eaton-potentiometer-declaration-of-conformity-eu251540en.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF certificate",
+            "name": "specifications and relevant installation",
+            "value": "instructions are observed and the products are installed, maintained, and used",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/pushbuttons-and-signal-tower/rmq-titan-m30-pilot-devices/declaration-of-conformity/eaton-potentiometer-declaration-of-conformity-eu251540en.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF certificate",
+            "name": "Low voltage",
+            "value": "directive 2014/35/EU",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/pushbuttons-and-signal-tower/rmq-titan-m30-pilot-devices/declaration-of-conformity/eaton-potentiometer-declaration-of-conformity-eu251540en.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF certificate",
+            "name": "RoHS directive",
+            "value": "2011/65/EU + 2015/863",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/pushbuttons-and-signal-tower/rmq-titan-m30-pilot-devices/declaration-of-conformity/eaton-potentiometer-declaration-of-conformity-eu251540en.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF certificate",
+            "name": "EN 60947-1",
+            "value": "2007 + A1:2011 + A2:2014",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/pushbuttons-and-signal-tower/rmq-titan-m30-pilot-devices/declaration-of-conformity/eaton-potentiometer-declaration-of-conformity-eu251540en.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF certificate",
+            "name": "EN 60947-5-1",
+            "value": "2017 + AC:2020",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/pushbuttons-and-signal-tower/rmq-titan-m30-pilot-devices/declaration-of-conformity/eaton-potentiometer-declaration-of-conformity-eu251540en.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF certificate",
+            "name": "EN IEC 63000",
+            "value": "2018",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/pushbuttons-and-signal-tower/rmq-titan-m30-pilot-devices/declaration-of-conformity/eaton-potentiometer-declaration-of-conformity-eu251540en.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          }
+        ],
+        "documents": [
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "type": "datasheet",
+            "label": "Eaton Specification Sheet - 232233",
+            "url": "https://www.eaton.com/us/en-us/skuPage.232233.pdf",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "type": "datasheet",
+            "label": "Produktspezifikationen",
+            "url": "https://www.eaton.com/de/de-de/skuPage.232233.pdf",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "type": "datasheet",
+            "label": "eaton-pushbuttons-signal-towers-sensors-assortment-overview-catalog-ca047003en-en-us.pdf (Catalogs)",
+            "url": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/pushbuttons-and-signal-tower-/marketing-assets/eaton-pushbuttons-signal-towers-sensors-assortment-overview-catalog-ca047003en-en-us.pdf",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "type": "datasheet",
+            "label": "eaton-product-overview-for-machinery-catalogue-ca08103003zen-en-us.pdf (Catalogs)",
+            "url": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/marketing-assets/eaton-product-overview-machine-building-catalog-ca08103003z-en-us.pdf",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "type": "datasheet",
+            "label": "IL047030ZU (Installationsanleitung)",
+            "url": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/il/IL047030ZU.pdf",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "type": "datasheet",
+            "label": "IL04716002Z (Installationsanleitung)",
+            "url": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/il/IL04716002Z2021_07.pdf",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "type": "datasheet",
+            "label": "eaton-potentiometers-pep-eato-00324-v0101-en.pdf (PEP Eco-passport)",
+            "url": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/pushbuttons-and-signal-tower/pep-ecopassport/eaton-potentiometers-pep-eato-00324-v0101-en.pdf",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html",
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261012103942\\documents\\232233-datasheet-eaton-potentiometers-pep-eato-00324-v0101-en.pdf-(PEP-Eco-passport).pdf",
+            "downloadStatus": "downloaded",
+            "parseStatus": "parsed"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "type": "datasheet",
+            "label": "eaton-Sortimentkatalog-Befehlen-und-Signalisieren-Katalog-CA047003DE-de-de.pdf (Kataloge)",
+            "url": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/germany/eaton-Sortimentkatalog-Befehlen-und-Signalisieren-Katalog-CA047003DE-de-de.pdf.pdf",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "type": "image",
+            "label": "232233 - Standard-Drucktaster M22 mit 22 mm",
+            "url": "https://dynamicmedia.eaton.com/is/image/eaton/232232_C?wid=500&hei=500",
+            "candidateUrls": [
+              "https://www.eaton.com/mdmfiles/contentId/232232_C/90x90_96dpi"
+            ],
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.232233.html",
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261012103942\\images\\ETN.232233.png",
+            "downloadStatus": "downloaded",
+            "parseStatus": "skipped"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "type": "cad",
+            "label": "ETN.232233.edz (eCAD model)",
+            "url": "https://www.eaton.com/content/dam/eaton/cad/ecad/edz/edz06/ETN.232233.edz",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html",
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261012103942\\documents\\232233-cad-ETN.232233.edz-(eCAD-model).edz",
+            "downloadStatus": "downloaded",
+            "parseStatus": "skipped"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "type": "cad",
+            "label": "DA-CS-potentiometer (mCAD model)",
+            "url": "https://www.eaton.com/content/dam/eaton/cad/mcad/step/potentiometer.stp",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "type": "certificate",
+            "label": "eaton-potentiometer-declaration-of-conformity-eu251540en.pdf (Declarations of conformity)",
+            "url": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/pushbuttons-and-signal-tower/rmq-titan-m30-pilot-devices/declaration-of-conformity/eaton-potentiometer-declaration-of-conformity-eu251540en.pdf",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.232233.html",
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261012103942\\documents\\232233-certificate-eaton-potentiometer-declaration-of-conformity-eu251540en.pdf-(Declarations-of-co.pdf",
+            "downloadStatus": "downloaded",
+            "parseStatus": "parsed"
+          }
+        ],
+        "sources": [
+          {
+            "url": "https://www.eaton.com/us/en-us/skuPage.232233.html",
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "parserVersion": "eaton-v2",
+            "fetchedAt": "2026-10-12T10:39:44.876Z",
+            "statusCode": 200
+          },
+          {
+            "url": "https://www.eaton.com/de/de-de/skuPage.232233.html",
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "parserVersion": "eaton-v2",
+            "fetchedAt": "2026-10-12T10:39:45.163Z",
+            "statusCode": 200
+          },
+          {
+            "url": "https://www.eaton.com/gb/en-gb/skuPage.232233.html",
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "parserVersion": "eaton-v2",
+            "fetchedAt": "2026-10-12T10:39:45.299Z",
+            "statusCode": 200
+          },
+          {
+            "url": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/pushbuttons-and-signal-tower/pep-ecopassport/eaton-potentiometers-pep-eato-00324-v0101-en.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "reason": "datasheet",
+            "fetchedAt": "2026-10-12T10:39:58.198Z"
+          },
+          {
+            "url": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/pushbuttons-and-signal-tower/rmq-titan-m30-pilot-devices/declaration-of-conformity/eaton-potentiometer-declaration-of-conformity-eu251540en.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "reason": "certificate",
+            "fetchedAt": "2026-10-12T10:39:58.580Z"
+          }
+        ],
+        "qualityGate": {
+          "passed": true,
+          "identityConfirmed": true,
+          "score": 100,
+          "missing": [],
+          "reason": "Quality gate passed.",
+          "attempts": [
+            {
+              "stage": "eaton-product-page",
+              "url": "https://www.eaton.com/us/en-us/skuPage.232233.html",
+              "status": "passed",
+              "score": 100,
+              "missing": [],
+              "reason": "Quality gate passed.",
+              "sourceType": "official-fallback",
+              "parser": "eaton-product-page",
+              "statusCode": 200,
+              "attributeCount": 268,
+              "documentCount": 12,
+              "sectionAttributeCounts": {}
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

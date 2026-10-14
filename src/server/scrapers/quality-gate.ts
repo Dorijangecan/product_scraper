@@ -9,6 +9,7 @@ import type {
 } from "../../shared/types.js";
 import { requiredElectricalFields } from "../../shared/product-requirements.js";
 import { electricalFieldsForDeviceType } from "../pdt/device-type-profiles.js";
+import { normalizeFields } from "./normalizer.js";
 import { classifyDeviceType } from "./device-type.js";
 import { findUnmappedSpecLabels } from "./ontology.js";
 import { catalogTextMatches, compactCatalogNumber } from "./catalog-number.js";
@@ -154,7 +155,17 @@ export function applyQualityGate(
 }
 
 export function finalizeQualityGate(result: ProductResult, manufacturer: ManufacturerConfig): ProductResult {
-  return applyQualityGate(result, manufacturer, evaluateQualityGate(result, manufacturer, result.catalogNumber, result.qualityGate?.attempts ?? []));
+  let candidate = result;
+  if (manufacturer.id === "eaton") {
+    const recomputed = normalizeFields(result.attributes, result.documents, "eaton");
+    const normalized = { ...result.normalized, ...recomputed };
+    // Fallback scrapers can pre-populate electrical fields from titles/components. Preserve those
+    // only when final, evidence-scoped normalization can also support the field for this exact SKU.
+    if (!recomputed.voltage) delete normalized.voltage;
+    if (!recomputed.current) delete normalized.current;
+    candidate = { ...result, normalized };
+  }
+  return applyQualityGate(candidate, manufacturer, evaluateQualityGate(candidate, manufacturer, candidate.catalogNumber, candidate.qualityGate?.attempts ?? []));
 }
 
 function defaultRecipe(): ScrapeRecipeConfig {

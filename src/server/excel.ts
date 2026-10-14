@@ -5,6 +5,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import sharp from "sharp";
+import { multiplyDecimalExactly } from "./unit-conversion.js";
 import type { FieldCoverageDriftFlag } from "./scrapers/field-coverage-drift.js";
 import type { FinalCompletenessRecord, ManufacturerConfig, ProductResult, RunItemRecord, RunRecord } from "../shared/types.js";
 import { requiredElectricalFields } from "../shared/product-requirements.js";
@@ -101,13 +102,13 @@ export async function exportRunWorkbook(input: {
     { header: "Certificates", key: "certificates", width: 42 },
     { header: "ECLASS", key: "eclass", width: 24 },
     { header: "Weight", key: "weight", width: 20 },
-    { header: "Weight (kg)", key: "weightKg", width: 14, style: { numFmt: "0.#########" } },
-    { header: "Weight (lb)", key: "weightLb", width: 14, style: { numFmt: "0.#########" } },
+    { header: "Weight (kg)", key: "weightKg", width: 14, style: { numFmt: "0.###############" } },
+    { header: "Weight (lb)", key: "weightLb", width: 14, style: { numFmt: "0.###############" } },
     { header: "Dimensions", key: "dimensions", width: 34 },
-    { header: "Height (mm)", key: "heightMm", width: 14, style: { numFmt: "0.#########" } },
-    { header: "Width (mm)", key: "widthMm", width: 14, style: { numFmt: "0.#########" } },
-    { header: "Depth (mm)", key: "depthMm", width: 14, style: { numFmt: "0.#########" } },
-    { header: "Length (mm)", key: "lengthMm", width: 14, style: { numFmt: "0.#########" } },
+    { header: "Height (mm)", key: "heightMm", width: 14, style: { numFmt: "0.###############" } },
+    { header: "Width (mm)", key: "widthMm", width: 14, style: { numFmt: "0.###############" } },
+    { header: "Depth (mm)", key: "depthMm", width: 14, style: { numFmt: "0.###############" } },
+    { header: "Length (mm)", key: "lengthMm", width: 14, style: { numFmt: "0.###############" } },
     { header: "IP Rating", key: "ipRating", width: 18 },
     { header: "Protection", key: "protection", width: 28 },
     { header: "Description", key: "description", width: 70 },
@@ -123,10 +124,10 @@ export async function exportRunWorkbook(input: {
     { header: "Certificate URLs", key: "certificateUrls", width: 76 },
     { header: "Other URLs", key: "otherUrls", width: 76 },
     { header: "All Document URLs", key: "allDocumentUrls", width: 100 },
-    { header: "Height (in)", key: "heightIn", width: 14, style: { numFmt: "0.#########" } },
-    { header: "Width (in)", key: "widthIn", width: 14, style: { numFmt: "0.#########" } },
-    { header: "Depth (in)", key: "depthIn", width: 14, style: { numFmt: "0.#########" } },
-    { header: "Length (in)", key: "lengthIn", width: 14, style: { numFmt: "0.#########" } },
+    { header: "Height (in)", key: "heightIn", width: 14, style: { numFmt: "0.###############" } },
+    { header: "Width (in)", key: "widthIn", width: 14, style: { numFmt: "0.###############" } },
+    { header: "Depth (in)", key: "depthIn", width: 14, style: { numFmt: "0.###############" } },
+    { header: "Length (in)", key: "lengthIn", width: 14, style: { numFmt: "0.###############" } },
     { header: "Finish", key: "finish", width: 42 },
     { header: "Color", key: "color", width: 24 },
     { header: "Poles", key: "poles", width: 18 },
@@ -179,13 +180,13 @@ export async function exportRunWorkbook(input: {
     { header: "Certificates", key: "certificates", width: 38 },
     { header: "ECLASS", key: "eclass", width: 24 },
     { header: "Weight", key: "weight", width: 20 },
-    { header: "Weight (kg)", key: "weightKg", width: 14, style: { numFmt: "0.#########" } },
-    { header: "Weight (lb)", key: "weightLb", width: 14, style: { numFmt: "0.#########" } },
+    { header: "Weight (kg)", key: "weightKg", width: 14, style: { numFmt: "0.###############" } },
+    { header: "Weight (lb)", key: "weightLb", width: 14, style: { numFmt: "0.###############" } },
     { header: "Dimensions", key: "dimensions", width: 34 },
-    { header: "Height (mm)", key: "heightMm", width: 14, style: { numFmt: "0.#########" } },
-    { header: "Width (mm)", key: "widthMm", width: 14, style: { numFmt: "0.#########" } },
-    { header: "Depth (mm)", key: "depthMm", width: 14, style: { numFmt: "0.#########" } },
-    { header: "Length (mm)", key: "lengthMm", width: 14, style: { numFmt: "0.#########" } },
+    { header: "Height (mm)", key: "heightMm", width: 14, style: { numFmt: "0.###############" } },
+    { header: "Width (mm)", key: "widthMm", width: 14, style: { numFmt: "0.###############" } },
+    { header: "Depth (mm)", key: "depthMm", width: 14, style: { numFmt: "0.###############" } },
+    { header: "Length (mm)", key: "lengthMm", width: 14, style: { numFmt: "0.###############" } },
     { header: "Protection", key: "protection", width: 28 },
     { header: "IP Rating", key: "ipRating", width: 18 },
     { header: "Description", key: "description", width: 56 },
@@ -206,12 +207,12 @@ export async function exportRunWorkbook(input: {
     { header: "Product URL EN", key: "productUrlEn", width: 60 },
     { header: "Product URL DE", key: "productUrlDe", width: 60 },
     { header: "Product URL Source", key: "productUrl", width: 60 },
-    { header: "Height (in)", key: "heightIn", width: 14, style: { numFmt: "0.#########" } },
-    { header: "Width (in)", key: "widthIn", width: 14, style: { numFmt: "0.#########" } },
-    { header: "Depth (in)", key: "depthIn", width: 14, style: { numFmt: "0.#########" } },
-    { header: "Length (in)", key: "lengthIn", width: 14, style: { numFmt: "0.#########" } },
-    { header: "Wall Thickness (in)", key: "wallThicknessIn", width: 20, style: { numFmt: "0.#########" } },
-    { header: "Wall Thickness (mm)", key: "wallThicknessMm", width: 20, style: { numFmt: "0.#########" } },
+    { header: "Height (in)", key: "heightIn", width: 14, style: { numFmt: "0.###############" } },
+    { header: "Width (in)", key: "widthIn", width: 14, style: { numFmt: "0.###############" } },
+    { header: "Depth (in)", key: "depthIn", width: 14, style: { numFmt: "0.###############" } },
+    { header: "Length (in)", key: "lengthIn", width: 14, style: { numFmt: "0.###############" } },
+    { header: "Wall Thickness (in)", key: "wallThicknessIn", width: 20, style: { numFmt: "0.###############" } },
+    { header: "Wall Thickness (mm)", key: "wallThicknessMm", width: 20, style: { numFmt: "0.###############" } },
     { header: "Finish", key: "finish", width: 46 },
     { header: "Color", key: "color", width: 28 },
     { header: "Voltage AC", key: "voltageAc", width: 18 },
@@ -1170,11 +1171,11 @@ function populateCleanExportSheet(
     { header: "Manual URLs", key: "manualUrls", width: 76 },
     { header: "CAD URLs", key: "cadUrls", width: 76 },
     { header: "Certificate URLs", key: "certificateUrls", width: 76 },
-    { header: "Weight (kg)", key: "weightKg", width: 14, style: { numFmt: "0.#########" } },
-    { header: "Height (mm)", key: "heightMm", width: 14, style: { numFmt: "0.#########" } },
-    { header: "Width (mm)", key: "widthMm", width: 14, style: { numFmt: "0.#########" } },
-    { header: "Depth (mm)", key: "depthMm", width: 14, style: { numFmt: "0.#########" } },
-    { header: "Length (mm)", key: "lengthMm", width: 14, style: { numFmt: "0.#########" } },
+    { header: "Weight (kg)", key: "weightKg", width: 14, style: { numFmt: "0.###############" } },
+    { header: "Height (mm)", key: "heightMm", width: 14, style: { numFmt: "0.###############" } },
+    { header: "Width (mm)", key: "widthMm", width: 14, style: { numFmt: "0.###############" } },
+    { header: "Depth (mm)", key: "depthMm", width: 14, style: { numFmt: "0.###############" } },
+    { header: "Length (mm)", key: "lengthMm", width: 14, style: { numFmt: "0.###############" } },
     { header: "Material", key: "material", width: 30 },
     { header: "Finish", key: "finish", width: 34 },
     { header: "Color", key: "color", width: 22 },
@@ -1679,7 +1680,7 @@ function populateSpecMatrixSheet(sheet: ExcelJS.Worksheet, items: RunItemRecord[
     { header: "Material", key: "material", width: 30 },
     { header: "Housing Material", key: "housingMaterial", width: 30 },
     { header: "Dimensions", key: "dimensions", width: 28 },
-    { header: "Weight (kg)", key: "weightKg", width: 14, style: { numFmt: "0.#########" } },
+    { header: "Weight (kg)", key: "weightKg", width: 14, style: { numFmt: "0.###############" } },
     { header: "Ambient Temperature", key: "ambientTemperature", width: 28 },
     { header: "Approval/Conformity", key: "approvalConformity", width: 34 },
     { header: "Certificates", key: "certificates", width: 34 },
@@ -2684,7 +2685,7 @@ function bestWeightMeasurement(attributes: ProductResult["attributes"], fallback
   const best = candidates.sort((left, right) => right.score - left.score)[0]?.value ?? parseWeightMeasurement(fallback);
   if (!best) return undefined;
   if (best.lb === undefined && best.kg !== undefined) best.lb = best.kg / POUND_TO_KILOGRAM;
-  if (best.kg === undefined && best.lb !== undefined) best.kg = best.lb * POUND_TO_KILOGRAM;
+  if (best.kg === undefined && best.lb !== undefined) best.kg = exactProductNumber(best.lb, "0.45359237");
   return best;
 }
 
@@ -2698,8 +2699,8 @@ function parseWeightMeasurement(value: string | undefined): WeightMeasurement | 
   const unit = match[2].toLowerCase();
   if (unit === "kg") return { kg: number, lb: number / POUND_TO_KILOGRAM };
   if (unit === "g") return { kg: number / 1000, lb: number / 1000 / POUND_TO_KILOGRAM };
-  if (/^lb|pound/.test(unit)) return { lb: number, kg: number * POUND_TO_KILOGRAM };
-  if (/^oz|ounce/.test(unit)) return { lb: number / 16, kg: number * OUNCE_TO_KILOGRAM };
+  if (/^lb|pound/.test(unit)) return { lb: number, kg: exactProductNumber(number, "0.45359237") };
+  if (/^oz|ounce/.test(unit)) return { lb: number / 16, kg: exactProductNumber(number, "0.028349523125") };
   return undefined;
 }
 
@@ -2838,10 +2839,15 @@ function parseLengthMeasurement(value: string | undefined): LengthMeasurement | 
 function toLengthMeasurement(value: number, unit: string | undefined): LengthMeasurement | undefined {
   if (!Number.isFinite(value) || !unit) return undefined;
   if (unit === "mm") return { mm: value, in: value / INCH_TO_MILLIMETER };
-  if (unit === "cm") return { mm: value * 10, in: (value * 10) / INCH_TO_MILLIMETER };
-  if (unit === "m") return { mm: value * 1000, in: (value * 1000) / INCH_TO_MILLIMETER };
-  if (unit === "ft") return { in: value * 12, mm: value * 304.8 };
-  return { in: value, mm: value * INCH_TO_MILLIMETER };
+  if (unit === "cm") return { mm: exactProductNumber(value, "10"), in: (value * 10) / INCH_TO_MILLIMETER };
+  if (unit === "m") return { mm: exactProductNumber(value, "1000"), in: (value * 1000) / INCH_TO_MILLIMETER };
+  if (unit === "ft") return { in: exactProductNumber(value, "12"), mm: exactProductNumber(value, "304.8") };
+  return { in: value, mm: exactProductNumber(value, "25.4") };
+}
+
+function exactProductNumber(value: number, factor: string): number {
+  const exact = multiplyDecimalExactly(String(value), factor);
+  return exact === undefined ? value * Number(factor) : Number(exact);
 }
 
 function normalizeLengthUnit(unit: string | undefined): string | undefined {
@@ -2873,7 +2879,7 @@ function measurementAttributeScore(attr: ProductResult["attributes"][number]): n
 
 function measurementNumber(value: number | undefined): number | undefined {
   if (value === undefined || !Number.isFinite(value)) return undefined;
-  return Number((value + Number.EPSILON).toFixed(9));
+  return value;
 }
 
 type ProductThumbnail = { status: "ok"; buffer: Buffer } | { status: "error" } | undefined;

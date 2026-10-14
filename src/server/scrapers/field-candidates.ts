@@ -31,6 +31,15 @@ export function applyFieldCandidateResolution(result: ProductResult): ProductRes
   const candidates = buildFieldCandidates(result);
   const resolutions = buildFieldResolutions(candidates);
   const normalized = { ...result.normalized };
+  const eatonElectrical = result.manufacturerId === "eaton"
+    ? normalizeFields(result.attributes, result.documents, "eaton")
+    : undefined;
+  if (eatonElectrical) {
+    if (eatonElectrical.voltage) normalized.voltage = eatonElectrical.voltage;
+    else delete normalized.voltage;
+    if (eatonElectrical.current) normalized.current = eatonElectrical.current;
+    else delete normalized.current;
+  }
   const previousPenalty = result.diagnostics?.confidencePenalty ?? 0;
   const conflictPenalty = Math.min(0.15, resolutions.reduce((sum, resolution) => sum + resolution.conflictCount * 0.02, 0));
   // Resolution is invoked at multiple pipeline stages. Persist the largest known penalty so the
@@ -41,6 +50,10 @@ export function applyFieldCandidateResolution(result: ProductResult): ProductRes
   for (const resolution of resolutions) {
     if (!resolution.selectedValue || !isNormalizedField(resolution.field)) continue;
     const key = resolution.field as keyof NormalizedProductFields;
+    // Eaton's generic field candidates flatten component scope (for example, a built-in LED's
+    // voltage) and broad PDF tables into product-level values. Electrical fields must instead be
+    // supported by the evidence-scoped normalizer above.
+    if (eatonElectrical && (key === "voltage" || key === "current") && !eatonElectrical[key]) continue;
     if (normalized[key]) continue;
     // Field candidates are raw evidence. Do not let a winning candidate bypass the canonical
     // field validator just because it won a source-priority comparison (e.g. "24VDC" → "24 V DC").

@@ -1,0 +1,2952 @@
+{
+  "generatedAt": "2026-10-12T10:57:31.853Z",
+  "outputDir": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261012105716",
+  "filters": {
+    "manufacturer": "eaton",
+    "catalogNumber": "1173A-100",
+    "fixtureDir": "benchmarks/eaton-speed-optimization-20261012/group-a",
+    "isolatedStorage": "1",
+    "tag": "20261012-post-final-a-1173A-100"
+  },
+  "summary": {
+    "foundRate": 100,
+    "officialUrlRate": 100,
+    "documentRate": 100,
+    "pdtAuditRate": 100,
+    "deviceTypeRate": 100,
+    "customerDocumentRate": 0,
+    "wrongProducts": 0,
+    "partialWithoutMissing": 0,
+    "pdtUnprovenWritten": 0,
+    "pdtUnexplainedRequiredFieldIssues": 0,
+    "pdtWriteIssues": 2,
+    "qualityAccepted": true,
+    "fixtureCoverageAccepted": true,
+    "fixtureCoverage": {
+      "byManufacturer": {
+        "eaton": {
+          "total": 1,
+          "caseTypes": [
+            "electrical"
+          ],
+          "riskTags": [
+            "70-series-sensor",
+            "cold"
+          ]
+        }
+      },
+      "byDeviceType": {
+        "Photoelectric Sensor": {
+          "total": 1,
+          "manufacturers": [
+            "eaton"
+          ],
+          "caseTypes": [
+            "electrical"
+          ]
+        }
+      },
+      "byDeviceSheet": {
+        "optical sensor": {
+          "total": 1,
+          "deviceTypes": [
+            "Photoelectric Sensor"
+          ],
+          "manufacturers": [
+            "eaton"
+          ]
+        }
+      },
+      "thinManufacturers": [
+        "eaton"
+      ],
+      "uncoveredDeviceSheets": [
+        "Busbar",
+        "Luminaire",
+        "Motion Controller",
+        "PCB connection system",
+        "PCB connection technology",
+        "PLC",
+        "RS232 interfaces",
+        "Switch",
+        "Wire ID Information",
+        "cabinet",
+        "cabinet.airconditioning",
+        "cabinet.mechanical",
+        "cabinet.rack",
+        "cable",
+        "cable ducts mounting rails",
+        "cable gland",
+        "command and alarm device",
+        "connector",
+        "contactor a. fuses",
+        "directional control valve",
+        "el. mesurement devices",
+        "electronic sensor",
+        "energy distribution system",
+        "filters",
+        "fluid power",
+        "generator",
+        "int. ext. lightning protection",
+        "module carrier frame",
+        "motor protection",
+        "motors",
+        "panel (HMI)",
+        "pneumatic handling",
+        "power supply devices",
+        "pump",
+        "safety sensor",
+        "sensor - fluid",
+        "servo controller",
+        "terminal",
+        "terminal endbracket",
+        "ventil"
+      ],
+      "missingDeviceSheetRecommendations": [
+        {
+          "sheetName": "Busbar",
+          "deviceTypes": [
+            "Busbar"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "Luminaire",
+          "deviceTypes": [
+            "Luminaire"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SL0040I.953",
+              "deviceType": "Luminaire",
+              "notes": "FATH Module F Line LED lamp"
+            }
+          ]
+        },
+        {
+          "sheetName": "Motion Controller",
+          "deviceTypes": [
+            "Motion Controller"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1756-HYD",
+              "deviceType": "Motion Controller",
+              "notes": "ControlLogix integrated motion modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1756-M02",
+              "deviceType": "Motion Controller",
+              "notes": "ControlLogix integrated motion modules"
+            }
+          ]
+        },
+        {
+          "sheetName": "PCB connection system",
+          "deviceTypes": [
+            "PCB Connector"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "PCB connection technology",
+          "deviceTypes": [
+            "PCB Terminal Block"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "PLC",
+          "deviceTypes": [
+            "Communication Gateway",
+            "HMI",
+            "I/O Module",
+            "Programmable Logic Controller"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "FL",
+              "deviceType": "Communication Gateway",
+              "notes": "FL switch / FL gateway"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "RAD",
+              "deviceType": "Communication Gateway",
+              "notes": "Radioline"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENT",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENTR",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1783",
+              "deviceType": "Communication Gateway",
+              "notes": "Stratix industrial networking and communication modules"
+            }
+          ]
+        },
+        {
+          "sheetName": "RS232 interfaces",
+          "deviceTypes": [
+            "Communication Gateway"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "FL",
+              "deviceType": "Communication Gateway",
+              "notes": "FL switch / FL gateway"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "RAD",
+              "deviceType": "Communication Gateway",
+              "notes": "Radioline"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENT",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENTR",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1783",
+              "deviceType": "Communication Gateway",
+              "notes": "Stratix industrial networking and communication modules"
+            }
+          ]
+        },
+        {
+          "sheetName": "Switch",
+          "deviceTypes": [
+            "Lock / Interlock",
+            "Selector Switch",
+            "Switch"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "M2SS",
+              "deviceType": "Selector Switch",
+              "notes": "M2SS selector switches"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "M22-WR",
+              "deviceType": "Selector Switch",
+              "notes": "M22 selector switch actuator"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "JSHD",
+              "deviceType": "Switch",
+              "notes": "JSHD three-position handheld devices"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "2702665",
+              "deviceType": "Switch",
+              "notes": "Phoenix FL SWITCH 2105 item number"
+            },
+            {
+              "manufacturerId": "schmersal",
+              "pattern": "EFM",
+              "deviceType": "Switch",
+              "notes": "Schmersal foot switches"
+            }
+          ]
+        },
+        {
+          "sheetName": "Wire ID Information",
+          "deviceTypes": [
+            "Wire Marker"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "cabinet",
+          "deviceTypes": [
+            "Enclosure"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEP",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEPY",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PSN",
+              "deviceType": "Enclosure",
+              "notes": "xEnergy ProfiSNAP enclosure panels/accessories"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "P2C",
+              "deviceType": "Enclosure",
+              "notes": "nVent Hoffman enclosure families"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "P2D",
+              "deviceType": "Enclosure",
+              "notes": "nVent Hoffman enclosure families"
+            }
+          ]
+        },
+        {
+          "sheetName": "cabinet.airconditioning",
+          "deviceTypes": [
+            "Thermal Management"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "nvent",
+              "pattern": "DAH",
+              "deviceType": "Thermal Management",
+              "notes": "nVent HOFFMAN DAH enclosure heaters"
+            },
+            {
+              "manufacturerId": "rittal",
+              "pattern": "SK",
+              "deviceType": "Thermal Management",
+              "notes": "Climate control / filter fans"
+            }
+          ]
+        },
+        {
+          "sheetName": "cabinet.mechanical",
+          "deviceTypes": [
+            "Accessory",
+            "Cover / Door Accessory",
+            "Enclosure",
+            "Subpanel"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "MDB",
+              "deviceType": "Accessory",
+              "notes": "MDB dummy blocks and operator accessories"
+            },
+            {
+              "manufacturerId": "fath",
+              "pattern": "061CC42300.74",
+              "deviceType": "Cover / Door Accessory",
+              "notes": "FATH shelf-board cover cap"
+            },
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "73540003",
+              "deviceType": "Cover / Door Accessory",
+              "notes": "Spelsberg AK KF 03 hinged window"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEP",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEPY",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            }
+          ]
+        },
+        {
+          "sheetName": "cabinet.rack",
+          "deviceTypes": [
+            "Rack Cabinet"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rittal",
+              "pattern": "DK",
+              "deviceType": "Rack Cabinet"
+            }
+          ]
+        },
+        {
+          "sheetName": "cable",
+          "deviceTypes": [
+            "Cable"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SAMB1J313B.4000",
+              "deviceType": "Cable",
+              "notes": "FATH Module F Line GST18i3 main power cable"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "889",
+              "deviceType": "Cable",
+              "notes": "Allen-Bradley cordsets and patchcords"
+            },
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "59181001",
+              "deviceType": "Cable",
+              "notes": "Spelsberg Wallbox LL 7m Type 2 charging cable"
+            }
+          ]
+        },
+        {
+          "sheetName": "cable ducts mounting rails",
+          "deviceTypes": [
+            "Mounting Accessory",
+            "Wireway"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "09308901S01",
+              "deviceType": "Mounting Accessory",
+              "notes": "FATH workstation and profile mounting components"
+            },
+            {
+              "manufacturerId": "fath",
+              "pattern": "6FG40ND80M695N08",
+              "deviceType": "Mounting Accessory",
+              "notes": "FATH workstation and profile mounting components"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "CP2020",
+              "deviceType": "Mounting Accessory",
+              "notes": "nVent Hoffman/Schroff accessory items verified on official product pages"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "CSP2020",
+              "deviceType": "Mounting Accessory",
+              "notes": "nVent Hoffman/Schroff accessory items verified on official product pages"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "1524160",
+              "deviceType": "Mounting Accessory",
+              "notes": "Phoenix MCS-112X90-AP-7035 adapter plate item number"
+            }
+          ]
+        },
+        {
+          "sheetName": "cable gland",
+          "deviceTypes": [
+            "Cable Gland"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "26013201",
+              "deviceType": "Cable Gland",
+              "notes": "Spelsberg DMS M32/w double-membrane seal"
+            }
+          ]
+        },
+        {
+          "sheetName": "command and alarm device",
+          "deviceTypes": [
+            "Pilot Light",
+            "Pushbutton / Operator",
+            "Stack Light / Beacon"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "ML1",
+              "deviceType": "Pilot Light",
+              "notes": "ML1 pilot lights"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "M22",
+              "deviceType": "Pushbutton / Operator",
+              "notes": "M22 control station"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "800F",
+              "deviceType": "Pushbutton / Operator"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "800H",
+              "deviceType": "Pushbutton / Operator"
+            },
+            {
+              "manufacturerId": "schmersal",
+              "pattern": "BDF",
+              "deviceType": "Pushbutton / Operator",
+              "notes": "BDF command and control devices"
+            }
+          ]
+        },
+        {
+          "sheetName": "connector",
+          "deviceTypes": [
+            "Connector",
+            "Optical Connector"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SAKP5J516BS01",
+              "deviceType": "Connector",
+              "notes": "FATH Module F Line and profile connectors"
+            },
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SBEU14I.317",
+              "deviceType": "Connector",
+              "notes": "FATH Module F Line and profile connectors"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "69001-",
+              "deviceType": "Connector",
+              "notes": "nVent SCHROFF DIN connectors"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "MCS",
+              "deviceType": "Connector"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VIP",
+              "deviceType": "Connector"
+            }
+          ]
+        },
+        {
+          "sheetName": "contactor a. fuses",
+          "deviceTypes": [
+            "Circuit Breaker",
+            "Contactor",
+            "Disconnect Switch",
+            "Fuse",
+            "Miniature Circuit Breaker",
+            "Molded Case Circuit Breaker",
+            "Relay",
+            "Residual Current Device",
+            "Supplementary Protector"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "eta",
+              "pattern": "3120",
+              "deviceType": "Circuit Breaker"
+            },
+            {
+              "manufacturerId": "eta",
+              "pattern": "REX",
+              "deviceType": "Circuit Breaker"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492-CB",
+              "deviceType": "Circuit Breaker",
+              "notes": "Allen-Bradley circuit breakers"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "A",
+              "deviceType": "Contactor",
+              "notes": "AF / A / AL / AX series IEC contactors"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "AF",
+              "deviceType": "Contactor",
+              "notes": "AF / A / AL / AX series IEC contactors"
+            }
+          ]
+        },
+        {
+          "sheetName": "directional control valve",
+          "deviceTypes": [
+            "Directional Control Valve"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "el. mesurement devices",
+          "deviceTypes": [
+            "Current Sensor",
+            "Power Meter"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "electronic sensor",
+          "deviceTypes": [
+            "Capacitive Sensor",
+            "Encoder",
+            "Inductive Proximity Sensor",
+            "Magnetic Field Sensor",
+            "RFID Device",
+            "Sensor",
+            "Ultrasonic Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BCS",
+              "deviceType": "Capacitive Sensor"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BDG",
+              "deviceType": "Encoder",
+              "notes": "Absolute encoder"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BTL",
+              "deviceType": "Encoder",
+              "notes": "Magnetostrictive linear encoder"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BES",
+              "deviceType": "Inductive Proximity Sensor"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BIS",
+              "deviceType": "Inductive Proximity Sensor"
+            }
+          ]
+        },
+        {
+          "sheetName": "energy distribution system",
+          "deviceTypes": [
+            "Loadcenter"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "filters",
+          "deviceTypes": [
+            "Filter"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "fluid power",
+          "deviceTypes": [
+            "Hydraulic Actuator"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "generator",
+          "deviceTypes": [
+            "Generator"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "int. ext. lightning protection",
+          "deviceTypes": [
+            "Surge Protective Device"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "OVR",
+              "deviceType": "Surge Protective Device"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VAL-CP",
+              "deviceType": "Surge Protective Device"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VAL-MS",
+              "deviceType": "Surge Protective Device"
+            }
+          ]
+        },
+        {
+          "sheetName": "module carrier frame",
+          "deviceTypes": [
+            "Module Carrier"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "siemens",
+              "pattern": "6ES7193",
+              "deviceType": "Module Carrier",
+              "notes": "SIMATIC ET 200SP BaseUnits / base carriers"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "BaseUnits",
+              "deviceType": "Module Carrier",
+              "notes": "SIMATIC ET 200SP BaseUnits / base carriers"
+            }
+          ]
+        },
+        {
+          "sheetName": "motor protection",
+          "deviceTypes": [
+            "Motor Circuit Breaker",
+            "Motor Starter"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "MO",
+              "deviceType": "Motor Circuit Breaker",
+              "notes": "Manual motor starter"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MS",
+              "deviceType": "Motor Circuit Breaker",
+              "notes": "Manual motor starter"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PKE",
+              "deviceType": "Motor Circuit Breaker"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PKZM",
+              "deviceType": "Motor Circuit Breaker"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "140M",
+              "deviceType": "Motor Circuit Breaker"
+            }
+          ]
+        },
+        {
+          "sheetName": "motors",
+          "deviceTypes": [
+            "Motor",
+            "Variable Speed Drive"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "M2A",
+              "deviceType": "Motor"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "TM",
+              "deviceType": "Motor"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "ACQ",
+              "deviceType": "Variable Speed Drive",
+              "notes": "ACS / ACQ / ACH drives"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "ACS",
+              "deviceType": "Variable Speed Drive",
+              "notes": "ACS / ACQ / ACH drives"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "DC1",
+              "deviceType": "Variable Speed Drive",
+              "notes": "PowerXL"
+            }
+          ]
+        },
+        {
+          "sheetName": "panel (HMI)",
+          "deviceTypes": [
+            "HMI"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "CP6",
+              "deviceType": "HMI",
+              "notes": "CP6xx HMI panel"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "XV",
+              "deviceType": "HMI"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "2711",
+              "deviceType": "HMI",
+              "notes": "PanelView HMI"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "2711P",
+              "deviceType": "HMI",
+              "notes": "PanelView HMI"
+            },
+            {
+              "manufacturerId": "schneider",
+              "pattern": "HMI",
+              "deviceType": "HMI",
+              "notes": "Harmony HMI"
+            }
+          ]
+        },
+        {
+          "sheetName": "pneumatic handling",
+          "deviceTypes": [
+            "Pneumatic Device"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "power supply devices",
+          "deviceTypes": [
+            "Battery",
+            "Power Supply",
+            "Transformer",
+            "UPS"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "CP-E",
+              "deviceType": "Power Supply",
+              "notes": "CP-T / CP-E DIN-rail PSUs"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "CP-T",
+              "deviceType": "Power Supply",
+              "notes": "CP-T / CP-E DIN-rail PSUs"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "QUINT",
+              "deviceType": "Power Supply"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "TRIO",
+              "deviceType": "Power Supply"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1606",
+              "deviceType": "Power Supply",
+              "notes": "Allen-Bradley switched mode power supplies"
+            }
+          ]
+        },
+        {
+          "sheetName": "pump",
+          "deviceTypes": [
+            "Pump"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "safety sensor",
+          "deviceTypes": [
+            "Safety Relay",
+            "Safety Sensor",
+            "Solenoid Interlock"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "PLUTO",
+              "deviceType": "Safety Relay",
+              "notes": "Pluto safety controller"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "2981091",
+              "deviceType": "Safety Relay",
+              "notes": "Phoenix PSR-SPP-24DC/ESD/5X1/1X2/T10 item number"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "PSR",
+              "deviceType": "Safety Relay"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "PSRMINI",
+              "deviceType": "Safety Relay"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "440C",
+              "deviceType": "Safety Relay"
+            }
+          ]
+        },
+        {
+          "sheetName": "sensor - fluid",
+          "deviceTypes": [
+            "Flow Sensor",
+            "Level Sensor",
+            "Pressure Sensor",
+            "Temperature Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "839E",
+              "deviceType": "Flow Sensor",
+              "notes": "Allen-Bradley flow sensors"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "840E",
+              "deviceType": "Level Sensor",
+              "notes": "Allen-Bradley level sensors"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "836P",
+              "deviceType": "Pressure Sensor",
+              "notes": "Allen-Bradley pressure sensors"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "837T",
+              "deviceType": "Temperature Sensor",
+              "notes": "Allen-Bradley temperature sensors"
+            }
+          ]
+        },
+        {
+          "sheetName": "servo controller",
+          "deviceTypes": [
+            "Soft Starter",
+            "Variable Speed Drive"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "PSE",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "PSTX",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "DS7",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "schneider",
+              "pattern": "ATS",
+              "deviceType": "Soft Starter",
+              "notes": "Altistart"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "3RW",
+              "deviceType": "Soft Starter",
+              "notes": "SIRIUS soft starter"
+            }
+          ]
+        },
+        {
+          "sheetName": "terminal",
+          "deviceTypes": [
+            "Terminal Block"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "UK",
+              "deviceType": "Terminal Block"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "UT",
+              "deviceType": "Terminal Block"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492",
+              "deviceType": "Terminal Block"
+            }
+          ]
+        },
+        {
+          "sheetName": "terminal endbracket",
+          "deviceTypes": [
+            "Terminal Accessory"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "CLIPFIX",
+              "deviceType": "Terminal Accessory"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "E/UK",
+              "deviceType": "Terminal Accessory"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492-EAH",
+              "deviceType": "Terminal Accessory",
+              "notes": "1492 end anchors / end retainers"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492-EAJ",
+              "deviceType": "Terminal Accessory",
+              "notes": "1492 end anchors / end retainers"
+            }
+          ]
+        },
+        {
+          "sheetName": "ventil",
+          "deviceTypes": [
+            "Valve"
+          ],
+          "examples": []
+        }
+      ],
+      "deviceSheetCoverage": {
+        "covered": 1,
+        "total": 41
+      }
+    },
+    "fixtureCoverageRequired": false,
+    "accepted": true
+  },
+  "reports": [
+    {
+      "manufacturerId": "eaton",
+      "catalogNumber": "1173A-100",
+      "caseType": "electrical",
+      "expectedDeviceType": "Photoelectric Sensor",
+      "actualDeviceType": "Photoelectric Sensor",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "cold",
+        "70-series-sensor"
+      ],
+      "status": "found",
+      "confidence": 0.57,
+      "elapsedMs": 12797,
+      "productUrl": "https://www.eaton.com/us/en-us/skuPage.1173A-100.html",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261012105716\\pdt\\eaton-1173A-100-pdt_pdt-audit.json",
+      "pdtWrittenCells": 60,
+      "pdtBlankCells": 223,
+      "pdtSkippedCells": 2,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 2,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": [],
+      "resultEvidence": {
+        "title": "1173A-100 | Eaton 70 series photoelectric sensor",
+        "description": "Eaton 70 Series Photoelectric Sensor Head, Photoelectric, 0.75 diameter, Forward Viewing, Sensor distance: Depends on controller used, Thru-beam, 9 Ft. ( 2.7m )",
+        "productUrl": "https://www.eaton.com/us/en-us/skuPage.1173A-100.html",
+        "localizedUrls": {
+          "en": "https://www.eaton.com/gb/en-gb/skuPage.1173A-100.html",
+          "de": "https://www.eaton.com/de/de-de/skuPage.1173A-100.html"
+        },
+        "localizedDescriptions": {
+          "de": {
+            "title": "1173A-100 | Eaton 70 series photoelectric sensor",
+            "description": "Eaton 70 Series Photoelectric Sensor Head, Photoelectric, 0.75 diameter, Forward Viewing, Sensor distance: Depends on controller used, Thru-beam, 9 Ft. ( 2.7m )"
+          }
+        },
+        "deviceTypeClassification": {
+          "type": "Photoelectric Sensor",
+          "confidence": 0.98,
+          "evidence": "Product Type: Photoelectric sensor",
+          "alternatives": [
+            {
+              "type": "Sensor",
+              "score": 1790,
+              "channels": [
+                "text"
+              ]
+            }
+          ],
+          "scoreMargin": 260
+        },
+        "normalized": {
+          "weight": "0.1375 lb (0.062368950875 kg)",
+          "dimensions": "1.26 x 0.31 x 0.31 in (32.004 x 7.874 x 7.874 mm)",
+          "material": "Aluminum",
+          "current": "Varies from 50 mA to 2 A | AC/DC units: 300 mA",
+          "protection": "NEMA 4, NEMA 6, NEMA 13; NEMA1",
+          "operatingTemperatureMin": "-40",
+          "operatingTemperatureMax": "80",
+          "voltage": "90...132 V AC at 60 Hz"
+        },
+        "requiredElectricalFields": [
+          "voltage"
+        ],
+        "attributes": [
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Allgemeine Spezifikation",
+            "name": "Catalog Number",
+            "value": "1173A-100",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Allgemeine Spezifikation",
+            "name": "Compliances",
+            "value": "Contact Manufacturer",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Allgemeine Spezifikation",
+            "name": "Product Height",
+            "value": "1.26 in",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Allgemeine Spezifikation",
+            "name": "Product Length/Depth",
+            "value": "0.31 in",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Allgemeine Spezifikation",
+            "name": "Product Name",
+            "value": "Eaton 70 series photoelectric sensor",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Allgemeine Spezifikation",
+            "name": "Product Weight",
+            "value": "0.1375 lb",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Allgemeine Spezifikation",
+            "name": "Product Width",
+            "value": "0.31 in",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Allgemeine Spezifikation",
+            "name": "UPC",
+            "value": "782113819792",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Channel",
+            "value": "web",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Channel",
+            "value": "web",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Channel",
+            "value": "web",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Channel",
+            "value": "web",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Country",
+            "value": "cn",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Country",
+            "value": "de",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Country",
+            "value": "gb",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Country",
+            "value": "us",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Domain",
+            "value": "www.eaton.com.cn",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Domain",
+            "value": "www.eaton.com",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Domain",
+            "value": "www.eaton.com",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Domain",
+            "value": "www.eaton.com",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Language",
+            "value": "zh-cn",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Language",
+            "value": "de-de",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Language",
+            "value": "en-gb",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Language",
+            "value": "en-us",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Page Type",
+            "value": "product sku",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Page Type",
+            "value": "product sku",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Page Type",
+            "value": "product sku",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Page Type",
+            "value": "product sku",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Product Family",
+            "value": "sku page",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Product Family",
+            "value": "sku page",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Product Family",
+            "value": "sku page",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Product Family",
+            "value": "sku page",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Product Name",
+            "value": "70 series",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Product Name",
+            "value": "70 series",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Product Name",
+            "value": "70 series",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Product Name",
+            "value": "70 series",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Product SKU",
+            "value": "1173A-100",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Product SKU",
+            "value": "1173A-100",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Product SKU",
+            "value": "1173A-100",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Product SKU",
+            "value": "1173A-100",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General specifications",
+            "name": "Catalog Number",
+            "value": "1173A-100",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General specifications",
+            "name": "Catalog Number",
+            "value": "1173A-100",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General specifications",
+            "name": "Compliances",
+            "value": "Contact Manufacturer",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General specifications",
+            "name": "Compliances",
+            "value": "Contact Manufacturer",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General specifications",
+            "name": "Global Catalog",
+            "value": "1173A-100",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General specifications",
+            "name": "Product Height",
+            "value": "1.26 in",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General specifications",
+            "name": "Product Height",
+            "value": "1.26 in",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General specifications",
+            "name": "Product Length/Depth",
+            "value": "0.31 in",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General specifications",
+            "name": "Product Length/Depth",
+            "value": "0.31 in",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General specifications",
+            "name": "Product Name",
+            "value": "Eaton 70 series photoelectric sensor",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General specifications",
+            "name": "Product Name",
+            "value": "Eaton 70 series photoelectric sensor",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General specifications",
+            "name": "Product Type",
+            "value": "Photoelectric sensor",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General specifications",
+            "name": "Product Weight",
+            "value": "0.1375 lb",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General specifications",
+            "name": "Product Weight",
+            "value": "0.1375 lb",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General specifications",
+            "name": "Product Width",
+            "value": "0.31 in",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General specifications",
+            "name": "Product Width",
+            "value": "0.31 in",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General specifications",
+            "name": "UPC",
+            "value": "782113819792",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General specifications",
+            "name": "UPC",
+            "value": "782113819792",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General specifications",
+            "name": "Warranty",
+            "value": "3 year",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Page metadata",
+            "name": "Canonical URL",
+            "value": "https://www.eaton.com.cn/cn/zh-cn/skuPage.1173A-100.html",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Page metadata",
+            "name": "Canonical URL",
+            "value": "https://www.eaton.com/de/de-de/skuPage.1173A-100.html",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Page metadata",
+            "name": "Canonical URL",
+            "value": "https://www.eaton.com/gb/en-gb/skuPage.1173A-100.html",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Page metadata",
+            "name": "Canonical URL",
+            "value": "https://www.eaton.com/us/en-us/skuPage.1173A-100.html",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Page metadata",
+            "name": "Open Graph Description",
+            "value": "1173A-100 | Eaton 70 Series Photoelectric Sensor Head, Photoelectric, 0.75 diameter, Forward Viewing, Sensor distance: Depends on controller used, Thru-beam, 9 Ft. ( 2.7m )",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Page metadata",
+            "name": "Open Graph Description",
+            "value": "1173A-100 - Eaton 70 Series Photoelectric Sensor Head, Photoelectric, 0.75 diameter, Forward Viewing, Sensor distance: Depends on controller used, Thru-beam, 9 Ft. ( 2.7m )",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Page metadata",
+            "name": "Open Graph Description",
+            "value": "1173A-100 - Eaton 70 Series Photoelectric Sensor Head, Photoelectric, 0.75 diameter, Forward Viewing, Sensor distance: Depends on controller used, Thru-beam, 9 Ft. ( 2.7m )",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Page metadata",
+            "name": "Open Graph Description",
+            "value": "1173A-100 - Eaton 70 Series Photoelectric Sensor Head, Photoelectric, 0.75 diameter, Forward Viewing, Sensor distance: Depends on controller used, Thru-beam, 9 Ft. ( 2.7m )",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Page metadata",
+            "name": "Open Graph Title",
+            "value": "Eaton 70 series photoelectric sensor | 1173A-100 概述 | 伊顿中国",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Page metadata",
+            "name": "Open Graph Title",
+            "value": "1173A-100 | Eaton 70 series photoelectric sensor | Eaton",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Page metadata",
+            "name": "Open Graph Title",
+            "value": "1173A-100 | Eaton 70 series photoelectric sensor | Eaton",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Page metadata",
+            "name": "Open Graph Title",
+            "value": "1173A-100 | Eaton 70 series photoelectric sensor | Eaton",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Page metadata",
+            "name": "Open Graph Type",
+            "value": "product",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Page metadata",
+            "name": "Open Graph Type",
+            "value": "product",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Page metadata",
+            "name": "Open Graph Type",
+            "value": "product",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Page metadata",
+            "name": "Open Graph Type",
+            "value": "product",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Page metadata",
+            "name": "Open Graph URL",
+            "value": "https://www.eaton.com.cn/cn/zh-cn/skuPage.1173A-100.html",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Page metadata",
+            "name": "Open Graph URL",
+            "value": "https://www.eaton.com/de/de-de/skuPage.1173A-100.html",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Page metadata",
+            "name": "Open Graph URL",
+            "value": "https://www.eaton.com/gb/en-gb/skuPage.1173A-100.html",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Page metadata",
+            "name": "Open Graph URL",
+            "value": "https://www.eaton.com/us/en-us/skuPage.1173A-100.html",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Cable type",
+            "value": "Polyvinyl Chloride (PVC)",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Cable type",
+            "value": "Polyvinyl Chloride (PVC)",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Cord length",
+            "value": "108 ft",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Cord length",
+            "value": "108 ft",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Enclosure material",
+            "value": "Aluminum",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Enclosure material",
+            "value": "Aluminum",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Environmental rating",
+            "value": "NEMA 4, NEMA 6, NEMA 13",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Environmental rating",
+            "value": "NEMA 4, NEMA 6, NEMA 13",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Operating mode",
+            "value": "Thru-beam",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Operating mode",
+            "value": "Thru-beam",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Operating temperature - max",
+            "value": "176 °F",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Operating temperature - max",
+            "value": "176 °F",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Operating temperature - min",
+            "value": "-40 °F",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Operating temperature - min",
+            "value": "-40 °F",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Sensor type",
+            "value": "Through beam",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Sensor type",
+            "value": "Through beam",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Switch type",
+            "value": "Photoelectric",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Switch type",
+            "value": "Photoelectric",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Produktspezifikationen",
+            "name": "Cable type",
+            "value": "Polyvinyl Chloride (PVC)",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Produktspezifikationen",
+            "name": "Cord length",
+            "value": "108 ft",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Produktspezifikationen",
+            "name": "Enclosure material",
+            "value": "Aluminum",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Produktspezifikationen",
+            "name": "Environmental rating",
+            "value": "NEMA 4, NEMA 6, NEMA 13",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Produktspezifikationen",
+            "name": "Operating mode",
+            "value": "Thru-beam",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Produktspezifikationen",
+            "name": "Operating temperature - max",
+            "value": "176 °F",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Produktspezifikationen",
+            "name": "Operating temperature - min",
+            "value": "-40 °F",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Produktspezifikationen",
+            "name": "Sensor type",
+            "value": "Through beam",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Produktspezifikationen",
+            "name": "Switch type",
+            "value": "Photoelectric",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Structured Product Data",
+            "name": "Brand",
+            "value": "Eaton",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Structured Product Data",
+            "name": "Brand",
+            "value": "Eaton",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Structured Product Data",
+            "name": "Brand",
+            "value": "Eaton",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Structured Product Data",
+            "name": "Brand",
+            "value": "Eaton",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Structured Product Data",
+            "name": "Description",
+            "value": "Eaton 70 Series Photoelectric Sensor Head, Photoelectric, 0.75 diameter, Forward Viewing, Sensor distance: Depends on controller used, Thru-beam, 9 Ft. ( 2.7m )",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Structured Product Data",
+            "name": "Description",
+            "value": "Eaton 70 Series Photoelectric Sensor Head, Photoelectric, 0.75 diameter, Forward Viewing, Sensor distance: Depends on controller used, Thru-beam, 9 Ft. ( 2.7m )",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Structured Product Data",
+            "name": "Description",
+            "value": "Eaton 70 Series Photoelectric Sensor Head, Photoelectric, 0.75 diameter, Forward Viewing, Sensor distance: Depends on controller used, Thru-beam, 9 Ft. ( 2.7m )",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Structured Product Data",
+            "name": "Description",
+            "value": "Eaton 70 Series Photoelectric Sensor Head, Photoelectric, 0.75 diameter, Forward Viewing, Sensor distance: Depends on controller used, Thru-beam, 9 Ft. ( 2.7m )",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Structured Product Data",
+            "name": "Product Name",
+            "value": "Eaton 70 series photoelectric sensor",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Structured Product Data",
+            "name": "Product Name",
+            "value": "Eaton 70 series photoelectric sensor",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Structured Product Data",
+            "name": "Product Name",
+            "value": "Eaton 70 series photoelectric sensor",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Structured Product Data",
+            "name": "Product Name",
+            "value": "Eaton 70 series photoelectric sensor",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Structured Product Data",
+            "name": "SKU",
+            "value": "1173A-100",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Structured Product Data",
+            "name": "SKU",
+            "value": "1173A-100",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Structured Product Data",
+            "name": "SKU",
+            "value": "1173A-100",
+            "sourceUrl": "https://www.eaton.com/gb/en-gb/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Structured Product Data",
+            "name": "SKU",
+            "value": "1173A-100",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "产品规格",
+            "name": "Cable type",
+            "value": "Polyvinyl Chloride (PVC)",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "产品规格",
+            "name": "Cord length",
+            "value": "108 ft",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "产品规格",
+            "name": "Enclosure material",
+            "value": "Aluminum",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "产品规格",
+            "name": "Environmental rating",
+            "value": "NEMA 4, NEMA 6, NEMA 13",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "产品规格",
+            "name": "Operating mode",
+            "value": "Thru-beam",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "产品规格",
+            "name": "Operating temperature - max",
+            "value": "176 °F",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "产品规格",
+            "name": "Operating temperature - min",
+            "value": "-40 °F",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "产品规格",
+            "name": "Sensor type",
+            "value": "Through beam",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "产品规格",
+            "name": "Switch type",
+            "value": "Photoelectric",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "常用规格",
+            "name": "Catalog Number",
+            "value": "1173A-100",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "常用规格",
+            "name": "Compliances",
+            "value": "Contact Manufacturer",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "常用规格",
+            "name": "Product Height",
+            "value": "1.26 in",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "常用规格",
+            "name": "Product Length/Depth",
+            "value": "0.31 in",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "常用规格",
+            "name": "Product Name",
+            "value": "Eaton 70 series photoelectric sensor",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "常用规格",
+            "name": "Product Weight",
+            "value": "0.1375 lb",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "常用规格",
+            "name": "Product Width",
+            "value": "0.31 in",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "常用规格",
+            "name": "UPC",
+            "value": "782113819792",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.1173A-100.html"
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "1173A–100",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/legacy-sensor-products-ca08100010e.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Feature",
+            "value": "CE",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/legacy-sensor-products-ca08100010e.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Feature",
+            "value": "output options including a high current",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/legacy-sensor-products-ca08100010e.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Feature",
+            "value": "UL® Listed, E66026",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/legacy-sensor-products-ca08100010e.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Feature",
+            "value": "CSA ® Certified, 50513",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/legacy-sensor-products-ca08100010e.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Feature",
+            "value": "UL Listed, E82537",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/legacy-sensor-products-ca08100010e.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Feature",
+            "value": "CSA Certified, 50513",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/legacy-sensor-products-ca08100010e.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Feature",
+            "value": "Available in universal voltage AC/DC",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/legacy-sensor-products-ca08100010e.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Feature",
+            "value": "CSA Certified, 30639 (some models)",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/legacy-sensor-products-ca08100010e.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Feature",
+            "value": "Operating voltage 90–132 Vac at 60 Hz",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/legacy-sensor-products-ca08100010e.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Feature",
+            "value": "Maximum load current Varies from 50 mA to 2 A AC/DC units: 300 mA",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/legacy-sensor-products-ca08100010e.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Feature",
+            "value": "Enclosure ratings NEMA 1, 3, 4, 12 and 13 NEMA 1, 3, 4, 6, 12 and 13 Varies with control unit or",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/legacy-sensor-products-ca08100010e.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Feature",
+            "value": "NEMA 1, 3, 4, 12 and 13",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/legacy-sensor-products-ca08100010e.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Document",
+            "name": "Parsed document",
+            "value": "Sensing Solutions, Legacy Sensor Products, Volume 8, Tab 11 (Catalogs)",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/legacy-sensor-products-ca08100010e.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Mounting",
+            "value": "clip",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/legacy-sensor-products-ca08100010e.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "UL® Listed,",
+            "value": "E66026",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/legacy-sensor-products-ca08100010e.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "UL Listed,",
+            "value": "E82537",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/legacy-sensor-products-ca08100010e.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Available in universal voltage",
+            "value": "AC/DC",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/legacy-sensor-products-ca08100010e.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Response time range",
+            "value": "20 ms | 330 microseconds to 2 ms | 7 ms | 1 ms to 30 ms",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/legacy-sensor-products-ca08100010e.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Description",
+            "value": "50 Series | 55 Series | 70 Series | 80 Series",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/legacy-sensor-products-ca08100010e.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Operating voltage",
+            "value": "90–132 Vac at 60 Hz",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/legacy-sensor-products-ca08100010e.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Maximum load current",
+            "value": "Varies from 50 mA to 2 A | AC/DC units: 300 mA",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/legacy-sensor-products-ca08100010e.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Enclosure ratings",
+            "value": "NEMA 1, 3, 4, 12 and 13 | NEMA 1, 3, 4, 6, 12 and 13 | Varies with control unit or",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/legacy-sensor-products-ca08100010e.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "NEMA",
+            "value": "1, 3, 4, 12 and 13",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/legacy-sensor-products-ca08100010e.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Response time range",
+            "value": "2 ms to 18 ms | 1 ms to 11 ms | 0.5 ms to 14 ms | 5 ms to 18 ms",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/legacy-sensor-products-ca08100010e.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          }
+        ],
+        "documents": [
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "type": "datasheet",
+            "label": "Eaton Specification Sheet - 1173A-100 (Specifications and datasheets)",
+            "url": "https://www.eaton.com/us/en-us/skuPage.1173A-100.pdf",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "type": "datasheet",
+            "label": "Produktspezifikationen",
+            "url": "https://www.eaton.com/de/de-de/skuPage.1173A-100.pdf",
+            "sourceUrl": "https://www.eaton.com/de/de-de/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "type": "datasheet",
+            "label": "产品规格",
+            "url": "https://www.eaton.com.cn/cn/zh-cn/skuPage.1173A-100.pdf",
+            "sourceUrl": "https://www.eaton.com.cn/cn/zh-cn/skuPage.1173A-100.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "type": "datasheet",
+            "label": "Sensing Solutions, Legacy Sensor Products, Volume 8, Tab 11 (Catalogs)",
+            "url": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/legacy-sensor-products-ca08100010e.pdf",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.1173A-100.html",
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261012105716\\documents\\1173A-100-datasheet-Sensing-Solutions,-Legacy-Sensor-Products,-Volume-8,-Tab-11-(Catalogs).pdf",
+            "downloadStatus": "downloaded",
+            "parseStatus": "parsed"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "type": "image",
+            "label": "1173A-100 - sku page",
+            "url": "https://www.eaton.com/mdmfiles/PDM009862/1173A-100_L/500x500_72dpi",
+            "candidateUrls": [
+              "https://dynamicmedia.eaton.com/is/image/eaton/1173A-100_L?wid=500&hei=500"
+            ],
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.1173A-100.html",
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261012105716\\images\\ETN.1173A-100.png",
+            "downloadStatus": "downloaded",
+            "parseStatus": "skipped"
+          }
+        ],
+        "sources": [
+          {
+            "url": "https://www.eaton.com/us/en-us/skuPage.1173A-100.html",
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "parserVersion": "eaton-v2",
+            "fetchedAt": "2026-10-12T10:57:18.016Z",
+            "statusCode": 200
+          },
+          {
+            "url": "https://www.eaton.com/de/de-de/skuPage.1173A-100.html",
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "parserVersion": "eaton-v2",
+            "fetchedAt": "2026-10-12T10:57:18.535Z",
+            "statusCode": 200
+          },
+          {
+            "url": "https://www.eaton.com/gb/en-gb/skuPage.1173A-100.html",
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "parserVersion": "eaton-v2",
+            "fetchedAt": "2026-10-12T10:57:18.756Z",
+            "statusCode": 200
+          },
+          {
+            "url": "https://www.eaton.com.cn/cn/zh-cn/skuPage.1173A-100.html",
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "parserVersion": "eaton-v2",
+            "fetchedAt": "2026-10-12T10:57:24.388Z",
+            "statusCode": 200
+          },
+          {
+            "url": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/legacy-sensor-products-ca08100010e.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "reason": "datasheet",
+            "fetchedAt": "2026-10-12T10:57:28.106Z"
+          }
+        ],
+        "qualityGate": {
+          "passed": true,
+          "identityConfirmed": true,
+          "score": 100,
+          "missing": [],
+          "reason": "Quality gate passed.",
+          "attempts": [
+            {
+              "stage": "eaton-product-page",
+              "url": "https://www.eaton.com/us/en-us/skuPage.1173A-100.html",
+              "status": "partial",
+              "score": 100,
+              "missing": [
+                "normalized:voltage"
+              ],
+              "reason": "Missing required product data: normalized:voltage",
+              "sourceType": "official-fallback",
+              "parser": "eaton-product-page",
+              "statusCode": 200,
+              "attributeCount": 139,
+              "documentCount": 6,
+              "sectionAttributeCounts": {}
+            },
+            {
+              "stage": "eaton-product-page",
+              "url": "https://www.eaton.com/us/en-us/skuPage.1173A-100.html",
+              "status": "passed",
+              "score": 100,
+              "missing": [],
+              "reason": "Quality gate passed.",
+              "sourceType": "official-fallback",
+              "parser": "eaton-product-page",
+              "statusCode": 200,
+              "attributeCount": 164,
+              "documentCount": 5,
+              "sectionAttributeCounts": {}
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

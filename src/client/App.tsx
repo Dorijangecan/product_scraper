@@ -3445,7 +3445,7 @@ function FieldCoverageMatrixPanel({ matrix }: { matrix: FieldCoverageMatrixRespo
   if (!matrix || matrix.rows.length === 0) return null;
   const driftCount = matrix.rows.reduce((sum, row) => sum + row.driftFields.length, 0);
   return (
-    <details className="debug-section field-coverage-matrix" open={driftCount > 0}>
+    <details className="debug-section field-coverage-matrix">
       <summary>
         <span>
           <Table2 size={14} /> Field coverage health

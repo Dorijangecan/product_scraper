@@ -23,6 +23,223 @@ describe("splitNameValue (Phase A4)", () => {
 });
 
 describe("normalizer", () => {
+  it("does not take electrical ratings from related Eaton products", () => {
+    const exactPage = "https://www.eaton.com/us/en-us/skuPage.102087.html";
+    const normalized = normalizeFields([
+      { group: "Product specifications", name: "Amperage Rating", value: "10 A", parser: "eaton-product-page", sourceType: "official-fallback", sourceUrl: exactPage },
+      { group: "Designed to work together", name: "Related Product", value: "102088 - MCB, rated current In: 13 A (https://www.eaton.com/us/en-us/skuPage.102088.html)", parser: "eaton-product-page", sourceType: "official-fallback", sourceUrl: exactPage }
+    ], [], "eaton");
+
+    expect(normalized.current).toBe("10 A");
+  });
+
+  it("uses exact Eaton contactor AC-3 ratings instead of unrelated switching capacity", () => {
+    const exactPage = "https://www.eaton.com/us/en-us/skuPage.277268.html";
+    const normalized = normalizeFields([
+      { group: "General specifications", name: "Product Type", value: "Contactor", parser: "eaton-product-page", sourceType: "official-fallback", sourceUrl: exactPage },
+      { group: "Electrical rating", name: "Rated operational current (Ie) at AC-3, 380 V, 400 V, 415 V", value: "32 A", parser: "eaton-product-page", sourceType: "official-fallback", sourceUrl: exactPage },
+      { group: "Electrical rating", name: "Rated operational current (Ie) at AC-3, 660 V, 690 V", value: "18 A", parser: "eaton-product-page", sourceType: "official-fallback", sourceUrl: exactPage },
+      { group: "Switching capacity", name: "Switching capacity (main contacts, general use)", value: "40 A, Maximum motor rating (UL/CSA)", parser: "eaton-product-page", sourceType: "official-fallback", sourceUrl: exactPage }
+    ], [], "eaton");
+
+    expect(normalized.current).toBe("18...32 A");
+  });
+
+  it("uses the exact Eaton contactor operational-voltage ceiling instead of its coil voltage", () => {
+    const exactPage = "https://www.eaton.com/us/en-us/skuPage.277268.html";
+    const normalized = normalizeFields([
+      { group: "General specifications", name: "Product Type", value: "Contactor", parser: "eaton-product-page", sourceType: "official-fallback", sourceUrl: exactPage },
+      { group: "Electrical rating", name: "Rated operational voltage (Ue) at AC - max", value: "690 V", parser: "eaton-product-page", sourceType: "official-fallback", sourceUrl: exactPage },
+      { group: "Product specifications", name: "Operating voltage at AC, 60 Hz - min", value: "24 V", parser: "eaton-product-page", sourceType: "official-fallback", sourceUrl: exactPage },
+      { group: "Magnet system", name: "Rated control supply voltage (Us) at AC, 50 Hz - min", value: "230 V", parser: "eaton-product-page", sourceType: "official-fallback", sourceUrl: exactPage },
+      { group: "Magnet system", name: "Rated control supply voltage (Us) at AC, 50 Hz - max", value: "230 V", parser: "eaton-product-page", sourceType: "official-fallback", sourceUrl: exactPage },
+      { group: "Eaton description", name: "Voltage rating", value: "380 V", parser: "eaton-product-page", sourceType: "official-fallback", sourceUrl: exactPage },
+      { group: "Product specifications", name: "Voltage rating", value: "230 V", parser: "eaton-product-page", sourceType: "official-fallback", sourceUrl: exactPage }
+    ], [], "eaton");
+
+    expect(normalized.voltage).toBe("690 V");
+  });
+
+  it("uses the exact Eaton electronic overload relay overload range", () => {
+    const exactPage = "https://www.eaton.com/us/en-us/skuPage.XTOE020CCSS.html";
+    const normalized = normalizeFields([
+      { group: "General specifications", name: "Product Type", value: "Electronic overload relay", parser: "eaton-product-page", sourceType: "official-fallback", sourceUrl: exactPage },
+      { group: "Product specifications", name: "Overload range", value: "4-20A", parser: "eaton-product-page", sourceType: "official-fallback", sourceUrl: exactPage },
+      { group: "Product specifications", name: "Trip type", value: "Selectable 10 A, class 10, 20, 30", parser: "eaton-product-page", sourceType: "official-fallback", sourceUrl: exactPage }
+    ], [], "eaton");
+
+    expect(normalized.current).toBe("4...20 A");
+  });
+
+  it("uses Eaton surge current only when an official family row names the exact model token", () => {
+    const exactPage = "https://www.eaton.com/us/en-us/skuPage.SP1-240S.html";
+    const exactFamilyPdf = "https://www.eaton.com/content/dam/eaton/products/backup-power-ups-surge-it-power-distribution/surge/sp-series/eaton-sp-series-brochure-pa01005006e.pdf";
+    const exactEvidence: Parameters<typeof normalizeFields>[0] = [
+      { group: "General specifications", name: "Product Type", value: "Surge protective device", parser: "eaton-product-page", sourceType: "official-fallback", sourceUrl: exactPage },
+      { group: "General specifications", name: "Catalog Number", value: "SP1-240S", parser: "eaton-product-page", sourceType: "official-fallback", sourceUrl: exactPage },
+      { group: "PDF table", name: "Nominal discharge current", value: "20 kA for 240S, 208Y, 480Y, 240D and 480D; 10 kA for 600Y and 600D", parser: "pdf-table-extractor", sourceType: "generated", matchLevel: "exact", sourceUrl: exactFamilyPdf }
+    ];
+
+    expect(normalizeFields(exactEvidence, [], "eaton").current).toBe("20 kA");
+    expect(normalizeFields([
+      ...exactEvidence.slice(0, 2),
+      { ...exactEvidence[2], value: "10 kA for 600Y and 600D" }
+    ], [], "eaton").current).toBeUndefined();
+  });
+
+  it("preserves both primary and secondary exact Eaton transformer ratings", () => {
+    const exactPage = "https://www.eaton.com/us/en-us/skuPage.C0350E2A.html";
+    const normalized = normalizeFields([
+      { group: "General specifications", name: "Product Type", value: "Industrial control transformer", parser: "eaton-product-page", sourceType: "official-fallback", sourceUrl: exactPage },
+      { group: "Performance Ratings", name: "Primary voltage", value: "220 x 440 V, 230 x 460 V, 240 x 480 V", parser: "eaton-product-page", sourceType: "official-fallback", sourceUrl: exactPage },
+      { group: "Performance Ratings", name: "Secondary voltage", value: "120/115/110 V", parser: "eaton-product-page", sourceType: "official-fallback", sourceUrl: exactPage },
+      { group: "Eaton description", name: "Voltage rating", value: "480 V", parser: "eaton-product-page", sourceType: "official-fallback", sourceUrl: exactPage }
+    ], [], "eaton");
+
+    expect(normalized.voltage).toContain("Primary voltage: 220 x 440 V, 230 x 460 V, 240 x 480 V");
+    expect(normalized.voltage).toContain("Secondary voltage: 120/115/110 V");
+  });
+
+  it("collapses identical Eaton operational-voltage min/max values", () => {
+    const exactPage = "https://www.eaton.com/us/en-us/skuPage.072738.html";
+    const normalized = normalizeFields([
+      { group: "General specifications", name: "Product Type", value: "Motor-protective circuit-breaker", parser: "eaton-product-page", sourceType: "official-fallback", sourceUrl: exactPage },
+      { group: "Electrical rating", name: "Rated operational voltage (Ue) - min", value: "690 V", parser: "eaton-product-page", sourceType: "official-fallback", sourceUrl: exactPage },
+      { group: "Electrical rating", name: "Rated operational voltage (Ue) - max", value: "690 V", parser: "eaton-product-page", sourceType: "official-fallback", sourceUrl: exactPage }
+    ], [], "eaton");
+
+    expect(normalized.voltage).toBe("690 V");
+  });
+
+  it("uses exact Eaton operational-voltage min/max rows ahead of a description shorthand", () => {
+    const exactPage = "https://www.eaton.com/us/en-us/skuPage.118969.html";
+    const normalized = normalizeFields([
+      { group: "General specifications", name: "Product Type", value: "MCCB", parser: "eaton-product-page", sourceType: "official-fallback", sourceUrl: exactPage },
+      { group: "Electrical rating", name: "Rated operational voltage (Ue) - min", value: "690 V", parser: "eaton-product-page", sourceType: "official-fallback", sourceUrl: exactPage },
+      { group: "Electrical rating", name: "Rated operational voltage (Ue) - max", value: "690 V", parser: "eaton-product-page", sourceType: "official-fallback", sourceUrl: exactPage },
+      { group: "Eaton description", name: "Voltage rating", value: "690 V", parser: "eaton-product-page", sourceType: "official-fallback", sourceUrl: exactPage }
+    ], [], "eaton");
+
+    expect(normalized.voltage).toBe("690 V");
+  });
+
+  it("normalizes the exact Eaton easyE4 supply voltage without confusing it with its DC maximum", () => {
+    const exactPage = "https://www.eaton.com/us/en-us/skuPage.197506.html";
+    const normalized = normalizeFields([
+      { group: "General specifications", name: "Product Type", value: "Control relay", parser: "eaton-product-page", sourceType: "official-fallback", sourceUrl: exactPage },
+      { group: "Eaton description", name: "Voltage rating", value: "24 V DC", parser: "eaton-product-page", sourceType: "official-fallback", sourceUrl: exactPage, scope: "variant", matchLevel: "exact" },
+      { group: "Electrical rating", name: "Rated operational voltage", value: "Power supply: 24 V DC (-15 %/+ 20 %) Power supply transistor outputs: 24 V DC (-15 %/+ 20 %) Inputs: shall be identical to the power supply voltage", parser: "eaton-product-page", sourceType: "official-fallback", sourceUrl: exactPage },
+      { group: "Electrical rating", name: "Supply voltage at DC - max", value: "28.8 VDC", parser: "eaton-product-page", sourceType: "official-fallback", sourceUrl: exactPage }
+    ], [], "eaton");
+
+    expect(normalized.voltage).toBe("24 V DC");
+  });
+
+  it("preserves both exact Eaton monitored-system voltage ranges by current type", () => {
+    const exactPage = "https://www.eaton.com/us/en-us/skuPage.184775.html";
+    const normalized = normalizeFields([
+      { group: "General specifications", name: "Product Type", value: "Voltage monitoring relay", parser: "eaton-product-page", sourceType: "official-fallback", sourceUrl: exactPage },
+      { group: "Product specifications", name: "Rated operational voltage of monitored supply system", value: "0 - 1000 V DC 0 - 690 V AC", parser: "eaton-product-page", sourceType: "official-fallback", sourceUrl: exactPage },
+      { group: "Product specifications", name: "Rated operational voltage (Ue) - max", value: "690 V", parser: "eaton-product-page", sourceType: "official-fallback", sourceUrl: exactPage }
+    ], [], "eaton");
+
+    expect(normalized.voltage).toBe("0...1000 V DC or 0...690 V AC");
+  });
+
+  it("collapses duplicate voltage bounds already combined in one exact Eaton attribute", () => {
+    const exactPage = "https://www.eaton.com/us/en-us/skuPage.118969.html";
+    const normalized = normalizeFields([
+      { group: "General specifications", name: "Product Type", value: "MCCB", parser: "eaton-product-page", sourceType: "official-fallback", sourceUrl: exactPage },
+      { group: "Technical data - electrical", name: "Operating voltage", value: "690 V - 690 V", parser: "eaton-product-page", sourceType: "official-fallback", sourceUrl: exactPage }
+    ], [], "eaton");
+
+    expect(normalized.voltage).toBe("690 V");
+  });
+
+  it("does not treat certification standards or replacement part numbers as rated current", () => {
+    const normalized = normalizeFields([
+      { group: "PDF datasheet - General specifications", name: "Feature", value: "UL 508A", sourceType: "generated", parser: "pdf-table-extractor" },
+      { group: "PDF datasheet - Construction", name: "Replacement fan", value: "SP039010-0019A", sourceType: "generated", parser: "pdf-table-extractor" }
+    ], [], "eaton");
+
+    expect(normalized.current).toBeUndefined();
+  });
+
+  it("prefers Eaton exact-SKU voltage ratings and NAC output current over unrelated fields", () => {
+    const exactPage = "https://www.eaton.com/us/en-us/skuPage.PS-8-LP.html";
+    const normalized = normalizeFields([
+      { group: "General specifications", name: "Product Type", value: "Power supply", parser: "eaton-product-page", sourceType: "official-fallback", sourceUrl: exactPage },
+      { group: "Product specifications", name: "Type", value: "NAC power supply", parser: "eaton-product-page", sourceType: "official-fallback", sourceUrl: exactPage },
+      { group: "Product specifications", name: "Voltage rating", value: "120 V", parser: "eaton-product-page", sourceType: "official-fallback", sourceUrl: exactPage },
+      { group: "Product specifications", name: "Input voltage", value: "8 to 33 VDC", parser: "eaton-product-page", sourceType: "official-fallback", sourceUrl: exactPage },
+      { group: "Product specifications", name: "Input current", value: "0.005 A", parser: "eaton-product-page", sourceType: "official-fallback", sourceUrl: exactPage },
+      { group: "Product specifications", name: "NAC power", value: "8 A", parser: "eaton-product-page", sourceType: "official-fallback", sourceUrl: exactPage },
+      { group: "PDF datasheet", name: "Rated voltage", value: "115 V", parser: "pdf-table-extractor", sourceType: "generated", sourceUrl: "https://www.eaton.com/content/dam/family.pdf" }
+    ], [], "eaton");
+
+    expect(normalized.voltage).toBe("120 V");
+    expect(normalized.current).toBe("8 A");
+  });
+
+  it("uses the exact Eaton soft starter operating-voltage range over its control voltage rating", () => {
+    const exactPage = "https://www.eaton.com/us/en-us/skuPage.S811%2BR10N3S.html";
+    const normalized = normalizeFields([
+      { group: "General specifications", name: "Product Type", value: "Soft starter", parser: "eaton-product-page", sourceType: "official-fallback", sourceUrl: exactPage },
+      { group: "Product specifications", name: "Voltage rating", value: "24 V", parser: "eaton-product-page", sourceType: "official-fallback", sourceUrl: exactPage },
+      { group: "Product specifications", name: "Operating voltage", value: "200-600 V", parser: "eaton-product-page", sourceType: "official-fallback", sourceUrl: exactPage }
+    ], [], "eaton");
+
+    expect(normalized.voltage).toBe("200...600 V");
+  });
+
+  it("does not infer Eaton soft starter supply voltage from motor horsepower points", () => {
+    const exactPage = "https://www.eaton.com/us/en-us/skuPage.DS7-340SX004N0-N.html";
+    const normalized = normalizeFields([
+      { group: "General specifications", name: "Product Type", value: "Soft start controller", parser: "eaton-product-page", sourceType: "official-fallback", sourceUrl: exactPage },
+      { group: "Eaton description", name: "Voltage rating", value: "200 V", parser: "eaton-product-page", sourceType: "official-fallback", sourceUrl: exactPage }
+    ], [], "eaton");
+
+    expect(normalized.voltage).toBeUndefined();
+  });
+
+  it("uses an exact Eaton protective-relay power-supply range instead of a voltage parsed from its title", () => {
+    const exactPage = "https://www.eaton.com/us/en-us/skuPage.DT3030.html";
+    const normalized = normalizeFields([
+      { group: "General specifications", name: "Product Type", value: "Relay", parser: "eaton-product-page", sourceType: "official-fallback", sourceUrl: exactPage },
+      { group: "Product specifications", name: "Product Category", value: "Three-phase and ground overcurrent protective relay", parser: "eaton-product-page", sourceType: "official-fallback", sourceUrl: exactPage },
+      { group: "Eaton description", name: "Voltage rating", value: "48 V DC", parser: "eaton-product-page", sourceType: "official-fallback", sourceUrl: exactPage, scope: "variant", matchLevel: "exact" },
+      { group: "Product specifications", name: "Power supply", value: "24/48 Vdc", parser: "eaton-product-page", sourceType: "official-fallback", sourceUrl: exactPage },
+      { group: "PDF Electrical Text", name: "Output current", value: "42 mA", parser: "pdf-table-extractor", sourceType: "generated", sourceUrl: "https://www.eaton.com/content/dam/eaton/family.pdf", scope: "variant" }
+    ], [], "eaton");
+
+    expect(normalized.voltage).toBe("24/48 V DC");
+    expect(normalized.current).toBeUndefined();
+  });
+
+  it("keeps Eaton built-in LED ratings out of generic device voltage and current", () => {
+    const exactPage = "https://www.eaton.com/us/en-us/skuPage.257064.html";
+    const normalized = normalizeFields([
+      { group: "General specifications", name: "Product Type", value: "Emergency stop pushbutton", parser: "eaton-product-page", sourceType: "official-fallback", sourceUrl: exactPage },
+      { group: "Included built-in LED", name: "LED voltage", value: "24 V DC", parser: "eaton-product-page", sourceType: "official-fallback", sourceUrl: exactPage },
+      { group: "Included built-in LED", name: "LED rated current", value: "15 mA", parser: "eaton-product-page", sourceType: "official-fallback", sourceUrl: exactPage },
+      { group: "Product specifications", name: "Accessories", value: "With built-in multiple LED, 24 V DC, Ie = 15 mA", parser: "eaton-product-page", sourceType: "official-fallback", sourceUrl: exactPage }
+    ], [], "eaton");
+
+    expect(normalized.voltage).toBeUndefined();
+    expect(normalized.current).toBeUndefined();
+  });
+
+  it("does not let an unscoped Eaton family-PDF current table override the exact PDP rating", () => {
+    const exactPage = "https://www.eaton.com/us/en-us/skuPage.XTAE065D00C065.html";
+    const normalized = normalizeFields([
+      { group: "General specifications", name: "Product Type", value: "Electronic motor starter", parser: "eaton-product-page", sourceType: "official-fallback", sourceUrl: exactPage },
+      { group: "Product specifications", name: "Amperage Rating", value: "65A", parser: "eaton-product-page", sourceType: "official-fallback", sourceUrl: exactPage },
+      { group: "PDF datasheet", name: "Rated uninterrupted current = rated output current", value: "Iu = I e | 12 A | 32 A | 65 A", parser: "pdf-table-extractor", sourceType: "generated", sourceUrl: "https://www.eaton.com/content/dam/family.pdf" }
+    ], [], "eaton");
+
+    expect(normalized.current).toBe("65 A");
+  });
+
   it("prefers explicit product ratings in official descriptions over generic parsed PDF values", () => {
     const normalized = normalizeFields([
       { group: "Product Page", name: "Long Description", value: "This power supply has a rated output current of 10 A at 24 V DC.", sourceType: "official" },
@@ -150,6 +367,17 @@ describe("normalizer", () => {
     expect(normalized.current).not.toBe("12.5 kA");
     expect(normalized.voltage).not.toBe("6 kV");
     expect(normalized.voltage).not.toBe("690 V");
+  });
+
+  it("keeps an exact Eaton SPD's surge current only when the same exact SKU page identifies it", () => {
+    const exactPage = "https://www.eaton.com/us/en-us/skuPage.SPM250240D4T.html";
+    const exact = [
+      { group: "General specifications", name: "Product Type", value: "Surge protection device", parser: "eaton-product-page", sourceType: "official-fallback" as const, sourceUrl: exactPage },
+      { group: "General specifications", name: "Catalog Number", value: "SPM250240D4T", parser: "eaton-product-page", sourceType: "official-fallback" as const, sourceUrl: exactPage },
+      { group: "Electrical properties", name: "Surge current", value: "250kA per phase", parser: "eaton-product-page", sourceType: "official-fallback" as const, sourceUrl: exactPage }
+    ];
+    expect(normalizeFields(exact, [], "eaton").current).toBe("250 kA per phase");
+    expect(normalizeFields(exact.map((attribute) => ({ ...attribute, value: attribute.name === "Catalog Number" ? "OTHER-SKU" : attribute.value })), [], "eaton").current).toBeUndefined();
   });
 
   it("assembles Eaton product dimensions from Polish localized SKU labels", () => {

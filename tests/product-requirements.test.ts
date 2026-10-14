@@ -67,6 +67,19 @@ describe("required electrical fields", () => {
     expect(requiredElectricalFields(result)).toEqual(["voltage"]);
   });
 
+  it("does not require electrical ratings for a mechanical shaft handle operator", () => {
+    const result = product({
+      manufacturerId: "eaton",
+      catalogNumber: "5FTCKIT",
+      title: "Eaton Flex Shaft Handle Operator 60",
+      description: "Flex shaft handle operator for safety switches",
+      normalized: { voltage: "600 V" },
+      attributes: [{ group: "General specifications", name: "Product Name", value: "Flex shaft handle operator" }]
+    });
+
+    expect(requiredElectricalFields(result)).toEqual([]);
+  });
+
   it("does not invent a standalone voltage for a rack-powered Schneider CPU with no published rating", () => {
     const result = product({
       manufacturerId: "schneider",

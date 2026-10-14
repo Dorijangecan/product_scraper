@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   deriveEatonCbeRecord,
+  dedupeEatonLocalizedSkuPdfs,
   extractEatonSearchDocuments,
   parseEatonCbeCatalogRecords,
   parseEatonProductPage
@@ -185,7 +186,7 @@ describe("Eaton MCCB recovery", () => {
     expect(result.normalized.dimensions).toBe("139.7 x 76.2 x 76 mm");
   });
 
-  it("tries lazy-loaded exact-page image candidates instead of only the placeholder src", () => {
+  it("rejects lazy-loaded Eaton image assets that belong to a different catalog number", () => {
     const sourceUrl = "https://www.eaton.com/us/en-us/skuPage.PDG13C0125TFFJ.html";
     const result = parseEatonProductPage(
       "PDG13C0125TFFJ",
@@ -205,6 +206,63 @@ describe("Eaton MCCB recovery", () => {
       sourceUrl
     );
 
-    expect(result.documents.some((document) => document.type === "image" && /PDG13K0125TFFN_C/i.test(document.url))).toBe(true);
+    expect(result.documents.some((document) => document.type === "image" && /PDG13K0125TFFN_C/i.test(document.url))).toBe(false);
+  });
+});
+
+describe("Eaton family-source evidence", () => {
+  it("attaches the SP series publication only after an exact SP1 product page confirms the family", () => {
+    const sourceUrl = "https://www.eaton.com/us/en-us/skuPage.SP1-240S.html";
+    const result = parseEatonProductPage(
+      "SP1-240S",
+      {
+        requestedUrl: sourceUrl,
+        effectiveUrl: sourceUrl,
+        statusCode: 200,
+        contentType: "text/html",
+        fetchedAt: new Date().toISOString(),
+        fromCache: false,
+        text: `<html><head><title>SP1-240S | Eaton SP1 surge protective device</title><meta name="description" content="Eaton SP1 surge protective device, 120/240V"><script type="application/ld+json">${JSON.stringify({ "@type": "Product", sku: "SP1-240S", name: "Eaton SP1 surge protective device" })}</script></head><body><section class="product-specification-item"><h2>General specifications</h2><table><tr class="specification-row"><td class="specification-title"><strong>Catalog Number</strong></td><td class="specification-value">SP1-240S</td></tr><tr class="specification-row"><td class="specification-title"><strong>Product Type</strong></td><td class="specification-value">Surge protective device</td></tr><tr class="specification-row"><td class="specification-title"><strong>Product Name</strong></td><td class="specification-value">Eaton SP1 surge protective device</td></tr><tr class="specification-row"><td class="specification-title"><strong>Product Family</strong></td><td class="specification-value">SP1 series</td></tr></table></section></body></html>`
+      },
+      sourceUrl
+    );
+
+    expect(result.documents.some((document) => document.type === "datasheet" && /eaton-sp-series-brochure-pa01005006e\.pdf/.test(document.url))).toBe(true);
+  });
+
+  it("recognizes an exact DS7 model code on its official Eaton catalog-number alias PDP", () => {
+    const sourceUrl = "https://www.eaton.com/us/en-us/skuPage.134847.html";
+    const result = parseEatonProductPage(
+      "DS7-340SX004N0-N",
+      {
+        requestedUrl: sourceUrl,
+        effectiveUrl: sourceUrl,
+        statusCode: 200,
+        contentType: "text/html",
+        fetchedAt: new Date().toISOString(),
+        fromCache: false,
+        text: `<html><head><title>134847 | Eaton DS7 Soft starter</title><meta name="description" content="Eaton DS7 soft starter, DS7-340SX004N0-N, 4 A, 200 - 480 V AC, Us=24 V AC/DC"></head><body><section class="product-specification-item"><h2>General specifications</h2><table><tr class="specification-row"><td class="specification-title"><strong>Catalog Number</strong></td><td class="specification-value">134847</td></tr><tr class="specification-row"><td class="specification-title"><strong>Model Code</strong></td><td class="specification-value">DS7-340SX004N0-N</td></tr><tr class="specification-row"><td class="specification-title"><strong>Product Name</strong></td><td class="specification-value">Eaton DS7 Soft starter</td></tr><tr class="specification-row"><td class="specification-title"><strong>Product Type</strong></td><td class="specification-value">Soft starter</td></tr></table></section></body></html>`
+      },
+      sourceUrl
+    );
+
+    expect(result.status).toBe("found");
+    expect(result.description).toContain("DS7-340SX004N0-N");
+    expect(result.normalized.voltage).toContain("200...480 V");
+  });
+
+  it("deduplicates equivalent English Eaton SKU PDFs while preserving translated sources", () => {
+    const documents = [
+      { type: "datasheet" as const, label: "Eaton Specification Sheet", url: "https://www.eaton.com/de/de-de/skuPage.SP1-240S.pdf" },
+      { type: "datasheet" as const, label: "Eaton Specification Sheet", url: "https://www.eaton.com/gb/en-gb/skuPage.SP1-240S.pdf" },
+      { type: "datasheet" as const, label: "Eaton Specification Sheet", url: "https://www.eaton.com/us/en-us/skuPage.SP1-240S.pdf" },
+      { type: "datasheet" as const, label: "Eaton SP1 series technical data brochure", url: "https://www.eaton.com/content/dam/eaton/products/eaton-sp-series-brochure.pdf" }
+    ];
+
+    expect(dedupeEatonLocalizedSkuPdfs(documents, "SP1-240S").map((document) => document.url)).toEqual([
+      "https://www.eaton.com/de/de-de/skuPage.SP1-240S.pdf",
+      "https://www.eaton.com/us/en-us/skuPage.SP1-240S.pdf",
+      "https://www.eaton.com/content/dam/eaton/products/eaton-sp-series-brochure.pdf"
+    ]);
   });
 });

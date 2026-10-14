@@ -4,7 +4,7 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 import JSZip from "jszip";
 import type { ProductResult } from "../src/shared/types.js";
-import { documentAttributesAreSubstantive, enrichResultFromDownloadedDocuments, enrichResultFromRemoteDocuments, extractDocumentTextAttributes, isCleanSingleSpecValue, isMeasurementLikeToken, isStandardReferenceToken, looksLikeMultiVariantFamilyPage, shouldSkipEnvironmentalDeclarationSpecMining } from "../src/server/scrapers/document-enrichment.js";
+import { documentAttributesAreSubstantive, enrichResultFromDownloadedDocuments, enrichResultFromRemoteDocuments, extractDocumentTextAttributes, extractEatonAutovarRatedCurrent, extractEatonSp1NominalDischargeCurrent, isCleanSingleSpecValue, isMeasurementLikeToken, isStandardReferenceToken, looksLikeMultiVariantFamilyPage, shouldSkipEnvironmentalDeclarationSpecMining } from "../src/server/scrapers/document-enrichment.js";
 import { normalizeFields } from "../src/server/scrapers/normalizer.js";
 import { normalizeTechnicalAttributes } from "../src/server/scrapers/technical-attributes.js";
 import {
@@ -29,6 +29,54 @@ describe("looksLikeMultiVariantFamilyPage", () => {
   it("does not flag when our catalog is absent from the comparison row", () => {
     const text = ["ABC-1\tABC-2\tABC-3", "1 kg\t2 kg\t3 kg"].join("\n");
     expect(looksLikeMultiVariantFamilyPage(text, "ZZZ-9")).toBe(false);
+  });
+});
+
+describe("Eaton AUTOVAR 300 official table extraction", () => {
+  const source = "https://www.eaton.com/us/en-us/skuPage.225MCSR631MW.html";
+  const document = {
+    type: "datasheet" as const,
+    label: "Low-voltage switched capacitor banks technical data sheet",
+    url: "https://www.eaton.com/content/dam/eaton/products/power-factor-corrections/TD157004EN.pdf",
+    sourceUrl: source
+  };
+  const text = [
+    "Options",
+    "A = remote alarm C = communications H = hand-off-auto M = integrated main breaker W = weather resistant enclosure",
+    "Table 2. AUTOVAR 300 switched capacitor banks",
+    "600 V",
+    "225\t5 x 45\t216\t290 (131.7)\t225MCSR631"
+  ].join("\n");
+
+  it("joins a table base code only when every exact SKU option is documented", () => {
+    expect(extractEatonAutovarRatedCurrent("225MCSR631MW", document, text)).toEqual([
+      expect.objectContaining({ name: "Rated current", value: "216 A", sourceUrl: document.url, scope: "variant-option", matchLevel: "exact" })
+    ]);
+    expect(extractEatonAutovarRatedCurrent("225MCSR631MX", document, text)).toEqual([]);
+    expect(extractEatonAutovarRatedCurrent("150MCSR631MW", document, text)).toEqual([]);
+    expect(extractEatonAutovarRatedCurrent("225MCSR631MW", { ...document, sourceUrl: "https://www.eaton.com/us/en-us/skuPage.150MCSR631MW.html" }, text)).toEqual([]);
+  });
+});
+
+describe("Eaton SP1 exact-model family table extraction", () => {
+  const sourceUrl = "https://www.eaton.com/us/en-us/skuPage.SP1-240S.html";
+  const document = {
+    type: "datasheet" as const,
+    parser: "eaton-sp1-family-source",
+    label: "Eaton SP1 series technical data brochure",
+    url: "https://www.eaton.com/content/dam/eaton/products/backup-power-ups-surge-it-power-distribution/surge/sp-series/eaton-sp-series-brochure-pa01005006e.pdf",
+    sourceUrl
+  };
+  const text = "• 20 kA nominal discharge current rating (In) on a 240S example. Nominal discharge current (I n) 20 kA for 240S, 208Y, 480Y, 240D and 480D 10 kA for 600Y and 600D";
+
+  it("selects only the current group that explicitly names the exact PDP model token", () => {
+    expect(extractEatonSp1NominalDischargeCurrent("SP1-240S", document, text)).toMatchObject([
+      { name: "Nominal discharge current", value: "20 kA for 240S", matchLevel: "exact", sourceUrl: document.url }
+    ]);
+    expect(extractEatonSp1NominalDischargeCurrent("SP1-600Y", { ...document, sourceUrl: "https://www.eaton.com/us/en-us/skuPage.SP1-600Y.html" }, text)).toMatchObject([
+      { value: "10 kA for 600Y", matchLevel: "exact" }
+    ]);
+    expect(extractEatonSp1NominalDischargeCurrent("SP1-240S", { ...document, parser: "eaton-product-page" }, text)).toEqual([]);
   });
 });
 
@@ -1662,6 +1710,30 @@ Operating Temperature XT
     );
 
     expect(result.normalized.protection).toBe("IP20");
+  });
+
+  it("clears stale Eaton device voltage/current when evidence-scoped normalization rejects component values", async () => {
+    const fixturePath = path.resolve("benchmarks", "live-check", "nvent-docs", "spec-00583.pdf");
+    const exactPage = "https://www.eaton.com/us/en-us/skuPage.257064.html";
+    const result = await enrichResultFromRemoteDocuments(
+      product({
+        manufacturerId: "eaton",
+        catalogNumber: "257064",
+        normalized: { voltage: "24 V DC", current: "15 mA" },
+        attributes: [
+          { group: "General specifications", name: "Product Type", value: "Emergency stop pushbutton", parser: "eaton-product-page", sourceType: "official-fallback", sourceUrl: exactPage },
+          { group: "Included built-in LED", name: "LED voltage", value: "24 V DC", parser: "eaton-product-page", sourceType: "official-fallback", sourceUrl: exactPage },
+          { group: "Included built-in LED", name: "LED rated current", value: "15 mA", parser: "eaton-product-page", sourceType: "official-fallback", sourceUrl: exactPage }
+        ],
+        documents: [
+          { type: "datasheet", label: "Eaton product datasheet", url: "https://example.test/eaton.pdf" }
+        ]
+      }),
+      async () => ({ localPath: fixturePath })
+    );
+
+    expect(result.normalized.voltage).toBeUndefined();
+    expect(result.normalized.current).toBeUndefined();
   });
 
   it("reads remote PDF-like query endpoints even when the URL has no .pdf suffix", async () => {

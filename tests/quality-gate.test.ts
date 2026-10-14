@@ -35,6 +35,28 @@ const productTypeAwareManufacturer: ManufacturerConfig = {
 };
 
 describe("quality gate", () => {
+  it("clears unsupported Eaton component voltage/current values before scoring the result", () => {
+    const exactPage = "https://www.eaton.com/us/en-us/skuPage.257064.html";
+    const result = finalizeQualityGate(
+      product({
+        manufacturerId: "eaton",
+        catalogNumber: "257064",
+        productUrl: exactPage,
+        normalized: { voltage: "24 V DC", current: "15 mA" },
+        attributes: [
+          { group: "General specifications", name: "Product Type", value: "Emergency stop pushbutton", parser: "eaton-product-page", sourceType: "official-fallback", sourceUrl: exactPage },
+          { group: "Included built-in LED", name: "LED voltage", value: "24 V DC", parser: "eaton-product-page", sourceType: "official-fallback", sourceUrl: exactPage },
+          { group: "Included built-in LED", name: "LED rated current", value: "15 mA", parser: "eaton-product-page", sourceType: "official-fallback", sourceUrl: exactPage }
+        ]
+      }),
+      getManufacturerConfig("eaton")!
+    );
+
+    expect(result.normalized.voltage).toBeUndefined();
+    expect(result.normalized.current).toBeUndefined();
+    expect(result.qualityGate?.missing).toContain("normalized:voltage");
+  });
+
   it("carries an unmapped text specification to review diagnostics without assigning a field", () => {
     const result = finalizeQualityGate(
       product({

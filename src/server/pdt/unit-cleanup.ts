@@ -1,5 +1,5 @@
 import { normalizeNumberSeparators } from "../text-util.js";
-import { OUNCE_TO_GRAM, POUND_TO_GRAM } from "../unit-conversion.js";
+import { OUNCE_TO_GRAM, POUND_TO_GRAM, multiplyDecimalExactly } from "../unit-conversion.js";
 
 const UNIT_ALIASES: Record<string, string> = {
   a: "A",
@@ -156,6 +156,7 @@ const UNIT_FAMILIES: Record<string, string> = {
 export interface UnitNumber {
   value: number;
   unit?: string;
+  rawValue?: string;
 }
 
 export function normalizePdtCellNumber(value: string, targetUnit: string | undefined): string | undefined {
@@ -175,10 +176,10 @@ export function normalizePdtCellNumber(value: string, targetUnit: string | undef
 
   const normalized = values
     .map((entry) => convertUnitValue(entry, target))
-    .filter((entry): entry is number => entry !== undefined && Number.isFinite(entry));
+    .filter((entry): entry is { value: number; text: string } => entry !== undefined && Number.isFinite(entry.value));
   if (normalized.length === 0) return undefined;
 
-  return formatNumber(Math.max(...normalized));
+  return normalized.sort((left, right) => right.value - left.value)[0].text;
 }
 
 export function maxUnitNumber(value: string | undefined, targetUnit: string): string | undefined {
@@ -208,14 +209,14 @@ export function splitTemperatureRange(value: string | undefined): { min?: string
 function extractAllTaggedNumbers(raw: string): UnitNumber[] {
   const text = normalizeForParsing(raw);
   const exact = [...text.matchAll(/(-?\d+(?:\.\d+)?)\s*(mA|kA|A|mV|kV|V|mW|kW|W|MHz|kHz|Hz|kg|g|lb|lbs|mm|cm|m|°C|C)\b/gi)]
-    .map((match) => ({ value: Number(match[1]), unit: normalizeUnit(match[2]) }))
+    .map((match) => ({ value: Number(match[1]), rawValue: match[1], unit: normalizeUnit(match[2]) }))
     .filter((entry) => Number.isFinite(entry.value) && Boolean(entry.unit)) as UnitNumber[];
 
   const flowExact = [...text.matchAll(/(-?\d+(?:\.\d+)?)\s*(Nl\s*\/\s*min|l\s*\/\s*min|lpm|m3\s*\/\s*h|m3\s*\/\s*min|dm3\s*\/\s*min|gpm|cfm)\b/gi)]
-    .map((match) => ({ value: Number(match[1]), unit: normalizeUnit(match[2]) }))
+    .map((match) => ({ value: Number(match[1]), rawValue: match[1], unit: normalizeUnit(match[2]) }))
     .filter((entry) => Number.isFinite(entry.value) && Boolean(entry.unit)) as UnitNumber[];
   const pressureExact = [...text.matchAll(/(-?\d+(?:\.\d+)?)\s*(mbar|kPa|MPa|Pa|bar|psi)\b/gi)]
-    .map((match) => ({ value: Number(match[1]), unit: normalizeUnit(match[2]) }))
+    .map((match) => ({ value: Number(match[1]), rawValue: match[1], unit: normalizeUnit(match[2]) }))
     .filter((entry) => Number.isFinite(entry.value) && Boolean(entry.unit)) as UnitNumber[];
 
   // Imperial length/mass — US manufacturers publish inches/feet/pounds/ounces. Word forms are
@@ -223,11 +224,11 @@ function extractAllTaggedNumbers(raw: string): UnitNumber[] {
   const imperialExact: UnitNumber[] = [
     ...text.matchAll(/(-?\d+(?:\.\d+)?)\s*(inches|inch|feet|foot|yards|yard|ounces|ounce|pounds|pound|in|ft|yd|oz)\b/gi)
   ]
-    .map((match) => ({ value: Number(match[1]), unit: normalizeUnit(match[2]) }))
+    .map((match) => ({ value: Number(match[1]), rawValue: match[1], unit: normalizeUnit(match[2]) }))
     .filter((entry) => Number.isFinite(entry.value) && Boolean(entry.unit)) as UnitNumber[];
   for (const match of text.matchAll(/(-?\d+(?:\.\d+)?)\s*"/g)) {
     const value = Number(match[1]);
-    if (Number.isFinite(value)) imperialExact.push({ value, unit: "in" });
+    if (Number.isFinite(value)) imperialExact.push({ value, rawValue: match[1], unit: "in" });
   }
 
   return [...exact, ...flowExact, ...pressureExact, ...imperialExact];
@@ -252,11 +253,21 @@ function extractUnitNumbers(raw: string, targetUnit: string): UnitNumber[] {
   return single ? [{ value: Number(single[0]) }] : [];
 }
 
-function convertUnitValue(entry: UnitNumber, targetUnit: string): number | undefined {
-  if (!entry.unit) return entry.value;
-  if (entry.unit === targetUnit) return entry.value;
+function convertUnitValue(entry: UnitNumber, targetUnit: string): { value: number; text: string } | undefined {
+  if (!entry.unit) return { value: entry.value, text: entry.rawValue ?? String(entry.value) };
+  if (entry.unit === targetUnit) return { value: entry.value, text: entry.rawValue ?? String(entry.value) };
   if (UNIT_FAMILIES[entry.unit] !== UNIT_FAMILIES[targetUnit]) return undefined;
-  return (entry.value * UNIT_FACTORS[entry.unit]) / UNIT_FACTORS[targetUnit];
+  const exactFactors: Record<string, string> = {
+    "g>kg": "0.001", "lb>kg": "0.45359237", "oz>kg": "0.028349523125",
+    "kg>g": "1000", "lb>g": "453.59237", "oz>g": "28.349523125", "in>mm": "25.4"
+  };
+  const exact = exactFactors[`${entry.unit}>${targetUnit}`];
+  if (exact) {
+    const text = multiplyDecimalExactly(entry.rawValue ?? String(entry.value), exact);
+    if (text !== undefined) return { value: Number(text), text };
+  }
+  const value = (entry.value * UNIT_FACTORS[entry.unit]) / UNIT_FACTORS[targetUnit];
+  return { value, text: String(value) };
 }
 
 function stripSingleNumber(value: string): string | undefined {
@@ -297,5 +308,5 @@ function normalizeForParsing(value: string): string {
 
 function formatNumber(value: number): string {
   if (!Number.isFinite(value)) return "";
-  return String(Number(value.toFixed(6)));
+  return String(value);
 }

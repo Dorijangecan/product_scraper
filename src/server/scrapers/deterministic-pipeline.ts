@@ -138,7 +138,6 @@ export async function runDeterministicScrapePipeline(
       });
     }
   }
-
   if (!current.qualityGate?.passed && discovery.documentCandidates.length) {
     const documentResult = discoveryDocumentResult(catalogNumber, context, discovery.documentCandidates);
     const merged = mergeResults(current, documentResult);

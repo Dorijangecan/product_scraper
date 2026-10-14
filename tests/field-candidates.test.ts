@@ -3,6 +3,28 @@ import { applyFieldCandidateResolution } from "../src/server/scrapers/field-cand
 import type { ProductResult } from "../src/shared/types.js";
 
 describe("field candidate resolver", () => {
+  it("does not restore unsupported Eaton LED component ratings as device-level fields", () => {
+    const exactPage = "https://www.eaton.com/us/en-us/skuPage.257064.html";
+    const result = applyFieldCandidateResolution({
+      manufacturerId: "eaton",
+      catalogNumber: "257064",
+      status: "partial",
+      confidence: 0.7,
+      normalized: { voltage: "24 V DC", current: "15 mA" },
+      attributes: [
+        { group: "General specifications", name: "Product Type", value: "Emergency stop pushbutton", sourceUrl: exactPage, sourceType: "official-fallback", parser: "eaton-product-page" },
+        { group: "Included built-in LED", name: "LED voltage", value: "24 V DC", sourceUrl: exactPage, sourceType: "official-fallback", parser: "eaton-product-page" },
+        { group: "Included built-in LED", name: "LED rated current", value: "15 mA", sourceUrl: exactPage, sourceType: "official-fallback", parser: "eaton-product-page" },
+        { group: "Product specifications", name: "Accessories", value: "With built-in multiple LED, 24 V DC, Ie = 15 mA", sourceUrl: exactPage, sourceType: "official-fallback", parser: "eaton-product-page" }
+      ],
+      documents: [],
+      sources: []
+    } satisfies ProductResult);
+
+    expect(result.normalized.voltage).toBeUndefined();
+    expect(result.normalized.current).toBeUndefined();
+  });
+
   it("selects official/customer-backed values over distributor candidates and keeps conflicts", () => {
     const result = applyFieldCandidateResolution({
       manufacturerId: "test",

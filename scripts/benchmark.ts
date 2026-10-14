@@ -339,7 +339,11 @@ async function benchmarkCustomerDocuments(fixture: BenchmarkFixture): Promise<Cu
 async function downloadDocuments(manufacturer: ManufacturerConfig, catalogNumber: string, result: ProductResult, signal: AbortSignal): Promise<ProductResult> {
   const ranked = benchmarkDocumentsToDownload(coalesceImageDocuments(result.documents));
   const downloaded = new Map<string, DocumentRecord>();
-  for (const doc of ranked) downloaded.set(doc.url, await downloadDocument(manufacturer, catalogNumber, doc, signal));
+  for (let offset = 0; offset < ranked.length; offset += 2) {
+    const batch = ranked.slice(offset, offset + 2);
+    const settled = await Promise.all(batch.map((doc) => downloadDocument(manufacturer, catalogNumber, doc, signal)));
+    for (const doc of settled) downloaded.set(doc.url, doc);
+  }
   return {
     ...result,
     documents: coalesceImageDocuments(result.documents).map((doc) => downloaded.get(doc.url) ?? doc)
@@ -759,17 +763,25 @@ function documentRank(doc: DocumentRecord): number {
   if (/certificate|declaration|conformity|rohs|weee|ul|ce\b/.test(label)) rank -= 5;
   if (/main|primary|product|iopmain|zoom|gallery/.test(label)) rank -= 4;
   if (/terms|privacy|warranty|brochure|catalogue|catalog\b/.test(label)) rank += 30;
+  if (/\btechnical\s+data\s+(?:sheet|datasheet)\b/.test(label)) rank -= 12;
+  if (/\bdesign\s+it\s+right\b/.test(label)) rank += 8;
+  // Eaton's exact SP1 PDP links this official table and its model-token row is required
+  // for the nominal-discharge-current field. Give the proven source first position in the
+  // bounded benchmark download plan; the parser still requires an exact model-row match.
+  if (doc.parser === "eaton-sp1-family-source") rank = -100;
   if (doc.type !== "image" && /\.pdf(?:[?#]|$)/i.test(doc.url)) rank -= 8;
   return rank;
 }
 
 function benchmarkDocumentsToDownload(documents: DocumentRecord[]): DocumentRecord[] {
   const selected: DocumentRecord[] = [];
-  const seenTypes = new Set<string>();
+  const typeCounts = new Map<string, number>();
   for (const doc of [...documents].sort((left, right) => documentRank(left) - documentRank(right))) {
-    if (seenTypes.has(doc.type)) continue;
+    const count = typeCounts.get(doc.type) ?? 0;
+    const limit = doc.parser === "eaton-sp1-family-source" ? 3 : doc.type === "datasheet" ? 2 : 1;
+    if (count >= limit) continue;
     selected.push(doc);
-    seenTypes.add(doc.type);
+    typeCounts.set(doc.type, count + 1);
   }
   return selected.slice(0, 5);
 }

@@ -1,0 +1,339 @@
+[
+  {
+    "manufacturerId": "eaton",
+    "catalogNumber": "DH365NGKLC",
+    "caseType": "electrical",
+    "expectedDeviceType": "Disconnect Switch",
+    "riskTags": [
+      "cold",
+      "heavy-duty-safety-switch",
+      "fusible-switch"
+    ],
+    "expectedOfficialUrlPatterns": [
+      "eaton\\.com/.*/skuPage\\.DH365NGKLC\\.html"
+    ],
+    "requiredDocuments": [
+      "datasheet"
+    ],
+    "expectedNormalizedFields": [
+      "voltage",
+      "current",
+      "dimensions",
+      "weight"
+    ]
+  },
+  {
+    "manufacturerId": "eaton",
+    "catalogNumber": "PSG480E24RM",
+    "caseType": "electrical",
+    "expectedDeviceType": "Power Supply",
+    "riskTags": [
+      "cold",
+      "power-supply",
+      "PSG"
+    ],
+    "expectedOfficialUrlPatterns": [
+      "eaton\\.com/.*/skuPage\\.PSG480E24RM\\.html"
+    ],
+    "requiredDocuments": [
+      "datasheet"
+    ],
+    "expectedNormalizedFields": [
+      "voltage",
+      "dimensions",
+      "weight"
+    ]
+  },
+  {
+    "manufacturerId": "eaton",
+    "catalogNumber": "SPD050208Y2A",
+    "caseType": "electrical",
+    "expectedDeviceType": "Surge Protective Device",
+    "riskTags": [
+      "cold",
+      "surge-protection",
+      "SPD"
+    ],
+    "expectedOfficialUrlPatterns": [
+      "eaton\\.com/.*/skuPage\\.SPD050208Y2A\\.html"
+    ],
+    "requiredDocuments": [
+      "datasheet"
+    ],
+    "expectedNormalizedFields": [
+      "voltage",
+      "current",
+      "dimensions",
+      "weight"
+    ]
+  },
+  {
+    "manufacturerId": "eaton",
+    "catalogNumber": "C306DN3B",
+    "caseType": "electrical",
+    "expectedDeviceType": "Overload Relay",
+    "riskTags": [
+      "cold",
+      "overload-relay",
+      "C306"
+    ],
+    "expectedOfficialUrlPatterns": [
+      "eaton\\.com/.*/skuPage\\.C306DN3B\\.html"
+    ],
+    "requiredDocuments": [
+      "datasheet"
+    ],
+    "expectedNormalizedFields": [
+      "current",
+      "dimensions",
+      "weight"
+    ]
+  },
+  {
+    "manufacturerId": "eaton",
+    "catalogNumber": "E57-12LE10-A",
+    "caseType": "electrical",
+    "expectedDeviceType": "Inductive Proximity Sensor",
+    "riskTags": [
+      "cold",
+      "proximity-sensor",
+      "E57"
+    ],
+    "expectedOfficialUrlPatterns": [
+      "eaton\\.com/.*/skuPage\\.E57-12LE10-A\\.html"
+    ],
+    "requiredDocuments": [
+      "datasheet"
+    ],
+    "expectedNormalizedFields": [
+      "voltage",
+      "current",
+      "dimensions",
+      "weight"
+    ]
+  },
+  {
+    "manufacturerId": "eaton",
+    "catalogNumber": "M22-PV/K01",
+    "caseType": "electrical",
+    "expectedDeviceType": "Pushbutton / Operator",
+    "riskTags": [
+      "cold",
+      "emergency-stop",
+      "M22"
+    ],
+    "expectedOfficialUrlPatterns": [
+      "eaton\\.com/.*/skuPage\\.M22-PV/K01\\.html"
+    ],
+    "requiredDocuments": [
+      "datasheet"
+    ],
+    "expectedNormalizedFields": [
+      "dimensions",
+      "weight"
+    ]
+  },
+  {
+    "manufacturerId": "eaton",
+    "catalogNumber": "C799B818",
+    "caseType": "electrical",
+    "expectedDeviceType": "Enclosure",
+    "riskTags": [
+      "cold",
+      "NEMA-enclosure",
+      "Freedom"
+    ],
+    "expectedOfficialUrlPatterns": [
+      "eaton\\.com/.*/skuPage\\.C799B818\\.html"
+    ],
+    "requiredDocuments": [
+      "datasheet"
+    ],
+    "expectedNormalizedFields": [
+      "dimensions",
+      "weight"
+    ]
+  },
+  {
+    "manufacturerId": "eaton",
+    "catalogNumber": "DH223FGK",
+    "caseType": "electrical",
+    "expectedDeviceType": "Disconnect Switch",
+    "riskTags": [
+      "cold",
+      "fusible-safety-switch",
+      "DH"
+    ],
+    "expectedOfficialUrlPatterns": [
+      "eaton\\.com/.*/skuPage\\.DH223FGK\\.html"
+    ],
+    "requiredDocuments": [
+      "datasheet"
+    ],
+    "expectedNormalizedFields": [
+      "voltage",
+      "current",
+      "dimensions",
+      "weight"
+    ]
+  },
+  {
+    "manufacturerId": "eaton",
+    "catalogNumber": "PSG120E",
+    "caseType": "electrical",
+    "expectedDeviceType": "Power Supply",
+    "riskTags": [
+      "cold",
+      "power-supply",
+      "PSG"
+    ],
+    "expectedOfficialUrlPatterns": [
+      "eaton\\.com/.*/skuPage\\.PSG120E\\.html"
+    ],
+    "requiredDocuments": [
+      "datasheet"
+    ],
+    "expectedNormalizedFields": [
+      "voltage",
+      "current",
+      "dimensions",
+      "weight"
+    ]
+  },
+  {
+    "manufacturerId": "eaton",
+    "catalogNumber": "088527",
+    "caseType": "electrical",
+    "expectedDeviceType": "Pressure Switch",
+    "riskTags": [
+      "cold",
+      "pressure-switch",
+      "MCS"
+    ],
+    "expectedOfficialUrlPatterns": [
+      "eaton\\.com/.*/skuPage\\.088527\\.html"
+    ],
+    "requiredDocuments": [
+      "datasheet"
+    ],
+    "expectedNormalizedFields": [
+      "voltage",
+      "current",
+      "dimensions",
+      "weight"
+    ]
+  },
+  {
+    "manufacturerId": "eaton",
+    "catalogNumber": "276477",
+    "caseType": "electrical",
+    "expectedDeviceType": "Control Relay",
+    "riskTags": [
+      "cold",
+      "control-relay",
+      "DILA"
+    ],
+    "expectedOfficialUrlPatterns": [
+      "eaton\\.com/.*/skuPage\\.276477\\.html"
+    ],
+    "requiredDocuments": [
+      "datasheet"
+    ],
+    "expectedNormalizedFields": [
+      "voltage",
+      "current",
+      "dimensions",
+      "weight"
+    ]
+  },
+  {
+    "manufacturerId": "eaton",
+    "catalogNumber": "ESR5-NO-21-24VAC-DC",
+    "caseType": "electrical",
+    "expectedDeviceType": "Safety Relay",
+    "riskTags": [
+      "cold",
+      "safety-relay",
+      "ESR5"
+    ],
+    "expectedOfficialUrlPatterns": [
+      "eaton\\.com/.*/skuPage\\.ESR5-NO-21-24VAC-DC\\.html"
+    ],
+    "requiredDocuments": [
+      "datasheet"
+    ],
+    "expectedNormalizedFields": [
+      "voltage",
+      "current",
+      "dimensions",
+      "weight"
+    ]
+  },
+  {
+    "manufacturerId": "eaton",
+    "catalogNumber": "197506",
+    "caseType": "electrical",
+    "expectedDeviceType": "Control Relay",
+    "riskTags": [
+      "cold",
+      "easyE4",
+      "control-relay"
+    ],
+    "expectedOfficialUrlPatterns": [
+      "eaton\\.com/.*/skuPage\\.197506\\.html"
+    ],
+    "requiredDocuments": [
+      "datasheet"
+    ],
+    "expectedNormalizedFields": [
+      "voltage",
+      "dimensions",
+      "weight"
+    ]
+  },
+  {
+    "manufacturerId": "eaton",
+    "catalogNumber": "SPM250240D4T",
+    "caseType": "electrical",
+    "expectedDeviceType": "Surge Protective Device",
+    "riskTags": [
+      "cold",
+      "surge-protection",
+      "SPM"
+    ],
+    "expectedOfficialUrlPatterns": [
+      "eaton\\.com/.*/skuPage\\.SPM250240D4T\\.html"
+    ],
+    "requiredDocuments": [
+      "datasheet"
+    ],
+    "expectedNormalizedFields": [
+      "voltage",
+      "current",
+      "dimensions",
+      "weight"
+    ]
+  },
+  {
+    "manufacturerId": "eaton",
+    "catalogNumber": "E06NBXRJ3A",
+    "caseType": "electrical",
+    "expectedDeviceType": "Overload Relay",
+    "riskTags": [
+      "cold",
+      "overload-relay",
+      "Freedom"
+    ],
+    "expectedOfficialUrlPatterns": [
+      "eaton\\.com/.*/skuPage\\.E06NBXRJ3A\\.html"
+    ],
+    "requiredDocuments": [
+      "datasheet"
+    ],
+    "expectedNormalizedFields": [
+      "current",
+      "dimensions",
+      "weight"
+    ]
+  }
+]

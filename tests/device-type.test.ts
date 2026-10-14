@@ -35,6 +35,19 @@ describe("device type classifier", () => {
     expect(deviceSheetsFor(result.type)).toContain("el. mesurement devices");
   });
 
+  it("classifies Eaton Power Xpert meter items as meters when the product description mentions its power supply", () => {
+    const exactPage = "https://www.eaton.com/us/en-us/skuPage.PXM3000MA15.html";
+    const result = classifyDeviceType(product(
+      [
+        { group: "General specifications", name: "Product Type", value: "Power Xpert meter 3000", sourceType: "official-fallback", parser: "eaton-product-page", sourceUrl: exactPage },
+        { group: "Structured Product Data", name: "Description", value: "Eaton PXM3000 meter with display, Power supply 100-277 Vac", sourceType: "official-fallback", parser: "eaton-product-page", sourceUrl: exactPage }
+      ],
+      "PXM3000MA15",
+      { manufacturerId: "eaton", catalogNumber: "PXM3000MA15", productUrl: exactPage }
+    ));
+    expect(result.type).toBe("Power Meter");
+  });
+
   it("recognizes every known device type when the vendor provides the exact category label", () => {
     const missed = knownDeviceTypes()
       .map((type) => ({
@@ -75,6 +88,172 @@ describe("device type classifier", () => {
         product([{ group: "Balluff Key features", name: "Principle of operation", value: "Photoelectric sensor", sourceType: "official" }])
       ).type
     ).toBe("Photoelectric Sensor");
+  });
+
+  it("lets an exact Eaton SKU page product type beat conflicting family language", () => {
+    const sku = "229424";
+    const exactPage = `https://www.eaton.com/us/en-us/skuPage.${sku}.html`;
+    const result = classifyDeviceType(product(
+      [{
+        group: "General specifications",
+        name: "Product Type",
+        value: "Power supply unit",
+        sourceType: "official-fallback",
+        parser: "eaton-product-page",
+        sourceUrl: exactPage
+      }],
+      "229424 | Eaton easyPOW power supply unit",
+      {
+        manufacturerId: "eaton",
+        catalogNumber: sku,
+        productUrl: exactPage,
+        description: "Eaton easyE4 power supply unit, 100-240VAC/24VDC/12VDC"
+      }
+    ));
+
+    expect(result.type).toBe("Power Supply");
+  });
+
+  it("lets an exact Eaton Product Type beat a broader product category", () => {
+    const sku = "229424";
+    const exactPage = `https://www.eaton.com/us/en-us/skuPage.${sku}.html`;
+    const result = classifyDeviceType(product(
+      [
+        { group: "General specifications", name: "Product Type", value: "Power supply unit", sourceType: "official-fallback", parser: "eaton-product-page", sourceUrl: exactPage },
+        { group: "Product specifications", name: "Product category", value: "Control relays easyE4", sourceType: "official-fallback", parser: "eaton-product-page", sourceUrl: exactPage }
+      ],
+      "Eaton easyPOW power supply unit",
+      { manufacturerId: "eaton", catalogNumber: sku, productUrl: exactPage }
+    ));
+
+    expect(result.type).toBe("Power Supply");
+  });
+
+  it("keeps an exact Eaton safety relay from inheriting safety sensor application wording", () => {
+    const sku = "118705";
+    const exactPage = `https://www.eaton.com/us/en-us/skuPage.${sku}.html`;
+    const result = classifyDeviceType(product(
+      [
+        { group: "General specifications", name: "Product Type", value: "Safety relay", sourceType: "official-fallback", parser: "eaton-product-page", sourceUrl: exactPage },
+        { group: "Product specifications", name: "Product category", value: "Electronic safety relays", sourceType: "official-fallback", parser: "eaton-product-page", sourceUrl: exactPage },
+        { group: "Product specifications", name: "Type", value: "Emergency stop; light curtain; protective door", sourceType: "official-fallback", parser: "eaton-product-page", sourceUrl: exactPage }
+      ],
+      "Eaton ESR5 Safety relay",
+      { manufacturerId: "eaton", catalogNumber: sku, productUrl: exactPage }
+    ));
+
+    expect(result.type).toBe("Safety Relay");
+  });
+
+  it("classifies Eaton's explicit smart breaker charger product type as a circuit breaker", () => {
+    const sku = "BREVEM2040";
+    const exactPage = `https://www.eaton.com/us/en-us/skuPage.${sku}.html`;
+    const result = classifyDeviceType(product(
+      [{
+        group: "General specifications",
+        name: "Product Type",
+        value: "BR EV smart breaker charger",
+        sourceType: "official-fallback",
+        parser: "eaton-product-page",
+        sourceUrl: exactPage
+      }],
+      "BREVEM2040 | Eaton Green Motion BR EV smart breaker charger",
+      { manufacturerId: "eaton", catalogNumber: sku, productUrl: exactPage }
+    ));
+
+    expect(result.type).toBe("Circuit Breaker");
+  });
+
+  it("classifies a shaft handle operator as an accessory rather than the switch it operates", () => {
+    const sku = "5FTCKIT";
+    const exactPage = `https://www.eaton.com/us/en-us/skuPage.${sku}.html`;
+    const result = classifyDeviceType(product(
+      [{
+        group: "General specifications",
+        name: "Product Name",
+        value: "Eaton Flex Shaft Handle Operator 60",
+        sourceType: "official-fallback",
+        parser: "eaton-product-page",
+        sourceUrl: exactPage
+      }],
+      "Eaton Flex Shaft Handle Operator 60",
+      {
+        manufacturerId: "eaton",
+        catalogNumber: sku,
+        productUrl: exactPage,
+        description: "Flex Shaft Handle Operator 60\""
+      }
+    ));
+
+    expect(result.type).toBe("Cover / Door Accessory");
+  });
+
+  it("uses a specific Eaton PDP Type value when Product Type is only a broad class", () => {
+    const sku = "PS-8-LP";
+    const exactPage = `https://www.eaton.com/us/en-us/skuPage.${sku}.html`;
+    const result = classifyDeviceType(product(
+      [
+        {
+          group: "General specifications",
+          name: "Product Type",
+          value: "Power supply",
+          sourceType: "official-fallback",
+          parser: "eaton-product-page",
+          sourceUrl: exactPage
+        },
+        {
+          group: "Product specifications",
+          name: "Type",
+          value: "NAC power supply",
+          sourceType: "official-fallback",
+          parser: "eaton-product-page",
+          sourceUrl: exactPage
+        }
+      ],
+      "PS-8-LP | Eaton Wheelock PS power supply",
+      {
+        manufacturerId: "eaton",
+        catalogNumber: sku,
+        productUrl: exactPage,
+        description: "Eaton Wheelock PS power supply, NAC power supply, red, 8 amps, 120 V"
+      }
+    ));
+
+    expect(result.type).toBe("Fire Alarm Power Supply");
+  });
+
+  it("uses an exact Eaton PDP Product Category over its broad Product Type", () => {
+    const sku = "DT3030";
+    const exactPage = `https://www.eaton.com/us/en-us/skuPage.${sku}.html`;
+    const result = classifyDeviceType(product(
+      [
+        {
+          group: "General specifications",
+          name: "Product Type",
+          value: "Relay",
+          sourceType: "official-fallback",
+          parser: "eaton-product-page",
+          sourceUrl: exactPage
+        },
+        {
+          group: "Product specifications",
+          name: "Product Category",
+          value: "Three-phase and ground overcurrent protective relay",
+          sourceType: "official-fallback",
+          parser: "eaton-product-page",
+          sourceUrl: exactPage
+        }
+      ],
+      "DT3030 | Eaton relay",
+      {
+        manufacturerId: "eaton",
+        catalogNumber: sku,
+        productUrl: exactPage,
+        description: "Eaton ground overcurrent protective relay, Three-phase, DT-3000, 24/48 Vdc"
+      }
+    ));
+
+    expect(result.type).toBe("Protective Relay");
   });
 
   it("keeps condition-monitoring sensors from being classified as their cable connector", () => {
@@ -537,6 +716,14 @@ describe("device type classifier", () => {
     expect(classifyDeviceType(result).type).toBe("Safety Sensor");
   });
 
+  it("classifies a stand-alone safety switch as a disconnect switch, not a safety sensor", () => {
+    const result = product(
+      [{ group: "General specifications", name: "Product Type", value: "Heavy duty safety switch", sourceType: "official" }],
+      "DH365 heavy duty safety switch"
+    );
+    expect(classifyDeviceType(result).type).toBe("Disconnect Switch");
+  });
+
   it("classifies an EMC line filter (not as Thermal Management 'filter fan')", () => {
     const result = product(
       [{ group: "General", name: "Product Type", value: "EMC line filter", sourceType: "official" }],
@@ -559,6 +746,22 @@ describe("device type classifier", () => {
       "PT5400 pressure transmitter"
     );
     expect(classifyDeviceType(result).type).toBe("Pressure Sensor");
+  });
+
+  it("classifies a pressure switch as a pressure switch, not a pressure sensor", () => {
+    const result = product(
+      [{ group: "General specifications", name: "Product Type", value: "Pressure switch", sourceType: "official" }],
+      "MCS pressure switch"
+    );
+    expect(classifyDeviceType(result).type).toBe("Pressure Switch");
+  });
+
+  it("classifies an overload relay separately from other relays", () => {
+    const result = product(
+      [{ group: "General specifications", name: "Product Name", value: "Eaton Freedom NEMA overload relay", sourceType: "official" }],
+      "Thermal overload relay"
+    );
+    expect(classifyDeviceType(result).type).toBe("Overload Relay");
   });
 
   it("classifies a temperature transmitter as Temperature Sensor", () => {

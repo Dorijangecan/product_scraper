@@ -1,5 +1,5 @@
 import type { AttributeRecord, DocumentRecord, NormalizedProductFields, ProductResult } from "../../shared/types.js";
-import { OUNCE_TO_KILOGRAM, POUND_TO_KILOGRAM } from "../unit-conversion.js";
+import { multiplyDecimalExactly } from "../unit-conversion.js";
 import { dedupeAttributes as dedupeAttributesBase, dedupeDocuments as dedupeSharedDocuments } from "./dedupe.js";
 import { evidenceConfidence } from "./evidence-score.js";
 import { fieldDefinition, fieldMatchesLabel, normalizerFieldLabelPatterns, registryFieldQuantityKind, type NormalizedRegistryFieldKey } from "./field-registry.js";
@@ -208,6 +208,10 @@ export function isValueFragmentLabel(name: string): boolean {
 */
 
 export function normalizeFields(attributes: AttributeRecord[], documents: DocumentRecord[], manufacturerId?: string): NormalizedProductFields {
+  // Eaton family PDFs often contain many models in one table. Only normalize their field values
+  // when the extractor tied the row to an exact catalog row or an explicitly documented option.
+  // The unscoped records remain in raw evidence for review, but cannot override an exact SKU PDP.
+  if (manufacturerId === "eaton") attributes = attributes.filter((attribute) => !isUnscopedEatonPdfFact(attribute));
   const rittalPdpAttributes = manufacturerId === "rittal"
     ? attributes.filter((attribute) => attribute.sourceType === "official" || attribute.sourceType === "official-fallback")
     : attributes;
@@ -217,6 +221,18 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
   // current evidence; retain them as raw attributes, but normalize current only from official PDP rows.
   const currentAttributes = manufacturerId === "rittal"
     ? rittalPdpAttributes.filter(isRittalCurrentEvidence)
+    : attributes.filter((attribute) =>
+        !isRelatedProductElectricalAttribute(attribute) &&
+        !isNonRatingCurrentArtifact(attribute) &&
+        !isEatonComponentElectricalValue(attribute, manufacturerId) &&
+        !(manufacturerId === "eaton" && /^rated operational current for specified heat dissipation(?:\s*\(in\))?$/i.test(attribute.name.trim()) && normalizeCurrentValue(attribute.value) === "0 A")
+      );
+  const voltageAttributes = manufacturerId === "eaton"
+    ? attributes.filter((attribute) =>
+        !isRelatedProductElectricalAttribute(attribute) &&
+        !isEatonComponentElectricalValue(attribute, manufacturerId) &&
+        !isEatonSoftStarterHorsepowerVoltage(attribute, attributes)
+      )
     : attributes;
   const findAttr = (...patterns: RegExp[]) => {
     return bestAttributeValue(attributes, patterns);
@@ -358,20 +374,25 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
 
   const rittalVoltageModes = manufacturerId === "rittal" ? rittalMultipleVoltageRanges(attributes) : undefined;
   const voltage = rittalVoltageModes ?? withoutMixedKindProse(
-      powerSupplyOutputVoltage(attributes) ??
-    normalizeVoltageValue(deriveVoltageRangeFromMinMax(attributes)) ??
-    explicitRatedVoltageFromText(attributes) ??
-    numericVoltAttributeVoltage(attributes) ??
-    bestNormalizedAttributeValue(attributes, normalizerFieldLabelPatterns("voltage"), normalizeVoltageValue, "voltage") ??
-    registryFieldValue(attributes, "voltage", normalizeVoltageValue) ??
-    normalizeVoltageValue(deriveVoltageFromText(attributes)) ??
+      exactEatonPdpVoltageRating(voltageAttributes, manufacturerId) ??
+      powerSupplyOutputVoltage(voltageAttributes) ??
+    normalizeVoltageValue(deriveVoltageRangeFromMinMax(voltageAttributes)) ??
+    explicitRatedVoltageFromText(voltageAttributes) ??
+    numericVoltAttributeVoltage(voltageAttributes) ??
+    bestNormalizedAttributeValue(voltageAttributes, normalizerFieldLabelPatterns("voltage"), normalizeVoltageValue, "voltage") ??
+    registryFieldValue(voltageAttributes, "voltage", normalizeVoltageValue) ??
+    normalizeVoltageValue(deriveVoltageFromText(voltageAttributes)) ??
     // Last resort: the ontology recognises FR/IT/DE voltage labels that FIELD_LABEL_PATTERNS
     // (mostly EN/DE) miss. Most-specific matchProperty keeps insulation/impulse voltage out.
-      ontologyFieldValue(attributes, "ratedVoltage", normalizeVoltageValue) ??
-      inferredOntologyFieldValue(attributes, "ratedVoltage", normalizeVoltageValue)
+      ontologyFieldValue(voltageAttributes, "ratedVoltage", normalizeVoltageValue) ??
+      inferredOntologyFieldValue(voltageAttributes, "ratedVoltage", normalizeVoltageValue)
   );
   const current = withoutMixedKindProse(
-    powerSupplyOutputCurrent(currentAttributes) ??
+    eatonNacPowerSupplyCurrent(currentAttributes, manufacturerId) ??
+      powerSupplyOutputCurrent(currentAttributes) ??
+      eatonSurgeNominalDischargeCurrent(attributes, manufacturerId) ??
+      eatonContactorAc3Current(currentAttributes, manufacturerId) ??
+      eatonOverloadRangeCurrent(currentAttributes, manufacturerId) ??
       schneiderContactorAc3Current(currentAttributes) ??
       explicitRatedCurrentFromText(currentAttributes) ??
       voltageAlignedAc15Current(currentAttributes, voltage) ??
@@ -399,6 +420,233 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
     operatingTemperatureMin: operatingTemperature.min,
     operatingTemperatureMax: operatingTemperature.max
   };
+}
+
+function isUnscopedEatonPdfFact(attribute: AttributeRecord): boolean {
+  return attribute.sourceType === "generated" &&
+    attribute.parser === "pdf-table-extractor" &&
+    attribute.matchLevel !== "exact";
+}
+
+function isEatonComponentElectricalValue(attribute: AttributeRecord, manufacturerId?: string): boolean {
+  if (manufacturerId !== "eaton") return false;
+  return /^included built-in led$/i.test(attribute.group?.trim() ?? "") ||
+    /^led\s+(?:voltage|rated current)$/i.test(attribute.name.trim()) ||
+    (/^accessories$/i.test(attribute.name.trim()) && /built-in\s+(?:multiple\s+)?led/i.test(attribute.value));
+}
+
+function isRelatedProductElectricalAttribute(attribute: AttributeRecord): boolean {
+  return /\b(?:related product|designed to work together|recommended alternative|similar part|compatible product)\b/i.test(
+    `${attribute.group ?? ""} ${attribute.name}`
+  );
+}
+
+function hasExactEatonSkuPageEvidence(attributes: AttributeRecord[]): boolean {
+  return attributes.some((attribute) =>
+    attribute.parser === "eaton-product-page" &&
+    attribute.sourceType === "official-fallback" &&
+    /^https:\/\/(?:www\.)?eaton\.com(?:\.cn)?\//i.test(attribute.sourceUrl ?? "") &&
+    /\/skuPage\.[^/]+?\.html$/i.test(attribute.sourceUrl ?? "")
+  );
+}
+
+function eatonContactorAc3Current(attributes: AttributeRecord[], manufacturerId?: string): string | undefined {
+  if (manufacturerId !== "eaton" || !hasExactEatonSkuPageEvidence(attributes)) return undefined;
+  const exactContactor = attributes.some((attribute) =>
+    /^product type$/i.test(attribute.name.trim()) && /^contactor$/i.test(cleanText(attribute.value)) &&
+    attribute.parser === "eaton-product-page" && /\/skuPage\.[^/]+?\.html$/i.test(attribute.sourceUrl ?? "")
+  );
+  if (!exactContactor) return undefined;
+  const values = attributes
+    .filter((attribute) => /\brated operational current\b.*\bAC[-\s]?3\b/i.test(attribute.name) &&
+      attribute.parser === "eaton-product-page" && /\/skuPage\.[^/]+?\.html$/i.test(attribute.sourceUrl ?? ""))
+    .flatMap((attribute) => [...attribute.value.matchAll(/\b(\d+(?:[.,]\d+)?)\s*A\b/gi)].map((match) => localizedNumber(match[1])))
+    .filter((value): value is number => Number.isFinite(value));
+  const distinct = [...new Set(values)].sort((left, right) => left - right);
+  if (distinct.length === 0) return undefined;
+  return distinct.length === 1
+    ? `${formatNumber(distinct[0])} A`
+    : `${formatNumber(distinct[0])}...${formatNumber(distinct[distinct.length - 1])} A`;
+}
+
+function eatonOverloadRangeCurrent(attributes: AttributeRecord[], manufacturerId?: string): string | undefined {
+  if (manufacturerId !== "eaton" || !hasExactEatonSkuPageEvidence(attributes)) return undefined;
+  const exactOverloadRelay = attributes.some((attribute) =>
+    /^product type$/i.test(attribute.name.trim()) && /\boverload relay\b/i.test(attribute.value) &&
+    attribute.parser === "eaton-product-page" && /\/skuPage\.[^/]+?\.html$/i.test(attribute.sourceUrl ?? "")
+  );
+  if (!exactOverloadRelay) return undefined;
+  return attributes
+    .filter((attribute) => /^overload range$/i.test(attribute.name.trim()) &&
+      attribute.parser === "eaton-product-page" && /\/skuPage\.[^/]+?\.html$/i.test(attribute.sourceUrl ?? ""))
+    .sort(compareAttributeEvidence)
+    .map((attribute) => normalizeCurrentValue(attribute.value))
+    .find((value): value is string => Boolean(value));
+}
+
+function eatonSurgeNominalDischargeCurrent(attributes: AttributeRecord[], manufacturerId?: string): string | undefined {
+  if (manufacturerId !== "eaton" || !hasExactEatonSkuPageEvidence(attributes)) return undefined;
+  const exactSurgeDevice = attributes.some((attribute) =>
+    /^(?:product type|type)$/i.test(attribute.name.trim()) && /surge protect(?:ive|ion) device/i.test(attribute.value) &&
+    attribute.parser === "eaton-product-page" && /\/skuPage\.[^/]+?\.html$/i.test(attribute.sourceUrl ?? "")
+  );
+  if (!exactSurgeDevice) return undefined;
+  const exactCatalogNumbers = new Set(attributes
+    .filter((attribute) => /^(?:catalog number|product sku|sku)$/i.test(attribute.name.trim()) &&
+      attribute.parser === "eaton-product-page" && /\/skuPage\.[^/]+?\.html$/i.test(attribute.sourceUrl ?? ""))
+    .map((attribute) => cleanText(attribute.value).toUpperCase())
+    .filter(Boolean));
+  if (exactCatalogNumbers.size === 0) return undefined;
+  const exactPdpSurgeCurrent = attributes
+    .filter((attribute) => /^surge current$/i.test(attribute.name.trim()) &&
+      attribute.parser === "eaton-product-page" &&
+      attribute.sourceType === "official-fallback" &&
+      /^https:\/\/(?:www\.)?eaton\.com(?:\.cn)?\//i.test(attribute.sourceUrl ?? "") &&
+      /\/skuPage\.[^/]+?\.html$/i.test(attribute.sourceUrl ?? ""))
+    .sort(compareAttributeEvidence)
+    .find((attribute) => {
+      const sourceUrl = attribute.sourceUrl ?? "";
+      const sourceCatalogNumbers = attributes
+        .filter((candidate) => /^(?:catalog number|product sku|sku)$/i.test(candidate.name.trim()) &&
+          candidate.parser === "eaton-product-page" && candidate.sourceUrl === sourceUrl)
+        .map((candidate) => cleanText(candidate.value).toUpperCase());
+      const sourceModelCodes = attributes
+        .filter((candidate) => /^model code$/i.test(candidate.name.trim()) &&
+          candidate.parser === "eaton-product-page" && candidate.sourceUrl === sourceUrl)
+        .map((candidate) => cleanText(candidate.value).toUpperCase());
+      const routeNumber = decodeURIComponent(sourceUrl.match(/\/skuPage\.([^/]+?)\.html$/i)?.[1] ?? "").toUpperCase();
+      return sourceCatalogNumbers.includes(routeNumber) || sourceModelCodes.some((model) => exactCatalogNumbers.has(model));
+    });
+  if (exactPdpSurgeCurrent) {
+    const match = exactPdpSurgeCurrent.value.match(/\b(\d+(?:[.,]\d+)?)\s*kA\b(\s+per\s+phase)?/i);
+    if (match) return `${formatNumber(localizedNumber(match[1]))} kA${match[2] ? " per phase" : ""}`;
+  }
+  const exactFamilyRow = attributes
+    .filter((attribute) => /nominal discharge current/i.test(`${attribute.group ?? ""} ${attribute.name}`) &&
+      attribute.sourceType === "generated" && attribute.parser === "pdf-table-extractor" &&
+      /^https:\/\/(?:www\.)?eaton\.com\/(?:content\/dam\/|[^/]+\/)/i.test(attribute.sourceUrl ?? ""))
+    .sort(compareAttributeEvidence)
+    .find((attribute) => [...exactCatalogNumbers].some((catalogNumber) => {
+      const modelToken = catalogNumber.replace(/^.*?-(?=[^-]+$)/, "");
+      return modelToken.length >= 4 && attribute.value.toUpperCase().split(/[^A-Z0-9]+/).includes(modelToken);
+    }));
+  if (!exactFamilyRow) return undefined;
+  const matched = exactFamilyRow.value.match(/\b(\d+(?:[.,]\d+)?)\s*kA\b/i);
+  return matched ? `${formatNumber(localizedNumber(matched[1]))} kA` : undefined;
+}
+
+function isEatonSoftStarterHorsepowerVoltage(attribute: AttributeRecord, attributes: AttributeRecord[]): boolean {
+  const exactPdp = (candidate: AttributeRecord): boolean =>
+    candidate.parser === "eaton-product-page" &&
+    /^https:\/\/(?:www\.)?eaton\.com(?:\.cn)?\//i.test(candidate.sourceUrl ?? "") &&
+    /\/skuPage\.[^/]+?\.html$/i.test(candidate.sourceUrl ?? "");
+  const exactSoftStarter = attributes.some((candidate) =>
+    /^(?:product type|type)$/i.test(candidate.name.trim()) && /\b(?:soft starter|soft start controller)\b/i.test(candidate.value) && exactPdp(candidate)
+  );
+  if (!exactSoftStarter || !exactPdp(attribute)) return false;
+  const hasOperatingVoltage = attributes.some((candidate) =>
+    /^operating voltage$/i.test(candidate.name.trim()) && exactPdp(candidate)
+  );
+  return !hasOperatingVoltage && /^voltage rating$/i.test(attribute.name.trim()) && /eaton description/i.test(attribute.group ?? "");
+}
+
+function exactEatonPdpVoltageRating(attributes: AttributeRecord[], manufacturerId?: string): string | undefined {
+  if (manufacturerId !== "eaton") return undefined;
+  const exactPdp = (attribute: AttributeRecord): boolean =>
+    attribute.parser === "eaton-product-page" &&
+    /^https:\/\/(?:www\.)?eaton\.com(?:\.cn)?\//i.test(attribute.sourceUrl ?? "") &&
+    /\/skuPage\.[^/]+?\.html$/i.test(attribute.sourceUrl ?? "");
+  const exactSoftStarter = attributes.some((attribute) =>
+    /^(?:product type|type)$/i.test(attribute.name.trim()) &&
+    /\bsoft starter\b/i.test(attribute.value) && exactPdp(attribute)
+  );
+  if (exactSoftStarter) {
+    const operatingVoltage = attributes
+      .filter((attribute) => /^operating voltage$/i.test(attribute.name.trim()) && exactPdp(attribute))
+      .sort(compareAttributeEvidence)
+      .map((attribute) => normalizeVoltageValue(attribute.value))
+      .find((value): value is string => Boolean(value));
+    if (operatingVoltage) return operatingVoltage;
+  }
+  const exactProtectiveRelay = attributes.some((attribute) =>
+    /^(?:product category|product type|type)$/i.test(attribute.name.trim()) &&
+    /\b(?:protective|overcurrent)\s+relay\b/i.test(attribute.value) && exactPdp(attribute)
+  );
+  if (exactProtectiveRelay) {
+    const supplyVoltage = attributes
+      .filter((attribute) => /^power supply$/i.test(attribute.name.trim()) && exactPdp(attribute))
+      .sort(compareAttributeEvidence)
+      .map((attribute) => normalizeVoltageValue(attribute.value))
+      .find((value): value is string => Boolean(value));
+    if (supplyVoltage) return supplyVoltage;
+  }
+  const exactTransformer = attributes.some((attribute) =>
+    /^product type$/i.test(attribute.name.trim()) && /\btransformer\b/i.test(attribute.value) && exactPdp(attribute)
+  );
+  if (exactTransformer) {
+    const transformerRows = (["primary voltage", "secondary voltage"] as const).flatMap((label) => {
+      const value = attributes
+        .filter((attribute) => attribute.name.trim().toLowerCase() === label && exactPdp(attribute))
+        .sort(compareAttributeEvidence)
+        .map((attribute) => cleanText(attribute.value))
+        .find(Boolean);
+      return value ? [`${label === "primary voltage" ? "Primary" : "Secondary"} voltage: ${value}`] : [];
+    });
+    if (transformerRows.length > 0) return transformerRows.join("; ");
+  }
+  const exactMonitoredSupplyVoltage = attributes
+    .filter((attribute) => /^rated operational voltage of monitored supply system$/i.test(attribute.name.trim()) && exactPdp(attribute))
+    .sort(compareAttributeEvidence)
+    .map((attribute) => normalizeElectricalValue(attribute.value)
+      ?.replace(/(V\s+DC)\s+(?=\d+(?:\.\.\.\d+)?\s*V\s+AC\b)/i, "$1 or "))
+    .find((value): value is string => Boolean(value && /\b\d+(?:\.\.\.\d+)?\s*V\s+(?:AC|DC)\b/i.test(value)));
+  if (exactMonitoredSupplyVoltage) return exactMonitoredSupplyVoltage;
+  const exactContactor = attributes.some((attribute) =>
+    /^(?:product type|type)$/i.test(attribute.name.trim()) && /^contactor$/i.test(cleanText(attribute.value)) && exactPdp(attribute)
+  );
+  const exactOperationalVoltageRows = attributes.filter((attribute) =>
+    exactPdp(attribute) &&
+    (exactContactor
+      ? /^rated operational voltage\b/i.test(attribute.name)
+      : /\b(?:rated\s+operational\s+voltage|operating\s+voltage)\b/i.test(attribute.name)) &&
+    !/\b(?:control\s+supply|control\s+circuit)\b/i.test(attribute.name)
+  );
+  const exactOperationalRange = deriveVoltageRangeFromMinMax(exactOperationalVoltageRows);
+  if (exactOperationalRange) return exactOperationalRange;
+  const repeatedExactOperationalVoltage = exactOperationalVoltageRows
+    .filter((attribute) => /^rated operational voltage\b/i.test(attribute.name.trim()))
+    .flatMap((attribute) => [...attribute.value.matchAll(/\b(\d+(?:[.,]\d+)?\s*V\s*(?:AC|DC))\b/gi)].map((match) => cleanText(match[1])))
+    .map((value) => normalizeVoltageValue(value))
+    .filter((value): value is string => Boolean(value));
+  const distinctRepeatedRatings = [...new Set(repeatedExactOperationalVoltage)];
+  // Some exact Eaton relay/controller PDPs repeat one operating rating in a prose row for the
+  // device supply, transistor outputs, and input reference. Keep that one verified mode instead
+  // of letting the surrounding explanatory text suppress the voltage field.
+  if (distinctRepeatedRatings.length === 1) return distinctRepeatedRatings[0];
+  const exactOperationalVoltage = exactOperationalVoltageRows
+    .filter((attribute) => /^(?:rated operational voltage\b.*|operating voltage)$/i.test(attribute.name.trim()) && exactPdp(attribute))
+    .sort(compareAttributeEvidence)
+    .map((attribute) => normalizeVoltageValue(attribute.value))
+    .find((value): value is string => Boolean(value));
+  if (exactOperationalVoltage) return exactOperationalVoltage;
+  const exactRatings = attributes
+    .filter((attribute) => /^voltage rating$/i.test(attribute.name.trim()) &&
+      exactPdp(attribute))
+    .sort(compareAttributeEvidence);
+  return exactRatings.map((attribute) => normalizeVoltageValue(attribute.value)).find((value): value is string => Boolean(value));
+}
+
+function eatonNacPowerSupplyCurrent(attributes: AttributeRecord[], manufacturerId?: string): string | undefined {
+  if (manufacturerId !== "eaton" || !isPowerSupplyProduct(attributes)) return undefined;
+  const isNacSupply = attributes.some((attribute) =>
+    /^(?:type|product type|product name)$/i.test(attribute.name.trim()) && /\bNAC\s+power\s+supply\b/i.test(attribute.value)
+  );
+  if (!isNacSupply) return undefined;
+  const candidate = attributes.find((attribute) => /^NAC power$/i.test(attribute.name.trim()) &&
+    attribute.parser === "eaton-product-page" &&
+    /^https:\/\/(?:www\.)?eaton\.com(?:\.cn)?\//i.test(attribute.sourceUrl ?? "") &&
+    /\/skuPage\.[^/]+?\.html$/i.test(attribute.sourceUrl ?? ""));
+  return candidate ? normalizeCurrentValue(candidate.value) : undefined;
 }
 
 /**
@@ -775,6 +1023,12 @@ function isNonOperatingCurrentLabel(label: string): boolean {
   return /\b(?:fault|surge|nominal discharge|short[-\s]?circuit|interrupt|withstand|breaking)\s+current\b|\bcurrent\s+(?:fault|surge|short[-\s]?circuit|interrupt|withstand|breaking)\b/i.test(label);
 }
 
+function isNonRatingCurrentArtifact(attribute: AttributeRecord): boolean {
+  const value = cleanText(attribute.value);
+  return /^\s*(?:UL|CSA|IEC|IEEE|EN|NEMA)\s*[\d.-]+[A-Z0-9./ -]*$/i.test(value) ||
+    /^\s*[A-Z]{2,}\d{4,}(?:-[A-Z0-9]+)*\s*$/i.test(value);
+}
+
 function powerSupplyOutputVoltage(attributes: AttributeRecord[]): string | undefined {
   if (!isPowerSupplyProduct(attributes)) return undefined;
   return attributes
@@ -1083,7 +1337,7 @@ function extractCableLengthDimension(value: string | undefined): string | undefi
   if (!Number.isFinite(number) || !unit) return undefined;
   const original = `${formatNumber(number)} ${unit === "in" ? "in" : unit}`;
   if (unit === "mm") return `Cable length ${original}`;
-  return `Cable length ${original} (${formatNumber(convertDimensionToMillimeters(number, unit))} mm)`;
+  return `Cable length ${original} (${convertDimensionTextToMillimeters(match[1].replace(",", "."), unit) ?? String(convertDimensionToMillimeters(number, unit))} mm)`;
 }
 
 function mergeNormalizedFields(
@@ -1301,9 +1555,9 @@ function normalizeWeightValue(value: string | undefined): string | undefined {
   const unit = match[2].toLowerCase();
   if (unit === "kg") return cleaned;
   if (/\bkg\b/i.test(cleaned)) return cleaned;
-  if (unit === "g") return `${cleaned} (${formatConvertedNumber(number / 1000)} kg)`;
-  if (/^lb|pound/.test(unit)) return `${cleaned} (${formatConvertedNumber(number * POUND_TO_KILOGRAM)} kg)`;
-  if (/^oz|ounce/.test(unit)) return `${cleaned} (${formatConvertedNumber(number * OUNCE_TO_KILOGRAM)} kg)`;
+  if (unit === "g") return `${cleaned} (${multiplyDecimalExactly(match[1], "0.001")} kg)`;
+  if (/^lb|pound/.test(unit)) return `${cleaned} (${multiplyDecimalExactly(match[1], "0.45359237")} kg)`;
+  if (/^oz|ounce/.test(unit)) return `${cleaned} (${multiplyDecimalExactly(match[1], "0.028349523125")} kg)`;
   return cleaned;
 }
 
@@ -1331,8 +1585,10 @@ function normalizeDimensionValue(value: string | undefined): string | undefined 
     .filter((part): part is string => Boolean(part))
     .map((part) => localizedNumber(part));
   if (values.some((number) => !Number.isFinite(number))) return cleaned;
-  const millimeters = values.map((number) => convertDimensionToMillimeters(number, unit));
-  return `${cleaned} (${millimeters.map(formatNumber).join(" x ")} mm)`;
+  const sourceValues = [match[1], match[2], match[3]].filter((part): part is string => Boolean(part));
+  const millimeters = sourceValues.map((part) => convertDimensionTextToMillimeters(part, unit));
+  if (millimeters.some((value) => value === undefined)) return cleaned;
+  return `${cleaned} (${millimeters.join(" x ")} mm)`;
 }
 
 /**
@@ -1406,8 +1662,10 @@ function normalizeRepeatedUnitDimensionChain(value: string): string | undefined 
   if (!firstUnit) return undefined;
   if (parts.some((part) => part.unit !== firstUnit)) return dimensionText;
   if (firstUnit === "mm") return dimensionText;
-  const millimeters = parts.map((part) => convertDimensionToMillimeters(part.value, firstUnit));
-  return `${dimensionText} (${millimeters.map(formatNumber).join(" x ")} mm)`;
+  const millimeters = [...dimensionText.matchAll(/(\d+(?:[.,]\d+)?)\s*(?:mm|cm|m|inches|inch|in|")\b/gi)]
+    .map((part) => convertDimensionTextToMillimeters(part[1], firstUnit));
+  if (millimeters.some((value) => value === undefined)) return dimensionText;
+  return `${dimensionText} (${millimeters.join(" x ")} mm)`;
 }
 
 function normalizeBoreStrokeDimensionValue(value: string): string | undefined {
@@ -1456,8 +1714,13 @@ function firstDimensionUnit(parts: LabeledDimensionPart[]): string | undefined {
 
 function formatLabeledMillimeters(parts: LabeledDimensionPart[], fallbackUnit: string): string {
   return parts
-    .map((part) => `${part.label} ${formatNumber(convertDimensionToMillimeters(part.value, part.unit ?? fallbackUnit))} mm`)
+    .map((part) => `${part.label} ${convertDimensionTextToMillimeters(String(part.value), part.unit ?? fallbackUnit) ?? formatNumber(convertDimensionToMillimeters(part.value, part.unit ?? fallbackUnit))} mm`)
     .join(" x ");
+}
+
+function convertDimensionTextToMillimeters(value: string, unit: string): string | undefined {
+  const factor = unit === "mm" ? "1" : unit === "cm" ? "10" : unit === "m" ? "1000" : unit === "ft" ? "304.8" : "25.4";
+  return multiplyDecimalExactly(normalizeNumberSeparators(value), factor);
 }
 
 function normalizeDimensionUnit(unit: string | undefined): string | undefined {
@@ -1502,6 +1765,10 @@ function normalizeElectricalValue(value: string | undefined): string | undefined
 function normalizeVoltageValue(value: string | undefined): string | undefined {
   const cleaned = trimElectricalSegments(normalizeElectricalValue(value), /\b\d+(?:[.,]\d+)?\s*(?:\.\.\.\s*\d+(?:[.,]\d+)?\s*)?(?:kV|V)\b/i);
   if (!cleaned || !/\b\d+(?:[.,]\d+)?\s*(?:\.\.\.\s*\d+(?:[.,]\d+)?\s*)?(?:kV|V)\b/i.test(cleaned)) return undefined;
+  const duplicateBounds = cleaned.match(/^(\d+(?:[.,]\d+)?\s*(?:kV|V)(?:\s*(?:AC|DC))?)\s*[-–]\s*(\d+(?:[.,]\d+)?\s*(?:kV|V)(?:\s*(?:AC|DC))?)$/i);
+  if (duplicateBounds && duplicateBounds[1].replace(/\s+/g, "").toLowerCase() === duplicateBounds[2].replace(/\s+/g, "").toLowerCase()) {
+    return cleanText(duplicateBounds[1]);
+  }
   return cleaned;
 }
 
@@ -1586,6 +1853,7 @@ function combineElectricalRange(min: string | undefined, max: string | undefined
   const minUnit = cleanText(minMatch[2]);
   const maxUnit = cleanText(maxMatch[2]);
   if (minUnit && maxUnit && minUnit.toLowerCase() !== maxUnit.toLowerCase()) return `${min}...${max}`;
+  if (localizedNumber(minMatch[1]) === localizedNumber(maxMatch[1])) return min;
   return cleanText(`${minMatch[1]}...${maxMatch[1]} ${maxUnit || minUnit}`);
 }
 
@@ -1747,10 +2015,14 @@ function bestDerivedElectricalValue(
  * accessory, or transient figure rather than the product's own rated current.
  */
 function isCurrentTextCandidate(attr: AttributeRecord): boolean {
-  if (isElectricalTextCandidate(attr)) return true;
-
   const label = `${attr.group ?? ""} ${attr.name}`;
   const text = derivedSpecText(attr);
+  // Certification codes such as "UL 508A" and stock numbers such as "SP039010-0019A"
+  // contain digit-plus-A tokens that look like amperage after unit normalization. They are
+  // not operating-current evidence, even when PDF extraction places them in a generic feature row.
+  if (/^\s*(?:UL|CSA|IEC|IEEE|EN|NEMA)\s*[\d.-]+[A-Z0-9./ -]*$/i.test(text) ||
+      /^\s*[A-Z]{2,}\d{4,}(?:-[A-Z0-9]+)*\s*$/i.test(text)) return false;
+  if (isElectricalTextCandidate(attr)) return true;
   if (!isGenericProductDescriptionLabel(label) || !isLikelySpecText(text) || !isAvailableSpecValue(text)) return false;
   // Descriptions which only state a fault/surge capability must never become the normal rated
   // current.  This mirrors the structured-attribute guard, but must inspect the prose itself.
@@ -2113,8 +2385,8 @@ function normalizeWallThicknessValue(value: string | undefined): string | undefi
   if (!Number.isFinite(number)) return undefined;
   const unit = normalizeDimensionUnit(match[2]) ?? match[2].toLowerCase();
   if (unit === "mm") return `${formatNumber(number)} mm`;
-  if (unit === "cm") return `${formatNumber(number)} cm (${formatConvertedNumber(number * 10)} mm)`;
-  return `${match[1]} in (${formatConvertedNumber(number * 25.4)} mm)`;
+  if (unit === "cm") return `${formatNumber(number)} cm (${convertDimensionTextToMillimeters(match[1], "cm")} mm)`;
+  return `${match[1]} in (${convertDimensionTextToMillimeters(match[1], "in")} mm)`;
 }
 
 function isNonWallThicknessMeasurementContext(value: string, match: RegExpMatchArray): boolean {
@@ -2740,11 +3012,7 @@ function normalizeHtmlSpecValue(value: string | undefined): string | undefined {
 }
 
 function formatNumber(value: number): string {
-  return Number(value.toFixed(2)).toString();
-}
-
-function formatConvertedNumber(value: number): string {
-  return Number((value + 1e-9).toFixed(2)).toFixed(2);
+  return String(value);
 }
 
 function dedupeAttributes(attributes: AttributeRecord[]): AttributeRecord[] {

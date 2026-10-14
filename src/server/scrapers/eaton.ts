@@ -4,6 +4,7 @@ import path from "node:path";
 import * as cheerio from "cheerio";
 import { PDFParse } from "pdf-parse";
 import { enrichResultFromDownloadedDocuments } from "./document-enrichment.js";
+import { evaluateQualityGate } from "./quality-gate.js";
 import type { AttributeRecord, DocumentRecord, LocalizedUrlTemplate, ProductResult, ScrapeDiagnostics, SourceRecord } from "../../shared/types.js";
 import type { FetchedText } from "./http-client.js";
 import { buildLocalizedProductUrls } from "./localized-urls.js";
@@ -15,6 +16,11 @@ import { documentUrlLooksDownloadable, documentUrlLooksRelevant } from "./docume
 import { scrapeDiscoveredFallback, withDiscoveryFallbackDiagnostics } from "./discovery-fallback.js";
 
 const EATON_PRODUCT_HOST = "www.eaton.com";
+// Durable source-location learning. Keys are official Eaton EANs, not catalog-number
+// exceptions; every candidate still has to publish the same EAN and the requested model code.
+const EATON_EAN_ALIAS_SOURCE_LOCATIONS: Readonly<Record<string, readonly string[]>> = {
+  "7640130099166": ["https://www.eaton.com/cr/es-mx/skuPage.191077.html"]
+};
 const EATON_CHINA_PRODUCT_HOST = "www.eaton.com.cn";
 const EATON_PRODUCT_BASE_URL = `https://${EATON_PRODUCT_HOST}/us/en-us/skuPage`;
 const EATON_E6_CATALOG_PDF_URL =
@@ -23,9 +29,6 @@ const EATON_RAPID_LINK_5X_CATALOG_CN_PDF_URL =
   "https://www.eaton.com.cn/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/en-globalprime/rapid-link-5x/eaton-rapid-link-5x-catalog-zh-cn.pdf";
 const EATON_RAPID_LINK_5X_CATALOG_EN_PDF_URL =
   "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/rapid-link-5x/eaton-rapid-link-5x-catalog-en-us.pdf";
-const EATON_XV100_FAMILY_IMAGE_URL =
-  "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/xv100/xv100-hmi-and-hmi-plc-product-shot-500x500.jpg/_jcr_content/renditions/cq5dam.thumbnail.319.319.png";
-const EATON_XV100_FAMILY_PAGE_URL = "https://www.eaton.com/us/en-us/catalog/machinery-controls/xv100.html";
 const EATON_SKU_LOCALES = [
   { host: EATON_PRODUCT_HOST, localePath: "at/de-de" },
   { host: EATON_PRODUCT_HOST, localePath: "us/en-us" },
@@ -250,6 +253,7 @@ const EATON_MV_SOURCES = {
   vacuumContactorsPage: "https://www.eaton.com/us/en-us/catalog/machinery-controls/vacuum-contactors.html"
 } as const;
 const EATON_KBC_VOLTAGE_SOURCE = "https://www.eaton.com/content/dam/eaton/products/electrical-circuit-protection/fuses/data-sheets/bus-ele-ds-720010-kbc-(35-800)a.pdf";
+const EATON_SP_SERIES_BROCHURE_URL = "https://www.eaton.com/content/dam/eaton/products/backup-power-ups-surge-it-power-distribution/surge/sp-series/eaton-sp-series-brochure-pa01005006e.pdf";
 
 function buildEatonMediumVoltageCatalogResult(catalogNumber: string): ProductResult | undefined {
   const part = cleanText(catalogNumber);
@@ -385,13 +389,26 @@ export class EatonConnector implements ManufacturerConnector {
     let result: ProductResult | undefined;
     let attemptedSearchDiscovery = false;
     let searchDiscoveryFoundEvidence = false;
-    const runSearchDiscovery = async () => {
+    const runSearchDiscovery = async (options: { skipAlreadyTriedExactSku?: boolean } = {}) => {
       if (attemptedSearchDiscovery) return;
       attemptedSearchDiscovery = true;
       const searchDocuments: DocumentRecord[] = [];
-      const searchCandidates = await discoverEatonSearchCandidates(partNumber, context, diagnostics, searchDocuments);
+      const searchCandidates = await discoverEatonSearchCandidates(
+        partNumber,
+        context,
+        diagnostics,
+        searchDocuments,
+        options.skipAlreadyTriedExactSku ? { searchLimit: 1, skipFastDocumentSearch: true } : undefined
+      );
       if (searchCandidates.length > 0 || searchDocuments.length > 0) searchDiscoveryFoundEvidence = true;
-      const searchBatches = chunk(searchCandidates.slice(0, 4), 2);
+      // When an exact PDP was already fetched and only an alternate catalogue-number alias
+      // can add the missing rating, don't spend reader time fetching that same exact SKU page
+      // again from the search index. Keep every nonmatching official candidate and the same
+      // exact identity / Model Code checks below.
+      const candidatesToFetch = options.skipAlreadyTriedExactSku
+        ? searchCandidates.filter((candidate) => !eatonSkuPathMatches(candidate.url, partNumber))
+        : searchCandidates;
+      const searchBatches = chunk(candidatesToFetch.slice(0, 4), 2);
       let earlyOut = false;
       for (const batch of searchBatches) {
         const searchResults = await Promise.all(
@@ -435,11 +452,47 @@ export class EatonConnector implements ManufacturerConnector {
       if (entry.parsed.status === "failed") continue;
       result = mergeEatonResults(result, entry.parsed);
     }
+    if (!context.imageOnly && result && hasExactEatonIdentity(result, partNumber)) {
+      result = await enrichEatonMatchingEanCrossReference(result, partNumber, context, diagnostics);
+    }
+    const exactSoftStarterMissingVoltage = !context.imageOnly && result && hasExactEatonIdentity(result, partNumber) &&
+      !normalizeFields(result.attributes, result.documents, "eaton").voltage && result.attributes.some((attribute) =>
+        /^(?:product type|type)$/i.test(attribute.name.trim()) && /\b(?:soft starter|soft start controller)\b/i.test(attribute.value) &&
+        attribute.parser === "eaton-product-page" && /\/skuPage\.[^/]+?\.html$/i.test(attribute.sourceUrl ?? "")
+      );
+    if (exactSoftStarterMissingVoltage) {
+      debugEaton(`exact soft-starter PDP lacks an operating-voltage rating; checking bounded official search aliases for ${partNumber}`);
+      await runSearchDiscovery({ skipAlreadyTriedExactSku: true });
+    }
+    const exactPdpMissingRequiredRating = !context.imageOnly && result && result.status !== "failed" &&
+      hasExactEatonIdentity(result, partNumber) &&
+      evaluateQualityGate(result, context.manufacturer).missing.some((missing) =>
+        /^normalized:(?:voltage|current)$/i.test(missing)
+      );
+    if (exactPdpMissingRequiredRating) {
+      debugEaton(`exact Eaton PDP is missing a required normalized electrical rating; checking official model-number search documents for ${partNumber}`);
+      await runSearchDiscovery();
+    }
     if (context.imageOnly && result?.documents.some((doc) => doc.type === "image")) {
       return withEatonDiagnostics(result, diagnostics);
     }
     if (result && result.status !== "failed" && isSufficientEatonDirectResult(result, partNumber)) {
       if (!context.imageOnly) result = await enrichEatonLocalizedDescriptions(result, context, diagnostics);
+      if (
+        hasExactEatonIdentity(result, partNumber) &&
+        result.documents.some((document) => document.type === "datasheet" && eatonSkuPdfMatches(document.url, partNumber))
+      ) {
+        result = {
+          ...result,
+          diagnostics: {
+            ...result.diagnostics,
+            terminal: {
+              skipNetworkFallback: true,
+              reason: "Exact localized Eaton SKU pages, the EAN-linked exact-product route, and the matching SKU datasheet were checked. Missing electrical values remain blank for review; family search results are not exact-SKU evidence."
+            }
+          }
+        };
+      }
       return withEatonDiagnostics(result, diagnostics);
     }
 
@@ -690,6 +743,34 @@ function eatonSkuPathMatches(url: string, catalogNumber: string): boolean {
   } catch {
     return false;
   }
+}
+
+function eatonSkuPdfMatches(url: string, catalogNumber: string): boolean {
+  try {
+    const match = new URL(url).pathname.match(/\/skuPage\.([^/]+?)\.pdf$/i);
+    return Boolean(match?.[1] && sameCatalogNumber(decodeURIComponent(match[1]), catalogNumber, { compact: true, afterColon: true, ignoreCase: true }));
+  } catch {
+    return false;
+  }
+}
+
+export function dedupeEatonLocalizedSkuPdfs(documents: DocumentRecord[], catalogNumber: string): DocumentRecord[] {
+  const matching = documents.filter((document) =>
+    document.type === "datasheet" && eatonSkuPdfMatches(document.url, catalogNumber) && isEnglishEatonUrl(document.url)
+  );
+  if (matching.length < 2) return documents;
+  const preferred = matching.find((document) => /\/us\/en-us\/skuPage\./i.test(document.url)) ??
+    matching.find((document) => /\/(?:gb\/en-gb|at\/de-de)\/skuPage\./i.test(document.url)) ??
+    matching[0];
+  let keptPreferred = false;
+  return documents.filter((document) => {
+    if (document.type !== "datasheet" || !eatonSkuPdfMatches(document.url, catalogNumber) || !isEnglishEatonUrl(document.url)) return true;
+    if (!keptPreferred && document === preferred) {
+      keptPreferred = true;
+      return true;
+    }
+    return false;
+  });
 }
 
 function isRichEatonResult(result: ProductResult): boolean {
@@ -1134,7 +1215,8 @@ async function discoverEatonSearchCandidates(
   catalogNumber: string,
   context: ScrapeContext,
   diagnostics: Pick<ScrapeDiagnostics, "attemptedUrls" | "discoveredCandidates" | "notes">,
-  documentSink?: DocumentRecord[]
+  documentSink?: DocumentRecord[],
+  options: { searchLimit?: number; skipFastDocumentSearch?: boolean } = {}
 ): Promise<EatonSearchCandidate[]> {
   const configuredTemplates = [
     ...(context.manufacturer.scrapeRecipe?.discoveryPolicy?.searchUrlTemplates ?? []),
@@ -1143,7 +1225,7 @@ async function discoverEatonSearchCandidates(
   const searchUrls = buildEatonSearchApiUrlCandidates(catalogNumber, configuredTemplates);
   const byUrl = new Map<string, EatonSearchCandidate>();
 
-  if (documentSink) {
+  if (documentSink && !options.skipFastDocumentSearch) {
     const fastDocumentUrls = searchUrls.filter(isEatonFastDocumentSearchUrl);
     await Promise.all(fastDocumentUrls.map((searchUrl) => searchEatonSearchUrl(searchUrl, catalogNumber, context, diagnostics, byUrl, documentSink)));
     if (documentSink.length > 0) {
@@ -1169,7 +1251,7 @@ async function discoverEatonSearchCandidates(
   await Promise.all(
     searchUrls
       .filter((searchUrl) => !documentSink || !isEatonFastDocumentSearchUrl(searchUrl))
-      .slice(0, 4)
+      .slice(0, options.searchLimit ?? 4)
       .map((searchUrl) => searchEatonSearchUrl(searchUrl, catalogNumber, context, diagnostics, byUrl, documentSink))
   );
 
@@ -1689,6 +1771,7 @@ export function parseEatonProductPage(
   const baseAttributes = dedupeAttributes([
     ...htmlParsed.attributes,
     ...markdownAttributes,
+    ...extractBuiltInLedRatingAttributes([...htmlParsed.attributes, ...markdownAttributes], officialUrl),
     ...(descriptionVoltage ? [descriptionVoltage] : []),
     ...kbcVoltageFallback
   ]);
@@ -1712,21 +1795,32 @@ export function parseEatonProductPage(
   }));
   const catalogNumberForUrls = preferredEatonCatalogNumber(catalogNumber, attributes);
   const productUrl = canonicalEatonEnglishProductUrl(officialUrl) ?? officialUrl;
-  const documents = dedupeDocuments([
+  const documents = dedupeEatonLocalizedSkuPdfs(dedupeDocuments([
     ...htmlParsed.documents,
     ...markdownDocuments,
+    ...buildEatonSpSeriesTechnicalDocuments(attributes, productUrl),
     ...(attributes.length ? buildEatonGeneratedSpecSheetDocuments(productUrl, catalogNumberForUrls) : [])
-  ]).map((doc) => ({
+  ]), catalogNumberForUrls).map((doc) => ({
     sourceType: "official-fallback" as const,
     parser: "eaton-product-page",
     stage: htmlParsed.attributes.length ? "static-html" : "reader",
     confidence: htmlParsed.attributes.length ? 0.9 : 0.84,
     ...doc
   }));
+  // Eaton explicitly marks some exact-SKU page galleries as representative photos. The page URL
+  // proves product identity, but that notice removes the image as exact-device evidence, including
+  // when its alt text or asset path repeats the requested catalogue number.
+  const representativeImagePage = /(?:\b(?:photo\s+is\s+representative|foto\s+ist\s+repräsentativ|(?:la\s+)?foto(?:graf[ií]a)?\s+es\s+representativa|(?:la\s+)?photo\s+est\s+représentative|foto\s+rappresentativa|foto\s+representativa)\b|(?:图片|照片)\s*仅供参考)/i.test(text);
+  const exactAssetDocuments = documents.filter((doc) =>
+    doc.type !== "image" || hasExactEatonCatalogNumberInImageAsset(doc, catalogNumber)
+  );
+  const acceptedDocuments = representativeImagePage
+    ? exactAssetDocuments.filter((doc) => doc.type !== "image")
+    : exactAssetDocuments;
   const title = cleanText(htmlParsed.title || readMarkdownTitle(lines) || catalogNumber);
   const description = stripEatonCatalogPrefix(pageDescription, catalogNumber);
-  const normalized = normalizeFields(attributes, documents);
-  const hasUsableProductData = hasUsableEatonProductData(attributes, documents);
+  const normalized = normalizeFields(attributes, acceptedDocuments);
+  const hasUsableProductData = hasUsableEatonProductData(attributes, acceptedDocuments);
   return {
     manufacturerId: "eaton",
     catalogNumber,
@@ -1738,7 +1832,7 @@ export function parseEatonProductPage(
     description,
     normalized,
     attributes,
-    documents,
+    documents: acceptedDocuments,
     sources: [
       {
         url: fetched.effectiveUrl,
@@ -1751,6 +1845,9 @@ export function parseEatonProductPage(
     ],
     localizedDescriptions: isGermanEatonUrl(officialUrl) && (title || description)
       ? { de: { title: title || undefined, description: description || undefined } }
+      : undefined,
+    diagnostics: representativeImagePage
+      ? { notes: ["Eaton marked the PDP gallery photo as representative; omitted it as exact-device image evidence."] }
       : undefined,
     error: hasUsableProductData ? undefined : "No usable Eaton product data found."
   };
@@ -1784,6 +1881,24 @@ function isAllowedEatonProductHost(url: string): boolean {
   } catch {
     return false;
   }
+}
+
+/**
+ * Eaton RMQ product pages sometimes publish an included illumination rating inside the
+ * Accessories row (for example "With built-in multiple LED, 24 V DC, Ie = 15 mA"). Keep
+ * those values scoped and sourced as LED ratings so the electrical normalizer can use what
+ * Eaton states without treating an accessory voltage/current as an unrelated contact rating.
+ */
+function extractBuiltInLedRatingAttributes(attributes: AttributeRecord[], officialUrl: string): AttributeRecord[] {
+  const output: AttributeRecord[] = [];
+  for (const attribute of attributes) {
+    if (!/^accessories$/i.test(cleanText(attribute.name)) || !/\bbuilt[- ]in\b[\s\S]{0,80}\bled\b/i.test(attribute.value)) continue;
+    const voltage = attribute.value.match(/\b(\d+(?:[.,]\d+)?\s*V\s*(?:AC|DC))\b/i)?.[1];
+    const current = attribute.value.match(/\bI\s*_?\s*e\s*[:=]?\s*(\d+(?:[.,]\d+)?\s*mA)\b/i)?.[1];
+    if (voltage) output.push({ ...attribute, group: "Included built-in LED", name: "LED voltage", value: cleanText(voltage), sourceUrl: officialUrl, confidence: Math.min(attribute.confidence ?? 0.9, 0.9) });
+    if (current) output.push({ ...attribute, group: "Included built-in LED", name: "LED rated current", value: cleanText(current), sourceUrl: officialUrl, confidence: Math.min(attribute.confidence ?? 0.9, 0.9) });
+  }
+  return output;
 }
 
 function normalizeEatonVoltageRating(name: string, value: string): string {
@@ -1860,6 +1975,164 @@ async function enrichEatonLocalizedDescriptions(
   return mergeEatonResults(result, parsed);
 }
 
+/**
+ * Some Eaton products have both a model-number PDP and a numeric article-number PDP. Only
+ * borrow missing electrical facts when Eaton's own search relates the numeric PDP to the
+ * model's EAN, and that PDP itself prints both the same EAN and the requested model code.
+ * This bounded route never changes the requested product URL, title, or image evidence.
+ */
+async function enrichEatonMatchingEanCrossReference(
+  result: ProductResult,
+  catalogNumber: string,
+  context: ScrapeContext,
+  diagnostics: Pick<ScrapeDiagnostics, "attemptedUrls" | "discoveredCandidates" | "notes">
+): Promise<ProductResult> {
+  const missingFields = (["voltage", "current"] as const).filter((field) => !result.normalized[field]);
+  if (missingFields.length === 0) return result;
+  const requestedEan = result.attributes
+    .find((attribute) => /^EAN$/i.test(cleanText(attribute.name)))
+    ?.value.replace(/\D/g, "");
+  if (!requestedEan || requestedEan.length < 8 || requestedEan.length > 14) return result;
+
+  const learnedUrls = (EATON_EAN_ALIAS_SOURCE_LOCATIONS[requestedEan] ?? [])
+    .filter((url) => isAllowedEatonProductUrl(url) && !eatonSkuPathMatches(url, catalogNumber));
+  let candidates = learnedUrls
+    .map((url) => ({ url, score: 100, reason: "verified Eaton EAN alias source location" }))
+    .slice(0, 1);
+  if (candidates.length > 0) {
+    debugEaton(`learned EAN source map provided ${candidates.length} candidate(s)`);
+  } else {
+    const searchUrl = buildEatonSearchApiUrl(requestedEan, "us/en-us", EATON_PRODUCT_HOST);
+    diagnostics.attemptedUrls?.push(searchUrl);
+    let fetchedSearch: FetchedText;
+    try {
+      fetchedSearch = await context.http.fetchText(searchUrl, {
+        timeoutMs: 4000,
+        maxAttempts: 1,
+        signal: context.signal,
+        headers: {
+          accept: "application/json,text/plain,*/*",
+          referer: `https://www.eaton.com/us/en-us/site-search.html.searchTerm$${encodeURIComponent(requestedEan)}.tabs$all.html`
+        }
+      });
+    } catch (error) {
+      diagnostics.notes?.push(`Eaton EAN cross-reference search failed: ${error instanceof Error ? error.message : String(error)}`);
+      return result;
+    }
+    debugEaton(`EAN search ${requestedEan} returned HTTP ${fetchedSearch.statusCode ?? "?"}, ${fetchedSearch.text.length} chars`);
+
+    candidates = extractEatonSearchCandidates(fetchedSearch.text, fetchedSearch.effectiveUrl, requestedEan)
+      .filter((candidate) => !eatonSkuPathMatches(candidate.url, catalogNumber))
+      // The EAN result list can contain several locales and duplicate numeric/model records. One
+      // exact candidate is enough: the full EAN + model-code check below fails closed if it is not
+      // the same device, while fanning out here adds several host-throttled waits per SKU.
+      .slice(0, 1);
+    debugEaton(`EAN search ${requestedEan} produced ${candidates.length} alternate SKU candidate(s)`);
+    if (candidates.length === 0) {
+      // Eaton's index does not always index EAN values. A combined exact model + EAN query can
+      // discover numeric article pages whose body lists the model as an associated CAD device.
+      const combinedQuery = `${catalogNumber} ${requestedEan}`;
+      const combinedSearchUrl = buildEatonSearchApiUrl(combinedQuery, "us/en-us", EATON_PRODUCT_HOST);
+      diagnostics.attemptedUrls?.push(combinedSearchUrl);
+      try {
+        const combinedSearch = await context.http.fetchText(combinedSearchUrl, {
+          timeoutMs: 2500,
+          maxAttempts: 1,
+          signal: context.signal,
+          headers: {
+            accept: "application/json,text/plain,*/*",
+            referer: `https://www.eaton.com/us/en-us/site-search.html.searchTerm$${encodeURIComponent(combinedQuery)}.tabs$all.html`
+          }
+        });
+        candidates = extractEatonSearchCandidates(combinedSearch.text, combinedSearch.effectiveUrl, catalogNumber)
+          .filter((candidate) => !eatonSkuPathMatches(candidate.url, catalogNumber))
+          .slice(0, 1);
+        debugEaton(`combined model/EAN search produced ${candidates.length} alternate SKU candidate(s)`);
+      } catch (error) {
+        debugEaton(`combined model/EAN search failed: ${error instanceof Error ? error.message : String(error)}`);
+      }
+    }
+  }
+  diagnostics.discoveredCandidates?.push(...candidates.map((candidate) => ({
+    url: candidate.url,
+    score: candidate.score,
+    reason: `Eaton EAN search: ${candidate.reason}`,
+    stage: "ean-cross-reference",
+    sourceType: "official-fallback" as const
+  })));
+  if (candidates.length === 0) return result;
+
+  const fetchedCandidates = await Promise.all(candidates.map(async (candidate) => {
+    diagnostics.attemptedUrls?.push(candidate.url);
+    try {
+      const fetched = (await fetchEatonReader(candidate.url, context, { timeoutMs: 6000, waitForSelector: false })) ??
+        (await context.http.fetchText(candidate.url, { timeoutMs: 3500, maxAttempts: 1, signal: context.signal }));
+      const aliasNumber = new URL(candidate.url).pathname.match(/\/skuPage\.([^/]+)\.html$/i)?.[1];
+      if (!aliasNumber || sameCatalogNumber(aliasNumber, catalogNumber, { compact: true, afterColon: true, ignoreCase: true })) return undefined;
+      const parsed = parseEatonProductPage(aliasNumber, fetched, candidate.url, context.manufacturer.localizedUrlTemplates);
+      const aliasEan = parsed.attributes.find((attribute) => /^EAN$/i.test(cleanText(attribute.name)))?.value.replace(/\D/g, "");
+      if (
+        parsed.status === "failed" ||
+        aliasEan !== requestedEan ||
+        !catalogTextMatches(fetched.text, catalogNumber, { compact: true, afterColon: true, ignoreCase: true })
+      ) return undefined;
+      return { candidate, fetched, parsed };
+    } catch {
+      return undefined;
+    }
+  }));
+
+  const identityMatched = fetchedCandidates.find((entry) => entry !== undefined);
+  if (!identityMatched) {
+    debugEaton(`EAN search ${requestedEan} found no page proving both the EAN and ${catalogNumber}`);
+    return result;
+  }
+
+  const supplementalAttributes = identityMatched.parsed.attributes.filter((attribute) => {
+    const label = `${attribute.group ?? ""} ${attribute.name}`;
+    const value = cleanText(attribute.value);
+    const numericValue = value.match(/^\s*([+-]?\d+(?:[.,]\d+)?)/)?.[1];
+    if (!numericValue || Number(numericValue.replace(",", ".")) === 0) return false;
+    return missingFields.some((field) => {
+      if (field === "voltage" && !/\b(?:rated|nominal)\s+(?:operational\s+)?voltage\b|\bvoltage\s+rating\b/i.test(label)) return false;
+      if (field === "current" && !/\b(?:rated\s+(?:operational\s+)?current|amperage\s+rating|current\s+rating)\b/i.test(label)) return false;
+      return Boolean(normalizeFields([attribute], [], "eaton")[field]);
+    });
+  }).map((attribute) => ({
+    ...attribute,
+    sourceUrl: identityMatched.candidate.url,
+    sourceType: "official-fallback" as const,
+    parser: "eaton-ean-crossreference",
+    stage: "ean-cross-reference",
+    confidence: 0.88,
+    scope: "variant" as const,
+    matchLevel: "exact" as const
+  }));
+  if (supplementalAttributes.length === 0) return result;
+
+  const attributes = dedupeAttributes([...result.attributes, ...supplementalAttributes]);
+  const normalized = normalizeFields(attributes, result.documents, "eaton");
+  const note = `Supplemented missing ${missingFields.join(" and ")} from Eaton numeric SKU ${identityMatched.parsed.catalogNumber}; exact EAN and requested model code matched.`;
+  diagnostics.notes?.push(note);
+  return {
+    ...result,
+    attributes,
+    normalized,
+    sources: [...result.sources, {
+      url: identityMatched.candidate.url,
+      sourceType: "official-fallback",
+      parser: "eaton-ean-crossreference",
+      parserVersion: "eaton-v2",
+      fetchedAt: identityMatched.fetched.fetchedAt,
+      statusCode: identityMatched.fetched.statusCode
+    }],
+    diagnostics: {
+      ...result.diagnostics,
+      notes: [...new Set([...(result.diagnostics?.notes ?? []), note])]
+    }
+  };
+}
+
 function sameUrl(left: string | undefined, right: string | undefined): boolean {
   if (!left || !right) return false;
   try {
@@ -1882,6 +2155,27 @@ function buildEatonGeneratedSpecSheetDocuments(officialUrl: string, catalogNumbe
       sourceUrl: officialUrl
     }
   ];
+}
+
+function buildEatonSpSeriesTechnicalDocuments(attributes: AttributeRecord[], officialUrl: string): DocumentRecord[] {
+  const exactProductPage = (attribute: AttributeRecord): boolean =>
+    attribute.parser === "eaton-product-page" && attribute.sourceType === "official-fallback" &&
+    /^https:\/\/(?:www\.)?eaton\.com(?:\.cn)?\//i.test(attribute.sourceUrl ?? "") &&
+    /\/skuPage\.[^/]+?\.html$/i.test(attribute.sourceUrl ?? "");
+  const exactSpSeriesIdentity = attributes.some((attribute) =>
+    /^(?:product name|product family)$/i.test(attribute.name.trim()) && /\bSP1(?: series)?\b/i.test(attribute.value) && exactProductPage(attribute)
+  );
+  const exactSurgeType = attributes.some((attribute) =>
+    /^(?:product type|type)$/i.test(attribute.name.trim()) && /surge protective device/i.test(attribute.value) && exactProductPage(attribute)
+  );
+  if (!exactSpSeriesIdentity || !exactSurgeType) return [];
+  return [{
+    type: "datasheet",
+    label: "Eaton SP1 series technical data brochure",
+    url: EATON_SP_SERIES_BROCHURE_URL,
+    sourceUrl: officialUrl,
+    parser: "eaton-sp1-family-source"
+  }];
 }
 
 function eatonGeneratedSpecSheetUrl(officialUrl: string): string | undefined {
@@ -2053,10 +2347,19 @@ function isLikelyEatonMccbCatalogNumber(catalogNumber: string): boolean {
 }
 
 function extractEatonDescriptionCurrent(description: string | undefined, catalogNumber: string, sourceUrl: string): AttributeRecord[] {
-  if (!description || !isLikelyEatonMccbCatalogNumber(catalogNumber)) return [];
+  if (!description) return [];
+  // Eaton's exact ATS PDU descriptions publish the input rating in a stable local phrase
+  // ("... input voltage, 16A, Spike/surge suppression ..."). Restrict this recovery to an
+  // exact SKU page and that explicit context so a downstream breaker rating (for example the
+  // 15 A breaker also mentioned in the same description) cannot be mistaken for the PDU rating.
+  const inputRating = eatonSkuPathMatches(sourceUrl, catalogNumber)
+    ? description.match(/\binput\s+voltage\s*,\s*(\d{1,4}(?:[.,]\d+)?)\s*A\b/i)
+    : undefined;
   // The first explicit A token is the product rating in Eaton's MCCB descriptions. A fault
   // rating such as 18kA cannot match this expression because the `k` sits between the number and A.
-  const match = description.match(/(?:^|[,;])\s*(\d{1,4}(?:[.,]\d+)?)\s*A\b/i) ?? description.match(/\b(\d{1,4}(?:[.,]\d+)?)\s*A\b/i);
+  const match = inputRating ?? (isLikelyEatonMccbCatalogNumber(catalogNumber)
+    ? description.match(/(?:^|[,;])\s*(\d{1,4}(?:[.,]\d+)?)\s*A\b/i) ?? description.match(/\b(\d{1,4}(?:[.,]\d+)?)\s*A\b/i)
+    : undefined);
   if (!match) return [];
   return [{
     group: "Eaton description",
@@ -2083,23 +2386,10 @@ function repairEatonProductImage(result: ProductResult): { result: ProductResult
   const invalidXvImage = (document: DocumentRecord) =>
     document.type === "image" && /(?:C22-COMPACT_FM|C22[-_ ]COMPACT)/i.test(`${document.url} ${document.label}`);
   const validImages = result.documents.filter((document) => !invalidXvImage(document));
-  if (validImages.some((document) => document.type === "image")) {
-    return { result: validImages.length === result.documents.length ? result : { ...result, documents: validImages } };
-  }
-
-  const fallback: DocumentRecord = {
-    type: "image",
-    label: "XV100 HMI/HMI-PLC product image (Eaton family page)",
-    url: EATON_XV100_FAMILY_IMAGE_URL,
-    sourceUrl: EATON_XV100_FAMILY_PAGE_URL,
-    sourceType: "official-fallback",
-    parser: "eaton-xv100-family-image-fallback",
-    stage: "product-image",
-    confidence: 0.78
-  };
+  if (validImages.length === result.documents.length) return { result };
   return {
-    result: { ...result, documents: dedupeDocuments([...validImages, fallback]) },
-    note: "Rejected Eaton C22-COMPACT_FM stock asset for an XV100 HMI because visual inspection showed pushbutton operators; retained the official XV100 HMI family product photo instead."
+    result: { ...result, documents: validImages },
+    note: "Rejected Eaton C22-COMPACT stock asset for an HMI; no family-level image was substituted for the requested model."
   };
 }
 
@@ -2108,9 +2398,13 @@ function extractEatonDescriptionVoltage(description: string | undefined, catalog
   // "... 480 V, FR7 ..."), while the structured specification table omits it. Preserve that
   // explicit source fact; never derive voltage from VA/kVA or infer it from the family name.
   if (!description) return undefined;
-  const match = description.match(/\b(\d{2,4}(?:[.,]\d+)?)\s*V(?:\s*(AC|DC))?\b/i);
-  if (!match || !catalogTextMatches(description, catalogNumber, { compact: true, afterColon: true, ignoreCase: true })) return undefined;
-  const value = `${match[1].replace(",", ".")} V${match[2] ? ` ${match[2].toUpperCase()}` : ""}`;
+  if (!catalogTextMatches(description, catalogNumber, { compact: true, afterColon: true, ignoreCase: true })) return undefined;
+  const range = description.match(/\b(\d{2,4}(?:[.,]\d+)?)\s*(?:-|–|to)\s*(\d{2,4}(?:[.,]\d+)?)\s*V(?:\s*(AC|DC))?\b/i);
+  const scalar = range ? undefined : description.match(/\b(\d{2,4}(?:[.,]\d+)?)\s*V(?:\s*(AC|DC))?\b/i);
+  if (!range && !scalar) return undefined;
+  const value = range
+    ? `${range[1].replace(",", ".")}...${range[2].replace(",", ".")} V${range[3] ? ` ${range[3].toUpperCase()}` : ""}`
+    : `${scalar![1].replace(",", ".")} V${scalar![2] ? ` ${scalar![2].toUpperCase()}` : ""}`;
   return {
     group: "Eaton description",
     name: "Voltage rating",
@@ -2611,7 +2905,13 @@ function extractHtmlDocuments($: cheerio.CheerioAPI, catalogNumber: string, sour
     const url = toAbsoluteUrl(href, sourceUrl);
     if (!url) return;
     const label = readEatonLinkLabel($, element, url);
-    if (!isEatonDocumentLink(label, url, catalogNumber)) return;
+    const isExactPageCatalog = isEatonCatalogResourceLink(
+      label,
+      url,
+      catalogNumber,
+      sourceUrl
+    );
+    if (!isEatonDocumentLink(label, url, catalogNumber) && !isExactPageCatalog) return;
     documents.push({ type: classifyEatonDocument(label, url), label, url, sourceUrl });
   });
 
@@ -2808,6 +3108,30 @@ function isEatonDocumentLink(label: string, url: string, catalogNumber: string):
   return false;
 }
 
+/**
+ * An exact Eaton SKU page can link a generic family catalog whose title and URL do not repeat
+ * the requested SKU. Keep that official resource available to the existing PDF identity/table
+ * gates; those gates still require an exact SKU row before any family-document value is used.
+ * Without this route, the deterministic fallback had to render the page and rediscover a link
+ * that was already present in the static HTML.
+ */
+function isEatonCatalogResourceLink(
+  label: string,
+  url: string,
+  catalogNumber: string,
+  sourceUrl: string
+): boolean {
+  if (!eatonSkuPathMatches(sourceUrl, catalogNumber)) return false;
+  if (!/\b(?:catalog(?:ue)?s?|brochures?)\b/i.test(label)) return false;
+  if (!/\.pdf(?:[?#]|$)/i.test(url)) return false;
+  try {
+    const host = new URL(url).hostname;
+    return /(?:^|\.)eaton\.com$/i.test(host);
+  } catch {
+    return false;
+  }
+}
+
 function classifyEatonDocument(label: string, url: string): DocumentRecord["type"] {
   const combined = `${label} ${url}`;
   if (/\/skuPage\.[^/]+\.pdf(?:[?#]|$)/i.test(url)) return "datasheet";
@@ -2841,6 +3165,29 @@ function normalizeEatonImageUrl(url: string): string {
   const match = url.match(/\/mdmfiles\/[^/]+\/([^/?#]+)\/(?:\d+x\d+_[^/?#]+)/i);
   if (!match) return url;
   return `https://dynamicmedia.eaton.com/is/image/eaton/${encodeURIComponent(match[1])}?wid=500&hei=500`;
+}
+
+/**
+ * Eaton's CDN often serves a sibling device's image from an exact SKU page. Keep the image only
+ * when the actual asset identifier contains the requested catalog number (punctuation-insensitive).
+ * The page's image alt text can repeat the SKU even when Eaton reuses a representative/family asset,
+ * so the alt label alone is not identity evidence.
+ */
+function hasExactEatonCatalogNumberInImageAsset(document: DocumentRecord, catalogNumber: string): boolean {
+  const expected = cleanText(catalogNumber).replace(/[^a-z0-9]/gi, "").toUpperCase();
+  if (!expected) return false;
+  const urls = [document.url, ...(document.candidateUrls ?? [])];
+  return urls.some((url) => {
+    try {
+      const segments = decodeURIComponent(new URL(url).pathname).split("/").filter(Boolean);
+      return segments.some((segment) => {
+        const asset = segment.replace(/(?:_(?:C|L|FM|DOVP|MAIN|PRODUCT|PRODUCTIMAGE|FRONT|SIDE|BACK|IMAGE))+$/i, "").replace(/[^a-z0-9]/gi, "").toUpperCase();
+        return asset === expected;
+      });
+    } catch {
+      return false;
+    }
+  });
 }
 
 function extractMarkdownLinks(text: string, catalogNumber: string, sourceUrl: string): DocumentRecord[] {
