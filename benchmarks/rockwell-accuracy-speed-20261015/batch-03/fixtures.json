@@ -1,0 +1,162 @@
+[
+  {
+    "manufacturerId": "rockwell",
+    "catalogNumber": "1609-D1000E",
+    "caseType": "electrical",
+    "expectedDeviceType": "UPS",
+    "riskTags": [
+      "cold",
+      "ups",
+      "1000-va",
+      "230-vac",
+      "discontinued"
+    ],
+    "expectedOfficialUrlPatterns": [
+      "rockwellautomation\\.com/en-us/products/details\\.1609-d1000e\\.html"
+    ],
+    "requiredDocuments": [
+      "manual"
+    ],
+    "expectedNormalizedFields": [
+      "voltage"
+    ],
+    "expectedAttributePatterns": [
+      "Product Description.*1000 VA",
+      "Product Description.*230V AC Input/Output"
+    ],
+    "expectedNormalizedPatterns": {
+      "voltage": "230 V AC input/output"
+    }
+  },
+  {
+    "manufacturerId": "rockwell",
+    "catalogNumber": "2711P-T7C22D9P",
+    "caseType": "electrical",
+    "expectedDeviceType": "HMI",
+    "riskTags": [
+      "cold",
+      "panelview-plus-7",
+      "hmi",
+      "24-vdc",
+      "7-inch"
+    ],
+    "expectedOfficialUrlPatterns": [
+      "rockwellautomation\\.com/en-us/products/details\\.2711p-t7c22d9p\\.html"
+    ],
+    "requiredDocuments": [
+      "manual"
+    ],
+    "expectedNormalizedFields": [
+      "voltage"
+    ],
+    "expectedAttributePatterns": [
+      "Input Voltage.*24V DC",
+      "Communications.*Embedded Switch/DLR"
+    ],
+    "expectedNormalizedPatterns": {
+      "voltage": "24 V DC"
+    }
+  },
+  {
+    "manufacturerId": "rockwell",
+    "catalogNumber": "1783-CMS10DN",
+    "caseType": "electrical",
+    "expectedDeviceType": "Communication Gateway",
+    "riskTags": [
+      "cold",
+      "stratix-5200",
+      "managed-switch",
+      "10-port",
+      "ip30"
+    ],
+    "expectedOfficialUrlPatterns": [
+      "rockwellautomation\\.com/en-us/products/details\\.1783-cms10dn\\.html"
+    ],
+    "requiredDocuments": [
+      "datasheet"
+    ],
+    "expectedNormalizedFields": [
+      "protection",
+      "operatingTemperatureMin",
+      "operatingTemperatureMax"
+    ],
+    "expectedAttributePatterns": [
+      "8.*copper",
+      "2.*combo",
+      "-40.*60",
+      "IP30"
+    ],
+    "expectedNormalizedPatterns": {
+      "protection": "IP30",
+      "operatingTemperatureMin": "-40 °C",
+      "operatingTemperatureMax": "60 °C"
+    }
+  },
+  {
+    "manufacturerId": "rockwell",
+    "catalogNumber": "856T-BT3",
+    "caseType": "electrical",
+    "expectedDeviceType": "Stack Light / Beacon",
+    "riskTags": [
+      "cold",
+      "stack-light",
+      "green",
+      "steady-led",
+      "24-v"
+    ],
+    "expectedOfficialUrlPatterns": [
+      "rockwellautomation\\.com/en-us/products/details\\.856t-bt3\\.html"
+    ],
+    "requiredDocuments": [
+      "datasheet"
+    ],
+    "expectedNormalizedFields": [
+      "voltage"
+    ],
+    "expectedAttributePatterns": [
+      "Green",
+      "Steady",
+      "LED",
+      "24V",
+      "70 mm"
+    ]
+  },
+  {
+    "manufacturerId": "rockwell",
+    "catalogNumber": "5069-L306ER",
+    "caseType": "electrical",
+    "expectedDeviceType": "Programmable Logic Controller",
+    "riskTags": [
+      "cold",
+      "compactlogix-5380",
+      "plc",
+      "600-kb",
+      "24-vdc"
+    ],
+    "expectedOfficialUrlPatterns": [
+      "rockwellautomation\\.com/en-us/products/details\\.5069-l306er\\.html"
+    ],
+    "requiredDocuments": [
+      "datasheet"
+    ],
+    "expectedNormalizedFields": [
+      "voltage",
+      "dimensions",
+      "operatingTemperatureMin",
+      "operatingTemperatureMax"
+    ],
+    "expectedAttributePatterns": [
+      "Power Supply.*18.*32V DC",
+      "Width.*98\\.1mm",
+      "Height.*123mm",
+      "Depth.*136\\.81mm",
+      "600 KB"
+    ],
+    "expectedNormalizedPatterns": {
+      "voltage": "18\\.\\.\\.32 V DC",
+      "dimensions": "98\\.1 x 123 x 136\\.81 mm",
+      "operatingTemperatureMin": "0 °C",
+      "operatingTemperatureMax": "60 °C"
+    }
+  }
+]

@@ -490,6 +490,46 @@ export function applyRockwellNormalizedOverrides(
     normalized.operatingTemperatureMax = "50 °C";
   }
 
+  // The 1609-D AC UPS page identifies the exact product as 230 V AC input/output. Its manual
+  // includes other 120 V models and operating thresholds, so do not promote those rows to this
+  // unit's supply voltage or rated current.
+  if (/^1609-D/i.test(sku)) {
+    const description = attributes.find((attribute) =>
+      attribute.group === "Rockwell Product Description" && /^voltage$/i.test(cleanText(attribute.name))
+    )?.value;
+    if (description) normalized.voltage = description;
+    normalized.current = undefined;
+  }
+
+  // Stratix 5200 technical data labels the ingress class as Environment and publishes the
+  // operating range as a distinct environmental rating. Keep those meanings and units intact.
+  if (/^1783-CMS/i.test(sku)) {
+    const environment = findRockwellExactAttribute(attributes, sku, /^environment$/i)?.value;
+    if (/\bIP\s*\d{2}/i.test(environment ?? "")) normalized.protection = environment?.replace(/\s+/g, "").toUpperCase();
+    const temperature = findRockwellExactAttribute(attributes, sku, /^operating temperature$/i)?.value.match(/(-?\d+)\s*(?:\.{2,}|…|[-–])\s*(\d+)\s*°?C/i);
+    if (temperature) {
+      normalized.operatingTemperatureMin = `${temperature[1]} °C`;
+      normalized.operatingTemperatureMax = `${temperature[2]} °C`;
+    }
+  }
+
+  // CompactLogix has separate MOD and SA power, and the PDP lists physical W/H/D independently.
+  // Isolation voltage is not a supply rating; avoid selecting it as the controller voltage.
+  if (/^5069-L3/i.test(sku)) {
+    const power = findRockwellExactAttribute(attributes, sku, /^power supply$/i)?.value;
+    const mod = power?.match(/MOD\s+Power\s*(\d+(?:\.\d+)?)\s*(?:\.{2,}|…|[-–])\s*(\d+(?:\.\d+)?)\s*V\s*(AC|DC)/i);
+    if (mod) normalized.voltage = `${mod[1]}...${mod[2]} V ${mod[3].toUpperCase()} (MOD power)`;
+    const width = findRockwellExactAttribute(attributes, sku, /^width$/i)?.value.match(/([\d.]+)\s*mm/i);
+    const height = findRockwellExactAttribute(attributes, sku, /^height$/i)?.value.match(/([\d.]+)\s*mm/i);
+    const depth = findRockwellExactAttribute(attributes, sku, /^depth$/i)?.value.match(/([\d.]+)\s*mm/i);
+    if (width && height && depth) normalized.dimensions = `${width[1]} x ${height[1]} x ${depth[1]} mm`;
+    const temperature = findRockwellExactAttribute(attributes, sku, /^operating temperature$/i)?.value.match(/(-?\d+)\s*(?:\.{2,}|…|[-–])\s*(\d+)\s*°?C/i);
+    if (temperature) {
+      normalized.operatingTemperatureMin = `${temperature[1]} °C`;
+      normalized.operatingTemperatureMax = `${temperature[2]} °C`;
+    }
+  }
+
 }
 
 function findRockwellExactAttribute(
@@ -544,6 +584,9 @@ function isRockwellImageMismatch(document: DocumentRecord, catalogNumber: string
   // overrides even an exact-SKU filename: a named asset is not proof that the photographed unit
   // matches the requested variant when the manufacturer says it is not the actual product.
   if (attributes.some((attribute) => /representative rendering, not the actual product/i.test(`${attribute.name} ${attribute.value}`))) return true;
+  // Rockwell's DPP `1609-d.jpg` is a generic 1609-D family image, not evidence of the D1000E
+  // configuration. Do not export it as though the exact UPS variant were pictured.
+  if (/^1609-D\d/i.test(catalogNumber) && fileName === "1609-D.JPG") return true;
   if (compactCatalogNumber(fileName).includes(compactCatalogNumber(catalogNumber))) return false;
 
   // The 100-C configurator artwork filename carries its own contactor current-frame code;
@@ -597,7 +640,9 @@ function enrichRockwellParsedPage(result: ProductResult, fetched: FetchedText, c
   const sourceUrl = fetched.effectiveUrl;
   const summary = extractRockwellPersonalizationSummary(fetched.text);
   const sourceDescription = summary?.description || result.description;
-  const descriptionVoltage = extractRockwellDescriptionVoltage(sourceDescription) ?? extractRockwellDescriptionSingleVoltage(sourceDescription, catalogNumber);
+  const descriptionVoltage = extractRockwellDescriptionVoltage(sourceDescription) ??
+    extractRockwellUpsDescriptionVoltage(sourceDescription, catalogNumber) ??
+    extractRockwellDescriptionSingleVoltage(sourceDescription, catalogNumber);
   const descriptionCurrent = extractRockwellDescriptionCurrent(sourceDescription, catalogNumber);
   const descriptionProtection = extractRockwellDescriptionProtection(sourceDescription);
   const structuredAttributes = extractRockwellStructuredAttributes($, fetched.text, sourceUrl, catalogNumber, parser);
@@ -617,6 +662,15 @@ function enrichRockwellParsedPage(result: ProductResult, fetched: FetchedText, c
   const attributes = dedupeAttributes([
     ...result.attributes,
     ...structuredAttributes,
+    ...(/^1609-D/i.test(catalogNumber) && sourceDescription ? [{
+      group: "Rockwell Product Description",
+      name: "Product Description",
+      value: sourceDescription,
+      sourceUrl,
+      sourceType: "official" as const,
+      parser: "rockwell-product-description",
+      confidence: 0.96
+    }] : []),
     ...(safetySupply && safetySupplyValue ? [{
       group: "Rockwell Product Power Supply",
       name: "Power Supply",
@@ -689,6 +743,12 @@ function extractRockwellDescriptionVoltage(description: string | undefined): str
   if (!match) return undefined;
   const suffix = match[4] ? `${match[3].toUpperCase()}/${match[4].toUpperCase()}` : match[3].toUpperCase();
   return `${match[1]}...${match[2]} V ${suffix}${match[5] ? `, ${match[5]} Phase` : ""}`;
+}
+
+function extractRockwellUpsDescriptionVoltage(description: string | undefined, catalogNumber: string): string | undefined {
+  if (!/^1609-D/i.test(catalogNumber)) return undefined;
+  const match = description?.match(/\b(\d+(?:\.\d+)?)\s*V\s*AC\s+Input\s*\/\s*Output\b/i);
+  return match ? `${match[1]} V AC input/output` : undefined;
 }
 
 function extractRockwellDescriptionProtection(description: string | undefined): string | undefined {
@@ -1649,3 +1709,4 @@ function recordAt(value: Record<string, unknown>, key: string): Record<string, u
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value && typeof value === "object" && !Array.isArray(value));
 }
+
