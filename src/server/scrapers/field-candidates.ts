@@ -45,6 +45,12 @@ export function applyFieldCandidateResolution(result: ProductResult): ProductRes
     /^RUR\s*3$/i.test(attribute.value.trim()) &&
     /source\/prodext\.php/i.test(attribute.sourceUrl ?? "")
   );
+  const doepkeDuplineBusPowered = result.manufacturerId === "doepke" && result.attributes.some((attribute) =>
+    /^operating voltage(?: source)?$/i.test(attribute.name.trim()) && /\bbus signal\b/i.test(attribute.value)
+  );
+  // A bus-powered device's 8 V detector/contact input limit is not its operating supply. Clear a
+  // generic earlier value and prevent the candidate resolver from restoring it from the raw row.
+  if (doepkeDuplineBusPowered && !normalizeFields(result.attributes, result.documents, "doepke").voltage) delete normalized.voltage;
   // The generic field-candidate resolver sees the RUR 3's 5 A relay-contact
   // rating as an operating-current candidate. Doepke-aware normalization has
   // already rejected it, so do not put it back during evidence attachment.
@@ -82,6 +88,7 @@ export function applyFieldCandidateResolution(result: ProductResult): ProductRes
     // not be reintroduced after the manufacturer-specific normalizer rejected them.
     if (result.manufacturerId === "abb" && (key === "material" || key === "color")) continue;
     if (doepkeRur3 && key === "current") continue;
+    if (doepkeDuplineBusPowered && key === "voltage") continue;
     // Siemens dimensions can be packaging measurements or HMI display/cutout values; material and
     // color candidates also contain product-code fragments. The Siemens connector normalizer is
     // authoritative for these fields, so unresolved values stay blank rather than being restored

@@ -187,6 +187,13 @@ export function finalizeQualityGate(result: ProductResult, manufacturer: Manufac
   if (manufacturer.id === "doepke") {
     const recomputed = normalizeFields(result.attributes, result.documents, "doepke");
     const normalized = { ...result.normalized, ...recomputed };
+    const duplineBusPowered = result.attributes.some((attribute) =>
+      /^operating voltage(?: source)?$/i.test(attribute.name.trim()) && /\bbus signal\b/i.test(attribute.value)
+    );
+    // Doepke's exact Dupline PDFs can also publish a sensor/contact input-voltage limit. Once the
+    // exact source states that the device itself is supplied by the bus, don't retain an earlier
+    // generic `Rated voltage` normalization as if it were the device supply.
+    if (duplineBusPowered && !recomputed.voltage) delete normalized.voltage;
     // Doepke RUR 3 exposes relay-contact current as "Rated current". When
     // exact-product normalization finds no supply consumption, discard any
     // generic current that an earlier stage may have copied from that rating.

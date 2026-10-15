@@ -110,6 +110,9 @@ export const DEVICE_TYPE_PROFILES: Record<string, DeviceTypePdtProfile> = {
   "Wire Marker": { sheets: ["Wire ID Information"], electricalFields: NO_ELECTRICAL_FIELDS },
 
   "Photoelectric Sensor": { sheets: ["optical sensor"], finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_ONLY },
+  "Light Sensor": { sheets: ["optical sensor"], finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_ONLY },
+  "Smoke Detector": { sheets: ["safety sensor"], finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_ONLY },
+  "Water Sensor": { sheets: ["sensor - fluid"], finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_ONLY },
   "Color Sensor": { sheets: ["optical sensor"], finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_ONLY },
   "Photoelectric Distance Sensor": { sheets: ["optical sensor"], finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_ONLY },
   "Fiber Optic Sensor": { sheets: ["optical sensor"], finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_ONLY },
@@ -179,6 +182,7 @@ export const DEVICE_TYPE_PROFILES: Record<string, DeviceTypePdtProfile> = {
   Luminaire: { sheets: ["Luminaire"], electricalFields: VOLTAGE_ONLY },
 
   "Thermal Management": { sheets: ["cabinet.airconditioning"], finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_ONLY },
+  Thermostat: { sheets: ["cabinet.airconditioning"], finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_ONLY },
 
   Pump: { sheets: ["pump"], electricalFields: NO_ELECTRICAL_FIELDS },
   "Directional Control Valve": { sheets: ["directional control valve"], electricalFields: VOLTAGE_ONLY },

@@ -1115,7 +1115,9 @@ function attachBuiltInScrapeRecipes() {
       "catalog number|type code|article",
       "rated current|rated voltage|residual current|number of poles|width|height|depth|weight"
     ],
-    requiredDocuments: ["datasheet|3931177\\.pdf"],
+    // Some exact Doepke article pages publish only their article-specific operating manual,
+    // whose technical-data section carries the same model-linked evidence as a separate sheet.
+    requiredDocuments: ["datasheet|manual|3931177\\.pdf"],
     minAttributes: 4,
     minDocuments: 1,
     dynamicFramework: [],

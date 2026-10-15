@@ -228,13 +228,21 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
         !isEatonComponentElectricalValue(attribute, manufacturerId) &&
         !(manufacturerId === "eaton" && /^rated operational current for specified heat dissipation(?:\s*\(in\))?$/i.test(attribute.name.trim()) && normalizeCurrentValue(attribute.value) === "0 A")
       );
+  const doepkeDuplineBusPowered = manufacturerId === "doepke" && attributes.some((attribute) =>
+    /^operating voltage(?: source)?$/i.test(attribute.name.trim()) && /\bbus signal\b/i.test(attribute.value)
+  );
   const voltageAttributes = manufacturerId === "eaton"
     ? attributes.filter((attribute) =>
         !isRelatedProductElectricalAttribute(attribute) &&
         !isEatonComponentElectricalValue(attribute, manufacturerId) &&
         !isEatonSoftStarterHorsepowerVoltage(attribute, attributes)
       )
-    : attributes;
+    : doepkeDuplineBusPowered
+      ? attributes.filter((attribute) =>
+          !/^rated voltage(?:\s*\([^)]*\))?$/i.test(attribute.name.trim()) &&
+          !/^(?:sensor|contact|input)\s+(?:input\s+)?voltage$/i.test(attribute.name.trim())
+        )
+      : attributes;
   const findAttr = (...patterns: RegExp[]) => {
     return bestAttributeValue(attributes, patterns);
   };
@@ -382,14 +390,17 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
   const protectionAttributes = manufacturerId === "rittal"
     ? rittalPdpAttributes.filter((attribute) => /\b(?:protection|degree|type\s+rating|ik\s+code|nema|ip\s+(?:class|rating|protection))\b/i.test(attribute.name))
     : attributes;
+  const doepkeProtectionEvidence = manufacturerId === "doepke"
+    ? protectionAttributes.filter((attribute) => !/\bIIP\s*42\b|\b(?:Encl\.?\s*)?protection[^\n]{0,50}\b(?:standards?|Normen)\b/i.test(`${attribute.name} ${attribute.value}`))
+    : protectionAttributes;
   const balluffExactProtectionAttributes = manufacturerId === "balluff"
     ? protectionAttributes.filter((attribute) =>
         attribute.matchLevel === "exact" && /\b(?:ip\b|nema|protection|environmental rating)\b/i.test(`${attribute.group ?? ""} ${attribute.name}`)
       )
     : [];
-  const doepkeProtection = manufacturerId === "doepke" ? doepkeExactProtection(attributes) : undefined;
+  const doepkeProtection = manufacturerId === "doepke" ? doepkeExactProtection(doepkeProtectionEvidence) : undefined;
   const protectionFromAttr = manufacturerId === "doepke"
-    ? doepkeProtection ?? collectProtectionValues(attributes.filter((attribute) => attribute.group !== "PDF datasheet - Dimensions"))
+    ? doepkeProtection ?? collectProtectionValues(doepkeProtectionEvidence.filter((attribute) => attribute.group !== "PDF datasheet - Dimensions"))
     : manufacturerId === "rittal"
     ? collectProtectionValues(protectionAttributes)
     : hasConflictingExactEatonPdpProtection(protectionAttributes, manufacturerId)
@@ -476,7 +487,9 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
   const voltage = manufacturerId === "turck"
     ? turckOperatingVoltage(attributes) ?? fallbackVoltage
     : manufacturerId === "doepke"
-    ? doepkeOperatingVoltage(attributes) ?? fallbackVoltage
+    ? (doepkeDuplineBusPowered
+        ? doepkeExactAttribute(attributes, /^device supply voltage$/i)?.value
+        : doepkeOperatingVoltage(attributes) ?? fallbackVoltage)
     : fallbackVoltage;
   const genericCurrent = manufacturerId === "phoenix" && isPhoenixSignalConditioner(attributes)
     ? undefined

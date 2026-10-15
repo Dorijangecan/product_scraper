@@ -1,0 +1,67 @@
+[
+  {
+    "manufacturerId": "doepke",
+    "catalogNumber": "09501110",
+    "caseType": "electrical",
+    "expectedDeviceType": "Light Sensor",
+    "riskTags": ["cold", "d lux", "dupline", "light-level", "photodiode", "bus-powered"],
+    "expectedOfficialUrlPatterns": ["doepke\\.de/source/prodext\\.php\\?ARTNR=09501110"],
+    "requiredDocuments": ["datasheet"],
+    "expectedNormalizedFields": ["current", "dimensions", "protection", "operatingTemperatureMin", "operatingTemperatureMax"],
+    "expectedBlankNormalizedFields": ["voltage"],
+    "expectedNormalizedPatterns": { "current": "0\\.75\\s*mA", "dimensions": "83\\s*x\\s*40\\s*x\\s*43\\s*mm", "protection": "IP44", "operatingTemperatureMin": "-10", "operatingTemperatureMax": "60" },
+    "expectedAttributePatterns": ["Product Designation\\s+DLUX", "Operating voltage source\\s+Dupline bus signal", "Device supply current\\s+0\\.75 mA", "Current consumption bus\\s+750\\s*[µμ]A"]
+  },
+  {
+    "manufacturerId": "doepke",
+    "catalogNumber": "09501112",
+    "caseType": "electrical",
+    "expectedDeviceType": "Temperature Sensor",
+    "riskTags": ["cold", "dts 1", "dupline", "pt1000", "outdoor", "bus-powered"],
+    "expectedOfficialUrlPatterns": ["doepke\\.de/source/prodext\\.php\\?ARTNR=09501112"],
+    "requiredDocuments": ["datasheet"],
+    "expectedNormalizedFields": ["current", "dimensions", "material", "protection", "operatingTemperatureMin", "operatingTemperatureMax"],
+    "expectedBlankNormalizedFields": ["voltage"],
+    "expectedNormalizedPatterns": { "current": "0\\.8\\s*mA", "dimensions": "68\\s*x\\s*35\\s*x\\s*15\\s*mm", "material": "polycarbonate", "protection": "IP67", "operatingTemperatureMin": "-30", "operatingTemperatureMax": "60" },
+    "expectedAttributePatterns": ["Product Designation\\s+DTS 1", "Operating voltage source\\s+Dupline bus signal", "Device supply current\\s+0\\.8 mA", "Current consumption bus\\s+800\\s*[µμ]A"]
+  },
+  {
+    "manufacturerId": "doepke",
+    "catalogNumber": "09501150",
+    "caseType": "electrical",
+    "expectedDeviceType": "Smoke Detector",
+    "riskTags": ["cold", "drd 2", "dupline", "smoke", "fire", "bus-powered"],
+    "expectedOfficialUrlPatterns": ["doepke\\.de/source/prodext\\.php\\?ARTNR=09501150"],
+    "requiredDocuments": ["manual"],
+    "expectedNormalizedFields": ["current", "material", "operatingTemperatureMin", "operatingTemperatureMax"],
+    "expectedBlankNormalizedFields": ["voltage", "dimensions", "protection"],
+    "expectedNormalizedPatterns": { "current": "1\\s*mA", "material": "polycarbonate", "operatingTemperatureMin": "5", "operatingTemperatureMax": "40" },
+    "expectedAttributePatterns": ["Product Designation\\s+DRD 2", "Operating voltage source\\s+Dupline bus signal", "Device supply current\\s+max\\. 1 mA", "Detector principle\\s+optical", "Monitored floor area\\s+60 m²", "Maximum monitored ceiling clearance\\s+6 m", "Input channels\\s+2"]
+  },
+  {
+    "manufacturerId": "doepke",
+    "catalogNumber": "09501171",
+    "caseType": "electrical",
+    "expectedDeviceType": "Thermostat",
+    "riskTags": ["cold", "drt 1", "dupline", "room-thermostat", "night-setback", "bus-powered"],
+    "expectedOfficialUrlPatterns": ["doepke\\.de/source/prodext\\.php\\?ARTNR=09501171"],
+    "requiredDocuments": ["datasheet"],
+    "expectedNormalizedFields": ["current", "dimensions", "material", "protection", "operatingTemperatureMin", "operatingTemperatureMax"],
+    "expectedBlankNormalizedFields": ["voltage"],
+    "expectedNormalizedPatterns": { "current": "2\\.5\\s*mA", "dimensions": "84\\s*x\\s*84\\s*x\\s*34\\s*mm", "material": "ABS", "protection": "IP20", "operatingTemperatureMin": "-30", "operatingTemperatureMax": "60" },
+    "expectedAttributePatterns": ["Product Designation\\s+DRT 1", "Operating voltage source\\s+Bus signal", "Device supply current\\s+max\\. 2\\.5 mA", "Temperature sensing range\\s+14 °C to 28 °C", "Temperature hysteresis\\s+0\\.5 °C"]
+  },
+  {
+    "manufacturerId": "doepke",
+    "catalogNumber": "09501197",
+    "caseType": "electrical",
+    "expectedDeviceType": "Water Sensor",
+    "riskTags": ["cold", "dws 1", "dupline", "water-leak", "bus-powered", "ip67"],
+    "expectedOfficialUrlPatterns": ["doepke\\.de/source/prodext\\.php\\?ARTNR=09501197"],
+    "requiredDocuments": ["datasheet"],
+    "expectedNormalizedFields": ["current", "dimensions", "material", "protection", "operatingTemperatureMin", "operatingTemperatureMax"],
+    "expectedBlankNormalizedFields": ["voltage"],
+    "expectedNormalizedPatterns": { "current": "1\\.3\\s*mA", "dimensions": "40\\s*x\\s*70\\s*x\\s*16\\s*mm", "material": "ABS", "protection": "IP67", "operatingTemperatureMin": "-20", "operatingTemperatureMax": "50" },
+    "expectedAttributePatterns": ["Product Designation\\s+DWS 1", "Operating voltage source\\s+Dupline bus signal", "Device supply current\\s+1\\.3 mA", "Rated voltage.*max\\.? 8 V", "Sensor input voltage\\s+max\\. 8 V"]
+  }
+]

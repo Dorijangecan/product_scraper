@@ -74,6 +74,11 @@ const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
   rule("Motion Controller", /\b(?:motion controller|motion control(?:ler)? module|motion module|integrated motion module|analog servo module|servo module|\d+\s*[- ]?axis servo|axis servo,\s*analog|servo,\s*analog\/enc|cnc controller|servo controller)\b/i, 930),
 
   // --- Sensors (specific kinds first; generic "Sensor" is a fallback) ---
+  // Doepke Dupline devices publish their exact functional kind in the product description.
+  // These narrow rules prevent light, smoke, and water detectors from collapsing into Sensor.
+  rule("Smoke Detector", /\b(?:smoke\s+(?:and\s+)?fire\s+detectors?|smoke\s+detectors?|rauchmelder)\b/i, 940),
+  rule("Water Sensor", /\b(?:water\s+(?:leak\s+)?sensors?|water\s+detectors?|leak\s+detectors?)\b/i, 935),
+  rule("Light Sensor", /\b(?:light\s+value\s+sensors?|light\s+sensors?|illuminance\s+sensors?)\b/i, 930),
   rule("Color Sensor", /\bcolor sensors?\b/i, 900),
   rule("Photoelectric Distance Sensor", /\bphotoelectric distance sensors?\b|\blaser distance sensors?\b/i, 895),
   rule("Fiber Optic Sensor", /\bfiber[-\s]?optic devices?\b|\bfiber[-\s]?optic sensors?\b|\bfibre[-\s]?optic devices?\b|\bfibre[-\s]?optic sensors?\b/i, 890),
@@ -86,6 +91,7 @@ const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
   rule("Pressure Switch", /\bpressure\s+switch\b/i, 870),
   rule("Pressure Sensor", /\bpressure\s+(?:sensors?|transmitters?|transducers?)\b/i, 900),
   rule("Temperature Sensor", /\b(?:temperature\s+(?:sensors?|probes?|transmitters?|transducers?)|thermocouple|\brtd\b|pt100|pt1000)\b/i, 900),
+  rule("Thermostat", /\b(?:room\s+thermostats?|thermostats?)\b/i, 925),
   // A Balluff condition-monitoring product publishes its sensor family together with a
   // "Cable with connector" connection detail.  The explicit family must outrank that
   // accessory wording, otherwise the device is routed as a Connector.

@@ -98,13 +98,19 @@ export class DoepkeConnector implements ManufacturerConnector {
       document.type === "datasheet" && /doepke_\d+_dbl_[a-z]{2}\.pdf(?:[?#]|$)/i.test(document.url)
     ) ?? (/(?:DNP\s*8E|8-way input)/i.test(`${productResult.title ?? ""} ${productResult.description ?? ""}`)
       ? productResult.documents.find((document) => document.type === "manual" && /3931177\.pdf(?:[?#]|$)/i.test(document.url))
-      : undefined);
+      : /\bDRD\s*2\b/i.test(`${productResult.title ?? ""} ${productResult.description ?? ""}`)
+        ? productResult.documents.find((document) => document.type === "manual" && /3931203\.pdf(?:[?#]|$)/i.test(document.url))
+        : undefined);
     if (!exactPdf) return productResult;
 
     try {
       const downloaded = await context.downloadDocument(exactPdf);
       if (!downloaded.localPath) return result;
-      const text = await extractDoepkePdfText(downloaded.localPath);
+      // Long operating manuals put the technical table near the end. Extract the front page and
+      // final five pages only for manuals over eight pages; exact article validation below must
+      // still find the requested order number in the retained technical section.
+      const extracted = await extractDoepkePdfText(downloaded.localPath, exactPdf.type === "manual");
+      const text = extracted.text;
       const compactArticle = catalogNumber.replace(/\D/g, "");
       const compactText = text.replace(/\D/g, "");
       if (!compactText.includes(compactArticle)) return result;
@@ -112,7 +118,11 @@ export class DoepkeConnector implements ManufacturerConnector {
       if (!exactAttributes.length) return productResult;
       const attributes = dedupeAttributes([...productResult.attributes, ...exactAttributes]);
       const documents = dedupeDocuments(productResult.documents.map((document) =>
-        document.url === exactPdf.url ? downloaded : document
+        document.url === exactPdf.url
+          ? extracted.pageCount > 8 && exactPdf.type === "manual"
+            ? { ...downloaded, enrichable: false, parseStatus: "parsed" as const }
+            : downloaded
+          : document
       ));
       return {
         ...productResult,
@@ -369,17 +379,20 @@ function doepkeDocumentType(label: string, url: string): DocumentRecord["type"] 
   return classifyDocument(label, url);
 }
 
-async function extractDoepkePdfText(filePath: string): Promise<string> {
+async function extractDoepkePdfText(filePath: string, compactLongManual = false): Promise<{ text: string; pageCount: number }> {
   const data = new Uint8Array(await readFile(filePath));
   const pdf = await getDocument({ data, useSystemFonts: true, verbosity: 0 }).promise;
   try {
     const pages: string[] = [];
-    for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
+    const pageNumbers = compactLongManual && pdf.numPages > 8
+      ? [...new Set([1, pdf.numPages - 4, pdf.numPages - 3, pdf.numPages - 2, pdf.numPages - 1, pdf.numPages])]
+      : Array.from({ length: pdf.numPages }, (_, index) => index + 1);
+    for (const pageNumber of pageNumbers) {
       const page = await pdf.getPage(pageNumber);
       const content = await page.getTextContent();
       pages.push(content.items.map((item) => "str" in item ? item.str : "").filter(Boolean).join(" "));
     }
-    return pages.join("\n");
+    return { text: pages.join("\n"), pageCount: pdf.numPages };
   } finally {
     await pdf.destroy();
   }
@@ -399,7 +412,7 @@ function extractDoepkeExactDocumentAttributes(
   };
   const acVoltage = text.match(/Rated voltage\s*\(AC\)\s*(\d+(?:[.,]\d+)?\s*V)/i)?.[1];
   const acCurrent = text.match(/Rated current\s*\(AC\)\s*(\d+(?:[.,]\d+)?\s*A)/i)?.[1];
-  const designation = titleAndDescription.match(/\b(?:RCBO\s*\d+[^\n]{0,40}|Tytan\s+II\s+D0-[^\s,;]+|SIR\s*16\s*M|DNP\s*8E|DBM\s*1)\b/i)?.[0];
+  const designation = titleAndDescription.match(/\b(?:RCBO\s*\d+[^\n]{0,40}|Tytan\s+II\s+D0-[^\s,;]+|SIR\s*16\s*M|DNP\s*8E|DBM\s*1|DLUX|DTS\s*1|DRD\s*2|DRT\s*1|DWS\s*1)\b/i)?.[0];
   push("Verified product designation", designation);
   push("Number of poles", text.match(/Number of poles\s+(\d+)\b/i)?.[1]);
   push("Rated short-circuit current", text.match(/Rated short-circuit current\s+(\d+(?:[.,]\d+)?\s*kA)/i)?.[1]);
@@ -449,6 +462,52 @@ function extractDoepkeExactDocumentAttributes(
     push("Motion detection angle", text.match(/(?:scanning|scan|detection)\s+angle\s*(\d+(?:[.,]\d+)?\s*°)/i)?.[1]);
     push("Motion detection zones", text.match(/Number of scanning zones\s+(\d+)/i)?.[1]);
     push("Motion detection areas", text.match(/Number of scanning areas\s+(\d+)/i)?.[1]);
+  } else if (/\b(?:DLUX|DTS\s*1|DRD\s*2|DRT\s*1|DWS\s*1)\b/i.test(titleAndDescription)) {
+    const isDrd2 = /\bDRD\s*2\b/i.test(titleAndDescription);
+    const sourceBusSignal = /(?:Operating voltage|voltage source)\s*(?:source\s*)?(?:from\s*)?(?:the\s*)?Dupline\s+(?:signal\s+)?(?:bus|signal conductors?)/i.test(text) ||
+      /Operating voltage\s*source\s*Bus signal/i.test(text);
+    if (sourceBusSignal) push("Operating voltage source", "Dupline bus signal");
+
+    const consumption = text.match(/Current consumption\s*(?:bus\s*)?(?:max\.?\s*)?(\d+(?:[.,]\d+)?)\s*([µμu]A|mA)(?:\s*\(\s*(\d+(?:[.,]\d+)?)\s*[µμu]A\s*\.\.\.\s*(\d+(?:[.,]\d+)?)\s*[µμu]A\s*\))?/i);
+    const busCurrent = consumption && /^D(?:LUX|TS\s*1|RT\s*1|WS\s*1)$/i.test(designation?.replace(/\s+/g, "") ?? "");
+    if (busCurrent && consumption) {
+      const toMilliAmps = (amount: string, unit: string) => {
+        const numeric = Number.parseFloat(amount.replace(",", "."));
+        return unit.toLowerCase() === "ma" ? numeric : numeric / 1000;
+      };
+      const nominal = toMilliAmps(consumption[1], consumption[2]);
+      const range = consumption[3] && consumption[4]
+        ? ` (range ${toMilliAmps(consumption[3], "µA")}–${toMilliAmps(consumption[4], "µA")} mA)`
+        : "";
+      const isMaximum = /current consumption\s*(?:bus\s*)?max\.?/i.test(text);
+      push("Device supply current", `${isMaximum ? "max. " : ""}${nominal} mA${range}`);
+    }
+
+    if (isDrd2) {
+      const minAndMax = text.match(/Current input\s+(\d+(?:[.,]\d+)?)\s*[µμu]A\s+(\d+(?:[.,]\d+)?)\s*mA/i);
+      if (minAndMax) {
+        const min = Number.parseFloat(minAndMax[1].replace(",", ".")) / 1000;
+        push("Minimum bus current input", `${min} mA`);
+        push("Device supply current", `max. ${minAndMax[2]} mA`);
+      }
+      push("Detector principle", text.match(/Type\s+(optical\s*\(?(?:acc\.?\s*to\s*)?Tyndall[- ]Effect\)?)/i)?.[1]);
+      push("Device function", text.match(/Smoke and Fire Detector DRD 2/i)?.[0]);
+      push("Input channels", text.match(/Input channels\s+(2\s*\([^)]*\))/i)?.[1] ?? text.match(/Input channels\s+(2)\b/i)?.[1]);
+      push("Monitored floor area", text.match(/maximum floor area of\s+(\d+\s*m²)/i)?.[1]);
+      push("Maximum monitored ceiling clearance", text.match(/h(?:e|i)ght of up to\s+(\d+\s*m)/i)?.[1]);
+      const ambient = text.match(/Ambient temperature\s*([+-]?\d+)\s*°C\s*([+-]?\d+)\s*°C/i);
+      if (ambient) push("Ambient temperature", `${ambient[1]} °C ... ${ambient[2]} °C`);
+      push("Housing material", text.match(/Material\s+(Polycarbonate|ABS resin|polycarbonate)/i)?.[1]);
+    }
+    const thermostatMin = text.match(/min\.?\s*Sensor measuring range temperature\s*(\d+(?:[.,]\d+)?\s*°?C)/i)?.[1];
+    const thermostatMax = text.match(/max\.?\s*Sensor measuring range temperature\s*(\d+(?:[.,]\d+)?\s*°?C)/i)?.[1];
+    const thermostatRange = thermostatMin && thermostatMax
+      ? `${thermostatMin} to ${thermostatMax}`
+      : text.match(/(?:temperature sensor range|sensor range|adjustment range)\s*(\d+(?:[.,]\d+)?\s*°?C\s*(?:\.\.\.|to|–|-)\s*\d+(?:[.,]\d+)?\s*°?C)/i)?.[1];
+    push("Temperature sensing range", thermostatRange);
+    push("Temperature hysteresis", text.match(/hysteresis(?:\s+temperature)?\s*(\d+(?:[.,]\d+)?\s*°?C)/i)?.[1]);
+    const sensorVoltage = text.match(/Rated voltage\s*\(DC\)\s*(max\.?\s*\d+(?:[.,]\d+)?\s*V)/i)?.[1];
+    push("Sensor input voltage", sensorVoltage);
   }
 
   return rows.map(({ name, value }) => ({
