@@ -31,6 +31,7 @@
     "expectedOfficialUrlPatterns": ["e-t-a\\.com/solutions/automation_process_control/car_production/p/modul_18plus/"],
     "requiredDocuments": ["datasheet", "image"],
     "expectedNormalizedFields": ["voltage"],
+    "expectedBlankNormalizedFields": ["weight"],
     "expectedNormalizedPatterns": {"voltage": "24\\s*V"},
     "expectedAttributePatterns": ["18plus", "DIN rail", "DC \\+?24 V", "100 A", "Max. current rating of loads", "125", "-30.{0,15}\\+60"]
   },

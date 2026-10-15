@@ -602,9 +602,17 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
   };
   // An exact product page can contain a unit typo (for example 1.59 g for a 120 W supply).
   // Filter such a candidate before arbitration so it cannot suppress a valid exact-catalog weight.
-  const weightAttributes = isPowerSupplyProduct(attributes)
+  const isEta18plusSystem = manufacturerId === "eta" && attributes.some((attribute) =>
+    /\/solutions\/automation_process_control\/car_production\/p\/modul_18plus\/?$/i.test(attribute.sourceUrl ?? "")
+  );
+  const weightAttributes = (isPowerSupplyProduct(attributes)
     ? attributes.filter((attribute) => !isImplausiblyLowPowerSupplyWeight(attributes, attribute.value))
-    : attributes;
+    : attributes).filter((attribute) =>
+      // The 18plus family datasheet reports separate EM/AM/SM submodule masses, not the
+      // complete power-distribution system. Keep those rows in raw evidence, but do not publish
+      // a submodule's mass as the normalized weight of the requested system.
+      !(isEta18plusSystem && /\b18plus\s+(?:EM|AM|SM)\b/i.test(`${attribute.name} ${attribute.value}`))
+    );
   const weight = (manufacturerId === "phoenix" ? phoenixProductNetWeight(weightAttributes) : undefined) ??
     bestNormalizedAttributeValue(weightAttributes, normalizerFieldLabelPatterns("weight"), normalizeWeightValue, "weight") ??
     registryFieldValue(weightAttributes, "weight", normalizeWeightValue) ??

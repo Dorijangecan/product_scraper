@@ -33,6 +33,10 @@ export function applyFieldCandidateResolution(result: ProductResult): ProductRes
   const candidates = buildFieldCandidates(result);
   const resolutions = buildFieldResolutions(candidates);
   const normalized = { ...result.normalized };
+  const eta18plusSystem = result.manufacturerId === "eta" && result.attributes.some((attribute) =>
+    /\/solutions\/automation_process_control\/car_production\/p\/modul_18plus\/?$/i.test(attribute.sourceUrl ?? "")
+  );
+  if (eta18plusSystem) delete normalized.weight;
   if (normalized.weight && /\b(?:CO2|carbon\s+footprint)\b/i.test(normalized.weight)) delete normalized.weight;
   if (result.manufacturerId === "schneider" && isSchneiderSurgeProtector(result)) delete normalized.current;
   if (result.manufacturerId === "schneider" && isSchneiderSafetyLightCurtain(result.attributes)) delete normalized.current;
@@ -89,6 +93,8 @@ export function applyFieldCandidateResolution(result: ProductResult): ProductRes
     if (!resolution.selectedValue || !isNormalizedField(resolution.field)) continue;
     const key = resolution.field as keyof NormalizedProductFields;
     if (key === "weight" && /\b(?:CO2|carbon\s+footprint)\b/i.test(resolution.selectedValue)) continue;
+    // The family datasheet's EM/AM/SM masses are for submodules, not the complete 18plus system.
+    if (eta18plusSystem && key === "weight") continue;
     // Preserve SPD ratings as named evidence (Iimp, In and Imax), without flattening
     // their surge current into the general operating-current field.
     if (result.manufacturerId === "schneider" && key === "current" && isSchneiderSurgeProtector(result)) continue;

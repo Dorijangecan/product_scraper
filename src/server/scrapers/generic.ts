@@ -454,7 +454,14 @@ export function parseGenericProductPage(
 ): ProductResult {
   const genericParseStartedAt = Date.now();
   let genericStageStartedAt = genericParseStartedAt;
+  const etaParserDebug = manufacturerId === "eta" && process.env.DEBUG_ETA_TIMINGS === "1";
+  let etaStageStartedAt = genericParseStartedAt;
+  const logEtaStage = (stage: string) => {
+    if (etaParserDebug) console.info(`[eta:parse-stage] ${catalogNumber} ${stage} ${Date.now() - etaStageStartedAt}ms`);
+    etaStageStartedAt = Date.now();
+  };
   const $ = cheerio.load(fetched.text);
+  logEtaStage("cheerio-load");
   const rockwellDebug = manufacturerId === "rockwell" && process.env.DEBUG_ROCKWELL_TIMINGS === "1";
   if (rockwellDebug) console.info(`[rockwell:timing] generic-cheerio ${Date.now() - genericStageStartedAt}ms htmlChars=${fetched.text.length}`);
   if (isPartCommunityCookieWall(fetched.effectiveUrl, fetched.text)) {
@@ -510,17 +517,31 @@ export function parseGenericProductPage(
       });
     }
   }
+  logEtaStage("identity-jsonld-documents");
 
   genericStageStartedAt = Date.now();
   const dynamicData = extractDynamicComponentData($, fetched.text, catalogNumber, fetched.effectiveUrl);
   attributes.push(...dynamicData.attributes.map((attribute) => ({ ...attribute, scope: "variant" as const })));
   documents.push(...dynamicData.documents);
+  logEtaStage("dynamic-components");
   if (rockwellDebug) console.info(`[rockwell:timing] generic-dynamic-components ${Date.now() - genericStageStartedAt}ms`);
 
   genericStageStartedAt = Date.now();
-  const embeddedTableData = extractEmbeddedTableData(fetched.text, catalogNumber, fetched.effectiveUrl, options.extractionPolicy);
+  const htmlTables = readHtmlTableAttributes($, catalogNumber, fetched.effectiveUrl);
+  const etaStructuredFastPath =
+    manufacturerId === "eta" &&
+    parserLabel.startsWith("ETA ") &&
+    new Set(htmlTables.attributes.map((attribute) => cleanText(attribute.name).toLowerCase()).filter(Boolean)).size >= 3;
+  attributes.push(...htmlTables.attributes);
+  if (etaStructuredFastPath && process.env.DEBUG_BENCHMARK === "1") {
+    console.log(`[benchmark:debug] eta ${catalogNumber} structured HTML-table fast path (${htmlTables.attributes.length} attributes)`);
+  }
+  const embeddedTableData = etaStructuredFastPath
+    ? { attributes: [], documents: [] }
+    : extractEmbeddedTableData(fetched.text, catalogNumber, fetched.effectiveUrl, options.extractionPolicy);
   attributes.push(...embeddedTableData.attributes.map((attribute) => ({ ...attribute, scope: "variant" as const })));
   documents.push(...embeddedTableData.documents);
+  logEtaStage("embedded-tables");
   if (rockwellDebug) console.info(`[rockwell:timing] generic-embedded-tables ${Date.now() - genericStageStartedAt}ms`);
 
   genericStageStartedAt = Date.now();
@@ -550,52 +571,44 @@ export function parseGenericProductPage(
       });
     }
   });
+  logEtaStage("embedded-properties-meta");
   let rockwellSubstageStartedAt = Date.now();
   attributes.push(...extractCertificationAttributes($, fetched.effectiveUrl));
   if (rockwellDebug) console.info(`[rockwell:timing] generic-certificates ${Date.now() - rockwellSubstageStartedAt}ms`);
   rockwellSubstageStartedAt = Date.now();
-  attributes.push(...extractProductSectionAttributes($, fetched.effectiveUrl));
+  if (!etaStructuredFastPath) attributes.push(...extractProductSectionAttributes($, fetched.effectiveUrl));
   if (rockwellDebug) console.info(`[rockwell:timing] generic-product-sections ${Date.now() - rockwellSubstageStartedAt}ms`);
   rockwellSubstageStartedAt = Date.now();
-  attributes.push(...extractLabeledSpecAttributes($, fetched.effectiveUrl));
+  if (!etaStructuredFastPath) attributes.push(...extractLabeledSpecAttributes($, fetched.effectiveUrl));
   if (rockwellDebug) console.info(`[rockwell:timing] generic-labeled-specs ${Date.now() - rockwellSubstageStartedAt}ms`);
   rockwellSubstageStartedAt = Date.now();
-  const htmlTables = readHtmlTableAttributes($, catalogNumber, fetched.effectiveUrl);
-  attributes.push(...htmlTables.attributes);
-  // On a direct, exact ETA PDP the target-aware table reader has already selected several
-  // technical rows. Skip only the broad loose-pair sweep over minified HTML (which can take
-  // seconds and produce duplicate/overload values); keep electrical/ontology text extraction,
-  // marker rules, all DOM/document readers, and the exact catalog identity gate.
-  const etaStructuredFastPath =
-    manufacturerId === "eta" &&
-    parserLabel.startsWith("ETA ") &&
-    new Set(htmlTables.attributes.map((attribute) => cleanText(attribute.name).toLowerCase()).filter(Boolean)).size >= 3;
+  // The exact ETA table reader already selected the relevant technical rows. The fast path
+  // retains those facts, identity, standards, image/document discovery and the final exact-catalog
+  // gate while avoiding broad duplicate scans over the very large direct product page.
   const structuredPageFastPath = rockwellStructuredFastPath || etaStructuredFastPath;
-  if (etaStructuredFastPath && process.env.DEBUG_BENCHMARK === "1") {
-    console.log(`[benchmark:debug] eta ${catalogNumber} structured HTML-table fast path (${htmlTables.attributes.length} attributes)`);
-  }
   if (rockwellDebug) console.info(`[rockwell:timing] generic-html-tables ${Date.now() - rockwellSubstageStartedAt}ms`);
   // The table reader has already selected the one target column. Generic semantic fallbacks must
   // not put an unselected sibling column back into the result afterwards.
   rockwellSubstageStartedAt = Date.now();
-  attributes.push(...extractSemanticSpecAttributes($, fetched.effectiveUrl, catalogNumber, htmlTables.handledTables));
+  if (!etaStructuredFastPath) attributes.push(...extractSemanticSpecAttributes($, fetched.effectiveUrl, catalogNumber, htmlTables.handledTables));
   if (rockwellDebug) console.info(`[rockwell:timing] generic-semantic-specs ${Date.now() - rockwellSubstageStartedAt}ms`);
   rockwellSubstageStartedAt = Date.now();
-  attributes.push(...extractSchemaPropertyValueAttributes($, fetched.effectiveUrl));
+  if (!etaStructuredFastPath) attributes.push(...extractSchemaPropertyValueAttributes($, fetched.effectiveUrl));
   if (rockwellDebug) console.info(`[rockwell:timing] generic-schema-specs ${Date.now() - rockwellSubstageStartedAt}ms`);
   rockwellSubstageStartedAt = Date.now();
-  attributes.push(...extractCatalogVariantOptionAttributes($, catalogNumber, fetched.effectiveUrl));
+  if (!etaStructuredFastPath) attributes.push(...extractCatalogVariantOptionAttributes($, catalogNumber, fetched.effectiveUrl));
   if (rockwellDebug) console.info(`[rockwell:timing] generic-variant-options ${Date.now() - rockwellSubstageStartedAt}ms`);
   rockwellSubstageStartedAt = Date.now();
-  attributes.push(...extractSectionAwareSpecAttributes($, fetched.effectiveUrl));
+  if (!etaStructuredFastPath) attributes.push(...extractSectionAwareSpecAttributes($, fetched.effectiveUrl));
   if (rockwellDebug) console.info(`[rockwell:timing] generic-section-aware-specs ${Date.now() - rockwellSubstageStartedAt}ms`);
   rockwellSubstageStartedAt = Date.now();
-  attributes.push(...extractHeadingValueSpecAttributes($, fetched.effectiveUrl));
+  if (!etaStructuredFastPath) attributes.push(...extractHeadingValueSpecAttributes($, fetched.effectiveUrl));
   if (rockwellDebug) console.info(`[rockwell:timing] generic-heading-specs ${Date.now() - rockwellSubstageStartedAt}ms`);
   rockwellSubstageStartedAt = Date.now();
-  attributes.push(...extractPageWideSpecAttributes($, catalogNumber, fetched.effectiveUrl, htmlTables.handledTables, rockwellDebug, rockwellStructuredFastPath));
+  if (!etaStructuredFastPath) attributes.push(...extractPageWideSpecAttributes($, catalogNumber, fetched.effectiveUrl, htmlTables.handledTables, rockwellDebug, rockwellStructuredFastPath));
   if (rockwellDebug) console.info(`[rockwell:timing] generic-page-wide-specs ${Date.now() - rockwellSubstageStartedAt}ms`);
   attributes.push(...extractSummaryAttributes(title, description, fetched.effectiveUrl));
+  logEtaStage("dom-spec-extractors");
   if (rockwellDebug) console.info(`[rockwell:timing] generic-dom-specs ${Date.now() - genericStageStartedAt}ms`);
 
   genericStageStartedAt = Date.now();
@@ -647,11 +660,12 @@ export function parseGenericProductPage(
     attributes.push(...extractPhoenixSupplyVoltageAttributes(fetched.text, fetched.effectiveUrl));
     attributes.push(...extractPhoenixContextualElectricalAttributes(fetched.text, fetched.effectiveUrl));
   }
+  logEtaStage("plain-text-spec-extractors");
   textStageStartedAt = Date.now();
-  if (!rockwellStructuredFastPath) attributes.push(...extractKnownPlainTextSpecAttributes(fetched.text, fetched.effectiveUrl));
+  if (!rockwellStructuredFastPath && !etaStructuredFastPath) attributes.push(...extractKnownPlainTextSpecAttributes(fetched.text, fetched.effectiveUrl));
   if (rockwellDebug) console.info(`[rockwell:timing] generic-known-plain-specs ${Date.now() - textStageStartedAt}ms`);
   textStageStartedAt = Date.now();
-  if (!rockwellStructuredFastPath) {
+  if (!rockwellStructuredFastPath && !etaStructuredFastPath) {
     attributes.push(...extractElectricalSpecAttributesFromText({
       text: fetched.text,
       sourceUrl: fetched.effectiveUrl,
@@ -663,8 +677,9 @@ export function parseGenericProductPage(
     attributes.push(...extractPhoenixSurgeNominalDischargeCurrent(fetched.text, fetched.effectiveUrl));
     attributes.push(...extractPhoenixSwitchCurrentConsumption(fetched.text, fetched.effectiveUrl));
   }
+  logEtaStage("electrical-ontology-extractors");
   textStageStartedAt = Date.now();
-  if (!rockwellStructuredFastPath) {
+  if (!rockwellStructuredFastPath && !etaStructuredFastPath) {
     attributes.push(...extractOntologySpecAttributesFromText({
       text: fetched.text,
       sourceUrl: fetched.effectiveUrl,
@@ -737,6 +752,7 @@ export function parseGenericProductPage(
   });
 
   if (rockwellDebug) console.info(`[rockwell:timing] generic-anchor-doc-links ${Date.now() - genericStageStartedAt}ms total=${Date.now() - genericParseStartedAt}ms`);
+  logEtaStage("documents-markers-anchors");
   const matched = catalogTextMatches(fetched.text, catalogNumber, options.match);
   if ((options.match?.requireCatalogNumber ?? true) && !matched) {
     return emptyResult(manufacturerId, catalogNumber, "Fallback page did not contain the catalog number.");

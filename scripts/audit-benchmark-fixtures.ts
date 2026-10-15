@@ -17,6 +17,7 @@ interface BenchmarkFixture {
   expectedOfficialUrlPatterns?: unknown;
   requiredDocuments?: DocumentRecord["type"][];
   expectedNormalizedFields?: Array<keyof ProductResult["normalized"]>;
+  expectedBlankNormalizedFields?: Array<keyof ProductResult["normalized"]>;
   knownRawAttributes?: string[];
   customerDocuments?: unknown;
 }
@@ -109,6 +110,15 @@ for (const fixture of fixtures) {
     } else {
       for (const field of fixture.expectedNormalizedFields) {
         if (!allowedNormalizedFields.has(field)) errors.push(`${label}: unknown expectedNormalizedFields entry "${String(field)}"`);
+      }
+    }
+  }
+  if (fixture.expectedBlankNormalizedFields !== undefined) {
+    if (!Array.isArray(fixture.expectedBlankNormalizedFields)) {
+      errors.push(`${label}: expectedBlankNormalizedFields must be an array when present`);
+    } else {
+      for (const field of fixture.expectedBlankNormalizedFields) {
+        if (!allowedNormalizedFields.has(field)) errors.push(`${label}: unknown expectedBlankNormalizedFields entry "${String(field)}"`);
       }
     }
   }
