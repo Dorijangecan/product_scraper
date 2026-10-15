@@ -530,6 +530,31 @@ export function applyRockwellNormalizedOverrides(
     }
   }
 
+  // 700-HK interface relays publish both contact-current and coil-supply rows. Only the rated
+  // control supply is the relay voltage; nominal/thermal current are contact ratings, not supply
+  // consumption.
+  if (/^700-HK/i.test(sku)) {
+    const controlVoltage = findRockwellExactAttribute(attributes, sku, /^rated control supply voltage at DC$/i)?.value.match(/([\d.]+)\s*V?/i);
+    if (controlVoltage) normalized.voltage = `${controlVoltage[1]} V DC`;
+    const supplyCurrent = findRockwellExactAttribute(attributes, sku, /^(?:supply current|rated supply current|current consumption|input current)$/i);
+    if (!supplyCurrent) normalized.current = undefined;
+  }
+
+  // 800FM/FP selector operators are mechanical actuators. Their contact-block thermal rating and
+  // values from adjacent electronic operator variants do not describe a device supply current or
+  // supply voltage. Keep the PDP's enclosure class and explicitly stated lower temperature bound.
+  if (/^800F[MP]-/i.test(sku)) {
+    normalized.voltage = undefined;
+    normalized.current = undefined;
+    const temperature = attributes.find((attribute) =>
+      /^operating temperature$/i.test(cleanText(attribute.name)) && /PDF manual/i.test(attribute.group ?? "")
+    )?.value.match(/(-?\d+)\s*°?\s*C\s*(?:\.{2,}|…|[-–])\s*\+?(\d+)\s*°?\s*C/i);
+    if (temperature) {
+      normalized.operatingTemperatureMin = `${temperature[1]} °C`;
+      normalized.operatingTemperatureMax = `${temperature[2]} °C`;
+    }
+  }
+
 }
 
 function findRockwellExactAttribute(

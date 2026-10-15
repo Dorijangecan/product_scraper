@@ -1,0 +1,165 @@
+[
+  {
+    "manufacturerId": "rockwell",
+    "catalogNumber": "1734-IB8",
+    "caseType": "electrical",
+    "expectedDeviceType": "I/O Module",
+    "riskTags": [
+      "cold",
+      "point-i-o",
+      "digital-input-module",
+      "8-channel",
+      "24-vdc"
+    ],
+    "expectedOfficialUrlPatterns": [
+      "rockwellautomation\\.com/en-us/products/details\\.1734-ib8\\.html"
+    ],
+    "requiredDocuments": [
+      "manual"
+    ],
+    "expectedNormalizedFields": [
+      "voltage"
+    ],
+    "expectedAttributePatterns": [
+      "24V Dc 8 Channel Sink Input Module",
+      "Temperature Rating.*-20.*55"
+    ]
+  },
+  {
+    "manufacturerId": "rockwell",
+    "catalogNumber": "700-HK36Z24",
+    "caseType": "electrical",
+    "expectedDeviceType": "Relay",
+    "riskTags": [
+      "cold",
+      "slim-line-relay",
+      "24-vdc-coil",
+      "spdt",
+      "16-a-contact"
+    ],
+    "expectedOfficialUrlPatterns": [
+      "rockwellautomation\\.com/en-us/products/details\\.700-hk36z24\\.html"
+    ],
+    "requiredDocuments": [
+      "datasheet"
+    ],
+    "expectedNormalizedFields": [
+      "voltage"
+    ],
+    "expectedBlankNormalizedFields": [
+      "current"
+    ],
+    "expectedAttributePatterns": [
+      "Rated control supply voltage at DC.*24 V",
+      "Nominal current.*16 A",
+      "Rated thermal current.*16 A",
+      "Degree of protection.*IP20"
+    ],
+    "expectedNormalizedPatterns": {
+      "voltage": "24 V DC"
+    }
+  },
+  {
+    "manufacturerId": "rockwell",
+    "catalogNumber": "440G-LZS21UPLH",
+    "caseType": "electrical",
+    "expectedDeviceType": "Lock / Interlock",
+    "riskTags": [
+      "cold",
+      "guardmaster",
+      "guardlock-switch",
+      "24-vdc-solenoid",
+      "rfid-unique-actuator"
+    ],
+    "expectedOfficialUrlPatterns": [
+      "rockwellautomation\\.com/en-us/products/details\\.440g-lzs21uplh\\.html"
+    ],
+    "requiredDocuments": [
+      "manual"
+    ],
+    "expectedNormalizedFields": [
+      "voltage"
+    ],
+    "expectedBlankNormalizedFields": [
+      "current"
+    ],
+    "expectedNormalizedPatterns": {
+      "voltage": "24 V DC"
+    },
+    "expectedAttributePatterns": [
+      "Solenoid Voltage.*24V DC",
+      "2 x PNP.*0\\.2A max",
+      "RFID Unique",
+      "440G-UM001"
+    ]
+  },
+  {
+    "manufacturerId": "rockwell",
+    "catalogNumber": "1492-SPM2D250",
+    "caseType": "electrical",
+    "expectedDeviceType": "Miniature Circuit Breaker",
+    "riskTags": [
+      "cold",
+      "supplementary-protector",
+      "2-pole",
+      "trip-curve-d",
+      "25-a"
+    ],
+    "expectedOfficialUrlPatterns": [
+      "rockwellautomation\\.com/en-us/products/details\\.1492-spm2d250\\.html"
+    ],
+    "requiredDocuments": [
+      "datasheet"
+    ],
+    "expectedNormalizedFields": [
+      "current"
+    ],
+    "expectedNormalizedPatterns": {
+      "current": "25 A"
+    },
+    "expectedAttributePatterns": [
+      "Trip Curve D",
+      "2-Pole",
+      "Current.*25 A",
+      "1492-TD019"
+    ]
+  },
+  {
+    "manufacturerId": "rockwell",
+    "catalogNumber": "800FM-KL34",
+    "caseType": "electrical",
+    "expectedDeviceType": "Selector Switch",
+    "riskTags": [
+      "cold",
+      "key-selector-switch",
+      "3-position",
+      "spring-return-left",
+      "ip66"
+    ],
+    "expectedOfficialUrlPatterns": [
+      "rockwellautomation\\.com/en-us/products/details\\.800fm-kl34\\.html"
+    ],
+    "requiredDocuments": [
+      "manual"
+    ],
+    "expectedNormalizedFields": [
+      "protection",
+      "operatingTemperatureMin"
+    ],
+    "expectedNormalizedPatterns": {
+      "protection": "IP66.*Type 4/13",
+      "operatingTemperatureMin": "-25 °C",
+      "operatingTemperatureMax": "55 °C"
+    },
+    "expectedAttributePatterns": [
+      "Number of switch positions.*3",
+      "Key removal position.*Center",
+      "Operator type.*Keyed selector switch",
+      "800-UM001"
+    ],
+    "expectedBlankNormalizedFields": [
+      "voltage",
+      "current"
+    ]
+  }
+]
