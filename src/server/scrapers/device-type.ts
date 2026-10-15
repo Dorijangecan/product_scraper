@@ -80,6 +80,7 @@ const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
   rule("Photoelectric Sensor", /\b(?:photoelectric|photo\s*electric|through-?beam|retro[-\s]?reflective|diffuse\s+(?:reflective|sensor)|fork\s+(?:sensor|light barrier)|light barrier|light grid)\b/i, 880),
   rule("Inductive Proximity Sensor", /\b(?:inductive\s+(?:proximity\s+)?sensor|inductive proximity|inductive switch|proximity switch|n[äa]herungsschalter|n[äa]herungssensor)\b/i, 875),
   rule("Linear Position Sensor", /\blinear\s+position\s+sensors?\b|\blinear\s+position\s+transducers?\b/i, 890),
+  rule("Inclinometer", /\b(?:dynamic\s+)?inclinometers?\b|\binclination\s+(?:sensors?|measuring)\b/i, 890),
   rule("Magnetic Position Sensor", /\bmagnetic\s+(?:field\s+)?positioning\s+systems?\b|\bmagnetic\s+(?:positioning|position)\s+sensors?\b/i, 895),
   rule("Capacitive Sensor", /\bcapacitive\s+(?:(?:proximity|level)\s+)?(?:sensors?|switch(?:es)?)\b/i, 870),
   rule("Pressure Switch", /\bpressure\s+switch\b/i, 870),
@@ -90,6 +91,7 @@ const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
   // accessory wording, otherwise the device is routed as a Connector.
   rule("Sensor", /\bcondition\s+monitoring\s+sensors?\b/i, 865),
   rule("Condition Monitoring Sensor", /\bcondition\s+monitoring\s+sensors?\b/i, 890),
+  rule("Vibration Sensor", /\bvibration\s+(?:sensors?|transmitters?)\b/i, 890),
   // The CMC III CAN bus access is a door-access monitoring unit whose integral sensor detects
   // door status; the generic word "door" must not turn it into a cabinet-cover accessory.
   rule("Access Sensor", /\bCMC\s*III\s+CAN[-\s]?bus\s+access\b/i, 885),
@@ -99,6 +101,7 @@ const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
   rule("Magnetic Field Sensor", /\bmagnetic\s+field\s+sensor|hall[-\s]?effect\s+sensor\b/i, 862),
   rule("Vision Sensor", /\b(?:vision\s+sensor|smart\s*camera|industrial camera|machine vision)\b/i, 860),
   rule("RFID Device", /\b(?:rfid|read\/write\s+head|read[-\s]?write\s+head|(?:hf|uhf)\s+(?:reader|antenna|read\/write)|13\.56\s*mhz|rfid\s+(?:reader|antenna|transponder))\b/i, 850),
+  rule("Safety Light Curtain", /\b(?:safety\s+)?light\s+curtains?\b/i, 890),
   rule("Flow Sensor", /\bflow\s+(?:sensor|meter|switch|transmitter|rate\s+(?:measurement|monitoring))\b/i, 845),
   rule("Level Sensor", /\b(?:level\s+(?:sensor|switch|transmitter)|float switch)\b/i, 843),
   rule("Encoder", /\b(?:rotary encoders?|absolute encoders?|incremental encoders?|encoders?)\b/i, 840),
@@ -798,6 +801,9 @@ function attributeDeviceTypePriority(attr: AttributeRecord, manufacturerId?: str
     /^design$/i.test(attr.name.trim()) &&
     DEVICE_TYPE_RULES.some((definition) => definition.pattern.test(attr.value ?? ""))
   ) return 820;
+  // Several official PDPs label a concrete subtype under "Function" (for example a vibration
+  // sensor). Promote it only when the value itself matches a known device-type rule.
+  if (/^function$/i.test(attr.name.trim()) && DEVICE_TYPE_RULES.some((definition) => definition.pattern.test(attr.value ?? ""))) return 735;
   if (/\b(?:product or component type|product main type|product type|sensor type|type description)\b/.test(label)) return 760;
   if (/\b(?:principle of operation|principle of optical operation|operating principle|product category|category|product group|product family|product class|classification path|products path|range of product|range)\b/.test(label)) return 720;
   if (/\b(?:product name|item name|display name|catalog description|long description|short description|description)\b/.test(label)) return 650;

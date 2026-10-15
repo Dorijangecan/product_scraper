@@ -56,6 +56,20 @@ describe("device type classifier", () => {
     expect(radar.type).toBe("Radar Sensor");
   });
 
+  it("classifies Turck inclinometer, vibration sensor, and safety light curtain by their exact product names", () => {
+    const inclinometer = classifyDeviceType(product([], "Dynamic Inclinometer B2NF85H-QR20", { manufacturerId: "turck" }));
+    const vibration = classifyDeviceType(product([
+      { group: "Definition List", name: "Function", value: "Vibration sensor", sourceType: "official" }
+    ], "CMVT-M8TA1D-LI28-H1141", { manufacturerId: "turck" }));
+    const curtain = classifyDeviceType(product([], "Safety light curtain SLLP23", { manufacturerId: "turck" }));
+    expect(inclinometer.type).toBe("Inclinometer");
+    expect(deviceSheetsFor(inclinometer.type)).toContain("electronic sensor");
+    expect(vibration.type).toBe("Vibration Sensor");
+    expect(deviceSheetsFor(vibration.type)).toContain("electronic sensor");
+    expect(curtain.type).toBe("Safety Light Curtain");
+    expect(deviceSheetsFor(curtain.type)).toContain("safety sensor");
+  });
+
   it("classifies Balluff color, limit, distance, and magnetic-position families", () => {
     const cases = [
       ["BFS000L", "Color sensors", "Color Sensor", "optical sensor"],
@@ -895,12 +909,12 @@ describe("device type classifier", () => {
     expect(classifyDeviceType(result).type).toBe("Safety Relay");
   });
 
-  it("classifies a safety light curtain as a safety sensor", () => {
+  it("classifies a safety light curtain as its specific device type", () => {
     const result = product(
       [{ group: "General", name: "Product Type", value: "Safety light curtain", sourceType: "official" }],
       "Orion3 safety light curtain"
     );
-    expect(classifyDeviceType(result).type).toBe("Safety Sensor");
+    expect(classifyDeviceType(result).type).toBe("Safety Light Curtain");
   });
 
   it("classifies safety switches and guard locking devices as safety sensors", () => {

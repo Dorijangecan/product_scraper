@@ -23,6 +23,26 @@ describe("splitNameValue (Phase A4)", () => {
 });
 
 describe("normalizer", () => {
+  it("uses Turck DC rated operational draw instead of a safety-output current", () => {
+    const normalized = normalizeFields([
+      { group: "PDF datasheet - Electrical data", name: "DC Bemessungsbetriebsstrom", value: "≤ 135 mA", sourceType: "generated", parser: "pdf-table-extractor", matchLevel: "exact", sourceUrl: "https://hansturck.azureedge.net/edb/de_DE/EDB_3089707_ger_de.pdf" },
+      { group: "PDF manual - Electrical data", name: "Max. current safe output", value: "500 mA", sourceType: "generated", parser: "pdf-table-extractor", matchLevel: "exact", sourceUrl: "https://hansturck.azureedge.net/edb/en_US_HQ/EDB_3089707_gbr_en.pdf" },
+      { group: "PDF manual - Electrical data", name: "Current output", value: "0 mA", sourceType: "generated", parser: "pdf-table-extractor", matchLevel: "exact", sourceUrl: "https://hansturck.azureedge.net/edb/en_US_HQ/EDB_3089707_gbr_en.pdf" }
+    ], [], "turck");
+
+    expect(normalized.current).toMatch(/135\s*mA/i);
+  });
+
+  it("does not promote Turck thread length into overall device dimensions", () => {
+    const normalized = normalizeFields([
+      { group: "PDF datasheet - Mechanical data", name: "Thread length", value: "46 mm", sourceType: "generated", parser: "pdf-table-extractor", matchLevel: "exact", sourceUrl: "https://hansturck.azureedge.net/edb/en_US_HQ/EDB_100001278_gbr_en.pdf" },
+      { group: "PDF Ontology Spec Miner", name: "Length", value: "46 mm", sourceType: "generated", parser: "pdf-ontology", matchLevel: "exact", sourceUrl: "https://hansturck.azureedge.net/edb/en_US_HQ/EDB_100001278_gbr_en.pdf" },
+      { group: "PDF Ontology Spec Miner", name: "Diameter", value: "12 mm / 20 mm / 4 mm / 10 mm", sourceType: "generated", parser: "pdf-ontology", matchLevel: "exact", sourceUrl: "https://hansturck.azureedge.net/edb/en_US_HQ/EDB_100001278_gbr_en.pdf" }
+    ], [], "turck");
+
+    expect(normalized.dimensions).toBeUndefined();
+  });
+
   it("uses Balluff's published supply current draw instead of a switch output-current limit", () => {
     const normalized = normalizeFields([
       { group: "PDF datasheet - Electrical data", name: "Current draw max.", value: "70 mA", sourceType: "generated", parser: "pdf-table-extractor", matchLevel: "exact", sourceUrl: "https://publications.balluff.com/pdfengine/pdf?type=pdb&id=264658&con=en" },

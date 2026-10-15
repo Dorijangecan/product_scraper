@@ -11,6 +11,7 @@ const TURCK_PARSER = "turck-shop";
 const TURCK_PARSER_VERSION = "turck-v1";
 const TURCK_SEARCH_FALLBACK_TEMPLATE = "https://www.turck.com/de/en/shop/search?q={part}";
 const TURCK_DIRECT_ORDER_TEMPLATE = "https://www.turck.com/de/en/shop/p/{part}";
+const TURCK_OTHER_ORDER_TEMPLATE = "https://www.turck.com/de/en/shop/others/{part}";
 // The "Approvals/Declarations" panel on a Turck product page links to this document-management
 // endpoint, which server-renders a static HTML table (Type / Certificate # / Filename) of the
 // product's approval documents. This is the only online source of Turck certificate data.
@@ -41,6 +42,7 @@ export class TurckConnector implements ManufacturerConnector {
     const attemptedUrls: string[] = [];
     const sourcePages: SourceRecord[] = [];
     const candidateUrls: TurckProductCandidate[] = [];
+    const triedCandidateUrls = new Set<string>();
     const traceTimings = process.env.TURCK_TRACE_TIMINGS === "1";
 
     for (const searchUrl of turckSearchUrls(catalogNumber, context)) {
@@ -58,27 +60,14 @@ export class TurckConnector implements ManufacturerConnector {
 
     if (/^\d{5,}$/.test(catalogNumber)) {
       candidateUrls.push({ url: fillCatalogTemplate(TURCK_DIRECT_ORDER_TEMPLATE, catalogNumber), stage: "direct-order-id" });
+      // Some current Turck product pages still publish the exact numeric article page under
+      // `/shop/others/{id}`. The newer `/shop/p/{id}` route can return the site Homepage for
+      // those same articles while echoing the order ID in unrelated page metadata.
+      candidateUrls.push({ url: fillCatalogTemplate(TURCK_OTHER_ORDER_TEMPLATE, catalogNumber), stage: "direct-order-id" });
     }
 
-    for (const candidate of dedupeTurckCandidates(candidateUrls)) {
-      attemptedUrls.push(candidate.url);
-      try {
-        const productPage = await timedTurckRequest("product-page", candidate.url, () => fetchTurckText(candidate.url, context), traceTimings);
-        if (!turckPageMatches(productPage, catalogNumber, context, candidate.stage)) {
-          continue;
-        }
-        return await withTurckMetadata(
-          parseTurckProductPage(catalogNumber, productPage, context),
-          productPage,
-          catalogNumber,
-          attemptedUrls,
-          sourcePages,
-          candidate.stage
-        );
-      } catch {
-        // Try the next candidate.
-      }
-    }
+    const searchedResult = await tryTurckCandidates(candidateUrls);
+    if (searchedResult) return searchedResult;
 
     // Bespoke shop search + numeric order-id both missed. Fall through to the shared official
     // discovery net (configured/generic search-URL templates, automatic search-form discovery,
@@ -96,6 +85,32 @@ export class TurckConnector implements ManufacturerConnector {
       },
       discovery
     );
+
+    async function tryTurckCandidates(candidates: TurckProductCandidate[]): Promise<ProductResult | undefined> {
+      for (const candidate of dedupeTurckCandidates(candidates)) {
+        const key = canonicalTurckUrlKey(candidate.url);
+        if (triedCandidateUrls.has(key)) continue;
+        triedCandidateUrls.add(key);
+        attemptedUrls.push(candidate.url);
+        try {
+          const productPage = await timedTurckRequest("product-page", candidate.url, () => fetchTurckText(candidate.url, context), traceTimings);
+          if (!turckPageMatches(productPage, catalogNumber, context, candidate.stage)) continue;
+          const parsedPage = parseTurckProductPage(catalogNumber, productPage, context);
+          if (/^(?:home|homepage|loading)$/i.test(cleanText(parsedPage.title))) continue;
+          return await withTurckMetadata(
+            parsedPage,
+            productPage,
+            catalogNumber,
+            attemptedUrls,
+            sourcePages,
+            candidate.stage
+          );
+        } catch {
+          // Try the next candidate.
+        }
+      }
+      return undefined;
+    }
   }
 
   async enrichDocuments(catalogNumber: string, result: ProductResult, context: ScrapeContext): Promise<ProductResult> {
@@ -311,7 +326,11 @@ function turckSearchUrls(catalogNumber: string, context: ScrapeContext): string[
     ...(recipe?.searchUrlTemplates ?? []),
     TURCK_SEARCH_FALLBACK_TEMPLATE
   ];
-  return [...new Set(templates.map((template) => fillCatalogTemplate(template, catalogNumber)))];
+  const urls = [...new Set(templates.map((template) => fillCatalogTemplate(template, catalogNumber)))];
+  // Numeric Turck order IDs are also queried directly against both official product routes below.
+  // Keep one primary-locale search before those routes; the shared discovery fallback retains the
+  // full localized search set if the exact routes do not resolve the item.
+  return /^\d{5,}$/.test(catalogNumber) ? urls.slice(0, 1) : urls;
 }
 
 function dedupeTurckCandidates(candidates: TurckProductCandidate[]): TurckProductCandidate[] {

@@ -4,7 +4,7 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 import JSZip from "jszip";
 import type { ProductResult } from "../src/shared/types.js";
-import { documentAttributesAreSubstantive, enrichResultFromDownloadedDocuments, enrichResultFromRemoteDocuments, extractDocumentTextAttributes, extractEatonAutovarRatedCurrent, extractEatonSp1NominalDischargeCurrent, isCleanSingleSpecValue, isMeasurementLikeToken, isStandardReferenceToken, looksLikeMultiVariantFamilyPage, shouldSkipEnvironmentalDeclarationSpecMining } from "../src/server/scrapers/document-enrichment.js";
+import { documentAttributesAreSubstantive, enrichResultFromDownloadedDocuments, enrichResultFromRemoteDocuments, extractDocumentTextAttributes, extractEatonAutovarRatedCurrent, extractEatonSp1NominalDischargeCurrent, extractTurckSafetyClassification, isCleanSingleSpecValue, isMeasurementLikeToken, isStandardReferenceToken, looksLikeMultiVariantFamilyPage, shouldSkipEnvironmentalDeclarationSpecMining } from "../src/server/scrapers/document-enrichment.js";
 import { normalizeFields } from "../src/server/scrapers/normalizer.js";
 import { normalizeTechnicalAttributes } from "../src/server/scrapers/technical-attributes.js";
 import {
@@ -29,6 +29,41 @@ describe("looksLikeMultiVariantFamilyPage", () => {
   it("does not flag when our catalog is absent from the comparison row", () => {
     const text = ["ABC-1\tABC-2\tABC-3", "1 kg\t2 kg\t3 kg"].join("\n");
     expect(looksLikeMultiVariantFamilyPage(text, "ZZZ-9")).toBe(false);
+  });
+});
+
+describe("extractTurckSafetyClassification", () => {
+  const document = {
+    type: "datasheet" as const,
+    url: "https://hansturck.azureedge.net/edb/en_US_HQ/EDB_3089707_ger_de.pdf",
+    sourceUrl: "https://www.turck.com/de/en/shop/machine-safety/safety-light-curtains/3089707"
+  };
+
+  it("extracts explicit safety classes from the exact Turck product datasheet", () => {
+    const attributes = extractTurckSafetyClassification("SLLP23-1540P88", document, [
+      "Ident-No. 3089707",
+      "Type designation SLLP23-1540P88",
+      "Sicherheitslichtvorhang Typ 4 gemäß IEC 61496-1",
+      "Kategorie 4 Ple gemäß EN ISO 13849-1",
+      "SIL 3 gemäß IEC 61508"
+    ].join("\n"));
+
+    expect(attributes.map(({ name, value }) => [name, value])).toEqual([
+      ["Safety type", "Type 4"],
+      ["Safety category", "Category 4"],
+      ["Performance level", "PL e"],
+      ["Safety integrity level", "SIL 3"]
+    ]);
+  });
+
+  it("does not borrow a classification without exact model and Turck document identity", () => {
+    const text = "Type designation OTHER-SKU; Sicherheitslichtvorhang Typ 4; SIL 3";
+    expect(extractTurckSafetyClassification("SLLP23-1540P88", document, text)).toEqual([]);
+    expect(extractTurckSafetyClassification("OTHER-SKU", document, "Ident-No. 3089707; Type designation SLLP23-1540P88; Sicherheitslichtvorhang Typ 4; SIL 3")).toEqual([]);
+    expect(extractTurckSafetyClassification("SLLP23-1540P88", {
+      ...document,
+      url: "https://example.test/EDB_3089707_ger_de.pdf"
+    }, "Ident-No. 3089707; Type designation SLLP23-1540P88; Sicherheitslichtvorhang Typ 4; SIL 3")).toEqual([]);
   });
 });
 

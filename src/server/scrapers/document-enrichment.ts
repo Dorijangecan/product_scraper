@@ -385,6 +385,9 @@ async function processOneDownloadedDocument(doc: DocumentRecord, catalogNumber: 
     // The generic family-table policy intentionally suppresses unscoped voltage/current facts;
     // recover only this explicit row after that policy, and only when it names this PDP's model.
     attributes.push(...extractEatonSp1NominalDischargeCurrent(catalogNumber, doc, text));
+    if (exactTurckProductDatasheet) {
+      attributes.push(...extractTurckSafetyClassification(catalogNumber, doc, text));
+    }
     const substantive = documentAttributesAreSubstantive(attributes);
     return {
       doc: { ...doc, parseStatus: substantive ? "parsed" : "skipped", parseError: undefined },
@@ -1302,6 +1305,39 @@ function isExactTurckDatasheetReference(
   } catch {
     return false;
   }
+}
+
+export function extractTurckSafetyClassification(
+  catalogNumber: string,
+  document: Pick<DocumentRecord, "type" | "url" | "sourceUrl">,
+  text: string
+): AttributeRecord[] {
+  if (!isExactTurckDatasheetReference(document, "turck") ||
+      !findCatalogTextMatch(text, catalogNumber, { compact: true, afterColon: true })) return [];
+
+  const attributes: AttributeRecord[] = [];
+  const add = (name: string, value: string): void => {
+    attributes.push({
+      group: "Turck exact safety datasheet",
+      name,
+      value,
+      sourceUrl: document.url,
+      sourceType: "generated",
+      parser: "pdf-table-extractor",
+      stage: "enrich-documents",
+      confidence: 0.98,
+      matchLevel: "exact",
+      scope: "variant"
+    });
+  };
+
+  if (/(?:Sicherheitslichtvorhang|safety light curtain)\s+(?:Typ|Type)\s*4\b/i.test(text)) {
+    add("Safety type", "Type 4");
+  }
+  if (/\bKategorie\s*4\b/i.test(text)) add("Safety category", "Category 4");
+  if (/\b(?:PL\s*e|Ple)\b/i.test(text)) add("Performance level", "PL e");
+  if (/\bSIL\s*3\b/i.test(text)) add("Safety integrity level", "SIL 3");
+  return attributes;
 }
 
 function extractSchneiderOperatingTemperature(

@@ -1,0 +1,63 @@
+[
+  {
+    "manufacturerId": "turck",
+    "catalogNumber": "SLLP23-1540P88",
+    "caseType": "electrical",
+    "expectedDeviceType": "Safety Light Curtain",
+    "riskTags": ["cold", "safety-light-curtain", "emitter-receiver-pair", "1540-mm-scan-field", "23-mm-resolution", "type-4-ple-sil3"],
+    "expectedOfficialUrlPatterns": ["turck\\.com/de/en/shop/machine-safety/safety-light-curtains/3089707"],
+    "requiredDocuments": ["datasheet", "image"],
+    "expectedNormalizedFields": ["dimensions", "protection", "operatingTemperatureMin", "operatingTemperatureMax", "voltage", "current"],
+    "expectedNormalizedPatterns": {"dimensions": "45.*36.*1545 mm", "protection": "IP65.*IP67", "operatingTemperatureMin": "-20", "operatingTemperatureMax": "55", "voltage": "20[.,]4.*27[.,]6 V DC", "current": "135 mA"},
+    "expectedAttributePatterns": ["SLLP23-1540P88", "Scan field.*1540 mm", "Optical resolution.*23 mm", "Number of beams.*88", "Range.*100.*12000 mm", "DC (?:rated operational current|Bemessungsbetriebsstrom).*135 mA", "Max. current safe output.*500 mA", "(?:Type|Typ) 4", "SIL 3"]
+  },
+  {
+    "manufacturerId": "turck",
+    "catalogNumber": "BIM-EM12E-AP6X-H1141/S1751",
+    "caseType": "electrical",
+    "expectedDeviceType": "Magnetic Field Sensor",
+    "riskTags": ["cold", "magnetic-field-sensor", "magnetic-inductive", "90-mm-range-with-actuator", "fm-class-i-division-2"],
+    "expectedOfficialUrlPatterns": ["turck\\.com/de/en/shop/sensors/magnetic-field-sensors/100001278"],
+    "requiredDocuments": ["datasheet", "image"],
+    "expectedNormalizedFields": ["protection", "operatingTemperatureMin", "operatingTemperatureMax", "voltage", "current"],
+    "expectedBlankNormalizedFields": ["dimensions"],
+    "expectedNormalizedPatterns": {"protection": "IP67", "operatingTemperatureMin": "-25", "operatingTemperatureMax": "70", "voltage": "10.*30 V DC", "current": "15 mA"},
+    "expectedAttributePatterns": ["BIM-EM12E-AP6X-H1141/S1751", "Rated switching distance.*90 mm", "DMR31-15-5", "Operating voltage.*10.*30 VDC", "No-load current.*15 mA", "Rated operational current.*200 mA", "FM.*C1D2", "Thread length.*46 mm", "Thread size.*12.*1"]
+  },
+  {
+    "manufacturerId": "turck",
+    "catalogNumber": "B2NF85H-QR20-IOLX3-H1141",
+    "caseType": "electrical",
+    "expectedDeviceType": "Inclinometer",
+    "riskTags": ["cold", "dynamic-inclinometer", "two-axis", "minus-85-to-plus-85-degrees", "io-link"],
+    "expectedOfficialUrlPatterns": ["turck\\.com/de/en/shop/sensors/inclinometers/100020901"],
+    "requiredDocuments": ["datasheet", "image"],
+    "expectedNormalizedFields": ["dimensions", "protection", "operatingTemperatureMin", "operatingTemperatureMax", "voltage", "current"],
+    "expectedNormalizedPatterns": {"dimensions": "71[.,]6.*62[.,]6.*20 mm", "protection": "IP68.*IP69K", "operatingTemperatureMin": "-40", "operatingTemperatureMax": "85", "voltage": "18.*30 V DC", "current": "50 mA"},
+    "expectedAttributePatterns": ["B2NF85H-QR20-IOLX3-H1141", "Measuring range.*-85.*85", "Number of measuring axes.*2", "Measuring principle.*gyroscopes.*accelerometers", "Current consumption.*50 mA"]
+  },
+  {
+    "manufacturerId": "turck",
+    "catalogNumber": "100054866",
+    "caseType": "electrical",
+    "expectedDeviceType": "Vibration Sensor",
+    "riskTags": ["cold", "vibration-sensor", "condition-monitoring", "4-to-20-ma-output", "stainless-steel-m8"],
+    "expectedOfficialUrlPatterns": ["turck\\.com/de/en/shop/others/100054866"],
+    "requiredDocuments": ["datasheet", "image"],
+    "expectedNormalizedFields": ["dimensions", "protection", "operatingTemperatureMin", "operatingTemperatureMax", "voltage", "current"],
+    "expectedNormalizedPatterns": {"dimensions": "72[.,]5.*23[.,]8 mm", "protection": "IP66.*IP67", "operatingTemperatureMin": "-40", "operatingTemperatureMax": "80", "voltage": "18.*30 V DC", "current": "100 mA"},
+    "expectedAttributePatterns": ["CMVT-M8TA1D-LI28-H1141", "Vibration sensor", "4.*20 mA", "Stainless steel", "M12.*1"]
+  },
+  {
+    "manufacturerId": "turck",
+    "catalogNumber": "7030424",
+    "caseType": "electrical",
+    "expectedDeviceType": "RFID Device",
+    "riskTags": ["cold", "hf-rfid-read-write-head", "13-56-mhz", "215-mm-range", "ip68-ip69k"],
+    "expectedOfficialUrlPatterns": ["turck\\.com/de/en/shop/identification/read/write-devices-hf/uhf/7030424"],
+    "requiredDocuments": ["datasheet", "image"],
+    "expectedNormalizedFields": ["dimensions", "protection", "operatingTemperatureMin", "operatingTemperatureMax", "voltage", "current"],
+    "expectedNormalizedPatterns": {"dimensions": "67[.,]7.*42[.,]5.*42[.,]5 mm", "protection": "IP68.*IP69K", "operatingTemperatureMin": "-25", "operatingTemperatureMax": "70", "voltage": "19[.,]2.*28[.,]8 V DC", "current": "110 mA"},
+    "expectedAttributePatterns": ["TNSLR-Q42TWD-H1147", "Technology.*HF RFID", "Operating voltage.*19[.,]2.*28[.,]8 VDC", "DC rated operational current.*110 mA", "inrush current.*1200 mA.*1 ms", "Read/Write distance max.*215 mm"]
+  }
+]

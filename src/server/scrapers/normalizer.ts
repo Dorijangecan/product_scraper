@@ -2229,6 +2229,8 @@ function normalizedFieldLabelScore(attr: AttributeRecord, field?: keyof Normaliz
     if (/impulse|withstand/.test(label)) return -60;
   }
   if (field === "current") {
+    // Current through an OSSD/safety output is a load rating, not the device's own consumption.
+    if (/safe output|ossd|safety output/.test(label)) return -180;
     if (/inrush current|starting current|peak current/.test(label)) return -140;
     if (/max\.?\s*current/.test(label)) return 126;
     if (/minimum output current|discrete output current|relay output current/.test(label)) return 35;
@@ -2236,7 +2238,7 @@ function normalizedFieldLabelScore(attr: AttributeRecord, field?: keyof Normaliz
     if (/current consumption/.test(label)) return 105;
     if (/rated supply current|supply current|input current/.test(label)) return 70;
     if (/thermal protection adjustment range|line current|continuous output current|maximum transient current|\[(?:in|ie)\]\s+/.test(label)) return 125;
-    if (/rated current\b|ampere rating\b|rated operational current ac-3\b/.test(label)) return 115;
+    if (/rated current\b|ampere rating\b|rated operational current\b/.test(label)) return 115;
     if (/rated operational current ac-23a?\b/.test(label)) return 105;
     if (/rated operational current ac-22a?\b/.test(label)) return 95;
     if (/\[ith\]\s+/.test(label)) return 80;
@@ -2283,11 +2285,13 @@ function bestDimensionAxisAttribute(attributes: AttributeRecord[], axis: "height
   // The same miner can copy a product's "Measuring length" into an unscoped "Length" row.
   // That is sensor range, not the physical length of the transducer.
   const hasMeasuringLength = attributes.some((attr) => /\bmeasuring\s+length\b/i.test(`${attr.group ?? ""} ${attr.name}`));
+  const hasThreadLength = attributes.some((attr) => /\bthread\s+length\b/i.test(`${attr.group ?? ""} ${attr.name}`));
   return attributes
     .filter((attr) => {
       const label = `${attr.group ?? ""} ${attr.name}`.toLowerCase();
       if (manufacturerId === "schmersal" && (/protection field|connectable cable|\bcable\b|sensor chain|\b(?:castor|roller)\b/.test(label) || /ontology spec text/i.test(attr.group ?? ""))) return false;
       if (hasMeasuringLength && /^length$/i.test(attr.name.trim()) && /pdf ontology spec miner/i.test(attr.group ?? "")) return false;
+      if (hasThreadLength && /^length$/i.test(attr.name.trim()) && /pdf ontology spec miner/i.test(attr.group ?? "")) return false;
       if (manufacturerId === "schneider" && hasPackageDimensions && /pdf ontology spec miner/i.test(attr.group ?? "")) return false;
       if (manufacturerId === "schneider" && axis === "depth" && /\blength\b/.test(label) && !/(?:length\s*\/\s*depth|depth\s*\/\s*length)/.test(label)) return false;
       return dimensionAxisLabelScore(label, axis) > -100 && isLikelyDimensionAxisValue(attr.value) && isLikelySpecText(attr.value) && isAvailableSpecValue(attr.value);
@@ -2319,7 +2323,7 @@ function isLikelyDimensionAxisValue(value: string): boolean {
 
 function dimensionAxisLabelScore(label: string, axis: "height" | "width" | "depth" | "length"): number {
   if (
-    /package|packing|packaging|threaded length|measuring length|length of cable|cable length|settle length|conductor|number of height units|height units|suitable for enclosure|wire stripping|stripping length|strip length|bus length|tap links length|cable distance|operating distance|communication distance|serial link|modbus|ethernet|segment|pulse width|time delay|recovery time|power on delay|response time|reset time|duration|control signal|signal pulse|connecting capacity|terminal|focal length|back focal|object distance|minimum object distance|angle of view|sensor size|lens|mount/.test(
+    /package|packing|packaging|thread(?:ed)? length|measuring length|length of cable|cable length|settle length|conductor|number of height units|height units|suitable for enclosure|wire stripping|stripping length|strip length|bus length|tap links length|cable distance|operating distance|communication distance|serial link|modbus|ethernet|segment|pulse width|time delay|recovery time|power on delay|response time|reset time|duration|control signal|signal pulse|connecting capacity|terminal|focal length|back focal|object distance|minimum object distance|angle of view|sensor size|lens|mount/.test(
       label
     )
   ) {
@@ -2873,6 +2877,15 @@ function turckCurrent(attributes: AttributeRecord[]): string | undefined {
       .find((candidate): candidate is string => Boolean(candidate));
     if (value) return value;
   }
+
+  // Turck's exact EDB datasheets use the English and German labels for DC operating draw. It must
+  // outrank values such as "Max. current safe output" and "Current output" from the same sheet.
+  const ratedOperationalCurrent = attributes
+    .filter((attribute) => /^(?:dc rated operational current|dc bemessungsbetriebsstrom)$/i.test(attribute.name.trim()))
+    .sort(compareAttributeEvidence)
+    .map((attribute) => normalizeCurrentValue(attribute.value))
+    .find((candidate): candidate is string => Boolean(candidate));
+  if (ratedOperationalCurrent) return ratedOperationalCurrent;
 
   const moduleOperatingCurrent = attributes
     .filter((attribute) => /^operating current$/i.test(attribute.name.trim()))
