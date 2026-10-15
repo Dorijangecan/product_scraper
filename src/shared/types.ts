@@ -163,6 +163,8 @@ export interface MarkerExtractionRule {
   start: string;
   end?: string;
   group?: string;
+  scope?: AttributeRecord["scope"];
+  normalizeWhitespace?: boolean;
   documentType?: DocumentRecord["type"];
   urlPrefix?: string;
   urlSuffix?: string;

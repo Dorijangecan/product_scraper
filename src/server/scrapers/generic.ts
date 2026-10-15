@@ -94,7 +94,14 @@ export class GenericFallbackScraper {
             markerRules: [...(this.manufacturer?.markerRules ?? []), ...(source.markerRules ?? [])],
             extractionPolicy: this.manufacturer?.scrapeRecipe?.extractionPolicy
           });
-          const discovery = discoverProductLinksWithDiagnostics(fetched.text, fetched.effectiveUrl, catalogNumber);
+          const knownExactEtaProductPage =
+            this.manufacturerId === "eta" && source.id.startsWith("eta-direct-") && parsed.status !== "failed";
+          // A confirmed direct ETA route has already established the exact PDP and skips related
+          // detail fetches below. Scanning its very large (often 700+ KB) HTML for links is also
+          // redundant and can cost more than the page request itself, so keep empty diagnostics.
+          const discovery = knownExactEtaProductPage
+            ? { candidates: [], rejected: [] }
+            : discoverProductLinksWithDiagnostics(fetched.text, fetched.effectiveUrl, catalogNumber);
           // Phoenix Contact's official reader-backed product endpoint already resolves the exact
           // article and contains its technical data. Its page also exposes many related links; probing
           // four of them serially adds 20–40 seconds without improving the confirmed result. Keep
@@ -106,7 +113,7 @@ export class GenericFallbackScraper {
             // This single-source ETA preflight already passed catalogTextMatches on a learned PDP.
             // Its page is the product evidence; crawling related links adds latency without
             // improving the exact identity match.
-            (this.manufacturerId === "eta" && source.id.startsWith("eta-direct-") && parsed.status !== "failed");
+            knownExactEtaProductPage;
           let detailResolved = skipRedundantDetailDiscovery;
           for (const candidate of skipRedundantDetailDiscovery ? [] : discovery.candidates.slice(0, 4)) {
             if (sameUrl(candidate.url, fetched.effectiveUrl)) continue;
@@ -392,7 +399,7 @@ function parsePartCommunityCookieWallPage(
       stage: attribute.stage ?? parserLabel,
       confidence: attribute.confidence ?? confidenceForSource(sourceType, options.confidence)
     }));
-  const normalized = normalizeFields(cleanAttributes, [], manufacturerId === "rittal" || manufacturerId === "schmersal" || manufacturerId === "phoenix" ? manufacturerId : undefined);
+  const normalized = normalizeFields(cleanAttributes, [], manufacturerId === "rittal" || manufacturerId === "schmersal" || manufacturerId === "phoenix" || manufacturerId === "eta" ? manufacturerId : undefined);
   return {
     manufacturerId,
     catalogNumber,
@@ -537,6 +544,18 @@ export function parseGenericProductPage(
   rockwellSubstageStartedAt = Date.now();
   const htmlTables = readHtmlTableAttributes($, catalogNumber, fetched.effectiveUrl);
   attributes.push(...htmlTables.attributes);
+  // On a direct, exact ETA PDP the target-aware table reader has already selected several
+  // technical rows. Skip only the broad loose-pair sweep over minified HTML (which can take
+  // seconds and produce duplicate/overload values); keep electrical/ontology text extraction,
+  // marker rules, all DOM/document readers, and the exact catalog identity gate.
+  const etaStructuredFastPath =
+    manufacturerId === "eta" &&
+    parserLabel.startsWith("ETA ") &&
+    new Set(htmlTables.attributes.map((attribute) => cleanText(attribute.name).toLowerCase()).filter(Boolean)).size >= 3;
+  const structuredPageFastPath = rockwellStructuredFastPath || etaStructuredFastPath;
+  if (etaStructuredFastPath && process.env.DEBUG_BENCHMARK === "1") {
+    console.log(`[benchmark:debug] eta ${catalogNumber} structured HTML-table fast path (${htmlTables.attributes.length} attributes)`);
+  }
   if (rockwellDebug) console.info(`[rockwell:timing] generic-html-tables ${Date.now() - rockwellSubstageStartedAt}ms`);
   // The table reader has already selected the one target column. Generic semantic fallbacks must
   // not put an unselected sibling column back into the result afterwards.
@@ -598,12 +617,12 @@ export function parseGenericProductPage(
   });
   if (rockwellDebug) console.info(`[rockwell:timing] generic-list-text ${Date.now() - genericStageStartedAt}ms`);
   let textStageStartedAt = Date.now();
-  if (!rockwellStructuredFastPath) {
+  if (!structuredPageFastPath) {
     attributes.push(
       ...withoutSiblingListingRows(extractPlainTextAttributes(fetched.text, fetched.effectiveUrl), attributes)
     );
   }
-  if (rockwellDebug) console.info(`[rockwell:timing] generic-plain-text ${Date.now() - textStageStartedAt}ms fast=${rockwellStructuredFastPath}`);
+  if (rockwellDebug) console.info(`[rockwell:timing] generic-plain-text ${Date.now() - textStageStartedAt}ms fast=${structuredPageFastPath}`);
   if (manufacturerId === "phoenix") {
     attributes.push(...extractPhoenixSummaryAttributes(fetched.text, fetched.effectiveUrl));
     attributes.push(...extractPhoenixDimensionAttributes(fetched.text, fetched.effectiveUrl));
@@ -636,12 +655,12 @@ export function parseGenericProductPage(
   }
   if (rockwellDebug) console.info(`[rockwell:timing] generic-ontology-text ${Date.now() - textStageStartedAt}ms`);
   genericStageStartedAt = Date.now();
-  // Structured Rockwell PDPs already expose their documents through embedded data and DOM anchors.
-  // Avoid rescanning the full 1 MB serialized page for duplicate prose URLs; hidden DOM links and
-  // the regular anchor pass below remain active.
-  if (!rockwellStructuredFastPath) documents.push(...extractPlainTextDocumentLinks(fetched.text, fetched.effectiveUrl, catalogNumber, options));
+  // Structured exact PDPs already expose their documents through embedded data and DOM anchors.
+  // Avoid rescanning the large serialized page for duplicate prose URLs; hidden DOM links and the
+  // regular anchor pass below remain active.
+  if (!structuredPageFastPath) documents.push(...extractPlainTextDocumentLinks(fetched.text, fetched.effectiveUrl, catalogNumber, options));
   documents.push(...extractHiddenDocumentLinks(
-    $, fetched.text, fetched.effectiveUrl, catalogNumber, options, !rockwellStructuredFastPath
+    $, fetched.text, fetched.effectiveUrl, catalogNumber, options, !structuredPageFastPath
   ));
   if (rockwellDebug) console.info(`[rockwell:timing] generic-text-doc-links ${Date.now() - genericStageStartedAt}ms`);
   if (manufacturerId === "phoenix") {
@@ -783,7 +802,7 @@ export function parseGenericProductPage(
     stage: doc.stage ?? parserLabel,
     confidence: doc.confidence ?? confidenceForSource(sourceType, options.confidence)
   }));
-  const normalized = normalizeFields(cleanAttributes, cleanDocuments, manufacturerId === "rittal" || manufacturerId === "schmersal" || manufacturerId === "phoenix" ? manufacturerId : undefined);
+  const normalized = normalizeFields(cleanAttributes, cleanDocuments, manufacturerId === "rittal" || manufacturerId === "schmersal" || manufacturerId === "phoenix" || manufacturerId === "eta" ? manufacturerId : undefined);
   // An ordering-code option can prove a finish (SR → RAL 9006) without asserting that the same
   // code is a standalone product color. Preserve an explicit target-scoped Color field, otherwise
   // do not manufacture normalized.color from a family configurator's finish option.
@@ -1152,6 +1171,7 @@ function extractImageDocuments(
   });
 
   const partKey = compactKey(catalogNumber);
+  let etaMainProductImageUsed = false;
   $("img[src],img[data-src],img[data-lazy-src],img[srcset]").each((_, element) => {
     const rawUrl =
       $(element).attr("src") ||
@@ -1166,7 +1186,9 @@ function extractImageDocuments(
     const primary = /^(?:high|eager)$/i.test($(element).attr("fetchpriority") ?? "") ||
       /^(?:eager)$/i.test($(element).attr("loading") ?? "");
     const isSchmersalPrimary = primary && /products\.schmersal\.com$/i.test(new URL(sourceUrl).hostname);
-    if (!isSchmersalPrimary && !looksLikeProductImage(absolute, context, partKey)) return;
+    const isEtaPdpMainImage = !etaMainProductImageUsed && isEtaExactPdpMainImage(sourceUrl, absolute, context);
+    if (!isSchmersalPrimary && !looksLikeProductImage(absolute, context, partKey) && !isEtaPdpMainImage) return;
+    if (isEtaPdpMainImage) etaMainProductImageUsed = true;
     const label = primary
       ? "Primary product image"
       : cleanText($(element).attr("alt") || $(element).attr("title") || "Product image");
@@ -1177,6 +1199,31 @@ function extractImageDocuments(
     ? metaDocuments.filter((doc) => isUsefulMetaImageDocument(doc, domDocuments, partKey))
     : metaDocuments;
   return dedupeDocuments([...structuredDocuments, ...usefulMetaDocuments, ...domDocuments]).slice(0, 10);
+}
+
+/**
+ * E-T-A product pages often expose their main product photo without an alt or gallery class.
+ * On an exact E-T-A PDP, accept only the first processed product asset whose model prefix
+ * matches that PDP's slug. SKU-specific sibling-image filtering remains in eta.ts.
+ */
+function isEtaExactPdpMainImage(sourceUrl: string, imageUrl: string, context: string): boolean {
+  try {
+    const page = new URL(sourceUrl);
+    const image = new URL(imageUrl);
+    if (!/(?:^|\.)e-t-a\.com$/i.test(page.hostname) || !/(?:^|\.)e-t-a\.com$/i.test(image.hostname)) return false;
+    const pageSlug = page.pathname.match(/\/products\/.+\/p\/([^/]+)\/?$/i)?.[1];
+    if (!pageSlug || !/^\/fileadmin\/_processed_\//i.test(image.pathname)) return false;
+    const combined = `${imageUrl} ${context}`.toLowerCase();
+    if (isLikelyNonProductImage(combined) || isLikelySchematicImage(combined)) return false;
+
+    const tokens = pageSlug.toLowerCase().split(/[^a-z0-9]+/).filter(Boolean);
+    const requiredPrefix = tokens[0] === "e" && tokens[1] === "1073"
+      ? compactKey(tokens.join(""))
+      : compactKey(tokens.slice(0, 2).join(""));
+    return requiredPrefix.length >= 5 && compactKey(image.pathname).includes(requiredPrefix);
+  } catch {
+    return false;
+  }
 }
 
 function imageContextForElement($: cheerio.CheerioAPI, element: Parameters<cheerio.CheerioAPI>[0]): string {

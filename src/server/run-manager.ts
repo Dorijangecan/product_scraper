@@ -50,6 +50,7 @@ import { isDocumentViewerUrl, resolveViewerPdfUrl } from "./scrapers/document-vi
 import { isLikelyNonProductImage, isLikelySchematicImage } from "./scrapers/generic.js";
 import { detectCohortAnomalies } from "./scrapers/cohort-anomaly.js";
 import { buildFieldCoverageMatrixRow, detectFieldCoverageDrift, fieldCoverageSnapshot } from "./scrapers/field-coverage-drift.js";
+import { extractEtaProductImageFromExactDatasheet } from "./scrapers/pdf-product-image.js";
 
 export type DocumentDownloadProfile = SharedDocumentDownloadProfile;
 
@@ -551,13 +552,16 @@ export class RunManager {
             sharedDocumentDownloads,
             itemDeadline.remainingMs()
           );
+          const withInitialPdfImages = localDownloads.images
+            ? await extractEtaProductImageFromExactDatasheet(withInitialDownloads, layoutRef.imagesDir)
+            : withInitialDownloads;
           // In "Images only" mode the saved deliverable is just the PNG. Everything below this
           // line (PDF enrichment, fallback discovery, final completeness retry) exists only to
           // populate Excel columns we never write — so skip it all and treat the initial parse
           // as final. Cuts per-item time roughly in half on Balluff.
           // Initialize enriched to withInitialDownloads so every branch below has something to
           // refine; the customer-override / fallback paths overwrite as needed.
-          enriched = withInitialDownloads;
+          enriched = withInitialPdfImages;
           // Customer documents are authoritative. When the website couldn't find this
           // catalog AND the customer handed us a doc that covers it, scan the customer
           // payload first and short-circuit the heavy fallback chain — there's no point

@@ -171,12 +171,31 @@ describe("manufacturer configuration", () => {
     expect(fallbackScrape).not.toHaveBeenCalled();
   });
 
+  it("returns the exact-page hero image for an ETA 4230-T ordering-code result", async () => {
+    const manufacturer = listManufacturerConfigs().find((item) => item.id === "eta")!;
+    const result = await new ETAConnector().scrape("4230-T110-K0CE-10A", {
+      manufacturer,
+      runDir: "",
+      documentsDir: "",
+      http: {} as ScrapeContext["http"],
+      downloadDocument: async (doc) => doc,
+      fallback: { scrape: async () => undefined }
+    });
+
+    expect(result.documents).toContainEqual(expect.objectContaining({
+      type: "image",
+      url: "https://global.e-t-a.com/fileadmin/_processed_/c/b/csm_4230-T_UL_1077_EN_60947-2_0868170b2c.png",
+      sourceUrl: result.productUrl
+    }));
+  });
+
   it("tries learned ETA exact-product routes before broad discovery", async () => {
     const manufacturer = listManufacturerConfigs().find((item) => item.id === "eta")!;
     const cases = [
       ["2-6500", "https://global.e-t-a.com/products/circuit_protection_devices/thermal_overcurrent_circuit_breakers/p/2_6500/"],
       ["E-1072-100", "https://global.e-t-a.com/products/relays_ssrpcs/solid_state_remote_power_controllers/p/e_1072_100/"],
       ["CPC12PN", "https://global.e-t-a.com/products/power_distribution_systems/intelligent_power_distribution_systems/controlplex_overview/controlplex_dinrail/bus_controllers/p/cpc12/"],
+      ["E-1073-437", "https://global.e-t-a.com/products/circuit_protection_devices_thermal_thermal_magnetic_magnetic_high_performance_electronic/battery_isolation_switches/p/e_1073_437/"],
       ["X3130", "https://global.e-t-a.com/products/circuit_protection_devices_thermal_thermal_magnetic_magnetic_high_performance_electronic/power_entry_modules/p/x3130/"]
     ] as const;
 
@@ -204,6 +223,20 @@ describe("manufacturer configuration", () => {
                 { type: "datasheet", label: "Datasheet CPC12PN", url: "https://global.e-t-a.com/D_CPC12PN_en.pdf" },
                 { type: "manual", label: "I_CPC12EN_manual.pdf", url: "https://global.e-t-a.com/I_CPC12EN_manual.pdf" },
                 { type: "image", label: "Product image", url: "https://global.e-t-a.com/CPC12PN.png" }
+              ] : catalogNumber === "E-1073-437" ? [
+                {
+                  type: "image",
+                  label: "Type E-1073-437 battery switch",
+                  url: "https://global.e-t-a.com/fileadmin/_processed_/5/b/csm_E-1073-921_678615642c.png"
+                },
+                {
+                  type: "datasheet",
+                  label: "Data sheet",
+                  url: "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Batterie_Lasttrenner_Lichtbogen/Batterietrennschalter/2_en/D_E-1073_en.pdf"
+                },
+                { type: "datasheet", label: "Data sheet", url: "https://global.e-t-a.com/support/downloads/whitepapers/" },
+                { type: "manual", label: "Navigation", url: "https://global.e-t-a.com/baton" },
+                { type: "certificate", label: "REACH", url: "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Declaration_of_Conformity_General/REACH.pdf" }
               ] : [],
               sources: []
             };
@@ -216,12 +249,23 @@ describe("manufacturer configuration", () => {
         sourceType: "official-fallback",
         directUrlTemplates: [expectedUrl],
         match: { compact: true, ignoreCase: true, requireCatalogNumber: true },
-        fetchPolicy: { timeoutMs: 2500, maxAttempts: 1 }
+        fetchPolicy: { timeoutMs: 5000, maxAttempts: 1 }
       });
+      if (catalogNumber === "E-1073-437") {
+        expect(seenSources[0].markerRules).toEqual(expect.arrayContaining([
+          expect.objectContaining({ name: "Current ratings", start: "Current ratings </th> <td> from ", end: " E-1073-437", group: "Technical Data", scope: "variant", normalizeWhitespace: true }),
+          expect.objectContaining({ name: "Battery protection option", start: "Available with ", end: " option", group: "Features", scope: "family" })
+        ]));
+      }
       expect(result.productUrl).toBe(expectedUrl);
       expect(result.status).toBe("partial");
       if (catalogNumber === "CPC12PN") {
         expect(result.documents.map((document) => document.label)).toEqual(["Datasheet CPC12PN", "Product image"]);
+      }
+      if (catalogNumber === "E-1073-437") {
+        expect(result.documents.map((document) => document.url)).toEqual([
+          "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Batterie_Lasttrenner_Lichtbogen/Batterietrennschalter/2_en/D_E-1073_en.pdf"
+        ]);
       }
     }
   });

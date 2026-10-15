@@ -29,6 +29,7 @@ import { matchesExpectedOfficialUrl } from "./benchmark-utils.js";
 import { coalesceImageDocuments, documentDownloadProfile } from "../src/server/run-manager.js";
 import { requiredElectricalFields } from "../src/shared/product-requirements.js";
 import { electricalFieldsForDeviceType } from "../src/server/pdt/device-type-profiles.js";
+import { extractEtaProductImageFromExactDatasheet } from "../src/server/scrapers/pdf-product-image.js";
 
 interface BenchmarkFixture {
   manufacturerId: string;
@@ -281,7 +282,10 @@ async function runFixtureAttempt(
     ? await stage("vendorDocumentEnrichment.initial", () => connector.enrichDocuments!(fixture.catalogNumber, initial, context))
     : initial;
   const withDownloads = await stage("downloadDocuments.initial", () => downloadDocuments(manufacturer, fixture.catalogNumber, withVendorDocuments, signal));
-  let result = finalizeQualityGate(await stage("enrich.initial", () => enrichResultFromDownloadedDocuments(withDownloads)), manufacturer);
+  const withPdfImages = await stage("pdfProductImageExtraction.initial", () =>
+    extractEtaProductImageFromExactDatasheet(withDownloads, imagesDir)
+  );
+  let result = finalizeQualityGate(await stage("enrich.initial", () => enrichResultFromDownloadedDocuments(withPdfImages)), manufacturer);
   debugBenchmark(`${fixture.manufacturerId} ${fixture.catalogNumber} normalized after enrich=${JSON.stringify(result.normalized)}`);
   const skipSpeculativeFallback =
     result.diagnostics?.terminal?.skipNetworkFallback === true ||
@@ -291,7 +295,10 @@ async function runFixtureAttempt(
     result = await stage("deterministicPipeline", () => runDeterministicScrapePipeline(result, fixture.catalogNumber, context));
     result = await stage("customerDocuments.retry", () => applyBenchmarkCustomerDocuments(fixture, result, customerDocumentCache));
     const fallbackDownloads = await stage("downloadDocuments.retry", () => downloadDocuments(manufacturer, fixture.catalogNumber, result, signal));
-    result = finalizeQualityGate(await stage("enrich.retry", () => enrichResultFromDownloadedDocuments(fallbackDownloads)), manufacturer);
+    const fallbackPdfImages = await stage("pdfProductImageExtraction.retry", () =>
+      extractEtaProductImageFromExactDatasheet(fallbackDownloads, imagesDir)
+    );
+    result = finalizeQualityGate(await stage("enrich.retry", () => enrichResultFromDownloadedDocuments(fallbackPdfImages)), manufacturer);
   }
   result = attachEvidence(result);
   debugBenchmark(`${fixture.manufacturerId} ${fixture.catalogNumber} normalized before exports=${JSON.stringify(result.normalized)}`);

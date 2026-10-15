@@ -933,6 +933,30 @@ describe("device type classifier", () => {
     expect(classifyDeviceType(result).type).toBe("Disconnect Switch");
   });
 
+  it("classifies a battery isolation switch by its switch function, not as a battery", () => {
+    const result = product(
+      [
+        { group: "Product Data", name: "Product Type", value: "Single-pole circuit breaker", sourceType: "official" },
+        { group: "Navigation", name: "Category", value: "Battery isolation switches", sourceType: "official" }
+      ],
+      "E-1073-437 battery isolation switch",
+      { manufacturerId: "eta", catalogNumber: "E-1073-437" }
+    );
+    expect(classifyDeviceType(result).type).toBe("Disconnect Switch");
+  });
+
+  it("classifies an external alarm interface as an I/O module despite its circuit-protection section", () => {
+    const result = product(
+      [
+        { group: "Product Data", name: "Description", value: "External alarm interface with digital and analog inputs", sourceType: "official" },
+        { group: "Navigation", name: "Category", value: "Electronic overcurrent protection", sourceType: "official" }
+      ],
+      "EAI300 External Alarm Interface",
+      { manufacturerId: "eta", catalogNumber: "EAI300" }
+    );
+    expect(classifyDeviceType(result).type).toBe("I/O Module");
+  });
+
   it("classifies an EMC line filter (not as Thermal Management 'filter fan')", () => {
     const result = product(
       [{ group: "General", name: "Product Type", value: "EMC line filter", sourceType: "official" }],

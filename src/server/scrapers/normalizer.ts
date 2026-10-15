@@ -219,7 +219,17 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
   // Also keep accessory prose (for example, NEMA type "3R/4, 12 a NEMA 4X") out of electrical
   // current normalization. Title/description inferences and document-table text are not product-level
   // current evidence; retain them as raw attributes, but normalize current only from official PDP rows.
-  const currentAttributes = manufacturerId === "rittal"
+  const etaVariableE1073Current = manufacturerId === "eta" && attributes.some((attribute) =>
+    /^https:\/\/global\.e-t-a\.com\/products\/.+\/battery_isolation_switches\/p\/e_1073_\d+\/?$/i.test(attribute.sourceUrl ?? "")
+  );
+  const etaEai300NoNormalizedCurrent = manufacturerId === "eta" && attributes.some((attribute) =>
+    /^https:\/\/(?:(?:global|www)\.)?e-t-a\.com\/products\/.+\/p\/eai300\/?$/i.test(attribute.sourceUrl ?? "")
+  ) && !etaTypicalPowerConsumptionCurrent(attributes);
+  const currentAttributes = etaVariableE1073Current
+    ? []
+    : etaEai300NoNormalizedCurrent
+      ? []
+    : manufacturerId === "rittal"
     ? rittalPdpAttributes.filter(isRittalCurrentEvidence)
     : attributes.filter((attribute) =>
         !isRelatedProductElectricalAttribute(attribute) &&
@@ -475,6 +485,7 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
     : rittalVoltageModes ?? withoutMixedKindProse(
       exactEtaSCS1000DatasheetVoltage(voltageAttributes, manufacturerId) ??
       exactEtaPdpVoltage(voltageAttributes, manufacturerId) ??
+      exactEtaEAI300DatasheetVoltage(voltageAttributes, manufacturerId) ??
       exactSchmersalPdpVoltage(attributes, manufacturerId) ??
       exactEatonControlRelaySupplyVoltage(voltageAttributes, manufacturerId) ??
       exactEatonSoftStarterMainsVoltage(voltageAttributes, manufacturerId) ??
@@ -528,7 +539,7 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
       ? schneiderTransformerSecondaryCurrent(currentAttributes)
       : undefined) ??
     (manufacturerId === "eta"
-      ? etaExactPdpCurrent(currentAttributes) ?? etaRatedCurrent(currentAttributes)
+      ? etaExactPdpCurrent(currentAttributes) ?? etaRatedCurrent(currentAttributes) ?? etaTypicalPowerConsumptionCurrent(currentAttributes)
       : undefined) ??
     exactSchmersalNoLoadSupplyCurrent(attributes, manufacturerId) ??
     balluffPublishedCurrentConsumption(currentAttributes, manufacturerId) ??
@@ -583,9 +594,10 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
     : undefined;
   const phoenixTemperature = manufacturerId === "phoenix" ? phoenixContactOperatingTemperature(attributes) : undefined;
   const schneiderTemperature = manufacturerId === "schneider" ? schneiderOperatingTemperature(attributes) : undefined;
+  const etaEai300Temperature = manufacturerId === "eta" ? etaEai300DatasheetTemperature(attributes) : undefined;
   const operatingTemperature = {
-    min: exactEatonPdpTemperature?.min ?? exactEatonPsgTemperature?.min ?? phoenixTemperature?.min ?? schneiderTemperature?.min ?? derivedOperatingTemperature.min,
-    max: exactEatonPdpTemperature?.max ?? exactEatonPsgTemperature?.max ?? phoenixTemperature?.max ?? schneiderTemperature?.max ?? derivedOperatingTemperature.max
+    min: exactEatonPdpTemperature?.min ?? exactEatonPsgTemperature?.min ?? phoenixTemperature?.min ?? schneiderTemperature?.min ?? etaEai300Temperature?.min ?? derivedOperatingTemperature.min,
+    max: exactEatonPdpTemperature?.max ?? exactEatonPsgTemperature?.max ?? phoenixTemperature?.max ?? schneiderTemperature?.max ?? etaEai300Temperature?.max ?? derivedOperatingTemperature.max
   };
   // An exact product page can contain a unit typo (for example 1.59 g for a 120 W supply).
   // Filter such a candidate before arbitration so it cannot suppress a valid exact-catalog weight.
@@ -607,7 +619,7 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
     finish: safeFinish,
     color,
     voltage,
-    current,
+    current: etaVariableE1073Current || etaEai300NoNormalizedCurrent ? undefined : current,
     protection: protectionFromAttr,
     certificates: certificates || undefined,
     operatingTemperatureMin: operatingTemperature.min,
@@ -2307,6 +2319,41 @@ function etaExactPdpCurrent(attributes: AttributeRecord[]): string | undefined {
   return bestNormalizedAttributeValue(exactPageRatings, normalizerFieldLabelPatterns("current"), normalizeCurrentValue, "current");
 }
 
+/**
+ * E-T-A datasheets sometimes call actual module draw "Power consumption I Typ.", while nearby
+ * rows describe a different interface's maximum load current. Promote only the explicitly
+ * typical current-consumption row so output/input load limits cannot become the device supply
+ * current in the normalized record.
+ */
+function etaTypicalPowerConsumptionCurrent(attributes: AttributeRecord[]): string | undefined {
+  const hasEtaProductPage = attributes.some((attribute) =>
+    attribute.sourceType === "official-fallback" &&
+    /^ETA .+ product page$/i.test(attribute.parser ?? "") &&
+    /^https:\/\/(?:www\.)?e-t-a\.com\/products\/.+\/p\/[^/]+\/?$/i.test(attribute.sourceUrl ?? "")
+  );
+  if (!hasEtaProductPage) return undefined;
+
+  for (const attribute of attributes) {
+    if (!/^power consumption$/i.test(attribute.name.trim()) || attribute.matchLevel !== "exact") continue;
+    if (!/^https:\/\/(?:www\.)?e-t-a\.com\/fileadmin\//i.test(attribute.sourceUrl ?? "")) continue;
+    const match = attribute.value.match(/\bI\s+Typ\.?\s*(\d+(?:[.,]\d+)?)\s*(mA|A)\s+at\s+(?:DC\s*)?\d+(?:[.,]\d+)?\s*V\b/i);
+    if (match) return normalizeCurrentValue(`${match[1]} ${match[2]}`);
+  }
+  return undefined;
+}
+
+/** Prefer EAI300's exact downloadable data-sheet range over the conflicting PDP temperature label. */
+function etaEai300DatasheetTemperature(attributes: AttributeRecord[]): { min?: string; max?: string } | undefined {
+  const exactRows = attributes.filter((attribute) =>
+    attribute.sourceType === "generated" &&
+    attribute.parser === "pdf-table-extractor" &&
+    attribute.matchLevel === "exact" &&
+    /^ambient temperature$/i.test(attribute.name.trim()) &&
+    /\/D_EAI300_EN\.pdf$/i.test(attribute.sourceUrl ?? "")
+  );
+  return exactRows.length ? deriveOperatingTemperature(exactRows) : undefined;
+}
+
 function etaDimensionMatchesTerminalDesign(attributes: AttributeRecord[], dimensions: string | undefined): boolean {
   if (!dimensions) return false;
   const target = normalizeDimensionValue(dimensions);
@@ -3318,11 +3365,25 @@ function exactEtaPdpVoltage(attributes: AttributeRecord[], manufacturerId?: stri
   const exactPageVoltage = attributes.filter((attribute) =>
     attribute.sourceType === "official-fallback" &&
     /^ETA .+ product page$/i.test(attribute.parser ?? "") &&
-    /^https:\/\/global\.e-t-a\.com\/products\/.+\/p\/[^/]+\/?$/i.test(attribute.sourceUrl ?? "") &&
+    /^https:\/\/(?:(?:www|global)\.)?e-t-a\.com\/products\/.+\/p\/[^/]+\/?$/i.test(attribute.sourceUrl ?? "") &&
     /^(?:rated operating voltage|operating voltage|supply voltage|rated voltage|voltage rating(?: of load)?)$/i.test(attribute.name.trim())
   );
   return bestNormalizedAttributeValue(
     exactPageVoltage,
+    normalizerFieldLabelPatterns("voltage"),
+    normalizeVoltageValue,
+    "voltage"
+  );
+}
+
+function exactEtaEAI300DatasheetVoltage(attributes: AttributeRecord[], manufacturerId?: string): string | undefined {
+  if (manufacturerId !== "eta") return undefined;
+  const exactDatasheetRatings = attributes.filter((attribute) =>
+    attribute.sourceUrl === "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/int_Stromverteilung/ControlPlex_Rack/2_en/D_EAI300_EN.pdf" &&
+    /^rated voltage range$/i.test(attribute.name.trim())
+  );
+  return bestNormalizedAttributeValue(
+    exactDatasheetRatings,
     normalizerFieldLabelPatterns("voltage"),
     normalizeVoltageValue,
     "voltage"

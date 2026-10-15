@@ -14,7 +14,7 @@ export function extractMarkerData(html: string, rules: MarkerExtractionRule[] | 
   const documents: DocumentRecord[] = [];
   for (const rule of rules) {
     if (!rule.name || !rule.start) continue;
-    const values = extractBetween(html, rule.start, rule.end, rule.caseSensitive).slice(0, 20);
+    const values = extractBetween(html, rule.start, rule.end, rule.caseSensitive, rule.normalizeWhitespace).slice(0, 20);
     for (const rawValue of values) {
       const value = cleanMarkerValue(rawValue);
       if (!value) continue;
@@ -32,7 +32,8 @@ export function extractMarkerData(html: string, rules: MarkerExtractionRule[] | 
           group: cleanText(rule.group) || "Marker Rules",
           name: cleanText(rule.name),
           value,
-          sourceUrl
+          sourceUrl,
+          ...(rule.scope ? { scope: rule.scope } : {})
         });
       }
     }
@@ -44,14 +45,21 @@ export function extractMarkerData(html: string, rules: MarkerExtractionRule[] | 
   };
 }
 
-function extractBetween(html: string, start: string, end: string | undefined, caseSensitive: boolean | undefined): string[] {
-  const haystack = caseSensitive ? html : html.toLowerCase();
+function extractBetween(
+  html: string,
+  start: string,
+  end: string | undefined,
+  caseSensitive: boolean | undefined,
+  normalizeWhitespace: boolean | undefined
+): string[] {
+  const source = normalizeWhitespace ? html.replace(/\s+/g, " ") : html;
+  const haystack = caseSensitive ? source : source.toLowerCase();
   const startNeedle = caseSensitive ? start : start.toLowerCase();
   const endNeedle = end ? (caseSensitive ? end : end.toLowerCase()) : "";
   const values: string[] = [];
   let cursor = 0;
 
-  while (cursor < html.length && values.length < 100) {
+  while (cursor < source.length && values.length < 100) {
     const startIndex = haystack.indexOf(startNeedle, cursor);
     if (startIndex < 0) break;
     const valueStart = startIndex + start.length;
@@ -60,7 +68,7 @@ function extractBetween(html: string, start: string, end: string | undefined, ca
       cursor = valueStart;
       continue;
     }
-    values.push(html.slice(valueStart, endIndex));
+    values.push(source.slice(valueStart, endIndex));
     cursor = endIndex + Math.max(endNeedle.length, 1);
   }
 

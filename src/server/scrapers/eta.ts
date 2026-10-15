@@ -38,6 +38,26 @@ const ETA_DIRECT_PRODUCT_ROUTES: EtaDirectProductRoute[] = [
     id: "eta-direct-power-entry-module",
     pattern: /^X31\d{2}$/i,
     url: (catalogNumber) => `https://global.e-t-a.com/products/circuit_protection_devices_thermal_thermal_magnetic_magnetic_high_performance_electronic/power_entry_modules/p/${etaSlug(catalogNumber)}/`
+  },
+  {
+    id: "eta-direct-smps-t-10a",
+    pattern: /^SMPS-T\s*10A$/i,
+    url: () => "https://www.e-t-a.com/products/power_supplies/1_phase_switch_mode_power_supplies/p/smps_t_10a/"
+  },
+  {
+    id: "eta-direct-battery-isolation-switch",
+    pattern: /^E-1073-\d+$/i,
+    url: (catalogNumber) => `https://global.e-t-a.com/products/circuit_protection_devices_thermal_thermal_magnetic_magnetic_high_performance_electronic/battery_isolation_switches/p/${etaSlug(catalogNumber)}/`
+  },
+  {
+    id: "eta-direct-eai300-interface",
+    pattern: /^EAI300$/i,
+    url: () => "https://www.e-t-a.com/products/circuit_protection_devices/electronic_overcurrent_protection/p/eai300/"
+  },
+  {
+    id: "eta-direct-hvr10-high-voltage-relay",
+    pattern: /^HVR10$/i,
+    url: () => "https://www.e-t-a.com/products/relays_ssrpcs/high_voltage_relay/p/hvr10/"
   }
 ];
 
@@ -58,6 +78,26 @@ interface EtaFamilyRule {
 }
 
 const ETA_FAMILY_RULES: EtaFamilyRule[] = [
+  {
+    name: "eta-4230-t110-k0ce-10a-ordering-example",
+    pattern: /^4230-T110-K0CE-10A$/i,
+    productUrl: "https://global.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/p/4230_t_ul_1077_en_60947_2/",
+    datasheetUrl: "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_4230-T_en.pdf",
+    identitySourceUrl: "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_4230-T_en.pdf",
+    technicalSourceUrl: "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_4230-T_en.pdf",
+    imageUrl: "https://global.e-t-a.com/fileadmin/_processed_/c/b/csm_4230-T_UL_1077_EN_60947-2_0868170b2c.png",
+    type: "Miniature Circuit Breaker",
+    voltage: "AC 240 V / DC 80 V",
+    current: "10 A",
+    description: "Single-pole 4230-T thermal-magnetic miniature circuit breaker, C characteristic, IEC/EN 60947-2 and UL 1077",
+    attributes: [
+      { name: "Ordering code", value: "4230-T110-K0CE-10A" },
+      { name: "Number of poles", value: "1 pole" },
+      { name: "Trip characteristic", value: "C" },
+      { name: "Mounting method", value: "DIN rail" },
+      { name: "Rated current", value: "10 A" }
+    ]
+  },
   {
     name: "eta-scs1000-16hs-exact-datasheet",
     pattern: /^SCS1000-16HS$/i,
@@ -153,7 +193,28 @@ async function scrapeEtaDirectProductPage(
     sourceType: "official-fallback",
     directUrlTemplates: [route.url(catalogNumber)],
     match: { compact: true, ignoreCase: true, requireCatalogNumber: true },
-    fetchPolicy: { timeoutMs: 2500, maxAttempts: 1, minContentLength: 1000 },
+    fetchPolicy: { timeoutMs: 5000, maxAttempts: 1, minContentLength: 1000 },
+    ...( /^E-1073-\d+$/i.test(catalogNumber) ? {
+      markerRules: [
+        {
+          name: "Current ratings",
+          start: "Current ratings </th> <td> from ",
+          end: ` ${catalogNumber}`,
+          group: "Technical Data",
+          normalizeWhitespace: true,
+          // The table row itself contains the requested E-1073 type code, so its range belongs
+          // to this exact configured model even though the page also lists other pole options.
+          scope: "variant"
+        },
+        {
+          name: "Battery protection option",
+          start: "Available with ",
+          end: " option",
+          group: "Features",
+          scope: "family"
+        }
+      ]
+    } : {}),
     confidence: 0.88
   };
 
@@ -162,11 +223,45 @@ async function scrapeEtaDirectProductPage(
     // GenericFallbackScraper can return a useful partial before the run-level quality gate is
     // applied. Its required catalog match already proved exact identity for this single source.
     if (!result || result.status === "failed" || !result.productUrl) return undefined;
-    return { ...result, documents: etaVariantDocuments(catalogNumber, result.documents) };
+    return { ...result, documents: etaRelevantDirectDocuments(catalogNumber, etaVariantDocuments(catalogNumber, result.documents)) };
   } catch {
     // The caller turns route errors or identity misses into a terminal fail-closed result.
     return undefined;
   }
+}
+
+function etaRelevantDirectDocuments(catalogNumber: string, documents: DocumentRecord[]): DocumentRecord[] {
+  const e1073 = catalogNumber.match(/^E-1073-\d+$/i)?.[0].toUpperCase();
+  return documents.filter((document) => {
+    if (document.type === "image") {
+      if (!e1073) return true;
+      const codes = [...`${document.label} ${document.url}`.matchAll(/E-1073-\d+/gi)].map(([code]) => code.toUpperCase());
+      // E-T-A sometimes puts an image for a related E-1073 variant on the requested model's
+      // exact PDP. Keep it out unless both its label and asset identify only this exact model.
+      return codes.length > 0 && codes.every((code) => code === e1073);
+    }
+
+    let pathname = "";
+    try {
+      pathname = new URL(document.url).pathname;
+    } catch {
+      return false;
+    }
+    if (!/\.pdf$/i.test(pathname)) return false;
+    if (document.type === "datasheet" || document.type === "manual") {
+      // Only download actual product-library PDFs. Generic support links, JS download buttons,
+      // navigation pages, and unrelated company-wide certificates were being parsed as docs.
+      const compactSku = catalogNumber.replace(/[^a-z0-9]/gi, "").toLowerCase();
+      const compactEvidence = `${document.label} ${document.url}`.replace(/[^a-z0-9]/gi, "").toLowerCase();
+      return /\/fileadmin\/user_upload\/Ordnerstruktur\/pdf-Data\/Products\//i.test(pathname) || compactEvidence.includes(compactSku);
+    }
+    if (document.type === "certificate") {
+      const compactSku = catalogNumber.replace(/[^a-z0-9]/gi, "").toLowerCase();
+      const compactEvidence = `${document.label} ${document.url}`.replace(/[^a-z0-9]/gi, "").toLowerCase();
+      return compactEvidence.includes(compactSku);
+    }
+    return false;
+  });
 }
 
 function etaVariantDocuments(catalogNumber: string, documents: DocumentRecord[]): DocumentRecord[] {
@@ -222,7 +317,7 @@ function buildEtaDatasheetResult(catalogNumber: string, rule: EtaFamilyRule): Pr
   if (rule.imageUrl) {
     documents.push(stampDocument({
       type: "image",
-      label: "ETA SCS1000 product image",
+      label: `E-T-A ${catalogNumber} product image`,
       url: rule.imageUrl,
       sourceUrl: rule.productUrl
     }));
@@ -245,7 +340,7 @@ function buildEtaDatasheetResult(catalogNumber: string, rule: EtaFamilyRule): Pr
       parser: rule.name,
       parserVersion: ETA_PARSER_VERSION,
       stage: "exact-model-datasheet",
-      reason: "The official ETA datasheet names the exact SCS1000-16HS model and publishes its electrical and mechanical ratings.",
+      reason: "The official ETA datasheet supports the exact requested model and the published technical ratings.",
       fetchedAt
     });
   }

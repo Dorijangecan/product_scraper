@@ -33,6 +33,79 @@ describe("normalizer", () => {
     expect(normalized.current).toBe("0.2...10 A");
   });
 
+  it("keeps the E-1073 family current capability as evidence without inventing a selected current", () => {
+    const normalized = normalizeFields([{
+      group: "Technical Data",
+      name: "Current ratings",
+      value: "40A up to 240A",
+      sourceUrl: "https://global.e-t-a.com/products/circuit_protection_devices/battery_isolation_switches/p/e_1073_437/",
+      sourceType: "official-fallback",
+      parser: "ETA battery isolation switch product page",
+      scope: "variant"
+    }], [], "eta");
+
+    expect(normalized.current).toBeUndefined();
+  });
+
+  it("uses ETA EAI datasheet power draw and temperature over interface limits and the stale PDP range", () => {
+    const normalized = normalizeFields([
+      {
+        group: "Technical Data",
+        name: "Title",
+        value: "EAI300",
+        sourceUrl: "https://www.e-t-a.com/products/circuit_protection_devices/electronic_overcurrent_protection/p/eai300/",
+        sourceType: "official-fallback",
+        parser: "ETA eai300 interface product page"
+      },
+      {
+        group: "Technical Data",
+        name: "Umgebungstemperatur",
+        value: "-20 °C...+55 °C",
+        sourceUrl: "https://www.e-t-a.com/products/circuit_protection_devices/electronic_overcurrent_protection/p/eai300/",
+        sourceType: "official-fallback",
+        parser: "ETA eai300 interface product page"
+      },
+      {
+        group: "PDF datasheet - ELECTRICAL DATA",
+        name: "Power consumption",
+        value: "I Typ. 40 mA at DC 48 V",
+        sourceUrl: "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/int_Stromverteilung/ControlPlex_Rack/2_en/D_EAI300_EN.pdf",
+        sourceType: "generated",
+        parser: "pdf-table-extractor",
+        matchLevel: "exact"
+      },
+      {
+        group: "PDF datasheet - ELECTRICAL DATA",
+        name: "Ambient temperature",
+        value: "-20...+60 °C (without condensation, cf. EN 60204-1)",
+        sourceUrl: "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/int_Stromverteilung/ControlPlex_Rack/2_en/D_EAI300_EN.pdf",
+        sourceType: "generated",
+        parser: "pdf-table-extractor",
+        matchLevel: "exact"
+      },
+      {
+        group: "PDF datasheet - ELECTRICAL DATA",
+        name: "Max. load current",
+        value: "100 mA",
+        sourceType: "generated",
+        parser: "pdf-table-extractor",
+        matchLevel: "exact"
+      },
+      {
+        group: "PDF datasheet - ELECTRICAL DATA",
+        name: "Contact - max. load current",
+        value: "2 A",
+        sourceType: "generated",
+        parser: "pdf-table-extractor",
+        matchLevel: "exact"
+      }
+    ], [], "eta");
+
+    expect(normalized.current).toBe("40 mA");
+    expect(normalized.operatingTemperatureMin).toBe("-20");
+    expect(normalized.operatingTemperatureMax).toBe("60");
+  });
+
   it("uses the ETA SCS total load-current rating instead of per-channel ratings", () => {
     const normalized = normalizeFields([
       { group: "ETA Product Data", name: "Rated current per channel", value: "15 A / 32.5 A", sourceType: "official" },

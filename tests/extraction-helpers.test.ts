@@ -25,6 +25,29 @@ describe("marker extraction", () => {
     });
     expect(result.documents[0]?.url).toBe("https://example.test/images/SCE-30EL2412SSLPPL.png");
   });
+
+  it("normalizes source whitespace and retains the configured product scope", () => {
+    const result = extractMarkerData(
+      "<tr><th> Current ratings\n </th>\n <td>\n from 40A up to 240A E-1073-437 (optional 350 A)</td></tr>",
+      [{
+        name: "Current ratings",
+        start: "Current ratings </th> <td> from ",
+        end: " E-1073-437",
+        group: "Technical Data",
+        scope: "variant",
+        normalizeWhitespace: true
+      }],
+      "https://example.test/product"
+    );
+
+    expect(result.attributes).toEqual([{
+      group: "Technical Data",
+      name: "Current ratings",
+      value: "40A up to 240A",
+      sourceUrl: "https://example.test/product",
+      scope: "variant"
+    }]);
+  });
 });
 
 describe("product link discovery", () => {

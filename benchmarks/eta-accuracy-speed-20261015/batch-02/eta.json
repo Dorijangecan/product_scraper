@@ -1,0 +1,63 @@
+[
+  {
+    "manufacturerId": "eta",
+    "catalogNumber": "4230-T110-K0CE-10A",
+    "caseType": "electrical",
+    "expectedDeviceType": "Miniature Circuit Breaker",
+    "riskTags": ["eta-batch-02", "miniature-circuit-breaker", "iec-ul1077"],
+    "expectedOfficialUrlPatterns": ["e-t-a\\.com/products/circuit_protection_devices/.*/p/4230_t_ul_1077_en_60947_2/"],
+    "requiredDocuments": ["datasheet", "image"],
+    "expectedNormalizedFields": ["voltage", "current"],
+    "expectedNormalizedPatterns": {"voltage": "240\\s*V|80\\s*V", "current": "10\\s*A"},
+    "expectedAttributePatterns": ["4230-T110-K0CE-10A", "IEC/EN 60947-2", "UL 1077", "10\\s*A"]
+  },
+  {
+    "manufacturerId": "eta",
+    "catalogNumber": "SMPS-T 10A",
+    "caseType": "electrical",
+    "expectedDeviceType": "Power Supply",
+    "riskTags": ["eta-batch-02", "single-phase-smps", "dc-ok"],
+    "expectedOfficialUrlPatterns": ["e-t-a\\.com/products/power_supplies/1_phase_switch_mode_power_supplies/p/smps_t_10a/"],
+    "requiredDocuments": ["datasheet", "image"],
+    "expectedNormalizedFields": ["voltage", "current"],
+    "expectedNormalizedPatterns": {"voltage": "24\\s*V", "current": "10\\s*A"},
+    "expectedAttributePatterns": ["AC 120 V", "AC 240 V", "DC 24 V", "10 A", "DC OK"]
+  },
+  {
+    "manufacturerId": "eta",
+    "catalogNumber": "E-1073-437",
+    "caseType": "electrical",
+    "expectedDeviceType": "Disconnect Switch",
+    "riskTags": ["eta-batch-02", "battery-isolation-switch", "remote-disconnect"],
+    "expectedOfficialUrlPatterns": ["e-t-a\\.com/products/.*/battery_isolation_switches/p/e_1073_437/"],
+    "requiredDocuments": ["datasheet", "image"],
+    "expectedNormalizedFields": ["voltage"],
+    "expectedBlankNormalizedFields": ["current"],
+    "expectedNormalizedPatterns": {"voltage": "DC 24 V"},
+    "expectedAttributePatterns": ["E-1073-437", "40\\s*A.{0,20}240\\s*A", "Current ratings to 240 A", "single pole", "remote", "undervoltage"]
+  },
+  {
+    "manufacturerId": "eta",
+    "catalogNumber": "EAI300",
+    "caseType": "electrical",
+    "expectedDeviceType": "I/O Module",
+    "riskTags": ["eta-batch-02", "external-alarm-interface", "rack-module"],
+    "expectedOfficialUrlPatterns": ["e-t-a\\.com/products/.*/p/eai300/"],
+    "requiredDocuments": ["datasheet", "image"],
+    "expectedNormalizedFields": ["voltage", "current", "operatingTemperatureMax"],
+    "expectedNormalizedPatterns": {"voltage": "20.{0,20}75\\s*V", "current": "40\\s*mA", "operatingTemperatureMax": "60"},
+    "expectedAttributePatterns": ["EAI300", "8x", "1x", "2x", "20 V", "75 V", "Power consumption", "40 mA", "Ambient temperature", "60 °C"]
+  },
+  {
+    "manufacturerId": "eta",
+    "catalogNumber": "HVR10",
+    "caseType": "electrical",
+    "expectedDeviceType": "Relay",
+    "riskTags": ["eta-batch-02", "high-voltage-hybrid-relay", "ev-contactor"],
+    "expectedOfficialUrlPatterns": ["e-t-a\\.com/products/relays_ssrpcs/high_voltage_relay/p/hvr10/"],
+    "requiredDocuments": ["datasheet", "image"],
+    "expectedNormalizedFields": ["voltage", "current"],
+    "expectedNormalizedPatterns": {"voltage": "900\\s*V", "current": "300\\s*A"},
+    "expectedAttributePatterns": ["HVR10", "900 V", "300 A", "2,000 A", "1,000 V", "IP5K0"]
+  }
+]
