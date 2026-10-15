@@ -23,6 +23,16 @@ function product(
 }
 
 describe("device type classifier", () => {
+  it("classifies an E-T-A Monitoring & Reporting Unit separately from the metered equipment", () => {
+    const result = classifyDeviceType(product(
+      [{ group: "Technical Data", name: "Product type", value: "Monitoring & Reporting Unit", sourceType: "official", matchLevel: "exact" }],
+      "Type Monitoring Reporting Unit MRU10",
+      { manufacturerId: "eta", catalogNumber: "MRU10" }
+    ));
+    expect(result.type).toBe("Monitoring & Reporting Unit");
+    expect(deviceSheetsFor(result.type)).toContain("el. mesurement devices");
+  });
+
   it("classifies the Schneider ABL6TS control transformer family as a transformer", () => {
     const result = classifyDeviceType(product(
       [{ group: "PDF datasheet", name: "Product or component type", value: "Safety and isolation transformer", sourceType: "generated", matchLevel: "exact" }],

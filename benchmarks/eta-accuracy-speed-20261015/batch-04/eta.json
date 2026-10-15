@@ -1,0 +1,63 @@
+[
+  {
+    "manufacturerId": "eta",
+    "catalogNumber": "MRU10",
+    "caseType": "electrical",
+    "expectedDeviceType": "Monitoring & Reporting Unit",
+    "riskTags": ["eta-batch-04", "power-monitoring-reporting-unit", "rack-system"],
+    "expectedOfficialUrlPatterns": ["e-t-a\\.com/products/power_management_systems/rack_mount_power_management_systems/p/monitoring_reporting_unit_mru10/"],
+    "requiredDocuments": ["datasheet", "image"],
+    "expectedNormalizedFields": ["voltage"],
+    "expectedBlankNormalizedFields": ["current"],
+    "expectedNormalizedPatterns": {"voltage": "-\\s*80\\s*V"},
+    "expectedAttributePatterns": ["MRU10", "Monitoring.{0,20}Reporting Unit", "DC -80 V", "redundant voltage supply", "-30.{0,20}\\+60", "IP20", "UL"]
+  },
+  {
+    "manufacturerId": "eta",
+    "catalogNumber": "1610-92",
+    "caseType": "electrical",
+    "expectedDeviceType": "Circuit Breaker",
+    "riskTags": ["eta-batch-04", "automotive-circuit-protector", "thermal-protection"],
+    "expectedOfficialUrlPatterns": ["e-t-a\\.com/products/circuit_protection_devices/thermal_overcurrent_circuit_breakers/p/1610_92/"],
+    "requiredDocuments": ["datasheet", "image"],
+    "expectedNormalizedFields": ["voltage", "current"],
+    "expectedNormalizedPatterns": {"voltage": "12\\s*V", "current": "5.{0,20}25\\s*A"},
+    "expectedAttributePatterns": ["1610-92", "single.pole", "DC 12 V", "5.{0,20}25 A", "socket", "blade terminals", "2,000 A"]
+  },
+  {
+    "manufacturerId": "eta",
+    "catalogNumber": "E-1048-8I",
+    "caseType": "electrical",
+    "expectedDeviceType": "Relay",
+    "riskTags": ["eta-batch-04", "smart-power-relay", "solid-state-load-disconnect"],
+    "expectedOfficialUrlPatterns": ["e-t-a\\.com/products/relays_ssrpcs/solid_state_remote_power_controllers/p/e_1048_8i/"],
+    "requiredDocuments": ["datasheet", "image"],
+    "expectedNormalizedFields": ["voltage", "current"],
+    "expectedNormalizedPatterns": {"voltage": "9.{0,20}32\\s*V|12.{0,20}24\\s*V", "current": "1.{0,20}10\\s*A"},
+    "expectedAttributePatterns": ["E-1048-8I", "Smart Power Relay", "DC 9.{0,12}32 V", "DC 12 V.{0,20}DC 24 V", "Current rating range IN 1 A.{0,10}10 A", "control signal AS", "0.{0,10}5 V"]
+  },
+  {
+    "manufacturerId": "eta",
+    "catalogNumber": "X3120",
+    "caseType": "electrical",
+    "expectedDeviceType": "Power Entry Module",
+    "riskTags": ["eta-batch-04", "power-entry-module", "c14-c20"],
+    "expectedOfficialUrlPatterns": ["e-t-a\\.com/products/circuit_protection_devices/power_entry_modules/p/x3120/"],
+    "requiredDocuments": ["datasheet", "image"],
+    "expectedNormalizedFields": ["voltage", "current"],
+    "expectedNormalizedPatterns": {"voltage": "250\\s*V", "current": "C14: 10 A.{0,30}C20: 16 A"},
+    "expectedAttributePatterns": ["X3120", "C14", "10 A", "C20", "16 A", "AC 250 V", "line filter", "undervoltage release"]
+  },
+  {
+    "manufacturerId": "eta",
+    "catalogNumber": "MM500",
+    "caseType": "electrical",
+    "expectedDeviceType": "Power Distribution Unit",
+    "riskTags": ["eta-batch-04", "powerplex-mini-module", "vehicle-power-distribution"],
+    "expectedOfficialUrlPatterns": ["e-t-a\\.com/products/discontinued_products/list_recommended_replacements/p/powerplex_mini_module_mm500/"],
+    "requiredDocuments": ["datasheet", "image"],
+    "expectedNormalizedFields": ["voltage", "current"],
+    "expectedNormalizedPatterns": {"voltage": "12.{0,20}24\\s*V", "current": "18\\s*A"},
+    "expectedAttributePatterns": ["MM500", "eight multifunctional inputs", "8 x 4 A", "18 A", "IP22", "-40.{0,20}\\+70", "discontinued type", "30.09.2026", "29.01.2027"]
+  }
+]

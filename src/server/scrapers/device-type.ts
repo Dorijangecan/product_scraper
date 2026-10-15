@@ -64,6 +64,7 @@ const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
   rule("Communication Gateway", /\b(?:communication gateway|fieldbus gateway|fieldbus coupler|bus coupler|bus controller|protocol converter|protocol gateway|serial gateway|modbus gateway|profibus gateway|profinet gateway|ethernet gateway|hart multiplexer|rs[-\s]?232(?:\s+(?:to|converter|interface|module))?|rs[-\s]?485(?:\s+(?:to|converter|interface|module))?|rs[-\s]?422|serial[-\s]?to[-\s]?ethernet|communication module|communication interface|industrial gateway|iiot gateway|edge gateway)\b/i, 905),
   rule("Residual Current Analyzer", /\b(?:residual current analy[sz](?:er|ers|is)|analy[sz]is system\s+DRCA(?:[-\s]?1)?|DRCA[-\s]?1[-\s]?Set)\b/i, 980),
   rule("Residual Current Monitoring Relay", /\b(?:modular residual current devices?\s+DRP|MRCDs?\b|residual current control relays?)\b/i, 980),
+  rule("Monitoring & Reporting Unit", /\bmonitoring\s*(?:&|and)\s*reporting units?\b/i, 1005),
   // ABB calls panel power meters "network analyzers"; treat that explicit instrument class as a
   // meter before incidental mounting or communications wording can win.
   // Meter product descriptions often mention a gateway as one application alongside monitoring.

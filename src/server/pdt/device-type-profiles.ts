@@ -159,6 +159,7 @@ export const DEVICE_TYPE_PROFILES: Record<string, DeviceTypePdtProfile> = {
   "Communication Gateway": { sheets: ["PLC", "RS232 interfaces"], eclassBySheet: { plc: { code: "27242201", system: "13" } }, criticalFactsBySheet: { PLC: [...VOLTAGE_RATING_FACTS] }, finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_ONLY },
   "Communication Interface": { sheets: ["RS232 interfaces"], finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_ONLY },
   "Power Meter": { sheets: ["el. mesurement devices"], criticalFactsBySheet: { "el. mesurement devices": [...ELECTRICAL_RATING_FACTS] }, electricalFields: VOLTAGE_AND_CURRENT },
+  "Monitoring & Reporting Unit": { sheets: ["el. mesurement devices"], criticalFactsBySheet: { "el. mesurement devices": [...VOLTAGE_RATING_FACTS] }, finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_ONLY },
   "Residual Current Analyzer": { sheets: ["el. mesurement devices"], finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: NO_ELECTRICAL_FIELDS },
   "Signal Conditioner": { sheets: ["el. mesurement devices"], finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_ONLY },
 

@@ -33,6 +33,30 @@ describe("normalizer", () => {
     expect(normalized.current).toBe("0.2...10 A");
   });
 
+  it("uses ETA's exact-PDF load-current range instead of a relay output's 5 mA limit", () => {
+    const normalized = normalizeFields([
+      {
+        group: "PDF datasheet",
+        name: "Feature",
+        value: "Current rating range IN 1 A...10 A (fixed ratings)",
+        sourceUrl: "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Relais/Elektr_Schutzschaltrelais/2_en/D_E-1048-8INLINE_en.pdf",
+        sourceType: "generated",
+        parser: "pdf-table-extractor",
+        matchLevel: "exact"
+      },
+      {
+        group: "PDF datasheet - Approvals",
+        name: "Max. output current",
+        value: "5 mA",
+        sourceType: "generated",
+        parser: "pdf-table-extractor",
+        matchLevel: "exact"
+      }
+    ], [], "eta");
+
+    expect(normalized.current).toBe("1...10 A");
+  });
+
   it("keeps the E-1073 family current capability as evidence without inventing a selected current", () => {
     const normalized = normalizeFields([{
       group: "Technical Data",

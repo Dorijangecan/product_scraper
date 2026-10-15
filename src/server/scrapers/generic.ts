@@ -196,9 +196,11 @@ export class GenericFallbackScraper {
         if (isCancellationError(error, signal)) throw error;
       }
     }
-    if (this.manufacturerId === "eta" && source.id.startsWith("eta-direct-")) {
-      // Learned ETA PDPs are exact single-source routes. The HTTP client already has its
-      // bounded transport fallback; do not add the 30s PowerShell rescue to a known route.
+    if (knownEtaProductPage) {
+      // Learned ETA PDPs are exact single-source routes, whether they use the legacy
+      // eta-direct- prefix or a learned eta-product- URL. The HTTP client already has its
+      // bounded transport fallback; do not add alternate-UA retries or the 30s PowerShell
+      // rescue after the bounded curl/HTTP attempts on a known route.
       return this.http.fetchText(url, {
         timeoutMs: policy.timeoutMs ?? 2500,
         cacheTtlMs: policy.cacheTtlMs,

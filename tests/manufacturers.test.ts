@@ -193,6 +193,11 @@ describe("manufacturer configuration", () => {
     const manufacturer = listManufacturerConfigs().find((item) => item.id === "eta")!;
     const cases = [
       ["2-6500", "https://global.e-t-a.com/products/circuit_protection_devices/thermal_overcurrent_circuit_breakers/p/2_6500/"],
+      ["MRU10", "https://www.e-t-a.com/products/power_management_systems/rack_mount_power_management_systems/p/monitoring_reporting_unit_mru10/"],
+      ["1610-92", "https://www.e-t-a.com/products/circuit_protection_devices/thermal_overcurrent_circuit_breakers/p/1610_92/"],
+      ["E-1048-8I", "https://global.e-t-a.com/products/relays_ssrpcs/solid_state_remote_power_controllers/p/e_1048_8i/"],
+      ["MM500", "https://www.e-t-a.com/products/discontinued_products/list_recommended_replacements/p/powerplex_mini_module_mm500/"],
+      ["X3120", "https://www.e-t-a.com/products/circuit_protection_devices/power_entry_modules/p/x3120/"],
       ["E-1072-100", "https://global.e-t-a.com/products/relays_ssrpcs/solid_state_remote_power_controllers/p/e_1072_100/"],
       ["CPC12PN", "https://global.e-t-a.com/products/power_distribution_systems/intelligent_power_distribution_systems/controlplex_overview/controlplex_dinrail/bus_controllers/p/cpc12/"],
       ["E-1073-437", "https://global.e-t-a.com/products/circuit_protection_devices_thermal_thermal_magnetic_magnetic_high_performance_electronic/battery_isolation_switches/p/e_1073_437/"],

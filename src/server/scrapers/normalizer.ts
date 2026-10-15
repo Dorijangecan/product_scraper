@@ -540,7 +540,7 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
       ? schneiderTransformerSecondaryCurrent(currentAttributes)
       : undefined) ??
     (manufacturerId === "eta"
-      ? etaExactPdpCurrent(currentAttributes) ?? etaRatedCurrent(currentAttributes) ?? etaTypicalPowerConsumptionCurrent(currentAttributes)
+      ? etaExactPdpCurrent(currentAttributes) ?? etaRatedCurrent(attributes) ?? etaTypicalPowerConsumptionCurrent(currentAttributes)
       : undefined) ??
     exactSchmersalNoLoadSupplyCurrent(attributes, manufacturerId) ??
     balluffPublishedCurrentConsumption(currentAttributes, manufacturerId) ??
@@ -2302,6 +2302,14 @@ function numericCurrentAttributeCurrent(attributes: AttributeRecord[]): string |
  * overload threshold (for example, 30 A) is not normalized as the device's rated current.
  */
 function etaRatedCurrent(attributes: AttributeRecord[]): string | undefined {
+  const exactDocumentRanges = attributes.filter((attribute) =>
+    attribute.sourceType === "generated" &&
+    attribute.parser === "pdf-table-extractor" &&
+    attribute.matchLevel === "exact" &&
+    /^feature$/i.test(attribute.name.trim()) &&
+    /\b(?:rated\s+)?current\s+rating\s+range\b/i.test(attribute.value) &&
+    /\d+(?:[.,]\d+)?\s*A?\s*(?:\.{2,3}|…|–|—|to)\s*\d+(?:[.,]\d+)?\s*A\b/i.test(attribute.value)
+  );
   const supplyMaximums = attributes.filter((attribute) =>
     /^supply max\.? current rating$/i.test(attribute.name.trim()) &&
     isLikelySpecText(attribute.value) &&
@@ -2316,11 +2324,18 @@ function etaRatedCurrent(attributes: AttributeRecord[]): string | undefined {
     !/^\s*(?:max(?:imum)?\.?\s*)/i.test(attribute.value) &&
     !/locked[-\s]?rotor|starting current|trip point|breaking capacity/i.test(`${attribute.name} ${attribute.value}`)
   );
-  const explicitRanges = labelledRatings.filter((attribute) => /\d+(?:[.,]\d+)?\s*(?:\.\.|\.\.\.|–|—|to)\s*\d+(?:[.,]\d+)?\s*A\b/i.test(attribute.value));
+  const explicitRanges = [
+    ...labelledRatings.filter((attribute) => /\d+(?:[.,]\d+)?\s*A?\s*(?:\.\.|\.\.\.|–|—|to)\s*\d+(?:[.,]\d+)?\s*A\b/i.test(attribute.value)),
+    ...exactDocumentRanges
+  ];
   const patterns = normalizerFieldLabelPatterns("current");
   return bestNormalizedAttributeValue(totalLoadRatings, patterns, normalizeCurrentValue, "current") ??
     bestNormalizedAttributeValue(supplyMaximums, patterns, normalizeCurrentValue, "current") ??
-    bestNormalizedAttributeValue(explicitRanges, patterns, normalizeCurrentValue, "current") ??
+    bestNormalizedAttributeValue(explicitRanges.filter((attribute) => !exactDocumentRanges.includes(attribute)), patterns, normalizeCurrentValue, "current") ??
+    exactDocumentRanges.map((attribute) => {
+      const range = attribute.value.match(/(\d+(?:[.,]\d+)?)\s*A?\s*(?:\.{2,3}|…|–|—|to)\s*(\d+(?:[.,]\d+)?)\s*A\b/i);
+      return range ? normalizeCurrentValue(`${range[1]}...${range[2]} A`) : undefined;
+    }).find((value): value is string => Boolean(value)) ??
     bestNormalizedAttributeValue(labelledRatings, patterns, normalizeCurrentValue, "current");
 }
 

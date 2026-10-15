@@ -19,6 +19,43 @@ const manufacturer: ManufacturerConfig = {
 };
 
 describe("official discovery scoring", () => {
+  it("keeps learned ETA exact-product routes on bounded HTTP fallbacks", async () => {
+    let curlCalls = 0;
+    let httpCalls = 0;
+    let powerShellCalls = 0;
+    const eta = getManufacturerConfig("eta")!;
+    const http = {
+      fetchText: async () => {
+        httpCalls += 1;
+        throw new Error("bounded HTTP request failed");
+      },
+      fetchTextViaCurl: async () => {
+        curlCalls += 1;
+        throw new Error("bounded curl request failed");
+      },
+      fetchTextViaPowerShell: async () => {
+        powerShellCalls += 1;
+        throw new Error("unbounded rescue must not run for a learned exact ETA route");
+      }
+    };
+    const fallback = new GenericFallbackScraper("eta", http as never, eta);
+
+    const result = await fallback.scrape("MM500", [{
+      id: "eta-product-mm500-power-distribution-module",
+      label: "E-T-A exact MM500 page",
+      enabled: true,
+      sourceType: "official-fallback",
+      directUrlTemplates: ["https://www.e-t-a.com/products/discontinued_products/list_recommended_replacements/p/powerplex_mini_module_mm500/"],
+      match: { requireCatalogNumber: true },
+      fetchPolicy: { timeoutMs: 50, maxAttempts: 1 }
+    }]);
+
+    expect(result).toBeUndefined();
+    expect(curlCalls).toBe(1);
+    expect(httpCalls).toBe(1);
+    expect(powerShellCalls).toBe(0);
+  });
+
   it("shares one discovery result across separate stages of the same catalog item", async () => {
     const discoveryMemo = new Map();
     let fetchCount = 0;

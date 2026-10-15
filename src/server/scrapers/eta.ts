@@ -11,9 +11,34 @@ interface EtaDirectProductRoute {
   url: (catalogNumber: string) => string;
 }
 
-// Official product-page routes learned from the first ETA cold batch. The generic parser still
+// Official product-page routes learned from isolated ETA cold batches. The generic parser still
 // has to find the exact requested catalog number in the page before it returns a result.
 const ETA_DIRECT_PRODUCT_ROUTES: EtaDirectProductRoute[] = [
+  {
+    id: "eta-product-mru10-monitoring-reporting-unit",
+    pattern: /^MRU10$/i,
+    url: () => "https://www.e-t-a.com/products/power_management_systems/rack_mount_power_management_systems/p/monitoring_reporting_unit_mru10/"
+  },
+  {
+    id: "eta-product-1610-92-automotive-circuit-protector",
+    pattern: /^1610-92$/i,
+    url: () => "https://www.e-t-a.com/products/circuit_protection_devices/thermal_overcurrent_circuit_breakers/p/1610_92/"
+  },
+  {
+    id: "eta-product-e-1048-8i-smart-power-relay",
+    pattern: /^E-1048-8I$/i,
+    url: () => "https://global.e-t-a.com/products/relays_ssrpcs/solid_state_remote_power_controllers/p/e_1048_8i/"
+  },
+  {
+    id: "eta-product-x3120-power-entry-module",
+    pattern: /^X3120$/i,
+    url: () => "https://www.e-t-a.com/products/circuit_protection_devices/power_entry_modules/p/x3120/"
+  },
+  {
+    id: "eta-product-mm500-power-distribution-module",
+    pattern: /^MM500$/i,
+    url: () => "https://www.e-t-a.com/products/discontinued_products/list_recommended_replacements/p/powerplex_mini_module_mm500/"
+  },
   {
     id: "eta-product-2210-s2-breaker",
     pattern: /^2210-S2(?:[A-Z0-9-]+)?$/i,
