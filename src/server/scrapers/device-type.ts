@@ -56,6 +56,9 @@ const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
   // --- Automation (very specific names — these win over generic "controller"/"module") ---
   rule("Programmable Logic Controller", /\b(?:ac500|pm(?:57[2-3]|58[2-3]|59[0-2])(?:-eth)?)\b[\s\S]{0,80}\bprocessor module\b|\bprocessor module\b[\s\S]{0,80}\b(?:ac500|pm(?:57[2-3]|58[2-3]|59[0-2])(?:-eth)?)\b/i, 940),
   rule("Programmable Logic Controller", /\b(?:programmable logic controller|logic controller|controller cpu|cpu module|plc\s+(?:controller|module|processor|cpu|system)|(?:controller|module|processor|cpu|system)\s+plc|simatic\s+s7|modicon\s+(?:m\d+|m340|m580)|compactlogix|controllogix|micro8\d{2,3})\b/i, 920),
+  // A Modicon M221 controller description also mentions its integral BR2032 backup battery.
+  // Prefer the exact PLC family over that incidental component mention.
+  rule("Programmable Logic Controller", /\b(?:TM221[A-Z0-9]+|Modicon\s+M221\s+(?:logic\s+)?controller)\b/i, 1180),
   rule("Communication Gateway", /\b(?:ethernet(?:\s+tcp\/ip)?|tcp\/ip)\s+(?:network|communication)\s+module\b/i, 950),
   rule("Communication Gateway", /\b(?:communication gateway|fieldbus gateway|fieldbus coupler|bus coupler|protocol converter|protocol gateway|serial gateway|modbus gateway|profibus gateway|profinet gateway|ethernet gateway|hart multiplexer|rs[-\s]?232(?:\s+(?:to|converter|interface|module))?|rs[-\s]?485(?:\s+(?:to|converter|interface|module))?|rs[-\s]?422|serial[-\s]?to[-\s]?ethernet|communication module|communication interface|industrial gateway|iiot gateway|edge gateway)\b/i, 905),
   // ABB calls panel power meters "network analyzers"; treat that explicit instrument class as a

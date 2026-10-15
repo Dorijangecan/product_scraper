@@ -5815,6 +5815,7 @@ Terminal capacity
     expect(buildSchneiderOfficialUrls("ABL6TS06B")[0]).toBe("https://www.se.com/id/en/product/ABL6TS06B/");
     expect(buildSchneiderOfficialUrls("HMIGXU3512")[0]).toBe("https://www.se.com/id/en/product/HMIGXU3512/");
     expect(buildSchneiderOfficialUrls("XMLR010G0T26")[0]).toBe("https://telemecaniquesensors.com/global/en/product/reference/XMLR010G0T26");
+    expect(buildSchneiderOfficialUrls("A9F74110")[0]).toBe("https://www.se.com/id/en/product/A9F74110/");
   });
 
   it("parses Schneider embedded product characteristics, documents, and images", () => {

@@ -307,7 +307,7 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
   const preferAxisAssembly =
     Boolean(axisAssembledDimensions) &&
     (!combinedDimensionsValue || (axisDimensionCount >= combinedDimensionCount && weakestAxisConfidence >= (combinedDimensionsAttr?.confidence ?? 1)));
-  const dimensions =
+  const dimensions = manufacturerId === "schneider" && isSchneiderPendantStation(attributes) ? undefined : (
     (manufacturerId === "balluff" ? balluffProbeDimensions(attributes) : undefined) ??
     (manufacturerId === "phoenix" ? phoenixContactSensorDimensions(attributes) : undefined) ??
     (preferAxisAssembly ? axisAssembledDimensions : undefined) ??
@@ -316,7 +316,7 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
     registryFieldValue(attributes, "dimensions", normalizeDimensionValue) ??
     deriveDimensionsFromText(attributes) ??
     schneiderDescriptionDimensions(attributes) ??
-    cableLengthDimension;
+    cableLengthDimension);
   const material = manufacturerId === "rittal"
     ? rittalExplicitLabelValue(rittalPdpAttributes, /^materials?$/i, rittalMaterialValue)
     : manufacturerId === "schmersal"
@@ -429,7 +429,8 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
 
   const rittalVoltageModes = manufacturerId === "rittal" ? rittalMultipleVoltageRanges(attributes) : undefined;
   const schneiderSupplyVoltage = manufacturerId === "schneider"
-    ? schneiderTransformerOutputVoltage(voltageAttributes, attributes) ??
+    ? schneiderMcbVoltage(attributes) ??
+      schneiderTransformerOutputVoltage(voltageAttributes, attributes) ??
       schneiderDualSupplyVoltage(voltageAttributes) ?? schneiderPowerSupplyOutputVoltage(voltageAttributes, attributes)
     : undefined;
   const voltage = schneiderSupplyVoltage ?? (manufacturerId === "phoenix"
@@ -483,6 +484,10 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
     ? undefined
     : manufacturerId === "schneider" && isSchneiderSafetyControllerWithChannelCurrent(attributes)
     ? undefined
+    : manufacturerId === "schneider" && isSchneiderM221OutputCurrent(attributes)
+    ? undefined
+    : manufacturerId === "schneider" && isSchneiderSoftStarter(attributes)
+    ? schneiderSoftStarterRatedCurrent(attributes)
     : withoutMixedKindProse(
     (manufacturerId === "schneider" && isSchneiderTransformer(attributes)
       ? schneiderTransformerSecondaryCurrent(currentAttributes)
@@ -1275,6 +1280,47 @@ function isSchneiderSafetyControllerWithChannelCurrent(attributes: AttributeReco
   return hasControllerOssdOutputs && !hasDeviceSupplyCurrent;
 }
 
+export function isSchneiderM221OutputCurrent(attributes: AttributeRecord[]): boolean {
+  const text = attributes.map((attribute) => `${attribute.group ?? ""} ${attribute.name} ${attribute.value}`).join(" ");
+  const isM221Controller = /\b(?:TM221[A-Z0-9]+|Modicon\s+M221)\b/i.test(text) && /\blogic controller\b/i.test(text);
+  const hasSupplyCurrent = attributes.some((attribute) => /^(?:rated\s+supply\s+current|supply current|current consumption)$/i.test(attribute.name.trim()));
+  const hasOutputCurrent = attributes.some((attribute) => /^(?:discrete output current|output current|maximum current per output)$/i.test(attribute.name.trim()));
+  return isM221Controller && hasOutputCurrent && !hasSupplyCurrent;
+}
+
+function isSchneiderSoftStarter(attributes: AttributeRecord[]): boolean {
+  const text = attributes.map((attribute) => `${attribute.group ?? ""} ${attribute.name} ${attribute.value}`).join(" ");
+  return /\b(?:soft starter|Altistart\s*01)\b/i.test(text);
+}
+
+function schneiderSoftStarterRatedCurrent(attributes: AttributeRecord[]): string | undefined {
+  if (!isSchneiderSoftStarter(attributes)) return undefined;
+  const rating = attributes.find((attribute) => /^IcL starter rating$/i.test(attribute.name.trim()));
+  return normalizeCurrentValue(rating?.value);
+}
+
+function schneiderMcbVoltage(attributes: AttributeRecord[]): string | undefined {
+  const isMcb = attributes.some((attribute) =>
+    /^(?:product or component type|product type)$/i.test(attribute.name.trim()) && /miniature circuit.breaker/i.test(attribute.value)
+  );
+  if (!isMcb) return undefined;
+  const description = attributes.find((attribute) =>
+    /^description$/i.test(attribute.name.trim()) && attribute.parser === "schneider-product-page" &&
+    (attribute.sourceType === "official" || attribute.sourceType === "official-fallback")
+  )?.value ?? "";
+  // The exact MCB description ties its breaking-capacity ratings to circuit voltages. Do not
+  // treat the datasheet's lower Ue boundary (12 V) as the normal application voltage.
+  const range = description.match(/\b\d+\s*kA\s+at\s+(\d{3})\s*V\s*AC\s+to\s*(\d{3})\s*V\s*AC\b/i);
+  if (range) return `${range[1]}...${range[2]} V AC`;
+  const single = description.match(/\b\d+\s*A\s+at\s+(\d{3})\s*V\s*AC\b/i);
+  return single ? `${single[1]} V AC` : undefined;
+}
+
+export function isSchneiderPendantStation(attributes: AttributeRecord[]): boolean {
+  const text = attributes.map((attribute) => `${attribute.group ?? ""} ${attribute.name} ${attribute.value}`).join(" ");
+  return /\b(?:pendant control station|pendant station)\b/i.test(text) && /\bXACA\b/i.test(text);
+}
+
 function schneiderExplicitProductColor(attributes: AttributeRecord[]): string | undefined {
   const attribute = attributes
     .filter((candidate) =>
@@ -1285,7 +1331,7 @@ function schneiderExplicitProductColor(attributes: AttributeRecord[]): string | 
       Boolean(deriveColorFromFinish(candidate.value))
     )
     .sort(compareAttributeEvidence)[0];
-  return attribute ? normalizeHtmlSpecValue(attribute.value) : undefined;
+  return attribute ? normalizeHtmlSpecValue(attribute.value)?.replace(/\)+\s*$/, "") : undefined;
 }
 
 function schneiderTransformerOutputVoltage(
@@ -2330,6 +2376,7 @@ function mergeNormalizedFields(
   const merged: NormalizedProductFields = { ...computed };
   const suppressPhoenixCurrent = manufacturerId === "phoenix" && isPhoenixSignalConditioner(attributes);
   const suppressSchneiderLightCurtainCurrent = manufacturerId === "schneider" && isSchneiderSafetyLightCurtain(attributes);
+  const suppressSchneiderM221OutputCurrent = manufacturerId === "schneider" && isSchneiderM221OutputCurrent(attributes);
   const phoenixPreferredVoltage = manufacturerId === "phoenix" ? phoenixContactNormalizedVoltage(attributes) : undefined;
   const phoenixPreferredWeight = manufacturerId === "phoenix" ? phoenixProductNetWeight(attributes) : undefined;
   const phoenixPreferredCurrent = manufacturerId === "phoenix" && isPhoenixSurgeProtector(attributes)
@@ -2340,9 +2387,11 @@ function mergeNormalizedFields(
   if (phoenixPreferredCurrent) merged.current = phoenixPreferredCurrent;
   else if (manufacturerId === "phoenix" && isPhoenixSurgeProtector(attributes)) delete merged.current;
   if (suppressPhoenixCurrent) delete merged.current;
+  if (suppressSchneiderM221OutputCurrent) delete merged.current;
   for (const field of Object.keys(computed) as Array<keyof NormalizedProductFields>) {
     if (merged[field]) continue;
     if (suppressPhoenixCurrent && field === "current") continue;
+    if (suppressSchneiderM221OutputCurrent && field === "current") continue;
     if (suppressSchneiderLightCurtainCurrent && field === "current") continue;
     if (manufacturerId === "phoenix" && field === "current" && isPhoenixSurgeProtector(attributes)) continue;
     if (manufacturerId === "rittal" && field === "current" && !computed.current) continue;

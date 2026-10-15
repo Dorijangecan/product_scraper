@@ -10,7 +10,7 @@ import type {
 import { FIELD_REGISTRY, fieldAttributeLabel, fieldMatchesLabel, type RegistryFieldKey } from "./field-registry.js";
 import { evidenceConfidence } from "./evidence-score.js";
 import { catalogTextMatches } from "./catalog-number.js";
-import { cleanText, isSchneiderSafetyLightCurtain, normalizeFields } from "./normalizer.js";
+import { cleanText, isSchneiderM221OutputCurrent, isSchneiderPendantStation, isSchneiderSafetyLightCurtain, normalizeFields } from "./normalizer.js";
 import { isQuantityPlausible, parseQuantities, type QuantityKind } from "./quantity.js";
 
 const NORMALIZED_FIELDS = new Set<keyof NormalizedProductFields>([
@@ -36,6 +36,8 @@ export function applyFieldCandidateResolution(result: ProductResult): ProductRes
   if (result.manufacturerId === "schneider" && isSchneiderSurgeProtector(result)) delete normalized.current;
   if (result.manufacturerId === "schneider" && isSchneiderSafetyLightCurtain(result.attributes)) delete normalized.current;
   if (result.manufacturerId === "schneider" && isSchneiderSafetyControllerOutputRating(result.attributes)) delete normalized.current;
+  if (result.manufacturerId === "schneider" && isSchneiderM221OutputCurrent(result.attributes)) delete normalized.current;
+  if (result.manufacturerId === "schneider" && isSchneiderPendantStation(result.attributes)) delete normalized.dimensions;
   if (result.manufacturerId === "schneider" && isSchneiderBusPoweredInputModule(result.attributes)) delete normalized.voltage;
   const eatonElectrical = result.manufacturerId === "eaton"
     ? normalizeFields(result.attributes, result.documents, "eaton")
@@ -62,6 +64,8 @@ export function applyFieldCandidateResolution(result: ProductResult): ProductRes
     if (result.manufacturerId === "schneider" && key === "current" && isSchneiderSurgeProtector(result)) continue;
     if (result.manufacturerId === "schneider" && key === "current" && isSchneiderSafetyLightCurtain(result.attributes)) continue;
     if (result.manufacturerId === "schneider" && key === "current" && isSchneiderSafetyControllerOutputRating(result.attributes)) continue;
+    if (result.manufacturerId === "schneider" && key === "current" && isSchneiderM221OutputCurrent(result.attributes)) continue;
+    if (result.manufacturerId === "schneider" && key === "dimensions" && isSchneiderPendantStation(result.attributes)) continue;
     if (result.manufacturerId === "schneider" && key === "voltage" && isSchneiderBusPoweredInputModule(result.attributes)) continue;
     // ABB material/color are normalized from official product attributes only. Loose PDF table
     // fragments such as "Graphic color: display" are not product finish/material data and must

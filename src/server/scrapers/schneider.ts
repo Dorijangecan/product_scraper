@@ -414,6 +414,11 @@ export function buildSchneiderOfficialUrls(catalogNumber: string): string[] {
         "https://telemecaniquesensors.com/us/en/product/reference/{part}",
         ...SCHNEIDER_PRODUCT_URL_TEMPLATES.filter((template) => !template.includes("telemecaniquesensors.com"))
       ]
+    : /^A9F[A-Z0-9]/i.test(catalogNumber)
+    ? [
+        "https://www.se.com/id/en/product/{part}/",
+        ...SCHNEIDER_PRODUCT_URL_TEMPLATES.filter((template) => !template.includes("/id/en/product/"))
+      ]
     : /^A9[A-Z0-9]/i.test(catalogNumber)
     ? [
         "https://www.se.com/uk/en/product/{part}/",

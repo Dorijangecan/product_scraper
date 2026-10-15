@@ -1,0 +1,64 @@
+[
+  {
+    "manufacturerId": "schneider",
+    "catalogNumber": "TM221CE16T",
+    "caseType": "electrical",
+    "expectedDeviceType": "Programmable Logic Controller",
+    "riskTags": ["cold", "modicon-m221", "plc", "ethernet", "16-io"],
+    "expectedOfficialUrlPatterns": ["se\\.com/.*/product/TM221CE16T(?:/|$)"],
+    "expectedNormalizedFields": ["voltage", "protection"],
+    "expectedBlankNormalizedFields": ["current"],
+    "expectedNormalizedPatterns": {"voltage": "^24 V DC$", "protection": "IP20"},
+    "expectedAttributePatterns": ["Modicon M221", "16 logic I/O", "Ethernet"],
+    "requiredDocuments": ["datasheet", "image"]
+  },
+  {
+    "manufacturerId": "schneider",
+    "catalogNumber": "A9F74110",
+    "caseType": "electrical",
+    "expectedDeviceType": "Miniature Circuit Breaker",
+    "riskTags": ["cold", "acti9-ic60n", "mcb", "1-pole", "10a-c-curve"],
+    "expectedOfficialUrlPatterns": ["se\\.com/.*/product/A9F74110(?:/|$)"],
+    "expectedNormalizedFields": ["voltage", "current", "dimensions", "weight", "protection"],
+    "expectedNormalizedPatterns": {"voltage": "^220\\.\\.\\.240 V AC$", "current": "^10 A$", "protection": "IP20"},
+    "expectedAttributePatterns": ["1P", "10A", "C tripping curve", "6000A", "10kA"],
+    "requiredDocuments": ["datasheet", "image"]
+  },
+  {
+    "manufacturerId": "schneider",
+    "catalogNumber": "NSYCRN86200",
+    "caseType": "mechanical",
+    "expectedDeviceType": "Enclosure",
+    "riskTags": ["cold", "panelset-crn", "wall-mounted-enclosure", "800x600x200", "ip66-ik10"],
+    "expectedOfficialUrlPatterns": ["se\\.com/.*/product/NSYCRN86200(?:/|$)"],
+    "expectedNormalizedFields": ["dimensions", "protection", "color", "weight"],
+    "expectedNormalizedPatterns": {"dimensions": "800|600|200", "protection": "IP66", "color": "RAL.?7035"},
+    "expectedAttributePatterns": ["Compact enclosure", "Enclosure nominal height.*800", "Enclosure nominal width.*600", "Enclosure nominal depth.*200", "IP66", "IK10", "RAL7035"],
+    "requiredDocuments": ["datasheet", "image"]
+  },
+  {
+    "manufacturerId": "schneider",
+    "catalogNumber": "ATS01N206QN",
+    "caseType": "electrical",
+    "expectedDeviceType": "Soft Starter",
+    "riskTags": ["cold", "altistart-01", "soft-starter", "6a", "380-415v"],
+    "expectedOfficialUrlPatterns": ["se\\.com/.*/product/ATS01N206QN(?:/|$)"],
+    "expectedNormalizedFields": ["voltage", "current", "weight", "dimensions", "protection"],
+    "expectedNormalizedPatterns": {"voltage": "380.*415 V", "current": "^6 A$"},
+    "expectedAttributePatterns": ["Altistart 01", "IcL starter rating", "Rated supply voltage", "Motor power"],
+    "requiredDocuments": ["datasheet", "image"]
+  },
+  {
+    "manufacturerId": "schneider",
+    "catalogNumber": "XACA271H7",
+    "caseType": "electrical",
+    "expectedDeviceType": "Pushbutton / Operator",
+    "riskTags": ["cold", "harmony-xac-a", "pendant-control-station", "two-pushbuttons", "legacy"],
+    "expectedOfficialUrlPatterns": ["se\\.com/.*/product/XACA271H7(?:/|$)"],
+    "expectedNormalizedFields": ["protection", "weight", "voltage", "current"],
+    "expectedNormalizedPatterns": {"voltage": "^240 V$", "current": "^3 A$"},
+    "expectedBlankNormalizedFields": ["dimensions"],
+    "expectedAttributePatterns": ["pendant control station", "2 push-buttons", "Harmony XAC", "Ue = 240 V, Ie = 3 A"],
+    "requiredDocuments": ["datasheet", "image"]
+  }
+]

@@ -868,6 +868,14 @@ describe("device type classifier", () => {
     expect(deviceSheetsFor("Safety Controller")).toContain("PLC");
   });
 
+  it("classifies a Modicon M221 PLC above the incidental BR2032 backup-battery mention", () => {
+    const result = product(
+      [{ group: "Schneider Product Info", name: "Description", value: "TM221CE16T Modicon M221 logic controller with a button cell backup battery BR2032", sourceType: "official", parser: "schneider-product-page" }],
+      "Modicon M221 Logic Controller"
+    );
+    expect(classifyDeviceType(result).type).toBe("Programmable Logic Controller");
+  });
+
   it("classifies an Ethernet TCP/IP network module as a communication gateway", () => {
     const result = product(
       [{ group: "Schneider Main", name: "Product or Component Type", value: "Ethernet TCP/IP network module", sourceType: "official" }],

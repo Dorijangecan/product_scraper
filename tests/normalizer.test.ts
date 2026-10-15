@@ -1730,6 +1730,46 @@ describe("normalizer", () => {
     expect(normalized.current).toBe("12 A");
   });
 
+  it("uses a Schneider soft starter's Icl starter rating rather than unrelated output-contact currents", () => {
+    const normalized = normalizeFields([
+      { group: "Schneider Main", name: "Product or Component Type", value: "Soft starter", sourceType: "official" },
+      { group: "PDF datasheet", name: "IcL starter rating", value: "6 A", sourceType: "generated", matchLevel: "exact" },
+      { group: "PDF datasheet", name: "Output current", value: "2 A DC / 3 A AC / 1 A", sourceType: "generated", matchLevel: "exact" }
+    ], [], "schneider");
+    expect(normalized.current).toBe("6 A");
+  });
+
+  it("uses an exact Schneider MCB breaking-voltage context instead of its minimum Ue boundary", () => {
+    const normalized = normalizeFields([
+      { group: "Schneider Main", name: "Product or Component Type", value: "Miniature circuit-breaker", sourceType: "official" },
+      { group: "Schneider Product Info", name: "Description", value: "Rated short circuit breaking capacity 10kA at 220VAC to 240VAC conforming to EN/IEC 60947-2 and 6000A at 230VAC conforming to EN/IEC 60898-1.", sourceType: "official", parser: "schneider-product-page" },
+      { group: "PDF datasheet", name: "[Ue] rated operational voltage", value: "12...60 V AC 50/60 Hz", sourceType: "generated", matchLevel: "exact" }
+    ], [], "schneider");
+    expect(normalized.voltage).toBe("220...240 V AC");
+  });
+
+  it("leaves Schneider PLC output current and ambiguous pendant diagram dimensions blank", () => {
+    const controller = normalizeFields([
+      { group: "Schneider Main", name: "Product or Component Type", value: "Logic controller", sourceType: "official" },
+      { group: "Schneider Main", name: "Catalog Number", value: "TM221CE16T", sourceType: "official" },
+      { group: "PDF datasheet", name: "Discrete output current", value: "0.5 A", sourceType: "generated", matchLevel: "exact" }
+    ], [], "schneider");
+    const pendant = normalizeFields([
+      { group: "Schneider Main", name: "Product or Component Type", value: "Pendant control station", sourceType: "official" },
+      { group: "Schneider Main", name: "Device short name", value: "XACA", sourceType: "official" },
+      { group: "PDF datasheet", name: "Dimensions", value: "65 | 48 | 40 W (W 1016 mm)", sourceType: "generated", matchLevel: "exact" }
+    ], [], "schneider");
+    expect(controller.current).toBeUndefined();
+    expect(pendant.dimensions).toBeUndefined();
+  });
+
+  it("cleans a trailing parenthesis from Schneider enclosure color without losing its RAL code", () => {
+    const normalized = normalizeFields([
+      { group: "PDF datasheet", name: "Color", value: "Gray RAL 7035)", sourceType: "generated", matchLevel: "exact" }
+    ], [], "schneider");
+    expect(normalized.color).toBe("Gray RAL 7035");
+  });
+
   it("uses the Schneider contactor AC-3 motor rating when an AC-1 rating is also present", () => {
     const normalized = normalizeFields(
       [
