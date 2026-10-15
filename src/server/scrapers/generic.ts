@@ -102,7 +102,11 @@ export class GenericFallbackScraper {
           const skipRedundantDetailDiscovery =
             this.manufacturerId === "phoenix" ||
             (this.manufacturerId === "siemens" && source.id === "siemens-mmpdata-fast") ||
-            (this.manufacturerId === "schmersal" && source.id === "schmersal-discovered-product");
+            (this.manufacturerId === "schmersal" && source.id === "schmersal-discovered-product") ||
+            // This single-source ETA preflight already passed catalogTextMatches on a learned PDP.
+            // Its page is the product evidence; crawling related links adds latency without
+            // improving the exact identity match.
+            (this.manufacturerId === "eta" && source.id.startsWith("eta-direct-") && parsed.status !== "failed");
           let detailResolved = skipRedundantDetailDiscovery;
           for (const candidate of skipRedundantDetailDiscovery ? [] : discovery.candidates.slice(0, 4)) {
             if (sameUrl(candidate.url, fetched.effectiveUrl)) continue;
@@ -154,6 +158,18 @@ export class GenericFallbackScraper {
   private async fetchTextWithFallback(url: string, source: FallbackSourceConfig, signal?: AbortSignal): Promise<FetchedText> {
     const policy = { ...this.manufacturer?.fetchPolicy, ...source.fetchPolicy };
     const headers = fetchHeaders(policy);
+    if (this.manufacturerId === "eta" && source.id.startsWith("eta-direct-")) {
+      // Learned ETA PDPs are exact single-source routes. The HTTP client already has its
+      // bounded transport fallback; do not add the 30s PowerShell rescue to a known route.
+      return this.http.fetchText(url, {
+        timeoutMs: policy.timeoutMs ?? 2500,
+        cacheTtlMs: policy.cacheTtlMs,
+        maxAttempts: policy.maxAttempts,
+        retryBackoffMs: policy.retryBackoffMs,
+        headers,
+        signal
+      });
+    }
     try {
       const fetched = await this.http.fetchText(url, {
         timeoutMs: policy.timeoutMs ?? 15000,

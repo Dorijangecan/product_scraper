@@ -1,0 +1,62 @@
+[
+  {
+    "manufacturerId": "eta",
+    "catalogNumber": "2-6500",
+    "caseType": "electrical",
+    "expectedDeviceType": "Overload Relay",
+    "riskTags": ["eta-batch-01", "motor-protection-relay", "thermal-overload"],
+    "expectedOfficialUrlPatterns": ["e-t-a\\.com/products/circuit_protection_devices/thermal_overcurrent_circuit_breakers/p/2_6500/"],
+    "requiredDocuments": ["datasheet"],
+    "expectedNormalizedFields": ["voltage", "current"],
+    "expectedNormalizedPatterns": {"voltage": "250\\s*V|28\\s*V", "current": "0[.,]2.{0,15}10\\s*A"},
+    "expectedAttributePatterns": ["250\\s*V", "28\\s*V", "0[.,]2.{0,8}10\\s*A", "automatic.{0,30}reset"]
+  },
+  {
+    "manufacturerId": "eta",
+    "catalogNumber": "E-1072-100",
+    "caseType": "electrical",
+    "expectedDeviceType": "Relay",
+    "riskTags": ["eta-batch-01", "solid-state-remote-power-controller"],
+    "expectedOfficialUrlPatterns": ["e-t-a\\.com/products/relays_ssrpcs/solid_state_remote_power_controllers/p/e_1072_100/"],
+    "requiredDocuments": ["datasheet"],
+    "expectedNormalizedFields": ["voltage", "current"],
+    "expectedNormalizedPatterns": {"voltage": "19[.,]2.{0,8}36\\s*V|24\\s*V", "current": "3\\s*A"},
+    "expectedAttributePatterns": ["2[- ]pole", "DC\\s*24\\s*V", "3\\s*A", "19[.,]2.{0,8}36\\s*V"]
+  },
+  {
+    "manufacturerId": "eta",
+    "catalogNumber": "CPC12PN",
+    "caseType": "electrical",
+    "expectedDeviceType": "Communication Gateway",
+    "riskTags": ["eta-batch-01", "controlplex", "bus-controller", "profinet"],
+    "expectedOfficialUrlPatterns": ["e-t-a\\.com/products/power_distribution_systems/.*/bus_controllers/"],
+    "requiredDocuments": ["datasheet"],
+    "expectedNormalizedFields": ["voltage", "current"],
+    "expectedNormalizedPatterns": {"voltage": "18.{0,8}30\\s*V|24\\s*V", "current": "40\\s*A"},
+    "expectedAttributePatterns": ["CPC12PN", "(?:PROFINET|EtherNet/IP|EtherCAT|Modbus)", "18.{0,8}30\\s*V", "40\\s*A"]
+  },
+  {
+    "manufacturerId": "eta",
+    "catalogNumber": "SCS1000-16HS",
+    "caseType": "electrical",
+    "expectedDeviceType": "Power Distribution Unit",
+    "riskTags": ["eta-batch-01", "intelligent-power-distribution", "16-channel"],
+    "expectedOfficialUrlPatterns": ["e-t-a\\.com/products/power_distribution_systems/.*/p/scs1000/"],
+    "requiredDocuments": ["datasheet"],
+    "expectedNormalizedFields": ["voltage", "current"],
+    "expectedNormalizedPatterns": {"voltage": "12.{0,8}24\\s*V|12\\s*V.{0,8}24\\s*V", "current": "160\\s*A"},
+    "expectedAttributePatterns": ["SCS1000-16HS", "16", "15\\s*A", "32[.,]5\\s*A", "160\\s*A", "IP67"]
+  },
+  {
+    "manufacturerId": "eta",
+    "catalogNumber": "X3130",
+    "caseType": "electrical",
+    "expectedDeviceType": "Power Entry Module",
+    "riskTags": ["eta-batch-01", "power-entry-module", "c14"],
+    "expectedOfficialUrlPatterns": ["e-t-a\\.com/products/.*/power_entry_modules/p/x3130/"],
+    "requiredDocuments": ["datasheet"],
+    "expectedNormalizedFields": ["voltage", "current"],
+    "expectedNormalizedPatterns": {"voltage": "250\\s*V", "current": "10\\s*A"},
+    "expectedAttributePatterns": ["250\\s*VAC", "10\\s*A", "C14", "rocker"]
+  }
+]

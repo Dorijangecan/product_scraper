@@ -465,7 +465,7 @@ const builtInManufacturerConfigs: Record<string, ManufacturerConfig> = {
     id: "eta",
     canonicalName: "E-T-A",
     shortName: "ETA",
-    rateLimitMs: 1500,
+    rateLimitMs: 1000,
     officialBaseUrls: ["https://www.e-t-a.com/products"],
     homepageUrl: "https://www.e-t-a.com/",
     fallbackSources: [

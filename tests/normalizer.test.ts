@@ -33,6 +33,143 @@ describe("normalizer", () => {
     expect(normalized.current).toBe("0.2...10 A");
   });
 
+  it("uses the ETA SCS total load-current rating instead of per-channel ratings", () => {
+    const normalized = normalizeFields([
+      { group: "ETA Product Data", name: "Rated current per channel", value: "15 A / 32.5 A", sourceType: "official" },
+      { group: "ETA Product Data", name: "Rated current", value: "15 A / 32.5 A", sourceType: "official" },
+      { group: "ETA Product Data", name: "Current rating of load", value: "160 A", sourceType: "official" }
+    ], [], "eta");
+
+    expect(normalized.current).toBe("160 A");
+  });
+
+  it("prefers ETA exact product-page current over the circuit-breaker range in an X3130 datasheet", () => {
+    const normalized = normalizeFields([
+      {
+        group: "Technical Data",
+        name: "Current ratings",
+        value: "10 A (IEC/EN)",
+        sourceUrl: "https://global.e-t-a.com/products/circuit_protection_devices_thermal_thermal_magnetic_magnetic_high_performance_electronic/power_entry_modules/p/x3130/",
+        sourceType: "official-fallback",
+        parser: "ETA power entry module product page"
+      },
+      {
+        group: "PDF datasheet",
+        name: "Current ratings",
+        value: "0.1...16 A",
+        sourceUrl: "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Thermisch/2_en/D_3130_en.pdf",
+        sourceType: "generated",
+        parser: "pdf-table-extractor",
+        matchLevel: "exact"
+      }
+    ], [], "eta");
+
+    expect(normalized.current).toMatch(/10\s*A/i);
+    expect(normalized.current).not.toMatch(/0\.1|16\s*A/i);
+  });
+
+  it("does not map ETA terminal or panel-mount dimensions to product size or wall thickness", () => {
+    const normalized = normalizeFields([
+      { group: "PDF Dimension Text", name: "Dimensions", value: "6.3 x 0.8 mm", sourceType: "generated", parser: "pdf-table-extractor" },
+      { group: "PDF Technical data", name: "Terminal design", value: "blade terminals 6.3 x 0.8 mm", sourceType: "generated", parser: "pdf-table-extractor" },
+      { group: "PDF Approvals", name: "For Frame 1, snap-in, panel thickness", value: "1.0-2.5 mm, color", sourceType: "generated", parser: "pdf-table-extractor" }
+    ], [], "eta");
+
+    expect(normalized.dimensions).toBeUndefined();
+    expect(normalized.wallThickness).toBeUndefined();
+  });
+
+  it("prefers ETA exact product-page voltage over a general brochure rating", () => {
+    const normalized = normalizeFields([
+      {
+        group: "Technical Data",
+        name: "Voltage rating",
+        value: "AC 250 V (50/60 Hz) DC 28 V",
+        sourceUrl: "https://global.e-t-a.com/products/circuit_protection_devices/thermal_overcurrent_circuit_breakers/p/2_6500/",
+        sourceType: "official-fallback",
+        parser: "ETA thermal overcurrent breaker product page"
+      },
+      {
+        group: "PDF Electrical Text",
+        name: "Rated voltage",
+        value: "AC 240 V, DC 48 V",
+        sourceUrl: "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Broschures_Magazines_etc/Broschures/B_Thermische_Schutzschalter_en.pdf",
+        sourceType: "generated",
+        parser: "pdf-table-extractor"
+      }
+    ], [], "eta");
+
+    expect(normalized.voltage).toMatch(/250\s*V/i);
+    expect(normalized.voltage).toMatch(/28\s*V/i);
+    expect(normalized.voltage).not.toMatch(/240\s*V|48\s*V/i);
+  });
+
+  it("accepts ETA's load-voltage label from an exact product-page source", () => {
+    const normalized = normalizeFields([
+      {
+        group: "Technical Data",
+        name: "Voltage rating of load",
+        value: "DC 12 V/DC 24 V",
+        sourceUrl: "https://global.e-t-a.com/products/power_distribution_systems/intelligent_power_distribution_systems/scsr_smart_control_systems/scsr_smart_control_systems_products/p/scs1000/",
+        sourceType: "official-fallback",
+        parser: "ETA scsr control system product page"
+      },
+      {
+        group: "PDF Electrical Text",
+        name: "Rated voltage",
+        value: "AC 240 V, DC 48 V",
+        sourceUrl: "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Broschures_Magazines_etc/B_Thermische_Schutzschalter_en.pdf",
+        sourceType: "generated",
+        parser: "pdf-table-extractor"
+      }
+    ], [], "eta");
+
+    expect(normalized.voltage).toMatch(/12\s*V/i);
+    expect(normalized.voltage).toMatch(/24\s*V/i);
+    expect(normalized.voltage).not.toMatch(/240\s*V|48\s*V/i);
+  });
+
+  it("keeps SCS1000-16HS rated voltage instead of replacing it with the input range", () => {
+    const datasheetUrl = "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/int_Stromverteilung/Smart_Control_System_SCS/2_en/D_SCS1000_en.pdf";
+    const normalized = normalizeFields([
+      {
+        group: "ETA Technical Data",
+        name: "Rated Voltage",
+        value: "DC 12 V / 24 V",
+        sourceUrl: datasheetUrl,
+        sourceType: "official-fallback",
+        parser: "eta-family-datasheet-rule"
+      },
+      {
+        group: "PDF datasheet",
+        name: "Input voltage range",
+        value: "DC 9 V ... 32 V",
+        sourceUrl: datasheetUrl,
+        sourceType: "generated",
+        parser: "pdf-table-extractor"
+      }
+    ], [], "eta");
+
+    expect(normalized.voltage).toMatch(/12\s*V/i);
+    expect(normalized.voltage).toMatch(/24\s*V/i);
+    expect(normalized.voltage).not.toMatch(/9\s*V|32\s*V/i);
+  });
+
+  it("does not infer ETA device color from an LED-status manual table", () => {
+    const normalized = normalizeFields([
+      {
+        group: "PDF manual",
+        name: "errors, LED colour",
+        value: "options: red",
+        sourceUrl: "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Installation_Manuals/de/ControlPlex/I_CPC12EC_Y31350701_A5_de_en.pdf",
+        sourceType: "generated",
+        parser: "pdf-table-extractor"
+      }
+    ], [], "eta");
+
+    expect(normalized.color).toBeUndefined();
+  });
+
   it("uses Turck DC rated operational draw instead of a safety-output current", () => {
     const normalized = normalizeFields([
       { group: "PDF datasheet - Electrical data", name: "DC Bemessungsbetriebsstrom", value: "≤ 135 mA", sourceType: "generated", parser: "pdf-table-extractor", matchLevel: "exact", sourceUrl: "https://hansturck.azureedge.net/edb/de_DE/EDB_3089707_ger_de.pdf" },

@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { listManufacturerConfigs } from "../src/server/config/manufacturers.js";
+import type { FallbackSourceConfig } from "../src/shared/types.js";
 import { ABBConnector } from "../src/server/scrapers/abb.js";
 import { BalluffConnector } from "../src/server/scrapers/balluff.js";
 import { EatonConnector } from "../src/server/scrapers/eaton.js";
@@ -48,6 +49,7 @@ describe("manufacturer configuration", () => {
     expect(byId.get("scame")?.scrapeRecipe?.fallbackPolicy?.distributorFallback).toBe(false);
     expect(byId.get("scame")?.scrapeRecipe?.fallbackPolicy?.documentDownloadProfile).toBe("quality");
     expect(byId.get("eta")?.fallbackSources[0]?.directUrlTemplates.some((template) => template.includes("{partSnake}"))).toBe(true);
+    expect(byId.get("eta")?.rateLimitMs).toBe(1000);
     expect(byId.get("lapp")?.shortName).toBe("LAPP");
     expect(byId.get("lapp")?.homepageUrl).toBe("https://www.lapp.com");
     expect(byId.get("lapp")?.officialBaseUrls).toEqual(["https://www.lapp.com", "https://api-shop.lapp.com", "https://contentmedia.lappcdn.com"]);
@@ -138,6 +140,111 @@ describe("manufacturer configuration", () => {
     expect(result.title).toBeUndefined();
     expect(result.description).toBeUndefined();
     expect(result.normalized.current).toContain("20 A");
+  });
+
+  it("uses the exact official SCS1000-16HS datasheet when the product page only names its family", async () => {
+    const manufacturer = listManufacturerConfigs().find((item) => item.id === "eta")!;
+    const fallbackScrape = vi.fn().mockResolvedValue(undefined);
+    const result = await new ETAConnector().scrape("SCS1000-16HS", {
+      manufacturer,
+      runDir: "",
+      documentsDir: "",
+      http: {} as ScrapeContext["http"],
+      downloadDocument: async (doc) => doc,
+      fallback: { scrape: fallbackScrape }
+    });
+
+    const datasheetUrl = "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/int_Stromverteilung/Smart_Control_System_SCS/2_en/D_SCS1000_en.pdf";
+    expect(result.status).toBe("partial");
+    expect(result.catalogNumber).toBe("SCS1000-16HS");
+    expect(result.productUrl).toBe("https://global.e-t-a.com/products/power_distribution_systems/intelligent_power_distribution_systems/scsr_smart_control_systems/scsr_smart_control_systems_products/p/scs1000/");
+    expect(result.normalized.voltage).toMatch(/12\s*V/i);
+    expect(result.normalized.voltage).toMatch(/24\s*V/i);
+    expect(result.normalized.current).toBe("160 A");
+    expect(result.documents).toContainEqual(expect.objectContaining({ type: "datasheet", url: datasheetUrl }));
+    expect(result.documents).toContainEqual(expect.objectContaining({ type: "image", url: "https://global.e-t-a.com/fileadmin/_processed_/4/1/csm_SCS1000_cab4a314dd.png" }));
+    expect(result.attributes.find((attribute) => attribute.name === "Catalog Number")?.value).toBe("SCS1000-16HS");
+    expect(result.attributes.find((attribute) => attribute.name === "Rated Voltage")?.sourceUrl).toBe(datasheetUrl);
+    expect(result.attributes.find((attribute) => attribute.name === "Rated Current")?.sourceUrl).toBe(datasheetUrl);
+    expect(result.attributes.find((attribute) => attribute.name === "High-side outputs")?.value).toBe("4 x 32.5 A");
+    expect(result.attributes.find((attribute) => attribute.name === "Degree of protection")?.value).toBe("IP67");
+    expect(fallbackScrape).not.toHaveBeenCalled();
+  });
+
+  it("tries learned ETA exact-product routes before broad discovery", async () => {
+    const manufacturer = listManufacturerConfigs().find((item) => item.id === "eta")!;
+    const cases = [
+      ["2-6500", "https://global.e-t-a.com/products/circuit_protection_devices/thermal_overcurrent_circuit_breakers/p/2_6500/"],
+      ["E-1072-100", "https://global.e-t-a.com/products/relays_ssrpcs/solid_state_remote_power_controllers/p/e_1072_100/"],
+      ["CPC12PN", "https://global.e-t-a.com/products/power_distribution_systems/intelligent_power_distribution_systems/controlplex_overview/controlplex_dinrail/bus_controllers/p/cpc12/"],
+      ["X3130", "https://global.e-t-a.com/products/circuit_protection_devices_thermal_thermal_magnetic_magnetic_high_performance_electronic/power_entry_modules/p/x3130/"]
+    ] as const;
+
+    for (const [catalogNumber, expectedUrl] of cases) {
+      let seenSources: FallbackSourceConfig[] = [];
+      const result = await new ETAConnector().scrape(catalogNumber, {
+        manufacturer,
+        runDir: "",
+        documentsDir: "",
+        http: {} as ScrapeContext["http"],
+        downloadDocument: async (doc) => doc,
+        fallback: {
+          scrape: async (_catalogNumber, sources) => {
+            seenSources = sources;
+            return {
+              manufacturerId: "eta",
+              catalogNumber,
+              status: "partial",
+              confidence: 0.88,
+              productUrl: expectedUrl,
+              normalized: {},
+              attributes: [],
+              documents: catalogNumber === "CPC12PN" ? [
+                { type: "datasheet", label: "Datasheet CPC12EC", url: "https://global.e-t-a.com/D_CPC12EC_en.pdf" },
+                { type: "datasheet", label: "Datasheet CPC12PN", url: "https://global.e-t-a.com/D_CPC12PN_en.pdf" },
+                { type: "manual", label: "I_CPC12EN_manual.pdf", url: "https://global.e-t-a.com/I_CPC12EN_manual.pdf" },
+                { type: "image", label: "Product image", url: "https://global.e-t-a.com/CPC12PN.png" }
+              ] : [],
+              sources: []
+            };
+          }
+        }
+      });
+
+      expect(seenSources).toHaveLength(1);
+      expect(seenSources[0]).toMatchObject({
+        sourceType: "official-fallback",
+        directUrlTemplates: [expectedUrl],
+        match: { compact: true, ignoreCase: true, requireCatalogNumber: true },
+        fetchPolicy: { timeoutMs: 2500, maxAttempts: 1 }
+      });
+      expect(result.productUrl).toBe(expectedUrl);
+      expect(result.status).toBe("partial");
+      if (catalogNumber === "CPC12PN") {
+        expect(result.documents.map((document) => document.label)).toEqual(["Datasheet CPC12PN", "Product image"]);
+      }
+    }
+  });
+
+  it("fails closed without broad discovery when an ETA exact route returns no exact result", async () => {
+    const manufacturer = listManufacturerConfigs().find((item) => item.id === "eta")!;
+    const fallbackScrape = vi.fn().mockResolvedValue(undefined);
+    const result = await new ETAConnector().scrape("CPC12PN", {
+      manufacturer,
+      runDir: "",
+      documentsDir: "",
+      http: {} as ScrapeContext["http"],
+      downloadDocument: async (doc) => doc,
+      fallback: { scrape: fallbackScrape }
+    });
+
+    expect(fallbackScrape).toHaveBeenCalledOnce();
+    expect(result.status).toBe("failed");
+    expect(result.productUrl).toBeUndefined();
+    expect(result.diagnostics?.terminal).toMatchObject({
+      reason: "learned-eta-product-route-unavailable-or-identity-unconfirmed",
+      skipNetworkFallback: true
+    });
   });
 
   it("uses generic official discovery for ETA catalog numbers outside known family datasheet rules", async () => {

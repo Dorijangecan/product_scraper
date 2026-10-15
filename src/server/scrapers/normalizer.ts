@@ -329,6 +329,9 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
     deriveDimensionsFromText(attributes) ??
     schneiderDescriptionDimensions(attributes) ??
     cableLengthDimension);
+  const safeDimensions = manufacturerId === "eta" && etaDimensionMatchesTerminalDesign(attributes, dimensions)
+    ? undefined
+    : dimensions;
   const material = manufacturerId === "rittal"
     ? rittalExplicitLabelValue(rittalPdpAttributes, /^materials?$/i, rittalMaterialValue)
     : manufacturerId === "schmersal"
@@ -369,12 +372,15 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
   const safeFinish = manufacturerId === "phoenix" && /\bno\b|\*/i.test(finish ?? "") ? undefined : finish;
   const wallThicknessAttributes = attributes.filter((attribute) =>
     !/\bbusbar\b|front\s+panel/i.test(`${attribute.group ?? ""} ${attribute.name}`) &&
+    !/\bpanel thickness\b/i.test(attribute.name) &&
     !(/^thickness$/i.test(attribute.name.trim()) && /ontology/i.test(attribute.group ?? ""))
   );
   const wallThickness = bestWallThicknessAttributeValue(wallThicknessAttributes) ??
     registryFieldValue(wallThicknessAttributes, "wallThickness", normalizeWallThicknessValue) ??
     deriveWallThicknessFromAttributes(wallThicknessAttributes);
-  const color = manufacturerId === "rittal"
+  const color = manufacturerId === "eta"
+    ? exactEtaPdpColor(attributes)
+    : manufacturerId === "rittal"
     ? rittalExplicitLabelValue(rittalPdpAttributes, /^(?:colou?r)$/i, (value) => findColorAttr([{ name: "Colour", value }]))
     : manufacturerId === "schmersal"
     ? exactSchmersalPdpFieldValue(attributes, /^(?:colou?r)$/i, (value) => findColorAttr([{ name: "Colour", value }]))
@@ -467,6 +473,8 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
     : manufacturerId === "schmersal"
     ? exactSchmersalPdpVoltage(attributes, manufacturerId)
     : rittalVoltageModes ?? withoutMixedKindProse(
+      exactEtaSCS1000DatasheetVoltage(voltageAttributes, manufacturerId) ??
+      exactEtaPdpVoltage(voltageAttributes, manufacturerId) ??
       exactSchmersalPdpVoltage(attributes, manufacturerId) ??
       exactEatonControlRelaySupplyVoltage(voltageAttributes, manufacturerId) ??
       exactEatonSoftStarterMainsVoltage(voltageAttributes, manufacturerId) ??
@@ -519,7 +527,9 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
     (manufacturerId === "schneider" && isSchneiderTransformer(attributes)
       ? schneiderTransformerSecondaryCurrent(currentAttributes)
       : undefined) ??
-    (manufacturerId === "eta" ? etaRatedCurrent(currentAttributes) : undefined) ??
+    (manufacturerId === "eta"
+      ? etaExactPdpCurrent(currentAttributes) ?? etaRatedCurrent(currentAttributes)
+      : undefined) ??
     exactSchmersalNoLoadSupplyCurrent(attributes, manufacturerId) ??
     balluffPublishedCurrentConsumption(currentAttributes, manufacturerId) ??
     eatonNacPowerSupplyCurrent(currentAttributes, manufacturerId) ??
@@ -591,7 +601,7 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
 
   return {
     weight: isImplausiblyLowPowerSupplyWeight(attributes, weight) ? undefined : weight,
-    dimensions,
+    dimensions: safeDimensions,
     material,
     wallThickness,
     finish: safeFinish,
@@ -2270,6 +2280,10 @@ function numericCurrentAttributeCurrent(attributes: AttributeRecord[]): string |
  * overload threshold (for example, 30 A) is not normalized as the device's rated current.
  */
 function etaRatedCurrent(attributes: AttributeRecord[]): string | undefined {
+  const totalLoadRatings = attributes.filter((attribute) =>
+    /^current rating of load$/i.test(attribute.name.trim()) &&
+    !/channel/i.test(attribute.name)
+  );
   const labelledRatings = attributes.filter((attribute) =>
     /^(?:rated current|current rating|current ratings)(?:\s+per\s+channel)?$/i.test(attribute.name.trim()) &&
     !/^\s*(?:max(?:imum)?\.?\s*)/i.test(attribute.value) &&
@@ -2277,8 +2291,30 @@ function etaRatedCurrent(attributes: AttributeRecord[]): string | undefined {
   );
   const explicitRanges = labelledRatings.filter((attribute) => /\d+(?:[.,]\d+)?\s*(?:\.\.|\.\.\.|–|—|to)\s*\d+(?:[.,]\d+)?\s*A\b/i.test(attribute.value));
   const patterns = normalizerFieldLabelPatterns("current");
-  return bestNormalizedAttributeValue(explicitRanges, patterns, normalizeCurrentValue, "current") ??
+  return bestNormalizedAttributeValue(totalLoadRatings, patterns, normalizeCurrentValue, "current") ??
+    bestNormalizedAttributeValue(explicitRanges, patterns, normalizeCurrentValue, "current") ??
     bestNormalizedAttributeValue(labelledRatings, patterns, normalizeCurrentValue, "current");
+}
+
+function etaExactPdpCurrent(attributes: AttributeRecord[]): string | undefined {
+  const exactPageRatings = attributes.filter((attribute) =>
+    attribute.sourceType === "official-fallback" &&
+    /^ETA .+ product page$/i.test(attribute.parser ?? "") &&
+    /^https:\/\/global\.e-t-a\.com\/products\/.+\/p\/[^/]+\/?$/i.test(attribute.sourceUrl ?? "") &&
+    /^(?:rated current|current rating(?: of load)?|current ratings?)$/i.test(attribute.name.trim()) &&
+    !/channel/i.test(attribute.name)
+  );
+  return bestNormalizedAttributeValue(exactPageRatings, normalizerFieldLabelPatterns("current"), normalizeCurrentValue, "current");
+}
+
+function etaDimensionMatchesTerminalDesign(attributes: AttributeRecord[], dimensions: string | undefined): boolean {
+  if (!dimensions) return false;
+  const target = normalizeDimensionValue(dimensions);
+  if (!target) return false;
+  return attributes
+    .filter((attribute) => /^terminal design$/i.test(attribute.name.trim()))
+    .flatMap((attribute) => attribute.value.match(/\d+(?:[.,]\d+)?(?:\s*[x×]\s*\d+(?:[.,]\d+)?){1,2}\s*(?:mm|cm|in(?:ches?)?\b)?/gi) ?? [])
+    .some((candidate) => normalizeDimensionValue(candidate) === target);
 }
 
 /**
@@ -3275,6 +3311,49 @@ function exactSchmersalPdpVoltage(attributes: AttributeRecord[], manufacturerId?
     if (values.length) return values.join(" / ");
   }
   return undefined;
+}
+
+function exactEtaPdpVoltage(attributes: AttributeRecord[], manufacturerId?: string): string | undefined {
+  if (manufacturerId !== "eta") return undefined;
+  const exactPageVoltage = attributes.filter((attribute) =>
+    attribute.sourceType === "official-fallback" &&
+    /^ETA .+ product page$/i.test(attribute.parser ?? "") &&
+    /^https:\/\/global\.e-t-a\.com\/products\/.+\/p\/[^/]+\/?$/i.test(attribute.sourceUrl ?? "") &&
+    /^(?:rated operating voltage|operating voltage|supply voltage|rated voltage|voltage rating(?: of load)?)$/i.test(attribute.name.trim())
+  );
+  return bestNormalizedAttributeValue(
+    exactPageVoltage,
+    normalizerFieldLabelPatterns("voltage"),
+    normalizeVoltageValue,
+    "voltage"
+  );
+}
+
+function exactEtaSCS1000DatasheetVoltage(attributes: AttributeRecord[], manufacturerId?: string): string | undefined {
+  if (manufacturerId !== "eta") return undefined;
+  const datasheetUrl = "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/int_Stromverteilung/Smart_Control_System_SCS/2_en/D_SCS1000_en.pdf";
+  const exactModelRatings = attributes.filter((attribute) =>
+    attribute.sourceType === "official-fallback" &&
+    attribute.parser === "eta-family-datasheet-rule" &&
+    attribute.sourceUrl === datasheetUrl &&
+    /^rated voltage$/i.test(attribute.name.trim())
+  );
+  return bestNormalizedAttributeValue(
+    exactModelRatings,
+    normalizerFieldLabelPatterns("voltage"),
+    normalizeVoltageValue,
+    "voltage"
+  );
+}
+
+function exactEtaPdpColor(attributes: AttributeRecord[]): string | undefined {
+  const exactPageColors = attributes.filter((attribute) =>
+    attribute.sourceType === "official-fallback" &&
+    /^ETA .+ product page$/i.test(attribute.parser ?? "") &&
+    /^https:\/\/global\.e-t-a\.com\/products\/.+\/p\/[^/]+\/?$/i.test(attribute.sourceUrl ?? "") &&
+    /^(?:colou?r|housing colou?r|case colou?r)$/i.test(attribute.name.trim())
+  );
+  return findColorAttr(exactPageColors);
 }
 
 function exactSchmersalPdpFieldValue<T>(

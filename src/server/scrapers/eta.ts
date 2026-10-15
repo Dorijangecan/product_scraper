@@ -1,22 +1,88 @@
-import type { AttributeRecord, DocumentRecord, ProductResult, SourceRecord } from "../../shared/types.js";
+import type { AttributeRecord, DocumentRecord, FallbackSourceConfig, ProductResult, SourceRecord } from "../../shared/types.js";
 import type { ManufacturerConnector, ScrapeContext } from "./types.js";
 import { emptyResult, normalizeFields } from "./normalizer.js";
 import { scrapeDiscoveredFallback, withDiscoveryFallbackDiagnostics } from "./discovery-fallback.js";
 
 const ETA_PARSER_VERSION = "eta-v1";
 
+interface EtaDirectProductRoute {
+  id: string;
+  pattern: RegExp;
+  url: (catalogNumber: string) => string;
+}
+
+// Official product-page routes learned from the first ETA cold batch. The generic parser still
+// has to find the exact requested catalog number in the page before it returns a result.
+const ETA_DIRECT_PRODUCT_ROUTES: EtaDirectProductRoute[] = [
+  {
+    id: "eta-direct-thermal-overcurrent-breaker",
+    pattern: /^2-\d{4}$/i,
+    url: (catalogNumber) => `https://global.e-t-a.com/products/circuit_protection_devices/thermal_overcurrent_circuit_breakers/p/${etaSlug(catalogNumber)}/`
+  },
+  {
+    id: "eta-direct-solid-state-power-controller",
+    pattern: /^E-1072-\d+$/i,
+    url: (catalogNumber) => `https://global.e-t-a.com/products/relays_ssrpcs/solid_state_remote_power_controllers/p/${etaSlug(catalogNumber)}/`
+  },
+  {
+    id: "eta-direct-controlplex-bus-controller",
+    pattern: /^CPC12(?:EC|EN|MB|PN)?$/i,
+    url: () => "https://global.e-t-a.com/products/power_distribution_systems/intelligent_power_distribution_systems/controlplex_overview/controlplex_dinrail/bus_controllers/p/cpc12/"
+  },
+  {
+    id: "eta-direct-scsr-control-system",
+    pattern: /^SCS1000-\d+HS$/i,
+    url: () => "https://global.e-t-a.com/products/power_distribution_systems/intelligent_power_distribution_systems/scsr_smart_control_systems/scsr_smart_control_systems_products/p/scs1000/"
+  },
+  {
+    id: "eta-direct-power-entry-module",
+    pattern: /^X31\d{2}$/i,
+    url: (catalogNumber) => `https://global.e-t-a.com/products/circuit_protection_devices_thermal_thermal_magnetic_magnetic_high_performance_electronic/power_entry_modules/p/${etaSlug(catalogNumber)}/`
+  }
+];
+
 interface EtaFamilyRule {
   name: string;
   pattern: RegExp;
   productUrl: string;
   datasheetUrl: string;
+  identitySourceUrl?: string;
+  technicalSourceUrl?: string;
+  imageUrl?: string;
+  datasheetLabel?: string;
   type: string;
   voltage?: string;
   current?: string;
   description: string;
+  attributes?: Array<{ name: string; value: string }>;
 }
 
 const ETA_FAMILY_RULES: EtaFamilyRule[] = [
+  {
+    name: "eta-scs1000-16hs-exact-datasheet",
+    pattern: /^SCS1000-16HS$/i,
+    productUrl: "https://global.e-t-a.com/products/power_distribution_systems/intelligent_power_distribution_systems/scsr_smart_control_systems/scsr_smart_control_systems_products/p/scs1000/",
+    datasheetUrl: "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/int_Stromverteilung/Smart_Control_System_SCS/2_en/D_SCS1000_en.pdf",
+    identitySourceUrl: "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/int_Stromverteilung/Smart_Control_System_SCS/2_en/D_SCS1000_en.pdf",
+    technicalSourceUrl: "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/int_Stromverteilung/Smart_Control_System_SCS/2_en/D_SCS1000_en.pdf",
+    imageUrl: "https://global.e-t-a.com/fileadmin/_processed_/4/1/csm_SCS1000_cab4a314dd.png",
+    datasheetLabel: "ETA SCS1000-16HS datasheet",
+    type: "Power Distribution Unit",
+    voltage: "DC 12 V / 24 V",
+    current: "160 A",
+    description: "SCS1000 smart control system with 16 load outputs",
+    attributes: [
+      { name: "Number of load outputs", value: "16" },
+      { name: "High-side outputs", value: "4 x 32.5 A" },
+      { name: "Additional outputs", value: "12 x 15 A" },
+      { name: "Input voltage range", value: "DC 9 V ... 32 V" },
+      { name: "Degree of protection", value: "IP67" },
+      { name: "Ambient temperature", value: "-40 ... +85 °C" },
+      { name: "Mass", value: "580 g" },
+      { name: "Dimensions", value: "174 mm x 116 mm x 51.7 mm" },
+      { name: "Housing", value: "Aluminium die-cast" }
+    ]
+  },
   {
     name: "eta-3120-f-datasheet",
     pattern: /^3120-F/i,
@@ -53,11 +119,69 @@ export class ETAConnector implements ManufacturerConnector {
 }
 
 async function scrapeEtaUnknownFamily(catalogNumber: string, context: ScrapeContext): Promise<ProductResult> {
+  const directRoute = ETA_DIRECT_PRODUCT_ROUTES.find((candidate) => candidate.pattern.test(catalogNumber));
+  if (directRoute) {
+    const direct = await scrapeEtaDirectProductPage(catalogNumber, context, directRoute);
+    if (direct) return direct;
+    const failed = emptyResult(
+      "eta",
+      catalogNumber,
+      `The learned ETA product page for ${catalogNumber} did not return an exact-catalog result; broad discovery was skipped.`
+    );
+    failed.diagnostics = {
+      terminal: { reason: "learned-eta-product-route-unavailable-or-identity-unconfirmed", skipNetworkFallback: true }
+    };
+    return failed;
+  }
+
   const { result, discovery } = await scrapeDiscoveredFallback(catalogNumber, context, { idPrefix: "eta" });
   return withDiscoveryFallbackDiagnostics(
     result ?? emptyResult("eta", catalogNumber, `No ETA family datasheet rule matched ${catalogNumber} and official discovery found no parseable product page.`),
     discovery
   );
+}
+
+async function scrapeEtaDirectProductPage(
+  catalogNumber: string,
+  context: ScrapeContext,
+  route: EtaDirectProductRoute
+): Promise<ProductResult | undefined> {
+  const source: FallbackSourceConfig = {
+    id: route.id,
+    label: `ETA ${route.id.replace(/^eta-direct-/, "").replace(/-/g, " ")} product page`,
+    enabled: true,
+    sourceType: "official-fallback",
+    directUrlTemplates: [route.url(catalogNumber)],
+    match: { compact: true, ignoreCase: true, requireCatalogNumber: true },
+    fetchPolicy: { timeoutMs: 2500, maxAttempts: 1, minContentLength: 1000 },
+    confidence: 0.88
+  };
+
+  try {
+    const result = await context.fallback.scrape(catalogNumber, [source]);
+    // GenericFallbackScraper can return a useful partial before the run-level quality gate is
+    // applied. Its required catalog match already proved exact identity for this single source.
+    if (!result || result.status === "failed" || !result.productUrl) return undefined;
+    return { ...result, documents: etaVariantDocuments(catalogNumber, result.documents) };
+  } catch {
+    // The caller turns route errors or identity misses into a terminal fail-closed result.
+    return undefined;
+  }
+}
+
+function etaVariantDocuments(catalogNumber: string, documents: DocumentRecord[]): DocumentRecord[] {
+  const match = catalogNumber.match(/^CPC12(EC|EN|MB|PN)$/i);
+  if (!match) return documents;
+  const requestedVariant = match[1].toUpperCase();
+  return documents.filter((document) => {
+    const variants = [...`${document.label} ${document.url}`.matchAll(/CPC12(EC|EN|MB|PN)/gi)]
+      .map((variant) => variant[1].toUpperCase());
+    return variants.every((variant) => variant === requestedVariant);
+  });
+}
+
+function etaSlug(catalogNumber: string): string {
+  return catalogNumber.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
 }
 
 function buildEtaDatasheetResult(catalogNumber: string, rule: EtaFamilyRule): ProductResult {
@@ -67,7 +191,7 @@ function buildEtaDatasheetResult(catalogNumber: string, rule: EtaFamilyRule): Pr
       group: "ETA datasheet identity",
       name: "Catalog Number",
       value: catalogNumber,
-      sourceUrl: rule.productUrl
+      sourceUrl: rule.identitySourceUrl ?? rule.productUrl
     },
     {
       group: "ETA Product Data",
@@ -82,16 +206,27 @@ function buildEtaDatasheetResult(catalogNumber: string, rule: EtaFamilyRule): Pr
       sourceUrl: rule.productUrl
     }
   ].map(stampAttribute);
-  if (rule.voltage) attributes.push(stampAttribute({ group: "ETA Technical Data", name: "Rated Voltage", value: rule.voltage, sourceUrl: rule.productUrl }));
-  if (rule.current) attributes.push(stampAttribute({ group: "ETA Technical Data", name: "Rated Current", value: rule.current, sourceUrl: rule.productUrl }));
+  if (rule.voltage) attributes.push(stampAttribute({ group: "ETA Technical Data", name: "Rated Voltage", value: rule.voltage, sourceUrl: rule.technicalSourceUrl ?? rule.productUrl }));
+  if (rule.current) attributes.push(stampAttribute({ group: "ETA Technical Data", name: "Rated Current", value: rule.current, sourceUrl: rule.technicalSourceUrl ?? rule.productUrl }));
+  for (const attribute of rule.attributes ?? []) {
+    attributes.push(stampAttribute({ group: "ETA Technical Data", ...attribute, sourceUrl: rule.technicalSourceUrl ?? rule.productUrl }));
+  }
   const documents: DocumentRecord[] = [
     stampDocument({
       type: "datasheet",
-      label: "ETA family datasheet",
+      label: rule.datasheetLabel ?? "ETA family datasheet",
       url: rule.datasheetUrl,
       sourceUrl: rule.productUrl
     })
   ];
+  if (rule.imageUrl) {
+    documents.push(stampDocument({
+      type: "image",
+      label: "ETA SCS1000 product image",
+      url: rule.imageUrl,
+      sourceUrl: rule.productUrl
+    }));
+  }
   const sources: SourceRecord[] = [
     {
       url: rule.productUrl,
@@ -103,6 +238,23 @@ function buildEtaDatasheetResult(catalogNumber: string, rule: EtaFamilyRule): Pr
       fetchedAt
     }
   ];
+  if (rule.identitySourceUrl || rule.technicalSourceUrl) {
+    sources.push({
+      url: rule.technicalSourceUrl ?? rule.identitySourceUrl ?? rule.datasheetUrl,
+      sourceType: "official-fallback",
+      parser: rule.name,
+      parserVersion: ETA_PARSER_VERSION,
+      stage: "exact-model-datasheet",
+      reason: "The official ETA datasheet names the exact SCS1000-16HS model and publishes its electrical and mechanical ratings.",
+      fetchedAt
+    });
+  }
+
+  const normalized = normalizeFields(attributes, documents);
+  if (rule.technicalSourceUrl) {
+    if (rule.voltage) normalized.voltage = rule.voltage;
+    if (rule.current) normalized.current = rule.current;
+  }
 
   return {
     manufacturerId: "eta",
@@ -110,7 +262,7 @@ function buildEtaDatasheetResult(catalogNumber: string, rule: EtaFamilyRule): Pr
     status: "partial",
     confidence: 0.62,
     productUrl: rule.productUrl,
-    normalized: normalizeFields(attributes, documents),
+    normalized,
     attributes,
     documents,
     sources
