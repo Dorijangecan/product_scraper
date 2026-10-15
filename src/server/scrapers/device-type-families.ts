@@ -200,6 +200,11 @@ export const DEVICE_TYPE_FAMILIES: Record<string, readonly FamilyEntry[]> = {
     { patterns: ["SRB", "PROTECT-"], type: "Safety Relay" }
   ],
   rockwell: [
+    { patterns: ["1497"], type: "Transformer", notes: "Allen-Bradley control-circuit transformers" },
+    { patterns: ["1420"], type: "Power Meter", notes: "Allen-Bradley PowerMonitor 500 power meters" },
+    { patterns: ["1321"], type: "Line Reactor", notes: "Allen-Bradley AC line reactors" },
+    { patterns: ["802T"], type: "Limit Switch", notes: "Allen-Bradley 802T electromechanical limit switches" },
+    { patterns: ["150-C"], type: "Soft Starter", notes: "Allen-Bradley SMC-3 smart motor controllers are soft starters" },
     { patterns: ["100-", "100S-"], type: "Contactor", notes: "Allen-Bradley IEC contactors and safety contactors" },
     { patterns: ["700S"], type: "Safety Relay", notes: "Allen-Bradley safety control relays" },
     { patterns: ["700-"], type: "Relay", notes: "Allen-Bradley control relays" },

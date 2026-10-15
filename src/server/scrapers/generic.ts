@@ -412,7 +412,11 @@ export function parseGenericProductPage(
   parserLabel = "generic",
   options: GenericParseOptions = {}
 ): ProductResult {
+  const genericParseStartedAt = Date.now();
+  let genericStageStartedAt = genericParseStartedAt;
   const $ = cheerio.load(fetched.text);
+  const rockwellDebug = manufacturerId === "rockwell" && process.env.DEBUG_ROCKWELL_TIMINGS === "1";
+  if (rockwellDebug) console.info(`[rockwell:timing] generic-cheerio ${Date.now() - genericStageStartedAt}ms htmlChars=${fetched.text.length}`);
   if (isPartCommunityCookieWall(fetched.effectiveUrl, fetched.text)) {
     return parsePartCommunityCookieWallPage(manufacturerId, catalogNumber, fetched, sourceType, parserLabel, options, $);
   }
@@ -466,17 +470,24 @@ export function parseGenericProductPage(
     }
   }
 
+  genericStageStartedAt = Date.now();
   const dynamicData = extractDynamicComponentData($, fetched.text, catalogNumber, fetched.effectiveUrl);
   attributes.push(...dynamicData.attributes.map((attribute) => ({ ...attribute, scope: "variant" as const })));
   documents.push(...dynamicData.documents);
+  if (rockwellDebug) console.info(`[rockwell:timing] generic-dynamic-components ${Date.now() - genericStageStartedAt}ms`);
 
+  genericStageStartedAt = Date.now();
   const embeddedTableData = extractEmbeddedTableData(fetched.text, catalogNumber, fetched.effectiveUrl, options.extractionPolicy);
   attributes.push(...embeddedTableData.attributes.map((attribute) => ({ ...attribute, scope: "variant" as const })));
   documents.push(...embeddedTableData.documents);
+  if (rockwellDebug) console.info(`[rockwell:timing] generic-embedded-tables ${Date.now() - genericStageStartedAt}ms`);
 
+  genericStageStartedAt = Date.now();
   const embeddedPropertyData = extractEmbeddedPropertyData(fetched.text, fetched.effectiveUrl);
   attributes.push(...embeddedPropertyData.attributes);
   documents.push(...embeddedPropertyData.documents);
+  const rockwellStructuredFastPath = manufacturerId === "rockwell" &&
+    (jsonLdProducts.length > 0 || dynamicData.attributes.length > 0 || embeddedTableData.attributes.length > 0);
 
   $("[data-row-data]").each((_, element) => {
     for (const attr of parseDataRowAttributes($(element).attr("data-row-data"), fetched.effectiveUrl, catalogNumber)) {
@@ -498,21 +509,43 @@ export function parseGenericProductPage(
       });
     }
   });
+  let rockwellSubstageStartedAt = Date.now();
   attributes.push(...extractCertificationAttributes($, fetched.effectiveUrl));
+  if (rockwellDebug) console.info(`[rockwell:timing] generic-certificates ${Date.now() - rockwellSubstageStartedAt}ms`);
+  rockwellSubstageStartedAt = Date.now();
   attributes.push(...extractProductSectionAttributes($, fetched.effectiveUrl));
+  if (rockwellDebug) console.info(`[rockwell:timing] generic-product-sections ${Date.now() - rockwellSubstageStartedAt}ms`);
+  rockwellSubstageStartedAt = Date.now();
   attributes.push(...extractLabeledSpecAttributes($, fetched.effectiveUrl));
+  if (rockwellDebug) console.info(`[rockwell:timing] generic-labeled-specs ${Date.now() - rockwellSubstageStartedAt}ms`);
+  rockwellSubstageStartedAt = Date.now();
   const htmlTables = readHtmlTableAttributes($, catalogNumber, fetched.effectiveUrl);
   attributes.push(...htmlTables.attributes);
+  if (rockwellDebug) console.info(`[rockwell:timing] generic-html-tables ${Date.now() - rockwellSubstageStartedAt}ms`);
   // The table reader has already selected the one target column. Generic semantic fallbacks must
   // not put an unselected sibling column back into the result afterwards.
+  rockwellSubstageStartedAt = Date.now();
   attributes.push(...extractSemanticSpecAttributes($, fetched.effectiveUrl, catalogNumber, htmlTables.handledTables));
+  if (rockwellDebug) console.info(`[rockwell:timing] generic-semantic-specs ${Date.now() - rockwellSubstageStartedAt}ms`);
+  rockwellSubstageStartedAt = Date.now();
   attributes.push(...extractSchemaPropertyValueAttributes($, fetched.effectiveUrl));
+  if (rockwellDebug) console.info(`[rockwell:timing] generic-schema-specs ${Date.now() - rockwellSubstageStartedAt}ms`);
+  rockwellSubstageStartedAt = Date.now();
   attributes.push(...extractCatalogVariantOptionAttributes($, catalogNumber, fetched.effectiveUrl));
+  if (rockwellDebug) console.info(`[rockwell:timing] generic-variant-options ${Date.now() - rockwellSubstageStartedAt}ms`);
+  rockwellSubstageStartedAt = Date.now();
   attributes.push(...extractSectionAwareSpecAttributes($, fetched.effectiveUrl));
+  if (rockwellDebug) console.info(`[rockwell:timing] generic-section-aware-specs ${Date.now() - rockwellSubstageStartedAt}ms`);
+  rockwellSubstageStartedAt = Date.now();
   attributes.push(...extractHeadingValueSpecAttributes($, fetched.effectiveUrl));
-  attributes.push(...extractPageWideSpecAttributes($, catalogNumber, fetched.effectiveUrl, htmlTables.handledTables));
+  if (rockwellDebug) console.info(`[rockwell:timing] generic-heading-specs ${Date.now() - rockwellSubstageStartedAt}ms`);
+  rockwellSubstageStartedAt = Date.now();
+  attributes.push(...extractPageWideSpecAttributes($, catalogNumber, fetched.effectiveUrl, htmlTables.handledTables, rockwellDebug, rockwellStructuredFastPath));
+  if (rockwellDebug) console.info(`[rockwell:timing] generic-page-wide-specs ${Date.now() - rockwellSubstageStartedAt}ms`);
   attributes.push(...extractSummaryAttributes(title, description, fetched.effectiveUrl));
+  if (rockwellDebug) console.info(`[rockwell:timing] generic-dom-specs ${Date.now() - genericStageStartedAt}ms`);
 
+  genericStageStartedAt = Date.now();
   $("dt").each((_, element) => {
     const name = cleanText($(element).text());
     const value = cleanText($(element).next("dd").text());
@@ -521,6 +554,9 @@ export function parseGenericProductPage(
     }
   });
 
+  genericStageStartedAt = Date.now();
+  if (rockwellDebug) console.info(`[rockwell:timing] generic-definition-list ${Date.now() - genericStageStartedAt}ms`);
+  genericStageStartedAt = Date.now();
   $("li,p").slice(0, 600).each((_, element) => {
     const pair = splitNameValue($(element).text());
     if (pair) {
@@ -544,42 +580,66 @@ export function parseGenericProductPage(
       attributes.push({ group: "Certifications", name: "Certification", value: text, sourceUrl: fetched.effectiveUrl });
     }
   });
-
-  attributes.push(
-    ...withoutSiblingListingRows(extractPlainTextAttributes(fetched.text, fetched.effectiveUrl), attributes)
-  );
+  if (rockwellDebug) console.info(`[rockwell:timing] generic-list-text ${Date.now() - genericStageStartedAt}ms`);
+  let textStageStartedAt = Date.now();
+  if (!rockwellStructuredFastPath) {
+    attributes.push(
+      ...withoutSiblingListingRows(extractPlainTextAttributes(fetched.text, fetched.effectiveUrl), attributes)
+    );
+  }
+  if (rockwellDebug) console.info(`[rockwell:timing] generic-plain-text ${Date.now() - textStageStartedAt}ms fast=${rockwellStructuredFastPath}`);
   if (manufacturerId === "phoenix") {
     attributes.push(...extractPhoenixSummaryAttributes(fetched.text, fetched.effectiveUrl));
     attributes.push(...extractPhoenixDimensionAttributes(fetched.text, fetched.effectiveUrl));
     attributes.push(...extractPhoenixSupplyVoltageAttributes(fetched.text, fetched.effectiveUrl));
     attributes.push(...extractPhoenixContextualElectricalAttributes(fetched.text, fetched.effectiveUrl));
   }
-  attributes.push(...extractKnownPlainTextSpecAttributes(fetched.text, fetched.effectiveUrl));
-  attributes.push(...extractElectricalSpecAttributesFromText({
-    text: fetched.text,
-    sourceUrl: fetched.effectiveUrl,
-    group: "Electrical Text"
-  }));
+  textStageStartedAt = Date.now();
+  if (!rockwellStructuredFastPath) attributes.push(...extractKnownPlainTextSpecAttributes(fetched.text, fetched.effectiveUrl));
+  if (rockwellDebug) console.info(`[rockwell:timing] generic-known-plain-specs ${Date.now() - textStageStartedAt}ms`);
+  textStageStartedAt = Date.now();
+  if (!rockwellStructuredFastPath) {
+    attributes.push(...extractElectricalSpecAttributesFromText({
+      text: fetched.text,
+      sourceUrl: fetched.effectiveUrl,
+      group: "Electrical Text"
+    }));
+  }
+  if (rockwellDebug) console.info(`[rockwell:timing] generic-electrical-text ${Date.now() - textStageStartedAt}ms`);
   if (manufacturerId === "phoenix") {
     attributes.push(...extractPhoenixSurgeNominalDischargeCurrent(fetched.text, fetched.effectiveUrl));
     attributes.push(...extractPhoenixSwitchCurrentConsumption(fetched.text, fetched.effectiveUrl));
   }
-  attributes.push(...extractOntologySpecAttributesFromText({
-    text: fetched.text,
-    sourceUrl: fetched.effectiveUrl,
-    group: "Ontology Spec Text"
-  }));
-  documents.push(...extractPlainTextDocumentLinks(fetched.text, fetched.effectiveUrl, catalogNumber, options));
-  documents.push(...extractHiddenDocumentLinks($, fetched.text, fetched.effectiveUrl, catalogNumber, options));
+  textStageStartedAt = Date.now();
+  if (!rockwellStructuredFastPath) {
+    attributes.push(...extractOntologySpecAttributesFromText({
+      text: fetched.text,
+      sourceUrl: fetched.effectiveUrl,
+      group: "Ontology Spec Text"
+    }));
+  }
+  if (rockwellDebug) console.info(`[rockwell:timing] generic-ontology-text ${Date.now() - textStageStartedAt}ms`);
+  genericStageStartedAt = Date.now();
+  // Structured Rockwell PDPs already expose their documents through embedded data and DOM anchors.
+  // Avoid rescanning the full 1 MB serialized page for duplicate prose URLs; hidden DOM links and
+  // the regular anchor pass below remain active.
+  if (!rockwellStructuredFastPath) documents.push(...extractPlainTextDocumentLinks(fetched.text, fetched.effectiveUrl, catalogNumber, options));
+  documents.push(...extractHiddenDocumentLinks(
+    $, fetched.text, fetched.effectiveUrl, catalogNumber, options, !rockwellStructuredFastPath
+  ));
+  if (rockwellDebug) console.info(`[rockwell:timing] generic-text-doc-links ${Date.now() - genericStageStartedAt}ms`);
   if (manufacturerId === "phoenix") {
     const phoenixDatasheet = phoenixProductDetailsPdf(title, catalogNumber, fetched.effectiveUrl);
     if (phoenixDatasheet) documents.push(phoenixDatasheet);
   }
 
+  genericStageStartedAt = Date.now();
   const markerData = extractMarkerData(fetched.text, options.markerRules, fetched.effectiveUrl);
   attributes.push(...markerData.attributes);
   documents.push(...markerData.documents);
+  if (rockwellDebug) console.info(`[rockwell:timing] generic-marker-extract ${Date.now() - genericStageStartedAt}ms`);
 
+  genericStageStartedAt = Date.now();
   $("a[href]").each((_, element) => {
     const href = $(element).attr("href");
     if (!href) return;
@@ -623,6 +683,7 @@ export function parseGenericProductPage(
     });
   });
 
+  if (rockwellDebug) console.info(`[rockwell:timing] generic-anchor-doc-links ${Date.now() - genericStageStartedAt}ms total=${Date.now() - genericParseStartedAt}ms`);
   const matched = catalogTextMatches(fetched.text, catalogNumber, options.match);
   if ((options.match?.requireCatalogNumber ?? true) && !matched) {
     return emptyResult(manufacturerId, catalogNumber, "Fallback page did not contain the catalog number.");
@@ -2866,15 +2927,27 @@ function extractPageWideSpecAttributes(
   $: cheerio.CheerioAPI,
   catalogNumber: string,
   sourceUrl: string,
-  handledTables: ReadonlySet<unknown> = new Set()
+  handledTables: ReadonlySet<unknown> = new Set(),
+  debugRockwell = false,
+  skipRedundantRockwellFallbacks = false
 ): AttributeRecord[] {
-  return dedupeAttributes([
-    ...extractHeaderMappedTableAttributes($, catalogNumber, sourceUrl, handledTables),
-    ...extractLooseChildPairAttributes($, sourceUrl),
-    ...extractAlternatingSpecGridAttributes($, sourceUrl),
-    ...extractResponsiveCellAttributes($, sourceUrl, handledTables),
-    ...extractAriaReferencedAttributes($, sourceUrl, handledTables)
-  ]).slice(0, 240);
+  const attributes: AttributeRecord[] = [];
+  let startedAt = Date.now();
+  attributes.push(...extractHeaderMappedTableAttributes($, catalogNumber, sourceUrl, handledTables));
+  if (debugRockwell) console.info(`[rockwell:timing] generic-pagewide-header-tables ${Date.now() - startedAt}ms`);
+  startedAt = Date.now();
+  if (!skipRedundantRockwellFallbacks) attributes.push(...extractLooseChildPairAttributes($, sourceUrl));
+  if (debugRockwell) console.info(`[rockwell:timing] generic-pagewide-loose-pairs ${Date.now() - startedAt}ms skipped=${skipRedundantRockwellFallbacks}`);
+  startedAt = Date.now();
+  attributes.push(...extractAlternatingSpecGridAttributes($, sourceUrl));
+  if (debugRockwell) console.info(`[rockwell:timing] generic-pagewide-alternating ${Date.now() - startedAt}ms`);
+  startedAt = Date.now();
+  attributes.push(...extractResponsiveCellAttributes($, sourceUrl, handledTables));
+  if (debugRockwell) console.info(`[rockwell:timing] generic-pagewide-responsive ${Date.now() - startedAt}ms`);
+  startedAt = Date.now();
+  if (!skipRedundantRockwellFallbacks) attributes.push(...extractAriaReferencedAttributes($, sourceUrl, handledTables));
+  if (debugRockwell) console.info(`[rockwell:timing] generic-pagewide-aria ${Date.now() - startedAt}ms skipped=${skipRedundantRockwellFallbacks}`);
+  return dedupeAttributes(attributes).slice(0, 240);
 }
 
 function extractHeaderMappedTableAttributes(
@@ -3073,35 +3146,46 @@ function extractAriaReferencedAttributes(
   handledTables: ReadonlySet<unknown> = new Set()
 ): AttributeRecord[] {
   const attributes: AttributeRecord[] = [];
-  $("[aria-labelledby],[aria-describedby]")
-    .slice(0, 700)
-    .each((_, element) => {
+  const candidates = $("[aria-labelledby],[aria-describedby]").slice(0, 700).toArray();
+  const referencedIds = new Set<string>();
+  for (const element of candidates) {
+    for (const id of `${$(element).attr("aria-labelledby") ?? ""} ${$(element).attr("aria-describedby") ?? ""}`.split(/\s+/)) {
+      if (id) referencedIds.add(id);
+    }
+  }
+  // Resolve all referenced labels in one DOM pass. Searching every `[id]` node separately for
+  // each aria relationship made a large Rockwell PDP quadratic (700 relationships × thousands
+  // of ids), even though the relevant property rows were already available in the HTML tables.
+  const textById = new Map<string, string>();
+  if (referencedIds.size) {
+    $("[id]").each((_, element) => {
+      const id = $(element).attr("id");
+      if (!id || !referencedIds.has(id) || textById.has(id)) return;
+      textById.set(id, cleanSectionValue($(element).text()));
+    });
+  }
+  for (const element of candidates) {
       const table = $(element).closest("table").get(0);
-      if (table && handledTables.has(table)) return;
-      if (isNavigationLike($, element)) return;
-      // Accordion panels commonly reference their heading via aria-labelledby.
-      // When the panel is itself a multi-row grid, that relationship names the
-      // group and must not manufacture `heading = every row in the panel`.
-      if (hasNestedSpecGrid($, element) || hasNestedLeafSpecRow($, element)) return;
-      const labelText = referencedElementText($, $(element).attr("aria-labelledby"));
-      const describedText = referencedElementText($, $(element).attr("aria-describedby"));
+      if (table && handledTables.has(table)) continue;
+      if (isNavigationLike($, element)) continue;
+      const labelText = referencedElementText(textById, $(element).attr("aria-labelledby"));
+      const describedText = referencedElementText(textById, $(element).attr("aria-describedby"));
       const ownText = cleanSectionValue($(element).text());
       const name = cleanSpecPairLabel(labelText || ariaPairLabelFromOwnText(ownText));
       const valueSource = describedText || (labelText ? ownText : undefined);
       const value = cleanSpecPairValue(valueSource, name);
-      if (!isUsefulSectionAwareSpecPair(name, value)) return;
+      if (!isUsefulSectionAwareSpecPair(name, value)) continue;
+      // Accordion panels commonly reference their heading via aria-labelledby. Only run the
+      // bounded grid checks after a real spec pair survives; most aria relationships are UI labels.
+      if (hasNestedSpecGrid($, element) || hasNestedLeafSpecRow($, element)) continue;
       attributes.push({ group: loosePairGroup($, element), name, value, sourceUrl });
-    });
+  }
   return dedupeAttributes(attributes).slice(0, 120);
 }
 
-function referencedElementText($: cheerio.CheerioAPI, idList: string | undefined): string | undefined {
+function referencedElementText(textById: Map<string, string>, idList: string | undefined): string | undefined {
   const ids = cleanText(idList).split(/\s+/).filter(Boolean).slice(0, 5);
-  const values: string[] = [];
-  for (const id of ids) {
-    const text = cleanSectionValue($("[id]").filter((_, element) => $(element).attr("id") === id).first().text());
-    if (text) values.push(text);
-  }
+  const values = ids.map((id) => textById.get(id)).filter((text): text is string => Boolean(text));
   return values.length ? uniqueStringValues(values).join(" ") : undefined;
 }
 
@@ -4035,7 +4119,8 @@ function extractHiddenDocumentLinks(
   text: string,
   sourceUrl: string,
   catalogNumber: string,
-  options: GenericParseOptions
+  options: GenericParseOptions,
+  includePlainTextScan = true
 ): DocumentRecord[] {
   const documents: DocumentRecord[] = [];
   const add = (rawUrl: string | undefined, label: string, context: string) => {
@@ -4086,8 +4171,10 @@ function extractHiddenDocumentLinks(
     add($(element).attr("content"), cleanText(name), cleanText([$("h1").first().text(), $("title").first().text()].filter(Boolean).join(" ")));
   });
 
-  for (const found of findDocumentUrlsInText(text, sourceUrl)) {
-    add(found.url, found.label, found.context);
+  if (includePlainTextScan) {
+    for (const found of findDocumentUrlsInText(text, sourceUrl)) {
+      add(found.url, found.label, found.context);
+    }
   }
 
   return dedupeDocuments(documents).slice(0, 100);

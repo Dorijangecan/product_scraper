@@ -11,6 +11,7 @@ import { FIELD_REGISTRY, fieldAttributeLabel, fieldMatchesLabel, type RegistryFi
 import { evidenceConfidence } from "./evidence-score.js";
 import { catalogTextMatches } from "./catalog-number.js";
 import { cleanText, isSchneiderM221OutputCurrent, isSchneiderPendantStation, isSchneiderSafetyLightCurtain, normalizeFields } from "./normalizer.js";
+import { applyRockwellNormalizedOverrides } from "./rockwell.js";
 import { isQuantityPlausible, parseQuantities, type QuantityKind } from "./quantity.js";
 
 const NORMALIZED_FIELDS = new Set<keyof NormalizedProductFields>([
@@ -113,6 +114,9 @@ export function applyFieldCandidateResolution(result: ProductResult): ProductRes
     if (dualRangeVoltage) normalized.voltage = dualRangeVoltage;
     applyExactSchneiderDescriptionFields(result, normalized);
     if (hasSchneiderNetPackageWeightConflict(result.attributes)) delete normalized.weight;
+  }
+  if (result.manufacturerId === "rockwell") {
+    applyRockwellNormalizedOverrides(normalized, result.catalogNumber, result.attributes);
   }
 
   return {

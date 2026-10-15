@@ -1,0 +1,37 @@
+[
+  {
+    "manufacturerId":"rockwell","catalogNumber":"25B-D2P3N104","caseType":"electrical","expectedDeviceType":"Variable Speed Drive","riskTags":["cold","powerflex-525","ac-drive","0.75kw","480v-3phase"],
+    "expectedOfficialUrlPatterns":["rockwellautomation\\.com/en-us/products/details\\.25b-d2p3n104\\.html"],"requiredDocuments":["datasheet"],
+    "expectedNormalizedFields":["voltage","current","dimensions","weight","protection"],"expectedBlankNormalizedFields":["operatingTemperatureMin","operatingTemperatureMax"],
+    "expectedNormalizedPatterns":{"voltage":"380.*480 V AC","current":"^2\\.3 A$","weight":"^1\\.361 kg$","protection":"IP20"},
+    "expectedAttributePatterns":["Voltage Class.*380.*480.*AC.*3 Phase","Output Current Rating.*2\\.3 A"]
+  },
+  {
+    "manufacturerId":"rockwell","catalogNumber":"100-C09D10","caseType":"electrical","expectedDeviceType":"Contactor","riskTags":["cold","iec-contactor","9a","1no","120vac-coil"],
+    "expectedOfficialUrlPatterns":["rockwellautomation\\.com/en-us/products/details\\.100-c09d10\\.html"],"requiredDocuments":["datasheet"],
+    "expectedNormalizedFields":["voltage","current","dimensions","weight"],"expectedBlankNormalizedFields":["protection","operatingTemperatureMin","operatingTemperatureMax"],
+    "expectedNormalizedPatterns":{"voltage":"110 V AC at 50 Hz; 120 V AC at 60 Hz","current":"^9 A$"},
+    "expectedAttributePatterns":["Control coil voltage.*110 V AC at 50 Hz; 120 V AC at 60 Hz","Maximum Load Current.*9 A"]
+  },
+  {
+    "manufacturerId":"rockwell","catalogNumber":"140MT-C3E-B25","caseType":"electrical","expectedDeviceType":"Motor Circuit Breaker","riskTags":["cold","motor-protection-circuit-breaker","1.6-2.5a","frame-c"],
+    "expectedOfficialUrlPatterns":["rockwellautomation\\.com/en-us/products/details\\.140mt-c3e-b25\\.html"],"requiredDocuments":["datasheet"],
+    "expectedNormalizedFields":["voltage","current","dimensions","weight"],
+    "expectedNormalizedPatterns":{"voltage":"^480 V 60Hz$","current":"^1\\.6\\.\\.\\.2\\.5 A$","weight":"^0\\.277 kg$"},
+    "expectedAttributePatterns":["Thermal Current Range.*1\\.6.*2\\.5 A","Supply Voltage.*480V 60Hz"]
+  },
+  {
+    "manufacturerId":"rockwell","catalogNumber":"440R-S13R2","caseType":"electrical","expectedDeviceType":"Safety Relay","riskTags":["cold","guardmaster","single-input-safety-relay","24vdc"],
+    "expectedOfficialUrlPatterns":["rockwellautomation\\.com/en-us/products/details\\.440r-s13r2\\.html"],"requiredDocuments":["datasheet","image"],
+    "expectedNormalizedFields":["voltage","dimensions","weight","protection"],"expectedBlankNormalizedFields":["current"],
+    "expectedNormalizedPatterns":{"voltage":"^24 V DC$","protection":"^IP40 \\(NEMA 1\\)$","weight":"^0\\.245 kg$"},
+    "expectedAttributePatterns":["Power Supply.*24V DC","Continuous safety output current.*AC-15: 1\\.5 A/250V AC, DC-13: 2 A/24V DC"]
+  },
+  {
+    "manufacturerId":"rockwell","catalogNumber":"871TM-M5NP18-D4","caseType":"electrical","expectedDeviceType":"Inductive Proximity Sensor","riskTags":["cold","full-stainless-io-link-sensor","18mm","5mm-sensing","pnp-normally-open","active"],
+    "expectedOfficialUrlPatterns":["rockwellautomation\\.com/en-us/products/details\\.871tm-m5np18-d4\\.html"],"requiredDocuments":["datasheet"],
+    "expectedNormalizedFields":["voltage","dimensions","protection","weight","material","operatingTemperatureMin","operatingTemperatureMax"],"expectedBlankNormalizedFields":["current"],
+    "expectedNormalizedPatterns":{"voltage":"^10\\.\\.\\.30 V DC$","dimensions":"^18 x 63\\.5 mm$","protection":"^IP68, IP69K$","weight":"^0\\.101 kg$","operatingTemperatureMin":"^-25$","operatingTemperatureMax":"^85$"},
+    "expectedAttributePatterns":["Supply voltage.*10 to 30 V","Diameter sensor.*18 mm","Length of sensor.*63\\.5 mm","Degree of protection.*IP68, IP69K"]
+  }
+]

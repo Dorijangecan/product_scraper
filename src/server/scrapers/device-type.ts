@@ -104,7 +104,7 @@ const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
   rule("Encoder", /\b(?:rotary encoders?|absolute encoders?|incremental encoders?|encoders?)\b/i, 840),
   rule("Solenoid Interlock", /\b(?:solenoid interlock|electromechanical guard lock(?:ing)?|safety interlock with solenoid|electromagnetic interlock)\b/i, 950),
   rule("Safety Sensor", /\b(?:safety sensor|safety light curtain|light curtain|safety mat|safety scanner|laser scanner|safety edge|two[-\s]?hand control|safety interlock|guard locking|guard[-\s]?lock(?:ing)? switch|safety door switch|door interlock)\b/i, 838),
-  rule("Limit Switch", /\b(?:mechanical\s+(?:single|multiple)\s+position\s+limit switches?|limit switches?|position switches?)\b/i, 825),
+  rule("Limit Switch", /\b(?:mechanical\s+(?:single|multiple)\s+position\s+limit\s+switch(?:es)?|limit\s+switch(?:es)?|position\s+switch(?:es)?)\b/i, 825),
   rule("Sensor", /\b(?:sensors?|sensing|detector|measuring range|measuring principle)\b/i, 620),
 
   // --- Protection & control (specific breakers/starters first) ---
@@ -126,7 +126,10 @@ const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
   // require the umlaut (ü) or its ue transliteration.
   rule("Contactor", /\b(?:contactor|contactor relay|kontaktor|sch(?:ü|ue)tz|contattore|contacteur|contact kit|contact tip kit|main contact kit|replacement contacts?)\b/i, 800),
   rule("Relay", /\b(?:interface relay|coupling relay|plug-?in relay|timer relay|time relays?|monitoring relay|relais|relej|\brelay\b)\b/i, 790),
-  rule("Soft Starter", /\bsoft[-\s]?starter\b/i, 785),
+  // Rockwell's SMC-3 is labeled a smart motor controller on the PDP, but its exact source
+  // identifies it as a soft starter; do not let the generic word "motor" win classification.
+  rule("Soft Starter", /\bSMC[-\s]?3\b[\s\S]{0,100}\bsmart motor controller\b|\bsoft[-\s]?starter\b/i, 965),
+  rule("Line Reactor", /\b(?:three[-\s]?phase\s+)?line reactors?\b/i, 950),
   rule("Variable Speed Drive", /\b(?:variable speed drive|variable frequency drive|\bvfd\b|frequency (?:converter|inverter)|\bvsd\b|servo drive|ac drive|motor drive|inverter drive)\b|(?:\u53d8\u9891\u5668|\u53d8\u9891\u9a71\u52a8|\u9891\u7387\u8f6c\u6362\u5668)/i, 780),
   rule("Motor Starter", /\b(?:hybrid motor starter|electronic motor starter|motor starter|starter combination|reversing starter|direct[-\s]?on[-\s]?line starter|\bdol starter\b)\b/i, 1005),
   rule("Fuse Switch Disconnector", /\bfuse\s+switch\s+disconnector\b|\bfuse[-\s]?switch\s+disconnector\b/i, 980),

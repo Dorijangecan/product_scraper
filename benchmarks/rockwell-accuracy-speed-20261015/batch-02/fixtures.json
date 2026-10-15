@@ -1,0 +1,64 @@
+[
+  {
+    "manufacturerId": "rockwell",
+    "catalogNumber": "1497-B-M1-0-N",
+    "caseType": "electrical",
+    "expectedDeviceType": "Transformer",
+    "riskTags": ["cold", "control-circuit-transformer", "80va", "240-208v-primary", "120v-secondary"],
+    "expectedOfficialUrlPatterns": ["rockwellautomation\\.com/en-us/products/details\\.1497-b-m1-0-n\\.html"],
+    "requiredDocuments": ["datasheet"],
+    "expectedNormalizedFields": ["voltage", "dimensions"],
+    "expectedBlankNormalizedFields": ["weight"],
+    "expectedNormalizedPatterns": {"voltage": "Primary 240/208 V AC, 60 Hz; secondary 120 V AC, 60 Hz", "dimensions": "88\\.90 x 73\\.91 x 98\\.00 mm"},
+    "expectedAttributePatterns": ["Primary voltage.*240/208V.*60 Hz", "Secondary voltage.*120V.*60 Hz", "Rated apparent power.*80 VA", "Shipping weight, approx.*4.5 lb", "Width.*88.90 mm", "Height.*73.91 mm", "Depth.*98.00 mm"]
+  },
+  {
+    "manufacturerId": "rockwell",
+    "catalogNumber": "1420-V1P",
+    "caseType": "electrical",
+    "expectedDeviceType": "Power Meter",
+    "riskTags": ["cold", "powermonitor-500", "power-meter", "120v-ln", "208v-ll"],
+    "expectedOfficialUrlPatterns": ["rockwellautomation\\.com/en-us/products/details\\.1420-v1p\\.html"],
+    "requiredDocuments": ["manual"],
+    "expectedNormalizedFields": ["voltage", "current", "protection", "operatingTemperatureMin", "operatingTemperatureMax"],
+    "expectedBlankNormalizedFields": ["dimensions", "weight"],
+    "expectedNormalizedPatterns": {"voltage": "120 V AC line-to-neutral; 208 V AC line-to-line", "current": "5 A nominal; 6 A maximum CT input", "protection": "Front: IP65, NEMA 4X, NEMA 12", "operatingTemperatureMin": "-25 °C", "operatingTemperatureMax": "40 °C"},
+    "expectedAttributePatterns": ["Voltage sensing.*120V AC LN, 208V AC LL", "Current sensing model.*5 A.*6A", "Front protection degree.*IP65.*NEMA 4X.*NEMA 12", "Operating temperature.*-25.*40"]
+  },
+  {
+    "manufacturerId": "rockwell",
+    "catalogNumber": "1321-3R80-B",
+    "caseType": "electrical",
+    "expectedDeviceType": "Line Reactor",
+    "riskTags": ["cold", "three-phase-line-reactor", "80a", "0.4mh"],
+    "expectedOfficialUrlPatterns": ["rockwellautomation\\.com/en-us/products/details\\.1321-3r80-b\\.html"],
+    "requiredDocuments": ["datasheet"],
+    "expectedNormalizedFields": ["current", "voltage", "dimensions", "weight"],
+    "expectedNormalizedPatterns": {"current": "80 A", "voltage": "600 V AC maximum", "dimensions": "27\\.9 x 30\\.5 x 30\\.5 cm", "weight": "18\\.6 kg"},
+    "expectedAttributePatterns": ["Rating.*80 Amps.*0\\.4 mh"]
+  },
+  {
+    "manufacturerId": "rockwell",
+    "catalogNumber": "802T-AMTH",
+    "caseType": "electrical",
+    "expectedDeviceType": "Limit Switch",
+    "riskTags": ["cold", "standard-limit-switch", "maintained-contact", "nema-4-13"],
+    "expectedOfficialUrlPatterns": ["rockwellautomation\\.com/en-us/products/details\\.802t-amth\\.html"],
+    "requiredDocuments": ["datasheet"],
+    "expectedBlankNormalizedFields": ["voltage", "current"],
+    "expectedNormalizedPatterns": {"protection": "NEMA 4/13 oiltight"},
+    "expectedAttributePatterns": ["Operating Temperature.*-18C,54C", "NEMA Type 4 and 13", "Maintained Contact", "Representative Rendering, Not The Actual Product"]
+  },
+  {
+    "manufacturerId": "rockwell",
+    "catalogNumber": "150-C30NBD",
+    "caseType": "electrical",
+    "expectedDeviceType": "Soft Starter",
+    "riskTags": ["cold", "smc-3", "30a-smart-motor-controller", "480v-3phase", "multiple-current-contexts"],
+    "expectedOfficialUrlPatterns": ["rockwellautomation\\.com/en-us/products/details\\.150-c30nbd\\.html"],
+    "requiredDocuments": ["datasheet"],
+    "expectedNormalizedFields": ["voltage", "current", "dimensions", "weight", "protection", "operatingTemperatureMin", "operatingTemperatureMax"],
+    "expectedNormalizedPatterns": {"voltage": "200\\.\\.\\.480 V AC operating range; 480 V AC, 3-phase product variant", "current": "30 A main-circuit rating", "dimensions": "44\\.8 x 139\\.7 x 110 mm", "weight": "0\\.86 kg", "protection": "IP2X", "operatingTemperatureMin": "-5 °C", "operatingTemperatureMax": "50 °C"},
+    "expectedAttributePatterns": ["Rated current.*30 A", "Rated voltage.*480 V", "Control Voltage.*100.*240 V AC", "Type of Protection.*IP2X", "Representative Rendering, Not The Actual Product"]
+  }
+]
