@@ -172,6 +172,30 @@ export class GenericFallbackScraper {
     const policy = { ...this.manufacturer?.fetchPolicy, ...source.fetchPolicy };
     const headers = fetchHeaders(policy);
     const etaDebug = this.manufacturerId === "eta" && process.env.DEBUG_ETA_TIMINGS === "1";
+    const knownEtaProductPage =
+      this.manufacturerId === "eta" &&
+      (source.id.startsWith("eta-direct-") || source.id.startsWith("eta-product-"));
+    if (knownEtaProductPage) {
+      // On measured E-T-A product-page requests, got-scraping intermittently waited through the
+      // whole short PDP timeout before fetchText's curl fallback returned the same page quickly.
+      // Try that existing bounded curl transport first on learned exact PDP routes; keep got-
+      // scraping as fallback, and leave the exact URL/content/catalog checks intact.
+      try {
+        const startedAt = Date.now();
+        const fetched = await this.http.fetchTextViaCurl(url, {
+          timeoutMs: policy.timeoutMs ?? 15000,
+          cacheTtlMs: policy.cacheTtlMs,
+          maxAttempts: policy.maxAttempts,
+          headers,
+          signal
+        });
+        if (etaDebug) console.info(`[eta:timing] ${source.id} curl-primary ${Date.now() - startedAt}ms status=${fetched.statusCode} chars=${fetched.text.length}`);
+        if (hasEnoughContent(fetched, policy)) return fetched;
+      } catch (error) {
+        if (etaDebug) console.info(`[eta:timing] ${source.id} curl-primary failed: ${error instanceof Error ? error.message : String(error)}`);
+        if (isCancellationError(error, signal)) throw error;
+      }
+    }
     if (this.manufacturerId === "eta" && source.id.startsWith("eta-direct-")) {
       // Learned ETA PDPs are exact single-source routes. The HTTP client already has its
       // bounded transport fallback; do not add the 30s PowerShell rescue to a known route.

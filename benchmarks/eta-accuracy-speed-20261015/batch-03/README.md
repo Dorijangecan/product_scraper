@@ -74,4 +74,23 @@ Two full isolated cold passes after this optimization each passed all accuracy a
 | `PFA10-T 40 A, DC 24 V` | 439 ms | 443 ms |
 | **Mean / median / max** | **1,795 / 816 / 5,775 ms** | **1,791 / 857 / 5,640 ms** |
 
-Both runs remain above the per-device target for Module 18plus because its exact official page fetch took about 5.6 seconds. The parser fast path is successful, but batch 03 is **not yet speed-accepted**. Reports: `benchmark-report.manufacturer-eta.limit-5.fixtureDir-benchmarks-eta-accuracy-speed-20261015-batch-03.isolatedStorage-1.tag-eta-batch03-structured-fastpath-cold-01.json` and `benchmark-report.manufacturer-eta.limit-5.fixtureDir-benchmarks-eta-accuracy-speed-20261015-batch-03.isolatedStorage-1.tag-eta-batch03-structured-fastpath-cold-02.json`.
+Those two runs were an intermediate result: the official `Module 18plus` request took about 5.6 seconds after got-scraping reached its configured timeout and the existing `curl` rescue finally returned the page. The parser fast path reduced CPU work, but the transport still spent the timeout before recovering. Reports: `benchmark-report.manufacturer-eta.limit-5.fixtureDir-benchmarks-eta-accuracy-speed-20261015-batch-03.isolatedStorage-1.tag-eta-batch03-structured-fastpath-cold-01.json` and `benchmark-report.manufacturer-eta.limit-5.fixtureDir-benchmarks-eta-accuracy-speed-20261015-batch-03.isolatedStorage-1.tag-eta-batch03-structured-fastpath-cold-02.json`.
+
+## Bounded curl-first route and final cold passes
+
+Four direct `curl.exe` probes of the exact official 18plus page returned HTTP 200, the requested product text, and its 100 A rating in 370–570 ms. In a full cold benchmark with phase logging, the existing got-scraping-first path spent 5,563 ms on 18plus before its internal curl rescue returned the page; the parser itself took 212 ms. This identified a wasted wait against the route's five-second timeout.
+
+Learned ETA exact-PDP routes now try the existing bounded curl transport first, checking the same minimum-content threshold. If curl fails or returns too little content, the prior got-scraping/fallback path remains available. The parser still requires the exact requested catalog number and all existing quality gates. The change applies to learned ETA routes as a group, not to one SKU.
+
+Two isolated full cold runs after this transport change passed all five accuracy gates, including exact official URLs, documents and images, device type, normalized fields, source assertions and PDT audit. Wrong products: 0; unproven PDT writes: 0. Every core scrape was below 2.5 seconds:
+
+| Model | Curl-first cold 01 | Curl-first cold 02 |
+| --- | ---: | ---: |
+| `2210-S2` | 920 ms | 869 ms |
+| `CPC20PN-T2` | 840 ms | 687 ms |
+| `Module 18plus` | 1,305 ms | 1,829 ms |
+| `MPR20` | 690 ms | 671 ms |
+| `PFA10-T 40 A, DC 24 V` | 657 ms | 650 ms |
+| **Mean / median / max** | **882 / 840 / 1,305 ms** | **941 / 687 / 1,829 ms** |
+
+The final core-scrape means are 38.2% and 34.1% below the 1,428 ms mean of the two weight-corrected pre-transport passes, respectively; all five devices also meet the per-device ceiling on both final passes. The complete benchmark still takes longer because it includes PDF/image downloads, enrichment and export. Reports: `benchmark-report.manufacturer-eta.limit-5.fixtureDir-benchmarks-eta-accuracy-speed-20261015-batch-03.isolatedStorage-1.tag-eta-batch03-curl-primary-cold-01.json`, `benchmark-report.manufacturer-eta.limit-5.fixtureDir-benchmarks-eta-accuracy-speed-20261015-batch-03.isolatedStorage-1.tag-eta-batch03-curl-primary-cold-02.json`, and phase trace `benchmark-report.manufacturer-eta.limit-5.fixtureDir-benchmarks-eta-accuracy-speed-20261015-batch-03.isolatedStorage-1.tag-eta-batch03-http-phases-cold-01.json`.
