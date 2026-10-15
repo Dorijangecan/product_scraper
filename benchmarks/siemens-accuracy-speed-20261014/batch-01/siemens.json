@@ -1,0 +1,52 @@
+[
+  {
+    "manufacturerId": "siemens",
+    "catalogNumber": "3RP2525-1AW30",
+    "caseType": "electrical",
+    "expectedDeviceType": "Relay",
+    "riskTags": ["cold", "sirius", "timing-relay", "on-delay", "wide-ac-dc-range"],
+    "expectedOfficialUrlPatterns": ["mall\\.industry\\.siemens\\.com"],
+    "expectedNormalizedFields": ["voltage", "current"],
+    "requiredDocuments": ["datasheet"]
+  },
+  {
+    "manufacturerId": "siemens",
+    "catalogNumber": "7KM2200-2EA30-1EA1",
+    "caseType": "electrical",
+    "expectedDeviceType": "Power Meter",
+    "riskTags": ["cold", "sentron", "energy-meter", "3-phase", "modbus-tcp", "current-transformer-input"],
+    "expectedOfficialUrlPatterns": ["mall\\.industry\\.siemens\\.com"],
+    "expectedNormalizedFields": ["voltage", "current"],
+    "requiredDocuments": ["datasheet"]
+  },
+  {
+    "manufacturerId": "siemens",
+    "catalogNumber": "6ES7155-6MU01-0CN0",
+    "caseType": "electrical",
+    "expectedDeviceType": "I/O Module",
+    "riskTags": ["cold", "simatic", "et200sp", "multifieldbus", "interface-module", "active-successor"],
+    "expectedOfficialUrlPatterns": ["mall\\.industry\\.siemens\\.com"],
+    "expectedNormalizedFields": ["voltage"],
+    "requiredDocuments": ["datasheet"]
+  },
+  {
+    "manufacturerId": "siemens",
+    "catalogNumber": "6AV2123-2GB03-0AX0",
+    "caseType": "electrical",
+    "expectedDeviceType": "HMI",
+    "riskTags": ["cold", "simatic", "basic-panel", "ktp700", "7-inch", "profinet"],
+    "expectedOfficialUrlPatterns": ["mall\\.industry\\.siemens\\.com"],
+    "expectedNormalizedFields": ["voltage"],
+    "requiredDocuments": ["datasheet"]
+  },
+  {
+    "manufacturerId": "siemens",
+    "catalogNumber": "6EP3133-0TA00-0AY0",
+    "caseType": "electrical",
+    "expectedDeviceType": "Power Supply",
+    "riskTags": ["cold", "sitop", "psu3400", "dc-dc-converter", "24vdc-output", "5a-output"],
+    "expectedOfficialUrlPatterns": ["mall\\.industry\\.siemens\\.com"],
+    "expectedNormalizedFields": ["voltage", "current"],
+    "requiredDocuments": ["datasheet"]
+  }
+]

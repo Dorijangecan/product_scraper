@@ -24,8 +24,10 @@ manufacturer. The app then:
 
 1. Creates a local run in SQLite.
 2. Scrapes official manufacturer sources first.
-3. Uses configured fallbacks, discovery, rendered pages and document enrichment
-   when the first result is weak.
+3. Uses configured fallbacks, discovery and rendered pages when the first result
+   is weak. After the core connector scrape is timed, an optional connector hook
+   can generate vendor-specific documents; the shared pipeline then downloads
+   and verifies documents and enriches the product from them.
 4. Runs adaptive page intelligence when quality, field coverage or target-health
    signals show that more data may be hidden in the page.
 5. Normalizes technical attributes without a runtime model call.
@@ -64,15 +66,17 @@ flowchart TD
   C --> D["Process pending rows\nbounded concurrency"]
   D --> E["Connector scrape"]
   E --> F["Quality gate"]
-  F -->|strong enough| J["Attach evidence"]
-  F -->|weak| G["Deterministic fallback"]
-  G --> H["Smart/browser fallback"]
-  H --> I["Document enrichment\nand final completeness"]
-  I --> J
-  J --> K["Persist run_item"]
-  K --> L["Finalize run"]
-  L --> M["products.xlsx"]
-  L --> N["logs/run-debug.json"]
+  F -->|passes| G["Optional vendor document generation"]
+  G --> H["Download and verify documents"]
+  H --> I["Shared document enrichment and final completeness"]
+  I --> J["Attach evidence"]
+  F -->|weak| K["Deterministic fallback"]
+  K --> L["Smart/browser fallback"]
+  L --> F
+  J --> M["Persist run_item"]
+  M --> N["Finalize run"]
+  N --> O["products.xlsx"]
+  N --> P["logs/run-debug.json"]
 ```
 
 Important fast paths:

@@ -5,7 +5,7 @@ import path from "node:path";
 import { PDFParse } from "pdf-parse";
 import type { TableArray } from "pdf-parse";
 import type { AttributeRecord, DocumentProcessingDiagnostic, DocumentRecord, ProductResult, SourceRecord } from "../../shared/types.js";
-import { cleanText, normalizeFields, splitNameValue } from "./normalizer.js";
+import { cleanText, isImplausiblyLowPowerSupplyWeight, normalizeAbbFields, normalizeFields, splitNameValue } from "./normalizer.js";
 import { normalizeSiemensFields } from "./siemens.js";
 import { catalogTextMatches, findCatalogTextMatch, sameCatalogNumber, type CatalogMatchLevel } from "./catalog-number.js";
 import { buildTightContextForCatalog, buildVariantColumnContext } from "./tight-context.js";
@@ -336,13 +336,16 @@ async function processOneDownloadedDocument(doc: DocumentRecord, catalogNumber: 
     const exactSiemensDatasheet = isExactSiemensProductDatasheet(doc, text, catalogNumber);
     const exactSchneiderDatasheet = isExactSchneiderCatalogDatasheet(doc, catalogNumber);
     const isolatedEatonAutovarTable = isEatonAutovarTechnicalDataSheet(doc);
+    const isolatedEatonPowerSupplyCatalog = isEatonPowerSupplyCatalog(doc, catalogNumber);
     const skipTechnicalSpecMining = shouldSkipEnvironmentalDeclarationSpecMining(doc);
     // Balluff's exact product datasheets are addressed by a product-specific publication id,
     // but often contain only the full type code (not the short catalog number used by the PDP,
     // e.g. BIS00Z5). The URL is already selected from that exact official PDP, so allowing the
     // normal technical sweep here is safe and preserves dimensions/weight from the authoritative PDF.
     const balluffExactDatasheet = doc.type === "datasheet" && /(^|:)\/\/publications\.balluff\.com\/pdfengine\/pdf(?:[/?#]|$)/i.test(doc.url);
-    let attributes = [
+    let attributes = isolatedEatonPowerSupplyCatalog
+      ? extractEatonPowerSupplyCatalogAttributes(catalogNumber, doc, text)
+      : [
       ...extractEatonAutovarRatedCurrent(catalogNumber, doc, text),
       ...(skipTechnicalSpecMining || isolatedEatonAutovarTable ? [] : extractDocumentTextAttributes({
         catalogNumber,
@@ -355,11 +358,22 @@ async function processOneDownloadedDocument(doc: DocumentRecord, catalogNumber: 
       ...(skipTechnicalSpecMining || isolatedEatonAutovarTable ? [] : extractOcrPositionedTableAttributes(pdfText.ocrPositionedItems, catalogNumber, doc.url)),
       ...(isolatedEatonAutovarTable ? [] : await extractComplianceMatrixAttributesSafely(text, doc.localPath!, catalogNumber, doc.url))
     ];
-    const positionedAttributes = skipTechnicalSpecMining || isolatedEatonAutovarTable
+    const positionedAttributes = skipTechnicalSpecMining || isolatedEatonAutovarTable || isolatedEatonPowerSupplyCatalog
       ? []
       : await extractPositionedWeightDimensionsSafely(doc.localPath!, catalogNumber, doc.url, attributes, looksLikeMultiVariantFamilyPage(text, catalogNumber), pdfText.nativePositionedItemsByPage);
     attributes.push(...positionedAttributes);
     attributes = discardUnscopedFamilyTableCandidates(attributes, catalogNumber, positionedAttributes);
+    if (exactSchneiderDatasheet) {
+      attributes.push(...extractSchneiderOperatingTemperature(catalogNumber, doc, text));
+      attributes.push(...extractSchneiderExactInputVoltages(catalogNumber, doc, text, attributes));
+      if (/\bsurge arrester with pluggable cartridge\b/i.test(text)) {
+        // The generic PDF ontology can relabel In/Imax surge ratings as "Rated current".
+        // Keep the source's named discharge/Iimp rows, but discard that false synonym.
+        attributes = attributes.filter((attribute) =>
+          !(/^rated current$/i.test(attribute.name.trim()) && /\bkA\b/i.test(attribute.value))
+        );
+      }
+    }
     // Eaton's exact SP1 page links a family publication with a model-keyed electrical table.
     // The generic family-table policy intentionally suppresses unscoped voltage/current facts;
     // recover only this explicit row after that policy, and only when it names this PDP's model.
@@ -394,6 +408,93 @@ async function processOneDownloadedDocument(doc: DocumentRecord, catalogNumber: 
       processing: documentProcessingRecord(doc, "downloaded-document-enrichment", "failed", "Downloaded PDF parse failed.", parseError, { elapsedMs: Date.now() - started }),
       parseFailure: `${doc.label || doc.url}: ${parseError}`
     };
+  }
+}
+
+/** Read Eaton's Volume 7 PSG comparison table by its exact SKU column. The PDF text keeps
+ * tab-separated cells on the technical pages; generic PDF mining flattens those columns and can
+ * silently assign a sibling's dimensions or current to this model. This extractor fails closed
+ * unless the official PDP is exact and a table header contains multiple PSG model columns. */
+export function extractEatonPowerSupplyCatalogAttributes(
+  catalogNumber: string,
+  document: DocumentRecord,
+  text: string
+): AttributeRecord[] {
+  const expectedUrl = "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/power-supplies-v7-t6-ca08100008e.pdf";
+  if (!isEatonPowerSupplyCatalog(document, catalogNumber) || document.url !== expectedUrl) return [];
+  const rows = text.split(/\r?\n/);
+  const attributes: AttributeRecord[] = [];
+  let section = "";
+  let targetColumn = -1;
+  const target = cleanText(catalogNumber).toLowerCase();
+  const values = new Map<string, string>();
+  for (const line of rows) {
+    if (/V7-T6-\d+/i.test(line)) {
+      targetColumn = -1;
+      section = "";
+    }
+    const cells = line.split("\t").map(cleanText);
+    const headerColumn = cells.findIndex((cell) => cell.toLowerCase() === target);
+    if (headerColumn >= 0 && cells.filter((cell) => /^PSG[A-Z0-9]+$/i.test(cell)).length >= 3) {
+      targetColumn = headerColumn;
+      section = "";
+      continue;
+    }
+    if (targetColumn < 0) continue;
+    const label = cleanText(cells[0] ?? "").replace(/\s+\d+$/, "");
+    if (/^(?:input|output|general\s*\/\s*physical\s*data)$/i.test(label)) {
+      section = label.toLowerCase();
+      continue;
+    }
+    if (cells.length <= targetColumn + 1) continue;
+    const value = cleanText(cells[targetColumn + 1] ?? "");
+    if (!value || /^(?:n\/a|na|—|-)$/i.test(value)) continue;
+    if (/^nominal voltage$/i.test(label) && section === "input") values.set("Input voltage", value);
+    else if (/^ac input range$/i.test(label) && section === "input") values.set("Input voltage range", value);
+    else if (/^nominal output voltage$/i.test(label) && section === "output") values.set("Nominal output voltage", value);
+    else if (/^nominal current$/i.test(label) && section === "output") values.set("Rated output current", value);
+    else if (/^power$/i.test(label) && section === "output") values.set("Rated output power", value);
+    else if (/^dimensions\s*\(l\)$/i.test(label) && section.startsWith("general")) values.set("Length", value);
+    else if (/^dimensions\s*\(w\)$/i.test(label) && section.startsWith("general")) values.set("Width", value);
+    else if (/^dimensions\s*\(h\)$/i.test(label) && section.startsWith("general")) values.set("Height", value);
+    else if (/^weight\s*\(kg\)$/i.test(label) && section.startsWith("general")) values.set("Weight", value);
+    else if (/^operating temperature$/i.test(label) && section.startsWith("general")) values.set("Operating temperature", value);
+  }
+  const add = (name: string, value: string | undefined): void => {
+    if (!value) return;
+    attributes.push({
+      group: "Eaton Volume 7 PSG exact model column",
+      name,
+      value,
+      sourceUrl: document.url,
+      sourceType: "generated",
+      parser: "pdf-table-extractor",
+      confidence: 0.99,
+      matchLevel: "exact",
+      scope: "variant"
+    });
+  };
+  add("Input voltage", values.get("Input voltage"));
+  add("Input voltage range", values.get("Input voltage range"));
+  add("Nominal output voltage", values.get("Nominal output voltage"));
+  add("Rated output current", values.get("Rated output current"));
+  add("Rated output power", values.get("Rated output power"));
+  const dimensions = [values.get("Length"), values.get("Width"), values.get("Height")];
+  if (dimensions.every(Boolean)) add("Dimensions", `${dimensions.map((value) => value!.replace(/\s*mm$/i, "")).join(" x ")} mm`);
+  add("Weight", values.get("Weight") ? `${values.get("Weight")} kg` : undefined);
+  add("Operating temperature", values.get("Operating temperature"));
+  return attributes;
+}
+
+function isEatonPowerSupplyCatalog(document: DocumentRecord, catalogNumber: string): boolean {
+  if (document.type !== "datasheet" || document.parser !== "eaton-power-supply-catalog") return false;
+  try {
+    const source = new URL(document.sourceUrl ?? "");
+    const sourceSku = source.pathname.match(/\/skuPage\.([^/]+?)\.html$/i)?.[1];
+    return /^www\.eaton\.com$/i.test(source.hostname) && Boolean(sourceSku) &&
+      sameCatalogNumber(decodeURIComponent(sourceSku!), catalogNumber, { compact: true, ignoreCase: true });
+  } catch {
+    return false;
   }
 }
 
@@ -553,9 +654,15 @@ export async function enrichResultFromDownloadedDocuments(result: ProductResult)
   }
 
   if (!documentAttributes.length) {
+    const normalized = { ...result.normalized };
+    clearSiemensContextlessElectricalValues(result, normalized);
+    const busbarThicknessOnly = result.attributes.some((attribute) => /\bbusbar\b/i.test(`${attribute.group ?? ""} ${attribute.name}`) && /\bthickness\b/i.test(attribute.name)) &&
+      !result.attributes.some((attribute) => /\b(?:wall|sheet|body|door)\s+thickness\b/i.test(`${attribute.group ?? ""} ${attribute.name}`));
+    if (busbarThicknessOnly) delete normalized.wallThickness;
     return {
       ...result,
       diagnostics: withDocumentDiagnostics(result, documentParseFailures, documentProcessing),
+      normalized,
       documents
     };
   }
@@ -572,13 +679,12 @@ export async function enrichResultFromDownloadedDocuments(result: ProductResult)
   // itself had already picked the better one. Recomputed wins when it found something; the stale
   // value is now only a fallback for whichever fields recomputation still left empty (e.g. any field
   // set outside the `attributes` array entirely).
-  const recomputedNormalized = result.manufacturerId === "siemens" ? normalizeSiemensFields(attributes, documents) : normalizeFields(attributes, documents, result.manufacturerId);
-  const normalized = {
-    ...nonEmptyNormalized(result.normalized),
-    ...nonEmptyNormalized(recomputedNormalized)
-  };
+  const recomputedNormalized = normalizeEnrichedFields(result.manufacturerId, attributes, documents, `${result.title} ${result.description}`);
+  const normalized = mergeEnrichedNormalized(result, recomputedNormalized);
+  clearSiemensContextlessElectricalValues(result, normalized);
   if (result.manufacturerId === "rittal" && !recomputedNormalized.current) delete normalized.current;
-  if (result.manufacturerId === "eaton") clearUnprovenElectricalFallbacks(normalized, recomputedNormalized);
+  if (result.manufacturerId === "eaton") clearUnprovenElectricalFallbacks(normalized, recomputedNormalized, attributes);
+  if (result.manufacturerId === "eaton") applyExactEatonPowerSupplyCatalogFields(normalized, attributes, documents);
 
   return {
     ...result,
@@ -593,13 +699,33 @@ export async function enrichResultFromDownloadedDocuments(result: ProductResult)
 
 function clearUnprovenElectricalFallbacks(
   normalized: ProductResult["normalized"],
-  recomputed: ProductResult["normalized"]
+  recomputed: ProductResult["normalized"],
+  attributes: AttributeRecord[]
 ): void {
   // Eaton connector/title fallbacks can carry voltage/current into normalized before exact PDP
   // extraction completes. If the final, evidence-scoped normalization cannot support those fields,
   // do not retain the stale fallback as if it were model-level data.
   if (!recomputed.voltage) delete normalized.voltage;
   if (!recomputed.current) delete normalized.current;
+  if (isImplausiblyLowPowerSupplyWeight(attributes, normalized.weight)) delete normalized.weight;
+  const hasBusbarThickness = attributes.some((attribute) => /\bbusbar\b/i.test(`${attribute.group ?? ""} ${attribute.name}`) && /\bthickness\b/i.test(attribute.name));
+  const hasActualWallThickness = attributes.some((attribute) => /\b(?:wall|sheet|body|door)\s+thickness\b/i.test(`${attribute.group ?? ""} ${attribute.name}`));
+  if (hasBusbarThickness && !hasActualWallThickness) delete normalized.wallThickness;
+}
+
+function applyExactEatonPowerSupplyCatalogFields(
+  normalized: ProductResult["normalized"],
+  attributes: AttributeRecord[],
+  documents: DocumentRecord[]
+): void {
+  const exact = attributes.filter((attribute) => attribute.group === "Eaton Volume 7 PSG exact model column" && attribute.matchLevel === "exact");
+  if (!exact.length) return;
+  const catalogFields = normalizeFields(exact, documents, "eaton");
+  for (const field of ["weight", "dimensions", "current", "voltage", "operatingTemperatureMin", "operatingTemperatureMax"] as const) {
+    if (catalogFields[field] !== undefined) normalized[field] = catalogFields[field] as never;
+  }
+  const exactWeight = exact.find((attribute) => /^weight$/i.test(attribute.name));
+  if (exactWeight) normalized.weight = exactWeight.value;
 }
 
 export async function enrichResultFromRemoteDocuments(
@@ -691,10 +817,13 @@ export async function enrichResultFromRemoteDocuments(
   }
 
   if (!documentAttributes.length) {
+    const normalized = { ...result.normalized };
+    clearSiemensContextlessElectricalValues(result, normalized);
     return {
       ...result,
       diagnostics: withDocumentDiagnostics(result, documentParseFailures, documentProcessing),
-      documents
+      documents,
+      normalized
     };
   }
 
@@ -710,13 +839,11 @@ export async function enrichResultFromRemoteDocuments(
   // itself had already picked the better one. Recomputed wins when it found something; the stale
   // value is now only a fallback for whichever fields recomputation still left empty (e.g. any field
   // set outside the `attributes` array entirely).
-  const recomputedNormalized = result.manufacturerId === "siemens" ? normalizeSiemensFields(attributes, documents) : normalizeFields(attributes, documents, result.manufacturerId);
-  const normalized = {
-    ...nonEmptyNormalized(result.normalized),
-    ...nonEmptyNormalized(recomputedNormalized)
-  };
+  const recomputedNormalized = normalizeEnrichedFields(result.manufacturerId, attributes, documents, `${result.title} ${result.description}`);
+  const normalized = mergeEnrichedNormalized(result, recomputedNormalized);
+  clearSiemensContextlessElectricalValues(result, normalized);
   if (result.manufacturerId === "rittal" && !recomputedNormalized.current) delete normalized.current;
-  if (result.manufacturerId === "eaton") clearUnprovenElectricalFallbacks(normalized, recomputedNormalized);
+  if (result.manufacturerId === "eaton") clearUnprovenElectricalFallbacks(normalized, recomputedNormalized, attributes);
 
   return {
     ...result,
@@ -1147,6 +1274,63 @@ function isExactSchneiderCatalogDatasheet(document: Pick<DocumentRecord, "type" 
   } catch {
     return false;
   }
+}
+
+function extractSchneiderOperatingTemperature(
+  catalogNumber: string,
+  document: DocumentRecord,
+  text: string
+): AttributeRecord[] {
+  if (!isExactSchneiderCatalogDatasheet(document, catalogNumber)) return [];
+  const label = /ambient air temperature for\s*\r?\n\s*operation/i.exec(text);
+  if (!label || label.index === undefined) return [];
+  const section = text.slice(label.index, label.index + 360);
+  const ranges = [...section.matchAll(/([+-]?\d+(?:[.,]\d+)?)\s*(?:…|\.{2,}|\bto\b)\s*([+-]?\d+(?:[.,]\d+)?)\s*°\s*C/gi)]
+    .slice(0, 2)
+    .map((match) => `${match[1]}…${match[2]} °C`);
+  if (ranges.length !== 2) return [];
+  return [{
+    group: "Schneider exact datasheet",
+    name: "Ambient air temperature for operation",
+    value: `${ranges[0]} with derating; ${ranges[1]} without derating`,
+    sourceUrl: document.url,
+    sourceType: "generated",
+    parser: "pdf-table-extractor",
+    stage: "enrich-documents",
+    confidence: 0.95,
+    matchLevel: "exact"
+  }];
+}
+
+function extractSchneiderExactInputVoltages(
+  catalogNumber: string,
+  document: DocumentRecord,
+  text: string,
+  existingAttributes: AttributeRecord[]
+): AttributeRecord[] {
+  if (!isExactSchneiderCatalogDatasheet(document, catalogNumber)) return [];
+  const label = /nominal input voltage/i.exec(text);
+  if (!label || label.index === undefined) return [];
+  const section = text.slice(label.index, label.index + 280).split(/network frequency/i)[0] ?? "";
+  const values = [...section.matchAll(/\b\d+(?:…|\.{2,})\d+\s*V\s*AC[^\r\n]*/gi)]
+    .map((match) => cleanText(match[0]))
+    .filter((value) => /\b(?:single phase|phase to phase)\b/i.test(value));
+  const existing = new Set(existingAttributes
+    .filter((attribute) => /^input voltage$/i.test(attribute.name.trim()))
+    .map((attribute) => cleanText(attribute.value).toLowerCase()));
+  return values
+    .filter((value) => !existing.has(value.toLowerCase()))
+    .map((value) => ({
+      group: "Schneider exact datasheet",
+      name: "Input voltage",
+      value,
+      sourceUrl: document.url,
+      sourceType: "generated" as const,
+      parser: "pdf-table-extractor",
+      stage: "enrich-documents",
+      confidence: 0.95,
+      matchLevel: "exact" as const
+    }));
 }
 
 function extractCatalogScopedExplicitRatings(text: string, lines: string[], catalogNumber: string, sourceUrl: string): AttributeRecord[] {
@@ -2462,7 +2646,9 @@ function stampDocumentAttributes(attributes: AttributeRecord[]): AttributeRecord
     // Output Power, MTBF, ...) exactly like it used to for those four fields, and the shifted
     // reading still passes isCleanSingleSpecValue's shape check — so only a genuinely higher
     // confidence tier, not just "being added as a candidate", makes the correct value win.
-    confidence: attr.group?.includes("Matched Rows")
+    confidence: attr.group === "Eaton Volume 7 PSG exact model column"
+      ? 0.99
+      : attr.group?.includes("Matched Rows")
       ? 0.66
       : attr.group === "PDF Positioned Table"
         ? 0.88
@@ -3879,6 +4065,62 @@ function canonicalLabel(value: string): string {
 
 function nonEmptyNormalized(normalized: ProductResult["normalized"]): ProductResult["normalized"] {
   return Object.fromEntries(Object.entries(normalized).filter(([, value]) => value !== undefined && value !== "")) as ProductResult["normalized"];
+}
+
+function clearSiemensContextlessElectricalValues(
+  result: ProductResult,
+  normalized: ProductResult["normalized"]
+): void {
+  if (result.manufacturerId !== "siemens") return;
+  const productText = `${result.title} ${result.description}`;
+  if (/\b(?:limit switch|position switch)\b/i.test(productText)) {
+    delete normalized.voltage;
+    delete normalized.current;
+  }
+}
+
+function normalizeEnrichedFields(
+  manufacturerId: ProductResult["manufacturerId"],
+  attributes: AttributeRecord[],
+  documents: DocumentRecord[],
+  productText = ""
+): ProductResult["normalized"] {
+  if (manufacturerId === "siemens") return normalizeSiemensFields(attributes, documents, productText);
+  if (manufacturerId === "abb") return normalizeAbbFields(attributes, documents);
+  return normalizeFields(attributes, documents, manufacturerId);
+}
+
+function mergeEnrichedNormalized(
+  result: ProductResult,
+  recomputed: ProductResult["normalized"]
+): ProductResult["normalized"] {
+  const existing = nonEmptyNormalized(result.normalized);
+  if (result.manufacturerId === "abb") {
+    // Generated PDF table fragments often turn prose such as "graphic color display" into a
+    // material/color value. ABB only retains those fields when an official product label proves it.
+    if (recomputed.material === undefined) delete existing.material;
+    if (recomputed.color === undefined) delete existing.color;
+  }
+  if (result.manufacturerId === "siemens") {
+    // Mall package dimensions and generic API material/color fragments are not device facts.
+    // Clear an earlier generic guess when exact Siemens-labelled measurements are unavailable.
+    for (const field of ["dimensions", "wallThickness", "material", "color"] as const) {
+      if (recomputed[field] === undefined) delete existing[field];
+    }
+    const productText = `${result.title} ${result.description}`;
+    if (/\b(?:limit switch|position switch)\b/i.test(productText)) {
+      delete existing.voltage;
+      delete existing.current;
+    }
+  }
+  if (result.manufacturerId === "schmersal" && recomputed.wallThickness === undefined) {
+    const hasHousingWallThickness = result.attributes.some((attribute) => {
+      const label = `${attribute.group ?? ""} ${attribute.name}`;
+      return /\b(?:wall|housing|body)\s+thickness\b/i.test(label) && !/front\s+panel/i.test(label);
+    });
+    if (!hasHousingWallThickness) delete existing.wallThickness;
+  }
+  return { ...existing, ...nonEmptyNormalized(recomputed) };
 }
 
 function dedupeAttributes(attributes: AttributeRecord[]): AttributeRecord[] {

@@ -1,0 +1,63 @@
+[
+  {
+    "manufacturerId": "schneider",
+    "catalogNumber": "A9L1C325",
+    "caseType": "electrical",
+    "expectedDeviceType": "Surge Protective Device",
+    "riskTags": ["cold", "acti9", "surge-arrester", "type-1-plus-2", "3-pole", "25-ka-impulse-current"],
+    "expectedOfficialUrlPatterns": ["se\\.com/.*/product/A9L1C325(?:/|$)"],
+    "expectedNormalizedFields": ["voltage"],
+    "expectedNormalizedPatterns": {"voltage": "^400 V AC$"},
+    "expectedBlankNormalizedFields": ["current"],
+    "expectedAttributePatterns": ["\\[Ue\\].*400 V AC", "nominal discharge current.*25 kA", "\\[Iimp\\] impulse current.*25 kA", "maximum discharge current.*65 kA"],
+    "requiredDocuments": ["datasheet", "image"]
+  },
+  {
+    "manufacturerId": "schneider",
+    "catalogNumber": "XPSUAF13AP",
+    "caseType": "electrical",
+    "expectedDeviceType": "Safety Relay",
+    "riskTags": ["cold", "preventa-xpsu", "category-4", "24v-ac-dc", "safety-module"],
+    "expectedOfficialUrlPatterns": ["se\\.com/.*/product/XPSUAF13AP(?:/|$)"],
+    "expectedNormalizedFields": ["voltage", "current"],
+    "expectedNormalizedPatterns": {"voltage": "^24 V AC/DC$", "current": "^5 A$"},
+    "expectedAttributePatterns": ["Description.*24V AC/DC", "safety outputs.*3 NO", "category.*4", "\\[Ie\\] rated operational current.*5 A"],
+    "requiredDocuments": ["datasheet", "image"]
+  },
+  {
+    "manufacturerId": "schneider",
+    "catalogNumber": "A9R22291",
+    "caseType": "electrical",
+    "expectedDeviceType": "Residual Current Device",
+    "riskTags": ["cold", "acti9-iid", "rccb", "2-pole", "100-a", "100-ma-type-a"],
+    "expectedOfficialUrlPatterns": ["se\\.com/uk/en/product/A9R22291(?:/|$)"],
+    "expectedNormalizedFields": ["voltage", "current"],
+    "expectedNormalizedPatterns": {"voltage": "^230.*240.*V AC$", "current": "^100 A$", "dimensions": "^85 x 36 x 69 mm$"},
+    "expectedAttributePatterns": ["\\[In\\] rated current.*100 A", "earth-leakage sensitivity.*100 mA", "earth-leakage protection class.*type A", "poles description.*2P"],
+    "requiredDocuments": ["datasheet", "image"]
+  },
+  {
+    "manufacturerId": "schneider",
+    "catalogNumber": "XUB2AKSNM12T",
+    "caseType": "electrical",
+    "expectedDeviceType": "Photoelectric Sensor",
+    "riskTags": ["cold", "osisense-xu", "through-beam-emitter", "15-m", "12-24vdc", "m12"],
+    "expectedOfficialUrlPatterns": ["telemecaniquesensors\\.com/(?:global|us)/en/product/reference/XUB2AKSNM12T(?:/|$)"],
+    "expectedNormalizedFields": ["voltage", "current"],
+    "expectedNormalizedPatterns": {"voltage": "^12.*24 V DC", "current": "^35 mA"},
+    "expectedAttributePatterns": ["\\[Us\\] rated supply voltage.*12.*24 V DC", "sensing range.*15 m", "switching capacity.*100 mA", "sensor design.*cylindrical M18", "electrical connection.*M12"],
+    "requiredDocuments": ["datasheet", "image"]
+  },
+  {
+    "manufacturerId": "schneider",
+    "catalogNumber": "ABL8RPS24050",
+    "caseType": "electrical",
+    "expectedDeviceType": "Power Supply",
+    "riskTags": ["cold", "phaseo-abl8", "regulated-smps", "100-500vac-input", "24vdc-5a-output", "120w"],
+    "expectedOfficialUrlPatterns": ["se\\.com/us/en/product/ABL8RPS24050(?:/|$)"],
+    "expectedNormalizedFields": ["voltage", "current", "operatingTemperatureMin", "operatingTemperatureMax"],
+    "expectedNormalizedPatterns": {"voltage": "^24 V DC$", "current": "^5 A$", "operatingTemperatureMin": "^-25$", "operatingTemperatureMax": "^60$"},
+    "expectedAttributePatterns": ["input voltage.*100.*120 V AC", "input voltage.*200.*500 V AC", "output voltage.*24 V DC", "power supply output current.*5 A", "rated power in W.*120 W", "ambient air temperature for operation.*50.*60.*-25.*50"],
+    "requiredDocuments": ["datasheet", "image"]
+  }
+]

@@ -1,0 +1,52 @@
+[
+  {
+    "manufacturerId": "schmersal",
+    "catalogNumber": "101160101",
+    "caseType": "electrical",
+    "expectedDeviceType": "Safety Sensor",
+    "riskTags": ["cold", "tq441", "pull-wire", "emergency-stop", "right-turn", "two-nc-contacts"],
+    "expectedOfficialUrlPatterns": ["products\\.schmersal\\.com/.*/tq-441-0101y-ue-m20-101160101"],
+    "requiredDocuments": ["datasheet", "image"],
+    "expectedNormalizedFields": ["weight", "voltage", "current"]
+  },
+  {
+    "manufacturerId": "schmersal",
+    "catalogNumber": "103039599",
+    "caseType": "electrical",
+    "expectedDeviceType": "Safety Sensor",
+    "riskTags": ["cold", "slc440", "safety-light-curtain", "14mm-resolution", "1930mm-protection-height", "safety-type-4"],
+    "expectedOfficialUrlPatterns": ["products\\.schmersal\\.com/.*/slc440-er-1930-14-h1-103039599"],
+    "requiredDocuments": ["datasheet", "image"],
+    "expectedNormalizedFields": ["dimensions", "voltage"]
+  },
+  {
+    "manufacturerId": "schmersal",
+    "catalogNumber": "103005740",
+    "caseType": "electrical",
+    "expectedDeviceType": "Safety Sensor",
+    "riskTags": ["cold", "tesk", "hinge-safety-switch", "3m-cable", "front-mount", "1-no-1-nc"],
+    "expectedOfficialUrlPatterns": ["products\\.schmersal\\.com/.*/tesk-sa-11l1-3m-103005740"],
+    "requiredDocuments": ["datasheet", "image"],
+    "expectedNormalizedFields": ["weight", "dimensions"]
+  },
+  {
+    "manufacturerId": "schmersal",
+    "catalogNumber": "131058472",
+    "caseType": "electrical",
+    "expectedDeviceType": "Limit Switch",
+    "riskTags": ["cold", "mv8h", "roller-lever-position-switch", "400vac", "ac15", "m20-entries"],
+    "expectedOfficialUrlPatterns": ["products\\.schmersal\\.com/.*/mv8h-015-11y-131058472"],
+    "requiredDocuments": ["datasheet", "image"],
+    "expectedNormalizedFields": ["weight", "dimensions", "voltage", "current"]
+  },
+  {
+    "manufacturerId": "schmersal",
+    "catalogNumber": "103040526",
+    "caseType": "electrical",
+    "expectedDeviceType": "Pushbutton / Operator",
+    "riskTags": ["cold", "bdf200", "control-panel", "emergency-stop", "key-selector", "24vdc", "16-wire"],
+    "expectedOfficialUrlPatterns": ["products\\.schmersal\\.com/.*/bdf200-lt-11-lt-sws20-lt-2875-103040526"],
+    "requiredDocuments": ["manual", "image"],
+    "expectedNormalizedFields": ["weight", "dimensions", "voltage"]
+  }
+]

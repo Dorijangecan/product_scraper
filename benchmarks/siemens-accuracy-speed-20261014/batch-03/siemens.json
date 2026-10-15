@@ -1,0 +1,52 @@
+[
+  {
+    "manufacturerId": "siemens",
+    "catalogNumber": "5SY4104-7",
+    "caseType": "electrical",
+    "expectedDeviceType": "Miniature Circuit Breaker",
+    "riskTags": ["cold", "sentron", "miniature-circuit-breaker", "4a", "curve-c", "10ka"],
+    "expectedOfficialUrlPatterns": ["mall\\.industry\\.siemens\\.com.*5SY4104-7"],
+    "expectedNormalizedFields": ["voltage", "current"],
+    "requiredDocuments": ["datasheet"]
+  },
+  {
+    "manufacturerId": "siemens",
+    "catalogNumber": "8WH1000-0AF00",
+    "caseType": "electrical",
+    "expectedDeviceType": "Terminal Block",
+    "riskTags": ["cold", "8wh", "through-terminal", "2-5mm2", "gray"],
+    "expectedOfficialUrlPatterns": ["siemens\\.com.*8WH1000-0AF00"],
+    "expectedNormalizedFields": ["voltage", "current"],
+    "requiredDocuments": ["datasheet"]
+  },
+  {
+    "manufacturerId": "siemens",
+    "catalogNumber": "3SE5112-0CH01",
+    "caseType": "electrical",
+    "expectedDeviceType": "Limit Switch",
+    "riskTags": ["cold", "sirius", "position-switch", "metal-enclosure", "1no-1nc"],
+    "expectedOfficialUrlPatterns": ["mall\\.industry\\.siemens\\.com.*3SE5112-0CH01"],
+    "expectedNormalizedFields": ["weight"],
+    "requiredDocuments": ["datasheet"]
+  },
+  {
+    "manufacturerId": "siemens",
+    "catalogNumber": "5SD7414-1KU03",
+    "caseType": "electrical",
+    "expectedDeviceType": "Surge Protective Device",
+    "riskTags": ["cold", "sentron", "surge-arrester", "type-1", "600y-347v", "four-pole"],
+    "expectedOfficialUrlPatterns": ["mall\\.industry\\.siemens\\.com.*5SD7414-1KU03"],
+    "expectedNormalizedFields": ["voltage"],
+    "requiredDocuments": ["datasheet"]
+  },
+  {
+    "manufacturerId": "siemens",
+    "catalogNumber": "3RN2013-1BW30",
+    "caseType": "electrical",
+    "expectedDeviceType": "Relay",
+    "riskTags": ["cold", "sirius", "thermistor-motor-protection", "24-240vacdc", "atex"],
+    "expectedOfficialUrlPatterns": ["mall\\.industry\\.siemens\\.com.*3RN2013-1BW30"],
+    "expectedNormalizedFields": ["voltage"],
+    "requiredDocuments": ["datasheet"]
+  }
+]

@@ -1,0 +1,52 @@
+[
+  {
+    "manufacturerId": "eaton",
+    "catalogNumber": "197211",
+    "caseType": "electrical",
+    "expectedDeviceType": "Control Relay",
+    "riskTags": ["cold", "easy-e4", "control-relay", "12-24vdc", "24vac", "8-digital-inputs", "4-relay-outputs"],
+    "expectedOfficialUrlPatterns": ["eaton\\.com/.*/skuPage\\.197211\\.html"],
+    "requiredDocuments": ["datasheet", "image"],
+    "expectedNormalizedFields": ["dimensions", "weight", "voltage", "current"]
+  },
+  {
+    "manufacturerId": "eaton",
+    "catalogNumber": "166426",
+    "caseType": "electrical",
+    "expectedDeviceType": "Molded Case Circuit Breaker",
+    "riskTags": ["cold", "nzm2", "mccb", "3-pole", "160a", "690v", "image-asset-not-sku-specific"],
+    "expectedOfficialUrlPatterns": ["eaton\\.com/.*/skuPage\\.166426\\.html"],
+    "requiredDocuments": ["datasheet"],
+    "expectedNormalizedFields": ["dimensions", "weight", "voltage", "current"]
+  },
+  {
+    "manufacturerId": "eaton",
+    "catalogNumber": "038873",
+    "caseType": "electrical",
+    "expectedDeviceType": "Disconnect Switch",
+    "riskTags": ["cold", "t0", "main-switch", "3-pole", "20a", "emergency-off", "red-handle"],
+    "expectedOfficialUrlPatterns": ["eaton\\.com/.*/skuPage\\.038873\\.html"],
+    "requiredDocuments": ["datasheet", "image"],
+    "expectedNormalizedFields": ["dimensions", "weight", "current"]
+  },
+  {
+    "manufacturerId": "eaton",
+    "catalogNumber": "113140",
+    "caseType": "electrical",
+    "expectedDeviceType": "Residual Current Device",
+    "riskTags": ["cold", "pfim", "rccb", "4-pole", "40a", "30ma", "type-a"],
+    "expectedOfficialUrlPatterns": ["eaton\\.com/.*/skuPage\\.113140\\.html"],
+    "requiredDocuments": ["datasheet", "image"],
+    "expectedNormalizedFields": ["dimensions", "weight", "voltage", "current", "operatingTemperatureMin", "operatingTemperatureMax"]
+  },
+  {
+    "manufacturerId": "eaton",
+    "catalogNumber": "134928",
+    "caseType": "electrical",
+    "expectedDeviceType": "Soft Starter",
+    "riskTags": ["cold", "ds7", "soft-starter", "9a", "200-480vac", "110-230vac-control", "3-phase"],
+    "expectedOfficialUrlPatterns": ["eaton\\.com/.*/skuPage\\.134928\\.html"],
+    "requiredDocuments": ["datasheet"],
+    "expectedNormalizedFields": ["dimensions", "weight", "voltage", "current", "operatingTemperatureMin", "operatingTemperatureMax"]
+  }
+]

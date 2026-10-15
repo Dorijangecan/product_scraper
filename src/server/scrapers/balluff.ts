@@ -193,11 +193,15 @@ export class BalluffConnector implements ManufacturerConnector {
 
     for (const url of candidates) {
       try {
+        const primaryFetchStartedAt = Date.now();
         const primary = await fetchBalluffText(url, context);
+        if (process.env.DEBUG_BENCHMARK) console.log(`[balluff:debug] ${catalogNumber} primary-fetch ${Date.now() - primaryFetchStartedAt}ms status=${primary.statusCode}`);
+        const primaryParseStartedAt = Date.now();
         const primaryResult = parseBalluffProductPage(catalogNumber, primary, {
           parser: "balluff-product-page",
           localizedUrlTemplates: context.manufacturer.localizedUrlTemplates
         });
+        if (process.env.DEBUG_BENCHMARK) console.log(`[balluff:debug] ${catalogNumber} primary-parse ${Date.now() - primaryParseStartedAt}ms attrs=${primaryResult.attributes.length}`);
         partialResults.push(primaryResult);
         // Images-only fast path: as soon as the primary page yields a product image, return.
         // Skips ~5-10s of supplemental fetches + Playwright modal sequence per item.
@@ -214,14 +218,43 @@ export class BalluffConnector implements ManufacturerConnector {
           if (primary.statusCode === 403) blockedDirectCandidates += 1;
           continue;
         }
-        if (
-          balluffModalSectionsFor(primaryResult, primary.text, docsEnabled && context.saveDocuments !== false).length === 0 &&
-          isCompleteBalluffResult(primaryResult, primary.text, { requireDatasheet: docsEnabled })
-        ) {
+        const completenessStartedAt = Date.now();
+        const primaryModalSections = balluffModalSectionsFor(primaryResult, primary.text, docsEnabled && context.saveDocuments !== false);
+        const primaryIsComplete = primaryModalSections.length === 0 && isCompleteBalluffResult(primaryResult, primary.text, { requireDatasheet: docsEnabled });
+        if (process.env.DEBUG_BENCHMARK) console.log(`[balluff:debug] ${catalogNumber} primary-completeness ${Date.now() - completenessStartedAt}ms modalSections=${primaryModalSections.length} complete=${primaryIsComplete}`);
+        if (primaryIsComplete) {
+          return primaryResult;
+        }
+        if (docsEnabled && isBalluffStaticPageReadyForSharedEnrichment(primaryResult, catalogNumber)) {
+          if (process.env.DEBUG_BENCHMARK) console.log(`[balluff:debug] ${catalogNumber} static-page-ready-for-shared-enrichment`);
           return primaryResult;
         }
         let current = primaryResult;
         const htmlParts = [primary.text];
+
+        // A complete static PDP plus its own datasheet can already carry exact identity,
+        // normalized electrical/physical fields, and the required documents. Parse that
+        // datasheet before paying for the readable-page and reader fallbacks; those requests
+        // are only useful when the direct page and its matched PDF still leave a gap.
+        if (docsEnabled) {
+          const datasheetStartedAt = Date.now();
+          const enrichedFromDatasheet = await enrichBalluffDatasheetForFastPath(current, context);
+          if (process.env.DEBUG_BENCHMARK) console.log(`[balluff:debug] ${catalogNumber} fast-datasheet-time ${Date.now() - datasheetStartedAt}ms`);
+          if (enrichedFromDatasheet) {
+            current = enrichedFromDatasheet;
+            partialResults.push(current);
+            if (process.env.DEBUG_BENCHMARK) {
+              console.log(`[balluff:debug] ${catalogNumber} fast-datasheet ${JSON.stringify({
+                parsedDatasheet: current.documents.some((doc) => doc.type === "datasheet" && doc.parseStatus === "parsed"),
+                image: current.documents.some((doc) => doc.type === "image"),
+                datasheet: hasBalluffDatasheet(current),
+                pdfAttributes: current.attributes.filter((attr) => /^PDF /i.test(attr.group ?? "")).length,
+                normalized: current.normalized
+              })}`);
+            }
+            if (isBalluffDatasheetEnrichedEnough(current)) return current;
+          }
+        }
 
         const supplementalFetches = await Promise.all([
           fetchBalluffSupplemental(catalogNumber, url, "balluff-readable-product-page", context, BALLUFF_BOT_USER_AGENT),
@@ -338,6 +371,12 @@ export class BalluffConnector implements ManufacturerConnector {
 
 export function parseBalluffProductPage(catalogNumber: string, fetched: FetchedText, options: BalluffParseOptions = {}): ProductResult {
   const $ = cheerio.load(fetched.text);
+  let parseStageStartedAt = Date.now();
+  const logParseStage = (stage: string) => {
+    if (process.env.DEBUG_BENCHMARK) console.log(`[balluff:debug] ${catalogNumber} parse-${stage} ${Date.now() - parseStageStartedAt}ms`);
+    parseStageStartedAt = Date.now();
+  };
+  logParseStage("cheerio-load");
   const attributes: AttributeRecord[] = [];
   const documents: DocumentRecord[] = [];
   const products = readJsonLdProducts($);
@@ -426,10 +465,15 @@ export function parseBalluffProductPage(catalogNumber: string, fetched: FetchedT
 
   parseMetaDescriptionSpecs($("meta[name='description']").attr("content"), sourceUrl).forEach((attr) => attributes.push(attr));
   attributes.push(...extractBalluffDomAttributes($, sourceUrl));
+  logParseStage("dom-and-meta");
   attributes.push(...extractBalluffSectionAttributes(fetched.text, sourceUrl));
+  logParseStage("sections");
   attributes.push(...extractBalluffLifecycleAttributes(fetched.text, catalogNumber, sourceUrl));
+  logParseStage("lifecycle");
   attributes.push(...extractBalluffDigitalProductPassportFallback(fetched.text, sourceUrl));
+  logParseStage("dpp-fallback");
   const livewireData = extractBalluffLivewireData(fetched.text, sourceUrl);
+  logParseStage("livewire");
   attributes.push(...livewireData.attributes);
   documents.push(...livewireData.documents);
 
@@ -445,6 +489,7 @@ export function parseBalluffProductPage(catalogNumber: string, fetched: FetchedT
       sourceUrl
     });
   });
+  logParseStage("table-rows");
 
   $("a[href]").each((_, element) => {
     const href = $(element).attr("href");
@@ -453,6 +498,7 @@ export function parseBalluffProductPage(catalogNumber: string, fetched: FetchedT
     if (!isBalluffDocumentUrl(absolute)) return;
     documents.push(documentFromUrl(absolute, cleanText($(element).text()), sourceUrl));
   });
+  logParseStage("document-links");
 
   for (const absolute of extractEmbeddedDocumentUrls(fetched.text, fetched.effectiveUrl)) {
     documents.push(documentFromUrl(absolute, "", sourceUrl));
@@ -497,6 +543,7 @@ export function parseBalluffProductPage(catalogNumber: string, fetched: FetchedT
   }
 
   const cleanAttributes = dedupeAttributes(attributes.filter(isUsefulBalluffAttribute));
+  logParseStage("dedupe");
   // The product page has already passed an exact catalog-number match above, but modern Balluff
   // pages do not consistently expose that value under JSON-LD's `sku`/`mpn` names.  Preserve the
   // requested, source-confirmed code explicitly so the quality gate does not mistake a complete
@@ -513,6 +560,7 @@ export function parseBalluffProductPage(catalogNumber: string, fetched: FetchedT
   });
   const cleanDocuments = dedupeBalluffDocuments(documents);
   const pdtAttributes = withBalluffPdtDerivations(cleanAttributes, productUrl);
+  logParseStage("pdt-derivations");
 
   return {
     manufacturerId: "balluff",
@@ -523,7 +571,7 @@ export function parseBalluffProductPage(catalogNumber: string, fetched: FetchedT
     localizedUrls: buildLocalizedProductUrls("balluff", canonicalCatalogNumber, productUrl, options.localizedUrlTemplates),
     title,
     description,
-    normalized: normalizeFields(pdtAttributes, cleanDocuments),
+    normalized: normalizeFields(pdtAttributes, cleanDocuments, "balluff"),
     attributes: pdtAttributes,
     documents: cleanDocuments,
     sources: [
@@ -804,7 +852,7 @@ function mergeBalluffResults(primary: ProductResult, fallback: ProductResult): P
     title: preferredBalluffTitle(attributes, primary.title, fallback.title, merged.title),
     attributes,
     documents,
-    normalized: normalizeFields(attributes, documents),
+    normalized: normalizeFields(attributes, documents, "balluff"),
     sources: dedupeSources(merged.sources),
     status: attributes.length || merged.documents.length
       ? primary.status === "found" || fallback.status === "found"
@@ -1087,7 +1135,7 @@ async function enrichBalluffDatasheetForFastPath(
     // "Net width / Net height / Net depth" attributes wouldn't see them, so the PDT resolver
     // would keep falling back to the noisier page-level dimensions.
     const attributes = withBalluffPdtDerivations(enriched.attributes, enriched.productUrl);
-    return { ...enriched, attributes, normalized: normalizeFields(attributes, enriched.documents) };
+    return { ...enriched, attributes, normalized: normalizeFields(attributes, enriched.documents, "balluff") };
   } catch (error) {
     if (context.signal?.aborted) throw new Error("Cancelled by user.");
     return {
@@ -1207,6 +1255,28 @@ function isCompleteBalluffResult(
   const signals = balluffCompletenessSignals(result);
   const requireDatasheet = options.requireDatasheet !== false;
   return signals.hasUsefulDetail && signals.hasClassifications && signals.hasDigitalProductPassportWeight && (!requireDatasheet || signals.hasDatasheet);
+}
+
+function isBalluffStaticPageReadyForSharedEnrichment(result: ProductResult, catalogNumber: string): boolean {
+  const exactProductUrl = result.productUrl && balluffProductCodeFromUrl(result.productUrl) === cleanBalluffCode(catalogNumber);
+  const exactOfficialSource = result.sources.some((source) =>
+    source.sourceType === "official" &&
+    source.statusCode === 200 &&
+    source.parser === "balluff-product-page"
+  );
+  const exactCatalogEvidence = result.attributes.some((attribute) =>
+    /^catalog number$/i.test(attribute.name.trim()) && sameCatalogNumber(attribute.value, catalogNumber)
+  );
+  const hasProductImage = result.documents.some((document) => document.type === "image" && document.url);
+  return result.status === "found" &&
+    Boolean(exactProductUrl && exactOfficialSource && exactCatalogEvidence) &&
+    hasProductImage &&
+    hasBalluffDatasheet(result) &&
+    // Protection is often published only in the exact datasheet. The benchmark/run manager
+    // downloads and enriches that already-linked document immediately after the connector returns;
+    // do not download and parse it inside scrape() just to satisfy this pre-enrichment check.
+    Boolean(result.normalized.voltage) &&
+    balluffCompletenessSignals(result).hasUsefulDetail;
 }
 
 function readJsonLdProducts($: cheerio.CheerioAPI): Record<string, unknown>[] {
@@ -1766,6 +1836,16 @@ const BALLUFF_LABEL_ALIASES = Object.fromEntries(
 const BALLUFF_CANONICAL_LABELS = new Map(
   BALLUFF_SPEC_LABELS.map((label) => [balluffLabelKey(label), label] as const)
 );
+const BALLUFF_SPEC_LABEL_MATCHERS = [...BALLUFF_SPEC_LABELS]
+  .sort((left, right) => right.length - left.length)
+  .map((knownLabel) => {
+    const key = balluffLabelKey(knownLabel);
+    return {
+      knownLabel,
+      label: BALLUFF_LABEL_ALIASES[key] ?? BALLUFF_CANONICAL_LABELS.get(key) ?? cleanText(knownLabel),
+      key
+    };
+  });
 
 const BALLUFF_META_LABEL_PATTERN = [...BALLUFF_SPEC_LABELS]
   .sort((left, right) => right.length - left.length)
@@ -1917,17 +1997,23 @@ function isLikelyBalluffDomLabel(label: string): boolean {
 }
 
 function extractBalluffSectionAttributes(html: string, sourceUrl: string): AttributeRecord[] {
+  let stageStartedAt = Date.now();
   const tokens = balluffTextTokens(html);
+  if (process.env.DEBUG_BENCHMARK) console.log(`[balluff:debug] extract-sections tokenize ${Date.now() - stageStartedAt}ms tokens=${tokens.length}`);
+  stageStartedAt = Date.now();
   const attributes: AttributeRecord[] = [];
   const sections = balluffDetailSections(tokens);
+  if (process.env.DEBUG_BENCHMARK) console.log(`[balluff:debug] extract-sections split ${Date.now() - stageStartedAt}ms sections=${sections.length}`);
 
   for (const section of sections) {
     if (section.name !== "Key features" && section.name !== "Classifications" && section.name !== "Digital Product Passport") continue;
+    stageStartedAt = Date.now();
     const sectionAttributes = extractBalluffAttributesFromTokens(section.tokens, sourceUrl, `Balluff ${section.name}`).filter((attr) => {
       if (section.name === "Classifications") return isBalluffClassificationAttribute(attr.name);
       if (section.name === "Digital Product Passport") return !isBalluffClassificationAttribute(attr.name);
       return !isBalluffClassificationAttribute(attr.name);
     });
+    if (process.env.DEBUG_BENCHMARK) console.log(`[balluff:debug] extract-sections ${section.name} ${Date.now() - stageStartedAt}ms tokens=${section.tokens.length} attrs=${sectionAttributes.length}`);
     attributes.push(...sectionAttributes);
   }
 
@@ -1935,7 +2021,10 @@ function extractBalluffSectionAttributes(html: string, sourceUrl: string): Attri
     attributes.push(...extractBalluffAttributesFromTokens(tokens, sourceUrl, "Balluff Detail Sections"));
   }
 
-  return dedupeAttributes(attributes);
+  stageStartedAt = Date.now();
+  const result = dedupeAttributes(attributes);
+  if (process.env.DEBUG_BENCHMARK) console.log(`[balluff:debug] extract-sections dedupe ${Date.now() - stageStartedAt}ms attrs=${result.length}`);
+  return result;
 }
 
 const BALLUFF_DPP_LABEL_PATTERNS: Array<{ label: string; pattern: RegExp }> = [
@@ -2134,12 +2223,8 @@ function splitBalluffLabelToken(token: string): { label: string; value?: string 
     if (label) return { label, value: cleanText(colon[2]) };
   }
 
-  const sortedLabels = [...BALLUFF_SPEC_LABELS].sort((left, right) => right.length - left.length);
-  for (const knownLabel of sortedLabels) {
-    const label = balluffCanonicalLabel(knownLabel);
-    if (!label) continue;
-    const key = balluffLabelKey(knownLabel);
-    const tokenKey = balluffLabelKey(token);
+  const tokenKey = balluffLabelKey(token);
+  for (const { knownLabel, label, key } of BALLUFF_SPEC_LABEL_MATCHERS) {
     if (tokenKey === key) return { label };
     if (tokenKey.startsWith(`${key} `)) {
       const rest = token.slice(knownLabel.length).trim().replace(/^[:=-]\s*/, "");

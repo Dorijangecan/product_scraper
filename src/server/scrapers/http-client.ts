@@ -699,7 +699,12 @@ $contentType = if ($response.Headers['Content-Type']) { [string]$response.Header
     return outputPath;
   }
 
-  async downloadImageAsPng(url: string | string[], outputPath: string, signal?: AbortSignal): Promise<string> {
+  async downloadImageAsPng(
+    url: string | string[],
+    outputPath: string,
+    signal?: AbortSignal,
+    options: { allowNarrowPortrait?: boolean } = {}
+  ): Promise<string> {
     throwIfAborted(signal);
     await fs.mkdir(path.dirname(outputPath), { recursive: true });
     // A missing image is an export convenience, not a reason to hold an entire catalog row for
@@ -710,7 +715,7 @@ $contentType = if ($response.Headers['Content-Type']) { [string]$response.Header
     let lastError: unknown;
     for (const candidateUrl of urls) {
       try {
-        return await this.downloadOneImageAsPng(candidateUrl, outputPath, signal);
+        return await this.downloadOneImageAsPng(candidateUrl, outputPath, signal, options.allowNarrowPortrait === true);
       } catch (error) {
         lastError = error;
       }
@@ -718,7 +723,7 @@ $contentType = if ($response.Headers['Content-Type']) { [string]$response.Header
     throw lastError instanceof Error ? lastError : new Error("Image download failed for every candidate URL");
   }
 
-  private async downloadOneImageAsPng(url: string, outputPath: string, signal?: AbortSignal): Promise<string> {
+  private async downloadOneImageAsPng(url: string, outputPath: string, signal?: AbortSignal, allowNarrowPortrait = false): Promise<string> {
     throwIfAborted(signal);
     let buffer: Buffer;
     try {
@@ -744,7 +749,8 @@ $contentType = if ($response.Headers['Content-Type']) { [string]$response.Header
 
     const image = sharp(buffer, { animated: false });
     const metadata = await image.metadata();
-    if (!metadata.width || !metadata.height || metadata.width < 100 || metadata.height < 100) {
+    const narrowPortrait = allowNarrowPortrait && metadata.width >= 60 && metadata.height >= 300;
+    if (!metadata.width || !metadata.height || (metadata.width < 100 && !narrowPortrait) || metadata.height < 100) {
       throw new Error(`Product image is too small (${metadata.width ?? 0}x${metadata.height ?? 0}); trying the next candidate.`);
     }
     await image.png().toFile(outputPath);

@@ -522,7 +522,7 @@ const builtInManufacturerConfigs: Record<string, ManufacturerConfig> = {
     shortName: "SE",
     // 1500/3 = 500ms per-host interval, matching Saginaw (was 1800 → 600ms).
     rateLimitMs: 1500,
-    officialBaseUrls: ["https://www.se.com"],
+    officialBaseUrls: ["https://www.se.com", "https://www.telemecaniquesensors.com"],
     homepageUrl: "https://www.se.com/ww/en/",
     localizedUrlTemplates: [
       { locale: "en", urlTemplate: "https://www.se.com/ww/en/product/{part}/" },

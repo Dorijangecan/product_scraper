@@ -1,0 +1,52 @@
+[
+  {
+    "manufacturerId": "phoenix",
+    "catalogNumber": "2404267",
+    "caseType": "electrical",
+    "expectedDeviceType": "Programmable Logic Controller",
+    "riskTags": ["cold", "plcnext", "axioline", "linux", "profinet", "24vdc"],
+    "expectedOfficialUrlPatterns": ["phoenixcontact\\.com/en-us/products/controller-axc-f-2152-2404267"],
+    "requiredDocuments": ["image"],
+    "expectedNormalizedFields": ["weight", "dimensions", "voltage", "current", "protection"]
+  },
+  {
+    "manufacturerId": "phoenix",
+    "catalogNumber": "1650122",
+    "caseType": "electrical",
+    "expectedDeviceType": "HMI",
+    "riskTags": ["cold", "web-panel", "15.6-inch", "pcap", "full-hd", "24vdc"],
+    "expectedOfficialUrlPatterns": ["phoenixcontact\\.com/en-us/products/web-panel-wp-6156-whpr-1650122"],
+    "requiredDocuments": ["image"],
+    "expectedNormalizedFields": ["weight", "dimensions", "voltage", "protection", "operatingTemperatureMin", "operatingTemperatureMax"]
+  },
+  {
+    "manufacturerId": "phoenix",
+    "catalogNumber": "2702233",
+    "caseType": "electrical",
+    "expectedDeviceType": "Communication Gateway",
+    "riskTags": ["cold", "hart", "ethernet", "modbus-tcp", "opc-ua", "profinet"],
+    "expectedOfficialUrlPatterns": ["phoenixcontact\\.com/en-us/products/gatewaysproxies-gw-pl-ethuni-bus-2702233"],
+    "requiredDocuments": ["image"],
+    "expectedNormalizedFields": ["weight", "dimensions", "voltage", "current", "protection", "operatingTemperatureMin", "operatingTemperatureMax"]
+  },
+  {
+    "manufacturerId": "phoenix",
+    "catalogNumber": "1532597",
+    "caseType": "electrical",
+    "expectedDeviceType": "Connector",
+    "riskTags": ["cold", "rj45", "cat5", "ip67", "1gbps", "field-attachable"],
+    "expectedOfficialUrlPatterns": ["phoenixcontact\\.com/en-us/products/rj45-connector-vs-08-rj45-5-q-ip67-bp-1532597"],
+    "requiredDocuments": ["image"],
+    "expectedNormalizedFields": ["weight", "dimensions", "voltage", "current", "protection", "operatingTemperatureMin", "operatingTemperatureMax"]
+  },
+  {
+    "manufacturerId": "phoenix",
+    "catalogNumber": "1118021",
+    "caseType": "electrical",
+    "expectedDeviceType": "Luminaire",
+    "riskTags": ["cold", "machine-light", "24vdc", "ip54", "dimmable", "swiveling"],
+    "expectedOfficialUrlPatterns": ["phoenixcontact\\.com/en-us/products/light-pld-m-140-w-195d35sc-1118021"],
+    "requiredDocuments": ["image"],
+    "expectedNormalizedFields": ["weight", "dimensions", "voltage", "current", "protection", "operatingTemperatureMin", "operatingTemperatureMax"]
+  }
+]

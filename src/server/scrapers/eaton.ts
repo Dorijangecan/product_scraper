@@ -254,6 +254,7 @@ const EATON_MV_SOURCES = {
 } as const;
 const EATON_KBC_VOLTAGE_SOURCE = "https://www.eaton.com/content/dam/eaton/products/electrical-circuit-protection/fuses/data-sheets/bus-ele-ds-720010-kbc-(35-800)a.pdf";
 const EATON_SP_SERIES_BROCHURE_URL = "https://www.eaton.com/content/dam/eaton/products/backup-power-ups-surge-it-power-distribution/surge/sp-series/eaton-sp-series-brochure-pa01005006e.pdf";
+const EATON_POWER_SUPPLIES_CATALOG_URL = "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/power-supplies-v7-t6-ca08100008e.pdf";
 
 function buildEatonMediumVoltageCatalogResult(catalogNumber: string): ProductResult | undefined {
   const part = cleanText(catalogNumber);
@@ -433,12 +434,62 @@ export class EatonConnector implements ManufacturerConnector {
       if (documentResult) result = mergeEatonResults(result, documentResult);
     };
 
-    // Fan the first batch of direct candidates out in parallel — per-host throttling still
-    // staggers requests, but waiting serially on each 5s timeout cost ~20s/item even when
-    // every URL 404s. We still merge ALL successful parses (locales surface different fields)
-    // and only short-circuit once the merged picture is rich enough.
+    // Start with Eaton's canonical US PDP. It is the source used for identity, core specs,
+    // documents, and image evidence; fetching every locale for every SKU adds host-throttled
+    // waits even when that exact page already satisfies the manufacturer's quality gate.
+    const primaryDirectResult = await (async () => {
+      const officialUrl = candidates[0];
+      if (!officialUrl) return undefined;
+      try {
+        const fetched = await context.http.fetchText(officialUrl, { timeoutMs: 5000, maxAttempts: 1, signal: context.signal });
+        return { officialUrl, parsed: parseEatonProductPage(partNumber, fetched, officialUrl, context.manufacturer.localizedUrlTemplates) };
+      } catch {
+        return undefined;
+      }
+    })();
+    if (primaryDirectResult?.parsed.status !== "failed") result = primaryDirectResult?.parsed;
+
+    const primaryHasExactSkuDatasheet = Boolean(result?.documents.some((document) =>
+      document.type === "datasheet" && eatonSkuPdfMatches(document.url, partNumber)
+    ));
+    const primaryHasDeferredSurgeRating = Boolean(
+      result?.normalized.voltage &&
+      primaryHasExactSkuDatasheet &&
+      result.attributes.some((attribute) =>
+        /^(?:product type|type|product category)$/i.test(cleanText(attribute.name)) &&
+        /surge protective device/i.test(attribute.value) &&
+        attribute.parser === "eaton-product-page" &&
+        /\/skuPage\.[^/]+?\.html$/i.test(attribute.sourceUrl ?? "")
+      )
+    );
+    const primaryHasRequiredElectricalRating = result &&
+      (!evaluateQualityGate(result, context.manufacturer).missing.some((missing) =>
+        /^normalized:(?:voltage|current)$/i.test(missing)
+      ) || hasExactEatonPowerSupplyCatalog(result) || primaryHasDeferredSurgeRating);
+    const primaryHasExactProductType = result?.attributes.some((attribute) =>
+      /^(?:product type|type|product category)$/i.test(cleanText(attribute.name)) &&
+      attribute.parser === "eaton-product-page"
+    );
+    const exactPrimarySkuPageIsComplete = Boolean(
+      result &&
+      primaryDirectResult &&
+      eatonSkuPathMatches(primaryDirectResult.officialUrl, partNumber) &&
+      hasExactEatonIdentity(result, partNumber) &&
+      isSufficientEatonDirectResult(result, partNumber) &&
+      Boolean(result.normalized.dimensions && (result.normalized.weight || hasExactEatonPowerSupplyCatalog(result))) &&
+      primaryHasRequiredElectricalRating &&
+      primaryHasExactProductType
+    );
+    if (exactPrimarySkuPageIsComplete) {
+      // Avoid remote localized-reader calls once the exact US page proves identity, device type,
+      // and required ratings. Pages without a clear exact type still use locale merging below.
+      return withEatonDiagnostics(result!, diagnostics);
+    }
+
+    // Some Eaton locales expose technical fields absent from the US page. Keep the previous
+    // bounded merge path for pages that fail identity, required-rating, or completeness checks.
     const initialDirectResults = await Promise.all(
-      candidates.slice(0, 4).map(async (officialUrl) => {
+      candidates.slice(1, 4).map(async (officialUrl) => {
         try {
           const fetched = await context.http.fetchText(officialUrl, { timeoutMs: 5000, maxAttempts: 1, signal: context.signal });
           return { officialUrl, parsed: parseEatonProductPage(partNumber, fetched, officialUrl, context.manufacturer.localizedUrlTemplates) };
@@ -1799,6 +1850,7 @@ export function parseEatonProductPage(
     ...htmlParsed.documents,
     ...markdownDocuments,
     ...buildEatonSpSeriesTechnicalDocuments(attributes, productUrl),
+    ...buildEatonPowerSupplyCatalogDocument(attributes, productUrl, catalogNumberForUrls),
     ...(attributes.length ? buildEatonGeneratedSpecSheetDocuments(productUrl, catalogNumberForUrls) : [])
   ]), catalogNumberForUrls).map((doc) => ({
     sourceType: "official-fallback" as const,
@@ -1864,6 +1916,17 @@ function hasVerifiedEatonProductUrl(result: ProductResult, catalogNumber: string
   // explicit family route is valid only when the connector marked it terminal and kept
   // the source-backed family/model record intact.
   return result.pageLevel === "family" && result.diagnostics?.terminal?.skipNetworkFallback === true;
+}
+
+function hasExactEatonPowerSupplyCatalog(result: ProductResult): boolean {
+  const exactPowerSupply = result.attributes.some((attribute) =>
+    /^product type$/i.test(cleanText(attribute.name)) && /\bpower suppl(?:y|ies)\b/i.test(attribute.value) &&
+    attribute.parser === "eaton-product-page" && Boolean(attribute.sourceUrl && eatonSkuPathMatches(attribute.sourceUrl, result.catalogNumber))
+  );
+  return exactPowerSupply && result.documents.some((document) =>
+    document.type === "datasheet" && document.url === EATON_POWER_SUPPLIES_CATALOG_URL &&
+    Boolean(result.productUrl && eatonSkuPathMatches(result.productUrl, result.catalogNumber))
+  );
 }
 
 function isEatonModelCodeVariant(value: string, catalogNumber: string): boolean {
@@ -2175,6 +2238,21 @@ function buildEatonSpSeriesTechnicalDocuments(attributes: AttributeRecord[], off
     url: EATON_SP_SERIES_BROCHURE_URL,
     sourceUrl: officialUrl,
     parser: "eaton-sp1-family-source"
+  }];
+}
+
+function buildEatonPowerSupplyCatalogDocument(attributes: AttributeRecord[], officialUrl: string, catalogNumber: string): DocumentRecord[] {
+  const exactPowerSupply = attributes.some((attribute) =>
+    /^product type$/i.test(cleanText(attribute.name)) && /\bpower suppl(?:y|ies)\b/i.test(attribute.value) &&
+    attribute.parser === "eaton-product-page" && Boolean(attribute.sourceUrl && eatonSkuPathMatches(attribute.sourceUrl, catalogNumber))
+  );
+  if (!exactPowerSupply || !eatonSkuPathMatches(officialUrl, catalogNumber)) return [];
+  return [{
+    type: "datasheet",
+    label: "Eaton Power Supplies technical catalog (Volume 7)",
+    url: EATON_POWER_SUPPLIES_CATALOG_URL,
+    sourceUrl: officialUrl,
+    parser: "eaton-power-supply-catalog"
   }];
 }
 
@@ -3176,13 +3254,17 @@ function normalizeEatonImageUrl(url: string): string {
 function hasExactEatonCatalogNumberInImageAsset(document: DocumentRecord, catalogNumber: string): boolean {
   const expected = cleanText(catalogNumber).replace(/[^a-z0-9]/gi, "").toUpperCase();
   if (!expected) return false;
+  // Some Eaton T0 cam-switch image assets omit the order code's leading zero and prefix the
+  // remaining number with the product database's Y7 family code (e.g. SKU 038873 -> Y7-38873).
+  // Accept only that documented numeric naming shape; page alt text alone remains insufficient.
+  const legacyY7Number = /^0+(\d+)$/.exec(expected)?.[1];
   const urls = [document.url, ...(document.candidateUrls ?? [])];
   return urls.some((url) => {
     try {
       const segments = decodeURIComponent(new URL(url).pathname).split("/").filter(Boolean);
       return segments.some((segment) => {
         const asset = segment.replace(/(?:_(?:C|L|FM|DOVP|MAIN|PRODUCT|PRODUCTIMAGE|FRONT|SIDE|BACK|IMAGE))+$/i, "").replace(/[^a-z0-9]/gi, "").toUpperCase();
-        return asset === expected;
+        return asset === expected || Boolean(legacyY7Number && asset === `Y7${legacyY7Number}`);
       });
     } catch {
       return false;

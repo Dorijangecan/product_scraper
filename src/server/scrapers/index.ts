@@ -38,13 +38,22 @@ class LazyManufacturerConnector implements ManufacturerConnector {
   ) {}
 
   async scrape(catalogNumber: string, context: ScrapeContext) {
+    const connector = await this.resolveConnector();
+    return connector.scrape(catalogNumber, context);
+  }
+
+  async enrichDocuments(catalogNumber: string, result: import("../../shared/types.js").ProductResult, context: ScrapeContext) {
+    const connector = await this.resolveConnector();
+    return connector.enrichDocuments ? connector.enrichDocuments(catalogNumber, result, context) : result;
+  }
+
+  private async resolveConnector(): Promise<ManufacturerConnector> {
     let connectorPromise = connectorPromises.get(this.id);
     if (!connectorPromise) {
       connectorPromise = this.load();
       connectorPromises.set(this.id, connectorPromise);
     }
-    const connector = await connectorPromise;
-    return connector.scrape(catalogNumber, context);
+    return connectorPromise;
   }
 }
 

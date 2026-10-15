@@ -1,0 +1,52 @@
+[
+  {
+    "manufacturerId": "schmersal",
+    "catalogNumber": "103003590",
+    "caseType": "electrical",
+    "expectedDeviceType": "Solenoid Interlock",
+    "riskTags": ["cold", "azm400", "solenoid-interlock", "rfid", "m12", "safety-rated"],
+    "expectedOfficialUrlPatterns": ["products\\.schmersal\\.com/.*/103003590(?:\\.html)?"],
+    "requiredDocuments": ["datasheet", "image"],
+    "expectedNormalizedFields": ["weight"]
+  },
+  {
+    "manufacturerId": "schmersal",
+    "catalogNumber": "103014764",
+    "caseType": "electrical",
+    "expectedDeviceType": "Safety Sensor",
+    "riskTags": ["cold", "rss260", "rfid", "as-interface", "individual-coding", "safety-sensor"],
+    "expectedOfficialUrlPatterns": ["products\\.schmersal\\.com/.*/103014764(?:\\.html)?"],
+    "requiredDocuments": ["datasheet", "image"],
+    "expectedNormalizedFields": ["weight"]
+  },
+  {
+    "manufacturerId": "schmersal",
+    "catalogNumber": "101163475",
+    "caseType": "electrical",
+    "expectedDeviceType": "Safety Relay",
+    "riskTags": ["cold", "srb301lc", "safety-relay", "24v", "3-safety-contacts", "stop-category-0"],
+    "expectedOfficialUrlPatterns": ["products\\.schmersal\\.com/.*/101163475(?:\\.html)?"],
+    "requiredDocuments": ["datasheet", "image"],
+    "expectedNormalizedFields": ["weight"]
+  },
+  {
+    "manufacturerId": "schmersal",
+    "catalogNumber": "103015124",
+    "caseType": "electrical",
+    "expectedDeviceType": "Limit Switch",
+    "riskTags": ["cold", "ps315", "position-switch", "roller-lever", "safety-function", "ac15", "dc13"],
+    "expectedOfficialUrlPatterns": ["products\\.schmersal\\.com/.*/103015124(?:\\.html)?"],
+    "requiredDocuments": ["datasheet", "image"],
+    "expectedNormalizedFields": ["weight", "dimensions"]
+  },
+  {
+    "manufacturerId": "schmersal",
+    "catalogNumber": "101021009",
+    "caseType": "electrical",
+    "expectedDeviceType": "Pushbutton / Operator",
+    "riskTags": ["cold", "edrr", "emergency-stop", "mushroom-button", "metal", "exact-product-image"],
+    "expectedOfficialUrlPatterns": ["products\\.schmersal\\.com/.*/101021009(?:\\.html)?"],
+    "requiredDocuments": ["datasheet", "image"],
+    "expectedNormalizedFields": []
+  }
+]

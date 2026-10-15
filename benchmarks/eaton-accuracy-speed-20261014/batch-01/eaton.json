@@ -1,0 +1,52 @@
+[
+  {
+    "manufacturerId": "eaton",
+    "catalogNumber": "SL2MNM65E3C3A",
+    "caseType": "electrical",
+    "expectedDeviceType": "Luminaire",
+    "riskTags": ["cold", "emergency-luminaire", "safelite", "ip65", "self-contained-battery"],
+    "expectedOfficialUrlPatterns": ["eaton\\.com/.*/skuPage\\.SL2MNM65E3C3A\\.html"],
+    "requiredDocuments": ["datasheet", "image"],
+    "expectedNormalizedFields": ["dimensions", "weight", "voltage", "protection", "operatingTemperatureMin", "operatingTemperatureMax"]
+  },
+  {
+    "manufacturerId": "eaton",
+    "catalogNumber": "116308",
+    "caseType": "electrical",
+    "expectedDeviceType": "Communication Gateway",
+    "riskTags": ["cold", "smartwire-dt", "profibus-dp", "communication-module", "58-modules"],
+    "expectedOfficialUrlPatterns": ["eaton\\.com/.*/skuPage\\.116308\\.html"],
+    "requiredDocuments": ["datasheet", "image"],
+    "expectedNormalizedFields": ["dimensions", "weight", "voltage", "protection", "operatingTemperatureMin", "operatingTemperatureMax"]
+  },
+  {
+    "manufacturerId": "eaton",
+    "catalogNumber": "10-6380-2",
+    "caseType": "electrical",
+    "expectedDeviceType": "Terminal Block",
+    "riskTags": ["cold", "definite-purpose", "terminal-block", "contactor-accessory"],
+    "expectedOfficialUrlPatterns": ["eaton\\.com/.*/skuPage\\.10-6380-2\\.html"],
+    "requiredDocuments": ["datasheet", "image"],
+    "expectedNormalizedFields": ["dimensions", "weight"]
+  },
+  {
+    "manufacturerId": "eaton",
+    "catalogNumber": "PDG23M0015MRAJ",
+    "caseType": "electrical",
+    "expectedDeviceType": "Motor Circuit Breaker",
+    "riskTags": ["cold", "power-defense", "motor-protection", "15-a", "three-pole", "pdp-sibling-image"],
+    "expectedOfficialUrlPatterns": ["eaton\\.com/.*/skuPage\\.PDG23M0015MRAJ\\.html"],
+    "requiredDocuments": ["datasheet"],
+    "expectedNormalizedFields": ["dimensions", "weight", "current", "voltage"]
+  },
+  {
+    "manufacturerId": "eaton",
+    "catalogNumber": "E51ALT16PU",
+    "caseType": "electrical",
+    "expectedDeviceType": "Inductive Proximity Sensor",
+    "riskTags": ["cold", "e51", "inductive-proximity", "2-wire-ac-no", "representative-image"],
+    "expectedOfficialUrlPatterns": ["eaton\\.com/.*/skuPage\\.E51ALT16PU\\.html"],
+    "requiredDocuments": ["datasheet"],
+    "expectedNormalizedFields": ["dimensions", "weight", "current", "voltage", "protection", "operatingTemperatureMin", "operatingTemperatureMax"]
+  }
+]

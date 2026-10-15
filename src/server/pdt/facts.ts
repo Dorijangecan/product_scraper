@@ -118,7 +118,18 @@ export const PDT_ONTOLOGY_QUANTITY_FACT_KEYS: Record<string, string> = {
 };
 
 export function buildPdtFactIndex(input: PdtFactInput): PdtFactIndex {
-  const result = input.item.result;
+  const scrapedResult = input.item.result;
+  // Eaton family catalogs can contain many unrelated current/voltage rows. Only let their
+  // table-mined attributes enter PDT fact resolution when the parser tied the row to an exact
+  // model; the general normalizer applies the same scope rule before selecting normalized values.
+  const result = scrapedResult?.manufacturerId === "eaton"
+    ? {
+        ...scrapedResult,
+        attributes: scrapedResult.attributes.filter((attribute) =>
+          !(attribute.sourceType === "generated" && attribute.parser === "pdf-table-extractor" && attribute.matchLevel !== "exact")
+        )
+      }
+    : scrapedResult;
   const manufacturer = result?.manufacturerId ? getManufacturerConfig(result.manufacturerId) ?? input.manufacturer : input.manufacturer;
   const facts: PdtFact[] = [];
 
@@ -496,6 +507,17 @@ function addOntologyAttributeFacts(facts: PdtFact[], result: ProductResult): voi
   for (const attr of sorted) {
     const label = `${attr.group ?? ""} ${attr.name ?? ""} ${attr.unit ?? ""}`;
     const ontologyKey = matchProperty(label)?.key;
+    if (
+      result.manufacturerId === "eaton" &&
+      ontologyKey === "ratedCurrent" &&
+      /^rated operational current for specified heat dissipation\s*\(\s*in\s*\)$/i.test(attr.name.trim()) &&
+      /^0(?:[.,]0+)?\s*A?$/i.test(clean(attr.value) ?? "")
+    ) continue;
+    if (
+      result.manufacturerId === "eaton" &&
+      ontologyKey === "powerLoss" &&
+      /\bcurrent[- ]dependent\s+Pvid\b/i.test(attr.name.trim())
+    ) continue;
     if ((ontologyKey === "ratedVoltage" || ontologyKey === "controlVoltage") && !facts.some((fact) => fact.key === "ratedVoltage")) {
       const value = ontologyElectricalValue(attr, "V");
       if (value) facts.push(factFromAttribute("ratedVoltage", { ...attr, value }, `Ontology label "${attr.name}" promoted to canonical PDT ratedVoltage.`));

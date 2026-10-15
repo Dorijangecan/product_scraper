@@ -158,6 +158,15 @@ export function requiredElectricalFields(result: ProductResult, context: Electri
   }
   if (result.manufacturerId === "eaton" && EATON_XENERGY_BASE_FRAME_MODEL_PATTERN.test(text)) return [];
   if (result.manufacturerId === "eaton" && EATON_VA_RATED_NO_CURRENT_PATTERN.test(primaryText) && result.normalized.voltage && !result.normalized.current) return ["voltage"];
+  // ABB compact pilot lights publish an LED supply voltage but no device-level current. The
+  // generic pushbutton heuristic can otherwise mistake inherited contact-family rows for a
+  // contact rating and require a current that the exact light head does not publish.
+  if (result.manufacturerId === "abb" && /\bpilot light\b/i.test(primaryText)) return ["voltage"];
+  // ABB selector operators sold without a contact block have no standalone switching rating.
+  // Require voltage only when the exact page actually publishes an illuminated lamp supply.
+  if (result.manufacturerId === "abb" && /\bselector switch\b/i.test(primaryText) && /\bno contact block\b/i.test(primaryText)) {
+    return /\blamp type\b[\s\S]{0,80}\b\d+(?:[.,]\d+)?\s*V\b/i.test(ratingText) ? ["voltage"] : [];
+  }
   if (NON_ELECTRICAL_ACCESSORY_PATTERN.test(primaryText)) return [];
   if (NON_ELECTRICAL_INDUSTRIAL_PRODUCT_PATTERN.test(primaryText)) return [];
   if (PASSIVE_PILOT_DEVICE_ACTUATOR_PATTERN.test(primaryText)) return [];
@@ -173,11 +182,11 @@ export function requiredElectricalFields(result: ProductResult, context: Electri
   // Schmersal BNS magnetic safety sensors are passive reed/magnetic switches; their PDP exposes
   // no supply voltage. Do not apply the generic active-sensor voltage heuristic to this family.
   if (result.manufacturerId === "schmersal" && /\bBNS\s+\d+/i.test(primaryText)) return [];
-  // Schmersal T4V/TV are passive mechanical position switches and BDF/BPS are passive
+  // Schmersal T4V/TV are passive mechanical position switches; BDF/BPS and RDRZ are
   // operator/actuator components. Their official PDPs publish contact/mechanical data but no
-  // standalone supply voltage; requiring one sends every direct PDP through an expensive,
-  // fruitless browser/document retry and would invite guessed values.
-  if (result.manufacturerId === "schmersal" && /\b(?:T4V|T4VH|TV\d*S?|BDF|BPS|TESF)\b/i.test(primaryText)) return [];
+  // standalone supply voltage/current; requiring those fields sends exact PDPs through an
+  // expensive, fruitless browser/document retry and would invite guessed values.
+  if (result.manufacturerId === "schmersal" && /\b(?:T4V|T4VH|TV\d*S?|BDF|BPS|TESF|RDRZ[A-Z0-9-]*)\b/i.test(primaryText)) return [];
   // Rockwell 440R Guardmaster safety relays publish the 24 V AC/DC power supply but do not
   // publish a device input-current rating on the official PDP or its 440R technical data sheet.
   if (result.manufacturerId === "rockwell" && context.deviceType === "Safety Relay") return ["voltage"];

@@ -7,6 +7,9 @@ import type { ManufacturerConnector, ScrapeContext } from "./types.js";
 import { sameCatalogNumber } from "./catalog-number.js";
 import { dedupeAttributes, dedupeDocuments } from "./dedupe.js";
 import { scrapeDiscoveredFallback, withDiscoveryFallbackDiagnostics } from "./discovery-fallback.js";
+import { requiredElectricalFields } from "../../shared/product-requirements.js";
+import { electricalFieldsForDeviceType } from "../pdt/device-type-profiles.js";
+import { classifyDeviceType } from "./device-type.js";
 
 const SIEMENS_BASE = "https://sieportal.siemens.com";
 const SIEMENS_PRODUCT_API = `${SIEMENS_BASE}/api/mall/SearchApi/GetProductsDetails`;
@@ -36,6 +39,7 @@ const SIEMENS_MMPDATA_SOURCE = {
   confidence: 0.82,
   fetchPolicy: { timeoutMs: 12000, maxAttempts: 1 }
 };
+const SIEMENS_MMPDATA_FAST_SOURCE = { ...SIEMENS_MMPDATA_SOURCE, id: "siemens-mmpdata-fast" };
 
 interface SiemensAuthConfig {
   authority: string;
@@ -65,6 +69,19 @@ export class SiemensConnector implements ManufacturerConnector {
       const fetched = await fetchSiemensProductApi(catalogNumber, context);
       const result = parseSiemensProductApiResponse(catalogNumber, fetched);
       if (result.status !== "failed") {
+        const exactApiResult = withExactSiemensDatasheet(normalizeSiemensResult(result));
+        if (hasCompleteExactSiemensApiPayload(exactApiResult)) return exactApiResult;
+        // The exact product API already provides Siemens' catalog image and datasheet links. The
+        // direct MLFB table is the fast, exact source for missing specifications; broad discovery
+        // can then fetch a second BildDB image for several seconds without adding product facts.
+        const mmpdata = await context.fallback.scrape(catalogNumber, [SIEMENS_MMPDATA_FAST_SOURCE]);
+        const directMerge = mmpdata && mmpdata.status !== "failed"
+          ? normalizeSiemensResult(mergeResults(result, mmpdata))
+          : undefined;
+        const hasExactImage = result.documents.some((document) => document.type === "image");
+        const hasDatasheet = result.documents.some((document) => document.type === "datasheet");
+        if (directMerge && mmpdata?.attributes.length && hasExactImage && hasDatasheet) return directMerge;
+
         const { result: fallback, discovery } = await scrapeDiscoveredFallback(catalogNumber, context, { idPrefix: this.id });
         const merged = preferExactSiemensDatasheet(mergeResults(result, fallback), result.documents);
         return normalizeSiemensResult(withDiscoveryFallbackDiagnostics(merged, discovery));
@@ -95,6 +112,55 @@ export class SiemensConnector implements ManufacturerConnector {
     ));
   }
 
+}
+
+function hasCompleteExactSiemensApiPayload(result: ProductResult): boolean {
+  const articleNumber = result.attributes.find((attribute) => /^(?:article number|mlfb)$/i.test(attribute.name.trim()))?.value;
+  if (!articleNumber || !sameCatalogNumber(articleNumber, result.catalogNumber)) return false;
+  const hasImage = result.documents.some((document) => document.type === "image" && Boolean(document.url));
+  const hasExactDatasheet = result.documents.some((document) => document.type === "datasheet" &&
+    (isExactSiemensPdfUrl(document.url) || isExactSiemensTedDatasheetUrl(document.url, result.catalogNumber)));
+  if (!hasImage || !hasExactDatasheet) return false;
+
+  const classification = classifyDeviceType(result);
+  const requiredFields = requiredElectricalFields(result, {
+    deviceType: classification.type,
+    deviceTypeConfidence: classification.confidence,
+    deviceTypeElectricalFields: electricalFieldsForDeviceType(classification.type)
+  });
+  return requiredFields.every((field) => Boolean(result.normalized[field]));
+}
+
+function withExactSiemensDatasheet(result: ProductResult): ProductResult {
+  if (result.documents.some((document) => document.type === "datasheet" &&
+    (isExactSiemensPdfUrl(document.url) || isExactSiemensTedDatasheetUrl(document.url, result.catalogNumber)))) return result;
+  const datasheetUrl = `https://tableeditor.cicservice.siemens.com/teddatasheet/?format=PDF&mlfbs=${encodeURIComponent(result.catalogNumber)}&language=en&caller=documentservice`;
+  return {
+    ...result,
+    documents: dedupeDocuments([
+      ...result.documents,
+      {
+        type: "datasheet",
+        label: "Siemens exact article datasheet",
+        url: datasheetUrl,
+        sourceUrl: result.productUrl,
+        sourceType: "official-fallback",
+        parser: "siemens-exact-article-datasheet"
+      }
+    ])
+  };
+}
+
+function isExactSiemensTedDatasheetUrl(url: string, catalogNumber: string): boolean {
+  try {
+    const parsed = new URL(url);
+    return parsed.hostname === "tableeditor.cicservice.siemens.com" &&
+      /\/teddatasheet\/?$/i.test(parsed.pathname) &&
+      parsed.searchParams.get("format")?.toUpperCase() === "PDF" &&
+      sameCatalogNumber(parsed.searchParams.get("mlfbs") ?? "", catalogNumber);
+  } catch {
+    return false;
+  }
 }
 
 async function readSiemensAuthConfig(context: ScrapeContext): Promise<SiemensAuthConfig> {
@@ -644,18 +710,59 @@ export function parseSiemensProductApiResponse(catalogNumber: string, fetched: F
  * select the Siemens-labelled operating quantities by meaning. This is deliberately label-driven:
  * it applies to unseen MLFBs and never manufactures a value from the catalog-number pattern.
  */
-export function normalizeSiemensFields(attributes: AttributeRecord[], documents: DocumentRecord[]) {
-  const normalized = normalizeFields(attributes, documents);
-  const voltage = selectSiemensVoltage(attributes) ?? normalized.voltage;
-  const current = selectSiemensCurrent(attributes) ?? normalized.current;
-  return { ...normalized, voltage, current };
+export function normalizeSiemensFields(attributes: AttributeRecord[], documents: DocumentRecord[], productText = "") {
+  // The Siemens Mall API calls shipping-box measurements "Packaging Dimension". Do not let those
+  // values enter normalized product geometry. HMI width/height rows can also describe the display
+  // or installation cutout, so leave the combined body dimensions blank until an unambiguous body
+  // measurement is available; the source rows remain attached for review.
+  const articleNumber = attributes.find((attr) => /^(?:article number|mlfb)$/i.test(attr.name.trim()))?.value ?? "";
+  const isHmiPanel = /^6AV/i.test(articleNumber) || /SIMATIC\s+HMI|KTP\d+\s+Basic/i.test(productText);
+  const geometryAttributes = attributes.filter((attr) =>
+    !/\bpackaging\s+dimension\b/i.test(`${attr.group ?? ""} ${attr.name}`) && !isHmiPanel &&
+    (!/\bthickness\b/i.test(`${attr.group ?? ""} ${attr.name}`) || /\b(?:wall|housing|enclosure)\s+thickness\b/i.test(`${attr.group ?? ""} ${attr.name}`))
+  );
+  const normalized = normalizeFields(geometryAttributes, []);
+  const duplicatedIpPrefix = normalized.protection?.match(/^IP\s+IP(\d{2}[A-Z]{0,2})$/i);
+  if (duplicatedIpPrefix) normalized.protection = `IP${duplicatedIpPrefix[1].toUpperCase()}`;
+  const netWeight = attributes.find((attr) => /^net weight value$/i.test(attr.name.trim()));
+  if (netWeight) normalized.weight = normalizeFields([netWeight], [])["weight"];
+  const enclosureDimensions = attributes.find((attr) =>
+    /^width$/i.test(attr.name.trim()) && /height\s*[×x]\s*depth\s+of\s+the\s+enclosure/i.test(attr.value)
+  );
+  const dimensionTriplet = enclosureDimensions?.value.match(/([\d.,]+)\s*[×x]\s*([\d.,]+)\s*[×x]\s*([\d.,]+)\s*mm/i);
+  if (dimensionTriplet) normalized.dimensions = `${dimensionTriplet[1]} x ${dimensionTriplet[2]} x ${dimensionTriplet[3]} mm`;
+  const dimensionCount = normalized.dimensions?.match(/\d+(?:[.,]\d+)?/g)?.length ?? 0;
+  if (dimensionCount < 3) normalized.dimensions = undefined;
+  const isPositionSwitch = /\b(?:limit switch|position switch)\b/i.test(productText);
+  let voltage = isPositionSwitch ? undefined : selectSiemensVoltage(attributes, productText) ?? normalized.voltage;
+  if (voltage && attributes.some((attr) => /\brated value\s*\(DC\)/i.test(attr.name)) && !/\bDC\b/i.test(voltage)) {
+    voltage = `${voltage} DC`;
+  }
+  const current = isPositionSwitch ? undefined : selectSiemensCurrent(attributes, productText) ?? normalized.current;
+  const explicitHousingMaterial = attributes.find((attr) => /^housing material$/i.test(attr.name.trim()));
+  const explicitColor = attributes.find((attr) => /^colou?r$/i.test(attr.name.trim()));
+  const color = explicitColor && /^(?:black|white|gray|grey|yellow|red|green|blue|orange|transparent)$/i.test(explicitColor.value.trim())
+    ? normalizeFields([explicitColor], [])["color"]
+    : undefined;
+  return {
+    ...normalized,
+    voltage,
+    current,
+    material: explicitHousingMaterial ? normalizeFields([explicitHousingMaterial], [])["material"] : undefined,
+    color
+  };
 }
 
 export function normalizeSiemensResult(result: ProductResult): ProductResult {
-  const recomputed = normalizeSiemensFields(result.attributes, result.documents);
+  const productText = `${result.title} ${result.description}`;
+  const recomputed = normalizeSiemensFields(result.attributes, result.documents, productText);
   const normalized = { ...result.normalized };
   for (const [field, value] of Object.entries(recomputed) as Array<[keyof typeof recomputed, string | undefined]>) {
-    if (value !== undefined) normalized[field] = value;
+    if (value !== undefined || field === "dimensions" || field === "wallThickness" || field === "material" || field === "color") normalized[field] = value;
+  }
+  if (/\b(?:limit switch|position switch)\b/i.test(productText)) {
+    normalized.voltage = undefined;
+    normalized.current = undefined;
   }
   return {
     ...result,
@@ -663,24 +770,165 @@ export function normalizeSiemensResult(result: ProductResult): ProductResult {
   };
 }
 
-function selectSiemensVoltage(attributes: AttributeRecord[]): string | undefined {
+function selectSiemensVoltage(attributes: AttributeRecord[], productText: string): string | undefined {
+  const pressureTransmitterSupply = productText.match(/\bpower supply\s+DC\s+([\d.,]+)\s+to\s+([\d.,]+\s*V)\b/i);
+  if (pressureTransmitterSupply) return `${pressureTransmitterSupply[1]}–${pressureTransmitterSupply[2]} DC supply`;
+  if (/\btransformer\b/i.test(productText)) {
+    const primary = productText.match(/\bUpri\s*\(\s*V\s*\)\s*:?\s*([\d.,]+)\s*(?:V)?\s*(?:\+\s*\/\s*-|±)\s*([\d.,]+)\s*%/i);
+    const secondary = productText.match(/\bUsec\s*\(\s*V\s*\)\s*:?\s*([\d.,]+)\s*(?:V)?\b/i);
+    if (primary && secondary) return `Primary ${primary[1]} V ±${primary[2]}%; secondary ${secondary[1]} V`;
+  }
+  if (/\b(?:motor|direct) starter\b/i.test(productText)) {
+    const controlSupply = attributes.find((attr) => /control supply voltage.*rated value/i.test(attr.name));
+    const mainVoltage = attributes.find((attr) => /operating voltage rated value/i.test(attr.name)) ??
+      attributes.find((attr) => /^voltage rated value$/i.test(attr.name.trim()));
+    if (controlSupply && mainVoltage) {
+      const dcControl = attributes.some((attr) => /type of voltage of the control supply voltage/i.test(attr.name) && /^DC$/i.test(attr.value.trim()));
+      return `Control supply ${controlSupply.value}${dcControl && !/\bDC\b/i.test(controlSupply.value) ? " DC" : ""}; main operating voltage ${mainVoltage.value}`;
+    }
+  }
+  if (/\bminiature circuit breaker\b/i.test(productText)) {
+    const ratedAcRange = productText.match(/\b(\d{2,4}\s*\/\s*\d{2,4}\s*V)\b/i);
+    if (ratedAcRange) return ratedAcRange[1].replace(/\s+/g, " ");
+  }
+  if (/\b(?:terminal block|through[-\s]?type terminal)\b/i.test(productText)) {
+    const ratedOperatingVoltage = attributes.find((attr) => /^operating voltage rated value$/i.test(attr.name.trim()));
+    if (ratedOperatingVoltage) return normalizeFields([ratedOperatingVoltage], [])['voltage'];
+  }
+  if (/\b(?:limit switch|position switch)\b/i.test(productText)) {
+    // Insulation and impulse withstand ratings do not establish a rated operating voltage.
+    return undefined;
+  }
+  if (/\bsurge arrester\b|\bsurge protective device\b/i.test(productText)) {
+    const systemVoltage = productText.match(/\b(\d{2,4}\s*Y\s*\/\s*\d{2,4}\s*V)\s*\(wye\)/i);
+    if (systemVoltage) return systemVoltage[1].replace(/\s+/g, " ");
+  }
+  if (/\b(?:SINAMICS|frequency converter|variable speed drive)\b/i.test(productText)) {
+    const lineVoltage = attributes.find((attr) => /^line voltage$/i.test(attr.name.trim()));
+    const ratedVoltage = attributes.find((attr) => /^rated voltage$/i.test(attr.name.trim()));
+    if (lineVoltage && ratedVoltage) return `3-phase AC line voltage ${lineVoltage.value}; rated voltage classes ${ratedVoltage.value}`;
+  }
+  if (/\bmonitoring relay\b/i.test(productText)) {
+    const monitoredVoltage = productText.match(/\b3\s*[x×]\s*([\d.,]+)\s*(?:\.\.\.|…|[-–—])\s*([\d.,]+\s*V)\s*AC\b/i);
+    if (monitoredVoltage) {
+      const measurable = attributes.find((attr) => /measurable voltage 1 at AC/i.test(attr.name))?.value;
+      return `3-phase rated monitored voltage: ${monitoredVoltage[1]}–${monitoredVoltage[2]} AC${measurable ? `; measurable range ${measurable} AC` : ""}`;
+    }
+  }
+  const meterLineToLine = attributes.find((attr) => /between the line conductors at AC maximum rated value|between L and L maximum/i.test(attr.name));
+  const meterLineToNeutral = attributes.find((attr) => /between \(PE\)N and L at AC maximum rated value/i.test(attr.name));
+  if (meterLineToLine && meterLineToNeutral) {
+    return `Maximum rated: ${meterLineToLine.value} line-to-line; ${meterLineToNeutral.value} line-to-neutral`;
+  }
+  const lineVoltages = productText.match(/L[-–]L\s*:\s*([\d.,]+\s*V)\s*,\s*L[-–]N\s*:\s*([\d.,]+\s*V)/i);
+  if (lineVoltages) return `${lineVoltages[1]} line-to-line; ${lineVoltages[2]} line-to-neutral`;
+  const inputOutput = productText.match(/Input:\s*([\d.,]+\s*V\s*DC)\s*\(([^)]+)\)\s*Output:\s*([\d.,]+\s*V\s*DC)(?:\s*\/\s*[\d.,]+\s*A)?/i);
+  if (inputOutput) {
+    const adjustable = attributes.find((attr) => /^adjustable output voltage$/i.test(attr.name.trim()))?.value;
+    return `Input ${inputOutput[1]} (${inputOutput[2]}); output ${inputOutput[3]}${adjustable ? ` (adjustable ${adjustable})` : ""}`;
+  }
+  const relaySupply = productText.match(/\b([\d.,]+)\s*[-–…]+\s*([\d.,]+)\s*V\s*AC\/DC\b/i);
+  if (relaySupply) return `${relaySupply[1]}–${relaySupply[2]} V AC/DC`;
   const powerSupply = attributes.some((attr) => /power suppl(?:y|ies)|sitop|psu\b/i.test(`${attr.name} ${attr.value}`));
-  return selectSiemensElectricalValue(attributes, "voltage", (label) => {
+  const selected = selectSiemensElectricalValue(attributes, "voltage", (label) => {
     if (/\b(?:insulation|surge|impulse|withstand|protection|drop|residual|peak|test)\s+voltage\b|\bvoltage\s+(?:drop|protection|rating)\b/i.test(label)) return -1;
+    if (powerSupply && /\binput voltage\b/i.test(label)) return 145;
+    if (powerSupply && /\b(?:rated|nominal)?\s*output voltage\b/i.test(label)) return 140;
     if (/\b(?:supply|load) voltage\b/i.test(label)) return 120;
     if (/\b(?:control supply|rated supply) voltage\b/i.test(label)) return 115;
     if (/\brated voltage\b/i.test(label)) return 105;
     if (/\binput voltage\b/i.test(label)) return 95;
     if (/\boperating voltage\b/i.test(label)) return 90;
-    if (powerSupply && /\b(?:rated|nominal)?\s*output voltage\b/i.test(label)) return 110;
     return -1;
   });
+  if (selected && /\btype of supply voltage\b/i.test(attributes.map((attr) => `${attr.name} ${attr.value}`).join(" "))) {
+    const isDc = attributes.some((attr) => /\btype of supply voltage\b/i.test(attr.name) && /^DC$/i.test(attr.value.trim()));
+    return isDc && !/\bDC\b/i.test(selected) ? `${selected} DC` : selected;
+  }
+  if (selected && attributes.some((attr) => /\brated value\s*\(DC\)/i.test(attr.name))) return `${selected} DC`;
+  return selected;
 }
 
-function selectSiemensCurrent(attributes: AttributeRecord[]): string | undefined {
+function selectSiemensCurrent(attributes: AttributeRecord[], productText: string): string | undefined {
+  if (/\btransformer\b/i.test(productText)) {
+    const secondaryCurrent = productText.match(/\b(?:Isec|Usec)\s*\(\s*A\s*\)\s*:?\s*([\d.,]+)\s*A?\b/i);
+    if (secondaryCurrent) return `${secondaryCurrent[1]} A rated secondary current`;
+  }
+  if (/\bsafety relay\b/i.test(productText)) {
+    const semiconductorOutput = attributes.find((attr) => /switching capacity current of semiconductor outputs at DC-13 at 24 V/i.test(attr.name));
+    if (semiconductorOutput) return `${semiconductorOutput.value} maximum semiconductor output current at DC-13, 24 V`;
+  }
+  const adjustableBreakerStart = attributes.find((attr) => /adjustable current response value.*current-dependent overload release initial value/i.test(attr.name));
+  const breakerRatedCurrent = attributes.find((attr) => /operational current at AC-3 at 400 V rated value/i.test(attr.name));
+  if (adjustableBreakerStart && breakerRatedCurrent) {
+    return `${adjustableBreakerStart.value} adjustable overload-release initial value; ${breakerRatedCurrent.value} rated AC-3 current at 400 V`;
+  }
+  if (/\bminiature circuit breaker\b/i.test(productText)) {
+    const ratedCurrent = attributes.find((attr) => /^●?\s*operational current at AC rated value$/i.test(attr.name.trim()));
+    if (ratedCurrent) return normalizeFields([ratedCurrent], [])['current'];
+  }
+  if (/\b(?:terminal block|through[-\s]?type terminal)\b/i.test(productText)) {
+    const ratedCurrent = attributes.find((attr) => /^operational current rated value$/i.test(attr.name.trim()));
+    if (ratedCurrent) return normalizeFields([ratedCurrent], [])['current'];
+  }
+  if (/\bsurge arrester\b|\bsurge protective device\b/i.test(productText)) {
+    const discharge = attributes.find((attr) => /discharge current 1 phase at \(8\/20\)\s*µs maximum/i.test(attr.name));
+    if (discharge) return `${discharge.value} maximum discharge current (1-phase, 8/20 µs)`;
+    return undefined;
+  }
+  if (/\bthermistor motor protection relay\b/i.test(productText)) {
+    const ac15 = attributes.find((attr) => /operational current of auxiliary contacts at AC-15 maximum/i.test(attr.name));
+    const thermal = attributes.find((attr) => /thermal current of the switching element with contacts maximum/i.test(attr.name));
+    if (ac15 && thermal) return `${ac15.value} maximum auxiliary AC-15 contact current; ${thermal.value} maximum thermal current of switching contacts`;
+  }
+  if (/\b(?:SINAMICS|frequency converter|variable speed drive)\b/i.test(productText)) {
+    const lowOverload = attributes.find((attr) => /rated current/i.test(attr.name) && /\(LO\)/i.test(`${attr.name} ${attr.value}`));
+    const highOverload = attributes.find((attr) => /rated current/i.test(attr.name) && /\(HO\)/i.test(`${attr.name} ${attr.value}`));
+    const ratedVoltage = attributes.find((attr) => /^rated voltage$/i.test(attr.name.trim()));
+    const currentPair = lowOverload?.value.match(/\(LO\)\s*([\d.,]+\s*A)\s+([\d.,]+\s*A)/i) ?? lowOverload?.value.match(/([\d.,]+\s*A)\s+([\d.,]+\s*A)/);
+    const repeatedPair = highOverload?.value.match(/\(HO\)\s*([\d.,]+\s*A)\s+([\d.,]+\s*A)/i) ?? highOverload?.value.match(/([\d.,]+\s*A)\s+([\d.,]+\s*A)/);
+    const voltagePair = ratedVoltage?.value.match(/([\d.,]+\s*V)(?:\s*IEC)?(?:\s*[/,;]\s*|\s+)([\d.,]+\s*V)(?:\s*NEC)?/i);
+    if (currentPair && repeatedPair && voltagePair && currentPair[1] === repeatedPair[1] && currentPair[2] === repeatedPair[2]) {
+      return `${currentPair[1]} LO/HO at ${voltagePair[1]}; ${currentPair[2]} LO/HO at ${voltagePair[2]}`;
+    }
+  }
+  const contactorAc3 = productText.match(/\bAC-3e\/AC-3\s*,\s*([\d.,]+\s*A)\s*,\s*[\d.,]+\s*kW\s*\/\s*([\d.,]+\s*V)/i);
+  if (contactorAc3) return `${contactorAc3[1]} AC-3 at ${contactorAc3[2]}`;
+  const adjustableOverloadCurrent = attributes.find((attr) =>
+    /adjustable current response value.*current-dependent overload release/i.test(attr.name)
+  );
+  if (adjustableOverloadCurrent) {
+    const range = adjustableOverloadCurrent.value.match(/([\d.,]+)\s*\.\.\.\s*([\d.,]+\s*A)/);
+    if (range) {
+      const ac3 = /\b(?:motor|direct) starter\b/i.test(productText)
+        ? attributes.find((attr) => /operational current at AC-3 at 400 V rated value/i.test(attr.name))
+        : undefined;
+      return `${range[1]}–${range[2]} adjustable overload trip current${ac3 ? `; ${ac3.value} rated AC-3 current at 400 V` : ""}`;
+    }
+  }
+  if (/\bmonitoring relay\b/i.test(productText)) {
+    const contactThermalCurrent = attributes.find((attr) =>
+      /thermal current of the switching element with contacts maximum/i.test(attr.name)
+    );
+    if (contactThermalCurrent) return `${contactThermalCurrent.value} thermal current of switching contacts`;
+  }
+  if (/\bswitch[-\s]?disconnector\b/i.test(productText)) {
+    const ac23 = attributes.find((attr) => /at AC-23 A at 400 V rated value/i.test(attr.name));
+    const ac21 = attributes.find((attr) => /at AC-21 A at 400 V rated value/i.test(attr.name));
+    if (ac23 && ac21) return `${ac23.value} AC-23A at 400 V; ${ac21.value} AC-21A at 400 V`;
+    if (ac23) return `${ac23.value} AC-23A at 400 V`;
+    if (ac21) return `${ac21.value} AC-21A at 400 V`;
+  }
+  const operationalCurrent = attributes.find((attr) => /^operational current$/i.test(attr.name.trim()));
+  const contactRating = operationalCurrent?.value.match(/([\d.,]+\s*A)\s+at\s+([\d.,]+\s*V);\s*at\s+([\d.,]+\s*V)/i);
+  if (contactRating) return `${contactRating[1]} at ${contactRating[2]} and ${contactRating[3]}`;
+  const ratedOutputCurrent = productText.match(/\bOutput\s*:\s*[^.;,]*?\b(\d+(?:[.,]\d+)?)\s*A\b/i) ??
+    productText.match(/\b24\s*V\s*\/\s*5\s*A\b/i);
+  if (ratedOutputCurrent && /power supply|psu|sitop/i.test(productText)) return `${ratedOutputCurrent[1]} A rated output`;
   const powerSupply = attributes.some((attr) => /power suppl(?:y|ies)|sitop|psu\b/i.test(`${attr.name} ${attr.value}`));
   return selectSiemensElectricalValue(attributes, "current", (label) => {
     if (/\b(?:inrush|residual|short[-\s]?circuit|fault|surge|interrupt|breaking|peak|withstand)\s+current\b|\bcurrent\s+(?:inrush|residual|short[-\s]?circuit|fault|surge|interrupt|breaking|peak)\b/i.test(label)) return -1;
+    if (/\brated output current\b|\boutput current\b.*\brated value\b/i.test(label)) return 150;
     if (/\bcurrent consumption\b.*\brated\b|\brated\b.*\bcurrent consumption\b/i.test(label)) return 140;
     if (/\bconsumed current\b/i.test(label)) return 135;
     if (/\brated current\b|\bfull[-\s]?load current\b/i.test(label)) return 125;

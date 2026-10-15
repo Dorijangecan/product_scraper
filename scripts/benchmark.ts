@@ -8,6 +8,7 @@ import { exportRunWorkbook } from "../src/server/excel.js";
 import { createAppPaths } from "../src/server/paths.js";
 import { attachEvidence } from "../src/server/scrapers/evidence.js";
 import { enrichResultFromDownloadedDocuments } from "../src/server/scrapers/document-enrichment.js";
+import { isDocumentViewerUrl, resolveViewerPdfUrl } from "../src/server/scrapers/document-viewer-resolver.js";
 import { GenericFallbackScraper } from "../src/server/scrapers/generic.js";
 import { CachedHttpClient } from "../src/server/scrapers/http-client.js";
 import { getConnector } from "../src/server/scrapers/index.js";
@@ -25,7 +26,7 @@ import {
   extractCustomerDocumentAttributes
 } from "../src/server/scrapers/customer-documents.js";
 import { matchesExpectedOfficialUrl } from "./benchmark-utils.js";
-import { coalesceImageDocuments } from "../src/server/run-manager.js";
+import { coalesceImageDocuments, documentDownloadProfile } from "../src/server/run-manager.js";
 import { requiredElectricalFields } from "../src/shared/product-requirements.js";
 import { electricalFieldsForDeviceType } from "../src/server/pdt/device-type-profiles.js";
 
@@ -39,6 +40,9 @@ interface BenchmarkFixture {
   expectedOfficialUrlPatterns?: string[];
   requiredDocuments?: DocumentRecord["type"][];
   expectedNormalizedFields?: Array<keyof ProductResult["normalized"]>;
+  expectedBlankNormalizedFields?: Array<keyof ProductResult["normalized"]>;
+  expectedNormalizedPatterns?: Partial<Record<keyof ProductResult["normalized"], string>>;
+  expectedAttributePatterns?: string[];
   knownRawAttributes?: string[];
   customerDocuments?: string[];
 }
@@ -56,12 +60,15 @@ interface BenchmarkCaseReport {
   confidence: number;
   /** Wall-clock time for this isolated fixture, including bounded retries and exports. */
   elapsedMs: number;
+  /** Core connector scrape time; excludes post-scrape documents and workbook/PDT export. */
+  scrapeElapsedMs: number;
   productUrl?: string;
   identityConfirmed: boolean;
   wrongProduct: boolean;
   officialUrlMatched: boolean;
   requiredDocumentsMatched: boolean;
   normalizedFieldsMatched: boolean;
+  expectedAttributesMatched: boolean;
   pdtAuditMatched: boolean;
   pdtAuditPath?: string;
   pdtWrittenCells: number;
@@ -170,6 +177,7 @@ await fs.writeFile(
 console.log(`Benchmark fixtures: ${reports.length}`);
 console.log(`Found: ${summary.foundRate}% | Official URL: ${summary.officialUrlRate}% | Documents: ${summary.documentRate}%`);
 console.log(`Device type: ${summary.deviceTypeRate}%`);
+console.log(`Expected normalized fields: ${summary.normalizedFieldsRate}% | expected source attributes: ${summary.expectedAttributesRate}%`);
 console.log(`Customer documents: ${summary.customerDocumentRate}%`);
 console.log(`PDT audit: ${summary.pdtAuditRate}% | PDT enum skips: ${summary.pdtWriteIssues} | unproven written: ${summary.pdtUnprovenWritten}`);
 console.log(`PDT sheet fixture coverage: ${summary.fixtureCoverage.deviceSheetCoverage.covered}/${summary.fixtureCoverage.deviceSheetCoverage.total}`);
@@ -218,6 +226,7 @@ async function runFixtureAttempt(
   browserRenderer: BrowserRenderSession,
   signal: AbortSignal
 ): Promise<BenchmarkCaseReport> {
+  let connectorScrapeElapsedMs = 0;
   const connector = getConnector(manufacturer.id);
   const fallback = new GenericFallbackScraper(manufacturer.id, http, manufacturer);
   const customerDocumentCache = new CustomerDocumentParseCache();
@@ -247,7 +256,14 @@ async function runFixtureAttempt(
     ? customerOnly
     : finalizeQualityGate(
         await stage("customerDocuments.initial", async () => {
-          const scraped = await stage("scrape", () => connector.scrape(fixture.catalogNumber, context));
+          const scraped = await stage("scrape", async () => {
+            const scrapeStartedAt = Date.now();
+            try {
+              return await connector.scrape(fixture.catalogNumber, context);
+            } finally {
+              connectorScrapeElapsedMs = Date.now() - scrapeStartedAt;
+            }
+          });
           return applyBenchmarkCustomerDocuments(fixture, scraped, customerDocumentCache);
         }),
         manufacturer
@@ -261,7 +277,10 @@ async function runFixtureAttempt(
     `${fixture.manufacturerId} ${fixture.catalogNumber} initial electrical attributes=` +
       JSON.stringify(initial.attributes.filter((attribute) => /volt|supply|power/i.test(`${attribute.name} ${attribute.value}`)).slice(0, 8))
   );
-  const withDownloads = await stage("downloadDocuments.initial", () => downloadDocuments(manufacturer, fixture.catalogNumber, initial, signal));
+  const withVendorDocuments = connector.enrichDocuments
+    ? await stage("vendorDocumentEnrichment.initial", () => connector.enrichDocuments!(fixture.catalogNumber, initial, context))
+    : initial;
+  const withDownloads = await stage("downloadDocuments.initial", () => downloadDocuments(manufacturer, fixture.catalogNumber, withVendorDocuments, signal));
   let result = finalizeQualityGate(await stage("enrich.initial", () => enrichResultFromDownloadedDocuments(withDownloads)), manufacturer);
   debugBenchmark(`${fixture.manufacturerId} ${fixture.catalogNumber} normalized after enrich=${JSON.stringify(result.normalized)}`);
   const skipSpeculativeFallback =
@@ -280,7 +299,7 @@ async function runFixtureAttempt(
   debugBenchmark(`${fixture.manufacturerId} ${fixture.catalogNumber} normalized after workbook=${JSON.stringify(result.normalized)}`);
   const pdt = await stage("exportPdt", () => exportSingleResultPdt(manufacturer, fixture, result));
   debugBenchmark(`${fixture.manufacturerId} ${fixture.catalogNumber} normalized after exports=${JSON.stringify(result.normalized)}`);
-  return reportFromResult(fixture, manufacturer, result, pdt);
+  return reportFromResult(fixture, manufacturer, result, pdt, connectorScrapeElapsedMs);
 }
 
 async function applyBenchmarkCustomerDocuments(
@@ -337,7 +356,11 @@ async function benchmarkCustomerDocuments(fixture: BenchmarkFixture): Promise<Cu
 }
 
 async function downloadDocuments(manufacturer: ManufacturerConfig, catalogNumber: string, result: ProductResult, signal: AbortSignal): Promise<ProductResult> {
-  const ranked = benchmarkDocumentsToDownload(coalesceImageDocuments(result.documents));
+  const documents = coalesceImageDocuments(result.documents);
+  const profile = documentDownloadProfile(manufacturer, result, { saveDocuments: false });
+  const ranked = profile === "images-only"
+    ? documents.filter((document) => document.type === "image")
+    : benchmarkDocumentsToDownload(documents);
   const downloaded = new Map<string, DocumentRecord>();
   for (let offset = 0; offset < ranked.length; offset += 2) {
     const batch = ranked.slice(offset, offset + 2);
@@ -352,14 +375,19 @@ async function downloadDocuments(manufacturer: ManufacturerConfig, catalogNumber
 
 async function downloadDocument(manufacturer: ManufacturerConfig, catalogNumber: string, doc: DocumentRecord, signal: AbortSignal): Promise<DocumentRecord> {
   if (doc.localPath) return doc;
+  if (doc.downloadStatus === "failed") return doc;
   const request = createBenchmarkDownloadSignal(signal, doc.type === "image" ? 20_000 : 15_000);
   try {
     if (doc.type === "image") {
       const localPath = path.join(imagesDir, `${safePart(manufacturer.shortName)}.${safePart(catalogNumber)}.png`);
-      await http.downloadImageAsPng([doc.url, ...(doc.candidateUrls ?? [])], localPath, request.signal);
+      await http.downloadImageAsPng([doc.url, ...(doc.candidateUrls ?? [])], localPath, request.signal, {
+        allowNarrowPortrait: doc.parser === "Schmersal exact PDP image" && Boolean(doc.sourceUrl?.startsWith("https://products.schmersal.com/"))
+      });
       return { ...doc, localPath, downloadStatus: "downloaded" };
     }
-    const localPath = await http.downloadFile(doc.url, documentsDir, `${safePart(catalogNumber)}-${doc.type}-${safePart(doc.label)}${documentExtension(doc)}`, request.signal);
+    const viewerAssetUrl = isDocumentViewerUrl(doc.url) ? await resolveViewerPdfUrl(http, doc.url, request.signal) : undefined;
+    const downloadUrl = viewerAssetUrl ?? doc.url;
+    const localPath = await http.downloadFile(downloadUrl, documentsDir, `${safePart(catalogNumber)}-${doc.type}-${safePart(doc.label)}${documentExtension({ ...doc, url: downloadUrl })}`, request.signal);
     return { ...doc, localPath, downloadStatus: "downloaded" };
   } catch (error) {
     return { ...doc, downloadStatus: "failed", downloadError: error instanceof Error ? error.message : "download failed" };
@@ -429,7 +457,13 @@ function runItemFromResult(fixture: BenchmarkFixture, result: ProductResult): Ru
   };
 }
 
-function reportFromResult(fixture: BenchmarkFixture, manufacturer: ManufacturerConfig, result: ProductResult, pdt: PdtExportResult | undefined): BenchmarkCaseReport {
+function reportFromResult(
+  fixture: BenchmarkFixture,
+  manufacturer: ManufacturerConfig,
+  result: ProductResult,
+  pdt: PdtExportResult | undefined,
+  scrapeElapsedMs: number
+): BenchmarkCaseReport {
   const wrongProduct = result.status !== "failed" && result.qualityGate?.identityConfirmed === false;
   const pdtAudit = summarizePdtAudit(pdt);
   const classification = classifyDeviceType(result);
@@ -455,12 +489,14 @@ function reportFromResult(fixture: BenchmarkFixture, manufacturer: ManufacturerC
     status: result.status,
     confidence: result.confidence,
     elapsedMs: 0,
+    scrapeElapsedMs,
     productUrl: result.productUrl,
     identityConfirmed: result.qualityGate?.identityConfirmed ?? false,
     wrongProduct,
     officialUrlMatched: matchesExpectedOfficialUrl(result, manufacturer, fixture),
     requiredDocumentsMatched: matchesRequiredDocuments(result, fixture),
     normalizedFieldsMatched: matchesNormalizedFields(result, fixture),
+    expectedAttributesMatched: matchesExpectedAttributes(result, fixture),
     ...pdtAudit,
     customerDocumentsExpected: fixture.customerDocuments?.length ?? 0,
     customerDocumentsMatched: matchesCustomerDocuments(result, fixture),
@@ -545,13 +581,39 @@ function summarizePdtAudit(pdt: PdtExportResult | undefined): Pick<
 function matchesRequiredDocuments(result: ProductResult, fixture: BenchmarkFixture): boolean {
   if (!fixture.requiredDocuments?.length) return true;
   return fixture.requiredDocuments.every((type) => result.documents.some((doc) =>
-    doc.type === type && (type !== "image" || (doc.downloadStatus === "downloaded" && Boolean(doc.localPath)))
+    doc.type === type && doc.downloadStatus === "downloaded" && Boolean(doc.localPath)
   ));
 }
 
 function matchesNormalizedFields(result: ProductResult, fixture: BenchmarkFixture): boolean {
-  if (!fixture.expectedNormalizedFields?.length) return true;
-  return fixture.expectedNormalizedFields.every((field) => Boolean(result.normalized[field]));
+  const expectedPresent = fixture.expectedNormalizedFields ?? [];
+  const expectedBlank = fixture.expectedBlankNormalizedFields ?? [];
+  const expectedPatterns = Object.entries(fixture.expectedNormalizedPatterns ?? {}) as Array<[
+    keyof ProductResult["normalized"],
+    string
+  ]>;
+  return expectedPresent.every((field) => Boolean(result.normalized[field])) &&
+    expectedBlank.every((field) => !result.normalized[field]) &&
+    expectedPatterns.every(([field, pattern]) => {
+      try {
+        return new RegExp(pattern, "i").test(String(result.normalized[field] ?? ""));
+      } catch {
+        return false;
+      }
+    });
+}
+
+function matchesExpectedAttributes(result: ProductResult, fixture: BenchmarkFixture): boolean {
+  if (!fixture.expectedAttributePatterns?.length) return true;
+  const searchableAttributes = result.attributes.map((attribute) => `${attribute.group ?? ""} ${attribute.name} ${attribute.value}`);
+  return fixture.expectedAttributePatterns.every((pattern) => {
+    try {
+      const expression = new RegExp(pattern, "i");
+      return searchableAttributes.some((attribute) => expression.test(attribute));
+    } catch {
+      return false;
+    }
+  });
 }
 
 function summarize(reports: BenchmarkCaseReport[]) {
@@ -571,6 +633,8 @@ function summarize(reports: BenchmarkCaseReport[]) {
     documentRate: percent(documents, total),
     pdtAuditRate: percent(pdtAudit, total),
     deviceTypeRate: percent(deviceTypes, total),
+    normalizedFieldsRate: percent(reports.filter((report) => report.normalizedFieldsMatched).length, total),
+    expectedAttributesRate: percent(reports.filter((report) => report.expectedAttributesMatched).length, total),
     customerDocumentRate: percent(customerDocuments, Math.max(1, customerDocumentExpected.length)),
     wrongProducts,
     partialWithoutMissing: reports.filter((report) => report.status === "partial" && report.qualityMissing.length === 0).length,
@@ -585,6 +649,8 @@ function summarize(reports: BenchmarkCaseReport[]) {
     summary.pdtUnprovenWritten === 0 &&
     summary.pdtUnexplainedRequiredFieldIssues === 0 &&
     summary.deviceTypeRate >= 90 &&
+    summary.normalizedFieldsRate >= 90 &&
+    summary.expectedAttributesRate >= 90 &&
     customerDocumentExpected.every((report) => report.customerDocumentsMatched) &&
     summary.foundRate >= 90 &&
     summary.officialUrlRate >= 85 &&
@@ -721,11 +787,13 @@ function errorReport(fixture: BenchmarkFixture, error: string): BenchmarkCaseRep
     status: "error",
     confidence: 0,
     elapsedMs: 0,
+    scrapeElapsedMs: 0,
     identityConfirmed: false,
     wrongProduct: false,
     officialUrlMatched: false,
     requiredDocumentsMatched: false,
     normalizedFieldsMatched: false,
+    expectedAttributesMatched: false,
     pdtAuditMatched: false,
     pdtWrittenCells: 0,
     pdtBlankCells: 0,
@@ -776,14 +844,23 @@ function documentRank(doc: DocumentRecord): number {
 function benchmarkDocumentsToDownload(documents: DocumentRecord[]): DocumentRecord[] {
   const selected: DocumentRecord[] = [];
   const typeCounts = new Map<string, number>();
-  for (const doc of [...documents].sort((left, right) => documentRank(left) - documentRank(right))) {
+  const ranked = [...documents].sort((left, right) => documentRank(left) - documentRank(right));
+  const image = ranked.find((doc) => doc.type === "image");
+  if (image) {
+    selected.push(image);
+    typeCounts.set("image", 1);
+  }
+  for (const doc of ranked) {
+    if (doc.type === "image") continue;
     const count = typeCounts.get(doc.type) ?? 0;
-    const limit = doc.parser === "eaton-sp1-family-source" ? 3 : doc.type === "datasheet" ? 2 : 1;
-    if (count >= limit) continue;
+    const targetedFamilySource = doc.parser === "eaton-sp1-family-source" || doc.parser === "eaton-power-supply-catalog";
+    const limit = targetedFamilySource ? 3 : doc.type === "datasheet" ? 2 : 1;
+    const selectedLimit = targetedFamilySource ? 6 : 5;
+    if (count >= limit || selected.length >= selectedLimit) continue;
     selected.push(doc);
     typeCounts.set(doc.type, count + 1);
   }
-  return selected.slice(0, 5);
+  return selected;
 }
 
 function documentExtension(doc: DocumentRecord): string {

@@ -1,0 +1,52 @@
+[
+  {
+    "manufacturerId": "abb",
+    "catalogNumber": "1SAM350000R1005",
+    "caseType": "electrical",
+    "expectedDeviceType": "Motor Circuit Breaker",
+    "riskTags": ["cold", "ms132", "manual-motor-starter", "motor-protection"],
+    "expectedOfficialUrlPatterns": ["abb\\.com"],
+    "requiredDocuments": ["datasheet"],
+    "expectedNormalizedFields": ["current"]
+  },
+  {
+    "manufacturerId": "abb",
+    "catalogNumber": "1SAP250600R0001",
+    "caseType": "electrical",
+    "expectedDeviceType": "I/O Module",
+    "riskTags": ["cold", "ai531", "analog-input-module", "s500"],
+    "expectedOfficialUrlPatterns": ["abb\\.com"],
+    "requiredDocuments": ["datasheet"],
+    "expectedNormalizedFields": ["voltage"]
+  },
+  {
+    "manufacturerId": "abb",
+    "catalogNumber": "2CSG111080R1141",
+    "caseType": "electrical",
+    "expectedDeviceType": "Current Transformer",
+    "riskTags": ["cold", "cta-40", "current-transformer"],
+    "expectedOfficialUrlPatterns": ["abb\\.com"],
+    "requiredDocuments": ["datasheet"],
+    "expectedNormalizedFields": ["current"]
+  },
+  {
+    "manufacturerId": "abb",
+    "catalogNumber": "1SEP201428R0001",
+    "caseType": "electrical",
+    "expectedDeviceType": "Fuse Switch Disconnector",
+    "riskTags": ["cold", "xlp000", "fuse-switch-disconnector"],
+    "expectedOfficialUrlPatterns": ["abb\\.com"],
+    "requiredDocuments": ["datasheet"],
+    "expectedNormalizedFields": ["voltage", "current"]
+  },
+  {
+    "manufacturerId": "abb",
+    "catalogNumber": "1SBL136201R2100",
+    "caseType": "electrical",
+    "expectedDeviceType": "Contactor",
+    "riskTags": ["cold", "af09z", "four-pole-contactor"],
+    "expectedOfficialUrlPatterns": ["abb\\.com/global/en/products/1sbl136201r2100"],
+    "requiredDocuments": ["datasheet"],
+    "expectedNormalizedFields": ["voltage", "current"]
+  }
+]

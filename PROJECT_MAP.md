@@ -78,8 +78,8 @@ playwright ako patchright ikad zakaže na nekoj mašini.
 | `scripts/` | audit / benchmark / probe / desktop-boot alati (`.ts`→tsx, `.cjs`→Node) |
 | `templates/` | `master_pdt.xlsx` — izvor istine za PDT |
 | `patches/` | `patch-package` patchevi za bugove u ovisnostima (npr. `pdf-parse` `getTable()` crash) — auto-primijenjeno `npm install` postinstall hookom, **ne brisati** |
-| `benchmarks/` | Fixture proizvodi + izvještaji (**mrežni** live-check); `products/` je regresijski corpus, `cold-products/` je odvojeni skup novih artikala/obitelji za otkrivanje endpoint-drifta, a proizvođački izolirani audit korpusi (npr. `rockwell-15-new/`, `rockwell-15-new-2/`, `rittal-15-new-20261006/`, `rittal-15-new-20261006-v2/`) drže manifest, SKU-only cold-start ulaze, izvještaje/logove i dokazne snimke bez odgovora koji bi glumili benchmark rezultate |
-| `fixtures/` | **Offline eval korpus** — snimljeni HTML/PDF + `expected.json` s asertacijama na razini *vrijednosti* (`npm run eval`). Postoji jer je `benchmarks/` mrežni i tvrdi samo `Boolean(field)`, pa mu je klasa "vrijednost postoji ali je pogrešna" nevidljiva. Vidi [fixtures/README.md](fixtures/README.md) |
+| `benchmarks/` | Fixture proizvodi + izvještaji (**mrežni** live-check); `products/` je regresijski corpus, `cold-products/` je odvojeni skup novih artikala/obitelji za otkrivanje endpoint-drifta, a proizvođački izolirani audit korpusi (npr. `rockwell-15-new/`, `rockwell-15-new-2/`, `rittal-15-new-20261006/`, `rittal-15-new-20261006-v2/`) drže manifest, SKU-only cold-start ulaze, izvještaje/logove i dokazne snimke bez odgovora koji bi glumili benchmark rezultate. `*-accuracy-speed-YYYYMMDD/batch-NN/` sadrži pet-SKU manifest i per-batch evidenciju za točnost i core-scrape brzinu. |
+| `fixtures/` | **Offline eval korpus** — snimljeni HTML/PDF + `expected.json` s asertacijama na razini *vrijednosti* (`npm run eval`). Mrežni `benchmarks/` fixturei podržavaju provjeru prisutnosti i, kroz `expectedNormalizedPatterns`, provjeru konkretnih normaliziranih vrijednosti; to sprječava da pogrešna, ali popunjena vrijednost prođe kao uspjeh. Offline fixtures ostaju potrebni za ponovljive HTML/PDF regresije. Vidi [fixtures/README.md](fixtures/README.md) |
 | `docs/` | `ARCHITECTURE.md`, `COLD-START-PLAN.md` (analiza+plan za nepoznate vendore/datasheetove), `CLAUDE-HANDOFF.md` (zadnja točka rada i copy/paste prompt), prezentacije, normalizacijske bilješke |
 | `outputs/` `data/` `tmp/` | Runtime artefakti (DB, cache, workbookovi) — **ne uređivati ručno** |
 
@@ -124,6 +124,10 @@ runDeterministicScrapePipeline (deterministic-pipeline.ts)
   │   └─ interaction-explorer.ts                                # semantic tab/accordion/download exploration
   └─ quality-gate.ts (evaluate/applyQualityGate)                # found | partial | failed
   ▼
+connector.enrichDocuments? (optional, vendor-specific document generation after core scrape timing)
+  ▼
+RunManager.downloadDocuments (download and verify required document artifacts)
+  ▼
 document-enrichment.ts (enrichResultFrom{Downloaded,Remote}Documents) ← pdf-ocr.ts, document-url.ts
   ▼
 final-completeness.ts (evaluate→repair→retry zadnjih polja)
@@ -141,6 +145,11 @@ persist run_item (db.ts) → finalize run
 customer-documents (override scrapanih vrijednosti). Run lifecycle:
 `queued→running→{completed|paused|cancelled|failed}`; `resumeInterruptedRuns()` hvata prekinute
 unutar 5 min prozora (`INTERRUPTED_RUN_RESUME_WINDOW_MS`).
+
+**Siemens connector fast path:** nakon točnog `GetProductsDetails` odgovora koristi samo izravni
+MMPDATA MLFB zapis za tehničku tablicu i zadržava API sliku/datasheet. Generičko otkrivanje dodatnih
+detail stranica koristi se kad taj zapis ili osnovni API dokumenti nedostaju. Oznaka izvora
+`siemens-mmpdata-fast` u `generic.ts` preskače serijske link-probeove slike iz BildDB-a.
 
 ## 5. Ovisnosti — "što utječe na što"  ⟵ NAJVAŽNIJE
 
@@ -178,7 +187,7 @@ Nema kružnih ovisnosti (`madge --circular` → 0).
 ### 5c. Pravila "diraš X → diraj i Y"
 
 - **Novi proizvođač:** profil u `config/manufacturers.ts` **+** (za dedicated) konektor `scrapers/<id>.ts` registriran u `scrapers/index.ts`. Bez konektora → config fallback.
-- **Nova vrsta uređaja:** `scrapers/device-type.ts` **+** `pdt/device-type-profiles.ts` **+** `pdt/device-sheet-map.ts`.
+- **Nova vrsta uređaja:** `scrapers/device-type.ts` **+** `pdt/device-type-profiles.ts` **+** `pdt/device-sheet-map.ts`. Balluffov BTL je `Linear Position Sensor` (magnetostrictive displacement transducer), ne `Encoder`; BCM condition-monitoring i BRS radar proizvodi imaju zasebne tipove. BFS boje, BNS granične sklopke, BOD fotoelektrična mjerenja udaljenosti i BMP magnetic field positioning systems imaju specifične klasifikacije s PDT profilima. Polja `Measuring length` i kabelska duljina nisu fizička dimenzija transduktora.
 - **Novo značenje atributa / jedinica:** `scrapers/ontology.ts` (`PROPERTY_ONTOLOGY`) ili `quantity.ts`/`normalizer.ts` — **ne** one-off regex po proizvodu. Povlači `technical-attributes.ts`, `excel.ts`, PDT resolvere, benchmark fixture.
 - **Promjena quality gate praga:** `scrapers/quality-gate.ts` → mijenja fallback grananje, statistike, UI coverage. Uz testove + `npm run benchmark`.
 - **Promjena PDT predloška/resolvera:** `pdt/*` ili `templates/master_pdt.xlsx` → pokreni `npm run audit:pdt`.
@@ -263,7 +272,7 @@ Politike u `ManufacturerConfig.scrapeRecipe`: `DiscoveryPolicyConfig`, `Interact
 | Fajl | Ključni exporti |
 | --- | --- |
 | `index.ts` | `getConnector` |
-| `types.ts` | `ScrapeContext` (uklj. per-item `discoveryMemo` koji connector/fallback/final retry dijele), `ManufacturerConnector` |
+| `types.ts` | `ScrapeContext` (uklj. per-item `discoveryMemo` koji connector/fallback/final retry dijele), `ManufacturerConnector` (scrape + opcionalni `enrichDocuments` nakon mjerenog scrapea) |
 | `http-client.ts` | `CachedHttpClient`, `FetchedText`, `delay`, `DEFAULT_USER_AGENT` (aktualni Chrome UA; ABB/Siemens Akamai edge odbija stare verzije). Primarni tekstualni fetch (`fetchTextWithRetry`) ide preko `got-scraping` (`fetchViaGotScraping`, `useHeaderGenerator:false` da headeri ostanu deterministički za cache-key) umjesto golog `fetch()` — curl/PowerShell fallbackovi i `fetchBufferWithRetry` (downloadi slika/dokumenata) namjerno ostaju na golom `fetch()` |
 | `browser-renderer.ts` | `BrowserRenderSession`, `renderProductPage`, `RenderedPage`, `ModalSection`, `clickSafeSelectors`, `captureFrameFragments`, `captureShadowDomFragments` (zadnja tri exportana za testove: klik-petlja s re-scanom + iframe + shadow-DOM capture). Browser je `patchright` (fallback na `playwright` ako nedostupan; `PRODUCT_SCRAPER_STEALTH_BROWSER=0` prisilno vraća na `playwright`), context gradi `createFingerprintedContext` preko `fingerprint-injector`/`fingerprint-generator` (fallback na stari fiksni UA/viewport). `applyRequestFiltering` (jedan `page.route` po pageu) kombinira opt-in `blockResourceTypes` s default-on ad/tracker blockom (`ad-block-domains.ts`; opt-out `interactionPolicy.disableAdBlock`). `waitForNonInteractiveCloudflareChallenge` (bounded, 8s default) čeka da Cloudflareov `cType: 'non-interactive'\|'managed'` marker nestane prije nastavka — "interactive" (checkbox) Turnstile namjerno nije handlean |
 | `ad-block-domains.ts` | `AD_BLOCK_DOMAINS`, `isAdBlockedHost`, `isAdBlockedUrl` — vendana Peter Lowe ad/tracker lista (~3500 domena, ista koju koristi Scraplingov `block_ads`), suffix-chain matcher; regenerirati re-fetchanjem izvora, ne ručno editirati |
@@ -277,7 +286,7 @@ Politike u `ManufacturerConfig.scrapeRecipe`: `DiscoveryPolicyConfig`, `Interact
 | `product-aliases.ts` | `harvestProductAliases`, `aliasSearchTerms`, `ProductAliasStore` — Skuplja vendorova druga imena s potvrđenog PDP-a (tablica `product_aliases`) i vraća ih kao UPITE za tražilicu. `identityLevel: "family"` (tipska oznaka je često 1:više) smije biti upit, nikad dokaz identiteta |
 | `external-search.ts` | `externalSearchEnabled`, `externalSearchUrl`, `parseExternalSearchResults` — Opt-in (`PRODUCT_SCRAPER_ALLOW_EXTERNAL_SEARCH=1`), default isključen jer šalje šifru trećoj strani. Rezultati prolaze official-domain guard pa post-fetch identity gate |
 | `localized-urls.ts` | `buildLocalizedProductUrls`, `canonicalizeNventLocaleUrl`, `canonicalizeProductLocaleUrls` (collapse geo-locale `/en-xx/`→`/en-us/`) |
-| `generic.ts` | `parseGenericProductPage`, `GenericFallbackScraper`, `isUnresolvedSearchResultPage` |
+| `generic.ts` | `parseGenericProductPage`, `GenericFallbackScraper`, `isUnresolvedSearchResultPage`; Phoenix extraction preserves summary protection/color/I/O counts, HMI front-plate W/H/D, explicit power-supply voltage, and contextual UPS/battery/safety-sensor/motor-starter electrical rows and sensor diameter. |
 | `html-table-reader.ts` | Span-aware DOM table reader used by `generic.ts` and adaptive `page-mining.ts`: expands colspan/rowspan into a matrix, merges headers and selects the one catalog/ordering-code variant column; it also selects a unique ordering-code row in two-cell option lookups and target-labelled columns in a one-row interactive configurator. Repeated coordinates of the same colspan label cell are layout only and never echoed into its value; ambiguous selections emit nothing. It can replay a validated stable table plus actual header input, but still re-proves the requested catalog variant. |
 | `html-page-level.ts` | PDP-vs-family classifier for generic HTML: detects target-plus-sibling catalog codes in product content and requires variant scope before family-page values can fill variant fields. |
 | `smart-fallback.ts` | `runSmartFallbackPipeline` |
@@ -288,7 +297,7 @@ Politike u `ManufacturerConfig.scrapeRecipe`: `DiscoveryPolicyConfig`, `Interact
 | `mission-control.ts` | `shouldRunAdaptiveMining`, `driftFromTargetHealth` |
 | `target-health-policy.ts` | zajednička policy za normalni 8-sample drift i strogi 3-sample catastrophic bootstrap; istu odluku koriste runtime adaptive mining i DB operational summary |
 | `target-health.ts` | `recordTargetObservation` |
-| `quality-gate.ts` | `evaluateQualityGate`, `applyQualityGate`, `finalizeQualityGate`. **Opt-out:** `qualityPolicy.notApplicableFields` briše polje i iz `requiredNormalizedFields` liste i iz device-type električnog zahtjeva — bez toga gate vječno pada na polju koje korisnik ne traži i svaki takav red plati dodatni fallback krug |
+| `quality-gate.ts` | `evaluateQualityGate`, `applyQualityGate`, `finalizeQualityGate`; Phoenix signal-conditioner input-signal current ostaje izvan normalized device current i nakon završnog mergea. **Opt-out:** `qualityPolicy.notApplicableFields` briše polje i iz `requiredNormalizedFields` liste i iz device-type električnog zahtjeva — bez toga gate vječno pada na polju koje korisnik ne traži i svaki takav red plati dodatni fallback krug |
 | `final-completeness.ts` | `evaluateFinalCompleteness`, `repairFinalCompletenessFromEvidence`, `finalNetworkRetryDecision`, `withFinalCompletenessPolicy`. `notApplicableFields` se u `finalFieldRequirement` provjerava **prvo** (prije profila i električne heuristike) → polje ne ulazi u `retryMissing`, pa nema mrežnog retryja |
 | `evidence.ts` | `attachEvidence` (+ field candidate/resolution diagnostics) |
 | `dedupe.ts` | `dedupeAttributes`, `dedupeDocuments`, `dedupeSources`, `canonicalDocumentUrlKey` |
@@ -313,7 +322,7 @@ Politike u `ManufacturerConfig.scrapeRecipe`: `DiscoveryPolicyConfig`, `Interact
 ### `src/server/scrapers/` — understanding engine
 | Fajl | Ključni exporti |
 | --- | --- |
-| `normalizer.ts` | `mergeResults`, `emptyResult`, `normalizeFields`, `cleanText`, `splitNameValue` (dijeli na `:`/`=`, odbacuje value-fragment "labele" preko `isValueFragmentLabel` ali čuva "W x H x D"), `isValueFragmentLabel`, `classifyDocument`. **kA surge/fault (breaking capacity, discharge/impulse/short-circuit current) NE smiju u rated current** — `isLowValueCurrentLabel` gard u SVA 4 puta (bestNormalized/registry/ontology/inferred); `Ui`/`Uimp` isto preko `isLowValueVoltageLabel`. NB: 3 divergentna label-sustava (FIELD_LABEL_PATTERNS+FIELD_REGISTRY+ontology) → gard treba u svakom putu |
+| `normalizer.ts` | `mergeResults`, `emptyResult`, `normalizeFields`, `cleanText`, `splitNameValue` (dijeli na `:`/`=`, odbacuje value-fragment "labele" preko `isValueFragmentLabel` ali čuva "W x H x D"), `isValueFragmentLabel`, `classifyDocument`. **kA surge/fault (breaking capacity, discharge/impulse/short-circuit current) NE smiju u rated current** — `isLowValueCurrentLabel` gard u SVA 4 puta (bestNormalized/registry/ontology/inferred); `Ui`/`Uimp` isto preko `isLowValueVoltageLabel`. Phoenix zadržava kontekst nominal/rated napona konektora i parsira raspon napajanja. NB: 3 divergentna label-sustava (FIELD_LABEL_PATTERNS+FIELD_REGISTRY+ontology) → gard treba u svakom putu |
 | `evidence-score.ts` | `evidenceTier`, `evidenceConfidence` — imenovani provenance tierovi (`official-document`, `official-page`, fallback, generated, cache, distributor) i zajednička ograničena 0..1 baza za rangiranje evidence izvora u normalizeru, field-candidate rezoluciji i final-field repairu; customer override i field-semantika ostaju izvan ovog leafa |
 | `evidence-audit.ts` | `auditResultEvidence` — zajednički offline dokaz provenance pokrivenosti za spremljeni rezultat: svaku atributnu/dokument/source činjenicu mapira u isti tier i score, nasljeđuje source metadata samo kada URL stvarno odgovara, te prijavljuje nerazriješiv URL ili raw confidence izvan 0..1; CLI `audit:confidence` radi nad najnovijim stvarnim rezultatima svakog konektora |
 | `llm-label-proposals.ts` | `proposeUnmappedLabelMappings` — eksplicitno opt-in lokalni Ollama batch za review-only `unmapped label → postojeći canonicalKey` prijedloge; validira točnu ulaznu oznaku i ontology allow-list te nikad ne dodaje alias, mijenja vrijednost ili ulazi u parser |
@@ -323,8 +332,8 @@ Politike u `ManufacturerConfig.scrapeRecipe`: `DiscoveryPolicyConfig`, `Interact
 | `technical-attribute-aliases.ts` | `TECHNICAL_ATTRIBUTE_ALIASES`, `listTechnicalAttributeAliases`, `matchTechnicalAttributeAlias`, `suggestTechnicalAttributeAlias` (zadnji: review prijedlog najbližeg kanonskog ključa za `Unmapped Labels`, ali tek od 0,75 i samo globalni + eksplicitno odabrani manufacturer aliasi; manufacturer ID je otvoreni string za nove vendore) |
 | `field-registry.ts` | `FIELD_REGISTRY`, `fieldDefinition`, `matchRegistryFieldLabelPrefix`, `findFieldSourceAttribute`, `buildFieldHealth`; health zadržava čitljiv `reason` i stabilni `reasonCode` za discovery/parse/scope/conflict/value-rejection blokatore |
 | `shared/run-diagnostics.ts` | `summarizeRunDiagnostics` — shared, payload-only agregat `reasonCode` blokatora, document procesa i discovery odbijanja za run dashboard; ne uvodi novu heuristiku niti zahtijeva raw result JSON |
-| `device-type.ts` | `classifyDeviceType`, `knownDeviceTypes`. Tekst-kanal pobjednik po `definitionPriority` PRVO → bare tokeni (`motor/switch/cable/valve/pump/filter`) su u niskom tieru (615, ispod Sensor 620) da "motor cable"→Cable, "limit switch"→Sensor; DE/FR/IT nazivi u specifičnim pravilima (Leitungsschutzschalter→MCB, Schütz≠Schutz→Contactor, Näherungsschalter, Trennschalter/sezionatore, disjoncteur, Reihenklemme, Netzteil, Transformator, Sicherung) |
-| `device-type-families.ts` / `device-type-urls.ts` | `familyTypeFor` / `urlTypeFor` |
+| `device-type.ts` | `classifyDeviceType`, `knownDeviceTypes`. Tekst-kanal pobjednik po `definitionPriority` PRVO → bare tokeni (`motor/switch/cable/valve/pump/filter`) su u niskom tieru (615, ispod Sensor 620) da "motor cable"→Cable, "limit switch"→Sensor; DE/FR/IT nazivi u specifičnim pravilima (Leitungsschutzschalter→MCB, Schütz≠Schutz→Contactor, Näherungsschalter, Trennschalter/sezionatore, disjoncteur, Reihenklemme, Netzteil, Transformator, Sicherung). `Signal Conditioner` je zaseban tip od I/O Module. |
+| `device-type-families.ts` / `device-type-urls.ts` | `familyTypeFor` / `urlTypeFor`; Phoenix `MACX MCR-UI` i signal-conditioner PDP put klasificiraju se kao `Signal Conditioner`, dok I/O komponente ostaju `I/O Module`; WP paneli, GW PL Ethernet HART gatewayi, VS-08-RJ45 konektori, PSR-MIS senzori, QUINT-UPS uređaji i ELR H3 motori starteri imaju točnu obiteljsku klasifikaciju prije širih podudaranja. |
 | `tight-context.ts` | `buildTightContextForCatalog`, `buildVariantColumnContext` |
 
 ### `src/server/scrapers/` — konektori (svi imaju `<Name>Connector`)
@@ -337,6 +346,11 @@ referentnim mjerama.
 `rittal.ts` koristi službeni `/products/show/{orderNumber}` resolver prvo, generički PDP parser
 zatim zajednički discovery fallback. `nvent` i `phoenix` ostaju config-driven. Vanjska web-pretraga
 za Rittal ostaje opt-in preko `PRODUCT_SCRAPER_ALLOW_EXTERNAL_SEARCH=1`.
+`balluff.ts` vraća izravnu službenu stranicu ranije kada točan kataloški broj, slika, datasheet link,
+napon, zaštita i korisni tehnički podaci već postoje; preuzimanje i PDF obogaćivanje tada radi
+zajednička faza `document-enrichment.ts` nakon konektora. Ako provjerena stranica nema traženu jezgru,
+ostaju Balluffovi PDF, reader i browser fallbacki. `scripts/benchmark.ts` izvještava `scrapeElapsedMs`
+kao vrijeme samo `connector.scrape()`; `elapsedMs` uključuje i dokumente te benchmark exporte.
 `gan.ts` (Ganter Norm, standardni strojni elementi): `GanterNormConnector` — traži preko
 `/en/products/quick-finder?q=`. Quick-finder danas **301-redirecta puni ordering kod** (npr.
 "GN 422-33-TK-LK-K2-SW") ravno na točnu varijantnu stranicu (s `#fragmentom` koji kodira odabrane
@@ -412,7 +426,7 @@ fallback = Access Denied/timeout).
 | `exporter.ts` | `exportRunPdt`, `PdtExportResult` |
 | `template.ts` | `resolveTemplatePath`, `loadTemplateWorkbook`, `DEFAULT_PDT_TEMPLATE` |
 | `device-sheet-map.ts` | `deviceSheetsFor`, `targetSheets`, `knownDeviceSheets`, `CONSTANT_SHEETS` |
-| `device-type-profiles.ts` | `DEVICE_TYPE_PROFILES`, `deviceTypeProfile`, `criticalFactsForDeviceType`, `eclassDefaultForDeviceType` |
+| `device-type-profiles.ts` | `DEVICE_TYPE_PROFILES`, `deviceTypeProfile`, `criticalFactsForDeviceType`, `eclassDefaultForDeviceType`; `Signal Conditioner` targets `el. mesurement devices` with voltage required and current optional. |
 | `eclass-resolvers.ts` | `resolveProperty`, `hasPropertyResolver`, `ResolveContext` |
 | `facts.ts` | `buildPdtFactIndex`, `bestFact`, `PDT_ONTOLOGY_FACT_KEYS` |
 | `documents-sheet.ts` | `writeDocumentsSheet` |

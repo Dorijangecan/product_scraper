@@ -1,0 +1,52 @@
+[
+  {
+    "manufacturerId": "abb",
+    "catalogNumber": "1SFA897101R7000",
+    "caseType": "electrical",
+    "expectedDeviceType": "Soft Starter",
+    "riskTags": ["cold", "pse", "soft-starter"],
+    "expectedOfficialUrlPatterns": ["new\\.abb\\.com/products"],
+    "requiredDocuments": ["datasheet"],
+    "expectedNormalizedFields": ["voltage", "current"]
+  },
+  {
+    "manufacturerId": "abb",
+    "catalogNumber": "1SDA066799R1",
+    "caseType": "electrical",
+    "expectedDeviceType": "Molded Case Circuit Breaker",
+    "riskTags": ["cold", "tmax-xt1", "mccb"],
+    "expectedOfficialUrlPatterns": ["new\\.abb\\.com/products"],
+    "requiredDocuments": ["datasheet"],
+    "expectedNormalizedFields": ["voltage", "current"]
+  },
+  {
+    "manufacturerId": "abb",
+    "catalogNumber": "2CSG251151R4051",
+    "caseType": "electrical",
+    "expectedDeviceType": "Power Meter",
+    "riskTags": ["cold", "m4m", "network-analyzer"],
+    "expectedOfficialUrlPatterns": ["new\\.abb\\.com/products"],
+    "requiredDocuments": ["datasheet"],
+    "expectedNormalizedFields": ["voltage", "current"]
+  },
+  {
+    "manufacturerId": "abb",
+    "catalogNumber": "3AXD50000038968",
+    "caseType": "electrical",
+    "expectedDeviceType": "Variable Speed Drive",
+    "riskTags": ["cold", "acs580", "variable-speed-drive", "official-family-manual"],
+    "expectedOfficialUrlPatterns": ["new\\.abb\\.com/products"],
+    "requiredDocuments": ["manual"],
+    "expectedNormalizedFields": ["voltage", "current"]
+  },
+  {
+    "manufacturerId": "abb",
+    "catalogNumber": "1SVR730884R4300",
+    "caseType": "electrical",
+    "expectedDeviceType": "Relay",
+    "riskTags": ["cold", "cm-mps", "monitoring-relay"],
+    "expectedOfficialUrlPatterns": ["new\\.abb\\.com/products"],
+    "requiredDocuments": ["datasheet"],
+    "expectedNormalizedFields": ["voltage"]
+  }
+]

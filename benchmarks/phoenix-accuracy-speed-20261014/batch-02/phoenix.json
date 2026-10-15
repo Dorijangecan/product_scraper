@@ -1,0 +1,52 @@
+[
+  {
+    "manufacturerId": "phoenix",
+    "catalogNumber": "0712194",
+    "caseType": "electrical",
+    "expectedDeviceType": "Circuit Breaker",
+    "riskTags": ["cold", "thermal", "single-channel", "1a", "plug-in", "250vac", "72vdc"],
+    "expectedOfficialUrlPatterns": ["phoenixcontact\\.com/en-us/products/thermal-device-circuit-breakers-tcp-1a-0712194"],
+    "requiredDocuments": ["image"],
+    "expectedNormalizedFields": ["weight", "dimensions", "voltage", "current", "protection"]
+  },
+  {
+    "manufacturerId": "phoenix",
+    "catalogNumber": "2811569",
+    "caseType": "electrical",
+    "expectedDeviceType": "Signal Conditioner",
+    "riskTags": ["cold", "macx-analog", "input-signal-conditioner", "wide-supply", "sil2", "galvanic-isolation"],
+    "expectedOfficialUrlPatterns": ["phoenixcontact\\.com/en-us/products/signal-conditioner-macx-mcr-ui-ui-up-sp-nc-2811569"],
+    "requiredDocuments": ["image"],
+    "expectedNormalizedFields": ["weight", "dimensions", "voltage", "protection"]
+  },
+  {
+    "manufacturerId": "phoenix",
+    "catalogNumber": "2730077",
+    "caseType": "electrical",
+    "expectedDeviceType": "I/O Module",
+    "riskTags": ["cold", "interbus", "robot-installation", "12-inputs", "4-outputs", "ip65"],
+    "expectedOfficialUrlPatterns": ["phoenixcontact\\.com/en-us/products/io-component-ibs-ip-cdior-24-1248-sf-2730077"],
+    "requiredDocuments": ["image"],
+    "expectedNormalizedFields": ["weight", "voltage", "protection"]
+  },
+  {
+    "manufacturerId": "phoenix",
+    "catalogNumber": "1674507",
+    "caseType": "electrical",
+    "expectedDeviceType": "Power Meter",
+    "riskTags": ["cold", "eem-xm157", "single-phase", "45a", "modbus-rtu", "mid"],
+    "expectedOfficialUrlPatterns": ["phoenixcontact\\.com/en-us/products/measuring-device-eem-xm157-1674507"],
+    "requiredDocuments": ["image"],
+    "expectedNormalizedFields": ["weight", "dimensions", "voltage", "current"]
+  },
+  {
+    "manufacturerId": "phoenix",
+    "catalogNumber": "3211223",
+    "caseType": "electrical",
+    "expectedDeviceType": "Terminal Block",
+    "riskTags": ["cold", "pt-25-twin", "three-conductors", "push-in", "800v", "24a", "red"],
+    "expectedOfficialUrlPatterns": ["phoenixcontact\\.com/en-us/products/multi-conductor-terminal-block-pt-25-twin-rd-3211223"],
+    "requiredDocuments": ["image"],
+    "expectedNormalizedFields": ["weight", "dimensions", "voltage", "current"]
+  }
+]

@@ -1,6 +1,6 @@
 import { collapseWhitespaceOrUndefined as clean, normalizeNumberSeparators } from "../text-util.js";
 import { multiplyDecimalExactly, OUNCE_TO_GRAM, OUNCE_TO_KILOGRAM, POUND_TO_GRAM, POUND_TO_KILOGRAM } from "../unit-conversion.js";
-import type { ManufacturerConfig, ProductResult, RunItemRecord } from "../../shared/types.js";
+import type { AttributeRecord, ManufacturerConfig, ProductResult, RunItemRecord } from "../../shared/types.js";
 import type { PdtRepair } from "./ai-cleanup.js";
 import { cleanProductDescription, compactFamilyShortDescription, isDecorativeAssetText } from "./description-formatting.js";
 import { eclassDefaultForDeviceType, isSignalDeviceType } from "./device-type-profiles.js";
@@ -80,7 +80,14 @@ function cleanDescriptionValue(value: string | undefined, catalogNumber?: string
 /** First attribute whose name (or group) matches `pattern`, preferring official sources. */
 function attr(ctx: ResolveContext, pattern: RegExp): string | undefined {
   const attributes = ctx.result?.attributes ?? [];
-  const matches = attributes.filter((a) => pattern.test(`${a.group ?? ""} ${a.name}`) && a.value?.trim());
+  const matches = attributes.filter((a) =>
+    pattern.test(`${a.group ?? ""} ${a.name}`) &&
+    a.value?.trim() &&
+    !(ctx.result?.manufacturerId === "eaton" && a.sourceType === "generated" && a.parser === "pdf-table-extractor" && a.matchLevel !== "exact") &&
+    !(ctx.result?.manufacturerId === "eaton" &&
+      /^rated operational current for specified heat dissipation\s*\(\s*in\s*\)$/i.test(a.name.trim()) &&
+      /^0(?:[.,]0+)?\s*A?$/i.test(a.value.trim()))
+  );
   if (matches.length === 0) return undefined;
   matches.sort((l, r) => sourceRank(r.sourceType) - sourceRank(l.sourceType) || (r.confidence ?? 0) - (l.confidence ?? 0));
   return clean(matches[0].value);
@@ -1177,6 +1184,10 @@ function actuationType(ctx: ResolveContext): string | undefined {
 }
 
 function staticPowerLoss(ctx: ResolveContext): string | undefined {
+  if (ctx.result?.manufacturerId === "eaton") {
+    const exactStaticValue = attr(ctx, /\b(?:power loss,?\s*static|static\s+power\s+loss|power loss.*current-independent|current-independent.*power loss|Pls)\b/i);
+    return exactStaticValue ? numberWithUnit(exactStaticValue, "W") ?? numberOf(exactStaticValue) : undefined;
+  }
   const pdtStaticLoss = pdtFactValue(ctx, "pdtStaticPowerLoss");
   if (pdtStaticLoss) return pdtStaticLoss;
   const cbeLoss = eatonEd6PowerLossPerPole(ctx);
@@ -2156,6 +2167,29 @@ function currentValue(ctx: ResolveContext, pattern: RegExp): string | undefined 
   return numberWithUnit(value, "A") ?? numberOf(value);
 }
 
+function isSchneiderSurgeProtectiveDevice(ctx: ResolveContext): boolean {
+  const result = ctx.result ?? ctx.item.result;
+  if (!result || result.manufacturerId !== "schneider") return false;
+  if (ctx.deviceType === "Surge Protective Device") return true;
+  return result.attributes.some((attribute) =>
+    /^(?:product or component type|product type|title)$/i.test(attribute.name.trim()) &&
+    /\bsurge arrester\b|\bsurge protective device\b/i.test(attribute.value)
+  );
+}
+
+function schneiderSurgeRemoteSignallingCurrent(ctx: ResolveContext, circuit: "AC" | "DC"): string | undefined {
+  if (!isSchneiderSurgeProtectiveDevice(ctx)) return undefined;
+  const result = ctx.result ?? ctx.item.result;
+  const rating = result?.attributes
+    .filter((attribute) => /^signalling circuit voltage$/i.test(attribute.name.trim()))
+    .flatMap((attribute) => [...attribute.value.matchAll(/(\d+(?:[.,]\d+)?)\s*A\s*\/\s*\d+(?:[.,]\d+)?\s*V\s*(AC|DC)/gi)])
+    .filter((match) => match[2]?.toUpperCase() === circuit)
+    .map((match) => Number((match[1] ?? "").replace(",", ".")))
+    .filter((value) => Number.isFinite(value))
+    .sort((left, right) => right - left)[0];
+  return rating === undefined ? undefined : `${rating} A`;
+}
+
 function rockwellCompact5000IoPointCount(ctx: ResolveContext, direction: "input" | "output"): string | undefined {
   if (!isRockwellCompact5000IoCatalog(ctx)) return undefined;
   const catalog = clean(ctx.item.catalogNumber) ?? "";
@@ -2284,6 +2318,82 @@ function cableJacketMaterial(ctx: ResolveContext): string | undefined {
  * the column's `code` and `propName`, so a known property is filled wherever it appears across
  * tabs. Material Master Data is covered fully; device-tab properties are best-effort.
  */
+function eatonDriveVoltage(ctx: ResolveContext, direction: "input" | "output"): string | undefined {
+  if (ctx.result?.manufacturerId !== "eaton") return undefined;
+  const exactPdp = (attribute: AttributeRecord) =>
+    attribute.parser === "eaton-product-page" &&
+    /^https:\/\/(?:www\.)?eaton\.com(?:\.cn)?\//i.test(attribute.sourceUrl ?? "") &&
+    /\/skuPage\.[^/]+?\.html$/i.test(attribute.sourceUrl ?? "");
+  const isDrive = ctx.result.attributes.some((attribute) =>
+    /^product type$/i.test(attribute.name.trim()) && /\badjustable frequency drive\b/i.test(attribute.value) && exactPdp(attribute)
+  );
+  if (!isDrive) return undefined;
+  const description = ctx.result.attributes.find((attribute) =>
+    /^description$/i.test(attribute.name.trim()) && exactPdp(attribute) &&
+    /\b\d+\s*V\s*\d+\s*PH\s+IN\s*\//i.test(attribute.value)
+  )?.value;
+  const match = description?.match(/\b(\d+(?:[.,]\d+)?)\s*V\s*(?:AC|DC)?\s*(\d+)\s*PH\s+IN\s*\/\s*(\d+(?:[.,]\d+)?)\s*V\s*(?:AC|DC)?\s*(\d+)\s*PH\s+OUT\b/i);
+  const value = match?.[direction === "input" ? 1 : 3];
+  return value ? `${value.replace(",", ".")} V` : undefined;
+}
+
+function eatonContactorAc3CurrentAt400(ctx: ResolveContext): string | undefined {
+  if (ctx.result?.manufacturerId !== "eaton") return undefined;
+  const exactPdp = (attribute: AttributeRecord) =>
+    attribute.parser === "eaton-product-page" &&
+    /^https:\/\/(?:www\.)?eaton\.com(?:\.cn)?\//i.test(attribute.sourceUrl ?? "") &&
+    /\/skuPage\.[^/]+?\.html$/i.test(attribute.sourceUrl ?? "");
+  const isContactor = ctx.result.attributes.some((attribute) =>
+    /^product type$/i.test(attribute.name.trim()) && /^contactor$/i.test(attribute.value.trim()) && exactPdp(attribute)
+  );
+  if (!isContactor) return undefined;
+  const row = ctx.result.attributes.find((attribute) =>
+    /^rated operational current\s*\(\s*ie\s*\)\s*at\s*AC-3,\s*380\s*V,\s*400\s*V,\s*415\s*V$/i.test(attribute.name.trim()) && exactPdp(attribute)
+  );
+  const current = row?.value.match(/\b(\d+(?:[.,]\d+)?)\s*A\b/i)?.[1];
+  return current ? `${current.replace(",", ".")} A` : undefined;
+}
+
+function eatonContactorHeatDissipationCurrent(ctx: ResolveContext): string | undefined {
+  if (ctx.result?.manufacturerId !== "eaton") return undefined;
+  const exactPdp = (attribute: AttributeRecord) =>
+    attribute.parser === "eaton-product-page" &&
+    /^https:\/\/(?:www\.)?eaton\.com(?:\.cn)?\//i.test(attribute.sourceUrl ?? "") &&
+    /\/skuPage\.[^/]+?\.html$/i.test(attribute.sourceUrl ?? "");
+  const isContactor = ctx.result.attributes.some((attribute) =>
+    /^product type$/i.test(attribute.name.trim()) && /^contactor$/i.test(attribute.value.trim()) && exactPdp(attribute)
+  );
+  if (!isContactor) return undefined;
+  const row = ctx.result.attributes.find((attribute) =>
+    /^rated operational current for specified heat dissipation\s*\(\s*in\s*\)$/i.test(attribute.name.trim()) && exactPdp(attribute)
+  );
+  const current = row?.value.match(/\b(\d+(?:[.,]\d+)?)\s*A\b/i)?.[1];
+  return current && current !== "0" ? `${current.replace(",", ".")} A` : undefined;
+}
+
+function eatonHmiSupplyVoltageBound(ctx: ResolveContext, bound: "min" | "max"): string | undefined {
+  if (ctx.result?.manufacturerId !== "eaton" || ctx.deviceType !== "HMI") return undefined;
+  const exactPdp = (attribute: AttributeRecord) =>
+    attribute.parser === "eaton-product-page" &&
+    /^https:\/\/(?:www\.)?eaton\.com(?:\.cn)?\//i.test(attribute.sourceUrl ?? "") &&
+    /\/skuPage\.[^/]+?\.html$/i.test(attribute.sourceUrl ?? "");
+  const row = ctx.result.attributes.find((attribute) =>
+    new RegExp(`^supply voltage at DC - ${bound}$`, "i").test(attribute.name.trim()) && exactPdp(attribute)
+  );
+  const voltage = row?.value.match(/(-?\d+(?:[.,]\d+)?)\s*V(?:DC)?\b/i)?.[1];
+  return voltage ? `${voltage.replace(",", ".")} V` : undefined;
+}
+
+function eatonSafetyRelayDcMinimum(ctx: ResolveContext): string | undefined {
+  if (ctx.result?.manufacturerId !== "eaton" || ctx.deviceType !== "Safety Relay") return undefined;
+  const row = ctx.result.attributes.find((attribute) =>
+    /^rated control supply voltage \(us\) at DC - min$/i.test(attribute.name.trim()) &&
+    attribute.parser === "eaton-product-page" && /\/skuPage\.[^/]+?\.html$/i.test(attribute.sourceUrl ?? "")
+  );
+  const voltage = row?.value.match(/(-?\d+(?:[.,]\d+)?)\s*V/i)?.[1];
+  return voltage ? `${voltage.replace(",", ".")} V` : undefined;
+}
+
 const RESOLVERS: Record<string, Resolver> = {
   // --- Material Master Data ---
   AAO677: manufacturerName,
@@ -2341,12 +2451,14 @@ const RESOLVERS: Record<string, Resolver> = {
   REFERENCE_FEATURE_SYSTEM_NAME: (ctx) => ctx.repair?.eclassSystemVersion ?? eclassSystem(ctx),
   AAN521: (ctx) => colorValue(ctx),
   BAH005: (ctx) =>
+    eatonDriveVoltage(ctx, "output") ??
     pdtFactValue(ctx, "pdtRatedVoltage") ??
     signalRatedVoltage(ctx) ??
     (isContactorSheet(ctx) ? controlVoltageRange(ctx) : undefined) ??
     clean(ctx.result?.normalized.voltage) ??
     attr(ctx, /\b(rated voltage|operating voltage)\b/i),
   AAF726: (ctx) =>
+    eatonContactorAc3CurrentAt400(ctx) ??
     pdtFactValue(ctx, "pdtRatedCurrent") ??
     (isContactorSheet(ctx) ? ctx.repair?.ratedCurrent ?? ratedOperationalCurrent(ctx) : undefined) ??
     maxUnitNumber(ctx.result?.normalized.current, "A") ??
@@ -2359,8 +2471,8 @@ const RESOLVERS: Record<string, Resolver> = {
   AAS575: powerLossPerPole, // Power loss per pole [W]
   AAT080: (ctx) => numberOf(attr(ctx, /\b(number of poles|pole number|no\.? of poles|poles)\b/i)), // Pole number
   AAP798: (ctx) => attr(ctx, /\b(application standards|standards?)\b/i), // Application standards
-  AAB821: ratedOperationalCurrent, // Max. rated operating current [A]
-  AAC824: ratedOperationalCurrent, // Nominal current
+  AAB821: (ctx) => eatonContactorAc3CurrentAt400(ctx) ?? ratedOperationalCurrent(ctx), // Max. rated operating current [A]
+  AAC824: (ctx) => eatonContactorAc3CurrentAt400(ctx) ?? ratedOperationalCurrent(ctx), // Nominal current
   AAF583: ratedOperationalVoltage, // Nominal voltage
   BAG975: degreeOfProtection, // degree of protection
   BAC140: combustibilityClass, // Combustibility class
@@ -2368,7 +2480,7 @@ const RESOLVERS: Record<string, Resolver> = {
   AAB456: (ctx) => valueAtVoltage(attr(ctx, /\brated operational power AC-3\b/i), 400, "kW"), // AC-3 power at 400 V
   AAC828: (ctx) => overloadSetting(ctx, "min"), // Lowest value of setting range for overload tripper
   AAB447: (ctx) => conditionalShortCircuitCurrent(ctx, undefined, "kA"), // Conditional rated short-circuit current Iq
-  AAB460: ratedOperationalCurrent, // Rated operating current Ie
+  AAB460: (ctx) => eatonContactorAc3CurrentAt400(ctx) ?? ratedOperationalCurrent(ctx), // Rated operating current Ie
   AAB542: (ctx) => overloadSetting(ctx, "max"), // Greatest value of overload release adjustment range
   AAB667: dinRailSuitable, // suitable for mounting onto standard rails
   BAC426: functionType, // Function
@@ -2384,9 +2496,9 @@ const RESOLVERS: Record<string, Resolver> = {
   AAH656: (ctx) => overloadSetting(ctx, "min"), // min. overload protector
   AAS573: (ctx) => yesNoAttr(ctx, /\btemperature compensated overload protection\b/i), // Temperature compensated overload protection
   BAD304: (ctx) => yesNoAttr(ctx, /\bbearing track assembly\b/i), // Bearing track assembly possible
-  AAS574: ratedOperationalCurrent, // Rated current for power loss specification
+  AAS574: (ctx) => eatonContactorHeatDissipationCurrent(ctx) ?? ratedOperationalCurrent(ctx), // Rated current for power loss specification
   AAB438: releaseClass, // Release class
-  AAB476: (ctx) => valueAtVoltage(attr(ctx, /\brated operational current AC-3\b/i), 400, "A"), // Ie AC-3, 400 V
+  AAB476: (ctx) => eatonContactorAc3CurrentAt400(ctx) ?? valueAtVoltage(attr(ctx, /\brated operational current AC-3\b/i), 400, "A"), // Ie AC-3, 400 V
   AAS566: (ctx) => horsepowerAtVoltageAsKw(ctx, 460), // Rated power, 460 V, 60 Hz, 3-phase
   AAS569: (ctx) => conditionalShortCircuitCurrent(ctx, 600, "A"), // SCC type 1, 600 Y/347 V
   AAM479: protocol, // supported protocol
@@ -2419,10 +2531,12 @@ const RESOLVERS: Record<string, Resolver> = {
   // Rated impulse withstand voltage Uimp [kV]
   AAB814: (ctx) => numberWithUnit(attr(ctx, /\b(impulse withstand voltage|rated impulse voltage|\buimp\b)\b/i), "kV"),
   // Max. supply voltage with DC — pick the highest DC volt number from any DC-tagged voltage attr.
-  AAB909: (ctx) => maxVoltageOnPolarity(ctx, "dc"),
+  AAB909: (ctx) => eatonHmiSupplyVoltageBound(ctx, "max") ?? maxVoltageOnPolarity(ctx, "dc"),
   // min. permissible voltage at input / output
-  AAC031: (ctx) => minVoltageOf(ctx, /\b(min(?:imum)?\s+(?:permissible\s+)?voltage|voltage\s+(?:min(?:imum)?)|input\s+voltage range)\b/i),
-  AAC030: (ctx) => minVoltageOf(ctx, /\b(min(?:imum)?\s+(?:permissible\s+)?(?:output\s+)?voltage|output\s+voltage\s+(?:range|min(?:imum)?))\b/i),
+  AAC031: (ctx) => eatonHmiSupplyVoltageBound(ctx, "min") ?? minVoltageOf(ctx, /\b(min(?:imum)?\s+(?:permissible\s+)?voltage|voltage\s+(?:min(?:imum)?)|input\s+voltage range)\b/i),
+  AAC030: (ctx) => ctx.result?.manufacturerId === "eaton" && ctx.deviceType === "HMI"
+    ? undefined
+    : minVoltageOf(ctx, /\b(min(?:imum)?\s+(?:permissible\s+)?(?:output\s+)?voltage|output\s+voltage\s+(?:range|min(?:imum)?))\b/i),
   // I/O counts — common on PLC / Motion Controller / Luminaire / Generator tabs
   AAP341: (ctx) => pdtFactValue(ctx, "pdtAnalogInputCount") ?? numberOf(attr(ctx, /\b(?:number of\s+)?analog(?:ue)?\s+(?:input(?:s)?|in\b)\b/i)),
   AAP342: (ctx) => pdtFactValue(ctx, "pdtAnalogOutputCount") ?? numberOf(attr(ctx, /\b(?:number of\s+)?analog(?:ue)?\s+(?:output(?:s)?|out\b)\b/i)),
@@ -2494,7 +2608,7 @@ const RESOLVERS: Record<string, Resolver> = {
   // any "operating voltage" / "supply voltage" attribute; minVoltageOf scans values and picks
   // the smallest number (=10 V), which is the real "min operating voltage with DC" answer.
   AAB973: (ctx) => minVoltageOf(ctx, /\b(min(?:imum)? .*voltage.*DC|min(?:imum)? operating voltage.*DC|operating voltage.*DC|supply voltage.*DC|operating voltage(?:\s+Ub)?|supply voltage|input voltage|rated operating voltage)\b/i),
-  AAB960: (ctx) => minVoltageOf(ctx, /\b(min(?:imum)? .*control voltage.*DC|control voltage.*DC)\b/i),
+  AAB960: (ctx) => eatonSafetyRelayDcMinimum(ctx) ?? minVoltageOf(ctx, /\b(min(?:imum)? .*control voltage.*DC|control voltage.*DC)\b/i),
   ABC268: (ctx) => maxVoltageOnPolarity(ctx, "dc"),
   BAC064: voltageType,
   AAF954: attrUnitNumber(/\b(max(?:imum)? electricity consumption|power consumption|power dissipation)\b/i, "W"),
@@ -2578,7 +2692,9 @@ const RESOLVERS: Record<string, Resolver> = {
   AAB952: (ctx) => minVoltageOf(ctx, /\b(min(?:imum)? rated operating voltage.*AC|min(?:imum)? operating voltage.*AC|operating voltage.*AC)\b/i),
   AAB953: (ctx) => minVoltageOf(ctx, /\b(min(?:imum)? rated operating voltage.*AC|min(?:imum)? operating voltage.*AC|operating voltage.*AC)\b/i),
   AAB954: (ctx) => minVoltageOf(ctx, /\b(min(?:imum)? rated operating voltage.*DC|min(?:imum)? operating voltage.*DC|operating voltage.*DC)\b/i),
-  AAB955: (ctx) => currentValue(ctx, /\b(min(?:imum)? rated operating current|min(?:imum)? operating current)\b/i),
+  AAB955: (ctx) => isSchneiderSurgeProtectiveDevice(ctx)
+    ? undefined
+    : currentValue(ctx, /\b(min(?:imum)? rated operating current|min(?:imum)? operating current)\b/i),
   AAB966: (ctx) => minVoltageOf(ctx, /\b(min(?:imum)? rated supply voltage.*AC|min(?:imum)? supply voltage.*AC|supply voltage.*AC|input voltage.*AC)\b/i),
   AAB967: (ctx) => minVoltageOf(ctx, /\b(min(?:imum)? rated supply voltage.*AC|min(?:imum)? supply voltage.*AC|supply voltage.*AC|input voltage.*AC)\b/i),
   AAB968: (ctx) => minVoltageOf(ctx, /\b(min(?:imum)? rated supply voltage.*DC|min(?:imum)? supply voltage.*DC|supply voltage.*DC|input voltage.*DC)\b/i),
@@ -2797,18 +2913,22 @@ const RESOLVERS: Record<string, Resolver> = {
   ABD323: attrUnitNumber(/\b(min(?:imum)? cross[- ]section.*remote indication.*rigid|remote indication.*rigid.*cross[- ]section)\b/i, "mm"),
   ABD339: (ctx) => lengthValue(ctx, /\b(distance to grounded|distance to conductive parts)\b/i),
   ABD340: (ctx) => voltageValue(ctx, /\b(max(?:imum)? voltage.*remote indication.*AC|remote indication.*voltage.*AC)\b/i),
-  ABD341: (ctx) => currentValue(ctx, /\b(max(?:imum)? current.*remote indication.*AC|remote indication.*current.*AC)\b/i),
+  ABD341: (ctx) => schneiderSurgeRemoteSignallingCurrent(ctx, "AC") ?? currentValue(ctx, /\b(max(?:imum)? current.*remote indication.*AC|remote indication.*current.*AC)\b/i),
   ABD342: (ctx) => voltageValue(ctx, /\b(max(?:imum)? voltage.*remote indication.*DC|remote indication.*voltage.*DC)\b/i),
-  ABD343: (ctx) => currentValue(ctx, /\b(max(?:imum)? current.*remote indication.*DC|remote indication.*current.*DC)\b/i),
+  ABD343: (ctx) => schneiderSurgeRemoteSignallingCurrent(ctx, "DC") ?? currentValue(ctx, /\b(max(?:imum)? current.*remote indication.*DC|remote indication.*current.*DC)\b/i),
   ABD348: (ctx) => currentValue(ctx, /\b(residual current.*AC|leakage current)\b/i),
-  ABD359: (ctx) => currentValue(ctx, /\b(total discharge current|discharge current)\b/i),
+  ABD359: (ctx) => isSchneiderSurgeProtectiveDevice(ctx)
+    ? currentValue(ctx, /\[Iimp\].*impulse current|impulse discharge current/i)
+    : currentValue(ctx, /\b(total discharge current|discharge current)\b/i),
   ABD360: (ctx) => currentValue(ctx, /\b(impulse discharge current.*L[- ]N|discharge current.*L[- ]N)\b/i),
   ABD361: (ctx) => currentValue(ctx, /\b(impulse discharge current.*N[- ]PE|discharge current.*N[- ]PE)\b/i),
   ABD362: (ctx) => currentValue(ctx, /\b(impulse discharge current.*L[- ]PE|discharge current.*L[- ]PE)\b/i),
   ABD381: (ctx) => currentValue(ctx, /\b(max(?:imum)? overcurrent protective device.*branch|overcurrent protective device.*branch)\b/i),
   ABD382: (ctx) => currentValue(ctx, /\b(max(?:imum)? overcurrent protective device.*V[- ]type|overcurrent protective device.*V[- ]type)\b/i),
   ABD383: attrYesNo(/\bovercurrent protective device selective to fuse\b/i),
-  ABD384: (ctx) => currentValue(ctx, /\b(transition surge current rating|surge current rating)\b/i),
+  ABD384: (ctx) => isSchneiderSurgeProtectiveDevice(ctx)
+    ? currentValue(ctx, /\[Iimp\].*impulse current|impulse discharge current/i)
+    : currentValue(ctx, /\b(transition surge current rating|surge current rating)\b/i),
   ABD480: attrNumber(/\b(max(?:imum)? allowed elevation|elevation above mean sea level|altitude)\b/i),
   ABD482: attrNumber(/\b(max(?:imum)? torque.*UL|torque)\b/i),
   ABD484: attrNumber(/\b(min(?:imum)? torque.*UL|torque)\b/i),
@@ -3012,7 +3132,7 @@ const RESOLVERS: Record<string, Resolver> = {
   AAB908: (ctx) => voltageValue(ctx, /\b(max(?:imum)? supply voltage.*AC.*60|supply voltage.*AC)\b/i),
   AAC023: (ctx) => minVoltageOf(ctx, /\b(min(?:imum)? supply voltage.*AC.*50|supply voltage.*AC)\b/i),
   AAC024: (ctx) => minVoltageOf(ctx, /\b(min(?:imum)? supply voltage.*AC.*60|supply voltage.*AC)\b/i),
-  AAC025: (ctx) => minVoltageOf(ctx, /\b(min(?:imum)? supply voltage.*DC|supply voltage.*DC)\b/i),
+  AAC025: (ctx) => eatonHmiSupplyVoltageBound(ctx, "min") ?? minVoltageOf(ctx, /\b(min(?:imum)? supply voltage.*DC|supply voltage.*DC)\b/i),
   AAC706: attrNumber(/\b(number of buttons with LED|buttons with LED)\b/i),
   AAC716: attrNumber(/\b(number of system buttons|system buttons)\b/i),
   AAC849: attrNumber(/\b(monitor diagonal|screen diagonal|display diagonal)\b/i),
@@ -3654,7 +3774,7 @@ const RESOLVERS: Record<string, Resolver> = {
   AAB481: (ctx) => valueAtVoltage(attr(ctx, /\brated operating current.*DC-13\b/i), 24, "A"),
   AAB961: (ctx) => minControlVoltage(ctx, 50),
   AAB962: (ctx) => minControlVoltage(ctx, 60),
-  AAB963: (ctx) => minVoltageOf(ctx, /\b(min(?:imum)? rated control voltage.*DC|control voltage.*DC)\b/i),
+  AAB963: (ctx) => eatonSafetyRelayDcMinimum(ctx) ?? minVoltageOf(ctx, /\b(min(?:imum)? rated control voltage.*DC|control voltage.*DC)\b/i),
   AAC121: attrValue(/\b(signal outputs? of the shaft encoder|encoder output|signal output)\b/i),
   AAC805: attrNumber(/\bhysteresis\b/i),
   AAC826: (ctx) => valueAtVoltage(attr(ctx, /\b(operating current.*DC-13|rated operating current.*DC-13)\b/i), 230, "A"),
@@ -3776,10 +3896,10 @@ const RESOLVERS: Record<string, Resolver> = {
   AAC149: (ctx) => currentValue(ctx, /\b(overloading ability of excess current|excess current|overload current)\b/i),
   AAC216: (ctx) => voltageValue(ctx, /\b(link voltage|DC link voltage)\b/i),
   AAC801: attrNumber(/\b(relative symmetric mains frequency tolerance|frequency tolerance)\b/i),
-  AAD239: (ctx) => attr(ctx, /\b(supply voltage)\b/i) ?? clean(ctx.result?.normalized.voltage),
+  AAD239: (ctx) => eatonDriveVoltage(ctx, "input") ?? attr(ctx, /\b(supply voltage)\b/i) ?? clean(ctx.result?.normalized.voltage),
   BAC671: (ctx) => powerValue(ctx, /\b(max(?:imum)? power|max(?:imum)? output power|power)\b/i),
   BAE100: attrValue(/\b(design of feedback system|feedback system)\b/i),
-  BAE107: (ctx) => voltageValue(ctx, /\b(rated output voltage|output voltage)\b/i),
+  BAE107: (ctx) => eatonDriveVoltage(ctx, "output") ?? voltageValue(ctx, /\b(rated output voltage|output voltage)\b/i),
   BAE111: attrNumber(/\b(output phases|number of output phases|phases)\b/i),
   BAE120: attrValue(/\b(installation environment.*EMC|EMC environment|installation environment)\b/i),
   BAE125: attrNumber(/\b(max(?:imum)? output frequency|output frequency)\b/i),

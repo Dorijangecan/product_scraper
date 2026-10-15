@@ -1,0 +1,52 @@
+[
+  {
+    "manufacturerId": "balluff",
+    "catalogNumber": "BMF00PA",
+    "caseType": "electrical",
+    "expectedDeviceType": "Magnetic Field Sensor",
+    "riskTags": ["cold", "magnetic-field", "cylindrical", "stainless-steel", "pnp-no"],
+    "expectedOfficialUrlPatterns": ["balluff\\.com/en-gb/products/BMF00PA"],
+    "requiredDocuments": ["image", "datasheet"],
+    "expectedNormalizedFields": ["voltage", "dimensions", "protection"]
+  },
+  {
+    "manufacturerId": "balluff",
+    "catalogNumber": "BSP00Y4",
+    "caseType": "electrical",
+    "expectedDeviceType": "Pressure Sensor",
+    "riskTags": ["cold", "digital-pressure", "display", "0-10-bar", "io-link", "selectable-analog"],
+    "expectedOfficialUrlPatterns": ["balluff\\.com/en-gb/products/BSP00Y4"],
+    "requiredDocuments": ["image", "datasheet"],
+    "expectedNormalizedFields": ["voltage", "protection"]
+  },
+  {
+    "manufacturerId": "balluff",
+    "catalogNumber": "BVS01ZC",
+    "caseType": "electrical",
+    "expectedDeviceType": "Vision Sensor",
+    "riskTags": ["cold", "vision-sensor", "1-2-mp", "integrated-lighting", "io-link", "autofocus"],
+    "expectedOfficialUrlPatterns": ["balluff\\.com/en-gb/products/BVS01ZC"],
+    "requiredDocuments": ["image", "datasheet"],
+    "expectedNormalizedFields": ["dimensions", "protection"]
+  },
+  {
+    "manufacturerId": "balluff",
+    "catalogNumber": "BCM0002",
+    "caseType": "electrical",
+    "expectedDeviceType": "Condition Monitoring Sensor",
+    "riskTags": ["cold", "condition-monitoring", "vibration", "temperature", "humidity", "ambient-pressure", "io-link"],
+    "expectedOfficialUrlPatterns": ["balluff\\.com/en-(?:gb|us)/products/BCM0002"],
+    "requiredDocuments": ["image", "datasheet"],
+    "expectedNormalizedFields": ["voltage", "protection"]
+  },
+  {
+    "manufacturerId": "balluff",
+    "catalogNumber": "BRS0002",
+    "caseType": "electrical",
+    "expectedDeviceType": "Radar Sensor",
+    "riskTags": ["cold", "radar", "object-detection", "15-m-range", "io-link", "analog-output"],
+    "expectedOfficialUrlPatterns": ["balluff\\.com/en-gb/products/BRS0002"],
+    "requiredDocuments": ["image", "datasheet"],
+    "expectedNormalizedFields": ["protection"]
+  }
+]

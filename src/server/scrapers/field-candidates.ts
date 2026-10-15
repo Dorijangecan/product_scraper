@@ -31,6 +31,7 @@ export function applyFieldCandidateResolution(result: ProductResult): ProductRes
   const candidates = buildFieldCandidates(result);
   const resolutions = buildFieldResolutions(candidates);
   const normalized = { ...result.normalized };
+  if (result.manufacturerId === "schneider" && isSchneiderSurgeProtector(result)) delete normalized.current;
   const eatonElectrical = result.manufacturerId === "eaton"
     ? normalizeFields(result.attributes, result.documents, "eaton")
     : undefined;
@@ -50,10 +51,30 @@ export function applyFieldCandidateResolution(result: ProductResult): ProductRes
   for (const resolution of resolutions) {
     if (!resolution.selectedValue || !isNormalizedField(resolution.field)) continue;
     const key = resolution.field as keyof NormalizedProductFields;
+    // Preserve SPD ratings as named evidence (Iimp, In and Imax), without flattening
+    // their surge current into the general operating-current field.
+    if (result.manufacturerId === "schneider" && key === "current" && isSchneiderSurgeProtector(result)) continue;
+    // ABB material/color are normalized from official product attributes only. Loose PDF table
+    // fragments such as "Graphic color: display" are not product finish/material data and must
+    // not be reintroduced after the manufacturer-specific normalizer rejected them.
+    if (result.manufacturerId === "abb" && (key === "material" || key === "color")) continue;
+    // Siemens dimensions can be packaging measurements or HMI display/cutout values; material and
+    // color candidates also contain product-code fragments. The Siemens connector normalizer is
+    // authoritative for these fields, so unresolved values stay blank rather than being restored
+    // from a weaker raw candidate.
+    if (result.manufacturerId === "siemens" && (key === "dimensions" || key === "material" || key === "color")) continue;
+    // Mechanical position switches may expose insulation or impulse withstand ratings and
+    // contact-load rows, but those do not establish a general supply voltage/current field.
+    if (result.manufacturerId === "siemens" && (key === "voltage" || key === "current") &&
+      /\b(?:limit switch|position switch)\b/i.test(`${result.title} ${result.description}`)) continue;
     // Eaton's generic field candidates flatten component scope (for example, a built-in LED's
     // voltage) and broad PDF tables into product-level values. Electrical fields must instead be
     // supported by the evidence-scoped normalizer above.
     if (eatonElectrical && (key === "voltage" || key === "current") && !eatonElectrical[key]) continue;
+    // Phoenix signal conditioners publish input-signal current ranges (for example ±1 mA) as
+    // signal characteristics, not as the product's operating-current rating. The Phoenix
+    // normalizer intentionally leaves this field blank; do not reintroduce the raw row here.
+    if (result.manufacturerId === "phoenix" && key === "current" && isPhoenixSignalConditioner(result.attributes)) continue;
     if (normalized[key]) continue;
     // Field candidates are raw evidence. Do not let a winning candidate bypass the canonical
     // field validator just because it won a source-priority comparison (e.g. "24VDC" → "24 V DC").
@@ -86,6 +107,20 @@ export function applyFieldCandidateResolution(result: ProductResult): ProductRes
       confidencePenalty
     }
   };
+}
+
+function isSchneiderSurgeProtector(result: ProductResult): boolean {
+  return result.attributes.some((attribute) =>
+    /^(?:product or component type|product type|title)$/i.test(attribute.name.trim()) &&
+    /\bsurge arrester\b|\bsurge protective device\b/i.test(attribute.value)
+  );
+}
+
+function isPhoenixSignalConditioner(attributes: AttributeRecord[]): boolean {
+  return attributes.some((attribute) =>
+    /^(?:title|product type|product name|catalog description)$/i.test(attribute.name.trim()) &&
+    /\b(?:input signal conditioner|signal conditioner)\b/i.test(attribute.value)
+  );
 }
 
 export function buildFieldCandidates(result: ProductResult): FieldCandidateRecord[] {
@@ -201,6 +236,10 @@ function attributeCandidates(attributes: AttributeRecord[], field: RegistryField
     // but do not promote them into product-level fields without an official PDP attribute.
     .filter((attribute) => manufacturerId !== "rittal" || !["material", "color", "finish", "protection", "current"].includes(field) || attribute.sourceType === "official" || attribute.sourceType === "official-fallback")
     .filter((attribute) => manufacturerId !== "rittal" || field !== "current" || !/\b\d[\d.,]*\s*kA\b/i.test(attribute.value))
+    .filter((attribute) => manufacturerId !== "eaton" || field !== "wallThickness" || !/\bbusbar\b/i.test(`${attribute.group ?? ""} ${attribute.name}`))
+    // Siemens catalogs also label installation-panel and mounting plate dimensions as "Thickness".
+    // Those are not enclosure wall measurements; promote only explicitly named wall thickness.
+    .filter((attribute) => manufacturerId !== "siemens" || field !== "wallThickness" || /\b(?:wall|housing|enclosure)\s+thickness\b/i.test(`${attribute.group ?? ""} ${attribute.name}`))
     .filter((attribute) => !requiresNumeric || numericCandidateValueLooksValid(field, attribute.value))
     .filter((attribute) => fieldMatchesLabel(field, fieldAttributeLabel(attribute)))
     .filter((attribute) => cleanText(attribute.value))

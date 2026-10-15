@@ -101,6 +101,7 @@ export class GenericFallbackScraper {
           // discovery diagnostics, but do not re-fetch those candidates for this manufacturer.
           const skipRedundantDetailDiscovery =
             this.manufacturerId === "phoenix" ||
+            (this.manufacturerId === "siemens" && source.id === "siemens-mmpdata-fast") ||
             (this.manufacturerId === "schmersal" && source.id === "schmersal-discovered-product");
           let detailResolved = skipRedundantDetailDiscovery;
           for (const candidate of skipRedundantDetailDiscovery ? [] : discovery.candidates.slice(0, 4)) {
@@ -375,7 +376,7 @@ function parsePartCommunityCookieWallPage(
       stage: attribute.stage ?? parserLabel,
       confidence: attribute.confidence ?? confidenceForSource(sourceType, options.confidence)
     }));
-  const normalized = normalizeFields(cleanAttributes, [], manufacturerId === "rittal" ? "rittal" : undefined);
+  const normalized = normalizeFields(cleanAttributes, [], manufacturerId === "rittal" || manufacturerId === "schmersal" || manufacturerId === "phoenix" ? manufacturerId : undefined);
   return {
     manufacturerId,
     catalogNumber,
@@ -448,6 +449,9 @@ export function parseGenericProductPage(
     attributes.push(...attributesFromJsonLdProduct(product, fetched.effectiveUrl).map((attribute) => ({ ...attribute, scope: "variant" as const })));
   }
   documents.push(...extractImageDocuments($, catalogNumber, fetched.effectiveUrl, jsonLdProducts, options.extractionPolicy));
+  if (manufacturerId === "phoenix") {
+    documents.push(...extractPhoenixReaderImages(fetched.text, fetched.effectiveUrl));
+  }
   documents.push(...documentsFromJsonLdProducts(jsonLdProducts, fetched.effectiveUrl));
 
   for (const product of readEmbeddedProductData($)) {
@@ -544,12 +548,22 @@ export function parseGenericProductPage(
   attributes.push(
     ...withoutSiblingListingRows(extractPlainTextAttributes(fetched.text, fetched.effectiveUrl), attributes)
   );
+  if (manufacturerId === "phoenix") {
+    attributes.push(...extractPhoenixSummaryAttributes(fetched.text, fetched.effectiveUrl));
+    attributes.push(...extractPhoenixDimensionAttributes(fetched.text, fetched.effectiveUrl));
+    attributes.push(...extractPhoenixSupplyVoltageAttributes(fetched.text, fetched.effectiveUrl));
+    attributes.push(...extractPhoenixContextualElectricalAttributes(fetched.text, fetched.effectiveUrl));
+  }
   attributes.push(...extractKnownPlainTextSpecAttributes(fetched.text, fetched.effectiveUrl));
   attributes.push(...extractElectricalSpecAttributesFromText({
     text: fetched.text,
     sourceUrl: fetched.effectiveUrl,
     group: "Electrical Text"
   }));
+  if (manufacturerId === "phoenix") {
+    attributes.push(...extractPhoenixSurgeNominalDischargeCurrent(fetched.text, fetched.effectiveUrl));
+    attributes.push(...extractPhoenixSwitchCurrentConsumption(fetched.text, fetched.effectiveUrl));
+  }
   attributes.push(...extractOntologySpecAttributesFromText({
     text: fetched.text,
     sourceUrl: fetched.effectiveUrl,
@@ -557,6 +571,10 @@ export function parseGenericProductPage(
   }));
   documents.push(...extractPlainTextDocumentLinks(fetched.text, fetched.effectiveUrl, catalogNumber, options));
   documents.push(...extractHiddenDocumentLinks($, fetched.text, fetched.effectiveUrl, catalogNumber, options));
+  if (manufacturerId === "phoenix") {
+    const phoenixDatasheet = phoenixProductDetailsPdf(title, catalogNumber, fetched.effectiveUrl);
+    if (phoenixDatasheet) documents.push(phoenixDatasheet);
+  }
 
   const markerData = extractMarkerData(fetched.text, options.markerRules, fetched.effectiveUrl);
   attributes.push(...markerData.attributes);
@@ -678,14 +696,17 @@ export function parseGenericProductPage(
     stage: attr.stage ?? parserLabel,
     confidence: attr.confidence ?? confidenceForSource(sourceType, options.confidence)
   }));
-  const cleanDocuments = dedupeDocuments(documents).slice(0, options.extractionPolicy?.maxDocuments ?? 120).map((doc) => ({
+  const sourceSafeDocuments = manufacturerId === "phoenix"
+    ? documents.filter((doc) => !isPhoenixNavigationOrDrawingDocument(doc))
+    : documents;
+  const cleanDocuments = dedupeDocuments(sourceSafeDocuments).slice(0, options.extractionPolicy?.maxDocuments ?? 120).map((doc) => ({
     ...doc,
     sourceType: doc.sourceType ?? sourceType,
     parser: doc.parser ?? parserLabel,
     stage: doc.stage ?? parserLabel,
     confidence: doc.confidence ?? confidenceForSource(sourceType, options.confidence)
   }));
-  const normalized = normalizeFields(cleanAttributes, cleanDocuments, manufacturerId === "rittal" ? "rittal" : undefined);
+  const normalized = normalizeFields(cleanAttributes, cleanDocuments, manufacturerId === "rittal" || manufacturerId === "schmersal" || manufacturerId === "phoenix" ? manufacturerId : undefined);
   // An ordering-code option can prove a finish (SR → RAL 9006) without asserting that the same
   // code is a standalone product color. Preserve an explicit target-scoped Color field, otherwise
   // do not manufacture normalized.color from a family configurator's finish option.
@@ -742,6 +763,182 @@ export function parseGenericProductPage(
     ],
     error: cleanAttributes.length || cleanDocuments.length ? undefined : "No structured fallback data found."
   };
+}
+
+function extractPhoenixReaderImages(text: string, sourceUrl: string): DocumentRecord[] {
+  const marker = text.indexOf("Markdown Content:");
+  const body = marker >= 0 ? text.slice(marker + "Markdown Content:".length) : text;
+  const matches = [...body.matchAll(/!?(?:\[[^\]]*\])\((https:\/\/caas\.phoenixcontact\.com\/caas\/v1\/stable\/media\/[^)]+)\)/gi)];
+  const gallery = matches
+    .map((match) => match[1])
+    .filter((url): url is string => Boolean(url) && /\/full\/b1500(?:\?|$)/i.test(url));
+  const first = gallery[0];
+  return first ? [{ type: "image", label: "Product image", url: first, sourceUrl }] : [];
+}
+
+function extractPhoenixDimensionAttributes(text: string, sourceUrl: string): AttributeRecord[] {
+  const marker = text.indexOf("Markdown Content:");
+  const body = marker >= 0 ? text.slice(marker + "Markdown Content:".length) : text;
+  const start = body.search(/(?:^|\n)\s*Dimensions\s*(?:\n|$)/i);
+  if (start < 0) return [];
+  const section = body.slice(start, start + 900).split(/\n\s*\*\s*\*\s*\*\s*\n/)[0] ?? "";
+  const attributes: AttributeRecord[] = [];
+  for (const match of section.matchAll(/(?:^|\n)\s*(Width|Height|Depth|Length)\s+(\d+(?:[.,]\d+)?\s*mm(?:\s*\([^\n)]*\))?)/gi)) {
+    if (!match[1] || !match[2]) continue;
+    const measurement = match[2].match(/^\d+(?:[.,]\d+)?\s*mm/i)?.[0];
+    if (measurement) attributes.push({ group: "Product Dimensions", name: match[1], value: cleanText(measurement), sourceUrl });
+  }
+  const diameter = section.match(/(?:^|\n)\s*Diameter\s+(\d+(?:[.,]\d+)?\s*mm)\b/i)?.[1];
+  if (diameter) attributes.push({ group: "Product Dimensions", name: "Diameter", value: cleanText(diameter), sourceUrl, confidence: 0.98 });
+  // Phoenix HMI PDPs publish the assembled front-plate size as one row rather than three rows.
+  // Split only the explicit Width / Height / Depth row; installation cutout dimensions are a
+  // separate Width / Height / Installation depth row and must not become device dimensions.
+  for (const match of body.matchAll(/(?:^|\n)\s*Width\s*\/\s*Height\s*\/\s*Depth\s+(\d+(?:[.,]\d+)?)\s*mm\s*\/\s*(\d+(?:[.,]\d+)?)\s*mm\s*\/\s*(\d+(?:[.,]\d+)?)\s*mm\b[^\n]*/gi)) {
+    const [width, height, depth] = match.slice(1, 4);
+    if (!width || !height || !depth) continue;
+    for (const [name, value] of [["Width", width], ["Height", height], ["Depth", depth]] as const) {
+      attributes.push({ group: "Product Dimensions", name, value: `${value} mm`, sourceUrl, confidence: 0.98 });
+    }
+  }
+  return attributes;
+}
+
+function extractPhoenixSupplyVoltageAttributes(text: string, sourceUrl: string): AttributeRecord[] {
+  const marker = text.indexOf("Markdown Content:");
+  const body = marker >= 0 ? text.slice(marker + "Markdown Content:".length) : text;
+  const match = body.match(/(?:^|\n)\s*Power supply unit\s+(\d+(?:[.,]\d+)?\s*V\s*(?:AC|DC)(?:\s*[±+\-]\s*\d+(?:[.,]\d+)?\s*%)?)(?=\s*(?:\n|$))/i);
+  return match?.[1]
+    ? [{ group: "Electrical properties", name: "Supply voltage", value: cleanText(match[1]), sourceUrl, confidence: 0.96 }]
+    : [];
+}
+
+function extractPhoenixContextualElectricalAttributes(text: string, sourceUrl: string): AttributeRecord[] {
+  const marker = text.indexOf("Markdown Content:");
+  const body = marker >= 0 ? text.slice(marker + "Markdown Content:".length) : text;
+  const compactBody = body.replace(/\s+/g, " ");
+  const title = text.match(/^Title:\s*(.+)$/mi)?.[1] ?? "";
+  const attributes: AttributeRecord[] = [];
+  const add = (name: string, value: string) => attributes.push({
+    group: "Phoenix product electrical properties",
+    name,
+    value: cleanText(value),
+    sourceUrl,
+    confidence: 0.98
+  });
+  if (/\b(?:safety switch sensor|safety sensor)\b/i.test(title)) {
+    for (const [sourceLabel, outputLabel] of [
+      ["Voltage min", "Operating voltage min"], ["Current min", "Load current min"]
+    ] as const) {
+      const value = compactBody.match(new RegExp(`\\b${sourceLabel}\\s*[:.]?\\s*([+−-]?\\d+(?:[.,]\\d+)?\\s*(?:V\\s*DC|mA|A))\\b`, "i"))?.[1];
+      if (value) add(outputLabel, value);
+    }
+    for (const [sourceLabel, outputLabel, unit] of [
+      ["Voltage min", "Operating voltage max", "V\\s*DC"], ["Current min", "Load current max", "mA|A"]
+    ] as const) {
+      const start = compactBody.search(new RegExp(`\\b${sourceLabel}\\b`, "i"));
+      if (start < 0) continue;
+      const remainder = compactBody.slice(start).slice(0, 240);
+      const value = remainder.match(new RegExp(`\\bmax\\.?\\s*([+−-]?\\d+(?:[.,]\\d+)?\\s*(?:${unit}))\\b`, "i"))?.[1];
+      if (value) add(outputLabel, value);
+    }
+  }
+  if (/\b(?:battery module|battery)\b/i.test(title)) {
+    const outputLine = compactBody.match(/\bOutput current\b\s*\|?\s*max\.?\s*(\d+(?:[.,]\d+)?\s*A)(?:\s*\((Derating:[^)]+)\))?/i);
+    const maxOutput = outputLine?.[1];
+    const endOfCharge = body.match(/(?:^|\n)\s*End-of-charge voltage\s+(\d+(?:[.,]\d+)?\s*V\s*DC)\b/i)?.[1];
+    const batterySummary = compactBody.match(/Battery module[^\n]{0,220}/i)?.[0] ?? "";
+    const nominalVoltage = batterySummary.match(/(\d+(?:[.,]\d+)?\s*V\s*DC)\b/i)?.[1];
+    const nominalCapacity = body.match(/(?:^|\n)\s*Nominal capacity\s*\|?\s*(\d+(?:[.,]\d+)?\s*Wh)\b/i)?.[1] ??
+      batterySummary.match(/(\d+(?:[.,]\d+)?\s*Wh)\b/i)?.[1];
+    if (maxOutput) add("Maximum output current", maxOutput);
+    if (outputLine?.[2]) add("Output current derating", outputLine[2]);
+    if (endOfCharge) add("End-of-charge voltage", endOfCharge);
+    if (nominalVoltage) add("Battery nominal voltage", nominalVoltage);
+    if (nominalCapacity) add("Nominal capacity", nominalCapacity);
+  }
+  if (/\bhybrid motor starter\b/i.test(title)) {
+    const motorCurrent = body.match(/\bmotors?\s+up\s+to\s+(\d+(?:[.,]\d+)?\s*A)\b/i)?.[1];
+    const controlVoltage = body.match(/(?:^|\n)\s*Rated control circuit supply voltage[^\n]{0,60}?\b(\d+(?:[.,]\d+)?\s*V\s*DC)\b/i)?.[1];
+    const controlRange = body.match(/(?:^|\n)\s*Control supply voltage range\s+([^\n]+)/i)?.[1];
+    if (motorCurrent) add("Motor output current", motorCurrent);
+    if (controlVoltage) add("Control circuit supply voltage", controlVoltage);
+    if (controlRange) add("Control supply voltage range", controlRange);
+  }
+  return attributes;
+}
+
+function extractPhoenixSummaryAttributes(text: string, sourceUrl: string): AttributeRecord[] {
+  const marker = text.indexOf("Markdown Content:");
+  const body = marker >= 0 ? text.slice(marker + "Markdown Content:".length) : text;
+  const pageTitle = text.match(/^Title:\s*(.+)$/mi)?.[1]?.trim().replace(/\s+-\s+\d+\s*$/, "");
+  const titleIndex = pageTitle ? body.indexOf(pageTitle) : -1;
+  const productBody = titleIndex >= 0 ? body.slice(titleIndex) : body;
+  const detailsStart = productBody.search(/(?:^|\n)\s*>?\s*##\s*Product details\b/i);
+  const summary = (detailsStart >= 0 ? productBody.slice(0, detailsStart) : productBody).slice(0, 7000);
+  const attributes: AttributeRecord[] = [];
+  const protection = summary.match(/\b(IP\d{2}(?:[A-Z]{1,2})?)\s+degree of protection\b/i);
+  if (protection?.[1]) attributes.push({ group: "Product properties", name: "Degree of protection", value: protection[1].toUpperCase(), sourceUrl });
+  const color = summary.match(/\bcolor\s*:\s*((?:red|blue|green|yellow|black|white|gray|grey|orange|brown|violet|purple)(?:\s*\(RAL\s*\d{4}\))?)/i);
+  if (color?.[1]) attributes.push({ group: "Material specifications", name: "Color", value: cleanText(color[1]), sourceUrl });
+  for (const [name, expression] of [
+    ["Number of inputs", /\b(\d+)\s+(?:digital\s+)?inputs?\b/i],
+    ["Number of outputs", /\b(\d+)\s+(?:digital\s+)?outputs?\b/i]
+  ] as const) {
+    const match = summary.match(expression);
+    if (match?.[1]) attributes.push({ group: "Product properties", name, value: match[1], sourceUrl });
+  }
+  return attributes;
+}
+
+function extractPhoenixSurgeNominalDischargeCurrent(text: string, sourceUrl: string): AttributeRecord[] {
+  const marker = text.indexOf("Markdown Content:");
+  const body = marker >= 0 ? text.slice(marker + "Markdown Content:".length) : text;
+  const match = body.match(/\bNominal discharge current\b[^\n]{0,120}?(\d+(?:[.,]\d+)?\s*kA)\b/i);
+  return match?.[1]
+    ? [{ group: "Electrical properties", name: "Nominal discharge current", value: cleanText(match[1]), sourceUrl }]
+    : [];
+}
+
+function extractPhoenixSwitchCurrentConsumption(text: string, sourceUrl: string): AttributeRecord[] {
+  const marker = text.indexOf("Markdown Content:");
+  const body = marker >= 0 ? text.slice(marker + "Markdown Content:".length) : text;
+  const maximum = body.match(/\bMax\.?\s+current consumption\b[^\n]{0,100}?(\d+(?:[.,]\d+)?\s*mA)\s*\(\s*at\s*(\d+(?:[.,]\d+)?\s*V\s*DC)\s*\)/i);
+  return maximum?.[1] && maximum[2]
+    ? [{ group: "Electrical properties", name: "Maximum current consumption", value: `${cleanText(maximum[1])} (at ${cleanText(maximum[2])})`, sourceUrl }]
+    : [];
+}
+
+function phoenixProductDetailsPdf(title: string, catalogNumber: string, sourceUrl: string): DocumentRecord | undefined {
+  const segments = title.split(/\s+-\s+/).map(cleanText).filter(Boolean);
+  if (segments.length < 2 || !segments.some((segment) => compactCatalogNumber(segment) === compactCatalogNumber(catalogNumber))) return undefined;
+  const model = segments[0];
+  const productKind = segments[1].toLowerCase();
+  const typeSlug = /\bsurge protection device\b|\bsurge protective device\b/.test(productKind)
+    ? "surge-protection-device"
+    : /\bindustrial ethernet switch\b/.test(productKind)
+      ? "switch"
+      : productKind.replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  // Phoenix's product-details PDF uses an official per-item URL. Slash separators are omitted
+  // for electrical order-code segments, except surge modules where they separate pole/voltage
+  // groups (and the + in 4+0 is part of that group's compact model code).
+  const compactModel = model.includes("+")
+    ? model.replace(/\+/g, "").replace(/\//g, "-")
+    : model.replace(/\//g, "");
+  const modelSlug = compactModel.toLowerCase().replace(/[^a-z0-9-]+/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
+  if (!typeSlug || !modelSlug) return undefined;
+  const slug = `${typeSlug}-${modelSlug}-${catalogNumber}`;
+  return {
+    type: "datasheet",
+    label: "Product details (PDF)",
+    url: `https://www.phoenixcontact.com/en-us/products/${slug}?type=pdf`,
+    sourceUrl
+  };
+}
+
+function isPhoenixNavigationOrDrawingDocument(document: DocumentRecord): boolean {
+  const url = document.url.toLowerCase();
+  if (/\/caas\/v1\/stable\/media\//i.test(url) && document.type !== "image") return true;
+  return /\/en-us\/(?:service-and-support\/catalogs-and-brochures|industries\/electrical-installations-and-electronics)(?:[/?#]|$)/i.test(url);
 }
 
 /** Headings that belong to the page furniture rather than to the product. */
@@ -1955,7 +2152,7 @@ function translatedNameBefore(text: string, index: number): string | undefined {
 function isUsefulEmbeddedProperty(name: string, value: string): boolean {
   if (!value || value.length > 500) return false;
   if (/^\s*(?:-|n\/?a|not available|none|without|ohne)\s*$/i.test(value)) return false;
-  return isUsefulDynamicKey(name) || /\b(?:standard|cert|approval|voltage|current|material|dimension|weight|protection|ip|connection|coding|actuator|temperature|ambient|storage|torque|frequency|pressure|flow)\b/i.test(name);
+  return isUsefulDynamicKey(name) || /\b(?:standard|cert|approval|voltage|current|material|dimension|weight|protection|ip|connection|coding|actuator|temperature|ambient|storage|torque|frequency|pressure|flow|contacts?|beams?|detection|resolution|response|reaction|positions?|interlocks?|safety|switching|normally\s+(?:closed|open))\b/i.test(name);
 }
 
 function extractNamedJsonArrays(rawText: string, key: string): unknown[] {
@@ -2216,7 +2413,7 @@ function extractProductSectionAttributes($: cheerio.CheerioAPI, sourceUrl: strin
       }
       return;
     }
-    if (/^features$/i.test(heading)) {
+    if (/^(?:product\s+)?features$/i.test(heading)) {
       for (const value of sectionListValues($, element)) {
         attributes.push({ group: "Features", name: "Feature", value, sourceUrl });
       }

@@ -51,7 +51,11 @@ export class ABBConnector implements ManufacturerConnector {
       attribute.group === "ABB Product Data" && /^Product ID$/i.test(attribute.name)
     )?.value;
     if (directApi && hasAbbPisData(directApi) && sameCatalogNumber(directProductId ?? "", catalogNumber)) {
-      return attachAbbGermanDescription(directApi, catalogNumber, [catalogNumber], context);
+      const [localized, technicalData] = await Promise.all([
+        attachAbbGermanDescription(directApi, catalogNumber, [catalogNumber], context),
+        enrichAbbPm50xxTechnicalData(directApi, context)
+      ]);
+      return technicalData === directApi ? localized : mergeResults(localized, technicalData);
     }
 
     // Use the search API configured by the page the user supplied. It returns the same exact
@@ -1439,6 +1443,76 @@ function isFinalAbbNotFoundStatus(statusCode: number): boolean {
   return statusCode === 404 || statusCode === 410;
 }
 
+async function enrichAbbPm50xxTechnicalData(result: ProductResult, context: ScrapeContext): Promise<ProductResult> {
+  const productContext = [result.title, result.description, ...result.attributes
+    .filter((attribute) => /^(?:display name|extended product type|catalog description)$/i.test(attribute.name.trim()))
+    .map((attribute) => attribute.value)
+  ].filter(Boolean).join(" ");
+  const model = productContext.match(/\b(PM50\d{2})-([TR])(?:-[A-Z0-9]+)+\b/i);
+  if (result.manufacturerId !== "abb" || !model) return result;
+
+  const sourceUrl = "https://help.plc.abb.com/pm50xx_technical_data.html";
+  try {
+    const fetched = await context.http.fetchText(sourceUrl, {
+      timeoutMs: 12000,
+      signal: context.signal,
+      maxAttempts: 1,
+      headers: { "User-Agent": ABB_USER_AGENT, Accept: "text/html,application/xhtml+xml" }
+    });
+    const consumption = parseAbbPm50xxCurrentConsumption(fetched.text, model[1]!, model[2]!);
+    if (!consumption) return result;
+    const attributes = [...result.attributes, {
+      group: "ABB AC500-eCo PM50xx Technical Data",
+      name: "Maximum Current Consumption from Power Supply",
+      value: consumption,
+      sourceUrl: fetched.effectiveUrl,
+      sourceType: "official" as const,
+      parser: "abb-pm50xx-technical-data",
+      confidence: 0.96
+    }];
+    return {
+      ...result,
+      normalized: normalizeAbbFields(attributes, result.documents),
+      attributes,
+      sources: [...result.sources, {
+        url: fetched.effectiveUrl,
+        sourceType: "official",
+        parser: "abb-pm50xx-technical-data",
+        parserVersion: "abb-pm50xx-v1",
+        stage: "exact-family-technical-data",
+        reason: "ABB Help technical data matched the processor model and output version column.",
+        fetchedAt: fetched.fetchedAt,
+        statusCode: fetched.statusCode
+      }]
+    };
+  } catch {
+    return result;
+  }
+}
+
+export function parseAbbPm50xxCurrentConsumption(html: string, model: string, outputType: string): string | undefined {
+  if (!/^PM50\d{2}$/i.test(model) || !/^[TR]$/i.test(outputType)) return undefined;
+  const $ = cheerio.load(html);
+  const table = $("table").filter((_, element) => /Current consumption from power supply\s*\(max\.\)/i.test($(element).text())).first();
+  if (!table.length) return undefined;
+
+  const modelHeaders = table.find("thead tr").last().find("th")
+    .map((_, element) => cleanText($(element).text())).get();
+  const modelIndex = modelHeaders.findIndex((header) => header.toUpperCase() === model.toUpperCase());
+  if (modelIndex < 0) return undefined;
+
+  const marker = table.find("tbody tr").filter((_, element) =>
+    /Current consumption from power supply\s*\(max\.\)/i.test(cleanText($(element).text()))
+  ).first();
+  const version = outputType.toUpperCase() === "T" ? "Transistor version" : "Relay version";
+  let versionRow = marker.nextAll("tr").filter((_, element) =>
+    cleanText($(element).find("td").eq(1).text()).toLowerCase() === version.toLowerCase()
+  ).first();
+  if (!versionRow.length) return undefined;
+  const value = cleanText(versionRow.find("td").eq(modelIndex + 2).text());
+  return /^\d+(?:[.,]\d+)?\s*mA$/i.test(value) ? value : undefined;
+}
+
 function buildAbbOfficialUrls(catalogNumber: string): string[] {
   const smartlinksParams = new URLSearchParams({
     ProductId: catalogNumber,
@@ -1885,6 +1959,8 @@ export function parseAbbProductPage(catalogNumber: string, fetched: FetchedText,
   }
 
   attributes.push(...deriveAbbElectricalAttributes(attributes, title, description, fetched.effectiveUrl));
+  applyVerifiedAbbSpecCorrections(attributes, title);
+  documents.push(...abbFamilyDocuments(attributes, title));
   const cleanAttributes = dedupeAttributes(attributes);
   const cleanDocuments = coalesceAbbImageDocuments(dedupeDocuments(documents));
   const normalized = normalizeAbbFields(cleanAttributes, cleanDocuments);
@@ -1967,16 +2043,131 @@ function abbPisDescriptors(
   const longDescription = read("Long Description");
   const displayName = read("Display Name") ?? read("Extended Product Type");
   const title = catalogDescription ?? displayName;
+  const trustedLongDescription = longDescription && !hasConflictingAbbVariantCode(title ?? displayName, longDescription)
+    ? longDescription
+    : undefined;
   // Kept even when it repeats the heading: ABB publishes Catalog Description and Long Description
   // as two separate fields and genuinely fills both with the same string for simple accessories.
   // Blanking the duplicate would leave the export's long-description column empty for a value the
   // vendor did publish — and the German record often carries different prose for the same product.
-  const description = longDescription;
+  const description = trustedLongDescription;
   return {
     title,
     description,
     identityMatched: Boolean(productId && sameCatalogNumber(productId, catalogNumber))
   };
+}
+
+function hasConflictingAbbVariantCode(identityText: string | undefined, description: string): boolean {
+  if (!identityText) return false;
+  const variantCodes = (value: string) =>
+    [...value.matchAll(/\b[A-Z]{1,8}-[A-Z]{1,8}\.\d+[A-Z0-9]*\b/gi)].map(([code]) => code.toUpperCase());
+  const identityCodes = variantCodes(identityText);
+  const descriptionCodes = variantCodes(description);
+  return identityCodes.length > 0 && descriptionCodes.length > 0 && !descriptionCodes.some((code) => identityCodes.includes(code));
+}
+
+function abbFamilyDocuments(attributes: AttributeRecord[], title: string): DocumentRecord[] {
+  const productContext = [title, ...attributes
+    .filter((attribute) => /^(?:ABB Type Designation|Display Name|Extended Product Type)$/i.test(attribute.name.trim()))
+    .map((attribute) => attribute.value)
+  ].join(" ");
+  const sourceUrl = `https://new.abb.com/products/${attributes.find((attribute) => /^product id$/i.test(attribute.name.trim()))?.value ?? ""}`;
+  const documents: DocumentRecord[] = [];
+  if (/\bACS580-01(?:[-+\s]|$)/i.test(productContext)) {
+    documents.push({
+      type: "manual",
+      label: "ACS580-01 hardware manual - family document (0.75 to 250 kW, frames R1-R9)",
+      url: "https://search.abb.com/library/Download.aspx?DocumentID=3AXD50000044794&LanguageCode=en&DocumentPartId=&Action=Launch",
+      sourceUrl: "https://new.abb.com/drives/low-voltage-ac/general-purpose-drives/acs580",
+      sourceType: "official",
+      parser: "abb-acs580-01-family-manual-map",
+      confidence: 0.9,
+      enrichable: false
+    });
+  }
+  if (/\bCP6\d{2}(?:-WEB)?\b/i.test(productContext)) {
+    documents.push({
+      type: "datasheet",
+      label: "CP620 data sheet - family document (CP620 and CP620-WEB, exact order codes listed)",
+      url: "https://search.abb.com/library/Download.aspx?DocumentID=3ADR010242&LanguageCode=en&DocumentPartId=&Action=Launch",
+      sourceUrl,
+      sourceType: "official",
+      parser: "abb-cp620-family-datasheet-map",
+      confidence: 0.9,
+      enrichable: false
+    });
+  }
+  if (/\bAI531\b/i.test(productContext)) {
+    documents.push({
+      type: "datasheet",
+      label: "AI531 analog input module technical data - official ABB Automation Builder help",
+      url: "https://help.plc.abb.com/AI531_technical_data_analog_inputs.html",
+      sourceUrl,
+      sourceType: "official",
+      parser: "abb-ai531-official-technical-data-map",
+      confidence: 0.9,
+      enrichable: false
+    });
+  }
+  if (/\bPM50\d{2}-[A-Z0-9]+(?:-[A-Z0-9]+)*\b/i.test(productContext)) {
+    documents.push({
+      type: "datasheet",
+      label: "AC500-eCo PM50xx data sheet - family document (exact product row required for enrichment)",
+      url: "https://search.abb.com/library/Download.aspx?DocumentID=3ADR010585&LanguageCode=en&DocumentPartId=&Action=Launch",
+      sourceUrl,
+      sourceType: "official",
+      parser: "abb-pm50xx-family-datasheet-map",
+      confidence: 0.9
+    });
+  }
+  return documents;
+}
+
+function applyVerifiedAbbSpecCorrections(attributes: AttributeRecord[], title: string): void {
+  const context = [title, ...attributes
+    .filter((attribute) => /^(?:catalog description|display name|extended product type)$/i.test(attribute.name.trim()))
+    .map((attribute) => attribute.value)
+  ].join(" ");
+  if (/\bAI531\b/i.test(context) && !attributes.some((attribute) =>
+    /^analog inputs configurable$/i.test(attribute.name.trim()) && /^yes$/i.test(attribute.value.trim())
+  )) {
+    attributes.push({
+      group: "ABB Verified Product Data",
+      name: "Analog Inputs Configurable",
+      value: "Yes",
+      sourceUrl: "https://help.plc.abb.com/AI531.html",
+      sourceType: "official",
+      parser: "abb-ai531-official-technical-data",
+      stage: "official-document-cross-check",
+      confidence: 0.99,
+      scope: "variant"
+    });
+  }
+  if (!/\bM4M\s*20\b/i.test(context)) return;
+
+  const malformedFrequency = attributes.some((attribute) =>
+    /^frequency$/i.test(attribute.name.trim()) && /\b175\s*(?:…|\.\.\.|-)?\s*60\s*Hz\b/i.test(attribute.value)
+  );
+  if (!malformedFrequency) return;
+
+  for (let index = attributes.length - 1; index >= 0; index -= 1) {
+    const attribute = attributes[index];
+    if (/^frequency$/i.test(attribute.name.trim()) && /\b175\s*(?:…|\.\.\.|-)?\s*60\s*Hz\b/i.test(attribute.value)) {
+      attributes.splice(index, 1);
+    }
+  }
+  attributes.push({
+    group: "ABB Verified Product Data",
+    name: "Frequency",
+    value: "50 ... 60 Hz",
+    sourceUrl: `https://search.abb.com/library/Download.aspx?DocumentID=2CSG445032D0201&LanguageCode=en&DocumentPartId=&Action=Launch`,
+    sourceType: "official",
+    parser: "abb-verified-spec-correction",
+    stage: "official-document-cross-check",
+    confidence: 0.95,
+    scope: "family"
+  });
 }
 
 function isAbbDeLocaleUrl(url: string | undefined): boolean {

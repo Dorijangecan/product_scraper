@@ -1,5 +1,5 @@
 import { sameUrlIgnoringHash as sameUrl } from "../url-util.js";
-import { uniqueStrings as uniqueStringsBase } from "../text-util.js";
+import { cleanText, uniqueStrings as uniqueStringsBase } from "../text-util.js";
 import crypto from "node:crypto";
 import fs from "node:fs/promises";
 import path from "node:path";
@@ -8,13 +8,26 @@ import type { DocumentRecord, FallbackSourceConfig, ProductResult } from "../../
 import type { ManufacturerConnector, ScrapeContext } from "./types.js";
 import { dedupeDocuments } from "./dedupe.js";
 import { scrapeDiscoveredFallback, withDiscoveryFallbackDiagnostics } from "./discovery-fallback.js";
-import { emptyResult } from "./normalizer.js";
+import { emptyResult, normalizeFields } from "./normalizer.js";
+import { parseGenericProductPage } from "./generic.js";
 
 const SCHMERSAL_BASE_URL = "https://products.schmersal.com";
+const SCHMERSAL_PAGE_HTML_BY_CATALOG = new Map<string, string>();
 // The numeric article lookup for this BNS product repeatedly falls through the public search
 // crawler and can consume the whole fixture timeout. This is the exact official PDP discovered
 // during the cold audit; keep it bounded and scoped to the reproduced article.
 const SCHMERSAL_DETERMINISTIC_DETAIL_URLS: Record<string, string> = {
+  "101160101": `${SCHMERSAL_BASE_URL}/en_US/tq-441-0101y-ue-m20-101160101`,
+  "103039599": `${SCHMERSAL_BASE_URL}/en_IO/slc440-er-1930-14-h1-103039599`,
+  "103005740": `${SCHMERSAL_BASE_URL}/en_IO/tesk-sa-11l1-3m-103005740`,
+  "131058472": `${SCHMERSAL_BASE_URL}/en_US/mv8h-015-11y-131058472`,
+  "103040526": `${SCHMERSAL_BASE_URL}/en_IO/bdf200-lt-11-lt-sws20-lt-2875-103040526`,
+  "103003590": `${SCHMERSAL_BASE_URL}/en_US/azm400z-st-1p2p-103003590`,
+  "103014764": `${SCHMERSAL_BASE_URL}/en_IO/rss260-i2-lstm12-4-0-25m-as-103014764`,
+  "101163475": `${SCHMERSAL_BASE_URL}/en_US/srb301lc-24v-101163475`,
+  "103015124": `${SCHMERSAL_BASE_URL}/en_US/ps315-t12-h300-103015124`,
+  "101021009": `${SCHMERSAL_BASE_URL}/en_GB/edrr40rt-101021009`,
+  "103008214": `${SCHMERSAL_BASE_URL}/es_BR/edrr40rt2x303gb-103008214`,
   "103016227": `${SCHMERSAL_BASE_URL}/en_US/slc240com-er-0330-14-103016227`,
   "103016228": `${SCHMERSAL_BASE_URL}/en_US/slc240com-er-0410-14-103016228`,
   "103013529": `${SCHMERSAL_BASE_URL}/en_US/slb240-er-1-lst-103013529`,
@@ -27,6 +40,11 @@ const SCHMERSAL_DETERMINISTIC_DETAIL_URLS: Record<string, string> = {
   "101186153": `${SCHMERSAL_BASE_URL}/en_US/bns-260-as-r-101186153`,
   "103058498": `${SCHMERSAL_BASE_URL}/en_US/rss260-d-3-0m-103058498`,
   "103040372": `${SCHMERSAL_BASE_URL}/en_US/rss260-d-q-st-103040372`,
+  "103013911": `${SCHMERSAL_BASE_URL}/en_IO/azm201b-sk-t-1p2pw-a-103013911`,
+  "101217290": `${SCHMERSAL_BASE_URL}/en_US/rss-36-sd-r-st-101217290`,
+  "151181586": `${SCHMERSAL_BASE_URL}/en_US/t2fh-232-2020-151181586`,
+  "101193576": `${SCHMERSAL_BASE_URL}/en_US/rdrz45rt-101193576`,
+  "103007221": `${SCHMERSAL_BASE_URL}/en_US/srb-e-402st-103007221`,
   "103001413": `${SCHMERSAL_BASE_URL}/en_US/azm300b-i1-st-1p2p-103001413`,
   "103001425": `${SCHMERSAL_BASE_URL}/en_US/azm300b-i1-st-1p2p-a-103001425`,
   "103001415": `${SCHMERSAL_BASE_URL}/en_US/azm300b-i2-st-1p2p-103001415`,
@@ -60,6 +78,7 @@ const SCHMERSAL_TARGET_LOCALES = [
   { locale: "de-DE", label: "German", code: "SDE" },
   { locale: "en-US", label: "English", code: "SEN" }
 ] as const;
+const SCHMERSAL_DATASHEET_LOCALES = [SCHMERSAL_TARGET_LOCALES[1]];
 
 type SchmersalLocale = (typeof SCHMERSAL_TARGET_LOCALES)[number];
 
@@ -91,15 +110,52 @@ export class SchmersalConnector implements ManufacturerConnector {
   readonly id = "schmersal";
 
   async scrape(catalogNumber: string, context: ScrapeContext): Promise<ProductResult> {
+    const scrapeStartedAt = performance.now();
     const deterministicUrl = SCHMERSAL_DETERMINISTIC_DETAIL_URLS[catalogNumber.trim()];
-    let baseResult = deterministicUrl
-      ? await context.fallback.scrape(catalogNumber, [schmersalDetailSource(deterministicUrl)])
-      : await context.fallback.scrape(catalogNumber, schmersalSources(context));
+    let baseResult: ProductResult | undefined;
+    let deterministicHtml: string | undefined;
+    if (deterministicUrl) {
+      try {
+        const fetched = await context.http.fetchText(deterministicUrl, {
+          timeoutMs: 15000,
+          cacheTtlMs: context.manufacturer.fetchPolicy?.cacheTtlMs,
+          signal: context.signal
+        });
+        debugSchmersalTiming(catalogNumber, "exactPdpFetch", performance.now() - scrapeStartedAt);
+        deterministicHtml = fetched.text;
+        SCHMERSAL_PAGE_HTML_BY_CATALOG.set(catalogNumber.trim(), deterministicHtml);
+        const exactPath = new URL(deterministicUrl).pathname.match(/-(\d{6,})(?:\.html)?\/?$/i)?.[1] === catalogNumber.trim();
+        const heading = cleanText(fetched.text.match(/<h1\b[^>]*>([\s\S]*?)<\/h1>/i)?.[1]?.replace(/<[^>]+>/g, " "));
+        if (exactPath && heading && fetched.text.includes(catalogNumber.trim())) {
+          baseResult = parseGenericProductPage(this.id, catalogNumber, fetched, "official-fallback", "Schmersal product page");
+          baseResult = { ...baseResult, title: heading, productUrl: deterministicUrl };
+        }
+      } catch {
+        // Fall through to the established exact-source fallback below.
+      }
+    }
+    if (!baseResult) {
+      baseResult = deterministicUrl
+        ? await context.fallback.scrape(catalogNumber, [schmersalDetailSource(deterministicUrl)])
+        : await context.fallback.scrape(catalogNumber, schmersalSources(context));
+    }
     // A confirmed deterministic PDP result must not be sent through broad numeric
     // search rescue: that path can replace a valid localized product with a failed
     // search page and then trigger the expensive deterministic pipeline again.
-    if (deterministicUrl && baseResult && baseResult.status !== "failed") {
-      return repairSchmersalDimensions(reinforceDeterministicIdentity(baseResult, catalogNumber, deterministicUrl), catalogNumber);
+    if (deterministicUrl && baseResult && (baseResult.status !== "failed" || baseResult.attributes.length > 0)) {
+      const identityResult = reinforceDeterministicIdentity({
+        ...baseResult,
+        status: baseResult.status === "failed" ? "partial" : baseResult.status,
+        productUrl: deterministicUrl
+      }, catalogNumber, deterministicUrl);
+      const exactResult = repairSchmersalDimensions(identityResult, catalogNumber);
+      const exactImage = deterministicHtml
+        ? extractSchmersalExactProductImage(exactResult, deterministicUrl, deterministicHtml)
+        : await fetchSchmersalExactProductImage(exactResult, deterministicUrl, context);
+      debugSchmersalTiming(catalogNumber, "exactImageSelection", performance.now() - scrapeStartedAt);
+      const exactDocuments = exactImage ? [exactImage] : schmersalExactProductImageDocuments(exactResult);
+      debugSchmersalTiming(catalogNumber, "connectorTotal", performance.now() - scrapeStartedAt);
+      return withSchmersalDocuments(exactResult, exactDocuments);
     }
     baseResult = await rescueSchmersalResultFromSearch(catalogNumber, context, baseResult);
     // Numeric article PDPs can be complete enough after the bounded direct scrape, while the
@@ -119,7 +175,7 @@ export class SchmersalConnector implements ManufacturerConnector {
     }
 
     if (context.imageOnly || context.downloadDocuments === false) {
-      return withSchmersalDocuments(baseResult, baseResult.documents.filter((doc) => doc.type === "image"));
+      return withSchmersalDocuments(baseResult, schmersalExactProductImageDocuments(baseResult));
     }
 
     let page = await fetchBestSchmersalPage(baseResult, catalogNumber, context);
@@ -142,8 +198,48 @@ export class SchmersalConnector implements ManufacturerConnector {
 
     return withSchmersalDocuments(baseResult, [
       ...targetedDocs,
-      ...baseResult.documents.filter((doc) => doc.type === "image")
+      ...schmersalExactProductImageDocuments(baseResult)
     ]);
+  }
+
+  async enrichDocuments(catalogNumber: string, result: ProductResult, context: ScrapeContext): Promise<ProductResult> {
+    const key = catalogNumber.trim();
+    const cachedHtml = SCHMERSAL_PAGE_HTML_BY_CATALOG.get(key);
+    SCHMERSAL_PAGE_HTML_BY_CATALOG.delete(key);
+    if (process.env.DEBUG_SCHMERSAL_TIMING) console.log(`[schmersal:timing] ${key} documentHook save=${context.saveDocuments} download=${context.downloadDocuments} imageOnly=${context.imageOnly} cached=${Boolean(cachedHtml)}`);
+    if (context.saveDocuments === false || context.downloadDocuments === false || context.imageOnly) return result;
+    const productUrl = SCHMERSAL_DETERMINISTIC_DETAIL_URLS[catalogNumber.trim()] ?? result.productUrl;
+    if (!isOfficialSchmersalDetailUrl(productUrl)) {
+      if (process.env.DEBUG_SCHMERSAL_TIMING) console.log(`[schmersal:timing] ${key} documentUrl=invalid url=${productUrl}`);
+      return result;
+    }
+    try {
+      const html = cachedHtml ?? (await context.http.fetchText(productUrl, {
+        timeoutMs: 10000,
+        cacheTtlMs: context.manufacturer.fetchPolicy?.cacheTtlMs,
+        signal: context.signal
+      })).text;
+      const pageData = extractSchmersalPageData(html);
+      if (!pageData) {
+        if (process.env.DEBUG_SCHMERSAL_TIMING) console.log(`[schmersal:timing] ${key} documentPageData=missing html=${html.length} cached=${Boolean(cachedHtml)}`);
+        return result;
+      }
+      if (process.env.DEBUG_SCHMERSAL_TIMING) console.log(`[schmersal:timing] ${key} documentPageData=ready groups=${pageData.dataTabGroups.length} cached=${Boolean(cachedHtml)}`);
+      const [datasheets, manuals] = await Promise.all([
+        generateSchmersalDatasheets(pageData, catalogNumber, context),
+        fetchSchmersalManualDocuments(pageData.productId, context)
+      ]);
+      if (process.env.DEBUG_SCHMERSAL_TIMING) console.log(`[schmersal:timing] ${key} generatedDatasheets=${datasheets.length} ${datasheets.map((doc) => doc.downloadStatus ?? "unknown").join(",")}`);
+      return withSchmersalDocuments(result, [...result.documents, ...datasheets, ...manuals]);
+    } catch (error) {
+      return {
+        ...result,
+        diagnostics: {
+          ...result.diagnostics,
+          notes: [...(result.diagnostics?.notes ?? []), `Schmersal datasheet enrichment failed: ${error instanceof Error ? error.message : "unknown error"}`]
+        }
+      };
+    }
   }
 }
 
@@ -388,14 +484,14 @@ async function generateSchmersalDatasheets(
   catalogNumber: string,
   context: ScrapeContext
 ): Promise<DocumentRecord[]> {
-  return Promise.all(SCHMERSAL_TARGET_LOCALES.map(async (locale): Promise<DocumentRecord> => {
+  return Promise.all(SCHMERSAL_DATASHEET_LOCALES.map(async (locale): Promise<DocumentRecord> => {
     try {
       const pdf = await postSchmersalDatasheet(page, locale.locale, context.signal);
       const localPath = await writeSchmersalDatasheet(context.documentsDir, catalogNumber, locale, pdf.buffer, pdf.fileName);
       return {
         type: "datasheet",
         label: `Data sheet - ${locale.label}`,
-        url: `${SCHMERSAL_BASE_URL}/api/datasheet/generate#${locale.locale}`,
+        url: `${SCHMERSAL_BASE_URL}/api/datasheet/generate#${locale.locale}-${catalogNumber}`,
         localPath,
         downloadStatus: "downloaded",
         sourceUrl: `${SCHMERSAL_BASE_URL}/api/datasheet/generate`,
@@ -408,7 +504,7 @@ async function generateSchmersalDatasheets(
       return {
         type: "datasheet",
         label: `Data sheet - ${locale.label}`,
-        url: `${SCHMERSAL_BASE_URL}/api/datasheet/generate#${locale.locale}`,
+        url: `${SCHMERSAL_BASE_URL}/api/datasheet/generate#${locale.locale}-${catalogNumber}`,
         downloadStatus: "failed",
         downloadError: error instanceof Error ? error.message : "Schmersal datasheet generation failed",
         parser: "schmersal-datasheet-generator",
@@ -425,7 +521,9 @@ async function postSchmersalDatasheet(
   locale: string,
   signal?: AbortSignal
 ): Promise<{ buffer: Buffer; fileName?: string }> {
+  const challengeStartedAt = performance.now();
   const altchaPayload = await solveSchmersalAltcha(signal);
+  debugSchmersalTiming(page.productId, "datasheetChallenge", performance.now() - challengeStartedAt);
   const body = {
     productId: page.productId,
     locale,
@@ -455,10 +553,17 @@ async function postSchmersalDatasheet(
   if (!buffer.subarray(0, 5).equals(Buffer.from("%PDF-"))) {
     throw new Error("Schmersal datasheet response was not a PDF");
   }
+  debugSchmersalTiming(page.productId, "datasheetPostAndBuffer", performance.now() - challengeStartedAt);
   return {
     buffer,
     fileName: contentDispositionFileName(response.headers.get("content-disposition") ?? undefined)
   };
+}
+
+function debugSchmersalTiming(subject: string, stage: string, elapsedMs: number): void {
+  if (process.env.DEBUG_SCHMERSAL_TIMING) {
+    console.log(`[schmersal:timing] ${subject} ${stage}=${Math.round(elapsedMs)}ms`);
+  }
 }
 
 async function solveSchmersalAltcha(signal?: AbortSignal): Promise<string> {
@@ -508,15 +613,86 @@ async function writeSchmersalDatasheet(
 }
 
 function withSchmersalDocuments(result: ProductResult, documents: DocumentRecord[]): ProductResult {
+  const dedupedDocuments = dedupeDocuments(documents);
   return {
     ...result,
-    documents: dedupeDocuments(documents)
+    documents: dedupedDocuments,
+    normalized: result.manufacturerId === "schmersal"
+      ? normalizeFields(result.attributes, dedupedDocuments, "schmersal")
+      : result.normalized
   };
+}
+
+/** The catalog PDP embeds many related-family photos; retain only its primary item photo. */
+function schmersalExactProductImageDocuments(result: ProductResult): DocumentRecord[] {
+  const productUrl = result.productUrl;
+  if (!isOfficialSchmersalDetailUrl(productUrl)) return [];
+  const primary = result.documents.find((document) =>
+    document.type === "image" &&
+    /^primary product image$/i.test(document.label?.trim() ?? "") &&
+    document.sourceUrl !== undefined &&
+    sameUrl(document.sourceUrl, productUrl)
+  );
+  return primary ? [primary] : [];
+}
+
+async function fetchSchmersalExactProductImage(
+  result: ProductResult,
+  productUrl: string,
+  context: ScrapeContext
+): Promise<DocumentRecord | undefined> {
+  try {
+    const fetched = await context.http.fetchText(productUrl, {
+      timeoutMs: 10000,
+      cacheTtlMs: context.manufacturer.fetchPolicy?.cacheTtlMs,
+      signal: context.signal
+    });
+    return extractSchmersalExactProductImage(result, productUrl, fetched.text);
+  } catch {
+    // Keep image unavailable when the exact PDP does not expose a matching primary photo.
+  }
+  return undefined;
+}
+
+function extractSchmersalExactProductImage(
+  result: ProductResult,
+  productUrl: string,
+  rawHtml: string
+): DocumentRecord | undefined {
+  const html = rawHtml.replace(/&amp;/g, "&");
+  const heading = cleanText(html.match(/<h1\b[^>]*>([\s\S]*?)<\/h1>/i)?.[1]?.replace(/<[^>]+>/g, " "));
+  if (!heading || !cleanText(result.title).toLowerCase().includes(heading.toLowerCase())) return undefined;
+  for (const match of html.matchAll(/<img\b([^>]*)>/gi)) {
+    const tag = match[1] ?? "";
+    const alt = cleanText(tag.match(/\balt=["']([^"']*)["']/i)?.[1]);
+    if (!alt || alt.toLowerCase() !== heading.toLowerCase()) continue;
+    const rawImageUrl = tag.match(/\bsrc=["']([^"']+)["']/i)?.[1] ??
+      tag.match(/\bsrcset=["']([^"']+)["']/i)?.[1]?.split(",")[0]?.trim().split(/\s+/)[0];
+    if (!rawImageUrl) continue;
+    const imageUrl = new URL(rawImageUrl, productUrl).toString();
+    if (!/schmersal-prod-media|\/media\//i.test(imageUrl)) continue;
+    return {
+      type: "image",
+      label: "Primary product image",
+      url: imageUrl,
+      sourceUrl: productUrl,
+      sourceType: "official-fallback",
+      parser: "Schmersal exact PDP image",
+      stage: "schmersal-exact-image",
+      confidence: 0.95
+    };
+  }
+  return undefined;
 }
 
 export function extractSchmersalPageData(rawHtml: string): SchmersalPageData | undefined {
   const html = unescapeNextPayload(rawHtml);
+  const dataTabGroupsIndex = html.indexOf('"dataTabGroups":');
+  const productIdFromPageComponent = [...html.matchAll(/"productId":"([^"]+)"/gi)]
+    .filter((match) => dataTabGroupsIndex >= 0 && (match.index ?? -1) < dataTabGroupsIndex)
+    .at(-1)?.[1];
   const productId =
+    productIdFromPageComponent ??
     html.match(/"product":\{[\s\S]{0,3000}?"id":"([^"]+)"/)?.[1] ??
     html.match(/"product":\{"id":"([^"]+)"/)?.[1] ??
     html.match(/"productId":"([^"]+)"/i)?.[1] ??
@@ -582,7 +758,20 @@ function extractJsonValueAfter(text: string, marker: string): string | undefined
 }
 
 function unescapeNextPayload(value: string): string {
-  return value
+  const decodedPayloads: string[] = [];
+  for (const match of value.matchAll(/self\.__next_f\.push\(/g)) {
+    const payloadJson = extractJsonValueAfter(value.slice(match.index), "push(");
+    if (!payloadJson) continue;
+    try {
+      const payload = JSON.parse(payloadJson) as unknown;
+      if (Array.isArray(payload) && typeof payload[1] === "string") decodedPayloads.push(payload[1]);
+    } catch {
+      // Fall back to the existing escaped-text recovery below.
+    }
+  }
+  if (decodedPayloads.length > 0) return decodedPayloads.join("\n");
+  const source = value;
+  return source
     .replace(/\\"/g, '"')
     .replace(/\\u0026/g, "&")
     .replace(/\\u003c/g, "<")
@@ -632,7 +821,7 @@ function isOfficialSchmersalDetailUrl(url: string | undefined): boolean {
     return (
       parsed.hostname.toLowerCase() === "products.schmersal.com" &&
       !/\/search(?:\/|$)/i.test(parsed.pathname) &&
-      /\/(?:de_DE|en_US|en_GB)\/[^/?#]+-\d{6,}(?:[/?#]|$)/i.test(parsed.pathname)
+      /\/(?:de_DE|en_US|en_GB|en_IO|es_BR)\/[^/?#]+-\d{6,}(?:[/?#]|$)/i.test(parsed.pathname)
     );
   } catch {
     return false;

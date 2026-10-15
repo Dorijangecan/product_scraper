@@ -1,0 +1,52 @@
+[
+  {
+    "manufacturerId": "siemens",
+    "catalogNumber": "3RT2016-1BB41",
+    "caseType": "electrical",
+    "expectedDeviceType": "Contactor",
+    "riskTags": ["cold", "sirius", "power-contactor", "ac3-current", "dc-coil"],
+    "expectedOfficialUrlPatterns": ["mall\\.industry\\.siemens\\.com"],
+    "expectedNormalizedFields": ["voltage", "current"],
+    "requiredDocuments": ["datasheet"]
+  },
+  {
+    "manufacturerId": "siemens",
+    "catalogNumber": "3RB3016-1PE0",
+    "caseType": "electrical",
+    "expectedDeviceType": "Overload Relay",
+    "riskTags": ["cold", "sirius", "electronic-overload-relay", "1-4a-range"],
+    "expectedOfficialUrlPatterns": ["mall\\.industry\\.siemens\\.com"],
+    "expectedNormalizedFields": ["current"],
+    "requiredDocuments": ["datasheet"]
+  },
+  {
+    "manufacturerId": "siemens",
+    "catalogNumber": "3UG5512-1AR20",
+    "caseType": "electrical",
+    "expectedDeviceType": "Relay",
+    "riskTags": ["cold", "sirius", "line-monitoring", "phase-loss", "phase-sequence", "asymmetry"],
+    "expectedOfficialUrlPatterns": ["mall\\.industry\\.siemens\\.com"],
+    "expectedNormalizedFields": ["voltage"],
+    "requiredDocuments": ["datasheet"]
+  },
+  {
+    "manufacturerId": "siemens",
+    "catalogNumber": "6SL3210-5BE25-5UV1",
+    "caseType": "electrical",
+    "expectedDeviceType": "Variable Speed Drive",
+    "riskTags": ["cold", "sinamics-v20", "frequency-converter", "three-phase-input", "5-5kw"],
+    "expectedOfficialUrlPatterns": ["mall\\.industry\\.siemens\\.com"],
+    "expectedNormalizedFields": ["voltage", "current"],
+    "requiredDocuments": ["datasheet"]
+  },
+  {
+    "manufacturerId": "siemens",
+    "catalogNumber": "3LD2122-0TK11",
+    "caseType": "electrical",
+    "expectedDeviceType": "Disconnect Switch",
+    "riskTags": ["cold", "sentron-3ld", "switch-disconnector", "main-switch", "25a"],
+    "expectedOfficialUrlPatterns": ["mall\\.industry\\.siemens\\.com"],
+    "expectedNormalizedFields": ["current"],
+    "requiredDocuments": ["datasheet"]
+  }
+]

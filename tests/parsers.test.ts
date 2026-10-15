@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { ABBConnector, parseAbbGlobalSearchProductUrls, parseAbbProductPage } from "../src/server/scrapers/abb.js";
+import { ABBConnector, parseAbbGlobalSearchProductUrls, parseAbbPm50xxCurrentConsumption, parseAbbProductPage } from "../src/server/scrapers/abb.js";
 import { BalluffConnector, parseBalluffProductPage } from "../src/server/scrapers/balluff.js";
 import {
   EatonConnector,
@@ -22,6 +22,25 @@ import type { FetchedText } from "../src/server/scrapers/http-client.js";
 import type { ScrapeContext } from "../src/server/scrapers/types.js";
 
 describe("manufacturer parsers", () => {
+  it("extracts PM50xx PLC current only from the matching model and output-version column", () => {
+    const html = `
+      <table>
+        <thead>
+          <tr><th colspan="2">Parameter</th><th colspan="3">Value</th></tr>
+          <tr><th>PM5012</th><th>PM5032</th><th>PM5052</th></tr>
+        </thead>
+        <tbody>
+          <tr><td colspan="3">Current consumption from power supply (max.)</td></tr>
+          <tr><td></td><td>Transistor version</td><td>200 mA</td><td>340 mA</td><td>400 mA</td></tr>
+          <tr><td></td><td>Relay version</td><td>200 mA</td><td>340 mA</td><td>400 mA</td></tr>
+        </tbody>
+      </table>`;
+
+    expect(parseAbbPm50xxCurrentConsumption(html, "PM5032", "T")).toBe("340 mA");
+    expect(parseAbbPm50xxCurrentConsumption(html, "PM5032", "R")).toBe("340 mA");
+    expect(parseAbbPm50xxCurrentConsumption(html, "PM5072", "T")).toBeUndefined();
+  });
+
   it("keeps only the exact ABB product linked by global search", () => {
     const html = `
       <a href="https://new.abb.com/products/1STQ005365B0000">IS2 blind door 1STQ005365B0000</a>
@@ -723,6 +742,83 @@ describe("manufacturer parsers", () => {
     // A payload whose own Product ID is the requested catalog number is identity-proven evidence,
     // so it is not capped at the "no structured data" confidence.
     expect(result.confidence).toBe(0.9);
+  });
+
+  it("drops an ABB long description that names a different monitoring relay variant", () => {
+    const catalogNumber = "1SVR730884R4300";
+    const payload = {
+      productDetails: {
+        item: {
+          productId: catalogNumber,
+          attributes: {
+            ProductId: abbAttribute("ProductId", "Product ID", catalogNumber),
+            CatalogDescription: abbAttribute("CatalogDescription", "Catalog Description", "CM-MPS.43S Three-phase monitoring relay"),
+            DisplayName: abbAttribute("DisplayName", "Display Name", "CM-MPS.43S"),
+            LongDescription: abbAttribute("LongDescription", "Long Description", "The CM-MPN.43S is a multifunctional relay from the CM three-phase monitors range.")
+          }
+        }
+      }
+    };
+    const model = { ProductViewModel: { Product: payload, AppSettings: { langCode: "en" }, ApiUrl: "https://external.productinformation.abb.com/PisWebApi/v1/" } };
+    const html = `<script>var model = ${JSON.stringify(model).replace(/</g, "\\u003c")};</script>`;
+
+    const result = parseAbbProductPage(catalogNumber, fetched(html, `https://new.abb.com/products/${catalogNumber}`, "application/json"));
+
+    expect(result.title).toBe("CM-MPS.43S Three-phase monitoring relay");
+    expect(result.description).toBe("");
+  });
+
+  it("cross-checks the ABB M4M 20 malformed frequency field against its official manual", () => {
+    const catalogNumber = "2CSG251151R4051";
+    const payload = {
+      productDetails: {
+        item: {
+          productId: catalogNumber,
+          attributes: {
+            ProductId: abbAttribute("ProductId", "Product ID", catalogNumber),
+            CatalogDescription: abbAttribute("CatalogDescription", "Catalog Description", "M4M 20 Network analyzer"),
+            DisplayName: abbAttribute("DisplayName", "Display Name", "M4M 20"),
+            Frequency: abbAttribute("Frequency", "Frequency", "175 … 60 Hz")
+          }
+        }
+      }
+    };
+    const model = { ProductViewModel: { Product: payload, AppSettings: { langCode: "en" }, ApiUrl: "https://external.productinformation.abb.com/PisWebApi/v1/" } };
+    const html = `<script>var model = ${JSON.stringify(model).replace(/</g, "\\u003c")};</script>`;
+
+    const result = parseAbbProductPage(catalogNumber, fetched(html, `https://new.abb.com/products/${catalogNumber}`, "application/json"));
+    const frequency = result.attributes.find((attribute) => attribute.group === "ABB Verified Product Data" && attribute.name === "Frequency");
+
+    expect(result.attributes.some((attribute) => attribute.name === "Frequency" && /175/.test(attribute.value))).toBe(false);
+    expect(frequency).toMatchObject({ value: "50 ... 60 Hz", sourceType: "official", scope: "family" });
+  });
+
+  it("attaches the applicable official ACS580-01 family manual without parsing it as exact-SKU evidence", () => {
+    const catalogNumber = "3AXD50000038968";
+    const payload = {
+      productDetails: {
+        item: {
+          productId: catalogNumber,
+          attributes: {
+            ProductId: abbAttribute("ProductId", "Product ID", catalogNumber),
+            CatalogDescription: abbAttribute("CatalogDescription", "Catalog Description", "3 kW, 7.2 A drive (ACS580-01-07A3-4+B056)"),
+            ExtendedProductType: abbAttribute("ExtendedProductType", "Extended Product Type", "ACS580-01-07A3-4+B056")
+          }
+        }
+      }
+    };
+    const model = { ProductViewModel: { Product: payload, AppSettings: { langCode: "en" }, ApiUrl: "https://external.productinformation.abb.com/PisWebApi/v1/" } };
+    const html = `<script>var model = ${JSON.stringify(model).replace(/</g, "\\u003c")};</script>`;
+
+    const result = parseAbbProductPage(catalogNumber, fetched(html, `https://new.abb.com/products/${catalogNumber}`, "application/json"));
+    const manual = result.documents.find((document) => document.parser === "abb-acs580-01-family-manual-map");
+
+    expect(manual).toMatchObject({
+      type: "manual",
+      sourceType: "official",
+      enrichable: false,
+      url: expect.stringContaining("DocumentID=3AXD50000044794")
+    });
   });
 
   it("keeps a source-confirmed Balluff catalog number as an identity attribute", () => {
@@ -2409,7 +2505,7 @@ describe("manufacturer parsers", () => {
     expect(result.normalized.current).toBeUndefined();
     expect(result.normalized.wallThickness).toBeUndefined();
     expect(result.normalized.dimensions).toBe("Ø 8 x 25 mm");
-    expect(result.normalized.weight).toBe("516 g (0.52 kg)");
+    expect(result.normalized.weight).toBe("516 g (0.516 kg)");
   });
 
   it("parses Balluff lens meta specs without treating focal length as product length", () => {
@@ -2428,7 +2524,7 @@ describe("manufacturer parsers", () => {
     expect(result.attributes.some((attr) => attr.name === "Lens mount" && attr.value === "C-Mount")).toBe(true);
     expect(result.attributes.find((attr) => attr.name === "Ambient temperature")?.value).toBe("-10...50 °C");
     expect(result.normalized.dimensions).toBe("Ø 58 x 79.5 mm");
-    expect(result.normalized.weight).toBe("235 g (0.24 kg)");
+    expect(result.normalized.weight).toBe("235 g (0.235 kg)");
     expect(result.normalized.finish).toBe("black anodized");
     expect(result.normalized.color).toBe("black");
   });

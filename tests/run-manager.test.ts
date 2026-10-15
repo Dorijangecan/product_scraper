@@ -260,6 +260,57 @@ describe("run manager document downloads", () => {
     expect(shouldDownloadDocumentsForRun({ id: "balluff" }, { downloadDocuments: false, generateExcel: false })).toBe(false);
   });
 
+  it("skips ABB PDF downloads after an exact official page supplies its required electrical fields", () => {
+    const result = {
+      manufacturerId: "abb",
+      catalogNumber: "3AXD50000038968",
+      status: "found",
+      confidence: 0.96,
+      title: "ACS580-01 General Purpose Drive",
+      productUrl: "https://new.abb.com/products/3AXD50000038968",
+      normalized: { voltage: "380...480 V", current: "7.2 A" },
+      attributes: Array.from({ length: 24 }, (_, index) => ({
+        name: `Field ${index}`,
+        value: `Value ${index}`,
+        sourceType: "official",
+        parser: "abb-product-model"
+      })),
+      documents: [{ type: "datasheet", label: "Data sheet", url: "https://search.abb.com/library/datasheet.pdf" }],
+      sources: [{ url: "https://new.abb.com/products/3AXD50000038968", sourceType: "official", parser: "abb-product-page", fetchedAt: new Date(0).toISOString() }],
+      qualityGate: { passed: true, identityConfirmed: true, score: 100, missing: [], reason: "Complete", attempts: [] }
+    } as ProductResult;
+
+    expect(documentDownloadProfile({ id: "abb" }, result, { saveDocuments: false })).toBe("images-only");
+    expect(documentDownloadProfile({ id: "abb" }, result, { saveDocuments: true })).toBe("full");
+    expect(documentDownloadProfile({ id: "abb" }, { ...result, normalized: { voltage: "380...480 V" } }, { saveDocuments: false })).toBe("quality");
+    expect(documentDownloadProfile({ id: "abb" }, { ...result, qualityGate: { ...result.qualityGate!, passed: false } }, { saveDocuments: false })).toBe("quality");
+
+    const hmiResult = {
+      ...result,
+      catalogNumber: "1SAP520100R0001",
+      title: "CP620 Control Panel 4.3 inch HMI",
+      normalized: { voltage: "18...30 V DC" },
+      attributes: [
+        ...result.attributes,
+        { name: "Extended Product Type", value: "CP620", sourceType: "official", parser: "abb-product-model" }
+      ]
+    } as ProductResult;
+    expect(documentDownloadProfile({ id: "abb" }, hmiResult, { saveDocuments: false })).toBe("images-only");
+
+    const plcResult = {
+      ...hmiResult,
+      catalogNumber: "1SAP123400R0172",
+      title: "PM5032-T-ETH programmable logic controller",
+      normalized: { voltage: "20.4...28.8 V DC" },
+      attributes: [
+        ...hmiResult.attributes,
+        { name: "Extended Product Type", value: "PM5032-T-ETH", sourceType: "official", parser: "abb-product-model" }
+      ]
+    } as ProductResult;
+    expect(documentDownloadProfile({ id: "abb" }, plcResult, { saveDocuments: false })).toBe("quality");
+    expect(documentDownloadProfile({ id: "abb" }, { ...plcResult, normalized: { voltage: "20.4...28.8 V DC", current: "0.2...0.9 A" } }, { saveDocuments: false })).toBe("images-only");
+  });
+
   it("allows complete customer documents to short-circuit official lookup for unseen manufacturers", () => {
     const result = customerOnlyResult({
       manufacturerId: "unseen-maker",

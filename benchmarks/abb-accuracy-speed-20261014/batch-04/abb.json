@@ -1,0 +1,52 @@
+[
+  {
+    "manufacturerId": "abb",
+    "catalogNumber": "1SCA104811R1001",
+    "caseType": "electrical",
+    "expectedDeviceType": "Disconnect Switch",
+    "riskTags": ["cold", "ot16f3", "switch-disconnector", "manual-operated"],
+    "expectedOfficialUrlPatterns": ["abb\\.com"],
+    "requiredDocuments": ["datasheet"],
+    "expectedNormalizedFields": ["voltage", "current"]
+  },
+  {
+    "manufacturerId": "abb",
+    "catalogNumber": "1SFA611202R1102",
+    "caseType": "electrical",
+    "expectedDeviceType": "Selector Switch",
+    "riskTags": ["cold", "m2ss3-11g", "selector-switch", "illuminated", "momentary"],
+    "expectedOfficialUrlPatterns": ["abb\\.com"],
+    "requiredDocuments": [],
+    "expectedNormalizedFields": []
+  },
+  {
+    "manufacturerId": "abb",
+    "catalogNumber": "1SFA619100R3112",
+    "caseType": "electrical",
+    "expectedDeviceType": "Pushbutton / Operator",
+    "riskTags": ["cold", "cp1-31g-10", "pushbutton", "illuminated", "1no"],
+    "expectedOfficialUrlPatterns": ["abb\\.com"],
+    "requiredDocuments": [],
+    "expectedNormalizedFields": []
+  },
+  {
+    "manufacturerId": "abb",
+    "catalogNumber": "2TLA010051R0001",
+    "caseType": "electrical",
+    "expectedDeviceType": "Safety Relay",
+    "riskTags": ["cold", "ssr20p", "safety-relay", "3no-1nc", "24vdc"],
+    "expectedOfficialUrlPatterns": ["abb\\.com"],
+    "requiredDocuments": [],
+    "expectedNormalizedFields": ["voltage"]
+  },
+  {
+    "manufacturerId": "abb",
+    "catalogNumber": "1SFA619403R5021",
+    "caseType": "electrical",
+    "expectedDeviceType": "Pilot Light",
+    "riskTags": ["cold", "cl2-502r", "pilot-light", "led", "24v-ac-dc"],
+    "expectedOfficialUrlPatterns": ["abb\\.com"],
+    "requiredDocuments": [],
+    "expectedNormalizedFields": ["voltage"]
+  }
+]

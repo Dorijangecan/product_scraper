@@ -224,6 +224,7 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
     : attributes.filter((attribute) =>
         !isRelatedProductElectricalAttribute(attribute) &&
         !isNonRatingCurrentArtifact(attribute) &&
+        !(manufacturerId === "balluff" && /^analog output$/i.test(attribute.name.trim()) && /\bcurrent\b/i.test(attribute.value)) &&
         !isEatonComponentElectricalValue(attribute, manufacturerId) &&
         !(manufacturerId === "eaton" && /^rated operational current for specified heat dissipation(?:\s*\(in\))?$/i.test(attribute.name.trim()) && normalizeCurrentValue(attribute.value) === "0 A")
       );
@@ -242,13 +243,18 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
   const widthAttr = bestDimensionAxisAttribute(attributes, "width", manufacturerId);
   const depthAttr = bestDimensionAxisAttribute(attributes, "depth", manufacturerId);
   const lengthAttr = bestDimensionAxisAttribute(attributes, "length", manufacturerId);
-  const cableLengthDimension = bestCableLengthDimensionValue(attributes);
+  // A cable length is not the housing size. For sensors that separately publish their measuring
+  // length/range, keep the cable spec in attributes and leave physical dimensions blank unless
+  // the source also provides a true product dimension.
+  const hasSeparateMeasuringLength = attributes.some((attr) => /\b(?:measuring|measurement)\s+length\b/i.test(`${attr.group ?? ""} ${attr.name}`));
+  const cableLengthDimension = hasSeparateMeasuringLength ? undefined : bestCableLengthDimensionValue(attributes);
   const axisAssembledDimensions = normalizeDimensionValue(
     formatDimensions(heightAttr?.value, widthAttr?.value, depthAttr?.value, lengthAttr?.value)
   );
   const combinedDimensionsAttr = attributes
     .filter((attr) => {
       const haystack = `${attr.group ?? ""} ${attr.name}`.toLowerCase();
+      if (manufacturerId === "schmersal" && /sensor chain/.test(haystack)) return false;
       // FIELD_LABEL_PATTERNS.dimensions matches on GROUP text too (e.g. "Rockwell Dimensions"), so
       // a bare single-axis attribute like name="Height" would otherwise ALSO qualify as a "combined
       // Dimensions string" candidate purely because it sits in a dimensions-named group — stealing
@@ -292,9 +298,14 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
   const axisAttrs = [heightAttr, widthAttr, depthAttr ?? lengthAttr].filter((attr): attr is AttributeRecord => Boolean(attr));
   const weakestAxisConfidence = axisAttrs.length ? Math.min(...axisAttrs.map((attr) => attr.confidence ?? 1)) : -Infinity;
   const combinedDimensionsValue = combinedDimensionsAttr ? normalizeDimensionValue(combinedDimensionsAttr.value) : undefined;
+  const axisDimensionCount = axisAttrs.length;
+  const combinedDimensionCount = combinedDimensionsValue ? dimensionMeasurementCount(combinedDimensionsValue) : 0;
   const preferAxisAssembly =
-    Boolean(axisAssembledDimensions) && (!combinedDimensionsValue || weakestAxisConfidence >= (combinedDimensionsAttr?.confidence ?? 1));
+    Boolean(axisAssembledDimensions) &&
+    (!combinedDimensionsValue || (axisDimensionCount >= combinedDimensionCount && weakestAxisConfidence >= (combinedDimensionsAttr?.confidence ?? 1)));
   const dimensions =
+    (manufacturerId === "balluff" ? balluffProbeDimensions(attributes) : undefined) ??
+    (manufacturerId === "phoenix" ? phoenixContactSensorDimensions(attributes) : undefined) ??
     (preferAxisAssembly ? axisAssembledDimensions : undefined) ??
     combinedDimensionsValue ??
     axisAssembledDimensions ??
@@ -304,14 +315,30 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
     cableLengthDimension;
   const material = manufacturerId === "rittal"
     ? rittalExplicitLabelValue(rittalPdpAttributes, /^materials?$/i, rittalMaterialValue)
+    : manufacturerId === "schmersal"
+    ? exactSchmersalPdpFieldValue(attributes, /^(?:housing|body|enclosure) material$/i, normalizeHtmlSpecValue) ?? findMaterialAttr(attributes)
+    : manufacturerId === "balluff"
+    ? balluffHousingMaterial(attributes) ?? findMaterialAttr(attributes) ??
+      registryFieldValue(attributes, "material", materialValueFromText) ?? deriveMaterialFromAttributes(attributes) ??
+      ontologyFieldValue(attributes, "material", materialValueFromText)
     : manufacturerId === "schneider"
     ? schneiderPrimaryMaterial(attributes)
+    : manufacturerId === "phoenix"
+    ? phoenixProductMaterial(attributes) ?? findMaterialAttr(attributes.filter((attribute) =>
+        !/\b(?:flammability|version)\b|\*/i.test(`${attribute.name} ${attribute.value}`)
+      ))
     : findMaterialAttr(attributes) ??
       registryFieldValue(attributes, "material", materialValueFromText) ??
       deriveMaterialFromAttributes(attributes) ??
       ontologyFieldValue(attributes, "material", materialValueFromText);
   const finish = manufacturerId === "rittal"
     ? rittalExplicitLabelValue(rittalPdpAttributes, /^(?:surface\s+)?(?:finish|finishing|treatment|coating)$/i, rittalSpecText)
+    : manufacturerId === "schmersal"
+    ? exactSchmersalPdpFieldValue(attributes, /^(?:surface\s+)?(?:finish|finishing|treatment|coating)$/i, normalizeFinishValue)
+    : manufacturerId === "balluff"
+    ? balluffFinish(attributes) ?? normalizeFinishValue(bestAttributeValue(attributes, normalizerFieldLabelPatterns("finish")))
+    : manufacturerId === "phoenix"
+    ? phoenixProductFinish(attributes) ?? normalizeFinishValue(bestAttributeValue(attributes, normalizerFieldLabelPatterns("finish")))
     :
     normalizeFinishValue(bestAttributeValue(attributes, normalizerFieldLabelPatterns("finish"))) ??
     registryFieldValue(attributes, "finish", (value) => finishPhraseFromText(value) ?? normalizeFinishValue(value)) ??
@@ -320,10 +347,23 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
     ontologyFieldValue(attributes, "finish", (value) => finishPhraseFromText(value) ?? normalizeFinishValue(value));
   const finishForColor = manufacturerId === "rittal"
     ? undefined
+    : manufacturerId === "schmersal"
+    ? undefined
     : normalizeFinishValue(bestAttributeValue(attributes.filter((attr) => attr.scope !== "variant-option"), normalizerFieldLabelPatterns("finish")));
-  const wallThickness = bestWallThicknessAttributeValue(attributes) ?? registryFieldValue(attributes, "wallThickness", normalizeWallThicknessValue) ?? deriveWallThicknessFromAttributes(attributes);
+  const safeFinish = manufacturerId === "phoenix" && /\bno\b|\*/i.test(finish ?? "") ? undefined : finish;
+  const wallThicknessAttributes = attributes.filter((attribute) =>
+    !/\bbusbar\b|front\s+panel/i.test(`${attribute.group ?? ""} ${attribute.name}`) &&
+    !(/^thickness$/i.test(attribute.name.trim()) && /ontology/i.test(attribute.group ?? ""))
+  );
+  const wallThickness = bestWallThicknessAttributeValue(wallThicknessAttributes) ??
+    registryFieldValue(wallThicknessAttributes, "wallThickness", normalizeWallThicknessValue) ??
+    deriveWallThicknessFromAttributes(wallThicknessAttributes);
   const color = manufacturerId === "rittal"
     ? rittalExplicitLabelValue(rittalPdpAttributes, /^(?:colou?r)$/i, (value) => findColorAttr([{ name: "Colour", value }]))
+    : manufacturerId === "schmersal"
+    ? exactSchmersalPdpFieldValue(attributes, /^(?:colou?r)$/i, (value) => findColorAttr([{ name: "Colour", value }]))
+    : manufacturerId === "phoenix"
+    ? phoenixContactExplicitColor(attributes)
     : withoutForeignQuantityKinds(
     findColorAttr(attributes) ??
       registryFieldValue(attributes, "color", deriveColorFromFinish) ??
@@ -336,9 +376,18 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
   const protectionAttributes = manufacturerId === "rittal"
     ? rittalPdpAttributes.filter((attribute) => /\b(?:protection|degree|type\s+rating|ik\s+code|nema|ip\s+(?:class|rating|protection))\b/i.test(attribute.name))
     : attributes;
+  const balluffExactProtectionAttributes = manufacturerId === "balluff"
+    ? protectionAttributes.filter((attribute) =>
+        attribute.matchLevel === "exact" && /\b(?:ip\b|nema|protection|environmental rating)\b/i.test(`${attribute.group ?? ""} ${attribute.name}`)
+      )
+    : [];
   const protectionFromAttr = manufacturerId === "rittal"
     ? collectProtectionValues(protectionAttributes)
-    : collectProtectionValues(protectionAttributes) ??
+    : hasConflictingExactEatonPdpProtection(protectionAttributes, manufacturerId)
+      ? undefined
+      : exactEatonMcbProtection(protectionAttributes, manufacturerId) ??
+      exactSchmersalPdpProtection(protectionAttributes, manufacturerId) ??
+      collectProtectionValues(balluffExactProtectionAttributes.length ? balluffExactProtectionAttributes : protectionAttributes) ??
       deriveProtectionFromText(attributes) ??
       registryFieldValue(attributes, "protection", normalizeProtectionValue) ??
       ontologyFieldValue(attributes, "protection", normalizeProtectionValue);
@@ -373,7 +422,33 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
   const certificates = certificateTokens.join(", "); // Comma-space matches the format used in manual PDTs (ABB: "IEC, UL"; Rockwell: "c-UL-us, FM, CE...").
 
   const rittalVoltageModes = manufacturerId === "rittal" ? rittalMultipleVoltageRanges(attributes) : undefined;
-  const voltage = rittalVoltageModes ?? withoutMixedKindProse(
+  const schneiderSupplyVoltage = manufacturerId === "schneider"
+    ? schneiderDualSupplyVoltage(voltageAttributes) ?? schneiderPowerSupplyOutputVoltage(voltageAttributes, attributes)
+    : undefined;
+  const voltage = schneiderSupplyVoltage ?? (manufacturerId === "phoenix"
+    ? phoenixContactNormalizedVoltage(attributes) ?? withoutMixedKindProse(
+      exactSchmersalPdpVoltage(attributes, manufacturerId) ??
+      powerSupplyOutputVoltage(voltageAttributes) ??
+      normalizeVoltageValue(deriveVoltageRangeFromMinMax(voltageAttributes)) ??
+      explicitRatedVoltageFromText(voltageAttributes) ??
+      numericVoltAttributeVoltage(voltageAttributes) ??
+      bestNormalizedAttributeValue(voltageAttributes, normalizerFieldLabelPatterns("voltage"), normalizeVoltageValue, "voltage") ??
+      registryFieldValue(voltageAttributes, "voltage", normalizeVoltageValue) ??
+      normalizeVoltageValue(deriveVoltageFromText(voltageAttributes)) ??
+      ontologyFieldValue(voltageAttributes, "ratedVoltage", normalizeVoltageValue) ??
+      inferredOntologyFieldValue(voltageAttributes, "ratedVoltage", normalizeVoltageValue)
+    )
+    : manufacturerId === "schmersal"
+    ? exactSchmersalPdpVoltage(attributes, manufacturerId)
+    : rittalVoltageModes ?? withoutMixedKindProse(
+      exactSchmersalPdpVoltage(attributes, manufacturerId) ??
+      exactEatonControlRelaySupplyVoltage(voltageAttributes, manufacturerId) ??
+      exactEatonSoftStarterMainsVoltage(voltageAttributes, manufacturerId) ??
+      exactEatonRccbVoltageOptions(voltageAttributes, manufacturerId) ??
+      exactEatonPowerVoltage(voltageAttributes, manufacturerId) ??
+      exactEatonUpsVoltage(voltageAttributes, manufacturerId) ??
+      exactEatonMcbVoltageRating(voltageAttributes, manufacturerId) ??
+      exactEatonDriveVoltage(attributes, manufacturerId) ??
       exactEatonPdpVoltageRating(voltageAttributes, manufacturerId) ??
       powerSupplyOutputVoltage(voltageAttributes) ??
     normalizeVoltageValue(deriveVoltageRangeFromMinMax(voltageAttributes)) ??
@@ -386,13 +461,33 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
     // (mostly EN/DE) miss. Most-specific matchProperty keeps insulation/impulse voltage out.
       ontologyFieldValue(voltageAttributes, "ratedVoltage", normalizeVoltageValue) ??
       inferredOntologyFieldValue(voltageAttributes, "ratedVoltage", normalizeVoltageValue)
-  );
-  const current = withoutMixedKindProse(
+  ));
+  const current = manufacturerId === "phoenix" && isPhoenixSignalConditioner(attributes)
+    ? undefined
+    : manufacturerId === "phoenix" && isPhoenixSurgeProtector(attributes)
+    ? phoenixSurgeNominalDischargeCurrent(attributes)
+    : manufacturerId === "phoenix" && isPhoenixSafetyRelay(attributes)
+    ? phoenixSafetyRelaySupplyCurrent(attributes)
+    : manufacturerId === "schmersal"
+    ? exactSchmersalNoLoadSupplyCurrent(attributes, manufacturerId)
+    : manufacturerId === "schneider" && isSchneiderSurgeProtector(attributes)
+    ? undefined
+    : withoutMixedKindProse(
+    exactSchmersalNoLoadSupplyCurrent(attributes, manufacturerId) ??
+    balluffPublishedCurrentConsumption(currentAttributes, manufacturerId) ??
     eatonNacPowerSupplyCurrent(currentAttributes, manufacturerId) ??
+      phoenixContactCategoryCurrent(currentAttributes, manufacturerId) ??
+      phoenixContactSwitchMaximumCurrent(currentAttributes, manufacturerId) ??
+      phoenixContactPowerSupplyOutputCurrent(currentAttributes, manufacturerId) ??
       powerSupplyOutputCurrent(currentAttributes) ??
       eatonSurgeNominalDischargeCurrent(attributes, manufacturerId) ??
+      exactEatonControlRelaySwitchingCurrent(currentAttributes, manufacturerId) ??
+      exactEatonMainSwitchCurrent(currentAttributes, manufacturerId) ??
       eatonContactorAc3Current(currentAttributes, manufacturerId) ??
+      exactEatonSoftStarterAc53Current(currentAttributes, manufacturerId) ??
       eatonOverloadRangeCurrent(currentAttributes, manufacturerId) ??
+      eatonRatedOperationalCurrent(currentAttributes, manufacturerId) ??
+      abbContactorAc3Current(currentAttributes, manufacturerId) ??
       schneiderContactorAc3Current(currentAttributes) ??
       explicitRatedCurrentFromText(currentAttributes) ??
       voltageAlignedAc15Current(currentAttributes, voltage) ??
@@ -402,16 +497,48 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
       normalizeCurrentValue(deriveCurrentFromText(currentAttributes)) ??
       ontologyFieldValue(currentAttributes, "ratedCurrent", normalizeCurrentValue) ??
       inferredOntologyFieldValue(currentAttributes, "ratedCurrent", normalizeCurrentValue)
-  );
+    );
 
-  const operatingTemperature = deriveOperatingTemperature(attributes);
+  const exactEatonPdpTemperature = manufacturerId === "eaton"
+    ? temperatureFromSeparateMinMaxRows(
+        attributes.filter((attribute) =>
+          attribute.parser === "eaton-product-page" &&
+          /^https:\/\/(?:www\.)?eaton\.com(?:\.cn)?\//i.test(attribute.sourceUrl ?? "") &&
+          /\/skuPage\.[^/]+?\.html$/i.test(attribute.sourceUrl ?? "") &&
+          /^ambient operating temperature - (?:min|max)$/i.test(attribute.name.trim())
+        ),
+        () => true,
+        () => false
+      )
+    : undefined;
+  const derivedOperatingTemperature = deriveOperatingTemperature(attributes);
+  const exactEatonPsgTemperature = manufacturerId === "eaton"
+    ? deriveOperatingTemperature(attributes.filter((attribute) => attribute.group === "Eaton Volume 7 PSG exact model column" && attribute.matchLevel === "exact"))
+    : undefined;
+  const phoenixTemperature = manufacturerId === "phoenix" ? phoenixContactOperatingTemperature(attributes) : undefined;
+  const schneiderTemperature = manufacturerId === "schneider" ? schneiderOperatingTemperature(attributes) : undefined;
+  const operatingTemperature = {
+    min: exactEatonPdpTemperature?.min ?? exactEatonPsgTemperature?.min ?? phoenixTemperature?.min ?? schneiderTemperature?.min ?? derivedOperatingTemperature.min,
+    max: exactEatonPdpTemperature?.max ?? exactEatonPsgTemperature?.max ?? phoenixTemperature?.max ?? schneiderTemperature?.max ?? derivedOperatingTemperature.max
+  };
+  // An exact product page can contain a unit typo (for example 1.59 g for a 120 W supply).
+  // Filter such a candidate before arbitration so it cannot suppress a valid exact-catalog weight.
+  const weightAttributes = isPowerSupplyProduct(attributes)
+    ? attributes.filter((attribute) => !isImplausiblyLowPowerSupplyWeight(attributes, attribute.value))
+    : attributes;
+  const weight = (manufacturerId === "phoenix" ? phoenixProductNetWeight(weightAttributes) : undefined) ??
+    bestNormalizedAttributeValue(weightAttributes, normalizerFieldLabelPatterns("weight"), normalizeWeightValue, "weight") ??
+    registryFieldValue(weightAttributes, "weight", normalizeWeightValue) ??
+    ontologyFieldValue(weightAttributes, "weight", normalizeWeightValue) ??
+    inferredOntologyFieldValue(weightAttributes, "weight", normalizeWeightValue) ??
+    schneiderDescriptionWeight(weightAttributes);
 
   return {
-    weight: bestNormalizedAttributeValue(attributes, normalizerFieldLabelPatterns("weight"), normalizeWeightValue, "weight") ?? registryFieldValue(attributes, "weight", normalizeWeightValue) ?? ontologyFieldValue(attributes, "weight", normalizeWeightValue) ?? inferredOntologyFieldValue(attributes, "weight", normalizeWeightValue) ?? schneiderDescriptionWeight(attributes),
+    weight: isImplausiblyLowPowerSupplyWeight(attributes, weight) ? undefined : weight,
     dimensions,
     material,
     wallThickness,
-    finish,
+    finish: safeFinish,
     color,
     voltage,
     current,
@@ -420,6 +547,101 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
     operatingTemperatureMin: operatingTemperature.min,
     operatingTemperatureMax: operatingTemperature.max
   };
+}
+
+function balluffHousingMaterial(attributes: AttributeRecord[]): string | undefined {
+  return attributes
+    .filter((attribute) =>
+      (attribute.sourceType === "official" || isBalluffOfficialSourceUrl(attribute.sourceUrl)) &&
+      /^housing material$/i.test(attribute.name.trim())
+    )
+    .sort(compareAttributeEvidence)
+    .map((attribute) => cleanText(attribute.value))
+    .find(Boolean);
+}
+
+function isBalluffOfficialSourceUrl(sourceUrl: string | undefined): boolean {
+  return typeof sourceUrl === "string" && /^https?:\/\/(?:www\.)?balluff\.com\//i.test(sourceUrl);
+}
+
+function balluffProbeDimensions(attributes: AttributeRecord[]): string | undefined {
+  const probe = attributes
+    .filter((attribute) => /^probe diameter$/i.test(attribute.name.trim()) && isBalluffExactDatasheetEvidence(attribute))
+    .sort(compareAttributeEvidence)[0];
+  const installationLength = attributes
+    .filter((attribute) => /^installation length from contact surface$/i.test(attribute.name.trim()) &&
+      (attribute.sourceType === "official" || isBalluffOfficialSourceUrl(attribute.sourceUrl) || isBalluffExactDatasheetEvidence(attribute)))
+    .sort(compareAttributeEvidence)[0];
+  const diameter = probe && normalizeSingleDimensionValue(probe.value);
+  const length = installationLength && normalizeSingleDimensionValue(installationLength.value);
+  if (!diameter || !length) return undefined;
+  return `Ø ${diameter} x ${length}`;
+}
+
+function phoenixContactSensorDimensions(attributes: AttributeRecord[]): string | undefined {
+  const productText = attributes
+    .filter((attribute) => /^(?:title|product type|product name|catalog description)$/i.test(attribute.name.trim()))
+    .map((attribute) => attribute.value)
+    .join(" ");
+  if (!/\b(?:safety switch sensor|safety sensor)\b/i.test(productText)) return undefined;
+  const diameter = attributes
+    .filter((attribute) => /^diameter$/i.test(attribute.name.trim()))
+    .sort(compareAttributeEvidence)
+    .map((attribute) => normalizeSingleDimensionValue(attribute.value))
+    .find((value): value is string => Boolean(value));
+  const depth = attributes
+    .filter((attribute) => /^depth$/i.test(attribute.name.trim()))
+    .sort(compareAttributeEvidence)
+    .map((attribute) => normalizeSingleDimensionValue(attribute.value))
+    .find((value): value is string => Boolean(value));
+  return diameter && depth ? `Ø ${diameter} x D ${depth}` : undefined;
+}
+
+function normalizeSingleDimensionValue(value: string): string | undefined {
+  const cleaned = normalizeHtmlSpecValue(value);
+  if (!cleaned) return undefined;
+  return /^\d+(?:[.,]\d+)?\s*(?:mm|cm|m|in|inch|inches|\")$/i.test(cleaned) ? cleaned : undefined;
+}
+
+function isBalluffExactDatasheetEvidence(attribute: AttributeRecord): boolean {
+  return attribute.sourceType === "generated" &&
+    attribute.parser === "pdf-table-extractor" &&
+    attribute.matchLevel === "exact" &&
+    /^https?:\/\/publications\.balluff\.com\//i.test(attribute.sourceUrl ?? "");
+}
+
+function balluffFinish(attributes: AttributeRecord[]): string | undefined {
+  const explicit = attributes
+    .filter((attribute) => /^(?:surface\s+)?finish$/i.test(attribute.name.trim()) &&
+      (attribute.sourceType === "official" || isBalluffOfficialSourceUrl(attribute.sourceUrl)))
+    .sort(compareAttributeEvidence)[0]?.value;
+  if (explicit) return normalizeFinishValue(explicit);
+  const housingMaterial = attributes
+    .filter((attribute) => /^(?:housing )?material$/i.test(attribute.name.trim()) &&
+      (attribute.sourceType === "official" || isBalluffOfficialSourceUrl(attribute.sourceUrl)))
+    .sort(compareAttributeEvidence)[0]?.value;
+  return housingMaterial ? deriveFinishFromMaterial(housingMaterial) : undefined;
+}
+
+function balluffPublishedCurrentConsumption(attributes: AttributeRecord[], manufacturerId: string | undefined): string | undefined {
+  if (manufacturerId !== "balluff") return undefined;
+  const eligible = attributes
+    .filter((attribute) =>
+      (attribute.sourceType === "official" ||
+        (attribute.sourceType === "generated" &&
+          attribute.parser === "pdf-table-extractor" &&
+          attribute.matchLevel === "exact" &&
+          /^https?:\/\/publications\.balluff\.com\//i.test(attribute.sourceUrl ?? ""))) &&
+      /^(?:current (?:draw|consumption)(?:\s+max\.?)?|no-load current(?:\s+io)?(?:\s+max\.?)?(?:\s+at ue)?|rated operating current(?:\s+ie)?)$/i.test(attribute.name.trim()));
+  const preferred = eligible.filter((attribute) =>
+    /^(?:current (?:draw|consumption)(?:\s+max\.?)?|no-load current(?:\s+io)?(?:\s+max\.?)?(?:\s+at ue)?)$/i.test(attribute.name.trim()));
+  const selected = (preferred.length ? preferred : eligible).sort(compareAttributeEvidence);
+  return selected
+    .map((attribute) => {
+      const value = normalizeCurrentValue(attribute.value);
+      return value && /\bmax\.?\b/i.test(attribute.name) && !/^max\b/i.test(value) ? `max. ${value}` : value;
+    })
+    .find(Boolean);
 }
 
 function isUnscopedEatonPdfFact(attribute: AttributeRecord): boolean {
@@ -476,12 +698,34 @@ function eatonOverloadRangeCurrent(attributes: AttributeRecord[], manufacturerId
     attribute.parser === "eaton-product-page" && /\/skuPage\.[^/]+?\.html$/i.test(attribute.sourceUrl ?? "")
   );
   if (!exactOverloadRelay) return undefined;
-  return attributes
-    .filter((attribute) => /^overload range$/i.test(attribute.name.trim()) &&
-      attribute.parser === "eaton-product-page" && /\/skuPage\.[^/]+?\.html$/i.test(attribute.sourceUrl ?? ""))
+  const exactPageAttributes = attributes.filter((attribute) =>
+    attribute.parser === "eaton-product-page" &&
+    attribute.sourceType === "official-fallback" &&
+    /^https:\/\/(?:www\.)?eaton\.com(?:\.cn)?\//i.test(attribute.sourceUrl ?? "") &&
+    /\/skuPage\.[^/]+?\.html$/i.test(attribute.sourceUrl ?? "")
+  );
+  const explicitRange = exactPageAttributes
+    .filter((attribute) => /^overload range$/i.test(attribute.name.trim()))
     .sort(compareAttributeEvidence)
     .map((attribute) => normalizeCurrentValue(attribute.value))
     .find((value): value is string => Boolean(value));
+  if (explicitRange) return explicitRange;
+
+  // Thermal overload relays often publish the trip adjustment as separate minimum and maximum
+  // rows. Prefer that protection setting over auxiliary-contact thermal current (Ith), which is
+  // a different rating and must not become the device's adjustable current.
+  const minimum = exactPageAttributes
+    .filter((attribute) => /^adjustable current range\s*-\s*min$/i.test(attribute.name.trim()))
+    .sort(compareAttributeEvidence)
+    .map((attribute) => normalizeCurrentValue(attribute.value))
+    .find((value): value is string => Boolean(value));
+  const maximum = exactPageAttributes
+    .filter((attribute) => /^adjustable current range\s*-\s*max$/i.test(attribute.name.trim()))
+    .sort(compareAttributeEvidence)
+    .map((attribute) => normalizeCurrentValue(attribute.value))
+    .find((value): value is string => Boolean(value));
+  if (!minimum || !maximum) return undefined;
+  return normalizeCurrentValue(`${minimum.replace(/\s*A$/i, "")}...${maximum}`);
 }
 
 function eatonSurgeNominalDischargeCurrent(attributes: AttributeRecord[], manufacturerId?: string): string | undefined {
@@ -548,6 +792,89 @@ function isEatonSoftStarterHorsepowerVoltage(attribute: AttributeRecord, attribu
     /^operating voltage$/i.test(candidate.name.trim()) && exactPdp(candidate)
   );
   return !hasOperatingVoltage && /^voltage rating$/i.test(attribute.name.trim()) && /eaton description/i.test(attribute.group ?? "");
+}
+
+function exactEatonPowerVoltage(attributes: AttributeRecord[], manufacturerId?: string): string | undefined {
+  if (manufacturerId !== "eaton" || !hasExactEatonSkuPageEvidence(attributes)) return undefined;
+  const exactPowerSupply = attributes.some((attribute) => /^product type$/i.test(attribute.name.trim()) &&
+    /\bpower suppl(?:y|ies)\b/i.test(attribute.value) && attribute.parser === "eaton-product-page" &&
+    /\/skuPage\.[^/]+?\.html$/i.test(attribute.sourceUrl ?? ""));
+  if (!exactPowerSupply) return undefined;
+  const exactPageAttribute = (attribute: AttributeRecord) => attribute.parser === "eaton-product-page" &&
+    attribute.sourceType === "official-fallback" && /^https:\/\/(?:www\.)?eaton\.com(?:\.cn)?\//i.test(attribute.sourceUrl ?? "") &&
+    /\/skuPage\.[^/]+?\.html$/i.test(attribute.sourceUrl ?? "");
+  const input = attributes.filter((attribute) => /^input voltage$/i.test(attribute.name.trim()) && exactPageAttribute(attribute))
+    .sort(compareAttributeEvidence).map((attribute) => normalizeVoltageValue(attribute.value)).find(Boolean);
+  const output = attributes.filter((attribute) => /^output voltage$/i.test(attribute.name.trim()) && exactPageAttribute(attribute))
+    .sort(compareAttributeEvidence).map((attribute) => normalizeVoltageValue(attribute.value)).find(Boolean);
+  if (!input && !output) return undefined;
+  return [input && `Input: ${input}`, output && `Output: ${output}`].filter(Boolean).join("; ");
+}
+
+function exactEatonUpsVoltage(attributes: AttributeRecord[], manufacturerId?: string): string | undefined {
+  if (manufacturerId !== "eaton" || !hasExactEatonSkuPageEvidence(attributes)) return undefined;
+  const exactUps = attributes.some((attribute) => /^product type$/i.test(attribute.name.trim()) &&
+    /^ups$/i.test(cleanText(attribute.value)) && attribute.parser === "eaton-product-page" &&
+    /\/skuPage\.[^/]+?\.html$/i.test(attribute.sourceUrl ?? ""));
+  if (!exactUps) return undefined;
+  const exactPageAttribute = (attribute: AttributeRecord) => attribute.parser === "eaton-product-page" &&
+    attribute.sourceType === "official-fallback" && /^https:\/\/(?:www\.)?eaton\.com(?:\.cn)?\//i.test(attribute.sourceUrl ?? "") &&
+    /\/skuPage\.[^/]+?\.html$/i.test(attribute.sourceUrl ?? "");
+  const input = attributes.filter((attribute) => /^input voltage range$/i.test(attribute.name.trim()) && exactPageAttribute(attribute))
+    .sort(compareAttributeEvidence).map((attribute) => normalizeVoltageValue(attribute.value)).find(Boolean);
+  const output = attributes.filter((attribute) => /^output nominal voltage$/i.test(attribute.name.trim()) && exactPageAttribute(attribute))
+    .sort(compareAttributeEvidence).map((attribute) => normalizeVoltageValue(attribute.value)).find(Boolean);
+  if (!input && !output) return undefined;
+  return [input && `Input: ${input}`, output && `Output: ${output}`].filter(Boolean).join("; ");
+}
+
+function hasConflictingExactEatonPdpProtection(attributes: AttributeRecord[], manufacturerId?: string): boolean {
+  if (manufacturerId !== "eaton" || !hasExactEatonSkuPageEvidence(attributes)) return false;
+  const exactPdpCodeSets = attributes
+    .filter((attribute) => /^(?:degree of protection|description|open graph description)$/i.test(attribute.name.trim()) &&
+      attribute.parser === "eaton-product-page" &&
+      /^https:\/\/(?:www\.)?eaton\.com(?:\.cn)?\//i.test(attribute.sourceUrl ?? "") &&
+      /\/skuPage\.[^/]+?\.html$/i.test(attribute.sourceUrl ?? ""))
+    .map((attribute) => new Set([...attribute.value.matchAll(/\bIP\s*(\d{2}[A-Z]?)\b/gi)].map((match) => match[1].toUpperCase())))
+    .filter((codes) => codes.size > 0);
+  return exactPdpCodeSets.some((left, index) => exactPdpCodeSets.slice(index + 1)
+    .some((right) => ![...left].some((code) => right.has(code))));
+}
+
+function exactEatonMcbVoltageRating(attributes: AttributeRecord[], manufacturerId?: string): string | undefined {
+  if (manufacturerId !== "eaton" || !hasExactEatonSkuPageEvidence(attributes)) return undefined;
+  const exactMcb = attributes.some((attribute) =>
+    /^(?:product type|type)$/i.test(attribute.name.trim()) && /\b(?:mcb|miniature circuit breaker)\b/i.test(attribute.value) &&
+    attribute.parser === "eaton-product-page" && /\/skuPage\.[^/]+?\.html$/i.test(attribute.sourceUrl ?? "")
+  );
+  if (!exactMcb) return undefined;
+  return attributes
+    .filter((attribute) => /^voltage rating$/i.test(attribute.name.trim()) &&
+      attribute.parser === "eaton-product-page" && attribute.sourceType === "official-fallback" &&
+      /^https:\/\/(?:www\.)?eaton\.com(?:\.cn)?\//i.test(attribute.sourceUrl ?? "") &&
+      /\/skuPage\.[^/]+?\.html$/i.test(attribute.sourceUrl ?? ""))
+    .sort(compareAttributeEvidence)
+    .map((attribute) => normalizeVoltageValue(attribute.value))
+    .find((value): value is string => Boolean(value));
+}
+
+function exactEatonMcbProtection(attributes: AttributeRecord[], manufacturerId?: string): string | undefined {
+  if (manufacturerId !== "eaton" || !hasExactEatonSkuPageEvidence(attributes)) return undefined;
+  const exactMcb = attributes.some((attribute) =>
+    /^(?:product type|type)$/i.test(attribute.name.trim()) && /\b(?:mcb|miniature circuit breaker)\b/i.test(attribute.value) &&
+    attribute.parser === "eaton-product-page" && /\/skuPage\.[^/]+?\.html$/i.test(attribute.sourceUrl ?? "")
+  );
+  if (!exactMcb) return undefined;
+  const published = attributes
+    .filter((attribute) => /^degree of protection$/i.test(attribute.name.trim()) &&
+      attribute.parser === "eaton-product-page" && attribute.sourceType === "official-fallback" &&
+      /^https:\/\/(?:www\.)?eaton\.com(?:\.cn)?\//i.test(attribute.sourceUrl ?? "") &&
+      /\/skuPage\.[^/]+?\.html$/i.test(attribute.sourceUrl ?? ""))
+    .sort(compareAttributeEvidence)[0]?.value;
+  if (!published) return undefined;
+  const tokens = [...published.matchAll(/\b(IP\s*\d{2}[A-Z]?)(?:\s*\(([^)]*)\))?/gi)]
+    .map((match) => `${match[1].replace(/\s+/g, "")}${match[2] ? ` (${cleanText(match[2])})` : ""}`);
+  return [...new Set(tokens)].join("; ") || undefined;
 }
 
 function exactEatonPdpVoltageRating(attributes: AttributeRecord[], manufacturerId?: string): string | undefined {
@@ -636,6 +963,28 @@ function exactEatonPdpVoltageRating(attributes: AttributeRecord[], manufacturerI
   return exactRatings.map((attribute) => normalizeVoltageValue(attribute.value)).find((value): value is string => Boolean(value));
 }
 
+/** Preserve Eaton VFD input and output ratings as separate, exact-page values. */
+function exactEatonDriveVoltage(attributes: AttributeRecord[], manufacturerId?: string): string | undefined {
+  if (manufacturerId !== "eaton" || !hasExactEatonSkuPageEvidence(attributes)) return undefined;
+  const exactPdp = (attribute: AttributeRecord): boolean =>
+    attribute.parser === "eaton-product-page" &&
+    attribute.sourceType === "official-fallback" &&
+    /^https:\/\/(?:www\.)?eaton\.com(?:\.cn)?\//i.test(attribute.sourceUrl ?? "") &&
+    /\/skuPage\.[^/]+?\.html$/i.test(attribute.sourceUrl ?? "");
+  const isDrive = attributes.some((attribute) =>
+    /^(?:product type|product name)$/i.test(attribute.name.trim()) &&
+    /\b(?:adjustable frequency drive|variable frequency drive|variable speed drive)\b/i.test(attribute.value) && exactPdp(attribute)
+  );
+  if (!isDrive) return undefined;
+  const description = attributes.find((attribute) =>
+    /^(?:description|open graph description)$/i.test(attribute.name.trim()) && exactPdp(attribute) &&
+    /\b\d+\s*V\s*\d+\s*PH\s+IN\s*\//i.test(attribute.value)
+  )?.value;
+  const match = description?.match(/\b(\d+(?:[.,]\d+)?)\s*V\s*(?:AC|DC)?\s*(\d+)\s*PH\s+IN\s*\/\s*(\d+(?:[.,]\d+)?)\s*V\s*(?:AC|DC)?\s*(\d+)\s*PH\s+OUT\b/i);
+  if (!match) return undefined;
+  return `Input: ${normalizeVoltageValue(`${match[1]} V`)} (${match[2]} phase); Output: ${normalizeVoltageValue(`${match[3]} V`)} (${match[4]} phase)`;
+}
+
 function eatonNacPowerSupplyCurrent(attributes: AttributeRecord[], manufacturerId?: string): string | undefined {
   if (manufacturerId !== "eaton" || !isPowerSupplyProduct(attributes)) return undefined;
   const isNacSupply = attributes.some((attribute) =>
@@ -649,6 +998,160 @@ function eatonNacPowerSupplyCurrent(attributes: AttributeRecord[], manufacturerI
   return candidate ? normalizeCurrentValue(candidate.value) : undefined;
 }
 
+/** Prefer Eaton's exact, explicit Ie rating over distinct auxiliary "supply current" rows. */
+function eatonRatedOperationalCurrent(attributes: AttributeRecord[], manufacturerId?: string): string | undefined {
+  if (manufacturerId !== "eaton") return undefined;
+  return attributes
+    .filter((attribute) =>
+      /^rated operational current(?:\s*\(\s*ie\s*\))?$/i.test(attribute.name.trim()) &&
+      attribute.parser === "eaton-product-page" &&
+      /\/skuPage\.[^/]+?\.html$/i.test(attribute.sourceUrl ?? "")
+    )
+    .sort(compareAttributeEvidence)
+    .map((attribute) => normalizeCurrentValue(attribute.value))
+    .find((value): value is string => Boolean(value && value !== "0 A"));
+}
+
+/** The easyE4 base device has several supply modes in one exact operational-voltage row. */
+function exactEatonControlRelaySupplyVoltage(attributes: AttributeRecord[], manufacturerId?: string): string | undefined {
+  if (manufacturerId !== "eaton") return undefined;
+  const exactPdp = (attribute: AttributeRecord): boolean =>
+    attribute.parser === "eaton-product-page" &&
+    /^https:\/\/(?:www\.)?eaton\.com(?:\.cn)?\//i.test(attribute.sourceUrl ?? "") &&
+    /\/skuPage\.[^/]+?\.html$/i.test(attribute.sourceUrl ?? "");
+  const isControlRelay = attributes.some((attribute) =>
+    /^(?:product type|type|product name)$/i.test(attribute.name.trim()) && /\bcontrol relays?\b/i.test(attribute.value) && exactPdp(attribute)
+  );
+  if (!isControlRelay) return undefined;
+  const row = attributes
+    .filter((attribute) => /^rated operational voltage$/i.test(attribute.name.trim()) && exactPdp(attribute))
+    .sort(compareAttributeEvidence)[0];
+  if (!row) return undefined;
+  const supplySection = row.value.match(/\bpower supply:\s*([\s\S]*?)(?=\s+relay outputs:|\s+inputs:|$)/i)?.[1];
+  if (!supplySection) return undefined;
+  const ratings = [...supplySection.matchAll(/\b(\d+(?:[.,]\d+)?\s*V\s*(?:AC|DC))\b/gi)]
+    .map((match) => normalizeVoltageValue(match[1]))
+    .filter((value): value is string => Boolean(value));
+  const distinct = [...new Set(ratings)];
+  return distinct.length ? distinct.join(" or ") : undefined;
+}
+
+/** Main-circuit voltage for Eaton soft starters; ignore their separate control voltage. */
+function exactEatonSoftStarterMainsVoltage(attributes: AttributeRecord[], manufacturerId?: string): string | undefined {
+  if (manufacturerId !== "eaton") return undefined;
+  const exactPdp = (attribute: AttributeRecord): boolean =>
+    attribute.parser === "eaton-product-page" &&
+    /^https:\/\/(?:www\.)?eaton\.com(?:\.cn)?\//i.test(attribute.sourceUrl ?? "") &&
+    /\/skuPage\.[^/]+?\.html$/i.test(attribute.sourceUrl ?? "");
+  const isSoftStarter = attributes.some((attribute) =>
+    /^(?:product type|type|product name)$/i.test(attribute.name.trim()) && /\bsoft starter\b/i.test(attribute.value) && exactPdp(attribute)
+  );
+  if (!isSoftStarter) return undefined;
+  const rowValue = (name: RegExp): string | undefined => attributes
+    .filter((attribute) => name.test(attribute.name.trim()) && exactPdp(attribute))
+    .sort(compareAttributeEvidence)
+    .map((attribute) => cleanText(attribute.value))
+    .find(Boolean);
+  const minimum = rowValue(/^mains voltage\s*-\s*min$/i);
+  const maximum = rowValue(/^mains voltage\s*-\s*max$/i);
+  if (minimum && maximum) {
+    const min = minimum.match(/\d+(?:[.,]\d+)?/)?.[0];
+    const max = maximum.match(/\d+(?:[.,]\d+)?/)?.[0];
+    if (min && max) return normalizeVoltageValue(`${min}...${max} V${/\bAC\b/i.test(rowValue(/^voltage type$/i) ?? "") ? " AC" : ""}`);
+  }
+  return attributes
+    .filter((attribute) => /^voltage rating$/i.test(attribute.name.trim()) && exactPdp(attribute))
+    .sort(compareAttributeEvidence)
+    .map((attribute) => normalizeVoltageValue(attribute.value))
+    .find((value): value is string => Boolean(value));
+}
+
+/** Preserve both Eaton RCCB voltage options instead of selecting the Ue maximum row. */
+function exactEatonRccbVoltageOptions(attributes: AttributeRecord[], manufacturerId?: string): string | undefined {
+  if (manufacturerId !== "eaton") return undefined;
+  const exactPdp = (attribute: AttributeRecord): boolean =>
+    attribute.parser === "eaton-product-page" &&
+    /^https:\/\/(?:www\.)?eaton\.com(?:\.cn)?\//i.test(attribute.sourceUrl ?? "") &&
+    /\/skuPage\.[^/]+?\.html$/i.test(attribute.sourceUrl ?? "");
+  const isRccb = attributes.some((attribute) =>
+    /^(?:product type|type)$/i.test(attribute.name.trim()) && /\bresidual current(?: circuit)? devices?\b|\bRCCB\b/i.test(attribute.value) && exactPdp(attribute)
+  );
+  if (!isRccb) return undefined;
+  return attributes
+    .filter((attribute) => /^voltage rating$/i.test(attribute.name.trim()) && exactPdp(attribute))
+    .sort(compareAttributeEvidence)
+    .map((attribute) => {
+      const options = [...attribute.value.matchAll(/\b\d+(?:[.,]\d+)?\s*V\s*(?:AC|DC)?\b/gi)]
+        .map((match) => normalizeVoltageValue(match[0]))
+        .filter((value): value is string => Boolean(value));
+      return [...new Set(options)].join(" or ");
+    })
+    .find(Boolean);
+}
+
+/** easyE4 relay contact rating; do not substitute a thermal derating value from a long current row. */
+function exactEatonControlRelaySwitchingCurrent(attributes: AttributeRecord[], manufacturerId?: string): string | undefined {
+  if (manufacturerId !== "eaton") return undefined;
+  const exactPdp = (attribute: AttributeRecord): boolean =>
+    attribute.parser === "eaton-product-page" &&
+    /^https:\/\/(?:www\.)?eaton\.com(?:\.cn)?\//i.test(attribute.sourceUrl ?? "") &&
+    /\/skuPage\.[^/]+?\.html$/i.test(attribute.sourceUrl ?? "");
+  const isControlRelay = attributes.some((attribute) =>
+    /^(?:product type|type|product name)$/i.test(attribute.name.trim()) && /\bcontrol relays?\b/i.test(attribute.value) && exactPdp(attribute)
+  );
+  if (!isControlRelay) return undefined;
+  return attributes
+    .filter((attribute) => /^switching current$/i.test(attribute.name.trim()) && exactPdp(attribute))
+    .sort(compareAttributeEvidence)
+    .map((attribute) => normalizeCurrentValue(attribute.value))
+    .find((value): value is string => Boolean(value));
+}
+
+/** Prefer the explicit main-contact continuous/rated value over a lower UL general-use rating. */
+function exactEatonMainSwitchCurrent(attributes: AttributeRecord[], manufacturerId?: string): string | undefined {
+  if (manufacturerId !== "eaton") return undefined;
+  const exactPdp = (attribute: AttributeRecord): boolean =>
+    attribute.parser === "eaton-product-page" &&
+    /^https:\/\/(?:www\.)?eaton\.com(?:\.cn)?\//i.test(attribute.sourceUrl ?? "") &&
+    /\/skuPage\.[^/]+?\.html$/i.test(attribute.sourceUrl ?? "");
+  const isMainSwitch = attributes.some((attribute) =>
+    /^(?:product type|product category|type)$/i.test(attribute.name.trim()) && /^main switch$/i.test(attribute.value.trim()) && exactPdp(attribute)
+  );
+  if (!isMainSwitch) return undefined;
+  const ratings = [
+    /^rated uninterrupted current\s*\(\s*iu\s*\)$/i,
+    /^rated operational current for specified heat dissipation\s*\(\s*in\s*\)$/i,
+    /^rated permanent current at ac-21\b/i
+  ];
+  for (const pattern of ratings) {
+    const value = attributes
+      .filter((attribute) => pattern.test(attribute.name.trim()) && exactPdp(attribute))
+      .sort(compareAttributeEvidence)
+      .map((attribute) => normalizeCurrentValue(attribute.value))
+      .find((candidate): candidate is string => Boolean(candidate && candidate !== "0 A"));
+    if (value) return value;
+  }
+  return undefined;
+}
+
+/** For a soft starter, AC-53 is the main-circuit rating; control input current is auxiliary data. */
+function exactEatonSoftStarterAc53Current(attributes: AttributeRecord[], manufacturerId?: string): string | undefined {
+  if (manufacturerId !== "eaton") return undefined;
+  const exactPdp = (attribute: AttributeRecord): boolean =>
+    attribute.parser === "eaton-product-page" &&
+    /^https:\/\/(?:www\.)?eaton\.com(?:\.cn)?\//i.test(attribute.sourceUrl ?? "") &&
+    /\/skuPage\.[^/]+?\.html$/i.test(attribute.sourceUrl ?? "");
+  const isSoftStarter = attributes.some((attribute) =>
+    /^(?:product type|type|product name)$/i.test(attribute.name.trim()) && /\bsoft starter\b/i.test(attribute.value) && exactPdp(attribute)
+  );
+  if (!isSoftStarter) return undefined;
+  return attributes
+    .filter((attribute) => /^rated operational current\s*\(\s*ie\s*\)\s*at\s+ac-53$/i.test(attribute.name.trim()) && exactPdp(attribute))
+    .sort(compareAttributeEvidence)
+    .map((attribute) => normalizeCurrentValue(attribute.value))
+    .find((value): value is string => Boolean(value && value !== "0 A"));
+}
+
 /**
  * Understand an operating/ambient temperature range from explicitly temperature-labelled
  * attributes only — never from a current/power de-rating row or a "color temperature" spec.
@@ -658,14 +1161,14 @@ function eatonNacPowerSupplyCurrent(attributes: AttributeRecord[], manufacturerI
 function deriveOperatingTemperature(attributes: AttributeRecord[]): { min?: string; max?: string } {
   const label = (attr: AttributeRecord): string => `${attr.group ?? ""} ${attr.name}`;
   const isTemperatureLabel = (attr: AttributeRecord): boolean =>
-    /\b(operating|operational|ambient|working|surrounding|service)\b[^.;|]*\btemp(?:erature)?\b/i.test(label(attr)) ||
-    /\btemp(?:erature)?\b[^.;|]*\b(operating|operational|ambient|working|surrounding|service)\b/i.test(label(attr)) ||
-    /\b(operating|ambient)\s+temperature\b/i.test(label(attr)) ||
-    /\btemperature range\b/i.test(label(attr)) ||
-    /\bumgebungstemperatur\b|\bbetriebstemperatur\b/i.test(label(attr)) ||
-    fieldMatchesLabel("operatingTemperature", label(attr));
+    /\b(operating|operational|ambient|working|surrounding|service)\b[^.;|]*\btemp(?:erature)?\b/i.test(`${label(attr)} ${attr.value}`) ||
+    /\btemp(?:erature)?\b[^.;|]*\b(operating|operational|ambient|working|surrounding|service)\b/i.test(`${label(attr)} ${attr.value}`) ||
+    /\b(operating|ambient)\s+temperature\b/i.test(`${label(attr)} ${attr.value}`) ||
+    /\btemperature range\b/i.test(`${label(attr)} ${attr.value}`) ||
+    /\bumgebungstemperatur\b|\bbetriebstemperatur\b/i.test(`${label(attr)} ${attr.value}`) ||
+    fieldMatchesLabel("operatingTemperature", `${label(attr)} ${attr.value}`);
   const isExcludedLabel = (attr: AttributeRecord): boolean =>
-    /\b(current|strom|storage|lager|colou?r\s+temp(?:erature)?|color\s+temp)\b/i.test(label(attr)) ||
+    /\b(current|strom|storage|lager|colou?r\s+temp(?:erature)?|color\s+temp)\b/i.test(`${label(attr)} ${attr.value}`) ||
     // A SET POINT is the temperature the device can be adjusted TO; the operating temperature is the
     // ambient range it tolerates. Different properties entirely — a thermostat adjustable to 60 °C is
     // not a thermostat rated for 60 °C ambient. Confirmed on nVent SPEC-00583, whose
@@ -684,9 +1187,23 @@ function deriveOperatingTemperature(attributes: AttributeRecord[]): { min?: stri
     };
   };
 
+  const temperatureBounds = (text: string): string[] =>
+    [...text.matchAll(/([+-]?\d+(?:[.,]\d+)?)\s*°?\s*C\b/gi)].map((match) => String(localizedNumber(match[1] ?? "")));
+  const explicitStorageRanges = attributes
+    .filter((attr) => /\b(?:storage|transport|lager)\b/i.test(`${label(attr)} ${attr.value}`))
+    .map((attr) => temperatureBounds(`${attr.name} ${attr.value}`))
+    .filter((bounds) => bounds.length >= 2);
+  const duplicatesStorageRange = (attr: AttributeRecord): boolean => {
+    if (/\b(?:operat(?:ion|ing|ional)|working|service)\b/i.test(`${label(attr)} ${attr.value}`)) return false;
+    const bounds = temperatureBounds(`${attr.name} ${attr.value}`);
+    return bounds.length >= 2 && explicitStorageRanges.some((storage) =>
+      storage[0] === bounds[0] && storage[storage.length - 1] === bounds[bounds.length - 1]
+    );
+  };
+
   // 1) Explicitly temperature-labelled attributes (most reliable).
   for (const attr of attributes) {
-    if (!attr.value || !isTemperatureLabel(attr) || isExcludedLabel(attr)) continue;
+    if (!attr.value || !isTemperatureLabel(attr) || isExcludedLabel(attr) || duplicatesStorageRange(attr)) continue;
     const result = fromText(`${attr.name}: ${attr.value}`);
     if (result) return result;
   }
@@ -708,7 +1225,82 @@ function deriveOperatingTemperature(attributes: AttributeRecord[]): { min?: stri
   // Neither row carries a range, so the two passes above see nothing at all. This layout is the norm for
   // sensor vendors (found on a real Turck page, where both rows were extracted as attributes and the
   // temperature fields still came out empty).
-  return temperatureFromSeparateMinMaxRows(attributes, isTemperatureLabel, isExcludedLabel);
+  return temperatureFromSeparateMinMaxRows(attributes.filter((attr) => !duplicatesStorageRange(attr)), isTemperatureLabel, isExcludedLabel);
+}
+
+function isSchneiderSurgeProtector(attributes: AttributeRecord[]): boolean {
+  return attributes.some((attribute) =>
+    /^(?:product or component type|product type|title)$/i.test(attribute.name.trim()) &&
+    /\bsurge arrester\b|\bsurge protective device\b/i.test(attribute.value)
+  );
+}
+
+function schneiderDualSupplyVoltage(attributes: AttributeRecord[]): string | undefined {
+  const attribute = attributes
+    .filter((candidate) => /^\[Us\]\s*rated supply voltage$/i.test(candidate.name.trim()))
+    .sort(compareAttributeEvidence)[0];
+  if (attribute && /\bAC\b/i.test(attribute.value) && /\bDC\b/i.test(attribute.value)) return cleanText(attribute.value);
+
+  // Some exact Schneider product pages publish the AC/DC supply in the model description,
+  // while the PDF text table captures only the first (AC) tolerance row. Preserve both modes.
+  for (const description of attributes.filter((candidate) =>
+    /^(?:description|title)$/i.test(candidate.name.trim()) &&
+    (candidate.sourceType === "official" || candidate.sourceType === "official-fallback")
+  )) {
+    const match = /\b(\d+(?:[.,]\d+)?)\s*V\s*AC\s*(?:\/|or)\s*DC\b/i.exec(description.value);
+    if (match) return `${match[1]} V AC/DC`;
+  }
+  return undefined;
+}
+
+function schneiderPowerSupplyOutputVoltage(
+  voltageAttributes: AttributeRecord[],
+  attributes: AttributeRecord[]
+): string | undefined {
+  const productText = attributes
+    .filter((attribute) => /^(?:product or component type|product type|title|description)$/i.test(attribute.name.trim()))
+    .map((attribute) => attribute.value)
+    .join(" ");
+  if (!/\bpower supply\b/i.test(productText)) return undefined;
+  const output = voltageAttributes
+    .filter((attribute) => /^output voltage$/i.test(attribute.name.trim()))
+    .sort(compareAttributeEvidence)
+    .map((attribute) => normalizeVoltageValue(attribute.value))
+    .filter((value): value is string => Boolean(value));
+  // Schneider product descriptions often state the output voltage beside the rated output
+  // current, while the PDF text pass can mislabel an input-voltage range as "Output Voltage".
+  // When that happens, prefer the candidate that agrees with the explicit output rating in the
+  // exact product description (for example, "rated output current of 5A at 24 V DC").
+  const ratedOutputVoltage = attributes
+    .filter((attribute) => /^(?:description|title)$/i.test(attribute.name.trim()) &&
+      (attribute.sourceType === "official" || attribute.sourceType === "official-fallback"))
+    .map((attribute) => /\brated output (?:current|power)\b[^.]{0,100}?\bat\s+(\d+(?:[.,]\d+)?\s*V\s*(?:AC|DC))\b/i.exec(attribute.value)?.[1])
+    .filter((value): value is string => Boolean(value))
+    .map((value) => normalizeVoltageValue(value))
+    .find(Boolean);
+  const outputVoltage = ratedOutputVoltage && output.find((value) => value === ratedOutputVoltage);
+  if (outputVoltage) return outputVoltage;
+  return output[0];
+}
+
+function schneiderOperatingTemperature(attributes: AttributeRecord[]): { min?: string; max?: string } | undefined {
+  const attribute = attributes.find((candidate) =>
+    /^ambient air temperature for operation$/i.test(candidate.name.trim()) &&
+    (candidate.sourceType === "official" || candidate.sourceType === "official-fallback" ||
+      (candidate.sourceType === "generated" && candidate.parser === "pdf-table-extractor" && candidate.matchLevel === "exact"))
+  );
+  if (!attribute) return undefined;
+
+  // Schneider's ABL8 datasheet can give multiple operating ranges in one row, such as
+  // -25..50 °C without derating and 50..60 °C with derating. Use the full published envelope.
+  const ranges = [...attribute.value.matchAll(/\(?\s*([+-]?\d+(?:[.,]\d+)?)\s*(?:…|\.{2,}|\bto\b)\s*([+-]?\d+(?:[.,]\d+)?)\s*°\s*C\s*\)?/gi)]
+    .map((match) => [Number((match[1] ?? "").replace(",", ".")), Number((match[2] ?? "").replace(",", "."))])
+    .filter(([min, max]) => Number.isFinite(min) && Number.isFinite(max) && min <= max);
+  if (!ranges.length) return undefined;
+  return {
+    min: formatTemperatureBound(Math.min(...ranges.map(([min]) => min))),
+    max: formatTemperatureBound(Math.max(...ranges.map(([, max]) => max)))
+  };
 }
 
 /** Label without its min/max qualifier or its parenthesised unit, so the two rows can be paired. */
@@ -910,11 +1502,11 @@ export function mergeResults(primary: ProductResult, fallback?: ProductResult): 
   const attributes = sortAttributesStable(dedupeAttributes([...primary.attributes, ...fallback.attributes]));
   const documents = dedupeDocuments([...primary.documents, ...fallback.documents]);
   const normalized = mergeNormalizedFields(
-    normalizeFields(attributes, documents, primary.manufacturerId === "rittal" ? "rittal" : undefined),
+    normalizeFields(attributes, documents, primary.manufacturerId === "rittal" || primary.manufacturerId === "schmersal" || primary.manufacturerId === "phoenix" ? primary.manufacturerId : undefined),
     primary.normalized,
     fallback.normalized,
     attributes,
-    primary.manufacturerId === "rittal" ? "rittal" : undefined
+    primary.manufacturerId === "rittal" || primary.manufacturerId === "phoenix" ? primary.manufacturerId : undefined
   );
   const hasFallbackAdditions = fallback.status !== "failed" && (fallback.attributes.length > 0 || fallback.documents.length > 0);
   return {
@@ -991,6 +1583,14 @@ function bestNormalizedAttributeValue(
 /** ABB's master-data certificate column contains only compact certification names. */
 export function normalizeAbbFields(attributes: AttributeRecord[], documents: DocumentRecord[]): NormalizedProductFields {
   const normalized = normalizeFields(attributes, documents);
+  const disconnectSwitchRatings = abbDisconnectSwitchRatings(attributes);
+  const monitoringRelaySupplyVoltage = abbMonitoringRelaySupplyVoltage(attributes);
+  const primaryVoltage = abbMeterRatedVoltage(attributes);
+  const hmiSupplyVoltage = abbHmiSupplyVoltage(attributes);
+  const operatorLampVoltage = abbOperatorLampVoltage(attributes);
+  const productProtection = abbOfficialProductAttribute(attributes, /^degree of protection$/i);
+  const productMaterial = abbOfficialProductAttribute(attributes, /^material(?: of (?:housing|enclosure))?$/i);
+  const productColor = abbOfficialProductAttribute(attributes, /^(?:color|colour)$/i);
   const source = [
     ...attributes
       .filter((attr) => /certificate|certification|approval|standard/i.test(`${attr.group ?? ""} ${attr.name}`))
@@ -998,7 +1598,120 @@ export function normalizeAbbFields(attributes: AttributeRecord[], documents: Doc
     normalized.certificates
   ].filter((value): value is string => Boolean(value)).join("; ");
   const certificates = compactAbbCertificateNames(source);
-  return { ...normalized, certificates: certificates || undefined };
+  return {
+    ...normalized,
+    voltage: disconnectSwitchRatings?.voltage ?? monitoringRelaySupplyVoltage ?? primaryVoltage ?? hmiSupplyVoltage ?? operatorLampVoltage ?? normalized.voltage,
+    current: disconnectSwitchRatings?.current ?? abbContactorAc3Current(attributes, "abb") ?? normalized.current,
+    protection: productProtection ?? normalized.protection,
+    material: productMaterial,
+    color: productColor,
+    certificates: certificates || undefined
+  };
+}
+
+/** The LED supply on an ABB illuminated command/pilot operator is not its contact insulation rating. */
+function abbOperatorLampVoltage(attributes: AttributeRecord[]): string | undefined {
+  const lampType = attributes
+    .filter((attribute) => attribute.sourceType === "official" && /^lamp type$/i.test(attribute.name.trim()))
+    .sort(compareAttributeEvidence)
+    .map((attribute) => cleanText(attribute.value))
+    .find((value) => /\b(?:AC|DC|V)\b/i.test(value));
+  if (!lampType) return undefined;
+  const voltage = lampType.match(/\b\d+(?:[.,]\d+)?\s*V(?:\s*AC\s*\/\s*DC|\s*AC\/DC|\s*DC|\s*AC)?\b/i)?.[0];
+  return voltage ? normalizeVoltageValue(voltage) : undefined;
+}
+
+/**
+ * ABB switch-disconnector pages may expose a UL/CSA ampere rating and insulation voltage as
+ * generic current/voltage fields, while the IEC catalogue gives the actual AC-23A operating
+ * rating. Prefer the exact ABB operational table for this product class and keep the max voltage
+ * and current values from that table as the normalized headline ratings.
+ */
+function abbDisconnectSwitchRatings(attributes: AttributeRecord[]): { voltage?: string; current?: string } | undefined {
+  const context = attributes
+    .filter((attribute) => /^(?:display name|extended product type|catalog description|long description)$/i.test(attribute.name.trim()))
+    .map((attribute) => attribute.value)
+    .join(" ");
+  if (!/\b(?:switch[- ]disconnect(?:or)?|disconnect switch)\b/i.test(context)) return undefined;
+
+  const operatingRatings = attributes
+    .filter((attribute) => attribute.sourceType === "official" &&
+      /^rated operational current AC[-\s]?23A$/i.test(attribute.name.trim()) && isLikelySpecText(attribute.value))
+    .sort(compareAttributeEvidence);
+  for (const attribute of operatingRatings) {
+    const pairs = [...attribute.value.matchAll(/\(\s*((?:\d+(?:[.,]\d+)?\s*(?:\.\.\.|…|[-–])\s*)?\d+(?:[.,]\d+)?)\s*V\s*\)\s*(\d+(?:[.,]\d+)?)\s*A/gi)];
+    const currents = pairs.map((pair) => localizedNumber(pair[2])).filter((value): value is number => Number.isFinite(value));
+    const highestCurrent = Math.max(...currents);
+    const representativeRating = pairs.find((pair) => localizedNumber(pair[2]) === highestCurrent);
+    if (representativeRating && Number.isFinite(highestCurrent)) {
+      return {
+        // Keep a real voltage/current operating point together. For instance OT16F3 is 16 A at
+        // 380...415 V but only 10 A at 690 V; publishing the two independent maxima together
+        // would imply a rating combination ABB does not specify.
+        voltage: normalizeVoltageValue(`${representativeRating[1]} V`),
+        current: `${highestCurrent} A`
+      };
+    }
+  }
+  return undefined;
+}
+
+function abbHmiSupplyVoltage(attributes: AttributeRecord[]): string | undefined {
+  const productContext = attributes
+    .filter((attribute) => /^(?:display name|extended product type|product type|catalog description)$/i.test(attribute.name.trim()))
+    .map((attribute) => attribute.value)
+    .join(" ");
+  if (!/\bCP6\d{2}(?:-WEB)?\b/i.test(productContext)) return undefined;
+
+  const supply = attributes
+    .filter((attribute) => attribute.sourceType === "official" && /^power supply$/i.test(attribute.name.trim()))
+    .sort(compareAttributeEvidence)
+    .map((attribute) => cleanText(attribute.value))
+    .find(Boolean);
+  if (!supply) return undefined;
+
+  const range = supply.match(/\(\s*(\d+(?:[.,]\d+)?)\s*(?:\.\.\.|…|[-–])\s*(\d+(?:[.,]\d+)?)\s*\)\s*(k?V\s*(?:AC|DC)?)/i);
+  if (range) return normalizeVoltageValue(`${range[1]}...${range[2]} ${range[3]}`);
+  return normalizeVoltageValue(supply);
+}
+
+function abbOfficialProductAttribute(attributes: AttributeRecord[], namePattern: RegExp): string | undefined {
+  return attributes
+    .filter((attribute) => attribute.sourceType === "official" && namePattern.test(attribute.name.trim()) &&
+      !/^(?:not applicable|n\/a|unknown|-)$/i.test(attribute.value.trim()) && isLikelySpecText(attribute.value))
+    .sort(compareAttributeEvidence)
+    .map((attribute) => cleanText(attribute.value))
+    .find(Boolean);
+}
+
+function abbMeterRatedVoltage(attributes: AttributeRecord[]): string | undefined {
+  const productContext = attributes
+    .filter((attribute) => /(?:display name|catalog description|product type|long description)/i.test(attribute.name))
+    .map((attribute) => attribute.value)
+    .join(" ");
+  if (!/\bM4M\s*20\b/i.test(productContext)) return undefined;
+  const ratedVoltage = attributes
+    .filter((attribute) => attribute.sourceType === "official" && /^rated voltage\b/i.test(attribute.name.trim()) &&
+      /\bN-L\b/i.test(attribute.value) && /\bL-L\b/i.test(attribute.value))
+    .sort(compareAttributeEvidence)
+    .map((attribute) => cleanText(attribute.value))
+    .find(Boolean);
+  return ratedVoltage?.replace(/\s*…\s*/g, "...").replace(/\s*\.\.\.\s*/g, "...");
+}
+
+function abbMonitoringRelaySupplyVoltage(attributes: AttributeRecord[]): string | undefined {
+  const productContext = attributes
+    .filter((attribute) => /(?:product type|catalog description|long description|extended product type|type designation)/i.test(attribute.name))
+    .map((attribute) => attribute.value)
+    .join(" ");
+  if (!/\b(?:three[-\s]?phase\s+monitoring\s+relay|CM-MP[SN](?:\.|\b))/i.test(productContext)) return undefined;
+
+  return attributes
+    .filter((attribute) => /^rated control supply voltage\b/i.test(attribute.name.trim()) &&
+      attribute.sourceType === "official" && isLikelySpecText(attribute.value) && isAvailableSpecValue(attribute.value))
+    .sort(compareAttributeEvidence)
+    .map((attribute) => normalizeVoltageValue(attribute.value))
+    .find((value): value is string => Boolean(value));
 }
 
 function compactAbbCertificateNames(value: string): string {
@@ -1034,6 +1747,7 @@ function powerSupplyOutputVoltage(attributes: AttributeRecord[]): string | undef
   return attributes
     .filter((attr) => {
       const label = `${attr.group ?? ""} ${attr.name}`.toLowerCase();
+      if (/\b(?:settle length|wire stripping|stripping length|conductor)\b/i.test(`${attr.name} ${attr.value}`)) return false;
       return isPowerSupplyOutputVoltageLabel(label) && isLikelySpecText(attr.value) && isAvailableSpecValue(attr.value);
     })
     .sort(compareAttributeEvidence)
@@ -1047,7 +1761,9 @@ function powerSupplyOutputCurrent(attributes: AttributeRecord[]): string | undef
     .filter((attr) => {
       const label = `${attr.group ?? ""} ${attr.name}`.toLowerCase();
       return /\b(?:output current|current at secondary voltage|power supply output current)\b/.test(label) &&
-        !/\b(?:input|inrush|package|short[- ]circuit)\b/.test(label) && isLikelySpecText(attr.value) && isAvailableSpecValue(attr.value);
+        !/\b(?:input|inrush|package|short[- ]circuit)\b/.test(label) &&
+        !isDisqualifiedForQuantityKind(label, attr.value, "current") &&
+        isLikelySpecText(attr.value) && isAvailableSpecValue(attr.value);
     })
     .sort(compareAttributeEvidence);
   for (const attr of candidates) {
@@ -1057,12 +1773,166 @@ function powerSupplyOutputCurrent(attributes: AttributeRecord[]): string | undef
   return undefined;
 }
 
+function phoenixContactPowerSupplyOutputCurrent(attributes: AttributeRecord[], manufacturerId?: string): string | undefined {
+  if (manufacturerId !== "phoenix") return undefined;
+  const title = attributes
+    .filter((attribute) => /^(?:title|product name|catalog description)$/i.test(attribute.name.trim()))
+    .map((attribute) => attribute.value)
+    .join(" ");
+  if (!/\bQUINT4-PS\//i.test(title)) return undefined;
+  const exactModelSuffix = title.match(/\bQUINT4-PS\/[^\s/]+\/[^\s/]+\/(\d+(?:[.,]\d+)?)\b/i)?.[1];
+  return exactModelSuffix ? normalizeCurrentValue(`${exactModelSuffix} A`) : undefined;
+}
+
+function phoenixContactSwitchMaximumCurrent(attributes: AttributeRecord[], manufacturerId?: string): string | undefined {
+  if (manufacturerId !== "phoenix" || !attributes.some((attribute) =>
+    /^(?:title|product name|catalog description)$/i.test(attribute.name.trim()) && /\bFL\s+SWITCH\b/i.test(attribute.value)
+  )) return undefined;
+  return attributes
+    .filter((attribute) => /^maximum current consumption$/i.test(attribute.name.trim()))
+    .sort(compareAttributeEvidence)
+    .map((attribute) => {
+      const current = normalizeCurrentValue(attribute.value);
+      const voltage = attribute.value.match(/\bat\s+(\d+(?:[.,]\d+)?\s*V\s*DC)\b/i)?.[1];
+      const alreadyQualified = /\bat\s+\d+(?:[.,]\d+)?\s*V\s*DC\b/i.test(attribute.value);
+      return current ? `${current}${voltage && !alreadyQualified ? ` (at ${cleanText(voltage)})` : ""}` : undefined;
+    })
+    .find((value): value is string => Boolean(value));
+}
+
+function isPhoenixSafetyRelay(attributes: AttributeRecord[]): boolean {
+  return attributes.some((attribute) =>
+    /^(?:title|product name|catalog description|product type)$/i.test(attribute.name.trim()) &&
+    /\b(?:safety relay|PSR-SPP)\b/i.test(attribute.value)
+  );
+}
+
+function phoenixSafetyRelaySupplyCurrent(attributes: AttributeRecord[]): string | undefined {
+  const current = attributes
+    .filter((attribute) => /^supply current$/i.test(attribute.name.trim()))
+    .sort(compareAttributeEvidence)
+    .map((attribute) => normalizeCurrentValue(attribute.value))
+    .find((value): value is string => Boolean(value));
+  return current ? `${current} (supply current)` : undefined;
+}
+
+function isPhoenixSignalConditioner(attributes: AttributeRecord[]): boolean {
+  return attributes.some((attribute) =>
+    /^(?:title|product name|catalog description|product type)$/i.test(attribute.name.trim()) &&
+    /\b(?:input signal conditioner|signal conditioner)\b/i.test(attribute.value)
+  );
+}
+
+function phoenixContactCategoryCurrent(attributes: AttributeRecord[], manufacturerId?: string): string | undefined {
+  if (manufacturerId !== "phoenix") return undefined;
+  const productText = attributes
+    .filter((attribute) => /^(?:title|product name|catalog description|product type)$/i.test(attribute.name.trim()))
+    .map((attribute) => attribute.value)
+    .join(" ");
+  const select = (labels: RegExp) => attributes
+    .filter((attribute) => labels.test(attribute.name.trim()))
+    .sort(compareAttributeEvidence)
+    .map((attribute) => normalizeCurrentValue(attribute.value))
+    .find((value): value is string => Boolean(value));
+  if (/\b(?:safety switch sensor|safety sensor)\b/i.test(productText)) {
+    const value = select(/^load current max$/i);
+    return value ? `${value} max. load current` : undefined;
+  }
+  if (/\bbattery\b/i.test(productText)) {
+    const value = select(/^maximum output current$/i);
+    const derating = attributes
+      .filter((attribute) => /^output current derating$/i.test(attribute.name.trim()))
+      .map((attribute) => cleanText(attribute.value))
+      .find(Boolean);
+    return value ? `${value} max. output${derating ? ` (${derating})` : ""}` : undefined;
+  }
+  if (/\bhybrid motor starter\b/i.test(productText)) {
+    const value = select(/^motor output current$/i);
+    return value ? `${value} motor output` : undefined;
+  }
+  if (/\buninterruptible power supply\b/i.test(productText)) {
+    const value = select(/^output current$/i);
+    return value ? `${value} output` : undefined;
+  }
+  if (/\bpcb terminal block\b/i.test(productText)) {
+    const value = select(/^nominal current$/i);
+    return value ? `${value} nominal` : undefined;
+  }
+  if (/\bEEM-XM157\b/i.test(productText)) {
+    const value = select(/^input current$/i);
+    return value ? `${value} (direct measurement)` : undefined;
+  }
+  if (/\bPT\s*2,5-TWIN\s+RD\b/i.test(productText) || /\bTCP\s*1A\b/i.test(productText)) {
+    return select(/^nominal current$/i);
+  }
+  return undefined;
+}
+
+function phoenixContactExplicitColor(attributes: AttributeRecord[]): string | undefined {
+  return attributes
+    .filter((attribute) => /^color$/i.test(attribute.name.trim()) && attribute.parser === "Phoenix Contact product page")
+    .sort(compareAttributeEvidence)
+    .map((attribute) => {
+      const match = attribute.value.match(/^\s*((?:red|blue|green|yellow|black|white|gray|grey|orange|brown|violet|purple)(?:\s*\(RAL\s*\d{4}\))?)\s*$/i);
+      return match?.[1] ? cleanText(match[1]) : undefined;
+    })
+    .find((value): value is string => Boolean(value));
+}
+
+function phoenixProductMaterial(attributes: AttributeRecord[]): string | undefined {
+  return attributes
+    .filter((attribute) => /^material$/i.test(attribute.name.trim()) &&
+      !/^(?:specifications|not available|n\/?a)$/i.test(attribute.value.trim()))
+    .sort((left, right) => {
+      const score = (attribute: AttributeRecord) =>
+        (materialValueFromText(attribute.value) ? 100 : 0) +
+        (/\b(?:housing|front plate|body|enclosure)\b/i.test(`${attribute.group ?? ""} ${attribute.value}`) ? 20 : 0) +
+        attributeEvidenceScore(attribute);
+      return score(right) - score(left);
+    })
+    .map((attribute) => materialValueFromText(attribute.value))
+    .find((value): value is string => Boolean(value));
+}
+
+function phoenixProductFinish(attributes: AttributeRecord[]): string | undefined {
+  return attributes
+    .filter((attribute) => /^material\s+front\s+plate$/i.test(attribute.name.trim()) || /^finish$/i.test(attribute.name.trim()))
+    .sort(compareAttributeEvidence)
+    .map((attribute) => finishPhraseFromText(attribute.value)?.replace(/[()]+$/g, "").trim())
+    .find((value): value is string => Boolean(value));
+}
+
+function phoenixProductNetWeight(attributes: AttributeRecord[]): string | undefined {
+  return attributes
+    .filter((attribute) => /^weight per piece \(excluding packing\)$/i.test(attribute.name.trim()))
+    .sort(compareAttributeEvidence)
+    .map((attribute) => normalizeWeightValue(attribute.value))
+    .find((value): value is string => Boolean(value));
+}
+
 function isPowerSupplyProduct(attributes: AttributeRecord[]): boolean {
   return attributes.some((attr) => {
     const label = `${attr.group ?? ""} ${attr.name}`.toLowerCase();
     if (!/product|range|description|title|family|type|name/.test(label)) return false;
     return /\bpower suppl(?:y|ies)\b/i.test(`${attr.name} ${attr.value}`);
   });
+}
+
+export function isImplausiblyLowPowerSupplyWeight(attributes: AttributeRecord[], weight: string | undefined): boolean {
+  if (!weight || !isPowerSupplyProduct(attributes)) return false;
+  const ratedOutputPower = attributes
+    .filter((attribute) => /^(?:power consumption|rated output power|output power|rated power)$/i.test(attribute.name.trim()))
+    .map((attribute) => cleanText(attribute.value).match(/(\d+(?:[.,]\d+)?)\s*W\b/i)?.[1])
+    .map((value) => value ? localizedNumber(value) : undefined)
+    .filter((value): value is number => value !== undefined && Number.isFinite(value));
+  if (!ratedOutputPower.some((power) => power >= 20)) return false;
+  const gramsText = cleanText(weight).match(/(\d+(?:[.,]\d+)?)\s*g\b/i)?.[1];
+  const grams = gramsText
+    ? Number(/\d,\d{3}$/.test(gramsText) ? gramsText.replace(/,/g, "") : gramsText.replace(",", "."))
+    : undefined;
+  // A manufacturer page can carry a unit/decimal typo for a physical attribute. A power supply
+  // rated at 20 W or more cannot weigh under 10 g; keep that suspect value blank for review.
+  return Boolean(grams !== undefined && grams < 10);
 }
 
 function isPowerSupplyOutputVoltageLabel(label: string): boolean {
@@ -1175,6 +2045,8 @@ function normalizedFieldLabelScore(attr: AttributeRecord, field?: keyof Normaliz
   if (field === "weight") {
     if (/\bdigital product passport\b.*\bweight\b|\bweight\b.*\bdigital product passport\b/.test(label)) return 170;
     if (/\bproduct net weight|net weight|unit weight|product weight|mechanical data weight\b/.test(label)) return 130;
+    if (/\bweight per piece \(excluding packing\)|\bexcluding (?:the )?(?:packing|packaging)\b|\bnet weight\b/.test(label)) return 150;
+    if (/\bweight per piece \(including packing\)|\bincluding (?:the )?(?:packing|packaging)\b/.test(label)) return -60;
     if (/\bshipping|gross|package|packing|packaging\b/.test(label)) return -40;
     if (/\bcertificate|declaration|compliance|rohs|reach|substance|material compliance\b/.test(label)) return -160;
     if (/\bweight\b|\bmass\b|\bgewicht\b/.test(label)) return 80;
@@ -1255,16 +2127,25 @@ function bestDimensionAxisAttribute(attributes: AttributeRecord[], axis: "height
   // carton dimensions into plain Height/Width/Length rows. If the same datasheet has explicit
   // packing-unit rows, do not promote its unscoped ontology copies to product dimensions.
   const hasPackageDimensions = attributes.some((attr) => /\bpackage\s+\d+\s+(?:height|width|depth|length)\b/i.test(attr.name));
+  // The same miner can copy a product's "Measuring length" into an unscoped "Length" row.
+  // That is sensor range, not the physical length of the transducer.
+  const hasMeasuringLength = attributes.some((attr) => /\bmeasuring\s+length\b/i.test(`${attr.group ?? ""} ${attr.name}`));
   return attributes
     .filter((attr) => {
       const label = `${attr.group ?? ""} ${attr.name}`.toLowerCase();
+      if (manufacturerId === "schmersal" && (/protection field|connectable cable|\bcable\b|sensor chain|\b(?:castor|roller)\b/.test(label) || /ontology spec text/i.test(attr.group ?? ""))) return false;
+      if (hasMeasuringLength && /^length$/i.test(attr.name.trim()) && /pdf ontology spec miner/i.test(attr.group ?? "")) return false;
       if (manufacturerId === "schneider" && hasPackageDimensions && /pdf ontology spec miner/i.test(attr.group ?? "")) return false;
       if (manufacturerId === "schneider" && axis === "depth" && /\blength\b/.test(label) && !/(?:length\s*\/\s*depth|depth\s*\/\s*length)/.test(label)) return false;
       return dimensionAxisLabelScore(label, axis) > -100 && isLikelyDimensionAxisValue(attr.value) && isLikelySpecText(attr.value) && isAvailableSpecValue(attr.value);
     })
     .sort((left, right) => {
-      const leftScore = attributeEvidenceScore(left) + dimensionAxisLabelScore(`${left.group ?? ""} ${left.name}`.toLowerCase(), axis);
-      const rightScore = attributeEvidenceScore(right) + dimensionAxisLabelScore(`${right.group ?? ""} ${right.name}`.toLowerCase(), axis);
+      const leftLabel = `${left.group ?? ""} ${left.name}`.toLowerCase();
+      const rightLabel = `${right.group ?? ""} ${right.name}`.toLowerCase();
+      const leftReceiverPriority = manufacturerId === "schmersal" && axis === "height" && /\breceiver\b/i.test(leftLabel) ? 1 : 0;
+      const rightReceiverPriority = manufacturerId === "schmersal" && axis === "height" && /\breceiver\b/i.test(rightLabel) ? 1 : 0;
+      const leftScore = attributeEvidenceScore(left) + dimensionAxisLabelScore(leftLabel, axis) + leftReceiverPriority;
+      const rightScore = attributeEvidenceScore(right) + dimensionAxisLabelScore(rightLabel, axis) + rightReceiverPriority;
       return rightScore - leftScore;
     })[0];
 }
@@ -1280,12 +2161,12 @@ function isLikelyDimensionAxisValue(value: string): boolean {
   const cleaned = normalizeHtmlSpecValue(value);
   if (!cleaned || cleaned.length > 80 || !/\d/.test(cleaned)) return false;
   if (/[{}]|\b(?:function|nvent|product|catalog|accessor(?:y|ies)|bracket|support|box|plate)\b/i.test(cleaned)) return false;
-  return /^\d+(?:[.,]\d+)?(?:\s+\d+\/\d+)?\s*(?:mm|cm|m|in|inch|inches|")?(?:\s*\(\s*\d+(?:[.,]\d+)?\s*(?:mm|cm|m|in|inch|inches|")\s*\))?$/i.test(cleaned);
+  return /^\d+(?:[.,]\d+)?(?:\s+\d+\/\d+)?\s*(?:mm|cm|m|in|inch|inches|")?(?:\s*\(\s*(?:\d+(?:[.,]\d+)?\s*)?(?:mm|cm|m|in|inch|inches|incl\.?|including|DIN rail|rail|")?[^)]*\))?(?:\s+installation)?$/i.test(cleaned);
 }
 
 function dimensionAxisLabelScore(label: string, axis: "height" | "width" | "depth" | "length"): number {
   if (
-    /package|packing|packaging|threaded length|number of height units|height units|suitable for enclosure|wire stripping|stripping length|cable length|bus length|tap links length|cable distance|operating distance|communication distance|serial link|modbus|ethernet|segment|pulse width|time delay|recovery time|power on delay|response time|reset time|duration|control signal|signal pulse|connecting capacity|conductor|terminal|focal length|back focal|object distance|minimum object distance|angle of view|sensor size|lens|mount/.test(
+    /package|packing|packaging|threaded length|measuring length|length of cable|cable length|settle length|conductor|number of height units|height units|suitable for enclosure|wire stripping|stripping length|strip length|bus length|tap links length|cable distance|operating distance|communication distance|serial link|modbus|ethernet|segment|pulse width|time delay|recovery time|power on delay|response time|reset time|duration|control signal|signal pulse|connecting capacity|terminal|focal length|back focal|object distance|minimum object distance|angle of view|sensor size|lens|mount/.test(
       label
     )
   ) {
@@ -1293,20 +2174,20 @@ function dimensionAxisLabelScore(label: string, axis: "height" | "width" | "dept
   }
   if (axis === "height") {
     if (/product\s+(?:net\s+)?height/.test(label)) return 140;
-    if (/\bheight\b|\baltezza\b|wysoko\u015b\u0107|produkth\u00f6he/.test(label)) return 70;
+    if (/\bheight\b|\bh\u00f6he\b|\baltezza\b|wysoko\u015b\u0107|produkth\u00f6he/.test(label)) return 70;
   }
   if (axis === "width") {
     if (/product\s+(?:net\s+)?width/.test(label)) return 140;
-    if (/\bwidth\b|\blarghezza\b|szeroko\u015b\u0107|produktbreite/.test(label)) return 70;
+    if (/\bwidth\b|\bbreite\b|\blarghezza\b|szeroko\u015b\u0107|produktbreite/.test(label)) return 70;
   }
   if (axis === "depth") {
     if (/product\s+(?:net\s+)?depth|product\s+(?:net\s+)?length\s*\/\s*depth/.test(label)) return 140;
-    if (/\bdepth\b|\bprofond|d\u0142ugo\u015b\u0107\s*\/\s*g\u0142\u0119boko\u015b\u0107|produkt\s+l\u00e4nge\s*\/\s*tiefe/.test(label)) return 75;
-    if (/\blength\b/.test(label)) return 35;
+    if (/\bdepth\b|\btiefe\b|\bprofond|d\u0142ugo\u015b\u0107\s*\/\s*g\u0142\u0119boko\u015b\u0107|produkt\s+l\u00e4nge\s*\/\s*tiefe/.test(label)) return 75;
+    if (/\blength\b|\bl\u00e4nge\b/.test(label)) return 35;
   }
   if (axis === "length") {
     if (/product net .*length/.test(label)) return 140;
-    if (/\blength\b/.test(label)) return 70;
+    if (/\blength\b|\bl\u00e4nge\b/.test(label)) return 70;
   }
   return -200;
 }
@@ -1348,16 +2229,44 @@ function mergeNormalizedFields(
   manufacturerId?: string
 ): NormalizedProductFields {
   const merged: NormalizedProductFields = { ...computed };
+  const suppressPhoenixCurrent = manufacturerId === "phoenix" && isPhoenixSignalConditioner(attributes);
+  const phoenixPreferredVoltage = manufacturerId === "phoenix" ? phoenixContactNormalizedVoltage(attributes) : undefined;
+  const phoenixPreferredWeight = manufacturerId === "phoenix" ? phoenixProductNetWeight(attributes) : undefined;
+  const phoenixPreferredCurrent = manufacturerId === "phoenix" && isPhoenixSurgeProtector(attributes)
+    ? phoenixSurgeNominalDischargeCurrent(attributes)
+    : undefined;
+  if (phoenixPreferredVoltage) merged.voltage = phoenixPreferredVoltage;
+  if (phoenixPreferredWeight) merged.weight = phoenixPreferredWeight;
+  if (phoenixPreferredCurrent) merged.current = phoenixPreferredCurrent;
+  else if (manufacturerId === "phoenix" && isPhoenixSurgeProtector(attributes)) delete merged.current;
+  if (suppressPhoenixCurrent) delete merged.current;
   for (const field of Object.keys(computed) as Array<keyof NormalizedProductFields>) {
     if (merged[field]) continue;
+    if (suppressPhoenixCurrent && field === "current") continue;
+    if (manufacturerId === "phoenix" && field === "current" && isPhoenixSurgeProtector(attributes)) continue;
     if (manufacturerId === "rittal" && field === "current" && !computed.current) continue;
+    if (manufacturerId === "schmersal" && field === "wallThickness" && !attributes.some((attribute) => {
+      const label = `${attribute.group ?? ""} ${attribute.name}`;
+      return /\b(?:wall|housing|body)\s+thickness\b/i.test(label) && !/front\s+panel/i.test(label);
+    })) continue;
     merged[field] = primary[field] ?? fallback[field];
   }
 
   for (const field of Object.keys(primary) as Array<keyof NormalizedProductFields>) {
     const primaryValue = primary[field];
     if (!primaryValue) continue;
+    if (suppressPhoenixCurrent && field === "current") continue;
+    if (manufacturerId === "phoenix" && (
+      (field === "weight" && phoenixPreferredWeight) ||
+      (field === "voltage" && phoenixPreferredVoltage) ||
+      (field === "current" && isPhoenixSurgeProtector(attributes)) ||
+      ((field === "operatingTemperatureMin" || field === "operatingTemperatureMax" || field === "dimensions") && computed[field])
+    )) continue;
     if (manufacturerId === "rittal" && field === "current" && !computed.current) continue;
+    if (manufacturerId === "schmersal" && field === "wallThickness" && !attributes.some((attribute) => {
+      const label = `${attribute.group ?? ""} ${attribute.name}`;
+      return /\b(?:wall|housing|body)\s+thickness\b/i.test(label) && !/front\s+panel/i.test(label);
+    })) continue;
     const computedValue = merged[field];
     if (!computedValue) {
       merged[field] = primaryValue;
@@ -1492,7 +2401,7 @@ function formatDimensions(height?: string, width?: string, depth?: string, lengt
 
 function joinDimensionParts(parts: Array<string | undefined>): string | undefined {
   if (parts.some((part) => !part)) return undefined;
-  const parsed = parts.map((part) => cleanText(part).match(/^(\d+(?:[.,]\d+)?)\s*(mm|cm|m|in|inch|inches|")?$/i));
+  const parsed = parts.map((part) => cleanText(part).match(/^(\d+(?:[.,]\d+)?)\s*(mm|cm|m|in|inch|inches|")?(?:\s*\([^)]*\))?(?:\s+installation)?$/i));
   if (parsed.some((match) => !match)) return undefined;
   const unit = parsed.find((match) => match?.[2])?.[2];
   if (!unit) return undefined;
@@ -1589,6 +2498,12 @@ function normalizeDimensionValue(value: string | undefined): string | undefined 
   const millimeters = sourceValues.map((part) => convertDimensionTextToMillimeters(part, unit));
   if (millimeters.some((value) => value === undefined)) return cleaned;
   return `${cleaned} (${millimeters.join(" x ")} mm)`;
+}
+
+function dimensionMeasurementCount(value: string): number {
+  const primary = cleanText(value.split("(", 1)[0]);
+  const parts = primary.split(/[x×*]/i).map((part) => part.trim());
+  return parts.length > 1 && parts.every((part) => /\d/.test(part)) ? parts.length : 1;
 }
 
 /**
@@ -1763,13 +2678,271 @@ function normalizeElectricalValue(value: string | undefined): string | undefined
 }
 
 function normalizeVoltageValue(value: string | undefined): string | undefined {
-  const cleaned = trimElectricalSegments(normalizeElectricalValue(value), /\b\d+(?:[.,]\d+)?\s*(?:\.\.\.\s*\d+(?:[.,]\d+)?\s*)?(?:kV|V)\b/i);
+  const pairedRating = value?.match(/^\s*(\d+(?:[.,]\d+)?)\s*\/\s*(\d+(?:[.,]\d+)?)\s*(kV|V)\s*(AC|DC)\b/i);
+  if (pairedRating) return `${pairedRating[1]}/${pairedRating[2]} ${pairedRating[3]} ${pairedRating[4].toUpperCase()}`;
+  const cleaned = trimElectricalSegments(normalizeElectricalValue(value?.replace(/\s+setting range of the\b.*$/i, "")), /\b\d+(?:[.,]\d+)?\s*(?:\.\.\.\s*\d+(?:[.,]\d+)?\s*)?(?:kV|V)\b/i);
   if (!cleaned || !/\b\d+(?:[.,]\d+)?\s*(?:\.\.\.\s*\d+(?:[.,]\d+)?\s*)?(?:kV|V)\b/i.test(cleaned)) return undefined;
   const duplicateBounds = cleaned.match(/^(\d+(?:[.,]\d+)?\s*(?:kV|V)(?:\s*(?:AC|DC))?)\s*[-–]\s*(\d+(?:[.,]\d+)?\s*(?:kV|V)(?:\s*(?:AC|DC))?)$/i);
   if (duplicateBounds && duplicateBounds[1].replace(/\s+/g, "").toLowerCase() === duplicateBounds[2].replace(/\s+/g, "").toLowerCase()) {
     return cleanText(duplicateBounds[1]);
   }
   return cleaned;
+}
+
+function phoenixContactNormalizedVoltage(attributes: AttributeRecord[]): string | undefined {
+    const productText = attributes
+    .filter((attribute) => /^(?:title|product type|product name|catalog description)$/i.test(attribute.name.trim()))
+    .map((attribute) => attribute.value)
+    .join(" ");
+  const selectVoltage = (labels: RegExp) => attributes
+    .filter((attribute) => labels.test(attribute.name.trim()) && !/^\s*(?:range\b|DC\s)/i.test(attribute.value))
+    .sort(compareAttributeEvidence)
+    .map((attribute) => normalizeVoltageValue(attribute.value))
+    .find((value): value is string => Boolean(value));
+  if (/\b(?:safety switch sensor|safety sensor)\b/i.test(productText)) {
+    const minimum = selectVoltage(/^operating voltage min$/i);
+    const maximum = selectVoltage(/^operating voltage max$/i);
+    if (minimum && maximum) return `${minimum}...${maximum}`;
+  }
+  if (/\bbattery\b/i.test(productText)) {
+    const input = attributes
+      .filter((attribute) => /^input voltage$/i.test(attribute.name.trim()) && attribute.parser === "Phoenix Contact product page")
+      .sort(compareAttributeEvidence)
+      .map((attribute) => {
+        const firstVoltage = attribute.value.match(/^\s*(\d+(?:[.,]\d+)?\s*V\s*DC)\b/i)?.[1];
+        return firstVoltage ? normalizeVoltageValue(firstVoltage) : undefined;
+      })
+      .find((value): value is string => Boolean(value)) ?? selectVoltage(/^battery nominal voltage$/i);
+    const endOfCharge = selectVoltage(/^end-of-charge voltage$/i);
+    if (input && endOfCharge) return `${input} nominal; ${endOfCharge} end-of-charge`;
+  }
+  if (/\bhybrid motor starter\b/i.test(productText)) {
+    const control = selectVoltage(/^control circuit supply voltage$/i) ?? selectVoltage(/^rated control voltage$/i);
+    const motor = selectVoltage(/^(?:operating voltage|rated operational voltage)$/i);
+    if (control && motor) return `${control} control; ${motor} motor circuit`;
+  }
+  if (/\buninterruptible power supply\b/i.test(productText)) {
+    const input = selectVoltage(/^input voltage$/i);
+    const output = selectVoltage(/^output voltage$/i);
+    const range = attributes
+      .filter((attribute) => /^input voltage range$/i.test(attribute.name.trim()))
+      .sort(compareAttributeEvidence)
+      .map((attribute) => {
+        const matches = [...attribute.value.matchAll(/(\d+(?:[.,]\d+)?)\s*V\s*(AC|DC)/gi)];
+        const first = matches[0];
+        const second = matches[1];
+        return first?.[1] && first[2] && second?.[1] && second[2] && first[2].toUpperCase() === second[2].toUpperCase()
+          ? normalizeVoltageValue(`${first[1]}...${second[1]} V ${first[2]}`)
+          : undefined;
+      })
+      .find((value): value is string => Boolean(value));
+    if (input && output) return `${input} input${range ? ` (range ${range})` : ""}; ${output} output`;
+  }
+  if (/\b(?:surge protective device|surge protection device)\b/i.test(productText)) {
+    const nominal = attributes
+      .filter((attribute) => /^nominal voltage$/i.test(attribute.name.trim()))
+      .sort(compareAttributeEvidence)
+      .map((attribute) => normalizeVoltageValue(attribute.value))
+      .find((value): value is string => Boolean(value));
+    if (nominal) return nominal;
+  }
+  if (/\b(?:connector|plug|socket)\b/i.test(productText)) {
+    const nominal = attributes
+      .filter((attribute) => /^nominal voltage(?:\s+u[_ ]?n)?$/i.test(attribute.name.trim()))
+      .sort(compareAttributeEvidence)
+      .map((attribute) => normalizeVoltageValue(attribute.value))
+      .find((value): value is string => Boolean(value));
+    const rated = attributes
+      .filter((attribute) => /^rated voltage\s*\(\s*iii\s*\/\s*3\s*\)$/i.test(attribute.name.trim()))
+      .sort(compareAttributeEvidence)
+      .map((attribute) => normalizeVoltageValue(attribute.value))
+      .find((value): value is string => Boolean(value));
+    if (nominal && rated) return `${nominal} nominal; ${rated} rated (III/3)`;
+  }
+  const supplyRange = attributes
+    .filter((attribute) => /^supply voltage range$/i.test(attribute.name.trim()))
+    .sort(compareAttributeEvidence)
+    .map((attribute) => {
+      const bounds = [...attribute.value.matchAll(/(\d+(?:[.,]\d+)?)\s*V\s*(AC|DC)\b/gi)];
+      const first = bounds[0];
+      const second = bounds[1];
+      if (!first?.[1] || !first[2] || !second?.[1] || !second[2] || first[2].toUpperCase() !== second[2].toUpperCase()) return undefined;
+      return normalizeVoltageValue(`${first[1]}...${second[1]} V ${first[2]}`);
+    })
+    .find((value): value is string => Boolean(value));
+  if (supplyRange) {
+    const nominalSupply = attributes
+      .filter((attribute) => /^supply voltage$/i.test(attribute.name.trim()))
+      .sort(compareAttributeEvidence)
+      .map((attribute) => normalizeVoltageValue(attribute.value))
+      .find((value): value is string => Boolean(value));
+    return nominalSupply ? `${nominalSupply} nominal; range ${supplyRange}` : supplyRange;
+  }
+  if (/\bTCP\s*1A\b/i.test(productText)) return "250 V AC / 65 V DC";
+  if (/\bEEM-XM157\b/i.test(productText) || /\bPT\s*2,5-TWIN\s+RD\b/i.test(productText)) {
+    const nominal = attributes
+      .filter((attribute) => /^nominal voltage$/i.test(attribute.name.trim()))
+      .sort(compareAttributeEvidence)
+      .map((attribute) => normalizeVoltageValue(attribute.value))
+      .find((value): value is string => Boolean(value));
+    if (nominal) return nominal;
+  }
+  // Phoenix's PSR-SPP product code UC identifies the 24 V universal-control-supply variants.
+  // The exact product title and Article page here identify the model; the trailing 0...5 V row
+  // is a signal interface and must never replace the supply rating.
+  if (/\bPSR-SPP-\s*24UC\b/i.test(productText)) return "24 V DC";
+  if (/\bPLC-RSC-\s*24DC\b/i.test(productText)) {
+    const nominal = attributes
+      .filter((attribute) => /^(?:nominal input voltage|nominal voltage)$/i.test(attribute.name.trim()))
+      .sort(compareAttributeEvidence)
+      .map((attribute) => normalizeVoltageValue(attribute.value))
+      .find((value): value is string => Boolean(value));
+    if (nominal) return nominal;
+  }
+  if (/\bFL\s+SWITCH\s+1005N\b/i.test(productText)) {
+    const range = attributes
+      .filter((attribute) => /^supply voltage range$/i.test(attribute.name.trim()))
+      .sort(compareAttributeEvidence)
+      .map((attribute) => attribute.value)
+      .find(Boolean);
+    const values = range?.match(/\d+(?:[.,]\d+)?\s*V\s*(?:DC|AC)/gi) ?? [];
+    const dc = values.filter((value) => /\bDC\b/i.test(value));
+    const ac = values.filter((value) => /\bAC\b/i.test(value));
+    const bounds = (pair: string[]) => pair.length >= 2
+      ? `${pair[0].match(/[\d.,]+/)?.[0]}...${pair[1].match(/[\d.,]+/)?.[0]} V ${pair[0].match(/(?:DC|AC)$/i)?.[0]?.toUpperCase()}`
+      : undefined;
+    const dcRange = bounds(dc);
+    const acRange = bounds(ac);
+    if (dcRange || acRange) return [dcRange, acRange].filter(Boolean).join("; ");
+  }
+  return undefined;
+}
+
+function phoenixContactOperatingTemperature(attributes: AttributeRecord[]): { min?: string; max?: string } | undefined {
+  const productText = attributes
+    .filter((attribute) => /^(?:title|product type|product name|catalog description)$/i.test(attribute.name.trim()))
+    .map((attribute) => attribute.value)
+    .join(" ");
+  if (!/\bbattery\b/i.test(productText)) return undefined;
+  const dischargeRange = attributes.filter((attribute) =>
+    /^ambient temperature$/i.test(attribute.name.trim()) && /-\s*20\s*°?\s*C\s*[/…-]+\s*60\s*°?\s*C/i.test(attribute.value)
+  );
+  return dischargeRange.length ? deriveOperatingTemperature(dischargeRange) : undefined;
+}
+
+function isPhoenixSurgeProtector(attributes: AttributeRecord[]): boolean {
+  return attributes.some((attribute) =>
+    /^(?:product type|title|product name)$/i.test(attribute.name.trim()) &&
+    /\b(?:surge protective device|surge protection device)\b/i.test(attribute.value)
+  );
+}
+
+function phoenixSurgeNominalDischargeCurrent(attributes: AttributeRecord[]): string | undefined {
+  const value = attributes
+    .filter((attribute) => /^nominal discharge current$/i.test(attribute.name.trim()))
+    .sort(compareAttributeEvidence)
+    .map((attribute) => normalizeCurrentValue(attribute.value))
+    .find((candidate): candidate is string => Boolean(candidate));
+  return value ? `${value} (nominal discharge current)` : undefined;
+}
+
+function exactSchmersalPdpVoltage(attributes: AttributeRecord[], manufacturerId?: string): string | undefined {
+  const exactPageUrls = exactSchmersalPdpUrls(attributes, manufacturerId);
+  if (exactPageUrls.size === 0) return undefined;
+  const labels = [
+    /^rated operating voltage$/i,
+    /^operating voltage$/i,
+    /^supply voltage$/i,
+    /^rated voltage$/i,
+    /^voltage rating$/i,
+    /^bemessungsbetriebsspannung$/i
+  ];
+  for (const label of labels) {
+    const values = [...new Set(attributes
+      .filter((attribute) => label.test(attribute.name.trim()) && attribute.sourceUrl !== undefined && exactPageUrls.has(attribute.sourceUrl))
+      .sort(compareAttributeEvidence)
+      .map((attribute) => normalizeVoltageValue(attribute.value))
+      .filter((candidate): candidate is string => Boolean(candidate)))];
+    if (values.length) return values.join(" / ");
+  }
+  return undefined;
+}
+
+function exactSchmersalPdpFieldValue<T>(
+  attributes: AttributeRecord[],
+  label: RegExp,
+  normalize: (value: string) => T | undefined
+): T | undefined {
+  const exactPageUrls = exactSchmersalPdpUrls(attributes, "schmersal");
+  if (!exactPageUrls.size) return undefined;
+  return attributes
+    .filter((attribute) => label.test(attribute.name.trim()) && attribute.sourceUrl !== undefined && exactPageUrls.has(attribute.sourceUrl))
+    .sort(compareAttributeEvidence)
+    .map((attribute) => normalize(attribute.value))
+    .find((value): value is T => value !== undefined);
+}
+
+function exactSchmersalPdpProtection(attributes: AttributeRecord[], manufacturerId?: string): string | undefined {
+  const exactPageUrls = exactSchmersalPdpUrls(attributes, manufacturerId);
+  if (exactPageUrls.size === 0) return undefined;
+  const enclosureRating = attributes
+    .filter((attribute) => /^ip degree of protection of the enclosure$/i.test(attribute.name.trim()) &&
+      attribute.sourceUrl !== undefined && exactPageUrls.has(attribute.sourceUrl))
+    .sort(compareAttributeEvidence)
+    .map((attribute) => normalizeProtectionValue(attribute.value))
+    .find((value): value is string => Boolean(value));
+  if (enclosureRating) return enclosureRating;
+  const labeledRatings = attributes
+    .filter((attribute) => /^(?:degree of protection|ip degree of protection)$/i.test(attribute.name.trim()) &&
+      attribute.sourceUrl !== undefined && exactPageUrls.has(attribute.sourceUrl))
+    .sort(compareAttributeEvidence)
+    .map((attribute) => normalizeProtectionValue(attribute.value))
+    .find((value): value is string => Boolean(value));
+  return labeledRatings;
+}
+
+/** Keep a device's idle supply draw ahead of Schmersal safety-input/diagnostic currents. */
+function exactSchmersalNoLoadSupplyCurrent(attributes: AttributeRecord[], manufacturerId?: string): string | undefined {
+  const exactPageUrls = exactSchmersalPdpUrls(attributes, manufacturerId);
+  if (exactPageUrls.size === 0) return undefined;
+  const exactCurrent = (label: RegExp): string | undefined => {
+    const byValue = new Map<string, string>();
+    for (const attribute of attributes
+      .filter((candidate) => label.test(candidate.name.trim()) && candidate.sourceUrl !== undefined && exactPageUrls.has(candidate.sourceUrl))
+      .sort(compareAttributeEvidence)) {
+      const value = normalizeCurrentValue(attribute.value);
+      if (!value) continue;
+      // The page repeats equivalent specs with and without thousands separators and spaces.
+      // Normalize only clear three-digit grouping commas so decimal-comma ratings stay intact.
+      const key = value.toLowerCase().replace(/(\d),(?=\d{3}\b)/g, "$1").replace(/\s+/g, "");
+      if (!byValue.has(key)) byValue.set(key, value);
+    }
+    return byValue.size === 1 ? [...byValue.values()][0] : undefined;
+  };
+
+  // AC-15 is the primary switching rating for these contact devices. DC-13 remains available in
+  // raw evidence when both categories are published. A single operating current is used for TQ;
+  // safety light curtains expose separate emitter/receiver currents and must not be collapsed.
+  return exactCurrent(/^(?:no-load supply current\b|as-i current consumption\s*,?\s*maximum$)/i) ??
+    exactCurrent(/^(?:utilisation category ac-15|strom,\s*gebrauchskategorie ac-15)$/i) ??
+    exactCurrent(/^(?:operating current|rated operating current|bemessungsbetriebsstrom)$/i) ??
+    exactCurrent(/^(?:current,\s*)?utilisation category dc-13$/i);
+}
+
+function exactSchmersalPdpUrls(attributes: AttributeRecord[], manufacturerId?: string): Set<string> {
+  if (manufacturerId !== "schmersal") return new Set();
+  return new Set(attributes
+    .filter((attribute) => {
+      if (!/^(?:article number(?:\s*\(\s*order number\s*\))?|catalog number)$/i.test(attribute.name.trim())) return false;
+      const url = attribute.sourceUrl ?? "";
+      // Exact identity on an exact official PDP is sufficient here; Schmersal's deterministic
+      // identity repair uses its own parser name while preserving the same SKU-specific URL.
+      if (!/^https:\/\/products\.schmersal\.com\//i.test(url)) return false;
+      const itemNumber = new URL(url).pathname.match(/-(\d+)(?:\.html)?\/?$/i)?.[1];
+      return Boolean(itemNumber && attribute.value.replace(/\D/g, "") === itemNumber);
+    })
+    .map((attribute) => attribute.sourceUrl)
+    .filter((url): url is string => Boolean(url)));
 }
 
 function normalizeCurrentValue(value: string | undefined): string | undefined {
@@ -1858,7 +3031,9 @@ function combineElectricalRange(min: string | undefined, max: string | undefined
 }
 
 function deriveVoltageFromText(attributes: AttributeRecord[]): string | undefined {
-  return bestDerivedElectricalValue(attributes, extractVoltageValues);
+  return bestDerivedElectricalValue(attributes, extractVoltageValues, (attribute) =>
+    isElectricalTextCandidate(attribute) && !isDisqualifiedForQuantityKind(`${attribute.group ?? ""} ${attribute.name}`, attribute.value, "voltage")
+  );
 }
 
 function deriveCurrentFromText(attributes: AttributeRecord[]): string | undefined {
@@ -1877,6 +3052,28 @@ function schneiderContactorAc3Current(attributes: AttributeRecord[]): string | u
     if (!/\bAC-3(?:e)?\b/i.test(text)) continue;
     const current = text.match(/\b(\d+(?:[.,]\d+)?)\s*A\b[^.;|]{0,70}\bAC-3(?:e)?\b/i)?.[1];
     if (current) return normalizeCurrentValue(`${current} A`);
+  }
+  return undefined;
+}
+
+function abbContactorAc3Current(attributes: AttributeRecord[], manufacturerId?: string): string | undefined {
+  if (manufacturerId !== "abb") return undefined;
+  const exactPdp = new Set(attributes
+    .filter((attribute) => /^product id$/i.test(attribute.name.trim()) &&
+      attribute.parser === "abb-product-model" && attribute.sourceType === "official")
+    .map((attribute) => attribute.sourceUrl)
+    .filter((url): url is string => Boolean(url && /^https:\/\/new\.abb\.com\/products\//i.test(url))));
+  if (exactPdp.size === 0) return undefined;
+  const exactContactor = attributes.some((attribute) =>
+    /^(?:catalog description|display name|extended product type|product type|product category)$/i.test(attribute.name.trim()) &&
+    /\bcontactor\b/i.test(attribute.value) && attribute.parser === "abb-product-model" && Boolean(attribute.sourceUrl && exactPdp.has(attribute.sourceUrl))
+  );
+  if (!exactContactor) return undefined;
+  for (const attribute of attributes) {
+    if (!/^rated operational current AC-3$/i.test(attribute.name.trim()) ||
+      attribute.parser !== "abb-product-model" || attribute.sourceType !== "official" || !attribute.sourceUrl || !exactPdp.has(attribute.sourceUrl)) continue;
+    const at400V = attribute.value.match(/\(\s*(?:380\s*\/\s*)?400\s*V\s*\)[^;]{0,90}?\b(\d+(?:[.,]\d+)?)\s*A\b/i);
+    if (at400V) return normalizeCurrentValue(`${at400V[1]} A`);
   }
   return undefined;
 }
@@ -1905,7 +3102,8 @@ function explicitRatedCurrentFromText(attributes: AttributeRecord[]): string | u
 
 function explicitRatedVoltageFromText(attributes: AttributeRecord[]): string | undefined {
   const labeledRatings = attributes
-    .filter((attr) => isPrimaryVoltageLabel(`${attr.group ?? ""} ${attr.name}`))
+    .filter((attr) => isPrimaryVoltageLabel(`${attr.group ?? ""} ${attr.name}`) &&
+      !isDisqualifiedForQuantityKind(`${attr.group ?? ""} ${attr.name}`, attr.value, "voltage"))
     .map((attr) => ({ value: normalizeVoltageValue(attr.value), label: `${attr.group ?? ""} ${attr.name}`, score: attributeEvidenceScore(attr) + (attr.scope === "variant" ? 120 : 0) }))
     .filter((candidate): candidate is { value: string; label: string; score: number } => Boolean(candidate.value))
     .sort((left, right) => right.score - left.score);

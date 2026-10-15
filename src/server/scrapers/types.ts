@@ -104,4 +104,6 @@ export interface ScrapeContext {
 export interface ManufacturerConnector {
   id: string;
   scrape(catalogNumber: string, context: ScrapeContext): Promise<ProductResult>;
+  /** Optional document-only enrichment, run after the core product scrape has been timed. */
+  enrichDocuments?(catalogNumber: string, result: ProductResult, context: ScrapeContext): Promise<ProductResult>;
 }

@@ -185,6 +185,22 @@ describe("device sheet map", () => {
   });
 });
 
+describe("PLC I/O module attribute mapping", () => {
+  it("uses the official configurable-input fact for the PLC yes/no enum", () => {
+    const c = ctx({
+      attributes: [{
+        group: "ABB Verified Product Data",
+        name: "Analog Inputs Configurable",
+        value: "Yes",
+        sourceType: "official",
+        confidence: 0.99
+      }]
+    }, "1SAP250600R0001", "I/O Module");
+    expect(resolveProperty("AAM486", "AAM486", c)).toBe("Yes");
+  });
+
+});
+
 describe("Master PDT mapping coverage", () => {
   it("has resolver coverage for the priority PDT tabs", async () => {
     const wb = new ExcelJS.Workbook();

@@ -602,6 +602,7 @@ export const PROPERTY_ONTOLOGY: CanonicalProperty[] = [
     key: "wallThickness",
     label: "Wall thickness",
     unitKind: "length",
+    exclude: [/\bfront\s+panel\b/i],
     synonyms: [
       /wall\s+thickness/i,
       /material\s+thickness/i,
@@ -2449,6 +2450,10 @@ export function isDisqualifiedForQuantityKind(label: string, value: string, kind
     // "switching current" are deliberately NOT here: for a relay or thermostat those ARE the contact
     // current rating in A (see the nVent thermostat test).
     if (/\b(?:nominal\s+)?discharge\s+current\b/i.test(label)) return true;
+    if (/\bSCCR\b/i.test(text)) return true;
+    // Family tables often flatten a list of sibling supply ratings into one value (for example
+    // "5 A / 10 A / 15 A / 20 A"). It is not a rating for the selected catalog item.
+    if (/\b(?:output|rated|nominal)\s+current\b/i.test(label) && /\d+(?:[.,]\d+)?\s*A\s*(?:\/|,|;|\bor\b)\s*\d+(?:[.,]\d+)?\s*A/i.test(value)) return true;
     if (/\bimpulse\s+current\b/i.test(label)) return true;
     if (/\blightning\s+(?:impulse\s+)?current\b/i.test(label)) return true;
     if (/\bshort-?circuit\b[^.;|]*\b(?:current|breaking|capacity)\b|\bcurrent\b[^.;|]*\bshort-?circuit\b/i.test(label)) return true;
@@ -2457,6 +2462,7 @@ export function isDisqualifiedForQuantityKind(label: string, value: string, kind
     if (/\b(?:inrush|starting|peak)\s+current\b/i.test(label)) return true;
   }
   if (kind === "voltage") {
+    if (/\b(?:signal|remote\s+(?:contact|indicator)|indicator)\b[^.;|]*\bvoltage\b|\bvoltage\b[^.;|]*\b(?:signal|remote\s+(?:contact|indicator)|indicator)\b/i.test(text)) return true;
     if (/\b(?:voltage drop|output voltage limits?|insulation voltage|impulse|withstand|protection level)\b/i.test(text)) return true;
     // RCD/RCCB datasheets (e.g. Doepke) publish a "min./max. operating voltage range of test circuit" —
     // the voltage the RCD's own trip-test button needs, not the product's rated supply voltage.

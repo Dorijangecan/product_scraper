@@ -56,30 +56,42 @@ const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
   // --- Automation (very specific names — these win over generic "controller"/"module") ---
   rule("Programmable Logic Controller", /\b(?:ac500|pm(?:57[2-3]|58[2-3]|59[0-2])(?:-eth)?)\b[\s\S]{0,80}\bprocessor module\b|\bprocessor module\b[\s\S]{0,80}\b(?:ac500|pm(?:57[2-3]|58[2-3]|59[0-2])(?:-eth)?)\b/i, 940),
   rule("Programmable Logic Controller", /\b(?:programmable logic controller|logic controller|controller cpu|cpu module|plc\s+(?:controller|module|processor|cpu|system)|(?:controller|module|processor|cpu|system)\s+plc|simatic\s+s7|modicon\s+(?:m\d+|m340|m580)|compactlogix|controllogix|micro8\d{2,3})\b/i, 920),
-  rule("Communication Gateway", /\b(?:communication gateway|fieldbus gateway|fieldbus coupler|bus coupler|protocol converter|protocol gateway|serial gateway|modbus gateway|profibus gateway|profinet gateway|ethernet gateway|rs[-\s]?232(?:\s+(?:to|converter|interface|module))?|rs[-\s]?485(?:\s+(?:to|converter|interface|module))?|rs[-\s]?422|serial[-\s]?to[-\s]?ethernet|communication module|communication interface|industrial gateway|iiot gateway|edge gateway)\b/i, 905),
-  // Meter product descriptions often mention a gateway as one application alongside monitoring;
-  // classify the product by its explicit power-meter type instead of that secondary use case.
-  rule("Power Meter", /\b(?:power\s+(?:xpert\s+)?meter|energy\s+meter|multifunction\s+meter|multi[-\s]?function\s+meter)\b/i, 935),
-  rule("I/O Module", /\b(?:i\/o|io|input\/output)\s+(?:module|expansion|system|block|card|interface)|(?:analog|digital)\s+(?:input|output)s?\s+(?:module|card|expansion)|remote\s+i\/o|io-link\s+(?:master|hub|module)\b/i, 900),
-  rule("HMI", /\b(?:hmi|human[\s-]?machine[\s-]?interface|operator panel|touch panel|touchscreen panel|display terminal|graphic terminal)\b/i, 890),
+  rule("Communication Gateway", /\b(?:communication gateway|fieldbus gateway|fieldbus coupler|bus coupler|protocol converter|protocol gateway|serial gateway|modbus gateway|profibus gateway|profinet gateway|ethernet gateway|hart multiplexer|rs[-\s]?232(?:\s+(?:to|converter|interface|module))?|rs[-\s]?485(?:\s+(?:to|converter|interface|module))?|rs[-\s]?422|serial[-\s]?to[-\s]?ethernet|communication module|communication interface|industrial gateway|iiot gateway|edge gateway)\b/i, 905),
+  // ABB calls panel power meters "network analyzers"; treat that explicit instrument class as a
+  // meter before incidental mounting or communications wording can win.
+  // Meter product descriptions often mention a gateway as one application alongside monitoring.
+  // Siemens SENTRON PAC products are described as "measuring devices" and may mention an
+  // internal power supply; classify the instrument by its primary function.
+  rule("Power Meter", /\b(?:SENTRON\s+7KM\s+(?:measuring\s+device|meter)|energy\s+counters?|energy[-\s]?measuring\s+devices?|power[-\s]?measuring\s+devices?)\b/i, 965),
+  rule("Power Meter", /\b(?:power\s+(?:xpert\s+)?meter|energy\s+meter|multifunction\s+meter|multi[-\s]?function\s+meter|network\s+analy[sz]ers?)\b/i, 940),
+  rule("I/O Module", /\b(?:i\/o|io|input\/output)\s+(?:module|expansion|system|block|card|interface)|(?:analog|digital)\s+(?:input|output)s?\s+(?:module|card|expansion)|remote\s+i\/o|io-link\s+(?:master|hub|module)\b/i, 1120),
+  rule("Signal Conditioner", /\b(?:input\s+)?signal\s+conditioners?|isolating\s+amplifiers?\b/i, 1140),
+  rule("HMI", /\b(?:hmi|human[\s-]?machine[\s-]?interface|operator panel|web panel|touch panel|touchscreen panel|display terminal|graphic terminal)\b/i, 890),
   rule("Motion Controller", /\b(?:motion controller|motion control(?:ler)? module|motion module|integrated motion module|analog servo module|servo module|\d+\s*[- ]?axis servo|axis servo,\s*analog|servo,\s*analog\/enc|cnc controller|servo controller)\b/i, 930),
 
   // --- Sensors (specific kinds first; generic "Sensor" is a fallback) ---
+  rule("Color Sensor", /\bcolor sensors?\b/i, 900),
+  rule("Photoelectric Distance Sensor", /\bphotoelectric distance sensors?\b|\blaser distance sensors?\b/i, 895),
+  rule("Fiber Optic Sensor", /\bfiber[-\s]?optic devices?\b|\bfiber[-\s]?optic sensors?\b|\bfibre[-\s]?optic devices?\b|\bfibre[-\s]?optic sensors?\b/i, 890),
   rule("Photoelectric Sensor", /\b(?:photoelectric|photo\s*electric|through-?beam|retro[-\s]?reflective|diffuse\s+(?:reflective|sensor)|fork\s+(?:sensor|light barrier)|light barrier|light grid)\b/i, 880),
   rule("Inductive Proximity Sensor", /\b(?:inductive\s+(?:proximity\s+)?sensor|inductive proximity|inductive switch|proximity switch|n[äa]herungsschalter|n[äa]herungssensor)\b/i, 875),
+  rule("Linear Position Sensor", /\bmagnetostrictive\s+linear\s+position\s+sensors?\b|\blinear\s+position\s+transducers?\b/i, 890),
+  rule("Magnetic Position Sensor", /\bmagnetic field positioning systems?\b|\bmagnetic positioning sensors?\b/i, 895),
   rule("Capacitive Sensor", /\bcapacitive\s+(?:(?:proximity|level)\s+)?(?:sensors?|switch(?:es)?)\b/i, 870),
   rule("Pressure Switch", /\bpressure\s+switch\b/i, 870),
-  rule("Pressure Sensor", /\bpressure\s+(?:sensor|transmitter|transducer)\b/i, 868),
-  rule("Temperature Sensor", /\b(?:temperature\s+(?:sensor|probe|transmitter|transducer)|thermocouple|\brtd\b|pt100|pt1000)\b/i, 866),
+  rule("Pressure Sensor", /\bpressure\s+(?:sensors?|transmitters?|transducers?)\b/i, 900),
+  rule("Temperature Sensor", /\b(?:temperature\s+(?:sensors?|probes?|transmitters?|transducers?)|thermocouple|\brtd\b|pt100|pt1000)\b/i, 900),
   // A Balluff condition-monitoring product publishes its sensor family together with a
   // "Cable with connector" connection detail.  The explicit family must outrank that
   // accessory wording, otherwise the device is routed as a Connector.
   rule("Sensor", /\bcondition\s+monitoring\s+sensors?\b/i, 865),
+  rule("Condition Monitoring Sensor", /\bcondition\s+monitoring\s+sensors?\b/i, 890),
   // The CMC III CAN bus access is a door-access monitoring unit whose integral sensor detects
   // door status; the generic word "door" must not turn it into a cabinet-cover accessory.
   rule("Access Sensor", /\bCMC\s*III\s+CAN[-\s]?bus\s+access\b/i, 885),
   rule("Access Sensor", /\baccess\s+sensors?\b/i, 858),
   rule("Ultrasonic Sensor", /\bultrasonic\s+(?:sensor|distance sensor|transducer)\b/i, 864),
+  rule("Radar Sensor", /\bradar\s+(?:sensors?|distance sensors?)\b/i, 890),
   rule("Magnetic Field Sensor", /\bmagnetic\s+field\s+sensor|hall[-\s]?effect\s+sensor\b/i, 862),
   rule("Vision Sensor", /\b(?:vision\s+sensor|smart\s*camera|industrial camera|machine vision)\b/i, 860),
   rule("RFID Device", /\b(?:rfid|read\/write\s+head|read[-\s]?write\s+head|(?:hf|uhf)\s+(?:reader|antenna|read\/write)|13\.56\s*mhz|rfid\s+(?:reader|antenna|transponder))\b/i, 850),
@@ -88,16 +100,21 @@ const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
   rule("Encoder", /\b(?:rotary encoders?|absolute encoders?|incremental encoders?|encoders?)\b/i, 840),
   rule("Solenoid Interlock", /\b(?:solenoid interlock|electromechanical guard lock(?:ing)?|safety interlock with solenoid|electromagnetic interlock)\b/i, 950),
   rule("Safety Sensor", /\b(?:safety sensor|safety light curtain|light curtain|safety mat|safety scanner|laser scanner|safety edge|two[-\s]?hand control|safety interlock|guard locking|guard[-\s]?lock(?:ing)? switch|safety door switch|door interlock)\b/i, 838),
-  rule("Sensor", /\b(?:sensors?|sensing|detector|limit switch|position switch|measuring range|measuring principle)\b/i, 620),
+  rule("Limit Switch", /\b(?:mechanical\s+(?:single|multiple)\s+position\s+limit switches?|limit switches?|position switches?)\b/i, 825),
+  rule("Sensor", /\b(?:sensors?|sensing|detector|measuring range|measuring principle)\b/i, 620),
 
   // --- Protection & control (specific breakers/starters first) ---
   rule("Supplementary Protector", /\b(?:supplementary protector|industrial miniature circuit breaker - supplementary protector)\b/i, 825),
   rule("Motor Circuit Breaker", /\bmotor\s+(?:protective\s+)?circuit[-\s]?breakers?|motor protection device|motor protection|manual motor (?:starter|protector)\b/i, 820),
-  rule("Molded Case Circuit Breaker", /\b(?:molded|moulded)\s+case\s+circuit[-\s]?breakers?|\bmccbs?\b/i, 815),
+  // ABB's Tmax XT is its molded-case breaker family; the product data often says only
+  // "Automatic Circuit Breaker" and leaves the family as SACE Tmax XT.
+  rule("Molded Case Circuit Breaker", /\b(?:molded|moulded)\s+case\s+circuit[-\s]?breakers?|\bmccbs?\b|\btmax\s+xt\b/i, 825),
   rule("Miniature Circuit Breaker", /\bminiature\s+circuit[-\s]?breakers?|\bmcbs?\b|leitungsschutzschalter|sicherungsautomat(?:en)?|\bls[-\s]?schalter\b/i, 814),
   rule("Residual Current Device", /\b(?:residual current device|residual current circuit[-\s]?breakers?|residual current operated circuit[-\s]?breakers? with integral overcurrent protection|\brcd\b|\brccb\b|\brcbo\b|fi[-/\s]*ls[-\s]?kombination|ground[-\s]?fault circuit[-\s]?interrupter|\bgfci\b|earth leakage)\b/i, 813),
   rule("Circuit Breaker", /\b(?:air\s+circuit[-\s]?breakers?|thermal overcurrent circuit[-\s]?breakers?|overcurrent circuit[-\s]?breakers?|circuit[-\s]?breakers?|(?:smart\s+)?breaker\s+chargers?|\bacbs?\b|leistungsschalter|disjoncteur|interruttore automatico)\b/i, 805),
-  rule("Safety Relay", /\b(?:safety relay|safety controller|safety module|emergency stop relay|e[-\s]?stop relay)\b/i, 803),
+  // The word "control relay" can arrive as a broad taxonomy category for a specific safety
+  // relay. Let the exact product wording outrank that generic classification.
+  rule("Safety Relay", /\b(?:safety relay|safety controller|safety module|emergency stop relay|e[-\s]?stop relay)\b/i, 1000),
   rule("Overload Relay", /\boverload relays?\b/i, 801),
   rule("Protective Relay", /\b(?:protective relay|overcurrent protective relay|ground overcurrent relay)\b/i, 802),
   // "schütz"/"schuetz" (contactor) must NOT match plain "schutz" (= protection, as in Schutzart) —
@@ -106,7 +123,8 @@ const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
   rule("Relay", /\b(?:interface relay|coupling relay|plug-?in relay|timer relay|time relays?|monitoring relay|relais|relej|\brelay\b)\b/i, 790),
   rule("Soft Starter", /\bsoft[-\s]?starter\b/i, 785),
   rule("Variable Speed Drive", /\b(?:variable speed drive|variable frequency drive|\bvfd\b|frequency (?:converter|inverter)|\bvsd\b|servo drive|ac drive|motor drive|inverter drive)\b|(?:\u53d8\u9891\u5668|\u53d8\u9891\u9a71\u52a8|\u9891\u7387\u8f6c\u6362\u5668)/i, 780),
-  rule("Motor Starter", /\b(?:motor starter|starter combination|reversing starter|direct[-\s]?on[-\s]?line starter|\bdol starter\b)\b/i, 775),
+  rule("Motor Starter", /\b(?:hybrid motor starter|electronic motor starter|motor starter|starter combination|reversing starter|direct[-\s]?on[-\s]?line starter|\bdol starter\b)\b/i, 1005),
+  rule("Fuse Switch Disconnector", /\bfuse\s+switch\s+disconnector\b|\bfuse[-\s]?switch\s+disconnector\b/i, 980),
   rule("Disconnect Switch", /\b(?:switch[-\s]?disconnector|disconnect(?:ing|or)?\s+switch|isolator switch|safety switch|rotary disconnect|main switch|load break switch|last[-\s]?trennschalter|trennschalter|sectionneur|sezionatore)\b/i, 770),
   // Eaton and other switch vendors sell the flexible shaft/handle operator separately from the
   // electrical switch body. Classify the mechanical operator as an accessory before the broad
@@ -118,13 +136,14 @@ const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
   rule("Switch", /\b(?:pushbutton switch)\b/i, 700),
 
   // --- Power / electrical ---
-  rule("UPS", /\b(?:\bups\b|uninterruptible power supply)\b/i, 760),
+  rule("UPS", /\b(?:\bups\b|uninterruptible power supply)\b/i, 1005),
   rule("Power Supply", /\b(?:power supply|power supply module|switched[-\s]?mode power supply|smps|regulated power supply|dc power supply|\bpsu\b|netzteil|stromversorgung|alimentation|alimentatore)\b/i, 755),
   rule("Transformer", /\b(?:control transformer|isolation transformer|step[-\s]?down transformer|step[-\s]?up transformer|toroidal transformer|\btransformer\b|transformator|\btrafo\b|transformateur|trasformatore)\b/i, 750),
+  rule("Current Transformer", /\bcurrent transformers?\b/i, 960),
   rule("Current Sensor", /\b(?:current sensor|current transducer|residual current monitor|current transformer|external neutral|homopolar toroid)\b/i, 745),
   rule("Generator", /\b(?:generator set|diesel generator|gas generator|standby generator|backup generator|\bgenerator\b)\b/i, 743),
   rule("Motor", /\b(?:servo motor|stepper motor|asynchronous motor|synchronous motor|three[-\s]?phase motor|ac motor|dc motor|induction motor|gear motor|gearmotor)\b/i, 740),
-  rule("Battery", /\b(?:battery pack|lithium battery|lead[-\s]?acid battery|\bnimh battery\b|\bnicd battery\b|energy storage module|traction battery|\bbattery\b)\b/i, 720),
+  rule("Battery", /\b(?:battery module|battery pack|lithium battery|lead[-\s]?acid battery|\bnimh battery\b|\bnicd battery\b|energy storage module|traction battery|\bbattery\b)\b/i, 1080),
 
   // --- Enclosures & mounting ---
   rule("Loadcenter", /\b(?:loadcenter|load center|panelboard|distribution board|consumer unit|switchgear assembly)\b/i, 770),
@@ -261,7 +280,11 @@ const ECLASS_TYPE_ENTRIES: EclassTypeEntry[] = [
   { code: "27242201", type: "Communication Gateway", match: "exact", notes: "PLC communication processor / gateway" },
   { code: "27242202", type: "Programmable Logic Controller", match: "exact", notes: "Programmable logic controller" },
   { code: "27242604", type: "I/O Module", match: "exact", notes: "PLC input/output module" },
+  { code: "27270801", type: "Photoelectric Distance Sensor", match: "exact", notes: "Balluff photoelectric distance sensor classification" },
+  { code: "27270905", type: "Fiber Optic Sensor", match: "exact", notes: "Fiber optic base unit / sensor" },
+  { code: "27270916", type: "Photoelectric Distance Sensor", match: "exact", notes: "Photoelectric distance sensor" },
   { code: "272709", type: "Photoelectric Sensor", match: "prefix", notes: "Optical/photoelectric sensors" },
+  { code: "27274301", type: "Magnetic Position Sensor", match: "exact", notes: "Magnetic position measuring system" },
   { code: "27270702", type: "Encoder", match: "exact", notes: "Linear position sensor" },
   { code: "27274304", type: "Encoder", match: "exact", notes: "Linear encoder" },
   { code: "27271101", type: "Sensor", match: "exact", notes: "Inclination sensor" },
@@ -285,7 +308,7 @@ interface EtimTypeEntry {
 }
 
 const ETIM_TYPE_ENTRIES: EtimTypeEntry[] = [
-  { code: "EC000030", type: "Sensor", notes: "Mechanical position / limit switch" },
+  { code: "EC000030", type: "Limit Switch", notes: "Mechanical position / limit switch" },
   { code: "EC000232", type: "Luminaire", notes: "Machine light / smart light" },
   { code: "EC000236", type: "Programmable Logic Controller", notes: "PLC CPU module" },
   { code: "EC001825", type: "Photoelectric Sensor", notes: "Photoelectric distance sensor" },
@@ -467,6 +490,12 @@ export function classifyDeviceType(result: ProductResult | undefined): DeviceTyp
   for (const entry of byType.values()) {
     if (entry.channels.size > 1) entry.score += MULTI_CHANNEL_BONUS * (entry.channels.size - 1);
   }
+
+  // Some Eaton MCCB pages publish the generic taxonomy row "Type: Circuit breaker" next to an
+  // exact product name that explicitly says "molded case circuit breaker". Preserve the specific
+  // device type for PDT routing; the generic row is a parent category, not contradictory evidence.
+  const explicitMccbName = /\b(?:molded|moulded)\s+case\s+circuit[-\s]?breakers?\b/i.test(result.title ?? "");
+  if (explicitMccbName && byType.has("Molded Case Circuit Breaker")) byType.delete("Circuit Breaker");
 
   let ranked = [...byType.values()].sort((left, right) => right.score - left.score);
   if (shouldPreferSpecificTextTypeOverBroadAccessory(ranked[0], ranked[1])) {
@@ -706,6 +735,16 @@ function attributeDeviceTypePriority(attr: AttributeRecord, manufacturerId?: str
     // specific type, which the type-rule specificity ranking handles independently.
     if (/^product type$/i.test(attr.name.trim())) {
       const value = cleanText(attr.value);
+      const exactSpecificType = result.attributes.some((candidate) =>
+        /^(?:type|product category)$/i.test(candidate.name.trim()) &&
+        candidate.parser === "eaton-product-page" &&
+        isExactEatonSkuPage(candidate.sourceUrl, result.catalogNumber) &&
+        DEVICE_TYPE_RULES.some((definition) => definition.pattern.test(candidate.value ?? ""))
+      );
+      // Eaton sometimes uses a broad ordered-product class such as "motor control accessory"
+      // while the exact PDP's separate Type field names the actual part (for example, a terminal
+      // block). Keep this application/family wording from outranking that concrete item type.
+      if (exactSpecificType && /\b(?:accessory|component|spare part|replacement part)\b/i.test(value)) return 1_000;
       // A bare class such as "Relay" is intentionally less specific than an exact SKU
       // category that says "protective relay". A concrete ordered item name such as "Power
       // supply unit" takes precedence over a broad family/category that happens to match a
@@ -715,7 +754,19 @@ function attributeDeviceTypePriority(attr: AttributeRecord, manufacturerId?: str
         : 1_250;
     }
     if (/^product category$/i.test(attr.name.trim())) return 1_120;
-    if (/^type$/i.test(attr.name.trim())) return 1_080;
+    if (/^type$/i.test(attr.name.trim())) {
+      const typeSpecificity = strongestDeviceTypeRulePriority(attr.value);
+      const broaderProductTypeSpecificity = Math.max(0, ...result.attributes
+        .filter((candidate) => /^product type$/i.test(candidate.name.trim()) &&
+          candidate.parser === "eaton-product-page" &&
+          isExactEatonSkuPage(candidate.sourceUrl, result.catalogNumber))
+        .map((candidate) => strongestDeviceTypeRulePriority(candidate.value)));
+      // Eaton's exact Type row can identify a narrower item type than its broad family Product
+      // Type (for example, "Miniature circuit breaker" vs. "IEC circuit breakers"). Promote
+      // that row only when the matched type rule itself is more specific.
+      if (typeSpecificity > broaderProductTypeSpecificity) return 1_320;
+      return 1_080;
+    }
     return 980;
   }
   // Rittal uses a direct "Design" PDP field for the functional subtype of CMC products
@@ -731,6 +782,11 @@ function attributeDeviceTypePriority(attr: AttributeRecord, manufacturerId?: str
   if (/\b(?:product name|item name|display name|catalog description|long description|short description|description)\b/.test(label)) return 650;
   if (/\b(?:alternateName|product label|device short name|model code|model number|extended product type)\b/i.test(attr.name)) return 500;
   return undefined;
+}
+
+function strongestDeviceTypeRulePriority(value: string | undefined): number {
+  const text = cleanText(value);
+  return Math.max(0, ...DEVICE_TYPE_RULES.filter((definition) => definition.pattern.test(text)).map((definition) => definition.priority));
 }
 
 function isExactEatonSkuPage(url: string | undefined, catalogNumber: string): boolean {

@@ -1,0 +1,52 @@
+[
+  {
+    "manufacturerId": "eaton",
+    "catalogNumber": "SP1-480Y",
+    "caseType": "electrical",
+    "expectedDeviceType": "Surge Protective Device",
+    "riskTags": ["cold", "sp1", "surge-protective-device", "277-480-wye", "representative-image"],
+    "expectedOfficialUrlPatterns": ["eaton\\.com/.*/skuPage\\.SP1-480Y\\.html"],
+    "requiredDocuments": ["datasheet"],
+    "expectedNormalizedFields": ["dimensions", "weight", "voltage"]
+  },
+  {
+    "manufacturerId": "eaton",
+    "catalogNumber": "276867",
+    "caseType": "electrical",
+    "expectedDeviceType": "Contactor",
+    "riskTags": ["cold", "dilm12-01", "contactor", "three-pole", "400vac-coil", "ac3-12a"],
+    "expectedOfficialUrlPatterns": ["eaton\\.com/.*/skuPage\\.276867\\.html"],
+    "requiredDocuments": ["datasheet"],
+    "expectedNormalizedFields": ["dimensions", "weight", "voltage", "current", "operatingTemperatureMin", "operatingTemperatureMax"]
+  },
+  {
+    "manufacturerId": "eaton",
+    "catalogNumber": "191796",
+    "caseType": "electrical",
+    "expectedDeviceType": "Safety Relay",
+    "riskTags": ["cold", "esr5-no-31-uc", "safety-relay", "24-230vac-dc", "3-non-delayed-paths"],
+    "expectedOfficialUrlPatterns": ["eaton\\.com/.*/skuPage\\.191796\\.html"],
+    "requiredDocuments": ["datasheet"],
+    "expectedNormalizedFields": ["dimensions", "weight", "voltage", "operatingTemperatureMin", "operatingTemperatureMax"]
+  },
+  {
+    "manufacturerId": "eaton",
+    "catalogNumber": "EP-401364",
+    "caseType": "electrical",
+    "expectedDeviceType": "HMI",
+    "riskTags": ["cold", "xv-303-70-c00-a00-2c", "hmi", "7-inch", "24-vdc", "representative-image"],
+    "expectedOfficialUrlPatterns": ["eaton\\.com/.*/skuPage\\.EP-401364\\.html"],
+    "requiredDocuments": ["datasheet"],
+    "expectedNormalizedFields": ["dimensions", "weight", "voltage"]
+  },
+  {
+    "manufacturerId": "eaton",
+    "catalogNumber": "DC1-1D5D8NB-A6SCE1",
+    "caseType": "electrical",
+    "expectedDeviceType": "Variable Speed Drive",
+    "riskTags": ["cold", "powerxl-dc1", "vfd", "115vac-1ph-in", "230vac-3ph-out", "5.8a", "representative-image"],
+    "expectedOfficialUrlPatterns": ["eaton\\.com/.*/skuPage\\.DC1-1D5D8NB-A6SCE1\\.html"],
+    "requiredDocuments": ["datasheet"],
+    "expectedNormalizedFields": ["dimensions", "weight", "voltage", "current"]
+  }
+]

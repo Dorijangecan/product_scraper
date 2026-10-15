@@ -1,4 +1,5 @@
 import { uniqueStrings } from "./text-util.js";
+import { requiredElectricalFields } from "../shared/product-requirements.js";
 import crypto from "node:crypto";
 import fs from "node:fs/promises";
 import os from "node:os";
@@ -470,39 +471,40 @@ export class RunManager {
           // Soft target vs hard ceiling: see ScrapeContext.deadline. The ceiling now includes
           // customer parsing, downloads and final enrichment as well as official scraping.
           let result: ProductResult;
-          result = await Promise.race([
-              connector.scrape(item.catalogNumber, {
+          const scrapeContext: ScrapeContext = {
+            http,
+            manufacturer,
+            runDir: layoutRef.runDir,
+            documentsDir: layoutRef.documentsDir,
+            signal: itemSignal,
+            deadline: itemDeadline,
+            browserRenderer,
+            discoveryMemo,
+            downloadDocuments: documentDownloadsForEnrichmentEnabled,
+            saveDocuments: downloadDocumentsEnabled,
+            imageOnly: imageOnlyMode,
+            ...this.learningContext(),
+            fallback: {
+              scrape: (catalogNumber, sources) => fallback.scrape(catalogNumber, sources, itemSignal)
+            },
+            downloadDocument: (doc) =>
+              this.downloadDocument(
                 http,
-                manufacturer,
-                runDir: layoutRef.runDir,
-                documentsDir: layoutRef.documentsDir,
-                signal: itemSignal,
-                deadline: itemDeadline,
-                browserRenderer,
-                discoveryMemo,
-                downloadDocuments: documentDownloadsForEnrichmentEnabled,
-                saveDocuments: downloadDocumentsEnabled,
-                imageOnly: imageOnlyMode,
-                ...this.learningContext(),
-                fallback: {
-                  scrape: (catalogNumber, sources) => fallback.scrape(catalogNumber, sources, itemSignal)
-                },
-                downloadDocument: (doc) =>
-                  this.downloadDocument(
-                    http,
-                    layout!.documentsDir,
-                    layout!.cadDir,
-                    layout!.imagesDir,
-                    manufacturer.shortName,
-                    item.catalogNumber,
-                    doc,
-                    localDownloads,
-                    itemSignal,
-                    undefined,
-                    sharedDocumentDownloads,
-                    itemDeadline.remainingMs()
-                  )
-              }),
+                layout!.documentsDir,
+                layout!.cadDir,
+                layout!.imagesDir,
+                manufacturer.shortName,
+                item.catalogNumber,
+                doc,
+                localDownloads,
+                itemSignal,
+                undefined,
+                sharedDocumentDownloads,
+                itemDeadline.remainingMs()
+              )
+          };
+          result = await Promise.race([
+              connector.scrape(item.catalogNumber, scrapeContext),
               abortSignalRejection(
                 itemScrapeController.signal,
                 `Official-source scrape for ${item.catalogNumber} timed out after ${Math.round(ITEM_SCRAPE_TIMEOUT_MS / 1000)}s`
@@ -532,13 +534,16 @@ export class RunManager {
           });
           initialAttributeCount = initiallyGated.attributes.length;
           this.updateItemStage(item.id, "downloads", "Downloading product images and documents");
+          const withVendorDocuments = connector.enrichDocuments
+            ? await connector.enrichDocuments(item.catalogNumber, initiallyGated, scrapeContext)
+            : initiallyGated;
           const withInitialDownloads = await this.downloadDocuments(
             http,
             layoutRef.documentsDir,
             layoutRef.cadDir,
             layoutRef.imagesDir,
             manufacturer.shortName,
-            initiallyGated,
+            withVendorDocuments,
             localDownloads,
             itemSignal,
             documentDownloadProfile(manufacturer, initiallyGated, { saveDocuments: downloadDocumentsEnabled }),
@@ -1545,7 +1550,9 @@ export class RunManager {
         const localPath = await uniquePath(path.join(imagesDir, imageFileName(manufacturerShortName, catalogNumber, imageIndex)));
         const imageCandidates = documentDownloadCandidateUrls(doc);
         if (!imageCandidates.length) throw new Error("No acceptable product-image download candidate URL was available");
-        await http.downloadImageAsPng(imageCandidates, localPath, signal);
+        await http.downloadImageAsPng(imageCandidates, localPath, signal, {
+          allowNarrowPortrait: doc.parser === "Schmersal exact PDP image" && Boolean(doc.sourceUrl?.startsWith("https://products.schmersal.com/"))
+        });
         return { ...doc, localPath, downloadStatus: "downloaded", downloadError: undefined };
       }
       const candidateUrls = documentDownloadCandidateUrls(doc);
@@ -1826,13 +1833,40 @@ export function documentDownloadProfile(
   result: ProductResult,
   options: { saveDocuments?: boolean } = {}
 ): DocumentDownloadProfile {
-  if (options.saveDocuments === false) return "quality";
+  if (options.saveDocuments === false) {
+    if (hasCompleteAbbOfficialProductData(result)) return "images-only";
+    return "quality";
+  }
   // Eaton SKU pages often merge the same specification sheet from several locales. Saving all
   // regional duplicates can exhaust the per-item budget while the official URLs are still kept
   // in the workbook. Download the highest-value subset so the run remains bounded.
   if (manufacturer.id === "eaton") return "quality";
   if (options.saveDocuments === true) return "full";
   return manufacturer.scrapeRecipe?.fallbackPolicy?.documentDownloadProfile ?? "full";
+}
+
+function hasCompleteAbbOfficialProductData(result: ProductResult): boolean {
+  if (result.manufacturerId !== "abb" || result.qualityGate?.passed !== true || result.qualityGate.identityConfirmed !== true) return false;
+  if (!/^https:\/\/new\.abb\.com\/products\//i.test(result.productUrl ?? "")) return false;
+  if (!result.sources.some((source) => source.sourceType === "official" && source.parser === "abb-product-page")) return false;
+  if (result.attributes.filter((attribute) => attribute.sourceType === "official" && attribute.parser === "abb-product-model").length < 20) return false;
+  const abbProductContext = [result.title, result.description, ...result.attributes
+    .filter((attribute) => /^(?:display name|extended product type|catalog description)$/i.test(attribute.name.trim()))
+    .map((attribute) => attribute.value)
+  ].filter(Boolean).join(" ");
+  // The PM50xx CPU datasheet publishes two current-consumption values for the exact model: module
+  // alone and with all I/Os. Keep the PDF path enabled until the row-specific current range is parsed.
+  if (/\bPM50\d{2}-[A-Z0-9]+(?:-[A-Z0-9]+)*\b/i.test(abbProductContext) && !result.normalized.current) return false;
+  const requiredFields = requiredElectricalFields(result);
+  if (requiredFields.length > 0) return requiredFields.every((field) => Boolean(result.normalized[field]));
+  const isUnassembledSelectorOperator =
+    /\bselector switch\b/i.test(abbProductContext) &&
+    result.attributes.some((attribute) => attribute.sourceType === "official" && /\bno contact block\b/i.test(attribute.value)) &&
+    ["Product Net Width", "Product Net Height", "Product Net Weight"].every((name) =>
+      result.attributes.some((attribute) => attribute.sourceType === "official" && attribute.name.trim() === name && Boolean(attribute.value.trim()))
+    );
+  if (isUnassembledSelectorOperator) return true;
+  return Boolean(result.normalized.voltage || result.normalized.current);
 }
 
 export function shouldDownloadDocumentsForRun(
@@ -1894,12 +1928,15 @@ function shouldDownloadForProfile(
   if (doc.type === "image") return true;
   if (profile === "full") return true;
   if (profile === "images-only") return false;
-  if (nonImageDownloadCount >= 4) return false;
   const countForType = typeCounts.get(doc.type) ?? 0;
   // The exact SP1 SKU page links one technical family table that names each supported model
   // explicitly. Keep it as a third, targeted sheet after the exact SKU PDF and translated source;
   // the normalizer still requires the matched row to print the requested model token.
   if (doc.type === "datasheet" && doc.parser === "eaton-sp1-family-source") return countForType < 3;
+  // Eaton's Volume 7 power-supply catalog has exact PSG model rows, but the exact SKU pages often
+  // omit output current and physical data. Keep this model-indexed source as a third targeted sheet.
+  if (doc.type === "datasheet" && doc.parser === "eaton-power-supply-catalog") return countForType < 3;
+  if (nonImageDownloadCount >= 4) return false;
   // Documents arrive pre-sorted by documentDownloadRank (best first — real PDFs beat HTML
   // stubs of the same type), so the first 1-2 kept per type are the highest-value ones.
   // Allow two datasheets/manuals: a "technical data" sheet and a dimensional/installation

@@ -3,6 +3,25 @@ import { applyFieldCandidateResolution } from "../src/server/scrapers/field-cand
 import type { ProductResult } from "../src/shared/types.js";
 
 describe("field candidate resolver", () => {
+  it("does not promote ABB PDF prose into material or color fields", () => {
+    const result = applyFieldCandidateResolution({
+      manufacturerId: "abb",
+      catalogNumber: "2CSG251151R4051",
+      status: "found",
+      confidence: 0.96,
+      normalized: {},
+      attributes: [
+        { group: "PDF datasheet", name: "Graphic color", value: "display", sourceType: "generated", parser: "pdf-table-extractor" },
+        { group: "PDF datasheet", name: "Material", value: "Copper", sourceType: "generated", parser: "pdf-table-extractor" }
+      ],
+      documents: [],
+      sources: []
+    } satisfies ProductResult);
+
+    expect(result.normalized.color).toBeUndefined();
+    expect(result.normalized.material).toBeUndefined();
+  });
+
   it("does not restore unsupported Eaton LED component ratings as device-level fields", () => {
     const exactPage = "https://www.eaton.com/us/en-us/skuPage.257064.html";
     const result = applyFieldCandidateResolution({

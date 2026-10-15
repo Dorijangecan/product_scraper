@@ -67,9 +67,12 @@ export const DEVICE_TYPE_PROFILES: Record<string, DeviceTypePdtProfile> = {
   "Motor Circuit Breaker": { sheets: ["motor protection"], criticalFactsBySheet: { "motor protection": [...ELECTRICAL_RATING_FACTS] }, finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_AND_CURRENT },
   "Motor Starter": { sheets: ["motor protection"], criticalFactsBySheet: { "motor protection": [...ELECTRICAL_RATING_FACTS] }, finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_AND_CURRENT },
   "Disconnect Switch": { sheets: ["contactor a. fuses"], criticalFactsBySheet: { "contactor a. fuses": [...ELECTRICAL_RATING_FACTS] }, finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_AND_CURRENT },
+  "Fuse Switch Disconnector": { sheets: ["contactor a. fuses"], criticalFactsBySheet: { "contactor a. fuses": [...ELECTRICAL_RATING_FACTS] }, electricalFields: VOLTAGE_AND_CURRENT },
   Switch: { sheets: ["Switch"], finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: NO_ELECTRICAL_FIELDS },
   "Selector Switch": { sheets: ["Switch"], finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: NO_ELECTRICAL_FIELDS },
-  "Surge Protective Device": { sheets: ["int. ext. lightning protection"], electricalFields: VOLTAGE_AND_CURRENT },
+  // SPDs are rated by operating voltage and surge/discharge current (Iimp, In, Imax),
+  // not by a general load-current rating. Keep those surge values in their named attributes.
+  "Surge Protective Device": { sheets: ["int. ext. lightning protection"], electricalFields: VOLTAGE_ONLY },
 
   "Power Supply": { sheets: ["power supply devices"], criticalFactsBySheet: { "power supply devices": [...ELECTRICAL_RATING_FACTS] }, finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_AND_CURRENT },
   UPS: { sheets: ["power supply devices"], criticalFactsBySheet: { "power supply devices": [...ELECTRICAL_RATING_FACTS] }, electricalFields: VOLTAGE_AND_CURRENT },
@@ -87,6 +90,7 @@ export const DEVICE_TYPE_PROFILES: Record<string, DeviceTypePdtProfile> = {
   "Soft Starter": { sheets: ["servo controller"], criticalFactsBySheet: { "servo controller": [...ELECTRICAL_RATING_FACTS] }, finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_AND_CURRENT },
   "Motion Controller": { sheets: ["Motion Controller"], finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: NO_ELECTRICAL_FIELDS },
   "Current Sensor": { sheets: ["el. mesurement devices"], finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: CURRENT_ONLY },
+  "Current Transformer": { sheets: ["el. mesurement devices"], criticalFactsBySheet: { "el. mesurement devices": ["ratedCurrent"] }, electricalFields: CURRENT_ONLY },
   Filter: { sheets: ["filters"], electricalFields: NO_ELECTRICAL_FIELDS },
 
   Cable: { sheets: ["cable"], criticalFactsBySheet: { cable: ["ratedVoltage", "ratedCurrent", "material"] }, electricalFields: VOLTAGE_AND_CURRENT },
@@ -101,6 +105,11 @@ export const DEVICE_TYPE_PROFILES: Record<string, DeviceTypePdtProfile> = {
   "Wire Marker": { sheets: ["Wire ID Information"], electricalFields: NO_ELECTRICAL_FIELDS },
 
   "Photoelectric Sensor": { sheets: ["optical sensor"], finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_ONLY },
+  "Color Sensor": { sheets: ["optical sensor"], finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_ONLY },
+  "Photoelectric Distance Sensor": { sheets: ["optical sensor"], finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_ONLY },
+  "Fiber Optic Sensor": { sheets: ["optical sensor"], finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_ONLY },
+  "Magnetic Position Sensor": { sheets: ["electronic sensor"], finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_AND_CURRENT },
+  "Limit Switch": { sheets: ["Switch"], finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: NO_ELECTRICAL_FIELDS },
   "Vision Sensor": { sheets: ["optical sensor"], finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_ONLY },
   "Inductive Proximity Sensor": {
     sheets: ["electronic sensor"],
@@ -108,8 +117,11 @@ export const DEVICE_TYPE_PROFILES: Record<string, DeviceTypePdtProfile> = {
     finalCompletenessFields: ACTIVE_FINAL_FIELDS,
     electricalFields: VOLTAGE_AND_CURRENT
   },
+  "Linear Position Sensor": { sheets: ["electronic sensor"], finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_ONLY },
   "Capacitive Sensor": { sheets: ["electronic sensor"], finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_AND_CURRENT },
   "Ultrasonic Sensor": { sheets: ["electronic sensor"], finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_AND_CURRENT },
+  "Radar Sensor": { sheets: ["electronic sensor"], finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_AND_CURRENT },
+  "Condition Monitoring Sensor": { sheets: ["electronic sensor"], finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_AND_CURRENT },
   "Magnetic Field Sensor": { sheets: ["electronic sensor"], finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_AND_CURRENT },
   "RFID Device": { sheets: ["electronic sensor"], finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_AND_CURRENT },
   Encoder: { sheets: ["electronic sensor"], finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_AND_CURRENT },
@@ -130,6 +142,7 @@ export const DEVICE_TYPE_PROFILES: Record<string, DeviceTypePdtProfile> = {
   HMI: { sheets: ["PLC", "panel (HMI)"], criticalFactsBySheet: { PLC: [...VOLTAGE_RATING_FACTS], "panel (HMI)": [...VOLTAGE_RATING_FACTS] }, finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_ONLY },
   "Communication Gateway": { sheets: ["PLC", "RS232 interfaces"], eclassBySheet: { plc: { code: "27242201", system: "13" } }, criticalFactsBySheet: { PLC: [...VOLTAGE_RATING_FACTS] }, finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_ONLY },
   "Power Meter": { sheets: ["el. mesurement devices"], criticalFactsBySheet: { "el. mesurement devices": [...ELECTRICAL_RATING_FACTS] }, electricalFields: VOLTAGE_AND_CURRENT },
+  "Signal Conditioner": { sheets: ["el. mesurement devices"], finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_ONLY },
 
   "Pushbutton / Operator": {
     sheets: ["command and alarm device"],

@@ -1,0 +1,52 @@
+[
+  {
+    "manufacturerId": "balluff",
+    "catalogNumber": "BFF0001",
+    "caseType": "electrical",
+    "expectedDeviceType": "Flow Sensor",
+    "riskTags": ["cold", "thermal-flow-sensor", "flow-range", "stainless-process-connection"],
+    "expectedOfficialUrlPatterns": ["balluff\\.com/en-gb/products/BFF0001"],
+    "requiredDocuments": ["image", "datasheet"],
+    "expectedNormalizedFields": ["voltage", "protection"]
+  },
+  {
+    "manufacturerId": "balluff",
+    "catalogNumber": "BTS0003",
+    "caseType": "electrical",
+    "expectedDeviceType": "Temperature Sensor",
+    "riskTags": ["cold", "infrared-temperature-sensor", "250-1250c", "analog-output"],
+    "expectedOfficialUrlPatterns": ["balluff\\.com/en-gb/products/BTS0003"],
+    "requiredDocuments": ["image", "datasheet"],
+    "expectedNormalizedFields": ["voltage", "dimensions", "protection"]
+  },
+  {
+    "manufacturerId": "balluff",
+    "catalogNumber": "BIS018K",
+    "caseType": "electrical",
+    "expectedDeviceType": "RFID Device",
+    "riskTags": ["cold", "multifrequency-rfid-processor", "4-read-heads", "ethernet-usb"],
+    "expectedOfficialUrlPatterns": ["balluff\\.com/en-gb/products/BIS018K"],
+    "requiredDocuments": ["image", "datasheet"],
+    "expectedNormalizedFields": ["voltage", "protection"]
+  },
+  {
+    "manufacturerId": "balluff",
+    "catalogNumber": "BAE0007",
+    "caseType": "electrical",
+    "expectedDeviceType": "Power Supply",
+    "riskTags": ["cold", "din-rail-power-supply", "400-500vac-input", "24vdc-output"],
+    "expectedOfficialUrlPatterns": ["balluff\\.com/en-gb/products/BAE0007"],
+    "requiredDocuments": ["image", "datasheet"],
+    "expectedNormalizedFields": ["voltage", "current", "dimensions", "material"]
+  },
+  {
+    "manufacturerId": "balluff",
+    "catalogNumber": "BNI006A",
+    "caseType": "electrical",
+    "expectedDeviceType": "I/O Module",
+    "riskTags": ["cold", "ethernet-ip-io-link-master", "8-io-link-ports", "ip67"],
+    "expectedOfficialUrlPatterns": ["balluff\\.com/en-gb/products/BNI006A"],
+    "requiredDocuments": ["image", "datasheet"],
+    "expectedNormalizedFields": ["voltage", "dimensions", "protection"]
+  }
+]

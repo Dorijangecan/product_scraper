@@ -1,0 +1,52 @@
+[
+  {
+    "manufacturerId": "phoenix",
+    "catalogNumber": "2320225",
+    "caseType": "electrical",
+    "expectedDeviceType": "UPS",
+    "riskTags": ["cold", "quint-ups", "24vdc-input", "24vdc-output", "10a-output", "iq-technology"],
+    "expectedOfficialUrlPatterns": ["phoenixcontact\\.com/en-us/products/uninterruptible-power-supply-quint-ups-24dc-24dc10-2320225"],
+    "requiredDocuments": ["image"],
+    "expectedNormalizedFields": ["weight", "dimensions", "voltage", "current", "protection"]
+  },
+  {
+    "manufacturerId": "phoenix",
+    "catalogNumber": "1460923",
+    "caseType": "electrical",
+    "expectedDeviceType": "Battery",
+    "riskTags": ["cold", "li-ion", "lifepo4", "24vdc", "284wh", "quint-ups"],
+    "expectedOfficialUrlPatterns": ["phoenixcontact\\.com/en-us/products/battery-module-ups-bat-li-24dc-284wh-1460923"],
+    "requiredDocuments": ["image"],
+    "expectedNormalizedFields": ["weight", "dimensions", "voltage", "protection"]
+  },
+  {
+    "manufacturerId": "phoenix",
+    "catalogNumber": "1438137",
+    "caseType": "electrical",
+    "expectedDeviceType": "PCB Terminal Block",
+    "riskTags": ["cold", "lpt-6", "12-position", "7.5mm-pitch", "lever-push-in", "1000v", "41a"],
+    "expectedOfficialUrlPatterns": ["phoenixcontact\\.com/en-us/products/pcb-terminal-block-lpt-6-12-75-zb-1438137"],
+    "requiredDocuments": ["image"],
+    "expectedNormalizedFields": ["weight", "dimensions", "voltage", "current"]
+  },
+  {
+    "manufacturerId": "phoenix",
+    "catalogNumber": "1533232",
+    "caseType": "electrical",
+    "expectedDeviceType": "Safety Sensor",
+    "riskTags": ["cold", "psr-mis", "non-contact", "magnetic", "category-4", "sil3", "m8"],
+    "expectedOfficialUrlPatterns": ["phoenixcontact\\.com/en-us/products/safety-switch-sensor-psr-mis-c-s-nono-m8-4p-1533232"],
+    "requiredDocuments": ["image"],
+    "expectedNormalizedFields": ["weight", "dimensions", "voltage", "current", "protection", "operatingTemperatureMin", "operatingTemperatureMax"]
+  },
+  {
+    "manufacturerId": "phoenix",
+    "catalogNumber": "2909555",
+    "caseType": "electrical",
+    "expectedDeviceType": "Motor Starter",
+    "riskTags": ["cold", "contactron", "hybrid", "three-phase", "9a", "sil3", "atex"],
+    "expectedOfficialUrlPatterns": ["phoenixcontact\\.com/en-us/products/hybrid-motor-starter-elr-h3-ies-pt-24dc500ac-9-p-2909555"],
+    "requiredDocuments": ["image"],
+    "expectedNormalizedFields": ["weight", "dimensions", "voltage", "current", "protection"]
+  }
+]

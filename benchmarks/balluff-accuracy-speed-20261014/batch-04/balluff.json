@@ -1,0 +1,135 @@
+[
+  {
+    "manufacturerId": "balluff",
+    "catalogNumber": "BFS000L",
+    "caseType": "electrical",
+    "expectedDeviceType": "Color Sensor",
+    "riskTags": [
+      "cold",
+      "color-sensor",
+      "diffuse",
+      "white-light",
+      "analog-switch-output"
+    ],
+    "expectedOfficialUrlPatterns": [
+      "balluff\\.com/en-gb/products/BFS000L"
+    ],
+    "requiredDocuments": [
+      "image",
+      "datasheet"
+    ],
+    "expectedNormalizedFields": [
+      "dimensions",
+      "voltage",
+      "material",
+      "current"
+    ]
+  },
+  {
+    "manufacturerId": "balluff",
+    "catalogNumber": "BNS002R",
+    "caseType": "electrical",
+    "expectedDeviceType": "Limit Switch",
+    "riskTags": [
+      "cold",
+      "safety-switch",
+      "mechanical",
+      "single-position",
+      "250-vac",
+      "6-a"
+    ],
+    "expectedOfficialUrlPatterns": [
+      "balluff\\.com/en-gb/products/BNS002R"
+    ],
+    "requiredDocuments": [
+      "image",
+      "datasheet"
+    ],
+    "expectedNormalizedFields": [
+      "dimensions",
+      "protection",
+      "current",
+      "operatingTemperatureMin",
+      "operatingTemperatureMax"
+    ]
+  },
+  {
+    "manufacturerId": "balluff",
+    "catalogNumber": "BOD0024",
+    "caseType": "electrical",
+    "expectedDeviceType": "Photoelectric Distance Sensor",
+    "riskTags": [
+      "cold",
+      "photoelectric-distance",
+      "triangulation",
+      "analog-output",
+      "laser-red-light"
+    ],
+    "expectedOfficialUrlPatterns": [
+      "balluff\\.com/en-gb/products/BOD0024"
+    ],
+    "requiredDocuments": [
+      "image",
+      "datasheet"
+    ],
+    "expectedNormalizedFields": [
+      "dimensions",
+      "protection",
+      "voltage",
+      "current"
+    ]
+  },
+  {
+    "manufacturerId": "balluff",
+    "catalogNumber": "BMP0008",
+    "caseType": "electrical",
+    "expectedDeviceType": "Magnetic Position Sensor",
+    "riskTags": [
+      "cold",
+      "magnetic-positioning",
+      "32-mm-range",
+      "io-link",
+      "analog-output",
+      "1-um-resolution"
+    ],
+    "expectedOfficialUrlPatterns": [
+      "balluff\\.com/en-gb/products/BMP0008"
+    ],
+    "requiredDocuments": [
+      "image",
+      "datasheet"
+    ],
+    "expectedNormalizedFields": [
+      "dimensions",
+      "voltage",
+      "protection",
+      "current"
+    ]
+  },
+  {
+    "manufacturerId": "balluff",
+    "catalogNumber": "BML09N6",
+    "caseType": "electrical",
+    "expectedDeviceType": "Encoder",
+    "riskTags": [
+      "cold",
+      "incremental-linear-measurement",
+      "10-um-resolution",
+      "rs422",
+      "magnetic-tape"
+    ],
+    "expectedOfficialUrlPatterns": [
+      "balluff\\.com/en-gb/products/BML09N6"
+    ],
+    "requiredDocuments": [
+      "image",
+      "datasheet"
+    ],
+    "expectedNormalizedFields": [
+      "dimensions",
+      "protection",
+      "voltage",
+      "current"
+    ]
+  }
+]

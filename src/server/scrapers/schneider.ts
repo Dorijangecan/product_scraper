@@ -189,6 +189,7 @@ const SCHNEIDER_DATASHEET_LABELS = [
 
 const SCHNEIDER_SENSOR_DATASHEET_LABELS = [
   "[Sn] nominal sensing distance",
+  "Sensing range",
   "[Us] rated supply voltage",
   "Cable composition",
   "Cable length",
@@ -405,7 +406,19 @@ export class SchneiderConnector implements ManufacturerConnector {
 
 function buildSchneiderOfficialUrls(catalogNumber: string): string[] {
   const encoded = encodeURIComponent(catalogNumber);
-  return SCHNEIDER_PRODUCT_URL_TEMPLATES.map((template) => template.replace("{part}", encoded));
+  const productTemplates = /^XU[A-Z0-9]/i.test(catalogNumber)
+    ? [
+        "https://telemecaniquesensors.com/global/en/product/reference/{part}",
+        "https://telemecaniquesensors.com/us/en/product/reference/{part}",
+        ...SCHNEIDER_PRODUCT_URL_TEMPLATES.filter((template) => !template.includes("telemecaniquesensors.com"))
+      ]
+    : /^A9[A-Z0-9]/i.test(catalogNumber)
+    ? [
+        "https://www.se.com/uk/en/product/{part}/",
+        ...SCHNEIDER_PRODUCT_URL_TEMPLATES.filter((template) => !template.includes("/uk/en/product/"))
+      ]
+    : SCHNEIDER_PRODUCT_URL_TEMPLATES;
+  return productTemplates.map((template) => template.replace("{part}", encoded));
 }
 
 const SCHNEIDER_PS_FALLBACK_ERROR = /403|429|TLS|certificate|timeout/i;
@@ -441,6 +454,10 @@ async function fetchSchneiderProductPage(
 
 function shouldFetchSchneiderDatasheetReader(result: ProductResult | undefined): boolean {
   if (!result) return true;
+  // An exact official PDP already supplies its exact datasheet and image; the pipeline
+  // downloads and parses that datasheet immediately after connector acquisition. Do not
+  // pay for the slower Jina mirrors simply because the PDP itself exposes few attributes.
+  if (isRichSchneiderResult(result)) return false;
   if (!result.documents.some((doc) => doc.type === "datasheet")) return true;
   // A complete official PDP plus the subsequent exact PDF download is cheaper and more reliable
   // than querying four locale-specific Jina Reader mirrors. Reserve the reader for truly sparse PDPs.

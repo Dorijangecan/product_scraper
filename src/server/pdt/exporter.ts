@@ -869,6 +869,27 @@ function resolvePdtColumnCell(
   ctx: ResolveContext,
   facts: PdtFactIndex
 ): PdtResolvedCell | undefined {
+  if (ctx.result?.manufacturerId === "eaton") {
+    const keys = propertyKeysForColumn(column);
+    const attributes = ctx.result.attributes;
+    const hasExactShortCircuitEvidence = attributes.some((attribute) =>
+      /\b(?:conditional rated short[- ]circuit current|rated conditional short[- ]circuit current)\b/i.test(attribute.name) && cleanString(attribute.value)
+    );
+    if (keys.some((key) => ["AAB447", "AAB492", "AAS568", "AAS569", "AAS570", "AAF862"].includes(key)) && !hasExactShortCircuitEvidence) return undefined;
+    if (keys.some((key) => ["AAB958", "AAB959"].includes(key)) && ctx.deviceType !== "Contactor") return undefined;
+    if (keys.includes("BAA303")) {
+      const hasExactStaticLoss = attributes.some((attribute) =>
+        /\b(?:power loss,?\s*static|static\s+power\s+loss|current-independent.*power loss|power loss.*current-independent)\b/i.test(attribute.name) && cleanString(attribute.value)
+      );
+      if (!hasExactStaticLoss) return undefined;
+    }
+    if (/\bcontrol voltage\b/i.test(column.description) && ctx.deviceType === "Surge Protective Device") {
+      const hasControlVoltage = attributes.some((attribute) =>
+        /\b(?:control|coil|supply) voltage\b/i.test(attribute.name) && cleanString(attribute.value)
+      );
+      if (!hasControlVoltage) return undefined;
+    }
+  }
   const variant = rowVariantValue(column, ctx);
   if (variant !== undefined) {
     return {
@@ -906,7 +927,9 @@ function resolvePdtColumnCell(
         const borrowedFactKey = derivedFactKeyForColumn(column);
         if (borrowedFactKey) {
           const upstream = bestFact(facts, borrowedFactKey);
-          if (upstream) return { value, provenance: provenanceFromFact(upstream) };
+          if (upstream && !isEatonFactScopeMismatch(upstream, column, resolveCtx)) {
+            return { value, provenance: provenanceFromFact(upstream) };
+          }
         }
         return { value, provenance: inferCellProvenance(column, value, resolveCtx, facts) };
       })();
@@ -1181,7 +1204,7 @@ function derivedFactKeyForColumn(column: PdtColumn): string | undefined {
 function resolveColumnFromFacts(column: PdtColumn, ctx: ResolveContext, facts: PdtFactIndex): PdtResolvedCell | undefined {
   for (const key of factKeysForColumn(column, ctx)) {
     const fact = bestFact(facts, key);
-    if (fact) return { value: fact.value, provenance: provenanceFromFact(fact) };
+    if (fact && !isEatonFactScopeMismatch(fact, column, ctx)) return { value: fact.value, provenance: provenanceFromFact(fact) };
   }
   return undefined;
 }
@@ -1510,10 +1533,15 @@ function hasDriveMotorRatedVoltageEvidence(ctx: ResolveContext): boolean {
 }
 
 function inferCellProvenance(column: PdtColumn, value: string, ctx: ResolveContext, facts: PdtFactIndex): PdtCellProvenance {
-  const matchedFact = factsMatchingValue(facts, value).find((fact) => fact.sourceKind !== "generated-rule" || generatedColumn(column));
+  const matchedFact = factsMatchingValue(facts, value).find((fact) =>
+    (fact.sourceKind !== "generated-rule" || generatedColumn(column)) &&
+    !isEatonFactScopeMismatch(fact, column, ctx)
+  );
   if (matchedFact) return provenanceFromFact(matchedFact);
 
-  const attr = (ctx.result?.attributes ?? []).find((candidate) => attributeSupportsValue(candidate, value, column));
+  const attr = (ctx.result?.attributes ?? []).find((candidate) =>
+    !isEatonAttributeScopeMismatch(candidate, column, ctx) && attributeSupportsValue(candidate, value, column)
+  );
   if (attr) {
     return {
       sourceKind: "attribute",
@@ -1594,7 +1622,7 @@ function productSpecMeasurementIssue(value: string, column: PdtColumn): string |
   if (/\bpressure\b|\bbar\b|\bpsi\b/.test(columnText) && !hasMeasuredValue(cleanValue, column.unit, /\b(?:mbar|kpa|mpa|pa|bar|psi)\b/i)) {
     return "pressure cell value does not contain a numeric pressure measurement";
   }
-  if (/\bfrequency\b|\bhz\b/.test(columnText) && !/\bfrequency measurement\b|\bmeasurement possible\b/.test(columnText) && !hasMeasuredValue(cleanValue, column.unit, /\b(?:mhz|khz|hz|hertz)\b/i)) {
+  if (!/\bcontrol voltage\b/.test(columnText) && /\bfrequency\b|\bhz\b/.test(columnText) && !/\bfrequency measurement\b|\bmeasurement possible\b/.test(columnText) && !hasMeasuredValue(cleanValue, column.unit, /\b(?:mhz|khz|hz|hertz)\b/i)) {
     return "frequency cell value does not contain a numeric frequency measurement";
   }
   if (/\btorque\b|\bnm\b/.test(columnText) && !hasMeasuredValue(cleanValue, column.unit, /\b(?:n\s*[·*]?\s*m|nm|newton\s*meters?)\b/i)) {
@@ -1669,6 +1697,48 @@ function attributeSupportsValue(attr: AttributeRecord, value: string, column: Pd
   if (!(attrValue === resolved || attrValue.includes(resolved) || resolved.includes(attrValue))) return false;
   if (!productSpecColumn("", column)) return true;
   return labelCompatible;
+}
+
+function isEatonAttributeScopeMismatch(attr: AttributeRecord, column: PdtColumn, ctx: ResolveContext): boolean {
+  if (ctx.result?.manufacturerId !== "eaton") return false;
+  const columnText = normalizedMetadataLabel(`${column.code} ${column.propName} ${descriptionWithoutEnumLegend(column.description)}`);
+  const attributeText = normalizedMetadataLabel(`${attr.group ?? ""} ${attr.name}`);
+  if (/\bcontrol voltage\b/.test(columnText) && !/\b(?:control|coil|supply voltage)\b/.test(attributeText)) return true;
+  if (attr.sourceType === "generated" && attr.parser === "pdf-table-extractor" && attr.matchLevel !== "exact") return true;
+  if (/\b(?:current|amp|amperage)\b/.test(columnText) && /\b(?:height|width|depth|length|dimension)\b/.test(attributeText)) return true;
+  if (/\b(?:short circuit current|conditional rated short circuit current)\b/.test(columnText) && /\brated breaking capacity\b/.test(attributeText)) return true;
+  if (/\b(?:current|amp|amperage)\b/.test(columnText) && /\b(?:frequency|pressure|power loss|power consumption)\b/.test(attributeText)) return true;
+  if (/\b(?:voltage|volt)\b/.test(columnText) && /\b(?:frequency|pressure|power loss|power consumption)\b/.test(attributeText)) return true;
+  if (ctx.deviceType === "Surge Protective Device" && /\bcurrent\b/.test(columnText) &&
+    /\bnominal discharge current\b/.test(attributeText) && !/\bnominal discharge current\b/.test(columnText)) return true;
+  if (ctx.deviceType === "Surge Protective Device" && /\b10\s*\/\s*350\b/.test(columnText) &&
+    !/\b10\s*\/\s*350\b/.test(attributeText)) return true;
+  return /^rated operational current for specified heat dissipation\s*\(\s*in\s*\)$/i.test(attr.name.trim()) &&
+    /^0(?:[.,]0+)?\s*A?$/i.test(attr.value.trim());
+}
+
+function isEatonFactScopeMismatch(fact: PdtFact, column: PdtColumn, ctx: ResolveContext): boolean {
+  if (ctx.result?.manufacturerId !== "eaton") return false;
+  const columnText = normalizedMetadataLabel(`${column.code} ${column.propName} ${descriptionWithoutEnumLegend(column.description)}`);
+  const isCurrentColumn = /\b(?:current|amp|amperage)\b/.test(columnText);
+  const isVoltageColumn = /\b(?:voltage|volt)\b/.test(columnText);
+  const isShortCircuitColumn = /\b(?:conditional|short[- ]circuit|short circuit)\b/.test(columnText);
+  const isStaticPowerLossColumn = /\bstatic\b/.test(columnText) && /\b(?:power loss|loss)\b/.test(columnText);
+  const isControlVoltageColumn = /\bcontrol voltage\b/.test(columnText);
+  if (isControlVoltageColumn && propertyKeysForColumn(column).some((key) => ["AAB958", "AAB959"].includes(key))) return true;
+  if (isShortCircuitColumn && /rated breaking capacity/i.test(fact.reason) && !/conditional rated short[- ]circuit current/i.test(fact.reason)) return true;
+  if (isStaticPowerLossColumn && /heat dissipation capacity|current[- ]dependent|pvid/i.test(fact.reason)) return true;
+  if (isControlVoltageColumn && /frequency/i.test(fact.reason)) return true;
+  if (isControlVoltageColumn && /normalized ratedVoltage/i.test(fact.reason)) return true;
+  if (isCurrentColumn && fact.key === "ratedVoltage") return true;
+  if (isVoltageColumn && fact.key === "ratedCurrent") return true;
+  if (isCurrentColumn && /^(?:pdt(?:width|height|depth)mm|dimensions)$/.test(fact.key)) return true;
+  if (isCurrentColumn && /^(?:typeCode|frequency|pressure|powerLoss|powerConsumption|breakingCapacity|insulationVoltage|impulseVoltage)$/.test(fact.key)) return true;
+  if (isVoltageColumn && /^(?:typeCode|frequency|pressure|powerLoss|powerConsumption|ratedCurrent|breakingCapacity|pdtWidthMm|pdtHeightMm|pdtDepthMm)$/.test(fact.key)) return true;
+  if (isVoltageColumn && /rated insulation voltage|impulse withstand voltage/i.test(fact.reason) && !/\b(?:insulation|impulse|withstand)\b/.test(columnText)) return true;
+  if (ctx.deviceType === "Surge Protective Device" && isCurrentColumn && fact.key === "ratedCurrent" &&
+    /\bk\s*a\b/.test(normalizedMetadataLabel(fact.value)) && !/\bnominal discharge current\b/.test(columnText)) return true;
+  return false;
 }
 
 function semanticPdtLabelCompatible(column: PdtColumn, attr: AttributeRecord): boolean {

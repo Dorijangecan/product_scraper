@@ -23,6 +23,133 @@ describe("splitNameValue (Phase A4)", () => {
 });
 
 describe("normalizer", () => {
+  it("uses Balluff's published supply current draw instead of a switch output-current limit", () => {
+    const normalized = normalizeFields([
+      { group: "PDF datasheet - Electrical data", name: "Current draw max.", value: "70 mA", sourceType: "generated", parser: "pdf-table-extractor", matchLevel: "exact", sourceUrl: "https://publications.balluff.com/pdfengine/pdf?type=pdb&id=264658&con=en" },
+      { group: "PDF datasheet - Electrical data", name: "Switching current", value: "400 mA", sourceType: "generated", parser: "pdf-table-extractor", matchLevel: "exact", sourceUrl: "https://publications.balluff.com/pdfengine/pdf?type=pdb&id=264658&con=en" },
+      { group: "Balluff Technical", name: "Housing material", value: "1.4571 stainless steel", sourceType: "official" }
+    ], [], "balluff");
+
+    expect(normalized.current).toBe("max. 70 mA");
+    expect(normalized.material).toBe("1.4571 stainless steel");
+  });
+
+  it("keeps Balluff analog signal current separate from rated device operating current", () => {
+    const pageOnly = normalizeFields([
+      { group: "Balluff Key features", name: "Analog output", value: "Analog, current 4…20 mA", sourceUrl: "https://www.balluff.com/en-gb/products/BTS0003" }
+    ], [], "balluff");
+    const withDatasheet = normalizeFields([
+      { group: "Balluff Key features", name: "Analog output", value: "Analog, current 4…20 mA", sourceUrl: "https://www.balluff.com/en-gb/products/BTS0003" },
+      { group: "PDF datasheet - Electrical data", name: "Rated operating current Ie", value: "100 mA", sourceType: "generated", parser: "pdf-table-extractor", matchLevel: "exact", sourceUrl: "https://publications.balluff.com/pdfengine/pdf?type=pdb&id=283125&con=en" }
+    ], [], "balluff");
+
+    expect(pageOnly.current).toBeUndefined();
+    expect(withDatasheet.current).toBe("100 mA");
+  });
+
+  it("uses Balluff no-load current for supply consumption instead of analog output current", () => {
+    const normalized = normalizeFields([
+      { group: "PDF datasheet - Electrical data", name: "Output current max. (Analog V)", value: "5 mA", sourceType: "generated", parser: "pdf-table-extractor", matchLevel: "exact", sourceUrl: "https://publications.balluff.com/pdfengine/pdf?id=304319" },
+      { group: "PDF datasheet - Electrical data", name: "No-load current Io max. at Ue", value: "25 mA", sourceType: "generated", parser: "pdf-table-extractor", matchLevel: "exact", sourceUrl: "https://publications.balluff.com/pdfengine/pdf?id=304319" },
+      { group: "PDF datasheet - Electrical data", name: "Current load capacity in SIO-mode", value: "≤100mA", sourceType: "generated", parser: "pdf-table-extractor", matchLevel: "exact", sourceUrl: "https://publications.balluff.com/pdfengine/pdf?id=304319" }
+    ], [], "balluff");
+
+    expect(normalized.current).toBe("max. 25 mA");
+  });
+
+  it("normalizes Balluff housing material from the official product page URL", () => {
+    const normalized = normalizeFields([
+      { group: "Balluff Summary Features", name: "Housing material", value: "Metal", sourceUrl: "https://www.balluff.com/en-gb/products/BAE0007" },
+      { group: "External source", name: "Housing material", value: "Plastic", sourceUrl: "https://example.com/products/BAE0007" }
+    ], [], "balluff");
+
+    expect(normalized.material).toBe("Metal");
+  });
+
+  it("combines Balluff probe diameter and installation length without duplicating the length", () => {
+    const normalized = normalizeFields([
+      { group: "PDF datasheet - Mechanical data", name: "Probe diameter", value: "7.3 mm", sourceType: "generated", parser: "pdf-table-extractor", matchLevel: "exact", sourceUrl: "https://publications.balluff.com/pdfengine/pdf?id=264658" },
+      { group: "Balluff Key features", name: "Installation length from contact surface", value: "31 mm", sourceUrl: "https://www.balluff.com/en-gb/products/BFF0001" },
+      { group: "Balluff PDT Derived", name: "Net depth", value: "31 mm", sourceType: "generated", parser: "balluff-pdt-derivation", confidence: 0.7 }
+    ], [], "balluff");
+
+    expect(normalized.dimensions).toBe("Ø 7.3 mm x 31 mm");
+  });
+
+  it("does not promote a linear position sensor measuring length into physical dimensions", () => {
+    const normalized = normalizeFields([
+      { group: "PDF Ontology Spec Miner", name: "Length", value: "457 mm", sourceType: "generated", parser: "pdf-table-extractor", confidence: 0.78 },
+      { group: "PDF datasheet - Mechanical data", name: "Measuring length", value: "457 mm", sourceType: "generated", parser: "pdf-table-extractor", confidence: 0.78 },
+      { group: "Balluff Key features", name: "Measuring range", value: "457 mm", sourceUrl: "https://www.balluff.com/en-gb/products/BTL0W9F" },
+      { group: "Balluff Key features", name: "Cable", value: "5.00 m, PUR", sourceUrl: "https://www.balluff.com/en-gb/products/BTL0W9F" }
+    ], [], "balluff");
+
+    expect(normalized.dimensions).toBeUndefined();
+  });
+
+  it("prefers exact Balluff datasheet protection evidence over sibling comparison rows", () => {
+    const normalized = normalizeFields([
+      { group: "Balluff Key features", name: "IP rating", value: "IP67", sourceUrl: "https://www.balluff.com/en-gb/products/BMF00PA" },
+      { group: "PDF datasheet - Environmental conditions", name: "IP rating", value: "IP67", sourceType: "generated", parser: "pdf-table-extractor", matchLevel: "exact", sourceUrl: "https://publications.balluff.com/pdfengine/pdf?id=297691" },
+      { group: "PDF datasheet - Environmental conditions", name: "IP rating", value: "IP68, IP69K", sourceType: "generated", parser: "pdf-table-extractor", sourceUrl: "https://publications.balluff.com/pdfengine/pdf?id=305908" }
+    ], [], "balluff");
+
+    expect(normalized.protection).toBe("IP67");
+  });
+
+  it("extracts Balluff finish from the housing-material phrase without carrying trailing material text", () => {
+    const normalized = normalizeFields([
+      { group: "Balluff Key features", name: "Housing material", value: "Stainless steel, Aluminum, black anodized, Aluminum (3.3206)", sourceUrl: "https://www.balluff.com/en-gb/products/BTS0003" }
+    ], [], "balluff");
+
+    expect(normalized.finish).toBe("black anodized");
+  });
+
+  it("normalizes the published CP620 nominal input voltage range", () => {
+    const normalized = normalizeAbbFields([
+      { group: "ABB Product Data", name: "Extended Product Type", value: "CP620", sourceType: "official", parser: "abb-product-model" },
+      { group: "ABB Product Data", name: "Power Supply", value: "24 (18 ... 30) V DC", sourceType: "official", parser: "abb-product-model" }
+    ], []);
+
+    expect(normalized.voltage).toBe("18...30 V DC");
+  });
+
+  it("uses ABB contactor AC-3 current at 400 V instead of conventional thermal current", () => {
+    const exactPage = "https://new.abb.com/products/1SBL136201R2100";
+    const normalized = normalizeAbbFields([
+      { group: "ABB Product Data", name: "Catalog Description", value: "AF09Z-40-00-21 Contactor", sourceType: "official", parser: "abb-product-model", sourceUrl: exactPage },
+      { group: "ABB Product Data", name: "Product ID", value: "1SBL136201R2100", sourceType: "official", parser: "abb-product-model", sourceUrl: exactPage },
+      { group: "ABB Technical", name: "Conventional Free-air Thermal Current", value: "35 A", sourceType: "official", parser: "abb-product-model", sourceUrl: exactPage },
+      { group: "ABB Technical", name: "Rated Operational Current AC-3", value: "(415 V) 60 °C 9 A; (440 V) 60 °C 9 A; (500 V) 60 °C 9.5 A; (690 V) 60 °C 7 A; (380 / 400 V) 60 °C 9 A", sourceType: "official", parser: "abb-product-model", sourceUrl: exactPage }
+    ], []);
+
+    expect(normalized.current).toBe("9 A");
+  });
+
+  it("uses ABB switch-disconnector AC-23A table instead of UL current and insulation voltage", () => {
+    const exactPage = "https://new.abb.com/products/1SCA104811R1001";
+    const normalized = normalizeAbbFields([
+      { group: "ABB Product Data", name: "Catalog Description", value: "OT16F3 SWITCH-DISCONNECTOR", sourceType: "official", parser: "abb-product-model", sourceUrl: exactPage },
+      { group: "ABB Product Data", name: "Rated Operational Voltage", value: "750 V", sourceType: "official", parser: "abb-product-model", sourceUrl: exactPage },
+      { group: "ABB Product Data", name: "Ampere Rating", value: "20 A", sourceType: "official", parser: "abb-product-model", sourceUrl: exactPage },
+      { group: "ABB Product Data", name: "Rated Operational Current AC-23A", value: "(380 ... 415 V) 16 A; (500 V) 16 A; (690 V) 10 A", sourceType: "official", parser: "abb-product-model", sourceUrl: exactPage }
+    ], []);
+
+    expect(normalized.voltage).toBe("380...415 V");
+    expect(normalized.current).toBe("16 A");
+  });
+
+  it("uses ABB command-device LED supply voltage instead of its contact insulation voltage", () => {
+    const normalized = normalizeAbbFields([
+      { group: "ABB Product Data", name: "Catalog Description", value: "CP1-31G-10 Pushbutton", sourceType: "official" },
+      { group: "ABB Product Data", name: "Lamp Type", value: "LED 24V AC/DC", sourceType: "official" },
+      { group: "ABB Product Data", name: "Rated Insulation Voltage", value: "300 V", sourceType: "official" },
+      { group: "ABB Product Data", name: "Rated Operational Voltage", value: "24 V AC/DC; 300 V; Supply Circuit 24 V AC/DC", sourceType: "official" }
+    ], []);
+
+    expect(normalized.voltage).toBe("24 V AC/DC");
+  });
+
   it("does not take electrical ratings from related Eaton products", () => {
     const exactPage = "https://www.eaton.com/us/en-us/skuPage.102087.html";
     const normalized = normalizeFields([
@@ -31,6 +158,19 @@ describe("normalizer", () => {
     ], [], "eaton");
 
     expect(normalized.current).toBe("10 A");
+  });
+
+  it("prefers Eaton rated operational current over a distinct maximum supply-current row", () => {
+    const exactPage = "https://www.eaton.com/us/en-us/skuPage.116308.html";
+    const normalized = normalizeFields([
+      { group: "Product specifications", name: "Product Type", value: "Communication module", parser: "eaton-product-page", sourceType: "official-fallback", sourceUrl: exactPage },
+      { group: "Product specifications", name: "Catalog Number", value: "116308", parser: "eaton-product-page", sourceType: "official-fallback", sourceUrl: exactPage },
+      { group: "Product specifications", name: "Rated operational current (Ie)", value: "0.7 A", parser: "eaton-product-page", sourceType: "official-fallback", sourceUrl: exactPage },
+      { group: "Product specifications", name: "Supply current - max", value: "0.7 mA", parser: "eaton-product-page", sourceType: "official-fallback", sourceUrl: exactPage },
+      { group: "Product specifications", name: "Rated operational current for specified heat dissipation (In)", value: "0 A", parser: "eaton-product-page", sourceType: "official-fallback", sourceUrl: exactPage }
+    ], [], "eaton");
+
+    expect(normalized.current).toBe("0.7 A");
   });
 
   it("uses exact Eaton contactor AC-3 ratings instead of unrelated switching capacity", () => {
@@ -69,6 +209,71 @@ describe("normalizer", () => {
     ], [], "eaton");
 
     expect(normalized.current).toBe("4...20 A");
+  });
+
+  it("keeps Eaton MCB voltage ratings distinct from the operational-voltage ceiling", () => {
+    const exactPage = "https://www.eaton.com/us/en-us/skuPage.278561.html";
+    const normalized = normalizeFields([
+      { group: "General specifications", name: "Product Type", value: "MCB", parser: "eaton-product-page", sourceType: "official-fallback", sourceUrl: exactPage },
+      { group: "Physical Attributes", name: "Type", value: "FAZ Miniature circuit breaker", parser: "eaton-product-page", sourceType: "official-fallback", sourceUrl: exactPage },
+      { group: "Product specifications", name: "Voltage rating", value: "240 V AC / 415 V AC", parser: "eaton-product-page", sourceType: "official-fallback", sourceUrl: exactPage },
+      { group: "Product specifications", name: "Voltage rating (UL)", value: "277 V", parser: "eaton-product-page", sourceType: "official-fallback", sourceUrl: exactPage },
+      { group: "Electrical rating", name: "Rated operational voltage (Ue) - max", value: "230 V", parser: "eaton-product-page", sourceType: "official-fallback", sourceUrl: exactPage },
+      { group: "Product specifications", name: "Degree of protection", value: "IP20 UL/CSA Type: - IP40 (when fitted) IP20 (IEC)", parser: "eaton-product-page", sourceType: "official-fallback", sourceUrl: exactPage },
+      { group: "Construction", name: "Busbar material thickness", value: "0.8 mm", parser: "eaton-product-page", sourceType: "official-fallback", sourceUrl: exactPage }
+    ], [], "eaton");
+
+    expect(normalized.voltage).toBe("240 V AC / 415 V AC");
+    expect(normalized.protection).toBe("IP20; IP40 (when fitted); IP20 (IEC)");
+    expect(normalized.wallThickness).toBeUndefined();
+  });
+
+  it("leaves an implausible power-supply mass blank for review", () => {
+    const exactPage = "https://www.eaton.com/us/en-us/skuPage.PSG120E24RM.html";
+    const normalized = normalizeFields([
+      { group: "General specifications", name: "Product Type", value: "General purpose power supply", parser: "eaton-product-page", sourceType: "official-fallback", sourceUrl: exactPage },
+      { group: "General specifications", name: "Product Weight", value: "1.59 g", parser: "eaton-product-page", sourceType: "official-fallback", sourceUrl: exactPage },
+      { group: "Product specifications", name: "Power consumption", value: "120 W", parser: "eaton-product-page", sourceType: "official-fallback", sourceUrl: exactPage },
+      { group: "Product specifications", name: "Input voltage", value: "100-240 Vac", parser: "eaton-product-page", sourceType: "official-fallback", sourceUrl: exactPage },
+      { group: "Product specifications", name: "Output voltage", value: "24 V", parser: "eaton-product-page", sourceType: "official-fallback", sourceUrl: exactPage }
+    ], [], "eaton");
+
+    expect(normalized.weight).toBeUndefined();
+    expect(normalized.voltage).toBe("Input: 100...240 V AC; Output: 24 V");
+  });
+
+  it("preserves Eaton UPS input and output nominal voltage contexts", () => {
+    const exactPage = "https://www.eaton.com/us/en-us/skuPage.5SC1000.html";
+    const normalized = normalizeFields([
+      { group: "General specifications", name: "Product Type", value: "UPS", parser: "eaton-product-page", sourceType: "official-fallback", sourceUrl: exactPage },
+      { group: "Product specifications", name: "Input voltage range", value: "96-144 Vac", parser: "eaton-product-page", sourceType: "official-fallback", sourceUrl: exactPage },
+      { group: "Product specifications", name: "Output nominal voltage", value: "100/110/120V", parser: "eaton-product-page", sourceType: "official-fallback", sourceUrl: exactPage }
+    ], [], "eaton");
+
+    expect(normalized.voltage).toBe("Input: 96...144 V AC; Output: 100/110/120 V");
+  });
+
+  it("leaves conflicting exact Eaton overload-relay protection codes blank", () => {
+    const exactPage = "https://www.eaton.com/us/en-us/skuPage.278431.html";
+    const normalized = normalizeFields([
+      { group: "General specifications", name: "Product Type", value: "Thermal overload relay", parser: "eaton-product-page", sourceType: "official-fallback", sourceUrl: exactPage },
+      { group: "Product specifications", name: "Degree of protection", value: "IP00", parser: "eaton-product-page", sourceType: "official-fallback", sourceUrl: exactPage },
+      { group: "General specifications", name: "Description", value: "Thermal overload relay, IP20", parser: "eaton-product-page", sourceType: "official-fallback", sourceUrl: exactPage }
+    ], [], "eaton");
+
+    expect(normalized.protection).toBeUndefined();
+  });
+
+  it("uses an Eaton thermal overload relay trip adjustment range instead of auxiliary contact Ith", () => {
+    const exactPage = "https://www.eaton.com/us/en-us/skuPage.278431.html";
+    const normalized = normalizeFields([
+      { group: "General specifications", name: "Product Type", value: "Thermal overload relay", parser: "eaton-product-page", sourceType: "official-fallback", sourceUrl: exactPage },
+      { group: "Product specifications", name: "Adjustable current range - min", value: "0.1 A", parser: "eaton-product-page", sourceType: "official-fallback", sourceUrl: exactPage },
+      { group: "Product specifications", name: "Adjustable current range - max", value: "0.16 A", parser: "eaton-product-page", sourceType: "official-fallback", sourceUrl: exactPage },
+      { group: "Electrical ratings", name: "Conventional thermal current Ith of auxiliary contacts (1-pole, open)", value: "6 A", parser: "eaton-product-page", sourceType: "official-fallback", sourceUrl: exactPage }
+    ], [], "eaton");
+
+    expect(normalized.current).toBe("0.1...0.16 A");
   });
 
   it("uses Eaton surge current only when an official family row names the exact model token", () => {
@@ -797,7 +1002,7 @@ describe("normalizer", () => {
       []
     );
 
-    expect(normalized.weight).toBe("59 g (0.06 kg)");
+    expect(normalized.weight).toBe("59 g (0.059 kg)");
   });
 
   it("does not treat Balluff MTTF years or cable cross-section as current/dimensions", () => {
@@ -1326,7 +1531,7 @@ describe("normalizer", () => {
     );
 
     expect(normalized.dimensions).toBe("Ø 58 x 79.5 mm");
-    expect(normalized.weight).toBe("235 g (0.24 kg)");
+    expect(normalized.weight).toBe("235 g (0.235 kg)");
     expect(normalized.finish).toBe("black anodized");
     expect(normalized.color).toBe("black");
   });
@@ -1785,6 +1990,50 @@ describe("normalizer", () => {
     expect(normalized.certificates).toBe("A2L, BV, CB, CCC, CCS, CE, UKCA");
   });
 
+  it("uses the monitored supply range for ABB three-phase monitoring relays", () => {
+    const normalized = normalizeAbbFields(
+      [
+        { group: "ABB Product Data", name: "Catalog Description", value: "CM-MPS.43S Three-phase monitoring relay", sourceType: "official" },
+        { group: "ABB Product Data", name: "Rated Control Supply Voltage (Us)", value: "(L-L) 300 ... 500 V AC", sourceType: "official" },
+        { group: "ABB Product Data", name: "Maximum Operating Voltage UL/CSA", value: "Output Circuit 300 V AC", sourceType: "official" }
+      ],
+      []
+    );
+
+    expect(normalized.voltage).toBe("(L-L) 300...500 V AC");
+  });
+
+  it("keeps the ABB M4M rated measurement voltages and rejects PDF prose as color or material", () => {
+    const normalized = normalizeAbbFields(
+      [
+        { group: "ABB Product Data", name: "Display Name", value: "M4M 20", sourceType: "official" },
+        { group: "ABB Electrical", name: "Rated Voltage (U r )", value: "46 … 400 (Un) N-L V; 80 ... 690 (Un) L-L V", sourceType: "official" },
+        { group: "ABB Electrical", name: "Voltage Range", value: "50 … 400 V", sourceType: "official" },
+        { group: "PDF datasheet", name: "Color", value: "Graphic", sourceType: "generated" },
+        { group: "PDF datasheet", name: "Material", value: "Copper", sourceType: "generated" }
+      ],
+      []
+    );
+
+    expect(normalized.voltage).toBe("46...400 (Un) N-L V; 80...690 (Un) L-L V");
+    expect(normalized.color).toBeUndefined();
+    expect(normalized.material).toBeUndefined();
+  });
+
+  it("uses the ABB product's protection rating instead of an optional accessory rating", () => {
+    const normalized = normalizeAbbFields(
+      [
+        { group: "ABB Product Data", name: "Catalog Description", value: "PSE18-600-70 Softstarter", sourceType: "official" },
+        { group: "ABB Technical", name: "Degree of Protection", value: "Main Terminals IP00", sourceType: "official" },
+        { group: "PDF datasheet", name: "Degree of protection", value: "IP66", sourceType: "generated" },
+        { group: "PDF datasheet", name: "Feature", value: "External keypad rated IP66 as an option", sourceType: "generated" }
+      ],
+      []
+    );
+
+    expect(normalized.protection).toBe("Main Terminals IP00");
+  });
+
   it("prefers ABB power-supply input/output voltage over insulation voltage", () => {
     const normalized = normalizeFields(
       [
@@ -1947,6 +2196,18 @@ describe("normalizer", () => {
     );
 
     expect(normalized.dimensions).toBe("90 x 106 x 70 mm (3.54 x 4.17 x 2.76 in.)");
+  });
+
+  it("keeps a complete dimension tuple over a lone PDF ontology axis", () => {
+    const normalized = normalizeFields(
+      [
+        { group: "PDF Ontology Spec Miner", name: "Width", value: "10 mm", confidence: 0.78, sourceType: "generated", parser: "pdf-table-extractor" },
+        { group: "PDF Dimension Text", name: "Dimensions", value: "10 x 25 x 35 mm", confidence: 0.78, sourceType: "generated", parser: "pdf-table-extractor" }
+      ],
+      []
+    );
+
+    expect(normalized.dimensions).toBe("10 x 25 x 35 mm");
   });
 
   it("still assembles Height/Width/Length when neither side states an explicit confidence (unchanged default behavior)", () => {

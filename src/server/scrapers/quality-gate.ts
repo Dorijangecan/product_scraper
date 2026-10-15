@@ -10,6 +10,7 @@ import type {
 import { requiredElectricalFields } from "../../shared/product-requirements.js";
 import { electricalFieldsForDeviceType } from "../pdt/device-type-profiles.js";
 import { normalizeFields } from "./normalizer.js";
+import { normalizeSiemensResult } from "./siemens.js";
 import { classifyDeviceType } from "./device-type.js";
 import { findUnmappedSpecLabels } from "./ontology.js";
 import { catalogTextMatches, compactCatalogNumber } from "./catalog-number.js";
@@ -155,7 +156,25 @@ export function applyQualityGate(
 }
 
 export function finalizeQualityGate(result: ProductResult, manufacturer: ManufacturerConfig): ProductResult {
-  let candidate = result;
+  let candidate = manufacturer.id === "siemens" ? normalizeSiemensResult(result) : result;
+  if (manufacturer.id === "phoenix") {
+    const recomputed = normalizeFields(result.attributes, result.documents, "phoenix");
+    const normalized = { ...result.normalized, ...recomputed };
+    const isSurgeProtector = result.attributes.some((attribute) =>
+      /^(?:title|product type|product name)$/i.test(attribute.name.trim()) &&
+      /\b(?:surge protective device|surge protection device)\b/i.test(attribute.value)
+    );
+    const isSignalConditioner = result.attributes.some((attribute) =>
+      /^(?:title|product type|product name|catalog description)$/i.test(attribute.name.trim()) &&
+      /\b(?:input signal conditioner|signal conditioner)\b/i.test(attribute.value)
+    );
+    // Current ratings on this SPD page describe only its auxiliary remote-signaling contact.
+    // The primary protector has discharge/SCCR ratings, which are deliberately kept out of
+    // the ordinary operating-current field.
+    if (isSurgeProtector && !recomputed.current) delete normalized.current;
+    if (isSignalConditioner) delete normalized.current;
+    candidate = { ...result, normalized };
+  }
   if (manufacturer.id === "eaton") {
     const recomputed = normalizeFields(result.attributes, result.documents, "eaton");
     const normalized = { ...result.normalized, ...recomputed };

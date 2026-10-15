@@ -23,6 +23,58 @@ function product(
 }
 
 describe("device type classifier", () => {
+  it("classifies Balluff pressure sensors despite their M12 connector detail", () => {
+    const result = classifyDeviceType(product(
+      [{ group: "Balluff Key features", name: "Product type", value: "Digital pressure sensors with display", sourceType: "official" }],
+      "BSP00Y4",
+      { manufacturerId: "balluff", catalogNumber: "BSP00Y4" }
+    ));
+    expect(result.type).toBe("Pressure Sensor");
+  });
+
+  it("classifies Balluff condition monitoring and radar sensors by their published function", () => {
+    const condition = classifyDeviceType(product(
+      [{ group: "Balluff Key features", name: "Principle of operation", value: "Condition Monitoring Sensors", sourceType: "official" }],
+      "BCM0002",
+      { manufacturerId: "balluff", catalogNumber: "BCM0002" }
+    ));
+    const radar = classifyDeviceType(product(
+      [{ group: "Balluff Key features", name: "Product type", value: "Radar Sensors for Object Detection and Distance Measurement", sourceType: "official" }],
+      "BRS0002",
+      { manufacturerId: "balluff", catalogNumber: "BRS0002" }
+    ));
+    expect(condition.type).toBe("Condition Monitoring Sensor");
+    expect(radar.type).toBe("Radar Sensor");
+  });
+
+  it("classifies Balluff color, limit, distance, and magnetic-position families", () => {
+    const cases = [
+      ["BFS000L", "Color sensors", "Color Sensor", "optical sensor"],
+      ["BNS002R", "Mechanical single position limit switches with safety switch positions", "Limit Switch", "Switch"],
+      ["BOD0024", "Photoelectric distance sensors", "Photoelectric Distance Sensor", "optical sensor"],
+      ["BMP0008", "Magnetic field positioning systems", "Magnetic Position Sensor", "electronic sensor"]
+    ] as const;
+    for (const [catalogNumber, title, expected, sheet] of cases) {
+      const result = classifyDeviceType(product(
+        [{ group: "Balluff Product Data", name: "Product type", value: title, sourceType: "official" }],
+        title,
+        { manufacturerId: "balluff", catalogNumber }
+      ));
+      expect(result.type, catalogNumber).toBe(expected);
+      expect(deviceSheetsFor(result.type), catalogNumber).toContain(sheet);
+    }
+  });
+
+  it("classifies Balluff BTL magnetostrictive transducers as linear position sensors", () => {
+    const result = classifyDeviceType(product(
+      [{ group: "Balluff Key features", name: "Product type", value: "Magnetostrictive linear position sensors in rod design", sourceType: "official" }],
+      "BTL0W9F",
+      { manufacturerId: "balluff", catalogNumber: "BTL0W9F" }
+    ));
+    expect(result.type).toBe("Linear Position Sensor");
+    expect(deviceSheetsFor(result.type)).toContain("electronic sensor");
+  });
+
   it("classifies a power meter by its product type despite gateway application wording", () => {
     const result = classifyDeviceType(product(
       [
@@ -90,6 +142,32 @@ describe("device type classifier", () => {
     ).toBe("Photoelectric Sensor");
   });
 
+  it("classifies ABB analog input modules as I/O modules even when ECLASS says PLC", () => {
+    const result = classifyDeviceType(product(
+      [
+        { group: "ABB Product Data", name: "Catalog Description", value: "Analog input module. 8 AI: U, I, RTD, R, TC, DI (AI531)", sourceType: "official" },
+        { group: "ABB Product Data", name: "ECLASS", value: "27-24-22-02", sourceType: "official" }
+      ],
+      "Analog input module. 8 AI: U, I, RTD, R, TC, DI (AI531)",
+      { manufacturerId: "abb", catalogNumber: "1SAP250600R0001" }
+    ));
+    expect(result.type).toBe("I/O Module");
+    expect(deviceSheetsFor(result.type)).toContain("PLC");
+  });
+
+  it("classifies current transformers and fuse switch disconnectors specifically", () => {
+    const currentTransformer = classifyDeviceType(product([], "CTA/40 Current transformer", {
+      manufacturerId: "abb", catalogNumber: "2CSG111080R1141"
+    }));
+    const fuseSwitch = classifyDeviceType(product([], "XLP000-6CC Fuse Switch Disconnector", {
+      manufacturerId: "abb", catalogNumber: "1SEP201428R0001"
+    }));
+    expect(currentTransformer.type).toBe("Current Transformer");
+    expect(deviceSheetsFor(currentTransformer.type)).toContain("el. mesurement devices");
+    expect(fuseSwitch.type).toBe("Fuse Switch Disconnector");
+    expect(deviceSheetsFor(fuseSwitch.type)).toContain("contactor a. fuses");
+  });
+
   it("lets an exact Eaton SKU page product type beat conflicting family language", () => {
     const sku = "229424";
     const exactPage = `https://www.eaton.com/us/en-us/skuPage.${sku}.html`;
@@ -127,6 +205,36 @@ describe("device type classifier", () => {
     ));
 
     expect(result.type).toBe("Power Supply");
+  });
+
+  it("lets an exact Eaton Type field refine a generic accessory Product Type", () => {
+    const sku = "10-6380-2";
+    const exactPage = `https://www.eaton.com/us/en-us/skuPage.${sku}.html`;
+    const result = classifyDeviceType(product(
+      [
+        { group: "General specifications", name: "Product Type", value: "Motor control accessory", sourceType: "official-fallback", parser: "eaton-product-page", sourceUrl: exactPage },
+        { group: "Product specifications", name: "Type", value: "Terminal block", sourceType: "official-fallback", parser: "eaton-product-page", sourceUrl: exactPage }
+      ],
+      "Eaton definite purpose motor control terminal block",
+      { manufacturerId: "eaton", catalogNumber: sku, productUrl: exactPage }
+    ));
+
+    expect(result.type).toBe("Terminal Block");
+  });
+
+  it("lets a more specific exact Eaton Type beat a broader breaker Product Type", () => {
+    const sku = "278561";
+    const exactPage = `https://www.eaton.com/us/en-us/skuPage.${sku}.html`;
+    const result = classifyDeviceType(product(
+      [
+        { group: "General specifications", name: "Product Type", value: "IEC circuit breakers", sourceType: "official-fallback", parser: "eaton-product-page", sourceUrl: exactPage },
+        { group: "Physical Attributes", name: "Type", value: "Miniature circuit breaker", sourceType: "official-fallback", parser: "eaton-product-page", sourceUrl: exactPage }
+      ],
+      "Eaton Moeller FAZ-C16/1",
+      { manufacturerId: "eaton", catalogNumber: sku, productUrl: exactPage }
+    ));
+
+    expect(result.type).toBe("Miniature Circuit Breaker");
   });
 
   it("keeps an exact Eaton safety relay from inheriting safety sensor application wording", () => {
@@ -273,6 +381,28 @@ describe("device type classifier", () => {
     ).toBe("Enclosure");
   });
 
+  it("classifies ABB M4M network analyzers as power meters despite mounting details", () => {
+    const result = product(
+      [
+        { group: "ABB Product Data", name: "Catalog Description", value: "M4M 20 Network analyzer", sourceType: "official" },
+        { group: "ABB Product Data", name: "Mounting Type", value: "Panel mounting", sourceType: "official" }
+      ],
+      "M4M 20 Network analyzer"
+    );
+    expect(classifyDeviceType(result).type).toBe("Power Meter");
+  });
+
+  it("classifies ABB Tmax XT automatic breakers as molded case circuit breakers", () => {
+    const result = product(
+      [
+        { group: "ABB Product Data", name: "Product Main Type", value: "SACE Tmax XT", sourceType: "official" },
+        { group: "ABB Product Data", name: "Product Type", value: "Automatic Circuit Breaker", sourceType: "official" }
+      ],
+      "XT1B 160 TMD 16-450 3p F F"
+    );
+    expect(classifyDeviceType(result).type).toBe("Molded Case Circuit Breaker");
+  });
+
   it("keeps an explicit ABB pushbutton above incidental distribution-board wording", () => {
     expect(
       classifyDeviceType(product([], "MP1-10R Pushbutton", { description: "Pushbutton for a distribution board" })).type
@@ -318,6 +448,24 @@ describe("device type classifier", () => {
         product([{ group: "Balluff Classifications", name: "ECLASS 14.0", value: "27-44-01-14", sourceType: "official" }], "Cylindrical glass fibers")
       ).type
     ).toBe("Optical Connector");
+
+    expect(classifyDeviceType(product(
+      [{ group: "Balluff Classifications", name: "ECLASS 14.0", value: "27-27-09-05", sourceType: "official" }],
+      "BFB0001 fiber optic device",
+      { manufacturerId: "balluff", catalogNumber: "BFB0001" }
+    )).type).toBe("Fiber Optic Sensor");
+
+    expect(classifyDeviceType(product(
+      [{ group: "Balluff Classifications", name: "ECLASS 14.0", value: "27-27-09-16", sourceType: "official" }],
+      "BOD0024 photoelectric distance sensor",
+      { manufacturerId: "balluff", catalogNumber: "BOD0024" }
+    )).type).toBe("Photoelectric Distance Sensor");
+
+    expect(classifyDeviceType(product(
+      [{ group: "Balluff Classifications", name: "ECLASS 14.0", value: "27-27-43-01", sourceType: "official" }],
+      "BMP0008 magnetic field positioning system",
+      { manufacturerId: "balluff", catalogNumber: "BMP0008" }
+    )).type).toBe("Magnetic Position Sensor");
   });
 
   it("maps locally observed ECLASS codes to PDT-backed device types without product-type text", () => {
@@ -700,6 +848,17 @@ describe("device type classifier", () => {
     expect(classifyDeviceType(result).type).toBe("Safety Relay");
   });
 
+  it("keeps an explicitly named ABB safety relay above a broad control-relay category", () => {
+    const result = product(
+      [
+        { group: "ABB Product Data", name: "Product Type", value: "Control relay", sourceType: "official" },
+        { group: "ABB Product Data", name: "Catalog Description", value: "Sentry SSR20P Safety relay", sourceType: "official" }
+      ],
+      "Sentry SSR20P Safety relay with relay outputs 3NO+1NC, +24 VDC supply voltage"
+    );
+    expect(classifyDeviceType(result).type).toBe("Safety Relay");
+  });
+
   it("classifies a safety light curtain as a safety sensor", () => {
     const result = product(
       [{ group: "General", name: "Product Type", value: "Safety light curtain", sourceType: "official" }],
@@ -768,6 +927,14 @@ describe("device type classifier", () => {
     const result = product(
       [{ group: "General", name: "Product Type", value: "Temperature transmitter Pt100", sourceType: "official" }],
       "iTemp PA temperature transmitter"
+    );
+    expect(classifyDeviceType(result).type).toBe("Temperature Sensor");
+  });
+
+  it("classifies Balluff infrared temperature sensors even when the source uses the plural", () => {
+    const result = product(
+      [{ group: "Balluff", name: "Feature", value: "Temperature Sensors", sourceType: "official" }],
+      "BTS0003 Contactless infrared temperature sensors"
     );
     expect(classifyDeviceType(result).type).toBe("Temperature Sensor");
   });

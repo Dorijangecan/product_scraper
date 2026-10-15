@@ -269,6 +269,7 @@ export function fieldMatchesLabel(field: RegistryFieldKey, label: string): boole
   const definition = fieldDefinition(field);
   if (!definition) return false;
   if (field === "dimensions" && NON_DIMENSIONAL_SIZE_LABELS.test(label)) return false;
+  if (field === "wallThickness" && /\bfront\s+panel\b/i.test(label)) return false;
   if (field === "voltage" && NON_NAMEPLATE_VOLTAGE_LABELS.test(label)) return false;
   if (field === "current" && NON_NAMEPLATE_CURRENT_LABELS.test(label)) return false;
   return [...definition.aliases, ...(FIELD_REGISTRY_EXTRA_ALIASES[field] ?? [])].some((pattern) => pattern.test(label));

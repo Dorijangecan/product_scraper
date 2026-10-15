@@ -1,0 +1,52 @@
+[
+  {
+    "manufacturerId": "schmersal",
+    "catalogNumber": "103013911",
+    "caseType": "electrical",
+    "expectedDeviceType": "Solenoid Interlock",
+    "riskTags": ["cold", "azm201", "guard-locking", "power-to-lock", "rfid", "24vdc"],
+    "expectedOfficialUrlPatterns": ["products\\.schmersal\\.com/.*/azm201b-sk-t-1p2pw-a-103013911"],
+    "requiredDocuments": ["manual", "image"],
+    "expectedNormalizedFields": ["weight", "dimensions", "voltage"]
+  },
+  {
+    "manufacturerId": "schmersal",
+    "catalogNumber": "101217290",
+    "caseType": "electrical",
+    "expectedDeviceType": "Safety Sensor",
+    "riskTags": ["cold", "rss36", "rfid", "serial-diagnostics", "ip69", "series-wiring"],
+    "expectedOfficialUrlPatterns": ["products\\.schmersal\\.com/.*/rss-36-sd-r-st-101217290"],
+    "requiredDocuments": ["datasheet", "image"],
+    "expectedNormalizedFields": ["weight", "dimensions", "voltage"]
+  },
+  {
+    "manufacturerId": "schmersal",
+    "catalogNumber": "151181586",
+    "caseType": "electrical",
+    "expectedDeviceType": "Switch",
+    "riskTags": ["cold", "2f232", "double-pedal", "foot-switch", "two-pedal"],
+    "expectedOfficialUrlPatterns": ["products\\.schmersal\\.com/.*/t2fh-232-20-20-151181586"],
+    "requiredDocuments": ["datasheet", "image"],
+    "expectedNormalizedFields": ["weight", "dimensions"]
+  },
+  {
+    "manufacturerId": "schmersal",
+    "catalogNumber": "101193576",
+    "caseType": "electrical",
+    "expectedDeviceType": "Pushbutton / Operator",
+    "riskTags": ["cold", "rdrz45rt", "emergency-stop", "latching", "22mm-mounting"],
+    "expectedOfficialUrlPatterns": ["products\\.schmersal\\.com/.*/rdrz45rt-101193576"],
+    "requiredDocuments": ["datasheet", "image"],
+    "expectedNormalizedFields": ["weight", "protection"]
+  },
+  {
+    "manufacturerId": "schmersal",
+    "catalogNumber": "103007221",
+    "caseType": "electrical",
+    "expectedDeviceType": "Safety Relay",
+    "riskTags": ["cold", "srb-e-402st", "two-function", "two-hand-control", "two-safety-outputs"],
+    "expectedOfficialUrlPatterns": ["products\\.schmersal\\.com/.*/srb-e-402st-103007221"],
+    "requiredDocuments": ["datasheet", "image"],
+    "expectedNormalizedFields": ["weight", "voltage"]
+  }
+]

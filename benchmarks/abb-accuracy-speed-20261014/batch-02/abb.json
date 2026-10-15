@@ -1,0 +1,52 @@
+[
+  {
+    "manufacturerId": "abb",
+    "catalogNumber": "2CSF204101R2400",
+    "caseType": "electrical",
+    "expectedDeviceType": "Residual Current Device",
+    "riskTags": ["cold", "f200", "rccb", "type-a"],
+    "expectedOfficialUrlPatterns": ["empower\\.abb\\.com/ecatalog"],
+    "requiredDocuments": ["datasheet"],
+    "expectedNormalizedFields": ["voltage", "current"]
+  },
+  {
+    "manufacturerId": "abb",
+    "catalogNumber": "1SAP520100R0001",
+    "caseType": "electrical",
+    "expectedDeviceType": "HMI",
+    "riskTags": ["cold", "cp620", "hmi", "control-panel"],
+    "expectedOfficialUrlPatterns": ["abb\\.com/global/en/products/1sap520100r0001"],
+    "requiredDocuments": ["datasheet"],
+    "expectedNormalizedFields": ["voltage"]
+  },
+  {
+    "manufacturerId": "abb",
+    "catalogNumber": "2TLA020051R5100",
+    "caseType": "electrical",
+    "expectedDeviceType": "Safety Sensor",
+    "riskTags": ["cold", "eden", "adam", "safety-sensor"],
+    "expectedOfficialUrlPatterns": ["catalogo-generale\\.abb\\.com/safety"],
+    "requiredDocuments": ["datasheet"],
+    "expectedNormalizedFields": ["voltage", "protection"]
+  },
+  {
+    "manufacturerId": "abb",
+    "catalogNumber": "1SAP123400R0172",
+    "caseType": "electrical",
+    "expectedDeviceType": "Programmable Logic Controller",
+    "riskTags": ["cold", "ac500-eco-v3", "pm5032", "plc"],
+    "expectedOfficialUrlPatterns": ["abb\\.com/global/en/products/1sap123400r0172"],
+    "requiredDocuments": ["datasheet"],
+    "expectedNormalizedFields": ["voltage", "current"]
+  },
+  {
+    "manufacturerId": "abb",
+    "catalogNumber": "1SVR320561R1000",
+    "caseType": "electrical",
+    "expectedDeviceType": "Power Supply",
+    "riskTags": ["cold", "cp-s1", "power-supply"],
+    "expectedOfficialUrlPatterns": ["catalogo-generale\\.abb\\.com/rele"],
+    "requiredDocuments": ["datasheet"],
+    "expectedNormalizedFields": ["voltage", "current"]
+  }
+]

@@ -1,0 +1,52 @@
+[
+  {
+    "manufacturerId": "siemens",
+    "catalogNumber": "7MF1567-3DB00-1AA1",
+    "caseType": "electrical",
+    "expectedDeviceType": "Pressure Sensor",
+    "riskTags": ["cold", "sitrans-p220", "pressure-transmitter", "0-160-bar", "4-20ma", "7-33vdc"],
+    "expectedOfficialUrlPatterns": ["siemens\\.com.*7MF1567-3DB00-1AA1"],
+    "expectedNormalizedFields": ["voltage"],
+    "requiredDocuments": ["datasheet"]
+  },
+  {
+    "manufacturerId": "siemens",
+    "catalogNumber": "6GT2801-5BA30",
+    "caseType": "electrical",
+    "expectedDeviceType": "RFID Device",
+    "riskTags": ["cold", "simatic-rf", "rf360r", "rfid-reader", "profinet", "iso-15693"],
+    "expectedOfficialUrlPatterns": ["siemens\\.com.*6GT2801[-/]?5BA30"],
+    "expectedNormalizedFields": ["voltage"],
+    "requiredDocuments": ["datasheet"]
+  },
+  {
+    "manufacturerId": "siemens",
+    "catalogNumber": "4AM3242-5LT10-0FA0",
+    "caseType": "electrical",
+    "expectedDeviceType": "Transformer",
+    "riskTags": ["cold", "sitas", "single-phase", "660v-primary", "230v-secondary", "0.27a", "0.063kva"],
+    "expectedOfficialUrlPatterns": ["siemens\\.com.*4AM3242-5LT10-0FA0"],
+    "expectedNormalizedFields": ["voltage", "current"],
+    "requiredDocuments": ["datasheet"]
+  },
+  {
+    "manufacturerId": "siemens",
+    "catalogNumber": "3SK1122-2CB42",
+    "caseType": "electrical",
+    "expectedDeviceType": "Safety Relay",
+    "riskTags": ["cold", "sirius-3sk1", "advanced", "time-delay", "electronic-output", "24vdc"],
+    "expectedOfficialUrlPatterns": ["siemens\\.com.*3SK1122-2CB42"],
+    "expectedNormalizedFields": ["voltage"],
+    "requiredDocuments": ["datasheet"]
+  },
+  {
+    "manufacturerId": "siemens",
+    "catalogNumber": "3RM1007-1AA04",
+    "caseType": "electrical",
+    "expectedDeviceType": "Motor Starter",
+    "riskTags": ["cold", "sirius-3rm1", "direct-starter", "0.55-3kw", "1.6-7a", "24vdc"],
+    "expectedOfficialUrlPatterns": ["siemens\\.com.*3RM1007-1AA04"],
+    "expectedNormalizedFields": ["voltage", "current"],
+    "requiredDocuments": ["datasheet"]
+  }
+]

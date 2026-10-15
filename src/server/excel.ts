@@ -2821,6 +2821,7 @@ function bestWallThicknessMeasurement(attributes: ProductResult["attributes"], f
     .filter((attr) => {
       const text = `${attr.group ?? ""} ${attr.name} ${attr.value}`;
       if (/\brelated product\b/i.test(`${attr.group ?? ""} ${attr.name}`)) return false;
+      if (/front\s+panel/i.test(`${attr.group ?? ""} ${attr.name}`)) return false;
       if (/\b(?:wall\s+)?mounting\b/i.test(text) && !/\b(?:thick(?:ness)?|gauge|sheet|steel|stainless|aluminum|aluminium|body|door)\b/i.test(text)) return false;
       return /wall|thickness|gauge|construction|material|steel|aluminum|aluminium|body|door/i.test(text) && !/\b(height|width|depth|dimension)\b/i.test(attr.name);
     })
@@ -3024,6 +3025,10 @@ function normalizedForExport(result?: ProductResult): ProductResult["normalized"
   // export time can resurrect a false dimension even after the connector filtered it out.
   const isEatonMvFamily = result.manufacturerId === "eaton" && result.pageLevel === "family" && result.diagnostics?.terminal?.skipNetworkFallback === true;
   const computed = normalizeFields(result.attributes, isEatonMvFamily ? [] : documentsForExport(result), result.manufacturerId);
+  if (result.manufacturerId === "schmersal" && computed.wallThickness === undefined && !result.attributes.some((attribute) => {
+    const label = `${attribute.group ?? ""} ${attribute.name}`;
+    return /\b(?:wall|housing|body)\s+thickness\b/i.test(label) && !/front\s+panel/i.test(label);
+  })) delete normalized.wallThickness;
   for (const key of Object.keys(computed) as Array<keyof ProductResult["normalized"]>) {
     // Schneider's first connector result can be formed before its SKU datasheet is mined.
     // Recompute its dimensions from the full evidence set so later exact product lengths replace

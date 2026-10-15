@@ -140,4 +140,29 @@ describe("required electrical fields", () => {
 
     expect(requiredElectricalFields(result)).toEqual(["voltage"]);
   });
+
+  it("requires voltage but not current for an ABB pilot light", () => {
+    const result = product({
+      manufacturerId: "abb",
+      title: "CL2-502R Pilot Light",
+      description: "Compact Pilot Light - Red - LED 24V AC/DC",
+      attributes: [
+        { group: "ABB Technical", name: "Rated Operational Voltage", value: "24 V AC/DC", sourceType: "official" },
+        { group: "ABB Product Data", name: "Lamp Type", value: "24V AC/DC, integrated LED", sourceType: "official" }
+      ]
+    });
+
+    expect(requiredElectricalFields(result)).toEqual(["voltage"]);
+  });
+
+  it("does not require a switching rating for an ABB selector operator without a contact block", () => {
+    const result = product({
+      manufacturerId: "abb",
+      title: "M2SS3-11G Selector Switch",
+      description: "Illuminated modular selector switch, no contact block",
+      attributes: [{ group: "ABB Product Data", name: "Catalog Description", value: "Selector Switch - No contact block", sourceType: "official" }]
+    });
+
+    expect(requiredElectricalFields(result)).toEqual([]);
+  });
 });

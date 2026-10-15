@@ -1,0 +1,137 @@
+[
+  {
+    "manufacturerId": "eaton",
+    "catalogNumber": "278561",
+    "caseType": "electrical",
+    "expectedDeviceType": "Miniature Circuit Breaker",
+    "riskTags": [
+      "cold",
+      "faz",
+      "miniature-circuit-breaker",
+      "16-a",
+      "c-curve",
+      "240-vac",
+      "image-review"
+    ],
+    "expectedOfficialUrlPatterns": [
+      "eaton\\.com/.*/skuPage\\.278561\\.html"
+    ],
+    "requiredDocuments": [
+      "datasheet"
+    ],
+    "expectedNormalizedFields": [
+      "dimensions",
+      "weight",
+      "current",
+      "voltage",
+      "protection",
+      "operatingTemperatureMin",
+      "operatingTemperatureMax"
+    ]
+  },
+  {
+    "manufacturerId": "eaton",
+    "catalogNumber": "PSG120E24RM",
+    "caseType": "electrical",
+    "expectedDeviceType": "Power Supply",
+    "riskTags": [
+      "cold",
+      "psg",
+      "power-supply",
+      "24-vdc",
+      "120-w",
+      "representative-image",
+      "pdp-manual-physical-conflict"
+    ],
+    "expectedOfficialUrlPatterns": [
+      "eaton\\.com/.*/skuPage\\.PSG120E24RM\\.html"
+    ],
+    "requiredDocuments": [
+      "datasheet"
+    ],
+    "expectedNormalizedFields": [
+      "dimensions",
+      "weight",
+      "voltage",
+      "current",
+      "operatingTemperatureMin",
+      "operatingTemperatureMax"
+    ]
+  },
+  {
+    "manufacturerId": "eaton",
+    "catalogNumber": "M22-D-G-K10",
+    "caseType": "electrical",
+    "expectedDeviceType": "Pushbutton / Operator",
+    "riskTags": [
+      "cold",
+      "m22",
+      "pushbutton",
+      "green",
+      "momentary",
+      "1no",
+      "representative-image"
+    ],
+    "expectedOfficialUrlPatterns": [
+      "eaton\\.com/.*/skuPage\\.M22-D-G-K10\\.html"
+    ],
+    "requiredDocuments": [
+      "datasheet"
+    ],
+    "expectedNormalizedFields": [
+      "dimensions",
+      "weight",
+      "protection"
+    ]
+  },
+  {
+    "manufacturerId": "eaton",
+    "catalogNumber": "278431",
+    "caseType": "electrical",
+    "expectedDeviceType": "Overload Relay",
+    "riskTags": [
+      "cold",
+      "zb12",
+      "overload-relay",
+      "0.1-0.16-a",
+      "pdp-image-verify"
+    ],
+    "expectedOfficialUrlPatterns": [
+      "eaton\\.com/.*/skuPage\\.278431\\.html"
+    ],
+    "requiredDocuments": [
+      "datasheet",
+      "image"
+    ],
+    "expectedNormalizedFields": [
+      "dimensions",
+      "weight",
+      "current"
+    ]
+  },
+  {
+    "manufacturerId": "eaton",
+    "catalogNumber": "5SC1000",
+    "caseType": "electrical",
+    "expectedDeviceType": "UPS",
+    "riskTags": [
+      "cold",
+      "5sc",
+      "ups",
+      "1000-va",
+      "700-w",
+      "line-interactive"
+    ],
+    "expectedOfficialUrlPatterns": [
+      "eaton\\.com/.*/skuPage\\.5SC1000\\.html"
+    ],
+    "requiredDocuments": [
+      "datasheet"
+    ],
+    "expectedNormalizedFields": [
+      "dimensions",
+      "weight",
+      "voltage"
+    ]
+  }
+]

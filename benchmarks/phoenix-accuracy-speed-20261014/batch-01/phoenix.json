@@ -1,0 +1,52 @@
+[
+  {
+    "manufacturerId": "phoenix",
+    "catalogNumber": "2904602",
+    "caseType": "electrical",
+    "expectedDeviceType": "Power Supply",
+    "riskTags": ["cold", "quint4", "20a-output", "sfb", "nfc", "wide-input"],
+    "expectedOfficialUrlPatterns": ["phoenixcontact\\.com/en-us/products/power-supply-quint4-ps1ac24dc20-2904602"],
+    "requiredDocuments": ["image"],
+    "expectedNormalizedFields": ["weight", "dimensions", "voltage", "current"]
+  },
+  {
+    "manufacturerId": "phoenix",
+    "catalogNumber": "2966171",
+    "caseType": "electrical",
+    "expectedDeviceType": "Relay",
+    "riskTags": ["cold", "plc-interface", "relay-module", "24vdc-coil", "changeover-contact"],
+    "expectedOfficialUrlPatterns": ["phoenixcontact\\.com/en-us/products/relay-module-plc-rsc-24dc21-2966171"],
+    "requiredDocuments": ["image"],
+    "expectedNormalizedFields": ["weight", "dimensions", "voltage"]
+  },
+  {
+    "manufacturerId": "phoenix",
+    "catalogNumber": "1085039",
+    "caseType": "electrical",
+    "expectedDeviceType": "Switch",
+    "riskTags": ["cold", "fl-switch", "ethernet", "unmanaged", "five-ports", "profinet"],
+    "expectedOfficialUrlPatterns": ["phoenixcontact\\.com/en-us/products/switch-fl-switch-1005n-1085039"],
+    "requiredDocuments": ["image"],
+    "expectedNormalizedFields": ["weight", "dimensions", "voltage", "current", "protection"]
+  },
+  {
+    "manufacturerId": "phoenix",
+    "catalogNumber": "2981062",
+    "caseType": "electrical",
+    "expectedDeviceType": "Safety Relay",
+    "riskTags": ["cold", "psr-spp", "safety-relay", "sil3", "cat4", "24vdc"],
+    "expectedOfficialUrlPatterns": ["phoenixcontact\\.com/en-us/products/safety-relays-psr-spp-24ucesl43x11x2b-2981062"],
+    "requiredDocuments": ["image"],
+    "expectedNormalizedFields": ["weight", "dimensions", "voltage"]
+  },
+  {
+    "manufacturerId": "phoenix",
+    "catalogNumber": "1790776",
+    "caseType": "electrical",
+    "expectedDeviceType": "Surge Protective Device",
+    "riskTags": ["cold", "val-us-spp", "surge-protection", "type1", "type2", "277-480vac"],
+    "expectedOfficialUrlPatterns": ["phoenixcontact\\.com/en-us/products/surge-protection-device-val-us-spp-277-50-40-r-1790776"],
+    "requiredDocuments": ["image"],
+    "expectedNormalizedFields": ["weight", "dimensions", "voltage"]
+  }
+]

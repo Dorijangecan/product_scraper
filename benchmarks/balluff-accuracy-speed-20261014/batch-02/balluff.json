@@ -1,0 +1,52 @@
+[
+  {
+    "manufacturerId": "balluff",
+    "catalogNumber": "BES01M2",
+    "caseType": "electrical",
+    "expectedDeviceType": "Inductive Proximity Sensor",
+    "riskTags": ["cold", "inductive-proximity", "m8", "non-flush", "pnp-no"],
+    "expectedOfficialUrlPatterns": ["balluff\\.com/en-gb/products/BES01M2"],
+    "requiredDocuments": ["image", "datasheet"],
+    "expectedNormalizedFields": ["voltage", "dimensions", "protection"]
+  },
+  {
+    "manufacturerId": "balluff",
+    "catalogNumber": "BCS009E",
+    "caseType": "electrical",
+    "expectedDeviceType": "Capacitive Sensor",
+    "riskTags": ["cold", "capacitive-level", "ptfe", "smart-level-15", "conductive-media"],
+    "expectedOfficialUrlPatterns": ["balluff\\.com/en-gb/products/BCS009E"],
+    "requiredDocuments": ["image", "datasheet"],
+    "expectedNormalizedFields": ["voltage", "dimensions", "protection"]
+  },
+  {
+    "manufacturerId": "balluff",
+    "catalogNumber": "BOS02AH",
+    "caseType": "electrical",
+    "expectedDeviceType": "Photoelectric Sensor",
+    "riskTags": ["cold", "photoelectric", "diffuse", "infrared", "broad-beam"],
+    "expectedOfficialUrlPatterns": ["balluff\\.com/en-(?:gb|us|de)/products/BOS02AH"],
+    "requiredDocuments": ["image", "datasheet"],
+    "expectedNormalizedFields": ["voltage", "dimensions"]
+  },
+  {
+    "manufacturerId": "balluff",
+    "catalogNumber": "BTL0W9F",
+    "caseType": "electrical",
+    "expectedDeviceType": "Linear Position Sensor",
+    "riskTags": ["cold", "linear-position", "magnetostrictive", "rod", "457-mm-range", "analog-voltage"],
+    "expectedOfficialUrlPatterns": ["balluff\\.com/en-gb/products/BTL0W9F"],
+    "requiredDocuments": ["image", "datasheet"],
+    "expectedNormalizedFields": ["voltage", "protection"]
+  },
+  {
+    "manufacturerId": "balluff",
+    "catalogNumber": "BUS005L",
+    "caseType": "electrical",
+    "expectedDeviceType": "Ultrasonic Sensor",
+    "riskTags": ["cold", "ultrasonic", "analog-0-10-v-4-20-ma", "65-600-mm-range", "m30"],
+    "expectedOfficialUrlPatterns": ["balluff\\.com/en-gb/products/BUS005L"],
+    "requiredDocuments": ["image", "datasheet"],
+    "expectedNormalizedFields": ["voltage", "protection"]
+  }
+]
