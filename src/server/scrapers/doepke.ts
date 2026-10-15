@@ -94,36 +94,67 @@ export class DoepkeConnector implements ManufacturerConnector {
     const productResult = relevantDocuments.length === result.documents.length && relevantAttributes.length === result.attributes.length
       ? result
       : { ...result, documents: relevantDocuments, attributes: relevantAttributes };
-    const exactPdf = productResult.documents.find((document) =>
+    let exactPdf = productResult.documents.find((document) =>
       document.type === "datasheet" && /doepke_\d+_dbl_[a-z]{2}\.pdf(?:[?#]|$)/i.test(document.url)
     ) ?? (/(?:DNP\s*8E|8-way input)/i.test(`${productResult.title ?? ""} ${productResult.description ?? ""}`)
       ? productResult.documents.find((document) => document.type === "manual" && /3931177\.pdf(?:[?#]|$)/i.test(document.url))
       : /\bDRD\s*2\b/i.test(`${productResult.title ?? ""} ${productResult.description ?? ""}`)
         ? productResult.documents.find((document) => document.type === "manual" && /3931203\.pdf(?:[?#]|$)/i.test(document.url))
         : undefined);
+    let fallbackDownloaded: DocumentRecord | undefined;
+    let fallbackText: string | undefined;
+    let fallbackPageCount: number | undefined;
+    if (!exactPdf && productResult.productUrl && catalogNumber) {
+      // Several exact Doepke article pages expose only an operating manual in their legacy
+      // English link list, while the same exact article's official datasheet follows this
+      // article-number URL convention. Try the canonical English and German assets, but accept
+      // either only after the PDF itself contains the requested article number.
+      for (const language of ["en", "de"]) {
+        const candidate: DocumentRecord = {
+          type: "datasheet",
+          label: "Data sheet",
+          url: `https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_${catalogNumber}_dbl_${language}.pdf`,
+          sourceUrl: productResult.productUrl
+        };
+        try {
+          const downloaded = await context.downloadDocument(candidate);
+          if (!downloaded.localPath) continue;
+          const extracted = await extractDoepkePdfText(downloaded.localPath);
+          if (!extracted.text.replace(/\D/g, "").includes(catalogNumber.replace(/\D/g, ""))) continue;
+          exactPdf = candidate;
+          fallbackDownloaded = downloaded;
+          fallbackText = extracted.text;
+          fallbackPageCount = extracted.pageCount;
+          break;
+        } catch {
+          // A locale asset may not exist. The next language uses the same exact article number.
+        }
+      }
+    }
     if (!exactPdf) return productResult;
 
     try {
-      const downloaded = await context.downloadDocument(exactPdf);
-      if (!downloaded.localPath) return result;
+      const downloaded = fallbackDownloaded ?? await context.downloadDocument(exactPdf);
+      if (!downloaded.localPath) return productResult;
       // Long operating manuals put the technical table near the end. Extract the front page and
       // final five pages only for manuals over eight pages; exact article validation below must
       // still find the requested order number in the retained technical section.
-      const extracted = await extractDoepkePdfText(downloaded.localPath, exactPdf.type === "manual");
+      const extracted = fallbackText !== undefined
+        ? { text: fallbackText, pageCount: fallbackPageCount ?? 0 }
+        : await extractDoepkePdfText(downloaded.localPath, exactPdf.type === "manual");
       const text = extracted.text;
       const compactArticle = catalogNumber.replace(/\D/g, "");
       const compactText = text.replace(/\D/g, "");
-      if (!compactText.includes(compactArticle)) return result;
+      if (!compactText.includes(compactArticle)) return productResult;
       const exactAttributes = extractDoepkeExactDocumentAttributes(catalogNumber, productResult, exactPdf.url, text);
-      if (!exactAttributes.length) return productResult;
       const attributes = dedupeAttributes([...productResult.attributes, ...exactAttributes]);
-      const documents = dedupeDocuments(productResult.documents.map((document) =>
-        document.url === exactPdf.url
-          ? extracted.pageCount > 8 && exactPdf.type === "manual"
-            ? { ...downloaded, enrichable: false, parseStatus: "parsed" as const }
-            : downloaded
-          : document
-      ));
+      const updatedDownloaded = extracted.pageCount > 8 && exactPdf.type === "manual"
+        ? { ...downloaded, enrichable: false, parseStatus: "parsed" as const }
+        : downloaded;
+      const documents = dedupeDocuments([
+        ...productResult.documents.filter((document) => document.url !== exactPdf.url),
+        updatedDownloaded
+      ]);
       return {
         ...productResult,
         attributes,
@@ -412,14 +443,71 @@ function extractDoepkeExactDocumentAttributes(
   };
   const acVoltage = text.match(/Rated voltage\s*\(AC\)\s*(\d+(?:[.,]\d+)?\s*V)/i)?.[1];
   const acCurrent = text.match(/Rated current\s*\(AC\)\s*(\d+(?:[.,]\d+)?\s*A)/i)?.[1];
-  const designation = titleAndDescription.match(/\b(?:RCBO\s*\d+[^\n]{0,40}|Tytan\s+II\s+D0-[^\s,;]+|SIR\s*16\s*M|DNP\s*8E|DBM\s*1|DLUX|DTS\s*1|DRD\s*2|DRT\s*1|DWS\s*1)\b/i)?.[0];
+  const designation = titleAndDescription.match(/\b(?:DRCA\s*[- ]?1\s*[- ]?Set|SIRO-SL|DSU\s*8\s*plus|DSI\s*1|DRP|RCBO\s*\d+[^\n]{0,40}|Tytan\s+II\s+D0-[^\s,;]+|SIR\s*16\s*M|DNP\s*8E|DBM\s*1|DLUX|DTS\s*1|DRD\s*2|DRT\s*1|DWS\s*1)\b/i)?.[0];
   push("Verified product designation", designation);
   push("Number of poles", text.match(/Number of poles\s+(\d+)\b/i)?.[1]);
   push("Rated short-circuit current", text.match(/Rated short-circuit current\s+(\d+(?:[.,]\d+)?\s*kA)/i)?.[1]);
   push("Rated insulation voltage", text.match(/Rated insulation voltage\s+(\d+(?:[.,]\d+)?\s*V)/i)?.[1]);
   push("Rated impulse withstand voltage", text.match(/Rated impulse withstand voltage\s+(\d+(?:[.,]\d+)?\s*kV)/i)?.[1]);
 
-  if (/\bRCBO\s*1\b/i.test(titleAndDescription)) {
+  if (/\bDRCA\s*[- ]?1\s*[- ]?Set\b/i.test(titleAndDescription)) {
+    push("Measurement system function", "Residual current analysis system");
+    push("Residual current measurement frequency range", text.match(/residual currents? from\s*(10\s*Hz\s*to\s*100\s*kHz)/i)?.[1]);
+    push("Residual current measurement amplitude maximum", text.match(/amplitude\s+up\s+to\s+max\.?\s*(10\s*A)/i)?.[1]);
+    push("DC residual current immunity", text.match(/immunity against DC residual currents\s+up\s+to\s*(3\s*A)/i)?.[1]);
+    push("Current transformer inside diameter", text.match(/(70\s*mm)\s+inside diameter/i)?.[1]);
+    push("Measuring cable length", text.match(/cable length\s*(3\s*m)/i)?.[1]);
+    const width = text.match(/Width\s*(420\s*mm)/i)?.[1];
+    const height = text.match(/Height\s*(345\s*mm)/i)?.[1];
+    const depth = text.match(/Depth\s*(120\s*mm)/i)?.[1];
+    if (width && height && depth) push("Verified device dimensions", "345 x 420 x 120 mm (H x W x D)");
+  } else if (/\b(?:Modular )?residual current\b[\s\S]{0,80}\bDRP\b|\bMRCDs?\b/i.test(titleAndDescription)) {
+    push("Monitoring device class", "MRCD residual current monitoring relay");
+    push("Residual current response settings", text.match(/(?:max\. adjustable residual operating current|adjustment values).*?(0\.03\s*A[\s\S]{0,80}1\s*A)/i)?.[1]);
+    push("Residual current response delay", text.match(/adjustable from\s*(30\s*ms\s*to\s*150\s*ms)/i)?.[1]);
+    push("Rated control voltage options", text.match(/three control\/auxiliary voltages can be selected\s*\((230\s*V\s*[-–]\s*400\s*V\s*[-–]\s*500\s*V)\)/i)?.[1]);
+  } else if (/\bSIRO-SL\b/i.test(titleAndDescription)) {
+    push("Device function", "Roller shutter control slave module");
+    const supplyVoltage = text.match(/(?:Betriebsspannung|Operating voltage)\s*\(DC\)\s*(24\s*V)\s*\(\s*21[.,]5\s*V\s*\.\.\.\s*26[.,]5\s*V\s*\)/i)?.[1];
+    push("Device supply voltage", supplyVoltage?.replace(/\s*V$/i, " V DC"));
+    const deviceSupplyCurrent = text.match(/Current consumption\s*\(AC\)\s*max\.?\s*(0[.,]012\s*A)/i)?.[1];
+    push("Device supply current", deviceSupplyCurrent ? "12 mA AC" : undefined);
+    push("Rated output load current", text.match(/(?:roller shutter control module for a\s*230\s*V\s*\/\s*(2\s*A)\s*motor|relays?[^.]{0,100}\b(2\s*A)\s*load capacity)/i)?.slice(1).find(Boolean));
+    push("Rated output voltage", text.match(/roller shutter control module for a\s*(230\s*V)\s*\/\s*2\s*A\s*motor/i)?.[1]);
+    const width = text.match(/Width\s*(35\s*mm)/i)?.[1];
+    const height = text.match(/Height\s*(85\s*mm)/i)?.[1];
+    const depth = text.match(/Depth\s*(65\s*mm)/i)?.[1];
+    if (width && height && depth) push("Verified device dimensions", "85 x 35 x 65 mm (H x W x D)");
+    push("Operating temperature", text.match(/Umgebungstemperatur\s*(-10\s*°C\s*\.\.\.\s*\+?45\s*°C)/i)?.[1]);
+    push("Housing material", text.match(/Gehäusematerial\s*(Polycarbonat\s*\(PC\))/i)?.[1]);
+    push("Protection class", text.match(/Schutzart\s*(IP\s*20)/i)?.[1]);
+  } else if (/\bDSU\s*8\s*plus\b/i.test(titleAndDescription)) {
+    const supplyVoltage = text.match(/Operating voltage\s*\(DC\)\s*(24\s*V)\s*\(\s*21[.,]5\s*V\s*\.\.\.\s*26[.,]5\s*V\s*\)/i)?.[1];
+    const supplyCurrent = text.match(/Current consumption\s*\(DC\)\s*(0[.,]017\s*A)\s*\(\s*0[.,]013\s*A\s*\.\.\.\s*0[.,]025\s*A\s*\)/i);
+    const busCurrent = text.match(/current consumption bus\s*(0[.,]9\s*mA|900\s*[µμ]A)\s*\(\s*(?:0[.,]8\s*mA|800\s*[µμ]A)\s*\.\.\.\s*(?:1(?:[.,]0)?\s*mA|1000\s*[µμ]A)\s*\)/i);
+    push("Device supply voltage", supplyVoltage ? `${supplyVoltage} DC (21.5–26.5 V DC)` : undefined);
+    push("Device supply current", supplyCurrent ? "17 mA (range 13–25 mA)" : undefined);
+    push("Dupline bus current consumption", busCurrent ? "0.9 mA (range 0.8–1.0 mA)" : undefined);
+    push("Input signal voltage (AC)", text.match(/Rated voltage\s*\(AC\)\s*(0\s*V\s*\.\.\.\s*230\s*V)/i)?.[1]);
+    push("Input signal voltage (DC)", text.match(/Rated voltage\s*\(DC\)\s*(0\s*V\s*\.\.\.\s*230\s*V)/i)?.[1]);
+    push("Input channels", text.match(/max\. number of input channels\s*(8)/i)?.[1]);
+    push("Input switching thresholds", text.match(/switching thresholds?\s*(?:of\s*)?(20\s*V\s*(?:and|\/)\s*190\s*V)/i)?.[1]);
+    const width = text.match(/Width\s*(72\s*mm)/i)?.[1];
+    const height = text.match(/Height\s*(85\s*mm)/i)?.[1];
+    const depth = text.match(/Depth\s*(65\s*mm)/i)?.[1];
+    if (width && height && depth) push("Verified device dimensions", "85 x 72 x 65 mm (H x W x D)");
+    push("Installation depth", text.match(/Installation depth\s*(58\s*mm)/i)?.[1]);
+    push("Input channels", text.match(/up to\s*(8)\s+voltage signals/i)?.[1]);
+  } else if (/\bDSI\s*1\b/i.test(titleAndDescription)) {
+    push("Communication protocol", text.match(/Protocol(?:s)?\s*(Modbus\s*I-RTU)/i)?.[1]);
+    push("Serial interface", text.match(/Specification\s*(RS\s*485)/i)?.[1]);
+    push("Device supply voltage", text.match(/Operating voltage\s*\(DC\)\s*(5\s*V)/i)?.[1]?.replace(/\s*V$/i, " V DC"));
+    push("Dupline bus current consumption", text.match(/current consumption bus\s*(10\s*[µμ]A)/i)?.[1]);
+    const width = text.match(/Width\s*(55\s*mm)/i)?.[1];
+    const height = text.match(/Height\s*(70\s*mm)/i)?.[1];
+    const depth = text.match(/Depth\s*(16\s*mm)/i)?.[1];
+    if (width && height && depth) push("Verified device dimensions", "70 x 55 x 16 mm (H x W x D)");
+  } else if (/\bRCBO\s*1\b/i.test(titleAndDescription)) {
     push("Rated voltage (AC)", acVoltage);
     push("Rated current (AC)", acCurrent);
     push("Device supply voltage", acVoltage ? `${acVoltage} AC` : undefined);

@@ -45,6 +45,16 @@ export function applyFieldCandidateResolution(result: ProductResult): ProductRes
     /^RUR\s*3$/i.test(attribute.value.trim()) &&
     /source\/prodext\.php/i.test(attribute.sourceUrl ?? "")
   );
+  const doepkeDrcaAnalysisSet = result.manufacturerId === "doepke" && result.attributes.some((attribute) =>
+    /^(?:product designation|verified product designation|type code)$/i.test(attribute.name.trim()) &&
+    /\bDRCA\s*[- ]?1\s*[- ]?Set\b/i.test(attribute.value) &&
+    (/source\/prodext\.php/i.test(attribute.sourceUrl ?? "") || attribute.parser === "doepke-exact-pdf")
+  );
+  const doepkeDrpMonitoringRelay = result.manufacturerId === "doepke" && result.attributes.some((attribute) =>
+    /^(?:product designation|verified product designation|type code)$/i.test(attribute.name.trim()) &&
+    /\bDRP\b/i.test(attribute.value) &&
+    (/source\/prodext\.php/i.test(attribute.sourceUrl ?? "") || attribute.parser === "doepke-exact-pdf")
+  );
   const doepkeDuplineBusPowered = result.manufacturerId === "doepke" && result.attributes.some((attribute) =>
     /^operating voltage(?: source)?$/i.test(attribute.name.trim()) && /\bbus signal\b/i.test(attribute.value)
   );
@@ -55,6 +65,10 @@ export function applyFieldCandidateResolution(result: ProductResult): ProductRes
   // rating as an operating-current candidate. Doepke-aware normalization has
   // already rejected it, so do not put it back during evidence attachment.
   if (doepkeRur3) delete normalized.current;
+  // DRCA current is a residual-current measurement range/immunity rating, never supply draw.
+  if (doepkeDrcaAnalysisSet) delete normalized.current;
+  // DRP residual-current trip thresholds and isolated contact ratings are not device supply draw.
+  if (doepkeDrpMonitoringRelay) delete normalized.current;
   const eatonElectrical = result.manufacturerId === "eaton"
     ? normalizeFields(result.attributes, result.documents, "eaton")
     : undefined;
@@ -83,6 +97,8 @@ export function applyFieldCandidateResolution(result: ProductResult): ProductRes
     if (result.manufacturerId === "schneider" && key === "current" && isSchneiderM221OutputCurrent(result.attributes)) continue;
     if (result.manufacturerId === "schneider" && key === "dimensions" && isSchneiderPendantStation(result.attributes)) continue;
     if (result.manufacturerId === "schneider" && key === "voltage" && isSchneiderBusPoweredInputModule(result.attributes)) continue;
+    if (doepkeDrcaAnalysisSet && key === "current") continue;
+    if (doepkeDrpMonitoringRelay && key === "current") continue;
     // ABB material/color are normalized from official product attributes only. Loose PDF table
     // fragments such as "Graphic color: display" are not product finish/material data and must
     // not be reintroduced after the manufacturer-specific normalizer rejected them.

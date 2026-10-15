@@ -100,6 +100,9 @@ export function requiredElectricalFields(result: ProductResult, context: Electri
   const text = productRequirementText(result);
   const ratingText = productRatingEvidenceText(result);
   if (!text) return [];
+  // The DRCA-1-Set is a USB-powered measurement system. Its published ampere figures
+  // describe residual-current measurement range/immunity, not the analyzer's supply draw.
+  if (result.manufacturerId === "doepke" && /\bDRCA\s*[- ]?1\s*[- ]?Set\b/i.test(text)) return [];
   // Dupline bus-powered devices such as the Doepke DBM 1 draw their operating energy from the
   // signal bus. Their exact datasheet names the bus as the voltage source but publishes no
   // standalone nominal voltage, so keep voltage blank and require only a published bus current.

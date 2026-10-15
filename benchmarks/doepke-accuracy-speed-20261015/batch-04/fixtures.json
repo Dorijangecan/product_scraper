@@ -1,0 +1,65 @@
+[
+  {
+    "manufacturerId": "doepke",
+    "catalogNumber": "09352050",
+    "caseType": "electrical",
+    "expectedDeviceType": "Residual Current Analyzer",
+    "riskTags": ["cold", "DRCA-1-Set", "residual-current-analysis", "measurement-system", "multi-component-kit"],
+    "expectedOfficialUrlPatterns": ["doepke\\.de/en/products/monitor/residual-current-analysis-systems/09352050", "doepke\\.de/source/prodext\\.php\\?ARTNR=09352050"],
+    "requiredDocuments": ["datasheet"],
+    "expectedNormalizedFields": ["voltage", "weight", "dimensions", "material", "operatingTemperatureMin", "operatingTemperatureMax"],
+    "expectedBlankNormalizedFields": ["current"],
+    "expectedNormalizedPatterns": {"voltage": "5\\s*V", "weight": "3\\.149\\s*kg", "dimensions": "345\\s*x\\s*420\\s*x\\s*120\\s*mm", "material": "polycarbonate", "operatingTemperatureMin": "0", "operatingTemperatureMax": "45"},
+    "expectedAttributePatterns": ["Catalog Number\\s+09352050", "Measurement system function\\s+Residual current analysis system", "Residual current measurement frequency range\\s+10\\s*Hz\\s+to\\s+100\\s*kHz", "Residual current measurement amplitude maximum\\s+10\\s*A", "DC residual current immunity\\s+3\\s*A", "Current transformer inside diameter\\s+70\\s*mm", "Measuring cable length\\s+3\\s*m"]
+  },
+  {
+    "manufacturerId": "doepke",
+    "catalogNumber": "09340110",
+    "caseType": "electrical",
+    "expectedDeviceType": "Residual Current Monitoring Relay",
+    "riskTags": ["cold", "DRP", "MRCD", "type-A", "external-transformer", "adjustable-threshold"],
+    "expectedOfficialUrlPatterns": ["doepke\\.de/en/products/protect/modular-residual-current-devices/.*/09340110", "doepke\\.de/source/prodext\\.php\\?ARTNR=09340110"],
+    "requiredDocuments": ["datasheet"],
+    "expectedNormalizedFields": ["voltage", "dimensions", "weight", "material", "protection", "operatingTemperatureMin", "operatingTemperatureMax"],
+    "expectedBlankNormalizedFields": ["current"],
+    "expectedNormalizedPatterns": {"voltage": "230\\s*V.*400\\s*V.*500\\s*V", "dimensions": "65\\s*x\\s*110\\s*x\\s*119\\s*mm", "weight": "0\\.575\\s*kg", "material": "polycarbonate", "protection": "IP53", "operatingTemperatureMin": "-25", "operatingTemperatureMax": "40"},
+    "expectedAttributePatterns": ["Catalog Number\\s+09340110", "Monitoring device class\\s+MRCD", "Residual current response settings\\s+0\\.03\\s*A", "Residual current response delay\\s+30\\s*ms\\s+to\\s+150\\s*ms", "Rated control voltage options\\s+230\\s*V.*400\\s*V.*500\\s*V", "Rated current\\s+2\\s*A"]
+  },
+  {
+    "manufacturerId": "doepke",
+    "catalogNumber": "09500170",
+    "caseType": "electrical",
+    "expectedDeviceType": "Roller Shutter Controller",
+    "riskTags": ["cold", "SIRO-SL", "blind-control", "slave-module", "24-V-DC"],
+    "expectedOfficialUrlPatterns": ["doepke\\.de/source/prodext\\.php\\?ARTNR=09500170", "doepke\\.de/en/products/.*/09500170"],
+    "requiredDocuments": ["datasheet"],
+    "expectedNormalizedFields": ["voltage", "current", "dimensions", "material", "protection", "operatingTemperatureMin", "operatingTemperatureMax"],
+    "expectedNormalizedPatterns": {"voltage": "24\\s*V\\s*DC", "current": "12\\s*mA\\s*AC", "dimensions": "85\\s*x\\s*35\\s*x\\s*65\\s*mm", "material": "polycarbonate", "protection": "IP20", "operatingTemperatureMin": "-10", "operatingTemperatureMax": "45"},
+    "expectedAttributePatterns": ["Catalog Number\\s+09500170", "Verified product designation\\s+SIRO-SL", "Device function\\s+Roller shutter control slave module", "Device supply voltage\\s+24\\s*V\\s*DC", "Device supply current\\s+12\\s*mA\\s*AC", "Rated output load current\\s+2\\s*A", "Protection class\\s+IP\\s*20"]
+  },
+  {
+    "manufacturerId": "doepke",
+    "catalogNumber": "09501116",
+    "caseType": "electrical",
+    "expectedDeviceType": "Communication Interface",
+    "riskTags": ["cold", "DSI-1", "Modbus", "RS-485", "Dupline-interface"],
+    "expectedOfficialUrlPatterns": ["doepke\\.de/source/prodext\\.php\\?ARTNR=09501116", "doepke\\.de/en/products/.*/09501116"],
+    "requiredDocuments": ["datasheet"],
+    "expectedNormalizedFields": ["voltage", "dimensions", "material", "protection", "operatingTemperatureMin", "operatingTemperatureMax"],
+    "expectedBlankNormalizedFields": ["current"],
+    "expectedNormalizedPatterns": {"voltage": "5\\s*V", "dimensions": "70\\s*x\\s*55\\s*x\\s*16\\s*mm", "material": "polycarbonate", "protection": "IP20", "operatingTemperatureMin": "-20", "operatingTemperatureMax": "60"},
+    "expectedAttributePatterns": ["Catalog Number\\s+09501116", "Verified product designation\\s+DSI 1", "Communication protocol\\s+Modbus\\s*I-RTU", "Serial interface\\s+RS\\s*485", "Dupline bus current consumption\\s+10\\s*[µμ]A"]
+  },
+  {
+    "manufacturerId": "doepke",
+    "catalogNumber": "09501244",
+    "caseType": "electrical",
+    "expectedDeviceType": "I/O Module",
+    "riskTags": ["cold", "DSU-8plus", "8-input", "binary-input", "0-230-V-AC-DC", "Dupline"],
+    "expectedOfficialUrlPatterns": ["doepke\\.de/source/prodext\\.php\\?ARTNR=09501244", "doepke\\.de/en/products/.*/09501244"],
+    "requiredDocuments": ["datasheet"],
+    "expectedNormalizedFields": ["voltage", "current", "dimensions", "material", "protection", "operatingTemperatureMin", "operatingTemperatureMax"],
+    "expectedNormalizedPatterns": {"voltage": "24\\s*V\\s*DC", "current": "17\\s*mA", "dimensions": "85\\s*x\\s*72\\s*x\\s*65\\s*mm", "material": "polycarbonate", "protection": "IP20", "operatingTemperatureMin": "-10", "operatingTemperatureMax": "45"},
+    "expectedAttributePatterns": ["Catalog Number\\s+09501244", "Verified product designation\\s+DSU 8plus", "Device supply voltage\\s+24\\s*V\\s*DC", "Device supply current\\s+17\\s*mA", "Dupline bus current consumption\\s+0\\.9\\s*mA", "Input signal voltage \\(AC\\)\\s+0\\s*V.*230\\s*V", "Input signal voltage \\(DC\\)\\s+0\\s*V.*230\\s*V", "Input channels\\s+8"]
+  }
+]

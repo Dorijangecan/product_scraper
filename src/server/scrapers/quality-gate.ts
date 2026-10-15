@@ -203,6 +203,16 @@ export function finalizeQualityGate(result: ProductResult, manufacturer: Manufac
       /source\/prodext\.php/i.test(attribute.sourceUrl ?? "")
     );
     if (isRur3 && !recomputed.current) delete normalized.current;
+    const exactDesignation = result.attributes.find((attribute) =>
+      /^(?:product designation|verified product designation)$/i.test(attribute.name.trim()) &&
+      (/source\/prodext\.php/i.test(attribute.sourceUrl ?? "") || attribute.parser === "doepke-exact-pdf")
+    )?.value ?? "";
+    const isDrpMonitoringRelay = /\bDRP\b/i.test(exactDesignation);
+    const isDrcaAnalysisSet = /\bDRCA\s*[- ]?1(?:\s*[- ]?Set)?\b/i.test(exactDesignation);
+    // A DRP's threshold choices and 2 A isolated alarm-contact rating are not device supply
+    // current. DRCA's 0–10 A is its measurement range and it has no published supply current.
+    if (isDrcaAnalysisSet || isDrpMonitoringRelay) delete normalized.current;
+    if (isDrcaAnalysisSet && !recomputed.voltage) delete normalized.voltage;
     candidate = { ...result, normalized };
   }
   return applyQualityGate(candidate, manufacturer, evaluateQualityGate(candidate, manufacturer, candidate.catalogNumber, candidate.qualityGate?.attempts ?? []));

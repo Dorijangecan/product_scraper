@@ -60,7 +60,10 @@ const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
   // Prefer the exact PLC family over that incidental component mention.
   rule("Programmable Logic Controller", /\b(?:TM221[A-Z0-9]+|Modicon\s+M221\s+(?:logic\s+)?controller)\b/i, 1180),
   rule("Communication Gateway", /\b(?:ethernet(?:\s+tcp\/ip)?|tcp\/ip)\s+(?:network|communication)\s+module\b/i, 950),
+  rule("Communication Interface", /\b(?:Dupline[-\s]?Modbus|Modbus)\s+interfaces?\b|\binterfaces?\s+for\s+(?:Modbus|Dupline)\b/i, 970),
   rule("Communication Gateway", /\b(?:communication gateway|fieldbus gateway|fieldbus coupler|bus coupler|protocol converter|protocol gateway|serial gateway|modbus gateway|profibus gateway|profinet gateway|ethernet gateway|hart multiplexer|rs[-\s]?232(?:\s+(?:to|converter|interface|module))?|rs[-\s]?485(?:\s+(?:to|converter|interface|module))?|rs[-\s]?422|serial[-\s]?to[-\s]?ethernet|communication module|communication interface|industrial gateway|iiot gateway|edge gateway)\b/i, 905),
+  rule("Residual Current Analyzer", /\b(?:residual current analy[sz](?:er|ers|is)|analy[sz]is system\s+DRCA(?:[-\s]?1)?|DRCA[-\s]?1[-\s]?Set)\b/i, 980),
+  rule("Residual Current Monitoring Relay", /\b(?:modular residual current devices?\s+DRP|MRCDs?\b|residual current control relays?)\b/i, 980),
   // ABB calls panel power meters "network analyzers"; treat that explicit instrument class as a
   // meter before incidental mounting or communications wording can win.
   // Meter product descriptions often mention a gateway as one application alongside monitoring.
@@ -69,6 +72,8 @@ const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
   rule("Power Meter", /\b(?:SENTRON\s+7KM\s+(?:measuring\s+device|meter)|energy\s+counters?|energy[-\s]?measuring\s+devices?|power[-\s]?measuring\s+devices?)\b/i, 965),
   rule("Power Meter", /\b(?:power\s+(?:xpert\s+)?meter|energy\s+meter|multifunction\s+meter|multi[-\s]?function\s+meter|network\s+analy[sz]ers?)\b/i, 940),
   rule("I/O Module", /\b(?:i\/o|io|input\/output)\s+(?:module|expansion|system|block|card|interface)|(?:analog|digital)\s+(?:input|output)s?\s+(?:module|card|expansion|board)|(?:input|digital input)\s+boards?|\b(?:\d+[-\s]?way\s+)?(?:binary|digital)\s+input\b|remote\s+i\/o|io-link\s+(?:master|hub|module)\b/i, 1120),
+  rule("I/O Module", /\b(?:digital|binary|Dupline)?\s*(?:signal\s+)?input\s+modules?\b|\bDSU\s*\d+\s*plus\b/i, 1140),
+  rule("Roller Shutter Controller", /\b(?:roller shutter|roller blind|blind|shutter)\s+(?:control|controlling)\s+(?:device|module|unit|relay|slave module)\b|\broller shutters?\s+control\s+modules?\b|\brollosteuer[-\s]?(?:slave[-\s]?)?module\b/i, 970),
   rule("Signal Conditioner", /\b(?:input\s+)?signal\s+conditioners?|isolating\s+amplifiers?\b/i, 1140),
   rule("HMI", /\b(?:hmi|human[\s-]?machine[\s-]?interface|operator panel|web panel|touch panel|touchscreen panel|display terminal|graphic terminal)\b/i, 890),
   rule("Motion Controller", /\b(?:motion controller|motion control(?:ler)? module|motion module|integrated motion module|analog servo module|servo module|\d+\s*[- ]?axis servo|axis servo,\s*analog|servo,\s*analog\/enc|cnc controller|servo controller)\b/i, 930),

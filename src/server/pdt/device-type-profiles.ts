@@ -66,6 +66,7 @@ export const DEVICE_TYPE_PROFILES: Record<string, DeviceTypePdtProfile> = {
   "Miniature Circuit Breaker": { sheets: ["contactor a. fuses"], criticalFactsBySheet: { "contactor a. fuses": [...ELECTRICAL_RATING_FACTS] }, finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_AND_CURRENT },
   "Supplementary Protector": { sheets: ["contactor a. fuses"], criticalFactsBySheet: { "contactor a. fuses": [...ELECTRICAL_RATING_FACTS] }, finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_AND_CURRENT },
   "Residual Current Device": { sheets: ["contactor a. fuses"], criticalFactsBySheet: { "contactor a. fuses": [...ELECTRICAL_RATING_FACTS] }, finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_AND_CURRENT },
+  "Residual Current Monitoring Relay": { sheets: ["contactor a. fuses"], finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_ONLY },
   "Automatic Reclosing Device": { sheets: ["Switch"], finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_AND_CURRENT },
   "Undervoltage Measuring Relay": { sheets: ["el. mesurement devices"], finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_ONLY },
   "Motor Circuit Breaker": { sheets: ["motor protection"], criticalFactsBySheet: { "motor protection": [...ELECTRICAL_RATING_FACTS] }, finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_AND_CURRENT },
@@ -150,9 +151,12 @@ export const DEVICE_TYPE_PROFILES: Record<string, DeviceTypePdtProfile> = {
 
   "Programmable Logic Controller": { sheets: ["PLC"], eclassBySheet: { plc: { code: "27242202", system: "14" } }, criticalFactsBySheet: { PLC: [...VOLTAGE_RATING_FACTS] }, finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_ONLY },
   "I/O Module": { sheets: ["PLC"], eclassBySheet: { plc: { code: "27242604", system: "14" } }, criticalFactsBySheet: { PLC: [...VOLTAGE_RATING_FACTS] }, finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_ONLY },
+  "Roller Shutter Controller": { sheets: ["contactor a. fuses"], finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_ONLY },
   HMI: { sheets: ["PLC", "panel (HMI)"], criticalFactsBySheet: { PLC: [...VOLTAGE_RATING_FACTS], "panel (HMI)": [...VOLTAGE_RATING_FACTS] }, finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_ONLY },
   "Communication Gateway": { sheets: ["PLC", "RS232 interfaces"], eclassBySheet: { plc: { code: "27242201", system: "13" } }, criticalFactsBySheet: { PLC: [...VOLTAGE_RATING_FACTS] }, finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_ONLY },
+  "Communication Interface": { sheets: ["RS232 interfaces"], finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_ONLY },
   "Power Meter": { sheets: ["el. mesurement devices"], criticalFactsBySheet: { "el. mesurement devices": [...ELECTRICAL_RATING_FACTS] }, electricalFields: VOLTAGE_AND_CURRENT },
+  "Residual Current Analyzer": { sheets: ["el. mesurement devices"], finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: NO_ELECTRICAL_FIELDS },
   "Signal Conditioner": { sheets: ["el. mesurement devices"], finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_ONLY },
 
   "Pushbutton / Operator": {

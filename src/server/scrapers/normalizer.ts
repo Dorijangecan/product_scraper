@@ -259,6 +259,9 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
   const axisAssembledDimensions = normalizeDimensionValue(
     formatDimensions(heightAttr?.value, widthAttr?.value, depthAttr?.value, lengthAttr?.value)
   );
+  const exactDoepkeDimensions = manufacturerId === "doepke"
+    ? normalizeDimensionValue(doepkeExactAttribute(attributes, /^verified device dimensions$/i)?.value)
+    : undefined;
   const combinedDimensionsAttr = attributes
     .filter((attr) => {
       const haystack = `${attr.group ?? ""} ${attr.name}`.toLowerCase();
@@ -316,6 +319,7 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
     Boolean(axisAssembledDimensions) &&
     (!combinedDimensionsValue || (axisDimensionCount >= combinedDimensionCount && weakestAxisConfidence >= (combinedDimensionsAttr?.confidence ?? 1)));
   const dimensions = manufacturerId === "schneider" && isSchneiderPendantStation(attributes) ? undefined : (
+    exactDoepkeDimensions ??
     (manufacturerId === "balluff" ? balluffProbeDimensions(attributes) : undefined) ??
     (manufacturerId === "phoenix" ? phoenixContactSensorDimensions(attributes) : undefined) ??
     (preferAxisAssembly ? axisAssembledDimensions : undefined) ??
@@ -489,7 +493,9 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
     : manufacturerId === "doepke"
     ? (doepkeDuplineBusPowered
         ? doepkeExactAttribute(attributes, /^device supply voltage$/i)?.value
-        : doepkeOperatingVoltage(attributes) ?? fallbackVoltage)
+        : doepkeHasNoNormalizedDeviceSupply(attributes)
+          ? undefined
+          : doepkeOperatingVoltage(attributes) ?? fallbackVoltage)
     : fallbackVoltage;
   const genericCurrent = manufacturerId === "phoenix" && isPhoenixSignalConditioner(attributes)
     ? undefined
@@ -641,6 +647,11 @@ function doepkeOperatingVoltage(attributes: AttributeRecord[]): string | undefin
   const verifiedVoltage = doepkeExactAttribute(attributes, /^device supply voltage$/i)?.value;
   if (verifiedVoltage) return verifiedVoltage;
   const typeCode = doepkeTypeCode(attributes);
+  // The DRCA kit is a measuring system with a USB connection, not a fixed-voltage
+  // field device. The datasheet does not publish a rated device supply voltage.
+  if (/\bDRCA\s*[- ]?1(?:\s*[- ]?Set)?\b/i.test(typeCode)) return undefined;
+  // The DRP voltage rows describe selected control/auxiliary supplies and are handled
+  // through their exact operating-voltage rows below, not generic rated-voltage text.
   const operatingRows = doepkeExactAttributes(attributes, /^operating voltage$/i);
   const ratedVoltageRows = doepkeExactAttributes(attributes, /^rated voltage$/i);
   const rowForContext = (rows: AttributeRecord[], context: "AC" | "DC") =>
@@ -687,9 +698,16 @@ function doepkeTransformerSecondaryCurrent(attributes: AttributeRecord[]): strin
  * secondary output rating, paired with its 8/12 V outputs rather than 230 V mains input.
  */
 function doepkeCurrent(attributes: AttributeRecord[], fallback: string | undefined): string | undefined {
+  const exactDesignationAttributes = doepkeExactAttributes(attributes, /^(?:product designation|verified product designation|type code)$/i);
+  if (exactDesignationAttributes.some((attribute) =>
+    /\bDRCA\s*[- ]?1\s*[- ]?Set\b/i.test(attribute.value)
+  )) return undefined;
   const verifiedCurrent = doepkeExactAttribute(attributes, /^device supply current$/i)?.value;
   if (verifiedCurrent) return verifiedCurrent;
   const typeCode = doepkeTypeCode(attributes);
+  // DRCA's 0–10 A is a residual-current measurement range, and DRP's 2 A is
+  // the isolated alarm contact rating; neither is the device's own consumption.
+  if (/\bDRCA\s*[- ]?1(?:\s*[- ]?Set)?\b|\bDRP\b/i.test(typeCode)) return undefined;
   if (/^RUR\s*3$/i.test(typeCode)) return undefined;
   if (/^DFA\s*2\s*[-–]?\s*1$/i.test(typeCode)) {
     const ac = doepkeCurrentConsumption(attributes, "AC");
@@ -700,6 +718,11 @@ function doepkeCurrent(attributes: AttributeRecord[], fallback: string | undefin
     return doepkeTransformerSecondaryCurrent(attributes) ?? fallback;
   }
   return fallback;
+}
+
+function doepkeHasNoNormalizedDeviceSupply(attributes: AttributeRecord[]): boolean {
+  const typeCode = doepkeTypeCode(attributes);
+  return /\bDRCA\s*[- ]?1(?:\s*[- ]?Set)?\b/i.test(typeCode);
 }
 
 function doepkeExactProtection(attributes: AttributeRecord[]): string | undefined {
