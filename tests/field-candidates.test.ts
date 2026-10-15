@@ -44,6 +44,25 @@ describe("field candidate resolver", () => {
     expect(result.normalized.current).toBeUndefined();
   });
 
+  it("does not restore a light curtain's ambiguous operating-state current after normalization", () => {
+    const result = applyFieldCandidateResolution({
+      manufacturerId: "schneider",
+      catalogNumber: "XUSL4E30H091N",
+      status: "found",
+      confidence: 0.9,
+      normalized: { current: "42 mA no-load transmitter, 83 mA no-load receiver, 900 mA with maximum load receiver" },
+      attributes: [
+        { group: "Schneider Main", name: "Product or Component Type", value: "Safety light curtain type 4", sourceType: "official" },
+        { group: "Schneider Complementary", name: "Current consumption", value: "42 mA no-load transmitter, 83 mA no-load receiver, 900 mA with maximum load receiver", sourceType: "official" },
+        { group: "PDF datasheet", name: "[Ie] rated operational current", value: "2 A", sourceType: "generated", matchLevel: "exact" }
+      ],
+      documents: [],
+      sources: []
+    } satisfies ProductResult);
+
+    expect(result.normalized.current).toBeUndefined();
+  });
+
   it("selects official/customer-backed values over distributor candidates and keeps conflicts", () => {
     const result = applyFieldCandidateResolution({
       manufacturerId: "test",

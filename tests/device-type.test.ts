@@ -23,6 +23,15 @@ function product(
 }
 
 describe("device type classifier", () => {
+  it("classifies the Schneider ABL6TS control transformer family as a transformer", () => {
+    const result = classifyDeviceType(product(
+      [{ group: "PDF datasheet", name: "Product or component type", value: "Safety and isolation transformer", sourceType: "generated", matchLevel: "exact" }],
+      "Safety and isolation transformer",
+      { manufacturerId: "schneider", catalogNumber: "ABL6TS06B" }
+    ));
+    expect(result.type).toBe("Transformer");
+  });
+
   it("classifies Balluff pressure sensors despite their M12 connector detail", () => {
     const result = classifyDeviceType(product(
       [{ group: "Balluff Key features", name: "Product type", value: "Digital pressure sensors with display", sourceType: "official" }],

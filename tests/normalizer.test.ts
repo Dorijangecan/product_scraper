@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { classifyDocument, cleanText, normalizeAbbFields, normalizeFields, splitNameValue } from "../src/server/scrapers/normalizer.js";
+import { classifyDocument, cleanText, mergeResults, normalizeAbbFields, normalizeFields, splitNameValue } from "../src/server/scrapers/normalizer.js";
 
 describe("splitNameValue (Phase A4)", () => {
   it("splits on colon and equals", () => {
@@ -1661,6 +1661,62 @@ describe("normalizer", () => {
     expect(normalized.voltage).toBe("24 V DC");
   });
 
+  it("does not normalize display wording or LED status colors as device housing color", () => {
+    const hmi = normalizeFields([
+      { group: "PDF datasheet", name: "2 A 7 inch Wide color", value: "touch screen for HMIGXU3512", sourceType: "generated", matchLevel: "exact" },
+      { group: "PDF datasheet", name: "Display colour", value: "65536 colours", sourceType: "generated", matchLevel: "exact" }
+    ], [], "schneider");
+    const switchDevice = normalizeFields([
+      { group: "PDF datasheet", name: "Local signalling", value: "1 dual colour LED (green/yellow) for ring manager", sourceType: "generated", matchLevel: "exact" }
+    ], [], "schneider");
+    const lightCurtain = normalizeFields([
+      { group: "PDF datasheet", name: "Colour", value: "Red", sourceType: "generated", matchLevel: "exact" }
+    ], [], "schneider");
+
+    expect(hmi.color).toBeUndefined();
+    expect(switchDevice.color).toBeUndefined();
+    expect(lightCurtain.color).toBe("Red");
+  });
+
+  it("uses the exact secondary voltage and transparently derives a single-secondary transformer's rated current", () => {
+    const sourceUrl = "https://download.se.com/files?p_Doc_Ref=ABL6TS06B";
+    const exact = { sourceType: "generated" as const, parser: "pdf-table-extractor", matchLevel: "exact" as const, sourceUrl };
+    const normalized = normalizeFields([
+      { group: "PDF datasheet", name: "Product or component type", value: "Safety and isolation transformer", ...exact },
+      { group: "PDF datasheet", name: "Input voltage", value: "230 V AC single phase, terminal(s): N-L1", ...exact },
+      { group: "PDF datasheet", name: "Output voltage", value: "24 V AC", ...exact },
+      { group: "PDF datasheet", name: "Rated power in VA", value: "63 VA", ...exact },
+      { group: "PDF datasheet", name: "Secondary winding", value: "Single", ...exact }
+    ], [], "schneider");
+
+    expect(normalized.voltage).toBe("24 V AC");
+    expect(normalized.current).toBe("2.63 A");
+  });
+
+  it("leaves a Schneider light curtain's single current field blank when the PDP lists separate operating-state currents", () => {
+    const normalized = normalizeFields([
+      { group: "Schneider Main", name: "Product or Component Type", value: "Safety light curtain type 4", sourceType: "official" },
+      { group: "Schneider Complementary", name: "Current consumption", value: "42 mA no-load transmitter, 83 mA no-load receiver, 42 mA transmitter, 900 mA with maximum load receiver", sourceType: "official" },
+      { group: "PDF datasheet", name: "[Ie] rated operational current", value: "2 A", sourceType: "generated", matchLevel: "exact" }
+    ], [], "schneider");
+
+    expect(normalized.current).toBeUndefined();
+  });
+
+  it("does not restore the light curtain's ambiguous current when merging scraper candidates", () => {
+    const attributes = [
+      { group: "Schneider Main", name: "Product or Component Type", value: "Safety light curtain type 4", sourceType: "official" as const },
+      { group: "PDF datasheet", name: "[Ie] rated operational current", value: "2 A", sourceType: "generated" as const, matchLevel: "exact" as const }
+    ];
+    const primary = {
+      manufacturerId: "schneider", catalogNumber: "XUSL4E30H091N", status: "found" as const, confidence: 0.9,
+      title: "Safety light curtain", normalized: { current: "2 A" }, attributes, documents: [], sources: []
+    };
+    const fallback = { ...primary, normalized: {} };
+
+    expect(mergeResults(primary, fallback).normalized.current).toBeUndefined();
+  });
+
   it("prefers a Schneider contactor's operational current to its thermal test current", () => {
     const normalized = normalizeFields(
       [
@@ -2208,6 +2264,17 @@ describe("normalizer", () => {
     );
 
     expect(normalized.dimensions).toBe("10 x 25 x 35 mm");
+  });
+
+  it("does not normalize an HMI panel cut-out as the product's external dimensions", () => {
+    const normalized = normalizeFields(
+      [
+        { group: "PDF datasheet", name: "Cut-out dimensions", value: "190 x 135 mm", confidence: 0.78, sourceType: "generated", parser: "pdf-table-extractor" }
+      ],
+      []
+    );
+
+    expect(normalized.dimensions).toBeUndefined();
   });
 
   it("still assembles Height/Width/Length when neither side states an explicit confidence (unchanged default behavior)", () => {

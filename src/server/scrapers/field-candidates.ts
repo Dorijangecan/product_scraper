@@ -9,7 +9,7 @@ import type {
 } from "../../shared/types.js";
 import { FIELD_REGISTRY, fieldAttributeLabel, fieldMatchesLabel, type RegistryFieldKey } from "./field-registry.js";
 import { evidenceConfidence } from "./evidence-score.js";
-import { cleanText, normalizeFields } from "./normalizer.js";
+import { cleanText, isSchneiderSafetyLightCurtain, normalizeFields } from "./normalizer.js";
 import { isQuantityPlausible, parseQuantities, type QuantityKind } from "./quantity.js";
 
 const NORMALIZED_FIELDS = new Set<keyof NormalizedProductFields>([
@@ -32,6 +32,7 @@ export function applyFieldCandidateResolution(result: ProductResult): ProductRes
   const resolutions = buildFieldResolutions(candidates);
   const normalized = { ...result.normalized };
   if (result.manufacturerId === "schneider" && isSchneiderSurgeProtector(result)) delete normalized.current;
+  if (result.manufacturerId === "schneider" && isSchneiderSafetyLightCurtain(result.attributes)) delete normalized.current;
   const eatonElectrical = result.manufacturerId === "eaton"
     ? normalizeFields(result.attributes, result.documents, "eaton")
     : undefined;
@@ -54,6 +55,7 @@ export function applyFieldCandidateResolution(result: ProductResult): ProductRes
     // Preserve SPD ratings as named evidence (Iimp, In and Imax), without flattening
     // their surge current into the general operating-current field.
     if (result.manufacturerId === "schneider" && key === "current" && isSchneiderSurgeProtector(result)) continue;
+    if (result.manufacturerId === "schneider" && key === "current" && isSchneiderSafetyLightCurtain(result.attributes)) continue;
     // ABB material/color are normalized from official product attributes only. Loose PDF table
     // fragments such as "Graphic color: display" are not product finish/material data and must
     // not be reintroduced after the manufacturer-specific normalizer rejected them.

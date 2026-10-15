@@ -1,0 +1,63 @@
+[
+  {
+    "manufacturerId": "schneider",
+    "catalogNumber": "ABL6TS06B",
+    "caseType": "electrical",
+    "expectedDeviceType": "Transformer",
+    "riskTags": ["cold", "modicon-abl6", "control-transformer", "230-400vac-primary", "24vac-secondary", "63va"],
+    "expectedOfficialUrlPatterns": ["se\\.com/.*/product/ABL6TS06B(?:/|$)"],
+    "expectedNormalizedFields": ["voltage", "current"],
+    "expectedNormalizedPatterns": {"voltage": "^24 V AC$", "current": "^2\\.63 A$"},
+    "expectedAttributePatterns": ["rated input voltage.*230V to 400V AC", "output voltage.*24 V AC", "rated power in VA.*63 VA", "secondary winding.*single"],
+    "requiredDocuments": ["datasheet", "image"]
+  },
+  {
+    "manufacturerId": "schneider",
+    "catalogNumber": "HMIGXU3512",
+    "caseType": "electrical",
+    "expectedDeviceType": "HMI",
+    "riskTags": ["cold", "harmony-easy-gxu", "7-inch-touch-panel", "800x480-wvga", "24vdc"],
+    "expectedOfficialUrlPatterns": ["se\\.com/.*/product/HMIGXU3512(?:/|$)"],
+    "expectedNormalizedFields": ["voltage", "operatingTemperatureMin", "operatingTemperatureMax"],
+    "expectedBlankNormalizedFields": ["color", "dimensions"],
+    "expectedNormalizedPatterns": {"voltage": "^24 V DC$", "operatingTemperatureMin": "^0$", "operatingTemperatureMax": "^50$"},
+    "expectedAttributePatterns": ["display size.*7 inch", "display resolution.*800.*480", "rated supply voltage.*24 V DC", "cut-out dimensions.*190 x 135 mm", "ethernet.*10/100BASE-TX"],
+    "requiredDocuments": ["datasheet", "image"]
+  },
+  {
+    "manufacturerId": "schneider",
+    "catalogNumber": "TCSESM043F1CU0",
+    "caseType": "electrical",
+    "expectedDeviceType": "Switch",
+    "riskTags": ["cold", "connexium", "managed-ethernet-switch", "3tx-1fx", "multimode"],
+    "expectedOfficialUrlPatterns": ["se\\.com/.*/product/TCSESM043F1CU0(?:/|$)"],
+    "expectedAttributePatterns": ["Port Ethernet.*3 copper cable", "ports for copper \\+ 1 port for fiber", "multimode"],
+    "expectedBlankNormalizedFields": ["color"],
+    "requiredDocuments": ["datasheet", "image"]
+  },
+  {
+    "manufacturerId": "schneider",
+    "catalogNumber": "XUSL4E30H091N",
+    "caseType": "electrical",
+    "expectedDeviceType": "Safety Sensor",
+    "riskTags": ["cold", "telemecanique-xusl", "type-4-light-curtain", "30mm-resolution", "910mm-protected-height"],
+    "expectedOfficialUrlPatterns": ["telemecaniquesensors\\.com/.*/product/reference/XUSL4E30H091N(?:/|$)"],
+    "expectedNormalizedFields": ["voltage", "color"],
+    "expectedBlankNormalizedFields": ["current"],
+    "expectedNormalizedPatterns": {"voltage": "^24 V DC", "color": "^Red$"},
+    "expectedAttributePatterns": ["R=30 mm", "protected height.*910 mm", "sensing range.*4.*12 m", "response time.*12.5 ms", "output type.*2 safety outputs OSSD.*PNP", "Colour.*Red"],
+    "requiredDocuments": ["datasheet", "image"]
+  },
+  {
+    "manufacturerId": "schneider",
+    "catalogNumber": "NSYCCOTH230VID",
+    "caseType": "electrical",
+    "expectedDeviceType": "Thermal Management",
+    "riskTags": ["cold", "climasys-cc", "electronic-thermostat", "200-240vac", "-40-80c-setting-range"],
+    "expectedOfficialUrlPatterns": ["se\\.com/.*/product/NSYCCOTH230VID(?:/|$)"],
+    "expectedNormalizedFields": ["voltage", "operatingTemperatureMin", "operatingTemperatureMax"],
+    "expectedNormalizedPatterns": {"voltage": "^200.*240 V AC$", "operatingTemperatureMin": "^-40$", "operatingTemperatureMax": "^70$"},
+    "expectedAttributePatterns": ["temperature setting range.*-40.*80 ?°?C", "operating temperature.*-40.*70 º?C", "input voltage.*200.*240 V AC", "maximum switching capacity.*4 A.*230 V AC", "OLED screen", "number of outputs.*2 ventilation/heating function"],
+    "requiredDocuments": ["datasheet", "image"]
+  }
+]

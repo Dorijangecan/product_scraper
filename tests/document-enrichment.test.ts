@@ -927,6 +927,26 @@ Material glass-filled polyamide
     expect(normalized.material).toBe("glass-filled polyamide");
   });
 
+  it("does not normalize panel cut-out dimensions as the product's external dimensions", () => {
+    const attributes = extractDocumentTextAttributes({
+      catalogNumber: "NX-HMI-01",
+      document: {
+        type: "datasheet",
+        label: "NX-HMI-01 product datasheet",
+        url: "https://example.test/nx-hmi-01.pdf"
+      },
+      text: `
+Mounting
+Panel Cut Dimensions
+190 x 135 mm
+      `
+    });
+    const normalized = normalizeFields(attributes, []);
+
+    expect(attributes.some((attribute) => attribute.group === "PDF Dimension Text")).toBe(false);
+    expect(normalized.dimensions).toBeUndefined();
+  });
+
   it("uses customer CSV datasheets as source-backed Siemens evidence", async () => {
     const dir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-customer-docs-"));
     const storedPath = path.join(dir, "siemens-vsg519k15-5-datasheet.csv");

@@ -56,6 +56,7 @@ export const DEVICE_TYPE_FAMILIES: Record<string, readonly FamilyEntry[]> = {
     { patterns: ["A9", "ID", "IDB"], type: "Residual Current Device", notes: "Acti9 RCD/RCBO" },
     { patterns: ["ATV"], type: "Variable Speed Drive", notes: "Altivar" },
     { patterns: ["ATS"], type: "Soft Starter", notes: "Altistart" },
+    { patterns: ["ABL6TS"], type: "Transformer", notes: "Modicon ABL6 control transformer" },
     { patterns: ["ABL", "PSU"], type: "Power Supply" },
     { patterns: ["XB4", "XB5", "XB6", "XB7", "ZBE", "ZB5AW035"], type: "Pushbutton / Operator", notes: "Harmony" },
     { patterns: ["XALD", "XALK"], type: "Pushbutton / Operator", notes: "Harmony control station" },

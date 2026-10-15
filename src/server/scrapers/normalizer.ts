@@ -264,6 +264,10 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
       // way, defeating the whole point of comparing them). Single-axis attributes are already
       // handled via bestDimensionAxisAttribute above; exclude them here.
       if (/^(?:height|width|depth|length)$/i.test(attr.name.trim())) return false;
+      // Panel cut-outs describe the opening needed to install an HMI, not the panel's external
+      // envelope. Preserve the exact value as a source attribute without normalizing it as product
+      // dimensions.
+      if (!fieldMatchesLabel("dimensions", attr.name)) return false;
       return normalizerFieldLabelPatterns("dimensions").some((pattern) => pattern.test(haystack)) && isLikelySpecText(attr.value) && isAvailableSpecValue(attr.value);
     })
     .sort((left, right) => dimensionsFieldScore(right) - dimensionsFieldScore(left))
@@ -364,6 +368,8 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
     ? exactSchmersalPdpFieldValue(attributes, /^(?:colou?r)$/i, (value) => findColorAttr([{ name: "Colour", value }]))
     : manufacturerId === "phoenix"
     ? phoenixContactExplicitColor(attributes)
+    : manufacturerId === "schneider"
+    ? schneiderExplicitProductColor(attributes)
     : withoutForeignQuantityKinds(
     findColorAttr(attributes) ??
       registryFieldValue(attributes, "color", deriveColorFromFinish) ??
@@ -423,7 +429,8 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
 
   const rittalVoltageModes = manufacturerId === "rittal" ? rittalMultipleVoltageRanges(attributes) : undefined;
   const schneiderSupplyVoltage = manufacturerId === "schneider"
-    ? schneiderDualSupplyVoltage(voltageAttributes) ?? schneiderPowerSupplyOutputVoltage(voltageAttributes, attributes)
+    ? schneiderTransformerOutputVoltage(voltageAttributes, attributes) ??
+      schneiderDualSupplyVoltage(voltageAttributes) ?? schneiderPowerSupplyOutputVoltage(voltageAttributes, attributes)
     : undefined;
   const voltage = schneiderSupplyVoltage ?? (manufacturerId === "phoenix"
     ? phoenixContactNormalizedVoltage(attributes) ?? withoutMixedKindProse(
@@ -472,7 +479,12 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
     ? exactSchmersalNoLoadSupplyCurrent(attributes, manufacturerId)
     : manufacturerId === "schneider" && isSchneiderSurgeProtector(attributes)
     ? undefined
+    : manufacturerId === "schneider" && isSchneiderSafetyLightCurtain(attributes)
+    ? undefined
     : withoutMixedKindProse(
+    (manufacturerId === "schneider" && isSchneiderTransformer(attributes)
+      ? schneiderTransformerSecondaryCurrent(currentAttributes)
+      : undefined) ??
     exactSchmersalNoLoadSupplyCurrent(attributes, manufacturerId) ??
     balluffPublishedCurrentConsumption(currentAttributes, manufacturerId) ??
     eatonNacPowerSupplyCurrent(currentAttributes, manufacturerId) ??
@@ -1235,6 +1247,82 @@ function isSchneiderSurgeProtector(attributes: AttributeRecord[]): boolean {
   );
 }
 
+function isSchneiderTransformer(attributes: AttributeRecord[]): boolean {
+  return attributes.some((attribute) =>
+    /^(?:product or component type|product type)$/i.test(attribute.name.trim()) &&
+    /\btransformer\b/i.test(attribute.value) &&
+    (attribute.sourceType === "official" || attribute.sourceType === "official-fallback" ||
+      (attribute.sourceType === "generated" && attribute.matchLevel === "exact"))
+  );
+}
+
+export function isSchneiderSafetyLightCurtain(attributes: AttributeRecord[]): boolean {
+  return attributes.some((attribute) =>
+    /^(?:product or component type|product type)$/i.test(attribute.name.trim()) &&
+    /\bsafety light curtain\b/i.test(attribute.value) &&
+    (attribute.sourceType === "official" || attribute.sourceType === "official-fallback")
+  );
+}
+
+function schneiderExplicitProductColor(attributes: AttributeRecord[]): string | undefined {
+  const attribute = attributes
+    .filter((candidate) =>
+      /^(?:housing\s+)?colou?r\s*:?$/i.test(candidate.name.trim().replace(/^•\s*/, "")) &&
+      !/\b(?:led|display|screen|signall?ing|indicator)\b/i.test(`${candidate.group ?? ""} ${candidate.name} ${candidate.value}`) &&
+      (candidate.sourceType === "official" || candidate.sourceType === "official-fallback" ||
+        (candidate.sourceType === "generated" && candidate.matchLevel === "exact")) &&
+      Boolean(deriveColorFromFinish(candidate.value))
+    )
+    .sort(compareAttributeEvidence)[0];
+  return attribute ? normalizeHtmlSpecValue(attribute.value) : undefined;
+}
+
+function schneiderTransformerOutputVoltage(
+  voltageAttributes: AttributeRecord[],
+  attributes: AttributeRecord[]
+): string | undefined {
+  if (!isSchneiderTransformer(attributes)) return undefined;
+  return voltageAttributes
+    .filter((attribute) =>
+      /^output voltage$/i.test(attribute.name.trim()) &&
+      attribute.sourceType === "generated" &&
+      attribute.matchLevel === "exact" &&
+      /^PDF datasheet$/i.test(attribute.group ?? "")
+    )
+    .sort(compareAttributeEvidence)
+    .map((attribute) => normalizeVoltageValue(attribute.value))
+    .find((value): value is string => Boolean(value));
+}
+
+/**
+ * Derive the rated single-secondary current only when one exact datasheet row supplies both the
+ * output voltage and VA rating. This is a transparent VA/V calculation, not a sibling lookup or
+ * an inferred electrical operating point from unrelated input/output rows.
+ */
+function schneiderTransformerSecondaryCurrent(attributes: AttributeRecord[]): string | undefined {
+  const exactDatasheetRows = attributes.filter((attribute) =>
+    attribute.sourceType === "generated" && attribute.matchLevel === "exact" &&
+    /^PDF datasheet$/i.test(attribute.group ?? "")
+  );
+  const sourceUrls = [...new Set(exactDatasheetRows.map((attribute) => attribute.sourceUrl).filter(Boolean))];
+  for (const sourceUrl of sourceUrls) {
+    const rows = exactDatasheetRows.filter((attribute) => attribute.sourceUrl === sourceUrl);
+    const componentType = rows.find((attribute) => /^product or component type$/i.test(attribute.name.trim()));
+    const winding = rows.find((attribute) => /^secondary winding$/i.test(attribute.name.trim()));
+    const output = rows.find((attribute) => /^output voltage$/i.test(attribute.name.trim()));
+    const ratedPower = rows.find((attribute) => /^rated power in VA$/i.test(attribute.name.trim()));
+    if (!componentType || !/\btransformer\b/i.test(componentType.value) || !/^single$/i.test(winding?.value.trim() ?? "")) continue;
+    const voltageMatch = output?.value.match(/^\s*(\d+(?:[.,]\d+)?)\s*V\s*AC\s*$/i);
+    const powerMatch = ratedPower?.value.match(/^\s*(\d+(?:[.,]\d+)?)\s*VA\s*$/i);
+    if (!voltageMatch || !powerMatch) continue;
+    const volts = Number(voltageMatch[1].replace(",", "."));
+    const voltAmps = Number(powerMatch[1].replace(",", "."));
+    if (!(volts > 0) || !(voltAmps > 0)) continue;
+    return `${Number((voltAmps / volts).toFixed(2))} A`;
+  }
+  return undefined;
+}
+
 function schneiderDualSupplyVoltage(attributes: AttributeRecord[]): string | undefined {
   const attribute = attributes
     .filter((candidate) => /^\[Us\]\s*rated supply voltage$/i.test(candidate.name.trim()))
@@ -1502,11 +1590,11 @@ export function mergeResults(primary: ProductResult, fallback?: ProductResult): 
   const attributes = sortAttributesStable(dedupeAttributes([...primary.attributes, ...fallback.attributes]));
   const documents = dedupeDocuments([...primary.documents, ...fallback.documents]);
   const normalized = mergeNormalizedFields(
-    normalizeFields(attributes, documents, primary.manufacturerId === "rittal" || primary.manufacturerId === "schmersal" || primary.manufacturerId === "phoenix" ? primary.manufacturerId : undefined),
+    normalizeFields(attributes, documents, primary.manufacturerId === "rittal" || primary.manufacturerId === "schmersal" || primary.manufacturerId === "phoenix" || primary.manufacturerId === "schneider" ? primary.manufacturerId : undefined),
     primary.normalized,
     fallback.normalized,
     attributes,
-    primary.manufacturerId === "rittal" || primary.manufacturerId === "phoenix" ? primary.manufacturerId : undefined
+    primary.manufacturerId === "rittal" || primary.manufacturerId === "phoenix" || primary.manufacturerId === "schneider" ? primary.manufacturerId : undefined
   );
   const hasFallbackAdditions = fallback.status !== "failed" && (fallback.attributes.length > 0 || fallback.documents.length > 0);
   return {
@@ -2230,6 +2318,7 @@ function mergeNormalizedFields(
 ): NormalizedProductFields {
   const merged: NormalizedProductFields = { ...computed };
   const suppressPhoenixCurrent = manufacturerId === "phoenix" && isPhoenixSignalConditioner(attributes);
+  const suppressSchneiderLightCurtainCurrent = manufacturerId === "schneider" && isSchneiderSafetyLightCurtain(attributes);
   const phoenixPreferredVoltage = manufacturerId === "phoenix" ? phoenixContactNormalizedVoltage(attributes) : undefined;
   const phoenixPreferredWeight = manufacturerId === "phoenix" ? phoenixProductNetWeight(attributes) : undefined;
   const phoenixPreferredCurrent = manufacturerId === "phoenix" && isPhoenixSurgeProtector(attributes)
@@ -2243,6 +2332,7 @@ function mergeNormalizedFields(
   for (const field of Object.keys(computed) as Array<keyof NormalizedProductFields>) {
     if (merged[field]) continue;
     if (suppressPhoenixCurrent && field === "current") continue;
+    if (suppressSchneiderLightCurtainCurrent && field === "current") continue;
     if (manufacturerId === "phoenix" && field === "current" && isPhoenixSurgeProtector(attributes)) continue;
     if (manufacturerId === "rittal" && field === "current" && !computed.current) continue;
     if (manufacturerId === "schmersal" && field === "wallThickness" && !attributes.some((attribute) => {
@@ -2256,6 +2346,7 @@ function mergeNormalizedFields(
     const primaryValue = primary[field];
     if (!primaryValue) continue;
     if (suppressPhoenixCurrent && field === "current") continue;
+    if (suppressSchneiderLightCurtainCurrent && field === "current") continue;
     if (manufacturerId === "phoenix" && (
       (field === "weight" && phoenixPreferredWeight) ||
       (field === "voltage" && phoenixPreferredVoltage) ||
@@ -3431,6 +3522,8 @@ function findColorAttr(attributes: AttributeRecord[]): string | undefined {
       const haystack = `${attr.group ?? ""} ${attr.name}`.toLowerCase();
       return normalizerFieldLabelPatterns("color").some((pattern) => pattern.test(haystack)) &&
         !/\b(display|screen|lcd|tft)\b/.test(haystack) &&
+        !/\b(?:led|indicator|signall?ing|ring manager|transmitter|receiver)\b/i.test(`${haystack} ${attr.value}`) &&
+        Boolean(deriveColorFromFinish(attr.value)) &&
         isLikelySpecText(attr.value) &&
         isAvailableSpecValue(attr.value);
     })

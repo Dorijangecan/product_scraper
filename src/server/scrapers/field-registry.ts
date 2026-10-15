@@ -222,7 +222,7 @@ const FIELD_REGISTRY_EXTRA_ALIASES: Partial<Record<RegistryFieldKey, RegExp[]>> 
 // These labels contain a dimension word but name a different engineering property. The product model
 // does not export those properties yet, so retaining the raw attribute is safer than publishing it as
 // the enclosure/device envelope under `dimensions`.
-const NON_DIMENSIONAL_SIZE_LABELS = /\b(?:frame\s+size|stripping\s+length|stroke\s+length)\b/i;
+const NON_DIMENSIONAL_SIZE_LABELS = /\b(?:frame\s+size|stripping\s+length|stroke\s+length|cut[-\s]?out\s+dimensions?|panel\s+cut\s+dimensions?)\b/i;
 const NON_NAMEPLATE_VOLTAGE_LABELS = /\b(?:rated\s+insulation\s+voltage|rated\s+impulse\s+withstand\s+voltage|voltage\s+drop)\b/i;
 const NON_NAMEPLATE_CURRENT_LABELS = /\b(?:inrush\s+current|starting\s*\/\s*locked-rotor\s+current\s+ratio|rated\s+residual\s+current|let-through\s+current|leakage\s*\/\s*off-state\s+current)\b/i;
 

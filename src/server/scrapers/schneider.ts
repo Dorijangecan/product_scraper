@@ -264,9 +264,11 @@ const TELEMECANIQUE_LABELS = [
   "Front material",
   "IP degree of protection",
   "Material",
+  "Output type",
   "Output circuit type",
   "Product certifications",
   "Range of product",
+  "Response time",
   "Sensor design",
   "Sensor name",
   "Sensor type",
@@ -404,7 +406,7 @@ export class SchneiderConnector implements ManufacturerConnector {
   }
 }
 
-function buildSchneiderOfficialUrls(catalogNumber: string): string[] {
+export function buildSchneiderOfficialUrls(catalogNumber: string): string[] {
   const encoded = encodeURIComponent(catalogNumber);
   const productTemplates = /^XU[A-Z0-9]/i.test(catalogNumber)
     ? [
@@ -416,6 +418,11 @@ function buildSchneiderOfficialUrls(catalogNumber: string): string[] {
     ? [
         "https://www.se.com/uk/en/product/{part}/",
         ...SCHNEIDER_PRODUCT_URL_TEMPLATES.filter((template) => !template.includes("/uk/en/product/"))
+      ]
+    : /^(?:ABL6TS|HMIGXU)/i.test(catalogNumber)
+    ? [
+        "https://www.se.com/id/en/product/{part}/",
+        ...SCHNEIDER_PRODUCT_URL_TEMPLATES.filter((template) => !template.includes("/id/en/product/"))
       ]
     : SCHNEIDER_PRODUCT_URL_TEMPLATES;
   return productTemplates.map((template) => template.replace("{part}", encoded));
@@ -844,6 +851,15 @@ function extractTelemecaniqueDocuments($: cheerio.CheerioAPI, sourceUrl: string)
 
 function extractTelemecaniqueImages($: cheerio.CheerioAPI, catalogNumber: string, sourceUrl: string): DocumentRecord[] {
   const documents: DocumentRecord[] = [];
+  // The exact Telemecanique PDP places its primary product photo in this title figure and binds it
+  // to the same page's exact reference. DAM preview URLs are extensionless, so accept this narrow
+  // page role rather than falling back to search images (which can resolve to a cordset/accessory).
+  $("figure.left-container img[src],figure.left-container img[data-src]").each((_, element) => {
+    const rawUrl = $(element).attr("src") || $(element).attr("data-src");
+    const url = absoluteUrl(rawUrl, sourceUrl);
+    if (!url || !/dam\.telemecaniquesensors\.com\/addon\/tmss\/.+-preview(?:\?|$)/i.test(url)) return;
+    documents.push({ type: "image", label: `${catalogNumber} Product image`, url, sourceUrl });
+  });
   $("img[src],img[data-src]").each((_, element) => {
     const rawUrl = $(element).attr("src") || $(element).attr("data-src");
     const url = absoluteUrl(rawUrl, sourceUrl);

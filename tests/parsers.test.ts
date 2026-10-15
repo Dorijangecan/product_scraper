@@ -12,7 +12,7 @@ import {
 } from "../src/server/scrapers/eaton.js";
 import { parseGenericProductPage } from "../src/server/scrapers/generic.js";
 import { mergeResults, normalizeFields } from "../src/server/scrapers/normalizer.js";
-import { parseSchneiderDatasheetReaderPage, parseSchneiderProductPage, parseTelemecaniqueProductPage } from "../src/server/scrapers/schneider.js";
+import { buildSchneiderOfficialUrls, parseSchneiderDatasheetReaderPage, parseSchneiderProductPage, parseTelemecaniqueProductPage } from "../src/server/scrapers/schneider.js";
 import { extractSiemensProductAndPricesEan, extractSiemensTechnicalData, normalizeSiemensFields, parseSiemensBuildingTechnologiesGermanDescriptions, parseSiemensBuildingTechnologiesPview, parseSiemensProductApiResponse, siemensEuropeanWeightToDot } from "../src/server/scrapers/siemens.js";
 import { parseRockwellCutsheetPage, parseRockwellDpp, parseRockwellDrawingsPage, parseRockwellFamilyPage } from "../src/server/scrapers/rockwell.js";
 import { SCEConnector, parseSceProductPage } from "../src/server/scrapers/sce.js";
@@ -5811,6 +5811,11 @@ Terminal capacity
     expect(result.attributes.some((attr) => attr.name.includes("<meta") || attr.name === "220PC01A")).toBe(false);
   });
 
+  it("prefers the discovered exact Schneider locale for ABL6TS and Harmony GXU pages", () => {
+    expect(buildSchneiderOfficialUrls("ABL6TS06B")[0]).toBe("https://www.se.com/id/en/product/ABL6TS06B/");
+    expect(buildSchneiderOfficialUrls("HMIGXU3512")[0]).toBe("https://www.se.com/id/en/product/HMIGXU3512/");
+  });
+
   it("parses Schneider embedded product characteristics, documents, and images", () => {
     const html = `
       <html><head>
@@ -6178,6 +6183,41 @@ IP degree of protection IP68 conforming to IEC 60529 IP69K conforming to DIN 400
     expect(result.documents.some((doc) => doc.type === "cad" && doc.url.includes("MCADID0004033"))).toBe(true);
     expect(result.documents.some((doc) => doc.type === "image" && doc.url.includes("p_Doc_Ref=103187"))).toBe(true);
     expect(result.attributes.find((attr) => attr.name === "Sensor type")?.parser).toBe("schneider-telemecanique-product-page");
+  });
+
+  it("extracts the exact light-curtain PDP image and safety specifications", () => {
+    const html = `
+      <html><body>
+        <figure class="left-container"><img src="https://dam.telemecaniquesensors.com/addon/tmss/PF141791-preview" /></figure>
+        <h1>XUSL4E30H091N</h1>
+        <p>Safety light curtain type 4, hand protection, R30, protected height 910 mm, sensing range 4–12 m</p>
+        <a href="https://downloads.telemecaniquesensors.com/dam/datasheets/en/XUSL4E30H091N_EN.pdf">Download pdf datasheet</a>
+        Datasheet
+        Main
+        Range of product
+        Telemecanique Safety light curtains XUSL
+        Product or component type
+        Safety light curtain type 4
+        Output type
+        2 safety outputs OSSD solid-state PNP (arc suppression)
+        Complementary
+        Response time
+        12.5 ms
+        [Us] rated supply voltage
+        24 V DC +/- 20 %
+      </body></html>`;
+    const result = parseTelemecaniqueProductPage(
+      "XUSL4E30H091N",
+      fetched(html, "https://telemecaniquesensors.com/global/en/product/reference/XUSL4E30H091N")
+    );
+
+    expect(result.documents).toContainEqual(expect.objectContaining({
+      type: "image",
+      label: "XUSL4E30H091N Product image",
+      url: "https://dam.telemecaniquesensors.com/addon/tmss/PF141791-preview"
+    }));
+    expect(result.attributes).toContainEqual(expect.objectContaining({ name: "Output type", value: "2 safety outputs OSSD solid-state PNP (arc suppression)" }));
+    expect(result.attributes).toContainEqual(expect.objectContaining({ name: "Response time", value: "12.5 ms" }));
   });
 
   it("parses Schneider PES structured data payloads", () => {

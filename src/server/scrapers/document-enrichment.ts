@@ -5,7 +5,7 @@ import path from "node:path";
 import { PDFParse } from "pdf-parse";
 import type { TableArray } from "pdf-parse";
 import type { AttributeRecord, DocumentProcessingDiagnostic, DocumentRecord, ProductResult, SourceRecord } from "../../shared/types.js";
-import { cleanText, isImplausiblyLowPowerSupplyWeight, normalizeAbbFields, normalizeFields, splitNameValue } from "./normalizer.js";
+import { cleanText, isImplausiblyLowPowerSupplyWeight, isSchneiderSafetyLightCurtain, normalizeAbbFields, normalizeFields, splitNameValue } from "./normalizer.js";
 import { normalizeSiemensFields } from "./siemens.js";
 import { catalogTextMatches, findCatalogTextMatch, sameCatalogNumber, type CatalogMatchLevel } from "./catalog-number.js";
 import { buildTightContextForCatalog, buildVariantColumnContext } from "./tight-context.js";
@@ -656,6 +656,7 @@ export async function enrichResultFromDownloadedDocuments(result: ProductResult)
   if (!documentAttributes.length) {
     const normalized = { ...result.normalized };
     clearSiemensContextlessElectricalValues(result, normalized);
+    if (result.manufacturerId === "schneider" && isSchneiderSafetyLightCurtain(result.attributes)) delete normalized.current;
     const busbarThicknessOnly = result.attributes.some((attribute) => /\bbusbar\b/i.test(`${attribute.group ?? ""} ${attribute.name}`) && /\bthickness\b/i.test(attribute.name)) &&
       !result.attributes.some((attribute) => /\b(?:wall|sheet|body|door)\s+thickness\b/i.test(`${attribute.group ?? ""} ${attribute.name}`));
     if (busbarThicknessOnly) delete normalized.wallThickness;
@@ -682,6 +683,7 @@ export async function enrichResultFromDownloadedDocuments(result: ProductResult)
   const recomputedNormalized = normalizeEnrichedFields(result.manufacturerId, attributes, documents, `${result.title} ${result.description}`);
   const normalized = mergeEnrichedNormalized(result, recomputedNormalized);
   clearSiemensContextlessElectricalValues(result, normalized);
+  if (result.manufacturerId === "schneider" && isSchneiderSafetyLightCurtain(attributes) && !recomputedNormalized.current) delete normalized.current;
   if (result.manufacturerId === "rittal" && !recomputedNormalized.current) delete normalized.current;
   if (result.manufacturerId === "eaton") clearUnprovenElectricalFallbacks(normalized, recomputedNormalized, attributes);
   if (result.manufacturerId === "eaton") applyExactEatonPowerSupplyCatalogFields(normalized, attributes, documents);
@@ -819,6 +821,7 @@ export async function enrichResultFromRemoteDocuments(
   if (!documentAttributes.length) {
     const normalized = { ...result.normalized };
     clearSiemensContextlessElectricalValues(result, normalized);
+    if (result.manufacturerId === "schneider" && isSchneiderSafetyLightCurtain(result.attributes)) delete normalized.current;
     return {
       ...result,
       diagnostics: withDocumentDiagnostics(result, documentParseFailures, documentProcessing),
@@ -842,6 +845,7 @@ export async function enrichResultFromRemoteDocuments(
   const recomputedNormalized = normalizeEnrichedFields(result.manufacturerId, attributes, documents, `${result.title} ${result.description}`);
   const normalized = mergeEnrichedNormalized(result, recomputedNormalized);
   clearSiemensContextlessElectricalValues(result, normalized);
+  if (result.manufacturerId === "schneider" && isSchneiderSafetyLightCurtain(attributes) && !recomputedNormalized.current) delete normalized.current;
   if (result.manufacturerId === "rittal" && !recomputedNormalized.current) delete normalized.current;
   if (result.manufacturerId === "eaton") clearUnprovenElectricalFallbacks(normalized, recomputedNormalized, attributes);
 
@@ -3901,6 +3905,10 @@ function extractInlineDimensionText(lines: string[], sourceUrl: string): Attribu
       .map(cleanText)
       .join(" ");
     if (!/\b(?:dimensions?|dimensional|drawing|outline|overall|size|abmessungen?|ma(?:sse|\u00dfe))\b/i.test(window)) continue;
+    // Panel openings and mounting/clearance values describe the installation, not
+    // the product envelope. Keep their explicitly labeled table attributes, but
+    // never promote them to the generic normalized `dimensions` field.
+    if (/\b(?:cut[-\s]?out|panel\s+cut|mounting\s+hole|clearance|package|packaging)\b/i.test(window)) continue;
     const value = inlineDimensionValue(line);
     if (!value) continue;
     const key = value.toLowerCase();
