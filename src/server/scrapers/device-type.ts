@@ -2,7 +2,7 @@ import type { AttributeRecord, ProductResult, SourceRecord } from "../../shared/
 import { cleanText } from "./normalizer.js";
 import { familyTypeFor } from "./device-type-families.js";
 import { urlTypeFor } from "./device-type-urls.js";
-import { sameCatalogNumber } from "./catalog-number.js";
+import { catalogTextMatches, sameCatalogNumber } from "./catalog-number.js";
 
 export interface DeviceTypeAlternative {
   type: string;
@@ -56,6 +56,7 @@ const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
   // --- Automation (very specific names — these win over generic "controller"/"module") ---
   rule("Programmable Logic Controller", /\b(?:ac500|pm(?:57[2-3]|58[2-3]|59[0-2])(?:-eth)?)\b[\s\S]{0,80}\bprocessor module\b|\bprocessor module\b[\s\S]{0,80}\b(?:ac500|pm(?:57[2-3]|58[2-3]|59[0-2])(?:-eth)?)\b/i, 940),
   rule("Programmable Logic Controller", /\b(?:programmable logic controller|logic controller|controller cpu|cpu module|plc\s+(?:controller|module|processor|cpu|system)|(?:controller|module|processor|cpu|system)\s+plc|simatic\s+s7|modicon\s+(?:m\d+|m340|m580)|compactlogix|controllogix|micro8\d{2,3})\b/i, 920),
+  rule("Communication Gateway", /\b(?:ethernet(?:\s+tcp\/ip)?|tcp\/ip)\s+(?:network|communication)\s+module\b/i, 950),
   rule("Communication Gateway", /\b(?:communication gateway|fieldbus gateway|fieldbus coupler|bus coupler|protocol converter|protocol gateway|serial gateway|modbus gateway|profibus gateway|profinet gateway|ethernet gateway|hart multiplexer|rs[-\s]?232(?:\s+(?:to|converter|interface|module))?|rs[-\s]?485(?:\s+(?:to|converter|interface|module))?|rs[-\s]?422|serial[-\s]?to[-\s]?ethernet|communication module|communication interface|industrial gateway|iiot gateway|edge gateway)\b/i, 905),
   // ABB calls panel power meters "network analyzers"; treat that explicit instrument class as a
   // meter before incidental mounting or communications wording can win.
@@ -114,6 +115,7 @@ const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
   rule("Circuit Breaker", /\b(?:air\s+circuit[-\s]?breakers?|thermal overcurrent circuit[-\s]?breakers?|overcurrent circuit[-\s]?breakers?|circuit[-\s]?breakers?|(?:smart\s+)?breaker\s+chargers?|\bacbs?\b|leistungsschalter|disjoncteur|interruttore automatico)\b/i, 805),
   // The word "control relay" can arrive as a broad taxonomy category for a specific safety
   // relay. Let the exact product wording outrank that generic classification.
+  rule("Safety Controller", /\b(?:safety controller cpu|modular safety controller|programmable safety controller|safe controller cpu|safety controller)\b/i, 1020),
   rule("Safety Relay", /\b(?:safety relay|safety controller|safety module|emergency stop relay|e[-\s]?stop relay)\b/i, 1000),
   rule("Overload Relay", /\boverload relays?\b/i, 801),
   rule("Protective Relay", /\b(?:protective relay|overcurrent protective relay|ground overcurrent relay)\b/i, 802),
@@ -491,6 +493,8 @@ export function classifyDeviceType(result: ProductResult | undefined): DeviceTyp
     if (entry.channels.size > 1) entry.score += MULTI_CHANNEL_BONUS * (entry.channels.size - 1);
   }
 
+  if (hasExactSchneiderSafetyControllerEvidence(result)) byType.delete("Safety Relay");
+
   // Some Eaton MCCB pages publish the generic taxonomy row "Type: Circuit breaker" next to an
   // exact product name that explicitly says "molded case circuit breaker". Preserve the specific
   // device type for PDT routing; the generic row is a parent category, not contradictory evidence.
@@ -527,6 +531,17 @@ export function classifyDeviceType(result: ProductResult | undefined): DeviceTyp
     scoreMargin: Math.round(margin),
     warnings: warnings.length > 0 ? warnings : undefined
   };
+}
+
+function hasExactSchneiderSafetyControllerEvidence(result: ProductResult): boolean {
+  const exactUrl = result.productUrl ?? result.localizedUrls?.en;
+  if (result.manufacturerId !== "schneider" || !exactUrl || !catalogTextMatches(exactUrl, result.catalogNumber)) return false;
+  return result.attributes.some((attribute) =>
+    attribute.parser === "schneider-product-page" &&
+    Boolean(attribute.sourceUrl && catalogTextMatches(attribute.sourceUrl, result.catalogNumber)) &&
+    /^(?:product or component type|description)$/i.test(attribute.name.trim()) &&
+    /\bsafety controller cpu\b/i.test(attribute.value)
+  );
 }
 
 const deviceTypeClassificationCache = new WeakMap<ProductResult, DeviceTypeClassification>();

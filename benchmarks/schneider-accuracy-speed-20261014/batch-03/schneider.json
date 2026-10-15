@@ -1,0 +1,64 @@
+[
+  {
+    "manufacturerId": "schneider",
+    "catalogNumber": "XPSMCMCP0802",
+    "caseType": "electrical",
+    "expectedDeviceType": "Safety Controller",
+    "riskTags": ["cold", "modicon-mcm", "safety-controller", "8-safety-inputs", "2-ossd-outputs"],
+    "expectedOfficialUrlPatterns": ["se\\.com/.*/product/XPSMCMCP0802(?:/|$)"],
+    "expectedNormalizedFields": ["voltage", "weight", "dimensions", "protection"],
+    "expectedBlankNormalizedFields": ["current"],
+    "expectedNormalizedPatterns": {"voltage": "^24 V", "weight": "^0\\.25 kg$", "dimensions": "^D 22\\.5 mm x H 99 mm x W 114\\.5 mm$", "protection": "^IP20$"},
+    "expectedAttributePatterns": ["rated supply voltage of 24V DC", "8 safe digital inputs", "2 output OSSD pairs", "Category 4, PL e"],
+    "requiredDocuments": ["datasheet", "image"]
+  },
+  {
+    "manufacturerId": "schneider",
+    "catalogNumber": "BMXNOC0401",
+    "caseType": "electrical",
+    "expectedDeviceType": "Communication Gateway",
+    "riskTags": ["cold", "modicon-m340", "ethernet-communication-module", "4-rj45", "ethernet-ip-modbus-tcp"],
+    "expectedOfficialUrlPatterns": ["se\\.com/.*/product/BMXNOC0401(?:/|$)"],
+    "expectedNormalizedFields": ["voltage", "current"],
+    "expectedNormalizedPatterns": {"voltage": "^3\\.3 V DC$", "current": "^555 mA 3\\.3 V DC$"},
+    "expectedAttributePatterns": ["4 x RJ45 10/100", "Modbus TCP", "Ethernet/IP", "Current consumption.*555 mA 3.3 V DC", "IP20"],
+    "requiredDocuments": ["datasheet", "image"]
+  },
+  {
+    "manufacturerId": "schneider",
+    "catalogNumber": "LXM32AD18M2",
+    "caseType": "electrical",
+    "expectedDeviceType": "Variable Speed Drive",
+    "riskTags": ["cold", "lexium-32", "servo-drive", "single-phase", "6a-nominal-18a-peak"],
+    "expectedOfficialUrlPatterns": ["se\\.com/.*/product/LXM32AD18M2(?:/|$)"],
+    "expectedNormalizedFields": ["voltage", "current", "weight"],
+    "expectedNormalizedPatterns": {"voltage": "100\\.\\.\\.120 V AC.*200\\.\\.\\.240 V AC", "current": "^6 A$", "weight": "^1\\.8 kg$"},
+    "expectedAttributePatterns": ["motion servo drive", "rated supply voltage of 100V to 120V, 200V to 240V", "continuous output current.*6 A", "18 A", "1 kW"],
+    "requiredDocuments": ["datasheet", "image"]
+  },
+  {
+    "manufacturerId": "schneider",
+    "catalogNumber": "XMLR010G0T26",
+    "caseType": "electrical",
+    "expectedDeviceType": "Pressure Sensor",
+    "riskTags": ["cold", "telemecanique-xmlr", "pressure-transmitter", "10-bar", "4-20ma-analog"],
+    "expectedOfficialUrlPatterns": ["telemecaniquesensors\\.com/.*/product/reference/XMLR010G0T26(?:/|$)"],
+    "expectedNormalizedFields": ["voltage", "current"],
+    "expectedNormalizedPatterns": {"voltage": "^24 V DC", "current": "^(?:<=\\s*)?50 mA"},
+    "expectedAttributePatterns": ["10 bar", "24 V DC SELV", "Current consumption.*50 mA", "4.*20 mA", "1/4-18NPT", "M12, 4 pins"],
+    "requiredDocuments": ["datasheet", "image"]
+  },
+  {
+    "manufacturerId": "schneider",
+    "catalogNumber": "TM3DI16K",
+    "caseType": "electrical",
+    "expectedDeviceType": "I/O Module",
+    "riskTags": ["cold", "modicon-tm3", "discrete-input-module", "16-inputs", "he10-24vdc"],
+    "expectedOfficialUrlPatterns": ["se\\.com/.*/product/TM3DI16K(?:/|$)"],
+    "expectedNormalizedFields": ["current"],
+    "expectedBlankNormalizedFields": ["voltage", "weight"],
+    "expectedNormalizedPatterns": {"current": "^34 mA 5 V DC$"},
+    "expectedAttributePatterns": ["Discrete input number.*16", "Discrete input voltage.*24 V DC", "Current consumption.*34 mA 5 V DC", "HE-10 connector", "IP20"],
+    "requiredDocuments": ["datasheet", "image"]
+  }
+]

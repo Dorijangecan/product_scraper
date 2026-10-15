@@ -59,6 +59,7 @@ export const DEVICE_TYPE_PROFILES: Record<string, DeviceTypePdtProfile> = {
   Fuse: { sheets: ["contactor a. fuses"], criticalFactsBySheet: { "contactor a. fuses": [...ELECTRICAL_RATING_FACTS] }, electricalFields: VOLTAGE_AND_CURRENT },
   Relay: { sheets: ["contactor a. fuses"], criticalFactsBySheet: { "contactor a. fuses": [...ELECTRICAL_RATING_FACTS, "voltageType"] }, finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_AND_CURRENT },
   "Safety Relay": { sheets: ["safety sensor"], finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_AND_CURRENT },
+  "Safety Controller": { sheets: ["PLC"], criticalFactsBySheet: { PLC: [...VOLTAGE_RATING_FACTS] }, finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_ONLY },
   "Circuit Breaker": { sheets: ["contactor a. fuses"], criticalFactsBySheet: { "contactor a. fuses": [...ELECTRICAL_RATING_FACTS] }, finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_AND_CURRENT },
   "Molded Case Circuit Breaker": { sheets: ["contactor a. fuses"], criticalFactsBySheet: { "contactor a. fuses": [...ELECTRICAL_RATING_FACTS] }, finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_AND_CURRENT },
   "Miniature Circuit Breaker": { sheets: ["contactor a. fuses"], criticalFactsBySheet: { "contactor a. fuses": [...ELECTRICAL_RATING_FACTS] }, finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_AND_CURRENT },

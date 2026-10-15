@@ -9,6 +9,7 @@ import type {
 } from "../../shared/types.js";
 import { FIELD_REGISTRY, fieldAttributeLabel, fieldMatchesLabel, type RegistryFieldKey } from "./field-registry.js";
 import { evidenceConfidence } from "./evidence-score.js";
+import { catalogTextMatches } from "./catalog-number.js";
 import { cleanText, isSchneiderSafetyLightCurtain, normalizeFields } from "./normalizer.js";
 import { isQuantityPlausible, parseQuantities, type QuantityKind } from "./quantity.js";
 
@@ -31,8 +32,11 @@ export function applyFieldCandidateResolution(result: ProductResult): ProductRes
   const candidates = buildFieldCandidates(result);
   const resolutions = buildFieldResolutions(candidates);
   const normalized = { ...result.normalized };
+  if (normalized.weight && /\b(?:CO2|carbon\s+footprint)\b/i.test(normalized.weight)) delete normalized.weight;
   if (result.manufacturerId === "schneider" && isSchneiderSurgeProtector(result)) delete normalized.current;
   if (result.manufacturerId === "schneider" && isSchneiderSafetyLightCurtain(result.attributes)) delete normalized.current;
+  if (result.manufacturerId === "schneider" && isSchneiderSafetyControllerOutputRating(result.attributes)) delete normalized.current;
+  if (result.manufacturerId === "schneider" && isSchneiderBusPoweredInputModule(result.attributes)) delete normalized.voltage;
   const eatonElectrical = result.manufacturerId === "eaton"
     ? normalizeFields(result.attributes, result.documents, "eaton")
     : undefined;
@@ -52,10 +56,13 @@ export function applyFieldCandidateResolution(result: ProductResult): ProductRes
   for (const resolution of resolutions) {
     if (!resolution.selectedValue || !isNormalizedField(resolution.field)) continue;
     const key = resolution.field as keyof NormalizedProductFields;
+    if (key === "weight" && /\b(?:CO2|carbon\s+footprint)\b/i.test(resolution.selectedValue)) continue;
     // Preserve SPD ratings as named evidence (Iimp, In and Imax), without flattening
     // their surge current into the general operating-current field.
     if (result.manufacturerId === "schneider" && key === "current" && isSchneiderSurgeProtector(result)) continue;
     if (result.manufacturerId === "schneider" && key === "current" && isSchneiderSafetyLightCurtain(result.attributes)) continue;
+    if (result.manufacturerId === "schneider" && key === "current" && isSchneiderSafetyControllerOutputRating(result.attributes)) continue;
+    if (result.manufacturerId === "schneider" && key === "voltage" && isSchneiderBusPoweredInputModule(result.attributes)) continue;
     // ABB material/color are normalized from official product attributes only. Loose PDF table
     // fragments such as "Graphic color: display" are not product finish/material data and must
     // not be reintroduced after the manufacturer-specific normalizer rejected them.
@@ -97,6 +104,12 @@ export function applyFieldCandidateResolution(result: ProductResult): ProductRes
     ], [], result.manufacturerId)[key];
     if (validated) normalized[key] = validated;
   }
+  if (result.manufacturerId === "schneider") {
+    const dualRangeVoltage = schneiderLexiumDualRangeVoltage(result.attributes);
+    if (dualRangeVoltage) normalized.voltage = dualRangeVoltage;
+    applyExactSchneiderDescriptionFields(result, normalized);
+    if (hasSchneiderNetPackageWeightConflict(result.attributes)) delete normalized.weight;
+  }
 
   return {
     ...result,
@@ -109,6 +122,79 @@ export function applyFieldCandidateResolution(result: ProductResult): ProductRes
       confidencePenalty
     }
   };
+}
+
+function isSchneiderSafetyControllerOutputRating(attributes: AttributeRecord[]): boolean {
+  const text = attributes.map((attribute) => `${attribute.group ?? ""} ${attribute.name} ${attribute.value}`).join(" ");
+  const hasSafetyControllerAndOssd = /\b(?:safety controller|safe controller)\b/i.test(text) && /\bOSSD\b/i.test(text);
+  const hasSupplyCurrent = attributes.some((attribute) =>
+    /^(?:rated\s+(?:supply\s+)?current|supply current|input current|current consumption)$/i.test(attribute.name.trim())
+  );
+  return hasSafetyControllerAndOssd && !hasSupplyCurrent;
+}
+
+function isSchneiderBusPoweredInputModule(attributes: AttributeRecord[]): boolean {
+  const text = attributes.map((attribute) => `${attribute.group ?? ""} ${attribute.name} ${attribute.value}`).join(" ");
+  const isInputModule = /\b(?:discrete|digital) input module\b/i.test(text);
+  const busPowered = /\bpower supply type\b[^.]{0,80}\b(?:internal bus|bus connector)\b/i.test(text);
+  const hasRatedSupplyVoltage = attributes.some((attribute) => /\b(?:rated|nominal)\s+supply voltage\b/i.test(attribute.name));
+  return isInputModule && busPowered && !hasRatedSupplyVoltage;
+}
+
+function schneiderLexiumDualRangeVoltage(attributes: AttributeRecord[]): string | undefined {
+  const text = attributes.map((attribute) => `${attribute.name}: ${attribute.value}`).join(" ");
+  if (!/\bLexium\s*32\b/i.test(text)) return undefined;
+  const match = text.match(/rated supply voltage of\s*(\d+(?:\.\d+)?)\s*V\s*to\s*(\d+(?:\.\d+)?)\s*V,\s*(\d+(?:\.\d+)?)\s*V\s*to\s*(\d+(?:\.\d+)?)\s*V\s*\(single phase\)/i);
+  return match ? `${match[1]}...${match[2]} V AC; ${match[3]}...${match[4]} V AC` : undefined;
+}
+
+function applyExactSchneiderDescriptionFields(
+  result: ProductResult,
+  normalized: NormalizedProductFields
+): void {
+  const exactUrl = result.productUrl ?? result.localizedUrls?.en;
+  if (!exactUrl || !catalogTextMatches(exactUrl, result.catalogNumber)) return;
+  const description = result.attributes.find((attribute) =>
+    attribute.parser === "schneider-product-page" &&
+    Boolean(attribute.sourceUrl && catalogTextMatches(attribute.sourceUrl, result.catalogNumber)) &&
+    /^description$/i.test(attribute.name.trim())
+  )?.value;
+  if (!description) return;
+
+  if (normalized.weight && /\b(?:CO2|carbon\s+footprint)\b/i.test(normalized.weight)) delete normalized.weight;
+  const weight = description.match(/\bweighs?\s+(\d+(?:[.,]\d+)?)\s*kg\b/i);
+  if (weight) normalized.weight = `${weight[1].replace(",", ".")} kg`;
+
+  const depthHeightWidth = description.match(/\bdimensions?\s+(?:are|is)\s+(\d+(?:[.,]\d+)?)\s*mm\s*\(Depth\),\s*(\d+(?:[.,]\d+)?)\s*mm\s*\(Height\)\s+and\s+(\d+(?:[.,]\d+)?)\s*mm\s*\(Width\)/i);
+  const widthDepthHeight = description.match(/\bdimensions?\s+(?:are|is)\s+(\d+(?:[.,]\d+)?)\s*mm\s*\(Width\)\s*x\s*(\d+(?:[.,]\d+)?)\s*mm\s*\(Depth\)\s*x\s*(\d+(?:[.,]\d+)?)\s*mm\s*\(Height\)/i);
+  if (depthHeightWidth) {
+    normalized.dimensions = `D ${depthHeightWidth[1]} mm x H ${depthHeightWidth[2]} mm x W ${depthHeightWidth[3]} mm`;
+  } else if (widthDepthHeight) {
+    normalized.dimensions = `H ${widthDepthHeight[3]} mm x W ${widthDepthHeight[1]} mm x D ${widthDepthHeight[2]} mm`;
+  }
+
+  const protection = description.match(/\b(IP\s*\d{2})\s+rated product\b/i);
+  if (protection) normalized.protection = protection[1].replace(/\s+/g, "").toUpperCase();
+}
+
+function hasSchneiderNetPackageWeightConflict(attributes: AttributeRecord[]): boolean {
+  const productWeight = attributes
+    .filter((attribute) => /^net weight$/i.test(attribute.name.trim()))
+    .map((attribute) => weightInKilograms(attribute.value))
+    .find((value): value is number => value !== undefined);
+  const packageWeight = attributes
+    .filter((attribute) => /^package weight(?:\s*\([^)]*\))?$/i.test(attribute.name.trim()))
+    .map((attribute) => weightInKilograms(attribute.value))
+    .find((value): value is number => value !== undefined);
+  return productWeight !== undefined && packageWeight !== undefined && Math.max(productWeight, packageWeight) / Math.min(productWeight, packageWeight) > 2;
+}
+
+function weightInKilograms(value: string): number | undefined {
+  const match = value.match(/(\d+(?:[.,]\d+)?)\s*(kg|g)\b/i);
+  if (!match) return undefined;
+  const quantity = Number(match[1].replace(",", "."));
+  if (!Number.isFinite(quantity) || quantity <= 0) return undefined;
+  return match[2].toLowerCase() === "g" ? quantity / 1000 : quantity;
 }
 
 function isSchneiderSurgeProtector(result: ProductResult): boolean {

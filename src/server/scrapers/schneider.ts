@@ -408,7 +408,7 @@ export class SchneiderConnector implements ManufacturerConnector {
 
 export function buildSchneiderOfficialUrls(catalogNumber: string): string[] {
   const encoded = encodeURIComponent(catalogNumber);
-  const productTemplates = /^XU[A-Z0-9]/i.test(catalogNumber)
+  const productTemplates = /^(?:XU|XMLR)[A-Z0-9]/i.test(catalogNumber)
     ? [
         "https://telemecaniquesensors.com/global/en/product/reference/{part}",
         "https://telemecaniquesensors.com/us/en/product/reference/{part}",

@@ -481,6 +481,8 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
     ? undefined
     : manufacturerId === "schneider" && isSchneiderSafetyLightCurtain(attributes)
     ? undefined
+    : manufacturerId === "schneider" && isSchneiderSafetyControllerWithChannelCurrent(attributes)
+    ? undefined
     : withoutMixedKindProse(
     (manufacturerId === "schneider" && isSchneiderTransformer(attributes)
       ? schneiderTransformerSecondaryCurrent(currentAttributes)
@@ -1262,6 +1264,15 @@ export function isSchneiderSafetyLightCurtain(attributes: AttributeRecord[]): bo
     /\bsafety light curtain\b/i.test(attribute.value) &&
     (attribute.sourceType === "official" || attribute.sourceType === "official-fallback")
   );
+}
+
+function isSchneiderSafetyControllerWithChannelCurrent(attributes: AttributeRecord[]): boolean {
+  const text = attributes.map((attribute) => `${attribute.group ?? ""} ${attribute.name} ${attribute.value}`).join(" ");
+  const hasControllerOssdOutputs = /\bsafety controller cpu\b/i.test(text) && /\bOSSD\b/i.test(text);
+  const hasDeviceSupplyCurrent = attributes.some((attribute) =>
+    /^(?:rated\s+(?:supply\s+)?current|supply current|input current|current consumption)$/i.test(attribute.name.trim())
+  );
+  return hasControllerOssdOutputs && !hasDeviceSupplyCurrent;
 }
 
 function schneiderExplicitProductColor(attributes: AttributeRecord[]): string | undefined {

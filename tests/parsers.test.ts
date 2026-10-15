@@ -5814,6 +5814,7 @@ Terminal capacity
   it("prefers the discovered exact Schneider locale for ABL6TS and Harmony GXU pages", () => {
     expect(buildSchneiderOfficialUrls("ABL6TS06B")[0]).toBe("https://www.se.com/id/en/product/ABL6TS06B/");
     expect(buildSchneiderOfficialUrls("HMIGXU3512")[0]).toBe("https://www.se.com/id/en/product/HMIGXU3512/");
+    expect(buildSchneiderOfficialUrls("XMLR010G0T26")[0]).toBe("https://telemecaniquesensors.com/global/en/product/reference/XMLR010G0T26");
   });
 
   it("parses Schneider embedded product characteristics, documents, and images", () => {

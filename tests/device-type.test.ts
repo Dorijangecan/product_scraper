@@ -857,6 +857,25 @@ describe("device type classifier", () => {
     expect(classifyDeviceType(result).type).toBe("Safety Relay");
   });
 
+  it("classifies a modular safety-controller CPU separately from a safety relay", () => {
+    const productUrl = "https://www.se.com/us/en/product/XPSMCMCP0802/";
+    const result = product(
+      [{ group: "Schneider Product Info", name: "Description", value: "Modicon MCM safety controller CPU with 8 inputs and 2 OSSD pairs", sourceType: "official", parser: "schneider-product-page", sourceUrl: productUrl }],
+      "Modicon MCM safety controller CPU",
+      { manufacturerId: "schneider", catalogNumber: "XPSMCMCP0802", productUrl }
+    );
+    expect(classifyDeviceType(result).type).toBe("Safety Controller");
+    expect(deviceSheetsFor("Safety Controller")).toContain("PLC");
+  });
+
+  it("classifies an Ethernet TCP/IP network module as a communication gateway", () => {
+    const result = product(
+      [{ group: "Schneider Main", name: "Product or Component Type", value: "Ethernet TCP/IP network module", sourceType: "official" }],
+      "Modicon M340 Programmable Automation Controller"
+    );
+    expect(classifyDeviceType(result).type).toBe("Communication Gateway");
+  });
+
   it("keeps an explicitly named ABB safety relay above a broad control-relay category", () => {
     const result = product(
       [
