@@ -15,6 +15,31 @@ interface EtaDirectProductRoute {
 // has to find the exact requested catalog number in the page before it returns a result.
 const ETA_DIRECT_PRODUCT_ROUTES: EtaDirectProductRoute[] = [
   {
+    id: "eta-product-2210-s2-breaker",
+    pattern: /^2210-S2(?:[A-Z0-9-]+)?$/i,
+    url: () => "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/p/2210_s2/"
+  },
+  {
+    id: "eta-product-cpc20-bus-controller",
+    pattern: /^CPC20(?:[- ]?(?:EN|PN))?(?:[- ][A-Z0-9-]+)?$/i,
+    url: () => "https://www.e-t-a.com/products/power_distribution_systems/intelligent_power_distribution_systems/controlplex_overview/controlplex_dinrail/bus_controllers/p/cpc20/"
+  },
+  {
+    id: "eta-product-module-18plus-power-distribution",
+    pattern: /^Module\s*18plus$/i,
+    url: () => "https://www.e-t-a.com/solutions/automation_process_control/car_production/p/modul_18plus/"
+  },
+  {
+    id: "eta-product-mpr20-power-relay",
+    pattern: /^MPR20$/i,
+    url: () => "https://www.e-t-a.com/products/relays_solid_state_remote_power_controllers/power_relays/p/mpr20/"
+  },
+  {
+    id: "eta-product-pfa10-t-40a-24v",
+    pattern: /^PFA10-T\s*40\s*A,?\s*DC\s*24\s*V$/i,
+    url: () => "https://www.e-t-a.com/products/power_supplies/3_phase_switch_mode_power_supply_units/p/pfa10_t_40_a_dc_24_v/"
+  },
+  {
     id: "eta-direct-thermal-overcurrent-breaker",
     pattern: /^2-\d{4}$/i,
     url: (catalogNumber) => `https://global.e-t-a.com/products/circuit_protection_devices/thermal_overcurrent_circuit_breakers/p/${etaSlug(catalogNumber)}/`

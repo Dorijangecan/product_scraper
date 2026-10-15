@@ -79,6 +79,7 @@ async function fetchViaGotScraping(
   }
 ): Promise<{ response: ResponseLike; text: string }> {
   const bodyValue = options.body instanceof URLSearchParams ? options.body.toString() : options.body;
+  const debugStartedAt = Date.now();
   const gotResponse = await gotScraping({
     url,
     method: options.method,
@@ -91,6 +92,10 @@ async function fetchViaGotScraping(
     responseType: "text",
     signal: options.signal
   });
+  if (process.env.DEBUG_HTTP_TIMINGS === "1") {
+    const phases = (gotResponse as typeof gotResponse & { timings?: { phases?: Record<string, number | undefined> } }).timings?.phases;
+    console.info(`[http:timing] ${new URL(url).hostname}${new URL(url).pathname} ${Date.now() - debugStartedAt}ms status=${gotResponse.statusCode} bytes=${gotResponse.headers["content-length"] ?? "unknown"} encoding=${gotResponse.headers["content-encoding"] ?? "identity"} phases=${JSON.stringify(phases ?? {})}`);
+  }
   const response: ResponseLike = {
     status: gotResponse.statusCode,
     url: gotResponse.url,

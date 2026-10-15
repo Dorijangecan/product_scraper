@@ -87,6 +87,7 @@ export class GenericFallbackScraper {
           const fetched = await this.fetchTextWithFallback(url, source, signal);
           if (isUnresolvedSiemensReaderPage(this.manufacturerId, catalogNumber, fetched)) continue;
           if ((match.requireCatalogNumber ?? true) && !catalogTextMatches(fetched.text, catalogNumber, match)) continue;
+          const etaParseStartedAt = Date.now();
           const parsed = parseGenericProductPage(this.manufacturerId, catalogNumber, fetched, source.sourceType, source.label, {
             match,
             localizedUrlTemplates: this.manufacturer?.localizedUrlTemplates,
@@ -94,8 +95,13 @@ export class GenericFallbackScraper {
             markerRules: [...(this.manufacturer?.markerRules ?? []), ...(source.markerRules ?? [])],
             extractionPolicy: this.manufacturer?.scrapeRecipe?.extractionPolicy
           });
+          if (this.manufacturerId === "eta" && process.env.DEBUG_ETA_TIMINGS === "1") {
+            console.info(`[eta:timing] ${source.id} parse ${Date.now() - etaParseStartedAt}ms html=${fetched.text.length} chars`);
+          }
           const knownExactEtaProductPage =
-            this.manufacturerId === "eta" && source.id.startsWith("eta-direct-") && parsed.status !== "failed";
+            this.manufacturerId === "eta" &&
+            (source.id.startsWith("eta-direct-") || source.id.startsWith("eta-product-")) &&
+            parsed.status !== "failed";
           // A confirmed direct ETA route has already established the exact PDP and skips related
           // detail fetches below. Scanning its very large (often 700+ KB) HTML for links is also
           // redundant and can cost more than the page request itself, so keep empty diagnostics.
@@ -165,6 +171,7 @@ export class GenericFallbackScraper {
   private async fetchTextWithFallback(url: string, source: FallbackSourceConfig, signal?: AbortSignal): Promise<FetchedText> {
     const policy = { ...this.manufacturer?.fetchPolicy, ...source.fetchPolicy };
     const headers = fetchHeaders(policy);
+    const etaDebug = this.manufacturerId === "eta" && process.env.DEBUG_ETA_TIMINGS === "1";
     if (this.manufacturerId === "eta" && source.id.startsWith("eta-direct-")) {
       // Learned ETA PDPs are exact single-source routes. The HTTP client already has its
       // bounded transport fallback; do not add the 30s PowerShell rescue to a known route.
@@ -178,6 +185,7 @@ export class GenericFallbackScraper {
       });
     }
     try {
+      const primaryStartedAt = Date.now();
       const fetched = await this.http.fetchText(url, {
         timeoutMs: policy.timeoutMs ?? 15000,
         cacheTtlMs: policy.cacheTtlMs,
@@ -186,14 +194,17 @@ export class GenericFallbackScraper {
         headers,
         signal
       });
+      if (etaDebug) console.info(`[eta:timing] ${source.id} primary-http ${Date.now() - primaryStartedAt}ms status=${fetched.statusCode} chars=${fetched.text.length}`);
       if (hasEnoughContent(fetched, policy)) return fetched;
     } catch (error) {
+      if (etaDebug) console.info(`[eta:timing] ${source.id} primary-http failed: ${error instanceof Error ? error.message : String(error)}`);
       if (isCancellationError(error, signal)) throw error;
       // Fall through to alternate user agents and PowerShell.
     }
 
     for (const userAgent of policy.fallbackUserAgents ?? []) {
       try {
+        const fallbackStartedAt = Date.now();
         const fetched = await this.http.fetchText(url, {
           timeoutMs: policy.timeoutMs ?? 15000,
           cacheTtlMs: policy.cacheTtlMs,
@@ -202,8 +213,10 @@ export class GenericFallbackScraper {
           headers: fetchHeaders({ ...policy, userAgent }),
           signal
         });
+        if (etaDebug) console.info(`[eta:timing] ${source.id} alternate-http ${Date.now() - fallbackStartedAt}ms status=${fetched.statusCode} chars=${fetched.text.length}`);
         if (hasEnoughContent(fetched, policy)) return fetched;
       } catch (error) {
+        if (etaDebug) console.info(`[eta:timing] ${source.id} alternate-http failed: ${error instanceof Error ? error.message : String(error)}`);
         if (isCancellationError(error, signal)) throw error;
         // Try the next fetch path.
       }
@@ -213,12 +226,16 @@ export class GenericFallbackScraper {
     // this path silently reverted to DEFAULT_USER_AGENT, so WAFs that rejected the primary
     // request rejected the final rescue too (observed on nVent product pages).
     const rescueUserAgent = policy.fallbackUserAgents?.[0] ?? policy.userAgent;
-    return this.http.fetchTextViaPowerShell(url, {
+    const rescueStartedAt = Date.now();
+    if (etaDebug) console.info(`[eta:timing] ${source.id} powershell-start`);
+    const rescued = await this.http.fetchTextViaPowerShell(url, {
         timeoutMs: policy.timeoutMs ? Math.max(policy.timeoutMs, 30000) : 30000,
         cacheTtlMs: policy.cacheTtlMs,
         headers: fetchHeaders({ ...policy, ...(rescueUserAgent ? { userAgent: rescueUserAgent } : {}) }),
         signal
       });
+    if (etaDebug) console.info(`[eta:timing] ${source.id} powershell ${Date.now() - rescueStartedAt}ms status=${rescued.statusCode} chars=${rescued.text.length}`);
+    return rescued;
   }
 }
 
@@ -461,6 +478,7 @@ export function parseGenericProductPage(
   const documents: DocumentRecord[] = [];
   const documentCandidates: NonNullable<ScrapeDiagnostics["documentCandidates"]> = [];
   attributes.push(...extractCatalogIdentityAttributes($, catalogNumber, fetched.effectiveUrl));
+  if (manufacturerId === "eta") attributes.push(...extractEtaStandardsAttributes($, fetched.effectiveUrl));
   const jsonLdProducts = readJsonLdProducts($, catalogNumber);
   for (const product of jsonLdProducts) {
     for (const [name, value] of Object.entries(product)) {
@@ -1125,6 +1143,24 @@ function extractCatalogIdentityAttributes($: cheerio.CheerioAPI, catalogNumber: 
   return dedupeAttributes(attributes).slice(0, 3);
 }
 
+function extractEtaStandardsAttributes($: cheerio.CheerioAPI, sourceUrl: string): AttributeRecord[] {
+  const bodyText = cleanText($("body").text());
+  const approvedText = [...bodyText.matchAll(/(?:approved|approval|complies|compliant|in accordance with|to)\s+(?:to\s+)?(?:the\s+)?(?:CBE\s+standard\s+)?((?:IEC\/)?(?:EN|IEC)\s*\d{3,5}(?:\s*\/\s*(?:IEC\s*)?\d{3,5})?)/gi)]
+    .map((match) => cleanText(match[1]).replace(/\s*\/\s*/g, "/"));
+  const standards = [...new Set(approvedText.map((value) => value.toUpperCase()))];
+  if (!standards.length) return [];
+  return [{
+    group: "Standards",
+    name: "Standards",
+    value: standards.join(", "),
+    sourceUrl,
+    sourceType: "official-fallback",
+    parser: "ETA official PDP standards extractor",
+    stage: "ETA official PDP standards extractor",
+    confidence: 0.88
+  }];
+}
+
 function confidenceForSource(sourceType: SourceRecord["sourceType"], configured: number | undefined): number {
   const fallback = sourceType === "distributor" ? 0.45 : sourceType === "official" || sourceType === "official-fallback" ? 0.68 : 0.55;
   return Math.min(configured ?? fallback, sourceType === "distributor" ? 0.45 : 0.95);
@@ -1183,6 +1219,9 @@ function extractImageDocuments(
     if (!isLikelyImageUrl(absolute)) return;
     if (matchesAnyPattern(absolute, extractionPolicy?.ignoredImageUrlPatterns)) return;
     const context = imageContextForElement($, element);
+    // Do not accept E-T-A hero assets showing several distinct modules just because generic
+    // image heuristics recognize the composite as a product photo. It is not an exact-device image.
+    if (isEtaSharedCompositeImage(sourceUrl, absolute)) return;
     const primary = /^(?:high|eager)$/i.test($(element).attr("fetchpriority") ?? "") ||
       /^(?:eager)$/i.test($(element).attr("loading") ?? "");
     const isSchmersalPrimary = primary && /products\.schmersal\.com$/i.test(new URL(sourceUrl).hostname);
@@ -1193,6 +1232,23 @@ function extractImageDocuments(
       ? "Primary product image"
       : cleanText($(element).attr("alt") || $(element).attr("title") || "Product image");
     domDocuments.push({ type: "image", label, url: absolute, sourceUrl });
+  });
+
+  // Some E-T-A solution pages expose the exact product photograph as a direct anchor to the
+  // original asset instead of an <img> element (Module 18plus is one example). Accept only an
+  // official product-image asset whose filename identifies the requested model; shared/composite
+  // family images remain excluded.
+  $("a[href]").each((_, element) => {
+    const rawUrl = $(element).attr("href");
+    const absolute = rawUrl ? toAbsoluteUrl(rawUrl, sourceUrl) : undefined;
+    if (!absolute || !isEtaExactLinkedProductImage(sourceUrl, absolute, catalogNumber)) return;
+    if (domDocuments.some((document) => document.url === absolute)) return;
+    domDocuments.push({
+      type: "image",
+      label: cleanText($(element).attr("title") || $(element).text()) || "Exact product image",
+      url: absolute,
+      sourceUrl
+    });
   });
 
   const usefulMetaDocuments = domDocuments.length
@@ -1215,12 +1271,52 @@ function isEtaExactPdpMainImage(sourceUrl: string, imageUrl: string, context: st
     if (!pageSlug || !/^\/fileadmin\/_processed_\//i.test(image.pathname)) return false;
     const combined = `${imageUrl} ${context}`.toLowerCase();
     if (isLikelyNonProductImage(combined) || isLikelySchematicImage(combined)) return false;
+    // ETA family pages sometimes use one hero image for a complete modular system (for example,
+    // several distinct breaker/protector modules on an 18plus base). A shared asset that names
+    // multiple ETA model families is not evidence of the requested individual product.
+    if (hasMultipleEtaProductFamilies(image.pathname)) return false;
 
     const tokens = pageSlug.toLowerCase().split(/[^a-z0-9]+/).filter(Boolean);
     const requiredPrefix = tokens[0] === "e" && tokens[1] === "1073"
       ? compactKey(tokens.join(""))
       : compactKey(tokens.slice(0, 2).join(""));
     return requiredPrefix.length >= 5 && compactKey(image.pathname).includes(requiredPrefix);
+  } catch {
+    return false;
+  }
+}
+
+function hasMultipleEtaProductFamilies(imagePath: string): boolean {
+  const models = imagePath.match(/(?:^|[_-])(?:18plus|17plus|ess\d{2}|esx\d{2}|rex\d{2}|cpc\d{2}|smps|pfa\d{2}|mpr\d{2}|hpr\d{2}|epr\d{2}|etr\d{2}|esr\d{2}|hvr\d{2}|eai\d{2,}|2210)(?=[_-]|\.|$)/gi) ?? [];
+  return new Set(models.map((model) => model.replace(/^[_-]/, "").toLowerCase())).size > 1;
+}
+
+function isEtaSharedCompositeImage(sourceUrl: string, imageUrl: string): boolean {
+  try {
+    const source = new URL(sourceUrl);
+    const image = new URL(imageUrl);
+    return /(?:^|\.)e-t-a\.com$/i.test(source.hostname) &&
+      /(?:^|\.)e-t-a\.com$/i.test(image.hostname) &&
+      hasMultipleEtaProductFamilies(image.pathname);
+  } catch {
+    return false;
+  }
+}
+
+function isEtaExactLinkedProductImage(sourceUrl: string, imageUrl: string, catalogNumber: string): boolean {
+  try {
+    const source = new URL(sourceUrl);
+    const image = new URL(imageUrl);
+    if (!/(?:^|\.)e-t-a\.com$/i.test(source.hostname) || !/(?:^|\.)e-t-a\.com$/i.test(image.hostname)) return false;
+    if (!/^\/fileadmin\/user_upload\/Ordnerstruktur\/Images\/Product_Images\//i.test(image.pathname)) return false;
+    if (!isLikelyImageUrl(image.href) || isLikelyNonProductImage(image.href) || isLikelySchematicImage(image.href)) return false;
+    if (hasMultipleEtaProductFamilies(image.pathname)) return false;
+
+    const slug = source.pathname.match(/\/p\/([^/]+)\/?$/i)?.[1] ?? "";
+    const slugTokens = slug.toLowerCase().split(/[^a-z0-9]+/).filter((token) => token.length >= 4);
+    const catalogTokens = catalogNumber.toLowerCase().replace(/^module\s+/i, "").split(/[^a-z0-9]+/).filter((token) => token.length >= 4);
+    const imageKey = compactKey(image.pathname);
+    return [...slugTokens, ...catalogTokens].some((token) => imageKey.includes(compactKey(token)));
   } catch {
     return false;
   }

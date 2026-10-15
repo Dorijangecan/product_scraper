@@ -152,6 +152,7 @@ const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
   // strong enough to map that device to Relay, without raising the generic "relay" rule above
   // safety, overload, or protective relay classifications.
   rule("Relay", /\bsolid[-\s]?state remote power controllers?\b/i, 1010),
+  rule("Relay", /\b(?:(?:mechanical|electromechanical|monostable)\s+)?power relays?\b/i, 1010),
   rule("Relay", /\b(?:interface relay|coupling relay|plug-?in relay|timer relay|time relays?|monitoring relay|relais|relej|relay)\b/i, 790),
   // Rockwell's SMC-3 is labeled a smart motor controller on the PDP, but its exact source
   // identifies it as a soft starter; do not let the generic word "motor" win classification.
@@ -174,7 +175,7 @@ const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
 
   // --- Power / electrical ---
   rule("UPS", /\b(?:\bups\b|uninterruptible power supply)\b/i, 1005),
-  rule("Power Supply", /\b(?:power supply|power supply module|switched[-\s]?mode power supply|smps|regulated power supply|dc power supply|\bpsu\b|netzteil|stromversorgung|alimentation|alimentatore)\b/i, 755),
+  rule("Power Supply", /\b(?:power suppl(?:y|ies)|power supply module|switch[-\s]?mode power suppl(?:y|ies)|switched[-\s]?mode power suppl(?:y|ies)|switching power suppl(?:y|ies)|smps|regulated power suppl(?:y|ies)|dc power suppl(?:y|ies)|\bpsu\b|netzteil|stromversorgung|alimentation|alimentatore)\b/i, 755),
   rule("Transformer", /\b(?:control transformer|isolation transformer|step[-\s]?down transformer|step[-\s]?up transformer|toroidal transformer|\btransformer\b|transformator|\btrafo\b|transformateur|trasformatore)\b/i, 750),
   rule("Current Transformer", /\bcurrent transformers?\b/i, 960),
   rule("Current Sensor", /\b(?:current sensor|current transducer|residual current monitor|current transformer|external neutral|homopolar toroid)\b/i, 745),

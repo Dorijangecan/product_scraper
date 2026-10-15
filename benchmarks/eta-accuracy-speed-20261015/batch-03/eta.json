@@ -1,0 +1,60 @@
+[
+  {
+    "manufacturerId": "eta",
+    "catalogNumber": "2210-S2",
+    "caseType": "electrical",
+    "expectedDeviceType": "Circuit Breaker",
+    "riskTags": ["eta-batch-03", "thermal-magnetic-circuit-breaker", "panel-or-socket-mount"],
+    "expectedOfficialUrlPatterns": ["e-t-a\\.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/p/2210_s2/"],
+    "requiredDocuments": ["datasheet", "image"],
+    "expectedNormalizedFields": ["voltage", "current"],
+    "expectedAttributePatterns": ["2210-S2", "thermal-magnetic", "0[.,]1.{0,25}25\\s*A", "AC 250 V", "DC 65 V", "EN 60934"]
+  },
+  {
+    "manufacturerId": "eta",
+    "catalogNumber": "CPC20PN-T2",
+    "caseType": "electrical",
+    "expectedDeviceType": "Communication Gateway",
+    "riskTags": ["eta-batch-03", "controlplex-cpc20", "profinet-bus-controller"],
+    "expectedOfficialUrlPatterns": ["e-t-a\\.com/products/power_distribution_systems/intelligent_power_distribution_systems/controlplex_overview/controlplex_dinrail/bus_controllers/p/cpc20/"],
+    "requiredDocuments": ["datasheet", "image"],
+    "expectedNormalizedFields": ["voltage", "current"],
+    "expectedNormalizedPatterns": {"voltage": "24\\s*V", "current": "80\\s*A"},
+    "expectedAttributePatterns": ["CPC20PN-T2", "PROFINET", "EtherNet/IP", "DC 24 V", "80 A", "0.{0,12}60.{0,6}°?C"]
+  },
+  {
+    "manufacturerId": "eta",
+    "catalogNumber": "Module 18plus",
+    "caseType": "electrical",
+    "expectedDeviceType": "Power Distribution Unit",
+    "riskTags": ["eta-batch-03", "din-rail-power-distribution", "modular-system"],
+    "expectedOfficialUrlPatterns": ["e-t-a\\.com/solutions/automation_process_control/car_production/p/modul_18plus/"],
+    "requiredDocuments": ["datasheet", "image"],
+    "expectedNormalizedFields": ["voltage"],
+    "expectedNormalizedPatterns": {"voltage": "24\\s*V"},
+    "expectedAttributePatterns": ["18plus", "DIN rail", "DC \\+?24 V", "100 A", "Max. current rating of loads", "125", "-30.{0,15}\\+60"]
+  },
+  {
+    "manufacturerId": "eta",
+    "catalogNumber": "MPR20",
+    "caseType": "electrical",
+    "expectedDeviceType": "Relay",
+    "riskTags": ["eta-batch-03", "mechanical-power-relay", "high-current-vehicle-relay"],
+    "expectedOfficialUrlPatterns": ["e-t-a\\.com/products/relays_solid_state_remote_power_controllers/power_relays/p/mpr20/"],
+    "requiredDocuments": ["datasheet", "image"],
+    "expectedNormalizedFields": ["voltage", "current"],
+    "expectedAttributePatterns": ["MPR20", "monostable", "100 A", "200 A", "300 A", "DC 12 V", "DC 24 V", "DC 48 V", "-40.{0,12}\\+ ?85"]
+  },
+  {
+    "manufacturerId": "eta",
+    "catalogNumber": "PFA10-T 40 A, DC 24 V",
+    "caseType": "electrical",
+    "expectedDeviceType": "Power Supply",
+    "riskTags": ["eta-batch-03", "three-phase-smps", "dc-24v-40a"],
+    "expectedOfficialUrlPatterns": ["e-t-a\\.com/products/power_supplies/3_phase_switch_mode_power_supply_units/p/pfa10_t_40_a_dc_24_v/"],
+    "requiredDocuments": ["datasheet", "image"],
+    "expectedNormalizedFields": ["voltage", "current"],
+    "expectedNormalizedPatterns": {"voltage": "24\\s*V", "current": "40\\s*A"},
+    "expectedAttributePatterns": ["Rated output voltage", "DC 24 V", "Rated output current", "40 A", "Rated input voltage", "AC 400 V.{0,20}480 V", "150\\s*%"]
+  }
+]

@@ -484,6 +484,7 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
     ? exactSchmersalPdpVoltage(attributes, manufacturerId)
     : rittalVoltageModes ?? withoutMixedKindProse(
       exactEtaSCS1000DatasheetVoltage(voltageAttributes, manufacturerId) ??
+      powerSupplyOutputVoltage(voltageAttributes) ??
       exactEtaPdpVoltage(voltageAttributes, manufacturerId) ??
       exactEtaEAI300DatasheetVoltage(voltageAttributes, manufacturerId) ??
       exactSchmersalPdpVoltage(attributes, manufacturerId) ??
@@ -2081,7 +2082,8 @@ function isNonRatingCurrentArtifact(attribute: AttributeRecord): boolean {
 }
 
 function powerSupplyOutputVoltage(attributes: AttributeRecord[]): string | undefined {
-  if (!isPowerSupplyProduct(attributes)) return undefined;
+  const hasExplicitRatedOutput = attributes.some((attribute) => /^rated output voltage$/i.test(attribute.name.trim()));
+  if (!isPowerSupplyProduct(attributes) && !hasExplicitRatedOutput) return undefined;
   return attributes
     .filter((attr) => {
       const label = `${attr.group ?? ""} ${attr.name}`.toLowerCase();
@@ -2292,6 +2294,11 @@ function numericCurrentAttributeCurrent(attributes: AttributeRecord[]): string |
  * overload threshold (for example, 30 A) is not normalized as the device's rated current.
  */
 function etaRatedCurrent(attributes: AttributeRecord[]): string | undefined {
+  const supplyMaximums = attributes.filter((attribute) =>
+    /^supply max\.? current rating$/i.test(attribute.name.trim()) &&
+    isLikelySpecText(attribute.value) &&
+    isAvailableSpecValue(attribute.value)
+  );
   const totalLoadRatings = attributes.filter((attribute) =>
     /^current rating of load$/i.test(attribute.name.trim()) &&
     !/channel/i.test(attribute.name)
@@ -2304,6 +2311,7 @@ function etaRatedCurrent(attributes: AttributeRecord[]): string | undefined {
   const explicitRanges = labelledRatings.filter((attribute) => /\d+(?:[.,]\d+)?\s*(?:\.\.|\.\.\.|–|—|to)\s*\d+(?:[.,]\d+)?\s*A\b/i.test(attribute.value));
   const patterns = normalizerFieldLabelPatterns("current");
   return bestNormalizedAttributeValue(totalLoadRatings, patterns, normalizeCurrentValue, "current") ??
+    bestNormalizedAttributeValue(supplyMaximums, patterns, normalizeCurrentValue, "current") ??
     bestNormalizedAttributeValue(explicitRanges, patterns, normalizeCurrentValue, "current") ??
     bestNormalizedAttributeValue(labelledRatings, patterns, normalizeCurrentValue, "current");
 }
@@ -2312,7 +2320,7 @@ function etaExactPdpCurrent(attributes: AttributeRecord[]): string | undefined {
   const exactPageRatings = attributes.filter((attribute) =>
     attribute.sourceType === "official-fallback" &&
     /^ETA .+ product page$/i.test(attribute.parser ?? "") &&
-    /^https:\/\/global\.e-t-a\.com\/products\/.+\/p\/[^/]+\/?$/i.test(attribute.sourceUrl ?? "") &&
+    /^https:\/\/(?:www\.|global\.)?e-t-a\.com\/products\/.+\/p\/[^/]+\/?$/i.test(attribute.sourceUrl ?? "") &&
     /^(?:rated current|current rating(?: of load)?|current ratings?)$/i.test(attribute.name.trim()) &&
     !/channel/i.test(attribute.name)
   );
@@ -3109,6 +3117,17 @@ function normalizeElectricalValue(value: string | undefined): string | undefined
 }
 
 function normalizeVoltageValue(value: string | undefined): string | undefined {
+  const explicitRatingsText = value?.split(/\bUL\s*:/i)[0] ?? "";
+  const containsVoltageRange = /\d+(?:[.,]\d+)?\s*(?:\.{2,3}|…|–|—|\bto\b)\s*(?:(?:AC|DC)\s*)?\d+(?:[.,]\d+)?/i.test(explicitRatingsText);
+  if (!containsVoltageRange) {
+    const explicitModeRatings = [...explicitRatingsText.matchAll(/\b(3\s*)?(AC|DC)\s*(\d+(?:[.,]\d+)?)\s*(kV|V)\b/gi)];
+    if (explicitModeRatings.length > 1) {
+      const values = [...new Set(explicitModeRatings.map((match) =>
+        `${match[1] ? "3 " : ""}${match[2].toUpperCase()} ${match[3]} ${match[4]}`
+      ))];
+      return values.join(" / ");
+    }
+  }
   const pairedRating = value?.match(/^\s*(\d+(?:[.,]\d+)?)\s*\/\s*(\d+(?:[.,]\d+)?)\s*(kV|V)\s*(AC|DC)\b/i);
   if (pairedRating) return `${pairedRating[1]}/${pairedRating[2]} ${pairedRating[3]} ${pairedRating[4].toUpperCase()}`;
   const cleaned = trimElectricalSegments(normalizeElectricalValue(value?.replace(/\s+setting range of the\b.*$/i, "")), /\b\d+(?:[.,]\d+)?\s*(?:\.\.\.\s*\d+(?:[.,]\d+)?\s*)?(?:kV|V)\b/i);
@@ -3368,7 +3387,13 @@ function exactEtaPdpVoltage(attributes: AttributeRecord[], manufacturerId?: stri
     /^https:\/\/(?:(?:www|global)\.)?e-t-a\.com\/products\/.+\/p\/[^/]+\/?$/i.test(attribute.sourceUrl ?? "") &&
     /^(?:rated operating voltage|operating voltage|supply voltage|rated voltage|voltage rating(?: of load)?)$/i.test(attribute.name.trim())
   );
-  return bestNormalizedAttributeValue(
+  const ratedValues = bestNormalizedAttributeValue(
+    exactPageVoltage.filter((attribute) => /^(?:rated voltage|voltage rating(?: of load)?)$/i.test(attribute.name.trim())),
+    normalizerFieldLabelPatterns("voltage"),
+    normalizeVoltageValue,
+    "voltage"
+  );
+  return ratedValues ?? bestNormalizedAttributeValue(
     exactPageVoltage,
     normalizerFieldLabelPatterns("voltage"),
     normalizeVoltageValue,
