@@ -1,0 +1,64 @@
+[
+  {
+    "manufacturerId": "turck",
+    "catalogNumber": "RU40U-Q12S-UP8X-V1141",
+    "caseType": "electrical",
+    "expectedDeviceType": "Ultrasonic Sensor",
+    "riskTags": ["cold", "ultrasonic-distance-sensor", "io-link", "400-mm-range", "side-emitting"],
+    "expectedOfficialUrlPatterns": ["turck\\.com/de/en/shop/sensors/ultrasonic-sensors/100005610"],
+    "requiredDocuments": ["datasheet", "image"],
+    "expectedNormalizedFields": ["dimensions", "protection", "operatingTemperatureMin", "operatingTemperatureMax", "voltage", "current"],
+    "expectedNormalizedPatterns": {"dimensions": "82.*12.*12 mm", "protection": "IP67", "operatingTemperatureMin": "-25", "operatingTemperatureMax": "70", "voltage": "18.*30 V DC", "current": "40 mA"},
+    "expectedAttributePatterns": ["RU40U-Q12S-UP8X-V1141", "Max. range.*400", "Communication protocol.*IO-Link", "Resolution.*1 cm", "No-load current.*40 mA"]
+  },
+  {
+    "manufacturerId": "turck",
+    "catalogNumber": "UC15-S18-IOL",
+    "caseType": "electrical",
+    "expectedDeviceType": "Capacitive Sensor",
+    "riskTags": ["cold", "capacitive-level-sensor", "io-link", "granules-and-liquids", "pnp-npn"],
+    "expectedOfficialUrlPatterns": ["turck\\.com/de/en/shop/sensors/capacitive-sensors/100050168"],
+    "requiredDocuments": ["datasheet", "image"],
+    "expectedNormalizedFields": ["protection", "operatingTemperatureMin", "operatingTemperatureMax", "voltage"],
+    "expectedBlankNormalizedFields": ["current"],
+    "expectedNormalizedPatterns": {"protection": "IP67", "operatingTemperatureMin": "-40", "operatingTemperatureMax": "60", "voltage": "10.*30 V DC"},
+    "expectedAttributePatterns": ["UC15-S18-IOL", "Communication protocol.*IO-Link", "Measuring principle.*Capacitive", "Media temperature max.*85"]
+  },
+  {
+    "manufacturerId": "turck",
+    "catalogNumber": "FCMI-15D12DYA4P-LIUP8X-H1141",
+    "caseType": "electrical",
+    "expectedDeviceType": "Flow Sensor",
+    "riskTags": ["cold", "magnetic-inductive-flow-meter", "inline", "15-mm-pipe", "liquid"],
+    "expectedOfficialUrlPatterns": ["turck\\.com/de/en/shop/sensors/flow-sensors/flow-meters/6870601"],
+    "requiredDocuments": ["datasheet", "image"],
+    "expectedNormalizedFields": ["protection", "operatingTemperatureMin", "operatingTemperatureMax", "voltage", "current"],
+    "expectedNormalizedPatterns": {"protection": "IP65", "operatingTemperatureMin": "0", "operatingTemperatureMax": "60", "voltage": "21[.,]6.*26[.,]4 V DC", "current": "100 mA"},
+    "expectedAttributePatterns": ["FCMI-15D12DYA4P-LIUP8X-H1141", "Flow rate measurement", "Process connection.*15.*1.5", "Media temperature max.*60", "Flow operating range.*80 l/min", "Current consumption.*100 mA", "Current output.*4.*20 mA"]
+  },
+  {
+    "manufacturerId": "turck",
+    "catalogNumber": "TP-206A-CF-H1141-L200",
+    "caseType": "electrical",
+    "expectedDeviceType": "Temperature Sensor",
+    "riskTags": ["cold", "temperature-probe", "resistance-output", "200-mm-immersion", "-50-to-500-celsius"],
+    "expectedOfficialUrlPatterns": ["turck\\.com/de/en/shop/sensors/temperature-sensors/9910477"],
+    "requiredDocuments": ["datasheet", "image"],
+    "expectedNormalizedFields": ["protection", "operatingTemperatureMin", "operatingTemperatureMax"],
+    "expectedBlankNormalizedFields": ["voltage", "current"],
+    "expectedNormalizedPatterns": {"protection": "IP67", "operatingTemperatureMin": "-40", "operatingTemperatureMax": "120"},
+    "expectedAttributePatterns": ["TP-206A-CF-H1141-L200", "Measuring range.*-50.*500.*°C", "Immersion depth.*200", "Electrical output.*Resistance"]
+  },
+  {
+    "manufacturerId": "turck",
+    "catalogNumber": "LI700P1-Q25LM4-LIU5X3-H1151",
+    "caseType": "electrical",
+    "expectedDeviceType": "Linear Position Sensor",
+    "riskTags": ["cold", "inductive-linear-position-sensor", "700-mm-range", "analog-output", "profile"],
+    "expectedOfficialUrlPatterns": ["turck\\.com/de/en/shop/sensors/linear-position-sensors/1590246"],
+    "requiredDocuments": ["datasheet", "image"],
+    "expectedNormalizedFields": ["dimensions", "protection", "operatingTemperatureMin", "operatingTemperatureMax", "voltage", "current"],
+    "expectedNormalizedPatterns": {"dimensions": "758.*35.*25 mm", "protection": "IP67", "operatingTemperatureMin": "-25", "operatingTemperatureMax": "70", "voltage": "15.*30 V DC", "current": "<\\s*50 mA"},
+    "expectedAttributePatterns": ["LI700P1-Q25LM4-LIU5X3-H1151", "Measuring range.*700 mm", "Measuring principle.*Inductive", "Output function.*Analog output", "Operating voltage UB.*15.*30 VDC", "Current consumption.*< 50 mA"]
+  }
+]

@@ -328,11 +328,18 @@ async function processOneDownloadedDocument(doc: DocumentRecord, catalogNumber: 
     };
   }
   try {
-    const pdfText = await readPdfText(doc.localPath!, catalogNumber, doc.url);
+    const exactTurckDatasheetReference = isExactTurckDatasheetReference(doc, manufacturerId);
+    const pdfText = await readPdfText(doc.localPath!, exactTurckDatasheetReference ? undefined : catalogNumber, doc.url);
     const { text, tables } = pdfText;
     // Multi-model PDFs need target scoping, but some catalogs keep shared technical
     // pages away from the catalog table. Keep both the target rows and global spec rows.
     const scope = buildDocumentParseScope(text, catalogNumber);
+    // Turck's EDB links are keyed to the numeric order ID shown on the exact official PDP. When
+    // that ID agrees and the PDF itself prints this exact type designation, the whole document is
+    // product-specific. Keep its complete technical page: the target-row window can otherwise
+    // retain the output-current row while dropping a nearby, distinct current-consumption row.
+    const exactTurckProductDatasheet = exactTurckDatasheetReference &&
+      Boolean(findCatalogTextMatch(text, catalogNumber, { compact: true, afterColon: true }));
     const exactSiemensDatasheet = isExactSiemensProductDatasheet(doc, text, catalogNumber);
     const exactSchneiderDatasheet = isExactSchneiderCatalogDatasheet(doc, catalogNumber);
     const isolatedEatonAutovarTable = isEatonAutovarTechnicalDataSheet(doc);
@@ -350,9 +357,9 @@ async function processOneDownloadedDocument(doc: DocumentRecord, catalogNumber: 
       ...(skipTechnicalSpecMining || isolatedEatonAutovarTable ? [] : extractDocumentTextAttributes({
         catalogNumber,
         document: doc,
-          text: balluffExactDatasheet || exactSiemensDatasheet || exactSchneiderDatasheet ? text : scope.text,
+          text: balluffExactDatasheet || exactSiemensDatasheet || exactSchneiderDatasheet || exactTurckProductDatasheet ? text : scope.text,
           tables,
-          scopeUnresolved: !scope.resolved && !balluffExactDatasheet && !exactSiemensDatasheet && !exactSchneiderDatasheet,
+          scopeUnresolved: !scope.resolved && !balluffExactDatasheet && !exactSiemensDatasheet && !exactSchneiderDatasheet && !exactTurckProductDatasheet,
         matchLevel: scope.match?.level
       })),
       ...(skipTechnicalSpecMining || isolatedEatonAutovarTable ? [] : extractOcrPositionedTableAttributes(pdfText.ocrPositionedItems, catalogNumber, doc.url)),
@@ -1275,6 +1282,23 @@ function isExactSchneiderCatalogDatasheet(document: Pick<DocumentRecord, "type" 
     // those filenames are variant-specific even though the URL has no /product/{SKU} segment.
     const filename = decodeURIComponent(url.pathname.split("/").pop() ?? "").replace(/\.pdf$/i, "");
     return sameCatalogNumber(filename.replace(/_(?:en|fr|de|es|it|zh|pt)$/i, ""), catalogNumber);
+  } catch {
+    return false;
+  }
+}
+
+function isExactTurckDatasheetReference(
+  document: Pick<DocumentRecord, "type" | "url" | "sourceUrl">,
+  manufacturerId?: string
+): boolean {
+  if (manufacturerId !== "turck" || document.type !== "datasheet" || !document.sourceUrl) return false;
+  try {
+    const source = new URL(document.sourceUrl);
+    const pdf = new URL(document.url);
+    if (!/(?:^|\.)turck\.com$/i.test(source.hostname) || !/^hansturck\.azureedge\.net$/i.test(pdf.hostname)) return false;
+    const productId = source.pathname.match(/\/(\d+)\/?$/)?.[1];
+    const datasheetId = pdf.pathname.match(/(?:^|\/)EDB_(\d+)_[^/]+\.pdf$/i)?.[1];
+    return Boolean(productId && datasheetId && productId === datasheetId);
   } catch {
     return false;
   }

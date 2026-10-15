@@ -279,7 +279,10 @@ export const DEVICE_TYPE_FAMILIES: Record<string, readonly FamilyEntry[]> = {
     { patterns: ["TBEN-L", "TBEN-S", "FEN20"], type: "I/O Module", notes: "Turck multiprotocol Ethernet I/O modules" },
     { patterns: ["TBEN-L4-SE", "TBEN-L5-SE"], type: "Switch", notes: "Turck TBEN industrial Ethernet switches" },
     { patterns: ["RI360P0"], type: "Encoder", notes: "Turck contactless incremental encoders" },
-    { patterns: ["PS400R-"], type: "Pressure Sensor", notes: "Turck pressure transmitters" }
+    { patterns: ["PS400R-"], type: "Pressure Sensor", notes: "Turck pressure transmitters" },
+    { patterns: ["UC"], type: "Capacitive Sensor", notes: "Turck UC capacitive sensors" },
+    { patterns: ["TP-2", "TP-5"], type: "Temperature Sensor", notes: "Turck TP resistance temperature probes" },
+    { patterns: ["LI"], type: "Linear Position Sensor", notes: "Turck inductive linear position sensors" }
   ],
   fath: [
     { patterns: ["6SAMB1J313B.4000"], type: "Cable", notes: "FATH Module F Line GST18i3 main power cable" },

@@ -106,6 +106,13 @@ const ELECTRICAL_SPEC_DEFINITIONS: SpecDefinition[] = [
     exclude: [/rated\s+residual|differential/i]
   },
   {
+    // A signal-output range (for example 4...20 mA) is not device supply draw, but it must form
+    // a label boundary so a nearby Current consumption row cannot absorb that signal value.
+    name: "Current output",
+    kind: "current",
+    labels: [/\bcurrent\s+output\b/i]
+  },
+  {
     name: "Current consumption",
     kind: "current",
     labels: [

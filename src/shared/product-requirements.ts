@@ -107,6 +107,22 @@ export function requiredElectricalFields(result: ProductResult, context: Electri
     result.attributes.some((attr) => /^design$/i.test(attr.name.trim()) && /\baccess sensor\b/i.test(attr.value)) &&
     result.attributes.some((attr) => /\bmeasuring technique\b/i.test(attr.name) && /\breed contact\b/i.test(attr.value));
   if (rittalPassiveAccessSensor) return [];
+  // Passive resistance temperature probes (RTD/Pt100/Pt1000) report resistance, not an active
+  // device supply. Requiring voltage sends an exact probe PDP through a fruitless discovery loop.
+  const passiveResistanceTemperatureProbe = result.attributes.some((attr) =>
+    /^electrical output$/i.test(attr.name.trim()) && /^resistance$/i.test(attr.value.trim())
+  ) && result.attributes.some((attr) =>
+    /^design$/i.test(attr.name.trim()) && /\btemperature probe\b/i.test(attr.value)
+  );
+  if (passiveResistanceTemperatureProbe) return [];
+  // A capacitive Turck sensor's "DC rated operational current" is its switching-output load
+  // limit, not supply draw. Require its evidenced voltage but never call that output rating the
+  // sensor's consumption current when the datasheet provides no separate draw/no-load row.
+  const turckCapacitiveOutputRatingOnly = result.manufacturerId === "turck" &&
+    context.deviceType === "Capacitive Sensor" &&
+    result.attributes.some((attr) => /^dc rated operational current$/i.test(attr.name.trim())) &&
+    !result.attributes.some((attr) => /^(?:current consumption|no-load current|input current|supply current)$/i.test(attr.name.trim()));
+  if (turckCapacitiveOutputRatingOnly) return result.normalized.voltage ? ["voltage"] : [];
   // Ganter Norm is a mechanical standard-parts catalog (handles, knobs, clamps, hinges, levers).
   // Even its "with electrical switching function" handle families are mechanical products with an
   // electrical accessory, and Ganter never publishes structured rated voltage/current on its web

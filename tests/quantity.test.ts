@@ -222,6 +222,16 @@ describe("quantity grammar — real-world disambiguation set", () => {
     expect(parseQuantities("0,5 ... 6 bar", { kind: "pressure" })[0]).toMatchObject({ kind: "pressure", min: 0.5, max: 6 });
   });
 
+  it("keeps decimal separators separate across a mixed-locale voltage range", () => {
+    expect(parseQuantities("Operating voltage 21.6...26,4 VDC", { kind: "voltage" })[0]).toMatchObject({
+      kind: "voltage",
+      min: 21.6,
+      max: 26.4,
+      qualifier: "range",
+      currentType: "DC"
+    });
+  });
+
   it("reads a torque range and an AC/DC voltage type", () => {
     expect(parseQuantities("Tightening torque 2.5...3 Nm", { kind: "torque" })[0]).toMatchObject({ min: 2.5, max: 3 });
     expect(parseQuantities("24 V AC/DC", { kind: "voltage" })[0]).toMatchObject({ value: 24, currentType: "AC/DC" });

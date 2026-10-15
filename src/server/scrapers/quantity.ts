@@ -201,6 +201,9 @@ const CONDITION_RE = new RegExp(
 
 export function normalizeForParsing(value: string): string {
   const dashNormalized = value
+    // Protect a numeric range's ellipsis before normalizing decimal separators per number.
+    // Otherwise `21.6...26,4` is mistaken for one mixed-separator decimal and becomes `21626.4`.
+    .replace(/(\d)\.{2,3}(?=\s*[+-]?\d)/g, "$1…")
     .replace(/[\u2013\u2014\u2212]/g, "-")
     .replace(/\u00e2[\u20ac\u0088][\u201c\u201d\u0092\u0093\u0094]/g, "-");
   const collapsed = dashNormalized
