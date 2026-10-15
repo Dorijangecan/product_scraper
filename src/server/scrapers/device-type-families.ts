@@ -277,7 +277,9 @@ export const DEVICE_TYPE_FAMILIES: Record<string, readonly FamilyEntry[]> = {
   turck: [
     { patterns: ["TBEN-L5-PLC", "TBEN-L4-PLC"], type: "Programmable Logic Controller", notes: "Turck TBEN compact PLC" },
     { patterns: ["TBEN-L", "TBEN-S", "FEN20"], type: "I/O Module", notes: "Turck multiprotocol Ethernet I/O modules" },
-    { patterns: ["TBEN-L4-SE", "TBEN-L5-SE"], type: "Switch", notes: "Turck TBEN industrial Ethernet switches" }
+    { patterns: ["TBEN-L4-SE", "TBEN-L5-SE"], type: "Switch", notes: "Turck TBEN industrial Ethernet switches" },
+    { patterns: ["RI360P0"], type: "Encoder", notes: "Turck contactless incremental encoders" },
+    { patterns: ["PS400R-"], type: "Pressure Sensor", notes: "Turck pressure transmitters" }
   ],
   fath: [
     { patterns: ["6SAMB1J313B.4000"], type: "Cable", notes: "FATH Module F Line GST18i3 main power cable" },

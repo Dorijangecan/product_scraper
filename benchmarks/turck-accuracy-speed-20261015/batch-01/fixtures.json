@@ -1,0 +1,62 @@
+[
+  {
+    "manufacturerId": "turck",
+    "catalogNumber": "BI10U-M18-AP6X-H1141",
+    "caseType": "electrical",
+    "expectedDeviceType": "Inductive Proximity Sensor",
+    "riskTags": ["cold", "inductive-sensor", "m18", "factor-1", "10-mm-range"],
+    "expectedOfficialUrlPatterns": ["turck\\.de/en/product/1644830"],
+    "requiredDocuments": ["datasheet"],
+    "expectedNormalizedFields": ["voltage", "current", "dimensions", "protection", "operatingTemperatureMin", "operatingTemperatureMax"],
+    "expectedNormalizedPatterns": {"voltage": "10.*30 V DC", "current": "25 mA", "dimensions": "36.*36 mm", "protection": "IP68", "operatingTemperatureMin": "-25", "operatingTemperatureMax": "70"},
+    "expectedAttributePatterns": ["BI10U-M18-AP6X-H1141", "Operating voltage UB.*10.*30.*VDC", "No-load current.*25 mA", "Rated switching distance.*10 mm"]
+  },
+  {
+    "manufacturerId": "turck",
+    "catalogNumber": "TBEN-S2-4IOL",
+    "caseType": "electrical",
+    "expectedDeviceType": "I/O Module",
+    "riskTags": ["cold", "multiprotocol-io", "4-io-link-master", "4-universal-digital-channels", "24-vdc"],
+    "expectedOfficialUrlPatterns": ["turck\\.de/(?:en/product/6814024|datasheet/_us/edb_6814024_eng_us\\.pdf)"],
+    "requiredDocuments": ["datasheet"],
+    "expectedNormalizedFields": ["voltage", "current", "dimensions", "protection", "operatingTemperatureMin", "operatingTemperatureMax"],
+    "expectedNormalizedPatterns": {"voltage": "18.*30 V DC", "current": "50.*110 mA", "dimensions": "144.*32.*32 mm", "protection": "IP65.*IP67.*IP69K", "operatingTemperatureMin": "-40", "operatingTemperatureMax": "70"},
+    "expectedAttributePatterns": ["Supply voltage.*24 VDC", "Admissible range.*18.*30 VDC", "Operating current.*50 mA.*110 mA", "Protection.*IP65.*IP67.*IP69K"]
+  },
+  {
+    "manufacturerId": "turck",
+    "catalogNumber": "RI360P0-EQR24M0-INCRX2-H1181",
+    "caseType": "electrical",
+    "expectedDeviceType": "Encoder",
+    "riskTags": ["cold", "contactless-incremental-encoder", "qr24", "1024-ppr-default", "1-to-5000-ppr-configurable"],
+    "expectedOfficialUrlPatterns": ["turck\\.de/en/product/1590912"],
+    "requiredDocuments": ["datasheet"],
+    "expectedNormalizedFields": ["voltage", "current", "dimensions", "protection", "operatingTemperatureMin", "operatingTemperatureMax"],
+    "expectedNormalizedPatterns": {"voltage": "10.*30 V DC", "current": "100 mA", "dimensions": "81.*78.*24 mm", "protection": "IP68.*IP69K", "operatingTemperatureMin": "-25", "operatingTemperatureMax": "85"},
+    "expectedAttributePatterns": ["Resolution incremental.*1024", "Current consumption.*100 mA", "Operating voltage UB.*10.*30.*VDC", "IP68.*IP69K"]
+  },
+  {
+    "manufacturerId": "turck",
+    "catalogNumber": "PS400R-505-2UPN8X-H1141",
+    "caseType": "electrical",
+    "expectedDeviceType": "Pressure Sensor",
+    "riskTags": ["cold", "pressure-transmitter", "relative-pressure", "0-to-400-bar", "two-switch-outputs"],
+    "expectedOfficialUrlPatterns": ["turck\\.de/en/product/6832702"],
+    "requiredDocuments": ["datasheet"],
+    "expectedNormalizedFields": ["voltage", "current", "protection", "operatingTemperatureMin", "operatingTemperatureMax"],
+    "expectedNormalizedPatterns": {"voltage": "18.*30 V DC", "current": "0[,\\.]2 A", "protection": "IP67.*IP69K", "operatingTemperatureMin": "-40", "operatingTemperatureMax": "80"},
+    "expectedAttributePatterns": ["Pressure range.*0.*400 bar", "Pressure type.*Relative pressure", "Operating voltage UB.*18.*30.*VDC", "Rated operational current.*0,2 A"]
+  },
+  {
+    "manufacturerId": "turck",
+    "catalogNumber": "LRS510-10-51-2UPN8-H1141/EU",
+    "caseType": "electrical",
+    "expectedDeviceType": "Radar Sensor",
+    "riskTags": ["cold", "radar-level-sensor", "10-m-range", "io-link", "g3-4-process-connection"],
+    "expectedOfficialUrlPatterns": ["turck\\.de/en/product/100048855"],
+    "requiredDocuments": ["datasheet"],
+    "expectedNormalizedFields": ["voltage", "current", "dimensions", "operatingTemperatureMin", "operatingTemperatureMax", "protection"],
+    "expectedNormalizedPatterns": {"voltage": "17.*33 V DC", "current": "100 mA", "dimensions": "132[,\\.]3.*38.*50[,\\.]2 mm", "operatingTemperatureMin": "-25", "operatingTemperatureMax": "65", "protection": "IP67.*IP69K"},
+    "expectedAttributePatterns": ["Range.*350.*10000 mm", "Operating voltage UB.*17.*33.*VDC", "No-load current.*100 mA", "Process connection.*G 3/4"]
+  }
+]

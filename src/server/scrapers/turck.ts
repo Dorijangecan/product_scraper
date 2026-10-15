@@ -11,11 +11,6 @@ const TURCK_PARSER = "turck-shop";
 const TURCK_PARSER_VERSION = "turck-v1";
 const TURCK_SEARCH_FALLBACK_TEMPLATE = "https://www.turck.com/de/en/shop/search?q={part}";
 const TURCK_DIRECT_ORDER_TEMPLATE = "https://www.turck.com/de/en/shop/p/{part}";
-// The German shop resolves this order-id short link to the real, natively-localized product URL
-// (category slugs translated, e.g. "sensortechnik/induktive-sensoren" rather than the English
-// "sensors/inductive-sensors"). Naively substituting /en/ for /de/ in the English URL keeps the
-// English category slugs and produces a URL that does not exist on the German site.
-const TURCK_DIRECT_ORDER_TEMPLATE_DE = "https://www.turck.com/de/de/shop/p/{part}";
 // The "Approvals/Declarations" panel on a Turck product page links to this document-management
 // endpoint, which server-renders a static HTML table (Type / Certificate # / Filename) of the
 // product's approval documents. This is the only online source of Turck certificate data.
@@ -46,11 +41,12 @@ export class TurckConnector implements ManufacturerConnector {
     const attemptedUrls: string[] = [];
     const sourcePages: SourceRecord[] = [];
     const candidateUrls: TurckProductCandidate[] = [];
+    const traceTimings = process.env.TURCK_TRACE_TIMINGS === "1";
 
     for (const searchUrl of turckSearchUrls(catalogNumber, context)) {
       attemptedUrls.push(searchUrl);
       try {
-        const search = await fetchTurckText(searchUrl, context);
+        const search = await timedTurckRequest("search", searchUrl, () => fetchTurckText(searchUrl, context), traceTimings);
         sourcePages.push(turckSource(search, "turck-search", "Turck official shop search result."));
         const foundUrl = findTurckProductUrl(search.text, search.effectiveUrl, catalogNumber);
         if (foundUrl) candidateUrls.push({ url: foundUrl, stage: "search-result" });
@@ -67,7 +63,7 @@ export class TurckConnector implements ManufacturerConnector {
     for (const candidate of dedupeTurckCandidates(candidateUrls)) {
       attemptedUrls.push(candidate.url);
       try {
-        const productPage = await fetchTurckText(candidate.url, context);
+        const productPage = await timedTurckRequest("product-page", candidate.url, () => fetchTurckText(candidate.url, context), traceTimings);
         if (!turckPageMatches(productPage, catalogNumber, context, candidate.stage)) {
           continue;
         }
@@ -77,8 +73,7 @@ export class TurckConnector implements ManufacturerConnector {
           catalogNumber,
           attemptedUrls,
           sourcePages,
-          candidate.stage,
-          context
+          candidate.stage
         );
       } catch {
         // Try the next candidate.
@@ -102,15 +97,84 @@ export class TurckConnector implements ManufacturerConnector {
       discovery
     );
   }
+
+  async enrichDocuments(catalogNumber: string, result: ProductResult, context: ScrapeContext): Promise<ProductResult> {
+    const orderId = result.attributes.find((attribute) => /^order id$/i.test(attribute.name))?.value
+      ?? orderIdFromUrl(result.productUrl ?? "");
+    if (!orderId) return result;
+    const traceTimings = process.env.TURCK_TRACE_TIMINGS === "1";
+    const [certificates, legacyProductData] = await Promise.all([
+      timedTurckRequest("certificates", fillCatalogTemplate(TURCK_CERTIFICATES_TEMPLATE, orderId), () => fetchTurckCertificates(orderId, context), traceTimings),
+      timedTurckRequest("legacy-product", fillCatalogTemplate(TURCK_LEGACY_PRODUCT_TEMPLATE, orderId), () => fetchTurckLegacyProductData(orderId, context), traceTimings)
+    ]);
+    const sourceUrl = result.productUrl ?? fillCatalogTemplate(TURCK_DIRECT_ORDER_TEMPLATE, orderId);
+    const attributes = dedupeAttributes([
+      ...result.attributes,
+      ...(legacyProductData?.attributes ?? []),
+      ...(certificates
+        ? [{
+            group: "Approvals/Declarations",
+            name: "Certifications",
+            value: certificates.value,
+            sourceUrl: certificates.sourceUrl,
+            sourceType: "official" as const,
+            parser: TURCK_PARSER,
+            stage: TURCK_PARSER,
+            confidence: 0.86
+          }]
+        : [])
+    ]);
+    return {
+      ...result,
+      attributes,
+      sources: dedupeSources([
+        ...(result.sources ?? []),
+        ...(legacyProductData ? [legacyProductData.source] : [])
+      ]),
+      normalized: normalizeFields(attributes, result.documents, "turck"),
+      diagnostics: {
+        ...result.diagnostics,
+        notes: [
+          ...(result.diagnostics?.notes ?? []),
+          ...(legacyProductData ? ["Turck legacy official product page enriched ordering and physical data."] : []),
+          ...(certificates ? ["Turck approvals were confirmed from its official certificate register."] : [])
+        ]
+      }
+    };
+  }
 }
 
 function parseTurckProductPage(catalogNumber: string, fetched: FetchedText, context: ScrapeContext): ProductResult {
-  return parseGenericProductPage("turck", catalogNumber, fetched, "official", TURCK_PARSER, {
+  const result = parseGenericProductPage("turck", catalogNumber, fetched, "official", TURCK_PARSER, {
     match: context.manufacturer.match,
     confidence: 0.78,
     extractionPolicy: context.manufacturer.scrapeRecipe?.extractionPolicy,
     localizedUrlTemplates: context.manufacturer.localizedUrlTemplates
   });
+  return {
+    ...result,
+    documents: result.documents.map((document) =>
+      document.type === "image" ? { ...document, url: turckOriginalImageUrl(document.url) } : document
+    )
+  };
+}
+
+function turckOriginalImageUrl(value: string): string {
+  try {
+    const transformed = new URL(value);
+    if (transformed.hostname.toLowerCase() !== "www.turck.com" || !transformed.pathname.endsWith("/_next/image")) return value;
+    const originalValue = transformed.searchParams.get("url");
+    if (!originalValue) return value;
+    const original = new URL(originalValue);
+    if (
+      original.protocol !== "https:" ||
+      original.hostname.toLowerCase() !== "hansturck.azureedge.net" ||
+      !/^\/(?:azurecdn_640x640_72dpi|highres)\//i.test(original.pathname)
+    ) return value;
+    return original.toString();
+  } catch {
+    return value;
+  }
 }
 
 async function withTurckMetadata(
@@ -119,8 +183,7 @@ async function withTurckMetadata(
   catalogNumber: string,
   attemptedUrls: string[],
   sourcePages: SourceRecord[],
-  discoveryStage: TurckProductCandidate["stage"],
-  context: ScrapeContext
+  discoveryStage: TurckProductCandidate["stage"]
 ): Promise<ProductResult> {
   const title = turckTitle(fetched.text) ?? result.title;
   const orderId = orderIdFromText(fetched.text) ?? orderIdFromUrl(fetched.effectiveUrl);
@@ -131,19 +194,8 @@ async function withTurckMetadata(
   // text as the product description (long and short), so promote it when the parser left the
   // description blank rather than echoing the SKU into the description columns.
   const description = result.description?.trim() ? result.description : productType;
-  let certificates: TurckCertificates | undefined;
-  let legacyProductData: TurckLegacyProductData | undefined;
-  let germanUrl: string | undefined;
-  if (orderId) {
-    [certificates, legacyProductData, germanUrl] = await Promise.all([
-      fetchTurckCertificates(orderId, context),
-      fetchTurckLegacyProductData(orderId, context),
-      fetchTurckGermanUrl(orderId, context)
-    ]);
-  }
   const attributes: AttributeRecord[] = [
     ...result.attributes,
-    ...(legacyProductData?.attributes ?? []),
     {
       group: "Turck Product Data",
       name: "Catalog Number",
@@ -192,27 +244,15 @@ async function withTurckMetadata(
           confidence: 0.78
         }]
       : []),
-    ...(certificates
-      ? [{
-          group: "Approvals/Declarations",
-          name: "Certifications",
-          value: certificates.value,
-          sourceUrl: certificates.sourceUrl,
-          sourceType: "official" as const,
-          parser: TURCK_PARSER,
-          stage: TURCK_PARSER,
-          confidence: 0.86
-        }]
-      : [])
   ];
   const dedupedAttributes = dedupeAttributes(attributes);
   const documents = dedupeDocuments([
     ...result.documents,
-    ...(certificates
+    ...(orderId
       ? [{
           type: "certificate" as const,
           label: "Approvals/Declarations",
-          url: certificates.sourceUrl,
+          url: fillCatalogTemplate(TURCK_CERTIFICATES_TEMPLATE, orderId),
           sourceUrl
         }]
       : [])
@@ -222,17 +262,16 @@ async function withTurckMetadata(
     title,
     description,
     productUrl: sourceUrl,
-    localizedUrls: turckLocalizedUrls(sourceUrl, germanUrl),
+    localizedUrls: turckLocalizedUrls(sourceUrl, undefined),
     confidence: Math.max(result.confidence, 0.78),
     attributes: dedupedAttributes,
     documents,
     sources: dedupeSources([
       ...sourcePages,
       ...(result.sources ?? []),
-      turckSource(fetched, TURCK_PARSER, `Turck product page accepted from ${discoveryStage}.`),
-      ...(legacyProductData ? [legacyProductData.source] : [])
+      turckSource(fetched, TURCK_PARSER, `Turck product page accepted from ${discoveryStage}.`)
     ]),
-    normalized: normalizeFields(dedupedAttributes, documents),
+    normalized: normalizeFields(dedupedAttributes, documents, "turck"),
     diagnostics: {
       ...result.diagnostics,
       chosenUrl: sourceUrl,
@@ -249,11 +288,20 @@ async function withTurckMetadata(
       attemptedUrls: [...new Set([...(result.diagnostics?.attemptedUrls ?? []), ...attemptedUrls])],
       notes: [
         ...(result.diagnostics?.notes ?? []),
-        `Turck product page accepted from ${discoveryStage === "search-result" ? "official search result" : "numeric order-id URL"}.`,
-        ...(legacyProductData ? ["Turck legacy official product page enriched ordering and physical data."] : [])
+        `Turck product page accepted from ${discoveryStage === "search-result" ? "official search result" : "numeric order-id URL"}.`
       ]
     }
   };
+}
+
+async function timedTurckRequest<T>(label: string, url: string, task: () => Promise<T>, enabled: boolean): Promise<T> {
+  if (!enabled) return task();
+  const startedAt = Date.now();
+  try {
+    return await task();
+  } finally {
+    console.info(`[turck-timing] ${label} ${Date.now() - startedAt}ms ${url}`);
+  }
 }
 
 function turckSearchUrls(catalogNumber: string, context: ScrapeContext): string[] {
@@ -312,54 +360,27 @@ function turckSource(fetched: FetchedText, parser: string, reason: string): Sour
 
 async function fetchTurckText(url: string, context: ScrapeContext): Promise<FetchedText> {
   const policy = context.manufacturer.fetchPolicy ?? {};
-  return context.http.fetchText(url, {
+  const options = {
     timeoutMs: policy.timeoutMs ?? 10000,
     maxAttempts: policy.maxAttempts ?? 1,
     retryBackoffMs: policy.retryBackoffMs,
     cacheTtlMs: policy.cacheTtlMs,
+    compressed: true,
     headers: {
       ...(policy.acceptLanguage ? { "accept-language": policy.acceptLanguage } : {}),
       ...(policy.referer ? { referer: policy.referer } : {}),
       ...(policy.userAgent ? { "user-agent": policy.userAgent } : {})
     },
     signal: context.signal
-  });
-}
-
-/**
- * Fetch and parse the Turck document-management page for an order id and distil its approval-document
- * table into a certificate value (e.g. "CE, UKCA, CCC"). The page is static server-rendered HTML, so a
- * plain GET is enough — no browser render. Returns undefined when the page is unreachable or lists no
- * approval rows so the caller simply omits the certificate attribute.
- */
-async function fetchTurckCertificates(orderId: string, context: ScrapeContext): Promise<TurckCertificates | undefined> {
-  const url = fillCatalogTemplate(TURCK_CERTIFICATES_TEMPLATE, orderId);
+  };
   try {
-    const fetched = await fetchTurckText(url, context);
-    const value = parseTurckCertificateValue(fetched.text);
-    if (!value) return undefined;
-    return { value, sourceUrl: fetched.effectiveUrl };
+    // The Turck shop serves its HTML quickly to the scraper's browser-like curl request, but
+    // got-scraping commonly stalls until its 10-second timeout before falling back to the same
+    // curl request. Make that proven fast path primary and keep got-scraping as the reliability
+    // fallback for transient curl/TLS failures.
+    return await context.http.fetchTextViaCurl(url, options);
   } catch {
-    return undefined;
-  }
-}
-
-/**
- * Resolve the real German shop URL for an order id by following the German order-id short link
- * rather than guessing it from the English URL. When the shop redirects it, `fetched.effectiveUrl`
- * is the true, natively-localized German URL (translated category slugs); rejects anything that
- * didn't actually resolve to this order id's own page — a non-2xx status (including an edge/bot
- * challenge response, which can still carry a non-empty body) or a mismatched order id.
- */
-async function fetchTurckGermanUrl(orderId: string, context: ScrapeContext): Promise<string | undefined> {
-  const url = fillCatalogTemplate(TURCK_DIRECT_ORDER_TEMPLATE_DE, orderId);
-  try {
-    const fetched = await fetchTurckText(url, context);
-    if (fetched.statusCode < 200 || fetched.statusCode >= 300) return undefined;
-    if (orderIdFromUrl(fetched.effectiveUrl) !== orderId && orderIdFromText(fetched.text) !== orderId) return undefined;
-    return fetched.effectiveUrl;
-  } catch {
-    return undefined;
+    return context.http.fetchText(url, options);
   }
 }
 
@@ -373,6 +394,18 @@ async function fetchTurckLegacyProductData(orderId: string, context: ScrapeConte
       attributes,
       source: turckSource(fetched, "turck-legacy-product", "Turck legacy official product page supplied ordering and physical attributes.")
     };
+  } catch {
+    return undefined;
+  }
+}
+
+async function fetchTurckCertificates(orderId: string, context: ScrapeContext): Promise<TurckCertificates | undefined> {
+  const url = fillCatalogTemplate(TURCK_CERTIFICATES_TEMPLATE, orderId);
+  try {
+    const fetched = await fetchTurckText(url, context);
+    const value = parseTurckCertificateValue(fetched.text);
+    if (!value) return undefined;
+    return { value, sourceUrl: fetched.effectiveUrl };
   } catch {
     return undefined;
   }
@@ -598,9 +631,8 @@ function turckLocalizedUrls(productUrl: string, germanUrl: string | undefined): 
     return urls;
   }
   // Otherwise the accepted page is English. The German shop uses translated category slugs (e.g.
-  // "sensortechnik/induktive-sensoren" instead of "sensors/inductive-sensors"), so the DE URL can
-  // only come from actually resolving the German order-id short link (fetchTurckGermanUrl) — never
-  // from rewriting the English URL, which would keep the English slugs and produce a dead link.
+  // "sensortechnik/induktive-sensoren" instead of "sensors/inductive-sensors"), so do not derive
+  // a German URL by rewriting the English path; only attach one if an actual German URL is supplied.
   if (germanUrl && germanUrl.toLowerCase() !== productUrl.toLowerCase()) {
     urls.de = germanUrl;
   }

@@ -433,7 +433,7 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
       schneiderTransformerOutputVoltage(voltageAttributes, attributes) ??
       schneiderDualSupplyVoltage(voltageAttributes) ?? schneiderPowerSupplyOutputVoltage(voltageAttributes, attributes)
     : undefined;
-  const voltage = schneiderSupplyVoltage ?? (manufacturerId === "phoenix"
+  const fallbackVoltage = schneiderSupplyVoltage ?? (manufacturerId === "phoenix"
     ? phoenixContactNormalizedVoltage(attributes) ?? withoutMixedKindProse(
       exactSchmersalPdpVoltage(attributes, manufacturerId) ??
       powerSupplyOutputVoltage(voltageAttributes) ??
@@ -469,8 +469,11 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
     // (mostly EN/DE) miss. Most-specific matchProperty keeps insulation/impulse voltage out.
       ontologyFieldValue(voltageAttributes, "ratedVoltage", normalizeVoltageValue) ??
       inferredOntologyFieldValue(voltageAttributes, "ratedVoltage", normalizeVoltageValue)
-  ));
-  const current = manufacturerId === "phoenix" && isPhoenixSignalConditioner(attributes)
+   ));
+  const voltage = manufacturerId === "turck"
+    ? turckOperatingVoltage(attributes) ?? fallbackVoltage
+    : fallbackVoltage;
+  const genericCurrent = manufacturerId === "phoenix" && isPhoenixSignalConditioner(attributes)
     ? undefined
     : manufacturerId === "phoenix" && isPhoenixSurgeProtector(attributes)
     ? phoenixSurgeNominalDischargeCurrent(attributes)
@@ -517,6 +520,7 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
       ontologyFieldValue(currentAttributes, "ratedCurrent", normalizeCurrentValue) ??
       inferredOntologyFieldValue(currentAttributes, "ratedCurrent", normalizeCurrentValue)
     );
+  const current = manufacturerId === "turck" ? turckCurrent(attributes) : genericCurrent;
 
   const exactEatonPdpTemperature = manufacturerId === "eaton"
     ? temperatureFromSeparateMinMaxRows(
@@ -530,7 +534,11 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
         () => false
       )
     : undefined;
-  const derivedOperatingTemperature = deriveOperatingTemperature(attributes);
+  const derivedOperatingTemperature = deriveOperatingTemperature(
+    manufacturerId === "turck"
+      ? attributes.filter((attribute) => /^ambient temperature (?:min|max)/i.test(attribute.name.trim()))
+      : attributes
+  );
   const exactEatonPsgTemperature = manufacturerId === "eaton"
     ? deriveOperatingTemperature(attributes.filter((attribute) => attribute.group === "Eaton Volume 7 PSG exact model column" && attribute.matchLevel === "exact"))
     : undefined;
@@ -2838,6 +2846,58 @@ function normalizeVoltageValue(value: string | undefined): string | undefined {
     return cleanText(duplicateBounds[1]);
   }
   return cleaned;
+}
+
+/** Prefer Turck's explicitly admissible/supply range over generic headline voltage rows. */
+function turckOperatingVoltage(attributes: AttributeRecord[]): string | undefined {
+  const preferred = attributes
+    .filter((attribute) => /^(?:admissible range|operating voltage ub)$/i.test(attribute.name.trim()))
+    .sort(compareAttributeEvidence)
+    .map((attribute) => normalizeVoltageValue(attribute.value))
+    .find((value): value is string => Boolean(value));
+  return preferred;
+}
+
+/**
+ * Turck datasheets publish both device draw and output/load ratings. Prefer no-load or
+ * consumption rows for sensor draw, the supply current range for TBEN modules, and retain a
+ * pressure transmitter's rated switching-output current when that is the only rated current.
+ */
+function turckCurrent(attributes: AttributeRecord[]): string | undefined {
+  const preferredLabels = [/^no-load current$/i, /^current consumption$/i];
+  for (const label of preferredLabels) {
+    const value = attributes
+      .filter((attribute) => label.test(attribute.name.trim()))
+      .sort(compareAttributeEvidence)
+      .map((attribute) => normalizeCurrentValue(attribute.value))
+      .find((candidate): candidate is string => Boolean(candidate));
+    if (value) return value;
+  }
+
+  const moduleOperatingCurrent = attributes
+    .filter((attribute) => /^operating current$/i.test(attribute.name.trim()))
+    .sort(compareAttributeEvidence)
+    .map((attribute) => {
+      const matches = [...attribute.value.matchAll(/(\d+(?:[.,]\d+)?)\s*mA\b/gi)];
+      return matches.length >= 2
+        ? normalizeCurrentValue(`${matches[0][1]}...${matches[1][1]} mA`)
+        : undefined;
+    })
+    .find((candidate): candidate is string => Boolean(candidate));
+  if (moduleOperatingCurrent) return moduleOperatingCurrent;
+
+  const hasPressureSwitchOutput = attributes.some((attribute) =>
+    /^electrical output$/i.test(attribute.name.trim()) && /switching output/i.test(attribute.value)
+  );
+  if (hasPressureSwitchOutput) {
+    return attributes
+      .filter((attribute) => /^rated operational current$/i.test(attribute.name.trim()))
+      .sort(compareAttributeEvidence)
+      .map((attribute) => normalizeCurrentValue(attribute.value))
+      .find((candidate): candidate is string => Boolean(candidate));
+  }
+
+  return undefined;
 }
 
 function phoenixContactNormalizedVoltage(attributes: AttributeRecord[]): string | undefined {

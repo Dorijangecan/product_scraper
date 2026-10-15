@@ -498,6 +498,7 @@ $contentType = if ($response.Headers['Content-Type']) { [string]$response.Header
       cache?: boolean;
       cacheTtlMs?: number;
       maxAttempts?: number;
+      compressed?: boolean;
       signal?: AbortSignal;
     } = {},
     cause?: unknown
@@ -509,7 +510,7 @@ $contentType = if ($response.Headers['Content-Type']) { [string]$response.Header
       accept: "text/html,application/xhtml+xml,application/xml;q=0.9,text/plain;q=0.8,*/*;q=0.5",
       ...options.headers
     };
-    const requestHash = hash(`CURL\nGET\n${url}\n${headerFingerprint(headers)}`);
+    const requestHash = hash(`CURL\nGET\n${url}\n${headerFingerprint(headers)}\ncompressed=${options.compressed ? "1" : "0"}`);
     const cacheKey = requestHash;
     const useCache = options.cache ?? true;
     const cached = useCache ? this.db.getPageCache(cacheKey) : undefined;
@@ -548,6 +549,7 @@ $contentType = if ($response.Headers['Content-Type']) { [string]$response.Header
     // what the caller asked for. Mirror the caller's attempt budget instead of a hardcoded retry.
     const curlRetries = Math.max(0, (options.maxAttempts ?? 2) - 1);
     const args = ["-L", "--fail", "--retry", String(curlRetries), "--retry-delay", "1", "--max-time", String(timeoutSec)];
+    if (options.compressed) args.push("--compressed");
     if (process.platform === "win32") args.push("--ssl-no-revoke");
     for (const [name, value] of Object.entries(headers)) {
       if (/^user-agent$/i.test(name)) args.push("-A", value);
