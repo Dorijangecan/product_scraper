@@ -23,6 +23,16 @@ describe("splitNameValue (Phase A4)", () => {
 });
 
 describe("normalizer", () => {
+  it("uses ETA's rated-current range instead of the 2-6500 locked-rotor ceiling", () => {
+    const normalized = normalizeFields([
+      { group: "PDF Electrical Text", name: "Rated current", value: "max. 30 A", sourceType: "generated", parser: "pdf-table-extractor", matchLevel: "exact" },
+      { group: "PDF Electrical Text", name: "RATED CURRENT", value: "0.2...10 A", sourceType: "generated", parser: "pdf-table-extractor", matchLevel: "exact" },
+      { group: "PDF Electrical Text", name: "Rated current", value: "5 A at 50 °C / 5.8 A at 50 °C", sourceType: "generated", parser: "pdf-table-extractor", matchLevel: "exact" }
+    ], [], "eta");
+
+    expect(normalized.current).toBe("0.2...10 A");
+  });
+
   it("uses Turck DC rated operational draw instead of a safety-output current", () => {
     const normalized = normalizeFields([
       { group: "PDF datasheet - Electrical data", name: "DC Bemessungsbetriebsstrom", value: "≤ 135 mA", sourceType: "generated", parser: "pdf-table-extractor", matchLevel: "exact", sourceUrl: "https://hansturck.azureedge.net/edb/de_DE/EDB_3089707_ger_de.pdf" },

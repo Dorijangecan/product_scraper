@@ -519,6 +519,7 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
     (manufacturerId === "schneider" && isSchneiderTransformer(attributes)
       ? schneiderTransformerSecondaryCurrent(currentAttributes)
       : undefined) ??
+    (manufacturerId === "eta" ? etaRatedCurrent(currentAttributes) : undefined) ??
     exactSchmersalNoLoadSupplyCurrent(attributes, manufacturerId) ??
     balluffPublishedCurrentConsumption(currentAttributes, manufacturerId) ??
     eatonNacPowerSupplyCurrent(currentAttributes, manufacturerId) ??
@@ -2261,6 +2262,23 @@ function numericVoltAttributeVoltage(attributes: AttributeRecord[]): string | un
 
 function numericCurrentAttributeCurrent(attributes: AttributeRecord[]): string | undefined {
   return bestNumericElectricalAttribute(attributes, /\b(?:max\.?\s*current|rated current|current ratings?|ampere rating|amperage|amps?|amperes?)\b/i, "A");
+}
+
+/**
+ * ETA PDFs can place a locked-rotor protection ceiling beside the actual current range under a
+ * generic "Rated current" label. Prefer ETA's explicitly labelled current-rating range so an
+ * overload threshold (for example, 30 A) is not normalized as the device's rated current.
+ */
+function etaRatedCurrent(attributes: AttributeRecord[]): string | undefined {
+  const labelledRatings = attributes.filter((attribute) =>
+    /^(?:rated current|current rating|current ratings)(?:\s+per\s+channel)?$/i.test(attribute.name.trim()) &&
+    !/^\s*(?:max(?:imum)?\.?\s*)/i.test(attribute.value) &&
+    !/locked[-\s]?rotor|starting current|trip point|breaking capacity/i.test(`${attribute.name} ${attribute.value}`)
+  );
+  const explicitRanges = labelledRatings.filter((attribute) => /\d+(?:[.,]\d+)?\s*(?:\.\.|\.\.\.|–|—|to)\s*\d+(?:[.,]\d+)?\s*A\b/i.test(attribute.value));
+  const patterns = normalizerFieldLabelPatterns("current");
+  return bestNormalizedAttributeValue(explicitRanges, patterns, normalizeCurrentValue, "current") ??
+    bestNormalizedAttributeValue(labelledRatings, patterns, normalizeCurrentValue, "current");
 }
 
 /**

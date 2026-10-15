@@ -973,6 +973,15 @@ describe("device type classifier", () => {
     expect(classifyDeviceType(result).type).toBe("Overload Relay");
   });
 
+  it("uses ETA's exact solid-state remote power controller wording without broadening relay matches", () => {
+    const result = product(
+      [{ group: "General", name: "Description", value: "Solid State Remote Power Controller, double pole, DC 24 V, 3 A", sourceType: "official" }],
+      "Type E-1072-100",
+      { manufacturerId: "eta", catalogNumber: "E-1072-100" }
+    );
+    expect(classifyDeviceType(result).type).toBe("Relay");
+  });
+
   it("classifies a temperature transmitter as Temperature Sensor", () => {
     const result = product(
       [{ group: "General", name: "Product Type", value: "Temperature transmitter Pt100", sourceType: "official" }],

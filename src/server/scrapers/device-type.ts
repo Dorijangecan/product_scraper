@@ -46,7 +46,7 @@ interface DeviceTypeCandidate {
 // quality (where the text came from + which source it came from) decides confidence.
 const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
   rule("ATS Power Distribution Unit", /\b(?:automatic transfer switch|ats)\s+(?:rack\s+)?pdus?\b|\bats\s+power distribution units?\b/i, 940),
-  rule("Power Distribution Unit", /\b(?:power distribution units?|managed\s+pdus?|pdus?)\b/i, 905),
+  rule("Power Distribution Unit", /\b(?:power distribution units?|power distribution systems?|managed\s+pdus?|pdus?)\b/i, 905),
   rule("Capacitor Bank", /\b(?:capacitor bank|switched capacitor bank)\b/i, 900),
   rule("Potentiometer", /\bpotentiometers?\b/i, 880),
   rule("Key-operated Actuator", /\bkey[-\s]?operated actuator\b/i, 880),
@@ -61,7 +61,7 @@ const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
   rule("Programmable Logic Controller", /\b(?:TM221[A-Z0-9]+|Modicon\s+M221\s+(?:logic\s+)?controller)\b/i, 1180),
   rule("Communication Gateway", /\b(?:ethernet(?:\s+tcp\/ip)?|tcp\/ip)\s+(?:network|communication)\s+module\b/i, 950),
   rule("Communication Interface", /\b(?:Dupline[-\s]?Modbus|Modbus)\s+interfaces?\b|\binterfaces?\s+for\s+(?:Modbus|Dupline)\b/i, 970),
-  rule("Communication Gateway", /\b(?:communication gateway|fieldbus gateway|fieldbus coupler|bus coupler|protocol converter|protocol gateway|serial gateway|modbus gateway|profibus gateway|profinet gateway|ethernet gateway|hart multiplexer|rs[-\s]?232(?:\s+(?:to|converter|interface|module))?|rs[-\s]?485(?:\s+(?:to|converter|interface|module))?|rs[-\s]?422|serial[-\s]?to[-\s]?ethernet|communication module|communication interface|industrial gateway|iiot gateway|edge gateway)\b/i, 905),
+  rule("Communication Gateway", /\b(?:communication gateway|fieldbus gateway|fieldbus coupler|bus coupler|bus controller|protocol converter|protocol gateway|serial gateway|modbus gateway|profibus gateway|profinet gateway|ethernet gateway|hart multiplexer|rs[-\s]?232(?:\s+(?:to|converter|interface|module))?|rs[-\s]?485(?:\s+(?:to|converter|interface|module))?|rs[-\s]?422|serial[-\s]?to[-\s]?ethernet|communication module|communication interface|industrial gateway|iiot gateway|edge gateway)\b/i, 905),
   rule("Residual Current Analyzer", /\b(?:residual current analy[sz](?:er|ers|is)|analy[sz]is system\s+DRCA(?:[-\s]?1)?|DRCA[-\s]?1[-\s]?Set)\b/i, 980),
   rule("Residual Current Monitoring Relay", /\b(?:modular residual current devices?\s+DRP|MRCDs?\b|residual current control relays?)\b/i, 980),
   // ABB calls panel power meters "network analyzers"; treat that explicit instrument class as a
@@ -142,12 +142,16 @@ const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
   rule("Safety Controller", /\b(?:safety controller cpu|modular safety controller|programmable safety controller|safe controller cpu|safety controller)\b/i, 1020),
   rule("Safety Relay", /\b(?:safety relay|safety controller|safety module|emergency stop relay|e[-\s]?stop relay)\b/i, 1000),
   rule("Undervoltage Measuring Relay", /\bundervoltage measuring relays?\b/i, 1120),
-  rule("Overload Relay", /\boverload relays?\b/i, 801),
+  rule("Overload Relay", /\b(?:overload relays?|motor protection relays?)\b/i, 850),
   rule("Protective Relay", /\b(?:protective relay|overcurrent protective relay|ground overcurrent relay)\b/i, 802),
   // "schütz"/"schuetz" (contactor) must NOT match plain "schutz" (= protection, as in Schutzart) —
   // require the umlaut (ü) or its ue transliteration.
   rule("Contactor", /\b(?:contactor|contactor relay|kontaktor|sch(?:ü|ue)tz|contattore|contacteur|contact kit|contact tip kit|main contact kit|replacement contacts?)\b/i, 800),
-  rule("Relay", /\b(?:interface relay|coupling relay|plug-?in relay|timer relay|time relays?|monitoring relay|relais|relej|\brelay\b)\b/i, 790),
+  // E-T-A names E-1072-100 as a solid-state remote power controller. Keep this exact phrase
+  // strong enough to map that device to Relay, without raising the generic "relay" rule above
+  // safety, overload, or protective relay classifications.
+  rule("Relay", /\bsolid[-\s]?state remote power controllers?\b/i, 1010),
+  rule("Relay", /\b(?:interface relay|coupling relay|plug-?in relay|timer relay|time relays?|monitoring relay|relais|relej|relay)\b/i, 790),
   // Rockwell's SMC-3 is labeled a smart motor controller on the PDP, but its exact source
   // identifies it as a soft starter; do not let the generic word "motor" win classification.
   rule("Soft Starter", /\bSMC[-\s]?3\b[\s\S]{0,100}\bsmart motor controller\b|\bsoft[-\s]?starter\b/i, 965),
@@ -156,6 +160,7 @@ const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
   rule("Motor Starter", /\b(?:hybrid motor starter|electronic motor starter|motor starter|starter combination|reversing starter|direct[-\s]?on[-\s]?line starter|\bdol starter\b)\b/i, 1005),
   rule("Fuse Switch Disconnector", /\bfuse[-\s]?switch[-\s]?disconnector\b/i, 980),
   rule("Disconnect Switch", /\b(?:switch[-\s]?disconnector|disconnect(?:ing|or)?\s+switch|isolator switch|safety switch|rotary disconnect|main switch|load break switch|last[-\s]?trennschalter|trennschalter|sectionneur|sezionatore)\b/i, 770),
+  rule("Power Entry Module", /\bpower entry modules?\b/i, 935),
   // Eaton and other switch vendors sell the flexible shaft/handle operator separately from the
   // electrical switch body. Classify the mechanical operator as an accessory before the broad
   // "switch" term can make it look like a current-rated switch.
