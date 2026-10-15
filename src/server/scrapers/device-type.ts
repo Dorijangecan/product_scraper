@@ -68,7 +68,7 @@ const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
   // internal power supply; classify the instrument by its primary function.
   rule("Power Meter", /\b(?:SENTRON\s+7KM\s+(?:measuring\s+device|meter)|energy\s+counters?|energy[-\s]?measuring\s+devices?|power[-\s]?measuring\s+devices?)\b/i, 965),
   rule("Power Meter", /\b(?:power\s+(?:xpert\s+)?meter|energy\s+meter|multifunction\s+meter|multi[-\s]?function\s+meter|network\s+analy[sz]ers?)\b/i, 940),
-  rule("I/O Module", /\b(?:i\/o|io|input\/output)\s+(?:module|expansion|system|block|card|interface)|(?:analog|digital)\s+(?:input|output)s?\s+(?:module|card|expansion)|remote\s+i\/o|io-link\s+(?:master|hub|module)\b/i, 1120),
+  rule("I/O Module", /\b(?:i\/o|io|input\/output)\s+(?:module|expansion|system|block|card|interface)|(?:analog|digital)\s+(?:input|output)s?\s+(?:module|card|expansion|board)|(?:input|digital input)\s+boards?|\b(?:\d+[-\s]?way\s+)?(?:binary|digital)\s+input\b|remote\s+i\/o|io-link\s+(?:master|hub|module)\b/i, 1120),
   rule("Signal Conditioner", /\b(?:input\s+)?signal\s+conditioners?|isolating\s+amplifiers?\b/i, 1140),
   rule("HMI", /\b(?:hmi|human[\s-]?machine[\s-]?interface|operator panel|web panel|touch panel|touchscreen panel|display terminal|graphic terminal)\b/i, 890),
   rule("Motion Controller", /\b(?:motion controller|motion control(?:ler)? module|motion module|integrated motion module|analog servo module|servo module|\d+\s*[- ]?axis servo|axis servo,\s*analog|servo,\s*analog\/enc|cnc controller|servo controller)\b/i, 930),
@@ -143,7 +143,7 @@ const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
   rule("Line Reactor", /\b(?:three[-\s]?phase\s+)?line reactors?\b/i, 950),
   rule("Variable Speed Drive", /\b(?:variable speed drive|variable frequency drive|\bvfd\b|frequency (?:converter|inverter)|\bvsd\b|servo drive|ac drive|motor drive|inverter drive)\b|(?:\u53d8\u9891\u5668|\u53d8\u9891\u9a71\u52a8|\u9891\u7387\u8f6c\u6362\u5668)/i, 780),
   rule("Motor Starter", /\b(?:hybrid motor starter|electronic motor starter|motor starter|starter combination|reversing starter|direct[-\s]?on[-\s]?line starter|\bdol starter\b)\b/i, 1005),
-  rule("Fuse Switch Disconnector", /\bfuse\s+switch\s+disconnector\b|\bfuse[-\s]?switch\s+disconnector\b/i, 980),
+  rule("Fuse Switch Disconnector", /\bfuse[-\s]?switch[-\s]?disconnector\b/i, 980),
   rule("Disconnect Switch", /\b(?:switch[-\s]?disconnector|disconnect(?:ing|or)?\s+switch|isolator switch|safety switch|rotary disconnect|main switch|load break switch|last[-\s]?trennschalter|trennschalter|sectionneur|sezionatore)\b/i, 770),
   // Eaton and other switch vendors sell the flexible shaft/handle operator separately from the
   // electrical switch body. Classify the mechanical operator as an accessory before the broad

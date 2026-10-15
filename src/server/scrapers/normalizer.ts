@@ -597,12 +597,17 @@ function doepkeExactAttributes(attributes: AttributeRecord[], name: RegExp): Att
   const exactProductPath = new RegExp("source/prodext\\.php\\?ARTNR=" + catalogNumber + "(?:&|$)", "i");
   const exactDatasheetPath = new RegExp("doepke_" + catalogNumber + "_dbl_[a-z]{2}\\.pdf", "i");
   return attributes
-    .filter((attribute) => name.test(attribute.name.trim()) && (exactProductPath.test(attribute.sourceUrl ?? "") || exactDatasheetPath.test(attribute.sourceUrl ?? "")))
+    .filter((attribute) => name.test(attribute.name.trim()) && (
+      exactProductPath.test(attribute.sourceUrl ?? "") ||
+      exactDatasheetPath.test(attribute.sourceUrl ?? "") ||
+      (attribute.parser === "doepke-exact-pdf" && attribute.matchLevel === "exact")
+    ))
     .sort(compareAttributeEvidence);
 }
 
 function doepkeTypeCode(attributes: AttributeRecord[]): string {
-  return attributes.find((attribute) => /^type code$/i.test(attribute.name.trim()) && /source\/prodext\.php/i.test(attribute.sourceUrl ?? ""))?.value ?? "";
+  return attributes.find((attribute) => /^type code$/i.test(attribute.name.trim()) && /source\/prodext\.php/i.test(attribute.sourceUrl ?? ""))?.value ??
+    attributes.find((attribute) => /^product designation$/i.test(attribute.name.trim()) && /source\/prodext\.php/i.test(attribute.sourceUrl ?? ""))?.value ?? "";
 }
 
 function doepkeUnitRatings(value: string | undefined, unit: "V" | "A", suffix: string): string | undefined {
@@ -620,6 +625,8 @@ function doepkeUnitRatings(value: string | undefined, unit: "V" | "A", suffix: s
  * ratings, and retain AC/DC or multiple output-voltage context in the normalized value.
  */
 function doepkeOperatingVoltage(attributes: AttributeRecord[]): string | undefined {
+  const verifiedVoltage = doepkeExactAttribute(attributes, /^device supply voltage$/i)?.value;
+  if (verifiedVoltage) return verifiedVoltage;
   const typeCode = doepkeTypeCode(attributes);
   const operatingRows = doepkeExactAttributes(attributes, /^operating voltage$/i);
   const ratedVoltageRows = doepkeExactAttributes(attributes, /^rated voltage$/i);
@@ -667,6 +674,8 @@ function doepkeTransformerSecondaryCurrent(attributes: AttributeRecord[]): strin
  * secondary output rating, paired with its 8/12 V outputs rather than 230 V mains input.
  */
 function doepkeCurrent(attributes: AttributeRecord[], fallback: string | undefined): string | undefined {
+  const verifiedCurrent = doepkeExactAttribute(attributes, /^device supply current$/i)?.value;
+  if (verifiedCurrent) return verifiedCurrent;
   const typeCode = doepkeTypeCode(attributes);
   if (/^RUR\s*3$/i.test(typeCode)) return undefined;
   if (/^DFA\s*2\s*[-–]?\s*1$/i.test(typeCode)) {

@@ -1,0 +1,63 @@
+[
+  {
+    "manufacturerId": "doepke",
+    "catalogNumber": "09915804",
+    "caseType": "electrical",
+    "expectedDeviceType": "Residual Current Device",
+    "riskTags": ["cold", "rcbo", "type-a", "b-trip-curve", "16-a", "30-ma", "symbolic-image"],
+    "expectedOfficialUrlPatterns": ["doepke\\.de/en/products/.*/09915804", "doepke\\.de/source/prodext\\.php\\?ARTNR=09915804"],
+    "requiredDocuments": ["datasheet"],
+    "expectedNormalizedFields": ["voltage", "current"],
+    "expectedNormalizedPatterns": {"voltage": "230 V AC", "current": "16 A"},
+    "expectedAttributePatterns": ["09915804", "RCBO 1 B16/0,03/1-A", "Number of poles.*1", "Residual current type.*A", "Rated current.*16 A", "Rated residual current.*0[.,]03 A", "Tripping characteristic.*B", "Rated voltage.*230 V", "Rated short-circuit current.*10 kA"]
+  },
+  {
+    "manufacturerId": "doepke",
+    "catalogNumber": "09980087",
+    "caseType": "electrical",
+    "expectedDeviceType": "Fuse Switch Disconnector",
+    "riskTags": ["cold", "fuse-switch-disconnector", "tytan-ii", "three-pole", "63-a", "400-v-ac", "50-ka"],
+    "expectedOfficialUrlPatterns": ["doepke\\.de/source/prodext\\.php\\?ARTNR=09980087"],
+    "requiredDocuments": ["datasheet", "image"],
+    "expectedNormalizedFields": ["voltage", "current"],
+    "expectedNormalizedPatterns": {"voltage": "400 V AC", "current": "63 A"},
+    "expectedAttributePatterns": ["09980087", "Tytan II D0-63-3/S", "Number of poles.*3", "Rated voltage.*400 V", "Rated current.*63 A", "Rated short-circuit current.*50 kA", "Rated insulation voltage.*800 V", "Rated impulse withstand voltage.*6 kV"]
+  },
+  {
+    "manufacturerId": "doepke",
+    "catalogNumber": "09500210",
+    "caseType": "electrical",
+    "expectedDeviceType": "Relay",
+    "riskTags": ["cold", "impulse-relay", "sir-16-m", "monostable", "24-v-dc-control", "16-a-contact", "ip40"],
+    "expectedOfficialUrlPatterns": ["doepke\\.de/source/prodext\\.php\\?ARTNR=09500210"],
+    "requiredDocuments": ["datasheet", "image"],
+    "expectedNormalizedFields": ["voltage", "current", "dimensions", "protection"],
+    "expectedNormalizedPatterns": {"voltage": "24 V DC", "current": "4 mA", "dimensions": "85.*18.*65 mm", "protection": "IP40"},
+    "expectedAttributePatterns": ["09500210", "SIR 16 M", "monostable", "24 V DC", "16 A", "switching capacity.*4000 VA", "Ambient temperature.*-10.*45 °C", "Protection class.*IP40"]
+  },
+  {
+    "manufacturerId": "doepke",
+    "catalogNumber": "09501139",
+    "caseType": "electrical",
+    "expectedDeviceType": "I/O Module",
+    "riskTags": ["cold", "digital-input-module", "dnp-8e", "eight-inputs", "24-v-dc", "n-p-n-inputs"],
+    "expectedOfficialUrlPatterns": ["doepke\\.de/source/prodext\\.php\\?ARTNR=09501139"],
+    "requiredDocuments": ["manual", "image"],
+    "expectedNormalizedFields": ["voltage", "current", "dimensions"],
+    "expectedNormalizedPatterns": {"voltage": "24 V DC", "current": "20 mA", "dimensions": "73.*59 mm"},
+    "expectedAttributePatterns": ["09501139", "DNP 8E", "Input channels.*8.*semiconductor inputs", "Rated operating voltage.*24 V DC", "Device supply current.*20 mA", "Input contact supply voltage.*8.0 VDC", "Maximum input contact load.*17 mA", "Input signal capacity.*eight switch signals", "Board dimensions.*73 x 59"]
+  },
+  {
+    "manufacturerId": "doepke",
+    "catalogNumber": "09501134",
+    "caseType": "electrical",
+    "expectedDeviceType": "Sensor",
+    "riskTags": ["cold", "motion-detector", "dbm-1", "passive-infrared", "dupline-bus-powered", "90-degree", "10-m-range", "ip40"],
+    "expectedOfficialUrlPatterns": ["doepke\\.de/source/prodext\\.php\\?ARTNR=09501134"],
+    "requiredDocuments": ["datasheet", "image"],
+    "expectedNormalizedFields": ["current", "dimensions", "protection", "operatingTemperatureMin", "operatingTemperatureMax"],
+    "expectedBlankNormalizedFields": ["voltage"],
+    "expectedNormalizedPatterns": {"current": "2[.,]6 mA", "dimensions": "55.*104.*57 mm", "protection": "IP40", "operatingTemperatureMin": "-10", "operatingTemperatureMax": "50"},
+    "expectedAttributePatterns": ["09501134", "DBM 1", "passive infrared", "Motion detection range.*10 m", "Motion detection angle.*90", "Motion detection zones.*24", "Motion detection areas.*3", "Device supply current.*2.6 mA", "Operating voltage source.*bus signal"]
+  }
+]

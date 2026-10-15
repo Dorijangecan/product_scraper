@@ -91,7 +91,7 @@ describe("Doepke scraper helpers", () => {
 
   it("resolves the product image to an absolute URL", () => {
     const $ = cheerio.load(DOEPKE_PRODEXT_FIXTURE);
-    const image = doepkeProductImage($, "https://www.doepke.de/source/prodext.php?ARTNR=09144919&lang=en");
+    const image = doepkeProductImage($, "https://www.doepke.de/source/prodext.php?ARTNR=09144919&lang=en", "09144919");
     expect(image?.url).toBe("https://www.doepke.de/produktbilder/600px_png/doepke_09144919_600px_ml.png");
     expect(image?.type).toBe("image");
   });

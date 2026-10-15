@@ -1115,7 +1115,7 @@ function attachBuiltInScrapeRecipes() {
       "catalog number|type code|article",
       "rated current|rated voltage|residual current|number of poles|width|height|depth|weight"
     ],
-    requiredDocuments: ["datasheet"],
+    requiredDocuments: ["datasheet|3931177\\.pdf"],
     minAttributes: 4,
     minDocuments: 1,
     dynamicFramework: [],

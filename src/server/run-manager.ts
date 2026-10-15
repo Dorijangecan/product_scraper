@@ -1393,7 +1393,10 @@ export class RunManager {
   ): Promise<ProductResult> {
     const documents: DocumentRecord[] = [];
     const maxDownloads = profile === "full" ? 200 : 8;
-    const rankedDocuments = coalesceImageDocuments(result.documents).sort((left, right) => documentDownloadRank(left) - documentDownloadRank(right));
+    const downloadableDocuments = result.manufacturerId === "doepke"
+      ? result.documents.filter((document) => !/doepke_5900102_dup_pl_web_en\.pdf|dupline planning aid/i.test(`${document.url} ${document.label ?? ""}`))
+      : result.documents;
+    const rankedDocuments = coalesceImageDocuments(downloadableDocuments).sort((left, right) => documentDownloadRank(left) - documentDownloadRank(right));
     let downloadCount = 0;
     let imageIndex = 0;
     let nonImageDownloadCount = 0;

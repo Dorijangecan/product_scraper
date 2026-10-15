@@ -100,6 +100,13 @@ export function requiredElectricalFields(result: ProductResult, context: Electri
   const text = productRequirementText(result);
   const ratingText = productRatingEvidenceText(result);
   if (!text) return [];
+  // Dupline bus-powered devices such as the Doepke DBM 1 draw their operating energy from the
+  // signal bus. Their exact datasheet names the bus as the voltage source but publishes no
+  // standalone nominal voltage, so keep voltage blank and require only a published bus current.
+  const doepkeBusPowered = result.manufacturerId === "doepke" && result.attributes.some((attribute) =>
+    /^operating voltage(?: source)?$/i.test(attribute.name.trim()) && /\bbus signal\b/i.test(attribute.value)
+  );
+  if (doepkeBusPowered) return result.normalized.current ? ["current"] : [];
   // Rittal CMC III reed-contact access sensors connect to the CMC controller over RJ12;
   // the exact PDP identifies the design and measuring principle but publishes no supply rating.
   // Do not require standalone voltage/current fields for this passive sensor subtype.
