@@ -869,6 +869,30 @@ function resolvePdtColumnCell(
   ctx: ResolveContext,
   facts: PdtFactIndex
 ): PdtResolvedCell | undefined {
+  const isDoepkeRur3 = ctx.result?.manufacturerId === "doepke" && ctx.result.attributes.some((attribute) =>
+    /^type code$/i.test(attribute.name.trim()) &&
+    /^RUR\s*3$/i.test(attribute.value.trim()) &&
+    /source\/prodext\.php/i.test(attribute.sourceUrl ?? "")
+  );
+  if (isDoepkeRur3) {
+    const keys = propertyKeysForColumn(column);
+    if (keys.includes("AAB815") || keys.includes("AAF728")) {
+      const operatingVoltage = bestFact(facts, "ratedVoltage");
+      const values = [...(operatingVoltage?.value ?? "").matchAll(/(-?\d+(?:[.,]\d+)?)\s*V\b/gi)]
+        .map((match) => Number(match[1].replace(",", ".")))
+        .filter(Number.isFinite);
+      if (!operatingVoltage || !values.length) return undefined;
+      return {
+        value: String(keys.includes("AAB815") ? Math.max(...values) : Math.min(...values)),
+        provenance: provenanceFromFact(operatingVoltage)
+      };
+    }
+  }
+  if (isDoepkeRur3 && /\b(?:rated|operating|output|nominal)\s+(?:supply\s+)?current\b|\bcurrent\s+(?:rating|consumption|draw)\b/i.test(column.description)) {
+    // RUR 3's 5 A datasheet rows describe relay contacts. They are not a
+    // product-level supply/output current and must not populate any PDT column.
+    return undefined;
+  }
   if (ctx.result?.manufacturerId === "eaton") {
     const keys = propertyKeysForColumn(column);
     const attributes = ctx.result.attributes;

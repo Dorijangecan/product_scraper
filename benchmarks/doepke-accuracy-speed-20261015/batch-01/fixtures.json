@@ -1,0 +1,64 @@
+[
+  {
+    "manufacturerId": "doepke",
+    "catalogNumber": "09500044",
+    "caseType": "electrical",
+    "expectedDeviceType": "Twilight Switch",
+    "riskTags": ["cold", "twilight-switch", "lighting-control", "integrated-time-switch", "115-230-vac", "ip54"],
+    "expectedOfficialUrlPatterns": ["doepke\\.de/source/prodext\\.php\\?ARTNR=09500044"],
+    "requiredDocuments": ["datasheet", "image"],
+    "expectedNormalizedFields": ["voltage", "current", "dimensions", "protection", "weight", "operatingTemperatureMin", "operatingTemperatureMax"],
+    "expectedNormalizedPatterns": {"voltage": "115 V AC / 230 V AC", "current": "16 A", "dimensions": "90.*70.*53 mm", "protection": "IP54", "weight": "0[.,]168 kg", "operatingTemperatureMin": "-40", "operatingTemperatureMax": "45"},
+    "expectedAttributePatterns": ["09500044", "Dasy 016-230 V TC", "Operating voltage.*\\(AC\\) 115 V, 230 V.*207 V.*253 V", "Rated current.*16 A"]
+  },
+  {
+    "manufacturerId": "doepke",
+    "catalogNumber": "09921006",
+    "caseType": "electrical",
+    "expectedDeviceType": "Float Switch",
+    "riskTags": ["cold", "float-level-switch", "fill-empty", "five-metre-rubber-cable", "liquid-level-control"],
+    "expectedOfficialUrlPatterns": ["doepke\\.de/source/prodext\\.php\\?ARTNR=09921006"],
+    "requiredDocuments": ["datasheet", "image"],
+    "expectedNormalizedFields": ["dimensions", "protection", "weight", "operatingTemperatureMin", "operatingTemperatureMax"],
+    "expectedBlankNormalizedFields": ["voltage", "current"],
+    "expectedNormalizedPatterns": {"dimensions": "81.*105.*42 mm", "protection": "IP68", "weight": "0[.,]682 kg", "operatingTemperatureMin": "0", "operatingTemperatureMax": "50"},
+    "expectedAttributePatterns": ["09921006", "Champ 2 G-L/F 05 m", "Float switch function.*fill/empty", "cable length.*5 m", "not suitable for DC and low voltage"]
+  },
+  {
+    "manufacturerId": "doepke",
+    "catalogNumber": "09980718",
+    "caseType": "electrical",
+    "expectedDeviceType": "Undervoltage Measuring Relay",
+    "riskTags": ["cold", "undervoltage-measuring-relay", "three-phase-monitoring", "adjustable-threshold", "160-240-vac"],
+    "expectedOfficialUrlPatterns": ["doepke\\.de/source/prodext\\.php\\?ARTNR=09980718"],
+    "requiredDocuments": ["datasheet", "image"],
+    "expectedNormalizedFields": ["voltage", "dimensions", "protection", "weight", "operatingTemperatureMin", "operatingTemperatureMax"],
+    "expectedNormalizedPatterns": {"voltage": "230 V AC / 400 V AC", "dimensions": "87.*17[.,]5.*65 mm", "protection": "IP\\s?20", "weight": "0[.,]074 kg", "operatingTemperatureMin": "-25", "operatingTemperatureMax": "55"},
+    "expectedBlankNormalizedFields": ["current"],
+    "expectedAttributePatterns": ["09980718", "RUR 3", "Operating voltage.*230 V.*400 V.*161 V.*440 V", "Switching threshold.*160 V.*240 V", "Internal consumption.*8 W", "no external supply voltage necessary"]
+  },
+  {
+    "manufacturerId": "doepke",
+    "catalogNumber": "09980085",
+    "caseType": "electrical",
+    "expectedDeviceType": "Transformer",
+    "riskTags": ["cold", "doorbell-transformer", "rk-3-u", "8-and-12-vac-secondary", "2-a-output"],
+    "expectedOfficialUrlPatterns": ["doepke\\.de/source/prodext\\.php\\?ARTNR=09980085"],
+    "requiredDocuments": ["datasheet", "image"],
+    "expectedNormalizedFields": ["voltage", "current", "dimensions", "protection", "weight"],
+    "expectedNormalizedPatterns": {"voltage": "8 V AC / 12 V AC", "current": "2 A", "dimensions": "90.*53.*65 mm", "protection": "IP\\s?20", "weight": "0[.,]672 kg"},
+    "expectedAttributePatterns": ["09980085", "RK 3 U", "Rated voltage.*8 V.*12 V", "Rated current.*2 A", "Operating voltage.*230 V", "PTC"]
+  },
+  {
+    "manufacturerId": "doepke",
+    "catalogNumber": "09100112",
+    "caseType": "accessory",
+    "expectedDeviceType": "Automatic Reclosing Device",
+    "riskTags": ["cold", "automatic-reclosing-device", "remote-actuator", "24-vac-dc", "single-restart-attempt", "rccb-accessory"],
+    "expectedOfficialUrlPatterns": ["doepke\\.de/source/prodext\\.php\\?ARTNR=09100112"],
+    "requiredDocuments": ["datasheet", "image"],
+    "expectedNormalizedFields": ["voltage", "current", "dimensions", "protection", "weight", "operatingTemperatureMin", "operatingTemperatureMax"],
+    "expectedNormalizedPatterns": {"voltage": "24 V AC / 24 V DC", "current": "0[.,]07–0[.,]64 A AC / 0[.,]035–0[.,]5 A DC", "dimensions": "85.*72.*76 mm", "protection": "IP\\s?20", "weight": "0[.,]4 kg", "operatingTemperatureMin": "-25", "operatingTemperatureMax": "60"},
+    "expectedAttributePatterns": ["09100112", "DFA 2 - 1", "Remote actuator", "Operating voltage.*\\(AC\\).*24 V.*21[.,]6 V.*30 V", "Current consumption.*\\(AC\\).*0[.,]07 A.*0[.,]64 A", "Current consumption.*\\(DC\\).*0[.,]035 A.*0[.,]5 A", "Module widths.*4", "Number of automatic switch-on attempts.*1", "max\\. Rated current main contact unit.*63 A"]
+  }
+]

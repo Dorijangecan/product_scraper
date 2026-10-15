@@ -132,6 +132,11 @@ export function buildPdtFactIndex(input: PdtFactInput): PdtFactIndex {
     : scrapedResult;
   const manufacturer = result?.manufacturerId ? getManufacturerConfig(result.manufacturerId) ?? input.manufacturer : input.manufacturer;
   const facts: PdtFact[] = [];
+  const doepkeRur3 = result?.manufacturerId === "doepke" && result.attributes.some((attribute) =>
+    /^type code$/i.test(attribute.name.trim()) &&
+    /^RUR\s*3$/i.test(attribute.value.trim()) &&
+    /source\/prodext\.php/i.test(attribute.sourceUrl ?? "")
+  );
 
   addGenerated(facts, "articleNumber", input.item.catalogNumber, "catalog-number", "Catalog number from the uploaded input row.");
   addGenerated(facts, "typeCode", input.item.catalogNumber, "catalog-number", "Manufacturer type code fallback from the uploaded catalog number.");
@@ -286,7 +291,9 @@ export function buildPdtFactIndex(input: PdtFactInput): PdtFactIndex {
   addRepair(facts, "eclassCode", input.repair?.eclassCode, "pdt-repair", "Deterministic PDT cleanup produced an ECLASS code from scraped evidence.");
   addRepair(facts, "eclassSystemVersion", input.repair?.eclassSystemVersion, "pdt-repair", "Deterministic PDT cleanup produced an ECLASS system version.");
   addRepair(facts, "ratedVoltage", input.repair?.controlVoltage ?? input.repair?.voltageMax, "pdt-repair", "Deterministic PDT cleanup produced a voltage value.");
-  addRepair(facts, "ratedCurrent", input.repair?.ratedCurrent ?? input.repair?.currentMax, "pdt-repair", "Deterministic PDT cleanup produced a current value.");
+  if (!doepkeRur3) {
+    addRepair(facts, "ratedCurrent", input.repair?.ratedCurrent ?? input.repair?.currentMax, "pdt-repair", "Deterministic PDT cleanup produced a current value.");
+  }
   addRepair(facts, "powerLossPerPole", input.repair?.powerLossPerPole, "pdt-repair", "Deterministic PDT cleanup produced a power-loss value.");
   addRepair(facts, "voltageType", input.repair?.voltageType, "pdt-repair", "Deterministic PDT cleanup produced a voltage type.");
   addRepair(
@@ -501,12 +508,23 @@ function addCustomerDocFact(facts: PdtFact[], result: ProductResult, key: string
 }
 
 function addOntologyAttributeFacts(facts: PdtFact[], result: ProductResult): void {
+  const isDoepkeRur3 = result.manufacturerId === "doepke" && result.attributes.some((attribute) =>
+    /^type code$/i.test(attribute.name.trim()) &&
+    /^RUR\s*3$/i.test(attribute.value.trim()) &&
+    /source\/prodext\.php/i.test(attribute.sourceUrl ?? "")
+  );
   const sorted = [...result.attributes]
     .filter((attr) => clean(attr.value))
     .sort((left, right) => sourceRank(right.sourceType) - sourceRank(left.sourceType) || (right.confidence ?? 0) - (left.confidence ?? 0));
   for (const attr of sorted) {
     const label = `${attr.group ?? ""} ${attr.name ?? ""} ${attr.unit ?? ""}`;
     const ontologyKey = matchProperty(label)?.key;
+    // The RUR 3 datasheet contains contact ratings labeled "Rated current" and
+    // impulse withstand voltage. Neither is device consumption or operating
+    // voltage; its exact Doepke product page and operating-voltage row carry
+    // the product-level ratings.
+    if (isDoepkeRur3 && ontologyKey === "ratedCurrent") continue;
+    if (isDoepkeRur3 && ontologyKey === "ratedVoltage" && /impulse\s+withstand/i.test(label)) continue;
     if (
       result.manufacturerId === "eaton" &&
       ontologyKey === "ratedCurrent" &&

@@ -149,6 +149,12 @@ export function repairFinalCompletenessFromEvidence(
     ...nonEmptyNormalized(result.normalized)
   };
   if (result.manufacturerId === "rittal" && !recomputedNormalized.current) delete normalized.current;
+  // Doepke RUR 3 publishes a 5 A relay-contact rating. It is not the device's
+  // supply consumption, so don't preserve a stale generic current through a
+  // later completeness repair when Doepke-aware normalization has no current.
+  if (result.manufacturerId === "doepke" && !recomputedNormalized.current && nextAttributes.some((attribute) =>
+    /^type code$/i.test(attribute.name.trim()) && /^RUR\s*3$/i.test(attribute.value.trim()) && /source\/prodext\.php/i.test(attribute.sourceUrl ?? "")
+  )) delete normalized.current;
   const sources = dedupeSources([
     ...result.sources,
     {

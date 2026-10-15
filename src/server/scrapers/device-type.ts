@@ -99,6 +99,9 @@ const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
   rule("Ultrasonic Sensor", /\bultrasonic\s+(?:sensor|distance sensor|transducer)\b/i, 864),
   rule("Radar Sensor", /\bradar\s+(?:sensors?|distance sensors?)\b/i, 890),
   rule("Magnetic Field Sensor", /\bmagnetic\s+field\s+sensor|hall[-\s]?effect\s+sensor\b/i, 862),
+  // A float switch is a level sensor even when the vendor's short description spends more words
+  // on its long connection cable than on the switching function.
+  rule("Float Switch", /\bfloat\s+switch(?:es)?\b/i, 1190),
   rule("Vision Sensor", /\b(?:vision\s+sensor|smart\s*camera|industrial camera|machine vision)\b/i, 860),
   rule("RFID Device", /\b(?:rfid|read\/write\s+head|read[-\s]?write\s+head|(?:hf|uhf)\s+(?:reader|antenna|read\/write)|13\.56\s*mhz|rfid\s+(?:reader|antenna|transponder))\b/i, 850),
   rule("Safety Light Curtain", /\b(?:safety\s+)?light\s+curtains?\b/i, 890),
@@ -108,6 +111,7 @@ const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
   rule("Solenoid Interlock", /\b(?:solenoid interlock|electromechanical guard lock(?:ing)?|safety interlock with solenoid|electromagnetic interlock)\b/i, 950),
   rule("Safety Sensor", /\b(?:safety sensor|safety light curtain|light curtain|safety mat|safety scanner|laser scanner|safety edge|two[-\s]?hand control|safety interlock|guard locking|guard[-\s]?lock(?:ing)? switch|safety door switch|door interlock)\b/i, 838),
   rule("Limit Switch", /\b(?:mechanical\s+(?:single|multiple)\s+position\s+limit\s+switch(?:es)?|limit\s+switch(?:es)?|position\s+switch(?:es)?)\b/i, 825),
+  rule("Twilight Switch", /\btwilight\s+switch(?:es)?\b/i, 1185),
   rule("Sensor", /\b(?:sensors?|sensing|detector|measuring range|measuring principle)\b/i, 620),
 
   // --- Protection & control (specific breakers/starters first) ---
@@ -118,11 +122,15 @@ const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
   rule("Molded Case Circuit Breaker", /\b(?:molded|moulded)\s+case\s+circuit[-\s]?breakers?|\bmccbs?\b|\btmax\s+xt\b/i, 825),
   rule("Miniature Circuit Breaker", /\bminiature\s+circuit[-\s]?breakers?|\bmcbs?\b|leitungsschutzschalter|sicherungsautomat(?:en)?|\bls[-\s]?schalter\b/i, 814),
   rule("Residual Current Device", /\b(?:residual current device|residual current circuit[-\s]?breakers?|residual current operated circuit[-\s]?breakers? with integral overcurrent protection|\brcd\b|\brccb\b|\brcbo\b|fi[-/\s]*ls[-\s]?kombination|ground[-\s]?fault circuit[-\s]?interrupter|\bgfci\b|earth leakage)\b/i, 813),
+  // DFA is a remote actuator mounted beside an RCCB. References to the paired RCCB in its
+  // description must not turn the actuator itself into a residual-current protective device.
+  rule("Automatic Reclosing Device", /\b(?:automatic\s+reclosing\s+devices?|remote\s+actuators?)\b/i, 1250),
   rule("Circuit Breaker", /\b(?:air\s+circuit[-\s]?breakers?|thermal overcurrent circuit[-\s]?breakers?|overcurrent circuit[-\s]?breakers?|circuit[-\s]?breakers?|(?:smart\s+)?breaker\s+chargers?|\bacbs?\b|leistungsschalter|disjoncteur|interruttore automatico)\b/i, 805),
   // The word "control relay" can arrive as a broad taxonomy category for a specific safety
   // relay. Let the exact product wording outrank that generic classification.
   rule("Safety Controller", /\b(?:safety controller cpu|modular safety controller|programmable safety controller|safe controller cpu|safety controller)\b/i, 1020),
   rule("Safety Relay", /\b(?:safety relay|safety controller|safety module|emergency stop relay|e[-\s]?stop relay)\b/i, 1000),
+  rule("Undervoltage Measuring Relay", /\bundervoltage measuring relays?\b/i, 1120),
   rule("Overload Relay", /\boverload relays?\b/i, 801),
   rule("Protective Relay", /\b(?:protective relay|overcurrent protective relay|ground overcurrent relay)\b/i, 802),
   // "schütz"/"schuetz" (contactor) must NOT match plain "schutz" (= protection, as in Schutzart) —

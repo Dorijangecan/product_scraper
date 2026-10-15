@@ -387,7 +387,10 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
         attribute.matchLevel === "exact" && /\b(?:ip\b|nema|protection|environmental rating)\b/i.test(`${attribute.group ?? ""} ${attribute.name}`)
       )
     : [];
-  const protectionFromAttr = manufacturerId === "rittal"
+  const doepkeProtection = manufacturerId === "doepke" ? doepkeExactProtection(attributes) : undefined;
+  const protectionFromAttr = manufacturerId === "doepke"
+    ? doepkeProtection ?? collectProtectionValues(attributes.filter((attribute) => attribute.group !== "PDF datasheet - Dimensions"))
+    : manufacturerId === "rittal"
     ? collectProtectionValues(protectionAttributes)
     : hasConflictingExactEatonPdpProtection(protectionAttributes, manufacturerId)
       ? undefined
@@ -472,6 +475,8 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
    ));
   const voltage = manufacturerId === "turck"
     ? turckOperatingVoltage(attributes) ?? fallbackVoltage
+    : manufacturerId === "doepke"
+    ? doepkeOperatingVoltage(attributes) ?? fallbackVoltage
     : fallbackVoltage;
   const genericCurrent = manufacturerId === "phoenix" && isPhoenixSignalConditioner(attributes)
     ? undefined
@@ -520,7 +525,11 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
       ontologyFieldValue(currentAttributes, "ratedCurrent", normalizeCurrentValue) ??
       inferredOntologyFieldValue(currentAttributes, "ratedCurrent", normalizeCurrentValue)
     );
-  const current = manufacturerId === "turck" ? turckCurrent(attributes) : genericCurrent;
+  const current = manufacturerId === "turck"
+    ? turckCurrent(attributes)
+    : manufacturerId === "doepke"
+    ? doepkeCurrent(attributes, genericCurrent)
+    : genericCurrent;
 
   const exactEatonPdpTemperature = manufacturerId === "eaton"
     ? temperatureFromSeparateMinMaxRows(
@@ -574,6 +583,114 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
     operatingTemperatureMin: operatingTemperature.min,
     operatingTemperatureMax: operatingTemperature.max
   };
+}
+
+function doepkeExactAttribute(attributes: AttributeRecord[], name: RegExp): AttributeRecord | undefined {
+  return doepkeExactAttributes(attributes, name)[0];
+}
+
+function doepkeExactAttributes(attributes: AttributeRecord[], name: RegExp): AttributeRecord[] {
+  const catalogNumber = attributes.find((attribute) =>
+    /^catalog number$/i.test(attribute.name.trim()) && /source\/prodext\.php/i.test(attribute.sourceUrl ?? "")
+  )?.value;
+  if (!catalogNumber) return [];
+  const exactProductPath = new RegExp("source/prodext\\.php\\?ARTNR=" + catalogNumber + "(?:&|$)", "i");
+  const exactDatasheetPath = new RegExp("doepke_" + catalogNumber + "_dbl_[a-z]{2}\\.pdf", "i");
+  return attributes
+    .filter((attribute) => name.test(attribute.name.trim()) && (exactProductPath.test(attribute.sourceUrl ?? "") || exactDatasheetPath.test(attribute.sourceUrl ?? "")))
+    .sort(compareAttributeEvidence);
+}
+
+function doepkeTypeCode(attributes: AttributeRecord[]): string {
+  return attributes.find((attribute) => /^type code$/i.test(attribute.name.trim()) && /source\/prodext\.php/i.test(attribute.sourceUrl ?? ""))?.value ?? "";
+}
+
+function doepkeUnitRatings(value: string | undefined, unit: "V" | "A", suffix: string): string | undefined {
+  if (!value) return undefined;
+  const contextualValue = value.replace(/^\s*\((?:AC|DC)\)\s*/i, "").split("(")[0];
+  const ratings = [...contextualValue.matchAll(new RegExp("(\\d+(?:[.,]\\d+)?)\\s*" + unit + "\\b", "gi"))]
+    .map((match) => match[1].replace(",", ".") + " " + unit + (suffix ? " " + suffix : ""));
+  const unique = [...new Set(ratings)];
+  return unique.length ? unique.join(" / ") : undefined;
+}
+
+/**
+ * Doepke's product information PDFs expose several differently scoped voltage rows. Keep the
+ * operating/supply voltage distinct from relay-contact ratings, switching thresholds and RCCB
+ * ratings, and retain AC/DC or multiple output-voltage context in the normalized value.
+ */
+function doepkeOperatingVoltage(attributes: AttributeRecord[]): string | undefined {
+  const typeCode = doepkeTypeCode(attributes);
+  const operatingRows = doepkeExactAttributes(attributes, /^operating voltage$/i);
+  const ratedVoltageRows = doepkeExactAttributes(attributes, /^rated voltage$/i);
+  const rowForContext = (rows: AttributeRecord[], context: "AC" | "DC") =>
+    rows.find((attribute) => new RegExp("^\\s*\\(" + context + "\\)", "i").test(attribute.value))?.value;
+  if (/^Dasy\s+016-230\s+V\s+TC/i.test(typeCode)) {
+    return doepkeUnitRatings(rowForContext(operatingRows, "AC"), "V", "AC");
+  }
+  if (/^RUR\s*3$/i.test(typeCode)) {
+    return doepkeUnitRatings(rowForContext(operatingRows, "AC"), "V", "AC");
+  }
+  if (/^RK\s*3\s*U$/i.test(typeCode)) {
+    return doepkeUnitRatings(rowForContext(ratedVoltageRows, "AC"), "V", "AC");
+  }
+  if (/^DFA\s*2\s*[-–]?\s*1$/i.test(typeCode)) {
+    const ac = doepkeUnitRatings(rowForContext(operatingRows, "AC"), "V", "AC");
+    const dc = doepkeUnitRatings(rowForContext(operatingRows, "DC"), "V", "DC");
+    return [ac, dc].filter(Boolean).join(" / ") || undefined;
+  }
+  return undefined;
+}
+
+function doepkeCurrentConsumption(attributes: AttributeRecord[], kind: "AC" | "DC"): string | undefined {
+  const row = doepkeExactAttributes(attributes, /^current consumption$/i)
+    .find((attribute) => new RegExp("^\\s*\\(" + kind + "\\)", "i").test(attribute.value));
+  if (!row) return undefined;
+  const contextualValue = row.value.replace(/^\s*\((?:AC|DC)\)\s*/i, "");
+  const ratings = [...contextualValue.matchAll(/(\d+(?:[.,]\d+)?)\s*A\b/gi)]
+    .map((match) => match[1].replace(",", "."));
+  const unique = [...new Set(ratings)];
+  if (!unique.length) return undefined;
+  if (unique.length > 1) return unique[0] + "–" + unique[1] + " A " + kind;
+  return unique[0] + " A " + kind;
+}
+
+function doepkeTransformerSecondaryCurrent(attributes: AttributeRecord[]): string | undefined {
+  const row = doepkeExactAttributes(attributes, /^rated current$/i)
+    .find((attribute) => /^\s*\(AC\)/i.test(attribute.value));
+  return doepkeUnitRatings(row?.value, "A", "");
+}
+
+/**
+ * Doepke's DFA datasheet lists current consumption and several separate contact ratings. RUR's
+ * 5 A is its relay-contact rating, not device consumption. The RK transformer current is the
+ * secondary output rating, paired with its 8/12 V outputs rather than 230 V mains input.
+ */
+function doepkeCurrent(attributes: AttributeRecord[], fallback: string | undefined): string | undefined {
+  const typeCode = doepkeTypeCode(attributes);
+  if (/^RUR\s*3$/i.test(typeCode)) return undefined;
+  if (/^DFA\s*2\s*[-–]?\s*1$/i.test(typeCode)) {
+    const ac = doepkeCurrentConsumption(attributes, "AC");
+    const dc = doepkeCurrentConsumption(attributes, "DC");
+    return [ac, dc].filter(Boolean).join(" / ") || undefined;
+  }
+  if (/^RK\s*3\s*U$/i.test(typeCode)) {
+    return doepkeTransformerSecondaryCurrent(attributes) ?? fallback;
+  }
+  return fallback;
+}
+
+function doepkeExactProtection(attributes: AttributeRecord[]): string | undefined {
+  const directProductPage = attributes.filter((attribute) =>
+    /^protection class$/i.test(attribute.name.trim()) && /source\/prodext\.php\?ARTNR=\d+/i.test(attribute.sourceUrl ?? "")
+  );
+  const exactDocument = attributes.filter((attribute) =>
+    /^protection class$/i.test(attribute.name.trim()) &&
+    /doepke_\d+_dbl_[a-z]{2}\.pdf/i.test(attribute.sourceUrl ?? "")
+  );
+  if (directProductPage.length) return collectProtectionValues(directProductPage);
+  const outsideDimensions = exactDocument.filter((attribute) => !/^PDF datasheet - Dimensions$/i.test(attribute.group ?? ""));
+  return collectProtectionValues(outsideDimensions.length ? outsideDimensions : exactDocument);
 }
 
 function balluffHousingMaterial(attributes: AttributeRecord[]): string | undefined {
@@ -1655,11 +1772,11 @@ export function mergeResults(primary: ProductResult, fallback?: ProductResult): 
   const attributes = sortAttributesStable(dedupeAttributes([...primary.attributes, ...fallback.attributes]));
   const documents = dedupeDocuments([...primary.documents, ...fallback.documents]);
   const normalized = mergeNormalizedFields(
-    normalizeFields(attributes, documents, primary.manufacturerId === "rittal" || primary.manufacturerId === "schmersal" || primary.manufacturerId === "phoenix" || primary.manufacturerId === "schneider" ? primary.manufacturerId : undefined),
+    normalizeFields(attributes, documents, primary.manufacturerId === "rittal" || primary.manufacturerId === "schmersal" || primary.manufacturerId === "phoenix" || primary.manufacturerId === "schneider" || primary.manufacturerId === "doepke" ? primary.manufacturerId : undefined),
     primary.normalized,
     fallback.normalized,
     attributes,
-    primary.manufacturerId === "rittal" || primary.manufacturerId === "phoenix" || primary.manufacturerId === "schneider" ? primary.manufacturerId : undefined
+    primary.manufacturerId === "rittal" || primary.manufacturerId === "phoenix" || primary.manufacturerId === "schneider" || primary.manufacturerId === "doepke" ? primary.manufacturerId : undefined
   );
   const hasFallbackAdditions = fallback.status !== "failed" && (fallback.attributes.length > 0 || fallback.documents.length > 0);
   return {
@@ -2387,6 +2504,9 @@ function mergeNormalizedFields(
 ): NormalizedProductFields {
   const merged: NormalizedProductFields = { ...computed };
   const suppressPhoenixCurrent = manufacturerId === "phoenix" && isPhoenixSignalConditioner(attributes);
+  const suppressDoepkeRurContactCurrent = manufacturerId === "doepke" && attributes.some((attribute) =>
+    /^type code$/i.test(attribute.name.trim()) && /^RUR\s*3$/i.test(attribute.value.trim()) && /source\/prodext\.php/i.test(attribute.sourceUrl ?? "")
+  );
   const suppressSchneiderLightCurtainCurrent = manufacturerId === "schneider" && isSchneiderSafetyLightCurtain(attributes);
   const suppressSchneiderM221OutputCurrent = manufacturerId === "schneider" && isSchneiderM221OutputCurrent(attributes);
   const phoenixPreferredVoltage = manufacturerId === "phoenix" ? phoenixContactNormalizedVoltage(attributes) : undefined;
@@ -2402,6 +2522,7 @@ function mergeNormalizedFields(
   if (suppressSchneiderM221OutputCurrent) delete merged.current;
   for (const field of Object.keys(computed) as Array<keyof NormalizedProductFields>) {
     if (merged[field]) continue;
+    if (suppressDoepkeRurContactCurrent && field === "current") continue;
     if (suppressPhoenixCurrent && field === "current") continue;
     if (suppressSchneiderM221OutputCurrent && field === "current") continue;
     if (suppressSchneiderLightCurtainCurrent && field === "current") continue;
@@ -2417,6 +2538,7 @@ function mergeNormalizedFields(
   for (const field of Object.keys(primary) as Array<keyof NormalizedProductFields>) {
     const primaryValue = primary[field];
     if (!primaryValue) continue;
+    if (suppressDoepkeRurContactCurrent && field === "current") continue;
     if (suppressPhoenixCurrent && field === "current") continue;
     if (suppressSchneiderLightCurtainCurrent && field === "current") continue;
     if (manufacturerId === "phoenix" && (

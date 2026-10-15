@@ -40,6 +40,15 @@ export function applyFieldCandidateResolution(result: ProductResult): ProductRes
   if (result.manufacturerId === "schneider" && isSchneiderM221OutputCurrent(result.attributes)) delete normalized.current;
   if (result.manufacturerId === "schneider" && isSchneiderPendantStation(result.attributes)) delete normalized.dimensions;
   if (result.manufacturerId === "schneider" && isSchneiderBusPoweredInputModule(result.attributes)) delete normalized.voltage;
+  const doepkeRur3 = result.manufacturerId === "doepke" && result.attributes.some((attribute) =>
+    /^type code$/i.test(attribute.name.trim()) &&
+    /^RUR\s*3$/i.test(attribute.value.trim()) &&
+    /source\/prodext\.php/i.test(attribute.sourceUrl ?? "")
+  );
+  // The generic field-candidate resolver sees the RUR 3's 5 A relay-contact
+  // rating as an operating-current candidate. Doepke-aware normalization has
+  // already rejected it, so do not put it back during evidence attachment.
+  if (doepkeRur3) delete normalized.current;
   const eatonElectrical = result.manufacturerId === "eaton"
     ? normalizeFields(result.attributes, result.documents, "eaton")
     : undefined;
@@ -72,6 +81,7 @@ export function applyFieldCandidateResolution(result: ProductResult): ProductRes
     // fragments such as "Graphic color: display" are not product finish/material data and must
     // not be reintroduced after the manufacturer-specific normalizer rejected them.
     if (result.manufacturerId === "abb" && (key === "material" || key === "color")) continue;
+    if (doepkeRur3 && key === "current") continue;
     // Siemens dimensions can be packaging measurements or HMI display/cutout values; material and
     // color candidates also contain product-code fragments. The Siemens connector normalizer is
     // authoritative for these fields, so unresolved values stay blank rather than being restored

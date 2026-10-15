@@ -143,7 +143,7 @@ function withDoepkeMetadata(catalogNumber: string, fetched: FetchedText, context
     localizedUrls: buildLocalizedProductUrls("doepke", catalogNumber, sourceUrl, context.manufacturer.localizedUrlTemplates),
     title,
     description,
-    normalized: normalizeFields(dedupedAttributes, dedupedDocuments),
+    normalized: normalizeFields(dedupedAttributes, dedupedDocuments, "doepke"),
     attributes: dedupedAttributes,
     documents: dedupedDocuments,
     sources: dedupeSources([doepkeSource(fetched, "Doepke prodext.php article page accepted.")]),

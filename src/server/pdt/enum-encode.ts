@@ -1,5 +1,11 @@
 function normalize(value: string): string {
-  return value.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+  return value
+    .toLowerCase()
+    // IP ratings are commonly normalized with a separating space ("IP 20")
+    // while PDT enum legends store them compactly ("IP20").
+    .replace(/\bip\s+(?=[0-9x])/g, "ip")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
 }
 
 export interface EnumLegendEntry {

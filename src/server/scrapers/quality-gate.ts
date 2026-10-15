@@ -184,6 +184,20 @@ export function finalizeQualityGate(result: ProductResult, manufacturer: Manufac
     if (!recomputed.current) delete normalized.current;
     candidate = { ...result, normalized };
   }
+  if (manufacturer.id === "doepke") {
+    const recomputed = normalizeFields(result.attributes, result.documents, "doepke");
+    const normalized = { ...result.normalized, ...recomputed };
+    // Doepke RUR 3 exposes relay-contact current as "Rated current". When
+    // exact-product normalization finds no supply consumption, discard any
+    // generic current that an earlier stage may have copied from that rating.
+    const isRur3 = result.attributes.some((attribute) =>
+      /^type code$/i.test(attribute.name.trim()) &&
+      /^RUR\s*3$/i.test(attribute.value.trim()) &&
+      /source\/prodext\.php/i.test(attribute.sourceUrl ?? "")
+    );
+    if (isRur3 && !recomputed.current) delete normalized.current;
+    candidate = { ...result, normalized };
+  }
   return applyQualityGate(candidate, manufacturer, evaluateQualityGate(candidate, manufacturer, candidate.catalogNumber, candidate.qualityGate?.attempts ?? []));
 }
 

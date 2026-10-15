@@ -4188,6 +4188,13 @@ function mergeEnrichedNormalized(
     });
     if (!hasHousingWallThickness) delete existing.wallThickness;
   }
+  // The Doepke RUR 3 datasheet's 5 A value is the relay contact rating, not device supply draw.
+  // Clear an earlier generic current value when its exact source rows provide no consumption.
+  if (result.manufacturerId === "doepke" && recomputed.current === undefined && result.attributes.some((attribute) =>
+    /^type code$/i.test(attribute.name.trim()) && /^RUR\s*3$/i.test(attribute.value.trim()) && /source\/prodext\.php/i.test(attribute.sourceUrl ?? "")
+  )) {
+    delete existing.current;
+  }
   return { ...existing, ...nonEmptyNormalized(recomputed) };
 }
 

@@ -66,11 +66,14 @@ export const DEVICE_TYPE_PROFILES: Record<string, DeviceTypePdtProfile> = {
   "Miniature Circuit Breaker": { sheets: ["contactor a. fuses"], criticalFactsBySheet: { "contactor a. fuses": [...ELECTRICAL_RATING_FACTS] }, finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_AND_CURRENT },
   "Supplementary Protector": { sheets: ["contactor a. fuses"], criticalFactsBySheet: { "contactor a. fuses": [...ELECTRICAL_RATING_FACTS] }, finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_AND_CURRENT },
   "Residual Current Device": { sheets: ["contactor a. fuses"], criticalFactsBySheet: { "contactor a. fuses": [...ELECTRICAL_RATING_FACTS] }, finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_AND_CURRENT },
+  "Automatic Reclosing Device": { sheets: ["Switch"], finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_AND_CURRENT },
+  "Undervoltage Measuring Relay": { sheets: ["el. mesurement devices"], finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_ONLY },
   "Motor Circuit Breaker": { sheets: ["motor protection"], criticalFactsBySheet: { "motor protection": [...ELECTRICAL_RATING_FACTS] }, finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_AND_CURRENT },
   "Motor Starter": { sheets: ["motor protection"], criticalFactsBySheet: { "motor protection": [...ELECTRICAL_RATING_FACTS] }, finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_AND_CURRENT },
   "Disconnect Switch": { sheets: ["contactor a. fuses"], criticalFactsBySheet: { "contactor a. fuses": [...ELECTRICAL_RATING_FACTS] }, finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_AND_CURRENT },
   "Fuse Switch Disconnector": { sheets: ["contactor a. fuses"], criticalFactsBySheet: { "contactor a. fuses": [...ELECTRICAL_RATING_FACTS] }, electricalFields: VOLTAGE_AND_CURRENT },
   Switch: { sheets: ["Switch"], finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: NO_ELECTRICAL_FIELDS },
+  "Twilight Switch": { sheets: ["Switch"], finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_AND_CURRENT },
   "Selector Switch": { sheets: ["Switch"], finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: NO_ELECTRICAL_FIELDS },
   // SPDs are rated by operating voltage and surge/discharge current (Iimp, In, Imax),
   // not by a general load-current rating. Keep those surge values in their named attributes.
@@ -140,6 +143,7 @@ export const DEVICE_TYPE_PROFILES: Record<string, DeviceTypePdtProfile> = {
   "Temperature Sensor": { sheets: ["sensor - fluid"], finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_ONLY },
   "Flow Sensor": { sheets: ["sensor - fluid"], finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_ONLY },
   "Level Sensor": { sheets: ["sensor - fluid"], finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_ONLY },
+  "Float Switch": { sheets: ["Switch"], finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: NO_ELECTRICAL_FIELDS },
 
   "Programmable Logic Controller": { sheets: ["PLC"], eclassBySheet: { plc: { code: "27242202", system: "14" } }, criticalFactsBySheet: { PLC: [...VOLTAGE_RATING_FACTS] }, finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_ONLY },
   "I/O Module": { sheets: ["PLC"], eclassBySheet: { plc: { code: "27242604", system: "14" } }, criticalFactsBySheet: { PLC: [...VOLTAGE_RATING_FACTS] }, finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_ONLY },
