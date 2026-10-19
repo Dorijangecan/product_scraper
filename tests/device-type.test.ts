@@ -52,6 +52,22 @@ describe("device type classifier", () => {
     expect(result.type).toBe("Rack Cabinet");
   });
 
+  it("uses exact nVent product categories to override misleading accessory wording", () => {
+    const cases = [
+      ["A48SA3812LPPL", "https://www.nvent.com/en-us/hoffman/products/enca48sa3812lppl", "Disconnect Wall-Mount Enclosure Type 12", "Disconnect Enclosure with Handle Type 12", "Enclosure"],
+      ["B2700A2C1WH", "https://www.nvent.com/en-us/erico/products/efsb2700a2c1wh", "Rail Four Post Terminal Block", "Rail Four Post Terminal Block", "Terminal Block"],
+      ["VA151604X", "https://www.nvent.com/en-us/hoffman/products/encva151604x", "Quiet Vortex A/C Enclosure Coolers Type 4/4X/12", "Quiet Vortex Cooler Type 4X", "Thermal Management"]
+    ] as const;
+    for (const [catalogNumber, productUrl, category, title, expected] of cases) {
+      const result = classifyDeviceType(product(
+        [{ group: "Structured Data", name: "category", value: category, sourceType: "official", parser: "nvent-direct", sourceUrl: productUrl }],
+        title,
+        { manufacturerId: "nvent", catalogNumber, productUrl, description: "Includes busbar and enclosure accessories." }
+      ));
+      expect(result.type).toBe(expected);
+    }
+  });
+
   it("classifies SCE heater, heat exchanger, and enclosure hardware from the vendor's description order", () => {
     const cases = [
       ["Heater - 350W", "Heater", "cabinet.airconditioning"],

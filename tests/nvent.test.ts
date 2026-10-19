@@ -7,6 +7,8 @@ describe("nVent brand route resolution", () => {
     ["14821-207", "https://www.nvent.com/en-us/schroff/products/enc14821-207/"],
     ["813480", "https://www.nvent.com/en-us/erico/products/efs813480/"],
     ["EGBA14418LL", "https://www.nvent.com/en-us/erico/products/efsegba14418ll/"],
+    ["EDT230031R", "https://www.nvent.com/en-us/erico/products/efsedt230031r/"],
+    ["B2700A2C1WH", "https://www.nvent.com/en-us/erico/products/efsb2700a2c1wh/"],
     ["GPECNED096", "https://www.nvent.com/en-us/erico/products/efsgpecned096/"],
     ["PCS2", "https://www.nvent.com/en-us/caddy/products/efspcs2/"],
     ["DAH4001B", "https://www.nvent.com/en-us/hoffman/products/encdah4001b/"]

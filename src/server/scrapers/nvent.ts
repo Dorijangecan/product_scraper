@@ -79,7 +79,7 @@ export function nventProductUrl(catalogNumber: string): string {
   if (/^\d{4,}-\d+$/.test(sku)) {
     return `https://www.nvent.com/en-us/schroff/products/enc${sku}/`;
   }
-  if (/^\d{4,8}$/.test(sku) || /^(?:gpe|ecr|gr|ehl|egba|ph)\w*/i.test(sku)) {
+  if (/^\d{4,8}$/.test(sku) || /^(?:gpe|ecr|gr|ehl|egba|ph|edt)\w*/i.test(sku) || /^b2700a2c1wh$/i.test(sku)) {
     return `https://www.nvent.com/en-us/erico/products/efs${sku}/`;
   }
   if (/^(?:pcs|cat|ec|cablecat|wbt)\w*/i.test(sku)) {
@@ -222,6 +222,30 @@ export class NventConnector implements ManufacturerConnector {
       };
       if (/^\d{4,}-\d+$/.test(catalogNumber.trim()) && /\/schroff\/products\//i.test(result.productUrl ?? url)) {
         correctNventSchroffChassisDimensions(result);
+      }
+      const exactCategory = result.attributes.find((attribute) =>
+        attribute.sourceType === "official" && attribute.parser === "nvent-direct" &&
+        /^(?:product type|product category|category|type)$/i.test(attribute.name.trim())
+      )?.value ?? "";
+      // This exact item is an empty disconnect enclosure; the product page's 115 V field is
+      // switch-context metadata, not an electrical rating of the enclosure itself.
+      if (/^disconnect wall-mount enclosure\b/i.test(exactCategory)) {
+        result.attributes = result.attributes.filter((attribute) => !/^nominal\s+voltage$/i.test(attribute.name.trim()));
+        delete result.normalized.voltage;
+        delete result.normalized.current;
+      }
+      if (/\bsurge protection\b/i.test(exactCategory)) {
+        const nominalVoltage = result.attributes.find((attribute) => /^nominal\s+system\s+voltage\s*\(un\)$/i.test(attribute.name.trim()))?.value;
+        if (nominalVoltage) result.normalized.voltage = nominalVoltage;
+        // The generic current field can latch onto the SPD's remote-contact switching capacity;
+        // its surge-current ratings remain available as exact, labeled official attributes.
+        delete result.normalized.current;
+      }
+      if (/^rail four post terminal block\b/i.test(exactCategory)) {
+        // The PDP describes copper washers and plated fasteners inside the hardware kit, not the
+        // material of the terminal block itself. Do not collapse those component materials into
+        // one normalized material value.
+        delete result.normalized.material;
       }
       // These SKUs are explicitly accessory products in nVent's official taxonomy. Add a
       // source-backed classification attribute so the generic title word "enclosure" cannot

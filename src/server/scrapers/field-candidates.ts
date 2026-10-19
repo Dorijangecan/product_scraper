@@ -33,6 +33,11 @@ export function applyFieldCandidateResolution(result: ProductResult): ProductRes
   const candidates = buildFieldCandidates(result);
   const resolutions = buildFieldResolutions(candidates);
   const normalized = { ...result.normalized };
+  const nventSurgeProtector = result.manufacturerId === "nvent" && result.attributes.some((attribute) =>
+    attribute.parser === "nvent-direct" &&
+    /\bsurge protection\b/i.test(attribute.value) &&
+    /^(?:product type|product category|category|type)$/i.test(attribute.name.trim())
+  );
   const eta18plusSystem = result.manufacturerId === "eta" && result.attributes.some((attribute) =>
     /\/solutions\/automation_process_control\/car_production\/p\/modul_18plus\/?$/i.test(attribute.sourceUrl ?? "")
   );
@@ -42,6 +47,10 @@ export function applyFieldCandidateResolution(result: ProductResult): ProductRes
   if (result.manufacturerId === "schneider" && isSchneiderSafetyLightCurtain(result.attributes)) delete normalized.current;
   if (result.manufacturerId === "schneider" && isSchneiderSafetyControllerOutputRating(result.attributes)) delete normalized.current;
   if (result.manufacturerId === "schneider" && isSchneiderM221OutputCurrent(result.attributes)) delete normalized.current;
+  // nVent surge current rows (In/Imax) describe discharge ratings, not operating draw.
+  // The nVent normalizer intentionally leaves supply current blank; preserve that decision
+  // when generic evidence candidates are attached later in the pipeline.
+  if (nventSurgeProtector) delete normalized.current;
   if (result.manufacturerId === "schneider" && isSchneiderPendantStation(result.attributes)) delete normalized.dimensions;
   if (result.manufacturerId === "schneider" && isSchneiderBusPoweredInputModule(result.attributes)) delete normalized.voltage;
   const doepkeRur3 = result.manufacturerId === "doepke" && result.attributes.some((attribute) =>
@@ -101,6 +110,7 @@ export function applyFieldCandidateResolution(result: ProductResult): ProductRes
     if (result.manufacturerId === "schneider" && key === "current" && isSchneiderSafetyLightCurtain(result.attributes)) continue;
     if (result.manufacturerId === "schneider" && key === "current" && isSchneiderSafetyControllerOutputRating(result.attributes)) continue;
     if (result.manufacturerId === "schneider" && key === "current" && isSchneiderM221OutputCurrent(result.attributes)) continue;
+    if (nventSurgeProtector && key === "current") continue;
     if (result.manufacturerId === "schneider" && key === "dimensions" && isSchneiderPendantStation(result.attributes)) continue;
     if (result.manufacturerId === "schneider" && key === "voltage" && isSchneiderBusPoweredInputModule(result.attributes)) continue;
     if (doepkeDrcaAnalysisSet && key === "current") continue;

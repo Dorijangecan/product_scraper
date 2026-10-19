@@ -243,7 +243,7 @@ const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
   rule("Luminaire", /\b(?:machine light|led light fixture|fixture,\s*led light|light fixture|luminaire|interior lamp|cabinet light|led system light)\b/i, 745),
 
   // --- Cooling / climate ---
-  rule("Thermal Management", /\b(?:thermal management|filter fan|fan package|fan housing|filter kit|fan filter|exhaust filter|filter grille|enclosure fan|cabinet fan|cabinet heater|enclosure heater|thermostat|hygrostat|air conditioner|conditioner,\s*(?:ng\s+)?air|heat exchanger|dehumidifier|cooling unit|chiller)\b/i, 760),
+  rule("Thermal Management", /\b(?:thermal management|filter fan|fan package|fan housing|filter kit|fan filter|exhaust filter|filter grille|enclosure fan|cabinet fan|cabinet heater|enclosure heater|enclosure coolers?|vortex coolers?|thermostat|hygrostat|air conditioner|conditioner,\s*(?:ng\s+)?air|heat exchanger|dehumidifier|cooling unit|chiller)\b/i, 760),
   rule("Filter", /\b(?:line filter|emc filter|emi filter|mains filter|harmonic filter|sine filter|du\/dt filter|output filter|input filter)\b/i, 740),
 
   // SCE-style console products are complete electrical enclosures. Door count/access wording in
@@ -487,6 +487,19 @@ export function classifyDeviceType(result: ProductResult | undefined): DeviceTyp
       channel: "text",
       evidence: "Product type/name text: busbar"
     });
+  }
+
+  const exactNventCategory = exactNventPdpCategory(result);
+  if (exactNventCategory) {
+    const categoryRule = strongestDeviceTypeRule(exactNventCategory.value);
+    if (categoryRule) {
+      signals.push({
+        type: categoryRule.type,
+        score: 2_100 * CHANNEL_WEIGHTS.text,
+        channel: "text",
+        evidence: `Exact nVent PDP category: ${exactNventCategory.value}`
+      });
+    }
   }
 
   // --- Channel 2: family / series prefix (manufacturer-specific catalog patterns) ---
@@ -935,6 +948,22 @@ function strongestDeviceTypeRulePriority(value: string | undefined): number {
   return Math.max(0, ...DEVICE_TYPE_RULES.filter((definition) => definition.pattern.test(text)).map((definition) => definition.priority));
 }
 
+function exactNventPdpCategory(result: ProductResult): AttributeRecord | undefined {
+  if (result.manufacturerId !== "nvent") return undefined;
+  return result.attributes.find((attribute) =>
+    attribute.parser === "nvent-direct" &&
+    attribute.sourceType === "official" &&
+    isExactNventSkuPage(attribute.sourceUrl, result.catalogNumber) &&
+    /^(?:product type|product category|category|type)$/i.test(attribute.name.trim())
+  );
+}
+
+function strongestDeviceTypeRule(value: string): DeviceTypeRule | undefined {
+  return DEVICE_TYPE_RULES
+    .filter((definition) => definition.pattern.test(value))
+    .sort((left, right) => right.priority - left.priority)[0];
+}
+
 function isExactEatonSkuPage(url: string | undefined, catalogNumber: string): boolean {
   if (!url || !catalogNumber) return false;
   try {
@@ -963,7 +992,7 @@ function isExactNventSkuPage(url: string | undefined, catalogNumber: string): bo
 function nventProductUrlForTypeCheck(catalogNumber: string): string {
   const sku = catalogNumber.trim().toLowerCase();
   if (/^\d{4,}-\d+$/.test(sku)) return `https://www.nvent.com/en-us/schroff/products/enc${sku}/`;
-  if (/^\d{4,8}$/.test(sku) || /^(?:gpe|ecr|gr|ehl|egba|ph)\w*/i.test(sku)) return `https://www.nvent.com/en-us/erico/products/efs${sku}/`;
+  if (/^\d{4,8}$/.test(sku) || /^(?:gpe|ecr|gr|ehl|egba|ph|edt)\w*/i.test(sku) || /^b2700a2c1wh$/i.test(sku)) return `https://www.nvent.com/en-us/erico/products/efs${sku}/`;
   if (/^(?:pcs|cat|ec|cablecat|wbt)\w*/i.test(sku)) return `https://www.nvent.com/en-us/caddy/products/efs${sku}/`;
   return `https://www.nvent.com/en-us/hoffman/products/enc${sku}/`;
 }

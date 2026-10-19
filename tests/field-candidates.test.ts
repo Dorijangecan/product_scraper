@@ -4,6 +4,24 @@ import { normalizeFields } from "../src/server/scrapers/normalizer.js";
 import type { ProductResult } from "../src/shared/types.js";
 
 describe("field candidate resolver", () => {
+  it("does not promote nVent surge discharge current into operating current", () => {
+    const result = applyFieldCandidateResolution({
+      manufacturerId: "nvent",
+      catalogNumber: "EDT230031R",
+      status: "found",
+      confidence: 0.96,
+      normalized: { voltage: "240 V" },
+      attributes: [
+        { group: "Product", name: "Product Type", value: "Surge Protection", sourceType: "official", parser: "nvent-direct" },
+        { group: "Discharge", name: "Nominal Discharge Current (In)", value: "20 kA 8/20 μs", sourceType: "official", parser: "nvent-direct" }
+      ],
+      documents: [],
+      sources: []
+    } satisfies ProductResult);
+
+    expect(result.normalized.current).toBeUndefined();
+  });
+
   it("does not promote ABB PDF prose into material or color fields", () => {
     const result = applyFieldCandidateResolution({
       manufacturerId: "abb",

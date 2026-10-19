@@ -228,9 +228,20 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
   const nventPassiveSchroffRack = manufacturerId === "nvent" &&
     attributes.some((attribute) => /^rack height$/i.test(attribute.name.trim())) &&
     attributes.some((attribute) => /^usable width$/i.test(attribute.name.trim()));
+  const nventExactSurgeProtector = manufacturerId === "nvent" && attributes.some((attribute) =>
+    attribute.parser === "nvent-direct" && /\bsurge protection\b/i.test(attribute.value) && /^(?:product type|product category|category|type)$/i.test(attribute.name.trim())
+  );
+  const nventSurgeNominalVoltage = nventExactSurgeProtector
+    ? normalizeVoltageValue(attributes.find((attribute) => /^nominal\s+system\s+voltage\s*\(un\)$/i.test(attribute.name.trim()))?.value)
+    : undefined;
+  const nventExactRailTerminalBlock = manufacturerId === "nvent" && attributes.some((attribute) =>
+    attribute.parser === "nvent-direct" && /^rail four post terminal block\b/i.test(attribute.value) && /^(?:product type|product category|category|type)$/i.test(attribute.name.trim())
+  );
   const currentAttributes = etaVariableE1073Current
     ? []
     : etaEai300NoNormalizedCurrent
+      ? []
+    : nventExactSurgeProtector
       ? []
     : nventPassiveSchroffRack
       ? []
@@ -347,7 +358,9 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
   const safeDimensions = manufacturerId === "eta" && etaDimensionMatchesTerminalDesign(attributes, dimensions)
     ? undefined
     : dimensions;
-  const material = manufacturerId === "rittal"
+  const material = nventExactRailTerminalBlock
+    ? undefined
+    : manufacturerId === "rittal"
     ? rittalExplicitLabelValue(rittalPdpAttributes, /^materials?$/i, rittalMaterialValue)
     : manufacturerId === "schmersal"
     ? exactSchmersalPdpFieldValue(attributes, /^(?:housing|body|enclosure) material$/i, normalizeHtmlSpecValue) ?? findMaterialAttr(attributes)
@@ -483,7 +496,7 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
         /^sce electrical ratings$/i.test(attribute.group ?? "")
       )?.value)
     : undefined;
-  const fallbackVoltage = schneiderSupplyVoltage ?? scePdpSupplyVoltage ?? (manufacturerId === "phoenix"
+  const fallbackVoltage = nventSurgeNominalVoltage ?? schneiderSupplyVoltage ?? scePdpSupplyVoltage ?? (manufacturerId === "phoenix"
     ? phoenixContactNormalizedVoltage(attributes) ?? withoutMixedKindProse(
       exactSchmersalPdpVoltage(attributes, manufacturerId) ??
       powerSupplyOutputVoltage(voltageAttributes) ??
@@ -646,7 +659,7 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
     finish: safeFinish,
     color,
     voltage,
-    current: etaVariableE1073Current || etaEai300NoNormalizedCurrent ? undefined : current,
+    current: etaVariableE1073Current || etaEai300NoNormalizedCurrent || nventExactSurgeProtector ? undefined : current,
     protection: protectionFromAttr,
     certificates: certificates || undefined,
     operatingTemperatureMin: operatingTemperature.min,
@@ -2721,6 +2734,12 @@ function mergeNormalizedFields(
   const suppressNventPassiveSchroffCurrent = manufacturerId === "nvent" &&
     attributes.some((attribute) => /^rack height$/i.test(attribute.name.trim())) &&
     attributes.some((attribute) => /^usable width$/i.test(attribute.name.trim()));
+  const suppressNventSurgeCurrent = manufacturerId === "nvent" && attributes.some((attribute) =>
+    attribute.parser === "nvent-direct" && /\bsurge protection\b/i.test(attribute.value) && /^(?:product type|product category|category|type)$/i.test(attribute.name.trim())
+  );
+  const suppressNventTerminalBlockMaterial = manufacturerId === "nvent" && attributes.some((attribute) =>
+    attribute.parser === "nvent-direct" && /^rail four post terminal block\b/i.test(attribute.value) && /^(?:product type|product category|category|type)$/i.test(attribute.name.trim())
+  );
   const phoenixPreferredVoltage = manufacturerId === "phoenix" ? phoenixContactNormalizedVoltage(attributes) : undefined;
   const phoenixPreferredWeight = manufacturerId === "phoenix" ? phoenixProductNetWeight(attributes) : undefined;
   const phoenixPreferredCurrent = manufacturerId === "phoenix" && isPhoenixSurgeProtector(attributes)
@@ -2733,10 +2752,14 @@ function mergeNormalizedFields(
   if (suppressPhoenixCurrent) delete merged.current;
   if (suppressSchneiderM221OutputCurrent) delete merged.current;
   if (suppressNventPassiveSchroffCurrent) delete merged.current;
+  if (suppressNventSurgeCurrent) delete merged.current;
+  if (suppressNventTerminalBlockMaterial) delete merged.material;
   for (const field of Object.keys(computed) as Array<keyof NormalizedProductFields>) {
     if (merged[field]) continue;
     if (suppressDoepkeRurContactCurrent && field === "current") continue;
     if (suppressNventPassiveSchroffCurrent && field === "current") continue;
+    if (suppressNventSurgeCurrent && field === "current") continue;
+    if (suppressNventTerminalBlockMaterial && field === "material") continue;
     if (suppressPhoenixCurrent && field === "current") continue;
     if (suppressSchneiderM221OutputCurrent && field === "current") continue;
     if (suppressSchneiderLightCurtainCurrent && field === "current") continue;
@@ -2753,6 +2776,8 @@ function mergeNormalizedFields(
     const primaryValue = primary[field];
     if (!primaryValue) continue;
     if (suppressDoepkeRurContactCurrent && field === "current") continue;
+    if (suppressNventSurgeCurrent && field === "current") continue;
+    if (suppressNventTerminalBlockMaterial && field === "material") continue;
     if (suppressPhoenixCurrent && field === "current") continue;
     if (suppressSchneiderLightCurtainCurrent && field === "current") continue;
     if (manufacturerId === "phoenix" && (

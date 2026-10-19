@@ -1880,7 +1880,11 @@ function hasCompleteNventPassiveProductData(result: ProductResult): boolean {
     Cable: ["material"],
     Busbar: ["dimensions", "material", "wallThickness"],
     "Rack Cabinet": ["dimensions", "material"],
-    "Filter Fan": ["dimensions", "voltage", "current"]
+    "Filter Fan": ["dimensions", "voltage", "current"],
+    "Power Supply": ["dimensions", "voltage", "current"],
+    "Surge Protective Device": ["dimensions", "material", "voltage", "protection"],
+    Enclosure: ["dimensions", "material", "protection"],
+    "Thermal Management": ["dimensions", "material"]
   };
   const requiredFields = requiredFieldsByType[classifyDeviceType(result).type ?? ""];
   if (!requiredFields) return false;
@@ -1893,6 +1897,41 @@ function hasCompleteNventPassiveProductData(result: ProductResult): boolean {
       /^(?:max\s+current|rated\s+current|current)$/i.test(attribute.name.trim()) && /\d/.test(attribute.value)
     );
     if (!hasExactPageElectricalEvidence) return false;
+  } else if (deviceType === "Power Supply") {
+    const hasExactPageElectricalEvidence = officialPageAttributes.some((attribute) =>
+      /^input\s+voltage(?:\s+ac)?$/i.test(attribute.name.trim()) && /\d/.test(attribute.value)
+    ) && officialPageAttributes.some((attribute) =>
+      /^voltage\s+\d+$/i.test(attribute.name.trim()) && /\d/.test(attribute.value)
+    ) && officialPageAttributes.some((attribute) =>
+      /^current\s+\d+$/i.test(attribute.name.trim()) && /\d/.test(attribute.value)
+    );
+    if (!hasExactPageElectricalEvidence) return false;
+  } else if (deviceType === "Surge Protective Device") {
+    const hasExactPageElectricalEvidence = officialPageAttributes.some((attribute) =>
+      /^nominal\s+system\s+voltage/i.test(attribute.name.trim()) && /\d/.test(attribute.value)
+    ) && officialPageAttributes.some((attribute) =>
+      /^max\s+continuous\s+operating\s+voltage/i.test(attribute.name.trim()) && /\d/.test(attribute.value)
+    ) && officialPageAttributes.some((attribute) =>
+      /^nominal\s+discharge\s+current/i.test(attribute.name.trim()) && /\d/.test(attribute.value)
+    ) && officialPageAttributes.some((attribute) =>
+      /^max\s+discharge\s+current/i.test(attribute.name.trim()) && /\d/.test(attribute.value)
+    ) && officialPageAttributes.some((attribute) =>
+      /^voltage\s+protection\s+level/i.test(attribute.name.trim()) && /\d/.test(attribute.value)
+    );
+    if (!hasExactPageElectricalEvidence) return false;
+  } else if (deviceType === "Enclosure") {
+    const hasExactPagePhysicalEvidence = ["height", "width", "depth"].every((name) =>
+      officialPageAttributes.some((attribute) => new RegExp(`^${name}$`, "i").test(attribute.name.trim()) && /\d/.test(attribute.value))
+    ) && officialPageAttributes.some((attribute) => /^material$/i.test(attribute.name.trim()) && Boolean(attribute.value.trim())) &&
+      officialPageAttributes.some((attribute) => /^protection\s+rating$/i.test(attribute.name.trim()) && Boolean(attribute.value.trim()));
+    if (!hasExactPagePhysicalEvidence || result.normalized.current || result.normalized.voltage) return false;
+  } else if (deviceType === "Thermal Management") {
+    const hasExactPageCoolingEvidence = officialPageAttributes.some((attribute) =>
+      /^nominal\s+capacity\s+btu\/h$/i.test(attribute.name.trim()) && /\d/.test(attribute.value)
+    ) && officialPageAttributes.some((attribute) =>
+      /^nominal\s+capacity\s+watts$/i.test(attribute.name.trim()) && /\d/.test(attribute.value)
+    );
+    if (!hasExactPageCoolingEvidence || result.normalized.current || result.normalized.voltage) return false;
   } else if (result.normalized.current || result.normalized.voltage) {
     // Prevent a malformed or unrelated document parser from being suppressed for passive products.
     return false;

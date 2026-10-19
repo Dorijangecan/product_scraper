@@ -380,6 +380,89 @@ describe("run manager document downloads", () => {
     } as ProductResult;
     expect(documentDownloadProfile({ id: "nvent" }, fan, { saveDocuments: false })).toBe("images-only");
     expect(documentDownloadProfile({ id: "nvent" }, { ...fan, attributes: fan.attributes.filter((attribute) => attribute.name !== "Max Current") }, { saveDocuments: false })).toBe("quality");
+
+    const psuUrl = "https://www.nvent.com/en-us/schroff/products/enc13100-176";
+    const psu = {
+      ...base,
+      catalogNumber: "13100-176",
+      title: "PSU 19 inch AC/DC Slimpower 31 W",
+      productUrl: psuUrl,
+      normalized: { dimensions: "W 15.24 mm x D 171.93 mm", voltage: "85...253 V AC", current: "6.2 A" },
+      attributes: [
+        ...Array.from({ length: 8 }, (_, index) => ({ name: `Field ${index}`, value: `Value ${index}`, sourceUrl: psuUrl, sourceType: "official", parser: "nvent-direct" })),
+        { name: "Catalog Number", value: "13100-176", sourceUrl: psuUrl, sourceType: "official", parser: "nvent-direct" },
+        { name: "Input Voltage AC", value: "85 – 253V", sourceUrl: psuUrl, sourceType: "official", parser: "nvent-direct" },
+        { name: "Voltage 1", value: "5V", sourceUrl: psuUrl, sourceType: "official", parser: "nvent-direct" },
+        { name: "Current 1", value: "6.2A", sourceUrl: psuUrl, sourceType: "official", parser: "nvent-direct" }
+      ],
+      documents: [{ type: "image", label: "Product image", url: `${psuUrl}/image`, sourceType: "official" }],
+      sources: [{ url: psuUrl, sourceType: "official", parser: "nvent-direct", fetchedAt: new Date(0).toISOString() }]
+    } as ProductResult;
+    expect(documentDownloadProfile({ id: "nvent" }, psu, { saveDocuments: false })).toBe("images-only");
+
+    const spdUrl = "https://www.nvent.com/en-us/erico/products/efsedt230031r";
+    const spd = {
+      ...base,
+      catalogNumber: "EDT230031R",
+      title: "EDT2 Enhanced DIN Rail Surge Protection Device",
+      productUrl: spdUrl,
+      normalized: { dimensions: "89 x 72 x 69 mm", material: "Thermoplastic", voltage: "240 V", protection: "IP 20" },
+      attributes: [
+        ...Array.from({ length: 8 }, (_, index) => ({ name: `Field ${index}`, value: `Value ${index}`, sourceUrl: spdUrl, sourceType: "official", parser: "nvent-direct" })),
+        { name: "Catalog Number", value: "EDT230031R", sourceUrl: spdUrl, sourceType: "official", parser: "nvent-direct" },
+        { name: "Nominal System Voltage (Un)", value: "240 V", sourceUrl: spdUrl, sourceType: "official", parser: "nvent-direct" },
+        { name: "Max Continuous Operating Voltage (Uc)", value: "300 V", sourceUrl: spdUrl, sourceType: "official", parser: "nvent-direct" },
+        { name: "Nominal Discharge Current (In)", value: "20kA", sourceUrl: spdUrl, sourceType: "official", parser: "nvent-direct" },
+        { name: "Max Discharge Current (Imax)", value: "50kA", sourceUrl: spdUrl, sourceType: "official", parser: "nvent-direct" },
+        { name: "Voltage Protection Level (Up)", value: "1650V", sourceUrl: spdUrl, sourceType: "official", parser: "nvent-direct" }
+      ],
+      documents: [{ type: "image", label: "Product image", url: `${spdUrl}/image`, sourceType: "official" }],
+      sources: [{ url: spdUrl, sourceType: "official", parser: "nvent-direct", fetchedAt: new Date(0).toISOString() }]
+    } as ProductResult;
+    expect(documentDownloadProfile({ id: "nvent" }, spd, { saveDocuments: false })).toBe("images-only");
+
+    const enclosureUrl = "https://www.nvent.com/en-us/hoffman/products/enca48sa3812lppl";
+    const enclosure = {
+      ...base,
+      catalogNumber: "A48SA3812LPPL",
+      title: "Disconnect Wall-Mount Enclosure Type 12",
+      productUrl: enclosureUrl,
+      normalized: { dimensions: "48 x 37.38 x 12 in", material: "Mild Steel", protection: "Type 12; NEMA Type 4" },
+      attributes: [
+        ...Array.from({ length: 8 }, (_, index) => ({ name: `Field ${index}`, value: `Value ${index}`, sourceUrl: enclosureUrl, sourceType: "official", parser: "nvent-direct" })),
+        { name: "Catalog Number", value: "A48SA3812LPPL", sourceUrl: enclosureUrl, sourceType: "official", parser: "nvent-direct" },
+        { name: "Height", value: "48in", sourceUrl: enclosureUrl, sourceType: "official", parser: "nvent-direct" },
+        { name: "Width", value: "37.38in", sourceUrl: enclosureUrl, sourceType: "official", parser: "nvent-direct" },
+        { name: "Depth", value: "12in", sourceUrl: enclosureUrl, sourceType: "official", parser: "nvent-direct" },
+        { name: "Material", value: "Mild Steel", sourceUrl: enclosureUrl, sourceType: "official", parser: "nvent-direct" },
+        { name: "Protection Rating", value: "NEMA Type 4; NEMA Type 3R", sourceUrl: enclosureUrl, sourceType: "official", parser: "nvent-direct" }
+      ],
+      documents: [{ type: "image", label: "Product image", url: `${enclosureUrl}/image`, sourceType: "official" }],
+      sources: [{ url: enclosureUrl, sourceType: "official", parser: "nvent-direct", fetchedAt: new Date(0).toISOString() }]
+    } as ProductResult;
+    expect(documentDownloadProfile({ id: "nvent" }, enclosure, { saveDocuments: false })).toBe("images-only");
+
+    const coolerUrl = "https://www.nvent.com/en-us/hoffman/products/encva151604x";
+    const cooler = {
+      ...base,
+      catalogNumber: "VA151604X",
+      title: "Quiet Vortex Cooler Type 4X",
+      productUrl: coolerUrl,
+      normalized: { dimensions: "8 x 4.75 x 5.38 in", material: "Polycarbonate" },
+      attributes: [
+        ...Array.from({ length: 8 }, (_, index) => ({ name: `Field ${index}`, value: `Value ${index}`, sourceUrl: coolerUrl, sourceType: "official", parser: "nvent-direct" })),
+        { name: "Catalog Number", value: "VA151604X", sourceUrl: coolerUrl, sourceType: "official", parser: "nvent-direct" },
+        { name: "Height", value: "8in", sourceUrl: coolerUrl, sourceType: "official", parser: "nvent-direct" },
+        { name: "Width", value: "4.75in", sourceUrl: coolerUrl, sourceType: "official", parser: "nvent-direct" },
+        { name: "Depth", value: "5.38in", sourceUrl: coolerUrl, sourceType: "official", parser: "nvent-direct" },
+        { name: "Material", value: "Polycarbonate", sourceUrl: coolerUrl, sourceType: "official", parser: "nvent-direct" },
+        { name: "Nominal Capacity Btu/h", value: "1500Btu/h", sourceUrl: coolerUrl, sourceType: "official", parser: "nvent-direct" },
+        { name: "Nominal Capacity Watts", value: "440W", sourceUrl: coolerUrl, sourceType: "official", parser: "nvent-direct" }
+      ],
+      documents: [{ type: "image", label: "Product image", url: `${coolerUrl}/image`, sourceType: "official" }],
+      sources: [{ url: coolerUrl, sourceType: "official", parser: "nvent-direct", fetchedAt: new Date(0).toISOString() }]
+    } as ProductResult;
+    expect(documentDownloadProfile({ id: "nvent" }, cooler, { saveDocuments: false })).toBe("images-only");
   });
 
   it("allows complete customer documents to short-circuit official lookup for unseen manufacturers", () => {

@@ -51,6 +51,27 @@ describe("nVent passive SCHROFF rack chassis normalization", () => {
     expect(normalized.dimensions).toMatch(/88\.9.*443\.7.*310\.35/);
     expect(normalized.current).toBeUndefined();
   });
+
+  it("uses nominal system voltage and does not turn SPD discharge current into operating current", () => {
+    const attributes = [
+      { name: "category", value: "EDT2 DIN Rail Surge Protection", sourceType: "official" as const, parser: "nvent-direct" },
+      { name: "Nominal System Voltage (Un)", value: "240 V", sourceType: "official" as const, parser: "nvent-direct" },
+      { name: "Max Continuous Operating Voltage (Uc)", value: "300 V L-N;305 V N-PE", sourceType: "official" as const, parser: "nvent-direct" },
+      { name: "Nominal Discharge Current (In), IEC, L-N", value: "20kA 8/20 μs", sourceType: "official" as const, parser: "nvent-direct" },
+      { name: "Remote Contact Switching Capacity", value: "1 A @ 250 VAC", sourceType: "official" as const, parser: "nvent-direct" }
+    ];
+    const normalized = normalizeFields(attributes, [], "nvent");
+    expect(normalized.voltage).toBe("240 V");
+    expect(normalized.current).toBeUndefined();
+  });
+
+  it("leaves terminal-block material blank when only the accessory hardware lists copper", () => {
+    const normalized = normalizeFields([
+      { name: "category", value: "Rail Four Post Terminal Block", sourceType: "official" as const, parser: "nvent-direct" },
+      { name: "Feature", value: "Includes copper flat washers and zinc plated nuts", sourceType: "official" as const, parser: "nvent-direct" }
+    ], [], "nvent");
+    expect(normalized.material).toBeUndefined();
+  });
 });
 
 describe("normalizer", () => {
