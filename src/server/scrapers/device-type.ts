@@ -193,6 +193,7 @@ const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
   // --- Power / electrical ---
   rule("UPS", /\b(?:\bups\b|uninterruptible power supply)\b/i, 1005),
   rule("Power Supply", /\b(?:power suppl(?:y|ies)|power supply module|switch[-\s]?mode power suppl(?:y|ies)|switched[-\s]?mode power suppl(?:y|ies)|switching power suppl(?:y|ies)|smps|regulated power suppl(?:y|ies)|dc power suppl(?:y|ies)|\bpsu\b|netzteil|stromversorgung|alimentation|alimentatore)\b/i, 755),
+  rule("Connector", /\btransformer tank grounding connectors?\b/i, 860),
   rule("Transformer", /\b(?:control transformer|isolation transformer|step[-\s]?down transformer|step[-\s]?up transformer|toroidal transformer|\btransformer\b|transformator|\btrafo\b|transformateur|trasformatore)\b/i, 750),
   rule("Current Transformer", /\bcurrent transformers?\b/i, 960),
   rule("Current Sensor", /\b(?:current sensor|current transducer|residual current monitor|current transformer|external neutral|homopolar toroid)\b/i, 745),
@@ -227,6 +228,7 @@ const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
   rule("Wire Marker", /\b(?:wire marker|cable marker|wire label|cable label|cable tag|wire ferrule|terminal marker|terminal label|marking tag|marker card)\b/i, 750),
   rule("Terminal Block", /\b(?:terminal block|power terminal|terminal strip|pluggable terminal|push[-\s]?in terminal|spring[-\s]?clamp terminal|screw terminal block|reihenklemme(?:n)?|klemmenblock|\bklemme(?:n)?\b|bornier|morsetto)\b/i, 740),
   rule("Cable Gland", /\b(?:cable gland|\bgland\b|cord grip|multi[-\s]?entry(?: system)?)\b/i, 735),
+  rule("Mounting Accessory", /\b(?:conduit|pipe)\s+to\s+(?:rod|wire|beam|stud)\s+(?:clip|clamp)\b|\bsnap[-\s]?close\s+conduit\s+to\s+rod\/wire\s+clip\b/i, 825),
   // These Rittal components route/secure cables; they are mounting accessories, not electrical
   // cable products that need voltage/current ratings.
   rule("Mounting Accessory", /\b(?:section for cable entry|cable link)\b/i, 825),

@@ -84,13 +84,19 @@ export function nventProductUrl(catalogNumber: string): string {
   if (/^\d{4,}-\d+$/.test(sku)) {
     return `https://www.nvent.com/en-us/schroff/products/enc${sku}/`;
   }
-  if (/^\d{4,8}$/.test(sku) || /^(?:gpe|ecr|gr|ehl|egba|ph|edt)\w*/i.test(sku) || /^b2700a2c1wh$/i.test(sku)) {
+  // SCHROFF's intelligent-PDU catalog uses EN prefixes, while ERICO
+  // PermaGround connectors use CC codes. Keep these ahead of the Hoffman
+  // default so exact official brand routes are tried first for new families.
+  if (/^en\d+/i.test(sku)) {
+    return `https://www.nvent.com/en-us/schroff/products/enc${sku}/`;
+  }
+  if (/^\d{4,8}$/.test(sku) || /^(?:gpe|ecr|gr|ehl|egba|ph|edt|cc\d)\w*/i.test(sku) || /^b2700a2c1wh$/i.test(sku)) {
     return `https://www.nvent.com/en-us/erico/products/efs${sku}/`;
   }
   // CADDY's 410-series clevis hangers use a numeric-leading item code, unlike
   // the more familiar CAT/PCS/WBT prefixes. Keep the family route ahead of
   // the generic Hoffman fallback; exact SKU identity is still checked on-page.
-  if (/^(?:410\d{4,}(?:[a-z]+)?|pcs\w*|cat\w*|ec\w*|cablecat\w*|wbt\w*)$/i.test(sku)) {
+  if (/^(?:410\d{4,}(?:[a-z]+)?|4z\d+[a-z]*|pcs\w*|cat\w*|ec\w*|cablecat\w*|wbt\w*)$/i.test(sku)) {
     return `https://www.nvent.com/en-us/caddy/products/efs${sku}/`;
   }
   return `https://www.nvent.com/en-us/hoffman/products/enc${sku}/`;
@@ -185,12 +191,15 @@ export class NventConnector implements ManufacturerConnector {
             fastIdentityCapture: true,
             // Wake once nVent's identity metadata exists; the exact canonical URL/SKU proof below
             // remains authoritative and rejects a different SKU even if this selector matches.
-            waitForSelectors: ["meta[property='coveo:product_item_sku'], meta[property='coveo:product_item_catalog_num']"]
+            waitForSelectors: ["meta[property='coveo:product_item_sku'], meta[property='coveo:product_item_catalog_num']"],
+            waitForOptionalSelectors: ["img[src*='product_and_sku_image'], img[data-src*='product_and_sku_image']"],
+            optionalSelectorTimeoutMs: 1000
           }
         };
         debugTiming("browser fallback start");
         let rendered = await context.browserRenderer.renderProductPage(url, fastBrowserRecipe, context.signal);
         let exactBrowserPage = Boolean(rendered.fetched && isExactNventProductPage(rendered.fetched, catalogNumber, url));
+        debugNventIdentity(catalogNumber, "fast browser capture", rendered.fetched, url, exactBrowserPage);
         debugTiming(`fast browser capture exact=${exactBrowserPage}`);
         if (!exactBrowserPage) {
           await context.browserRenderer.discardFastIdentityPage(url);
@@ -207,6 +216,7 @@ export class NventConnector implements ManufacturerConnector {
           };
           rendered = await context.browserRenderer.renderProductPage(url, robustBrowserRecipe, context.signal);
           exactBrowserPage = Boolean(rendered.fetched && isExactNventProductPage(rendered.fetched, catalogNumber, url));
+          debugNventIdentity(catalogNumber, "robust browser fallback", rendered.fetched, url, exactBrowserPage);
           debugTiming(`robust browser fallback exact=${exactBrowserPage}`);
         }
         if (rendered.fetched && exactBrowserPage) {
@@ -343,6 +353,23 @@ export class NventConnector implements ManufacturerConnector {
       return emptyResult("nvent", catalogNumber, `nVent direct product fetch failed: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
+}
+
+function debugNventIdentity(catalogNumber: string, stage: string, fetched: FetchedText | undefined, requestedUrl: string, accepted: boolean): void {
+  if (process.env.DEBUG_NVENT !== "1") return;
+  if (!fetched) {
+    console.warn(`[nVent] ${catalogNumber} ${stage} no fetched document`);
+    return;
+  }
+  const $ = cheerio.load(fetched.text);
+  const canonical = $("link[rel='canonical']").attr("href") ?? fetched.effectiveUrl;
+  const skuMetadata = $("meta[property='coveo:product_item_sku'], meta[property='coveo:product_item_catalog_num']")
+    .toArray()
+    .map((element) => $(element).attr("content"))
+    .filter(Boolean)
+    .slice(0, 4)
+    .join(",");
+  console.warn(`[nVent] ${catalogNumber} ${stage} identity accepted=${accepted} status=${fetched.statusCode} url=${fetched.effectiveUrl} canonical=${canonical} sku=${skuMetadata || "<none>"} requested=${requestedUrl}`);
 }
 
 export function isExactNventProductPage(fetched: FetchedText, catalogNumber: string, expectedUrl: string): boolean {

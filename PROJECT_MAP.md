@@ -279,7 +279,7 @@ Politike u `ManufacturerConfig.scrapeRecipe`: `DiscoveryPolicyConfig`, `Interact
 | --- | --- |
 | `index.ts` | `getConnector` |
 | `types.ts` | `ScrapeContext` (uklj. per-item `discoveryMemo` koji connector/fallback/final retry dijele), `ManufacturerConnector` (scrape + opcionalni `enrichDocuments` nakon mjerenog scrapea) |
-| `InteractionPolicyConfig.fastIdentityCapture` | Ubrzani browser dohvat za stranice koje se mogu provjeriti kratkim identitetskim selectorom; preskače network-idle/Cloudflare čekanje i capture iframe/shadow/network sadržaja. Za ponovne istodomain upite isti `BrowserRenderSession` koristi `fetch()` iz identitetski označene stranice umjesto nove navigacije. Konektor mora naknadno potvrditi kanonski URL i traženi SKU te pozvati `discardFastIdentityPage` ako provjera ne prođe |
+| `InteractionPolicyConfig.fastIdentityCapture` | Ubrzani browser dohvat za stranice koje se mogu provjeriti kratkim identitetskim selectorom; preskače network-idle/Cloudflare čekanje i capture iframe/shadow/network sadržaja, ali može nakratko čekati lazy sadržaj kroz `waitForOptionalSelectors`. Za ponovne istodomain upite isti `BrowserRenderSession` koristi `fetch()` iz identitetski označene stranice umjesto nove navigacije. Konektor mora naknadno potvrditi kanonski URL i traženi SKU te pozvati `discardFastIdentityPage` ako provjera ne prođe |
 | `http-client.ts` | `CachedHttpClient`, `FetchedText`, `delay`, `DEFAULT_USER_AGENT` (aktualni Chrome UA; ABB/Siemens Akamai edge odbija stare verzije). Primarni tekstualni fetch (`fetchTextWithRetry`) ide preko `got-scraping` (`fetchViaGotScraping`, `useHeaderGenerator:false` da headeri ostanu deterministički za cache-key) umjesto golog `fetch()` — curl/PowerShell fallbackovi i `fetchBufferWithRetry` (downloadi slika/dokumenata) namjerno ostaju na golom `fetch()` |
 | `browser-renderer.ts` | `BrowserRenderSession`, `renderProductPage`, `RenderedPage`, `ModalSection`, `clickSafeSelectors`, `captureFrameFragments`, `captureShadowDomFragments` (zadnja tri exportana za testove: klik-petlja s re-scanom + iframe + shadow-DOM capture). Browser je `patchright` (fallback na `playwright` ako nedostupan; `PRODUCT_SCRAPER_STEALTH_BROWSER=0` prisilno vraća na `playwright`), context gradi `createFingerprintedContext` preko `fingerprint-injector`/`fingerprint-generator` (fallback na stari fiksni UA/viewport). `applyRequestFiltering` (jedan `page.route` po pageu) kombinira opt-in `blockResourceTypes` s default-on ad/tracker blockom (`ad-block-domains.ts`; opt-out `interactionPolicy.disableAdBlock`). `waitForNonInteractiveCloudflareChallenge` (bounded, 8s default) čeka da Cloudflareov `cType: 'non-interactive'\|'managed'` marker nestane prije nastavka — "interactive" (checkbox) Turnstile namjerno nije handlean |
 | `ad-block-domains.ts` | `AD_BLOCK_DOMAINS`, `isAdBlockedHost`, `isAdBlockedUrl` — vendana Peter Lowe ad/tracker lista (~3500 domena, ista koju koristi Scraplingov `block_ads`), suffix-chain matcher; regenerirati re-fetchanjem izvora, ne ručno editirati |
@@ -352,7 +352,10 @@ odgovara ulazu; globalna ABB pretraga i PIS pretraga rezervni su put za komercij
 izravni PIS nema zapis. Njemački opis uzima se iz PIS zapisa, a PDT fizičke mjere daju prednost `Product Net` nad
 referentnim mjerama.
 `rittal.ts` koristi službeni `/products/show/{orderNumber}` resolver prvo, generički PDP parser
-zatim zajednički discovery fallback. `nvent` i `phoenix` ostaju config-driven. Vanjska web-pretraga
+zatim zajednički discovery fallback. `nvent.ts` bira nVent brand podstranicu iz kataloškog prefiksa
+(SCHROFF `EN` i numerički kodovi s crticom, ERICO `CC`/`EGBA`/digitalni proizvodi, CADDY `4Z`/PCS/CAT/410),
+pa prihvaća stranicu samo uz točan kanonski URL i SKU dokaz; time se izbjegavaju skupi Hoffman fallbacki
+za nove podbrendove. `phoenix` ostaje config-driven. Vanjska web-pretraga
 za Rittal ostaje opt-in preko `PRODUCT_SCRAPER_ALLOW_EXTERNAL_SEARCH=1`.
 `balluff.ts` vraća izravnu službenu stranicu ranije kada točan kataloški broj, slika, datasheet link,
 napon, zaštita i korisni tehnički podaci već postoje; preuzimanje i PDF obogaćivanje tada radi

@@ -47,8 +47,11 @@ describe("nVent brand route resolution", () => {
     ["EGBA14418LL", "https://www.nvent.com/en-us/erico/products/efsegba14418ll/"],
     ["EDT230031R", "https://www.nvent.com/en-us/erico/products/efsedt230031r/"],
     ["B2700A2C1WH", "https://www.nvent.com/en-us/erico/products/efsb2700a2c1wh/"],
+    ["CC207", "https://www.nvent.com/en-us/erico/products/efscc207/"],
+    ["EN1350", "https://www.nvent.com/en-us/schroff/products/encen1350/"],
     ["GPECNED096", "https://www.nvent.com/en-us/erico/products/efsgpecned096/"],
     ["PCS2", "https://www.nvent.com/en-us/caddy/products/efspcs2/"],
+    ["4Z34812M", "https://www.nvent.com/en-us/caddy/products/efs4z34812m/"],
     ["4100150EG", "https://www.nvent.com/en-us/caddy/products/efs4100150eg/"],
     ["DAH4001B", "https://www.nvent.com/en-us/hoffman/products/encdah4001b/"]
   ])("maps %s to its expected official brand path", (catalogNumber, expectedUrl) => {

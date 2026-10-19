@@ -526,6 +526,12 @@ export class BrowserRenderSession {
       }
       if (fastIdentityCapture) {
         const identitySelectorFound = await waitForRecipeSelectors(page, recipe?.interactionPolicy?.waitForSelectors ?? [], signal, 250);
+        await waitForRecipeSelectors(
+          page,
+          recipe?.interactionPolicy?.waitForOptionalSelectors ?? [],
+          signal,
+          recipe?.interactionPolicy?.optionalSelectorTimeoutMs ?? 1000
+        );
         debugRenderTiming(`identity selector checked exactMarker=${identitySelectorFound}`);
         if (identitySelectorFound && fastPageKey) {
           this.fastIdentityPages.set(fastPageKey, page);

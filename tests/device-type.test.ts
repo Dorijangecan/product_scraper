@@ -220,6 +220,24 @@ describe("device type classifier", () => {
     expect(result.type).toBe("Transformer");
   });
 
+  it("classifies a transformer tank grounding connector as a connector", () => {
+    const result = classifyDeviceType(product(
+      [{ group: "Product attributes", name: "Product Type", value: "Transformer Tank Grounding Connector", sourceType: "official" }],
+      "Transformer Tank Grounding Connector, Tinned",
+      { manufacturerId: "nvent", catalogNumber: "CC207" }
+    ));
+    expect(result.type).toBe("Connector");
+  });
+
+  it("classifies conduit-to-rod clips as mounting accessories", () => {
+    const result = classifyDeviceType(product(
+      [],
+      "Snap Close Conduit to Rod/Wire Clip 1/2\"-3/4\" EMT",
+      { manufacturerId: "nvent", catalogNumber: "4Z34812M" }
+    ));
+    expect(result.type).toBe("Mounting Accessory");
+  });
+
   it("classifies Balluff pressure sensors despite their M12 connector detail", () => {
     const result = classifyDeviceType(product(
       [{ group: "Balluff Key features", name: "Product type", value: "Digital pressure sensors with display", sourceType: "official" }],
