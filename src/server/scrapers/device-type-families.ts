@@ -261,6 +261,7 @@ export const DEVICE_TYPE_FAMILIES: Record<string, readonly FamilyEntry[]> = {
     { patterns: ["E-1072"], type: "Relay", notes: "E-T-A solid-state remote power controller" },
     { patterns: ["CPC12"], type: "Communication Gateway", notes: "E-T-A ControlPlex bus controller" },
     { patterns: ["SCS1000"], type: "Power Distribution Unit", notes: "E-T-A intelligent SCS power distribution system" },
+    { patterns: ["MM500", "PowerPlex Mini Modul", "PowerPlex Mini Module"], type: "Power Distribution Unit", notes: "E-T-A PowerPlex Mini Modules for DC load distribution and control" },
     { patterns: ["X3120", "X3130"], type: "Power Entry Module", notes: "E-T-A power entry module with integral circuit protection" },
     { patterns: ["REX", "3120", "2210", "ESS"], type: "Circuit Breaker" }
   ],

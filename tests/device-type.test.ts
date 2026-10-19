@@ -211,6 +211,15 @@ describe("device type classifier", () => {
     expect(deviceSheetsFor(result.type)).toContain("el. mesurement devices");
   });
 
+  it("classifies E-T-A PowerPlex Mini Modules as power distribution units", () => {
+    const result = classifyDeviceType(product(
+      [],
+      "Typ PowerPlex® Mini Modul MM500",
+      { manufacturerId: "eta", catalogNumber: "MM500" }
+    ));
+    expect(result.type).toBe("Power Distribution Unit");
+  });
+
   it("classifies the Schneider ABL6TS control transformer family as a transformer", () => {
     const result = classifyDeviceType(product(
       [{ group: "PDF datasheet", name: "Product or component type", value: "Safety and isolation transformer", sourceType: "generated", matchLevel: "exact" }],

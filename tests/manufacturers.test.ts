@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { listManufacturerConfigs } from "../src/server/config/manufacturers.js";
 import type { FallbackSourceConfig } from "../src/shared/types.js";
+import { evaluateQualityGate } from "../src/server/scrapers/quality-gate.js";
 import { ABBConnector } from "../src/server/scrapers/abb.js";
 import { BalluffConnector } from "../src/server/scrapers/balluff.js";
 import { EatonConnector } from "../src/server/scrapers/eaton.js";
@@ -223,7 +224,14 @@ describe("manufacturer configuration", () => {
               productUrl: expectedUrl,
               normalized: {},
               attributes: [],
-              documents: catalogNumber === "CPC12PN" ? [
+              documents: catalogNumber === "MM500" ? [
+                { type: "image", label: "Product image", url: "https://www.e-t-a.de/MM500.png" },
+                {
+                  type: "other",
+                  label: "Datenblatt",
+                  url: "https://www.e-t-a.de/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/int_Stromverteilung/PowerPlex/1_de/D_PP_Mini_Modul_MM500_de.pdf"
+                }
+              ] : catalogNumber === "CPC12PN" ? [
                 { type: "datasheet", label: "Datasheet CPC12EC", url: "https://global.e-t-a.com/D_CPC12EC_en.pdf" },
                 { type: "datasheet", label: "Datasheet CPC12PN", url: "https://global.e-t-a.com/D_CPC12PN_en.pdf" },
                 { type: "manual", label: "I_CPC12EN_manual.pdf", url: "https://global.e-t-a.com/I_CPC12EN_manual.pdf" },
@@ -266,6 +274,11 @@ describe("manufacturer configuration", () => {
       expect(result.status).toBe("partial");
       if (catalogNumber === "CPC12PN") {
         expect(result.documents.map((document) => document.label)).toEqual(["Datasheet CPC12PN", "Product image"]);
+      }
+      if (catalogNumber === "MM500") {
+        expect(result.documents.map((document) => document.type)).toEqual(["image", "datasheet"]);
+        expect(result.documents[1].url).toContain("D_PP_Mini_Modul_MM500_de.pdf");
+        expect(evaluateQualityGate(result, manufacturer, catalogNumber).missing).not.toContain("official-source");
       }
       if (catalogNumber === "E-1073-437") {
         expect(result.documents.map((document) => document.url)).toEqual([

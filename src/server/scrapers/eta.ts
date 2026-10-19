@@ -285,35 +285,43 @@ async function scrapeEtaDirectProductPage(
 
 function etaRelevantDirectDocuments(catalogNumber: string, documents: DocumentRecord[]): DocumentRecord[] {
   const e1073 = catalogNumber.match(/^E-1073-\d+$/i)?.[0].toUpperCase();
-  return documents.filter((document) => {
+  return documents.flatMap((document) => {
     if (document.type === "image") {
-      if (!e1073) return true;
+      if (!e1073) return [document];
       const codes = [...`${document.label} ${document.url}`.matchAll(/E-1073-\d+/gi)].map(([code]) => code.toUpperCase());
       // E-T-A sometimes puts an image for a related E-1073 variant on the requested model's
       // exact PDP. Keep it out unless both its label and asset identify only this exact model.
-      return codes.length > 0 && codes.every((code) => code === e1073);
+      return codes.length > 0 && codes.every((code) => code === e1073) ? [document] : [];
     }
 
     let pathname = "";
     try {
       pathname = new URL(document.url).pathname;
     } catch {
-      return false;
+      return [];
     }
-    if (!/\.pdf$/i.test(pathname)) return false;
+    if (!/\.pdf$/i.test(pathname)) return [];
+    const compactSku = catalogNumber.replace(/[^a-z0-9]/gi, "").toLowerCase();
+    const compactEvidence = `${document.label} ${document.url}`.replace(/[^a-z0-9]/gi, "").toLowerCase();
+    const exactProductLibraryPdf =
+      /\/fileadmin\/user_upload\/Ordnerstruktur\/pdf-Data\/Products\//i.test(pathname) && compactEvidence.includes(compactSku);
+    if (exactProductLibraryPdf && (document.type === "other" || document.type === "certificate")) {
+      // ETA's German PDP labels the exact product-library PDF "Datenblatt", but the generic
+      // classifier leaves that German label as "other". Exact SKU + product-data path is enough
+      // to recognize this linked technical datasheet without promoting general certificates.
+      return [{ ...document, type: "datasheet" }];
+    }
     if (document.type === "datasheet" || document.type === "manual") {
       // Only download actual product-library PDFs. Generic support links, JS download buttons,
       // navigation pages, and unrelated company-wide certificates were being parsed as docs.
-      const compactSku = catalogNumber.replace(/[^a-z0-9]/gi, "").toLowerCase();
-      const compactEvidence = `${document.label} ${document.url}`.replace(/[^a-z0-9]/gi, "").toLowerCase();
-      return /\/fileadmin\/user_upload\/Ordnerstruktur\/pdf-Data\/Products\//i.test(pathname) || compactEvidence.includes(compactSku);
+      return /\/fileadmin\/user_upload\/Ordnerstruktur\/pdf-Data\/Products\//i.test(pathname) || compactEvidence.includes(compactSku)
+        ? [document]
+        : [];
     }
     if (document.type === "certificate") {
-      const compactSku = catalogNumber.replace(/[^a-z0-9]/gi, "").toLowerCase();
-      const compactEvidence = `${document.label} ${document.url}`.replace(/[^a-z0-9]/gi, "").toLowerCase();
-      return compactEvidence.includes(compactSku);
+      return compactEvidence.includes(compactSku) ? [document] : [];
     }
-    return false;
+    return [];
   });
 }
 

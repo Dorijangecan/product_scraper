@@ -32,6 +32,8 @@ The follow-up GET check also failed to connect to the same known-good MRU10, X31
 
 ### 19 October transport diagnosis
 
+This section records the state before the extraction and official-domain fixes documented below.
+
 The isolated cold batch was repeated after an initial direct MM500 PDP GET returned HTTP 200 in 0.42 s. During the five-product repeat, MRU10, 1610-92, E-1048-8I, and X3120 again passed exact identity, source, required-document, device-type, normalized-field, and PDT checks; their core scrape times were 970 / 867 / 2,421 / 1,241 ms. MM500 then timed out before the connector returned a result, so the run remains 4/5 and has no valid MM500 scrape-time measurement. Report: `../../benchmark-report.fixtureDir-benchmarks-eta-accuracy-speed-20261015-batch-04.isolatedStorage-1.tag-eta-batch04-host-recovery-01.json`.
 
 A cold one-item trace reproduced the transport failure: the learned exact route's bounded curl-first request timed out while connecting after 5,009 ms, followed by the bounded HTTP/curl rescue; the connector returned no identity, fields, documents, or image in 15,099 ms. A subsequent direct probe, both with curl's default headers and with the scraper's Chrome 148 User-Agent and Accept header, also timed out at connection setup. This means the earlier 0.42 s response was transient; it does not establish a User-Agent parser or extraction fault. The repeated attempts target the same official URL and do not improve evidence after a connection-level outage. Trace report: `../../benchmark-report.catalogNumber-MM500.fixtureDir-benchmarks-eta-accuracy-speed-20261015-batch-04.isolatedStorage-1.tag-eta-mm500-isolation-trace-02.json`.
@@ -40,6 +42,19 @@ The source itself remains intermittent, so this batch cannot yet be accepted or 
 
 ### Route check — 19 October 2026
 
-The English `.com` URL appeared in current search results but direct retrieval returned HTTP 404. A fresh fetch of the German `.de` exact-product page succeeded and verified the MM500 identity, technical data, discontinuation dates, and datasheet link. The learned route and expected URL pattern remain on that live German page. Acceptance still requires the isolated scraper run to confirm identity, image, fields, and PDT output.
+The English `.com` URL appeared in current search results but direct retrieval returned HTTP 404. A fresh fetch of the German `.de` exact-product page succeeded and verified the MM500 identity, technical data, discontinuation dates, and datasheet link. The learned route and expected URL pattern remain on that live German page. At that point the isolated scraper had not yet confirmed identity, image, fields, and PDT output; those gates are covered by the acceptance runs below.
 
 Scraper-side probes on 19 October showed intermittent connection-level failures on that exact `.de` URL: one curl-first request returned HTTP 200, while subsequent attempts ended in `curl 28` after the 2.5-second connect timeout. A bounded curl retry was also tested, but the second connection attempt timed out too; it raised the failure latency to about 12 s without returning product data, so it was rejected. The exact route and strict identity/document gates remain unchanged. The batch stays unaccepted until a cold five-item run passes.
+
+### Accuracy repair and acceptance — 19 October 2026
+
+The successful HTTP 200 capture isolated the actual extraction blockers. ETA labels the linked exact-model PDF `Datenblatt`; the generic classifier returned document type `other`, so the ETA direct-route filter dropped it and the quality gate launched slow broad discovery. The connector now promotes a PDF to `datasheet` only when its URL is under ETA's product-data library and its label or URL contains the exact requested SKU. The German official host `www.e-t-a.de` was also missing from `officialBaseUrls`, causing valid exact PDP evidence to fail the authoritative-source gate. Added that host and the verified PowerPlex Mini Module device-family mapping. The expected source-attribute patterns now match the German PDP's inputs and LOD/LDD labels.
+
+The same five products then passed two isolated cold runs. Each run found 5/5 exact products, official pages, datasheets/images, device types, normalized fields, source attributes, and PDT audits; wrong products and unproven PDT writes were both 0.
+
+| Run | Core scrape mean | Median | Maximum | Full benchmark mean | Full maximum |
+|---|---:|---:|---:|---:|---:|
+| Cold 01 | 0.925 s | 0.940 s | 1.080 s | 7.754 s | 13.006 s |
+| Cold 02 | 0.863 s | 0.846 s | 1.003 s | 7.661 s | 13.578 s |
+
+Every core scrape is below the 2.5-second target. Full benchmark time also includes document downloads, PDF parsing, workbook generation, and PDT export. Reports: `../../benchmark-report.manufacturer-eta.limit-5.fixtureDir-benchmarks-eta-accuracy-speed-20261015-batch-04.isolatedStorage-1.tag-eta-batch-04-pdf-type-domain-device-type-cold-01-20261019.json` and `../../benchmark-report.manufacturer-eta.limit-5.fixtureDir-benchmarks-eta-accuracy-speed-20261015-batch-04.isolatedStorage-1.tag-eta-batch-04-pdf-type-domain-device-type-cold-02-20261019.json`.
