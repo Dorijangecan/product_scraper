@@ -98,13 +98,13 @@ const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
   rule("Pressure Switch", /\bpressure\s+switch\b/i, 870),
   rule("Pressure Sensor", /\bpressure\s+(?:sensors?|transmitters?|transducers?)\b/i, 900),
   rule("Temperature Sensor", /\b(?:temperature\s+(?:sensors?|probes?|transmitters?|transducers?)|thermocouple|\brtd\b|pt100|pt1000)\b/i, 900),
-  rule("Thermostat", /\b(?:room\s+thermostats?|thermostats?)\b/i, 925),
+  rule("Thermostat", /\b(?:room\s+thermostats?|thermostats?|temperature\s+control\s+switch(?:es)?(?:\s+for\s+heaters?)?)\b/i, 935),
   // Keep enclosure climate products distinct for type-specific completeness, while routing
   // them to the same cabinet air-conditioning PDT sheet as the broader thermal category.
   rule("Air Conditioner", /\b(?:air conditioners?|conditioner,\s*(?:ng\s+)?air)\b/i, 930),
   rule("Filter Fan", /\bfilter\s+fans?\b/i, 925),
   rule("Heat Exchanger", /\b(?:heat\s+exchangers?|exchangers?,?\s*heat)\b/i, 922),
-  rule("Heater", /\b(?:enclosure\s+heaters?|cabinet\s+heaters?|heaters?\s*[-,]?\s*\d+\s*W)\b/i, 921),
+  rule("Heater", /\b(?:enclosure\s+heaters?|cabinet\s+heaters?|semiconductor\s+heaters?|heaters?\s*[-,]?\s*\d+\s*W)\b/i, 921),
   rule("Rain Hood", /\b(?:rain\s+hoods?|hoods?,?\s*rain)\b/i, 720),
   rule("Pull-Out Shelf", /\b(?:pull[-\s]?out\s+(?:shelf|shelves)|(?:shelf|shelves),?\s*pull[-\s]?out)\b/i, 715),
   rule("Window Kit", /\b(?:window\s+kits?|kits?,?\s*(?:s\.?s\.?\s+)?window)\b/i, 710),
@@ -206,6 +206,7 @@ const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
     /\b(?:server rack|network rack|\brack cabinet\b|(?:communication\s+and\s+server|server|network)\s+cabinet|cabinet\b(?=[\s\S]{0,180}\b(?:servers?|network|rack[-\s]?mount|rack\s+(?:unit|spacing|angle)s?|\d+\s*u\b))|(?:rack[-\s]?mount|rack\s+(?:unit|spacing)s?|\d+\s*u\b)[\s\S]{0,180}\bcabinet\b)\b/i,
     765
   ),
+  rule("Rack Cabinet", /\b(?:19[\s\"”-]*)?rack[-\s]?mount(?:ed)? chassis\b|\bchassis based on the [^.;]{0,80} platform\b/i, 955),
   rule("Wireway", /\b(?:wireway|wire duct|cable duct|cable tray|cable channel|cable trunking)\b/i, 760),
   rule("Subpanel", /\b(?:sub[-\s]?panels?|back[-\s]?panels?|mounting panels?|mounting plates?)\b/i, 755),
   rule("Mounting Accessory", /\bmounting plate attachment\b/i, 825),
@@ -508,7 +509,10 @@ export function classifyDeviceType(result: ProductResult | undefined): DeviceTyp
 
   // --- Channel 3: URL path patterns ---
   const productUrl = result.productUrl ?? result.localizedUrls?.en;
-  const urlMatch = urlTypeFor(productUrl);
+  // nVent's `/products/enc...` route is an internal content identifier shared by
+  // enclosure accessories, climate devices, and enclosures. It does not identify
+  // the product type, so exact nVent PDP categories/titles must determine type.
+  const urlMatch = result.manufacturerId === "nvent" ? undefined : urlTypeFor(productUrl);
   if (urlMatch) {
     signals.push({
       type: urlMatch.type,
@@ -840,6 +844,10 @@ function isRackCabinetSignalAttribute(attr: AttributeRecord): boolean {
 function attributeDeviceTypePriority(attr: AttributeRecord, manufacturerId?: string, result?: ProductResult): number | undefined {
   const label = `${attr.group ?? ""} ${attr.name}`.toLowerCase();
   if (/\b(?:recommended alternative|similar part|related part|accessory|used with|spare part)\b/.test(label)) return undefined;
+  // Approval certificates often list the broad product family under "Product Name"
+  // (for example "Industrial Control Enclosure Accessories"). That describes the
+  // certificate scope, not the exact catalog item, so it must not overrule the PDP type.
+  if (/\bcertificate\b/i.test(attr.group ?? "") && /^(?:product name|product category|category)\s*:?$/i.test(attr.name.trim())) return undefined;
   if (
     manufacturerId === "eaton" &&
     result &&
@@ -892,6 +900,18 @@ function attributeDeviceTypePriority(attr: AttributeRecord, manufacturerId?: str
     }
     return 980;
   }
+  // nVent's product page exposes an item-level category in structured data, but generic
+  // metadata elsewhere on the same page often says only "enclosure". Promote that category
+  // only when the page URL is the exact brand route derived for this catalog number and the
+  // category text maps to a known, specific device type.
+  if (
+    manufacturerId === "nvent" &&
+    result &&
+    attr.parser === "nvent-direct" &&
+    isExactNventSkuPage(attr.sourceUrl, result.catalogNumber) &&
+    /^(?:product type|product category|category|type)$/i.test(attr.name.trim()) &&
+    strongestDeviceTypeRulePriority(attr.value) >= 850
+  ) return 1_280;
   // Rittal uses a direct "Design" PDP field for the functional subtype of CMC products
   // (for example "Access sensor"). Only promote it when the value itself matches a known
   // device-type rule, so enclosure construction/door design prose cannot become type evidence.
@@ -925,6 +945,27 @@ function isExactEatonSkuPage(url: string | undefined, catalogNumber: string): bo
   } catch {
     return false;
   }
+}
+
+function isExactNventSkuPage(url: string | undefined, catalogNumber: string): boolean {
+  if (!url || !catalogNumber) return false;
+  try {
+    const actual = new URL(url);
+    const expected = new URL(nventProductUrlForTypeCheck(catalogNumber));
+    const normalizePath = (value: string) => value.replace(/\/+$/, "").toLowerCase();
+    return actual.hostname.toLowerCase() === expected.hostname.toLowerCase() &&
+      normalizePath(actual.pathname) === normalizePath(expected.pathname);
+  } catch {
+    return false;
+  }
+}
+
+function nventProductUrlForTypeCheck(catalogNumber: string): string {
+  const sku = catalogNumber.trim().toLowerCase();
+  if (/^\d{4,}-\d+$/.test(sku)) return `https://www.nvent.com/en-us/schroff/products/enc${sku}/`;
+  if (/^\d{4,8}$/.test(sku) || /^(?:gpe|ecr|gr|ehl|egba|ph)\w*/i.test(sku)) return `https://www.nvent.com/en-us/erico/products/efs${sku}/`;
+  if (/^(?:pcs|cat|ec|cablecat|wbt)\w*/i.test(sku)) return `https://www.nvent.com/en-us/caddy/products/efs${sku}/`;
+  return `https://www.nvent.com/en-us/hoffman/products/enc${sku}/`;
 }
 
 function addCandidate(candidates: DeviceTypeCandidate[], candidate: Omit<DeviceTypeCandidate, "value" | "text"> & { value?: string; text?: string }) {

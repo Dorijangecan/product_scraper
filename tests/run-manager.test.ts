@@ -333,6 +333,55 @@ describe("run manager document downloads", () => {
     expect(documentDownloadProfile({ id: "sce" }, { ...result, qualityGate: { ...result.qualityGate!, passed: false } }, { saveDocuments: false })).toBe("quality");
   });
 
+  it("skips nVent PDFs only for exact passive product pages with complete type-specific fields", () => {
+    const pageUrl = "https://www.nvent.com/en-us/caddy/products/efspcs2";
+    const base = {
+      manufacturerId: "nvent",
+      catalogNumber: "PCS2",
+      status: "found",
+      confidence: 0.96,
+      title: "Cable support clip, steel",
+      productUrl: pageUrl,
+      normalized: { material: "Steel" },
+      attributes: [
+        ...Array.from({ length: 10 }, (_, index) => ({ name: `Field ${index}`, value: `Value ${index}`, sourceUrl: pageUrl, sourceType: "official", parser: "nvent-direct" })),
+        { name: "Catalog Number", value: "PCS2", sourceUrl: pageUrl, sourceType: "official", parser: "nvent-direct" },
+        { name: "Material", value: "Steel", sourceUrl: pageUrl, sourceType: "official", parser: "nvent-direct" }
+      ],
+      documents: [{ type: "image", label: "Product image", url: `${pageUrl}/image`, sourceType: "official" }],
+      sources: [{ url: pageUrl, sourceType: "official", parser: "nvent-direct", fetchedAt: new Date(0).toISOString() }],
+      qualityGate: { passed: true, identityConfirmed: true, score: 100, missing: [], reason: "Complete", attempts: [] }
+    } as ProductResult;
+
+    expect(documentDownloadProfile({ id: "nvent" }, base, { saveDocuments: false })).toBe("images-only");
+    expect(documentDownloadProfile({ id: "nvent" }, base, { saveDocuments: true })).toBe("full");
+    expect(documentDownloadProfile({ id: "nvent" }, { ...base, normalized: {} }, { saveDocuments: false })).toBe("quality");
+    expect(documentDownloadProfile({ id: "nvent" }, { ...base, catalogNumber: "PCS3" }, { saveDocuments: false })).toBe("quality");
+    expect(documentDownloadProfile({ id: "nvent" }, { ...base, qualityGate: { ...base.qualityGate!, passed: false } }, { saveDocuments: false })).toBe("quality");
+
+    const fanUrl = "https://www.nvent.com/en-us/hoffman/products/enchf0516514";
+    const fan = {
+      ...base,
+      catalogNumber: "HF0516514",
+      title: "Filter Fan 115V 0.16A",
+      productUrl: fanUrl,
+      normalized: { dimensions: "6.15 x 6.16 x 3.98 in", voltage: "115 V", current: "0.16 A" },
+      attributes: [
+        ...Array.from({ length: 8 }, (_, index) => ({ name: `Field ${index}`, value: `Value ${index}`, sourceUrl: fanUrl, sourceType: "official", parser: "nvent-direct" })),
+        { name: "Catalog Number", value: "HF0516514", sourceUrl: fanUrl, sourceType: "official", parser: "nvent-direct" },
+        { name: "Nominal Voltage", value: "115V", sourceUrl: fanUrl, sourceType: "official", parser: "nvent-direct" },
+        { name: "Max Current", value: "0.16A", sourceUrl: fanUrl, sourceType: "official", parser: "nvent-direct" },
+        { name: "Height", value: "6.15in", sourceUrl: fanUrl, sourceType: "official", parser: "nvent-direct" },
+        { name: "Width", value: "6.16in", sourceUrl: fanUrl, sourceType: "official", parser: "nvent-direct" },
+        { name: "Depth", value: "3.98in", sourceUrl: fanUrl, sourceType: "official", parser: "nvent-direct" }
+      ],
+      documents: [{ type: "image", label: "Product image", url: `${fanUrl}/image`, sourceType: "official" }],
+      sources: [{ url: fanUrl, sourceType: "official", parser: "nvent-direct", fetchedAt: new Date(0).toISOString() }]
+    } as ProductResult;
+    expect(documentDownloadProfile({ id: "nvent" }, fan, { saveDocuments: false })).toBe("images-only");
+    expect(documentDownloadProfile({ id: "nvent" }, { ...fan, attributes: fan.attributes.filter((attribute) => attribute.name !== "Max Current") }, { saveDocuments: false })).toBe("quality");
+  });
+
   it("allows complete customer documents to short-circuit official lookup for unseen manufacturers", () => {
     const result = customerOnlyResult({
       manufacturerId: "unseen-maker",

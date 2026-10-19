@@ -31,6 +31,7 @@ import { CachedHttpClient, delay } from "./scrapers/http-client.js";
 import { getConnector } from "./scrapers/index.js";
 import type { ScrapeContext } from "./scrapers/types.js";
 import { emptyResult } from "./scrapers/normalizer.js";
+import { classifyDeviceType } from "./scrapers/device-type.js";
 import { finalizeQualityGate } from "./scrapers/quality-gate.js";
 import {
   applyFinalCompletenessStatus,
@@ -1842,6 +1843,7 @@ export function documentDownloadProfile(
 ): DocumentDownloadProfile {
   if (options.saveDocuments === false) {
     if (hasCompleteAbbOfficialProductData(result)) return "images-only";
+    if (hasCompleteNventPassiveProductData(result)) return "images-only";
     if (
       manufacturer.id === "sce" &&
       result.qualityGate?.passed === true &&
@@ -1857,6 +1859,45 @@ export function documentDownloadProfile(
   if (manufacturer.id === "eaton") return "quality";
   if (options.saveDocuments === true) return "full";
   return manufacturer.scrapeRecipe?.fallbackPolicy?.documentDownloadProfile ?? "full";
+}
+
+function hasCompleteNventPassiveProductData(result: ProductResult): boolean {
+  if (result.manufacturerId !== "nvent" || result.qualityGate?.passed !== true || result.qualityGate.identityConfirmed !== true) return false;
+  const exactUrl = result.productUrl ?? result.localizedUrls?.en;
+  if (!exactUrl || !/^https:\/\/www\.nvent\.com\//i.test(exactUrl)) return false;
+  if (!result.sources.some((source) => source.sourceType === "official" && source.parser === "nvent-direct" && source.url === exactUrl)) return false;
+  const officialPageAttributes = result.attributes.filter((attribute) =>
+    attribute.sourceType === "official" && attribute.parser === "nvent-direct" && attribute.sourceUrl === exactUrl
+  );
+  if (officialPageAttributes.length < 10) return false;
+  const identityMatches = officialPageAttributes.some((attribute) =>
+    /^(?:catalog\s*#?|catalogue\s*number|catalog\s*number|sku|article\s*number)$/i.test(attribute.name.trim()) &&
+    attribute.value.replace(/[^a-z0-9]/gi, "").toUpperCase() === result.catalogNumber.replace(/[^a-z0-9]/gi, "").toUpperCase()
+  );
+  if (!identityMatches || !result.documents.some((document) => document.type === "image" && document.sourceType === "official")) return false;
+
+  const requiredFieldsByType: Record<string, string[]> = {
+    Cable: ["material"],
+    Busbar: ["dimensions", "material", "wallThickness"],
+    "Rack Cabinet": ["dimensions", "material"],
+    "Filter Fan": ["dimensions", "voltage", "current"]
+  };
+  const requiredFields = requiredFieldsByType[classifyDeviceType(result).type ?? ""];
+  if (!requiredFields) return false;
+  if (!requiredFields.every((field) => Boolean(result.normalized[field as keyof ProductResult["normalized"]]))) return false;
+  const deviceType = classifyDeviceType(result).type;
+  if (deviceType === "Filter Fan") {
+    const hasExactPageElectricalEvidence = officialPageAttributes.some((attribute) =>
+      /^(?:nominal\s+voltage|rated\s+voltage|voltage)$/i.test(attribute.name.trim()) && /\d/.test(attribute.value)
+    ) && officialPageAttributes.some((attribute) =>
+      /^(?:max\s+current|rated\s+current|current)$/i.test(attribute.name.trim()) && /\d/.test(attribute.value)
+    );
+    if (!hasExactPageElectricalEvidence) return false;
+  } else if (result.normalized.current || result.normalized.voltage) {
+    // Prevent a malformed or unrelated document parser from being suppressed for passive products.
+    return false;
+  }
+  return true;
 }
 
 function hasCompleteAbbOfficialProductData(result: ProductResult): boolean {

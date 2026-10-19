@@ -225,9 +225,14 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
   const etaEai300NoNormalizedCurrent = manufacturerId === "eta" && attributes.some((attribute) =>
     /^https:\/\/(?:(?:global|www)\.)?e-t-a\.com\/products\/.+\/p\/eai300\/?$/i.test(attribute.sourceUrl ?? "")
   ) && !etaTypicalPowerConsumptionCurrent(attributes);
+  const nventPassiveSchroffRack = manufacturerId === "nvent" &&
+    attributes.some((attribute) => /^rack height$/i.test(attribute.name.trim())) &&
+    attributes.some((attribute) => /^usable width$/i.test(attribute.name.trim()));
   const currentAttributes = etaVariableE1073Current
     ? []
     : etaEai300NoNormalizedCurrent
+      ? []
+    : nventPassiveSchroffRack
       ? []
     : manufacturerId === "rittal"
     ? rittalPdpAttributes.filter(isRittalCurrentEvidence)
@@ -1870,11 +1875,11 @@ export function mergeResults(primary: ProductResult, fallback?: ProductResult): 
   const attributes = sortAttributesStable(dedupeAttributes([...primary.attributes, ...fallback.attributes]));
   const documents = dedupeDocuments([...primary.documents, ...fallback.documents]);
   const normalized = mergeNormalizedFields(
-    normalizeFields(attributes, documents, primary.manufacturerId === "rittal" || primary.manufacturerId === "schmersal" || primary.manufacturerId === "phoenix" || primary.manufacturerId === "schneider" || primary.manufacturerId === "doepke" || primary.manufacturerId === "sce" ? primary.manufacturerId : undefined),
+    normalizeFields(attributes, documents, primary.manufacturerId === "rittal" || primary.manufacturerId === "schmersal" || primary.manufacturerId === "phoenix" || primary.manufacturerId === "schneider" || primary.manufacturerId === "doepke" || primary.manufacturerId === "sce" || primary.manufacturerId === "nvent" ? primary.manufacturerId : undefined),
     primary.normalized,
     fallback.normalized,
     attributes,
-    primary.manufacturerId === "rittal" || primary.manufacturerId === "phoenix" || primary.manufacturerId === "schneider" || primary.manufacturerId === "doepke" || primary.manufacturerId === "sce" ? primary.manufacturerId : undefined
+    primary.manufacturerId === "rittal" || primary.manufacturerId === "phoenix" || primary.manufacturerId === "schneider" || primary.manufacturerId === "doepke" || primary.manufacturerId === "sce" || primary.manufacturerId === "nvent" ? primary.manufacturerId : undefined
   );
   const hasFallbackAdditions = fallback.status !== "failed" && (fallback.attributes.length > 0 || fallback.documents.length > 0);
   return {
@@ -2713,6 +2718,9 @@ function mergeNormalizedFields(
   );
   const suppressSchneiderLightCurtainCurrent = manufacturerId === "schneider" && isSchneiderSafetyLightCurtain(attributes);
   const suppressSchneiderM221OutputCurrent = manufacturerId === "schneider" && isSchneiderM221OutputCurrent(attributes);
+  const suppressNventPassiveSchroffCurrent = manufacturerId === "nvent" &&
+    attributes.some((attribute) => /^rack height$/i.test(attribute.name.trim())) &&
+    attributes.some((attribute) => /^usable width$/i.test(attribute.name.trim()));
   const phoenixPreferredVoltage = manufacturerId === "phoenix" ? phoenixContactNormalizedVoltage(attributes) : undefined;
   const phoenixPreferredWeight = manufacturerId === "phoenix" ? phoenixProductNetWeight(attributes) : undefined;
   const phoenixPreferredCurrent = manufacturerId === "phoenix" && isPhoenixSurgeProtector(attributes)
@@ -2724,9 +2732,11 @@ function mergeNormalizedFields(
   else if (manufacturerId === "phoenix" && isPhoenixSurgeProtector(attributes)) delete merged.current;
   if (suppressPhoenixCurrent) delete merged.current;
   if (suppressSchneiderM221OutputCurrent) delete merged.current;
+  if (suppressNventPassiveSchroffCurrent) delete merged.current;
   for (const field of Object.keys(computed) as Array<keyof NormalizedProductFields>) {
     if (merged[field]) continue;
     if (suppressDoepkeRurContactCurrent && field === "current") continue;
+    if (suppressNventPassiveSchroffCurrent && field === "current") continue;
     if (suppressPhoenixCurrent && field === "current") continue;
     if (suppressSchneiderM221OutputCurrent && field === "current") continue;
     if (suppressSchneiderLightCurtainCurrent && field === "current") continue;

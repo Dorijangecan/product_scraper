@@ -22,7 +22,14 @@ export function filterNventProductImages(catalogNumber: string, documents: Docum
     // nVent. Product-gallery alt text often lists several valid sibling
     // variants; that is acceptable only when it also lists this exact SKU.
     const skuTokens = (text.match(/\b[A-Z]{1,}[A-Z0-9-]*\d[A-Z0-9-]*\b/gi) ?? [])
-      .filter((token) => !/^(?:type|ansi|nema|ip|ul|ce|cad|iso|iec|din)\d*$/i.test(token));
+      .filter((token) => !/^(?:type|ansi|nema|ip|ul|ce|cad|iso|iec|din)\d*$/i.test(token))
+      // nVent's ERICO/CADDY assets use PH + a numeric DAM image ID (for example
+      // PH6006.jpg). That is an asset key, not a competing catalog number.
+      .filter((token) => !/^PH\d{3,}$/i.test(token))
+      // A model code with XX is nVent's own wildcard family-photo label, not a
+      // concrete sibling SKU. Accept it only when it shares the requested SKU's
+      // leading family code; the surrounding page is still the exact SKU PDP.
+      .filter((token) => !isMatchingNventWildcardFamily(token, compactSku));
     if (skuTokens.some((token) => token.replace(/[^a-z0-9]/gi, "").length >= 5)) {
       const hasRequestedSku = skuTokens.some((token) => token.replace(/[^a-z0-9]/gi, "").toLowerCase() === compactSku);
       if (!hasRequestedSku) return true;
@@ -33,17 +40,18 @@ export function filterNventProductImages(catalogNumber: string, documents: Docum
   return documents.map((document) => {
     if (document.type !== "image") return document;
     const candidates = [document.url, ...(document.candidateUrls ?? [])].filter((url) => {
-      let stableUrl = url;
+      let imageName = url;
       try {
         const parsed = new URL(url);
-        // DAM cache tokens in query strings look like unrelated SKUs (for
-        // example `bwpzu4`) and must not influence product-image identity.
-        stableUrl = `${parsed.origin}${parsed.pathname}`;
+        // DAM directory IDs and transformation/query parameters are not SKU
+        // evidence. Check only the actual filename; model codes embedded there
+        // (such as a sibling DAH model) remain a rejection signal.
+        imageName = decodeURIComponent(parsed.pathname.split("/").pop() || parsed.pathname);
       } catch {
         // Keep the original text for non-URL candidates; the caller will drop
         // them later if they cannot be downloaded.
       }
-      return !isRejected(`${document.label} ${stableUrl}`);
+      return !isRejected(`${document.label} ${imageName}`);
     });
     if (!candidates.length) return undefined;
     return {
@@ -54,18 +62,72 @@ export function filterNventProductImages(catalogNumber: string, documents: Docum
   }).filter((document): document is DocumentRecord => Boolean(document));
 }
 
+function isMatchingNventWildcardFamily(token: string, compactSku: string): boolean {
+  const compactToken = token.replace(/[^a-z0-9]/gi, "").toLowerCase();
+  const wildcardIndex = compactToken.indexOf("xx");
+  return wildcardIndex >= 4 && compactSku.startsWith(compactToken.slice(0, wildcardIndex));
+}
+
+/**
+ * Resolve nVent's brand path from stable catalog-number formats. The same
+ * nVent host serves several brands, and trying the Hoffman URL for every
+ * non-SCHROFF item creates slow, fruitless fallback chains for ERICO/CADDY.
+ * The page parser still requires exact catalog identity before accepting data.
+ */
+export function nventProductUrl(catalogNumber: string): string {
+  const sku = catalogNumber.trim().toLowerCase();
+  if (/^\d{4,}-\d+$/.test(sku)) {
+    return `https://www.nvent.com/en-us/schroff/products/enc${sku}/`;
+  }
+  if (/^\d{4,8}$/.test(sku) || /^(?:gpe|ecr|gr|ehl|egba|ph)\w*/i.test(sku)) {
+    return `https://www.nvent.com/en-us/erico/products/efs${sku}/`;
+  }
+  if (/^(?:pcs|cat|ec|cablecat|wbt)\w*/i.test(sku)) {
+    return `https://www.nvent.com/en-us/caddy/products/efs${sku}/`;
+  }
+  return `https://www.nvent.com/en-us/hoffman/products/enc${sku}/`;
+}
+
+function correctNventSchroffChassisDimensions(result: Awaited<ReturnType<typeof parseGenericProductPage>>): void {
+  const rackHeight = result.attributes.find((attribute) => /^rack height$/i.test(attribute.name.trim()))?.value.match(/(\d+(?:\.\d+)?)\s*U\b/i)?.[1];
+  const width = result.attributes.find((attribute) => /^usable width$/i.test(attribute.name.trim()))?.value.match(/\d+(?:\.\d+)?\s*mm\b/i)?.[0];
+  const depth = result.attributes.find((attribute) => /^depth$/i.test(attribute.name.trim()))?.value.match(/\d+(?:\.\d+)?\s*mm\b/i)?.[0];
+  if (!rackHeight || !width || !depth) return;
+  const heightMm = Number(rackHeight) * 44.45;
+  const normalizedHeight = Number.isInteger(heightMm) ? String(heightMm) : heightMm.toFixed(2).replace(/0+$/, "").replace(/\.$/, "");
+  const dimensions = `${rackHeight} U (${normalizedHeight} mm) x ${width} x ${depth}`;
+  result.normalized.dimensions = dimensions;
+  // A passive rack case has no device-level supply current. The generic text
+  // miner can mistake a nearby accessory/assembly footnote for an electrical
+  // value; likewise generic Height rows are component thicknesses, not the
+  // chassis envelope. Keep the exact rack dimensions above as the source of truth.
+  delete result.normalized.current;
+  result.attributes = result.attributes.filter((attribute) => !/^(?:height|width|depth)$/i.test(attribute.name.trim()));
+  const exactDimension = (name: string, value: string) => ({
+    group: "Exact Rack Dimensions",
+    name,
+    value,
+    sourceUrl: result.productUrl,
+    sourceType: "official" as const,
+    parser: "nvent-direct",
+    confidence: 0.99
+  });
+  result.attributes.push(
+    exactDimension("Height", `${normalizedHeight} mm`),
+    exactDimension("Width", width),
+    exactDimension("Depth", depth),
+    exactDimension("Dimensions (rack height x usable width x depth)", dimensions)
+  );
+}
+
 /** Direct nVent path: WAF blocks Node/curl but serves the official page via PowerShell. */
 export class NventConnector implements ManufacturerConnector {
   readonly id = "nvent";
 
   async scrape(catalogNumber: string, context: ScrapeContext) {
-    const encoded = catalogNumber.trim().toLowerCase();
-    const isSchroff = /^\d{4,}/.test(encoded);
-    const url = isSchroff
-      ? `https://www.nvent.com/en-us/schroff/products/enc${encoded}/`
-      : `https://www.nvent.com/en-us/hoffman/products/enc${encoded}/`;
+    const url = nventProductUrl(catalogNumber);
     try {
-      const fetched = await context.http.fetchTextViaPowerShell(url, {
+      const requestOptions = {
         timeoutMs: 30000,
         headers: {
           "User-Agent": "Mozilla/5.0",
@@ -74,7 +136,24 @@ export class NventConnector implements ManufacturerConnector {
           Referer: "https://www.nvent.com/"
         },
         signal: context.signal
-      });
+      };
+      let fetched;
+      try {
+        fetched = await context.http.fetchTextViaPowerShell(url, requestOptions);
+      } catch (firstError) {
+        if (!isNventCloudflareChallenge(firstError) || context.signal?.aborted) throw firstError;
+        // nVent intermittently serves a Cloudflare interstitial after a short sequence of PDP
+        // requests. Retry the same exact SKU in an English regional storefront first; if that
+        // edge is challenged too, wait briefly and retry the original canonical storefront.
+        const regionalUrl = nventEnglishRegionalRetryUrl(url);
+        try {
+          fetched = await context.http.fetchTextViaPowerShell(regionalUrl, requestOptions);
+        } catch (regionalError) {
+          if (!isNventCloudflareChallenge(regionalError) || context.signal?.aborted) throw regionalError;
+          await waitForNventRetry(context.signal);
+          fetched = await context.http.fetchTextViaPowerShell(url, requestOptions);
+        }
+      }
       // nVent serves otherwise complete product HTML with a Cloudflare telemetry
       // script (`__CF$cvparams`) appended at the end. The generic parser correctly
       // rejects actual challenge pages, but this marker is a false positive here:
@@ -141,6 +220,9 @@ export class NventConnector implements ManufacturerConnector {
             }
           : {})
       };
+      if (/^\d{4,}-\d+$/.test(catalogNumber.trim()) && /\/schroff\/products\//i.test(result.productUrl ?? url)) {
+        correctNventSchroffChassisDimensions(result);
+      }
       // These SKUs are explicitly accessory products in nVent's official taxonomy. Add a
       // source-backed classification attribute so the generic title word "enclosure" cannot
       // misclassify a panel, shelf, gland plate, or VME test adapter as the enclosure itself.
@@ -149,7 +231,39 @@ export class NventConnector implements ManufacturerConnector {
       }
       return result;
     } catch (error) {
+      if (process.env.DEBUG_NVENT === "1") {
+        console.warn(`[nVent] ${catalogNumber} direct fetch failed: ${error instanceof Error ? error.stack ?? error.message : String(error)}`);
+      }
       return emptyResult("nvent", catalogNumber, `nVent direct product fetch failed: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
+}
+
+function isNventCloudflareChallenge(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error);
+  return /just a moment|cf-chl|challenge-platform|cloudflare/i.test(message);
+}
+
+function nventEnglishRegionalRetryUrl(url: string): string {
+  return url.replace("/en-us/", "/en-kr/");
+}
+
+function waitForNventRetry(signal?: AbortSignal): Promise<void> {
+  return new Promise((resolve, reject) => {
+    if (signal?.aborted) {
+      reject(new Error("Cancelled by user."));
+      return;
+    }
+    const cleanup = () => signal?.removeEventListener("abort", abort);
+    const timeout = setTimeout(() => {
+      cleanup();
+      resolve();
+    }, 2500);
+    const abort = () => {
+      clearTimeout(timeout);
+      cleanup();
+      reject(new Error("Cancelled by user."));
+    };
+    signal?.addEventListener("abort", abort, { once: true });
+  });
 }

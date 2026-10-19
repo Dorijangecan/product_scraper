@@ -23,6 +23,35 @@ function product(
 }
 
 describe("device type classifier", () => {
+  it("uses the exact nVent PDP category for enclosure climate-control devices", () => {
+    const cases = [
+      ["ATEMNC", "https://www.nvent.com/en-us/hoffman/products/encatemnc", "Temperature Control Switch", "Thermostat"],
+      ["HF0516514", "https://www.nvent.com/en-us/hoffman/products/enchf0516514", "HF Side-Mount Filter Fans", "Filter Fan"],
+      ["DAH601", "https://www.nvent.com/en-us/hoffman/products/encdah601", "Semiconductor Heaters, DAH", "Heater"]
+    ] as const;
+    for (const [catalogNumber, productUrl, category, expected] of cases) {
+      const attributes: ProductResult["attributes"] = [
+        { group: "Structured Data", name: "category", value: category, sourceType: "official", parser: "nvent-direct", sourceUrl: productUrl },
+        ...(catalogNumber === "ATEMNC" ? [{ group: "PDF certificate", name: "Product Name:", value: "INDUSTRIAL CONTROL ENCLOSURE ACCESSORIES", sourceType: "official" as const, parser: "pdf-table-extractor", sourceUrl: "https://nvent.widen.net/content/ce-ukca-00003_accy-enclosure.pdf" }] : [])
+      ];
+      const result = classifyDeviceType(product(
+        attributes,
+        category,
+        { manufacturerId: "nvent", catalogNumber, productUrl }
+      ));
+      expect(result.type).toBe(expected);
+    }
+  });
+
+  it("recognizes an exact nVent 19-inch rack chassis as a rack cabinet", () => {
+    const result = classifyDeviceType(product(
+      [],
+      "Interscale 19\" Rack Mount Chassis, Non-Perforated, 2 U, 84 HP, 310 mm",
+      { manufacturerId: "nvent", catalogNumber: "14821-207", productUrl: "https://www.nvent.com/en-us/schroff/products/enc14821-207" }
+    ));
+    expect(result.type).toBe("Rack Cabinet");
+  });
+
   it("classifies SCE heater, heat exchanger, and enclosure hardware from the vendor's description order", () => {
     const cases = [
       ["Heater - 350W", "Heater", "cabinet.airconditioning"],

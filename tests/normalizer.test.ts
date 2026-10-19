@@ -36,6 +36,23 @@ describe("Turck power supply normalization", () => {
   });
 });
 
+describe("nVent passive SCHROFF rack chassis normalization", () => {
+  it("uses chassis envelope dimensions and suppresses a manual diagram label as current", () => {
+    const attributes = [
+      { group: "Structured Data", name: "Rack Height", value: "2U" },
+      { group: "Structured Data", name: "Usable Width", value: "443.7mm" },
+      { group: "Structured Data", name: "Depth", value: "310.35mm" },
+      { group: "Exact Rack Dimensions", name: "Height", value: "88.9 mm", sourceType: "official" as const, parser: "nvent-direct" },
+      { group: "Exact Rack Dimensions", name: "Width", value: "443.7mm", sourceType: "official" as const, parser: "nvent-direct" },
+      { group: "Exact Rack Dimensions", name: "Depth", value: "310.35mm", sourceType: "official" as const, parser: "nvent-direct" },
+      { group: "PDF manual", name: "2b*", value: "2a*", sourceType: "generated" as const, parser: "pdf-table-extractor" }
+    ];
+    const normalized = normalizeFields(attributes, [], "nvent");
+    expect(normalized.dimensions).toMatch(/88\.9.*443\.7.*310\.35/);
+    expect(normalized.current).toBeUndefined();
+  });
+});
+
 describe("normalizer", () => {
   it("does not treat Schmersal pull-wire travel as the device envelope", () => {
     const normalized = normalizeFields([
