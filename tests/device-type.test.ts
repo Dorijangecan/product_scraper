@@ -34,6 +34,13 @@ describe("device type classifier", () => {
       ["Ball Catch 30", "Ball Catch"],
       ["Magnetic Catch 20", "Magnetic Catch"],
       ["Door Latch", "Door Latch"],
+      ["Tool Hook FX 66/27 - 13", "Tool Hook"],
+      ["Cross Cable Binder Block D28", "Cable Binder"],
+      ["Swivel Caster Ø 80 with Mounting Plate", "Swivel Caster"],
+      ["Mounting Bracket 60 x 47, D28 (Set)", "Mounting Bracket"],
+      ["Alu Connection Angle 40", "Alu Connection Angle"],
+      ["Cube Connector 30, 3D", "Cube Connector"],
+      ["Self-adhesive Label Holder 67", "Label Holder"],
       ["Stainless Steel Hinge 60 x 60", "Hinge"],
       ["Handle", "Handle"]
     ] as const;

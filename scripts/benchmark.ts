@@ -612,7 +612,13 @@ function matchesNormalizedFields(result: ProductResult, fixture: BenchmarkFixtur
 
 function matchesExpectedAttributes(result: ProductResult, fixture: BenchmarkFixture): boolean {
   if (!fixture.expectedAttributePatterns?.length) return true;
-  const searchableAttributes = result.attributes.map((attribute) => `${attribute.group ?? ""} ${attribute.name} ${attribute.value}`);
+  // Some vendor-critical facts are published as descriptive prose rather than a key/value row.
+  // Search those source fields along with structured attributes so fixtures can assert both.
+  const searchableAttributes = [
+    result.title ?? "",
+    result.description ?? "",
+    ...result.attributes.map((attribute) => `${attribute.group ?? ""} ${attribute.name} ${attribute.value}`)
+  ];
   return fixture.expectedAttributePatterns.every((pattern) => {
     try {
       const expression = new RegExp(pattern, "i");
