@@ -227,6 +227,8 @@ export interface InteractionPolicyConfig {
   networkIdleTimeoutMs?: number;
   gotoTimeoutMs?: number;
   gotoWaitUntil?: "load" | "domcontentloaded" | "networkidle" | "commit";
+  /** Capture an identity-bearing server-rendered PDP without waiting for nonessential browser settling. */
+  fastIdentityCapture?: boolean;
   blockResourceTypes?: Array<"image" | "media" | "font" | "stylesheet" | "websocket" | "script">;
   /**
    * Opt-out escape hatch for the default-on ad/tracker domain block (see `ad-block-domains.ts`).

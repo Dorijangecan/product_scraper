@@ -423,6 +423,10 @@ export class BrowserRenderSession {
   }
 
   private async renderPage(url: string, recipe: ScrapeRecipeConfig | undefined, signal?: AbortSignal, searchCatalogNumber?: string): Promise<RenderedPage> {
+    const startedAt = Date.now();
+    const debugRenderTiming = (stage: string) => {
+      if (process.env.DEBUG_BROWSER_RENDERER === "1") console.warn(`[browser-renderer] ${stage} ${Date.now() - startedAt}ms`);
+    };
     if (signal?.aborted) throw new Error("Cancelled by user.");
     if (this.unavailableReason) {
       return {
@@ -435,57 +439,71 @@ export class BrowserRenderSession {
     const responseCaptures: Promise<void>[] = [];
     const networkDiagnostics: BrowserNetworkRecord[] = [];
     const captureState = createNetworkCaptureState();
+    const fastIdentityCapture = recipe?.interactionPolicy?.fastIdentityCapture === true;
     let page: PageLike | undefined;
     try {
       const context = await this.ensureContext();
+      debugRenderTiming("context ready");
       page = await context.newPage();
-      page.on("response", (response) => {
-        responseCaptures.push(captureResponse(response, captured, networkDiagnostics, captureState, signal));
-      });
+      debugRenderTiming("page created");
+      if (!fastIdentityCapture) {
+        page.on("response", (response) => {
+          responseCaptures.push(captureResponse(response, captured, networkDiagnostics, captureState, signal));
+        });
+      }
       await applyRequestFiltering(page, recipe);
+      debugRenderTiming("routes ready");
       const gotoWaitUntil = recipe?.interactionPolicy?.gotoWaitUntil ?? "domcontentloaded";
       const gotoTimeoutMs = recipe?.interactionPolicy?.gotoTimeoutMs ?? 45000;
       const response = await page.goto(url, { waitUntil: gotoWaitUntil, timeout: gotoTimeoutMs });
+      debugRenderTiming("navigation committed");
       // Ensure the DOM is parsed even when the caller asked for the early "commit" event
       // (commit returns as soon as response headers arrive — selectors won't exist yet).
       if (gotoWaitUntil === "commit") {
         await page.waitForLoadState("domcontentloaded", { timeout: gotoTimeoutMs }).catch(() => undefined);
       }
-      await page.waitForLoadState("networkidle", { timeout: recipe?.interactionPolicy?.networkIdleTimeoutMs ?? 12000 }).catch(() => undefined);
-      await waitForNonInteractiveCloudflareChallenge(page);
-      await clickSafeSelectors(page, [...(recipe?.interactionPolicy?.closeOverlaySelectors ?? []), ...OVERLAY_CLOSE_SELECTORS], 5, signal);
-      if (searchCatalogNumber) {
-        await submitSearchInput(page, searchCatalogNumber);
+      if (fastIdentityCapture) {
+        await waitForRecipeSelectors(page, recipe?.interactionPolicy?.waitForSelectors ?? [], signal, 250);
+        debugRenderTiming("identity selector checked");
+      } else {
         await page.waitForLoadState("networkidle", { timeout: recipe?.interactionPolicy?.networkIdleTimeoutMs ?? 12000 }).catch(() => undefined);
-        await page.waitForTimeout(300);
+        await waitForNonInteractiveCloudflareChallenge(page);
+        await clickSafeSelectors(page, [...(recipe?.interactionPolicy?.closeOverlaySelectors ?? []), ...OVERLAY_CLOSE_SELECTORS], 5, signal);
+        if (searchCatalogNumber) {
+          await submitSearchInput(page, searchCatalogNumber);
+          await page.waitForLoadState("networkidle", { timeout: recipe?.interactionPolicy?.networkIdleTimeoutMs ?? 12000 }).catch(() => undefined);
+          await page.waitForTimeout(300);
+        }
+        await clickSafeSelectors(page, recipe?.interactionPolicy?.localeSelectors ?? [], 4, signal);
+        await waitForRecipeSelectors(page, recipe?.interactionPolicy?.waitForSelectors ?? [], signal);
+        await scrollToBottom(page, recipe?.interactionPolicy?.scrollPasses ?? 2, signal);
+        await clickSafeSelectors(
+          page,
+          [
+            ...adaptiveInteractionSelectors(recipe),
+            ...DEFAULT_EXPAND_SELECTORS
+          ],
+          recipe?.interactionPolicy?.maxClicks ?? 50,
+          signal,
+          // Re-scan nested accordions/tabs revealed by the first click pass, without re-toggling anything already open.
+          { rescanSelectors: STATE_AWARE_EXPAND_SELECTORS }
+        );
+        await paginateThroughAll(page, [...(recipe?.interactionPolicy?.paginationSelectors ?? []), ...PAGINATION_SELECTORS], signal);
+        await scrollToBottom(page, recipe?.interactionPolicy?.scrollPasses ?? 2, signal);
+        await page.waitForLoadState("networkidle", { timeout: recipe?.interactionPolicy?.networkIdleTimeoutMs ?? 12000 }).catch(() => undefined);
+        await page.waitForTimeout(750);
       }
-      await clickSafeSelectors(page, recipe?.interactionPolicy?.localeSelectors ?? [], 4, signal);
-      await waitForRecipeSelectors(page, recipe?.interactionPolicy?.waitForSelectors ?? [], signal);
-      await scrollToBottom(page, recipe?.interactionPolicy?.scrollPasses ?? 2, signal);
-      await clickSafeSelectors(
-        page,
-        [
-          ...adaptiveInteractionSelectors(recipe),
-          ...DEFAULT_EXPAND_SELECTORS
-        ],
-        recipe?.interactionPolicy?.maxClicks ?? 50,
-        signal,
-        // Re-scan nested accordions/tabs revealed by the first click pass, without re-toggling
-        // anything already open.
-        { rescanSelectors: STATE_AWARE_EXPAND_SELECTORS }
-      );
-      await paginateThroughAll(page, [...(recipe?.interactionPolicy?.paginationSelectors ?? []), ...PAGINATION_SELECTORS], signal);
-      await scrollToBottom(page, recipe?.interactionPolicy?.scrollPasses ?? 2, signal);
-      await page.waitForLoadState("networkidle", { timeout: recipe?.interactionPolicy?.networkIdleTimeoutMs ?? 12000 }).catch(() => undefined);
-      await page.waitForTimeout(750);
-      await Promise.allSettled(responseCaptures);
+      if (!fastIdentityCapture) await Promise.allSettled(responseCaptures);
       const mainHtml = await page.content();
+      debugRenderTiming(`main HTML captured bytes=${mainHtml.length}`);
       // Merge content the serialized light DOM omits so the parser sees it: same-site iframe
       // bodies (configurator/PIM widgets) and open shadow roots (web-component product widgets).
-      const fragments = [
-        ...(await captureFrameFragments(page, url)),
-        ...(await captureShadowDomFragments(page))
-      ];
+      const fragments = fastIdentityCapture
+        ? []
+        : [
+            ...(await captureFrameFragments(page, url)),
+            ...(await captureShadowDomFragments(page))
+          ];
       const text = combineHtmlWithFragments(mainHtml, fragments);
       const fetchedAt = new Date().toISOString();
       return {
@@ -1092,9 +1110,10 @@ export async function captureFrameFragments(page: PageLike, mainUrl: string): Pr
   return fragments;
 }
 
-async function waitForRecipeSelectors(page: PageLike, selectors: string[], signal?: AbortSignal): Promise<void> {
+async function waitForRecipeSelectors(page: PageLike, selectors: string[], signal?: AbortSignal, timeoutMs = 4000): Promise<void> {
   for (const selector of uniqueStrings(selectors).slice(0, 8)) {
-    for (let attempt = 0; attempt < 16; attempt += 1) {
+    const attempts = Math.ceil(timeoutMs / 250);
+    for (let attempt = 0; attempt < attempts; attempt += 1) {
       if (signal?.aborted) throw new Error("Cancelled by user.");
       try {
         if (await page.locator(selector).count()) return;

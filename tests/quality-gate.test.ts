@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { ManufacturerConfig, ProductResult } from "../src/shared/types.js";
 import { getManufacturerConfig } from "../src/server/config/manufacturers.js";
-import { finalizeQualityGate } from "../src/server/scrapers/quality-gate.js";
+import { evaluateQualityGate, finalizeQualityGate } from "../src/server/scrapers/quality-gate.js";
 
 const manufacturer: ManufacturerConfig = {
   id: "test",
@@ -35,6 +35,36 @@ const productTypeAwareManufacturer: ManufacturerConfig = {
 };
 
 describe("quality gate", () => {
+  it("accepts a documented exact SKU when its official page proves no exact image exists", () => {
+    const imageRequired: ManufacturerConfig = {
+      ...manufacturer,
+      scrapeRecipe: { requiredDocuments: ["image"], minAttributes: 0, confidenceRules: { foundMinScore: 0 } }
+    };
+    const result = product({
+      diagnostics: {
+        terminal: {
+          skipNetworkFallback: true,
+          reason: "Official nVent page exposed no image proven to belong to this exact SKU."
+        }
+      },
+      documents: [{ type: "datasheet", label: "ABC-123 product datasheet", url: "https://example.test/ABC-123.pdf" }]
+    });
+
+    expect(evaluateQualityGate(result, imageRequired).missing).not.toContain("document:image");
+  });
+
+  it("still requires an exact image when the official page has not proved its absence", () => {
+    const imageRequired: ManufacturerConfig = {
+      ...manufacturer,
+      scrapeRecipe: { requiredDocuments: ["image"], minAttributes: 0, confidenceRules: { foundMinScore: 0 } }
+    };
+    const result = product({
+      documents: [{ type: "datasheet", label: "ABC-123 product datasheet", url: "https://example.test/ABC-123.pdf" }]
+    });
+
+    expect(evaluateQualityGate(result, imageRequired).missing).toContain("document:image");
+  });
+
   it("clears unsupported Eaton component voltage/current values before scoring the result", () => {
     const exactPage = "https://www.eaton.com/us/en-us/skuPage.257064.html";
     const result = finalizeQualityGate(

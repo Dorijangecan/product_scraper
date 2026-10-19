@@ -44,7 +44,9 @@ export function evaluateQualityGate(
   }
 
   for (const pattern of recipe.requiredDocuments ?? []) {
-    if (!hasMatchingDocument(result, String(pattern))) missing.add(`document:${pattern}`);
+    if (!hasMatchingDocument(result, String(pattern)) && !hasVerifiedUnavailableExactImage(result, String(pattern))) {
+      missing.add(`document:${pattern}`);
+    }
   }
 
   // Fields the user switched off are never required — not by an explicit policy list and not by
@@ -272,6 +274,13 @@ function hasMatchingAttribute(result: ProductResult, pattern: string): boolean {
 
 function hasMatchingDocument(result: ProductResult, pattern: string): boolean {
   return result.documents.some((doc) => matchesPattern(`${doc.type} ${doc.label} ${doc.url}`, pattern));
+}
+
+function hasVerifiedUnavailableExactImage(result: ProductResult, pattern: string): boolean {
+  const terminal = result.diagnostics?.terminal;
+  if (!/image|photo|picture/i.test(pattern) || terminal?.skipNetworkFallback !== true) return false;
+  if (!/official nvent page exposed no image proven to belong to this exact sku/i.test(terminal.reason ?? "")) return false;
+  return result.documents.some((document) => document.type !== "image" && /datasheet|manual|certificate|technical/i.test(`${document.type} ${document.label}`));
 }
 
 function countRecipeSections(result: ProductResult, recipe: ScrapeRecipeConfig): Record<string, number> {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { filterNventProductImages, isNventCloudflareResponse, nventProductUrl } from "../src/server/scrapers/nvent.js";
+import { filterNventProductImages, isExactNventProductPage, isNventBrowserFallbackError, isNventCloudflareResponse, nventProductUrl } from "../src/server/scrapers/nvent.js";
 
 describe("nVent challenge detection", () => {
   it.each([
@@ -8,6 +8,32 @@ describe("nVent challenge detection", () => {
     [{ statusCode: 200, text: "Exact nVent product page" }, false]
   ])("recognizes retryable challenge responses", (response, expected) => {
     expect(isNventCloudflareResponse(response)).toBe(expected);
+  });
+
+  it("accepts a browser-rendered exact PDP with Cloudflare telemetry only when SKU and canonical path match", () => {
+    const base = {
+      requestedUrl: "https://www.nvent.com/en-us/erico/products/efs611380/",
+      effectiveUrl: "https://www.nvent.com/en-us/erico/products/efs611380",
+      statusCode: 200,
+      contentType: "text/html",
+      fetchedAt: "2026-10-19T00:00:00.000Z",
+      fromCache: false
+    };
+    const exactHtml = `<html><head><link rel="canonical" href="${base.effectiveUrl}"><meta property="coveo:product_item_sku" content="EFS_611380"><title>611380</title></head><body>__CF$cvparams</body></html>`;
+    const wrongPathHtml = exactHtml.replace("efs611380", "efs611381");
+    const wrongSkuHtml = exactHtml.replace("EFS_611380", "EFS_611381");
+
+    expect(isExactNventProductPage({ ...base, text: exactHtml }, "611380", base.requestedUrl)).toBe(true);
+    expect(isExactNventProductPage({ ...base, text: wrongPathHtml }, "611380", base.requestedUrl)).toBe(false);
+    expect(isExactNventProductPage({ ...base, text: wrongSkuHtml }, "611380", base.requestedUrl)).toBe(false);
+  });
+
+  it.each([
+    [new Error("nVent Cloudflare challenge response"), true],
+    [new Error("The request was aborted: The connection was closed unexpectedly."), true],
+    [new Error("PowerShell fetch failed: invalid URL argument"), false]
+  ])("selects browser retry for recoverable network failures", (error, expected) => {
+    expect(isNventBrowserFallbackError(error)).toBe(expected);
   });
 });
 

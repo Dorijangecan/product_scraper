@@ -2,7 +2,9 @@ import { parseGenericProductPage } from "./generic.js";
 import { emptyResult, normalizeFields } from "./normalizer.js";
 import type { ManufacturerConnector, ScrapeContext } from "./types.js";
 import type { DocumentRecord } from "../../shared/types.js";
+import type { FetchedText } from "./http-client.js";
 import { multiplyDecimalExactly } from "../unit-conversion.js";
+import { catalogTextMatches } from "./catalog-number.js";
 import * as cheerio from "cheerio";
 
 /**
@@ -132,6 +134,10 @@ export class NventConnector implements ManufacturerConnector {
 
   async scrape(catalogNumber: string, context: ScrapeContext) {
     const url = nventProductUrl(catalogNumber);
+    const scrapeStartedAt = Date.now();
+    const debugTiming = (stage: string) => {
+      if (process.env.DEBUG_NVENT === "1") console.warn(`[nVent] ${catalogNumber} ${stage} ${Date.now() - scrapeStartedAt}ms`);
+    };
     try {
       const requestOptions = {
         timeoutMs: 30000,
@@ -143,26 +149,65 @@ export class NventConnector implements ManufacturerConnector {
         },
         signal: context.signal
       };
-      let fetched;
+      let fetched: FetchedText | undefined;
       try {
         fetched = await context.http.fetchTextViaPowerShell(url, requestOptions);
+        debugTiming(`PowerShell exact route status=${fetched.statusCode}`);
         if (isNventCloudflareResponse(fetched)) throw new Error("nVent Cloudflare challenge response");
-      } catch (firstError) {
-        if (!isNventCloudflareChallenge(firstError) || context.signal?.aborted) throw firstError;
-        // nVent intermittently serves a Cloudflare interstitial after a short sequence of PDP
-        // requests. Retry the same exact SKU in an English regional storefront first; if that
-        // edge is challenged too, wait briefly and retry the original canonical storefront.
-        const regionalUrl = nventEnglishRegionalRetryUrl(url);
-        try {
-          fetched = await context.http.fetchTextViaPowerShell(regionalUrl, requestOptions);
-          if (isNventCloudflareResponse(fetched)) throw new Error("nVent Cloudflare challenge response");
-        } catch (regionalError) {
-          if (!isNventCloudflareChallenge(regionalError) || context.signal?.aborted) throw regionalError;
-          await waitForNventRetry(context.signal);
-          fetched = await context.http.fetchTextViaPowerShell(url, requestOptions);
-          if (isNventCloudflareResponse(fetched)) throw new Error("nVent Cloudflare challenge response");
+      } catch (error) {
+        if (!isNventBrowserFallbackError(error) || context.signal?.aborted || !context.browserRenderer || context.browserRenderer.isUnavailable?.()) {
+          throw error;
+        }
+        // PowerShell receives repeat Cloudflare interstitials on nVent's CDN. Do not spend a
+        // second process/network round trip on the same challenged page: try Chromium's exact
+        // identity-marker fast path, then the robust renderer only if identity is not yet present.
+        // Admit browser HTML only when canonical path + on-page SKU both prove the requested product.
+        // Cloudflare telemetry appended to a real PDP is removed below by the same sanitizer.
+        const pageSkuToken = new URL(url).pathname.split("/").pop() ?? "";
+        const fastBrowserRecipe = {
+          ...context.manufacturer.scrapeRecipe,
+          interactionPolicy: {
+            ...context.manufacturer.scrapeRecipe?.interactionPolicy,
+            gotoWaitUntil: "commit" as const,
+            gotoTimeoutMs: 500,
+            networkIdleTimeoutMs: 1,
+            maxClicks: 0,
+            scrollPasses: 0,
+            blockResourceTypes: ["image", "media", "font"] as ("image" | "media" | "font")[],
+            fastIdentityCapture: true,
+            waitForSelectors: [
+              `meta[property='coveo:product_item_sku'][content='${pageSkuToken}'], meta[property='coveo:product_item_catalog_num'][content='${pageSkuToken}']`
+            ]
+          }
+        };
+        debugTiming("browser fallback start");
+        let rendered = await context.browserRenderer.renderProductPage(url, fastBrowserRecipe, context.signal);
+        let exactBrowserPage = Boolean(rendered.fetched && isExactNventProductPage(rendered.fetched, catalogNumber, url));
+        debugTiming(`fast browser capture exact=${exactBrowserPage}`);
+        if (!exactBrowserPage) {
+          const robustBrowserRecipe = {
+            ...context.manufacturer.scrapeRecipe,
+            interactionPolicy: {
+              ...context.manufacturer.scrapeRecipe?.interactionPolicy,
+              gotoWaitUntil: "commit" as const,
+              gotoTimeoutMs: 12_000,
+              networkIdleTimeoutMs: 3000,
+              maxClicks: 0,
+              scrollPasses: 0
+            }
+          };
+          rendered = await context.browserRenderer.renderProductPage(url, robustBrowserRecipe, context.signal);
+          exactBrowserPage = Boolean(rendered.fetched && isExactNventProductPage(rendered.fetched, catalogNumber, url));
+          debugTiming(`robust browser fallback exact=${exactBrowserPage}`);
+        }
+        if (rendered.fetched && exactBrowserPage) {
+          fetched = rendered.fetched;
+        } else {
+          const detail = rendered.error ? ` Browser fallback: ${rendered.error}` : " Browser page did not prove the exact SKU.";
+          throw new Error(`${error instanceof Error ? error.message : String(error)}.${detail}`);
         }
       }
+      if (!fetched) throw new Error("nVent page fetch returned no response.");
       // nVent serves otherwise complete product HTML with a Cloudflare telemetry
       // script (`__CF$cvparams`) appended at the end. The generic parser correctly
       // rejects actual challenge pages, but this marker is a false positive here:
@@ -182,7 +227,9 @@ export class NventConnector implements ManufacturerConnector {
           .replace(/<link[^>]+href=["']https:\/\/challenges\.cloudflare\.com["'][^>]*>/gi, "")
           .replace(/\/cdn-cgi\/challenge-platform/gi, "");
       }
+      debugTiming(`page sanitization done bytes=${sanitized.length}`);
       const parsed = parseGenericProductPage("nvent", catalogNumber, { ...fetched, text: sanitized }, "official", "nvent-direct");
+      debugTiming(`generic parse done attributes=${parsed.attributes.length} documents=${parsed.documents.length}`);
       // nVent's current gallery uses a numeric DAM filename and a generic alt
       // label (for example "front panel"). The generic image miner correctly
       // rejects that as unproven outside nVent, so recover only the first real
@@ -289,36 +336,37 @@ export class NventConnector implements ManufacturerConnector {
   }
 }
 
+export function isExactNventProductPage(fetched: FetchedText, catalogNumber: string, expectedUrl: string): boolean {
+  if (fetched.statusCode < 200 || fetched.statusCode >= 300 || !catalogTextMatches(fetched.text, catalogNumber)) return false;
+  const $ = cheerio.load(fetched.text);
+  const canonical = $("link[rel='canonical']").attr("href") ?? fetched.effectiveUrl;
+  try {
+    const actual = new URL(canonical, expectedUrl);
+    const expected = new URL(expectedUrl);
+    const actualPath = actual.pathname.replace(/\/+$/, "").toLowerCase();
+    const expectedPath = expected.pathname.replace(/\/+$/, "").toLowerCase();
+    if (!actual.hostname.toLowerCase().endsWith("nvent.com") || actualPath !== expectedPath) return false;
+    const canonicalSkuToken = actualPath.split("/").pop()?.replace(/[^a-z0-9]/g, "") ?? "";
+    const skuMetadata = $("meta[property='coveo:product_item_sku'], meta[property='coveo:product_item_catalog_num']")
+      .toArray()
+      .map((element) => $(element).attr("content")?.replace(/[^a-z0-9]/gi, "").toLowerCase() ?? "");
+    return skuMetadata.includes(canonicalSkuToken) && catalogTextMatches(fetched.text, catalogNumber);
+  } catch {
+    return false;
+  }
+}
+
 function isNventCloudflareChallenge(error: unknown): boolean {
   const message = error instanceof Error ? error.message : String(error);
   return /just a moment|cf-chl|challenge-platform|cloudflare/i.test(message);
 }
 
+export function isNventBrowserFallbackError(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error);
+  return isNventCloudflareChallenge(error) || /connection (?:was )?(?:closed|reset|aborted)|request was aborted|timed out/i.test(message);
+}
+
 export function isNventCloudflareResponse(response: { statusCode?: number; text?: string }): boolean {
   return response.statusCode === 403 || response.statusCode === 429 ||
     /just a moment|cf-chl|challenge-platform|cloudflare/i.test(response.text ?? "");
-}
-
-function nventEnglishRegionalRetryUrl(url: string): string {
-  return url.replace("/en-us/", "/en-kr/");
-}
-
-function waitForNventRetry(signal?: AbortSignal): Promise<void> {
-  return new Promise((resolve, reject) => {
-    if (signal?.aborted) {
-      reject(new Error("Cancelled by user."));
-      return;
-    }
-    const cleanup = () => signal?.removeEventListener("abort", abort);
-    const timeout = setTimeout(() => {
-      cleanup();
-      resolve();
-    }, 2500);
-    const abort = () => {
-      clearTimeout(timeout);
-      cleanup();
-      reject(new Error("Cancelled by user."));
-    };
-    signal?.addEventListener("abort", abort, { once: true });
-  });
 }
