@@ -103,6 +103,11 @@ const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
   // them to the same cabinet air-conditioning PDT sheet as the broader thermal category.
   rule("Air Conditioner", /\b(?:air conditioners?|conditioner,\s*(?:ng\s+)?air)\b/i, 930),
   rule("Filter Fan", /\bfilter\s+fans?\b/i, 925),
+  rule("Heat Exchanger", /\b(?:heat\s+exchangers?|exchangers?,?\s*heat)\b/i, 922),
+  rule("Heater", /\b(?:enclosure\s+heaters?|cabinet\s+heaters?|heaters?\s*[-,]?\s*\d+\s*W)\b/i, 921),
+  rule("Rain Hood", /\b(?:rain\s+hoods?|hoods?,?\s*rain)\b/i, 720),
+  rule("Pull-Out Shelf", /\b(?:pull[-\s]?out\s+(?:shelf|shelves)|(?:shelf|shelves),?\s*pull[-\s]?out)\b/i, 715),
+  rule("Window Kit", /\b(?:window\s+kits?|kits?,?\s*(?:s\.?s\.?\s+)?window)\b/i, 710),
   // A Balluff condition-monitoring product publishes its sensor family together with a
   // "Cable with connector" connection detail.  The explicit family must outrank that
   // accessory wording, otherwise the device is routed as a Connector.

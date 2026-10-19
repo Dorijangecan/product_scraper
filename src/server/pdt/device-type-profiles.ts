@@ -53,6 +53,9 @@ export const DEVICE_TYPE_PROFILES: Record<string, DeviceTypePdtProfile> = {
   "Mounting Accessory": { sheets: ["cable ducts mounting rails"], electricalFields: NO_ELECTRICAL_FIELDS },
   "Cover / Door Accessory": { sheets: ["cabinet.mechanical"], finalCompletenessFields: ENCLOSURE_FINAL_FIELDS, electricalFields: NO_ELECTRICAL_FIELDS },
   "Leveling Foot": { sheets: ["cabinet.mechanical"], electricalFields: NO_ELECTRICAL_FIELDS },
+  "Rain Hood": { sheets: ["cabinet.mechanical"], electricalFields: NO_ELECTRICAL_FIELDS },
+  "Pull-Out Shelf": { sheets: ["cabinet.mechanical"], electricalFields: NO_ELECTRICAL_FIELDS },
+  "Window Kit": { sheets: ["cabinet.mechanical"], electricalFields: NO_ELECTRICAL_FIELDS },
   "Compression Latch": { sheets: ["cabinet.mechanical"], electricalFields: NO_ELECTRICAL_FIELDS },
   "Slam Latch": { sheets: ["cabinet.mechanical"], electricalFields: NO_ELECTRICAL_FIELDS },
   "Quarter Turn Lock": { sheets: ["cabinet.mechanical"], electricalFields: NO_ELECTRICAL_FIELDS },
@@ -214,6 +217,8 @@ export const DEVICE_TYPE_PROFILES: Record<string, DeviceTypePdtProfile> = {
   Luminaire: { sheets: ["Luminaire"], electricalFields: VOLTAGE_AND_CURRENT },
 
   "Thermal Management": { sheets: ["cabinet.airconditioning"], finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_ONLY },
+  Heater: { sheets: ["cabinet.airconditioning"], finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_AND_CURRENT },
+  "Heat Exchanger": { sheets: ["cabinet.airconditioning"], finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_AND_CURRENT },
   "Air Conditioner": { sheets: ["cabinet.airconditioning"], finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_AND_CURRENT },
   "Filter Fan": { sheets: ["cabinet.airconditioning"], finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_AND_CURRENT },
   Thermostat: { sheets: ["cabinet.airconditioning"], finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_AND_CURRENT },

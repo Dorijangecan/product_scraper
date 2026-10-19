@@ -1795,6 +1795,26 @@ describe("manufacturer parsers", () => {
     ]);
   });
 
+  it("keeps only the model-matched heat exchanger manual among SCE sibling capacity links", () => {
+    const html = `
+      <html><head><title>SCE-HE18W120V - Saginaw Control and Engineering</title></head>
+      <body>
+        <h1>SCE-HE18W120V</h1>
+        <img src="/images/sce-he18w120v.png" alt="SCE-HE18W120V" />
+        <div class="prod-specs">
+          <p class="prod-info-body"><strong>Part Number</strong>: SCE-HE18W120V</p>
+          <p class="prod-info-body"><strong>Description</strong>: Exchanger, Heat</p>
+        </div>
+        <a href="/instman/sce-he04w120v.pdf">Heat Exchangers - SCE-HE04W120V</a>
+        <a href="/instman/sce-he18w120v.pdf">Heat Exchangers - SCE-HE18W120V</a>
+      </body></html>`;
+    const result = parseSceProductPage("SCE-HE18W120V", fetched(html, "https://www.saginawcontrol.com/partnumber_info/?n=SCE-HE18W120V"));
+
+    expect(result.documents.filter((doc) => doc.type === "manual").map((doc) => doc.url)).toEqual([
+      "https://www.saginawcontrol.com/instman/sce-he18w120v.pdf"
+    ]);
+  });
+
   it("infers SCE catalog voltage from heat exchanger part numbers when specs omit volts", () => {
     const html = `
       <html><head><title>SCE-HE04W120V - Saginaw Control and Engineering</title></head>
@@ -1815,6 +1835,53 @@ describe("manufacturer parsers", () => {
 
     expect(result.normalized.voltage).toBe("120 V");
     expect(result.attributes.some((attr) => attr.group === "SCE Catalog Inference" && attr.name === "Voltage" && attr.value === "120 V")).toBe(true);
+  });
+
+  it("keeps an SCE heater's published input range ahead of a manual's nominal test voltage", () => {
+    const html = `
+      <html><head><title>SCE-H350 - Saginaw Control and Engineering</title></head>
+      <body>
+        <h1>SCE-H350</h1>
+        <img src="/images/sce-h350.png" alt="SCE-H350" />
+        <div class="prod-specs">
+          <p class="prod-info-body"><strong>Part Number</strong>: SCE-H350</p>
+          <p class="prod-info-body"><strong>Description</strong>: Heater - 350W</p>
+        </div>
+        <div class="prod-details-div">
+          <p class="prod-info-header">Application</p>
+          <p class="prod-info-body">100 - 240V 50/60 HZ Heater and 24 V Integrated fan.</p>
+        </div>
+      </body></html>
+    `;
+    const result = parseSceProductPage("SCE-H350", fetched(html, "https://www.saginawcontrol.com/partnumber_info/?n=SCE-H350"));
+
+    expect(result.normalized.voltage).toBe("100...240 V 50/60 HZ");
+    expect(result.attributes).toContainEqual(expect.objectContaining({
+      group: "SCE Electrical Ratings",
+      name: "Supply Voltage Range",
+      value: "100-240 V 50/60 HZ"
+    }));
+  });
+
+  it("resolves the exact SCE window kit material instead of borrowing the stainless sibling option", () => {
+    const page = (part: string) => `
+      <html><head><title>${part} - Saginaw Control and Engineering</title></head>
+      <body>
+        <h1>${part}</h1>
+        <img src="/images/${part.toLowerCase()}.png" alt="${part}" />
+        <div class="prod-specs">
+          <p class="prod-info-body"><strong>Part Number</strong>: ${part}</p>
+          <p class="prod-info-body"><strong>Description</strong>: Kit, Window</p>
+        </div>
+        <div class="prod-details-div"><p class="prod-info-header">Application</p>
+          <p class="prod-info-body">Carbon steel kit powder coated ANSI-61 gray. Stainless steel kits are made of Type 304 stainless.</p>
+        </div>
+      </body></html>`;
+    const standard = parseSceProductPage("SCE-PWK53NF", fetched(page("SCE-PWK53NF"), "https://www.saginawcontrol.com/partnumber_info/?n=SCE-PWK53NF"));
+    const stainless = parseSceProductPage("SCE-PWK53NFSS", fetched(page("SCE-PWK53NFSS"), "https://www.saginawcontrol.com/partnumber_info/?n=SCE-PWK53NFSS"));
+
+    expect(standard.normalized.material).toBe("carbon steel");
+    expect(stainless.normalized.material).toBe("stainless steel Type 304");
   });
 
   it("does not infer material for SCE stainless steel cleaner consumables", () => {

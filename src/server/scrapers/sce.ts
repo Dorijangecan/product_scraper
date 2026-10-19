@@ -300,7 +300,7 @@ export function parseSceProductPage(
   }));
   const cleanAttributes = dedupeAttributes(stampedAttributes);
   const cleanDocuments = dedupeDocuments(documents);
-  const normalized = normalizeFields(cleanAttributes, cleanDocuments);
+  const normalized = normalizeFields(cleanAttributes, cleanDocuments, "sce");
   if (!normalized.dimensions) {
     const dimensionMatch = cleanText($.text()).match(/(\d+(?:\.\d+)?H)\s*x\s*(\d+(?:\.\d+)?W)\s*x\s*(\d+(?:\.\d+)?D)/i);
     if (dimensionMatch) normalized.dimensions = `${dimensionMatch[1]} x ${dimensionMatch[2]} x ${dimensionMatch[3]}`;
@@ -517,6 +517,20 @@ function deriveSceElectricalRatingAttributes(attributes: AttributeRecord[], sour
   const derived: AttributeRecord[] = [];
   for (const attr of attributes) {
     if (!/\bapplication\b/i.test(`${attr.group ?? ""} ${attr.name}`)) continue;
+    // Some SCE heaters publish a universal supply range only in the application prose. Keep this
+    // exact PDP rating separate from a linked installation PDF that may show a nominal test point.
+    const supplyRange = attr.value.match(/\b(\d+(?:[.,]\d+)?)\s*(?:-|to)\s*(\d+(?:[.,]\d+)?)\s*V(?:\s*(AC|DC))?(?:\s+(50\s*\/\s*60\s*HZ))?/i);
+    if (supplyRange) {
+      derived.push({
+        group: "SCE Electrical Ratings",
+        name: "Supply Voltage Range",
+        value: cleanText(`${supplyRange[1]}-${supplyRange[2]} V${supplyRange[3] ? ` ${supplyRange[3]}` : ""}${supplyRange[4] ? ` ${supplyRange[4]}` : ""}`),
+        sourceUrl,
+        sourceType: "official",
+        parser: "sce-product-page",
+        confidence: 0.97
+      });
+    }
     const switchCapacity = attr.value.match(/\bswitch capacity\s+(.+?)(?:\.(?:\s|$)|$)/i)?.[1];
     if (switchCapacity) {
       derived.push({

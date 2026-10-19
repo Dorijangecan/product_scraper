@@ -26,6 +26,40 @@ function product(overrides: Partial<ProductResult>): ProductResult {
 }
 
 describe("required electrical fields", () => {
+  it("uses SCE's exact heat exchanger and heater profiles ahead of the enclosure thermal fallback", () => {
+    const heatExchanger = product({
+      manufacturerId: "sce",
+      catalogNumber: "SCE-HE18W120V",
+      attributes: [{ group: "SCE Product Data", name: "Product Type", value: "Exchanger, Heat" }]
+    });
+    const heater = product({
+      manufacturerId: "sce",
+      catalogNumber: "SCE-H350",
+      attributes: [{ group: "SCE Product Data", name: "Product Type", value: "Heater - 350W" }]
+    });
+    const passiveHood = product({
+      manufacturerId: "sce",
+      catalogNumber: "SCE-RH44",
+      attributes: [{ group: "SCE Product Data", name: "Product Type", value: "Hood, Rain" }]
+    });
+
+    expect(requiredElectricalFields(heatExchanger, {
+      deviceType: "Heat Exchanger",
+      deviceTypeConfidence: 0.98,
+      deviceTypeElectricalFields: ["voltage", "current"]
+    })).toEqual(["voltage", "current"]);
+    expect(requiredElectricalFields(heater, {
+      deviceType: "Heater",
+      deviceTypeConfidence: 0.98,
+      deviceTypeElectricalFields: ["voltage", "current"]
+    })).toEqual(["voltage", "current"]);
+    expect(requiredElectricalFields(passiveHood, {
+      deviceType: "Rain Hood",
+      deviceTypeConfidence: 0.98,
+      deviceTypeElectricalFields: []
+    })).toEqual([]);
+  });
+
   it("keeps a plain enclosure passive even when its page links an HMI manual and lists lit accessories", () => {
     // Real Saginaw shape: a steel box whose page links "HMI Enclosure Reinforcement Installation",
     // mines washdown-pressure prose out of a shared manual PDF, and lists lights/fans as optional

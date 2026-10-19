@@ -346,6 +346,10 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
     ? rittalExplicitLabelValue(rittalPdpAttributes, /^materials?$/i, rittalMaterialValue)
     : manufacturerId === "schmersal"
     ? exactSchmersalPdpFieldValue(attributes, /^(?:housing|body|enclosure) material$/i, normalizeHtmlSpecValue) ?? findMaterialAttr(attributes)
+    : manufacturerId === "sce"
+    ? sceWindowKitMaterial(attributes) ?? findMaterialAttr(attributes) ??
+      registryFieldValue(attributes, "material", materialValueFromText) ?? deriveMaterialFromAttributes(attributes) ??
+      ontologyFieldValue(attributes, "material", materialValueFromText)
     : manufacturerId === "balluff"
     ? balluffHousingMaterial(attributes) ?? findMaterialAttr(attributes) ??
       registryFieldValue(attributes, "material", materialValueFromText) ?? deriveMaterialFromAttributes(attributes) ??
@@ -467,7 +471,14 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
       schneiderTransformerOutputVoltage(voltageAttributes, attributes) ??
       schneiderDualSupplyVoltage(voltageAttributes) ?? schneiderPowerSupplyOutputVoltage(voltageAttributes, attributes)
     : undefined;
-  const fallbackVoltage = schneiderSupplyVoltage ?? (manufacturerId === "phoenix"
+  const scePdpSupplyVoltage = manufacturerId === "sce"
+    ? normalizeVoltageValue(attributes.find((attribute) =>
+        attribute.parser === "sce-product-page" &&
+        /^supply voltage range$/i.test(attribute.name) &&
+        /^sce electrical ratings$/i.test(attribute.group ?? "")
+      )?.value)
+    : undefined;
+  const fallbackVoltage = schneiderSupplyVoltage ?? scePdpSupplyVoltage ?? (manufacturerId === "phoenix"
     ? phoenixContactNormalizedVoltage(attributes) ?? withoutMixedKindProse(
       exactSchmersalPdpVoltage(attributes, manufacturerId) ??
       powerSupplyOutputVoltage(voltageAttributes) ??
@@ -1849,11 +1860,11 @@ export function mergeResults(primary: ProductResult, fallback?: ProductResult): 
   const attributes = sortAttributesStable(dedupeAttributes([...primary.attributes, ...fallback.attributes]));
   const documents = dedupeDocuments([...primary.documents, ...fallback.documents]);
   const normalized = mergeNormalizedFields(
-    normalizeFields(attributes, documents, primary.manufacturerId === "rittal" || primary.manufacturerId === "schmersal" || primary.manufacturerId === "phoenix" || primary.manufacturerId === "schneider" || primary.manufacturerId === "doepke" ? primary.manufacturerId : undefined),
+    normalizeFields(attributes, documents, primary.manufacturerId === "rittal" || primary.manufacturerId === "schmersal" || primary.manufacturerId === "phoenix" || primary.manufacturerId === "schneider" || primary.manufacturerId === "doepke" || primary.manufacturerId === "sce" ? primary.manufacturerId : undefined),
     primary.normalized,
     fallback.normalized,
     attributes,
-    primary.manufacturerId === "rittal" || primary.manufacturerId === "phoenix" || primary.manufacturerId === "schneider" || primary.manufacturerId === "doepke" ? primary.manufacturerId : undefined
+    primary.manufacturerId === "rittal" || primary.manufacturerId === "phoenix" || primary.manufacturerId === "schneider" || primary.manufacturerId === "doepke" || primary.manufacturerId === "sce" ? primary.manufacturerId : undefined
   );
   const hasFallbackAdditions = fallback.status !== "failed" && (fallback.attributes.length > 0 || fallback.documents.length > 0);
   return {
@@ -3966,6 +3977,26 @@ function findMaterialAttr(attributes: AttributeRecord[]): string | undefined {
     });
   }
   return candidates.sort((left, right) => right.score - left.score)[0]?.value;
+}
+
+/**
+ * SCE's window-kit page lists carbon-steel and stainless-steel variants together. The requested
+ * catalog suffix selects which construction applies; treating the Stainless Steel sentence as the
+ * material for every SKU incorrectly labels the standard NF kit as stainless.
+ */
+function sceWindowKitMaterial(attributes: AttributeRecord[]): string | undefined {
+  const partNumber = attributes.find((attribute) =>
+    /^part number$/i.test(attribute.name) && /^https:\/\/(?:www\.)?saginawcontrol\.com\/partnumber_info\//i.test(attribute.sourceUrl ?? "")
+  )?.value.trim();
+  if (!partNumber || !/^SCE-PWK\w*$/i.test(partNumber)) return undefined;
+  const variantText = attributes
+    .filter((attribute) => /^application$/i.test(attribute.name) && /^https:\/\/(?:www\.)?saginawcontrol\.com\/partnumber_info\//i.test(attribute.sourceUrl ?? ""))
+    .map((attribute) => attribute.value)
+    .join(" ");
+  if (!/carbon steel kit/i.test(variantText) || !/stainless steel kits?/i.test(variantText)) return undefined;
+  if (/SS6$/i.test(partNumber)) return "stainless steel Type 316";
+  if (/SS$/i.test(partNumber)) return "stainless steel Type 304";
+  return "carbon steel";
 }
 
 function schneiderPrimaryMaterial(attributes: AttributeRecord[]): string | undefined {

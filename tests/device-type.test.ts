@@ -23,6 +23,25 @@ function product(
 }
 
 describe("device type classifier", () => {
+  it("classifies SCE heater, heat exchanger, and enclosure hardware from the vendor's description order", () => {
+    const cases = [
+      ["Heater - 350W", "Heater", "cabinet.airconditioning"],
+      ["Exchanger, Heat", "Heat Exchanger", "cabinet.airconditioning"],
+      ["Hood, Rain", "Rain Hood", "cabinet.mechanical"],
+      ["Shelf, Pull-Out", "Pull-Out Shelf", "cabinet.mechanical"],
+      ["Kit, Window", "Window Kit", "cabinet.mechanical"]
+    ] as const;
+    for (const [description, expected, sheet] of cases) {
+      const result = classifyDeviceType(product(
+        [{ group: "SCE Product Data", name: "Product Type", value: description, sourceType: "official" }],
+        description,
+        { manufacturerId: "sce" }
+      ));
+      expect(result.type).toBe(expected);
+      expect(deviceSheetsFor(result.type)).toContain(sheet);
+    }
+  });
+
   it("separates common industrial hardware from the generic cover/door accessory type", () => {
     const cases = [
       ["Adjustable Leveling Foot", "Leveling Foot"],

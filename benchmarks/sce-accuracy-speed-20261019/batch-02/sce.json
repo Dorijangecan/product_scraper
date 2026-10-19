@@ -1,0 +1,187 @@
+[
+  {
+    "manufacturerId": "sce",
+    "catalogNumber": "SCE-H350",
+    "caseType": "electrical",
+    "expectedDeviceType": "Heater",
+    "riskTags": [
+      "cold",
+      "enclosure-heater",
+      "dual-voltage",
+      "exact-image"
+    ],
+    "expectedOfficialUrlPatterns": [
+      "saginawcontrol\\.com/partnumber_info/\\?n=SCE-H350"
+    ],
+    "requiredDocuments": [
+      "image"
+    ],
+    "expectedAttributePatterns": [
+      "350W",
+      "100 - 240V",
+      "50/60 HZ",
+      "24 V Integrated fan",
+      "DIN rail",
+      "3.0A @ 110V",
+      "0.13A @ 24VDC"
+    ],
+    "expectedNormalizedFields": [
+      "voltage",
+      "current",
+      "dimensions",
+      "weight",
+      "operatingTemperatureMin",
+      "operatingTemperatureMax"
+    ],
+    "expectedNormalizedPatterns": {
+      "current": "3\\.0",
+      "operatingTemperatureMin": "-40",
+      "voltage": "100\\.\\.\\.240",
+      "operatingTemperatureMax": "70"
+    }
+  },
+  {
+    "manufacturerId": "sce",
+    "catalogNumber": "SCE-HE18W120V",
+    "caseType": "electrical",
+    "expectedDeviceType": "Heat Exchanger",
+    "riskTags": [
+      "cold",
+      "heat-exchanger",
+      "exact-variant-manual",
+      "exact-image"
+    ],
+    "expectedOfficialUrlPatterns": [
+      "saginawcontrol\\.com/partnumber_info/\\?n=SCE-HE18W120V"
+    ],
+    "requiredDocuments": [
+      "image"
+    ],
+    "expectedAttributePatterns": [
+      "HE18",
+      "29.66",
+      "10.24",
+      "5.95",
+      "28.60 lbs",
+      "NEMA Type 3R & 12",
+      "120 V",
+      "1.40 A",
+      "1.60 A",
+      "150 W",
+      "26.5 lbs",
+      "23°F - 131°F",
+      "18 W/F"
+    ],
+    "expectedNormalizedFields": [
+      "voltage",
+      "current",
+      "dimensions",
+      "weight",
+      "operatingTemperatureMin",
+      "operatingTemperatureMax"
+    ],
+    "expectedNormalizedPatterns": {
+      "current": "1\\.4",
+      "operatingTemperatureMin": "-5",
+      "operatingTemperatureMax": "55"
+    }
+  },
+  {
+    "manufacturerId": "sce",
+    "catalogNumber": "SCE-RH44",
+    "caseType": "accessory",
+    "expectedDeviceType": "Rain Hood",
+    "riskTags": [
+      "cold",
+      "rain-hood",
+      "material-and-rating",
+      "exact-image"
+    ],
+    "expectedOfficialUrlPatterns": [
+      "saginawcontrol\\.com/partnumber_info/\\?n=SCE-RH44"
+    ],
+    "requiredDocuments": [
+      "image"
+    ],
+    "expectedAttributePatterns": [
+      "8.09",
+      "7.62",
+      "4.50",
+      "3.00 lbs",
+      "galvannealed steel",
+      "Type 3R"
+    ],
+    "expectedNormalizedFields": [
+      "dimensions",
+      "weight",
+      "material"
+    ]
+  },
+  {
+    "manufacturerId": "sce",
+    "catalogNumber": "SCE-26POS",
+    "caseType": "accessory",
+    "expectedDeviceType": "Pull-Out Shelf",
+    "riskTags": [
+      "cold",
+      "pull-out-shelf",
+      "material-and-mounting",
+      "exact-image"
+    ],
+    "expectedOfficialUrlPatterns": [
+      "saginawcontrol\\.com/partnumber_info/\\?n=SCE-26POS"
+    ],
+    "requiredDocuments": [
+      "image"
+    ],
+    "expectedAttributePatterns": [
+      "19.50",
+      "28.00",
+      "18.00 lbs",
+      "heavy gauge steel",
+      "powder coated white",
+      "slides are included"
+    ],
+    "expectedNormalizedFields": [
+      "dimensions",
+      "weight",
+      "material"
+    ]
+  },
+  {
+    "manufacturerId": "sce",
+    "catalogNumber": "SCE-PWK53NF",
+    "caseType": "accessory",
+    "expectedDeviceType": "Window Kit",
+    "riskTags": [
+      "cold",
+      "window-kit",
+      "polycarbonate-and-enclosure-rating",
+      "exact-image"
+    ],
+    "expectedOfficialUrlPatterns": [
+      "saginawcontrol\\.com/partnumber_info/\\?n=SCE-PWK53NF"
+    ],
+    "requiredDocuments": [
+      "image"
+    ],
+    "expectedAttributePatterns": [
+      "7.50",
+      "5.50",
+      "0.38",
+      "1.50 lbs",
+      "0.25",
+      "polycarbonate",
+      "4X",
+      "IP 66"
+    ],
+    "expectedNormalizedFields": [
+      "dimensions",
+      "weight",
+      "material"
+    ],
+    "expectedNormalizedPatterns": {
+      "material": "carbon steel"
+    }
+  }
+]
