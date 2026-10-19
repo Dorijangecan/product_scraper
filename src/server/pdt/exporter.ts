@@ -5,7 +5,7 @@ import type { AttributeRecord, ManufacturerConfig, PdtSheetOverrides, RunItemRec
 import { classifyDeviceTypeCached as classifyDeviceType } from "../scrapers/device-type.js";
 import { loadTemplateWorkbook } from "./template.js";
 import { cellText, clearBody, describeSheet, firstDataRow, type PdtColumn, type SheetDescriptor } from "./sheet-descriptor.js";
-import { CONSTANT_SHEETS, targetSheets } from "./device-sheet-map.js";
+import { CONSTANT_SHEETS, pairCabinetSheets, targetSheets } from "./device-sheet-map.js";
 import { criticalFactsForDeviceType, isSignalDeviceType } from "./device-type-profiles.js";
 import { resolveProperty, type ResolveContext } from "./eclass-resolvers.js";
 import { writeDocumentsSheet } from "./documents-sheet.js";
@@ -194,9 +194,9 @@ export async function exportRunPdt(input: {
     const builtIn = overrideDeviceSheetsForItem(item, manufacturer, deviceType);
     // User overrides win over the built-in (ABB 1SDA) rule; both replace device-type auto routing.
     const override = userOverride && userOverride.length > 0 ? userOverride : builtIn;
-    const sheets = override
+    const sheets = pairCabinetSheets(override
       ? [...CONSTANT_SHEETS, ...override]
-      : [...targetSheets(deviceType), ...additionalDeviceSheetsForItem(item, manufacturer, deviceType)];
+      : [...targetSheets(deviceType), ...additionalDeviceSheetsForItem(item, manufacturer, deviceType)]);
     // Only constant tabs were chosen and no device tab matched → note for diagnostics.
     if (deviceType && sheets.length === CONSTANT_SHEETS.length) unmappedDeviceTypes.add(deviceType);
     for (const sheetName of sheets) {
@@ -391,8 +391,8 @@ function writeUniformSheet(
   if (!descriptor) return 0;
   clearBody(ws, descriptor.firstBodyRow);
   // cabinet.mechanical is intentionally left EMPTY (its rows are the per-component CAD decomposition
-  // created from ECADPORT, not scraped). The tab itself is still kept in the workbook for enclosures
-  // (see ALWAYS_KEPT / device-type routing) so cabinet and cabinet.mechanical travel together.
+  // created from ECADPORT, not scraped). pairCabinetSheets keeps both Cabinet tabs in the workbook
+  // whenever either one is selected for routing.
   if (canonicalSheetKey(ws.name) === canonicalSheetKey("cabinet.mechanical")) {
     removeTemplateLabelColumn(ws);
     return 0;

@@ -316,6 +316,59 @@ h1 {
   margin-bottom: 13px;
 }
 
+.catalog-paste-field small {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.catalog-paste-field .download-button {
+  justify-self: start;
+}
+
+.run-name-dialog-shell {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+}
+
+.run-name-dialog-backdrop {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  background: rgba(0, 0, 0, 0.66);
+}
+
+.run-name-dialog {
+  position: relative;
+  width: min(420px, calc(100vw - 32px));
+  padding: 20px;
+  border: 1px solid var(--border-strong);
+  border-radius: 9px;
+  background: #10151b;
+  box-shadow: var(--shadow);
+}
+
+.run-name-dialog h2 {
+  margin: 0 0 6px;
+  font-size: 18px;
+}
+
+.run-name-dialog p {
+  margin: 0 0 16px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.run-name-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
 .tight-field {
   margin-bottom: 9px;
 }
@@ -3267,6 +3320,13 @@ tbody tr:hover {
 .pdt-routing-table select.select-unassigned {
   border-color: rgba(255, 120, 120, 0.55);
   color: rgba(255, 160, 160, 0.95);
+}
+
+.pdt-routing-paired-note {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 10px;
 }
 
 .pdt-routing-warning {

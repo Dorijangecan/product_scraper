@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { DragEvent } from "react";
+import type { DragEvent, FormEvent } from "react";
 import {
   Activity,
   AlertCircle,
@@ -240,6 +240,10 @@ export function App() {
   const [manufacturers, setManufacturers] = useState<ManufacturerConfig[]>([]);
   const [manufacturerId, setManufacturerId] = useState("abb");
   const [file, setFile] = useState<File | null>(null);
+  const [catalogPasteText, setCatalogPasteText] = useState("");
+  const [pastedCatalogCsv, setPastedCatalogCsv] = useState(false);
+  const [runNameDialogOpen, setRunNameDialogOpen] = useState(false);
+  const [runNameDraft, setRunNameDraft] = useState("");
   const uploadInputRef = useRef<HTMLInputElement | null>(null);
   const customerInputRef = useRef<HTMLInputElement | null>(null);
   const [preview, setPreview] = useState<CsvPreview | null>(null);
@@ -442,6 +446,7 @@ export function App() {
   }
 
   async function handleFile(nextFile: File | null) {
+    setPastedCatalogCsv(false);
     setFile(nextFile);
     setPreview(null);
     setColumnName("");
@@ -458,6 +463,19 @@ export function App() {
     } finally {
       setBusy(false);
     }
+  }
+
+  async function preparePastedCatalogCsv(text: string) {
+    const catalogNumbers = catalogNumbersFromText(text);
+    setCatalogPasteText(text);
+    if (catalogNumbers.length === 0) {
+      setError("Paste at least one catalog number.");
+      return;
+    }
+    const csv = ["Catalog Number", ...catalogNumbers.map((value) => `\"${value.replace(/\"/g, '\"\"')}\"`)].join("\r\n");
+    const generatedFile = new File([csv], "pasted-catalogs.csv", { type: "text/csv" });
+    await handleFile(generatedFile);
+    setPastedCatalogCsv(true);
   }
 
   /**
@@ -676,8 +694,30 @@ export function App() {
     addCustomerDocuments(event.dataTransfer.files);
   }
 
-  async function handleStart() {
+  function handleStart() {
     if (!(file && columnName) && !accessoryMatrix) return;
+    if (pastedCatalogCsv && file) {
+      setRunNameDraft(`${selectedManufacturer?.shortName ?? "run"}-${new Date().toISOString().slice(0, 10)}`);
+      setRunNameDialogOpen(true);
+      return;
+    }
+    void startRunNow();
+  }
+
+  function submitRunName(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const safeName = sanitizeRunName(runNameDraft);
+    if (!safeName) return;
+    setRunNameDialogOpen(false);
+    void startRunNow(safeName);
+  }
+
+  async function startRunNow(runName?: string) {
+    if (!(file && columnName) && !accessoryMatrix) return;
+    let runFile = file ?? undefined;
+    if (pastedCatalogCsv && runFile && runName) {
+      runFile = new File([runFile], `${runName}.csv`, { type: runFile.type || "text/csv" });
+    }
     setBusy(true);
     setError(null);
     try {
@@ -690,7 +730,7 @@ export function App() {
               .map((field) => ({ id: field.id, label: field.label.trim(), pattern: field.pattern.trim() }))
               .filter((field) => field.label && field.pattern);
       const run = await startRun({
-        file: file ?? undefined,
+        file: runFile,
         manufacturerId,
         columnName: columnName || undefined,
         downloadDocuments: downloadPdfs || downloadCad,
@@ -1369,6 +1409,24 @@ export function App() {
         </div>
       )}
 
+      {runNameDialogOpen && (
+        <div className="run-name-dialog-shell" role="dialog" aria-modal="true" aria-labelledby="run-name-title">
+          <button type="button" className="run-name-dialog-backdrop" aria-label="Cancel run naming" onClick={() => setRunNameDialogOpen(false)} />
+          <form className="run-name-dialog" onSubmit={submitRunName}>
+            <h2 id="run-name-title">Name this run</h2>
+            <p>This name will be used for the generated catalog CSV and run outputs.</p>
+            <label className="field">
+              <span>Run name</span>
+              <input autoFocus required maxLength={80} value={runNameDraft} onChange={(event) => setRunNameDraft(event.target.value)} />
+            </label>
+            <div className="run-name-dialog-actions">
+              <button type="button" className="download-button secondary" onClick={() => setRunNameDialogOpen(false)}>Cancel</button>
+              <button type="submit" className="primary-action">Start scrape</button>
+            </div>
+          </form>
+        </div>
+      )}
+
       <section className="workspace">
         <aside className="setup-panel">
           <PanelTitle icon={<Settings2 size={18} />} title="Run setup" meta={readyToRun ? "Ready" : "Waiting"} />
@@ -1429,6 +1487,36 @@ export function App() {
               </div>
             </details>
           )}
+
+          <div className="field catalog-paste-field">
+            <span>Paste catalog numbers</span>
+            <textarea
+              rows={4}
+              value={catalogPasteText}
+              placeholder="Paste one catalog number per line, or copy a column from Excel"
+              onChange={(event) => {
+                setCatalogPasteText(event.target.value);
+                setPastedCatalogCsv(false);
+                setFile(null);
+                setPreview(null);
+                setColumnName("");
+              }}
+              onPaste={(event) => {
+                const text = event.clipboardData.getData("text");
+                if (!text.trim()) return;
+                event.preventDefault();
+                void preparePastedCatalogCsv(text);
+              }}
+            />
+            <small>
+              {pastedCatalogCsv && preview
+                ? `CSV ready: ${preview.rowCount} catalog numbers. The run name will be requested when you start.`
+                : "Pasting creates a CSV automatically. You can also edit the list and click Create CSV."}
+            </small>
+            <button type="button" className="download-button secondary" onClick={() => void preparePastedCatalogCsv(catalogPasteText)} disabled={busy}>
+              Create CSV from list
+            </button>
+          </div>
 
           <div
             className={`upload-zone${uploadDragActive ? " is-dragging" : ""}`}
@@ -3359,6 +3447,11 @@ de https://www.company.com/de/product/{part}`}
                               </option>
                             ))}
                           </select>
+                          {(chosen.toLowerCase() === "cabinet" || chosen.toLowerCase() === "cabinet.mechanical") && (
+                            <small className="pdt-routing-paired-note">
+                              Also includes {chosen.toLowerCase() === "cabinet" ? "cabinet.mechanical" : "cabinet"}
+                            </small>
+                          )}
                         </td>
                       </tr>
                     );
@@ -4913,6 +5006,26 @@ function slugify(value: string): string {
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "")
     .slice(0, 48);
+}
+
+function sanitizeRunName(value: string): string {
+  return value.trim().replace(/[<>:"/\\|?*\x00-\x1f]/g, "-").replace(/\s+/g, " ").slice(0, 80);
+}
+
+function catalogNumbersFromText(text: string): string[] {
+  const seen = new Set<string>();
+  const values: string[] = [];
+  for (const line of text.split(/\r?\n/)) {
+    for (const raw of line.split(/[\t,;]+/)) {
+      const value = raw.trim();
+      if (!value || /^(catalog(?:ue)?\s*(?:number|no\.?|#)?|part\s*(?:number|no\.?|#)?|sku)$/i.test(value)) continue;
+      const key = value.toUpperCase();
+      if (seen.has(key)) continue;
+      seen.add(key);
+      values.push(value);
+    }
+  }
+  return values;
 }
 
 function errorMessage(error: unknown): string {

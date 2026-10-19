@@ -451,7 +451,7 @@ app.get("/api/runs/:id/pdt-routing-preview", async (req, res) => {
     return;
   }
   try {
-    const [{ classifyDeviceType }, { knownDeviceSheets, deviceSheetsFor }] = await Promise.all([
+    const [{ classifyDeviceType }, { knownDeviceSheets, deviceSheetsFor, pairCabinetSheets }] = await Promise.all([
       import("./scrapers/device-type.js"),
       import("./pdt/device-sheet-map.js")
     ]);
@@ -464,9 +464,7 @@ app.get("/api/runs/:id/pdt-routing-preview", async (req, res) => {
       } else {
         suggested = deviceSheetsFor(deviceType);
       }
-      if (suggested.some((sheet) => sheet.trim().toLowerCase() === "cabinet") && !suggested.some((sheet) => sheet.trim().toLowerCase() === "cabinet.mechanical")) {
-        suggested = [...suggested, "cabinet.mechanical"];
-      }
+      suggested = pairCabinetSheets(suggested);
       return {
         itemId: it.id,
         catalogNumber: it.catalogNumber,

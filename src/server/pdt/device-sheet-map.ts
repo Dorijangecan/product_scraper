@@ -17,6 +17,17 @@ export function targetSheets(deviceType: string | undefined): string[] {
   return [...CONSTANT_SHEETS, ...deviceSheetsFor(deviceType)];
 }
 
+/** Cabinet and Cabinet Mechanical are a paired PDT routing choice in either direction. */
+export function pairCabinetSheets(sheets: string[]): string[] {
+  const paired = [...sheets];
+  const keys = new Set(paired.map((sheet) => sheet.trim().toLowerCase()));
+  const cabinetIndex = paired.findIndex((sheet) => sheet.trim().toLowerCase() === "cabinet");
+  const mechanicalIndex = paired.findIndex((sheet) => sheet.trim().toLowerCase() === "cabinet.mechanical");
+  if (keys.has("cabinet") && mechanicalIndex < 0) paired.splice(cabinetIndex + 1, 0, "cabinet.mechanical");
+  if (keys.has("cabinet.mechanical") && cabinetIndex < 0) paired.splice(mechanicalIndex, 0, "cabinet");
+  return paired;
+}
+
 /** All distinct device-specific sheet names known to the profile registry (sorted). */
 export function knownDeviceSheets(): string[] {
   const set = new Set<string>();
