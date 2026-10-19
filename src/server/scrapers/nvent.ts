@@ -131,6 +131,7 @@ function correctNventSchroffChassisDimensions(result: Awaited<ReturnType<typeof 
 /** Direct nVent path: WAF blocks Node/curl but serves the official page via PowerShell. */
 export class NventConnector implements ManufacturerConnector {
   readonly id = "nvent";
+  private powerShellChallengeUntil = 0;
 
   async scrape(catalogNumber: string, context: ScrapeContext) {
     const url = nventProductUrl(catalogNumber);
@@ -140,7 +141,7 @@ export class NventConnector implements ManufacturerConnector {
     };
     try {
       const requestOptions = {
-        timeoutMs: 30000,
+        timeoutMs: 5000,
         headers: {
           "User-Agent": "Mozilla/5.0",
           Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
@@ -151,10 +152,18 @@ export class NventConnector implements ManufacturerConnector {
       };
       let fetched: FetchedText | undefined;
       try {
+        if (Date.now() < this.powerShellChallengeUntil) {
+          throw new Error("nVent PowerShell route recently returned a Cloudflare challenge; reuse the browser route for this run.");
+        }
         fetched = await context.http.fetchTextViaPowerShell(url, requestOptions);
         debugTiming(`PowerShell exact route status=${fetched.statusCode}`);
-        if (isNventCloudflareResponse(fetched)) throw new Error("nVent Cloudflare challenge response");
+        if (isNventCloudflareResponse(fetched)) {
+          this.powerShellChallengeUntil = Date.now() + 5 * 60_000;
+          throw new Error("nVent Cloudflare challenge response");
+        }
       } catch (error) {
+        if (isNventCloudflareChallenge(error)) this.powerShellChallengeUntil = Date.now() + 5 * 60_000;
+        debugTiming(`PowerShell exact route failed: ${error instanceof Error ? error.message : String(error)}`);
         if (!isNventBrowserFallbackError(error) || context.signal?.aborted || !context.browserRenderer || context.browserRenderer.isUnavailable?.()) {
           throw error;
         }

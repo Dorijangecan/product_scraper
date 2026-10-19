@@ -30,6 +30,7 @@ describe("nVent challenge detection", () => {
 
   it.each([
     [new Error("nVent Cloudflare challenge response"), true],
+    [new Error("nVent PowerShell route recently returned a Cloudflare challenge; reuse the browser route for this run."), true],
     [new Error("The request was aborted: The connection was closed unexpectedly."), true],
     [new Error("PowerShell fetch failed: invalid URL argument"), false]
   ])("selects browser retry for recoverable network failures", (error, expected) => {
