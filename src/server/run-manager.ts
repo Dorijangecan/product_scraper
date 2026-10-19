@@ -1885,10 +1885,15 @@ function hasCompleteRittalOfficialProductData(result: ProductResult): boolean {
     Luminaire: [/^product description$/i, /^material$/i, /^luminous flux$/i, /^light colou?r$/i, /^net weight$/i, /^(?:(?:IP )?protection category|protection category to IEC)/i],
     Heater: [/^product description$/i, /^material$/i, /^rated operating voltage$/i, /^continuous thermal output/i, /^net weight$/i, /^(?:(?:IP )?protection category|protection category to IEC)/i],
     Busbar: [/^product description$/i, /^material$/i, /^rated operating voltage$/i, /^rated current max\.?$/i, /^net weight$/i, /^(?:(?:IP )?protection category|protection category to IEC)/i],
-    Enclosure: [/^product description$/i, /^(?:base|basic) material$/i, /^material thickness\s*[-–]\s*enclosure$/i, /^net weight$/i, /^(?:(?:IP )?protection category|protection category to IEC)/i]
+    Enclosure: [/^product description$/i, /^(?:base|basic) material$/i, /^material thickness\s*[-–]\s*enclosure$/i, /^net weight$/i, /^(?:(?:IP )?protection category|protection category to IEC)/i],
+    "Socket Strip": [/^product description$/i, /^material$/i, /^rated operating voltage$/i, /^rated current(?:\s*\(max\.\)|\s+max\.?)?$/i, /^sockets$/i, /^net weight$/i],
+    "Temperature Sensor": [/^article no\.?\s*:?$/i, /^supply includes$/i, /^net weight$/i],
+    Thermostat: [/^product description$/i, /^technical specifications$/i, /^setting range$/i, /^rated operating voltage$/i, /^net weight$/i],
+    "Current Transformer": [/^product description$/i, /^material$/i, /^primary current$/i, /^secondary current$/i, /^accuracy class$/i, /^rated frequency$/i, /^net weight$/i],
+    "Cooling Unit": [/^(?:product description|description)$/i, /^material$/i, /^total cooling output/i, /^rated operating voltage$/i, /^rated current max\.?$/i, /^air throughput/i, /^protection category to IEC/i, /^net weight$/i]
   };
   const hasExactDimensions = exactPdp.some((attribute) =>
-    /^product description$/i.test(attribute.name.trim()) && /\bWHD\s*:?\s*\d+(?:[.,]\d+)?\s*x\s*\d+(?:[.,]\d+)?\s*x\s*\d+(?:[.,]\d+)?/i.test(attribute.value)
+    /^product description$/i.test(attribute.name.trim()) && /\b(?:WHD|LHD)\s*:?\s*\d+(?:[.,]\d+)?\s*x\s*\d+(?:[.,]\d+)?\s*x\s*\d+(?:[.,]\d+)?/i.test(attribute.value)
   ) || ["height", "width", "depth"].every((axis) => exactPdp.some((attribute) =>
     new RegExp(`^${axis}$`, "i").test(attribute.name.trim()) && /\d+(?:[.,]\d+)?\s*mm\b/i.test(attribute.value)
   ));
@@ -1905,7 +1910,8 @@ function hasCompleteRittalOfficialProductData(result: ProductResult): boolean {
     : has(/^air throughput$/i) || has(/^rated current(?: max\.)?$/i) ? "Filter Fan"
     : undefined;
   const required = requiredByType[exactType ?? ""];
-  return Boolean(required?.every(has) && hasExactDimensions);
+  const exactTypeDoesNotPublishDimensions = exactType === "Temperature Sensor" || exactType === "Current Transformer";
+  return Boolean(required?.every(has) && (hasExactDimensions || exactTypeDoesNotPublishDimensions));
 }
 
 function hasCompleteNventPassiveProductData(result: ProductResult): boolean {

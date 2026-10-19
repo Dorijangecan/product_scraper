@@ -23,6 +23,19 @@ function product(
 }
 
 describe("device type classifier", () => {
+  it("keeps the new Rittal batch products in their exact functional types", () => {
+    const cases = [
+      ["DK Socket strip, CEE 7/5 (type E), 7-way", "Socket Strip"],
+      ["SK Temperature sensor for Blue e+ cooling units", "Temperature Sensor"],
+      ["SK Thermostat, enclosure internal thermostat", "Thermostat"],
+      ["SV Current transformer 400 A/5 A", "Current Transformer"],
+      ["Wall-mounted cooling units with Basic controller", "Cooling Unit"]
+    ] as const;
+    for (const [title, expected] of cases) {
+      expect(classifyDeviceType(product([], title, { manufacturerId: "rittal" })).type).toBe(expected);
+    }
+  });
+
   it("classifies distinct Spelsberg charging and distribution products by their primary function", () => {
     const cases = [
       ["E-Bike charging station TG BCS 3 LED", "E-Bike Charging Station"],

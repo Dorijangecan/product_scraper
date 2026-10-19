@@ -97,11 +97,12 @@ const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
   rule("Capacitive Sensor", /\bcapacitive\s+(?:(?:proximity|level)\s+)?(?:sensors?|switch(?:es)?)\b/i, 870),
   rule("Pressure Switch", /\bpressure\s+switch\b/i, 870),
   rule("Pressure Sensor", /\bpressure\s+(?:sensors?|transmitters?|transducers?)\b/i, 900),
-  rule("Temperature Sensor", /\b(?:temperature\s+(?:sensors?|probes?|transmitters?|transducers?)|thermocouple|\brtd\b|pt100|pt1000)\b/i, 900),
+  rule("Temperature Sensor", /\b(?:temperature\s+(?:sensors?|probes?|transmitters?|transducers?)|thermocouple|\brtd\b|pt100|pt1000)\b/i, 950),
   rule("Thermostat", /\b(?:room\s+thermostats?|thermostats?|temperature\s+control\s+switch(?:es)?(?:\s+for\s+heaters?)?)\b/i, 935),
   // Keep enclosure climate products distinct for type-specific completeness, while routing
   // them to the same cabinet air-conditioning PDT sheet as the broader thermal category.
   rule("Air Conditioner", /\b(?:air conditioners?|conditioner,\s*(?:ng\s+)?air)\b/i, 930),
+  rule("Cooling Unit", /\bwall[-\s]?mounted\s+cooling units?\b/i, 940),
   rule("Filter Fan", /\bfilter\s+fans?\b/i, 925),
   rule("Heat Exchanger", /\b(?:heat\s+exchangers?|exchangers?,?\s*heat)\b/i, 922),
   rule("Heater", /\b(?:electric\s+heater(?:s)?|enclosure\s+heater(?:s)?|cabinet\s+heater(?:s)?|semiconductor\s+heater(?:s)?|heater(?:s)?\s*[-,]?\s*\d+\s*W|heater(?:s)?)\b/i, 921),
@@ -246,6 +247,7 @@ const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
   // --- Wiring & connectors ---
   rule("Terminal Accessory", /\b(?:terminal accessory|end bracket|end[-\s]?stop|end[-\s]?clamp|end[-\s]?plate|partition plate|terminal end\b|terminal cover|terminal\s+(?:end\s+)?bracket|separator plate|end section)\b/i, 770),
   rule("PCB Terminal Block", /\b(?:pcb terminal block|board[-\s]?mount terminal|printed[-\s]?circuit terminal|pluggable pcb terminal|pcb screw terminal)\b/i, 765),
+  rule("Socket Strip", /\bsocket strips?\b/i, 930),
   rule("PCB Connector", /\b(?:pin header|board[-\s]?to[-\s]?board connector|pcb connector|pcb header|board[-\s]?mount connector|edge connector|smt connector|socket strip|pcb plug|wire[-\s]?to[-\s]?board connector)\b/i, 760),
   rule("Wire Marker", /\b(?:wire marker|cable marker|wire label|cable label|cable tag|wire ferrule|terminal marker|terminal label|marking tag|marker card)\b/i, 750),
   rule("Terminal Block", /\b(?:terminal block|power terminal|terminal strip|pluggable terminal|push[-\s]?in terminal|spring[-\s]?clamp terminal|screw terminal block|reihenklemme(?:n)?|klemmenblock|\bklemme(?:n)?\b|bornier|morsetto)\b/i, 740),

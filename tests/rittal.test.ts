@@ -85,7 +85,10 @@ describe("Rittal built-in profile", () => {
   });
 
   it("uses the exact order-number resolver before broad discovery", async () => {
-    const text = readFileSync("benchmarks/rittal-15-new-20261006/evidence/official-pdp-1038000.html", "utf8");
+    const text = readFileSync("benchmarks/rittal-15-new-20261006/evidence/official-pdp-1038000.html", "utf8").replace(
+      "</body>",
+      "<main><dl><div><dt>Rated current max.</dt><dd>At 50 Hz: 1.2 A</dd><dd>At 60 Hz: 1.4 A</dd></div><div><dt>Start-up current max.</dt><dd>At 50 Hz: 3.1 A</dd><dd>At 60 Hz: 3.3 A</dd></div></dl></main></body>"
+    );
     const fetched: FetchedText = {
       requestedUrl: "https://www.rittal.com/com-en/products/show/1038000",
       effectiveUrl: "https://www.rittal.com/com-en/products/PG20231215SCH101/PG20231512SCH301/PRO70743?variantId=1038000",
@@ -110,6 +113,8 @@ describe("Rittal built-in profile", () => {
     expect(result.productUrl).toBe(fetched.effectiveUrl);
     expect(result.title).toContain("Basic enclosure AX");
     expect(classifyDeviceType(result).type).toBe("Enclosure");
+    expect(result.attributes.find((attribute) => attribute.name === "Rated current max.")?.value).toContain("1.2 A");
+    expect(result.attributes.find((attribute) => attribute.name === "Rated current max.")?.value).toContain("1.4 A");
   });
 
   it("fills localized descriptions from an independently confirmed German exact-variant PDP", async () => {
@@ -324,6 +329,24 @@ describe("Rittal built-in profile", () => {
       { group: "Definition List", name: "Rated current max.", value: "125 A", sourceUrl: productUrl, sourceType: "official", parser: "rittal-order-resolver" },
       { group: "Definition List", name: "Rated current (UL)", value: "100 A", sourceUrl: productUrl, sourceType: "official", parser: "rittal-order-resolver" }
     ], [], "rittal").current).toBe("125 A");
+
+    expect(normalizeFields([
+      { group: "Definition List", name: "Rated current max.", value: "At 50 Hz: 1.2 AAt 60 Hz: 1.4 A", sourceUrl: productUrl, sourceType: "official", parser: "rittal-order-resolver" },
+      { group: "Definition List", name: "Start-up current max.", value: "At 50 Hz: 3.1 AAt 60 Hz: 3.3 A", sourceUrl: productUrl, sourceType: "official", parser: "rittal-order-resolver" }
+    ], [], "rittal").current).toBe("1.2 A; 1.4 A");
+
+    const socketStrip = normalizeFields([
+      { group: "Definition List", name: "Product description", value: "DK Socket strip, LHD: 482.6 x 44 x 44 mm", sourceUrl: productUrl, sourceType: "official", parser: "rittal-order-resolver" },
+      { group: "Definition List", name: "Length of connection cable", value: "2 m", sourceUrl: productUrl, sourceType: "official", parser: "rittal-order-resolver" },
+      { group: "Definition List", name: "Material", value: "Aluminium section, natural anodisedSocket inserts: Polycarbonate", sourceUrl: productUrl, sourceType: "official", parser: "rittal-order-resolver" }
+    ], [], "rittal");
+    expect(socketStrip.dimensions).toBe("44 x 482.6 x 44 mm");
+    expect(socketStrip.material).toBe("Aluminium section, natural anodised; Socket inserts: Polycarbonate");
+
+    expect(normalizeFields([
+      { group: "Definition List", name: "Primary current", value: "400 A", sourceUrl: productUrl, sourceType: "official", parser: "rittal-order-resolver" },
+      { group: "Definition List", name: "Secondary current", value: "5 A", sourceUrl: productUrl, sourceType: "official", parser: "rittal-order-resolver" }
+    ], [], "rittal").current).toBe("400 A primary / 5 A secondary");
   });
 
   it("preserves all official voltage modes published on Rittal cooling products", () => {

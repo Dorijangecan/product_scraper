@@ -170,6 +170,11 @@ export const DEVICE_TYPE_FAMILIES: Record<string, readonly FamilyEntry[]> = {
   ],
   rittal: [
     { patterns: ["IT LED system light"], type: "Luminaire", notes: "Rittal IT system lights" },
+    { patterns: ["Socket strip"], type: "Socket Strip", notes: "Rittal IT power strips" },
+    { patterns: ["Temperature sensor"], type: "Temperature Sensor", notes: "Rittal climate-control probes" },
+    { patterns: ["Thermostat"], type: "Thermostat", notes: "Rittal enclosure thermostats" },
+    { patterns: ["Current transformer"], type: "Current Transformer", notes: "Rittal inductive current transformers" },
+    { patterns: ["Wall-mounted cooling unit"], type: "Cooling Unit", notes: "Rittal enclosure cooling units" },
     { patterns: ["AE", "KX", "EB", "BG", "TS", "TS8"], type: "Enclosure" },
     { patterns: ["VX", "VX25"], type: "Enclosure", notes: "VX25 baying enclosure" },
     { patterns: ["DK"], type: "Rack Cabinet" },
@@ -333,6 +338,26 @@ export function familyTypeFor(
   if (!manufacturerId) return undefined;
   const entries = DEVICE_TYPE_FAMILIES[manufacturerId.toLowerCase()];
   if (!entries) return undefined;
+  // Rittal order numbers commonly start with broad family prefixes such as SK, while
+  // the exact product title names a more specific device (thermostat, sensor, socket
+  // strip, etc.). Prefer that explicit product-class wording over the broad prefix.
+  if (manufacturerId.toLowerCase() === "rittal") {
+    const specificTitlePatterns: Array<{ pattern: RegExp; type: string; label: string }> = [
+      { pattern: /\bsocket\s+strip\b/i, type: "Socket Strip", label: "Socket strip" },
+      { pattern: /\btemperature\s+sensor\b/i, type: "Temperature Sensor", label: "Temperature sensor" },
+      { pattern: /\bthermostat\b/i, type: "Thermostat", label: "Thermostat" },
+      { pattern: /\bcurrent\s+transformer\b/i, type: "Current Transformer", label: "Current transformer" },
+      { pattern: /\bwall[-\s]?mounted\s+cooling\s+unit\b/i, type: "Cooling Unit", label: "Wall-mounted cooling unit" },
+      { pattern: /\bit\s+led\s+system\s+light\b/i, type: "Luminaire", label: "IT LED system light" }
+    ];
+    for (const candidate of candidates) {
+      const text = candidate?.trim();
+      if (!text) continue;
+      for (const specific of specificTitlePatterns) {
+        if (specific.pattern.test(text)) return { type: specific.type, pattern: specific.label, notes: "Exact product-class wording" };
+      }
+    }
+  }
   // Pre-flatten patterns with metadata, sorted longest-first so "PSEN" beats "PS" in checks below.
   const flat = entries.flatMap((entry) =>
     entry.patterns.map((pattern) => ({ pattern, type: entry.type, notes: entry.notes }))

@@ -1,0 +1,61 @@
+[
+  {
+    "manufacturerId": "rittal",
+    "catalogNumber": "7240510",
+    "caseType": "electrical",
+    "expectedDeviceType": "Socket Strip",
+    "riskTags": ["rittal-batch-02", "socket-strip-7-way-fb"],
+    "expectedOfficialUrlPatterns": ["rittal\\.com/.+variantId=7240510(?:$|[&#])"],
+    "requiredDocuments": ["image"],
+    "expectedNormalizedFields": ["voltage", "current", "weight", "material", "dimensions"],
+    "expectedAttributePatterns": ["7240510", "7 x F/B", "250 V", "16 A", "482.6 mm", "Aluminium", "0.77 kg"],
+    "expectedNormalizedPatterns": {"voltage": "250\\s*V", "current": "16\\s*A", "weight": "0[.]77 kg", "dimensions": "44\\s*x\\s*482[.,]6\\s*x\\s*44", "material": "Aluminium.*Polycarbonate"}
+  },
+  {
+    "manufacturerId": "rittal",
+    "catalogNumber": "3124400",
+    "caseType": "electrical",
+    "expectedDeviceType": "Temperature Sensor",
+    "riskTags": ["rittal-batch-02", "ntc-temperature-probe"],
+    "expectedOfficialUrlPatterns": ["rittal\\.com/.+variantId=3124400(?:$|[&#])"],
+    "requiredDocuments": ["image"],
+    "expectedNormalizedFields": ["weight"],
+    "expectedAttributePatterns": ["3124400", "NTC sensor", "connection cable", "2.5 m", "0.05 kg"]
+  },
+  {
+    "manufacturerId": "rittal",
+    "catalogNumber": "3110000",
+    "caseType": "electrical",
+    "expectedDeviceType": "Thermostat",
+    "riskTags": ["rittal-batch-02", "enclosure-internal-thermostat"],
+    "expectedOfficialUrlPatterns": ["rittal\\.com/.+variantId=3110000(?:$|[&#])"],
+    "requiredDocuments": ["image"],
+    "expectedNormalizedFields": ["voltage", "weight", "dimensions"],
+    "expectedAttributePatterns": ["3110000", "Bi-metal controller", "contact load", "1 K", "5 °C", "60 °C", "24 V", "230 V", "0.095 kg", "71 mm"],
+    "expectedNormalizedPatterns": {"weight": "0[.]095 kg", "dimensions": "71\\s*x\\s*71\\s*x\\s*33[.]5", "voltage": "24\\s*V.*230\\s*V"}
+  },
+  {
+    "manufacturerId": "rittal",
+    "catalogNumber": "9677875",
+    "caseType": "electrical",
+    "expectedDeviceType": "Current Transformer",
+    "riskTags": ["rittal-batch-02", "400a-5a-current-transformer"],
+    "expectedOfficialUrlPatterns": ["rittal\\.com/.+variantId=9677875(?:$|[&#])"],
+    "requiredDocuments": ["image"],
+    "expectedNormalizedFields": ["current", "weight", "material"],
+    "expectedAttributePatterns": ["9677875", "400 A", "5 A", "Accuracy Class", "Class 1", "50", "60 Hz", "Polyamide", "0.13 kg"],
+    "expectedNormalizedPatterns": {"current": "400\\s*A primary / 5\\s*A secondary", "weight": "0[.]13 kg"}
+  },
+  {
+    "manufacturerId": "rittal",
+    "catalogNumber": "3361140",
+    "caseType": "electrical",
+    "expectedDeviceType": "Cooling Unit",
+    "riskTags": ["rittal-batch-02", "wall-mounted-750w-cooling-unit"],
+    "expectedOfficialUrlPatterns": ["rittal\\.com/.+variantId=3361140(?:$|[&#])"],
+    "requiredDocuments": ["image"],
+    "expectedNormalizedFields": ["voltage", "current", "weight", "material", "dimensions", "protection"],
+    "expectedAttributePatterns": ["3361140", "750 W", "780 W", "400 V", "1.2 A", "1.4 A", "480 m³/h", "600 m³/h", "IP 34", "IP 54", "20 kg", "550 mm"],
+    "expectedNormalizedPatterns": {"weight": "20 kg", "dimensions": "550\\s*x\\s*280\\s*x\\s*280", "voltage": "400\\s*V", "current": "1[.,]2 A; 1[.,]4 A", "protection": "IP 34.*IP 54"}
+  }
+]

@@ -592,7 +592,10 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
     : manufacturerId === "schneider" && isSchneiderSoftStarter(attributes)
     ? schneiderSoftStarterRatedCurrent(attributes)
     : manufacturerId === "rittal"
-    ? rittalRatedCurrent(currentAttributes)
+    // Rittal's multi-row cooling-unit rating can be split across definition-list rows.
+    // Preserve all exact-page rated-current variants (for example 50 Hz and 60 Hz) instead
+    // of the single value left after generic candidate ranking.
+    ? rittalRatedCurrent(attributes)
     : withoutMixedKindProse(
     (manufacturerId === "schneider" && isSchneiderTransformer(attributes)
       ? schneiderTransformerSecondaryCurrent(currentAttributes)
@@ -2840,11 +2843,16 @@ function isRittalCurrentEvidence(attr: AttributeRecord): boolean {
 }
 
 function rittalRatedCurrent(attributes: AttributeRecord[]): string | undefined {
+  const primaryCurrent = attributes.find((attribute) => /^primary current$/i.test(attribute.name.trim()))?.value.match(/\d+(?:[.,]\d+)?\s*A\b/i)?.[0];
+  const secondaryCurrent = attributes.find((attribute) => /^secondary current$/i.test(attribute.name.trim()))?.value.match(/\d+(?:[.,]\d+)?\s*A\b/i)?.[0];
+  if (primaryCurrent && secondaryCurrent) return `${normalizeCurrentValue(primaryCurrent)} primary / ${normalizeCurrentValue(secondaryCurrent)} secondary`;
   const candidates = attributes.filter((attribute) => /^rated current(?:\s+max\.?)?$/i.test(attribute.name.trim()));
   const maximumRatings = candidates.filter((attribute) => /^rated current\s+max\.?$/i.test(attribute.name.trim()));
   const primaryRatings = maximumRatings.length ? maximumRatings : candidates;
   const values = [...new Set(primaryRatings.flatMap((attribute) =>
-    [...attribute.value.matchAll(/(\d+(?:[.,]\d+)?)\s*A\b/gi)].map((match) => `${formatNumber(localizedNumber(match[1]))} A`)
+    // Adjacent Rittal definition-list values can flatten to `1.2 AAt 60 Hz: 1.4 A`.
+    // Allow the next `A` to begin immediately after the unit so the first rating is retained.
+    [...attribute.value.matchAll(/(\d+(?:[.,]\d+)?)\s*A(?=A|[^A-Za-z]|$)/gi)].map((match) => `${formatNumber(localizedNumber(match[1]))} A`)
   ))];
   return values.length ? values.join("; ") : undefined;
 }
@@ -2874,7 +2882,7 @@ function rittalMaterialValue(value: string): string | undefined {
     .replace(/\bVolume\s*:\s*\d+(?:[.,]\d+)?\s*(?:l|L)\b.*$/i, "")
     .replace(/(Polyamide)(?=Polycarbonate)/gi, "$1; ")
     .replace(/(Polycarbonate)(?=E-Cu\b)/gi, "$1; ")
-    .replace(/([^\s;])(?=(?:enclosure|door|mounting\s+plate|light\s+(?:body|cover|ends)|front)\s*:\s*)/gi, "$1; ")
+    .replace(/([^\s;])(?=(?:enclosure|door|mounting\s+plate|light\s+(?:body|cover|ends)|socket\s+inserts|front)\s*:\s*)/gi, "$1; ")
     .trim();
   return cleaned || undefined;
 }
@@ -2909,6 +2917,13 @@ function rittalProductDimensions(attributes: AttributeRecord[]): string | undefi
     )
     .sort(compareAttributeEvidence);
   for (const attribute of descriptions) {
+    const lengthHeightDepth = attribute.value.match(/\bLHD\s*:?\s*(\d+(?:[.,]\d+)?)\s*x\s*(\d+(?:[.,]\d+)?)\s*x\s*(\d+(?:[.,]\d+)?)(?:\s*mm)?\b/i);
+    if (lengthHeightDepth) {
+      // Rittal socket strips publish Length x Height x Depth (LHD), unlike most products' WHD.
+      // Store the long axis in the normalized width slot and keep Height/Depth on their own axes.
+      const normalizedLhd = normalizeDimensionValue(`${lengthHeightDepth[2]} x ${lengthHeightDepth[1]} x ${lengthHeightDepth[3]} mm`);
+      if (normalizedLhd) return normalizedLhd;
+    }
     const match = attribute.value.match(/\bWHD\s*:?\s*(\d+(?:[.,]\d+)?)\s*x\s*(\d+(?:[.,]\d+)?)\s*x\s*(\d+(?:[.,]\d+)?)(?:\s*mm)?\b/i);
     if (!match) continue;
     const preciseDepth = attributes.find((candidate) =>

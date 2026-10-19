@@ -1,7 +1,9 @@
+import * as cheerio from "cheerio";
 import type { ProductResult } from "../../shared/types.js";
 import { catalogTextMatches } from "./catalog-number.js";
 import { parseGenericProductPage } from "./generic.js";
-import { emptyResult } from "./normalizer.js";
+import { dedupeAttributes } from "./dedupe.js";
+import { emptyResult, normalizeFields } from "./normalizer.js";
 import { scrapeDiscoveredFallback, withDiscoveryFallbackDiagnostics } from "./discovery-fallback.js";
 import type { ManufacturerConnector, ScrapeContext } from "./types.js";
 
@@ -32,13 +34,14 @@ export class RittalConnector implements ManufacturerConnector {
         effectiveUrl.searchParams.get("variantId") === catalogNumber;
       const exactPageIdentity = catalogTextMatches(fetched.text, catalogNumber, context.manufacturer.match);
       if (fetched.statusCode < 400 && exactVariantUrl && exactPageIdentity) {
-        const parsed = parseGenericProductPage("rittal", catalogNumber, fetched, "official", "rittal-order-resolver", {
+        const genericParsed = parseGenericProductPage("rittal", catalogNumber, fetched, "official", "rittal-order-resolver", {
           match: context.manufacturer.match,
           localizedUrlTemplates: context.manufacturer.localizedUrlTemplates,
           confidence: 0.88,
           markerRules: context.manufacturer.markerRules,
           extractionPolicy: context.manufacturer.scrapeRecipe?.extractionPolicy
         });
+        const parsed = supplementExactRittalDefinitionList(genericParsed, fetched.text, fetched.effectiveUrl);
         if (parsed.status !== "failed" && parsed.productUrl === fetched.effectiveUrl) {
           const localizedDescriptions: NonNullable<ProductResult["localizedDescriptions"]> = {
             ...(parsed.title || parsed.description
@@ -121,4 +124,37 @@ export class RittalConnector implements ManufacturerConnector {
     }
     return withDiscoveryFallbackDiagnostics(emptyResult("rittal", catalogNumber, directFailure ?? "Rittal product page was not found."), fallback.discovery);
   }
+}
+
+function supplementExactRittalDefinitionList(result: ProductResult, html: string, sourceUrl: string): ProductResult {
+  if (result.productUrl !== sourceUrl) return result;
+  const $ = cheerio.load(html);
+  const scope = $("main").length ? $("main") : $("body");
+  const exactRows: ProductResult["attributes"] = [];
+  scope.find("dt").each((_, element) => {
+    const name = cleanText($(element).text());
+    const value = cleanText($(element).nextUntil("dt", "dd").map((__, sibling) => $(sibling).text()).get().join("; "));
+    if (!name || !value) return;
+    exactRows.push({
+      group: "Definition List",
+      name,
+      value,
+      sourceUrl,
+      sourceType: "official",
+      parser: "rittal-order-resolver",
+      stage: "rittal-exact-definition-list",
+      confidence: 0.97
+    });
+  });
+  if (!exactRows.length) return result;
+  const attributes = dedupeAttributes([...result.attributes, ...exactRows]);
+  return {
+    ...result,
+    attributes,
+    normalized: normalizeFields(attributes, result.documents, "rittal")
+  };
+}
+
+function cleanText(value: string): string {
+  return value.replace(/\s+/g, " ").trim();
 }
