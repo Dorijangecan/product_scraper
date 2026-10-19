@@ -186,6 +186,26 @@ export function finalizeQualityGate(result: ProductResult, manufacturer: Manufac
     if (!recomputed.current) delete normalized.current;
     candidate = { ...result, normalized };
   }
+  if (manufacturer.id === "spelsberg") {
+    const recomputed = normalizeFields(result.attributes, result.documents, "spelsberg");
+    const normalized = { ...result.normalized };
+    // Final-completeness and PDF enrichment can leave an earlier guessed rating behind when the
+    // exact Spelsberg evidence only states insulation voltage or a concrete slab limit.
+    if (recomputed.voltage) normalized.voltage = recomputed.voltage;
+    else delete normalized.voltage;
+    if (recomputed.wallThickness) normalized.wallThickness = recomputed.wallThickness;
+    else delete normalized.wallThickness;
+    const exactPageAttribute = (name: RegExp) => result.attributes.find((attribute) =>
+      attribute.parser === "spelsberg-algolia" && name.test(attribute.name.trim()) && attribute.sourceUrl === result.productUrl
+    )?.value.trim();
+    const exactDimensions = exactPageAttribute(/^dimensions?$/i);
+    const baseMaterial = exactPageAttribute(/^base unit material$/i);
+    if (exactDimensions && /^\d+(?:[.,]\d+)?\s*x\s*\d+(?:[.,]\d+)?\s*x\s*\d+(?:[.,]\d+)?\s*mm$/i.test(exactDimensions)) {
+      normalized.dimensions = exactDimensions;
+    }
+    if (baseMaterial) normalized.material = baseMaterial;
+    candidate = { ...result, normalized };
+  }
   if (manufacturer.id === "doepke") {
     const recomputed = normalizeFields(result.attributes, result.documents, "doepke");
     const normalized = { ...result.normalized, ...recomputed };

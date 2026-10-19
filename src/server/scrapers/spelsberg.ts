@@ -209,7 +209,7 @@ function resultFromAlgoliaHit(catalogNumber: string, hit: SpelsbergAlgoliaHit, s
   const sourceUrl = officialProductUrlFromHit(hit) ?? search.effectiveUrl;
   const attributes = dedupeAttributes(attributesFromHit(hit, sourceUrl));
   const documents = dedupeDocuments(documentsFromHit(hit, sourceUrl));
-  const normalized = normalizeFields(attributes, documents);
+  const normalized = normalizeFields(attributes, documents, "spelsberg");
   const sources: SourceRecord[] = [
     {
       url: search.effectiveUrl,

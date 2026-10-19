@@ -277,7 +277,7 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
           !/^rated voltage(?:\s*\([^)]*\))?$/i.test(attribute.name.trim()) &&
           !/^(?:sensor|contact|input)\s+(?:input\s+)?voltage$/i.test(attribute.name.trim())
         )
-      : attributes;
+      : attributes.filter((attribute) => !/(?:rated\s+)?insulation\s+voltage/i.test(`${attribute.name} ${attribute.value}`));
   const findAttr = (...patterns: RegExp[]) => {
     return bestAttributeValue(attributes, patterns);
   };
@@ -415,6 +415,10 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
   const wallThicknessAttributes = attributes.filter((attribute) =>
     !/\bbusbar\b|front\s+panel/i.test(`${attribute.group ?? ""} ${attribute.name}`) &&
     !/\bpanel thickness\b/i.test(attribute.name) &&
+    !(manufacturerId === "spelsberg" && (
+      /\b(?:ceiling\s+)?slab thickness\b/i.test(`${attribute.name} ${attribute.value}`) ||
+      (/^thickness$/i.test(attribute.name.trim()) && /\bup to\b/i.test(attribute.value))
+    )) &&
     !(/^thickness$/i.test(attribute.name.trim()) && /ontology/i.test(attribute.group ?? ""))
   );
   const wallThickness = bestWallThicknessAttributeValue(wallThicknessAttributes) ??

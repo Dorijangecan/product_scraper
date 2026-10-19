@@ -29,6 +29,10 @@ describe("device type classifier", () => {
       ["WKE 2 junction box, E30-E90 electrical functional integrity", "Fire-Resistant Junction Box"],
       ["Socket outlet combination STV 1208-S", "Socket Outlet Combination"],
       ["AK 12 small distribution boards", "Small Distribution Board"],
+      ["U 71 DVD-2 ceiling junction box", "Ceiling Junction Box"],
+      ["U 120 GRO-3 large conduit box", "Large Conduit Box"],
+      ["GTi 2 VS-KD-t module enclosure for selective main switch", "Distribution Board"],
+      ["BS 2 equipment installation box for British Standard devices", "Equipment Installation Box"],
       ["Wallbox Polar DLM Bundle", "EV Charging Station"]
     ] as const;
     for (const [title, expected] of cases) {

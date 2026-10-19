@@ -175,6 +175,10 @@ export const DEVICE_TYPE_FAMILIES: Record<string, readonly FamilyEntry[]> = {
     { patterns: ["SK"], type: "Thermal Management", notes: "Climate control / filter fans" }
   ],
   spelsberg: [
+    { patterns: ["U 71 DVD"], type: "Ceiling Junction Box", notes: "Spelsberg ceiling-slab junction boxes" },
+    { patterns: ["U 120 GRO"], type: "Large Conduit Box", notes: "Spelsberg large concrete conduit boxes" },
+    { patterns: ["GTi 2 VS"], type: "Distribution Board", notes: "Spelsberg GTi selective-main-switch distribution boards" },
+    { patterns: ["BS 2"], type: "Equipment Installation Box", notes: "Spelsberg British Standard equipment installation box" },
     { patterns: ["Abox Pro"], type: "Junction Box", notes: "Spelsberg Abox Pro junction boxes" },
     { patterns: ["STG"], type: "Socket Enclosure", notes: "Spelsberg STG socket enclosures" },
     { patterns: ["GBZ"], type: "Lightning Protection Enclosure", notes: "Spelsberg GBZ lightning protection housings" },

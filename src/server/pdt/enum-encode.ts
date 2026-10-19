@@ -181,7 +181,7 @@ function standardMaterialLabel(description: string, value: string): string | und
   const labels = [...(parseEnumLegend(description)?.values() ?? [])].map((entry) => entry.label);
   const hasLabel = (pattern: RegExp): string | undefined => labels.find((label) => pattern.test(label));
   if (/\bpbtp?\b|\bpolybutylene terephthalate\b/.test(text)) return "Plastic (PBT)";
-  if (/\bpolystyrene\b|\bpolystyrol\b/.test(text)) return hasLabel(/^polystyrene$/i) ?? hasLabel(/^Thermoplast$/i) ?? hasLabel(/^Plastic$/i);
+  if (/\bpolystyrene\b|\bpolystyrol\b|\bpolypropylene\b/.test(text)) return hasLabel(/^polystyrene$/i) ?? hasLabel(/^Thermoplast$/i) ?? hasLabel(/^Plastic$/i);
   if (/\babs\b/.test(text)) return hasLabel(/^Plastic \(ABS\)$/i) ?? hasLabel(/^Plastic$/i);
   if (/\bpa\b|\bpa66\b|\bpolyamide\b/.test(text)) return hasLabel(/^polyamide$/i) ?? hasLabel(/^Thermoplast$/i) ?? hasLabel(/^Plastic$/i);
   if (/\bthermoplast\b/.test(text)) return hasLabel(/^Thermoplast$/i) ?? hasLabel(/^Plastic$/i);

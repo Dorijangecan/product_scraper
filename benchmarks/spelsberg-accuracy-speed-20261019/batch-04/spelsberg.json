@@ -1,0 +1,184 @@
+[
+  {
+    "manufacturerId": "spelsberg",
+    "catalogNumber": "97106601",
+    "caseType": "mechanical",
+    "expectedDeviceType": "Ceiling Junction Box",
+    "riskTags": [
+      "spelsberg-batch-04",
+      "concrete-ceiling-junction-box"
+    ],
+    "expectedOfficialUrlPatterns": [
+      "spelsberg\\.com/p/97106601(?:$|[?#])"
+    ],
+    "requiredDocuments": [
+      "datasheet",
+      "image"
+    ],
+    "expectedBlankNormalizedFields": [
+      "voltage",
+      "current"
+    ],
+    "expectedNormalizedFields": [
+      "weight",
+      "material",
+      "dimensions"
+    ],
+    "expectedAttributePatterns": [
+      "97106601",
+      "U 71 DVD-2",
+      "IP30",
+      "400 V",
+      "71 x 71 x 79"
+    ],
+    "expectedNormalizedPatterns": {
+      "dimensions": "71 x 71 x 79",
+      "weight": "0[.]05 kg",
+      "material": "Polypropylene"
+    }
+  },
+  {
+    "manufacturerId": "spelsberg",
+    "catalogNumber": "97331201",
+    "caseType": "mechanical",
+    "expectedDeviceType": "Large Conduit Box",
+    "riskTags": [
+      "spelsberg-batch-04",
+      "concrete-large-conduit-box"
+    ],
+    "expectedOfficialUrlPatterns": [
+      "spelsberg\\.com/p/97331201(?:$|[?#])"
+    ],
+    "requiredDocuments": [
+      "datasheet",
+      "image"
+    ],
+    "expectedBlankNormalizedFields": [
+      "voltage",
+      "current",
+      "wallThickness"
+    ],
+    "expectedNormalizedFields": [
+      "weight",
+      "material",
+      "dimensions"
+    ],
+    "expectedAttributePatterns": [
+      "97331201",
+      "U 120 GRO-3",
+      "IP30",
+      "400 V",
+      "74 x 74 x 122"
+    ],
+    "expectedNormalizedPatterns": {
+      "dimensions": "74 x 74 x 122",
+      "weight": "0[.]082 kg",
+      "material": "Polypropylene"
+    }
+  },
+  {
+    "manufacturerId": "spelsberg",
+    "catalogNumber": "02000201",
+    "caseType": "electrical",
+    "expectedDeviceType": "Distribution Board",
+    "riskTags": [
+      "spelsberg-batch-04",
+      "selective-main-switch-distribution-board"
+    ],
+    "expectedOfficialUrlPatterns": [
+      "spelsberg\\.com/p/02000201(?:$|[?#])"
+    ],
+    "requiredDocuments": [
+      "datasheet",
+      "image"
+    ],
+    "expectedNormalizedFields": [
+      "weight",
+      "material",
+      "dimensions"
+    ],
+    "expectedAttributePatterns": [
+      "02000201",
+      "GTi 2 VS-KD-t",
+      "320 x 320 x 179",
+      "35 mm standard rails"
+    ],
+    "expectedNormalizedPatterns": {
+      "dimensions": "320 x 320 x 179",
+      "material": "Polycarbonate"
+    }
+  },
+  {
+    "manufacturerId": "spelsberg",
+    "catalogNumber": "78610101",
+    "caseType": "electrical",
+    "expectedDeviceType": "NH Fuse Enclosure",
+    "riskTags": [
+      "spelsberg-batch-04",
+      "aki-nh-load-breaker-housing"
+    ],
+    "expectedOfficialUrlPatterns": [
+      "spelsberg\\.com/p/78610101(?:$|[?#])"
+    ],
+    "requiredDocuments": [
+      "datasheet",
+      "image"
+    ],
+    "expectedNormalizedFields": [
+      "voltage",
+      "current",
+      "weight",
+      "material",
+      "dimensions"
+    ],
+    "expectedAttributePatterns": [
+      "78610101",
+      "AKi-T 101",
+      "690 V",
+      "100 A",
+      "IP54/IP65",
+      "150 x 300 x 132",
+      "NH 00"
+    ],
+    "expectedNormalizedPatterns": {
+      "voltage": "690\\s*V",
+      "current": "100\\s*A",
+      "material": "Polycarbonate",
+      "dimensions": "150 x 300 x 132",
+      "weight": "1[.]915 kg"
+    }
+  },
+  {
+    "manufacturerId": "spelsberg",
+    "catalogNumber": "98700201",
+    "caseType": "mechanical",
+    "expectedDeviceType": "Equipment Installation Box",
+    "riskTags": [
+      "spelsberg-batch-04",
+      "british-standard-equipment-installation-box"
+    ],
+    "expectedOfficialUrlPatterns": [
+      "spelsberg\\.com/p/98700201(?:$|[?#])"
+    ],
+    "requiredDocuments": [
+      "datasheet",
+      "image"
+    ],
+    "expectedNormalizedFields": [
+      "weight",
+      "material",
+      "dimensions"
+    ],
+    "expectedAttributePatterns": [
+      "98700201",
+      "BS 2",
+      "86 x 146 x 60",
+      "2-way",
+      "British Standard"
+    ],
+    "expectedNormalizedPatterns": {
+      "dimensions": "86 x 146 x 60",
+      "material": "Plastic"
+    }
+  }
+]

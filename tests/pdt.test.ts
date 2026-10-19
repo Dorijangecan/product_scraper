@@ -2844,6 +2844,7 @@ describe("enum encoding", () => {
     expect(encodeEnumLabel("material 1 - Real glas 2 - Thermoplast 3 - Polyvinylalkohol (PVA) ...", "Thermoplast, GF")).toBe("Thermoplast");
     expect(encodeEnumLabel("material 1 - Real glas 2 - Thermoplast 3 - Polyvinylalkohol (PVA) ...", "Polycarbonate")).toBe("Thermoplast");
     expect(encodeEnumLabel("material 1 - Real glas 2 - Thermoplast 3 - Polyvinylalkohol (PVA) ...", "Polystyrene")).toBe("Thermoplast");
+    expect(encodeEnumLabel("material 1 - Real glas 2 - Thermoplast 3 - Polyvinylalkohol (PVA) ...", "Polypropylene")).toBe("Thermoplast");
     expect(encodeEnumLabel(material, "9AKK108466A1425")).toBeUndefined();
   });
 

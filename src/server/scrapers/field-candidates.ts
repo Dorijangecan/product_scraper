@@ -158,6 +158,22 @@ export function applyFieldCandidateResolution(result: ProductResult): ProductRes
     ], [], result.manufacturerId)[key];
     if (validated) normalized[key] = validated;
   }
+  if (result.manufacturerId === "spelsberg") {
+    const spelsbergFields = normalizeFields(result.attributes, result.documents, "spelsberg");
+    if (spelsbergFields.voltage) normalized.voltage = spelsbergFields.voltage;
+    else delete normalized.voltage;
+    if (spelsbergFields.wallThickness) normalized.wallThickness = spelsbergFields.wallThickness;
+    else delete normalized.wallThickness;
+    const exactPageAttribute = (name: RegExp) => result.attributes.find((attribute) =>
+      attribute.parser === "spelsberg-algolia" && name.test(attribute.name.trim()) && attribute.sourceUrl === result.productUrl
+    )?.value.trim();
+    const exactDimensions = exactPageAttribute(/^dimensions?$/i);
+    const baseMaterial = exactPageAttribute(/^base unit material$/i);
+    if (exactDimensions && /^\d+(?:[.,]\d+)?\s*x\s*\d+(?:[.,]\d+)?\s*x\s*\d+(?:[.,]\d+)?\s*mm$/i.test(exactDimensions)) {
+      normalized.dimensions = exactDimensions;
+    }
+    if (baseMaterial) normalized.material = baseMaterial;
+  }
   if (result.manufacturerId === "schneider") {
     const dualRangeVoltage = schneiderLexiumDualRangeVoltage(result.attributes);
     if (dualRangeVoltage) normalized.voltage = dualRangeVoltage;

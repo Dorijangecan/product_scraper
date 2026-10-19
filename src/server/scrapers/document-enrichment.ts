@@ -840,6 +840,8 @@ export async function enrichResultFromDownloadedDocuments(result: ProductResult)
   const recomputedNormalized = normalizeEnrichedFields(result.manufacturerId, attributes, documents, `${result.title} ${result.description}`);
   const normalized = mergeEnrichedNormalized(result, recomputedNormalized);
   if (result.manufacturerId === "spelsberg") {
+    if (!recomputedNormalized.voltage) delete normalized.voltage;
+    if (!recomputedNormalized.wallThickness) delete normalized.wallThickness;
     const baseMaterial = attributes.find((attribute) => /^base unit material$/i.test(attribute.name.trim()))?.value.trim();
     const exactDimensions = attributes.find((attribute) =>
       /^dimensions?$/i.test(attribute.name.trim()) &&
@@ -1013,6 +1015,10 @@ export async function enrichResultFromRemoteDocuments(
   // set outside the `attributes` array entirely).
   const recomputedNormalized = normalizeEnrichedFields(result.manufacturerId, attributes, documents, `${result.title} ${result.description}`);
   const normalized = mergeEnrichedNormalized(result, recomputedNormalized);
+  if (result.manufacturerId === "spelsberg") {
+    if (!recomputedNormalized.voltage) delete normalized.voltage;
+    if (!recomputedNormalized.wallThickness) delete normalized.wallThickness;
+  }
   clearSiemensContextlessElectricalValues(result, normalized);
   if (result.manufacturerId === "schneider" && isSchneiderSafetyLightCurtain(attributes) && !recomputedNormalized.current) delete normalized.current;
   if (result.manufacturerId === "rittal" && !recomputedNormalized.current) delete normalized.current;

@@ -208,6 +208,10 @@ const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
   rule("E-Bike Charging Station", /\be[-\s]?bike charging stations?\b/i, 1_050),
   rule("Socket Outlet Combination", /\bsocket outlet combinations?\b/i, 1_040),
   rule("Small Distribution Board", /\bsmall distribution boards?\b/i, 1_035),
+  rule("Ceiling Junction Box", /\bceiling junction boxes?\b/i, 1_025),
+  rule("Large Conduit Box", /\blarge conduit boxes?\b/i, 1_020),
+  rule("Equipment Installation Box", /\bequipment installation boxes?\b/i, 1_015),
+  rule("Distribution Board", /\bdistribution boards?\b/i, 1_010),
   rule("Fire-Resistant Junction Box", /\b(?:junction|connection) box\b[\s\S]{0,180}\b(?:E\s*30|fire[-\s]?resistant|functional integrity)\b|\b(?:E\s*30|fire[-\s]?resistant|functional integrity)\b[\s\S]{0,180}\b(?:junction|connection) box\b/i, 1_030),
   rule("Loadcenter", /\b(?:loadcenter|load center|panelboard|distribution board|consumer unit|switchgear assembly)\b/i, 770),
   // ABB MEPY emergency-stop stations are sold as enclosures. The safety legend describes their

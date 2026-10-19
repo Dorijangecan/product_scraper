@@ -928,6 +928,16 @@ describe("normalizer", () => {
     expect(normalized.voltage).toBe("400 V");
   });
 
+  it("does not promote insulation voltage or ceiling slab thickness to operating/product fields", () => {
+    const normalized = normalizeFields([
+      { group: "PDF datasheet", name: "Feature", value: "insulation voltage: 400V AC, Halogen free" },
+      { group: "PDF Ontology Spec Miner", name: "Thickness", value: "up to 6.5 cm" },
+      { group: "Description", name: "Description", value: "Large conduit box for ceiling slab thickness up to 6.5 cm" }
+    ], [], "spelsberg");
+    expect(normalized.voltage).toBeUndefined();
+    expect(normalized.wallThickness).toBeUndefined();
+  });
+
   it("keeps rated current/voltage empty when ONLY surge/fault attributes exist (never wrong)", () => {
     const normalized = normalizeFields(
       [
