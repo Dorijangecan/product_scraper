@@ -354,6 +354,7 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
     Boolean(axisAssembledDimensions) &&
     (!combinedDimensionsValue || (axisDimensionCount >= combinedDimensionCount && weakestAxisConfidence >= (combinedDimensionsAttr?.confidence ?? 1)));
   const dimensions = (manufacturerId === "schneider" && isSchneiderPendantStation(attributes)) || nventSchroffTestAdapter ? undefined : (
+    (manufacturerId === "rittal" ? rittalProductDimensions(attributes) : undefined) ??
     nventGroundRodDimensions ??
     exactDoepkeDimensions ??
     (manufacturerId === "balluff" ? balluffProbeDimensions(attributes) : undefined) ??
@@ -371,7 +372,8 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
   const material = nventExactRailTerminalBlock
     ? undefined
     : manufacturerId === "rittal"
-    ? rittalExplicitLabelValue(rittalPdpAttributes, /^materials?$/i, rittalMaterialValue)
+    ? rittalExplicitLabelValue(rittalPdpAttributes, /^basic material$/i, rittalMaterialValue) ??
+      rittalExplicitLabelValue(rittalPdpAttributes, /^materials?$/i, rittalMaterialValue)
     : manufacturerId === "schmersal"
     ? exactSchmersalPdpFieldValue(attributes, /^(?:housing|body|enclosure) material$/i, normalizeHtmlSpecValue) ?? findMaterialAttr(attributes)
     : manufacturerId === "sce"
@@ -421,7 +423,16 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
     )) &&
     !(/^thickness$/i.test(attribute.name.trim()) && /ontology/i.test(attribute.group ?? ""))
   );
-  const wallThickness = bestWallThicknessAttributeValue(wallThicknessAttributes) ??
+  const wallThickness = (manufacturerId === "rittal"
+    ? (() => {
+        const enclosureThickness = rittalPdpAttributes.find((attribute) =>
+          /material thickness/i.test(attribute.name) && /\benclosure\b/i.test(attribute.name)
+        );
+        // The value alone (for example "1.5 mm") loses the evidence that it is a thickness.
+        // Keep the exact PDP label in the value passed to the strict shared validator.
+        return normalizeWallThicknessValue(enclosureThickness ? `${enclosureThickness.name}: ${enclosureThickness.value}` : undefined);
+      })()
+    : undefined) ?? bestWallThicknessAttributeValue(wallThicknessAttributes) ??
     registryFieldValue(wallThicknessAttributes, "wallThickness", normalizeWallThicknessValue) ??
     deriveWallThicknessFromAttributes(wallThicknessAttributes);
   const color = manufacturerId === "eta"
@@ -580,6 +591,8 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
     ? undefined
     : manufacturerId === "schneider" && isSchneiderSoftStarter(attributes)
     ? schneiderSoftStarterRatedCurrent(attributes)
+    : manufacturerId === "rittal"
+    ? rittalRatedCurrent(currentAttributes)
     : withoutMixedKindProse(
     (manufacturerId === "schneider" && isSchneiderTransformer(attributes)
       ? schneiderTransformerSecondaryCurrent(currentAttributes)
@@ -2826,6 +2839,16 @@ function isRittalCurrentEvidence(attr: AttributeRecord): boolean {
   return !/\b\d[\d.,]*\s*kA\b/i.test(attr.value);
 }
 
+function rittalRatedCurrent(attributes: AttributeRecord[]): string | undefined {
+  const candidates = attributes.filter((attribute) => /^rated current(?:\s+max\.?)?$/i.test(attribute.name.trim()));
+  const maximumRatings = candidates.filter((attribute) => /^rated current\s+max\.?$/i.test(attribute.name.trim()));
+  const primaryRatings = maximumRatings.length ? maximumRatings : candidates;
+  const values = [...new Set(primaryRatings.flatMap((attribute) =>
+    [...attribute.value.matchAll(/(\d+(?:[.,]\d+)?)\s*A\b/gi)].map((match) => `${formatNumber(localizedNumber(match[1]))} A`)
+  ))];
+  return values.length ? values.join("; ") : undefined;
+}
+
 function rittalExplicitLabelValue<T>(
   attributes: AttributeRecord[],
   labelPattern: RegExp,
@@ -2849,6 +2872,8 @@ function rittalMaterialValue(value: string): string | undefined {
   const cleaned = (normalizeHtmlSpecValue(value) ?? "")
     .replace(/(?:Fire\s+protection\s+corresponding\s+to|Halogen[-\s]?free).*/i, "")
     .replace(/\bVolume\s*:\s*\d+(?:[.,]\d+)?\s*(?:l|L)\b.*$/i, "")
+    .replace(/(Polyamide)(?=Polycarbonate)/gi, "$1; ")
+    .replace(/(Polycarbonate)(?=E-Cu\b)/gi, "$1; ")
     .replace(/([^\s;])(?=(?:enclosure|door|mounting\s+plate|light\s+(?:body|cover|ends)|front)\s*:\s*)/gi, "$1; ")
     .trim();
   return cleaned || undefined;
@@ -2868,6 +2893,33 @@ function rittalMultipleVoltageRanges(attributes: AttributeRecord[]): string | un
   for (const candidate of candidates) {
     const modes = candidate.value.split(/\s*[|;]\s*/).filter((part) => /\b\d[\d.,]*\s*V\b/i.test(part));
     if (modes.length >= 2) return normalizeHtmlSpecValue(candidate.value);
+  }
+  return undefined;
+}
+
+function rittalProductDimensions(attributes: AttributeRecord[]): string | undefined {
+  // Rittal's exact PDP product description labels dimensions as WHD. Use that exact variant row
+  // instead of a cut-out, installation-depth, or mounting-panel axis that happens to match a
+  // generic width/height/depth label elsewhere on the page.
+  const descriptions = attributes
+    .filter((attribute) =>
+      attribute.parser === "rittal-order-resolver" &&
+      attribute.sourceType === "official" &&
+      /^product description$/i.test(attribute.name.trim())
+    )
+    .sort(compareAttributeEvidence);
+  for (const attribute of descriptions) {
+    const match = attribute.value.match(/\bWHD\s*:?\s*(\d+(?:[.,]\d+)?)\s*x\s*(\d+(?:[.,]\d+)?)\s*x\s*(\d+(?:[.,]\d+)?)(?:\s*mm)?\b/i);
+    if (!match) continue;
+    const preciseDepth = attributes.find((candidate) =>
+      candidate.parser === "rittal-order-resolver" &&
+      candidate.sourceType === "official" &&
+      /^depth$/i.test(candidate.name.trim()) &&
+      /\d+(?:[.,]\d+)?\s*mm\b/i.test(candidate.value)
+    )?.value;
+    // normalized dimensions are H x W x D; the source explicitly provides W x H x D.
+    const normalized = normalizeDimensionValue(`${match[2]} x ${match[1]} x ${preciseDepth ?? `${match[3]} mm`}`);
+    if (normalized) return normalized;
   }
   return undefined;
 }

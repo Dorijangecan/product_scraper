@@ -253,6 +253,37 @@ describe("run manager document downloads", () => {
     expect(documentDownloadProfile({ id: "balluff" }, result)).toBe("full");
   });
 
+  it("uses only the exact PDP image when a Rittal variant exposes its complete source specifications", () => {
+    const productUrl = "https://www.rittal.com/com-en/products/PG20231215POW101/PRO69235?variantId=9635000";
+    const names = ["Product description", "Height", "Width", "Depth", "Dimensions", "Material", "Rated operating voltage", "Rated current max.", "Net weight", "Protection category IP"];
+    const result = {
+      manufacturerId: "rittal",
+      catalogNumber: "9635000",
+      status: "found",
+      confidence: 0.9,
+      productUrl,
+      title: "Board RiLine Compact",
+      normalized: { dimensions: "160 x 225 x 45.1 mm", voltage: "690 V (AC) | 600 V (DC)", current: "125 A", weight: "0.798 kg", protection: "IP 2X" },
+      attributes: [...names, "Function principle"].map((name) => ({
+        group: "Definition List",
+        name,
+        value: name === "Product description" ? "SV board, WHD: 225x160x45 mm (RiLine Compact)" : name === "Height" ? "160 mm" : name === "Width" ? "225 mm" : name === "Depth" ? "45.1 mm" : name === "Dimensions" ? "Width: 225 mm Height: 160 mm Depth: 45.1 mm" : name === "Net weight" ? "0.798 kg" : name === "Rated current max." ? "125 A" : name === "Function principle" ? "Contact-protected busbar board" : name === "Material" ? "Polyamide" : "verified product fact",
+        sourceUrl: productUrl,
+        sourceType: "official" as const,
+        parser: "rittal-order-resolver"
+      })),
+      documents: [
+        { type: "image", label: "Product image", url: "https://assets.rittal.com/9635000.png", sourceUrl: productUrl, sourceType: "official" as const },
+        { type: "manual", label: "Instructions", url: "https://www.rittal.com/manual.pdf", sourceUrl: productUrl, sourceType: "official" as const }
+      ],
+      sources: [],
+      qualityGate: { passed: true, identityConfirmed: true, score: 100, missing: [], reason: "Complete", attempts: [] }
+    } as ProductResult;
+
+    expect(documentDownloadProfile({ id: "rittal" }, result, { saveDocuments: true })).toBe("images-only");
+    expect(documentDownloadProfile({ id: "rittal" }, { ...result, attributes: result.attributes.filter((attribute) => attribute.name !== "Net weight") }, { saveDocuments: true })).toBe("full");
+  });
+
   it("keeps quality-profile documents for Excel enrichment even when document saving is off", () => {
     expect(shouldDownloadDocumentsForRun({ id: "balluff" }, { downloadDocuments: false, generateExcel: true })).toBe(true);
     expect(shouldDownloadDocumentsForRun({ id: "abb" }, { downloadDocuments: false, generateExcel: true })).toBe(true);

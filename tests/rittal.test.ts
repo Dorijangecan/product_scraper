@@ -48,6 +48,26 @@ describe("Rittal built-in profile", () => {
     expect(JSON.stringify(result.attributes)).toContain("1038000");
   });
 
+  it("retains every value from a Rittal specification label with multiple definition-list rows", () => {
+    const productUrl = "https://www.rittal.com/com-en/products/PG20231215SCH101/PG20231512SCH301/PRO70743?variantId=1180000";
+    const fetched: FetchedText = {
+      requestedUrl: "https://www.rittal.com/com-en/products/show/1180000",
+      effectiveUrl: productUrl,
+      statusCode: 200,
+      contentType: "text/html;charset=UTF-8",
+      text: `<html><head><title>AX 1180000</title><meta property="og:url" content="${productUrl}"></head><body><main><h1>AX 1180000</h1><dl><div><dt>Protection category NEMA</dt><dd>NEMA 1</dd><dd>NEMA 3R</dd><dd>NEMA 4</dd><dd>NEMA 12</dd></div><div><dt>Protection category to IEC 60 529</dt><dd>IP 66</dd></div><p>Article no.: AX 1180000</p></main></body></html>`,
+      fetchedAt: "2026-10-19T00:00:00.000Z",
+      fromCache: true
+    };
+
+    const result = parseGenericProductPage("rittal", "1180000", fetched, "official", "rittal-order-resolver");
+    const nema = result.attributes.find((attribute) => attribute.name === "Protection category NEMA");
+    expect(nema?.value).toContain("NEMA 1");
+    expect(nema?.value).toContain("NEMA 3R");
+    expect(nema?.value).toContain("NEMA 4");
+    expect(nema?.value).toContain("NEMA 12");
+  });
+
   it("still rejects an actual Cloudflare interstitial", () => {
     const fetched: FetchedText = {
       requestedUrl: "https://www.rittal.com/com-en/products/show/1038000",
@@ -266,6 +286,10 @@ describe("Rittal built-in profile", () => {
       { group: "Definition List", name: "Material", value: "PE plastic Volume: 12 l", sourceUrl: productUrl, sourceType: "official", parser: "rittal-order-resolver" }
     ], [], "rittal").material).toBe("PE plastic");
 
+    expect(normalizeFields([
+      { group: "Definition List", name: "Material", value: "PolyamidePolycarbonateE-CuFire protection corresponding to UL 94", sourceUrl: productUrl, sourceType: "official", parser: "rittal-order-resolver" }
+    ], [], "rittal").material).toBe("Polyamide; Polycarbonate; E-Cu");
+
     const relatedDeviceProtection = normalizeFields([
       { group: "PDF datasheet", name: "Feature", value: "Krytí: IP 54/IP 55/IP 56, UL typ", sourceUrl: productUrl, sourceType: "generated", parser: "pdf-table-extractor" }
     ], [], "rittal");
@@ -275,6 +299,31 @@ describe("Rittal built-in profile", () => {
       { group: "Title/Description Inference", name: "Material", value: "stainless steel", sourceUrl: productUrl, sourceType: "generated", parser: "summary-inference" }
     ], [], "rittal");
     expect(noDirectMaterial.material).toBeUndefined();
+  });
+
+  it("uses exact Rittal WHD dimensions and enclosure-body thickness over cut-outs and door panels", () => {
+    const productUrl = "https://www.rittal.com/com-en/products/example?variantId=3244700";
+    const fan = normalizeFields([
+      { group: "Definition List", name: "Product description", value: "SK Blue e+ filter fan, WHD 323 x 323 x 156 mm", sourceUrl: productUrl, sourceType: "official", parser: "rittal-order-resolver" },
+      { group: "Plain Text Specs", name: "Width", value: "292 mm", sourceUrl: productUrl, sourceType: "official", parser: "rittal-order-resolver" },
+      { group: "Plain Text Specs", name: "Height", value: "292 mm", sourceUrl: productUrl, sourceType: "official", parser: "rittal-order-resolver" },
+      { group: "Ontology Spec Text", name: "Depth", value: "156 mm", sourceUrl: productUrl, sourceType: "official", parser: "rittal-order-resolver" }
+    ], [], "rittal");
+    expect(fan.dimensions).toBe("323 x 323 x 156 mm");
+
+    const enclosure = normalizeFields([
+      { group: "Definition List", name: "Material", value: "Enclosure: Sheet steelDoor: Sheet steel", sourceUrl: productUrl, sourceType: "official", parser: "rittal-order-resolver" },
+      { group: "Definition List", name: "Basic material", value: "Sheet steel", sourceUrl: productUrl, sourceType: "official", parser: "rittal-order-resolver" },
+      { group: "Definition List", name: "Material thickness - door", value: "2 mm", sourceUrl: productUrl, sourceType: "official", parser: "rittal-order-resolver" },
+      { group: "Definition List", name: "Material thickness - enclosure", value: "1.5 mm", sourceUrl: productUrl, sourceType: "official", parser: "rittal-order-resolver" }
+    ], [], "rittal");
+    expect(enclosure.material).toBe("Sheet steel");
+    expect(enclosure.wallThickness).toBe("1.5 mm");
+
+    expect(normalizeFields([
+      { group: "Definition List", name: "Rated current max.", value: "125 A", sourceUrl: productUrl, sourceType: "official", parser: "rittal-order-resolver" },
+      { group: "Definition List", name: "Rated current (UL)", value: "100 A", sourceUrl: productUrl, sourceType: "official", parser: "rittal-order-resolver" }
+    ], [], "rittal").current).toBe("125 A");
   });
 
   it("preserves all official voltage modes published on Rittal cooling products", () => {

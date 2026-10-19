@@ -169,6 +169,7 @@ export const DEVICE_TYPE_FAMILIES: Record<string, readonly FamilyEntry[]> = {
     { patterns: ["SAI"], type: "I/O Module" }
   ],
   rittal: [
+    { patterns: ["IT LED system light"], type: "Luminaire", notes: "Rittal IT system lights" },
     { patterns: ["AE", "KX", "EB", "BG", "TS", "TS8"], type: "Enclosure" },
     { patterns: ["VX", "VX25"], type: "Enclosure", notes: "VX25 baying enclosure" },
     { patterns: ["DK"], type: "Rack Cabinet" },

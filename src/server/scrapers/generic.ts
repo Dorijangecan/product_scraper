@@ -652,7 +652,12 @@ export function parseGenericProductPage(
   genericStageStartedAt = Date.now();
   $("dt").each((_, element) => {
     const name = cleanText($(element).text());
-    const value = cleanText($(element).next("dd").text());
+    // Rittal specifications render multi-valued ratings as one <dt> followed by several
+    // adjacent <dd> elements (for example NEMA 1/3R/4/12). Keep every value belonging to that
+    // exact label; the adjacent sibling boundary prevents bleeding into the next specification.
+    const value = manufacturerId === "rittal"
+      ? cleanText($(element).nextUntil("dt", "dd").map((__, sibling) => $(sibling).text()).get().join("; "))
+      : cleanText($(element).next("dd").text());
     if (name && value) {
       attributes.push({ group: "Definition List", name, value, sourceUrl: fetched.effectiveUrl });
     }

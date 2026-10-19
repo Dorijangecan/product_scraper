@@ -153,6 +153,11 @@ MMPDATA MLFB zapis za tehničku tablicu i zadržava API sliku/datasheet. Generi�
 detail stranica koristi se kad taj zapis ili osnovni API dokumenti nedostaju. Oznaka izvora
 `siemens-mmpdata-fast` u `generic.ts` preskače serijske link-probeove slike iz BildDB-a.
 
+**Rittal exact-PDP images-only path:** `run-manager.ts` preskače preuzimanje širokog skupa PDF-ova
+kada točan variant URL, PDP identitet, tipno potrebni službeni atributi, WHD/osi dimenzije i PDP
+slika već potvrđeni. Izvorni dokument URL-ovi ostaju u dokazima; detalji validiranih porodica i
+source labela su u `benchmarks/rittal-accuracy-speed-20261019/batch-01/README.md`.
+
 ## 5. Ovisnosti — "što utječe na što"  ⟵ NAJVAŽNIJE
 
 ### 5a. Hot files / blast radius (stvarni in-degree iz `madge src/server`)

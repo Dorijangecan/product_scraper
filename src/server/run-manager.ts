@@ -1841,6 +1841,7 @@ export function documentDownloadProfile(
   result: ProductResult,
   options: { saveDocuments?: boolean } = {}
 ): DocumentDownloadProfile {
+  if (manufacturer.id === "rittal" && hasCompleteRittalOfficialProductData(result)) return "images-only";
   if (options.saveDocuments === false) {
     if (hasCompleteAbbOfficialProductData(result)) return "images-only";
     if (hasCompleteNventPassiveProductData(result)) return "images-only";
@@ -1859,6 +1860,52 @@ export function documentDownloadProfile(
   if (manufacturer.id === "eaton") return "quality";
   if (options.saveDocuments === true) return "full";
   return manufacturer.scrapeRecipe?.fallbackPolicy?.documentDownloadProfile ?? "full";
+}
+
+function hasCompleteRittalOfficialProductData(result: ProductResult): boolean {
+  if (result.manufacturerId !== "rittal" || result.qualityGate?.passed !== true || result.qualityGate.identityConfirmed !== true) return false;
+  const productUrl = result.productUrl;
+  if (!productUrl) return false;
+  try {
+    const url = new URL(productUrl);
+    if (url.hostname !== "www.rittal.com" || url.searchParams.get("variantId") !== result.catalogNumber) return false;
+  } catch {
+    return false;
+  }
+  const exactPdp = result.attributes.filter((attribute) =>
+    attribute.parser === "rittal-order-resolver" &&
+    attribute.sourceType === "official" &&
+    attribute.sourceUrl === productUrl
+  );
+  if (exactPdp.length < 6) return false;
+  if (!result.documents.some((document) => document.type === "image" && document.sourceUrl === productUrl)) return false;
+  const has = (pattern: RegExp) => exactPdp.some((attribute) => pattern.test(attribute.name.trim()) && Boolean(attribute.value.trim()) && !/^null$/i.test(attribute.value.trim()));
+  const requiredByType: Record<string, RegExp[]> = {
+    "Filter Fan": [/^product description$/i, /^material$/i, /^rated operating voltage$/i, /^rated current(?: max\.)?$/i, /^net weight$/i, /^(?:(?:IP )?protection category|protection category to IEC)/i],
+    Luminaire: [/^product description$/i, /^material$/i, /^luminous flux$/i, /^light colou?r$/i, /^net weight$/i, /^(?:(?:IP )?protection category|protection category to IEC)/i],
+    Heater: [/^product description$/i, /^material$/i, /^rated operating voltage$/i, /^continuous thermal output/i, /^net weight$/i, /^(?:(?:IP )?protection category|protection category to IEC)/i],
+    Busbar: [/^product description$/i, /^material$/i, /^rated operating voltage$/i, /^rated current max\.?$/i, /^net weight$/i, /^(?:(?:IP )?protection category|protection category to IEC)/i],
+    Enclosure: [/^product description$/i, /^(?:base|basic) material$/i, /^material thickness\s*[-–]\s*enclosure$/i, /^net weight$/i, /^(?:(?:IP )?protection category|protection category to IEC)/i]
+  };
+  const hasExactDimensions = exactPdp.some((attribute) =>
+    /^product description$/i.test(attribute.name.trim()) && /\bWHD\s*:?\s*\d+(?:[.,]\d+)?\s*x\s*\d+(?:[.,]\d+)?\s*x\s*\d+(?:[.,]\d+)?/i.test(attribute.value)
+  ) || ["height", "width", "depth"].every((axis) => exactPdp.some((attribute) =>
+    new RegExp(`^${axis}$`, "i").test(attribute.name.trim()) && /\d+(?:[.,]\d+)?\s*mm\b/i.test(attribute.value)
+  ));
+  const classifiedType = classifyDeviceType(result).type;
+  // Rittal's generic type classifier can mistake an accessory specification (for example an
+  // internally fitted fuse) for the ordered product's type. Identify these PDP families from
+  // their exact variant-only labels, which are the same fields used by the completeness gate.
+  const exactType = classifiedType && requiredByType[classifiedType]
+    ? classifiedType
+    : has(/^luminous flux$/i) ? "Luminaire"
+    : has(/^continuous thermal output/i) ? "Heater"
+    : has(/^material thickness\s*[-–]\s*enclosure$/i) ? "Enclosure"
+    : has(/^rated current max\.?$/i) && has(/^rated operating voltage$/i) ? "Busbar"
+    : has(/^air throughput$/i) || has(/^rated current(?: max\.)?$/i) ? "Filter Fan"
+    : undefined;
+  const required = requiredByType[exactType ?? ""];
+  return Boolean(required?.every(has) && hasExactDimensions);
 }
 
 function hasCompleteNventPassiveProductData(result: ProductResult): boolean {

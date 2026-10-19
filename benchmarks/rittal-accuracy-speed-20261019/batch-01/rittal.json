@@ -1,0 +1,203 @@
+[
+  {
+    "manufacturerId": "rittal",
+    "catalogNumber": "3244700",
+    "caseType": "electrical",
+    "expectedDeviceType": "Filter Fan",
+    "riskTags": [
+      "rittal-batch-01",
+      "climate-filter-fan"
+    ],
+    "expectedOfficialUrlPatterns": [
+      "rittal\\.com/.+variantId=3244700(?:$|[&#])"
+    ],
+    "requiredDocuments": [
+      "image"
+    ],
+    "expectedNormalizedFields": [
+      "voltage",
+      "current",
+      "weight",
+      "material",
+      "dimensions",
+      "protection"
+    ],
+    "expectedAttributePatterns": [
+      "3244700",
+      "SK 3244700",
+      "867 m³/h",
+      "910 m³/h",
+      "230 V",
+      "0.51 A",
+      "IP 54",
+      "323 mm",
+      "0.68 A"
+    ],
+    "expectedNormalizedPatterns": {
+      "weight": "4[.]8 kg",
+      "dimensions": "323\\s*x\\s*323\\s*x\\s*156",
+      "current": "0[.]51\\s*A",
+      "voltage": "230\\s*V"
+    }
+  },
+  {
+    "manufacturerId": "rittal",
+    "catalogNumber": "7859000",
+    "caseType": "electrical",
+    "expectedDeviceType": "Luminaire",
+    "riskTags": [
+      "rittal-batch-01",
+      "it-led-system-light"
+    ],
+    "expectedOfficialUrlPatterns": [
+      "rittal\\.com/.+variantId=7859000(?:$|[&#])"
+    ],
+    "requiredDocuments": [
+      "image"
+    ],
+    "expectedBlankNormalizedFields": [
+      "voltage",
+      "current"
+    ],
+    "expectedNormalizedFields": [
+      "weight",
+      "material",
+      "dimensions",
+      "protection"
+    ],
+    "expectedAttributePatterns": [
+      "7859000",
+      "IT LED system light",
+      "600 lm",
+      "4000 K",
+      "IP 20",
+      "337 mm"
+    ],
+    "expectedNormalizedPatterns": {
+      "weight": "0[.]38 kg",
+      "dimensions": "55\\s*x\\s*337\\s*x\\s*23"
+    }
+  },
+  {
+    "manufacturerId": "rittal",
+    "catalogNumber": "3105320",
+    "caseType": "electrical",
+    "expectedDeviceType": "Heater",
+    "riskTags": [
+      "rittal-batch-01",
+      "enclosure-heater-without-fan"
+    ],
+    "expectedOfficialUrlPatterns": [
+      "rittal\\.com/.+variantId=3105320(?:$|[&#])"
+    ],
+    "requiredDocuments": [
+      "image"
+    ],
+    "expectedNormalizedFields": [
+      "voltage",
+      "weight",
+      "material",
+      "dimensions",
+      "protection"
+    ],
+    "expectedAttributePatterns": [
+      "3105320",
+      "Enclosure Heater without fan",
+      "18 W",
+      "20 W",
+      "110 V",
+      "240 V",
+      "IP 20",
+      "PTC heater"
+    ],
+    "expectedNormalizedPatterns": {
+      "weight": "0[.]2 kg",
+      "dimensions": "120\\s*x\\s*45\\s*x\\s*46",
+      "voltage": "110\\s*V.*240\\s*V"
+    }
+  },
+  {
+    "manufacturerId": "rittal",
+    "catalogNumber": "9635000",
+    "caseType": "electrical",
+    "expectedDeviceType": "Busbar",
+    "riskTags": [
+      "rittal-batch-01",
+      "riline-compact-integrated-busbars"
+    ],
+    "expectedOfficialUrlPatterns": [
+      "rittal\\.com/.+variantId=9635000(?:$|[&#])"
+    ],
+    "requiredDocuments": [
+      "image"
+    ],
+    "expectedNormalizedFields": [
+      "voltage",
+      "current",
+      "weight",
+      "dimensions",
+      "material",
+      "protection"
+    ],
+    "expectedAttributePatterns": [
+      "9635000",
+      "Board RiLine Compact",
+      "125 A",
+      "100 A",
+      "690 V",
+      "600 V",
+      "3-pole",
+      "Polyamide",
+      "Polycarbonate"
+    ],
+    "expectedNormalizedPatterns": {
+      "weight": "0[.]798 kg",
+      "dimensions": "160\\s*x\\s*225\\s*x\\s*45[.]1",
+      "current": "125\\s*A",
+      "voltage": "690\\s*V",
+      "material": "Polyamide.*Polycarbonate.*E-Cu"
+    }
+  },
+  {
+    "manufacturerId": "rittal",
+    "catalogNumber": "1180000",
+    "caseType": "mechanical",
+    "expectedDeviceType": "Enclosure",
+    "riskTags": [
+      "rittal-batch-01",
+      "ax-wall-mounted-enclosure"
+    ],
+    "expectedOfficialUrlPatterns": [
+      "rittal\\.com/.+variantId=1180000(?:$|[&#])"
+    ],
+    "requiredDocuments": [
+      "image"
+    ],
+    "expectedNormalizedFields": [
+      "weight",
+      "material",
+      "dimensions",
+      "color",
+      "protection",
+      "wallThickness"
+    ],
+    "expectedAttributePatterns": [
+      "1180000",
+      "AX 1180000",
+      "Sheet steel",
+      "IP 66",
+      "NEMA 4",
+      "800 mm",
+      "1000 mm",
+      "300 mm",
+      "Material thickness.*door.*2 mm",
+      "Material thickness.*enclosure.*1.5 mm"
+    ],
+    "expectedNormalizedPatterns": {
+      "weight": "49[.]7 kg",
+      "dimensions": "1000\\s*x\\s*800\\s*x\\s*300",
+      "protection": "NEMA 4",
+      "wallThickness": "1[.]5 mm"
+    }
+  }
+]
